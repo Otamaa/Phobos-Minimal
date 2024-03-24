@@ -4321,7 +4321,7 @@ DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 	GET(BuildingTypeClass*, pType, EAX);
 	LEA_STACK(CellStruct*, pDest, 0x4);
 	R->AL(MapClass::Instance->GetCellAt(pDest)
-		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, -1, MovementZone::Normal, -1, 1)
+		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1)
 	);
 	return 0x449487;
 }

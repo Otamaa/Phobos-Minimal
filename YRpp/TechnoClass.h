@@ -572,6 +572,21 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		return ret;
 	}
 
+	FORCEINLINE FacingClass F_TurretFacing()
+	{
+		FacingClass ret;
+		typedef FacingClass*(__thiscall* F_TurretFacing)(FacingClass* buffer);
+		(*reinterpret_cast<F_TurretFacing*>(&this[0x2A8]))(&ret);
+		return ret;
+	}
+
+	FORCEINLINE FacingClass F_GetRealfacing(){
+		FacingClass ret;
+		typedef FacingClass*(__thiscall* F_GetRealfacing)(FacingClass* buffer);
+		(*reinterpret_cast<F_GetRealfacing*>(&this[0x308]))(&ret);
+		return ret;
+	}
+
 	DirStruct GetRealFacing() const {
 		DirStruct ret;
 		this->GetRealFacing(&ret);
@@ -662,9 +677,12 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x6F7220);
 	}
 
-	unsigned int EvaluateTargetElevation(AbstractClass* pTarget) const {
+	int EvaluateTargetElevation(AbstractClass* pTarget) const {
 		JMP_THIS(0x6F6F60);
 	}
+
+	int GetElevationBonusDistance(AbstractClass* pTarget) const
+		{ JMP_THIS(0x6F6F60); }
 
 	void CreateTalkBubble(int frame) const {
 		JMP_THIS(0x70F120);

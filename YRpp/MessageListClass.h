@@ -57,6 +57,9 @@ public:
 		DWORD dwUnk2 = 0x4046, int duration = 0x96, bool bSilent = false)
 		{ JMP_THIS(0x5D3BA0); };
 
+	void PrintMessage(const wchar_t* pLabel, const wchar_t* pMessage, int durationFrames = 0x96, int nColorSchemeIndex = ColorScheme::White, bool bSilent = false)
+		{ this->PrintMessage(pLabel, 0, pMessage, nColorSchemeIndex, 0x4046, durationFrames, bSilent); }
+
 	void PrintMessage(const wchar_t* pMessage, int durationFrames = 0x96, int nColorSchemeIndex = ColorScheme::White, bool bSilent = false)
 		{ this->PrintMessage(nullptr, 0, pMessage, nColorSchemeIndex, 0x4046, durationFrames, bSilent); }
 

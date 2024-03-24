@@ -169,7 +169,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (pTypeExt->CreateUnit_ConsiderPathfinding
-			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, -1, pUnit->MovementZone, -1, isBridge)))
+			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge)))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
 				pUnit->SpeedType, -1, pUnit->MovementZone, isBridge, 1, 1, true,

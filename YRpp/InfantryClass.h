@@ -52,6 +52,7 @@ public:
 	void RemoveMe_FromGunnerTransport();
 	void ForceHarvest() const { JMP_THIS(0x522D00); }
 	bool IsHarvesting() const { JMP_THIS(0x522FC0); }
+	int UpdateDeploy() const { JMP_THIS(0x521320); } //return frames
 
 	//Constructor
 	InfantryClass(InfantryTypeClass* pType, HouseClass* pOwner) noexcept

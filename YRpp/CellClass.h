@@ -222,9 +222,12 @@ public:
 	bool CanThisExistHere(SpeedType SpeedType, BuildingTypeClass* pObject, HouseClass* pOwner) const
 		{ JMP_THIS(0x47C620); }
 
-	bool IsClearToMove(SpeedType loco, bool ignoreinfantry, bool ignorevehicles, int zone, MovementZone check, int level, bool bool1) const
+	bool IsClearToMove(SpeedType loco, bool ignoreinfantry, bool ignorevehicles, ZoneType zone, MovementZone check, int level, bool alt) const
 		{ JMP_THIS(0x4834A0); }
 
+	FORCEINLINE bool IsClearToMove(SpeedType speedType, MovementZone movementZone, bool ignoreInfantry = false, bool ignoreVehicles = false, int level = -1) {
+		return IsClearToMove(speedType, ignoreInfantry, ignoreInfantry, ZoneType::None, movementZone, level, (bool)(this->Flags & CellFlags::CenterRevealed));
+	}
 	// those unks are passed to TechnoClass::Scatter in that same order
 	void ScatterContent(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination, bool alt) const
 		{ JMP_THIS(0x481670); }

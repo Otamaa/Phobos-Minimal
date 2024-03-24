@@ -967,7 +967,7 @@ DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pHomeCoords);
 	const auto pTechnoType = pTechno->GetTechnoType();
-	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1))
 	{
 		if(Phobos::Otamaa::IsAdmin)
 			Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
@@ -988,7 +988,7 @@ DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pCellCoords);
 	const auto pTechnoType = pTechno->GetTechnoType();
-	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1))
 	{
 		if(Phobos::Otamaa::IsAdmin)
 			Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);

@@ -49,7 +49,9 @@ std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 		// blue , yellow , white
 		{ 0,0,255 } , { 255,255,0 } , { 255 , 255 , 255 } ,
 		// ares cameo transparent color
-		{ 255 , 0 , 255 }
+		{ 255 , 0 , 255 } ,
+		// black
+		{ 3 , 3 , 3}
 }
 };
 
@@ -133,6 +135,11 @@ void SlaveManagerClass::ZeroOutSlaves() {
 		pNode->State = SlaveControlStatus::Dead;
 		pNode->RespawnTimer.Start(this->RegenRate);
 	}
+}
+
+DamageState ObjectClass::TakeDamage(int damage, bool crewed, bool ignoreDefenses , ObjectClass* pAttacker , HouseClass* pAttackingHouse)
+{
+	return TakeDamage(damage, RulesClass::Instance->C4Warhead, crewed, ignoreDefenses, pAttacker, pAttackingHouse);
 }
 
 const char* ObjectClass::get_ID() const
@@ -272,6 +279,15 @@ SuperClass* HouseClass::FindSuperWeapon(SuperWeaponType const type) const {
 	return this->Supers.GetItemOrDefault(index);
 }
 
+SuperClass* HouseClass::FindSuperWeapon(SuperWeaponTypeClass* pType) const {
+	for (int i = 0; i < this->Supers.Count; ++i) {
+		if (this->Supers.Items[i]->Type == pType) {
+			return this->Supers.Items[i];
+		}
+	}
+
+	return nullptr;
+}
 bool HouseClass::IsIonCannonEligibleTarget(const TechnoClass* const pTechno) const {
 	if(pTechno->IsAlive && !pTechno->InLimbo && pTechno->InWhichLayer() == Layer::Ground) {
 		return true;

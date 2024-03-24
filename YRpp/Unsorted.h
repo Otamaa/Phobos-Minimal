@@ -818,6 +818,7 @@ struct ColorPacker
 	int _G_SHR;
 };
 
+class BuildingTypeClass;
 namespace Unsorted
 {
 	constexpr reference<const char* const, 0x7E5210u, 11u> const ArmorNameArray {};
@@ -878,6 +879,9 @@ namespace Unsorted
 	constexpr reference<CellStruct, 0x88096Au> const Display_ZoneCell2 {};
 	constexpr reference<CellStruct, 0x880960u> const Display_ZoneOffset {};
 	constexpr reference<CellStruct, 0x88096Eu> const Display_ZoneOffset2 {};
+	constexpr reference<bool, 0x880968u> const Display_PassedProximityCheck{};
+	constexpr reference<BuildingTypeClass*, 0x880990u> const Display_PendingObject{};
+	constexpr reference<int, 0x880994u> const Display_PendingHouse{};
 };
 
 struct CheatData

@@ -1457,6 +1457,7 @@ enum class DefaultColorList : int
 	Yellow = 4,
 	White = 5,
 	AresPCXTransparent = 6,
+	Black = 7,
 	count
 };
 

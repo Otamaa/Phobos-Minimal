@@ -20,6 +20,7 @@ class NOVTABLE Surface
 {
 public:
 	static constexpr inline DWORD vtable = 0x7E2198;
+	static constexpr reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern{};
 
 	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
@@ -50,8 +51,8 @@ public:
 
 	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) PURE;
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset) PURE;
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) PURE;
+	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) PURE;
+	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) PURE;
 
 	virtual bool Draw_Rect(RectangleStruct& RectangleStruct, unsigned color) PURE;
@@ -149,6 +150,11 @@ public:
 		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect,pSrcRect, bUnk1, bUnk2);
 	}
 
+	bool DrawDashedLine(Point2D& pStart, Point2D& pEnd, int nColor, int nOffset) {
+		return Draw_Dashed_Line(pStart, pEnd, nColor, Target_Laser_Draw_Pattern.get(), nOffset);
+	}
+
+
 public:
 	int Width;
 	int Height;
@@ -193,8 +199,8 @@ public:
 
 	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) override JMP_THIS(0x7BAB90);
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset) override JMP_THIS(0x7BA8C0);
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override R0;
+	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) override JMP_THIS(0x7BA8C0);
+	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override  R0;
 
 	virtual bool Draw_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BAD90);
@@ -490,10 +496,17 @@ public:
 	virtual bool IsDSurface() const override { return true; }
 
 	virtual bool DrawGradientLine(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& a4, ColorStruct& a5, float& a6, float& a7) JMP_THIS(0x4BF750);
-	virtual bool Can_Blit() const JMP_THIS(0x4BAF20);
+	virtual bool Can_Blit() const { JMP_THIS(0x4BAF20); }
 
-	static __int16 __fastcall _4BF650_adjust(unsigned __int16 a1, int a2, int a3) JMP_THIS(0x4BF650);
-	bool _4BEAC0_Blit(int a2, int a3, int a4, int a5, signed int a6, int a7, int a8) JMP_THIS(0x4BEAC0);
+	static __int16 __fastcall _4BF650_adjust(unsigned __int16 a1, int a2, int a3)
+		{ JMP_THIS(0x4BF650); }
+
+	bool _4BEAC0_Blit(int a2, int a3, int a4, int a5, signed int a6, int a7, int a8)
+		{ JMP_THIS(0x4BEAC0); }
+
+	void DrawLineBlit(RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pStartColor, int mult, int start_z, int end_z)
+		{ JMP_THIS(0x4BEAC0); }
+
 	bool Restore_Check() JMP_THIS(0x4BB000);
 	bool IsSurface_Lost() JMP_THIS(0x4BAFE0);
 

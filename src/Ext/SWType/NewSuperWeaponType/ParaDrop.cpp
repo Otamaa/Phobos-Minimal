@@ -318,7 +318,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 		bool allowBridges = GroundType::GetCost(LandType::Clear,pType->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pDest->ContainsBridge();
 
-		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, (int)MovementZone::None, pType->MovementZone, -1, isBridge)) {
+		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, ZoneType::None, pType->MovementZone, -1, isBridge)) {
 			pDest = MapClass::Instance->GetCellAt(
 				MapClass::Instance->NearByLocation(
 					pDest->MapCoords,
