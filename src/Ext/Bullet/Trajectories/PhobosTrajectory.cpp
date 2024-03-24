@@ -96,7 +96,7 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	return true;
 }
 
-static constexpr std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings
+std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::TrajectoryTypeToSrings
 { {
 	{"Straight"} ,
 	{"Bombard"} ,
@@ -186,6 +186,47 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::uniqu
 		if(Savegame::WritePhobosStream(Stm, pType.get()))
 			pType->Save(Stm);
 	}
+}
+
+bool PhobosTrajectoryType::TrajectoryValidation(BulletTypeClass* pAttached) {
+
+	bool ret = false;
+
+	// Trajectory validation combined with other projectile behaviour.
+	if (auto& pTraj = BulletTypeExtContainer::Instance.Find(pAttached)->TrajectoryType)
+	{
+		if (pTraj->Flag == TrajectoryFlag::Invalid)
+			return ret;
+
+		const char* pSection = pAttached->ID;
+		const char* pTrjType = PhobosTrajectoryType::TrajectoryTypeToSrings[(int)pTraj->Flag];
+
+		if (pAttached->Arcing) {
+			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Arcing. Arcing has been set to false.\n", pSection , pTrjType);
+			pAttached->Arcing = false;
+			ret = true;
+		}
+
+		if (pAttached->Inviso) {
+			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Inviso. Inviso has been set to false.\n", pSection, pTrjType);
+			pAttached->Inviso = false;
+			ret = true;
+		}
+
+		if (pAttached->ROT) {
+			Debug::Log("Bullet[%s] has Trajectory[%s] set together with ROT value other than 0. ROT has been set to 0.\n", pSection, pTrjType);
+			pAttached->ROT = 0;
+			ret = true;
+		}
+
+		if (pAttached->Vertical) {
+			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Vertical. Vertical has been set to false.\n", pSection, pTrjType);
+			pAttached->Vertical = false;
+			ret = true;
+		}
+	}
+
+	return ret;
 }
 
 double PhobosTrajectory::GetTrajectorySpeed() const

@@ -21,6 +21,7 @@ enum class TrajectoryFlag : int
 
 class VelocityClass;
 class BulletClass;
+class BulletTypeClass;
 class PhobosTrajectoryType
 {
 public:
@@ -41,6 +42,9 @@ public:
 
 	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectoryType>& pType);
 	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectoryType>& pType);
+	static bool TrajectoryValidation(BulletTypeClass* pAttached);
+
+	static std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings;
 
 protected :
 	static bool UpdateType(std::unique_ptr<PhobosTrajectoryType>& pType , TrajectoryFlag flag);

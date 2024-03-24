@@ -26,21 +26,32 @@ DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 }
 
 // Parse Powered(Light|Effect|Special) keys for upgrade anims.
-DEFINE_HOOK(0x4648B3, BuildingTypeClass_ReadINI_PowerUpAnims, 0x5)
+DEFINE_HOOK(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
-	GET(int, index, EBX);
 
-	auto const pINI = &CCINIClass::INI_Art();
-	auto const animData = &pThis->BuildingAnim[index - 1];
+	for (int i = 0; i < pThis->Upgrades; ++i)
+	{
+		auto const pINI = &CCINIClass::INI_Art();
+		auto const animData = &pThis->BuildingAnim[i];
 
-	std::string baseKey = std::format("PowerUp{:01}", index);
-	animData->Powered = pINI->ReadBool(pThis->ImageFile, (baseKey + "Powered").c_str(), animData->Powered);
-	animData->PoweredLight = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredLight").c_str(), animData->PoweredLight);
-	animData->PoweredEffect = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredEffect").c_str(), animData->PoweredEffect);
-	animData->PoweredSpecial = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredSpecial").c_str(), animData->PoweredSpecial);
+		std::string baseKey = std::format("PowerUp{:01}", i + 1);
 
-	return 0;
+		pINI->ReadString(pThis->ImageFile, (baseKey + "Anim").c_str(), Phobos::readDefval, animData->Anim);
+		pINI->ReadString(pThis->ImageFile, (baseKey + "DamagedAnim").c_str(), Phobos::readDefval, animData->Damaged);
+
+		animData->Position.X = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocXX").c_str(), animData->Position.X);
+		animData->Position.Y = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocYY").c_str(), animData->Position.Y);
+		animData->ZAdjust = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocZZ").c_str(), animData->ZAdjust);
+		animData->YSort = pINI->ReadInteger(pThis->ImageFile, (baseKey + "YSort").c_str(), animData->YSort);
+
+		animData->Powered = pINI->ReadBool(pThis->ImageFile, (baseKey + "Powered").c_str(), animData->Powered);
+		animData->PoweredLight = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredLight").c_str(), animData->PoweredLight);
+		animData->PoweredEffect = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredEffect").c_str(), animData->PoweredEffect);
+		animData->PoweredSpecial = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredSpecial").c_str(), animData->PoweredSpecial);
+	}
+
+	return 0x46492E;
 }
 
 // Don't allow upgrade anims to be created if building is not upgraded or they require power to be shown and the building isn't powered.
