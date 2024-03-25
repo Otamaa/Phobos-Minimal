@@ -12,18 +12,17 @@
 DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
-	const auto pRules = RulesClass::Instance();
 	const auto pRulesExt = RulesExtData::Instance();
 
-	pThis->JumpjetTurnRate = pRules->TurnRate;
-	pThis->JumpjetSpeed = pRules->Speed;
-	pThis->JumpjetClimb = static_cast<float>(pRules->Climb);
+	pThis->JumpjetTurnRate = pRulesExt->AttachedToObject->TurnRate;
+	pThis->JumpjetSpeed = pRulesExt->AttachedToObject->Speed;
+	pThis->JumpjetClimb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
 	pThis->JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpjetHeight = pRules->CruiseHeight;
-	pThis->JumpjetAccel = static_cast<float>(pRules->Acceleration);
-	pThis->JumpjetWobbles = static_cast<float>(pRules->WobblesPerSecond);
+	pThis->JumpjetHeight = pRulesExt->AttachedToObject->CruiseHeight;
+	pThis->JumpjetAccel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
+	pThis->JumpjetWobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
 	pThis->JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpjetDeviation = pRules->WobbleDeviation;
+	pThis->JumpjetDeviation = pRulesExt->AttachedToObject->WobbleDeviation;
 
 	return 0x711601;
 }
