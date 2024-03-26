@@ -149,7 +149,12 @@ struct LuaScript
 	}
 };
 
-static std::vector<LuaScript> LuaScripts {};
+//static std::vector<LuaScript> LuaScripts {};
+struct PairOfNumbers {
+	int Original;
+	int Alternate;
+};
+static std::vector<PairOfNumbers> SriptNumbers {};
 
 bool LuaBridge::OnCalled(TeamClass* pTeam)
 {
@@ -185,8 +190,7 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 
 void LuaBridge::InitScriptLuaList()
 {
-#ifdef EXPERIMENTAL
-	static constexpr const char* filename = "ListHolder.lua";
+	static constexpr const char* filename = "ScriptAlternativeNumbering.lua";
 	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
 
@@ -198,7 +202,7 @@ void LuaBridge::InitScriptLuaList()
 		if (lua_istable(L, -1))
 		{ // is T table ?
 			const size_t scriptSize = (size_t)lua_rawlen(L, -1);
-			LuaScripts.resize(scriptSize);
+			SriptNumbers.reserve(scriptSize);
 
 			for (size_t i = 0; i < scriptSize; i++)
 			{
@@ -207,22 +211,33 @@ void LuaBridge::InitScriptLuaList()
 
 				if (lua_istable(L, -2))
 				{
-					lua_pushstring(L, "Number");
+					lua_pushstring(L, "Original");
 					lua_gettable(L, -2);
-					const auto number = (int)lua_tointeger(L, -1);
+					const auto Originalnumber = (int)lua_tointeger(L, -1);
 					lua_pop(L, 1);
 
-					lua_pushstring(L, "Name");
+					lua_pushstring(L, "Alternative");
 					lua_gettable(L, -2);
-					auto name = lua_tostring(L, -1);
+					const auto AlternativeNumber = (int)lua_tointeger(L, -1);
 					lua_pop(L, 1);
 
-					LuaScripts[i].Initialize(number, name);
+					SriptNumbers[i].Original = Originalnumber;
+					SriptNumbers[i].Alternate = AlternativeNumber;
 				}
 
 				lua_pop(L, 1);
 			}
 		}
 	}
-#endif
+}
+
+int LuaBridge::GetAppropriateAction(int from)
+{
+	for (auto& cur : SriptNumbers) {
+		if (cur.Alternate == from){
+			return cur.Original;
+		}
+	}
+
+	return from;
 }

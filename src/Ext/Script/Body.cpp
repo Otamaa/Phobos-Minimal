@@ -394,8 +394,9 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		//	pTeam, action ,
 		//	ToStrings((PhobosScripts)action), argument
 		//);
+		int Action = LuaBridge::GetAppropriateAction(int(action));
 
-		switch ((PhobosScripts)action)
+		switch (PhobosScripts(Action))
 		{
 		case PhobosScripts::TimedAreaGuard:
 		{
@@ -914,16 +915,16 @@ void ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		}
 
 		// Do nothing because or it is a wrong Action number or it is an Ares/YR action...
-		if (IsExtVariableAction((int)action))
+		if (IsExtVariableAction(Action))
 		{
-			VariablesHandler(pTeam, static_cast<PhobosScripts>(action), argument);
+			VariablesHandler(pTeam, static_cast<PhobosScripts>(Action), argument);
 			return;
 		}
 
 		//dont prematurely finish the `Script` ,...
 		//bailout the script if the `Action` already -1
 		//this will free the Member and allow them to be recuited
-		if(action == TeamMissionType::none || action >= TeamMissionType::count && (AresScripts)action >= AresScripts::count) {
+		if((TeamMissionType)Action == TeamMissionType::none || (TeamMissionType)Action >= TeamMissionType::count && (AresScripts)action >= AresScripts::count) {
 			// Unknown action. This action finished
 			pTeam->StepCompleted = true;
 			auto const pAction = pTeam->CurrentScript->GetCurrentAction();
