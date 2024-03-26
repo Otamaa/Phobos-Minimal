@@ -575,7 +575,7 @@ public:
 	int                OverlayTypeIndex;	//What Overlay lies on this Cell?
 	int                SmudgeTypeIndex;	//What Smudge lies on this Cell?
 
-	DWORD              Passability;
+	PassabilityType     Passability;
 	int                WallOwnerIndex; // Which House owns the wall placed in this Cell?
 	                                              // Determined by finding the nearest BuildingType and taking its owner
 	int                InfantryOwnerIndex;

@@ -269,10 +269,11 @@ void Phobos::ExecuteLua()
 	LuaBridge::InitScriptLuaList();
 }
 
-void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
+void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
 	bool consoleEnabled = false;
+	bool dontSetExceptionHandler = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
 	std::string args;
@@ -324,11 +325,23 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		}
 		else if (!strncasecmp(pArg, "-AFFINITY:", 0xAu))
 		{
-			auto nData = atoi(pArg + 0xAu);
-			if (nData < 0)
-				nData = 0;
+			int result = 1;
+			if (Parser<int>::Parse(pArg + 0xAu, &result) && result < 0) {
+				result = 0;
+			}
 
-			processAffinityMask = nData;
+			processAffinityMask = result;
+		} else {
+			const std::string cur = pArg;
+			if (cur.starts_with("-ExceptionHandler=")) {
+
+				const size_t delim = cur.find("=");
+				const std::string value = cur.substr(delim + 1, cur.size() - delim - 1);
+
+				if (!value.empty()) {
+					Parser<bool>::Parse(value.data(), &dontSetExceptionHandler);
+				}
+			}
 		}
 
 		SpawnerMain::CmdLineParse(pArg);
@@ -348,6 +361,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 #endif
 
 	Phobos::CheckProcessorFeatures();
+
+	Game::DontSetExceptionHandler = dontSetExceptionHandler;
+	Debug::Log("ExceptionHandler is %s\n", dontSetExceptionHandler ? "not present" : "present");
 
 	if (processAffinityMask)
 	{
@@ -613,7 +629,7 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
 	const bool Detached =

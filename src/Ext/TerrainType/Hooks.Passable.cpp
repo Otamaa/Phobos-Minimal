@@ -65,7 +65,7 @@ DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 
 	if (auto pTerrain = specific_cast<TerrainClass*>(pObject)) {
 		if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable) {
-			pThis->Passability = 0;
+			pThis->Passability = PassabilityType::Passable;
 			return ReturnFromFunction;
 		}
 

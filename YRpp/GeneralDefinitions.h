@@ -19,6 +19,18 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class PassabilityType : DWORD
+{
+	Passable = 0,
+	Crushable = 1,
+	Destroyable = 2, // Tree or wall
+	Beach = 3,
+	Water = 4,
+	HasFreeSpots = 5,
+	Impassable = 6,
+	OutsideMap = 7
+};
+
 enum class EventType : unsigned char
 {
 	EMPTY = 0,

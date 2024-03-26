@@ -1313,23 +1313,24 @@ DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
 	return 0x688252;
 }
 
-// Allow infantry to use all amphibious/water movement zones and still display sequence correctly.
-DEFINE_HOOK(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
-{
-	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
+// Reverted on Develop #7ad3506
+// // Allow infantry to use all amphibious/water movement zones and still display sequence correctly.
+// DEFINE_HOOK(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
+// {
+// 	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
 
-	GET(InfantryClass*, pThis, ESI);
+// 	GET(InfantryClass*, pThis, ESI);
 
-	auto const mZone = pThis->Type->MovementZone;
+// 	auto const mZone = pThis->Type->MovementZone;
 
-	if (mZone == MovementZone::Amphibious || mZone == MovementZone::AmphibiousDestroyer || mZone == MovementZone::AmphibiousCrusher ||
-		mZone == MovementZone::Water || mZone == MovementZone::WaterBeach)
-	{
-		return Amphibious;
-	}
+// 	if (mZone == MovementZone::Amphibious || mZone == MovementZone::AmphibiousDestroyer || mZone == MovementZone::AmphibiousCrusher ||
+// 		mZone == MovementZone::Water || mZone == MovementZone::WaterBeach)
+// 	{
+// 		return Amphibious;
+// 	}
 
-	return NotAmphibious;
-}
+// 	return NotAmphibious;
+// }
 
 #ifdef aaaaa___
 #pragma region BlitterFix_
