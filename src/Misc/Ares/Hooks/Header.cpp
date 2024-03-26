@@ -3219,6 +3219,11 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	// // throw the piggybacked loco
 	// while (LocomotionClass::End_Piggyback(((FootClass*)pThis)->Locomotor));
 
+	//fucker
+	const int WeaponCount = (pToType->WeaponCount > 0 ? pToType->WeaponCount : 2) -1;
+	if (pThis->CurrentWeaponNumber  > WeaponCount)
+		pThis->CurrentWeaponNumber = 0;
+
 	// replace the original locomotor to new one
 	if (pOldType->Locomotor != pToType->Locomotor) {
 

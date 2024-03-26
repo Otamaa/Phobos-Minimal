@@ -5285,3 +5285,25 @@ DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
 	R->EAX(CollecCrate(pThis , pCollector));
 	return 0x483391;
 }
+
+DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
+{
+	GET_STACK(CellStruct, from, 0x30 - 0x1C);
+	GET_STACK(CellStruct, to, 0x30 - 0x20);
+
+	Debug::Log("Regular findpath failure: (%d,%d) -> (%d, %d)\n", from.X, from.Y, to.X, to.Y);
+	return 0x42CC6D;
+}
+
+DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
+{
+	GET(HouseClass*, pHouse, ECX);
+	GET(BuildingClass*, pThis, ESI);
+	GET(FootClass*, pOccupier, EDI);
+
+	if (!pHouse) {
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID() , pOccupier , pOccupier->get_ID());
+	}
+
+	return 0x0;
+}

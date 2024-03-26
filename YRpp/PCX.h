@@ -11,15 +11,14 @@ class BSurface;
 class DSurface;
 class PCX
 {
-protected:
-		// Load a PCX file
-		bool ForceLoadFile(const char* pFileName, int flag1, int flag2)
-			{ JMP_THIS(0x6B9D00); }
-
 public:
 
 	static constexpr reference<PCX, 0xAC4848u> const Instance{};
 	static inline constexpr WORD const DefaultTransparentColor = COLOR_PURPLE;
+
+	// Load a PCX file
+	bool ForceLoadFile(const char* pFileName, int flag1, int flag2)
+		{ JMP_THIS(0x6B9D00); }
 
 	//Load a PCX file
 	bool LoadFile(const char *pFileName, int flag1 = 2, int flag2 = 0);

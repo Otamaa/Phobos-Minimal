@@ -89,7 +89,21 @@
         "future": "cpp",
         "regex": "cpp",
         "numeric": "cpp",
-        "stacktrace": "cpp"
+        "stacktrace": "cpp",
+        "any": "cpp",
+        "cinttypes": "cpp",
+        "complex": "cpp",
+        "csetjmp": "cpp",
+        "cwctype": "cpp",
+        "execution": "cpp",
+        "memory_resource": "cpp",
+        "scoped_allocator": "cpp",
+        "source_location": "cpp",
+        "stdfloat": "cpp",
+        "strstream": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp"
     },
     "task.allowAutomaticTasks": "on"
 }

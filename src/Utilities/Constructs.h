@@ -522,7 +522,7 @@ public:
 	PhobosPCXFile(const PhobosPCXFile& other) = default;
 	PhobosPCXFile& operator=(const PhobosPCXFile& other) = default;
 
-	PhobosPCXFile& operator = (const char* pFilename) {
+	PhobosPCXFile& operator=(const char* pFilename) {
 
 		// fucker
 		if (!pFilename || !*pFilename || !strlen(pFilename)) {
@@ -536,6 +536,27 @@ public:
 
 		BSurface* pSource = PCX::Instance->GetSurface(this->filename);
 		if (!pSource && PCX::Instance->LoadFile(this->filename))
+			pSource = PCX::Instance->GetSurface(this->filename);
+
+		this->Surface = pSource;
+
+		return *this;
+	}
+
+	PhobosPCXFile& operator=(std::string& pFilename) {
+
+		// fucker
+		if (pFilename.empty() || !*pFilename.data()) {
+			this->Clear();
+			return *this;
+		}
+
+		this->filename = pFilename.c_str();
+		auto& data = this->filename.data();
+		_strlwr_s(data);
+
+		BSurface* pSource = PCX::Instance->GetSurface(this->filename);
+		if (!pSource &&  PCX::Instance->ForceLoadFile(this->filename, 2, 0))
 			pSource = PCX::Instance->GetSurface(this->filename);
 
 		this->Surface = pSource;
@@ -564,7 +585,7 @@ public:
 			if (cachedWithExt.find(".pcx") == std::string::npos)
 				cachedWithExt += ".pcx";
 
-			*this = cachedWithExt.c_str();
+			*this = cachedWithExt;
 
 			if (this->filename && !this->Surface) {
 				Debug::INIParseFailed(pSection, pKey, this->filename, "PCX file not found.");
