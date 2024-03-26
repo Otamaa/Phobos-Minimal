@@ -254,7 +254,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
 	this->Converts.Read(exINI, pSection, "Converts");
-	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
+	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");

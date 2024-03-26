@@ -63,7 +63,14 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		*/
 
 		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());
-		this->Gas_DriftSpeed.Read(exINI, pID, "Gas.DriftSpeed");
+
+		if(!Phobos::Otamaa::CompatibilityMode)
+			this->Gas_DriftSpeed.Read(exINI, pID, "Gas.DriftSpeed");
+		else {
+			this->Gas_DriftSpeed.GetEx()->Y = 0;
+			detail::read<int>(this->Gas_DriftSpeed.GetEx()->X, exINI, pID, "Gas.MaxDriftSpeed");
+		}
+
 		this->Transmogrify.Read(exINI, pID, "Gas.Transmogrify");
 		this->TransmogrifyChance.Read(exINI, pID, "Gas.TransmogrifyChance");
 		this->TransmogrifyType.Read(exINI, pID, "Gas.TransmogrifyType", true);

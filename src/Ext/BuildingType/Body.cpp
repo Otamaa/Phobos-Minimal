@@ -325,8 +325,10 @@ bool BuildingTypeExtData::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass
 
 SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pHouse) const
 {
-	if (auto pSuper = pHouse->Supers.GetItemOrDefault(this->GetSuperWeaponIndex(index))) {
-		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse)) {
+	if (auto pSuper = pHouse->Supers.GetItemOrDefault(this->GetSuperWeaponIndex(index)))
+	{
+		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse))
+		{
 			return pSuper;
 		}
 	}
@@ -367,51 +369,51 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 
 int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
 {
-	 //pthis check is just in  case
-	 if (pThis
-	 	&& pThis->IsAlive
-	 	&& (pThis->Occupants.Count > 0)
-	 	&& pThis->Occupants[0]->Owner
-	 	&& pThis->Occupants[0]->Owner->Type
-	 	)
-	 {
-	 	const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	//pthis check is just in  case
+	if (pThis
+	   && pThis->IsAlive
+	   && (pThis->Occupants.Count > 0)
+	   && pThis->Occupants[0]->Owner
+	   && pThis->Occupants[0]->Owner->Type
+	   )
+	{
+		const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
-	 	{
-	 		const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
-	 		if (nIndex != -1)
-	 		{
+		{
+			const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
+			if (nIndex != -1)
+			{
 
-	 			AnimTypeClass* pDecidedAnim = nullptr;
+				AnimTypeClass* pDecidedAnim = nullptr;
 
-	 			switch (nSlot)
-	 			{
-	 			case BuildingAnimSlot::Active:
-	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
-	 				break;
-	 			case BuildingAnimSlot::ActiveTwo:
-	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
-	 				break;
-	 			case BuildingAnimSlot::ActiveThree:
-	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
-	 				break;
-	 			case BuildingAnimSlot::ActiveFour:
-	 				pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
-	 				break;
-	 			case BuildingAnimSlot::Idle:
-	 				pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
-	 				break;
-	 			default:
-	 				break;
-	 			}
+				switch (nSlot)
+				{
+				case BuildingAnimSlot::Active:
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
+					break;
+				case BuildingAnimSlot::ActiveTwo:
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
+					break;
+				case BuildingAnimSlot::ActiveThree:
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
+					break;
+				case BuildingAnimSlot::ActiveFour:
+					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
+					break;
+				case BuildingAnimSlot::Idle:
+					pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
+					break;
+				default:
+					break;
+				}
 
-	 			if (pDecidedAnim)
-	 			{
-	 				return pDecidedAnim->ArrayIndex;
-	 			}
-	 		}
-	 	}
-	 }
+				if (pDecidedAnim)
+				{
+					return pDecidedAnim->ArrayIndex;
+				}
+			}
+		}
+	}
 
 	return AnimTypeClass::FindIndexById(pDefault);
 
@@ -707,7 +709,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
 
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
-		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
+		const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
+
+		this->PlacementPreview_Show.Read(exINI, pSection, !Refinery_UseStorage ? "PlacementPreview.Show" : "PlacementPreview");
 
 		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
 		{
@@ -952,6 +956,30 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->EVA_Online.Read(exINI, pSection, "EVA.Online");
 		this->EVA_Offline.Read(exINI, pSection, "EVA.Offline");
 
+		if (Phobos::Otamaa::CompatibilityMode) {
+			if (pThis->NumberOfDocks > 0)
+			{
+				this->DockPoseDir.clear();
+				this->DockPoseDir.resize(pThis->NumberOfDocks);
+				std::string base_tag ("AircraftDockingDir");
+
+				Nullable<DirType> nLandingDir;
+				nLandingDir.Read(exINI, pSection, "AircraftDockingDir");
+
+				if (nLandingDir.isset())
+					this->DockPoseDir[0] = (FacingType)nLandingDir.Get();
+
+				for (int i = 0; i < pThis->NumberOfDocks; ++i)
+				{
+					std::string tag = base_tag + std::to_string(i);
+					nLandingDir.Read(exINI, pSection, tag.c_str());
+
+					if (nLandingDir.isset())
+						this->DockPoseDir[i] = (FacingType)nLandingDir.Get();
+				}
+			}
+		}
+
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 	}
 #pragma endregion
@@ -999,17 +1027,22 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
 		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
 
-		if (pThis->Helipad)
+		if (!Phobos::Otamaa::CompatibilityMode)
 		{
-			//char keyDock[0x40];
-			this->DockPoseDir.clear();
-			this->DockPoseDir.resize(pThis->NumberOfDocks);
-
-			for (int i = 0; i < pThis->NumberOfDocks; ++i)
+			if (pThis->Helipad)
 			{
-				detail::read(this->DockPoseDir[i], exArtINI, pArtSection, (std::string("DockingPoseDir") + std::to_string(i)).c_str(), false);
+				//char keyDock[0x40];
+				this->DockPoseDir.clear();
+				this->DockPoseDir.resize(pThis->NumberOfDocks);
+
+
+				for (int i = 0; i < pThis->NumberOfDocks; ++i)
+				{
+					detail::read(this->DockPoseDir[i], exArtINI, pArtSection, (std::string("DockingPoseDir") + std::to_string(i)).c_str(), false);
+				}
 			}
 		}
+
 #pragma endregion
 
 		this->DockUnload_Cell.Read(exArtINI, pArtSection, "DockUnloadCell");
@@ -1337,6 +1370,6 @@ DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 	GET(BuildingTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x364);
 
-	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x464A56);
+	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x464A56);
 	return 0;
 }

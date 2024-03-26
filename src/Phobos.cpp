@@ -125,6 +125,7 @@ bool Phobos::Otamaa::ParserErrorDetected = false;
 bool Phobos::Otamaa::TrackParserErrors = false;
 bool Phobos::Otamaa::NoLogo = false;
 bool Phobos::Otamaa::NoCD = false;
+bool Phobos::Otamaa::CompatibilityMode = false;
 
 bool Phobos::EnableConsole = false;
 
@@ -245,7 +246,7 @@ void Phobos::ExecuteLua()
 		}
 
 		lua_getglobal(L, "MainWindowString");
-		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1)
+		if (lua_isstring(L, -1) == 1)
 		{
 			MainWindowStr = lua_tostring(L, -1);
 			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
@@ -256,9 +257,14 @@ void Phobos::ExecuteLua()
 		}
 
 		lua_getglobal(L, "MovieMDINI");
-		if (lua_isnil(L, -1) == 0 && lua_isinteger(L, -1) != 1 && lua_isstring(L, -1) == 1)
+		if (lua_isstring(L, -1) == 1)
 		{
 			StaticVars::MovieMDINI = lua_tostring(L, -1);
+		}
+
+		lua_getglobal(L, "CompatibilityMode");
+		if (lua_isboolean(L,-1) == 1) {
+			Phobos::Otamaa::CompatibilityMode = lua_toboolean(L, -1);
 		}
 	}
 	else

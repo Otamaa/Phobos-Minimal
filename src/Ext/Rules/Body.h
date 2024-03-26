@@ -99,6 +99,7 @@ public:
 	Valueable<bool> RadWarhead_Detonate { false };
 	Valueable<bool> RadHasOwner { false };
 	Valueable<bool> RadHasInvoker { false };
+	Valueable<bool> UseGlobalRadApplicationDelay { true };
 	Valueable<bool> IronCurtain_SyncDeploysInto { false };
 
 	Valueable<PartialVector2D<int>> ROF_RandomDelay { { 0, 2 } };
@@ -299,6 +300,7 @@ public:
 
 	Valueable<ParticleSystemTypeClass*> DefaultGlobalParticleInstance { nullptr };
 
+	Nullable<bool> PlacementGrid_TranslucencyWithPreview {};
 	double Shield_ConditionGreen {};
 	double Shield_ConditionYellow {};
 	double Shield_ConditionRed {};

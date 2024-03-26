@@ -247,7 +247,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 					continue;
 
 				const RadTypeClass* pType = pRadExt->Type;
-				const int delay = pType->GetBuildingApplicationDelay();
+				const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
 				if ((delay <= 0)
 					|| (Unsorted::CurrentFrame % delay))
 					continue;
@@ -363,7 +363,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 				continue;
 
 			const RadTypeClass* pType = pRadExt->Type;
-			const int RadApplicationDelay = pType->GetApplicationDelay();
+			const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
 			if ((RadApplicationDelay <= 0)
 				|| (Unsorted::CurrentFrame % RadApplicationDelay))
 				continue;

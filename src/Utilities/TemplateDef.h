@@ -179,13 +179,39 @@ namespace detail
 				auto nSecondPair_1 = nSecondPair.substr(0, nDelim2);
 				auto nSecondPair_2 = nSecondPair.substr(nDelim2 + 1);
 
-				Parser<TechnoTypeClass*>::Parse(nFirst.c_str(), &value.From);
+				value.From.clear();
+				char* context = nullptr;
+				for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &context);
+						pCur;
+						pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					TechnoTypeClass* buffer = nullptr;
+
+					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
+						value.From.push_back(buffer);
+					else if (!allocate && !GameStrings::IsBlank(pCur))
+						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
+				}
+
 				Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &value.To);
 				detail::getresult<AffectedHouse>(value.Eligible, nSecondPair_2, pSection, pKey, allocate);
 
 				//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
 			} else {
-				Parser<TechnoTypeClass*>::Parse(nFirst.c_str(), &value.From);
+				value.From.clear();
+				char* context = nullptr;
+				for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &context);
+						pCur;
+						pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					TechnoTypeClass* buffer = nullptr;
+
+					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
+						value.From.push_back(buffer);
+					else if (!allocate && !GameStrings::IsBlank(pCur))
+						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
+				}
+
 				Parser<TechnoTypeClass*>::Parse(nSecondPair.c_str(), &value.To);
 			}
 
@@ -830,13 +856,6 @@ namespace detail
 		}
 
 		return false;
-	}
-
-	template <>
-	inline bool read<TechnoTypeConvertData>(TechnoTypeConvertData& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadString(pSection, pKey)
-			&& getresult<TechnoTypeConvertData>(value, parser.value(), pSection, pKey, allocate);
 	}
 
 #pragma endregion

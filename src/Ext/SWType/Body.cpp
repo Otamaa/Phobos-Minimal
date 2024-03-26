@@ -1484,10 +1484,10 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_UseSWRange.Read(exINI, pSection, "Converts.UseSWRange");
-	this->ConvertsPair.Read(exINI, pSection, "ConvertsPair");
+	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
-
 	//
+
 	this->SW_Warhead.Read(exINI, pSection, "SW.Warhead");
 	this->SW_Anim.Read(exINI, pSection, "SW.Animation", true);
 	this->SW_Sound.Read(exINI, pSection, "SW.Sound");

@@ -715,7 +715,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
 	this->AI_AutoSellHealthRatio.Read(exINI, GENERAL_SECTION, "AI.AutoSellHealthRatio");
-	this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "ShowBuildingPlacementPreview");
+	this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, !Phobos::Otamaa::CompatibilityMode ? "ShowBuildingPlacementPreview" : "PlacementPreview");
+	this->PlacementGrid_TranslucencyWithPreview.Read(exINI, GameStrings::AudioVisual, "PlacementGrid.TranslucencyWithPreview");
 	this->DisablePathfindFailureLog.Read(exINI, GENERAL_SECTION, "DisablePathfindFailureLog");
 	this->CreateSound_PlayerOnly.Read(exINI, AUDIOVISUAL_SECTION, "CreateSound.AffectOwner");
 	this->DoggiePanicMax.Read(exINI, COMBATDAMAGE_SECTION, "DoggiePanicMax");
@@ -733,6 +734,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RadWarhead_Detonate.Read(exINI, RADIATION_SECTION, "RadSiteWarhead.Detonate");
 	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
+	this->UseGlobalRadApplicationDelay.Read(exINI, GameStrings::Radiation, "UseGlobalRadApplicationDelay");
+
 	this->IronCurtain_SyncDeploysInto.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
@@ -743,8 +746,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->JumpjetTurnToTarget.Read(exINI, JUMPJET_SECTION, "TurnToTarget");
 	this->JumpjetCrash_Rotate.Read(exINI, JUMPJET_SECTION, "CrashRotate");
 
-	this->PlacementGrid_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "BuildingPlacementGrid.TranslucentLevel");
-	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "BuildingPlacementPreview.DefaultTranslucentLevel");
+	this->PlacementGrid_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
+	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
 	this->Pips_Shield_Background_SHP.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Background");
 	this->Pips_Shield_Building.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
@@ -887,6 +890,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
 		.Process(Phobos::Config::ApplyShadeCountFix)
+		.Process(Phobos::Otamaa::CompatibilityMode)
 
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
@@ -953,6 +957,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->RadWarhead_Detonate)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
+		.Process(this->UseGlobalRadApplicationDelay)
 		.Process(this->IronCurtain_SyncDeploysInto)
 		.Process(this->ROF_RandomDelay)
 
@@ -986,6 +991,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DefaultSquidAnim)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
+		.Process(this->PlacementGrid_TranslucencyWithPreview)
 		.Process(this->AI_AutoSellHealthRatio)
 
 		.Process(this->CarryAll_LandAnim)
@@ -1211,9 +1217,10 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
 		.Process(Phobos::Config::ApplyShadeCountFix)
+		.Process(Phobos::Otamaa::CompatibilityMode)
 	*/
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (5 * (sizeof(bool))));
+	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (6 * (sizeof(bool))));
 	PhobosStreamWriter writer(saver);
 
 	writer.Save(RulesExtData::Canary);

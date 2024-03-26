@@ -212,7 +212,7 @@ public:
 
 	Valueable<bool> Converts { false };
 
-	ValueableVector<TechnoTypeConvertData> ConvertsPair {};
+	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 
 	ValueableVector<AnimTypeClass*> DeadBodies {};

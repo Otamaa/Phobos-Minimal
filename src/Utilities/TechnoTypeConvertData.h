@@ -6,13 +6,17 @@
 class TechnoTypeClass;
 class HouseClass;
 class TechnoClass;
+/*
+*	WARNING : not direcly compatible with Phobos Develop one !
+*/
 struct TechnoTypeConvertData
 {
-	TechnoTypeClass* From { nullptr };
+	std::vector<TechnoTypeClass*> From { nullptr };
 	TechnoTypeClass* To { nullptr };
 	AffectedHouse Eligible { AffectedHouse::All };
 
 	static void ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass* pHouse, TechnoClass* pTarget , AnimTypeClass* SucceededAnim);
+	static void Parse(bool useDevelopversion, std::vector<TechnoTypeConvertData>& list, INI_EX& exINI, const char* pSection, const char* pKey);
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{

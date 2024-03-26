@@ -194,6 +194,7 @@ struct Phobos final
 		static bool TrackParserErrors;
 		static bool NoLogo;
 		static bool NoCD;
+		static bool CompatibilityMode;
 	};
 
 	struct Defines

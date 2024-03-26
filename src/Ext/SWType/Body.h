@@ -229,7 +229,7 @@ public:
 #pragma region converts
 	Valueable<bool> Converts { false };
 	Valueable<bool> Converts_UseSWRange { false };
-	ValueableVector<TechnoTypeConvertData> ConvertsPair {};
+	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 #pragma endregion
 
