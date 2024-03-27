@@ -730,8 +730,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Debug DPFeatures\phobos.dll" />
-    <None Include="sampleconfig\renameinternal.lua" />
     <None Include="src\Ext\Script\tools\ExtractTheAlternativeNumbering.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

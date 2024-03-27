@@ -2,6 +2,11 @@
 
 #include <Lua542/lua.hpp>
 #include <memory>
+#include <string>
+
+struct LuaData {
+	static std::string LuaDir;
+};
 
 struct luastatedeleter
 {

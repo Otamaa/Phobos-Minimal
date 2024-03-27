@@ -190,11 +190,11 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 
 void LuaBridge::InitScriptLuaList()
 {
-	static constexpr const char* filename = "ScriptAlternativeNumbering.lua";
+	static std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
 	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
 
-	if (luaL_dofile(L, filename) == LUA_OK)
+	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
 	{
 		lua_getglobal(L, "Scripts"); // T ==> -1
 

@@ -38,7 +38,9 @@ bool Phobos::Config::HideWarning = false;
 
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
-static const char* filename = "renameinternal.lua";
+static std::string filename = LuaData::LuaDir +"\\renameinternal.lua";
+
+std::string LuaData::LuaDir;
 
 static std::unordered_map<uintptr_t, std::string> map_replaceAddrTo {};
 static std::string MainWindowStr {};
@@ -178,7 +180,7 @@ void Phobos::ExecuteLua()
 	make_unique_luastate(unique_lua);
 	auto L = unique_lua.get();
 
-	if (luaL_dofile(L, "adminmode.lua") == LUA_OK)
+	if (luaL_dofile(L, (LuaData::LuaDir + "\\adminmode.lua").c_str()) == LUA_OK)
 	{
 		lua_getglobal(L, "AdminMode");
 
@@ -202,7 +204,7 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	if (luaL_dofile(L, filename) == LUA_OK)
+	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
 	{
 		lua_getglobal(L, "Replaces"); // T ==> -1
 
@@ -352,6 +354,11 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 		SpawnerMain::CmdLineParse(pArg);
 	}
+
+	char buff_path[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, buff_path);
+	LuaData::LuaDir = buff_path;
+	LuaData::LuaDir += "\\Resources";
 
 #ifndef aaa
 	if (Debug::LogEnabled) {
@@ -635,7 +642,7 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
 	const bool Detached =
