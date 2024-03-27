@@ -73,7 +73,7 @@ DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
 
 	GET(AnimClass*, pThis, ESI);
 	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExtData::Instance()->Veinhole_Warhead);
-	return pThis->Type->IsTiberium ?
+	return pThis->Type->IsAnimatedTiberium  ?
 		ContinueDrawTiberium : ContinueNotTiberium;
 }
 
