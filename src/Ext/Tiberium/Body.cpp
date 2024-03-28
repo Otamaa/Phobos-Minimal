@@ -48,6 +48,29 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		detail::read<int>(pThis->field_EC, exINI, pSection, "field_EC");
 		pThis->NumImages = this->LinkedOverlayType.size();
 	}
+
+	int Image = -1;
+	detail::read<int>(Image, exINI, pSection, GameStrings::Image());
+	this->PipIndex.Read(exINI, pSection, "PipIndex");
+	switch (Image)
+	{
+	case -1:
+		if (this->PipIndex != -1)
+			this->PipIndex = 2;
+		break;
+	case 2:
+		this->PipIndex = 5;
+		break;
+	case 3:
+		this->PipIndex = 2;
+		break;
+	case 4:
+		this->PipIndex = 2;
+		break;
+	default:
+		this->PipIndex = 2;
+		break;
+	}
 }
 
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
@@ -90,10 +113,11 @@ void TiberiumExtData::Serialize(T& Stm)
 		.Process(this->ExplosionDamage)
 		.Process(this->DebrisChance)
 		.Process(this->LinkedOverlayType)
+		.Process(this->PipIndex)
 	;
 }
 
-TiberiumExtExtContainer TiberiumExtExtContainer::Instance;
+TiberiumExtContainer TiberiumExtContainer::Instance;
 
 // =============================
 // container hooks
@@ -102,14 +126,14 @@ TiberiumExtExtContainer TiberiumExtExtContainer::Instance;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-	TiberiumExtExtContainer::Instance.Allocate(pItem);
+	TiberiumExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
 {
 	GET(TiberiumClass*, pItem, ECX);
-	TiberiumExtExtContainer::Instance.Remove(pItem);
+	TiberiumExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -119,20 +143,20 @@ DEFINE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix, 0x7)
 	GET_STACK(TiberiumClass*, pThis, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
-	TiberiumExtExtContainer::Instance.PrepareStream(pThis, pStm);
+	TiberiumExtContainer::Instance.PrepareStream(pThis, pStm);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x72208C, TiberiumClass_Load_Suffix, 0x7)
 {
-	TiberiumExtExtContainer::Instance.LoadStatic();
+	TiberiumExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x72212C, TiberiumClass_Save_Suffix, 0x5)
 {
-	TiberiumExtExtContainer::Instance.SaveStatic();
+	TiberiumExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
@@ -143,10 +167,10 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	GET(TiberiumClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
 
-	TiberiumExtExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
+	TiberiumExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
 
-	if (R->Origin() == 0x721CDC && !TiberiumExtExtContainer::Instance.Find(pItem)->LinkedOverlayType.empty()) {
-		if (auto pLinked = TiberiumExtExtContainer::Instance.Find(pItem)->LinkedOverlayType[0]) {
+	if (R->Origin() == 0x721CDC && !TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType.empty()) {
+		if (auto pLinked = TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType[0]) {
 			pItem->Image = pLinked; //this is suppose to be linked list
 			// so this will decide !
 		}

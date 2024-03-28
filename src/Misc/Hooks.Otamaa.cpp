@@ -1133,6 +1133,8 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 	return 0x73AF4C;
 }
 
+#include <Ext/Tiberium/Body.h>
+
 void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	if (!pTechno)
@@ -1189,23 +1191,25 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 		if (!isWeeder)
 		{
+			const auto pTibExt = TiberiumExtContainer::Instance.Find(TiberiumClass::Array->Items[i]);
+
 			//default pip : 5 = blue , 2 gold ?
 			switch (i)
 			{
 			case 0:
-				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(2);
+				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(pTibExt->PipIndex);
 				break;
 			case 1:
-				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(5);
+				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(pTibExt->PipIndex);
 				break;
 			case 2:
-				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(2);
+				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(pTibExt->PipIndex);
 				break;
 			case 3:
-				FrameIdx = pTypeExt->Aboreus_FrameIDx.Get(2);
+				FrameIdx = pTypeExt->Aboreus_FrameIDx.Get(pTibExt->PipIndex);
 				break;
 			default:
-				FrameIdx = 2;
+				FrameIdx = pTibExt->PipIndex;
 				break;
 			}
 		}

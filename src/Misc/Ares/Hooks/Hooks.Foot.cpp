@@ -326,7 +326,7 @@ DEFINE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 			{
 				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pThis->GetCell()->GetContainedTiberiumIndex()))
 				{
-					auto pTibExt = TiberiumExtExtContainer::Instance.Find(pTiberium);
+					auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 
 					pWarhead = pTibExt->GetWarhead();
 					damage = pTibExt->GetDamage();

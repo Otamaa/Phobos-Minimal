@@ -46,6 +46,8 @@ public:
 	Valueable<int> DebrisChance { 33 };
 
 	ValueableVector<OverlayTypeClass*> LinkedOverlayType {};
+	Valueable<int> PipIndex { -1 };
+
 	TiberiumExtData()noexcept = default;
 	~TiberiumExtData() noexcept = default;
 
@@ -106,10 +108,10 @@ private:
 	void Serialize(T& Stm);
 };
 
-class TiberiumExtExtContainer final : public Container<TiberiumExtData>
+class TiberiumExtContainer final : public Container<TiberiumExtData>
 {
 public:
-	static TiberiumExtExtContainer Instance;
+	static TiberiumExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(TiberiumExtExtContainer, TiberiumExtData, "TiberiumClass");
+	CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };

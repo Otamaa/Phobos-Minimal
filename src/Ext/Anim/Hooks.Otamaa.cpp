@@ -83,7 +83,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 	if (location->GetContainedTiberiumValue() > 0)
 	{
-		auto const pTibExt = TiberiumExtExtContainer::Instance.Find(
+		auto const pTibExt = TiberiumExtContainer::Instance.Find(
 			TiberiumClass::Array->GetItemOrDefault(location->GetContainedTiberiumIndex())
 		);
 

@@ -624,7 +624,7 @@ DEFINE_HOOK(0x489270, CellChainReact, 5)
 		pCell->MarkForRedraw();
 
 		// get the warhead
-		auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
+		auto pExt = TiberiumExtContainer::Instance.Find(pTib);
 		CoordStruct crd = pCell->GetCoords();
 
 		if (auto pWarhead = pExt->GetExplosionWarhead())
@@ -672,14 +672,14 @@ DEFINE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 
-	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExtExtContainer::Instance.Find(pTib)->GetDebrisChance()
+	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExtContainer::Instance.Find(pTib)->GetDebrisChance()
 		? 0x424DF9 : 0x424E9B;
 }
 
 DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
-	auto pExt = TiberiumExtExtContainer::Instance.Find(pTib);
+	auto pExt = TiberiumExtContainer::Instance.Find(pTib);
 
 	R->Stack(0x0, pExt->GetExplosionWarhead());
 	R->EDX(pExt->GetExplosionDamage());

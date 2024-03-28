@@ -39,7 +39,7 @@ DEFINE_STRONG_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 	bool bDraw = false;
 
 	if (const auto pTiberium = CellExtData::GetTiberium(pCell)) {
-		if (TiberiumExtExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
+		if (TiberiumExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
 			bDraw = pTiberium->Value;
 	}
 
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	if (!pTiberium)
 		return 0x47FB86;
 
-	const auto pTibExt = TiberiumExtExtContainer::Instance.Find(pTiberium);
+	const auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 
 	if (!pTibExt) {
 		Debug::Log("CellClass_DrawOverlay_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
