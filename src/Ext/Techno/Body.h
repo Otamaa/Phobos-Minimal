@@ -31,6 +31,8 @@
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
+#include <New/Entity/NewTiberiumStorageClass.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -169,6 +171,8 @@ public:
 
 	int StrafeFireCunt { -1 };
 	CDTimerClass MergePreventionTimer {};
+
+	NewTiberiumStorageClass TiberiumStorage {};
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept

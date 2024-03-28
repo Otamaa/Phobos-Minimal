@@ -183,39 +183,6 @@ DEFINE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	return 0x437CD4;
 }
 
-namespace ShakeScreenHandle
-{
-	void ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules)
-	{
-		if (pThis->IsOnMyView())
-		{
-			auto nFirst = GeneralUtils::GetValue(nValToCalc);
-			auto nSec = nFirst - GeneralUtils::GetValue(nRules) + 4;
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, nSec >> 1);
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, nSec);
-		}
-	}
-}
-
-//handle everything ourself
-DEFINE_HOOK(0x441C21, BuildingClass_Destroyed_Shake, 0x6)
-{
-	GET(BuildingClass* const, pBld, ESI);
-
-	if (!pBld || !pBld->Type || !RulesClass::Instance->ShakeScreen)
-		return 0x441C39;
-
-	GET(int, BuildingCost, EAX);
-
-	if (!BuildingCost)
-		return 0x441C39;
-
-	if (!TechnoTypeExtContainer::Instance.Find(pBld->Type)->DontShake.Get())
-		ShakeScreenHandle::ShakeScreen(pBld, BuildingCost, RulesClass::Instance->ShakeScreen);
-
-	return 0x441C39; //return 0 causing crash
-}
-
 DEFINE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT

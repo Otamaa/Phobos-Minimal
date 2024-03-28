@@ -450,6 +450,8 @@ public:
 	ValueableVector<int> Prerequisite_Negative {};
 	ValueableVector<int> Prerequisite_Display {};
 
+	ValueableVector<int> BuildLimit_Requires {};
+
 	Nullable<int> Riparius_FrameIDx { };
 	Nullable<int> Cruentus_FrameIDx { };
 	Nullable<int> Vinifera_FrameIDx { };

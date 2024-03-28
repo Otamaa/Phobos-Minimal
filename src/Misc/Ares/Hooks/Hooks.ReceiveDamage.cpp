@@ -516,7 +516,7 @@ DEFINE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiberium, 6)
 	if (TechnoTypeExtContainer::Instance.Find(pType)->TiberiumRemains
 		.Get(pType->TiberiumHeal && RulesExtData::Instance()->Tiberium_HealEnabled))
 	{
-		int nIdx = pThis->Tiberium.GetHighestStorageIdx();
+		int nIdx = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetHighestStorageIdx();
 		const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
 
 		// increase the tiberium for the four neighbours and center.
@@ -569,7 +569,9 @@ DEFINE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 		if (pUnit && pUnit->Type->Weeder || pBld && pBld->Type->Weeder)
 			return 0x0;
 
-		double stored = pThis->Tiberium.GetTotalAmount();
+		auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+		double stored = storage->GetAmounts();
 
 		if (!pBld
 			&& stored > 0.0
@@ -582,7 +584,7 @@ DEFINE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 				max = pType->Storage;
 			}
 
-			const int nIdx = pThis->Tiberium.GetHighestStorageIdx();
+			const int nIdx = storage->GetHighestStorageIdx();
 
 			// assume about half full, recalc if possible
 			int value = static_cast<int>(max / 2);

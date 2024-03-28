@@ -170,7 +170,7 @@ DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x
 	{
 		R->EAX(pBuilding->Type->Weeder ?
 			int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
-			int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+			int(4 * TechnoExtContainer::Instance.Find(pBuilding)->TiberiumStorage.GetAmounts() / pBuilding->Type->Storage)
 		);
 		return 0x446016;
 	}
@@ -188,7 +188,7 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 	{
 		R->EAX(pBuilding->Type->Weeder ?
 			int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
-			int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
+			int(4 * TechnoExtContainer::Instance.Find(pBuilding)->TiberiumStorage.GetAmounts() / pBuilding->Type->Storage)
 		);
 
 		return 0x450DDC;

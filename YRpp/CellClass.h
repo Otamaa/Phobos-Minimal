@@ -282,7 +282,7 @@ public:
 		{ JMP_THIS(0x487190); }
 
 	// decreases thze tiberium in the cell
-	void ReduceTiberium(int amount) const
+	int ReduceTiberium(int amount) const
 		{ JMP_THIS(0x480A80); }
 
 	bool CanTiberiumGerminate(TiberiumClass* tib) const
@@ -547,6 +547,10 @@ public:
 	bool CellClass_Tube_484AE0() const { JMP_THIS(0x484AE0); }
 	bool CellClass_Tube_484D60() const { JMP_THIS(0x484D60); }
 	bool CellClass_484F10(InfantryClass* pInf) const { JMP_THIS(0x484F10); }
+
+	void RemoveWeed() const {
+		JMP_THIS(0x486E30);
+	}
 
 protected:
 	//Constructor

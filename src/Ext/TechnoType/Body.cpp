@@ -51,8 +51,33 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 {
 	const auto pProductTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct);
 	const auto pBExt = BuildingTypeExtContainer::Instance.Find(pFactoryType);
-	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
-		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
+
+	auto begin =  pProductTypeExt->BuiltAt.begin();
+	auto end =  pProductTypeExt->BuiltAt.end();
+	if(begin != end){
+		while(*begin != pFactoryType){
+			if(begin == end)
+			return false;
+
+		}
+
+		return true;
+	}
+
+	if(!pBExt->Factory_ExplicitOnly)
+		return true;
+
+	if(begin != end){
+		while(*begin != pFactoryType){
+			if(begin == end)
+			return false;
+
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
@@ -690,6 +715,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Negative").c_str(), this->Prerequisite_Negative);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Display").c_str(), this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + "Override").c_str(), pThis->PrerequisiteOverride);
+		GenericPrerequisite::Parse(pINI, pSection, "BuildLimit.Requres", this->BuildLimit_Requires);
+
 		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
 
 		this->Prerequisite_Power.Read(exINI, pSection, (_Prerequisite_key + ".Power").c_str());
@@ -1736,6 +1763,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Prerequisite_Lists)
 		.Process(this->Prerequisite_Negative)
 		.Process(this->Prerequisite_Display)
+		.Process(this->BuildLimit_Requires)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 

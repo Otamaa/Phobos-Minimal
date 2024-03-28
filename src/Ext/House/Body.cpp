@@ -1190,7 +1190,12 @@ BuildLimitStatus HouseExtData::CheckBuildLimit(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem,
 	bool const includeQueued)
 {
-	const int BuildLimit = pItem->BuildLimit;
+	int BuildLimit = pItem->BuildLimit;
+
+	const auto& req = TechnoTypeExtContainer::Instance.Find(pItem)->BuildLimit_Requires;
+	if (!req.empty() && !Prereqs::HouseOwnsAll(pHouse, (int*)req.data(), req.size())) {
+		BuildLimit = INT_MAX;
+	}
 
 	if (BuildLimit < 0)
 	{
@@ -1476,6 +1481,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->AuxPower)
 		.Process(this->KeepAliveCount)
 		.Process(this->KeepAliveBuildingCount)
+		.Process(this->TiberiumStorage)
 		;
 }
 

@@ -488,34 +488,6 @@ DEFINE_HOOK(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
 
 #include <Ext/Building/Body.h>
 
-DEFINE_HOOK(0x73E46D , UnitClass_Mi_Unload_replace , 0x6)
-{
-	GET(BuildingClass* const, pBld, EDI);
-	GET(UnitClass* , pThis , ESI);
-	GET(int, idxTiberium, EBP);
-	REF_STACK(float, amountRemoved, 0x80 - 0x68);//after decreased
-	//REF_STACK(float, amountPurified, 0x80 - 0x50);
-
-	if(pBld->Type->Weeder) {
-		pBld->Owner->GiveWeed((int)amountRemoved,idxTiberium);
-		pThis->Animation.Value = 0;
-	}else
-	{
-		TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner ,
-		amountRemoved,
-	 	BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved,
-		idxTiberium
-	 	);
-		pThis->Animation.Value = 0;
-
-		BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
-			pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
-
-	}
-
-	return 0x73E539;
-}
-
 // sanitize the power output
 DEFINE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 {
@@ -524,69 +496,6 @@ DEFINE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 		pThis->PowerOutput = 0;
 	}
 	return 0;
-}
-
-DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
-{
-	GET(InfantryClass*, pThis, ECX);
-	GET_STACK(TechnoClass* const, pDest, 0x4);
-
-	//be carefull , that slave sometime do unload with different owner
-	//this can become troublesome later ,..
-
-	auto storage = &pThis->Tiberium;
-	bool updateSmoke = false;
-	int balanceBefore = pDest->Owner->Available_Money();
-
-	for (int i = storage->GEtFirstUsedSlot(); i != -1; i = storage->GEtFirstUsedSlot())
-	{
-		auto const amountRemoved = storage->RemoveAmount(storage->GetAmount(i), i);
-
-		if (amountRemoved > 0.0)
-		{
-			TechnoExt_ExtData::DepositTiberium(pThis , pDest->Owner, amountRemoved,
-				BuildingTypeExtData::GetPurifierBonusses(pDest->Owner) * amountRemoved,
-				i);
-
-			// register for refinery smoke
-			updateSmoke = true;
-		}
-	}
-
-	if (updateSmoke)
-	{
-		pDest->UpdateRefinerySmokeSystems();
-
-		int money = pDest->Owner->Available_Money() - balanceBefore;
-		const auto what = pDest->WhatAmI();
-
-		if (what == BuildingClass::AbsID) {
-			BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pDest))->AccumulatedIncome += money;
-		}
-		else if (what == UnitClass::AbsID && money)
-		{
-			auto pUnit = static_cast<UnitClass*>(pDest);
-
-			if (pUnit->Type->DeploysInto) {
-				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pUnit->Type->DeploysInto);
-
-				if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome)) {
-					if (pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->DisplayIncome_AllowAI) {
-						FlyingStrings::AddMoneyString(
-						money,
-						money,
-						pThis,
-						pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
-						pThis->GetCoords(),
-						pTypeExt->DisplayIncome_Offset
-						);
-					}
-				}
-			}
-		}
-	}
-
-	return 0x522E61;
 }
 
 DEFINE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
@@ -1481,47 +1390,6 @@ DEFINE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
 	return 0x729369;
 }
 
-// spread tiberium on building destruction. replaces the
-// original code, made faster and spilling is now optional.
-DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	auto& store = pThis->Tiberium;
-	auto& total = pThis->Owner->OwnedTiberium;
-
-	// remove the tiberium contained in this structure from the house's owned
-	// tiberium. original code does this one bail at a time, we do bulk.
-	if (store.GetTotalAmount() >= 1.0)
-	{
-		for (auto i = 0u; i < 4; ++i)
-		{
-			auto const amount = std::ceil(store.GetAmount(i));
-			if (amount > 0.0)
-			{
-				store.RemoveAmount(amount, i);
-				total.RemoveAmount(amount, i);
-
-				// spread bail by bail
-				if (pExt->TiberiumSpill)
-				{
-					for (auto j = static_cast<int>(amount); j; --j)
-					{
-						auto const dist = ScenarioClass::Instance->Random.RandomRanged(256, 768);
-						auto const crd = MapClass::GetRandomCoordsNear(pThis->Location, dist, true);
-
-						auto const pCell = MapClass::Instance->GetCellAt(crd);
-						pCell->IncreaseTiberium(i, 1);
-					}
-				}
-			}
-		}
-	}
-
-	return 0x441C0C;
-}
-
 // select the most appropriate firing voice and also account
 // for undefined flags, so you actually won't lose functionality
 // when a unit becomes elite.
@@ -1620,45 +1488,6 @@ DEFINE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 {
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
 	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
-}
-
-DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
-{
-	GET(const UnitClass* const, pThis, ESI);
-
-	if (RulesClass::Instance->TiberiumExplosive
-		&& !pThis->Type->Weeder
-		&& !ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
-		&& pThis->Tiberium.GetTotalAmount() > 0.0f)
-	{
-		// multiply the amounts with their powers and sum them up
-		int morePower = 0;
-		for (int i = 0; i < TiberiumClass::Array->Count; ++i)
-		{
-			morePower += int(pThis->Tiberium.Tiberiums[i] * TiberiumClass::Array->Items[i]->Power);
-		}
-
-		if (morePower > 0)
-		{
-
-			CoordStruct crd = pThis->GetCoords();
-			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
-			{
-				MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
-			}
-
-			if (auto pAnim = RulesExtData::Instance()->Tiberium_ExplosiveAnim)
-			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
-					pThis->Owner,
-					nullptr,
-					false
-				);
-			}
-		}
-	}
-
-	return 0x7387C4;
 }
 
 DEFINE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)

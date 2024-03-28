@@ -1072,10 +1072,10 @@ DEFINE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || pThis->IsHumanPlayer)
 	{
 		// don't change, old values are needed for silo update
-		const auto lastStorage = int(pThis->OwnedTiberium.GetTotalAmount());
+		const double lastStorage = (HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 		const auto lastTotalStorage = pThis->TotalStorage;
-		const auto curStorage = lastTotalStorage - lastStorage;
-		float rest = 0.0f;
+		const auto curStorage = (double)lastTotalStorage - lastStorage;
+		double rest = 0.0;
 
 		// this is the upper limit for stored tiberium
 		if (amount > curStorage) {
@@ -1093,22 +1093,23 @@ DEFINE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 			auto const storage = pBuilding->Type->Storage;
 			if (pBuilding->IsOnMap && storage > 0)
 			{
+				auto storage_ = &TechnoExtContainer::Instance.Find(pBuilding)->TiberiumStorage;
 				// put as much tiberium into this silo
-				auto freeSpace = storage - pBuilding->Tiberium.GetTotalAmount();
+				double freeSpace = (double)storage - storage_->GetAmounts();
 
 				if (freeSpace > 0.0) {
 					if (freeSpace > amount) {
 						freeSpace = amount;
 					}
 
-					pBuilding->Tiberium.AddAmount(freeSpace, idxType);
-					pThis->OwnedTiberium.AddAmount(freeSpace, idxType);
-					amount -= freeSpace;
+					storage_->IncreaseAmount((float)freeSpace, idxType);
+					HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount((float)freeSpace, idxType);
+					amount -= (float)freeSpace;
 				}
 			}
 		}
 
-		amount += rest;
+		amount += (float)rest;
 
 		//no free space , just give the money ,..
 		if(amount > 0.0) {
@@ -1116,7 +1117,7 @@ DEFINE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 			pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
 		}
 		// redraw silos
-		pThis->UpdateAllSilos(lastStorage, lastTotalStorage);
+		pThis->UpdateAllSilos((int)lastStorage, lastTotalStorage);
 	}
 	else
 	{

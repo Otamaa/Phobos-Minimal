@@ -71,11 +71,11 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 		{//Multiple Factory
 
 			const int factoryCount = pOwner->FactoryCount(what, isNaval);
-			const int divisor = (cap > -1 && factoryCount > cap) ? cap : factoryCount;
+			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
 
 			if (nFactorySpeed > 0.0) {
 				for (int i = 0; i < divisor; ++i) {
-					finalSpeed = int((double)finalSpeed * nFactorySpeed);
+					finalSpeed += int((double)finalSpeed * nFactorySpeed);
 				}
 			}
 		}
@@ -1199,8 +1199,7 @@ DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 }
 
 //TechnoClass_GetActionOnObject_IvanBombsB
-//was 6FFF9E but why not just skip the check too , since it got no use
-DEFINE_JUMP(LJMP, 0x6FFF8D, 0x700006);
+DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
 DEFINE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {

@@ -25,6 +25,7 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -872,6 +873,17 @@ void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Debug::Log(__FUNCTION__" Called ! \n");
+	for (int i = 0; i < HouseClass::Array->Count; ++i) {
+		if (auto pHouse = HouseClass::Array->Items[i]) {
+			HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+		}
+	}
+
+	for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+		if (auto pTech = TechnoClass::Array->Items[i]) {
+			TechnoExtContainer::Instance.Find(pTech)->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+		}
+	}
 }
 
 // =============================
@@ -1339,15 +1351,16 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 //	return 0;
 //}
 
-//DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
-//{
-//	GET(RulesClass*, pItem, EDI);
-//	GET(CCINIClass*, pINI, ESI);
-//
-//	RulesExtData::LoadAfterAllLogicData(pItem, pINI);
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
+{
+	GET(RulesClass*, pItem, EDI);
+	GET(CCINIClass*, pINI, ESI);
+
+	RulesExtData::LoadAfterAllLogicData(pItem, pINI);
+
+	return 0;
+}
+
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {

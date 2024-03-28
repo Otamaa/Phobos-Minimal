@@ -44,6 +44,10 @@
 #include <BitFont.h>
 #include <format>
 
+
+#include <Ext/SWType/Body.h>
+#include <New/Type/CrateTypeClass.h>
+
 #include <SpotlightClass.h>
 #include <New/Entity/FlyingStrings.h>
 #pragma endregion
@@ -1163,8 +1167,8 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 
-	constexpr int maximumStorage = sizeof(pTechno->Tiberium.Tiberiums) / sizeof(float);
-	std::vector<std::pair<int, int>> Amounts(maximumStorage);
+	auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
+	std::vector<std::pair<int, int>> Amounts (TiberiumClass::Array->Count);
 
 	const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
 
@@ -1180,7 +1184,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		}
 		else
 		{
-			amount = int(pTechno->Tiberium.Tiberiums[i] / nStorage * nMax + 0.5);
+			amount = int(storage->m_values[i] / nStorage * nMax + 0.5);
 		}
 
 		if (!isWeeder)
@@ -1213,15 +1217,15 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 		Amounts[i] = { amount , FrameIdx };
 	}
 
-	static constexpr std::array<int, maximumStorage> defOrder { {0, 2, 3, 1} };
-	const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], maximumStorage));
+	static constexpr std::array<int, 4u> defOrder { {0, 2, 3, 1} };
+	const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
 	const auto GetFrames = [&](
 		const Iterator<int> orders,
 		const ValueableVector<int>& frames)
 		{
 			int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
 
-			for (size_t i = 0; i < maximumStorage; i++)
+			for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
 			{
 				size_t index = i;
 				if (i < orders.size())
@@ -2520,24 +2524,36 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 #endif
 
 //// 7384C3 ,7385BB UnitClass take damage func
-DEFINE_HOOK(0x73D4F1, UnitClass_Harvest_VeinsStorageAmount, 0x6)
+DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 {
-	GET(UnitClass*, pThis, ESI);
-	pThis->Tiberium.AddAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
-	return 0x73D502;
-}
-
-//TODO , rewrite this to take custom amount
-DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
-{
-	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
-	GET(UnitTypeClass*, pType, EDX);
 	GET(UnitClass*, pThis, ESI);
 	GET(CellClass*, pCell, EBP);
-	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
-	const bool canStoreHarvest = pThis->GetStoragePercentage() < 1.0;
 
-	return canharvest && canStoreHarvest ? retTrue : retFalse;
+	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+	double amount = 1.0;
+
+	if(pThis->Type->Weeder){
+
+		pCell->RemoveWeed();
+		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
+		return 0x73D502;
+	}
+
+	int tibType = pCell->GetContainedTiberiumIndex();
+	double cur = storage->GetAmount(tibType);
+
+	if (((double)pThis->Type->Storage - cur) <= 1.0) {
+		amount = (double)pThis->Type->Storage - cur;
+	}
+
+	int reduced = pCell->ReduceTiberium((int)amount);
+
+	if (reduced > 0)
+	{
+		storage->IncreaseAmount((float)amount, tibType);
+		return 0x73D5BE;
+	}
+	return 0x73D623;
 }
 
 DEFINE_HOOK(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
@@ -4532,9 +4548,6 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
-#include <Ext/SWType/Body.h>
-#include <New/Type/CrateTypeClass.h>
-
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
@@ -5307,3 +5320,564 @@ DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 
 	return 0x0;
 }
+
+//TechnoClass_CTOR_TiberiumStorage
+//DEFINE_JUMP(LJMP, 0x6F2ECE , 0x6F2ED3)
+//HouseClass_CTOR_TiberiumStorages
+//DEFINE_JUMP(LJMP, 0x4F58CD , 0x4F58D2)
+
+//UnitClass_CreditLoad
+DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
+{
+	GET(UnitClass*, pThis, ECX);
+	int result = int(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetTotalTiberiumValue() * pThis->Owner->Type->IncomeMult);
+	R->EAX((int)result);
+	return 0x7438E1;
+}
+
+#pragma optimize("", off )
+#pragma region GetStorageTotalAmount
+DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
+{
+	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
+	GET(UnitTypeClass*, pType, EDX);
+	GET(UnitClass*, pThis, ESI);
+	GET(CellClass*, pCell, EBP);
+	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
+	const auto storagesPercent = pThis->GetStoragePercentage();
+	const bool canStoreHarvest = storagesPercent < 1.0;
+
+	return canharvest && canStoreHarvest ? retTrue : retFalse;
+}
+
+// spread tiberium on building destruction. replaces the
+// original code, made faster and spilling is now optional.
+DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	auto& store = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+	auto& total = HouseExtContainer::Instance.Find(pThis->Owner)->TiberiumStorage;
+
+	// remove the tiberium contained in this structure from the house's owned
+	// tiberium. original code does this one bail at a time, we do bulk.
+	if (store.GetAmounts() >= 1.0)
+	{
+		for (size_t i = 0u; i < (size_t)TiberiumClass::Array->Count; ++i)
+		{
+			auto const amount = std::ceil(store.GetAmount(i));
+
+			if (amount > 0.0) {
+
+				store.DecreaseLevel((float)amount, i);
+				total.DecreaseLevel((float)amount, i);
+
+				// spread bail by bail
+				if (pExt->TiberiumSpill)
+				{
+					for (auto j = static_cast<int>(amount); j; --j)
+					{
+						auto const dist = ScenarioClass::Instance->Random.RandomRanged(256, 768);
+						auto const crd = MapClass::GetRandomCoordsNear(pThis->Location, dist, true);
+
+						auto const pCell = MapClass::Instance->GetCellAt(crd);
+						pCell->IncreaseTiberium(i, 1);
+					}
+				}
+			}
+		}
+	}
+
+	if(!TechnoTypeExtContainer::Instance.Find(pThis->Type)->DontShake.Get() && RulesClass::Instance->ShakeScreen) {
+		int cost = pThis->Type->GetCost();
+		ShakeScreenHandle::ShakeScreen(pThis, cost, RulesClass::Instance->ShakeScreen);
+	}
+
+	return 0x441C39;
+}
+
+DEFINE_HOOK(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+
+	int result = 0;
+	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
+		result = int(amount * TiberiumClass::Array->Count) / pThis->Type->Storage;
+
+	R->EAX(result);
+	return 0x446016;
+}
+
+DEFINE_HOOK(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	int result = 0;
+	if (auto amount = int(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts()))
+		result = int(double(amount * TiberiumClass::Array->Count) / (pThis->Type->Storage + 0.5));
+
+	R->EAX(result);
+	R->EDX(pThis->Type);
+	return 0x450D09;
+}
+
+DEFINE_HOOK(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	int result = 0;
+	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
+		result = int(amount * TiberiumClass::Array->Count) / pThis->Type->Storage;
+
+	R->EAX(result);
+	return 0x450DDC;
+}
+
+DEFINE_HOOK(0x450E12, BuildingClass_AnimAI_GetStorageTotalAmount_C, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	int result = 0;
+	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
+		result = int(amount * TiberiumClass::Array->Count) / pThis->Type->Storage;
+
+	R->EAX(result);
+	return 0x450E3E;
+}
+
+DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0 , 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	int result = 0;
+	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
+		result = int(amount * TiberiumClass::Array->Count) / pThis->Type->Storage;
+
+	R->EAX(result);
+	return 0x4589DC;
+}
+
+DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed()) {
+		auto decreaase = storage->DecreaseLevel((float)storage->GetAmount(i), i);
+		HouseExtContainer::Instance.Find(pThis->Owner)->TiberiumStorage.DecreaseLevel(decreaase, i);
+	}
+	return 0x44A287;
+}
+
+//TechnoClass
+DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	const auto storange = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+	R->EAX(storange->GetAmounts());
+	return 0x708CE4;
+}
+
+//UnitClass
+DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
+{
+	GET(BuildingClass* const, pBld, EDI);
+	GET(UnitClass*, pThis, ESI);
+
+	auto unit_storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+	const int idxTiberium = unit_storage->GetFirstSlotUsed();
+	const double amountRemoved = idxTiberium != -1 ? unit_storage->GetAmount(idxTiberium) : 0.0;//after decreased
+
+	if(idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved ,idxTiberium) <= 0.0) {
+		if (pBld->Type->Refinery) { //weed ???
+			pBld->PlayNthAnim(BuildingAnimSlot::Production, pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow);
+		}
+		pThis->MissionStatus = 4;
+
+		if (pBld->Anims[10]) {
+			pBld->DestroyNthAnim(BuildingAnimSlot::Special);
+		}
+	}else
+	if (pBld->Type->Weeder)
+	{
+		pBld->Owner->GiveWeed((int)amountRemoved, idxTiberium);
+		pThis->Animation.Value = 0;
+	}
+	else
+	{
+		TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner,
+		(float)amountRemoved,
+		(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved),
+		idxTiberium
+		);
+		pThis->Animation.Value = 0;
+
+		BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
+			pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
+
+	}
+
+	return 0x73E539;
+}
+
+DEFINE_HOOK(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pType = pThis->GetTechnoType();
+	double result = 0.0;
+	if (pType->Storage > 0) {
+		result = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts() / pType->Storage;
+	}
+
+	__asm fld result;
+	return 0x708C0A;
+}
+
+DEFINE_HOOK(0x7414A0, UnitClass_GetStoragePercentage_GetTotalAmounts, 0x9)
+{
+	GET(UnitClass*, pThis, ECX);
+	double result = pThis->Type->Harvester || pThis->Type->Weeder ?
+		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts() : 0.0f;
+
+	result /= (double)pThis->Type->Storage;
+	__asm fld result;
+	return 0x7414DD;
+}
+
+DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+	if (RulesClass::Instance->TiberiumExplosive
+		&& !pThis->Type->Weeder
+		&& !ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
+		&& storage->GetAmounts() > 0.0f)
+	{
+		// multiply the amounts with their powers and sum them up
+		int morePower = 0;
+
+		for (int i = 0; i < TiberiumClass::Array->Count; ++i) {
+			morePower += int(storage->m_values[i] * TiberiumClass::Array->Items[i]->Power);
+		}
+
+		if (morePower > 0)
+		{
+
+			CoordStruct crd = pThis->GetCoords();
+			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
+			{
+				MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
+			}
+
+			if (auto pAnim = RulesExtData::Instance()->Tiberium_ExplosiveAnim)
+			{
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
+					pThis->Owner,
+					nullptr,
+					false
+				);
+			}
+		}
+	}
+
+	return 0x7387C4;
+}
+
+//IfantryClass
+DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
+{
+	GET(InfantryClass*, pThis, ECX);
+
+	if (pThis->Type->Storage)
+	{
+		const auto v4 = pThis->GetCell();
+		if (v4->HasTiberium() && pThis->GetStoragePercentage() > 1.0)
+		{
+			if (pThis->SequenceAnim != DoType::Shovel) {
+				pThis->PlayAnim(DoType::Shovel);
+			}
+
+			auto tibType = v4->GetContainedTiberiumIndex();
+			auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+			const auto amount = storage->GetAmount(tibType);
+			double result = 1.0;
+
+			if (((double)pThis->Type->Storage - amount) <= 1.0) {
+				result = (double)pThis->Type->Storage - amount;
+			}
+
+			auto v10 = v4->ReduceTiberium((int)result);
+
+			if (v10 > 0) {
+				storage->IncreaseAmount((float)v10, tibType);
+			}
+
+			R->EAX(pThis->Type->HarvestRate);
+		}
+	}
+
+	pThis->PlayAnim(DoType::Ready);
+	pThis->QueueMission(Mission::Guard, false);
+	R->EAX(1);
+
+	return 0x522EAB;
+}
+
+DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
+{
+	GET(InfantryClass*, pThis, ECX);
+	GET_STACK(TechnoClass* const, pDest, 0x4);
+
+	//be carefull , that slave sometime do unload with different owner
+	//this can become troublesome later ,..
+
+	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+	bool updateSmoke = false;
+	int balanceBefore = pDest->Owner->Available_Money();
+
+	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed())
+	{
+		auto const amountRemoved = storage->DecreaseLevel((float)storage->GetAmount(i), i);
+
+		if (amountRemoved > 0.0)
+		{
+			TechnoExt_ExtData::DepositTiberium(pThis, pDest->Owner, amountRemoved,
+				BuildingTypeExtData::GetPurifierBonusses(pDest->Owner) * amountRemoved,
+				i);
+
+			// register for refinery smoke
+			updateSmoke = true;
+		}
+	}
+
+	if (updateSmoke)
+	{
+		pDest->UpdateRefinerySmokeSystems();
+
+		int money = pDest->Owner->Available_Money() - balanceBefore;
+		const auto what = pDest->WhatAmI();
+
+		if (what == BuildingClass::AbsID)
+		{
+			BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pDest))->AccumulatedIncome += money;
+		}
+		else if (what == UnitClass::AbsID && money)
+		{
+			auto pUnit = static_cast<UnitClass*>(pDest);
+
+			if (pUnit->Type->DeploysInto)
+			{
+				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pUnit->Type->DeploysInto);
+
+				if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome))
+				{
+					if (pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->DisplayIncome_AllowAI)
+					{
+						FlyingStrings::AddMoneyString(
+						money,
+						money,
+						pThis,
+						pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+						pThis->GetCoords(),
+						pTypeExt->DisplayIncome_Offset
+						);
+					}
+				}
+			}
+		}
+	}
+
+	return 0x522E61;
+}
+
+//HouseClass
+DEFINE_HOOK(0x4F69D5, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x6)
+{
+	GET(IHouse*, pThis, ESI);
+	const auto pHouse = static_cast<HouseClass*>(pThis);
+	R->EAX((int)HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.GetAmounts());
+	return 0x4F69E5;
+}
+
+DEFINE_HOOK(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)
+{
+	GET(IHouse*, pThis, ESI);
+	const auto pHouse = static_cast<HouseClass*>(pThis);
+	R->EAX(HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.GetTotalTiberiumValue());
+	return 0x4F69AE;
+}
+
+DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
+{
+	GET(HouseClass*, pThis, ESI);
+	double result = 0.0;
+	const double amount = HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts();
+
+	if ((int)amount){
+		result = double(amount) / double(pThis->TotalStorage);
+	}
+
+	__asm fld result;
+	return 0x4F6EA2;
+}
+
+DEFINE_HOOK(0x4F8C05, HouseeClass_AI_StorageSpeak_GetTiberiumStorageAmounts, 0x6)
+{
+	GET(HouseClass*, pThis, ESI);
+	R->EAX((int)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+	return 0x4F8C15;
+}
+
+DEFINE_HOOK(0x4F96BF, HouseClass_FindBestStorage_GetStorageTotalAmounts, 0x5)
+{
+	GET(HouseClass*, pThis, ESI);
+	R->EAX(HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+	return 0x4F96C4;
+}
+
+DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(int, money, 0x4);
+
+	auto storage = &HouseExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+	int total = (int)storage->GetAmounts();
+	int total_balance = pThis->TotalStorage;
+	int balance = pThis->Balance;
+	int blance_before = money;
+
+	if (money <= balance) {
+		pThis->Balance = balance - money;
+	}
+	else
+	{
+		blance_before = pThis->Balance;
+		int deduced = money - balance;
+		pThis->Balance = 0;
+		if (deduced > 0 && total > 0.0)
+		{
+			for (auto& pBld : pThis->Buildings) {
+
+				if (pBld) {
+					auto bldStorage = &TechnoExtContainer::Instance.Find(pBld)->TiberiumStorage;
+
+					if (bldStorage->GetAmounts() > 0.0)
+					{
+						while (bldStorage->GetAmounts() > 0.0)
+						{
+							if (deduced <= 0)
+								break;
+
+							int used = bldStorage->GetFirstSlotUsed();
+							while (bldStorage->GetAmount(used) > 0.0)
+							{
+								auto decrease_str = bldStorage->DecreaseLevel(1.0, used);
+								storage->DecreaseLevel(decrease_str, used);
+								int mult = int(TiberiumClass::Array->Items[used]->Value * pThis->Type->IncomeMult * decrease_str);
+								deduced -= mult;
+								blance_before += mult;
+								if (deduced < 0)
+								{
+									pThis->Balance -= deduced;
+									blance_before += deduced;
+									deduced = 0;
+									break;
+								}
+
+								if (deduced <= 0)
+									break;
+							}
+						}
+					}
+				}
+
+
+				if (deduced == 0)
+					break;
+			}
+		}
+	}
+
+	pThis->UpdateAllSilos(total, total_balance);
+	pThis->CreditsSpent += blance_before;
+	return 0x4F9941;
+}
+
+DEFINE_HOOK(0x4F99A6, HouseClass_UpdateAllSilos_GetStorageTotalAmounts, 0x6)
+{
+	GET(HouseClass*, pThis, EDI);
+	R->EAX(HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+	return 0x4F99B1;
+}
+
+DEFINE_HOOK(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
+{
+	GET(HouseClass*, pThis, ESI);
+	auto storage = &HouseExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed()) {
+		auto decreaase = storage->DecreaseLevel(2147483600.0f, i);
+		pThis->SiloMoney += int(decreaase * 5.0);
+		pThis->TotalStorage += int(TiberiumClass::Array->Items[i]->Value * pThis->Type->IncomeMult * decreaase);
+	}
+
+	return 0x5028A7;
+}
+
+DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
+{
+	GET(FootClass*, pFoot, ESI);
+	GET(TechnoTypeClass*, pFootType, EDI);
+	TechnoExtContainer::Instance.Find(pFoot)->TiberiumStorage.DecreaseLevel((float)pFootType->Storage, 0);
+	return 0x65DE82;
+}
+
+//DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9680, StorageClass_GetAmount_caller, 0x7)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//DEFINE_HOOK(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+
+#pragma endregion
+#pragma optimize("", on )

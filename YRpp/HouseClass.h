@@ -1150,7 +1150,7 @@ public:
 	int                   OwnedBuildings;
 	int                   OwnedInfantry;
 	int                   OwnedAircraft;
-	DECLARE_PROPERTY(StorageClass, OwnedTiberium);
+	BYTE				  OwnedTiberium[sizeof(StorageClass)];
 	int                   Balance;
 	int                   TotalStorage; // capacity of all building Storage
 	DECLARE_PROPERTY(StorageClass, OwnedWeed);

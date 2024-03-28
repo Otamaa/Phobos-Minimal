@@ -24,8 +24,9 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 		pTechnoFrom->MindControlRingAnim = nullptr;
 
 		// kill previous anim if any
-		if (pTechnoTo->MindControlRingAnim) {
-			GameDelete<true,false>(pTechnoTo->MindControlRingAnim);
+		if (pTechnoTo->MindControlRingAnim)
+		{
+			GameDelete<true, false>(pTechnoTo->MindControlRingAnim);
 			//pTechnoTo->MindControlRingAnim->TimeToDie = true;
 			//pTechnoTo->MindControlRingAnim->UnInit();
 		}
@@ -46,12 +47,17 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 		pTechnoTo->MindControlRingAnim = Anim;
 	}
 
-	if (const auto MCHouse = pTechnoFrom->MindControlledByHouse) {
+	if (const auto MCHouse = pTechnoFrom->MindControlledByHouse)
+	{
 		pTechnoTo->MindControlledByHouse = MCHouse;
 		pTechnoFrom->MindControlledByHouse = nullptr;
-	} else if(pTechnoTo->MindControlledByAUnit && !pTechnoFrom->MindControlledBy) {
-			pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit; //perma MC ed
-	} else if (auto Controller = pTechnoFrom->MindControlledBy) {
+	}
+	else if (pTechnoTo->MindControlledByAUnit && !pTechnoFrom->MindControlledBy)
+	{
+		pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit; //perma MC ed
+	}
+	else if (auto Controller = pTechnoFrom->MindControlledBy)
+	{
 		if (auto Manager = Controller->CaptureManager)
 		{
 			const bool Succeeded =
@@ -73,7 +79,6 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 		}
 	}
 }
-
 DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 {
 	GET(BuildingClass*, pStructure, EBP);

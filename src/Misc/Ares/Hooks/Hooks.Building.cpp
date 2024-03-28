@@ -1203,11 +1203,11 @@ DEFINE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	double amount = 0.0;
 	if (pType->Storage > 0)
 	{
-		amount = pThis->Tiberium.GetStoragePercentage(pType->Storage);
+		amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetStoragePercentage(pType->Storage);
 	}
 	else
 	{
-		amount = pThis->Owner->OwnedTiberium.GetStoragePercentage(pThis->Owner->TotalStorage);
+		amount = HouseExtContainer::Instance.Find(pThis->Owner)->TiberiumStorage.GetStoragePercentage(pThis->Owner->TotalStorage);
 	}
 
 	R->EAX(static_cast<int>(pType->GetPipMax() * amount));

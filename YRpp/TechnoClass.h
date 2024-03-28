@@ -916,7 +916,8 @@ public:
 
 	int              HijackerInfantryType; // mutant hijacker
 
-	DECLARE_PROPERTY(StorageClass, Tiberium);
+	//DECLARE_PROPERTY(StorageClass, Tiberium);
+	BYTE			 Tiberium[sizeof(StorageClass)];
 	DWORD            unknown_34C;
 
 	DECLARE_PROPERTY(DoorClass, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass

@@ -6,6 +6,9 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/VectorHelper.h>
+
+#include <New/Entity/NewTiberiumStorageClass.h>
+
 #include <map>
 
 struct LauchData
@@ -138,6 +141,8 @@ public:
 
 	int KeepAliveCount { 0 };
 	int KeepAliveBuildingCount { 0 };
+
+	NewTiberiumStorageClass TiberiumStorage {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;

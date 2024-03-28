@@ -314,7 +314,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pType->Storage <= 0)
 			return;
 
-		value = static_cast<int>(pThis->Tiberium.GetTotalAmount());
+		value = static_cast<int>(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 		maxValue = pType->Storage;
 		break;
 	}
@@ -4546,6 +4546,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AeData)
 		.Process(this->StrafeFireCunt)
 		.Process(this->MergePreventionTimer)
+		.Process(this->TiberiumStorage)
 		.Process(this->MyWeaponManager)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)

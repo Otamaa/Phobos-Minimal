@@ -76,6 +76,20 @@ struct WeaponStruct;
 class AlphaShapeClass;
 class TActionClass;
 
+struct ShakeScreenHandle
+{
+	static void ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules)
+	{
+		if (pThis->IsOnMyView())
+		{
+			auto nFirst = GeneralUtils::GetValue(nValToCalc);
+			auto nSec = nFirst - GeneralUtils::GetValue(nRules) + 4;
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, nSec >> 1);
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, nSec);
+		}
+	}
+};
+
 struct AresGlobalData {
 
 	static DWORD InternalVersion;

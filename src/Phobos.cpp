@@ -38,7 +38,7 @@ bool Phobos::Config::HideWarning = false;
 
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
-static std::string filename = LuaData::LuaDir +"\\renameinternal.lua";
+static std::string filename = "\\renameinternal.lua";
 
 std::string LuaData::LuaDir;
 
@@ -204,7 +204,7 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
+	if (luaL_dofile(L, (LuaData::LuaDir + filename).c_str()) == LUA_OK)
 	{
 		lua_getglobal(L, "Replaces"); // T ==> -1
 
@@ -642,7 +642,9 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-#ifdef DETACH_DEBUGGER
+	//if (!Phobos::Otamaa::IsAdmin)
+	//	return;
+
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
 	const bool Detached =
@@ -669,7 +671,7 @@ void Phobos::InitAdminDebugMode()
 		L"Press OK to continue YR execution.",
 		L"Debugger Notice", MB_OK);
 	}
-#endif
+
 }
 
 void Phobos::InitConsole()
