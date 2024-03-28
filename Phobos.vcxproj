@@ -730,7 +730,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Debug DPFeatures\phobos.dll" />
-    <None Include="src\Ext\Script\tools\ExtractTheAlternativeNumbering.cs" />
+    <None Include="sampleconfig\tools\ExtractTheAlternativeNumbering.cs" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
