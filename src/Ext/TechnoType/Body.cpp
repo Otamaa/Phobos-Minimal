@@ -52,11 +52,14 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 	const auto pProductTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct);
 	const auto pBExt = BuildingTypeExtContainer::Instance.Find(pFactoryType);
 
+	//weird code ,..
+	//is this bug or intended ,...
+
 	auto begin =  pProductTypeExt->BuiltAt.begin();
 	auto end =  pProductTypeExt->BuiltAt.end();
 	if(begin != end){
 		while(*begin != pFactoryType){
-			if(begin == end)
+			if(++begin == end)
 			return false;
 
 		}
@@ -67,9 +70,11 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 	if(!pBExt->Factory_ExplicitOnly)
 		return true;
 
+	begin = pProductTypeExt->BuiltAt.begin();
+
 	if(begin != end){
 		while(*begin != pFactoryType){
-			if(begin == end)
+			if(++begin == end)
 			return false;
 
 		}
