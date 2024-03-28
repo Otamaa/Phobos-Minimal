@@ -39,6 +39,15 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ExplosionDamage.Read(exINI, pSection, "ExplosionDamage");
 
 	this->DebrisChance.Read(exINI, pSection, "Debris.Chance");
+
+	//TIB3_21
+	this->LinkedOverlayType.Read(exINI, pSection, "LinkedOverlayType");
+
+	if(this->LinkedOverlayType.size()){
+		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
+		detail::read<int>(pThis->field_EC, exINI, pSection, "field_EC");
+		pThis->NumImages = this->LinkedOverlayType.size();
+	}
 }
 
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
@@ -80,6 +89,7 @@ void TiberiumExtData::Serialize(T& Stm)
 		.Process(this->ExplosionWarhead)
 		.Process(this->ExplosionDamage)
 		.Process(this->DebrisChance)
+		.Process(this->LinkedOverlayType)
 	;
 }
 
@@ -135,5 +145,11 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 
 	TiberiumExtExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
 
+	if (R->Origin() == 0x721CDC && !TiberiumExtExtContainer::Instance.Find(pItem)->LinkedOverlayType.empty()) {
+		if (auto pLinked = TiberiumExtExtContainer::Instance.Find(pItem)->LinkedOverlayType[0]) {
+			pItem->Image = pLinked; //this is suppose to be linked list
+			// so this will decide !
+		}
+	}
 	return 0;
 }

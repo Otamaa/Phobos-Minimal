@@ -60,6 +60,7 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #pragma endregion
 
 	this->Bounty.Read(exINI, pSection, "Bounty");
+
 }
 
 // =============================
@@ -94,6 +95,7 @@ void TerrainTypeExtData::Serialize(T& Stm)
 		.Process(this->Damage)
 		.Process(this->AreaDamage)
 		.Process(this->Bounty)
+
 		;
 
 }
