@@ -88,6 +88,13 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 	}
 }
 
+// Open campaign briefing when pressing Tab
+DEFINE_HOOK(0x55E08F, KeyboardProcess_PressTab, 0x5)
+{
+	Game::SpecialDialog = SessionClass::IsCampaign() ? 9 : 8;
+
+	return 0x55E099;
+}
 
 DEFINE_JUMP(LJMP, 0x6BE06F, GET_OFFSET(TopLevelExceptionFilter))
 
