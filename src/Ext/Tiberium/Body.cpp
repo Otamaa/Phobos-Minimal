@@ -55,7 +55,7 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	switch (Image)
 	{
 	case -1:
-		if (this->PipIndex != -1)
+		if (this->PipIndex == -1)
 			this->PipIndex = 2;
 		break;
 	case 2:
