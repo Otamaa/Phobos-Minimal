@@ -233,15 +233,15 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 }
 
 // Unload more than once per ore dump if the harvester contains more than 1 tiberium type
-DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
-{
-	GET(HouseClass* const, pHouse, EBX); // this is the house of the refinery, not the harvester
-	// GET(BuildingClass* const, pDock, EDI);
+// DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
+// {
+// 	GET(HouseClass* const, pHouse, EBX); // this is the house of the refinery, not the harvester
+// 	// GET(BuildingClass* const, pDock, EDI);
 
-	HouseExtData::LastHarvesterBalance = pHouse->Available_Money();// Available_Money takes silos into account
+// 	HouseExtData::LastHarvesterBalance = pHouse->Available_Money();// Available_Money takes silos into account
 
-	return 0;
-}
+// 	return 0;
+// }
 
 
 //moved to the dumping hook
