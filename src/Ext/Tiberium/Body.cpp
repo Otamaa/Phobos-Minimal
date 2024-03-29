@@ -43,7 +43,7 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	//TIB3_21
 	this->LinkedOverlayType.Read(exINI, pSection, "LinkedOverlayType");
 
-	if(this->LinkedOverlayType.size()){
+	if(!this->LinkedOverlayType.empty()){
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
 		detail::read<int>(pThis->field_EC, exINI, pSection, "field_EC");
 		pThis->NumImages = this->LinkedOverlayType.size();

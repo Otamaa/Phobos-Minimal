@@ -5330,29 +5330,9 @@ DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 //HouseClass_CTOR_TiberiumStorages
 //DEFINE_JUMP(LJMP, 0x4F58CD , 0x4F58D2)
 
-//UnitClass_CreditLoad
-DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
-{
-	GET(UnitClass*, pThis, ECX);
-	int result = int(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetTotalTiberiumValue() * pThis->Owner->Type->IncomeMult);
-	R->EAX((int)result);
-	return 0x7438E1;
-}
-
 #pragma region GetStorageTotalAmount
-DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
-{
-	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
-	GET(UnitTypeClass*, pType, EDX);
-	GET(UnitClass*, pThis, ESI);
-	GET(CellClass*, pCell, EBP);
-	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
-	const auto storagesPercent = pThis->GetStoragePercentage();
-	const bool canStoreHarvest = storagesPercent < 1.0;
 
-	return canharvest && canStoreHarvest ? retTrue : retFalse;
-}
-
+#ifndef BUILDING_STORAGE_HOOK
 // spread tiberium on building destruction. replaces the
 // original code, made faster and spilling is now optional.
 DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
@@ -5463,7 +5443,7 @@ DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0 , 0xA)
 
 DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass*, pThis, EBP);
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 
 	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed()) {
@@ -5472,8 +5452,10 @@ DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
 	}
 	return 0x44A287;
 }
+#endif
 
 //TechnoClass
+#ifndef TECHNO_STORAGE_HOOK
 DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -5481,8 +5463,32 @@ DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
 	R->EAX(storange->GetAmounts());
 	return 0x708CE4;
 }
+#endif
 
 //UnitClass
+#ifndef UNIT_STORAGE_HOOK
+//UnitClass_CreditLoad
+DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
+{
+	GET(UnitClass*, pThis, ECX);
+	int result = int(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetTotalTiberiumValue() * pThis->Owner->Type->IncomeMult);
+	R->EAX((int)result);
+	return 0x7438E1;
+}
+
+DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
+{
+	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
+	GET(UnitTypeClass*, pType, EDX);
+	GET(UnitClass*, pThis, ESI);
+	GET(CellClass*, pCell, EBP);
+	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
+	const auto storagesPercent = pThis->GetStoragePercentage();
+	const bool canStoreHarvest = storagesPercent < 1.0;
+
+	return canharvest && canStoreHarvest ? retTrue : retFalse;
+}
+
 DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 {
 	GET(BuildingClass* const, pBld, EDI);
@@ -5590,8 +5596,10 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 
 	return 0x7387C4;
 }
+#endif
 
 //IfantryClass
+#ifndef INFANTRY_STROAGE_HOOK
 DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
@@ -5697,8 +5705,10 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 	return 0x522E61;
 }
+#endif
 
 //HouseClass
+#ifndef HOUSE_STORAGE_HOOK
 DEFINE_HOOK(0x4F69D5, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x6)
 {
 	GET(IHouse*, pThis, ESI);
@@ -5752,16 +5762,16 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 
 	int total = (int)storage->GetAmounts();
 	int total_balance = pThis->TotalStorage;
-	int balance = pThis->Balance;
+	int credits = pThis->Balance;
 	int blance_before = money;
 
-	if (money <= balance) {
-		pThis->Balance = balance - money;
+	if (money <= credits) {
+		pThis->Balance = credits - money;
 	}
 	else
 	{
 		blance_before = pThis->Balance;
-		int deduced = money - balance;
+		int deduced = money - credits;
 		pThis->Balance = 0;
 		if (deduced > 0 && total > 0.0)
 		{
@@ -5832,6 +5842,8 @@ DEFINE_HOOK(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
 
 	return 0x5028A7;
 }
+
+#endif
 
 DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 {
