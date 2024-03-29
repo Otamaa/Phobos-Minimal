@@ -138,9 +138,9 @@ namespace SavedGames
 		return true;
 	}
 
-	inline void FormatPath(char* buffer, const char* pFileName)
+	inline void FormatPath(char buffer[sizeof(Phobos::readBuffer)], const char* pFileName)
 	{
-		sprintf(buffer, "%s\\%s", SpawnerMain::GetGameConfigs()->SavedGameDir, pFileName);
+		sprintf_s(buffer, sizeof(Phobos::readBuffer), "%s\\%s", SpawnerMain::GetGameConfigs()->SavedGameDir, pFileName);
 	}
 }
 

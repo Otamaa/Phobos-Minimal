@@ -188,6 +188,7 @@ struct SpawnerMain
 		bool ContinueWithoutHumans;
 		bool DefeatedBecomesObserver;
 		bool Observer_ShowAIOnSidebar;
+		bool Observer_ShowMultiplayPassive;
 
 		// Custom mixes
 		// Note: std::list and std::string will be realised followed to RAII concept. It is pretty save instead of const char*.
@@ -282,7 +283,7 @@ struct SpawnerMain
 			, ContinueWithoutHumans { false }
 			, DefeatedBecomesObserver { false }
 			, Observer_ShowAIOnSidebar { true }
-
+			, Observer_ShowMultiplayPassive { false }
 			// Custom Mixes
 			, PreloadMixes {}
 			, PostloadMixes {}

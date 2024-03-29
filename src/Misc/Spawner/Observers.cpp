@@ -149,10 +149,12 @@ DEFINE_HOOK(0x6A557A, SidebarClass_InitIO, 0x5)
 #pragma region Show house on Observer sidebar
 bool inline ShowHouseOnObserverSidebar(HouseClass* pHouse)
 {
+
 	if (pHouse->Type->MultiplayPassive)
 		return false;
 
 	const bool bShowAI = (SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->Observer_ShowAIOnSidebar);
+
 	if (!bShowAI && !pHouse->IsHumanPlayer)
 		return false;
 
