@@ -369,11 +369,17 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 	return 0x702684;
 }
 
-DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)
+DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 {
-	enum { SkipKillingPassengers = 0x702669 };
+	enum { SkipExploding = 0x702672 , SkipKillingPassengers = 0x702669 };
 
 	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->WhatAmI() == AbstractType::Building) {
+		if (!BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup && (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling))
+			return SkipExploding;
+	}
+
 	return !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
 }
 

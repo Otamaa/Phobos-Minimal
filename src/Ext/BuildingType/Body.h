@@ -292,6 +292,8 @@ public:
 	ValueableIdx<VoxClass> EVA_Online { -1 };
 	ValueableIdx<VoxClass> EVA_Offline { -1 };
 
+	Valueable<bool> Explodes_DuringBuildup { true };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

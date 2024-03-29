@@ -956,6 +956,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->EVA_Online.Read(exINI, pSection, "EVA.Online");
 		this->EVA_Offline.Read(exINI, pSection, "EVA.Offline");
 
+		this->Explodes_DuringBuildup.Read(exINI, pSection, "Explodes.DuringBuildup");
+
 		if (Phobos::Otamaa::CompatibilityMode) {
 			if (pThis->NumberOfDocks > 0)
 			{
@@ -1257,6 +1259,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->IsDestroyableObstacle)
 		.Process(this->EVA_Online)
 		.Process(this->EVA_Offline)
+		.Process(Explodes_DuringBuildup)
 		;
 }
 
