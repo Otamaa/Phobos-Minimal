@@ -91,6 +91,8 @@ public:
 		return RulesClass::Instance->PoseDir;
 	}
 
+	int Mission_Move_Carryall() const { JMP_THIS(0x416D50); }
+
 	//Constructor
 	AircraftClass(AircraftTypeClass* pType, HouseClass* pOwner) noexcept
 		: AircraftClass(noinit_t())
