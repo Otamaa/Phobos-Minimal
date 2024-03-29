@@ -15,12 +15,12 @@ struct NewTiberiumStorageClass
 
 	std::vector<float> m_values;
 
-	NOINLINE double GetStoragePercentage(int total) const
+	double GetStoragePercentage(int total) const
 	{
 		return (double)this->GetAmounts() / (double)total;
 	}
 
-	NOINLINE int GetHighestStorageIdx() const
+	int GetHighestStorageIdx() const
 	{
 		int nIdx = 0;
 		for (int p = 0; p < (int)m_values.size(); p++)
@@ -29,7 +29,7 @@ struct NewTiberiumStorageClass
 		return nIdx;
 	}
 
-	NOINLINE int GetTotalTiberiumValue() const
+	int GetTotalTiberiumValue() const
 	{
 		float sum = 0;
 		for (size_t i = 0; i < m_values.size(); ++i)
@@ -43,7 +43,7 @@ struct NewTiberiumStorageClass
 		return (int)sum;
 	}
 
-	NOINLINE int GetFirstSlotUsed() const {
+	int GetFirstSlotUsed() const {
 
 		for (size_t i = 0; i < m_values.size(); ++i) {
 			if (m_values[i] > 0.0)
@@ -53,7 +53,7 @@ struct NewTiberiumStorageClass
 		return -1;
 	}
 
-	NOINLINE float DecreaseLevel(float amount, int idx) {
+	float DecreaseLevel(float amount, int idx) {
 		if (this->m_values[idx] >= amount) {
 			this->m_values[idx] -= amount;
 			return amount;
@@ -64,7 +64,7 @@ struct NewTiberiumStorageClass
 		}
 	}
 
-	NOINLINE double GetAmounts() const {
+	double GetAmounts() const {
 		double sum = 0.0;
 		for (size_t i = 0; i < m_values.size(); ++i) {
 			sum += m_values[i];
@@ -73,11 +73,11 @@ struct NewTiberiumStorageClass
 		return sum;
 	}
 
-	NOINLINE double GetAmount(int idx) const {
+	double GetAmount(int idx) const {
 		return m_values[idx];
 	}
 
-	NOINLINE float IncreaseAmount(float amount , int idx)
+	float IncreaseAmount(float amount , int idx)
 	{
 		float fal = amount + m_values[idx];
 		m_values[idx]= fal;

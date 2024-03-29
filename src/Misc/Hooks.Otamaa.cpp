@@ -5339,7 +5339,6 @@ DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
 	return 0x7438E1;
 }
 
-#pragma optimize("", off )
 #pragma region GetStorageTotalAmount
 DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
 {
@@ -5884,4 +5883,3 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 //}
 
 #pragma endregion
-#pragma optimize("", on )
