@@ -5885,6 +5885,7 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
+#ifdef AdditionalSequence
 static constexpr const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -6209,6 +6210,15 @@ DEFINE_HOOK(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
 	return 0x524096;
 }
 #pragma endregion
+
+#else
+DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
+{
+	GET(InfantryTypeClass*, pItem, ESI)
+		pItem->Sequence->Initialize();
+	return 0x523970;
+}
+#endif
 
 //DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
 //{
