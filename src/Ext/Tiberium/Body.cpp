@@ -91,8 +91,8 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		OverlayTypeClass* first = nullptr;
 
 		for (int i = 0; i < MaxCount; ++i) {
-			const auto Find = (this->LinkedOverlayType.Get() + std::format("{:02}", i + 1));
-			const auto pOverlay = OverlayTypeClass::Find(Find.c_str());
+			const std::string Find = (this->LinkedOverlayType.Get() + std::format("{:02}", i + 1));
+			OverlayTypeClass* pOverlay = OverlayTypeClass::Find(Find.c_str());
 
 			if (!pOverlay)
 				Debug::FatalErrorAndExit("CannotFind %s OverlayType for Tiberium[%s]\n", Find.c_str(), pSection);
@@ -106,6 +106,9 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			else if (first && pOverlay->ArrayIndex != (first->ArrayIndex + i)) {
 				Debug::FatalErrorAndExit("OverlayType index of [%s - %d] is invalid compared to the first[%s - %d] (+ %d) \n", Find.c_str(), pOverlay->ArrayIndex, i ,first->ID, first->ArrayIndex);
 			}
+
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("Reading[%s] With CurOverlay[%s] \n", pSection, Find.c_str());
 		}
 
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
@@ -117,16 +120,21 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 {
 	const auto pType = pTechno->GetTechnoType();
+	const Nullable<int>* look = &this->Heal_Step;
 
-	switch (pType->WhatAmI())
+	switch (pTechno->WhatAmI())
 	{
-	case InfantryTypeClass::AbsID:
-		return this->Heal_IStep.Get(pType->GetRepairStep());
-	case UnitTypeClass::AbsID:
-		return this->Heal_UStep.Get(pType->GetRepairStep());
+	case InfantryClass::AbsID:
+		look = &this->Heal_IStep;
+		break;
+	case UnitClass::AbsID:
+		look = &this->Heal_UStep;
+		break;
 	default:
-		return this->Heal_Step.Get(pType->GetRepairStep());
+		break;
 	}
+
+	return look->Get(pType->GetRepairStep());
 }
 
 // =============================
