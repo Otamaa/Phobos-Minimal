@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Phobos.Lua.h>
+
 class TeamClass;
 struct LuaBridge
 {

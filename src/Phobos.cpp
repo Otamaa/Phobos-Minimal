@@ -29,6 +29,7 @@
 #include <CD.h>
 #include <aclapi.h>
 
+#include <sol/sol.hpp>
 #include <Phobos.Lua.h>
 #pragma region DEFINES
 
@@ -177,23 +178,17 @@ void Phobos::CheckProcessorFeatures()
 
 void Phobos::ExecuteLua()
 {
-	make_unique_luastate(unique_lua);
-	auto L = unique_lua.get();
+	sol::state sol_state;
+	sol_state.open_libraries(sol::lib::base, sol::lib::io);
 
-	if (luaL_dofile(L, (LuaData::LuaDir + "\\adminmode.lua").c_str()) == LUA_OK)
-	{
-		lua_getglobal(L, "AdminMode");
-
-		if (lua_isstring(L, -1) == 1)
-		{
-			std::string adminName = lua_tostring(L, -1);
-			if (adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1)
-			{
+	if (sol_state.safe_script_file((LuaData::LuaDir + "\\AdminMode.lua")).status() == sol::call_status::ok) {
+		if (const auto value = sol_state["AdminMode"].get<std::optional<std::string>>()) {
+			if (value->size() <= MAX_COMPUTERNAME_LENGTH + 1) {
 				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
 				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 				GetComputerName(PCName, &dwSize);
 
-				if (IS_SAME_STR_(PCName, adminName.c_str()))
+				if (IS_SAME_STR_(PCName, value->c_str()))
 				{
 					Phobos::EnableConsole = true;
 					Phobos::Config::MultiThreadSinglePlayer = true;
@@ -204,74 +199,58 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	if (luaL_dofile(L, (LuaData::LuaDir + filename).c_str()) == LUA_OK)
-	{
-		lua_getglobal(L, "Replaces"); // T ==> -1
+	const std::string fileName = LuaData::LuaDir + filename;
 
-		// get the first table
-		if (lua_istable(L, -1))
-		{ // is T table ?
-			const size_t replace_size = (size_t)lua_rawlen(L, -1);
+	try{
+		if (sol_state.safe_script_file(fileName).status() == sol::call_status::ok)
+		{
+			if(const std::optional<sol::table> replaces = sol_state["Replaces"]){
+				for (const auto& entry : replaces.value()) {
+					sol::object key = entry.first;
+					sol::object value = entry.second;
 
-			for (size_t i = 0; i < replace_size; i++)
-			{
-				lua_pushinteger(L, lua_Integer(i + 1));
-				lua_gettable(L, -2);
+					const std::string sKey = key.as<std::string>();
 
-				if (lua_istable(L, -2))
-				{
-					lua_pushstring(L, "Addr");
-					lua_gettable(L, -2);
-					const auto addr = (uintptr_t)lua_tointeger(L, -1);
-					auto& result = map_replaceAddrTo[addr];
+					uintptr_t addr = 0;
+					std::string& to = map_replaceAddrTo[addr];
+					if (sKey == "Addr") { addr = value.as<int>(); }
+					if(sKey == "To") { to = value.as<std::string>(); }
+
 					const auto maxlen = strlen((const char*)addr);
-					lua_pop(L, 1);
-
-					lua_pushstring(L, "To");
-					lua_gettable(L, -2);
-					result = lua_tostring(L, -1);
-					lua_pop(L, 1);
 					DWORD protectFlag;
 
 					if (Phobos::Otamaa::IsAdmin)
 					{
-						std::string copy = trim(result.c_str());
-						Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
+						std::string copy = trim(to.c_str());
+						Debug::Log("Patching string[0x%x - %s (%d) - max %d]\n", addr, copy.c_str(), to.size(), maxlen);
 					}
 
 					// do not exceed maximum length of the string , otherwise it will broke the .exe file
-					Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
+					Patch::Apply_withmemcpy(addr, to.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
 				}
+			}
 
-				lua_pop(L, 1);
+			if (const auto _mainwindowString = sol_state["MainWindowString"].get<std::optional<std::string>>()) {
+				MainWindowStr = _mainwindowString->c_str();
+				Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
+				Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
+				Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
+				Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
+				Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
+			}
+
+			if (const auto _moviemdINI = sol_state["MovieMDINI"].get<std::optional<std::string>>()) {
+				StaticVars::MovieMDINI = _moviemdINI->c_str();
+			}
+
+			if (const auto _CompatibilityMode = sol_state["CompatibilityMode"].get<std::optional<bool>>()) {
+				StaticVars::MovieMDINI = _CompatibilityMode.value();
 			}
 		}
-
-		lua_getglobal(L, "MainWindowString");
-		if (lua_isstring(L, -1) == 1)
-		{
-			MainWindowStr = lua_tostring(L, -1);
-			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
-		}
-
-		lua_getglobal(L, "MovieMDINI");
-		if (lua_isstring(L, -1) == 1)
-		{
-			StaticVars::MovieMDINI = lua_tostring(L, -1);
-		}
-
-		lua_getglobal(L, "CompatibilityMode");
-		if (lua_isboolean(L,-1) == 1) {
-			Phobos::Otamaa::CompatibilityMode = lua_toboolean(L, -1);
-		}
 	}
-	else
+	catch (const sol::error& what)
 	{
-		Debug::Log("Cannot find %s file\n", filename);
+		Debug::Log("Cannot Find [%s] File ! Reason (%s)\n", fileName.c_str(), what.what());
 	}
 
 	LuaBridge::InitScriptLuaList();

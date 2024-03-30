@@ -13,6 +13,7 @@
 #include <FootClass.h>
 #include <UnitClass.h>
 
+#include <sol/sol.hpp>
 /*
 * // the stack are push back
 		- 3 is the first argument
@@ -111,7 +112,7 @@ struct LuaScript
 	int Number {};
 	std::string Name {};
 	std::string Lua_Name {};
-	unique_luastate State {};
+	sol::state State {};
 
 	void Initialize(int number, const char* name)
 	{
@@ -124,27 +125,27 @@ struct LuaScript
 
 	void InitState()
 	{
-		State.reset(luaL_newstate());
+		State.open_libraries(sol::lib::base, sol::lib::io);
 
-		if (luaL_dofile(State.get(), Lua_Name.c_str()) == LUA_OK)
-		{
-			luaL_openlibs(State.get());
+		try {
+			if (State.safe_script_file(Lua_Name).status() == sol::call_status::ok)
+			{
+				State["_TeamClass_GetCurrentScriptArg"] = TeamClassWrapper::GetCurrentScriptArg;
+				State["_TeamClass_SetStepCompleted"] = TeamClassWrapper::SetStepCompleted;
+				State["_TeamClass_IsGuardAreaTimerTicking"] = TeamClassWrapper::IsGuardAreaTimerTicking;
+				State["_TeamClass_GetAreaGuardTimerTimeLeft"] = TeamClassWrapper::GetAreaGuardTimerTimeLeft;
+				State["_TeamClass_GetFirstUnit"] = TeamClassWrapper::GetFirstUnit;
+				State["_TeamClass_StartGuardAreaTimer"] = TeamClassWrapper::StartGuardAreaTimer;
+				State["_TeamClass_StopGuardAreaTimer"] = TeamClassWrapper::StopGuardAreaTimer;
+				State["_TechnoExtData_IsInWarfactory"] = _TechnoExtData::IsInWarfactory;
+				State["_MissionClass_QueueMission"] = _MissionClass::QueueMission;
+				State["_Unit_GetNextTeamMember"] = _Unit::GetNextTeamMember;
+			}
 
-			lua_register(State.get(), "_TeamClass_GetCurrentScriptArg", TeamClassWrapper::GetCurrentScriptArg);
-			lua_register(State.get(), "_TeamClass_SetStepCompleted", TeamClassWrapper::SetStepCompleted);
-			lua_register(State.get(), "_TeamClass_IsGuardAreaTimerTicking", TeamClassWrapper::IsGuardAreaTimerTicking);
-			lua_register(State.get(), "_TeamClass_GetAreaGuardTimerTimeLeft", TeamClassWrapper::GetAreaGuardTimerTimeLeft);
-			lua_register(State.get(), "_TeamClass_GetFirstUnit", TeamClassWrapper::GetFirstUnit);
-			lua_register(State.get(), "_TeamClass_StartGuardAreaTimer", TeamClassWrapper::StartGuardAreaTimer);
-			lua_register(State.get(), "_TeamClass_StopGuardAreaTimer", TeamClassWrapper::StopGuardAreaTimer);
-			lua_register(State.get(), "_TechnoExtData_IsInWarfactory", _TechnoExtData::IsInWarfactory);
-			lua_register(State.get(), "_MissionClass_QueueMission", _MissionClass::QueueMission);
-			lua_register(State.get(), "_Unit_GetNextTeamMember", _Unit::GetNextTeamMember);
+		}catch(const sol::error& what) {
 
-		}else{
-
-			Debug::Log("Cannot Find [%s] File ! Reason (%s)\n", Lua_Name.c_str(), lua_tostring(State.get(), -1));
-			State.reset(nullptr);
+			Debug::Log("Cannot Find [%s] File ! Reason (%s)\n", Lua_Name.c_str(), what.what());
+			State = nullptr;
 		}
 	}
 };
@@ -191,41 +192,24 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 void LuaBridge::InitScriptLuaList()
 {
 	static std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
-	make_unique_luastate(unique_lua);
-	auto L = unique_lua.get();
+	sol::state sol_state;
+	sol_state.open_libraries(sol::lib::base, sol::lib::io);
 
-	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
+	if (sol_state.safe_script_file(filename).status() == sol::call_status::ok)
 	{
-		lua_getglobal(L, "Scripts"); // T ==> -1
+		if (const std::optional<sol::table> replaces = sol_state["Scripts"])
+		{
+			SriptNumbers.reserve(replaces->size());
 
-		// get the first table
-		if (lua_istable(L, -1))
-		{ // is T table ?
-			const size_t scriptSize = (size_t)lua_rawlen(L, -1);
-			SriptNumbers.reserve(scriptSize);
+			for (const auto& entry : replaces.value()) {
+				sol::object key = entry.first;
+				sol::object value = entry.second;
 
-			for (size_t i = 0; i < scriptSize; i++)
-			{
-				lua_pushinteger(L, i + 1);
-				lua_gettable(L, -2);
+				const std::string sKey = key.as<std::string>();
+				auto state = SriptNumbers.emplace_back();
 
-				if (lua_istable(L, -2))
-				{
-					lua_pushstring(L, "Original");
-					lua_gettable(L, -2);
-					const auto Originalnumber = (int)lua_tointeger(L, -1);
-					lua_pop(L, 1);
-
-					lua_pushstring(L, "Alternative");
-					lua_gettable(L, -2);
-					const auto AlternativeNumber = (int)lua_tointeger(L, -1);
-					lua_pop(L, 1);
-
-					SriptNumbers[i].Original = Originalnumber;
-					SriptNumbers[i].Alternate = AlternativeNumber;
-				}
-
-				lua_pop(L, 1);
+				if (sKey == "Original") { state.Original = value.as<int>(); }
+				if (sKey == "Alternative") { state.Alternate = value.as<int>(); }
 			}
 		}
 	}

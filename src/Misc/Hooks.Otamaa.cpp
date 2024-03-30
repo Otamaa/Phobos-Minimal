@@ -5885,7 +5885,7 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
-#ifndef AdditionalSequence
+#ifdef AdditionalSequence
 static constexpr const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -6059,12 +6059,15 @@ DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 	return 0x523970;
 }
 
-DEFINE_HOOK(0x520820, InfantryClass_FireAt_SecondaryFireFly, 0x5)
+DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
 	GET_STACK(int, weaponIdx, 0x34 - 0x24);
 
-	pThis->PlayAnim(weaponIdx == 0 ? DoType::FireFly : DoType(42));
+	DoType result = //weaponIdx == 0 ? DoType::FireFly :
+		DoType(42);
+	Debug::Log(__FUNCTION__" result Weapon[%d] [%d]\n", weaponIdx , result);
+	pThis->PlayAnim(result);
 	return 0x520831;
 }
 
@@ -6147,7 +6150,7 @@ void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI
 	char section[0x100] = {};
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0)
 	{
-		for (size_t i = 0; i < std::size(Sequences_ident) - 1; ++i)
+		for (size_t i = 0; i < std::size(Sequences_ident); ++i)
 		{
 			char sequenceData[0x100] = {};
 			if (pINI->GetString(section, Sequences_ident[i], sequenceData) > 0)

@@ -440,6 +440,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
+    <ClInclude Include="src\Lib\sol\config.hpp" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
