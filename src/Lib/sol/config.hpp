@@ -50,6 +50,6 @@ the build system, or the command line options of your compiler.
 
 // end of sol/config.hpp
 
-#define SOL_ALL_SAFETIES_ON 1
+#define SOL_ALL_SAFETIES_ON 0
 
 #endif // SOL_SINGLE_CONFIG_HPP

@@ -29,8 +29,8 @@
 #include <CD.h>
 #include <aclapi.h>
 
-#include <sol/sol.hpp>
 #include <Phobos.Lua.h>
+
 #pragma region DEFINES
 
 #ifndef IS_RELEASE_VER
@@ -178,11 +178,11 @@ void Phobos::CheckProcessorFeatures()
 
 void Phobos::ExecuteLua()
 {
-	sol::state sol_state;
-	sol_state.open_libraries(sol::lib::base, sol::lib::io);
+	sol::state sol_state {};
+	sol_state.open_libraries(sol::lib::base, sol::lib::io, sol::lib::table);
 
 	if (sol_state.safe_script_file((LuaData::LuaDir + "\\AdminMode.lua")).status() == sol::call_status::ok) {
-		if (const auto value = sol_state["AdminMode"].get<std::optional<std::string>>()) {
+		if (const sol::optional value = sol_state["AdminMode"].get<std::string>()) {
 			if (value->size() <= MAX_COMPUTERNAME_LENGTH + 1) {
 				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
 				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
@@ -199,17 +199,19 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	const std::string fileName = LuaData::LuaDir + filename;
+	std::string replaces_filename = LuaData::LuaDir + filename;
 
-	try{
-		if (sol_state.safe_script_file(fileName).status() == sol::call_status::ok)
-		{
-			if(const std::optional<sol::table> replaces = sol_state["Replaces"]){
+	try {
+		if (sol_state.safe_script_file(replaces_filename).status() == sol::call_status::ok) {
+			if(const sol::optional<sol::table> replaces = sol_state["Replaces"]){
 				for (const auto& entry : replaces.value()) {
 					sol::object key = entry.first;
 					sol::object value = entry.second;
 
-					const std::string sKey = key.as<std::string>();
+					const sol::optional<std::string> sKey = key.as<std::string>();
+
+					if (!sKey.has_value())
+						continue;
 
 					uintptr_t addr = 0;
 					std::string& to = map_replaceAddrTo[addr];
@@ -230,7 +232,7 @@ void Phobos::ExecuteLua()
 				}
 			}
 
-			if (const auto _mainwindowString = sol_state["MainWindowString"].get<std::optional<std::string>>()) {
+			if (const sol::optional _mainwindowString = sol_state["MainWindowString"].get<std::string>()) {
 				MainWindowStr = _mainwindowString->c_str();
 				Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
 				Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
@@ -239,21 +241,21 @@ void Phobos::ExecuteLua()
 				Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
 			}
 
-			if (const auto _moviemdINI = sol_state["MovieMDINI"].get<std::optional<std::string>>()) {
+			if (const sol::optional _moviemdINI = sol_state["MovieMDINI"].get<std::string>()) {
 				StaticVars::MovieMDINI = _moviemdINI->c_str();
 			}
 
-			if (const auto _CompatibilityMode = sol_state["CompatibilityMode"].get<std::optional<bool>>()) {
+			if (const sol::optional _CompatibilityMode = sol_state["CompatibilityMode"].get<bool>()) {
 				StaticVars::MovieMDINI = _CompatibilityMode.value();
 			}
 		}
 	}
 	catch (const sol::error& what)
 	{
-		Debug::Log("Cannot Find [%s] File ! Reason (%s)\n", fileName.c_str(), what.what());
+		Debug::Log("Cannot Open [%s] File ! Reason (%s)\n", replaces_filename.c_str(), what.what());
 	}
 
-	LuaBridge::InitScriptLuaList();
+	LuaBridge::InitScriptLuaList(sol_state);
 }
 
 void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)

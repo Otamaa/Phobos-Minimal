@@ -189,29 +189,38 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 	return false;
 }
 
-void LuaBridge::InitScriptLuaList()
+void LuaBridge::InitScriptLuaList(sol::state& sol_state)
 {
-	static std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
-	sol::state sol_state;
-	sol_state.open_libraries(sol::lib::base, sol::lib::io);
+	std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
 
-	if (sol_state.safe_script_file(filename).status() == sol::call_status::ok)
+	try
 	{
-		if (const std::optional<sol::table> replaces = sol_state["Scripts"])
+		if (sol_state.safe_script_file(filename).status() == sol::call_status::ok)
 		{
-			SriptNumbers.reserve(replaces->size());
+			if (const std::optional<sol::table> replaces = sol_state["Scripts"])
+			{
+				SriptNumbers.reserve(replaces->size());
 
-			for (const auto& entry : replaces.value()) {
-				sol::object key = entry.first;
-				sol::object value = entry.second;
+				for (const auto& entry : replaces.value()) {
+					sol::object key = entry.first;
+					sol::object value = entry.second;
 
-				const std::string sKey = key.as<std::string>();
-				auto state = SriptNumbers.emplace_back();
+					const sol::optional sKey = key.as<std::string>();
 
-				if (sKey == "Original") { state.Original = value.as<int>(); }
-				if (sKey == "Alternative") { state.Alternate = value.as<int>(); }
+					if (!sKey.has_value())
+						continue;
+
+					auto state = SriptNumbers.emplace_back();
+
+					if (sKey == "Original") { state.Original = value.as<int>(); }
+					if (sKey == "Alternative") { state.Alternate = value.as<int>(); }
+				}
 			}
 		}
+	}
+	catch (const sol::error& what)
+	{
+		Debug::Log("Cannot Open [%s] File ! Reason (%s)\n", filename.c_str(), what.what());
 	}
 }
 
