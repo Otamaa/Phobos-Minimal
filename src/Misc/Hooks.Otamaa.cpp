@@ -5496,7 +5496,8 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto unit_storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
-	HouseExtData::LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
+	if(!pBld->Type->Weeder)
+		HouseExtData::LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
 
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
 	const double amountRemoved = idxTiberium != -1 ? unit_storage->GetAmount(idxTiberium) : 0.0;//after decreased
