@@ -5885,7 +5885,7 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
-#ifdef AdditionalSequence
+#ifndef AdditionalSequence
 static constexpr const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
