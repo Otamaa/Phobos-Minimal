@@ -5,7 +5,7 @@
 
 struct Phobos_DoControls
 {
-	static void ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryTypeClass* pInf, CCINIClass* pINI);
+	static void ReadSequence(DoInfoStruct* Desig, InfantryTypeClass* pInf, CCINIClass* pINI);
 };
 
 class InfantryTypeExtData final

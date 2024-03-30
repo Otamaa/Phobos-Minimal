@@ -139,7 +139,7 @@ int WINAPI Tunnel::RecvFrom(
 		return recvfrom(sockfd, buf, len, flags, (struct sockaddr*)src_addr, addrlen);
 
 	// call recvfrom first to get the packet
-	int ret = recvfrom(sockfd, TempBuf, sizeof TempBuf, flags, (struct sockaddr*)src_addr, addrlen);
+	int ret = recvfrom(sockfd, TempBuf, sizeof(TempBuf), flags, (struct sockaddr*)src_addr, addrlen);
 
 	// no processing if returning error or less than 5 bytes of data
 	if (ret < 5 || *BufTo != Tunnel::Id)

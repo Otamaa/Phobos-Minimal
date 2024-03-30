@@ -2,18 +2,17 @@
 
 #include <Ext/Infantry/Body.h>
 
-void Phobos_DoControls::ReadSequence(std::vector<DoInfoStruct>& Desig, InfantryTypeClass* pInf, CCINIClass* pINI)
+void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
-	/*INI_EX IniEX(pINI);
+	/*
+	INI_EX IniEX(pINI);
 
 	char section[0x100];
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0) {
-		Desig.resize(DoControls::MaxCount);
-
 		for (int i = 0; i < DoControls::MaxCount; ++i) {
 			char sequenceData[0x100];
 			if (pINI->GetString(section, DoControls::DoType_toStr[i], sequenceData) > 0) {
-				auto& data = Desig[i];
+				auto& data = pDoInfo[i];
 				std::string basename = DoControls::DoType_toStr[i];
 
 				char bufferFacing[4];

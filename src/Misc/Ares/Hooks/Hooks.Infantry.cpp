@@ -289,13 +289,6 @@ DEFINE_HOOK(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 	return 0x52030D;
 }
 
-DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
-{
-	GET(InfantryTypeClass*, pItem, ESI)
-	pItem->Sequence->Initialize();
-	return 0x523970;
-}
-
 //
 // skip old logic's way to determine the cursor
 // Was 7

@@ -1170,7 +1170,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	}
 
 	auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
-	std::vector<std::pair<int, int>> Amounts (TiberiumClass::Array->Count);
+	std::vector<std::pair<int, int>> Amounts(TiberiumClass::Array->Count);
 
 	const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
 
@@ -2537,7 +2537,8 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 	double amount = 1.0;
 
-	if(pThis->Type->Weeder){
+	if (pThis->Type->Weeder)
+	{
 
 		pCell->RemoveWeed();
 		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
@@ -2547,7 +2548,8 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	int tibType = pCell->GetContainedTiberiumIndex();
 	double cur = storage->GetAmount(tibType);
 
-	if (((double)pThis->Type->Storage - cur) <= 1.0) {
+	if (((double)pThis->Type->Storage - cur) <= 1.0)
+	{
 		amount = (double)pThis->Type->Storage - cur;
 	}
 
@@ -4595,7 +4597,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					int sharecount = 0;
 					unsigned int ovelaydata = 0u;
 
-					for ( auto& pCrate : CrateTypeClass::Array)
+					for (auto& pCrate : CrateTypeClass::Array)
 					{
 						sharecount += pCrate->Weight;
 						if (random <= sharecount)
@@ -4749,7 +4751,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 
 				//ensure the index wont go beyond the array size
-				if((size_t)data >= CrateTypeClass::Array.size())
+				if ((size_t)data >= CrateTypeClass::Array.size())
 					data = Powerup::Money;
 				//if (data == Powerup::Squad)
 				//{
@@ -5024,7 +5026,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult	*= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult *= something;
 									TechnoExt_ExtData::RecalculateStat(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -5123,7 +5125,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					Debug::Log("Crate at %d,%d contains veterancy(TM)\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					const int MaxPromotedCount = (int)something;
 
-					if(MaxPromotedCount > 0) {
+					if (MaxPromotedCount > 0)
+					{
 						int PromotedCount = 0;
 
 						for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
@@ -5139,7 +5142,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 									auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 									auto place = cellLoc - LayersCoords;
 
-									if ((int)place.Length() < RulesClass::Instance->CrateRadius) {
+									if ((int)place.Length() < RulesClass::Instance->CrateRadius)
+									{
 
 										if (pTechno->Veterancy.IsVeteran())
 											pTechno->Veterancy.SetElite();
@@ -5165,7 +5169,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					Debug::Log("Crate at %d,%d contains poison gas\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 
-					if(auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS"))) {
+					if (auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS")))
+					{
 
 						bool randomizeCoord = true;
 						auto collector_loc = pCell->GetCoords();
@@ -5213,8 +5218,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Squad:
 				{
-					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
-						return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+ {
+	 return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5270,8 +5276,9 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Pod:
 				{
-					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
-						return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+ {
+	 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5299,8 +5306,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
 {
 	GET(CellClass*, pThis, ECX);
-	GET_STACK(FootClass*, pCollector , 0x4);
-	R->EAX(CollecCrate(pThis , pCollector));
+	GET_STACK(FootClass*, pCollector, 0x4);
+	R->EAX(CollecCrate(pThis, pCollector));
 	return 0x483391;
 }
 
@@ -5319,8 +5326,9 @@ DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(FootClass*, pOccupier, EDI);
 
-	if (!pHouse) {
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID() , pOccupier , pOccupier->get_ID());
+	if (!pHouse)
+	{
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID(), pOccupier, pOccupier->get_ID());
 	}
 
 	return 0x0;
@@ -5352,7 +5360,8 @@ DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 		{
 			auto const amount = std::ceil(store.GetAmount(i));
 
-			if (amount > 0.0) {
+			if (amount > 0.0)
+			{
 
 				store.DecreaseLevel((float)amount, i);
 				total.DecreaseLevel((float)amount, i);
@@ -5373,7 +5382,8 @@ DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 		}
 	}
 
-	if(!TechnoTypeExtContainer::Instance.Find(pThis->Type)->DontShake.Get() && RulesClass::Instance->ShakeScreen) {
+	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)->DontShake.Get() && RulesClass::Instance->ShakeScreen)
+	{
 		int cost = pThis->Type->GetCost();
 		ShakeScreenHandle::ShakeScreen(pThis, cost, RulesClass::Instance->ShakeScreen);
 	}
@@ -5430,7 +5440,7 @@ DEFINE_HOOK(0x450E12, BuildingClass_AnimAI_GetStorageTotalAmount_C, 0x7)
 	return 0x450E3E;
 }
 
-DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0 , 0xA)
+DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -5447,7 +5457,8 @@ DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 
-	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed()) {
+	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed())
+	{
 		auto decreaase = storage->DecreaseLevel((float)storage->GetAmount(i), i);
 		HouseExtContainer::Instance.Find(pThis->Owner)->TiberiumStorage.DecreaseLevel(decreaase, i);
 	}
@@ -5496,40 +5507,44 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto unit_storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
-	if(!pBld->Type->Weeder)
+	if (!pBld->Type->Weeder)
 		HouseExtData::LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
 
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
 	const double amountRemoved = idxTiberium != -1 ? unit_storage->GetAmount(idxTiberium) : 0.0;//after decreased
 
-	if(idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved ,idxTiberium) <= 0.0) {
-		if (pBld->Type->Refinery) { //weed ???
+	if (idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved, idxTiberium) <= 0.0)
+	{
+		if (pBld->Type->Refinery)
+		{ //weed ???
 			pBld->PlayNthAnim(BuildingAnimSlot::Production, pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow);
 		}
 		pThis->MissionStatus = 4;
 
-		if (pBld->Anims[10]) {
+		if (pBld->Anims[10])
+		{
 			pBld->DestroyNthAnim(BuildingAnimSlot::Special);
 		}
-	}else
-	if (pBld->Type->Weeder)
-	{
-		pBld->Owner->GiveWeed((int)amountRemoved, idxTiberium);
-		pThis->Animation.Value = 0;
 	}
 	else
-	{
-		TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner,
-		(float)amountRemoved,
-		(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved),
-		idxTiberium
-		);
-		pThis->Animation.Value = 0;
+		if (pBld->Type->Weeder)
+		{
+			pBld->Owner->GiveWeed((int)amountRemoved, idxTiberium);
+			pThis->Animation.Value = 0;
+		}
+		else
+		{
+			TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner,
+			(float)amountRemoved,
+			(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved),
+			idxTiberium
+			);
+			pThis->Animation.Value = 0;
 
-		BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
-			pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
+			BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
+				pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
 
-	}
+		}
 
 	return 0x73E539;
 }
@@ -5540,7 +5555,8 @@ DEFINE_HOOK(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
 
 	const auto pType = pThis->GetTechnoType();
 	double result = 0.0;
-	if (pType->Storage > 0) {
+	if (pType->Storage > 0)
+	{
 		result = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts() / pType->Storage;
 	}
 
@@ -5573,7 +5589,8 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 		// multiply the amounts with their powers and sum them up
 		int morePower = 0;
 
-		for (int i = 0; i < TiberiumClass::Array->Count; ++i) {
+		for (int i = 0; i < TiberiumClass::Array->Count; ++i)
+		{
 			morePower += int(storage->m_values[i] * TiberiumClass::Array->Items[i]->Power);
 		}
 
@@ -5612,7 +5629,8 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 		const auto v4 = pThis->GetCell();
 		if (v4->HasTiberium() && pThis->GetStoragePercentage() > 1.0)
 		{
-			if (pThis->SequenceAnim != DoType::Shovel) {
+			if (pThis->SequenceAnim != DoType::Shovel)
+			{
 				pThis->PlayAnim(DoType::Shovel);
 			}
 
@@ -5621,13 +5639,15 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 			const auto amount = storage->GetAmount(tibType);
 			double result = 1.0;
 
-			if (((double)pThis->Type->Storage - amount) <= 1.0) {
+			if (((double)pThis->Type->Storage - amount) <= 1.0)
+			{
 				result = (double)pThis->Type->Storage - amount;
 			}
 
 			auto v10 = v4->ReduceTiberium((int)result);
 
-			if (v10 > 0) {
+			if (v10 > 0)
+			{
 				storage->IncreaseAmount((float)v10, tibType);
 			}
 
@@ -5734,7 +5754,8 @@ DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
 	double result = 0.0;
 	const double amount = HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts();
 
-	if ((int)amount){
+	if ((int)amount)
+	{
 		result = double(amount) / double(pThis->TotalStorage);
 	}
 
@@ -5768,7 +5789,8 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 	int credits = pThis->Balance;
 	int blance_before = money;
 
-	if (money <= credits) {
+	if (money <= credits)
+	{
 		pThis->Balance = credits - money;
 	}
 	else
@@ -5778,9 +5800,11 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 		pThis->Balance = 0;
 		if (deduced > 0 && total > 0.0)
 		{
-			for (auto& pBld : pThis->Buildings) {
+			for (auto& pBld : pThis->Buildings)
+			{
 
-				if (pBld) {
+				if (pBld)
+				{
 					auto bldStorage = &TechnoExtContainer::Instance.Find(pBld)->TiberiumStorage;
 
 					if (bldStorage->GetAmounts() > 0.0)
@@ -5837,7 +5861,8 @@ DEFINE_HOOK(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
 	GET(HouseClass*, pThis, ESI);
 	auto storage = &HouseExtContainer::Instance.Find(pThis)->TiberiumStorage;
 
-	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed()) {
+	for (int i = storage->GetFirstSlotUsed(); i != -1; i = storage->GetFirstSlotUsed())
+	{
 		auto decreaase = storage->DecreaseLevel(2147483600.0f, i);
 		pThis->SiloMoney += int(decreaase * 5.0);
 		pThis->TotalStorage += int(TiberiumClass::Array->Items[i]->Value * pThis->Type->IncomeMult * decreaase);
@@ -5855,6 +5880,335 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 	TechnoExtContainer::Instance.Find(pFoot)->TiberiumStorage.DecreaseLevel((float)pFootType->Storage, 0);
 	return 0x65DE82;
 }
+
+// replacing reference of 7EAF7C
+// Replacing DoControls* with own
+// replace the name 0x8255C8u
+
+static constexpr const char* Sequences_ident[] = {
+		"Ready",
+		"Guard",
+		"Prone",
+		"Walk",
+		"FireUp",
+		"Down",
+		"Crawl",
+		"Up",
+		"FireProne",
+		"Idle1",
+		"Idle2",
+		"Die1",
+		"Die2",
+		"Die3",
+		"Die4",
+		"Die5",
+		"Tread",
+		"Swim",
+		"WetIdle1",
+		"WetIdle2",
+		"WetDie1",
+		"WetDie2",
+		"WetAttack",
+		"Hover",
+		"Fly",
+		"Tumble",
+		"FireFly",
+		"Deploy",
+		"Deployed",
+		"DeployedFire",
+		"DeployedIdle",
+		"Undeploy",
+		"Cheer",
+		"Paradrop",
+		"AirDeathStart",
+		"AirDeathFalling",
+		"AirDeathFinish",
+		"Panic",
+		"Shovel",
+		"Carry",
+		"SecondaryFire",
+		"SecondaryProne",
+		"SecondaryFireFly"
+};
+
+static constexpr std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
+	{1, 0, 0, 0},
+	{1, 0, 0, 6},
+	{1, 1, 1, 3},
+	{1, 0, 0, 1},
+	{0, 1, 0, 1},
+	{1, 1, 1, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 3},
+	{1, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 3},
+	{1, 1, 1, 1},
+	{1, 0, 0, 3},
+	{1, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 1, 0, 2},
+	{1, 1, 0, 1},
+	{1, 1, 0, 1},
+	{1, 1, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 3},
+	{1, 0, 0, 1},
+	{0, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 3},
+	{1, 1, 1, 4},
+	{1, 0, 0, 6},
+	{1, 1, 1, 3},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	{16, 0, 0, 0},
+	{1, 1, 0, 1}, //SecondaryFireFly
+}
+};
+
+struct NewDoType
+{
+	constexpr void FORCEINLINE Initialize()
+	{
+		for (auto at = this->begin(); at != this->end(); ++at)
+		{
+			at->StartFrame = 0;
+			at->CountFrames = 0;
+			at->FacingMultiplier = 0;
+			at->Facing = DoTypeFacing::None;
+			at->SoundCount = 0;
+			at->SoundData[0].Index = -1;
+			at->SoundData[0].StartFrame = 0;
+			at->SoundData[1].Index = -1;
+			at->SoundData[1].StartFrame = 0;
+		}
+	}
+
+	static const char* GetSequenceName(DoType sequence)
+	{
+		return Sequences_ident[(int)sequence];
+	}
+
+	DoInfoStruct GetSequence(DoType sequence) const
+	{
+		return this->Data[(int)sequence];
+	}
+
+	DoInfoStruct& GetSequence(DoType sequence)
+	{
+		return this->Data[(int)sequence];
+	}
+
+	static DoStruct* GetSequenceData(DoType sequence)
+	{
+		return const_cast<DoStruct*>(&Sequences_Master[(int)sequence]);
+	}
+
+	constexpr DoInfoStruct* begin() { return std::begin(Data); }
+	constexpr DoInfoStruct* end() { return std::end(Data); }
+
+	DoInfoStruct Data[std::size(Sequences_ident)];
+};
+
+DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
+{
+	GET(InfantryTypeClass*, pItem, ESI);
+
+	pItem->ArrayIndex = R->ECX<int>();
+	pItem->OccupyWeapon.FLH.X = 0;
+	pItem->OccupyWeapon.WeaponType = 0;
+	pItem->OccupyWeapon.FLH.Y = 0;
+	pItem->OccupyWeapon.BarrelLength = 0;
+	pItem->OccupyWeapon.BarrelThickness = 0;
+	pItem->OccupyWeapon.TurretLocked = 0;
+	pItem->OccupyWeapon.FLH.Z = 0;
+	pItem->EliteOccupyWeapon.WeaponType = 0;
+	pItem->EliteOccupyWeapon.BarrelLength = 0;
+	pItem->EliteOccupyWeapon.FLH.X = 0;
+	pItem->EliteOccupyWeapon.BarrelThickness = 0;
+	pItem->EliteOccupyWeapon.TurretLocked = 0;
+	pItem->RotCount = 8;
+	pItem->EliteOccupyWeapon.FLH.Y = 0;
+	pItem->RadarVisible = 0;
+	pItem->Crushable = 1;
+	pItem->Repairable = 0;
+	pItem->EliteOccupyWeapon.FLH.Z = 0;
+	pItem->Crewed = 0;
+	pItem->ImmuneToPsionics = 0;
+	pItem->ImmuneToPsionicWeapons = 0;
+	pItem->ImmuneToPoison = 0;
+	pItem->Parasiteable = 1;
+	pItem->Organic = 1;
+	pItem->ConsideredAircraft = 0;
+	pItem->Bunkerable = 0;
+	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
+	pItem->Sequence->Initialize();
+	return 0x523970;
+}
+
+DEFINE_HOOK(0x520820, InfantryClass_FireAt_SecondaryFireFly, 0x5)
+{
+	GET(InfantryClass*, pThis, EBP);
+	GET_STACK(int, weaponIdx, 0x34 - 0x24);
+
+	pThis->PlayAnim(weaponIdx == 0 ? DoType::FireFly : DoType(42));
+	return 0x520831;
+}
+
+//the fuck is this ,...
+//DEFINE_PATCH_TYPED(BYTE, 0x51DAA9, 6u);
+//DEFINE_PATCH_TYPED(BYTE, 0x51DAAE, 3u);
+
+#pragma region ReplaceMasterControl
+
+DEFINE_HOOK(0x51C9E4 , InfantryClass_FireError_ReplaceMasterControl, 0x7)
+{
+	GET(DoType, type, EAX);
+	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
+	return 0x51C9EB;
+}
+
+DEFINE_HOOK(0x51D1BA, InfantryClass_Scatter_ReplaceMasterControl, 0x7)
+{
+	GET(DoType, type, EAX);
+	R->AL(NewDoType::GetSequenceData(type)->Interrupt);
+	return 0x51D1C1;
+}
+
+DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
+{
+	GET(DoType, type, ESI);
+	R->AL(NewDoType::GetSequenceData(type)->Interrupt);
+	return 0x521C03;
+}
+
+DEFINE_HOOK(0x51D925, InfantryClass_DoType_ReplaceMasterControl1, 0x7)
+{
+	GET(DoType, type, EAX);
+	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
+	return 0x51D92C;
+}
+
+DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2, 0x7)
+{
+	GET(InfantryClass*, pThis, ESI);
+	R->AL(NewDoType::GetSequenceData(pThis->SequenceAnim)->Rate);
+	return 0x51DA01;
+}
+
+DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3, 0x7)
+{
+	GET(InfantryClass* , pThis , ESI);
+	R->AL(NewDoType::GetSequenceData(pThis->SequenceAnim)->Rate);
+	return 0x51DA2E;
+}
+
+#pragma endregion
+
+#pragma region S/L
+DEFINE_HOOK(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
+{
+	GET(InfantryTypeClass*, pThis, EDI);
+	GET(IStream*, pStream, ESI);
+
+	pThis->Sequence = (DoControls*)GameCreate<NewDoType>();
+	pStream->Read(pThis->Sequence, sizeof(NewDoType), nullptr);
+	return 0x524B31;
+}
+
+DEFINE_HOOK(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
+{
+	GET(InfantryTypeClass*, pThis, EDI);
+	GET(IStream*, pStream, ESI);
+
+	pStream->Write((void*)pThis->Sequence, sizeof(NewDoType), nullptr);
+	return 0x524C50;
+}
+#pragma endregion
+
+#pragma region ReadSequence
+void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
+{
+	INI_EX IniEX(pINI);
+
+	char section[0x100] = {};
+	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0)
+	{
+		for (size_t i = 0; i < std::size(Sequences_ident) - 1; ++i)
+		{
+			char sequenceData[0x100] = {};
+			if (pINI->GetString(section, Sequences_ident[i], sequenceData) > 0)
+			{
+				auto& data = pDoInfo->Data[i];
+				const std::string basename = Sequences_ident[i];
+
+				char bufferFacing[4];
+				if (sscanf(sequenceData, "%d,%d,%d,%s",
+					&data.StartFrame,
+					&data.CountFrames,
+					&data.FacingMultiplier,
+					bufferFacing
+				) > 3)
+				{
+					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
+						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], bufferFacing)) {
+							data.Facing = DoTypeFacing(i);
+						}
+					}
+				}
+
+				char bufferSounds[0x100] = {};
+				if (pINI->GetString(section, (basename + "Sounds").c_str(), bufferSounds) > 0)
+				{
+					auto v7 = strtok(bufferSounds, " ,\t");
+					while (v7)
+					{
+						auto v8 = atoi(v7);
+						auto v9 = strtok(0, " ,\t");
+						if (!v9)
+						{
+							break;
+						}
+
+						data.SoundCount = v8;
+
+						auto v10 = VocClass::FindIndexById(v9);
+						v7 = strtok(0, " ,\t");
+						if (v10 != -1)
+						{
+							for (auto at = data.SoundData;
+								at != std::end(data.SoundData);
+								++at)
+							{
+								at->Index = v10;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+DEFINE_HOOK(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
+{
+	GET(InfantryTypeClass*, pThis, ECX);
+	ReadSequence(pThis->Sequence, pThis, &CCINIClass::INI_Art());
+	return 0x524096;
+}
+#pragma endregion
 
 //DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
 //{

@@ -15,7 +15,7 @@ SpreadPercentage=0
 Power=0
 Color=NeonBlue
 OverlayType.Initial=TIB4_
-UseSlopes=true
+UseSlopes=false
 NumFrames=12
 PipIndex=1
 

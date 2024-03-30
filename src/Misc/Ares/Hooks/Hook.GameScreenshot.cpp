@@ -92,8 +92,8 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 				h.filesz = h.bmp_offset + h.bmp_bytesz;
 
 				ScreenShot.WriteBytes(&h, sizeof(h));
-				std::unique_ptr<WORD[]> pixelData(new WORD[arrayLen]);
-				WORD* pixels = pixelData.get();
+				std::vector<WORD> _pixelData(arrayLen);
+				WORD* pixels = _pixelData.data();
 				int pitch = Surface->VideoSurfaceDescription->lPitch;
 				for (int r = 0; r < height; ++r)
 				{
@@ -102,7 +102,7 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 					buffer += pitch / 2; // /2 because buffer is a WORD * and pitch is in bytes
 				}
 
-				ScreenShot.WriteBytes(pixelData.get(), arrayLen * 2);
+				ScreenShot.WriteBytes(_pixelData.data(), arrayLen * 2);
 				ScreenShot.Close();
 				Debug::Log("Wrote screenshot to file %s\n", fName);
 				Surface->Unlock();
