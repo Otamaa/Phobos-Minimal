@@ -167,7 +167,7 @@ public:
 	OverlayTypeClass* Image;
 	int NumFrames;
 	int NumImages;
-	int field_EC;
+	int SlopeFrames;
 	DECLARE_PROPERTY(TiberiumLogic, SpreadLogic);
 	DECLARE_PROPERTY(TiberiumLogic, GrowthLogic);
 };

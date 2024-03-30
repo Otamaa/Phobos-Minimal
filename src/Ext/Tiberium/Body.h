@@ -45,7 +45,7 @@ public:
 
 	Valueable<int> DebrisChance { 33 };
 
-	ValueableVector<OverlayTypeClass*> LinkedOverlayType {};
+	Valueable<std::string> LinkedOverlayType {};
 	Valueable<int> PipIndex { -1 };
 
 	TiberiumExtData()noexcept = default;

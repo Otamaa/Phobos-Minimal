@@ -1,5 +1,5 @@
 ; just copy the avaible one from the ini , or you can try play with it :p
-;this is my test code : 
+;this is my test code :
 
 [Tiberiums]
 += Borokreus
@@ -14,9 +14,9 @@ Spread=10000
 SpreadPercentage=0
 Power=0
 Color=NeonBlue
-LinkedOverlayType=TIB4_01,TIB4_02,TIB4_03,TIB4_04,TIB4_05,TIB4_06,TIB4_07,TIB4_08,TIB4_09,TIB4_10,TIB4_11,TIB4_12
+OverlayType.Initial=TIB4_
+UseSlopes=true
 NumFrames=12
-field_EC=0
 PipIndex=1
 
 ;--------------------------------------------------------------------------

@@ -789,7 +789,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::hInstance = hInstance;
 		Debug::LogFileRemove();
-		Patch::Apply_LJMP(0x7D107D, &Phobos::_msize);
+		/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
+		  not really sure what is the real cause atm .///*/
+/*		Patch::Apply_LJMP(0x7D107D, &Phobos::_msize);
 		Patch::Apply_LJMP(0x7D5408, &Phobos::_strdup);
 		Patch::Apply_LJMP(0x7C8E17, &Phobos::_allocate);
 		Patch::Apply_LJMP(0x7C9430, &Phobos::_allocate);
@@ -797,7 +799,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Patch::Apply_LJMP(0x7D0F45, &Phobos::_reallocate);
 		Patch::Apply_LJMP(0x7C8B3D, &Phobos::_free);
 		Patch::Apply_LJMP(0x7C93E8, &Phobos::_free);
-		Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
+		Patch::Apply_LJMP(0x7C9CC2, &std::strtok)*/;
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -934,16 +936,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 #endif
 {
-	//Imports::ReadFile = ReadFIle_;
-	//Imports::CreateFileA = CreatefileA_;
-	//Imports::CloseHandle = CloseHandle_;
-
 	Patch::ApplyStatic();
-
-#ifdef ENABLE_ENCRYPTION_HOOKS
-	Imports::OleLoadFromStream = OleLoadFromStream_;
-#endif
-
 	Phobos::ExeRun();
 	SpawnerMain::ExeRun(HasCNCnet);
 
@@ -961,8 +954,8 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Debug::LogDeferredFinalize();
 	Phobos::ExecuteLua();
+	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
 	return 0;
 }

@@ -40,18 +40,14 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->DebrisChance.Read(exINI, pSection, "Debris.Chance");
 
-	//TIB3_21
-	this->LinkedOverlayType.Read(exINI, pSection, "LinkedOverlayType");
-
-	if(!this->LinkedOverlayType.empty()){
-		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
-		detail::read<int>(pThis->field_EC, exINI, pSection, "field_EC");
-		pThis->NumImages = this->LinkedOverlayType.size();
-	}
+	this->LinkedOverlayType.Read(exINI, pSection, "OverlayType.Initial");
 
 	int Image = -1;
 	detail::read<int>(Image, exINI, pSection, GameStrings::Image());
 	this->PipIndex.Read(exINI, pSection, "PipIndex");
+
+	bool slopes = false;
+
 	switch (Image)
 	{
 	case -1:
@@ -59,17 +55,62 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->PipIndex = 2;
 		break;
 	case 2:
+		if (this->LinkedOverlayType->empty()) {
+			this->LinkedOverlayType = "GEM";
+		}
 		this->PipIndex = 5;
 		break;
 	case 3:
+		if (this->LinkedOverlayType->empty()) {
+			this->LinkedOverlayType = "TIB2_";
+		}
+		slopes = true;
 		this->PipIndex = 2;
 		break;
 	case 4:
+		if (this->LinkedOverlayType->empty()) {
+			this->LinkedOverlayType = "TIB3_";
+		}
+		slopes = true;
 		this->PipIndex = 2;
 		break;
 	default:
+		if (this->LinkedOverlayType->empty()) {
+			this->LinkedOverlayType = "TIB";
+		}
+		slopes = true;
 		this->PipIndex = 2;
 		break;
+	}
+
+	detail::read<bool>(slopes, exINI, pSection, "UseSlopes");
+
+	if(!this->LinkedOverlayType->empty()) {
+
+		const int MaxCount = !slopes ? 12 : 20;
+		OverlayTypeClass* first = nullptr;
+
+		for (int i = 0; i < MaxCount; ++i) {
+			const auto Find = (this->LinkedOverlayType.Get() + std::format("{:02}", i + 1));
+			const auto pOverlay = OverlayTypeClass::Find(Find.c_str());
+
+			if (!pOverlay)
+				Debug::FatalErrorAndExit("CannotFind %s OverlayType for Tiberium[%s]\n", Find.c_str(), pSection);
+
+			if(!pOverlay->Tiberium)
+				Debug::FatalErrorAndExit("OverlayType[%s] for Tiberium[%s] is not Tiberium\n", Find.c_str(), pSection);
+
+			if (i == 0) {
+				first = pOverlay;
+			}
+			else if (first && pOverlay->ArrayIndex != (first->ArrayIndex + i)) {
+				Debug::FatalErrorAndExit("OverlayType index of [%s - %d] is invalid compared to the first[%s - %d] (+ %d) \n", Find.c_str(), pOverlay->ArrayIndex, i ,first->ID, first->ArrayIndex);
+			}
+		}
+
+		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
+		pThis->SlopeFrames = !slopes ? 0 : 8;
+		pThis->NumImages = MaxCount;
 	}
 }
 
@@ -169,10 +210,9 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 
 	TiberiumExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
 
-	if (R->Origin() == 0x721CDC && !TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType.empty()) {
-		if (auto pLinked = TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType[0]) {
-			pItem->Image = pLinked; //this is suppose to be linked list
-			// so this will decide !
+	if (R->Origin() == 0x721CDC && !TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType->empty()) {
+		if (auto pLinked = OverlayTypeClass::Find((TiberiumExtContainer::Instance.Find(pItem)->LinkedOverlayType.Get() + "01").c_str())) {
+			pItem->Image = pLinked;
 		}
 	}
 	return 0;
