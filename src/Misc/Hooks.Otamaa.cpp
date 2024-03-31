@@ -4568,8 +4568,11 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	"TrackerCollectedCrates",
 //};
 
+enum class MoveResult : char {
+	cannot , can
+};
 // what is the boolean return for , heh
-bool CollecCrate(CellClass* pCell, FootClass* pCollector)
+MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
 	if (pCollector && pCell->OverlayTypeIndex > -1)
 	{
@@ -4631,7 +4634,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					Debug::Log("Springing trigger on crate at %d,%d\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
 					if (!pCollector->IsAlive)
-						return false;
+						return MoveResult::cannot;
 
 					ScenarioClass::Instance->PickedUpAnyCrate = true;
 				}
@@ -4857,15 +4860,14 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						pHouseDest->TransactMoney(soloCrateMoney);
 						PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
 						PlayAnimAffect(Powerup::Money);
-
-						return true;
 					};
 
 				switch (data)
 				{
 				case Powerup::Money:
 				{
-					return GeiveMoney();
+					GeiveMoney();
+					break;
 				}
 				//TODO :
 				// this thing confusing !
@@ -4943,7 +4945,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pCreatedUnit->Unlimbo(loc, DirType::Min))
 							{
 								PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
-								return false;
+								return MoveResult::cannot;
 							}
 
 							auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, -1, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
@@ -4953,17 +4955,18 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 								if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
 								{
 									PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
-									return false;
+									return MoveResult::cannot;
 								}
 							}
 
 							GameDelete<false>(pCreatedUnit);
-							return GeiveMoney();
+							GeiveMoney();
+							break;
 						}
 						else
 						{
 							PlayAnimAffect(Powerup::Unit);
-							return true;
+							return MoveResult::can;
 						}
 					}
 				}
@@ -4983,7 +4986,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 					PlayAnimAffect(Powerup::HealBase);
-					return true;
+					break;
 				}
 				case Powerup::Explosion:
 				{
@@ -5003,7 +5006,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, randomCoords);
 					}
 					PlayAnimAffect(Powerup::Explosion);
-					return true;
+					break;
 				}
 				case Powerup::Napalm:
 				{
@@ -5017,14 +5020,14 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					MapClass::DamageArea(Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
 
 					PlayAnimAffect(Powerup::Napalm);
-					return true;
+					return MoveResult::can;
 				}
 				case Powerup::Darkness:
 				{
 					Debug::Log("Crate at %d,%d contains 'shroud'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reshroud(pCollectorOwner);
 					PlayAnimAffect(Powerup::Darkness);
-					return true;
+					break;
 				}
 				case Powerup::Reveal:
 				{
@@ -5032,7 +5035,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					MapClass::Instance->Reveal(pCollectorOwner);
 					PlaySoundAffect(RulesClass::Instance->CrateRevealSound);
 					PlayAnimAffect(Powerup::Reveal);
-					return true;
+					break;
 				}
 				case Powerup::Armor:
 				{
@@ -5063,7 +5066,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					PlaySoundAffect(RulesClass::Instance->CrateArmourSound);
 					PlayAnimAffect(Powerup::Armor);
-					return true;
+					break;
 				}
 				case Powerup::Speed:
 				{
@@ -5094,7 +5097,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					PlaySoundAffect(RulesClass::Instance->CrateSpeedSound);
 					PlayAnimAffect(Powerup::Speed);
-					return true;
+					break;
 				}
 				case Powerup::Firepower:
 				{
@@ -5126,7 +5129,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					PlaySoundAffect(RulesClass::Instance->CrateFireSound);
 					PlayAnimAffect(Powerup::Firepower);
-					return true;
+					break;
 				}
 				case Powerup::Cloak:
 				{
@@ -5152,7 +5155,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::Cloak);
-					return true;
+					break;
 				}
 				case Powerup::ICBM:
 				{
@@ -5172,7 +5175,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::ICBM);
-					return true;
+					return MoveResult::can;
 				}
 				case Powerup::Veteran:
 				{
@@ -5217,7 +5220,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
 					PlayAnimAffect(Powerup::Veteran);
-					return true;
+					break;
 				}
 				case Powerup::Gas:
 				{
@@ -5248,7 +5251,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
 					PlayAnimAffect(Powerup::Gas);
-					return true;
+					break;
 				}
 				case Powerup::Tiberium:
 				{
@@ -5268,7 +5271,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::Tiberium);
-					return true;
+					break;
 				}
 				case Powerup::Squad:
 				{
@@ -5286,11 +5289,12 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					else
 					{
-						return GeiveMoney();
+						GeiveMoney();
+						break;
 					}
 
 					PlayAnimAffect(Powerup::Squad);
-					return true;
+					break;
 				}
 				case Powerup::Invulnerability:
 				{
@@ -5308,7 +5312,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::Invulnerability);
-					return true;
+					break;
 				}
 				case Powerup::IonStorm:
 				{
@@ -5326,7 +5330,7 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::IonStorm);
-					return true;
+					break;
 				}
 				case Powerup::Pod:
 				{
@@ -5344,17 +5348,17 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::Pod);
-					return true;
+					return MoveResult::can;
 				}
 				default:
-					return true;
+					break;
 				}
 #pragma endregion
 			}
 		}
 	}
 
-	return true;
+	return MoveResult::can;
 }
 
 DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
@@ -5935,6 +5939,49 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 	return 0x65DE82;
 }
 
+//DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9680, StorageClass_GetAmount_caller, 0x7)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//DEFINE_HOOK(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	return 0x0;
+//}
+
+#pragma endregion
+
 // replacing reference of 7EAF7C
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
@@ -6120,7 +6167,7 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 
 	DoType result = //weaponIdx == 0 ? DoType::FireFly :
 		DoType(42);
-	Debug::Log(__FUNCTION__" result Weapon[%d] [%d]\n", weaponIdx , result);
+	Debug::Log(__FUNCTION__" result Weapon[%d] [%d]\n", weaponIdx, result);
 	pThis->PlayAnim(result);
 	return 0x520831;
 }
@@ -6131,7 +6178,7 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 
 #pragma region ReplaceMasterControl
 
-DEFINE_HOOK(0x51C9E4 , InfantryClass_FireError_ReplaceMasterControl, 0x7)
+DEFINE_HOOK(0x51C9E4, InfantryClass_FireError_ReplaceMasterControl, 0x7)
 {
 	GET(DoType, type, EAX);
 	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
@@ -6168,7 +6215,7 @@ DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2, 0x7)
 
 DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3, 0x7)
 {
-	GET(InfantryClass* , pThis , ESI);
+	GET(InfantryClass*, pThis, ESI);
 	R->AL(NewDoType::GetSequenceData(pThis->SequenceAnim)->Rate);
 	return 0x51DA2E;
 }
@@ -6220,8 +6267,10 @@ void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI
 					bufferFacing
 				) > 3)
 				{
-					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i) {
-						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], bufferFacing)) {
+					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i)
+					{
+						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], bufferFacing))
+						{
 							data.Facing = DoTypeFacing(i);
 						}
 					}
@@ -6276,46 +6325,3 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 	return 0x523970;
 }
 #endif
-
-//DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x6C9680, StorageClass_GetAmount_caller, 0x7)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-//DEFINE_HOOK(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
-//{
-//	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
-//	return 0x0;
-//}
-
-#pragma endregion
