@@ -27,21 +27,21 @@ struct TrackerClass
 	}
 
 	int GetCount(int at) const {
-		if ((size_t)at > this->Items.size())
+		if ((size_t)at >= this->Items.size())
 			Debug::FatalError("Trying to acces out of bound tracker !\n");
 
 		return this->Items[at];
 	}
 
 	void Increment(int at) {
-		if ((size_t)at > this->Items.size())
+		if ((size_t)at >= this->Items.size())
 			Debug::FatalError("Trying to acces out of bound tracker !\n");
 
 		++this->Items[at];
 	}
 
 	void Decrement(int at) {
-		if ((size_t)at > this->Items.size())
+		if ((size_t)at >= this->Items.size())
 			Debug::FatalError("Trying to acces out of bound tracker !\n");
 
 		--this->Items[at];
