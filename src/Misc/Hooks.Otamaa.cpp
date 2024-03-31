@@ -4772,10 +4772,8 @@ bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 						data = Powerup::Unit;
 					}
 
-					if (SessionClass::Instance->GameMode == GameMode::Internet && (int)data < 19u)
-					{
-						pCollectorOwner->CollectedCrates.IncrementUnitCount((int)data);
-					}
+					HouseExtData::IncremetCrateTracking(pCollectorOwner ,data);
+
 				}
 				else if (!pCell->OverlayData)
 				{
@@ -6321,43 +6319,3 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 //}
 
 #pragma endregion
-
-
-#ifdef TRACKER_REPLACe
-#include <PacketClass.h>
-
-DEFINE_JUMP(LJMP , 0x4F638F , 0x4F643B)
-
-DEFINE_HOOK(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
-{
-	GET(HouseClass*, pHouse, EDI);
-	int sum = 0;
-	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
-	sum += pExt->KilledAircraftTypes.GetAll();
-	sum += pExt->KilledInfantryTypes.GetAll();
-	sum += pExt->KilledUnitTypes.GetAll();
-	sum += pExt->KilledBuildingTypes.GetAll();
-	R->ESI(sum);
-	return 0x6C9303;
-}
-
-DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
-{
-	GET(HouseClass*, pHouse, ESI);
-	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
-
-	static constexpr reference<BYTE, 0x841F9B> const LastPacket1 {};
-	static constexpr reference<BYTE, 0x841F93> const LastPacket2 {};
-	static constexpr reference<BYTE, 0x841FA3> const LastPacket3 {};
-	static constexpr reference<BYTE, 0x841FAB> const LastPacket4 {};
-
-	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
-	pExt->BuiltAircraftTypes.ToNetwork();
-	pExt->BuiltInfantryTypes.ToNetwork();
-	pExt->BuiltUnitTypes.ToNetwork();
-	pExt->BuiltBuildingTypes.ToNetwork();
-
-	return 0x6C8369;
-}
-
-#endif

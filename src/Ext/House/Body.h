@@ -301,6 +301,7 @@ public:
 	static void UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added);
 	static void ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, AbstractType considerAs);
 
+	static void IncremetCrateTracking(HouseClass* pHouse, Powerup type);
 private:
 	bool UpdateHarvesterProduction();
 

@@ -14,8 +14,10 @@ struct TrackerClass
 	int GetAll() const {
 		int sum = 0;
 
-		for (auto& item : this->Items)
-			sum += item;
+		for (auto& item : this->Items) {
+			if(item > 0)
+				sum += item;
+		}
 
 		return sum;
 	}
