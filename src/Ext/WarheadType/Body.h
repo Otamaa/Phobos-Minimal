@@ -9,6 +9,7 @@
 
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
+#include <New/Type/CrateTypeClass.h>
 
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
@@ -350,6 +351,10 @@ public:
 	Nullable<bool> Particle_AlphaImageIsLightFlash {};
 
 	Valueable<bool> Nonprovocative {};
+
+	std::vector<int> SpawnsCrate_Types {};
+	std::vector<int> SpawnsCrate_Weights {};
+
 public:
 
 	WarheadTypeExtData() noexcept = default;
