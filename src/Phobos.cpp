@@ -202,6 +202,7 @@ void Phobos::ExecuteLua()
 	std::string replaces_filename = LuaData::LuaDir + filename;
 
 	try {
+
 		if (sol_state.safe_script_file(replaces_filename).status() == sol::call_status::ok) {
 			if(const sol::optional<sol::table> replaces = sol_state["Replaces"]){
 				for (const auto& entry : replaces.value()) {
@@ -252,7 +253,7 @@ void Phobos::ExecuteLua()
 	}
 	catch (const sol::error& what)
 	{
-		Debug::Log("Cannot Open [%s] File ! Reason (%s)\n", replaces_filename.c_str(), what.what());
+		Debug::Log("%s\n",what.what());
 	}
 
 	LuaBridge::InitScriptLuaList(sol_state);

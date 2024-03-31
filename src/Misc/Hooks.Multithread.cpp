@@ -221,6 +221,9 @@ DEFINE_HOOK(0x4F4480, GScreenClass_Render_Disable, 8)
 DEFINE_HOOK_AGAIN(0x55DBC3, MainLoop_StartLock, 5)
 DEFINE_HOOK(0x55D878, MainLoop_StartLock, 6)
 {
+	if(R->Origin() == 0x55DBC3)
+		DisplayClass::GetLayer(Layer::Air)->Sort();
+
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;
 

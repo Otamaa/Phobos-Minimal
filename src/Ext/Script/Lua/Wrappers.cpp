@@ -191,12 +191,13 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 
 void LuaBridge::InitScriptLuaList(sol::state& sol_state)
 {
-	std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
+	const std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
 
 	try
 	{
 		if (sol_state.safe_script_file(filename).status() == sol::call_status::ok)
 		{
+
 			if (const std::optional<sol::table> replaces = sol_state["Scripts"])
 			{
 				SriptNumbers.reserve(replaces->size());
@@ -220,7 +221,7 @@ void LuaBridge::InitScriptLuaList(sol::state& sol_state)
 	}
 	catch (const sol::error& what)
 	{
-		Debug::Log("Cannot Open [%s] File ! Reason (%s)\n", filename.c_str(), what.what());
+		Debug::Log("%s\n", what.what());
 	}
 }
 
