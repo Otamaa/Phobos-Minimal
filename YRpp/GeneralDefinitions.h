@@ -19,6 +19,40 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+
+enum class PacketFieldRep : int
+{
+	NAM,
+	SID,
+	TID,
+	COL,
+	CTY,
+	CRD,
+	UNL,
+	INL,
+	PLL,
+	BLL,
+	UNB,
+	INB,
+	PLB,
+	BLB,
+	UNK,
+	INK,
+	PLK,
+	BLK,
+	BLC,
+	CRA,
+	HRV,
+	CMP,
+	IPA,
+	CID,
+	LCN,
+	CPT,
+	CPS,
+	MEM,
+	VID,
+};
+
 enum class PassabilityType : DWORD
 {
 	Passable = 0,

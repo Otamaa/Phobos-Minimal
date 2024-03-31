@@ -21,9 +21,16 @@ struct CoordStruct;
 class CCFileClass;
 class CCINIClass;
 class CellClass;
+
+struct PacketField {
+	char str[4];
+	char pad[4];
+};
+
 // things that I can't put into nice meaningful classes
 struct Game
 {
+	static constexpr reference<PacketField, 0x841F40, 29u> const PacketFields {};
 	static constexpr reference<CoordStruct, 0xB05488u> const CoordStruct_Empty {};
 
 	// the magic checksum for version validation - linked in StaticInits

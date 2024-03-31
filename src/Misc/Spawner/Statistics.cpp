@@ -260,25 +260,103 @@ DEFINE_HOOK(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
 	return 0x6C9303;
 }
 
-//TODO : replace all of these shit
-//DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
-//{
-//	GET(HouseClass*, pHouse, ESI);
-//	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
-//
-//	static constexpr reference<BYTE, 0x841F9B> const LastPacket1 {};
-//	static constexpr reference<BYTE, 0x841F93> const LastPacket2 {};
-//	static constexpr reference<BYTE, 0x841FA3> const LastPacket3 {};
-//	static constexpr reference<BYTE, 0x841FAB> const LastPacket4 {};
-//
-//	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
-//	pExt->BuiltAircraftTypes.ToNetwork();
-//	pExt->BuiltInfantryTypes.ToNetwork();
-//	pExt->BuiltUnitTypes.ToNetwork();
-//	pExt->BuiltBuildingTypes.ToNetwork();
-//
-//	return 0x6C8369;
-//}
+
+template <typename T>
+void FillTracker(HouseClass* pHouse, TrackerClass& tracker) {
+	for (int i = 0; i < T::Array->Count; ++i) {
+
+		if (T::Array->Items[i] && T::Array->Items[i]->Owner == pHouse) {
+			tracker.Increment(T::Array->Items[i]->Type->ArrayIndex);
+		}
+	}
+}
+
+DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
+{
+	GET(HouseClass*, pHouse, ESI);
+	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
+	char last = R->BL();
+
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+
+	auto FillPacket = [pPacket ,last](TrackerClass& tracker , PacketFieldRep field)
+	{
+		TrackerClass copy = tracker;
+		int size = 0;
+		for (int i = 0; i < tracker.GetCounts(); ++i) {
+			if (tracker.GetCount(i)){
+				size = i + 1;
+			}
+		}
+
+		Game::PacketFields[(int)field].str[3] = last;
+		pPacket->AddField<void*>(Game::PacketFields[(int)field].str, (void*)tracker.GetData(), size);
+	};
+
+	//Send Previous Built Data
+	pExt->BuiltAircraftTypes.ToNetwork();
+	pExt->BuiltInfantryTypes.ToNetwork();
+	pExt->BuiltUnitTypes.ToNetwork();
+	pExt->BuiltBuildingTypes.ToNetwork();
+
+	FillPacket(pExt->BuiltInfantryTypes, PacketFieldRep::INB);
+	FillPacket(pExt->BuiltUnitTypes, PacketFieldRep::UNB);
+	FillPacket(pExt->BuiltAircraftTypes, PacketFieldRep::PLB);
+	FillPacket(pExt->BuiltBuildingTypes, PacketFieldRep::BLB);
+
+	pExt->BuiltAircraftTypes.ToPC();
+	pExt->BuiltInfantryTypes.ToPC();
+	pExt->BuiltUnitTypes.ToPC();
+	pExt->BuiltBuildingTypes.ToPC();
+	//
+
+	//Send Current Built Data
+	pExt->BuiltAircraftTypes.ClearCount();
+	pExt->BuiltInfantryTypes.ClearCount();
+	pExt->BuiltUnitTypes.ClearCount();
+	pExt->BuiltBuildingTypes.ClearCount();
+
+	FillTracker<UnitClass>(pHouse, pExt->BuiltUnitTypes);
+	FillTracker<InfantryClass>(pHouse, pExt->BuiltInfantryTypes);
+	FillTracker<AircraftClass>(pHouse, pExt->BuiltAircraftTypes);
+	FillTracker<BuildingClass>(pHouse, pExt->BuiltBuildingTypes);
+
+	pExt->BuiltAircraftTypes.ToNetwork();
+	pExt->BuiltInfantryTypes.ToNetwork();
+	pExt->BuiltUnitTypes.ToNetwork();
+	pExt->BuiltBuildingTypes.ToNetwork();
+
+	FillPacket(pExt->BuiltInfantryTypes, PacketFieldRep::INL);
+	FillPacket(pExt->BuiltUnitTypes, PacketFieldRep::UNL);
+	FillPacket(pExt->BuiltAircraftTypes, PacketFieldRep::PLL);
+	FillPacket(pExt->BuiltBuildingTypes, PacketFieldRep::BLL);
+	//
+
+	//Send Kill Data
+	pExt->KilledInfantryTypes.ToNetwork();
+	pExt->KilledUnitTypes.ToNetwork();
+	pExt->KilledAircraftTypes.ToNetwork();
+	pExt->KilledBuildingTypes.ToNetwork();
+
+	FillPacket(pExt->KilledInfantryTypes, PacketFieldRep::INK);
+	FillPacket(pExt->KilledUnitTypes, PacketFieldRep::UNK);
+	FillPacket(pExt->KilledAircraftTypes, PacketFieldRep::PLK);
+	FillPacket(pExt->KilledBuildingTypes, PacketFieldRep::BLK);
+	//
+
+	//Send Captured Data
+	pExt->CapturedBuildings.ToNetwork();
+	FillPacket(pExt->CapturedBuildings, PacketFieldRep::BLC);
+	//
+
+	//Semd ColledtedCrates Data
+	pExt->CollectedCrates.ToNetwork();
+	FillPacket(pExt->CollectedCrates, PacketFieldRep::CRA);
+	//
+
+	return 0x6C8369;
+}
 
 template<uintptr_t offset>
 FORCEINLINE HouseClass* GetHouseClassptr(UnitTrackerClass* pTrack)

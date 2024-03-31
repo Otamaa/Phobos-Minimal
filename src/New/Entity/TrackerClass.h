@@ -85,6 +85,10 @@ struct TrackerClass
 		return const_cast<TrackerClass*>(this)->Serialize(stm);
 	}
 
+	int* GetData(){
+		return this->Items.data();
+	}
+
 private:
 	template <typename T>
 	bool Serialize(T& stm)

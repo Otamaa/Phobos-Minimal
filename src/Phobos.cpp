@@ -355,6 +355,10 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	}
 #endif
 
+	//for (auto packet : Game::Packets) {
+	//	Debug::Log("Packet str %s value:[%d]\n", packet.str, packet.data);
+	//}
+
 	Phobos::CheckProcessorFeatures();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
