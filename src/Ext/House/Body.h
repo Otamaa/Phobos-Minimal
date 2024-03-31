@@ -8,6 +8,7 @@
 #include <Utilities/VectorHelper.h>
 
 #include <New/Entity/NewTiberiumStorageClass.h>
+#include <New/Entity/TrackerClass.h>
 
 #include <map>
 
@@ -144,6 +145,17 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
+	TrackerClass BuiltAircraftTypes {};
+	TrackerClass BuiltInfantryTypes {};
+	TrackerClass BuiltUnitTypes {};
+	TrackerClass BuiltBuildingTypes {};
+	TrackerClass KilledAircraftTypes {};
+	TrackerClass KilledInfantryTypes {};
+	TrackerClass KilledUnitTypes {};
+	TrackerClass KilledBuildingTypes {};
+	TrackerClass CapturedBuildings {};
+	TrackerClass CollectedCrates {};
+
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 
@@ -161,6 +173,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	void InitializeConstant();
 
 	void UpdateVehicleProduction();
 	void UpdateAutoDeathObjects();

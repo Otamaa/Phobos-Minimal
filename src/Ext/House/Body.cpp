@@ -11,6 +11,7 @@
 #include <ScenarioClass.h>
 
 #include <New/Type/GenericPrerequisite.h>
+#include <New/Type/CrateTypeClass.h>
 
 std::vector<int> HouseExtData::AIProduction_CreationFrames;
 std::vector<int> HouseExtData::AIProduction_Values;
@@ -26,6 +27,19 @@ bool HouseExtData::IsAnyFirestormActive = false;
 
 CDTimerClass HouseExtData::CloakEVASpeak;
 CDTimerClass HouseExtData::SubTerraneanEVASpeak;
+void HouseExtData::InitializeConstant()
+{
+	this->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	this->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	this->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	this->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	this->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	this->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	this->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	this->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	this->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
+	this->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
+}
 
 RequirementStatus HouseExtData::RequirementsMet(
 	HouseClass* pHouse, TechnoTypeClass* pItem)
@@ -1482,6 +1496,17 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->KeepAliveCount)
 		.Process(this->KeepAliveBuildingCount)
 		.Process(this->TiberiumStorage)
+
+		.Process(this->BuiltAircraftTypes)
+		.Process(this->BuiltInfantryTypes)
+		.Process(this->BuiltUnitTypes)
+		.Process(this->BuiltBuildingTypes)
+		.Process(this->KilledAircraftTypes)
+		.Process(this->KilledInfantryTypes)
+		.Process(this->KilledUnitTypes)
+		.Process(this->KilledBuildingTypes)
+		.Process(this->CapturedBuildings)
+		.Process(this->CollectedCrates)
 		;
 }
 

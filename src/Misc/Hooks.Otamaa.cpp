@@ -4555,11 +4555,67 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
+//static constexpr std::array<const char*, 0xA> Strss = {
+//	"TrackerBuiltAircraft",
+//	"TrackerBuiltInfantry",
+//	"TrackerBuiltUnit",
+//	"TrackerBuiltBuilding",
+//	"TrackerKilledAircraft",
+//	"TrackerKilledInfantry",
+//	"TrackerKilledUnit",
+//	"TrackerKilledBuilding",
+//	"TrackerCapturedBuildings",
+//	"TrackerCollectedCrates",
+//};
+
 // what is the boolean return for , heh
 bool CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
 	if (pCollector && pCell->OverlayTypeIndex > -1)
 	{
+		/*Debug::Log("Owner[0x%x] Trackers\n" , pCollector->Owner);
+		for (size_t i = 0; i < Strss.size(); ++i) {
+			void* ptr = nullptr;
+			const char* str = Strss[i];
+			switch (i)
+			{
+			case 0:
+				ptr = (void*)&pCollector->Owner->BuiltAircraftTypes;
+				break;
+			case 1:
+				ptr = (void*)&pCollector->Owner->BuiltInfantryTypes;
+				break;
+			case 2:
+				ptr = (void*)&pCollector->Owner->BuiltUnitTypes;
+				break;
+			case 3:
+				ptr = (void*)&pCollector->Owner->BuiltBuildingTypes;
+				break;
+			case 4:
+				ptr = (void*)&pCollector->Owner->KilledAircraftTypes;
+				break;
+			case 5:
+				ptr = (void*)&pCollector->Owner->KilledInfantryTypes;
+				break;
+			case 6:
+				ptr = (void*)&pCollector->Owner->KilledUnitTypes;
+				break;
+			case 7:
+				ptr = (void*)&pCollector->Owner->KilledBuildingTypes;
+				break;
+			case 8:
+				ptr = (void*)&pCollector->Owner->CapturedBuildings;
+				break;
+			case 9:
+				ptr = (void*)&pCollector->Owner->CollectedCrates;
+				break;
+			default:
+				break;
+			}
+
+			Debug::Log("%s [0x%x] \n", str , ptr);
+		}*/
+
 		const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
 
 		if (pOverlay->Crate)
@@ -6265,3 +6321,43 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 //}
 
 #pragma endregion
+
+
+#ifdef TRACKER_REPLACe
+#include <PacketClass.h>
+
+DEFINE_JUMP(LJMP , 0x4F638F , 0x4F643B)
+
+DEFINE_HOOK(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
+{
+	GET(HouseClass*, pHouse, EDI);
+	int sum = 0;
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+	sum += pExt->KilledAircraftTypes.GetAll();
+	sum += pExt->KilledInfantryTypes.GetAll();
+	sum += pExt->KilledUnitTypes.GetAll();
+	sum += pExt->KilledBuildingTypes.GetAll();
+	R->ESI(sum);
+	return 0x6C9303;
+}
+
+DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
+{
+	GET(HouseClass*, pHouse, ESI);
+	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
+
+	static constexpr reference<BYTE, 0x841F9B> const LastPacket1 {};
+	static constexpr reference<BYTE, 0x841F93> const LastPacket2 {};
+	static constexpr reference<BYTE, 0x841FA3> const LastPacket3 {};
+	static constexpr reference<BYTE, 0x841FAB> const LastPacket4 {};
+
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+	pExt->BuiltAircraftTypes.ToNetwork();
+	pExt->BuiltInfantryTypes.ToNetwork();
+	pExt->BuiltUnitTypes.ToNetwork();
+	pExt->BuiltBuildingTypes.ToNetwork();
+
+	return 0x6C8369;
+}
+
+#endif
