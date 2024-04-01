@@ -5380,12 +5380,12 @@ DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(CellStruct, cell, EAX);
 
-	const PowerupEffects default = pThis->Type->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
+	const PowerupEffects defaultcrate = pThis->Type->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
 	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
-	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : default;
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : defaultcrate;
 
 	if ((int)crate <= -1)
-		crate = default;
+		crate = defaultcrate;
 
 	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
 	return 0x442226;
