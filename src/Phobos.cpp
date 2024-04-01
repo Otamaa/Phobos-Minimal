@@ -225,7 +225,7 @@ void Phobos::ExecuteLua()
 					if (Phobos::Otamaa::IsAdmin)
 					{
 						std::string copy = trim(to.c_str());
-						Debug::Log("Patching string[0x%x - %s (%d) - max %d]\n", addr, copy.c_str(), to.size(), maxlen);
+						Debug::LogDeferred("Patching string[0x%x - %s (%d) - max %d]\n", addr, copy.c_str(), to.size(), maxlen);
 					}
 
 					// do not exceed maximum length of the string , otherwise it will broke the .exe file
@@ -253,7 +253,7 @@ void Phobos::ExecuteLua()
 	}
 	catch (const sol::error& what)
 	{
-		Debug::Log("%s\n",what.what());
+		Debug::LogDeferred("%s\n",what.what());
 	}
 
 	LuaBridge::InitScriptLuaList(sol_state);
@@ -628,8 +628,8 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-	//if (!Phobos::Otamaa::IsAdmin)
-	//	return;
+	if (!Phobos::Otamaa::IsAdmin)
+		return;
 
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
@@ -683,6 +683,7 @@ void Phobos::ExeRun()
 	Game::bAllowVRAMSidebar = false;
 
 	Patch::PrintAllModuleAndBaseAddr();
+	Phobos::ExecuteLua();
 	Phobos::InitAdminDebugMode();
 
 	for (auto&dlls : Patch::ModuleDatas) {
@@ -940,7 +941,6 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Phobos::ExecuteLua();
 	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
 	return 0;

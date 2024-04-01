@@ -221,7 +221,7 @@ void LuaBridge::InitScriptLuaList(sol::state& sol_state)
 	}
 	catch (const sol::error& what)
 	{
-		Debug::Log("%s\n", what.what());
+		Debug::LogDeferred("%s\n", what.what());
 	}
 }
 
