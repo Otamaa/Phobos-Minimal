@@ -15,7 +15,7 @@ SpreadPercentage=0
 Power=0
 Color=NeonBlue
 OverlayType.Initial=TIB4_
-UseSlopes=false
+UseSlopes=false ; if yes there is 8 additional overlay need to be added
 NumFrames=12
 PipIndex=1
 

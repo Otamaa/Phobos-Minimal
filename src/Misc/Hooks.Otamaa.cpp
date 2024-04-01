@@ -4555,70 +4555,16 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
-//static constexpr std::array<const char*, 0xA> Strss = {
-//	"TrackerBuiltAircraft",
-//	"TrackerBuiltInfantry",
-//	"TrackerBuiltUnit",
-//	"TrackerBuiltBuilding",
-//	"TrackerKilledAircraft",
-//	"TrackerKilledInfantry",
-//	"TrackerKilledUnit",
-//	"TrackerKilledBuilding",
-//	"TrackerCapturedBuildings",
-//	"TrackerCollectedCrates",
-//};
-
+#pragma region CRATE_HOOKS
 enum class MoveResult : char {
 	cannot , can
 };
+
 // what is the boolean return for , heh
 MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
 	if (pCollector && pCell->OverlayTypeIndex > -1)
 	{
-		/*Debug::Log("Owner[0x%x] Trackers\n" , pCollector->Owner);
-		for (size_t i = 0; i < Strss.size(); ++i) {
-			void* ptr = nullptr;
-			const char* str = Strss[i];
-			switch (i)
-			{
-			case 0:
-				ptr = (void*)&pCollector->Owner->BuiltAircraftTypes;
-				break;
-			case 1:
-				ptr = (void*)&pCollector->Owner->BuiltInfantryTypes;
-				break;
-			case 2:
-				ptr = (void*)&pCollector->Owner->BuiltUnitTypes;
-				break;
-			case 3:
-				ptr = (void*)&pCollector->Owner->BuiltBuildingTypes;
-				break;
-			case 4:
-				ptr = (void*)&pCollector->Owner->KilledAircraftTypes;
-				break;
-			case 5:
-				ptr = (void*)&pCollector->Owner->KilledInfantryTypes;
-				break;
-			case 6:
-				ptr = (void*)&pCollector->Owner->KilledUnitTypes;
-				break;
-			case 7:
-				ptr = (void*)&pCollector->Owner->KilledBuildingTypes;
-				break;
-			case 8:
-				ptr = (void*)&pCollector->Owner->CapturedBuildings;
-				break;
-			case 9:
-				ptr = (void*)&pCollector->Owner->CollectedCrates;
-				break;
-			default:
-				break;
-			}
-
-			Debug::Log("%s [0x%x] \n", str , ptr);
-		}*/
-
 		const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
 
 		if (pOverlay->Crate)
@@ -5368,6 +5314,52 @@ DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
 	R->EAX(CollecCrate(pThis, pCollector));
 	return 0x483391;
 }
+
+DEFINE_HOOK(0x56BFC2, MapClass_PlaceCrate_MaxVal, 0x5)
+{
+	return R->EDX<int>() != (int)CrateTypeClass::Array.size()
+		? 0x56BFC7 : 0x56BFFF;
+}
+
+DEFINE_HOOK(0x475A44, CCINIClass_Put_CrateType, 0x7)
+{
+	GET_STACK(int, crateType, 0x8);
+
+	const auto pCrate = CrateTypeClass::FindFromIndexFix(crateType);
+	if (!pCrate) {
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!\n" ,crateType);
+	}
+
+	R->EDX(pCrate->Name.data());
+	return 0x475A4B;
+}
+DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
+{
+	GET(const char*, crate, ECX);
+	const int idx = CrateTypeClass::FindIndexById(crate);
+	if (idx <= -1) {
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%d]!\n", crate);
+	}
+	R->EAX(idx);
+	return 0x475A24;
+}
+
+DEFINE_HOOK(0x48DE79, CrateTypeFromName, 0x7)
+{
+	GET(const char*, readedName, EBX);
+
+	const auto type = CrateTypeClass::FindIndexById(readedName);
+
+	if (type != -1)
+	{
+		R->EDI(type);
+		return 0x48DEA2;
+	}
+
+	return 0x48DE9C;
+}
+
+#pragma endregion
 
 DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
 {
