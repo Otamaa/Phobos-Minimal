@@ -15,6 +15,7 @@
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/DroppodProperties.h>
+#include <New/Type/CrateTypeClass.h>
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
@@ -895,7 +896,7 @@ public:
 	ValueableIdxVector<VocClass> VoicePickup {};
 
 	Valueable<double> CrateGoodie_RerollChance { 0.0 };
-	NullableIdx<CrateTypeClass> Destroyed_CrateType {};
+	NullableIdx<CrateTypeClass*> Destroyed_CrateType {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
