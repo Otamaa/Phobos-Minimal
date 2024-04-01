@@ -97,6 +97,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	TunnelTypeClass::LoadFromINIList(pINI);
 
+	CrateTypeClass::ReadFromINIList(pINI); //yeah ,..
+
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
 	pThis->Read_CombatDamage(pINI);
@@ -115,14 +117,11 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		RadTypeClass::LoadFromINIList(pINI);
 	}
 
-	ShieldTypeClass::LoadFromINIList(pINI);
-	HoverTypeClass::LoadFromINIList(pINI);
+	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
+	HoverTypeClass::LoadFromINIOnlyTheList(pINI);
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
-	//initialize default crates
-	CrateTypeClass::InitializeDefault();
-	CrateTypeClass::LoadFromINIList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -136,6 +135,10 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	INI_EX iniEX(pINI);
 	auto pData = RulesExtData::Instance();
+
+	CrateTypeClass::ReadListFromINI(pINI);
+	HoverTypeClass::ReadListFromINI(pINI);
+	ShieldTypeClass::ReadListFromINI(pINI);
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
@@ -561,21 +564,15 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	CursorTypeClass::AddDefaults();
+	CrateTypeClass::AddDefaults();
+	ArmorTypeClass::AddDefaults();
 
-	if(ArmorTypeClass::Array.empty())
-		ArmorTypeClass::AddDefaults();
-
-	if (!Phobos::Otamaa::DisableCustomRadSite && RadTypeClass::Array.empty())
+	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadTypeClass::AddDefaults();
 
-	if(GenericPrerequisite::Array.empty())
-		GenericPrerequisite::AddDefaults();
-
-	if(HoverTypeClass::Array.empty())
-		HoverTypeClass::AddDefaults();
-
-	if(ShieldTypeClass::Array.empty())
-		ShieldTypeClass::AddDefaults();
+	GenericPrerequisite::AddDefaults();
+	HoverTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
 }
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)

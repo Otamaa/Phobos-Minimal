@@ -147,14 +147,7 @@ void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 
 	for (int i = 0; i < pkeyCount; ++i) { //load for all keys
 
-		const auto pKeyHere = pINI->GetKeyName(pSection, i);
-
-		auto pAlready = Find(pKeyHere);
-
-		if (!pAlready)
-			pAlready = Allocate(pKeyHere);
-
-		pAlready->LoadFromINI(pINI);
+		FindOrAllocate(pINI->GetKeyName(pSection, i))->LoadFromINI(pINI);
 	}
 }
 

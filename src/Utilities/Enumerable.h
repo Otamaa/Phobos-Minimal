@@ -131,6 +131,36 @@ public:
 			pItem->LoadFromINI(pINI);
 	}
 
+	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false)
+	{
+		if (!pINI)
+			return;
+
+		const char* section = GetMainSection();
+
+		if (!pINI->GetSection(section))
+			return;
+
+		auto const pKeyCount = pINI->GetKeyCount(section);
+
+		if (!pKeyCount)
+			return;
+
+		if (pKeyCount > (int)Array.size())
+		{
+			Array.reserve(pKeyCount);
+		}
+
+		for (int i = 0; i < pKeyCount; ++i)
+		{
+			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
+				Phobos::readDefval, Phobos::readBuffer) > 0)
+			{
+				FindOrAllocate(Phobos::readBuffer);
+			}
+		}
+	}
+
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false)
 	{
 		if (!pINI)

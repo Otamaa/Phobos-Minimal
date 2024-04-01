@@ -5337,9 +5337,6 @@ DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
 {
 	GET(const char*, crate, ECX);
 
-	if (CrateTypeClass::Array.empty())
-		CrateTypeClass::AllocateDefaultNames();
-
 	const int idx = CrateTypeClass::FindIndexById(crate);
 	if (idx <= -1) {
 		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%s]!\n", crate);

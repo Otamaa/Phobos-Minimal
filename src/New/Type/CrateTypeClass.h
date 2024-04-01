@@ -29,8 +29,9 @@ public:
 		, Sound {}
 	{ }
 
-	static void InitializeDefault();
-	static void AllocateDefaultNames();
+	static void ReadListFromINI(CCINIClass* pINI);
+	static void AddDefaults();
+	static void ReadFromINIList(CCINIClass* pINI);
 
 	virtual ~CrateTypeClass() override = default;
 	virtual void LoadFromINI(CCINIClass *pINI) override;

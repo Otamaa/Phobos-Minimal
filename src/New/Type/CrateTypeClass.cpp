@@ -3,47 +3,59 @@
 Enumerable<CrateTypeClass>::container_t Enumerable<CrateTypeClass>::Array;
 const char * Enumerable<CrateTypeClass>::GetMainSection() { return "CrateTypes"; }
 
-void CrateTypeClass::InitializeDefault() {
-	for (size_t i = 0; i < Powerups::Effects.size(); ++i) {
-		if(auto pAlloc = CrateTypeClass::FindOrAllocate(Powerups::Effects[i])){
-			pAlloc->Weight = Powerups::Weights[i];
-			pAlloc->Argument = Powerups::Arguments[i];
-			pAlloc->Naval = Powerups::Naval[i];
-			pAlloc->Anim = AnimTypeClass::Array->GetItemOrDefault(Powerups::Anims[i]);
+void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 
-			int sound = -1;
-			switch (Powerup(i))
-			{
-			case Powerup::Money:
-				sound = RulesClass::Instance->CrateMoneySound; break;
-			case Powerup::HealBase:
-				sound = RulesClass::Instance->HealCrateSound; break;
-			case Powerup::Armor:
-				sound = RulesClass::Instance->CrateArmourSound; break;
-			case Powerup::Speed:
-				sound = RulesClass::Instance->CrateSpeedSound; break;
-			case Powerup::Firepower:
-				sound = RulesClass::Instance->CrateFireSound; break;
-			case Powerup::Reveal:
-				sound = RulesClass::Instance->CrateRevealSound; break;
-			case Powerup::Unit:
-				sound = RulesClass::Instance->CrateUnitSound; break;
-			case Powerup::Veteran:
-				sound = RulesClass::Instance->CratePromoteSound; break;
-			default:
-				break;
+	for (size_t i = 0; i < Array.size(); ++i) {
+
+		if(i < Powerups::Effects.size()) {
+			if(auto pAlloc = CrateTypeClass::Find(Powerups::Effects[i])){
+				pAlloc->Weight = Powerups::Weights[i];
+				pAlloc->Argument = Powerups::Arguments[i];
+				pAlloc->Naval = Powerups::Naval[i];
+				pAlloc->Anim = AnimTypeClass::Array->GetItemOrDefault(Powerups::Anims[i]);
+
+				int sound = -1;
+				switch (Powerup(i))
+				{
+				case Powerup::Money:
+					sound = RulesClass::Instance->CrateMoneySound; break;
+				case Powerup::HealBase:
+					sound = RulesClass::Instance->HealCrateSound; break;
+				case Powerup::Armor:
+					sound = RulesClass::Instance->CrateArmourSound; break;
+				case Powerup::Speed:
+					sound = RulesClass::Instance->CrateSpeedSound; break;
+				case Powerup::Firepower:
+					sound = RulesClass::Instance->CrateFireSound; break;
+				case Powerup::Reveal:
+					sound = RulesClass::Instance->CrateRevealSound; break;
+				case Powerup::Unit:
+					sound = RulesClass::Instance->CrateUnitSound; break;
+				case Powerup::Veteran:
+					sound = RulesClass::Instance->CratePromoteSound; break;
+				default:
+					break;
+				}
+
+				pAlloc->Sound = sound;
 			}
 
-			pAlloc->Sound = sound;
+			Array[i]->LoadFromINI(pINI);
 		}
 	}
 }
 
-void CrateTypeClass::AllocateDefaultNames()
+void CrateTypeClass::AddDefaults()
 {
 	for (auto crate : Powerups::Effects){
 		CrateTypeClass::FindOrAllocate(crate);
 	}
+}
+
+void CrateTypeClass::ReadFromINIList(CCINIClass* pINI)
+{
+	CrateTypeClass::AddDefaults();
+	CrateTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 void CrateTypeClass::LoadFromINI(CCINIClass *pINI)
