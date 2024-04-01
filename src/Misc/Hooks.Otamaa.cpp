@@ -5360,6 +5360,36 @@ DEFINE_HOOK(0x48DE79, CrateTypeFromName, 0x7)
 	return 0x48DE9C;
 }
 
+DEFINE_HOOK(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(CellStruct, cell, EAX);
+
+	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : (PowerupEffects)CrateTypeClass::Array.size();
+
+	if ((int)crate <= -1)
+		crate = (PowerupEffects)CrateTypeClass::Array.size();
+
+	MapClass::Instance->Place_Crate(cell , crate);
+	return 0x738457;
+}
+
+DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(CellStruct, cell, EAX);
+
+	const PowerupEffects default = pThis->Type->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
+	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : default;
+
+	if ((int)crate <= -1)
+		crate = default;
+
+	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
+	return 0x442226;
+}
 #pragma endregion
 
 DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)

@@ -680,6 +680,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->VoicePickup.Read(exINI, pSection, "VoicePickup");
 
 		this->CrateGoodie_RerollChance.Read(exINI, pSection, "CrateGoodie.RerollChance");
+		this->Destroyed_CrateType.Read(exINI, pSection, "CrateGoodie.WhenDestroyed");
 
 #pragma region Prereq
 
@@ -2132,6 +2133,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->LaserTargetColor)
 		.Process(this->VoicePickup)
 		.Process(this->CrateGoodie_RerollChance)
+		.Process(this->Destroyed_CrateType)
 		;
 }
 

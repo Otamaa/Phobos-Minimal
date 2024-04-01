@@ -895,6 +895,7 @@ public:
 	ValueableIdxVector<VocClass> VoicePickup {};
 
 	Valueable<double> CrateGoodie_RerollChance { 0.0 };
+	NullableIdx<CrateTypeClass> Destroyed_CrateType {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
