@@ -670,6 +670,11 @@ void Phobos::InitConsole()
 
 bool HasCNCnet = false;
 
+//#include <spdlog/spdlog-inl.h>
+//#include <spdlog/sinks/basic_file_sink.h>
+//
+//std::shared_ptr<spdlog::logger> Logger;
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -694,6 +699,12 @@ void Phobos::ExeRun()
 			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run! \n");
 		}
 	}
+
+	//Logger = std::make_shared<spdlog::logger>("debug_admin");
+	//Logger->sinks().push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt> ("debug_admin.log"));
+	//Logger->set_level(spdlog::level::trace);
+	//Logger->flush_on(spdlog::level::trace);
+	//Logger->log(spdlog::level::trace, "Hello !");
 
 	PhobosGlobal::Init();
 }
