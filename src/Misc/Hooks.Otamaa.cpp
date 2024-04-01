@@ -3722,8 +3722,8 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 		HouseClass::FindIndexByName(pHouseName)
 		;
 
-	if (Phobos::Otamaa::IsAdmin)
-		Debug::Log("%s , With House Index [%d]\n", pHouseName, idx);
+	//if (Phobos::Otamaa::IsAdmin)
+	//	Debug::Log("%s , With House Index [%d]\n", pHouseName, idx);
 
 	if (idx == -1)
 	{
