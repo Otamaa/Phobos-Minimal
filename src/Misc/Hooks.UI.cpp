@@ -95,13 +95,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-#if _HAS_CXX23 == 1
 		std::wstring Harv = std::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
-#else
-		wchar_t Harv[0x80];
-		wprintf_s(Harv, L"%s%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
-
-#endif
 
 	 	Point2D vPos {
 	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -110,11 +104,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 	 	DSurface::Sidebar->DSurfaceDrawText(
-#if _HAS_CXX23 == 1
 		Harv.c_str()
-#else
-		Harv
-#endif
 			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }
@@ -123,20 +113,12 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	{
 		ColorStruct clrToolTip { };
 
-#if _HAS_CXX23 == 1
 		std::wstring ShowPower;
-#else
-		wchar_t buffer[0x80];
-#endif
 
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
 			clrToolTip = pSideExt->Sidebar_PowerDelta_Grey.Get();
-#if _HAS_CXX23 == 1
 			ShowPower = Phobos::UI::PowerBlackoutLabel;;
-#else
-			wcscpy(buffer, Phobos::UI::PowerBlackoutLabel);
-#endif
 		}
 		else
 		{
@@ -149,12 +131,8 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 				? pSideExt->Sidebar_PowerDelta_Green.Get() : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 				? pSideExt->Sidebar_PowerDelta_Yellow.Get() : pSideExt->Sidebar_PowerDelta_Red;
 
-
-#if _HAS_CXX23 == 1
 			ShowPower = std::format(L"{}{}", Phobos::UI::PowerLabel, delta);
-#else
-			wprintf_s(buffer, L"%s%d", Phobos::UI::PowerLabel, delta);
-#endif
+
 		}
 
 		const auto TextFlags = static_cast<TextPrintType>(static_cast<int>(TextPrintType::UseGradPal | TextPrintType::Metal12)
@@ -167,13 +145,8 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 		DSurface::Sidebar->DSurfaceDrawText(
-
-#if _HAS_CXX23 == 1
 		ShowPower.c_str()
-#else
-		buffer
-#endif
-			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
+		, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
 	}
 
 	return 0;

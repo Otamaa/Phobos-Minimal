@@ -61,7 +61,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
-		this->RadType.Read(exINI, pSection, "RadType");
+		this->RadType.Read(exINI, pSection, "RadType" , true);
 		this->Rad_NoOwner.Read(exINI, pSection, "Rad.NoOwner");
 	}
 

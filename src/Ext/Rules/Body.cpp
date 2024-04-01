@@ -114,7 +114,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
 	if (!Phobos::Otamaa::DisableCustomRadSite) {
-		RadTypeClass::LoadFromINIList(pINI);
+		RadTypeClass::LoadFromINIOnlyTheList(pINI);
 	}
 
 	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
@@ -139,6 +139,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	CrateTypeClass::ReadListFromINI(pINI);
 	HoverTypeClass::ReadListFromINI(pINI);
 	ShieldTypeClass::ReadListFromINI(pINI);
+	RadTypeClass::ReadListFromINI(pINI);
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");

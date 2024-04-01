@@ -107,8 +107,8 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				Debug::FatalErrorAndExit("OverlayType index of [%s - %d] is invalid compared to the first[%s - %d] (+ %d) \n", Find.c_str(), pOverlay->ArrayIndex, i ,first->ID, first->ArrayIndex);
 			}
 
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("Reading[%s] With CurOverlay[%s] \n", pSection, Find.c_str());
+			//if (Phobos::Otamaa::IsAdmin)
+			//	Debug::Log("Reading[%s] With CurOverlay[%s] \n", pSection, Find.c_str());
 		}
 
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
