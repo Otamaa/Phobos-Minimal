@@ -337,11 +337,6 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::CmdLineParse(pArg);
 	}
 
-	char buff_path[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, buff_path);
-	LuaData::LuaDir = buff_path;
-	LuaData::LuaDir += "\\Resources";
-
 #ifndef aaa
 	if (Debug::LogEnabled) {
 		Debug::LogFileOpen();
@@ -681,6 +676,11 @@ void Phobos::ExeRun()
 	Game::Savegame_Magic = 0x1414D121;
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
+
+	char buff_path[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, buff_path);
+	LuaData::LuaDir = buff_path;
+	LuaData::LuaDir += "\\Resources";
 
 	Patch::PrintAllModuleAndBaseAddr();
 	Phobos::ExecuteLua();
