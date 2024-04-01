@@ -39,6 +39,13 @@ void CrateTypeClass::InitializeDefault() {
 	}
 }
 
+void CrateTypeClass::AllocateDefaultNames()
+{
+	for (auto crate : Powerups::Effects){
+		CrateTypeClass::FindOrAllocate(crate);
+	}
+}
+
 void CrateTypeClass::LoadFromINI(CCINIClass *pINI)
 {
 	const char *section = this->Name;

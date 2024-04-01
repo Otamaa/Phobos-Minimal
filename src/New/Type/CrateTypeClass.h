@@ -30,6 +30,7 @@ public:
 	{ }
 
 	static void InitializeDefault();
+	static void AllocateDefaultNames();
 
 	virtual ~CrateTypeClass() override = default;
 	virtual void LoadFromINI(CCINIClass *pINI) override;
