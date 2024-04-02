@@ -13,7 +13,6 @@
 #include <FootClass.h>
 #include <UnitClass.h>
 
-#include <sol/sol.hpp>
 /*
 * // the stack are push back
 		- 3 is the first argument
@@ -112,9 +111,9 @@ struct LuaScript
 	int Number {};
 	std::string Name {};
 	std::string Lua_Name {};
-	sol::state State {};
+	unique_luastate State {};
 
-	void Initialize(int number, const char* name)
+	/*void Initialize(int number, const char* name)
 	{
 		Number = number;
 		Name = name;
@@ -147,7 +146,7 @@ struct LuaScript
 			Debug::Log("Cannot Find [%s] File ! Reason (%s)\n", Lua_Name.c_str(), what.what());
 			State = nullptr;
 		}
-	}
+	}*/
 };
 
 //static std::vector<LuaScript> LuaScripts {};
@@ -189,40 +188,39 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 	return false;
 }
 
-void LuaBridge::InitScriptLuaList(sol::state& sol_state)
+void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 {
 	const std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
 
-	try
+	auto L = sol_state.get();
+
+	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
 	{
-		if (sol_state.safe_script_file(filename).status() == sol::call_status::ok)
-		{
-
-			if (const std::optional<sol::table> replaces = sol_state["Scripts"])
+		lua_getglobal(L, "Scripts");
+		if (lua_istable(L, -1)) {
+			const size_t scriptSize = (size_t)lua_rawlen(L, -1);
+			SriptNumbers.resize(scriptSize);
+			for (size_t i = 0; i < scriptSize; i++)
 			{
-				SriptNumbers.reserve(replaces->size());
+				if (lua_istable(L, -2))
+				{
+					lua_pushstring(L, "Original");
+					lua_gettable(L, -2);
+					const auto Originalnumber = (int)lua_tointeger(L, -1);
+					lua_pop(L, 1);
 
-				for (const auto& entry : replaces.value()) {
-					sol::object key = entry.first;
-					sol::object value = entry.second;
+					lua_pushstring(L, "Alternative");
+					lua_gettable(L, -2);
+					const auto AlternativeNumber = (int)lua_tointeger(L, -1);
+					lua_pop(L, 1);
 
-					const sol::optional sKey = key.as<std::string>();
-
-					if (!sKey.has_value())
-						continue;
-
-					auto state = SriptNumbers.emplace_back();
-
-					if (sKey == "Original") { state.Original = value.as<int>(); }
-					if (sKey == "Alternative") { state.Alternate = value.as<int>(); }
+					SriptNumbers[i].Original = Originalnumber;
+					SriptNumbers[i].Alternate = AlternativeNumber;
 				}
 			}
 		}
 	}
-	catch (const sol::error& what)
-	{
-		Debug::LogDeferred("%s\n", what.what());
-	}
+
 }
 
 int LuaBridge::GetAppropriateAction(int from)

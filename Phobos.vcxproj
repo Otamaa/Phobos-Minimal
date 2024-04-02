@@ -440,7 +440,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
-    <ClInclude Include="src\Lib\sol\config.hpp" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
@@ -817,7 +816,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>

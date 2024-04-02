@@ -6,7 +6,7 @@ class TeamClass;
 struct LuaBridge
 {
 	static bool OnCalled(TeamClass* pTeam);
-	static void InitScriptLuaList(sol::state& sol_state);
+	static void InitScriptLuaList(unique_luastate& sol_state);
 
 	static int GetAppropriateAction(int from);
 };
