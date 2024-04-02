@@ -6358,3 +6358,6 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 	return 0x523970;
 }
 #endif
+
+//unnessesary call wtf ?
+DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
