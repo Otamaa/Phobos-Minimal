@@ -1181,6 +1181,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->EliteArmor.Read(exINI, pSection, "EliteArmor");
 		this->VeteranArmor.Read(exINI, pSection, "VeteranArmor");
+		this->DeployedArmor.Read(exINI, pSection, "DeployedArmor");
+
 		this->Cloakable_IgnoreArmTimer.Read(exINI, pSection, "Cloakable.IgnoreROFTimer");
 
 
@@ -2125,6 +2127,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DetectDisguise_Percent)
 		.Process(this->EliteArmor)
 		.Process(this->VeteranArmor)
+		.Process(this->DeployedArmor)
 		.Process(this->Cloakable_IgnoreArmTimer)
 		.Process(this->Untrackable)
 		.Process(this->Convert_Scipt_Prereq)

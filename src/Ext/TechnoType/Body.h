@@ -884,6 +884,8 @@ public:
 
 	NullableIdx<ArmorTypeClass*> EliteArmor {};
 	NullableIdx<ArmorTypeClass*> VeteranArmor {};
+	NullableIdx<ArmorTypeClass*> DeployedArmor {};
+
 	Valueable<bool> Cloakable_IgnoreArmTimer { false };
 
 	Valueable<bool> Untrackable { false };

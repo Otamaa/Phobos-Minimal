@@ -430,6 +430,12 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
 			res = (Armor)pTypeExt->EliteArmor.Get();
 
+		if(pThis->WhatAmI() == AbstractType::Infantry) {
+			if (((InfantryClass*)pThis)->IsDeployed() && pTypeExt->DeployedArmor.isset()) {
+				res = (Armor)pTypeExt->DeployedArmor.Get();
+			}
+		}
+
 		return res;
 	}
 
