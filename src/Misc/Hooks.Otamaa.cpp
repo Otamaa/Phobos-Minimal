@@ -6001,7 +6001,7 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
-#ifdef AdditionalSequence
+#ifndef AdditionalSequence
 static constexpr const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -6045,10 +6045,12 @@ static constexpr const char* Sequences_ident[] = {
 		"Carry",
 		"SecondaryFire",
 		"SecondaryProne",
-		"SecondaryFireFly"
+		"SecondaryFireFly",
+		"SecondaryWetAttack"
 };
 
 static constexpr std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
+	{1, 0, 0, 0},
 	{1, 0, 0, 0},
 	{1, 0, 0, 6},
 	{1, 1, 1, 3},
@@ -6090,8 +6092,9 @@ static constexpr std::array<DoStruct, std::size(Sequences_ident)> Sequences_Mast
 	{1, 1, 1, 3},
 	{1, 0, 0, 1},
 	{1, 0, 0, 1},
-	{16, 0, 0, 0},
+	//{16, 0, 0, 0}, //leftover ?
 	{1, 1, 0, 1}, //SecondaryFireFly
+	{1, 1, 0, 1}, //SecondaryWetAttack
 }
 };
 
@@ -6180,16 +6183,31 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 	GET(InfantryClass*, pThis, EBP);
 	GET_STACK(int, weaponIdx, 0x34 - 0x24);
 
-	DoType result = //weaponIdx == 0 ? DoType::FireFly :
+	DoType result = weaponIdx == 0 ? DoType::FireFly :
 		DoType(42);
-	Debug::Log(__FUNCTION__" result Weapon[%d] [%d]\n", weaponIdx, result);
+
 	pThis->PlayAnim(result);
 	return 0x520831;
 }
 
+DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
+{
+	GET(DoType, type, EDI);
+
+	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne) {
+		type = DoType(43);
+
+		R->EBP(false);
+		R->EDI(type);
+		return 0x51D842;
+	}
+
+	return 0x0;
+}
+
 //the fuck is this ,...
-//DEFINE_PATCH_TYPED(BYTE, 0x51DAA9, 6u);
-//DEFINE_PATCH_TYPED(BYTE, 0x51DAAE, 3u);
+DEFINE_PATCH_TYPED(BYTE, 0x51DAA9, 6u);
+DEFINE_PATCH_TYPED(BYTE, 0x51DAAE, 3u);
 
 #pragma region ReplaceMasterControl
 
