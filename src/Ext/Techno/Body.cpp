@@ -4592,6 +4592,12 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 TechnoExtContainer TechnoExtContainer::Instance;
 
+void TechnoExtData::InitializeConstant()
+{
+	//Debug::Log("Initilizing Tiberium storage for [%x] with [%d] count !\n", this->AttachedToObject, TiberiumClass::Array->Count);
+	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+}
+
 // =============================
 // container hooks
 

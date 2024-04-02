@@ -82,6 +82,7 @@ struct GameStrings
 	//..
 
 	// ini section names
+	GAMEMD_STR(Tiberiums, 0x84492C);
 	GAMEMD_STR(Action, 0x817270);
 	GAMEMD_STR(General, 0x826278u);
 	GAMEMD_STR(AI, 0x839DA4);

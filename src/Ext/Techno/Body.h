@@ -191,6 +191,8 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+	void InitializeConstant();
+
 	bool CheckDeathConditions();
 	bool UpdateKillSelf_Slave();
 

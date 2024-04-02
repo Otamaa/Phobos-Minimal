@@ -281,7 +281,6 @@ public:
 	static signed int BuildLimitRemaining(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static BuildLimitStatus CheckBuildLimit(HouseClass const* pHouse, TechnoTypeClass* pItem, bool includeQueued);
 
-
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);
 
@@ -302,6 +301,7 @@ public:
 	static void ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, AbstractType considerAs);
 
 	static void IncremetCrateTracking(HouseClass* pHouse, Powerup type);
+	static void InitializeTrackers(HouseClass* pHouse);
 private:
 	bool UpdateHarvesterProduction();
 

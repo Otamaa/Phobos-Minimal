@@ -870,18 +870,6 @@ void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Debug::Log(__FUNCTION__" Called ! \n");
-	for (int i = 0; i < HouseClass::Array->Count; ++i) {
-		if (auto pHouse = HouseClass::Array->Items[i]) {
-			HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		}
-	}
-
-	for (int i = 0; i < TechnoClass::Array->Count; ++i) {
-		if (auto pTech = TechnoClass::Array->Items[i]) {
-			TechnoExtContainer::Instance.Find(pTech)->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		}
-	}
 }
 
 // =============================
@@ -1273,6 +1261,7 @@ DEFINE_HOOK(0x52C9C4, GameInit_SkipReadingStuffsTooEarly, 0x6)
 // 	return 0;
 // }
 
+// Read on very first RulesClass::Process function
 DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
@@ -1283,10 +1272,28 @@ DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
 	return 0;
 }
 
+// Read on very first RulesClass::Object function
 DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 {
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x4);
+
+	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+
+	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn) {
+		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer))
+			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
+
+	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn) {
+		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer))
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
+
+	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn) {
+		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer))
+			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
+	}
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
@@ -1296,30 +1303,6 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 		HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
 	});
 
-	BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
-
-	constexpr std::array<const char*, 3u> sections =
-	{ {
-		{ "WeaponTypes" } ,
-		{ "Projectiles" } ,
-		{ "Warheads" }
-	} };
-
-	for (int nn = 0; nn < pINI->GetKeyCount(sections[0]); ++nn) {
-		if (pINI->GetString(sections[0], pINI->GetKeyName(sections[0], nn), Phobos::readBuffer))
-			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
-	}
-
-	for (int nn = 0; nn < pINI->GetKeyCount(sections[1]); ++nn) {
-		if (pINI->GetString(sections[1], pINI->GetKeyName(sections[1], nn), Phobos::readBuffer))
-			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
-	}
-
-	for (int nn = 0; nn < pINI->GetKeyCount(sections[2]); ++nn) {
-		if (pINI->GetString(sections[2], pINI->GetKeyName(sections[2], nn), Phobos::readBuffer))
-			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
-	}
-
 	// All TypeClass Created but not yet read INI
 	//	RulesClass::Initialized = true;
 	RulesExtData::s_LoadBeforeTypeData(pItem, pINI);
@@ -1328,11 +1311,38 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 }
 
 #include <Ext/WarheadType/Body.h>
-
+// Read on very end RulesClass::Object function
 DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 {
 	RulesClass* pItem = RulesClass::Instance();
 	GET(CCINIClass*, pINI, ESI);
+
+
+	// Ensure entry not fail because of late instantiation
+	// add more if needed , it will double the error log at some point
+	// but it will take care some of missing stuffs that previously loaded late
+
+	{
+		for (auto pWeapon : *WeaponTypeClass::Array)
+		{
+			pWeapon->LoadFromINI(pINI);
+		}
+
+		for (auto pBullet : *BulletTypeClass::Array)
+		{
+			pBullet->LoadFromINI(pINI);
+		}
+
+		for (auto pWarhead : *WarheadTypeClass::Array)
+		{
+			pWarhead->LoadFromINI(pINI);
+		}
+
+		for (auto pAnims : *AnimTypeClass::Array)
+		{
+			pAnims->LoadFromINI(pINI);
+		}
+	}
 
 	RulesExtData::LoadAfterTypeData(pItem, pINI);
 
@@ -1349,16 +1359,17 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
+DEFINE_HOOK(0x668EF5, RulesData_LoadAfterAllLogicData, 0x5)
 {
 	GET(RulesClass*, pItem, EDI);
 	GET(CCINIClass*, pINI, ESI);
 
+	pItem->Read_Difficulties(pINI);
+	TiberiumClass::_ReadFromINI(pINI);
 	RulesExtData::LoadAfterAllLogicData(pItem, pINI);
 
-	return 0;
+	return 0x668F6A;
 }
-
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
@@ -1424,7 +1435,7 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 //}
 
 //DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
-DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
+//DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
 
  // remove reading warhead from `SpecialWeapon`
 DEFINE_PATCH_TYPED(BYTE, 0x669193
@@ -1435,31 +1446,6 @@ DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x90, 0x90, 0x90, 0x90, 0x90
 );
 
-// Ensure entry not fail because of late instantiation
-// add more if needed , it will double the error log at some point
-// but it will take care some of missing stuffs that previously loaded late
-DEFINE_HOOK(0x679C92, RulesClass_ReadObject_ReReadStuffs, 7)
-{
-	GET_STACK(CCINIClass*, pINI, 0xC + 0x4);
-
-	for (auto pWeapon : *WeaponTypeClass::Array) {
-		pWeapon->LoadFromINI(pINI);
-	}
-
-	for (auto pBullet : *BulletTypeClass::Array) {
-		pBullet->LoadFromINI(pINI);
-	}
-
-	for (auto pWarhead : *WarheadTypeClass::Array) {
-		pWarhead->LoadFromINI(pINI);
-	}
-
-	for (auto pAnims : *AnimTypeClass::Array) {
-		pAnims->LoadFromINI(pINI);
-	}
-
-	return 0x0;
-}
 
 DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5) {
 

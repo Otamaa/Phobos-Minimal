@@ -118,8 +118,8 @@ public:
 	void Read_WallModel(CCINIClass *pINI)
 		{ JMP_THIS(0x66D1F0); }
 
-	void Read_Difficulty(CCINIClass *pINI)
-		{ JMP_THIS(0x66D270); }
+	static void  __fastcall Read_Difficulty(CCINIClass *pINI , DifficultyStruct* which , const char* pSection)
+		{ JMP_STD(0x66D270); }
 
 	void Read_Colors(CCINIClass *pINI)
 		{ JMP_THIS(0x66D3A0); }

@@ -29,16 +29,34 @@ CDTimerClass HouseExtData::CloakEVASpeak;
 CDTimerClass HouseExtData::SubTerraneanEVASpeak;
 void HouseExtData::InitializeConstant()
 {
-	this->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	this->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	this->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	this->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	this->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	this->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	this->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	this->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	this->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
-	this->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
+	//BuiltAircraftTypes.PopulateCounts(10000);
+	//BuiltInfantryTypes.PopulateCounts(10000);
+	//BuiltUnitTypes.PopulateCounts(10000);
+	//BuiltBuildingTypes.PopulateCounts(10000);
+	//KilledAircraftTypes.PopulateCounts(10000);
+	//KilledInfantryTypes.PopulateCounts(10000);
+	//KilledUnitTypes.PopulateCounts(10000);
+	//KilledBuildingTypes.PopulateCounts(10000);
+	//CapturedBuildings.PopulateCounts(10000);
+	//CollectedCrates.PopulateCounts(10000);
+
+	//Debug::Log("Initilizing Tiberium storage for [%s] with [%d] count !\n", this->AttachedToObject->Type->ID, TiberiumClass::Array->Count);
+	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+}
+
+void HouseExtData::InitializeTrackers(HouseClass* pHouse)
+{
+	auto pExt = HouseExtContainer::Instance.Find(pHouse);
+	pExt->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	pExt->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	pExt->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	pExt->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	pExt->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	pExt->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	pExt->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	pExt->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	pExt->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
+	pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
 }
 
 RequirementStatus HouseExtData::RequirementsMet(
