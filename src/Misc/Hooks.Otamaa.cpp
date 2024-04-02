@@ -5373,11 +5373,12 @@ DEFINE_HOOK(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 
 DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
-	GET(CellStruct, cell, EAX);
+	//GET(BuildingClass*, pThis, ESI);
+	GET(BuildingTypeClass* , pThisType , EDX);
+	GET_STACK(CellStruct, cell, 0x10);
 
-	const PowerupEffects defaultcrate = pThis->Type->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
-	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
+	const PowerupEffects defaultcrate = pThisType->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
+	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThisType)->Destroyed_CrateType;
 	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : defaultcrate;
 	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
 	return 0x442226;
@@ -6361,3 +6362,5 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 
 //unnessesary call wtf ?
 DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
+//WW skip shadow for visceroids
+DEFINE_JUMP(LJMP, 0x705FED, 0x70600C);
