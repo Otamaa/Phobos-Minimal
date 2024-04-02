@@ -235,7 +235,7 @@ void Phobos::ExecuteLua()
 						if (Phobos::Otamaa::IsAdmin)
 						{
 							std::string copy = trim(result.c_str());
-							Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
+							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
 						}
 
 						// do not exceed maximum length of the string , otherwise it will broke the .exe file
@@ -641,8 +641,8 @@ void Phobos::DrawVersionWarning()
 
 void Phobos::InitAdminDebugMode()
 {
-	//if (!Phobos::Otamaa::IsAdmin)
-	//	return;
+	if (!Phobos::Otamaa::IsAdmin)
+		return;
 
 	// this thing can cause game to lockup when loading data
 	//better disable it for release
@@ -706,6 +706,7 @@ void Phobos::ExeRun()
 	LuaData::LuaDir += "\\Resources";
 
 	Patch::PrintAllModuleAndBaseAddr();
+	Phobos::ExecuteLua();
 	Phobos::InitAdminDebugMode();
 
 	for (auto&dlls : Patch::ModuleDatas) {
@@ -713,7 +714,7 @@ void Phobos::ExeRun()
 			HasCNCnet = true;
 		}
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
-			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run! \n");
+			Debug::FatalErrorAndExit("dont need Ares.dll to run! \n");
 		}
 	}
 
@@ -969,7 +970,6 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Phobos::ExecuteLua();
 	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
 	return 0;
