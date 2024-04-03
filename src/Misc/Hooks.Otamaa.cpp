@@ -6186,6 +6186,9 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 
 	DoType result = weaponIdx == 0 ? DoType::FireFly :
 		DoType(42);
+    
+	if(!pThis->Type->Sequence->GetSequence(result).CountFrames)
+	  return 0;
 
 	pThis->PlayAnim(result);
 	return 0x520831;
@@ -6193,9 +6196,14 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 
 DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 {
+	GET(InfantryClass*, pThis , ESI);
 	GET(DoType, type, EDI);
 
 	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne) {
+
+		if(!pThis->Type->Sequence->GetSequence(DoType(43)).CountFrames)
+		   return 0x0;
+
 		type = DoType(43);
 
 		R->EBP(false);
@@ -6207,8 +6215,8 @@ DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 }
 
 //the fuck is this ,...
-DEFINE_PATCH_TYPED(BYTE, 0x51DAA9, 6u);
-DEFINE_PATCH_TYPED(BYTE, 0x51DAAE, 3u);
+//DEFINE_PATCH_TYPED(BYTE, 0x51DAA9, 6u);
+//DEFINE_PATCH_TYPED(BYTE, 0x51DAAE, 3u);
 
 #pragma region ReplaceMasterControl
 
