@@ -14,6 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
     <ClCompile Include="src\Commands\SaveVariablesToFile.cpp" />
     <ClCompile Include="src\Commands\ShowAnimNames.cpp" />
@@ -440,6 +441,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\DetachFromTeam.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />

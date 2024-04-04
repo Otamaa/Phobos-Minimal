@@ -1,0 +1,6 @@
+- Radar sometime glitching
+- Incompatibility with some other dll
+- AI unit stay in place with script arg -1 and it not get cleared properly
+- AI slacking team , still unkown , and there is no way to force detach them from the team
+- The prereq sometime glitched allowing user to build stuffs that not suppose to be their
+- Engineer walking/running like floating/skipping frames

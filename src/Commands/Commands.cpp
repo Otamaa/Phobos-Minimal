@@ -17,6 +17,7 @@
 #include "ToggleDigitalDisplay.h"
 #include "ToggleDesignatorRange.h"
 #include "SaveVariablesToFile.h"
+#include "DetachFromTeam.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -67,6 +68,8 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(MapSnapshotCommandClass);
 	Make(TogglePowerCommandClass);
 #endif
+
+	Make(DetachFromTeamCommandClass);
 	return 0x0;
 }
 
