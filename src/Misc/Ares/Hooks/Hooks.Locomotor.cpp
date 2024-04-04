@@ -284,7 +284,7 @@ DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 		StringCchPrintfW(pArmament, StringLen, L"Armament: NONE");
 	}
 
-	if (const auto& pArmorType = ArmorTypeClass::Array[static_cast<unsigned int>(pType->Armor)])
+	if (const auto& pArmorType = ArmorTypeClass::FindFromIndexFix(static_cast<unsigned int>(pType->Armor)))
 	{
 		StringCchPrintfW(pArmor, StringLen, L"Armor: %hs", pArmorType->Name.data());
 	}

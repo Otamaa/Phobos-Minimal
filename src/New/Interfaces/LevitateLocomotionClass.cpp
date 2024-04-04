@@ -808,64 +808,64 @@ bool LevitateLocomotionClass::IsAdjentCellEligible(CoordStruct nArgsCoord)
 
 bool __stdcall LevitateLocomotionClass::Process()
 {
-	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	//switch (State)
-	//{
-	//case 0u:
-	//	this->DoPhase1();
-	//	break;
-	//case 1u:
-	//	this->DoPhase2(); //done
-	//	break;
-	//case 2u:
-	//	this->DoPhase3(); //done
-	//	break;
-	//case 3u:
-	//	this->DoPhase4(); //done
-	//	break;
-	//case 4u: //done
-	//{
-	//	if (this->IsTargetValid())
-	//		this->DoPhase5(LinkedTo->Target->GetCoords());
-	//	else if (this->IsDestValid())
-	//		this->DoPhase5(LinkedTo->Target->GetCoords());
-	//	else
-	//	{
-	//		CurrentSpeed = Characteristic.Drag;
-	//		State = 2;
-	//	}
-	//}
-	//break;
-	//case 5u:
-	//	this->DoPhase6(); //done
-	//	break;
-	//case 6u:
-	//	this->DoPhase7(); //done
-	//	break;
-	//default:
-	//	break;
-	//}
+	GameDebugLog::Log(__FUNCTION__" Called !  \n");
+	switch (State)
+	{
+	case 0u:
+		this->DoPhase1();
+		break;
+	case 1u:
+		this->DoPhase2(); //done
+		break;
+	case 2u:
+		this->DoPhase3(); //done
+		break;
+	case 3u:
+		this->DoPhase4(); //done
+		break;
+	case 4u: //done
+	{
+		if (this->IsTargetValid())
+			this->DoPhase5(LinkedTo->Target->GetCoords());
+		else if (this->IsDestValid())
+			this->DoPhase5(LinkedTo->Target->GetCoords());
+		else
+		{
+			CurrentSpeed = Characteristic.Drag;
+			State = 2;
+		}
+	}
+	break;
+	case 5u:
+		this->DoPhase6(); //done
+		break;
+	case 6u:
+		this->DoPhase7(); //done
+		break;
+	default:
+		break;
+	}
 
-	////Done
-	//this->ProcessSomething();
+	//Done
+	this->ProcessSomething();
 
-	////Done
-	//if (this->Is_To_Have_Shadow())
-	//{
-	//	if (!(Unsorted::CurrentFrame % 10))
-	//	{
-	//		if (!LinkedTo->IsOnBridge() && LinkedTo->GetCell()->LandType == LandType::Water)
-	//		{
-	//			if (auto pAnimType = RulesClass::Instance->Wake)
-	//			{
-	//				auto nCoord = LinkedTo->GetCenterCoords();
-	//				GameCreate<AnimClass>(pAnimType, nCoord);
-	//			}
-	//		}
-	//	}
-	//}
+	//Done
+	if (this->Is_To_Have_Shadow())
+	{
+		if (!(Unsorted::CurrentFrame % 10))
+		{
+			if (!LinkedTo->IsOnBridge() && LinkedTo->GetCell()->LandType == LandType::Water)
+			{
+				if (auto pAnimType = RulesClass::Instance->Wake)
+				{
+					auto nCoord = LinkedTo->GetCenterCoords();
+					GameCreate<AnimClass>(pAnimType, nCoord);
+				}
+			}
+		}
+	}
 
-	//this->ProcessHovering(); //Done
+	this->ProcessHovering(); //Done
 
 	if (IsMoving)
 	{

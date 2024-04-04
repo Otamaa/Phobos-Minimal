@@ -440,6 +440,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
+    <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
