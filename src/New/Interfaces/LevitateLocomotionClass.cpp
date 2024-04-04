@@ -809,7 +809,7 @@ bool LevitateLocomotionClass::IsAdjentCellEligible(CoordStruct nArgsCoord)
 bool __stdcall LevitateLocomotionClass::Process()
 {
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	switch (State)
+	switch (RefCount)
 	{
 	case 0u:
 		this->DoPhase1();
