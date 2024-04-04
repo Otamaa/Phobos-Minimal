@@ -4752,15 +4752,6 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					MapClass::Instance->Place_Random_Crate();
 				}
-
-				//ensure the index wont go beyond the array size
-				if ((size_t)data >= CrateTypeClass::Array.size())
-					data = Powerup::Money;
-				//if (data == Powerup::Squad)
-				//{
-				//	data = Powerup::Money;
-				//}
-
 #pragma region MainAffect
 				const auto something = CrateTypeClass::Array[(int)data]->Argument;
 				//not always get used same way ?
