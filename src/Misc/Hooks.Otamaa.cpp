@@ -3908,7 +3908,7 @@ DEFINE_HOOK(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
 
 DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 {
-	GET(const char*, pBuffer, EAX);
+	GET(const char*, pBuffer, ECX);
 	GET(AITriggerTypeClass*, pThis, EBP);
 
 	TechnoTypeClass* result = InfantryTypeClass::Find(pBuffer);
@@ -3919,8 +3919,8 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 	if (!result)
 		result = BuildingTypeClass::Find(pBuffer);
 
-	//if (result)
-	//	Debug::Log("Found Condition Object[%s - %s] for [%s]\n", pBuffer , result->GetThisClassName(), pThis->ID);
+	if (Phobos::Otamaa::IsAdmin)
+		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer , result ? result->GetThisClassName() : NONE_STR2, pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;
