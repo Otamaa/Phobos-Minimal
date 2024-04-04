@@ -11,60 +11,32 @@
 struct LevitateCharacteristics
 {
 
-	double Drag; // rate that jellyfish slows down
+	double Drag { 0.05 }; // rate that jellyfish slows down
 	// max velocity that jellyfish can move again when...
-	double Vel_Max_Happy; //   ...just puttering around
-	double Vel_Max_WhenFollow; //	...going someplace in particular
-	double Vel_Max_WhenPissedOff; //	...tracking down some mofo
-	double Accel; // How much a puff accelerates
-	double Accel_Prob; // Chance happy jellyfish will "puff"
-	int Accel_Dur; // How long a puff accelerates the jellyfish
-	double Initial_Boost; // How much of an initial speed boost does jellyfish get when puffing
+	double Vel_Max_Happy { 4.0 }; //   ...just puttering around
+	double Vel_Max_WhenFollow { 5.0 }; //	...going someplace in particular
+	double Vel_Max_WhenPissedOff { 10.5 }; //	...tracking down some mofo
+	double Accel { 0.5 }; // How much a puff accelerates
+	double Accel_Prob { 0.01 }; // Chance happy jellyfish will "puff"
+	int Accel_Dur { 20 }; // How long a puff accelerates the jellyfish
+	double Initial_Boost { 1.5 }; // How much of an initial speed boost does jellyfish get when puffing
 	//BounceVelocity = 3.5 // How fast does jellyfish bounce away after hitting a wall.Don't screw with this
 	//CollisionWaitDuration = 15 //How long does jellyfish wait before puffing after hitting a wall ?
-	int BlockCount_Max; // How many times will jellyfish block against a wall before giving up on destination?
-	std::vector<int> Propulsion_Sounds; //Sound effect when puffing
-	double Intentional_Deacceleration; //How fast does it deaccelerate when it wants to? (When going to waypoint or target)
-	double Intentional_DriftVelocity; //How fast does it move when it is near its target?
-	double ProximityDistance; //How close before special deacceleration & drift logic take over?
-
-	LevitateCharacteristics() :
-		Drag { 0.05 }
-		, Vel_Max_Happy { 4.0 }
-		, Vel_Max_WhenFollow { 5.0 }
-		, Vel_Max_WhenPissedOff { 10.5 }
-		, Accel { 0.5 }
-		, Accel_Prob { 0.01 }
-		, Accel_Dur { 20 }
-		, Initial_Boost { 1.5 }
-		, BlockCount_Max { 4 }
-		, Propulsion_Sounds { }
-		, Intentional_Deacceleration { 0.15 }
-		, Intentional_DriftVelocity { 0.3 }
-		, ProximityDistance { 1.5 }
-	{}
+	int BlockCount_Max { 4 }; // How many times will jellyfish block against a wall before giving up on destination?
+	std::vector<int> Propulsion_Sounds { }; //Sound effect when puffing
+	double Intentional_Deacceleration { 0.15 }; //How fast does it deaccelerate when it wants to? (When going to waypoint or target)
+	double Intentional_DriftVelocity { 0.3 }; //How fast does it move when it is near its target?
+	double ProximityDistance { 1.5 }; //How close before special deacceleration & drift logic take over?
 };
 
-DEFINE_PIGGYLOCO(Levitate, 3DC0B295-6546-11D3-80B0-00902792494C)
+DEFINE_LOCO(Levitate, 3DC0B295-6546-11D3-80B0-00902792494C)
 {
 public:
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) 
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject)
 	{
-		HRESULT hr = LocomotionClass::QueryInterface(iid, ppvObject);
-		if (hr != E_NOINTERFACE)
-			return hr;
-
-		if (iid == __uuidof(IPiggyback))
-		{
-			*ppvObject = static_cast<IPiggyback*>(this);
-			this->AddRef();
-			return S_OK;
-		}
-
-		*ppvObject = nullptr;
-		return E_NOINTERFACE;
+		return LocomotionClass::QueryInterface(iid, ppvObject);
 	}
 
 	virtual ULONG __stdcall AddRef() { return LocomotionClass::AddRef(); }
@@ -83,26 +55,11 @@ public:
 	}
 
 	//IPersistStream
-	//virtual HRESULT __stdcall IsDirty() { return LocomotionClass::IsDirty(); }
+	virtual HRESULT __stdcall IsDirty() { return LocomotionClass::IsDirty(); }
+
 	virtual HRESULT __stdcall Load(IStream* pStm) {
 
 		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
-		if (SUCCEEDED(hr))
-		{
-			GameDebugLog::Log("LevitateLoco Load !\n");
-			GameDebugLog::Log("Drag is %fl\n", this->Characteristic.Drag);
-			// Insert any data to be loaded here.
-
-			ILocomotion** piggy = &this->PiggyTO;
-			if (*piggy) {
-				(*piggy)->Release();
-			}
-			
-			*piggy = nullptr; // clean up old one 
-
-			hr = OleLoadFromStream(pStm, __uuidof(ILocomotion), (LPVOID*)piggy);
-		}
-
 		return hr;
 	}
 
@@ -119,7 +76,7 @@ public:
 		return hr;
 	}
 
-	//virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) { 
+	//virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) {
 	//
 	//	if (pcbSize == nullptr) {
 	//		return E_POINTER;
@@ -131,14 +88,14 @@ public:
 	virtual ~LevitateLocomotionClass() override = default; // should be SDDTOR in fact
 	virtual int Size() override { return sizeof(*this); }
 
-	//virtual HRESULT __stdcall Link_To_Object(void* pointer) override { 
-	//	HRESULT hr = LocomotionClass::Link_To_Object(pointer);
-	//	//if (SUCCEEDED(hr)) {
-	//	//	GameDebugLog::Log("LevitateLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
-	//	//}
-	//	return hr;
-	//
-	//}
+	virtual HRESULT __stdcall Link_To_Object(void* pointer) override {
+		HRESULT hr = LocomotionClass::Link_To_Object(pointer);
+		//if (SUCCEEDED(hr)) {
+		//	GameDebugLog::Log("LevitateLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
+		//}
+		return hr;
+	}
+
 	virtual bool __stdcall Is_Moving() override { return IsMoving; };
 	virtual CoordStruct __stdcall Destination() override {
 		if (IsMoving)
@@ -156,7 +113,7 @@ public:
 		return LinkedTo->GetCenterCoords();
 	}
 
-	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override { 
+	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override {
 		return LinkedTo->IsCellOccupied(MapClass::Instance->GetCellAt(cell), FacingType::None, -1, nullptr, false);
 	}
 
@@ -223,7 +180,7 @@ public:
 		}
 	}
 
-	virtual bool __stdcall Is_Moving_Here(CoordStruct to) override { 
+	virtual bool __stdcall Is_Moving_Here(CoordStruct to) override {
 		auto nBuff = CellClass::Coord2Cell(Head_To_Coord());
 		CoordStruct headto_cell { nBuff.X , nBuff.Y ,0 };
 		return nBuff.X == headto_cell.X && nBuff.Y == headto_cell.Y && std::abs(headto_cell.Z - to.Z) <= Unsorted::CellHeight;
@@ -238,78 +195,6 @@ public:
 	//virtual int __stdcall Get_Track_Number() override { return LocomotionClass::Get_Track_Number(); }
 	//virtual int __stdcall Get_Track_Index() override { return LocomotionClass::Get_Track_Index(); }
 	//virtual int __stdcall Get_Speed_Accum() override { return LocomotionClass::Get_Speed_Accum(); }
-
-	//IPiggy
-	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override {
-		if (!pointer) {
-			return E_POINTER;
-		}
-
-		//idk ,..
-		if (this->PiggyTO) {
-			return E_FAIL;
-		}
-
-		this->PiggyTO = pointer;
-		return S_OK;
-	
-	};
-
-	//Piggybacks a locomotor onto this one.
-	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override {
-
-		if (!pointer) {
-			return E_POINTER;
-		}
-
-		if (!this->PiggyTO) {
-			//the implementation here can be specific to the locomotor itself 
-			//Jumpjet and Teleport has different stuffs include
-			return S_FALSE;
-		}
-
-		*pointer = this->PiggyTO.Detach();
-
-		return S_OK; 
-	};//End piggyback process and restore locomotor interface pointer.
-	
-	virtual bool __stdcall Is_Ok_To_End() override { 
-		
-		return false; // this->PiggyTO && !this->LinkedTo->IsAttackedByLocomotor; // the implementation is different based on each loco
-		// here we check certain state
-	};	//Is it ok to end the piggyback process?
-
-	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { 
-		HRESULT hr;
-
-		if (classid == nullptr)
-			return E_POINTER;
-
-		if (this->PiggyTO)
-		{
-			IPersistStreamPtr piggyAsPersist(this->PiggyTO);
-
-			hr = piggyAsPersist->GetClassID(classid);
-		}
-		else
-		{
-			if (reinterpret_cast<IPiggyback*>(this) == nullptr)
-				return E_FAIL;
-
-			IPersistStreamPtr thisAsPersist(this);
-
-			if (thisAsPersist == nullptr)
-				return E_FAIL;
-
-			hr = thisAsPersist->GetClassID(classid);
-		}
-
-		return hr;
-	};	//Fetches piggybacked locomotor class ID.
-
-	virtual bool __stdcall Is_Piggybacking() override { 
-		return this->PiggyTO != nullptr;
-	};	//Is it currently piggy backing another locomotor?
 
 	void ProcessHovering();
 	void DoPhase1();
@@ -363,7 +248,6 @@ public:
 	double CurrentSpeed; // CurrentSpeed?
 	double Dampen; // Dampen? 50
 	double field_58;
-	ILocomotionPtr PiggyTO;
 	bool IsMoving;
 	CoordStruct DestinationCoord;
 	CoordStruct HeadToCoord;

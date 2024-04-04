@@ -828,7 +828,7 @@ bool __stdcall LevitateLocomotionClass::Process()
 		if (this->IsTargetValid())
 			this->DoPhase5(LinkedTo->Target->GetCoords());
 		else if (this->IsDestValid())
-			this->DoPhase5(LinkedTo->Target->GetCoords());
+			this->DoPhase5(LinkedTo->Destination->GetCoords());
 		else
 		{
 			CurrentSpeed = Characteristic.Drag;

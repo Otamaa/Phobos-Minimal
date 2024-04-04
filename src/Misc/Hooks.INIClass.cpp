@@ -373,10 +373,10 @@ DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 		//	return 0;
 		//}
 
-		//if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
-		//	wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
-		//	return 0;
-		//}
+		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
+			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
+			return 0;
+		}
 	}
 
 	return 0;
