@@ -74,7 +74,6 @@ constexpr const char* UIMD_ = "uimd.ini";
 #define Eva_UnitSold GameStrings::EVA_UnitSold()
 #define Eva_OreMinerUnderAttack GameStrings::EVA_OreMinerUnderAttack()
 
-
 struct Phobos final
 {
 	static void CmdLineParse(char**, int);
@@ -97,7 +96,6 @@ struct Phobos final
 	static const char readDefval[4];
 
 	static std::string AppIconPath;
-	static char AppName[0x40];
 	static bool Debug_DisplayDamageNumbers;
 	static const wchar_t* VersionDescription;
 

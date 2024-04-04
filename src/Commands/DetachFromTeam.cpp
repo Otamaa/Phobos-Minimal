@@ -36,7 +36,9 @@ void DetachFromTeamCommandClass::Execute(WWKey eInput) const
 	ObjectClass::CurrentObjects->for_each([](ObjectClass* const object) {
 	    if (FootClass* techno = generic_cast<FootClass*>(object)) {
 		  if (techno->BelongsToATeam()) {
-				 techno->Team->RemoveMember(techno);
+			  auto pTeam = techno->Team;
+			  pTeam->RemoveMember(techno);
+			  pTeam->Reacalculate();
 		  }
 	    }
 	});

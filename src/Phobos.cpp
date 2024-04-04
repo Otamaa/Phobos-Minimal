@@ -30,21 +30,25 @@
 #include <aclapi.h>
 
 #include <Phobos.Lua.h>
+#include <Phobos.UI.h>
+//#pragma comment(lib, "Shcore.lib")
+//#pragma comment(lib, "shlwapi.lib")
+//#pragma comment(lib, "version.lib")
+//#pragma comment(lib, "comctl32.lib")
+
+#ifdef EXPERIMENTAL_IMGUI
+DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
+{
+	PhobosWindowClass::Callback();
+	return 0x0;
+}
+#endif
 
 #pragma region DEFINES
 
 #ifndef IS_RELEASE_VER
 bool Phobos::Config::HideWarning = false;
 #endif
-
-// TODO : encryption support
-// Otamaa : change this variable if you want to load desired name lua file
-static std::string filename = "\\renameinternal.lua";
-
-std::string LuaData::LuaDir;
-
-static std::unordered_map<uintptr_t, std::string> map_replaceAddrTo {};
-static std::string MainWindowStr {};
 
 HANDLE Phobos::hInstance = NULL;
 char Phobos::readBuffer[Phobos::readLength];
@@ -111,7 +115,6 @@ bool Phobos::Config::ApplyShadeCountFix = true;
 bool Phobos::Config::SaveVariablesOnScenarioEnd = false;
 
 std::string Phobos::AppIconPath;
-char Phobos::AppName[0x40] = "";
 
 bool Phobos::Debug_DisplayDamageNumbers = false;
 
@@ -172,109 +175,6 @@ void Phobos::CheckProcessorFeatures()
 		Debug::ExitGame(533u);
 	}
 #endif
-}
-
-#include <Ext/Script/Lua/Wrapper.h>
-
-void Phobos::ExecuteLua()
-{
-	make_unique_luastate(unique_lua);
-	auto L = unique_lua.get();
-	luaL_openlibs(L);
-
-	if (luaL_dofile(L , (LuaData::LuaDir + "\\AdminMode.lua").c_str()) == LUA_OK) {
-		lua_getglobal(L, "AdminMode");
-		if (lua_isstring(L, -1) == 1) {
-			std::string adminName = lua_tostring(L, -1);
-
-			if (adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1) {
-				DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
-				GetComputerName(PCName, &dwSize);
-
-				if (IS_SAME_STR_(PCName, adminName.c_str()))
-				{
-					Phobos::EnableConsole = true;
-					Phobos::Config::MultiThreadSinglePlayer = true;
-					Phobos::Config::DebugFatalerrorGenerateDump = true;
-					Phobos::Otamaa::IsAdmin = true;
-				}
-			}
-		}
-	}
-
-	std::string replaces_filename = LuaData::LuaDir + filename;
-	if (luaL_dofile(L, replaces_filename.c_str()) == LUA_OK)
-	{
-		lua_getglobal(L, "Replaces");
-
-		if (lua_istable(L, -1))
-		{
-			const size_t replace_size = (size_t)lua_rawlen(L, -1);
-			for (size_t i = 0; i < replace_size; i++)
-			{
-				lua_pushinteger(L, lua_Integer(i + 1));
-				lua_gettable(L, -2);
-				if (lua_istable(L, -2))
-				{
-					lua_pushstring(L, "Addr");
-					lua_gettable(L, -2);
-					const auto addr = (uintptr_t)lua_tointeger(L, -1);
-					lua_pop(L, 1);
-
-					if (addr > 0)
-					{
-						auto& result = map_replaceAddrTo[addr];
-						const auto maxlen = strlen((const char*)addr);
-						lua_pushstring(L, "To");
-						lua_gettable(L, -2);
-						result = lua_tostring(L, -1);
-						lua_pop(L, 1);
-
-						DWORD protectFlag;
-						if (Phobos::Otamaa::IsAdmin)
-						{
-							std::string copy = trim(result.c_str());
-							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
-						}
-
-						// do not exceed maximum length of the string , otherwise it will broke the .exe file
-						Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
-					}
-
-				}
-				lua_pop(L, 1);
-			}
-		}
-
-		lua_getglobal(L, "MainWindowString");
-
-		if (lua_isstring(L, -1) == 1)
-		{
-			MainWindowStr = lua_tostring(L, -1);
-			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
-		}
-
-		lua_getglobal(L, "MovieMDINI");
-
-		if (lua_isstring(L, -1) == 1)
-		{
-			StaticVars::MovieMDINI = lua_tostring(L, -1);
-		}
-
-		lua_getglobal(L, "CompatibilityMode");
-
-		if (lua_isboolean(L, -1) == 1)
-		{
-			StaticVars::MovieMDINI = lua_toboolean(L, -1);
-		}
-	}
-
-	LuaBridge::InitScriptLuaList(unique_lua);
 }
 
 void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
@@ -934,6 +834,9 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 #endif
 {
 	Phobos::ExeTerminate();
+#ifdef EXPERIMENTAL_IMGUI
+	PhobosWindowClass::Destroy();
+#endif
 	CRT::exit_noreturn(0);
 	return 0x0;
 }
@@ -972,6 +875,9 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
+#ifdef EXPERIMENTAL_IMGUI
+	PhobosWindowClass::Create();
+#endif
 	return 0;
 }
 #pragma endregion
