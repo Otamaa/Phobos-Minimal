@@ -211,7 +211,7 @@ public:
 	ScriptExtData()  noexcept = default;
 	~ScriptExtData() noexcept = default;
 
-	static void ProcessScriptActions(TeamClass* pTeam);
+	static bool ProcessScriptActions(TeamClass* pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass* pTeam);
 	static void LoadIntoTransports(TeamClass* pTeam);
 	static void WaitUntilFullAmmoAction(TeamClass* pTeam);
