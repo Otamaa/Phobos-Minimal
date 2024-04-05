@@ -13,6 +13,7 @@ struct PhobosWindowClass
 
 	static bool TriggerList();
 	static bool TeamList();
+	static bool ScriptTypeList();
 
 private:
 	static void MessageHandler();

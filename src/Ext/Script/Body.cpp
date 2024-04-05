@@ -1342,11 +1342,8 @@ void ScriptExtData::TeamWeightReward(TeamClass* pTeam, double award = 0)
 	if (award <= 0)
 		award = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExtContainer::Instance.Find(pTeam))
-	{
-		if (award > 0)
-			pTeamData->NextSuccessWeightAward = award;
-	}
+	if (award > 0)
+		TeamExtContainer::Instance.Find(pTeam)->NextSuccessWeightAward = award;
 
 	// This action finished
 	pTeam->StepCompleted = true;

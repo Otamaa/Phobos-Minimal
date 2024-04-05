@@ -255,7 +255,6 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::CmdLineParse(pArg);
 	}
 
-#ifndef aaa
 	if (Debug::LogEnabled) {
 		Debug::LogFileOpen();
 		Debug::Log("Initialized Phobos %s .\n" , PRODUCT_VERSION);
@@ -266,11 +265,6 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 		SpawnerMain::PrintInitializeLog();
 	}
-#endif
-
-	//for (auto packet : Game::Packets) {
-	//	Debug::Log("Packet str %s value:[%d]\n", packet.str, packet.data);
-	//}
 
 	Phobos::CheckProcessorFeatures();
 

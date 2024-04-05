@@ -433,66 +433,53 @@ DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	}
 
 	const bool havePower = pOwner->HasFullPower();
+	SuperClass* obtain = nullptr;
+	bool found = false;
 
-	if (!pTeamExt->LastFoundSW)
+	for (const auto& pSuper : pOwner->Supers)
 	{
-		for (const auto& pSuper : pOwner->Supers)
+		const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+		if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
 		{
-			const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+			if (!pExt->IsAvailable(pOwner))
+				continue;
 
-			if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
+			// found SW that already charged , just use it and return
+			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
 			{
-				if (!pSuper->Granted || !pExt->IsAvailable(pOwner))
+				obtain = pSuper;
+				found = true;
+
+				continue;
+			}
+
+			if(!obtain && pSuper->Granted)
+			{
+				double rechargeTime = (double)pSuper->GetRechargeTime();
+				double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
+
+				if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+				{
+					obtain = pSuper;
+					found = false;
 					continue;
-
-				// found SW that already charged , just use it and return
-				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-				{
-					auto nCoord = pThis->SpawnCell->GetCoords();
-					pOwner->Fire_SW(pSuper->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-					pThis->StepCompleted = true;
-					return 0x6EFE4F;
-				}
-				else
-				{
-					double rechargeTime = (double)pSuper->GetRechargeTime();
-					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
-
-					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
-					{
-						pTeamExt->LastFoundSW = pSuper;
-						return 0x6EFE4F;
-					}
 				}
 			}
 		}
+	}
 
+	if (found) {
+		auto nCoord = pThis->SpawnCell->GetCoords();
+		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
-
 	}
-	else
-	{ //continue waiting until it ready
 
-		if (!pTeamExt->LastFoundSW->Granted ||
-			!SWTypeExtContainer::Instance.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
-		{
-			pTeamExt->LastFoundSW = nullptr;
-			pThis->StepCompleted = true;
-			return 0x6EFE4F;
-		}
-
-		if (pTeamExt->LastFoundSW->IsCharged && (havePower || !pTeamExt->LastFoundSW->IsPowered()))
-		{
-			auto nCoord = pThis->SpawnCell->GetCoords();
-			pOwner->Fire_SW(pTeamExt->LastFoundSW->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-			pTeamExt->LastFoundSW = nullptr;
-			pThis->StepCompleted = true;
-			return 0x6EFE4F;
-		}
-
-		return 0x6EFE4F;
+	if(!found) {
+		pThis->StepCompleted = true;
 	}
+	return 0x6EFE4F;
 }
 
 DEFINE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
