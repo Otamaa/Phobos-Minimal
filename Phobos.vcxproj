@@ -328,6 +328,10 @@
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
+    <ClCompile Include="src\Misc\KratosPP\Components\Component.cpp" />
+    <ClCompile Include="src\Misc\KratosPP\Components\ComponentFactory.cpp" />
+    <ClCompile Include="src\Misc\KratosPP\Hooks.cpp" />
+    <ClCompile Include="src\Misc\KratosPP\Main.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
@@ -461,6 +465,11 @@
     <ClInclude Include="src\Lib\imgui\imstb_rectpack.h" />
     <ClInclude Include="src\Lib\imgui\imstb_textedit.h" />
     <ClInclude Include="src\Lib\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\Misc\KratosPP\Components\Component.h" />
+    <ClInclude Include="src\Misc\KratosPP\Components\ComponentFactory.h" />
+    <ClInclude Include="src\Misc\KratosPP\Interfaces\IComponent.h" />
+    <ClInclude Include="src\Misc\KratosPP\Interfaces\IExtData.h" />
+    <ClInclude Include="src\Misc\KratosPP\Main.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
