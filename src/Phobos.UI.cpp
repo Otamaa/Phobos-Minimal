@@ -582,6 +582,23 @@ bool PhobosWindowClass::TeamList()
 
 		if (DrawColored())
 		{
+			if(ImGui::TreeNode((void*)(intptr_t)1,"Taskforces [%s[0x%x]", team->Type->TaskForce ? team->Type->TaskForce->ID : NONE_STR, team->Type->TaskForce)){
+				if (team->Type->TaskForce) {
+					ImGui::Text("CountEntries %d", team->Type->TaskForce->CountEntries);
+
+					for (int i = 0; i < std::size(team->Type->TaskForce->Entries); ++i) {
+						ImGui::Text("Entry[%d] 0x%x(%s - %s) - %d", i ,
+							team->Type->TaskForce->Entries[i].Type ,
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->ID : NONE_STR,
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->GetThisClassName() : NONE_STR,
+							team->Type->TaskForce->Entries[i].Amount
+						);
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
 			ImGui::Text("Current [Act %d Val %d]", (int)cur, act);
 
 			const auto& [Nextcur, Nextact] = team->CurrentScript->GetNextAction();
