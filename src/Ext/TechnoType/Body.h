@@ -899,6 +899,10 @@ public:
 
 	Valueable<double> CrateGoodie_RerollChance { 0.0 };
 	NullableIdx<CrateTypeClass*> Destroyed_CrateType {};
+	OptionalStruct<bool, true> AffectedByEMP {};
+
+	Nullable<bool> Infantry_DimWhenEMPEd {};
+	Nullable<bool> Infantry_DimWhenDisabled {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
