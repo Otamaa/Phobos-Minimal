@@ -477,12 +477,14 @@
     <ClInclude Include="src\Misc\KratosPP\Events\EventSystems.h" />
     <ClInclude Include="src\Misc\KratosPP\Ext\Bullet\Body.h" />
     <ClInclude Include="src\Misc\KratosPP\Ext\Techno\Body.h" />
+    <ClInclude Include="src\Misc\KratosPP\INI\Configs.h" />
     <ClInclude Include="src\Misc\KratosPP\Interfaces\IComponent.h" />
     <ClInclude Include="src\Misc\KratosPP\Interfaces\IExtData.h" />
     <ClInclude Include="src\Misc\KratosPP\Interfaces\Scriptables.h" />
     <ClInclude Include="src\Misc\KratosPP\Main.h" />
     <ClInclude Include="src\Misc\KratosPP\Utils\Delegate.h" />
     <ClInclude Include="src\Misc\KratosPP\Utils\Enums.h" />
+    <ClInclude Include="src\Misc\KratosPP\Utils\StringHelpers.h" />
     <ClInclude Include="src\Misc\KratosPP\Utils\TContainer.h" />
     <ClInclude Include="src\Misc\KratosPP\Utils\TExtension.h" />
     <ClInclude Include="src\Misc\KratosPP\Utils\GOExtension.h" />

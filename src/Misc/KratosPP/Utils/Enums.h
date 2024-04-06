@@ -25,3 +25,10 @@ enum class BulletType
 	NOROT = 5,
 	BOMB = 6
 };
+
+enum class SubjectToGroundType
+{
+	AUTO = 0,
+	YES = 1,
+	NO = 2
+};
