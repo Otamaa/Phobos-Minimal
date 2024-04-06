@@ -1,1 +1,0 @@
-All .lua Files go to `Resources` folder !

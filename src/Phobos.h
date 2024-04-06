@@ -1,7 +1,6 @@
 #pragma once
 #include <YRPPGlobal.h>
 
-#include <Phobos.version.h>
 #include <Base/Always.h>
 #include <GameStrings.h>
 
@@ -10,21 +9,6 @@
 #include <Wstring.h>
 
 #include <format>
-
-#ifndef NANOPRINTF_IMPLEMENTATION
-#define IMPL_SNPRNINTF _snprintf_s
-#else
-#include <ExtraHeaders/nanoprintf.h>
-#define IMPL_SNPRNINTF npf_snprintf
-#endif
-
-#define IMPL_STRCMPI(a ,b) _strcmpi(a,b)
-#define IMPL_STRCMP(a ,b) strcmp(a,b)
-#define IMPL_WSTRCMPI(a , b) _wcsicmp(a , b)
-
-#define IS_SAME_STR_(a ,b) (IMPL_STRCMPI(a,b) == 0)
-#define IS_SAME_STR_N(a ,b) (IMPL_STRCMP(a,b) == 0)
-#define IS_SAME_WSTR(a,b) (IMPL_WSTRCMPI(a,b) == 0)
 
 class CCINIClass;
 class AbstractClass;
@@ -76,186 +60,7 @@ constexpr const char* UIMD_ = "uimd.ini";
 
 struct Phobos final
 {
-	static void CmdLineParse(char**, int);
-
-	static void ExeRun();
-	static void ExeTerminate();
-	static void DrawVersionWarning();
-	static void ExecuteLua();
-	static void CheckProcessorFeatures();
-	static void InitAdminDebugMode();
-	static void ThrowUsageWarning(CCINIClass* pINI);
-	static void InitConsole();
 	//variables
 	static HANDLE hInstance;
 
-	static constexpr size_t readLength = 2048;
-	static char readBuffer[readLength];
-	static wchar_t wideBuffer[readLength];
-	static const char readDelims[4];
-	static const char readDefval[4];
-
-	static std::string AppIconPath;
-	static bool Debug_DisplayDamageNumbers;
-	static const wchar_t* VersionDescription;
-
-	static bool DetachFromDebugger();
-	static HRESULT SaveGameDataAfter(IStream* pStm);
-	static void LoadGameDataAfter(IStream* pStm);
-
-	static bool EnableConsole;
-
-	struct UI
-	{
-		static bool DisableEmptySpawnPositions;
-		static bool ExtendedToolTips;
-		static int MaxToolTipWidth;
-		static bool ShowHarvesterCounter;
-		static double HarvesterCounter_ConditionYellow;
-		static double HarvesterCounter_ConditionRed;
-		static bool ShowProducingProgress;
-		static bool ShowPowerDelta;
-		static double PowerDelta_ConditionYellow;
-		static double PowerDelta_ConditionRed;
-		static bool CenterPauseMenuBackground;
-
-		static bool UnlimitedColor;
-
-		static const wchar_t* CostLabel;
-		static const wchar_t* PowerLabel;
-		static const wchar_t* PowerBlackoutLabel;
-		static const wchar_t* TimeLabel;
-		static const wchar_t* HarvesterLabel;
-		static const wchar_t* PercentLabel;
-
-		static const wchar_t* BuidingRadarJammedLabel;
-
-		static const wchar_t* ShowBriefingResumeButtonLabel;
-		static char ShowBriefingResumeButtonStatusLabel[0x20];
-	};
-
-	struct Config
-	{
-		static void Read();
-
-		static bool HideWarning;
-		static bool ToolTipDescriptions;
-		static bool ToolTipBlur;
-		static bool PrioritySelectionFiltering;
-		static bool DevelopmentCommands;
-		static bool ArtImageSwap;
-
-		static bool EnableBuildingPlacementPreview;
-		static bool EnableSelectBrd;
-
-		static bool TogglePowerInsteadOfRepair;
-		static bool ShowTechnoNamesIsActive;
-
-		static bool RealTimeTimers;
-		static bool RealTimeTimers_Adaptive;
-		static int CampaignDefaultGameSpeed;
-
-		static bool DigitalDisplay_Enable;
-
-		static bool ApplyShadeCountFix;
-
-		static bool SaveVariablesOnScenarioEnd;
-
-		static bool MultiThreadSinglePlayer;
-		static bool UseImprovedPathfindingBlockageHandling;
-		static bool HideLightFlashEffects;
-
-		static bool DebugFatalerrorGenerateDump;
-		static bool SaveGameOnScenarioStart;
-	};
-
-	struct Misc
-	{
-		static bool CustomGS;
-		static int CustomGS_ChangeInterval[7];
-		static int CustomGS_ChangeDelay[7];
-		static int CustomGS_DefaultDelay[7];
-	};
-
-	struct Otamaa
-	{
-		static bool DisableCustomRadSite;
-		static bool IsAdmin;
-		static bool ShowHealthPercentEnabled;
-		static bool ExeTerminated;
-		static bool DoingLoadGame;
-		static bool AllowAIControl;
-		static bool OutputMissingStrings;
-		static bool OutputAudioLogs;
-		static bool StrictParser;
-		static bool ParserErrorDetected;
-		static bool TrackParserErrors;
-		static bool NoLogo;
-		static bool NoCD;
-		static bool CompatibilityMode;
-	};
-
-	struct Defines
-	{
-		static inline constexpr ColorStruct ShieldPositiveDamageColor = ColorStruct { 0, 160, 255 };
-		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
-		static inline constexpr ColorStruct InterceptedPositiveDamageColor = ColorStruct { 255, 128, 128 };
-		static inline constexpr ColorStruct InterceptedNegativeDamageColor = ColorStruct { 128, 255, 128 };
-	};
-
-	static FORCEINLINE unsigned Round_Up(unsigned number, int a)
-	{
-		return (number + (a - 1)) & (~(a - 1));
-	}
-
-	static void* __cdecl _allocate(unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4));
-	}
-
-	static unsigned int __cdecl _msize(void* ptr)
-	{
-		return HeapSize(GetProcessHeap(), 0, ptr);
-	}
-
-	static char* __cdecl _strdup(const char* string)
-	{
-		char* str;
-		char* p;
-		int len = 0;
-
-		while (string[len])
-		{
-			len++;
-		}
-		str = (char*)_allocate(len + 1);
-		p = str;
-		while (*string)
-		{
-			*p++ = *string++;
-		}
-		*p = '\0';
-		return str;
-	}
-
-	static void* __cdecl _count_allocate(unsigned int count, unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4) * count);
-	}
-
-	static void* __cdecl _reallocate(void* ptr, unsigned int size)
-	{
-		return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, Round_Up(size, 4));
-	}
-
-	static void __cdecl _free(void* ptr)
-	{
-		HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr);
-	}
-
-	static void __cdecl _dump_memory_leaks()
-	{
-		//need _DEBUG
-		_CrtDumpMemoryLeaks();
-	}
 };

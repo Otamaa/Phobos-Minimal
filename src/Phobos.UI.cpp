@@ -9,8 +9,6 @@
 
 #include "Phobos.h"
 
-#include <Utilities/Debug.h>
-
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_win32.h>
 #include <imgui/imgui_impl_dx11.h>
@@ -190,9 +188,6 @@ LRESULT WINAPI Audio_Debug_Main_Window_Procedure(HWND hWnd, UINT Message, WPARAM
 bool PhobosWindowClass::Create()
 {
 	SetLastError(0);
-
-	Debug::Log("Developer - Creating window.\n");
-
 	ImGui_ImplWin32_EnableDpiAwareness();
 
 	WNDCLASSEX wc;
@@ -213,7 +208,6 @@ bool PhobosWindowClass::Create()
 	BOOL rc = RegisterClassEx(&wc);
 	if (!rc)
 	{
-		Debug::Log("Developer - Failed to register window class!\n");
 		return false;
 	}
 
@@ -233,11 +227,9 @@ bool PhobosWindowClass::Create()
 
 	if (!hwnd)
 	{
-		Debug::Log("Developer - Failed to create window!\n");
 		return false;
 	}
 
-	Debug::Log("Developer - Setting window size.\n");
 
 	// Resposition and resize the window based on the monitor scale.
 	float scale = 100.0f;
@@ -250,12 +242,10 @@ bool PhobosWindowClass::Create()
 		int(GameOptionsClass::Instance->ScreenHeight * scale),
 		SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 
-	Debug::Log("Developer - Creating Direct3D device.\n");
 
 	// Initialize Direct3D
 	if (!ImGui_CreateDeviceD3D(hwnd))
 	{
-		Debug::Log("Developer - Failed to create Direct3D device!\n");
 		ImGui_CleanupDeviceD3D();
 		UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return false;
@@ -281,13 +271,10 @@ bool PhobosWindowClass::Create()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	Debug::Log("Developer - Setting up platform and renderer.\n");
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(ImGuiMainWindow);
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
-
-	Debug::Log("Developer: Window created.\n");
 
 	return true;
 }
