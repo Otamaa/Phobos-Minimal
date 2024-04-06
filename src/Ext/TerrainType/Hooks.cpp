@@ -38,24 +38,14 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
 					{
-						if (auto const pCell = MapClass::Instance->GetCellAt(pThis->Location))
-						{
-							int cellCount = 1;
+						auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
 
-							{
-								cellCount = pTypeExt->GetCellsPerAnim();
+						// Set context for CellClass hooks.
+						TerrainTypeTemp::pCurrentExt = pTypeExt;
 
-								// Set context for CellClass hooks.
-								TerrainTypeTemp::pCurrentExt = pTypeExt;
-							}
-
-							for (int i = 0; i < cellCount; i++)
-								pCell->SpreadTiberium(true);
-
-
-						}
+						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
+							pCell->SpreadTiberium(true);
 					}
-
 				}
 			}
 			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
