@@ -1,6 +1,6 @@
 #include "Phobos.UI.h"
 
-#ifdef EXPERIMENTAL_IMGUI
+#ifndef EXPERIMENTAL_IMGUI
 
 /*
 	Based from : https://github.com/CCHyper/Vinifera/commits/dev/imgui-dev/
@@ -570,8 +570,23 @@ bool PhobosWindowClass::TeamList()
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		}
 
-		if (ImGui::TreeNode((void*)(intptr_t)index, team->Type->ID))
+		const auto& [cur, act] = team->CurrentScript->GetCurrentAction();
+
+		auto DrawColored = [&]() {
+			const ImU32 color = (int)cur == -1 ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255);
+			ImGui::PushStyleColor(ImGuiCol_Text, color);
+			bool imguiresult = ImGui::TreeNode((void*)(intptr_t)index, team->Type->ID);
+			ImGui::PopStyleColor();
+			return imguiresult;
+		};
+
+		if (DrawColored())
 		{
+			ImGui::Text("Current [Act %d Val %d]", (int)cur, act);
+
+			const auto& [Nextcur, Nextact] = team->CurrentScript->GetNextAction();
+			ImGui::Text("Next [Act %d Val %d]", Nextcur, Nextact);
+
 			FootClass* pCur = nullptr;
 			if (auto pFirst = team->FirstUnit)
 			{
@@ -591,7 +606,13 @@ bool PhobosWindowClass::TeamList()
 				while (pCur);
 			}
 
-			if (ImGui::TreeNode((void*)(intptr_t)0, "Script : %s(0x%x)", team->CurrentScript->Type->ID, team->CurrentScript)) {
+			for (int i = 0; i < 6; ++i)
+			{
+				ImGui::Text("CountObjects %d : %d", i, team->CountObjects[i]);
+			}
+
+			if (ImGui::TreeNode((void*)(intptr_t)0, "Script : %s(0x%x)", team->CurrentScript->Type->ID, team->CurrentScript))
+			{
 				for (int i = 0; i < team->CurrentScript->Type->ActionsCount; ++i)
 				{
 					const auto& [_cur, _act] = team->CurrentScript->Type->ScriptActions[i];
@@ -600,25 +621,33 @@ bool PhobosWindowClass::TeamList()
 				ImGui::TreePop();
 			}
 
-			const auto& [cur, act] = team->CurrentScript->GetCurrentAction();
-			ImGui::Text("Current [Act %d Val %d]", (int)cur, act);
-			const auto& [Nextcur, Nextact] = team->CurrentScript->GetNextAction();
-			ImGui::Text("Next [Act %d Val %d]", Nextcur, Nextact);
-
 			ImGui::Text("Tag : %s(0x%x)", team->Tag ? team->Tag->Type->ID : NONE_STR, team->Tag);
 			ImGui::Text("Owner [%s(0x%x)]", team->Owner ? team->Owner->Type->ID : NONE_STR, team->Owner);
 			ImGui::Text("Target [%s(0x%x)]", team->Target ? team->Target->Type->ID : NONE_STR, team->Target);
 			ImGui::Text("TotalObjects %d", team->TotalObjects);
 			ImGui::Text("TotalThreatValue %d", team->TotalThreatValue);
 			ImGui::Text("CreationFrame %d", team->CreationFrame);
+			ImGui::Text("IsTransient %d", team->IsTransient);
+			ImGui::Text("NeedsReGrouping %d", team->NeedsReGrouping);
+			ImGui::Text("GuardSlowerIsNotUnderStrength %d", team->GuardSlowerIsNotUnderStrength);
+			ImGui::Text("IsForcedActive %d", team->IsForcedActive);
+			ImGui::Text("IsHasBeen %d", team->IsHasBeen);
+			ImGui::Text("IsFullStrength %d", team->IsFullStrength);
+			ImGui::Text("IsUnderStrength %d", team->IsUnderStrength);
+			ImGui::Text("IsReforming %d", team->IsReforming);
+			ImGui::Text("IsLagging %d", team->IsLagging);
+			ImGui::Text("NeedsToDisappear %d", team->NeedsToDisappear);
+			ImGui::Text("JustDisappeared %d", team->JustDisappeared);
+			ImGui::Text("IsMoving %d", team->IsMoving);
+			ImGui::Text("StepCompleted %d", team->StepCompleted);
+			ImGui::Text("TargetNotAssigned %d", team->TargetNotAssigned);
+			ImGui::Text("IsLeavingMap %d", team->IsLeavingMap);
+			ImGui::Text("IsSuspended %d", team->IsSuspended);
+			ImGui::Text("AchievedGreatSuccess %d", team->AchievedGreatSuccess);
+			ImGui::Text("QueuedFocus [0x%x(%s)]", team->QueuedFocus , team->QueuedFocus ? team->QueuedFocus->GetThisClassName() : NONE_STR);
+			ImGui::Text("Focus [0x%x(%s)]", team->Focus, team->Focus ? team->Focus->GetThisClassName() : NONE_STR);
+			ImGui::Text("SpawnCell [0x%x(%d , %d)]", team->SpawnCell, team->SpawnCell ? team->SpawnCell->MapCoords.X : 0 , team->SpawnCell ? team->SpawnCell->MapCoords.Y : 0);
 
-			for (int i = 0; i < 6; ++i)
-			{
-				ImGui::Text("CountObjects %d : %d", i, team->CountObjects[i]);
-			}
-
-			//ImGui::Text("blah blah");
-			//ImGui::SameLine();
 			ImGui::TreePop();
 		}
 	}
@@ -646,7 +675,8 @@ bool PhobosWindowClass::ScriptTypeList()
 
 		if (ImGui::TreeNode((void*)(intptr_t)index, scriptType->ID))
 		{
-			for (int i = 0; i < scriptType->ActionsCount; ++i) {
+			for (int i = 0; i < scriptType->ActionsCount; ++i)
+			{
 				const auto& [_cur, _act] = scriptType->ScriptActions[i];
 				ImGui::Text("Action at %d [Act %d Val %d]", i, _cur, _act);
 			}
