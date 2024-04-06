@@ -31,32 +31,32 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 		if (pThis->Type->IsAnimated)
 		{
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+			if(auto pImage = pThis->Type->GetImage()) {
+				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))) {
+					pThis->Animation.Value = 0;
+					pThis->Animation.Start(0);
 
-			if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1))))
-			{
-				pThis->Animation.Value = 0;
-				pThis->Animation.Start(0);
-
-				if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
-				{
-					if (auto const pCell = MapClass::Instance->GetCellAt(pThis->Location))
+					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
 					{
-						int cellCount = 1;
-
+						if (auto const pCell = MapClass::Instance->GetCellAt(pThis->Location))
 						{
-							cellCount = pTypeExt->GetCellsPerAnim();
+							int cellCount = 1;
 
-							// Set context for CellClass hooks.
-							TerrainTypeTemp::pCurrentExt = pTypeExt;
+							{
+								cellCount = pTypeExt->GetCellsPerAnim();
+
+								// Set context for CellClass hooks.
+								TerrainTypeTemp::pCurrentExt = pTypeExt;
+							}
+
+							for (int i = 0; i < cellCount; i++)
+								pCell->SpreadTiberium(true);
+
+
 						}
-
-						for (int i = 0; i < cellCount; i++)
-							pCell->SpreadTiberium(true);
-
-
 					}
-				}
 
+				}
 			}
 			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
 		}
