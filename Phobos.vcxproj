@@ -77,7 +77,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>
-    <TargetName>Phobos</TargetName>
+    <TargetName>Phobos-TeamDebugUI</TargetName>
     <LibraryPath>$(SolutionDir)src\Lib;$(LibraryPath)</LibraryPath>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
