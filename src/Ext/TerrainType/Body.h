@@ -43,6 +43,11 @@ public:
 
 	Valueable<int> Bounty { 0 };
 
+	Valueable<bool> HasDamagedFrames { false };
+	Valueable<bool> HasCrumblingFrames { false };
+	NullableIdx<VocClass> CrumblingSound {};
+	Nullable<int> AnimationLength {};
+
 	TerrainTypeExtData()  noexcept = default;
 	~TerrainTypeExtData() noexcept = default;
 
@@ -53,6 +58,7 @@ public:
 
 	int GetTiberiumGrowthStage();
 	int GetCellsPerAnim();
+	void PlayDestroyEffects(CoordStruct coords);
 
 	int GetLightIntensity() const
 	{

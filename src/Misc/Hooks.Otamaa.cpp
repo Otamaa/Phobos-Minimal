@@ -52,8 +52,6 @@
 #include <New/Entity/FlyingStrings.h>
 #pragma endregion
 
-DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
-
 DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 {
 	GET(TechnoClass*, pThis, ESI);
