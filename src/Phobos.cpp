@@ -518,14 +518,14 @@ void Phobos::ExeRun()
 	Patch::PrintAllModuleAndBaseAddr();
 	Phobos::InitAdminDebugMode();
 
-	for (auto&dlls : Patch::ModuleDatas) {
-		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
-			HasCNCnet = true;
-		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
-			Debug::FatalErrorAndExit("dont need Ares.dll to run! \n");
-		}
-	}
+	//for (auto&dlls : Patch::ModuleDatas) {
+	//	if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
+	//		HasCNCnet = true;
+	//	}
+	//	else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
+	//		Debug::FatalErrorAndExit("dont need Ares.dll to run! \n");
+	//	}
+	//}
 
 }
 
@@ -607,17 +607,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::hInstance = hInstance;
 		Debug::LogFileRemove();
-		/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
-		  not really sure what is the real cause atm .///*/
-		Patch::Apply_LJMP(0x7D107D, &_msize);
-		Patch::Apply_LJMP(0x7D5408, &_strdup);
-		Patch::Apply_LJMP(0x7C8E17, &malloc);
-		Patch::Apply_LJMP(0x7C9430, &malloc);
-		Patch::Apply_LJMP(0x7D3374, &calloc);
-		Patch::Apply_LJMP(0x7D0F45, &realloc);
-		Patch::Apply_LJMP(0x7C8B3D, &free);
-		Patch::Apply_LJMP(0x7C93E8, &free);
-		Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
 	}
 	break;
 	case DLL_PROCESS_DETACH:

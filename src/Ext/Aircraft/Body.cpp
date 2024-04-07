@@ -7,6 +7,8 @@ DEFINE_HOOK(0x413F6A, AircraftClass_CTOR, 0x7)
 {
 	GET(AircraftClass*, pItem, ESI);
 	AircraftExtContainer::Instance.Allocate(pItem);
+	if (auto pExt = GetExtPtr<AircraftExtData*, AircraftClass*, true>(pItem))
+		Debug::Log("%x", pExt);
 	return 0;
 }
 

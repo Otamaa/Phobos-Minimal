@@ -55,7 +55,7 @@ struct TExtension : public IExtension
 template <typename T>
 class PassiveContainer
 {
-private:
+public:
 	using base_type = typename T::base_type;
 	using extension_type = typename T;
 	using base_type_ptr = base_type*;
@@ -64,12 +64,9 @@ private:
 	using extension_type_ref_ptr = extension_type**;
 	using const_extension_type_ptr = const extension_type*;
 
-	const char* Name;
-public:
-
 	constexpr FORCEINLINE const char* GetName() const
 	{
-		return this->Name;
+		return typeid(T).name();
 	}
 
 	constexpr FORCEINLINE extension_type_ptr GetExtAttribute(base_type_ptr key)
@@ -347,7 +344,7 @@ public:
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
 		static_assert(T::Canary < std::numeric_limits<size_t>::max(), "Canary Too Big !");
-		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->GetName());
+		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, typeid(T).name());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
@@ -355,7 +352,7 @@ public:
 	// Do Saave
 	void SaveStatic()
 	{
-		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, this->GetName());
+		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, typeid(T).name());
 		if (this->SavingObject && this->SavingStream) {
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
@@ -368,11 +365,11 @@ public:
 	// Do Load
 	bool LoadStatic()
 	{
-		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, this->GetName());
+		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, typeid(T).name());
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(this->SavingObject, this->SavingStream)){
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->GetName());
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, typeid(T).name());
 				return false;
 			}
 		}
@@ -464,7 +461,11 @@ protected:
 
 };
 
-template<typename T >
-static FORCEINLINE T GetExtPtr(IExtension* who) {
-	return dynamic_cast<T>(who);
+template<typename T , typename Tkey , bool check = false>
+static FORCEINLINE T GetExtPtr(Tkey who) {
+
+	if constexpr (!check)
+		return dynamic_cast<T>((IExtension*)(((DWORD)who) + AbstractExtOffset));
+	else
+		return !who ? nullptr : dynamic_cast<T>((IExtension*)(((DWORD)who) + AbstractExtOffset));
 }
