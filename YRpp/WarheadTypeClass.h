@@ -11,33 +11,6 @@ class AnimTypeClass;
 class ParticleTypeClass;
 class VoxelAnimTypeClass;
 
-struct WarheadFlags {
-	bool ForceFire;
-	bool Retaliate;
-	bool PassiveAcquire;
-
-public:
-
-	WarheadFlags() :  ForceFire { false }
-		, Retaliate { false }
-		, PassiveAcquire { false }
-	{ }
-
-	~WarheadFlags() noexcept = default;
-
-	WarheadFlags(bool ff , bool rt  , bool pa) : ForceFire { ff }
-		, Retaliate { rt }
-		, PassiveAcquire { pa }
-	{ }
-
-	bool operator==(WarheadFlags const& nThat) const
-	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
-
-	bool operator!=(WarheadFlags const & nThat) const
-	{ return !((*this) == nThat); }
-
-};
-
 class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")
 	NOVTABLE WarheadTypeClass : public AbstractTypeClass
 {

@@ -68,15 +68,14 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			finalSpeed = int((double)finalSpeed / powerdivisor);
 		}
 
+		if (nFactorySpeed > 0.0)
 		{//Multiple Factory
 
 			const int factoryCount = pOwner->FactoryCount(what, isNaval);
 			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
 
-			if (nFactorySpeed > 0.0) {
-				for (int i = 0; i < divisor; ++i) {
-					finalSpeed += int((double)finalSpeed * nFactorySpeed);
-				}
+			for (int i = divisor - 1; i > 0 ; --i) {
+				finalSpeed *= nFactorySpeed;
 			}
 		}
 

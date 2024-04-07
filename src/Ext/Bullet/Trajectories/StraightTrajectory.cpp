@@ -138,7 +138,8 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
-	pBullet->Velocity.Z = pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords);
+	pBullet->Velocity.Z = this->GetVelocityZ(pBullet->SourceCoords) //pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords)
+		;
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 

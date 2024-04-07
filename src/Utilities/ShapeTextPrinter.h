@@ -1,6 +1,14 @@
 #pragma once
-#include <Utilities/TemplateDef.h>
 
+#include <Point2D.h>
+#include <RectangleStruct.h>
+
+#include <string>
+#include <vector>
+
+struct SHPStruct;
+class DSurface;
+class ConvertClass;
 // only numbers and sign
 class ShapeTextPrintData
 {

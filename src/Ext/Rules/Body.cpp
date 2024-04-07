@@ -503,8 +503,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pBullet : *BulletTypeClass::Array) {
 
-		if(PhobosTrajectoryType::TrajectoryValidation(pBullet))
-			Debug::RegisterParserError();
+		//if(PhobosTrajectoryType::TrajectoryValidation(pBullet))
+		//	Debug::RegisterParserError();
 
 		auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 		{

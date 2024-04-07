@@ -1,5 +1,7 @@
 #include "ShapeTextPrinter.h"
 
+#include <Surface.h>
+
 constexpr inline char* SignSequence { "/%$,.!?|" };
 constexpr inline size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 

@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <Dbghelp.h>
 #include <string>
+#include <format>
 
 class Dialogs
 {

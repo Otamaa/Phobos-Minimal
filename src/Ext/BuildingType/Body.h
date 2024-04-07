@@ -274,11 +274,11 @@ public:
 
 	Nullable<bool> Storage_ActiveAnimations {};
 	Nullable<float> PurifierBonus {};
-	Valueable<bool> PurifierBonus_RequirePower { true };
+	Valueable<bool> PurifierBonus_RequirePower { false };
 
-	Valueable<bool> FactoryPlant_RequirePower { true };
-	Valueable<bool> SpySat_RequirePower { true };
-	Valueable<bool> Cloning_RequirePower { true };
+	Valueable<bool> FactoryPlant_RequirePower { false };
+	Valueable<bool> SpySat_RequirePower { false };
+	Valueable<bool> Cloning_RequirePower { false };
 
 	Nullable<bool> DisplayIncome {};
 	Nullable<AffectedHouse> DisplayIncome_Houses {};
