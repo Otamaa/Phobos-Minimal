@@ -1,20 +1,15 @@
 #pragma once
 #include <AnimClass.h>
 
-#include <Helpers/Macro.h>
-
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/Object/Body.h>
 
 class ParticleSystemClass;
-class AnimExtData final //: public Extension<AnimClass>
+class AnimExtData final : public ObjectExtData
 {
 public:
 	using base_type = AnimClass;
 	static constexpr size_t Canary = 0xAADAAAA;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
 	OptionalStruct<CoordStruct, true> BackupCoords {};
@@ -46,6 +41,10 @@ public:
 		return sizeof(AnimExtData) -
 			(4u //AttachedToObject
 			 );
+	}
+
+	constexpr FORCEINLINE AnimClass* GetAttachedObject() const {
+		return static_cast<AnimClass*>(this->AttachedToObject);
 	}
 
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);

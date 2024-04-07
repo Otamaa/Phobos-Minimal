@@ -13,7 +13,7 @@
 
 #include <Misc/Ares/Hooks/Classes/PrismForwarding.h>
 
-class BuildingExtData final
+class BuildingExtData final : TechnoExtData
 {
 public:
 	static constexpr size_t Canary = 0x87654321;
@@ -22,9 +22,6 @@ public:
 #ifndef aaa
 	static constexpr size_t ExtOffset = 0x71C; //ares
 #endif
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 
 public:
 	BuildingTypeExtData* Type { nullptr };
@@ -83,6 +80,10 @@ public:
 		return sizeof(BuildingExtData) -
 			(4u //AttachedToObject
 			 );
+	}
+
+	constexpr FORCEINLINE BuildingClass* GetAttachedObject() const {
+		return static_cast<BuildingClass*>(this->AttachedToObject);
 	}
 
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);

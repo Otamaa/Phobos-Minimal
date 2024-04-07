@@ -2228,18 +2228,15 @@ DEFINE_HOOK(0x7162F0, TechnoTypeClass_SaveLoad_Prefix, 0x6)
 }
 
 // S/L very early so we properly trigger `Load3DArt` without need to reconstruct the ExtData !
-
 DEFINE_HOOK(0x716429, TechnoTypeClass_Load_Suffix, 0x6)
 {
 	TechnoTypeExtContainer::Instance.LoadStatic();
-
 	return 0;
 }
 
 DEFINE_HOOK(0x716DDE, TechnoTypeClass_Save_Suffix, 0x6)
 {
 	TechnoTypeExtContainer::Instance.SaveStatic();
-
 	return 0;
 }
 
@@ -2248,10 +2245,6 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x380);
-
-	//if (R->Origin() == 0x716132) {
-	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
-	//}
 
 	TechnoTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x716132);
 

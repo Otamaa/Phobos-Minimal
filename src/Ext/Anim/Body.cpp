@@ -380,7 +380,7 @@ void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 
 void AnimExtData::CreateAttachedSystem()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->GetAttachedObject();
 	const auto pData = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)

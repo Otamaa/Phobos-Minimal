@@ -1,11 +1,12 @@
 #pragma once
 #include <BombClass.h>
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
+
 #include <Ext/WeaponType/Body.h>
 
 class WeaponTypeClass;
-class BombExtData final
+class BombExtData final : AbstractExtData
 {
 public:
 	static constexpr size_t Canary = 0x87659781;
@@ -28,6 +29,10 @@ public:
 		return sizeof(BombExtData) -
 			(4u //AttachedToObject
 			 );
+	}
+
+	constexpr FORCEINLINE BombClass* GetAttachedObject() const {
+		return static_cast<BombClass*>(this->AttachedToObject);
 	}
 
 	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);

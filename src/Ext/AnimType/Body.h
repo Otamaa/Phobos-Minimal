@@ -1,22 +1,17 @@
 #pragma once
 
 #include <AnimTypeClass.h>
-#include <Utilities/Container.h>
-#include <Utilities/Enum.h>
-#include <Utilities/TemplateDefB.h>
+#include <Ext/ObjectType/Body.h>
 
 #include <New/Entity/LauchSWData.h>
 //#include "AnimSpawnerDatas.h"
 
-class AnimTypeExtData final
+class AnimTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = AnimTypeClass;
 	static constexpr size_t Canary = 0xEEECEEEE;
 	//static constexpr size_t ExtOffset = 0x374;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
 
@@ -108,7 +103,7 @@ public:
 		if (this->CreateUnit && !this->CreateUnit_Owner.isset())
 			return OwnerHouseKind::Victim;
 
-		if (this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
+		if (this->GetAttachedObject()->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
 			return OwnerHouseKind::Invoker;
 
 		if (this->CreateUnit_Owner.isset())
@@ -125,6 +120,10 @@ public:
 		return sizeof(AnimTypeExtData) -
 			(4u //AttachedToObject
 			 );
+	}
+
+	constexpr FORCEINLINE AnimTypeClass* GetAttachedObject() const {
+		return static_cast<AnimTypeClass*>(this->AttachedToObject);
 	}
 
 	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr , WarheadTypeClass* pWH = nullptr);

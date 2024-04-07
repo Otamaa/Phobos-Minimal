@@ -2,14 +2,12 @@
 #include <TechnoClass.h>
 #include <AnimClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-//#include <Utilities/EventHandler.h>
+#include <Ext/Radio/Body.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
+#include <New/Entity/NewTiberiumStorageClass.h>
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
@@ -24,21 +22,19 @@
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
-#include <Utilities/BuildingBrackedPositionData.h>
-
 #include <Misc/Ares/Hooks/Classes/AresPoweredUnit.h>
 #include <Misc/Ares/Hooks/Classes/AresJammer.h>
-
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
-#include <New/Entity/NewTiberiumStorageClass.h>
+#include <Utilities/BuildingBrackedPositionData.h>
+
 
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
 
-class TechnoExtData
+class TechnoExtData : public RadioExtData
 {
 public:
 	static constexpr size_t Canary = 0x22365555;
@@ -188,8 +184,17 @@ public:
 		return this->Shield.get();
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->RadioExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	{
+		this->RadioExtData::SaveToStream(Stm);
+		this->Serialize(Stm);
+	}
 
 	void InitializeConstant();
 
@@ -221,12 +226,8 @@ public:
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
 
-	constexpr FORCEINLINE static size_t size_Of()
-	{
-		return sizeof(TechnoExtData) -
-			(4u //AttachedToObject
-			+ 4u //DamageNumberOffset
-			 );
+	static constexpr FORCEINLINE int GetSavedOffsetSize() {
+		return -(RadioExtData::GetSavedOffsetSize() - 4u);
 	}
 
 private:

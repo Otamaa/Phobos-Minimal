@@ -32,6 +32,7 @@
     <ClCompile Include="src\Commands\ToggleDesignatorRange.cpp" />
     <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
+    <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
@@ -444,6 +445,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\Ext\AbstractType\Body.h" />
+    <ClInclude Include="src\Ext\Abstract\Body.h" />
+    <ClInclude Include="src\Ext\AircraftType\Body.h" />
+    <ClInclude Include="src\Ext\Foot\Body.h" />
+    <ClInclude Include="src\Ext\Mission\Body.h" />
+    <ClInclude Include="src\Ext\ObjectType\Body.h" />
+    <ClInclude Include="src\Ext\Object\Body.h" />
+    <ClInclude Include="src\Ext\Radio\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />

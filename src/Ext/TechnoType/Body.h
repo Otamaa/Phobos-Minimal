@@ -35,6 +35,8 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
+#include <Ext/ObjectType/Body.h>
+
 class ArmorTypeClass;
 struct ImageStatusses
 {
@@ -85,7 +87,7 @@ struct BurstFLHBundle
 class Matrix3D;
 class DigitalDisplayTypeClass;
 
-class TechnoTypeExtData
+class TechnoTypeExtData : ObjectTypeExtData
 {
 public:
 	using ImageVector = std::vector<VoxelStruct>;
@@ -911,8 +913,10 @@ public:
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
 	void InitializeConstant();
 	void Initialize();
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	//void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	//void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
 	bool IsCountedAsHarvester() const;
 
 	void AdjustCrushProperties();
@@ -924,11 +928,27 @@ public:
 
 	void ApplyTurretOffset(Matrix3D* mtx, double factor);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual TechnoTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(TechnoTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		return static_cast<TechnoTypeClass*>(this->AttachedToObject);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm)
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	{
+		this->AbstractTypeExtData::SaveToStream(Stm);
+		this->Serialize(Stm)
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
 	}
 private:
 	template <typename T>

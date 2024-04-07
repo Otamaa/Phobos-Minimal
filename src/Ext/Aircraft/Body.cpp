@@ -10,8 +10,12 @@
 
 #include <AircraftClass.h>
 
+#include <Ext/TerrainType/Body.h>
+
+AircraftExtContainer AircraftExtContainer::Instance;
+
 // Spy plane, airstrike etc.
-bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
+bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
@@ -39,7 +43,7 @@ bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct ed
 	return result;
 }
 
-void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
+void AircraftExtData::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -51,7 +55,7 @@ void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 	AnimTypeExtData::ProcessDestroyAnims(pThis, nullptr);
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
 	if (!pTarget)
 		return;
@@ -59,7 +63,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	AircraftExt::FireBurst(pThis, pTarget, shotNumber, pThis->SelectWeapon(pTarget));
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx)
 {
 	const auto pWeaponStruct = pThis->GetWeapon(WeaponIdx);
 
@@ -74,7 +78,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	AircraftExt::FireBurst(pThis , pTarget, shotNumber, WeaponIdx, weaponType);
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
 {
 	if (!pWeapon->Burst)
 		return;
@@ -88,9 +92,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	}
 }
 
-#include <Ext/TerrainType/Body.h>
-
-bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
+bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 {
 	if (const auto pPassanger = pThis->Passengers.GetFirstPassenger())
 	{
@@ -107,22 +109,17 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 
 }
 
-#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x413F6A, AircraftClass_CTOR, 0x7)
 {
 	GET(AircraftClass*, pItem, ESI);
-
-	AircraftExt::ExtMap.JustAllocate(pItem, !pItem, "Invalid !");
-
+	AircraftExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x41426F, AircraftClass_DTOR, 0x7)
 {
 	GET(AircraftClass*, pItem, EDI);
-
-	AircraftExt::ExtMap.Remove(pItem);
-
+	AircraftExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
@@ -131,35 +128,28 @@ DEFINE_HOOK(0x41B5C0, AircraftClass_SaveLoad_Prefix, 0x8)
 {
 	GET_STACK(AircraftClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-
-	AircraftExt::ExtMap.PrepareStream(pItem, pStm);
-
+	AircraftExtContainer::Instance.PrepareStream(pItem, pStm);
 	return 0;
 }
 
 DEFINE_HOOK(0x41B5B5, AircraftClass_Load_Suffix, 0x6)
 {
-	AircraftExt::ExtMap.LoadStatic();
-
+	AircraftExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x41B5D4, AircraftClass_Save_Suffix, 0x5)
 {
-	AircraftExt::ExtMap.SaveStatic();
-
+	AircraftExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x41B685, AircraftClass_Detach, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	GET(void*, target, EDI);
+	GET(AbstractClass*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFSET(0x8, 0x8));
 
-	if (const auto pExt = AircraftExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
-
+	AircraftExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 	return 0x0;
 }
-#endif
