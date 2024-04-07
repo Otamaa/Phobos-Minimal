@@ -5614,7 +5614,7 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 
 DEFINE_HOOK(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ECX);
 
 	const auto pType = pThis->GetTechnoType();
 	double result = 0.0;
@@ -5683,6 +5683,7 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 
 //IfantryClass
 #ifndef INFANTRY_STROAGE_HOOK
+//#pragma optimize("", off )
 DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
@@ -5690,7 +5691,9 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 	if (pThis->Type->Storage)
 	{
 		const auto v4 = pThis->GetCell();
-		if (v4->HasTiberium() && pThis->GetStoragePercentage() > 1.0)
+		const auto val = pThis->GetStoragePercentage();
+
+		if (v4->HasTiberium() && val < 1.0)
 		{
 			if (pThis->SequenceAnim != DoType::Shovel)
 			{
@@ -5715,6 +5718,7 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 			}
 
 			R->EAX(pThis->Type->HarvestRate);
+			return 0x522EAB;
 		}
 	}
 
@@ -5724,6 +5728,7 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 
 	return 0x522EAB;
 }
+//#pragma optimize("", on )
 
 DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 {
