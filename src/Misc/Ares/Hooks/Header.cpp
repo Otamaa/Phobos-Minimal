@@ -4374,7 +4374,7 @@ bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
-	if (!pTypeExt->AffectedByEMP.has_value()) {
+	if (!pTypeExt->ImmuneToEMP.isset()) {
 		bool TypeImmune = false;
 
 		if (abs == AbstractType::Building) {
@@ -4402,10 +4402,10 @@ bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 			TypeImmune = !pTechno->GetTechnoType()->Organic;
 		}
 
-		pTypeExt->AffectedByEMP = !TypeImmune;
+		pTypeExt->ImmuneToEMP = !TypeImmune;
 	}
 
-	return pTypeExt->AffectedByEMP.get();
+	return pTypeExt->ImmuneToEMP.Get();
 }
 
 bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse)
@@ -4456,12 +4456,10 @@ bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* 
 
 bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 {
-	if (TechnoExtData::IsEMPImmune(Target))
+	if (AresEMPulse::IsTypeEMPProne(Target))
 		return true;
 
-	auto pType = Target->GetTechnoType();
-
-	if (!AresEMPulse::IsTypeEMPProne(Target))
+	if (TechnoExtData::IsEMPImmune(Target))
 		return true;
 
 	// if houses differ, TypeImmune does not count.
@@ -4600,7 +4598,7 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 	return false;
 }
 
-bool NOINLINE AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
+bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
 {
 	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
 		return false;
@@ -4608,7 +4606,7 @@ bool NOINLINE AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, House
 	return !AresEMPulse::isCurrentlyEMPImmune(pWarhead, pTarget, pSourceHouse);
 }
 
-void NOINLINE AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* const pFirer, WarheadTypeClass* pWarhead)
+void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* const pFirer, WarheadTypeClass* pWarhead)
 {
 	auto const pHouse = pFirer ? pFirer->Owner : nullptr;
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);

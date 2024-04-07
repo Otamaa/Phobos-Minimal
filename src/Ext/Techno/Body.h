@@ -315,7 +315,10 @@ public:
 	static bool IsCritImmune(TechnoClass* pThis);
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);
+public:
+	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
 	static bool IsEMPImmune(TechnoClass* pThis);
+public:
 	static bool IsChronoDelayDamageImmune(FootClass* pThis);
 	static bool IsRadImmune(TechnoClass* pThis);
 	static bool IsPsionicsWeaponImmune(TechnoClass* pThis);
@@ -337,7 +340,10 @@ public:
 	static bool IsCritImmune(Rank vet, TechnoClass* pThis);
 	static bool IsPsionicsImmune(Rank vet, TechnoClass* pThis);
 	static bool IsCullingImmune(Rank vet, TechnoClass* pThis);
+public:
+	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
 	static bool IsEMPImmune(Rank vet, TechnoClass* pThis);
+public:
 	static bool IsChronoDelayDamageImmune(Rank vet, FootClass* pThis);
 	static bool IsRadImmune(Rank vet, TechnoClass* pThis);
 	static bool IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis);
