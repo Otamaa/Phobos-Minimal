@@ -3,12 +3,13 @@
 #include <ObjectClass.h>
 
 #include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
 
 class ObjectExtData : public AbstractExtData {
+public:
+	using base_type = ObjectClass;
 public:
 
 	virtual ObjectClass* GetAttachedObject() const override
@@ -21,7 +22,7 @@ public:
 		this->AbstractExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->AbstractExtData::SaveToStream(Stm);
 	}

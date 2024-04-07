@@ -4,6 +4,9 @@
 
 class FootExtData : public TechnoExtData {
 public:
+	using base_type = FootClass;
+
+public:
 
 	virtual FootClass* GetAttachedObject() const override
 	{
@@ -15,7 +18,7 @@ public:
 		this->TechnoExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->TechnoExtData::SaveToStream(Stm);
 	}

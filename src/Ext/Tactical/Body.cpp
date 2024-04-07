@@ -1,35 +1,5 @@
 #include "Body.h"
 
-#include <FPSCounter.h>
-#include <BitFont.h>
-
-//IStream* TacticalExt::g_pStm = nullptr;
-//std::unique_ptr<TacticalExt::ExtData> TacticalExt::Data = nullptr;
-//
-//void TacticalExt::Allocate(TacticalClass* pThis)
-//{
-//	Data = std::make_unique<TacticalExt::ExtData>(pThis);
-//}
-//
-//void TacticalExt::Remove(TacticalClass* pThis)
-//{
-//	Data = nullptr;
-//}
-
-// =============================
-// load / save
-
-//template <typename T>
-//void TacticalExt::ExtData::Serialize(T& Stm)
-//{
-//	Stm
-//		.Process(this->Initialized)
-//		;
-//}
-
-// =============================
-// container hooks
-
 //DEFINE_HOOK(0x6D1E24, TacticalClass_CTOR, 0x5)
 //{
 //	GET(TacticalClass*, pItem, ESI);

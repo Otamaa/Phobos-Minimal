@@ -1,42 +1,32 @@
 #pragma once
 #include <TemporalClass.h>
 
-#include <Utilities/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/Abstract/Body.h>
 
-class WeaponTypeClass;
-class TemporalExt
+class TemporalExt : public AbstractExtData
 {
 public:
-	/*
-	class ExtData final : public Extension<TemporalClass>
+	using base_type = TemporalClass;
+public:
+	virtual TemporalClass* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0x82229781;
-		using base_type = TemporalClass;
+		return static_cast<TemporalClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		WeaponTypeClass* Weapon { nullptr };
-		ExtData(TemporalClass* OwnerObject) : Extension<TemporalClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<TemporalExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TemporalExt::ExtData, "TemporaClass");
-	};
+		this->AbstractExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
-	*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractExtData::GetSavedOffsetSize();
+	}
+
 };

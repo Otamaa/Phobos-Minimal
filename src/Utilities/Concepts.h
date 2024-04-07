@@ -7,6 +7,8 @@
  *  Author : secsome
  */
 
+#include "SavegameDef.h"
+
 #pragma once
 #ifdef __cpp_concepts
 #include <type_traits>

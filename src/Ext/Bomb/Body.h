@@ -3,50 +3,29 @@
 
 #include <Ext/Abstract/Body.h>
 
-#include <Ext/WeaponType/Body.h>
-
-class WeaponTypeClass;
 class BombExtData final : AbstractExtData
 {
 public:
-	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	WeaponTypeExtData* Weapon { nullptr };
-
-	BombExtData() noexcept = default;
-	~BombExtData() noexcept = default;
-
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual BombClass* GetAttachedObject() const override
 	{
-		return sizeof(BombExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-
-	constexpr FORCEINLINE BombClass* GetAttachedObject() const {
 		return static_cast<BombClass*>(this->AttachedToObject);
 	}
 
-	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
-	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtData::LoadFromStream(Stm);
+	}
 
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractExtData::SaveToStream(Stm);
+	}
 
-class BombExtContainer final : public Container<BombExtData>
-{
-public:
-	static BombExtContainer Instance;
-
-	CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractExtData::GetSavedOffsetSize();
+	}
 };

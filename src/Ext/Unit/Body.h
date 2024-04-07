@@ -1,16 +1,15 @@
 #pragma once
-#include <InfantryClass.h>
-
+#include <UnitClass.h>
 #include <Ext/Foot/Body.h>
 
-class InfantryExtData final : public FootExtData
+class UnitExtData : public FootExtData
 {
 public:
-	using base_type = InfantryClass;
+	using base_type = UnitClass;
 public:
-	virtual InfantryClass* GetAttachedObject() const
+	virtual UnitClass* GetAttachedObject() const override
 	{
-		return static_cast<InfantryClass*>(this->AttachedToObject);
+		return static_cast<UnitClass*>(this->AttachedToObject);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

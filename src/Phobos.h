@@ -11,13 +11,7 @@
 
 #include <format>
 
-#ifndef NANOPRINTF_IMPLEMENTATION
 #define IMPL_SNPRNINTF _snprintf_s
-#else
-#include <ExtraHeaders/nanoprintf.h>
-#define IMPL_SNPRNINTF npf_snprintf
-#endif
-
 #define IMPL_STRCMPI(a ,b) _strcmpi(a,b)
 #define IMPL_STRCMP(a ,b) strcmp(a,b)
 #define IMPL_WSTRCMPI(a , b) _wcsicmp(a , b)
@@ -81,8 +75,6 @@ struct Phobos final
 	static void ExeRun();
 	static void ExeTerminate();
 	static void DrawVersionWarning();
-	static void ExecuteLua();
-	static void CheckProcessorFeatures();
 	static void InitAdminDebugMode();
 	static void ThrowUsageWarning(CCINIClass* pINI);
 	static void InitConsole();
@@ -203,59 +195,4 @@ struct Phobos final
 		static inline constexpr ColorStruct InterceptedNegativeDamageColor = ColorStruct { 128, 255, 128 };
 	};
 
-	static FORCEINLINE unsigned Round_Up(unsigned number, int a)
-	{
-		return (number + (a - 1)) & (~(a - 1));
-	}
-
-	static void* __cdecl _allocate(unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4));
-	}
-
-	static unsigned int __cdecl _msize(void* ptr)
-	{
-		return HeapSize(GetProcessHeap(), 0, ptr);
-	}
-
-	static char* __cdecl _strdup(const char* string)
-	{
-		char* str;
-		char* p;
-		int len = 0;
-
-		while (string[len])
-		{
-			len++;
-		}
-		str = (char*)_allocate(len + 1);
-		p = str;
-		while (*string)
-		{
-			*p++ = *string++;
-		}
-		*p = '\0';
-		return str;
-	}
-
-	static void* __cdecl _count_allocate(unsigned int count, unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4) * count);
-	}
-
-	static void* __cdecl _reallocate(void* ptr, unsigned int size)
-	{
-		return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, Round_Up(size, 4));
-	}
-
-	static void __cdecl _free(void* ptr)
-	{
-		HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr);
-	}
-
-	static void __cdecl _dump_memory_leaks()
-	{
-		//need _DEBUG
-		_CrtDumpMemoryLeaks();
-	}
 };

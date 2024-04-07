@@ -1,46 +1,31 @@
 #pragma once
 #include <TeamTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Macro.h>
+#include <Ext/AbstractType/Body.h>
 
-class TeamTypeExt
+class TeamTypeExtData : public AbstractTypeExtData
 {
 public:
-	/*
-	class ExtData final : public Extension<TeamTypeClass>
+	using base_type = TeamTypeClass;
+public:
+	virtual TeamTypeClass* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0xBEE79008;
-		using base_type = TeamTypeClass;
+		return static_cast<TeamTypeClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		Nullable<int> AI_SafeDIstance { };
-		Nullable<int> AI_FriendlyDistance { };
-		Nullable<bool> AttackWaypoint_AllowCell { };
-
-		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<TeamTypeExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TeamTypeExt::ExtData, "TeamTypeClass");
-	};
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
-	*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractTypeExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractTypeExtData::GetSavedOffsetSize();
+	}
 };

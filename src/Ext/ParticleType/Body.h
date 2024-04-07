@@ -1,63 +1,31 @@
 #pragma once
 #include <ParticleTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDefB.h>
-#include <New/Type/LaserTrailTypeClass.h>
+#include <Ext/ObjectType/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
-class ParticleTypeExtData final
+class ParticleTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static constexpr size_t Canary = 0xEAEEEEEE;
 	using base_type = ParticleTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	TrailsReader Trails { };
-	Valueable<bool> ReadjustZ { true };
-	Valueable<PaletteManager*> Palette { }; //CustomPalette::PaletteMode::Temperate
-	Valueable<double> DamageRange { 0.0 };
-	Valueable<bool> DeleteWhenReachWater { false };
-
-	std::array<Point2D, (size_t)FacingType::Count> WindMult {};
-
-	Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
-	Valueable<bool> Transmogrify { false };
-	Valueable<int> TransmogrifyChance { -1 };
-	Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
-	Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
-
-	Valueable<bool> Fire_DamagingAnim { false };
-
-	ParticleTypeExtData() noexcept = default;
-	~ParticleTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	void Initialize();
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual ParticleTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(ParticleTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		return static_cast<ParticleTypeClass*>(this->AttachedToObject);
 	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
 
-class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
-{
-public:
-	static ParticleTypeExtContainer Instance;
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+	}
 
-	CONSTEXPR_NOCOPY_CLASSB(ParticleTypeExtContainer, ParticleTypeExtData, "ParticleTypeClass");
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
 };

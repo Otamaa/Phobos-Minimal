@@ -1,25 +1,4 @@
-#include <Phobos.h>
-
-#ifdef ENABLE_CLR
-#include <Scripting/CLR.h>
-#endif
-
-#include <CCINIClass.h>
-#include <Unsorted.h>
-#include <Drawing.h>
-#include <filesystem>
-
-#include <Utilities/Macro.h>
-#include <Utilities/GeneralUtils.h>
-#include <Utilities/Debug.h>
-#include <Utilities/Patch.h>
-
-#include <Misc/Patches.h>
-
-#include <Misc/PhobosGlobal.h>
-
-#include <Misc/Ares/Hooks/Header.h>
-#include <Misc/Spawner/Main.h>
+#include "Phobos.h"
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -29,20 +8,10 @@
 #include <CD.h>
 #include <aclapi.h>
 
-#include <Phobos.Lua.h>
-#include <Phobos.UI.h>
-//#pragma comment(lib, "Shcore.lib")
-//#pragma comment(lib, "shlwapi.lib")
-//#pragma comment(lib, "version.lib")
-//#pragma comment(lib, "comctl32.lib")
-
-#ifdef EXPERIMENTAL_IMGUI
-DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
-{
-	PhobosWindowClass::Callback();
-	return 0x0;
-}
-#endif
+#include <Utilities/Debug.h>
+#include <Utilities/Parser.h>
+#include <Utilities/Patch.h>
+#include <Utilities/GeneralUtils.h>
 
 #pragma region DEFINES
 
@@ -143,39 +112,6 @@ DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
 #pragma endregion
 
 #pragma region PhobosFunctions
-void Phobos::CheckProcessorFeatures()
-{
-	BOOL supported = FALSE;
-#if _M_IX86_FP == 0 // IA32
-	Debug::Log("Phobos is not using enhanced instruction set.\n");
-#elif _M_IX86_FP == 1 // SSE
-#define INSTRUCTION_SET_NAME "SSE"
-	supported = IsProcessorFeaturePresent(PF_XMMI_INSTRUCTIONS_AVAILABLE);
-#elif _M_IX86_FP == 2 && !__AVX__ // SEE2, not AVX
-#define INSTRUCTION_SET_NAME "SSE2"
-	supported = IsProcessorFeaturePresent(PF_XMMI64_INSTRUCTIONS_AVAILABLE);
-#else // all others, untested. add more #elifs to support more
-	static_assert(false, "Phobos compiled using unsupported architecture.");
-#endif
-
-#ifdef INSTRUCTION_SET_NAME
-	Debug::Log("Phobos requires a CPU with " INSTRUCTION_SET_NAME " support. %s.\n",
-		supported ? "Available" : "Not available");
-
-	if (!supported)
-	{
-		//doesnot get inlined when using reference<>
-		MessageBoxA(Game::hWnd.get(),
-			"This version of Phobos requires a CPU with " INSTRUCTION_SET_NAME
-			" support.\n\nYour CPU does not support " INSTRUCTION_SET_NAME ". "
-			"Game will now exit.",
-			"Phobos - CPU Requirements", MB_ICONERROR);
-
-		Debug::Log("Game will now exit.\n");
-		Debug::ExitGame(533u);
-	}
-#endif
-}
 
 void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
@@ -252,7 +188,6 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			}
 		}
 
-		SpawnerMain::CmdLineParse(pArg);
 	}
 
 	if (Debug::LogEnabled) {
@@ -263,10 +198,7 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		if (consoleEnabled)
 			Phobos::EnableConsole = true;
 
-		SpawnerMain::PrintInitializeLog();
 	}
-
-	Phobos::CheckProcessorFeatures();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
 	Debug::Log("ExceptionHandler is %s\n", dontSetExceptionHandler ? "not present" : "present");
@@ -339,8 +271,6 @@ void Phobos::Config::Read()
 		CCINIClass INI_UIMD { };
 		INI_UIMD.ReadCCFile(&UIMD_ini);
 		Debug::Log("Loading early %s file\n", UIMD_FILENAME);
-
-		AresGlobalData::ReadAresRA2MD(&INI_UIMD);
 
 		// LoadingScreen
 		{
@@ -462,10 +392,6 @@ void Phobos::Config::Read()
 			}
 		}
 
-		if (INI_RulesMD.ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false)) {
-			BlittersFix::Apply();
-		}
-
 		Phobos::Config::MultiThreadSinglePlayer = INI_RulesMD.ReadBool(GENERAL_SECTION, "MultiThreadSinglePlayer", false);
 		Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", false);
 		Phobos::Config::SaveVariablesOnScenarioEnd = INI_RulesMD.ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
@@ -582,11 +508,6 @@ void Phobos::InitConsole()
 
 bool HasCNCnet = false;
 
-//#include <spdlog/spdlog-inl.h>
-//#include <spdlog/sinks/basic_file_sink.h>
-//
-//std::shared_ptr<spdlog::logger> Logger;
-
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -594,13 +515,7 @@ void Phobos::ExeRun()
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 
-	char buff_path[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, buff_path);
-	LuaData::LuaDir = buff_path;
-	LuaData::LuaDir += "\\Resources";
-
 	Patch::PrintAllModuleAndBaseAddr();
-	Phobos::ExecuteLua();
 	Phobos::InitAdminDebugMode();
 
 	for (auto&dlls : Patch::ModuleDatas) {
@@ -612,13 +527,6 @@ void Phobos::ExeRun()
 		}
 	}
 
-	//Logger = std::make_shared<spdlog::logger>("debug_admin");
-	//Logger->sinks().push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt> ("debug_admin.log"));
-	//Logger->set_level(spdlog::level::trace);
-	//Logger->flush_on(spdlog::level::trace);
-	//Logger->log(spdlog::level::trace, "Hello !");
-
-	PhobosGlobal::Init();
 }
 
 void Phobos::ExeTerminate()
@@ -719,149 +627,24 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	return TRUE;
 }
 
-// =============================
-//#pragma region SyringeHandshake
-//SYRINGE_HANDSHAKE(pInfo)
-//{
-//	const DWORD YR_SIZE_1000 = 0x496110;
-//	const DWORD YR_SIZE_1001 = 0x497110;
-//	const DWORD YR_SIZE_1001_UC = 0x497FE0;
-//	const DWORD YR_SIZE_NPATCH = 0x5AB000;
-//
-//	const DWORD YR_TIME_1000 = 0x3B846665;
-//	const DWORD YR_TIME_1001 = 0x3BDF544E;
-//
-//	const DWORD YR_CRC_1000 = 0xB701D792;
-//	const DWORD YR_CRC_1001_CD = 0x098465B3;
-//	const DWORD YR_CRC_1001_TFD = 0xEB903080;
-//	const DWORD YR_CRC_1001_UC = 0x1B499086;
-//
-//	if (pInfo)
-//	{
-//		constexpr const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " FILE_VERSION_STR ".";
-//		constexpr const char* PatchDetectedMessage = "Found %s. Phobos " FILE_VERSION_STR" is not compatible with Exe patched Gamemd.";
-//
-//		const char* desc = nullptr;
-//		const char* msg = nullptr;
-//		bool allowed = false;
-//
-//		 accept tfd and cd version 1.001
-//		if (pInfo->exeTimestamp == YR_TIME_1001)
-//		{
-//			 don't accept expanded exes
-//			switch (pInfo->exeFilesize)
-//			{
-//			case YR_SIZE_1001:
-//			case YR_SIZE_1001_UC:
-//
-//				 all versions allowed
-//				switch (pInfo->exeCRC)
-//				{
-//				case YR_CRC_1001_CD:
-//					desc = "1.001 (CD)";
-//					break;
-//				case YR_CRC_1001_TFD:
-//					desc = "1.001 (TFD)";
-//					break;
-//				case YR_CRC_1001_UC:
-//					desc = "1.001 (UC)";
-//					break;
-//				default:
-//					 no-cd, network port or other changes
-//					desc = "1.001 (modified)";
-//				}
-//				msg = AcceptMsg;
-//				allowed = true;
-//				break;
-//
-//			case YR_SIZE_NPATCH:
-//				 known patch size
-//				desc = "RockPatch or an NPatch-derived patch";
-//				msg = PatchDetectedMessage;
-//				break;
-//			default:
-//				 expanded exe, unknown make
-//				desc = "an unknown game patch";
-//				msg = PatchDetectedMessage;
-//			}
-//		}
-//		else if (pInfo->exeTimestamp == YR_TIME_1000)
-//		{
-//			 upgrade advice for version 1.000
-//			desc = "1.000";
-//			msg = "Found Yuri's Revenge 1.000 but Phobos " FILE_VERSION_STR " requires version 1.001. Please update your copy of Yuri's Revenge first.";
-//		}
-//		else
-//		{
-//			 does not even compute...
-//			msg = "Unknown executable. Phobos " FILE_VERSION_STR " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
-//		}
-//
-//		 generate the output message
-//		if (pInfo->Message)
-//		{
-//			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
-//		}
-//
-//		return allowed ? S_OK : S_FALSE;
-//	}
-//
-//	return E_POINTER;
-//}
-//#pragma endregion
-
 #pragma region hooks
 
-//DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL, 0x5)
-//{
-//	_set_controlfp(_RC_CHOP, _MCW_RC);
-//
-//	fesetround(FE_TOWARDZERO);
-//	return 0x0;
-//}
-
-//DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
-#ifndef aaa
 DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
-#else
-DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
-#endif
 {
 	Phobos::ExeTerminate();
-#ifdef EXPERIMENTAL_IMGUI
-	PhobosWindowClass::Destroy();
-#endif
 	CRT::exit_noreturn(0);
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x7C8B3D, Game_freeMem, 0x9)
-//{
-//	GET_STACK(void*, ptr, 0x4);
-//
-//	Debug::Log(__FUNCTION__ " CalledFrom 0x%08x ptr [0x%08x]\n", R->Stack<uintptr_t>(0x0) , ptr);
-//	CRT::free(ptr);
-//	return 0x7C8B47;
-//}
-#ifndef aaa
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-#else
-DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-#endif
 {
 	Patch::ApplyStatic();
 	Phobos::ExeRun();
-	SpawnerMain::ExeRun(HasCNCnet);
 
 	return 0;
 }
 
-#ifndef aaa
-//6BDB0C
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
-#else
-DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
-#endif
 {
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);
@@ -869,9 +652,7 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
-#ifdef EXPERIMENTAL_IMGUI
-	PhobosWindowClass::Create();
-#endif
+
 	return 0;
 }
 #pragma endregion

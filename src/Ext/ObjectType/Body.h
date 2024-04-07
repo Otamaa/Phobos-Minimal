@@ -6,6 +6,8 @@
 
 class ObjectTypeExtData : public AbstractTypeExtData {
 public:
+	using base_type = ObjectTypeClass;
+public:
 	virtual ObjectTypeClass* GetAttachedObject() const override
 	{
 		return static_cast<ObjectTypeClass*>(this->AttachedToObject);
@@ -16,7 +18,7 @@ public:
 		this->AbstractTypeExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->AbstractTypeExtData::SaveToStream(Stm);
 	}

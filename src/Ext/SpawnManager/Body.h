@@ -1,40 +1,32 @@
 #pragma once
 #include <SpawnManagerClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/Abstract/Body.h>
 
-class SpawnManagerExt
+class SpawnManagerExt : public AbstractExtData
 {
 public:
-	/*
-	class ExtData final : public Extension<SpawnManagerClass>
+	using base_type = SpawnManagerClass;
+public:
+	virtual SpawnManagerClass* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0x99954321;
-		using base_type = SpawnManagerClass;
+		return static_cast<SpawnManagerClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		ExtData(SpawnManagerClass* OwnerObject) : Extension<SpawnManagerClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<SpawnManagerExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(SpawnManagerExt::ExtData, "SpawnManagerClass");
-	};
+		this->AbstractExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
-	*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractExtData::GetSavedOffsetSize();
+	}
+
 };

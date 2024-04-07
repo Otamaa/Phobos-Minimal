@@ -1,45 +1,32 @@
 #pragma once
 #include <SmudgeTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Macro.h>
+#include <Ext/ObjectType/Body.h>
 
-class SmudgeTypeExtData final
+class SmudgeTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	Valueable<bool> Clearable { true };
-
-	SmudgeTypeExtData() noexcept = default;
-	~SmudgeTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual SmudgeTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(SmudgeTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		return static_cast<SmudgeTypeClass*>(this->AttachedToObject);
 	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
 
-class SmudgeTypeExtContainer final : public Container<SmudgeTypeExtData>
-{
-public:
-	static SmudgeTypeExtContainer Instance;
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+	}
 
-	CONSTEXPR_NOCOPY_CLASSB(SmudgeTypeExtContainer, SmudgeTypeExtData, "SmudgeTypeClass");
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
+
 };

@@ -66,9 +66,7 @@ void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t 
 
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
 {
-	const auto& verses = WarheadTypeExtContainer::Instance.Find(pWH)->GetVerses(ArmorType);
-	return verses.Verses;
-	//return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
+	return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
 }
 
 const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
@@ -145,16 +143,13 @@ const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
 	return "<unknown>";
 }
 
-#include <New/Type/TheaterTypeClass.h>
-
 bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 {
 	str = _strlwr(str);
 
 	if (auto pSuffix = strstr(str, "~~~"))
 	{
-		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension :
-			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
+		std::string pTheater = Theater::Get(ScenarioClass::Instance->Theater)->Extension;
 		pTheater = GeneralUtils::lowercase(pTheater);
 		pSuffix[0] = pTheater[0];
 		pSuffix[1] = pTheater[1];
@@ -171,8 +166,7 @@ bool GeneralUtils::ApplyTheaterExtToString(std::string& flag)
 	const auto nPos = flag.find("~");
 	if (nPos != std::string::npos)
 	{
-		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Letter:
-			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Letter.c_str();
+		std::string pTheater = Theater::Get(ScenarioClass::Instance->Theater)->Letter;
 		pTheater = GeneralUtils::lowercase(pTheater);
 
 		flag.replace(nPos, 1, pTheater);
@@ -189,9 +183,7 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 	const auto nPos = buffer.find("~~~");
 	if (nPos != std::string::npos)
 	{
-		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension
-			: TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str()
-			;
+		std::string pTheater = Theater::Get(ScenarioClass::Instance->Theater)->Extension;
 		pTheater = GeneralUtils::lowercase(pTheater);
 
 		//only set the 3 characters without the terminator string

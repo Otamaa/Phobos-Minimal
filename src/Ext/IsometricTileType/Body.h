@@ -1,82 +1,31 @@
 #pragma once
 #include <IsometricTileTypeClass.h>
-#include <IsometricTileClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/ObjectType/Body.h>
 
-#include <ScenarioClass.h>
-#include <set>
-
-class IsometricTileTypeExtData final
+class IsometricTileTypeExtData final : public ObjectTypeExtData
 {
 public:
-
-	static constexpr size_t Canary = 0x91577125;
 	using base_type = IsometricTileTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
-
-public :
-	Valueable<int> Tileset { -1 };
-	Valueable<PaletteManager*> Palette {};
-
-	IsometricTileTypeExtData() noexcept = default;
-	~IsometricTileTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	constexpr FORCEINLINE static size_t size_Of()
-	{
-		return sizeof(IsometricTileTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-	static LightConvertClass* GetLightConvert(IsometricTileTypeClass* pOvrl , int r, int g, int b);
-
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
-
-class IsometricTileTypeExtContainer final : public Container<IsometricTileTypeExtData>
-{
 public:
-	static IsometricTileTypeExtContainer Instance;
-	static std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
-	static int CurrentTileset;
-
-	void Clear() {
-		LightConvertEntities.clear();
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm)
+	virtual IsometricTileTypeClass* GetAttachedObject() const override
 	{
-		return Stm
-			.Process(CurrentTileset)
-			.Success()
-			;
+		return static_cast<IsometricTileTypeClass*>(this->AttachedToObject);
 	}
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		return Stm
-			.Process(CurrentTileset)
-			.Success()
-			;
+		this->ObjectTypeExtData::LoadFromStream(Stm);
 	}
 
-	IsometricTileTypeExtContainer() : Container<IsometricTileTypeExtData> { "IsometricTileTypeClass" }
-	{ }
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
 
-	virtual ~IsometricTileTypeExtContainer() override = default;
-
-private:
-	IsometricTileTypeExtContainer(const IsometricTileTypeExtContainer&) = delete;
-	IsometricTileTypeExtContainer(IsometricTileTypeExtContainer&&) = delete;
-	IsometricTileTypeExtContainer& operator=(const IsometricTileTypeExtContainer& other) = delete;
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
 };

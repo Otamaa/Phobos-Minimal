@@ -1,67 +1,31 @@
 #pragma once
 
 #include <AITriggerTypeClass.h>
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
 
-//this is a 1-based index.
-enum class PhobosAIConditionTypes : int
-{
-	CustomizableAICondition = 1,
-};
-
-enum class PhobosAINewConditionTypes : int
-{
-	CheckPrereq = 8,
-	CheckBridgeCondition = 9
-};
-
-class AITriggerTypeExt
+class AITriggerTypeExtData : public AbstractTypeExtData
 {
 public:
-
-	/*
-	class ExtData final : public Extension<AITriggerTypeClass>
+	using base_type = AITriggerTypeClass;
+public:
+	virtual AITriggerTypeClass* GetAttachedObject() const override
 	{
-	public:
-		using base_type = AITriggerTypeClass;
-		static constexpr size_t Canary = 0x2C2CAC2C;
-		static constexpr size_t ExtOffset = 0x10C;
+		return static_cast<AITriggerTypeClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		//Valueable<HouseTypeClass*> NoneOF; String ?
-		ExtData(AITriggerTypeClass* OwnerObject) : Extension<AITriggerTypeClass>(OwnerObject)
-			//, NoneOF { }
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm)
-		{
-			Stm
-				.Process(this->Initialized)
-				;
-		}
-	};
-
-	class ExtContainer final : public Container<AITriggerTypeExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(AITriggerTypeExt::ExtData, "AITriggerTypeClass");
-	};
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractTypeExtData::SaveToStream(Stm);
+	}
 
-
-	static void ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition);
-	static void DisableAITrigger(AITriggerTypeClass* pAITriggerType);
-	static void EnableAITrigger(AITriggerTypeClass* pAITriggerType);
-	static bool ReadCustomizableAICondition(HouseClass* pHouse, int pickMode, int compareMode, int Number, TechnoTypeClass* TechnoType);
-	static void CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition);
-
-	*/
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractTypeExtData::GetSavedOffsetSize();
+	}
 };

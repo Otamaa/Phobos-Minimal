@@ -1,47 +1,32 @@
 #pragma once
 #include <ParticleSystemTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 
-class ParticleSystemTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class ParticleSystemTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static constexpr size_t Canary = 0xEAAEEEEE;
 	using base_type = ParticleSystemTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	Valueable<bool> ApplyOptimization { true };
-	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
-	Valueable<bool> AdjustTargetCoordsOnRotation { true };
-
-	ParticleSystemTypeExtData() noexcept = default;
-	~ParticleSystemTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual ParticleSystemTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(ParticleSystemTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		return static_cast<ParticleSystemTypeClass*>(this->AttachedToObject);
 	}
 
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+	}
 
-class ParticleSystemTypeExtContainer final : public Container<ParticleSystemTypeExtData>
-{
-public:
-	static ParticleSystemTypeExtContainer Instance;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
 
-	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemTypeExtContainer, ParticleSystemTypeExtData, "ParticleSystemTypeClass");
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
 };

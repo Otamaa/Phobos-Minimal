@@ -1,65 +1,32 @@
 #pragma once
 #include <VoxelAnimTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/Constructs.h>
-#include <Utilities/Template.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Debug.h>
-#include <Helpers/Macro.h>
+#include <Ext/ObjectType/Body.h>
 
-#include <New/Type/LaserTrailTypeClass.h>
-
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
-class VoxelAnimTypeExtData final
+class VoxelAnimTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static constexpr size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	Valueable<bool> Warhead_Detonate { false };
-#pragma region Otamaa
-	NullableVector <AnimTypeClass*> SplashList { };//
-	Valueable<bool> SplashList_Pickrandom { true };
-	Nullable<AnimTypeClass*> WakeAnim { }; //
-	Valueable<bool> ExplodeOnWater { false };
-	Valueable<bool> Damage_DealtByOwner;
-	Nullable<WeaponTypeClass*> Weapon { };
-	Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
-
-	TrailsReader Trails { };
-#pragma endregion
-
-	VoxelAnimTypeExtData() noexcept = default;
-	~VoxelAnimTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void Initialize();
-
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual VoxelAnimTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(VoxelAnimTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		return static_cast<VoxelAnimTypeClass*>(this->AttachedToObject);
 	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
 
-class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
-{
-public:
-	static VoxelAnimTypeExtContainer Instance;
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+	}
 
-	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
+
 };

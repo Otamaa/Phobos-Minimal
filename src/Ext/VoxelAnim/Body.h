@@ -2,77 +2,32 @@
 
 #include <VoxelAnimClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/Template.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Debug.h>
+#include <Ext/Object/Body.h>
 
-#include <Helpers/Macro.h>
-
-#include <Ext/VoxelAnimType/Body.h>
-#include <New/Entity/LaserTrailClass.h>
-
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
-class VoxelAnimExtData final
+class VoxelAnimExtData final : public ObjectExtData
 {
 public:
-	static constexpr size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
-	static constexpr size_t ExtOffset = 0x144;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	TechnoClass* Invoker { nullptr };
-	std::vector<LaserTrailClass> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
-
-	VoxelAnimExtData() noexcept = default;
-	~VoxelAnimExtData() noexcept = default;
-
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-
-	static bool InvalidateIgnorable(AbstractClass* ptr)
+	virtual VoxelAnimClass* GetAttachedObject() const override
 	{
-
-		switch (ptr->WhatAmI())
-		{
-		case AircraftClass::AbsID:
-		case BuildingClass::AbsID:
-		case InfantryClass::AbsID:
-		case UnitClass::AbsID:
-			return false;
-		}
-
-		return true;
+		return static_cast<VoxelAnimClass*>(this->AttachedToObject);
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		return sizeof(VoxelAnimExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectExtData::LoadFromStream(Stm);
 	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
 
-public:
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectExtData::SaveToStream(Stm);
+	}
 
-	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectExtData::GetSavedOffsetSize();
+	}
+
 };
-
-class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
-{
-public:
-	static VoxelAnimExtContainer Instance;
-
-	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
-};
-

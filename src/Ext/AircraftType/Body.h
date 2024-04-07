@@ -4,7 +4,10 @@
 #include <Ext/TechnoType/Body.h>
 
 class AircraftTypeExtData : public TechnoTypeExtData {
-
+public:
+	using base_type = AircraftTypeClass;
+	static constexpr DWORD Canary = 0x87654323;
+public:
 	virtual AircraftTypeClass* GetAttachedObject() const override
 	{
 		return static_cast<AircraftTypeClass*>(this->AttachedToObject);
@@ -15,7 +18,7 @@ class AircraftTypeExtData : public TechnoTypeExtData {
 		this->TechnoTypeExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->TechnoTypeExtData::SaveToStream(Stm);
 	}
@@ -27,7 +30,7 @@ class AircraftTypeExtData : public TechnoTypeExtData {
 	}
 };
 
-struct AircraftTypeExtContainer final : public Container<AircraftTypeExtData, 0x87654323>
+struct AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
 {
 	static AircraftTypeExtContainer Instance;
 };

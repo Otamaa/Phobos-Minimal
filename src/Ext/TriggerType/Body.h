@@ -1,47 +1,31 @@
 #pragma once
 
 #include <TriggerTypeClass.h>
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
 
-class TriggerClass;
-class TriggerTypeExt
+class TriggerTypeExt : public AbstractTypeExtData
 {
 public:
-/*
-	class ExtData final : public Extension<TriggerTypeClass>
+	using base_type = TriggerTypeClass;
+public:
+	virtual TriggerTypeClass* GetAttachedObject() const override
 	{
-	public:
-		using base_type = TriggerTypeClass;
-		static constexpr size_t Canary = 0x2C2C2C2C;
+		return static_cast<TriggerTypeClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		int HouseParam { -1 };
-		ExtData(TriggerTypeClass* OwnerObject) : Extension<TriggerTypeClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm)
-		{
-			Stm
-				.Process(this->Initialized)
-				;
-		}
-	};
-
-	class ExtContainer final : public Container<TriggerTypeExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TriggerTypeExt::ExtData, "TriggerTypeClass");
-	};
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
-*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractTypeExtData::SaveToStream(Stm);
+	}
 
-	static HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse);
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractTypeExtData::GetSavedOffsetSize();
+	}
 };

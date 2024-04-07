@@ -3,6 +3,8 @@
 
 class RadioExtData : public MissionExtData {
 public:
+	using base_type = RadioClass;
+public:
 	virtual RadioClass* GetAttachedObject() const override
 	{
 		return static_cast<RadioClass*>(this->AttachedToObject);
@@ -13,8 +15,14 @@ public:
 		this->MissionExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->MissionExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return MissionExtData::GetSavedOffsetSize();
 	}
 };

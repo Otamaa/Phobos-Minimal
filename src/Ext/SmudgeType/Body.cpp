@@ -1,37 +1,5 @@
 #include "Body.h"
 
-void SmudgeTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
-{
-	auto pThis = this->AttachedToObject;
-	const char* pSection = pThis->ID;
-
-	if (parseFailAddr)
-		return;
-
-	INI_EX exINI(pINI);
-	this->Clearable.Read(exINI, pSection, "Clearable");
-}
-
-// =============================
-// load / save
-
-template <typename T>
-void SmudgeTypeExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		.Process(this->Clearable)
-		;
-
-}
-
-// =============================
-// container
-SmudgeTypeExtContainer SmudgeTypeExtContainer::Instance;
-
-// =============================
-// container hooks
-//
 DEFINE_HOOK(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);

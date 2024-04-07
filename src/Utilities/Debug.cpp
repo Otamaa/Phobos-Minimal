@@ -7,14 +7,14 @@
 #include <WWMouseClass.h>
 #include <Surface.h>
 
-#include <Misc/Ares/Hooks/Classes/Dialogs.h>
-
 #include <MessageListClass.h>
 #include <CRT.h>
 #include <YRPPCore.h>
 #include <AbstractClass.h>
 #include <vector>
 #include <Phobos.h>
+
+#include "Dialogs.h"
 
 char Debug::DeferredStringBuffer[0x1000];
 char Debug::LogMessageBuffer[0x1000];

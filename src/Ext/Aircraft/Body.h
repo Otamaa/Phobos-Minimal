@@ -10,15 +10,9 @@ class AircraftExtData : public FootExtData
 {
 public:
 	using base_type = AircraftClass;
+	static constexpr DWORD Canary = 0x87654322;
 
 public:
-	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber);
-	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber , int WeaponIdx);
-	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon);
-	static void TriggerCrashWeapon(AircraftClass* pThis , int nMult);
-	static bool IsValidLandingZone(AircraftClass* pThis);
-
-	static bool PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell);
 
 	virtual AircraftClass* GetAttachedObject() const override
 	{
@@ -30,7 +24,7 @@ public:
 		this->FootExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->FootExtData::SaveToStream(Stm);
 	}
@@ -41,7 +35,7 @@ public:
 	}
 };
 
-struct AircraftExtContainer final : public Container<AircraftExtData, 0x87654322>
+struct AircraftExtContainer final : public Container<AircraftExtData>
 {
 	static AircraftExtContainer Instance;
 };

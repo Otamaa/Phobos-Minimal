@@ -1,73 +1,30 @@
 #pragma once
 #include <TerrainClass.h>
+#include <Ext/Object/Body.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Debug.h>
-
-#include <Ext/TerrainType/Body.h>
-
-#include <LightSourceClass.h>
-#include <CellClass.h>
-
-class TerrainExtData final
+class TerrainExtData final : public ObjectExtData
 {
 public:
-	static constexpr size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
-	//static constexpr size_t ExtOffset = 0xD0;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	Handle<LightSourceClass*, UninitLightSource> LighSource {};
-	Handle<AnimClass*, UninitAnim> AttachedAnim {};
-
-	TerrainExtData()  noexcept = default;
-	~TerrainExtData() noexcept = default;
-
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr)
+	virtual TerrainClass* GetAttachedObject() const override
 	{
-		switch (ptr->WhatAmI())
-		{
-		case AnimClass::AbsID:
-		case LightSourceClass::AbsID:
-			return false;
-		}
-
-		return true;
+		return static_cast<TerrainClass*>(this->AttachedToObject);
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	static bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain);
-
-	void InitializeLightSource();
-	void InitializeAnim();
-
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		return sizeof(TerrainExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectExtData::LoadFromStream(Stm);
 	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
 
-public:
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectExtData::SaveToStream(Stm);
+	}
 
-	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
-};
-
-class TerrainExtContainer final : public Container<TerrainExtData>
-{
-public:
-	static TerrainExtContainer Instance;
-
-	CONSTEXPR_NOCOPY_CLASSB(TerrainExtContainer, TerrainExtData, "TerrainClass");
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectExtData::GetSavedOffsetSize();
+	}
 };

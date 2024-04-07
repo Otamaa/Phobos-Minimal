@@ -2,39 +2,23 @@
 
 #include <FileFormats/SHP.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 
-class SHPRefExt
+class SHPRefExt : public TExtension<SHPReference>
 {
 public:
-	/*
-	class ExtData final : public Extension<SHPReference>
+	virtual SHPReference* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0xAB5005BA;
-		using base_type = SHPReference;
-		static constexpr size_t ExtOffset = 0x20;
+		return (SHPReference*)this->AttachedToObject;
+	}
 
-	public:
-
-		SHPReference* Alpha { nullptr };
-		RectangleStruct Data { 0,0,0,0 };
-		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject)
-		{}
-
-		virtual ~ExtData() override = default;
-		void Initialize();
-
-	};
-
-	class ExtContainer final : public Container<SHPRefExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm)
 	{
-	public:
-		ExtContainer();
-		~ExtContainer();
-	};
+		this->TExtension<SHPReference>::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->TExtension<SHPReference>::SaveToStream(Stm);
+	}
 };

@@ -1,35 +1,5 @@
 #include "Body.h"
 
-#include <Ext/Anim/Body.h>
-#include <Ext/WarheadType/Body.h>
-
-HouseClass*  __fastcall BombExtData::GetOwningHouse(BombClass* pThis, void*)
-{
-	return pThis->OwnerHouse;
-}
-
-void __fastcall BombExtData::InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed){ }
-
-// =============================
-// load / save
-
-template <typename T>
-void BombExtData::Serialize(T& Stm) {
-
-	Stm
-		.Process(this->Initialized)
-		.Process(this->Weapon)
-		;
-}
-
-// =============================
-// container
-BombExtContainer BombExtContainer::Instance;
-
-
-// =============================
-// container hooks
-
 // not initEd :
 // Ownerhouse
 // target

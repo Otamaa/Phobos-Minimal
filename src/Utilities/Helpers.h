@@ -39,7 +39,6 @@
 #include <CellSpread.h>
 #include <Helpers/Iterators.h>
 #include <Helpers/Enumerators.h>
-#include <New/Entity/LauchSWData.h>
 
 #include "VectorHelper.h"
 
@@ -643,14 +642,4 @@ namespace Helpers {
 			}
 		}
 	};
-
-	namespace Otamaa
-	{
-		bool LauchSW(
-		const LauchSWData& nData,
-		HouseClass* pOwner,
-		const CoordStruct Where,
-		TechnoClass* pFirer
-		);
-	}
 };

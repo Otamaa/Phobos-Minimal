@@ -2,45 +2,31 @@
 
 #include <ScriptTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/Constructs.h>
-#include <Utilities/Template.h>
-#include <Utilities/Debug.h>
-#include <Helpers/Macro.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/AbstractType/Body.h>
 
-class ScriptTypeExt
+class ScriptTypeExt : public AbstractTypeExtData
 {
 public:
-	/*
-	class ExtData final : public Extension<ScriptTypeClass>
+	using base_type = ScriptTypeClass;
+public:
+	virtual ScriptTypeClass* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0x414B4B41;
-		using base_type = ScriptTypeClass;
+		return static_cast<ScriptTypeClass*>(this->AttachedToObject);
+	}
 
-	public:
-
-		ValueableVector<ScriptActionNode> PhobosNode {};
-		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject) {
-			PhobosNode.reserve(ScriptTypeClass::MaxActions);
-		}
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<ScriptTypeExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(ScriptTypeExt::ExtData, "ScriptTypeClass");
-	};
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+	}
 
-	static ExtContainer ExtMap;
-	*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->AbstractTypeExtData::SaveToStream(Stm);
+	}
+
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return AbstractTypeExtData::GetSavedOffsetSize();
+	}
 };

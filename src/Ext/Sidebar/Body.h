@@ -2,42 +2,42 @@
 
 #include <SidebarClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 
-#include <map>
-
-class SidebarExtData final
+class SidebarExtData final : TExtension<SidebarClass>
 {
+public:
+	virtual SidebarClass* GetAttachedObject() const override
+	{
+		return (SidebarClass*)this->AttachedToObject;
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm)
+	{
+		this->TExtension<SidebarClass>::LoadFromStream(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->TExtension<SidebarClass>::SaveToStream(Stm);
+	}
 private:
 	static std::unique_ptr<SidebarExtData> Data;
-
-public:
-
-	static constexpr size_t Canary = 0x51DEBA12;
-	using base_type = SidebarClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
-public:
-
-	SidebarExtData() noexcept = default;
-	~SidebarExtData() noexcept = default;
-
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-private:
-	template <typename T>
-	void Serialize(T& Stm);
 
 public:
 	static IStream* g_pStm;
 	static std::array<SHPReference*, 4u> TabProducingProgress;
 
-	static void Allocate(SidebarClass* pThis);
-	static void Remove(SidebarClass* pThis);
+	static void Allocate(SidebarClass* pThis)
+	{
+		Data = std::make_unique<SidebarExtData>();
+		Data->AttachedToObject = pThis;
+	}
+
+	static void Remove(SidebarClass* pThis)
+	{
+		Data = nullptr;
+	}
 
 	static SidebarExtData* Instance()
 	{
@@ -49,5 +49,4 @@ public:
 		Allocate(SidebarClass::Instance);
 	}
 
-	static void DrawProducingProgress();
 };

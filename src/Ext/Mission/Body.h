@@ -3,6 +3,8 @@
 
 class MissionExtData : public ObjectExtData {
 public:
+	using base_type = MissionClass;
+public:
 
 	virtual MissionClass* GetAttachedObject() const override
 	{
@@ -14,7 +16,7 @@ public:
 		this->ObjectExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override const
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->ObjectExtData::SaveToStream(Stm);
 	}

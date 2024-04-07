@@ -1,47 +1,41 @@
 #pragma once
 
+#include <TacticalClass.h>
 #include <Utilities/Container.h>
 
-#include <Utilities/Iterator.h>
-#include <Utilities/Template.h>
-
-#include <Helpers/Template.h>
-#include <TacticalClass.h>
-
-class TacticalExt
+class TacticalExt : public TExtension<TacticalClass>
 {
 public:
-/*
-	static IStream* g_pStm;
-
-	class ExtData final : public Extension<TacticalClass>
+	virtual TacticalClass* GetAttachedObject() const override
 	{
-	public:
-		static constexpr size_t Canary = 0x52DEBA12;
-		using base_type = TacticalClass;
+		return (TacticalClass*)this->AttachedToObject;
+	}
 
-	public:
+	virtual void LoadFromStream(PhobosStreamReader& Stm)
+	{
+		this->TExtension<TacticalClass>::LoadFromStream(Stm);
+	}
 
-		ExtData(TacticalClass* OwnerObject) : Extension<TacticalClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->TExtension<TacticalClass>::SaveToStream(Stm);
+	}
 private:
-	static std::unique_ptr<ExtData> Data;
+	static std::unique_ptr<TacticalExt> Data;
 public:
 
-	static void Allocate(TacticalClass* pThis);
-	static void Remove(TacticalClass* pThis);
+	static void Allocate(TacticalClass* pThis)
+	{
+		Data = std::make_unique<TacticalExt>();
+		Data->AttachedToObject = pThis;
+	}
 
-	static ExtData* Global()
+	static void Remove(TacticalClass* pThis)
+	{
+		Data = nullptr;
+	}
+
+	static TacticalExt* Global()
 	{
 		return Data.get();
 	}
@@ -50,10 +44,4 @@ public:
 	{
 		Allocate(TacticalClass::Instance);
 	}
-*/
-	//void DrawDebugOverlay();
-	//bool DrawCurrentCell(); //TODO
-	//bool DebugDrawAllCellInfo(); //TODO
-	//bool DebugDrawBridgeInfo(); //TODO
-	//void DebugDrawMouseCellMembers //TODO
 };

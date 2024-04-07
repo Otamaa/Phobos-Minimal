@@ -2,7 +2,7 @@
 
 #include <Helpers/Macro.h>
 #include <YRPP.h>
-#include <WarheadTypeClass.h>
+#include <WarheadFlags.h>
 
 #include <sstream>
 
@@ -17,7 +17,7 @@ struct Conversions
 		} else {
 			val = CRT::atof(buf);
 		}
-		
+
 		const double nValCopy = std::abs(val);
 
 		if (!nValCopy) { //0.0
@@ -80,8 +80,8 @@ struct Conversions
 
 	static inline std::pair<bool, double> Str2ArmorCheck(const char* buf, WarheadFlags* whFlags)
 	{
-		if (!buf || !whFlags || !IsValidArmorValue(buf))  { 
-			return { false ,0.0 }; 
+		if (!buf || !whFlags || !IsValidArmorValue(buf))  {
+			return { false ,0.0 };
 		}
 
 		return {true , Str2Armor(buf, whFlags) };

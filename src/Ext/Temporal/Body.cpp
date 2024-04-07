@@ -1,28 +1,5 @@
  #include "Body.h"
 
-
-// =============================
-// load / save
-
-//template <typename T>
-//void TemporalExt::ExtData::Serialize(T& Stm) {
-//	//Debug::Log("Processing Element From TemporalExt ! \n");
-//
-//	Stm
-//		.Process(this->Initialized)
-//		.Process(this->Weapon)
-//
-//		;
-//
-//}
-
-// =============================
-// container
-//TemporalExt::ExtContainer TemporalExt::ExtMap;
-
-// =============================
-// container hooks
-
 //DEFINE_HOOK_AGAIN(0x71A4CD, TemporalClass_CTOR, 0x6) //factory ?
 //DEFINE_HOOK(0x71A594, TemporalClass_CTOR, 0x7)
 //{

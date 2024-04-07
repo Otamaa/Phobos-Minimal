@@ -1,6 +1,6 @@
 #pragma once
 
-#include <WarheadTypeClass.h>
+#include <WarheadFlags.h>
 #include <Helpers/Macro.h>
 
 struct VersesData
@@ -9,7 +9,7 @@ struct VersesData
 	WarheadFlags Flags;
 
 	VersesData() : Verses { 1.0 }
-		, Flags { true, true, true } 
+		, Flags { true, true, true }
 	{ };
 
 	VersesData(double VS, bool FF, bool Retal, bool Acquire) : Verses { VS }

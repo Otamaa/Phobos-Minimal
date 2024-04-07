@@ -3,6 +3,9 @@
 constexpr inline char* SignSequence { "/%$,.!?|" };
 constexpr inline size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
+#include <Surface.h>
+#include <ConvertClass.h>
+
 size_t ShapeTextPrinter::GetSignIndex(const char sign)
 {
 	char* end = SignSequence + SignSequenceLength;

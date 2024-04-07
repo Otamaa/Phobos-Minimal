@@ -2,6 +2,8 @@
 
 AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 
+//TODO :Check
+
 DEFINE_HOOK(0x41C9E3, AircraftTypeClass_CTOR, 0x5)
 {
 	GET(AircraftTypeClass*, pItem, ESI);

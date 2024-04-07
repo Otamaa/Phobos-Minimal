@@ -1,15 +1,15 @@
 #pragma once
-#include <BuildingTypeClass.h>
+#include <UnitTypeClass.h>
 #include <Ext/TechnoType/Body.h>
 
-class BuildingTypeExtData : public TechnoTypeExtData
+class UnitTypeExtData : public TechnoTypeExtData
 {
 public:
-	using base_type = BuildingTypeClass;
+	using base_type = UnitTypeClass;
 public:
-	virtual BuildingTypeClass* GetAttachedObject() const override
+	virtual UnitTypeClass* GetAttachedObject() const override
 	{
-		return static_cast<BuildingTypeClass*>(this->AttachedToObject);
+		return static_cast<UnitTypeClass*>(this->AttachedToObject);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
@@ -27,4 +27,5 @@ public:
 		//AttachedToObject
 		return TechnoTypeExtData::GetSavedOffsetSize();
 	}
+
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 class Point2D
 {
 public:

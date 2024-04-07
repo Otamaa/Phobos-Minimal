@@ -2,60 +2,33 @@
 
 #include <OverlayTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/ObjectType/Body.h>
 
-class OverlayTypeExtData final
+class OverlayTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = OverlayTypeClass;
-	static constexpr size_t Canary = 0x414B4B4A;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	Valueable<PaletteManager*> Palette { };
-
-	OverlayTypeExtData() noexcept = default;
-	~OverlayTypeExtData() noexcept = default;
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	constexpr FORCEINLINE static size_t size_Of()
+	virtual OverlayTypeClass* GetAttachedObject() const override
 	{
-		return sizeof(OverlayTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-private:
-	template <typename T>
-	void Serialize(T& Stm);
-};
-
-class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
-{
-public:
-	static OverlayTypeExtContainer Instance;
-	std::unordered_map<OverlayTypeClass*, OverlayTypeExtData*> Map;
-
-	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
-
-	void Clear()
-	{
-		this->Map.clear();
+		return static_cast<OverlayTypeClass*>(this->AttachedToObject);
 	}
 
-	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
-		, Map {}
-	{ }
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+	}
 
-	virtual ~OverlayTypeExtContainer() override = default;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->ObjectTypeExtData::SaveToStream(Stm);
+	}
 
-private:
-	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
-	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
-	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
+	static constexpr FORCEINLINE int GetSavedOffsetSize()
+	{
+		//AttachedToObject
+		return ObjectTypeExtData::GetSavedOffsetSize();
+	}
+
 };
 

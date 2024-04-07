@@ -18,9 +18,17 @@
 
 static constexpr size_t AbstractExtOffset = 0x18;
 
-template <typename T>
-struct TExtension
+struct IExtension
 {
+	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
+};
+
+template <typename T>
+struct TExtension : public IExtension
+{
+	static const DWORD Canary;
+
 	T* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 
@@ -32,13 +40,13 @@ struct TExtension
 		Stm.Process(this->Initialized);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
 		Stm.Process(this->Initialized);
 	}
 
 	static constexpr FORCEINLINE int GetSavedOffsetSize() {
 		//AttachedToObject
-		return  -4u;
+		return  -4;
 	}
 };
 
@@ -168,7 +176,7 @@ public:
 };
 
 //Container that do lookup,Allocate,Cleaup
-template <typename T , DWORD Canary>
+template <typename T>
 class Container : public PassiveContainer<T>
 {
 private:
@@ -339,7 +347,7 @@ public:
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
 		static_assert(T::Canary < std::numeric_limits<size_t>::max(), "Canary Too Big !");
-		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->GetName());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
@@ -347,7 +355,7 @@ public:
 	// Do Saave
 	void SaveStatic()
 	{
-		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
+		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, this->GetName());
 		if (this->SavingObject && this->SavingStream) {
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
@@ -360,11 +368,11 @@ public:
 	// Do Load
 	bool LoadStatic()
 	{
-		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
+		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, this->GetName());
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(this->SavingObject, this->SavingStream)){
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->GetName());
 				return false;
 			}
 		}
@@ -398,10 +406,10 @@ protected:
 			}
 
 			// write the current pointer, the size of the block, and the canary
-			PhobosByteStream saver { extension_type::GetSavedSize() };
+			PhobosByteStream saver { sizeof(extension_type) - extension_type::GetSavedOffsetSize() };
 			PhobosStreamWriter writer { saver };
 
-			writer.Save(T::Canary);
+			writer.Save(extension_type::Canary);
 			writer.Save(buffer);
 
 			// save the data
@@ -432,7 +440,7 @@ protected:
 			}
 
 			this->ClearExtAttribute(key);
-			auto buffer = this->AllocateUnlchecked(key);
+			auto buffer = this->AllocateUnchecked(key);
 			this->SetExtAttribute(key, buffer);
 
 			PhobosByteStream loader { 0 };
@@ -443,7 +451,7 @@ protected:
 			}
 
 			PhobosStreamReader reader { loader };
-			if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
+			if (reader.Expect(extension_type::Canary) && reader.RegisterChange(buffer))
 			{
 				buffer->LoadFromStream(reader);
 				if (reader.ExpectEndOfBlock())
@@ -455,3 +463,8 @@ protected:
 	}
 
 };
+
+template<typename T >
+static FORCEINLINE T GetExtPtr(IExtension* who) {
+	return dynamic_cast<T>(who);
+}
