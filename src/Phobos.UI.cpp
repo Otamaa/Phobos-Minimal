@@ -1,6 +1,6 @@
 #include "Phobos.UI.h"
 
-#ifndef EXPERIMENTAL_IMGUI
+#ifdef EXPERIMENTAL_IMGUI
 
 /*
 	Based from : https://github.com/CCHyper/Vinifera/commits/dev/imgui-dev/

@@ -305,6 +305,8 @@ public:
 	double Shield_ConditionYellow {};
 	double Shield_ConditionRed {};
 
+	double ConditionYellow_Terrain {};
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

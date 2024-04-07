@@ -681,7 +681,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->CrateGoodie_RerollChance.Read(exINI, pSection, "CrateGoodie.RerollChance");
 		this->Destroyed_CrateType.Read(exINI, pSection, "CrateGoodie.WhenDestroyed");
-
+		this->Infantry_DimWhenEMPEd.Read(exINI, pSection, "Infantry.DimUnderEMP");
+		this->Infantry_DimWhenDisabled.Read(exINI, pSection, "Infantry.DimWhenDisabled");
 #pragma region Prereq
 
 	std::string _Prerequisite_key = "Prerequisite";
@@ -2137,6 +2138,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VoicePickup)
 		.Process(this->CrateGoodie_RerollChance)
 		.Process(this->Destroyed_CrateType)
+		.Process(this->Infantry_DimWhenEMPEd)
+		.Process(this->Infantry_DimWhenDisabled)
 		;
 }
 

@@ -66,92 +66,71 @@ RequirementStatus HouseExtData::RequirementsMet(
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const bool IsHuman = pHouse->IsControlledByHuman();
+	const bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
 
-	if (pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable))
+	if (!IsUnbuildable)
 	{
-		return RequirementStatus::Forbidden;
-	}
-
-	if (!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))))
-	{
-		return RequirementStatus::Forbidden;
-	}
-
-	if (Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
-	{
-		return RequirementStatus::Forbidden;
-	}
-
-	if (pHouseExt->Reversed.contains(pItem))
-	{
-		return RequirementStatus::Overridden;
-	}
-
-	if (pData->RequiredStolenTech.any())
-	{
-		if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech)
+		if ((pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))) != 0)
 		{
-			return RequirementStatus::Incomplete;
+			if (!Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
+			{
+				if (pHouseExt->Reversed.contains(pItem)) {
+					return RequirementStatus::Overridden;
+				}
+
+				if (pData->RequiredStolenTech.any()) {
+					if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
+						return RequirementStatus::Incomplete;
+					}
+				}
+
+				if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride)) {
+					return RequirementStatus::Overridden;
+				}
+
+				if (pHouse->HasFromSecretLab(pItem)) {
+					return RequirementStatus::Overridden;
+				}
+
+				if (IsHuman && pItem->TechLevel == -1) {
+					return RequirementStatus::Incomplete;
+				}
+
+				if (!pHouse->HasAllStolenTech(pItem)) {
+					return RequirementStatus::Incomplete;
+				}
+
+				if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem)) {
+					return RequirementStatus::Forbidden;
+				}
+
+				if (!HouseExtData::CheckFactoryOwners(pHouse, pItem)) {
+					return RequirementStatus::Incomplete;
+				}
+
+				if (auto const pBldType = specific_cast<BuildingTypeClass const*>(pItem)) {
+					if (HouseExtData::IsDisabledFromShell(pHouse, pBldType)) {
+						return RequirementStatus::Forbidden;
+					}
+				}
+
+				if (pData->Prerequisite_Power.isset()) {
+					if (pData->Prerequisite_Power <= 0) {
+						if (-pData->Prerequisite_Power > pHouse->PowerOutput) {
+							return RequirementStatus::Incomplete;
+						}
+					} else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain) {
+						return RequirementStatus::Incomplete;
+					}
+				}
+
+				return (pHouse->TechLevel >= pItem->TechLevel) ?
+					RequirementStatus::Complete : RequirementStatus::Incomplete;
+			}
 		}
 	}
 
-	if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride))
-	{
-		return RequirementStatus::Overridden;
-	}
-
-	if (pHouse->HasFromSecretLab(pItem))
-	{
-		return RequirementStatus::Overridden;
-	}
-
-	if (IsHuman && pItem->TechLevel == -1)
-	{
-		return RequirementStatus::Incomplete;
-	}
-
-	if (!pHouse->HasAllStolenTech(pItem))
-	{
-		return RequirementStatus::Incomplete;
-	}
-
-	if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem))
-	{
-		return RequirementStatus::Forbidden;
-	}
-
-	if (!HouseExtData::CheckFactoryOwners(pHouse, pItem))
-	{
-		return RequirementStatus::Incomplete;
-	}
-
-	if (auto const pBldType = specific_cast<BuildingTypeClass const*>(pItem))
-	{
-		if (HouseExtData::IsDisabledFromShell(pHouse, pBldType))
-		{
-			return RequirementStatus::Forbidden;
-		}
-	}
-
-	//if(IsHuman && !HouseExtData::PrerequisitesMet(pHouse, pItem))
-	//	return RequirementStatus::Incomplete;
-
-	if (pData->Prerequisite_Power.isset())
-	{
-		if (pData->Prerequisite_Power <= 0)
-		{
-			if (-pData->Prerequisite_Power > pHouse->PowerOutput)
-				return RequirementStatus::Incomplete;
-		}
-		else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain)
-		{
-			return RequirementStatus::Incomplete;
-		}
-	}
-
-	return (pHouse->TechLevel >= pItem->TechLevel) ?
-		RequirementStatus::Complete : RequirementStatus::Incomplete;
-
+	return RequirementStatus::Unbuildable;
 }
 
 std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
@@ -181,7 +160,6 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 		if (pBld->InLimbo
 			|| pBld->GetCurrentMission() == Mission::Selling
 			|| pBld->QueuedMission == Mission::Selling
-			|| pBld->TemporalTargetingMe
 		)
 		{
 			continue;
@@ -219,6 +197,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 				//do only single loop and use the pOfflineBuildingResult
 				if (b7)
 				{
+					pOfflineBuilding = pBld;
 					break;
 				}
 			}
@@ -310,14 +289,18 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pItem);
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-	if (!pExt->FactoryOwners.empty() || !pExt->FactoryOwners_Forbidden.empty()) {
-		for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf) {
+	if (!pExt->FactoryOwners.empty() || !pExt->FactoryOwners_Forbidden.empty())
+	{
+		for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf)
+		{
 
 			auto FactoryOwners_begin = pExt->FactoryOwners.begin();
 			const auto FactoryOwners_end = pExt->FactoryOwners.end();
 
-			if (FactoryOwners_begin != FactoryOwners_end) {
-				while (*FactoryOwners_begin != gather) {
+			if (FactoryOwners_begin != FactoryOwners_end)
+			{
+				while (*FactoryOwners_begin != gather)
+				{
 					if (++FactoryOwners_begin == FactoryOwners_end)
 						continue;
 				}
@@ -813,13 +796,13 @@ int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
 		std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(),
 		[pThis](TechnoClass* techno)
 		{
-				if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking || techno->Owner != pThis)
-					return false;
+			if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking || techno->Owner != pThis)
+				return false;
 
-				if (techno->WhatAmI() == UnitClass::AbsID && (static_cast<UnitClass*>(techno)->DeathFrameCounter > 0))
-					return false;
+			if (techno->WhatAmI() == UnitClass::AbsID && (static_cast<UnitClass*>(techno)->DeathFrameCounter > 0))
+				return false;
 
-				return TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())->IsCountedAsHarvester() && TechnoExtData::IsHarvesting(techno);
+			return TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())->IsCountedAsHarvester() && TechnoExtData::IsHarvesting(techno);
 		});
 
 	return result;
@@ -1225,7 +1208,8 @@ BuildLimitStatus HouseExtData::CheckBuildLimit(
 	int BuildLimit = pItem->BuildLimit;
 
 	const auto& req = TechnoTypeExtContainer::Instance.Find(pItem)->BuildLimit_Requires;
-	if (!req.empty() && !Prereqs::HouseOwnsAll(pHouse, (int*)req.data(), req.size())) {
+	if (!req.empty() && !Prereqs::HouseOwnsAll(pHouse, (int*)req.data(), req.size()))
+	{
 		BuildLimit = INT_MAX;
 	}
 

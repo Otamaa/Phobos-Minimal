@@ -4372,41 +4372,40 @@ bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 {
 	auto const abs = pTechno->WhatAmI();
 
-	if (abs == AbstractType::Building)
-	{
-		auto const pBld = static_cast<BuildingClass const*>(pTechno);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
-		// exclude invisible buildings
-		if (pBld->Type->InvisibleInGame)
+	if (!pTypeExt->ImmuneToEMP.isset()) {
+		bool TypeImmune = false;
+
+		if (abs == AbstractType::Building) {
+			auto const pBld = static_cast<BuildingClass const*>(pTechno);
+
+			TypeImmune = !pBld->Type->InvisibleInGame
+				&& (pBld->Type->Powered && pBld->Type->PowerDrain > 0
+				 || pBld->Type->Radar
+				 || pBld->Type->SuperWeapon >= 0
+				 || pBld->Type->SuperWeapon2 >= 0
+				 || pBld->Type->UndeploysInto
+				 || pBld->Type->PowersUnit
+				 || pBld->Type->Sensors
+				 || pBld->Type->LaserFencePost
+				 || pBld->Type->GapGenerator);
+		}
+		else if (abs == AbstractType::Infantry)
 		{
-			return false;
+			// affected only if this is a cyborg.
+			TypeImmune = static_cast<InfantryClass const*>(pTechno)->Type->Cyborg;
+		}
+		else
+		{
+			// if this is a vessel or vehicle that is organic: no effect.
+			TypeImmune = !pTechno->GetTechnoType()->Organic;
 		}
 
-		// buildings are prone if they consume power and need it to function
-		if (pBld->Type->Powered && pBld->Type->PowerDrain > 0) {
-			return true;
-		}
+		pTypeExt->ImmuneToEMP = !TypeImmune;
+	}
 
-		// may have a special function.
-		return pBld->Type->Radar
-			|| pBld->Type->HasSuperWeapon()
-			|| pBld->Type->UndeploysInto
-			|| pBld->Type->PowersUnit
-			|| pBld->Type->Sensors
-			|| pBld->Type->LaserFencePost
-			|| pBld->Type->GapGenerator;
-
-	}
-	else if (abs == AbstractType::Infantry)
-	{
-		// affected only if this is a cyborg.
-		return static_cast<InfantryClass const*>(pTechno)->Type->Cyborg;
-	}
-	else
-	{
-		// if this is a vessel or vehicle that is organic: no effect.
-		return !pTechno->GetTechnoType()->Organic;
-	}
+	return pTypeExt->ImmuneToEMP.Get();
 }
 
 bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse)
@@ -4457,12 +4456,10 @@ bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* 
 
 bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 {
-	if (TechnoExtData::IsEMPImmune(Target))
+	if (AresEMPulse::IsTypeEMPProne(Target))
 		return true;
 
-	auto pType = Target->GetTechnoType();
-
-	if (!AresEMPulse::IsTypeEMPProne(Target))
+	if (TechnoExtData::IsEMPImmune(Target))
 		return true;
 
 	// if houses differ, TypeImmune does not count.
@@ -4492,10 +4489,9 @@ bool AresEMPulse::isEMPTypeImmune(TechnoClass* Target)
 	for (auto i = 0; i < WeaponCount; ++i) {
 
 		if (auto pWeaponType = Target->GetWeapon(i)->WeaponType) {
-			auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead);
-			if (pWarheadExt->EMP_Duration != 0) {
-					// this unit can fire emps and type immunity
-					// grants it to never be affected.
+			if (WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->EMP_Duration != 0) {
+				// this unit can fire emps and type immunity
+				// grants it to never be affected.
 				return true;
 			}
 		}

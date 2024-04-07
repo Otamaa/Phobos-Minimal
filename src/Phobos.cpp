@@ -36,7 +36,7 @@
 //#pragma comment(lib, "version.lib")
 //#pragma comment(lib, "comctl32.lib")
 
-#ifndef EXPERIMENTAL_IMGUI
+#ifdef EXPERIMENTAL_IMGUI
 DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
 {
 	PhobosWindowClass::Callback();
@@ -828,7 +828,7 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 #endif
 {
 	Phobos::ExeTerminate();
-#ifndef EXPERIMENTAL_IMGUI
+#ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Destroy();
 #endif
 	CRT::exit_noreturn(0);
@@ -869,7 +869,7 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
-#ifndef EXPERIMENTAL_IMGUI
+#ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();
 #endif
 	return 0;

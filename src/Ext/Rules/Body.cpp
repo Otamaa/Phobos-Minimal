@@ -62,14 +62,17 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	Nullable<double> Shield_ConditionGreen_d;
 	Nullable<double> Shield_ConditionYellow_d;
 	Nullable<double> Shield_ConditionRed_d;
+	Nullable<double> ConditionYellow_Terrain_d;
 
 	Shield_ConditionGreen_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionGreen");// somewhat never used , man
 	Shield_ConditionYellow_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionYellow");
 	Shield_ConditionRed_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionRed");
+	ConditionYellow_Terrain_d.Read(iniEX, AUDIOVISUAL_SECTION, "ConditionYellow.Terrain");
 
 	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
 	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
 	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
+	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionRed);
 }
 
 DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5){
@@ -1138,6 +1141,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Shield_ConditionGreen)
 		.Process(this->Shield_ConditionYellow)
 		.Process(this->Shield_ConditionRed)
+		.Process(this->ConditionYellow_Terrain)
 
 		.Process(this->UnitCrateVehicleCap)
 		.Process(this->FreeMCV_CreditsThreshold)

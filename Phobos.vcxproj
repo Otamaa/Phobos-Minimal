@@ -196,13 +196,6 @@
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_tables.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\Lib\imgui\imgui_stdlib.cpp" />
     <ClCompile Include="src\Lib\Lua542\lapi.c" />
     <ClCompile Include="src\Lib\Lua542\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua542\lbaselib.c" />
@@ -452,15 +445,6 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
-    <ClInclude Include="src\Lib\imgui\imconfig.h" />
-    <ClInclude Include="src\Lib\imgui\imgui.h" />
-    <ClInclude Include="src\Lib\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="src\Lib\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="src\Lib\imgui\imgui_internal.h" />
-    <ClInclude Include="src\Lib\imgui\imgui_stdlib.h" />
-    <ClInclude Include="src\Lib\imgui\imstb_rectpack.h" />
-    <ClInclude Include="src\Lib\imgui\imstb_textedit.h" />
-    <ClInclude Include="src\Lib\imgui\imstb_truetype.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />

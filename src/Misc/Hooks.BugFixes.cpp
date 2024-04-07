@@ -49,7 +49,7 @@
 */
 
 DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
-DEFINE_JUMP(LJMP, 0x546C23, 0x546C8B) //Phobos_BugFixes_Tileset255_RefNonMMArray
+DEFINE_JUMP(LJMP, 0x546C23, 0x546CBF) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
 // WWP's shit code! Wrong check.
 // To avoid units dying when they are already dead.
@@ -440,11 +440,21 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 		nTintColor |= GeneralUtils::GetColorFromColorAdd(TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType())->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
 		NeedUpdate = true;
 	}
+
+	const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
 	// EMP
-	if (pThis->Deactivated)
-	{
-		R->EBP(nIntensity / 2);
-		NeedUpdate = true;
+	if (pThis->IsUnderEMP()) {
+		if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg)) {
+			R->EBP(nIntensity / 2);
+			NeedUpdate = true;
+		}
+	} else if (pThis->IsDeactivated()) {
+		if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg)) {
+			R->EBP(nIntensity / 2);
+			NeedUpdate = true;
+		}
 	}
 
 	if (pBld && NeedUpdate)
