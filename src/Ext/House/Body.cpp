@@ -66,9 +66,9 @@ RequirementStatus HouseExtData::RequirementsMet(
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const bool IsHuman = pHouse->IsControlledByHuman();
-	const bool IsForbidden = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
+	const bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
 
-	if (!IsForbidden)
+	if (!IsUnbuildable)
 	{
 		if ((pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))) != 0)
 		{
@@ -130,7 +130,7 @@ RequirementStatus HouseExtData::RequirementsMet(
 		}
 	}
 
-	return RequirementStatus::Absolute;
+	return RequirementStatus::Unbuildable;
 }
 
 std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
