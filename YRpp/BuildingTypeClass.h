@@ -309,9 +309,8 @@ public:
 	Point2D QueueingCell;
 	int NumberImpassableRows;
 
-	Point2D RemoveOccupy[8];
-
 	Point2D AddOccupy[8];
+	Point2D RemoveOccupy[8];
 
 	bool Radar;
 	bool SpySat;
