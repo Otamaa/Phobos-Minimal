@@ -92,6 +92,9 @@ public:
 	Valueable<bool> ExtraShadow { true };
 	NullableIdx<VocClass> DetachedReport {};
 
+	Valueable<int> AdditionalHeight {};
+	NullableIdx<VocClass> AltReport {};
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 
@@ -142,10 +145,14 @@ private:
 	AnimTypeExtData& operator = (AnimTypeExtData&&) = delete;
 };
 
+class AnimClass;
 class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 {
 public:
 	static AnimTypeExtContainer Instance;
+
+	AnimTypeExtData* Find(AnimClass* key);
+	AnimTypeExtData* Find(AnimTypeClass* key);
 
 	CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };

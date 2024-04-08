@@ -149,7 +149,9 @@ DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7015C9, TechnoClass_ChangeOwnership_UpdateTracking, 0x6)
+#include <Misc/Ares/Hooks/Header.h>
+
+DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EBP);
@@ -158,13 +160,29 @@ DEFINE_HOOK(0x7015C9, TechnoClass_ChangeOwnership_UpdateTracking, 0x6)
 	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	/*auto pExt = TechnoExtContainer::Instance.Find(pThis);*/
+
+	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
+	{
+		pThis->Owner->RecheckTechTree = true;
+		pNewOwner->RecheckTechTree = true;
+	}
+
+	if (auto pMe = generic_cast<FootClass*>(pThis))
+	{
+		bool I_am_human = pThis->Owner->IsControlledByHuman();
+		bool You_are_human = pNewOwner->IsControlledByHuman();
+		TechnoTypeClass* const pConvertTo = (I_am_human && !You_are_human) ? pTypeExt->Convert_HumanToComputer.Get() :
+			(!I_am_human && You_are_human) ? pTypeExt->Convert_ComputerToHuman.Get() : nullptr;
+
+		if (pConvertTo)
+			TechnoExt_ExtData::ConvertToType(pMe, pConvertTo,true , false);
+	}
 
 	//this kind a dangerous
-	const KillMethod nMethod = pTypeExt->Death_Method.Get();
-	if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
-		TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
-	}
+	//const KillMethod nMethod = pTypeExt->Death_Method.Get();
+	//if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
+	//	TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
+	//}
 
 	if (pThis->InLimbo) {
 		pOldOwnerExt->LimboTechno.remove(pThis);

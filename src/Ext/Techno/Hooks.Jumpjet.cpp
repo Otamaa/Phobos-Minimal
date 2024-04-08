@@ -142,27 +142,28 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 
 }
 
-// These are subject to changes if someone wants to properly implement jumpjet tilting
-DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
+DEFINE_JUMP(LJMP, 0x54DCCF, 0x54DCE8);//JumpjetLocomotionClass_DrawMatrix_NoTiltCrashJumpjetHereBlyat
+
+// We no longer explicitly check TiltCrashJumpjet when drawing, do it when crashing
+DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
-	GET(ILocomotion* const, iloco, ESI);
-	//if (static_cast<JumpjetLocomotionClass*>(iloco)->State < JumpjetLocomotionClass::State::Crashing)
-	if (static_cast<JumpjetLocomotionClass* const>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
-		return 0x54DCE8;
+	GET(TechnoClass*, pThis, ESI);
+
+	if (generic_cast<FootClass*>(pThis) && locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) && !pThis->GetTechnoType()->TiltCrashJumpjet)
+		return 0x70BCA4;
 
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 {
 	GET(ILocomotion*, iloco, ESI);
-	auto state = static_cast<JumpjetLocomotionClass*>(iloco)->State;
-	if (state && state < JumpjetLocomotionClass::State::Crashing)
-		return  0x54DE88;
-	return 0;
+
+	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
+		return 0;
+
+	return 0x54DE88;
 }
-*/
 
 //TODO : Issue #690 #655
 
@@ -227,6 +228,16 @@ DEFINE_HOOK(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
 }
+
+void __stdcall JumpjetLocomotionClass_DoTurn(ILocomotion* iloco, DirStruct dir)
+{
+	// This seems to be used only when unloading shit on the ground
+	// Rewrite just in case
+	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
+	pThis->Facing.Set_Desired(dir);
+	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
+}
+DEFINE_JUMP(VTABLE, 0x7ECDB4, GET_OFFSET(JumpjetLocomotionClass_DoTurn))
 
 // Bugfix: Jumpjet turn to target when attacking
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too

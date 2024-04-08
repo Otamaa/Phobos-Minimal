@@ -64,6 +64,22 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 	}
 }
 
+DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis);
+
+	if (pTypeExt->AltReport.isset()) {
+		VocClass::PlayIndexAtPos(pTypeExt->AltReport, pThis->GetCoords(), nullptr);
+	}
+
+	if (pTypeExt->AdditionalHeight > 0)
+		pThis->Location.Z += pTypeExt->AdditionalHeight;
+
+	return 0;
+}
+
 DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
 {
 	enum {

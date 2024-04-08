@@ -129,6 +129,34 @@ public:
 	REG_SHORTCUTS_X(r); \
 	REG_SHORTCUTS_HL(r); \
 
+static constexpr const char* Register_names[] = {
+  "EDI", "ESI", "EBP", "ESP", "EBX", "EDX", "ECX", "EAX"
+};
+
+enum class RegistersType : int {
+	EDI , ESI , EBP , ESP , EBX , EDX , ECX , EAX
+};
+
+#define MAKEREG(RegName , inherit , type)\
+struct RegName : public inherit {\
+	constexpr inline const char* name() const {\
+		return Register_names[(int)RegistersType::type];\
+	}\
+	constexpr inline RegistersType type() const {\
+		return RegistersType::type;\
+	}\
+};\
+static_assert(sizeof(RegName) == sizeof(inherit));
+
+MAKEREG(LI_EDI, LimitedRegister, EDI)
+MAKEREG(LI_ESI, LimitedRegister, ESI)
+MAKEREG(ST_EBP, StackRegister, EBP)
+MAKEREG(ST_ESP, StackRegister, ESP)
+MAKEREG(EX_EBX, ExtendedRegister, EBX)
+MAKEREG(EX_EDX , ExtendedRegister, EDX)
+MAKEREG(EX_ECX, ExtendedRegister, ECX)
+MAKEREG(EX_EAX, ExtendedRegister, EAX)
+
 //A pointer to this class is passed as an argument to EXPORT functions
 class REGISTERS
 {
@@ -136,14 +164,14 @@ private:
 	DWORD	origin;
 	DWORD	flags;
 
-	LimitedRegister _EDI;
-	LimitedRegister _ESI;
-	StackRegister _EBP;
-	StackRegister _ESP;
-	ExtendedRegister _EBX;
-	ExtendedRegister _EDX;
-	ExtendedRegister _ECX;
-	ExtendedRegister _EAX;
+	LI_EDI _EDI;
+	LI_ESI _ESI;
+	ST_EBP _EBP;
+	ST_ESP _ESP;
+	EX_EBX _EBX;
+	EX_EDX _EDX;
+	EX_ECX _ECX;
+	EX_EAX _EAX;
 
 public:
 	DWORD Origin() const

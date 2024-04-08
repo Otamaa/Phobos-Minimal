@@ -1185,7 +1185,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DeployedArmor.Read(exINI, pSection, "DeployedArmor");
 
 		this->Cloakable_IgnoreArmTimer.Read(exINI, pSection, "Cloakable.IgnoreROFTimer");
+		this->Convert_HumanToComputer.Read(exINI, pSection, "Convert.HumanToComputer");
+		this->Convert_ComputerToHuman.Read(exINI, pSection, "Convert.ComputerToHuman");
 
+		this->ShadowSizeCharacteristicHeight.Read(exINI, pSection, "ShadowSizeCharacteristicHeight");
 
 		if (this->AttachtoType != AbstractType::BuildingType)
 		{
@@ -1209,7 +1212,25 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
-		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
+
+		std::vector<int> shadow_indices {};
+		detail::ReadVectors(shadow_indices, exArtINI, pArtSection, "ShadowIndices");
+		std::vector<int> shadow_indices_frame;
+		detail::ReadVectors(shadow_indices_frame, exArtINI, pArtSection, "ShadowIndices.Frame");
+
+		if (shadow_indices_frame.size() != shadow_indices.size())
+		{
+			if (!shadow_indices_frame.empty())
+				Debug::Log("[Developer warning] %s ShadowIndices.Frame size (%d) does not match ShadowIndices size (%d) \n"
+					, pSection, shadow_indices_frame.size(), shadow_indices.size());
+
+			shadow_indices_frame.resize(shadow_indices.size(), -1);
+		}
+
+		for (size_t i = 0; i < shadow_indices.size(); i++)
+			this->ShadowIndices[shadow_indices[i]] = shadow_indices_frame[i];
+
+		this->ShadowIndex_Frame.Read(exArtINI, pArtSection, "ShadowIndex.Frame");
 
 		this->LaserTrailData.clear();
 
@@ -1460,6 +1481,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->TurretOffset)
 		.Process(this->TurretShadow)
 		.Process(this->ShadowIndices)
+		.Process(this->ShadowIndex_Frame)
+		.Process(this->ShadowSizeCharacteristicHeight)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
@@ -2140,6 +2163,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Destroyed_CrateType)
 		.Process(this->Infantry_DimWhenEMPEd)
 		.Process(this->Infantry_DimWhenDisabled)
+		.Process(this->Convert_HumanToComputer)
+		.Process(this->Convert_ComputerToHuman)
 		;
 }
 

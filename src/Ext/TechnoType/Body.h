@@ -141,8 +141,6 @@ public:
 	Valueable<bool> Interceptor_OnlyTargetBullet { false };
 
 	Nullable<PartialVector3D<int>> TurretOffset {};
-	Nullable<bool> TurretShadow {};
-	ValueableVector<int> ShadowIndices {};
 	Valueable<bool> Powered_KillSpawns { false };
 	Valueable<bool> Spawn_LimitedRange { false };
 	Valueable<int> Spawn_LimitedExtraRange { 0 };
@@ -902,6 +900,14 @@ public:
 
 	Nullable<bool> Infantry_DimWhenEMPEd {};
 	Nullable<bool> Infantry_DimWhenDisabled {};
+
+	Valueable<TechnoTypeClass*> Convert_HumanToComputer { };
+	Valueable<TechnoTypeClass*> Convert_ComputerToHuman { };
+
+	Nullable<bool> TurretShadow {};
+	Valueable<int> ShadowIndex_Frame { 0 };
+	std::map<int, int> ShadowIndices {};
+	Nullable<int> ShadowSizeCharacteristicHeight {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

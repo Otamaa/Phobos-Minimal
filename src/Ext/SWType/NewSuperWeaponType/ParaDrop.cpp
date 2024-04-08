@@ -20,7 +20,7 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 	{
 		auto pTarget = MapClass::Instance->TryGetCellAt(Coords);
 		// all set. send in the planes.
-		return this->SendParadrop(pThis, pTarget);
+		return pTarget ? this->SendParadrop(pThis, pTarget) : false;
 	}
 
 	return false;

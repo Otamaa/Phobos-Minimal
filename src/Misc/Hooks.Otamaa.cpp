@@ -6378,3 +6378,13 @@ DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
 	- UnitClass::Approach_Target , IF Unit && if Jellyfish -> return
 	- TS ExplosionDamage func -> 0x45F22B ??
 */
+
+// AttackMove Only for Foot
+DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);
+
+DEFINE_HOOK(0x70FF65, TechnoClass_ApplyLocomotorToTarget_CleaupFirst_Crash, 0x6)
+{
+	GET(TechnoClass*, pFirer, ESI);
+
+	return pFirer->LocomotorTarget ? 0x0 : 0x70FF77;
+}

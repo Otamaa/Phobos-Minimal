@@ -72,11 +72,11 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
 	{
 		const double dDamage = (double)damage;
-		const float fDamage = float(dDamage);
+		//const float fDamage = float(dDamage);
 		const double dCellSpreadRadius = pWH->CellSpread * 256.0;
 		const int cellSpreadRadius = int(dCellSpreadRadius);
 
-		const float Atmax = float(dDamage * pWH->PercentAtMax);
+		const double Atmax = double(dDamage * pWH->PercentAtMax);
 		const auto vsData = &pExt->Verses[armorIdx];
 		//Debug::Log("[%s]ResultDamage before for armor[%s] %d atmax %fl spread %fl fDamage %fl Caller [%x]\n",
 		//	pWH->ID,
@@ -87,17 +87,17 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 		//	fDamage,
 		//	R->Stack<DWORD>(0x0));
 
-		if (Atmax != fDamage && cellSpreadRadius) {
-			res = int((double)(fDamage - Atmax) * (double)(cellSpreadRadius - distance) / dCellSpreadRadius + Atmax);
+		if (Atmax != dDamage && cellSpreadRadius) {
+			res = int((double)(dDamage - Atmax) * (double)(cellSpreadRadius - distance) / dCellSpreadRadius + Atmax);
 		} else {
 			res = damage;
 		}
 
 		//Debug::Log("[%s]ResultDamage1 for armor[%s] %d Caller [%x]\n", pWH->ID, ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
-		res = int((double)((res <= 0) ? 0 : res) * vsData->Verses);
+		res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
 		//Debug::Log("[%s]ResultDamage2 for armor[%s] %d Caller [%x]\n", pWH->ID , ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
 
-		if (res >= RulesClass::Instance->MaxDamage)
+		if (res > RulesClass::Instance->MaxDamage)
 			res = RulesClass::Instance->MaxDamage;
 	}
 	else

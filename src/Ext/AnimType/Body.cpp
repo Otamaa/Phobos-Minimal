@@ -142,6 +142,9 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->RemapAnim.Read(exINI, pID, "RemapAnim");
 	this->ExtraShadow.Read(exINI, pID, "ExtraShadow");
+
+	this->AdditionalHeight.Read(exINI, pID, "AdditionalHeight");
+	this->AltReport.Read(exINI, pID, "AltReport");
 #pragma endregion
 }
 
@@ -462,10 +465,23 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->AltPalette_ApplyLighting)
 		.Process(this->ExtraShadow)
 		.Process(this->DetachedReport)
+
+		.Process(this->AdditionalHeight)
+		.Process(this->AltReport)
 		;
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
+
+AnimTypeExtData* AnimTypeExtContainer::Find(AnimClass* key)
+{
+	return this->GetExtAttribute(key->Type);
+}
+
+AnimTypeExtData* AnimTypeExtContainer::Find(AnimTypeClass* key)
+{
+	return this->GetExtAttribute(key);
+}
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {

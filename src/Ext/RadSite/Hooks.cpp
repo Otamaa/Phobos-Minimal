@@ -234,11 +234,17 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 		for (auto pFoundation = pBuilding->GetFoundationData(false);
 			*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 		{
+			if (!pBuilding->IsAlive)
+				return Dead;
+
 			const auto nLoc = nCurCoord + (*pFoundation);
 
 			// Loop for each different radiation stored in the RadSites container
 			for (auto pRadSite : *RadSiteClass::Array())
 			{
+				if (!pBuilding->IsAlive)
+					return Dead;
+
 				const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
 
 				// Check the distance, if not in range, just skip this one

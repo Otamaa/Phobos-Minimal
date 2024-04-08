@@ -712,3 +712,25 @@ enum class AirAttackStatusP : int
 //	R->EAX(Mission_Attack(R->ECX<AircraftClass*>()));
 //	return 0x418D54;
 //}
+
+DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
+{
+	GET(ILocomotion*, iloco, ESI);
+	auto loco = static_cast<FlyLocomotionClass*>(iloco);
+	auto pThis = static_cast<AircraftClass*>(loco->LinkedTo);
+	if (loco->AirportBound && loco->CurrentSpeed == 0.0 && pThis->GetHeight() <= 0)
+	{
+		float ars = pThis->AngleRotatedSideways;
+		float arf = pThis->AngleRotatedForwards;
+		if (std::abs(ars) > 0.005 || std::abs(arf) > 0.005)
+		{
+			LEA_STACK(Matrix3D*, mat, STACK_OFFSET(0x38, -0x30));
+			mat->TranslateZ(float(std::abs(Math::sin(ars)) * pThis->Type->VoxelScaleX
+				+ std::abs(Math::sin(arf)) * pThis->Type->VoxelScaleY));
+			R->ECX(pThis);
+			return 0x4CF6AD;
+		}
+	}
+
+	return 0;
+}

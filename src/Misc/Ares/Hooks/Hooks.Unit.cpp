@@ -1205,22 +1205,6 @@ DEFINE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pNewOwner, EBP);
-
-	auto const pType = pThis->GetTechnoType();
-
-	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-		pNewOwner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {
 	GET(UnitClass* const, pThis, ESI);

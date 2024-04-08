@@ -150,9 +150,6 @@ SWRange SW_GeneticMutator::GetRange(const SWTypeExtData* pData) const
 	if (!pData->SW_Range->empty()) {
 		return pData->SW_Range;
 	}
-	else if (RulesClass::Instance->MutateExplosion) {
-		return { 5, -1 };
-	}
 
-	return { 3, 3 };
+	return RulesClass::Instance->MutateExplosion  ? SWRange{ 3, 3 } : SWRange{ 5, -1 };
 }

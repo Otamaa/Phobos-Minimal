@@ -94,10 +94,9 @@ DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
 	// When jumpjets arrived at their FootClass::Destination, they seems stuck at the Move mission
 	// and therefore the turret facing was set to DirStruct{atan2(0,0)}==DirType::East at 0x736BBB
 	// that's why they will come back to normal when giving stop command explicitly
-	const auto pType = pThis->Type;
 	// so the best way is to fix the Mission if necessary, but I don't know how to do it
-	// so I skipped jumpjets check temporarily, and in most cases Jumpjet/BallonHover should cover most of it
-	if (!pType->TurretSpins && (pType->JumpJet || pType->BalloonHover))
+	// so I skipped jumpjets check temporarily
+	if (!pThis->Type->TurretSpins && locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 		return SkipCheckDestination;
 
 	return 0;

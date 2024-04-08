@@ -217,7 +217,7 @@ public:
 	}
 
 	// Direct multiplication pow
-	static inline double FastPow(double x, double n)
+	static constexpr inline double FastPow(double x, double n)
 	{
 		double r = 1.0;
 
@@ -228,6 +228,13 @@ public:
 		}
 
 		return r;
+	}
+	// 2nd order Pade approximant just in case someone complains about performance
+	static constexpr double Pade2_2(double in)
+	{
+		const double s = in - static_cast<int>(in);
+		return GeneralUtils::FastPow(0.36787944117144233, static_cast<int>(in))
+			* (12. - 6 * s + s * s) / (12. + 6 * s + s * s);
 	}
 
 	template<typename T>
@@ -494,9 +501,34 @@ public:
 		return green;
 	}
 
+	// Zero out a non-array pointer.
+	template <typename T>
+	static inline void
+		MemsetZero(T* t)
+	{
+		std::memset(t, 0, sizeof(*t));
+	}
+
+	template <typename T>
+	struct cast_to_pointer {
+		static inline void* cast(const T& t) {
+			return reinterpret_cast<void*>((uintptr_t)t);
+		}
+	};
+
+	template <typename T>
+	struct cast_to_pointer<T*> {
+		static inline const void* cast(const T* ptr) {
+			return ptr;
+		}
+
+		static inline void* cast(T* ptr) {
+			return ptr;
+		}
+	};
+
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
-
 };
 
 struct StopwatchLogger

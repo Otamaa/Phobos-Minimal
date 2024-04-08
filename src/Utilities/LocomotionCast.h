@@ -33,9 +33,16 @@ FORCEINLINE T GetLocomotor(FootClass* pThis)
 
 }
 
-template <class JumpjetLocomotionClass , bool CheckInterface>
-JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
-{
-	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);
-	return locomotion_cast<JumpjetLocomotionClass*>(pILoco);
-}
+//template <class JumpjetLocomotionClass , bool CheckInterface>
+//JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
+//{
+//	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);
+//	return locomotion_cast<JumpjetLocomotionClass*>(pILoco);
+//}
+//
+//template <class FlyLocomotionClass, bool CheckInterface>
+//FlyLocomotionClass* GetLocomotorType(FootClass* pThis)
+//{
+//	const auto pILoco = GetLocomotor<FlyLocomotionClass*, CheckInterface>(pThis);
+//	return locomotion_cast<FlyLocomotionClass*>(pILoco);
+//}

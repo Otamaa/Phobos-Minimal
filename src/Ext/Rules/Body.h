@@ -307,6 +307,10 @@ public:
 
 	double ConditionYellow_Terrain {};
 
+	Valueable<bool> HeightShadowScaling { false };
+	Valueable<double> HeightShadowScaling_MinScale { 0.0 };
+	double AirShadowBaseScale_log { 0.693376137 };
+
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;

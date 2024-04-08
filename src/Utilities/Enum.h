@@ -33,7 +33,12 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+enum class EntityType : int
+{
+	None,
 
+	count
+};
 enum class AresNewSuperType : int
 {
 	SonarPulse = 0,
