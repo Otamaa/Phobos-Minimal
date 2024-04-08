@@ -211,12 +211,15 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 	return 0x73B6E9;
 }
 
-#ifndef FUCKEDUP
+#ifdef FUCKEDUP
 DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
+	Debug::Log(__FUNCTION__" Executed\n");
 	GET(UnitClass*, pThis, EBP);
 	enum { SkipDrawing = 0x73C5C9 };
+
 	auto const loco = pThis->Locomotor.GetInterfacePtr();
+
 	if (!loco->Is_To_Have_Shadow())
 		return SkipDrawing;
 
@@ -384,6 +387,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {
+	Debug::Log(__FUNCTION__" Executed\n");
 	GET(AircraftClass*, pThis, EBP);
 	GET(const int, height, EBX);
 	REF_STACK(VoxelIndexKey, key, STACK_OFFSET(0xCC, -0xBC));
@@ -466,6 +470,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 
 DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 {
+	Debug::Log(__FUNCTION__" Executed\n");
 	GET(FootClass*, pThis, EBX);//Maybe Techno later
 	GET(VoxelStruct*, pVXL, EBP);
 	GET_STACK(Matrix3D*, pMat, STACK_OFFSET(0xE8, 0xC));
@@ -600,7 +605,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 			//Matrix3D copy_ = *pMatrix;
 			//copy_.TranslateZ(-pVXL->HVA->Matrixes[index].GetZVal());
 			//Matrix3D::MatrixMultiply(&copy_, &Game::VoxelDefaultMatrix(), &copy_);
-			pThis->DrawVoxelShadow(main_vxl, index, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
+			pThis->DrawVoxelShadow(main_vxl, index.first, index_key, shadow_cache, bound, &a3, pMatrix, a9, pSurface, pos);
 		}
 	}
 

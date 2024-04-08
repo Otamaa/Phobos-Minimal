@@ -158,7 +158,6 @@ DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 {
 	GET(ILocomotion*, iloco, ESI);
-
 	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
 		return 0;
 
@@ -229,15 +228,17 @@ DEFINE_HOOK(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
 }
 
-void __stdcall JumpjetLocomotionClass_DoTurn(ILocomotion* iloco, DirStruct dir)
+DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 {
+	GET_STACK(ILocomotion*, iloco, 0x4);
+	GET_STACK(DirStruct, dir, 0x8);
 	// This seems to be used only when unloading shit on the ground
 	// Rewrite just in case
 	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
 	pThis->Facing.Set_Desired(dir);
 	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
+	return 0x54B6FF;
 }
-DEFINE_JUMP(VTABLE, 0x7ECDB4, GET_OFFSET(JumpjetLocomotionClass_DoTurn))
 
 // Bugfix: Jumpjet turn to target when attacking
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too

@@ -715,19 +715,20 @@ enum class AirAttackStatusP : int
 
 DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 {
-	GET(ILocomotion*, iloco, ESI);
-	auto loco = static_cast<FlyLocomotionClass*>(iloco);
-	auto pThis = static_cast<AircraftClass*>(loco->LinkedTo);
-	if (loco->AirportBound && loco->CurrentSpeed == 0.0 && pThis->GetHeight() <= 0)
+	GET(FlyLocomotionClass*, loco, ESI);
+
+	auto pAir = specific_cast<AircraftClass*>(loco->Owner);
+
+	if (pAir && loco->AirportBound && loco->CurrentSpeed == 0.0 && pAir->GetHeight() <= 0)
 	{
-		float ars = pThis->AngleRotatedSideways;
-		float arf = pThis->AngleRotatedForwards;
+		float ars = pAir->AngleRotatedSideways;
+		float arf = pAir->AngleRotatedForwards;
 		if (std::abs(ars) > 0.005 || std::abs(arf) > 0.005)
 		{
 			LEA_STACK(Matrix3D*, mat, STACK_OFFSET(0x38, -0x30));
-			mat->TranslateZ(float(std::abs(Math::sin(ars)) * pThis->Type->VoxelScaleX
-				+ std::abs(Math::sin(arf)) * pThis->Type->VoxelScaleY));
-			R->ECX(pThis);
+			mat->TranslateZ(float(std::abs(Math::sin(ars)) * pAir->Type->VoxelScaleX
+				+ std::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
+			R->ECX(pAir);
 			return 0x4CF6AD;
 		}
 	}
