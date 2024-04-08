@@ -1215,7 +1215,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		std::vector<int> shadow_indices {};
 		detail::ReadVectors(shadow_indices, exArtINI, pArtSection, "ShadowIndices");
-		std::vector<int> shadow_indices_frame;
+		std::vector<int> shadow_indices_frame {};
 		detail::ReadVectors(shadow_indices_frame, exArtINI, pArtSection, "ShadowIndices.Frame");
 
 		if (shadow_indices_frame.size() != shadow_indices.size())
