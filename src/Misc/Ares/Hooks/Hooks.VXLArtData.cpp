@@ -214,7 +214,6 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 #ifndef FUCKEDUP
 int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 {
-	auto hva = pVXL->HVA;
 	auto pType = pThis->GetTechnoType();
 
 	// Turret or Barrel
@@ -225,7 +224,7 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 		if (who_are_you[0] == UnitTypeClass::vtable)
 			pType = reinterpret_cast<TechnoTypeClass*>(who_are_you);//you are someone else
 		else
-			return pThis->TurretAnimFrame % hva->FrameCount;
+			return pThis->TurretAnimFrame % pVXL->HVA->FrameCount;
 		// you might also be SpawnAlt voxel, but I can't know
 		// otherwise what would you expect me to do, shift back to ares typeext base and check if ownerobject is technotype?
 	}
@@ -239,7 +238,7 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 		{
 			int shadow_index_frame = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndex_Frame;
 			if (shadow_index_frame > -1)
-				return shadow_index_frame % hva->FrameCount;
+				return shadow_index_frame % pVXL->HVA->FrameCount;
 		}
 		else
 		{
@@ -251,10 +250,10 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	{
 		int idx_of_now = shadowIndices[shadow_index_now];
 		if (idx_of_now > -1)
-			return idx_of_now % hva->FrameCount;
+			return idx_of_now % pVXL->HVA->FrameCount;
 	}
 
-	return pThis->WalkedFramesSoFar % hva->FrameCount;
+	return pThis->WalkedFramesSoFar % pVXL->HVA->FrameCount;
 }
 
 //the deeper part
@@ -381,9 +380,7 @@ void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass
 	{
 		// index key is already invalid
 		const auto c_arf = Math::cos(arf);
-
 		const auto c_ars = Math::cos(ars);
-
 		mtx->TranslateX(float(Math::signum(arf) * pType->VoxelScaleX * (1 - c_arf)));
 		mtx->TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - c_ars)));
 		mtx->ScaleX((float)c_arf);
@@ -461,11 +458,8 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
 	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
 
-
 	const auto height = pThis->GetHeight();
 	DecideScaleAndIndex(&shadow_matrix, pThis, pType, vxl_index_key, loco, height);
-	//Matrix3D shadow_matrix  = Game::VoxelDefaultMatrix();
-
 
 	VoxelStruct* main_vxl = GetmainVxl(pThis , pType , vxl_index_key);
 

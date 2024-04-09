@@ -429,6 +429,7 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		// there is no building involved
 		// More customizeable berzerk appying - Otamaa
 		// return boolean to decide receive damage after apply berzerk or just retun function result
+		//  appylying  damage will cause  the tehno to retaliate !
 		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), pDamage))
 			return RetResultLight;
 	}
