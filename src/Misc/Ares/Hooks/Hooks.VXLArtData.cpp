@@ -212,182 +212,84 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 }
 
 #ifdef FUCKEDUP
-DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
+int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 {
-	Debug::Log(__FUNCTION__" Executed\n");
-	GET(UnitClass*, pThis, EBP);
-	enum { SkipDrawing = 0x73C5C9 };
+	auto hva = pVXL->HVA;
+	auto pType = pThis->GetTechnoType();
 
-	auto const loco = pThis->Locomotor.GetInterfacePtr();
-
-	if (!loco->Is_To_Have_Shadow())
-		return SkipDrawing;
-
-	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
-	GET_STACK(VoxelIndexKey, vxl_index_key, STACK_OFFSET(0x1C4, -0x1B0));
-	LEA_STACK(RectangleStruct*, bounding, STACK_OFFSET(0x1C4, 0xC));
-	LEA_STACK(Point2D*, floor, STACK_OFFSET(0x1C4, -0x1A4));
-	GET_STACK(Surface* const, surface, STACK_OFFSET(0x1C4, -0x1A8));
-
-	GET(UnitTypeClass*, pType, EBX);
-	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
-	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
-
-	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto jjloco = locomotion_cast<JumpjetLocomotionClass*>(loco);
-	const auto height = pThis->GetHeight();
-	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
-
-	if (RulesExtData::Instance()->HeightShadowScaling && height > 0)
+	// Turret or Barrel
+	if (pVXL != &pType->MainVoxel)
 	{
-		const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
-		if (jjloco)
+
+		// verify just in case:
+		auto who_are_you = reinterpret_cast<uintptr_t*>(reinterpret_cast<DWORD>(pVXL) - (offsetof(TechnoTypeClass, MainVoxel)));
+		if (who_are_you[0] == UnitTypeClass::vtable)
+			pType = reinterpret_cast<TechnoTypeClass*>(who_are_you);//you are someone else
+		else
+			return pThis->TurretAnimFrame % hva->FrameCount;
+		// you might also be SpawnAlt voxel, but I can't know
+		// otherwise what would you expect me to do, shift back to ares typeext base and check if ownerobject is technotype?
+	}
+
+	// Main body sections
+	auto& shadowIndices = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndices;
+	if (shadowIndices.empty())
+	{
+		// Only ShadowIndex
+		if (pType->ShadowIndex == shadow_index_now)
 		{
-			const float cHeight = (float)uTypeExt->ShadowSizeCharacteristicHeight.Get(jjloco->Height);
-
-			if (cHeight > 0)
-			{
-				shadow_matrix.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-
-				if (jjloco->NextState != JumpjetLocomotionClass::State::Hovering)
-					vxl_index_key = std::bit_cast<VoxelIndexKey>(-1);
-			}
+			int shadow_index_frame = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndex_Frame;
+			if (shadow_index_frame > -1)
+				return shadow_index_frame % hva->FrameCount;
 		}
 		else
 		{
-			const float cHeight = (float)uTypeExt->ShadowSizeCharacteristicHeight.Get(RulesClass::Instance->CruiseHeight);
-
-			if (cHeight > 0)
-			{
-				shadow_matrix.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-				vxl_index_key = std::bit_cast<VoxelIndexKey>(-1);
-			}
+			// WHO THE HELL ARE YOU???
+			return 0;
 		}
-	}
-	else if (!RulesExtData::Instance()->HeightShadowScaling && pThis->Type->ConsideredAircraft)
-	{
-		shadow_matrix.Scale((float)GeneralUtils::Pade2_2(baseScale_log));
-	}
-
-	auto GetMainVoxel = [&]()
-	{
-		if (pType->NoSpawnAlt && pThis->SpawnManager && pThis->SpawnManager->CountDockedSpawns() == 0)
-		{
-			vxl_index_key = std::bit_cast<VoxelIndexKey>(-1);// I'd just assume most of the time we have spawn
-			return &uTypeExt->SpawnAltData;
-		}
-		return &pType->MainVoxel;
-	};
-
-	auto const main_vxl = GetMainVoxel();
-
-	// TODO : adjust shadow point according to height
-	// There was a bit deviation that I cannot decipher, might need help with that
-	// But it turns out it has basically no visual difference
-
-	auto shadow_point = loco->Shadow_Point();
-	auto why = *floor + shadow_point;
-
-	float arf = pThis->AngleRotatedForwards;
-	float ars = pThis->AngleRotatedSideways;
-	// lazy, don't want to hook inside Shadow_Matrix
-	if (std::abs(ars) >= 0.005 || std::abs(arf) >= 0.005)
-	{
-		// index key is already invalid
-		shadow_matrix.TranslateX(float(Math::signum(arf) * pType->VoxelScaleX * (1 - Math::cos(arf))));
-		shadow_matrix.TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - Math::cos(ars))));
-		shadow_matrix.ScaleX((float)Math::cos(arf));
-		shadow_matrix.ScaleY((float)Math::cos(ars));
-	}
-
-	auto mtx = Game::VoxelDefaultMatrix() * shadow_matrix;
-
-	if (uTypeExt->ShadowIndices.empty())
-	{
-		if (pType->ShadowIndex >= 0 && pType->ShadowIndex < main_vxl->HVA->LayerCount)
-			pThis->DrawVoxelShadow(
-				   main_vxl,
-				   pType->ShadowIndex,
-				   vxl_index_key,
-				   &pType->VoxelCaches.Shadow,
-				   bounding,
-				   &why,
-				   &mtx,
-				   true,
-				   surface,
-				   shadow_point
-			);
 	}
 	else
 	{
-		for (auto& [index, _] : uTypeExt->ShadowIndices)
-			pThis->DrawVoxelShadow(
-				   main_vxl,
-				   index,
-				   vxl_index_key,
-					&pType->VoxelCaches.Shadow,
-				   bounding,
-				   &why,
-				   &mtx,
-				   true,
-				   surface,
-				   shadow_point
-			);
+		int idx_of_now = shadowIndices[shadow_index_now];
+		if (idx_of_now > -1)
+			return idx_of_now % hva->FrameCount;
+	}
+
+	return pThis->WalkedFramesSoFar % hva->FrameCount;
 }
 
-	if (!uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) || main_vxl == &pType->TurretVoxel)
-		return SkipDrawing;
+DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
+{
+	GET(FootClass*, pThis, EBX);//Maybe Techno later
+	GET(VoxelStruct*, pVXL, EBP);
+	GET_STACK(Matrix3D*, pMat, STACK_OFFSET(0xE8, 0xC));
+	GET_STACK(int, shadow_index_now, STACK_OFFSET(0xE8, 0x18));// it's used later, otherwise I could have chosen the frame index earlier
+	REF_STACK(Matrix3D, matRet, STACK_OFFSET(0xE8, -0x60));
 
+	int frameChoosen = ChooseFrame(pThis, shadow_index_now, pVXL);//Don't want to use goto
 
-	Matrix3D rot = Matrix3D::GetIdentity();
-	uTypeExt->ApplyTurretOffset(&rot, Game::Pixel_Per_Lepton());
-	rot.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
-	auto tur_mtx = mtx * rot; // unfortunately we won't have TurretVoxelScaleX/Y given the amount of work
+	matRet = pVXL->HVA->Matrixes[shadow_index_now + pVXL->HVA->LayerCount * frameChoosen];
 
-	auto tur = TechnoTypeExtData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber);
+	// TO TEST : Check if this is the proper Z offset to shift the sections to the same level
+	matRet.TranslateZ(
+		-matRet.GetZVal()
+		- pVXL->VXL->TailerData->Bounds[0].Z
+	);
 
-	// sorry but you're fucked
-	if (tur && tur->VXL && tur->HVA)
-		pThis->DrawVoxelShadow(
-			tur,
-			0,
-			std::bit_cast<VoxelIndexKey>(-1), // no cache, no use for valid key
-			nullptr, // no cache atm
-			bounding,
-			&why,
-			&tur_mtx,
-			false,
-			surface,
-			shadow_point
-		);
+	matRet = (*pMat)* matRet;
 
-	auto bar = TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber);
+	// Recover vanilla instructions
+	if (pThis->GetTechnoType()->UseBuffer)
+		*reinterpret_cast<DWORD*>(0xB43180) = 1;
 
-	// and you are utterly fucked
-	if (bar && bar->VXL && bar->HVA)
-		pThis->DrawVoxelShadow(
-			bar,
-			0,
-			std::bit_cast<VoxelIndexKey>(-1), // no cache, no use
-			nullptr,//no cache atm
-			bounding,
-			&why,
-			&tur_mtx,
-			false,
-			surface,
-			shadow_point
-		);
+	REF_STACK(Matrix3D, b, STACK_OFFSET(0xE8, -0x90));
+	b.MakeIdentity();// we don't do scaling here anymore
 
-	// Add caches in Ext if necessary, remember not to serialize these shit
-	// IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> VoxelTurretShadowCache {};
-	// IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> VoxelBarrelShadowCache {};
-
-	return SkipDrawing;
+	return 0x707331;
 }
 
 DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {
-	Debug::Log(__FUNCTION__" Executed\n");
 	GET(AircraftClass*, pThis, EBP);
 	GET(const int, height, EBX);
 	REF_STACK(VoxelIndexKey, key, STACK_OFFSET(0xCC, -0xBC));
@@ -401,7 +303,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 
 	const auto aTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	Matrix3D shadow_mtx {};
-	loco->Shadow_Matrix(&shadow_mtx , &key);
+	loco->Shadow_Matrix(&shadow_mtx, &key);
 	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
 
 	if (RulesExtData::Instance()->HeightShadowScaling)
@@ -468,83 +370,195 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	return FinishDrawing;
 }
 
-DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
-{
-	Debug::Log(__FUNCTION__" Executed\n");
-	GET(FootClass*, pThis, EBX);//Maybe Techno later
-	GET(VoxelStruct*, pVXL, EBP);
-	GET_STACK(Matrix3D*, pMat, STACK_OFFSET(0xE8, 0xC));
-	GET_STACK(int, shadow_index_now, STACK_OFFSET(0xE8, 0x18));// it's used later, otherwise I could have chosen the frame index earlier
+// one trick to avoid optimization that breaking code
+void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass* pType) {
+	float arf = pThis->AngleRotatedForwards;
+	float ars = pThis->AngleRotatedSideways;
+	// lazy, don't want to hook inside Shadow_Matrix
+	if (std::fabs(ars) >= 0.005 || std::fabs(arf) >= 0.005)
+	{
+		// index key is already invalid
+		const auto c_arf = Math::cos(arf);
 
-	REF_STACK(Matrix3D, matRet, STACK_OFFSET(0xE8, -0x60));
-	auto pType = pThis->GetTechnoType();
+		const auto c_ars = Math::cos(ars);
 
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	auto hva = pVXL->HVA;
-
-	auto ChooseFrame = [&]()->int //Don't want to use goto
-		{
-			// Turret or Barrel
-			if (pVXL != &pType->MainVoxel)
-			{
-				// verify just in case:
-				auto who_are_you = reinterpret_cast<uintptr_t*>(reinterpret_cast<DWORD>(pVXL) - (offsetof(TechnoTypeClass, MainVoxel)));
-				if (who_are_you[0] == UnitTypeClass::vtable)
-					pType = reinterpret_cast<TechnoTypeClass*>(who_are_you);//you are someone else
-				else
-					return pThis->TurretAnimFrame % hva->FrameCount;
-				// you might also be SpawnAlt voxel, but I can't know
-				// otherwise what would you expect me to do, shift back to ares typeext base and check if ownerobject is technotype?
-			}
-
-			// Main body sections
-			auto& shadowIndices = pTypeExt->ShadowIndices;
-			if (shadowIndices.empty())
-			{
-				// Only ShadowIndex
-				if (pType->ShadowIndex == shadow_index_now)
-				{
-					int shadow_index_frame = pTypeExt->ShadowIndex_Frame;
-					if (shadow_index_frame > -1)
-						return shadow_index_frame % hva->FrameCount;
-				}
-				else
-				{
-					// WHO THE HELL ARE YOU???
-					return 0;
-				}
-			}
-			else
-			{
-				int idx_of_now = shadowIndices[shadow_index_now];
-				if (idx_of_now > -1)
-					return idx_of_now % hva->FrameCount;
-			}
-
-			return pThis->WalkedFramesSoFar % hva->FrameCount;
-		};
-
-
-	Matrix3D hvamat = hva->Matrixes[shadow_index_now + hva->LayerCount * ChooseFrame()];
-
-	// TO TEST : Check if this is the proper Z offset to shift the sections to the same level
-	hvamat.TranslateZ(
-		-hvamat.GetZVal()
-		- pVXL->VXL->TailerData->Bounds[0].Z
-	);
-
-	matRet = *pMat * hvamat;
-
-	// Recover vanilla instructions
-	if (pThis->GetTechnoType()->UseBuffer)
-		*reinterpret_cast<DWORD*>(0xB43180) = 1;
-
-	REF_STACK(Matrix3D, b, STACK_OFFSET(0xE8, -0x90));
-	b.MakeIdentity();// we don't do scaling here anymore
-
-	return 0x707331;
+		mtx->TranslateX(float(Math::signum(arf) * pType->VoxelScaleX * (1 - c_arf)));
+		mtx->TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - c_ars)));
+		mtx->ScaleX((float)c_arf);
+		mtx->ScaleY((float)c_ars);
+	}
 }
+
+// one trick to avoid optimization that breaking code
+VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexKey& key){
+
+	if (pType->NoSpawnAlt && pThis->SpawnManager && pThis->SpawnManager->CountDockedSpawns() == 0)
+	{
+		key = std::bit_cast<VoxelIndexKey>(-1);// I'd just assume most of the time we have spawn
+		return &TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData;
+	}
+
+	return &pType->MainVoxel;
+}
+
+// one trick to avoid optimization that breaking code
+void NOINLINE DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
+{
+	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
+
+	if (RulesExtData::Instance()->HeightShadowScaling && height > 0)
+	{
+		auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
+		if (const auto jjloco = locomotion_cast<JumpjetLocomotionClass*>(iLoco))
+		{
+			const float cHeight = (float)uTypeExt->ShadowSizeCharacteristicHeight.Get(jjloco->Height);
+
+			if (cHeight > 0)
+			{
+				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+
+				if (jjloco->NextState != JumpjetLocomotionClass::State::Hovering)
+					key = std::bit_cast<VoxelIndexKey>(-1);
+			}
+		}
+		else
+		{
+			const float cHeight = (float)uTypeExt->ShadowSizeCharacteristicHeight.Get(RulesClass::Instance->CruiseHeight);
+
+			if (cHeight > 0)
+			{
+				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				key = std::bit_cast<VoxelIndexKey>(-1);
+			}
+		}
+	}
+	else if (!RulesExtData::Instance()->HeightShadowScaling && pType->ConsideredAircraft)
+	{
+		mtx->Scale((float)GeneralUtils::Pade2_2(baseScale_log));
+	}
+}
+
+DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+	enum { SkipDrawing = 0x73C5C9 };
+
+	auto const loco = pThis->Locomotor.GetInterfacePtr();
+
+	if (!loco->Is_To_Have_Shadow())
+		return SkipDrawing;
+
+	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
+	GET_STACK(VoxelIndexKey, vxl_index_key, STACK_OFFSET(0x1C4, -0x1B0));
+	LEA_STACK(RectangleStruct*, bounding, STACK_OFFSET(0x1C4, 0xC));
+	LEA_STACK(Point2D*, floor, STACK_OFFSET(0x1C4, -0x1A4));
+	GET_STACK(Surface* const, surface, STACK_OFFSET(0x1C4, -0x1A8));
+
+	GET(UnitTypeClass*, pType, EBX);
+	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
+	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
+
+
+	const auto height = pThis->GetHeight();
+	DecideScaleAndIndex(&shadow_matrix, pThis, pType, vxl_index_key, loco, height);
+	//Matrix3D shadow_matrix  = Game::VoxelDefaultMatrix();
+
+
+	VoxelStruct* main_vxl = GetmainVxl(pThis , pType , vxl_index_key);
+
+	// TODO : adjust shadow point according to height
+	// There was a bit deviation that I cannot decipher, might need help with that
+	// But it turns out it has basically no visual difference
+
+	auto shadow_point = loco->Shadow_Point();
+	auto why = *floor + shadow_point;
+	TranslateAngleRotated(&shadow_matrix, pThis, pType);
+
+	auto mtx = Game::VoxelDefaultMatrix() * (shadow_matrix);
+	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (uTypeExt->ShadowIndices.empty())
+	{
+		if (pType->ShadowIndex >= 0 && pType->ShadowIndex < main_vxl->HVA->LayerCount)
+			pThis->DrawVoxelShadow(
+				   main_vxl,
+				   pType->ShadowIndex,
+				   vxl_index_key,
+				   &pType->VoxelCaches.Shadow,
+				   bounding,
+				   &why,
+				   &mtx,
+				   true,
+				   surface,
+				   shadow_point
+			);
+	}
+	else
+	{
+		for (auto& [index, _] : uTypeExt->ShadowIndices)
+			pThis->DrawVoxelShadow(
+				   main_vxl,
+				   index,
+				   vxl_index_key,
+					&pType->VoxelCaches.Shadow,
+				   bounding,
+				   &why,
+				   &mtx,
+				   true,
+				   surface,
+				   shadow_point
+			);
+}
+
+	if (!uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) || main_vxl == &pType->TurretVoxel)
+		return SkipDrawing;
+
+	Matrix3D rot = Matrix3D::GetIdentity();
+	uTypeExt->ApplyTurretOffset(&rot, Game::Pixel_Per_Lepton());
+	rot.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+	auto tur_mtx = mtx * rot; // unfortunately we won't have TurretVoxelScaleX/Y given the amount of work
+
+	auto tur = TechnoTypeExtData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber);
+
+	// sorry but you're fucked
+	if (tur && tur->VXL && tur->HVA)
+		pThis->DrawVoxelShadow(
+			tur,
+			0,
+			std::bit_cast<VoxelIndexKey>(-1), // no cache, no use for valid key
+			nullptr, // no cache atm
+			bounding,
+			&why,
+			&tur_mtx,
+			false,
+			surface,
+			shadow_point
+		);
+
+	auto bar = TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber);
+	// and you are utterly fucked
+	if (bar && bar->VXL && bar->HVA)
+		pThis->DrawVoxelShadow(
+			bar,
+			0,
+			std::bit_cast<VoxelIndexKey>(-1), // no cache, no use
+			nullptr,//no cache atm
+			bounding,
+			&why,
+			&tur_mtx,
+			false,
+			surface,
+			shadow_point
+		);
+	// Add caches in Ext if necessary, remember not to serialize these shit
+	// IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> VoxelTurretShadowCache {};
+	// IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> VoxelBarrelShadowCache {};
+
+	return SkipDrawing;
+}
+
 #else
 DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 {

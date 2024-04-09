@@ -263,7 +263,7 @@ public:
 
 	float Angle(Quaternion B) const {
 		double dot = (double)Dot(*this, B);
-		return Math::acos(fmin(fabs(dot), 1)) * 2;
+		return (float)Math::acos(fmin(fabs(dot), 1)) * 2;
 	}
 
 	Quaternion FromEuler(float x, float y, float z)

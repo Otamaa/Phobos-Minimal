@@ -157,7 +157,7 @@ struct Game
 		static constexpr reference<int, 0xA8DB9Cu> const LatencyFudge {};
 		static constexpr reference<int, 0xA8B558u> const RequestedFPS {};
 
-		static bool Init()
+		static bool __fastcall Init()
 		{ JMP_STD(0x5DA6C0); }
 	} Network;
 
@@ -186,9 +186,8 @@ struct Game
 		JMP_STD(0x7DC720);
 	}
 
-	static void ClearScenario()
-	{
-		JMP_STD(0x6851F0);
+	static void ClearScenario() {
+		CALL(0x6851F0);
 	}
 
 	// actually is SessionClass::Callback
@@ -196,7 +195,7 @@ struct Game
 	{ SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
 
 	static void CallBack()
-	{ JMP_STD(0x48D080); }
+	{ CALL(0x48D080); }
 
 	static int __fastcall GetResource(int ID, int Type)
 	{ JMP_STD(0x4A3B40); }
@@ -225,11 +224,11 @@ struct Game
 	static void __fastcall UICommands_TypeSelect_7327D0(const char* iniName)
 	{ JMP_STD(0x7327D0); }
 
-	static bool IsTypeSelecting()
+	static bool __fastcall IsTypeSelecting()
 	{ JMP_STD(0x732D00); }
 
 	static double GetFloaterGravity()
-	{ JMP_STD(0x48ACF0); }
+	{ CALL(0x48ACF0); }
 
 	static void __fastcall KeyboardProcess(DWORD& input)
 	{ JMP_STD(0x55DEE0); }
@@ -238,12 +237,12 @@ struct Game
 	{ JMP_STD(0x4093B0); }
 
 	static void InitRandom()
-	{ JMP_STD(0x52FC20); }
+	{ CALL(0x52FC20); }
 
 	static void ShowSpecialDialog()
-	{ JMP_STD(0x48C8B0); }
+	{ CALL(0x48C8B0); }
 
-	static bool InitNetwork()
+	static bool __fastcall InitNetwork()
 	{ JMP_STD(0x5DA6C0); }
 
 	static void InitUIStuff()

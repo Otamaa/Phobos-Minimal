@@ -136,7 +136,7 @@ public:
 	static TechnoTypeClass* __fastcall GetByTypeAndIndex(AbstractType abs, int index)
 	{ JMP_STD(0x48DCD0); }
 
-	static int sub_717840()
+	static int __fastcall SetPalettes()
 	{ JMP_STD(0x717840); }
 
 	bool HasMultipleTurrets() const

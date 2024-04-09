@@ -32,9 +32,9 @@ public:
 	}
 
 	//static
-	static void LoadPips() JMP_STD(0x5F76B0);
-	static void sub_5F77F0() JMP_STD(0x5F77F0);
-	static int ReleaseAllVoxelCaches() JMP_STD(0x5F99E0);
+	//static void LoadPips() JMP_STD(0x5F76B0);
+	//static void sub_5F77F0() JMP_STD(0x5F77F0);
+	//static int ReleaseAllVoxelCaches() JMP_STD(0x5F99E0);
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x5F9720);

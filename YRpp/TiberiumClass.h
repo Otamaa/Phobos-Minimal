@@ -118,8 +118,7 @@ public:
 	int sub_722AF0(CellStruct& mapcoords) JMP_THIS(0x722AF0);
 	void sub_722F00() JMP_THIS(0x722F00);
 	//static
-	static int InitArray() JMP_STD(0x721676);
-	//static inline NAKED void __cdecl UninitArray(){ JMP(0x721680); }
+
 	static bool __fastcall _ReadFromINI(CCINIClass* pINI) JMP_STD(0x721D10);
 	static void __stdcall UpdateTiberium() JMP_STD(0x7221B0);
 	static void __stdcall sub_0x722240() JMP_STD(0x722240);

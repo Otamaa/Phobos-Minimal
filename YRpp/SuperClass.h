@@ -181,17 +181,17 @@ public:
 	static void Strike(CellStruct cell)
 		{ PUSH_VAR32(cell); CALL(0x53A140); }
 
-	static void Strike2(CoordStruct coords)
+	static void __stdcall Strike2(CoordStruct coords)
 		{ JMP_STD(0x53A300); }
 
 	static void PrintMessage()
 		{ CALL(0x53AE00); }
 
 	static void Update()
-		{ JMP_STD(0x53A6C0); }
+		{ CALL(0x53A6C0); }
 
 	static void Init()
-		{ JMP_STD(0x53AB50); }
+		{ CALL(0x53AB50); }
 };
 
 class PsyDom

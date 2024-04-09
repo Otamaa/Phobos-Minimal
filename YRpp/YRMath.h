@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <Base/Always.h>
 
-#define MATH_FUNC(name, address)\
-	inline NAKED float __cdecl name(double value)\
+#define MATH_FUNC(ret ,arg ,name, address)\
+	inline NAKED ret __cdecl name(arg value)\
 	{\
 		JMP(address);\
 	}
@@ -17,14 +17,20 @@
 		JMP(address);\
 	}
 
-#define MATH_FUNC_FLOAT(name, address)\
-	inline NAKED double __stdcall name(float value)\
+//#define MATH_FUNC_FLOAT_CDCEL(name, address)\
+//	inline NAKED double __cdecl name(float value)\
+//	{\
+//		JMP_STD(address);\
+//	}
+
+#define MATH_FUNC_FLOAT(ret , name, address)\
+	inline ret __stdcall name(float value)\
 	{\
 		JMP_STD(address);\
 	}
 
 #define MATH_FUNC_TWOVAL_FLOAT(name, address)\
-	inline NAKED double __stdcall name(float valuea , float valueb)\
+	inline double __stdcall name(float valuea , float valueb)\
 	{\
 		JMP_STD(address);\
 	}
@@ -93,25 +99,29 @@ namespace Math
 	constexpr auto const GameDegreesToRadiansCoefficient = -(360.0 / (65535 - 1)) * Pi / 180.0;
 	constexpr auto const GameDegrees90 = 0X3FFF;
 
-	 MATH_FUNC(sqrt,	 0x4CAC40);
-	 MATH_FUNC(sin,	 0x4CACB0);
-	 MATH_FUNC(cos,	 0x4CAD00);
-	 MATH_FUNC(tan,	 0x4CAD50);
-	 MATH_FUNC(asin,	 0x4CAD80);
-	 MATH_FUNC(acos,	 0x4CADB0);
-	 MATH_FUNC(atan,	 0x4CADE0);
-	 MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
+	 MATH_FUNC(float,double, sqrt, 0x4CAC40);
+	 MATH_FUNC(float, double, sin, 0x4CACB0);
+	 MATH_FUNC(float, double, cos, 0x4CAD00);
 
-	 MATH_FUNC_FLOAT(sqrt, 0x4CB060);
-	 MATH_FUNC_FLOAT(sin, 0x4CB150);
-	 MATH_FUNC_FLOAT(cos, 0x4CB1A0);
-	 MATH_FUNC_FLOAT(asin, 0x4CB260);
-	 MATH_FUNC_FLOAT(acos, 0x4CB290);
-	 MATH_FUNC_FLOAT(tan, 0x4CB320);
-	 MATH_FUNC_FLOAT(atan, 0x4CB480);
+	 MATH_FUNC(double, double, tan,	0x4CAD50);
+	 MATH_FUNC(double, double, asin, 0x4CAD80);
+	 MATH_FUNC(double, double, acos, 0x4CADB0);
+	 MATH_FUNC(double, double, atan, 0x4CADE0);
+
+	 MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
+	 MATH_FUNC_TWOVAL(arctanfoo, 0x4CAE30);
+
+	 MATH_FUNC(float,float, sqrt, 0x4CB060);
+	 MATH_FUNC(double, float, sin,  0x4CB150);
+	 MATH_FUNC(double, float, cos,  0x4CB1A0);
+	 MATH_FUNC(double, float, asin, 0x4CB260);
+	 MATH_FUNC(double, float, tan,  0x4CB320);
+
+	 MATH_FUNC_FLOAT(double, acos, 0x4CB290);
+	 MATH_FUNC_FLOAT(double, atan, 0x4CB480);
 	 MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
 
-	MATH_FUNC_TWOVAL(arctanfoo , 0x4CAE30);
+
 
 	//famous Quaqe 3 Fast Inverse Square Root
 	inline float Q_invsqrt(float number)

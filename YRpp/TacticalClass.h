@@ -138,7 +138,7 @@ public:
 	void RegisterCellAsVisible(CellClass* pCell)
 		{ JMP_THIS(0x6DA7D0) };
 
-	static int DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
+	static int __fastcall DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
 		{ JMP_STD(0x6D4B50); }
 
 	/*

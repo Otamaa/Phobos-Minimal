@@ -34,14 +34,14 @@ public:
 
 	//non-virtual
 	//static
-	static void sub_5549A0()
-		{ JMP_STD(0x5549A0); }
+	//static void sub_5549A0()
+	//	{ JMP_STD(0x5549A0); }
 
 	static void __fastcall UpdateLightConverts(int value)
 		{ JMP_STD(0x554D50); }
 
-	static int Init_Unknown_0xABCA40()
-		{ JMP_STD(0x5546C0); }
+	//static int Init_Unknown_0xABCA40()
+	//	{ JMP_STD(0x5546C0); }
 
 	//static inline NAKED void __cdecl Uninit_Unknown_0xABCA40()
 	//	{ JMP(0xABCA40); }

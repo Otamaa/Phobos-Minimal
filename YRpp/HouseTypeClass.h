@@ -29,7 +29,7 @@ public:
 
 	IMPL_FindIndexById(HouseTypeClass)
 
-	static int __fastcall __fastcall FindIndexByIdAndName(const char* pID) {
+	static int __fastcall FindIndexByIdAndName(const char* pID) {
 		JMP_STD(0x5117D0);
 	}
 

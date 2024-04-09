@@ -97,10 +97,10 @@ namespace CRT
 	static  inline NAKED int __cdecl swprintf(wchar_t* Buffer, const wchar_t* Format, ...)
 	{ JMP(0x7CA564); }
 
-	static  inline NAKED wchar_t* __fastcall wcstrim(wchar_t* Buffer)
+	static inline wchar_t* __fastcall wcstrim(wchar_t* Buffer)
 	{ JMP_STD(0x727D60); }
 
-	static  inline NAKED wchar_t* __cdecl wcschr(const wchar_t* Str, wchar_t a2)
+	static inline NAKED wchar_t* __cdecl wcschr(const wchar_t* Str, wchar_t a2)
 	{ JMP(0x7CA8C6); }
 
 	static  inline NAKED wchar_t* __cdecl wcsncat(wchar_t* a1, const wchar_t* a2, size_t a3)
@@ -210,7 +210,7 @@ namespace CRT
 	static  inline NAKED int __cdecl vsprintf(char*, const char*, va_list)
 	{ JMP(0x7CB7BA); }
 
-	static  inline NAKED char* __fastcall strtrim(char* Buffer)
+	static  inline char* __fastcall strtrim(char* Buffer)
 	{ JMP_STD(0x727CF0); }
 
 	static  inline NAKED size_t __cdecl strlen(const char* input)
