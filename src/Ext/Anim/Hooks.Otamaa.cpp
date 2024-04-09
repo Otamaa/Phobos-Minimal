@@ -15,7 +15,7 @@
 void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinWarhead)
 {
 	//causing game to lock up atm
-	if (pThis->Type->IsVeins && VeinWarhead)
+	if (pThis->Type->IsVeins && VeinWarhead  &&  RulesExtData::Instance()->VeinsAttack_interval)
 	{
 		auto coord = pThis->GetCoords();
 		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
@@ -31,7 +31,7 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 			pThis->__ToDelete_197 = true; // wut
 		}
 
-		if (Unsorted::CurrentFrame % 2 == 0)
+		if (Unsorted::CurrentFrame % RulesExtData::Instance()->VeinsAttack_interval == 0)
 		{
 			while (pFirst != nullptr)
 			{
@@ -54,7 +54,7 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 					{
 						int dmg = VeinDamage;
 						pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
-						Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
+						//Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
 					}
 
 					pFirst = pNext;

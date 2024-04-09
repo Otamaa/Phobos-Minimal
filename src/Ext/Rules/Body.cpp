@@ -603,6 +603,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
+
 	double AirShadowBaseScale = 0.0;
 	if (detail::read<double>(AirShadowBaseScale ,exINI , GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
 		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
@@ -1156,6 +1158,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AirShadowBaseScale_log)
 		.Process(this->HeightShadowScaling)
 		.Process(this->HeightShadowScaling_MinScale)
+
+		.Process(this->VeinsAttack_interval)
 		;
 
 	MyPutData.Serialize(Stm);

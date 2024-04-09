@@ -311,6 +311,7 @@ public:
 	Valueable<double> HeightShadowScaling_MinScale { 0.0 };
 	double AirShadowBaseScale_log { 0.693376137 };
 
+	Valueable<int> VeinsAttack_interval { 2 };
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;
