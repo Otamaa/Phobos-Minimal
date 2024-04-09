@@ -211,7 +211,7 @@ DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 	return 0x73B6E9;
 }
 
-#ifdef FUCKEDUP
+#ifndef FUCKEDUP
 int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 {
 	auto hva = pVXL->HVA;
@@ -220,7 +220,6 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	// Turret or Barrel
 	if (pVXL != &pType->MainVoxel)
 	{
-
 		// verify just in case:
 		auto who_are_you = reinterpret_cast<uintptr_t*>(reinterpret_cast<DWORD>(pVXL) - (offsetof(TechnoTypeClass, MainVoxel)));
 		if (who_are_you[0] == UnitTypeClass::vtable)
@@ -258,13 +257,15 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	return pThis->WalkedFramesSoFar % hva->FrameCount;
 }
 
+//the deeper part
 DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 {
+	//Debug::Log(__FUNCTION__" Exec\n");
 	GET(FootClass*, pThis, EBX);//Maybe Techno later
 	GET(VoxelStruct*, pVXL, EBP);
 	GET_STACK(Matrix3D*, pMat, STACK_OFFSET(0xE8, 0xC));
 	GET_STACK(int, shadow_index_now, STACK_OFFSET(0xE8, 0x18));// it's used later, otherwise I could have chosen the frame index earlier
-	REF_STACK(Matrix3D, matRet, STACK_OFFSET(0xE8, -0x60));
+	REF_STACK(Matrix3D, matRet, STACK_OFFSET(0xE8, -0x60));  //matRet is not initiated  ???
 
 	int frameChoosen = ChooseFrame(pThis, shadow_index_now, pVXL);//Don't want to use goto
 
@@ -288,8 +289,10 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 	return 0x707331;
 }
 
+//aircraft only
 DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {
+	//Debug::Log(__FUNCTION__" Exec\n");
 	GET(AircraftClass*, pThis, EBP);
 	GET(const int, height, EBX);
 	REF_STACK(VoxelIndexKey, key, STACK_OFFSET(0xCC, -0xBC));
@@ -370,7 +373,6 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	return FinishDrawing;
 }
 
-// one trick to avoid optimization that breaking code
 void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass* pType) {
 	float arf = pThis->AngleRotatedForwards;
 	float ars = pThis->AngleRotatedSideways;
@@ -389,7 +391,6 @@ void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass
 	}
 }
 
-// one trick to avoid optimization that breaking code
 VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexKey& key){
 
 	if (pType->NoSpawnAlt && pThis->SpawnManager && pThis->SpawnManager->CountDockedSpawns() == 0)
@@ -401,8 +402,7 @@ VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexK
 	return &pType->MainVoxel;
 }
 
-// one trick to avoid optimization that breaking code
-void NOINLINE DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
+void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
 {
 	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
 
@@ -442,6 +442,7 @@ void NOINLINE DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 
 DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
+	//Debug::Log(__FUNCTION__" Exec\n");
 	GET(UnitClass*, pThis, EBP);
 	enum { SkipDrawing = 0x73C5C9 };
 

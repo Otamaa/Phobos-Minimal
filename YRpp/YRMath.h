@@ -23,8 +23,8 @@
 //		JMP_STD(address);\
 //	}
 
-#define MATH_FUNC_FLOAT(ret , name, address)\
-	inline ret __stdcall name(float value)\
+#define MATH_FUNC_FLOAT(ret , arg , name, address)\
+	inline ret __stdcall name(arg value)\
 	{\
 		JMP_STD(address);\
 	}
@@ -111,14 +111,14 @@ namespace Math
 	 MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
 	 MATH_FUNC_TWOVAL(arctanfoo, 0x4CAE30);
 
-	 MATH_FUNC(float,float, sqrt, 0x4CB060);
-	 MATH_FUNC(double, float, sin,  0x4CB150);
-	 MATH_FUNC(double, float, cos,  0x4CB1A0);
-	 MATH_FUNC(double, float, asin, 0x4CB260);
-	 MATH_FUNC(double, float, tan,  0x4CB320);
+	 MATH_FUNC_FLOAT(float, float, sqrt, 0x4CB060);
+	 MATH_FUNC_FLOAT(double, float, sin,  0x4CB150);
+	 MATH_FUNC_FLOAT(double, float, cos,  0x4CB1A0);
+	 MATH_FUNC_FLOAT(double, float, asin, 0x4CB260);
+	 MATH_FUNC_FLOAT(double, float, tan,  0x4CB320);
 
-	 MATH_FUNC_FLOAT(double, acos, 0x4CB290);
-	 MATH_FUNC_FLOAT(double, atan, 0x4CB480);
+	 MATH_FUNC_FLOAT(double, float, acos, 0x4CB290);
+	 MATH_FUNC_FLOAT(double, float, atan, 0x4CB480);
 	 MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
 
 
