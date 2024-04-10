@@ -45,6 +45,7 @@ void TechnoTypeExtData::Initialize()
 
 	this->Eva_Complete = VoxClass::FindIndexById(Eva_ready);
 	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
+	this->TalkbubbleVoices.resize(FileSystem::TALKBUBL_SHP->Frames);
 }
 
 bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)
@@ -722,6 +723,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Negative").c_str(), this->Prerequisite_Negative);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Display").c_str(), this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + "Override").c_str(), pThis->PrerequisiteOverride);
+
+		//TODO : properly Enable this
 		GenericPrerequisite::Parse(pINI, pSection, "BuildLimit.Requres", this->BuildLimit_Requires);
 
 		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
@@ -1189,6 +1192,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Convert_ComputerToHuman.Read(exINI, pSection, "Convert.ComputerToHuman");
 
 		this->ShadowSizeCharacteristicHeight.Read(exINI, pSection, "ShadowSizeCharacteristicHeight");
+		for (size_t i = 0; i < this->TalkbubbleVoices.size(); ++i) {
+			std::string base = "TalkbubbleFrame";
+			base += std::to_string(i);
+			this->TalkbubbleVoices[i].Read(exINI, pSection, (base + ".Voices").c_str());
+		}
 
 		if (this->AttachtoType != AbstractType::BuildingType)
 		{
@@ -2165,6 +2173,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Infantry_DimWhenDisabled)
 		.Process(this->Convert_HumanToComputer)
 		.Process(this->Convert_ComputerToHuman)
+		.Process(this->TalkbubbleVoices)
 		;
 }
 

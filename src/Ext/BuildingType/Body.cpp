@@ -192,29 +192,6 @@ bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
 }
 
-int BuildingTypeExtData::BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem)
-{
-	const auto BuildLimit = pItem->BuildLimit;
-
-	if (BuildLimit >= 0)
-		return BuildLimit - BuildingTypeExtData::GetUpgradesAmount(pItem, pHouse);
-	else
-		return -BuildLimit - pHouse->CountOwnedEver(pItem);
-}
-
-int BuildingTypeExtData::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued)
-{
-	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
-
-	const int BuildLimit = pItem->BuildLimit;
-	const int Remaining = BuildingTypeExtData::BuildLimitRemaining(pHouse, pItem);
-
-	if (BuildLimit >= 0 && Remaining <= 0)
-		return (includeQueued && pHouse->GetFactoryProducing(pItem)) ? NotReached : ReachedPermanently;
-
-	return Remaining > 0 ? NotReached : ReachedTemporarily;
-}
-
 Point2D* BuildingTypeExtData::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
 {
 	return BuildingTypeExtContainer::Instance.Find(pThis->Type)

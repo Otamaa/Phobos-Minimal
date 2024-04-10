@@ -6388,3 +6388,17 @@ DEFINE_HOOK(0x70FF65, TechnoClass_ApplyLocomotorToTarget_CleaupFirst_Crash, 0x6)
 
 	return pFirer->LocomotorTarget ? 0x0 : 0x70FF77;
 }
+
+DEFINE_HOOK(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
+{
+	GET(TechnoClass*, pThis, EBP);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto& vec = pTypeExt->TalkbubbleVoices[FileSystem::TALKBUBL_Frame() - 1];
+
+	if (!vec.empty())  {
+		VocClass::PlayIndexAtPos(Random2Class::Global->RandomFromMax(vec.size()  - 1), pThis->GetCoords(), &pThis->Audio3);
+	}
+
+	return  0x0;
+}

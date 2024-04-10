@@ -909,6 +909,8 @@ public:
 	std::map<int, int> ShadowIndices {};
 	Nullable<int> ShadowSizeCharacteristicHeight {};
 
+	std::vector<ValueableIdxVector<VocClass>> TalkbubbleVoices {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
