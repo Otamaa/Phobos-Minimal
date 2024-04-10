@@ -1,6 +1,7 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
+#include <Ext/TechnoType/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/House/Body.h>
@@ -26,39 +27,32 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 			|| pCoorCell->OverlayTypeIndex != 126
 			|| pCoorCell->OverlayData < 0x30u
 			|| pCoorCell->SlopeIndex
-			)
-		{
+			)  {
 			pThis->__ToDelete_197 = true; // wut
 		}
 
-		if (Unsorted::CurrentFrame % RulesExtData::Instance()->VeinsAttack_interval == 0)
-		{
+		if (Unsorted::CurrentFrame % RulesExtData::Instance()->VeinsAttack_interval == 0)  {
 			while (pFirst != nullptr)
 			{
-				if (auto pTechno = generic_cast<TechnoClass*>(pFirst))
-				{
-					ObjectClass* pNext = pFirst->NextObject;
+				ObjectClass* pNext = pFirst->NextObject;
 
-					if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo)
-						continue;
-
-					if (pTechno->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pTechno)->DeathFrameCounter > 0)
-						continue;
-
+				if (auto pTechno = generic_cast<TechnoClass*>(pFirst)) {
 					const auto pType = pTechno->GetTechnoType();
-					if ( (!RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExtData::Instance()->VeinsDamagingWeightTreshold)
-						&& !pType->ImmuneToVeins
-						&& !pTechno->HasAbility(AbilityType::VeinProof)
-						&& pTechno->GetHeight() <= 5
-						)
-					{
-						int dmg = VeinDamage;
-						pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
-						//Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
+					if (!TechnoTypeExtContainer::Instance.Find(pType)->IsDummy &&pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo){
+						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)   {
+							if ( (!RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExtData::Instance()->VeinsDamagingWeightTreshold)
+								&& !pType->ImmuneToVeins
+								&& !pTechno->HasAbility(AbilityType::VeinProof)
+								&& pTechno->GetHeight() <= 5
+								)  {
+								int dmg = VeinDamage;
+								pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
+							}
+						}
 					}
-
-					pFirst = pNext;
 				}
+
+				pFirst = pNext;
 			}
 		}
 	}

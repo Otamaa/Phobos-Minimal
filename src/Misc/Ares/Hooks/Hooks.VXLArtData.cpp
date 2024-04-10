@@ -270,11 +270,14 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 
 	matRet = pVXL->HVA->Matrixes[shadow_index_now + pVXL->HVA->LayerCount * frameChoosen];
 
-	// TO TEST : Check if this is the proper Z offset to shift the sections to the same level
-	matRet.TranslateZ(
-		-matRet.GetZVal()
-		- pVXL->VXL->TailerData->Bounds[0].Z
-	);
+	// A nasty temporary backward compatibility option
+	if (pVXL->HVA->LayerCount > 1 || pThis->GetTechnoType()->Turret) {
+		// TO TEST : Check if this is the proper Z offset to shift the sections to the same level
+		matRet.TranslateZ(
+			-matRet.GetZVal()
+			- pVXL->VXL->TailerData->Bounds[0].Z
+		);
+	}
 
 	matRet = (*pMat)* matRet;
 
