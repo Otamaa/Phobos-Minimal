@@ -3918,7 +3918,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 		result = BuildingTypeClass::Find(pBuffer);
 
 	if (Phobos::Otamaa::IsAdmin)
-		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer , result ? result->GetThisClassName() : NONE_STR2, pThis->ID);
+		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer, result ? result->GetThisClassName() : NONE_STR2, pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;
@@ -4554,8 +4554,9 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 #endif
 
 #pragma region CRATE_HOOKS
-enum class MoveResult : char {
-	cannot , can
+enum class MoveResult : char
+{
+	cannot, can
 };
 
 // what is the boolean return for , heh
@@ -4719,7 +4720,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						data = Powerup::Unit;
 					}
 
-					HouseExtData::IncremetCrateTracking(pCollectorOwner ,data);
+					HouseExtData::IncremetCrateTracking(pCollectorOwner, data);
 
 				}
 				else if (!pCell->OverlayData)
@@ -5315,8 +5316,9 @@ DEFINE_HOOK(0x475A44, CCINIClass_Put_CrateType, 0x7)
 	GET_STACK(int, crateType, 0x8);
 
 	const auto pCrate = CrateTypeClass::FindFromIndexFix(crateType);
-	if (!pCrate) {
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!\n" ,crateType);
+	if (!pCrate)
+	{
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!\n", crateType);
 	}
 
 	R->EDX(pCrate->Name.data());
@@ -5327,7 +5329,8 @@ DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
 	GET(const char*, crate, ECX);
 
 	const int idx = CrateTypeClass::FindIndexById(crate);
-	if (idx <= -1) {
+	if (idx <= -1)
+	{
 		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%s]!\n", crate);
 	}
 	R->EAX(idx);
@@ -5356,14 +5359,14 @@ DEFINE_HOOK(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 
 	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
 	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : (PowerupEffects)CrateTypeClass::Array.size();
-	MapClass::Instance->Place_Crate(cell , crate);
+	MapClass::Instance->Place_Crate(cell, crate);
 	return 0x738457;
 }
 
 DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 {
 	//GET(BuildingClass*, pThis, ESI);
-	GET(BuildingTypeClass* , pThisType , EDX);
+	GET(BuildingTypeClass*, pThisType, EDX);
 	GET_STACK(CellStruct, cell, 0x10);
 
 	const PowerupEffects defaultcrate = pThisType->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
@@ -5573,8 +5576,10 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	if (!pBld->Type->Weeder)
 		HouseExtData::LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
 
+	const  auto pType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
-	const double amountRemoved = idxTiberium != -1 ? unit_storage->GetAmount(idxTiberium) : 0.0;//after decreased
+	const double totalAmount = unit_storage->GetAmount(idxTiberium);
+	const float amountRemoved = idxTiberium != -1 ? std::fabs(pType->HarvesterDumpAmount.Get((float)totalAmount)) : 0.0f;//after decreased
 
 	if (idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved, idxTiberium) <= 0.0)
 	{
@@ -6181,8 +6186,8 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 	DoType result = weaponIdx == 0 ? DoType::FireFly :
 		DoType(42);
 
-	if(!pThis->Type->Sequence->GetSequence(result).CountFrames)
-	  return 0;
+	if (!pThis->Type->Sequence->GetSequence(result).CountFrames)
+		return 0;
 
 	pThis->PlayAnim(result);
 	return 0x520831;
@@ -6190,13 +6195,14 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 
 DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 {
-	GET(InfantryClass*, pThis , ESI);
+	GET(InfantryClass*, pThis, ESI);
 	GET(DoType, type, EDI);
 
-	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne) {
+	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne)
+	{
 
-		if(!pThis->Type->Sequence->GetSequence(DoType(43)).CountFrames)
-		   return 0x0;
+		if (!pThis->Type->Sequence->GetSequence(DoType(43)).CountFrames)
+			return 0x0;
 
 		type = DoType(43);
 
@@ -6396,9 +6402,130 @@ DEFINE_HOOK(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	const auto& vec = pTypeExt->TalkbubbleVoices[FileSystem::TALKBUBL_Frame() - 1];
 
-	if (!vec.empty())  {
-		VocClass::PlayIndexAtPos(Random2Class::Global->RandomFromMax(vec.size()  - 1), pThis->GetCoords(), &pThis->Audio3);
+	if (!vec.empty())
+	{
+		VocClass::PlayIndexAtPos(Random2Class::Global->RandomFromMax(vec.size() - 1), pThis->GetCoords(), &pThis->Audio3);
 	}
 
 	return  0x0;
+}
+
+DEFINE_HOOK(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
+{
+	enum { SkipGameCode = 0x520CA9 };
+
+	GET(InfantryTypeClass*, pType, ECX);
+
+	AnimTypeClass* pAnimType = nullptr;
+
+	if (pType->DeadBodies.Count)
+		pAnimType = pType->DeadBodies[ScenarioClass::Instance->Random.RandomFromMax(pType->DeadBodies.Count - 1)];
+	else if (!pType->NotHuman && RulesClass::Instance->DeadBodies.Count)
+		pAnimType = RulesClass::Instance->DeadBodies[ScenarioClass::Instance->Random.RandomFromMax(RulesClass::Instance->DeadBodies.Count - 1)];
+
+	if (pAnimType)
+	{
+		GET(InfantryClass*, pThis, ESI);
+
+		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+		{
+			const auto pOwner = pThis->Owner;
+			pAnim->Owner = pOwner;
+			pAnim->LightConvert = ColorScheme::Array->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+		}
+	}
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
+{
+	GET(TechnoClass*, pNthLink, EAX);
+	return pNthLink ? 0 : 0x7043E1;
+}
+
+void DrawSWTimers(int value, ColorScheme* color, int interval, const std::wstring& label, LARGE_INTEGER* _arg, bool* _arg1)
+{
+	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+
+	const int hour = interval / 60 / 60;
+	const int minute = interval % 60;
+	const int second = interval / 60 % 60;
+
+	const std::wstring buffer =
+		//a ?
+		//std::format(L"{0}  {1}:{2:02}:{3:02}  ", label.empty()  ? L"Missing:" : label, a, c, b) :
+		//std::format(L"{0}  {1:02}:{2:02}  ", label.empty() ? L"Missing:" : label, c, b);
+		std::format(L"{0}  ", label.empty()  ? L"Missing:" : label);
+
+	const std::wstring timer_ = hour ?
+		std::format(L"{0}:{0:02}:{1:02}", hour, minute, second) :
+		std::format(L"{0:02}:{1:02}", minute, second);
+
+	int width = 0;
+	RectangleStruct rect_bound = DSurface::ViewBounds();
+	pFont->GetTextDimension(timer_.c_str(),&width , nullptr, rect_bound.Width);
+	auto fore = color;
+
+	if (!interval && _arg && _arg1)
+	{
+		auto large = Game::AudioGetTime();
+		if (_arg->QuadPart < large.QuadPart)
+		{
+			_arg->LowPart = large.LowPart + 1000;
+			_arg->HighPart = large.LowPart + 1000 + large.HighPart;
+			*_arg1 = !*_arg1;
+		}
+
+		if (*_arg1)
+		{
+			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+		}
+	}
+
+	int value_plusone = value + 1;
+	Point2D point {
+		rect_bound.Width - width - 3 ,
+		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
+	};
+
+	auto pComposite = DSurface::Composite();
+	auto rect = pComposite->Get_Rect();
+	Point2D _temp {};
+	Fancy_Text_Print_Wide(
+		&_temp,
+		buffer.c_str(),
+		pComposite,
+		&rect,
+		&point,
+		color,
+		0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background
+	);
+
+	point.X = rect_bound.Width - 3;
+	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
+	rect = pComposite->Get_Rect();
+	Fancy_Text_Print_Wide(
+	&_temp,
+	timer_.c_str(),
+	pComposite,
+	&rect,
+	&point,
+	fore,
+	0u,
+	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background
+	);
+}
+
+DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
+{
+	GET(int, val, ECX);
+	GET(ColorScheme*, pScheme, EDX);
+	GET_STACK(int, interval, 0x4);
+	GET_STACK(wchar_t*, text, 0x8);
+	GET_STACK(LARGE_INTEGER*, _arg, 0xC);
+	GET_STACK(bool*, _arg1, 0x10);
+	DrawSWTimers(val, pScheme, interval, text, _arg, _arg1);
+	return 0x6D4DAC;
 }

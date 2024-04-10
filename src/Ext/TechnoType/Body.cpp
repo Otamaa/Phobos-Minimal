@@ -1202,6 +1202,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
+			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
 			this->DropPodProp.Read(exINI, pSection);
 		}
 	}
@@ -2174,6 +2175,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Convert_HumanToComputer)
 		.Process(this->Convert_ComputerToHuman)
 		.Process(this->TalkbubbleVoices)
+		.Process(this->HarvesterDumpAmount)
 		;
 }
 
