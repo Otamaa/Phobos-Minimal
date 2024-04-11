@@ -6439,7 +6439,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
 		{
 			const auto pOwner = pThis->Owner;
 			pAnim->Owner = pOwner;
-			pAnim->LightConvert = ColorScheme::Array->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+			//pAnim->LightConvert = ColorScheme::Array->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
 		}
 	}
 
@@ -6450,6 +6450,18 @@ DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 {
 	GET(TechnoClass*, pNthLink, EAX);
 	return pNthLink ? 0 : 0x7043E1;
+}
+
+template<class T, class U> int8 __CFADD__(T x, U y)
+{
+	int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
+	if (size == 1)
+		return uint8(x) > uint8(x + y);
+	if (size == 2)
+		return uint16(x) > uint16(x + y);
+	if (size == 4)
+		return uint32(x) > uint32(x + y);
+	return unsigned __int64(x) > unsigned __int64(x + y);
 }
 
 void DrawSWTimers(int value, ColorScheme* color, int interval, const std::wstring& label, LARGE_INTEGER* _arg, bool* _arg1)
@@ -6473,15 +6485,15 @@ void DrawSWTimers(int value, ColorScheme* color, int interval, const std::wstrin
 	int width = 0;
 	RectangleStruct rect_bound = DSurface::ViewBounds();
 	pFont->GetTextDimension(timer_.c_str(),&width , nullptr, rect_bound.Width);
-	auto fore = color;
+	ColorScheme* fore = color;
 
 	if (!interval && _arg && _arg1)
 	{
-		auto large = Game::AudioGetTime();
-		if (_arg->QuadPart < large.QuadPart)
+		if (_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
 		{
+			auto large = Game::AudioGetTime();
 			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = large.LowPart + 1000 + large.HighPart;
+			_arg->HighPart = __CFADD__(large.LowPart  , 1000) + large.HighPart;
 			*_arg1 = !*_arg1;
 		}
 
@@ -6536,4 +6548,103 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 	GET_STACK(bool*, _arg1, 0x10);
 	DrawSWTimers(val, pScheme, interval, text, _arg, _arg1);
 	return 0x6D4DAC;
+}
+
+//DEFINE_HOOK(0x4FD500, HouseClass_ExpertAI_Add, 0x6)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//
+//
+//	return 0x0;
+//}
+
+//static int retvalue;
+//
+//void NAKED _BuildingClass_ExitObject_Add_RET()
+//{
+//	POP_REG(edi);
+//	POP_REG(esi);
+//	POP_REG(ebp);
+//	SET_REG32(eax, retvalue);
+//	POP_REG(ebx);
+//	ADD_ESP(0x130);
+//	JMP(0x4440D4);
+//}
+
+//DEFINE_HOOK(0x444F39, BuildingClass_ExitObject_Add, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (pThis->Type->PowersUpBuilding[0] != '\0')  {
+//		return 0x0;
+//	}
+//
+//	retvalue = BuildingClass_Exit_Object_Custom_Position(pThis);
+//	return (int)_BuildingClass_ExitObject_Add_RET;
+//}
+
+bool Spawned_Check_Destruction(AircraftClass* aircraft)
+{
+	if (aircraft->SpawnOwner == nullptr
+		|| !aircraft->SpawnOwner->IsAlive
+		|| aircraft->SpawnOwner->IsCrashing
+		|| aircraft->SpawnOwner->IsSinking
+		)
+	{
+		return false;
+	}
+
+	/**
+	 *  If our TarCom is null, our original target has died.
+	 *  Try targeting something else that is nearby,
+	 *  unless we've already decided to head back to the spawner.
+	 */
+	if (aircraft->Target == nullptr && aircraft->Destination != aircraft->SpawnOwner)
+	{
+		CoordStruct loc= aircraft->GetCoords();
+		aircraft->TargetAndEstimateDamage(&loc, ThreatType::Area);
+	}
+
+	/**
+	 *  If our TarCom is still null or we're run out of ammo, return to
+	 *  whoever spawned us. Once we're close enough, we should be erased from the map.
+	 */
+	if (aircraft->Target == nullptr || aircraft->Ammo == 0)
+	{
+
+		if (aircraft->Destination != aircraft->SpawnOwner)
+		{
+			aircraft->SetDestination(aircraft->SpawnOwner, true);
+			aircraft->ForceMission(Mission::Move);
+			aircraft->NextMission();
+		}
+
+		CoordStruct myloc = aircraft->GetCoords();
+		CoordStruct spawnerloc = aircraft->GetCoords();
+		if (myloc.DistanceFrom(spawnerloc) < Unsorted::LeptonsPerCell)
+			return true;
+	}
+
+	return false;
+}
+
+DEFINE_HOOK(0x414DA1, AircraftClass_AI_Add, 0x7)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->SpawnOwner != nullptr)  {
+
+		/**
+		 *  If we are close enough to our owner, delete us and return true
+		 *  to signal to the challer that we were deleted.
+		 */
+		if (Spawned_Check_Destruction(pThis))
+		{
+			pThis->UnInit();
+			return 0x414F99;
+		}
+	}
+
+	pThis->FootClass::Update();
+	return 0x414DA8;
 }

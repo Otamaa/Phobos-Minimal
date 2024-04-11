@@ -61,6 +61,7 @@ public:
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
 	int GrindingWeapon_AccumulatedCredits { 0 };
+	int LastFlameSpawnFrame { 0 };
 
 	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept = default;

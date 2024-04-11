@@ -604,6 +604,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
+	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
 
 	double AirShadowBaseScale = 0.0;
 	if (detail::read<double>(AirShadowBaseScale ,exINI , GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
@@ -1160,6 +1161,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->HeightShadowScaling_MinScale)
 
 		.Process(this->VeinsAttack_interval)
+		.Process(this->BuildingFlameSpawnBlockFrames)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -46,17 +46,17 @@ void HouseExtData::InitializeConstant()
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
-	auto pExt = HouseExtContainer::Instance.Find(pHouse);
-	pExt->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	pExt->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	pExt->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	pExt->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	pExt->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	pExt->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	pExt->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	pExt->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	pExt->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
-	pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
+	//auto pExt = HouseExtContainer::Instance.Find(pHouse);
+	//pExt->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	//pExt->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	//pExt->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	//pExt->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	//pExt->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
+	//pExt->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
+	//pExt->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
+	//pExt->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
+	//pExt->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
+	//pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
 }
 
 RequirementStatus HouseExtData::RequirementsMet(
@@ -1481,16 +1481,16 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->KeepAliveBuildingCount)
 		.Process(this->TiberiumStorage)
 
-		.Process(this->BuiltAircraftTypes)
-		.Process(this->BuiltInfantryTypes)
-		.Process(this->BuiltUnitTypes)
-		.Process(this->BuiltBuildingTypes)
-		.Process(this->KilledAircraftTypes)
-		.Process(this->KilledInfantryTypes)
-		.Process(this->KilledUnitTypes)
-		.Process(this->KilledBuildingTypes)
-		.Process(this->CapturedBuildings)
-		.Process(this->CollectedCrates)
+		//.Process(this->BuiltAircraftTypes)
+		//.Process(this->BuiltInfantryTypes)
+		//.Process(this->BuiltUnitTypes)
+		//.Process(this->BuiltBuildingTypes)
+		//.Process(this->KilledAircraftTypes)
+		//.Process(this->KilledInfantryTypes)
+		//.Process(this->KilledUnitTypes)
+		//.Process(this->KilledBuildingTypes)
+		//.Process(this->CapturedBuildings)
+		//.Process(this->CollectedCrates)
 		;
 }
 

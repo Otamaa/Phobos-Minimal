@@ -145,16 +145,16 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	TrackerClass BuiltAircraftTypes {};
-	TrackerClass BuiltInfantryTypes {};
-	TrackerClass BuiltUnitTypes {};
-	TrackerClass BuiltBuildingTypes {};
-	TrackerClass KilledAircraftTypes {};
-	TrackerClass KilledInfantryTypes {};
-	TrackerClass KilledUnitTypes {};
-	TrackerClass KilledBuildingTypes {};
-	TrackerClass CapturedBuildings {};
-	TrackerClass CollectedCrates {};
+	//TrackerClass BuiltAircraftTypes {};
+	//TrackerClass BuiltInfantryTypes {};
+	//TrackerClass BuiltUnitTypes {};
+	//TrackerClass BuiltBuildingTypes {};
+	//TrackerClass KilledAircraftTypes {};
+	//TrackerClass KilledInfantryTypes {};
+	//TrackerClass KilledUnitTypes {};
+	//TrackerClass KilledBuildingTypes {};
+	//TrackerClass CapturedBuildings {};
+	//TrackerClass CollectedCrates {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;

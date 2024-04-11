@@ -106,6 +106,18 @@ DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
+int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
+{
+    int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
+    int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
+    int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
+    int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+
+    int x_distance = our_cell_x - their_cell_x;
+    int y_distance = our_cell_y - their_cell_y;
+    return x_distance * x_distance + y_distance * y_distance;
+}
+
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
 	GET(AbstractClass*, pThis, ECX);
@@ -114,9 +126,11 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 	int nResult = 0;
 	if (pThat)
 	{
-		const auto nThisCoord = pThis->GetCoords();
-		const auto nThatCoord = pThat->GetCoords();
-		nResult = (int)nThisCoord.DistanceFromXY(nThatCoord);
+		auto nThisCoord = pThis->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+		cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
 	}
 
 	R->EAX(nResult);
@@ -126,9 +140,12 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
 	GET(AbstractClass*, pThis, ECX);
-	auto const nThisCoord = pThis->GetCoords();
+	auto nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-	R->EAX((int)nThisCoord.DistanceFromXY(*pThatCoord));
+	R->EAX(
+		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
+		cell_Distance_Squared(nThisCoord, *pThatCoord)
+		);
 	return 0x5F659B;
 }
 

@@ -149,7 +149,7 @@ DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
 }
 #endif
 
-DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
+DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamage_OnFire, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pFoundationArray, 0x10);
@@ -158,10 +158,17 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 	if (args.WH->Sparky)
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+		auto const pBldExt = BuildingExtContainer::Instance.Find(pThis);
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
 		if (Onfire && pFireType.size() >= 3) {
+
+			if(Unsorted::CurrentFrame < pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
+				return 0x4428FE;
+
+			pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+
 			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
 			{
 				auto const&[nCellX , nCellY] = pThis->InlineMapCoords() + *pFoundationArray;

@@ -895,6 +895,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->RegisteredJammers)
 		.Process(this->GrindingWeapon_AccumulatedCredits)
 		.Process(this->BeignMCEd)
+		.Process(this->LastFlameSpawnFrame)
 		;
 }
 

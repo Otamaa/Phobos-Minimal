@@ -312,6 +312,7 @@ public:
 	double AirShadowBaseScale_log { 0.693376137 };
 
 	Valueable<int> VeinsAttack_interval { 2 };
+	Valueable<int> BuildingFlameSpawnBlockFrames { 0 };
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;
