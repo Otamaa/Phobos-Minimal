@@ -6455,13 +6455,15 @@ DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 template<class T, class U>
 constexpr int8 __CFADD__(T x, U y)
 {
-	int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
+	constexpr int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
+
 	if (size == 1)
 		return uint8(x) > uint8(x + y);
 	if (size == 2)
 		return uint16(x) > uint16(x + y);
 	if (size == 4)
 		return uint32(x) > uint32(x + y);
+
 	return unsigned __int64(x) > unsigned __int64(x + y);
 }
 
