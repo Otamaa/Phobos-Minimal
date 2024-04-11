@@ -6452,7 +6452,8 @@ DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 	return pNthLink ? 0 : 0x7043E1;
 }
 
-template<class T, class U> int8 __CFADD__(T x, U y)
+template<class T, class U>
+constexpr int8 __CFADD__(T x, U y)
 {
 	int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
 	if (size == 1)
@@ -6464,7 +6465,7 @@ template<class T, class U> int8 __CFADD__(T x, U y)
 	return unsigned __int64(x) > unsigned __int64(x + y);
 }
 
-void DrawSWTimers(int value, ColorScheme* color, int interval, const std::wstring& label, LARGE_INTEGER* _arg, bool* _arg1)
+void DrawSWTimers(int value, ColorScheme* color, int interval, wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -6476,10 +6477,10 @@ void DrawSWTimers(int value, ColorScheme* color, int interval, const std::wstrin
 		//a ?
 		//std::format(L"{0}  {1}:{2:02}:{3:02}  ", label.empty()  ? L"Missing:" : label, a, c, b) :
 		//std::format(L"{0}  {1:02}:{2:02}  ", label.empty() ? L"Missing:" : label, c, b);
-		std::format(L"{}  ", label.empty()  ? L"Missing:" : label);
+		std::format(L"{}  ", label);
 
 	const std::wstring timer_ = hour ?
-		std::format(L"{}:{:02}:{:02}", hour, minute, second) :
+		std::format(L"{:02}:{:02}:{:02}", hour, minute, second) :
 		std::format(L"{:02}:{:02}", minute, second);
 
 	int width = 0;
