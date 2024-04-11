@@ -1133,6 +1133,35 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 
 #include <Ext/Tiberium/Body.h>
 
+int GetFrames(bool isWeeder,
+	TechnoTypeExtData* pTypeExt,
+	SHPStruct* pShape,
+	std::vector<std::pair<int, int>>& Amounts,
+	ConvertClass* nPal,
+	const Iterator<int> orders,
+	const ValueableVector<int>& frames)
+	{
+		int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
+
+		for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
+		{
+			size_t index = i;
+			if (i < orders.size())
+				index = orders[i];
+
+			if (Amounts[index].first > 0)
+			{
+				--Amounts[index].first;
+				frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
+					Amounts[index].second : frames[index + 1];
+
+				break;
+			}
+		}
+
+		return frame > pShape->Frames ? pShape->Frames : frame;
+};
+
 void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	if (!pTechno)
@@ -1157,15 +1186,15 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuilding)
-	{
-		const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-
-		if (pBuildingTypeExt->PipShapes01Remap)
-			nPal = pTechno->GetRemapColour();
-		else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-	}
+	//if (pBuilding)
+	//{
+	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	//
+	//	if (pBuildingTypeExt->PipShapes01Remap)
+	//		nPal = pTechno->GetRemapColour();
+	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	//}
 
 	auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
 	std::vector<std::pair<int, int>> Amounts(TiberiumClass::Array->Count);
@@ -1221,43 +1250,22 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	static constexpr std::array<int, 4u> defOrder { {0, 2, 3, 1} };
 	const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
-	const auto GetFrames = [&](
-		const Iterator<int> orders,
-		const ValueableVector<int>& frames)
-		{
-			int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
-
-			for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
-			{
-				size_t index = i;
-				if (i < orders.size())
-					index = orders[i];
-
-				if (Amounts[index].first > 0)
-				{
-					--Amounts[index].first;
-					frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
-						Amounts[index].second : frames[index + 1];
-
-					break;
-				}
-				else
-				{
-					nPal = FileSystem::THEATER_PAL();;
-				}
-			}
-
-			return frame > pShape->Frames ? pShape->Frames : frame;
-		};
 
 	for (int i = nMax; i; --i)
 	{
 		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+		const int frames = GetFrames(isWeeder,
+				pTypeExt,
+				pShape,
+				Amounts,
+				nPal,
+			displayOrders, RulesExtData::Instance()->Pips_Tiberiums_Frames);
+
 		CC_Draw_Shape(
 			DSurface::Temp(),
 			nPal,
 			pShape,
-			GetFrames(displayOrders, RulesExtData::Instance()->Pips_Tiberiums_Frames),
+			frames,
 			&nPointHere,
 			pRect,
 			0x600,
@@ -1293,16 +1301,16 @@ void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRe
 
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuilding)
-	{
-		const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-
-		if (pBuildingTypeExt->PipShapes01Remap)
-			nPal = pTechno->GetRemapColour();
-		else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-
-	}
+	//if (pBuilding)
+	//{
+	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	//
+	//	if (pBuildingTypeExt->PipShapes01Remap)
+	//		nPal = pTechno->GetRemapColour();
+	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	//
+	//}
 
 	for (int i = 0; i < nMax; i++)
 	{
@@ -2380,16 +2388,16 @@ DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) :
 		pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
 
-	if (isBuilding)
-	{
-		const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pType);
-
-		if (pBuildingTypeExt->PipShapes01Remap)
-			pPal = pThis->GetRemapColour();
-		else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-			pPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-
-	}
+	//if (isBuilding)
+	//{
+	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pType);
+	//
+	//	if (pBuildingTypeExt->PipShapes01Remap)
+	//		pPal = pThis->GetRemapColour();
+	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	//		pPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	//
+	//}
 
 	int currentSpawnsCount = pThis->SpawnManager->CountDockedSpawns();
 	Point2D position { offset->X + pTypeExt->SpawnsPipOffset->X, offset->Y + pTypeExt->SpawnsPipOffset->Y };
