@@ -131,6 +131,7 @@ public:
 
 	ValueableVector<WarheadTypeClass*> ExtraWarheads {};
 	ValueableVector<int> ExtraWarheads_DamageOverrides {};
+	ValueableVector<double> ExtraWarheads_DetonationChances {};
 
 	Valueable<double> Burst_Retarget { 0.0 };
 	Nullable<bool> KickOutPassenger {};

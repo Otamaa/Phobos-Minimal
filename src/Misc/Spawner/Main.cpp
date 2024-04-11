@@ -385,6 +385,8 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->Country = pINI->ReadInteger("HouseCountries", pMultiTag, this->Country);
 		this->Difficulty = pINI->ReadInteger("HouseHandicaps", pMultiTag, this->Difficulty);
 	}
+
+	Debug::Log("Reading Config for[%s  - %s] Color [%d]\n", pSection, pMultiTag, this->Color);
 }
 
 void SpawnerMain::GameConfigs::HouseConfig::LoadFromINIFile(CCINIClass* pINI, int index)
