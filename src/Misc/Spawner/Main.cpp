@@ -423,10 +423,14 @@ void SpawnerMain::GameConfigs::Init() {
 		if (!file.Open(FileAccessMode::ReadWrite)) {
 			Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
 		}
+		else
+		{
 
-		CCINIClass ini{};
-		ini.ReadCCFile(&file);
-		SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(&ini);
+			Debug::Log(" %s Reading file %s\n", __FUNCTION__, file.FileName);
+			CCINIClass ini {};
+			ini.ReadCCFile(&file);
+			SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(&ini);
+		}
 	}
 
 	Patch::Apply_CALL(0x48CDD3, SpawnerMain::GameConfigs::StartGame); // Main_Game
