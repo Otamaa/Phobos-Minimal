@@ -1423,10 +1423,11 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 
 	HouseClass::Array->for_each([](HouseClass* it) {
 		const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
-		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
 		it->PlainName ? it->PlainName : NONE_STR,
 		it->IsHumanPlayer,
 		ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
+		it->ColorSchemeIndex,
 		it->ArrayIndex,
 		pType ? pType->Name : NONE_STR,
 		it->Edge,
