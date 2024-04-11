@@ -6465,7 +6465,8 @@ constexpr int8 __CFADD__(T x, U y)
 	return unsigned __int64(x) > unsigned __int64(x + y);
 }
 
-void DrawSWTimers(int value, ColorScheme* color, int interval, wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+// TODO : percent timer draawing , the game dont like it when i do that without adjusting the posisition :S
+void DrawSWTimers(int value, ColorScheme* color, int interval,const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -6544,11 +6545,29 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 	GET(int, val, ECX);
 	GET(ColorScheme*, pScheme, EDX);
 	GET_STACK(int, interval, 0x4);
-	GET_STACK(wchar_t*, text, 0x8);
+	GET_STACK(const wchar_t*, text, 0x8);
 	GET_STACK(LARGE_INTEGER*, _arg, 0xC);
 	GET_STACK(bool*, _arg1, 0x10);
 	DrawSWTimers(val, pScheme, interval, text, _arg, _arg1);
 	return 0x6D4DAC;
+}
+
+DEFINE_HOOK(0x6D4A35, TacticalClass_Render_HandleSWTextPrint, 0x6)
+{
+	GET(SuperClass*, pSuper, ECX);
+	GET(int, value, EBX);
+	GET(int, time_left, ESI);
+
+	//double percent = ((double)time_left / (double)pSuper->Type->RechargeTime)* 100;
+
+	DrawSWTimers(value++,
+		ColorScheme::Array->Items[pSuper->Owner->ColorSchemeIndex],
+		time_left / 15,
+		pSuper->Type->UIName,
+		&pSuper->BlinkTimer,
+		&pSuper->BlinkState);
+
+	return 0x6D4A71;
 }
 
 //DEFINE_HOOK(0x4FD500, HouseClass_ExpertAI_Add, 0x6)
