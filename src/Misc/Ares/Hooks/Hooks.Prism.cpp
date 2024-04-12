@@ -411,6 +411,7 @@ DEFINE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 }
 
 DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
+{
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(HouseClass* const, newOwner, 0x58 + 0x4);
 	REF_STACK(bool, announce, 0x58 + 0x8);
