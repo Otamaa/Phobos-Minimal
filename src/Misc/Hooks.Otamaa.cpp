@@ -6456,19 +6456,18 @@ void DrawSWTimers(int value, ColorScheme* color, int interval,const wchar_t* lab
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
 
-	const std::wstring buffer =
-		//a ?
-		//std::format(L"{0}  {1}:{2:02}:{3:02}  ", label.empty()  ? L"Missing:" : label, a, c, b) :
-		//std::format(L"{0}  {1:02}:{2:02}  ", label.empty() ? L"Missing:" : label, c, b);
-		std::format(L"{}  ", label);
-
 	const std::wstring timer_ = hour ?
 		std::format(L"{:02}:{:02}:{:02}", hour, minute, second) :
 		std::format(L"{:02}:{:02}", minute, second);
 
+	const std::wstring buffer =
+		std::format(L"{}    ", label)
+		//std::format(L"{}  {}  ", label, timer_)
+		;
+
 	int width = 0;
 	RectangleStruct rect_bound = DSurface::ViewBounds();
-	pFont->GetTextDimension(timer_.c_str(),&width , nullptr, rect_bound.Width);
+	pFont->GetTextDimension(timer_.data(),&width , nullptr, rect_bound.Width);
 	ColorScheme* fore = color;
 
 	if (!interval && _arg && _arg1)
@@ -6534,23 +6533,23 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 	return 0x6D4DAC;
 }
 
-DEFINE_HOOK(0x6D4A35, TacticalClass_Render_HandleSWTextPrint, 0x6)
-{
-	GET(SuperClass*, pSuper, ECX);
-	GET(int, value, EBX);
-	GET(int, time_left, ESI);
-
-	//double percent = ((double)time_left / (double)pSuper->Type->RechargeTime)* 100;
-
-	DrawSWTimers(value++,
-		ColorScheme::Array->Items[pSuper->Owner->ColorSchemeIndex],
-		time_left / 15,
-		pSuper->Type->UIName,
-		&pSuper->BlinkTimer,
-		&pSuper->BlinkState);
-
-	return 0x6D4A71;
-}
+//DEFINE_HOOK(0x6D4A35, TacticalClass_Render_HandleSWTextPrint, 0x6)
+//{
+//	GET(SuperClass*, pSuper, ECX);
+//	GET(int, value, EBX);
+//	GET(int, time_left, ESI);
+//
+//	//double percent = ((double)time_left / (double)pSuper->Type->RechargeTime)* 100;
+//
+//	DrawSWTimers(value++,
+//		ColorScheme::Array->Items[pSuper->Owner->ColorSchemeIndex],
+//		time_left / 15,
+//		pSuper->Type->UIName,
+//		&pSuper->BlinkTimer,
+//		&pSuper->BlinkState);
+//
+//	return 0x6D4A71;
+//}
 
 //DEFINE_HOOK(0x4FD500, HouseClass_ExpertAI_Add, 0x6)
 //{
