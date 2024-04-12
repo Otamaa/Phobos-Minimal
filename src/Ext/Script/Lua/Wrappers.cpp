@@ -202,6 +202,8 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 			SriptNumbers.resize(scriptSize);
 			for (size_t i = 0; i < scriptSize; i++)
 			{
+				lua_pushinteger(L, lua_Integer(i + 1));
+				lua_gettable(L, -2);
 				if (lua_istable(L, -2))
 				{
 					lua_pushstring(L, "Original");
@@ -217,6 +219,7 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 					SriptNumbers[i].Original = Originalnumber;
 					SriptNumbers[i].Alternate = AlternativeNumber;
 				}
+				lua_pop(L, 1);
 			}
 		}
 	}

@@ -186,12 +186,17 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 	{
 		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, args.pTrigger->GetHouse()))
 		{
-			for (auto pItem : *TechnoClass::Array)
-			{
-				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
+			for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+
+				const auto pItem = TechnoClass::Array->Items[i];
+
+				if (!pItem)
 					continue;
 
-				//Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3 , pItem->Owner->get_ID() , pItem->Owner, NewOwnerPtr->get_ID() , NewOwnerPtr);
+//				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
+
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
+					continue;
 
 				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(args.pTrigger))
 				{
@@ -212,10 +217,6 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 					changed = true;
 				}
 			}
-
-			//if (!changed) {
-			//	Debug::FatalError("TAction[%x] WithTrigger[%x - %s(%s)] Cannot Find designated techno , this will cause game to deadlock , please fix !\n", pThis , args.pTrigger, args.pTrigger->Type->ID, args.pTrigger->Type->Name);
-			//}
 		}
 	}
 
@@ -234,8 +235,13 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 	{
 		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, args.pTrigger->GetHouse()))
 		{
-			for (auto pItem : *TechnoClass::Array)
+			for (int i = 0; i < TechnoClass::Array->Count; ++i)
 			{
+				const auto pItem = TechnoClass::Array->Items[i];
+
+				if (!pItem)
+					continue;
+
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse)
 					continue;
 

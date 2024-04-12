@@ -635,12 +635,31 @@ DEFINE_HOOK(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
 	return 0x456745;
 }
 
+
+bool Bld_ChangeOwnerAnnounce;
+DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
+{
+	GET_STACK(bool, announce, 0x8);
+	Bld_ChangeOwnerAnnounce = announce;
+	return 0x0;
+}
+
+DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
+{
+	GET(FootClass* const, pThis, ESI);
+	GET(HouseClass* const, pNewOwner, EDI);
+	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
+	//discarded
+	pThis->TechnoClass::SetOwningHouse(pNewOwner, Bld_ChangeOwnerAnnounce);
+	return 0x448BED;
+}
+
 DEFINE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
 
-	if (pThis->Owner != pNewOwner)
+	if (pThis->Owner != pNewOwner && Bld_ChangeOwnerAnnounce)
 	{
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;

@@ -2120,26 +2120,6 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 	return 0x4DBF0F;
 }
 
-bool Bld_ChangeOwnerAnnounce;
-DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
-{
-	GET_STACK(bool, announce, 0x8);
-	Bld_ChangeOwnerAnnounce = announce;
-	return 0x0;
-}
-
-DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
-{
-	GET(FootClass* const, pThis, ESI);
-	GET(HouseClass* const, pNewOwner, EDI);
-	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
-
-	//discarded
-	pThis->TechnoClass::SetOwningHouse(pNewOwner, Bld_ChangeOwnerAnnounce);
-	Bld_ChangeOwnerAnnounce = false;
-	return 0x448BED;
-}
-
 //DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 //{
 //	GET(MapSurfaceData*, ptr, EBP);
@@ -6670,3 +6650,35 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_Add, 0x7)
 	pThis->FootClass::Update();
 	return 0x414DA8;
 }
+
+//DEFINE_HOOK(0x530792, Game_InitSecondaryMixes_Maps, 0x5)
+//{
+//	if (Phobos::Otamaa::NoCD) {
+//		return  0x530B76;
+//	}
+//
+//	return 0x530792;
+//}
+//void NAKED NOINLINE ret___()
+//{
+//	POP_REG(edi);
+//	POP_REG(esi);
+//	POP_REG(ebp);
+//	POP_REG(ebx);
+//	__asm mov eax, 0;
+//	__asm setnz al;
+//	__asm add esp, 0x198;
+//	JMP(0x531292);
+//}
+//
+//DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
+//DEFINE_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
+
+DEFINE_HOOK(0x52C5A1,InitGame_SecondaryMixInit ,0x9)
+{
+	const bool result = R->AL();
+	Debug::Log(" ...%s!!!\n", !result ? "FAILED" : "OK");
+	return 0x52C5D3;
+}
+
+//DEFINE_HOOK(0x6E5380  ,TagClass_IsTags_Trigger_Validate , 0x)
