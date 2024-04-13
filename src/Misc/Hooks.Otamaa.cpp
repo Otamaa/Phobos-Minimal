@@ -1140,26 +1140,26 @@ int GetFrames(bool isWeeder,
 	ConvertClass* nPal,
 	const Iterator<int> orders,
 	const ValueableVector<int>& frames)
+{
+	int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
+
+	for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
 	{
-		int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
+		size_t index = i;
+		if (i < orders.size())
+			index = orders[i];
 
-		for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
+		if (Amounts[index].first > 0)
 		{
-			size_t index = i;
-			if (i < orders.size())
-				index = orders[i];
+			--Amounts[index].first;
+			frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
+				Amounts[index].second : frames[index + 1];
 
-			if (Amounts[index].first > 0)
-			{
-				--Amounts[index].first;
-				frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
-					Amounts[index].second : frames[index + 1];
-
-				break;
-			}
+			break;
 		}
+	}
 
-		return frame > pShape->Frames ? pShape->Frames : frame;
+	return frame > pShape->Frames ? pShape->Frames : frame;
 };
 
 void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
@@ -6448,7 +6448,7 @@ constexpr int8 __CFADD__(T x, U y)
 }
 
 // TODO : percent timer draawing , the game dont like it when i do that without adjusting the posisition :S
-void DrawSWTimers(int value, ColorScheme* color, int interval,const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -6467,7 +6467,7 @@ void DrawSWTimers(int value, ColorScheme* color, int interval,const wchar_t* lab
 
 	int width = 0;
 	RectangleStruct rect_bound = DSurface::ViewBounds();
-	pFont->GetTextDimension(timer_.data(),&width , nullptr, rect_bound.Width);
+	pFont->GetTextDimension(timer_.data(), &width, nullptr, rect_bound.Width);
 	ColorScheme* fore = color;
 
 	if (!interval && _arg && _arg1)
@@ -6476,7 +6476,7 @@ void DrawSWTimers(int value, ColorScheme* color, int interval,const wchar_t* lab
 		{
 			auto large = Game::AudioGetTime();
 			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart  , 1000) + large.HighPart;
+			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
 			*_arg1 = !*_arg1;
 		}
 
@@ -6602,7 +6602,7 @@ bool Spawned_Check_Destruction(AircraftClass* aircraft)
 	 */
 	if (aircraft->Target == nullptr && aircraft->Destination != aircraft->SpawnOwner)
 	{
-		CoordStruct loc= aircraft->GetCoords();
+		CoordStruct loc = aircraft->GetCoords();
 		aircraft->TargetAndEstimateDamage(&loc, ThreatType::Area);
 	}
 
@@ -6633,7 +6633,8 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_Add, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	if (pThis->SpawnOwner != nullptr)  {
+	if (pThis->SpawnOwner != nullptr)
+	{
 
 		/**
 		 *  If we are close enough to our owner, delete us and return true
@@ -6673,7 +6674,7 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_Add, 0x7)
 //DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
 //DEFINE_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
 
-DEFINE_HOOK(0x52C5A1,InitGame_SecondaryMixInit ,0x9)
+DEFINE_HOOK(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 {
 	const bool result = R->AL();
 	Debug::Log(" ...%s!!!\n", !result ? "FAILED" : "OK");
@@ -6681,3 +6682,42 @@ DEFINE_HOOK(0x52C5A1,InitGame_SecondaryMixInit ,0x9)
 }
 
 //DEFINE_HOOK(0x6E5380  ,TagClass_IsTags_Trigger_Validate , 0x)
+
+DEFINE_HOOK(0x60B865, AdjustWindow_Child, 5)
+{
+	LPRECT Rect;
+	GetWindowRect(Game::hWnd(), Rect);
+	R->ESI(R->ESI<int>() - Rect->top);
+	R->EDX(R->EDX<int>() - Rect->left);
+	return 0;
+}
+
+int aval;
+int bval;
+int cval;
+
+DEFINE_HOOK(0x61E00C, TrackBarWndProc_AdjustLength, 7)
+{
+	int v2 = bval * cval / aval;
+	R->Stack(0x84 , v2) ;
+	R->Stack(0x28, v2 + 12);
+	return 0;
+}
+
+DEFINE_HOOK(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
+{
+	if (R->Stack<int>(0x158) == 15) {
+		aval = R->EBP<int>();
+		bval = R->EBX<int>();
+	}
+	return 0x0;
+}
+
+DEFINE_HOOK(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
+{
+	if (R->Stack<int>(0x158) == 15)
+	{
+		cval = R->EAX<int>();
+	}
+	return 0x0;
+}
