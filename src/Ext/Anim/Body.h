@@ -23,6 +23,7 @@ public:
 	TechnoClass* Invoker { nullptr };
 	bool OwnerSet { false };
 	bool AllowCreateUnit { false };
+	bool WasOnBridge { false };
 
 	// This is a failsafe that is only set if this is a building animation
 	// and the building is not on same cell as the animation.

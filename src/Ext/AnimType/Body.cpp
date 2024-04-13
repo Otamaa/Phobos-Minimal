@@ -168,7 +168,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
-		bool allowBridges = GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
+		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (pTypeExt->CreateUnit_ConsiderPathfinding
@@ -382,6 +382,8 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 			pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
 		}
 	}
+
+	pAnimExt->WasOnBridge = pThis->OnBridge;
 }
 
 void AnimTypeExtData::ValidateSpalshAnims()

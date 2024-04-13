@@ -6685,10 +6685,10 @@ DEFINE_HOOK(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 
 DEFINE_HOOK(0x60B865, AdjustWindow_Child, 5)
 {
-	LPRECT Rect;
-	GetWindowRect(Game::hWnd(), Rect);
-	R->ESI(R->ESI<int>() - Rect->top);
-	R->EDX(R->EDX<int>() - Rect->left);
+	RECT Rect {};
+	GetWindowRect(Game::hWnd(), &Rect);
+	R->ESI(R->ESI<int>() - Rect.top);
+	R->EDX(R->EDX<int>() - Rect.left);
 	return 0;
 }
 
