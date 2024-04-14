@@ -139,9 +139,9 @@ struct Game
 	static constexpr reference<bool, 0xA8B8B5u> const DrawMPDebugStats{};
 	static constexpr reference<bool, 0xB04880u> const EnableMPSyncDebug{};
 
-	static struct Network
+	struct Network
 	{
-	public:
+
 		static constexpr reference<u_short, 0x841F30u> const ListenPort {};
 		static constexpr reference<int, 0xB779C4u> const Tournament {};
 		static constexpr reference<DWORD, 0xB779D4u> const WOLGameID {};
@@ -149,17 +149,33 @@ struct Game
 		static constexpr reference<int, 0xB73814u> const GameStockKeepingUnit {};
 		static constexpr reference<int, 0xA8B24Cu> const ProtocolVersion {};
 		static constexpr reference<int, 0xA8B554u> const FrameSendRate {};
-		static constexpr reference<int, 0xA8B570u> const PreCalcFrameRate{};
+		static constexpr reference<int, 0xA8B570u> const PreCalcFrameRate {};
 		static constexpr reference<int, 0x83737Cu> const ReconnectTimeout {};
 		static constexpr reference<int, 0xA8B550u> const MaxAhead {};
-		static constexpr reference<int, 0xA8B56Cu> const PreCalcMaxAhead{};
+		static constexpr reference<int, 0xA8B56Cu> const PreCalcMaxAhead {};
 		static constexpr reference<int, 0xA8B568u> const MaxMaxAhead {};
 		static constexpr reference<int, 0xA8DB9Cu> const LatencyFudge {};
 		static constexpr reference<int, 0xA8B558u> const RequestedFPS {};
 
 		static bool __fastcall Init()
 		{ JMP_STD(0x5DA6C0); }
-	} Network;
+	};
+
+	static bool __fastcall File_Finder_Start(char* filename) {
+		JMP_STD(0x47AF70);
+	}
+
+	static bool __fastcall File_Finder_Next_Name(char* filename) {
+		JMP_STD(0x47B0C0);
+	}
+
+	static void File_Finder_End() {
+		JMP_STD(0x47B130);
+	}
+
+	static int __fastcall Get_Volume_Index(int timeout) {
+		JMP_STD(0x4790A0);
+	}
 
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)

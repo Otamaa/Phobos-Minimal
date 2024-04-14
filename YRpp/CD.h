@@ -39,7 +39,6 @@ public:
 	static constexpr reference<int, 0x81C1D0> const Disk { };
 	static constexpr reference<bool, 0x89E3A0> const IsLocal { };
 
-
 	virtual bool ForceAvailable(int cdNumber) JMP_THIS(0x4790E0);
 	virtual bool InsertCDDialog() JMP_THIS(0x479110);
 	virtual void SwapToDisk() JMP_THIS(0x4791F0);
