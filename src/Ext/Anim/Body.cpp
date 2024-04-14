@@ -528,6 +528,7 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->AttachedSystem)
 		.Process(this->ParentBuilding)
 		.Process(this->CreateUnitLocation)
+		.Process(this->SpawnsStatusData)
 		;
 }
 

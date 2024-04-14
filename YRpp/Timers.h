@@ -1,5 +1,6 @@
 #pragma once
 
+#include <windows.h>
 #include <timeapi.h>
 
 template<typename T>
@@ -151,16 +152,20 @@ public:
 	}
 };
 
-using CDTimerClass = TimerClass<FrameTimer>;
+
 using SystemTimerClass = TimerClass<SystemTimer>;
 using MSTimerClass = TimerClass<MSTimer>;
 
-static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(SystemTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(MSTimerClass, TimeLeft) == 0x8);
-static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
+
 static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");
 static_assert(sizeof(MSTimerClass) == 0xC, "Invalid Size !");
+
+using CDTimerClass = TimerClass<FrameTimer>;
+
+static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
+static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
 
 class RepeatableTimerStruct : public CDTimerClass
 {

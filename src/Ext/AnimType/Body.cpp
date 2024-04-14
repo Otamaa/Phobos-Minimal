@@ -145,6 +145,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->AdditionalHeight.Read(exINI, pID, "AdditionalHeight");
 	this->AltReport.Read(exINI, pID, "AltReport");
+
+	this->SpawnsData.Read(exINI, pID);
 #pragma endregion
 }
 
@@ -468,6 +470,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AdditionalHeight)
 		.Process(this->AltReport)
+		.Process(this->SpawnsData)
 		;
 }
 

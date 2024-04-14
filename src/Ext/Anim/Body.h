@@ -5,6 +5,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
+#include <New/AnonymousType/SpawnsStatus.h>
 
 class ParticleSystemClass;
 class AnimExtData final //: public Extension<AnimClass>
@@ -31,6 +32,7 @@ public:
 
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
 	CoordStruct CreateUnitLocation {};
+	SpawnsStatus SpawnsStatusData {};
 
 	AnimExtData() noexcept = default;
 	~AnimExtData() noexcept = default;

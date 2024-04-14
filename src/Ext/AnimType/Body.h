@@ -6,6 +6,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
+#include <New/AnonymousType/Spawns.h>
 //#include "AnimSpawnerDatas.h"
 
 class AnimTypeExtData final
@@ -94,6 +95,8 @@ public:
 
 	Valueable<int> AdditionalHeight {};
 	NullableIdx<VocClass> AltReport {};
+
+	Spawns SpawnsData {};
 
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
