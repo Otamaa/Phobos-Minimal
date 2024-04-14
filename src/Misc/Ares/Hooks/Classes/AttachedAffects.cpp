@@ -14,14 +14,14 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	double Speed_Mult = pExt->AE_SpeedMult;
 	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pExt->AE_Cloak;
 
-	for (const auto& ae : ae->Data)
+	for (const auto& aeData : ae->Data)
 	{
-		ROF_Mult *= ae.Type->ROFMultiplier;
-		ReceiveRelativeDamageMult *= ae.Type->ReceiveRelativeDamageMult;
-		FP_Mult *= ae.Type->FirepowerMultiplier;
-		Speed_Mult *= ae.Type->SpeedMultiplier;
-		Armor_Mult *= ae.Type->ArmorMultiplier;
-		Cloak |= (BYTE)ae.Type->Cloakable;
+		ROF_Mult *= aeData.Type->ROFMultiplier;
+		ReceiveRelativeDamageMult *= aeData.Type->ReceiveRelativeDamageMult;
+		FP_Mult *= aeData.Type->FirepowerMultiplier;
+		Speed_Mult *= aeData.Type->SpeedMultiplier;
+		Armor_Mult *= aeData.Type->ArmorMultiplier;
+		Cloak |= (BYTE)aeData.Type->Cloakable;
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;

@@ -43,7 +43,7 @@ public:
 			CoordStruct crdCur = pSourceCoords;
 			auto pCellCur = pSourceCell;
 
-			for (size_t i = 0; i < maxDelta + isTargetingCheck; ++i)
+			for (size_t i = 0; i < (maxDelta + (size_t)isTargetingCheck); ++i)
 			{
 				if (auto const pCell = BulletObstacleHelper::GetObstacle(pSourceCell, pTargetCell, pCellCur, crdCur, pSource, pTarget, pOwner, pBulletType, isTargetingCheck))
 					return pCell;

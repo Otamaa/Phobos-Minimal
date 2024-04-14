@@ -34,27 +34,27 @@ struct IsoTileHeaderStruct
 };
 #pragma pack()
 
-#pragma pack(4)
-struct IsoTileFileStruct
-{
-public:
-	operator void* () const { return (*this); } // This allows the struct to be passed implicitly as a raw pointer.
-
-	IsoTileImageStruct* Get_Tiles_Data(int index)
-	{
-		return &(&Tiles)[index * sizeof(IsoTileImageStruct)];
-	}
-
-	int Get_Width() const { return Header.Width; }
-	int Get_Height() const { return Header.Height; }
-
-private:
-	IsoTileHeaderStruct Header;
-
-	/**
-	 *  This is an instance of the first frame in the iso tile file, use Get_Frame_Data
-	 *  to get the image information, do not access this directly!
-	 */
-	IsoTileImageStruct Tiles;
-};
-#pragma pack()
+//#pragma pack(4)
+//struct IsoTileFileStruct
+//{
+//public:
+//	operator void* () const { return (*this); } // This allows the struct to be passed implicitly as a raw pointer.
+//
+//	IsoTileImageStruct* Get_Tiles_Data(int index)
+//	{
+//		return &(&Tiles)[index * sizeof(IsoTileImageStruct)];
+//	}
+//
+//	int Get_Width() const { return Header.Width; }
+//	int Get_Height() const { return Header.Height; }
+//
+//private:
+//	IsoTileHeaderStruct Header;
+//
+//	/**
+//	 *  This is an instance of the first frame in the iso tile file, use Get_Frame_Data
+//	 *  to get the image information, do not access this directly!
+//	 */
+//	IsoTileImageStruct Tiles;
+//};
+//#pragma pack()

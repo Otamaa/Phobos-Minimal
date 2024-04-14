@@ -197,7 +197,7 @@ DEFINE_HOOK(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
 		if (pTypeExt->HasCrumblingFrames && pThis->TimeToDie)
 			frame = (animLength * (pTypeExt->HasDamagedFrames + 1)) + 1 + pThis->Animation.Value;
 		else
-			frame = pThis->Animation.Value + (isDamaged * animLength);
+			frame = pThis->Animation.Value + ((size_t)isDamaged * animLength);
 	}
 	else
 	{

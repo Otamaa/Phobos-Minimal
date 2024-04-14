@@ -571,7 +571,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		return 0x4F8F87;
 	}
 
-	auto Eligible = [pThis](FootClass* pFoot)
+	auto IsEligible = [pThis](FootClass* pFoot)
 		{
 			if (pFoot->Owner != pThis)
 			{
@@ -600,7 +600,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *UnitClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -611,7 +611,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *InfantryClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -622,7 +622,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *AircraftClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}

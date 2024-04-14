@@ -163,7 +163,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
 			uint8_t* eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
 
-			for (int i = 32; i > 0; --i)
+			for (int e = 32; e > 0; --e)
 			{
 				if (IsBadReadPtr(eip_pointer, sizeof(uint8_t)))
 				{
@@ -202,16 +202,16 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 			fprintf(except, "Floating point Registers:\n");
 
-			for (int i = 0; i < EXCEPTION_STACK_COLUMNS; ++i)
+			for (int d = 0; d < EXCEPTION_STACK_COLUMNS; ++d)
 			{
-				fprintf(except, "ST%d : ", i);
+				fprintf(except, "ST%d : ", d);
 
 				for (int j = 0; j < 10; ++j)
 				{
-					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[i * 10 + j]);
+					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[d * 10 + j]);
 				}
 
-				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[i * 10]));
+				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[d * 10]));
 			}
 
 			if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE))
@@ -251,7 +251,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 			fprintf(except, "\nStack dump (depth : %d):\n", EXCEPTION_STACK_DEPTH_MAX);
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
-			for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i)
+			for (int c = 0; c < EXCEPTION_STACK_DEPTH_MAX; ++c)
 			{
 				const char* suffix = "";
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
@@ -468,17 +468,16 @@ void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
 		for (int j = 0; j < b.Count; ++j)
 		{
 			const auto& n = b[j];
-			auto idx = n.BuildingTypeIndex;
-			if (idx >= 0)
+			if (n.BuildingTypeIndex >= 0)
 			{
-				auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
+				auto lbl = BuildingTypeClass::Array->Items[n.BuildingTypeIndex]->ID;
 				fprintf(F, "\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
 					, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 			}
 			else
 			{
 				fprintf(F, "\tNode #%03d: Special %d @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
-					, j, idx, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
+					, j, n.BuildingTypeIndex, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 			}
 		}
 		fprintf(F, "\n");

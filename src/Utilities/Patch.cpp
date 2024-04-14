@@ -51,7 +51,7 @@ void Patch::Apply()
 	DWORD protect_flag;
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
 	std::memcpy(pAddress, this->pData, this->size);
-	VirtualProtect(pAddress, this->size, protect_flag, 0);
+	VirtualProtect(pAddress, this->size, protect_flag, nullptr);
 }
 
 void Patch::Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data)
@@ -223,13 +223,13 @@ void Patch::PrintAllModuleAndBaseAddr()
 						{
 							data.Exports.reserve(export_dir->NumberOfNames);
 
-							for (size_t i = 0; i < (size_t)export_dir->NumberOfNames; i++)
+							for (size_t a = 0; a < (size_t)export_dir->NumberOfNames; a++)
 							{
 								module_export& symbol = data.Exports.emplace_back();
 								symbol.ordinal = export_base +
-									reinterpret_cast<const  WORD*>(image_base + export_dir->AddressOfNameOrdinals)[i];
+									reinterpret_cast<const  WORD*>(image_base + export_dir->AddressOfNameOrdinals)[a];
 								symbol.name = reinterpret_cast<const char*>(image_base +
-								reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfNames)[i]);
+								reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfNames)[a]);
 								symbol.address = const_cast<void*>(
 									reinterpret_cast<const void*>(image_base +
 										reinterpret_cast<const DWORD*>(image_base + export_dir->AddressOfFunctions)[symbol.ordinal - export_base]));
@@ -249,8 +249,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 						while (originalFirstThunk->u1.AddressOfData != NULL)
 						{
 							module_Import& symbol = data.Impors.emplace_back();
-							auto data = (PIMAGE_IMPORT_BY_NAME)(image_base + originalFirstThunk->u1.AddressOfData);
-							symbol.name = data->Name;
+							symbol.name = ((PIMAGE_IMPORT_BY_NAME)(image_base + originalFirstThunk->u1.AddressOfData))->Name;
 							symbol.address = (void*)firstThunk->u1.Function;
 							++originalFirstThunk;
 							++firstThunk;

@@ -148,10 +148,10 @@ struct ShapeFileStruct
 public:
 	operator void* () const { return (*this); } // This allows the struct to be passed implicitly as a raw pointer.
 
-	SHPFrame* GetFrameData(int index)
-	{
-		return &(&FrameData)[index * sizeof(SHPFrame)];
-	}
+	//SHPFrame* GetFrameData(int index)
+	//{
+	//	return &(&FrameData)[index * sizeof(SHPFrame)];
+	//}
 
 	int GetWidth() const { return Header.Width; }
 	int GetHeight() const { return Header.Height; }

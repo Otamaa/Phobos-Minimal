@@ -5949,7 +5949,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 	{
 		auto nRandX = ScenarioClass::Instance->Random.Random() % nTotal;
 		auto nRandY = ScenarioClass::Instance->Random.Random() % nTotal;
-		CoordStruct nLoc { nRandX + nCoord.X ,nRandY + nCoord.Y ,nCoord.Z };
+		CoordStruct nAnimLoc { nRandX + nCoord.X ,nRandY + nCoord.Y ,nCoord.Z };
 
 		AnimTypeClass* pSelected = pBig;
 		int nRandHere = abs(ScenarioClass::Instance->Random.Random()) & 0x80000001;
@@ -5966,7 +5966,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 
 		if (pSelected)
 		{
-			auto pAnim = GameCreate<AnimClass>(pSelected, nLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			auto pAnim = GameCreate<AnimClass>(pSelected, nAnimLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
 			pAnim->Owner = pHouse;
 		}
 	}

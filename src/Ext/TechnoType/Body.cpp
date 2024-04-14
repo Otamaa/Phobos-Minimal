@@ -1200,6 +1200,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			}
 		}
 
+		this->NoExtraSelfHealOrRepair.Read(exINI, pSection, "NoExtraSelfHealOrRepair");
+
 		if (this->AttachtoType != AbstractType::BuildingType)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
@@ -2178,6 +2180,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Convert_ComputerToHuman)
 		.Process(this->TalkbubbleVoices)
 		.Process(this->HarvesterDumpAmount)
+		.Process(this->NoExtraSelfHealOrRepair)
 		;
 }
 

@@ -912,6 +912,7 @@ public:
 	std::vector<ValueableIdxVector<VocClass>> TalkbubbleVoices {};
 
 	Nullable<float> HarvesterDumpAmount { };
+	Valueable<bool> NoExtraSelfHealOrRepair { false };
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

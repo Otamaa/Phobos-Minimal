@@ -119,7 +119,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 				continue;
 			}
 
-			auto pType = curTechno->GetType();
+			auto pType = curTechno->GetTechnoType();
 			// respect verses the boolean way
 			if (std::abs(this->GetVerses(TechnoExtData::GetArmor(curTechno)).Verses) < 0.001)
 			{
@@ -130,8 +130,6 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 			{
 				// duration modifier
 				int duration = this->IC_Duration;
-
-				auto pType = curTechno->GetTechnoType();
 
 				// modify good durations only
 				if (duration > 0)

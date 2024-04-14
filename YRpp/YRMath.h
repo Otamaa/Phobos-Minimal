@@ -6,13 +6,13 @@
 #include <Base/Always.h>
 
 #define MATH_FUNC(ret ,arg ,name, address)\
-	inline NAKED ret __cdecl name(arg value)\
+	inline NAKED ret __cdecl name(arg value) noexcept\
 	{\
 		JMP(address);\
 	}
 
 #define MATH_FUNC_TWOVAL(name, address)\
-	inline NAKED float __cdecl name(double valuea , double valueb)\
+	inline NAKED float __cdecl name(double valuea , double valueb) noexcept\
 	{\
 		JMP(address);\
 	}
@@ -24,13 +24,13 @@
 //	}
 
 #define MATH_FUNC_FLOAT(ret , arg , name, address)\
-	inline ret __stdcall name(arg value)\
+	inline ret __stdcall name(arg value) noexcept\
 	{\
 		JMP_STD(address);\
 	}
 
 #define MATH_FUNC_TWOVAL_FLOAT(name, address)\
-	inline double __stdcall name(float valuea , float valueb)\
+	inline double __stdcall name(float valuea , float valueb) noexcept\
 	{\
 		JMP_STD(address);\
 	}
@@ -124,13 +124,13 @@ namespace Math
 
 
 	//famous Quaqe 3 Fast Inverse Square Root
-	inline float Q_invsqrt(float number)
+	inline float Q_invsqrt(float number) noexcept
 	{
 		static_assert(std::numeric_limits<float>::is_iec559, "Float Must be IEC559 !");
 
 		long i;
 		float x2, y;
-		const float threehalfs = 1.5F;
+		constexpr float threehalfs = 1.5F;
 
 		x2 = number * 0.5F;
 		y = number;
@@ -156,7 +156,7 @@ namespace Math
 	// template <typename T>
 	// inline double stdsqrt(T val) { return Math::sqrt(val); }
 
-	inline double sqrt(int val) { return sqrt((double)val); }
+	inline double sqrt(int val) { return sqrt(static_cast<double>(val)); }
 
 	inline constexpr double deg2rad(double deg)
 	{
@@ -177,13 +177,13 @@ namespace Math
 	template <typename T> inline constexpr
 		int signum(T x, std::false_type is_signed)
 	{
-		return T(0) < x;
+		return T{ 0 } < x;
 	}
 
 	template <typename T> inline constexpr
 		int signum(T x, std::true_type is_signed)
 	{
-		return (T(0) < x) - (x < T(0));
+		return (T{ 0 } < x) - (x < T{ 0 });
 	}
 
 	template <typename T> inline constexpr

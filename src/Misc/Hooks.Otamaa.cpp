@@ -2167,10 +2167,10 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
 			{
 
-				const auto pExt = BuildingTypeExtContainer::Instance.Find(*begin);
+				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
-				const bool IsFactoryPowered = !pExt->FactoryPlant_RequirePower || ((*begin)->Powered && Online);
+				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && Online);
 
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
@@ -2183,7 +2183,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				const bool IsSpySatPowered = !pExt->SpySat_RequirePower || ((*begin)->Powered && Online);
+				const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
 				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
 				{
 					const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
@@ -2194,10 +2194,10 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				// add eligible building
-				if (pExt->SpeedBonus.Enabled && Online)
+				if (pTypeExt->SpeedBonus.Enabled && Online)
 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = !pExt->PurifierBonus_RequirePower || ((*begin)->Powered && Online);
+				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || ((*begin)->Powered && Online);
 				// add eligible purifier
 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
@@ -6297,11 +6297,11 @@ void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI
 					bufferFacing
 				) > 3)
 				{
-					for (size_t i = 0; i < EnumFunctions::FacingType_to_strings.size(); ++i)
+					for (size_t a = 0; a < EnumFunctions::FacingType_to_strings.size(); ++a)
 					{
-						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[i], bufferFacing))
+						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[a], bufferFacing))
 						{
-							data.Facing = DoTypeFacing(i);
+							data.Facing = DoTypeFacing(a);
 						}
 					}
 				}

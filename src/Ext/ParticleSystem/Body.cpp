@@ -346,7 +346,7 @@ void ParticleSystemExtData::UpdateRailgun()
 
 			Data->velB = nMovementDummy; // storing MovementPerturbationCoeff vector
 
-			// this one use for coordinate storage that already lerp with the cur pos and target pos 
+			// this one use for coordinate storage that already lerp with the cur pos and target pos
 			Data->vel.X = nDummy_d.X;
 			Data->vel.Y = nDummy_d.Y;
 			Data->vel.Z = nDummy_d.Z;
@@ -419,9 +419,9 @@ void  ParticleSystemExtData::UpdateRailgun()
 		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
 		Matrix3D mtx =Matrix3D::GetIdentity();
 		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
-		mtx.PreRotateZ(acos < 0 ? -acos : acos);
+		mtx.PreRotateZ(float(acos < 0 ? -acos : acos));
 		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
-		mtx.PreRotateX(theta);
+		mtx.PreRotateX(float(theta));
 
 		auto pHeldType = this->HeldType;
 
@@ -517,8 +517,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 		pThis->TimeToDie = true;
 	}
 
-	// this one updating the pisitional value on each particle 
-	// this was executed by `ParticleClass_AI` on vanilla 
+	// this one updating the pisitional value on each particle
+	// this was executed by `ParticleClass_AI` on vanilla
 	for (auto& movement : this->OtherParticleData)
 	{
 		const auto state = movement.A;
@@ -535,7 +535,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 			movement.Empty = true;
 	}
 
-	// the game use reverse of this 
+	// the game use reverse of this
 	// update both pisition and the color then finally do the state updates
 	this->UpdateState();
 	this->UpdateColor();
@@ -721,7 +721,7 @@ void ParticleSystemExtData::UpdateSmoke()
 
 #ifdef zaawdawd
 void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis){
-	
+
 	if (!pThis->TimeToDie && !pThis->Particles.Count)
 	{
 		CoordStruct targetCoords = pThis->TargetCoords;
@@ -804,7 +804,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis){
 			partilce->Spark10C += MovementPerturbation;
 
 			const auto sparkVelLength = std::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
-			
+
 			Vector3D<float> last = partilce->Spark10C;
 			if (sparkVelLength != 0.0) {
 				last.X = vel->X / sparkVelLength;

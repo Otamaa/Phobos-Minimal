@@ -339,9 +339,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 
 		if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBldExt->OriginalHouseType))
 		{
-			const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-
-			if (pBld->Type->Factory == whatItem || pBldExt->Type->FactoryOwners_HasAllPlans)
+			if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->Type->FactoryOwners_HasAllPlans)
 			{
 				return true;
 			}

@@ -178,15 +178,12 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 				pUnit->SpeedType, -1, pUnit->MovementZone, isBridge, 1, 1, true,
 				false, false, isBridge, CellStruct::Empty, false, false);
 
-			CellClass* pCell = MapClass::Instance->TryGetCellAt(nCell);
+			pCell = MapClass::Instance->TryGetCellAt(nCell);
 			if (!pCell)
 				return;
 
 			Location = pCell->GetCoords();
 		}
-
-		if (!pCell)
-			return;
 
 		isBridge = allowBridges && pCell->ContainsBridge();
 		int bridgeZ = isBridge ? Unsorted::BridgeHeight : 0;
