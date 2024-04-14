@@ -157,7 +157,7 @@ public:
 		return this->SavingStream;
 	}
 
-	inline void ClearExtAttribute(base_type_ptr key)
+	constexpr FORCEINLINE void ClearExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
@@ -168,7 +168,7 @@ public:
 		//	this->Map.erase(key);
 	}
 
-	inline void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
+	constexpr FORCEINLINE void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
@@ -181,7 +181,7 @@ public:
 		//this->Map[key] = val;
 	}
 
-	inline extension_type_ptr GetExtAttribute(base_type_ptr key)
+	constexpr FORCEINLINE extension_type_ptr GetExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
@@ -208,7 +208,7 @@ public:
 		if (extension_type_ptr val = new extension_type())
 		{
 			val->AttachedToObject = key;
-			if constexpr (CTORInitable<T>) { 
+			if constexpr (CTORInitable<T>) {
 				if(!Phobos::Otamaa::DoingLoadGame)
 					val->InitializeConstant();
 			}

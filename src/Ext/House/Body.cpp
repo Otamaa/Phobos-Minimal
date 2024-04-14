@@ -849,19 +849,37 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 	return MapClass::Instance->TryGetCellAt(cellStruct);
 }
 
+HouseClass* Civilian = nullptr;
+
 HouseClass* HouseExtData::FindCivilianSide()
 {
-	return HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
+	if(!Civilian){
+		Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
+	}
+
+	return Civilian;
 }
+
+HouseClass* Special = nullptr;
 
 HouseClass* HouseExtData::FindSpecial()
 {
-	return HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
+	if(!Special){
+		Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
+	}
+
+	return Special;
 }
+
+HouseClass* Neutral = nullptr;
 
 HouseClass* HouseExtData::FindNeutral()
 {
-	return HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
+	if(!Neutral){
+		Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
+	}
+
+	return Neutral;
 }
 
 void HouseExtData::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)

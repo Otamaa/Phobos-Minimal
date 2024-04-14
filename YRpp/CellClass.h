@@ -385,36 +385,36 @@ public:
 		{ JMP_THIS(0x487D00); }
 
 	// helper
-	bool ContainsBridge() const
+	FORCEINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
-	bool ContainsBridgeEx() const
+	FORCEINLINE bool ContainsBridgeEx() const
 		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
-	bool ContainsBridgeBody() const
+	FORCEINLINE bool ContainsBridgeBody() const
 		{ return (this->Flags & CellFlags::BridgeBody) != CellFlags::Empty; }
 
 	// helper mimicking game's behaviour
-	ObjectClass* GetContent() const
+	FORCEINLINE ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
-	ObjectClass* GetContentB() const
+	FORCEINLINE ObjectClass* GetContentB() const
 	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
-	ObjectClass* GetContent(int z) const
+	FORCEINLINE ObjectClass* GetContent(int z) const
 	{ return this->ContainsBridge() || z >= (Unsorted::LevelHeight * (this->Level + 4)) ? this->AltObject : this->FirstObject; }
 
-	int GetLevelFrom(CellClass const* const	pSource) const
+	FORCEINLINE int GetLevelFrom(CellClass const* const	pSource) const
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
-	int GetLevel() const
+	FORCEINLINE int GetLevel() const
 	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
-	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
+	static FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
 		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
 	}
 
-	static CellStruct Coord2Cell(const CoordStruct &crd) {
+	static FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 
