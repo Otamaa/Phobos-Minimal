@@ -192,7 +192,7 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 
 	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if(!pType->NoExtraSelfHealOrRepair)
+	if(pType->NoExtraSelfHealOrRepair)
 		return SkipGameDrawing;
 
 	// if (const auto pFoot = generic_cast<FootClass*>(pThis)){

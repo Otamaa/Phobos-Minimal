@@ -3,7 +3,7 @@
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1)
-		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex)))
+		if (const auto pTiberium = TiberiumClass::Find(pCell->OverlayTypeIndex))
 			return pTiberium;
 
 	return nullptr;
@@ -23,7 +23,7 @@ int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 int CellExtData::GetOverlayIndex(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1) {
-		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex))) {
+		if (const auto pTiberium = TiberiumClass::Find(pCell->OverlayTypeIndex)) {
 			return (pCell->SlopeIndex > 0) ?
 			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages);
 		}

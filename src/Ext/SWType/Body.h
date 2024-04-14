@@ -568,7 +568,7 @@ public:
 public:
 
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static  bool InvalidateIgnorable(AbstractClass* ptr);
+	static bool InvalidateIgnorable(AbstractClass* ptr);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();

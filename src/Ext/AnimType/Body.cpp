@@ -153,11 +153,12 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 	if (!pThis->Type)
 		return;
 
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	auto pExt = AnimExtContainer::Instance.Find(pThis);
 
 	if (pExt->AllowCreateUnit)
 		return;
+
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (const auto pUnit = pTypeExt->CreateUnit.Get())
 	{

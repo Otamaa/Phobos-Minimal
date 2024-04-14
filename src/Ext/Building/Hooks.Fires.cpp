@@ -14,7 +14,7 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void HandleRemoveAsExt(BuildingExtData* pExt)
+	void FORCEINLINE HandleRemoveAsExt(BuildingExtData* pExt)
 	{
 		if (!pExt)
 			return;
@@ -29,12 +29,12 @@ namespace DamageFireAnims
 		}
 	}
 
-	void HandleRemove(BuildingClass* pThis) {
+	void FORCEINLINE HandleRemove(BuildingClass* pThis) {
 		auto pExt = BuildingExtContainer::Instance.Find(pThis);
 		HandleRemoveAsExt(pExt);
 	}
 
-	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
+	void FORCEINLINE HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
 		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 		if (!pExt)
 			return;

@@ -6674,6 +6674,37 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_Add, 0x7)
 //DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
 //DEFINE_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
 
+template<DWORD addr, DWORD addr_ptr>
+struct MixBundle
+{
+	constant_ptr<const char, addr> MIXName;
+	reference<MixFileClass*, addr_ptr> const MIXptr;
+};
+
+static constexpr MixBundle<0x826838, 0x884E38 > const CONQMD {};
+static constexpr MixBundle<0x8267EC, 0x884E3C > const CONQUER {};
+
+static constexpr MixBundle<0x826820, 0x884E18 > const GENERMD {};
+static constexpr MixBundle<0x826814, 0x884E14 > const GENERIC {};
+
+static constexpr MixBundle<0x826804, 0x884E28 > const ISOGENMD {};
+static constexpr MixBundle<0x8267F8, 0x884E24 > const ISOGEN {};
+
+static constexpr MixBundle<0x8267C0, 0x884E40 > const CAMEOMD {};
+static constexpr MixBundle<0x8267D0, 0x884E44 > const CAMEO {};
+
+static constexpr MixBundle<0x81C284, 0x884DD8 > const MULTIMD {};
+
+static constexpr MixBundle<0x81C24C, 0x87E738 > const THEMEMD {};
+static constexpr MixBundle<0x81C220, 0x87E738 > const THEME {};
+
+template<typename MixBundle>
+bool MixFile()
+{
+	MixBundle.Mixptr = GameCreate<MixFileClass>(MixBundle.MixName());
+	return MixBundle.Mixptr != nullptr;
+}
+
 DEFINE_HOOK(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 {
 	const bool result = R->AL();
@@ -6699,14 +6730,15 @@ int cval;
 DEFINE_HOOK(0x61E00C, TrackBarWndProc_AdjustLength, 7)
 {
 	int v2 = bval * cval / aval;
-	R->Stack(0x84 , v2) ;
+	R->Stack(0x84, v2);
 	R->Stack(0x28, v2 + 12);
 	return 0;
 }
 
 DEFINE_HOOK(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
 {
-	if (R->Stack<int>(0x158) == 15) {
+	if (R->Stack<int>(0x158) == 15)
+	{
 		aval = R->EBP<int>();
 		bval = R->EBX<int>();
 	}
