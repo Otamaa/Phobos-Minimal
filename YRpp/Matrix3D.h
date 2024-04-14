@@ -315,7 +315,7 @@ public:
 	//void Translate(Vector3D<float> const& vec) const { JMP_THIS(0x5AE8F0); }
 	void Translate(Vector3D<float> const& t)
 	{
-		double v3 = t.X;// st7
+		double v3 = t.X;
 		double v4 = v3 * this->row[2][0] + this->row[2][3];
 		double v5 = t.Y;
 		double v6 = v4 + v5 * this->row[2][1];
@@ -588,21 +588,24 @@ public:
 		this->row[2][1] = static_cast<float>(tmp2 * c - tmp1 * s);
 	}
 
-	float GetXVal() const //{ JMP_THIS(0x5AF2C0); }
+	float GetXVal() //{ JMP_THIS(0x5AF2C0); }
 	{
-		return row[0][3];
+		Vector3D<float> ret_ = MatrixMultiply(this, { 0.0f , 0.0f , 0.0f });
+		return ret_.X;
 	}
 
 	//float GetYVal() const  { JMP_THIS(0x5AF310); }
 	float GetYVal()
 	{
-		return row[1][3];
+		Vector3D<float> ret_ = MatrixMultiply(this, { 0.0f , 0.0f , 0.0f });
+		return ret_.Y;
 	}
 
 	//float GetZVal() const { JMP_THIS(0x5AF360); }
 	float GetZVal()
 	{
-		return row[2][3];
+		Vector3D<float> ret_ = MatrixMultiply(this, { 0.0f , 0.0f , 0.0f });
+		return ret_.Z;
 	}
 
 	//float GetXRotation() const  { JMP_THIS(0x5AF3B0); }
@@ -645,10 +648,10 @@ public:
 	}
 
 	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
-		//JMP_FAST(0x5AFB80);
-   		 vecret->X = mat->row[0][2] * vec->Z + mat->row[0][1] * vec->Y + mat->Row[0].X * vec->X + mat->row[0][3];
-    	 vecret->Y = mat->row[1][0] * vec->X + mat->row[1][2] * vec->Z + mat->row[1][1] * vec->Y + mat->row[1][3];
-   		 return vecret;
+		JMP_FAST(0x5AFB80);
+   		 //vecret->X = mat->row[0][2] * vec->Z + mat->row[0][1] * vec->Y + mat->Row[0].X * vec->X + mat->row[0][3];
+    	 //vecret->Y = mat->row[1][0] * vec->X + mat->row[1][2] * vec->Z + mat->row[1][1] * vec->Y + mat->row[1][3];
+   		 //return vecret;
 	}
 
 	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)

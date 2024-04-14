@@ -224,6 +224,51 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	//return 0x6F9EBB;
 }
 
+bool Spawned_Check_Destruction(AircraftClass* aircraft)
+{
+	if (aircraft->SpawnOwner == nullptr
+		|| !aircraft->SpawnOwner->IsAlive
+		|| aircraft->SpawnOwner->IsCrashing
+		|| aircraft->SpawnOwner->IsSinking
+		)
+	{
+		return false;
+	}
+
+	/**
+	 *  If our TarCom is null, our original target has died.
+	 *  Try targeting something else that is nearby,
+	 *  unless we've already decided to head back to the spawner.
+	 */
+	if (aircraft->Target == nullptr && aircraft->Destination != aircraft->SpawnOwner)
+	{
+		CoordStruct loc = aircraft->GetCoords();
+		aircraft->TargetAndEstimateDamage(&loc, ThreatType::Area);
+	}
+
+	/**
+	 *  If our TarCom is still null or we're run out of ammo, return to
+	 *  whoever spawned us. Once we're close enough, we should be erased from the map.
+	 */
+	if (aircraft->Target == nullptr || aircraft->Ammo == 0)
+	{
+
+		if (aircraft->Destination != aircraft->SpawnOwner)
+		{
+			aircraft->SetDestination(aircraft->SpawnOwner, true);
+			aircraft->ForceMission(Mission::Move);
+			aircraft->NextMission();
+		}
+
+		CoordStruct myloc = aircraft->GetCoords();
+		CoordStruct spawnerloc = aircraft->GetCoords();
+		if (myloc.DistanceFrom(spawnerloc) < Unsorted::LeptonsPerCell)
+			return true;
+	}
+
+	return false;
+}
+
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
@@ -235,6 +280,21 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+	if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+	{
+
+		/**
+		 *  If we are close enough to our owner, delete us and return true
+		 *  to signal to the challer that we were deleted.
+		 */
+		if (Spawned_Check_Destruction(pThis))
+		{
+			pThis->UnInit();
+			return 0x414F99;
+		}
+	}
+
 #endif
 	pThis->FootClass::Update();
 	return 0x414DA8;
