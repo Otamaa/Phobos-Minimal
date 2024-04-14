@@ -849,37 +849,36 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 	return MapClass::Instance->TryGetCellAt(cellStruct);
 }
 
-HouseClass* Civilian = nullptr;
+HouseClass* HouseExtContainer::Civilian = nullptr;
+HouseClass* HouseExtContainer::Special = nullptr;
+HouseClass* HouseExtContainer::Neutral = nullptr;
 
 HouseClass* HouseExtData::FindCivilianSide()
 {
-	if(!Civilian){
-		Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
+	if(!HouseExtContainer::Civilian){
+		HouseExtContainer::Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
 	}
 
-	return Civilian;
+	return HouseExtContainer::Civilian;
 }
 
-HouseClass* Special = nullptr;
 
 HouseClass* HouseExtData::FindSpecial()
 {
-	if(!Special){
-		Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
+	if(!HouseExtContainer::Special){
+		HouseExtContainer::Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
 	}
 
-	return Special;
+	return HouseExtContainer::Special;
 }
-
-HouseClass* Neutral = nullptr;
 
 HouseClass* HouseExtData::FindNeutral()
 {
-	if(!Neutral){
-		Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
+	if(!HouseExtContainer::Neutral){
+		HouseExtContainer::Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
 	}
 
-	return Neutral;
+	return HouseExtContainer::Neutral;
 }
 
 void HouseExtData::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
@@ -1551,6 +1550,10 @@ void HouseExtContainer::Clear()
 
 	HouseExtData::CloakEVASpeak.Stop();
 	HouseExtData::SubTerraneanEVASpeak.Stop();
+
+	Civilian = 0;
+	Special = 0;
+	Neutral = 0;
 }
 // =============================
 // container hooks

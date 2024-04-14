@@ -330,6 +330,10 @@ public:
 public:
 	static HouseExtContainer Instance;
 
+	static HouseClass* Civilian;
+	static HouseClass* Special;
+	static HouseClass* Neutral;
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
