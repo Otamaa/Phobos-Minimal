@@ -447,6 +447,7 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
+    <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\New\AnonymousType\Spawns.h" />
     <ClInclude Include="src\New\AnonymousType\SpawnsStatus.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />

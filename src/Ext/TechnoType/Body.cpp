@@ -741,7 +741,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				signed int idx = std::atoi(cur);
-				if (idx > -1 && idx < 32)
+				if (idx > -1 && idx < MaxHouseCount)
 				{
 					this->RequiredStolenTech.set(idx);
 				}

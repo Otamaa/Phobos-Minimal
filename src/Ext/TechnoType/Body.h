@@ -35,6 +35,8 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
+#include <Misc/Defines.h>
+
 class ArmorTypeClass;
 struct ImageStatusses
 {
@@ -851,7 +853,7 @@ public:
 	DWORD Secret_RequiredHouses { 0xFFFFFFFF };
 	DWORD Secret_ForbiddenHouses { 0xFFFFFFFF };
 
-	std::bitset<32> RequiredStolenTech {};
+	std::bitset<MaxHouseCount> RequiredStolenTech {};
 
 	Valueable<bool> ReloadInTransport { false };
 	Valueable<bool> Weeder_TriggerPreProductionBuildingAnim { false };

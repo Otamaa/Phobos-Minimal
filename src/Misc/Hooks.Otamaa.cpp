@@ -6778,3 +6778,11 @@ DEFINE_HOOK(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
 	}
 	return 0x0;
 }
+
+
+#pragma region House32LimitFix
+// 0x5788 Allies
+// 0x1605C StartingAllies
+// 0x54E4 RadarVisibleTo
+// 0x20D TechnoClass_DisplayProductionTo
+#pragma endregion

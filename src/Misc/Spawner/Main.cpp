@@ -10,6 +10,7 @@
 #include <IPXManagerClass.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/House/Body.h>
 
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
@@ -918,7 +919,8 @@ DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 		if (pHouse->Defeated || pHouse == MPlayerDefeated::pThis || pHouse->Type->MultiplayPassive)
 			continue;
 
-		if ((pHouse->IsHumanPlayer || SpawnerMain::GameConfigs::m_Ptr->ContinueWithoutHumans) && pHouse->IsMutualAllie(MPlayerDefeated::pThis))
+		if ((pHouse->IsHumanPlayer || SpawnerMain::GameConfigs::m_Ptr->ContinueWithoutHumans)
+			&& HouseExtData::IsMutualAllies(pHouse , MPlayerDefeated::pThis))
 		{
 			Debug::Log("[Spawner] MPlayer_Defeated() - Defeated player has a living ally");
 			if (SpawnerMain::GameConfigs::m_Ptr->DefeatedBecomesObserver)

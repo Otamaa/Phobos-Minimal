@@ -275,6 +275,7 @@ public:
 		JMP_THIS(0x5095D0);
 	}
 
+#ifdef _INLINED_VERSION
 	bool IsAlliedWith_(int idxHouse) const
 	{
 		if (idxHouse == this->ArrayIndex)
@@ -309,6 +310,18 @@ public:
 		return this->IsAlliedWith_(pAbstract->GetOwningHouse());
 	}
 
+	bool IsMutualAllies(HouseClass const* pHouse) const
+	{
+		return pHouse == this
+			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
+	}
+
+#endif
+
+#pragma region NonInline
+	// we use these to ensure if their functionality changes
+	// we dont need to do more changes everywhere
+
 	bool IsAlliedWith(int idxHouse) const
 		{ JMP_THIS(0x4F9A10); }
 
@@ -320,11 +333,7 @@ public:
 
 	bool IsAlliedWith(AbstractClass const* pAbstract) const
 		{ JMP_THIS(0x4F9AF0); }
-
-	bool IsMutualAllie(HouseClass const* pHouse) const {
-		return pHouse == this
-			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
-	}
+#pragma endregion
 
 	void MakeAlly(int iHouse, bool bAnnounce)
 		{ JMP_THIS(0x4F9B50); }
@@ -340,7 +349,6 @@ public:
 
 	void UpdateAngerNodes(int nScoreAdd, HouseClass* pHouse)
 		{ JMP_THIS(0x504790); }
-
 
 	void AllyAIHouses()
 		{ JMP_THIS(0x501640); }

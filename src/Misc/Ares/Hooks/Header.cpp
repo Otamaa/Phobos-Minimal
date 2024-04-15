@@ -2333,6 +2333,7 @@ void TechnoExt_ExtData::UpdateDisplayTo(BuildingClass* pThis)
 			}
 		}
 
+		//TODO RadarVisible
 		pHouse->RadarVisibleTo.data = presistData;
 		MapClass::Instance->RedrawSidebar(2);
 	}

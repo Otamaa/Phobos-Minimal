@@ -59,6 +59,12 @@ void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 	//pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
 }
 
+bool HouseExtData::IsMutualAllies(HouseClass const* pThis, HouseClass const* pHouse) {
+	return pHouse == pThis
+		|| (pThis->Allies.Contains(pHouse->ArrayIndex)
+			&& pHouse->Allies.Contains(pThis->ArrayIndex));
+}
+
 RequirementStatus HouseExtData::RequirementsMet(
 	HouseClass* pHouse, TechnoTypeClass* pItem)
 {

@@ -10,6 +10,7 @@
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
 
+#include <Misc/Defines.h>
 #include <map>
 
 struct LauchData
@@ -129,7 +130,7 @@ public:
 
 	int AvaibleDocks { 0 };
 
-	std::bitset<32> StolenTech {};
+	std::bitset<MaxHouseCount> StolenTech {};
 	IndexBitfield<HouseClass*> RadarPersist {};
 	HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 	HelperedVector<BuildingClass*> Academies {};
@@ -303,6 +304,9 @@ public:
 
 	static void IncremetCrateTracking(HouseClass* pHouse, Powerup type);
 	static void InitializeTrackers(HouseClass* pHouse);
+
+	static bool IsMutualAllies(HouseClass const* pThis , HouseClass const* pHouse);
+
 private:
 	bool UpdateHarvesterProduction();
 

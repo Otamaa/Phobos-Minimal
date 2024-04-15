@@ -794,7 +794,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->SpyEffect_StolenTechIndex_result.reset();
 			do
 			{
-				if ((*pos) > -1 && (*pos) < 32)
+				if ((*pos) > -1 && (*pos) < MaxHouseCount)
 				{
 					this->SpyEffect_StolenTechIndex_result.set((*pos));
 				}

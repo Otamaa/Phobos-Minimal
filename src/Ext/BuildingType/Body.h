@@ -18,6 +18,8 @@
 
 #include <Misc/Ares/Hooks/Classes/PrismForwardingData.h>
 
+#include <Misc/Defines.h>
+
 enum class BunkerSoundMode : int
 {
 	Up, Down
@@ -93,7 +95,7 @@ public:
 	Valueable<bool> SpyEffect_RevealRadarPersist { false };
 	Valueable<bool> SpyEffect_GainVeterancy { false };
 	Valueable<bool> SpyEffect_UnReverseEngineer { false };
-	std::bitset<32> SpyEffect_StolenTechIndex_result {};
+	std::bitset<MaxHouseCount> SpyEffect_StolenTechIndex_result {};
 	Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
 	Valueable<float> SpyEffect_StolenMoneyPercentage { 0 };
 	Valueable<int> SpyEffect_PowerOutageDuration { 0 };

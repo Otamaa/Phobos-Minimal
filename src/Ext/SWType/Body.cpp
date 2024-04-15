@@ -1888,7 +1888,8 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	// allow only certain houses, disallow forbidden houses
-	if (!this->SW_RequiredHouses.Contains(pHouse->Type) || this->SW_ForbiddenHouses.Contains(pHouse->Type))
+	if (!((this->SW_RequiredHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u)
+			|| ((this->SW_ForbiddenHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u))
 		return false;
 
 	// check that any aux building exist and no neg building

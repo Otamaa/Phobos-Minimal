@@ -9,6 +9,7 @@
 #include <New/Type/DroppodProperties.h>
 
 #include <BitFont.h>
+#include <Misc/Defines.h>
 
 enum class SWTargetFlags
 {
