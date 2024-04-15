@@ -355,6 +355,7 @@ public:
 	std::vector<int> SpawnsCrate_Types {};
 	std::vector<int> SpawnsCrate_Weights {};
 
+	Valueable<bool> IgnoreRevenge { false };
 public:
 
 	WarheadTypeExtData() noexcept = default;

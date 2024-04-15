@@ -464,6 +464,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SpawnsCrate_Weights.emplace_back(weight);
 	}
+
+	this->IgnoreRevenge.Read(exINI, pSection, "IgnoreRevenge");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1395,6 +1397,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SpawnsCrate_Types)
 		.Process(this->SpawnsCrate_Weights)
+
+		.Process(this->IgnoreRevenge)
 		;
 
 	PaintBallData.Serialize(Stm);
