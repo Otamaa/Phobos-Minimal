@@ -3205,7 +3205,38 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		pThis->ClearDisguise();
 
 	// Adjust ammo
-	pThis->Ammo = MinImpl(pThis->Ammo, pToType->Ammo);
+	int ammoLeft = MinImpl(pThis->Ammo, pToType->Ammo);
+	pThis->Ammo = ammoLeft;
+	if (ammoLeft < 0 || ammoLeft >= pToType->Ammo)
+	{
+		pThis->ReloadTimer.Stop();
+	}
+	else
+	{
+		int reloadLeft = pThis->ReloadTimer.GetTimeLeft();
+		int reloadPrev = 0;
+		int reloadNew = 0;
+		if (ammoLeft == 0)
+		{
+			reloadPrev = pOldType->EmptyReload;
+			reloadNew = pToType->EmptyReload;
+		}
+		else if (pThis->Ammo)
+		{
+			reloadPrev = pOldType->Reload;
+			reloadNew = pToType->Reload;
+		}
+		int pass = reloadPrev - reloadLeft;
+		if (pass <= 0 || pass >= reloadNew)
+		{
+			pThis->ReloadTimer.Stop();
+		}
+		else
+		{
+			int reload = reloadNew - pass;
+			pThis->ReloadTimer.Start(reload);
+		}
+	}
 
 	BuildingLightClass* pSpot = nullptr;
 
@@ -3213,15 +3244,12 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		pSpot = GameCreate<BuildingLightClass>(pThis);
 	}
 
-	auto SetRotRaw = [](FacingClass* pFacing , int rate)
-		{
-			const int value = MinImpl(rate, 127);
-			pFacing->ROT.Raw = value << 8;
-		};
-
 	TechnoExt_ExtData::SetSpotlight(pThis, pSpot);
-	SetRotRaw(&pThis->PrimaryFacing ,pToType->ROT);
-	SetRotRaw(&pThis->SecondaryFacing, TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT));
+	const int value = MinImpl(pToType->ROT, 127);
+	(&pThis->PrimaryFacing)->ROT.Raw = value << 8;
+
+	const int valuesec = MinImpl(TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT), 127);
+	(&pThis->SecondaryFacing)->ROT.Raw = valuesec << 8;
 
 	// // because we are throwing away the locomotor in a split second, piggybacking
 	// // has to be stopped. otherwise the object might remain in a weird state.
