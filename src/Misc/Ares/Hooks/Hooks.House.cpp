@@ -391,25 +391,6 @@ DEFINE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
-{
-	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
-/* return
-	 1 - cameo shown
-	 0 - cameo not shown
-	-1 - cameo greyed out
- */
-
-	GET(HouseClass* const, pThis, ECX);
-	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
-	GET_STACK(bool const, buildLimitOnly, 0x8);
-	GET_STACK(bool const, includeInProduction, 0xC);
-	//GET_STACK(DWORD , caller , 0x0);
-
-	R->EAX(HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction));
-	return 0x4F8361;
-}
-
 DEFINE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 {
 	GET(HouseClass*, pHouse, EAX);
@@ -813,14 +794,9 @@ DEFINE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 	return 0x6AB320;
 }
 
-DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
-{
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(TechnoTypeClass*, pType, 0x4);
-
-	auto ret = false;
-
-	if (pType)
+bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType)
+{	auto ret = false;
+		if (pType)
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -864,8 +840,7 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 				// BuildLimit permitted.
 				if (ownedAircraft + queuedAircraft >= pThis->AirportDocks)
 				{
-					R->EAX(true);
-					return 0x50B669;
+					return true;
 				}
 			}
 		}
@@ -896,6 +871,158 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 			ret = (state.first < NewFactoryState::Available_Alternative);
 		}
 	}
+
+	return ret;
+}
+
+#pragma region BuildLimitGroup
+int QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pType)
+{
+	const AbstractType absType = pType->WhatAmI();
+	const FactoryClass* pFactory = pHouse->GetPrimaryFactory(absType, pType->Naval, BuildCat::DontCare);
+	int queued = 0;
+
+	if (pFactory)
+	{
+		queued = pFactory->CountTotal(pType);
+
+		if (const auto pObject = pFactory->Object)
+		{
+			if (pObject->GetType() == pType)
+				--queued;
+		}
+	}
+
+	return queued;
+}
+
+void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num)
+{
+	const AbstractType absType = pType->WhatAmI();
+	FactoryClass* pFactory = pHouse->GetPrimaryFactory(absType, pType->Naval, BuildCat::DontCare);
+	if (pFactory)
+	{
+		int queued = pFactory->CountTotal(pType);
+		if (num >= 0)
+			queued = MinImpl(num, queued);
+
+		for (int i = 0; i < queued; i ++)
+		{
+			pFactory->RemoveOneFromQueue(pType);
+		}
+	}
+}
+
+bool ReachedBuildLimit(const HouseClass* pHouse, const TechnoTypeClass* pType, bool ignoreQueued)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(const_cast<TechnoTypeClass*>(pType));
+
+	if (pTypeExt->BuildLimit_Group_Types.empty()
+		|| pTypeExt->BuildLimit_Group_Limits.empty())
+		return false;
+
+
+	if (pTypeExt->BuildLimit_Group_Limits.size() == 1)
+	{
+		int count = 0;
+		int queued = 0;
+		bool inside = false;
+
+		for (const TechnoTypeClass* pTmpType : pTypeExt->BuildLimit_Group_Types)
+		{
+			if (!ignoreQueued)
+				queued += QueuedNum(pHouse, pTmpType);
+
+			count += pHouse->CountOwnedNow(pTmpType);
+			if (pTmpType == pType)
+				inside = true;
+		}
+
+		int num = count - pTypeExt->BuildLimit_Group_Limits.back();
+		if (num + queued >= 0)
+		{
+			if (inside)
+				RemoveProduction(pHouse, pType, num + queued);
+			else if (num >= 0 || pTypeExt->BuildLimit_Group_Stop)
+				RemoveProduction(pHouse, pType, -1);
+
+			return true;
+		}
+	}
+	else
+	{
+		size_t size = MinImpl(pTypeExt->BuildLimit_Group_Limits.size(), pTypeExt->BuildLimit_Group_Types.size());
+		bool reached = true;
+		bool realReached = true;
+
+		for (size_t i = 0; i < size; i++)
+		{
+			const TechnoTypeClass* pTmpType = pTypeExt->BuildLimit_Group_Types[i];
+			int queued = ignoreQueued ? 0 : QueuedNum(pHouse, pTmpType);
+			int num = pHouse->CountOwnedNow(pTmpType) - pTypeExt->BuildLimit_Group_Limits[i];
+
+			if (num + queued >= 0)
+			{
+				if (pTypeExt->BuildLimit_Group_Any)
+				{
+					if (num >= 0 || pTypeExt->BuildLimit_Group_Stop)
+						RemoveProduction(pHouse, pType, -1);
+					return true;
+				}
+				else if (num < 0)
+				{
+					realReached = false;
+				}
+			}
+			else
+			{
+				reached = false;
+			}
+		}
+
+		if (reached)
+		{
+			if (realReached || pTypeExt->BuildLimit_Group_Stop)
+				RemoveProduction(pHouse, pType, -1);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#pragma endregion
+
+DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
+{
+	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
+/* return
+	 1 - cameo shown
+	 0 - cameo not shown
+	-1 - cameo greyed out
+ */
+
+	GET(HouseClass* const, pThis, ECX);
+	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
+	GET_STACK(bool const, buildLimitOnly, 0x8);
+	GET_STACK(bool const, includeInProduction, 0xC);
+	//GET_STACK(DWORD , caller , 0x0);
+	auto validationResult = HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+
+	if(validationResult == CanBuildResult::Buildable && ReachedBuildLimit(pThis, pItem, true))
+		validationResult= CanBuildResult::TemporarilyUnbuildable;
+
+	R->EAX(validationResult);
+	return 0x4F8361;
+}
+
+DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(TechnoTypeClass*, pType, 0x4);
+
+	auto ret = ShouldDisableCameo(pThis, pType);
+		 ret = ReachedBuildLimit(pThis, pType, false);
 
 	R->EAX(ret);
 	return 0x50B669;

@@ -914,6 +914,14 @@ public:
 	Nullable<float> HarvesterDumpAmount { };
 	Valueable<bool> NoExtraSelfHealOrRepair { false };
 
+//add this just in case the implementation chages
+#pragma region BuildLimitGroup
+	ValueableVector<TechnoTypeClass*> BuildLimit_Group_Types { };
+	Valueable<bool> BuildLimit_Group_Any { false };
+	ValueableVector<int> BuildLimit_Group_Limits { };
+	Valueable<bool> BuildLimit_Group_Stop { false };
+#pragma endregion
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

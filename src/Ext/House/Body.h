@@ -280,6 +280,7 @@ public:
 	static int CountOwnedNowTotal(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static signed int BuildLimitRemaining(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static BuildLimitStatus CheckBuildLimit(HouseClass const* pHouse, TechnoTypeClass* pItem, bool includeQueued);
+	static BuildLimitStatus BuildLimitGroupCheck(HouseClass const* const  pThis, TechnoTypeClass* pItem, bool includeQueued);
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);

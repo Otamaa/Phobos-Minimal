@@ -1216,12 +1216,80 @@ void HouseExtData::UpdateAutoDeathObjects()
 	}
 }
 
+BuildLimitStatus HouseExtData::BuildLimitGroupCheck(HouseClass const* const pThis,TechnoTypeClass* pItem ,bool includeQueued)
+{
+	auto pItemExt = TechnoTypeExtContainer::Instance.Find(pItem);
+	if (pItemExt->BuildLimit_Group_Types.empty())
+		return BuildLimitStatus::NotReached;
+
+	if (pItemExt->BuildLimit_Group_Any.Get())
+	{
+		bool reachedLimit = false;
+		for (size_t i = 0;
+			i < MinImpl(
+				pItemExt->BuildLimit_Group_Types.size(),
+				pItemExt->BuildLimit_Group_Limits.size())
+			; i++)
+		{
+			TechnoTypeClass* pType = pItemExt->BuildLimit_Group_Types[i];
+			int ownedNow = HouseExtData::CountOwnedNowTotal(pThis, pType);
+			if (ownedNow >= pItemExt->BuildLimit_Group_Limits[i])
+			{
+				reachedLimit |= (includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType))
+					? false : true;
+			}
+		}
+		return reachedLimit ?
+			BuildLimitStatus::ReachedPermanently :
+			BuildLimitStatus::NotReached;
+	}
+	else
+	{
+		if (pItemExt->BuildLimit_Group_Limits.size() == 1U)
+		{
+			int sum = 0;
+			bool reachedLimit = false;
+			for (auto& pType : pItemExt->BuildLimit_Group_Types)
+			{
+				sum += HouseExtData::CountOwnedNowTotal(pThis, pType);
+			}
+			if (sum >= pItemExt->BuildLimit_Group_Limits[0])
+			{
+				for (auto& pType : pItemExt->BuildLimit_Group_Types)
+				{
+					reachedLimit |= (includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType))
+						? false : true;
+				}
+			}
+			return reachedLimit ?
+				BuildLimitStatus::ReachedPermanently :
+				BuildLimitStatus::NotReached;
+		}
+		else
+		{
+			for (size_t i = 0;
+			i < MinImpl(
+				pItemExt->BuildLimit_Group_Types.size(),
+				pItemExt->BuildLimit_Group_Limits.size())
+			; i++)
+			{
+				TechnoTypeClass* pType = pItemExt->BuildLimit_Group_Types[i];
+				int ownedNow = HouseExtData::CountOwnedNowTotal(pThis, pType);
+				if (ownedNow < pItemExt->BuildLimit_Group_Limits[i]
+				|| includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType))
+					return BuildLimitStatus::NotReached;
+			}
+			return BuildLimitStatus::ReachedPermanently;
+		}
+	}
+}
+
 BuildLimitStatus HouseExtData::CheckBuildLimit(
 	HouseClass const* const pHouse, TechnoTypeClass* pItem,
 	bool const includeQueued)
 {
 	int BuildLimit = pItem->BuildLimit;
-	int remaining  = BuildLimitRemaining(pHouse , pItem);
+	int remaining  = HouseExtData::BuildLimitRemaining(pHouse , pItem);
 
 	if (BuildLimit > 0 && remaining <= 0) {
 		return !includeQueued || !pHouse->GetFactoryProducing(pItem)
