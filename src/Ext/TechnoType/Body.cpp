@@ -1196,7 +1196,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			for (int i = 0; i < pTalkBuble->Frames; ++i) {
 				std::string base = "TalkbubbleFrame";
 				base += std::to_string(i);
-				this->TalkbubbleVoices[i].Read(exINI, pSection, (base + ".Voices").c_str());
+				this->TalkbubbleVoices.emplace_back().Read(exINI, pSection, (base + ".Voices").c_str());
 			}
 		}
 

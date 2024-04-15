@@ -6388,6 +6388,9 @@ DEFINE_HOOK(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 	GET(TechnoClass*, pThis, EBP);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	if (pTypeExt->TalkbubbleVoices.empty())
+		return 0x0;
+
 	const auto& vec = pTypeExt->TalkbubbleVoices[FileSystem::TALKBUBL_Frame() - 1];
 
 	if (!vec.empty())

@@ -164,6 +164,30 @@ DEFINE_HOOK(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 
 		pThis->TimeToDie = false;
 
+		const auto& flammability = RulesClass::Instance->TreeFlammability;
+
+		// burn spread probability this frame
+		if (flammability > 0.0)
+		{
+			if (pThis->IsBurning && ScenarioClass::Instance->Random.RandomFromMax(99) == 0)
+			{
+				const auto pCell = pThis->GetCell();
+
+				// check all neighbour cells that contain terrain objects and
+				// roll the dice for each of them.
+				for (int i = 0; i < 8; ++i)
+				{
+					if (auto pTree = pCell->GetNeighbourCell((FacingType)i)->GetTerrain(false))
+					{
+						if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability)
+						{
+							pTree->Ignite();
+						}
+					}
+				}
+			}
+		}
+
 		return SkipCheck;
 	}
 

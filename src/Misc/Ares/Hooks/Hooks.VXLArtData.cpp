@@ -272,7 +272,7 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 
 	// A nasty temporary backward compatibility option
 	if (pVXL->HVA->LayerCount > 1 || pThis->GetTechnoType()->Turret) {
-		// TO TEST : Check if this is the proper Z offset to shift the sections to the same level
+		// NEEDS IMPROVEMENT : Choose the proper Z offset to shift the sections to the same level
 		matRet.TranslateZ(
 			-matRet.GetZVal()
 			- pVXL->VXL->TailerData->Bounds[0].Z
@@ -475,6 +475,9 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	TranslateAngleRotated(&shadow_matrix, pThis, pType);
 
 	auto mtx = Game::VoxelDefaultMatrix() * (shadow_matrix);
+	if (height > 0)
+		shadow_point.Y += 1;
+
 	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (uTypeExt->ShadowIndices.empty())

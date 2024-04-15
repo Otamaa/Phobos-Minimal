@@ -704,37 +704,6 @@ DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 	return 0x424ECB;
 }
 
-DEFINE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
-{
-	GET(TerrainClass*, pThis, ESI);
-
-	const auto& flammability = RulesClass::Instance->TreeFlammability;
-
-	// burn spread probability this frame
-	if (flammability > 0.0)
-	{
-		if (pThis->IsBurning && ScenarioClass::Instance->Random.RandomFromMax(99) == 0)
-		{
-			const auto pCell = pThis->GetCell();
-
-			// check all neighbour cells that contain terrain objects and
-			// roll the dice for each of them.
-			for (int i = 0; i < 8; ++i)
-			{
-				if (auto pTree = pCell->GetNeighbourCell((FacingType)i)->GetTerrain(false))
-				{
-					if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability)
-					{
-						pTree->Ignite();
-					}
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 {
 	GET(TerrainClass*, pThis, EDI);

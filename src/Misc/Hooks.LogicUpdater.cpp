@@ -281,19 +281,19 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 
-	if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
-	{
-
-		/**
-		 *  If we are close enough to our owner, delete us and return true
-		 *  to signal to the challer that we were deleted.
-		 */
-		if (Spawned_Check_Destruction(pThis))
-		{
-			pThis->UnInit();
-			return 0x414F99;
-		}
-	}
+	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+	//{
+	//
+	//	/**
+	//	 *  If we are close enough to our owner, delete us and return true
+	//	 *  to signal to the challer that we were deleted.
+	//	 */
+	//	if (Spawned_Check_Destruction(pThis))
+	//	{
+	//		pThis->UnInit();
+	//		return 0x414F99;
+	//	}
+	//}
 
 #endif
 	pThis->FootClass::Update();
