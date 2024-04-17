@@ -27,7 +27,9 @@ public:
 
 	std::array<Point2D, (size_t)FacingType::Count> WindMult {};
 
-	Valueable<PartialVector2D<int>> Gas_DriftSpeed { {2, -2} };
+	Valueable<Point2D> Gas_DriftSpeedX { {2, -2} };
+	Valueable<Point2D> Gas_DriftSpeedY { {2, -2} };
+
 	Valueable<bool> Transmogrify { false };
 	Valueable<int> TransmogrifyChance { -1 };
 	Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
