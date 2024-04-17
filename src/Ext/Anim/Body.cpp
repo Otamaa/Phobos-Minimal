@@ -256,7 +256,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		auto pAnimTypeExt = pTypeExt;
 		const auto pObject = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 		const auto pHouse = !pThis->Owner && pObject ? pObject->Owner : pThis->Owner;
-		const auto nCoord = pThis->GetCoords();
+		const auto nCoord = pThis->Bounce.GetCoords();
 
 		Helper::Otamaa::SpawnMultiple(
 			pAnimTypeExt->SpawnsMultiple,
