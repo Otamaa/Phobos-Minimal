@@ -425,6 +425,7 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 	if (PhobosToolTip::Instance.IsCameo)
 	{
 		GET(SurfaceExt*, pThis, ESI);
+		//GET(int, color, EDI);
 		LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
 
 		// Should we make some SideExt items as static to improve the effeciency?
@@ -440,9 +441,25 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 					, pData->ToolTip_Background_Color.GetEx(RulesExtData::Instance()->ToolTip_Background_Color)
 					, pData->ToolTip_Background_Opacity.Get(RulesExtData::Instance()->ToolTip_Background_Opacity)
 				);
+				//ColorStruct colorEdi = Drawing::Int_To_RGB(color);
+				//int color_int = Drawing::RGB_To_Int(CCToolTip::ToolTipTextColor());
 
-				if (Phobos::Config::ToolTipBlur)
-					pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
+				//Debug::Log(__FUNCTION__" Caller [%x] idx [%d - %s] resultafter[%d][%d %d %d]  EDI[%d][%d %d %d]\n",
+				//	R->Stack<DWORD>(0x0),
+				//	nPlayerSideIndex,
+				//	pSide->ID,
+				//	color_int,
+				//	CCToolTip::ToolTipTextColor->R,
+				//	CCToolTip::ToolTipTextColor->G,
+				//	CCToolTip::ToolTipTextColor->B,
+				//	color,
+				//	colorEdi.R,
+				//	colorEdi.G,
+				//	colorEdi.B
+				//);
+
+				//if (Phobos::Config::ToolTipBlur)
+				//	pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
 
 				return (int)_CCToolTip_Draw2_FillRect_RET;
 			}
