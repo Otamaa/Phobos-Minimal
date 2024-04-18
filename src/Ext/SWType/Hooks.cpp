@@ -1707,7 +1707,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	}
 //	auto targetcoord = pTarget->GetCoords();
 //
-//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExtData::FindCivilianSide(), pPaylod));
+//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExtData::FindFirstCivilianHouse(), pPaylod));
 //	return ret;
 //}
 

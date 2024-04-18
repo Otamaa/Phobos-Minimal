@@ -302,38 +302,47 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	GET_STACK(RectangleStruct*, bound, STACK_OFFSET(0xCC, 0x10));
 	enum { FinishDrawing = 0x4148A5 };
 
-	const auto loco = locomotion_cast<FlyLocomotionClass*>(pThis->Locomotor);
-	if (!loco || !loco->Is_To_Have_Shadow() || pThis->IsSinking)
+	auto loco = pThis->Locomotor.GetInterfacePtr();
+	if (pThis->Type->NoShadow || !loco->Is_To_Have_Shadow() || pThis->IsSinking)
 		return FinishDrawing;
 
 	const auto aTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	Matrix3D shadow_mtx {};
 	loco->Shadow_Matrix(&shadow_mtx, &key);
-	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
 
-	if (RulesExtData::Instance()->HeightShadowScaling)
-	{
-		const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
-		const float cHeight = (float)aTypeExt->ShadowSizeCharacteristicHeight.Get(loco->FlightLevel);
+	if(const auto flyloco = locomotion_cast<FlyLocomotionClass*>(pThis->Locomotor)) {
+		const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
 
-		if (cHeight > 0)
+		if (RulesExtData::Instance()->HeightShadowScaling)
 		{
-			shadow_mtx.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-			key = std::bit_cast<VoxelIndexKey>(-1); // I'm sorry
-		}
-	}
-	else if (pThis->Type->ConsideredAircraft)
-	{
-		shadow_mtx.Scale((float)GeneralUtils::Pade2_2(baseScale_log));
-	}
+			const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
+			const float cHeight = (float)aTypeExt->ShadowSizeCharacteristicHeight.Get(flyloco->FlightLevel);
 
-	if (pThis->IsCrashing)
-	{
-		double arf = pThis->AngleRotatedForwards;
-		if (loco->CurrentSpeed > pThis->Type->PitchSpeed)
-			arf += pThis->Type->PitchAngle;
-		shadow_mtx.ScaleY((float)Math::cos(pThis->AngleRotatedSideways));
-		shadow_mtx.ScaleX((float)Math::cos(arf));
+			if (cHeight > 0)
+			{
+				shadow_mtx.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				key = std::bit_cast<VoxelIndexKey>(-1); // I'm sorry
+			}
+		}
+		else if (pThis->Type->ConsideredAircraft)
+		{
+			shadow_mtx.Scale((float)GeneralUtils::Pade2_2(baseScale_log));
+		}
+
+		if (pThis->IsCrashing)
+		{
+			double arf = pThis->AngleRotatedForwards;
+			if (flyloco->CurrentSpeed > pThis->Type->PitchSpeed)
+				arf += pThis->Type->PitchAngle;
+			shadow_mtx.ScaleY((float)Math::cos(pThis->AngleRotatedSideways));
+			shadow_mtx.ScaleX((float)Math::cos(arf));
+		}
+
+	} else if (height > 0) {
+		if(const auto flyloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
+			shadow_mtx.ScaleX((float)Math::cos(flyloco->CurrentPitch));
+			key = std::bit_cast<VoxelIndexKey>(-1);
+		}
 	}
 
 	shadow_mtx = Game::VoxelDefaultMatrix() * shadow_mtx;
@@ -448,7 +457,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 	auto const loco = pThis->Locomotor.GetInterfacePtr();
 
-	if (!loco->Is_To_Have_Shadow())
+	if (pThis->Type->NoShadow || !loco->Is_To_Have_Shadow())
 		return SkipDrawing;
 
 	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
@@ -511,7 +520,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 				   surface,
 				   shadow_point
 			);
-}
+	}
 
 	if (!uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) || main_vxl == &pType->TurretVoxel)
 		return SkipDrawing;

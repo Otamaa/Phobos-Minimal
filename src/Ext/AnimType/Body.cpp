@@ -216,7 +216,7 @@ HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
-		return HouseExtData::FindCivilianSide();
+		return HouseExtData::FindFirstCivilianHouse();
 
 	return pThis->Owner;
 }

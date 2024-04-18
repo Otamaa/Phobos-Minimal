@@ -2856,7 +2856,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 	if (!remove)
 	{
 		HouseClass* designated =
-			//pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0 ? HouseExtData::FindCivilianSide() :
+			//pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count != 0 ? HouseExtData::FindFirstCivilianHouse() :
 			pBuilding->Owner;
 
 		auto pOwner = HouseExtData::GetHouseKind(owner, true, designated);
@@ -3258,9 +3258,14 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	// while (LocomotionClass::End_Piggyback(((FootClass*)pThis)->Locomotor));
 
 	//fucker
-	const int WeaponCount = (pToType->WeaponCount > 0 ? pToType->WeaponCount : 2) -1;
-	if (pThis->CurrentWeaponNumber  > WeaponCount)
+	const int WeaponCount = (pToType->WeaponCount > 0 ? pToType->WeaponCount : 2);
+	if (pThis->CurrentWeaponNumber  >= WeaponCount)
 		pThis->CurrentWeaponNumber = 0;
+
+	const int TurretCount = (pToType->TurretCount > 0 ? pToType->TurretCount : 2);
+
+	if (pThis->CurrentTurretNumber >= TurretCount)
+		pThis->CurrentTurretNumber = 0;
 
 	// replace the original locomotor to new one
 	if (pOldType->Locomotor != pToType->Locomotor) {

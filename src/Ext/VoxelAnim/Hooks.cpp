@@ -66,7 +66,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 
 	TechnoClass* const pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
 
-	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExtData::FindCivilianSide();
+	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 	CoordStruct nLocation = pThis->GetCoords();
 
 	if (!LandIsWater || EligibleHeight)

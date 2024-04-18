@@ -270,9 +270,19 @@ DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 }
 
 DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
+	GET(BuildingClass* , pThis ,ESI);
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
-	return WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x4422C1 : 0x0;
+
+	if(WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
+		return 0x4422C1;
+
+	if(!R->EBP<AbstractClass*>())
+		return 0x4422C1;
+
+	R->AL(pThis->IsStrange());
+	return 0x44228C;
 }
+
 // replaces the UnitReload handling and makes each docker independent of all
 // others. this means planes don't have to wait one more ReloadDelay because
 // the first docker triggered repair mission while the other dockers arrive

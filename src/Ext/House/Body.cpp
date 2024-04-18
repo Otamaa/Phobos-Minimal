@@ -859,7 +859,7 @@ HouseClass* HouseExtContainer::Civilian = nullptr;
 HouseClass* HouseExtContainer::Special = nullptr;
 HouseClass* HouseExtContainer::Neutral = nullptr;
 
-HouseClass* HouseExtData::FindCivilianSide()
+HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
 	if(!HouseExtContainer::Civilian){
 		HouseExtContainer::Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
@@ -929,7 +929,7 @@ HouseClass* HouseExtData::GetHouseKind(OwnerHouseKind const& kind, bool const al
 	case OwnerHouseKind::Victim:
 		return pVictim ? pVictim : pDefault;
 	case OwnerHouseKind::Civilian:
-		return HouseExtData::FindCivilianSide();// HouseClass::FindCivilianSide();
+		return HouseExtData::FindFirstCivilianHouse();// HouseClass::FindFirstCivilianHouse();
 	case OwnerHouseKind::Special:
 		return HouseExtData::FindSpecial();//  HouseClass::FindSpecial();
 	case OwnerHouseKind::Neutral:
@@ -960,7 +960,7 @@ HouseClass* HouseExtData::GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* c
 	case SlaveReturnTo::Master:
 		return pVictim;
 	case SlaveReturnTo::Civilian:
-		return HouseExtData::FindCivilianSide();
+		return HouseExtData::FindFirstCivilianHouse();
 	case SlaveReturnTo::Special:
 		return HouseExtData::FindSpecial();
 	case SlaveReturnTo::Neutral:

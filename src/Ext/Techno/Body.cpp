@@ -2680,7 +2680,7 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	if (bIsconverted)
 		pExt->LaserTrails.clear();
 
-	auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindCivilianSide();
+	auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 
 	if (pExt->LaserTrails.empty())
 	{

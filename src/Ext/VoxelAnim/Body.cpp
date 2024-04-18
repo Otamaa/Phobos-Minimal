@@ -45,7 +45,7 @@ void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 
 	auto const pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
 	auto const pOwner = pThis->OwnerHouse ?
-		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExtData::FindCivilianSide();
+		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExtData::FindFirstCivilianHouse();
 
 	if(!pTypeExt->LaserTrail_Types.empty())
 		LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());

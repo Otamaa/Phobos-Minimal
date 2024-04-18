@@ -10,8 +10,8 @@
 bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 	HouseClass* pOwner, const CoordStruct Where , TechnoClass* pFirer)
 {
-	const auto pOwnerResult = HouseExtData::GetHouseKind(nData.LauchhSW_Owner, true, HouseExtData::FindCivilianSide(), pOwner, nullptr);
-	auto const HouseOwner = pOwnerResult->Defeated ? HouseExtData::FindCivilianSide() : pOwnerResult;
+	const auto pOwnerResult = HouseExtData::GetHouseKind(nData.LauchhSW_Owner, true, HouseExtData::FindFirstCivilianHouse(), pOwner, nullptr);
+	auto const HouseOwner = pOwnerResult->Defeated ? HouseExtData::FindFirstCivilianHouse() : pOwnerResult;
 
 	if (HouseOwner)
 	{

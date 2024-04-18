@@ -207,7 +207,7 @@ public:
 		return SideClass::Array->GetItemOrDefault(pHouse->SideIndex);
 	}
 
-	static HouseClass* FindCivilianSide();
+	static HouseClass* FindFirstCivilianHouse();
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);

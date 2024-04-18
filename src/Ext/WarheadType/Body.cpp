@@ -489,7 +489,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	if ((!nAllyMod.isset() && !nOwnerMod.isset() && !nEnemyMod.isset()))
 		return;
 
-	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindCivilianSide();
+	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 	auto const pVictimHouse = pVictim->GetOwningHouse();
 
 	if (pHouse && pVictimHouse)
