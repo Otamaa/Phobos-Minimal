@@ -45,7 +45,6 @@ DEFINE_HOOK(0x72F440, Game_InitializeToolTipColor, 0xA)
 	GET(int, idxSide, ECX);
 
 	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(idxSide)) {
-		auto& color = ;
 		CCToolTip::ToolTipTextColor = SideExtContainer::Instance.Find(pSide)->ToolTipTextColor;
 		return 0x72F495;
 	}
