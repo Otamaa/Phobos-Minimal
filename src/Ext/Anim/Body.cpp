@@ -286,10 +286,12 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 				else
 				{
 					int numParticle = pType->NumParticles;
-					const auto nMin = pAnimTypeExt->ParticleRangeMin.Get();
-					const auto nMax = pAnimTypeExt->ParticleRangeMax.Get();
 
 					if (numParticle > 0) {
+
+						const auto nMin = pAnimTypeExt->ParticleRangeMin.Get();
+						const auto nMax = pAnimTypeExt->ParticleRangeMax.Get();
+
 						if (nMin || nMax) {
 
 							double rad = 6.283185307179586 / numParticle;

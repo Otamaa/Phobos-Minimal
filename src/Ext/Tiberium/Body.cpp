@@ -110,7 +110,7 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			auto iter = TiberiumExtContainer::LinkedType.find(pOverlay);
 			if (iter != TiberiumExtContainer::LinkedType.end()) {
 				if(iter->second != this->AttachedToObject)
-					Debug::FatalErrorAndExit("OverlayType[%s] already assigned to different Tiberium! \n", pOverlay->ID);
+					Debug::FatalErrorAndExit("OverlayType[%s] already assigned to [%s] Tiberium! \n", pOverlay->ID , iter->second->ID);
 			} else {
 				TiberiumExtContainer::LinkedType.emplace(pOverlay, this->AttachedToObject);
 			}
