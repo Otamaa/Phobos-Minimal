@@ -1134,7 +1134,7 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 #include <Ext/Tiberium/Body.h>
 namespace Tiberiumpip
 {
-	struct PackedPipData
+	struct PackedTibPipData
 	{
 		int value;
 		int pipIdx;
@@ -1154,7 +1154,7 @@ namespace Tiberiumpip
 	int DrawFrames(
 		bool IsWeeder,
 		TechnoTypeExtData* pTypeData,
-		std::vector<PackedPipData>& Amounts,
+		std::vector<PackedTibPipData>& Amounts,
 		const Iterator<int> orders)
 	{
 		for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
@@ -1178,9 +1178,8 @@ namespace Tiberiumpip
 		auto frames = pTypeData->Tiberium_PipIdx.GetElements(RulesExtData::Instance()->Pips_Tiberiums_Frames);
 		const auto pTibExt = TiberiumExtContainer::Instance.Find(TiberiumClass::Array->Items[storageIndex]);
 
-		return (size_t)storageIndex > frames.size() || frames[storageIndex] > 0 ? pTibExt->PipIndex : frames[storageIndex];
+		return (size_t)storageIndex >= frames.size() || frames[storageIndex] < 0 ? pTibExt->PipIndex : frames[storageIndex];
 	}
-
 
 	void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 	{
@@ -1221,9 +1220,9 @@ namespace Tiberiumpip
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
 
 
-		std::vector<PackedPipData> Amounts(TiberiumClass::Array->Count);
+		std::vector<PackedTibPipData> Amounts(TiberiumClass::Array->Count);
 
-		const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
+		const bool isWeeder = pBuilding&& pBuilding->Type->Weeder || pUnit && pUnit->Type->Weeder;
 
 		for (size_t i = 0; i < Amounts.size(); i++)
 		{
@@ -1279,6 +1278,8 @@ namespace Tiberiumpip
 			nOffs.Y += nOffsetY;
 		}
 	}
+
+}
 
 	void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 	{
@@ -1336,7 +1337,6 @@ namespace Tiberiumpip
 		}
 	}
 
-}
 DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 {
 	struct __declspec(align(4)) PipDataStruct
