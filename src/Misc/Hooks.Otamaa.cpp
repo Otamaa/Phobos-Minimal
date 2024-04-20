@@ -1220,7 +1220,7 @@ namespace Tiberiumpip
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
 
 
-		std::vector<PackedTibPipData> Amounts(TiberiumClass::Array->Count);
+		static std::vector<PackedTibPipData> Amounts(TiberiumClass::Array->Count);
 
 		const bool isWeeder = pBuilding&& pBuilding->Type->Weeder || pUnit && pUnit->Type->Weeder;
 
