@@ -30,7 +30,7 @@ void SaveVariablesToFileCommandClass::Execute(WWKey eInput) const
 		return;
 
 	MessageListClass::Instance->PrintMessage(
-		L"Variables saved.",
+		GeneralUtils::LoadStringUnlessMissing("MSG:VariablesSaved", L"Variables saved."),
 		RulesClass::Instance->MessageDelay,
 		HouseClass::CurrentPlayer->ColorSchemeIndex,
 		true

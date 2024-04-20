@@ -63,15 +63,12 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 			time.wMilliseconds
 		);
 
-		wchar_t fDescription[0x80] = { 0 };
-		if (SessionClass::Instance->GameMode == GameMode::Campaign)
-			wcscpy_s(fDescription, ScenarioClass::Instance->UINameLoaded);
-		else
-			wcscpy_s(fDescription, ScenarioClass::Instance->Name);
+		const std::wstring fDesc = std::format(L"{} - {}"
+			, SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name
+			, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved")
+		);
 
-		wcscat_s(fDescription, L" - ");
-		wcscat_s(fDescription, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved"));
-		bool Status = ScenarioClass::SaveGame(fName.c_str(), fDescription);
+		bool Status = ScenarioClass::SaveGame(fName.c_str(), fDesc.c_str());
 
 		WWMouseClass::Instance->ShowCursor();
 
