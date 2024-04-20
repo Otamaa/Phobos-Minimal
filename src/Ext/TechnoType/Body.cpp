@@ -650,12 +650,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
 		this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 		this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-
-		this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
-		this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
-		this->Vinifera_FrameIDx.Read(exINI, pSection, "Storage2FrameIdx");
-		this->Aboreus_FrameIDx.Read(exINI, pSection, "Storage3FrameIdx");
-
 		this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
 		this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
 		this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
@@ -1208,6 +1202,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->BuildLimit_Group_Limits.Read(exINI, pSection, "BuildLimitGroup.Nums");
 		this->BuildLimit_Group_Stop.Read(exINI, pSection, "BuildLimitGroup.NotBuildableIfQueueMatch");
 #pragma endregion
+
+		this->Tiberium_EmptyPipIdx.Read(exINI, pSection, "StorageEmptyPipIndex");
+		this->Tiberium_PipIdx.Read(exINI, pSection, "StoragePipIndexes");
+		this->Tiberium_PipShapes.Read(exINI, pSection, "StoragePipShapes");
+		this->Tiberium_PipShapes_Palette.Read(exINI, pSection, "StoragePipShapesPalette");
 
 		if (this->AttachtoType != AbstractType::BuildingType)
 		{
@@ -1833,10 +1832,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Bounty_IgnoreEnablers)
 		.Process(this->MissileHoming)
 
-		.Process(this->Riparius_FrameIDx)
-		.Process(this->Cruentus_FrameIDx)
-		.Process(this->Vinifera_FrameIDx)
-		.Process(this->Aboreus_FrameIDx)
+		.Process(this->Tiberium_EmptyPipIdx)
+		.Process(this->Tiberium_PipIdx)
+		.Process(this->Tiberium_PipShapes)
+		.Process(this->Tiberium_PipShapes_Palette)
 
 		.Process(this->CrushLevel)
 		.Process(this->CrushableLevel)

@@ -1132,214 +1132,211 @@ DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 }
 
 #include <Ext/Tiberium/Body.h>
-
-int GetFrames(bool isWeeder,
-	TechnoTypeExtData* pTypeExt,
-	SHPStruct* pShape,
-	std::vector<std::pair<int, int>>& Amounts,
-	ConvertClass* nPal,
-	const Iterator<int> orders,
-	const ValueableVector<int>& frames)
+namespace Tiberiumpip
 {
-	int frame = isWeeder ? pTypeExt->Weeder_PipEmptyIndex.Get(0) : (frames.empty() ? 0 : frames[0]);
-
-	for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
+	struct PackedPipData
 	{
-		size_t index = i;
-		if (i < orders.size())
-			index = orders[i];
+		int value;
+		int pipIdx;
+	};
 
-		if (Amounts[index].first > 0)
-		{
-			--Amounts[index].first;
-			frame = isWeeder || frames.empty() || index >= (frames.size() - 1) ?
-				Amounts[index].second : frames[index + 1];
+	int GetEmptyShapeIndex(bool isWeeder, TechnoTypeExtData* pTypeData)
+	{
 
-			break;
-		}
+		if (isWeeder && pTypeData->Weeder_PipEmptyIndex.isset())
+			return pTypeData->Weeder_PipEmptyIndex;
+		else if (pTypeData->Tiberium_EmptyPipIdx.isset())
+			return pTypeData->Tiberium_EmptyPipIdx;
+
+		return 0;
 	}
 
-	return frame > pShape->Frames ? pShape->Frames : frame;
-};
-
-void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
-{
-	if (!pTechno)
-		return;
-
-	const auto pType = pTechno->GetTechnoType();
-	const auto nMax = pType->GetPipMax();
-
-	if (!nMax)
-		return;
-
-	auto const nStorage = pType->Storage;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto what = pTechno->WhatAmI();
-
-	Point2D nOffs {};
-	const auto pBuilding = what == BuildingClass::AbsID ? static_cast<BuildingClass*>(pTechno) : nullptr;
-	const auto pUnit = what == UnitClass::AbsID ? static_cast<UnitClass*>(pTechno) : nullptr;
-
-	const auto pShape = pBuilding ?
-		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
-
-	ConvertClass* nPal = FileSystem::THEATER_PAL();
-
-	//if (pBuilding)
-	//{
-	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-	//
-	//	if (pBuildingTypeExt->PipShapes01Remap)
-	//		nPal = pTechno->GetRemapColour();
-	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-	//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-	//}
-
-	auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
-	std::vector<std::pair<int, int>> Amounts(TiberiumClass::Array->Count);
-
-	const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
-
-	for (size_t i = 0; i < Amounts.size(); i++)
+	int DrawFrames(
+		bool IsWeeder,
+		TechnoTypeExtData* pTypeData,
+		std::vector<PackedPipData>& Amounts,
+		const Iterator<int> orders)
 	{
-
-		int FrameIdx = 0;
-		int amount = 0;
-
-		if (pBuilding && pBuilding->Type->Weeder)
+		for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
 		{
-			amount = int(pTechno->Owner->GetWeedStoragePercentage() * nMax + 0.5);
-		}
-		else
-		{
-			amount = int(storage->m_values[i] / nStorage * nMax + 0.5);
-		}
+			size_t index = i;
+			if (i < orders.size())
+				index = orders[i];
 
-		if (!isWeeder)
-		{
-			const auto pTibExt = TiberiumExtContainer::Instance.Find(TiberiumClass::Array->Items[i]);
-
-			//default pip : 5 = blue , 2 gold ?
-			switch (i)
+			if (Amounts[index].value > 0)
 			{
-			case 0:
-				FrameIdx = pTypeExt->Riparius_FrameIDx.Get(pTibExt->PipIndex);
-				break;
-			case 1:
-				FrameIdx = pTypeExt->Cruentus_FrameIDx.Get(pTibExt->PipIndex);
-				break;
-			case 2:
-				FrameIdx = pTypeExt->Vinifera_FrameIDx.Get(pTibExt->PipIndex);
-				break;
-			case 3:
-				FrameIdx = pTypeExt->Aboreus_FrameIDx.Get(pTibExt->PipIndex);
-				break;
-			default:
-				FrameIdx = pTibExt->PipIndex;
-				break;
+				--Amounts[index].value;
+				return Amounts[index].pipIdx;
 			}
 		}
-		else
+
+		return GetEmptyShapeIndex(IsWeeder, pTypeData);
+	};
+
+	int GetShapeIndex(int storageIndex, TechnoTypeExtData* pTypeData)
+	{
+		auto frames = pTypeData->Tiberium_PipIdx.GetElements(RulesExtData::Instance()->Pips_Tiberiums_Frames);
+		const auto pTibExt = TiberiumExtContainer::Instance.Find(TiberiumClass::Array->Items[storageIndex]);
+
+		return (size_t)storageIndex > frames.size() || frames[storageIndex] > 0 ? pTibExt->PipIndex : frames[storageIndex];
+	}
+
+
+	void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+	{
+		if (!pTechno)
+			return;
+
+		const auto pType = pTechno->GetTechnoType();
+		const auto nMax = pType->GetPipMax();
+
+		if (!nMax)
+			return;
+
+		auto const nStorage = pType->Storage;
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		const auto what = pTechno->WhatAmI();
+
+		Point2D nOffs {};
+		const auto pBuilding = what == BuildingClass::AbsID ? static_cast<BuildingClass*>(pTechno) : nullptr;
+		const auto pUnit = what == UnitClass::AbsID ? static_cast<UnitClass*>(pTechno) : nullptr;
+
+		auto pShape = pBuilding ?
+			pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
+
+		if (pTypeExt->Tiberium_PipShapes)
 		{
-			FrameIdx = pTypeExt->Weeder_PipIndex.Get(1); //idk ?
+			pShape = pTypeExt->Tiberium_PipShapes;
 		}
 
-		Amounts[i] = { amount , FrameIdx };
+		ConvertClass* nPal = FileSystem::THEATER_PAL();
+		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette)
+		{
+			if (auto pConv_ = pConv->GetConvert<PaletteManager::Mode::Temperate>())
+			{
+				nPal = pConv_;
+			}
+		}
+
+		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
+
+
+		std::vector<PackedPipData> Amounts(TiberiumClass::Array->Count);
+
+		const bool isWeeder = pBuilding ? pBuilding->Type->Weeder : pUnit ? pUnit->Type->Weeder : false;
+
+		for (size_t i = 0; i < Amounts.size(); i++)
+		{
+			int FrameIdx = 0;
+			int amount = 0;
+
+			if (pBuilding && pBuilding->Type->Weeder)
+			{
+				amount = int(pTechno->Owner->GetWeedStoragePercentage() * nMax + 0.5);
+			}
+			else
+			{
+				amount = int(storage->m_values[i] / nStorage * nMax + 0.5);
+			}
+
+			if (!isWeeder)
+			{
+				FrameIdx = GetShapeIndex(i, pTypeExt);
+			}
+			else
+			{
+				FrameIdx = pTypeExt->Weeder_PipIndex.Get(1);
+			}
+
+			Amounts[i] = { amount , FrameIdx };
+		}
+
+		static constexpr std::array<int, 4u> defOrder { {0, 2, 3, 1} };
+		const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
+
+		for (int i = nMax; i; --i)
+		{
+			Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+			CC_Draw_Shape(
+			DSurface::Temp(),
+			nPal,
+			pShape,
+			DrawFrames(isWeeder, pTypeExt, Amounts, displayOrders),
+			&nPointHere,
+			pRect,
+			0x600,
+			0,
+			0,
+			0,
+			1000,
+			0,
+			0,
+			0,
+			0,
+			0);
+
+			nOffs.X += nOffsetX;
+			nOffs.Y += nOffsetY;
+		}
 	}
 
-	static constexpr std::array<int, 4u> defOrder { {0, 2, 3, 1} };
-	const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
-
-	for (int i = nMax; i; --i)
+	void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 	{
-		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
-		const int frames = GetFrames(isWeeder,
-				pTypeExt,
-				pShape,
-				Amounts,
+		const auto pType = pTechno->GetTechnoType();
+		const auto nMax = pType->SpawnsNumber;
+
+		if (nMax <= 0)
+			return;
+
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		Point2D nOffs {};
+
+		const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
+		const auto pShape = pBuilding ?
+			pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
+
+		ConvertClass* nPal = FileSystem::THEATER_PAL();
+
+		//if (pBuilding)
+		//{
+		//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+		//
+		//	if (pBuildingTypeExt->PipShapes01Remap)
+		//		nPal = pTechno->GetRemapColour();
+		//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+		//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+		//
+		//}
+
+		for (int i = 0; i < nMax; i++)
+		{
+			const auto nSpawnMax = pTechno->SpawnManager ? pTechno->SpawnManager->CountDockedSpawns() : 0;
+
+			Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+			CC_Draw_Shape(
+				DSurface::Temp(),
 				nPal,
-			displayOrders, RulesExtData::Instance()->Pips_Tiberiums_Frames);
+				pShape,
+				i < nSpawnMax,
+				&nPointHere,
+				pRect,
+				0x600,
+				0,
+				0,
+				0,
+				1000,
+				0,
+				0,
+				0,
+				0,
+				0);
 
-		CC_Draw_Shape(
-			DSurface::Temp(),
-			nPal,
-			pShape,
-			frames,
-			&nPointHere,
-			pRect,
-			0x600,
-			0,
-			0,
-			0,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0);
-
-		nOffs.X += nOffsetX;
-		nOffs.Y += nOffsetY;
+			nOffs.X += nOffsetX;
+			nOffs.Y += nOffsetY;
+		}
 	}
+
 }
-
-void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
-{
-	const auto pType = pTechno->GetTechnoType();
-	const auto nMax = pType->SpawnsNumber;
-
-	if (nMax <= 0)
-		return;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	Point2D nOffs {};
-
-	const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
-	const auto pShape = pBuilding ?
-		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
-
-	ConvertClass* nPal = FileSystem::THEATER_PAL();
-
-	//if (pBuilding)
-	//{
-	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-	//
-	//	if (pBuildingTypeExt->PipShapes01Remap)
-	//		nPal = pTechno->GetRemapColour();
-	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-	//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-	//
-	//}
-
-	for (int i = 0; i < nMax; i++)
-	{
-		const auto nSpawnMax = pTechno->SpawnManager ? pTechno->SpawnManager->CountDockedSpawns() : 0;
-
-		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
-		CC_Draw_Shape(
-			DSurface::Temp(),
-			nPal,
-			pShape,
-			i < nSpawnMax,
-			&nPointHere,
-			pRect,
-			0x600,
-			0,
-			0,
-			0,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0);
-
-		nOffs.X += nOffsetX;
-		nOffs.Y += nOffsetY;
-	}
-}
-
 DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 {
 	struct __declspec(align(4)) PipDataStruct
@@ -1355,7 +1352,7 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFSET(0x74, 0xC));
 	GET(int, nOffsetY, ESI);
 
-	DrawTiberiumPip(pThis, &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
+	Tiberiumpip::DrawTiberiumPip(pThis, &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
 	//DrawCargoPips_NotBySize(pThis, pThis->GetTechnoType()->GetPipMax(), &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
 	return 0x70A340;
 }
@@ -1946,7 +1943,7 @@ DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	return pTypeExt->CrushRange.GetOrDefault(pThis, RulesClass::Instance->Crush) >= range ?
+	return range >= pTypeExt->CrushRange.GetOrDefault(pThis, RulesClass::Instance->Crush) ?
 		Crush : ContinueCheck;
 }
 
@@ -1959,7 +1956,7 @@ DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	return pTypeExt->CrushRange.GetOrDefault(pThis, pRules->Crush) <= range ?
+	return range <= pTypeExt->CrushRange.GetOrDefault(pThis, pRules->Crush) ?
 		ContinueCheck : DoNotCrush;
 }
 
@@ -6643,10 +6640,11 @@ template<typename TMixBundle>
 inline void LoadMixFile(TMixBundle& bb)
 {
 	CCFileClass _file { bb.MIXName() };
-	if(_file.Exists()) {
+	if (_file.Exists())
+	{
 		bb.MIXptr = GameCreate<MixFileClass>(bb.MIXName());
 	}
-	Debug::Log(" Loading %s ... %s !!!\n", bb.MIXName() , !bb.MIXptr ? "FAILED" : "OK");
+	Debug::Log(" Loading %s ... %s !!!\n", bb.MIXName(), !bb.MIXptr ? "FAILED" : "OK");
 }
 
 //DEFINE_HOOK(0x53046A, Game_InitSecondaryMix_handle, 0x5)
@@ -6791,13 +6789,15 @@ DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 	return 0x501586;
 }
 
-DEFINE_HOOK(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5) {
+DEFINE_HOOK(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5)
+{
 
 	R->ECX(HouseExtData::FindFirstCivilianHouse());
 	return 0x472382;
 }
 
-DEFINE_HOOK(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5) {
+DEFINE_HOOK(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
+{
 	R->Stack(0x10, HouseExtData::FindFirstCivilianHouse());
 	return 0x6B0B3C;
 }

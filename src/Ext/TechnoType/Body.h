@@ -453,11 +453,6 @@ public:
 
 	ValueableVector<int> BuildLimit_Requires {};
 
-	Nullable<int> Riparius_FrameIDx { };
-	Nullable<int> Cruentus_FrameIDx { };
-	Nullable<int> Vinifera_FrameIDx { };
-	Nullable<int> Aboreus_FrameIDx { };
-
 	Promotable<int> CrushLevel {};
 	Promotable<int> CrushableLevel {};
 	Promotable<int> DeployCrushableLevel {};
@@ -923,6 +918,11 @@ public:
 	ValueableVector<int> BuildLimit_Group_Limits { };
 	Valueable<bool> BuildLimit_Group_Stop { false };
 #pragma endregion
+
+	NullableVector<int> Tiberium_PipIdx {};
+	Nullable<int> Tiberium_EmptyPipIdx {};
+	Valueable<SHPStruct*> Tiberium_PipShapes {};
+	Valueable<PaletteManager*> Tiberium_PipShapes_Palette {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
