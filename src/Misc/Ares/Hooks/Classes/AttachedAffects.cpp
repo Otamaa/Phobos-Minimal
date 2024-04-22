@@ -236,7 +236,7 @@ void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeCl
 
 bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno, int duration, HouseClass* pInvokerOwner)
 {
-	if (pTargetTechno->IsIronCurtained() && !pType->PenetratesIC)
+	if (!pType->PenetratesIC && pTargetTechno->IsIronCurtained())
 		return false;
 
 	auto pData = GetAEDAtaFromTechno(pTargetTechno);

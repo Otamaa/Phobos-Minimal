@@ -763,19 +763,23 @@ DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 // 	return 0x531749;
 // }
 
-DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
-{
-	GET(BuildingClass*, pBuild, EAX);
-	R->EAX(pBuild->FindFactory(false, true));
-	return 0x535DC2;
-}
+DEFINE_PATCH(0x535DB9, 0x01);
 
-DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
-{
-	GET(BuildingClass*, pBuild, EAX);
-	R->EAX(pBuild->FindFactory(false, true));
-	return 0x535E82;
-}
+//DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
+//{
+//	GET(BuildingClass*, pBuild, EAX);
+//	R->EAX(pBuild->FindFactory(false, true));
+//	return 0x535DC2;
+//}
+
+DEFINE_PATCH(0x535E79, 0x01);
+
+//DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
+//{
+//	GET(BuildingClass*, pBuild, EAX);
+//	R->EAX(pBuild->FindFactory(false, true));
+//	return 0x535E82;
+//}
 
 DEFINE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {

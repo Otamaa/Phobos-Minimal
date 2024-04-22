@@ -110,8 +110,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 				for (CellSpreadEnumerator it(cellSpread); it; ++it)
 				{
 					CellStruct cur = pCell->MapCoords;
-					CellStruct offset = (*it);
-					if (auto pNewCell = MapClass::Instance->TryGetCellAt(cur + offset))
+					if (auto pNewCell = MapClass::Instance->TryGetCellAt(cur + *it))
 					{
 						auto const pContent = pNewCell->GetContent();
 						for (auto pObj = pContent; pObj; pObj = pObj->NextObject)

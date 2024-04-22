@@ -130,7 +130,7 @@ RequirementStatus HouseExtData::RequirementsMet(
 					}
 				}
 
-				return (pHouse->TechLevel >= pItem->TechLevel) ?
+				return (pHouse->StaticData.TechLevel >= pItem->TechLevel) ?
 					RequirementStatus::Complete : RequirementStatus::Incomplete;
 			}
 		}
@@ -1117,7 +1117,7 @@ bool HouseExtData::UpdateHarvesterProduction()
 
 		if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
 			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
-			&& pThis->TechLevel >= pHarvesterUnit->TechLevel)
+			&& pThis->StaticData.TechLevel >= pHarvesterUnit->TechLevel)
 		{
 			pThis->ProducingUnitTypeIndex = pHarvesterUnit->ArrayIndex;
 			return true;

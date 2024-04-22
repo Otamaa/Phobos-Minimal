@@ -268,7 +268,7 @@ DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 	}
 	return 0;
 }
-	
+
 #ifndef IteratorChar
 DEFINE_STRONG_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {

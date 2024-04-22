@@ -28,7 +28,7 @@ void SpawnsStatus::OnUpdate(AnimClass* pLinked)
 
 		if ((pData->SpawnsData.Count < 0 || _spawnCount < pData->SpawnsData.Count) && _spawnInitDelayTimer.Expired() && _spawnDelayTimer.Expired())
 		{
-			const auto pObject = AnimExtData::GetTechnoInvoker(pLinked, pData->Damage_DealtByInvoker.Get());
+			const auto pObject = AnimExtData::GetTechnoInvoker(pLinked);
 			const auto pHouse = !pLinked->Owner && pObject ? pObject->Owner : pLinked->Owner;
 			auto nCoord = pLinked->GetCoords();
 
@@ -52,7 +52,7 @@ void SpawnsStatus::OnLoop(AnimClass* pLinked)
 	const auto pData = AnimTypeExtContainer::Instance.Find(pLinked->Type);
 	if (pData->SpawnsData.Enable && pData->SpawnsData.TriggerOnLoop)
 	{
-		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked, pData->Damage_DealtByInvoker.Get());
+		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked);
 		const auto pHouse = !pLinked->Owner && pObject ? pObject->Owner : pLinked->Owner;
 		auto nCoord = pLinked->GetCoords();
 
@@ -65,7 +65,7 @@ void SpawnsStatus::OnDone(AnimClass* pLinked)
 	const auto pData = AnimTypeExtContainer::Instance.Find(pLinked->Type);
 	if (pData->SpawnsData.Enable && pData->SpawnsData.TriggerOnDone)
 	{
-		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked, pData->Damage_DealtByInvoker.Get());
+		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked);
 		const auto pHouse = !pLinked->Owner && pObject ? pObject->Owner : pLinked->Owner;
 		auto nCoord = pLinked->GetCoords();
 
@@ -79,7 +79,7 @@ void SpawnsStatus::OnNext(AnimClass* pLinked, AnimTypeClass* pNext)
 	ResetLoopSpawn();
 	if (pData->SpawnsData.Enable && pData->SpawnsData.TriggerOnNext)
 	{
-		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked, pData->Damage_DealtByInvoker.Get());
+		const auto pObject = AnimExtData::GetTechnoInvoker(pLinked);
 		const auto pHouse = !pLinked->Owner && pObject ? pObject->Owner : pLinked->Owner;
 		auto nCoord = pLinked->GetCoords();
 

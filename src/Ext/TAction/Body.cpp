@@ -601,22 +601,23 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 // #1004906: support more than 100 waypoints
 bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	std::vector<CellStruct> waypoints {};
-	waypoints.reserve(ScenarioExtData::Instance()->Waypoints.size());
+
+	ScenarioExtData::Instance()->DefinedAudioWaypoints.reserve(ScenarioExtData::Instance()->Waypoints.size());
 
 	auto const pScen = ScenarioClass::Instance();
 
-	for (auto const& [idx, cell] : ScenarioExtData::Instance()->Waypoints)
-	{
-		if (pScen->IsDefinedWaypoint(idx))
-			waypoints.push_back(cell);
-	}
-
-	if (!waypoints.empty())
+	if (!ScenarioExtData::Instance()->DefinedAudioWaypoints.empty())
 	{
 		VocClass::PlayIndexAtPos(pThis->Value,
-		CellClass::Cell2Coord(waypoints[pScen->Random.RandomFromMax(waypoints.size() - 1)]));
+		CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
+						[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
+	}else {
+		for (auto const& [idx, cell] : ScenarioExtData::Instance()->Waypoints) {
+			if (pScen->IsDefinedWaypoint(idx))
+				ScenarioExtData::Instance()->DefinedAudioWaypoints.push_back(cell);
+		}
 	}
+
 
 	return true;
 }

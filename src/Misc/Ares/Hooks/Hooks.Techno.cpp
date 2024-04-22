@@ -170,21 +170,6 @@ DEFINE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	return 0x70BF46;
 }
 
-// DEFINE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
-// {
-// 	enum
-// 	{
-// 		ContineCheckUpdateSelfHeal = 0x6FA75A,
-// 		SkipAnySelfHeal = 0x6FA941,
-// 	};
-
-// 	GET(TechnoClass* const, pThis, ESI);
-
-
-// 	//handle everything
-// 	return SkipAnySelfHeal;
-// }
-
 // spark particle systems created at random intervals
 DEFINE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
 {
@@ -376,6 +361,13 @@ DEFINE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	return 0x707B23;
 }
 
+void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate) {
+	if (!nTimer.GetTimeLeft()) {
+		nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
+		VoxClass::Play(pEva);
+	}
+}
+
 DEFINE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -383,15 +375,6 @@ DEFINE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	auto PlayEva = [](const char* pEva, CDTimerClass& nTimer, double nRate)
-		{
-			if (!nTimer.GetTimeLeft())
-			{
-				nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
-				VoxClass::Play(pEva);
-			}
-		};
 
 	if (detect && pTypeExt->SensorArray_Warn)
 	{
@@ -800,7 +783,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 		if (IsAlly || IsObserver || bReveal)
 		{
 			if (isFake)
-				DrawTheStuff(StringTable::LoadString("TXT_FAKE"));
+				DrawTheStuff(GeneralUtils::LoadStringOrDefault("TXT_FAKE", L"FAKE"));
 
 			if (pType->PowerBonus > 0)
 			{
@@ -1283,13 +1266,14 @@ DEFINE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
 
-	auto const GetMindDamage = [](WeaponTypeClass const* const pWeapon) {
-		return (pWeapon && pWeapon->Warhead->MindControl) ? pWeapon->Damage : 0;
-	};
-
-	auto count = GetMindDamage(pThis->GetWeapon(0)->WeaponType);
-	if (count <= 0) {
-		count = GetMindDamage(pThis->GetWeapon(1)->WeaponType);
+	int count = 0;
+	for (int i = 0; i < 3; ++i) {
+		if (auto pWeapon = pThis->GetWeapon(i)->WeaponType) {
+			if (pWeapon->Warhead->MindControl && pWeapon->Damage > 0) {
+				count = pWeapon->Damage;
+				break;
+			}
+		}
 	}
 
 	R->EAX(count);
@@ -1445,13 +1429,14 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 
 	const bool BLRes = R->BL();
 	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
+
 	bool IsAlly = false;
-	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target))
-	{
-		if (const auto pTargetHouse = pTechTarget->GetOwningHouse())
-		{
-			if (pOwner->IsAlliedWith(pTargetHouse))
+
+	if (const auto pTechTarget = generic_cast<ObjectClass*>(pThis->Target)) {
+		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+			if (pOwner->IsAlliedWith(pTargetHouse)) {
 				IsAlly = true;
+			}
 		}
 	}
 

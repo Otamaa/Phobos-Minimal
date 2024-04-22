@@ -60,6 +60,9 @@
 
 #include <versionhelpers.h>
 
+#include <TriggerTypeClass.h>
+#include <TagTypeClass.h>
+
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
@@ -6018,10 +6021,51 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += Unsorted::BridgeHeight;
+			//Debug::Log("Trigger %s - Tag %s PlayAnimAt at(%d %d %d) Anim[%s - %d]\n",
+			//	pAction->TriggerType ? pAction->TriggerType->get_ID() : NONE_STR,
+			//	pAction->TagType ? pAction->TagType->get_ID() : NONE_STR,
+			//	nCoord.X, nCoord.Y, nCoord.Z,
+			//	pAnimType->ID,
+			//	pAction->Value
+			//);
 
 		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
 		pAnim->IsPlaying = true;
 		pAnim->Owner = pHouse;
+	}
+
+	return true;
+}
+
+bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (const auto pWeaponType = WeaponTypeClass::Array->GetItemOrDefault(pAction->Value))
+	{
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+		const auto pCell = MapClass::Instance->GetCellAt(nCoord);
+
+		if (pCell->ContainsBridge())
+			nCoord.Z += Unsorted::BridgeHeight;
+
+		//Debug::Log("Trigger %s - Tag %s DoExplosion at(%d %d %d) Weapon[%s] Warhead[%s]\n",
+		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : NONE_STR ,
+		//	pAction->TagType ? pAction->TagType->get_ID() : NONE_STR,
+		//	nCoord.X, nCoord.Y , nCoord.Z,
+		//	pWeaponType->ID,
+		//	pWeaponType->Warhead->ID
+		//);
+
+		if (auto pAnimType = MapClass::SelectDamageAnimation(pWeaponType->Damage,pWeaponType->Warhead,pCell->LandType,nCoord))
+		{
+			auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_2000 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, -15, 0);
+			pAnim->IsPlaying = true;
+			pAnim->Owner = pHouse;
+		}
+
+		MapClass::FlashbangWarheadAt(pWeaponType->Damage, pWeaponType->Warhead , nCoord);
+		MapClass::DamageArea(&nCoord, pWeaponType->Damage, nullptr, pWeaponType->Warhead, true, pHouse);
 	}
 
 	return true;
@@ -6076,6 +6120,9 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 			return true;
 		case TriggerAction::ChemMissileStrike:
 			ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::DoExplosionAt:
+			ret = DoExplosionAt(pAction, pHouse, pObject, pTrigger, location);
 			return true;
 		default:
 			break;

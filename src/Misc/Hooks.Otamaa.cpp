@@ -1699,7 +1699,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 	auto nCoord = pThis->GetCoords();
 	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis);
 	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
 
@@ -3745,13 +3745,13 @@ DEFINE_HOOK(0x7375B6, UnitClass_ReceiveRadio_Parasited_CanLoad, 0xA)
 	return continueChecks;
 }
 
-DEFINE_HOOK(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
-{
-	GET(CellStruct*, pLoc, EAX);
-
-	//prevent crash
-	return !pLoc->IsValid() ? 0x6E2510 : 0x0;
-}
+// DEFINE_HOOK(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
+// {
+// 	GET(CellStruct*, pLoc, EAX);
+//
+// 	//prevent crash
+// 	return !pLoc->IsValid() ? 0x6E2510 : 0x0;
+// }
 
 DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 {
@@ -5105,13 +5105,8 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					if (MaxPromotedCount > 0)
 					{
-						int PromotedCount = 0;
-
 						for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 						{
-							if (PromotedCount >= MaxPromotedCount)
-								break;
-
 							if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 							{
 								if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
@@ -5122,17 +5117,22 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 									if ((int)place.Length() < RulesClass::Instance->CrateRadius)
 									{
+										int PromotedCount = 0;
+										if (MaxPromotedCount > 0.0)
+										{
+											do{
+												if (pTechno->Veterancy.IsVeteran())
+													pTechno->Veterancy.SetElite();
 
-										if (pTechno->Veterancy.IsVeteran())
-											pTechno->Veterancy.SetElite();
+												if (pTechno->Veterancy.IsRookie())
+													pTechno->Veterancy.SetVeteran();
 
-										if (pTechno->Veterancy.IsRookie())
-											pTechno->Veterancy.SetVeteran();
-
-										if (pTechno->Veterancy.IsNegative())
-											pTechno->Veterancy.SetRookie();
-
-										++PromotedCount;
+												if (pTechno->Veterancy.IsNegative())
+													pTechno->Veterancy.SetRookie();
+												++PromotedCount;
+											}
+											while ((double)PromotedCount < MaxPromotedCount);
+										}
 									}
 								}
 							}
@@ -7088,3 +7088,117 @@ int __cdecl HouseClass_ReadINI_MakeAllies(REGISTERS* a1)
 #endif
 
 #pragma endregion
+
+#ifdef CheckForMapSaveCrash
+DEFINE_HOOK(0x50126A , HouseClass_WritetoIni0 , 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if(IS_SAME_STR_("USSR" , pThis->Type->ID))
+		Debug::Log("Writing to ini TechLevel for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x501284, HouseClass_WritetoIni2, 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini InitialCredit for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5012AF, HouseClass_WritetoIni3, 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 Control_IQ for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5012C9, HouseClass_WritetoIni4, 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 Control_Edge for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5012E1, HouseClass_WritetoIni5, 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 PlayerControl for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5012F9, HouseClass_WritetoIni6, 0x6)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 Color for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x50134C, HouseClass_WritetoIni7, 0x5)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 Allies for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x50136E , HouseClass_WritetoIni8 , 0x5)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 UINAME for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x501380, HouseClass_WritetoIni9, 0xA)
+{
+	GET(HouseClass*, pThis, EBX);
+
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
+		Debug::Log("Writing to ini0 Base for[%s]\n", pThis->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x42ED72, BaseClass_WriteToINI1, 0x7)
+{
+	GET(BaseClass*, pThis, ESI);
+	HouseClass* ptr = reinterpret_cast<HouseClass*>((DWORD)pThis - offsetof(HouseClass, Base));
+
+	if (IS_SAME_STR_("USSR", ptr->Type->ID))
+		Debug::Log("Writing to ini0 Base PercentBuilt for[%s]\n", ptr->Type->ID);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
+{
+	GET(BaseClass*, pThis, ESI);
+	HouseClass* ptr = reinterpret_cast<HouseClass*>((DWORD)pThis - offsetof(HouseClass, Base));
+
+	if (IS_SAME_STR_("USSR", ptr->Type->ID))
+		Debug::Log("Writing to ini0 Base NodeCount(%d) for[%s]\n", pThis->BaseNodes.Count, ptr->Type->ID);
+
+	return 0x0;
+}
+#endif

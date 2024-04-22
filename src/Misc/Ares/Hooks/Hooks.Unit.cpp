@@ -205,8 +205,7 @@ DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
-	auto pData = TechnoExtContainer::Instance.Find(Unit);
-	Unit->TemporalImUsing = std::exchange(pData->MyOriginalTemporal, nullptr);
+	Unit->TemporalImUsing = std::exchange(TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal, nullptr);
 	return 0x746546;
 }
 
@@ -820,16 +819,19 @@ DEFINE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 //TechnoClass_CanAutoTargetObject_Heal
 DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
-DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
-DEFINE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
-{
-	GET(unsigned int, nVal, EBX);
+//DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
+//DEFINE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
+//{
+//	GET(unsigned int, nVal, EBX);
+//
+//	nVal |= 0x403Cu;
+//
+//	R->EBX(nVal);
+//	return 0x6F8F25;
+//}
 
-	nVal |= 0x403Cu;
-
-	R->EBX(nVal);
-	return 0x6F8F25;
-}
+DEFINE_PATCH(0x6F8F21, 0x3C);
+DEFINE_PATCH(0x6F8EE5, 0x3C);
 
 DEFINE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
@@ -1236,8 +1238,8 @@ DEFINE_HOOK(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 {
 	enum { Decloak = 0x0, DoNotDecloak = 0x741939 };
 	GET(UnitClass* const, pThis, EDI);
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	return pExt->CrusherDecloak ? Decloak : DoNotDecloak;
+
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->CrusherDecloak ? Decloak : DoNotDecloak;
 }
 
 DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)

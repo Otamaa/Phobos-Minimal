@@ -141,7 +141,6 @@ DEFINE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 	return 0x4AB78F;
 }
 
-
 //void DrawMouseShape(WWMouseClass* pMouse, Surface* pSurface, Point2D offs)
 //{
 //	if (pMouse->Image && pSurface && FileSystem::MOUSE_PAL())

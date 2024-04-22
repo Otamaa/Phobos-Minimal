@@ -49,6 +49,7 @@ public:
 	PhobosMap<int, CellStruct> Waypoints { };
 	PhobosMap<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
 	PhobosMap<int, ExtendedVariable> Global_Variables { };
+	std::vector<CellStruct> DefinedAudioWaypoints {};
 
 	Nullable<FixedString<0x1F>> ParTitle { };
 	Nullable<FixedString<0x1F>> ParMessage { };

@@ -233,8 +233,8 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 	}
 
 	const Edge nEdge =
-		pReinforcee->Owner->StartingEdge < Edge::North || pReinforcee->Owner->StartingEdge > Edge::West
-		? pReinforcee->Owner->GetHouseEdge() : pReinforcee->Owner->StartingEdge;
+		pReinforcee->Owner->StaticData.StartingEdge < Edge::North || pReinforcee->Owner->StaticData.StartingEdge > Edge::West
+		? pReinforcee->Owner->GetHouseEdge() : pReinforcee->Owner->StaticData.StartingEdge;
 
 	R->EAX(nEdge);
 	return 0x65DC2B;

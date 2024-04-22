@@ -922,7 +922,7 @@ public:
 
 	Edge GetHouseEdge() const
 	{
-		auto edge = this->StartingEdge;
+		auto edge = this->StaticData.StartingEdge;
 		if (edge < Edge::North || edge > Edge::West)
 		{
 			edge = this->Edge;
@@ -1070,13 +1070,13 @@ public:
 	double                BuildTimeMultiplier; // ... unused ends
 	double                RepairDelay;
 	double                BuildDelay;
-	//struct StaticDataClass {
-	int                   IQLevel;
-	int                   TechLevel;
-	IndexBitfield<HouseClass*> AltAllies;        // ask question, receive brain damage
-	int                   StartingCredits;       // not sure how these are used // actual credits = this * 100
-	Edge                  StartingEdge;
-	//}StaticData;
+	struct StaticClass {
+		int                   IQLevel;
+		int                   TechLevel;
+		IndexBitfield<HouseClass*> AltAllies;        // ask question, receive brain damage
+		int                   StartingCredits;       // not sure how these are used // actual credits = this * 100
+		Edge                  StartingEdge;
+	}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
 	bool                  IsHumanPlayer;	// 1EC	,is controlled by the player at this computer ,IsHuman

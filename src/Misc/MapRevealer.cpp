@@ -136,12 +136,11 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 		auto const checkLevel = allowRevealByHeight && RulesClass::Instance->RevealByHeight;
 
 		for (CellSpreadEnumerator it(spread, start); it; ++it) {
-			auto const& offset = *it;
-			auto const cell = base + offset;
+			auto const cell = base + *it;
 
 			if (this->IsCellAvailable(cell)) {
-				if (std::abs(offset.X) <= static_cast<int>(spread) && offset.pow() < spread_limit_sqr) {
-					if (!checkLevel || this->CheckLevel(offset, level)) {
+				if (std::abs(it->X) <= static_cast<int>(spread) && it->pow() < spread_limit_sqr) {
+					if (!checkLevel || this->CheckLevel(*it, level)) {
 						func(MapClass::Instance->GetCellAt(cell));
 					}
 				}
@@ -174,8 +173,7 @@ void MapRevealer::UpdateShroud(size_t start, size_t radius, bool fog) const
 
 		for (CellSpreadEnumerator it(radius, start); it; ++it)
 		{
-			auto const& offset = *it;
-			auto const cell = base + offset;
+			auto const cell = base + *it;
 			auto  pCell = MapClass::Instance->GetCellAt(cell);
 
 			auto shroudOcculusion = TacticalClass::Instance->GetOcclusion(cell, false);

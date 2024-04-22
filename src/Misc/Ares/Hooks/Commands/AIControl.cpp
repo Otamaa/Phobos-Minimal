@@ -41,7 +41,7 @@ void AIControlCommandClass::Execute(WWKey dwUnk) const
 		pPlayer->Production = pPlayer->AutocreateAllowed = true;
 
 		//give full capabilities
-		pPlayer->IQLevel = RulesClass::Global()->MaxIQLevels;
+		pPlayer->StaticData.IQLevel = RulesClass::Global()->MaxIQLevels;
 		pPlayer->IQLevel2 = RulesClass::Global()->MaxIQLevels;
 		pPlayer->AIDifficulty = AIDifficulty::Hard;	//brutal!
 
@@ -56,7 +56,7 @@ void AIControlCommandClass::Execute(WWKey dwUnk) const
 		pPlayer->Production = pPlayer->AutocreateAllowed = false;
 
 		//make it a vegetable
-		pPlayer->IQLevel = 0;
+		pPlayer->StaticData.IQLevel = 0;
 		pPlayer->IQLevel2 = 0;
 		pPlayer->AIDifficulty = AIDifficulty::Normal;
 

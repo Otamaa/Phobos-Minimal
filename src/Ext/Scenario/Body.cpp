@@ -48,6 +48,7 @@ void ScenarioExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bS
 
 	if (itr && itr->Value != bState)
 	{
+		//Debug::Log("[%d]SetVariableToByID %s - %d from [%d] to [%d]\n", (int)IsGlobal ,itr->Name , nIndex, itr->Value , bState);
 		itr->Value = bState;
 		ScenarioClass::Instance->VariablesChanged = true;
 		if (!IsGlobal)
@@ -201,7 +202,7 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->Waypoints)
 		.Process(this->Local_Variables)
 		.Process(this->Global_Variables)
-
+		.Process(this->DefinedAudioWaypoints)
 		.Process(this->ParTitle)
 		.Process(this->ParMessage)
 		.Process(this->ScoreCampaignTheme)

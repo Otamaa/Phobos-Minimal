@@ -264,7 +264,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			{
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation);
 				pCreateUnitAnim->Owner = decidedOwner;
-				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis);
 			}
 
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
