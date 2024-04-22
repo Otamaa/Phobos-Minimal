@@ -87,6 +87,19 @@ DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	return 0x4899DA;
 }
 
+//DEFINE_HOOK(0x4896EC, MapClass_DamageArea_DamageSelf, 0x6) {
+//	GET(ObjectClass*, pObj, ECX);
+//	GET(TechnoTypeClass*, pType, EAX);
+//	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+//
+//	if (!pType->DamageSelf ) {
+//		Debug::Log("Techno[%x - %s] Trying to damage itself with Warhead [%s] , but DamageSelf is off , is this intended ?\n", pObj, pType->ID, pWH->ID);
+//		return 0x4896F6;
+//	}
+//
+//	return 0x489702;
+//}
+
 DEFINE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 {
 	GET(OverlayTypeClass*, pOverlay, EAX);

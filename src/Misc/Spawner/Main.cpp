@@ -587,6 +587,22 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 	}
 }
 
+//#include <codecvt>
+//#include <locale>
+//#include <string>
+//#include <type_traits>
+//
+//std::string wstring_to_utf8(std::wstring const& str)
+//{
+//  std::wstring_convert<std::conditional<
+//        sizeof(wchar_t) == 4,
+//        std::codecvt_utf8<wchar_t>,
+//        std::codecvt_utf8_utf16<wchar_t>>::type> converter;
+//  return converter.to_bytes(str);
+//}
+//
+//#pragma optimize("", off )
+
 bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 	if (pScenarioName[0] == 0)
 	{
@@ -732,7 +748,17 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 
 		return result;
 #else
-		return ScenarioClass::StartScenario(pScenarioName, 1, 0);
+		bool result =  ScenarioClass::StartScenario(pScenarioName, 1, 0);
+		//char keee_[46];
+		//sprintf(keee_, "%sSav", ScenarioClass::Instance->UIName);
+		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::LoadString(keee_), 0x2Du);
+  //      if ( !wcsncmp(ScenarioClass::Instance->UINameLoaded, L"MISSING:", 8u) ) {
+  //          wcsncpy(ScenarioClass::Instance->UINameLoaded, ScenarioClass::Instance->Name, 0x2Du);
+  //      }
+  //     ScenarioClass::Instance->UINameLoaded[44] = 0;
+
+		//Debug::Log("Loading Scenario Name [%s]\n" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
+		return result;
 #endif
 	}
 	else if (SessionClass::IsSkirmish())
@@ -764,6 +790,8 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 		return true;
 	}
 }
+
+//#pragma optimize("", on )
 
 bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 

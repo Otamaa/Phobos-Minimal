@@ -647,20 +647,24 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 			);
 		};
 
-		char fName[0x80];
-
 		SYSTEMTIME time;
-		GetLocalTime(&time);
+		Imports::GetLocalTime.get()(&time);
+		const std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.sav",
+			time.wYear,
+			time.wMonth,
+			time.wDay,
+			time.wHour,
+			time.wMinute,
+			time.wSecond,
+			time.wMilliseconds
+		);
 
-		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
-			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+		const std::wstring fDesc = std::format(L"{} - {}"
+			, SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name
+			, StringTable::LoadString(pThis->Text)
+		);
 
-		wchar_t fDescription[0x80] = { 0 };
-		wcscpy_s(fDescription, ScenarioClass::Instance->UINameLoaded);
-		wcscat_s(fDescription, L" - ");
-		wcscat_s(fDescription, StringTable::LoadString(pThis->Text));
-
-		bool Status = ScenarioClass::Instance->SaveGame(fName, fDescription);
+		bool Status = ScenarioClass::Instance->SaveGame(fName.c_str(), fDesc.c_str());
 
 		WWMouseClass::Instance->ShowCursor();
 
