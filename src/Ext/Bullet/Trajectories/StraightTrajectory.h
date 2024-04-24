@@ -91,11 +91,12 @@ public:
 
 	virtual StraightVariantBTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<StraightVariantBTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
 
-	//virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
-	//virtual bool OnAI() override;
-	//virtual void OnAIPreDetonate() override;
-	//virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
-	//virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
-	//virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 
+private:
+	int GetVelocityZ(CoordStruct& source) const;
 };
