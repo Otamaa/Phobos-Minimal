@@ -211,11 +211,11 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	MapClass::DamageArea(coords, nDamage, pOwner, pWH, pWH->Tiberium, pOwner->Owner);
 
 	if(pOwner->IsAlive){
-		int damage = pOwner->Type->Strength;
-		if (pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr) != DamageState::NowDead) {
+		//int damage = pOwner->Type->Strength;
+		//if (pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr) != DamageState::NowDead) {
 			pOwner->Limbo();
 			TechnoExtData::HandleRemove(pOwner, nullptr);
-		}
+		//}
 	}
 	return 0x6632D9;
 }
