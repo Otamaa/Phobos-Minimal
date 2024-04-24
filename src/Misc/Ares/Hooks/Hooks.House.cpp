@@ -915,6 +915,9 @@ void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, in
 
 bool ReachedBuildLimit(const HouseClass* pHouse, const TechnoTypeClass* pType, bool ignoreQueued)
 {
+	if (!pType)
+		return true;
+
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(const_cast<TechnoTypeClass*>(pType));
 
 	if (pTypeExt->BuildLimit_Group_Types.empty()
@@ -1022,6 +1025,8 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
 	auto ret = ShouldDisableCameo(pThis, pType);
+
+	if(!ret)
 		 ret = ReachedBuildLimit(pThis, pType, false);
 
 	R->EAX(ret);
