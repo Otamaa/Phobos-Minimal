@@ -2,13 +2,16 @@
 
 #include "PhobosTrajectory.h"
 
-class StraightTrajectoryType final : public PhobosTrajectoryType
+class StraightTrajectoryType : public PhobosTrajectoryType
 {
 public:
 	Valueable<bool> SnapOnTarget { true };
 	Nullable<Leptons> SnapThreshold { Leptons(Unsorted::LeptonsPerCell) };
 	Valueable<Leptons> TargetSnapDistance { Leptons(0) };
 	Valueable<bool> PassThrough { false };
+
+	StraightTrajectoryType(TrajectoryFlag variant) : PhobosTrajectoryType { variant }
+	{ }
 
 	StraightTrajectoryType() : PhobosTrajectoryType {TrajectoryFlag::Straight}
 	{ }
@@ -21,15 +24,29 @@ public:
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
 };
 
-class StraightTrajectory final : public PhobosTrajectory
+class StraightVariantBTrajectoryType final : public StraightTrajectoryType
+{
+public:
+	StraightVariantBTrajectoryType() : StraightTrajectoryType { TrajectoryFlag::StraightVariantB } { }
+	virtual ~StraightVariantBTrajectoryType() = default;
+};
+
+class StraightTrajectory : public PhobosTrajectory
 {
 public:
 
 	int FirerZPosition { 0 };
 	int TargetZPosition { 0 };
 
+	StraightTrajectory(TrajectoryFlag varian) : PhobosTrajectory { varian }
+	{ }
+
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
 	{ }
+
+	StraightTrajectory(TrajectoryFlag varian , BulletClass* pBullet, PhobosTrajectoryType* pType) :
+		PhobosTrajectory { varian , pBullet , pType } {
+	}
 
 	StraightTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) :
 		PhobosTrajectory {TrajectoryFlag::Straight , pBullet , pType }
@@ -54,4 +71,31 @@ private:
 	int GetFirerZPosition() const;
 	CoordStruct GetTargetPosition() const;
 	bool ElevationDetonationCheck() const;
+};
+
+class StraightTrajectoryVarianB : public StraightTrajectory
+{
+public:
+
+	StraightTrajectoryVarianB() : StraightTrajectory { TrajectoryFlag::StraightVariantB }
+	{ }
+
+	StraightTrajectoryVarianB(BulletClass* pBullet, PhobosTrajectoryType* pType) :
+		StraightTrajectory { TrajectoryFlag::StraightVariantB, pBullet , pType }
+	{ }
+
+	virtual ~StraightTrajectoryVarianB() override = default;
+
+	//virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	//virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	virtual StraightVariantBTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<StraightVariantBTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
+
+	//virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	//virtual bool OnAI() override;
+	//virtual void OnAIPreDetonate() override;
+	//virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	//virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
+	//virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+
 };

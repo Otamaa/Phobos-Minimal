@@ -15,6 +15,7 @@ enum class TrajectoryFlag : int
 	Spiral = 6,
 	Wave = 7,
 	Arcing = 8,
+	StraightVariantB = 9,
 
 	Count
 };
