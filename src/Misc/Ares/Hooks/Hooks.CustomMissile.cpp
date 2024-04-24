@@ -212,7 +212,10 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 
 	if(pOwner->IsAlive){
 		int damage = pOwner->Type->Strength;
-		pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+		if (pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr) != DamageState::NowDead) {
+			pOwner->Limbo();
+			TechnoExtData::HandleRemove(pOwner, nullptr);
+		}
 	}
 	return 0x6632D9;
 }
