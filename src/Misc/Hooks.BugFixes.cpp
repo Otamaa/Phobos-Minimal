@@ -1133,36 +1133,6 @@ DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	return 0x0;
 }
 
-// Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
-bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
-{
-	if (!pThis)
-		return false;
-
-	auto const pDeployType = pThis->Type->DeploysInto;
-
-	if (!pDeployType)
-		return noDeploysIntoDefaultValue;
-
-	bool canDeploy = true;
-	auto mapCoords = CellClass::Coord2Cell(pThis->GetCoords());
-
-	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
-		mapCoords += CellStruct { -1, -1 };
-
-	pThis->UpdatePlacement(PlacementType::Remove);
-
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Remove);
-
-	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
-		canDeploy = false;
-
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Put);
-	pThis->UpdatePlacement(PlacementType::Put);
-
-	return canDeploy;
-}
-
 // Fix DeployToFire not working properly for WaterBound DeploysInto buildings and not recalculating position on land if can't deploy.
 DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 {
@@ -1170,7 +1140,7 @@ DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 
 	GET(UnitClass*, pThis, EBX);
 
-	R->EAX(CanDeployIntoBuilding(pThis, true));
+	R->EAX(TechnoExtData::CanDeployIntoBuilding(pThis, true));
 
 	return SkipGameCode;
 }
@@ -1183,7 +1153,7 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 
 	if (pThis->Type->DeployToFire
 		&& pThis->CanDeployNow()
-		&& !CanDeployIntoBuilding(pThis, true)
+		&& !TechnoExtData::CanDeployIntoBuilding(pThis, true)
 		) {
 		return MustDeploy;
 	}
@@ -1328,20 +1298,57 @@ DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
 // DEFINE_HOOK(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
 // {
 // 	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
-
+//
 // 	GET(InfantryClass*, pThis, ESI);
-
+//
 // 	auto const mZone = pThis->Type->MovementZone;
-
+//
 // 	if (mZone == MovementZone::Amphibious || mZone == MovementZone::AmphibiousDestroyer || mZone == MovementZone::AmphibiousCrusher ||
 // 		mZone == MovementZone::Water || mZone == MovementZone::WaterBeach)
 // 	{
 // 		return Amphibious;
 // 	}
-
+//
 // 	return NotAmphibious;
 // }
 
+// Game removes deploying vehicles from map temporarily to check if there's enough
+// space to deploy into a building when displaying allow/disallow deploy cursor.
+// This can cause desyncs if there are certain types of units around the deploying unit.
+// Only reasonable way to solve this is to perform the cell clear check on every client per frame
+// and use that result in cursor display which is client-specific. This is now implemented in multiplayer games only.
+#pragma region DeploysIntoDesyncFix
+
+DEFINE_HOOK(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
+{
+	if (!SessionClass::Instance->IsMultiplayer())
+		return 0;
+
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Type->DeploysInto)
+		TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding = TechnoExtData::CanDeployIntoBuilding(pThis);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
+{
+	if (!SessionClass::Instance->IsMultiplayer())
+		return 0;
+
+	enum { SkipGameCode = 0x73FFDF };
+
+	GET(UnitClass*, pThis, ESI);
+	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
+
+	if (!TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding)
+		*pAction = Action::NoDeploy;
+
+	return SkipGameCode;
+}
+
+#pragma endregion
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>

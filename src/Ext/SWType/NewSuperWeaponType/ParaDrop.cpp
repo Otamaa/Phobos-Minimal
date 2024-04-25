@@ -58,17 +58,14 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	const char* section = pData->get_ID();
 
 	INI_EX exINI(pINI);
-	std::string _base;
+	std::string _base = GameStrings::ParaDrop();
 
 	auto CreateParaDropBase = [](char* pID, std::string& base)
 	{
 		// put a string like "Paradrop.Americans" into the buffer
 		if (pID && strlen(pID)) {
-			base = "ParaDrop.";
+			base += ".";
 			base += pID;
-		}
-		else {
-			base = GameStrings::ParaDrop();
 		}
 	};
 
@@ -80,6 +77,8 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 		std::string _plane(".Plane");
 		if (Plane) {
 			_plane += std::to_string(Plane + 1);
+		} else {
+			_plane.clear();
 		}
 
 		// construct the full tag name base

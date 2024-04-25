@@ -109,6 +109,7 @@ public:
 	}
 
 	static void SaveVariablesToFile(bool isGlobal);
+	static void LoadVariablesToFile(bool isGlobal);
 
 	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
 };

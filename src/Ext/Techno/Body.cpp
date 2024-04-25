@@ -42,6 +42,37 @@
 #include <memory>
 #include <Ares_TechnoExt.h>
 
+
+// Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
+bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
+{
+	if (!pThis)
+		return false;
+
+	auto const pDeployType = pThis->Type->DeploysInto;
+
+	if (!pDeployType)
+		return noDeploysIntoDefaultValue;
+
+	bool canDeploy = true;
+	auto mapCoords = CellClass::Coord2Cell(pThis->GetCoords());
+
+	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
+		mapCoords += CellStruct { -1, -1 };
+
+	pThis->UpdatePlacement(PlacementType::Remove);
+
+	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Remove);
+
+	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
+		canDeploy = false;
+
+	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Put);
+	pThis->UpdatePlacement(PlacementType::Put);
+
+	return canDeploy;
+}
+
 void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
 {
 	if (!pTechnoTo || TechnoExtData::IsPsionicsImmune(pTechnoTo))
@@ -4621,6 +4652,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)
 		.Process(this->MySpawnSuport)
+		.Process(this->CanCurrentlyDeployIntoBuilding)
 		;
 }
 

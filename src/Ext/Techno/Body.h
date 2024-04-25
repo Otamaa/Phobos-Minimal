@@ -174,6 +174,8 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
+	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
@@ -409,6 +411,8 @@ public:
 	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
 
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
+	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
+
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>
