@@ -8,7 +8,7 @@
 
 std::vector<const char*> SW_EMPulse::GetTypeString() const
 {
-	return { "EMPulse" , "ChemLauncher" , "MultiLauncher" , "FireAt" };
+	return { "EMPulse" , "FireAt" };
 }
 
 bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)

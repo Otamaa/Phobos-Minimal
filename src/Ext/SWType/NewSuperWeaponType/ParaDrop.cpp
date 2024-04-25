@@ -16,11 +16,10 @@ bool SW_ParaDrop::HandleThisType(SuperWeaponType type) const
 
 bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
-	if (pThis->IsCharged)
-	{
-		auto pTarget = MapClass::Instance->TryGetCellAt(Coords);
-		// all set. send in the planes.
-		return pTarget ? this->SendParadrop(pThis, pTarget) : false;
+	if (pThis->IsCharged) {
+		if(auto pTarget = MapClass::Instance->TryGetCellAt(Coords)) {
+			return this->SendParadrop(pThis, pTarget);
+		}
 	}
 
 	return false;
@@ -28,22 +27,8 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 
 void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::ParaDrop;
-	// default for american paradrop
-	if (pData->AttachedToObject->Type == SuperWeaponType::AmerParaDrop)
-	{
-		pData->AttachedToObject->Action = Action::AmerParaDrop;
-		// the American paradrop will be the same for every country,
-		// thus we use the SW's default here.
-		auto& nData = pData->ParaDropDatas[pData->AttachedToObject];
- 		auto& pPlane = nData.emplace_back();
-
-		auto const& Inf = RulesClass::Instance->AmerParaDropInf;
-		pPlane.Types.insert(pPlane.Types.end(), Inf.begin(), Inf.end());
-
-		auto const& Num = RulesClass::Instance->AmerParaDropNum;
-		pPlane.Num.insert(pPlane.Num.end(), Num.begin(), Num.end());
-	}
+	pData->AttachedToObject->Action = pData->AttachedToObject->Type == SuperWeaponType::AmerParaDrop ?
+		Action::AmerParaDrop : Action::ParaDrop;
 
 	pData->SW_RadarEvent = false;
 
@@ -103,7 +88,6 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	auto GetParadropPlane = [=, &_base](char const* pID, size_t defaultCount, AbstractTypeClass* pKey)
 	{
-
 		auto& ParaDrop = pData->ParaDropDatas[pKey];
 		auto const lastCount = ParaDrop.size() ? ParaDrop.size() : defaultCount;
 
@@ -157,23 +141,19 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 */
 bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 {
-	// sanity
-	if (!pThis || !pCell)
-	{
-		return false;
-	}
-
 	auto const pType = pThis->Type;
 	auto const pData = SWTypeExtContainer::Instance.Find(pType);
 	auto const pHouse = pThis->Owner;
 
 	// these are fallback values if the SW doesn't define them
-	AircraftTypeClass* pFallbackPlane = nullptr;
+	AircraftTypeClass* pFallbackPlane = HouseExtData::GetParadropPlane(pHouse);
+	const bool IsAmericanParadrop = pType->Type == SuperWeaponType::AmerParaDrop;
+
 	Iterator<TechnoTypeClass*> FallbackTypes;
 	Iterator<int> FallbackNum;
 
-	HouseExtData::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
-	pFallbackPlane = HouseExtData::GetParadropPlane(pHouse);
+	if (IsAmericanParadrop)
+		HouseExtData::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
 
 	// use paradrop lists from house, side and default
 	const std::vector<ParadropData>* drops[3] {
@@ -248,7 +228,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 		}
 
 		// fallback for types and nums
-		if (!ParaDropTypes || !ParaDropNum)
+		if (IsAmericanParadrop && (!ParaDropTypes || !ParaDropNum))
 		{
 			ParaDropTypes = FallbackTypes;
 			ParaDropNum = FallbackNum;
@@ -275,7 +255,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 	Iterator<TechnoTypeClass*> const Types, Iterator<int> const Nums)
 {
 	if (Nums.size() != Types.size() || !Nums.size()
-		|| !pOwner || !pPlaneType || !pTarget)
+		|| !pOwner || !pPlaneType)
 	{
 		return;
 	}
