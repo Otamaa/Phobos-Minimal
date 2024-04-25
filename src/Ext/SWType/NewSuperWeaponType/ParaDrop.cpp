@@ -152,8 +152,12 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	Iterator<TechnoTypeClass*> FallbackTypes;
 	Iterator<int> FallbackNum;
 
-	if (IsAmericanParadrop)
+	if (IsAmericanParadrop) {
+		FallbackTypes = make_iterator(RulesClass::Instance->AmerParaDropInf);
+		FallbackNum = make_iterator(RulesClass::Instance->AmerParaDropNum);
+	} else {
 		HouseExtData::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
+	}
 
 	// use paradrop lists from house, side and default
 	const std::vector<ParadropData>* drops[3] {
@@ -228,7 +232,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 		}
 
 		// fallback for types and nums
-		if (IsAmericanParadrop && (!ParaDropTypes || !ParaDropNum))
+		if (!ParaDropTypes || !ParaDropNum)
 		{
 			ParaDropTypes = FallbackTypes;
 			ParaDropNum = FallbackNum;
