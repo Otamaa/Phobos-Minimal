@@ -119,7 +119,11 @@ std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::Tra
 
 bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 {
-	return traj->Flag == TrajectoryFlag::Straight || traj->Flag == TrajectoryFlag::StraightVariantB || traj->Flag == TrajectoryFlag::Bombard;
+	return
+		traj->Flag == TrajectoryFlag::Straight ||
+		traj->Flag == TrajectoryFlag::StraightVariantB ||
+		traj->Flag == TrajectoryFlag::Bombard
+	;
 }
 
 void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pType, CCINIClass* const pINI, const char* pSection, const char* pKey)

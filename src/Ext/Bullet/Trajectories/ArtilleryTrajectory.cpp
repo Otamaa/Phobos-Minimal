@@ -153,14 +153,17 @@ bool ArtilleryTrajectory::OnAI()
 	{
 		const auto pExt = BulletExtContainer::Instance.Find(pBullet);
 
-		pExt->LaserTrails.clear();
-		pExt->Trails.clear();
 		pBullet->Limbo();
 		pBullet->Unlimbo(pBullet->SourceCoords, static_cast<DirType>(0));
 
-		pExt->InitializeLaserTrails();
+		if (!pExt->LaserTrails.empty())
+		{
+			pExt->LaserTrails.clear();
+		}
 
-		TrailsManager::Construct(pBullet);
+		pExt->InitializeLaserTrails();
+		TrailsManager::CleanUp(pExt->AttachedToObject);
+		TrailsManager::Construct(pExt->AttachedToObject);
 
 		this->Init = true;
 	}
