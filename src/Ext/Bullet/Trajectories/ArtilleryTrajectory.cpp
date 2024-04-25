@@ -155,12 +155,7 @@ bool ArtilleryTrajectory::OnAI()
 
 		pBullet->Limbo();
 		pBullet->Unlimbo(pBullet->SourceCoords, static_cast<DirType>(0));
-
-		if (!pExt->LaserTrails.empty())
-		{
-			pExt->LaserTrails.clear();
-		}
-
+		pExt->LaserTrails.clear();
 		pExt->InitializeLaserTrails();
 		TrailsManager::CleanUp(pExt->AttachedToObject);
 		TrailsManager::Construct(pExt->AttachedToObject);

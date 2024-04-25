@@ -188,10 +188,7 @@ void BombardTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosi
 					pPosition->Y = pBullet->TargetCoords.Y;
 					pPosition->Z = pBullet->TargetCoords.Z + pType->Height;
 
-					if (!pExt->LaserTrails.empty()) {
-						pExt->LaserTrails.clear();
-					}
-
+					pExt->LaserTrails.clear();
 					pExt->InitializeLaserTrails();
 					TrailsManager::CleanUp(pExt->AttachedToObject);
 					TrailsManager::Construct(pExt->AttachedToObject);

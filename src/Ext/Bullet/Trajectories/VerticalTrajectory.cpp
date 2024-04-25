@@ -95,10 +95,7 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 			pPosition->Y = pBullet->TargetCoords.Y;
 			pPosition->Z = pBullet->TargetCoords.Z + type->Height;
 
-			if (!pExt->LaserTrails.empty()){
-				pExt->LaserTrails.clear();
-			}
-
+			pExt->LaserTrails.clear();
 			pExt->InitializeLaserTrails();
 			TrailsManager::CleanUp(pExt->AttachedToObject);
 			TrailsManager::Construct(pExt->AttachedToObject);

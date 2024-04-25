@@ -733,10 +733,8 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 
 					pThis->Type = pWeaponOverride->Projectile;
 
-					if (!pExt->LaserTrails.empty()) {
-						pExt->LaserTrails.clear();
-						pExt->InitializeLaserTrails();
-					}
+					pExt->LaserTrails.clear();
+					pExt->InitializeLaserTrails();
 
 					TrailsManager::CleanUp(pExt->AttachedToObject);
 					TrailsManager::Construct(pExt->AttachedToObject);
