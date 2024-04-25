@@ -19,7 +19,7 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
 		if (pExt->Trajectory
-			&& (pExt->Trajectory->Flag == TrajectoryFlag::Straight || pExt->Trajectory->Flag == TrajectoryFlag::StraightVariantB)
+			&& PhobosTrajectory::CanSnap(pExt->Trajectory)
 			&& !pExt->SnappedToTarget)
 		{
 			return nRet();
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 
 		if (pExt->Trajectory
-			&& (pExt->Trajectory->Flag == TrajectoryFlag::Straight || pExt->Trajectory->Flag == TrajectoryFlag::StraightVariantB)
+			&& PhobosTrajectory::CanSnap(pExt->Trajectory)
 			&& !pExt->SnappedToTarget
 		) {
 			return nRet();
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	// Fixes issues with walls etc.
 	auto const pExt = BulletExtContainer::Instance.Find(pThis);
 	if (pExt->Trajectory
-		&& (pExt->Trajectory->Flag == TrajectoryFlag::Straight || pExt->Trajectory->Flag == TrajectoryFlag::StraightVariantB)
+		&& PhobosTrajectory::CanSnap(pExt->Trajectory)
 		&& !pExt->SnappedToTarget)
 	{
 		return SkipSetCoordinate;

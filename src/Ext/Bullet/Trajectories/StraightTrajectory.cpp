@@ -228,6 +228,7 @@ void StraightTrajectoryVarianB::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pV
 	auto const type = this->GetTrajectoryType();
 	auto const pBullet = this->AttachedTo;
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons(102));
+	this->SetInaccurate();
 
 	if (type->PassThrough.Get())
 	{

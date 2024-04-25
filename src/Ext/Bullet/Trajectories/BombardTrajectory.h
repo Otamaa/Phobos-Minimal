@@ -7,8 +7,14 @@ class BombardTrajectoryType final : public PhobosTrajectoryType
 public:
 
 	Valueable<double> Height { 0.0 };
-	Valueable<bool> Anti { false };
-	
+	Valueable<double> FallPercent { 1.0 };
+	Valueable<double> FallPercentShift { 0.0 };
+	Valueable<Leptons> FallScatterRange {};
+	Valueable<double> FallSpeed { 0.0 };
+	Valueable<Leptons> TargetSnapDistance { Leptons(128) };
+	Valueable<bool> FreeFallOnTarget { true };
+	Valueable<bool> NoLaunch { false };
+
 	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard } { }
 	virtual ~BombardTrajectoryType() = default;
 
