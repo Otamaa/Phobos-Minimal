@@ -55,6 +55,9 @@ enum class PhobosTriggerEvent : int
 	HouseDoesntOwnTechnoType = 602,
 	HousesDestroyed = 603,
 
+	CellHasTechnoType = 604,
+	CellHasAnyTechnoTypeFromList = 605,
+
 	count
 };
 
@@ -96,10 +99,16 @@ public:
 	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
 	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);
 
+	static bool CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pHouse);
+	static bool CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pHouse);
+
 	static bool Occured(TEventClass* pThis, EventArgs const& args, bool& bHandled);
+
+	static HouseClass* GetHouse(int TEvetValue, HouseClass* pEventHouse);
 
 	template<bool IsGlobal, typename _Pr>
 	static bool VariableCheck(TEventClass* pThis);
+
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
 };

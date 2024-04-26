@@ -74,8 +74,8 @@ TechnoTypeClass* TEventExtData::GetTechnoType()
 bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
 {
 	//int iEvent = args.EventType; // not used here ,.. ares using it compare
-	//HouseClass* pHouse = args.Owner;
-	//ObjectClass* pObject = args.Object;
+	HouseClass* pHouse = args.Owner;
+	ObjectClass* pObject = args.Object;
 	//CDTimerClass* pTimer = args.ActivationFrame;
 	//bool* isPersitant = args.isRepeating;
 	//AbstractClass* pSource = args.Source;
@@ -85,6 +85,7 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 
 	switch ((PhobosTriggerEvent)pThis->EventKind)
 	{
+
 #pragma region LovalVariableManipulation
 	case PhobosTriggerEvent::LocalVariableGreaterThan:
 		result = TEventExtData::VariableCheck<false, std::greater<int>>(pThis);
@@ -202,7 +203,7 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 	*   - AttachFlags ?
 	*/
 	case PhobosTriggerEvent::ShieldBroken:
-		result = ShieldClass::TEventIsShieldBroken(args.Object);
+		result = ShieldClass::TEventIsShieldBroken(pObject);
 		break;
 	case PhobosTriggerEvent::HouseOwnsTechnoType:
 		result = TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
@@ -213,11 +214,94 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 	case PhobosTriggerEvent::HousesDestroyed:
 		result = TEventExtData::HousesAreDestroyedTEvent(pThis);
 		break;
+
+	case PhobosTriggerEvent::CellHasTechnoType:
+		result = TEventExtData::CellHasTechnoTypeTEvent(pThis, pObject, pHouse);
+		break;
+	case PhobosTriggerEvent::CellHasAnyTechnoTypeFromList:
+		result = TEventExtData::CellHasAnyTechnoTypeFromListTEvent(pThis, pObject, pHouse);
+		break;
+
 	default:
 		return false;
 	};
 
 	return true;
+}
+
+HouseClass* TEventExtData::GetHouse(int TEvetValue, HouseClass* pEventHouse)
+{
+	if (TEvetValue <= -2)
+		return pEventHouse;
+	else if (TEvetValue >= 0 && size_t(TEvetValue) < HouseClass::Array->size())
+		return HouseClass::Array->Items[TEvetValue];
+
+	return nullptr;
+}
+
+bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pEventHouse)
+{
+
+	if (!pObject)
+		return false;
+
+	int desiredListIdx = -1;
+	if (sscanf_s(pThis->String, "%d", &desiredListIdx) <= 0 || desiredListIdx < 0) {
+		Debug::Log("Error in event %d. The parameter 2 '%s' isn't a valid index value for [AITargetTypes]\n", static_cast<PhobosTriggerEvent>(pThis->EventKind), pThis->String);
+		return false;
+	}
+
+	if (RulesExtData::Instance()->AITargetTypesLists.empty()
+		|| size_t(desiredListIdx) >= RulesExtData::Instance()->AITargetTypesLists.size()
+		|| RulesExtData::Instance()->AITargetTypesLists[desiredListIdx].empty())
+		return false;
+
+	bool found = false;
+
+	if (auto const pTechno = abstract_cast<TechnoClass*>(pObject)) {
+		auto const pTechnoType = pTechno->GetTechnoType();
+
+		for (const auto& pDesiredItem : RulesExtData::Instance()->AITargetTypesLists[desiredListIdx]) {
+			if (pDesiredItem == pTechnoType) {
+				HouseClass* pHouse = GetHouse(pThis->Value, pEventHouse);
+
+				if (pHouse && pTechno->Owner != pHouse)
+					break;
+
+				found = true;
+				break;
+			}
+		}
+	}
+
+	return found;
+}
+
+bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pEventHouse)
+{
+	if (pObject) {
+
+		const auto pDesiredType = TechnoTypeClass::Find(pThis->String);
+
+		if (!pDesiredType) {
+			Debug::Log("Error in event %d. The parameter 2 '%s' isn't a valid Techno ID\n", static_cast<PhobosTriggerEvent>(pThis->EventKind), pThis->String);
+			return false;
+		}
+
+		if (auto const pTechno = abstract_cast<TechnoClass*>(pObject)) {
+			auto const pTechnoType = pTechno->GetTechnoType();
+
+			if (pDesiredType == pTechnoType) {
+				if (HouseClass* pHouse = GetHouse(pThis->Value, pEventHouse)) {
+					return pTechno->Owner == pHouse;
+				}
+
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 template<bool IsGlobal, class _Pr>
