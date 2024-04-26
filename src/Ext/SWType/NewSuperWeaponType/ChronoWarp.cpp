@@ -275,7 +275,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		else if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// begin the building chronoshift
-			pBld->RemoveFromTargetingAndTeam();
+			TechnoClass::ClearWhoTargetingThis(pBld);
 			for (auto const pBullet : *BulletClass::Array)
 			{
 				if (pBullet->Target == pBld)

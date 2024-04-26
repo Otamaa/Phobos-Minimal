@@ -76,6 +76,8 @@ public:
 	static constexpr reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
 	static constexpr reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};
 	static constexpr reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
+	static constexpr reference<int, 0xAA0E28> const BridgeSetIdx {};
+	static constexpr reference<int, 0xABAD30> const BridgeMiddle1Idx {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x485200);

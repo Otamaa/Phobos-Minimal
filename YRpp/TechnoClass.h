@@ -688,8 +688,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x70F120);
 	}
 
-	void RemoveFromTargetingAndTeam() const {
-		JMP_THIS(0x70D4A0);
+	static void __fastcall ClearWhoTargetingThis(AbstractClass*) {
+		JMP_STD(0x70D4A0);
 	}
 
 	void SetTargetingDelay() const {

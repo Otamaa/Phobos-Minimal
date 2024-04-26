@@ -306,6 +306,9 @@ public:
 		this->reset(start);
 	}
 
+	size_t getCurSpread() const {
+		return this->curspread;
+	}
 protected:
 	void reset(size_t radius) {
 		curspread = radius;

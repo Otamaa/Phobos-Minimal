@@ -33,8 +33,6 @@ DEFINE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 	return ContinueFunction;
 }
 
-static CellSpreadEnumerator CellSpreadenumerator {};
-
 // create enumerator
 DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 {
@@ -48,8 +46,7 @@ DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 
 	//to avoid unnessesary allocation check
 	//simplify the assembly result
-	//pIter = DLLCreate<CellSpreadEnumerator>(spread);
-	pIter = &CellSpreadenumerator;
+	pIter = DLLCreate<CellSpreadEnumerator>(spread);
 	pIter->setSpread(spread);
 
 	return *pIter ? 0x4895C3 : 0x4899DA;
@@ -82,8 +79,7 @@ DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	}
 
 	// all done. delete and go on
-	//DLLDelete<false>(pIter);
-	pIter->clear();
+	DLLDelete<false>(pIter);
 	return 0x4899DA;
 }
 
@@ -162,54 +158,221 @@ DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 0x9)
 
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
-//#include <AircraftTrackerClass.h>
+#include <AircraftTrackerClass.h>
 
-//void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadTypeClass* warhead, bool affectTiberium, HouseClass* house) {
-//
-//	if (!damage || ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0) || !warhead)
-//		return;
-//
-//	static std::vector<DamageGroup> DamageAres {};
-//
-//	auto spreadLept = warhead->CellSpread * 256.0;
-//	const bool isCrushWarhead = RulesClass::Instance->CrushWarhead == warhead;
-//	CellStruct cell = CellClass::Coord2Cell(coord);
-//	auto pCell = MapClass::Instance->TryGetCellAt(cell);
-//	auto spread = warhead->CellSpread;
-//	bool OnBridge = false;
-//	bool spreadLow = spread < 0.5;
-//	CoordStruct Coord = CellClass::Cell2Coord(cell);
-//	bool NotAllowed = false;
-//	int coord_Z = MapClass::Instance->GetCellFloorHeight(Coord);
-//
-//	if (coord_Z < coord.Z) {
-//		AircraftTrackerClass::Instance->AircraftTrackerClass_logics_412B40(pCell, (int)spread);
-//		auto Ent = AircraftTrackerClass::Instance->Get();
-//
-//		if (Ent) {
-//			do{
-//				if (Ent->IsAlive && Ent->IsOnMap && Ent->Health > 0) {
-//					auto difference = coord - Ent->Location;
-//					auto len = difference.Length();
-//					if (len < spreadLept) {
-//						if (spreadLow && (int)len < 85 && Ent->IsIronCurtained() && Ent->ProtectType == ProtectTypes::IronCurtain) {
-//							NotAllowed = true;
-//						}
-//
-//						DamageAres.emplace_back(Ent, len);
-//					}
-//				}
-//
-//				Ent = AircraftTrackerClass::Instance->Get();
-//			}
-//			while (Ent);
-//		}
-//	}
-//
-//	if (pCell->ContainsBridge() && coord.Z > (Unsorted::BridgeHeight / 2 + coord_Z)) {
-//		OnBridge = true;
-//	}
-//}
+/* BridgeTargeting part is shit
+void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadTypeClass* warhead, bool affectTiberium, HouseClass* house) {
+
+	if (!damage || ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0) || !warhead)
+		return;
+
+	std::vector<DamageGroup> DamageGroups;
+	auto spread = warhead->CellSpread;
+	auto spreadLept = spread * 256.0;
+	auto spread_int = spread + 0.99;
+	const bool isCrushWarhead = RulesClass::Instance->CrushWarhead == warhead;
+	CellStruct cell = CellClass::Coord2Cell(coord);
+	auto pCell = MapClass::Instance->TryGetCellAt(cell);
+	bool OnBridge = false;
+	bool spreadLow = spread < 0.5;
+	CoordStruct Coord = CellClass::Cell2Coord(cell);
+	bool NotAllowed = false;
+	int coord_Z = MapClass::Instance->GetCellFloorHeight(Coord);
+
+	//Obtain Object that tracked by AircraftTrackerClass
+	if (coord_Z < coord.Z) {
+		AircraftTrackerClass::Instance->AircraftTrackerClass_logics_412B40(pCell, (int)spread);
+		auto Ent = AircraftTrackerClass::Instance->Get();
+
+		if (Ent) {
+			do{
+				if (Ent->IsAlive && Ent->IsOnMap && Ent->Health > 0) {
+					auto difference = coord - Ent->Location;
+					auto len = difference.Length();
+					if (len < spreadLept) {
+						if (spreadLow && (int)len < 85 && Ent->IsIronCurtained() && Ent->ProtectType == ProtectTypes::IronCurtain) {
+							NotAllowed = true;
+						}
+
+						DamageGroups.emplace_back(Ent, len);
+					}
+				}
+
+				Ent = AircraftTrackerClass::Instance->Get();
+			}
+			while (Ent);
+		}
+	}
+
+	//check if destination coords is onbridge
+	if (pCell->ContainsBridge() && coord.Z > (Unsorted::BridgeHeight / 2 + coord_Z)) {
+		OnBridge = true;
+	}
+
+	//obtain Object within the spread distance
+	for (CellSpreadEnumerator it(spread_int); it; ++it) {
+		auto const cellhere = cell + *it;
+
+		auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
+		if (pCurCell->OverlayTypeIndex > -1) {
+			auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
+			if (pOvelay->ChainReaction && (!pOvelay->Tiberium || warhead->Tiberium) && affectTiberium) {
+				pCurCell->ReduceTiberium(damage / 10);
+			}
+
+			if (pOvelay->Wall) {
+				if (warhead->WallAbsoluteDestroyer) {
+					pCurCell->ReduceWall();
+				}
+				else if (warhead->Wall || warhead->Wood && pOvelay->Armor == Armor::Wood) {
+					pCurCell->ReduceWall(damage);
+				}
+			}
+		}
+		else
+		{
+			TechnoClass::ClearWhoTargetingThis(pCell);
+		}
+
+		auto pNext = OnBridge ? pCurCell->AltObject : pCurCell->FirstObject;
+
+		if (pNext)
+			break;
+
+		for (NextObject next(pNext); next; next++) {
+			auto pCur = *next;
+
+			if (pCur == source && !source->GetTechnoType()->DamageSelf && !isCrushWarhead || !pCur->IsAlive) {
+				continue;
+			}
+
+			const auto what = pCur->WhatAmI();
+
+			if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0)) {
+				auto Harvs = Iterator(RulesClass::Instance->HarvesterUnit);
+
+				if (Harvs.contains((UnitTypeClass*)source->GetTechnoType()))
+					continue;
+			}
+
+			auto& cur_Group = DamageGroups.emplace_back(what, 0);
+			auto cur_cellCoord = pCurCell->GetCoords();
+
+			if (what == BuildingClass::AbsID)
+			{
+				if (!it.getCurSpread()) {
+					if (coord.Z - cur_cellCoord.Z <= Unsorted::CellHeight) {
+						cur_Group.Distance = 0;
+					}
+					else {
+						cur_Group.Distance = (cur_cellCoord - coord).Length() - Unsorted::CellHeight;
+					}
+
+					if (spreadLow) {
+						if (pCur->IsIronCurtained()
+							&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
+							&& cur_Group.Distance < 85
+							) {
+							NotAllowed = true;
+						}
+					}
+				}
+				else {
+					cur_Group.Distance = (cur_cellCoord - coord).Length() - Unsorted::CellHeight;
+				}
+			}
+			else {
+				cur_cellCoord = pCur->GetTargetCoords();
+				cur_Group.Distance = (cur_cellCoord - coord).Length() - Unsorted::CellHeight;
+			}
+		}
+	}
+
+	for (auto& pTarget : DamageGroups) {
+		auto curDistance = pTarget.Distance;
+		auto pObj = pTarget.Target;
+
+		if (pObj->IsAlive
+		&& (pObj->WhatAmI() != BuildingClass::AbsID || !((BuildingClass*)pObj)->Type->InvisibleInGame)
+		  && (!NotAllowed
+			  || (pObj->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None
+			  && ((TechnoClass*)pObj)->IsIronCurtained())) {
+			if (pObj->WhatAmI() == AircraftClass::AbsID
+			  && pObj->IsInAir()) {
+				curDistance /= 2;
+			}
+
+			if (pObj->Health > 0 && pObj->IsOnMap && !pObj->InLimbo && curDistance <= spread_int) {
+				int Damage = damage;
+				pObj->ReceiveDamage(&Damage, curDistance, warhead, source, false, false, house);
+			}
+		}
+	}
+
+	if (NotAllowed) {
+		DamageGroups.clear();
+	}
+
+	//rocker
+	double rockerSpread = damage * 0.01;
+
+	if(warhead->Rocker && rockerSpread > 0.0){
+
+		if (rockerSpread > 4.0) {
+			rockerSpread = 4.0;
+		}
+
+		for (CellSpreadEnumerator it((size_t)rockerSpread); it; ++it) {
+
+			auto pRockCell = MapClass::Instance->GetCellAt(*it);
+			auto pNext = OnBridge ? pRockCell->AltObject : pRockCell->FirstObject;
+
+			if (pNext)
+				break;
+
+			for (NextObject next(pNext); next; next++) {
+				if (auto pFoot = generic_cast<FootClass*>(*next)) {
+					Point3D value;
+
+					if (source) {
+						auto foot_coord = pFoot->GetCoords();
+						auto source_coord = source->GetCoords();
+						auto difference = (source_coord - foot_coord);
+						const auto distance = difference.Length();
+						value = distance == 0.0 ?
+							Point3D { difference.X, difference.Y, difference.Z } :
+							Point3D { int((double)difference.X / distance) , int((double)difference.Y / distance), int((double)difference.Z / distance) };
+					}
+					else if (spread > 0.0) {
+						value = Point3D{ coord.X , coord.Y , coord.Z };
+					}
+
+					pFoot->RockByValue(&value, rockerSpread);
+				}
+			}
+		}
+	}
+
+	const bool isIoncannonWH = warhead == RulesClass::Instance->IonCannonWarhead;
+
+	if (((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0) && warhead->Wall) {
+		auto bit = pCell->UINTFlags;
+		auto cur_set = pCell->IsoTileTypeIndex - CellClass::BridgeSetIdx + 1;
+		CellStruct Brige_OwnerCell;
+		CellClass* pBrige_OwnerCell;
+		int OverlayIdx;
+
+		int middle =
+			(bit & 0x100) != 0
+			&& ((bit & 0x80u) == 0 ? (Brige_OwnerCell = pCell->BridgeOwnerCell->MapCoords) : (Brige_OwnerCell = pCell->MapCoords),
+				(pBrige_OwnerCell = MapClass::Instance->GetCellAt(Brige_OwnerCell), (pBrige_OwnerCell) != 0)
+			 && ((OverlayIdx = pBrige_OwnerCell->OverlayTypeIndex, OverlayIdx == 24) || OverlayIdx == 25))
+				CellClass::BridgeMiddle1Idx:
+			;
+
+
+	}
+}*/
 
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
 static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
