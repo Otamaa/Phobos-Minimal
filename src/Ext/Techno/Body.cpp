@@ -4652,7 +4652,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)
 		.Process(this->MySpawnSuport)
-		.Process(this->CanCurrentlyDeployIntoBuilding)
+		//.Process(this->CanCurrentlyDeployIntoBuilding)
 		;
 }
 
