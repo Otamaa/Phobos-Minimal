@@ -228,6 +228,7 @@ public:
 		return sizeof(TechnoExtData) -
 			(4u //AttachedToObject
 			+ 4u //DamageNumberOffset
+			+ sizeof(bool) //CanCurrentlyDeployIntoBuilding
 			 );
 	}
 
