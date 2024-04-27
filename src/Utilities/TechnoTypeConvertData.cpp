@@ -60,8 +60,9 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 	if (!useDevelopversion)
 	{
 		if (exINI.ReadString(pSection, pKey))
-		{
+		{		
 			list.clear();
+
 			char* context = nullptr;
 			for (auto cur = strtok_s(exINI.value(), Phobos::readDelims, &context);
 				cur;
@@ -88,7 +89,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 
 					list_value.From.clear();
 
-					for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &contexthere);
+			for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &contexthere);
 							pCur;
 							pCur = strtok_s(nullptr, Phobos::readDelims, &contexthere))
 					{
@@ -103,7 +104,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 					Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &list_value.To);
 					detail::getresult<AffectedHouse>(list_value.Eligible, nSecondPair_2, pSection, pKey, false);
 
-					//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
+					Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
 				}
 				else
 				{
@@ -126,7 +127,10 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 			}
 		}
 	}
-	{
+	else
+	{			
+		list.clear();
+
 		for (size_t i = 0; ; ++i)
 		{
 			std::string base_("Convert");
