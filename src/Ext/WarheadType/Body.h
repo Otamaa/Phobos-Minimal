@@ -216,7 +216,6 @@ public:
 	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 
-	ValueableVector<AnimTypeClass*> DeadBodies {};
 
 	Nullable<double> AffectEnemies_Damage_Mod {};
 	Nullable<double> AffectOwner_Damage_Mod {};

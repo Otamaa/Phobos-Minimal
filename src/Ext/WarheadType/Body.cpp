@@ -259,7 +259,6 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
-	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
 	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
 	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
@@ -1271,7 +1270,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Steal_Display_Houses)
 		.Process(this->Steal_Display)
 		.Process(this->Steal_Display_Offset)
-		.Process(this->DeadBodies)
 		.Process(this->AffectEnemies_Damage_Mod)
 		.Process(this->AffectOwner_Damage_Mod)
 		.Process(this->AffectAlly_Damage_Mod)
