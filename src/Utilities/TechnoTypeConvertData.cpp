@@ -60,7 +60,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 	if (!useDevelopversion)
 	{
 		if (exINI.ReadString(pSection, pKey))
-		{		
+		{
 			list.clear();
 
 			char* context = nullptr;
@@ -79,7 +79,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 				//second countais b:c
 				auto nSecondPair = copy.substr(nDelim + 1);
 				const auto nDelim2 = nSecondPair.find(":");
-				auto list_value = list.emplace_back();
+				auto list_value = &list.emplace_back();
 				char* contexthere = nullptr;
 
 				if (nDelim2 != std::string::npos)
@@ -87,28 +87,27 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 					auto nSecondPair_1 = nSecondPair.substr(0, nDelim2);
 					auto nSecondPair_2 = nSecondPair.substr(nDelim2 + 1);
 
-					list_value.From.clear();
+					list_value->From.clear();
 
-			for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &contexthere);
+					for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &contexthere);
 							pCur;
-							pCur = strtok_s(nullptr, Phobos::readDelims, &contexthere))
-					{
+							pCur = strtok_s(nullptr, Phobos::readDelims, &contexthere)) {
 						TechnoTypeClass* buffer = nullptr;
 
 						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
-							list_value.From.push_back(buffer);
+							list_value->From.push_back(buffer);
 						else if (!GameStrings::IsBlank(pCur))
 							Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 					}
 
-					Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &list_value.To);
-					detail::getresult<AffectedHouse>(list_value.Eligible, nSecondPair_2, pSection, pKey, false);
+					Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &list_value->To);
+					detail::getresult<AffectedHouse>(list_value->Eligible, nSecondPair_2, pSection, pKey, false);
 
-					Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
+					//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
 				}
 				else
 				{
-					list_value.From.clear();
+					list_value->From.clear();
 
 					for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &contexthere);
 							pCur;
@@ -117,18 +116,18 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 						TechnoTypeClass* buffer = nullptr;
 
 						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
-							list_value.From.push_back(buffer);
+							list_value->From.push_back(buffer);
 						else if (!GameStrings::IsBlank(pCur))
 							Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 					}
 
-					Parser<TechnoTypeClass*>::Parse(nSecondPair.c_str(), &list_value.To);
+					Parser<TechnoTypeClass*>::Parse(nSecondPair.c_str(), &list_value->To);
 				}
 			}
 		}
 	}
 	else
-	{			
+	{
 		list.clear();
 
 		for (size_t i = 0; ; ++i)
