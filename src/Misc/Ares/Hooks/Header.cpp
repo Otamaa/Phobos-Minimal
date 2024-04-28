@@ -2739,6 +2739,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		if (evaForOwner || evaForEnterer) {
 			VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
 		}
+		effectApplied = true;
 	}
 
 	if (pTypeExt->SpyEffect_Anim && pTypeExt->SpyEffect_Anim_Duration > 0) {
@@ -2749,10 +2750,10 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		pBldExt->SpyEffectAnim->Owner = EnteredBuilding->Owner;
 
 		pBldExt->SpyEffectAnimDuration = pTypeExt->SpyEffect_Anim_Duration;
+		effectApplied = true;
 	}
 
-	if (effectApplied)
-	{
+	if (effectApplied) {
 		EnteredBuilding->UpdatePlacement(PlacementType::Redraw);
 	}
 
