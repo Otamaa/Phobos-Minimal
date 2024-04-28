@@ -211,9 +211,19 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
 	if(pThis->IsAlive){
-		if (auto& pPBState = pExt->PaintBallState) {
-			pPBState->Update(pThis);
-		}
+
+		auto it = std::remove_if(pExt->PaintBallStates.begin() , pExt->PaintBallStates.end() ,[pThis](auto& pb){
+				if(pb.second.timer.GetTimeLeft()) {
+					if (pThis->WhatAmI() == BuildingClass::AbsID) {
+						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+					}
+					return false;
+				}
+
+			return true;
+		});
+
+		pExt->PaintBallStates.erase(it);
 
 		if (auto& pDSState = pExt->DamageSelfState) {
 			pDSState->TechnoClass_Update_DamageSelf(pThis);

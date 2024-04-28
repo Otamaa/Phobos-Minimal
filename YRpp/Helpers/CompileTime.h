@@ -21,23 +21,23 @@ public:
 		return Address;
 	}
 
-	FORCEINLINE value_type get() const noexcept {
+	FORCEINLINE constexpr value_type get() const noexcept {
 		return reinterpret_cast<value_type>(Address);
 	}
 
-	FORCEINLINE operator value_type() const noexcept {
+	FORCEINLINE constexpr operator value_type() const noexcept {
 		return get();
 	}
 
-	FORCEINLINE value_type operator()() const noexcept {
+	FORCEINLINE constexpr value_type operator()() const noexcept {
 		return get();
 	}
 
-	FORCEINLINE value_type operator->() const noexcept {
+	FORCEINLINE constexpr value_type operator->() const noexcept {
 		return get();
 	}
 
-	T& operator*() const noexcept {
+	constexpr T& operator*() const noexcept {
 		return *get();
 	}
 };
@@ -60,37 +60,37 @@ public:
 		return Address;
 	}
 
-	value_type& get() const noexcept {
+	constexpr value_type& get() const noexcept {
 		// fixes" C2101: '&' on constant
 		static auto const address = Address;
 		return *reinterpret_cast<value_type*>(address);
 	}
 
-	operator value_type&() const noexcept {
+	constexpr operator value_type&() const noexcept {
 		return get();
 	}
 
-	value_type& operator()() const noexcept {
+	constexpr value_type& operator()() const noexcept {
 		return get();
 	}
 
-	decltype(auto) operator&() const noexcept {
+	constexpr decltype(auto) operator&() const noexcept {
 		return &get();
 	}
 
-	decltype(auto) operator*() const noexcept {
+	constexpr decltype(auto) operator*() const noexcept {
 		return *get();
 	}
 
-	T& operator[](int index) const noexcept {
+	constexpr T& operator[](int index) const noexcept {
 		return get()[index];
 	}
 
-	value_type& data() const noexcept {
+	constexpr value_type& data() const noexcept {
 		return get();
 	}
 
-	size_t size() const noexcept {
+	constexpr size_t size() const noexcept {
 		return Size;
 	}
 
@@ -98,11 +98,11 @@ public:
 		return Count;
 	}
 
-	T* begin() const noexcept {
+	constexpr T* begin() const noexcept {
 		return data();
 	}
 
-	T* end() const noexcept {
+	constexpr T* end() const noexcept {
 		return begin() + Size;
 	}
 };
@@ -165,7 +165,7 @@ public:
 		return Address;
 	}
 
-	FORCEINLINE value_type& get() const noexcept {
+	FORCEINLINE constexpr value_type& get() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);
 	}
 
@@ -174,30 +174,30 @@ public:
 		return get() = std::forward<T2>(rhs);
 	}
 
-	operator value_type&() const noexcept {
+	constexpr operator value_type&() const noexcept {
 		return get();
 	}
 
-	T& operator()() const noexcept {
+	constexpr T& operator()() const noexcept {
 		return get();
 	}
 
-	decltype(auto) operator&() const noexcept {
+	constexpr decltype(auto) operator&() const noexcept {
 		return &get();
 	}
 
-	FORCEINLINE decltype(auto) operator->() const noexcept {
+	FORCEINLINE constexpr decltype(auto) operator->() const noexcept {
 		if constexpr (std::is_pointer<T>::type())
 			return get();
 		else
 			return &get();
 	}
 
-	decltype(auto) operator*() const noexcept {
+	constexpr decltype(auto) operator*() const noexcept {
 		return *get();
 	}
 
-	decltype(auto) operator[](int index) const noexcept {
+	constexpr decltype(auto) operator[](int index) const noexcept {
 		return get()[index];
 	}
 };

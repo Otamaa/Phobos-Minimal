@@ -7,17 +7,15 @@
 
 #include <Ext/AnimType/Body.h>
 
-//DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//	GET(AnimClass*, pAnim, EBP);
-//
-//	auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim);
-//	pAnimExt->ParentBuilding = pThis;
-//	pAnimExt->Invoker = pThis;
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EBP);
+
+	AnimExtContainer::Instance.Find(pAnim)->ParentBuilding = pThis;
+
+	return 0;
+}
 
 DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
 {

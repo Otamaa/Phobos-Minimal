@@ -129,7 +129,7 @@ public:
 
 	std::vector<UniversalTrail> Trails {};
 	std::unique_ptr<GiftBox> MyGiftBox {};
-	std::unique_ptr<PaintBall> PaintBallState {};
+	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
 	std::unique_ptr<DamageSelfState> DamageSelfState {};
 
 	int CurrentWeaponIdx { -1 };

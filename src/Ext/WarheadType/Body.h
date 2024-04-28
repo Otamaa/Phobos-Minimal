@@ -296,7 +296,7 @@ public:
 
 	Nullable<int> Rocker_Damage {};
 
-	Valueable<int> PaintBallDuration { -1 };
+	Nullable<int> PaintBallDuration { };
 	PaintballType PaintBallData { };
 
 	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW { -1 };

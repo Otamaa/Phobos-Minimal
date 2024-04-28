@@ -42,7 +42,7 @@ public:
 
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
 	// Code is pulled straight from game's draw functions that deal with the tint colors.
-	static inline int GetColorFromColorAdd(int colorIndex)
+	static constexpr inline int GetColorFromColorAdd(int colorIndex)
 	{
 		auto const& colorAdd = RulesClass::Instance->ColorAdd;
 		int colorValue = 0;
@@ -66,7 +66,7 @@ public:
 		}
 	}
 
-	static inline int GetColorFromColorAdd(ColorStruct const& colors)
+	static constexpr inline int GetColorFromColorAdd(ColorStruct const& colors)
 	{
 		int colorValue = 0;
 		int red = colors.R;

@@ -791,7 +791,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
 		pBuildingExt->TechnoExt->DamageSelfState.release();
 		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallState.release();
+		pBuildingExt->TechnoExt->PaintBallStates.clear();
 		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
