@@ -32,9 +32,9 @@ struct ColorStruct
 	static constexpr reference<int, 0x8A0DD8> BlueShiftLeft {};
 	static constexpr reference<int, 0x8A0DDC> BlueShiftRight {};
 
-	ColorStruct() = default;
+	constexpr ColorStruct() noexcept = default;
 
-	ColorStruct(BYTE const r, BYTE const g, BYTE const b)
+	constexpr ColorStruct(BYTE const r, BYTE const g, BYTE const b) noexcept
 		: R(r), G(g), B(b)
 	{ }
 
@@ -46,12 +46,12 @@ struct ColorStruct
 		B = std::clamp<BYTE>((BYTE)b, (BYTE)0, Max);
 	}
 
-	ColorStruct(const ColorStruct& c)
+	constexpr ColorStruct(const ColorStruct& c) noexcept
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
 	template<bool WordColor = false >
-	ColorStruct(const int& rgb)
+	constexpr ColorStruct(const int& rgb)
 	{
 		if constexpr (!WordColor)
 		{
@@ -61,9 +61,9 @@ struct ColorStruct
 		}
 		else
 		{
-			R = static_cast<BYTE>((static_cast<WORD>(rgb) >> RedShiftLeft.get()) << RedShiftRight.get());
-			G = static_cast<BYTE>((static_cast<WORD>(rgb) >> GreenShiftLeft.get()) << GreenShiftRight.get());
-			B = static_cast<BYTE>((static_cast<WORD>(rgb) >> BlueShiftLeft.get()) << BlueShiftRight.get());
+			R = static_cast<BYTE>((static_cast<WORD>(rgb) >> RedShiftLeft()) << RedShiftRight());
+			G = static_cast<BYTE>((static_cast<WORD>(rgb) >> GreenShiftLeft()) << GreenShiftRight());
+			B = static_cast<BYTE>((static_cast<WORD>(rgb) >> BlueShiftLeft()) << BlueShiftRight());
 		}
 	}
 
@@ -75,18 +75,18 @@ struct ColorStruct
 
 	inline explicit ColorStruct(WORD const color);
 
-	__forceinline bool operator == (ColorStruct const rhs) const
+	FORCEINLINE constexpr bool operator == (ColorStruct const rhs) const
 	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
 
-	__forceinline bool operator != (ColorStruct const rhs) const
+	FORCEINLINE constexpr bool operator != (ColorStruct const rhs) const
 	{ return !(*this == rhs); }
 
-	__forceinline bool operator!() const
+	FORCEINLINE constexpr bool operator!() const
 	{
 		return (*this == ColorStruct::Empty);
 	}
 
-	__forceinline operator bool() const
+	FORCEINLINE constexpr operator bool() const
 	{
 		return !(*this == ColorStruct::Empty);
 	}
@@ -99,7 +99,7 @@ struct ColorStruct
 		return ret;
 	}
 
-	inline DWORD Pack() const noexcept {
+	FORCEINLINE DWORD Pack() const noexcept {
 		return (DWORD)(*this);
 	}
 
@@ -111,7 +111,7 @@ struct ColorStruct
 	ColorStruct* Adjust_Brightness(ColorStruct* color, float adjust)
 	{ JMP_THIS(0x661190); }
 
-	static inline ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, double amount)
+	static FORCEINLINE constexpr ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, double amount)
 	{
 		return {
 			std::clamp<BYTE>((BYTE)(from.R * (1.0 - amount) + towards.R * amount), 0u, 255u) ,
@@ -120,7 +120,7 @@ struct ColorStruct
 		};
 	}
 
-	static inline ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
+	static FORCEINLINE constexpr ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
 	{
 		return {
 			std::clamp<BYTE>((BYTE)(from->R * (1.0 - amount) + towards->R * amount), 0u, 255u) ,
@@ -129,7 +129,7 @@ struct ColorStruct
 		};
 	}
 
-	ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount)
+	FORCEINLINE constexpr ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount)
 	{
 		this->R = (BYTE)std::clamp((towards->R * amount), 0.0f, 255.0f);
 		this->G = (BYTE)std::clamp((towards->G * amount), 0.0f, 255.0f);

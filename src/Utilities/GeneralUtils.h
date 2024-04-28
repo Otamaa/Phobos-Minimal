@@ -84,12 +84,12 @@ public:
 		return colorValue;
 	}
 
-	static inline bool IsOperator(char c)
+	static constexpr inline bool IsOperator(char c)
 	{
 		return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
 	}
 
-	static inline  bool OperatorPriorityGreaterThan(char opa, char opb)
+	static constexpr inline  bool OperatorPriorityGreaterThan(char opa, char opb)
 	{
 		if (opb == '(' || opb == ')')
 			return false;
@@ -106,7 +106,7 @@ public:
 		return false;
 	}
 
-	static int GetValue(int a1)
+	static constexpr int GetValue(int a1)
 	{
 		int result = 0;
 
@@ -152,7 +152,7 @@ public:
 		pShakeVal = v6;
 	}
 
-	static std::string IntToDigits(int num)
+	static constexpr std::string IntToDigits(int num)
 	{
 		std::string sDigits;
 
@@ -233,7 +233,7 @@ public:
 	// Weighted random element choice (weight) - roll for one.
 	// Takes a vector of integer type weights, which are then summed to calculate the chances.
 	// Returns chosen index or -1 if nothing is chosen.
-	static inline int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
+	static inline constexpr int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
 	{
 		float sum = 0.0;
 		float sum2 = 0.0;
@@ -279,7 +279,7 @@ public:
 	static inline int Hit(std::map<Point2D, int>& targetPad, int maxValue)
 	{
 		int index = 0;
-		int p = ScenarioClass::Instance->Random.RandomRanged(0, maxValue);
+		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
 		for (auto& it : targetPad)
 		{
 			Point2D tKey = it.first;
@@ -334,7 +334,7 @@ public:
 	}
 
 	template<typename T>
-	static inline T SecsomeFastPow(T x, size_t n)
+	static constexpr inline T SecsomeFastPow(T x, size_t n)
 	{
 		// Real fast pow calc x^n in O(log(n))
 		T result = 1;
@@ -349,7 +349,7 @@ public:
 	}
 
 	// Checks if health ratio has changed threshold (Healthy/ConditionYellow/Red).
-	static inline bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
+	static constexpr inline bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
 	{
 		if (oldRatio == newRatio)
 			return false;
@@ -397,7 +397,7 @@ public:
 	//  Lowercases string
 	//
 	template <typename T>
-	static std::basic_string<T> lowercase(const std::basic_string<T>& s)
+	static inline std::basic_string<T> lowercase(const std::basic_string<T>& s)
 	{
 		std::basic_string<T> s2 = s;
 		std::transform(s2.begin(), s2.end(), s2.begin(),
@@ -448,7 +448,7 @@ public:
 		return nullptr;
 	}
 
-	static inline ColorStruct HSV2RGB(int h, int s, int v)
+	static inline constexpr ColorStruct HSV2RGB(int h, int s, int v)
 	{
 		float R = 0.0f, G = 0.0f, B = 0.0f;
 		float C = 0, X = 0, Y = 0, Z = 0;
@@ -484,7 +484,7 @@ public:
 
 	static const char* GetLocomotionName(const CLSID& clsid);
 
-	static int CountDigitsInNumber(int number)
+	static int constexpr CountDigitsInNumber(int number)
 	{
 		int digits = 0;
 
@@ -523,7 +523,7 @@ public:
 	static const int GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize);
 	static AnimTypeClass* GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter);
 
-	static const int ScaleF2I(float value, int scale)
+	static inline constexpr int ScaleF2I(float value, int scale)
 	{
 		value = std::clamp(value, 0.0f, 1.0f);
 		return static_cast<int>(value * scale);
@@ -551,10 +551,10 @@ public:
 		return DirStruct(theta);
 	}
 
-	static const Leptons PixelToLeptons(int pixel)
+	static inline constexpr Leptons PixelToLeptons(int pixel)
 	{ return Leptons((((pixel * 256) + (60 / 2) - ((pixel < 0) ? (60 - 1) : 0)) / 60)); }
 
-	static const Leptons DistanceToLeptons(int distance)
+	static inline constexpr Leptons DistanceToLeptons(int distance)
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values
@@ -587,7 +587,7 @@ public:
 	}
 
 	template<typename T>
-	static inline T GetItemByHealthRatio(double ratio, T green , T yellow , T red)
+	static inline constexpr T GetItemByHealthRatio(double ratio, T green , T yellow , T red)
 	{
 		if (ratio <= RulesClass::Instance->ConditionRed)
 			return red;
@@ -607,18 +607,18 @@ public:
 
 	template <typename T>
 	struct cast_to_pointer {
-		static inline void* cast(const T& t) {
+		static inline constexpr void* cast(const T& t) {
 			return reinterpret_cast<void*>((uintptr_t)t);
 		}
 	};
 
 	template <typename T>
 	struct cast_to_pointer<T*> {
-		static inline const void* cast(const T* ptr) {
+		static inline constexpr const void* cast(const T* ptr) {
 			return ptr;
 		}
 
-		static inline void* cast(T* ptr) {
+		static inline constexpr void* cast(T* ptr) {
 			return ptr;
 		}
 	};
