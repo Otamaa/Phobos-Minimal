@@ -15,6 +15,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	bool Cloak = pThis->GetTechnoType()->Cloakable || pThis->HasAbility(AbilityType::Cloak);
 	bool forceDecloak = false;
 	bool disableWeapons = false;
+	bool disableSelfHeal = false;
+	bool untrackable = TechnoExtData::IsUntrackable(pThis);
 
 	for (const auto& aeData : ae->Data)
 	{
@@ -26,6 +28,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		Cloak |= aeData.Type->Cloakable;
 		forceDecloak |= aeData.Type->ForceDecloak;
 		disableWeapons |= aeData.Type->DisableWeapons;
+		disableSelfHeal |= aeData.Type->DisableSelfHeal;
+		untrackable |= aeData.Type->Untrackable;
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;
@@ -35,6 +39,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	pThis->Cloakable = Cloak;
 	pExt->AE_ForceDecloak = forceDecloak;
 	pExt->AE_DisableWeapons = disableWeapons;
+	pExt->AE_DisableSelfHeal = disableSelfHeal;
+	pExt->AE_Untrackable = untrackable;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;

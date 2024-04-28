@@ -139,35 +139,35 @@ DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport, 0x8)
 }
 
 // Has to be done here, before Ares survivor hook to take effect.
-DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis && pThis->Passengers.NumPassengers > 0)
-	{
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
-		{
-			auto pPassenger = pThis->Passengers.GetFirstPassenger();
-			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
-
-			if (pExt->OriginalPassengerOwner)
-				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
-
-			while (pPassenger->NextObject)
-			{
-				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-				pExt = TechnoExtContainer::Instance.Find(pPassenger);
-
-				if (pExt->OriginalPassengerOwner)
-					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
-			}
-		}
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (pThis && pThis->Passengers.NumPassengers > 0)
+//	{
+//		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
+//		{
+//			auto pPassenger = pThis->Passengers.GetFirstPassenger();
+//			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
+//
+//			if (pExt->OriginalPassengerOwner)
+//				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+//
+//			while (pPassenger->NextObject)
+//			{
+//				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+//				pExt = TechnoExtContainer::Instance.Find(pPassenger);
+//
+//				if (pExt->OriginalPassengerOwner)
+//					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 {

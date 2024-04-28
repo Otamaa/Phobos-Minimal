@@ -35,4 +35,7 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->InitialDelay.Read(exINI, pSection, "AttachEffect.InitialDelay");
 
 	this->PenetratesIC.Read(exINI, pSection, "AttachEffect.PenetratesIronCurtain");
+	this->DisableSelfHeal.Read(exINI, pSection, "AttachEffect.DisableSelfHeal");
+	this->DisableWeapons.Read(exINI, pSection, "AttachEffect.DisableWeapons");
+	this->Untrackable.Read(exINI, pSection, "AttachEffect.Untrackable");
 }

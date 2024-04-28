@@ -65,6 +65,8 @@ public:
 	bool AE_Cloak { false };
 	bool AE_ForceDecloak { false };
 	bool AE_DisableWeapons { false };
+	bool AE_DisableSelfHeal { false };
+	bool AE_Untrackable { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6

@@ -33,6 +33,8 @@ public:
 	Valueable<int> InitialDelay { 0 };
 
 	Valueable<bool> DisableWeapons { false };
+	Valueable<bool> DisableSelfHeal { false };
+	Valueable<bool> Untrackable { false };
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
@@ -71,6 +73,8 @@ private:
 			.Process(this->InitialDelay)
 			.Process(this->DisableWeapons)
 			.Process(this->PenetratesIC)
+			.Process(this->DisableSelfHeal)
+			.Process(this->Untrackable)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}

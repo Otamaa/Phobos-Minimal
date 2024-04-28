@@ -488,6 +488,29 @@ DEFINE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 	GET_STACK(bool, ignoreDefenses, 0x58);
 	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
 
+	if (pThis && pThis->Passengers.NumPassengers > 0)
+	{
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
+		{
+			auto pPassenger = pThis->Passengers.GetFirstPassenger();
+			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+			if (pExt->OriginalPassengerOwner)
+				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+
+			while (pPassenger->NextObject)
+			{
+				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+				pExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+				if (pExt->OriginalPassengerOwner)
+					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+			}
+		}
+	}
+
 	TechnoExt_ExtData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
 
 	R->EBX(-1);

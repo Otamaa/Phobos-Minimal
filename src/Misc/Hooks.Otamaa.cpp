@@ -3641,12 +3641,10 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 
 	if (pThis)
 	{
-
 		const auto vtable = VTable::Get(pThis);
 		if (vtable != UnitClass::vtable
 			&& vtable != InfantryClass::vtable
-			&& vtable != AircraftClass::vtable)
-		{
+			&& vtable != AircraftClass::vtable) {
 			return 0x6D4793;
 		}
 
@@ -3654,18 +3652,17 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 		|| pThis->InLimbo
 		|| pThis->IsCrashing
 		|| pThis->IsSinking
-		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
-		{
+		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0)) {
 			return 0x6D4793;
 		}
 
-		if (TechnoExtData::IsUntrackable(pThis))
-		{
+		auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		if (pExt->AE_Untrackable || TechnoExtData::IsUntrackable(pThis)) {
 			return 0x6D4793;
 		}
 
-		if (pThis->CurrentlyOnSensor())
-		{
+		if (pThis->CurrentlyOnSensor()) {
 			return 0x6D478C; //draw dashed line
 		}
 	}
