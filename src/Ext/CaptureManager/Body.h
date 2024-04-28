@@ -43,7 +43,7 @@ public:
 
 	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bRemoveFirst, bool bSilent , AnimTypeClass* pControlledAnimType);
-	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno);
+	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent = false);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured);
 	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
 	static bool AllowDrawLink(TechnoTypeClass* pType);

@@ -42,6 +42,7 @@
 #include <Ext/TEvent/Body.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Bomb/Body.h>
+#include <Ext/CaptureManager/Body.h>
 
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
@@ -1209,9 +1210,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		const auto controller = pThis->MindControlledBy;
 		if (controller)
 		{
-			++Unsorted::ScenarioInit;
-			controller->CaptureManager->FreeUnit(pThis);
-			--Unsorted::ScenarioInit;
+			CaptureExt::FreeUnit(controller->CaptureManager, pThis, true);
 		}
 
 		// let's make a steal
@@ -1235,9 +1234,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		// hook up the original mind-controller with the target #762
 		if (controller)
 		{
-			++Unsorted::ScenarioInit;
-			controller->CaptureManager->CaptureUnit(pTarget);
-			--Unsorted::ScenarioInit;
+			CaptureExt::CaptureUnit(controller->CaptureManager, pThis, true);
 		}
 
 		// reboot the slave manager
@@ -1581,10 +1578,8 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 				// the hijacker will now be controlled instead of the unit
 				if (auto const pController = pThis->MindControlledBy)
 				{
-					++Unsorted::ScenarioInit; // disables sound effects
-					pController->CaptureManager->FreeUnit(pThis);
-					pController->CaptureManager->CaptureUnit(pHijacker); // does the immunetopsionics check for us
-					--Unsorted::ScenarioInit;
+					CaptureExt::FreeUnit(pController->CaptureManager , pThis , true);
+					CaptureExt::CaptureUnit(pController->CaptureManager , pHijacker , true);
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 

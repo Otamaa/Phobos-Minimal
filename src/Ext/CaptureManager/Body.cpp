@@ -147,14 +147,14 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 }
 
 // Used For Replacing Vanilla Call function !
-bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno)
+bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent)
 {
 	if (pTechno)
 	{
 		const auto Controller = pManager->Owner;
 		return CaptureExt::CaptureUnit(pManager, pTechno,
 		TechnoTypeExtContainer::Instance.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim,
-		false, RulesClass::Instance->ControlledAnimationType);
+		bSilent, RulesClass::Instance->ControlledAnimationType);
 	}
 
 	return false;
