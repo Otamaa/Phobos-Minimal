@@ -40,11 +40,11 @@ int DamageSelfState::GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArm
 		// 计算实际伤害
 		if (realDamage > 0)
 		{
-			realDamage = MapClass::GetTotalDamage(damage, pWH, TechnoExtData::GetArmor(pObj), 0);
+			realDamage = MapClass::GetTotalDamage(damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
 		}
 		else
 		{
-			realDamage = -MapClass::GetTotalDamage(-damage, pWH, TechnoExtData::GetArmor(pObj), 0);
+			realDamage = -MapClass::GetTotalDamage(-damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
 		}
 	}
 	return realDamage;

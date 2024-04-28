@@ -281,7 +281,12 @@ public:
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
 	static double GetROFMult(TechnoClass const* pTech);
 	static bool FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
-	static bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+
+	static void ReplaceArmor(Armor& armor, ObjectClass* pTarget, WeaponTypeClass* pWeapon);
+	static void ReplaceArmor(Armor& armor, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static void ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadTypeClass* pWH);
+	static void ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH);
+
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
@@ -387,7 +392,9 @@ public:
 
 	static const BurstFLHBundle* PickFLHs(TechnoClass* pThis, int weaponidx);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
+
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
+	static const Armor GetTechnoArmor(ObjectClass* pThis, WarheadTypeClass* pWarhead);
 
 	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
 	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);

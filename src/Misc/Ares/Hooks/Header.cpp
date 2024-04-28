@@ -2347,9 +2347,9 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	auto EnteredType = EnteredBuilding->Type;
 	auto Owner = EnteredBuilding->Owner;
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(EnteredBuilding->Type);
+	auto pBldExt = BuildingExtContainer::Instance.Find(EnteredBuilding);
 
-	if (!pTypeExt->SpyEffect_Custom)
-	{
+	if (!pTypeExt->SpyEffect_Custom) {
 		return false;
 	}
 
@@ -2727,6 +2727,28 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		MapClass::Instance->Map_AI();
 		MapClass::Instance->RedrawSidebar(2);
 		effectApplied = true;
+	}
+
+	if (pTypeExt->SpyEffect_SellDelay.isset()) {
+
+		if (pBldExt->AutoSellTimer.HasStarted()){
+			pBldExt->AutoSellTimer.Start(pTypeExt->SpyEffect_SellDelay > 0 ?
+				pTypeExt->SpyEffect_SellDelay : static_cast<int>(RulesClass::Instance->C4Delay));
+		}
+
+		if (evaForOwner || evaForEnterer) {
+			VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+		}
+	}
+
+	if (pTypeExt->SpyEffect_Anim && pTypeExt->SpyEffect_Anim_Duration > 0) {
+
+		pBldExt->SpyEffectAnim.reset(GameCreate<AnimClass>(pTypeExt->SpyEffect_Anim, EnteredBuilding->GetCoords()));
+		pBldExt->SpyEffectAnim->SetOwnerObject(EnteredBuilding);
+		pBldExt->SpyEffectAnim->RemainingIterations = 0xFFU;
+		pBldExt->SpyEffectAnim->Owner = EnteredBuilding->Owner;
+
+		pBldExt->SpyEffectAnimDuration = pTypeExt->SpyEffect_Anim_Duration;
 	}
 
 	if (effectApplied)
@@ -4660,9 +4682,9 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 	if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
 	{
 		auto const pType = pTechno->GetTechnoType();
-		auto const& Verses = pWHExt->GetVerses(TechnoExtData::GetArmor(pTechno)).Verses;
-		if (std::abs(Verses) < 0.001)
-		{
+		auto const& Verses = pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pTechno , pWarhead)).Verses;
+
+		if (std::abs(Verses) < 0.001) {
 			return;
 		}
 

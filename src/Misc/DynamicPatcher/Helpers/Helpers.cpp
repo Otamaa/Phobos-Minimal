@@ -807,7 +807,7 @@ void Helpers_DP::ForceStopMoving(FootClass* pFoot)
 bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromEpicenter, WarheadTypeClass* pWH, int& realDamage, bool effectsRequireDamage)
 {
 	// 计算实际伤害
-	auto const Armor = TechnoExtData::GetArmor(pTechno);
+	auto const Armor = TechnoExtData::GetTechnoArmor(pTechno , pWH);
 	realDamage = MapClass::Instance->GetTotalDamage(damage,pWH, Armor,distanceFromEpicenter);
 	auto const data = WarheadTypeExtContainer::Instance.Find(pWH);
 

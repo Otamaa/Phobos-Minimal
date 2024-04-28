@@ -36,14 +36,16 @@ bool AffectMe(ObjectClass* pVictim , ObjectClass* pAttacker, WarheadTypeClass* p
 
 bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, WarheadTypeExtData* warheadTypeExt, int& realDamage, bool effectsRequireDamage = false)
 {
+	auto armor = TechnoExtData::GetArmor(pVictim , warheadTypeExt->AttachedToObject);
+
 	// 计算实际伤害
 	if (damage > 0)
 	{
-		realDamage = MapClass::GetTotalDamage(damage, warheadTypeExt->Get(), TechnoExtData::GetArmor(pVictim), distanceFromEpicenter);
+		realDamage = MapClass::GetTotalDamage(damage, warheadTypeExt->Get(),armor , distanceFromEpicenter);
 	}
 	else
 	{
-		realDamage = -MapClass::GetTotalDamage(-damage, warheadTypeExt->Get(), TechnoExtData::GetArmor(pVictim), distanceFromEpicenter);
+		realDamage = -MapClass::GetTotalDamage(-damage, warheadTypeExt->Get(), armor, distanceFromEpicenter);
 	}
 
 	{
@@ -55,7 +57,7 @@ bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, Warhe
 		{
 			if (warheadTypeExt->EffectsRequireVerses)
 			{
-				if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, warheadTypeExt->Get(), TechnoExtData::GetArmor(pVictim), 0) == 0)
+				if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, warheadTypeExt->Get(), armor, 0) == 0)
 				{
 					return false;
 				}

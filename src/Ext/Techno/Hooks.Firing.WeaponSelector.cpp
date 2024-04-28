@@ -240,8 +240,8 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
 	GET_STACK(AbstractClass*, pTarget, 0x18 + 0x4);
-	//GET_STACK(WeaponTypeClass*, pPrimary,0x14);
-	//GET_STACK(WeaponTypeClass*, pSecondary ,0x10);
+	GET_STACK(WeaponTypeClass*, pSecondary, 0x10); //secondary
+	GET_STACK(WeaponTypeClass*, pPrimary, 0x14); //primary
 
 	enum
 	{
@@ -277,12 +277,11 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	{
 		if (pShield->IsActive())
 		{
-			const auto secondary = pThis->GetWeapon(1)->WeaponType;
-			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && secondary && secondary->Projectile->AA;
+			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pSecondary && pSecondary->Projectile->AA;
 
-			if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
+			if (pSecondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
 			{
-				if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
+				if (!pShield->CanBeTargeted(pPrimary))
 					return Secondary;
 				else
 					return FurtherCheck;
@@ -292,7 +291,18 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		}
 	}
 
-	return OriginalCheck;
+	const int nArmor = (int)TechnoExtData::GetArmor(pTargetTechno);
+	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
+	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+
+	const auto vsData_Secondary = &WarheadTypeExtContainer::Instance.Find(pSecondary->Warhead)->Verses[nArmor];
+
+	if (vsData_Secondary->Verses == 0.0)
+		return Primary;
+
+	const auto vsData_Primary = &WarheadTypeExtContainer::Instance.Find(pPrimary->Warhead)->Verses[nArmor];
+
+	return vsData_Primary->Verses != 0.0 ? FurtherCheck : Secondary;
 }
 
 DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
@@ -366,7 +376,8 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 
 			if (std::abs(
 				//GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead , pTargetTechno->GetTechnoType()->Armor)
-				WarheadTypeExtContainer::Instance.Find(pWeaponOdd->Warhead)->GetVerses(TechnoExtData::GetArmor(pTargetTechno)).Verses
+				WarheadTypeExtContainer::Instance.Find(pWeaponOdd->Warhead)->GetVerses(
+					TechnoExtData::GetArmor(pTargetTechno)).Verses
 			) == 0.0)
 			{
 				chosenWeaponIndex = evenWeaponIndex;

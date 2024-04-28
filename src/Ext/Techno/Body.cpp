@@ -2093,25 +2093,18 @@ const Nullable<CoordStruct>* TechnoExtData::GetInfrantyCrawlFLH(InfantryClass* p
 const Armor TechnoExtData::GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead)
 {
 	auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pThis);
-	auto nArmor = TechnoExtData::GetArmor(pThis);
+	Armor nArmor = TechnoExtData::GetArmor(pThis);
+	TechnoExtData::ReplaceArmor(nArmor, pThis, pWarhead);
+	return nArmor;
+}
 
-	if (!pTargetTechnoExt)
-		return nArmor;
-
-	auto const pShieldData = pTargetTechnoExt->Shield.get();
-
-	if (!pShieldData)
-		return nArmor;
-
-	if (pShieldData->IsActive())
-	{
-		if (pShieldData->CanBePenetrated(pWarhead))
-			return nArmor;
-
-		return pShieldData->GetType()->Armor.Get();
+const Armor TechnoExtData::GetTechnoArmor(ObjectClass* pThis, WarheadTypeClass* pWarhead)
+{
+	if(pThis->AbstractFlags & AbstractFlags::Techno){
+		return TechnoExtData::GetTechnoArmor((TechnoClass*)pThis , pWarhead);
 	}
 
-	return nArmor;
+	return pThis->GetType()->Armor;
 }
 
 std::pair<bool, CoordStruct> TechnoExtData::GetInfantryFLH(InfantryClass* pThis, int weaponIndex)
@@ -4491,28 +4484,30 @@ bool TechnoExtData::EjectRandomly(FootClass* pEjectee, CoordStruct const& locati
 	return EjectSurvivor(pEjectee, destLoc, select , InAir);
 }
 
-bool TechnoExtData::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WeaponTypeClass* pWeapon)
 {
-	auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
+	TechnoExtData::ReplaceArmor(armor, pTarget, pWeapon->Warhead);
+}
 
-	if (!pTargetTechnoExt)
-		return false;
+void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+{
+	TechnoExtData::ReplaceArmor(armor, pTarget, pWeapon->Warhead);
+}
 
-	auto const pShieldData = pTargetTechnoExt->Shield.get();
-
-	if (!pShieldData)
-		return false;
-
-	if (pShieldData->IsActive())
-	{
-		if (pShieldData->CanBePenetrated(pWeapon->Warhead))
-			return false;
-
-		R->EAX(pShieldData->GetType()->Armor.Get());
-		return true;
+void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadTypeClass* pWH)
+{
+	if(pTarget->AbstractFlags & AbstractFlags::Techno) {
+		TechnoExtData::ReplaceArmor(armor , (TechnoClass*)pTarget, pWH);
 	}
+}
 
-	return false;
+void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH)
+{
+	if(const auto& pShieldData = TechnoExtContainer::Instance.Find(pTarget)->Shield){
+		if(pShieldData->IsActive() && pShieldData->CanBePenetrated(pWH)){
+			armor = pShieldData->GetType()->Armor;
+		}
+	}
 }
 
 int TechnoExtData::GetInitialStrength(TechnoTypeClass* pType, int nHP)

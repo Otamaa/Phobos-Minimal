@@ -24,7 +24,7 @@
 // 	return 0;
 // }
 
-// TODO : evaluate this 
+// TODO : evaluate this
 // interesting mechanic to replace negative damage always remove parasite
 void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
@@ -142,31 +142,6 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 
 	return SkipLowDamageCheck;
 }
-
-#define REPLACE_ARMOR(addr , regWP , regTech , name)\
-DEFINE_HOOK(addr, name, 0x6) {\
-GET(WeaponTypeClass*, pWeapon, regWP);\
-GET(TechnoClass*, pTarget, regTech);\
-	if (TechnoExtData::ReplaceArmor(R, pTarget, pWeapon))\
-		{ return R->Origin() + 6; } return 0; }
-
-DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(ObjectClass*, pTarget, ESI);
-
-	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
-	{
-		if (TechnoExtData::ReplaceArmor(R, pTechno, pWeapon))
-			return R->Origin() + 6;
-	}
-
-	return 0;
-}
-
-REPLACE_ARMOR(0x6F7D31, EBP, ESI, TechnoClass_CanAutoTargetObject_Shield) //
-REPLACE_ARMOR(0x6FCB64, EBX, EBP, TechnoClass_CanFire_Shield) //
-REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 

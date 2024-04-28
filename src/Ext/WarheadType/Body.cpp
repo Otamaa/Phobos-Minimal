@@ -129,6 +129,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	// Shields
 	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
+
 	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
 	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
 	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
@@ -557,11 +558,12 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	const auto multiply = std::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 	auto nAddDamage = add * multiply;
-	if (this->RecalculateDistanceDamage_ProcessVerses)
+	if (this->RecalculateDistanceDamage_ProcessVerses) {
 		nAddDamage *=
 		// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-		this->GetVerses(TechnoExtData::GetArmor(pVictimTechno)).Verses
+		this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno , this->AttachedToObject)).Verses
 		;
+	}
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
 		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
@@ -656,11 +658,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
 {
-	auto nArmor = TechnoExtData::GetArmor(pTechno);
-
-	if (auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield())
-		if (pShield->IsActive())
-			nArmor = pShield->GetType()->Armor;
+	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno , this->AttachedToObject);
 
 	if (damageIn > 0)
 		DamageResult = MapClass::GetTotalDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
@@ -926,7 +924,8 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject, TechnoExtData::GetArmor(pVictim), 0);
+		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject,
+					TechnoExtData::GetTechnoArmor(pVictim , this->AttachedToObject), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());

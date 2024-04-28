@@ -3864,7 +3864,7 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 	GET(ObjectClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x18 + 0x8);
 	GET(int, damage, EBX);
-	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetArmor(pThis), 0));
+	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis,pWeapon->Warhead), 0));
 	return 0x6FDD2E;
 }
 

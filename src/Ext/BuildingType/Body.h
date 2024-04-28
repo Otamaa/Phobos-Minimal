@@ -296,6 +296,12 @@ public:
 
 	Valueable<bool> Explodes_DuringBuildup { true };
 
+	Nullable<int> SpyEffect_SellDelay {};
+
+	Valueable<AnimTypeClass*> SpyEffect_Anim {};
+	Valueable<int> SpyEffect_Anim_Duration { -1 };
+	Valueable<AffectedHouse> SpyEffect_Anim_DisplayHouses { AffectedHouse::All };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

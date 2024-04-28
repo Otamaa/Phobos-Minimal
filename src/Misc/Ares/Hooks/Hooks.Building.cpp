@@ -2375,6 +2375,7 @@ DEFINE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
+	pExt->UpdateSpyEffecAnimDisplay();
 	return 0;
 }
 
