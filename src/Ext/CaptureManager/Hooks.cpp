@@ -45,11 +45,11 @@ DEFINE_HOOK(0x471FF0, CaptureManagerClass_FreeUnit, 0x8)
 	return 0x472006;
 }
 
-DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pTarget, EBP);
-
-	return CaptureExt::CanCapture(pThis->CaptureManager, pTarget) ?
-	 0x6FCB53  : 0x6FCB44 ;
-}
+// DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(TechnoClass*, pTarget, EBP);
+//
+// 	return pThis->CaptureManager->CanCapture(pTarget) ?
+// 	 0x6FCB53  : 0x6FCB44 ;
+// }

@@ -95,7 +95,8 @@ DEFINE_HOOK(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// free slot? (move on if infinite or single slot which will be freed if used)
-	if (!pThis->InfiniteMindControl && pThis->MaxControlNodes != 1 && pThis->ControlNodes.Count >= pThis->MaxControlNodes)
+	if (!pThis->InfiniteMindControl && pThis->MaxControlNodes != 1 && pThis->ControlNodes.Count >= pThis->MaxControlNodes
+		&& !TechnoTypeExtContainer::Instance.Find(pCapturer->GetTechnoType())->MultiMindControl_ReleaseVictim)
 	{
 		return Disallowed;
 	}

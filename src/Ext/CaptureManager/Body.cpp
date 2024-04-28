@@ -27,23 +27,6 @@ bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 	return true;
 }
 
-bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
-{
-	if (pManager->MaxControlNodes == 1)
-		return pManager->CanCapture(pTarget);
-
-	if (TechnoTypeExtContainer::Instance.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim)
-	{
-		// I hate Ares' completely rewritten things - secsome
-		pManager->MaxControlNodes += 1;
-		bool result = pManager->CanCapture(pTarget);
-		pManager->MaxControlNodes -= 1;
-		return result;
-	}
-
-	return pManager->CanCapture(pTarget);
-}
-
 bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)
 {
 	if (pTarget)
@@ -101,7 +84,7 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
 	bool bRemoveFirst, bool bSilent, AnimTypeClass* pControlledAnimType)
 {
-	if (CaptureExt::CanCapture(pManager, pTarget))
+	if (pManager->CanCapture(pTarget))
 	{
 		if (pManager->MaxControlNodes <= 0)
 			return false;
@@ -110,9 +93,8 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		{
 			if (pManager->MaxControlNodes == 1 && pManager->ControlNodes.Count == 1)
 				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
-			else if (pManager->ControlNodes.Count == pManager->MaxControlNodes)
-				if (bRemoveFirst)
-					CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
+			else if (pManager->ControlNodes.Count == pManager->MaxControlNodes && bRemoveFirst)
+				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 		}
 
 		{
