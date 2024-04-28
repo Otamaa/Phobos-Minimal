@@ -19,6 +19,9 @@ bool AresAttachEffectTypeClass::Load(PhobosStreamReader& Stm, bool RegisterForCh
 		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->Cloakable)
 		.Process(this->Delay)
+		.Process(this->InitialDelay)
+		.Process(this->DisableWeapons)
+		.Process(this->PenetratesIC)
 		.Success()
 		&& Stm.RegisterChange(this); // announce this type
 }
@@ -41,6 +44,9 @@ bool AresAttachEffectTypeClass::Save(PhobosStreamWriter& Stm) const
 		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->Cloakable)
 		.Process(this->Delay)
+		.Process(this->InitialDelay)
+		.Process(this->DisableWeapons)
+		.Process(this->PenetratesIC)
 		.Success()
 		&& Stm.RegisterChange(this);
 }

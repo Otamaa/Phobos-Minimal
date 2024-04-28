@@ -340,8 +340,16 @@ DEFINE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->DisableWeaponTimer.InProgress()
-		? FireRange : ContinueCheck;
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if(pExt->DisableWeaponTimer.InProgress())
+		return FireRange;
+
+	if(pExt->AE_DisableWeapons)
+		return FireRange;
+
+	return ContinueCheck;
 }
 
 // stop command would still affect units going berzerk

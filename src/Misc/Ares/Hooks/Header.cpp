@@ -786,25 +786,22 @@ bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 {
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	// object disallowed from cloaking
-	if (!pTypeExt->CloakAllowed)
-	{
+	if (!pTypeExt->CloakAllowed || pExt->AE_ForceDecloak) {
 		return false;
 	}
 
 	// parachuted units cannot cloak. this makes paradropping
 	// units uncloakable like they were in the vanilla game
-	if (pThis->Parachute)
-	{
+	if (pThis->Parachute) {
 		return false;
 	}
 
 	// check for active cloak
-	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak))
-	{
-		if (TechnoExt_ExtData::CanSelfCloakNow(pThis))
-		{
+	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak)) {
+		if (TechnoExt_ExtData::CanSelfCloakNow(pThis)) {
 			return true;
 		}
 	}
@@ -834,8 +831,12 @@ bool TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
 {
 	if (TechnoExt_ExtData::IsCloakable(pThis, allowPassive))
 	{
-		return TechnoExtContainer::Instance.Find(pThis)->CloakSkipTimer.InProgress() || pThis->IsUnderEMP() || pThis->IsParalyzed()
-			|| pThis->IsBeingWarpedOut() || pThis->IsWarpingIn();
+		auto pExt = TechnoExtContainer::Instance.Find(pThis);
+		return pExt->CloakSkipTimer.InProgress()
+			|| pThis->IsUnderEMP()
+			|| pThis->IsParalyzed()
+			|| pThis->IsBeingWarpedOut()
+			|| pThis->IsWarpingIn();
 	}
 
 	return true;

@@ -13,6 +13,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	double Armor_Mult = pExt->AE_ArmorMult;
 	double Speed_Mult = pExt->AE_SpeedMult;
 	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pExt->AE_Cloak;
+	bool forceDecloak = false;
+	bool disableWeapons = false;
 
 	for (const auto& aeData : ae->Data)
 	{
@@ -21,7 +23,9 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		FP_Mult *= aeData.Type->FirepowerMultiplier;
 		Speed_Mult *= aeData.Type->SpeedMultiplier;
 		Armor_Mult *= aeData.Type->ArmorMultiplier;
-		Cloak |= (BYTE)aeData.Type->Cloakable;
+		Cloak |= aeData.Type->Cloakable;
+		forceDecloak |= aeData.Type->ForceDecloak;
+		disableWeapons |= aeData.Type->DisableWeapons;
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;

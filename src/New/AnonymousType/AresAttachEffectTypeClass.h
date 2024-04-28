@@ -32,6 +32,7 @@ public:
 	Valueable<int> Delay { 0 };
 	Valueable<int> InitialDelay { 0 };
 
+	Valueable<bool> DisableWeapons { false };
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 

@@ -61,7 +61,10 @@ public:
 	double AE_ArmorMult { 1.0 };
 	double AE_SpeedMult { 1.0 };
 	double AE_ReceiveRelativeDamageMult { 1.0 };
-	BYTE AE_Cloak { false };
+
+	bool AE_Cloak { false };
+	bool AE_ForceDecloak { false };
+	bool AE_DisableWeapons { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6
