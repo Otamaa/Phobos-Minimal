@@ -46,4 +46,32 @@ public:
 	AresAttachEffectTypeClass& operator=(const AresAttachEffectTypeClass& other) = default;
 
 	void Read(INI_EX& exINI);
+
+private:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->Owner)
+			.Process(this->Duration)
+			.Process(this->Cumulative)
+			.Process(this->ForceDecloak)
+			.Process(this->DiscardOnEntry)
+			.Process(this->AnimType)
+			.Process(this->AnimResetOnReapply)
+			.Process(this->TemporalHidesAnim)
+			.Process(this->FirepowerMultiplier)
+			.Process(this->ArmorMultiplier)
+			.Process(this->SpeedMultiplier)
+			.Process(this->ROFMultiplier)
+			.Process(this->ReceiveRelativeDamageMult)
+			.Process(this->Cloakable)
+			.Process(this->Delay)
+			.Process(this->InitialDelay)
+			.Process(this->DisableWeapons)
+			.Process(this->PenetratesIC)
+			.Success()
+			&& Stm.RegisterChange(this); // announce this type
+	}
 };
