@@ -84,6 +84,24 @@ bool IsActuallySameType(UnitClass* pGoing, TechnoTypeClass* pTaskforce) {
 	return false;
 }
 
+DEFINE_HOOK(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
+{
+	enum {
+		retSame = 0x6EA91B,
+		retNotSame = 0x6EA905
+	};
+
+	GET(FootClass*, pTeam, EBP);
+	GET(DWORD, val1, EBX);
+	GET(DWORD, val2, ESI);
+
+	TechnoTypeClass* pTaskForceTeam = reinterpret_cast<TechnoTypeClass*>(val1 + val2);
+
+	return pTeam->GetTechnoType() == pTaskForceTeam
+		|| TechnoExtContainer::Instance.Find(pTeam)->Type == pTaskForceTeam
+		? retSame : retNotSame;
+}
+
 DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 {
 	enum
