@@ -1123,7 +1123,7 @@ DEFINE_HOOK(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x10)
+DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 {
 	for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
 		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));

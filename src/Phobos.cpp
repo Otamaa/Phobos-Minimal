@@ -431,6 +431,8 @@ void Phobos::Config::Read()
 
 		Debug::Log("Loading early %s file\n", GameStrings::RULESMD_INI());
 
+		// uncomment this to enable dll usage warning
+		//Phobos::ThrowUsageWarning(&INI_RulesMD);
 
 		if (!Phobos::Otamaa::IsAdmin)
 			Phobos::Config::DevelopmentCommands = INI_RulesMD.ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
@@ -843,11 +845,8 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 //	CRT::free(ptr);
 //	return 0x7C8B47;
 //}
-#ifndef aaa
+
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-#else
-DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-#endif
 {
 	Patch::ApplyStatic();
 	Phobos::ExeRun();
@@ -857,10 +856,9 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 }
 
 #ifndef aaa
-//6BDB0C
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 #else
-DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+DEFINE_HOOK(0x6BDB0C, _YR_CmdLineParse, 0x5)
 #endif
 {
 	GET(char**, ppArgs, ESI);
