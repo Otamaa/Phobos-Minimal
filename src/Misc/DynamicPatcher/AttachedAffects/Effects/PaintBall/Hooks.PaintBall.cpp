@@ -21,6 +21,7 @@ void ApplyCustomIntensity(TechnoClass* pThis,int& intensity)
 	}
 	const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	bool needRedraw = false;
 
 	// EMP
 	if (pThis->IsUnderEMP())
@@ -28,6 +29,7 @@ void ApplyCustomIntensity(TechnoClass* pThis,int& intensity)
 		if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
 		{
 			intensity /= 2 ;
+			needRedraw = true;
 		}
 	}
 	else if (pThis->IsDeactivated())
@@ -35,8 +37,13 @@ void ApplyCustomIntensity(TechnoClass* pThis,int& intensity)
 		if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
 		{
 			intensity /= 2;
+			needRedraw = true;
 		}
 	}
+
+	if (pBld && needRedraw)
+		BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
+
 }
 
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
