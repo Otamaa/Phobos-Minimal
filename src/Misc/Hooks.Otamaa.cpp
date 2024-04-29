@@ -1779,7 +1779,7 @@ DEFINE_HOOK(0x6FF4B0, TechnoClass_FireAt_TargetLaser, 0x5)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (!pTypeExt->TargetLaser_WeaponIdx.empty()
 		&& !pTypeExt->TargetLaser_WeaponIdx.Contains(pExt->CurrentWeaponIdx))
@@ -2762,10 +2762,10 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	GET(TechnoClass*, pThis, ESI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	//only update the SW once the techno is really not present
-	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0)
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0)
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	return 0x0;
@@ -3948,6 +3948,7 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 	R->EAX(pType);
 	return 0x4CA029;
 }
+
 
 DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
 {
@@ -7199,3 +7200,14 @@ DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
 	return 0x0;
 }
 #endif
+
+DEFINE_HOOK_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
+DEFINE_HOOK_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
+DEFINE_HOOK_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType , 0x6)
+DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6) {
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, ECX);
+
+	TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
+	return 0x0;
+}

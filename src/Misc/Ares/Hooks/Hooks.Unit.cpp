@@ -787,7 +787,7 @@ DEFINE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 	{
 
 		const auto TechnoExt = TechnoExtContainer::Instance.Find(pThis);
-		if (!TechnoExtData::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover)
+		if (!TechnoExtData::IsPsionicsImmune(pThis) && !pThis->GetTechnoType()->BalloonHover)
 		{
 			// KillDriver check
 			if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)

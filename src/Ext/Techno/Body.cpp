@@ -778,7 +778,7 @@ bool TechnoExtData::ISC4Holder(InfantryClass* pThis) {
 bool TechnoExtData::IsInterceptor()
 {
 	auto const pThis = this->AttachedToObject;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->Interceptor)
 		return true;
@@ -1310,7 +1310,7 @@ int TechnoExtData::GetThreadPosed(TechnoClass* pThis)
 		}
 	}
 
-	return pExt->Type->ThreatPosed;
+	return pThis->GetTechnoType()->ThreatPosed;
 }
 
 bool TechnoExtData::IsReallyTechno(TechnoClass* pThis)
@@ -2331,11 +2331,11 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 	Point2D offset = *pLocation;
 	TechnoTypeClass* pTechnoType = nullptr;
 	auto const& [pTechnoTyper, pOwner] = TechnoExtData::GetDisguiseType(pThis, true, true, false);
-	const bool isDisguised = pTechnoTyper != pExt->Type;
+	const bool isDisguised = pTechnoTyper != pThis->GetTechnoType();
 
 	if (isDisguised && IsObserverPlayer)
 	{
-		pTechnoType = pExt->Type;
+		pTechnoType = pThis->GetTechnoType();
 	}
 	else
 	{
@@ -2549,9 +2549,9 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 				pFocus->GetTechnoType() == pVictim->GetTechnoType()
 				|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()
 				|| TechnoExtContainer::Instance.Find(pFocus)->Type == TechnoExtContainer::Instance.Find(pVictim)->Type
-				|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
-				|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
-				|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
+				//|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
+				//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
+				//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
 
 				;
 
@@ -2606,7 +2606,7 @@ void TechnoExtData::UpdateMCRangeLimit()
 	if (!pCManager)
 		return;
 
-	const int Range = TechnoTypeExtContainer::Instance.Find(Type)->MindControlRangeLimit.Get();
+	const int Range = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->MindControlRangeLimit.Get();
 
 	if (Range <= 0)
 		return;
@@ -2621,10 +2621,11 @@ void TechnoExtData::UpdateMCRangeLimit()
 void TechnoExtData::UpdateInterceptor()
 {
 	auto const pThis = this->AttachedToObject;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 	if (!this->IsInterceptor() || pThis->Target)
 		return;
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir())
 		return;
@@ -2695,7 +2696,7 @@ void TechnoExtData::UpdateInterceptor()
 void TechnoExtData::UpdateSpawnLimitRange()
 {
 	auto const pThis = this->AttachedToObject;
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(Type);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto const pManager = pThis->SpawnManager;
 
 	if (!pExt->Spawn_LimitedRange || !pManager)
@@ -2710,7 +2711,7 @@ void TechnoExtData::UpdateSpawnLimitRange()
 			weaponRange = pWeaponType->Range;
 	};
 
-	if (Type->IsGattling || pThis->CurrentWeaponNumber > 0)
+	if (pExt->AttachedToObject->IsGattling || pThis->CurrentWeaponNumber > 0)
 	{
 		if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber))
 			setWeaponRange(pCurWeapon->WeaponType);
@@ -2891,7 +2892,7 @@ int TechnoExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, 
 void TechnoExtData::UpdateEatPassengers()
 {
 	auto const pThis = this->AttachedToObject;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto const pDelType = &pTypeExt->PassengerDeletionType;
 
 	if (!pDelType->Enabled || !TechnoExtData::IsActive(pThis))
@@ -2927,7 +2928,7 @@ void TechnoExtData::UpdateEatPassengers()
 			if (!this->PassengerDeletionTimer.HasStarted()) // Execute only if timer has been stopped or not started
 			{
 				// Setting & start countdown. Bigger units needs more time
-				int timerLength = this->GetEatPassangersTotalTime(Type, pPassenger);
+				int timerLength = this->GetEatPassangersTotalTime(pThis->GetTechnoType(), pPassenger);
 
 				if (timerLength <= 0)
 					return;
@@ -3241,8 +3242,8 @@ enum class DeathConditions : char {
 bool TechnoExtData::CheckDeathConditions()
 {
 	auto const pThis = this->AttachedToObject;
-	const auto pTypeThis = this->Type;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	const auto pTypeThis = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTypeThis);
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
 	const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
@@ -3784,7 +3785,7 @@ void TechnoExtData::UpdateMindControlAnim()
 std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> TechnoExtData::GetFireSelfData()
 {
 	const auto pThis = this->AttachedToObject;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
@@ -3859,34 +3860,35 @@ std::pair<WeaponTypeClass*, int> TechnoExtData::GetDeployFireWeapon(TechnoClass*
 
 void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 {
-	auto const pThis = this->AttachedToObject;
-	const auto pOldType = this->Type;
-	const auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
-	this->Type = currentType;
-	auto const pTypeExtData = TechnoTypeExtContainer::Instance.Find(currentType);
+	static_assert(true, "Donot Use!");
+	//auto const pThis = this->AttachedToObject;
+	//const auto pOldType = this->Type;
+	//const auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
+	//this->Type = currentType;
+	//auto const pTypeExtData = TechnoTypeExtContainer::Instance.Find(currentType);
 
-	TechnoExtData::InitializeLaserTrail(pThis, true);
+	//TechnoExtData::InitializeLaserTrail(pThis, true);
 
 	// Reset Shield
 	// This part should have been done by UpdateShield
 
 	// Reset AutoDeath Timer
-	if (this->Death_Countdown.HasStarted())
-	{
-		this->Death_Countdown.Stop();
+	//if (this->Death_Countdown.HasStarted())
+	//{
+	//	this->Death_Countdown.Stop();
 
-		if (pThis->Owner)
-		{
-			HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
-		}
-	}
+	//	if (pThis->Owner)
+	//	{
+	//		HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
+	//	}
+	//}
 
 	// Reset PassengerDeletion Timer - TODO : unchecked
-	if (this->PassengerDeletionTimer.IsTicking()
-		&& !pTypeExtData->PassengerDeletionType.Enabled)
-		this->PassengerDeletionTimer.Stop();
+	//if (this->PassengerDeletionTimer.IsTicking()
+	//	&& !pTypeExtData->PassengerDeletionType.Enabled)
+	//	this->PassengerDeletionTimer.Stop();
 
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
+	//TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
 	/*if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
 		this->MyFighterData.reset(nullptr);
@@ -3907,34 +3909,34 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
 		GiftBoxFunctional::Init(this, pTypeExtData);*/
 
-		// Update open topped state of potential passengers if transport's OpenTopped value changes.
-	bool toOpenTopped = currentType->OpenTopped && !pOldType->OpenTopped;
+	// Update open topped state of potential passengers if transport's OpenTopped value changes.
+	//bool toOpenTopped = currentType->OpenTopped && !pOldType->OpenTopped;
 
-	if ((toOpenTopped || (!currentType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0)
-	{
-		auto pPassenger = pThis->Passengers.FirstPassenger;
+	//if ((toOpenTopped || (!currentType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0)
+	//{
+	//	auto pPassenger = pThis->Passengers.FirstPassenger;
 
-		while (pPassenger)
-		{
-			if (toOpenTopped)
-			{
-				pThis->EnteredOpenTopped(pPassenger);
-			}
-			else
-			{
-				pThis->ExitedOpenTopped(pPassenger);
+	//	while (pPassenger)
+	//	{
+	//		if (toOpenTopped)
+	//		{
+	//			pThis->EnteredOpenTopped(pPassenger);
+	//		}
+	//		else
+	//		{
+	//			pThis->ExitedOpenTopped(pPassenger);
 
-				// Lose target & destination
-				pPassenger->Guard();
+	//			// Lose target & destination
+	//			pPassenger->Guard();
 
-				// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
-				// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
-				MapClass::Logics.get().RemoveObject(pPassenger);
-			}
+	//			// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
+	//			// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
+	//			MapClass::Logics.get().RemoveObject(pPassenger);
+	//		}
 
-			pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-		}
-	}
+	//		pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+	//	}
+	//}
 }
 
 void TechnoExtData::UpdateBuildingLightning()
@@ -3960,7 +3962,7 @@ void TechnoExtData::UpdateShield()
 	if (!this->CurrentShieldType)
 		Debug::FatalErrorAndExit("Techno[%s] Missing CurrentShieldType ! \n", pThis->get_ID());
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	// Set current shield type if it is not set.
 	if (!this->CurrentShieldType->Strength && pTypeExt->ShieldType->Strength)
@@ -3984,7 +3986,7 @@ void TechnoExtData::UpdateMobileRefinery()
 	if (!(pThis->AbstractFlags & AbstractFlags::Foot))
 		return;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (!pTypeExt->MobileRefinery || !pThis->Owner || (pTypeExt->MobileRefinery_TransRate > 0 &&
 		Unsorted::CurrentFrame % pTypeExt->MobileRefinery_TransRate))
@@ -4075,7 +4077,9 @@ void TechnoExtData::UpdateAircraftOpentopped()
 	if (!TechnoExtData::IsAlive(pThis, true, true, true))
 		return;
 
-	if (Type->Passengers > 0 && !AircraftOpentoppedInitEd)
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType->Passengers > 0 && !AircraftOpentoppedInitEd)
 	{
 
 		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
@@ -4084,10 +4088,10 @@ void TechnoExtData::UpdateAircraftOpentopped()
 			{
 				if (!pInf->Transporter || !pInf->InOpenToppedTransport)
 				{
-					if (Type->OpenTopped)
+					if (pType->OpenTopped)
 						pThis->EnteredOpenTopped(pInf);
 
-					if (Type->Gunner)
+					if (pType->Gunner)
 						abstract_cast<FootClass*>(pThis)->ReceiveGunner(pInf);
 
 					pInf->Transporter = pThis;
@@ -4107,7 +4111,7 @@ void TechnoExtData::DepletedAmmoActions()
 	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
 		return;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
 
 	const bool skipMinimum = pTypeExt->Ammo_AutoDeployMinimumAmount < 0;
 	const bool skipMaximum = pTypeExt->Ammo_AutoDeployMaximumAmount < 0;
@@ -4159,8 +4163,9 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 	if (!pThis->IsAlive)
 		return;
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
-	const auto pType = Type;
+	const auto pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
 
 	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get())
 		return;
@@ -4245,7 +4250,7 @@ bool TechnoExtData::UpdateKillSelf_Slave()
 	if (!pInf->Type->Slaved)
 		return false;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pInf->Type);
 
 	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get()
 		|| pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
@@ -4613,7 +4618,6 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AircraftOpentoppedInitEd)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
-		.Process(this->IsMissisleSpawn)
 		.Process(this->ReceiveDamageMultiplier)
 		.Process(this->SkipLowDamageCheck)
 		.Process(this->aircraftPutOffsetFlag)

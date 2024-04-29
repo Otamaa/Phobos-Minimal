@@ -152,9 +152,9 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (pThis->Owner  && pThis->Owner->CountOwnedAndPresent(pExt->Type) <= 0 && !pTypeExt->Linked_SW.empty())
+	if (pThis->Owner  && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	if (const auto pShieldData = pExt->GetShield())

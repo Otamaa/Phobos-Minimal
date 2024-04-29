@@ -3104,36 +3104,57 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 
 }
 
-std::pair<TechnoTypeClass**, AbstractType> NOINLINE GetOriginalType(TechnoClass* pThis ,TechnoTypeClass* pToType) {
+std::pair<TechnoTypeClass*, AbstractType> NOINLINE GetOriginalType(TechnoClass* pThis ,TechnoTypeClass* pToType) {
 	switch (pThis->WhatAmI())
 	{
 	case AbstractType::Infantry:
-		return { (TechnoTypeClass**)(&((InfantryClass*)pThis)->Type) , AbstractType::InfantryType };
+		return { (TechnoTypeClass*)(((InfantryClass*)pThis)->Type) , AbstractType::InfantryType };
 	case AbstractType::Unit:
-		return { (TechnoTypeClass**)(&((UnitClass*)pThis)->Type), AbstractType::UnitType };
+		return { (TechnoTypeClass*)(((UnitClass*)pThis)->Type), AbstractType::UnitType };
 	case AbstractType::Aircraft:
-		return { (TechnoTypeClass**)(&((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
+		return { (TechnoTypeClass*)(((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
 	default:
 		Debug::FatalErrorAndExit("%s is not FootClass, conversion not allowed\n", pToType->ID);
 		return { nullptr, AbstractType::None };
 	}
 }
 
-void NOINLINE SetType(TechnoClass* pThis,AbstractType rtti,  TechnoTypeClass* pToType, TechnoTypeClass** CurType)
+void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti,  TechnoTypeClass* pToType)
 {
-	*CurType = pToType;
+	switch (rtti)
+	{
+	case AbstractType::Infantry:
+	case AbstractType::InfantryType:
+		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
+		break;
+	case AbstractType::Unit:
+	case AbstractType::UnitType:
+		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
+		break;
+	case AbstractType::Aircraft:
+	case AbstractType::AircraftType:
+		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
+		break;
+	default:
+		break;
+	}
 }
 
 bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth, bool IsChangeOwnership)
 {
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
-	const auto pOldType = (*prevType);
+	const auto pOldType = prevType;
 	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", pOldType->ID, pToType->ID);
 
-	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
-	{
+	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn) {
 		Debug::Log("Incompatible types between %s and %s\n", pOldType->ID, pToType->ID);
 		return false;
+	}
+
+	const auto pToTypeExt = TechnoTypeExtContainer::Instance.Find(pToType);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	if (IS_SAME_STR_("SURVEY", pOldType->ID) && IS_SAME_STR_("SURVEYUP", pToType->ID)) {
+		Debug::Log("Convert SURVEY to [%s]\n", pToType->ID);
 	}
 
 	// Detach CLEG targeting
@@ -3155,7 +3176,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	const int oldHealth = pThis->Health;
 
-	SetType(pThis, rtti , pToType , prevType);
+	SetType(pThis, rtti , pToType);
 
 	if(AdjustHealth){
 		// Readjust health according to percentage
@@ -3199,6 +3220,57 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 		pThis->LineTrailer->SetDecrement(pToType->LineTrailColorDecrement);
 		pThis->LineTrailer->Owner = pThis;
+	}
+
+	TechnoExtData::InitializeLaserTrail(pThis, true);
+	pExt->LaserTrails.clear();
+
+	for (auto const& entry : pToTypeExt->LaserTrailData) {
+		pExt->LaserTrails.emplace_back(
+			LaserTrailTypeClass::Array[entry.idxType].get(),
+			pOwner->LaserColor,
+			entry.FLH,
+			entry.IsOnTurret
+		);
+	}
+
+	// Reset AutoDeath Timer
+	if (pExt->Death_Countdown.HasStarted()) {
+		pExt->Death_Countdown.Stop();
+
+		if (pThis->Owner) {
+			HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
+		}
+	}
+
+	if (pExt->PassengerDeletionTimer.IsTicking()
+	&& !pToTypeExt->PassengerDeletionType.Enabled)
+		pExt->PassengerDeletionTimer.Stop();
+
+	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
+
+	// Update open topped state of potential passengers if transport's OpenTopped value changes.
+	bool toOpenTopped = pToType->OpenTopped && !pOldType->OpenTopped;
+
+	if ((toOpenTopped || (!pToType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0) {
+		auto pPassenger = pThis->Passengers.FirstPassenger;
+
+		while (pPassenger) {
+			if (toOpenTopped) {
+				pThis->EnteredOpenTopped(pPassenger);
+			} else {
+				pThis->ExitedOpenTopped(pPassenger);
+
+				// Lose target & destination
+				pPassenger->Guard();
+
+				// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
+				// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
+				MapClass::Logics.get().RemoveObject(pPassenger);
+			}
+
+			pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+		}
 	}
 
 	// replace spawner type and some properties
@@ -3263,7 +3335,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	BuildingLightClass* pSpot = nullptr;
 
-	if (TechnoTypeExtContainer::Instance.Find(pToType)->HasSpotlight) {
+	if (pToTypeExt->HasSpotlight) {
 		pSpot = GameCreate<BuildingLightClass>(pThis);
 	}
 
@@ -3271,7 +3343,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	const int value = MinImpl(pToType->ROT, 127);
 	(&pThis->PrimaryFacing)->ROT.Raw = value << 8;
 
-	const int valuesec = MinImpl(TechnoTypeExtContainer::Instance.Find(pToType)->TurretRot.Get(pToType->ROT), 127);
+	const int valuesec = MinImpl(pToTypeExt->TurretRot.Get(pToType->ROT), 127);
 	(&pThis->SecondaryFacing)->ROT.Raw = valuesec << 8;
 
 	// // because we are throwing away the locomotor in a split second, piggybacking

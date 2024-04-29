@@ -182,8 +182,8 @@ void ScriptExtData::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetT
 		{
 			for (auto entry : entriesList) {
 				for(auto const& target_ : targetList_inside) {
-					//if(target_ == entry) {
-						if (TeamExtData::GroupAllowed(entry, target_)) {
+					if(target_ == entry) {
+						//if (TeamExtData::GroupAllowed(entry, target_)) {
 						pTrigger->IsEnabled = isEnabled;
 						break;
 					}

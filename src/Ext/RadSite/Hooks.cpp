@@ -304,7 +304,12 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pThis->SpawnOwner && !pExt->IsMissisleSpawn)
+	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
+	 pExt->Type  == RulesClass::Instance->DMisl.Type || pExt->Type  == RulesClass::Instance->CMisl.Type
+	 || TechnoTypeExtContainer::Instance.Find(pExt->Type)->IsCustomMissile);
+
+	if (pThis->SpawnOwner && !IsMissisleSpawn
+		)
 	{
 		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
 		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);

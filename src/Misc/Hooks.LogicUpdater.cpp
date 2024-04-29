@@ -126,8 +126,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 #endif
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
-	if (!pExt->Type || pExt->Type != pType)
-		pExt->UpdateType(pType);
+	//if (pExt->Type != pType)
+
 
 	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
 	if (pExt->IsInTunnel)
@@ -199,7 +199,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 #ifdef ENABLE_THESE
 	PassengersFunctional::AI(pThis);
@@ -284,7 +284,9 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	GET(AircraftClass*, pThis, ESI);
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
 #ifdef ENABLE_THESE
 	pExt->UpdateAircraftOpentopped();
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);

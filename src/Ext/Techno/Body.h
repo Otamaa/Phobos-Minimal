@@ -53,7 +53,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	TechnoTypeClass* Type { nullptr };
+	TechnoTypeClass* Type { nullptr }; //original Type pointer
 	OptionalStruct<AbstractType, true> AbsType {};
 
 	double AE_ROF { 1.0 };
@@ -122,7 +122,6 @@ public:
 	CDTimerClass EngineerCaptureDelay {};
 
 	bool FlhChanged { false };
-	bool IsMissisleSpawn { false };
 	OptionalStruct<double, true> ReceiveDamageMultiplier {};
 	bool SkipLowDamageCheck { false };
 

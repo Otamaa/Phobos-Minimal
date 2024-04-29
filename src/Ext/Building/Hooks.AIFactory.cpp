@@ -585,39 +585,40 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
 	return -1;
 }
-//#pragma optimize("", on )
 
-//DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
-//{
-//	GET(TeamClass*, pThis, ECX);
-//	GET_STACK(DynamicVectorClass<TechnoTypeClass*>*, pVec, 0x4);
-//
-//	const auto pType = pThis->Type;
-//	const auto pTaskForce = pType->TaskForce;
-//
-//	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
-//		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-//			if(auto pType = pTaskForce->Entries[a].Type) {
-//				pVec->AddItem(pType);
-//			}
-//		}
-//	}
-//
-//	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
-//		for (auto pMemberNeeded : *pVec) {
-//			if ((pMemberNeeded == pMember->GetTechnoType()
-//				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
-//				|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
-//				|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
-//
-//				)) {
-//				pVec->Remove(pMemberNeeded);
-//			}
-//		}
-//	}
-//
-//	return 0x6EF5B2;
-//}
+//#pragma optimize("", on )
+DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
+{
+	GET(TeamClass*, pThis, ECX);
+	GET_STACK(DynamicVectorClass<TechnoTypeClass*>*, pVec, 0x4);
+
+	const auto pType = pThis->Type;
+	const auto pTaskForce = pType->TaskForce;
+
+	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
+		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
+			if(auto pType = pTaskForce->Entries[a].Type) {
+				pVec->AddItem(pType);
+			}
+		}
+	}
+
+	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
+		for (auto pMemberNeeded : *pVec) {
+			if ((pMemberNeeded == pMember->GetTechnoType()
+				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
+				//|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
+				//|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
+
+				)) {
+				pVec->Remove(pMemberNeeded);
+			}
+		}
+	}
+
+	return 0x6EF5B2;
+}
+//#pragma optimize("", off )
 
 DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {
