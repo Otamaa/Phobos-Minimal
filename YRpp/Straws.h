@@ -67,7 +67,9 @@ public:
 	explicit BufferStraw(void* pBuffer, int nLength) : Straw {}, Buffer { pBuffer,nLength }
 	{ }
 
-	virtual ~BufferStraw() override final {
+	virtual ~BufferStraw() override final { }
+
+	void Destroy() {
 		JMP_THIS(0x4AEC30);
 	}
 
@@ -121,7 +123,9 @@ public:
 	}
 
 	virtual ~LCWStraw() override final {
-		JMP_THIS(0x5525F0);
+		YRMemory::Deallocate(this->Buffer);
+		if (this->Buffer2)
+			YRMemory::Deallocate(this->Buffer2);
 	}
 
 	virtual int Get(void* pBuffer, int slen) override final {

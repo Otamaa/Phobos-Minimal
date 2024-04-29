@@ -477,10 +477,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	if (OverlayTypeClass::Array->Count > 255) {
-		Debug::Log("Reaching over 255 OverlayTypes!.\n");
-		Debug::RegisterParserError();
-	}
+	//if (OverlayTypeClass::Array->Count > 255) {
+	//	Debug::Log("Reaching over 255 OverlayTypes!.\n");
+	//	Debug::RegisterParserError();
+	//}
 
 	for (auto pWH : *WarheadTypeClass::Array) {
 		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
