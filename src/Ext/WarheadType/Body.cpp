@@ -238,16 +238,37 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
-	for (auto const& ArmorType : ArmorTypeClass::Array)
-	{
-		AnimTypeClass* pAnimReaded;
-		if (detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true) && pAnimReaded)
-			ArmorHitAnim[ArmorType.get()] = pAnimReaded;
+	std::vector<AnimTypeClass*> hitAnim {};
+	hitAnim.reserve(ArmorTypeClass::Array.size());
 
+	for (auto const& ArmorType : ArmorTypeClass::Array) {
+		AnimTypeClass* pAnimReaded = nullptr;
+		detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true);
+		hitAnim.push_back(pAnimReaded);
+	}
+
+	for (size_t i = 0; i < hitAnim.size(); ++i) {
+		if (!hitAnim[i] && ArmorTypeClass::Array[i]->DefaultTo != -1) {
+			for (auto pDefArmor = ArmorTypeClass::Array[ArmorTypeClass::Array[i]->DefaultTo].get();
+				;
+				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
+
+				if(auto pFallback = hitAnim[ArmorTypeClass::Array[i]->DefaultTo])
+					hitAnim[i] = pFallback;
+
+				if (pDefArmor->DefaultTo == -1)
+					break;
+			}
+		}
+	}
+
+	for (size_t a = 0;  a < hitAnim.size(); ++a) {
+		if(hitAnim[a]) {
+			this->ArmorHitAnim.empalace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
+		}
 	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
-
 	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim", true);
 	this->NukeFlashDuration.Read(exINI, pSection, "NukeFlash.Duration");
 
@@ -974,33 +995,10 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 	return false; //default
 }
 
-AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
-{
-	const auto pArmor = ArmorTypeClass::Array[Armor].get();
-	const auto end = this->ArmorHitAnim.end();
-
-	if (this->ArmorHitAnim.begin() == end)
-		return nullptr;
-
-	for (auto begin = this->ArmorHitAnim.begin(); begin != end; ++begin)
-	{
-		if (begin->first == pArmor)
-		{
+AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor) {
+	for (auto begin = this->ArmorHitAnim.begin(); begin != this->ArmorHitAnim.end(); ++begin) {
+		if (begin->first == ArmorTypeClass::Array[Armor].get()) {
 			return begin->second;
-		}
-		else if (pArmor->DefaultTo != -1)
-		{
-			for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
-				pDefArmor && pDefArmor->DefaultTo != -1;
-				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
-			{
-				Debug::Log("Finding HitAnim for (%s) with default(%s)\n",pArmor->Name.data(), pDefault->Name.data());
-
-				if (begin->first == pDefArmor)
-				{
-					return begin->second;
-				}
-			}
 		}
 	}
 
