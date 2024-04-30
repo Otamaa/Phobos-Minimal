@@ -17,6 +17,9 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	bool disableWeapons = false;
 	bool disableSelfHeal = false;
 	bool untrackable = TechnoExtData::IsUntrackable(pThis);
+	auto extraRangeData = &pExt->AE_ExtraRange;
+
+	extraRangeData->Clear();
 
 	for (const auto& aeData : ae->Data)
 	{
@@ -30,6 +33,16 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		disableWeapons |= aeData.Type->DisableWeapons;
 		disableSelfHeal |= aeData.Type->DisableSelfHeal;
 		untrackable |= aeData.Type->Untrackable;
+
+		if(!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)){
+			extraRangeData->rangeMult += aeData.Type->WeaponRange_Multiplier;
+			extraRangeData->extraRange += aeData.Type->WeaponRange_ExtraRange;
+			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
+				extraRangeData->allow.push_back_unique(allow);
+
+			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
+				extraRangeData->allow.push_back_unique(disallow);
+		}
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;

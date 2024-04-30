@@ -3120,10 +3120,14 @@ public:
 					else
 					{
 						const auto pWeapons = pTechno->GetPrimaryWeapon();
-						if (!pWeapons || pWeapons->WeaponType->Range <= 0)
+						if (!pWeapons || !pWeapons->WeaponType)
 							return;
 
-						nRadius = pWeapons->WeaponType->Range.ToCell();
+						const int range_ = WeaponTypeExtData::GetRangeWithModifiers(pWeapons->WeaponType, pTechno);
+						if (range_ <= 0)
+							return;
+
+						nRadius = range_ / Unsorted::LeptonsPerCell;;
 					}
 
 					if (nRadius > 0)

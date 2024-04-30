@@ -143,26 +143,95 @@ DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 }
 
 #include <Ext/TechnoType/Body.h>
+#include <Ext/WeaponType/Body.h>
 
-DEFINE_HOOK(0x6F7261, TechnoClass_InRange_Additionals, 0x5)
+DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
-	GET(int, nRangeBonus, EDI);
-	GET(TechnoClass* const, pThis, ESI);
-	GET(AbstractClass* const, pTarget, ECX);
+	enum { SkipGameCode = 0x6F724E };
 
-	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget))
-	{
+	GET(TechnoClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, ECX);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget)) {
 		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
-		{
+		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset()) {
 			const auto pFootCell = pFoot->GetCell();
 			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
-				nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
+				range += pThisTypeExt->NavalRangeBonus.Get();
 		}
 	}
 
-	R->EDI(nRangeBonus);
-	return 0;
+	R->EDI(range);
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x6F7294, TechnoClass_InRange_OccupyRange, 0x5)
+{
+	enum { SkipGameCode = 0x6F729F };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, range, EDI);
+
+	const int occupyRange = WeaponTypeExtData::GetRangeWithModifiers(nullptr, pThis) / Unsorted::LeptonsPerCell;
+	R->EDI(range + occupyRange);
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)
+{
+	enum { ContinueChecks = 0x6FC3C5, CannotFire = 0x6FC86A };
+
+	GET(TechnoClass*, pThis, EBP);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+
+	if (pThis->WhatAmI() == AbstractType::Unit && WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384.0)
+		return CannotFire;
+
+	return ContinueChecks;
+}
+
+DEFINE_HOOK(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
+{
+	enum { SkipGameCode = 0x70CF75 };
+
+	GET(TechnoClass*, pThis, EDI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x41810F, AircraftClass_MissionAttack_WeaponRangeCheck1, 0x6)
+{
+	enum { WithinDistance = 0x418117, NotWithinDistance = 0x418131 };
+
+	GET(AircraftClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(int, distance, EAX);
+
+	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+
+	if (distance < range)
+		return WithinDistance;
+
+	return NotWithinDistance;
+}
+
+DEFINE_HOOK(0x418BA8, AircraftClass_MissionAttack_WeaponRangeCheck2, 0x6)
+{
+	enum { SkipGameCode = 0x418BAE };
+
+	GET(AircraftClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EAX);
+
+	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
+
+	return SkipGameCode;
 }
 
 DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)

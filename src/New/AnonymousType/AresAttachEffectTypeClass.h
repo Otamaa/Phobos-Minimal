@@ -36,6 +36,11 @@ public:
 	Valueable<bool> DisableSelfHeal { false };
 	Valueable<bool> Untrackable { false };
 
+	Valueable<double> WeaponRange_Multiplier { 1.0 };
+	Valueable<double> WeaponRange_ExtraRange { 0.0 };
+	ValueableVector<WeaponTypeClass*> WeaponRange_AllowWeapons {};
+	ValueableVector<WeaponTypeClass*> WeaponRange_DisallowWeapons {};
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
 	bool Save(PhobosStreamWriter& Stm) const;
@@ -75,6 +80,10 @@ private:
 			.Process(this->PenetratesIC)
 			.Process(this->DisableSelfHeal)
 			.Process(this->Untrackable)
+			.Process(this->WeaponRange_Multiplier)
+			.Process(this->WeaponRange_ExtraRange)
+			.Process(this->WeaponRange_AllowWeapons)
+			.Process(this->WeaponRange_DisallowWeapons)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}

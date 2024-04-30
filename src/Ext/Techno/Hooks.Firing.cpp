@@ -53,68 +53,68 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 }
 
 //https://github.com/Phobos-developers/Phobos/pull/1073/
-DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(BulletClass*, pBullet, EAX);
-
-	if (!pBullet || pWeapon->Burst < 2)
-		return 0;
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	if (pWeaponExt->Burst_Retarget <= 0.0)
-		return 0;
-
-	const int retargetProbability = pWeaponExt->Burst_Retarget > 1.0 ? 100 : (int)std::round(pWeaponExt->Burst_Retarget * 100);
-
-	if (retargetProbability < ScenarioClass::Instance->Random.RandomRanged(1, 100))
-		return 0;
-
-	auto pThisType = pThis->GetTechnoType();
-	std::vector<TechnoClass*> candidates;
-	auto originalTarget = pThis->Target;
-	auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
-	int minimumRange = pWeapon->MinimumRange;
-	int range = pWeapon->Range;
-	int airRange = pWeapon->Range + pThisType->AirRangeBonus;
-
-	for (auto pTarget : *TechnoClass::Array)
-	{
-		if (pTarget == originalTarget)
-			continue;
-
-		const auto FireError = pThis->GetFireError(pTarget, pThisExt->CurrentWeaponIdx, false);
-		if (FireError != FireError::OK)
-			continue;
-
-		int distanceFromAttacker = pThis->DistanceFrom(pTarget);
-		if (distanceFromAttacker < minimumRange)
-			continue;
-
-		const auto rangemax = (pTarget->IsInAir() ? airRange : range);
-
-		if (pWeapon->OmniFire) {
-			if(distanceFromAttacker <= rangemax)
-				candidates.push_back(pTarget);
-		}
-		else
-		{
-			int distanceFromOriginalTarget = pTarget->DistanceFrom(originalTarget);
-
-			if (distanceFromAttacker <= rangemax && distanceFromOriginalTarget <= rangemax) {
-				candidates.push_back(pTarget);
-			}
-		}
-	}
-
-	if (!candidates.empty()) {
-		// Pick one new target from the list of targets inside the weapon range
-		pBullet->Target = candidates[ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1)];
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+// 	GET(BulletClass*, pBullet, EAX);
+//
+// 	if (!pBullet || pWeapon->Burst < 2)
+// 		return 0;
+//
+// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+// 	if (pWeaponExt->Burst_Retarget <= 0.0)
+// 		return 0;
+//
+// 	const int retargetProbability = pWeaponExt->Burst_Retarget > 1.0 ? 100 : (int)std::round(pWeaponExt->Burst_Retarget * 100);
+//
+// 	if (retargetProbability < ScenarioClass::Instance->Random.RandomRanged(1, 100))
+// 		return 0;
+//
+// 	auto pThisType = pThis->GetTechnoType();
+// 	std::vector<TechnoClass*> candidates;
+// 	auto originalTarget = pThis->Target;
+// 	auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
+// 	int minimumRange = pWeapon->MinimumRange;
+// 	int range = pWeapon->Range;
+// 	int airRange = pWeapon->Range + pThisType->AirRangeBonus;
+//
+// 	for (auto pTarget : *TechnoClass::Array)
+// 	{
+// 		if (pTarget == originalTarget)
+// 			continue;
+//
+// 		const auto FireError = pThis->GetFireError(pTarget, pThisExt->CurrentWeaponIdx, false);
+// 		if (FireError != FireError::OK)
+// 			continue;
+//
+// 		int distanceFromAttacker = pThis->DistanceFrom(pTarget);
+// 		if (distanceFromAttacker < minimumRange)
+// 			continue;
+//
+// 		const auto rangemax = (pTarget->IsInAir() ? airRange : range);
+//
+// 		if (pWeapon->OmniFire) {
+// 			if(distanceFromAttacker <= rangemax)
+// 				candidates.push_back(pTarget);
+// 		}
+// 		else
+// 		{
+// 			int distanceFromOriginalTarget = pTarget->DistanceFrom(originalTarget);
+//
+// 			if (distanceFromAttacker <= rangemax && distanceFromOriginalTarget <= rangemax) {
+// 				candidates.push_back(pTarget);
+// 			}
+// 		}
+// 	}
+//
+// 	if (!candidates.empty()) {
+// 		Pick one new target from the list of targets inside the weapon range
+// 		pBullet->Target = candidates[ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1)];
+// 	}
+//
+// 	return 0;
+// }
 
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
@@ -275,7 +275,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 
 	if (const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
 	{
-		result = pWeapon->Range;
+		result = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThisType);
 
 		if (pThisType->OpenTopped && !pTypeExt->OpenTopped_IgnoreRangefinding.Get())
@@ -298,9 +298,10 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 
 				if (pTWeapon->WeaponType && pTWeapon->WeaponType->FireInTransport)
 				{
-					if (pTWeapon->WeaponType->Range < smallestRange)
-					{
-						smallestRange = pTWeapon->WeaponType->Range;
+					int TWeaponRange = WeaponTypeExtData::GetRangeWithModifiers(pTWeapon->WeaponType, pPassenger);
+
+					if (TWeaponRange < smallestRange) {
+						smallestRange = TWeaponRange;
 					}
 				}
 

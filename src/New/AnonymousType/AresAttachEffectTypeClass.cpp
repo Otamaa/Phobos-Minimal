@@ -38,4 +38,9 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->DisableSelfHeal.Read(exINI, pSection, "AttachEffect.DisableSelfHeal");
 	this->DisableWeapons.Read(exINI, pSection, "AttachEffect.DisableWeapons");
 	this->Untrackable.Read(exINI, pSection, "AttachEffect.Untrackable");
+
+	this->WeaponRange_Multiplier.Read(exINI, pSection, "WeaponRange.Multiplier");
+	this->WeaponRange_ExtraRange.Read(exINI, pSection, "WeaponRange.ExtraRange");
+	this->WeaponRange_AllowWeapons.Read(exINI, pSection, "WeaponRange.AllowWeapons");
+	this->WeaponRange_DisallowWeapons.Read(exINI, pSection, "WeaponRange.DisallowWeapons");
 }

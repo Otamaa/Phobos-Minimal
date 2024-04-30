@@ -180,6 +180,80 @@ public:
 
 	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
 
+	struct ExtraRange {
+		double rangeMult { 1.0 };
+		double extraRange { 0.0 };
+		HelperedVector<WeaponTypeClass*> allow {};
+		HelperedVector<WeaponTypeClass*> disallow {};
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<ExtraRange*>(this)->Serialize(Stm);
+		}
+
+		constexpr void Clear() {
+			rangeMult = 1.0;
+			extraRange = 0.0;
+			allow.clear();
+			disallow.clear();
+		}
+
+		constexpr bool Enabled() {
+			return !(rangeMult == 1.0 && extraRange == 0.0);
+		}
+
+		constexpr bool Eligible(WeaponTypeClass* who) {
+
+			bool allowed = false;
+
+			if (allow.begin() != allow.end()) {
+				for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow) {
+					if (*iter_allow == who) {
+						allowed = true;
+						break;
+					}
+				}
+			} else {
+				allowed = true;
+			}
+
+			if (allowed && disallow.begin() != disallow.end()) {
+				for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow) {
+					if (*iter_disallow == who) {
+						allowed = false ;
+						break;
+					}
+				}
+			}
+
+			return allowed;
+		}
+
+		constexpr int Get(int initial) {
+			int range = static_cast<int>(initial * MaxImpl(rangeMult, 0.0));
+			range += static_cast<int>(extraRange * Unsorted::LeptonsPerCell);
+			return range;
+		}
+
+	private:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->rangeMult)
+				.Process(this->extraRange)
+				.Process(this->allow)
+				.Process(this->disallow)
+				.Success()
+				;
+		}
+	} AE_ExtraRange;
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
@@ -424,7 +498,6 @@ public:
 
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
 	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
-
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

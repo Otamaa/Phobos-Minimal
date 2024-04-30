@@ -42,7 +42,6 @@
 #include <memory>
 #include <Ares_TechnoExt.h>
 
-
 // Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
 bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
 {
@@ -1259,7 +1258,9 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	case AreaFireTarget::Random:
 	{
 		std::vector<CellStruct> adjacentCells {};
-		GeneralUtils::AdjacentCellsInRange(adjacentCells, static_cast<size_t>(pWeapon->Range.ToDouble() + 0.99));
+		GeneralUtils::AdjacentCellsInRange(adjacentCells,
+			 static_cast<size_t>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
+
 		size_t const size = adjacentCells.size();
 
 		for (int i = 0; i < (int)size; i++)
@@ -4655,6 +4656,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)
 		.Process(this->MySpawnSuport)
+		.Process(this->AE_ExtraRange)
 		//.Process(this->CanCurrentlyDeployIntoBuilding)
 		;
 }

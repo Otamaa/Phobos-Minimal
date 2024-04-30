@@ -4,6 +4,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Utilities/Macro.h>
 
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Techno/Body.h>
+
 int WeaponTypeExtData::nOldCircumference = DiskLaserClass::Radius;
 PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt;
 
@@ -196,6 +199,39 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AmbientDamage_IgnoreTarget.Read(exINI, pSection, "AmbientDamage.IgnoreTarget");
 	this->RecoilForce.Read(exINI, pSection, "RecoilForce");
 	//this->BlockageTargetingBypassDamageOverride.Read(exINI, pSection, "BlockageTargetingBypassDamageOverride");
+}
+
+int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
+{
+	int range = fallback.has_value() ? fallback.value()  : 0;
+
+	if (!pThis && !pFirer)
+		return range;
+	else if (pFirer && pFirer->CanOccupyFire())
+		range = RulesClass::Instance->OccupyWeaponRange * Unsorted::LeptonsPerCell;
+	else if (pThis && pFirer)
+		range = pThis->Range;
+	else
+		return range;
+
+	if (range == -512)
+		return range;
+
+	auto pTechno = pFirer;
+
+	if (pTechno->Transporter && pTechno->Transporter->GetTechnoType()->OpenTopped) {
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->Transporter->GetTechnoType());
+
+		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)
+			pTechno = pTechno->Transporter;
+	}
+
+	{
+		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+		if (pExt->AE_ExtraRange.Enabled() && pExt->AE_ExtraRange.Eligible(pThis))
+			range = pExt->AE_ExtraRange.Get(range);
+	}
+	return MaxImpl(range, 0);
 }
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
