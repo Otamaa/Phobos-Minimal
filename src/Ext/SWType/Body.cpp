@@ -1400,8 +1400,12 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	std::vector<int> weights {};
 	detail::ReadVectors(weights, exINI, pSection, "LimboDelivery.RandomWeights");
-	if (!weights.empty())
-		this->LimboDelivery_RandomWeightsData[0] = weights;
+	if (!weights.empty()) {
+		if (this->LimboDelivery_RandomWeightsData.size())
+			this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
+		else
+			this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
+	}
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
@@ -1480,6 +1484,26 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Next_IgnoreInhibitors.Read(exINI, pSection, "SW.Next.IgnoreInhibitors");
 	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
 	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
+
+	std::string basetag = "SW.Next.RandomWeights";
+	for (size_t i = 0; ; ++i) {
+		ValueableVector<int> weights2;
+		weights2.Read(exINI, pSection, (basetag + std::to_string(i)).c_str());
+
+		if (!weights2.size())
+			break;
+
+		this->SW_Next_RandomWeightsData.push_back(weights2);
+	}
+
+	ValueableVector<int> weights2;
+	weights2.Read(exINI, pSection, basetag.c_str());
+	if (weights2.size()) {
+		if (this->SW_Next_RandomWeightsData.size())
+			this->SW_Next_RandomWeightsData[0] = std::move(weights2);
+		else
+			this->SW_Next_RandomWeightsData.push_back(std::move(weights2));
+	}
 
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
@@ -1760,10 +1784,13 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
-	if (!this->SW_Next_RandomWeightsData.empty())
-	{
-		std::vector<int> results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
-		for (const int& result : results)
+	if (!this->SW_Next_RandomWeightsData.empty()) {
+		for (const int& result :
+			this->WeightedRollsHandler(
+				&this->SW_Next_RollChances,
+				&this->SW_Next_RandomWeightsData,
+				this->SW_Next.size())
+			)
 		{
 			SWTypeExtData::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell , IsPlayer);
 		}
