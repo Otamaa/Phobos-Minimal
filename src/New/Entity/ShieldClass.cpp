@@ -225,7 +225,9 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				this->Timers.SelfHealing.Start(rate); // when attacked, restart the timer
 			}
 		}
-		this->ResponseAttack();
+
+		if(pWHExt->Malicious)
+			this->ResponseAttack();
 
 		if (pWHExt->DecloakDamagedTargets)
 			this->Techno->Uncloak(false);
