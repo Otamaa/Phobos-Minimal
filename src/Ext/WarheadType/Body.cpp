@@ -239,6 +239,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
 	std::vector<AnimTypeClass*> hitAnim {};
+	this->ArmorHitAnim.clear();
 	hitAnim.reserve(ArmorTypeClass::Array.size());
 
 	for (auto const& ArmorType : ArmorTypeClass::Array) {
