@@ -994,6 +994,8 @@ AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
 				pDefArmor && pDefArmor->DefaultTo != -1;
 				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
 			{
+				Debug::Log("Finding HitAnim for (%s) with default(%s)\n",pArmor->Name.data(), pDefault->Name.data());
+
 				if (begin->first == pDefArmor)
 				{
 					return begin->second;
