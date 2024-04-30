@@ -41,6 +41,8 @@ public:
 	ValueableVector<WeaponTypeClass*> WeaponRange_AllowWeapons {};
 	ValueableVector<WeaponTypeClass*> WeaponRange_DisallowWeapons {};
 
+	Valueable<bool> ROFMultiplier_ApplyOnCurrentTimer { false };
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
 	bool Save(PhobosStreamWriter& Stm) const;
@@ -84,6 +86,7 @@ private:
 			.Process(this->WeaponRange_ExtraRange)
 			.Process(this->WeaponRange_AllowWeapons)
 			.Process(this->WeaponRange_DisallowWeapons)
+			.Process(this->ROFMultiplier_ApplyOnCurrentTimer)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}

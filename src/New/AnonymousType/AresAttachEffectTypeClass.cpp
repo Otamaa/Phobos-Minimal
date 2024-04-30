@@ -39,8 +39,10 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->DisableWeapons.Read(exINI, pSection, "AttachEffect.DisableWeapons");
 	this->Untrackable.Read(exINI, pSection, "AttachEffect.Untrackable");
 
-	this->WeaponRange_Multiplier.Read(exINI, pSection, "WeaponRange.Multiplier");
-	this->WeaponRange_ExtraRange.Read(exINI, pSection, "WeaponRange.ExtraRange");
-	this->WeaponRange_AllowWeapons.Read(exINI, pSection, "WeaponRange.AllowWeapons");
-	this->WeaponRange_DisallowWeapons.Read(exINI, pSection, "WeaponRange.DisallowWeapons");
+	this->WeaponRange_Multiplier.Read(exINI, pSection, "AttachEffect.WeaponRange.Multiplier");
+	this->WeaponRange_ExtraRange.Read(exINI, pSection, "AttachEffect.WeaponRange.ExtraRange");
+	this->WeaponRange_AllowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.AllowWeapons");
+	this->WeaponRange_DisallowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.DisallowWeapons");
+
+	this->ROFMultiplier_ApplyOnCurrentTimer.Read(exINI, pSection, "AttachEffect.ROFMultiplier.ApplyOnCurrentTimer");
 }

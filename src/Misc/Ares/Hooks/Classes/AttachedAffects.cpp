@@ -21,8 +21,17 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	extraRangeData->Clear();
 
+	std::optional<double> cur_timerAE {};
+
 	for (const auto& aeData : ae->Data)
 	{
+		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer) {
+			if (!cur_timerAE.has_value())
+				cur_timerAE = aeData.Type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= aeData.Type->ROFMultiplier;
+		}
+
 		ROF_Mult *= aeData.Type->ROFMultiplier;
 		ReceiveRelativeDamageMult *= aeData.Type->ReceiveRelativeDamageMult;
 		FP_Mult *= aeData.Type->FirepowerMultiplier;
@@ -42,6 +51,14 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
 				extraRangeData->allow.push_back_unique(disallow);
+		}
+	}
+
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
+		const int timeleft = pExt->AttachedToObject->DiskLaserTimer.GetTimeLeft();
+
+		if (timeleft > 0) {
+			pExt->AttachedToObject->DiskLaserTimer.Start(timeleft * cur_timerAE.value());
 		}
 	}
 
