@@ -451,8 +451,6 @@ public:
 	ValueableVector<int> Prerequisite_Negative {};
 	ValueableVector<int> Prerequisite_Display {};
 
-	ValueableVector<int> BuildLimit_Requires {};
-
 	Promotable<int> CrushLevel {};
 	Promotable<int> CrushableLevel {};
 	Promotable<int> DeployCrushableLevel {};
