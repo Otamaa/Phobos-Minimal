@@ -2727,7 +2727,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	if (pTypeExt->SpyEffect_SellDelay.isset()) {
 
-		if (pBldExt->AutoSellTimer.HasStarted()){
+		if (!pBldExt->AutoSellTimer.HasStarted()){
 			pBldExt->AutoSellTimer.Start(pTypeExt->SpyEffect_SellDelay > 0 ?
 				pTypeExt->SpyEffect_SellDelay : static_cast<int>(RulesClass::Instance->C4Delay));
 		}
