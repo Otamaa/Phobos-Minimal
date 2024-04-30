@@ -372,17 +372,20 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
+
 	// don't try to fire if we obviously haven't enough money
-	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
-	{
-		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer))
-		{
+	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get())) {
+
+		if (pExt->SW_AutoFire_CheckAvail && !pExt->IsAvailable(pThis->Owner))
+			return false;
+
+		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer)) {
+
 			const auto pNewType = pExt->GetNewSWType();
 			const auto& pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
 			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
 
-			if (Flag == SWTargetFlags::AllowEmpty)
-			{
+			if (Flag == SWTargetFlags::AllowEmpty) {
 				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
 				 	Unsorted::CurrentBuilding = nullptr;
 				 	Unsorted::CurrentBuildingType = nullptr;
@@ -1472,6 +1475,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Group.Read(exINI, pSection, "SW.Group");
 	this->SW_Shots.Read(exINI, pSection, "SW.Shots");
 	this->SW_AutoFire.Read(exINI, pSection, "SW.AutoFire");
+	this->SW_AutoFire_CheckAvail.Read(exINI, pSection, "SW.AutoFire.CheckAvail");
 	this->SW_AllowPlayer.Read(exINI, pSection, "SW.AllowPlayer");
 	this->SW_AllowAI.Read(exINI, pSection, "SW.AllowAI");
 	this->SW_AffectsHouse.Read(exINI, pSection, "SW.AffectsHouse");
@@ -2182,6 +2186,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Group)
 		.Process(this->SW_Shots)
 		.Process(this->SW_AutoFire)
+		.Process(this->SW_AutoFire_CheckAvail)
 		.Process(this->SW_AllowPlayer)
 		.Process(this->SW_AllowAI)
 		.Process(this->SW_AffectsHouse)

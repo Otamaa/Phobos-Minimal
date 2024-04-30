@@ -196,6 +196,7 @@ public:
 	Valueable<int> SW_Group { 0 };
 	Valueable<int> SW_Shots { -1 };
 	Valueable<bool> SW_AutoFire { false };
+	Valueable<bool> SW_AutoFire_CheckAvail { false };
 	Valueable<bool> SW_AllowPlayer { true };
 	Valueable<bool> SW_AllowAI { true };
 	Nullable<double> SW_ChargeToDrainRatio {};
