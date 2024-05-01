@@ -822,6 +822,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 //	return 0x0;
 //}
 
+DEFINE_HOOK(0x687604, Scenario_Start1, 0x5)
+{
+	Phobos::Random::SetRandomSeed(Game::Seed());
+	return 0;
+}
+
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 #ifndef aaa
 DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)

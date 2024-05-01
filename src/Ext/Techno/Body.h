@@ -252,7 +252,7 @@ public:
 				.Success()
 				;
 		}
-	} AE_ExtraRange;
+	} AE_ExtraRange {};
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
