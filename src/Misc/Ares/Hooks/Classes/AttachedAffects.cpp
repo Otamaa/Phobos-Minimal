@@ -3,6 +3,7 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
@@ -18,8 +19,10 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	bool disableSelfHeal = false;
 	bool untrackable = TechnoExtData::IsUntrackable(pThis);
 	auto extraRangeData = &pExt->AE_ExtraRange;
+	auto extraCritData = &pExt->AE_ExtraCrit;
 
 	extraRangeData->Clear();
+	extraCritData->Clear();
 
 	std::optional<double> cur_timerAE {};
 
@@ -57,11 +60,62 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		}
 	}
 
+	for (const auto& attachEffect : pExt->PhobosAE)
+	{
+		if (!attachEffect->IsActive())
+			continue;
+
+		auto const type = attachEffect->GetType();
+		FP_Mult *= type->FirepowerMultiplier;
+		Speed_Mult *= type->SpeedMultiplier;
+		Armor_Mult *= type->ArmorMultiplier;
+		ROF_Mult *= type->ROFMultiplier;
+		Cloak |= type->Cloakable;
+		forceDecloak |= type->ForceDecloak;
+		disableWeapons |= type->DisableWeapons;
+		disableSelfHeal |= type->DisableSelfHeal;
+		untrackable |= type->Untrackable;
+
+		if (type->ROFMultiplier_ApplyOnCurrentTimer)
+		{
+			if (!cur_timerAE.has_value())
+				cur_timerAE = type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= type->ROFMultiplier;
+		}
+
+		if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
+		{
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = type->WeaponRange_Multiplier;
+			ranges_.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+
+			for (auto& allow : type->WeaponRange_AllowWeapons)
+				extraRangeData->allow.push_back_unique(allow);
+
+			for (auto& disallow : type->WeaponRange_DisallowWeapons)
+				extraRangeData->disallow.push_back_unique(disallow);
+		}
+
+		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
+		{
+			auto& ranges_ = extraCritData->ranges.emplace_back();
+			ranges_.Mult = type->Crit_Multiplier;
+			ranges_.extra = type->Crit_ExtraChance;
+
+			for (auto& allow : type->Crit_AllowWarheads)
+				extraCritData->allow.push_back_unique(allow);
+
+			for (auto& disallow : type->Crit_DisallowWarheads)
+				extraCritData->disallow.push_back_unique(disallow);
+		}
+	}
+
 	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
 		const int timeleft = pExt->AttachedToObject->DiskLaserTimer.GetTimeLeft();
 
 		if (timeleft > 0) {
-			pExt->AttachedToObject->DiskLaserTimer.Start(timeleft * cur_timerAE.value());
+			pExt->AttachedToObject->DiskLaserTimer.Start(int(timeleft * cur_timerAE.value()));
 		}
 	}
 

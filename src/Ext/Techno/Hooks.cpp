@@ -361,6 +361,7 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 			AllowRevenge = !pWHExt->IgnoreRevenge;
 		}
+		auto SourCoords = pSource->GetCoords();
 
 		if(AllowRevenge) {
 			if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
@@ -374,6 +375,20 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
 					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis , true, nullptr);
 			}
+		}
+
+		for (auto& attachEffect : pExt->PhobosAE)
+		{
+			if (!attachEffect->IsActive())
+				continue;
+
+			auto const pType = attachEffect->GetType();
+
+			if (!pType->RevengeWeapon.isset())
+				continue;
+
+			if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis , true, nullptr);
 		}
 	}
 

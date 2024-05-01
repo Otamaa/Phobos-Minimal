@@ -348,6 +348,9 @@
     <ClCompile Include="src\New\AnonymousType\Spawns.cpp" />
     <ClCompile Include="src\New\AnonymousType\SpawnsStatus.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
+    <ClCompile Include="src\New\PhobosAttachedAffect\Functions.cpp" />
+    <ClCompile Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.cpp" />
+    <ClCompile Include="src\New\PhobosAttachedAffect\PhobosAttachEffectTypeClass.cpp" />
     <ClCompile Include="src\New\Type\CrateTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DroppodProperties.cpp" />
@@ -456,6 +459,9 @@
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
     <ClInclude Include="src\New\Interfaces\IEntity.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
+    <ClInclude Include="src\New\PhobosAttachedAffect\Functions.h" />
+    <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.h" />
+    <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectTypeClass.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
     <ClInclude Include="src\Commands\SaveVariablesToFile.h" />

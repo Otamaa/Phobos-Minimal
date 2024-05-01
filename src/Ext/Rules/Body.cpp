@@ -16,6 +16,8 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+
 //#include <Ext/TechnoType/Body.h>
 
 #include <Ext/WarheadType/Body.h>
@@ -126,6 +128,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
 
+	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
+
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
 
@@ -143,6 +147,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	HoverTypeClass::ReadListFromINI(pINI);
 	ShieldTypeClass::ReadListFromINI(pINI);
 	RadTypeClass::ReadListFromINI(pINI);
+	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");

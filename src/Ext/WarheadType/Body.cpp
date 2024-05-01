@@ -425,6 +425,13 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Nonprovocative.Read(exINI, pSection, "Nonprovocative");
 
+	this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
+	this->AttachEffect_RemoveTypes.Read(exINI, pSection, "AttachEffect.RemoveTypes");
+	exINI.ParseStringList(this->AttachEffect_RemoveGroups, pSection, "AttachEffect.RemoveGroups");
+	this->AttachEffect_CumulativeRemoveMinCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMinCounts");
+	this->AttachEffect_CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
+	this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -1158,6 +1165,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_GuaranteeAfterHealthTreshold)
 		.Process(this->RandomBuffer)
 		.Process(this->HasCrit)
+		.Process(this->Crit_CurrentChance)
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
@@ -1397,9 +1405,43 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SpawnsCrate_Weights)
 
 		.Process(this->IgnoreRevenge)
+
+		.Process(this->AttachEffect_AttachTypes)
+		.Process(this->AttachEffect_RemoveTypes)
+		.Process(this->AttachEffect_RemoveGroups)
+		.Process(this->AttachEffect_CumulativeRemoveMinCounts)
+		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
+		.Process(this->AttachEffect_DurationOverrides)
 		;
 
 	PaintBallData.Serialize(Stm);
+}
+
+double WarheadTypeExtData::GetCritChance(TechnoClass* pFirer) const
+{
+	double critChance = this->Crit_Chance;
+
+	if (!pFirer)
+		return critChance;
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pFirer);
+
+	if (pExt->AE_ExtraCrit.Enabled() && pExt->AE_ExtraCrit.Eligible(this->AttachedToObject)) {
+		critChance = pExt->AE_ExtraCrit.Get(critChance);
+	}
+
+	return critChance;
+}
+
+
+void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker)
+{
+	if (!pTarget)
+		return;
+
+	PhobosAttachEffectClass::Attach(this->AttachEffect_AttachTypes, pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, this->AttachEffect_DurationOverrides, nullptr, nullptr, nullptr);
+	PhobosAttachEffectClass::Detach(this->AttachEffect_RemoveTypes, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
+	PhobosAttachEffectClass::DetachByGroups(this->AttachEffect_RemoveGroups, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
 }
 
 bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const

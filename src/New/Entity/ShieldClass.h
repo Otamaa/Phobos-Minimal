@@ -131,6 +131,8 @@ public:
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
 
+	void UpdateTint();
+
 	void InvalidatePointer(AbstractClass* ptr, bool bDetach);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);

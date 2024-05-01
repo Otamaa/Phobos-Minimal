@@ -516,6 +516,9 @@ void ShieldClass::OnlineCheck()
 
 	if (!isActive)
 	{
+		if (this->Online)
+			this->UpdateTint();
+
 		this->Online = false;
 		timer->Pause();
 
@@ -544,6 +547,9 @@ void ShieldClass::OnlineCheck()
 	}
 	else
 	{
+		if (!this->Online)
+			this->UpdateTint();
+
 		this->Online = true;
 		timer->Resume();
 
@@ -570,6 +576,12 @@ void ShieldClass::TemporalCheck()
 		this->IdleAnim->UnderTemporal = false;
 		this->IdleAnim->Unpause();
 	}
+}
+
+void ShieldClass::UpdateTint()
+{
+	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0)
+		this->Techno->MarkForRedraw();
 }
 
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto
@@ -633,7 +645,7 @@ bool ShieldClass::ConvertCheck()
 	}
 
 	this->CurTechnoType = newID;
-
+	this->UpdateTint();
 	return false;
 }
 
@@ -736,6 +748,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	}
 
 	this->LastBreakFrame = Unsorted::CurrentFrame;
+	this->UpdateTint();
 
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr))
 	{
@@ -754,6 +767,7 @@ void ShieldClass::RespawnShield()
 		timer->Stop();
 		double amount = timerWH->InProgress() ? Respawn_Warhead : this->Type->Respawn;
 		this->HP = this->GetPercentageAmount(amount);
+		this->UpdateTint();
 	}
 	else if (timerWH->Completed() && timer->InProgress())
 	{

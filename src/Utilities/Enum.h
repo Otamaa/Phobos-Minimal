@@ -33,12 +33,39 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+
+enum class DiscardCondition : unsigned char
+{
+	None = 0x0,
+	Entry = 0x1,
+	Move = 0x2,
+	Stationary = 0x3,
+	Drain = 0x4,
+
+	count
+};
+
+MAKE_ENUM_FLAGS(DiscardCondition);
+
+enum class ExpireWeaponCondition : unsigned char
+{
+	None = 0x0,
+	Expire = 0x1,
+	Remove = 0x2,
+	Death = 0x4,
+
+	All = Expire | Remove | Death,
+};
+
+MAKE_ENUM_FLAGS(ExpireWeaponCondition);
+
 enum class EntityType : int
 {
 	None,
 
 	count
 };
+
 enum class AresNewSuperType : int
 {
 	SonarPulse = 0,

@@ -4,6 +4,26 @@
 #include <HouseClass.h>
 #include <CellClass.h>
 
+std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::DiscardCondition_to_strings {
+ {
+	{ "none" } ,
+	{ "entry" } ,
+	{ "move" } ,
+	{ "stationary" } ,
+	{ "drain" }
+ }
+};
+
+std::array<const char*, 5u>  EnumFunctions::ExpireWeaponCondition_to_strings {
+ {
+	{ "none" } ,
+	{ "expire" } ,
+	{ "remove" } ,
+	{ "death" } ,
+	{ "all" }
+ }
+};
+
 std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
 	{ "TargetNotDamageable" } ,

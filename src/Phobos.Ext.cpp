@@ -376,7 +376,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
 	StaticVars::Clear();
-
+	PhobosAttachEffectTypeClass::Clear();
+	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	return 0;
 }
 

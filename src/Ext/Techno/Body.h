@@ -33,6 +33,8 @@
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 
+#include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -110,6 +112,7 @@ public:
 	HouseClass* OriginalPassengerOwner { nullptr };
 
 	bool IsInTunnel { false };
+	bool IsBurrowed { false } ;
 	CDTimerClass DeployFireTimer {};
 	CDTimerClass DisableWeaponTimer {};
 
@@ -283,6 +286,126 @@ public:
 		}
 	} AE_ExtraRange {};
 
+	struct ExtraCrit
+	{
+		struct CritData
+		{
+			double Mult { 1.0 };
+			double extra { 0.0 };
+
+			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+			{
+				return this->Serialize(Stm);
+			}
+
+			bool Save(PhobosStreamWriter& Stm) const
+			{
+				return const_cast<CritData*>(this)->Serialize(Stm);
+			}
+
+		private:
+
+			template <typename T>
+			bool Serialize(T& Stm)
+			{
+				return Stm
+					.Process(this->Mult)
+					.Process(this->extra)
+					.Success()
+					;
+			}
+		};
+
+		HelperedVector<CritData> ranges { };
+		HelperedVector<WarheadTypeClass*> allow {};
+		HelperedVector<WarheadTypeClass*> disallow {};
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<ExtraCrit*>(this)->Serialize(Stm);
+		}
+
+		constexpr void Clear()
+		{
+			ranges.clear();
+			allow.clear();
+			disallow.clear();
+		}
+
+		constexpr bool Enabled()
+		{
+			return !ranges.empty();
+		}
+
+		constexpr bool Eligible(WarheadTypeClass* who)
+		{
+
+			bool allowed = false;
+
+			if (allow.begin() != allow.end())
+			{
+				for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+				{
+					if (*iter_allow == who)
+					{
+						allowed = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				allowed = true;
+			}
+
+			if (allowed && disallow.begin() != disallow.end())
+			{
+				for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+				{
+					if (*iter_disallow == who)
+					{
+						allowed = false;
+						break;
+					}
+				}
+			}
+
+			return allowed;
+		}
+
+		constexpr double Get(double initial)
+		{
+
+			double add = 0;
+			for (auto& ex_range : ranges) {
+				initial = initial * ex_range.Mult;
+				add += ex_range.extra;
+			}
+
+			return initial + add;
+		}
+
+	private:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->ranges)
+				.Process(this->allow)
+				.Process(this->disallow)
+				.Success()
+				;
+		}
+	} AE_ExtraCrit {};
+
+	std::vector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
@@ -376,6 +499,7 @@ public:
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
+	static void InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType);
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
 

@@ -512,7 +512,7 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 
 	return //pData->RemoveDisguise ||
 		//pData->RemoveMindControl ||
-		pData->Crit_Chance ||
+		//pData->Crit_Chance ||
 		pData->Shield_Break ||
 		(pData->Converts && !pData->ConvertsPair.empty()) ||
 		pData->Shield_Respawn_Duration > 0 ||
@@ -532,6 +532,11 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		|| pData->InflictLocomotor
 		|| pData->RemoveInflictedLocomotor
 		|| pData->IC_Duration != 0
+
+		|| pData->AttachEffect_AttachTypes.size() > 0
+		|| pData->AttachEffect_RemoveTypes.size() > 0
+		|| pData->AttachEffect_RemoveGroups.size() > 0
+
 		;
 }
 
@@ -592,12 +597,14 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
-	this->HasCrit = false;
+	this->Crit_CurrentChance = this->GetCritChance(pOwner);
+
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if (IsCellSpreadWH(this))
+	if (IsCellSpreadWH(this) || this->Crit_CurrentChance > 0.0)
 	{
+		this->HasCrit = false;
 		const bool ThisbulletWasIntercepted = pBullet ? BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
 		const float cellSpread = this->AttachedToObject->CellSpread;
 
@@ -684,7 +691,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);
 
-	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
+	if (this->Crit_CurrentChance > 0.0 && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 	{
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
@@ -750,6 +757,9 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	if (this->RemoveInflictedLocomotor)
 		this->ApplyLocomotorInflictionReset(pTarget);
+
+	if (this->AttachEffect_AttachTypes.size() > 0 || this->AttachEffect_RemoveTypes.size() > 0 || this->AttachEffect_RemoveGroups.size() > 0)
+		this->ApplyAttachEffects(pTarget, pHouse, pOwner);
 }
 
 //void WarheadTypeExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -879,7 +889,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		const double dice = this->Crit_ApplyChancePerTarget ?
 			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
 
-		if (this->Crit_Chance < dice)
+		if (this->Crit_CurrentChance < dice)
 			return;
 	}
 

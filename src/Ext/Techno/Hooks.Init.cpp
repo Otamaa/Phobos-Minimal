@@ -38,7 +38,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 	}
 
 	TechnoExtData::InitializeItems(pThis, pType);
-
+	TechnoExtData::InitializeAttachEffects(pThis, pType);
 	return 0x0;
 }
 

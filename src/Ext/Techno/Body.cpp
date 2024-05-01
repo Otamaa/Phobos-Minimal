@@ -2788,6 +2788,18 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 }
 
+void TechnoExtData::InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType)
+{
+	if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType))
+	{
+		if (pTypeExt->AttachEffect_AttachTypes.size() < 1)
+			return;
+
+		PhobosAttachEffectClass::Attach(pTypeExt->AttachEffect_AttachTypes, pThis, pThis->Owner, pThis, pThis,
+			pTypeExt->AttachEffect_DurationOverrides, &pTypeExt->AttachEffect_Delays, &pTypeExt->AttachEffect_InitialDelays,&pTypeExt->AttachEffect_RecreationDelays);
+	}
+}
+
 bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
 {
 	if (!pWeaponType)
@@ -4300,9 +4312,13 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 
 	if (auto const pSecondExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponTwo))
 	{
+		auto const pFirstExt = WeaponTypeExtContainer::Instance.Find(pWeaponOne);
+
 		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
-				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
+				|| !pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
+				)))
 		{
 			return weaponIndexOne;
 		}
@@ -4315,7 +4331,9 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 
 			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
 				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
-					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
+					|| !pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
+					)))
 			{
 				return weaponIndexTwo;
 			}
@@ -4611,6 +4629,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CurrentLaserWeaponIndex)
 		.Process(this->OriginalPassengerOwner)
 		.Process(this->IsInTunnel)
+		.Process(this->IsBurrowed)
 		.Process(this->DeployFireTimer)
 		.Process(this->DisableWeaponTimer)
 		.Process(this->RevengeWeapons)
@@ -4657,6 +4676,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyDiveData)
 		.Process(this->MySpawnSuport)
 		.Process(this->AE_ExtraRange)
+		.Process(this->AE_ExtraCrit)
+		.Process(this->PhobosAE)
 		//.Process(this->CanCurrentlyDeployIntoBuilding)
 		;
 }
@@ -4689,6 +4710,10 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(GarrisonedIn, ptr , bRemoved);
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
 	AnnounceInvalidPointer(BuildingLight, ptr);
+
+	for (auto& PhobosAE : PhobosAE) {
+		PhobosAE->InvalidatePointer(ptr, bRemoved);
+	}
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;

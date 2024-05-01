@@ -52,7 +52,7 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 					if (!pWHExt->CanRemoveParasytes_KickOut.Get() || coord == CoordStruct::Empty)
 					{
 						Debug::Log(__FUNCTION__"\n");
-						TechnoExtData::HandleRemove(parasyte, args->Attacker, false , false);
+						TechnoExtData::HandleRemove(parasyte, args->Attacker, false, false);
 					}
 					else
 					{
@@ -62,7 +62,7 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 						if (!parasyte->Unlimbo(coord, parasyte->PrimaryFacing.Current().GetDir()))
 						{
 							Debug::Log(__FUNCTION__"\n");
-							TechnoExtData::HandleRemove(parasyte, nullptr, false , false);
+							TechnoExtData::HandleRemove(parasyte, nullptr, false, false);
 							return;
 						}
 
@@ -146,6 +146,7 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 #undef REPLACE_ARMOR
 
 #include <Ext/Super/Body.h>
+#include <New/PhobosAttachedAffect/Functions.h>
 
 DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 {
@@ -154,11 +155,55 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (pThis->Owner  && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0 && !pTypeExt->Linked_SW.empty())
+	if (pThis->Owner && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	if (const auto pShieldData = pExt->GetShield())
 		pShieldData->OnRemove();
+
+	bool markForRedraw = false;
+	bool altered = false;
+	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
+
+	// Do not remove attached effects from undeploying buildings.
+	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		if ((pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2))
+		{
+			return 0;
+		}
+	}
+
+	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
+	{
+		auto const attachEffect = it->get();
+
+		if ((attachEffect->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
+		{
+			altered = true;
+
+			if (attachEffect->GetType()->HasTint())
+				markForRedraw = true;
+
+			if (attachEffect->ResetIfRecreatable())
+			{
+				++it;
+				continue;
+			}
+
+			it = pExt->PhobosAE.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	if (altered)
+		PhobosAEFunctions::RecalculateStatMultipliers(pThis);
+
+	if (markForRedraw)
+		pThis->MarkForRedraw();
 
 	return 0;
 }

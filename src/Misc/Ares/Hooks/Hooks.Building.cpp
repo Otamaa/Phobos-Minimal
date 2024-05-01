@@ -2223,7 +2223,7 @@ DEFINE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
 	return 0x45F310;
 }
 
-DEFINE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
+DEFINE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_BASE(int, frames, 0x8);

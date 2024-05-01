@@ -1272,6 +1272,102 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<DiscardCondition>(DiscardCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			DiscardCondition resultData = DiscardCondition::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::DiscardCondition_to_strings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DiscardCondition");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= DiscardCondition::None; break;
+					case 1: resultData |= DiscardCondition::Entry; break;
+					case 2: resultData |= DiscardCondition::Move; break;
+					case 3: resultData |= DiscardCondition::Stationary; break;
+					case 4: resultData |= DiscardCondition::Drain; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<ExpireWeaponCondition>(ExpireWeaponCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			ExpireWeaponCondition resultData = ExpireWeaponCondition::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::ExpireWeaponCondition_to_strings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a ExpireWeaponCondition");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= ExpireWeaponCondition::None; break;
+					case 1: resultData |= ExpireWeaponCondition::Expire; break;
+					case 2: resultData |= ExpireWeaponCondition::Remove; break;
+					case 3: resultData |= ExpireWeaponCondition::Death; break;
+					case 4: resultData |= ExpireWeaponCondition::All; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		return parser.ReadString(pSection, pKey)

@@ -4,47 +4,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 
-
-// Applies custom tint color and intensity from TechnoTypes & Warheads on provided values.
-void ApplyCustomIntensity(TechnoClass* pThis,int& intensity)
-{
-	BuildingClass* pBld = specific_cast<BuildingClass*>(pThis);
-
-	if (pBld) {
-		if ((pBld->CurrentMission == Mission::Construction)
-			&& pBld->BState == BStateType::Construction && pBld->Type->Buildup) {
-			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
-			{
-				intensity = 1000;
-			}
-		}
-	}
-	const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	bool needRedraw = false;
-
-	// EMP
-	if (pThis->IsUnderEMP())
-	{
-		if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
-		{
-			intensity /= 2 ;
-			needRedraw = true;
-		}
-	}
-	else if (pThis->IsDeactivated())
-	{
-		if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
-		{
-			intensity /= 2;
-			needRedraw = true;
-		}
-	}
-
-	if (pBld && needRedraw)
-		BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
-
-}
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
 int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk)
@@ -61,11 +21,96 @@ int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, boo
 	return tintColor;
 }
 
-void ApplyCustomTintcolor(TechnoClass* pThis, int& tintColor) {
-	for (auto& paint : TechnoExtContainer::Instance.Find(pThis)->PaintBallStates) {
-		if (paint.second.timer.GetTimeLeft() && paint.second.AllowDraw(pThis)) {
-			tintColor |= paint.second.Color;
+void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
+{
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const bool calculateIntensity = intensity != nullptr;
+	const bool calculateTintColor = tintColor != nullptr;
+
+	if(calculateTintColor) {
+		for (auto& paint : TechnoExtContainer::Instance.Find(pThis)->PaintBallStates) {
+			if (paint.second.timer.GetTimeLeft() && paint.second.AllowDraw(pThis)) {
+				*tintColor |= paint.second.Color;
+			}
 		}
+	}
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if(calculateIntensity) {
+		BuildingClass* pBld = specific_cast<BuildingClass*>(pThis);
+
+		if (pBld)
+		{
+			if ((pBld->CurrentMission == Mission::Construction)
+				&& pBld->BState == BStateType::Construction && pBld->Type->Buildup)
+			{
+				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
+				{
+					*intensity = 1000;
+				}
+			}
+		}
+
+		const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
+		bool needRedraw = false;
+
+		// EMP
+		if (pThis->IsUnderEMP())
+		{
+			if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
+			{
+				*intensity /= 2;
+				needRedraw = true;
+			}
+		}
+		else if (pThis->IsDeactivated())
+		{
+			if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
+			{
+				*intensity /= 2;
+				needRedraw = true;
+			}
+		}
+
+		if (pBld && needRedraw)
+			BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
+	}
+
+	if ((pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity != 0.0) && EnumFunctions::CanTargetHouse(pTypeExt->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+	{
+		if(calculateTintColor)
+			*tintColor |= Drawing::RGB_To_Int(pTypeExt->Tint_Color.Get(ColorStruct { 0,0,0 }));
+
+		if(calculateIntensity)
+			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
+	}
+
+	for (auto const& attachEffect : pExt->PhobosAE)
+	{
+		auto const type = attachEffect->GetType();
+
+		if (!attachEffect->IsActive() || !type->HasTint())
+			continue;
+
+		if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+			continue;
+
+		if (calculateTintColor)
+			*tintColor |= Drawing::RGB_To_Int(type->Tint_Color.Get(ColorStruct { 0,0,0 }));
+
+		if (calculateIntensity)
+			*intensity += static_cast<int>(type->Tint_Intensity * 1000);
+	}
+
+	if (pExt->Shield && pExt->Shield->IsActive())
+	{
+		auto const pShieldType = pExt->Shield->GetType();
+
+		if (calculateTintColor && pShieldType->Tint_Color.isset())
+			*tintColor |= Drawing::RGB_To_Int(pShieldType->Tint_Color);
+
+		if (calculateIntensity && pShieldType->Tint_Intensity != 0.0)
+			*intensity += static_cast<int>(pShieldType->Tint_Intensity * 1000);
 	}
 }
 
@@ -79,14 +124,11 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 	const bool isVehicle = what == AbstractType::Unit;
 	const bool isAircraft = what == AbstractType::Aircraft;
 
-	ApplyCustomIntensity(pThis, intensity);
-
-	// SHP vehicles and aircraft
 	if (isVehicle || isAircraft) {
 		color |= ApplyTintColor(pThis, true, false, !isAircraft);
-
-		ApplyCustomTintcolor(pThis, color);
 	}
+
+	ApplyCustomTint(pThis, &color, &intensity);
 
 	R->EBP(intensity);
 
@@ -100,6 +142,8 @@ DEFINE_HOOK(0x7067E4, TechnoClass_DrawVoxel_TintColor, 0x8)
 	REF_STACK(int, color, STACK_OFFSET(0x50, 0x24));
 
 	color |= ApplyTintColor(pThis, true, false, true);
+	ApplyCustomTint(pThis, &color, nullptr);
+
 	R->EDI(intensity);
 
 	return 0;
@@ -140,7 +184,7 @@ DEFINE_HOOK(0x43D4EB, BuildingClass_Draw_TintColor, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(int, color, EDI);
 
-	ApplyCustomTintcolor(pThis , color);
+	ApplyCustomTint(pThis, &color, nullptr);
 
 	R->EDI(color);
 
@@ -152,7 +196,7 @@ DEFINE_HOOK(0x43DD8E, BuildingClass_Draw2_TintColor, 0xA)
 	GET(BuildingClass*, pThis, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x12C, -0x110));
 
-	ApplyCustomTintcolor(pThis, color);
+	ApplyCustomTint(pThis, &color, nullptr);
 
 	return 0;
 }
@@ -162,7 +206,7 @@ DEFINE_HOOK(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
 	GET(BuildingClass*, pThis, EDI);
 	GET(int, intensity, ESI);
 
-	ApplyCustomIntensity(pThis , intensity);
+	ApplyCustomTint(pThis, nullptr, &intensity);
 	R->ESI(intensity);
 
 	return 0;
@@ -174,7 +218,7 @@ DEFINE_HOOK(0x519082, InfantryClass_Draw_TintColor, 0x7)
 	REF_STACK(int, color, STACK_OFFSET(0x54, -0x40));
 
 	color |= ApplyTintColor(pThis, true, false, false);
-	ApplyCustomTintcolor(pThis , color);
+	ApplyCustomTint(pThis, &color, nullptr);
 
 	return 0;
 }
@@ -185,7 +229,7 @@ DEFINE_HOOK(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
 	GET(int, intensity, ESI);
 
 	intensity = pThis->GetEffectTintIntensity(intensity);
-	ApplyCustomIntensity(pThis , intensity);
+	ApplyCustomTint(pThis, nullptr, &intensity);
 	R->ESI(intensity);
 
 	return 0;
@@ -211,8 +255,7 @@ DEFINE_HOOK(0x73C083, UnitClass_DrawAsVoxel_TintColor, 0x6)
 	GET(int, color, ESI);
 	REF_STACK(int, intensity, STACK_OFFSET(0x1D0, 0x10));
 
-	ApplyCustomIntensity(pThis, intensity);
-	ApplyCustomTintcolor(pThis, color);
+	ApplyCustomTint(pThis, &color, &intensity);
 
 	R->ESI(color);
 
@@ -256,9 +299,7 @@ DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 	if (!pBuilding)
 		return 0;
 
-	ApplyCustomTintcolor(pBuilding, color);
-	if(pThis->Type->UseNormalLight)
-		ApplyCustomIntensity(pBuilding, intensity);
+	ApplyCustomTint(pBuilding, &color, pThis->Type->UseNormalLight  ? &intensity : nullptr);
 
 	R->EBP(color);
 

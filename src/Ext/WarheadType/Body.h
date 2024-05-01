@@ -11,6 +11,8 @@
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 
@@ -83,7 +85,7 @@ public:
 
 	double RandomBuffer { 0.0 };
 	bool HasCrit { false };
-
+	double Crit_CurrentChance { 0.0 };
 	Nullable<AnimTypeClass*> MindControl_Anim {};
 
 	// Ares tags
@@ -355,6 +357,13 @@ public:
 	std::vector<int> SpawnsCrate_Weights {};
 
 	Valueable<bool> IgnoreRevenge { false };
+
+	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
+	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_RemoveTypes {};
+	std::vector<const char*> AttachEffect_RemoveGroups {};
+	ValueableVector<int> AttachEffect_CumulativeRemoveMinCounts {};
+	ValueableVector<int> AttachEffect_CumulativeRemoveMaxCounts {};
+	ValueableVector<int> AttachEffect_DurationOverrides {};
 public:
 
 	WarheadTypeExtData() noexcept = default;
@@ -416,6 +425,9 @@ public:
 	void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 	bool GoBerzerkFor(FootClass* pVictim, int* damage) const;
 	bool ApplySuppressDeathWeapon(TechnoClass* pVictim) const;
+
+	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
+	double GetCritChance(TechnoClass* pFirer) const;
 
 	VersesData& GetVerses(Armor armor)
 	{

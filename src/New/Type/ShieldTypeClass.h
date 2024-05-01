@@ -59,6 +59,10 @@ public:
 	Valueable<bool> CanBeHealed;
 	NullableIdx<CursorTypeClass> HealCursorType;
 	Nullable<SpotlightFlags> HitBright;
+
+	Nullable<ColorStruct> Tint_Color;
+	Valueable<double> Tint_Intensity;
+	Valueable<AffectedHouse> Tint_VisibleToHouses;
 public:
 
 	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);

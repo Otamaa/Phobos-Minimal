@@ -3153,9 +3153,6 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	const auto pToTypeExt = TechnoTypeExtContainer::Instance.Find(pToType);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	if (IS_SAME_STR_("SURVEY", pOldType->ID) && IS_SAME_STR_("SURVEYUP", pToType->ID)) {
-		Debug::Log("Convert SURVEY to [%s]\n", pToType->ID);
-	}
 
 	// Detach CLEG targeting
 	if (pThis->TemporalImUsing && pThis->TemporalImUsing->Target)

@@ -1112,6 +1112,16 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DetectDisguise_Percent.Read(exINI, pSection, "DetectDisguise.Percent");
 		this->PassengerTurret.Read(exINI, pSection, "PassengerTurret");
 
+		this->Tint_Color.Read(exINI, pSection, "Tint.Color");
+		this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
+		this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
+
+		this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
+		this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
+		this->AttachEffect_Delays.Read(exINI, pSection, "AttachEffect.Delays");
+		this->AttachEffect_InitialDelays.Read(exINI, pSection, "AttachEffect.InitialDelays");
+		this->AttachEffect_RecreationDelays.Read(exINI, pSection, "AttachEffect.RecreationDelays");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -2196,6 +2206,15 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildLimit_Group_Stop)
 #pragma endregion
 
+		.Process(this->Tint_Color)
+		.Process(this->Tint_Intensity)
+		.Process(this->Tint_VisibleToHouses)
+
+		.Process(this->AttachEffect_AttachTypes)
+		.Process(this->AttachEffect_DurationOverrides)
+		.Process(this->AttachEffect_Delays)
+		.Process(this->AttachEffect_InitialDelays)
+		.Process(this->AttachEffect_RecreationDelays)
 		;
 }
 
