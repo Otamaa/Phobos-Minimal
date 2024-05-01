@@ -19,6 +19,8 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 
 	auto const pSection = this->Owner->ID;
 	this->Duration.Read(exINI, pSection, "AttachEffect.Duration");
+	// cumulative no : will override the existing duration
+	// cumulative yes : will add new AE object onto the techno vector
 	this->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
 	this->AnimType.Read(exINI, pSection, "AttachEffect.Animation");
 	this->AnimResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");

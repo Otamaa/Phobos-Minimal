@@ -181,8 +181,34 @@ public:
 	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
 
 	struct ExtraRange {
-		double rangeMult { 1.0 };
-		double extraRange { 0.0 };
+		struct RangeData {
+			double rangeMult { 1.0 };
+			double extraRange { 0.0 };
+
+			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+			{
+				return this->Serialize(Stm);
+			}
+
+			bool Save(PhobosStreamWriter& Stm) const
+			{
+				return const_cast<RangeData*>(this)->Serialize(Stm);
+			}
+
+		private:
+
+			template <typename T>
+			bool Serialize(T& Stm)
+			{
+				return Stm
+					.Process(this->rangeMult)
+					.Process(this->extraRange)
+					.Success()
+					;
+			}
+		};
+
+		HelperedVector<RangeData> ranges { };
 		HelperedVector<WeaponTypeClass*> allow {};
 		HelperedVector<WeaponTypeClass*> disallow {};
 
@@ -196,14 +222,13 @@ public:
 		}
 
 		constexpr void Clear() {
-			rangeMult = 1.0;
-			extraRange = 0.0;
+			ranges.clear();
 			allow.clear();
 			disallow.clear();
 		}
 
 		constexpr bool Enabled() {
-			return !(rangeMult == 1.0 && extraRange == 0.0);
+			return !ranges.empty();
 		}
 
 		constexpr bool Eligible(WeaponTypeClass* who) {
@@ -234,9 +259,14 @@ public:
 		}
 
 		constexpr int Get(int initial) {
-			int range = static_cast<int>(initial * MaxImpl(rangeMult, 0.0));
-			range += static_cast<int>(extraRange * Unsorted::LeptonsPerCell);
-			return range;
+
+			int add = 0;
+			for (auto& ex_range : ranges) {
+				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
+				add += static_cast<int>(ex_range.extraRange);
+			}
+
+			return initial + add;
 		}
 
 	private:
@@ -245,8 +275,7 @@ public:
 		bool Serialize(T& Stm)
 		{
 			return Stm
-				.Process(this->rangeMult)
-				.Process(this->extraRange)
+				.Process(this->ranges)
 				.Process(this->allow)
 				.Process(this->disallow)
 				.Success()

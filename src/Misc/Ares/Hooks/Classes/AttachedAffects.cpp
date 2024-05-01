@@ -44,8 +44,11 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		untrackable |= aeData.Type->Untrackable;
 
 		if(!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)){
-			extraRangeData->rangeMult += aeData.Type->WeaponRange_Multiplier;
-			extraRangeData->extraRange += aeData.Type->WeaponRange_ExtraRange;
+
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
+			ranges_.extraRange = aeData.Type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+
 			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
 				extraRangeData->allow.push_back_unique(allow);
 
