@@ -382,6 +382,9 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer)) {
 
 			const auto pNewType = pExt->GetNewSWType();
+			if (!pNewType) {
+				Debug::FatalErrorAndExit("Trying to fire  SW [%s] that has invalid type [%d]\n", pThis->Type->ID, pThis->Type->Type);
+			}
 			const auto& pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
 			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
 
