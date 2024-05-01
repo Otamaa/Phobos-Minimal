@@ -53,7 +53,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 				extraRangeData->allow.push_back_unique(allow);
 
 			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
-				extraRangeData->allow.push_back_unique(disallow);
+				extraRangeData->disallow.push_back_unique(disallow);
 		}
 	}
 
