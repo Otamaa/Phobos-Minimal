@@ -718,6 +718,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Display").c_str(), this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + "Override").c_str(), pThis->PrerequisiteOverride);
 
+		//TODO : properly Enable this
+		GenericPrerequisite::Parse(pINI, pSection, "BuildLimit.Requres", this->BuildLimit_Requires);
+
 		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
 
 		this->Prerequisite_Power.Read(exINI, pSection, (_Prerequisite_key + ".Power").c_str());
@@ -1812,6 +1815,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Prerequisite_Lists)
 		.Process(this->Prerequisite_Negative)
 		.Process(this->Prerequisite_Display)
+		.Process(this->BuildLimit_Requires)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 
