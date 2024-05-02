@@ -4976,7 +4976,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_ArmorMult *= something;
-									TechnoExt_ExtData::RecalculateStat(pCollector);
+									AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pCollector)->AeData, pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -5007,7 +5007,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_SpeedMult *= something;
-									TechnoExt_ExtData::RecalculateStat(pCollector);
+									AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pCollector)->AeData, pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -5039,7 +5039,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 									&& TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult == 1.0)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_FirePowerMult *= something;
-									TechnoExt_ExtData::RecalculateStat(pCollector);
+									AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pCollector)->AeData, pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
 									{
@@ -5071,7 +5071,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius)
 								{
 									TechnoExtContainer::Instance.Find(pCollector)->AE_Cloak = true;
-									TechnoExt_ExtData::RecalculateStat(pCollector);
+									AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pCollector)->AeData, pCollector);
 								}
 							}
 						}

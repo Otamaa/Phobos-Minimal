@@ -95,10 +95,47 @@ public:
 		, ReceiveRelativeDamageMult { 1.0 }
 	{};
 
-	bool HasTint();
-	bool HasGroup(const char* pGroupID);
-	bool HasGroups(std::vector<std::string> const& groupIDs, bool requireAll);
-	AnimTypeClass* GetCumulativeAnimation(int cumulativeCount);
+	constexpr FORCEINLINE bool HasTint() {
+		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
+	}
+
+	bool HasGroup(const char* pGroupID) {
+		for (const auto& group : this->Groups) {
+			if (IS_SAME_STR_N(group.c_str(), pGroupID)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool HasGroups(std::vector<std::string> const& groupIDs, bool requireAll) {
+		size_t foundCount = 0;
+
+		for (const auto& group : this->Groups) {
+			for (const auto& requiredGroup : groupIDs) {
+				if (IS_SAME_STR_N(group.c_str(), requiredGroup.c_str())) {
+
+					if (!requireAll)
+						return true;
+
+					foundCount++;
+				}
+			}
+		}
+
+		return !requireAll ? false : foundCount >= groupIDs.size();
+	}
+
+	constexpr FORCEINLINE AnimTypeClass* GetCumulativeAnimation(int cumulativeCount)
+	{
+		if (cumulativeCount < 0 || !this->CumulativeAnimations.HasValue())
+			return nullptr;
+
+		const int index = static_cast<size_t>(cumulativeCount) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : cumulativeCount - 1;
+
+		return this->CumulativeAnimations[index];
+	}
 
 	virtual ~PhobosAttachEffectTypeClass() override = default;
 

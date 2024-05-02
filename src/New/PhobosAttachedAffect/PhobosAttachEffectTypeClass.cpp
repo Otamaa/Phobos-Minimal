@@ -2,40 +2,10 @@
 
 std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
 Enumerable<PhobosAttachEffectTypeClass>::container_t Enumerable<PhobosAttachEffectTypeClass>::Array;
-
-bool PhobosAttachEffectTypeClass::HasTint()
+template<>
+const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
 {
-	return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
-}
-
-bool PhobosAttachEffectTypeClass::HasGroup(const char* pGroupID)
-{
-	for (const auto& group : this->Groups) {
-		if (IS_SAME_STR_N(group.c_str(), pGroupID)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool PhobosAttachEffectTypeClass::HasGroups(std::vector<std::string> const& groupIDs, bool requireAll)
-{
-	size_t foundCount = 0;
-
-	for (const auto& group : this->Groups) {
-		for (const auto& requiredGroup : groupIDs) {
-			if (IS_SAME_STR_N(group.c_str(), requiredGroup.c_str())) {
-
-				if (!requireAll)
-					return true;
-
-				foundCount++;
-			}
-		}
-	}
-
-	return !requireAll ? false : foundCount >= groupIDs.size();
+	return "AttachEffectTypes";
 }
 
 std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<std::string>& groupIDs)
@@ -43,30 +13,16 @@ std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesF
 	std::set<PhobosAttachEffectTypeClass*> types;
 	auto map = &PhobosAttachEffectTypeClass::GroupsMap;
 
-	for (const auto& group : groupIDs) {
-		if (map->contains(group)) {
+	for (const auto& group : groupIDs)
+	{
+		if (map->contains(group))
+		{
 			auto const values = &map->at(group);
 			types.insert(values->begin(), values->end());
 		}
 	}
 
 	return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
-}
-
-AnimTypeClass* PhobosAttachEffectTypeClass::GetCumulativeAnimation(int cumulativeCount)
-{
-	if (cumulativeCount < 0 || !this->CumulativeAnimations.HasValue())
-		return nullptr;
-
-	int index = static_cast<size_t>(cumulativeCount) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : cumulativeCount - 1;
-
-	return this->CumulativeAnimations.at(index);
-}
-
-template<>
-const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
-{
-	return "AttachEffectTypes";
 }
 
 void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
@@ -128,12 +84,12 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	exINI.ParseStringList(this->Groups, pSection, "Groups");
 	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
 
-	for (const auto&  group : this->Groups) {
-		if (!map->contains(group)) {
+	for (const auto& group : this->Groups) {
+		auto iter_ = map->find(group);
+		if (iter_ == map->end())
 			map->insert(std::make_pair(group, std::set<PhobosAttachEffectTypeClass*>{this}));
-		} else {
-			map->at(group).insert(this);
-		}
+		else
+			iter_->second.insert(this);
 	}
 
 	this->DisableSelfHeal.Read(exINI, pSection, "DisableSelfHeal");

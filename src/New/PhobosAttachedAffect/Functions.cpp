@@ -28,11 +28,6 @@ int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, Ph
 	return foundCount;
 }
 
-void PhobosAEFunctions::RecalculateStatMultipliers(TechnoClass* pTechno)
-{
-	TechnoExt_ExtData::RecalculateStat(pTechno);
-}
-
 // Updates state of AttachEffects of same cumulative type on techno, (which one is first active instance existing, if any), kills animations if needed.
 void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType)
 {
@@ -106,7 +101,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 		}
 	}
 
-	PhobosAEFunctions::RecalculateStatMultipliers(pTechno);
+	AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTechno)->AeData, pTechno);
 
 	if (markForRedraw)
 		pTechno->MarkForRedraw();

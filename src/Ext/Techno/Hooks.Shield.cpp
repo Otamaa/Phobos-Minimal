@@ -200,7 +200,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	}
 
 	if (altered)
-		PhobosAEFunctions::RecalculateStatMultipliers(pThis);
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis);
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();

@@ -74,7 +74,7 @@ public:
 		return *this;
 	}
 
-	operator const T& () const noexcept
+	constexpr FORCEINLINE operator const T& () const noexcept
 	{
 		return this->Get();
 	}
@@ -90,7 +90,7 @@ public:
 	//	return this->Get();
 	//}
 
-	auto operator->() const noexcept {
+	constexpr FORCEINLINE auto operator->() const noexcept {
 		if constexpr (std::is_pointer<T>::type())
 			return this->Value;
 		else
@@ -102,7 +102,7 @@ public:
 	//	return this->GetEx();
 	//}
 
-	bool operator!() const
+	constexpr FORCEINLINE bool operator!() const
 	{
 		if constexpr (std::is_pointer<T>::type())
 			return !this->Value;
@@ -110,17 +110,17 @@ public:
 			return  this->Get() == 0;
 	}
 
-	const T& Get() const noexcept
+	constexpr FORCEINLINE const T& Get() const noexcept
 	{
 		return this->Value;
 	}
 
-	T* GetEx() noexcept
+	constexpr FORCEINLINE T* GetEx() noexcept
 	{
 		return &this->Value;
 	}
 
-	const T* GetEx() const noexcept
+	constexpr FORCEINLINE const T* GetEx() const noexcept
 	{
 		return &this->Value;
 	}
@@ -176,7 +176,7 @@ public:
 		return *this;
 	}
 
-	size_t ToUnsigned() const noexcept {
+	constexpr FORCEINLINE size_t ToUnsigned() const noexcept {
 		return (size_t)this->Value;
 	}
 
@@ -207,73 +207,73 @@ public:
 		return *this;
 	}
 
-	bool isset() const noexcept
+	constexpr FORCEINLINE bool isset() const noexcept
 	{
 		return this->HasValue;
 	}
 
-	const T& Get() const noexcept
+	constexpr FORCEINLINE const T& Get() const noexcept
 	{
 		return this->Value;
 	}
 
 	// return a copy of the value instead
 	// this can be used to fill an vector after reading
-	T GetCopy() const noexcept{
+	constexpr FORCEINLINE T GetCopy() const noexcept{
 		return this->Value;
 	}
 
-	T* GetEx() noexcept
+	constexpr FORCEINLINE T* GetEx() noexcept
 	{
 		return &this->Value;
 	}
 
-	const T* GetEx() const noexcept
+	constexpr FORCEINLINE const T* GetEx() const noexcept
 	{
 		return &this->Value;
 	}
 
-	T Get(const T& ndefault) const
+	constexpr FORCEINLINE T Get(const T& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault;
 	}
 
-	const T& GetB(const T& ndefault) const
+	constexpr FORCEINLINE const T& GetB(const T& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault;
 	}
 
-	T Get(const Valueable<T>& ndefault) const
+	constexpr FORCEINLINE T Get(const Valueable<T>& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault.Get();
 	}
 
-	const T& GetB(const Valueable<T>& ndefault) const
+	constexpr FORCEINLINE const T& GetB(const Valueable<T>& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault.Get();
 	}
 
-	T* GetEx(T* ndefault) noexcept
+	constexpr FORCEINLINE T* GetEx(T* ndefault) noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
 	}
 
-	const T* GetEx(const T* ndefault) const noexcept
+	constexpr FORCEINLINE const T* GetEx(const T* ndefault) const noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
 	}
 
-	T* GetEx(Valueable<T>& ndefault) noexcept
+	constexpr FORCEINLINE T* GetEx(Valueable<T>& ndefault) noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault.GetEx();
 	}
 
-	const T* GetEx(const Valueable<T>& ndefault) const noexcept
+	constexpr FORCEINLINE const T* GetEx(const Valueable<T>& ndefault) const noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault.GetEx();
 	}
 
-	void Reset()
+	FORCEINLINE void Reset()
 	{
 		this->Value = T();
 		this->HasValue = false;
@@ -349,17 +349,17 @@ public:
 
 	~Promotable() = default;
 
-	void SetAll(const T& val) {
+	FORCEINLINE void SetAll(const T& val) {
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr, bool allocate = false);
 
-	const T* GetEx(TechnoClass* pTechno) const noexcept {
+	FORCEINLINE const T* GetEx(TechnoClass* pTechno) const noexcept {
 		return &this->Get(pTechno);
 	}
 
-	const T& GetFromSpecificRank(Rank rank)const noexcept
+	constexpr FORCEINLINE const T& GetFromSpecificRank(Rank rank)const noexcept
 	{
 		if (rank == Rank::Elite)
 		{
@@ -374,7 +374,7 @@ public:
 		return this->Rookie;
 	}
 
-	const T& Get(TechnoClass* pTechno) const noexcept {
+	constexpr FORCEINLINE const T& Get(TechnoClass* pTechno) const noexcept {
 		auto const rank = pTechno->Veterancy.GetRemainingLevel();
 		if (rank == Rank::Elite)
 		{
@@ -387,7 +387,7 @@ public:
 		return this->Rookie;
 	}
 
-	const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
+	constexpr FORCEINLINE const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
 		if (pTechno->CurrentRanking == Rank::Elite)
 		{
 			return this->Elite;
@@ -399,7 +399,7 @@ public:
 		return this->Rookie;
 	}
 
-	const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
+	constexpr FORCEINLINE const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
 		auto nRes = Get(pTechno);
 		return nRes ? nRes : nDefault;
 	}
@@ -423,7 +423,7 @@ public:
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
 
-	bool Eligible(const T& other) const
+	constexpr FORCEINLINE bool Eligible(const T& other) const
 	{
 		if (this->empty())
 			return true;
@@ -431,7 +431,7 @@ public:
 		return this->Contains(other);
 	}
 
-	auto Find(const T& item) const
+	constexpr FORCEINLINE auto Find(const T& item) const
 	{
 		if constexpr (direct_comparable<T>) {
 			auto i = this->begin();
@@ -448,21 +448,21 @@ public:
 		}
 	}
 
-	bool Contains(const T& other) const {
+	constexpr FORCEINLINE bool Contains(const T& other) const {
 		return this->Find(other) != this->end();
 	}
 
-	int IndexOf(const T& other) const
+	constexpr FORCEINLINE int IndexOf(const T& other) const
 	{
 		const auto it = this->Find(other);
 		return it != this->end() ? std::distance(this->begin(), it) : -1;
 	}
 
-	bool ValidIndex(int index) const {
+	constexpr FORCEINLINE bool ValidIndex(int index) const {
 		return static_cast<size_t>(index) < this->size();
 	}
 
-	T GetItemAt(int nIdx) const {
+	constexpr FORCEINLINE T GetItemAt(int nIdx) const {
 
 		if (!this->ValidIndex(nIdx))
 			return T();
@@ -470,7 +470,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	T GetItemAtOrMax(int nIdx) const
+	constexpr FORCEINLINE T GetItemAtOrMax(int nIdx) const
 	{
 		if (!this->ValidIndex(nIdx))
 			nIdx = this->size();
@@ -478,7 +478,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	T GetItemAtOrDefault(int nIdx , const T& other) const
+	constexpr FORCEINLINE T GetItemAtOrDefault(int nIdx , const T& other) const
 	{
 		if (!this->ValidIndex(nIdx))
 			return other;
@@ -486,20 +486,20 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	void PushbackUnique(const T& other)
+	constexpr FORCEINLINE void PushbackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->push_back(other); }
 	}
 
-	void EmpalacebackUnique(const T& other)
+	constexpr FORCEINLINE void EmpalacebackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->empalace_back(other); }
 	}
 
 	template <typename Func>
-	void For_Each(Func&& act) const
+	constexpr FORCEINLINE void For_Each(Func&& act) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
@@ -507,7 +507,7 @@ public:
 	}
 
 	template <typename Func>
-	void For_Each(Func&& act)
+	constexpr FORCEINLINE void For_Each(Func&& act)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
@@ -515,7 +515,7 @@ public:
 	}
 
 	template<typename func>
-	bool None_Of(func&& fn) const
+	constexpr FORCEINLINE bool None_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
@@ -527,7 +527,7 @@ public:
 	}
 
 	template<typename func>
-	bool None_Of(func&& fn)
+	constexpr FORCEINLINE bool None_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
@@ -539,7 +539,7 @@ public:
 	}
 
 	template<typename func>
-	bool Any_Of(func&& fn) const
+	constexpr FORCEINLINE bool Any_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
@@ -551,7 +551,7 @@ public:
 	}
 
 	template<typename func>
-	bool Any_Of(func&& fn)
+	constexpr FORCEINLINE bool Any_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
@@ -563,7 +563,7 @@ public:
 	}
 
 	template<typename func>
-	bool All_Of(func&& fn) const
+	constexpr FORCEINLINE bool All_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
@@ -575,7 +575,7 @@ public:
 	}
 
 	template<typename func>
-	bool All_Of(func&& fn)
+	constexpr FORCEINLINE bool All_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
@@ -606,12 +606,12 @@ public:
 	//~NullableVector() = default;
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey , bool allocate = false);
 
-	bool HasValue() const noexcept
+	constexpr FORCEINLINE bool HasValue() const noexcept
 	{
 		return this->hasValue;
 	}
 
-	void SetHasValue(bool bCond)
+	FORCEINLINE void SetHasValue(bool bCond)
 	{
 		if (!bCond)
 			Reset();
@@ -619,7 +619,7 @@ public:
 			this->hasValue = true;
 	}
 
-	void Reset()
+	FORCEINLINE void Reset()
 	{
 		this->clear();
 		this->hasValue = false;

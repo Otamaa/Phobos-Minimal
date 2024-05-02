@@ -47,17 +47,17 @@ struct VeterancyStruct
 		this->Add(value);
 	}
 
-	void Add(int ownerCost, int victimCost) noexcept {
+	constexpr FORCEINLINE void Add(int ownerCost, int victimCost) noexcept {
 		this->Add(static_cast<double>(victimCost)
 			/ (ownerCost * RulesClass::Instance->VeteranRatio));
 	}
 
-	void Add(double value) noexcept {
+	constexpr FORCEINLINE void Add(double value) noexcept {
 		float val = (float)(this->Veterancy + value);
 		this->Veterancy = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
 	}
 
-	Rank GetRemainingLevel() const noexcept {
+	constexpr FORCEINLINE Rank GetRemainingLevel() const noexcept {
 		if(this->Veterancy >= 2.0f) {
 			return Rank::Elite;
 		}
@@ -69,7 +69,7 @@ struct VeterancyStruct
 		return Rank::Rookie;
 	}
 
-	Rank AddAndGetRank(double value)noexcept
+	constexpr FORCEINLINE Rank AddAndGetRank(double value)noexcept
 	{
 		float val = (float)(this->Veterancy + value);
 		float result = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
@@ -86,39 +86,39 @@ struct VeterancyStruct
 		return Rank::Rookie;
 	}
 
-	bool IsNegative() const noexcept {
+	constexpr FORCEINLINE bool IsNegative() const noexcept {
 		return this->Veterancy < 0.0f;
 	}
 
-	bool IsRookie() const noexcept {
+	constexpr FORCEINLINE bool IsRookie() const noexcept {
 		return this->Veterancy >= 0.0f && this->Veterancy < 1.0f;
 	}
 
-	bool IsVeteran() const noexcept {
+	constexpr FORCEINLINE bool IsVeteran() const noexcept {
 		return this->Veterancy >= 1.0f && this->Veterancy < 2.0f;
 	}
 
-	bool IsElite() const noexcept {
+	constexpr FORCEINLINE bool IsElite() const noexcept {
 		return this->Veterancy >= 2.0f;
 	}
 
-	void Reset() noexcept {
+	constexpr FORCEINLINE void Reset() noexcept {
 		this->Veterancy = 0.0f;
 	}
 
-	void SetRookie() noexcept {
+	constexpr FORCEINLINE void SetRookie() noexcept {
 		this->Veterancy = -0.25f;
 	}
 
-	void SetVeteran() noexcept {
+	constexpr FORCEINLINE void SetVeteran() noexcept {
 		this->Veterancy = 1.0f;
 	}
 
-	void SetElite() noexcept {
+	constexpr FORCEINLINE void SetElite() noexcept {
 		this->Veterancy = 2.0f;
 	}
 
-	void SetRank(Rank rank)
+	constexpr FORCEINLINE void SetRank(Rank rank)
 	{
 		switch (rank)
 		{

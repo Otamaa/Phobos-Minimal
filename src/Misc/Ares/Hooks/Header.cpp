@@ -1910,7 +1910,7 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 		auto item = currentBuilding->Occupants.Items[0];
 		targetBuilding->Occupants.AddItem(item);
 		TechnoExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
-		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
+		currentBuilding->Occupants.Remove<true>(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
 	// fix up firing index, as decrementing the source occupants can invalidate it
@@ -3381,44 +3381,6 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	return true;
 }
 
-void TechnoExt_ExtData::RecalculateStat(TechnoClass* pThis)
-{
-#ifdef New_funcs
-	double ROF_Mult = 1.0;
-	double FP_Mult = pThis->align_154->AE_FirePowerMult;
-	double Armor_Mult = pThis->align_154->AE_ArmorMult;
-	double Speed_Mult = pThis->align_154->AE_SpeedMult;
-	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pThis->align_154->AE_Cloak;
-
-
-	for (auto begin = pThis->align_154->AEDatas.first; begin != pThis->align_154->AEDatas.last; ++begin)
-	{
-		//the class aligment is different , so it probably broke something
-		ROF_Mult *= begin->Type->ROFMultiplier;
-		FP_Mult *= begin->Type->FirepowerMultiplier;
-		Speed_Mult *= begin->Type->SpeedMultiplier;
-		Armor_Mult *= begin->Type->ArmorMultiplier;
-		Cloak |= begin->Type->Cloakable;
-	}
-
-	pThis->FirepowerMultiplier = FP_Mult;
-	pThis->ArmorMultiplier = Armor_Mult;
-	pThis->align_154->AE_ROF = ROF_Mult;
-	pThis->Cloakable = Cloak;
-
-	if (pThis->AbstractFlags & AbstractFlags::Foot) {
-
-		//if (Speed_Mult < 1.0 && TechnoExtData::IsInWarfactory(pThis))
-		//	Speed_Mult = 1.0; //negate all speed bonusses when it is still in warfactory
-
-		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
-	}
-#else
-	//AresData::RecalculateStat(pThis);
-	AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis);
-#endif
-}
-
 int TechnoExt_ExtData::GetSelfHealAmount(TechnoClass* pThis) {
 
 	auto const pType = pThis->GetTechnoType();
@@ -3914,7 +3876,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 					pAnim->ZAdjust = -1024;
 			}
 
-			TechnoExt_ExtData::RecalculateStat(pExpReceiver);
+			AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pExpReceiver)->AeData , pExpReceiver);
 		}
 
 		pExpReceiver->CurrentRanking = newRank;
@@ -5797,7 +5759,7 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 	{
 		pPoorBastard->Destroyed(pThis->Owner);
 		pPoorBastard->UnInit();
-		pBuilding->Occupants.RemoveAt(idxPoorBastard);
+		pBuilding->Occupants.RemoveAt<true>(idxPoorBastard);
 		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
 	}
 	else

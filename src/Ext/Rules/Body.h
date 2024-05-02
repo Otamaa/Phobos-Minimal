@@ -346,7 +346,7 @@ public:
 	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
 	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 
-	static RulesExtData* Instance()
+	constexpr FORCEINLINE static RulesExtData* Instance()
 	{
 		return Data.get();
 	}

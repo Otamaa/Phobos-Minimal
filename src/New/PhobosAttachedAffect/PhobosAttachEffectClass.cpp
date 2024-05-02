@@ -7,32 +7,47 @@
 #include <Ext/Techno/Body.h>
 
 PhobosAttachEffectClass::PhobosAttachEffectClass()
-	: Type { nullptr }, Techno { nullptr }, InvokerHouse { nullptr }, Invoker { nullptr },
-	Source { nullptr }, DurationOverride { 0 }, Delay { 0 }, InitialDelay { 0 }, RecreationDelay { -1 }
-	, Duration { 0 }
+	: Duration { 0 }
+	, DurationOverride { 0 }
+	, Delay { 0 }
 	, CurrentDelay { 0 }
+	, InitialDelay { 0 }
+	, RecreationDelay { -1 }
+	, Type { nullptr }
+	, Techno { nullptr }
+	, InvokerHouse { nullptr }
+	, Invoker { nullptr }
+	, Source { nullptr }
 	, Animation { }
 	, IsAnimHidden { false }
 	, IsUnderTemporal { false }
 	, IsOnline { false }
 	, IsCloaked { false }
+	, HasInitialized { false }
 	, NeedsDurationRefresh { false }
 	, IsFirstCumulativeInstance { false }
 {
-	this->HasInitialized = false;
 }
 
 PhobosAttachEffectClass::PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
-	: Type { pType }, Techno { pTechno }, InvokerHouse { pInvokerHouse }, Invoker { pInvoker }, Source { pSource },
-	DurationOverride { durationOverride }, Delay { delay }, InitialDelay { initialDelay }, RecreationDelay { recreationDelay }
-	, Duration { 0 }
+	: Duration { 0 }
+	, DurationOverride { durationOverride }
+	, Delay { delay }
 	, CurrentDelay { 0 }
+	, InitialDelay { initialDelay }
+	, RecreationDelay { recreationDelay }
+	, Type { pType }
+	, Techno { pTechno }
+	, InvokerHouse { pInvokerHouse }
+	, Invoker { pInvoker }
+	, Source { pSource }
 	, Animation { }
 	, IsAnimHidden { false }
 	, IsUnderTemporal { false }
 	, IsOnline { true }
 	, IsCloaked { false }
+	, HasInitialized { false }
 	, NeedsDurationRefresh { false }
 	, IsFirstCumulativeInstance { false }
 {
@@ -320,16 +335,6 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	return true;
 }
 
-bool PhobosAttachEffectClass::IsSelfOwned() const
-{
-	return this->Source == this->Techno;
-}
-
-bool PhobosAttachEffectClass::HasExpired() const
-{
-	return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
-}
-
 bool PhobosAttachEffectClass::AllowedToBeActive() const
 {
 	if (auto const pFoot = abstract_cast<FootClass*>(this->Techno))
@@ -347,24 +352,6 @@ bool PhobosAttachEffectClass::AllowedToBeActive() const
 		return false;
 
 	return true;
-}
-
-bool PhobosAttachEffectClass::IsActive() const
-{
-	if (this->IsSelfOwned())
-		return this->InitialDelay <= 0 && this->CurrentDelay == 0 && this->HasInitialized && this->IsOnline && !this->NeedsDurationRefresh;
-	else
-		return this->Duration && this->IsOnline;
-}
-
-bool PhobosAttachEffectClass::IsFromSource(TechnoClass* pInvoker, AbstractClass* pSource) const
-{
-	return pInvoker == this->Invoker && pSource == this->Source;
-}
-
-PhobosAttachEffectTypeClass* PhobosAttachEffectClass::GetType() const
-{
-	return this->Type;
 }
 
 void PhobosAttachEffectClass::ExpireWeapon() const
@@ -405,7 +392,7 @@ bool PhobosAttachEffectClass::Attach(PhobosAttachEffectTypeClass* pType, TechnoC
 				pTarget->ROF = static_cast<int>(pTarget->ROF * pType->ROFMultiplier);
 			}
 
-			PhobosAEFunctions::RecalculateStatMultipliers(pTarget);
+				AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 
 			if (pType->HasTint())
 				pTarget->MarkForRedraw();
@@ -487,7 +474,7 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 	}
 
 	if (attachedCount > 0)
-		PhobosAEFunctions::RecalculateStatMultipliers(pTarget);
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();
@@ -570,7 +557,7 @@ int PhobosAttachEffectClass::Detach(PhobosAttachEffectTypeClass* pType, TechnoCl
 
 	if (detachedCount > 0)
 	{
-		PhobosAEFunctions::RecalculateStatMultipliers(pTarget);
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 
 		if (pType->HasTint())
 			pTarget->MarkForRedraw();
@@ -614,7 +601,7 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 	}
 
 	if (detachedCount > 0)
-		PhobosAEFunctions::RecalculateStatMultipliers(pTarget);
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();

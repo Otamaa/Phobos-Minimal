@@ -271,8 +271,6 @@ struct TechnoExt_ExtData
 	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
 	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth = true, bool IsChangeOwnership = false);
 
-	static void RecalculateStat(TechnoClass* pThis);
-
 	static int GetSelfHealAmount(TechnoClass* pThis);
 	static void SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc , HouseClass* Owner);
 

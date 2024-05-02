@@ -367,9 +367,9 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	}
 	else
 	{
-		for (auto& [index, _] : aTypeExt->ShadowIndices)
+		for (auto& indices : aTypeExt->ShadowIndices)
 			pThis->DrawVoxelShadow(main_vxl,
-				index,
+				indices.first,
 				key,
 				&pThis->Type->VoxelCaches.Shadow,
 				bound,

@@ -509,41 +509,61 @@ public:
 		return count <= 0 || this->Find(item) == this->end() ? this->AddItem(item) : false;
 	}
 
+	template<bool avoidmemcpy = false>
 	bool RemoveAt(int index)
 	{
 		if (!this->ValidIndex(index)) {
 			return false;
 		}
 
-		T* find = this->Items + index;
-		T* end = this->Items + this->Count;
+		if constexpr (!avoidmemcpy) {
+			T* find = this->Items + index;
+			T* end = this->Items + this->Count;
 
-		if (find != end) {
+			if (find != end)
+			{
 
-			T* next = std::next(find);
-			// move all the items from next to current pos
-			std::memmove(find, next, (end - next) * sizeof(T));
-			--this->Count;//decrease the count
-			return true;
+				T* next = std::next(find);
+				// move all the items from next to current pos
+				std::memmove(find, next, (end - next) * sizeof(T));
+				--this->Count;//decrease the count
+				return true;
+			}
+
+			return false;
+		} else {
+
+			--this->Count;
+			for (int i = index; i < this->Count; ++i) {
+				this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
+			}
 		}
 
-		return false;
+		return true;
 	}
 
+	template<bool avoidmemcpy = false>
 	bool Remove(const T& item)
 	{
-		T* end = this->Items + this->Count;
-		T* iter = this->Find(item);
-
-		if(iter != this->end())
+		if constexpr (!avoidmemcpy)
 		{
-			T* next = std::next(iter);
-			std::memmove(iter, next, (end - next) * sizeof(T));
-			--this->Count;
-			return true;
-		}
+			T* end = this->Items + this->Count;
+			T* iter = this->Find(item);
 
-		return false;
+			if (iter != this->end())
+			{
+				T* next = std::next(iter);
+				std::memmove(iter, next, (end - next) * sizeof(T));
+				--this->Count;
+				return true;
+			}
+
+			return false;
+		}
+		else
+		{
+			return this->RemoveAt<true>(this->FindItemIndex(item));
+		}
 	}
 
 	bool FORCEINLINE FindAndRemove(const T& item) {

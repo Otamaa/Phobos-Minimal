@@ -23,14 +23,29 @@ public:
 	void AI_Temporal();
 	void KillAnim();
 	void SetAnimationVisibility(bool visible);
-	PhobosAttachEffectTypeClass* GetType() const;
+	constexpr FORCEINLINE PhobosAttachEffectTypeClass* GetType() const {
+		return this->Type;
+	}
+
 	void RefreshDuration(int durationOverride = 0);
 	bool ResetIfRecreatable();
-	bool IsSelfOwned() const;
-	bool HasExpired() const;
+	constexpr FORCEINLINE bool IsSelfOwned() const {
+		return this->Source == this->Techno;
+	}
+	constexpr FORCEINLINE bool HasExpired() const {
+		return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
+	}
 	bool AllowedToBeActive() const;
-	bool IsActive() const;
-	bool IsFromSource(TechnoClass* pInvoker, AbstractClass* pSource) const;
+	constexpr FORCEINLINE bool IsActive() const {
+		if (this->IsSelfOwned())
+			return this->InitialDelay <= 0 && this->CurrentDelay == 0 && this->HasInitialized && this->IsOnline && !this->NeedsDurationRefresh;
+		else
+			return this->Duration && this->IsOnline;
+	}
+
+	constexpr FORCEINLINE bool IsFromSource(TechnoClass* pInvoker, AbstractClass* pSource) const {
+		return pInvoker == this->Invoker && pSource == this->Source;
+	}
 
 	void ExpireWeapon() const;
 

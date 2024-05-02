@@ -66,7 +66,7 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				pManager->DecideUnitFate(pTarget);
 				pTarget->MindControlledBy = nullptr;
 
-				if (pManager->ControlNodes.RemoveAt(i))
+				if (pManager->ControlNodes.RemoveAt<true>(i))
 				{
 					GameDelete<false, false>(pNode);
 				}

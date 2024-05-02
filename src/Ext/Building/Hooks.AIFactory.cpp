@@ -612,7 +612,8 @@ DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 				//|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
 
 				)) {
-				pVec->Remove(pMemberNeeded);
+
+				pVec->Remove<true>(pMemberNeeded);
 				break;
 			}
 		}
