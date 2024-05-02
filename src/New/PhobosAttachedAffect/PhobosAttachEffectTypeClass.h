@@ -50,6 +50,7 @@ public:
 
 	Valueable<bool> DisableSelfHeal;
 	Valueable<bool> Untrackable;
+	Valueable<double> ReceiveRelativeDamageMult;
 
 	PhobosAttachEffectTypeClass(const char* const pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
@@ -91,6 +92,7 @@ public:
 		, Groups {}
 		, DisableSelfHeal { false }
 		, Untrackable { false }
+		, ReceiveRelativeDamageMult { 1.0 }
 	{};
 
 	bool HasTint();

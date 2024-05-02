@@ -603,6 +603,7 @@ DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 		}
 	}
 
+	//remove first finded similarity
 	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
 		for (auto pMemberNeeded : *pVec) {
 			if ((pMemberNeeded == pMember->GetTechnoType()
@@ -612,6 +613,7 @@ DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 
 				)) {
 				pVec->Remove(pMemberNeeded);
+				break;
 			}
 		}
 	}

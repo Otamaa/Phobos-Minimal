@@ -36,7 +36,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		}
 
 		ROF_Mult *= aeData.Type->ROFMultiplier;
-		ReceiveRelativeDamageMult *= aeData.Type->ReceiveRelativeDamageMult;
+		ReceiveRelativeDamageMult += aeData.Type->ReceiveRelativeDamageMult;
 		FP_Mult *= aeData.Type->FirepowerMultiplier;
 		Speed_Mult *= aeData.Type->SpeedMultiplier;
 		Armor_Mult *= aeData.Type->ArmorMultiplier;
@@ -75,6 +75,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		disableWeapons |= type->DisableWeapons;
 		disableSelfHeal |= type->DisableSelfHeal;
 		untrackable |= type->Untrackable;
+		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
 
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{

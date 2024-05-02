@@ -121,7 +121,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
 	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
-
+	this->ReceiveRelativeDamageMult.Read(exINI, pSection, "ReceiveRelativeDamageMultiplier");
 	this->DisableWeapons.Read(exINI, pSection, "DisableWeapons");
 
 	// Groups
@@ -179,6 +179,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->Crit_DisallowWarheads)
 		.Process(this->RevengeWeapon)
 		.Process(this->RevengeWeapon_AffectsHouses)
+		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->DisableWeapons)
 		.Process(this->Groups)
 		.Process(this->DisableSelfHeal)
