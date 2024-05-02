@@ -128,16 +128,11 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	exINI.ParseStringList(this->Groups, pSection, "Groups");
 	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
 
-	for (auto const group : this->Groups)
-	{
-		if (!map->contains(group))
-		{
+	for (const auto&  group : this->Groups) {
+		if (!map->contains(group)) {
 			map->insert(std::make_pair(group, std::set<PhobosAttachEffectTypeClass*>{this}));
-		}
-		else
-		{
-			auto const values = &map->at(group);
-			values->insert(this);
+		} else {
+			map->at(group).insert(this);
 		}
 	}
 
