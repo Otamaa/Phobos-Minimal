@@ -394,7 +394,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		//	pTeam, action ,
 		//	ToStrings((PhobosScripts)action), argument
 		//);
-		int Action = LuaBridge::GetAppropriateAction(int(action));
+		int Action = (int)action;
 
 		switch (PhobosScripts(Action))
 		{

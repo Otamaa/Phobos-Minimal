@@ -1,6 +1,6 @@
 #include "PhobosAttachEffectTypeClass.h"
 
-std::unordered_map<const char*, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
+std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
 Enumerable<PhobosAttachEffectTypeClass>::container_t Enumerable<PhobosAttachEffectTypeClass>::Array;
 
 bool PhobosAttachEffectTypeClass::HasTint()
@@ -10,8 +10,8 @@ bool PhobosAttachEffectTypeClass::HasTint()
 
 bool PhobosAttachEffectTypeClass::HasGroup(const char* pGroupID)
 {
-	for (auto const group : this->Groups) {
-		if (IS_SAME_STR_N(group, pGroupID)) {
+	for (const auto& group : this->Groups) {
+		if (IS_SAME_STR_N(group.c_str(), pGroupID)) {
 			return true;
 		}
 	}
@@ -19,13 +19,13 @@ bool PhobosAttachEffectTypeClass::HasGroup(const char* pGroupID)
 	return false;
 }
 
-bool PhobosAttachEffectTypeClass::HasGroups(std::vector<const char*> const& groupIDs, bool requireAll)
+bool PhobosAttachEffectTypeClass::HasGroups(std::vector<std::string> const& groupIDs, bool requireAll)
 {
 	size_t foundCount = 0;
 
-	for (auto const group : this->Groups) {
-		for (auto const requiredGroup : groupIDs) {
-			if (IS_SAME_STR_N(group, requiredGroup)) {
+	for (const auto& group : this->Groups) {
+		for (const auto& requiredGroup : groupIDs) {
+			if (IS_SAME_STR_N(group.c_str(), requiredGroup.c_str())) {
 
 				if (!requireAll)
 					return true;
@@ -38,12 +38,12 @@ bool PhobosAttachEffectTypeClass::HasGroups(std::vector<const char*> const& grou
 	return !requireAll ? false : foundCount >= groupIDs.size();
 }
 
-std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<const char*>& groupIDs)
+std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<std::string>& groupIDs)
 {
 	std::set<PhobosAttachEffectTypeClass*> types;
-	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
+	auto map = &PhobosAttachEffectTypeClass::GroupsMap;
 
-	for (auto const group : groupIDs) {
+	for (const auto& group : groupIDs) {
 		if (map->contains(group)) {
 			auto const values = &map->at(group);
 			types.insert(values->begin(), values->end());
@@ -199,4 +199,20 @@ void PhobosAttachEffectTypeClass::LoadFromStream(PhobosStreamReader& Stm)
 void PhobosAttachEffectTypeClass::SaveToStream(PhobosStreamWriter& Stm)
 {
 	this->Serialize(Stm);
+}
+
+bool PhobosAttachEffectTypeClass::LoadGlobals(PhobosStreamReader& Stm)
+{
+	bool result = Enumerable<PhobosAttachEffectTypeClass>::LoadGlobals(Stm)
+		&& Stm.Process(GroupsMap);
+
+	return result;
+}
+
+bool PhobosAttachEffectTypeClass::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	bool result = Enumerable<PhobosAttachEffectTypeClass>::SaveGlobals(Stm)
+		&& Stm.Process(GroupsMap);
+
+	return result;
 }

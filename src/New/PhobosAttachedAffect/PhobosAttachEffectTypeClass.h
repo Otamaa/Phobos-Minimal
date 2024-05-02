@@ -46,7 +46,7 @@ public:
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
 	Valueable<bool> DisableWeapons;
 
-	std::vector<const char*> Groups;
+	std::vector<std::string> Groups;
 
 	Valueable<bool> DisableSelfHeal;
 	Valueable<bool> Untrackable;
@@ -95,7 +95,7 @@ public:
 
 	bool HasTint();
 	bool HasGroup(const char* pGroupID);
-	bool HasGroups(std::vector<const char*> const& groupIDs, bool requireAll);
+	bool HasGroups(std::vector<std::string> const& groupIDs, bool requireAll);
 	AnimTypeClass* GetCumulativeAnimation(int cumulativeCount);
 
 	virtual ~PhobosAttachEffectTypeClass() override = default;
@@ -104,8 +104,11 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
-	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<const char*>& groupIDs);
-	static std::unordered_map<const char*, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
+	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
+	static std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 private:
 	template <typename T>

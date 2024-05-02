@@ -226,13 +226,15 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 
 }
 
-int LuaBridge::GetAppropriateAction(int from)
-{
+DEFINE_HOOK(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
+	GET(int, team, ECX);
+
 	for (auto& cur : SriptNumbers) {
-		if (cur.Alternate == from){
-			return cur.Original;
+		if (cur.Alternate == team) {
+			Debug::Log("Replacing TMission[%d to %d]\n", team, cur.Original);
+			R->ECX(cur.Original);
 		}
 	}
 
-	return from;
+	return 0x0;
 }

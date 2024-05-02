@@ -248,7 +248,6 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
-
 public:
 	FixedString<32> Name;
 
