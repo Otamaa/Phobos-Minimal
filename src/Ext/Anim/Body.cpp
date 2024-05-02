@@ -160,7 +160,6 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
 	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
 
-	bool adjustAccum = false;
 	double damage = 0;
 	int appliedDamage = 0;
 
@@ -173,15 +172,16 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
-		adjustAccum = true;
 		damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
-		pThis->Accum = damage;
 
 		// Deal damage if it is at least 1, otherwise accumulate it for later.
-		if (damage >= 1.0)
+		if (damage >= 1.0) {
 			appliedDamage = static_cast<int>(std::round(damage));
-		else
+			pThis->Accum = damage - appliedDamage;
+		} else {
+			pThis->Accum = damage;
 			return SkipDamage;
+		}
 	}
 	else
 	{
@@ -194,16 +194,11 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 
 		// Use Type->Damage as the actually dealt damage.
 		appliedDamage = static_cast<int>((pThis->Type->Damage) * damageMultiplier);
+		pThis->Accum = 0.0;
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
 		return  SkipDamage;
-
-	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
-	if (adjustAccum)
-		pThis->Accum = damage - appliedDamage;
-	else
-		pThis->Accum = 0.0;
 
 	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
