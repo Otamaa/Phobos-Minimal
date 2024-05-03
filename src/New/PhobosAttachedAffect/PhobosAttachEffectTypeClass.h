@@ -143,21 +143,7 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
-	static constexpr std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs)
-	{
-		std::set<PhobosAttachEffectTypeClass*> types;
-		auto map = &PhobosAttachEffectTypeClass::GroupsMap;
-
-		for (const auto& group : groupIDs){
-			auto iter = map->find(group);
-			if (iter != map->end()){
-				types.insert(iter.second.begin(), iter.second.end());
-			}
-		}
-
-	    return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
-	}
-
+	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
 	static std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

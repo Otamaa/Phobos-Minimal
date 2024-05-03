@@ -8,11 +8,28 @@ const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
 	return "AttachEffectTypes";
 }
 
+std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<std::string>& groupIDs)
+{
+	std::set<PhobosAttachEffectTypeClass*> types;
+	auto map = &PhobosAttachEffectTypeClass::GroupsMap;
+
+	for (const auto& group : groupIDs)
+	{
+		auto iter = map->find(group);
+		if (iter != map->end())
+		{
+			types.insert(iter->second.begin(), iter->second.end());
+		}
+	}
+
+	return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
+}
+
 void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name;
 
-	if (_IS_SAME_STR_N(pSection, NONE_STR))
+	if (IS_SAME_STR_N(pSection, NONE_STR))
 		return;
 
 	INI_EX exINI(pINI);
