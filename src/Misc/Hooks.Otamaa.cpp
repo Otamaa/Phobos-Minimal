@@ -2162,7 +2162,7 @@ struct TibPatch__ : public TiberiumClass {
 
 #pragma region Spread
 
-	void NOINLINE __RecalcSpreadData()
+	void __RecalcSpreadData()
 	{
 		this->Spread = 0;
 		this->SpreadLogic.Heap->Clear();
@@ -2187,7 +2187,7 @@ struct TibPatch__ : public TiberiumClass {
 		}
 	}
 
-	void NOINLINE __QueueSpreadAt(CellStruct* pCell)
+	void __QueueSpreadAt(CellStruct* pCell)
 	{
 		int tib_arr = CellStruct_totibarray_42B1C0(pCell);
 		auto pCellClass = MapClass::Instance->GetCellAt(pCell);
@@ -2204,7 +2204,7 @@ struct TibPatch__ : public TiberiumClass {
 		}
 	}
 
-	void NOINLINE __Spread()
+	void __Spread()
 	{
 		auto spreadHeaps = this->SpreadLogic.Heap;
 
@@ -2286,7 +2286,7 @@ struct TibPatch__ : public TiberiumClass {
 
 #pragma region Growth
 
-	void NOINLINE __RecalcGrowthData()
+	void __RecalcGrowthData()
 	{
 		this->Growth = 0;
 		this->GrowthLogic.Heap->Clear();
@@ -2311,7 +2311,7 @@ struct TibPatch__ : public TiberiumClass {
 		}
 	}
 
-	void NOINLINE __QueueGrowthAt(CellStruct* pCell)
+	void __QueueGrowthAt(CellStruct* pCell)
 	{
 		int tib_arr = CellStruct_totibarray_42B1C0(pCell);
 		auto pCellClass = MapClass::Instance->GetCellAt(pCell);
@@ -2329,7 +2329,7 @@ struct TibPatch__ : public TiberiumClass {
 		}
 	}
 
-	void NOINLINE __Growth() {
+	void __Growth() {
 		auto growthHeaps = this->GrowthLogic.Heap;
 
 		if (growthHeaps && growthHeaps->Count && this->GrowthPercentage > 0.00001)
@@ -4266,6 +4266,18 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 	return 0x4CA029;
 }
 
+//TODO :
+// maybe hook here , since it needed for the factory re-evaluation
+// this can make AI dont know what to do
+//  and this will break the break limit for player
+DEFINE_HOOK(0x4CA682, FactoryClass_TotalTechnoQueued_CompareType, 0x5)
+{
+	GET(TechnoClass*, queueed, ECX);
+	GET(TechnoTypeClass*, asked, EBX);
+
+	return queueed->GetTechnoType() == asked || TechnoExtContainer::Instance.Find(queueed)->Type == asked ?
+		0x4CA68E : 0x4CA693;
+}
 
 DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
 {

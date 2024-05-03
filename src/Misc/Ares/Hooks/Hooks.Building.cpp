@@ -136,7 +136,7 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 			if (pFactory && pFactory->Object)
 			{
-				auto pProdType = pFactory->Object->GetTechnoType();
+				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
 				const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
