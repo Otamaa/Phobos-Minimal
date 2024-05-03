@@ -8,10 +8,10 @@ struct WarheadFlags
 
 public:
 
-	bool operator==(WarheadFlags const& nThat) const
+	constexpr bool operator==(WarheadFlags const& nThat) const
 	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
 
-	bool operator!=(WarheadFlags const& nThat) const
+	constexpr bool operator!=(WarheadFlags const& nThat) const
 	{ return !((*this) == nThat); }
 
 };

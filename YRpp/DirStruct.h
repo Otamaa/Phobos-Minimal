@@ -59,15 +59,15 @@ struct DirStruct
 {
 public:
 
-	DirStruct(const DirStruct& nDir) noexcept :
+	constexpr DirStruct(const DirStruct& nDir) noexcept :
 		Raw { nDir.Raw }
 	{  }
 
-	explicit DirStruct() noexcept :
+	constexpr explicit DirStruct() noexcept :
 		Raw { 0 }
 	{ }
 
-	explicit DirStruct(int raw) noexcept :
+	constexpr explicit DirStruct(int raw) noexcept :
 		Raw { (unsigned short)raw }
 	{ }
 
@@ -77,11 +77,11 @@ public:
 	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
 
-	explicit DirStruct(const FacingType face) noexcept :
+	constexpr explicit DirStruct(const FacingType face) noexcept :
 		Raw { ((unsigned short)((unsigned char)face << 13 )) }
 	{ }
 
-	explicit DirStruct(const DirType32 face) noexcept :
+	constexpr explicit DirStruct(const DirType32 face) noexcept :
 		Raw { ((unsigned short)((unsigned char)face << 11)) }
 	{}
 
@@ -94,36 +94,36 @@ public:
 	explicit DirStruct(double Y, double X) noexcept : Raw { 0 }
 	{ SetRadian<65536>(Math::atan2(Y, X)); }
 
-	bool operator==(const DirStruct& another) const
+	constexpr FORCEINLINE bool operator==(const DirStruct& another) const
 	{
 		return this->Raw == another.Raw;
 	}
 
-	bool operator!=(const DirStruct& another) const
+	constexpr FORCEINLINE bool operator!=(const DirStruct& another) const
 	{
 		return this->Raw != another.Raw;
 	}
 
-	DirStruct& operator /= (const short nFace) {
+	constexpr FORCEINLINE DirStruct& operator /= (const short nFace) {
 		 this->Raw /= nFace;
 		return *this;
 	}
 
-	DirStruct& operator += (const DirStruct& rhs) {
+	constexpr FORCEINLINE DirStruct& operator += (const DirStruct& rhs) {
 		this->Raw += rhs.Raw;
 		return *this;
 	}
 
-	DirStruct& operator -= (const DirStruct& rhs) {
+	constexpr FORCEINLINE DirStruct& operator -= (const DirStruct& rhs) {
 		this->Raw -= rhs.Raw;
 		return *this;
 	}
 
-	DirStruct operator - (const DirStruct& rhs) const {
+	constexpr FORCEINLINE DirStruct operator - (const DirStruct& rhs) const {
 		return DirStruct(*this) -= rhs;
 	}
 
-	DirStruct operator - () const {
+	constexpr FORCEINLINE DirStruct operator - () const {
 		return DirStruct(-this->Raw);
 	}
 
@@ -155,10 +155,10 @@ public:
 		}
 	}
 
-	void SetDir(DirType dir) { Raw = ((unsigned short)((unsigned char)dir * 256)); }
-	DirType GetDirFixed() const { return (DirType)((((this->Raw / (32768 / 256)) + 1) / 2) & (int)DirType::Max); }
-	DirType GetDir() const { return (DirType)(this->Raw / 256); }
-	void SetDir(size_t bit, size_t val) {
+	constexpr FORCEINLINE void SetDir(DirType dir) { Raw = ((unsigned short)((unsigned char)dir * 256)); }
+	constexpr FORCEINLINE DirType GetDirFixed() const { return (DirType)((((this->Raw / (32768 / 256)) + 1) / 2) & (int)DirType::Max); }
+	constexpr FORCEINLINE DirType GetDir() const { return (DirType)(this->Raw / 256); }
+	constexpr FORCEINLINE void SetDir(size_t bit, size_t val) {
 		if (bit <= 16u)
 			Raw = ((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val));
 	}
@@ -167,20 +167,20 @@ public:
 	// then you should type <5> here.
 	// So does the others.
 	template<size_t Bits>
-	constexpr size_t GetValue(size_t offset = 0) const
+	constexpr FORCEINLINE  size_t GetValue(size_t offset = 0) const
 	{
 		return TranslateFixedPoint::TemplatedCompileTime<16, Bits>(this->Raw, offset);
 	}
 
-	constexpr size_t Getvalue8() const {
+	constexpr FORCEINLINE  size_t Getvalue8() const {
 		return this->GetValue<3>();
 	}
 
-	constexpr size_t Getvalue32() const {
+	constexpr FORCEINLINE  size_t Getvalue32() const {
 		return this->GetValue<5>();
 	}
 
-	constexpr size_t Getvalue256() const {
+	constexpr FORCEINLINE  size_t Getvalue256() const {
 		return this->GetValue<8>();
 	}
 
@@ -192,13 +192,13 @@ public:
 	}
 
 	template<size_t Bits>
-	constexpr void SetValue(size_t value, size_t offset = 0)
+	constexpr FORCEINLINE  void SetValue(size_t value, size_t offset = 0)
 	{
 		Raw = ((unsigned short)(TranslateFixedPoint::TemplatedCompileTime<Bits, 16>(value, offset)));
 	}
 
 	template<size_t Count>
-	constexpr size_t GetFacing(size_t offset = 0) const
+	constexpr FORCEINLINE  size_t GetFacing(size_t offset = 0) const
 	{
 		static_assert(std::has_single_bit(Count));
 
@@ -207,7 +207,7 @@ public:
 	}
 
 	template<size_t Count>
-	constexpr void SetFacing(size_t value, size_t offset = 0)
+	constexpr FORCEINLINE  void SetFacing(size_t value, size_t offset = 0)
 	{
 		static_assert(std::has_single_bit(Count));
 
@@ -244,7 +244,7 @@ public:
 	unsigned short Raw;
 
 private:
-	unsigned short Pad;
+	unsigned short Pad {};
 };
 
 static_assert(sizeof(DirStruct) == 4, "Invalid Size !");

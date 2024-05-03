@@ -17,19 +17,19 @@ public:
 	//	return *this;
 	//}
 
-	bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
-	bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }
+	constexpr bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
+	constexpr bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }
 
-	bool operator>(const Point2DBYTE& that) const { return X > that.X || X == that.X && Y > that.Y; }
-	bool operator>=(const Point2DBYTE& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
+	constexpr bool operator>(const Point2DBYTE& that) const { return X > that.X || X == that.X && Y > that.Y; }
+	constexpr bool operator>=(const Point2DBYTE& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
 
-	bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
-	bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
+	constexpr bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
+	constexpr bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
-	Point2DBYTE operator-(const Point2DBYTE& that) const { return {BYTE(X - that.X), BYTE(Y - that.Y)};}
-	Point2DBYTE& operator-=(const Point2DBYTE& that) { X -= that.X; Y -= that.Y; return *this; }
+	constexpr Point2DBYTE operator-(const Point2DBYTE& that) const { return {BYTE(X - that.X), BYTE(Y - that.Y)};}
+	constexpr Point2DBYTE& operator-=(const Point2DBYTE& that) { X -= that.X; Y -= that.Y; return *this; }
 
-	inline bool IsValid() const { return *this != (Point2DBYTE::Empty); }
+	constexpr bool IsValid() const { return *this != (Point2DBYTE::Empty); }
 
 	explicit operator DWORD() const {
 		DWORD result = 0;
@@ -37,7 +37,7 @@ public:
 		return result;
 	}
 
-	inline DWORD Pack() const noexcept {
+	DWORD Pack() const noexcept {
 		return (DWORD)(*this);
 	}
 
@@ -45,7 +45,7 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr  double pow() const {
 		return double(X * X) + double(Y * Y);
 	}
 
@@ -57,7 +57,7 @@ public:
 		return (that - *this).Length();
 	}
 
-	inline double DistanceFromSquared(const Point2DBYTE& that) const {
+	constexpr double DistanceFromSquared(const Point2DBYTE& that) const {
 		return (that - *this).pow();
 	}
 

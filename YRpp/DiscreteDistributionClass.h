@@ -20,11 +20,11 @@
 #include <utility>
 template <typename T>
 struct DistributionObject {
-	DistributionObject() = default;
-	explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
-	bool operator ==(const DistributionObject<T> &rhs) const { return false; }
-	bool operator !=(const DistributionObject<T> &rhs) const { return true; }
-	~DistributionObject() = default;
+	constexpr DistributionObject() = default;
+	constexpr explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
+	constexpr FORCEINLINE bool operator ==(const DistributionObject<T> &rhs) const { return false; }
+	constexpr FORCEINLINE bool operator !=(const DistributionObject<T> &rhs) const { return true; }
+	constexpr ~DistributionObject() = default;
 
 	T Value{};
 	unsigned int Weight{ 0u };

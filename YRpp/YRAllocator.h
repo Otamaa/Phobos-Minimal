@@ -14,7 +14,7 @@ public:
 		: MemoryBuffer(nullptr, size)
 	{ }
 
-	MemoryBuffer(void* pBuffer, int size) noexcept
+	explicit MemoryBuffer(void* pBuffer, int size) noexcept
 		: Buffer(pBuffer), Size(size)
 	{
 		if(!pBuffer && size > 0) {
@@ -40,8 +40,8 @@ public:
 		}
 	}
 
-	operator void * () const { return Buffer; }
-	operator char * () const { return (char *)Buffer; }
+	constexpr FORCEINLINE operator void * () const { return Buffer; }
+	constexpr FORCEINLINE operator char * () const { return (char *)Buffer; }
 
 	MemoryBuffer& operator = (MemoryBuffer const& other) noexcept
 	{
@@ -70,9 +70,9 @@ public:
 		this->Size = 0;
 	}
 
-	void * Get_Buffer() const { return Buffer; }
-	long Get_Size() const { return Size; }
-	bool Is_Valid() const { return Buffer != nullptr; }
+	constexpr FORCEINLINE void * Get_Buffer() const { return Buffer; }
+	constexpr FORCEINLINE long Get_Size() const { return Size; }
+	constexpr FORCEINLINE bool Is_Valid() const { return Buffer != nullptr; }
 
 public:
 	void* Buffer{ nullptr };

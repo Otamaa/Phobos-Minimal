@@ -25,52 +25,52 @@ public:
 
 	//operator overloads
 	//addition
-	Vector2D operator+(const Vector2D& a) const
+	constexpr Vector2D operator+(const Vector2D& a) const
 	{
 		return Vector2D{ X + a.X, Y + a.Y };
 	}
 	//addition
-	Vector2D& operator+=(const Vector2D& a)
+	constexpr Vector2D& operator+=(const Vector2D& a)
 	{
 		X += a.X;
 		Y += a.Y;
 		return *this;
 	}
 	//substraction
-	Vector2D operator-(const Vector2D& a) const
+	constexpr Vector2D operator-(const Vector2D& a) const
 	{
 		return Vector2D{ X - a.X, Y - a.Y };
 	}
 	//substraction
-	Vector2D& operator-=(const Vector2D& a)
+	constexpr Vector2D& operator-=(const Vector2D& a)
 	{
 		X -= a.X;
 		Y -= a.Y;
 		return *this;
 	}
 	//negation
-	Vector2D operator-() const
+	constexpr Vector2D operator-() const
 	{
 		return Vector2D{ -X, -Y };
 	}
 	//equality
-	inline bool operator==(const Vector2D& a) const
+	constexpr bool operator==(const Vector2D& a) const
 	{
 		return (X == a.X && Y == a.Y);
 	}
 	//unequality
-	inline bool operator!=(const Vector2D& a) const
+	constexpr bool operator!=(const Vector2D& a) const
 	{
 		return (X != a.X || Y != a.Y);
 	}
 	//scalar multiplication
-	Vector2D operator*(double r) const
+	constexpr Vector2D operator*(double r) const
 	{
 		return Vector2D{ static_cast<T>(X * r), static_cast<T>(Y * r) };
 	}
 
 	//scalar multiplication
-	Vector2D& operator*=(double r)
+	constexpr Vector2D& operator*=(double r)
 	{
 		X *= r;
 		Y *= r;
@@ -80,20 +80,20 @@ public:
 	//inline T& operator[](int i) { return (&X)[i]; }
 	//inline const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& at(int i) { return (&X)[i]; }
-	inline const T& at(int i) const { return (&X)[i]; }
+	constexpr  T& at(int i) { return (&X)[i]; }
+	constexpr  const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
-	double operator*(const Vector2D& a) const {
+	constexpr double operator*(const Vector2D& a) const {
 		return static_cast<double>(X) * a.X + static_cast<double>(Y) * a.Y;
 	}
 
-	inline bool IsValid() const { return *this != (Vector2D<T>::Empty); }
+	constexpr   bool IsValid() const { return *this != (Vector2D<T>::Empty); }
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr   double pow() const {
 		return (double)(X * X) + (double)(Y * Y);
 	}
 
@@ -105,7 +105,7 @@ public:
 		return (*this - that).Length();
 	}
 
-	inline double DistanceFromSquared(const Vector2D<T>& that) const {
+	constexpr   double DistanceFromSquared(const Vector2D<T>& that) const {
 		return (that - *this).pow();
 	}
 
@@ -128,13 +128,13 @@ public:
 
 	//operator overloads
 	//addition
-	Vector3D operator+(const Vector3D& a) const
+	constexpr Vector3D operator+(const Vector3D& a) const
 	{
 		return Vector3D{ X + a.X, Y + a.Y, Z + a.Z };
 	}
 
 	//addition
-	Vector3D& operator+=(const Vector3D& a)
+	constexpr Vector3D& operator+=(const Vector3D& a)
 	{
 		X += a.X;
 		Y += a.Y;
@@ -143,13 +143,13 @@ public:
 	}
 
 	//substraction
-	Vector3D operator-(const Vector3D& a) const
+	constexpr Vector3D operator-(const Vector3D& a) const
 	{
 		return Vector3D{ X - a.X, Y - a.Y, Z - a.Z };
 	}
 
 	//substraction
-	Vector3D& operator-=(const Vector3D& a)
+	constexpr Vector3D& operator-=(const Vector3D& a)
 	{
 		X -= a.X;
 		Y -= a.Y;
@@ -158,25 +158,25 @@ public:
 	}
 
 	//negation
-	Vector3D operator-() const
+	constexpr Vector3D operator-() const
 	{
 		return Vector3D{ -X, -Y, -Z };
 	}
 
 	//equality
-	inline bool operator==(const Vector3D& a) const
+	constexpr bool operator==(const Vector3D& a) const
 	{
 		return (X == a.X && Y == a.Y && Z == a.Z);
 	}
 
 	//unequality
-	inline bool operator!=(const Vector3D& a) const
+	constexpr bool operator!=(const Vector3D& a) const
 	{
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
 
 	//scalar multiplication
-	Vector3D operator*(double r) const
+	constexpr Vector3D operator*(double r) const
 	{
 		return Vector3D{
 			static_cast<T>(X * r),
@@ -184,11 +184,11 @@ public:
 			static_cast<T>(Z * r) };
 	}
 
-	Vector3D operator/(T nval) const
+	constexpr Vector3D operator/(T nval) const
 	{ return { (X / nval), (Y / nval), (Z / nval) }; }
 
 	//scalar multiplication
-	Vector3D& operator*=(double r)
+	constexpr Vector3D& operator*=(double r)
 	{
 		X *= r;
 		Y *= r;
@@ -196,23 +196,23 @@ public:
 		return *this;
 	}
 
-	inline T& operator[](int i) { return (&X)[i]; }
-	inline const T& operator[](int i) const { return (&X)[i]; }
+	constexpr T& operator[](int i) { return (&X)[i]; }
+	constexpr const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& at(int i) { return (&X)[i]; }
-	inline const T& at(int i) const { return (&X)[i]; }
+	constexpr  T& at(int i) { return (&X)[i]; }
+	constexpr  const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
-	double operator*(const Vector3D& a) const
+	constexpr double operator*(const Vector3D& a) const
 	{
 		return static_cast<double>(X * a.X)
 			+ static_cast<double>(Y * a.Y)
 			+ static_cast<double>(Z * a.Z);
 	}
 
-	inline bool IsValid() const { return *this != (Vector3D<T>::Empty); }
+	constexpr   bool IsValid() const { return *this != (Vector3D<T>::Empty); }
 //=============================Special cases=========================================
-	inline double powXY() const {
+	constexpr   double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}
 
@@ -224,7 +224,7 @@ public:
 		return (that - *this).LengthXY();
 	}
 
-	inline double DistanceFromSquaredXY(const Vector3D<T>& that) const {
+	constexpr   double DistanceFromSquaredXY(const Vector3D<T>& that) const {
 		return (that - *this).powXY();
 	}
 
@@ -232,7 +232,7 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr   double pow() const {
 		return double(X * X) + double(Y * Y) + double(Z * Z);
 	}
 
@@ -244,7 +244,7 @@ public:
 		return (that - *this).Length();
 	}
 
-	inline double DistanceFromSquared(const Vector3D<T>& that) const {
+	constexpr   double DistanceFromSquared(const Vector3D<T>& that) const {
 		return (that - *this).pow();
 	}
 
@@ -260,19 +260,19 @@ public:
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y, Z, W;
 
-	inline bool operator==(const Vector4D &b)
+	constexpr bool operator==(const Vector4D &b)
 	{
 		Vector4D a = *this;
 		return ((a[0] == b.at(0)) && (a[1] == b.at(1)) && (a[2] == b.at(2)) && (a[3] == b.at(3)));
 	}
 
-	inline bool operator!=(const Vector4D &b)
+	constexpr bool operator!=(const Vector4D &b)
 	{
 		Vector4D a = *this;
 		return ((a[0] != b.at(0)) || (a[1] != b.at(1)) || (a[2] != b.at(2)) || (a[3] != b.at(3)));
 	}
 
-	inline bool IsValid() const { return *this != (Vector4D<T>::Empty); }
+	constexpr  bool IsValid() const { return *this != (Vector4D<T>::Empty); }
 
 	//inline Vector4D& operator=(const Vector4D &v)
 	//{
@@ -283,7 +283,7 @@ public:
 	//	return *this;
 	//}
 
-	inline Vector4D &operator+=(const Vector4D &v)
+	constexpr Vector4D &operator+=(const Vector4D &v)
 	{
 		X += v.X;
 		Y += v.Y;
@@ -291,7 +291,7 @@ public:
 		W += v.W;
 		return *this;
 	}
-	inline Vector4D &operator-=(const Vector4D &v)
+	constexpr Vector4D &operator-=(const Vector4D &v)
 	{
 		X -= v.X;
 		Y -= v.Y;
@@ -299,7 +299,7 @@ public:
 		W += v.W;
 		return *this;
 	}
-	inline Vector4D &operator*=(float k)
+	constexpr Vector4D &operator*=(float k)
 	{
 		X = X * k;
 		Y = Y * k;
@@ -307,7 +307,7 @@ public:
 		W = W * k;
 		return *this;
 	}
-	inline Vector4D &operator/=(float k)
+	constexpr   Vector4D &operator/=(float k)
 	{
 		k = 1.0f / k;
 		X = X * k;
@@ -317,12 +317,12 @@ public:
 		return *this;
 	}
 
-	inline Vector4D operator*(float k)
+	constexpr Vector4D operator*(float k)
 	{
 		return Vector4D{ (X * k), (Y * k), (Z * k), (W * k) };
 	}
 
-	inline Vector4D operator/(float k)
+	constexpr Vector4D operator/(float k)
 	{
 		float ook = 1.0f / k;
 		Vector4D nThis = *this;
@@ -330,36 +330,36 @@ public:
 	}
 
 
-	inline Vector4D operator+(const Vector4D &b)
+	constexpr Vector4D operator+(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return Vector4D{ nThis.at(0) + b.at(0),nThis.at(1) + b.at(1),nThis.at(2) + b.at(2),nThis.at(3) + b.at(3) };
 	}
 
 
-	inline Vector4D operator-(const Vector4D &b)
+	constexpr Vector4D operator-(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return Vector4D{ nThis.at(0) - b.at(0), nThis.at(1) - b.at(1), nThis.at(2) - b.at(2), nThis.at(3) - b.at(3) };
 	}
 
-	inline double operator*(const Vector4D &b)
+	constexpr double operator*(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return nThis.at(0) * b.at(0) + nThis.at(1) * b.at(1) + nThis.at(2) * b.at(2) + nThis.at(3) * b.at(3);
 	}
 
-	inline T& operator[](int i) { return (&X)[i]; }
-	inline const T& operator[](int i) const { return (&X)[i]; }
+	constexpr T& operator[](int i) { return (&X)[i]; }
+	constexpr const T& operator[](int i) const { return (&X)[i]; }
 
-	inline T& at(int i) { return (&X)[i]; }
-	inline const T& at(int i) const { return (&X)[i]; }
+	constexpr  T& at(int i) { return (&X)[i]; }
+	constexpr  const T& at(int i) const { return (&X)[i]; }
 
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr   double pow() const {
 		return double(X * X) + double(Y * Y) + double(Z * Z) + double(W * W);
 	}
 
@@ -371,7 +371,7 @@ public:
 		return (that - *this).Length();
 	}
 
-	inline double DistanceFromSquared(const Vector4D<T>& that) const {
+	constexpr   double DistanceFromSquared(const Vector4D<T>& that) const {
 		return (that - *this).pow();
 	}
 

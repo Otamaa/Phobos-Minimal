@@ -120,44 +120,44 @@ void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 template <typename T>
 class IndexBitfield {
 public:
-	IndexBitfield() = default;
-	explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
+	constexpr IndexBitfield() = default;
+	constexpr explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
 
-	IndexBitfield<T>& operator=(DWORD other)
+	constexpr IndexBitfield<T>& operator=(DWORD other)
 	{
 		std::swap(data, other);
 		return *this;
 	}
 
-	bool Contains(const T obj) const {
+	constexpr bool Contains(const T obj) const {
 		return Contains(obj->ArrayIndex);
 	}
 
-	bool Contains(int index) const {
+	constexpr bool Contains(int index) const {
 		return (this->data & (1u << index)) != 0u;
 	}
 
-	void Add(int index) {
+	constexpr void Add(int index) {
 		this->data |= (1u << index);
 	}
 
-	void Add(const T obj) {
+	constexpr void Add(const T obj) {
 		Add(obj->ArrayIndex);
 	}
 
-	void Remove(int index) {
+	constexpr void Remove(int index) {
 		this->data &= ~(1u << index);
 	}
 
-	void Remove(const T obj) {
+	constexpr void Remove(const T obj) {
 		Remove(obj->ArrayIndex);
 	}
 
-	void Clear() {
+	constexpr void Clear() {
 		this->data = 0u;
 	}
 
-	operator DWORD() const {
+	constexpr operator DWORD() const {
 		return this->data;
 	}
 

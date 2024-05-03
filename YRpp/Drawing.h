@@ -16,7 +16,7 @@ struct DirtyAreaStruct
 	RectangleStruct Rect;
 	bool alphabool10;
 
-	bool operator==(const DirtyAreaStruct& another) const
+	constexpr FORCEINLINE bool operator==(const DirtyAreaStruct& another) const
 	{
 		return
 			Rect.X == another.Rect.X &&
@@ -53,7 +53,7 @@ struct Drawing
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct* __fastcall GetTextBox(
-		RectangleStruct* pOutBuffer, const wchar_t* pText, 
+		RectangleStruct* pOutBuffer, const wchar_t* pText,
 		int nX, int nY, DWORD flags, int nMarginX, int nMarginY) {
 		JMP_STD(0x4A59E0);
 	}
@@ -151,7 +151,7 @@ struct Drawing
 			(green >> GreenShiftRight << GreenShiftLeft) |
 			(blue >> BlueShiftRight << BlueShiftLeft);
 	}
-	
+
 	static int RGB_To_Int(int red, int green, int blue)
 	{
 		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
@@ -198,7 +198,7 @@ struct Drawing
 
 	// Converts a 16bit color to an RGB color.
 	static ColorStruct WordColor(WORD bits) {
-		return { 
+		return {
 			static_cast<BYTE>(((bits & 0xF800) >> 11) << 3),
 			static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2),
 			static_cast<BYTE>((bits & 0x001F) << 3)
@@ -337,7 +337,7 @@ public:
 		if (ptr >= BufferTail)
 			reinterpret_cast<char*&>(ptr) -= BufferSize;
 	}
-	
+
 	BSurface* GetSurface() const { return Surface; }
 	const RectangleStruct& GetArea() const { return Area; }
 	unsigned int GetBufferWidth() const { return Width; }
@@ -377,7 +377,7 @@ public:
 		if (ptr >= BufferTail)
 			reinterpret_cast<char*&>(ptr) -= BufferSize;
 	}
-	
+
 	BSurface* GetSurface() const { return Surface; }
 	const RectangleStruct& GetArea() const { return Area; }
 	unsigned int GetBuffer_Width() const { return Width; }

@@ -11,8 +11,6 @@
 
 #include <TacticalClass.h>
 
-#include <Utilities/Helpers.h>
-
 bool MapRevealer::AffectsHouse(HouseClass* const pHouse)
 {
 	auto Player = HouseClass::CurrentPlayer();
@@ -31,51 +29,10 @@ bool MapRevealer::AffectsHouse(HouseClass* const pHouse)
 		(RulesClass::Instance->AllyReveal && pHouse->IsAlliedWith(Player));
 }
 
-bool MapRevealer::IsCellAvailable(const CellStruct& cell) const
-{
-	auto const sum = cell.X + cell.Y;
-
-	return sum > this->MapWidth
-		&& cell.X - cell.Y < this->MapWidth
-		&& cell.Y - cell.X < this->MapWidth
-		&& sum <= this->MapWidth + 2 * this->MapHeight;
-}
-
 bool MapRevealer::CheckLevel(const CellStruct& offset, int level) const
 {
 	auto const cellLevel = this->Base() + offset + GetRelation(offset) - this->CellOffset;
 	return MapClass::Instance->GetCellAt(cellLevel)->Level < level + Unsorted::BridgeLevels;
-}
-
-CellStruct MapRevealer::TranslateBaseCell(const CoordStruct& coords) const
-{
-	auto const adjust = (Game::AdjustHeight(coords.Z) / -30) << 8;
-	auto const baseCoords = coords + CoordStruct { adjust, adjust, 0 };
-	return CellClass::Coord2Cell(baseCoords);
-}
-
-CellStruct MapRevealer::GetOffset(const CoordStruct& coords, const CellStruct& base) const
-{
-	return base - CellClass::Coord2Cell(coords) - CellStruct { 2, 2 };
-}
-
-bool MapRevealer::RequiresExtraChecks()
-{
-	return Helpers::Alex::is_any_of(SessionClass::Instance->GameMode, GameMode::LAN, GameMode::Internet) &&
-		SessionClass::Instance->MPGameMode && !SessionClass::Instance->MPGameMode->vt_entry_04();
-}
-
-template <typename T>
-inline constexpr int sgn(T val)
-{
-	// http://stackoverflow.com/a/4609795
-	return (T(0) < val) - (val < T(0));
-}
-
-CellStruct MapRevealer::GetRelation(const CellStruct& offset)
-{
-	return{ static_cast<short>(sgn(-offset.X)),
-		static_cast<short>(sgn(-offset.Y)) };
 }
 
 MapRevealer::MapRevealer(const CoordStruct& coords) :
@@ -231,7 +188,7 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 	}
 }
 
-#ifndef aaa
+#ifdef aaa
 DEFINE_HOOK(0x5673A0, MapClass_RevealArea0, 5)
 {
 	//GET(MapClass*, pThis, ECX);
@@ -282,4 +239,8 @@ DEFINE_HOOK(0x567DA0, MapClass_RevealArea2, 5)
 
 	return 0x567F61;
 }
+#else
+DEFINE_JUMP(LJMP, 0x5673A0, GET_OFFSET(MapRevealer::MapClass_RevealArea0));
+DEFINE_JUMP(LJMP, 0x5678E0, GET_OFFSET(MapRevealer::MapClass_RevealArea1));
+DEFINE_JUMP(LJMP, 0x567DA0, GET_OFFSET(MapRevealer::MapClass_RevealArea2));
 #endif

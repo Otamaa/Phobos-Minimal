@@ -19,7 +19,7 @@ public:
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }
 	unsigned char* GetCharacterBitmap(wchar_t wch) { JMP_THIS(0x4346C0); }
 
-	void SetBounds(LTRBStruct* pBound)
+	constexpr FORCEINLINE void SetBounds(LTRBStruct* pBound)
 	{
 		if (pBound)
 			this->Bounds = *pBound;
@@ -27,7 +27,7 @@ public:
 			this->Bounds = { 0,0,0,0 };
 	}
 
-	void SetBounds_Rect(RectangleStruct* pBound)
+	constexpr FORCEINLINE void SetBounds_Rect(RectangleStruct* pBound)
 	{
 		if (pBound)
 		{
@@ -38,17 +38,17 @@ public:
 			this->Bounds = { 0,0,0,0 };
 	}
 
-	void SetColor(WORD nColor)
+	constexpr FORCEINLINE void SetColor(WORD nColor)
 	{
 		this->Color = nColor;
 	}
 
-	void SetField20(int x)
+	constexpr FORCEINLINE void SetField20(int x)
 	{
 		this->field_20 = x;
 	}
 
-	void SetField41(char flag)
+	constexpr FORCEINLINE void SetField41(char flag)
 	{
 		this->field_41 = flag;
 	}

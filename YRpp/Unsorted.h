@@ -186,7 +186,7 @@ struct Game
 		CALL(0x7C5F00);
 	}
 
-	static int __forceinline AdjustHeight(int height)  {
+	static int FORCEINLINE AdjustHeight(int height)  {
 		return F2I((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 

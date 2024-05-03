@@ -259,11 +259,11 @@ struct BytePalette
 {
 	static inline constexpr int EntriesCount = 256;
 
-	BytePalette() noexcept :
+	constexpr BytePalette() noexcept :
 		Entries{}
 	{}
 
-	BytePalette(const ColorStruct& rgb) :
+	constexpr BytePalette(const ColorStruct& rgb) :
 		Entries{} {
 		for (int i = 0; i < EntriesCount; ++i)
 			Entries[i] = rgb;
@@ -274,21 +274,21 @@ struct BytePalette
 		std::memcpy(this, &that, sizeof(BytePalette));
 	}
 
-	~BytePalette() = default;
+	constexpr ~BytePalette() = default;
 
-	operator const unsigned char* () const { return (const unsigned char*)&Entries[0]; }
-	operator unsigned char* () { return (unsigned char*)&Entries[0]; }
+	constexpr FORCEINLINE operator const unsigned char* () const { return (const unsigned char*)&Entries[0]; }
+	constexpr FORCEINLINE operator unsigned char* () { return (unsigned char*)&Entries[0]; }
 
-	ColorStruct& operator [](int const idx)
+	constexpr FORCEINLINE ColorStruct& operator [](int const idx)
 	{ return this->Entries[idx]; }
 
-	ColorStruct const& operator [](int const idx) const
+	constexpr FORCEINLINE ColorStruct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 
-	ColorStruct& at(int const idx)
+	constexpr FORCEINLINE ColorStruct& at(int const idx)
 	{ return this->Entries[idx]; }
 
-	ColorStruct const& at(int const idx) const
+	constexpr FORCEINLINE ColorStruct const& at(int const idx) const
 	{ return this->Entries[idx]; }
 
 	bool operator==(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) == 0; }
@@ -331,9 +331,9 @@ public :
 #pragma pack(push, 1)
 struct Color16Struct
 {
-	Color16Struct() = default;
+	constexpr Color16Struct() = default;
 
-	explicit Color16Struct(ColorStruct const color) :
+	constexpr explicit Color16Struct(ColorStruct const color) :
 		B(static_cast<unsigned short>(color.B >> 3u)),
 		R(static_cast<unsigned short>(color.R >> 3u)),
 		G(static_cast<unsigned short>(color.G >> 2u))
@@ -346,14 +346,14 @@ struct Color16Struct
 		: Color16Struct(ColorStruct(color))
 	{ }
 
-	Color16Struct(WORD const r, WORD const g, WORD const b)
+	constexpr Color16Struct(WORD const r, WORD const g, WORD const b)
 		:B(b) ,R(r) , G(g)
 	{ }
 
-	bool operator == (Color16Struct const rhs) const
+	constexpr FORCEINLINE bool operator == (Color16Struct const rhs) const
 	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
 
-	bool operator != (Color16Struct const rhs) const
+	constexpr FORCEINLINE bool operator != (Color16Struct const rhs) const
 	{ return !(*this == rhs); }
 
 	static const Color16Struct Empty;
@@ -365,7 +365,7 @@ struct Color16Struct
 		return ret;
 	}
 
-	explicit operator DWORD() const
+	FORCEINLINE explicit operator DWORD() const
 	{ return static_cast<DWORD>(ColorStruct(*this)); }
 
 	uintptr_t ToInit() const
@@ -396,10 +396,10 @@ struct Byte16Palette
 {
 	Color16Struct Entries[256];
 
-	Color16Struct& operator [](int const idx)
+	constexpr FORCEINLINE Color16Struct& operator [](int const idx)
 	{ return this->Entries[idx]; }
 
-	Color16Struct const& operator [](int const idx) const
+	FORCEINLINE Color16Struct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 };
 

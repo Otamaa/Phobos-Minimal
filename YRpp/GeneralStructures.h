@@ -29,7 +29,7 @@ struct BasePlanningCell {
 // this crap is used in several Base planning routines
 
 	// for qsort
-inline NAKED int __cdecl BasePlanningCellContainer_Comparator(const void*, const void*) 
+inline NAKED int __cdecl BasePlanningCellContainer_Comparator(const void*, const void*)
 	{ JMP(0x5108F0); }
 
 struct BasePlanningCellContainer {
@@ -80,7 +80,7 @@ public:
 
 	constexpr size_t size() const { return count; }
 
-	const T& at(int Index) const { return Data[Index]; }
-	T& operator[](int nIdx) { return Data[nIdx]; }
-	const T& operator[](int nIdx) const { return Data[nIdx]; }
+	constexpr const T& at(int Index) const { return Data[Index]; }
+	constexpr T& operator[](int nIdx) { return Data[nIdx]; }
+	constexpr const T& operator[](int nIdx) const { return Data[nIdx]; }
 };

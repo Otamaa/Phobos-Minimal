@@ -3,6 +3,7 @@
 #include <TiberiumClass.h>
 #include <RulesClass.h>
 #include <CRT.h>
+#include <PriorityQueueClass.h>
 
 class VeinholeLogic
 {
@@ -14,7 +15,7 @@ public:
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 		std::memset(States, 0, sizeof(bool) * nCount);
-		Heap = GameCreate<PointerHeapClass<MapSurfaceData>>(nCount);
+		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
 	}
 
 	//74E8A0
@@ -38,7 +39,7 @@ public:
 	}
 
 	int Count;
-	PointerHeapClass<MapSurfaceData>* Heap;
+	TPriorityQueueClass<MapSurfaceData>* Heap;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
 	bool* States;

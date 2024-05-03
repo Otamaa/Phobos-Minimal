@@ -3,6 +3,8 @@
 #include <CoordStruct.h>
 #include <CellStruct.h>
 
+#include <Utilities/Helpers.h>
+
 class HouseClass;
 class MapClass;
 class CellClass;
@@ -14,7 +16,7 @@ public:
 	MapRevealer(const CellStruct& cell);
 	MapRevealer(const CellStruct* pCell);
 
-	const CellStruct& Base() const
+	constexpr const CellStruct& Base() const
 	{
 		return this->BaseCell;
 	}
@@ -29,7 +31,7 @@ public:
 
 	void Process1(CellClass* pCell, bool fog, bool add) const;
 
-	bool IsCellAllowed(const CellStruct& cell) const
+	constexpr bool IsCellAllowed(const CellStruct& cell) const
 	{
 		if (this->RequiredChecks)
 		{
@@ -44,16 +46,44 @@ public:
 		return true;
 	}
 
-	bool IsCellAvailable(const CellStruct& cell) const;
+	constexpr bool IsCellAvailable(const CellStruct& cell) const
+	{
+		auto const sum = cell.X + cell.Y;
+
+		return sum > this->MapWidth
+			&& cell.X - cell.Y < this->MapWidth
+			&& cell.Y - cell.X < this->MapWidth
+			&& sum <= this->MapWidth + 2 * this->MapHeight;
+	}
+
 	bool CheckLevel(const CellStruct& offset, int level) const;
 
 	static bool AffectsHouse(HouseClass* const pHouse);
-	static bool RequiresExtraChecks();
-	static CellStruct GetRelation(const CellStruct& offset);
+
+	static constexpr bool RequiresExtraChecks()
+	{
+		return Helpers::Alex::is_any_of(SessionClass::Instance->GameMode, GameMode::LAN, GameMode::Internet) &&
+			SessionClass::Instance->MPGameMode && !SessionClass::Instance->MPGameMode->vt_entry_04();
+	}
+
+	static constexpr CellStruct GetRelation(const CellStruct& offset)
+	{
+		return{ static_cast<short>(Math::signum(-offset.X)),
+			static_cast<short>(Math::signum(-offset.Y)) };
+	}
 
 private:
-	CellStruct TranslateBaseCell(const CoordStruct& coords) const;
-	CellStruct GetOffset(const CoordStruct& coords, const CellStruct& base) const;
+	FORCEINLINE CellStruct TranslateBaseCell(const CoordStruct& coords) const
+	{
+		auto const adjust = (Game::AdjustHeight(coords.Z) / -30) << 8;
+		auto const baseCoords = coords + CoordStruct { adjust, adjust, 0 };
+		return CellClass::Coord2Cell(baseCoords);
+	}
+
+	constexpr CellStruct GetOffset(const CoordStruct& coords, const CellStruct& base) const
+	{
+		return base - CellClass::Coord2Cell(coords) - CellStruct { 2, 2 };
+	}
 
 	template <typename T>
 	void RevealImpl(const CoordStruct& coords, int radius, HouseClass* pHouse, bool onlyOutline, bool allowRevealByHeight, T func) const;

@@ -18,37 +18,37 @@ public:
 	//	return *this;
 	//}
 
-	bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
-	bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }
+	constexpr bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
+	constexpr bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }
 
-	Point3D operator+() const { return {+X, +Y, +Z};}
-	Point3D operator-() const { return {-X, -Y, -Z};}
+	constexpr Point3D operator+() const { return {+X, +Y, +Z};}
+	constexpr Point3D operator-() const { return {-X, -Y, -Z};}
 
-	Point3D operator+(const Point3D& that) const { return {X + that.X, Y + that.Y, Z + that.Z};}
-	Point3D& operator+=(const Point3D& that) { X += that.X; Y += that.Y; Z += that.Z; return *this; }
+	constexpr Point3D operator+(const Point3D& that) const { return {X + that.X, Y + that.Y, Z + that.Z};}
+	constexpr Point3D& operator+=(const Point3D& that) { X += that.X; Y += that.Y; Z += that.Z; return *this; }
 
-	Point3D operator-(const Point3D& that) const { return {X - that.X, Y - that.Y, Z - that.Z};}
-	Point3D& operator-=(const Point3D& that) { X -= that.X; Y -= that.Y; Z -= that.Z; return *this; }
+	constexpr Point3D operator-(const Point3D& that) const { return {X - that.X, Y - that.Y, Z - that.Z};}
+	constexpr Point3D& operator-=(const Point3D& that) { X -= that.X; Y -= that.Y; Z -= that.Z; return *this; }
 
-	Point3D operator*(const Point3D& that) const { return {X * that.X, Y * that.Y, Z * that.Z};}
-	Point3D operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
-	Point3D operator*(int factor) const { return {X * factor, Y * factor, Z * factor};}
-	Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
+	constexpr Point3D operator*(const Point3D& that) const { return {X * that.X, Y * that.Y, Z * that.Z};}
+	constexpr Point3D operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
+	constexpr Point3D operator*(int factor) const { return {X * factor, Y * factor, Z * factor};}
+	constexpr Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
 
-	Point3D operator%(const Point3D& that) const { return {X / that.X, Y / that.Y, Z / that.Z};}
-	Point3D operator%=(const Point3D& that) { X /= that.X; Y /= that.Y; Z /= that.Z; return *this; }
-	Point3D operator%(int factor) const { return {X / factor, Y / factor, Z / factor};}
-	Point3D& operator%=(int factor) { X /= factor; Y /= factor; Z /= factor; return *this; }
+	constexpr Point3D operator%(const Point3D& that) const { return {X / that.X, Y / that.Y, Z / that.Z};}
+	constexpr Point3D operator%=(const Point3D& that) { X /= that.X; Y /= that.Y; Z /= that.Z; return *this; }
+	constexpr Point3D operator%(int factor) const { return {X / factor, Y / factor, Z / factor};}
+	constexpr Point3D& operator%=(int factor) { X /= factor; Y /= factor; Z /= factor; return *this; }
 
-	Point3D operator&(const Point3D& that) const { return {X & that.X, Y & that.Y, Z & that.Z};}
-	Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
-	Point3D operator&(int factor) const { return {X & factor, Y & factor, Z & factor};}
-	Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
+	constexpr Point3D operator&(const Point3D& that) const { return {X & that.X, Y & that.Y, Z & that.Z};}
+	constexpr Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
+	constexpr Point3D operator&(int factor) const { return {X & factor, Y & factor, Z & factor};}
+	constexpr Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
 
-	inline bool IsValid() const { return *this != (Point3D::Empty); }
+	constexpr bool IsValid() const { return *this != (Point3D::Empty); }
 
 //=============================Special cases=========================================
-	inline double powXY() const {
+	constexpr double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}
 
@@ -60,7 +60,7 @@ public:
 		return (that - *this).LengthXY();
 	}
 
-	inline double DistanceFromSquaredXY(const Point3D& that) const {
+	constexpr double DistanceFromSquaredXY(const Point3D& that) const {
 		return (that - *this).powXY();
 	}
 
@@ -68,7 +68,7 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr double pow() const {
 		return double(X * X) + double(Y * Y) + double (Z * Z);
 	}
 
@@ -80,7 +80,7 @@ public:
 		return (that - *this).Length();
 	}
 
-	inline double DistanceFromSquared(const Point3D& that) const {
+	constexpr double DistanceFromSquared(const Point3D& that) const {
 		return (that - *this).pow();
 	}
 

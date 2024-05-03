@@ -69,7 +69,7 @@ namespace Helpers {
 			using is_transparent = void;
 
 			template <typename T, typename U>
-			bool operator()(T&& lhs, U&& rhs) const {
+			constexpr bool operator()(T&& lhs, U&& rhs) const {
 				return std::less<>()(*lhs, *rhs);
 			}
 		};
@@ -89,44 +89,44 @@ namespace Helpers {
 			set_type _set;
 
 		public:
-			bool operator() (T item) {
+			inline bool operator() (T item) {
 				insert(item);
 				return true;
 			}
 
-			void insert(T value) {
+			inline void insert(T value) {
 				_set.insert(value);
 			}
 
-			size_t size() const {
+			constexpr inline size_t size() const {
 				return _set.size();
 			}
 
-			typename set_type::const_iterator begin() const {
+			constexpr inline typename set_type::const_iterator begin() const {
 				return _set.begin();
 			}
 
-			typename set_type::const_iterator end() const {
+			constexpr inline typename set_type::const_iterator end() const {
 				return _set.end();
 			}
 
 			template <typename Func>
-			auto for_each(Func&& action) const {
+			constexpr inline auto for_each(Func&& action) const {
 				return std::find_if_not(begin(), end(), action);
 			}
 
 			template <typename Func>
-			void apply_function_for_each(Func&& action) const {
+			constexpr inline void apply_function_for_each(Func&& action) const {
 				static_cast<void>(std::find_if_not(begin(), end(), action));
 			}
 
 			template <typename Func>
-			int for_each_count(Func&& action) const {
+			constexpr inline int for_each_count(Func&& action) const {
 				return std::distance(begin(), std::find_if_not(begin(), end(), action));
 			}
 
 			template <typename Func>
-			void for_each(Func&& action) {
+			constexpr inline void for_each(Func&& action) {
 				std::for_each(begin(), end(), action);
 			}
 		};
@@ -155,7 +155,7 @@ namespace Helpers {
 			\author AlexB
 			\date 2010-04-27
 		*/
-		inline int getCappedDuration(int CurrentValue, int Duration, int Cap) {
+		constexpr inline int getCappedDuration(int CurrentValue, int Duration, int Cap) {
 			// Usually, the new duration is just added.
 			int ProposedDuration = CurrentValue + Duration;
 
@@ -504,7 +504,7 @@ namespace Helpers {
 
 
 		template <typename InIt, typename Pred>
-		inline auto find_if(InIt first, InIt last, Pred pred)
+		constexpr inline auto find_if(InIt first, InIt last, Pred pred)
 		{
 			auto i = first;
 			for (; i != last; ++i) {
@@ -517,12 +517,12 @@ namespace Helpers {
 		}
 
 		template <typename Value, typename Option>
-		inline bool is_any_of(Value&& value, Option&& option) {
+		constexpr inline bool is_any_of(Value&& value, Option&& option) {
 			return value == option;
 		}
 
 		template <typename Value, typename Option, typename... Options>
-		inline bool is_any_of(Value&& value, Option&& first_option, Options&&... other_options) {
+		constexpr inline bool is_any_of(Value&& value, Option&& first_option, Options&&... other_options) {
 			return value == first_option || is_any_of(std::forward<Value>(value), std::forward<Options>(other_options)...);
 		}
 
@@ -558,7 +558,7 @@ namespace Helpers {
 			\date 2014-08-27
 		*/
 		template <typename InIt, typename Pred, typename Fn>
-		inline void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
+		constexpr inline void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
 			first = find_if(first, last, pred);
 
 			while (first != last) {
@@ -583,7 +583,7 @@ namespace Helpers {
 			\date 2014-08-27
 		*/
 		template <typename InIt, typename Pred, typename Fn>
-		inline void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
+		constexpr inline void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
 			if (count) {
 				first = find_if(first, last, pred);
 
@@ -618,24 +618,24 @@ namespace Helpers {
 			\date 2015-08-11
 		*/
 		template <typename FwdIt>
-		inline void selectionsort(FwdIt first, FwdIt last) {
+		constexpr inline void selectionsort(FwdIt first, FwdIt last) {
 			// this is a special case of a full partial sort
 			selectionsort(first, last, last);
 		}
 
 		template <typename FwdIt, typename Pred>
-		inline void selectionsort(FwdIt first, FwdIt last, Pred pred) {
+		constexpr inline void selectionsort(FwdIt first, FwdIt last, Pred pred) {
 			// this is a special case of a full partial sort
 			selectionsort(first, last, last, pred);
 		}
 
 		template <typename FwdIt>
-		inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
+		constexpr inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
 			selectionsort(first, middle, last, std::less<>());
 		}
 
 		template <typename FwdIt, typename Pred>
-		inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
+		constexpr inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
 			while (first != middle) {
 				auto const it = std::min_element(first, last, pred);
 				std::iter_swap(first, it);

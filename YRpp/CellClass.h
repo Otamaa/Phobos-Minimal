@@ -290,6 +290,15 @@ public:
 	bool CanTiberiumGerminate(TiberiumClass* tib) const
 		{ JMP_THIS(0x4838E0); }
 
+	bool CanTiberiumGrowth() const
+		{ JMP_THIS(0x483620);}
+
+	bool CanTiberiumSpread() const
+		{ JMP_THIS(0x483690);}
+
+	bool GrowTiberium() const
+		{ JMP_THIS(0x483710); }
+
 	void SetMapCoords(const CoordStruct& coords) const
 		{ JMP_THIS(0x485240); }
 
@@ -387,10 +396,10 @@ public:
 		{ JMP_THIS(0x487D00); }
 
 	// helper
-	FORCEINLINE bool ContainsBridge() const
+	constexpr FORCEINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
-	FORCEINLINE bool ContainsBridgeEx() const
+	constexpr FORCEINLINE bool ContainsBridgeEx() const
 		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
 	FORCEINLINE bool ContainsBridgeBody() const
@@ -406,17 +415,17 @@ public:
 	FORCEINLINE ObjectClass* GetContent(int z) const
 	{ return this->ContainsBridge() || z >= (Unsorted::LevelHeight * (this->Level + 4)) ? this->AltObject : this->FirstObject; }
 
-	FORCEINLINE int GetLevelFrom(CellClass const* const	pSource) const
+	constexpr FORCEINLINE int GetLevelFrom(CellClass const* const	pSource) const
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
-	FORCEINLINE int GetLevel() const
+	constexpr FORCEINLINE int GetLevel() const
 	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
-	static FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
+	static constexpr FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
 		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
 	}
 
-	static FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
+	static constexpr FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 

@@ -41,7 +41,8 @@ class TemporalClass;
 class TeamClass;
 struct VeterancyStruct
 {
-	VeterancyStruct() = default;
+	constexpr VeterancyStruct() = default;
+	constexpr ~VeterancyStruct() = default;
 
 	explicit VeterancyStruct(double value) noexcept {
 		this->Add(value);

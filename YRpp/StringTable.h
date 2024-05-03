@@ -52,7 +52,7 @@ struct CSFString
 	CSFString *PreviousEntry;
 	wchar_t Text[102];
 
-	CSFString() : PreviousEntry(nullptr) {
+	constexpr CSFString() : PreviousEntry(nullptr) {
 		*Text = 0;
 	}
 };

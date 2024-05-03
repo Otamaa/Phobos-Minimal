@@ -12,13 +12,21 @@ class TPriorityQueueClass
 {
 public:
 	TPriorityQueueClass(int capacity = 0) :
-		Capacity(capacity),
 		Count(0),
+		Capacity(capacity),
 		Nodes((T**)YRMemory::Allocate(sizeof(T*)* (capacity + 1))),
-		LMost((T*)nullptr),
-		RMost((T*)0xFFFFFFFF)
+		LMost(0),
+		RMost(-1)
 	{
-		memset(Nodes, 0, sizeof(T*)* (Count + 1));
+		if constexpr (!std::is_pointer<T>())
+			memset(Nodes, 0, sizeof(T*) * (Count + 1));
+		else
+		{
+			for (int i = 0; i < Count; ++i)
+			{
+				Nodes[i] = nullptr;
+			}
+		}
 	}
 
 	~TPriorityQueueClass()
@@ -30,7 +38,14 @@ public:
 
 	void Clear()
 	{
-		memset(Nodes, 0, sizeof(T*) * (Count + 1));
+		if constexpr (!std::is_pointer<T>())
+			memset(Nodes, 0, sizeof(T*) * (Count + 1));
+		else
+		{
+			for (int i = 0; i < Count; ++i) {
+				Nodes[i] = nullptr;
+			}
+		}
 		Count = 0;
 	}
 
@@ -117,20 +132,21 @@ public:
 
 	void WWPointerUpdate(T* pValue)
 	{
-		if (pValue > RMost)
-			RMost = pValue;
-		if (pValue < LMost)
-			LMost = pValue;
+		if ((uintptr_t)pValue > RMost)
+			RMost = (uintptr_t)pValue;
+		if ((uintptr_t)pValue < LMost)
+			LMost = (uintptr_t)pValue;
 	}
 
 public:
-	int Capacity;
-	int Count;
-	T** Nodes;
-	T* LMost;
-	T* RMost;
+	int Count; //capacity
+	int Capacity; //HeapSize
+	T** Nodes; //Heap
+	uintptr_t LMost; //ptr1
+	uintptr_t RMost; //ptr2
 };
 
+#ifdef compilerErr
 template<typename TElement, typename TPriority, bool IsMinHeap = true>
 class PriorityQueueClassNode final
 {
@@ -617,3 +633,4 @@ int PriorityQueueClass<TElement, TPriority, IsMinHeap>::Get_Right_Index(int inde
 {
 	return (index * 2 + 1);
 }
+#endif

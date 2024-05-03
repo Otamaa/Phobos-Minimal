@@ -5,8 +5,8 @@ template<class T, int size>
 class QueueClass
 {
 public:
-	QueueClass();
-	~QueueClass() { }
+	constexpr QueueClass();
+	constexpr ~QueueClass() { }
 
 	T& operator[](int index);
 

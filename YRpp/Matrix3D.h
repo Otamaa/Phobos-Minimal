@@ -61,7 +61,7 @@ public:
 
 	//Constructor
 
-	Matrix3D() noexcept
+	constexpr Matrix3D() noexcept
 	{
 		this->row[0][0] = 0.0;
 		this->row[0][1] = 0.0;
@@ -78,7 +78,7 @@ public:
 	}
 
 	// plain floats ctor
-	Matrix3D(
+	constexpr Matrix3D(
 		float m00, float m01, float m02, float m03,
 		float m10, float m11, float m12, float m13,
 		float m20, float m21, float m22, float m23) noexcept
@@ -89,7 +89,7 @@ public:
 	}
 
 	// column vector ctor
-	Matrix3D(
+	constexpr Matrix3D(
 		Vector3D<float> const &x,
 		Vector3D<float> const &y,
 		Vector3D<float> const &z,
