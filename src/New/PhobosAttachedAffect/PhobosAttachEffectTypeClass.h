@@ -99,9 +99,9 @@ public:
 		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
 	}
 
-	bool HasGroup(const char* pGroupID) {
+	constexpr bool HasGroup(const char* pGroupID) {
 		for (const auto& group : this->Groups) {
-			if (IS_SAME_STR_N(group.c_str(), pGroupID)) {
+			if (group == pGroupID) {
 				return true;
 			}
 		}
@@ -109,12 +109,12 @@ public:
 		return false;
 	}
 
-	bool HasGroups(std::vector<std::string> const& groupIDs, bool requireAll) {
+	constexpr bool HasGroups(std::vector<std::string> const& groupIDs, bool requireAll) {
 		size_t foundCount = 0;
 
 		for (const auto& group : this->Groups) {
 			for (const auto& requiredGroup : groupIDs) {
-				if (IS_SAME_STR_N(group.c_str(), requiredGroup.c_str())) {
+				if (group == requiredGroup) {
 
 					if (!requireAll)
 						return true;
@@ -143,7 +143,22 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
-	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
+	static constexpr std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs)
+	{
+		std::set<PhobosAttachEffectTypeClass*> types;
+		auto map = &PhobosAttachEffectTypeClass::GroupsMap;
+
+		for (const auto& group : groupIDs){
+			auto iter = map->find(group);
+			if (iter != map->end()){
+				types.insert(iter.second.begin(), iter.second.end());
+			}
+		}
+
+	    return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
+	}
+
+	}
 	static std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
