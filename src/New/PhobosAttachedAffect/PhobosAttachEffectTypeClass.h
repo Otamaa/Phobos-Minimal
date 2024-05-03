@@ -158,7 +158,6 @@ public:
 	    return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
 	}
 
-	}
 	static std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
