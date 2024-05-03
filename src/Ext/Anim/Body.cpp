@@ -352,6 +352,15 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 				Helpers::Otamaa::LauchSW(nLauch, pHouse, nCoord, pObject);
 			}
 		}
+
+		if (auto pWeapon = pTypeExt->WeaponToCarry) {
+			AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
+			TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
+			const auto nDamageResult = static_cast<int>(pWeapon->Damage * TechnoExtData::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+			const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
+
+			WeaponTypeExtData::DetonateAt(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);
+		}
 	}
 
 	return true;

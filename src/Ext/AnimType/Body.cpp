@@ -54,6 +54,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
 	this->Weapon.Read(exINI, pID, "Weapon", true);
+	this->WeaponToCarry.Read(exINI, pID, "WeaponToCarry", true);
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
@@ -425,6 +426,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Layer_UseObjectLayer)
 		.Process(this->UseCenterCoordsIfAttached)
 		.Process(this->Weapon)
+		.Process(this->WeaponToCarry)
 		.Process(this->Damage_Delay)
 		.Process(this->Damage_DealtByInvoker)
 		.Process(this->Damage_ApplyOnce)

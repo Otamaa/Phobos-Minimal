@@ -42,6 +42,7 @@ public:
 	Valueable<bool> UseCenterCoordsIfAttached { false };
 
 	Nullable<WeaponTypeClass*> Weapon {};
+	Valueable<WeaponTypeClass*> WeaponToCarry {};
 	Valueable<bool> Warhead_Detonate { false };
 
 	Valueable<int> Damage_Delay { 0 };
