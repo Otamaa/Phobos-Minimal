@@ -818,12 +818,16 @@ struct MovieUnlockableInfo
 	static constexpr reference<MovieUnlockableInfo, 0x832C30u, 8u> const Allied {};
 	static constexpr reference<MovieUnlockableInfo, 0x832CA0u, 8u> const Soviet {};
 
-	MovieUnlockableInfo() = default;
+	constexpr MovieUnlockableInfo() = default;
 
-	explicit MovieUnlockableInfo(const char* pFilename, const char* pDescription = nullptr, int disk = 2)
+	constexpr explicit MovieUnlockableInfo(const char* pFilename, const char* pDescription = nullptr, int disk = 2)
 		: Filename(pFilename), Description(pDescription), DiskRequired(disk)
 	{
 	}
+
+	// the destructor doesnt delete the string data
+	// please manage them
+	~MovieUnlockableInfo() = default;
 
 	const char* Filename { nullptr };
 	const char* Description { nullptr };
@@ -891,7 +895,7 @@ namespace Unsorted
 	constexpr constant_ptr<char, 0x8A3A08> const except_txt_content {};
 
 	// Note: SomeMutex has been renamed to this because it reflects the usage better
-	reference<int, 0xA8E7AC> const ScenarioInit {}; // h2ik
+	constexpr reference<int, 0xA8E7AC> const ScenarioInit {}; // h2ik
 	constexpr reference<int , 0xB1D480> const ScenarioInit_Audio {};
 	constexpr reference<int, 0xA8DAB4> const SystemResponseMessages {};
 
@@ -914,6 +918,6 @@ struct CheatData
 	DWORD unknown2;
 
 	// this holds four original cheats, keep that limit in mind
-	static constexpr constant_ptr<CheatData, 0x825C28> OriginalCheats {};
+	static constexpr reference<CheatData, 0x825C28 , 4u> OriginalCheats {};
 };
 

@@ -22,9 +22,9 @@ public:
 	int16_t SpareSocketPorts[8];
 	DWORD NextSpareSocket;
 	DWORD Socket;
-	DynamicVectorClass<void*> BroadcastAddresses;
+	DECLARE_PROPERTY(DynamicVectorClass<void*>, BroadcastAddresses);
 	int16_t words3F350[256];
-	DynamicVectorClass<void*> LocalAddresses;
+	DECLARE_PROPERTY(DynamicVectorClass<void*>, LocalAddresses);
 	DWORD NextAddressPort;
 	int Addresses[16];
 	int16_t Ports[16];

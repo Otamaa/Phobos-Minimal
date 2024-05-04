@@ -42,6 +42,8 @@ public:
 	int TimeLeft;
 
 	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
+
+
 	explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
 		this->StartTime = this->CurrentTime;
 	}
@@ -49,12 +51,11 @@ public:
 	constexpr TimerClass(noinit_t()){ }
 	constexpr ~TimerClass() = default;
 
-	TimerClass(const TimerClass& other) {
-		std::memcpy(this, &other, sizeof(*this));
-	}
+	TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
 
 	TimerClass& operator=(const TimerClass& other) {
-		std::memcpy(this, &other, sizeof(*this));
+		this->StartTime = other.StartTime;
+		this->TimeLeft = other.TimeLeft;
 		return *this;
 	}
 

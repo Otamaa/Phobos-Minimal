@@ -635,7 +635,7 @@ bool LocomotionClass::End_Piggyback(ILocomotionPtr &pLoco)
 {
 	if (!pLoco)
 	{
-		Game::RaiseError(E_POINTER);
+		_com_issue_error(E_POINTER);
 	}
 
 	if (IPiggybackPtr pPiggy = pLoco)
@@ -647,7 +647,7 @@ bool LocomotionClass::End_Piggyback(ILocomotionPtr &pLoco)
 			auto res = pPiggy->End_Piggyback(&pLoco);
 			if (FAILED(res))
 			{
-				Game::RaiseError(res);
+				_com_issue_error(res);
 			}
 			return (res == S_OK);
 		}

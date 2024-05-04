@@ -145,7 +145,7 @@ public:
 	// [implicit] operator T*()
 
 	// template helper
-	template<typename T> T* As() { static_assert(false); }
+	template<typename T> T* As() = delete;
 
 #define DECLARE_CONVENTION_(name, T, addr) \
 	template<> T* As() { JMP_THIS(addr); } \

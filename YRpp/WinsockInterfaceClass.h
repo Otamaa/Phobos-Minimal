@@ -36,14 +36,17 @@ public:
 	void DiscardOutBuffers()
 	{ JMP_THIS(0x7B1D10) }
 
+	WinsockInterfaceClass() { JMP_THIS(0x7B19C0); }
+	~WinsockInterfaceClass() { JMP_THIS(0x7B1AB0); }
+
 	// Properties
 private:
 	void* vftable;
 public:
 	DWORD MaxPacketSize;
-	DynamicVectorClass<void*> InBuffers;
-	DynamicVectorClass<void*> OutBuffers;
-	DynamicVectorClass<void*> AltOutBuffers;
+	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, InBuffers);
+	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, OutBuffers);
+	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, AltOutBuffers);
 	WinsockBufferType StaticInBuffer[128];
 	WinsockBufferType StaticOutBuffer[128];
 	WinsockBufferType StaticAltOutBuffer[128];

@@ -402,7 +402,7 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
 	if (!curFactory) {
-		Game::RaiseError(E_POINTER);
+		_com_issue_error(E_POINTER);
 	}
 	else if (!*curFactory)
 	{
