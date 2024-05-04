@@ -379,16 +379,18 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 
 		for (auto& attachEffect : pExt->PhobosAE)
 		{
-			if (!attachEffect->IsActive())
-				continue;
+			if(attachEffect) {
+				if (!attachEffect->IsActive())
+					continue;
 
-			auto const pType = attachEffect->GetType();
+				auto const pType = attachEffect->GetType();
 
-			if (!pType->RevengeWeapon.isset())
-				continue;
+				if (!pType->RevengeWeapon.isset())
+					continue;
 
-			if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis , true, nullptr);
+				if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+					WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis , true, nullptr);
+			}
 		}
 	}
 

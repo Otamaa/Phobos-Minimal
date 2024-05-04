@@ -31,7 +31,7 @@ PhobosAttachEffectClass::PhobosAttachEffectClass()
 
 PhobosAttachEffectClass::PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
-	: Duration { 0 }
+	: Duration { durationOverride != 0 ? durationOverride : pType->Duration }
 	, DurationOverride { durationOverride }
 	, Delay { delay }
 	, CurrentDelay { 0 }
@@ -47,16 +47,10 @@ PhobosAttachEffectClass::PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pT
 	, IsUnderTemporal { false }
 	, IsOnline { true }
 	, IsCloaked { false }
-	, HasInitialized { false }
+	, HasInitialized { (initialDelay <= 0) }
 	, NeedsDurationRefresh { false }
 	, IsFirstCumulativeInstance { false }
 {
-	this->HasInitialized = false;
-
-	if (this->InitialDelay <= 0)
-		this->HasInitialized = true;
-
-	Duration = this->DurationOverride != 0 ? this->DurationOverride : this->Type->Duration;
 }
 
 void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)
@@ -65,7 +59,7 @@ void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed
 
 	if (absType == AbstractType::Anim) {
 		if (ptr == this->Animation.get())
-			this->Animation.reset(nullptr);
+			this->Animation.clear();
 	}
 	else if ((ptr->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
@@ -94,14 +88,6 @@ void PhobosAttachEffectClass::AI()
 	if (!this->HasInitialized && this->InitialDelay == 0)
 	{
 		this->HasInitialized = true;
-
-		if (this->Type->ROFMultiplier > 0.0 && this->Type->ROFMultiplier_ApplyOnCurrentTimer)
-		{
-			double ROFModifier = this->Type->ROFMultiplier;
-			auto const pTechno = this->Techno;
-			pTechno->DiskLaserTimer.Start(static_cast<int>(pTechno->DiskLaserTimer.GetTimeLeft() * ROFModifier));
-			pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
-		}
 
 		if (this->Type->HasTint())
 			this->Techno->MarkForRedraw();
@@ -265,10 +251,11 @@ void PhobosAttachEffectClass::CreateAnim()
 
 	if (this->Type->Cumulative && this->Type->CumulativeAnimations.HasValue())
 	{
-		if (!this->IsFirstCumulativeInstance)
+		if (!this->IsFirstCumulativeInstance || this->Type->CumulativeAnimations.empty())
 			return;
 
-		int count = PhobosAEFunctions::GetAttachedEffectCumulativeCount(this->Techno, this->Type);
+		const int count = PhobosAEFunctions::GetAttachedEffectCumulativeCount(this->Techno, this->Type);
+		//Debug::Log("AE[%s] cumulativeAnim [%d] from size[%d] \n", this->Type->Name.data(), count , this->Type->CumulativeAnimations.size());
 		pAnimType = this->Type->GetCumulativeAnimation(count);
 	}
 	else
@@ -297,7 +284,7 @@ void PhobosAttachEffectClass::CreateAnim()
 void PhobosAttachEffectClass::KillAnim()
 {
 	if (this->Animation) {
-		this->Animation.reset(nullptr);
+		this->Animation.clear();
 	}
 }
 
@@ -386,13 +373,7 @@ bool PhobosAttachEffectClass::Attach(PhobosAttachEffectTypeClass* pType, TechnoC
 	{
 		if (initialDelay <= 0)
 		{
-			if (pType->ROFMultiplier > 0.0 && pType->ROFMultiplier_ApplyOnCurrentTimer)
-			{
-				pTarget->DiskLaserTimer.Start(static_cast<int>(pTarget->DiskLaserTimer.GetTimeLeft() * pType->ROFMultiplier));
-				pTarget->ROF = static_cast<int>(pTarget->ROF * pType->ROFMultiplier);
-			}
-
-				AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+			AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 
 			if (pType->HasTint())
 				pTarget->MarkForRedraw();
@@ -420,7 +401,7 @@ bool PhobosAttachEffectClass::Attach(PhobosAttachEffectTypeClass* pType, TechnoC
 int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> const& types, TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
 	AbstractClass* pSource, std::vector<int>& durationOverrides, std::vector<int> const* delays, std::vector<int> const* initialDelays, std::vector<int> const* recreationDelays)
 {
-	if (types.size() < 1 || !pTarget)
+	if (types.size() < 1 || !pTarget || !pTarget->IsAlive)
 		return false;
 
 	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
@@ -455,9 +436,6 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 
 			if (initialDelay <= 0)
 			{
-				if (pType->ROFMultiplier > 0.0 && pType->ROFMultiplier_ApplyOnCurrentTimer)
-					ROFModifier *= pType->ROFMultiplier;
-
 				if (pType->HasTint())
 					markForRedraw = true;
 
@@ -467,11 +445,6 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 		}
 	}
 
-	if (ROFModifier != 1.0)
-	{
-		pTarget->DiskLaserTimer.Start(static_cast<int>(pTarget->DiskLaserTimer.GetTimeLeft() * ROFModifier));
-		pTarget->ROF = static_cast<int>(pTarget->ROF * ROFModifier);
-	}
 
 	if (attachedCount > 0)
 		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
@@ -511,7 +484,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 
 	for (auto& aePtr : targetAEs)
 	{
-		if (aePtr->GetType() == pType)
+		if (aePtr && aePtr->GetType() == pType)
 		{
 			currentTypeCount++;
 			match = aePtr.get();
@@ -627,10 +600,12 @@ int PhobosAttachEffectClass::DetachByGroups(std::vector<std::string> const& grou
 
 	for (auto const& attachEffect : pTargetExt->PhobosAE)
 	{
-		auto const pType = attachEffect->Type;
+		if(attachEffect) {
+			auto const pType = attachEffect->Type;
 
-		if (pType->HasGroups(groups, false))
-			types.push_back(pType);
+			if (pType->HasGroups(groups, false))
+				types.push_back(pType);
+		}
 	}
 
 	return Detach(types, pTarget, minCounts, maxCounts);
@@ -667,6 +642,10 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		if (maxCount > 0 && detachedCount >= maxCount)
 			break;
 
+		if(!(*it))
+		{
+			it = targetAEs->erase(it);
+		}
 		if (pType == (*it)->Type)
 		{
 			detachedCount++;
@@ -707,43 +686,45 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 
 	for (it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
 	{
-		if ((*it)->IsSelfOwned())
-		{
-			++it;
-			continue;
-		}
+		if((*it)) {
 
-		auto const type = (*it)->GetType();
-		int currentTypeCount = 0;
-		PhobosAttachEffectClass* match = nullptr;
-		PhobosAttachEffectClass* sourceMatch = nullptr;
-
-		for (auto& aePtr : pTargetExt->PhobosAE)
-		{
-			auto targetAttachEffect = aePtr.get();
-
-			if (targetAttachEffect->GetType() == type)
-			{
-				currentTypeCount++;
-				match = targetAttachEffect;
-
-				if (targetAttachEffect->Source == (*it)->Source && targetAttachEffect->Invoker == (*it)->Invoker)
-					sourceMatch = targetAttachEffect;
+			if ((*it)->IsSelfOwned()) {
+				++it;
+				continue;
 			}
-		}
 
-		if (type->Cumulative && type->Cumulative_MaxCount >= 0 && currentTypeCount >= type->Cumulative_MaxCount && sourceMatch)
-		{
-			sourceMatch->Duration = MaxImpl(sourceMatch->Duration, (*it)->Duration);
-		}
-		else if (!type->Cumulative && currentTypeCount > 0 && match)
-		{
-			match->Duration = MaxImpl(sourceMatch->Duration, (*it)->Duration);
-		}
-		else
-		{
-			if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, (*it)->InvokerHouse, (*it)->Invoker, (*it)->Source, (*it)->DurationOverride))
-				pAE->Duration = (*it)->Duration;
+			auto const type = (*it)->GetType();
+			int currentTypeCount = 0;
+			PhobosAttachEffectClass* match = nullptr;
+			PhobosAttachEffectClass* sourceMatch = nullptr;
+
+			for (auto& aePtr : pTargetExt->PhobosAE)
+			{
+				auto targetAttachEffect = aePtr.get();
+
+				if (targetAttachEffect && targetAttachEffect->GetType() == type)
+				{
+					currentTypeCount++;
+					match = targetAttachEffect;
+
+					if (targetAttachEffect->Source == (*it)->Source && targetAttachEffect->Invoker == (*it)->Invoker)
+						sourceMatch = targetAttachEffect;
+				}
+			}
+
+			if (type->Cumulative && type->Cumulative_MaxCount >= 0 && currentTypeCount >= type->Cumulative_MaxCount && sourceMatch)
+			{
+				sourceMatch->Duration = MaxImpl(sourceMatch->Duration, (*it)->Duration);
+			}
+			else if (!type->Cumulative && currentTypeCount > 0 && match)
+			{
+				match->Duration = MaxImpl(sourceMatch->Duration, (*it)->Duration);
+			}
+			else
+			{
+				if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, (*it)->InvokerHouse, (*it)->Invoker, (*it)->Source, (*it)->DurationOverride))
+					pAE->Duration = (*it)->Duration;
+			}
 		}
 
 		it = pSourceExt->PhobosAE.erase(it);

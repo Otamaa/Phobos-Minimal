@@ -272,8 +272,11 @@ public:
 			values.clear();
 			char* context = nullptr;
 
-			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-				values.push_back(pCur);
+			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context)){
+				if(strlen(pCur)) {
+					values.push_back(pCur);
+				}
+			}
 
 			return true;
 		}

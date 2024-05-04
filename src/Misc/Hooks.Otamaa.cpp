@@ -2217,14 +2217,8 @@ struct TibPatch__ : public TiberiumClass {
 			else if (get_percent > 25)
 				get_percent = 25;
 
-			int copy_heapSize = spreadHeaps->Count;
-
-			if (copy_heapSize > GetMapSizeTotals() - 20)
-			{
+			if (spreadHeaps->Count > GetMapSizeTotals() - 20)
 				this->__RecalcSpreadData();
-			}
-
-			int size_after = abs(ScenarioClass::Instance->Random.Random()) % get_percent + 1;
 
 			MapSurfaceData* pSurface = nullptr;
 			if (auto poped = spreadHeaps->Top())
@@ -2232,6 +2226,8 @@ struct TibPatch__ : public TiberiumClass {
 				pSurface = poped;
 				Heapify(spreadHeaps, 1);
 			}
+
+			int size_after = abs(ScenarioClass::Instance->Random.Random()) % get_percent + 1;
 
 			int increment = 0;
 			if (size_after > 0)
@@ -2258,7 +2254,7 @@ struct TibPatch__ : public TiberiumClass {
 							if (getminateIdx > 1)
 							{
 								this->SpreadLogic.Datas[this->Spread].MapCoord = pNewCell->MapCoords;
-								this->SpreadLogic.Datas[this->Spread].Score = (float)(int)(Unsorted::CurrentFrame() + abs(ScenarioClass::Instance->Random.Random() % 50));
+								this->SpreadLogic.Datas[this->Spread].Score = 0.0f;
 								this->SpreadLogic.Heap->WWPush(&this->SpreadLogic.Datas[this->Spread]);
 								++this->Spread;
 								this->SpreadLogic.States[CellStruct_totibarray_42B1C0(&pNewCell->MapCoords)] = true;

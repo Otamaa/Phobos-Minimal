@@ -4711,8 +4711,10 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
 	AnnounceInvalidPointer(BuildingLight, ptr);
 
-	for (auto& PhobosAE : PhobosAE) {
-		PhobosAE->InvalidatePointer(ptr, bRemoved);
+	for (auto& _phobos_AE : PhobosAE) {
+		if(_phobos_AE) {
+			_phobos_AE->InvalidatePointer(ptr, bRemoved);
+		}
 	}
 }
 

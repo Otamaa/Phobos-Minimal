@@ -184,6 +184,37 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	GET(TeamClass*, pThis, ESI);
 	GET(AbstractClass*, pAttacker, EBP);
 
+	if (RulesExtData::Instance()->TeamRetaliate)
+	{
+		auto Focus = pThis->Focus;
+		CellClass* SpawnCell = pThis->SpawnCell;
+
+		if (!Focus
+		  || ((char)Focus->AbstractFlags & 1) == 0
+		  || (!((FootClass*)Focus)->IsArmed())
+		  || SpawnCell
+		  && (((FootClass*)Focus)->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords())))
+		{
+			if ((int)pAttacker->WhatAmI() != 2)
+			{
+				auto Owner = pThis->Owner;
+				if (((char)pAttacker->AbstractFlags & 2) != 0)
+				{
+					if(Owner->IsAlliedWith(pAttacker->GetOwningHouse()))
+						return 0x6EB47A;
+				}
+
+				if (((char)pAttacker->AbstractFlags & 4) == 0
+				  || !((FootClass*)pAttacker)->InLimbo
+				  && !((FootClass*)pAttacker)->GetTechnoType()->ConsideredAircraft)
+				{
+					pThis->Focus = pAttacker;
+				}
+			}
+		}
+	}
+
+#ifdef CUSTOM
 	// get ot if global option is off
 	if (!RulesExtData::Instance()->TeamRetaliate)
 	{
@@ -204,16 +235,16 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			}
 
 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
-				auto IsInTransporter = pAttacker->Transporter && pAttacker->Transporter->GetTechnoType()->OpenTopped;
+				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
 
-				if (pAttackerFoot->InLimbo && !IsInTransporter || pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
+				if (pAttackerFoot->InLimbo && !IsInTransporter) {
 					return 0x6EB47A;
 				}
 
-                if(IsInTranspporter)
-				   pAttacker = pAttacker->Transporter;
+                if(IsInTransporter)
+				   pAttacker = pAttackerFoot->Transporter;
 
-	            if(pAttacker->GetTecnoType()->ConsiderAircraft || pAttacker->WhatIam() == AircraftClass::absId)
+				if (((TechnoClass*)pAttacker)->GetTechnoType()->ConsideredAircraft || pAttacker->WhatAmI() == AircraftClass::AbsID)
 					return 0x6EB47A;
 
 				auto first = pThis->FirstUnit;
@@ -236,6 +267,7 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			}
 		}
 	}
+#endif
 
 	return 0x6EB47A;
 }

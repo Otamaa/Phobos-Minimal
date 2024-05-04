@@ -46,8 +46,11 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 		pShieldData->SetAnimationVisibility(false);
 	}
 
-	for (auto const& attachEffect : pExt->PhobosAE)
-		attachEffect->SetAnimationVisibility(false);
+	for (auto const& attachEffect : pExt->PhobosAE){
+		if(attachEffect) {
+			attachEffect->SetAnimationVisibility(false);
+		}
+	}
 
 	return 0;
 }
@@ -66,8 +69,11 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
 
-		for (auto const& attachEffect : pExt->PhobosAE)
-			attachEffect->SetAnimationVisibility(true);
+		for (auto const& attachEffect : pExt->PhobosAE) {
+			if(attachEffect) {
+				attachEffect->SetAnimationVisibility(true);
+			}
+		}
 	}
 
 	return 0;
@@ -117,7 +123,13 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
 #endif
 
+	if (!pThis->IsAlive)
+		return retDead;
+
 	PhobosAEFunctions::UpdateAttachEffects(pThis);
+
+	if (!pThis->IsAlive)
+		return retDead;
 
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
@@ -384,8 +396,11 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 		//pTargetExt->UpdateFireSelf();
 		//pTargetExt->UpdateRevengeWeapons();
 
-		for (auto const& ae : pTargetExt->PhobosAE)
-			ae->AI_Temporal();
+		for (auto const& ae : pTargetExt->PhobosAE) {
+			if(ae) {
+				ae->AI_Temporal();
+			}
+		}
 
 		if (auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
 		{

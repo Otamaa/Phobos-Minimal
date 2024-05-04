@@ -62,7 +62,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	for (const auto& attachEffect : pExt->PhobosAE)
 	{
-		if (!attachEffect->IsActive())
+		if (!attachEffect || !attachEffect->IsActive())
 			continue;
 
 		auto const type = attachEffect->GetType();

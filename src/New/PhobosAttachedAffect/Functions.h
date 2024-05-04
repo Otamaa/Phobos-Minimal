@@ -17,7 +17,6 @@ struct PhobosAEFunctions
 /// <param name="pSource">Source AbstractClass instance used for same source check.</param>
 /// <returns>Number of active cumulative AttachEffect type instances on the techno. 0 if the AttachEffect type is not cumulative.</returns>
 	static int GetAttachedEffectCumulativeCount(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType, bool ignoreSameSource = false, TechnoClass* pInvoker = nullptr, AbstractClass* pSource = nullptr);
-	static void RecalculateStatMultipliers(TechnoClass* pTechno);
 	static void UpdateCumulativeAttachEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType);
 
 	// Updates state of all AttachEffects on techno.

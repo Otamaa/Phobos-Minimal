@@ -129,7 +129,7 @@ public:
 
 	constexpr FORCEINLINE AnimTypeClass* GetCumulativeAnimation(int cumulativeCount)
 	{
-		if (cumulativeCount < 0 || !this->CumulativeAnimations.HasValue())
+		if (cumulativeCount < 0 || !this->CumulativeAnimations.HasValue() || this->CumulativeAnimations.empty())
 			return nullptr;
 
 		const int index = static_cast<size_t>(cumulativeCount) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : cumulativeCount - 1;

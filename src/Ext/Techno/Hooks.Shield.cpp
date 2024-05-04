@@ -177,7 +177,12 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
 		auto const attachEffect = it->get();
-
+		if(!attachEffect) {
+			it = pExt->PhobosAE.erase(it);
+			altered = true;
+			continue;
+		}
+		else
 		if ((attachEffect->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
 		{
 			altered = true;
