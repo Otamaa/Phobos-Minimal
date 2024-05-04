@@ -733,7 +733,7 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->IsOnline)
 		.Process(this->IsCloaked)
 		.Process(this->HasInitialized)
-		.Success();
+		.Success() && Stm.RegisterChange(this);
 }
 
 bool PhobosAttachEffectClass::Load(PhobosStreamReader& Stm, bool RegisterForChange)
