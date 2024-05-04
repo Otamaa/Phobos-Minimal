@@ -12,13 +12,15 @@ class AnimClass;
 class PhobosAttachEffectClass
 {
 public:
-	PhobosAttachEffectClass();
+	//PhobosAttachEffectClass();
 
-	PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
-		AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
+	//PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
+	//	AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
 
-	~PhobosAttachEffectClass() = default;
+	//~PhobosAttachEffectClass() = default;
 
+	void Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
+	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
 	void AI();
 	void AI_Temporal();
 	void KillAnim();
@@ -70,7 +72,7 @@ private:
 	void CloakCheck();
 	void CreateAnim();
 
-	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, std::vector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs,
+	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, std::vector<PhobosAttachEffectClass>& targetAEs,
 		HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride = 0, int delay = 0, int initialDelay = 0, int recreationDelay = -1);
 
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
@@ -78,25 +80,25 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm);
 
-	int Duration;
-	int DurationOverride;
-	int Delay;
-	int CurrentDelay;
-	int InitialDelay;
-	int RecreationDelay;
-	PhobosAttachEffectTypeClass* Type;
-	TechnoClass* Techno;
-	HouseClass* InvokerHouse;
-	TechnoClass* Invoker;
-	AbstractClass* Source;
-	Handle<AnimClass*, UninitAnim> Animation;
-	bool IsAnimHidden;
-	bool IsUnderTemporal;
-	bool IsOnline;
-	bool IsCloaked;
-	bool HasInitialized;
-	bool NeedsDurationRefresh;
+	int Duration { 0 };
+	int DurationOverride { 0 };
+	int Delay { 0 };
+	int CurrentDelay { 0 };
+	int InitialDelay { 0 };
+	int RecreationDelay { -1 };
+	PhobosAttachEffectTypeClass* Type { nullptr };
+	TechnoClass* Techno { nullptr };
+	HouseClass* InvokerHouse { nullptr };
+	TechnoClass* Invoker { nullptr };
+	AbstractClass* Source { nullptr };
+	Handle<AnimClass*, UninitAnim> Animation { nullptr };
+	bool IsAnimHidden { false };
+	bool IsUnderTemporal { false };
+	bool IsOnline { false };
+	bool IsCloaked { false };
+	bool HasInitialized { false };
+	bool NeedsDurationRefresh { false };
 
 public:
-	bool IsFirstCumulativeInstance;
+	bool IsFirstCumulativeInstance { false };
 };

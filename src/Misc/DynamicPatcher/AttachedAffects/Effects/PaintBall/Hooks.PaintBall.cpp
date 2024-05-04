@@ -12,11 +12,11 @@ int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, boo
 	int tintColor = 0;
 
 	if (invulnerability && pThis->IsIronCurtained())
-			tintColor |= GeneralUtils::GetColorFromColorAdd(pThis->ProtectType == ProtectTypes::ForceShield ? RulesClass::Instance->ForceShieldColor : RulesClass::Instance->IronCurtainColor);
+		tintColor |= GeneralUtils::GetColorFromColorAdd(pThis->ProtectType == ProtectTypes::ForceShield ? RulesClass::Instance->ForceShieldColor : RulesClass::Instance->IronCurtainColor);
 	if (airstrike && pThis->Airstrike && pThis->Airstrike->Target == pThis)
-			tintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
+		tintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 	if (berserk && pThis->Berzerk)
-			tintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
+		tintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 
 	return tintColor;
 }
@@ -27,16 +27,20 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 	const bool calculateIntensity = intensity != nullptr;
 	const bool calculateTintColor = tintColor != nullptr;
 
-	if(calculateTintColor) {
-		for (auto& paint : TechnoExtContainer::Instance.Find(pThis)->PaintBallStates) {
-			if (paint.second.timer.GetTimeLeft() && paint.second.AllowDraw(pThis)) {
+	if (calculateTintColor)
+	{
+		for (auto& paint : TechnoExtContainer::Instance.Find(pThis)->PaintBallStates)
+		{
+			if (paint.second.timer.GetTimeLeft() && paint.second.AllowDraw(pThis))
+			{
 				*tintColor |= paint.second.Color;
 			}
 		}
 	}
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if(calculateIntensity) {
+	if (calculateIntensity)
+	{
 		BuildingClass* pBld = specific_cast<BuildingClass*>(pThis);
 
 		if (pBld)
@@ -78,30 +82,28 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 
 	if ((pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity != 0.0) && EnumFunctions::CanTargetHouse(pTypeExt->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
 	{
-		if(calculateTintColor)
+		if (calculateTintColor)
 			*tintColor |= Drawing::RGB_To_Int(pTypeExt->Tint_Color.Get(ColorStruct { 0,0,0 }));
 
-		if(calculateIntensity)
+		if (calculateIntensity)
 			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
 	}
 
 	for (auto const& attachEffect : pExt->PhobosAE)
 	{
-		if(attachEffect) {
-			auto const type = attachEffect->GetType();
+		auto const type = attachEffect.GetType();
 
-			if (!attachEffect->IsActive() || !type->HasTint())
-				continue;
+		if (!attachEffect.IsActive() || !type->HasTint())
+			continue;
 
-			if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-				continue;
+		if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+			continue;
 
-			if (calculateTintColor)
-				*tintColor |= Drawing::RGB_To_Int(type->Tint_Color.Get(ColorStruct { 0,0,0 }));
+		if (calculateTintColor)
+			*tintColor |= Drawing::RGB_To_Int(type->Tint_Color.Get(ColorStruct { 0,0,0 }));
 
-			if (calculateIntensity)
-				*intensity += static_cast<int>(type->Tint_Intensity * 1000);
-		}
+		if (calculateIntensity)
+			*intensity += static_cast<int>(type->Tint_Intensity * 1000);
 	}
 
 	if (pExt->Shield && pExt->Shield->IsActive())
@@ -126,7 +128,8 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 	const bool isVehicle = what == AbstractType::Unit;
 	const bool isAircraft = what == AbstractType::Aircraft;
 
-	if (isVehicle || isAircraft) {
+	if (isVehicle || isAircraft)
+	{
 		color |= ApplyTintColor(pThis, true, false, !isAircraft);
 	}
 
@@ -301,7 +304,7 @@ DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 	if (!pBuilding)
 		return 0;
 
-	ApplyCustomTint(pBuilding, &color, pThis->Type->UseNormalLight  ? &intensity : nullptr);
+	ApplyCustomTint(pBuilding, &color, pThis->Type->UseNormalLight ? &intensity : nullptr);
 
 	R->EBP(color);
 

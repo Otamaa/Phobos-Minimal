@@ -4712,9 +4712,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(BuildingLight, ptr);
 
 	for (auto& _phobos_AE : PhobosAE) {
-		if(_phobos_AE) {
-			_phobos_AE->InvalidatePointer(ptr, bRemoved);
-		}
+		_phobos_AE.InvalidatePointer(ptr, bRemoved);
 	}
 }
 

@@ -163,7 +163,6 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 
 	bool markForRedraw = false;
 	bool altered = false;
-	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
 
 	// Do not remove attached effects from undeploying buildings.
 	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
@@ -174,23 +173,16 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 		}
 	}
 
-	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
+	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
-		auto const attachEffect = it->get();
-		if(!attachEffect) {
-			it = pExt->PhobosAE.erase(it);
-			altered = true;
-			continue;
-		}
-		else
-		if ((attachEffect->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
+		if ((it->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
 		{
 			altered = true;
 
-			if (attachEffect->GetType()->HasTint())
+			if (it->GetType()->HasTint())
 				markForRedraw = true;
 
-			if (attachEffect->ResetIfRecreatable())
+			if (it->ResetIfRecreatable())
 			{
 				++it;
 				continue;

@@ -96,7 +96,7 @@ public:
 	int TechnoValueAmount { 0 };
 	int Pos { };
 	std::unique_ptr<ShieldClass> Shield {};
-	std::vector<LaserTrailClass> LaserTrails {};
+	HelperedVector<LaserTrailClass> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };
 	CDTimerClass PassengerDeletionTimer {};
@@ -116,7 +116,7 @@ public:
 	CDTimerClass DeployFireTimer {};
 	CDTimerClass DisableWeaponTimer {};
 
-	std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
 
 	int GattlingDmageDelay { -1 };
 	bool GattlingDmageSound { false };
@@ -134,7 +134,7 @@ public:
 
 	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
 
-	std::vector<UniversalTrail> Trails {};
+	HelperedVector<UniversalTrail> Trails {};
 	std::unique_ptr<GiftBox> MyGiftBox {};
 	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
 	std::unique_ptr<DamageSelfState> DamageSelfState {};
@@ -404,7 +404,7 @@ public:
 		}
 	} AE_ExtraCrit {};
 
-	std::vector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
+	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept

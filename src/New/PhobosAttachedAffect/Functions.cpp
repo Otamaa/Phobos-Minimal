@@ -16,14 +16,12 @@ int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, Ph
 
 	for (auto const& attachEffect : pExt->PhobosAE)
 	{
-		if(attachEffect){
-			if (attachEffect->GetType() == pAttachEffectType && attachEffect->IsActive())
-			{
-				if (ignoreSameSource && pInvoker && pSource && attachEffect->IsFromSource(pInvoker, pSource))
-					continue;
+		if (attachEffect.GetType() == pAttachEffectType && attachEffect.IsActive())
+		{
+			if (ignoreSameSource && pInvoker && pSource && attachEffect.IsFromSource(pInvoker, pSource))
+				continue;
 
-				foundCount++;
-			}
+			foundCount++;
 		}
 	}
 
@@ -42,23 +40,21 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 
 	for (auto& attachEffect : pExt->PhobosAE)
 	{
-		if (attachEffect) {
-			if (attachEffect->GetType() != pAttachEffectType || !attachEffect->IsActive())
-				continue;
+		if (attachEffect.GetType() != pAttachEffectType || !attachEffect.IsActive())
+			continue;
 
-			if (!foundFirst)
-			{
-				foundFirst = true;
-				attachEffect->IsFirstCumulativeInstance = true;
-			}
-			else
-			{
-				attachEffect->IsFirstCumulativeInstance = false;
-			}
-
-			 if (pAttachEffectType->CumulativeAnimations.HasValue())
-				attachEffect->KillAnim();
+		if (!foundFirst)
+		{
+			foundFirst = true;
+			attachEffect.IsFirstCumulativeInstance = true;
 		}
+		else
+		{
+			attachEffect.IsFirstCumulativeInstance = false;
+		}
+
+		if (pAttachEffectType->CumulativeAnimations.HasValue())
+			attachEffect.KillAnim();
 	}
 }
 
@@ -70,46 +66,39 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
-		auto const attachEffect = it->get();
-
 		if (technoIsDead)
 			break;
 
-		if(!attachEffect)
-		{
-			it = pExt->PhobosAE.erase(it);
-		}
-		else
 		{
 			if (!pExt->IsInTunnel && !pExt->IsBurrowed)
-				attachEffect->SetAnimationVisibility(true);
+				it->SetAnimationVisibility(true);
 
-			attachEffect->AI();
+			it->AI();
 
 			if (technoIsDead = !pTechno->IsAlive)
 				break;
 
-			if (attachEffect->HasExpired() || (attachEffect->IsActive() && !attachEffect->AllowedToBeActive()))
+			if (it->HasExpired() || (it->IsActive() && !it->AllowedToBeActive()))
 			{
-				Debug::Log("Erasing [%s] from [%s]\n", attachEffect->GetType()->Name.data(), pTechno->get_ID());
+				Debug::Log("Erasing [%s] from [%s]\n", it->GetType()->Name.data(), pTechno->get_ID());
 
-				auto const pType = attachEffect->GetType();
+				auto const pType = it->GetType();
 
 				if (pType->HasTint())
 					markForRedraw = true;
 
-				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, attachEffect->GetType());
+				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, it->GetType());
 
 				if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
 				{
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-						attachEffect->ExpireWeapon();
+						it->ExpireWeapon();
 				}
 
 				if (technoIsDead = !pTechno->IsAlive)
 					break;
 
-				if (!attachEffect->AllowedToBeActive() && attachEffect->ResetIfRecreatable())
+				if (!it->AllowedToBeActive() && it->ResetIfRecreatable())
 				{
 					++it;
 					continue;
@@ -125,7 +114,8 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 		}
 	}
 
-	if(!technoIsDead) {
+	if (!technoIsDead)
+	{
 		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTechno)->AeData, pTechno);
 
 		if (markForRedraw)
@@ -144,9 +134,9 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 	{
 		for (auto const& attachEffect : pExt->PhobosAE)
 		{
-			if (attachEffect && attachEffect->GetType() == type && attachEffect->IsActive())
+			if (attachEffect.GetType() == type && attachEffect.IsActive())
 			{
-				if (ignoreSameSource && pInvoker && pSource && attachEffect->IsFromSource(pInvoker, pSource))
+				if (ignoreSameSource && pInvoker && pSource && attachEffect.IsFromSource(pInvoker, pSource))
 					continue;
 
 				unsigned int minSize = minCounts.size();
@@ -154,7 +144,7 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 
 				if (type->Cumulative && (minSize > 0 || maxSize > 0))
 				{
-					int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno , type, ignoreSameSource, pInvoker, pSource);
+					int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, type, ignoreSameSource, pInvoker, pSource);
 
 					if (minSize > 0)
 					{

@@ -56,7 +56,7 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 
 	if (!bIgnoreDefenses)
 	{
-		MapClass::GetTotalDamage(&args, TechnoExtData::GetTechnoArmor(pObject , args.WH));
+		MapClass::GetTotalDamage(&args, TechnoExtData::GetTechnoArmor(pObject, args.WH));
 		//this already calculate distance damage from epicenter
 		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
 	}
@@ -259,18 +259,16 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 	std::set<PhobosAttachEffectTypeClass*> cumulativeTypes;
 
 	for (auto const& attachEffect : pTechExt->PhobosAE)
-	{	
-		if(attachEffect) {
-			auto const pType = attachEffect->GetType();
-			if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
+	{
+		auto const pType = attachEffect.GetType();
+		if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
+		{
+			if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pType))
 			{
-				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pType))
-				{
-					if (pType->Cumulative && pType->ExpireWeapon_CumulativeOnlyOnce)
-						cumulativeTypes.insert(pType);
+				if (pType->Cumulative && pType->ExpireWeapon_CumulativeOnlyOnce)
+					cumulativeTypes.insert(pType);
 
-					attachEffect->ExpireWeapon();
-				}
+				attachEffect.ExpireWeapon();
 			}
 		}
 	}

@@ -62,10 +62,10 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 
 	for (const auto& attachEffect : pExt->PhobosAE)
 	{
-		if (!attachEffect || !attachEffect->IsActive())
+		if (!attachEffect.IsActive())
 			continue;
 
-		auto const type = attachEffect->GetType();
+		auto const type = attachEffect.GetType();
 		FP_Mult *= type->FirepowerMultiplier;
 		Speed_Mult *= type->SpeedMultiplier;
 		Armor_Mult *= type->ArmorMultiplier;
