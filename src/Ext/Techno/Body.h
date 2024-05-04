@@ -75,7 +75,7 @@ public:
 	BYTE idxSlot_Warp { 0 }; //7
 	BYTE idxSlot_Parasite { 0 }; //8
 	BuildingClass* GarrisonedIn { 0 }; //C
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { };
+	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
 	std::unique_ptr<AresPoweredUnit> PoweredUnit {};
@@ -169,7 +169,7 @@ public:
 
 	//====
 	bool IsWebbed { false };
-	Handle<AnimClass*, UninitAnim> WebbedAnim { };
+	Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
 	AbstractClass* WebbyLastTarget { nullptr };
 	Mission WebbyLastMission { Mission::Sleep };
 

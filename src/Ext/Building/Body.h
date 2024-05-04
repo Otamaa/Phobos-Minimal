@@ -63,7 +63,7 @@ public:
 	int GrindingWeapon_AccumulatedCredits { 0 };
 	int LastFlameSpawnFrame { 0 };
 
-	Handle<AnimClass*, UninitAnim> SpyEffectAnim {};
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim { nullptr };
 	int SpyEffectAnimDuration {};
 
 	BuildingExtData() noexcept = default;

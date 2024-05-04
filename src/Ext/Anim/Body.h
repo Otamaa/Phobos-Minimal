@@ -30,7 +30,7 @@ public:
 	// and the building is not on same cell as the animation.
 	BuildingClass* ParentBuilding { nullptr };
 
-	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
+	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
 	CoordStruct CreateUnitLocation {};
 	SpawnsStatus SpawnsStatusData {};
 

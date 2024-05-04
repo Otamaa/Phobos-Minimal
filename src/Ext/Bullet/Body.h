@@ -40,7 +40,7 @@ public:
 
 	std::vector<UniversalTrail> Trails {};
 	std::unique_ptr<PhobosTrajectory> Trajectory {};
-	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem {};
+	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
 	int DamageNumberOffset { INT32_MIN };
 
 	BulletExtData() noexcept = default;
