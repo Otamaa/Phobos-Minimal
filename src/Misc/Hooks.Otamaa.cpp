@@ -4262,18 +4262,6 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 	return 0x4CA029;
 }
 
-//TODO :
-// maybe hook here , since it needed for the factory re-evaluation
-// this can make AI dont know what to do
-//  and this will break the break limit for player
-DEFINE_HOOK(0x4CA682, FactoryClass_TotalTechnoQueued_CompareType, 0x5)
-{
-	GET(TechnoClass*, queueed, ECX);
-	GET(TechnoTypeClass*, asked, EBX);
-
-	return queueed->GetTechnoType() == asked || TechnoExtContainer::Instance.Find(queueed)->Type == asked ?
-		0x4CA68E : 0x4CA693;
-}
 
 DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
 {
