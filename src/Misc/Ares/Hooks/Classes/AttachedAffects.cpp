@@ -118,6 +118,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		if (timeleft > 0) {
 			pExt->AttachedToObject->DiskLaserTimer.Start(int(timeleft * cur_timerAE.value()));
 		}
+
+		pThis->ROF = static_cast<int>(pThis->ROF * ROF_Mult);
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;
