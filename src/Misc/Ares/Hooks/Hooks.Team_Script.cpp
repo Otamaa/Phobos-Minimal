@@ -204,9 +204,17 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			}
 
 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
-				if (pAttackerFoot->InLimbo || pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
+				auto IsInTransporter = pAttacker->Transporter && pAttacker->Transporter->GetTechnoType()->OpenTopped;
+
+				if (pAttackerFoot->InLimbo && !IsInTransporter || pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
 					return 0x6EB47A;
 				}
+
+                if(IsInTranspporter)
+				   pAttacker = pAttacker->Transporter;
+
+	            if(pAttacker->GetTecnoType()->ConsiderAircraft || pAttacker->WhatIam() == AircraftClass::absId)
+					return 0x6EB47A;
 
 				auto first = pThis->FirstUnit;
 				if (first) {
