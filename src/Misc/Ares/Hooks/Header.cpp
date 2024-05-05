@@ -3222,16 +3222,6 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	}
 
 	TechnoExtData::InitializeLaserTrail(pThis, true);
-	pExt->LaserTrails.clear();
-
-	for (auto const& entry : pToTypeExt->LaserTrailData) {
-		pExt->LaserTrails.emplace_back(
-			LaserTrailTypeClass::Array[entry.idxType].get(),
-			pOwner->LaserColor,
-			entry.FLH,
-			entry.IsOnTurret
-		);
-	}
 
 	// Reset AutoDeath Timer
 	if (pExt->Death_Countdown.HasStarted()) {
