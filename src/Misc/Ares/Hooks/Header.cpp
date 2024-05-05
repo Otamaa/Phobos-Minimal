@@ -3196,7 +3196,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	pOwner->RecheckTechTree = true;
 	TechnoExtContainer::Instance.Find(pThis)->Is_Operated = false;
 
+	PhobosAttachEffectClass::Detach(pToTypeExt->AttachEffect_AttachTypes, pThis);
 	AresAE::RemoveSpecific(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis, pOldType);
+	TechnoExtData::InitializeAttachEffects(pThis, pToType);
 
 	// remove previous line trail
 	GameDelete<true, true>(pThis->LineTrailer);

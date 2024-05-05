@@ -10,23 +10,23 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
 	this->Duration = durationOverride != 0 ? durationOverride : pType->Duration;
-	this->DurationOverride = durationOverride ;
-	this->Delay = delay ;
-	this->CurrentDelay = 0 ;
-	this->InitialDelay = initialDelay ;
-	this->RecreationDelay = recreationDelay ;
-	this->Type = pType ;
-	this->Techno = pTechno ;
-	this->InvokerHouse = pInvokerHouse ;
-	this->Invoker = pInvoker ;
-	this->Source = pSource ;
-	this->IsAnimHidden = false ;
-	this->IsUnderTemporal = false ;
-	this->IsOnline = true ;
-	this->IsCloaked = false ;
-	this->HasInitialized = (initialDelay <= 0) ;
-	this->NeedsDurationRefresh = false ;
-	this->IsFirstCumulativeInstance = false ;
+	this->DurationOverride = durationOverride;
+	this->Delay = delay;
+	this->CurrentDelay = 0;
+	this->InitialDelay = initialDelay;
+	this->RecreationDelay = recreationDelay;
+	this->Type = pType;
+	this->Techno = pTechno;
+	this->InvokerHouse = pInvokerHouse;
+	this->Invoker = pInvoker;
+	this->Source = pSource;
+	this->IsAnimHidden = false;
+	this->IsUnderTemporal = false;
+	this->IsOnline = true;
+	this->IsCloaked = false;
+	this->HasInitialized = (initialDelay <= 0);
+	this->NeedsDurationRefresh = false;
+	this->IsFirstCumulativeInstance = false;
 
 }
 
@@ -563,6 +563,36 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 	return detachedCount;
 }
 
+int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> const& types, TechnoClass* pTarget, int minCount, int maxCount, bool recalc)
+{
+	if (types.size() < 1 || !pTarget)
+		return 0;
+
+	int detachedCount = 0;
+	bool markForRedraw = false;
+
+	for (auto const pType : types)
+	{
+		int count = PhobosAttachEffectClass::RemoveAllOfTypeAndSource(pType, pTarget, pTarget, minCount, maxCount);
+
+		if (count && pType->HasTint())
+			markForRedraw = true;
+
+		if (count && pType->Cumulative)
+			PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType);
+
+		detachedCount += count;
+	}
+
+	if (recalc && detachedCount > 0)
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+
+	if (markForRedraw)
+		pTarget->MarkForRedraw();
+
+	return detachedCount;
+}
+
 /// <summary>
 /// Remove all AttachEffects matching given groups from techno.
 /// </summary>
@@ -645,6 +675,56 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 	return detachedCount;
 }
 
+int PhobosAttachEffectClass::RemoveAllOfTypeAndSource(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, AbstractClass* pSource, int minCount, int maxCount)
+{
+
+	if (!pType || !pTarget || !pSource)
+		return 0;
+
+	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	int detachedCount = 0;
+	int stackCount = -1;
+
+	if (pType->Cumulative)
+		stackCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType);
+
+	if (minCount > 0 && stackCount > -1 && pType->Cumulative && minCount > stackCount)
+		return 0;
+
+	auto const targetAEs = &pTargetExt->PhobosAE;
+
+	for (auto it = targetAEs->begin(); it != targetAEs->end(); )
+	{
+		if (maxCount > 0 && detachedCount >= maxCount)
+			break;
+
+		if (pType == (it)->Type && pTarget == pSource)
+		{
+			detachedCount++;
+
+			if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None)
+			{
+				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType) < 2)
+					(it)->ExpireWeapon();
+			}
+
+			if ((it)->ResetIfRecreatable())
+			{
+				++it;
+				continue;
+			}
+
+			it = targetAEs->erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	return detachedCount;
+}
+
 /// <summary>
 /// Transfer AttachEffects from one techno to another.
 /// </summary>
@@ -698,7 +778,8 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 				(it)->Invoker,
 				(it)->Source,
 				(it)->DurationOverride)
-				) {
+				)
+			{
 				pAE->Duration = (it)->Duration;
 			}
 		}

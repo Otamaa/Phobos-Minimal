@@ -20,7 +20,6 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	bool untrackable = TechnoExtData::IsUntrackable(pThis);
 	auto extraRangeData = &pExt->AE_ExtraRange;
 	auto extraCritData = &pExt->AE_ExtraCrit;
-
 	extraRangeData->Clear();
 	extraCritData->Clear();
 
@@ -322,16 +321,20 @@ void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeCl
 
 	if (!ae->Data.empty())
 	{
+		bool changes = false;
+
 		const auto iter = std::remove_if(ae->Data.begin(), ae->Data.end(), [pRemove](const auto& ae_)
 		{
 			return ae_.Type->Owner == pRemove;
 		});
 
-		if (iter != ae->Data.end())
-		{
+		if (iter != ae->Data.end()) {
+			changes = true;
 			ae->Data.erase(iter , ae->Data.end());
-			RecalculateStat(ae, pTechno);
 		}
+
+		if(changes)
+			RecalculateStat(ae, pTechno);
 	}
 }
 
@@ -404,6 +407,7 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 
 	FromData->Data.clear();
 	FromData->Isset = false;
+	PhobosAttachEffectClass::TransferAttachedEffects(From, To);
 	RecalculateStat(ToData, To);
 }
 
