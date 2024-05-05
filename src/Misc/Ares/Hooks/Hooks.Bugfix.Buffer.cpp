@@ -146,7 +146,7 @@ DEFINE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DamageParticleSystems, exINI, pSection, GameStrings::DamageParticleSystems, "Expect valid ParticleSystemType");
 	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DestroyParticleSystems, exINI, pSection, GameStrings::DestroyParticleSystems, "Expect valid ParticleSystemType");
 
-	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, exINI, pSection, GameStrings::Dock , "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, exINI, pSection, GameStrings::Dock, "Expect valid BuildingType");
 
 	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
 	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
@@ -209,7 +209,65 @@ DEFINE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 	return 0x66C287;
 }
 
+template<typename T, bool Allocate = false, bool Unique = false>
+inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const char* section, const char* key, const char* message = nullptr)
+{
+	if (IniEx.ReadString(section, key))
+	{
+		List.Reset();
+		char* context = nullptr;
+
+		using BaseType = std::remove_pointer_t<T>;
+		Debug::Log("Parsing [%s] form [%s] result\n", key ,  section);
+		Debug::Log("%s\n", IniEx.value());
+		for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
+			 cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			BaseType* buffer = nullptr;
+			if constexpr (Allocate)
+			{
+				buffer = BaseType::FindOrAllocate(cur);
+			}
+			else
+			{
+				buffer = BaseType::Find(cur);
+			}
+
+			if (buffer)
+			{
+				if constexpr (!Unique)
+				{
+					List.AddItem(buffer);
+				}
+				else
+				{
+					List.AddUnique(buffer);
+				}
+			}
+			else if (!GameStrings::IsBlank(cur))
+			{
+				Debug::INIParseFailed(section, key, cur, message);
+			}
+		}
+		Debug::Log("count : %d\n", List.Count);
+
+	}
+};
 // ============= [General] =============
+DEFINE_HOOK(0x66D530, RulesClass_ReadGeneral_whocallThese, 0x6)
+{
+	GET_STACK(DWORD, caller, 0x0);
+
+	Debug::Log(__FUNCTION__" Caller[%x]\n" , caller);
+	return 0x0;
+}
+DEFINE_HOOK(0x668BF0, RulesClass_Process_whocallThese, 0x6)
+{
+	GET_STACK(DWORD, caller, 0x0);
+
+	Debug::Log(__FUNCTION__" Caller[%x]\n", caller);
+	return 0x0;
+}
 DEFINE_HOOK(0x66D55E, Buf_General, 6)
 {
 	GET(RulesClass*, pRules, ESI);
@@ -227,7 +285,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	detail::ParseVector(pRules->SovParaDropNum, exINI, section, GameStrings::SovParaDropNum, "Expect valid number");
 	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+	ParseVector_loc<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
 
 	detail::ParseVector<InfantryTypeClass*, true>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
 	detail::ParseVector<UnitTypeClass*, true>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");
@@ -296,9 +354,9 @@ DEFINE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 	GET(CCINIClass*, pINI, ESI);
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<InfantryTypeClass*,true>(pHouseType->VeteranInfantry, exINI, pHouseType->ID, GameStrings::VeteranInfantry, "Expect valid InfantryType");
-	detail::ParseVector<UnitTypeClass*,true>(pHouseType->VeteranUnits, exINI, pHouseType->ID, GameStrings::VeteranUnits, "Expect valid UnitType");
-	detail::ParseVector<AircraftTypeClass*,true>(pHouseType->VeteranAircraft, exINI, pHouseType->ID, GameStrings::VeteranAircraft, "Expect valid AircraftType");
+	detail::ParseVector<InfantryTypeClass*, true>(pHouseType->VeteranInfantry, exINI, pHouseType->ID, GameStrings::VeteranInfantry, "Expect valid InfantryType");
+	detail::ParseVector<UnitTypeClass*, true>(pHouseType->VeteranUnits, exINI, pHouseType->ID, GameStrings::VeteranUnits, "Expect valid UnitType");
+	detail::ParseVector<AircraftTypeClass*, true>(pHouseType->VeteranAircraft, exINI, pHouseType->ID, GameStrings::VeteranAircraft, "Expect valid AircraftType");
 
 	return 0x51208C;
 }

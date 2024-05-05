@@ -574,12 +574,9 @@ namespace detail
 
 					if (buffer)
 					{
-						if constexpr (!Unique)
-						{
+						if constexpr (!Unique) {
 							List.AddItem(buffer);
-						}
-						else if(!GameStrings::IsBlank(cur))
-						{
+						} else {
 							List.AddUnique(buffer);
 						}
 					}

@@ -7088,6 +7088,12 @@ DEFINE_HOOK(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
+{
+	R->EAX(HouseExtData::FindFirstCivilianHouse());
+	return 0x4249D8;
+}
+
 DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
 {
 	R->EBX(HouseExtData::FindFirstCivilianHouse());
@@ -7522,5 +7528,14 @@ DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6) {
 	GET(TechnoTypeClass*, pType, ECX);
 
 	TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x42493E, Animclass_AnimtoInf_probe, 0x6)
+{
+	int limit = RulesClass::Instance->AnimToInfantry.Count;
+	Debug::Log(__FUNCTION__" Executed! array[%d]\n", limit);
+
+
 	return 0x0;
 }

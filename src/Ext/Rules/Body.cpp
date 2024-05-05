@@ -193,9 +193,6 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 
 #ifndef aaa
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-#else
-DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-#endif
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i){
@@ -568,6 +565,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	return 0x0;
 }
+#endif
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
