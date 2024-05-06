@@ -254,20 +254,7 @@ inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const ch
 	}
 };
 // ============= [General] =============
-DEFINE_HOOK(0x66D530, RulesClass_ReadGeneral_whocallThese, 0x6)
-{
-	GET_STACK(DWORD, caller, 0x0);
 
-	Debug::Log(__FUNCTION__" Caller[%x]\n" , caller);
-	return 0x0;
-}
-DEFINE_HOOK(0x668BF0, RulesClass_Process_whocallThese, 0x6)
-{
-	GET_STACK(DWORD, caller, 0x0);
-
-	Debug::Log(__FUNCTION__" Caller[%x]\n", caller);
-	return 0x0;
-}
 DEFINE_HOOK(0x66D55E, Buf_General, 6)
 {
 	GET(RulesClass*, pRules, ESI);
@@ -285,7 +272,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	detail::ParseVector(pRules->SovParaDropNum, exINI, section, GameStrings::SovParaDropNum, "Expect valid number");
 	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
-	ParseVector_loc<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
 
 	detail::ParseVector<InfantryTypeClass*, true>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
 	detail::ParseVector<UnitTypeClass*, true>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");

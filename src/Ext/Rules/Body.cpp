@@ -149,6 +149,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	RadTypeClass::ReadListFromINI(pINI);
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 
+	//got invalidated early , so parse it again
+	detail::ParseVector<InfantryTypeClass*, true>(pThis->AnimToInfantry, iniEX, GENERAL_SECTION, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
 	pData->FirestormIdleAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormIdleAnim");

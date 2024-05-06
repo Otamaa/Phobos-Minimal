@@ -30,7 +30,7 @@ public:
 		wstrCopy(Dest, Source, Size);
 	}
 
-	inline void EraseSubString(std::string& str, const std::string& erase)
+	constexpr inline void EraseSubString(std::string& str, const std::string& erase)
 	{
 		size_t pos = str.find(erase);
 		if (pos != std::string::npos)
@@ -40,7 +40,7 @@ public:
 	}
 
 	template<typename T>
-	static std::string GetTypeIDName()
+	constexpr static std::string GetTypeIDName()
 	{
 		std::string str = typeid(T).name();
 		EraseSubString(str, "class ");
