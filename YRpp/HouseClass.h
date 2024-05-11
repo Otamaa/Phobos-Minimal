@@ -829,7 +829,7 @@ public:
 	void SetPrimaryFactory(FactoryClass* pFactory, AbstractType absID, bool naval, BuildCat buildCat)
 		{ JMP_THIS(0x500850); }
 
-	const CellStruct& GetBaseCenter() const {
+	constexpr const CellStruct& GetBaseCenter() const {
 		if(this->BaseCenter.IsValid()) {
 			return this->BaseCenter;
 		} else {

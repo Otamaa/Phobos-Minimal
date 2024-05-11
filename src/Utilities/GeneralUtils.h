@@ -375,48 +375,6 @@ public:
 	static bool ApplyTheaterExtToString(std::string& flag);
 	static std::string ApplyTheaterSuffixToString(const std::string& str);
 
-	template <size_t size>
-	static inline void lowercase(char(&nBuff)[size], char const (&nData)[size])
-	{
-		for (size_t i = 0; i < size; ++i)
-		{
-			nBuff[i] = (char)std::tolower(nData[i]);
-		}
-	}
-
-	template <size_t size>
-	static inline void uppercase(char(&nBuff)[size], char(&nData)[size])
-	{
-		for (size_t i = 0; i < size; ++i)
-		{
-			nBuff[i] = (char)std::toupper(nData[i]);
-		}
-	}
-
-	//
-	//  Lowercases string
-	//
-	template <typename T>
-	static inline std::basic_string<T> lowercase(const std::basic_string<T>& s)
-	{
-		std::basic_string<T> s2 = s;
-		std::transform(s2.begin(), s2.end(), s2.begin(),
-			[](const T v) { return static_cast<T>(std::tolower(v)); });
-		return s2;
-	}
-
-	//
-	// Uppercases string
-	//
-	template <typename T>
-	static std::basic_string<T> uppercase(const std::basic_string<T>& s)
-	{
-		std::basic_string<T> s2 = s;
-		std::transform(s2.begin(), s2.end(), s2.begin(),
-			[](const T v) { return static_cast<T>(std::toupper(v)); });
-		return s2;
-	}
-
 	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
 	{
 		if (!pIn)
@@ -625,17 +583,4 @@ public:
 
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
-};
-
-struct StopwatchLogger
-{
-	Stopwatch watch;
-	const char* func;
-	const char* name;
-
-	StopwatchLogger(const char* pFunc = nullptr, const char* pName = nullptr) : func(pFunc), name(pName) {}
-
-	~StopwatchLogger() {
-		Debug::Log("STOPWATCH %s (%s): %lld\n", func, name, watch.get_nano().QuadPart);
-	}
 };

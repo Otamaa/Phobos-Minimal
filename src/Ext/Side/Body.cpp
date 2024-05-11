@@ -85,7 +85,7 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 	static char filename[decltype(this->ScoreMultiplayBars)::Size];
 	auto const& data = this->ScoreMultiplayBars.data();
 
-	GeneralUtils::lowercase(filename, data);
+	PhobosCRT::lowercase(filename, data);
 
 	if (auto const pMarker = strstr(filename, "~~"))
 	{

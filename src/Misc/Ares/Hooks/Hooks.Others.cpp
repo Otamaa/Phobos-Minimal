@@ -1227,13 +1227,11 @@ DEFINE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 			offset += wanted.Height;
 	};
 
-	if (!AresGlobalData::ModNote.Label)
-	{
+	if (!AresGlobalData::ModNote.Label) {
 		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
 	}
 
-	if (!AresGlobalData::ModNote.empty())
-	{
+	if (!AresGlobalData::ModNote.empty()) {
 		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
 	}
 

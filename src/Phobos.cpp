@@ -189,7 +189,7 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	bool dontSetExceptionHandler = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
-	std::string args;
+	std::string args {};
 	for (int i = 1; i < nNumArgs; i++)
 	{
 		const auto pArg = ppArgs[i];
@@ -834,8 +834,10 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x687604, Scenario_Start1, 0x5)
+DEFINE_HOOK_AGAIN(0x52FEB7, Scenario_Start, 0x6)
+DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
 {
+	Debug::Log("Init Phobos Randomizer seed %x\n", Game::Seed());
 	Phobos::Random::SetRandomSeed(Game::Seed());
 	return 0;
 }

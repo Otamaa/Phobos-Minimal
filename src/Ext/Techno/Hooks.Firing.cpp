@@ -116,6 +116,30 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 // 	return 0;
 // }
 
+DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
+{
+	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(WarheadTypeClass*, pWarhead, EAX);
+	GET(TechnoClass*, pTarget, EBP);
+
+	if (pTarget)
+	{
+		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
+
+		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+		//if(pWHExt->ImmunityType.isset() &&
+		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
+		//	return FireIllegal;
+
+		if (pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
+			return FireIllegal;
+	}
+
+	return ContinueCheck;
+}
+
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
@@ -176,7 +200,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	if (pTargetTechno)
 	{
-
 		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 

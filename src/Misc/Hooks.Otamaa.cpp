@@ -1926,13 +1926,11 @@ DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 	if (!pType->AttackFriendlies)
 		return ContinueCheck;
 
-	bool Allow = true;
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
-
-	return Allow ? AllowAttack : ContinueCheck;
+	return pTypeExt->AttackFriendlies_WeaponIdx <= -1
+		|| pTypeExt->AttackFriendlies_WeaponIdx == nWeapon
+		? AllowAttack : ContinueCheck;
 }
 
 DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
@@ -7519,23 +7517,3 @@ DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
 	return 0x0;
 }
 #endif
-
-DEFINE_HOOK_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
-DEFINE_HOOK_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
-DEFINE_HOOK_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType , 0x6)
-DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6) {
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, ECX);
-
-	TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
-	return 0x0;
-}
-
-DEFINE_HOOK(0x42493E, Animclass_AnimtoInf_probe, 0x6)
-{
-	int limit = RulesClass::Instance->AnimToInfantry.Count;
-	Debug::Log(__FUNCTION__" Executed! array[%d]\n", limit);
-
-
-	return 0x0;
-}

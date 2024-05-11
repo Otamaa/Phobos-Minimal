@@ -48,6 +48,58 @@ public:
 		return str;
 	}
 
+	//
+	//  Lowercases string
+	//
+	template <typename T>
+	static inline std::basic_string<T> lowercase(const std::basic_string<T>& s, size_t start = 0)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin() + start, s2.end(), s2.begin() + start, ::tolower);
+		return s2;
+	}
+
+	template <typename T>
+	static inline void lowercase(std::basic_string<T>& s, size_t start = 0)
+	{
+		std::transform(s.begin() + start, s.end(), s.begin() + start, ::tolower);
+	}
+
+	//
+	// Uppercases string
+	//
+	template <typename T>
+	static std::basic_string<T> uppercase(const std::basic_string<T>& s, size_t start = 0)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin() + start, s2.end(), s2.begin() + start, ::toupper);
+		return s2;
+	}
+
+	template <typename T>
+	static void uppercase(std::basic_string<T>& s, size_t start = 0)
+	{
+		std::transform(s.begin() + start, s.end(), s.begin() + start, ::toupper);
+	}
+
+	template <size_t size>
+	static inline void lowercase(char(&nBuff)[size], char const (&nData)[size], size_t start = 0)
+	{
+		for (size_t i = 0 + start; i < size; ++i)
+		{
+			nBuff[i] = (char)std::tolower(nData[i]);
+		}
+	}
+
+	template <size_t size>
+	static inline void uppercase(char(&nBuff)[size], char(&nData)[size], size_t start = 0)
+	{
+		for (size_t i = 0 + start; i < size; ++i)
+		{
+			nBuff[i] = (char)std::toupper(nData[i]);
+		}
+	}
+
 	constexpr static std::string WideStringToString(const std::wstring& wstr)
 	{
 		if (wstr.empty())

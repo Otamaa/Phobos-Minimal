@@ -75,7 +75,7 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
 
 			for (int i = divisor - 1; i > 0 ; --i) {
-				finalSpeed *= nFactorySpeed;
+				finalSpeed = int(finalSpeed * nFactorySpeed);
 			}
 		}
 
@@ -1278,28 +1278,6 @@ DEFINE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 
 	R->EAX(count);
 	return 0x7162BC;
-}
-
-DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
-{
-	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
-
-	GET(WarheadTypeClass* , pWarhead , EAX);
-	GET(TechnoClass*, pTarget, EBP);
-
-	if(pTarget)	{
-		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
-
-		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		//if(pWHExt->ImmunityType.isset() &&
-		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
-		//	return FireIllegal;
-
-		if(pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
-			return FireIllegal;
-	}
-
-	return ContinueCheck;
 }
 
 // issue #895788: cells' high occupation flags are marked only if they

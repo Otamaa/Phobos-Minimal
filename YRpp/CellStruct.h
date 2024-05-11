@@ -22,6 +22,18 @@ public:
 		return (X == a.X && Y == a.Y);
 	}
 
+	constexpr CellStruct& operator++() {
+		++X;
+		++Y;
+		return *this;
+	}
+
+	constexpr CellStruct& operator--() {
+		--X;
+		--Y;
+		return *this;
+	}
+
 	constexpr CellStruct operator+(short nThat) const
 	{ return { short(X + nThat), short(Y + nThat) }; }
 
@@ -68,6 +80,9 @@ public:
 		Y += a.Y;
 		return *this;
 	}
+
+	constexpr CellStruct operator--(int) { return --(*this); }
+
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow

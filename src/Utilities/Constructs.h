@@ -112,7 +112,7 @@ struct Handle
 		return get();
 	}
 
-	T release() noexcept
+	constexpr T release() noexcept
 	{
 		return std::exchange(this->Value, Default);
 	}
@@ -158,21 +158,16 @@ class TheaterSpecificSHP
 public:
 	constexpr TheaterSpecificSHP() noexcept = default;
 
-	TheaterSpecificSHP(SHPStruct* pSHP)
+	constexpr TheaterSpecificSHP(SHPStruct* pSHP)
 		: value { pSHP }
 	{ }
 
-	//TheaterSpecificSHP& operator = (SHPStruct* pSHP)
-	//{
-	//	this->value = pSHP;
-	//}
-
-	operator SHPStruct* ()
+	constexpr operator SHPStruct* ()
 	{
 		return this->value;
 	}
 
-	SHPStruct* GetSHP()
+	constexpr SHPStruct* GetSHP()
 	{
 		return *this;
 	}
@@ -199,51 +194,6 @@ private:
 protected:
 	TheaterSpecificSHP(const TheaterSpecificSHP& other) = delete;
 	TheaterSpecificSHP& operator=(const TheaterSpecificSHP& other) = delete;
-};
-
-class CustomPalette {
-public:
-	enum class PaletteMode : unsigned int {
-		Default = 0,
-		Temperate = 1
-	};
-
-	PaletteMode Mode{ PaletteMode::Default };
-	Handle<ConvertClass* , UninitConvert> Convert { nullptr };
-	UniqueGamePtr<BytePalette> Palette { nullptr };
-
-	CustomPalette() = default;
-	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode) {};
-	~CustomPalette() = default;
-
-	ConvertClass* GetConvert() const {
-		return this->Convert.get();
-	}
-
-	ConvertClass* GetOrDefaultConvert(ConvertClass* const& pDefault) const {
-		return this->Convert.get() ? this->Convert.get() : pDefault;
-	}
-
-	bool Read(
-		CCINIClass* pINI, const char* pSection, const char* pKey,
-		const char* pDefault = "");
-
-	static bool __fastcall Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey,
-		const char* pDefault);
-
-	bool LoadFromName(const char* PaletteName);
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm) const;
-
-	bool CreateFromBytePalette(BytePalette nBytePal);
-
-private:
-	void Clear();
-	void CreateConvert();
-
-protected:
-	CustomPalette(const CustomPalette& other) = delete;
-	CustomPalette& operator=(const CustomPalette& other) = delete;
 };
 
 // vector of char* with builtin storage
@@ -329,7 +279,7 @@ public:
 	//	return const_cast<TValue*>(pValue);
 	//}
 
-	TValue* tryfind(const TKey& key) {
+	constexpr TValue* tryfind(const TKey& key) {
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {
 			return &it->second;
@@ -339,7 +289,7 @@ public:
 	}
 
 	// nonmodifiable
-	const TValue* tryfind(const TKey& key) const {
+	constexpr const TValue* tryfind(const TKey& key) const {
 		auto it = this->get_key_iterator(key);
 
 		if (it != this->values.end()) {
@@ -350,7 +300,7 @@ public:
 	}
 
 	// nonmodifiable
-	TValue get_or_default(const TKey& key) const {
+	constexpr TValue get_or_default(const TKey& key) const {
 		if (auto pValue = this->tryfind(key)) {
 			return *pValue;
 		}
@@ -358,18 +308,18 @@ public:
 	}
 
 	// nonmodifiable
-	TValue get_or_default(const TKey& key, TValue def) const {
+	constexpr TValue get_or_default(const TKey& key, TValue def) const {
 		if (auto pValue = this->tryfind(key)) {
 			return *pValue;
 		}
 		return def;
 	}
 
-	void erase(container_t::iterator iter) {
+	constexpr void erase(container_t::iterator iter) {
 		this->values.erase(iter, this->values.end());
 	}
 
-	bool erase(const TKey& key) {
+	constexpr bool erase(const TKey& key) {
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {
 			this->values.erase(it);
@@ -378,7 +328,7 @@ public:
 		return false;
 	}
 
-	bool contains(const TKey& key) const {
+	constexpr bool contains(const TKey& key) const {
 		return this->get_key_iterator(key) != values.end();
 	}
 
@@ -394,23 +344,23 @@ public:
 		this->insert_unchecked(key, std::move(value));
 	}
 
-	size_t size() const {
+	constexpr size_t size() const {
 		return values.size();
 	}
 
-	bool empty() const {
+	constexpr bool empty() const {
 		return values.empty();
 	}
 
-	void clear() {
+	constexpr void clear() {
 		values.clear();
 	}
 
-	void reserve(size_t newsize) {
+	constexpr void reserve(size_t newsize) {
 		values.reserve(newsize);
 	}
 
-	void resize(size_t newsize) {
+	constexpr void resize(size_t newsize) {
 		values.resize(newsize);
 	}
 
@@ -445,38 +395,35 @@ public:
 		return true;
 	}
 
-	//using iterator = container_t::iterator;
-	//using const_iterator = container_t::const_iterator;
-
-	[[nodiscard]] auto begin() noexcept
+	constexpr [[nodiscard]] auto begin() noexcept
 	{
 		return values.begin();
 	}
 
-	[[nodiscard]] auto begin() const noexcept
+	constexpr [[nodiscard]] auto begin() const noexcept
 	{
 		return values.begin();
 	}
 
-	[[nodiscard]] auto end() noexcept
+	constexpr [[nodiscard]] auto end() noexcept
 	{
 		return values.end();
 	}
 
-	[[nodiscard]] auto end() const noexcept
+	constexpr [[nodiscard]] auto end() const noexcept
 	{
 		return values.end();
 	}
 
-	auto back() const {
+	constexpr auto back() const {
 		return values.back();
 	}
 
-	auto back() {
+	constexpr auto back() {
 		return values.back();
 	}
 
-	auto get_key_iterator(const TKey& key) {
+	constexpr auto get_key_iterator(const TKey& key) {
 		if constexpr (direct_comparable<TKey>){
 			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 				return item.first == key;
@@ -487,7 +434,7 @@ public:
 	}
 
 	// nonmodifiable
-	auto get_key_iterator(const TKey& key) const {
+	constexpr auto get_key_iterator(const TKey& key) const {
 		if constexpr (direct_comparable<TKey>) {
 			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 				return item.first == key;
@@ -564,15 +511,15 @@ public:
 		return *this;
 	}
 
-	const FixedString<Capacity>::data_type& GetFilename() const {
+	constexpr const char* GetFilename() const {
 		return this->filename.data();
 	}
 
-	BSurface* GetSurface() const {
+	constexpr BSurface* GetSurface() const {
 		return this->Surface;
 	}
 
-	bool Exists() const {
+	constexpr bool Exists() const {
 		return this->Surface;
 	}
 
@@ -604,14 +551,14 @@ public:
 		if (!ret)
 			return false;
 
-		if (oldPtr) {
+		if (oldPtr && this->filename) {
 			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
 			if( !pSource && PCX::Instance->LoadFile(this->filename))
 				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
 
 			this->Surface = pSource;
 
-			if (this->filename && !this->Surface) {
+			if (!this->Surface) {
 				Debug::Log("PCX file[%s] not found.\n",this->filename.data());
 			}
 
@@ -634,14 +581,13 @@ private:
 		this->filename = nullptr;
 	}
 
-	//mutable UniqueGamePtrB<BSurface> Surface;
-	BSurface* Surface;
+	BSurface* Surface { nullptr };
 	FixedString<Capacity> filename;
-
 };
 
 // provides storage for a csf label with automatic lookup.
 class CSFText {
+	static constexpr const size_t Capacity = 0x20;
 public:
 	CSFText() noexcept {}
 	explicit CSFText(nullptr_t) noexcept {}
@@ -670,7 +616,7 @@ public:
 	}
 
 	template<bool check = true>
-	void __forceinline PrintAsMessage(int colorScheme) const {
+	void FORCEINLINE PrintAsMessage(int colorScheme) const {
 
 		if constexpr (check) {
 			if (this->empty())
@@ -680,11 +626,11 @@ public:
 		MessageListClass::Instance->PrintMessage(this->Text, RulesClass::Instance->MessageDelay, colorScheme);
 	}
 
-	operator const wchar_t* () const {
+	constexpr operator const wchar_t* () const {
 		return this->Text;
 	}
 
-	bool empty() const {
+	constexpr bool empty() const {
 		return !this->Text || !*this->Text;
 	}
 
@@ -714,7 +660,7 @@ public:
 // a wrapper for an optional value
 template <typename T, bool Persistable = false>
 struct OptionalStruct {
-	OptionalStruct() = default;
+	constexpr OptionalStruct() = default;
 	explicit OptionalStruct(T value) noexcept : Value(std::move(value)), HasValue(true) {}
 
 	OptionalStruct& operator= (T value) {
@@ -725,23 +671,23 @@ struct OptionalStruct {
 
 	~OptionalStruct() noexcept { this->clear(); }
 
-	OptionalStruct(const OptionalStruct& other) = default;
-	OptionalStruct& operator=(const OptionalStruct& other) = default;
+	constexpr OptionalStruct(const OptionalStruct& other) = default;
+	constexpr OptionalStruct& operator=(const OptionalStruct& other) = default;
 
-	operator T& () noexcept {
+	constexpr operator T& () noexcept {
 		return this->Value;
 	}
 
-	operator const T& () const noexcept {
+	constexpr operator const T& () const noexcept {
 		return this->Value;
 	}
 
-	void clear() {
+	constexpr void clear() {
 		this->Value = T();
 		this->HasValue = false;
 	}
 
-	bool empty() const noexcept {
+	constexpr bool empty() const noexcept {
 		return !this->HasValue;
 	}
 
@@ -753,11 +699,11 @@ struct OptionalStruct {
 		return this->HasValue;
 	}
 
-	bool isset() const noexcept {
+	constexpr bool isset() const noexcept {
 		return this->HasValue;
 	}
 
-	const T& get() const noexcept {
+	constexpr const T& get() const noexcept {
 		return this->Value;
 	}
 
@@ -799,4 +745,71 @@ private:
 
 	T Value{};
 	bool HasValue{ false };
+};
+
+struct GameConfig {
+
+	GameConfig(const char* pFilename) noexcept : File { nullptr }
+		, Ini { nullptr }
+	{
+		this->File.reset(GameCreate<CCFileClass>(pFilename));
+	}
+
+	~GameConfig() noexcept = default;
+
+	bool OpenINI(FileAccessMode mode = FileAccessMode::Read) noexcept
+	{
+		if (!File->Exists() || !File->Open(mode))
+		{
+			Debug::Log("Failed to Open file %s \n", this->File->FileName);
+			return false;
+		}
+
+		Ini.reset(GameCreate<CCINIClass>());
+		Ini->ReadCCFile(this->File.get());
+		Ini->CurrentSection = nullptr;
+		Ini->CurrentSectionName = nullptr;
+
+		return true;
+	}
+
+	bool OpenOrCreate(FileAccessMode mode = FileAccessMode::ReadWrite) noexcept
+	{
+		if (!File->Exists() || !File->CreateFileA() || !File->Open(mode))
+		{
+			Debug::Log("Failed to Open file %s \n", this->File->FileName);
+			return false;
+		}
+
+		Ini.reset(GameCreate<CCINIClass>());
+		Ini->ReadCCFile(this->File.get());
+		Ini->CurrentSection = nullptr;
+		Ini->CurrentSectionName = nullptr;
+
+		return true;
+	}
+
+	FORCEINLINE void WriteCCFile()
+	{
+		Ini->WriteCCFile(File.get());
+	}
+
+	const char* filename() noexcept
+	{
+		return File->FileName;
+	}
+
+	CCINIClass* get() noexcept
+	{
+		return Ini.get();
+	}
+
+	CCINIClass* operator->() noexcept
+	{
+		return Ini.get();
+	}
+
+protected:
+	UniqueGamePtr<CCFileClass> File;
+	UniqueGamePtr<CCINIClass> Ini;
 };
