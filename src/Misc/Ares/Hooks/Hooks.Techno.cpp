@@ -1405,6 +1405,11 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pHouse, EDI);
 
+	enum { RetNotAlly = 0x6FA472, RetAlly = 0x6FA39D };
+
+	if (pThis->GetTechnoType()->AttackFriendlies)
+		return RetNotAlly;
+
 	const bool BLRes = R->BL();
 	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
 
@@ -1418,7 +1423,6 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 		}
 	}
 
-	enum { RetNotAlly = 0x6FA472, RetAlly = 0x6FA39D };
 	const bool IsNegDamage = (pThis->CombatDamage() < 0);
 
 	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
