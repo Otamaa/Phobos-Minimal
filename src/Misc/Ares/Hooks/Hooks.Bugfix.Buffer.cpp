@@ -254,6 +254,7 @@ inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const ch
 	}
 };
 // ============= [General] =============
+std::optional<int> ATOI_Count;
 
 DEFINE_HOOK(0x66D55E, Buf_General, 6)
 {
@@ -273,6 +274,12 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
 	detail::ParseVector<InfantryTypeClass*>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+
+	//if (!ATOI_Count.has_value() || !ATOI_Count.value())
+	//	ATOI_Count = pRules->AnimToInfantry.Count;
+	//else if(pRules->AnimToInfantry.Count != ATOI_Count.value()) {
+	//	Debug::FatalError("ATOI Array missmatch was %d cur %d\n", ATOI_Count.value(), pRules->AnimToInfantry.Count);
+	//}
 
 	detail::ParseVector<InfantryTypeClass*>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
 	detail::ParseVector<UnitTypeClass*>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");

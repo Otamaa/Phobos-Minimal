@@ -134,7 +134,7 @@ static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubN
 	{"BrainBlastTurretWeapon" , "BrainBlastTurretIndex"} ,
 	{"RadCannonTurretWeapon" , "RadCannonTurretIndex"} ,
 	{"ChronoTurretWeapon" , "ChronoTurretIndex" },
-	{"TerroristExplode" , "TerroristExplode"} ,
+	{"TerroristExplodeTurretWeapon" , "TerroristExplodeTurretIndex"} ,
 	{"CowTurretWeapon" , "CowTurretIndex" },
 	{"InitiateTurretWeapon" , "InitiateTurretIndex"} ,
 	{"VirusTurretWeapon" ,	"VirusTurretIndex" },
