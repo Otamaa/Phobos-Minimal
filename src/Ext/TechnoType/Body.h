@@ -968,8 +968,8 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static double TurretMultiOffsetDefaultMult;
-	static double TurretMultiOffsetOneByEightMult;
+static constexpr double TurretMultiOffsetDefaultMult { 1.0 };
+	static constexpr double TurretMultiOffsetOneByEightMult { 0.125 };
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);

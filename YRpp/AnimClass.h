@@ -57,7 +57,7 @@ public:
 	virtual ~AnimClass() JMP_THIS(0x426590);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x425150);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x425150);
 	virtual AbstractType WhatAmI() const override { return AbstractType::Anim; }
 	virtual int	Size() const override { return 0x1C8; }
 

@@ -7,9 +7,6 @@
 
 #include <Utilities/Macro.h>
 
-const Leptons BulletTypeExtData::DefaultBulletScatterMin = Leptons { 256 };
-const Leptons BulletTypeExtData::DefaultBulletScatterMax = Leptons { 512 };
-
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
 {
 	BulletTypeClass* pType = nullptr;

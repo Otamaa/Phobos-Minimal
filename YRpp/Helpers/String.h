@@ -63,31 +63,31 @@ struct FixedString {
 		return *this;
 	}
 
-	explicit operator bool() {
+	constexpr explicit operator bool() {
 		return this->chars[0] != 0;
 	}
 
-	explicit operator bool() const {
+	constexpr explicit operator bool() const {
 		return this->chars[0] != 0;
 	}
 
-	bool operator !() const {
+	constexpr bool operator !() const {
 		return this->chars[0] == 0;
 	}
 
-	operator const T* () const {
+	constexpr operator const T* () const {
 		return this->chars;
 	}
 
-	operator T* () {
+	constexpr operator T* () {
 		return this->chars;
 	}
 
-	data_type& data() {
+	constexpr data_type& data() {
 		return this->chars;
 	}
 
-	const data_type& data() const {
+	constexpr const data_type& data() const {
 		return this->chars;
 	}
 

@@ -198,14 +198,14 @@ DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	if (pTemp)
 		pTemp->LetGo();
 
-	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal = pTemp;
+	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal.reset(pTemp);
 	return 0;
 }
 
 DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
-	Unit->TemporalImUsing = std::exchange(TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal, nullptr);
+	Unit->TemporalImUsing = TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal.release();
 	return 0x746546;
 }
 

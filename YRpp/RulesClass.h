@@ -132,6 +132,10 @@ public:
 	void Read_General(CCINIClass *pINI)
 		{ JMP_THIS(0x66D530); }
 
+	bool Read_Types(CCINIClass *pINI) {
+		JMP_THIS(0x679A10);
+	}
+
 	void Read_MultiplayerDialogSettings(CCINIClass *pINI)
 		{ JMP_THIS(0x671EA0); }
 

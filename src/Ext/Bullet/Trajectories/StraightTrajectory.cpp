@@ -170,12 +170,12 @@ void StraightTrajectory::OnAIPreDetonate()
 		return;
 
 	const auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
-	const auto pCoords = &(pTarget ? pTarget->GetCoords() : pBullet->Data.Location);
+	CoordStruct coords = (pTarget ? pTarget->GetCoords() : pBullet->Data.Location);
 
-	if (pCoords->DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
+	if (coords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
 	{
 		BulletExtContainer::Instance.Find(pBullet)->SnappedToTarget = true;
-		pBullet->SetLocation(*pCoords);
+		pBullet->SetLocation(coords);
 	}
 }
 

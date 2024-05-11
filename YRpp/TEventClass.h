@@ -30,7 +30,7 @@ public:
 	virtual ~TEventClass() RX;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 

@@ -152,7 +152,7 @@ public:
 	CDTimerClass WarpedOutDelay { };
 
 	OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	TemporalClass* MyOriginalTemporal { nullptr };
+	Handle<TemporalClass*, GameDeleter> MyOriginalTemporal { nullptr };
 
 	bool SupressEVALost { false };
 	CDTimerClass SelfHealing_CombatDelay { };
@@ -407,10 +407,7 @@ public:
 	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
 
 	TechnoExtData() noexcept = default;
-	~TechnoExtData() noexcept
-	{
-		GameDelete<true, true>(MyOriginalTemporal);
-	}
+	~TechnoExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);

@@ -2218,9 +2218,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		;
 }
 
-double TechnoTypeExtData::TurretMultiOffsetDefaultMult = 1.0;
-double TechnoTypeExtData::TurretMultiOffsetOneByEightMult = 0.125;
-
 // =============================
 // container
 TechnoTypeExtContainer TechnoTypeExtContainer::Instance;

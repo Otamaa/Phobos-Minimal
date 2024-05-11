@@ -46,7 +46,7 @@ public:
 	virtual ~WarheadTypeClass() JMP_THIS(0x75E510);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x75E440);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x75E440);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const R0;
 

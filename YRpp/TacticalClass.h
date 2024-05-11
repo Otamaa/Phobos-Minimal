@@ -46,7 +46,7 @@ public:
 	virtual ~TacticalClass() override JMP_THIS(0x6DC470);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6DA560);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6DA560);
 	virtual AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }
 	virtual int Size() const override { return 0xE18; }
 	virtual void Update() override JMP_THIS(0x6D2540);

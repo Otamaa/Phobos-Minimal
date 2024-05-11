@@ -159,8 +159,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	static const Leptons DefaultBulletScatterMin;
-	static const Leptons DefaultBulletScatterMax;
+	static constexpr Leptons DefaultBulletScatterMin { 256 };
+	static constexpr Leptons DefaultBulletScatterMax { 512 };
 
 };
 

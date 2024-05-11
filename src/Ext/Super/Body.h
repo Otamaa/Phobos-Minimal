@@ -14,9 +14,10 @@ struct SWStatus
 	bool PowerSourced; //1
 	bool Charging;
 
-	void __forceinline reset()
-	{
-		std::memset(this, 0, sizeof(SWStatus));
+	constexpr void FORCEINLINE reset() {
+		Available = 0;
+		PowerSourced = 0;
+		Charging = 0;
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)

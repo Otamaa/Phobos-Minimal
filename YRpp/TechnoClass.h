@@ -227,7 +227,7 @@ public:
 
 	//AbstractClass
 	virtual void Init() override { JMP_THIS(0x6F3F40); }
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x7077C0);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x7077C0);
 	virtual int GetOwningHouseIndex() const override JMP_THIS(0x6F9DB0);//{ return this->Owner->ArrayIndex; }
 	virtual HouseClass* GetOwningHouse() const override { return this->Owner; }
 	virtual void Update() override JMP_THIS(0x6F9E50);

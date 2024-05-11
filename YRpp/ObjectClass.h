@@ -63,7 +63,7 @@ public:
 	virtual ~ObjectClass() JMP_THIS(0x5F6DC0);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x5F5230);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x5F5230);
 	virtual bool IsDead() const override JMP_THIS(0x5F6690);
 	virtual void Update() override JMP_THIS(0x5F3E70);
 
