@@ -2110,9 +2110,16 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 		if (pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell)
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
 		{
+			int oldstart = pSuper->RechargeTimer.StartTime;
+			int oldleft = pSuper->RechargeTimer.TimeLeft;
+			pSuper->SetReadiness(true);
 			pSuper->Launch(cell, IsPlayer);
-			if (pLauncherTypeExt->SW_Next_RealLaunch)
-				pSuper->Reset();
+			pSuper->Reset();
+
+			if (!pLauncherTypeExt->SW_Next_RealLaunch) {
+				pSuper->RechargeTimer.StartTime = oldstart;
+				pSuper->RechargeTimer.TimeLeft = oldleft;
+			}
 		}
 	}
 }

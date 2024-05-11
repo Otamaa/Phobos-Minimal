@@ -2464,8 +2464,10 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 					pSuper->SetReadiness(true);
 					pSuper->Launch(CellClass::Coord2Cell(EnteredBuilding->GetCenterCoords()), pHouse->IsCurrentPlayer());
 					pSuper->Reset();
-					pSuper->RechargeTimer.StartTime = oldstart;
-					pSuper->RechargeTimer.TimeLeft = oldleft;
+					if (!realLaunch) {
+						pSuper->RechargeTimer.StartTime = oldstart;
+						pSuper->RechargeTimer.TimeLeft = oldleft;
+					}
 				}
 			}
 		};
