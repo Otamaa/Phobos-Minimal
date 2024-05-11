@@ -62,6 +62,7 @@ bool Phobos::UI::DisableEmptySpawnPositions = false;
 bool Phobos::UI::ExtendedToolTips = false;
 int Phobos::UI::MaxToolTipWidth = 0;
 bool Phobos::UI::ShowHarvesterCounter = false;
+bool Phobos::UI::WeedsCounter_Show = false;
 double Phobos::UI::HarvesterCounter_ConditionYellow = 0.99;
 double Phobos::UI::HarvesterCounter_ConditionRed = 0.5;
 bool Phobos::UI::ShowProducingProgress = false;
@@ -113,6 +114,10 @@ bool Phobos::Config::DigitalDisplay_Enable = false;
 
 bool Phobos::Config::ApplyShadeCountFix = true;
 bool Phobos::Config::SaveVariablesOnScenarioEnd = false;
+
+bool Phobos::Config::ShowHarvesterCounter = false;
+bool Phobos::Config::ShowPowerDelta = true;
+bool Phobos::Config::ShowWeedsCounter = false;
 
 std::string Phobos::AppIconPath;
 
@@ -355,6 +360,10 @@ void Phobos::Config::Read()
 
 			INI_UIMD.ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer);
 			strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
+
+			Phobos::Config::ShowPowerDelta = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowPowerDelta", true);
+			Phobos::Config::ShowHarvesterCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowHarvesterCounter", true);
+			Phobos::Config::ShowWeedsCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowWeedsCounter", true);
 		}
 
 		// ToolTips
@@ -400,6 +409,9 @@ void Phobos::Config::Read()
 
 			Phobos::UI::ShowProducingProgress =
 				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "ProducingProgress.Show", false);
+
+			Phobos::UI::WeedsCounter_Show =
+				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "WeedsCounter.Show", false);
 
 			Phobos::UI::ShowPowerDelta =
 				INI_UIMD.ReadBool(SIDEBAR_SECTION_T, "PowerDelta.Show", false);

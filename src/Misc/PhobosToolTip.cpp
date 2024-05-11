@@ -84,7 +84,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 
 	const int nTimeToBuild = pTrick->TimeToBuild();
 	// 54 frames at least
-	return nTimeToBuild < 54 ? 54 : nTimeToBuild;
+	return MaxImpl(54, nTimeToBuild);
 }
 
 inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const

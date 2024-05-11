@@ -816,11 +816,31 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 	enum { IsNaval = 0x4438BC, NotNaval = 0x4438C9 };
 
 	GET(BuildingTypeClass* const, pBuildingType, EAX);
+	GET_STACK(bool, playEVA, STACK_OFFSET(0xA4, 0x8));
+	REF_STACK(SpeedType, spdtp, STACK_OFFSET(0xA4, -0x84));
+
+	if (!playEVA)// assuming the hook above is the only place where it's set to false when UndeploysInto
+	{
+		if (auto pInto = pBuildingType->UndeploysInto)// r u sure this is not too OP?
+		{
+			R->ESI(pInto->MovementZone);
+			spdtp = pInto->SpeedType;
+			return NotNaval;
+		}
+	}
 
 	if (pBuildingType->Naval || pBuildingType->SpeedType == SpeedType::Float)
 		return IsNaval;
 
 	return NotNaval;
+}
+
+DEFINE_HOOK(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
+{
+	GET(BuildingClass*, pBld, EDI);
+	if (pBld->Focus && pBld->CurrentMission != Mission::Selling)
+		return 0x6DAAC0;
+	return 0x6DAD45;
 }
 
 FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
@@ -1165,28 +1185,27 @@ DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 {
 	GET(InfantryClass*, pThis, EDI);
+	enum { LosesDestination = 0x4D4BD1 };
 
-	if (!pThis)
-		return 0x0;
-
-	const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
-
-	if (!pBld || pThis->Target)//try less agressive first, only when no target, see if it doesn't fix something
+	auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
+	if (!pThis || !pBld || pThis->Target)
 		return 0;
 
-	if (!(pBld->Type->Capturable && pThis->Type->Engineer)   // can't capture
-	&& !(pBld->Type->Spyable && pThis->Type->Infiltrate)     // can't infiltrate
-	&& !(pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis))) // can't occupy
-	&& !(TechnoExtData::ISC4Holder(pThis)) // can't C4, what else?
-	)// If you can't do any of these why are you here?
-	{
-		pThis->SetDestination(nullptr, false);
-		return 0x4D4BD1;
-	}
+	if (pThis->Type->Engineer)
+		return 0;
 
-	return 0;
+	if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
+		return 0;// had to be a bit tolerable on this one due to interaction issue
+
+	if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
+		return 0;
+
+	if (TechnoExtData::ISC4Holder(pThis))
+		return 0;
+
+	pThis->SetDestination(nullptr, false);
+	return 0x4D4BD1;
 }
-
 
 void SetSkirmishHouseName(HouseClass* pHouse , bool IsHuman)
 {

@@ -141,7 +141,7 @@ struct Phobos final
 		static double PowerDelta_ConditionYellow;
 		static double PowerDelta_ConditionRed;
 		static bool CenterPauseMenuBackground;
-
+		static bool WeedsCounter_Show;
 		static bool UnlimitedColor;
 
 		static const wchar_t* CostLabel;
@@ -190,6 +190,11 @@ struct Phobos final
 
 		static bool DebugFatalerrorGenerateDump;
 		static bool SaveGameOnScenarioStart;
+
+		static bool ShowPowerDelta;
+		static bool ShowHarvesterCounter;
+		static bool ShowWeedsCounter;
+
 	};
 
 	struct Misc

@@ -321,7 +321,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 			if (cHeight > 0)
 			{
 				shadow_mtx.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-				key = std::bit_cast<VoxelIndexKey>(-1); // I'm sorry
+				key.Invalidate(); // I'm sorry
 			}
 		}
 		else if (pThis->Type->ConsideredAircraft)
@@ -341,7 +341,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	} else if (height > 0) {
 		if(const auto flyloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
 			shadow_mtx.ScaleX((float)Math::cos(flyloco->CurrentPitch));
-			key = std::bit_cast<VoxelIndexKey>(-1);
+			key.Invalidate();
 		}
 	}
 
@@ -404,7 +404,7 @@ VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexK
 
 	if (pType->NoSpawnAlt && pThis->SpawnManager && pThis->SpawnManager->CountDockedSpawns() == 0)
 	{
-		key = std::bit_cast<VoxelIndexKey>(-1);// I'd just assume most of the time we have spawn
+		key.Invalidate();// I'd just assume most of the time we have spawn
 		return &TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData;
 	}
 
@@ -429,7 +429,7 @@ void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pTy
 				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
 
 				if (jjloco->NextState != JumpjetLocomotionClass::State::Hovering)
-					key = std::bit_cast<VoxelIndexKey>(-1);
+					key.Invalidate();
 			}
 		}
 		else
@@ -439,7 +439,7 @@ void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pTy
 			if (cHeight > 0)
 			{
 				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-				key = std::bit_cast<VoxelIndexKey>(-1);
+				key.Invalidate();
 			}
 		}
 	}
@@ -448,6 +448,9 @@ void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pTy
 		mtx->Scale((float)GeneralUtils::Pade2_2(baseScale_log));
 	}
 }
+
+// Shadow_Point of RocketLoco was forgotten to be set to {0,0}. It was an oversight.
+DEFINE_JUMP(VTABLE, 0x7F0B4C, 0x4CF940);
 
 DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
