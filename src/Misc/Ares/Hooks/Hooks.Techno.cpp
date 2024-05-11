@@ -1422,7 +1422,7 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 
 	auto pType = pThis->GetTechnoType();
 
-	if (pType && IsAlly)
+	if (pType->AttackFriendlies && IsAlly)
 		return ForceAttack;
 
 	const bool IsNegDamage = (pThis->CombatDamage() < 0);
