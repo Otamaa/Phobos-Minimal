@@ -321,44 +321,64 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 
 bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner)
 {
-	if (!pTarget)
+	if (!pTarget || pThis->Target == pTarget)
 		return false;
 
 	const auto pWH = pThis->Type->ShrapnelWeapon->Warhead;
-	const auto pWhExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	const auto pBulletExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
+	if (pBulletExt->Shrapnel_UseWeaponTargeting)
 	{
-		switch ((((DWORD*)pTargetObj)[0]))
-		{
-		case AircraftClass::vtable:
-		case InfantryClass::vtable:
-		case UnitClass::vtable:
-		case BuildingClass::vtable:
-		{
-			if (!pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false)) {
-				return false;
-			}
-		}
-		break;
-		default: {
-			if (const auto pType = pTargetObj->GetType()) {
-				if(GeneralUtils::GetWarheadVersusArmor(pWH , pType->Armor) < 0.001) {
+		const auto pWhExt = WarheadTypeExtContainer::Instance.Find(pWH);
+		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->Type->ShrapnelWeapon);
 
+		if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
+		{
+			auto pTargetType = static_cast<TechnoClass*>(pTargetObj)->GetType();
+
+			switch ((((DWORD*)pTargetObj)[0]))
+			{
+			case AircraftClass::vtable:
+			case InfantryClass::vtable:
+			case UnitClass::vtable:
+			case BuildingClass::vtable:
+			{
+
+				if (!pTargetType->LegalTarget || !pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
 					return false;
+
+				if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget))
+					return false;
+			}
+			break;
+			default:
+			{
+				if (const auto pType = pTargetObj->GetType()) {
+					if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) < 0.001) {
+						return false;
+					}
 				}
 			}
-		}
-		break;
-		}
+			break;
+			}
 
-		if (pThis->Target == pTarget)
-			return false;
-
-		if (pThis->Owner && checkOwner)
-		{
-			if (pThis->Owner->Owner->IsAlliedWith(pTarget))
+			if (!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner, pTargetObj->GetOwningHouse()))
 				return false;
+
+			if (!EnumFunctions::IsCellEligible(pTargetObj->GetCell(), pWeaponExt->CanTarget, true, true))
+				return false;
+		}
+		else if (pTarget->WhatAmI() == CellClass::AbsID) {
+			if (!EnumFunctions::IsCellEligible((CellClass*)pTarget, pWeaponExt->CanTarget, true, true)) {
+				return false;
+			}
+		}
+	}
+	else {
+		if (pThis->Owner && checkOwner) {
+			if (pThis->Owner->Owner->IsAlliedWith(pTarget)) {
+				return false;
+			}
 		}
 	}
 

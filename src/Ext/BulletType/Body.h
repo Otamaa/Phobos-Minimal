@@ -31,6 +31,8 @@ public:
 	Valueable<bool> Shrapnel_AffectsGround { false };
 	Valueable<bool> Shrapnel_AffectsBuildings { false };
 	Nullable<double> Shrapnel_Chance { };
+	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
+
 	Nullable<Leptons> Cluster_Scatter_Min { };
 	Nullable<Leptons> Cluster_Scatter_Max { };
 
