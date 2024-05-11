@@ -56,7 +56,6 @@
 
 
 #include "AresChecksummer.h"
-#include "Classes/Dialogs.h"
 
 #include "Header.h"
 

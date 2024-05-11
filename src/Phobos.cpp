@@ -608,9 +608,7 @@ void Phobos::ExeRun()
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 
-	char buff_path[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, buff_path);
-	LuaData::LuaDir = buff_path;
+	LuaData::LuaDir = PhobosCRT::WideStringToString(Debug::ApplicationFilePath);
 	LuaData::LuaDir += "\\Resources";
 
 	Patch::PrintAllModuleAndBaseAddr();
@@ -712,7 +710,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		//std::atexit(Phobos::_dump_memory_leaks);
 
 		Phobos::hInstance = hInstance;
+		Debug::InitLogFile();
 		Debug::LogFileRemove();
+
 		/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
 		  not really sure what is the real cause atm .///*/
 		Patch::Apply_LJMP(0x7D107D, &_msize);

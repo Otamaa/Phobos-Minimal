@@ -588,7 +588,6 @@
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresJammer.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresPoweredUnit.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\Classes\Dialogs.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\INIComment.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\INIEntry_.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\INISection_.h" />

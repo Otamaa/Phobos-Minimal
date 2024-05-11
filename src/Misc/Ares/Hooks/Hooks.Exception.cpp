@@ -1,8 +1,6 @@
 
 #include "Header.h"
 
-#include "Classes/Dialogs.h"
-
 #include <Utilities/Patch.h>
 
 #include <EventClass.h>
@@ -20,18 +18,18 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		L"Would you like to create a full error report for the developers?\n"
 		L"Be advised that reports from at least two players are needed.", L"Reconnection Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 	{
+		Debug::DumpStack(R, 8084);
+
 		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 		SetCursor(loadCursor);
 
-		Debug::DumpStack(R, 8084);
-
-		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+		std::wstring path = Debug::PrepareSnapshotDirectory();
 
 		if (Debug::LogEnabled)
 		{
 			Debug::Log("Copying debug log\n");
-			std::wstring logCopy = path + L"\\debug.log";
+			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
 			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
 		}
 
@@ -92,15 +90,15 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	case EXCEPTION_STACK_OVERFLOW:
 	case 0xE06D7363: // exception thrown and not caught
 	{
-		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+		std::wstring path = Debug::PrepareSnapshotDirectory();
 
 		if (Debug::LogEnabled)
 		{
-			std::wstring logCopy = path + L"\\debug.log";
+			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
 			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
 		}
 
-		std::wstring except_file = path + L"\\except.txt";
+		const std::wstring except_file = path + L"\\except.txt";
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
 		{
@@ -281,7 +279,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			expParam.ExceptionPointers = pExs;
 			expParam.ClientPointers = FALSE;
 
-			Dialogs::FullDump(std::move(path), &expParam);
+			Debug::FullDump(std::move(path), &expParam);
 
 			loadCursor = LoadCursor(nullptr, IDC_ARROW);
 			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
@@ -318,7 +316,7 @@ DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		//dont fire exception twices ,..
+		//dont fire exception multiple times ,..
 	   //i dont know how handle recursive exception
 		ExceptionHandler(pExs);
 		__debugbreak();
