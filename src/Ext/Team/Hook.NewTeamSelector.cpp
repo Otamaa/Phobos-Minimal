@@ -6,6 +6,11 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+// TODO :
+// - Optimization a lot of duplicate code ,..
+// - Type convert probably not handled properly yet
+// - Prereq checking use vanilla function instead
+
 enum class TeamCategory
 {
 	None = 0, // No category. Should be default value
