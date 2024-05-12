@@ -64,13 +64,8 @@
 #include <iostream>
 #include <string_view>
 
-std::string __forceinline trim(const char* source)
-{
-	std::string s(source);
-	s.erase(0, s.find_first_not_of(" \n\r\t"));
-	s.erase(s.find_last_not_of(" \n\r\t") + 1);
-	return s;
-}
+#include "Enumparser.h"
+
 
 template<typename T>
 struct IndexFinder
@@ -1329,36 +1324,9 @@ namespace detail
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				size_t result = 0;
-				bool found = false;
-				for (const auto& pStrings : EnumFunctions::ExpireWeaponCondition_to_strings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
-						found = true;
-						break;
-					}
-					++result;
-				}
-
-				if (!found)
-				{
+				cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+				if(!ParseEnum<ExpireWeaponCondition , true>(cur, resultData))
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a ExpireWeaponCondition");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= ExpireWeaponCondition::None; break;
-					case 1: resultData |= ExpireWeaponCondition::Expire; break;
-					case 2: resultData |= ExpireWeaponCondition::Remove; break;
-					case 3: resultData |= ExpireWeaponCondition::Death; break;
-					case 4: resultData |= ExpireWeaponCondition::All; break;
-					}
-				}
 			}
 
 			value = resultData;
@@ -1950,7 +1918,7 @@ void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSe
 				pCur;
 				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			this->push_back(trim(pCur));
+			this->push_back(PhobosCRT::trim(pCur));
 		}
 	}
 }

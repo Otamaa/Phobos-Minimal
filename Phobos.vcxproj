@@ -145,6 +145,7 @@
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
+    <ClCompile Include="src\Ext\Team\Hook.NewTeamSelector.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
@@ -709,6 +710,7 @@
     <ClInclude Include="src\Ext\VoxelAnimType\Body.h" />
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
+    <ClInclude Include="src\Utilities\Enumparser.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />

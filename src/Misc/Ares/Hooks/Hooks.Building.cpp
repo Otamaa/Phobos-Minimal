@@ -649,10 +649,27 @@ DEFINE_HOOK(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
 bool Bld_ChangeOwnerAnnounce;
 DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 {
+	GET(BuildingClass* ,pThis ,ECX);
 	GET_STACK(bool, announce, 0x8);
+	// Fix : Suppress capture EVA event if ConsideredVehicle=yes
+	announce = announce && !pThis->Type->IsVehicle();
 	Bld_ChangeOwnerAnnounce = announce;
 	return 0x0;
 }
+
+bool __fastcall BuildingClass_SetOwningHouse_Wrapper(BuildingClass* pThis, void*, HouseClass* pHouse, bool announce)
+{
+	announce = announce && !pThis->Type->IsVehicle();
+	const bool res = pThis->BuildingClass::SetOwningHouse(pHouse , announce);
+
+	// Fix : update powered anims
+	if (res && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
+		pThis->UpdatePowerDown();
+
+	return res;
+}
+
+DEFINE_JUMP(VTABLE, 0x7E4290, GET_OFFSET(BuildingClass_SetOwningHouse_Wrapper));
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {

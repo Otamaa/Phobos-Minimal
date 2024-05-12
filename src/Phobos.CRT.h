@@ -170,4 +170,13 @@ public:
 
 		return ret;
 	}
+
+	static constexpr std::string FORCEINLINE trim(const char* source)
+	{
+		std::string s(source);
+		s.erase(0, s.find_first_not_of(" \n\r\t"));
+		s.erase(s.find_last_not_of(" \n\r\t") + 1);
+		return s;
+	}
+
 };
