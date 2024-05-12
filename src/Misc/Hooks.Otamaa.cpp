@@ -746,12 +746,7 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
-{
-	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
-}
-
-DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
+ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
 
@@ -826,12 +821,6 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 	return 0x71AE49;
 
-}
-
-DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
-{
-	GET(UnitTypeClass* const, pType, EAX);
-	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
 //DEFINE_HOOK(0x51D43F, InfantryClass_Scatter_Process, 0x6)
@@ -1037,9 +1026,6 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	return 0x6EF9D0;
 }
 
-DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
-DEFINE_JUMP(LJMP, 0x449657, 0x449672);
-
 DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
 	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
@@ -1084,31 +1070,6 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 	}
 
 	return Draw;
-}
-
-DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
-{
-	GET(BuildingClass* const, pThis, ECX);
-	GET_STACK(CoordStruct*, pCoord, 0x4);
-	GET_STACK(TechnoClass* const, pDocker, 0x8);
-
-	auto const pType = pThis->Type;
-	if (pType->Helipad)
-	{
-		pThis->GetDockCoords(pCoord, pDocker);
-		pCoord->Z = 0;
-	}
-	else if (pType->UnitRepair || pType->Bunker)
-	{
-		pThis->GetDockCoords(pCoord, pDocker);
-	}
-	else
-	{
-		pThis->GetCoords(pCoord);
-	}
-
-	R->EAX(pCoord);
-	return 0x447F06;
 }
 
 DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
@@ -1281,7 +1242,7 @@ namespace Tiberiumpip
 
 }
 
-	void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 	{
 		const auto pType = pTechno->GetTechnoType();
 		const auto nMax = pType->SpawnsNumber;
@@ -1586,32 +1547,6 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 		? SkipGainExperience : GainExperience;
 }
 
-DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
-{
-	GET(BuildingClass* const, pBuilding, EDI);
-	GET(InfantryClass* const, pThis, ESI);
-
-	int sound = pThis->Type->EnterBioReactorSound;
-	if (sound == -1)
-		sound = RulesClass::Instance->EnterBioReactorSound;
-
-	VocClass::PlayIndexAtPos(sound, pThis->GetCoords(), 0);
-	return 0x51A30F;
-}
-
-DEFINE_HOOK(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
-{
-	GET(BuildingClass* const, pThis, EBP);
-	GET(FootClass* const, pPassenger, ESI);
-
-	int sound = pPassenger->GetTechnoType()->LeaveBioReactorSound;
-	if (pPassenger->WhatAmI() != InfantryClass::AbsID || sound == -1)
-		sound = RulesClass::Instance->LeaveBioReactorSound;
-
-	VocClass::PlayIndexAtPos(sound, pThis->GetCoords(), 0);
-	return 0x44DBDA;
-}
-
 DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -1742,28 +1677,6 @@ DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 	return 0x7394BE;
 }
 
-DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-{
-	GET(BuildingClass*, pThis, EBP);
-	CellStruct mapCoords = pThis->InlineMapCoords();
-
-	const short width = pThis->Type->GetFoundationWidth();
-	const short height = pThis->Type->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-	auto coords = (CoordStruct*)&location.Z;
-	coords->X = (mapCoords.X << 8) + 128;
-	coords->Y = (mapCoords.Y << 8) + 128;
-	coords->Z = pThis->Location.Z;
-
-	return 0x449F12;
-}
-
 // Skip log spam "Unable to locate scenario %s - No digest info"
 DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
 
@@ -1889,48 +1802,6 @@ DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
 	//return 0x0;
-}
-
-DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
-
-	if (!pType->AttackFriendlies)
-		return 0x70039B;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-	{
-		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-		if (!pWeapons || pWeapon != pWeapons->WeaponType)
-		{
-			return 0x70039B;
-		}
-	}
-
-	return 0x7003BB;
-}
-
-//EvalObject
-DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
-{
-	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
-	GET_STACK(int const, nWeapon, 0x14);
-	GET(TechnoClass* const, pThis, EDI);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (!pType->AttackFriendlies)
-		return ContinueCheck;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	return pTypeExt->AttackFriendlies_WeaponIdx <= -1
-		|| pTypeExt->AttackFriendlies_WeaponIdx == nWeapon
-		? AllowAttack : ContinueCheck;
 }
 
 DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
@@ -2532,87 +2403,6 @@ DEFINE_HOOK(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
 	return IsAnySpysatActive(pThis) ? ActivateSpySat : DeactivateSpySat;
 }
 
-#pragma region Assaulter
-//https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
-//522A09
-DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
-{
-	enum { retTrue = 0x522A11, retFalse = 0x522A45 };
-
-	GET(InfantryClass*, pThis, ESI);
-
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
-}
-
-//51F580
-DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
-{
-	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
-
-	GET(InfantryClass*, pThis, ESI);
-
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
-}
-
-//51F493
-DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
-{
-	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
-
-	GET(InfantryClass*, pThis, ESI);
-
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
-}
-
-//51968E
-DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
-{
-	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
-
-	GET(InfantryClass*, pThis, ESI);
-
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
-}
-
-//4D4BA0
-DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
-{
-	enum { retTrue = 0x4D4BB4, retFalse = 0x4D4BAA };
-
-	GET(InfantryClass*, pThis, ESI);
-
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
-}
-
-DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
-{
-	enum { retTrue = 0x457DD5, retFalse = 0x457DA3 };
-
-	GET(BuildingClass* const, pThis, ESI);
-	GET(InfantryClass* const, pInfantry, EDI);
-
-	if (TechnoExtData::IsAssaulter(pInfantry))
-	{
-		if (!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0)
-		{
-			const auto pBldExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-			// buildings with negative level are not assaultable
-			if (pBldExt->AssaulterLevel >= 0)
-			{
-				// assaultable if infantry has same level or more
-				if (pBldExt->AssaulterLevel <= TechnoTypeExtContainer::Instance.Find(pInfantry->Type)->AssaulterLevel)
-				{
-					return retTrue;
-				}
-			}
-		}
-	}
-
-	return retFalse;
-}
-#pragma endregion
-
 DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 {
 	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
@@ -2710,12 +2500,10 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 	enum { retEmpty = 0x4812EC, retContinue = 0x0, retResult = 0x481313 };
 	GET(CellClass*, pThis, ECX);
 	GET_STACK(CoordStruct*, pResult, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
 
-	if (!pThis)
-	{
-		*pResult = CoordStruct::Empty;
-		R->EAX(pResult);
-		return retResult;
+	if (!pThis) {
+		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] \n" , caller);
 	}
 
 	return retContinue;
@@ -2758,21 +2546,6 @@ DEFINE_HOOK(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 	return pThis->Disguise && pThis->Disguise->WhatAmI() == UnitClass::AbsID ? 0x746A9C : 0;
-}
-
-DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-
-	const auto pType = pThis->GetTechnoType();
-	if (pThis->WhatAmI() == UnitClass::AbsID && pType->ResourceGatherer)
-	{
-		//https://github.com/Phobos-developers/Phobos/issues/326
-		if (pType->IsSubterranean || VTable::Get(((UnitClass*)pThis)->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable)
-			pThis->QueueMission(Mission::Harvest, false);
-	}
-	pThis->EnterIdleMode(false, true);
-	return 0x4D4248;
 }
 
 DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
@@ -2937,6 +2710,7 @@ DEFINE_HOOK(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_
 	return 0x741C38;
 }
 
+//allow `VeinholeMonster` to be placed anywhere flat
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
 DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
@@ -2963,7 +2737,7 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
 				) == DamageState::NowDead)
-					Debug::Log("Veinhole at Destroyed!\n");
+					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X , pMonster->MonsterCell.Y);
 
 		}
 
@@ -2973,95 +2747,10 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pObj, EDI);
-
-	if (!pThis->Type->WeaponsFactory)
-		return 0x4445FB; //not a weapon factory
-
-	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pExt->RubbleDestroyed)
-	{
-		if (pThis->Type->Factory == pObj->GetTechnoType()->WhatAmI() && pThis->Factory && pThis->Factory->Object == pObj)
-			return 0x444167; //continue check
-
-		if (pObj->WhatAmI() == InfantryClass::AbsID)
-			return 0x4445FB; // just eject
-	}
-
-	return 0x444167; //continue check
-}
-
-DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
-{
-	GET(InfantryClass*, pThis, ESI);
-	GET_STACK(int, nData, 0x8C - 0x70);
-
-	R->EBP(--nData);
-	R->EDX(pThis->Type);
-	return 0x4431EB;
-}
-
-//443292
-//44177E
-DEFINE_HOOK(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
-{
-	GET(BuildingClass*, pThis, EDI);
-	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
-		? 0x0 : 0x4433F9;
-}
-
-DEFINE_HOOK(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
-		? 0x0 : 0x4418EC;
-}
-
-DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(int, powertotal, 0x8);
-
-	for (auto pPas = pThis->Passengers.GetFirstPassenger();
-		pPas;
-		pPas = generic_cast<FootClass*>(pPas->NextObject))
-	{
-
-		powertotal += abs(TechnoTypeExtContainer::Instance.Find(pPas->GetTechnoType())
-			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
-	}
-
-	R->Stack(0x8, powertotal);
-	return 0x44E826;
-}
-
-//DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x0, 44180A);
-DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
-
 DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
-}
-
-//building abandon sound 458291
-//AbandonedSound
-DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-	const auto nVal = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
-	if (nVal >= 0)
-	{
-		VocClass::PlayGlobal(nVal, Panning::Center, 1.0, 0);
-	}
-
-	return 0x4582AE;
 }
 
 DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
@@ -4183,19 +3872,19 @@ DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
-{
-	GET(CellClass*, pThis, ESI);
-	GET(int, amount, EDI);
-	GET_BASE(FootClass*, pPicker, 0x8);
-	CoordStruct loc = CellClass::Cell2Coord(pThis->MapCoords);
-	loc.Z = pThis->GetFloorHeight({ 128 , 128 });
-
-	FlyingStrings::AddMoneyString(true, amount, pPicker->Owner, AffectedHouse::Owner, loc);
-	R->Stack(0x84, loc);
-	R->EAX(RulesClass::Instance());
-	return 0x482551;
-}
+//DEFINE_HOOK(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
+//{
+//	GET(CellClass*, pThis, ESI);
+//	GET(int, amount, EDI);
+//	GET_BASE(FootClass*, pPicker, 0x8);
+//	CoordStruct loc = CellClass::Cell2Coord(pThis->MapCoords);
+//	loc.Z = pThis->GetFloorHeight({ 128 , 128 });
+//
+//
+//	R->Stack(0x84, loc);
+//	R->EAX(RulesClass::Instance());
+//	return 0x482551;
+//}
 
 DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 {
@@ -4260,98 +3949,7 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 	return 0x4CA029;
 }
 
-
-DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
-{
-	GET(BuildingClass* const, pBuilding, ECX);
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
-}
-
-DEFINE_HOOK(0x442CCF, BuildingClass_Init_Sellable, 0x7)
-{
-	GET(BuildingClass*, pThis, ESI);
-	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
-	return 0x0;
-}
-
 #include <Ext/Bomb/Body.h>
-
-DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
-{
-	GET(BuildingClass*, pThis, ECX);
-	GET_STACK(int, control, 0x4);
-
-	// #754 - evict Hospital/Armory contents
-	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
-
-	if (pThis->HasBuildup)
-	{
-
-		switch (control)
-		{
-		case -1:
-		{
-			if (pThis->GetCurrentMission() != Mission::Selling)
-			{
-
-				pThis->QueueMission(Mission::Selling, false);
-				pThis->NextMission();
-			}
-
-			break;
-		}
-		case 0:
-		{
-			if (pThis->GetCurrentMission() != Mission::Selling)
-			{
-				return 0x04471C2;
-			}
-
-			break;
-		}
-		case 1:
-		{
-			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
-			{
-				pThis->QueueMission(Mission::Selling, false);
-				pThis->NextMission();
-			}
-
-			break;
-		}
-		default:
-			break;
-		}
-
-		if (!BuildingExtContainer::Instance.Find(pThis)->Silent)
-		{
-			if (pThis->Owner->ControlledByCurrentPlayer())
-			{
-				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
-			}
-		}
-
-		return 0x04471C2;
-	}
-	else
-	{
-		if (pThis->Type->FirestormWall || BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
-		{
-			//if(const auto pBomb = pThis->AttachedBomb) {
-			//	if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get()){
-			//		pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
-			//		// so this can possibly causing some weird crashes if that happening
-			//	}
-			//}
-
-			pThis->Limbo();
-			pThis->UnInit();
-		}
-	}
-
-	return 0x04471C2;
-}
 
 DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 {
@@ -4397,142 +3995,6 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 	return 0x0;
 }
 #endif
-
-DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
-{
-	GET(BuildingTypeClass*, pThis, EBP);
-
-	INI_EX exINi(&CCINIClass::INI_Art.get());
-	auto pBldext = BuildingTypeExtContainer::Instance.Find(pThis);
-
-	if (pBldext->IsCustom)
-	{
-		//Reset
-		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-		pThis->FoundationData = pBldext->CustomData.data();
-		pThis->FoundationOutside = pBldext->OutlineData.data();
-	}
-
-	const auto pSection = pThis->ImageFile && pThis->ImageFile[0] && strlen(pThis->ImageFile) ? pThis->ImageFile : pThis->ID;
-
-	detail::read(pThis->Foundation, exINi, pSection, GameStrings::Foundation());
-
-	char strbuff[0x80];
-
-	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
-	{
-		//Custom Foundation!
-		pBldext->IsCustom = true;
-
-		//Load Width and Height
-		detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
-		detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
-
-		int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
-
-		// at len < 10, things will end very badly for weapons factories
-		if (outlineLength < 10)
-		{
-			outlineLength = 10;
-		}
-
-		//Allocate CellStruct array
-		const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
-
-		pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
-		pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
-
-		using Iter = std::vector<CellStruct>::iterator;
-
-		auto ParsePoint = [](Iter& cell, const char* str) -> void
-			{
-				int x = 0, y = 0;
-				switch (sscanf_s(str, "%d,%d", &x, &y))
-				{
-				case 0:
-					x = 0;
-					[[fallthrough]];
-				case 1:
-					y = 0;
-				}
-				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-			};
-
-		//Load FoundationData
-		auto itData = pBldext->CustomData.begin();
-		//char key[0x20];
-
-		for (int i = 0; i < dimension; ++i)
-		{
-			if (exINi->ReadString(pSection, (std::string("Foundation.") + std::to_string(i)).c_str(), Phobos::readDefval, strbuff))
-			{
-				ParsePoint(itData, strbuff);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		//Sort, remove dupes, add end marker
-		std::sort(pBldext->CustomData.begin(), itData,
-		[](const CellStruct& lhs, const CellStruct& rhs)
-		{
-			if (lhs.Y != rhs.Y)
-			{
-				return lhs.Y < rhs.Y;
-			}
-			return lhs.X < lhs.X;
-		});
-
-		itData = std::unique(pBldext->CustomData.begin(), itData);
-		*itData = BuildingTypeExtData::FoundationEndMarker;
-		pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
-
-		auto itOutline = pBldext->OutlineData.begin();
-		for (size_t i = 0; i < (size_t)outlineLength; ++i)
-		{
-			if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
-			{
-				ParsePoint(itOutline, strbuff);
-			}
-			else
-			{
-				//Set end vector
-				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
-				*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
-			}
-		}
-
-		//Set end vector
-		*itOutline = BuildingTypeExtData::FoundationEndMarker;
-
-		if (pBldext->CustomData.begin() == pBldext->CustomData.end())
-		{
-			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
-		}
-		else
-		{
-			auto iter = pBldext->CustomData.begin();
-			while (iter->X || iter->Y)
-			{
-				if (++iter == pBldext->CustomData.end())
-					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
-
-			}
-		}
-	}
-
-	if (pBldext->IsCustom)
-	{
-		//Reset
-		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-		pThis->FoundationData = pBldext->CustomData.data();
-		pThis->FoundationOutside = pBldext->OutlineData.data();
-	}
-
-	return 0x46125D;
-}
 
 DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 {
@@ -4631,15 +4093,6 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 	return 0x73ED7A;
 }
 
-DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
-{
-	GET(BuildingTypeClass*, pType, EAX);
-	LEA_STACK(CellStruct*, pDest, 0x4);
-	R->AL(MapClass::Instance->GetCellAt(pDest)
-		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1)
-	);
-	return 0x449487;
-}
 // DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 // {
 // 	GET_STACK(CellStruct*, pCell, 0x4);
@@ -4847,7 +4300,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
-#pragma region CRATE_HOOKS
+#ifndef CRATE_HOOKS
 enum class MoveResult : char
 {
 	cannot, can
@@ -5088,6 +4541,10 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							? pCollectorOwner : HouseClass::CurrentPlayer();
 
 						pHouseDest->TransactMoney(soloCrateMoney);
+						if (pCollectorOwner->ControlledByCurrentPlayer()) {
+							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly);
+						}
 						PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
 						PlayAnimAffect(Powerup::Money);
 					};
@@ -5669,7 +5126,7 @@ DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
 	return 0x442226;
 }
-#pragma endregion
+#endif
 
 DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
 {
@@ -5680,26 +5137,12 @@ DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
 	return 0x42CC6D;
 }
 
-DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
-{
-	GET(HouseClass*, pHouse, ECX);
-	GET(BuildingClass*, pThis, ESI);
-	GET(FootClass*, pOccupier, EDI);
-
-	if (!pHouse)
-	{
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID(), pOccupier, pOccupier->get_ID());
-	}
-
-	return 0x0;
-}
-
 //TechnoClass_CTOR_TiberiumStorage
 //DEFINE_JUMP(LJMP, 0x6F2ECE , 0x6F2ED3)
 //HouseClass_CTOR_TiberiumStorages
 //DEFINE_JUMP(LJMP, 0x4F58CD , 0x4F58D2)
 
-#pragma region GetStorageTotalAmount
+#ifndef STORAGE_HOOKS
 
 #ifndef BUILDING_STORAGE_HOOK
 // spread tiberium on building destruction. replaces the
@@ -6289,7 +5732,7 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 //	return 0x0;
 //}
 
-#pragma endregion
+#endif
 
 // replacing reference of 7EAF7C
 // Replacing DoControls* with own
@@ -6524,7 +5967,7 @@ DEFINE_HOOK(0x51C9E4, InfantryClass_FireError_ReplaceMasterControl, 0x7)
 DEFINE_HOOK(0x51D1BA, InfantryClass_Scatter_ReplaceMasterControl, 0x7)
 {
 	GET(DoType, type, EAX);
-	R->AL(NewDoType::GetSequenceData(type)->Interrupt);
+	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
 	return 0x51D1C1;
 }
 
@@ -6664,6 +6107,7 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 
 //unnessesary call wtf ?
 DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
+
 //WW skip shadow for visceroids
 //DEFINE_JUMP(LJMP, 0x705FED, 0x70600C);
 
@@ -7092,10 +6536,10 @@ DEFINE_HOOK(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
 	return 0x4249D8;
 }
 
-DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
+DEFINE_HOOK(0x45822E, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
 {
 	R->EBX(HouseExtData::FindFirstCivilianHouse());
-	return 0x45826E;
+	return 0x45827A;
 }
 
 DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
@@ -7106,7 +6550,6 @@ DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 
 DEFINE_HOOK(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5)
 {
-
 	R->ECX(HouseExtData::FindFirstCivilianHouse());
 	return 0x472382;
 }
@@ -7517,3 +6960,574 @@ DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
 	return 0x0;
 }
 #endif
+
+
+
+
+DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->InlineMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}
+
+
+#pragma region Assaulter
+//https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
+//522A09
+DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
+{
+	enum { retTrue = 0x522A11, retFalse = 0x522A45 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//51F580
+DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
+{
+	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//51F493
+DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
+{
+	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//51968E
+DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
+{
+	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//4D4BA0
+DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
+{
+	enum { retTrue = 0x4D4BB4, retFalse = 0x4D4BAA };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
+{
+	enum { retTrue = 0x457DD5, retFalse = 0x457DA3 };
+
+	GET(BuildingClass* const, pThis, ESI);
+	GET(InfantryClass* const, pInfantry, EDI);
+
+	if (TechnoExtData::IsAssaulter(pInfantry))
+	{
+		if (!pThis->Owner->IsAlliedWith(pInfantry) && pThis->GetOccupantCount() > 0)
+		{
+			const auto pBldExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+			// buildings with negative level are not assaultable
+			if (pBldExt->AssaulterLevel >= 0)
+			{
+				// assaultable if infantry has same level or more
+				if (pBldExt->AssaulterLevel <= TechnoTypeExtContainer::Instance.Find(pInfantry->Type)->AssaulterLevel)
+				{
+					return retTrue;
+				}
+			}
+		}
+	}
+
+	return retFalse;
+}
+#pragma endregion
+
+
+DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(TechnoClass*, pObj, EDI);
+
+	if (!pThis->Type->WeaponsFactory)
+		return 0x4445FB; //not a weapon factory
+
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pExt->RubbleDestroyed)
+	{
+		if (pThis->Type->Factory == pObj->GetTechnoType()->WhatAmI() && pThis->Factory && pThis->Factory->Object == pObj)
+			return 0x444167; //continue check
+
+		if (pObj->WhatAmI() == InfantryClass::AbsID)
+			return 0x4445FB; // just eject
+	}
+
+	return 0x444167; //continue check
+}
+
+
+DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
+{
+	GET(HouseClass*, pHouse, ECX);
+	GET(BuildingClass*, pThis, ESI);
+	GET(FootClass*, pOccupier, EDI);
+
+	if (!pHouse)
+	{
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID(), pOccupier, pOccupier->get_ID());
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EAX);
+	LEA_STACK(CellStruct*, pDest, 0x4);
+	R->AL(MapClass::Instance->GetCellAt(pDest)
+		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1)
+	);
+	return 0x449487;
+}
+
+DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EBP);
+
+	INI_EX exINi(&CCINIClass::INI_Art.get());
+	auto pBldext = BuildingTypeExtContainer::Instance.Find(pThis);
+
+	if (pBldext->IsCustom)
+	{
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+		pThis->FoundationData = pBldext->CustomData.data();
+		pThis->FoundationOutside = pBldext->OutlineData.data();
+	}
+
+	const auto pSection = pThis->ImageFile && pThis->ImageFile[0] && strlen(pThis->ImageFile) ? pThis->ImageFile : pThis->ID;
+
+	detail::read(pThis->Foundation, exINi, pSection, GameStrings::Foundation());
+
+	char strbuff[0x80];
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		//Custom Foundation!
+		pBldext->IsCustom = true;
+
+		//Load Width and Height
+		detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
+		detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
+
+		int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
+
+		// at len < 10, things will end very badly for weapons factories
+		if (outlineLength < 10)
+		{
+			outlineLength = 10;
+		}
+
+		//Allocate CellStruct array
+		const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
+
+		pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
+		pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+
+		using Iter = std::vector<CellStruct>::iterator;
+
+		auto ParsePoint = [](Iter& cell, const char* str) -> void
+			{
+				int x = 0, y = 0;
+				switch (sscanf_s(str, "%d,%d", &x, &y))
+				{
+				case 0:
+					x = 0;
+					[[fallthrough]];
+				case 1:
+					y = 0;
+				}
+				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+			};
+
+		//Load FoundationData
+		auto itData = pBldext->CustomData.begin();
+		//char key[0x20];
+
+		for (int i = 0; i < dimension; ++i)
+		{
+			if (exINi->ReadString(pSection, (std::string("Foundation.") + std::to_string(i)).c_str(), Phobos::readDefval, strbuff))
+			{
+				ParsePoint(itData, strbuff);
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		//Sort, remove dupes, add end marker
+		std::sort(pBldext->CustomData.begin(), itData,
+		[](const CellStruct& lhs, const CellStruct& rhs)
+		{
+			if (lhs.Y != rhs.Y)
+			{
+				return lhs.Y < rhs.Y;
+			}
+			return lhs.X < lhs.X;
+		});
+
+		itData = std::unique(pBldext->CustomData.begin(), itData);
+		*itData = BuildingTypeExtData::FoundationEndMarker;
+		pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
+
+		auto itOutline = pBldext->OutlineData.begin();
+		for (size_t i = 0; i < (size_t)outlineLength; ++i)
+		{
+			if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
+			{
+				ParsePoint(itOutline, strbuff);
+			}
+			else
+			{
+				//Set end vector
+				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+				*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
+			}
+		}
+
+		//Set end vector
+		*itOutline = BuildingTypeExtData::FoundationEndMarker;
+
+		if (pBldext->CustomData.begin() == pBldext->CustomData.end())
+		{
+			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+		}
+		else
+		{
+			auto iter = pBldext->CustomData.begin();
+			while (iter->X || iter->Y)
+			{
+				if (++iter == pBldext->CustomData.end())
+					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+
+			}
+		}
+	}
+
+	if (pBldext->IsCustom)
+	{
+		//Reset
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
+		pThis->FoundationData = pBldext->CustomData.data();
+		pThis->FoundationOutside = pBldext->OutlineData.data();
+	}
+
+	return 0x46125D;
+}
+
+DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(int, control, 0x4);
+
+	// #754 - evict Hospital/Armory contents
+	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
+	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+
+	if (pThis->HasBuildup)
+	{
+
+		switch (control)
+		{
+		case -1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		case 0:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+				return 0x04471C2;
+			}
+
+			break;
+		}
+		case 1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
+			{
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (!BuildingExtContainer::Instance.Find(pThis)->Silent)
+		{
+			if (pThis->Owner->ControlledByCurrentPlayer())
+			{
+				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return 0x04471C2;
+	}
+	else
+	{
+		if (pThis->Type->FirestormWall || BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
+		{
+			//if(const auto pBomb = pThis->AttachedBomb) {
+			//	if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get()){
+			//		pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			//		// so this can possibly causing some weird crashes if that happening
+			//	}
+			//}
+
+			pThis->Limbo();
+			pThis->UnInit();
+		}
+	}
+
+	return 0x04471C2;
+}
+
+DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
+{
+	GET(BuildingClass* const, pBuilding, ECX);
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
+}
+
+DEFINE_HOOK(0x442CCF, BuildingClass_Init_Sellable, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
+	return 0x0;
+}
+
+//building abandon sound 458291
+//AbandonedSound
+DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	const auto nVal = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
+	if (nVal >= 0)
+	{
+		VocClass::PlayGlobal(nVal, Panning::Center, 1.0, 0);
+	}
+
+	return 0x4582AE;
+}
+
+DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET_STACK(int, nData, 0x8C - 0x70);
+
+	R->EBP(--nData);
+	R->EDX(pThis->Type);
+	return 0x4431EB;
+}
+
+//443292
+//44177E
+DEFINE_HOOK(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
+{
+	GET(BuildingClass*, pThis, EDI);
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
+		? 0x0 : 0x4433F9;
+}
+
+DEFINE_HOOK(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
+		? 0x0 : 0x4418EC;
+}
+
+DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(int, powertotal, 0x8);
+
+	for (auto pPas = pThis->Passengers.GetFirstPassenger();
+		pPas;
+		pPas = generic_cast<FootClass*>(pPas->NextObject))
+	{
+
+		powertotal += abs(TechnoTypeExtContainer::Instance.Find(pPas->GetTechnoType())
+			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
+	}
+
+	R->Stack(0x8, powertotal);
+	return 0x44E826;
+}
+
+//DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x0, 44180A);
+DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
+
+DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	const auto pType = pThis->GetTechnoType();
+	if (pThis->WhatAmI() == UnitClass::AbsID && pType->ResourceGatherer)
+	{
+		//https://github.com/Phobos-developers/Phobos/issues/326
+		if (pType->IsSubterranean || VTable::Get(((UnitClass*)pThis)->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable)
+			pThis->QueueMission(Mission::Harvest, false);
+	}
+	pThis->EnterIdleMode(false, true);
+	return 0x4D4248;
+}
+
+DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
+
+	if (!pType->AttackFriendlies)
+		return 0x70039B;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+	{
+		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+		if (!pWeapons || pWeapon != pWeapons->WeaponType)
+		{
+			return 0x70039B;
+		}
+	}
+
+	return 0x7003BB;
+}
+
+//EvalObject
+DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+{
+	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
+	GET_STACK(int const, nWeapon, 0x14);
+	GET(TechnoClass* const, pThis, EDI);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (!pType->AttackFriendlies)
+		return ContinueCheck;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	return pTypeExt->AttackFriendlies_WeaponIdx <= -1
+		|| pTypeExt->AttackFriendlies_WeaponIdx == nWeapon
+		? AllowAttack : ContinueCheck;
+}
+
+DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
+{
+	GET(BuildingClass* const, pBuilding, EDI);
+	GET(InfantryClass* const, pThis, ESI);
+	LEA_STACK(CoordStruct*, pBuffer, 0x44);
+
+	int sound = pThis->Type->EnterBioReactorSound;
+	if (sound == -1)
+		sound = RulesClass::Instance->EnterBioReactorSound;
+
+	auto coord = pThis->GetCoords(pBuffer);
+	VocClass::PlayIndexAtPos(sound, coord, 0);
+
+	return 0x51A30F;
+}
+
+DEFINE_HOOK(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	GET(FootClass* const, pPassenger, ESI);
+	LEA_STACK(CoordStruct*, pBuffer, 0x40);
+
+	int sound = pPassenger->GetTechnoType()->LeaveBioReactorSound;
+	if (sound == -1)
+		sound = RulesClass::Instance->LeaveBioReactorSound;
+
+	auto coord = pThis->GetCoords(pBuffer);
+	VocClass::PlayIndexAtPos(sound, coord, 0);
+	return 0x44DBDA;
+}
+
+DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
+{
+	GET(BuildingClass* const, pThis, ECX);
+	GET_STACK(CoordStruct*, pCoord, 0x4);
+	GET_STACK(TechnoClass* const, pDocker, 0x8);
+
+	auto const pType = pThis->Type;
+	if (pType->Helipad)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+		pCoord->Z = 0;
+	}
+	else if (pType->UnitRepair || pType->Bunker)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+	}
+	else
+	{
+		pThis->GetCoords(pCoord);
+	}
+
+	R->EAX(pCoord);
+	return 0x447F06;
+}
+
+DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
+DEFINE_JUMP(LJMP, 0x449657, 0x449672);
+
+DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
+{
+	GET(UnitTypeClass* const, pType, EAX);
+	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
+}
+
+DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
+{
+	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
+}

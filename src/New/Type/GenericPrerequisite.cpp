@@ -208,7 +208,7 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 	else
 	{
 		const int count = pHouse->ActiveBuildingTypes.GetItemCount(Index);
-		//Debug::Log("Trying to find [(%d)%s] count %d\n" , Index , pType->ID , count);
+		//Debug::Log(__FUNCTION__" [0x%x - %s]Trying to find [(%d)%s] count %d\n" , pHouse , pHouse->get_ID(), Index , pType->ID , count);
 		return  count > 0;
 	}
 }

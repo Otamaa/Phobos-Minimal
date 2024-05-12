@@ -714,6 +714,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 			return;
 		}
 
+		//Debug::Log("[0x%x - %s] Sending [%s] As Limbo Delivered ID [%d]\n", pOwner , pOwner->get_ID(), pType->ID, ID);
 		// All of these are mandatory
 		pBuilding->InLimbo = false;
 		pBuilding->IsAlive = true;
@@ -746,11 +747,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->RecheckPower = true;
 		pOwner->RecheckRadar = true;
 		pOwner->Buildings.AddItem(pBuilding);
-		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
 
-		// Different types of building logics
-		if (pType->ConstructionYard)
-			pOwner->ConYards.AddItem(pBuilding); // why would you do that????
+		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
 
 		if (pType->SecretLab)
 			pOwner->SecretLabs.AddItem(pBuilding);
