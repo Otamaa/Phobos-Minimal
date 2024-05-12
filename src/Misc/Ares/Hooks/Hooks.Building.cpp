@@ -659,7 +659,6 @@ DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 
 bool __fastcall BuildingClass_SetOwningHouse_Wrapper(BuildingClass* pThis, void*, HouseClass* pHouse, bool announce)
 {
-	announce = announce && !pThis->Type->IsVehicle();
 	const bool res = pThis->BuildingClass::SetOwningHouse(pHouse , announce);
 
 	// Fix : update powered anims
