@@ -227,7 +227,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		if (selectedTarget)
 		{
-			ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
+	/*		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -235,7 +235,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 				scriptArgument,
 				pTeamData->TeamLeader->get_ID(), pTeamData->TeamLeader->UniqueID,
 				selectedTarget->get_ID(),
-				selectedTarget->UniqueID);
+				selectedTarget->UniqueID);*/
 
 			pTeam->Focus = selectedTarget;
 			pFocus = selectedTarget;

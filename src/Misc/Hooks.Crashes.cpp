@@ -298,3 +298,29 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 //	buffer->CopyMemoryBuffer::CopyMemoryBuffer(nullptr, 0x00180000);
 //	return 0x4AD379;
 //}
+
+//BounceClass* ptr = nullptr;
+//DEFINE_HOOK(0x423939, AnimClass_Bounce_Update_Probe, 0x6)
+//{
+//	GET(AnimClass*, pThis, EBP);
+//
+//	if (IS_SAME_STR_("IONDEBRI", pThis->Type->ID)) {
+//		Debug::Log("Updating Bounce for [0x%x(%s)]\n", pThis, pThis->Type->ID);
+//		ptr = &pThis->Bounce;
+//	}
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x43A002, Bounclass_Update_Prove, 0x9)
+{
+	GET(int, ramp, EAX);
+	//GET_STACK(BounceClass* , pThis , 0x24);
+
+	//the fuck this ramp result is wrong ,..
+	if(ramp > 11){
+		Debug::Log("Updating Bounce for with rampIdx %d\n", ramp);
+		return 0x43A05D;
+	}
+
+	return 0x0;
+}

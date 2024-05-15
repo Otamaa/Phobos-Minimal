@@ -3352,6 +3352,10 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
 
+	//if (pThis->LocomotorSource) {
+	//	Debug::Log("Attempt to convert TechnoType[%s] to [%s] when the locomotor is currently manipulated , return\n", pOldType->ID, pToType->ID);
+	//	return true;
+	//}
 	bool move = true;
 
 	// replace the original locomotor to new one

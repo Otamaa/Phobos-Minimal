@@ -62,6 +62,8 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	Debug::FreeMouse();
 	Debug::Log("Exception handler fired!\n");
 	Debug::Log("Exception %X at %p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+	Game::StreamerThreadFlush();
+
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 	//so using these oogly
 	SetWindowTextW(*reinterpret_cast<HWND*>(0xB73550), L"Fatal Error - Yuri's Revenge");
