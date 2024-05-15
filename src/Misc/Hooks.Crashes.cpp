@@ -311,14 +311,14 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x43A002, Bounclass_Update_Prove, 0x9)
+DEFINE_HOOK(0x43A002, Bounclass_Update_FixCrash, 0x9)
 {
 	GET(int, ramp, EAX);
 	//GET_STACK(BounceClass* , pThis , 0x24);
 
 	//the fuck this ramp result is wrong ,..
 	if(ramp > 11){
-		Debug::Log("Updating Bounce for with rampIdx %d\n", ramp);
+		Debug::Log("Updating Bounce with rampIdx %d\n", ramp);
 		return 0x43A05D;
 	}
 
