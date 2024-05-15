@@ -14,15 +14,15 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 	GET(TechnoTypeClass*, pThis, ESI);
 	const auto pRulesExt = RulesExtData::Instance();
 
-	pThis->JumpjetTurnRate = pRulesExt->AttachedToObject->TurnRate;
-	pThis->JumpjetSpeed = pRulesExt->AttachedToObject->Speed;
-	pThis->JumpjetClimb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
-	pThis->JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpjetHeight = pRulesExt->AttachedToObject->CruiseHeight;
-	pThis->JumpjetAccel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
-	pThis->JumpjetWobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
-	pThis->JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpjetDeviation = pRulesExt->AttachedToObject->WobbleDeviation;
+	pThis->JumpjetData.JumpjetTurnRate = pRulesExt->AttachedToObject->TurnRate;
+	pThis->JumpjetData.JumpjetSpeed = pRulesExt->AttachedToObject->Speed;
+	pThis->JumpjetData.JumpjetClimb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
+	pThis->JumpjetData.JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
+	pThis->JumpjetData.JumpjetHeight = pRulesExt->AttachedToObject->CruiseHeight;
+	pThis->JumpjetData.JumpjetAccel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
+	pThis->JumpjetData.JumpjetWobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
+	pThis->JumpjetData.JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
+	pThis->JumpjetData.JumpjetDeviation = pRulesExt->AttachedToObject->WobbleDeviation;
 
 	return 0x711601;
 }
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetData.JumpjetSpeed * multiplier);
 		}
 	}
 

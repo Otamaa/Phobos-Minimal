@@ -316,12 +316,13 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 		if (RulesExtData::Instance()->HeightShadowScaling)
 		{
 			const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
-			const float cHeight = (float)aTypeExt->ShadowSizeCharacteristicHeight.Get(flyloco->FlightLevel);
+			const float cHeight = (float)aTypeExt->ShadowSizeCharacteristicHeight.Get(pThis->Type->GetFlightLevel());
 
 			if (cHeight > 0)
 			{
 				shadow_mtx.Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
-				key.Invalidate(); // I'm sorry
+				if (flyloco->FlightLevel > 0 || height > 0)
+					key.Invalidate();
 			}
 		}
 		else if (pThis->Type->ConsideredAircraft)
@@ -329,14 +330,15 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 			shadow_mtx.Scale((float)GeneralUtils::Pade2_2(baseScale_log));
 		}
 
-		if (pThis->IsCrashing)
-		{
-			double arf = pThis->AngleRotatedForwards;
-			if (flyloco->CurrentSpeed > pThis->Type->PitchSpeed)
-				arf += pThis->Type->PitchAngle;
-			shadow_mtx.ScaleY((float)Math::cos(pThis->AngleRotatedSideways));
-			shadow_mtx.ScaleX((float)Math::cos(arf));
-		}
+		double arf = pThis->AngleRotatedForwards;
+		if (flyloco->CurrentSpeed > pThis->Type->PitchSpeed)
+			arf += pThis->Type->PitchAngle;
+		double ars = pThis->AngleRotatedSideways;
+		if (key.Is_Valid_Key() && (std::abs(arf) > 0.005 || std::abs(ars) > 0.005))
+			key.Invalidate();
+
+		shadow_mtx.ScaleY((float)Math::cos(ars));
+		shadow_mtx.ScaleX((float)Math::cos(arf));
 
 	} else if (height > 0) {
 		if(const auto flyloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){

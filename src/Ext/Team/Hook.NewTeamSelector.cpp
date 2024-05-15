@@ -992,7 +992,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto element : validTriggerCandidates)
+			for (auto& element : validTriggerCandidates)
 			{
 				lastWeight = element.Weight;
 
@@ -1015,7 +1015,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto element : validTriggerCandidatesGroundOnly)
+			for (auto& element : validTriggerCandidatesGroundOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1038,7 +1038,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto element : validTriggerCandidatesUnclassifiedOnly)
+			for (auto& element : validTriggerCandidatesUnclassifiedOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1061,7 +1061,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto element : validTriggerCandidatesNavalOnly)
+			for (auto& element : validTriggerCandidatesNavalOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1084,7 +1084,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto element : validTriggerCandidatesAirOnly)
+			for (auto& element : validTriggerCandidatesAirOnly)
 			{
 				lastWeight = element.Weight;
 

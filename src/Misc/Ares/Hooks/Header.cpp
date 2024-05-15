@@ -3352,6 +3352,8 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
 
+	bool move = true;
+
 	// replace the original locomotor to new one
 	if (pOldType->Locomotor != pToType->Locomotor) {
 
@@ -3368,9 +3370,28 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 			pThis->Override_Mission(prevMission, pTarget, pDest);
 		}
 	}
+	else if (pOldType->Locomotor == CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet() && !(pOldType->JumpjetData == pToType->JumpjetData))
+	{
+		move = false;
+		AbstractClass* pTarget = pThis->Target;
+		AbstractClass* pDest = pThis->Focus;
+		Mission prevMission = pThis->GetCurrentMission();
 
-	if (pToType->BalloonHover && pToType->DeployToLand && pOldType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet())
+		// throw away the current locomotor and instantiate
+		// a new one of the default type for this unit.
+		// throw away old loco to ensure the new loco properties is properly adjusted
+		if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
+		{
+			newLoco->Link_To_Object(pThis);
+			((FootClass*)pThis)->Locomotor = std::move(newLoco);
+			((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
+			pThis->Override_Mission(prevMission, pTarget, pDest);
+		}
+	}
+
+	if (move && pToType->BalloonHover && pToType->DeployToLand && pOldType->Locomotor != CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet()) {
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
+	}
 
 	return true;
 }

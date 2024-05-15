@@ -349,6 +349,9 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 
 				if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget))
 					return false;
+
+				if (!pWeaponExt->HasRequiredAttachedEffects(static_cast<TechnoClass*>(pTargetObj), pThis->Owner))
+					return false;
 			}
 			break;
 			default:

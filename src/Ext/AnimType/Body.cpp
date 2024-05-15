@@ -285,7 +285,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 						pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 						pJJLoco->IsMoving = true;
 						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
-						pJJLoco->Height = pTechno->Type->JumpjetHeight;
+						pJJLoco->Height = pTechno->Type->JumpjetData.JumpjetHeight;
 					}
 					else
 					{
