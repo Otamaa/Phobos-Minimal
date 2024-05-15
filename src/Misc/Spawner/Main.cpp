@@ -417,7 +417,7 @@ void SpawnerMain::GameConfigs::Init() {
 
 	GameConfig file { "SPAWN.INI" };
 	file.OpenINIAction([&file](CCINIClass* pFile) {
-		Debug::Log(" %s Reading file %s\n", __FUNCTION__, file.filename());
+		Debug::Log("SpawnerMain::GameConfigs::Init Reading file %s\n", file.filename());
 		SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(pFile);
 	});
 
