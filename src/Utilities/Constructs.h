@@ -773,6 +773,23 @@ struct GameConfig {
 		return true;
 	}
 
+	template <typename Func>
+	void OpenINIAction(Func&& action ,FileAccessMode mode = FileAccessMode::Read) noexcept
+	{
+		if (!File->Exists() || !File->Open(mode)) {
+			Debug::Log("Failed to Open file %s \n", this->File->FileName);
+			return;
+		}
+
+		Ini.reset(GameCreate<CCINIClass>());
+		Ini->ReadCCFile(this->File.get());
+		Ini->CurrentSection = nullptr;
+		Ini->CurrentSectionName = nullptr;
+		action(Ini.get());
+
+		return;
+	}
+
 	bool OpenOrCreate(FileAccessMode mode = FileAccessMode::ReadWrite) noexcept
 	{
 		if (!File->Exists() || !File->CreateFileA() || !File->Open(mode))

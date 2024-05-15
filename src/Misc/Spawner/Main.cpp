@@ -415,24 +415,11 @@ void SpawnerMain::GameConfigs::Init() {
 
 	SpawnerMain::GameConfigs::m_Ptr = std::make_unique<SpawnerMain::GameConfigs>();
 
-	CCFileClass file{ "SPAWN.INI" };
-
-	if (!file.Exists()) {
-		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-	} else {
-
-		if (!file.Open(FileAccessMode::ReadWrite)) {
-			Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-		}
-		else
-		{
-
-			Debug::Log(" %s Reading file %s\n", __FUNCTION__, file.FileName);
-			CCINIClass ini {};
-			ini.ReadCCFile(&file);
-			SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(&ini);
-		}
-	}
+	GameConfig file { "SPAWN.INI" };
+	file.OpenINIAction([&file](CCINIClass* pFile) {
+		Debug::Log(" %s Reading file %s\n", __FUNCTION__, file.filename());
+		SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(pFile);
+	});
 
 	Patch::Apply_CALL(0x48CDD3, SpawnerMain::GameConfigs::StartGame); // Main_Game
 	Patch::Apply_CALL(0x48CFAA, SpawnerMain::GameConfigs::StartGame); // Main_Game
