@@ -137,8 +137,8 @@ struct INIInheritance
 
 		// read $Inherits entry only once per section
 		const auto it = INIInheritance::Inherits.find(sectionCRC);
-		bool allocated = false;
-		char* inherits = nullptr;
+
+		std::string inherits;
 
 		if (it == INIInheritance::Inherits.end())
 		{
@@ -146,9 +146,11 @@ struct INIInheritance
 			// if there's no saved $Inherits entry for this section, read now
 			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, useCurrentSection);
 			INIInheritance::Inherits.emplace(sectionCRC, std::string(stringBuffer));
+
 			// if we failed to find $Inherits, stop
 			if (resultLen == 0)
 				return Finalize(buffer,length, defaultValue);
+
 			inherits = stringBuffer;
 		}
 		else
@@ -156,14 +158,16 @@ struct INIInheritance
 			// use the saved $Inherits entry
 			if (it->second.empty())
 				return Finalize(buffer, length, defaultValue);
-			// strdup because strtok edits the string
-			inherits = _strdup(it->second.c_str());
-			allocated = true;
+
+			// strdup because strtok edits the
+			char* up = _strdup(it->second.c_str());
+			inherits = up;
+			free(up);
 		}
 
 		// for each section in csv, search for entry
 		char* state = NULL;
-		char* split = strtok_s(inherits, Phobos::readDelims, &state);
+		char* split = strtok_s(inherits.data(), Phobos::readDelims, &state);
 		do
 		{
 			const int splitsCRC = CRCEngine()(split, strlen(split));
@@ -177,9 +181,6 @@ struct INIInheritance
 			split = strtok_s(NULL, Phobos::readDelims, &state);
 		}
 		while (split);
-
-		if(allocated)
-			free(inherits);
 
 		return resultLen != 0 ? (buffer[0] ? resultLen : 0) : Finalize(buffer, length, defaultValue);
 	}
