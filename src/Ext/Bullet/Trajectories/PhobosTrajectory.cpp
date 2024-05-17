@@ -16,6 +16,8 @@
 #include "VerticalTrajectory.h"
 #include "WaveTrajectory.h"
 #include "ArcingTrajectory.h"
+#include "EngraveTrajectory.h"
+#include "DisperseTrajectory.h"
 
 bool PhobosTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
@@ -46,53 +48,57 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	switch (nFlag)
 	{
 	case TrajectoryFlag::Straight:
-	{
 		pType = (std::make_unique<StraightTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::StraightVariantB:
-	{
 		pType = (std::make_unique<StraightVariantBTrajectoryType>());
-	}
 	break;
+
+	case TrajectoryFlag::StraightVariantC:
+		pType = std::make_unique<StraightVariantCTrajectoryType>();
+	break;
+
+	case TrajectoryFlag::Disperse:
+		pType = std::make_unique<DisperseTrajectoryType>();
+	break;
+
+	case TrajectoryFlag::Engrave:
+		pType = std::make_unique<EngraveTrajectoryType>();
+	break;
+
 	case TrajectoryFlag::Bombard:
-	{
 		pType = (std::make_unique<BombardTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Artillery:
-	{
 		pType = (std::make_unique<ArtilleryTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Bounce:
-	{
 		pType = (std::make_unique<BounceTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Vertical:
-	{
 		pType = (std::make_unique<VerticalTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Meteor:
-	{
 		pType = (std::make_unique<MeteorTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Spiral:
-	{
 		pType = (std::make_unique<SpiralTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Wave:
-	{
 		pType = (std::make_unique<WaveTrajectoryType>());
-	}
 	break;
+
 	case TrajectoryFlag::Arcing:
 		pType = (std::make_unique<ArcingTrajectoryType>());
 		break;
+
 	default:
 		pType.release();
 		return false;
@@ -113,6 +119,9 @@ std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::Tra
 	{"Wave"} ,
 	{"Arcing" },
 	{"StraightVarianB" },
+	{"StraightVarianC" },
+	{"Disperse" },
+	{"Engrave" },
  }
 };
 
@@ -123,6 +132,26 @@ bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 		TrajectoryFlag::Straight,
 		TrajectoryFlag::StraightVariantB,
 		TrajectoryFlag::Bombard,
+		TrajectoryFlag::StraightVariantC,
+		TrajectoryFlag::Disperse,
+		TrajectoryFlag::Engrave
+	};
+
+	for (auto flag : flags) {
+		if (traj->Flag == flag) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool PhobosTrajectory::BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj)
+{
+	constexpr TrajectoryFlag flags[] = {
+		TrajectoryFlag::StraightVariantC,
+		TrajectoryFlag::Disperse,
+		TrajectoryFlag::Engrave
 	};
 
 	for (auto flag : flags) {
@@ -306,6 +335,18 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 		pTraj = std::make_unique<StraightTrajectoryVarianB>(pBullet, pType);
 		break;
 
+	case TrajectoryFlag::StraightVariantC:
+		pTraj = std::make_unique<StraightTrajectoryVarianC>(pBullet, pType);
+		break;
+
+	case TrajectoryFlag::Disperse:
+		pTraj = std::make_unique<DisperseTrajectory>(pBullet, pType);
+		break;
+
+	case TrajectoryFlag::Engrave:
+		pTraj = std::make_unique<EngraveTrajectory>(pBullet, pType);
+		break;
+
 	case TrajectoryFlag::Bombard:
 		pTraj = std::make_unique<BombardTrajectory>(pBullet, pType);
 		break;
@@ -377,6 +418,18 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 
 		case TrajectoryFlag::StraightVariantB:
 			pTraj = std::make_unique<StraightTrajectoryVarianB>();
+			break;
+
+		case TrajectoryFlag::StraightVariantC:
+			pTraj = std::make_unique<StraightTrajectoryVarianC>();
+			break;
+
+		case TrajectoryFlag::Disperse:
+			pTraj = std::make_unique<DisperseTrajectory>();
+			break;
+
+		case TrajectoryFlag::Engrave:
+			pTraj = std::make_unique<EngraveTrajectory>();
 			break;
 
 		case TrajectoryFlag::Bombard:

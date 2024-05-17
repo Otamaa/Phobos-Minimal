@@ -210,7 +210,20 @@ public:
 			+ static_cast<double>(Z * a.Z);
 	}
 
-	constexpr   bool IsValid() const { return *this != (Vector3D<T>::Empty); }
+	constexpr bool IsValid() const { return *this != (Vector3D<T>::Empty); }
+
+	constexpr Vector3D<T> CrossProduct(const Vector3D<T>& a) const {
+		return {
+			Y * a.Z - Z * a.Y,
+			Z * a.X - X * a.Z,
+			X * a.Y - Y * a.X };
+	}
+
+	constexpr bool IsCollinearTo(const Vector3D<T>& a) const {
+		return CrossProduct(a).pow() == 0;
+	}
+
+
 //=============================Special cases=========================================
 	constexpr   double powXY() const {
 		return double(X * X) + double(Y * Y);

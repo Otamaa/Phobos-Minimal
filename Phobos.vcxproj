@@ -63,10 +63,13 @@
     <ClCompile Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\BombardTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\BounceTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\MeteorTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\SpiralTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectoryVarianC.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\WaveTrajectory.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
@@ -450,6 +453,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />

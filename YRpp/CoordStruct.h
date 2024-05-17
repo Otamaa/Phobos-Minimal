@@ -174,6 +174,15 @@ public:
 	constexpr FORCEINLINE int& at(int i) { return (&X)[i]; }
 	constexpr FORCEINLINE const int& at(int i) const { return (&X)[i]; }
 
+	//cross product
+	constexpr CoordStruct CrossProduct(const CoordStruct& a) const
+	{
+		return {
+			Y * a.Z - Z * a.Y,
+			Z * a.X - X * a.Z,
+			X * a.Y - Y * a.X };
+	}
+
 //=============================Special cases=========================================
 	constexpr FORCEINLINE double powXY() const {
 		return double(X * X) + double(Y * Y);

@@ -31,6 +31,36 @@ public:
 	virtual ~StraightVariantBTrajectoryType() = default;
 };
 
+class StraightVariantCTrajectoryType final : public StraightTrajectoryType
+{
+public:
+	Valueable<bool> PassDetonate { false };
+	Valueable<int> PassDetonateDelay { 1 };
+	Valueable<int> PassDetonateTimer { 0 };
+	Valueable<bool> PassDetonateLocal { false };
+	Valueable<bool> LeadTimeCalculate { false };
+	Valueable<CoordStruct> OffsetCoord {};
+	Valueable<bool> MirrorCoord { true };
+	Valueable<int> ProximityImpact { 0 };
+	Valueable<double> ProximityRadius { 0.7 };
+	Valueable<double> ProximityAllies { 0.0 };
+	Valueable<bool> ThroughVehicles { true };
+	Valueable<bool> ThroughBuilding { true };
+	Nullable<WarheadTypeClass*> StraightWarhead {};
+	Valueable<int> StraightDamage { 0 };
+	Valueable<bool> SubjectToGround { false };
+	Valueable<int> ConfineAtHeight { 0 };
+	Valueable<double> EdgeAttenuation { 1.0 };
+
+	StraightVariantCTrajectoryType() : StraightTrajectoryType { TrajectoryFlag::StraightVariantC } { }
+	virtual ~StraightVariantCTrajectoryType() = default;
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+};
+
 class StraightTrajectory : public PhobosTrajectory
 {
 public:
@@ -99,4 +129,75 @@ public:
 
 private:
 	int GetVelocityZ(CoordStruct& source) const;
+};
+
+class StraightTrajectoryVarianC : public StraightTrajectory
+{
+public:
+
+	int PassDetonateTimer { 0 };
+	int WaitOneFrame { 0 };
+	int ProximityImpact { 0 };
+	int CheckTimesLimit { 1 };
+
+	CoordStruct OffsetCoord {};
+	CoordStruct LastTargetCoord {};
+
+	std::vector<TechnoClass*> LastCasualty {};
+	std::vector<short> LastCasualtyTimes {};
+
+	double FirepowerMult { 1.0 };
+
+	bool ThroughVehicles {};
+	bool ThroughBuilding {};
+
+	TechnoClass* ExtraCheck1 { nullptr };
+	TechnoClass* ExtraCheck2 { nullptr };
+	TechnoClass* ExtraCheck3 { nullptr };
+
+	StraightTrajectoryVarianC() : StraightTrajectory { TrajectoryFlag::StraightVariantC }
+	{ }
+
+	StraightTrajectoryVarianC(BulletClass* pBullet, PhobosTrajectoryType* pType) :
+		StraightTrajectory { TrajectoryFlag::StraightVariantC, pBullet , pType }
+	{
+	}
+
+	virtual ~StraightTrajectoryVarianC() override = default;
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+
+	virtual StraightVariantCTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<StraightVariantCTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
+
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override {
+		return TrajectoryCheckReturnType::SkipGameCheck;
+	}
+
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		AnnounceInvalidPointer(LastCasualty, ptr, bRemoved);
+		AnnounceInvalidPointer(ExtraCheck1, ptr, bRemoved);
+		AnnounceInvalidPointer(ExtraCheck2, ptr, bRemoved);
+		AnnounceInvalidPointer(ExtraCheck3, ptr, bRemoved);
+	}
+
+private:
+	void PrepareForOpenFire();
+	int GetVelocityZ() const;
+	bool CalculateBulletVelocity(double StraightSpeed);
+	bool BulletDetonatePreCheck(HouseClass* pOwner);
+	void BulletDetonateLastCheck(double StraightSpeed);
+	void PassWithDetonateAt(HouseClass* pOwner);
+	void PrepareForDetonateAt(HouseClass* pOwner, CoordStruct pCoord);
+	std::vector<CellClass*> GetCellsInProximityRadius();
+	std::vector<CellStruct> GetCellsInRectangle(CellStruct bStaCell, CellStruct lMidCell, CellStruct rMidCell, CellStruct tEndCell);
+	TechnoClass* CompareThenDetonateAt(std::vector<TechnoClass*>& Technos, HouseClass* pOwner, BulletClass* pBullet);
+	double GetExtraDamageMultiplier(TechnoClass* pTechno, HouseClass* pOwner, bool Self) const;
+	bool PassAndConfineAtHeight(double StraightSpeed);
 };

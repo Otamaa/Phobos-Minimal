@@ -16,7 +16,9 @@ enum class TrajectoryFlag : int
 	Wave = 7,
 	Arcing = 8,
 	StraightVariantB = 9,
-
+	StraightVariantC = 10,
+	Disperse = 11 ,
+	Engrave = 12,
 	Count
 };
 
@@ -100,6 +102,7 @@ public:
 	static DWORD OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno);
 
 	static bool CanSnap(std::unique_ptr<PhobosTrajectory>& traj);
+	static bool BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj);
 protected:
 	static bool UpdateType(BulletClass* pBullet , std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType);
 };

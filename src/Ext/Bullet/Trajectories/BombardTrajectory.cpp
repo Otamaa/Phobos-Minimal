@@ -92,7 +92,7 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	else
 	{
 		this->IsFalling = true;
-		CoordStruct SourceLocation;
+		CoordStruct SourceLocation {};
 		SourceLocation.Z = (int)this->Height - pBullet->SourceCoords.Z;
 		int scatterRange = static_cast<int>(pType->FallScatterRange.Get());
 		double angel = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;

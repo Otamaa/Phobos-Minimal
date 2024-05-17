@@ -7,10 +7,10 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 {
 	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(TargetSnapDistance, false)
-		.Process(this->PassThrough, false)
+		.Process(this->SnapOnTarget)
+		.Process(this->SnapThreshold)
+		.Process(this->TargetSnapDistance)
+		.Process(this->PassThrough)
 		;
 
 }
@@ -19,10 +19,10 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
 	return PhobosTrajectoryType::Save(Stm) &&
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(TargetSnapDistance , false)
-		.Process(this->PassThrough, false)
+		.Process(this->SnapOnTarget)
+		.Process(this->SnapThreshold)
+		.Process(this->TargetSnapDistance)
+		.Process(this->PassThrough)
 		;
 
 }
@@ -113,8 +113,8 @@ bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
 	Stm
-		.Process(this->FirerZPosition, RegisterForChange)
-		.Process(this->TargetZPosition, RegisterForChange)
+		.Process(this->FirerZPosition)
+		.Process(this->TargetZPosition)
 		;
 }
 
