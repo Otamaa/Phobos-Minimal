@@ -253,6 +253,7 @@ public:
 		return (*nBuffer != -1);
 	}
 
+	// WARNING : const char* memory address may temporary and can invalidated
 	bool ParseStringList(std::vector<const char*>& values, const char* pSection, const char* pKey) {
 		if (this->ReadString(pSection, pKey)) {
 			values.clear();

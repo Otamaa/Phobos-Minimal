@@ -195,6 +195,8 @@ struct Phobos final
 		static bool ShowHarvesterCounter;
 		static bool ShowWeedsCounter;
 
+		static bool UseNewInheritance;
+		static bool UseNewIncludes;
 	};
 
 	struct Misc

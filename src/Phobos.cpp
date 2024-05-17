@@ -118,6 +118,8 @@ bool Phobos::Config::SaveVariablesOnScenarioEnd = false;
 bool Phobos::Config::ShowHarvesterCounter = false;
 bool Phobos::Config::ShowPowerDelta = true;
 bool Phobos::Config::ShowWeedsCounter = false;
+bool Phobos::Config::UseNewInheritance = false;
+bool Phobos::Config::UseNewIncludes = false;
 
 std::string Phobos::AppIconPath;
 
@@ -231,6 +233,14 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (IS_SAME_STR_(pArg, "-CD"))
 		{
 			Phobos::Otamaa::NoCD = true;
+		}
+		else if (IS_SAME_STR_N(pArg, "-Inheritance"))
+		{
+			Phobos::Config::UseNewInheritance = true;
+		}
+		else if (IS_SAME_STR_N(pArg, "-Include"))
+		{
+			Phobos::Config::UseNewIncludes = true;
 		}
 		else if (IS_SAME_STR_(pArg, "-b=" _STR(BUILD_NUMBER)))
 		{

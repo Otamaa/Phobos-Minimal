@@ -22,6 +22,7 @@ int iteratorValue = 0;
 #include <New/Type/GenericPrerequisite.h>
 #include "Classes/INISection_.h"
 
+#pragma region Classes
 class INIClassCopy
 {
 public:
@@ -154,9 +155,13 @@ struct INIClass_
 	IndexClassOfINISection SectionIndex;
 };
 static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
+#pragma endregion
 
 DEFINE_STRONG_HOOK(0x528A10, INIClass_GetString, 5)
 {
+	if (Phobos::Config::UseNewInheritance)
+		return 0x0;
+
 	GET(INIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
 	GET_STACK(const char*, pKey, 0x8);
@@ -199,6 +204,9 @@ DEFINE_STRONG_HOOK(0x528A10, INIClass_GetString, 5)
 
 DEFINE_STRONG_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 {
+	if (Phobos::Config::UseNewInheritance)
+		return 0x0;
+
 	GET(INIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
 	GET_STACK(int, idx, 0x8);
@@ -270,12 +278,13 @@ DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 }
 
 #ifndef IteratorChar
+// Increment `+=` thingy
 DEFINE_STRONG_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {
 	GET(CCINIClass::INIEntry*, entry, ESI);
 
-	if (!CRT::strcmp(entry->Key, iteratorChar))
-	{
+	if (!CRT::strcmp(entry->Key, iteratorChar)) {
+
 		char buffer[0x10];
 		sprintf_s(buffer, iteratorReplacementFormat, iteratorValue++);
 
@@ -302,7 +311,7 @@ DEFINE_STRONG_HOOK(0x525D23, INIClass_Parse_IteratorChar2, 5)
 			if (len >= 0)
 			{
 				char* newValue = &key[len + 1];
-				strcpy_s(newValue, sizeof(buffer) - len - 1, buffer);
+				strcpy_s(newValue, 511 - len, buffer);
 				R->ESI<char*>(newValue);
 			}
 		}
@@ -450,6 +459,9 @@ std::vector<std::string> LoadedINIFiles;
 
 DEFINE_STRONG_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 {
+	if (Phobos::Config::UseNewIncludes)
+		return 0x0;
+
 	GET(CCINIClass*, pINI, ECX);
 	GET(CCFileClass*, pFile, EAX);
 
@@ -472,6 +484,9 @@ DEFINE_STRONG_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 
 DEFINE_STRONG_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
 {
+	if (Phobos::Config::UseNewIncludes)
+		return 0x0;
+
 	char buffer[0x80];
 	CCINIClass* xINI = LoadedINIs.back();
 
