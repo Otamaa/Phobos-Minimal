@@ -83,6 +83,7 @@ public:
 	double LaunchSpeed { 0.0 };
 	double FirepowerMult { 1.0 };
 	double SuicideAboveRange { 0.0 };
+	double LastReviseMult { 0.0 };
 
 	bool TargetInAir { false };
 	bool Accelerate { true };
@@ -129,9 +130,9 @@ private:
 	bool CalculateBulletVelocity(double StraightSpeed) const;
 	bool BulletDetonatePreCheck();
 	bool BulletRetargetTechno(HouseClass* pOwner);
-	void CurveVelocityChange();
-	void StandardVelocityChange();
-	void ChangeBulletVelocity(CoordStruct TargetLocation, double TurningRadius, bool Curve);
+	bool CurveVelocityChange();
+	bool StandardVelocityChange();
+	bool ChangeBulletVelocity(CoordStruct TargetLocation, double TurningRadius, bool Curve);
 	bool PrepareDisperseWeapon(HouseClass* pOwner);
 	std::vector<TechnoClass*> GetValidTechnosInSame(std::vector<TechnoClass*>& Technos, HouseClass* pOwner, WarheadTypeClass* pWH, bool Mode) const;
 	void CreateDisperseBullets(WeaponTypeClass* pWeapon, AbstractClass* BulletTarget, HouseClass* pOwner) const;
@@ -143,6 +144,7 @@ private:
 			.Process(LaunchSpeed)
 			.Process(FirepowerMult)
 			.Process(SuicideAboveRange)
+			.Process(LastReviseMult)
 			.Process(TargetInAir)
 			.Process(Accelerate)
 			.Process(InStraight)

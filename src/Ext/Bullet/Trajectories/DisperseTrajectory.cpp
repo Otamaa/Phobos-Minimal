@@ -197,7 +197,9 @@ bool DisperseTrajectory::OnAI()
 
 	if (pType->UniqueCurve)
 	{
-		CurveVelocityChange();
+		if (CurveVelocityChange())
+			return true;
+
 		return false;
 	}
 
@@ -226,21 +228,28 @@ bool DisperseTrajectory::OnAI()
 		VelocityUp = true;
 	}
 
-	if (!this->LockDirection || !this->InStraight)
+	if (!this->LockDirection )
 	{
-		if (BulletRetargetTechno(pOwner))
+		if (pType->RetargetRadius != 0 && BulletRetargetTechno(pOwner))
 			return true;
 
-		if (this->InStraight || pBullet->SourceCoords.DistanceFrom(pBullet->Location) >= pType->PreAimCoord->Length())
-			StandardVelocityChange();
+		if (this->InStraight)
+		{
+			if (StandardVelocityChange())
+				return true;
+		}
+		else if (pBullet->SourceCoords.DistanceFromSquared(pBullet->Location) >= pType->PreAimCoord->pow())
+		{
+			if (StandardVelocityChange())
+				return true;
+
+			this->InStraight = true;
+		}
 
 		VelocityUp = true;
 	}
 
 	if (VelocityUp && CalculateBulletVelocity(this->LaunchSpeed))
-		return true;
-
-	if (pBullet->Velocity.X == 0 && pBullet->Velocity.Y == 0 && pBullet->Velocity.Z == 0)
 		return true;
 
 	return false;
@@ -346,25 +355,14 @@ bool DisperseTrajectory::BulletRetargetTechno(HouseClass* pOwner)
 	if (pType->RetargetRadius.Get() < 0)
 		return true;
 
-	if (pType->RetargetRadius.Get() == 0)
-	{
-		this->LockDirection = true;
-		this->SuicideAboveRange = 16 * this->LaunchSpeed;
-		return false;
-	}
-
 	CoordStruct RetargetCoords = pBullet->TargetCoords;
 
 	if (this->InStraight)
 	{
 		VelocityClass FutureVelocity = pBullet->Velocity * (pType->RetargetRadius.Get() * 256.0 / this->LaunchSpeed);
-		CoordStruct FutureCoords
-		{
-			pBullet->Location.X + static_cast<int>(FutureVelocity.X),
-			pBullet->Location.Y + static_cast<int>(FutureVelocity.Y),
-			pBullet->Location.Z + static_cast<int>(FutureVelocity.Z)
-		};
-		RetargetCoords = FutureCoords;
+		RetargetCoords.X = pBullet->Location.X + static_cast<int>(FutureVelocity.X);
+		RetargetCoords.Y = pBullet->Location.Y + static_cast<int>(FutureVelocity.Y);
+		RetargetCoords.Z = pBullet->Location.Z;
 	}
 
 	std::vector<TechnoClass*> Technos = Helpers::Alex::getCellSpreadItems(RetargetCoords, pType->RetargetRadius.Get(), this->TargetInAir);
@@ -385,7 +383,7 @@ bool DisperseTrajectory::BulletRetargetTechno(HouseClass* pOwner)
 	return false;
 }
 
-void DisperseTrajectory::CurveVelocityChange()
+bool DisperseTrajectory::CurveVelocityChange()
 {
 	auto pBullet = this->AttachedTo;
 	auto const pType = this->GetTrajectoryType();
@@ -447,11 +445,14 @@ void DisperseTrajectory::CurveVelocityChange()
 		TargetLocation.Y += static_cast<int>(TimeMult * (TargetLocation.Y - this->LastTargetCoord.Y));
 
 		this->LastTargetCoord = pBullet->TargetCoords;
-		ChangeBulletVelocity(TargetLocation, 24.0, true);
+		if (ChangeBulletVelocity(TargetLocation, 24.0, true))
+			return true;
 	}
+
+	return false;
 }
 
-void DisperseTrajectory::StandardVelocityChange()
+bool DisperseTrajectory::StandardVelocityChange()
 {
 	auto pBullet = this->AttachedTo;
 	ObjectClass* pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
@@ -476,10 +477,14 @@ void DisperseTrajectory::StandardVelocityChange()
 
 	this->LastTargetCoord = pBullet->TargetCoords;
 	double TurningRadius = pType->ROT * this->LaunchSpeed * this->LaunchSpeed / 16384;
-	ChangeBulletVelocity(TargetLocation, TurningRadius, false);
+
+	if (ChangeBulletVelocity(TargetLocation, TurningRadius, false))
+		return true;
+
+	return false;
 }
 
-void DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double TurningRadius, bool Curve)
+bool DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double TurningRadius, bool Curve)
 {
 	auto pBullet = this->AttachedTo;
 	CoordStruct TargetVelocity
@@ -545,6 +550,9 @@ void DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double
 
 			double ReviseLength = ReviseVelocity.Length();
 
+			if (!Curve && ReviseMult < 0 && this->LastReviseMult > 0 && this->InStraight)
+				return true;
+
 			if (TurningRadius < ReviseLength)
 			{
 				ReviseVelocity *= TurningRadius / ReviseLength;
@@ -564,6 +572,7 @@ void DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double
 			}
 		}
 	}
+	this->LastReviseMult = ReviseMult;
 
 	if (Curve)
 	{
@@ -574,8 +583,10 @@ void DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double
 			BulletSide = 192;
 
 		if (CalculateBulletVelocity(BulletSide))
-			pBullet->Velocity *= 0;
+			return true;
 	}
+
+	return false;
 }
 
 bool DisperseTrajectory::PrepareDisperseWeapon(HouseClass* pOwner)

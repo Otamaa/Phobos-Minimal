@@ -594,7 +594,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner, CoordSt
 			if (ThisSize >= Capacity)
 				break;
 
-			while (pObject)
+			while (pObject && ThisSize < Capacity)
 			{
 				auto const pTechno = abstract_cast<TechnoClass*>(pObject);
 				pObject = pObject->NextObject;
@@ -646,9 +646,6 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner, CoordSt
 
 					ValidTechnos.push_back(pTechno);
 					ThisSize += 1;
-
-					if (ThisSize >= Capacity)
-						break;
 				}
 			}
 		}
@@ -658,6 +655,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner, CoordSt
 
 }
 
+//A rectangular shape with a custom width from the current frame to the next frame in length.
 std::vector<CellClass*> StraightTrajectoryVarianC::GetCellsInProximityRadius()
 {
 	std::vector<CellClass*> RecCellClass;
@@ -684,6 +682,7 @@ std::vector<CellClass*> StraightTrajectoryVarianC::GetCellsInProximityRadius()
 
 		std::vector<CellStruct> RecCells;
 
+		//Arrange the vertices of the rectangle in order from bottom to top.
 		if (Cor1Cell.X > Cor2Cell.X)//Left
 		{
 			if (Cor1Cell.Y >= Cor2Cell.Y)//↙ and ←
@@ -719,6 +718,7 @@ std::vector<CellClass*> StraightTrajectoryVarianC::GetCellsInProximityRadius()
 	return RecCellClass;
 }
 
+//Record cells in the order of "draw left boundary, draw right boundary, fill middle, and move up one level".
 std::vector<CellStruct> StraightTrajectoryVarianC::GetCellsInRectangle(CellStruct bStaCell, CellStruct lMidCell, CellStruct rMidCell, CellStruct tEndCell)
 {
 	std::vector<CellStruct> RecCells;
@@ -905,7 +905,7 @@ std::vector<CellStruct> StraightTrajectoryVarianC::GetCellsInRectangle(CellStruc
 					}
 				}
 
-				if (rCurCell != lCurCell)
+				if (rCurCell != lCurCell) //Avoid double counting cells.
 					RecCells.push_back(rCurCell);
 			}
 
@@ -938,6 +938,7 @@ std::vector<CellStruct> StraightTrajectoryVarianC::GetCellsInRectangle(CellStruc
 	return RecCells;
 }
 
+//Make each target only be attacked once.
 TechnoClass* StraightTrajectoryVarianC::CompareThenDetonateAt(std::vector<TechnoClass*>& Technos,
 	HouseClass* pOwner, BulletClass* pBullet)
 {
