@@ -54,6 +54,7 @@ bool DisperseTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 	this->WeaponLocation.Read(exINI, pSection, "Trajectory.Disperse.WeaponLocation");
 	this->WeaponTendency.Read(exINI, pSection, "Trajectory.Disperse.WeaponTendency");
 	this->WeaponToAllies.Read(exINI, pSection, "Trajectory.Disperse.WeaponToAllies");
+	this->FacingCoord.Read(exINI, pSection, "Trajectory.Disperse.FacingCoord");
 
 	this->Acceleration = this->Acceleration > 0.1 ? this->Acceleration : 0.1;
 	this->ROT = this->ROT > 0.1 ? this->ROT : 0.1;
@@ -140,24 +141,14 @@ void DisperseTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 		if (pBullet->Owner)
 			TheSource = pBullet->Owner->GetCoords();
 
-		if (pBullet->TargetCoords.Y != TheSource.Y || pBullet->TargetCoords.X != TheSource.X)
-		{
-			RotateAngle = Math::atan2(float(pBullet->TargetCoords.Y - TheSource.Y), float(pBullet->TargetCoords.X - TheSource.X));
-		}
-
-		else
-		{
-			if (pBullet->Owner)
-			{
-				if (pBullet->Owner->HasTurret())
-					RotateAngle = -(pBullet->Owner->TurretFacing().GetRadian<32>());
-				else
-					RotateAngle = -(pBullet->Owner->PrimaryFacing.Current().GetRadian<32>());
-			}
+		if (pBullet->Owner && (pType->FacingCoord || (pBullet->TargetCoords.Y == TheSource.Y && pBullet->TargetCoords.X == TheSource.X))) {
+			if (pBullet->Owner->HasTurret())
+				RotateAngle = -(pBullet->Owner->TurretFacing().GetRadian<32>());
 			else
-			{
-				RotateAngle = Math::atan2(float(pBullet->TargetCoords.Y - TheSource.Y), float(pBullet->TargetCoords.X - TheSource.X));
-			}
+				RotateAngle = -(pBullet->Owner->PrimaryFacing.Current().GetRadian<32>());
+		}
+		else {
+			RotateAngle = Math::atan2(float(pBullet->TargetCoords.Y - TheSource.Y), float(pBullet->TargetCoords.X - TheSource.X));
 		}
 
 		pBullet->Velocity.X = pType->PreAimCoord->X * Math::cos(RotateAngle) + pType->PreAimCoord->Y * Math::sin(RotateAngle);
@@ -240,6 +231,8 @@ bool DisperseTrajectory::OnAI()
 		}
 		else if (pBullet->SourceCoords.DistanceFromSquared(pBullet->Location) >= pType->PreAimCoord->pow())
 		{
+			this->InStraight = true;
+
 			if (StandardVelocityChange())
 				return true;
 
@@ -550,7 +543,7 @@ bool DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double
 
 			double ReviseLength = ReviseVelocity.Length();
 
-			if (!Curve && ReviseMult < 0 && this->LastReviseMult > 0 && this->InStraight)
+			if (!Curve && ReviseMult < 0 && this->LastReviseMult > 0 && this->LastTargetCoord == pBullet->TargetCoords)
 				return true;
 
 			if (TurningRadius < ReviseLength)
@@ -573,6 +566,7 @@ bool DisperseTrajectory::ChangeBulletVelocity(CoordStruct TargetLocation, double
 		}
 	}
 	this->LastReviseMult = ReviseMult;
+	this->LastTargetCoord = pBullet->TargetCoords;
 
 	if (Curve)
 	{

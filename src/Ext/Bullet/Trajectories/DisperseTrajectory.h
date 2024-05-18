@@ -29,6 +29,7 @@ public:
 	Valueable<bool> WeaponLocation { false };
 	Valueable<bool> WeaponTendency { false };
 	Valueable<bool> WeaponToAllies { false };
+	Valueable<bool> FacingCoord { false };
 
 	DisperseTrajectoryType(TrajectoryFlag variant) : PhobosTrajectoryType { variant }
 	{ }
@@ -72,6 +73,7 @@ private:
 			.Process(WeaponLocation)
 			.Process(WeaponTendency)
 			.Process(WeaponToAllies)
+			.Process(FacingCoord)
 			;
 	};
 };
