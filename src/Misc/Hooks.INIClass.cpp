@@ -75,7 +75,7 @@ struct INIInheritance
 	static constexpr int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
 	static CCINIClass* LastINIFile;
 	static std::set<std::string> SavedIncludes;
-	static std::unordered_map<int, std::string, Passthrough> Inherits;
+	static PhobosMap<int, std::string> Inherits;
 
 	static int Finalize(char* buffer ,int length, const char* result)
 	{
@@ -136,22 +136,22 @@ struct INIInheritance
 			return 0;
 
 		// read $Inherits entry only once per section
-		const auto it = INIInheritance::Inherits.find(sectionCRC);
+		const auto it = INIInheritance::Inherits.get_key_iterator(sectionCRC);
 
-		std::string inherits;
+		std::string inherits_result;
 
 		if (it == INIInheritance::Inherits.end())
 		{
 			char stringBuffer[0x100];
 			// if there's no saved $Inherits entry for this section, read now
 			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, useCurrentSection);
-			INIInheritance::Inherits.emplace(sectionCRC, std::string(stringBuffer));
+			INIInheritance::Inherits.empalace_unchecked(sectionCRC, std::string(stringBuffer));
 
 			// if we failed to find $Inherits, stop
 			if (resultLen == 0)
 				return Finalize(buffer,length, defaultValue);
 
-			inherits = stringBuffer;
+			inherits_result = stringBuffer;
 		}
 		else
 		{
@@ -161,13 +161,13 @@ struct INIInheritance
 
 			// strdup because strtok edits the
 			char* up = _strdup(it->second.c_str());
-			inherits = up;
+			inherits_result = up;
 			free(up);
 		}
 
 		// for each section in csv, search for entry
 		char* state = NULL;
-		char* split = strtok_s(inherits.data(), Phobos::readDelims, &state);
+		char* split = strtok_s(inherits_result.data(), Phobos::readDelims, &state);
 		do
 		{
 			const int splitsCRC = CRCEngine()(split, strlen(split));
@@ -234,7 +234,7 @@ struct INIInheritance
 
 CCINIClass* INIInheritance::LastINIFile = nullptr;
 std::set<std::string>  INIInheritance::SavedIncludes {};
-std::unordered_map<int, std::string, Passthrough>  INIInheritance::Inherits {};
+PhobosMap<int, std::string>  INIInheritance::Inherits {};
 
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
