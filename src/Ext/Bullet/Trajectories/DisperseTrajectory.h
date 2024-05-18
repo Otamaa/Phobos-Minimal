@@ -90,7 +90,6 @@ public:
 	bool TargetInAir { false };
 	bool Accelerate { true };
 	bool InStraight { false };
-	bool LockDirection { false };
 
 	int WeaponCount { 0 };
 	int WeaponTimer { 0 };
@@ -150,7 +149,6 @@ private:
 			.Process(TargetInAir)
 			.Process(Accelerate)
 			.Process(InStraight)
-			.Process(LockDirection)
 			.Process(WeaponCount)
 			.Process(WeaponTimer)
 			.Process(FinalHeight)

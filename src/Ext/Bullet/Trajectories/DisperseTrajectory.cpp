@@ -81,7 +81,6 @@ void DisperseTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	auto const pType = this->GetTrajectoryType();
 	auto pBullet = this->AttachedTo;
 	this->LaunchSpeed = pType->LaunchSpeed;
-	this->LockDirection = pType->LockDirection;
 	this->SuicideAboveRange = pType->SuicideAboveRange * 256;
 	this->WeaponCount = pType->WeaponCount;
 	this->WeaponTimer = pType->WeaponTimer;
@@ -219,7 +218,7 @@ bool DisperseTrajectory::OnAI()
 		VelocityUp = true;
 	}
 
-	if (!this->LockDirection )
+	if (!pType->LockDirection )
 	{
 		if (pType->RetargetRadius != 0 && BulletRetargetTechno(pOwner))
 			return true;
