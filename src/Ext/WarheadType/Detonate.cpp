@@ -111,9 +111,6 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 		// affect each object
 		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->AttachedToObject->CellSpread, true))
 		{
-			if (curTechno->ProtectType == ProtectTypes::ForceShield)
-				continue;
-
 			// affects enemies or allies respectively?
 			if (!this->CanAffectHouse(curTechno->Owner, Owner))
 			{
@@ -139,6 +136,23 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 				}
 
 				// get the values
+				if (curTechno->ProtectType == ProtectTypes::ForceShield)
+				{
+					// damage the victim before ICing it
+					if (damage) {
+						curTechno->ReceiveDamage(&damage, 0, this->AttachedToObject, nullptr, true, false, Owner);
+					}
+
+					// unit may be destroyed already.
+					if (curTechno->IsAlive) {
+						// start and prevent the multiplier from being applied twice
+						curTechno->IronCurtain(duration, Owner, false);
+						curTechno->IronCurtainTimer.Start(duration);
+					}
+
+					continue;
+				}
+
 				int oldValue = (curTechno->IronCurtainTimer.Expired() ? 0 : curTechno->IronCurtainTimer.GetTimeLeft());
 				int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->IC_Cap);
 
