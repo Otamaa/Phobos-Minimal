@@ -2515,7 +2515,11 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 		// capture
 		if (pData->Dominator_Capture)
 		{
-			auto Dominate = [pData, pFirer](TechnoClass* pTechno) -> bool
+			// every techno in this area shall be one with Yuri.
+			auto const [widthORange, Height] = pNewData->GetRange(pData);
+			Helpers::Alex::DistinctCollector<TechnoClass*> items;
+			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
+			items.apply_function_for_each([pData, pFirer](TechnoClass* pTechno)
 			{
 				TechnoTypeClass* pType = pTechno->GetTechnoType();
 
@@ -2617,13 +2621,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				return true;
-			};
-
-			// every techno in this area shall be one with Yuri.
-			auto const [widthORange, Height] = pNewData->GetRange(pData);
-			Helpers::Alex::DistinctCollector<TechnoClass*> items;
-			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
-			items.apply_function_for_each(Dominate);
+			});
 		}
 
 		// skip everything

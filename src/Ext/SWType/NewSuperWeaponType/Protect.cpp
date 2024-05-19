@@ -86,9 +86,6 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			if (pTechno->IsImmobilized || pTechno->IsBeingWarpedOut())
 				return true;
 
-			if (pData->Protect_IsForceShield && pTechno->WhatAmI() != BuildingClass::AbsID)
-				return true;
-
 			// is this thing affected at all?
 			if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
 				return true;

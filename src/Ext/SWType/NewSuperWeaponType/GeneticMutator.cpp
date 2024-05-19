@@ -27,8 +27,12 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 		}
 		else
 		{
+			// find everything in range and mutate it
+			auto range = GetRange(pData);
+			Helpers::Alex::DistinctCollector<InfantryClass*> items;
+			Helpers::Alex::for_each_in_rect_or_range<InfantryClass>(Coords, range.WidthOrRange, range.Height, items);
 			// ranged approach
-			auto Mutate = [=](InfantryClass* pInf) -> bool
+			items.apply_function_for_each([=](InfantryClass* pInf) -> bool
 			{
 				if(!pInf->IsAlive || pInf->IsCrashing || pInf->IsSinking || pInf->InLimbo)
 					return true;
@@ -66,13 +70,7 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 				pInf->ReceiveDamage(&damage, 0, pWH, pFirer, true, false, pThis->Owner);
 
 				return true;
-			};
-
-			// find everything in range and mutate it
-			auto range = GetRange(pData);
-			Helpers::Alex::DistinctCollector<InfantryClass*> items;
-			Helpers::Alex::for_each_in_rect_or_range<InfantryClass>(Coords, range.WidthOrRange, range.Height, items);
-			items.apply_function_for_each(Mutate);
+			});
 		}
 	}
 
