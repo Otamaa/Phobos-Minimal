@@ -1224,18 +1224,14 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		// Pick a group of countries from [AIHousesList].
 		// Any house of the same type of the listed at [AIHousesList] will be included here
 
-		if (RulesExtData::Instance()->AIHousesLists.size() == 0)
-		{
+		if (RulesExtData::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 < RulesExtData::Instance()->AIHousesLists.size()) {
 			Debug::Log("Map action %d: [AIHousesList] is empty. This action will be skipped.\n", (int)pThis->ActionKind);
 			return true;
 		}
 
-		std::vector<HouseTypeClass*>* housesList = nullptr;
+		std::vector<HouseTypeClass*>* housesList = &RulesExtData::Instance()->AIHousesLists[pThis->Param4];
 
-		if ((size_t)pThis->Param4 < RulesExtData::Instance()->AIHousesLists.size())
-			housesList = &RulesExtData::Instance()->AIHousesLists[pThis->Param4];
-
-		if (!housesList || housesList->empty()) {
+		if (housesList->empty()) {
 			Debug::Log("Map action %d: List [AIHousesList](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, pThis->Param4);
 			return true;
 		}
@@ -1254,9 +1250,8 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 
 	// Read the ID list of technos
 	int listIdx = std::abs(pThis->Param5);
-	bool isGlobalCount = pThis->Param5 < 0 ? true : false;
 
-	if (RulesExtData::Instance()->AITargetTypesLists.empty()
+	if ((size_t)listIdx < RulesExtData::Instance()->AIHousesLists.size()
 		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {
 		Debug::Log("Map action %d: List [AITargetTypes](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, listIdx);
 		return true;
@@ -1290,7 +1285,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 	float messageDelay = float(pThis->Param6 <= 0 ? RulesClass::Instance->MessageDelay : pThis->Param6 / 60.0); // seconds / 60 = message delay in minutes
 	std::wstring _message = StringTable::TryFetchString(pThis->Text, L"Remaining: ");
 
-	if (isGlobalCount) {
+	if (pThis->Param5 < 0) {
 		if (globalRemaining > 0) {
 			_message += std::to_wstring(globalRemaining);
 			textToShow = true;
