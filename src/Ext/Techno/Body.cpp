@@ -3281,6 +3281,26 @@ bool TechnoExtData::CheckDeathConditions()
 
 	const bool Any = pTypeExt->AutoDeath_ContentIfAnyMatch;
 
+	// Death by owning house
+	if (pTypeExt->AutoDeath_OwnedByPlayer)
+	{
+		if (pThis->Owner && pThis->Owner->IsControlledByHuman()) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	if (pTypeExt->AutoDeath_OwnedByAI)
+	{
+		if (pThis->Owner && !pThis->Owner->IsControlledByHuman()) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
 	// Death by money
 	if (pTypeExt->AutoDeath_MoneyExceed >= 0) {
 		if (pThis->Owner && pThis->Owner->Available_Money() >= pTypeExt->AutoDeath_MoneyExceed) {

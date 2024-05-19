@@ -384,6 +384,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_PassengerBelow.Read(exINI, pSection, "AutoDeath.PassengersBelow");
 		this->AutoDeath_ContentIfAnyMatch.Read(exINI, pSection, "AutoDeath.OnAnyCondition");
 
+		this->AutoDeath_OwnedByPlayer.Read(exINI, pSection, "AutoDeath.OwnedByPlayer");
+		this->AutoDeath_OwnedByAI.Read(exINI, pSection, "AutoDeath.OwnedByAI");
+
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
 
@@ -1555,6 +1558,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AutoDeath_PassengerExceed)
 		.Process(this->AutoDeath_PassengerBelow)
 		.Process(this->AutoDeath_ContentIfAnyMatch)
+		.Process(this->AutoDeath_OwnedByPlayer)
+		.Process(this->AutoDeath_OwnedByAI)
 		.Process(this->Slaved_ReturnTo)
 		.Process(this->Death_IfChangeOwnership)
 

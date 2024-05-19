@@ -340,7 +340,7 @@ public:
 		return false;
 	}
 
-	void empalace_unchecked(const TKey& key, TValue value) {
+	void emplace_unchecked(const TKey& key, TValue value) {
 		this->insert_unchecked(key, std::move(value));
 	}
 

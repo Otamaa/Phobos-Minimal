@@ -1952,32 +1952,32 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 			}
 		}
 
-		//if (pThis->Owner->IsHumanPlayer)
-		//{
-		//	// This is not limited to mind control, could possibly affect many map triggers
-		//	// This is still not even correct, but let's see how far this can help us
-		//
-		//	pThis->ShouldScanForTarget = false;
-		//	pThis->ShouldEnterAbsorber = false;
-		//	pThis->ShouldEnterOccupiable = false;
-		//	pThis->ShouldLoseTargetNow = false;
-		//	pThis->ShouldGarrisonStructure = false;
-		//	pThis->CurrentTargets.Clear();
-		//
-		//	if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
-		//		return 0x4DBF13;
-		//
-		//	switch (pThis->GetCurrentMission())
-		//	{
-		//	case Mission::Harvest:
-		//	case Mission::Sleep:
-		//	case Mission::Harmless:
-		//	case Mission::Repair:
-		//		return 0x4DBF13;
-		//	}
-		//
-		//	pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
-		//}
+		if (pThis->Owner->IsControlledByHuman())
+		{
+			// This is not limited to mind control, could possibly affect many map triggers
+			// This is still not even correct, but let's see how far this can help us
+
+			pThis->ShouldScanForTarget = false;
+			pThis->ShouldEnterAbsorber = false;
+			pThis->ShouldEnterOccupiable = false;
+			pThis->ShouldLoseTargetNow = false;
+			pThis->ShouldGarrisonStructure = false;
+			pThis->CurrentTargets.Clear();
+
+			if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
+				return 0x4DBF13;
+
+			switch (pThis->GetCurrentMission())
+			{
+			case Mission::Harvest:
+			case Mission::Sleep:
+			case Mission::Harmless:
+			case Mission::Repair:
+				return 0x4DBF13;
+			}
+
+			pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+		}
 
 		result = true;
 	}
