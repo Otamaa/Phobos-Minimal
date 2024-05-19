@@ -151,6 +151,12 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	//got invalidated early , so parse it again
 	detail::ParseVector<InfantryTypeClass*, true>(pThis->AnimToInfantry, iniEX, GENERAL_SECTION, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*>(iniEX, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
+	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*>(iniEX, pData->AITriggersLists, "AITriggersList");
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
@@ -705,13 +711,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);
 
 #pragma endregion
-
-	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*, true>(exINI, this->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHateHousesLists, "AIHateHousesList");
-	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHousesLists, "AIHousesList");
-	detail::ParseVector(exINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector<AITriggerTypeClass*, true>(exINI, this->AITriggersLists, "AITriggersList");
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");

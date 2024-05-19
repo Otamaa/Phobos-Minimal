@@ -15,6 +15,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/Script/Body.h>
 
 //Static init
 #include <TagClass.h>
@@ -47,7 +48,8 @@ bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, Obj
 {
 	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(ScenarioExtData::Instance()->Waypoints[pThis->Param5]);
 
-	if (!pCell) {
+	if (!pCell)
+	{
 		return true;
 	}
 
@@ -327,7 +329,7 @@ bool TActionExt::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, ObjectC
 			do
 			{
 				Vector3D<float> Vec3Dresult = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { v29 * 1.0f, nDimension * 1.0f, 0.0f });
-				GameCreate<AnimClass>(pAnimType, CoordStruct{ (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 });
+				GameCreate<AnimClass>(pAnimType, CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 });
 				nDimension += nShpWidth_;
 			}
 			while (nDimension < v33);
@@ -423,7 +425,7 @@ bool TActionExt::GameDeleteTechno(TActionClass* pThis, HouseClass* pHouse, Objec
 	{
 		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
 		{
-			GameDelete<true,false>(pTech);
+			GameDelete<true, false>(pTech);
 		}
 	}
 
@@ -464,9 +466,10 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
-	if ( pObject && !pObject->IsAlive) {
-        pObject = nullptr;
-    }
+	if (pObject && !pObject->IsAlive)
+	{
+		pObject = nullptr;
+	}
 
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
@@ -522,15 +525,15 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	case PhobosTriggerAction::LightningStormStrikeAtObject:
 		ret = LightningStormStrikeAtObject(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-	//case PhobosTriggerAction::RandomTriggerPut:
-	//	ret = TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
-	//	break;
-	//case PhobosTriggerAction::RandomTriggerEnable:
-	//	ret = TActionExt::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, args.plocation);
-	//	break;
-	//case PhobosTriggerAction::RandomTriggerRemove:
-	//	ret = TActionExt::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, args.plocation);
-	//	break;
+		//case PhobosTriggerAction::RandomTriggerPut:
+		//	ret = TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
+		//	break;
+		//case PhobosTriggerAction::RandomTriggerEnable:
+		//	ret = TActionExt::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, args.plocation);
+		//	break;
+		//case PhobosTriggerAction::RandomTriggerRemove:
+		//	ret = TActionExt::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, args.plocation);
+		//	break;
 	case PhobosTriggerAction::ScoreCampaignText:
 		ret = TActionExt::ScoreCampaignText(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -550,6 +553,9 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		break;
 	case PhobosTriggerAction::UndeployToWaypoint:
 		ret = TActionExt::UndeployToWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::PrintMessageRemainingTechnos:
+		ret = TActionExt::PrintMessageRemainingTechnos(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	default:
 	{
@@ -610,9 +616,12 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 	{
 		VocClass::PlayIndexAtPos(pThis->Value,
 		CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
-						[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
-	}else {
-		for (auto const& [idx, cell] : ScenarioExtData::Instance()->Waypoints) {
+			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
+	}
+	else
+	{
+		for (auto const& [idx, cell] : ScenarioExtData::Instance()->Waypoints)
+		{
 			if (pScen->IsDefinedWaypoint(idx))
 				ScenarioExtData::Instance()->DefinedAudioWaypoints.push_back(cell);
 		}
@@ -638,14 +647,14 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		}
 
 		auto PrintMessage = [](const wchar_t* pMessage)
-		{
-			MessageListClass::Instance->PrintMessage(
-				pMessage,
-				RulesClass::Instance->MessageDelay,
-				HouseClass::CurrentPlayer->ColorSchemeIndex,
-				true
-			);
-		};
+			{
+				MessageListClass::Instance->PrintMessage(
+					pMessage,
+					RulesClass::Instance->MessageDelay,
+					HouseClass::CurrentPlayer->ColorSchemeIndex,
+					true
+				);
+			};
 
 		SYSTEMTIME time;
 		Imports::GetLocalTime.get()(&time);
@@ -819,7 +828,8 @@ bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHous
 	const auto& waypoints = ScenarioExtData::Instance()->Waypoints;
 
 	// Check if is a valid Waypoint
-	if (auto iter = waypoints.tryfind(pThis->Param5)) {
+	if (auto iter = waypoints.tryfind(pThis->Param5))
+	{
 		if (iter->X && iter->Y)
 			return TActionExt::RunSuperWeaponAt(pThis, iter->X, iter->Y);
 	}
@@ -986,8 +996,8 @@ void TActionExt::RecreateLightSources()
 		 auto intensity = pRadSite->LightSource->LightIntensity;
 		 auto visibility = pRadSite->LightSource->LightVisibility;
 
-		 GameDelete<true , false>(std::exchange(pRadSite->LightSource ,
-		 	GameCreate<LightSourceClass>(coord, visibility, intensity, color)));
+		 GameDelete<true, false>(std::exchange(pRadSite->LightSource,
+			 GameCreate<LightSourceClass>(coord, visibility, intensity, color)));
 
 		 if (activated)
 			 pRadSite->LightSource->Activate();
@@ -1164,19 +1174,161 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 	return true;
 }
 
+constexpr bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+{
+	if (!pTechno)
+		return false;
+
+	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;
+
+	if (checkIfInTransportOrAbsorbed)
+		isAvailable &= !pTechno->Absorbed && !pTechno->Transporter;
+
+	return isAvailable;
+
+}
+
+bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (!pThis)
+		return true;
+	// Example:
+	// ID=ActionCount,[Action1],507,4,[CSFKey],[HouseIndex],[AIHousesLists Index],[AITargetTypes Index],[MesageDelay],A,[ActionX]
+	std::vector<HouseClass*> pHousesList;
+
+	// Obtain houses
+	int param3 = pThis->Param3;
+
+	if (pThis->Param3 - HouseClass::PlayerAtA >= 0 && pThis->Param3 - HouseClass::PlayerAtA < 8997)
+	{
+		// Multiplayer house index (Player@A - Player@H)
+		param3 = pThis->Param3 - HouseClass::PlayerAtA;
+	}
+	else if (pThis->Param3 - 8997 == 0)
+	{
+		// House specified in Trigger
+		param3 = pThis->TeamType ? pThis->TeamType->Owner->ArrayIndex : pHouse->ArrayIndex;
+	}
+	else if (pThis->Param3 > 8997)
+	{
+		Debug::Log("Map action %d: Invalid house index '%d'. This action will be skipped.\n", (int)pThis->ActionKind, pThis->Param3);
+		return true;
+	}
+
+	if (param3 >= 0)
+	{
+		pHousesList.push_back(HouseClass::Array->GetItem(param3));
+	}
+	else
+	{
+		// Pick a group of countries from [AIHousesList].
+		// Any house of the same type of the listed at [AIHousesList] will be included here
+
+		if (RulesExtData::Instance()->AIHousesLists.size() == 0)
+		{
+			Debug::Log("Map action %d: [AIHousesList] is empty. This action will be skipped.\n", (int)pThis->ActionKind);
+			return true;
+		}
+
+		std::vector<HouseTypeClass*>* housesList = nullptr;
+
+		if ((size_t)pThis->Param4 < RulesExtData::Instance()->AIHousesLists.size())
+			housesList = &RulesExtData::Instance()->AIHousesLists[pThis->Param4];
+
+		if (!housesList || housesList->empty()) {
+			Debug::Log("Map action %d: List [AIHousesList](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, pThis->Param4);
+			return true;
+		}
+
+		for (const auto& pHouseType : *housesList) {
+			for (auto pHouse : *HouseClass::Array) {
+				if (pHouse->Type == pHouseType && !pHouse->Defeated && !pHouse->IsObserver())
+					pHousesList.push_back(pHouse);
+			}
+		}
+
+		// Nothing to check
+		if (pHousesList.empty())
+			return true;
+	}
+
+	// Read the ID list of technos
+	int listIdx = std::abs(pThis->Param5);
+	bool isGlobalCount = pThis->Param5 < 0 ? true : false;
+
+	if (RulesExtData::Instance()->AITargetTypesLists.empty()
+		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {
+		Debug::Log("Map action %d: List [AITargetTypes](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, listIdx);
+		return true;
+	}
+
+	std::vector<TechnoTypeClass*>* technosList = &RulesExtData::Instance()->AITargetTypesLists[listIdx];
+	std::vector<int> technosRemaining;
+	int globalRemaining = 0;
+
+	// Count all valid instances
+	for (auto const& pType : *technosList) {
+		int nRemaining = 0;
+
+		for (const auto pTechno : *TechnoClass::Array)
+		{
+			if (!IsUnitAvailable(pTechno, false) || pTechno->GetTechnoType() != pType)
+				continue;
+
+			for (const auto& pHouse : pHousesList) {
+				if (pTechno->Owner == pHouse) {
+					globalRemaining++;
+					nRemaining++;
+				}
+			}
+		}
+
+		technosRemaining.push_back(nRemaining);
+	}
+
+	bool textToShow = false;
+	float messageDelay = float(pThis->Param6 <= 0 ? RulesClass::Instance->MessageDelay : pThis->Param6 / 60.0); // seconds / 60 = message delay in minutes
+	std::wstring _message = StringTable::TryFetchString(pThis->Text, L"Remaining: ");
+
+	if (isGlobalCount) {
+		if (globalRemaining > 0) {
+			_message += std::to_wstring(globalRemaining);
+			textToShow = true;
+		}
+	}
+	else
+	{
+		_message += L"\n";
+
+		for (size_t i = 0; i < technosRemaining.size(); i++) {
+
+			if (technosRemaining[i] == 0)
+				continue;
+
+			textToShow = true;
+			_message += std::format(L"{}: {}\n", (*technosList)[i]->UIName, technosRemaining[i]);
+		}
+	}
+
+	if (textToShow)
+		MessageListClass::Instance->PrintMessage(_message.c_str(), messageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+
+	return true;
+}
+
 bool TActionExt::DumpVariables(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const auto fileName = (pThis->Param3 != 0) ? "globals.ini" : "locals.ini";
 	CCFileClass file { fileName };
 
 	if (!file.Exists()) {
-		if(!file.CreateFileA()) {
+		if (!file.CreateFileA()) {
 			return false;
 		}
 	}
 
-	if(!file.Open(FileAccessMode::ReadWrite)) {
-		Debug::Log(" %s Failed to Open file %s for\n" , __FUNCTION__ , fileName);
+	if (!file.Open(FileAccessMode::ReadWrite)) {
+		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, fileName);
 		return false;
 	}
 

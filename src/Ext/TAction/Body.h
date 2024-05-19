@@ -22,6 +22,9 @@ enum class PhobosTriggerAction : unsigned int
 	//#1144
 	DumpVariables = 507,
 
+	//#1266 , modified number
+	PrintMessageRemainingTechnos = 508,
+
 	//#844
 	ToggleMCVRedeploy = 510,
 
@@ -52,6 +55,7 @@ enum class PhobosTriggerAction : unsigned int
 
 	//DrawLaserBetweenWeaypoints = 9940,
 	//AdjustLighting = 505,
+
 	count
 };
 
@@ -164,5 +168,6 @@ public:
 
 	ACTION_FUNC(UndeployToWaypoint);
 
+	ACTION_FUNC(PrintMessageRemainingTechnos);
 #undef ACTION_FUNC
 };
