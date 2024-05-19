@@ -274,10 +274,9 @@ DEFINE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 	GET(UnitClass* const, pThis, ESI);
 	GET(TechnoClass const* const, pSender, EDI);
 
-	auto const pType = pThis->GetTechnoType();
 	auto const pSenderType = pSender->GetTechnoType();
 
-	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? 0u : 0x73780Fu;
+	return TechnoTypeExtData::PassangersAllowed(pThis->Type, pSenderType) ? 0u : 0x73780Fu;
 }
 
 DEFINE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
