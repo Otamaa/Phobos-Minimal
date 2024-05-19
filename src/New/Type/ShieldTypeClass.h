@@ -78,7 +78,7 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
-	static void AddDefaults() {
+	static constexpr void AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 

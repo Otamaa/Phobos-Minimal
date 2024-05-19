@@ -597,12 +597,12 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
-	this->Crit_CurrentChance = this->GetCritChance(pOwner);
+	 this->GetCritChance(pOwner, this->Crit_CurrentChance);
 
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if (IsCellSpreadWH(this) || this->Crit_CurrentChance > 0.0)
+	if (IsCellSpreadWH(this) || (this->Crit_CurrentChance.size() == 1 && this->Crit_CurrentChance[0] > 0.0) || this->Crit_CurrentChance.size() > 1)
 	{
 		this->HasCrit = false;
 		const bool ThisbulletWasIntercepted = pBullet ? BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
@@ -691,7 +691,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);
 
-	if (this->Crit_CurrentChance > 0.0 && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
+	if (!this->Crit_CurrentChance.empty() && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 	{
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
@@ -883,14 +883,25 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		return;
 
 	const auto& tresh = this->Crit_GuaranteeAfterHealthTreshold.Get(pTarget);
+	size_t level = 0;
 
 	if (!tresh->isset() || pTarget->GetHealthPercentage() > tresh->Get())
 	{
+		if (!this->Crit_AffectBelowPercent.empty()) {
+			for (; level < this->Crit_AffectBelowPercent.size() - 1; level++) {
+				if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent[level + 1])
+					break;
+			}
+		}
+
 		const double dice = this->Crit_ApplyChancePerTarget ?
 			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
 
-		if (this->Crit_CurrentChance < dice)
+		if (this->Crit_CurrentChance.size() == 1 && this->Crit_CurrentChance[0] < dice) {
 			return;
+		} else if (this->Crit_CurrentChance.size() <= level || this->Crit_CurrentChance[level] < dice) {
+			return;
+		}
 	}
 
 	if (auto pExt = TechnoExtContainer::Instance.Find(pTarget))
@@ -899,9 +910,6 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
 			return;
 	}
-
-	if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
-		return;
 
 	if (!EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->GetOwningHouse()))
 		return;
@@ -927,7 +935,13 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		);
 	}
 
-	auto damage = this->Crit_ExtraDamage.Get();
+	int damage = 0;
+
+	if (this->Crit_ExtraDamage.size() == 1)
+		damage = Crit_ExtraDamage[0];
+	else if (this->Crit_ExtraDamage.size() > level)
+		damage = Crit_ExtraDamage[level];
+
 
 	if (this->Crit_Warhead.isset())
 		WarheadTypeExtData::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage, pHouse);

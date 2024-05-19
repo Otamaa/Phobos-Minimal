@@ -3251,6 +3251,20 @@ enum class DeathConditions : char {
 	ChangeOwner
 };
 
+bool NOINLINE ImmeditelyReturn(TechnoClass* pTech, bool any, bool& result)
+{
+	//only immedieltely return if the techno dies
+	if (!any && !pTech->IsAlive) {
+		result = true;
+		return true;
+	} else if(any) { // immedietely retyrn and check the result
+		result = !pTech->IsAlive;
+		return true;
+	}
+
+	return false; //continue func
+}
+
 // Feature: Kill Object Automatically
 bool TechnoExtData::CheckDeathConditions()
 {
@@ -3260,27 +3274,80 @@ bool TechnoExtData::CheckDeathConditions()
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
 	const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
+	bool result = false;
 
 	if (nMethod == KillMethod::None)
-		return false;
+		return result;
 
-	// Death if no ammo
-	if (pTypeExt->Death_NoAmmo)
-	{
-		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
-		{
+	const bool Any = pTypeExt->AutoDeath_ContentIfAnyMatch;
+
+	// Death by money
+	if (pTypeExt->AutoDeath_MoneyExceed >= 0) {
+		if (pThis->Owner && pThis->Owner->Available_Money() >= pTypeExt->AutoDeath_MoneyExceed) {
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
-			return !pThis->IsAlive;
 		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
 	}
 
-	//if (pTypeExt->Death_IfChangeOwnership) {
-	//	if (pThis->GetOriginalOwner() != pThis->Owner)
-	//	{
-	//		TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
-	//		return !pThis->IsAlive;
-	//	}
-	//}
+	if (pTypeExt->AutoDeath_MoneyBelow >= 0) {
+		if (pThis->Owner && pThis->Owner->Available_Money() <= pTypeExt->AutoDeath_MoneyBelow) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	// Death by power
+	if (pTypeExt->AutoDeath_LowPower) {
+		if (pThis->Owner && pThis->Owner->HasLowPower()) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	if (pTypeExt->AutoDeath_FullPower) {
+		if (pThis->Owner && pThis->Owner->HasFullPower()) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	// Death if no ammo
+	if (pTypeExt->Death_NoAmmo) {
+		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	// Death by passengers
+	if (pTypeExt->AutoDeath_PassengerExceed >= 0)
+	{
+		if (pTypeThis->Passengers > 0 && pThis->Passengers.NumPassengers >= pTypeExt->AutoDeath_PassengerExceed) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	if (pTypeExt->AutoDeath_PassengerBelow >= 0) {
+		if (pTypeThis->Passengers > 0 && pThis->Passengers.NumPassengers <= pTypeExt->AutoDeath_PassengerBelow) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
 
 	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo)
 	{
@@ -3321,9 +3388,10 @@ bool TechnoExtData::CheckDeathConditions()
 			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed))
 		{
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
-
-			return !pThis->IsAlive;
 		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
 	}
 
 	// Death if exist
@@ -3335,9 +3403,10 @@ bool TechnoExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Exist_AllowLimboed))
 		{
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
-
-			return !pThis->IsAlive;
 		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
 	}
 
 	// Death if countdown ends
@@ -3352,11 +3421,13 @@ bool TechnoExtData::CheckDeathConditions()
 		else if (Death_Countdown.Completed())
 		{
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
-			return !pThis->IsAlive;
 		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
 	}
 
-	return false;
+	return result;
 }
 
 void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)

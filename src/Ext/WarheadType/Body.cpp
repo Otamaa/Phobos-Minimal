@@ -1417,22 +1417,26 @@ void WarheadTypeExtData::Serialize(T& Stm)
 	PaintBallData.Serialize(Stm);
 }
 
-double WarheadTypeExtData::GetCritChance(TechnoClass* pFirer) const
+void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>& chances) const
 {
-	double critChance = this->Crit_Chance;
+	chances = this->Crit_Chance;
 
-	if (!pFirer)
-		return critChance;
+	if (!pFirer) {
+		return;
+	}
+
+	if (chances.empty())
+		chances.push_back(0.0);
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pFirer);
 
+
 	if (pExt->AE_ExtraCrit.Enabled() && pExt->AE_ExtraCrit.Eligible(this->AttachedToObject)) {
-		critChance = pExt->AE_ExtraCrit.Get(critChance);
+		for (auto& curChances : chances) {
+			curChances = pExt->AE_ExtraCrit.Get(curChances);
+		}
 	}
-
-	return critChance;
 }
-
 
 void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker)
 {

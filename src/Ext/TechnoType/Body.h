@@ -163,6 +163,14 @@ public:
 	Valueable<int> Death_Countdown { 0 };
 	Valueable<KillMethod> Death_Method { KillMethod::Explode };
 	Valueable<bool> Death_WithMaster { false };
+	Valueable<int> AutoDeath_MoneyExceed { -1 };
+	Valueable<int> AutoDeath_MoneyBelow { -1 };
+	Valueable<bool> AutoDeath_LowPower { false };
+	Valueable<bool> AutoDeath_FullPower { false };
+	Valueable<int> AutoDeath_PassengerExceed { -1 };
+	Valueable<int> AutoDeath_PassengerBelow { -1 };
+	Valueable<bool> AutoDeath_ContentIfAnyMatch { true };
+
 	Valueable<bool> Death_IfChangeOwnership { false };
 
 	ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist {};

@@ -376,6 +376,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Death_WithMaster.Read(exINI, pSection, "AutoDeath.WithSlaveOwner");
 
+		this->AutoDeath_MoneyExceed.Read(exINI, pSection, "AutoDeath.MoneyExceed");
+		this->AutoDeath_MoneyBelow.Read(exINI, pSection, "AutoDeath.MoneyBelow");
+		this->AutoDeath_LowPower.Read(exINI, pSection, "AutoDeath.LowPower");
+		this->AutoDeath_FullPower.Read(exINI, pSection, "AutoDeath.FullPower");
+		this->AutoDeath_PassengerExceed.Read(exINI, pSection, "AutoDeath.PassengersExceed");
+		this->AutoDeath_PassengerBelow.Read(exINI, pSection, "AutoDeath.PassengersBelow");
+		this->AutoDeath_ContentIfAnyMatch.Read(exINI, pSection, "AutoDeath.OnAnyCondition");
+
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
 
@@ -1540,6 +1548,13 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AutoDeath_VanishAnimation)
 
 		.Process(this->Death_WithMaster)
+		.Process(this->AutoDeath_MoneyExceed)
+		.Process(this->AutoDeath_MoneyBelow)
+		.Process(this->AutoDeath_LowPower)
+		.Process(this->AutoDeath_FullPower)
+		.Process(this->AutoDeath_PassengerExceed)
+		.Process(this->AutoDeath_PassengerBelow)
+		.Process(this->AutoDeath_ContentIfAnyMatch)
 		.Process(this->Slaved_ReturnTo)
 		.Process(this->Death_IfChangeOwnership)
 

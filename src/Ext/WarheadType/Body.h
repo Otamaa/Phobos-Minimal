@@ -70,22 +70,22 @@ public:
 	Valueable<bool> ShakeIsLocal { false };
 	Valueable<bool> Shake_UseAlternativeCalculation { false };
 
-	Valueable<double> Crit_Chance { 0.0 };
+	ValueableVector<double> Crit_Chance { };
 	Valueable<bool> Crit_ApplyChancePerTarget { false };
-	Valueable<int> Crit_ExtraDamage { 0 };
+	ValueableVector<int> Crit_ExtraDamage { };
 	Nullable<WarheadTypeClass*> Crit_Warhead {};
 	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> Crit_AnimList {};
 	Nullable<bool> Crit_AnimList_PickRandom {};
 	Valueable<bool> Crit_AnimOnAffectedTargets { false };
-	Valueable<double> Crit_AffectBelowPercent { 1.0 };
+	ValueableVector<double> Crit_AffectBelowPercent { };
 	Valueable<bool> Crit_SuppressOnIntercept { false };
 	NullablePromotable<double> Crit_GuaranteeAfterHealthTreshold {};
 
 	double RandomBuffer { 0.0 };
 	bool HasCrit { false };
-	double Crit_CurrentChance { 0.0 };
+	std::vector<double> Crit_CurrentChance { };
 	Nullable<AnimTypeClass*> MindControl_Anim {};
 
 	// Ares tags
@@ -427,7 +427,7 @@ public:
 	bool ApplySuppressDeathWeapon(TechnoClass* pVictim) const;
 
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
-	double GetCritChance(TechnoClass* pFirer) const;
+	void GetCritChance(TechnoClass* pFirer , std::vector<double>& chances) const;
 
 	VersesData& GetVerses(Armor armor)
 	{

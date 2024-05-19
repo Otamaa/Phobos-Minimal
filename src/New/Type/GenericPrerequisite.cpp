@@ -115,10 +115,10 @@ void GenericPrerequisite::SaveToStream(PhobosStreamWriter& Stm)
 
 void GenericPrerequisite::AddDefaults()
 {
-	FindOrAllocate("POWER");
-	FindOrAllocate("FACTORY");
-	FindOrAllocate("BARRACKS");
-	FindOrAllocate("RADAR");
+	FindOrAllocate(GameStrings::POWER());
+	FindOrAllocate(GameStrings::FACTORY());
+	FindOrAllocate(GameStrings::BARRACKS());
+	FindOrAllocate(GameStrings::RADAR());
 	FindOrAllocate("TECH");
 	FindOrAllocate("PROC");
 }
