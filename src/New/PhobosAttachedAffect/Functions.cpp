@@ -34,7 +34,6 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 	if (!pAttachEffectType || !pAttachEffectType->Cumulative)
 		return;
 
-	Debug::Log(__FUNCTION__" Executed 1 [%s]\n", pTechno->get_ID());
 	bool foundFirst = false;
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
