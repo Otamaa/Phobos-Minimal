@@ -1954,16 +1954,19 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 	}
 }
 
-void TechnoExtData::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
+void TechnoExtData::SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo)
 {
-	if (pFrom->IsIronCurtained() && pFrom->ProtectType == ProtectTypes::IronCurtain)
+	if (pFrom->IsIronCurtained())
 	{
-		const auto bSyncIC = TechnoTypeExtContainer::Instance.Find(pFrom->GetTechnoType())->IronCurtain_SyncDeploysInto
-			.Get(RulesExtData::Instance()->IronCurtain_SyncDeploysInto);
+		bool isForceShielded = pFrom->ProtectType == ProtectTypes::ForceShield;
+		const auto pTypeExt =  TechnoTypeExtContainer::Instance.Find(pFrom->GetTechnoType());
+		const auto bSync = !isForceShielded ?pTypeExt->IronCurtain_KeptOnDeploy
+			.Get(RulesExtData::Instance()->IronCurtain_KeptOnDeploy)
+			:pTypeExt->ForceShield_KeptOnDeploy.Get(RulesExtData::Instance()->ForceShield_KeptOnDeploy)
+			;
 
-		if (bSyncIC)
-		{
-			pTo->IronCurtain(pFrom->IronCurtainTimer.GetTimeLeft(), pFrom->Owner, false);
+		if (bSync) {
+			pTo->IronCurtain(pFrom->IronCurtainTimer.GetTimeLeft(), pFrom->Owner, isForceShielded);
 			pTo->IronTintStage = pFrom->IronTintStage;
 		}
 	}

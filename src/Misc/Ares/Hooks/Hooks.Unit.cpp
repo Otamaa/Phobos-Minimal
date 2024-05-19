@@ -1139,7 +1139,7 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_D
 	//AresData::TechnoTransferAffects(pFrom, pTo);
 	TechnoExtData::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);
-	TechnoExtData::SyncIronCurtainStatus(pFrom, pTo);
+	TechnoExtData::SyncInvulnerability(pFrom, pTo);
 
 	if (pFrom->AttachedTag)
 		pTo->AttachTrigger(pFrom->AttachedTag);

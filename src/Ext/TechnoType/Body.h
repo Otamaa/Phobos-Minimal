@@ -287,7 +287,8 @@ public:
 	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 	std::vector<CoordStruct> AlternateFLHs {};
 
-	Nullable<bool> IronCurtain_SyncDeploysInto {};
+	Nullable<bool> IronCurtain_KeptOnDeploy {};
+	Nullable<bool> ForceShield_KeptOnDeploy {};
 	Valueable<IronCurtainFlag> IronCurtain_Effect { IronCurtainFlag::Default };
 	Nullable<WarheadTypeClass*> IronCurtain_KillWarhead {};
 

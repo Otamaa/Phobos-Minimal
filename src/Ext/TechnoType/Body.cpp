@@ -645,7 +645,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->MySpawnSupportDatas.Read(exINI, pSection);
 		this->DamageSelfData.Read(exINI, pSection);
 
-		this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+		this->IronCurtain_KeptOnDeploy.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+		this->ForceShield_KeptOnDeploy.Read(exINI, pSection, "ForceShield.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
 		this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
 
@@ -1679,7 +1680,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CrouchedWeaponBurstFLHs)
 		.Process(this->DeployedWeaponBurstFLHs)
 
-		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->IronCurtain_KeptOnDeploy)
+		.Process(this->ForceShield_KeptOnDeploy)
 		.Process(this->IronCurtain_Effect)
 		.Process(this->IronCurtain_KillWarhead)
 

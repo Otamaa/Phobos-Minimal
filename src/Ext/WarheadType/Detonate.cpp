@@ -108,11 +108,12 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 	if (this->IC_Duration != 0)
 	{
 		// set of affected objects. every object can be here only once.
-		auto items = Helpers::Alex::getCellSpreadItems(coords, this->AttachedToObject->CellSpread, true);
-
 		// affect each object
-		for (auto curTechno : items)
+		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->AttachedToObject->CellSpread, true))
 		{
+			if (curTechno->ProtectType == ProtectTypes::ForceShield)
+				continue;
+
 			// affects enemies or allies respectively?
 			if (!this->CanAffectHouse(curTechno->Owner, Owner))
 			{

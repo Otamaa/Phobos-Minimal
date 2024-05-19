@@ -753,7 +753,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
 	this->UseGlobalRadApplicationDelay.Read(exINI, GameStrings::Radiation, "UseGlobalRadApplicationDelay");
 
-	this->IronCurtain_SyncDeploysInto.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
+	this->IronCurtain_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
+	this->ForceShield_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "ForceShield.KeptOnDeploy");
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
@@ -974,7 +975,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
 		.Process(this->UseGlobalRadApplicationDelay)
-		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->IronCurtain_KeptOnDeploy)
+		.Process(this->ForceShield_KeptOnDeploy)
 		.Process(this->ROF_RandomDelay)
 
 		.Process(this->ToolTip_Background_Color)

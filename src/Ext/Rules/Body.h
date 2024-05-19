@@ -100,7 +100,8 @@ public:
 	Valueable<bool> RadHasOwner { false };
 	Valueable<bool> RadHasInvoker { false };
 	Valueable<bool> UseGlobalRadApplicationDelay { true };
-	Valueable<bool> IronCurtain_SyncDeploysInto { false };
+	Valueable<bool> IronCurtain_KeptOnDeploy { true };
+	Valueable<bool> ForceShield_KeptOnDeploy { false };
 
 	Valueable<PartialVector2D<int>> ROF_RandomDelay { { 0, 2 } };
 
