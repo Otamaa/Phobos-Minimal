@@ -803,7 +803,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 				&& !pBuildingExt->TechnoExt->Death_Countdown.HasStarted())
 			{
 				pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
-				pOwnerExt->AutoDeathObjects.empalace_unchecked(pBuilding, nMethod);
+				pOwnerExt->AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}

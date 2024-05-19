@@ -145,7 +145,7 @@ struct INIInheritance
 			char stringBuffer[0x100];
 			// if there's no saved $Inherits entry for this section, read now
 			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, useCurrentSection);
-			INIInheritance::Inherits.empalace_unchecked(sectionCRC, std::string(stringBuffer));
+			INIInheritance::Inherits.emplace_unchecked(sectionCRC, std::string(stringBuffer));
 
 			// if we failed to find $Inherits, stop
 			if (resultLen == 0)

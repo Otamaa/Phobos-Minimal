@@ -265,7 +265,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	for (size_t a = 0;  a < hitAnim.size(); ++a) {
 		if(hitAnim[a]) {
-			this->ArmorHitAnim.empalace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
+			this->ArmorHitAnim.emplace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
 		}
 	}
 
