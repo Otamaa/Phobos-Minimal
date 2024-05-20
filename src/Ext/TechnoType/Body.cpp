@@ -649,6 +649,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ForceShield_KeptOnDeploy.Read(exINI, pSection, "ForceShield.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
 		this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
+		this->ForceShield_Effect.Read(exINI, pSection, "ForceShield.Effect");
+		this->ForceShield_KillWarhead.Read(exINI, pSection, "ForceShield.KillWarhead", true);
 
 		this->SellSound.Read(exINI, pSection, "SellSound");
 		this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
@@ -1684,7 +1686,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceShield_KeptOnDeploy)
 		.Process(this->IronCurtain_Effect)
 		.Process(this->IronCurtain_KillWarhead)
-
+		.Process(this->ForceShield_Effect)
+		.Process(this->ForceShield_KillWarhead)
 		.Process(this->SellSound)
 		.Process(this->EVA_Sold);
 		//Debug::Log("AboutToLoad WeaponFLhB\n");

@@ -101,7 +101,7 @@ private:
 	bool IsCloaked { false };
 	bool HasInitialized { false };
 	bool NeedsDurationRefresh { false };
-
+	AnimTypeClass* SelectedAnim { nullptr };
 public:
 	bool IsFirstCumulativeInstance { false };
 };

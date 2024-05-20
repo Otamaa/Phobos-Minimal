@@ -15,7 +15,7 @@ public:
 	Valueable<bool> Powered;
 	Valueable<DiscardCondition> DiscardOn;
 	Valueable<bool> PenetratesIronCurtain;
-	Nullable<AnimTypeClass*> Animation;
+	ValueableVector<AnimTypeClass*> Animation;
 	NullableVector<AnimTypeClass*> CumulativeAnimations;
 	Valueable<bool> Animation_ResetOnReapply;
 	Valueable<AttachedAnimFlag> Animation_OfflineAction;
@@ -51,6 +51,7 @@ public:
 	Valueable<bool> DisableSelfHeal;
 	Valueable<bool> Untrackable;
 	Valueable<double> ReceiveRelativeDamageMult;
+	Valueable<bool> AnimRandomPick;
 
 	PhobosAttachEffectTypeClass(const char* const pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
@@ -93,6 +94,7 @@ public:
 		, DisableSelfHeal { false }
 		, Untrackable { false }
 		, ReceiveRelativeDamageMult { 1.0 }
+		, AnimRandomPick { false }
 	{};
 
 	constexpr FORCEINLINE bool HasTint() {

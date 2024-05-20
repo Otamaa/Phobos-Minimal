@@ -28,6 +28,10 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->NeedsDurationRefresh = false;
 	this->IsFirstCumulativeInstance = false;
 
+	if (pType->Animation.size() == 1 || !pType->AnimRandomPick)
+		this->SelectedAnim = pType->Animation[0];
+	else if (pType->AnimRandomPick && pType->Animation.size() > 1)
+		this->SelectedAnim = pType->Animation[ScenarioClass::Instance()->Random.RandomFromMax(pType->Animation.size() - 1)];
 }
 
 void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)
@@ -238,7 +242,7 @@ void PhobosAttachEffectClass::CreateAnim()
 	}
 	else
 	{
-		pAnimType = this->Type->Animation.Get(nullptr);
+		pAnimType = this->SelectedAnim;
 	}
 
 	if (!this->Animation && pAnimType)
@@ -814,6 +818,7 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->IsOnline)
 		.Process(this->IsCloaked)
 		.Process(this->HasInitialized)
+		.Process(this->SelectedAnim)
 		.Success() && Stm.RegisterChange(this);
 }
 

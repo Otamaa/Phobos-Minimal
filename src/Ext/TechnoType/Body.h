@@ -289,9 +289,10 @@ public:
 
 	Nullable<bool> IronCurtain_KeptOnDeploy {};
 	Nullable<bool> ForceShield_KeptOnDeploy {};
-	Valueable<IronCurtainFlag> IronCurtain_Effect { IronCurtainFlag::Default };
+	Nullable<IronCurtainFlag> IronCurtain_Effect {};
 	Nullable<WarheadTypeClass*> IronCurtain_KillWarhead {};
-
+	Nullable<IronCurtainFlag> ForceShield_Effect {};
+	Nullable<WarheadTypeClass*> ForceShield_KillWarhead {};
 	ValueableIdx<VoxClass> EVA_Sold { -1 };
 	ValueableIdx<VocClass> SellSound { -1 };
 

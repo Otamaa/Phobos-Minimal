@@ -94,6 +94,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->DisableSelfHeal.Read(exINI, pSection, "DisableSelfHeal");
 	this->Untrackable.Read(exINI, pSection, "Untrackable");
+	this->AnimRandomPick.Read(exINI, pSection, "Anim.RandomPick");
 }
 
 template <typename T>
@@ -140,6 +141,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->Groups)
 		.Process(this->DisableSelfHeal)
 		.Process(this->Untrackable)
+		.Process(this->AnimRandomPick)
 		;
 }
 

@@ -755,6 +755,19 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->IronCurtain_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
 	this->ForceShield_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "ForceShield.KeptOnDeploy");
+
+	this->ForceShield_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "ForceShield.EffectOnOrganics");
+	this->ForceShield_KillOrganicsWarhead.Read(exINI, GameStrings::CombatDamage, "ForceShield.KillOrganicsWarhead");
+
+	if (!this->ForceShield_KillOrganicsWarhead.isset())
+		this->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
+	this->IronCurtain_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "IronCurtain.EffectOnOrganics");
+
+	this->IronCurtain_KillOrganicsWarhead.Read(exINI, GameStrings::CombatDamage, "IronCurtain.KillOrganicsWarhead");
+	if (!this->IronCurtain_KillOrganicsWarhead.isset())
+		this->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
@@ -977,6 +990,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UseGlobalRadApplicationDelay)
 		.Process(this->IronCurtain_KeptOnDeploy)
 		.Process(this->ForceShield_KeptOnDeploy)
+		.Process(this->ForceShield_EffectOnOrganics)
+		.Process(this->ForceShield_KillOrganicsWarhead)
+		.Process(this->IronCurtain_EffectOnOrganics)
+		.Process(this->IronCurtain_KillOrganicsWarhead)
 		.Process(this->ROF_RandomDelay)
 
 		.Process(this->ToolTip_Background_Color)
