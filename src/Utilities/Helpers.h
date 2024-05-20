@@ -193,8 +193,93 @@ namespace Helpers {
 			\author AlexB
 			\date 2010-06-28
 		*/
+		inline std::vector<TechnoClass*> getCellSpreadItems_Original(
+		CoordStruct const& coords, double const spread,
+		bool const includeInAir, bool const allowLimbo)
+		{
+			// set of possibly affected objects. every object can be here only once.
+			DistinctCollector<TechnoClass*> set;
+
+			// the quick way. only look at stuff residing on the very cells we are affecting.
+			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			auto const range = static_cast<size_t>(spread + 0.99);
+			for (CellSpreadEnumerator it(range); it; ++it) {
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
+					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj))
+					{
+						set.insert(pTechno);
+					}
+				}
+			}
+
+			// flying objects are not included normally
+			if (includeInAir)
+			{
+				// the not quite so fast way. skip everything not in the air.
+				for (auto const& pTechno : *TechnoClass::Array)
+				{
+					if (pTechno->GetHeight() > 0)
+					{
+						// rough estimation
+						if (pTechno->Location.DistanceFrom(coords) <= spread * 256)
+						{
+							set.insert(pTechno);
+						}
+					}
+				}
+			}
+
+			// look closer. the final selection. put all affected items in a vector.
+			std::vector<TechnoClass*> ret;
+			ret.reserve(set.size());
+
+			for (auto const& pTechno : set)
+			{
+				if (!allowLimbo && pTechno->InLimbo)
+					continue;
+
+				if (pTechno->Health <= 0
+					|| !pTechno->IsAlive
+					|| pTechno->IsCrashing
+					|| pTechno->IsSinking
+					|| pTechno->TemporalTargetingMe )
+					continue;
+
+				auto const abs = pTechno->WhatAmI();
+
+				// ignore buildings that are not visible, like ambient light posts
+				if (abs == AbstractType::Building)
+				{
+					auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+					if (pBuilding->Type->InvisibleInGame)
+					{
+						continue;
+					}
+				}
+
+				// get distance from impact site
+				auto const target = pTechno->GetCoords();
+				auto dist = target.DistanceFrom(coords);
+
+				// reduce the distance for flying aircraft
+				if (abs == AbstractType::Aircraft && pTechno->IsInAir())
+				{
+					dist *= 0.5;
+				}
+
+				// this is good
+				if (dist <= spread * Unsorted::d_LeptonsPerCell)
+				{
+					ret.push_back(pTechno);
+				}
+			}
+
+			return ret;
+		}
+
 		template<class T = TechnoClass>
-		__forceinline std::vector<T*> getCellSpreadItems(
+		inline std::vector<T*> getCellSpreadItems(
 			CoordStruct const& coords, double const spread,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
@@ -245,7 +330,7 @@ namespace Helpers {
 						}
 					}
 
-					if (dist <= spread * 256) {
+					if (dist <= spread * Unsorted::d_LeptonsPerCell) {
 						set.push_back(pTechno);
 					}
 				});
@@ -299,7 +384,7 @@ namespace Helpers {
 		}
 
 		template<class T = TechnoClass ,typename Func>
-		__forceinline void ApplyFuncToCellSpreadItems(
+		inline void ApplyFuncToCellSpreadItems(
 			CoordStruct const& coords, double const spread, Func action,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
@@ -349,7 +434,7 @@ namespace Helpers {
 						}
 					}
 
-					if (dist <= spread * 256) {
+					if (dist <= spread * Unsorted::d_LeptonsPerCell) {
 						action(pTechno);
 					}
 				});
