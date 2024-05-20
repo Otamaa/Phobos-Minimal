@@ -158,6 +158,16 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
 	detail::ParseVector<AITriggerTypeClass*>(iniEX, pData->AITriggersLists, "AITriggersList");
 
+	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
+
+	if (!pData->ForceShield_KillOrganicsWarhead)
+		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
+	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "IronCurtain.KillOrganicsWarhead");
+
+	if (!pData->IronCurtain_KillOrganicsWarhead)
+		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
 	pData->FirestormIdleAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormIdleAnim");
@@ -757,16 +767,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ForceShield_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "ForceShield.KeptOnDeploy");
 
 	this->ForceShield_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "ForceShield.EffectOnOrganics");
-	this->ForceShield_KillOrganicsWarhead.Read(exINI, GameStrings::CombatDamage, "ForceShield.KillOrganicsWarhead");
-
-	if (!this->ForceShield_KillOrganicsWarhead.isset())
-		this->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
 
 	this->IronCurtain_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "IronCurtain.EffectOnOrganics");
-
-	this->IronCurtain_KillOrganicsWarhead.Read(exINI, GameStrings::CombatDamage, "IronCurtain.KillOrganicsWarhead");
-	if (!this->IronCurtain_KillOrganicsWarhead.isset())
-		this->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
 
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 

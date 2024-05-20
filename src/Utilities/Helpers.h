@@ -53,6 +53,7 @@
 #include <SuperClass.h>
 #include <HouseClass.h>
 #include <MouseClass.h>
+#include <AircraftTrackerClass.h>
 
 namespace Helpers {
 
@@ -193,12 +194,14 @@ namespace Helpers {
 			\author AlexB
 			\date 2010-06-28
 		*/
-		inline std::vector<TechnoClass*> getCellSpreadItems_Original(
+		template<class T = TechnoClass>
+		inline std::vector<T*> getCellSpreadItems_Original(
 		CoordStruct const& coords, double const spread,
 		bool const includeInAir, bool const allowLimbo)
 		{
 			// set of possibly affected objects. every object can be here only once.
-			DistinctCollector<TechnoClass*> set;
+			DistinctCollector<T*> set;
+			double const spreadMult = spread * Unsorted::LeptonsPerCell;
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
 			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
@@ -206,24 +209,33 @@ namespace Helpers {
 			for (CellSpreadEnumerator it(range); it; ++it) {
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj))
+					if (auto const pTechno = abstract_cast<T*>(*obj))
 					{
+						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+							// Starkku: Buildings need their distance from the origin coords checked at cell level.
+							if (pTechno->WhatAmI() == AbstractType::Building) {
+								auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
+
+								if (dist > spreadMult)
+									continue;
+							}
+						}
+
 						set.insert(pTechno);
 					}
 				}
 			}
 
-			// flying objects are not included normally
+			// flying objects are not included normally, use AircraftTrackerClass to find the affected ones.
 			if (includeInAir)
 			{
-				// the not quite so fast way. skip everything not in the air.
-				for (auto const& pTechno : *TechnoClass::Array)
+				auto const airTracker = &AircraftTrackerClass::Instance.get();
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(spread));
+
+				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get())
 				{
-					if (pTechno->GetHeight() > 0)
-					{
-						// rough estimation
-						if (pTechno->Location.DistanceFrom(coords) <= spread * 256)
-						{
+					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->Health > 0) {
+						if (pTechno->Location.DistanceFrom(coords) <= spreadMult) {
 							set.insert(pTechno);
 						}
 					}
@@ -231,7 +243,7 @@ namespace Helpers {
 			}
 
 			// look closer. the final selection. put all affected items in a vector.
-			std::vector<TechnoClass*> ret;
+			std::vector<T*> ret;
 			ret.reserve(set.size());
 
 			for (auto const& pTechno : set)
@@ -247,31 +259,69 @@ namespace Helpers {
 					continue;
 
 				auto const abs = pTechno->WhatAmI();
-
-				// ignore buildings that are not visible, like ambient light posts
-				if (abs == AbstractType::Building)
+				if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
 				{
-					auto const pBuilding = static_cast<BuildingClass*>(pTechno);
-					if (pBuilding->Type->InvisibleInGame)
+					bool isBuilding = false;
+
+					// ignore buildings that are not visible, like ambient light posts
+					if (abs == AbstractType::Building)
 					{
-						continue;
+						auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+						if (pBuilding->Type->InvisibleInGame)
+						{
+							continue;
+						}
+
+						isBuilding = true;
+					}
+					else
+					{
+						if (abs == UnitClass::AbsID) {
+							if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+								continue;
+							}
+						}
+					}
+
+					// get distance from impact site
+					auto const target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+
+					// reduce the distance for flying aircraft
+					if (abs == AbstractType::Aircraft && pTechno->IsInAir())
+					{
+						dist *= 0.5;
+					}
+
+					// this is good
+					// Starkku: Building distance is checked prior on cell level, skip here.
+					if (isBuilding || dist <= spreadMult)
+					{
+						ret.push_back(pTechno);
 					}
 				}
-
-				// get distance from impact site
-				auto const target = pTechno->GetCoords();
-				auto dist = target.DistanceFrom(coords);
-
-				// reduce the distance for flying aircraft
-				if (abs == AbstractType::Aircraft && pTechno->IsInAir())
+				else
 				{
-					dist *= 0.5;
-				}
+					if (abs == UnitClass::AbsID) {
+						if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+							continue;
+						}
+					}
 
-				// this is good
-				if (dist <= spread * Unsorted::d_LeptonsPerCell)
-				{
-					ret.push_back(pTechno);
+					// get distance from impact site
+					auto const target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+
+					// reduce the distance for flying aircraft
+					if (abs == AbstractType::Aircraft && pTechno->IsInAir()) {
+						dist *= 0.5;
+					}
+
+					// this is good
+					// Starkku: Building distance is checked prior on cell level, skip here.
+					if (dist <= spreadMult) {
+						ret.push_back(pTechno);
+					}
 				}
 			}
 
@@ -283,104 +333,7 @@ namespace Helpers {
 			CoordStruct const& coords, double const spread,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
-			HelperedVector<T*> set;
-			const auto range = static_cast<size_t>(spread + 0.99);
-
-			if(range > CellSpreadEnumerator::Max || includeInAir) {
-
-				// the not quite so fast way. skip everything not in the air.
-				T::Array->for_each([&](T* pTechno) {
-
-					if (!allowLimbo && pTechno->InLimbo)
-						return;
-
-					if (pTechno->Health <= 0
-						|| !pTechno->IsAlive
-						|| pTechno->IsCrashing
-						|| pTechno->IsSinking
-						|| pTechno->TemporalTargetingMe
-						)
-						return;
-
-					auto target = pTechno->GetCoords();
-					auto dist = target.DistanceFrom(coords);
-					auto what = pTechno->WhatAmI();
-
-					// ignore buildings that are not visible, like ambient light posts
-					if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID){
-						if (what == BuildingClass::AbsID) {
-							const auto pBld = static_cast<const BuildingClass*>(pTechno);
-							if (pBld->Type->InvisibleInGame) {
-								return;
-							}
-						}
-					}
-
-					if (what == UnitClass::AbsID) {
-						if(static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
-							return;
-						}
-					}
-
-					if (includeInAir) {
-						if (pTechno->GetHeight() > 0
-							|| what == AircraftClass::AbsID && pTechno->IsInAir()) {
-							// rough estimation
-							dist *= 0.5;
-						}
-					}
-
-					if (dist <= spread * Unsorted::d_LeptonsPerCell) {
-						set.push_back(pTechno);
-					}
-				});
-			}
-			else
-			{
-				// the quick way. only look at stuff residing on the very cells we are affecting.
-				auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-
-				for (CellSpreadEnumerator it(range); it; ++it)
-				{
-					auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
-					for (NextObject obj(pCell->GetContent()); obj; ++obj)
-					{
-						if (auto const pTechno = generic_cast<T*>(*obj))
-						{
-							if (!allowLimbo && pTechno->InLimbo)
-								continue;
-
-							if (pTechno->Health <= 0
-								|| !pTechno->IsAlive
-								|| pTechno->IsCrashing
-								|| pTechno->IsSinking
-								|| pTechno->TemporalTargetingMe
-								)
-								continue;
-
-							auto what = pTechno->WhatAmI();
-
-							if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
-								if (what == BuildingClass::AbsID) {
-									if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
-										continue;
-									}
-								}
-							}
-
-							if (what == UnitClass::AbsID) {
-								if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
-									continue;
-								}
-							}
-
-							set.push_back(pTechno);
-						}
-					}
-				}
-			}
-
-			return set;
+			return getCellSpreadItems_Original<T>(coords, spread, includeInAir, allowLimbo);
 		}
 
 		template<class T = TechnoClass ,typename Func>
@@ -388,98 +341,120 @@ namespace Helpers {
 			CoordStruct const& coords, double const spread, Func action,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
-			const auto range = static_cast<size_t>(spread + 0.99);
+			// set of possibly affected objects. every object can be here only once.
+			DistinctCollector<T*> set;
+			double const spreadMult = spread * Unsorted::LeptonsPerCell;
 
-			if(range > CellSpreadEnumerator::Max || includeInAir) {
+			// the quick way. only look at stuff residing on the very cells we are affecting.
+			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			auto const range = static_cast<size_t>(spread + 0.99);
+			for (CellSpreadEnumerator it(range); it; ++it)
+			{
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				for (NextObject obj(pCell->GetContent()); obj; ++obj)
+				{
+					if (auto const pTechno = abstract_cast<T*>(*obj))
+					{
+						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
+						{
+							// Starkku: Buildings need their distance from the origin coords checked at cell level.
+							if (pTechno->WhatAmI() == AbstractType::Building)
+							{
+								auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
 
-				// the not quite so fast way. skip everything not in the air.
-				T::Array->for_each([&](T* pTechno) {
+								if (dist > spreadMult)
+									continue;
+							}
+						}
 
-					if (!allowLimbo && pTechno->InLimbo)
-						return;
+						set.insert(pTechno);
+					}
+				}
+			}
 
-					if (pTechno->Health <= 0
-						|| !pTechno->IsAlive
-						|| pTechno->IsCrashing
-						|| pTechno->IsSinking
-						|| pTechno->TemporalTargetingMe
-						)
-						return;
+			// flying objects are not included normally, use AircraftTrackerClass to find the affected ones.
+			if (includeInAir) {
+				auto const airTracker = &AircraftTrackerClass::Instance.get();
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(spread));
 
-					auto target = pTechno->GetCoords();
-					auto dist = target.DistanceFrom(coords);
-					auto what = pTechno->WhatAmI();
+				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get()) {
+					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->Health > 0) {
+						if (pTechno->Location.DistanceFrom(coords) <= spreadMult) {
+							set.insert(pTechno);
+						}
+					}
+				}
+			}
+
+			for (auto const& pTechno : set) {
+				if (!allowLimbo && pTechno->InLimbo)
+					continue;
+
+				if (pTechno->Health <= 0
+					|| !pTechno->IsAlive
+					|| pTechno->IsCrashing
+					|| pTechno->IsSinking
+					|| pTechno->TemporalTargetingMe)
+					continue;
+
+				auto const abs = pTechno->WhatAmI();
+				if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+					bool isBuilding = false;
 
 					// ignore buildings that are not visible, like ambient light posts
-					if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID){
-						if (what == BuildingClass::AbsID) {
-							const auto pBld = static_cast<const BuildingClass*>(pTechno);
-							if (pBld->Type->InvisibleInGame) {
-								return;
+					if (abs == AbstractType::Building) {
+						auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+						if (pBuilding->Type->InvisibleInGame) {
+							continue;
+						}
+
+						isBuilding = true;
+					}
+					else
+					{
+						if (abs == UnitClass::AbsID) {
+							if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+								continue;
 							}
 						}
 					}
 
-					if (what == UnitClass::AbsID) {
-						if(static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
-							return;
-						}
+					// get distance from impact site
+					auto const target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+
+					// reduce the distance for flying aircraft
+					if (abs == AbstractType::Aircraft && pTechno->IsInAir()) {
+						dist *= 0.5;
 					}
 
-					if (includeInAir) {
-						if (pTechno->GetHeight() > 0
-							|| what == AircraftClass::AbsID && pTechno->IsInAir()) {
-							// rough estimation
-							dist *= 0.5;
-						}
-					}
-
-					if (dist <= spread * Unsorted::d_LeptonsPerCell) {
+					// this is good
+					// Starkku: Building distance is checked prior on cell level, skip here.
+					if (isBuilding || dist <= spreadMult) {
 						action(pTechno);
 					}
-				});
-			}
-			else
-			{
-				// the quick way. only look at stuff residing on the very cells we are affecting.
-				auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-
-				for (CellSpreadEnumerator it(range); it; ++it)
+				}
+				else
 				{
-					auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
-					for (NextObject obj(pCell->GetContent()); obj; ++obj)
-					{
-						if (auto const pTechno = generic_cast<T*>(*obj))
-						{
-							if (!allowLimbo && pTechno->InLimbo)
-								continue;
-
-							if (pTechno->Health <= 0
-								|| !pTechno->IsAlive
-								|| pTechno->IsCrashing
-								|| pTechno->IsSinking
-								|| pTechno->TemporalTargetingMe
-								)
-								continue;
-
-							auto what = pTechno->WhatAmI();
-
-							if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
-								if (what == BuildingClass::AbsID) {
-									if (static_cast<const BuildingClass*>(pTechno)->Type->InvisibleInGame) {
-										continue;
-									}
-								}
-							}
-
-							if (what == UnitClass::AbsID) {
-								if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
-									continue;
-								}
-							}
-
-							action(pTechno);
+					if (abs == UnitClass::AbsID) {
+						if (static_cast<const UnitClass*>(pTechno)->DeathFrameCounter > 0) {
+							continue;
 						}
+					}
+
+					// get distance from impact site
+					auto const target = pTechno->GetCoords();
+					auto dist = target.DistanceFrom(coords);
+
+					// reduce the distance for flying aircraft
+					if (abs == AbstractType::Aircraft && pTechno->IsInAir()) {
+						dist *= 0.5;
+					}
+
+					// this is good
+					// Starkku: Building distance is checked prior on cell level, skip here.
+					if (dist <= spreadMult) {
+						action(pTechno);
 					}
 				}
 			}

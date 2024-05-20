@@ -28,10 +28,12 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->NeedsDurationRefresh = false;
 	this->IsFirstCumulativeInstance = false;
 
-	if (pType->Animation.size() == 1 || !pType->AnimRandomPick)
-		this->SelectedAnim = pType->Animation[0];
-	else if (pType->AnimRandomPick && pType->Animation.size() > 1)
-		this->SelectedAnim = pType->Animation[ScenarioClass::Instance()->Random.RandomFromMax(pType->Animation.size() - 1)];
+	if(!pType->Animation.empty()) {
+		if (pType->Animation.size() == 1 || !pType->AnimRandomPick)
+			this->SelectedAnim = pType->Animation[0];
+		else if (pType->AnimRandomPick && pType->Animation.size() > 1)
+			this->SelectedAnim = pType->Animation[ScenarioClass::Instance()->Random.RandomFromMax(pType->Animation.size() - 1)];
+	}
 }
 
 void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)

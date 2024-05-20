@@ -103,9 +103,9 @@ public:
 	Valueable<bool> IronCurtain_KeptOnDeploy { true };
 	Valueable<bool> ForceShield_KeptOnDeploy { false };
 	Valueable<IronCurtainFlag> IronCurtain_EffectOnOrganics { IronCurtainFlag::Kill};
-	Nullable<WarheadTypeClass*> IronCurtain_KillOrganicsWarhead {};
+	Valueable<WarheadTypeClass*> IronCurtain_KillOrganicsWarhead { nullptr };
 	Valueable<IronCurtainFlag> ForceShield_EffectOnOrganics { IronCurtainFlag::Ignore };
-	Nullable<WarheadTypeClass*> ForceShield_KillOrganicsWarhead {};
+	Valueable<WarheadTypeClass*> ForceShield_KillOrganicsWarhead { nullptr };
 
 	Valueable<PartialVector2D<int>> ROF_RandomDelay { { 0, 2 } };
 
