@@ -18,6 +18,7 @@ public:
 	Valueable<int> LaserDuration { 1 };
 	Valueable<int> LaserDelay { 1 };
 	Valueable<int> DamageDelay { 10 };
+	Valueable<int> Duration { 0 };
 
 	EngraveTrajectoryType(TrajectoryFlag variant) : PhobosTrajectoryType { variant }
 	{ }
@@ -43,7 +44,7 @@ public:
 	int LaserTimer { 0 };
 	int DamageTimer { 0 };
 	int SourceHeight { 0 };
-	int CheckTimesLimit { 0 };
+	int Duration { 0 };
 
 	bool SetItsLocation { false };
 	bool TechnoInLimbo { false };
@@ -93,7 +94,7 @@ private:
 			.Process(this->LaserTimer)
 			.Process(this->DamageTimer)
 			.Process(this->SourceHeight)
-			.Process(this->CheckTimesLimit)
+			.Process(this->Duration)
 			.Process(this->SetItsLocation)
 			.Process(this->TechnoInLimbo)
 			.Process(this->FirepowerMult)

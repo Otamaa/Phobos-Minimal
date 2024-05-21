@@ -23,6 +23,7 @@ bool EngraveTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange
 		.Process(this->LaserDuration)
 		.Process(this->LaserDelay)
 		.Process(this->DamageDelay)
+		.Process(this->Duration)
 		;
 
 	return true;
@@ -46,6 +47,7 @@ bool EngraveTrajectoryType::Save(PhobosStreamWriter& Stm) const
 		.Process(this->LaserDuration)
 		.Process(this->LaserDelay)
 		.Process(this->DamageDelay)
+		.Process(this->Duration)
 		;
 
 	return true;
@@ -70,6 +72,7 @@ bool EngraveTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 	this->LaserDuration.Read(exINI, pSection, "Trajectory.Engrave.LaserDuration");
 	this->LaserDelay.Read(exINI, pSection, "Trajectory.Engrave.LaserDelay");
 	this->DamageDelay.Read(exINI, pSection, "Trajectory.Engrave.DamageDelay");
+	this->Duration.Read(exINI, pSection, "Trajectory.Engrave.TheDuration");
 
 	this->LaserThickness = this->LaserThickness > 0 ? this->LaserThickness : 1;
 	this->LaserDuration = this->LaserDuration > 0 ? this->LaserDuration : 1;
@@ -100,11 +103,8 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	this->SourceCoord = pType->SourceCoord;
 	this->TargetCoord = pType->TargetCoord;
-
-	this->LaserTimer = 0;
-	this->DamageTimer = 0;
+	this->Duration = pType->Duration;
 	this->SourceHeight = pBullet->SourceCoords.Z;
-	this->SetItsLocation = false;
 	this->TechnoInLimbo = pBullet->Owner ? pBullet->Owner->InLimbo : false;
 	this->FirepowerMult = pBullet->Owner ? pBullet->Owner->FirepowerMultiplier : 1.0;
 	this->FLHCoord = pBullet->SourceCoords;
@@ -213,13 +213,13 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	if (CoordDistance > 0)
 	{
-		this->CheckTimesLimit = static_cast<int>(CoordDistance / StraightSpeed) + 1;
 		pBullet->Velocity *= StraightSpeed / CoordDistance;
 	}
 	else
 	{
-		this->CheckTimesLimit = 0;
 		pBullet->Velocity *= 0;
+		if (this->Duration <= 0)
+			this->Duration = static_cast<int>(CoordDistance / StraightSpeed) + 1;
 	}
 }
 
@@ -235,9 +235,9 @@ bool EngraveTrajectory::OnAI()
 	if (this->TechnoInLimbo != pBullet->Owner->InLimbo)
 		return true;
 
-	this->CheckTimesLimit -= 1;
-	if (this->CheckTimesLimit < 0)
-	{
+	this->Duration -= 1;
+
+	if (this->Duration < 0) {
 		return true;
 	}
 	else //SetLocation() seems to work wrong if I put this part into OnAIVelocity().
