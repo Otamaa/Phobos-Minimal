@@ -702,8 +702,22 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
 	GET(BuildingClass* const, pBuilding, ESI);
 
-	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
+	 || !MapClass::Instance->CoordinatesLegal(pBuilding->GetMapCoords()))
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
+{
+	enum { SkipTechno = 0x4AC55B };
+
+	GET(TechnoClass* const, pTechno, ECX);
+
+	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()))
+		return SkipTechno;
+
 
 	return 0;
 }
