@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NewSWType.h"
+#include "SWStateMachine.h"
 
 class SW_GeneticMutator : public NewSWType
 {
@@ -17,4 +18,10 @@ public:
 	virtual int GetSound(const SWTypeExtData* pData) const override;
 	virtual int GetDamage(const SWTypeExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
+
+	using TStateMachine = GeneticMutatorStateMachine;
+
+	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer) {
+		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, pfirer, this));
+	}
 };

@@ -49,7 +49,7 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	const auto pWarhead = this->GetWarhead(pData);
 
 	if (!pWarhead) {
-		Debug::Log("launch GenericWarhead SW ([%s]) Without Waarhead\n", pThis->Type->ID);
+		Debug::Log("launch GenericWarhead SW ([%s]) Without Warhead\n", pThis->Type->ID);
 		return true;
 	}
 
@@ -84,19 +84,21 @@ void GenericWarheadStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		this->SentPayload(this->Firer , this->Super , this->GetTypeExtData() , this->Type , this->Coords);
+		auto pData = this->GetTypeExtData();
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		const auto sound = pData->SW_ActivationSound.Get(-1);
+		if (sound != -1) {
+			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+		}
+
+		SentPayload(this->Firer , this->Super , pData, this->Type , this->Coords);
 	}
 }
 
 void GenericWarheadStateMachine::SentPayload(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType , const CellStruct& loc)
 {
-	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
-
-	const auto sound = pData->SW_ActivationSound.Get(-1);
-	if (sound != -1) {
-		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
-	}
-
 	const auto pWarhead = pNewType->GetWarhead(pData);
 	auto const pCell = MapClass::Instance->GetCellAt(loc);
 	const auto damage = pNewType->GetDamage(pData);

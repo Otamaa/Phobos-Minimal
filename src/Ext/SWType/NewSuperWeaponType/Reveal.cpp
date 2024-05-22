@@ -21,8 +21,14 @@ bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool
 
 	if (pThis->IsCharged)
 	{
-		auto const range = this->GetRange(pData);
-		SW_Reveal::RevealMap(Coords, range.WidthOrRange, range.Height, pThis->Owner);
+		const auto nDeferement = pData->SW_Deferment.Get(-1);
+
+		if (nDeferement <= 0) {
+			auto const range = this->GetRange(pData);
+			SW_Reveal::RevealMap(Coords, range.WidthOrRange, range.Height, pThis->Owner);
+		}
+		else
+			this->newStateMachine(nDeferement, Coords, pThis);
 	}
 
 	return true;
@@ -121,5 +127,24 @@ void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, Hou
 		Apply(true);
 
 		MapClass::Instance->MarkNeedsRedraw(1);
+	}
+}
+
+void RevealStateMachine::Update()
+{
+	if (this->Finished())
+	{
+		auto pData = this->GetTypeExtData();
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		auto const sound = pData->SW_ActivationSound.Get(-1);
+		if (sound != -1) {
+			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+		}
+
+		auto const range = this->Type->GetRange(pData);
+
+		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner);
 	}
 }

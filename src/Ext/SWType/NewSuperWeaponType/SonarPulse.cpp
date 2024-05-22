@@ -22,57 +22,12 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	auto const pType = pThis->Type;
 	auto const pData = SWTypeExtContainer::Instance.Find(pType);
 
-	auto Detect = [pThis, pData](TechnoClass* const pTechno) -> bool
-	{
-		// is this thing affected at all?
-		if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
-		{
-			return true;
-		}
+	const auto nDeferement = pData->SW_Deferment.Get(-1);
 
-		if (!pData->IsTechnoAffected(pTechno))
-		{
-			return true;
-		}
-
-		auto& nTime = TechnoExtContainer::Instance.Find(pTechno)->CloakSkipTimer;
-
-		nTime.Start(MaxImpl(
-			nTime.GetTimeLeft(), pData->Sonar_Delay.Get()));
-
-		// actually detect this
-		if (pTechno->CloakState != CloakState::Uncloaked)
-		{
-			pTechno->Uncloak(true);
-			pTechno->NeedsRedraw = true;
-		}
-
-		return true;
-	};
-
-	auto const range = this->GetRange(pData);
-
-	if (range.WidthOrRange < 0)
-	{
-		// decloak everything regardless of ranges
-		for (auto const pTechno : *TechnoClass::Array)
-		{
-			Detect(pTechno);
-		}
-	}
+	if (nDeferement <= 0)
+		SonarPulseStateMachine::SendSonarPulse(pThis, pData, this, Coords);
 	else
-	{
-		// decloak everything in range
-		Helpers::Alex::DistinctCollector<TechnoClass*> items;
-		Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(Coords, range.WidthOrRange, range.Height, items);
-		items.apply_function_for_each(Detect);
-
-		// radar event only if this isn't full map sonar
-		if (pData->SW_RadarEvent)
-		{
-			RadarEventClass::Create(RadarEventType::SuperweaponActivated, Coords);
-		}
-	}
+		this->newStateMachine(nDeferement, Coords, pThis);
 
 	return true;
 }
@@ -116,4 +71,80 @@ bool SW_SonarPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBui
 SWRange SW_SonarPulse::GetRange(const SWTypeExtData* pData) const
 {
 	return pData->SW_Range->empty() ? SWRange{ 10 } :pData->SW_Range.Get();
+}
+
+void SonarPulseStateMachine::Update()
+{
+	if (this->Finished())
+	{
+		SendSonarPulse(this->Super, this->GetTypeExtData(), this->Type, this->Coords);
+	}
+}
+
+void SonarPulseStateMachine::SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
+{
+	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
+
+	auto const sound = pData->SW_ActivationSound.Get(-1);
+	if (sound != -1) {
+		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+	}
+
+	auto const range = pNewType->GetRange(pData);
+
+	SonarPulseStateMachine::ApplySonarPulse(pSuper, loc, range);
+}
+
+void SonarPulseStateMachine::ApplySonarPulse(SuperClass* pSuper, const CellStruct& Coords, const SWRange& range)
+{
+	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	auto Detect = [pSuper, pData](TechnoClass* const pTechno) -> bool
+		{
+			// is this thing affected at all?
+			if (!pData->IsHouseAffected(pSuper->Owner, pTechno->Owner))
+			{
+				return true;
+			}
+
+			if (!pData->IsTechnoAffected(pTechno))
+			{
+				return true;
+			}
+
+			auto& nTime = TechnoExtContainer::Instance.Find(pTechno)->CloakSkipTimer;
+
+			nTime.Start(MaxImpl(
+				nTime.GetTimeLeft(), pData->Sonar_Delay.Get()));
+
+			// actually detect this
+			if (pTechno->CloakState != CloakState::Uncloaked)
+			{
+				pTechno->Uncloak(true);
+				pTechno->NeedsRedraw = true;
+			}
+
+			return true;
+	};
+
+
+	if (range.WidthOrRange < 0)
+	{
+		// decloak everything regardless of ranges
+		for (auto const pTechno : *TechnoClass::Array)
+		{
+			Detect(pTechno);
+		}
+	}
+	else
+	{
+		// decloak everything in range
+		Helpers::Alex::DistinctCollector<TechnoClass*> items;
+		Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(Coords, range.WidthOrRange, range.Height, items);
+		items.apply_function_for_each(Detect);
+
+		// radar event only if this isn't full map sonar
+		if (pData->SW_RadarEvent) {
+			RadarEventClass::Create(RadarEventType::SuperweaponActivated, Coords);
+		}
+	}
 }
