@@ -11,7 +11,7 @@ std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()
 {
-	auto iter = std::remove_if(SWStateMachine::Array.begin() , SWStateMachine::Array.end(),[](auto& pMachine){
+	auto iter = std::remove_if(SWStateMachine::Array.begin() , SWStateMachine::Array.end(),[](std::unique_ptr<SWStateMachine>& pMachine){
 		if(!pMachine)
 			return true;
 

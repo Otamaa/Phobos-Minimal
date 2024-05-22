@@ -51,7 +51,7 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
-	inline int TimePassed() const {
+	constexpr inline int TimePassed() const {
 		return Unsorted::CurrentFrame - Clock.StartTime;
 	}
 
@@ -69,7 +69,7 @@ public:
 		return nullptr;
 	}
 
-	inline SWTypeExtData * GetTypeExtData() const {
+	constexpr inline SWTypeExtData * GetTypeExtData() const {
 		return SWTypeExtContainer::Instance.Find(Super->Type);
 	}
 
