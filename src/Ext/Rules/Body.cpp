@@ -166,7 +166,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "IronCurtain.KillOrganicsWarhead");
 
 	if (!pData->IronCurtain_KillOrganicsWarhead)
-		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+		pData->IronCurtain_KillOrganicsWarhead = pThis->C4Warhead;
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
