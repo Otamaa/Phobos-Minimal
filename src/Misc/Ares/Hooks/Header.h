@@ -29,18 +29,8 @@ enum class Persistable : unsigned int
 
 struct PipDrawData
 {
-	int PipIdx;
-	int DrawCount;
-
-	PipDrawData() :PipIdx { 0 }
-		, DrawCount { 1 }
-	{
-	}
-
-	PipDrawData(int nIdx, int nDrawCount) :PipIdx { nIdx }, DrawCount { nDrawCount }
-	{ }
-
-	~PipDrawData() = default;
+	int PipIdx { 0 };
+	int DrawCount { 1 };
 };
 
 class CCINIClass;
