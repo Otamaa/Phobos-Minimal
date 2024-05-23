@@ -204,10 +204,10 @@ namespace Helpers {
 			double const spreadMult = spread * Unsorted::LeptonsPerCell;
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
-			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
 			auto const range = static_cast<size_t>(spread + 0.99);
 			for (CellSpreadEnumerator it(range); it; ++it) {
-				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
 					if (auto const pTechno = abstract_cast<T*>(*obj))
 					{
@@ -328,10 +328,66 @@ namespace Helpers {
 			return ret;
 		}
 
+		template<typename Func>
+		inline std::vector<AbstractClass*> getCellTechnoRangeItems(CoordStruct const& coords, double const arange , bool IncludeAir, Func action)
+		{
+			// set of possibly affected objects. every object can be here only once.
+			DistinctCollector<AbstractClass*> set;
+			double const spread = arange / Unsorted::d_LeptonsPerCell;
+
+			// the quick way. only look at stuff residing on the very cells we are affecting.
+			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			auto const range = static_cast<size_t>(spread + 0.99);
+
+			for (CellSpreadEnumerator it(range); it; ++it) {
+				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
+				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
+					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj)) {
+
+							// Starkku: Buildings need their distance from the origin coords checked at cell level.
+						if (pTechno->WhatAmI() == AbstractType::Building) {
+							auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
+
+							if (dist > arange)
+								continue;
+						}
+
+						set.insert(pTechno);
+					}
+				}
+			}
+
+			// flying objects are not included normally, use AircraftTrackerClass to find the affected ones.
+			if (IncludeAir) {
+				auto const airTracker = &AircraftTrackerClass::Instance.get();
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(arange));
+
+				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get()) {
+					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->Health > 0) {
+						if (pTechno->Location.DistanceFrom(coords) <= arange) {
+							set.insert(pTechno);
+						}
+					}
+				}
+			}
+
+			// look closer. the final selection. put all affected items in a vector.
+			std::vector<AbstractClass*> ret;
+			ret.reserve(set.size());
+
+			for (auto const& pTechno : set) {
+				if (action(pTechno)) {
+					ret.push_back(pTechno);
+				}
+			}
+
+			return ret;
+		}
+
 		template<class T = TechnoClass>
 		inline std::vector<T*> getCellSpreadItems(
 			CoordStruct const& coords, double const spread,
-			bool const includeInAir = false , bool allowLimbo = false)
+			bool const includeInAir = false, bool allowLimbo = false)
 		{
 			return getCellSpreadItems_Original<T>(coords, spread, includeInAir, allowLimbo);
 		}
@@ -346,11 +402,11 @@ namespace Helpers {
 			double const spreadMult = spread * Unsorted::LeptonsPerCell;
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
-			auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
+			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
 			auto const range = static_cast<size_t>(spread + 0.99);
 			for (CellSpreadEnumerator it(range); it; ++it)
 			{
-				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
 				for (NextObject obj(pCell->GetContent()); obj; ++obj)
 				{
 					if (auto const pTechno = abstract_cast<T*>(*obj))

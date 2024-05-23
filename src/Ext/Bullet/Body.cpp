@@ -70,31 +70,30 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 		{
 			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
-			// fill with technos in range
-			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
+			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner]
+				(AbstractClass* pAbs)
+				{
+
+				auto pTechno = generic_cast<TechnoClass*>(pAbs);
+
 				if (pTechno && pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get())) {
-					 if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-						 return;
 
-					 //if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
-						 //	return;
+					if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
+						return false;
 
-					 //if (!EnumFunctions::IsTechnoEligible(pTarget, this->Splits_Affects))
-						 //	return;
-
-					 if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno)) {
-							 const auto nLayer = pTechno->InWhichLayer();
+					if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno)) {
+						const auto nLayer = pTechno->InWhichLayer();
 
 						if (nLayer == Layer::Underground || nLayer == Layer::None)
-							 return;
+							return false;
 
-						const CoordStruct crdTechno = pTechno->GetCoords();
-						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range
-						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG)
+						if (((!pTechno->IsInAir() && pWeapon->Projectile->AG)
 							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
-							 targets.push_back(pTechno);
+							return true;
 						}
-					 }
+					}
+
+					return false;
 				}
 			});
 
