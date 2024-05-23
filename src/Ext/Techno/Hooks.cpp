@@ -418,11 +418,83 @@ DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 	return !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
 }
 
+// TODO :
+// yeah , fuckers !!
+ struct VampireState {
+	 struct Data {
+	   bool Enabled;
+	   bool AffectAir;
+	   AffectedHouse Affected_House;
+	   AbstractType Affected_abs;
+	   HelperedVector<TechnoTypeClass*> Affected_Types;
+	   HelperedVector<TechnoTypeClass*> Exclude_Types;
+	   Vector2D<double> Chances;
+	   double Percent;
+	   int TriggeredTimes;
+	 };
+
+	 HelperedVector<Data> Packed {};
+
+	 consteval void Clear() {
+		 Packed.clear();
+	 }
+
+	 constexpr bool Enabled() {
+		 return !Packed.empty();
+	 }
+
+	 //only add the data that can affect this current techno
+	 void Init()
+	 {
+
+	 }
+
+	 //update trigger count
+	 void Trigger() {
+		 for (auto& data : Packed) {
+			 if (data.Enabled && data.TriggeredTimes > 0) {
+				 --data.TriggeredTimes;
+
+				 if (data.TriggeredTimes <= 0)
+					 data.Enabled = false;
+			 }
+		 }
+	 }
+
+	 // apply the multiplier to the attacker ??
+	 void Apply() {
+
+	 }
+	 constexpr bool Eligible(TechnoClass* attacker, HouseClass* attackerOwner , bool isInAir) {
+
+
+
+
+		 return true;
+	 }
+ };
+
+// void NOINLINE ApplyVampire(int* pRealDamage, WarheadTypeClass* pWH, DamageState damageState, TechnoClass* pAttacker, HouseClass* pAttackingHouse)
+// {
+// 	if(!pAttacker || !pAttacker->IsAlive || pAttacker->IsCrashing || pAttacker->IsSinking || pAttacker->TemporalTargetingMe)
+// 		return;
+
+// 	bool inAir = pTechno->IsInAir();
+
+// 	vampireEffect->Trigger();
+// 	int damage = -(int)(*pRealDamage * ae->AEData.Vampire.Percent);
+// 	if (damage != 0) {
+// 		pAttacker->TakeDamage(damage, pAttacker->GetTechnoType()->Crewed, true, pAttacker, pAttackingHouse);
+// 	}
+// }
+
 DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(int* const, pDamage, EBX);
 	GET(WarheadTypeClass*, pWH, EBP);
+	//GET_STACK(TechnoClass*, pAttacker, 0xD4);
+	//GET_STACK(HouseClass*, pAttackingHouse, 0xE0);
 
 	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
 
