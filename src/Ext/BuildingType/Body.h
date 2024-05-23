@@ -302,6 +302,8 @@ public:
 	Valueable<int> SpyEffect_Anim_Duration { -1 };
 	Valueable<AffectedHouse> SpyEffect_Anim_DisplayHouses { AffectedHouse::All };
 
+	Valueable<bool> SpyEffect_SWTargetCenter { false };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

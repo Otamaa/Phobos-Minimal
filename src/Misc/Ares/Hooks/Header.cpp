@@ -2453,7 +2453,7 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	}
 
 	// Did you mean for not launching for real or not, Morton?
-	auto launchTheSWHere = [EnteredBuilding](int const idx, HouseClass* const pHouse, bool realLaunch = false)
+	auto launchTheSWHere = [EnteredBuilding , pTypeExt](int const idx, HouseClass* const pHouse, bool realLaunch = false)
 		{
 			if (const auto pSuper = pHouse->Supers.GetItemOrDefault(idx))
 			{
@@ -2462,7 +2462,8 @@ bool TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 					const int oldstart = pSuper->RechargeTimer.StartTime;
 					const int oldleft = pSuper->RechargeTimer.TimeLeft;
 					pSuper->SetReadiness(true);
-					pSuper->Launch(CellClass::Coord2Cell(EnteredBuilding->GetCenterCoords()), pHouse->IsCurrentPlayer());
+					CoordStruct loc = pTypeExt->SpyEffect_SWTargetCenter.Get() ? EnteredBuilding->GetCenterCoords() : EnteredBuilding->Location;
+					pSuper->Launch(CellClass::Coord2Cell(loc), pHouse->IsCurrentPlayer());
 					pSuper->Reset();
 					if (!realLaunch) {
 						pSuper->RechargeTimer.StartTime = oldstart;

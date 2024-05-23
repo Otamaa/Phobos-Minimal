@@ -828,6 +828,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_Anim_Duration.Read(exINI, pSection, "SpyEffect.Anim.Duration");
 		this->SpyEffect_Anim_DisplayHouses.Read(exINI, pSection, "SpyEffect.Anim.DisplayHouses");
 
+		this->SpyEffect_SWTargetCenter.Read(exINI, pSection, "SpyEffect.SWTargetCenter");
+
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
 
@@ -1248,6 +1250,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_Anim)
 		.Process(this->SpyEffect_Anim_Duration)
 		.Process(this->SpyEffect_Anim_DisplayHouses)
+
+		.Process(this->SpyEffect_SWTargetCenter)
 		;
 }
 
