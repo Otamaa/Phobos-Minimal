@@ -105,7 +105,6 @@ bool StraightTrajectoryVarianC::Load(PhobosStreamReader& Stm, bool RegisterForCh
 		.Process(this->OffsetCoord)
 		.Process(this->LastTargetCoord)
 		.Process(this->LastCasualty)
-		.Process(this->LastCasualtyTimes)
 
 		.Process(this->FirepowerMult)
 		.Process(this->ThroughVehicles)
@@ -127,7 +126,6 @@ bool StraightTrajectoryVarianC::Save(PhobosStreamWriter& Stm) const
 		.Process(this->OffsetCoord)
 		.Process(this->LastTargetCoord)
 		.Process(this->LastCasualty)
-		.Process(this->LastCasualtyTimes)
 
 		.Process(this->FirepowerMult)
 		.Process(this->ThroughVehicles)
@@ -151,7 +149,6 @@ void StraightTrajectoryVarianC::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pV
 	this->ThroughBuilding = pType->ThroughBuilding;
 
 	this->LastCasualty.reserve(2);
-	this->LastCasualtyTimes.reserve(2);
 	this->FirepowerMult = 1.0;
 	this->LastTargetCoord = pBullet->TargetCoords;
 
@@ -216,6 +213,13 @@ void StraightTrajectoryVarianC::OnAIPreDetonate()
 		pBullet->Construct(pBullet->Type, pBullet->Target, pBullet->Owner, Damage, pBullet->WH, pBullet->Speed, pBullet->Bright);
 	}
 
+	if (pType->PassDetonateLocal)
+	{
+		CoordStruct DetonateCoords = pBullet->Location;
+		DetonateCoords.Z = MapClass::Instance->GetCellFloorHeight(DetonateCoords);
+		pBullet->SetLocation(DetonateCoords);
+	}
+
 	if (pType->PassThrough || pType->TargetSnapDistance.Value <= 0)
 		return;
 
@@ -270,7 +274,6 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 	if (pBullet->Owner)
 	{
 		this->LastCasualty.push_back(pBullet->Owner);
-		this->LastCasualtyTimes.push_back(20);
 		this->FirepowerMult = pBullet->Owner->FirepowerMultiplier;
 
 		if (pType->MirrorCoord && pBullet->Owner->CurrentBurstIndex % 2 == 1)
@@ -278,25 +281,6 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 	}
 
 	ObjectClass* pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
-
-	if (!pType->PassThrough)
-	{
-		if (TechnoClass* pTargetTechno = abstract_cast<TechnoClass*>(pTarget))
-		{
-			this->LastCasualty.push_back(pTargetTechno);
-			this->LastCasualtyTimes.push_back(-1);
-
-			if (this->LastCasualty[0] > this->LastCasualty[1])
-			{
-				TechnoClass* ChangeCasualty = this->LastCasualty[0];
-				this->LastCasualty[0] = this->LastCasualty[1];
-				this->LastCasualty[1] = ChangeCasualty;
-				this->LastCasualtyTimes[0] = -1;
-				this->LastCasualtyTimes[1] = 20;
-			}
-		}
-	}
-
 	CoordStruct TheTargetCoords = pBullet->TargetCoords;
 	CoordStruct TheSourceCoords = pBullet->SourceCoords;
 
@@ -575,84 +559,213 @@ void StraightTrajectoryVarianC::PassWithDetonateAt(HouseClass* pOwner)
 		this->PassDetonateTimer %= pType->PassDetonateDelay;
 }
 
+//Select suitable targets and choose the closer targets then attack each target only once.
 void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner, CoordStruct Coord)
 {
-	auto const pType = this->GetTrajectoryType();
+	//Step1 Find valid targets on the ground within range.
 	auto pBullet = this->AttachedTo;
+	auto pTrajType = this->GetTrajectoryType();
 	std::vector<CellClass*> RecCellClass = GetCellsInProximityRadius();
-	size_t Capacity = RecCellClass.size() * 8;//Looking for better methods
+	size_t CellSize = RecCellClass.size() * 2;
 	size_t ThisSize = 0;
-	Capacity = Capacity > 2000 ? 2000 : Capacity;
 	std::vector<TechnoClass*> ValidTechnos;
-	ValidTechnos.reserve(Capacity);
+	ValidTechnos.reserve(CellSize);
 	TechnoClass* pTargetTechno = abstract_cast<TechnoClass*>(pBullet->Target);
 
 	for (auto const pRecCell : RecCellClass)
 	{
-		if (ObjectClass* pObject = pRecCell->FirstObject)
+		ObjectClass* pObject = pRecCell->FirstObject;
+
+		while (pObject)
 		{
-			if (ThisSize >= Capacity)
-				break;
+			auto const pTechno = abstract_cast<TechnoClass*>(pObject);
+			pObject = pObject->NextObject;
 
-			while (pObject && ThisSize < Capacity)
+			if (!pTechno)
+				continue;
+
+			if (pTechno == pBullet->Owner)
+				continue;
+
+			if (pTechno->GetHeight() > 0)
+				continue;
+
+			auto const TechnoType = pTechno->WhatAmI();
+
+			if (TechnoType == AbstractType::Building)
 			{
-				auto const pTechno = abstract_cast<TechnoClass*>(pObject);
-				pObject = pObject->NextObject;
+				if (!this->ThroughBuilding)
+					continue;
 
-				if (pTechno)
+				auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+				if (pBuilding->Type->InvisibleInGame)
+					continue;
+			}
+
+			if (!this->ThroughVehicles && (TechnoType == AbstractType::Unit || TechnoType == AbstractType::Aircraft))
+				continue;
+
+			bool TargetCheck = pTrajType->ProximityAllies == 0 && pOwner->IsAlliedWith(pTechno->Owner);
+
+			if (pTargetTechno && pTechno == pTargetTechno)
+			{
+				if (!pTrajType->PassThrough)
 				{
-					auto const TechnoType = pTechno->WhatAmI();
-
-					if (TechnoType == AbstractType::Building)
-					{
-						auto const pBuilding = static_cast<BuildingClass*>(pTechno);
-						if (pBuilding->Type->InvisibleInGame)
-							continue;
-					}
-
-					CoordStruct TechnoCrd = pTechno->GetCoords();
-					CoordStruct BulletCrd = pBullet->Location;
-					CoordStruct FutureCrd { BulletCrd.X + static_cast<int>(pBullet->Velocity.X), BulletCrd.Y + static_cast<int>(pBullet->Velocity.Y), 0 };
-					double Distance = abs(TechnoCrd.X - BulletCrd.X);
-					if (FutureCrd.X != BulletCrd.X)
-					{
-						double Factor = double(FutureCrd.Y - BulletCrd.Y) / double(FutureCrd.X - BulletCrd.X);
-						Distance = abs(Factor * TechnoCrd.X - TechnoCrd.Y + BulletCrd.Y - Factor * BulletCrd.X) / std::sqrt(Factor * Factor + 1);
-					}
-
-					if (Distance > pType->ProximityRadius * 256.0)
-						continue;
-
-					if (pTargetTechno && pTechno == pTargetTechno)
-					{
-						if (!pType->PassThrough)
-							continue;
-
-						else if (this->DetonationDistance < 0 && pType->ProximityAllies == 0 && pOwner->IsAlliedWith(pTargetTechno->Owner))
-							this->ExtraCheck3 = pTargetTechno;
-					}
-
-					if (!pType->ThroughBuilding && TechnoType == AbstractType::Building)
-						continue;
-
-					if (!pType->ThroughVehicles && (TechnoType == AbstractType::Unit || TechnoType == AbstractType::Aircraft))
-						continue;
-
-					if (pType->ProximityAllies == 0 && pOwner->IsAlliedWith(pTechno->Owner))
-						continue;
-
-					if (pTechno == pBullet->Owner)
-						continue;
-
-					ValidTechnos.push_back(pTechno);
-					ThisSize += 1;
+					continue;
+				}
+				else if (this->DetonationDistance < 0 && TargetCheck)
+				{
+					this->ExtraCheck3 = pTargetTechno;
+					continue;
 				}
 			}
+
+			if (TargetCheck)
+				continue;
+
+			CoordStruct SourceCrd = pBullet->SourceCoords;
+			CoordStruct TechnoCrd = pTechno->GetCoords();
+			CoordStruct BulletCrd = pBullet->Location;
+			CoordStruct FutureCrd
+			{
+				BulletCrd.X + static_cast<int>(pBullet->Velocity.X),
+				BulletCrd.Y + static_cast<int>(pBullet->Velocity.Y),
+				BulletCrd.Z
+			};
+
+			if ((TechnoCrd.X - SourceCrd.X) * pBullet->Velocity.X + (TechnoCrd.Y - SourceCrd.Y) * pBullet->Velocity.Y < 0)
+				continue;
+
+			double Distance = abs(TechnoCrd.X - BulletCrd.X);
+
+			if (FutureCrd.X != BulletCrd.X)
+			{
+				double Factor = (FutureCrd.Y - BulletCrd.Y) / (FutureCrd.X - BulletCrd.X);
+				Distance = abs(Factor * TechnoCrd.X - TechnoCrd.Y + BulletCrd.Y - Factor * BulletCrd.X) / sqrt(Factor * Factor + 1);
+			}
+
+			if (Distance > pTrajType->ProximityRadius * 256.0)
+				continue;
+
+			if (ThisSize < CellSize)
+			{
+				ValidTechnos.push_back(pTechno);
+			}
+			else
+			{
+				std::vector<TechnoClass*> ValidTechnosBuffer;
+				ValidTechnosBuffer.reserve(ThisSize + CellSize);
+
+				for (auto const pTechnoBuffer : ValidTechnos)
+					ValidTechnosBuffer.push_back(pTechnoBuffer);
+
+				ValidTechnos = ValidTechnosBuffer;
+			}
+
+			ThisSize += 1;
 		}
 	}
 
-	this->ExtraCheck2 = CompareThenDetonateAt(ValidTechnos, pOwner, pBullet);
+	//Step2 Record each target without repetition.
+	size_t i = 0, iMax = this->LastCasualty.size();
+	size_t j = 0, jMax = ValidTechnos.size();
+	size_t Capacity = iMax + jMax;
 
+	std::sort(&ValidTechnos[0], &ValidTechnos[jMax]);
+
+	std::vector<TechnoClass*> Casualty;
+	Casualty.reserve(Capacity);
+	std::vector<TechnoClass*> CasualtyChecked;
+	CasualtyChecked.reserve(Capacity);
+
+	TechnoClass* pThis = nullptr;
+	TechnoClass* pLast = nullptr;
+	bool Check = false;
+
+	for (size_t k = 0; k < Capacity; k++) //Merge
+	{
+		if (i < iMax && j < jMax)
+		{
+			if (this->LastCasualty[i] < ValidTechnos[j])
+			{
+				Check = false;
+				pThis = nullptr;
+				i += 1;
+			}
+			else if (this->LastCasualty[i] > ValidTechnos[j])
+			{
+				Check = true;
+				pThis = ValidTechnos[j];
+				j += 1;
+			}
+			else
+			{
+				Check = false;
+				pThis = ValidTechnos[j];
+				i += 1;
+				j += 1;
+			}
+		}
+		else if (i < iMax)
+		{
+			Check = false;
+			pThis = nullptr;
+			i += 1;
+		}
+		else if (j < jMax)
+		{
+			Check = true;
+			pThis = ValidTechnos[j];
+			j += 1;
+		}
+		else
+		{
+			break;
+		}
+
+		if (pThis && pThis != pLast)
+		{
+			Casualty.push_back(pThis);
+
+			if (Check)
+				CasualtyChecked.push_back(pThis);
+
+			pLast = pThis;
+		}
+	}
+
+	this->LastCasualty = Casualty;
+
+	//Step3 Detonate warheads in sequence based on distance.
+	size_t CasualtySize = CasualtyChecked.size();
+
+	if (this->ProximityImpact > 0 && static_cast<int>(CasualtySize) > this->ProximityImpact)
+	{
+		std::sort(&CasualtyChecked[0], &CasualtyChecked[CasualtySize],[pBullet](TechnoClass* pTechnoA, TechnoClass* pTechnoB){
+			return pTechnoA->GetCoords().DistanceFromSquared(pBullet->SourceCoords) < pTechnoB->GetCoords().DistanceFromSquared(pBullet->SourceCoords);
+		});
+	}
+
+	for (auto const& pTechno : CasualtyChecked)
+	{
+		if (this->ProximityImpact != 1 && pTrajType->StraightWarhead)
+		{
+			int Damage = pTrajType->StraightDamage;
+
+			if (pTrajType->EdgeAttenuation != 1.0 || pTrajType->ProximityAllies != 0)
+				Damage = static_cast<int>(Damage * GetExtraDamageMultiplier(pTechno, pOwner, false));
+
+			WarheadTypeExtData::DetonateAt(pTrajType->StraightWarhead, pTechno->GetCoords(), pBullet->Owner, Damage, pOwner);
+
+			if (this->ProximityImpact > 0)
+				this->ProximityImpact -= 1;
+		}
+		else
+		{
+			this->ExtraCheck2 = pTechno;
+			break;
+		}
+	}
 }
 
 //A rectangular shape with a custom width from the current frame to the next frame in length.
@@ -936,121 +1049,6 @@ std::vector<CellStruct> StraightTrajectoryVarianC::GetCellsInRectangle(CellStruc
 	}
 
 	return RecCells;
-}
-
-//Make each target only be attacked once.
-TechnoClass* StraightTrajectoryVarianC::CompareThenDetonateAt(std::vector<TechnoClass*>& Technos,
-	HouseClass* pOwner, BulletClass* pBullet)
-{
-	auto const pType = this->GetTrajectoryType();
-
-	short i = 0, iMax = static_cast<short>(this->LastCasualty.size());
-	short j = 0, jMax = static_cast<short>(Technos.size());
-	short Capacity = iMax + jMax;
-	Capacity = Capacity > 10000 ? 10000 : Capacity;
-
-	std::vector<TechnoClass*> Casualty;
-	Casualty.reserve(Capacity);
-	std::vector<short> CasualtyTimes;
-	CasualtyTimes.reserve(Capacity);
-
-	TechnoClass* pThis = nullptr;
-	short pThisTimes = 2;
-	TechnoClass* pLast = nullptr;
-	bool Check = false;
-	TechnoClass* Detonate = nullptr;
-	std::sort(&Technos[0], &Technos[jMax]);
-
-	for (short k = 0; k < Capacity; k++)//Merge
-	{
-		if (i < iMax && j < jMax)
-		{
-			if (this->LastCasualty[i] < Technos[j])
-			{
-				Check = false;
-				pThis = this->LastCasualty[i];
-				pThisTimes = this->LastCasualtyTimes[i];
-				if (pThisTimes > 0)
-					pThisTimes -= 1;
-				i += 1;
-			}
-			else if (this->LastCasualty[i] > Technos[j])
-			{
-				Check = true;
-				pThis = Technos[j];
-				pThisTimes = 20;
-				j += 1;
-			}
-			else
-			{
-				Check = false;
-				pThis = this->LastCasualty[i];
-				pThisTimes = this->LastCasualtyTimes[i];
-				if (pThisTimes > 0)
-					pThisTimes = 20;
-				else
-					Check = true;
-				i += 1;
-				j += 1;
-			}
-		}
-		else if (i < iMax)
-		{
-			Check = false;
-			pThis = this->LastCasualty[i];
-			pThisTimes = this->LastCasualtyTimes[i];
-			if (pThisTimes > 0)
-				pThisTimes -= 1;
-			i += 1;
-		}
-		else if (j < jMax)
-		{
-			Check = true;
-			pThis = Technos[j];
-			pThisTimes = 20;
-			j += 1;
-		}
-		else
-			break;
-
-		if (pThis && pThis != pLast)
-		{
-			if (pThisTimes > 0)
-			{
-				Casualty.push_back(pThis);
-				CasualtyTimes.push_back(pThisTimes);
-
-				if (Check)
-				{
-					if (this->ProximityImpact != 1 && pType->StraightWarhead)
-					{
-						int Damage = pType->StraightDamage;
-						if (pType->EdgeAttenuation != 1.0 || pType->ProximityAllies != 0)
-							Damage = static_cast<int>(Damage * GetExtraDamageMultiplier(pThis, pOwner, false));
-
-						WarheadTypeExtData::DetonateAt(pType->StraightWarhead, pThis->GetCoords(), pBullet->Owner, Damage, pOwner);
-						if (this->ProximityImpact > 0)
-							this->ProximityImpact -= 1;
-					}
-					else
-					{
-						Detonate = pThis;
-						break;
-					}
-				}
-
-				if (Casualty.size() >= 10000)
-					break;
-			}
-
-			pLast = pThis;
-		}
-	}
-
-	this->LastCasualty = Casualty;
-	this->LastCasualtyTimes = CasualtyTimes;
-
-	return Detonate;
 }
 
 double StraightTrajectoryVarianC::GetExtraDamageMultiplier(TechnoClass* pTechno, HouseClass* pOwner, bool Self) const

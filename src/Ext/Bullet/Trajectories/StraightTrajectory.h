@@ -144,7 +144,6 @@ public:
 	CoordStruct LastTargetCoord {};
 
 	std::vector<TechnoClass*> LastCasualty {};
-	std::vector<short> LastCasualtyTimes {};
 
 	double FirepowerMult { 1.0 };
 
@@ -197,7 +196,6 @@ private:
 	void PrepareForDetonateAt(HouseClass* pOwner, CoordStruct pCoord);
 	std::vector<CellClass*> GetCellsInProximityRadius();
 	std::vector<CellStruct> GetCellsInRectangle(CellStruct bStaCell, CellStruct lMidCell, CellStruct rMidCell, CellStruct tEndCell);
-	TechnoClass* CompareThenDetonateAt(std::vector<TechnoClass*>& Technos, HouseClass* pOwner, BulletClass* pBullet);
 	double GetExtraDamageMultiplier(TechnoClass* pTechno, HouseClass* pOwner, bool Self) const;
 	bool PassAndConfineAtHeight(double StraightSpeed);
 };

@@ -119,24 +119,26 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 		if (!this->TechnoInLimbo)
 		{
-			if (pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, false))
-				this->FLHCoord = pBullet->Owner->GetWeapon(WeaponIndex)->FLH;
-			else if (pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, true))
-				this->FLHCoord = pBullet->Owner->GetWeapon(WeaponIndex)->FLH;
+			if (pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, false) || pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, true)){
+				auto& [FLHFound, FLH] = TechnoExtData::GetBurstFLH(pBullet->Owner, WeaponIndex);
 
-			auto&[FLHFound, FLH] = TechnoExtData::GetBurstFLH(pBullet->Owner, WeaponIndex);
-
-			if (!FLHFound)
-			{
-				if (auto pInfantry = abstract_cast<InfantryClass*>(pBullet->Owner)){
-					auto& [FLHFound_b, FLH_b] = TechnoExtData::GetInfantryFLH(pInfantry, WeaponIndex);
-					FLHFound = FLHFound_b;
-					FLH = FLH_b;
+				if (!FLHFound)
+				{
+					if (auto pInfantry = abstract_cast<InfantryClass*>(pBullet->Owner))
+					{
+						auto& [FLHFound_b, FLH_b] = TechnoExtData::GetInfantryFLH(pInfantry, WeaponIndex);
+						FLHFound = FLHFound_b;
+						FLH = FLH_b;
+					}
 				}
-			}
 
-			if (FLHFound)
-				this->FLHCoord = FLH;
+				if (FLHFound)
+					this->FLHCoord = FLH;
+				else
+					this->FLHCoord = pBullet->Owner->GetWeapon(WeaponIndex)->FLH;
+			}
+			else
+				this->NotMainWeapon = true;
 		}
 		else
 		{
@@ -286,12 +288,15 @@ bool EngraveTrajectory::OnAI()
 	{
 		LaserDrawClass* pLaser;
 		CoordStruct FireCoord = pTechno->GetCoords();
-
-		if (pTechno->WhatAmI() != AbstractType::Building)
+		if (this->NotMainWeapon)
+		{
+			FireCoord = this->FLHCoord;
+		}
+		else if (pTechno->WhatAmI() != AbstractType::Building)
 		{
 			if (this->TechnoInLimbo)
 			{
-				if (TechnoClass* pTransporter = pBullet->Owner->Transporter)
+				if (TechnoClass* pTransporter = pTechno->Transporter)
 					FireCoord = TechnoExtData::GetFLHAbsoluteCoords(pTransporter, this->FLHCoord, pTransporter->HasTurret());
 				else
 					return true;

@@ -48,6 +48,7 @@ public:
 
 	bool SetItsLocation { false };
 	bool TechnoInLimbo { false };
+	bool NotMainWeapon { false };
 
 	double FirepowerMult { 1.0 };
 	CoordStruct FLHCoord { };
@@ -97,6 +98,7 @@ private:
 			.Process(this->Duration)
 			.Process(this->SetItsLocation)
 			.Process(this->TechnoInLimbo)
+			.Process(this->NotMainWeapon)
 			.Process(this->FirepowerMult)
 			.Process(this->FLHCoord)
 			;
