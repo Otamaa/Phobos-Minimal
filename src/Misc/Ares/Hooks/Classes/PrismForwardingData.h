@@ -27,31 +27,53 @@ public:
 	Valueable<signed int> EliteSupportWeaponIndex;
 
 	//methods
-	signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite);
-	void Initialize(BuildingTypeClass* pThis);
+	constexpr signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite)
+	{
+		for (auto idxWeapon = 2u; idxWeapon < 13u; ++idxWeapon)
+		{ //13-18 is AlternateFLH0-4
+			auto Weapon = (elite ? pThis->GetEliteWeapon(idxWeapon) : pThis->GetWeapon(idxWeapon))->WeaponType;
+
+			if (!Weapon)
+			{
+				return static_cast<int>(idxWeapon);
+			}
+		}
+		return -1;
+	}
+
+	constexpr void Initialize(BuildingTypeClass* pThis)
+	{
+		this->Enabled = EnabledState::No;
+		if (pThis == RulesClass::Instance->PrismType)
+		{
+			this->Enabled = EnabledState::Yes;
+		}
+		this->Targets.push_back(pThis);
+	}
+
 	void LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* pINI);
 
-	int GetMaxFeeds() const
+	constexpr int GetMaxFeeds() const
 	{
 		return this->MaxFeeds.Get(RulesClass::Instance->PrismSupportMax);
 	}
 
-	int GetMaxNetworkSize() const
+	constexpr int GetMaxNetworkSize() const
 	{
 		return this->MaxNetworkSize.Get(RulesClass::Instance->PrismSupportMax);
 	}
 
-	int GetSupportModifier() const
+	constexpr int GetSupportModifier() const
 	{
 		return this->SupportModifier.Get(RulesClass::Instance->PrismSupportModifier);
 	}
 
-	bool CanAttack() const
+	constexpr bool CanAttack() const
 	{
 		return this->Enabled == EnabledState::Yes || this->Enabled == EnabledState::Attack;
 	}
 
-	bool CanForward() const
+	constexpr bool CanForward() const
 	{
 		return this->Enabled == EnabledState::Yes || this->Enabled == EnabledState::Forward;
 	}
@@ -59,7 +81,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	PrismForwardingData* AsPointer() const { return const_cast<PrismForwardingData*>(this); }
+	constexpr PrismForwardingData* AsPointer() const { return const_cast<PrismForwardingData*>(this); }
 
 	// constructor
 	PrismForwardingData() : Enabled(EnabledState::No),

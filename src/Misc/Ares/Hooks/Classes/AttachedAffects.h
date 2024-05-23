@@ -14,7 +14,7 @@ public:
 	int Duration { 0 };
 	HouseClass* Invoker { nullptr };
 
-	void InvalidatePointer(AnimClass* ptr, bool bDetach)
+	constexpr void InvalidatePointer(AnimClass* ptr, bool bDetach)
 	{
 		if (ptr == this->Anim.get()) {
 			this->Anim.release();
