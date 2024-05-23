@@ -4512,14 +4512,16 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					};
 
-				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](int SoundIdx)
-					{
-						if (pCollectorOwner->ControlledByCurrentPlayer())
-						{
-							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-							VocClass::PlayIndexAtPos(SoundIdx, loc, nullptr);
-						}
-					};
+				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
+				{
+					if (CrateTypeClass::Array[(int)idx]->Sound <= -1)
+						return;
+
+					if (pCollectorOwner->ControlledByCurrentPlayer()) {
+						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+						VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx]->Sound, loc, nullptr);
+					}
+				};
 
 				auto GeiveMoney = [&]()
 					{
@@ -4545,7 +4547,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly);
 						}
-						PlaySoundAffect(RulesClass::Instance->CrateMoneySound);
+						PlaySoundAffect(Powerup::Money);
 						PlayAnimAffect(Powerup::Money);
 					};
 
@@ -4631,7 +4633,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 							if (pCreatedUnit->Unlimbo(loc, DirType::Min))
 							{
-								PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
+								PlaySoundAffect(Powerup::Unit);
 								return MoveResult::cannot;
 							}
 
@@ -4641,7 +4643,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							{
 								if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
 								{
-									PlaySoundAffect(RulesClass::Instance->CrateUnitSound);
+									PlaySoundAffect(Powerup::Unit);
 									return MoveResult::cannot;
 								}
 							}
@@ -4660,7 +4662,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::HealBase:
 				{
 					Debug::Log("Crate at %d,%d contains base healing\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					PlaySoundAffect(RulesClass::Instance->HealCrateSound);
+					PlaySoundAffect(Powerup::HealBase);
 					for (int i = 0; i < LogicClass::Instance->Count; ++i)
 					{
 						if (auto pTechno = abstract_cast<TechnoClass*>(LogicClass::Instance->Items[i]))
@@ -4720,7 +4722,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					Debug::Log("Crate at %d,%d contains 'reveal'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reveal(pCollectorOwner);
-					PlaySoundAffect(RulesClass::Instance->CrateRevealSound);
+					PlaySoundAffect(Powerup::Reveal);
 					PlayAnimAffect(Powerup::Reveal);
 					break;
 				}
@@ -4751,7 +4753,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlaySoundAffect(RulesClass::Instance->CrateArmourSound);
+					PlaySoundAffect(Powerup::Armor);
 					PlayAnimAffect(Powerup::Armor);
 					break;
 				}
@@ -4782,7 +4784,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlaySoundAffect(RulesClass::Instance->CrateSpeedSound);
+					PlaySoundAffect(Powerup::Speed);
 					PlayAnimAffect(Powerup::Speed);
 					break;
 				}
@@ -4814,7 +4816,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlaySoundAffect(RulesClass::Instance->CrateFireSound);
+					PlaySoundAffect(Powerup::Firepower);
 					PlayAnimAffect(Powerup::Firepower);
 					break;
 				}
@@ -4905,7 +4907,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
+					PlaySoundAffect(Powerup::Veteran);
 					PlayAnimAffect(Powerup::Veteran);
 					break;
 				}
@@ -4936,7 +4938,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						}
 					}
 
-					PlaySoundAffect(RulesClass::Instance->CratePromoteSound);
+					PlaySoundAffect(Powerup::Gas);
 					PlayAnimAffect(Powerup::Gas);
 					break;
 				}
@@ -4962,6 +4964,8 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Squad:
 				{
+					Debug::Log("Crate at %d,%d contains Squad\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
 	 return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -4985,6 +4989,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Invulnerability:
 				{
+					Debug::Log("Crate at %d,%d contains Invulnerability\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::IronCurtain && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -5003,6 +5008,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::IonStorm:
 				{
+					Debug::Log("Crate at %d,%d contains IonStorm\n", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::LightningStorm && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -5021,9 +5027,9 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Pod:
 				{
-					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
- {
-	 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					Debug::Log("Crate at %d,%d contains Pod\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
+						 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5038,6 +5044,10 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					return MoveResult::can;
 				}
 				default:
+					//TODO :: the affects
+					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y , CrateTypeClass::Array[(int)data]->Name);
+					PlaySoundAffect(data);
+					PlayAnimAffect(data);
 					break;
 				}
 #pragma endregion
