@@ -359,37 +359,32 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 //	return 0x71473F;
 //}
 
-// DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-// DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-// {
-// 	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
-//
-// 	GET(UnitClass*, pThis, ESI);
-//
-// 	bool isDeploying = R->Origin() == 0x739BA8;
-// 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-//
-// 	{
-// 		if(auto pAnimType = GetDeployAnim(pThis)) {
-// 			if (auto const pAnim = GameCreate<AnimClass>(pAnimType,
-// 				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-// 				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
-// 			{
-// 				pThis->DeployAnim = pAnim;
-// 				pAnim->SetOwnerObject(pThis);
-//
-// 				if (pExt->DeployingAnim_UseUnitDrawer)
-// 					return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
-// 			}
-// 			else
-// 			{
-// 				pThis->DeployAnim = nullptr;
-// 			}
-// 		}
-// 	}
-//
-// 	return isDeploying ? Deploy : Undeploy;
-// }
+DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+{
+	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
+
+	GET(UnitClass*, pThis, ESI);
+
+	bool isDeploying = R->Origin() == 0x739BA8;
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+
+	if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
+			pThis->Location, 0, 1, 0x600, 0,
+			!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy : false))
+	{
+			pThis->DeployAnim = pAnim;
+			pAnim->SetOwnerObject(pThis);
+
+			if (pExt->DeployingAnim_UseUnitDrawer)
+				return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
+	} else {
+			pThis->DeployAnim = nullptr;
+	}
+
+	return isDeploying ? Deploy : Undeploy;
+}
 
 DEFINE_HOOK_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
@@ -405,6 +400,55 @@ DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
 		return 0; // Only play sound when done with deploying or undeploying.
 
 	return isDeploying ? DeployReturn : UndeployReturn;
+}
+
+#include <Locomotor/HoverLocomotionClass.h>
+
+namespace SimpleDeployerTemp {
+	bool HoverDeployedToLand = false;
+}
+
+DEFINE_HOOK(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Deployed && pThis->Type->DeployToLand && pThis->Type->Locomotor == HoverLocomotionClass::ClassGUID())
+		SimpleDeployerTemp::HoverDeployedToLand = true;
+
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
+DEFINE_HOOK(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
+{
+	if (SimpleDeployerTemp::HoverDeployedToLand)
+	{
+		GET(UnitClass*, pThis, ESI);
+
+		// Ares' DeployToLand 'fix' for Hover IsSimpleDeployer vehicles does not set/reset certain values
+		// and has a chance to get stuck in Unload mission as a result, following should remedy that.
+		pThis->SetHeight(0);
+		pThis->InAir = false;
+		pThis->ForceMission(Mission::Guard);
+	}
+
+	SimpleDeployerTemp::HoverDeployedToLand = false;
+	return 0;
+}
+
+// Do not display hover bobbing when landed during deploying.
+DEFINE_HOOK(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
+{
+	enum { SkipBobbing = 0x513F2A };
+
+	GET(LocomotionClass*, pThis, ECX);
+
+	if (auto const pUnit = specific_cast<UnitClass*>(pThis->Owner)) {
+		if (pUnit->Deploying && pUnit->Type->DeployToLand)
+			return SkipBobbing;
+	}
+
+	return 0;
 }
 
 // Issue #503

@@ -158,35 +158,40 @@ DEFINE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
+DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto const pType = pThis->Type;
+	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
 
-	if (pType->DeployingAnim)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		// not sure what is the bitfrom or bitto so it generate this result
-		// yes iam dum , iam sorry - otamaa
-		const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-		const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
-		const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+	if(!pThis->InAir) {
+		if (pType->DeployingAnim) {
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (nCurrent != (int)nRaw)
-		{
-			if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
-			{
-				if (!pLoco->Is_Moving_Now())
-				{
-					pLoco->Do_Turn(DirStruct { nRaw });
+			if (pTypeExt->DeployingAnim_AllowAnyDirection)
+				return PlayAnim;
+
+			// not sure what is the bitfrom or bitto so it generate this result
+			// yes iam dum , iam sorry - otamaa
+			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+
+			if (nCurrent != (int)nRaw) {
+				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr()) {
+					if (!pLoco->Is_Moving_Now()) {
+						pLoco->Do_Turn(DirStruct { nRaw });
+					}
+
+					return 0x739C70;
 				}
-
-				return 0x739C70;
 			}
 		}
+
+		pThis->Deployed = true;
 	}
 
-	return 0x0;
+	return SkipAnim;
 }
 
 DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
