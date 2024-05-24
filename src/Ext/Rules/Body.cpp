@@ -150,7 +150,6 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 
 	//got invalidated early , so parse it again
-	detail::ParseVector<InfantryTypeClass*, true>(pThis->AnimToInfantry, iniEX, GENERAL_SECTION, GameStrings::AnimToInfantry, "Expect valid InfantryType");
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
 	detail::ParseVector<ScriptTypeClass*>(iniEX, pData->AIScriptsLists, "AIScriptsList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
