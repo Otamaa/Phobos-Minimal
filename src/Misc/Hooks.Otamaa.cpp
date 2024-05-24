@@ -690,22 +690,6 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 	return Continue;
 }
 
-// DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
-// {
-// 	enum { Continue = 0x0, ReturnFalse = 0x4DBDEB };
-// 	GET(FootClass* const, pThis, ESI);
-//
-// 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-//
-// 	if (pTypeExt->CloakMove.isset())
-// 	{
-// 		return pTypeExt->CloakMove.Get() && !pThis->Locomotor.GetInterfacePtr()->Is_Moving() ?
-// 			ReturnFalse : Continue;
-// 	}
-//
-// 	return Continue;
-// }
-
 DEFINE_HOOK(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 {
 	return R->ESI<InfantryClass* const>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;

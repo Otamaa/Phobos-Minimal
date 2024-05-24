@@ -98,22 +98,7 @@ DEFINE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 DEFINE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
-#ifdef _CLOAKMOVE_DOESNTWORKPROPERLY
-	//TODO : there is more check than it need it seems
-	// dont understand
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	bool stopCloaking = false;
-	const bool moving = pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now();
-
-	if(!pTypeExt->CloakMove && moving)
-		stopCloaking = true;
-	else if (pTypeExt->CloakMove && !moving)
-		stopCloaking = true;
-
-	R->AL(stopCloaking);
-#else
 	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving());
-#endif
 	return 0x4DBDE3;
 }
 
