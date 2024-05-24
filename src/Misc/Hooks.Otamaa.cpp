@@ -4873,12 +4873,13 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 											do{
 												if (pTechno->Veterancy.IsVeteran())
 													pTechno->Veterancy.SetElite();
-
+												else
 												if (pTechno->Veterancy.IsRookie())
 													pTechno->Veterancy.SetVeteran();
-
+												else
 												if (pTechno->Veterancy.IsNegative())
 													pTechno->Veterancy.SetRookie();
+
 												++PromotedCount;
 											}
 											while ((double)PromotedCount < MaxPromotedCount);
