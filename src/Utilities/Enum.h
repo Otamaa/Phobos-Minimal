@@ -575,7 +575,8 @@ enum class KillMethod : int
 	Explode = 0,     //default death option
 	Vanish = 1,
 	Sell = 2,     // buildings only
-	Random = 3
+	Convert = 3, // units only
+	Random = 4
 };
 
 enum class BannerNumberType : int

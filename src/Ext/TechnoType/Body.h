@@ -184,7 +184,7 @@ public:
 	Valueable<bool> AutoDeath_Exist_Any { false };
 	Valueable<bool> AutoDeath_Exist_AllowLimboed { true };
 	Nullable<AnimTypeClass*> AutoDeath_VanishAnimation {};
-
+	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
 	Valueable<ShieldTypeClass*> ShieldType { nullptr };
 

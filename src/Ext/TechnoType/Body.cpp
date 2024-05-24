@@ -373,6 +373,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
 		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
+		this->Convert_AutoDeath.Read(exINI, pSection, "Convert.AutoDeath");
+
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Death_WithMaster.Read(exINI, pSection, "AutoDeath.WithSlaveOwner");
 
@@ -1552,7 +1554,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AutoDeath_Exist_Any)
 		.Process(this->AutoDeath_Exist_AllowLimboed)
 		.Process(this->AutoDeath_VanishAnimation)
-
+		.Process(this->Convert_AutoDeath)
 		.Process(this->Death_WithMaster)
 		.Process(this->AutoDeath_MoneyExceed)
 		.Process(this->AutoDeath_MoneyBelow)

@@ -3235,6 +3235,18 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 		}
 
 	}break;
+	case KillMethod::Convert:
+	{
+		if(pThis && pThis->IsAlive && pThis->AbstractFlags & AbstractFlags::Foot) {
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+			if (auto pTo = pTypeExt->Convert_AutoDeath) {
+				TechnoExt_ExtData::ConvertToType(pThis, pTo);
+			}
+		}
+	}break;
+	default:
+	break;
 	}
 }
 
