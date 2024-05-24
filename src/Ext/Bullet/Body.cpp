@@ -76,25 +76,27 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 				auto pTechno = generic_cast<TechnoClass*>(pAbs);
 
-				if (pTechno && pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get())) {
+				if (pTechno && pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
+				{
 
 					if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
 						return false;
 
-					if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno)) {
+					if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
+					{
 						const auto nLayer = pTechno->InWhichLayer();
 
 						if (nLayer == Layer::Underground || nLayer == Layer::None)
 							return false;
 
 						if (((!pTechno->IsInAir() && pWeapon->Projectile->AG)
-							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
+							|| (pTechno->IsInAir() && pWeapon->Projectile->AA)))
+						{
 							return true;
 						}
 					}
-
-					return false;
 				}
+				return false;
 			});
 
 			if (pExt->Splits_FillRemainingClusterWithRandomcells)

@@ -19,7 +19,7 @@ public:
 	Valueable<AnimTypeClass*> Anim { nullptr };
 	Valueable<double> Argument { 0.0 };
 	Valueable<bool> Naval { false };
-	NullableIdx<VocClass> Sound { };
+	ValueableIdx<VocClass> Sound { -1 };
 
     CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle)
 		, Weight { }
