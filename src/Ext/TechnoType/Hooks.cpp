@@ -359,32 +359,32 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 //	return 0x71473F;
 //}
 
-DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-{
-	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
-
-	GET(UnitClass*, pThis, ESI);
-
-	bool isDeploying = R->Origin() == 0x739BA8;
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-
-	if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
-			pThis->Location, 0, 1, 0x600, 0,
-			!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy : false))
-	{
-			pThis->DeployAnim = pAnim;
-			pAnim->SetOwnerObject(pThis);
-
-			if (pExt->DeployingAnim_UseUnitDrawer)
-				return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
-	} else {
-			pThis->DeployAnim = nullptr;
-	}
-
-	return isDeploying ? Deploy : Undeploy;
-}
+// DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// {
+// 	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
+//
+// 	GET(UnitClass*, pThis, ESI);
+//
+// 	bool isDeploying = R->Origin() == 0x739BA8;
+// 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//
+// 	if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
+// 			pThis->Location, 0, 1, 0x600, 0,
+// 			!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy : false))
+// 	{
+// 			pThis->DeployAnim = pAnim;
+// 			pAnim->SetOwnerObject(pThis);
+//
+// 			if (pExt->DeployingAnim_UseUnitDrawer)
+// 				return isDeploying ? DeployUseUnitDrawer : UndeployUseUnitDrawer;
+// 	} else {
+// 			pThis->DeployAnim = nullptr;
+// 	}
+//
+// 	return isDeploying ? Deploy : Undeploy;
+// }
 
 DEFINE_HOOK_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
