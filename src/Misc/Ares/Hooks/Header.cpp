@@ -755,7 +755,7 @@ void TechnoExt_ExtData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSp
 }
 
 //confirmed
-bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
+bool NOINLINE  TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 {
 	// cloaked and deactivated units are hard to find otherwise
 	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || pThis->Deactivated)
@@ -767,26 +767,21 @@ bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 	auto pType = pThis->GetTechnoType();
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (what == BuildingClass::AbsID)
-	{
-		if (pExt->CloakPowered && !pThis->IsPowerOnline())
-		{
+	if (what == BuildingClass::AbsID) {
+		if (pExt->CloakPowered && !pThis->IsPowerOnline()) {
 			return false;
 		}
 
-	}
-	else
-	{
-
-		if (pExt->CloakMove.isset()
-			&& !((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Is_Moving_Now())
-			return false;
-
+	} else {
 		if (what == InfantryClass::AbsID
-			&& pExt->CloakDeployed
-			&& !((InfantryClass*)pThis)->IsDeployed())
+				&& pExt->CloakDeployed
+				&& !((InfantryClass*)pThis)->IsDeployed())
 		{
-			return false;
+				return false;
+		}
+		else if (what == UnitClass::AbsID) {
+			if (((UnitClass*)pThis)->DeathFrameCounter > 0)
+				return false;
 		}
 	}
 
@@ -795,7 +790,7 @@ bool TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 }
 
 //confirmed
-bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
+bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 {
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -815,10 +810,8 @@ bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 	}
 
 	// check for active cloak
-	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak))
-	{
-		if (TechnoExt_ExtData::CanSelfCloakNow(pThis))
-		{
+	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak)) {
+		if (TechnoExt_ExtData::CanSelfCloakNow(pThis)) {
 			return true;
 		}
 	}
@@ -844,7 +837,7 @@ bool TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 }
 
 //confirmed
-bool TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
+bool NOINLINE TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
 {
 	if (TechnoExt_ExtData::IsCloakable(pThis, allowPassive))
 	{
@@ -860,7 +853,7 @@ bool TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
 }
 
 //confirmed
-bool TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
+bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 {
 	if (TechnoExt_ExtData::CloakDisallowed(pThis, true))
 	{
@@ -886,18 +879,15 @@ bool TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 	if (pThis->Target && pThis->IsCloseEnoughToAttack(pThis->Target))
 	{
 		//https://bugs.launchpad.net/ares/+bug/1267287
-		const auto pWeaponIdx = pThis->SelectWeapon(pThis->Target);
-		const auto pWeapon = pThis->GetWeapon(pWeaponIdx);
+		//const auto pWeaponIdx = pThis->SelectWeapon(pThis->Target);
+		//const auto pWeapon = pThis->GetWeapon(pWeaponIdx);
 
-		if (pWeapon && pWeapon->WeaponType && !pWeapon->WeaponType->DecloakToFire)
-			return true;
-
-		return false;
+		//if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->DecloakToFire)
+			return false;
 	}
 
 	if (pThis->WhatAmI() != BuildingClass::AbsID)
 	{
-
 		if (pThis->CloakProgress.Value)
 			return false;
 

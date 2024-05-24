@@ -442,7 +442,7 @@ public:
 
 	Nullable<ColorStruct> CommandLine_Move_Color { };
 	Nullable<ColorStruct> CommandLine_Attack_Color { };
-	Nullable<bool> CloakMove { };
+	Valueable<bool> CloakMove { false };
 	Nullable<bool> PassiveAcquire_AI { };
 	Nullable<bool> CanPassiveAquire_Naval { };
 	Valueable<bool> TankDisguiseAsTank { false };

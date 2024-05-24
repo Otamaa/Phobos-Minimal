@@ -660,6 +660,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
 		this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
+		//Not disabled atm
+		//need more work than anticipated
 		this->CloakMove.Read(exINI, pSection, "Cloakable.Move");
 		this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
 		this->CanPassiveAquire_Naval.Read(exINI, pSection, "CanPassiveAquire.Naval");
