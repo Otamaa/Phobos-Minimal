@@ -265,24 +265,24 @@ DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
-DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
-{
-	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
+// DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
+// {
+// 	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
 
-	GET(UnitClass*, pThis, ESI);
+// 	GET(UnitClass*, pThis, ESI);
 
-	if (!pThis->InAir)
-	{
-		if (pThis->Type->DeployingAnim)
-		{
-			return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim : 0;
-		}
+// 	if (!pThis->InAir)
+// 	{
+// 		if (pThis->Type->DeployingAnim)
+// 		{
+// 			return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim : 0;
+// 		}
 
-		pThis->Deployed = true;
-	}
+// 		pThis->Deployed = true;
+// 	}
 
-	return SkipAnim;
-}
+// 	return SkipAnim;
+// }
 
 AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 {
