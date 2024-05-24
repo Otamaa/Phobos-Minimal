@@ -17,6 +17,7 @@ public:
 
 	using TStateMachine = SpyPlaneStateMachine;
 
+protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper ,CellClass* pTarget) {
 		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, this, pTarget));
 	}

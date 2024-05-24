@@ -19,8 +19,8 @@ public:
 
 	using TStateMachine = GenericWarheadStateMachine;
 
+protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer) {
 		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper , pfirer, this));
 	}
-
 };

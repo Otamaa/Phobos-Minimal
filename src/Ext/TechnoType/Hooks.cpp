@@ -268,19 +268,19 @@ DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 // DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 // {
 // 	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
-
+//
 // 	GET(UnitClass*, pThis, ESI);
-
+//
 // 	if (!pThis->InAir)
 // 	{
 // 		if (pThis->Type->DeployingAnim)
 // 		{
 // 			return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim : 0;
 // 		}
-
+//
 // 		pThis->Deployed = true;
 // 	}
-
+//
 // 	return SkipAnim;
 // }
 

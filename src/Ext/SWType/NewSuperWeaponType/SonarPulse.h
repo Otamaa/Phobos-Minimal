@@ -20,6 +20,7 @@ public:
 
 	using TStateMachine = SonarPulseStateMachine;
 
+protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
 		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, this));
 	}
