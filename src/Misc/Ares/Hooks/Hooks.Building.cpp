@@ -1260,12 +1260,12 @@ DEFINE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 }
 
 // #814: force sidebar repaint for standard spy effects
-DEFINE_HOOK_AGAIN(0x4574D2, BuildingClass_Infiltrate_Standard, 0x6)
-DEFINE_HOOK(0x457533, BuildingClass_Infiltrate_Standard, 0x6)
-{
-	MouseClass::Instance->SidebarNeedsRepaint();
-	return R->Origin() + 6;
-}
+// DEFINE_HOOK_AGAIN(0x4574D2, BuildingClass_Infiltrate_Standard, 0x6)
+// DEFINE_HOOK(0x457533, BuildingClass_Infiltrate_Standard, 0x6)
+// {
+// 	MouseClass::Instance->SidebarNeedsRepaint();
+// 	return R->Origin() + 6;
+// }
 
 // infantry exiting hospital get their focus reset, but not for armory
 DEFINE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
@@ -1816,10 +1816,8 @@ DEFINE_HOOK(0x4571E0, BuildingClass_Infiltrate, 5)
 	GET(BuildingClass*, EnteredBuilding, ECX);
 	GET_STACK(HouseClass*, Enterer, 0x4);
 
-	return (TechnoExt_ExtData::InfiltratedBy(EnteredBuilding, Enterer))
-		? 0x4575A2
-		: 0
-		;
+	TechnoExt_ExtData::InfiltratedBy(EnteredBuilding, Enterer);
+	return 0x4575A2;
 }
 
 DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)

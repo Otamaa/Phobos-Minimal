@@ -608,24 +608,6 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	return 0x709202;
 }
 
-DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
-{
-	GET(BuildingClass*, pThis, EBP);
-	GET(RulesClass*, pRules, EDX);
-	GET_STACK(int, nAvailMoney, 0x18);
-
-	float mult = pRules->SpyMoneyStealPercent;
-	auto const& nAIMult = RulesExtData::Instance()->AI_SpyMoneyStealPercent;
-
-	if (pThis->Owner && !pThis->Owner->IsControlledByHuman() && nAIMult.isset())
-	{
-		mult = nAIMult.Get();
-	}
-
-	R->EAX(int(nAvailMoney * mult));
-	return 0x45744A;
-}
-
 DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 {
 	enum
