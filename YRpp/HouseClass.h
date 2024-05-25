@@ -668,19 +668,19 @@ public:
 	//  Count owned now
 	int CountOwnedNow(TechnoTypeClass const* pItem) const;
 
-	int CountOwnedNow(BuildingTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(BuildingTypeClass const* const pItem) const {
 		return this->OwnedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(AircraftTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(AircraftTypeClass const* const pItem) const {
 		return this->OwnedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(InfantryTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(InfantryTypeClass const* const pItem) const {
 		return this->OwnedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(UnitTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(UnitTypeClass const* const pItem) const {
 		return this->OwnedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 

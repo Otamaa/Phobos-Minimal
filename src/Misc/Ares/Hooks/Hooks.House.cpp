@@ -794,208 +794,6 @@ DEFINE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 	return 0x6AB320;
 }
 
-bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType)
-{	auto ret = false;
-		if (pType)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		// there is some another stupid bug
-		// where if the building already queueed and paused
-		// then you remove the prereq thing , the timer wont restart
-		// it make it odd
-		// also doing this check every frame is kind a weird ,..
-		//if(!pTypeExt->Prerequisite_Display.empty()
-		//	&& HouseExtData::PrereqValidate(pThis, pType , false , false ) == CanBuildResult::TemporarilyUnbuildable)
-		//{
-		//	R->EAX(true);
-		//	return 0x50B669;
-		//}
-
-		auto const abs = pType->WhatAmI();
-		auto const pFactory = pThis->GetPrimaryFactory(
-			abs, pType->Naval, BuildCat::DontCare);
-
-		// special logic for AirportBound
-		if (abs == AbstractType::AircraftType)
-		{
-			auto const pAType = static_cast<AircraftTypeClass const*>(pType);
-			if (pAType->AirportBound)
-			{
-				auto ownedAircraft = 0;
-				auto queuedAircraft = 0;
-
-				for (auto const& pAircraft : RulesClass::Instance->PadAircraft)
-				{
-					ownedAircraft += pThis->CountOwnedAndPresent(pAircraft);
-					if (pFactory)
-					{
-						queuedAircraft += pFactory->CountTotal(pAircraft);
-					}
-				}
-
-				// #896082: also check BuildLimit, and not always return the
-				// result of this comparison directly. originally, it would
-				// return false here, too, allowing more units than the
-				// BuildLimit permitted.
-				if (ownedAircraft + queuedAircraft >= pThis->AirportDocks)
-				{
-					return true;
-				}
-			}
-		}
-
-		auto queued = 0;
-		if (pFactory)
-		{
-			queued = pFactory->CountTotal(pType);
-
-			// #1286800: build limit > 1 and queues
-			// the object in production is counted twice: it appears in this
-			// factory queue, and it is already counted in the house's counters.
-			// this only affects positive build limits, for negative ones
-			// players could queue up one more than BuildLimit.
-			if (auto const pObject = pFactory->Object)
-			{
-				if (pObject->GetType() == pType && pType->BuildLimit > 0)
-				{
-					--queued;
-				}
-			}
-		}
-
-		// #1521738: to stay consistent, use the new method to calculate this
-		if (HouseExtData::BuildLimitRemaining(pThis, pType) - queued <= 0)
-		{ ret = true; } else {
-			const auto state = HouseExtData::HasFactory(pThis, pType, true, true, false, true);
-			ret = (state.first < NewFactoryState::Available_Alternative);
-		}
-	}
-
-	return ret;
-}
-
-#pragma region BuildLimitGroup
-int QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pType)
-{
-	const AbstractType absType = pType->WhatAmI();
-	const FactoryClass* pFactory = pHouse->GetPrimaryFactory(absType, pType->Naval, BuildCat::DontCare);
-	int queued = 0;
-
-	if (pFactory)
-	{
-		queued = pFactory->CountTotal(pType);
-
-		if (const auto pObject = pFactory->Object)
-		{
-			if (pObject->GetType() == pType)
-				--queued;
-		}
-	}
-
-	return queued;
-}
-
-void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num)
-{
-	const AbstractType absType = pType->WhatAmI();
-	FactoryClass* pFactory = pHouse->GetPrimaryFactory(absType, pType->Naval, BuildCat::DontCare);
-	if (pFactory)
-	{
-		int queued = pFactory->CountTotal(pType);
-		if (num >= 0)
-			queued = MinImpl(num, queued);
-
-		for (int i = 0; i < queued; i ++)
-		{
-			pFactory->RemoveOneFromQueue(pType);
-		}
-	}
-}
-
-bool ReachedBuildLimit(const HouseClass* pHouse, const TechnoTypeClass* pType, bool ignoreQueued)
-{
-	if (!pType)
-		return true;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(const_cast<TechnoTypeClass*>(pType));
-
-	if (pTypeExt->BuildLimit_Group_Types.empty()
-		|| pTypeExt->BuildLimit_Group_Limits.empty())
-		return false;
-
-
-	if (pTypeExt->BuildLimit_Group_Limits.size() == 1)
-	{
-		int count = 0;
-		int queued = 0;
-		bool inside = false;
-
-		for (const TechnoTypeClass* pTmpType : pTypeExt->BuildLimit_Group_Types)
-		{
-			if (!ignoreQueued)
-				queued += QueuedNum(pHouse, pTmpType);
-
-			count += pHouse->CountOwnedNow(pTmpType);
-			if (pTmpType == pType)
-				inside = true;
-		}
-
-		int num = count - pTypeExt->BuildLimit_Group_Limits.back();
-		if (num + queued >= 0)
-		{
-			if (inside)
-				RemoveProduction(pHouse, pType, num + queued);
-			else if (num >= 0 || pTypeExt->BuildLimit_Group_Stop)
-				RemoveProduction(pHouse, pType, -1);
-
-			return true;
-		}
-	}
-	else
-	{
-		size_t size = MinImpl(pTypeExt->BuildLimit_Group_Limits.size(), pTypeExt->BuildLimit_Group_Types.size());
-		bool reached = true;
-		bool realReached = true;
-
-		for (size_t i = 0; i < size; i++)
-		{
-			const TechnoTypeClass* pTmpType = pTypeExt->BuildLimit_Group_Types[i];
-			int queued = ignoreQueued ? 0 : QueuedNum(pHouse, pTmpType);
-			int num = pHouse->CountOwnedNow(pTmpType) - pTypeExt->BuildLimit_Group_Limits[i];
-
-			if (num + queued >= 0)
-			{
-				if (pTypeExt->BuildLimit_Group_Any)
-				{
-					if (num >= 0 || pTypeExt->BuildLimit_Group_Stop)
-						RemoveProduction(pHouse, pType, -1);
-					return true;
-				}
-				else if (num < 0)
-				{
-					realReached = false;
-				}
-			}
-			else
-			{
-				reached = false;
-			}
-		}
-
-		if (reached)
-		{
-			if (realReached || pTypeExt->BuildLimit_Group_Stop)
-				RemoveProduction(pHouse, pType, -1);
-
-			return true;
-		}
-	}
-
-	return false;
-}
-#pragma endregion
-
 DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 {
 	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
@@ -1007,13 +805,18 @@ DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 
 	GET(HouseClass* const, pThis, ECX);
 	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
-	GET_STACK(bool const, buildLimitOnly, 0x8);
-	GET_STACK(bool const, includeInProduction, 0xC);
+	GET_STACK(bool , buildLimitOnly, 0x8);
+	GET_STACK(bool , includeInProduction, 0xC);
 	//GET_STACK(DWORD , caller , 0x0);
 	auto validationResult = HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
 
-	if(validationResult == CanBuildResult::Buildable && ReachedBuildLimit(pThis, pItem, true))
-		validationResult= CanBuildResult::TemporarilyUnbuildable;
+	if(validationResult == CanBuildResult::Buildable) {
+		validationResult = HouseExtData::BuildLimitGroupCheck(pThis, pItem, buildLimitOnly, includeInProduction);
+
+		if (HouseExtData::ReachedBuildLimit(pThis, pItem, true))
+			validationResult = CanBuildResult::TemporarilyUnbuildable;
+
+	}
 
 	R->EAX(validationResult);
 	return 0x4F8361;
@@ -1024,12 +827,13 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
-	auto ret = ShouldDisableCameo(pThis, pType);
+	bool result = HouseExtData::ShouldDisableCameo(pThis, pType);
 
-	if(!ret)
-		 ret = ReachedBuildLimit(pThis, pType, false);
+	if(!result && HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
+		result = true;
+	}
 
-	R->EAX(ret);
+	R->EAX(result);
 	return 0x50B669;
 }
 

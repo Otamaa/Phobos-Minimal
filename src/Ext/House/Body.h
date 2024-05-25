@@ -281,7 +281,17 @@ public:
 	static int CountOwnedNowTotal(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static signed int BuildLimitRemaining(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static BuildLimitStatus CheckBuildLimit(HouseClass const* pHouse, TechnoTypeClass* pItem, bool includeQueued);
-	static BuildLimitStatus BuildLimitGroupCheck(HouseClass const* const  pThis, TechnoTypeClass* pItem, bool includeQueued);
+	static int BuildBuildingLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
+	static int CheckBuildingBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool const includeQueued);
+	static int CountOwnedIncludeDeploy(const HouseClass* pThis, const TechnoTypeClass* pItem);
+
+	static std::vector<int> GetBuildLimitGroupLimits(HouseClass* pHouse,TechnoTypeClass* pType);
+	static CanBuildResult BuildLimitGroupCheck(HouseClass* pThis, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);
+	static int QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pType);
+	static void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num);
+	static bool ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType, bool ignoreQueued);
+
+	static bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType);
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);

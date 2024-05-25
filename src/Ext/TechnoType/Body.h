@@ -926,10 +926,14 @@ public:
 
 //add this just in case the implementation chages
 #pragma region BuildLimitGroup
-	ValueableVector<TechnoTypeClass*> BuildLimit_Group_Types { };
-	Valueable<bool> BuildLimit_Group_Any { false };
-	ValueableVector<int> BuildLimit_Group_Limits { };
-	Valueable<bool> BuildLimit_Group_Stop { false };
+	ValueableVector<TechnoTypeClass*> BuildLimitGroup_Types {};
+	ValueableVector<int> BuildLimitGroup_Nums {};
+	Valueable<int> BuildLimitGroup_Factor { 1 };
+	Valueable<bool> BuildLimitGroup_ContentIfAnyMatch { false };
+	Valueable<bool> BuildLimitGroup_NotBuildableIfQueueMatch { false };
+	ValueableVector<TechnoTypeClass*> BuildLimitGroup_ExtraLimit_Types {};
+	ValueableVector<int> BuildLimitGroup_ExtraLimit_Nums {};
+	ValueableVector<int> BuildLimitGroup_ExtraLimit_MaxCount {};
 #pragma endregion
 
 	NullableVector<int> Tiberium_PipIdx {};

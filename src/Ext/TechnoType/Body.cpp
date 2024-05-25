@@ -1223,10 +1223,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->NoExtraSelfHealOrRepair.Read(exINI, pSection, "NoExtraSelfHealOrRepair");
 
 #pragma region BuildLimitGroup
-		this->BuildLimit_Group_Types.Read(exINI, pSection, "BuildLimitGroup.Types");
-		this->BuildLimit_Group_Any.Read(exINI, pSection, "BuildLimitGroup.ContentIfAnyMatch");
-		this->BuildLimit_Group_Limits.Read(exINI, pSection, "BuildLimitGroup.Nums");
-		this->BuildLimit_Group_Stop.Read(exINI, pSection, "BuildLimitGroup.NotBuildableIfQueueMatch");
+		this->BuildLimitGroup_Types.Read(exINI, pSection, "BuildLimitGroup.Types");
+		this->BuildLimitGroup_Nums.Read(exINI, pSection, "BuildLimitGroup.Nums");
+		this->BuildLimitGroup_Factor.Read(exINI, pSection, "BuildLimitGroup.Factor");
+		this->BuildLimitGroup_ContentIfAnyMatch.Read(exINI, pSection, "BuildLimitGroup.ContentIfAnyMatch");
+		this->BuildLimitGroup_NotBuildableIfQueueMatch.Read(exINI, pSection, "BuildLimitGroup.NotBuildableIfQueueMatch");
+		this->BuildLimitGroup_ExtraLimit_Types.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Types");
+		this->BuildLimitGroup_ExtraLimit_Nums.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Nums");
+		this->BuildLimitGroup_ExtraLimit_MaxCount.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.MaxCount");
 #pragma endregion
 
 		this->Tiberium_EmptyPipIdx.Read(exINI, pSection, "StorageEmptyPipIndex");
@@ -2225,10 +2229,14 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->NoExtraSelfHealOrRepair)
 
 #pragma region BuildLimitGroup
-		.Process(this->BuildLimit_Group_Types)
-		.Process(this->BuildLimit_Group_Any)
-		.Process(this->BuildLimit_Group_Limits)
-		.Process(this->BuildLimit_Group_Stop)
+		.Process(this->BuildLimitGroup_Types)
+		.Process(this->BuildLimitGroup_Nums)
+		.Process(this->BuildLimitGroup_Factor)
+		.Process(this->BuildLimitGroup_ContentIfAnyMatch)
+		.Process(this->BuildLimitGroup_NotBuildableIfQueueMatch)
+		.Process(this->BuildLimitGroup_ExtraLimit_Types)
+		.Process(this->BuildLimitGroup_ExtraLimit_Nums)
+		.Process(this->BuildLimitGroup_ExtraLimit_MaxCount)
 #pragma endregion
 
 		.Process(this->Tint_Color)

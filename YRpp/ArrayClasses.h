@@ -821,7 +821,7 @@ public:
 		return this->EnsureItem(index) ? this->Items[index] : 0;
 	}
 
-	int GetItemCount(int index) const
+	constexpr int GetItemCount(int index) const
 	{
 		return (index < this->Capacity) ? this->Items[index] : 0;
 	}
