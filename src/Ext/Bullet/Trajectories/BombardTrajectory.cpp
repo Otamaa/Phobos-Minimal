@@ -81,6 +81,7 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	// use scaling since RandomRanged only support int
 	double fallPercentShift = ScenarioClass::Instance()->Random.RandomRanged(0, int(200 * pType->FallPercentShift)) / 100.0;
 	double fallPercent = pType->FallPercent - pType->FallPercentShift + fallPercentShift;
+	this->Height = pType->Height + pBullet->TargetCoords.Z;
 
 	if (!pType->NoLaunch)
 	{
