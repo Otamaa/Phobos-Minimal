@@ -191,9 +191,10 @@ private:
 	int GetVelocityZ() const;
 	bool CalculateBulletVelocity(double StraightSpeed);
 	bool BulletDetonatePreCheck(HouseClass* pOwner);
-	void BulletDetonateLastCheck(double StraightSpeed);
+	void BulletDetonateLastCheck(HouseClass* pOwner, double StraightSpeed);
 	void PassWithDetonateAt(HouseClass* pOwner);
-	void PrepareForDetonateAt(HouseClass* pOwner, CoordStruct pCoord);
+	void PrepareForDetonateAt(HouseClass* pOwner);
+	std::vector<CellClass*> GetCellsInPassThrough();
 	std::vector<CellClass*> GetCellsInProximityRadius();
 	std::vector<CellStruct> GetCellsInRectangle(CellStruct bStaCell, CellStruct lMidCell, CellStruct rMidCell, CellStruct tEndCell);
 	double GetExtraDamageMultiplier(TechnoClass* pTechno, HouseClass* pOwner, bool Self) const;
