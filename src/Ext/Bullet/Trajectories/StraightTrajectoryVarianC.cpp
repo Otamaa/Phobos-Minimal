@@ -249,22 +249,18 @@ TrajectoryCheckReturnType StraightTrajectoryVarianC::OnAITechnoCheck(TechnoClass
 		if (pTechno->WhatAmI() == AbstractType::Building)
 		{
 			auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+			if (pBuilding->Type->InvisibleInGame)
+				return TrajectoryCheckReturnType::SkipGameCheck;
 
-			if (pBuilding->Type)
+			if (pBuilding->Type->IsVehicle())
 			{
-				if (pBuilding->Type->InvisibleInGame)
-					return TrajectoryCheckReturnType::SkipGameCheck;
-
-				if (pBuilding->Type->IsVehicle())
-				{
-					if (!this->ThroughVehicles)
-						this->ExtraCheck1 = pTechno;
-				}
-				else
-				{
-					if (!this->ThroughBuilding)
-						this->ExtraCheck1 = pTechno;
-				}
+				if (!this->ThroughVehicles)
+					this->ExtraCheck1 = pTechno;
+			}
+			else
+			{
+				if (!this->ThroughBuilding)
+					this->ExtraCheck1 = pTechno;
 			}
 		}
 		else if (!pType->ThroughVehicles && (pTechno->WhatAmI() == AbstractType::Unit || pTechno->WhatAmI() == AbstractType::Aircraft))
