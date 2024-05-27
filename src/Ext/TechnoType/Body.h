@@ -934,6 +934,7 @@ public:
 	ValueableVector<TechnoTypeClass*> BuildLimitGroup_ExtraLimit_Types {};
 	ValueableVector<int> BuildLimitGroup_ExtraLimit_Nums {};
 	ValueableVector<int> BuildLimitGroup_ExtraLimit_MaxCount {};
+	Valueable<int> BuildLimitGroup_ExtraLimit_MaxNum { 0 };
 #pragma endregion
 
 	NullableVector<int> Tiberium_PipIdx {};

@@ -1266,6 +1266,9 @@ std::vector<int> HouseExtData::GetBuildLimitGroupLimits(HouseClass* pHouse, Tech
 			for (auto& limit : limits) {
 				if (i < pTypeExt->BuildLimitGroup_ExtraLimit_Nums.size() && pTypeExt->BuildLimitGroup_ExtraLimit_Nums[i] > 0)
 					limit += count * pTypeExt->BuildLimitGroup_ExtraLimit_Nums[i];
+
+				if (pTypeExt->BuildLimitGroup_ExtraLimit_MaxNum > 0)
+					limit = MinImpl(limit, pTypeExt->BuildLimitGroup_ExtraLimit_MaxNum);
 			}
 		}
 	}

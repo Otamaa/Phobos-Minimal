@@ -1231,6 +1231,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->BuildLimitGroup_ExtraLimit_Types.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Types");
 		this->BuildLimitGroup_ExtraLimit_Nums.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Nums");
 		this->BuildLimitGroup_ExtraLimit_MaxCount.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.MaxCount");
+		this->BuildLimitGroup_ExtraLimit_MaxNum.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.MaxNum");
 #pragma endregion
 
 		this->Tiberium_EmptyPipIdx.Read(exINI, pSection, "StorageEmptyPipIndex");
@@ -2237,6 +2238,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildLimitGroup_ExtraLimit_Types)
 		.Process(this->BuildLimitGroup_ExtraLimit_Nums)
 		.Process(this->BuildLimitGroup_ExtraLimit_MaxCount)
+		.Process(this->BuildLimitGroup_ExtraLimit_MaxNum)
 #pragma endregion
 
 		.Process(this->Tint_Color)
