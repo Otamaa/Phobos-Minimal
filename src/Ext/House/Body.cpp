@@ -1293,6 +1293,7 @@ int HouseExtData::QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pTy
 
 	return queued;
 }
+
 void HouseExtData::RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num)
 {
 	const AbstractType absType = pType->WhatAmI();
@@ -1308,6 +1309,7 @@ void HouseExtData::RemoveProduction(const HouseClass* pHouse, const TechnoTypeCl
 		}
 	}
 }
+
 bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, bool ignoreQueued)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
