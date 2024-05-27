@@ -60,19 +60,19 @@ public:
 		this->Items.Clear();
 	}
 
-	unsigned int GetTotalWeight() const {
+	constexpr unsigned int GetTotalWeight() const {
 		return this->TotalWeight;
 	}
 
-	int GetCount() const {
+	constexpr int GetCount() const {
 		return this->Items.Count;
 	}
 
-	bool IsValid() const {
+	constexpr bool IsValid() const {
 		return this->TotalWeight > 0U && this->Items.Count > 0;
 	}
 
-	bool Select(unsigned int value, T* pOut) const {
+	constexpr bool Select(unsigned int value, T* pOut) const {
 		if(this->IsValid() && value && value <= this->TotalWeight) {
 			unsigned int acc = 0u;
 			for(auto i = this->Items.begin(); i < this->Items.end(); ++i) {

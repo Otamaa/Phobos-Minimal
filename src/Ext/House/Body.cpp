@@ -1505,7 +1505,7 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 			int ownedNow = HouseExtData::CountOwnedIncludeDeploy(pThis, pType) * pTypeExt->BuildLimitGroup_Factor;
 
 			if (ownedNow >= limits[i] + 1 - pItemExt->BuildLimitGroup_Factor)
-				reachedLimit |= (includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType)) ? false : true;
+				reachedLimit |= !(includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType));
 		}
 
 		return reachedLimit ? CanBuildResult::TemporarilyUnbuildable : CanBuildResult::Buildable;
@@ -1525,7 +1525,7 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 
 			if (sum >= limits[0] + 1 - pItemExt->BuildLimitGroup_Factor) {
 				for (auto& pType : pItemExt->BuildLimitGroup_Types) {
-					reachedLimit |= (includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType)) ? false : true;
+					reachedLimit |= !(includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType));
 				}
 			}
 
