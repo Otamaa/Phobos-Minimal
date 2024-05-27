@@ -15,6 +15,7 @@
 #include <UnitClass.h>
 #include <UnitTypeClass.h>
 #include <ocidl.h>
+#include <ScenarioClass.h>
 
 //forward declarations
 class AnimClass;
@@ -538,7 +539,15 @@ public:
 		return nullptr;
 	}
 
-	int GetSpawnPosition() const;
+	constexpr int GetSpawnPosition() const {
+		for (int i = 0; i < HouseClass::MaxPlayers; i++) {
+			if (HouseClass::Array->GetItemOrDefault(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
+				return i;
+		}
+
+		return -1;
+	}
+
 
 	// gets the first house of a type with this name
 	static HouseClass* FindBySideName(const char* name) {
@@ -666,8 +675,26 @@ public:
 	{ JMP_THIS(0x4FF550); }
 
 	//  Count owned now
-	int CountOwnedNow(TechnoTypeClass const* pItem) const;
-
+	constexpr int CountOwnedNow(TechnoTypeClass const* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<BuildingTypeClass const*>(pItem));
+		case UnitTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<UnitTypeClass const*>(pItem));
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<InfantryTypeClass const*>(pItem));
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<AircraftTypeClass const*>(pItem));
+		default:
+			return 0;
+		}
+	}
 	constexpr int CountOwnedNow(BuildingTypeClass const* const pItem) const {
 		return this->OwnedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
@@ -693,21 +720,36 @@ public:
 	{ JMP_THIS(0x5025F0); }
 
 	// Count owned and present
-	int CountOwnedAndPresent(TechnoTypeClass* pItem) const;
+	constexpr int CountOwnedAndPresent(TechnoTypeClass* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedAndPresent((BuildingTypeClass*)pItem);
+		case UnitTypeClass::vtable:
+			return this->CountOwnedAndPresent((UnitTypeClass*)pItem);
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedAndPresent((InfantryTypeClass*)pItem);
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedAndPresent((AircraftTypeClass*)pItem);
+		default:
+			return 0;
+		}
+	}
 
-	int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
 		return this->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
 		return this->ActiveAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
 		return this->ActiveInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(UnitTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(UnitTypeClass* pItem) const {
 		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -715,24 +757,38 @@ public:
 	{ JMP_THIS(0x4FB6B0); }
 
 	// Count owned ever
-	int CountOwnedEver(TechnoTypeClass* pItem) const;
+	constexpr int CountOwnedEver(TechnoTypeClass* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedEver((BuildingTypeClass*)pItem);
+		case UnitTypeClass::vtable:
+			return this->CountOwnedEver((UnitTypeClass*)pItem);
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedEver((InfantryTypeClass*)pItem);
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedEver((AircraftTypeClass*)pItem);
+		default:
+			return 0;
+		}
+	}
 
-	int CountOwnedEver(BuildingTypeClass* pItem) const {
+	constexpr int CountOwnedEver(BuildingTypeClass* pItem) const {
 		return this->FactoryProducedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(AircraftTypeClass* pItem) const {
+	constexpr int CountOwnedEver(AircraftTypeClass* pItem) const {
 		return this->FactoryProducedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(InfantryTypeClass* pItem) const {
+	constexpr int CountOwnedEver(InfantryTypeClass* pItem) const {
 		return this->FactoryProducedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(UnitTypeClass* pItem) const {
+	constexpr int CountOwnedEver(UnitTypeClass* pItem) const {
 		return this->FactoryProducedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
-
 
 	bool HasFromSecretLab(TechnoTypeClass* pItem) const {
 		for(const auto& pLab : this->SecretLabs) {
@@ -743,7 +799,7 @@ public:
 		return false;
 	}
 
-	bool HasAllStolenTech(TechnoTypeClass* pItem) const {
+	constexpr bool HasAllStolenTech(TechnoTypeClass* pItem) const {
 		if(pItem->RequiresStolenAlliedTech && !this->Side0TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenSovietTech && !this->Side1TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenThirdTech && !this->Side2TechInfiltrated) { return false; }
@@ -845,23 +901,20 @@ public:
 		this->BaseSpawnCell = place;
 	}
 
-	unsigned int FORCEINLINE GetAIDifficultyIndex() const {
+	constexpr unsigned int FORCEINLINE GetAIDifficultyIndex() const {
 		return static_cast<unsigned int>(this->AIDifficulty);
 	}
 
-	unsigned int GetCorrectAIDifficultyIndex() const
+	constexpr unsigned int GetCorrectAIDifficultyIndex() const
 	{
 		switch (AIDifficulty)
 		{
 		case AIDifficulty::Hard:
 			return 2;
-		break;
 		case AIDifficulty::Normal:
 			return 1;
-		break;
 		default:
 			return 0;
-		break;
 		}
 	}
 
@@ -875,12 +928,12 @@ public:
 		\author Renegade
 		\date 01.03.10
 	*/
-	bool IsNeutral() const {
+	constexpr bool IsNeutral() const {
 		return this->Type->MultiplayPassive;
 	}
 
 	// whether this house is equal to Player
-	bool IsCurrentPlayer() const {
+	constexpr bool IsCurrentPlayer() const {
 		return this == CurrentPlayer;
 	}
 
@@ -896,7 +949,7 @@ public:
 	//}
 
 	// whether this house is equal to Observer
-	bool IsObserver() const {
+	constexpr bool IsObserver() const {
 
 		return (this == Observer //|| !CRT::strcmpi(get_ID(), "Observer")
 			);
@@ -904,7 +957,7 @@ public:
 	}
 
 	// whether Player is equal to Observer
-	static bool IsCurrentPlayerObserver() {
+	constexpr static bool IsCurrentPlayerObserver() {
 		return CurrentPlayer && CurrentPlayer->IsObserver();
 	}
 
@@ -920,7 +973,7 @@ public:
 	void AddTracking(TechnoClass* pTechno)
 	{ JMP_THIS(0x4FF700); }
 
-	Edge GetHouseEdge() const
+	constexpr Edge GetHouseEdge() const
 	{
 		auto edge = this->StaticData.StartingEdge;
 		if (edge < Edge::North || edge > Edge::West)
@@ -1010,7 +1063,7 @@ public:
 		JMP_THIS(0x4FAA10);
 	}
 
-	bool MakeObserver() const
+	constexpr bool MakeObserver() const
 	{
 		if (HouseClass::CurrentPlayer != this)
 			return false;
@@ -1019,7 +1072,7 @@ public:
 		return true;
 	}
 
-	bool inline IsInitiallyObserver() const
+	constexpr bool inline IsInitiallyObserver() const
 	{
 		return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);
 	}

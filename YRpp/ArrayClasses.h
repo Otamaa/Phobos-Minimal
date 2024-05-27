@@ -358,36 +358,36 @@ public:
 #pragma endregion
 
 #pragma region iteratorpointer
-	T* begin() const
+	constexpr T* begin() const
 	{
 		return &this->Items[0];
 	}
 
-	T* end() const
+	constexpr T* end() const
 	{
 		return &this->Items[this->Count];
 	}
 
-	T* front() const {
+	constexpr T* front() const {
 		return &this->Items[0];
 	}
 
-	T* back() const {
+	constexpr T* back() const {
 		return  &this->Items[(this->Count - 1)];
 	}
 
-	T* begin()
+	constexpr T* begin()
 	{
 		return &this->Items[0];
 	}
 
-	T* end()
+	constexpr T* end()
 	{
 		return &this->Items[this->Count];
 	}
 
 
-	size_t size() const {
+	constexpr size_t size() const {
 		return static_cast<size_t>(Count);
 	}
 
@@ -397,17 +397,15 @@ public:
 
 	// this one doesnt destroy the memory , just reset the count
 	// the vector memory may still contains dangling pointer if it vector of pointer
-	void __forceinline Reset(int resetCount = 0) {
+	constexpr void FORCEINLINE Reset(int resetCount = 0) {
 		this->Count = resetCount;
 	}
 
-	bool __forceinline ValidIndex(int index) const
-	{
+	constexpr bool FORCEINLINE ValidIndex(int index) const {
 		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
 	}
 
-	bool __forceinline ValidIndex(size_t index) const
-	{
+	constexpr bool FORCEINLINE ValidIndex(size_t index) const {
 		return index < static_cast<size_t>(this->Count);
 	}
 
@@ -416,7 +414,7 @@ public:
 		return this->GetItemOrDefault(i, T());
 	}
 
-	T GetItemOrDefault(size_t i, T def) const
+	constexpr T GetItemOrDefault(size_t i, T def) const
 	{
 		if (!this->ValidIndex(i))
 			return def;
@@ -589,7 +587,7 @@ public:
 
 #pragma region WrappedSTD
 	template <typename Func>
-	auto FORCEINLINE find_if(Func&& act) const {
+	constexpr auto FORCEINLINE find_if(Func&& act) const {
 		auto i = this->begin();
 
 	    for (; i != this->end(); ++i) {
@@ -602,7 +600,7 @@ public:
 	}
 
 	template <typename Func>
-	auto FORCEINLINE find_if(Func&& act) {
+	constexpr auto FORCEINLINE find_if(Func&& act) {
 		auto i = this->begin();
 
 		for (; i != this->end(); ++i) {
@@ -615,21 +613,21 @@ public:
 	}
 
 	template <typename Func>
-	void FORCEINLINE for_each(Func&& act) const {
+	constexpr void FORCEINLINE for_each(Func&& act) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
 	template <typename Func>
-	void FORCEINLINE for_each(Func&& act) {
+	constexpr void FORCEINLINE for_each(Func&& act) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
 	template<typename func>
-	bool FORCEINLINE none_of(func&& fn) const {
+	constexpr bool FORCEINLINE none_of(func&& fn) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
            	 	return false;
@@ -640,7 +638,7 @@ public:
 	}
 
 	template<typename func>
-	bool FORCEINLINE none_of(func&& fn) {
+	constexpr bool FORCEINLINE none_of(func&& fn) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
            	 	return false;
@@ -651,7 +649,7 @@ public:
 	}
 
 	template<typename func>
-	bool FORCEINLINE any_of(func&& fn) const {
+	constexpr bool FORCEINLINE any_of(func&& fn) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
             	return true;
@@ -662,7 +660,7 @@ public:
 	}
 
 	template<typename func>
-	bool FORCEINLINE any_of(func&& fn) {
+	constexpr bool FORCEINLINE any_of(func&& fn) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
             	return true;

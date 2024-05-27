@@ -234,7 +234,23 @@ public:
 		return false;
 	}
 
-	TechnoTypeClass* GetSecretProduction() const;
+	constexpr TechnoTypeClass* GetSecretProduction() const {
+		auto const pType = this->Type;
+
+		if (pType->SecretInfantry) {
+			return (TechnoTypeClass*)pType->SecretInfantry;
+		}
+
+		if (pType->SecretUnit) {
+			return (TechnoTypeClass*)pType->SecretUnit;
+		}
+
+		if (pType->SecretBuilding) {
+			return (TechnoTypeClass*)pType->SecretBuilding;
+		}
+
+		return this->SecretProduction;
+	}
 
 	AnimClass*& GetAnim(BuildingAnimSlot slot) {
 		return this->Anims[static_cast<int>(slot)];
