@@ -14,99 +14,6 @@
 #include <Ext/Cell/Body.h>
 #include <Ext/Rules/Body.h>
 
-namespace TerrainTypeTemp
-{
-	TerrainTypeExtData* pCurrentExt = nullptr;
-	double PriorHealthRatio = 0.0;
-}
-
-DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
-{
-	enum { SkipGameCode = 0x71C8D5 };
-
-	GET(TerrainClass* const, pThis, ESI);
-
-	if (pThis->Type)
-	{
-		if (pThis->Type->IsAnimated)
-		{
-			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
-			if(auto pImage = pThis->Type->GetImage()) {
-				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))) {
-					pThis->Animation.Value = 0;
-					pThis->Animation.Start(0);
-
-					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
-					{
-						auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
-
-						// Set context for CellClass hooks.
-						TerrainTypeTemp::pCurrentExt = pTypeExt;
-
-						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
-							pCell->SpreadTiberium(true);
-					}
-				}
-			}
-			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
-		}
-	}
-
-	// Unset context for CellClass hooks.
-	TerrainTypeTemp::pCurrentExt = nullptr;
-	return SkipGameCode;
-}
-
-DEFINE_HOOK(0x483811, CellClass_SpreadTiberium_TiberiumType, 0x8)
-{
-	//GET(CellClass*, pThis, EDI);
-
-	if (const auto pTerrainTypeExt = TerrainTypeTemp::pCurrentExt)
-	{
-		LEA_STACK(int*, pTibType, STACK_OFFS(0x1C, -0x4));
-		*pTibType = pTerrainTypeExt->SpawnsTiberium_Type;
-		return 0x483819;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x48381D, CellClass_SpreadTiberium_CellSpread, 0x6)
-{
-	enum { SpreadReturn = 0x4838CA, NoSpreadReturn = 0x4838B0 };
-
-	if (const auto pTerrainTypeExt = TerrainTypeTemp::pCurrentExt)
-	{
-		GET(CellClass*, pThis, EDI);
-		GET(int, tibIndex, EAX);
-
-		TiberiumClass* pTib = TiberiumClass::Array->Items[tibIndex];
-
-		std::vector<CellStruct> adjacentCells {};
-		GeneralUtils::AdjacentCellsInRange(adjacentCells, pTerrainTypeExt->SpawnsTiberium_Range);
-		size_t size = adjacentCells.size();
-		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-
-		for (int i = 0; i < (int)size; i++)
-		{
-			unsigned int cellIndex = (i + rand) % size;
-			CellStruct tgtPos = pThis->MapCoords + adjacentCells[cellIndex];
-			CellClass* tgtCell = MapClass::Instance->GetCellAt(tgtPos);
-
-			if (tgtCell && tgtCell->CanTiberiumGerminate(pTib))
-			{
-				R->EAX<bool>(tgtCell->IncreaseTiberium(tibIndex,
-					pTerrainTypeExt->GetTiberiumGrowthStage()));
-
-				return SpreadReturn;
-			}
-		}
-
-		return NoSpreadReturn;
-	}
-
-	return 0;
-}
 
 DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 {
@@ -149,6 +56,7 @@ DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 
 	return 0;
 }
+
 DEFINE_HOOK(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 {
 	enum { ReturnFromFunction = 0x71C839, SkipCheck = 0x71C7C2 };

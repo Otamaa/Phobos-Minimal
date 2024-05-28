@@ -2268,6 +2268,146 @@ DEFINE_JUMP(LJMP, 0x722F00, GET_OFFSET(TibPatch__::__GrowthWrapper));
 DEFINE_JUMP(LJMP, 0x7233A0, GET_OFFSET(TibPatch__::__RecalcGrowthWrapper));
 DEFINE_JUMP(LJMP, 0x7235A0, GET_OFFSET(TibPatch__::__QueueGrowthAtWrapper));
 
+#include <Ext/Terrain/Body.h>
+
+struct CellPatch__ : public CellClass
+{
+	bool _SpreadTiberium(bool force)
+	{
+		int tib_ = -1;
+
+		if (!force) {
+			if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads) {
+				return false;
+			}
+
+			tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+			if(tib_ == -1
+				  || this->OverlayData <= tib_ / 2
+				  || this->SlopeIndex
+				  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				  || this->FirstObject)
+			{
+				return false;
+			}
+		}
+		else {
+			if (tib_ == -1) {
+				tib_ = 0;
+			}
+		}
+
+		auto pTib = TiberiumClass::Array->Items[tib_];
+		auto facing = (BYTE)ScenarioClass::Instance->Random.RandomRangedSpecific(FacingType::Min, FacingType::Max);
+		int index = 0;
+		CellClass* newcell = nullptr;
+
+		while (true)
+		{
+			const auto v9 = ((BYTE)index + facing) & 7;
+
+			if (v9 < 8) {
+				newcell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[v9] + this->MapCoords);
+			}
+			else
+			{
+				newcell = this;
+			}
+			if (newcell && newcell->CanTiberiumGerminate(pTib)) {
+				break;
+			}
+
+			if (++index >= 8) {
+				return false;
+			}
+		}
+
+		return newcell->IncreaseTiberium(tib_, 3);
+	}
+
+	bool _SpreadTiberium_2(TerrainClass* pTerrain , bool force)
+	{
+		if (!pTerrain)
+			Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
+
+		auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+
+		int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
+
+		if (!force) {
+			if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads) {
+				return false;
+			}
+
+			int celltib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+			if (celltib_ == -1
+				  || this->OverlayData <= celltib_ / 2
+				  || this->SlopeIndex
+				  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				  || this->FirstObject)
+			{
+				return false;
+			}
+
+			if (tib_ <= -1)
+				return false;
+		} else {
+			if (tib_ <= -1) {
+				tib_ = 0;
+			}
+		}
+
+
+		auto pTib = TiberiumClass::Array->Items[tib_];
+		auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
+		size_t size = pTerrainExt->Adjencentcells.size();
+		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
+
+		for (int i = 0; i < (int)size; i++) {
+				CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+
+			if (tgtCell->CanTiberiumGerminate(pTib)) {
+				return tgtCell->IncreaseTiberium(tib_,pTerrainTypeExt->GetTiberiumGrowthStage());
+			}
+		}
+
+		return false;
+	}
+
+	static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force) {
+		pThis->_SpreadTiberium(force);
+	}
+};
+
+DEFINE_JUMP(LJMP, 0x483780, GET_OFFSET(CellPatch__::__SpreadTiberiumWrapper));
+
+DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
+{
+	enum { SkipGameCode = 0x71C8D5 };
+
+	GET(TerrainClass* const, pThis, ESI);
+
+	if (pThis->Type) {
+		if (pThis->Type->IsAnimated) {
+			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+			if (auto pImage = pThis->Type->GetImage()) {
+				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))) {
+					pThis->Animation.Value = 0;
+					pThis->Animation.Start(0);
+
+					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location)) {
+						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
+							((CellPatch__*)MapClass::Instance->GetCellAt(pThis->Location))->_SpreadTiberium_2(pThis, true);
+					}
+				}
+			}
+			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
+		}
+	}
+
+	return SkipGameCode;
+}
+
 BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 {
 	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();

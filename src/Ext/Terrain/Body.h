@@ -24,6 +24,7 @@ public:
 
 	Handle<LightSourceClass*, UninitLightSource> LighSource { nullptr };
 	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
+	std::vector<CellStruct> Adjencentcells{};
 
 	TerrainExtData()  noexcept = default;
 	~TerrainExtData() noexcept = default;
