@@ -2339,7 +2339,7 @@ struct CellPatch__ : public CellClass
 				return false;
 			}
 
-			if (tib_ <= -1)
+			if (tib_ <= -1 || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 				return false;
 
 			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
