@@ -105,7 +105,7 @@ DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
+constexpr int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
 {
     int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
     int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;

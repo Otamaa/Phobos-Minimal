@@ -2339,18 +2339,14 @@ struct CellPatch__ : public CellClass
 				return false;
 			}
 
-			int celltib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
-			if (celltib_ == -1
-				  || this->OverlayData <= celltib_ / 2
-				  || this->SlopeIndex
-				  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
-				  || this->FirstObject)
-			{
+			if (tib_ <= -1)
+				return false;
+
+			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				|| this->FirstObject ){
 				return false;
 			}
 
-			if (tib_ <= -1)
-				return false;
 		} else {
 			if (tib_ <= -1) {
 				tib_ = 0;
