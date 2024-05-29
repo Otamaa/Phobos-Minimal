@@ -6649,11 +6649,11 @@ DEFINE_HOOK(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
 	return 0x4249D8;
 }
 
-DEFINE_HOOK(0x45822E, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
-{
-	R->EBX(HouseExtData::FindFirstCivilianHouse());
-	return 0x45827A;
-}
+ DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
+ {
+ 	R->EBX(HouseExtData::FindFirstCivilianHouse());
+ 	return 0x45826E;
+ }
 
 DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
