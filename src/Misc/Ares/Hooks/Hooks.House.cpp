@@ -434,7 +434,7 @@ DEFINE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 		if (auto pDisguise = HouseExtData::GetDisguise(pHouse)) {
 			pThis->Disguise = pDisguise;
 			return dwReturnAddress;
-		} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get(nullptr)){
+		} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get()){
 			pThis->Disguise = pDefaultDisguiseType;
 			return dwReturnAddress;
 		}

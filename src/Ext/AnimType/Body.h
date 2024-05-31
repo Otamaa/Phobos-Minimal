@@ -31,7 +31,7 @@ public:
 	Valueable<Mission> CreateUnit_Mission { Mission::Guard };
 	Nullable<OwnerHouseKind> CreateUnit_Owner {};
 	Valueable<bool> CreateUnit_ConsiderPathfinding { false };
-	Nullable<AnimTypeClass*> CreateUnit_SpawnAnim { };
+	Valueable<AnimTypeClass*> CreateUnit_SpawnAnim { nullptr };
 	Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
 	Valueable<bool> CreateUnit_KeepOwnerIfDefeated { true };
 #pragma endregion
@@ -41,7 +41,7 @@ public:
 	Nullable<bool> Layer_UseObjectLayer {};
 	Valueable<bool> UseCenterCoordsIfAttached { false };
 
-	Nullable<WeaponTypeClass*> Weapon {};
+	Valueable<WeaponTypeClass*> Weapon { nullptr };
 	Valueable<WeaponTypeClass*> WeaponToCarry {};
 	Valueable<bool> Warhead_Detonate { false };
 

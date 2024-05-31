@@ -60,7 +60,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
+	if (auto const pAnimType = pTerrainExt->DestroyAnim) {
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
 			args.SourceHouse,
 			pThis->GetOwningHouse(),

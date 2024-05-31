@@ -83,7 +83,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 	if ((pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity != 0.0) && EnumFunctions::CanTargetHouse(pTypeExt->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
 	{
 		if (calculateTintColor)
-			*tintColor |= Drawing::RGB_To_Int(pTypeExt->Tint_Color.Get(ColorStruct { 0,0,0 }));
+			*tintColor |= Drawing::RGB_To_Int(pTypeExt->Tint_Color);
 
 		if (calculateIntensity)
 			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
@@ -99,8 +99,8 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 		if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
 			continue;
 
-		if (calculateTintColor)
-			*tintColor |= Drawing::RGB_To_Int(type->Tint_Color.Get(ColorStruct { 0,0,0 }));
+		if (calculateTintColor && type->Tint_Color.isset())
+			*tintColor |= Drawing::RGB_To_Int(type->Tint_Color);
 
 		if (calculateIntensity)
 			*intensity += static_cast<int>(type->Tint_Intensity * 1000);

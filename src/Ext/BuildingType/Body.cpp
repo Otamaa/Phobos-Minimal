@@ -425,14 +425,13 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 	float fFactor = 1.0f;
 
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
-	{
+	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 			continue;
 
-		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
-		nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
+		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor, static_cast<float>(nCount));
+		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
 	}
 
 	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;

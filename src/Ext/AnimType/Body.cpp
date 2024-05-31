@@ -261,7 +261,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 
 		if (!pTechno->InLimbo)
 		{
-			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
+			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim)
 			{
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation);
 				pCreateUnitAnim->Owner = decidedOwner;
@@ -390,14 +390,11 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 void AnimTypeExtData::ValidateSpalshAnims()
 {
 	AnimTypeClass* pWake = nullptr;
-	if (WakeAnim.isset() && this->AttachedToObject->IsMeteor)
-		pWake = WakeAnim.Get();
-	else
-		pWake = RulesClass::Instance->Wake;
+	if (this->AttachedToObject->IsMeteor)
+		pWake = WakeAnim.Get(RulesClass::Instance->Wake);
 
 	//what if the anim type loaded twice ?
-	if (SplashList.empty())
-	{
+	if (SplashList.empty()) {
 		SplashList.push_back(pWake);
 	}
 }

@@ -119,6 +119,9 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 		if (!this->TechnoInLimbo)
 		{
+			if (!pBullet->WeaponType)
+				return;
+
 			if (pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, false) || pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, true)){
 				auto& [FLHFound, FLH] = TechnoExtData::GetBurstFLH(pBullet->Owner, WeaponIndex);
 
@@ -137,8 +140,6 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 				else
 					this->FLHCoord = pBullet->Owner->GetWeapon(WeaponIndex)->FLH;
 			}
-			else
-				this->NotMainWeapon = true;
 		}
 		else
 		{
@@ -229,13 +230,10 @@ bool EngraveTrajectory::OnAI()
 {
 	auto pBullet = this->AttachedTo;
 
-	if (!pBullet->Owner)
+	if (!pBullet->WeaponType || !pBullet->Owner || this->TechnoInLimbo != pBullet->Owner->InLimbo)
 		return true;
 
 	auto const pType = this->GetTrajectoryType();
-
-	if (this->TechnoInLimbo != pBullet->Owner->InLimbo)
-		return true;
 
 	this->Duration -= 1;
 

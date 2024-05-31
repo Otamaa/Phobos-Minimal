@@ -15,6 +15,7 @@ bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange
 		.Process(this->TargetSnapDistance, false)
 		.Process(this->FreeFallOnTarget, false)
 		.Process(this->NoLaunch, false)
+		.Process(this->TurningPointAnim, false)
 		;
 }
 
@@ -30,6 +31,7 @@ bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 		.Process(this->TargetSnapDistance, false)
 		.Process(this->FreeFallOnTarget, false)
 		.Process(this->NoLaunch, false)
+		.Process(this->TurningPointAnim, false)
 		;
 }
 
@@ -48,8 +50,23 @@ bool BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 	this->TargetSnapDistance.Read(exINI, pSection, "Trajectory.Bombard.TargetSnapDistance");
 	this->FreeFallOnTarget.Read(exINI, pSection, "Trajectory.Bombard.FreeFallOnTarget");
 	this->NoLaunch.Read(exINI, pSection, "Trajectory.Bombard.NoLaunch");
-
+	this->TurningPointAnim.Read(exINI, pSection, "Trajectory.Bombard.TurningPointAnim");
 	return true;
+}
+
+void BombardTrajectory::ApplyTurningPointAnim(CoordStruct& Position)
+{
+	auto const pType = this->GetTrajectoryType();
+
+	if (pType->TurningPointAnim) {
+		if (auto const pAnim = GameCreate<AnimClass>(pType->TurningPointAnim, Position)) {
+			auto pExt = BulletExtContainer::Instance.Find(this->AttachedTo);
+			auto pTechno = this->AttachedTo->Owner ? this->AttachedTo->Owner : nullptr;
+			auto pOwner = pTechno && pTechno->Owner ? pTechno->Owner : pExt->Owner;
+			pAnim->SetOwnerObject(pTechno);
+			pAnim->Owner = pOwner;
+		}
+	}
 }
 
 bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -122,6 +139,8 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 			pBullet->Velocity.Y = 0.0;
 			pBullet->Velocity.Z = 0.0;
 		}
+
+		this->ApplyTurningPointAnim(SourceLocation);
 	}
 }
 
@@ -200,6 +219,14 @@ void BombardTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosi
 					pPosition->Y = pBullet->TargetCoords.Y;
 				}
 			}
+
+			CoordStruct BulletLocation {
+				static_cast<int>(pPosition->X),
+				static_cast<int>(pPosition->Y),
+				static_cast<int>(pPosition->Z)
+			};
+
+			this->ApplyTurningPointAnim(BulletLocation);
 		}
 	}
 	else if (!pType->FreeFallOnTarget)

@@ -203,7 +203,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
-	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
+	if (auto const pWeapon = pTypeExt->Weapon)
 	{
 		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
 		// use target loc instead of anim loc , it doesnt work well with bridges

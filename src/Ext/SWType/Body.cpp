@@ -1751,7 +1751,7 @@ void SWTypeExtData::ApplyLimboKill(HouseClass* pHouse)
 
 void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell)
 {
-	if (!this->Detonate_Weapon.isset() && !this->Detonate_Warhead.isset())
+	if (!this->Detonate_Weapon && !this->Detonate_Warhead)
 		return;
 
 	const auto pCell = MapClass::Instance->GetCellAt(cell);
@@ -1820,7 +1820,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	if (!this->LimboKill_IDs.empty())
 		ApplyLimboKill(pHouse);
 
-	if (this->Detonate_Warhead.isset() || this->Detonate_Weapon.isset())
+	if (this->Detonate_Warhead || this->Detonate_Weapon)
 		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
 
 	if (!this->SW_Next.empty())

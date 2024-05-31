@@ -173,8 +173,8 @@ public:
 	Valueable<bool> SW_InitialReady { false };
 	Valueable<bool> SW_AlwaysGranted { false };
 #pragma region Detonate
-	Nullable<WarheadTypeClass*> Detonate_Warhead {};
-	Nullable<WeaponTypeClass*> Detonate_Weapon {};
+	Valueable<WarheadTypeClass*> Detonate_Warhead {};
+	Valueable<WeaponTypeClass*> Detonate_Weapon {};
 	Nullable<int> Detonate_Damage {};
 	Valueable<bool> Detonate_AtFirer { false };
 #pragma endregion

@@ -51,8 +51,8 @@ public:
 	ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
 
 	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
-	Nullable<int> PowerPlantEnhancer_Amount {};
-	Nullable<float> PowerPlantEnhancer_Factor {};
+	Valueable<int> PowerPlantEnhancer_Amount { 0 };
+	Valueable<float> PowerPlantEnhancer_Factor { 1.0f };
 
 	std::vector<Point2D> OccupierMuzzleFlashes {};
 
@@ -65,7 +65,7 @@ public:
 	ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
 	ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
 	NullableIdx<VocClass> Grinding_Sound {};
-	Nullable<WeaponTypeClass*> Grinding_Weapon {};
+	Valueable<WeaponTypeClass*> Grinding_Weapon { nullptr };
 
 	Valueable<bool> Grinding_PlayDieSound { false };
 	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };

@@ -247,7 +247,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
 				FlyingStrings::DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
-			this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
+			this->BreakShield(pWHExt->Shield_BreakAnim, pWHExt->Shield_BreakWeapon.Get(nullptr));
 
 			//rest of the damage will be passed to the techno
 			nDamageResult = this->Type->AbsorbOverDamage ? PassableDamageAnount : residueDamage + PassableDamageAnount;
@@ -258,7 +258,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			if (Phobos::Debug_DisplayDamageNumbers && (-DamageToShield)  != 0)
 				FlyingStrings::DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
 
-			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
+			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim);
 			this->HP -= DamageToShield; //set the HP remaining after get hit
 			UpdateIdleAnim();
 			//absorb all the damage
@@ -337,7 +337,7 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 	if (this->AreAnimsHidden)
 		return;
 
-	const auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim.Get(nullptr);
+	const auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim;
 
 	if (pAnimType)
 	{
@@ -737,7 +737,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 
 	if (!this->AreAnimsHidden)
 	{
-		const auto pAnimType = pBreakAnim ? pBreakAnim : this->Type->BreakAnim.Get(nullptr);
+		const auto pAnimType = pBreakAnim ? pBreakAnim : this->Type->BreakAnim;
 
 		if (pAnimType)
 		{
@@ -750,7 +750,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	this->LastBreakFrame = Unsorted::CurrentFrame;
 	this->UpdateTint();
 
-	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr))
+	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon)
 	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
 		WeaponTypeExtData::DetonateAt(pWeaponType, pTarget, this->Techno, true, nullptr);

@@ -73,7 +73,7 @@ public:
 	ValueableVector<double> Crit_Chance { };
 	Valueable<bool> Crit_ApplyChancePerTarget { false };
 	ValueableVector<int> Crit_ExtraDamage { };
-	Nullable<WarheadTypeClass*> Crit_Warhead {};
+	Valueable<WarheadTypeClass*> Crit_Warhead { nullptr };
 	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> Crit_AnimList {};
@@ -98,8 +98,8 @@ public:
 
 	Valueable<bool> Shield_Penetrate { false };
 	Valueable<bool> Shield_Break { false };
-	Nullable<AnimTypeClass*> Shield_BreakAnim {};
-	Nullable<AnimTypeClass*> Shield_HitAnim {};
+	Valueable<AnimTypeClass*> Shield_BreakAnim { nullptr };
+	Valueable<AnimTypeClass*> Shield_HitAnim { nullptr };
 	Nullable<WeaponTypeClass*> Shield_BreakWeapon {};
 
 	Nullable<double> Shield_AbsorbPercent {};
@@ -171,7 +171,7 @@ public:
 	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_AffectTypes {};
 	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_IgnoreTypes {};
 
-	Nullable<WeaponTypeClass*> RevengeWeapon {};
+	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
 	Valueable<int> RevengeWeapon_GrantDuration { 0 };
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses { AffectedHouse::All };
 	Valueable<bool> RevengeWeapon_Cumulative { false };

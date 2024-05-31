@@ -541,7 +541,7 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		pData->AttachTag ||
 		//pData->DirectionalArmor ||
 		pData->ReloadAmmo != 0
-		|| (pData->RevengeWeapon.isset() && pData->RevengeWeapon_GrantDuration > 0)
+		|| (pData->RevengeWeapon && pData->RevengeWeapon_GrantDuration > 0)
 		|| !pData->LimboKill_IDs.empty()
 		|| (pData->PaintBallData.Color != ColorStruct::Empty)
 		|| pData->InflictLocomotor
@@ -764,7 +764,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	//if (this->DirectionalArmor.Get())
 	//	this->ApplyDirectional(pBullet, pTarget);
 
-	if (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
+	if (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0)
 		this->ApplyRevengeWeapon(pTarget);
 
 	if (this->InflictLocomotor)
@@ -859,7 +859,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 			return;
 
 		if (this->Shield_Break && pExt->Shield->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-			pExt->Shield->BreakShield(this->Shield_BreakAnim.Get(nullptr), this->Shield_BreakWeapon.Get(nullptr));
+			pExt->Shield->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
 
 		if (this->Shield_Respawn_Duration > 0 && this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 			pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, this->Shield_Respawn_Amount, this->Shield_Respawn_Rate, this->Shield_Respawn_RestartTimer);
@@ -958,7 +958,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		damage = Crit_ExtraDamage[level];
 
 
-	if (this->Crit_Warhead.isset())
+	if (this->Crit_Warhead)
 		WarheadTypeExtData::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage, pHouse);
 	else
 		pTarget->ReceiveDamage(&damage, 0, this->AttachedToObject, pOwner, false, false, pHouse);

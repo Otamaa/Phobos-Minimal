@@ -183,7 +183,7 @@ public:
 	Valueable<AffectedHouse> AutoDeath_Exist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Exist_Any { false };
 	Valueable<bool> AutoDeath_Exist_AllowLimboed { true };
-	Nullable<AnimTypeClass*> AutoDeath_VanishAnimation {};
+	Valueable<AnimTypeClass*> AutoDeath_VanishAnimation { nullptr };
 	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
 	Valueable<ShieldTypeClass*> ShieldType { nullptr };
@@ -210,7 +210,7 @@ public:
 	PhobosMap<WarheadTypeClass* , std::vector<AnimTypeClass*>> DestroyAnimSpecific {};
 	Valueable<bool> NotHuman_RandomDeathSequence { false };
 
-	Nullable<InfantryTypeClass*> DefaultDisguise {};
+	Valueable<InfantryTypeClass*> DefaultDisguise { nullptr };
 
 	Nullable<int> OpenTopped_RangeBonus {};
 	Nullable<float> OpenTopped_DamageMultiplier {};
@@ -309,7 +309,7 @@ public:
 	Valueable<bool> Explodes_KillPassengers { true };
 
 	Nullable<int> DeployFireWeapon {};
-	Nullable<WeaponTypeClass*> RevengeWeapon {};
+	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses { AffectedHouse::All };
 
 	Valueable<TargetZoneScanType> TargetZoneScanType { TargetZoneScanType::Same };

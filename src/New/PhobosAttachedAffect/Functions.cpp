@@ -88,7 +88,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, it->GetType());
 
-				if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
+				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
 				{
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
 						it->ExpireWeapon();

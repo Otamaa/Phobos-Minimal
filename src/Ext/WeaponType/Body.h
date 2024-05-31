@@ -34,7 +34,7 @@ public:
 	Valueable<AffectedHouse> CanTargetHouses { AffectedHouse::All };
 	ValueableVector<int> Burst_Delays {};
 	Valueable<AreaFireTarget> AreaFire_Target { AreaFireTarget::Base };
-	Nullable<WeaponTypeClass*> FeedbackWeapon {};
+	Valueable<WeaponTypeClass*> FeedbackWeapon { nullptr };
 	Valueable<bool> Laser_IsSingleColor { false };
 	Nullable<double> Trajectory_Speed {};
 

@@ -15,13 +15,13 @@ public:
 	Valueable<bool> Powered;
 	Valueable<DiscardCondition> DiscardOn;
 	Valueable<bool> PenetratesIronCurtain;
-	ValueableVector<AnimTypeClass*> Animation;
+	Valueable<AnimTypeClass*> Animation;
 	NullableVector<AnimTypeClass*> CumulativeAnimations;
 	Valueable<bool> Animation_ResetOnReapply;
 	Valueable<AttachedAnimFlag> Animation_OfflineAction;
 	Valueable<AttachedAnimFlag> Animation_TemporalAction;
 	Valueable<bool> Animation_UseInvokerAsOwner;
-	Nullable<WeaponTypeClass*> ExpireWeapon;
+	Valueable<WeaponTypeClass*> ExpireWeapon;
 	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn;
 	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce;
 	Nullable<ColorStruct> Tint_Color;
@@ -42,7 +42,7 @@ public:
 	Valueable<double> Crit_ExtraChance;
 	ValueableVector<WarheadTypeClass*> Crit_AllowWarheads;
 	ValueableVector<WarheadTypeClass*> Crit_DisallowWarheads;
-	Nullable<WeaponTypeClass*> RevengeWeapon;
+	Valueable<WeaponTypeClass*> RevengeWeapon;
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
 	Valueable<bool> DisableWeapons;
 
@@ -66,7 +66,7 @@ public:
 		, Animation_OfflineAction { AttachedAnimFlag::Hides }
 		, Animation_TemporalAction { AttachedAnimFlag::None }
 		, Animation_UseInvokerAsOwner { false }
-		, ExpireWeapon {}
+		, ExpireWeapon { nullptr }
 		, ExpireWeapon_TriggerOn { ExpireWeaponCondition::Expire }
 		, ExpireWeapon_CumulativeOnlyOnce { false }
 		, Tint_Color {}
@@ -87,7 +87,7 @@ public:
 		, Crit_ExtraChance { 0.0 }
 		, Crit_AllowWarheads {}
 		, Crit_DisallowWarheads {}
-		, RevengeWeapon {}
+		, RevengeWeapon { nullptr }
 		, RevengeWeapon_AffectsHouses { AffectedHouse::All }
 		, DisableWeapons { false }
 		, Groups {}

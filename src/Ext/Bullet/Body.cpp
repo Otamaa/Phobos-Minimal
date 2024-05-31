@@ -735,7 +735,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 
 			pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
 
-			if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride.Get(nullptr))) {
+			if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride)) {
 
 				pThis->WeaponType = pWeaponOverride;
 				pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?

@@ -675,11 +675,11 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 		pExt->AccumulatedIncome += nRefundAmounts;
 		pExt->GrindingWeapon_AccumulatedCredits += nRefundAmounts;
 
-		if (pTypeExt->Grinding_Weapon.isset()
-			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon.Get()->ROF
+		if (pTypeExt->Grinding_Weapon
+			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon->ROF
 			&& pExt->GrindingWeapon_AccumulatedCredits >= pTypeExt->Grinding_Weapon_RequiredCredits)
 		{
-			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon.Get());
+			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon);
 			pExt->GrindingWeapon_LastFiredFrame = Unsorted::CurrentFrame;
 			pExt->GrindingWeapon_AccumulatedCredits = 0;
 		}

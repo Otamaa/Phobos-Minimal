@@ -14,6 +14,7 @@ public:
 	Valueable<Leptons> TargetSnapDistance { Leptons(128) };
 	Valueable<bool> FreeFallOnTarget { true };
 	Valueable<bool> NoLaunch { false };
+	Valueable<AnimTypeClass*> TurningPointAnim { nullptr };
 
 	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard } { }
 	virtual ~BombardTrajectoryType() = default;
@@ -23,7 +24,6 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
-
 };
 
 class BombardTrajectory final : public PhobosTrajectory
@@ -52,4 +52,5 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	void ApplyTurningPointAnim(CoordStruct& Position);
 };

@@ -33,12 +33,12 @@ public:
 	Nullable<double> Shrapnel_Chance { };
 	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
 
-	Nullable<Leptons> Cluster_Scatter_Min { };
-	Nullable<Leptons> Cluster_Scatter_Max { };
+	Valueable<Leptons> Cluster_Scatter_Min { BulletTypeExtData::DefaultBulletScatterMin };
+	Valueable<Leptons> Cluster_Scatter_Max { BulletTypeExtData::DefaultBulletScatterMax };
 
 	// Ares 0.7
 	Valueable<bool> Interceptable_DeleteOnIntercept { false };
-	Nullable<WeaponTypeClass*> Interceptable_WeaponOverride { };
+	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride { nullptr };
 
 	Nullable<bool> SubjectToLand { };
 	Valueable<bool> SubjectToLand_Detonate { true };

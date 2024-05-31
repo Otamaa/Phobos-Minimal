@@ -28,12 +28,12 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->NeedsDurationRefresh = false;
 	this->IsFirstCumulativeInstance = false;
 
-	if(!pType->Animation.empty()) {
-		if (pType->Animation.size() == 1 || !pType->AnimRandomPick)
-			this->SelectedAnim = pType->Animation[0];
-		else if (pType->AnimRandomPick && pType->Animation.size() > 1)
-			this->SelectedAnim = pType->Animation[ScenarioClass::Instance()->Random.RandomFromMax(pType->Animation.size() - 1)];
-	}
+	//if(!pType->Animation.empty()) {
+	//	if (pType->Animation.size() == 1 || !pType->AnimRandomPick)
+	//		this->SelectedAnim = pType->Animation[0];
+	//	else if (pType->AnimRandomPick && pType->Animation.size() > 1)
+	//		this->SelectedAnim = pType->Animation[ScenarioClass::Instance()->Random.RandomFromMax(pType->Animation.size() - 1)];
+	//}
 }
 
 void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)
@@ -658,7 +658,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		{
 			detachedCount++;
 
-			if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None)
+			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None)
 			{
 				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType) < 2)
 					(it)->ExpireWeapon();
@@ -708,7 +708,7 @@ int PhobosAttachEffectClass::RemoveAllOfTypeAndSource(PhobosAttachEffectTypeClas
 		{
 			detachedCount++;
 
-			if (pType->ExpireWeapon.isset() && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None)
+			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None)
 			{
 				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType) < 2)
 					(it)->ExpireWeapon();
