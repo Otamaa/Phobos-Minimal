@@ -336,6 +336,11 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 			if (value == -1 || maxValue == -1)
 				continue;
 
+			if (pDisplayType->ValueScaleDivisor > 1) {
+				value /= pDisplayType->ValueScaleDivisor;
+				maxValue /= pDisplayType->ValueScaleDivisor;
+			}
+
 			const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
 			Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
 				: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);

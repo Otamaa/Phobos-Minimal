@@ -21,6 +21,7 @@ public:
 	Valueable<bool> VisibleToHouses_Observer;
 	Valueable<AffectedHouse> VisibleToHouses;
 	Valueable<DisplayInfoType> InfoType;
+	Valueable<int> ValueScaleDivisor;
 
 	DigitalDisplayTypeClass(const char* pTitle) : Enumerable<DigitalDisplayTypeClass>(pTitle)
 		, Text_Color({ 0, 255, 0 }, { 255,255,0 }, { 255,0,0 })
@@ -38,8 +39,8 @@ public:
 		, VisibleToHouses_Observer(true)
 		, VisibleToHouses(AffectedHouse::All)
 		, InfoType(DisplayInfoType::Health)
-	{
-	}
+		, ValueScaleDivisor { 1 }
+	{ }
 
 	virtual ~DigitalDisplayTypeClass() override = default;
 
