@@ -17,7 +17,7 @@ DEFINE_HOOK(0x69BAE7, SessionClass_Resume_CampaignGameSpeed, 0xA)
 
 DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
 {
-	if (!Phobos::Misc::CustomGS)
+	if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN || !Phobos::Misc::CustomGS)
 		return 0;
 
 	auto& FrameTimer = Game::FrameTimer();
@@ -42,6 +42,9 @@ DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
 
 DEFINE_HOOK(0x55E33B, SyncDelay_End, 0x6)
 {
+	if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
+		return 0x0;
+
 	Game::FrameTimer->TimeLeft = GameOptionsClass::Instance->GameSpeed;
 	return 0;
 }

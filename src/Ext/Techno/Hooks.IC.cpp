@@ -90,7 +90,8 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 
 	enum { MakeInvunlnerable = 0x4DEB38, SkipGameCode = 0x4DEBA2 };
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	bool isOrganic = pType->Organic || pThis->WhatAmI() == InfantryClass::AbsID;
+	const auto what = pThis->WhatAmI();
+	bool isOrganic = pType->Organic || what == InfantryClass::AbsID;
 	const IronCurtainFlag defaultaffect = (!isOrganic ? IronCurtainFlag::Invulnerable : (forceshield ? &RulesExtData::Instance()->ForceShield_EffectOnOrganics : &RulesExtData::Instance()->IronCurtain_EffectOnOrganics)->Get());
 	const IronCurtainFlag affect = (forceshield ? &pTypeExt->ForceShield_Effect : &pTypeExt->IronCurtain_Effect)->Get(defaultaffect);
 
@@ -127,10 +128,13 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	}break;
 	default:
 	{
-		if (!pType->Organic || pThis->WhatAmI() != InfantryClass::AbsID)
-			return MakeInvunlnerable;
-		else
-		{
+		if (!pType->Organic || what != InfantryClass::AbsID) {
+			if(forceshield && what != BuildingClass::AbsID){
+				R->EAX(DamageState::Unaffected);
+			} else {
+				return MakeInvunlnerable;
+			}
+		} else {
 			const auto killWH = (forceshield ? &pTypeExt->ForceShield_KillWarhead : &pTypeExt->IronCurtain_KillWarhead);
 			const auto killWH_org = forceshield ? &RulesExtData::Instance()->ForceShield_KillOrganicsWarhead : &RulesExtData::Instance()->IronCurtain_KillOrganicsWarhead;
 			auto killWH_result = killWH->Get(!isOrganic ? RulesClass::Instance->C4Warhead : killWH_org->Get());
