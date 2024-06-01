@@ -406,6 +406,7 @@ public:
 
 	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
 
+	int ShootCount { 0 };
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept = default;
 

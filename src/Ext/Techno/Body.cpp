@@ -4789,7 +4789,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AE_ExtraRange)
 		.Process(this->AE_ExtraCrit)
 		.Process(this->PhobosAE)
-		//.Process(this->CanCurrentlyDeployIntoBuilding)
+		.Process(this->ShootCount)
 		;
 }
 

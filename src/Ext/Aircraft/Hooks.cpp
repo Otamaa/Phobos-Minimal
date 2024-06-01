@@ -8,7 +8,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
-
+#include <Ext/Techno/Body.h>
 //bool SecondFiringMethod = true;
 //
 //DEFINE_HOOK(0x6FF031, TechnoClass_Fire_CountAmmo, 0xA)
@@ -43,11 +43,32 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 
 	if (const auto pWeaponStr = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))) {
 		if (pWeaponStr->WeaponType) {
+			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType);
+
+			if (!pWeaponExt->Strafing_Shots.isset())
+				return 0;
+
+			int starfingCounts = pWeaponExt->Strafing_Shots;
+
 			int fireCount = pThis->MissionStatus - 4;
 
-			if (fireCount > 1 && WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
-				if (!pThis->Ammo)
+			if (starfingCounts > 5) {
+
+				if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe) {
+					if ((starfingCounts - 2 - pExt->ShootCount) > 0) {
+						pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
+					}
+				}
+				else if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget5_Strafe) {
+					pExt->ShootCount = 0;
+				}
+
+			}
+			else if (fireCount > 1 && starfingCounts < fireCount) {
+
+				if (!pThis->Ammo){
 					pThis->__DoingOverfly = false;
+				}
 
 				pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
 			}
@@ -735,3 +756,23 @@ DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 
 	return 0;
 }
+
+long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl const* ifly)
+{
+	const auto pThis = static_cast<AircraftClass const*>(ifly);
+
+	if (!pThis->Target || pThis->Target->IsInAir())
+		return FALSE;
+
+	if(const auto wpn = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))){
+		if (auto wpnType = wpn->WeaponType) {
+			if (WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing_Shots.isset())
+				return TRUE;
+
+			return wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso;
+		}
+	}
+
+	return FALSE;
+}
+DEFINE_JUMP(VTABLE, 0x7E2268, GET_OFFSET(AircraftClass_IFlyControl_IsStrafe));

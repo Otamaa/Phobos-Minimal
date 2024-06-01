@@ -67,6 +67,10 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	if (!pBullet)
 		return 0x41659E;
 
+	if (pThis->Is_Strafe()) {
+		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
+	}
+
 	R->EBX(pTarget);
 
 	if (pTypeExt->Firing_IgnoreGravity.Get())
@@ -212,7 +216,7 @@ DEFINE_HOOK(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
 }
 
 //DEFINE_HOOK(0x41B7F0, AircraftClass_IFlyControl_Is_Strafe, 0x6)
-//{ 
+//{
 //	GET_STACK(IFlyControl*, ptr, 0x4);
 //
 //	AircraftClass* pAircraft = static_cast<AircraftClass*>(ptr);
