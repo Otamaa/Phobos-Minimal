@@ -1315,6 +1315,8 @@ DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
 	return SkipGameCode;
 }
 
+#pragma endregion
+
 #include <Pipes.h>
 #include <Straws.h>
 
@@ -1564,7 +1566,6 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 	return 0x5FD8EB;
 }
 
-#pragma endregion
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>

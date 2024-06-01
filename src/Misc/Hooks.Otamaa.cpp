@@ -1674,32 +1674,44 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	bool ret = true;
-	if (const auto pFoot = generic_cast<FootClass*>(pThis))
-	{
-		const auto pType = pFoot->GetTechnoType();
-		if (!pType->Bunkerable || !pType->Turret)
-			ret = false;
+	if (const auto pFoot = generic_cast<FootClass*>(pThis)) {
 
-		if (!pFoot->IsArmed())
-			ret = false;
+		const auto pType = pFoot->GetTechnoType();
+		if (!pType->Bunkerable || !pType->Turret) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
+
+		if (!pFoot->IsArmed()) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
 
 		const auto nSpeedType = pType->SpeedType;
 		if (nSpeedType == SpeedType::Hover
 			|| nSpeedType == SpeedType::Winged
-			|| nSpeedType == SpeedType::None)
-			ret = false;
+			|| nSpeedType == SpeedType::None) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
 
-		if (pFoot->ParasiteEatingMe)
-			ret = false;
+		if (pFoot->ParasiteEatingMe) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
 
 		//crash the game , dont allow it
 		//maybe because of force_track stuffs,..
-		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor))
-			ret = false;
+		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor)) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
+
+		R->EAX(true);
+		return 0x70FBCA;
 	}
 
-	R->EAX(ret);
+	R->EAX(false);
 	return 0x70FBCA;
 }
 
@@ -2339,7 +2351,7 @@ struct CellPatch__ : public CellClass
 				return false;
 			}
 
-			if (tib_ <= -1 || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count ||(TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 				return false;
 
 			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
@@ -2348,7 +2360,7 @@ struct CellPatch__ : public CellClass
 			}
 
 		} else {
-			if (tib_ <= -1) {
+			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count) {
 				tib_ = 0;
 			}
 		}
@@ -5241,14 +5253,14 @@ DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 }
 #endif
 
-DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
-{
-	GET_STACK(CellStruct, from, 0x30 - 0x1C);
-	GET_STACK(CellStruct, to, 0x30 - 0x20);
-
-	Debug::Log("Regular findpath failure: (%d,%d) -> (%d, %d)\n", from.X, from.Y, to.X, to.Y);
-	return 0x42CC6D;
-}
+//DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
+//{
+//	GET_STACK(CellStruct, from, 0x30 - 0x1C);
+//	GET_STACK(CellStruct, to, 0x30 - 0x20);
+//
+//	Debug::Log("Regular findpath failure: (%d,%d) -> (%d, %d)\n", from.X, from.Y, to.X, to.Y);
+//	return 0x42CC6D;
+//}
 
 //TechnoClass_CTOR_TiberiumStorage
 //DEFINE_JUMP(LJMP, 0x6F2ECE , 0x6F2ED3)
@@ -7074,9 +7086,6 @@ DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
 }
 #endif
 
-
-
-
 DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 {
 	GET(BuildingClass*, pThis, EBP);
@@ -7098,7 +7107,6 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 
 	return 0x449F12;
 }
-
 
 #pragma region Assaulter
 //https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
@@ -7180,7 +7188,6 @@ DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 	return retFalse;
 }
 #pragma endregion
-
 
 DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 {
