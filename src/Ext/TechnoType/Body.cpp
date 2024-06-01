@@ -767,6 +767,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AttachedEffect.Read(exINI);
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
 		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
+		this->AttackFriendlies_AutoAttack.Read(exINI, pSection, "AttackFriendlies.AutoAttack");
+
 		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
 
 		this->ShowSpawnsPips.Read(exINI, pSection, "ShowSpawnsPips");
@@ -2174,6 +2176,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 	Stm.Process(this->AttachedEffect)
 		.Process(this->NoAmmoEffectAnim)
 		.Process(this->AttackFriendlies_WeaponIdx)
+		.Process(this->AttackFriendlies_AutoAttack)
 		.Process(this->PipScaleIndex)
 		.Process(this->AmmoPip)
 		.Process(this->AmmoPip_Palette)

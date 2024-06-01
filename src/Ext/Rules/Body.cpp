@@ -184,6 +184,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION , "VeinholeWarhead");
 
 	pData->WallTowers.Read(iniEX , GENERAL_SECTION , "WallTowers");
+	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
+		pData->WallTowers.push_back(pThis->WallTower);
 
 	pData->Promote_Vet_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.VeteranAnim");
 	pData->Promote_Elite_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.EliteAnim");
@@ -571,9 +573,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto pAnim : *AnimTypeClass::Array) {
-		AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
-	}
+	//for (auto pAnim : *AnimTypeClass::Array) {
+	//	AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
+	//}
 
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {
 		Debug::FatalErrorAndExit(
@@ -643,13 +645,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	this->Aircraft_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
-	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0)
-	{
-		bool temp[3];
-		int read = Parser<bool, 3>::Parse(Phobos::readBuffer, temp);
-
-		for (int i = 0; i < read; ++i)
-		{
+	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0) {
+		bool temp[3] {};
+		for (int i = 0; i < Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i) {
 			int diffIdx = 2 - i; // remapping so that HouseClass::AIDifficulty can be used as an index
 			this->AllowBypassBuildLimit[diffIdx] = temp[i];
 		}
@@ -715,9 +713,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Units_UnSellable.Read(exINI, GENERAL_SECTION, "UnitsUnsellable");
 	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
 	this->AnimRemapDefaultColorScheme.Read(exINI, AUDIOVISUAL_SECTION, "AnimRemapDefaultColorScheme");
-
-	if (pThis->WallTower && !this->WallTowers.Contains(pThis->WallTower))
-		this->WallTowers.push_back(pThis->WallTower);
 
 	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
 	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);

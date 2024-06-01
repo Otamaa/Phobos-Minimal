@@ -4943,7 +4943,8 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 	if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
 	{
 		auto const pType = pTechno->GetTechnoType();
-		auto const& Verses = pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, pWarhead)).Verses;
+		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pWarhead);
+		auto const& Verses = pWHExt->GetVerses(armor).Verses;
 
 		if (std::abs(Verses) < 0.001)
 		{
@@ -5347,7 +5348,6 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 		}
 	}
 }
-
 #pragma endregion
 
 #pragma region AresPoweredUnit
@@ -6676,7 +6676,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		case AresTriggerEvents::RemoveEMP:
 		case AresTriggerEvents::RemoveEMP_ByHouse:
 		{
-			const auto pTechno = generic_cast<FootClass*>(Args.Object);
+			const auto pTechno = generic_cast<TechnoClass*>(Args.Object);
 
 			if (pTechno && pThis->EventKind == Args.EventType)
 			{

@@ -16,9 +16,12 @@ DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, ECX);
 
-	TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
+	if(!Phobos::Otamaa::DoingLoadGame)
+		TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
+
 	return 0x0;
 }
+
 
 // init inside type check
 // should be no problem here

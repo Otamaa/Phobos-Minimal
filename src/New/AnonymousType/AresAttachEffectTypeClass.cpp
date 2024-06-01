@@ -22,7 +22,7 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	// cumulative no : will override the existing duration
 	// cumulative yes : will add new AE object onto the techno vector
 	this->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
-	this->AnimType.Read(exINI, pSection, "AttachEffect.Animation");
+	this->AnimType.Read(exINI, pSection, "AttachEffect.Animation" , true);
 	this->AnimResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
 	this->TemporalHidesAnim.Read(exINI, pSection, "AttachEffect.TemporalHidesAnim");
 	this->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");

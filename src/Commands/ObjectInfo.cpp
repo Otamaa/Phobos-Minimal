@@ -84,7 +84,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Loc = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
-	Append(buffer, "sp = %fl, fp = %fl , am = %fl ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier);
+	Append(buffer, "sp = %fl, fp = %fl , am = %fl , EMP: %d ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier, pFoot->EMPLockRemaining);
 	if (pFoot->WhatAmI() != InfantryClass::AbsID)
 		Append(buffer, ", DKilled= %d , ", TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled);
 
@@ -234,7 +234,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 	Append(buffer, "ID = %s, ", pBuilding->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pBuilding->Owner->get_ID(), pBuilding->Owner->PlainName);
 	Append(buffer, "Current Mission = %d (%s)\n", pBuilding->CurrentMission, MissionClass::MissionToString(pBuilding->CurrentMission));
-	Append(buffer, "fp = %fl , am = %fl ,", pBuilding->FirepowerMultiplier, pBuilding->ArmorMultiplier);
+	Append(buffer, "fp = %fl , am = %fl  , EMP: %d ,", pBuilding->FirepowerMultiplier, pBuilding->ArmorMultiplier, pBuilding->EMPLockRemaining);
 	Append(buffer, "Loc = (%d, %d)\n", nFootMapCoords.X, nFootMapCoords.Y);
 
 	if (pBuilding->Factory && pBuilding->Factory->Object)

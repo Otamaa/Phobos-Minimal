@@ -654,6 +654,8 @@ public:
 
 	Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 	Valueable<int> AttackFriendlies_WeaponIdx { -1 };
+	Valueable<bool> AttackFriendlies_AutoAttack { false };
+
 	Nullable<WORD> PipScaleIndex { };
 
 	Nullable<SHPStruct*> AmmoPip_shape { };
