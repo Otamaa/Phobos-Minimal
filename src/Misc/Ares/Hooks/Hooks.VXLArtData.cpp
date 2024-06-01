@@ -268,18 +268,16 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 
 	int frameChoosen = ChooseFrame(pThis, shadow_index_now, pVXL);//Don't want to use goto
 
-	matRet = pVXL->HVA->Matrixes[shadow_index_now + pVXL->HVA->LayerCount * frameChoosen];
+	matRet = (*pMat) * pVXL->HVA->Matrixes[shadow_index_now + pVXL->HVA->LayerCount * frameChoosen];
 
 	// A nasty temporary backward compatibility option
-	if (pVXL->HVA->LayerCount > 1 || pThis->GetTechnoType()->Turret) {
-		// NEEDS IMPROVEMENT : Choose the proper Z offset to shift the sections to the same level
-		matRet.TranslateZ(
-			-matRet.GetZVal()
-			- pVXL->VXL->TailerData->Bounds[0].Z
-		);
-	}
-
-	matRet = (*pMat)* matRet;
+	// if (pVXL->HVA->LayerCount > 1 || pThis->GetTechnoType()->Turret) {
+	// 	// NEEDS IMPROVEMENT : Choose the proper Z offset to shift the sections to the same level
+	// 	matRet.TranslateZ(
+	// 		-matRet.GetZVal()
+	// 		- pVXL->VXL->TailerData->Bounds[0].Z
+	// 	);
+	// }
 
 	// Recover vanilla instructions
 	if (pThis->GetTechnoType()->UseBuffer)
@@ -309,7 +307,10 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	const auto aTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	Matrix3D shadow_mtx {};
 	loco->Shadow_Matrix(&shadow_mtx, &key);
-
+	{
+		auto& arr = shadow_mtx.row;
+		arr[0][2] = arr[1][2] = arr[2][2] = arr[2][1] = arr[2][0] = 0;
+	}
 	if(const auto flyloco = locomotion_cast<FlyLocomotionClass*>(pThis->Locomotor)) {
 		const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
 
@@ -489,6 +490,10 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	TranslateAngleRotated(&shadow_matrix, pThis, pType);
 
 	auto mtx = Game::VoxelDefaultMatrix() * (shadow_matrix);
+	{
+		auto& arr = mtx.row;
+		arr[0][2] = arr[1][2] = arr[2][2] = arr[2][1] = arr[2][0] = 0;
+	}
 	if (height > 0)
 		shadow_point.Y += 1;
 
@@ -512,16 +517,16 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	}
 	else
 	{
-		for (auto& [index, _] : uTypeExt->ShadowIndices)
+		for (const auto& indices : uTypeExt->ShadowIndices)
 			pThis->DrawVoxelShadow(
 				   main_vxl,
-				   index,
-				   vxl_index_key,
+				   indices.first,
+				   indices.first == pType->ShadowIndex ? vxl_index_key : std::bit_cast<VoxelIndexKey>(-1),
 					&pType->VoxelCaches.Shadow,
 				   bounding,
 				   &why,
 				   &mtx,
-				   true,
+				    indices.first == pType->ShadowIndex,
 				   surface,
 				   shadow_point
 			);
@@ -534,7 +539,10 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	uTypeExt->ApplyTurretOffset(&rot, Game::Pixel_Per_Lepton());
 	rot.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 	auto tur_mtx = mtx * rot; // unfortunately we won't have TurretVoxelScaleX/Y given the amount of work
-
+	{
+		auto& arr = tur_mtx.row;
+		arr[0][2] = arr[1][2] = arr[2][2] = arr[2][1] = arr[2][0] = 0;
+	}
 	auto tur = TechnoTypeExtData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber);
 
 	// sorry but you're fucked

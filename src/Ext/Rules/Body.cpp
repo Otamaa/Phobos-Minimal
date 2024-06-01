@@ -632,6 +632,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
 
 	this->HeightShadowScaling.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling");
+	if (AirShadowBaseScale > 0.98 && this->HeightShadowScaling.Get())
+		this->HeightShadowScaling = false;
+
 	this->HeightShadowScaling_MinScale.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling.MinScale");
 
 	this->StartInMultiplayerUnitCost.Read(exINI, GENERAL_SECTION, "StartInMultiplayerUnitCost");

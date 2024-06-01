@@ -715,11 +715,11 @@ enum class AirAttackStatusP : int
 
 DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 {
-	GET(FlyLocomotionClass*, loco, ESI);
+	GET(ILocomotion*, iloco, ESI);
+	auto loco = static_cast<FlyLocomotionClass*>(iloco);
+	auto pAir = specific_cast<AircraftClass*>(loco->LinkedTo);
 
-	auto pAir = specific_cast<AircraftClass*>(loco->Owner);
-
-	if (pAir && loco->AirportBound && loco->CurrentSpeed == 0.0 && pAir->GetHeight() <= 0)
+	if ( pAir && pAir->GetHeight() <= 0)
 	{
 		float ars = pAir->AngleRotatedSideways;
 		float arf = pAir->AngleRotatedForwards;
