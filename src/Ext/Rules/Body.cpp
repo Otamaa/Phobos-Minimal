@@ -647,7 +647,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0) {
 		bool temp[3] {};
-		for (int i = 0; i < Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i) {
+		for (int i = 0; i < (int)Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i) {
 			int diffIdx = 2 - i; // remapping so that HouseClass::AIDifficulty can be used as an index
 			this->AllowBypassBuildLimit[diffIdx] = temp[i];
 		}

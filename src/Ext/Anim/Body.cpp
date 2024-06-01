@@ -477,14 +477,14 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 	return { false , OwnerHouseKind::Default }; //yes return true
 }
 
-const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
+const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner, bool forceOwnership)
 {
 	if (!pAnim || !pAnim->Type)
 		return { false ,OwnerHouseKind::Default };
 
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
 
-	if (!pTypeExt->NoOwner)
+	if (forceOwnership || !pTypeExt->NoOwner)
 	{
 
 		if (auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))

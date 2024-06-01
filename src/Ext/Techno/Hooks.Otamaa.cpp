@@ -423,7 +423,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 					: args.SourceHouse
 					;
 
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, args.Attacker, false);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, args.Attacker, false , true);
 				Handled = true;
 			}
 		}
@@ -442,7 +442,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	{
 		auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location);
 		auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
-		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true, true);
 		pAnim->ZAdjust = pThis->GetZAdjustment();
 	}
 	else

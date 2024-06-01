@@ -694,7 +694,7 @@ DEFINE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 		: Arguments->SourceHouse
 		;
 
-	AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner, Arguments->Attacker, false, true);
 
 	R->EAX<AnimClass*>(Anim);
 	return 0x5184F2;
@@ -713,7 +713,7 @@ DEFINE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, true);
 
 	// bonus: don't require SpawnsParticle to be present
 
@@ -741,7 +741,7 @@ DEFINE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false, true);
 
 	return 0x5185F1;
 }
@@ -758,7 +758,7 @@ DEFINE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 		: Arguments.SourceHouse;
 
 	const auto& [bChanged, result] =
-		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false, true);
 
 	// reset the color for default (invoker).
 	if (bChanged && result != OwnerHouseKind::Default)
@@ -780,7 +780,7 @@ DEFINE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false, true);
 
 	return 0x518AFF;
 }
@@ -790,8 +790,7 @@ DEFINE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 
 	// hurt doggie gets more panic
-	if (pThis->Type->Doggie && pThis->IsRedHP())
-	{
+	if (pThis->Type->Doggie && pThis->IsRedHP()) {
 		R->EDI(RulesExtData::Instance()->DoggiePanicMax);
 	}
 
