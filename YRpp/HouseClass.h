@@ -167,7 +167,7 @@ public:
 	BaseNodeClass* GetNode(CellStruct* a2)
 		{ JMP_THIS(0x42EA30); }
 
-	BaseNodeClass* NextBuildable(int type)
+	BaseNodeClass* NextBuildable(int type = -1)
 		{ JMP_THIS(0x42EB20); }
 
 	void ReadINI(CCINIClass* ini, char* hname)
@@ -1318,7 +1318,7 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<AngerStruct>, AngerNodes); //arghghghgh bugged
 	DECLARE_PROPERTY(DynamicVectorClass<ScoutStruct>, ScoutNodes); // filled with data which is never used, jood gob WW
 	DECLARE_PROPERTY(CDTimerClass, AITimer);
-	DECLARE_PROPERTY(CDTimerClass, Unknown_Timer_5640);
+	DECLARE_PROPERTY(CDTimerClass, ExpertAITimer);
 	int                   ProducingBuildingTypeIndex;
 	int                   ProducingUnitTypeIndex;
 	int                   ProducingInfantryTypeIndex;

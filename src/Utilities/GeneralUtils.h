@@ -545,14 +545,27 @@ public:
 	}
 
 	template<typename T>
-	static inline constexpr T GetItemByHealthRatio(double ratio, T green , T yellow , T red)
-	{
+	static inline constexpr T GetItemByHealthRatio(double ratio, T green , T yellow , T red) {
+
 		if (ratio <= RulesClass::Instance->ConditionRed)
 			return red;
 		else if (ratio <= RulesClass::Instance->ConditionYellow)
 			return yellow;
 
 		return green;
+	}
+
+	static constexpr CoordStruct CoordinatesFromCell(const CellStruct& cell, bool snap = false, int zValue = 0) {
+		CoordStruct tmp { cell.X * 256, cell.Y * 256, zValue };
+		if (snap) {
+			tmp.X += 256 / 2;
+			tmp.Y += 256 / 2;
+		}
+		return tmp;
+	}
+
+	static constexpr CellStruct CellFromCoordinates(const CoordStruct& coord) {
+		return { short(coord.X / 256) , short(coord.Y / 256) };
 	}
 
 	// Zero out a non-array pointer.
