@@ -644,36 +644,38 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 			//no cellspread but it has bullet
 			if (pBullet && pBullet->Target)
 			{
-				switch (pBullet->Target->WhatAmI())
-				{
-				case BuildingClass::AbsID:
-				case AircraftClass::AbsID:
-				case UnitClass::AbsID:
-				case InfantryClass::AbsID:
-				{
-					const auto Eligible = [&](TechnoClass* const pTech)
-						{
-							if (CanDealDamage(pTech) &&
-							CanTargetHouse(pHouse, pTech) &&
-							pTech->GetTechnoType()->Trainable
-							) return pTech;
+				if (pBullet->DistanceFrom(pBullet->Target) < Unsorted::LeptonsPerCell / 4) {
+					switch (pBullet->Target->WhatAmI())
+					{
+					case BuildingClass::AbsID:
+					case AircraftClass::AbsID:
+					case UnitClass::AbsID:
+					case InfantryClass::AbsID:
+					{
+						const auto Eligible = [&](TechnoClass* const pTech)
+							{
+								if (CanDealDamage(pTech) &&
+								CanTargetHouse(pHouse, pTech) &&
+								pTech->GetTechnoType()->Trainable
+								) return pTech;
 
-							return static_cast<TechnoClass* const>(nullptr);
-						};
+								return static_cast<TechnoClass* const>(nullptr);
+							};
 
-					this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), damage, pOwner, pBullet, ThisbulletWasIntercepted);
+						this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
-					if (this->Transact)
-						this->TransactOnOneUnit(Eligible(static_cast<TechnoClass*>(pBullet->Target)), pOwner, 1);
+						if (this->Transact)
+							this->TransactOnOneUnit(Eligible(static_cast<TechnoClass*>(pBullet->Target)), pOwner, 1);
 
-				}break;
-				case CellClass::AbsID:
-				{
-					if (this->Transact)
-						this->TransactOnOneUnit(nullptr, pOwner, 1);
-				}break;
-				default:
-					break;
+					}break;
+					case CellClass::AbsID:
+					{
+						if (this->Transact)
+							this->TransactOnOneUnit(nullptr, pOwner, 1);
+					}break;
+					default:
+						break;
+					}
 				}
 			}
 		}
