@@ -99,26 +99,28 @@ constexpr bool IsValidTechno(TechnoClass* pTechno)
 	return isValid;
 }
 
-constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
-{
-	switch (cond.ComparatorOperand)
-	{
-	case 0:
+enum class ComparatorOperandTypes {
+	LessThan , LessOrEqual , Equal , MoreOrEqual ,More , NotSame
+};
+
+constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond) {
+	switch ((ComparatorOperandTypes)cond.ComparatorOperand) {
+	case ComparatorOperandTypes::LessThan:
 		result = counter < cond.ComparatorType;
 		break;
-	case 1:
+	case ComparatorOperandTypes::LessOrEqual:
 		result = counter <= cond.ComparatorType;
 		break;
-	case 2:
+	case ComparatorOperandTypes::Equal:
 		result = counter == cond.ComparatorType;
 		break;
-	case 3:
+	case ComparatorOperandTypes::MoreOrEqual:
 		result = counter >= cond.ComparatorType;
 		break;
-	case 4:
+	case ComparatorOperandTypes::More:
 		result = counter > cond.ComparatorType;
 		break;
-	case 5:
+	case ComparatorOperandTypes::NotSame:
 		result = counter != cond.ComparatorType;
 		break;
 	default:
@@ -126,7 +128,7 @@ constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionCompar
 	}
 }
 
-NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*> list)
+NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
 {
 	bool result = false;
 	int counter = 0;
@@ -144,6 +146,56 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 			{
 				counter++;
 			}
+		}
+	}
+
+	ModifyOperand(result, counter, *pThis->Conditions);
+	return result;
+}
+
+NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, TechnoTypeClass* pItem)
+{
+	bool result = false;
+	int counter = 0;
+
+	// Count all objects of the list, like an OR operator
+
+	for (auto pObject : *TechnoClass::Array)
+	{
+		if (!IsValidTechno(pObject)) continue;
+
+		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
+			&& !pObject->Owner->Type->MultiplayPassive
+			&& pObject->GetTechnoType() == pItem)
+		{
+			counter++;
+		}
+	}
+
+	ModifyOperand(result, counter, *pThis->Conditions);
+	return result;
+}
+
+NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, TechnoTypeClass* pItem)
+{
+	bool result = false;
+	int counter = 0;
+
+	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
+		pEnemy = nullptr;
+
+	// Count all objects of the list, like an OR operator
+
+	for (auto const pObject : *TechnoClass::Array)
+	{
+		if (!IsValidTechno(pObject)) continue;
+
+		if (pObject->Owner != pHouse
+			&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+			&& !pObject->Owner->Type->MultiplayPassive
+			&& pObject->GetTechnoType() == pItem)
+		{
+			counter++;
 		}
 	}
 
@@ -202,12 +254,27 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass
 	return result;
 }
 
+NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
+{
+	bool result = false;
+	int counter = 0;
+	auto pCiv = HouseExtData::FindFirstCivilianHouse();
+
+	for (auto const pObject : *TechnoClass::Array)
+	{
+		if (!IsValidTechno(pObject)) continue;
+
+		if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
+			counter++;
+	}
+
+	ModifyOperand(result, counter, *pThis->Conditions);
+	return result;
+}
+
 NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::vector<TechnoTypeClass*>& list)
 {
 	bool result = true;
-
-	if (list.size() == 0)
-		return false;
 
 	// Count all objects of the list, like an AND operator
 	for (auto const pItem : list)
@@ -238,9 +305,6 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 
 	if (pEnemy && pHouse->IsAlliedWith(pEnemy))
 		pEnemy = nullptr;
-
-	if (list.size() == 0)
-		return false;
 
 	// Count all objects of the list, like an AND operator
 	for (auto const pItem : list)
@@ -273,9 +337,6 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
 {
 	bool result = true;
-
-	if (list.size() == 0)
-		return false;
 
 	auto pCiv = HouseExtData::FindFirstCivilianHouse();
 
@@ -563,9 +624,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							std::vector<TechnoTypeClass*> list;
-							list.push_back(pTrigger->ConditionObject);
-							bool isConditionMet = EnemyOwns(pTrigger, pHouse, targetHouse, true, list);
+							bool isConditionMet = EnemyOwns(pTrigger, pHouse, targetHouse, true, pTrigger->ConditionObject);
 
 							if (!isConditionMet)
 								continue;
@@ -576,9 +635,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							std::vector<TechnoTypeClass*> list;
-							list.push_back(pTrigger->ConditionObject);
-							bool isConditionMet = HouseOwns(pTrigger, pHouse, false, list);
+							bool isConditionMet = HouseOwns(pTrigger, pHouse, false, pTrigger->ConditionObject);
 
 							if (!isConditionMet)
 								continue;
@@ -589,9 +646,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							std::vector<TechnoTypeClass*> list;
-							list.push_back(pTrigger->ConditionObject);
-							bool isConditionMet = NeutralOwns(pTrigger, list);
+							bool isConditionMet = NeutralOwns(pTrigger, pTrigger->ConditionObject);
 
 							if (!isConditionMet)
 								continue;
@@ -602,9 +657,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							std::vector<TechnoTypeClass*> list;
-							list.push_back(pTrigger->ConditionObject);
-							bool isConditionMet = EnemyOwns(pTrigger, pHouse, nullptr, false, list);
+							bool isConditionMet = EnemyOwns(pTrigger, pHouse, nullptr, false, pTrigger->ConditionObject);
 
 							if (!isConditionMet)
 								continue;
@@ -821,7 +874,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 					if (pTriggerTeam1Type->Autocreate)
 					{
-						for (auto entry : pTriggerTeam1Type->TaskForce->Entries)
+						for (const auto& entry : pTriggerTeam1Type->TaskForce->Entries)
 						{
 							// Check if each unit in the taskforce meets the structure prerequisites
 							if (entry.Amount > 0)
@@ -852,7 +905,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 					{
 						allObjectsCanBeBuiltOrRecruited = true;
 
-						for (auto entry : pTriggerTeam1Type->TaskForce->Entries)
+						for (const auto& entry : pTriggerTeam1Type->TaskForce->Entries)
 						{
 							// Check if each unit in the taskforce has the available recruitable units in the map
 							if (allObjectsCanBeBuiltOrRecruited && entry.Type && entry.Amount > 0)
@@ -992,7 +1045,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto& element : validTriggerCandidates)
+			for (const auto& element : validTriggerCandidates)
 			{
 				lastWeight = element.Weight;
 
@@ -1015,7 +1068,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto& element : validTriggerCandidatesGroundOnly)
+			for (const auto& element : validTriggerCandidatesGroundOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1038,7 +1091,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto& element : validTriggerCandidatesUnclassifiedOnly)
+			for (const auto& element : validTriggerCandidatesUnclassifiedOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1061,7 +1114,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto& element : validTriggerCandidatesNavalOnly)
+			for (const auto& element : validTriggerCandidatesNavalOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1084,7 +1137,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				Debug::Log("Weight: %f, [%s][%s]: %s\n", element.Weight, element.Trigger->ID, element.Trigger->Team1->ID, element.Trigger->Team1->Name);
 			}*/
 
-			for (auto& element : validTriggerCandidatesAirOnly)
+			for (const auto& element : validTriggerCandidatesAirOnly)
 			{
 				lastWeight = element.Weight;
 
@@ -1121,7 +1174,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		{
 			int count = 0;
 
-			for (auto team : activeTeamsList)
+			for (const auto& team : activeTeamsList)
 			{
 				if (team->Type == pTriggerTeam1Type)
 					count++;
@@ -1140,7 +1193,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		{
 			int count = 0;
 
-			for (auto team : activeTeamsList)
+			for (const auto& team : activeTeamsList)
 			{
 				if (team->Type == pTriggerTeam2Type)
 					count++;
