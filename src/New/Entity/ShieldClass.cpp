@@ -226,7 +226,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			}
 		}
 
-		if(pWHExt->Malicious)
+		if(pWHExt->Malicious && !pWHExt->Nonprovocative)
 			this->ResponseAttack();
 
 		if (pWHExt->DecloakDamagedTargets)
