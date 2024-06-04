@@ -34,6 +34,7 @@
 
 #include <ArrayClasses.h>
 #include <vector>
+#include <set>
 #include <Helpers/Concepts.h>
 
 template<typename T>
@@ -48,6 +49,7 @@ public:
 	constexpr Iterator(const VectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Capacity)) {}
 	constexpr Iterator(const DynamicVectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Count)) {}
 	constexpr Iterator(const TypeList<T>& vec) : items(vec.Items) , count(static_cast<size_t>(vec.Count)) {}
+	constexpr Iterator(const std::set<T>& vec) : items(vec.begin()), count(vec.size()) {}
 
 	constexpr T at(size_t index) const {
 		return this->items[index];
@@ -196,6 +198,10 @@ constexpr Iterator<T> make_iterator(const std::array<T , count>& value){
 	return Iterator<T>(value.begin() , count);
 }
 
+template <typename T>
+constexpr Iterator<T> make_iterator(const std::set<T>& value) {
+	return Iterator<T>(value);
+}
 
 // iterator does not keep temporary alive, thus rvalues are forbidden.
 // use the otherwise wierd const&& to not catch any lvalues

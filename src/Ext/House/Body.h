@@ -9,6 +9,7 @@
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
+#include <New/Type/TechTreeTypeClass.h>
 
 #include <Misc/Defines.h>
 #include <map>
@@ -157,6 +158,8 @@ public:
 	//TrackerClass CapturedBuildings {};
 	//TrackerClass CollectedCrates {};
 
+	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
+
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 
@@ -170,6 +173,8 @@ public:
 	}
 
 	static bool InvalidateIgnorable(AbstractClass* ptr);
+
+	TechTreeTypeClass* GetTechTreeType();
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

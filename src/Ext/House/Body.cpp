@@ -789,6 +789,29 @@ bool HouseExtData::InvalidateIgnorable(AbstractClass* ptr)
 
 }
 
+TechTreeTypeClass* HouseExtData::GetTechTreeType() {
+
+	if(!this->SideTechTree.isset()){
+		TechTreeTypeClass* ret = nullptr;
+
+		for (const auto& pType : TechTreeTypeClass::Array) {
+			if (pType->SideIndex == this->AttachedToObject->SideIndex) {
+				ret = pType.get();
+			}
+		}
+
+		if(!ret){
+			Debug::Log("TechTreeTypeClass::GetForSide: Could not find tech tree for side %d, returning tech tree 0: %s",
+				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array[0]->Name.data());
+			ret = TechTreeTypeClass::Array[0].get();
+		}
+
+		this->SideTechTree = ret;
+	}
+
+	return this->SideTechTree.get();
+}
+
 void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (ptr == nullptr)
@@ -1836,6 +1859,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->KeepAliveBuildingCount)
 		.Process(this->TiberiumStorage)
 
+		.Process(this->SideTechTree)
 		//.Process(this->BuiltAircraftTypes)
 		//.Process(this->BuiltInfantryTypes)
 		//.Process(this->BuiltUnitTypes)
