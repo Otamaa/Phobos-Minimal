@@ -217,15 +217,15 @@ public:
 		return this->Strings.GetItemOrDefault(index);
 	}
 
-	const DynamicVectorClass<const char*>& Entries() const {
-		return this->Strings;
+	constexpr const DynamicVectorClass<const char*>* Entries() const {
+		return &this->Strings;
 	}
 
-	const char** ToString() const {
+	constexpr const char** ToString() const {
 		return this->Strings.Items;
 	}
 
-	int Count() const {
+	constexpr int Count() const {
 		return this->Strings.Count;
 	}
 

@@ -187,6 +187,8 @@ public:
 		struct RangeData {
 			double rangeMult { 1.0 };
 			double extraRange { 0.0 };
+			std::set<WeaponTypeClass*> allow {};
+			std::set<WeaponTypeClass*> disallow {};
 
 			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			{
@@ -198,6 +200,41 @@ public:
 				return const_cast<RangeData*>(this)->Serialize(Stm);
 			}
 
+			bool Eligible(WeaponTypeClass* who)
+			{
+
+				bool allowed = false;
+
+				if (allow.begin() != allow.end())
+				{
+					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+					{
+						if (*iter_allow == who)
+						{
+							allowed = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					allowed = true;
+				}
+
+				if (allowed && disallow.begin() != disallow.end())
+				{
+					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+					{
+						if (*iter_disallow == who)
+						{
+							allowed = false;
+							break;
+						}
+					}
+				}
+
+				return allowed;
+			}
 		private:
 
 			template <typename T>
@@ -211,9 +248,12 @@ public:
 			}
 		};
 
+		struct RangeDataOut {
+			double rangeMult { 1.0 };
+			double extraRange { 0.0 };
+		};
+
 		HelperedVector<RangeData> ranges { };
-		HelperedVector<WeaponTypeClass*> allow {};
-		HelperedVector<WeaponTypeClass*> disallow {};
 
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
 			return this->Serialize(Stm);
@@ -226,45 +266,37 @@ public:
 
 		constexpr void Clear() {
 			ranges.clear();
-			allow.clear();
-			disallow.clear();
 		}
 
 		constexpr bool Enabled() {
 			return !ranges.empty();
 		}
 
-		constexpr bool Eligible(WeaponTypeClass* who) {
-
-			bool allowed = false;
-
-			if (allow.begin() != allow.end()) {
-				for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow) {
-					if (*iter_allow == who) {
-						allowed = true;
-						break;
-					}
-				}
-			} else {
-				allowed = true;
-			}
-
-			if (allowed && disallow.begin() != disallow.end()) {
-				for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow) {
-					if (*iter_disallow == who) {
-						allowed = false ;
-						break;
-					}
-				}
-			}
-
-			return allowed;
-		}
-
-		constexpr int Get(int initial) {
-
+		constexpr int Get(int initial , WeaponTypeClass* who) {
 			int add = 0;
 			for (auto& ex_range : ranges) {
+
+				if (!ex_range.Eligible(who))
+					continue;
+
+				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
+				add += static_cast<int>(ex_range.extraRange);
+			}
+
+			return initial + add;
+		}
+
+		constexpr void FillEligible(WeaponTypeClass* who, std::vector<RangeDataOut>& eligible) {
+			for (auto& ex_range : this->ranges) {
+				if (ex_range.Eligible(who)) {
+					eligible.emplace_back(ex_range.rangeMult , ex_range.extraRange);
+				}
+			}
+		}
+
+		static constexpr int Count(int initial, std::vector<RangeDataOut>& eligible) {
+			int add = 0;
+			for (auto& ex_range : eligible) {
 				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
 				add += static_cast<int>(ex_range.extraRange);
 			}
@@ -279,8 +311,6 @@ public:
 		{
 			return Stm
 				.Process(this->ranges)
-				.Process(this->allow)
-				.Process(this->disallow)
 				.Success()
 				;
 		}
@@ -292,6 +322,8 @@ public:
 		{
 			double Mult { 1.0 };
 			double extra { 0.0 };
+			std::set<WarheadTypeClass*> allow {};
+			std::set<WarheadTypeClass*> disallow {};
 
 			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			{
@@ -303,6 +335,41 @@ public:
 				return const_cast<CritData*>(this)->Serialize(Stm);
 			}
 
+			bool Eligible(WarheadTypeClass* who)
+			{
+
+				bool allowed = false;
+
+				if (allow.begin() != allow.end())
+				{
+					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+					{
+						if (*iter_allow == who)
+						{
+							allowed = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					allowed = true;
+				}
+
+				if (allowed && disallow.begin() != disallow.end())
+				{
+					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+					{
+						if (*iter_disallow == who)
+						{
+							allowed = false;
+							break;
+						}
+					}
+				}
+
+				return allowed;
+			}
 		private:
 
 			template <typename T>
@@ -311,14 +378,20 @@ public:
 				return Stm
 					.Process(this->Mult)
 					.Process(this->extra)
+					.Process(this->allow)
+					.Process(this->disallow)
 					.Success()
 					;
 			}
 		};
 
+		struct CritDataOut
+		{
+			double Mult { 1.0 };
+			double extra { 0.0 };
+		};
+
 		HelperedVector<CritData> ranges { };
-		HelperedVector<WarheadTypeClass*> allow {};
-		HelperedVector<WarheadTypeClass*> disallow {};
 
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
@@ -333,8 +406,6 @@ public:
 		constexpr void Clear()
 		{
 			ranges.clear();
-			allow.clear();
-			disallow.clear();
 		}
 
 		constexpr bool Enabled()
@@ -342,48 +413,32 @@ public:
 			return !ranges.empty();
 		}
 
-		constexpr bool Eligible(WarheadTypeClass* who)
-		{
+		constexpr double Get(double initial , WarheadTypeClass* who) {
+			double add = 0.0;
+			for (auto& ex_range : ranges) {
 
-			bool allowed = false;
+				if (!ex_range.Eligible(who))
+					continue;
 
-			if (allow.begin() != allow.end())
-			{
-				for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-				{
-					if (*iter_allow == who)
-					{
-						allowed = true;
-						break;
-					}
-				}
-			}
-			else
-			{
-				allowed = true;
+				initial = initial * ex_range.Mult;
+				add += ex_range.extra;
 			}
 
-			if (allowed && disallow.begin() != disallow.end())
-			{
-				for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-				{
-					if (*iter_disallow == who)
-					{
-						allowed = false;
-						break;
-					}
-				}
-			}
-
-			return allowed;
+			return initial + add;
 		}
 
-		constexpr double Get(double initial)
-		{
+		constexpr void FillEligible(WarheadTypeClass* who, std::vector<CritDataOut>& eligible) {
+			for (auto& ex_range : this->ranges) {
+				if (ex_range.Eligible(who)) {
+					eligible.emplace_back(ex_range.Mult, ex_range.extra);
+				}
+			}
+		}
 
-			double add = 0;
-			for (auto& ex_range : ranges) {
-				initial = initial * ex_range.Mult;
+		static constexpr double Count(double initial, std::vector<CritDataOut>& eligible) {
+			double add = 0.0;
+			for (auto& ex_range : eligible) {
+				initial *=  MaxImpl(ex_range.Mult, 0.0);
 				add += ex_range.extra;
 			}
 
@@ -397,8 +452,6 @@ public:
 		{
 			return Stm
 				.Process(this->ranges)
-				.Process(this->allow)
-				.Process(this->disallow)
 				.Success()
 				;
 		}

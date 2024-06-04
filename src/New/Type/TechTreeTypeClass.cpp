@@ -8,69 +8,16 @@
 
 Enumerable<TechTreeTypeClass>::container_t Enumerable<TechTreeTypeClass>::Array;
 
-TechTreeTypeClass* TechTreeTypeClass::GetAnySuitable(HouseClass* pHouse)
+size_t TechTreeTypeClass::CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const
 {
-	for (const auto& pType : Array) {
-		if (pHouse->ActiveBuildingTypes.GetItemCount(pType->ConstructionYard->ArrayIndex) > 0) {
-			return pType.get();
+	size_t count = 0;
+	if(auto pBuild = this->GetBuildList(buildType)){
+		for (const auto pBuilding : *pBuild) {
+			count += pHouse->ActiveBuildingTypes.GetItemCount(pBuilding->ArrayIndex);
 		}
 	}
 
-	return nullptr;
-}
-
-size_t TechTreeTypeClass::CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const
-{
-	const ValueableVector<BuildingTypeClass*>* typeList;
-	switch (buildType)
-	{
-	case BuildType::BuildPower:
-		typeList = &this->BuildPower;
-		break;
-	case BuildType::BuildRefinery:
-		typeList = &this->BuildRefinery;
-		break;
-	case BuildType::BuildBarracks:
-		typeList = &this->BuildBarracks;
-		break;
-	case BuildType::BuildWeapons:
-		typeList = &this->BuildWeapons;
-		break;
-	case BuildType::BuildRadar:
-		typeList = &this->BuildRadar;
-		break;
-	case BuildType::BuildHelipad:
-		typeList = &this->BuildHelipad;
-		break;
-	case BuildType::BuildNavalYard:
-		typeList = &this->BuildNavalYard;
-		break;
-	case BuildType::BuildTech:
-		typeList = &this->BuildTech;
-		break;
-	case BuildType::BuildAdvancedPower:
-		typeList = &this->BuildAdvancedPower;
-		break;
-	case BuildType::BuildDefense:
-		typeList = &this->BuildDefense;
-		break;
-	case BuildType::BuildOther:
-		typeList = &this->BuildOther;
-		break;
-	}
-
-	size_t count = 0;
-	for (const auto pBuilding : *typeList)
-	{
-		count += pHouse->ActiveBuildingTypes.GetItemCount(pBuilding->ArrayIndex);
-	}
-
 	return count;
-}
-
-bool TechTreeTypeClass::IsSuitable(HouseClass* pHouse) const
-{
-	return pHouse->ActiveBuildingTypes.GetItemCount(this->ConstructionYard->ArrayIndex) > 0;
 }
 
 bool TechTreeTypeClass::IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const
@@ -110,58 +57,23 @@ bool TechTreeTypeClass::IsCompleted(HouseClass* pHouse, std::function<bool(Build
 
 std::vector<BuildingTypeClass*> TechTreeTypeClass::GetBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const
 {
-	const ValueableVector<BuildingTypeClass*>* typeList;
-	switch (buildType)
-	{
-	case BuildType::BuildPower:
-		typeList = &this->BuildPower;
-		break;
-	case BuildType::BuildRefinery:
-		typeList = &this->BuildRefinery;
-		break;
-	case BuildType::BuildBarracks:
-		typeList = &this->BuildBarracks;
-		break;
-	case BuildType::BuildWeapons:
-		typeList = &this->BuildWeapons;
-		break;
-	case BuildType::BuildRadar:
-		typeList = &this->BuildRadar;
-		break;
-	case BuildType::BuildHelipad:
-		typeList = &this->BuildHelipad;
-		break;
-	case BuildType::BuildNavalYard:
-		typeList = &this->BuildNavalYard;
-		break;
-	case BuildType::BuildTech:
-		typeList = &this->BuildTech;
-		break;
-	case BuildType::BuildAdvancedPower:
-		typeList = &this->BuildAdvancedPower;
-		break;
-	case BuildType::BuildDefense:
-		typeList = &this->BuildDefense;
-		break;
-	case BuildType::BuildOther:
-		typeList = &this->BuildOther;
-		break;
+	std::vector<BuildingTypeClass*> filtered;
+	if(auto pBuild = this->GetBuildList(buildType)){
+		std::ranges::copy_if(*pBuild, std::back_inserter(filtered), filter);
 	}
 
-	std::vector<BuildingTypeClass*> filtered;
-	std::ranges::copy_if(*typeList, std::back_inserter(filtered), filter);
 	return filtered;
 }
 
 BuildingTypeClass* TechTreeTypeClass::GetRandomBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const
 {
-	std::vector<BuildingTypeClass*> buildable = GetBuildable(buildType, filter);
-	if (buildable.empty())
-	{
-		return nullptr;
+	const std::vector<BuildingTypeClass*> buildable = GetBuildable(buildType, filter);
+	if (!buildable.empty()) {
+		return buildable[ScenarioClass::Instance->Random.RandomRanged(0, buildable.size() - 1)];
+
 	}
 
-	return buildable[ScenarioClass::Instance->Random.RandomRanged(0, buildable.size() - 1)];
+	return nullptr;
 }
 
 template<>

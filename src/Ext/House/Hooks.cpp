@@ -136,7 +136,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if(pThis->IsAlive){
-		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.push_back_unique(pThis);
+		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.insert(pThis);
 	}
 
 	return 0;
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.remove(pThis);
+	HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.erase(pThis);
 	return 0;
 }
 
@@ -201,10 +201,10 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	//}
 
 	if (pThis->InLimbo) {
-		pOldOwnerExt->LimboTechno.remove(pThis);
+		pOldOwnerExt->LimboTechno.erase(pThis);
 
 		if (pThis->IsAlive)
-			pNewOwnerExt->LimboTechno.push_back(pThis);
+			pNewOwnerExt->LimboTechno.insert(pThis);
 	}
 
 	const auto Item = pOldOwnerExt->AutoDeathObjects.get_key_iterator(pThis);

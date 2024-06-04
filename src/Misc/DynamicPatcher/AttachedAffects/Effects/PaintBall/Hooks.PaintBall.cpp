@@ -301,7 +301,7 @@ DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 
 	auto const pBuilding = AnimExtContainer::Instance.Find(pThis)->ParentBuilding;
 
-	if (!pBuilding)
+	if (!pBuilding || !pBuilding->IsAlive || pBuilding->InLimbo)
 		return 0;
 
 	ApplyCustomTint(pBuilding, &color, pThis->Type->UseNormalLight ? &intensity : nullptr);

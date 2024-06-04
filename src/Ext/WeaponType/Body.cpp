@@ -238,8 +238,9 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 	{
 		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-		if (pExt->AE_ExtraRange.Enabled() && pExt->AE_ExtraRange.Eligible(pThis))
-			range = pExt->AE_ExtraRange.Get(range);
+		if (pExt->AE_ExtraRange.Enabled()){
+			range = pExt->AE_ExtraRange.Get(range, pThis);
+		}
 	}
 	return MaxImpl(range, 0);
 }

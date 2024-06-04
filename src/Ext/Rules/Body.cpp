@@ -15,6 +15,7 @@
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
+#include <New/Type/TechTreeTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -129,6 +130,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
+	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -148,6 +150,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ShieldTypeClass::ReadListFromINI(pINI);
 	RadTypeClass::ReadListFromINI(pINI);
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
+	TechTreeTypeClass::ReadListFromINI(pINI);
 
 	//got invalidated early , so parse it again
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");

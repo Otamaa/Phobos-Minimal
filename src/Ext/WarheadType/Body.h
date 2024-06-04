@@ -429,13 +429,11 @@ public:
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
 	void GetCritChance(TechnoClass* pFirer , std::vector<double>& chances) const;
 
-	VersesData& GetVerses(Armor armor)
-	{
+	constexpr VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];
 	}
 
-	const VersesData& GetVerses(Armor armor) const
-	{
+	constexpr const VersesData& GetVerses(Armor armor) const {
 		return this->Verses[static_cast<int>(armor)];
 	}
 

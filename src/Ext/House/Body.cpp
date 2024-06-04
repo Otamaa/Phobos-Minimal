@@ -322,7 +322,6 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 	{
 		for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf)
 		{
-
 			auto FactoryOwners_begin = pExt->FactoryOwners.begin();
 			const auto FactoryOwners_end = pExt->FactoryOwners.end();
 
@@ -395,7 +394,8 @@ void HouseExtData::UpdateAcademy(BuildingClass* pAcademy, bool added)
 	// now this can be unconditional
 	if (added)
 	{
-		this->Academies.push_back(pAcademy);
+		//using `emplace` because it already check above,..
+		this->Academies.emplace(pAcademy);
 	}
 	else
 	{
@@ -478,7 +478,7 @@ void HouseExtData::UpdateFactoryPlans(BuildingClass* pBld)
 	}
 
 	HouseExtContainer::Instance.Find(pBld->Owner)->FactoryOwners_GatheredPlansOf
-		.push_back_unique(TechnoExtContainer::Instance.Find(pBld)->OriginalHouseType);
+		.insert(TechnoExtContainer::Instance.Find(pBld)->OriginalHouseType);
 }
 
 bool HouseExtData::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem)
@@ -823,7 +823,6 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
-	AnnounceInvalidPointer(ActiveTeams, ptr);
 	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
 
@@ -1710,7 +1709,6 @@ void HouseExtData::UpdateTransportReloaders()
 {
 	for (auto& pTech : this->LimboTechno)
 	{
-
 		if (pTech->IsAlive
 			&& pTech->WhatAmI() != AircraftClass::AbsID
 			&& pTech->WhatAmI() != BuildingClass::AbsID
@@ -1827,7 +1825,6 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->AllRepairEventTriggered)
 		.Process(this->LastBuildingTypeArrayIdx)
 		.Process(this->RepairBaseNodes)
-		.Process(this->ActiveTeams)
 		.Process(this->LastBuiltNavalVehicleType)
 		.Process(this->ProducingNavalUnitTypeIndex)
 
@@ -1841,7 +1838,6 @@ void HouseExtData::Serialize(T& Stm)
 
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries)
-		.Process(this->Factories_HouseTypes)
 		.Process(this->LimboTechno)
 		.Process(this->AvaibleDocks)
 

@@ -50,12 +50,11 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 			auto& ranges_ = extraRangeData->ranges.emplace_back();
 			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
 			ranges_.extraRange = aeData.Type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
-
 			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
-				extraRangeData->allow.push_back_unique(allow);
+				ranges_.allow.insert(allow);
 
 			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
-				extraRangeData->disallow.push_back_unique(disallow);
+				ranges_.disallow.insert(disallow);
 		}
 	}
 
@@ -91,10 +90,10 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 			ranges_.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
 
 			for (auto& allow : type->WeaponRange_AllowWeapons)
-				extraRangeData->allow.push_back_unique(allow);
+				ranges_.allow.insert(allow);
 
 			for (auto& disallow : type->WeaponRange_DisallowWeapons)
-				extraRangeData->disallow.push_back_unique(disallow);
+				ranges_.disallow.insert(disallow);
 		}
 
 		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
@@ -104,10 +103,10 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 			ranges_.extra = type->Crit_ExtraChance;
 
 			for (auto& allow : type->Crit_AllowWarheads)
-				extraCritData->allow.push_back_unique(allow);
+				ranges_.allow.insert(allow);
 
 			for (auto& disallow : type->Crit_DisallowWarheads)
-				extraCritData->disallow.push_back_unique(disallow);
+				ranges_.disallow.insert(disallow);
 		}
 	}
 

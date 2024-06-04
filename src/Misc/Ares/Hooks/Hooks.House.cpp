@@ -1334,7 +1334,7 @@ DEFINE_HOOK(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 
 	//dropping this here, should be fine
 	const auto pParent = H->Type->FindParentCountry();
-	HouseExtContainer::Instance.Find(H)->FactoryOwners_GatheredPlansOf.push_back_unique(pParent ? pParent : H->Type);
+	HouseExtContainer::Instance.Find(H)->FactoryOwners_GatheredPlansOf.insert(pParent ? pParent : H->Type);
 
 	return 0x500D0D;
 }

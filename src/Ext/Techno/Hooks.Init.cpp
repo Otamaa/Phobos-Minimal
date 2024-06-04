@@ -35,7 +35,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 		return 0x0;
 
 	if (pThis->Owner) {
-		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.push_back(pThis);
+		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.insert(pThis);
 	}
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);

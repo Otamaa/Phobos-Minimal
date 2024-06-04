@@ -99,12 +99,15 @@ constexpr bool IsValidTechno(TechnoClass* pTechno)
 	return isValid;
 }
 
-enum class ComparatorOperandTypes {
-	LessThan , LessOrEqual , Equal , MoreOrEqual ,More , NotSame
+enum class ComparatorOperandTypes
+{
+	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
 };
 
-constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond) {
-	switch ((ComparatorOperandTypes)cond.ComparatorOperand) {
+constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
+{
+	switch ((ComparatorOperandTypes)cond.ComparatorOperand)
+	{
 	case ComparatorOperandTypes::LessThan:
 		result = counter < cond.ComparatorType;
 		break;
@@ -341,10 +344,12 @@ NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeCl
 	auto pCiv = HouseExtData::FindFirstCivilianHouse();
 
 	// Count all objects of the list, like an AND operator
-	for (auto const pItem : list) {
+	for (auto const pItem : list)
+	{
 		int counter = 0;
 
-		for (auto const pObject : *TechnoClass::Array) {
+		for (auto const pObject : *TechnoClass::Array)
+		{
 			if (!IsValidTechno(pObject)) continue;
 
 			if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
@@ -560,7 +565,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			if (pTechno->WhatAmI() == AbstractType::Building)
 			{
 				auto const pBuilding = static_cast<BuildingClass*>(pTechno);
-				if (pBuilding && pBuilding->Type->BridgeRepairHut) {
+				if (pBuilding && pBuilding->Type->BridgeRepairHut)
+				{
 
 					CellStruct cell = pTechno->GetCell()->MapCoords;
 
@@ -571,7 +577,9 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				}
 
 
-			} else {
+			}
+			else
+			{
 
 				auto const pFoot = static_cast<FootClass*>(pTechno);
 
@@ -618,51 +626,46 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 					// "ConditionType=-1" will be skipped, always is valid
 					if ((int)pTrigger->ConditionType >= 0)
 					{
-						if ((int)pTrigger->ConditionType == 0)
+						switch ((int)pTrigger->ConditionType)
+						{
+						case 0:
 						{
 							// Simulate case 0: "enemy owns"
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							bool isConditionMet = EnemyOwns(pTrigger, pHouse, targetHouse, true, pTrigger->ConditionObject);
-
-							if (!isConditionMet)
+							if (!EnemyOwns(pTrigger, pHouse, targetHouse, true, pTrigger->ConditionObject))
 								continue;
 						}
-						else if ((int)pTrigger->ConditionType == 1)
+						break;
+						case 1:
 						{
 							// Simulate case 1: "house owns"
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							bool isConditionMet = HouseOwns(pTrigger, pHouse, false, pTrigger->ConditionObject);
-
-							if (!isConditionMet)
+							if (!HouseOwns(pTrigger, pHouse, false, pTrigger->ConditionObject))
 								continue;
-						}
-						else if ((int)pTrigger->ConditionType == 7)
+						}	break;
+						case 7:
 						{
 							// Simulate case 7: "civilian owns"
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							bool isConditionMet = NeutralOwns(pTrigger, pTrigger->ConditionObject);
-
-							if (!isConditionMet)
+							if (!NeutralOwns(pTrigger, pTrigger->ConditionObject))
 								continue;
-						}
-						else if ((int)pTrigger->ConditionType == 8)
+						}	break;
+						case 8:
 						{
 							// Simulate case 0: "enemy owns" but instead of restrict it against the main enemy house it is done against all enemies
 							if (!pTrigger->ConditionObject)
 								continue;
 
-							bool isConditionMet = EnemyOwns(pTrigger, pHouse, nullptr, false, pTrigger->ConditionObject);
-
-							if (!isConditionMet)
+							if (!EnemyOwns(pTrigger, pHouse, nullptr, false, pTrigger->ConditionObject))
 								continue;
-						}
-						else if ((int)pTrigger->ConditionType == 9)
+						}	break;
+						case 9:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -671,8 +674,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!EnemyOwns(pTrigger, pHouse, targetHouse, false, RulesExtData::Instance()->AITargetTypesLists[pTrigger->Conditions[3].ComparatorOperand]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 10)
+						}	break;
+						case 10:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -681,8 +684,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!HouseOwns(pTrigger, pHouse, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 11)
+						}	break;
+						case 11:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -691,8 +694,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!NeutralOwns(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 12)
+						}	break;
+						case 12:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -701,8 +704,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!EnemyOwns(pTrigger, pHouse, nullptr, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 13)
+						}	break;
+						case 13:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -711,8 +714,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!HouseOwns(pTrigger, pHouse, true, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 14)
+						}	break;
+						case 14:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -721,8 +724,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!EnemyOwnsAll(pTrigger, pHouse, targetHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 15)
+						}	break;
+						case 15:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -731,8 +734,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!HouseOwnsAll(pTrigger, pHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 16)
+						}	break;
+						case 16:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -741,8 +744,8 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!NeutralOwnsAll(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 17)
+						}	break;
+						case 17:
 						{
 							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
@@ -751,24 +754,25 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 								if (!EnemyOwnsAll(pTrigger, pHouse, nullptr, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
 									continue;
 							}
-						}
-						else if ((int)pTrigger->ConditionType == 18)
+						}	break;
+						case 18:
 						{
 							// New case 18: Check destroyed bridges
 							if (!CountConditionMet(pTrigger, destroyedBridgesCount))
 								continue;
-						}
-						else if ((int)pTrigger->ConditionType == 19)
+						}	break;
+						case 19:
 						{
 							// New case 19: Check undamaged bridges
 							if (!CountConditionMet(pTrigger, undamagedBridgesCount))
 								continue;
-						}
-						else
+						}	break;
+						default:
 						{
 							// Other cases from vanilla game
 							if (!pTrigger->ConditionMet(pHouse, targetHouse, hasReachedMaxDefensiveTeamsLimit))
 								continue;
+						}	break;
 						}
 					}
 
@@ -955,7 +959,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 						{
 						case TeamCategory::Ground:
 							totalWeightGroundOnly += pTrigger->Weight_Current < 1.0 ? 1.0 : pTrigger->Weight_Current;
-							validTriggerCandidatesGroundOnly.emplace_back(totalWeightGroundOnly , pTrigger , teamIsCategory);
+							validTriggerCandidatesGroundOnly.emplace_back(totalWeightGroundOnly, pTrigger, teamIsCategory);
 							break;
 
 						case TeamCategory::Air:
@@ -1234,8 +1238,10 @@ DEFINE_HOOK(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 		const int houseIdx = pHouse->ArrayIndex;
 		const int sideIdx = pHouse->SideIndex + 1;
 
-		for (int i = 0; i < AITriggerTypeClass::Array->Count; i++) {
-			if (auto pTrigger = AITriggerTypeClass::Array->Items[i]) {
+		for (int i = 0; i < AITriggerTypeClass::Array->Count; i++)
+		{
+			if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
+			{
 
 				const int triggerHouse = pTrigger->HouseIndex;
 				const int triggerSide = pTrigger->SideIndex;

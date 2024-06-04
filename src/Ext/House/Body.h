@@ -109,8 +109,6 @@ public:
 
 	bool RepairBaseNodes[3] { false };
 
-	std::vector<TeamClass*> ActiveTeams {};
-
 	//#817
 	int LastBuiltNavalVehicleType { -1 };
 	int ProducingNavalUnitTypeIndex { -1 };
@@ -126,15 +124,14 @@ public:
 
 	int SWLastIndex { -1 };
 	HelperedVector<SuperClass*> Batteries {};
-	HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
-	HelperedVector<TechnoClass*> LimboTechno {};
+	std::set<TechnoClass*> LimboTechno {};
 
 	int AvaibleDocks { 0 };
 
 	std::bitset<MaxHouseCount> StolenTech {};
 	IndexBitfield<HouseClass*> RadarPersist {};
-	HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
-	HelperedVector<BuildingClass*> Academies {};
+	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+	std::set<BuildingClass*> Academies {};
 	HelperedVector<TechnoTypeClass*> Reversed {};
 
 	bool Is_NavalYardSpied { false };

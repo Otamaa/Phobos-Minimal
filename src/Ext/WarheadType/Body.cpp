@@ -1428,12 +1428,14 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>&
 	if (chances.empty())
 		chances.push_back(0.0);
 
-	auto const pExt = TechnoExtContainer::Instance.Find(pFirer);
+	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
+	if (pExt->AE_ExtraCrit.Enabled()) {
+		std::vector<TechnoExtData::ExtraCrit::CritDataOut> valids;
+		pExt->AE_ExtraCrit.FillEligible(this->AttachedToObject, valids);
 
-	if (pExt->AE_ExtraCrit.Enabled() && pExt->AE_ExtraCrit.Eligible(this->AttachedToObject)) {
 		for (auto& curChances : chances) {
-			curChances = pExt->AE_ExtraCrit.Get(curChances);
+			curChances = TechnoExtData::ExtraCrit::Count(curChances, valids);
 		}
 	}
 }
