@@ -378,6 +378,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	StaticVars::Clear();
 	PhobosAttachEffectTypeClass::Clear();
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
+	TechTreeTypeClass::Clear();
 	return 0;
 }
 
@@ -542,6 +543,7 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<NewSWType>(pStm) &&
 		Process_Load<TiberiumExtContainer>(pStm) &&
 		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
+		Process_Load<TechTreeTypeClass>(pStm) &&
 		Process_Load<StaticVars>(pStm)
 		;
 
@@ -594,6 +596,7 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<NewSWType>(pStm) &&
 			Process_Save<TiberiumExtContainer>(pStm) &&
 			Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
+			Process_Save<TechTreeTypeClass>(pStm) &&
 			Process_Save<StaticVars>(pStm)
 			;
 
