@@ -19,7 +19,18 @@ public:
 	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
 
 	PaletteManager(const char* const pTitle);
-	virtual ~PaletteManager() override = default;
+	virtual ~PaletteManager() override
+	{
+		if(auto pVec = std::exchange(this->ColorschemeDataVector, nullptr)) {
+			for (int i = 0; i < pVec->Count; ++i) {
+				if (auto pScheme = std::exchange(pVec->Items[i], nullptr)) {
+						GameDelete<true,false>(pScheme);
+				}
+			}
+
+			GameDelete(pVec);
+		}
+	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);

@@ -879,10 +879,10 @@ bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 	if (pThis->Target && pThis->IsCloseEnoughToAttack(pThis->Target))
 	{
 		//https://bugs.launchpad.net/ares/+bug/1267287
-		//const auto pWeaponIdx = pThis->SelectWeapon(pThis->Target);
-		//const auto pWeapon = pThis->GetWeapon(pWeaponIdx);
+		const auto pWeaponIdx = pThis->SelectWeapon(pThis->Target);
+		const auto pWeapon = pThis->GetWeapon(pWeaponIdx);
 
-		//if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->DecloakToFire)
+		if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->DecloakToFire)
 			return false;
 	}
 

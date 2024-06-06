@@ -43,6 +43,8 @@ public:
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
 	int DamageNumberOffset { INT32_MIN };
 
+	AbstractClass* OriginalTarget { nullptr };
+
 	BulletExtData() noexcept = default;
 	~BulletExtData() noexcept = default;
 

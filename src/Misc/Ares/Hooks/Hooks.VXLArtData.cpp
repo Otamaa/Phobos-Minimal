@@ -269,7 +269,10 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 	int frameChoosen = ChooseFrame(pThis, shadow_index_now, pVXL);//Don't want to use goto
 
 	matRet = (*pMat) * pVXL->HVA->Matrixes[shadow_index_now + pVXL->HVA->LayerCount * frameChoosen];
-
+	{
+		auto& arr = matRet.row;
+		arr[0][2] = arr[1][2] = arr[2][2] = arr[2][1] = arr[2][0] = 0;
+	}
 	// A nasty temporary backward compatibility option
 	// if (pVXL->HVA->LayerCount > 1 || pThis->GetTechnoType()->Turret) {
 	// 	// NEEDS IMPROVEMENT : Choose the proper Z offset to shift the sections to the same level
@@ -305,12 +308,8 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 		return FinishDrawing;
 
 	const auto aTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	Matrix3D shadow_mtx {};
+	Matrix3D shadow_mtx {} ;
 	loco->Shadow_Matrix(&shadow_mtx, &key);
-	{
-		auto& arr = shadow_mtx.row;
-		arr[0][2] = arr[1][2] = arr[2][2] = arr[2][1] = arr[2][0] = 0;
-	}
 	if(const auto flyloco = locomotion_cast<FlyLocomotionClass*>(pThis->Locomotor)) {
 		const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
 

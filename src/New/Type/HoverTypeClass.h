@@ -33,43 +33,43 @@ public:
 
 	virtual ~HoverTypeClass() override = default;
 
-	inline AnimTypeClass* GetAboveWaterAnim() const {
+	constexpr inline AnimTypeClass* GetAboveWaterAnim() const {
 		return this->AboveWaterAnim.Get(RulesClass::Instance->Wake);
 	}
 
-	inline int GetScoldSound() const {
+	constexpr inline int GetScoldSound() const {
 		return this->ScoldSound.Get(RulesClass::Instance->ScoldSound);
 	}
 
-	inline 	int GetHeight() const {
+	constexpr inline 	int GetHeight() const {
 		return this->HoverHeight.Get(RulesClass::Instance->HoverHeight);
 	}
 
-	inline double GetBob() const {
+	constexpr inline double GetBob() const {
 		return this->HoverBob.Get(RulesClass::Instance->HoverBob);
 	}
 
-	inline double GetDampen() const {
+	constexpr inline double GetDampen() const {
 		return this->HoverDampen.Get(RulesClass::Instance->HoverDampen);
 	}
 
-	inline double GetAccel() const {
+	constexpr inline double GetAccel() const {
 		return this->HoverAcceleration.Get(RulesClass::Instance->HoverAcceleration);
 	}
 
-	inline double GetBrake() const {
+	constexpr inline double GetBrake() const {
 		return this->HoverBrake.Get(RulesClass::Instance->HoverBrake);
 	}
 
-	inline double GetBoost() const {
+	constexpr inline double GetBoost() const {
 		return this->HoverBoost.Get(RulesClass::Instance->HoverBoost);
 	}
 
-	inline static void AddDefaults() {
+	constexpr inline static void AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 
-	static const HoverTypeClass* GetMyHover(int nIdx)
+	constexpr static const HoverTypeClass* GetMyHover(int nIdx)
 	{ return HoverTypeClass::FindFromIndex(nIdx); }
 
 	virtual void LoadFromINI(CCINIClass *pINI) override;

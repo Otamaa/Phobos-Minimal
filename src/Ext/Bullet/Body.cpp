@@ -620,6 +620,7 @@ bool BulletExtData::InvalidateIgnorable(AbstractClass* ptr)
 
 void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 
+	AnnounceInvalidPointer(OriginalTarget, ptr, bRemoved);
 	AnnounceInvalidPointer(Owner , ptr);
 	AnnounceInvalidPointer(NukeSW, ptr);
 
@@ -871,6 +872,7 @@ void BulletExtData::Serialize(T& Stm)
 		.Process(this->InitialBulletDir)
 		.Process(this->Trails)
 		.Process(this->AttachedSystem)
+		.Process(this->OriginalTarget)
 		;
 
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);

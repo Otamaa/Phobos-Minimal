@@ -172,7 +172,9 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
+			auto const originalLocation = pThis->Location;
 			const auto pHouse = BulletExtData::GetHouse(pThis);
+			BulletExtContainer::Instance.Find(pThis)->OriginalTarget = pThis->Target;
 			std::vector<TechnoClass*> targets;
 
 			 for (auto const pTechno : *TechnoClass::Array) {
@@ -200,6 +202,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 }
 
 				 pThis->Target = pTarget;
+				 pThis->Location = pTarget->GetCoords();
 				 pThis->Detonate(pTarget->GetCoords());
 
 				 if (!BulletExtData::IsReallyAlive(pThis))  {
@@ -207,6 +210,8 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 }
 			 }
 
+			pThis->Target = BulletExtContainer::Instance.Find(pThis)->OriginalTarget;
+			pThis->Location = originalLocation;
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			return ReturnFromFunction;
 		}
