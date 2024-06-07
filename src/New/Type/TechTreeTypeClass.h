@@ -21,7 +21,9 @@ public:
 		BuildTech,
 		BuildAdvancedPower,
 		BuildDefense,
-		BuildOther
+		BuildOther,
+
+		count
 	};
 
 	Valueable<int> SideIndex;

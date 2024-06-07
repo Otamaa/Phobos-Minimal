@@ -22,29 +22,11 @@ size_t TechTreeTypeClass::CountSideOwnedBuildings(HouseClass* pHouse, BuildType 
 
 bool TechTreeTypeClass::IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const
 {
-	if (!GetBuildable(BuildType::BuildPower, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildPower) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildRefinery, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildRefinery) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildBarracks, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildBarracks) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildWeapons, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildWeapons) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildRadar, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildRadar) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildHelipad, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildHelipad) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildNavalYard, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildNavalYard) < 1)
-		return false;
-
-	if (!GetBuildable(BuildType::BuildTech, filter).empty() && CountSideOwnedBuildings(pHouse, BuildType::BuildTech) < 1)
-		return false;
+	for (BuildType i = BuildType::BuildPower; i < BuildType::BuildOther; i = BuildType((int) i + 1)) {
+		if (!GetBuildable(i, filter).empty() && CountSideOwnedBuildings(pHouse, i) < 1) {
+			return false;
+		}
+	}
 
 	for (const auto& [type , count] : BuildOtherCountMap) {
 		if (filter(type) && CountSideOwnedBuildings(pHouse, BuildType::BuildOther) < count) {
