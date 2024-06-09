@@ -607,6 +607,8 @@ bool TechnoExtData::IsCullingImmune(TechnoClass* pThis)
 bool TechnoExtData::IsEMPImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	if (AresEMPulse::IsTypeEMPProne(pThis))
+		return true;
 
 	return HasAbility(pThis, PhobosAbilityType::EmpImmune);
 }
@@ -973,6 +975,8 @@ bool TechnoExtData::IsCullingImmune(Rank vet, TechnoClass* pThis)
 bool TechnoExtData::IsEMPImmune(Rank vet, TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	if (AresEMPulse::IsTypeEMPProne(pThis))
+		return true;
 
 	return HasAbility(vet, pThis, PhobosAbilityType::EmpImmune);
 }

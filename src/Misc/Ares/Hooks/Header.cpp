@@ -4685,13 +4685,14 @@ void AresEMPulse::updateRadarBlackout(BuildingClass* const pBuilding)
 
 bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 {
-	auto const abs = pTechno->WhatAmI();
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+	auto const pType = pTechno->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (!pTypeExt->ImmuneToEMP.isset())
 	{
 		bool TypeImmune = false;
+		auto const abs = pTechno->WhatAmI();
 
 		if (abs == AbstractType::Building)
 		{
@@ -4716,7 +4717,7 @@ bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 		else
 		{
 			// if this is a vessel or vehicle that is organic: no effect.
-			TypeImmune = !pTechno->GetTechnoType()->Organic;
+			TypeImmune = !pType->Organic;
 		}
 
 		pTypeExt->ImmuneToEMP = !TypeImmune;
@@ -4773,9 +4774,6 @@ bool AresEMPulse::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* 
 
 bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 {
-	if (AresEMPulse::IsTypeEMPProne(Target))
-		return true;
-
 	if (TechnoExtData::IsEMPImmune(Target))
 		return true;
 
