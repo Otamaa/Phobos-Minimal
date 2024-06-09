@@ -6339,7 +6339,7 @@ void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* la
 		std::format(L"{:02}:{:02}", minute, second);
 
 	const std::wstring buffer =
-		std::format(L"{}    ", label)
+		std::format(L"{}  ", label)
 		//std::format(L"{}  {}  ", label, timer_)
 		;
 
