@@ -191,6 +191,12 @@ public:
 		return 0;
 	}
 
+	void SetValue(short value, size_t Bits = 16, size_t offset = 0) {
+		if (Bits > 0 && Bits <= 16) {
+			Raw = static_cast<unsigned short>(TranslateFixedPoint::Normal(16, Bits, (size_t)value, offset));
+		}
+	}
+
 	template<size_t Bits>
 	constexpr FORCEINLINE  void SetValue(size_t value, size_t offset = 0)
 	{
