@@ -17,35 +17,34 @@ DEFINE_HOOK(0x69BAE7, SessionClass_Resume_CampaignGameSpeed, 0xA)
 
 DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
 {
-	if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN || !Phobos::Misc::CustomGS)
-		return 0;
+	if (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()) {
+		auto& FrameTimer = Game::FrameTimer();
+		auto const& ChangeIntervals = Phobos::Misc::CustomGS_ChangeInterval;
+		auto const& ChangeDelays = Phobos::Misc::CustomGS_ChangeDelay;
+		auto const& DefaultDelays = Phobos::Misc::CustomGS_DefaultDelay;
 
-	auto& FrameTimer = Game::FrameTimer();
-	auto const& ChangeIntervals = Phobos::Misc::CustomGS_ChangeInterval;
-	auto const& ChangeDelays = Phobos::Misc::CustomGS_ChangeDelay;
-	auto const& DefaultDelays = Phobos::Misc::CustomGS_DefaultDelay;
-
-	if ((ChangeIntervals[FrameTimer.TimeLeft] > 0)
-		&& (GameSpeedTemp::counter % ChangeIntervals[FrameTimer.TimeLeft] == 0))
-	{
-		FrameTimer.TimeLeft = ChangeDelays[FrameTimer.TimeLeft];
-		GameSpeedTemp::counter = 1;
-	}
-	else
-	{
-		FrameTimer.TimeLeft = DefaultDelays[FrameTimer.TimeLeft];
-		GameSpeedTemp::counter++;
+		if ((ChangeIntervals[FrameTimer.TimeLeft] > 0)
+			&& (GameSpeedTemp::counter % ChangeIntervals[FrameTimer.TimeLeft] == 0))
+		{
+			FrameTimer.TimeLeft = ChangeDelays[FrameTimer.TimeLeft];
+			GameSpeedTemp::counter = 1;
+		}
+		else
+		{
+			FrameTimer.TimeLeft = DefaultDelays[FrameTimer.TimeLeft];
+			GameSpeedTemp::counter++;
+		}
 	}
 
 	return 0;
 }
 
-DEFINE_HOOK(0x55E33B, SyncDelay_End, 0x6)
+DEFINE_HOOK(0x55E33B, SyncDelay_End, 0x5)
 {
-	if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
-		return 0x0;
+	if (Phobos::Misc::CustomGS && SessionClass::IsSingleplayer()) {
+		Game::FrameTimer->TimeLeft = GameOptionsClass::Instance->GameSpeed;
+	}
 
-	Game::FrameTimer->TimeLeft = GameOptionsClass::Instance->GameSpeed;
 	return 0;
 }
 

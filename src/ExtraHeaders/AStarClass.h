@@ -47,6 +47,17 @@ struct AStarQueueNodeHierarchical
 	int Number;
 };
 
+struct PathType {
+	CellStruct Start;                // Starting cell number.
+	int Cost;                    // Accumulated terrain cost.
+	int Length;                // Command string length.
+	FacingType* Command;            // Pointer to command string.
+	int field_10; //unused?
+	CellStruct* Overlap;            // Pointer to overlap list
+	CellStruct LastOverlap;        // stores position of last overlap
+	CellStruct LastFixup;            // stores position of last overlap
+};
+
 struct PriorityQueueClass_AStarHierarchical
 {
 	DWORD Count;
