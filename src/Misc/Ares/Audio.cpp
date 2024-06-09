@@ -336,7 +336,7 @@ std::string replace(const char* format, Args const&... args)
     return result;
 };
 
-bool NOINLINE PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
+bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 {
 	const auto pAudioStream = AudioStream::Instance();
 	if(!pAudioStream || Unsorted::ScenarioInit_Audio() || SampleIdx > 9 || HouseTypeIdx <= -1) {

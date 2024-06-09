@@ -34,7 +34,7 @@ public:
 	virtual ~TActionClass() RX;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual void ComputeCRC(CRCEngine& checksum) const override RX;
@@ -51,11 +51,13 @@ public:
 		{ JMP_THIS(0x6DD300); }
 
 	// fuck if I know what's the purpose of this, returns a bitfield of flags for trigger logic
-	static int GetFlags(int actionKind)
+	//  return AttachType
+	static int __fastcall GetFlags(int actionKind)
 		{ JMP_STD(0x6E3EE0); }
 
 	// transforms actionKind to a number saying what to parse arguments as (team/tag/trigger id, waypoint, integer, etc)
-	static int GetMode(int actionKind)
+	// return NeedType
+	static int __fastcall GetMode(int actionKind)
 		{ JMP_STD(0x6E3B60); }
 
 	// main brain, returns whether succeeded (mostly, no consistency in results what so ever)

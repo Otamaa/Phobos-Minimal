@@ -185,66 +185,6 @@ double ObjectClass::GetHealthPercentage() const
 	return (double)this->Health / (double)this->GetType()->Strength;
 }
 
-int HouseClass::GetSpawnPosition() const
-{
-	for (int i = 0; i < HouseClass::MaxPlayers; i++)
-	{
-		if (HouseClass::Array->GetItemOrDefault(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
-			return i;
-	}
-
-	return -1;
-}
-
-int HouseClass::CountOwnedNow(const TechnoTypeClass* const pItem) const {
-	switch(pItem->WhatAmI()) {
-	case AbstractType::BuildingType:
-		return this->CountOwnedNow(
-			static_cast<BuildingTypeClass const*>(pItem));
-	case AbstractType::UnitType:
-		return this->CountOwnedNow(
-			static_cast<UnitTypeClass const*>(pItem));
-	case AbstractType::InfantryType:
-		return this->CountOwnedNow(
-			static_cast<InfantryTypeClass const*>(pItem));
-	case AbstractType::AircraftType:
-		return this->CountOwnedNow(
-			static_cast<AircraftTypeClass const*>(pItem));
-	default:
-		return 0;
-	}
-}
-
-int HouseClass::CountOwnedAndPresent(TechnoTypeClass* pItem) const {
-	switch(pItem->WhatAmI()) {
-	case AbstractType::BuildingType:
-		return this->CountOwnedAndPresent((BuildingTypeClass*)pItem);
-	case AbstractType::UnitType:
-		return this->CountOwnedAndPresent((UnitTypeClass*)pItem);
-	case AbstractType::InfantryType:
-		return this->CountOwnedAndPresent((InfantryTypeClass*)pItem);
-	case AbstractType::AircraftType:
-		return this->CountOwnedAndPresent((AircraftTypeClass*)pItem);
-	default:
-		return 0;
-	}
-}
-
-int HouseClass::CountOwnedEver(TechnoTypeClass* pItem) const {
-	switch(pItem->WhatAmI()) {
-	case AbstractType::BuildingType:
-		return this->CountOwnedEver((BuildingTypeClass*)pItem);
-	case AbstractType::UnitType:
-		return this->CountOwnedEver((UnitTypeClass*)pItem);
-	case AbstractType::InfantryType:
-		return this->CountOwnedEver((InfantryTypeClass*)pItem);
-	case AbstractType::AircraftType:
-		return this->CountOwnedEver((AircraftTypeClass*)pItem);
-	default:
-		return 0;
-	}
-}
-
 bool HouseClass::CanExpectToBuild(const TechnoTypeClass* const pItem) const {
 	auto const parentOwnerMask = this->Type->FindParentCountryIndex();
 	return this->CanExpectToBuild(pItem, parentOwnerMask);
@@ -440,21 +380,6 @@ int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 	return pValues ? pValues->GetItemOrDefault(static_cast<int>(difficulty), value) : value;
 }
 
-TechnoTypeClass* BuildingClass::GetSecretProduction() const {
-	auto const pType = this->Type;
-
-	if(pType->SecretInfantry) {
-		return pType->SecretInfantry;
-	}
-	if(pType->SecretUnit) {
-		return pType->SecretUnit;
-	}
-	if(pType->SecretBuilding) {
-		return pType->SecretBuilding;
-	}
-	return this->SecretProduction;
-}
-
 void InfantryClass::RemoveMe_FromGunnerTransport()
 {
 	if (auto pTransport = this->Transporter)
@@ -635,7 +560,7 @@ bool LocomotionClass::End_Piggyback(ILocomotionPtr &pLoco)
 {
 	if (!pLoco)
 	{
-		Game::RaiseError(E_POINTER);
+		_com_issue_error(E_POINTER);
 	}
 
 	if (IPiggybackPtr pPiggy = pLoco)
@@ -647,7 +572,7 @@ bool LocomotionClass::End_Piggyback(ILocomotionPtr &pLoco)
 			auto res = pPiggy->End_Piggyback(&pLoco);
 			if (FAILED(res))
 			{
-				Game::RaiseError(res);
+				_com_issue_error(res);
 			}
 			return (res == S_OK);
 		}

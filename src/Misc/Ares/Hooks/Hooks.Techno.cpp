@@ -68,15 +68,14 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			finalSpeed = int((double)finalSpeed / powerdivisor);
 		}
 
+		if (nFactorySpeed > 0)
 		{//Multiple Factory
 
 			const int factoryCount = pOwner->FactoryCount(what, isNaval);
 			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
 
-			if (nFactorySpeed > 0.0) {
-				for (int i = 0; i < divisor; ++i) {
-					finalSpeed += int((double)finalSpeed * nFactorySpeed);
-				}
+			for (int i = divisor - 1; i > 0 ; --i) {
+				finalSpeed = int(finalSpeed * nFactorySpeed);
 			}
 		}
 
@@ -170,21 +169,6 @@ DEFINE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	R->EAX(nAmount > 0 || nAmount != 0);
 	return 0x70BF46;
 }
-
-// DEFINE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
-// {
-// 	enum
-// 	{
-// 		ContineCheckUpdateSelfHeal = 0x6FA75A,
-// 		SkipAnySelfHeal = 0x6FA941,
-// 	};
-
-// 	GET(TechnoClass* const, pThis, ESI);
-
-
-// 	//handle everything
-// 	return SkipAnySelfHeal;
-// }
 
 // spark particle systems created at random intervals
 DEFINE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
@@ -377,6 +361,13 @@ DEFINE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	return 0x707B23;
 }
 
+void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate) {
+	if (!nTimer.GetTimeLeft()) {
+		nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
+		VoxClass::Play(pEva);
+	}
+}
+
 DEFINE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -384,15 +375,6 @@ DEFINE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	auto PlayEva = [](const char* pEva, CDTimerClass& nTimer, double nRate)
-		{
-			if (!nTimer.GetTimeLeft())
-			{
-				nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
-				VoxClass::Play(pEva);
-			}
-		};
 
 	if (detect && pTypeExt->SensorArray_Warn)
 	{
@@ -511,7 +493,7 @@ DEFINE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
@@ -801,7 +783,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 		if (IsAlly || IsObserver || bReveal)
 		{
 			if (isFake)
-				DrawTheStuff(StringTable::LoadString("TXT_FAKE"));
+				DrawTheStuff(GeneralUtils::LoadStringOrDefault("TXT_FAKE", L"FAKE"));
 
 			if (pType->PowerBonus > 0)
 			{
@@ -1284,39 +1266,18 @@ DEFINE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
 
-	auto const GetMindDamage = [](WeaponTypeClass const* const pWeapon) {
-		return (pWeapon && pWeapon->Warhead->MindControl) ? pWeapon->Damage : 0;
-	};
-
-	auto count = GetMindDamage(pThis->GetWeapon(0)->WeaponType);
-	if (count <= 0) {
-		count = GetMindDamage(pThis->GetWeapon(1)->WeaponType);
+	int count = 0;
+	for (int i = 0; i < 3; ++i) {
+		if (auto pWeapon = pThis->GetWeapon(i)->WeaponType) {
+			if (pWeapon->Warhead->MindControl && pWeapon->Damage > 0) {
+				count = pWeapon->Damage;
+				break;
+			}
+		}
 	}
 
 	R->EAX(count);
 	return 0x7162BC;
-}
-
-DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
-{
-	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
-
-	GET(WarheadTypeClass* , pWarhead , EAX);
-	GET(TechnoClass*, pTarget, EBP);
-
-	if(pTarget)	{
-		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
-
-		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		//if(pWHExt->ImmunityType.isset() &&
-		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
-		//	return FireIllegal;
-
-		if(pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
-			return FireIllegal;
-	}
-
-	return ContinueCheck;
 }
 
 // issue #895788: cells' high occupation flags are marked only if they
@@ -1444,20 +1405,28 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pHouse, EDI);
 
+	enum { ForceAttack = 0x6FA472, ContinueCheck = 0x6FA39D };
+
 	const bool BLRes = R->BL();
 	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
+
 	bool IsAlly = false;
-	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target))
-	{
-		if (const auto pTargetHouse = pTechTarget->GetOwningHouse())
-		{
-			if (pOwner->IsAlliedWith(pTargetHouse))
+
+	if (const auto pTechTarget = generic_cast<ObjectClass*>(pThis->Target)) {
+		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+			if (pOwner->IsAlliedWith(pTargetHouse)) {
 				IsAlly = true;
+			}
 		}
 	}
 
-	enum { RetNotAlly = 0x6FA472, RetAlly = 0x6FA39D };
+	auto pType = pThis->GetTechnoType();
+
+	if (pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
+		return ForceAttack;
+	}
+
 	const bool IsNegDamage = (pThis->CombatDamage() < 0);
 
-	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
+	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;
 }

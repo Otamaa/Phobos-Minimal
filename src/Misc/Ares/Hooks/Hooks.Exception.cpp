@@ -1,8 +1,6 @@
 
 #include "Header.h"
 
-#include "Classes/Dialogs.h"
-
 #include <Utilities/Patch.h>
 
 #include <EventClass.h>
@@ -20,18 +18,18 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		L"Would you like to create a full error report for the developers?\n"
 		L"Be advised that reports from at least two players are needed.", L"Reconnection Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 	{
+		Debug::DumpStack(R, 8084);
+
 		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 		SetCursor(loadCursor);
 
-		Debug::DumpStack(R, 8084);
-
-		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+		std::wstring path = Debug::PrepareSnapshotDirectory();
 
 		if (Debug::LogEnabled)
 		{
 			Debug::Log("Copying debug log\n");
-			std::wstring logCopy = path + L"\\debug.log";
+			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
 			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
 		}
 
@@ -64,6 +62,8 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	Debug::FreeMouse();
 	Debug::Log("Exception handler fired!\n");
 	Debug::Log("Exception %X at %p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+	Game::StreamerThreadFlush();
+
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 	//so using these oogly
 	SetWindowTextW(*reinterpret_cast<HWND*>(0xB73550), L"Fatal Error - Yuri's Revenge");
@@ -92,15 +92,15 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	case EXCEPTION_STACK_OVERFLOW:
 	case 0xE06D7363: // exception thrown and not caught
 	{
-		std::wstring path = Dialogs::PrepareSnapshotDirectory();
+		std::wstring path = Debug::PrepareSnapshotDirectory();
 
 		if (Debug::LogEnabled)
 		{
-			std::wstring logCopy = path + L"\\debug.log";
+			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
 			CopyFileW(Debug::LogFileTempName.c_str(), logCopy.c_str(), FALSE);
 		}
 
-		std::wstring except_file = path + L"\\except.txt";
+		const std::wstring except_file = path + L"\\except.txt";
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
 		{
@@ -163,7 +163,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
 			uint8_t* eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
 
-			for (int i = 32; i > 0; --i)
+			for (int e = 32; e > 0; --e)
 			{
 				if (IsBadReadPtr(eip_pointer, sizeof(uint8_t)))
 				{
@@ -202,16 +202,16 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 			fprintf(except, "Floating point Registers:\n");
 
-			for (int i = 0; i < EXCEPTION_STACK_COLUMNS; ++i)
+			for (int d = 0; d < EXCEPTION_STACK_COLUMNS; ++d)
 			{
-				fprintf(except, "ST%d : ", i);
+				fprintf(except, "ST%d : ", d);
 
 				for (int j = 0; j < 10; ++j)
 				{
-					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[i * 10 + j]);
+					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[d * 10 + j]);
 				}
 
-				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[i * 10]));
+				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[d * 10]));
 			}
 
 			if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE))
@@ -251,7 +251,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 			fprintf(except, "\nStack dump (depth : %d):\n", EXCEPTION_STACK_DEPTH_MAX);
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
-			for (int i = 0; i < EXCEPTION_STACK_DEPTH_MAX; ++i)
+			for (int c = 0; c < EXCEPTION_STACK_DEPTH_MAX; ++c)
 			{
 				const char* suffix = "";
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
@@ -281,7 +281,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			expParam.ExceptionPointers = pExs;
 			expParam.ClientPointers = FALSE;
 
-			Dialogs::FullDump(std::move(path), &expParam);
+			Debug::FullDump(std::move(path), &expParam);
 
 			loadCursor = LoadCursor(nullptr, IDC_ARROW);
 			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
@@ -318,7 +318,7 @@ DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 	GET(LPEXCEPTION_POINTERS, pExs, EDX);
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		//dont fire exception twices ,..
+		//dont fire exception multiple times ,..
 	   //i dont know how handle recursive exception
 		ExceptionHandler(pExs);
 		__debugbreak();
@@ -468,17 +468,16 @@ void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
 		for (int j = 0; j < b.Count; ++j)
 		{
 			const auto& n = b[j];
-			auto idx = n.BuildingTypeIndex;
-			if (idx >= 0)
+			if (n.BuildingTypeIndex >= 0)
 			{
-				auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
+				auto lbl = BuildingTypeClass::Array->Items[n.BuildingTypeIndex]->ID;
 				fprintf(F, "\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
 					, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 			}
 			else
 			{
 				fprintf(F, "\tNode #%03d: Special %d @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
-					, j, idx, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
+					, j, n.BuildingTypeIndex, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 			}
 		}
 		fprintf(F, "\n");

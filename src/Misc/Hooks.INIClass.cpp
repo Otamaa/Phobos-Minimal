@@ -14,7 +14,6 @@
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
 
-#ifdef ENABLE_PHOBOS_INHERITANCE
 namespace detail
 {
 	template <>
@@ -32,15 +31,6 @@ namespace detail
 						value = dummy;
 						return true;
 					}
-				}
-			}
-
-			if (IS_SAME_STR_(parser.value(), Test_data.s_name)) {
-				CLSID dummy;
-				if (CLSIDFromString(LPCOLESTR(Test_data.w_CLSID), &dummy) == NOERROR)
-				{
-					value = dummy;
-					return true;
 				}
 			}
 
@@ -72,54 +62,131 @@ namespace detail
 	}
 }
 
-namespace INIInheritance
-{	// passthrough instead of std::hash, because our keys are already unique CRCs
-	struct Passthrough
+// passthrough instead of std::hash, because our keys are already unique CRCs
+struct Passthrough {
+	std::size_t operator()(int const& x) const noexcept {
+		return x;
+	}
+};
+
+struct INIInheritance
+{
+	static constexpr const char* const IcludesSection = "$Include";
+	static constexpr int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
+	static CCINIClass* LastINIFile;
+	static std::set<std::string> SavedIncludes;
+	static PhobosMap<int, std::string> Inherits;
+
+	static int Finalize(char* buffer ,int length, const char* result)
 	{
-		std::size_t operator()(int const& x) const noexcept
-		{
-			return x;
+		if (!result) {
+			*buffer = NULL;
+			return 0;
 		}
-	};
 
-	constexpr const char* const InHeritsStr = "$Inherits";
-	CCINIClass* LastINIFile = nullptr;
-	std::set<std::string> SavedIncludes;
-	std::unordered_map<int, std::string, Passthrough> Inherits;
+		strncpy(buffer, result, length);
+		buffer[length - 1] = NULL;
+		CRT::strtrim(buffer);
 
-	template<typename T>
-	T* ReadTemplatePtr(REGISTERS* R)
-	{
-		GET(CCINIClass*, ini, ECX);
-		GET_STACK(T*, result, 0x4);
-		GET_STACK(char*, section, 0x8);
-		GET_STACK(char*, entry, 0xC);
-		GET_STACK(T*, defaultValue, 0x10);
-		INI_EX exINI(ini);
-
-		if (!detail::read<T>(*result, exINI, section, entry, false))
-			*result = *defaultValue;
-		return result;
+		return (int)strlen(buffer);
 	}
 
-	// for some reason, WW passes the default locomotor by value
-	template<>
-	CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
+	static int ReadStringUseCRCActual(CCINIClass* ini, int sectionCRC, int entryCRC, const char* defaultValue, char* buffer, int length, bool useCurrentSection)
 	{
-		GET(CCINIClass*, ini, ECX);
-		GET_STACK(CLSID*, result, 0x4);
-		GET_STACK(char*, section, 0x8);
-		GET_STACK(char*, entry, 0xC);
-		GET_STACK(CLSID, defaultValue, 0x10);
-		INI_EX exINI(ini);
+		if (!buffer || length < 2)
+			return 0;
 
-		if (!detail::read<CLSID>(*result, exINI, section, entry, false))
-			*result = defaultValue;
-		return result;
+		const INIClass::INISection* pSection = useCurrentSection ?
+			ini->CurrentSection :
+			ini->SectionIndex.IsPresent(sectionCRC) ? ini->SectionIndex.Archive->Data : nullptr;
+
+		if (!pSection)
+			return Finalize(buffer ,length ,defaultValue);
+
+		const auto pEntry = pSection->EntryIndex.IsPresent(entryCRC) ? pSection->EntryIndex.Archive->Data : nullptr;
+
+		if (!pEntry)
+			return Finalize(buffer, length, defaultValue);
+
+		return Finalize(buffer, length, pEntry->Value ? pEntry->Value : defaultValue);
+	}
+
+	static int ReadString(
+		CCINIClass* ini,
+		int sectionCRC,
+		int entryCRC,
+		const char* defaultValue,
+		char* buffer,
+		int length,
+		bool useCurrentSection,
+		bool skipCheck = false
+	) {
+		int resultLen = 0;
+
+		if (!skipCheck)
+		{
+			// check if this section has the actual entry, if yes, then we're done
+			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, entryCRC, NULL, buffer, length, useCurrentSection);
+			if (resultLen != 0)
+				return buffer[0] ? resultLen : 0;
+		}
+
+		// if we were looking for $Inherits and failed, no recursion
+		if (entryCRC == inheritsCRC)
+			return 0;
+
+		// read $Inherits entry only once per section
+		const auto it = INIInheritance::Inherits.get_key_iterator(sectionCRC);
+
+		std::string inherits_result;
+
+		if (it == INIInheritance::Inherits.end())
+		{
+			char stringBuffer[0x100];
+			// if there's no saved $Inherits entry for this section, read now
+			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, useCurrentSection);
+			INIInheritance::Inherits.emplace_unchecked(sectionCRC, std::string(stringBuffer));
+
+			// if we failed to find $Inherits, stop
+			if (resultLen == 0)
+				return Finalize(buffer,length, defaultValue);
+
+			inherits_result = stringBuffer;
+		}
+		else
+		{
+			// use the saved $Inherits entry
+			if (it->second.empty())
+				return Finalize(buffer, length, defaultValue);
+
+			// strdup because strtok edits the
+			char* up = _strdup(it->second.c_str());
+			inherits_result = up;
+			free(up);
+		}
+
+		// for each section in csv, search for entry
+		char* state = NULL;
+		char* split = strtok_s(inherits_result.data(), Phobos::readDelims, &state);
+		do
+		{
+			const int splitsCRC = CRCEngine()(split, strlen(split));
+
+			// if we've found anything, we're done
+			resultLen = INIInheritance::ReadString(ini, splitsCRC, entryCRC, defaultValue, buffer, length, false);
+
+			if (resultLen != 0)
+				break;
+
+			split = strtok_s(NULL, Phobos::readDelims, &state);
+		}
+		while (split);
+
+		return resultLen != 0 ? (buffer[0] ? resultLen : 0) : Finalize(buffer, length, defaultValue);
 	}
 
 	template<typename T>
-	T ReadTemplate(REGISTERS* R)
+	static inline T ReadTemplate(REGISTERS* R)
 	{
 		GET(CCINIClass*, ini, ECX);
 		GET_STACK(char*, section, 0x4);
@@ -128,137 +195,49 @@ namespace INIInheritance
 		INI_EX exINI(ini);
 		T result;
 
-		if (!detail::read<T>(result, exINI, section, entry, false))
+		if (!detail::read<T>(result, exINI, section, entry))
 			result = defaultValue;
 		return result;
 	}
 
-	template<>
-	bool ReadTemplate(REGISTERS* R)
+	template<typename T>
+	static inline T* ReadTemplatePtr(REGISTERS* R)
 	{
 		GET(CCINIClass*, ini, ECX);
-		GET_STACK(char*, section, 0x4);
-		GET_STACK(char*, entry, 0x8);
-		GET_STACK(bool, defaultValue, 0xC);
+		GET_STACK(T*, result, 0x4);
+		GET_STACK(char*, section, 0x8);
+		GET_STACK(char*, entry, 0xC);
+		GET_STACK(T*, defaultValue, 0x10);
 		INI_EX exINI(ini);
-		bool result;
 
-		if (!detail::read<bool>(result, exINI, section, entry, false))
-			result = defaultValue;
-
+		if (!detail::read<T>(*result, exINI, section, entry))
+			*result = *defaultValue;
 		return result;
 	}
 
-	int ReadStringUseCRC(CCINIClass* ini, int sectionCRC, int entryCRC, char* defaultValue, char* buffer, int length, bool useCurrentSection)
+	// for some reason, WW passes the default locomotor by value
+	template<>
+	static inline CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
 	{
-		const auto finalize = [buffer, length](char* result)
-		{
-			if (!result)
-			{
-				*buffer = NULL;
-				return 0;
-			}
-			strncpy(buffer, result, length);
-			buffer[length - 1] = NULL;
-			CRT::strtrim(buffer);
+		GET(CCINIClass*, ini, ECX);
+		GET_STACK(CLSID*, result, 0x4);
+		GET_STACK(char*, section, 0x8);
+		GET_STACK(char*, entry, 0xC);
+		GET_STACK(CLSID, defaultValue, 0x10);
+		INI_EX exINI(ini);
 
-			return (int)strlen(buffer);
-		};
-
-		if (!buffer || length < 2)
-			return 0;
-
-		INIClass::INISection* pSection = useCurrentSection ?
-			ini->CurrentSection : ini->SectionIndex.IsPresent(sectionCRC)
-			? ini->SectionIndex.Archive->Data : nullptr;
-
-		if (!pSection)
-			return finalize(defaultValue);
-
-		const auto pEntry = pSection->EntryIndex.IsPresent(entryCRC) ? pSection->EntryIndex.Archive->Data : nullptr;
-		if (!pEntry)
-			return finalize(defaultValue);
-
-		return finalize(pEntry->Value ? pEntry->Value : defaultValue);
-	}
-
-	int ReadString(REGISTERS* R, int address)
-	{
-		const int stackOffset = 0x1C;
-		GET(CCINIClass*, ini, EBP);
-		GET_STACK(int, length, STACK_OFFSET(stackOffset, 0x14));
-		GET_STACK(char*, buffer, STACK_OFFSET(stackOffset, 0x10));
-		GET_STACK(const char*, defaultValue, STACK_OFFSET(stackOffset, 0xC));
-		GET_STACK(int, entryCRC, STACK_OFFSET(stackOffset, 0x8));
-		GET_STACK(int, sectionCRC, STACK_OFFSET(stackOffset, 0x4));
-
-		const auto finalize = [R, buffer, address](const char* value)
-		{
-			R->EDI(buffer);
-			R->EAX(0);
-			R->ECX(value);
-			return address;
-		};
-
-		const constexpr int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
-
-		// if we were looking for $Inherits and failed, no recursion
-		if (entryCRC == inheritsCRC)
-			return finalize(defaultValue);
-
-		// read $Inherits entry only once per section
-		const auto it = INIInheritance::Inherits.find(sectionCRC);
-		char* inherits;
-		if (it == INIInheritance::Inherits.end())
-		{
-			// if there's no saved $Inherits entry for this section, read now
-			char stringBuffer[0x100];
-			const int retval = INIInheritance::ReadStringUseCRC(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, true);
-			INIInheritance::Inherits.emplace(sectionCRC, std::string(stringBuffer));
-			if (retval == 0)
-				return finalize(defaultValue);
-			inherits = stringBuffer;
-		}
-		else
-		{
-			// use the saved $Inherits entry
-			if (it->second.empty())
-				return finalize(defaultValue);
-			// strdup because strtok edits the string
-			inherits = _strdup(it->second.c_str());
-		}
-
-		// for each section in csv, search for entry
-		char* state = NULL;
-		char* split = strtok_s(inherits, Phobos::readDelims, &state);
-		do
-		{
-			CRCEngine nCRC {};
-			nCRC(split, strlen(split));
-			const int splitsCRC = nCRC;
-
-			// if we've found anything new, we're done
-			if (INIInheritance::ReadStringUseCRC(ini, splitsCRC, entryCRC, NULL, buffer, length, false) != 0)
-				break;
-			split = strtok_s(NULL, Phobos::readDelims, &state);
-		}
-		while (split);
-		free(inherits);
-
-		return finalize(buffer[0] ? buffer : defaultValue);
+		if (!detail::read<CLSID>(*result, exINI, section, entry))
+			*result = defaultValue;
+		return result;
 	}
 };
 
-//
-DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_DisableAres);
-//
-DEFINE_DISABLE_HOOK(0x526CC0, INIClass_GetKeyName_DisableAres);
+CCINIClass* INIInheritance::LastINIFile = nullptr;
+std::set<std::string>  INIInheritance::SavedIncludes {};
+PhobosMap<int, std::string>  INIInheritance::Inherits {};
+
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
-//
-DEFINE_DISABLE_HOOK(0x474200, CCINIClass_ReadCCFile1_DisableAres)
-//
-DEFINE_DISABLE_HOOK(0x474314, CCINIClass_ReadCCFile2_DisableAres)
 
 DEFINE_HOOK(0x5276D0, INIClass_ReadInt_Overwrite, 0x5)
 {
@@ -279,31 +258,58 @@ DEFINE_HOOK(0x5283D0, INIClass_ReadDouble_Overwrite, 0x5)
 	return 0x52859F;
 }
 
-DEFINE_HOOK(0x529880, INIClass_ReadPoint2D_Overwrite, 0x5)
+DEFINE_HOOK(0x529880, INIClass_ReadPoint2D_Overwrite, 0x7)
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<Point2D>(R));
 	return 0x52859F;
 }
 
-DEFINE_HOOK(0x529CA0, INIClass_ReadPoint3D_Overwrite, 0x5)
+DEFINE_HOOK(0x529CA0, INIClass_ReadPoint3D_Overwrite, 0x8)
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<CoordStruct>(R));
 	return 0x529E63;
 }
 
-DEFINE_HOOK(0x527920, INIClass_ReadGUID_Overwrite, 0x5) // locomotor
+DEFINE_HOOK(0x527920, INIClass_ReadGUID_Overwrite, 0x6) // locomotor
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<CLSID>(R));
 	return 0x527B43;
 }
 
-DEFINE_HOOK(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0xA)
+DEFINE_HOOK(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 {
-	return INIInheritance::ReadString(R, 0x528BB6);
+	if (!Phobos::Config::UseNewInheritance)
+		return 0x0;
+
+	const int stackOffset = 0x1C;
+	GET(CCINIClass*, ini, EBP);
+	GET_STACK(int, length, STACK_OFFSET(stackOffset, 0x14));
+	GET_STACK(char*, buffer, STACK_OFFSET(stackOffset, 0x10));
+	GET_STACK(const char*, defaultValue, STACK_OFFSET(stackOffset, 0xC));
+	GET_STACK(int, entryCRC, STACK_OFFSET(stackOffset, 0x8));
+	GET_STACK(int, sectionCRC, STACK_OFFSET(stackOffset, 0x4));
+
+	// if we're in a different CCINIClass now, clear old data
+	if (ini != INIInheritance::LastINIFile)
+	{
+		INIInheritance::LastINIFile = ini;
+		INIInheritance::Inherits.clear();
+	}
+
+	INIInheritance::ReadString(ini, sectionCRC, entryCRC, defaultValue, buffer, length, true, true);
+
+	R->EDI(buffer);
+	R->EAX(0);
+	R->ECX(buffer[0] ? buffer : defaultValue);
+
+	return 0x528BB6;
 }
 
 DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)
 {
+	if (!Phobos::Config::UseNewIncludes)
+		return 0x0;
+
 	GET(CCINIClass*, ini, ESI);
 
 	// if we're in a different CCINIClass now, clear old data
@@ -313,35 +319,27 @@ DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)
 		INIInheritance::SavedIncludes.clear();
 	}
 
-	auto section = ini->GetSection(INIInheritance::InHeritsStr);
-	if (!section)
-		return 0;
+	if (auto section = ini->GetSection(INIInheritance::IcludesSection)) {
+		for (auto& node : section->EntryIndex) {
 
-	for (auto& node : section->EntryIndex)
-	{
-		if (!node.Data || !node.Data->Value || !*node.Data->Value)
-			continue;
+			if (!node.Data || !node.Data->Value || !*node.Data->Value)
+				continue;
 
-		auto filename = std::string(node.Data->Value);
+			auto filename = std::string(node.Data->Value);
 
-		if (filename.empty())
-			continue;
+			if (INIInheritance::SavedIncludes.contains(filename))
+				continue;
 
-		if (INIInheritance::SavedIncludes.contains(filename))
-			continue;
+			INIInheritance::SavedIncludes.insert(std::move(filename));
 
-		INIInheritance::SavedIncludes.insert(std::move(filename));
-
-		CCFileClass nFile { node.Data->Value };
-		if (nFile.Exists())
-			INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
+			CCFileClass nFile { node.Data->Value };
+			if (nFile.Exists())
+				INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
+		}
 	}
 
 	return 0;
 }
-
-
-#else
 
 // Fix issue with TilesInSet caused by incorrect vanilla INIs and the fixed parser returning correct default value (-1) instead of 0 for existing non-integer values
 int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis, void* _, const char* pSection, const char* pKey, int defaultValue)
@@ -354,31 +352,25 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 
 DEFINE_JUMP(CALL, 0x545FD4, GET_OFFSET(IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper));
 
-DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
-{
-	GET(wchar_t*, buffer, ECX);
-	constexpr size_t BufferSize = 0x80;
-
-	if (buffer[0] != L'{')
-	{
-		for (auto const&[name , CLSID] : EnumFunctions::LocomotorPairs_ToWideStrings) {
-			if (CRT::wcsicmp(buffer, name) == 0) {
-				wcscpy_s(buffer, BufferSize, CLSID);
-				return 0;
-			}
-		}
-
-		//if (IS_SAME_WSTR(buffer, Test_data.w_name)) {
-		//	wcscpy_s(buffer, BufferSize, Test_data.w_CLSID);
-		//	return 0;
-		//}
-
-		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
-			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
-			return 0;
-		}
-	}
-
-	return 0;
-}
-#endif
+//DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
+//{
+//	GET(wchar_t*, buffer, ECX);
+//	constexpr size_t BufferSize = 0x80;
+//
+//	if (buffer[0] != L'{')
+//	{
+//		for (auto const&[name , CLSID] : EnumFunctions::LocomotorPairs_ToWideStrings) {
+//			if (CRT::wcsicmp(buffer, name) == 0) {
+//				wcscpy_s(buffer, BufferSize, CLSID);
+//				return 0;
+//			}
+//		}
+//
+//		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
+//			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
+//			return 0;
+//		}
+//	}
+//
+//	return 0;
+//}

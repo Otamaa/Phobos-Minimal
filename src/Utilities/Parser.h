@@ -37,7 +37,7 @@ inline bool Parse_vanilla_double(const char* pValue, double* outValue)
 	// Game doesn't use double precision when parsing, using double here would create inconsistency.
 	float buffer = 0.0f;
 	// Use game's sscanf function, the C library one has different precision/rounding.
-	if (sscanf(pValue, "%f", &buffer) == 1) {
+	if (CRT::sscanf(pValue, "%f", &buffer) == 1) {
 		if (strchr(pValue, '%')) {
 			buffer *= 0.01f;
 		}
@@ -253,17 +253,23 @@ inline bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
 
 template<>
 inline bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
-	double buffer = 0.0;
-	if (sscanf_s(pValue, "%lf", &buffer) == 1) {
-		if (strchr(pValue, '%')) {
-			buffer *= 0.01;
-		}
 
-		*outValue = buffer;
-		return true;
-	}
+	//if (Phobos::Config::UseNewInheritance)
+	//	return Parse_vanilla_double(pValue, outValue);
+	//
+	//double buffer = 0.0;
+	//if (sscanf_s(pValue, "%lf", &buffer) == 1) {
+	//	if (strchr(pValue, '%')) {
+	//		buffer *= 0.01;
+	//	}
+	//
+	//	*outValue = buffer;
+	//	return true;
+	//}
+	//
+	//return false;
 
-	return false;
+	return Parse_vanilla_double(pValue, outValue);
 };
 
 template<>

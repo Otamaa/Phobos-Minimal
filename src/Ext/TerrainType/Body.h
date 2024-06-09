@@ -20,7 +20,7 @@ public:
 	Valueable<int> SpawnsTiberium_Range { 1 };
 	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };
 	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim { { 1, 0 } };
-	Nullable<AnimTypeClass*> DestroyAnim { };
+	Valueable<AnimTypeClass*> DestroyAnim { nullptr };
 	NullableIdx<VocClass> DestroySound { };
 	Nullable<ColorStruct> MinimapColor { };
 
@@ -43,6 +43,11 @@ public:
 
 	Valueable<int> Bounty { 0 };
 
+	Valueable<bool> HasDamagedFrames { false };
+	Valueable<bool> HasCrumblingFrames { false };
+	NullableIdx<VocClass> CrumblingSound {};
+	Nullable<int> AnimationLength {};
+
 	TerrainTypeExtData()  noexcept = default;
 	~TerrainTypeExtData() noexcept = default;
 
@@ -53,6 +58,7 @@ public:
 
 	int GetTiberiumGrowthStage();
 	int GetCellsPerAnim();
+	void PlayDestroyEffects(CoordStruct coords);
 
 	int GetLightIntensity() const
 	{

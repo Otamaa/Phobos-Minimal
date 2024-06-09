@@ -22,8 +22,9 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 
-	Handle<LightSourceClass*, UninitLightSource> LighSource {};
-	Handle<AnimClass*, UninitAnim> AttachedAnim {};
+	Handle<LightSourceClass*, UninitLightSource> LighSource { nullptr };
+	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
+	std::vector<CellStruct> Adjencentcells{};
 
 	TerrainExtData()  noexcept = default;
 	~TerrainExtData() noexcept = default;

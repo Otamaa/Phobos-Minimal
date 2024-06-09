@@ -2,6 +2,7 @@
 
 #include <Ext/Team/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/Techno/Body.h>
 
 // 1-based like the original action '6,n' (so the first script line is n=1)
 void ScriptExtData::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = -1)
@@ -258,7 +259,9 @@ void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 				for (size_t i = 0; i < objectsList.size(); i++)
 				{
 					if (objectsList[i] == pTechno->GetTechnoType()
-						//TeamExt::GroupAllowed(objectsList[i] , pTechno->GetTechnoType())
+						|| objectsList[i] == TechnoExtContainer::Instance.Find(pTechno)->Type
+						//|| TeamExtData::GroupAllowed(objectsList[i] , pTechno->GetTechnoType())
+						//||TeamExtData::GroupAllowed(objectsList[i] , TechnoExtContainer::Instance.Find(pTechno)->Type)
 						) {
 						countValue++;
 						break;

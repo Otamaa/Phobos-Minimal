@@ -11,7 +11,7 @@ DEFINE_HOOK(0x534FB1, Sides_MixFileIndex, 5)
 
 	R->EBX(MixIdx);
 	R->ESI(MixIdx);
-	R->Stack(0x10, MixIdx);
+	R->Stack(0x10, n);
 	return ((MixIdx >> 0x1F) & 0xFFFFFFC3) + 0x535003;
 }
 

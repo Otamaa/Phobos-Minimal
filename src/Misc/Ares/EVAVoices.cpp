@@ -13,7 +13,7 @@ std::vector<std::string> EVAVoices::Types;
 
 int EVAVoices::FindIndexById(const char* type)
 {
-	Debug::Log("[Phobos] Find EVAVoices Index by ID [%s]\n", type);
+	//Debug::Log("[Phobos] Find EVAVoices Index by ID [%s]\n", type);
 	// the default values
 	if (IS_SAME_STR_(type, GameStrings::Allied()))
 	{

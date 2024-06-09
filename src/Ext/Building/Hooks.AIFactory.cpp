@@ -402,7 +402,7 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
 	if (!curFactory) {
-		Game::RaiseError(E_POINTER);
+		_com_issue_error(E_POINTER);
 	}
 	else if (!*curFactory)
 	{
@@ -489,7 +489,7 @@ DEFINE_HOOK(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 }
 
 #include <Ext/Team/Body.h>
-
+//#pragma optimize("", off )
 template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
@@ -577,17 +577,16 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
 	const auto AIDiff = static_cast<int>(pHouse->GetAIDifficultyIndex());
 
-	if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDiff]) {
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
+		return EarliestTypenameIndex;
 
-		if (!BestChoices.empty())
-			EarliestTypenameIndex = BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
-		else
-			EarliestTypenameIndex = -1;
-	}
+	if (!BestChoices.empty())
+		return BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
 
-	return EarliestTypenameIndex;
+	return -1;
 }
 
+//#pragma optimize("", on )
 DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 {
 	GET(TeamClass*, pThis, ECX);
@@ -598,25 +597,31 @@ DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 
 	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
 		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-			pVec->AddItem(pTaskForce->Entries[a].Type);
+			if(auto pType = pTaskForce->Entries[a].Type) {
+				pVec->AddItem(pType);
+			}
 		}
 	}
 
+	//remove first finded similarity
 	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
 		for (auto pMemberNeeded : *pVec) {
 			if ((pMemberNeeded == pMember->GetTechnoType()
 				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
-				|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
-				|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
+				//|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
+				//|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
 
 				)) {
-				pVec->Remove(pMemberNeeded);
+
+				pVec->Remove<true>(pMemberNeeded);
+				break;
 			}
 		}
 	}
 
 	return 0x6EF5B2;
 }
+//#pragma optimize("", off )
 
 DEFINE_HOOK(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {

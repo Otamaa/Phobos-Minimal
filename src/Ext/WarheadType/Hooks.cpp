@@ -47,19 +47,32 @@ DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 	if (pThis->WeaponType )
 	{
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		int defaultDamage = pThis->WeaponType->Damage;
+		const size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
+		const size_t chance_size = pWeaponExt->ExtraWarheads_DetonationChances.size();
 
 		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
 		{
 			auto const pWH = pWeaponExt->ExtraWarheads[i];
 			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
-			int damage = defaultDamage;
+			int damage = pThis->WeaponType->Damage;
 
-			if (pWeaponExt->ExtraWarheads_DamageOverrides.size() > i)
+			if (size > i)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
+			else if (size > 0)
+				damage = pWeaponExt->ExtraWarheads_DamageOverrides[size - 1];
 
-			AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
-			WarheadTypeExtData::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+			bool detonate = true;
+
+
+			if (chance_size > i)
+				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
+			if (chance_size > 0)
+				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
+
+			if (detonate) {
+				AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
+				WarheadTypeExtData::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+			}
 		}
 	}
 
@@ -213,13 +226,13 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 // 	return 0;
 // }
 
-//DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
-//{
-//	GET_BASE(WarheadTypeClass*, pWH, 0xC);
-//	GET_STACK(int, damage, 0xE0 - 0xBC);
+// DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
+// {
+// 	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+// 	GET_STACK(int, damage, 0xE0 - 0xBC);
 //
-//	const int rocker = WarheadTypeExtContainer::Instance.Find(pWH)->Rocker_Damage.Get(damage);
-//	_asm fild rocker;
-//
-//	return 0x489B4D;
-//}
+// 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+// 	const double rocker = pWHExt->Rocker_Damage.Get(damage) * 0.01;
+// 	_asm fild rocker;
+// 	return 0x489B53;
+// }

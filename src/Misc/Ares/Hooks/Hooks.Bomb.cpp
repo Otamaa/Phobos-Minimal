@@ -172,13 +172,14 @@ DEFINE_JUMP(VTABLE, 0x7E3D4C, GET_OFFSET(BombExtData::GetOwningHouse));
 DEFINE_JUMP(VTABLE, 0x7E3D38 , GET_OFFSET(BombExtData::InvalidatePointer));
 
 //new
-DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
-{
-	GET(TechnoClass* const , pThis, EBP);
-	GET(CoordStruct*, pCoordBuffA, ECX);
-	R->EAX(pThis->GetCenterCoords(pCoordBuffA));
-	return 0x6F5201;
-}
+//DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
+//{
+//	GET(TechnoClass* const , pThis, EBP);
+//	GET(CoordStruct*, pCoordBuffA, ECX);
+//	R->EAX(pThis->GetCenterCoords(pCoordBuffA));
+//	return 0x6F5201;
+//}
+DEFINE_PATCH(0x6F51FD, 0x58);
 
 // 438879, 6
 // custom ivan bomb detonation 3

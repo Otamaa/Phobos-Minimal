@@ -142,22 +142,22 @@ public:
 
 	virtual ~Container() = default;
 
-	inline auto GetName() const
+	constexpr inline auto GetName() const
 	{
 		return this->Name.data();
 	}
 
-	inline base_type_ptr GetSavingObject() const
+	constexpr inline base_type_ptr GetSavingObject() const
 	{
 		return SavingObject;
 	}
 
-	inline IStream* GetStream() const
+	constexpr inline IStream* GetStream() const
 	{
 		return this->SavingStream;
 	}
 
-	inline void ClearExtAttribute(base_type_ptr key)
+	constexpr FORCEINLINE void ClearExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
@@ -168,7 +168,7 @@ public:
 		//	this->Map.erase(key);
 	}
 
-	inline void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
+	constexpr FORCEINLINE void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
@@ -181,7 +181,7 @@ public:
 		//this->Map[key] = val;
 	}
 
-	inline extension_type_ptr GetExtAttribute(base_type_ptr key)
+	constexpr FORCEINLINE extension_type_ptr GetExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
@@ -203,12 +203,12 @@ public:
 	//}
 
 	// Allocate extensionptr without any checking
-	extension_type_ptr AllocateUnlchecked(base_type_ptr key)
+	constexpr extension_type_ptr AllocateUnlchecked(base_type_ptr key)
 	{
 		if (extension_type_ptr val = new extension_type())
 		{
 			val->AttachedToObject = key;
-			if constexpr (CTORInitable<T>) { 
+			if constexpr (CTORInitable<T>) {
 				if(!Phobos::Otamaa::DoingLoadGame)
 					val->InitializeConstant();
 			}
@@ -219,7 +219,7 @@ public:
 		return nullptr;
 	}
 
-	extension_type_ptr Allocate(base_type_ptr key)
+	constexpr extension_type_ptr Allocate(base_type_ptr key)
 	{
 		if (!key || Phobos::Otamaa::DoingLoadGame)
 			return nullptr;
@@ -235,7 +235,7 @@ public:
 		return nullptr;
 	}
 
-	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
+	constexpr void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
 	{
 		if (!key || (!bCond && !nMessage.empty()))
 		{
@@ -246,7 +246,7 @@ public:
 		this->Allocate(key);
 	}
 
-	extension_type_ptr FindOrAllocate(base_type_ptr key)
+	constexpr extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
 		// Find Always check for nullptr here
 		if (extension_type_ptr const ptr = TryFind(key))
@@ -255,12 +255,12 @@ public:
 		return this->Allocate(key);
 	}
 
-	extension_type_ptr Find(base_type_ptr key)
+	constexpr extension_type_ptr Find(base_type_ptr key)
 	{
 		return this->GetExtAttribute(key);
 	}
 
-	extension_type_ptr TryFind(base_type_ptr key)
+	constexpr extension_type_ptr TryFind(base_type_ptr key)
 	{
 		if (!key)
 			return nullptr;
@@ -273,7 +273,7 @@ public:
 	//	return this->GetExtAttributeSafe(key);
 	//}
 
-	void Remove(base_type_ptr key)
+	constexpr void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key))
 		{
@@ -330,7 +330,7 @@ public:
 		}
 	}
 
-	void Clear() {
+	constexpr void Clear() {
 		//if (this->Map.size()) {
 		//	this->Map.clear();
 		//}

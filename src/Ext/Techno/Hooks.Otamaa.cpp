@@ -69,8 +69,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr))
 			{
 				pPipFile = pGarrisonPip;
-				nPipFrameIndex = pExt->PipGarrison_FrameIndex.Get();
-				nPipFrameIndex = std::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
+				nPipFrameIndex = std::clamp((int)pExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
 				if (auto const pConvertData = pExt->PipGarrison_Palette)
 					pPalette = pConvertData->GetConvert<PaletteManager::Mode::Default>();
 			}
@@ -424,7 +423,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 					: args.SourceHouse
 					;
 
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, args.Attacker, false);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, args.Attacker, false , true);
 				Handled = true;
 			}
 		}
@@ -443,7 +442,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	{
 		auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location);
 		auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
-		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true, true);
 		pAnim->ZAdjust = pThis->GetZAdjustment();
 	}
 	else

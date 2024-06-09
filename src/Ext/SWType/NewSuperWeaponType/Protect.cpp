@@ -75,38 +75,28 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			pThis->Owner->CreatePowerOutage(powerOutageDuration);
 		}
 
-		bool force = pData->Protect_IsForceShield;
-		auto range = GetRange(pData);
-
-		auto IronCurtain = [=](TechnoClass* pTechno) -> bool
-		{
-			// we shouldn't do anything
-			if (pTechno->IsImmobilized || pTechno->IsBeingWarpedOut())
-			{
-				return true;
-			}
-
-			// is this thing affected at all?
-			if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
-			{
-				return true;
-			}
-
-			if (!pData->IsTechnoAffected(pTechno))
-			{
-				return true;
-			}
-
-			// protect this techno
-			pTechno->IronCurtain(duration, pThis->Owner, force);
-
-			return true;
-		};
+		const auto range = this->GetRange(pData);
 
 		// protect everything in range
 		Helpers::Alex::DistinctCollector<TechnoClass*> items;
 		Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(Coords, range.WidthOrRange, range.Height, items);
-		items.apply_function_for_each(IronCurtain);
+		items.apply_function_for_each([=](TechnoClass* pTechno) {
+
+			// we shouldn't do anything
+			if (pTechno->IsImmobilized || pTechno->IsBeingWarpedOut())
+				return true;
+
+			// is this thing affected at all?
+			if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
+				return true;
+
+			if (!pData->IsTechnoAffected(pTechno))
+				return true;
+
+			// protect this techno
+			pTechno->IronCurtain(duration, pThis->Owner, pData->Protect_IsForceShield);
+			return true;
+		});
 	}
 
 	return true;

@@ -39,7 +39,7 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual void ComputeCRC(CRCEngine& checksum) const override RX;

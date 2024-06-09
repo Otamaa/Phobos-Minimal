@@ -7,9 +7,6 @@
 
 #include <Utilities/Macro.h>
 
-const Leptons BulletTypeExtData::DefaultBulletScatterMin = Leptons { 256 };
-const Leptons BulletTypeExtData::DefaultBulletScatterMax = Leptons { 512 };
-
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
 {
 	BulletTypeClass* pType = nullptr;
@@ -135,6 +132,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
 		this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
 		this->Shrapnel_Chance.Read(exINI, pSection, "Shrapnel.Chance");
+		this->Shrapnel_UseWeaponTargeting.Read(exINI, pSection, "Shrapnel.UseWeaponTargeting");
 
 		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
@@ -221,6 +219,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Shrapnel_AffectsGround)
 		.Process(this->Shrapnel_AffectsBuildings)
 		.Process(this->Shrapnel_Chance)
+		.Process(this->Shrapnel_UseWeaponTargeting)
 		.Process(this->SubjectToLand)
 		.Process(this->SubjectToLand_Detonate)
 		.Process(this->SubjectToWater)

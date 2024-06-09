@@ -11,33 +11,6 @@ class AnimTypeClass;
 class ParticleTypeClass;
 class VoxelAnimTypeClass;
 
-struct WarheadFlags {
-	bool ForceFire;
-	bool Retaliate;
-	bool PassiveAcquire;
-
-public:
-
-	WarheadFlags() :  ForceFire { false }
-		, Retaliate { false }
-		, PassiveAcquire { false }
-	{ }
-
-	~WarheadFlags() noexcept = default;
-
-	WarheadFlags(bool ff , bool rt  , bool pa) : ForceFire { ff }
-		, Retaliate { rt }
-		, PassiveAcquire { pa }
-	{ }
-
-	bool operator==(WarheadFlags const& nThat) const
-	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
-
-	bool operator!=(WarheadFlags const & nThat) const
-	{ return !((*this) == nThat); }
-
-};
-
 class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")
 	NOVTABLE WarheadTypeClass : public AbstractTypeClass
 {
@@ -73,7 +46,7 @@ public:
 	virtual ~WarheadTypeClass() JMP_THIS(0x75E510);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x75E440);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x75E440);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const R0;
 

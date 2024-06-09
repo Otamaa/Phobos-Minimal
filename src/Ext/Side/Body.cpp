@@ -85,7 +85,7 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 	static char filename[decltype(this->ScoreMultiplayBars)::Size];
 	auto const& data = this->ScoreMultiplayBars.data();
 
-	GeneralUtils::lowercase(filename, data);
+	PhobosCRT::lowercase(filename, data);
 
 	if (auto const pMarker = strstr(filename, "~~"))
 	{
@@ -344,6 +344,9 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ScoreCampaignAnimation.Read(pINI, pSection, "CampaignScore.Animation");
 	this->ScoreCampaignPalette.Read(pINI, pSection, "CampaignScore.Palette");
 
+	this->Sidebar_WeedsCounter_Offset.Read(exINI, pSection, "Sidebar.WeedsCounter.Offset");
+	this->Sidebar_WeedsCounter_Color.Read(exINI, pSection, "Sidebar.WeedsCounter.Color");
+
 	this->GraphicalTextImage.Read(pINI, pSection, "GraphicalText.Image");
 	this->GraphicalTextPalette.Read(pINI, pSection, "GraphicalText.Palette");
 
@@ -469,7 +472,8 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->Sidebar_PowerDelta_Yellow)
 		.Process(this->Sidebar_PowerDelta_Red)
 		.Process(this->Sidebar_PowerDelta_Align)
-
+		.Process(this->Sidebar_WeedsCounter_Offset)
+		.Process(this->Sidebar_WeedsCounter_Color)
 		.Process(this->ToolTip_Background_Color)
 		.Process(this->ToolTip_Background_Opacity)
 		.Process(this->ToolTip_Background_BlurSize)

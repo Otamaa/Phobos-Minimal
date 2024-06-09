@@ -115,10 +115,10 @@ void GenericPrerequisite::SaveToStream(PhobosStreamWriter& Stm)
 
 void GenericPrerequisite::AddDefaults()
 {
-	FindOrAllocate("POWER");
-	FindOrAllocate("FACTORY");
-	FindOrAllocate("BARRACKS");
-	FindOrAllocate("RADAR");
+	FindOrAllocate(GameStrings::POWER());
+	FindOrAllocate(GameStrings::FACTORY());
+	FindOrAllocate(GameStrings::BARRACKS());
+	FindOrAllocate(GameStrings::RADAR());
 	FindOrAllocate("TECH");
 	FindOrAllocate("PROC");
 }
@@ -156,24 +156,21 @@ bool Prereqs::HouseOwnsGeneric(HouseClass const* const pHouse, int const Index)
 	// hack - POWER is -1 , this way converts to 0, and onwards
 	const auto idxPrereq = static_cast<size_t>(-1 - Index);
 
-	if (idxPrereq < GenericPrerequisite::Array.size())
-	{
-		auto const& Prereq = GenericPrerequisite::Array[idxPrereq];
-		for (const auto& index : Prereq->Prereqs)
-		{
-			if (Prereqs::HouseOwnsSpecific(pHouse, index))
-			{
+	if (idxPrereq < GenericPrerequisite::Array.size()) {
+		for (const auto& index : GenericPrerequisite::Array[idxPrereq]->Prereqs) {
+			if (Prereqs::HouseOwnsSpecific(pHouse, index)) {
 				return true;
 			}
 		}
-		for (const auto& pType : Prereq->Alternates)
-		{
-			if (pHouse->CountOwnedNow(pType))
-			{
+
+		for (const auto& pType : GenericPrerequisite::Array[idxPrereq]->Alternates) {
+			if (pHouse->CountOwnedNow(pType)) {
 				return true;
 			}
 		}
+
 	}
+
 	return false;
 }
 
@@ -207,7 +204,9 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 	}
 	else
 	{
-		return pHouse->ActiveBuildingTypes.GetItemCount(Index) > 0;
+		const int count = pHouse->ActiveBuildingTypes.GetItemCount(Index);
+		//Debug::Log(__FUNCTION__" [0x%x - %s]Trying to find [(%d)%s] count %d\n" , pHouse , pHouse->get_ID(), Index , pType->ID , count);
+		return  count > 0;
 	}
 }
 
@@ -267,8 +266,7 @@ bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, int* intitems, int in
 	return false;
 }
 
-bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index)
-{
+bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index) {
 	const auto lookingfor = BuildingTypeClass::Array->Items[Index];
 
 	return std::any_of(items, items + size, [&](BuildingTypeClass* item) {

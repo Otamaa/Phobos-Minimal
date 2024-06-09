@@ -493,7 +493,7 @@ namespace detail
 			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
 				cur; cur = strtok_s(nullptr, Delims, &context))
 			{
-				auto res = trim(cur);
+				auto res = PhobosCRT::trim(cur);
 
 				T buffer = nullptr;
 				if constexpr (!Alloc)
@@ -536,7 +536,7 @@ namespace detail
 				cur;
 				cur = strtok_s(nullptr, Delims, &context))
 			{
-				auto res = trim(cur);
+				auto res = PhobosCRT::trim(cur);
 
 				if (!res.empty())
 					nVecDest[i].push_back(res.c_str());
@@ -574,12 +574,9 @@ namespace detail
 
 					if (buffer)
 					{
-						if constexpr (!Unique)
-						{
+						if constexpr (!Unique) {
 							List.AddItem(buffer);
-						}
-						else if(!GameStrings::IsBlank(cur))
-						{
+						} else {
 							List.AddUnique(buffer);
 						}
 					}

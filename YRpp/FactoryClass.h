@@ -90,7 +90,7 @@ public:
 	static FactoryClass* FindByOwnerAndProduct(
 		HouseClass const* const pHouse, TechnoTypeClass const* const pItem)
 	{
-		for(auto const& pFact : *FactoryClass::Array) {
+		for(auto const pFact : *FactoryClass::Array) {
 			if(pFact->Owner == pHouse) {
 				if(pFact->CountTotal(pItem) > 0) {
 					return pFact;
@@ -99,6 +99,9 @@ public:
 		}
 		return nullptr;
 	}
+
+	TechnoClass* GetFactoryObject() const
+		{ JMP_THIS(0x4CA160); }
 
 	//Constructor
 	FactoryClass() noexcept

@@ -135,7 +135,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 //	return { pre,post };
 //}
 
-#ifdef FUCKTHESE
+#ifndef FUCKTHESE
 
 // Author : chaserli
 Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* ret, VoxelIndexKey* pIndex)
@@ -179,7 +179,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 	return ret;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
+//DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
 
 DEFINE_JUMP(VTABLE , 0x7F5024, GET_OFFSET(LocomotionClass_Draw_Matrix))
 
@@ -191,6 +191,6 @@ DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 	R->EAX(LocomotionClass_Draw_Matrix(iloco, ret, pIndex));
 	return 0x729C09;
 }
-DEFINE_JUMP(VTABLE, 0x7F5A4C, 0x5142A0);//TunnelLocomotionClass_Shadow_Matrix : just use hover's to save my ass
+//DEFINE_JUMP(VTABLE, 0x7F5A4C, 0x5142A0);//TunnelLocomotionClass_Shadow_Matrix : just use hover's to save my ass
 #endif
 #undef GET_LOCO

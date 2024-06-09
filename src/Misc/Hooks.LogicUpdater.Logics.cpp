@@ -49,19 +49,12 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	pExt->Type = pType;
 	pExt->AbsType = pThis->WhatAmI();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
-	pExt->IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
-	 pExt->Type == RulesClass::Instance->DMisl.Type || pExt->Type == RulesClass::Instance->CMisl.Type
-	 || pTypeExt->IsCustomMissile);
-
-	pExt->PaintBallState = std::make_unique<PaintBall>();
-
 	if (pExt->AbsType != BuildingClass::AbsID)
 	{
-		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
+		if (!pTypeExt->LaserTrailData.empty() && !pType->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 		TechnoExtData::InitializeLaserTrail(pThis, false);

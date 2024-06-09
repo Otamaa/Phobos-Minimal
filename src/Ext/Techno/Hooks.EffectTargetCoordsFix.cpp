@@ -271,20 +271,17 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	//FeedbackWeapon
 	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pWeaponExt->FeedbackWeapon.isset())
+	if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
 	{
-		if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
-		{
-			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
-				return 0;
+		if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
+			return 0;
 
-			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
+		WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
 
-			//pThis techno was die after after getting affect of FeedbackWeapon
-			//if the function not bail out , it will crash the game because the vtable is already invalid
-			if(!pThis->IsAlive) {
-				return 0x6FF92F;
-			}
+		//pThis techno was die after after getting affect of FeedbackWeapon
+		//if the function not bail out , it will crash the game because the vtable is already invalid
+		if(!pThis->IsAlive) {
+			return 0x6FF92F;
 		}
 	}
 

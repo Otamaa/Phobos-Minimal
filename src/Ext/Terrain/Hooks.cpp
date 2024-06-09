@@ -60,7 +60,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
+	if (auto const pAnimType = pTerrainExt->DestroyAnim) {
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
 			args.SourceHouse,
 			pThis->GetOwningHouse(),
@@ -104,13 +104,24 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 {
+	GET(TerrainClass*, pThis, ESI);
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
+
 
 	const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThisType);
 
 	if (const auto pConvertData = pTerrainExt->CustomPalette) {
-		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+		auto const pCell = pThis->GetCell();
+		int wallOwnerIndex = pCell->WallOwnerIndex;
+		int colorSchemeIndex = HouseClass::CurrentPlayer->ColorSchemeIndex;
+
+		if (wallOwnerIndex >= 0)
+			colorSchemeIndex = HouseClass::Array->GetItem(wallOwnerIndex)->ColorSchemeIndex;
+
+
+		pConvert = pConvertData->ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
+		R->EBP(pCell->Intensity_Normal);
 	}
 
 	R->EDX(pConvert);

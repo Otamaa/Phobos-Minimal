@@ -76,6 +76,8 @@ public:
 	static constexpr reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
 	static constexpr reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};
 	static constexpr reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
+	static constexpr reference<int, 0xAA0E28> const BridgeSetIdx {};
+	static constexpr reference<int, 0xABAD30> const BridgeMiddle1Idx {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x485200);
@@ -288,6 +290,15 @@ public:
 	bool CanTiberiumGerminate(TiberiumClass* tib) const
 		{ JMP_THIS(0x4838E0); }
 
+	bool CanTiberiumGrowth() const
+		{ JMP_THIS(0x483620);}
+
+	bool CanTiberiumSpread() const
+		{ JMP_THIS(0x483690);}
+
+	bool GrowTiberium() const
+		{ JMP_THIS(0x483710); }
+
 	void SetMapCoords(const CoordStruct& coords) const
 		{ JMP_THIS(0x485240); }
 
@@ -385,36 +396,36 @@ public:
 		{ JMP_THIS(0x487D00); }
 
 	// helper
-	bool ContainsBridge() const
+	constexpr FORCEINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
-	bool ContainsBridgeEx() const
+	constexpr FORCEINLINE bool ContainsBridgeEx() const
 		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
-	bool ContainsBridgeBody() const
+	FORCEINLINE bool ContainsBridgeBody() const
 		{ return (this->Flags & CellFlags::BridgeBody) != CellFlags::Empty; }
 
 	// helper mimicking game's behaviour
-	ObjectClass* GetContent() const
+	FORCEINLINE ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
-	ObjectClass* GetContentB() const
+	FORCEINLINE ObjectClass* GetContentB() const
 	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
-	ObjectClass* GetContent(int z) const
+	FORCEINLINE ObjectClass* GetContent(int z) const
 	{ return this->ContainsBridge() || z >= (Unsorted::LevelHeight * (this->Level + 4)) ? this->AltObject : this->FirstObject; }
 
-	int GetLevelFrom(CellClass const* const	pSource) const
+	constexpr FORCEINLINE int GetLevelFrom(CellClass const* const	pSource) const
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
-	int GetLevel() const
+	constexpr FORCEINLINE int GetLevel() const
 	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
-	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
+	static constexpr FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
 		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
 	}
 
-	static CellStruct Coord2Cell(const CoordStruct &crd) {
+	static constexpr FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 

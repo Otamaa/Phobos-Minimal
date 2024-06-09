@@ -20,7 +20,7 @@ public:
 	virtual ~RadioClass() JMP_THIS(0x65AEB0);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x65AAC0);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x65AAC0);
 
 	//ObjectClass
 	virtual bool Limbo() override JMP_THIS(0x65AA80);

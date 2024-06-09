@@ -74,6 +74,11 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 	//	);
 	//	return PrintException(exception_id, ExceptionInfo);
 	//}
+	case 0x755C7F:
+	{
+		Debug::Log("BounceAnimError \n");
+		return PrintException(exception_id, ExceptionInfo);
+	}
 	case 0x000000:
 		if (ExceptionInfo->ContextRecord->Esp && *(DWORD*)ExceptionInfo->ContextRecord->Esp == 0x55E018)
 		{

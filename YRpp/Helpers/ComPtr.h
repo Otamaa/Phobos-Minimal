@@ -106,13 +106,13 @@ private:
 
 	void raise_if_failed(HRESULT hr) const {
 		if(FAILED(hr) && hr != E_NOINTERFACE) {
-			Game::RaiseError(hr);
+			_com_issue_error(hr);
 		}
 	}
 
 	void raise_if_empty() const {
 		if(!this->value) {
-			Game::RaiseError(E_POINTER);
+			_com_issue_error(E_POINTER);
 		}
 	}
 

@@ -3,6 +3,7 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
@@ -12,16 +13,113 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	double FP_Mult = pExt->AE_FirePowerMult;
 	double Armor_Mult = pExt->AE_ArmorMult;
 	double Speed_Mult = pExt->AE_SpeedMult;
-	BYTE Cloak = (BYTE)pThis->CanICloakByDefault() | pExt->AE_Cloak;
+	bool Cloak = pThis->GetTechnoType()->Cloakable || pThis->HasAbility(AbilityType::Cloak);
+	bool forceDecloak = false;
+	bool disableWeapons = false;
+	bool disableSelfHeal = false;
+	bool untrackable = TechnoExtData::IsUntrackable(pThis);
+	auto extraRangeData = &pExt->AE_ExtraRange;
+	auto extraCritData = &pExt->AE_ExtraCrit;
+	extraRangeData->Clear();
+	extraCritData->Clear();
 
-	for (const auto& ae : ae->Data)
+	std::optional<double> cur_timerAE {};
+
+	for (const auto& aeData : ae->Data)
 	{
-		ROF_Mult *= ae.Type->ROFMultiplier;
-		ReceiveRelativeDamageMult *= ae.Type->ReceiveRelativeDamageMult;
-		FP_Mult *= ae.Type->FirepowerMultiplier;
-		Speed_Mult *= ae.Type->SpeedMultiplier;
-		Armor_Mult *= ae.Type->ArmorMultiplier;
-		Cloak |= (BYTE)ae.Type->Cloakable;
+		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer) {
+			if (!cur_timerAE.has_value())
+				cur_timerAE = aeData.Type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= aeData.Type->ROFMultiplier;
+		}
+
+		ROF_Mult *= aeData.Type->ROFMultiplier;
+		ReceiveRelativeDamageMult += aeData.Type->ReceiveRelativeDamageMult;
+		FP_Mult *= aeData.Type->FirepowerMultiplier;
+		Speed_Mult *= aeData.Type->SpeedMultiplier;
+		Armor_Mult *= aeData.Type->ArmorMultiplier;
+		Cloak |= aeData.Type->Cloakable;
+		forceDecloak |= aeData.Type->ForceDecloak;
+		disableWeapons |= aeData.Type->DisableWeapons;
+		disableSelfHeal |= aeData.Type->DisableSelfHeal;
+		untrackable |= aeData.Type->Untrackable;
+
+		if(!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)){
+
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
+			ranges_.extraRange = aeData.Type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
+				ranges_.disallow.insert(disallow);
+		}
+	}
+
+	for (const auto& attachEffect : pExt->PhobosAE)
+	{
+		if (!attachEffect.IsActive())
+			continue;
+
+		auto const type = attachEffect.GetType();
+		FP_Mult *= type->FirepowerMultiplier;
+		Speed_Mult *= type->SpeedMultiplier;
+		Armor_Mult *= type->ArmorMultiplier;
+		ROF_Mult *= type->ROFMultiplier;
+		Cloak |= type->Cloakable;
+		forceDecloak |= type->ForceDecloak;
+		disableWeapons |= type->DisableWeapons;
+		disableSelfHeal |= type->DisableSelfHeal;
+		untrackable |= type->Untrackable;
+		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
+
+		if (type->ROFMultiplier_ApplyOnCurrentTimer)
+		{
+			if (!cur_timerAE.has_value())
+				cur_timerAE = type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= type->ROFMultiplier;
+		}
+
+		if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
+		{
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = type->WeaponRange_Multiplier;
+			ranges_.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+
+			for (auto& allow : type->WeaponRange_AllowWeapons)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : type->WeaponRange_DisallowWeapons)
+				ranges_.disallow.insert(disallow);
+		}
+
+		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
+		{
+			auto& ranges_ = extraCritData->ranges.emplace_back();
+			ranges_.Mult = type->Crit_Multiplier;
+			ranges_.extra = type->Crit_ExtraChance;
+
+			for (auto& allow : type->Crit_AllowWarheads)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : type->Crit_DisallowWarheads)
+				ranges_.disallow.insert(disallow);
+		}
+	}
+
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
+		const int timeleft = pThis->DiskLaserTimer.GetTimeLeft();
+
+		if (timeleft > 0) {
+			pThis->DiskLaserTimer.Start(int(timeleft * cur_timerAE.value()));
+		} else {
+			pThis->DiskLaserTimer.Stop();
+		}
+
+		pThis->ROF = static_cast<int>(pThis->ROF * cur_timerAE.value());
 	}
 
 	pThis->FirepowerMultiplier = FP_Mult;
@@ -29,9 +127,12 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	pExt->AE_ROF = ROF_Mult;
 	pExt->AE_ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
 	pThis->Cloakable = Cloak;
+	pExt->AE_ForceDecloak = forceDecloak;
+	pExt->AE_DisableWeapons = disableWeapons;
+	pExt->AE_DisableSelfHeal = disableSelfHeal;
+	pExt->AE_Untrackable = untrackable;
 
-	if (pThis->AbstractFlags & AbstractFlags::Foot)
-	{
+	if (pThis->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;
 	}
 }
@@ -55,7 +156,7 @@ void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coord
 				continue;
 			}
 
-			if (std::abs(pWHExt->GetVerses(TechnoExtData::GetArmor(curTechno)).Verses) < 0.001)
+			if (std::abs(pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , pWH)).Verses) < 0.001)
 			{
 				continue;
 			}
@@ -221,22 +322,26 @@ void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeCl
 
 	if (!ae->Data.empty())
 	{
+		bool changes = false;
+
 		const auto iter = std::remove_if(ae->Data.begin(), ae->Data.end(), [pRemove](const auto& ae_)
 		{
 			return ae_.Type->Owner == pRemove;
 		});
 
-		if (iter != ae->Data.end())
-		{
+		if (iter != ae->Data.end()) {
+			changes = true;
 			ae->Data.erase(iter , ae->Data.end());
-			RecalculateStat(ae, pTechno);
 		}
+
+		if(changes)
+			RecalculateStat(ae, pTechno);
 	}
 }
 
 bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno, int duration, HouseClass* pInvokerOwner)
 {
-	if (pTargetTechno->IsIronCurtained() && !pType->PenetratesIC)
+	if (!pType->PenetratesIC && pTargetTechno->IsIronCurtained())
 		return false;
 
 	auto pData = GetAEDAtaFromTechno(pTargetTechno);
@@ -303,6 +408,7 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 
 	FromData->Data.clear();
 	FromData->Isset = false;
+	PhobosAttachEffectClass::TransferAttachedEffects(From, To);
 	RecalculateStat(ToData, To);
 }
 

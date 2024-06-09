@@ -4,6 +4,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Utilities/Macro.h>
 
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Techno/Body.h>
+
 int WeaponTypeExtData::nOldCircumference = DiskLaserClass::Radius;
 PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt;
 
@@ -181,7 +184,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->ExtraWarheads.Read(exINI, pSection, "ExtraWarheads");
 	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
-
+	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, "ExtraWarheads.DetonationChances");
 	this->Burst_Retarget.Read(exINI, pSection, "Burst.Retarget");
 	this->KickOutPassenger.Read(exINI, pSection, "KickOutPassenger");
 
@@ -196,6 +199,80 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AmbientDamage_IgnoreTarget.Read(exINI, pSection, "AmbientDamage.IgnoreTarget");
 	this->RecoilForce.Read(exINI, pSection, "RecoilForce");
 	//this->BlockageTargetingBypassDamageOverride.Read(exINI, pSection, "BlockageTargetingBypassDamageOverride");
+
+	this->AttachEffect_RequiredTypes.Read(exINI, pSection, "AttachEffect.RequiredTypes");
+	this->AttachEffect_DisallowedTypes.Read(exINI, pSection, "AttachEffect.DisallowedTypes");
+	exINI.ParseStringList(this->AttachEffect_RequiredGroups, pSection, "AttachEffect.RequiredGroups");
+	exINI.ParseStringList(this->AttachEffect_DisallowedGroups, pSection, "AttachEffect.DisallowedGroups");
+	this->AttachEffect_RequiredMinCounts.Read(exINI, pSection, "AttachEffect.RequiredMinCounts");
+	this->AttachEffect_RequiredMaxCounts.Read(exINI, pSection, "AttachEffect.RequiredMaxCounts");
+	this->AttachEffect_DisallowedMinCounts.Read(exINI, pSection, "AttachEffect.DisallowedMinCounts");
+	this->AttachEffect_DisallowedMaxCounts.Read(exINI, pSection, "AttachEffect.DisallowedMaxCounts");
+	this->AttachEffect_IgnoreFromSameSource.Read(exINI, pSection, "AttachEffect.IgnoreFromSameSource");
+}
+
+int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
+{
+	int range = fallback.has_value() ? fallback.value()  : 0;
+
+	if (!pThis && !pFirer)
+		return range;
+	else if (pFirer && pFirer->CanOccupyFire())
+		range = RulesClass::Instance->OccupyWeaponRange * Unsorted::LeptonsPerCell;
+	else if (pThis && pFirer)
+		range = pThis->Range;
+	else
+		return range;
+
+	if (range == -512)
+		return range;
+
+	auto pTechno = pFirer;
+
+	if (pTechno->Transporter && pTechno->Transporter->GetTechnoType()->OpenTopped) {
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->Transporter->GetTechnoType());
+
+		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)
+			pTechno = pTechno->Transporter;
+	}
+
+	{
+		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+		if (pExt->AE_ExtraRange.Enabled()){
+			range = pExt->AE_ExtraRange.Get(range, pThis);
+		}
+	}
+	return MaxImpl(range, 0);
+}
+
+#include <New/PhobosAttachedAffect/Functions.h>
+
+bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTechno, TechnoClass* pFirer)
+{
+	bool hasRequiredTypes = this->AttachEffect_RequiredTypes.size() > 0;
+	bool hasDisallowedTypes = this->AttachEffect_DisallowedTypes.size() > 0;
+	bool hasRequiredGroups = this->AttachEffect_RequiredGroups.size() > 0;
+	bool hasDisallowedGroups = this->AttachEffect_DisallowedGroups.size() > 0;
+
+	if (hasRequiredTypes || hasDisallowedTypes || hasRequiredGroups || hasDisallowedGroups)
+	{
+		auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
+
+		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_DisallowedMinCounts, this->AttachEffect_DisallowedMaxCounts))
+			return false;
+
+		if (hasDisallowedGroups && PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_DisallowedGroups), false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_DisallowedMinCounts, this->AttachEffect_DisallowedMaxCounts))
+			return false;
+
+		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_RequiredMinCounts, this->AttachEffect_RequiredMaxCounts))
+			return false;
+
+		if (hasRequiredGroups &&
+			!PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_RequiredGroups), true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_RequiredMinCounts, this->AttachEffect_RequiredMaxCounts))
+			return false;
+	}
+
+	return true;
 }
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
@@ -304,6 +381,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 
 		.Process(this->ExtraWarheads)
 		.Process(this->ExtraWarheads_DamageOverrides)
+		.Process(this->ExtraWarheads_DetonationChances)
 		.Process(this->Burst_Retarget)
 		.Process(this->KickOutPassenger)
 
@@ -318,6 +396,16 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AmbientDamage_IgnoreTarget)
 		.Process(this->RecoilForce)
 		//.Process(this->BlockageTargetingBypassDamageOverride)
+
+		.Process(this->AttachEffect_RequiredTypes)
+		.Process(this->AttachEffect_DisallowedTypes)
+		.Process(this->AttachEffect_RequiredGroups)
+		.Process(this->AttachEffect_DisallowedGroups)
+		.Process(this->AttachEffect_RequiredMinCounts)
+		.Process(this->AttachEffect_RequiredMaxCounts)
+		.Process(this->AttachEffect_DisallowedMinCounts)
+		.Process(this->AttachEffect_DisallowedMaxCounts)
+		.Process(this->AttachEffect_IgnoreFromSameSource)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

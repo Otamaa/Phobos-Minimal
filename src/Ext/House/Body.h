@@ -9,7 +9,9 @@
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
+#include <New/Type/TechTreeTypeClass.h>
 
+#include <Misc/Defines.h>
 #include <map>
 
 struct LauchData
@@ -107,8 +109,6 @@ public:
 
 	bool RepairBaseNodes[3] { false };
 
-	std::vector<TeamClass*> ActiveTeams {};
-
 	//#817
 	int LastBuiltNavalVehicleType { -1 };
 	int ProducingNavalUnitTypeIndex { -1 };
@@ -124,15 +124,14 @@ public:
 
 	int SWLastIndex { -1 };
 	HelperedVector<SuperClass*> Batteries {};
-	HelperedVector<HouseTypeClass*> Factories_HouseTypes {};
-	HelperedVector<TechnoClass*> LimboTechno {};
+	std::set<TechnoClass*> LimboTechno {};
 
 	int AvaibleDocks { 0 };
 
-	std::bitset<32> StolenTech {};
+	std::bitset<MaxHouseCount> StolenTech {};
 	IndexBitfield<HouseClass*> RadarPersist {};
-	HelperedVector<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
-	HelperedVector<BuildingClass*> Academies {};
+	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+	std::set<BuildingClass*> Academies {};
 	HelperedVector<TechnoTypeClass*> Reversed {};
 
 	bool Is_NavalYardSpied { false };
@@ -145,16 +144,18 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	TrackerClass BuiltAircraftTypes {};
-	TrackerClass BuiltInfantryTypes {};
-	TrackerClass BuiltUnitTypes {};
-	TrackerClass BuiltBuildingTypes {};
-	TrackerClass KilledAircraftTypes {};
-	TrackerClass KilledInfantryTypes {};
-	TrackerClass KilledUnitTypes {};
-	TrackerClass KilledBuildingTypes {};
-	TrackerClass CapturedBuildings {};
-	TrackerClass CollectedCrates {};
+	//TrackerClass BuiltAircraftTypes {};
+	//TrackerClass BuiltInfantryTypes {};
+	//TrackerClass BuiltUnitTypes {};
+	//TrackerClass BuiltBuildingTypes {};
+	//TrackerClass KilledAircraftTypes {};
+	//TrackerClass KilledInfantryTypes {};
+	//TrackerClass KilledUnitTypes {};
+	//TrackerClass KilledBuildingTypes {};
+	//TrackerClass CapturedBuildings {};
+	//TrackerClass CollectedCrates {};
+
+	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
@@ -169,6 +170,8 @@ public:
 	}
 
 	static bool InvalidateIgnorable(AbstractClass* ptr);
+
+	TechTreeTypeClass* GetTechTreeType();
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -206,7 +209,7 @@ public:
 		return SideClass::Array->GetItemOrDefault(pHouse->SideIndex);
 	}
 
-	static HouseClass* FindCivilianSide();
+	static HouseClass* FindFirstCivilianHouse();
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
@@ -280,6 +283,17 @@ public:
 	static int CountOwnedNowTotal(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static signed int BuildLimitRemaining(HouseClass const* pHouse, TechnoTypeClass* pItem);
 	static BuildLimitStatus CheckBuildLimit(HouseClass const* pHouse, TechnoTypeClass* pItem, bool includeQueued);
+	static int BuildBuildingLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
+	static int CheckBuildingBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool const includeQueued);
+	static int CountOwnedIncludeDeploy(const HouseClass* pThis, const TechnoTypeClass* pItem);
+
+	static std::vector<int> GetBuildLimitGroupLimits(HouseClass* pHouse,TechnoTypeClass* pType);
+	static CanBuildResult BuildLimitGroupCheck(HouseClass* pThis, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);
+	static int QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pType);
+	static void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num);
+	static bool ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType, bool ignoreQueued);
+
+	static bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType);
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);
@@ -302,6 +316,9 @@ public:
 
 	static void IncremetCrateTracking(HouseClass* pHouse, Powerup type);
 	static void InitializeTrackers(HouseClass* pHouse);
+
+	static bool IsMutualAllies(HouseClass const* pThis , HouseClass const* pHouse);
+
 private:
 	bool UpdateHarvesterProduction();
 
@@ -329,6 +346,10 @@ public:
 	CONSTEXPR_NOCOPY_CLASSB(HouseExtContainer, HouseExtData, "HouseClass");
 public:
 	static HouseExtContainer Instance;
+
+	static HouseClass* Civilian;
+	static HouseClass* Special;
+	static HouseClass* Neutral;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

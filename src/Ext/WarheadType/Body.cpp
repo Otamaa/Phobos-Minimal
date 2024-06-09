@@ -129,6 +129,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	// Shields
 	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
+
 	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
 	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
 	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
@@ -237,16 +238,38 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
-	for (auto const& ArmorType : ArmorTypeClass::Array)
-	{
-		AnimTypeClass* pAnimReaded;
-		if (detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true) && pAnimReaded)
-			ArmorHitAnim[ArmorType.get()] = pAnimReaded;
+	std::vector<AnimTypeClass*> hitAnim {};
+	this->ArmorHitAnim.clear();
+	hitAnim.reserve(ArmorTypeClass::Array.size());
 
+	for (auto const& ArmorType : ArmorTypeClass::Array) {
+		AnimTypeClass* pAnimReaded = nullptr;
+		detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true);
+		hitAnim.push_back(pAnimReaded);
+	}
+
+	for (size_t i = 0; i < hitAnim.size(); ++i) {
+		if (!hitAnim[i] && ArmorTypeClass::Array[i]->DefaultTo != -1) {
+			for (auto pDefArmor = ArmorTypeClass::Array[ArmorTypeClass::Array[i]->DefaultTo].get();
+				;
+				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
+
+				if(auto pFallback = hitAnim[ArmorTypeClass::Array[i]->DefaultTo])
+					hitAnim[i] = pFallback;
+
+				if (pDefArmor->DefaultTo == -1)
+					break;
+			}
+		}
+	}
+
+	for (size_t a = 0;  a < hitAnim.size(); ++a) {
+		if(hitAnim[a]) {
+			this->ArmorHitAnim.emplace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
+		}
 	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
-
 	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim", true);
 	this->NukeFlashDuration.Read(exINI, pSection, "NukeFlash.Duration");
 
@@ -259,7 +282,6 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
-	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
 	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
 	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
@@ -403,6 +425,13 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Nonprovocative.Read(exINI, pSection, "Nonprovocative");
 
+	this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
+	this->AttachEffect_RemoveTypes.Read(exINI, pSection, "AttachEffect.RemoveTypes");
+	exINI.ParseStringList(this->AttachEffect_RemoveGroups, pSection, "AttachEffect.RemoveGroups");
+	this->AttachEffect_CumulativeRemoveMinCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMinCounts");
+	this->AttachEffect_CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
+	this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -464,6 +493,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SpawnsCrate_Weights.emplace_back(weight);
 	}
+
+	this->IgnoreRevenge.Read(exINI, pSection, "IgnoreRevenge");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -487,7 +518,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	if ((!nAllyMod.isset() && !nOwnerMod.isset() && !nEnemyMod.isset()))
 		return;
 
-	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindCivilianSide();
+	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 	auto const pVictimHouse = pVictim->GetOwningHouse();
 
 	if (pHouse && pVictimHouse)
@@ -556,11 +587,12 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	const auto multiply = std::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 	auto nAddDamage = add * multiply;
-	if (this->RecalculateDistanceDamage_ProcessVerses)
+	if (this->RecalculateDistanceDamage_ProcessVerses) {
 		nAddDamage *=
 		// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-		this->GetVerses(TechnoExtData::GetArmor(pVictimTechno)).Verses
+		this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno , this->AttachedToObject)).Verses
 		;
+	}
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
 		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
@@ -655,11 +687,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
 {
-	auto nArmor = TechnoExtData::GetArmor(pTechno);
-
-	if (auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield())
-		if (pShield->IsActive())
-			nArmor = pShield->GetType()->Armor;
+	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno , this->AttachedToObject);
 
 	if (damageIn > 0)
 		DamageResult = MapClass::GetTotalDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
@@ -925,7 +953,8 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject, TechnoExtData::GetArmor(pVictim), 0);
+		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject,
+					TechnoExtData::GetTechnoArmor(pVictim , this->AttachedToObject), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
@@ -974,31 +1003,10 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 	return false; //default
 }
 
-AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
-{
-	const auto pArmor = ArmorTypeClass::Array[Armor].get();
-	const auto end = this->ArmorHitAnim.end();
-
-	if (this->ArmorHitAnim.begin() == end)
-		return nullptr;
-
-	for (auto begin = this->ArmorHitAnim.begin(); begin != end; ++begin)
-	{
-		if (begin->first == pArmor)
-		{
+AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor) {
+	for (auto begin = this->ArmorHitAnim.begin(); begin != this->ArmorHitAnim.end(); ++begin) {
+		if (begin->first == ArmorTypeClass::Array[Armor].get()) {
 			return begin->second;
-		}
-		else if (pArmor->DefaultTo != -1)
-		{
-			for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
-				pDefArmor && pDefArmor->DefaultTo != -1;
-				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
-			{
-				if (begin->first == pDefArmor)
-				{
-					return begin->second;
-				}
-			}
 		}
 	}
 
@@ -1157,6 +1165,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_GuaranteeAfterHealthTreshold)
 		.Process(this->RandomBuffer)
 		.Process(this->HasCrit)
+		.Process(this->Crit_CurrentChance)
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
@@ -1269,7 +1278,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Steal_Display_Houses)
 		.Process(this->Steal_Display)
 		.Process(this->Steal_Display_Offset)
-		.Process(this->DeadBodies)
 		.Process(this->AffectEnemies_Damage_Mod)
 		.Process(this->AffectOwner_Damage_Mod)
 		.Process(this->AffectAlly_Damage_Mod)
@@ -1395,9 +1403,51 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SpawnsCrate_Types)
 		.Process(this->SpawnsCrate_Weights)
+
+		.Process(this->IgnoreRevenge)
+
+		.Process(this->AttachEffect_AttachTypes)
+		.Process(this->AttachEffect_RemoveTypes)
+		.Process(this->AttachEffect_RemoveGroups)
+		.Process(this->AttachEffect_CumulativeRemoveMinCounts)
+		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
+		.Process(this->AttachEffect_DurationOverrides)
 		;
 
 	PaintBallData.Serialize(Stm);
+}
+
+void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>& chances) const
+{
+	chances = this->Crit_Chance;
+
+	if (!pFirer) {
+		return;
+	}
+
+	if (chances.empty())
+		chances.push_back(0.0);
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
+
+	if (pExt->AE_ExtraCrit.Enabled()) {
+		std::vector<TechnoExtData::ExtraCrit::CritDataOut> valids;
+		pExt->AE_ExtraCrit.FillEligible(this->AttachedToObject, valids);
+
+		for (auto& curChances : chances) {
+			curChances = TechnoExtData::ExtraCrit::Count(curChances, valids);
+		}
+	}
+}
+
+void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker)
+{
+	if (!pTarget)
+		return;
+
+	PhobosAttachEffectClass::Attach(this->AttachEffect_AttachTypes, pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, this->AttachEffect_DurationOverrides, nullptr, nullptr, nullptr);
+	PhobosAttachEffectClass::Detach(this->AttachEffect_RemoveTypes, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
+	PhobosAttachEffectClass::DetachByGroups(this->AttachEffect_RemoveGroups, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
 }
 
 bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const

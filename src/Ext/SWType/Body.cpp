@@ -372,17 +372,23 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
+
 	// don't try to fire if we obviously haven't enough money
-	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
-	{
-		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer))
-		{
+	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get())) {
+
+		if (pExt->SW_AutoFire_CheckAvail && !pExt->IsAvailable(pThis->Owner))
+			return false;
+
+		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer)) {
+
 			const auto pNewType = pExt->GetNewSWType();
+			if (!pNewType) {
+				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]\n", pThis->Type->ID, (int)pThis->Type->Type);
+			}
 			const auto& pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
 			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
 
-			if (Flag == SWTargetFlags::AllowEmpty)
-			{
+			if (Flag == SWTargetFlags::AllowEmpty) {
 				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
 				 	Unsorted::CurrentBuilding = nullptr;
 				 	Unsorted::CurrentBuildingType = nullptr;
@@ -1400,8 +1406,12 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	std::vector<int> weights {};
 	detail::ReadVectors(weights, exINI, pSection, "LimboDelivery.RandomWeights");
-	if (!weights.empty())
-		this->LimboDelivery_RandomWeightsData[0] = weights;
+	if (!weights.empty()) {
+		if (this->LimboDelivery_RandomWeightsData.size())
+			this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
+		else
+			this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
+	}
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
@@ -1468,6 +1478,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Group.Read(exINI, pSection, "SW.Group");
 	this->SW_Shots.Read(exINI, pSection, "SW.Shots");
 	this->SW_AutoFire.Read(exINI, pSection, "SW.AutoFire");
+	this->SW_AutoFire_CheckAvail.Read(exINI, pSection, "SW.AutoFire.CheckAvail");
 	this->SW_AllowPlayer.Read(exINI, pSection, "SW.AllowPlayer");
 	this->SW_AllowAI.Read(exINI, pSection, "SW.AllowAI");
 	this->SW_AffectsHouse.Read(exINI, pSection, "SW.AffectsHouse");
@@ -1480,6 +1491,26 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Next_IgnoreInhibitors.Read(exINI, pSection, "SW.Next.IgnoreInhibitors");
 	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
 	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
+
+	std::string basetag = "SW.Next.RandomWeights";
+	for (size_t i = 0; ; ++i) {
+		ValueableVector<int> weights2;
+		weights2.Read(exINI, pSection, (basetag + std::to_string(i)).c_str());
+
+		if (!weights2.size())
+			break;
+
+		this->SW_Next_RandomWeightsData.push_back(weights2);
+	}
+
+	ValueableVector<int> weights2;
+	weights2.Read(exINI, pSection, basetag.c_str());
+	if (weights2.size()) {
+		if (this->SW_Next_RandomWeightsData.size())
+			this->SW_Next_RandomWeightsData[0] = std::move(weights2);
+		else
+			this->SW_Next_RandomWeightsData.push_back(std::move(weights2));
+	}
 
 	//
 	this->Converts.Read(exINI, pSection, "Converts");
@@ -1720,7 +1751,7 @@ void SWTypeExtData::ApplyLimboKill(HouseClass* pHouse)
 
 void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell)
 {
-	if (!this->Detonate_Weapon.isset() && !this->Detonate_Warhead.isset())
+	if (!this->Detonate_Weapon && !this->Detonate_Warhead)
 		return;
 
 	const auto pCell = MapClass::Instance->GetCellAt(cell);
@@ -1760,10 +1791,13 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
-	if (!this->SW_Next_RandomWeightsData.empty())
-	{
-		std::vector<int> results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
-		for (const int& result : results)
+	if (!this->SW_Next_RandomWeightsData.empty()) {
+		for (const int& result :
+			this->WeightedRollsHandler(
+				&this->SW_Next_RollChances,
+				&this->SW_Next_RandomWeightsData,
+				this->SW_Next.size())
+			)
 		{
 			SWTypeExtData::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell , IsPlayer);
 		}
@@ -1786,7 +1820,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	if (!this->LimboKill_IDs.empty())
 		ApplyLimboKill(pHouse);
 
-	if (this->Detonate_Warhead.isset() || this->Detonate_Weapon.isset())
+	if (this->Detonate_Warhead || this->Detonate_Weapon)
 		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
 
 	if (!this->SW_Next.empty())
@@ -1888,7 +1922,8 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	// allow only certain houses, disallow forbidden houses
-	if (!this->SW_RequiredHouses.Contains(pHouse->Type) || this->SW_ForbiddenHouses.Contains(pHouse->Type))
+	if (!((this->SW_RequiredHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u)
+			|| ((this->SW_ForbiddenHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u))
 		return false;
 
 	// check that any aux building exist and no neg building
@@ -2075,9 +2110,16 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 		if (pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell)
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
 		{
+			int oldstart = pSuper->RechargeTimer.StartTime;
+			int oldleft = pSuper->RechargeTimer.TimeLeft;
+			pSuper->SetReadiness(true);
 			pSuper->Launch(cell, IsPlayer);
-			if (pLauncherTypeExt->SW_Next_RealLaunch)
-				pSuper->Reset();
+			pSuper->Reset();
+
+			if (!pLauncherTypeExt->SW_Next_RealLaunch) {
+				pSuper->RechargeTimer.StartTime = oldstart;
+				pSuper->RechargeTimer.TimeLeft = oldleft;
+			}
 		}
 	}
 }
@@ -2154,6 +2196,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Group)
 		.Process(this->SW_Shots)
 		.Process(this->SW_AutoFire)
+		.Process(this->SW_AutoFire_CheckAvail)
 		.Process(this->SW_AllowPlayer)
 		.Process(this->SW_AllowAI)
 		.Process(this->SW_AffectsHouse)

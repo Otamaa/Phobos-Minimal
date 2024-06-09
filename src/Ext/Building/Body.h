@@ -61,6 +61,10 @@ public:
 
 	HelperedVector<TechnoClass*> RegisteredJammers { };
 	int GrindingWeapon_AccumulatedCredits { 0 };
+	int LastFlameSpawnFrame { 0 };
+
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim { nullptr };
+	int SpyEffectAnimDuration {};
 
 	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept = default;
@@ -77,6 +81,7 @@ public:
 	void DisplayIncomeString();
 	void UpdatePoweredKillSpawns() const;
 	void UpdateAutoSellTimer();
+	void UpdateSpyEffecAnimDisplay();
 
 	constexpr FORCEINLINE static size_t size_Of()
 	{

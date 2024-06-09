@@ -49,7 +49,7 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) override R0;
 
 	//TechnoTypeClass
-	void OneTimeInit() const
+	static void __fastcall OneTimeInit()
 		{ JMP_STD(0x7473E0); }
 
 	//Constructor

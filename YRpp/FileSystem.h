@@ -52,6 +52,7 @@ public:
 	static constexpr reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
+	static constexpr reference<int, 0xB0EB3C> TALKBUBL_Frame{};
 
 	static constexpr reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
 	static constexpr reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};

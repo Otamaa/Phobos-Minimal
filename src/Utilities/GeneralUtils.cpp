@@ -155,7 +155,8 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 	{
 		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension :
 			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
-		pTheater = GeneralUtils::lowercase(pTheater);
+		PhobosCRT::lowercase(pTheater);
+
 		pSuffix[0] = pTheater[0];
 		pSuffix[1] = pTheater[1];
 		pSuffix[2] = pTheater[2];
@@ -173,7 +174,8 @@ bool GeneralUtils::ApplyTheaterExtToString(std::string& flag)
 	{
 		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Letter:
 			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Letter.c_str();
-		pTheater = GeneralUtils::lowercase(pTheater);
+
+		PhobosCRT::lowercase(pTheater);
 
 		flag.replace(nPos, 1, pTheater);
 		return true;
@@ -192,7 +194,8 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 		std::string pTheater = TheaterTypeClass::Array.empty() ? Theater::Get(ScenarioClass::Instance->Theater)->Extension
 			: TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str()
 			;
-		pTheater = GeneralUtils::lowercase(pTheater);
+
+		PhobosCRT::lowercase(pTheater);
 
 		//only set the 3 characters without the terminator string
 		buffer.replace(nPos, 3, pTheater);

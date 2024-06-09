@@ -56,7 +56,6 @@
 
 
 #include "AresChecksummer.h"
-#include "Classes/Dialogs.h"
 
 #include "Header.h"
 
@@ -106,6 +105,18 @@ DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
+constexpr int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
+{
+    int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
+    int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
+    int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
+    int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+
+    int x_distance = our_cell_x - their_cell_x;
+    int y_distance = our_cell_y - their_cell_y;
+    return x_distance * x_distance + y_distance * y_distance;
+}
+
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
 	GET(AbstractClass*, pThis, ECX);
@@ -114,9 +125,11 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 	int nResult = 0;
 	if (pThat)
 	{
-		const auto nThisCoord = pThis->GetCoords();
-		const auto nThatCoord = pThat->GetCoords();
-		nResult = (int)nThisCoord.DistanceFromXY(nThatCoord);
+		auto nThisCoord = pThis->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+		cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
 	}
 
 	R->EAX(nResult);
@@ -126,9 +139,12 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
 	GET(AbstractClass*, pThis, ECX);
-	auto const nThisCoord = pThis->GetCoords();
+	auto nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-	R->EAX((int)nThisCoord.DistanceFromXY(*pThatCoord));
+	R->EAX(
+		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
+		cell_Distance_Squared(nThisCoord, *pThatCoord)
+		);
 	return 0x5F659B;
 }
 
@@ -687,37 +703,6 @@ DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 	return 0x424ECB;
 }
 
-DEFINE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
-{
-	GET(TerrainClass*, pThis, ESI);
-
-	const auto& flammability = RulesClass::Instance->TreeFlammability;
-
-	// burn spread probability this frame
-	if (flammability > 0.0)
-	{
-		if (pThis->IsBurning && ScenarioClass::Instance->Random.RandomFromMax(99) == 0)
-		{
-			const auto pCell = pThis->GetCell();
-
-			// check all neighbour cells that contain terrain objects and
-			// roll the dice for each of them.
-			for (int i = 0; i < 8; ++i)
-			{
-				if (auto pTree = pCell->GetNeighbourCell((FacingType)i)->GetTerrain(false))
-				{
-					if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability)
-					{
-						pTree->Ignite();
-					}
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 {
 	GET(TerrainClass*, pThis, EDI);
@@ -777,19 +762,23 @@ DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 // 	return 0x531749;
 // }
 
-DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
-{
-	GET(BuildingClass*, pBuild, EAX);
-	R->EAX(pBuild->FindFactory(false, true));
-	return 0x535DC2;
-}
+DEFINE_PATCH(0x535DB9, 0x01);
 
-DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
-{
-	GET(BuildingClass*, pBuild, EAX);
-	R->EAX(pBuild->FindFactory(false, true));
-	return 0x535E82;
-}
+//DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
+//{
+//	GET(BuildingClass*, pBuild, EAX);
+//	R->EAX(pBuild->FindFactory(false, true));
+//	return 0x535DC2;
+//}
+
+DEFINE_PATCH(0x535E79, 0x01);
+
+//DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
+//{
+//	GET(BuildingClass*, pBuild, EAX);
+//	R->EAX(pBuild->FindFactory(false, true));
+//	return 0x535E82;
+//}
 
 DEFINE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
@@ -1115,7 +1104,10 @@ DEFINE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
 	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
-	SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix"));
+	if(SpawnerMain::Configs::Enabled) {
+		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix"));
+	}
+
 	MixFileClass::Bootstrap();
 	R->EAX(YRMemory::Allocate(sizeof(MixFileClass)));
 	return 0x6BD7DF;
@@ -1125,19 +1117,23 @@ DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
 
 DEFINE_HOOK(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 {
-	for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
-		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str()));
-		Debug::Log("Loading Preloaded Mix Name : %s \n", preloadMix.c_str());
+	if(SpawnerMain::Configs::Enabled) {
+		for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str()));
+			Debug::Log("Loading Preloaded Mix Name : %s \n", preloadMix.c_str());
+		}
 	}
 
 	return 0x0;
 }
 
-DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x10)
+DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 {
-	for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
-		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));
-		Debug::Log("Loading Postload Mix Name : %s \n", postloadMix.c_str());
+	if(SpawnerMain::Configs::Enabled) {
+		for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));
+			Debug::Log("Loading Postload Mix Name : %s \n", postloadMix.c_str());
+		}
 	}
 
 	return 0x0;
@@ -1155,10 +1151,10 @@ DEFINE_HOOK(0x7cd819, ExeRun, 5)
 DEFINE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
 	StaticVars::aresMIX.reset(nullptr);
-
-	for (auto& Spawner_Mix : SpawnerMain::LoadedMixFiles)
-		GameDelete<true>(std::exchange(Spawner_Mix, nullptr));
-
+	if(SpawnerMain::Configs::Enabled) {
+		for (auto& Spawner_Mix : SpawnerMain::LoadedMixFiles)
+			GameDelete<true>(std::exchange(Spawner_Mix, nullptr));
+	}
 	return 0;
 }
 
@@ -1238,13 +1234,11 @@ DEFINE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 			offset += wanted.Height;
 	};
 
-	if (!AresGlobalData::ModNote.Label)
-	{
+	if (!AresGlobalData::ModNote.Label) {
 		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
 	}
 
-	if (!AresGlobalData::ModNote.empty())
-	{
+	if (!AresGlobalData::ModNote.empty()) {
 		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
 	}
 

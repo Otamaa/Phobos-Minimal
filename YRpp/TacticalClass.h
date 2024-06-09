@@ -46,7 +46,7 @@ public:
 	virtual ~TacticalClass() override JMP_THIS(0x6DC470);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6DA560);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6DA560);
 	virtual AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }
 	virtual int Size() const override { return 0xE18; }
 	virtual void Update() override JMP_THIS(0x6D2540);
@@ -138,7 +138,7 @@ public:
 	void RegisterCellAsVisible(CellClass* pCell)
 		{ JMP_THIS(0x6DA7D0) };
 
-	static int DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
+	static int __fastcall DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
 		{ JMP_STD(0x6D4B50); }
 
 	/*
@@ -185,6 +185,11 @@ public:
 		Point2D nBuffer;
 		ApplyMatrix_Pixel(&nBuffer, &Input);
 		return nBuffer;
+	}
+
+	Point2D ApplyMatrix_Pixel_inl(const Point2D& offset) {
+		auto&& temp = this->IsoTransformMatrix * Vector3D<float>{(float)offset.X, (float)offset.Y, 0};
+		return { (int)temp.X,(int)temp.Y };
 	}
 
 	void Coordoordmap_math_6D62E0(int v16, int v37, int* x2, int* a4) const {

@@ -34,6 +34,38 @@
 
 #include <GeneralDefinitions.h>
 
+enum class DiscardCondition : unsigned char
+{
+	None = 0x0,
+	Entry = 0x1,
+	Move = 0x2,
+	Stationary = 0x3,
+	Drain = 0x4,
+
+	count
+};
+
+MAKE_ENUM_FLAGS(DiscardCondition);
+
+enum class ExpireWeaponCondition : unsigned char
+{
+	None = 0x0,
+	Expire = 0x1,
+	Remove = 0x2,
+	Death = 0x4,
+
+	All = Expire | Remove | Death,
+};
+
+MAKE_ENUM_FLAGS(ExpireWeaponCondition);
+
+enum class EntityType : int
+{
+	None,
+
+	count
+};
+
 enum class AresNewSuperType : int
 {
 	SonarPulse = 0,
@@ -94,6 +126,7 @@ enum class NewFactoryState : int
 
 enum class RequirementStatus : int
 {
+	Unbuildable = 0, // cannot be build at all
 	Forbidden = 1, // forbidden by special conditions (e.g. reqhouses) that's not likely to change in this session
 	Incomplete = 2, // missing something (approp factory)
 	Complete = 3, // OK
@@ -542,7 +575,8 @@ enum class KillMethod : int
 	Explode = 0,     //default death option
 	Vanish = 1,
 	Sell = 2,     // buildings only
-	Random = 3
+	Convert = 3, // units only
+	Random = 4
 };
 
 enum class BannerNumberType : int

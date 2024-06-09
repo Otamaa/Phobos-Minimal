@@ -38,6 +38,7 @@ void DigitalDisplayTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->VisibleToHouses_Observer.Read(exINI, section, "VisibleToHouses.Observer");
 	this->VisibleToHouses.Read(exINI, section, "VisibleToHouses");
 	this->InfoType.Read(exINI, section, "InfoType");
+	this->ValueScaleDivisor.Read(exINI, section, "ValueScaleDivisor");
 }
 
 void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
@@ -50,7 +51,7 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 		if (this->Offset_ShieldDelta.isset())
 		{
 			position.X += this->Offset_ShieldDelta->X;
-			position.Y -= this->Offset_ShieldDelta->Y;
+			position.Y += this->Offset_ShieldDelta->Y;
 		}
 		else if (this->InfoType == DisplayInfoType::Shield)
 		{
@@ -103,7 +104,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 	DSurface::Composite->DSurfaceDrawText(valueString.c_str(), &rect, &position, color, 0, printType);
 }
 
-Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
+constexpr Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
 {
 	if (shapeSpace.isset())
 		return shapeSpace.Get();
@@ -194,6 +195,7 @@ void DigitalDisplayTypeClass::Serialize(T& Stm)
 		.Process(this->VisibleToHouses_Observer)
 		.Process(this->VisibleToHouses)
 		.Process(this->InfoType)
+		.Process(this->ValueScaleDivisor)
 		;
 }
 

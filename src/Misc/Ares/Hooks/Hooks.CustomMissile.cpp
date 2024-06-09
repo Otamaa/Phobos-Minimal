@@ -14,6 +14,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <Conversions.h>
 
@@ -208,8 +209,14 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 
 	MapClass::FlashbangWarheadAt(nDamage, pWH, coords, false);
 	MapClass::DamageArea(coords, nDamage, pOwner, pWH, pWH->Tiberium, pOwner->Owner);
-	pOwner->Limbo();
-	pOwner->UnInit();
+
+	if(pOwner->IsAlive){
+		//int damage = pOwner->Type->Strength;
+		//if (pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr) != DamageState::NowDead) {
+			pOwner->Limbo();
+			TechnoExtData::HandleRemove(pOwner, nullptr);
+		//}
+	}
 	return 0x6632D9;
 }
 

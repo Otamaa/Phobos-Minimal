@@ -6,6 +6,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
+#include <New/AnonymousType/Spawns.h>
 //#include "AnimSpawnerDatas.h"
 
 class AnimTypeExtData final
@@ -30,7 +31,7 @@ public:
 	Valueable<Mission> CreateUnit_Mission { Mission::Guard };
 	Nullable<OwnerHouseKind> CreateUnit_Owner {};
 	Valueable<bool> CreateUnit_ConsiderPathfinding { false };
-	Nullable<AnimTypeClass*> CreateUnit_SpawnAnim { };
+	Valueable<AnimTypeClass*> CreateUnit_SpawnAnim { nullptr };
 	Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
 	Valueable<bool> CreateUnit_KeepOwnerIfDefeated { true };
 #pragma endregion
@@ -40,7 +41,8 @@ public:
 	Nullable<bool> Layer_UseObjectLayer {};
 	Valueable<bool> UseCenterCoordsIfAttached { false };
 
-	Nullable<WeaponTypeClass*> Weapon {};
+	Valueable<WeaponTypeClass*> Weapon { nullptr };
+	Valueable<WeaponTypeClass*> WeaponToCarry {};
 	Valueable<bool> Warhead_Detonate { false };
 
 	Valueable<int> Damage_Delay { 0 };
@@ -92,6 +94,11 @@ public:
 	Valueable<bool> ExtraShadow { true };
 	NullableIdx<VocClass> DetachedReport {};
 
+	Valueable<int> AdditionalHeight {};
+	NullableIdx<VocClass> AltReport {};
+
+	Spawns SpawnsData {};
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 
@@ -142,10 +149,14 @@ private:
 	AnimTypeExtData& operator = (AnimTypeExtData&&) = delete;
 };
 
+class AnimClass;
 class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 {
 public:
 	static AnimTypeExtContainer Instance;
+
+	AnimTypeExtData* Find(AnimClass* key);
+	AnimTypeExtData* Find(AnimTypeClass* key);
 
 	CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };

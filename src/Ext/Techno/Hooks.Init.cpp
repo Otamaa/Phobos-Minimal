@@ -8,6 +8,21 @@
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
+DEFINE_HOOK_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
+DEFINE_HOOK_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
+DEFINE_HOOK_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType, 0x6)
+DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, ECX);
+
+	if(!Phobos::Otamaa::DoingLoadGame)
+		TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
+
+	return 0x0;
+}
+
+
 // init inside type check
 // should be no problem here
 DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
@@ -20,7 +35,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 		return 0x0;
 
 	if (pThis->Owner) {
-		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.push_back(pThis);
+		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.insert(pThis);
 	}
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -38,7 +53,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 	}
 
 	TechnoExtData::InitializeItems(pThis, pType);
-
+	TechnoExtData::InitializeAttachEffects(pThis, pType);
 	return 0x0;
 }
 

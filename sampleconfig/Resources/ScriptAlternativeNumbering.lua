@@ -45,6 +45,7 @@ Scripts = {
 	{Original= 124 , Alternative= 16002},
 	{Original= 125 , Alternative= 16001},
 	{Original= 126 , Alternative= 16000},
+	{Original= 150 , Alternative= 14004},
 	{Original= 500 , Alternative= 18000},
 	{Original= 501 , Alternative= 18001},
 	{Original= 502 , Alternative= 18002},

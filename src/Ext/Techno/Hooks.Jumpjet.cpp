@@ -14,15 +14,15 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 	GET(TechnoTypeClass*, pThis, ESI);
 	const auto pRulesExt = RulesExtData::Instance();
 
-	pThis->JumpjetTurnRate = pRulesExt->AttachedToObject->TurnRate;
-	pThis->JumpjetSpeed = pRulesExt->AttachedToObject->Speed;
-	pThis->JumpjetClimb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
-	pThis->JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpjetHeight = pRulesExt->AttachedToObject->CruiseHeight;
-	pThis->JumpjetAccel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
-	pThis->JumpjetWobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
-	pThis->JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpjetDeviation = pRulesExt->AttachedToObject->WobbleDeviation;
+	pThis->JumpjetData.JumpjetTurnRate = pRulesExt->AttachedToObject->TurnRate;
+	pThis->JumpjetData.JumpjetSpeed = pRulesExt->AttachedToObject->Speed;
+	pThis->JumpjetData.JumpjetClimb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
+	pThis->JumpjetData.JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
+	pThis->JumpjetData.JumpjetHeight = pRulesExt->AttachedToObject->CruiseHeight;
+	pThis->JumpjetData.JumpjetAccel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
+	pThis->JumpjetData.JumpjetWobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
+	pThis->JumpjetData.JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
+	pThis->JumpjetData.JumpjetDeviation = pRulesExt->AttachedToObject->WobbleDeviation;
 
 	return 0x711601;
 }
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetData.JumpjetSpeed * multiplier);
 		}
 	}
 
@@ -142,27 +142,27 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 
 }
 
-// These are subject to changes if someone wants to properly implement jumpjet tilting
-DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
+DEFINE_JUMP(LJMP, 0x54DCCF, 0x54DCE8);//JumpjetLocomotionClass_DrawMatrix_NoTiltCrashJumpjetHereBlyat
+
+// We no longer explicitly check TiltCrashJumpjet when drawing, do it when crashing
+DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
-	GET(ILocomotion* const, iloco, ESI);
-	//if (static_cast<JumpjetLocomotionClass*>(iloco)->State < JumpjetLocomotionClass::State::Crashing)
-	if (static_cast<JumpjetLocomotionClass* const>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
-		return 0x54DCE8;
+	GET(TechnoClass*, pThis, ESI);
+
+	if (generic_cast<FootClass*>(pThis) && locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) && !pThis->GetTechnoType()->TiltCrashJumpjet)
+		return 0x70BCA4;
 
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 {
 	GET(ILocomotion*, iloco, ESI);
-	auto state = static_cast<JumpjetLocomotionClass*>(iloco)->State;
-	if (state && state < JumpjetLocomotionClass::State::Crashing)
-		return  0x54DE88;
-	return 0;
+	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
+		return 0;
+
+	return 0x54DE88;
 }
-*/
 
 //TODO : Issue #690 #655
 
@@ -226,6 +226,18 @@ DEFINE_HOOK(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
+}
+
+DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
+{
+	GET_STACK(ILocomotion*, iloco, 0x4);
+	GET_STACK(DirStruct, dir, 0x8);
+	// This seems to be used only when unloading shit on the ground
+	// Rewrite just in case
+	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
+	pThis->Facing.Set_Desired(dir);
+	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
+	return 0x54B6FF;
 }
 
 // Bugfix: Jumpjet turn to target when attacking

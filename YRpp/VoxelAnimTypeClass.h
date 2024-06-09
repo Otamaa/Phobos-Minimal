@@ -46,7 +46,7 @@ public:
 	virtual ~VoxelAnimTypeClass() override JMP_THIS(0x74BA30);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x74B8F0);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x74B8F0);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int	Size() const override R0;
 

@@ -49,7 +49,7 @@
 */
 
 DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
-DEFINE_JUMP(LJMP, 0x546C23, 0x546C8B) //Phobos_BugFixes_Tileset255_RefNonMMArray
+DEFINE_JUMP(LJMP, 0x546C23, 0x546CBF) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
 // WWP's shit code! Wrong check.
 // To avoid units dying when they are already dead.
@@ -397,62 +397,6 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 	return 0;
 }
 
-// Fix the issue that SHP units doesn't apply IronCurtain or other color effects and doesn't accept EMP intensity
-// Author: secsome
-DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
-
-	BuildingClass* pBld = specific_cast<BuildingClass*>(pThis);
-
-	if (pBld) {
-		if ((pBld->CurrentMission == Mission::Construction)
-			&& pBld->BState == BStateType::Construction && pBld->Type->Buildup ) {
-			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get()) {
-				R->EBP(1000);
-			}
-		}
-	}
-
-	GET(int const, nIntensity, EBP);
-	bool NeedUpdate = false;
-	if (pThis->IsIronCurtained())
-	{
-		if (pThis->ProtectType == ProtectTypes::IronCurtain)
-			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
-		else
-			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
-
-		NeedUpdate = true;
-	}
-
-	if (pThis->Berzerk)
-	{
-		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
-		NeedUpdate = true;
-	}
-
-
-	// Boris
-	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
-	{
-		nTintColor |= GeneralUtils::GetColorFromColorAdd(TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType())->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
-		NeedUpdate = true;
-	}
-	// EMP
-	if (pThis->Deactivated)
-	{
-		R->EBP(nIntensity / 2);
-		NeedUpdate = true;
-	}
-
-	if (pBld && NeedUpdate)
-		BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
-
-	return 0;
-}
-
 // Fixed the bug that units' lighting get corrupted after loading a save with a different lighting being set
 // Author: secsome
 DEFINE_HOOK(0x67E6E5, LoadGame_RecalcLighting, 0x7)
@@ -758,8 +702,22 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
 	GET(BuildingClass* const, pBuilding, ESI);
 
-	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
+	 || !MapClass::Instance->CoordinatesLegal(pBuilding->GetMapCoords()))
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
+{
+	enum { SkipTechno = 0x4AC55B };
+
+	GET(TechnoClass* const, pTechno, ECX);
+
+	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()))
+		return SkipTechno;
+
 
 	return 0;
 }
@@ -872,11 +830,31 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 	enum { IsNaval = 0x4438BC, NotNaval = 0x4438C9 };
 
 	GET(BuildingTypeClass* const, pBuildingType, EAX);
+	GET_STACK(bool, playEVA, STACK_OFFSET(0xA4, 0x8));
+	REF_STACK(SpeedType, spdtp, STACK_OFFSET(0xA4, -0x84));
+
+	if (!playEVA)// assuming the hook above is the only place where it's set to false when UndeploysInto
+	{
+		if (auto pInto = pBuildingType->UndeploysInto)// r u sure this is not too OP?
+		{
+			R->ESI(pInto->MovementZone);
+			spdtp = pInto->SpeedType;
+			return NotNaval;
+		}
+	}
 
 	if (pBuildingType->Naval || pBuildingType->SpeedType == SpeedType::Float)
 		return IsNaval;
 
 	return NotNaval;
+}
+
+DEFINE_HOOK(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
+{
+	GET(BuildingClass*, pBld, EDI);
+	if (pBld->Focus && pBld->CurrentMission != Mission::Selling)
+		return 0x6DAAC0;
+	return 0x6DAD45;
 }
 
 FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
@@ -1123,36 +1101,6 @@ DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	return 0x0;
 }
 
-// Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
-bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
-{
-	if (!pThis)
-		return false;
-
-	auto const pDeployType = pThis->Type->DeploysInto;
-
-	if (!pDeployType)
-		return noDeploysIntoDefaultValue;
-
-	bool canDeploy = true;
-	auto mapCoords = CellClass::Coord2Cell(pThis->GetCoords());
-
-	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
-		mapCoords += CellStruct { -1, -1 };
-
-	pThis->UpdatePlacement(PlacementType::Remove);
-
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Remove);
-
-	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
-		canDeploy = false;
-
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Put);
-	pThis->UpdatePlacement(PlacementType::Put);
-
-	return canDeploy;
-}
-
 // Fix DeployToFire not working properly for WaterBound DeploysInto buildings and not recalculating position on land if can't deploy.
 DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 {
@@ -1160,7 +1108,7 @@ DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 
 	GET(UnitClass*, pThis, EBX);
 
-	R->EAX(CanDeployIntoBuilding(pThis, true));
+	R->EAX(TechnoExtData::CanDeployIntoBuilding(pThis, true));
 
 	return SkipGameCode;
 }
@@ -1173,7 +1121,7 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 
 	if (pThis->Type->DeployToFire
 		&& pThis->CanDeployNow()
-		&& !CanDeployIntoBuilding(pThis, true)
+		&& !TechnoExtData::CanDeployIntoBuilding(pThis, true)
 		) {
 		return MustDeploy;
 	}
@@ -1251,28 +1199,27 @@ DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 {
 	GET(InfantryClass*, pThis, EDI);
+	enum { LosesDestination = 0x4D4BD1 };
 
-	if (!pThis)
-		return 0x0;
-
-	const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
-
-	if (!pBld || pThis->Target)//try less agressive first, only when no target, see if it doesn't fix something
+	auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
+	if (!pThis || !pBld || pThis->Target)
 		return 0;
 
-	if (!(pBld->Type->Capturable && pThis->Type->Engineer)   // can't capture
-	&& !(pBld->Type->Spyable && pThis->Type->Infiltrate)     // can't infiltrate
-	&& !(pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis))) // can't occupy
-	&& !(TechnoExtData::ISC4Holder(pThis)) // can't C4, what else?
-	)// If you can't do any of these why are you here?
-	{
-		pThis->SetDestination(nullptr, false);
-		return 0x4D4BD1;
-	}
+	if (pThis->Type->Engineer)
+		return 0;
 
-	return 0;
+	if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
+		return 0;// had to be a bit tolerable on this one due to interaction issue
+
+	if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
+		return 0;
+
+	if (TechnoExtData::ISC4Holder(pThis))
+		return 0;
+
+	pThis->SetDestination(nullptr, false);
+	return 0x4D4BD1;
 }
-
 
 void SetSkirmishHouseName(HouseClass* pHouse , bool IsHuman)
 {
@@ -1318,19 +1265,306 @@ DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
 // DEFINE_HOOK(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
 // {
 // 	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
-
+//
 // 	GET(InfantryClass*, pThis, ESI);
-
+//
 // 	auto const mZone = pThis->Type->MovementZone;
-
+//
 // 	if (mZone == MovementZone::Amphibious || mZone == MovementZone::AmphibiousDestroyer || mZone == MovementZone::AmphibiousCrusher ||
 // 		mZone == MovementZone::Water || mZone == MovementZone::WaterBeach)
 // 	{
 // 		return Amphibious;
 // 	}
-
+//
 // 	return NotAmphibious;
 // }
+
+// Game removes deploying vehicles from map temporarily to check if there's enough
+// space to deploy into a building when displaying allow/disallow deploy cursor.
+// This can cause desyncs if there are certain types of units around the deploying unit.
+// Only reasonable way to solve this is to perform the cell clear check on every client per frame
+// and use that result in cursor display which is client-specific. This is now implemented in multiplayer games only.
+#pragma region DeploysIntoDesyncFix
+
+DEFINE_HOOK(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
+{
+	if (!SessionClass::Instance->IsMultiplayer())
+		return 0;
+
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Type->DeploysInto)
+		TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding = TechnoExtData::CanDeployIntoBuilding(pThis);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
+{
+	if (!SessionClass::Instance->IsMultiplayer())
+		return 0;
+
+	enum { SkipGameCode = 0x73FFDF };
+
+	GET(UnitClass*, pThis, ESI);
+	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
+
+	if (!TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding)
+		*pAction = Action::NoDeploy;
+
+	return SkipGameCode;
+}
+
+#pragma endregion
+
+#include <Pipes.h>
+#include <Straws.h>
+
+struct OverlayByteReader
+{
+	OverlayByteReader(CCINIClass* pINI, const char* pSection)
+		:
+		uuLength { 0u },
+		pBuffer { YRMemory::Allocate(512000) } ,
+		ls { TRUE, 0x2000 },
+		bs { nullptr, 0 }
+	{
+		uuLength = pINI->ReadUUBlock(pSection, pBuffer, 512000);
+		if (this->IsAvailable())
+		{
+			bs.Buffer.Buffer = pBuffer;
+			bs.Buffer.Size = uuLength;
+			bs.Buffer.Allocated = false;
+			ls.Get_From(bs);
+		}
+	}
+
+	~OverlayByteReader()
+	{
+		if (pBuffer)
+			YRMemory::Deallocate(pBuffer);
+	}
+
+	bool IsAvailable() const { return uuLength > 0; }
+
+	unsigned char Get()
+	{
+		if (IsAvailable())
+		{
+			unsigned char ret;
+			ls.Get(&ret, sizeof(ret));
+			return ret;
+		}
+		return 0;
+	}
+
+	size_t uuLength;
+	void* pBuffer;
+	LCWStraw ls;
+	BufferStraw bs;
+};
+
+struct OverlayReader
+{
+	size_t Get()
+	{
+		unsigned char ret[4];
+
+		ret[0] = ByteReaders[0].Get();
+		ret[1] = ByteReaders[1].Get();
+		ret[2] = ByteReaders[2].Get();
+		ret[3] = ByteReaders[3].Get();
+
+		return ret[0] == 0xFF ? 0xFFFFFFFF : (ret[0] | (ret[1] << 8) | (ret[2] << 16) | (ret[3] << 24));
+	}
+
+	OverlayReader(CCINIClass* pINI)
+		:ByteReaders { {pINI, GameStrings::OverlayPack() }, { pINI,"OverlayPack2" }, { pINI,"OverlayPack3" }, { pINI,"OverlayPack4" }, }
+	{
+	}
+
+	~OverlayReader() = default;
+
+private:
+	OverlayByteReader ByteReaders[4];
+};
+
+DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
+{
+	GET(CCINIClass*, pINI, ECX);
+
+	pINI->CurrentSectionName = nullptr;
+	pINI->CurrentSection = nullptr;
+
+	if (ScenarioClass::NewINIFormat > 1) {
+
+		OverlayReader reader(pINI);
+
+		for (short i = 0; i < 0x200; ++i) {
+			for (short j = 0; j < 0x200; ++j) {
+				CellStruct mapCoord { j,i };
+				size_t nOvl = reader.Get();
+
+				if (nOvl != 0xFFFFFFFF)
+				{
+					auto const pType = OverlayTypeClass::Array->GetItem(nOvl);
+					if (pType->GetImage() || pType->CellAnim)
+					{
+						if (SessionClass::Instance->GameMode != GameMode::Campaign && pType->Crate)
+							continue;
+						if (!MapClass::Instance->CoordinatesLegal(mapCoord))
+							continue;
+
+						auto pCell = MapClass::Instance->GetCellAt(mapCoord);
+						auto const nOriginOvlData = pCell->OverlayData;
+						GameCreate<OverlayClass>(pType, mapCoord, -1);
+						if (nOvl == 24 || nOvl == 25 || nOvl == 237 || nOvl == 238) // bridges
+							pCell->OverlayData = nOriginOvlData;
+					}
+				}
+			}
+		}
+
+		auto pBuffer = YRMemory::Allocate(256000);
+		size_t uuLength = pINI->ReadUUBlock(GameStrings::OverlayDataPack(), pBuffer, 256000);
+
+		if (uuLength > 0) {
+			BufferStraw bs(pBuffer, uuLength);
+			LCWStraw ls(TRUE, 0x2000);
+			ls.Get_From(bs);
+
+			for (short i = 0; i < 0x200; ++i)
+			{
+				for (short j = 0; j < 0x200; ++j)
+				{
+					CellStruct mapCoord { j,i };
+					unsigned char buffer;
+					ls.Get(&buffer, sizeof(buffer));
+					if (MapClass::Instance->CoordinatesLegal(mapCoord))
+					{
+						auto pCell = MapClass::Instance->GetCellAt(mapCoord);
+						pCell->OverlayData = buffer;
+					}
+				}
+			}
+		}
+
+		if(pBuffer)
+			YRMemory::Deallocate(pBuffer);
+	}
+
+	AbstractClass::RemoveAllInactive();
+
+	return 0x5FD69A;
+}
+
+struct OverlayByteWriter
+{
+	OverlayByteWriter(const char* pSection, size_t nBufferLength)
+		:
+		lpSectionName { pSection },
+		uuLength { 0 },
+		Buffer { YRMemory::Allocate(nBufferLength) },
+		bp { nullptr, 0 },
+		lp { FALSE,0x2000 }
+	{
+		bp.Buffer.Buffer = this->Buffer;
+		bp.Buffer.Size = nBufferLength;
+		bp.Buffer.Allocated = false;
+		lp.Put_To(bp);
+	}
+
+	~OverlayByteWriter()
+	{
+		if (this->Buffer)
+			YRMemory::Deallocate(this->Buffer);
+	}
+
+	void Put(unsigned char data)
+	{
+		uuLength += lp.Put(&data, 1);
+	}
+
+	void PutBlock(CCINIClass* pINI)
+	{
+		pINI->Clear(this->lpSectionName, nullptr);
+		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
+	}
+
+	const char* lpSectionName;
+	size_t uuLength;
+	void* Buffer;
+	BufferPipe bp;
+	LCWPipe lp;
+};
+
+struct OverlayWriter
+{
+	OverlayWriter(size_t nLen)
+		: ByteWriters {
+			{ GameStrings::OverlayPack(), nLen },
+			{ "OverlayPack2", nLen },
+			{ "OverlayPack3", nLen },
+			{ "OverlayPack4", nLen }
+		}
+	{
+	}
+
+	~OverlayWriter() = default;
+
+	void Put(int nOverlay)
+	{
+		unsigned char bytes[] = {
+			unsigned char(nOverlay & 0xFF),
+			unsigned char((nOverlay >> 8) & 0xFF),
+			unsigned char((nOverlay >> 16) & 0xFF),
+			unsigned char((nOverlay >> 24) & 0xFF),
+		};
+
+		ByteWriters[0].Put(bytes[0]);
+		ByteWriters[1].Put(bytes[1]);
+		ByteWriters[2].Put(bytes[2]);
+		ByteWriters[3].Put(bytes[3]);
+	}
+
+	void PutBlock(CCINIClass* pINI)
+	{
+		ByteWriters[0].PutBlock(pINI);
+		ByteWriters[1].PutBlock(pINI);
+		ByteWriters[2].PutBlock(pINI);
+		ByteWriters[3].PutBlock(pINI);
+	}
+
+private:
+	OverlayByteWriter ByteWriters[4];
+};
+
+DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
+{
+	GET(CCINIClass*, pINI, ECX);
+
+	pINI->Clear("OVERLAY", nullptr);
+
+	size_t len = DSurface::Alternate->Width * DSurface::Alternate->Height;
+	OverlayWriter writer(len);
+	OverlayByteWriter datawriter(GameStrings::OverlayDataPack(), len);
+
+	for (short i = 0; i < 0x200; ++i)
+	{
+		for (short j = 0; j < 0x200; ++j)
+		{
+			CellStruct mapCoord { j,i };
+			auto const pCell = MapClass::Instance->GetCellAt(mapCoord);
+			writer.Put(pCell->OverlayTypeIndex);
+			datawriter.Put(pCell->OverlayData);
+		}
+	}
+
+	writer.PutBlock(pINI);
+	datawriter.PutBlock(pINI);
+
+	return 0x5FD8EB;
+}
 
 #ifdef aaaaa___
 #pragma region BlitterFix_

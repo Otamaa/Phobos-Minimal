@@ -8,7 +8,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	GET(AnimClass*, pThis, EBP);
 
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pBounceAnim);
-	TechnoClass* pObject = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+	TechnoClass* pObject = AnimExtData::GetTechnoInvoker(pThis);
 	HouseClass* pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
 
 	auto nCoord = pThis->GetCoords();
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 		return 0x423FC6;
 
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	TechnoClass* pTech = AnimExtData::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+	TechnoClass* pTech = AnimExtData::GetTechnoInvoker(pThis);
 	HouseClass* pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
 	auto nDelay = pAnimTypeExt->Spawns_Delay.Get();
 

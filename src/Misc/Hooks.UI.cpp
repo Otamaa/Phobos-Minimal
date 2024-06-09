@@ -84,8 +84,9 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	//GET(CreditClass*, pThis, EBP);
 
 	const auto pSideExt = SideExtContainer::Instance.Find(pSide);
+	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 
-	 if (Phobos::UI::ShowHarvesterCounter)
+	if (Phobos::UI::ShowHarvesterCounter && Phobos::Config::ShowHarvesterCounter)
 	 {
 	 	const auto nActive = HouseExtData::ActiveHarvesterCount(pPlayer);
 	 	const auto nTotal = HouseExtData::TotalHarvesterCount(pPlayer);
@@ -102,14 +103,14 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		2 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().Y
 	 	};
 
-	 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
+
 	 	DSurface::Sidebar->DSurfaceDrawText(
 		Harv.c_str()
 			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }
 
-	if (Phobos::UI::ShowPowerDelta)
+	if (Phobos::UI::ShowPowerDelta && Phobos::Config::ShowPowerDelta && pPlayer->Buildings.Count)
 	{
 		ColorStruct clrToolTip { };
 
@@ -143,12 +144,27 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 			2 + pSideExt->Sidebar_PowerDelta_Offset.Get().Y
 		};
 
-		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 		DSurface::Sidebar->DSurfaceDrawText(
 		ShowPower.c_str()
 		, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
 	}
 
+	if (Phobos::UI::WeedsCounter_Show && Phobos::Config::ShowWeedsCounter)
+	{
+		auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->GetItem(pPlayer->SideIndex));
+		wchar_t counter[0x20];
+		ColorStruct clrToolTip = pSideExt->Sidebar_WeedsCounter_Color.Get(Drawing::TooltipColor());
+
+		swprintf_s(counter, L"%d", static_cast<int>(pPlayer->OwnedWeed.GetTotalAmount()));
+
+		Point2D vPos = {
+			DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_WeedsCounter_Offset.Get().X,
+			2 + pSideExt->Sidebar_WeedsCounter_Offset.Get().Y
+		};
+
+		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0,
+			TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
+	}
 	return 0;
 }
 

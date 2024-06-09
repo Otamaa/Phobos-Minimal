@@ -49,7 +49,7 @@ public:
 	virtual ~ScriptTypeClass() RX;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x691E30);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x691E30);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual int GetArrayIndex() const override { return this->ArrayIndex; }

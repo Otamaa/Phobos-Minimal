@@ -7,10 +7,10 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 {
 	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(TargetSnapDistance, false)
-		.Process(this->PassThrough, false)
+		.Process(this->SnapOnTarget)
+		.Process(this->SnapThreshold)
+		.Process(this->TargetSnapDistance)
+		.Process(this->PassThrough)
 		;
 
 }
@@ -19,10 +19,10 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
 	return PhobosTrajectoryType::Save(Stm) &&
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(TargetSnapDistance , false)
-		.Process(this->PassThrough, false)
+		.Process(this->SnapOnTarget)
+		.Process(this->SnapThreshold)
+		.Process(this->TargetSnapDistance)
+		.Process(this->PassThrough)
 		;
 
 }
@@ -113,8 +113,8 @@ bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
 	Stm
-		.Process(this->FirerZPosition, RegisterForChange)
-		.Process(this->TargetZPosition, RegisterForChange)
+		.Process(this->FirerZPosition)
+		.Process(this->TargetZPosition)
 		;
 }
 
@@ -138,7 +138,8 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
-	pBullet->Velocity.Z = pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords);
+	pBullet->Velocity.Z = this->GetVelocityZ(pBullet->SourceCoords) //pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords)
+		;
 	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
 }
 
@@ -169,12 +170,12 @@ void StraightTrajectory::OnAIPreDetonate()
 		return;
 
 	const auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
-	const auto pCoords = &(pTarget ? pTarget->GetCoords() : pBullet->Data.Location);
+	CoordStruct coords = (pTarget ? pTarget->GetCoords() : pBullet->Data.Location);
 
-	if (pCoords->DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
+	if (coords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
 	{
 		BulletExtContainer::Instance.Find(pBullet)->SnappedToTarget = true;
-		pBullet->SetLocation(*pCoords);
+		pBullet->SetLocation(coords);
 	}
 }
 
@@ -206,3 +207,119 @@ TrajectoryCheckReturnType StraightTrajectory::OnAITechnoCheck(TechnoClass* pTech
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }
 
+
+int StraightTrajectoryVarianB::GetVelocityZ(CoordStruct& source) const
+{
+	auto const pBullet = this->AttachedTo;
+
+	int velocity = pBullet->TargetCoords.Z - source.Z;
+
+	if (!this->GetTrajectoryType()->PassThrough)
+		return velocity;
+
+	if (pBullet->Owner && pBullet->Owner->Location.Z == pBullet->TargetCoords.Z)
+		return 0;
+
+	return velocity;
+}
+
+void StraightTrajectoryVarianB::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
+{
+	auto const type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
+	this->DetonationDistance = type->DetonationDistance.Get(Leptons(102));
+	this->SetInaccurate();
+
+	if (type->PassThrough.Get())
+	{
+		pBullet->TargetCoords.X = INT_MAX;
+		pBullet->TargetCoords.Y = INT_MAX;
+		pBullet->TargetCoords.Z = INT_MAX;
+	}
+	else
+	{
+		this->SetInaccurate();
+
+		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
+		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+		pBullet->Velocity.Z = this->GetVelocityZ(pBullet->SourceCoords);
+	}
+
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
+}
+
+bool StraightTrajectoryVarianB::OnAI()
+{
+	auto const type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
+
+	if (type->PassThrough.Get())
+	{
+		pBullet->Data.Distance = INT_MAX;
+		int maxTravelDistance = this->DetonationDistance.value > 0 ? this->DetonationDistance.value : INT_MAX;
+
+		if (pBullet->SourceCoords.DistanceFrom(pBullet->Location) >= (maxTravelDistance))
+			return true;
+	}
+
+	return (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < this->DetonationDistance.ToDouble());
+
+}
+
+void StraightTrajectoryVarianB::OnAIPreDetonate()
+{
+	auto const pBullet = this->AttachedTo;
+	auto const type = this->GetTrajectoryType();
+
+	if (type->PassThrough)
+		return;
+
+	const auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
+	const auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
+
+	if (pCoords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get(type->TargetSnapDistance.Get()))
+	{
+		BulletExtContainer::Instance.Find(pBullet)->SnappedToTarget = true;
+		pBullet->SetLocation(pCoords);
+	}
+}
+
+void StraightTrajectoryVarianB::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
+{
+	auto const pBullet = this->AttachedTo;
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
+	pSpeed->Z += pTypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
+}
+
+TrajectoryCheckReturnType StraightTrajectoryVarianB::OnAITargetCoordCheck(CoordStruct& coords)
+{
+	auto const pBullet = this->AttachedTo;
+	auto const type = this->GetTrajectoryType();
+
+	if (!type->PassThrough)
+	{
+		int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
+		int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
+		int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
+		int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
+
+		if (bulletX == targetX && bulletY == targetY && pBullet->GetHeight() < 2 * Unsorted::LevelHeight)
+			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
+
+		if (pBullet->Location.Z < pBullet->TargetCoords.Z)
+			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
+	}
+	else
+	{
+		bool isAboveTarget = false;
+
+		if ((pBullet->Owner && pBullet->Owner->Location.Z > pBullet->TargetCoords.Z) ||
+			(!pBullet->Owner && pBullet->SourceCoords.Z > pBullet->TargetCoords.Z))
+			isAboveTarget = true;
+
+		if (isAboveTarget && pBullet->Location.Z <= pBullet->TargetCoords.Z)
+			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.*/
+	}
+
+	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
+}

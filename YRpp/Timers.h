@@ -1,5 +1,6 @@
 #pragma once
 
+#include <windows.h>
 #include <timeapi.h>
 
 template<typename T>
@@ -10,8 +11,8 @@ concept TimerType = std::convertible_to<T, int>&& requires (T t)
 
 struct FrameTimer
 {
-	long operator()()const { return *reinterpret_cast<long*>(0xA8ED84); }
-	operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
+	constexpr FORCEINLINE long operator()()const { return *reinterpret_cast<long*>(0xA8ED84); }
+	constexpr FORCEINLINE operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
 };
 
 struct SystemTimer
@@ -41,37 +42,38 @@ public:
 	int TimeLeft;
 
 	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
+
+
 	explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
 		this->StartTime = this->CurrentTime;
 	}
 
-	TimerClass(noinit_t()){ }
-	~TimerClass() = default;
+	constexpr TimerClass(noinit_t()){ }
+	constexpr ~TimerClass() = default;
 
-	TimerClass(const TimerClass& other) {
-		std::memcpy(this, &other, sizeof(*this));
-	}
+	TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
 
 	TimerClass& operator=(const TimerClass& other) {
-		std::memcpy(this, &other, sizeof(*this));
+		this->StartTime = other.StartTime;
+		this->TimeLeft = other.TimeLeft;
 		return *this;
 	}
 
 	TimerClass& operator = (TimerClass&&) =  default;
 
-	void Start(int duration)
+	constexpr FORCEINLINE void Start(int duration)
 	{
 		this->StartTime = this->CurrentTime;
 		this->TimeLeft = duration;
 	}
 
-	void Stop()
+	constexpr FORCEINLINE void Stop()
 	{
 		this->StartTime = -1;
 		this->TimeLeft = 0;
 	}
 
-	void Pause()
+	constexpr FORCEINLINE void Pause()
 	{
 		if (this->IsTicking())
 		{
@@ -80,7 +82,7 @@ public:
 		}
 	}
 
-	void Resume()
+	constexpr FORCEINLINE void Resume()
 	{
 		if (!this->IsTicking())
 		{
@@ -88,7 +90,7 @@ public:
 		}
 	}
 
-	int GetTimeLeft() const
+	constexpr FORCEINLINE int GetTimeLeft() const
 	{
 		if (!this->IsTicking())
 		{
@@ -103,7 +105,7 @@ public:
 	}
 
 	// returns whether a ticking timer has finished counting down.
-	bool Completed() const
+	constexpr FORCEINLINE bool Completed() const
 	{
 		return this->IsTicking() && !this->HasTimeLeft();
 	}
@@ -111,56 +113,60 @@ public:
 	// returns whether a delay is active or a timer is still counting down.
 	// this is the 'opposite' of Completed() (meaning: incomplete / still busy)
 	// and logically the same as !Expired() (meaning: blocked / delay in progress)
-	bool InProgress() const
+	constexpr FORCEINLINE bool InProgress() const
 	{
 		return this->IsTicking() && this->HasTimeLeft();
 	}
 
-	bool IsNotActive() const
+	constexpr FORCEINLINE bool IsNotActive() const
 	{
 		return this->IsTicking() && !this->TimeLeft;
 	}
 
 	// returns whether a delay is inactive. same as !InProgress().
-	bool Expired() const
+	constexpr FORCEINLINE bool Expired() const
 	{
 		return !this->IsTicking() || !this->HasTimeLeft();
 	}
 
 	// Sometimes I want to know if the timer has ever started
-	bool HasStarted() const
+	constexpr FORCEINLINE bool HasStarted() const
 	{
 		return this->IsTicking() || this->HasTimeLeft();
 	}
 
-	void Add(int nTime)
+	constexpr FORCEINLINE void Add(int nTime)
 	{
 		this->Pause();
 		this->TimeLeft += nTime;
 		this->Resume();
 	}
 
-	bool IsTicking() const
+	constexpr FORCEINLINE bool IsTicking() const
 	{
 		return this->StartTime != -1;
 	}
 
-	bool HasTimeLeft() const
+	constexpr FORCEINLINE bool HasTimeLeft() const
 	{
 		return this->GetTimeLeft() > 0;
 	}
 };
 
-using CDTimerClass = TimerClass<FrameTimer>;
+
 using SystemTimerClass = TimerClass<SystemTimer>;
 using MSTimerClass = TimerClass<MSTimer>;
 
-static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(SystemTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(MSTimerClass, TimeLeft) == 0x8);
-static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
+
 static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");
 static_assert(sizeof(MSTimerClass) == 0xC, "Invalid Size !");
+
+using CDTimerClass = TimerClass<FrameTimer>;
+
+static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
+static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
 
 class RepeatableTimerStruct : public CDTimerClass
 {
@@ -173,13 +179,13 @@ public:
 	RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
 	RepeatableTimerStruct(int duration) { this->Start(duration); }
 
-	void Start(int duration)
+	constexpr FORCEINLINE void Start(int duration)
 	{
 		this->Duration = duration;
 		this->Restart();
 	}
 
-	void Restart()
+	constexpr FORCEINLINE void Restart()
 	{
 		this->CDTimerClass::Start(this->Duration);
 	}

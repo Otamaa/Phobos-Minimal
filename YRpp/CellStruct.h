@@ -13,26 +13,38 @@ public:
 	static const CellStruct Empty;
 	static const CellStruct DefaultUnloadCell;
 
-	__forceinline bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
-	__forceinline bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
-	__forceinline bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
+	constexpr FORCEINLINE bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
+	constexpr FORCEINLINE bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
+	constexpr FORCEINLINE bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
 
 	//equality
-	__forceinline bool operator==(const CellStruct& a) const {
+	constexpr bool operator==(const CellStruct& a) const {
 		return (X == a.X && Y == a.Y);
 	}
 
-	CellStruct operator+(short nThat) const
+	constexpr CellStruct& operator++() {
+		++X;
+		++Y;
+		return *this;
+	}
+
+	constexpr CellStruct& operator--() {
+		--X;
+		--Y;
+		return *this;
+	}
+
+	constexpr CellStruct operator+(short nThat) const
 	{ return { short(X + nThat), short(Y + nThat) }; }
 
-	CellStruct operator+(short nThat)
+	constexpr CellStruct operator+(short nThat)
 	{
 		X += nThat;
 		Y += nThat;
 		return *this;
 	}
 
-	inline DWORD Pack() const noexcept {
+	constexpr FORCEINLINE DWORD Pack() const noexcept {
 		return std::bit_cast<DWORD>(*this);
 	}
 
@@ -43,12 +55,12 @@ public:
 	}
 
 	//substraction
-	CellStruct operator-(const CellStruct& a) const
+	constexpr CellStruct operator-(const CellStruct& a) const
 	{
 		return { static_cast<short>(X - a.X),  static_cast<short>(Y - a.Y) };
 	}
 	//substraction
-	CellStruct& operator-=(const CellStruct& a)
+	constexpr CellStruct& operator-=(const CellStruct& a)
 	{
 		X -= a.X;
 		Y -= a.Y;
@@ -56,23 +68,26 @@ public:
 	}
 
 	//addition
-	CellStruct operator+(const CellStruct& a) const
+	constexpr CellStruct operator+(const CellStruct& a) const
 	{
 		return { static_cast<short>(X + a.X), static_cast<short>(Y + a.Y) };
 	}
 
 	//addition
-	CellStruct& operator+=(const CellStruct& a)
+	constexpr CellStruct& operator+=(const CellStruct& a)
 	{
 		X += a.X;
 		Y += a.Y;
 		return *this;
 	}
+
+	constexpr CellStruct operator--(int) { return --(*this); }
+
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr FORCEINLINE double pow() const {
 		return (double)(X * X) + (double)(Y * Y);
 	}
 
@@ -84,7 +99,7 @@ public:
 		return (that - *this).Length();
 	}
 
-	inline double DistanceFromSquared(const CellStruct& that) const {
+	constexpr FORCEINLINE double DistanceFromSquared(const CellStruct& that) const {
 		return (that - *this).pow();
 	}
 

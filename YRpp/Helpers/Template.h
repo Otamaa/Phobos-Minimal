@@ -2,8 +2,9 @@
 
 #include <Syringe.h>
 #include <vector>
+#include <set>
 #include <ArrayClasses.h>
-#include<type_traits>
+#include <type_traits>
 
 // here be dragons(plenty)
 
@@ -14,7 +15,6 @@ inline constexpr bool is_specialization<T<Args...>, T> = true;
 
 template<class T>
 concept Vec = is_specialization<T, std::vector>;
-
 
 template<class T>
 concept NotAVec = !is_specialization<T, std::vector>;
@@ -54,7 +54,7 @@ protected:
 	DWORD negAddr;
 public:
 	retfunc_bool(REGISTERS *r, DWORD yAddr, DWORD nAddr) : retfunc<int>(r, yAddr), negAddr(nAddr) {};
-	DWORD operator()(bool choose) {
+	constexpr DWORD operator()(bool choose) {
 		return choose ? retAddr : negAddr;
 	}
 };
@@ -86,33 +86,37 @@ void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 template<typename T>
 void AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
-	if(removed)
+	if(removed){
 		elem.Remove((T)ptr);
+	}
 }
 
 template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	if (removed) {
+		elem.erase(std::remove_if(elem.begin(), elem.end(), [ptr](auto _el) { return  ptr == _el; }), elem.end());
+	}
+}
 
-	if (!removed)
-		return;
-
-	for(size_t i = 0; i < elem.size(); ++i) {
-		if(ptr == elem[i]) {
-			elem.erase(elem.begin() + i);
-		}
+template<typename T>
+void AnnounceInvalidPointer(std::set<T>& elem, void* ptr, bool removed) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	if (removed){
+		elem.erase((T)ptr);
 	}
 }
 
 template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	elem.erase(std::remove_if(elem.begin(), elem.end(), [ptr](auto _el) { return  ptr == _el; }), elem.end());
+}
 
-	for(size_t i = 0; i < elem.size(); ++i) {
-		if(ptr == elem[i]) {
-			elem.erase(elem.begin() + i);
-		}
-	}
+template<typename T>
+void AnnounceInvalidPointer(std::set<T>& elem, void* ptr) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
+	elem.erase((T)ptr);
 }
 
 // vroom vroom
@@ -120,44 +124,44 @@ void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 template <typename T>
 class IndexBitfield {
 public:
-	IndexBitfield() = default;
-	explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
+	constexpr IndexBitfield() = default;
+	constexpr explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
 
-	IndexBitfield<T>& operator=(DWORD other)
+	constexpr IndexBitfield<T>& operator=(DWORD other)
 	{
 		std::swap(data, other);
 		return *this;
 	}
 
-	bool Contains(const T obj) const {
+	constexpr bool Contains(const T obj) const {
 		return Contains(obj->ArrayIndex);
 	}
 
-	bool Contains(int index) const {
+	constexpr bool Contains(int index) const {
 		return (this->data & (1u << index)) != 0u;
 	}
 
-	void Add(int index) {
+	constexpr void Add(int index) {
 		this->data |= (1u << index);
 	}
 
-	void Add(const T obj) {
+	constexpr void Add(const T obj) {
 		Add(obj->ArrayIndex);
 	}
 
-	void Remove(int index) {
+	constexpr void Remove(int index) {
 		this->data &= ~(1u << index);
 	}
 
-	void Remove(const T obj) {
+	constexpr void Remove(const T obj) {
 		Remove(obj->ArrayIndex);
 	}
 
-	void Clear() {
+	constexpr void Clear() {
 		this->data = 0u;
 	}
 
-	operator DWORD() const {
+	constexpr operator DWORD() const {
 		return this->data;
 	}
 

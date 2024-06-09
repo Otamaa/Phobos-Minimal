@@ -78,7 +78,7 @@ void Phobos::ExecuteLua()
 						DWORD protectFlag;
 						if (Phobos::Otamaa::IsAdmin)
 						{
-							std::string copy = trim(result.c_str());
+							std::string copy = PhobosCRT::trim(result.c_str());
 							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
 						}
 

@@ -85,8 +85,12 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	}
 
 	std::vector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
+	// collect every techno in this range only once. apply the Chronosphere.
 
-	auto Chronoport = [pThis, pSourceSWExt, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
+	auto range = NewSWType::GetNewSWType(pSourceSWExt)->GetRange(pSourceSWExt);
+	Helpers::Alex::DistinctCollector<TechnoClass*> items;
+	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(pSource->ChronoMapCoords, range.WidthOrRange, range.Height, items);
+	items.apply_function_for_each( [pThis, pSourceSWExt, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
 	{
 		// is this thing affected at all?
 		if (!pSourceSWExt->IsHouseAffected(pThis->Owner, pTechno->Owner)) {
@@ -275,7 +279,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		else if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			// begin the building chronoshift
-			pBld->RemoveFromTargetingAndTeam();
+			TechnoClass::ClearWhoTargetingThis(pBld);
 			for (auto const pBullet : *BulletClass::Array)
 			{
 				if (pBullet->Target == pBld)
@@ -298,14 +302,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 #pragma endregion
 		return true;
-	};
-
-	// collect every techno in this range only once. apply the Chronosphere.
-
-	auto range = NewSWType::GetNewSWType(pSourceSWExt)->GetRange(pSourceSWExt);
-	Helpers::Alex::DistinctCollector<TechnoClass*> items;
-	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(pSource->ChronoMapCoords, range.WidthOrRange, range.Height, items);
-	items.apply_function_for_each(Chronoport);
+	});
 
 	if (!RegisteredBuildings.empty())
 	{

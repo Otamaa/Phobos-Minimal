@@ -14,7 +14,7 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void HandleRemoveAsExt(BuildingExtData* pExt)
+	void FORCEINLINE HandleRemoveAsExt(BuildingExtData* pExt)
 	{
 		if (!pExt)
 			return;
@@ -29,12 +29,12 @@ namespace DamageFireAnims
 		}
 	}
 
-	void HandleRemove(BuildingClass* pThis) {
+	void FORCEINLINE HandleRemove(BuildingClass* pThis) {
 		auto pExt = BuildingExtContainer::Instance.Find(pThis);
 		HandleRemoveAsExt(pExt);
 	}
 
-	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
+	void FORCEINLINE HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
 		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
 		if (!pExt)
 			return;
@@ -149,7 +149,7 @@ DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
 }
 #endif
 
-DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
+DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamage_OnFire, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pFoundationArray, 0x10);
@@ -158,10 +158,17 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 	if (args.WH->Sparky)
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+		auto const pBldExt = BuildingExtContainer::Instance.Find(pThis);
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
 		if (Onfire && pFireType.size() >= 3) {
+
+			if(Unsorted::CurrentFrame < pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
+				return 0x4428FE;
+
+			pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+
 			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
 			{
 				auto const&[nCellX , nCellY] = pThis->InlineMapCoords() + *pFoundationArray;
@@ -188,12 +195,12 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 				case 3:
 				case 4:
 				case 5:
-					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size() - 1), 0);
+					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
 					break;
 				case 6:
 				case 7:
 				case 8:
-					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size() - 1), 1);
+					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
 					break;
 				case 9:
 					PlayFireAnim();

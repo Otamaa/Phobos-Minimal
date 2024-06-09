@@ -253,4 +253,35 @@ public:
 		return (*nBuffer != -1);
 	}
 
+	// WARNING : const char* memory address may temporary and can invalidated
+	bool ParseStringList(std::vector<const char*>& values, const char* pSection, const char* pKey) {
+		if (this->ReadString(pSection, pKey)) {
+			values.clear();
+			char* context = nullptr;
+
+			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+				values.push_back(pCur);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool ParseStringList(std::vector<std::string>& values, const char* pSection, const char* pKey) {
+		if (this->ReadString(pSection, pKey)) {
+			values.clear();
+			char* context = nullptr;
+
+			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context)){
+				if(strlen(pCur)) {
+					values.push_back(pCur);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 };

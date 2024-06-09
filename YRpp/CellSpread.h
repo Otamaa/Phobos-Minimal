@@ -14,19 +14,19 @@ public:
 	static constexpr reference<size_t, 0x7ED3D0, 12u> const CellNums{};
 	static constexpr reference<CellStruct, 0xABD490, 369u> const CellOfssets{};
 
-	static size_t NumCells(size_t nSpread) {
+	static constexpr FORCEINLINE size_t NumCells(size_t nSpread) {
 		return CellNums[nSpread];
 	}
 
-	static size_t NumCellsFromFloat(float nSpread) {
+	static constexpr FORCEINLINE size_t NumCellsFromFloat(float nSpread) {
 		return int(nSpread);
 	}
 
-	static const CellStruct GetCell(size_t n) {
+	static constexpr FORCEINLINE const CellStruct GetCell(size_t n) {
 		return CellOfssets[n];
 	}
 
-	static const CellStruct GetNeighbourOffset(size_t direction) {
+	static constexpr CellStruct GetNeighbourOffset(size_t direction) {
 		if(direction > AdjacentCell.size()) {
 			return CellStruct::Empty;
 		}
@@ -34,7 +34,7 @@ public:
 		return AdjacentCell[direction];
 	}
 
-	static const Point2D GetNeighbourPointOffset(size_t direction)
+	static constexpr Point2D GetNeighbourPointOffset(size_t direction)
 	{
 		if (direction > AdjacentPoint.size())
 		{
@@ -44,7 +44,7 @@ public:
 		return AdjacentPoint[direction];
 	}
 
-	static const Point2D GetNeighbourPointOffset(FacingType direction)
+	static constexpr Point2D GetNeighbourPointOffset(FacingType direction)
 	{
 		if ((size_t)direction > AdjacentPoint.size())
 		{
@@ -54,7 +54,7 @@ public:
 		return AdjacentPoint[(size_t)direction];
 	}
 
-	static const CellStruct GetNeighbourOffset(FacingType direction)
+	static constexpr CellStruct GetNeighbourOffset(FacingType direction)
 	{
 		if ((size_t)direction > AdjacentCell.size()) {
 			return CellStruct::Empty;

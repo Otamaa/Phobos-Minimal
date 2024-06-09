@@ -50,23 +50,25 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 			);
 		};
 
-		char fName[0x80];
+
 		SYSTEMTIME time {};
-
 		Imports::GetLocalTime.get()(&time);
+		const std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.sav",
+			time.wYear,
+			time.wMonth,
+			time.wDay,
+			time.wHour,
+			time.wMinute,
+			time.wSecond,
+			time.wMilliseconds
+		);
 
-		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
-			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+		const std::wstring fDesc = std::format(L"{} - {}"
+			, SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name
+			, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved")
+		);
 
-		wchar_t fDescription[0x80] = { 0 };
-		if (SessionClass::Instance->GameMode == GameMode::Campaign)
-			wcscpy_s(fDescription, ScenarioClass::Instance->UINameLoaded);
-		else
-			wcscpy_s(fDescription, ScenarioClass::Instance->Name);
-
-		wcscat_s(fDescription, L" - ");
-		wcscat_s(fDescription, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved"));
-		bool Status = ScenarioClass::SaveGame(fName, fDescription);
+		bool Status = ScenarioClass::SaveGame(fName.c_str(), fDesc.c_str());
 
 		WWMouseClass::Instance->ShowCursor();
 
@@ -83,7 +85,7 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 	else
 	{
 		MessageListClass::Instance->PrintMessage(
-		StringTable::LoadString("MSG:NotAvailableInMultiplayer"),
+		GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer"),
 		RulesClass::Instance->MessageDelay,
 		HouseClass::CurrentPlayer->ColorSchemeIndex,
 		true);

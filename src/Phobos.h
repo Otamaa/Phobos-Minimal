@@ -10,6 +10,7 @@
 #include <Wstring.h>
 
 #include <format>
+#include <random>
 
 #ifndef NANOPRINTF_IMPLEMENTATION
 #define IMPL_SNPRNINTF _snprintf_s
@@ -76,6 +77,28 @@ constexpr const char* UIMD_ = "uimd.ini";
 
 struct Phobos final
 {
+	class Random
+	{
+	public:
+		static void SetRandomSeed(int seed)
+		{
+			_engine.seed(seed);
+		}
+
+		static int RandomRanged(int min, int max)
+		{
+			std::uniform_int_distribution<int> dis(min, max);
+			return dis(_engine);
+		}
+
+		static double RandomDouble()
+		{
+			return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1);
+		}
+	private:
+		inline static std::minstd_rand _engine {};
+	};
+
 	static void CmdLineParse(char**, int);
 
 	static void ExeRun();
@@ -118,7 +141,7 @@ struct Phobos final
 		static double PowerDelta_ConditionYellow;
 		static double PowerDelta_ConditionRed;
 		static bool CenterPauseMenuBackground;
-
+		static bool WeedsCounter_Show;
 		static bool UnlimitedColor;
 
 		static const wchar_t* CostLabel;
@@ -167,6 +190,13 @@ struct Phobos final
 
 		static bool DebugFatalerrorGenerateDump;
 		static bool SaveGameOnScenarioStart;
+
+		static bool ShowPowerDelta;
+		static bool ShowHarvesterCounter;
+		static bool ShowWeedsCounter;
+
+		static bool UseNewInheritance;
+		static bool UseNewIncludes;
 	};
 
 	struct Misc

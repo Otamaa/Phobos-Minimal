@@ -391,25 +391,6 @@ DEFINE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
-{
-	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
-/* return
-	 1 - cameo shown
-	 0 - cameo not shown
-	-1 - cameo greyed out
- */
-
-	GET(HouseClass* const, pThis, ECX);
-	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
-	GET_STACK(bool const, buildLimitOnly, 0x8);
-	GET_STACK(bool const, includeInProduction, 0xC);
-	//GET_STACK(DWORD , caller , 0x0);
-
-	R->EAX(HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction));
-	return 0x4F8361;
-}
-
 DEFINE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 {
 	GET(HouseClass*, pHouse, EAX);
@@ -453,7 +434,7 @@ DEFINE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 		if (auto pDisguise = HouseExtData::GetDisguise(pHouse)) {
 			pThis->Disguise = pDisguise;
 			return dwReturnAddress;
-		} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get(nullptr)){
+		} else if (const auto pDefaultDisguiseType = TechnoTypeExtContainer::Instance.Find(pThis->Type)->DefaultDisguise.Get()){
 			pThis->Disguise = pDefaultDisguiseType;
 			return dwReturnAddress;
 		}
@@ -571,7 +552,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		return 0x4F8F87;
 	}
 
-	auto Eligible = [pThis](FootClass* pFoot)
+	auto IsEligible = [pThis](FootClass* pFoot)
 		{
 			if (pFoot->Owner != pThis)
 			{
@@ -600,7 +581,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *UnitClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -611,7 +592,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *InfantryClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -622,7 +603,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *AircraftClass::Array)
 			{
-				if (Eligible(pTechno))
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -813,91 +794,46 @@ DEFINE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 	return 0x6AB320;
 }
 
+DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
+{
+	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
+/* return
+	 1 - cameo shown
+	 0 - cameo not shown
+	-1 - cameo greyed out
+ */
+
+	GET(HouseClass* const, pThis, ECX);
+	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
+	GET_STACK(bool , buildLimitOnly, 0x8);
+	GET_STACK(bool , includeInProduction, 0xC);
+	//GET_STACK(DWORD , caller , 0x0);
+	auto validationResult = HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+
+	if(validationResult == CanBuildResult::Buildable) {
+		validationResult = HouseExtData::BuildLimitGroupCheck(pThis, pItem, buildLimitOnly, includeInProduction);
+
+		if (HouseExtData::ReachedBuildLimit(pThis, pItem, true))
+			validationResult = CanBuildResult::TemporarilyUnbuildable;
+
+	}
+
+	R->EAX(validationResult);
+	return 0x4F8361;
+}
+
 DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
-	auto ret = false;
+	bool result = HouseExtData::ShouldDisableCameo(pThis, pType);
 
-	if (pType)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		// there is some another stupid bug
-		// where if the building already queueed and paused
-		// then you remove the prereq thing , the timer wont restart
-		// it make it odd
-		// also doing this check every frame is kind a weird ,..
-		//if(!pTypeExt->Prerequisite_Display.empty()
-		//	&& HouseExtData::PrereqValidate(pThis, pType , false , false ) == CanBuildResult::TemporarilyUnbuildable)
-		//{
-		//	R->EAX(true);
-		//	return 0x50B669;
-		//}
-
-		auto const abs = pType->WhatAmI();
-		auto const pFactory = pThis->GetPrimaryFactory(
-			abs, pType->Naval, BuildCat::DontCare);
-
-		// special logic for AirportBound
-		if (abs == AbstractType::AircraftType)
-		{
-			auto const pAType = static_cast<AircraftTypeClass const*>(pType);
-			if (pAType->AirportBound)
-			{
-				auto ownedAircraft = 0;
-				auto queuedAircraft = 0;
-
-				for (auto const& pAircraft : RulesClass::Instance->PadAircraft)
-				{
-					ownedAircraft += pThis->CountOwnedAndPresent(pAircraft);
-					if (pFactory)
-					{
-						queuedAircraft += pFactory->CountTotal(pAircraft);
-					}
-				}
-
-				// #896082: also check BuildLimit, and not always return the
-				// result of this comparison directly. originally, it would
-				// return false here, too, allowing more units than the
-				// BuildLimit permitted.
-				if (ownedAircraft + queuedAircraft >= pThis->AirportDocks)
-				{
-					R->EAX(true);
-					return 0x50B669;
-				}
-			}
-		}
-
-		auto queued = 0;
-		if (pFactory)
-		{
-			queued = pFactory->CountTotal(pType);
-
-			// #1286800: build limit > 1 and queues
-			// the object in production is counted twice: it appears in this
-			// factory queue, and it is already counted in the house's counters.
-			// this only affects positive build limits, for negative ones
-			// players could queue up one more than BuildLimit.
-			if (auto const pObject = pFactory->Object)
-			{
-				if (pObject->GetType() == pType && pType->BuildLimit > 0)
-				{
-					--queued;
-				}
-			}
-		}
-
-		// #1521738: to stay consistent, use the new method to calculate this
-		if (HouseExtData::BuildLimitRemaining(pThis, pType) - queued <= 0)
-		{ ret = true; } else {
-			const auto state = HouseExtData::HasFactory(pThis, pType, true, true, false, true);
-			ret = (state.first < NewFactoryState::Available_Alternative);
-		}
+	if(!result && HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
+		result = true;
 	}
 
-	R->EAX(ret);
+	R->EAX(result);
 	return 0x50B669;
 }
 
@@ -1398,7 +1334,7 @@ DEFINE_HOOK(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 
 	//dropping this here, should be fine
 	const auto pParent = H->Type->FindParentCountry();
-	HouseExtContainer::Instance.Find(H)->FactoryOwners_GatheredPlansOf.push_back_unique(pParent ? pParent : H->Type);
+	HouseExtContainer::Instance.Find(H)->FactoryOwners_GatheredPlansOf.insert(pParent ? pParent : H->Type);
 
 	return 0x500D0D;
 }

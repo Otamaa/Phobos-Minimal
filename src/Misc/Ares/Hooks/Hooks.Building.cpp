@@ -136,7 +136,7 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 			if (pFactory && pFactory->Object)
 			{
-				auto pProdType = pFactory->Object->GetTechnoType();
+				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
 				const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
@@ -269,10 +269,20 @@ DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 	return 0x442980;
 }
 
-DEFINE_HOOK(0x442290, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
+DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
+	GET(BuildingClass* , pThis ,ESI);
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
-	return WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x4422C1 : 0x0;
+
+	if(WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
+		return 0x4422C1;
+
+	if(!R->EBP<AbstractClass*>())
+		return 0x4422C1;
+
+	R->AL(pThis->IsStrange());
+	return 0x44228C;
 }
+
 // replaces the UnitReload handling and makes each docker independent of all
 // others. this means planes don't have to wait one more ReloadDelay because
 // the first docker triggered repair mission while the other dockers arrive
@@ -635,12 +645,47 @@ DEFINE_HOOK(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
 	return 0x456745;
 }
 
+
+bool Bld_ChangeOwnerAnnounce;
+DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
+{
+	GET(BuildingClass* ,pThis ,ECX);
+	GET_STACK(bool, announce, 0x8);
+	// Fix : Suppress capture EVA event if ConsideredVehicle=yes
+	announce = announce && !pThis->Type->IsVehicle();
+	Bld_ChangeOwnerAnnounce = announce;
+	return 0x0;
+}
+
+bool __fastcall BuildingClass_SetOwningHouse_Wrapper(BuildingClass* pThis, void*, HouseClass* pHouse, bool announce)
+{
+	const bool res = pThis->BuildingClass::SetOwningHouse(pHouse , announce);
+
+	// Fix : update powered anims
+	if (res && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
+		pThis->UpdatePowerDown();
+
+	return res;
+}
+
+DEFINE_JUMP(VTABLE, 0x7E4290, GET_OFFSET(BuildingClass_SetOwningHouse_Wrapper));
+
+DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
+{
+	GET(FootClass* const, pThis, ESI);
+	GET(HouseClass* const, pNewOwner, EDI);
+	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
+	//discarded
+	pThis->TechnoClass::SetOwningHouse(pNewOwner, Bld_ChangeOwnerAnnounce);
+	return 0x448BED;
+}
+
 DEFINE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
 
-	if (pThis->Owner != pNewOwner)
+	if (pThis->Owner != pNewOwner && Bld_ChangeOwnerAnnounce)
 	{
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
@@ -1215,12 +1260,12 @@ DEFINE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 }
 
 // #814: force sidebar repaint for standard spy effects
-DEFINE_HOOK_AGAIN(0x4574D2, BuildingClass_Infiltrate_Standard, 0x6)
-DEFINE_HOOK(0x457533, BuildingClass_Infiltrate_Standard, 0x6)
-{
-	MouseClass::Instance->SidebarNeedsRepaint();
-	return R->Origin() + 6;
-}
+// DEFINE_HOOK_AGAIN(0x4574D2, BuildingClass_Infiltrate_Standard, 0x6)
+// DEFINE_HOOK(0x457533, BuildingClass_Infiltrate_Standard, 0x6)
+// {
+// 	MouseClass::Instance->SidebarNeedsRepaint();
+// 	return R->Origin() + 6;
+// }
 
 // infantry exiting hospital get their focus reset, but not for armory
 DEFINE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
@@ -1771,10 +1816,8 @@ DEFINE_HOOK(0x4571E0, BuildingClass_Infiltrate, 5)
 	GET(BuildingClass*, EnteredBuilding, ECX);
 	GET_STACK(HouseClass*, Enterer, 0x4);
 
-	return (TechnoExt_ExtData::InfiltratedBy(EnteredBuilding, Enterer))
-		? 0x4575A2
-		: 0
-		;
+	TechnoExt_ExtData::InfiltratedBy(EnteredBuilding, Enterer);
+	return 0x4575A2;
 }
 
 DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
@@ -2194,7 +2237,7 @@ DEFINE_HOOK(0x45F2B4, BuildingTypeClass_Load2DArt_BuildupTime, 5)
 	return 0x45F310;
 }
 
-DEFINE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 3)
+DEFINE_HOOK(0x447a63, BuildingClass_QueueImageAnim_Sell, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_BASE(int, frames, 0x8);
@@ -2346,6 +2389,7 @@ DEFINE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
+	pExt->UpdateSpyEffecAnimDisplay();
 	return 0;
 }
 

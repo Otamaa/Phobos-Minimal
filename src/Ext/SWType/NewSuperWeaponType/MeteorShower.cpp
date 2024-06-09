@@ -56,14 +56,12 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 			if (ScenarioClass::Instance->Random.PercentChance(pData->MeteorAddImpactChance))
 			{
-				const auto count = pData->MeteorImactCounts.Get();
-
-				for (int a = 0; a < count; ++a)
+				for (int a = 0; a < pData->MeteorImactCounts; ++a)
 				{
 					Coordinate im_where = nCoord;
 
-					const int x_adj = ScenarioClass::Instance->Random.Random() % (count);
-					const int y_adj = ScenarioClass::Instance->Random.Random() % (count);
+					const int x_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
+					const int y_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
 
 					im_where.X += x_adj;
 					im_where.Y += y_adj;

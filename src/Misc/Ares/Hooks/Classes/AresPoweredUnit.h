@@ -17,14 +17,14 @@ public:
 	bool PowerDown();
 	bool Update();
 
-	inline bool IsPowered() const {
+	constexpr inline bool IsPowered() const {
 		return this->Powered;
 	}
 
-	AresPoweredUnit(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
+	constexpr AresPoweredUnit(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
 	{ }
 
-	~AresPoweredUnit() = default;
+	constexpr ~AresPoweredUnit() = default;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{

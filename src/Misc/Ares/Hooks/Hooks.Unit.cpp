@@ -158,35 +158,40 @@ DEFINE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
+DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto const pType = pThis->Type;
+	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
 
-	if (pType->DeployingAnim)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		// not sure what is the bitfrom or bitto so it generate this result
-		// yes iam dum , iam sorry - otamaa
-		const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-		const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
-		const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+	if(!pThis->InAir) {
+		if (pType->DeployingAnim) {
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (nCurrent != (int)nRaw)
-		{
-			if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
-			{
-				if (!pLoco->Is_Moving_Now())
-				{
-					pLoco->Do_Turn(DirStruct { nRaw });
+			if (pTypeExt->DeployingAnim_AllowAnyDirection)
+				return PlayAnim;
+
+			// not sure what is the bitfrom or bitto so it generate this result
+			// yes iam dum , iam sorry - otamaa
+			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+
+			if (nCurrent != (int)nRaw) {
+				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr()) {
+					if (!pLoco->Is_Moving_Now()) {
+						pLoco->Do_Turn(DirStruct { nRaw });
+					}
+
+					return 0x739C70;
 				}
-
-				return 0x739C70;
 			}
 		}
+
+		pThis->Deployed = true;
 	}
 
-	return 0x0;
+	return SkipAnim;
 }
 
 DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
@@ -198,15 +203,14 @@ DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	if (pTemp)
 		pTemp->LetGo();
 
-	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal = pTemp;
+	TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal.reset(pTemp);
 	return 0;
 }
 
 DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
-	auto pData = TechnoExtContainer::Instance.Find(Unit);
-	Unit->TemporalImUsing = std::exchange(pData->MyOriginalTemporal, nullptr);
+	Unit->TemporalImUsing = TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal.release();
 	return 0x746546;
 }
 
@@ -275,10 +279,9 @@ DEFINE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 	GET(UnitClass* const, pThis, ESI);
 	GET(TechnoClass const* const, pSender, EDI);
 
-	auto const pType = pThis->GetTechnoType();
 	auto const pSenderType = pSender->GetTechnoType();
 
-	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? 0u : 0x73780Fu;
+	return TechnoTypeExtData::PassangersAllowed(pThis->Type, pSenderType) ? 0u : 0x73780Fu;
 }
 
 DEFINE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
@@ -341,8 +344,16 @@ DEFINE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->DisableWeaponTimer.InProgress()
-		? FireRange : ContinueCheck;
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if(pExt->DisableWeaponTimer.InProgress())
+		return FireRange;
+
+	if(pExt->AE_DisableWeapons)
+		return FireRange;
+
+	return ContinueCheck;
 }
 
 // stop command would still affect units going berzerk
@@ -780,7 +791,7 @@ DEFINE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 	{
 
 		const auto TechnoExt = TechnoExtContainer::Instance.Find(pThis);
-		if (!TechnoExtData::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover)
+		if (!TechnoExtData::IsPsionicsImmune(pThis) && !pThis->GetTechnoType()->BalloonHover)
 		{
 			// KillDriver check
 			if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
@@ -820,16 +831,19 @@ DEFINE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 //TechnoClass_CanAutoTargetObject_Heal
 DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
-DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
-DEFINE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
-{
-	GET(unsigned int, nVal, EBX);
+//DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
+//DEFINE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
+//{
+//	GET(unsigned int, nVal, EBX);
+//
+//	nVal |= 0x403Cu;
+//
+//	R->EBX(nVal);
+//	return 0x6F8F25;
+//}
 
-	nVal |= 0x403Cu;
-
-	R->EBX(nVal);
-	return 0x6F8F25;
-}
+DEFINE_PATCH(0x6F8F21, 0x3C);
+DEFINE_PATCH(0x6F8EE5, 0x3C);
 
 DEFINE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
@@ -1130,7 +1144,7 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_D
 	//AresData::TechnoTransferAffects(pFrom, pTo);
 	TechnoExtData::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);
-	TechnoExtData::SyncIronCurtainStatus(pFrom, pTo);
+	TechnoExtData::SyncInvulnerability(pFrom, pTo);
 
 	if (pFrom->AttachedTag)
 		pTo->AttachTrigger(pFrom->AttachedTag);
@@ -1205,22 +1219,6 @@ DEFINE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pNewOwner, EBP);
-
-	auto const pType = pThis->GetTechnoType();
-
-	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-		pNewOwner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
@@ -1252,8 +1250,8 @@ DEFINE_HOOK(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 {
 	enum { Decloak = 0x0, DoNotDecloak = 0x741939 };
 	GET(UnitClass* const, pThis, EDI);
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	return pExt->CrusherDecloak ? Decloak : DoNotDecloak;
+
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->CrusherDecloak ? Decloak : DoNotDecloak;
 }
 
 DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)

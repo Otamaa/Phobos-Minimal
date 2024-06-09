@@ -178,12 +178,16 @@ struct DroppodProperties_
 			pLinked->Limbo();
 			pLoco->AddRef();
 			pLoco->End_Piggyback(&pLinked->Locomotor);
+			CoordStruct coord_place = pLinked->Location;
+			auto pAnimType = DroppodProperties_::GetPuff(tType, pLinked, condition);
+			const auto nDroppod = DroppodProperties_::GetGroundAnim(tType, pLinked, pLoco->OutOfMap, condition);
 
-			if (pLinked->Unlimbo(coords, DirType::North))
+			pLoco->Release();
+
+			if (pLinked->Unlimbo(coord_place, DirType::North))
 			{
-				if (auto pAnimType = DroppodProperties_::GetPuff(tType, pLinked, condition))
-				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag(0x600), 0, 0),
+				if (pAnimType) {
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord_place, 0, 1, AnimFlag(0x600), 0, 0),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -191,9 +195,8 @@ struct DroppodProperties_
 					);
 				}
 
-				if (const auto nDroppod = DroppodProperties_::GetGroundAnim(tType, pLinked, pLoco->OutOfMap, condition))
-				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(nDroppod, coords, 0, 1, AnimFlag(0x600), 0, 0),
+				if (nDroppod) {
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(nDroppod, coord_place, 0, 1, AnimFlag(0x600), 0, 0),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -209,10 +212,10 @@ struct DroppodProperties_
 			}
 			else
 			{
-				MapClass::DamageArea(coords, 100, pLinked, RulesClass::Instance->C4Warhead, true, pLinked->Owner);
-				if (auto dmgAnim = MapClass::SelectDamageAnimation(100, RulesClass::Instance->C4Warhead, LandType::Clear, coords))
+				MapClass::DamageArea(coord_place, 100, pLinked, RulesClass::Instance->C4Warhead, true, pLinked->Owner);
+				if (auto dmgAnim = MapClass::SelectDamageAnimation(100, RulesClass::Instance->C4Warhead, LandType::Clear, coord_place))
 				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, coords, 0, 1, (AnimFlag)0x2600, -15, false),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, coord_place, 0, 1, (AnimFlag)0x2600, -15, false),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -221,7 +224,6 @@ struct DroppodProperties_
 				}
 			}
 
-			pLoco->Release();
 		}
 
 		return true;

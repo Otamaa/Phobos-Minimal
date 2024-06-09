@@ -34,6 +34,9 @@ public:
 	Valueable<ColorStruct> Sidebar_PowerDelta_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
 	Valueable<TextAlign> Sidebar_PowerDelta_Align { TextAlign::Left };
 
+	Valueable<Point2D> Sidebar_WeedsCounter_Offset { { 0, 0 } };
+	Nullable<ColorStruct> Sidebar_WeedsCounter_Color {};
+
 	Nullable<ColorStruct> ToolTip_Background_Color { };
 	Nullable<int> ToolTip_Background_Opacity { };
 	Nullable<float> ToolTip_Background_BlurSize { };

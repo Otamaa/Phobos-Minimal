@@ -126,16 +126,16 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 		if (selectedTarget)
 		{
-			ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as destination target.\n",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				act,
-				scriptArgument,
-				pLeaderUnitType->get_ID(),
-				pTeamData->TeamLeader->UniqueID,
-				selectedTarget->GetTechnoType()->get_ID(),
-				selectedTarget->UniqueID);
+			//ScriptExtData::Log("AI Scripts - Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as destination target.\n",
+			//	pTeam->Type->ID,
+			//	pScript->Type->ID,
+			//	pScript->CurrentMission,
+			//	act,
+			//	scriptArgument,
+			//	pLeaderUnitType->get_ID(),
+			//	pTeamData->TeamLeader->UniqueID,
+			//	selectedTarget->GetTechnoType()->get_ID(),
+			//	selectedTarget->UniqueID);
 
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected

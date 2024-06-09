@@ -21,11 +21,7 @@ void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct*
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
-	TrenchRedirectClick Datas { Target , Source };
-	memcpy(&Event.Data.nothing, &Datas, TrenchRedirectClick::size());
-
-	//the data is an array containing 2 stuffs
-	EventClass::AddEventWithTimeStamp(&Event);
+	AresNetEvent::AddToEvent<true , TrenchRedirectClick>(Event, Target, Source);
 }
 
 void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)

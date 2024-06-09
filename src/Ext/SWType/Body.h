@@ -9,6 +9,7 @@
 #include <New/Type/DroppodProperties.h>
 
 #include <BitFont.h>
+#include <Misc/Defines.h>
 
 enum class SWTargetFlags
 {
@@ -172,8 +173,8 @@ public:
 	Valueable<bool> SW_InitialReady { false };
 	Valueable<bool> SW_AlwaysGranted { false };
 #pragma region Detonate
-	Nullable<WarheadTypeClass*> Detonate_Warhead {};
-	Nullable<WeaponTypeClass*> Detonate_Weapon {};
+	Valueable<WarheadTypeClass*> Detonate_Warhead {};
+	Valueable<WeaponTypeClass*> Detonate_Weapon {};
 	Nullable<int> Detonate_Damage {};
 	Valueable<bool> Detonate_AtFirer { false };
 #pragma endregion
@@ -195,6 +196,7 @@ public:
 	Valueable<int> SW_Group { 0 };
 	Valueable<int> SW_Shots { -1 };
 	Valueable<bool> SW_AutoFire { false };
+	Valueable<bool> SW_AutoFire_CheckAvail { false };
 	Valueable<bool> SW_AllowPlayer { true };
 	Valueable<bool> SW_AllowAI { true };
 	Nullable<double> SW_ChargeToDrainRatio {};
@@ -568,7 +570,7 @@ public:
 public:
 
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static  bool InvalidateIgnorable(AbstractClass* ptr);
+	static bool InvalidateIgnorable(AbstractClass* ptr);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();

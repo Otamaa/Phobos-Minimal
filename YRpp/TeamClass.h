@@ -35,7 +35,7 @@ public:
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x6F0430);
 	virtual int Size() const override JMP_THIS(0x6F0440);
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6EAE60);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6EAE60);
 
 	// fills dest with all types needed to complete this team. each type is
 	// included as often as it is needed.

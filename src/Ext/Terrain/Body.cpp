@@ -115,6 +115,7 @@ void TerrainExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->LighSource)
 		.Process(this->AttachedAnim)
+		.Process(this->Adjencentcells)
 		;
 }
 
@@ -140,12 +141,16 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	GET(TerrainClass*, pItem, ESI);
 	GET_STACK(CellStruct*, pCoord, 0x24);
 
-	TerrainExtContainer::Instance.FindOrAllocate(pItem);
+	auto pExt = TerrainExtContainer::Instance.FindOrAllocate(pItem);
 
 	if (pCoord->IsValid()) {
 		//vtable may not instantiated
 		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 			pItem->ObjectClass::UnInit();
+		}
+
+		if(pItem->Type){
+			GeneralUtils::AdjacentCellsInRange(pExt->Adjencentcells, TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
 		}
 	}
 

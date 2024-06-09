@@ -9,12 +9,12 @@ class WarheadTypeClass;
 struct AresAE
 {
 public:
-	AresAttachEffectTypeClass* Type;
-	Handle<AnimClass*, UninitAnim> Anim;
-	int Duration;
-	HouseClass* Invoker;
+	AresAttachEffectTypeClass* Type { nullptr };
+	Handle<AnimClass*, UninitAnim> Anim { nullptr };
+	int Duration { 0 };
+	HouseClass* Invoker { nullptr };
 
-	void InvalidatePointer(AnimClass* ptr, bool bDetach)
+	constexpr void InvalidatePointer(AnimClass* ptr, bool bDetach)
 	{
 		if (ptr == this->Anim.get()) {
 			this->Anim.release();
@@ -64,7 +64,7 @@ private:
 
 struct AresAEData
 {
-	std::vector<AresAE> Data {};
+	HelperedVector<AresAE> Data {};
 	int InitialDelay { 0 };
 	BYTE NeedToRecreateAnim {};
 	BYTE Isset {};

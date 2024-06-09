@@ -45,7 +45,7 @@ void ShowTechnoNameCommandClass::AI()
 
 	if(IsActivated())
 	{
-		auto const pCiv = HouseExtData::FindCivilianSide();
+		auto const pCiv = HouseExtData::FindFirstCivilianHouse();
 
 		for (auto pTech : *TechnoClass::Array())
 		{

@@ -55,44 +55,44 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	FORCEINLINE AnimTypeClass* GetTwinkleAnim() const
+	constexpr FORCEINLINE AnimTypeClass* GetTwinkleAnim() const
 	{
 		return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
 	}
 
-	FORCEINLINE int GetTwinkleChance() const
+	constexpr FORCEINLINE int GetTwinkleChance() const
 	{
 		return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 	}
 
-	FORCEINLINE double GetHealDelay() const
+	constexpr FORCEINLINE double GetHealDelay() const
 	{
 		return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
 	}
 
 	int GetHealStep(TechnoClass* pTechno) const;
 
-	FORCEINLINE int GetDamage() const
+	constexpr FORCEINLINE int GetDamage() const
 	{
 		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
 	}
 
-	FORCEINLINE WarheadTypeClass* GetWarhead() const
+	constexpr FORCEINLINE WarheadTypeClass* GetWarhead() const
 	{
 		return this->Warhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	FORCEINLINE WarheadTypeClass* GetExplosionWarhead() const
+	constexpr FORCEINLINE WarheadTypeClass* GetExplosionWarhead() const
 	{
 		return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	FORCEINLINE int GetExplosionDamage() const
+	constexpr FORCEINLINE int GetExplosionDamage() const
 	{
 		return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
 	}
 
-	FORCEINLINE int GetDebrisChance() const
+	constexpr FORCEINLINE int GetDebrisChance() const
 	{
 		return this->DebrisChance;
 	}
@@ -112,6 +112,12 @@ class TiberiumExtContainer final : public Container<TiberiumExtData>
 {
 public:
 	static TiberiumExtContainer Instance;
+	static std::map<OverlayTypeClass* , TiberiumClass*> LinkedType;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	void Clear();
 
 	CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };

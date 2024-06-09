@@ -32,9 +32,9 @@ public:
 
 	Quaternion Normalized(Quaternion rotation) { return rotation /= Norm(rotation); }
 	float Norm(const Quaternion& rotation) { return (float)Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
-	static float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
+	static constexpr FORCEINLINE float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
 
-	void Scale(float s)
+	constexpr FORCEINLINE void Scale(float s)
 	{
 		this->X = s * this->X;
 		this->Y = s * this->Y;
@@ -42,7 +42,7 @@ public:
 		this->W = s * this->W;
 	}
 
-	void Set(float x = 0.0, float y = 0.0, float z = 0.0, float w = 1.0)
+	constexpr FORCEINLINE void Set(float x = 0.0, float y = 0.0, float z = 0.0, float w = 1.0)
 	{
 		this->X = x;
 		this->Y = y;
@@ -50,8 +50,8 @@ public:
 		this->W = w;
 	}
 
-	inline void Make_Identity() { Set(); };
-	inline float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
+	constexpr FORCEINLINE  void Make_Identity() { Set(); };
+	constexpr FORCEINLINE  float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
 	inline float Length() const { return (float)Math::sqrt(Length2()); }
 
 	//idk
@@ -144,7 +144,7 @@ public:
 		};
 	}
 
-	Quaternion& operator/=(const float rhs)
+	constexpr FORCEINLINE Quaternion& operator/=(const float rhs)
 	{
 		X /= rhs;
 		Y /= rhs;
@@ -153,7 +153,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator+=(const float rhs)
+	constexpr FORCEINLINE Quaternion& operator+=(const float rhs)
 	{
 		X += rhs;
 		Y += rhs;
@@ -162,7 +162,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator-=(const float rhs)
+	constexpr FORCEINLINE Quaternion& operator-=(const float rhs)
 	{
 		X -= rhs;
 		Y -= rhs;
@@ -171,7 +171,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator*=(const float rhs)
+	constexpr FORCEINLINE Quaternion& operator*=(const float rhs)
 	{
 		X *= rhs;
 		Y *= rhs;
@@ -180,7 +180,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator+=(const Quaternion B)
+	constexpr FORCEINLINE Quaternion& operator+=(const Quaternion B)
 	{
 		X += B.X;
 		Y += B.Y;
@@ -189,7 +189,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator-=(const Quaternion B)
+	constexpr FORCEINLINE Quaternion& operator-=(const Quaternion B)
 	{
 		X -= B.X;
 		Y -= B.Y;
@@ -198,7 +198,7 @@ public:
 		return *this;
 	}
 
-	Quaternion& operator*=(const Quaternion B)
+	constexpr FORCEINLINE Quaternion& operator*=(const Quaternion B)
 	{
 		Quaternion buffer {
 			X * B.W + W * B.X + Y * B.Z - Z * B.Y ,
@@ -211,7 +211,7 @@ public:
 		return *this;
 	}
 
-	bool operator==(const Quaternion B)
+	constexpr FORCEINLINE bool operator==(const Quaternion B)
 	{
 		return
 			X == B.X &&
@@ -220,9 +220,9 @@ public:
 			W == B.W;
 	}
 
-	bool operator!=(const Quaternion B) { return !(*this == B); }
+	constexpr FORCEINLINE bool operator!=(const Quaternion B) { return !(*this == B); }
 
-	Quaternion operator* (const Quaternion &B)
+	constexpr FORCEINLINE Quaternion operator* (const Quaternion &B)
 	{
 		return {
 			W* B.X + X * B.W + Y * B.Z - Z * B.Y ,
@@ -258,12 +258,12 @@ public:
 	float& operator[](int i) { JMP_THIS(0x645D00); }
 	const float& operator[](int i) const { JMP_THIS(0x645D10); }
 
-	Quaternion operator-() const { return { -X, -Y, -Z, W }; }
-	Quaternion operator+() const { return *this; }
+	constexpr FORCEINLINE Quaternion operator-() const { return { -X, -Y, -Z, W }; }
+	constexpr FORCEINLINE Quaternion operator+() const { return *this; }
 
 	float Angle(Quaternion B) const {
 		double dot = (double)Dot(*this, B);
-		return Math::acos(fmin(fabs(dot), 1)) * 2;
+		return (float)Math::acos(fmin(fabs(dot), 1)) * 2;
 	}
 
 	Quaternion FromEuler(float x, float y, float z)

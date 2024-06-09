@@ -5,11 +5,11 @@ template<typename T>
 class TRect
 {
 public:
-	TRect() : X(0), Y(0), Width(0), Height(0) { }
-	TRect(T x, T y, T w, T h) : X(x), Y(y), Width(w), Height(h) {}
-	TRect(const TRect &that) : X(that.X), Y(that.Y), Width(that.Width), Height(that.Height) {}
+	constexpr TRect() : X(0), Y(0), Width(0), Height(0) { }
+	constexpr TRect(T x, T y, T w, T h) : X(x), Y(y), Width(w), Height(h) {}
+	constexpr TRect(const TRect &that) : X(that.X), Y(that.Y), Width(that.Width), Height(that.Height) {}
 
-	TRect &operator=(const TRect &that)
+	constexpr TRect &operator=(const TRect &that)
 	{
 		if (this != &that) {
 			X = that.X;
@@ -20,13 +20,13 @@ public:
 		return *this;
 	}
 
-	bool operator==(const TRect &that) const
+	constexpr bool operator==(const TRect &that) const
 	{
 		return (that.X == X) && (that.Width == Width)
 			&& (that.Y == Y) && (that.Height == Height);
 	}
 
-	bool operator!=(const TRect &that) const
+	constexpr bool operator!=(const TRect &that) const
 	{
 		return (that.X != X) && (that.Width != Width)
 			&& (that.Y != Y) && (that.Height != Height);

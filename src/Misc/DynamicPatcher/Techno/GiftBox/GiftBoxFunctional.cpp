@@ -59,6 +59,11 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 	if (!pExt->MyGiftBox || OpenDisallowed(pExt->AttachedToObject))
 		return;
 
+	if (pTypeExt->MyGiftBoxData.Enable){
+		pExt->MyGiftBox.reset(nullptr);
+		return;
+	}
+
 	if (!pTypeExt->MyGiftBoxData.OpenWhenDestoryed &&
 		!pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset() &&
 		pExt->MyGiftBox->CanOpen())
@@ -80,7 +85,8 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 
 		if (pTypeExt->MyGiftBoxData.Destroy)
 		{
-			auto nDamage = (pExt->Type->Strength);
+			//take damage from the new type just in case the health is acttually more then old
+			auto nDamage = (pExt->AttachedToObject->GetTechnoType()->Strength);
 			pExt->AttachedToObject->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
 				!pTypeExt->AttachedToObject->Crewed, nullptr);
 

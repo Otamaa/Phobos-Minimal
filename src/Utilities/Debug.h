@@ -1,135 +1,11 @@
 #pragma once
-#include <Unsorted.h>
-#include <MessageListClass.h>
+
 #include <Phobos.h>
 
-class AbstractClass;
-class REGISTERS;
-class Debug final
-{
-public:
-	enum class Severity : int {
-		None = 0,
-		Verbose = 1,
-		Notice = 2,
-		Warning = 3,
-		Error = 4,
-		Fatal = 5
-	};
-
-	static FILE* LogFile;
-	static bool LogEnabled;
-	static std::wstring LogFileName;
-	static std::wstring LogFileTempName;
-	static char DeferredStringBuffer[0x1000];
-	static char LogMessageBuffer[0x1000];
-	static std::vector<std::string> DeferredLogData;
-
-	enum class ExitCode : int
-	{
-		Undefined = -1,
-		SLFail = 114514
-	};
-
-	static void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
-
-	static std::wstring FullDump();
-	static std::wstring FullDump(std::wstring destinationFolder);
-
-	template <typename... TArgs>
-	static void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
-		if (enabled) {
-			Debug::Log(severity, pFormat, std::forward<TArgs>(args)...);
-		}
-	}
-
-	template <typename... TArgs>
-	static void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
-		if (enabled) {
-			Debug::Log(pFormat, std::forward<TArgs>(args)...);
-		}
-	}
-
-	template <typename... TArgs>
-	static void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
-		Debug::LogFlushed(severity, pFormat, std::forward<TArgs>(args)...);
-	}
-
-	template <typename... TArgs>
-	static void Log(const char* const pFormat, TArgs&&... args) {
-		Debug::LogFlushed(pFormat, std::forward<TArgs>(args)...);
-	}
-
-	static void LogWithVArgs(const char* const pFormat, va_list args);
-
-	static bool LogFileActive() {
-		return Debug::LogEnabled && Debug::LogFile;
-	}
-
-	static void LogDeferred(const char* pFormat, ...);
-	static void LogDeferredFinalize();
-
-	static void LogAndMessage(const char* pFormat, ...);
-
-	static void MakeLogFile();
-	static void LogFileOpen();
-	static void LogFileClose(int tag);
-	static void LogFileRemove();
-
-	static void FreeMouse();
-	static void WriteTimestamp();
-
-	[[noreturn]] static void ExitGame(unsigned int code = 1u);
-
-	static void FatalError(bool Dump = false); /* takes formatted message from Ares::readBuffer */
-	static void FatalError(const char* Message, ...);
-	[[noreturn]] static void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...);
-	[[noreturn]] static void FatalErrorAndExit(const char* pFormat, ...);
-
-	static void RegisterParserError() {
-		if (Phobos::Otamaa::TrackParserErrors) {
-			Phobos::Otamaa::ParserErrorDetected = true;
-		}
-	}
-
-	static void DumpObj(void const* data, size_t len);
-
-	template <typename T>
-	static void DumpObj(const T& object) {
-		DumpObj(&object, sizeof(object));
-	}
-
-	static void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
-
-	static const char* SeverityString(Debug::Severity const severity)
-	{
-		switch (severity)
-		{
-		case Severity::Verbose:
-			return "verbose";
-		case Severity::Notice:
-			return "notice";
-		case Severity::Warning:
-			return "warning";
-		case Severity::Error:
-			return "error";
-		case Severity::Fatal:
-			return "fatal";
-		default:
-			return "wtf";
-		}
-	}
-
-	static void __cdecl LogFlushed(const char* pFormat, ...);
-	static void __cdecl LogFlushed(Debug::Severity severity, const char* pFormat, ...);
-
-	// no flushing, and unchecked
-	static void __cdecl LogUnflushed(const char* pFormat, ...);
-	static void LogWithVArgsUnflushed(const char* pFormat, va_list args);
-
-	// flush unchecked
-	static void Flush();
-};
+#include <Dbghelp.h>
+#include <Unsorted.h>
+#include <MessageListClass.h>
+#include <WWMouseClass.h>
 
 class Console
 {
@@ -182,8 +58,7 @@ public:
 	static void Release();
 
 	template<size_t Length>
-	constexpr static void Write(const char(&str)[Length])
-	{
+	constexpr static void Write(const char(&str)[Length]) {
 		Write(str, Length - 1); // -1 because there is a '\0' here
 	}
 
@@ -192,9 +67,519 @@ public:
 	static void EnableUnderscore(bool enable);
 	static void Write(const char* str, int len);
 	static void WriteLine(const char* str, int len);
-	static void __fastcall WriteWithVArgs(const char* pFormat, va_list args);
+	static void WriteWithVArgs(const char* pFormat, va_list args);
 	static void WriteFormat(const char* pFormat, ...);
 
 private:
 	static void PatchLog(DWORD dwAddr, void* realFunc, DWORD* pdwRealFunc);
+};
+
+class AbstractClass;
+class REGISTERS;
+class Debug final
+{
+public:
+	enum class Severity : int {
+		None = 0,
+		Verbose = 1,
+		Notice = 2,
+		Warning = 3,
+		Error = 4,
+		Fatal = 5
+	};
+
+	static FILE* LogFile;
+	static bool LogEnabled;
+
+	static std::wstring ApplicationFilePath;
+	static std::wstring LogFilePathName;
+	static std::wstring LogFileMainName;
+	static std::wstring LogFileTempName;
+	static std::wstring LogFileMainFormattedName;
+	static std::wstring LogFileExt;
+
+	static char DeferredStringBuffer[0x1000];
+	static char LogMessageBuffer[0x1000];
+	static std::vector<std::string> DeferredLogData;
+
+	enum class ExitCode : int
+	{
+		Undefined = -1,
+		SLFail = 114514
+	};
+
+	static FORCEINLINE void TakeMouse()
+	{
+		WWMouseClass::Instance->ReleaseMouse();
+		Imports::ShowCursor.get()(1);
+	}
+
+	static FORCEINLINE void ReturnMouse()
+	{
+		Imports::ShowCursor.get()(0);
+		WWMouseClass::Instance->CaptureMouse();
+	}
+
+	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0)
+	{
+		if (!Debug::LogFileActive())
+		{
+			return;
+		}
+
+		Debug::LogUnflushed("Dumping %X bytes of stack\n", len);
+		auto const end = len / 4;
+		auto const* const mem = R->lea_Stack<DWORD*>(startAt);
+		for (auto i = 0u; i < end; ++i)
+		{
+
+			const char* suffix = "";
+			const uintptr_t ptr = mem[i];
+			if (ptr >= 0x401000 && ptr <= 0xB79BE4)
+				suffix = "GameMemory!";
+
+			Debug::LogUnflushed("esp+%04X = %08X %s\n", i * 4, mem[i], suffix);
+		}
+
+		Debug::Log("====================Done.\n"); // flushes
+	}
+
+	template <typename... TArgs>
+	static FORCEINLINE void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+		if (enabled) {
+			Debug::Log(severity, pFormat, std::forward<TArgs>(args)...);
+		}
+	}
+
+	template <typename... TArgs>
+	static FORCEINLINE void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
+		if (enabled) {
+			Debug::Log(pFormat, std::forward<TArgs>(args)...);
+		}
+	}
+
+	template <typename... TArgs>
+	static FORCEINLINE void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+		Debug::LogFlushed(severity, pFormat, std::forward<TArgs>(args)...);
+	}
+
+	template <typename... TArgs>
+	static FORCEINLINE void Log(const char* const pFormat, TArgs&&... args) {
+		Debug::LogFlushed(pFormat, std::forward<TArgs>(args)...);
+	}
+
+	static FORCEINLINE void LogWithVArgs(const char* const pFormat, va_list args)
+	{
+		if (Debug::LogFileActive())
+		{
+			Debug::LogWithVArgsUnflushed(pFormat, args);
+			Debug::Flush();
+		}
+	}
+
+	static FORCEINLINE bool LogFileActive() {
+		return Debug::LogEnabled && Debug::LogFile;
+	}
+
+	//This log is not immedietely printed , but buffered until time it need to be finalize(printed)
+	static NOINLINE void LogDeferred(const char* pFormat, ...)
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vsprintf_s(DeferredStringBuffer, pFormat, args);
+		DeferredLogData.emplace_back(DeferredStringBuffer);
+		va_end(args);
+	}
+
+	static NOINLINE void LogDeferredFinalize()
+	{
+		for (auto const& Logs : DeferredLogData)
+		{
+			if (!Logs.empty())
+				GameDebugLog::Log("%s", Logs);
+		}
+
+		DeferredLogData.clear();
+	}
+
+	static NOINLINE void LogAndMessage(const char* pFormat, ...)
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vsprintf_s(LogMessageBuffer, pFormat, args);
+		Debug::Log("%s", LogMessageBuffer);
+		va_end(args);
+		wchar_t buffer[0x1000];
+		mbstowcs(buffer, LogMessageBuffer, 0x1000);
+		MessageListClass::Instance->PrintMessage(buffer);
+	}
+
+	static NOINLINE void InitLogFile()
+	{
+		wchar_t path[MAX_PATH];
+		GetCurrentDirectoryW(MAX_PATH, path);
+		Debug::ApplicationFilePath = path;
+		Debug::LogFilePathName = path;
+		Debug::LogFilePathName += L"\\debug";
+		CreateDirectoryW(Debug::LogFilePathName.c_str(), nullptr);
+
+	}
+
+	static NOINLINE void PrepareLogFile()
+	{
+		static bool made = 0;
+		if (!made)
+		{
+			SYSTEMTIME time;
+
+			GetLocalTime(&time);
+			Debug::LogFileTempName = Debug::LogFilePathName + Debug::LogFileMainName + Debug::LogFileExt;
+			Debug::LogFileMainFormattedName = Debug::LogFilePathName + std::format(L"{}.{:04}{:02}{:02}-{:02}{:02}{:02}",
+			Debug::LogFileMainName, time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond) + Debug::LogFileExt;
+
+			made = 1;
+		}
+	}
+
+	static NOINLINE std::wstring PrepareSnapshotDirectory()
+	{
+		SYSTEMTIME time;
+		GetLocalTime(&time);
+
+		std::wstring buffer = Debug::LogFilePathName + std::format(L"\\snapshot-{:04}{:02}{:02}-{:02}{:02}{:02}",
+				time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+
+		CreateDirectoryW(buffer.c_str(), nullptr);
+
+		return buffer;
+	}
+
+	static FORCEINLINE std::wstring FullDump(PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
+	{
+		return FullDump(Debug::PrepareSnapshotDirectory(), pException);
+	}
+
+	static NOINLINE std::wstring FullDump(
+		std::wstring destinationFolder,
+		PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
+	{
+		std::wstring filename = std::move(destinationFolder);
+		filename += L"\\extcrashdump.dmp";
+
+		HANDLE dumpFile = CreateFileW(filename.c_str(), GENERIC_WRITE,
+			0, nullptr, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, nullptr);
+
+		MINIDUMP_TYPE type = static_cast<MINIDUMP_TYPE>(MiniDumpNormal
+									   | MiniDumpWithDataSegs
+									   | MiniDumpWithIndirectlyReferencedMemory
+									   | MiniDumpWithFullMemory
+		);
+
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpFile, type, pException, nullptr, nullptr);
+		CloseHandle(dumpFile);
+
+		return filename;
+	}
+
+	static NOINLINE void LogFileOpen()
+	{
+		Debug::PrepareLogFile();
+		Debug::LogFileClose(999);
+
+		LogFile = _wfsopen(Debug::LogFileTempName.c_str(), L"w", SH_DENYNO);
+
+		if (!LogFile)
+		{
+			std::wstring msg = std::format(L"Log file failed to open. Error code = {}", errno);
+			MessageBoxW(Game::hWnd.get(), Debug::LogFileTempName.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
+			Phobos::Otamaa::ExeTerminated = true;
+			ExitProcess(1);
+		}
+	}
+
+	static NOINLINE void LogFileClose(int tag)
+	{
+		if (Debug::LogFile)
+		{
+			fprintf(Debug::LogFile, "Closing log file on request %d", tag);
+			fclose(Debug::LogFile);
+			CopyFileW(Debug::LogFileTempName.c_str(), Debug::LogFileMainFormattedName.c_str(), FALSE);
+			Debug::LogFile = nullptr;
+		}
+	}
+
+	static NOINLINE void LogFileRemove()
+	{
+		Debug::LogFileClose(555);
+		DeleteFileW(Debug::LogFileTempName.c_str());
+	}
+
+
+	static NOINLINE void FreeMouse()
+	{
+		Game::StreamerThreadFlush();
+		const auto pMouse = MouseClass::Instance();
+
+		if (pMouse)
+		{
+			const auto pMouseVtable = VTable::Get(pMouse);
+
+			if (pMouseVtable == 0x7E1964)
+			{
+				pMouse->UpdateCursor(MouseCursorType::Default, false);
+			}
+		}
+
+		const auto pWWMouse = WWMouseClass::Instance();
+
+		if (pWWMouse)
+		{
+			const auto pWWMouseVtable = VTable::Get(pWWMouse);
+
+			if (pWWMouseVtable == 0x7F7B2C)
+			{
+				pWWMouse->ReleaseMouse();
+			}
+		}
+
+		ShowCursor(TRUE);
+
+		auto const BlackSurface = [](DSurface* pSurface)
+			{
+				if (pSurface && VTable::Get(pSurface) == DSurface::vtable && pSurface->BufferPtr)
+				{
+					pSurface->Fill(0);
+				}
+			};
+
+		BlackSurface(DSurface::Alternate);
+		BlackSurface(DSurface::Composite);
+		BlackSurface(DSurface::Hidden);
+		BlackSurface(DSurface::Temp);
+		BlackSurface(DSurface::Primary);
+		BlackSurface(DSurface::Sidebar);
+		BlackSurface(DSurface::Tile);
+
+		ShowCursor(TRUE);
+	}
+
+	static NOINLINE void WriteTimestamp()
+	{
+		if (LogFile)
+		{
+			time_t raw;
+			time(&raw);
+
+			tm t;
+			localtime_s(&t, &raw);
+
+			fprintf(LogFile, "[%02d:%02d:%02d] ", t.tm_hour, t.tm_min, t.tm_sec);
+		}
+	}
+
+	[[noreturn]] static NOINLINE void ExitGame(unsigned int code = 1u)
+	{
+		Phobos::ExeTerminate();
+		ExitProcess(code);
+	}
+
+	static NOINLINE void FatalError(bool Dump = false) /* takes formatted message from Ares::readBuffer */
+	{
+		static wchar_t Message[0x400];
+		wsprintfW(Message,
+			L"An internal error has been encountered and the game is unable to continue normally. "
+			L"Please notify the mod's creators about this issue, or Contact Otamaa at "
+			L"Discord for updates and support.\n\n"
+			L"%hs",
+			Phobos::readBuffer);
+
+		Debug::Log("\nFatal Error: \n%s\n", Phobos::readBuffer);
+		Debug::FreeMouse();
+		MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+
+		if (Dump)
+		{
+			Debug::FullDump();
+		}
+	}
+
+	static NOINLINE void FatalError(const char* Message, ...)
+	{
+		Debug::FreeMouse();
+
+		va_list args;
+		va_start(args, Message);
+		vsnprintf_s(Phobos::readBuffer, Phobos::readLength - 1, Message, args); /* note that the message will be truncated somewhere after 0x300 chars... */
+		va_end(args);
+
+		Debug::FatalError(false);
+	}
+
+	[[noreturn]] static NOINLINE void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vsprintf_s(Phobos::readBuffer, pFormat, args);
+		va_end(args);
+		Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
+		Debug::ExitGame();
+	}
+
+	[[noreturn]] static NOINLINE void FatalErrorAndExit(const char* pFormat, ...)
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vsprintf_s(Phobos::readBuffer, pFormat, args);
+		va_end(args);
+		Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
+		Debug::ExitGame();
+	}
+
+	static void RegisterParserError() {
+		if (Phobos::Otamaa::TrackParserErrors) {
+			Phobos::Otamaa::ParserErrorDetected = true;
+		}
+	}
+
+	static NOINLINE void DumpObj(void const* data, size_t len)
+	{
+		if (!Debug::LogFileActive()) {
+			return;
+		}
+
+		Debug::LogUnflushed<false>("Dumping %u bytes of object at %p\n", len, data);
+		auto const bytes = static_cast<byte const*>(data);
+
+		Debug::LogUnflushed<false>("       |");
+		for (auto i = 0u; i < 0x10u; ++i)
+		{
+			Debug::LogUnflushed<false>(" %02X |", i);
+		}
+		Debug::LogUnflushed<false>("\n");
+		Debug::LogUnflushed<false>("-------|");
+		for (auto i = 0u; i < 0x10u; ++i)
+		{
+			Debug::LogUnflushed<false>("----|", i);
+		}
+		auto const bytesToPrint = (len + 0x10 - 1) / 0x10 * 0x10;
+		for (auto startRow = 0u; startRow < bytesToPrint; startRow += 0x10)
+		{
+			Debug::LogUnflushed<false>("\n");
+			Debug::LogUnflushed<false>(" %05X |", startRow);
+			auto const bytesInRow = std::min(len - startRow, 0x10u);
+			for (auto i = 0u; i < bytesInRow; ++i)
+			{
+				Debug::LogUnflushed<false>(" %02X |", bytes[startRow + i]);
+			}
+			for (auto i = bytesInRow; i < 0x10u; ++i)
+			{
+				Debug::LogUnflushed<false>(" -- |");
+			}
+			for (auto i = 0u; i < bytesInRow; ++i)
+			{
+				auto const& sym = bytes[startRow + i];
+				Debug::LogUnflushed<false>("%c", isprint(sym) ? sym : '?');
+			}
+		}
+		Debug::Log("\nEnd of dump.\n"); // flushes
+	}
+
+	template <typename T>
+	static FORCEINLINE void DumpObj(const T& object) {
+		DumpObj(&object, sizeof(object));
+	}
+
+	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr)
+	{
+		if (Phobos::Otamaa::TrackParserErrors)
+		{
+			const char* LogMessage = (Message == nullptr)
+				? "[Phobos] Failed to parse INI file content: [%s]%s=%s\n"
+				: "[Phobos] Failed to parse INI file content: [%s]%s=%s (%s)\n"
+				;
+
+			Debug::Log(LogMessage, section, flag, value, Message);
+			Debug::RegisterParserError();
+		}
+	}
+
+	static constexpr const char* SeverityString(Debug::Severity const severity)
+	{
+		switch (severity)
+		{
+		case Severity::Verbose:
+			return "verbose";
+		case Severity::Notice:
+			return "notice";
+		case Severity::Warning:
+			return "warning";
+		case Severity::Error:
+			return "error";
+		case Severity::Fatal:
+			return "fatal";
+		default:
+			return "wtf";
+		}
+	}
+
+	static NOINLINE void LogFlushed(const char* pFormat, ...)
+	{
+		if (Debug::LogFileActive()) {
+			va_list args;
+			va_start(args, pFormat);
+			Debug::LogWithVArgsUnflushed(pFormat, args);
+			Debug::Flush();
+			va_end(args);
+		}
+	}
+
+	static NOINLINE void LogFlushed(Debug::Severity severity, const char* pFormat, ...)
+	{
+		if (Debug::LogFileActive())
+		{
+			if (severity != Severity::None) {
+				Debug::LogUnflushed<false>(
+					"[Developer %s]", SeverityString(severity));
+			}
+
+			va_list args;
+			va_start(args, pFormat);
+			Debug::LogWithVArgsUnflushed(pFormat, args);
+			Debug::Flush();
+			va_end(args);
+		}
+	}
+
+	// no flushing, and unchecked
+	template<bool check = true>
+	static NOINLINE void LogUnflushed(const char* pFormat, ...)
+	{
+		if constexpr (check){
+			if (Debug::LogFileActive()) {
+				va_list args;
+				va_start(args, pFormat);
+				Debug::LogWithVArgsUnflushed(pFormat, args);
+				va_end(args);
+			}
+		}
+		else
+		{
+			va_list args;
+			va_start(args, pFormat);
+			Debug::LogWithVArgsUnflushed(pFormat, args);
+			va_end(args);
+		}
+	}
+
+	static NOINLINE void LogWithVArgsUnflushed(const char* pFormat, va_list args)
+	{
+		Console::WriteWithVArgs(pFormat, args);
+		vfprintf(Debug::LogFile, pFormat, args);
+	}
+
+	// flush unchecked
+	static FORCEINLINE void Flush()
+	{
+		fflush(Debug::LogFile);
+	}
 };

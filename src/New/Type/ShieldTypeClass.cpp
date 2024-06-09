@@ -43,6 +43,9 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , CanBeHealed { false }
 , HealCursorType { }
 , HitBright { }
+, Tint_Color {}
+, Tint_Intensity { 0.0 }
+, Tint_VisibleToHouses { AffectedHouse::All }
 {};
 
 const char* Enumerable<ShieldTypeClass>::GetMainSection()
@@ -133,6 +136,10 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->CanBeHealed.Read(exINI, pSection, "Repairable");
 	this->HealCursorType.Read(exINI, pSection, "RepairCursor");
 	this->HitBright.Read(exINI, pSection, "HitBright");
+
+	this->Tint_Color.Read(exINI, pSection, "Tint.Color");
+	this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
+	this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
 }
 
 double ShieldTypeClass::GetConditionYellow()
@@ -187,6 +194,9 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->CanBeHealed)
 		.Process(this->HealCursorType)
 		.Process(this->HitBright)
+		.Process(this->Tint_Color)
+		.Process(this->Tint_Intensity)
+		.Process(this->Tint_VisibleToHouses)
 		;
 }
 

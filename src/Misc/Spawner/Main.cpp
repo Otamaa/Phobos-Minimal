@@ -10,6 +10,7 @@
 #include <IPXManagerClass.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/House/Body.h>
 
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
@@ -385,6 +386,8 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->Country = pINI->ReadInteger("HouseCountries", pMultiTag, this->Country);
 		this->Difficulty = pINI->ReadInteger("HouseHandicaps", pMultiTag, this->Difficulty);
 	}
+
+	Debug::Log("Reading Config for[%s  - %s] Color [%d]\n", pSection, pMultiTag, this->Color);
 }
 
 void SpawnerMain::GameConfigs::HouseConfig::LoadFromINIFile(CCINIClass* pINI, int index)
@@ -412,20 +415,11 @@ void SpawnerMain::GameConfigs::Init() {
 
 	SpawnerMain::GameConfigs::m_Ptr = std::make_unique<SpawnerMain::GameConfigs>();
 
-	CCFileClass file{ "SPAWN.INI" };
-
-	if (!file.Exists()) {
-		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-	} else {
-
-		if (!file.Open(FileAccessMode::ReadWrite)) {
-			Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-		}
-
-		CCINIClass ini{};
-		ini.ReadCCFile(&file);
-		SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(&ini);
-	}
+	GameConfig file { "SPAWN.INI" };
+	file.OpenINIAction([&file](CCINIClass* pFile) {
+		Debug::Log("SpawnerMain::GameConfigs::Init Reading file %s\n", file.filename());
+		SpawnerMain::GameConfigs::m_Ptr->LoadFromINIFile(pFile);
+	});
 
 	Patch::Apply_CALL(0x48CDD3, SpawnerMain::GameConfigs::StartGame); // Main_Game
 	Patch::Apply_CALL(0x48CFAA, SpawnerMain::GameConfigs::StartGame); // Main_Game
@@ -580,6 +574,22 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 	}
 }
 
+//#include <codecvt>
+//#include <locale>
+//#include <string>
+//#include <type_traits>
+//
+//std::string wstring_to_utf8(std::wstring const& str)
+//{
+//  std::wstring_convert<std::conditional<
+//        sizeof(wchar_t) == 4,
+//        std::codecvt_utf8<wchar_t>,
+//        std::codecvt_utf8_utf16<wchar_t>>::type> converter;
+//  return converter.to_bytes(str);
+//}
+//
+//#pragma optimize("", off )
+
 bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 	if (pScenarioName[0] == 0)
 	{
@@ -725,7 +735,17 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 
 		return result;
 #else
-		return ScenarioClass::StartScenario(pScenarioName, 1, 0);
+		bool result =  ScenarioClass::StartScenario(pScenarioName, 1, 0);
+		//char keee_[46];
+		//sprintf(keee_, "%sSav", ScenarioClass::Instance->UIName);
+		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::LoadString(keee_), 0x2Du);
+  //      if ( !wcsncmp(ScenarioClass::Instance->UINameLoaded, L"MISSING:", 8u) ) {
+  //          wcsncpy(ScenarioClass::Instance->UINameLoaded, ScenarioClass::Instance->Name, 0x2Du);
+  //      }
+  //     ScenarioClass::Instance->UINameLoaded[44] = 0;
+
+		//Debug::Log("Loading Scenario Name [%s]\n" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
+		return result;
 #endif
 	}
 	else if (SessionClass::IsSkirmish())
@@ -757,6 +777,8 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 		return true;
 	}
 }
+
+//#pragma optimize("", on )
 
 bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 
@@ -912,7 +934,8 @@ DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 		if (pHouse->Defeated || pHouse == MPlayerDefeated::pThis || pHouse->Type->MultiplayPassive)
 			continue;
 
-		if ((pHouse->IsHumanPlayer || SpawnerMain::GameConfigs::m_Ptr->ContinueWithoutHumans) && pHouse->IsMutualAllie(MPlayerDefeated::pThis))
+		if ((pHouse->IsHumanPlayer || SpawnerMain::GameConfigs::m_Ptr->ContinueWithoutHumans)
+			&& HouseExtData::IsMutualAllies(pHouse , MPlayerDefeated::pThis))
 		{
 			Debug::Log("[Spawner] MPlayer_Defeated() - Defeated player has a living ally");
 			if (SpawnerMain::GameConfigs::m_Ptr->DefeatedBecomesObserver)

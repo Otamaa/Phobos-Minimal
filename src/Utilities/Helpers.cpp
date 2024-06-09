@@ -10,8 +10,8 @@
 bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 	HouseClass* pOwner, const CoordStruct Where , TechnoClass* pFirer)
 {
-	const auto pOwnerResult = HouseExtData::GetHouseKind(nData.LauchhSW_Owner, true, HouseExtData::FindCivilianSide(), pOwner, nullptr);
-	auto const HouseOwner = pOwnerResult->Defeated ? HouseExtData::FindCivilianSide() : pOwnerResult;
+	const auto pOwnerResult = HouseExtData::GetHouseKind(nData.LauchhSW_Owner, true, HouseExtData::FindFirstCivilianHouse(), pOwner, nullptr);
+	auto const HouseOwner = pOwnerResult->Defeated ? HouseExtData::FindFirstCivilianHouse() : pOwnerResult;
 
 	if (HouseOwner)
 	{
@@ -55,7 +55,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 				const int oldstart = pSuper->RechargeTimer.StartTime;
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;
 				FlyingStrings::AddMoneyString(nData.LaunchSW_DisplayMoney && pSWExt->Money_Amount != 0 ,
-					pSWExt->Money_Amount, HouseOwner, 
+					pSWExt->Money_Amount, HouseOwner,
 					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset);
 
 				//SuperExtContainer::Instance.Find(pSelected)->Firer = pFirer;

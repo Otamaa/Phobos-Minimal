@@ -18,7 +18,7 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , FF_Tag {}
 , RT_Tag {}
 , PA_Tag {}
-, HitAnim_Tag { "HitAnim" }
+, HitAnim_Tag { "HitAnim." }
 {
 	BaseTag += pTitle;
 	FF_Tag = BaseTag + ".ForceFire";

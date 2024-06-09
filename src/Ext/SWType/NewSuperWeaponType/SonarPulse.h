@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NewSWType.h"
+#include "SWStateMachine.h"
 
 class SW_SonarPulse : public NewSWType
 {
@@ -16,4 +17,11 @@ public:
 	virtual bool IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const override;
 
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
+
+	using TStateMachine = SonarPulseStateMachine;
+
+protected:
+	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
+		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, this));
+	}
 };

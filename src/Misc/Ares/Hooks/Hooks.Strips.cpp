@@ -801,11 +801,11 @@ DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 //duuunno
 DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
-	GET(FactoryClass*, pFact, EDI);
+	GET(DWORD*, pSomething, EDI);
 	GET(int, idx_first, ECX);
 	GET(int, idx_Second, EDX);
 	R->EAX(reinterpret_cast<SelectClass*>(56 * (idx_Second + 2 * idx_first) + ButtonsPtr.getAddrs()));
-	return  *reinterpret_cast<bool*>((((BYTE*)pFact) + 36u + 27u)) != 0 ? 0x6A9703 : 0x6A9714;
+	return *reinterpret_cast<bool*>((((BYTE*)pSomething) + 0x3fu)) != 0 ? 0x6A9703 : 0x6A9714;
 }
 
 DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)

@@ -202,6 +202,8 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 			SriptNumbers.resize(scriptSize);
 			for (size_t i = 0; i < scriptSize; i++)
 			{
+				lua_pushinteger(L, lua_Integer(i + 1));
+				lua_gettable(L, -2);
 				if (lua_istable(L, -2))
 				{
 					lua_pushstring(L, "Original");
@@ -217,19 +219,22 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 					SriptNumbers[i].Original = Originalnumber;
 					SriptNumbers[i].Alternate = AlternativeNumber;
 				}
+				lua_pop(L, 1);
 			}
 		}
 	}
 
 }
 
-int LuaBridge::GetAppropriateAction(int from)
-{
+DEFINE_HOOK(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
+	GET(int, team, ECX);
+
 	for (auto& cur : SriptNumbers) {
-		if (cur.Alternate == from){
-			return cur.Original;
+		if (cur.Alternate == team) {
+			Debug::Log("Replacing TMission[%d to %d]\n", team, cur.Original);
+			R->ECX(cur.Original);
 		}
 	}
 
-	return from;
+	return 0x0;
 }

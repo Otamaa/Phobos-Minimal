@@ -20,11 +20,11 @@
 #include <utility>
 template <typename T>
 struct DistributionObject {
-	DistributionObject() = default;
-	explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
-	bool operator ==(const DistributionObject<T> &rhs) const { return false; }
-	bool operator !=(const DistributionObject<T> &rhs) const { return true; }
-	~DistributionObject() = default;
+	constexpr DistributionObject() = default;
+	constexpr explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
+	constexpr FORCEINLINE bool operator ==(const DistributionObject<T> &rhs) const { return false; }
+	constexpr FORCEINLINE bool operator !=(const DistributionObject<T> &rhs) const { return true; }
+	constexpr ~DistributionObject() = default;
 
 	T Value{};
 	unsigned int Weight{ 0u };
@@ -60,19 +60,19 @@ public:
 		this->Items.Clear();
 	}
 
-	unsigned int GetTotalWeight() const {
+	constexpr unsigned int GetTotalWeight() const {
 		return this->TotalWeight;
 	}
 
-	int GetCount() const {
+	constexpr int GetCount() const {
 		return this->Items.Count;
 	}
 
-	bool IsValid() const {
+	constexpr bool IsValid() const {
 		return this->TotalWeight > 0U && this->Items.Count > 0;
 	}
 
-	bool Select(unsigned int value, T* pOut) const {
+	constexpr bool Select(unsigned int value, T* pOut) const {
 		if(this->IsValid() && value && value <= this->TotalWeight) {
 			unsigned int acc = 0u;
 			for(auto i = this->Items.begin(); i < this->Items.end(); ++i) {

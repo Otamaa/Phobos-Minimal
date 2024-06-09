@@ -273,6 +273,34 @@ void BuildingExtData::UpdatePoweredKillSpawns() const
 	}
 }
 
+void BuildingExtData::UpdateSpyEffecAnimDisplay()
+{
+	auto const pThis = this->AttachedToObject;
+	auto const nMission = pThis->GetCurrentMission();
+
+	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
+		return;
+
+	if (this->SpyEffectAnim)
+	{
+		if (HouseClass::IsCurrentPlayerObserver() ||  EnumFunctions::CanTargetHouse(
+			this->Type->SpyEffect_Anim_DisplayHouses,
+			SpyEffectAnim->Owner, HouseClass::CurrentPlayer))
+		{
+			SpyEffectAnim->Invisible = false;
+		} else {
+			SpyEffectAnim->Invisible = true;
+		}
+
+		if (SpyEffectAnimDuration > 0)
+			SpyEffectAnimDuration--;
+		else if (SpyEffectAnimDuration == 0)
+		{
+			SpyEffectAnim.release();
+		}
+	}
+}
+
 void BuildingExtData::UpdateAutoSellTimer()
 {
 	auto const pThis = this->AttachedToObject;
@@ -296,7 +324,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 			if (!pThis->Owner || pThis->Occupants.Count || pThis->Owner->Type->MultiplayPassive)
 				return;
 
-			if (!pThis->Owner->IsCurrentPlayer())
+			if (pThis->Owner->IsControlledByHuman())
 				return;
 
 			const double nValue = pRulesExt->AI_AutoSellHealthRatio->at(pThis->Owner->GetCorrectAIDifficultyIndex());
@@ -431,8 +459,11 @@ CoordStruct BuildingExtData::GetCenterCoords(BuildingClass* pBuilding, bool incl
 
 void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(CurrentAirFactory, ptr , bRemoved);
-	AnnounceInvalidPointer<TechnoClass*>(RegisteredJammers, ptr, bRemoved);
+	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
+	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
+	if (bRemoved && ptr == this->SpyEffectAnim.get()) {
+		this->SpyEffectAnim.release();
+	}
 
 	this->PrismForwarding.InvalidatePointer(ptr, bRemoved);
 }
@@ -644,11 +675,11 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 		pExt->AccumulatedIncome += nRefundAmounts;
 		pExt->GrindingWeapon_AccumulatedCredits += nRefundAmounts;
 
-		if (pTypeExt->Grinding_Weapon.isset()
-			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon.Get()->ROF
+		if (pTypeExt->Grinding_Weapon
+			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon->ROF
 			&& pExt->GrindingWeapon_AccumulatedCredits >= pTypeExt->Grinding_Weapon_RequiredCredits)
 		{
-			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon.Get());
+			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon);
 			pExt->GrindingWeapon_LastFiredFrame = Unsorted::CurrentFrame;
 			pExt->GrindingWeapon_AccumulatedCredits = 0;
 		}
@@ -671,7 +702,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		auto const pOwnerExt = HouseExtContainer::Instance.Find(pOwner);
 
 		// BuildLimit check goes before creation
-		if (HouseExtData::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
+		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true , false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
 			Debug::Log("Fail to Create Limbo Object[%s] because of BuildLimit ! \n", pType->get_ID());
 			return;
 		}
@@ -683,6 +714,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 			return;
 		}
 
+		//Debug::Log("[0x%x - %s] Sending [%s] As Limbo Delivered ID [%d]\n", pOwner , pOwner->get_ID(), pType->ID, ID);
 		// All of these are mandatory
 		pBuilding->InLimbo = false;
 		pBuilding->IsAlive = true;
@@ -707,7 +739,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		pBuilding->DiscoveredBy(pOwner);
 
-		pOwnerExt->LimboTechno.push_back(pBuilding);
+		pOwnerExt->LimboTechno.insert(pBuilding);
 		//pOwner->AddTracking(pBuilding);
 		pOwner->RegisterGain(pBuilding, false);
 		pOwner->UpdatePower();
@@ -715,11 +747,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->RecheckPower = true;
 		pOwner->RecheckRadar = true;
 		pOwner->Buildings.AddItem(pBuilding);
-		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
 
-		// Different types of building logics
-		if (pType->ConstructionYard)
-			pOwner->ConYards.AddItem(pBuilding); // why would you do that????
+		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
 
 		if (pType->SecretLab)
 			pOwner->SecretLabs.AddItem(pBuilding);
@@ -760,7 +789,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
 		pBuildingExt->TechnoExt->DamageSelfState.release();
 		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallState.release();
+		pBuildingExt->TechnoExt->PaintBallStates.clear();
 		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
@@ -774,7 +803,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 				&& !pBuildingExt->TechnoExt->Death_Countdown.HasStarted())
 			{
 				pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
-				pOwnerExt->AutoDeathObjects.empalace_unchecked(pBuilding, nMethod);
+				pOwnerExt->AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}
@@ -813,7 +842,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	pTargetHouse->RecheckRadar = true;
 	pTargetHouse->Buildings.Remove(pBuilding);
 	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
-	pOwnerExt->LimboTechno.remove(pBuilding);
+	pOwnerExt->LimboTechno.erase(pBuilding);
 	pTargetHouse->RegisterLoss(pBuilding, false);
 	//pTargetHouse->RemoveTracking(pBuilding);
 
@@ -895,6 +924,9 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->RegisteredJammers)
 		.Process(this->GrindingWeapon_AccumulatedCredits)
 		.Process(this->BeignMCEd)
+		.Process(this->LastFlameSpawnFrame)
+		.Process(this->SpyEffectAnim)
+		.Process(this->SpyEffectAnimDuration)
 		;
 }
 

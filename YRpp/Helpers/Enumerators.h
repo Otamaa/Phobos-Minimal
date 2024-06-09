@@ -260,11 +260,14 @@ class CellSpreadEnumerator
 public:
 	constexpr inline static const size_t Max = 0x100u;
 
-	constexpr CellSpreadEnumerator(size_t Spread, size_t start= 0u) noexcept : current(CellStruct())
+	CellSpreadEnumerator(size_t Spread, size_t start= 0u) noexcept : current(CellStruct())
 	, spread(MinImpl(Spread, Max)), curspread(0u)
 	, hasTwo(false), hadTwo(false)
 	{
+		reset(start);
 	}
+
+	constexpr CellSpreadEnumerator() = default;
 
 	~CellSpreadEnumerator() = default;
 
@@ -281,10 +284,31 @@ public:
 		return *this;
 	}
 
+	const CellStruct* operator->() const
+	{
+		return &current;
+	}
+
 	void operator ++ (int) {
 		this->next();
 	}
 
+	void clear() {
+		this->current = CellStruct::Empty;
+		this->spread = 0;
+		this->curspread = 0u;
+		this->hasTwo = false;
+		this->hadTwo = false;
+	}
+
+	void setSpread(size_t Spread, size_t start = 0u) {
+		this->spread = MinImpl(Spread, Max);
+		this->reset(start);
+	}
+
+	size_t getCurSpread() const {
+		return this->curspread;
+	}
 protected:
 	void reset(size_t radius) {
 		curspread = radius;

@@ -5,7 +5,6 @@
 #pragma once
 #include <ArrayClasses.h>
 #include <AbstractTypeClass.h>
-#include <HeapClass.h>
 #include <PriorityQueueClass.h>
 
 struct MapSurfaceData
@@ -25,18 +24,30 @@ struct MapSurfaceData
 	{
 		return Score < another.Score;
 	}
+
+	bool operator>(const MapSurfaceData& another) const
+	{
+		return Score > another.Score;
+	}
+
+	bool operator<=(const MapSurfaceData& another) const
+	{
+		return Score <= another.Score;
+	}
 };
 static_assert(sizeof(MapSurfaceData) == 0x8);
 
 class TiberiumLogic
 {
 public:
+	using TPQueue = TPriorityQueueClass<MapSurfaceData>;
+
 	void Construct(int nCount = MapSurfaceData::SurfaceDataCount())
 	{
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 		std::memset(States, 0, sizeof(bool) * nCount);
-		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
+		Heap = GameCreate<TPQueue>(nCount);
 	}
 
 	void Decontruct()
@@ -59,7 +70,7 @@ public:
 	}
 
 	int Count;
-	TPriorityQueueClass<MapSurfaceData>* Heap;
+	TPQueue* Heap;
 	bool* States;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
@@ -101,7 +112,7 @@ public:
 	virtual ~TiberiumClass() override JMP_THIS(0x723710);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x722140);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x722140);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual int GetArrayIndex() const override { return this->ArrayIndex; }
@@ -118,8 +129,7 @@ public:
 	int sub_722AF0(CellStruct& mapcoords) JMP_THIS(0x722AF0);
 	void sub_722F00() JMP_THIS(0x722F00);
 	//static
-	static int InitArray() JMP_STD(0x721676);
-	//static inline NAKED void __cdecl UninitArray(){ JMP(0x721680); }
+
 	static bool __fastcall _ReadFromINI(CCINIClass* pINI) JMP_STD(0x721D10);
 	static void __stdcall UpdateTiberium() JMP_STD(0x7221B0);
 	static void __stdcall sub_0x722240() JMP_STD(0x722240);

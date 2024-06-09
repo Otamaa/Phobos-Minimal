@@ -50,8 +50,8 @@ public:
 	void SetDecrement(int val)
 		{ JMP_THIS(0x556B50); }
 
-	static void DeleteAll()
-		{ JMP_STD(0x556DF0); }
+	//static void DeleteAll()
+	//	{ JMP_STD(0x556DF0); }
 
 
 	//===========================================================================

@@ -433,66 +433,53 @@ DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	}
 
 	const bool havePower = pOwner->HasFullPower();
+	SuperClass* obtain = nullptr;
+	bool found = false;
 
-	if (!pTeamExt->LastFoundSW)
+	for (const auto& pSuper : pOwner->Supers)
 	{
-		for (const auto& pSuper : pOwner->Supers)
+		const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+		if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
 		{
-			const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+			if (!pExt->IsAvailable(pOwner))
+				continue;
 
-			if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
+			// found SW that already charged , just use it and return
+			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
 			{
-				if (!pSuper->Granted || !pExt->IsAvailable(pOwner))
+				obtain = pSuper;
+				found = true;
+
+				continue;
+			}
+
+			if(!obtain && pSuper->Granted)
+			{
+				double rechargeTime = (double)pSuper->GetRechargeTime();
+				double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
+
+				if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+				{
+					obtain = pSuper;
+					found = false;
 					continue;
-
-				// found SW that already charged , just use it and return
-				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-				{
-					auto nCoord = pThis->SpawnCell->GetCoords();
-					pOwner->Fire_SW(pSuper->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-					pThis->StepCompleted = true;
-					return 0x6EFE4F;
-				}
-				else
-				{
-					double rechargeTime = (double)pSuper->GetRechargeTime();
-					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
-
-					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
-					{
-						pTeamExt->LastFoundSW = pSuper;
-						return 0x6EFE4F;
-					}
 				}
 			}
 		}
+	}
 
+	if (found) {
+		auto nCoord = pThis->SpawnCell->GetCoords();
+		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
-
 	}
-	else
-	{ //continue waiting until it ready
 
-		if (!pTeamExt->LastFoundSW->Granted ||
-			!SWTypeExtContainer::Instance.Find(pTeamExt->LastFoundSW->Type)->IsAvailable(pOwner))
-		{
-			pTeamExt->LastFoundSW = nullptr;
-			pThis->StepCompleted = true;
-			return 0x6EFE4F;
-		}
-
-		if (pTeamExt->LastFoundSW->IsCharged && (havePower || !pTeamExt->LastFoundSW->IsPowered()))
-		{
-			auto nCoord = pThis->SpawnCell->GetCoords();
-			pOwner->Fire_SW(pTeamExt->LastFoundSW->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-			pTeamExt->LastFoundSW = nullptr;
-			pThis->StepCompleted = true;
-			return 0x6EFE4F;
-		}
-
-		return 0x6EFE4F;
+	if(!found) {
+		pThis->StepCompleted = true;
 	}
+	return 0x6EFE4F;
 }
 
 DEFINE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
@@ -1720,7 +1707,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	}
 //	auto targetcoord = pTarget->GetCoords();
 //
-//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExtData::FindCivilianSide(), pPaylod));
+//	R->EAX(SW_NuclearMissile::DropNukeAt(pNukeSW, targetcoord, nullptr, pThis->Owner ? pThis->Owner->Owner : HouseExtData::FindFirstCivilianHouse(), pPaylod));
 //	return ret;
 //}
 
@@ -2077,7 +2064,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 		{
 			if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2)
 			{
-				LightningStorm::BoltsPresent->RemoveAt(i);
+				LightningStorm::BoltsPresent->RemoveAt<true>(i);
 			}
 		}
 	}
@@ -2093,7 +2080,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 			{
 				auto const crdStrike = pAnim->GetCoords();
 				LightningStorm::Strike2(crdStrike);
-				LightningStorm::CloudsManifesting->RemoveAt(i);
+				LightningStorm::CloudsManifesting->RemoveAt<true>(i);
 			}
 		}
 	}
@@ -2125,7 +2112,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 				auto pAnimImage = pAnim->Type->GetImage();
 				if (pAnim->Animation.Value >= pAnimImage->Frames - 1)
 				{
-					LightningStorm::CloudsPresent->RemoveAt(i);
+					LightningStorm::CloudsPresent->RemoveAt<true>(i);
 				}
 			}
 		}
@@ -2528,7 +2515,11 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 		// capture
 		if (pData->Dominator_Capture)
 		{
-			auto Dominate = [pData, pFirer](TechnoClass* pTechno) -> bool
+			// every techno in this area shall be one with Yuri.
+			auto const [widthORange, Height] = pNewData->GetRange(pData);
+			Helpers::Alex::DistinctCollector<TechnoClass*> items;
+			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
+			items.apply_function_for_each([pData, pFirer](TechnoClass* pTechno)
 			{
 				TechnoTypeClass* pType = pTechno->GetTechnoType();
 
@@ -2630,13 +2621,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				return true;
-			};
-
-			// every techno in this area shall be one with Yuri.
-			auto const [widthORange, Height] = pNewData->GetRange(pData);
-			Helpers::Alex::DistinctCollector<TechnoClass*> items;
-			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
-			items.apply_function_for_each(Dominate);
+			});
 		}
 
 		// skip everything

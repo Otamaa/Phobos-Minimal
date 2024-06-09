@@ -53,7 +53,9 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 	GET(ScriptActionNode*, pTeamMission, EAX);
 	GET_STACK(bool, bThirdArg, 0x10);
 
-	const bool handled = AresScriptExt::Handle(pThis, pTeamMission, bThirdArg);
+	if (AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
+		return ReturnFunc;
+
 	auto pTeamData = TeamExtContainer::Instance.Find(pThis);
 
 	// Force a line jump. This should support vanilla YR Actions
@@ -105,11 +107,10 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 		}
 
 		pThis->StepCompleted = true;
-	} else {
-		ScriptExtData::ProcessScriptActions(pThis);
+		return ReturnFunc;
 	}
 
-	return handled ? ReturnFunc : Continue;
+	return ScriptExtData::ProcessScriptActions(pThis) ? ReturnFunc : Continue;
 }
 
 DEFINE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
@@ -183,6 +184,37 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	GET(TeamClass*, pThis, ESI);
 	GET(AbstractClass*, pAttacker, EBP);
 
+	if (RulesExtData::Instance()->TeamRetaliate)
+	{
+		auto Focus = pThis->Focus;
+		CellClass* SpawnCell = pThis->SpawnCell;
+
+		if (!Focus
+		  || ((char)Focus->AbstractFlags & 1) == 0
+		  || (!((FootClass*)Focus)->IsArmed())
+		  || SpawnCell
+		  && (((FootClass*)Focus)->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords())))
+		{
+			if ((int)pAttacker->WhatAmI() != 2)
+			{
+				auto Owner = pThis->Owner;
+				if (((char)pAttacker->AbstractFlags & 2) != 0)
+				{
+					if(Owner->IsAlliedWith(pAttacker->GetOwningHouse()))
+						return 0x6EB47A;
+				}
+
+				if (((char)pAttacker->AbstractFlags & 4) == 0
+				  || !((FootClass*)pAttacker)->InLimbo
+				  && !((FootClass*)pAttacker)->GetTechnoType()->ConsideredAircraft)
+				{
+					pThis->Focus = pAttacker;
+				}
+			}
+		}
+	}
+
+#ifdef CUSTOM
 	// get ot if global option is off
 	if (!RulesExtData::Instance()->TeamRetaliate)
 	{
@@ -203,9 +235,17 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			}
 
 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
-				if (pAttackerFoot->InLimbo || pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
+				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
+
+				if (pAttackerFoot->InLimbo && !IsInTransporter) {
 					return 0x6EB47A;
 				}
+
+                if(IsInTransporter)
+				   pAttacker = pAttackerFoot->Transporter;
+
+				if (((TechnoClass*)pAttacker)->GetTechnoType()->ConsideredAircraft || pAttacker->WhatAmI() == AircraftClass::AbsID)
+					return 0x6EB47A;
 
 				auto first = pThis->FirstUnit;
 				if (first) {
@@ -227,6 +267,7 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			}
 		}
 	}
+#endif
 
 	return 0x6EB47A;
 }

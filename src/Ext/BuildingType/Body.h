@@ -18,6 +18,8 @@
 
 #include <Misc/Ares/Hooks/Classes/PrismForwardingData.h>
 
+#include <Misc/Defines.h>
+
 enum class BunkerSoundMode : int
 {
 	Up, Down
@@ -49,8 +51,8 @@ public:
 	ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
 
 	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
-	Nullable<int> PowerPlantEnhancer_Amount {};
-	Nullable<float> PowerPlantEnhancer_Factor {};
+	Valueable<int> PowerPlantEnhancer_Amount { 0 };
+	Valueable<float> PowerPlantEnhancer_Factor { 1.0f };
 
 	std::vector<Point2D> OccupierMuzzleFlashes {};
 
@@ -63,7 +65,7 @@ public:
 	ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
 	ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
 	NullableIdx<VocClass> Grinding_Sound {};
-	Nullable<WeaponTypeClass*> Grinding_Weapon {};
+	Valueable<WeaponTypeClass*> Grinding_Weapon { nullptr };
 
 	Valueable<bool> Grinding_PlayDieSound { false };
 	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };
@@ -93,7 +95,7 @@ public:
 	Valueable<bool> SpyEffect_RevealRadarPersist { false };
 	Valueable<bool> SpyEffect_GainVeterancy { false };
 	Valueable<bool> SpyEffect_UnReverseEngineer { false };
-	std::bitset<32> SpyEffect_StolenTechIndex_result {};
+	std::bitset<MaxHouseCount> SpyEffect_StolenTechIndex_result {};
 	Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
 	Valueable<float> SpyEffect_StolenMoneyPercentage { 0 };
 	Valueable<int> SpyEffect_PowerOutageDuration { 0 };
@@ -274,11 +276,11 @@ public:
 
 	Nullable<bool> Storage_ActiveAnimations {};
 	Nullable<float> PurifierBonus {};
-	Valueable<bool> PurifierBonus_RequirePower { true };
+	Valueable<bool> PurifierBonus_RequirePower { false };
 
-	Valueable<bool> FactoryPlant_RequirePower { true };
-	Valueable<bool> SpySat_RequirePower { true };
-	Valueable<bool> Cloning_RequirePower { true };
+	Valueable<bool> FactoryPlant_RequirePower { false };
+	Valueable<bool> SpySat_RequirePower { false };
+	Valueable<bool> Cloning_RequirePower { false };
 
 	Nullable<bool> DisplayIncome {};
 	Nullable<AffectedHouse> DisplayIncome_Houses {};
@@ -293,6 +295,14 @@ public:
 	ValueableIdx<VoxClass> EVA_Offline { -1 };
 
 	Valueable<bool> Explodes_DuringBuildup { true };
+
+	Nullable<int> SpyEffect_SellDelay {};
+
+	Valueable<AnimTypeClass*> SpyEffect_Anim {};
+	Valueable<int> SpyEffect_Anim_Duration { -1 };
+	Valueable<AffectedHouse> SpyEffect_Anim_DisplayHouses { AffectedHouse::All };
+
+	Valueable<bool> SpyEffect_SWTargetCenter { false };
 
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
@@ -360,8 +370,6 @@ public:
 
 	static void DisplayPlacementPreview();
 	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
-	static int CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued);
-	static int BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
 	static void UpdateBuildupFrames(BuildingTypeClass* pThis);

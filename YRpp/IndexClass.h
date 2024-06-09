@@ -311,5 +311,6 @@ typename IndexClass<TKey, TValue>::NodeType const* IndexClass<TKey, TValue>::Sea
 		return (find == end() || id < find->ID) ? nullptr : find;
 	}
 
-	return static_cast<const NodeType*>(std::bsearch(&NodeType { id , {} }, &IndexTable[0], IndexCount, sizeof(IndexTable[0]), Comparator));
+	NodeType nodeToSearch { id , {} };
+	return static_cast<const NodeType*>(std::bsearch(&nodeToSearch, &IndexTable[0], IndexCount, sizeof(IndexTable[0]), Comparator));
 }

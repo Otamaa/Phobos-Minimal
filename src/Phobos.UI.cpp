@@ -23,12 +23,26 @@
 
 #include <TriggerTypeClass.h>
 #include <TriggerClass.h>
+#include <TagTypeClass.h>
 
 HWND ImGuiMainWindow = nullptr;
 ID3D11Device* g_pd3dDevice = nullptr;
 ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
 ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
+
+void ImGui_CreateRenderTarget()
+{
+	if (!g_pd3dDevice)
+	{
+		return;
+	}
+
+	ID3D11Texture2D* pBackBuffer;
+	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
+	pBackBuffer->Release();
+}
 
 void ImGui_New_Frame()
 {
@@ -136,19 +150,6 @@ void ImGui_CleanupDeviceD3D()
 	}
 }
 
-void ImGui_CreateRenderTarget()
-{
-	if (!g_pd3dDevice)
-	{
-		return;
-	}
-
-	ID3D11Texture2D* pBackBuffer;
-	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
-	pBackBuffer->Release();
-}
-
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -245,8 +246,8 @@ bool PhobosWindowClass::Create()
 		nullptr,
 		GetSystemMetrics(SM_CXSCREEN) - GameOptionsClass::Instance->ScreenWidth,
 		GetSystemMetrics(SM_CYSCREEN) - GameOptionsClass::Instance->ScreenHeight,
-		GameOptionsClass::Instance->ScreenWidth * scale,
-		GameOptionsClass::Instance->ScreenHeight * scale,
+		int(GameOptionsClass::Instance->ScreenWidth * scale),
+		int(GameOptionsClass::Instance->ScreenHeight * scale),
 		SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 
 	Debug::Log("Developer - Creating Direct3D device.\n");
@@ -272,7 +273,7 @@ bool PhobosWindowClass::Create()
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
@@ -355,7 +356,7 @@ void PhobosWindowClass::Loop()
 	}
 
 #endif
-	TriggerList();
+
 	TeamList();
 
 #if 0
@@ -533,7 +534,8 @@ void PhobosWindowClass::Loop()
 
 void PhobosWindowClass::MessageHandler()
 {
-	if (!ImGuiMainWindow) {
+	if (!ImGuiMainWindow)
+	{
 		return;
 	}
 
@@ -554,58 +556,150 @@ void PhobosWindowClass::MessageHandler()
 
 bool PhobosWindowClass::TeamList()
 {
-	//ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize;
-
-	//ImVec2 window_pos(1350, 0);
-	//ImGui::SetNextWindowPos(window_pos);
-
-	//ImVec2 window_size(500, 720);
-	//ImGui::SetNextWindowSize(window_size);
-
-	//ImGui::Begin("Team List", nullptr, window_flags);
 	ImGui::Begin("Team List");
 
-	if (ImGui::TreeNode("Teams"))
+	for (int index = 0; index < TeamClass::Array->Count; ++index)
 	{
+		TeamClass* team = TeamClass::Array->Items[index];
+		if (!team) continue;
 
-		for (int index = 0; index < TeamClass::Array->Count; ++index)
+		// Use SetNextItemOpen() so set the default state of a node to be open. We could
+		// also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+		if (index == 0)
 		{
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		}
 
-			TeamClass* team = TeamClass::Array->Items[index];
-			if (!team) continue;
+		const auto& [cur, act] = team->CurrentScript->GetCurrentAction();
 
-			// Use SetNextItemOpen() so set the default state of a node to be open. We could
-			// also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
-			if (index == 0)
-			{
-				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		auto DrawColored = [&]() {
+			const ImU32 color = (int)cur == -1 ? IM_COL32(255, 0, 0, 255) : IM_COL32(0, 255, 0, 255);
+			ImGui::PushStyleColor(ImGuiCol_Text, color);
+			bool imguiresult = ImGui::TreeNode((void*)(intptr_t)index, team->Type->ID);
+			ImGui::PopStyleColor();
+			return imguiresult;
+		};
+
+		if (DrawColored())
+		{
+			if(ImGui::TreeNode((void*)(intptr_t)1,"Taskforces [%s[0x%x]", team->Type->TaskForce ? team->Type->TaskForce->ID : NONE_STR, team->Type->TaskForce)){
+				if (team->Type->TaskForce) {
+					ImGui::Text("CountEntries %d", team->Type->TaskForce->CountEntries);
+
+					for (int i = 0; i < std::size(team->Type->TaskForce->Entries); ++i) {
+						ImGui::Text("Entry[%d] 0x%x(%s - %s) - %d", i ,
+							team->Type->TaskForce->Entries[i].Type ,
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->ID : NONE_STR,
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->GetThisClassName() : NONE_STR,
+							team->Type->TaskForce->Entries[i].Amount
+						);
+					}
+				}
+
+				ImGui::TreePop();
 			}
 
-			if (ImGui::TreeNode((void*)(intptr_t)index, team->Type->ID))
+			ImGui::Text("Current [Act %d Val %d]", (int)cur, act);
+
+			const auto& [Nextcur, Nextact] = team->CurrentScript->GetNextAction();
+			ImGui::Text("Next [Act %d Val %d]", Nextcur, Nextact);
+
+			FootClass* pCur = nullptr;
+			if (auto pFirst = team->FirstUnit)
 			{
-				ImGui::Text("blah blah");
-				ImGui::SameLine();
-				if (ImGui::SmallButton("button"))
+				auto pNext = pFirst->NextTeamMember;
+
+				do
 				{
+					ImGui::Text("Foot[%s(0x%x) - %s]", pFirst->GetTechnoType()->ID, pFirst, pFirst->GetThisClassName());
+					pCur = pNext;
+
+					if (pNext)
+						pNext = pNext->NextTeamMember;
+
+					pFirst = pCur;
+
+				}
+				while (pCur);
+			}
+
+			for (int i = 0; i < 6; ++i)
+			{
+				ImGui::Text("CountObjects %d : %d", i, team->CountObjects[i]);
+			}
+
+			if (ImGui::TreeNode((void*)(intptr_t)0, "Script : %s(0x%x)", team->CurrentScript->Type->ID, team->CurrentScript))
+			{
+				for (int i = 0; i < team->CurrentScript->Type->ActionsCount; ++i)
+				{
+					const auto& [_cur, _act] = team->CurrentScript->Type->ScriptActions[i];
+					ImGui::Text("Action at %d [Act %d Val %d]", i, _cur, _act);
 				}
 				ImGui::TreePop();
 			}
 
+			ImGui::Text("Tag : %s(0x%x)", team->Tag ? team->Tag->Type->ID : NONE_STR, team->Tag);
+			ImGui::Text("Owner [%s(0x%x)]", team->Owner ? team->Owner->Type->ID : NONE_STR, team->Owner);
+			ImGui::Text("Target [%s(0x%x)]", team->Target ? team->Target->Type->ID : NONE_STR, team->Target);
+			ImGui::Text("TotalObjects %d", team->TotalObjects);
+			ImGui::Text("TotalThreatValue %d", team->TotalThreatValue);
+			ImGui::Text("CreationFrame %d", team->CreationFrame);
+			ImGui::Text("IsTransient %d", team->IsTransient);
+			ImGui::Text("NeedsReGrouping %d", team->NeedsReGrouping);
+			ImGui::Text("GuardSlowerIsNotUnderStrength %d", team->GuardSlowerIsNotUnderStrength);
+			ImGui::Text("IsForcedActive %d", team->IsForcedActive);
+			ImGui::Text("IsHasBeen %d", team->IsHasBeen);
+			ImGui::Text("IsFullStrength %d", team->IsFullStrength);
+			ImGui::Text("IsUnderStrength %d", team->IsUnderStrength);
+			ImGui::Text("IsReforming %d", team->IsReforming);
+			ImGui::Text("IsLagging %d", team->IsLagging);
+			ImGui::Text("NeedsToDisappear %d", team->NeedsToDisappear);
+			ImGui::Text("JustDisappeared %d", team->JustDisappeared);
+			ImGui::Text("IsMoving %d", team->IsMoving);
+			ImGui::Text("StepCompleted %d", team->StepCompleted);
+			ImGui::Text("TargetNotAssigned %d", team->TargetNotAssigned);
+			ImGui::Text("IsLeavingMap %d", team->IsLeavingMap);
+			ImGui::Text("IsSuspended %d", team->IsSuspended);
+			ImGui::Text("AchievedGreatSuccess %d", team->AchievedGreatSuccess);
+			ImGui::Text("QueuedFocus [0x%x(%s)]", team->QueuedFocus , team->QueuedFocus ? team->QueuedFocus->GetThisClassName() : NONE_STR);
+			ImGui::Text("Focus [0x%x(%s)]", team->Focus, team->Focus ? team->Focus->GetThisClassName() : NONE_STR);
+			ImGui::Text("SpawnCell [0x%x(%d , %d)]", team->SpawnCell, team->SpawnCell ? team->SpawnCell->MapCoords.X : 0 , team->SpawnCell ? team->SpawnCell->MapCoords.Y : 0);
+
+			ImGui::TreePop();
+		}
+	}
+
+	ImGui::End();
+
+	return true;
+}
+
+bool PhobosWindowClass::ScriptTypeList()
+{
+	ImGui::Begin("ScriptType List");
+
+	for (int index = 0; index < ScriptTypeClass::Array->Count; ++index)
+	{
+		ScriptTypeClass* scriptType = ScriptTypeClass::Array->Items[index];
+		if (!scriptType) continue;
+
+		// Use SetNextItemOpen() so set the default state of a node to be open. We could
+		// also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+		if (index == 0)
+		{
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		}
 
-		ImGui::TreePop();
-	}
+		if (ImGui::TreeNode((void*)(intptr_t)index, scriptType->ID))
+		{
+			for (int i = 0; i < scriptType->ActionsCount; ++i)
+			{
+				const auto& [_cur, _act] = scriptType->ScriptActions[i];
+				ImGui::Text("Action at %d [Act %d Val %d]", i, _cur, _act);
+			}
 
-	if (ImGui::Button("New"))
-	{
-	}
-
-	if (ImGui::Button("Edit"))
-	{
-	}
-
-	if (ImGui::Button("Delete"))
-	{
+			ImGui::TreePop();
+		}
 	}
 
 	ImGui::End();

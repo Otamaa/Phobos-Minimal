@@ -3,6 +3,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 void PaintballType::Read(INI_EX& parser, const char* pSection)
 {
@@ -23,123 +24,55 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 	detail::read(Override, parser, pSection, "PaintBall.OverrideSameAffect", false);
 }
 
-void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)
+void PaintBall::Init()
 {
+	if (!Color.isset()) {
+		// readed as 3Bytes
+		// but this is actually Color16
+		// then need to make it ColorStruct
+		// then convert it to DWORD
+		Color16Struct nColor16 = {
+			Data->Color.R,
+			Data->Color.G,
+			Data->Color.B
+		};
 
-	if (!Token)
-	{
-		if (duration <= -1)
-			return;
-
-		Token = pAffector;
-		Data = data;
-		timer.Start(duration);
-		return;
-	}
-
-	if (Token == pAffector)
-	{
-		if (!data.Accumulate && IsActive())
-		{
-			if (!data.Override)
-				return;
-			else
-			{
-				timer.Stop();
-				timer.Start(duration);
-				return;
-			}
-		}
-		else
-		{
-			auto nTimeLeft = timer.GetTimeLeft() + duration;
-			if (nTimeLeft <= 0)
-			{
-				timer.Stop();
-				Token = nullptr;
-				Data.clear();
-
-			}
-			else
-			{
-				timer.Add(nTimeLeft);
-			}
-		}
-
-		return;
-	}
-
-	if (Token != pAffector)
-	{
-		if (duration <= -1)
-			return;
-
-		if (IsActive())
-		{
-			timer.Stop();
-			Token = nullptr;
-			Data.clear();
-		}
-
-		Token = pAffector;
-		Data = (data);
-		timer.Start(duration);
-		return;
+		ColorStruct nColorAgain = ColorStruct { nColor16 };
+		Color = Drawing::RGB2DWORD(nColorAgain);
 	}
 }
 
-uintptr_t PaintBall::GetColor()
-{
-	// readed as 3Bytes
-	// but this is actually Color16
-	// then need to make it ColorStruct
-	// then convert it to DWORD
-	Color16Struct nColor16 = { Data.get().Color.R,Data.get().Color.G,Data.get().Color.B };
-	ColorStruct nColorAgain = ColorStruct { nColor16 };
-	return Drawing::RGB2DWORD(nColorAgain);
-
-	//return GeneralUtils::GetColorFromColorAdd(Data.get().Color);
-}
-
-static inline bool AllowRedraw(TechnoClass* pWho, bool bForce, bool bIgnoreShroud, bool bIgnoreFog)
+ bool PaintBall::AllowDraw(TechnoClass* pWho)
 {
 	if (auto const pBld = specific_cast<BuildingClass*>(pWho))
 	{
-		if (pBld->IsFogged && !bIgnoreFog)
+		if (pBld->IsFogged && !Data->IgnoreFog)
 			return false;
 	}
 
 	if (auto pCell = pWho->GetCell())
 	{
-		if (pCell->IsShrouded() && !bIgnoreShroud)
+		if (pCell->IsShrouded() && !Data->IgnoreShroud)
 			return false;
 
-		if (pCell->IsFogged() && !bIgnoreFog)
+		if (pCell->IsFogged() && !Data->IgnoreFog)
 			return false;
 	}
-
-	if (pWho->Berzerk)
-		return false;
-
-	if ((pWho->Airstrike && pWho->Airstrike->Target == pWho))
-		return false;
-
-	if (pWho->IsIronCurtained())
-		return false;
 
 	return true;
 }
 
+ /*
 void PaintBall::DrawSHP_Paintball(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
+	if (!rePaint || !PaintBall::AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
 		return;
 
 	if (changeColor)
 	{
-		R->EAX(GetColor());
+		R->EAX(PaintBall::GetColor());
 	}
 
 	if (changeBright)
@@ -152,43 +85,26 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
+	if (!rePaint || !PaintBall::AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
 		return;
 
 	if (changeColor)
 	{
-		R->EBP(GetColor());
+		R->EBP(PaintBall::GetColor());
 	}
 
 	if (changeBright)
 	{
 		uintptr_t bright = R->Stack<uintptr_t>(0x38);
-		R->Stack<uintptr_t>(0x38, GetBright(bright));
+		R->Stack<uintptr_t>(0x38, PaintBall::GetBright(bright));
 	}
-}
-
-void PaintBall::Update(TechnoClass* pThis)
-{
-	if (this->IsActive())
-	{
-		if (pThis->WhatAmI() == BuildingClass::AbsID)
-		{
-				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-		}
-
-	}
-	else
-	{
-		this->Disable(true);
-	}
-
 }
 
 void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
 		return;
 
 	if (changeColor)
@@ -220,3 +136,4 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 		}
 	}
 }
+*/

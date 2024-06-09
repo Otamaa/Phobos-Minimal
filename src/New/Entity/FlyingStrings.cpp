@@ -195,22 +195,16 @@ void FlyingStrings::UpdateAll()
 			Point2D pos {};
 			Point2D tmp {};
 
-			if (FlyingStrings::DrawAllowed(item.Location, pos))
-			{
+			if (FlyingStrings::DrawAllowed(item.Location, pos)) {
 				pos += item.PixelOffset;
 				auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
-				if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
-				{
-					if (Unsorted::CurrentFrame > item.CreationFrame + Duration - 70)
-					{
+				if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height)) {
+					if (Unsorted::CurrentFrame > item.CreationFrame + Duration - 70) {
 						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
-						Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
 					}
-					else
-					{
-						Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
-					}
+
+					Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
 				}
 			}
 		}

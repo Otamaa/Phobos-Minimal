@@ -118,12 +118,6 @@ void TheaterTypeClass::AddDefaults()
 	}
 }
 
-TheaterTypeClass* TheaterTypeClass::FindFromTheaterType(TheaterType nType)
-{
-	return nType != TheaterType::None && (size_t)nType < Array.size() ?
-		Array[(int)nType].get() : Array[0].get();
-}
-
 #define CURRENT_THEATER (*ScenarioClass::Instance).Theater
 
 void TheaterTypeClass::LoadFromStream(PhobosStreamReader& Stm)

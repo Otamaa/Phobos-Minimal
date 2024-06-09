@@ -29,6 +29,10 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 	this->SpawnsTiberium_Type.Read(exINI, pSection, "SpawnsTiberium.Type");
+
+	if (this->SpawnsTiberium_Type >= TiberiumClass::Array->Count)
+		this->SpawnsTiberium_Type = TiberiumClass::Array->Count - 1;
+
 	this->SpawnsTiberium_Range.Read(exINI, pSection, "SpawnsTiberium.Range");
 	this->SpawnsTiberium_GrowthStage.Read(exINI, pSection, "SpawnsTiberium.GrowthStage");
 	this->SpawnsTiberium_CellsPerAnim.Read(exINI, pSection, "SpawnsTiberium.CellsPerAnim");
@@ -60,7 +64,18 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #pragma endregion
 
 	this->Bounty.Read(exINI, pSection, "Bounty");
+	this->HasDamagedFrames.Read(exINI, pSection, "HasDamagedFrames");
+	this->HasCrumblingFrames.Read(exINI, pSection, "HasCrumblingFrames");
+	this->CrumblingSound.Read(exINI, pSection, "CrumblingSound");
+	this->AnimationLength.Read(exINI, pSection, "AnimationLength");
+}
 
+void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
+{
+	VocClass::PlayIndexAtPos(this->DestroySound.Get(-1), coords);
+
+	if (auto const pAnimType = this->DestroyAnim)
+		GameCreate<AnimClass>(pAnimType, coords);
 }
 
 // =============================
@@ -96,6 +111,10 @@ void TerrainTypeExtData::Serialize(T& Stm)
 		.Process(this->AreaDamage)
 		.Process(this->Bounty)
 
+		.Process(this->HasDamagedFrames)
+		.Process(this->HasCrumblingFrames)
+		.Process(this->CrumblingSound)
+		.Process(this->AnimationLength)
 		;
 
 }
@@ -106,7 +125,7 @@ void TerrainTypeExtData::Remove(TerrainClass* pTerrain)
 		return;
 
 	RectangleStruct rect {};
-	rect = *pTerrain->GetRenderDimensions(&rect);
+	pTerrain->GetRenderDimensions(&rect);
 	TacticalClass::Instance->RegisterDirtyArea(rect, false);
 	pTerrain->Disappear(true);
 	pTerrain->UnInit();

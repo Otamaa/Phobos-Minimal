@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NewSWType.h"
+#include "SWStateMachine.h"
 
 class SW_Reveal : public NewSWType
 {
@@ -19,4 +20,11 @@ public:
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
 
 	static void RevealMap(const CellStruct& Coords , float range , int height , HouseClass* Owner);
+
+	using TStateMachine = RevealStateMachine;
+
+protected:
+	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
+		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, this));
+	}
 };

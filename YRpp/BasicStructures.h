@@ -6,11 +6,11 @@
 //used for light colors
 struct TintStruct
 {
-	TintStruct() = default;
-	~TintStruct() = default;
+	constexpr TintStruct() = default;
+	constexpr ~TintStruct() = default;
 
-	TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
-	TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
+	constexpr TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
+	constexpr TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
 		Red { 0 }, Green { 0 }, Blue { 0 }
 	{
 		auto nValR = ((1000 * nColor.R / 255) * nTintFactor);
@@ -21,17 +21,17 @@ struct TintStruct
 		Blue = static_cast<int>(MinImpl(nValB, 2000.0));
 	}
 
-	bool operator == (TintStruct const rhs) const
+	constexpr FORCEINLINE bool operator == (TintStruct const rhs) const
 	{
 		return Red == rhs.Red && Green == rhs.Green && Blue == rhs.Blue;
 	}
 
-	bool operator != (TintStruct const rhs) const
+	constexpr FORCEINLINE bool operator != (TintStruct const rhs) const
 	{
 		return !(*this == rhs);
 	}
 
-	bool operator < (TintStruct const rhs) const
+	constexpr FORCEINLINE bool operator < (TintStruct const rhs) const
 	{
 		if (Red < rhs.Red)
 			return true;

@@ -192,29 +192,6 @@ bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
 }
 
-int BuildingTypeExtData::BuildLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem)
-{
-	const auto BuildLimit = pItem->BuildLimit;
-
-	if (BuildLimit >= 0)
-		return BuildLimit - BuildingTypeExtData::GetUpgradesAmount(pItem, pHouse);
-	else
-		return -BuildLimit - pHouse->CountOwnedEver(pItem);
-}
-
-int BuildingTypeExtData::CheckBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool includeQueued)
-{
-	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
-
-	const int BuildLimit = pItem->BuildLimit;
-	const int Remaining = BuildingTypeExtData::BuildLimitRemaining(pHouse, pItem);
-
-	if (BuildLimit >= 0 && Remaining <= 0)
-		return (includeQueued && pHouse->GetFactoryProducing(pItem)) ? NotReached : ReachedPermanently;
-
-	return Remaining > 0 ? NotReached : ReachedTemporarily;
-}
-
 Point2D* BuildingTypeExtData::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
 {
 	return BuildingTypeExtContainer::Instance.Find(pThis->Type)
@@ -448,14 +425,13 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 	float fFactor = 1.0f;
 
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
-	{
+	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 			continue;
 
-		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
-		nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
+		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor, static_cast<float>(nCount));
+		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
 	}
 
 	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
@@ -817,7 +793,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->SpyEffect_StolenTechIndex_result.reset();
 			do
 			{
-				if ((*pos) > -1 && (*pos) < 32)
+				if ((*pos) > -1 && (*pos) < MaxHouseCount)
 				{
 					this->SpyEffect_StolenTechIndex_result.set((*pos));
 				}
@@ -844,6 +820,14 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_NavalVeterancy.Read(exINI, pSection, "SpyEffect.NavalVeterancy");
 		this->SpyEffect_AircraftVeterancy.Read(exINI, pSection, "SpyEffect.AircraftVeterancy");
 		this->SpyEffect_BuildingVeterancy.Read(exINI, pSection, "SpyEffect.BuildingVeterancy");
+
+		this->SpyEffect_SellDelay.Read(exINI, pSection, "SpyEffect.SellDelay");
+
+		this->SpyEffect_Anim.Read(exINI, pSection, "SpyEffect.Anim");
+		this->SpyEffect_Anim_Duration.Read(exINI, pSection, "SpyEffect.Anim.Duration");
+		this->SpyEffect_Anim_DisplayHouses.Read(exINI, pSection, "SpyEffect.Anim.DisplayHouses");
+
+		this->SpyEffect_SWTargetCenter.Read(exINI, pSection, "SpyEffect.SWTargetCenter");
 
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
@@ -1259,7 +1243,14 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->IsDestroyableObstacle)
 		.Process(this->EVA_Online)
 		.Process(this->EVA_Offline)
-		.Process(Explodes_DuringBuildup)
+		.Process(this->Explodes_DuringBuildup)
+
+		.Process(this->SpyEffect_SellDelay)
+		.Process(this->SpyEffect_Anim)
+		.Process(this->SpyEffect_Anim_Duration)
+		.Process(this->SpyEffect_Anim_DisplayHouses)
+
+		.Process(this->SpyEffect_SWTargetCenter)
 		;
 }
 

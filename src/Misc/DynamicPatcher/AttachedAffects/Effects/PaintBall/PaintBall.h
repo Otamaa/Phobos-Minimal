@@ -77,67 +77,13 @@ class PaintBall
 {
 public:
 
-	virtual ~PaintBall() = default;
-
-	virtual void Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data);
-
-	virtual void Disable(WarheadTypeClass* pAffector)
-	{
-		if (Token == pAffector) {
-			timer.Stop();
-		}
+	bool IsActive() { return timer.GetTimeLeft() > 0; }
+	void Init();
+	void SetData(PaintballType& type) {
+		this->Data = &type;
 	}
 
-	virtual void Disable(bool bForce) {
-		if ((!Token) || bForce) {
-			timer.Stop();
-			Token = nullptr;
-			Data.clear();
-		}
-	}
-
-
-	virtual bool IsActive() { return timer.InProgress(); }
-
-	void Enable(int nDuration , PaintballType data, WarheadTypeClass* pAffector)
-	{
-		Enable(nDuration, pAffector, data);
-	}
-
-	//needpaint , changeColor , changeBright
-	std::tuple<bool, bool, bool> NeedPaint()
-	{
-		bool changeColor = false;
-		bool changeBright = false;
-		bool active = IsActive() && !Data.empty();
-
-		if (active)
-		{
-			changeColor = Data.get().Color != ColorStruct::Empty;
-			changeBright = Data.get().BrightMultiplier != 1.0f;
-		}
-
-		return { active  ,  changeColor, changeBright };
-	}
-
-	uintptr_t GetColor();
-
-	uintptr_t GetBright(uintptr_t bright)
-	{
-		const double b = bright * Data.get().BrightMultiplier;
-		return static_cast<uintptr_t>(std::clamp(static_cast<int>(b),0,2000));
-	}
-
-	void Update(TechnoClass* pThis);
-
-	PaintBall() : Token { }
-		, Data { }
-		, timer { }
-	{ }
-
-	void DrawSHP_Paintball(TechnoClass* pTech, REGISTERS* R);
-	void DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R);
-	void DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding);
+	bool AllowDraw(TechnoClass* pWho);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
@@ -145,11 +91,10 @@ public:
 	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<PaintBall*>(this)->Serialize(Stm); }
 
-	WarheadTypeClass* Token;
-	OptionalStruct<PaintballType,true> Data;
 
-private:
 	CDTimerClass timer;
+	PaintballType* Data;
+	OptionalStruct<uintptr_t, true> Color;
 public:
 
 	template <typename T>
@@ -157,19 +102,12 @@ public:
 	{
 		//Debug::Log("Processing Element From PaintBall ! \n");
 		return Stm
-			.Process(Token,true)
+			.Process(timer,true)
 			.Process(Data, true)
-			.Process(timer,false)
+			.Process(Color)
 			.Success()
 			;
 	}
 };
 
 
-template <>
-struct Savegame::ObjectFactory<PaintBall>
-{
-	std::unique_ptr<PaintBall> operator() (PhobosStreamReader& Stm) const {
-		return std::make_unique<PaintBall>();
-	}
-};

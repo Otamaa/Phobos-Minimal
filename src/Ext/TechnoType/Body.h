@@ -17,6 +17,8 @@
 #include <New/Type/DroppodProperties.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
 #include <FileSystem.h>
@@ -34,6 +36,8 @@
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
+
+#include <Misc/Defines.h>
 
 class ArmorTypeClass;
 struct ImageStatusses
@@ -141,8 +145,6 @@ public:
 	Valueable<bool> Interceptor_OnlyTargetBullet { false };
 
 	Nullable<PartialVector3D<int>> TurretOffset {};
-	Nullable<bool> TurretShadow {};
-	ValueableVector<int> ShadowIndices {};
 	Valueable<bool> Powered_KillSpawns { false };
 	Valueable<bool> Spawn_LimitedRange { false };
 	Valueable<int> Spawn_LimitedExtraRange { 0 };
@@ -161,6 +163,16 @@ public:
 	Valueable<int> Death_Countdown { 0 };
 	Valueable<KillMethod> Death_Method { KillMethod::Explode };
 	Valueable<bool> Death_WithMaster { false };
+	Valueable<int> AutoDeath_MoneyExceed { -1 };
+	Valueable<int> AutoDeath_MoneyBelow { -1 };
+	Valueable<bool> AutoDeath_LowPower { false };
+	Valueable<bool> AutoDeath_FullPower { false };
+	Valueable<int> AutoDeath_PassengerExceed { -1 };
+	Valueable<int> AutoDeath_PassengerBelow { -1 };
+	Valueable<bool> AutoDeath_ContentIfAnyMatch { true };
+	Valueable<bool> AutoDeath_OwnedByPlayer { false };
+	Valueable<bool> AutoDeath_OwnedByAI { false };
+
 	Valueable<bool> Death_IfChangeOwnership { false };
 
 	ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist {};
@@ -171,8 +183,8 @@ public:
 	Valueable<AffectedHouse> AutoDeath_Exist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Exist_Any { false };
 	Valueable<bool> AutoDeath_Exist_AllowLimboed { true };
-	Nullable<AnimTypeClass*> AutoDeath_VanishAnimation {};
-
+	Valueable<AnimTypeClass*> AutoDeath_VanishAnimation { nullptr };
+	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
 	Valueable<ShieldTypeClass*> ShieldType { nullptr };
 
@@ -198,7 +210,7 @@ public:
 	PhobosMap<WarheadTypeClass* , std::vector<AnimTypeClass*>> DestroyAnimSpecific {};
 	Valueable<bool> NotHuman_RandomDeathSequence { false };
 
-	Nullable<InfantryTypeClass*> DefaultDisguise {};
+	Valueable<InfantryTypeClass*> DefaultDisguise { nullptr };
 
 	Nullable<int> OpenTopped_RangeBonus {};
 	Nullable<float> OpenTopped_DamageMultiplier {};
@@ -206,7 +218,7 @@ public:
 	Valueable<bool> OpenTopped_IgnoreRangefinding { false };
 	Valueable<bool> OpenTopped_AllowFiringIfDeactivated { true };
 	Valueable<bool> OpenTopped_ShareTransportTarget { true };
-
+	Valueable<bool> OpenTopped_UseTransportRangeModifiers { false };
 	Valueable<bool> AutoFire { false };
 	Valueable<bool> AutoFire_TargetSelf { false };
 
@@ -231,7 +243,7 @@ public:
 	Valueable<int> ForceWeapon_UnderEMP { -1 };
 	Valueable<int> ForceWeapon_Cloaked { -1 };
 	Valueable<int> ForceWeapon_Disguised { -1 };
-	Valueable<bool> ImmuneToEMP { false };
+	Nullable<bool> ImmuneToEMP { };
 	Valueable<bool> Ammo_Shared { false };
 	Valueable<int> Ammo_Shared_Group { -1 };
 	Valueable<bool> Passengers_SyncOwner { false };
@@ -275,10 +287,12 @@ public:
 	std::vector<BurstFLHBundle> DeployedWeaponBurstFLHs {};
 	std::vector<CoordStruct> AlternateFLHs {};
 
-	Nullable<bool> IronCurtain_SyncDeploysInto {};
-	Valueable<IronCurtainFlag> IronCurtain_Effect { IronCurtainFlag::Default };
+	Nullable<bool> IronCurtain_KeptOnDeploy {};
+	Nullable<bool> ForceShield_KeptOnDeploy {};
+	Nullable<IronCurtainFlag> IronCurtain_Effect {};
 	Nullable<WarheadTypeClass*> IronCurtain_KillWarhead {};
-
+	Nullable<IronCurtainFlag> ForceShield_Effect {};
+	Nullable<WarheadTypeClass*> ForceShield_KillWarhead {};
 	ValueableIdx<VoxClass> EVA_Sold { -1 };
 	ValueableIdx<VocClass> SellSound { -1 };
 
@@ -295,7 +309,7 @@ public:
 	Valueable<bool> Explodes_KillPassengers { true };
 
 	Nullable<int> DeployFireWeapon {};
-	Nullable<WeaponTypeClass*> RevengeWeapon {};
+	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses { AffectedHouse::All };
 
 	Valueable<TargetZoneScanType> TargetZoneScanType { TargetZoneScanType::Same };
@@ -428,7 +442,6 @@ public:
 
 	Nullable<ColorStruct> CommandLine_Move_Color { };
 	Nullable<ColorStruct> CommandLine_Attack_Color { };
-	Nullable<bool> CloakMove { };
 	Nullable<bool> PassiveAcquire_AI { };
 	Nullable<bool> CanPassiveAquire_Naval { };
 	Valueable<bool> TankDisguiseAsTank { false };
@@ -452,11 +465,6 @@ public:
 	ValueableVector<int> Prerequisite_Display {};
 
 	ValueableVector<int> BuildLimit_Requires {};
-
-	Nullable<int> Riparius_FrameIDx { };
-	Nullable<int> Cruentus_FrameIDx { };
-	Nullable<int> Vinifera_FrameIDx { };
-	Nullable<int> Aboreus_FrameIDx { };
 
 	Promotable<int> CrushLevel {};
 	Promotable<int> CrushableLevel {};
@@ -646,6 +654,8 @@ public:
 
 	Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 	Valueable<int> AttackFriendlies_WeaponIdx { -1 };
+	Valueable<bool> AttackFriendlies_AutoAttack { false };
+
 	Nullable<WORD> PipScaleIndex { };
 
 	Nullable<SHPStruct*> AmmoPip_shape { };
@@ -853,7 +863,7 @@ public:
 	DWORD Secret_RequiredHouses { 0xFFFFFFFF };
 	DWORD Secret_ForbiddenHouses { 0xFFFFFFFF };
 
-	std::bitset<32> RequiredStolenTech {};
+	std::bitset<MaxHouseCount> RequiredStolenTech {};
 
 	Valueable<bool> ReloadInTransport { false };
 	Valueable<bool> Weeder_TriggerPreProductionBuildingAnim { false };
@@ -900,6 +910,50 @@ public:
 	Valueable<double> CrateGoodie_RerollChance { 0.0 };
 	NullableIdx<CrateTypeClass*> Destroyed_CrateType {};
 
+	Nullable<bool> Infantry_DimWhenEMPEd {};
+	Nullable<bool> Infantry_DimWhenDisabled {};
+
+	Valueable<TechnoTypeClass*> Convert_HumanToComputer { };
+	Valueable<TechnoTypeClass*> Convert_ComputerToHuman { };
+
+	Nullable<bool> TurretShadow {};
+	Valueable<int> ShadowIndex_Frame { 0 };
+	std::map<int, int> ShadowIndices {};
+	Nullable<int> ShadowSizeCharacteristicHeight {};
+
+	std::vector<ValueableIdxVector<VocClass>> TalkbubbleVoices {};
+
+	Nullable<float> HarvesterDumpAmount { };
+	Valueable<bool> NoExtraSelfHealOrRepair { false };
+
+//add this just in case the implementation chages
+#pragma region BuildLimitGroup
+	ValueableVector<TechnoTypeClass*> BuildLimitGroup_Types {};
+	ValueableVector<int> BuildLimitGroup_Nums {};
+	Valueable<int> BuildLimitGroup_Factor { 1 };
+	Valueable<bool> BuildLimitGroup_ContentIfAnyMatch { false };
+	Valueable<bool> BuildLimitGroup_NotBuildableIfQueueMatch { false };
+	ValueableVector<TechnoTypeClass*> BuildLimitGroup_ExtraLimit_Types {};
+	ValueableVector<int> BuildLimitGroup_ExtraLimit_Nums {};
+	ValueableVector<int> BuildLimitGroup_ExtraLimit_MaxCount {};
+	Valueable<int> BuildLimitGroup_ExtraLimit_MaxNum { 0 };
+#pragma endregion
+
+	NullableVector<int> Tiberium_PipIdx {};
+	Nullable<int> Tiberium_EmptyPipIdx {};
+	Valueable<SHPStruct*> Tiberium_PipShapes {};
+	Valueable<PaletteManager*> Tiberium_PipShapes_Palette {};
+
+	Nullable<ColorStruct> Tint_Color {};
+	Valueable<double> Tint_Intensity { 0.0 };
+	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
+
+	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
+	ValueableVector<int> AttachEffect_DurationOverrides {};
+	ValueableVector<int> AttachEffect_Delays {};
+	ValueableVector<int> AttachEffect_InitialDelays {};
+	NullableVector<int> AttachEffect_RecreationDelays {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
@@ -932,8 +986,8 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static double TurretMultiOffsetDefaultMult;
-	static double TurretMultiOffsetOneByEightMult;
+static constexpr double TurretMultiOffsetDefaultMult { 1.0 };
+	static constexpr double TurretMultiOffsetOneByEightMult { 0.125 };
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);

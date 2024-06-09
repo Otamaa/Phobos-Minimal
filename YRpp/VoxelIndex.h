@@ -13,6 +13,7 @@ struct VoxelCacheStruct
 struct MainVoxelIndexKey
 {
 	MainVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
+	~MainVoxelIndexKey() = default;
 
 	int Get_Index_ID() const
 	{
@@ -38,6 +39,7 @@ private:
 struct TurretWeaponVoxelIndexKey
 {
 	TurretWeaponVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
+	~TurretWeaponVoxelIndexKey() = default;
 
 	int Get_Index_ID() const
 	{
@@ -68,6 +70,7 @@ public:
 struct TurretBarrelVoxelIndexKey
 {
 	TurretBarrelVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
+	~TurretBarrelVoxelIndexKey() = default;
 
 	int Get_Index_ID() const
 	{
@@ -102,14 +105,16 @@ private:
 
 union VoxelIndexKey
 {
-	int Get_Index_ID() const
-	{
+	int Get_Index_ID() const {
 		return *reinterpret_cast<const int*>(this);
 	}
 
-	bool Is_Valid_Key() const
-	{
+	bool Is_Valid_Key() const {
 		return Get_Index_ID() != -1;
+	}
+
+	void Invalidate() {
+		*reinterpret_cast<int*>(this) = -1;
 	}
 
 	MainVoxelIndexKey MainVoxel;

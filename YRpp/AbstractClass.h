@@ -209,7 +209,7 @@ public:
 
 	//AbstractClass
 	virtual void Init() RX;
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) RX;
 	virtual AbstractType WhatAmI() const RX;
 	virtual int Size() const RX;
 	virtual void ComputeCRC(CRCEngine& checksum) const RX;

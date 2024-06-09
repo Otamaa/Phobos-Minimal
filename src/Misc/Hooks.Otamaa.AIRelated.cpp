@@ -124,6 +124,82 @@ DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
 {
 	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
+
+DEFINE_HOOK(0x5047F5, HouseClass_UpdateAngetNodes, 0x6)
+{
+	return R->EAX<HouseClass*>()->IsAlliedWith(R->EDX<HouseClass*>()) ? 0x504826 : 0x504820;
+}
+
+DEFINE_HOOK(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+{
+	GET_STACK(TechnoClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+
+	bool result = false;
+	if (pTarget)
+	{
+		result = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+	}
+
+	R->AL(result);
+	return 0x4F9ADE;
+}
+
+DEFINE_HOOK(0x4F9A50, HouseClass_IsAlly_HouseClass, 0x6)
+{
+	GET_STACK(HouseClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+
+	bool result = false;
+	if (pTarget)
+	{
+		result = pThis->IsAlliedWith(pTarget->ArrayIndex);
+	}
+
+	R->AL(result);
+	return 0x4F9A8C;
+}
+
+DEFINE_HOOK(0x4F9B0A, HouseClass_IsAlly_AbstractClass, 0x6)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(HouseClass*, pThat, EAX);
+
+	R->AL(pThis->IsAlliedWith(pThat));
+	return 0x4F9B43;
+}
+
+DEFINE_HOOK(0x501548, HouseClass_IsAllowedToAlly_1, 0x6)
+{
+	return R->ESI<HouseClass*>()->IsAlliedWith(R->EDI<HouseClass*>()) ? 0x501575 : 0x50157C;
+}
+
+DEFINE_HOOK(0x5015F2, HouseClass_IsAllowedToAlly_2, 0x6)
+{
+	return 0x501628 - (int)R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>());
+}
+
+DEFINE_HOOK(0x4F9D01, HouseClass_MakeAlly_3, 0x6)
+{
+	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9D34 : 0x4F9D40;
+}
+
+DEFINE_HOOK(0x4F9E10, HouseClass_MakeAlly_4, 0x8)
+{
+	return R->EBP<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x4F9E49 : 0x4F9EC9;
+}
+
+DEFINE_HOOK(0x4F9E56, HouseClass_MakeAlly_5, 0x9)
+{
+	GET(HouseClass* , pHouse , EBP);
+	GET(HouseClass* , pHouse_2 , ESI);
+
+	if (!pHouse_2->IsAlliedWith(HouseClass::CurrentPlayer()))
+		return 0x4F9EBD;
+
+	return pHouse->IsAlliedWith(HouseClass::CurrentPlayer()) ? 0x4F9EB1 : 0x4F9EBD;
+}
+
 #pragma endregion
 
 DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)

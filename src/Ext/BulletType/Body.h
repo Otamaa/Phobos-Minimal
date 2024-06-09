@@ -31,12 +31,14 @@ public:
 	Valueable<bool> Shrapnel_AffectsGround { false };
 	Valueable<bool> Shrapnel_AffectsBuildings { false };
 	Nullable<double> Shrapnel_Chance { };
-	Nullable<Leptons> Cluster_Scatter_Min { };
-	Nullable<Leptons> Cluster_Scatter_Max { };
+	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
+
+	Valueable<Leptons> Cluster_Scatter_Min { BulletTypeExtData::DefaultBulletScatterMin };
+	Valueable<Leptons> Cluster_Scatter_Max { BulletTypeExtData::DefaultBulletScatterMax };
 
 	// Ares 0.7
 	Valueable<bool> Interceptable_DeleteOnIntercept { false };
-	Nullable<WeaponTypeClass*> Interceptable_WeaponOverride { };
+	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride { nullptr };
 
 	Nullable<bool> SubjectToLand { };
 	Valueable<bool> SubjectToLand_Detonate { true };
@@ -159,8 +161,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	static const Leptons DefaultBulletScatterMin;
-	static const Leptons DefaultBulletScatterMax;
+	static constexpr Leptons DefaultBulletScatterMin { 256 };
+	static constexpr Leptons DefaultBulletScatterMax { 512 };
 
 };
 

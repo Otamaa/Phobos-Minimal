@@ -74,16 +74,16 @@ public:
 		return nResult;
 	}
 
-	MouseCursor() = default;
+	constexpr MouseCursor() = default;
 
-	MouseCursor(
+	constexpr MouseCursor(
 		int frame, int count, int interval, int miniFrame, int miniCount,
 		MouseHotSpotX hotX, MouseHotSpotY hotY)
 		: StartFrame(frame), FrameCount(count), FrameRate(interval), SmallFrame(miniFrame),
 		SmallFrameCount(miniCount), X(hotX), Y(hotY)
 	{ }
 
-	MouseCursor(const MouseCursor& other) : StartFrame(other.StartFrame)
+	constexpr MouseCursor(const MouseCursor& other) : StartFrame(other.StartFrame)
 		, FrameCount(other.FrameCount)
 		, FrameRate(other.FrameRate)
 		, SmallFrame(other.SmallFrame)
@@ -92,7 +92,7 @@ public:
 		, Y(other.Y)
 	{ }
 
-	~MouseCursor() noexcept = default;
+	constexpr ~MouseCursor() noexcept = default;
 
 public:
 

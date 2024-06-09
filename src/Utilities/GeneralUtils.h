@@ -42,7 +42,7 @@ public:
 
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
 	// Code is pulled straight from game's draw functions that deal with the tint colors.
-	static inline int GetColorFromColorAdd(int colorIndex)
+	static constexpr inline int GetColorFromColorAdd(int colorIndex)
 	{
 		auto const& colorAdd = RulesClass::Instance->ColorAdd;
 		int colorValue = 0;
@@ -66,7 +66,7 @@ public:
 		}
 	}
 
-	static inline int GetColorFromColorAdd(ColorStruct const& colors)
+	static constexpr inline int GetColorFromColorAdd(ColorStruct const& colors)
 	{
 		int colorValue = 0;
 		int red = colors.R;
@@ -84,12 +84,12 @@ public:
 		return colorValue;
 	}
 
-	static inline bool IsOperator(char c)
+	static constexpr inline bool IsOperator(char c)
 	{
 		return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
 	}
 
-	static inline  bool OperatorPriorityGreaterThan(char opa, char opb)
+	static constexpr inline  bool OperatorPriorityGreaterThan(char opa, char opb)
 	{
 		if (opb == '(' || opb == ')')
 			return false;
@@ -106,7 +106,7 @@ public:
 		return false;
 	}
 
-	static int GetValue(int a1)
+	static constexpr int GetValue(int a1)
 	{
 		int result = 0;
 
@@ -152,7 +152,7 @@ public:
 		pShakeVal = v6;
 	}
 
-	static std::string IntToDigits(int num)
+	static constexpr std::string IntToDigits(int num)
 	{
 		std::string sDigits;
 
@@ -178,6 +178,43 @@ public:
 			range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
 
+	template<typename T>
+	static inline int GetRandomValue(Vector2D<T> range, int defVal)
+	{
+		int min = static_cast<int>(range.X);
+		int max = static_cast<int>(range.Y);
+		if (min > max)
+		{
+			int tmp = min;
+			min = max;
+			max = tmp;
+		}
+		if (max > 0)
+		{
+			return ScenarioClass::Instance->Random.RandomRanged(min, max);
+		}
+		return defVal;
+	}
+
+	static inline CoordStruct GetRandomOffset(int min, int max)
+	{
+		double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
+		if (r > 0)
+		{
+			double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi;
+			CoordStruct offset { static_cast<int>(r * Math::cos(theta)), static_cast<int>(r * Math::sin(theta)), 0 };
+			return offset;
+		}
+		return CoordStruct::Empty;
+	}
+
+	static inline CoordStruct GetRandomOffset(double maxSpread, double minSpread)
+	{
+		int min = static_cast<int>((minSpread <= 0 ? 0 : minSpread) * 256);
+		int max = static_cast<int>((maxSpread > 0 ? maxSpread : 1) * 256);
+		return GetRandomOffset(min, max);
+	}
+
 	static inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
 	{
 		int min = static_cast<int>(range.X * 100);
@@ -196,15 +233,12 @@ public:
 	// Weighted random element choice (weight) - roll for one.
 	// Takes a vector of integer type weights, which are then summed to calculate the chances.
 	// Returns chosen index or -1 if nothing is chosen.
-	static inline int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
+	static inline constexpr int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
 	{
 		float sum = 0.0;
 		float sum2 = 0.0;
 
-		std::for_each(weights.begin(), weights.end(), [&sum](auto const weights) { sum += weights; });
-
-		//for (size_t i = 0; i < weights->size(); i++)
-		//	sum += (*weights)[i];
+		std::for_each(weights.begin(), weights.end(), [&sum](auto const weights) { sum += weights; });;
 
 		for (size_t i = 0; i < weights.size(); i++)
 		{
@@ -216,8 +250,70 @@ public:
 		return -1;
 	}
 
+	static inline std::map<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
+	{
+		const int weightCount = weights.size();
+		std::map<Point2D, int> targetPad {};
+		maxValue = 0;
+
+		for (int index = 0; index < count; index++)
+		{
+			Point2D target {};
+			target.X = maxValue;
+			int weight = 1;
+			if (weightCount > 0 && index < weightCount)
+			{
+				int w = weights[index];
+				if (w > 0)
+				{
+					weight = w;
+				}
+			}
+			maxValue += weight;
+			target.Y = maxValue;
+			targetPad[target] = index;
+		}
+		return targetPad;
+	}
+
+	static inline int Hit(std::map<Point2D, int>& targetPad, int maxValue)
+	{
+		int index = 0;
+		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
+		for (auto& it : targetPad)
+		{
+			Point2D tKey = it.first;
+			if (p >= tKey.X && p < tKey.Y)
+			{
+				index = it.second;
+				break;
+			}
+		}
+		return index;
+	}
+
+	static inline bool Bingo(double chance)
+	{
+		if (chance > 0)
+		{
+			return chance >= 1 || chance >= ScenarioClass::Instance->Random.RandomDouble();
+		}
+		return false;
+	}
+
+	static inline  bool Bingo(std::vector<double>& chances, int index)
+	{
+		int size = chances.size();
+		if (size < index + 1)
+		{
+			return true;
+		}
+		double chance = chances[index];
+		return Bingo(chance);
+	}
+
 	// Direct multiplication pow
-	static inline double FastPow(double x, double n)
+	static constexpr inline double FastPow(double x, double n)
 	{
 		double r = 1.0;
 
@@ -229,9 +325,16 @@ public:
 
 		return r;
 	}
+	// 2nd order Pade approximant just in case someone complains about performance
+	static constexpr double Pade2_2(double in)
+	{
+		const double s = in - static_cast<int>(in);
+		return GeneralUtils::FastPow(0.36787944117144233, static_cast<int>(in))
+			* (12. - 6 * s + s * s) / (12. + 6 * s + s * s);
+	}
 
 	template<typename T>
-	static inline T SecsomeFastPow(T x, size_t n)
+	static constexpr inline T SecsomeFastPow(T x, size_t n)
 	{
 		// Real fast pow calc x^n in O(log(n))
 		T result = 1;
@@ -246,7 +349,7 @@ public:
 	}
 
 	// Checks if health ratio has changed threshold (Healthy/ConditionYellow/Red).
-	static inline bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
+	static constexpr inline bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
 	{
 		if (oldRatio == newRatio)
 			return false;
@@ -271,48 +374,6 @@ public:
 	static bool ApplyTheaterSuffixToString(char* str);
 	static bool ApplyTheaterExtToString(std::string& flag);
 	static std::string ApplyTheaterSuffixToString(const std::string& str);
-
-	template <size_t size>
-	static inline void lowercase(char(&nBuff)[size], char const (&nData)[size])
-	{
-		for (size_t i = 0; i < size; ++i)
-		{
-			nBuff[i] = (char)std::tolower(nData[i]);
-		}
-	}
-
-	template <size_t size>
-	static inline void uppercase(char(&nBuff)[size], char(&nData)[size])
-	{
-		for (size_t i = 0; i < size; ++i)
-		{
-			nBuff[i] = (char)std::toupper(nData[i]);
-		}
-	}
-
-	//
-	//  Lowercases string
-	//
-	template <typename T>
-	static std::basic_string<T> lowercase(const std::basic_string<T>& s)
-	{
-		std::basic_string<T> s2 = s;
-		std::transform(s2.begin(), s2.end(), s2.begin(),
-			[](const T v) { return static_cast<T>(std::tolower(v)); });
-		return s2;
-	}
-
-	//
-	// Uppercases string
-	//
-	template <typename T>
-	static std::basic_string<T> uppercase(const std::basic_string<T>& s)
-	{
-		std::basic_string<T> s2 = s;
-		std::transform(s2.begin(), s2.end(), s2.begin(),
-			[](const T v) { return static_cast<T>(std::toupper(v)); });
-		return s2;
-	}
 
 	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
 	{
@@ -345,7 +406,7 @@ public:
 		return nullptr;
 	}
 
-	static inline ColorStruct HSV2RGB(int h, int s, int v)
+	static inline constexpr ColorStruct HSV2RGB(int h, int s, int v)
 	{
 		float R = 0.0f, G = 0.0f, B = 0.0f;
 		float C = 0, X = 0, Y = 0, Z = 0;
@@ -381,7 +442,7 @@ public:
 
 	static const char* GetLocomotionName(const CLSID& clsid);
 
-	static int CountDigitsInNumber(int number)
+	static int constexpr CountDigitsInNumber(int number)
 	{
 		int digits = 0;
 
@@ -420,7 +481,7 @@ public:
 	static const int GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize);
 	static AnimTypeClass* GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter);
 
-	static const int ScaleF2I(float value, int scale)
+	static inline constexpr int ScaleF2I(float value, int scale)
 	{
 		value = std::clamp(value, 0.0f, 1.0f);
 		return static_cast<int>(value * scale);
@@ -448,10 +509,10 @@ public:
 		return DirStruct(theta);
 	}
 
-	static const Leptons PixelToLeptons(int pixel)
+	static inline constexpr Leptons PixelToLeptons(int pixel)
 	{ return Leptons((((pixel * 256) + (60 / 2) - ((pixel < 0) ? (60 - 1) : 0)) / 60)); }
 
-	static const Leptons DistanceToLeptons(int distance)
+	static inline constexpr Leptons DistanceToLeptons(int distance)
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values
@@ -484,8 +545,8 @@ public:
 	}
 
 	template<typename T>
-	static inline T GetItemByHealthRatio(double ratio, T green , T yellow , T red)
-	{
+	static inline constexpr T GetItemByHealthRatio(double ratio, T green , T yellow , T red) {
+
 		if (ratio <= RulesClass::Instance->ConditionRed)
 			return red;
 		else if (ratio <= RulesClass::Instance->ConditionYellow)
@@ -494,20 +555,45 @@ public:
 		return green;
 	}
 
+	static constexpr CoordStruct CoordinatesFromCell(const CellStruct& cell, bool snap = false, int zValue = 0) {
+		CoordStruct tmp { cell.X * 256, cell.Y * 256, zValue };
+		if (snap) {
+			tmp.X += 256 / 2;
+			tmp.Y += 256 / 2;
+		}
+		return tmp;
+	}
+
+	static constexpr CellStruct CellFromCoordinates(const CoordStruct& coord) {
+		return { short(coord.X / 256) , short(coord.Y / 256) };
+	}
+
+	// Zero out a non-array pointer.
+	template <typename T>
+	static inline void
+		MemsetZero(T* t)
+	{
+		std::memset(t, 0, sizeof(*t));
+	}
+
+	template <typename T>
+	struct cast_to_pointer {
+		static inline constexpr void* cast(const T& t) {
+			return reinterpret_cast<void*>((uintptr_t)t);
+		}
+	};
+
+	template <typename T>
+	struct cast_to_pointer<T*> {
+		static inline constexpr const void* cast(const T* ptr) {
+			return ptr;
+		}
+
+		static inline constexpr void* cast(T* ptr) {
+			return ptr;
+		}
+	};
+
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
-
-};
-
-struct StopwatchLogger
-{
-	Stopwatch watch;
-	const char* func;
-	const char* name;
-
-	StopwatchLogger(const char* pFunc = nullptr, const char* pName = nullptr) : func(pFunc), name(pName) {}
-
-	~StopwatchLogger() {
-		Debug::Log("STOPWATCH %s (%s): %lld\n", func, name, watch.get_nano().QuadPart);
-	}
 };

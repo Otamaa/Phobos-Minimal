@@ -33,10 +33,8 @@ DEFINE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 
 	pBld->ForceMission(Mission::Guard);
 
-	if (v7->GetFoundationWidth() > 2 || v7->GetFoundationHeight(0) > 2)
-	{
-		--pHouse->BaseSpawnCell.X;
-		--pHouse->BaseSpawnCell.Y;
+	if (v7->GetFoundationWidth() > 2 || v7->GetFoundationHeight(0) > 2) {
+		--pHouse->BaseSpawnCell;
 	}
 
 	if (!pHouse->IsControlledByHuman())
@@ -87,15 +85,15 @@ DEFINE_HOOK(0x5D6F61, MPGameModeClass_CreateStartingUnits_BaseCenter, 8)
 	if (!pMode->SpawnBaseUnits(pHouse, AmountToSpend))
 		return 0x5D701B;
 
-	pHouse->ConYards.for_each([](BuildingClass* pConyards)
- {
-	 pConyards->QueueMission(Mission::Construction, true);
-	 ++Unsorted::ScenarioInit();
-	 pConyards->EnterIdleMode(false, 1);
-	 --Unsorted::ScenarioInit();
+	pHouse->ConYards.for_each([](BuildingClass* pConyards) {
+		 pConyards->QueueMission(Mission::Construction, true);
+		 ++Unsorted::ScenarioInit();
+		 pConyards->EnterIdleMode(false, 1);
+		 --Unsorted::ScenarioInit();
 	});
 
-	if (!nBase.IsValid())
+	//base spawn cell is broken after conyard spawned as building ,..
+	if (!pHouse->BaseSpawnCell.IsValid())
 		pHouse->BaseSpawnCell = nBase;
 
 	return 0x5D6F77;
@@ -110,7 +108,7 @@ DEFINE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
 	if (!pTypeExt->StartInMultiplayer_Types.HasValue())
-		return !UnitTypeClass::Array->Count ? 0x5D721A : 0x5D716B; //restore overriden instruction
+		return UnitTypeClass::Array->Count  <= 0? 0x5D721A : 0x5D716B; //restore overriden instruction
 
 	if (pTypeExt->StartInMultiplayer_Types.empty())
 		return 0x5D743E;

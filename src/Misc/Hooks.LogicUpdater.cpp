@@ -37,10 +37,17 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	GET(ILocomotion*, pThis, ESI);
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+	const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
+
+	pExt->IsBurrowed = true;
 
 	if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 	{
 		pShieldData->SetAnimationVisibility(false);
+	}
+
+	for (auto& attachEffect : pExt->PhobosAE){
+		attachEffect.SetAnimationVisibility(false);
 	}
 
 	return 0;
@@ -54,8 +61,15 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
 	{
+		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
+		pExt->IsBurrowed = false;
+
 		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
+
+		for (auto& attachEffect : pExt->PhobosAE) {
+			attachEffect.SetAnimationVisibility(true);
+		}
 	}
 
 	return 0;
@@ -83,6 +97,7 @@ void UpdateWebbed(FootClass* pThis)
 }
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <New/PhobosAttachedAffect/Functions.h>
 
 #ifndef aaa
 DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
@@ -104,9 +119,18 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
 #endif
 
+	if (!pThis->IsAlive)
+		return retDead;
+
+	PhobosAEFunctions::UpdateAttachEffects(pThis);
+
+	if (!pThis->IsAlive)
+		return retDead;
+
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
 
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
@@ -126,8 +150,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 #endif
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
-	if (!pExt->Type || pExt->Type != pType)
-		pExt->UpdateType(pType);
+	//if (pExt->Type != pType)
+
 
 	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
 	if (pExt->IsInTunnel)
@@ -199,7 +223,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 #ifdef ENABLE_THESE
 	PassengersFunctional::AI(pThis);
@@ -211,9 +235,19 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
 	if(pThis->IsAlive){
-		if (auto& pPBState = pExt->PaintBallState) {
-			pPBState->Update(pThis);
-		}
+
+		auto it = std::remove_if(pExt->PaintBallStates.begin() , pExt->PaintBallStates.end() ,[pThis](auto& pb){
+				if(pb.second.timer.GetTimeLeft()) {
+					if (pThis->WhatAmI() == BuildingClass::AbsID) {
+						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+					}
+					return false;
+				}
+
+			return true;
+		});
+
+		pExt->PaintBallStates.erase(it);
 
 		if (auto& pDSState = pExt->DamageSelfState) {
 			pDSState->TechnoClass_Update_DamageSelf(pThis);
@@ -224,17 +258,79 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	//return 0x6F9EBB;
 }
 
+bool Spawned_Check_Destruction(AircraftClass* aircraft)
+{
+	if (aircraft->SpawnOwner == nullptr
+		|| !aircraft->SpawnOwner->IsAlive
+		|| aircraft->SpawnOwner->IsCrashing
+		|| aircraft->SpawnOwner->IsSinking
+		)
+	{
+		return false;
+	}
+
+	/**
+	 *  If our TarCom is null, our original target has died.
+	 *  Try targeting something else that is nearby,
+	 *  unless we've already decided to head back to the spawner.
+	 */
+	if (aircraft->Target == nullptr && aircraft->Destination != aircraft->SpawnOwner)
+	{
+		CoordStruct loc = aircraft->GetCoords();
+		aircraft->TargetAndEstimateDamage(&loc, ThreatType::Area);
+	}
+
+	/**
+	 *  If our TarCom is still null or we're run out of ammo, return to
+	 *  whoever spawned us. Once we're close enough, we should be erased from the map.
+	 */
+	if (aircraft->Target == nullptr || aircraft->Ammo == 0)
+	{
+
+		if (aircraft->Destination != aircraft->SpawnOwner)
+		{
+			aircraft->SetDestination(aircraft->SpawnOwner, true);
+			aircraft->ForceMission(Mission::Move);
+			aircraft->NextMission();
+		}
+
+		CoordStruct myloc = aircraft->GetCoords();
+		CoordStruct spawnerloc = aircraft->GetCoords();
+		if (myloc.DistanceFrom(spawnerloc) < Unsorted::LeptonsPerCell)
+			return true;
+	}
+
+	return false;
+}
+
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
 #ifdef ENABLE_THESE
 	pExt->UpdateAircraftOpentopped();
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+	//{
+	//
+	//	/**
+	//	 *  If we are close enough to our owner, delete us and return true
+	//	 *  to signal to the challer that we were deleted.
+	//	 */
+	//	if (Spawned_Check_Destruction(pThis))
+	//	{
+	//		pThis->UnInit();
+	//		return 0x414F99;
+	//	}
+	//}
+
 #endif
 	pThis->FootClass::Update();
 	return 0x414DA8;
@@ -295,6 +391,10 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 
 		//pTargetExt->UpdateFireSelf();
 		//pTargetExt->UpdateRevengeWeapons();
+
+		for (auto& ae : pTargetExt->PhobosAE) {
+			ae.AI_Temporal();
+		}
 
 		if (auto pBldTarget = specific_cast<BuildingClass*>(pTarget))
 		{

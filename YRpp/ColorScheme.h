@@ -91,7 +91,7 @@ public:
 	static int __fastcall GetNumberOfSchemes()
 		{ JMP_STD(0x626C60); }
 
-	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& BaseColor) const
+	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& basecolor) const
 		{ JMP_THIS(0x68C860); }
 
 	bool IsSame(const ColorScheme* pColor) const

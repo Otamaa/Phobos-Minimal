@@ -28,7 +28,7 @@ public:
 	virtual ~FootClass() override JMP_THIS(0x4E0170);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4D9960);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x4D9960);
 	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass

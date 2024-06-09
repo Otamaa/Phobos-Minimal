@@ -54,6 +54,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
 	this->Weapon.Read(exINI, pID, "Weapon", true);
+	this->WeaponToCarry.Read(exINI, pID, "WeaponToCarry", true);
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
@@ -142,6 +143,11 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->RemapAnim.Read(exINI, pID, "RemapAnim");
 	this->ExtraShadow.Read(exINI, pID, "ExtraShadow");
+
+	this->AdditionalHeight.Read(exINI, pID, "AdditionalHeight");
+	this->AltReport.Read(exINI, pID, "AltReport");
+
+	this->SpawnsData.Read(exINI, pID);
 #pragma endregion
 }
 
@@ -150,11 +156,12 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 	if (!pThis->Type)
 		return;
 
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	auto pExt = AnimExtContainer::Instance.Find(pThis);
 
 	if (pExt->AllowCreateUnit)
 		return;
+
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (const auto pUnit = pTypeExt->CreateUnit.Get())
 	{
@@ -165,7 +172,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
-		bool allowBridges = GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
+		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (pTypeExt->CreateUnit_ConsiderPathfinding
@@ -175,15 +182,12 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 				pUnit->SpeedType, -1, pUnit->MovementZone, isBridge, 1, 1, true,
 				false, false, isBridge, CellStruct::Empty, false, false);
 
-			CellClass* pCell = MapClass::Instance->TryGetCellAt(nCell);
+			pCell = MapClass::Instance->TryGetCellAt(nCell);
 			if (!pCell)
 				return;
 
 			Location = pCell->GetCoords();
 		}
-
-		if (!pCell)
-			return;
 
 		isBridge = allowBridges && pCell->ContainsBridge();
 		int bridgeZ = isBridge ? Unsorted::BridgeHeight : 0;
@@ -213,7 +217,7 @@ HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
-		return HouseExtData::FindCivilianSide();
+		return HouseExtData::FindFirstCivilianHouse();
 
 	return pThis->Owner;
 }
@@ -257,11 +261,11 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 
 		if (!pTechno->InLimbo)
 		{
-			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
+			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim)
 			{
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation);
 				pCreateUnitAnim->Owner = decidedOwner;
-				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis);
 			}
 
 			if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value())
@@ -281,7 +285,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 						pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 						pJJLoco->IsMoving = true;
 						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
-						pJJLoco->Height = pTechno->Type->JumpjetHeight;
+						pJJLoco->Height = pTechno->Type->JumpjetData.JumpjetHeight;
 					}
 					else
 					{
@@ -379,19 +383,18 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 			pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
 		}
 	}
+
+	pAnimExt->WasOnBridge = pThis->OnBridge;
 }
 
 void AnimTypeExtData::ValidateSpalshAnims()
 {
 	AnimTypeClass* pWake = nullptr;
-	if (WakeAnim.isset() && this->AttachedToObject->IsMeteor)
-		pWake = WakeAnim.Get();
-	else
-		pWake = RulesClass::Instance->Wake;
+	if (this->AttachedToObject->IsMeteor)
+		pWake = WakeAnim.Get(RulesClass::Instance->Wake);
 
 	//what if the anim type loaded twice ?
-	if (SplashList.empty())
-	{
+	if (SplashList.empty()) {
 		SplashList.push_back(pWake);
 	}
 }
@@ -420,6 +423,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Layer_UseObjectLayer)
 		.Process(this->UseCenterCoordsIfAttached)
 		.Process(this->Weapon)
+		.Process(this->WeaponToCarry)
 		.Process(this->Damage_Delay)
 		.Process(this->Damage_DealtByInvoker)
 		.Process(this->Damage_ApplyOnce)
@@ -462,10 +466,24 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->AltPalette_ApplyLighting)
 		.Process(this->ExtraShadow)
 		.Process(this->DetachedReport)
+
+		.Process(this->AdditionalHeight)
+		.Process(this->AltReport)
+		.Process(this->SpawnsData)
 		;
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
+
+AnimTypeExtData* AnimTypeExtContainer::Find(AnimClass* key)
+{
+	return this->GetExtAttribute(key->Type);
+}
+
+AnimTypeExtData* AnimTypeExtContainer::Find(AnimTypeClass* key)
+{
+	return this->GetExtAttribute(key);
+}
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {

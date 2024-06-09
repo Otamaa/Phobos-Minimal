@@ -66,13 +66,16 @@ DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto const pAircraft = abstract_cast<AircraftClass*>(pThis)) {
+	if (auto const pAircraft = abstract_cast<AircraftClass*>(pThis))
+	{
 		if (pAircraft->Type->Carryall && pAircraft->HasAnyLink() &&
-			pAircraft->Destination && (pAircraft->Destination->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None) {
+			pAircraft->Destination && (pAircraft->Destination->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
+		{
 
 			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pAircraft->Type);
 
-			if (!pTypeExt->VoicePickup.empty()) {
+			if (!pTypeExt->VoicePickup.empty())
+			{
 
 				pThis->QueueVoice(pTypeExt->VoicePickup[Random2Class::NonCriticalRandomNumber->Random() & pTypeExt->VoicePickup.size()]);
 
@@ -157,7 +160,7 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (!pExt->LaserTrails.empty())
 	{
@@ -189,6 +192,11 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
+
+	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pType->NoExtraSelfHealOrRepair)
+		return SkipGameDrawing;
 
 	// if (const auto pFoot = generic_cast<FootClass*>(pThis)){
 	// 	if (const auto pParasiteFoot = pFoot->ParasiteEatingMe) {
@@ -310,7 +318,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 
 			// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
 			if (i != 0)
-				delay = MaxImpl(delay , 1);
+				delay = MaxImpl(delay, 1);
 
 			cumulativeDelay += delay;
 
@@ -344,26 +352,52 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0xC4, 0x10));
+	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0xC4, 0xC));
 
 	if (pSource)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		bool AllowRevenge = true;
 
-		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
-			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+		if (pWH)
 		{
-			WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
+			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+			AllowRevenge = !pWHExt->IgnoreRevenge;
+		}
+		auto SourCoords = pSource->GetCoords();
+
+		if (AllowRevenge)
+		{
+			if (pTypeExt->RevengeWeapon &&
+				EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+			{
+				WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
+			}
+
+			for (const auto& weapon : pExt->RevengeWeapons)
+			{
+				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
+					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
+			}
 		}
 
-		for (const auto& weapon : pExt->RevengeWeapons)
+		for (auto& attachEffect : pExt->PhobosAE)
 		{
-			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis , true, nullptr);
+			if (!attachEffect.IsActive())
+				continue;
+
+			auto const pType = attachEffect.GetType();
+
+			if (!pType->RevengeWeapon)
+				continue;
+
+			if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis, true, nullptr);
 		}
 	}
 
-	if(pThis->AttachedBomb)
+	if (pThis->AttachedBomb)
 		pThis->AttachedBomb->Detonate();
 
 	return 0x702684;
@@ -371,11 +405,12 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 
 DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 {
-	enum { SkipExploding = 0x702672 , SkipKillingPassengers = 0x702669 };
+	enum { SkipExploding = 0x702672, SkipKillingPassengers = 0x702669 };
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis->WhatAmI() == AbstractType::Building) {
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
 		if (!BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup && (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling))
 			return SkipExploding;
 	}
@@ -383,11 +418,83 @@ DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 	return !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
 }
 
+// TODO :
+// yeah , fuckers !!
+ struct VampireState {
+	 struct Data {
+	   bool Enabled;
+	   bool AffectAir;
+	   AffectedHouse Affected_House;
+	   AbstractType Affected_abs;
+	   HelperedVector<TechnoTypeClass*> Affected_Types;
+	   HelperedVector<TechnoTypeClass*> Exclude_Types;
+	   Vector2D<double> Chances;
+	   double Percent;
+	   int TriggeredTimes;
+	 };
+
+	 HelperedVector<Data> Packed {};
+
+	 consteval void Clear() {
+		 Packed.clear();
+	 }
+
+	 constexpr bool Enabled() {
+		 return !Packed.empty();
+	 }
+
+	 //only add the data that can affect this current techno
+	 void Init()
+	 {
+
+	 }
+
+	 //update trigger count
+	 void Trigger() {
+		 for (auto& data : Packed) {
+			 if (data.Enabled && data.TriggeredTimes > 0) {
+				 --data.TriggeredTimes;
+
+				 if (data.TriggeredTimes <= 0)
+					 data.Enabled = false;
+			 }
+		 }
+	 }
+
+	 // apply the multiplier to the attacker ??
+	 void Apply() {
+
+	 }
+	 constexpr bool Eligible(TechnoClass* attacker, HouseClass* attackerOwner , bool isInAir) {
+
+
+
+
+		 return true;
+	 }
+ };
+
+// void NOINLINE ApplyVampire(int* pRealDamage, WarheadTypeClass* pWH, DamageState damageState, TechnoClass* pAttacker, HouseClass* pAttackingHouse)
+// {
+// 	if(!pAttacker || !pAttacker->IsAlive || pAttacker->IsCrashing || pAttacker->IsSinking || pAttacker->TemporalTargetingMe)
+// 		return;
+
+// 	bool inAir = pTechno->IsInAir();
+
+// 	vampireEffect->Trigger();
+// 	int damage = -(int)(*pRealDamage * ae->AEData.Vampire.Percent);
+// 	if (damage != 0) {
+// 		pAttacker->TakeDamage(damage, pAttacker->GetTechnoType()->Crewed, true, pAttacker, pAttackingHouse);
+// 	}
+// }
+
 DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(int* const, pDamage, EBX);
 	GET(WarheadTypeClass*, pWH, EBP);
+	//GET_STACK(TechnoClass*, pAttacker, 0xD4);
+	//GET_STACK(HouseClass*, pAttackingHouse, 0xE0);
 
 	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
 
@@ -398,7 +505,8 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 
 	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pWH, damageState);
 
-	if(damageState != DamageState::PostMortem && !pThis->IsAlive) {
+	if (damageState != DamageState::PostMortem && !pThis->IsAlive)
+	{
 		R->EAX(DamageState::NowDead);
 		return 0x702688;
 	}
@@ -446,10 +554,13 @@ DEFINE_HOOK(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
 	Point2D size = Point2D::Empty;
 	const auto pType = pThis->GetTechnoType();
 
-	if (pType->PipScale == PipScale::Ammo) {
+	if (pType->PipScale == PipScale::Ammo)
+	{
 		size = TechnoTypeExtContainer::Instance.Find(pType)->AmmoPipSize.Get((isBuilding ?
 			RulesExtData::Instance()->Pips_Ammo_Buildings_Size : RulesExtData::Instance()->Pips_Ammo_Size));
-	} else {
+	}
+	else
+	{
 		size = (isBuilding ? RulesExtData::Instance()->Pips_Generic_Buildings_Size : RulesExtData::Instance()->Pips_Generic_Size).Get();
 	}
 
@@ -473,7 +584,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 	GET_STACK(SHPStruct*, pDefault, 0x74 - 0x48);
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	Point2D position = { offset->X + pTypeExt->AmmoPipOffset->X, offset->Y  + pTypeExt->AmmoPipOffset->Y};
+	Point2D position = { offset->X + pTypeExt->AmmoPipOffset->X, offset->Y + pTypeExt->AmmoPipOffset->Y };
 	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette ?
 		pTypeExt->AmmoPip_Palette->GetConvert<PaletteManager::Mode::Default>()
 		: FileSystem::PALETTE_PAL();

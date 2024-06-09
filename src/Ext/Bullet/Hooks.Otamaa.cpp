@@ -60,7 +60,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	GET(WarheadTypeClass*, pWarhead, EAX);
 
 	auto pExt = BulletExtContainer::Instance.Find(pThis);
-	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindCivilianSide());
+	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
 	auto const& nDebrisTypes = pWarhead->DebrisTypes;

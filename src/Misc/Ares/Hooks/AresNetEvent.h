@@ -16,6 +16,17 @@ public:
 		Last = FirewallToggle
 	};
 
+	template<bool timestamp , class T , typename... ArgTypes>
+	static void AddToEvent(EventClass& event, ArgTypes... args) {
+		T type { args... };
+		memcpy(&event.Data.nothing, &type, T::size());
+
+		if constexpr (timestamp)
+			EventClass::AddEventWithTimeStamp(&event);
+		else
+			EventClass::AddEvent(&event);
+	}
+
 	struct TrenchRedirectClick
 	{
 		TrenchRedirectClick(CellStruct* target, BuildingClass* source);

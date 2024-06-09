@@ -48,8 +48,8 @@ struct Game
 	//"01AF9993-3492-11d3-8F6F-0060089C05B1"
 	static constexpr reference<HANDLE, 0xB0BCE8u> const AutoPlayMutex {};
 
-	static constexpr reference<CDTimerClass, 0x887348> const FrameTimer {};
-	static constexpr reference<CDTimerClass, 0x887328> const NFTTimer {};
+	static constexpr reference<SystemTimerClass, 0x887348> const FrameTimer {};
+	static constexpr reference<SystemTimerClass, 0x887328> const NFTTimer {};
 	static constexpr reference<int, 0x8A00A8u> const ScreenHeight {};
 	static constexpr reference<int, 0x8A00A4u> const ScreenWidth {};
 	static constexpr reference<bool, 0xA8EDDCu> const SpeedControl {};
@@ -139,9 +139,9 @@ struct Game
 	static constexpr reference<bool, 0xA8B8B5u> const DrawMPDebugStats{};
 	static constexpr reference<bool, 0xB04880u> const EnableMPSyncDebug{};
 
-	static struct Network
+	struct Network
 	{
-	public:
+
 		static constexpr reference<u_short, 0x841F30u> const ListenPort {};
 		static constexpr reference<int, 0xB779C4u> const Tournament {};
 		static constexpr reference<DWORD, 0xB779D4u> const WOLGameID {};
@@ -149,17 +149,33 @@ struct Game
 		static constexpr reference<int, 0xB73814u> const GameStockKeepingUnit {};
 		static constexpr reference<int, 0xA8B24Cu> const ProtocolVersion {};
 		static constexpr reference<int, 0xA8B554u> const FrameSendRate {};
-		static constexpr reference<int, 0xA8B570u> const PreCalcFrameRate{};
+		static constexpr reference<int, 0xA8B570u> const PreCalcFrameRate {};
 		static constexpr reference<int, 0x83737Cu> const ReconnectTimeout {};
 		static constexpr reference<int, 0xA8B550u> const MaxAhead {};
-		static constexpr reference<int, 0xA8B56Cu> const PreCalcMaxAhead{};
+		static constexpr reference<int, 0xA8B56Cu> const PreCalcMaxAhead {};
 		static constexpr reference<int, 0xA8B568u> const MaxMaxAhead {};
 		static constexpr reference<int, 0xA8DB9Cu> const LatencyFudge {};
 		static constexpr reference<int, 0xA8B558u> const RequestedFPS {};
 
-		static bool Init()
+		static bool __fastcall Init()
 		{ JMP_STD(0x5DA6C0); }
-	} Network;
+	};
+
+	static bool __fastcall File_Finder_Start(char* filename) {
+		JMP_STD(0x47AF70);
+	}
+
+	static bool __fastcall File_Finder_Next_Name(char* filename) {
+		JMP_STD(0x47B0C0);
+	}
+
+	static void File_Finder_End() {
+		JMP_STD(0x47B130);
+	}
+
+	static int __fastcall Get_Volume_Index(int timeout) {
+		JMP_STD(0x4790A0);
+	}
 
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
@@ -170,7 +186,7 @@ struct Game
 		CALL(0x7C5F00);
 	}
 
-	static int __forceinline AdjustHeight(int height)  {
+	static int FORCEINLINE AdjustHeight(int height)  {
 		return F2I((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 
@@ -186,9 +202,8 @@ struct Game
 		JMP_STD(0x7DC720);
 	}
 
-	static void ClearScenario()
-	{
-		JMP_STD(0x6851F0);
+	static void ClearScenario() {
+		CALL(0x6851F0);
 	}
 
 	// actually is SessionClass::Callback
@@ -196,7 +211,7 @@ struct Game
 	{ SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
 
 	static void CallBack()
-	{ JMP_STD(0x48D080); }
+	{ CALL(0x48D080); }
 
 	static int __fastcall GetResource(int ID, int Type)
 	{ JMP_STD(0x4A3B40); }
@@ -225,11 +240,11 @@ struct Game
 	static void __fastcall UICommands_TypeSelect_7327D0(const char* iniName)
 	{ JMP_STD(0x7327D0); }
 
-	static bool IsTypeSelecting()
+	static bool __fastcall IsTypeSelecting()
 	{ JMP_STD(0x732D00); }
 
 	static double GetFloaterGravity()
-	{ JMP_STD(0x48ACF0); }
+	{ CALL(0x48ACF0); }
 
 	static void __fastcall KeyboardProcess(DWORD& input)
 	{ JMP_STD(0x55DEE0); }
@@ -238,12 +253,12 @@ struct Game
 	{ JMP_STD(0x4093B0); }
 
 	static void InitRandom()
-	{ JMP_STD(0x52FC20); }
+	{ CALL(0x52FC20); }
 
 	static void ShowSpecialDialog()
-	{ JMP_STD(0x48C8B0); }
+	{ CALL(0x48C8B0); }
 
-	static bool InitNetwork()
+	static bool __fastcall InitNetwork()
 	{ JMP_STD(0x5DA6C0); }
 
 	static void InitUIStuff()
@@ -803,12 +818,16 @@ struct MovieUnlockableInfo
 	static constexpr reference<MovieUnlockableInfo, 0x832C30u, 8u> const Allied {};
 	static constexpr reference<MovieUnlockableInfo, 0x832CA0u, 8u> const Soviet {};
 
-	MovieUnlockableInfo() = default;
+	constexpr MovieUnlockableInfo() = default;
 
-	explicit MovieUnlockableInfo(const char* pFilename, const char* pDescription = nullptr, int disk = 2)
+	constexpr explicit MovieUnlockableInfo(const char* pFilename, const char* pDescription = nullptr, int disk = 2)
 		: Filename(pFilename), Description(pDescription), DiskRequired(disk)
 	{
 	}
+
+	// the destructor doesnt delete the string data
+	// please manage them
+	~MovieUnlockableInfo() = default;
 
 	const char* Filename { nullptr };
 	const char* Description { nullptr };
@@ -876,7 +895,7 @@ namespace Unsorted
 	constexpr constant_ptr<char, 0x8A3A08> const except_txt_content {};
 
 	// Note: SomeMutex has been renamed to this because it reflects the usage better
-	reference<int, 0xA8E7AC> const ScenarioInit {}; // h2ik
+	constexpr reference<int, 0xA8E7AC> const ScenarioInit {}; // h2ik
 	constexpr reference<int , 0xB1D480> const ScenarioInit_Audio {};
 	constexpr reference<int, 0xA8DAB4> const SystemResponseMessages {};
 
@@ -899,6 +918,6 @@ struct CheatData
 	DWORD unknown2;
 
 	// this holds four original cheats, keep that limit in mind
-	static constexpr constant_ptr<CheatData, 0x825C28> OriginalCheats {};
+	static constexpr reference<CheatData, 0x825C28 , 4u> OriginalCheats {};
 };
 

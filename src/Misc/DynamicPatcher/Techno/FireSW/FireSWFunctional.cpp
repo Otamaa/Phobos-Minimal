@@ -21,10 +21,16 @@ void FireSWFunctional::OnFire(TechnoClass* pThis, AbstractClass* pTarget, int nW
 							{
 								CoordStruct targetPos = pTarget && pTypeExt->SWFireData.ToTarget.Get() ? pTarget->GetCoords() : pThis->GetCoords();
 								CellStruct cell = CellClass::Coord2Cell(targetPos);
-								pSuperDecided->IsCharged = true;
+								int oldstart = pSuperDecided->RechargeTimer.StartTime;
+								int oldleft = pSuperDecided->RechargeTimer.TimeLeft;
+								pSuperDecided->SetReadiness(true);
 								pSuperDecided->Launch(cell, true);
-								pSuperDecided->IsCharged = false;
 								pSuperDecided->Reset();
+
+								if (!pTypeExt->SWFireData.RealLaunch) {
+									pSuperDecided->RechargeTimer.StartTime = oldstart;
+									pSuperDecided->RechargeTimer.TimeLeft = oldleft;
+								}
 							}
 						}
 					}

@@ -61,38 +61,41 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 			return retDead;
 	}
 
-	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
-	// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-	if ((!pBulletExt->LaserTrails.empty()))
-	{
-		const CoordStruct& location = pThis->Location;
-		const VelocityClass& velocity = pThis->Velocity;
 
-		// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
-		// Pretty meh solution but works until we fix the bug - Kerbiter
-		CoordStruct drawnCoords
+	if(!pBulletExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pBulletExt->Trajectory)){
+
+		// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
+		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
+		if ((!pBulletExt->LaserTrails.empty()))
 		{
-			(int)(location.X + velocity.X),
-			(int)(location.Y + velocity.Y),
-			(int)(location.Z + velocity.Z)
-		};
+			const CoordStruct& location = pThis->Location;
+			const VelocityClass& velocity = pThis->Velocity;
 
-		for (auto& trail : pBulletExt->LaserTrails)
-		{
-			// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
-			// TODO move hack to BulletClass creation
-			if (!trail.LastLocation.isset())
-				trail.LastLocation = location;
+			// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
+			// Pretty meh solution but works until we fix the bug - Kerbiter
+			CoordStruct drawnCoords
+			{
+				(int)(location.X + velocity.X),
+				(int)(location.Y + velocity.Y),
+				(int)(location.Z + velocity.Z)
+			};
 
-			if (trail.Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
-				trail.CurrentColor = pBulletExt->Owner->LaserColor;
+			for (auto& trail : pBulletExt->LaserTrails)
+			{
+				// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
+				// TODO move hack to BulletClass creation
+				if (!trail.LastLocation.isset())
+					trail.LastLocation = location;
 
-			trail.Update(drawnCoords);
+				if (trail.Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
+					trail.CurrentColor = pBulletExt->Owner->LaserColor;
+
+				trail.Update(drawnCoords);
+			}
 		}
+
+		TrailsManager::AI(pThis);
 	}
-
-	TrailsManager::AI(pThis);
-
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
 	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
 
@@ -169,7 +172,9 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
+			auto const originalLocation = pThis->Location;
 			const auto pHouse = BulletExtData::GetHouse(pThis);
+			BulletExtContainer::Instance.Find(pThis)->OriginalTarget = pThis->Target;
 			std::vector<TechnoClass*> targets;
 
 			 for (auto const pTechno : *TechnoClass::Array) {
@@ -197,6 +202,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 }
 
 				 pThis->Target = pTarget;
+				 pThis->Location = pTarget->GetCoords();
 				 pThis->Detonate(pTarget->GetCoords());
 
 				 if (!BulletExtData::IsReallyAlive(pThis))  {
@@ -204,6 +210,8 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 }
 			 }
 
+			pThis->Target = BulletExtContainer::Instance.Find(pThis)->OriginalTarget;
+			pThis->Location = originalLocation;
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			return ReturnFromFunction;
 		}

@@ -82,9 +82,6 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 			auto pExt = BulletExtContainer::Instance.Find(pBullet);
 			auto type = this->GetTrajectoryType();
 
-			pExt->LaserTrails.clear();
-			pExt->Trails.clear();
-
 			this->IsFalling = true;
 			pSpeed->X = 0.0;
 			pSpeed->Y = 0.0;
@@ -98,9 +95,10 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 			pPosition->Y = pBullet->TargetCoords.Y;
 			pPosition->Z = pBullet->TargetCoords.Z + type->Height;
 
+			pExt->LaserTrails.clear();
 			pExt->InitializeLaserTrails();
-
-			TrailsManager::Construct(pBullet);
+			TrailsManager::CleanUp(pExt->AttachedToObject);
+			TrailsManager::Construct(pExt->AttachedToObject);
 
 		}
 	}

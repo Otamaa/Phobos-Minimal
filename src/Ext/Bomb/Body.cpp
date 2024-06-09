@@ -39,7 +39,7 @@ DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
 DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6)
 {
 	GET(BombClass*, pItem, ESI);
-#
+
 	BombExtContainer::Instance.Allocate(pItem);
 
 	return 0;

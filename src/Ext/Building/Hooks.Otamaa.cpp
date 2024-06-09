@@ -139,10 +139,6 @@ DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0xA)
 
 #pragma endregion
 
-DEFINE_HOOK(0x6FD335, TechnoClass_LaserZap_ZAdjust, 0x7)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(CoordStruct*, pBuffer, EAX);
-	R->EAX(pThis->GetCenterCoords(pBuffer));
-	return 0x6FD33C;
-}
+// use GetCenterCoords instead of GetCoords for
+// TechnoClass::FireLaser
+DEFINE_PATCH(0x6FD338 ,0x58);

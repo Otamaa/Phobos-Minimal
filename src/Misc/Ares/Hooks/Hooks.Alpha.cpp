@@ -82,7 +82,7 @@ DEFINE_HOOK(0x420960, AlphaShapeClass_CTOR, 5)
 
 
 	//insert new key ,..
-	StaticVars::ObjectLinkedAlphas.empalace_unchecked(pSource, pThis);
+	StaticVars::ObjectLinkedAlphas.emplace_unchecked(pSource, pThis);
 	return 0;
 }
 

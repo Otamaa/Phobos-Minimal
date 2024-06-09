@@ -5,6 +5,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 // Contains ScriptExtData::Mission_Attack and its helper functions.
 
@@ -226,7 +227,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		if (selectedTarget)
 		{
-			ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
+	/*		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -234,7 +235,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 				scriptArgument,
 				pTeamData->TeamLeader->get_ID(), pTeamData->TeamLeader->UniqueID,
 				selectedTarget->get_ID(),
-				selectedTarget->UniqueID);
+				selectedTarget->UniqueID);*/
 
 			pTeam->Focus = selectedTarget;
 			pFocus = selectedTarget;
@@ -489,8 +490,14 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 		if (!agentMode)
 		{
-			if (weaponType && GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead, TechnoExtData::GetArmor(object)) == 0.0)
-				continue;
+			if (weaponType){
+				if(GeneralUtils::GetWarheadVersusArmor(
+					weaponType->Warhead,
+					TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
+					== 0.0
+				)
+					continue;
+				}
 
 			if (object->IsInAir() && !unitWeaponsHaveAA)
 				continue;
@@ -793,8 +800,8 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0;
 			const auto pWeaponPrimary = TechnoExtData::GetCurrentWeapon(pTechno);
 			const auto pWeaponSecondary = TechnoExtData::GetCurrentWeapon(pTechno , true);
-			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (pWeaponPrimary->Range / 256.0 * 4.0);
-			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (pWeaponSecondary->Range / 256.0 * 4.0);
+			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponPrimary, pTechno) / 256.0 * 4.0);
+			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponSecondary, pTechno) / 256.0 * 4.0);
 			const bool guardRangeCheck = pTeamLeader->GetTechnoType()->GuardRange > 0 && distanceToTarget <= (pTeamLeader->GetTechnoType()->GuardRange / 256.0 * 2.0);
 
 			return primaryCheck

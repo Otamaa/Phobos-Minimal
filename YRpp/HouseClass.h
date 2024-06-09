@@ -15,6 +15,7 @@
 #include <UnitClass.h>
 #include <UnitTypeClass.h>
 #include <ocidl.h>
+#include <ScenarioClass.h>
 
 //forward declarations
 class AnimClass;
@@ -166,7 +167,7 @@ public:
 	BaseNodeClass* GetNode(CellStruct* a2)
 		{ JMP_THIS(0x42EA30); }
 
-	BaseNodeClass* NextBuildable(int type)
+	BaseNodeClass* NextBuildable(int type = -1)
 		{ JMP_THIS(0x42EB20); }
 
 	void ReadINI(CCINIClass* ini, char* hname)
@@ -266,7 +267,7 @@ public:
 	virtual ~HouseClass() override JMP_THIS(0x50E380);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4FB9B0);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x4FB9B0);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int	Size() const override R0;
 	//virtual void Update() override JMP_THIS(0x4F8440);
@@ -275,6 +276,7 @@ public:
 		JMP_THIS(0x5095D0);
 	}
 
+#ifdef _INLINED_VERSION
 	bool IsAlliedWith_(int idxHouse) const
 	{
 		if (idxHouse == this->ArrayIndex)
@@ -309,6 +311,18 @@ public:
 		return this->IsAlliedWith_(pAbstract->GetOwningHouse());
 	}
 
+	bool IsMutualAllies(HouseClass const* pHouse) const
+	{
+		return pHouse == this
+			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
+	}
+
+#endif
+
+#pragma region NonInline
+	// we use these to ensure if their functionality changes
+	// we dont need to do more changes everywhere
+
 	bool IsAlliedWith(int idxHouse) const
 		{ JMP_THIS(0x4F9A10); }
 
@@ -320,11 +334,7 @@ public:
 
 	bool IsAlliedWith(AbstractClass const* pAbstract) const
 		{ JMP_THIS(0x4F9AF0); }
-
-	bool IsMutualAllie(HouseClass const* pHouse) const {
-		return pHouse == this
-			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
-	}
+#pragma endregion
 
 	void MakeAlly(int iHouse, bool bAnnounce)
 		{ JMP_THIS(0x4F9B50); }
@@ -340,7 +350,6 @@ public:
 
 	void UpdateAngerNodes(int nScoreAdd, HouseClass* pHouse)
 		{ JMP_THIS(0x504790); }
-
 
 	void AllyAIHouses()
 		{ JMP_THIS(0x501640); }
@@ -530,7 +539,15 @@ public:
 		return nullptr;
 	}
 
-	int GetSpawnPosition() const;
+	constexpr int GetSpawnPosition() const {
+		for (int i = 0; i < HouseClass::MaxPlayers; i++) {
+			if (HouseClass::Array->GetItemOrDefault(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
+				return i;
+		}
+
+		return -1;
+	}
+
 
 	// gets the first house of a type with this name
 	static HouseClass* FindBySideName(const char* name) {
@@ -658,21 +675,39 @@ public:
 	{ JMP_THIS(0x4FF550); }
 
 	//  Count owned now
-	int CountOwnedNow(TechnoTypeClass const* pItem) const;
-
-	int CountOwnedNow(BuildingTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(TechnoTypeClass const* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<BuildingTypeClass const*>(pItem));
+		case UnitTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<UnitTypeClass const*>(pItem));
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<InfantryTypeClass const*>(pItem));
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedNow(
+				static_cast<AircraftTypeClass const*>(pItem));
+		default:
+			return 0;
+		}
+	}
+	constexpr int CountOwnedNow(BuildingTypeClass const* const pItem) const {
 		return this->OwnedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(AircraftTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(AircraftTypeClass const* const pItem) const {
 		return this->OwnedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(InfantryTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(InfantryTypeClass const* const pItem) const {
 		return this->OwnedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedNow(UnitTypeClass const* const pItem) const {
+	constexpr int CountOwnedNow(UnitTypeClass const* const pItem) const {
 		return this->OwnedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -685,21 +720,36 @@ public:
 	{ JMP_THIS(0x5025F0); }
 
 	// Count owned and present
-	int CountOwnedAndPresent(TechnoTypeClass* pItem) const;
+	constexpr int CountOwnedAndPresent(TechnoTypeClass* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedAndPresent((BuildingTypeClass*)pItem);
+		case UnitTypeClass::vtable:
+			return this->CountOwnedAndPresent((UnitTypeClass*)pItem);
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedAndPresent((InfantryTypeClass*)pItem);
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedAndPresent((AircraftTypeClass*)pItem);
+		default:
+			return 0;
+		}
+	}
 
-	int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
 		return this->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
 		return this->ActiveAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
 		return this->ActiveInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedAndPresent(UnitTypeClass* pItem) const {
+	constexpr int CountOwnedAndPresent(UnitTypeClass* pItem) const {
 		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -707,24 +757,38 @@ public:
 	{ JMP_THIS(0x4FB6B0); }
 
 	// Count owned ever
-	int CountOwnedEver(TechnoTypeClass* pItem) const;
+	constexpr int CountOwnedEver(TechnoTypeClass* pItem) const
+	{
+		switch (VTable::Get(pItem))
+		{
+		case BuildingTypeClass::vtable:
+			return this->CountOwnedEver((BuildingTypeClass*)pItem);
+		case UnitTypeClass::vtable:
+			return this->CountOwnedEver((UnitTypeClass*)pItem);
+		case InfantryTypeClass::vtable:
+			return this->CountOwnedEver((InfantryTypeClass*)pItem);
+		case AircraftTypeClass::vtable:
+			return this->CountOwnedEver((AircraftTypeClass*)pItem);
+		default:
+			return 0;
+		}
+	}
 
-	int CountOwnedEver(BuildingTypeClass* pItem) const {
+	constexpr int CountOwnedEver(BuildingTypeClass* pItem) const {
 		return this->FactoryProducedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(AircraftTypeClass* pItem) const {
+	constexpr int CountOwnedEver(AircraftTypeClass* pItem) const {
 		return this->FactoryProducedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(InfantryTypeClass* pItem) const {
+	constexpr int CountOwnedEver(InfantryTypeClass* pItem) const {
 		return this->FactoryProducedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	int CountOwnedEver(UnitTypeClass* pItem) const {
+	constexpr int CountOwnedEver(UnitTypeClass* pItem) const {
 		return this->FactoryProducedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
-
 
 	bool HasFromSecretLab(TechnoTypeClass* pItem) const {
 		for(const auto& pLab : this->SecretLabs) {
@@ -735,7 +799,7 @@ public:
 		return false;
 	}
 
-	bool HasAllStolenTech(TechnoTypeClass* pItem) const {
+	constexpr bool HasAllStolenTech(TechnoTypeClass* pItem) const {
 		if(pItem->RequiresStolenAlliedTech && !this->Side0TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenSovietTech && !this->Side1TechInfiltrated) { return false; }
 		if(pItem->RequiresStolenThirdTech && !this->Side2TechInfiltrated) { return false; }
@@ -821,7 +885,7 @@ public:
 	void SetPrimaryFactory(FactoryClass* pFactory, AbstractType absID, bool naval, BuildCat buildCat)
 		{ JMP_THIS(0x500850); }
 
-	const CellStruct& GetBaseCenter() const {
+	constexpr const CellStruct& GetBaseCenter() const {
 		if(this->BaseCenter.IsValid()) {
 			return this->BaseCenter;
 		} else {
@@ -837,23 +901,20 @@ public:
 		this->BaseSpawnCell = place;
 	}
 
-	unsigned int FORCEINLINE GetAIDifficultyIndex() const {
+	constexpr unsigned int FORCEINLINE GetAIDifficultyIndex() const {
 		return static_cast<unsigned int>(this->AIDifficulty);
 	}
 
-	unsigned int GetCorrectAIDifficultyIndex() const
+	constexpr unsigned int GetCorrectAIDifficultyIndex() const
 	{
 		switch (AIDifficulty)
 		{
 		case AIDifficulty::Hard:
 			return 2;
-		break;
 		case AIDifficulty::Normal:
 			return 1;
-		break;
 		default:
 			return 0;
-		break;
 		}
 	}
 
@@ -867,12 +928,12 @@ public:
 		\author Renegade
 		\date 01.03.10
 	*/
-	bool IsNeutral() const {
+	constexpr bool IsNeutral() const {
 		return this->Type->MultiplayPassive;
 	}
 
 	// whether this house is equal to Player
-	bool IsCurrentPlayer() const {
+	constexpr bool IsCurrentPlayer() const {
 		return this == CurrentPlayer;
 	}
 
@@ -888,7 +949,7 @@ public:
 	//}
 
 	// whether this house is equal to Observer
-	bool IsObserver() const {
+	constexpr bool IsObserver() const {
 
 		return (this == Observer //|| !CRT::strcmpi(get_ID(), "Observer")
 			);
@@ -896,7 +957,7 @@ public:
 	}
 
 	// whether Player is equal to Observer
-	static bool IsCurrentPlayerObserver() {
+	constexpr static bool IsCurrentPlayerObserver() {
 		return CurrentPlayer && CurrentPlayer->IsObserver();
 	}
 
@@ -912,9 +973,9 @@ public:
 	void AddTracking(TechnoClass* pTechno)
 	{ JMP_THIS(0x4FF700); }
 
-	Edge GetHouseEdge() const
+	constexpr Edge GetHouseEdge() const
 	{
-		auto edge = this->StartingEdge;
+		auto edge = this->StaticData.StartingEdge;
 		if (edge < Edge::North || edge > Edge::West)
 		{
 			edge = this->Edge;
@@ -1002,7 +1063,7 @@ public:
 		JMP_THIS(0x4FAA10);
 	}
 
-	bool MakeObserver() const
+	constexpr bool MakeObserver() const
 	{
 		if (HouseClass::CurrentPlayer != this)
 			return false;
@@ -1011,7 +1072,7 @@ public:
 		return true;
 	}
 
-	bool inline IsInitiallyObserver() const
+	constexpr bool inline IsInitiallyObserver() const
 	{
 		return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);
 	}
@@ -1062,13 +1123,13 @@ public:
 	double                BuildTimeMultiplier; // ... unused ends
 	double                RepairDelay;
 	double                BuildDelay;
-	//struct StaticDataClass {
-	int                   IQLevel;
-	int                   TechLevel;
-	IndexBitfield<HouseClass*> AltAllies;        // ask question, receive brain damage
-	int                   StartingCredits;       // not sure how these are used // actual credits = this * 100
-	Edge                  StartingEdge;
-	//}StaticData;
+	struct StaticClass {
+		int                   IQLevel;
+		int                   TechLevel;
+		IndexBitfield<HouseClass*> AltAllies;        // ask question, receive brain damage
+		int                   StartingCredits;       // not sure how these are used // actual credits = this * 100
+		Edge                  StartingEdge;
+	}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
 	bool                  IsHumanPlayer;	// 1EC	,is controlled by the player at this computer ,IsHuman
@@ -1257,7 +1318,7 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<AngerStruct>, AngerNodes); //arghghghgh bugged
 	DECLARE_PROPERTY(DynamicVectorClass<ScoutStruct>, ScoutNodes); // filled with data which is never used, jood gob WW
 	DECLARE_PROPERTY(CDTimerClass, AITimer);
-	DECLARE_PROPERTY(CDTimerClass, Unknown_Timer_5640);
+	DECLARE_PROPERTY(CDTimerClass, ExpertAITimer);
 	int                   ProducingBuildingTypeIndex;
 	int                   ProducingUnitTypeIndex;
 	int                   ProducingInfantryTypeIndex;

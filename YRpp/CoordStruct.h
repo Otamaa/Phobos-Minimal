@@ -59,7 +59,7 @@ public:
 	//	return std::make_tuple(X, Y, Z);
 	//}
 
-	CellStruct FORCEINLINE TocellStruct()
+	constexpr FORCEINLINE CellStruct TocellStruct()
 	{
 		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };
 	}
@@ -68,14 +68,14 @@ public:
 	//	return X || Y || Z;
 	//}
 
-	bool FORCEINLINE IsValid() const {
+	constexpr FORCEINLINE bool IsValid() const {
 		return X || Y || Z;
 	}
 
-	CoordStruct operator+(const CoordStruct& nThat) const
+	constexpr CoordStruct operator+(const CoordStruct& nThat) const
 	{ return { X + nThat.X, Y + nThat.Y, Z + nThat.Z }; }
 
-	CoordStruct operator+(const CoordStruct& nThat)
+	constexpr CoordStruct operator+(const CoordStruct& nThat)
 	{
 		X += nThat.X;
 		Y += nThat.Y;
@@ -84,10 +84,10 @@ public:
 
 	}
 
-	CoordStruct operator+(int nThat ) const
+	constexpr CoordStruct operator+(int nThat ) const
 	{ return { X + nThat, Y + nThat, Z + nThat }; }
 
-	CoordStruct operator+(int nThat)
+	constexpr CoordStruct operator+(int nThat)
 	{
 		X += nThat;
 		Y += nThat;
@@ -95,7 +95,7 @@ public:
 		return *this;
 	}
 
-	CoordStruct& operator+=(const CoordStruct& nThat)
+	constexpr CoordStruct& operator+=(const CoordStruct& nThat)
 	{
 		X += nThat.X;
 		Y += nThat.Y;
@@ -103,23 +103,23 @@ public:
 		return *this;
 	}
 
-	CoordStruct operator+=(const double nThat) {
+	constexpr CoordStruct operator+=(const double nThat) {
 		return { static_cast<int>(X + nThat) ,static_cast<int>(Y + nThat) ,static_cast<int>(Z + nThat) };
 	}
 
-	CoordStruct operator-(const CoordStruct& nThat) const
+	constexpr CoordStruct operator-(const CoordStruct& nThat) const
 	{ return { (X - nThat.X), (Y - nThat.Y), (Z - nThat.Z) }; }
 
-	CoordStruct operator-(int nval) const
+	constexpr CoordStruct operator-(int nval) const
 	{ return { X - nval, Y - nval, Z - nval }; }
 
-	CoordStruct operator/(int nval) const
+	constexpr CoordStruct operator/(int nval) const
 	{ return { X / nval, Y / nval, Z / nval }; }
 
-	CoordStruct operator/(double ndVal) const
+	constexpr CoordStruct operator/(double ndVal) const
 	{ return { static_cast<int>(X / ndVal), static_cast<int>(Y / ndVal), static_cast<int>(Z / ndVal) };}
 
-	CoordStruct& operator-=(const CoordStruct& nThat)
+	constexpr CoordStruct& operator-=(const CoordStruct& nThat)
 	{
 		X -= nThat.X;
 		Y -= nThat.Y;
@@ -127,13 +127,13 @@ public:
 		return *this;
 	}
 
-	CoordStruct operator-() const
+	constexpr CoordStruct operator-() const
 	{ return { -X, -Y, -Z }; }
 
 	//CoordStruct operator*(const CoordStruct& nThat) const
 	//{ return { X * nThat.X, Y * nThat.Y, Z * nThat.Z }; }
 
-	CoordStruct& operator*=(const CoordStruct& nThat)
+	constexpr CoordStruct& operator*=(const CoordStruct& nThat)
 	{
 		X *= nThat.X;
 		Y *= nThat.Y;
@@ -142,11 +142,11 @@ public:
 	}
 
 	//scalar multiplication
-	CoordStruct operator*(double r) const
+	constexpr CoordStruct operator*(double r) const
 	{ return { static_cast<int>(X * r), static_cast<int>(Y * r), static_cast<int>(Z * r) }; }
 
 	//scalar multiplication
-	CoordStruct& operator*=(double r)
+	constexpr CoordStruct& operator*=(double r)
 	{
 		X = static_cast<int>(X * r);
 		Y = static_cast<int>(Y * r);
@@ -154,14 +154,14 @@ public:
 		return *this;
 	}
 
-	bool operator==(const CoordStruct& nThat) const
+	constexpr bool operator==(const CoordStruct& nThat) const
 	{ return (X == nThat.X && Y == nThat.Y && Z == nThat.Z); }
 
-	bool operator!=(const CoordStruct& nThat) const
+	constexpr bool operator!=(const CoordStruct& nThat) const
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
 	//vector multiplication
-	CoordStruct operator*(const CoordStruct& a) const
+	constexpr CoordStruct operator*(const CoordStruct& a) const
 	{
 		return { X * a.X , Y * a.Y , Z * a.Z };
 	}
@@ -171,11 +171,20 @@ public:
 	//inline int& operator[](int i) { return (&X)[i]; }
 	//inline const int& operator[](int i) const { return (&X)[i]; }
 
-	inline int& at(int i) { return (&X)[i]; }
-	inline const int& at(int i) const { return (&X)[i]; }
+	constexpr FORCEINLINE int& at(int i) { return (&X)[i]; }
+	constexpr FORCEINLINE const int& at(int i) const { return (&X)[i]; }
+
+	//cross product
+	constexpr CoordStruct CrossProduct(const CoordStruct& a) const
+	{
+		return {
+			Y * a.Z - Z * a.Y,
+			Z * a.X - X * a.Z,
+			X * a.Y - Y * a.X };
+	}
 
 //=============================Special cases=========================================
-	inline double powXY() const {
+	constexpr FORCEINLINE double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}
 
@@ -187,7 +196,7 @@ public:
 		return (that - *this).LengthXY();
 	}
 
-	inline double DistanceFromSquaredXY(const CoordStruct& that) const {
+	constexpr FORCEINLINE double DistanceFromSquaredXY(const CoordStruct& that) const {
 		return (that - *this).powXY();
 	}
 
@@ -195,7 +204,7 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	inline double pow() const {
+	constexpr FORCEINLINE double pow() const {
 		return (double)(X * X) + (double)(Y * Y) + (double)(Z * Z);
 	}
 

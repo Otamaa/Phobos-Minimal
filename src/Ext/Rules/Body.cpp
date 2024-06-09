@@ -15,6 +15,9 @@
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
+#include <New/Type/TechTreeTypeClass.h>
+
+#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -62,14 +65,17 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	Nullable<double> Shield_ConditionGreen_d;
 	Nullable<double> Shield_ConditionYellow_d;
 	Nullable<double> Shield_ConditionRed_d;
+	Nullable<double> ConditionYellow_Terrain_d;
 
 	Shield_ConditionGreen_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionGreen");// somewhat never used , man
 	Shield_ConditionYellow_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionYellow");
 	Shield_ConditionRed_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionRed");
+	ConditionYellow_Terrain_d.Read(iniEX, AUDIOVISUAL_SECTION, "ConditionYellow.Terrain");
 
 	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
 	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
 	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
+	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionRed);
 }
 
 DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5){
@@ -123,6 +129,9 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
 
+	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
+	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
+
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
 
@@ -140,6 +149,26 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	HoverTypeClass::ReadListFromINI(pINI);
 	ShieldTypeClass::ReadListFromINI(pINI);
 	RadTypeClass::ReadListFromINI(pINI);
+	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
+	TechTreeTypeClass::ReadListFromINI(pINI);
+
+	//got invalidated early , so parse it again
+	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*>(iniEX, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
+	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*>(iniEX, pData->AITriggersLists, "AITriggersList");
+
+	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
+
+	if (!pData->ForceShield_KillOrganicsWarhead)
+		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
+	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "IronCurtain.KillOrganicsWarhead");
+
+	if (!pData->IronCurtain_KillOrganicsWarhead)
+		pData->IronCurtain_KillOrganicsWarhead = pThis->C4Warhead;
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
@@ -158,6 +187,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION , "VeinholeWarhead");
 
 	pData->WallTowers.Read(iniEX , GENERAL_SECTION , "WallTowers");
+	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
+		pData->WallTowers.push_back(pThis->WallTower);
 
 	pData->Promote_Vet_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.VeteranAnim");
 	pData->Promote_Elite_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.EliteAnim");
@@ -185,9 +216,6 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 
 #ifndef aaa
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-#else
-DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-#endif
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i){
@@ -474,10 +502,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	if (OverlayTypeClass::Array->Count > 255) {
-		Debug::Log("Reaching over 255 OverlayTypes!.\n");
-		Debug::RegisterParserError();
-	}
+	//if (OverlayTypeClass::Array->Count > 255) {
+	//	Debug::Log("Reaching over 255 OverlayTypes!.\n");
+	//	Debug::RegisterParserError();
+	//}
 
 	for (auto pWH : *WarheadTypeClass::Array) {
 		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
@@ -503,8 +531,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pBullet : *BulletTypeClass::Array) {
 
-		if(PhobosTrajectoryType::TrajectoryValidation(pBullet))
-			Debug::RegisterParserError();
+		//if(PhobosTrajectoryType::TrajectoryValidation(pBullet))
+		//	Debug::RegisterParserError();
 
 		auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 		{
@@ -548,9 +576,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto pAnim : *AnimTypeClass::Array) {
-		AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
-	}
+	//for (auto pAnim : *AnimTypeClass::Array) {
+	//	AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
+	//}
 
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {
 		Debug::FatalErrorAndExit(
@@ -560,6 +588,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	return 0x0;
 }
+#endif
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -600,19 +629,28 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
+	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
+
+	double AirShadowBaseScale = 0.0;
+	if (detail::read<double>(AirShadowBaseScale ,exINI , GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
+		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
+
+	this->HeightShadowScaling.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling");
+	if (AirShadowBaseScale > 0.98 && this->HeightShadowScaling.Get())
+		this->HeightShadowScaling = false;
+
+	this->HeightShadowScaling_MinScale.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling.MinScale");
+
 	this->StartInMultiplayerUnitCost.Read(exINI, GENERAL_SECTION, "StartInMultiplayerUnitCost");
 	this->Buildings_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultDigitalDisplayTypes");
 	this->Infantry_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
 	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	this->Aircraft_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
-	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0)
-	{
-		bool temp[3];
-		int read = Parser<bool, 3>::Parse(Phobos::readBuffer, temp);
-
-		for (int i = 0; i < read; ++i)
-		{
+	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0) {
+		bool temp[3] {};
+		for (int i = 0; i < (int)Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i) {
 			int diffIdx = 2 - i; // remapping so that HouseClass::AIDifficulty can be used as an index
 			this->AllowBypassBuildLimit[diffIdx] = temp[i];
 		}
@@ -679,20 +717,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
 	this->AnimRemapDefaultColorScheme.Read(exINI, AUDIOVISUAL_SECTION, "AnimRemapDefaultColorScheme");
 
-	if (pThis->WallTower && !this->WallTowers.Contains(pThis->WallTower))
-		this->WallTowers.push_back(pThis->WallTower);
-
 	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
 	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);
 
 #pragma endregion
-
-	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*, true>(exINI, this->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHateHousesLists, "AIHateHousesList");
-	detail::ParseVector<HouseTypeClass*, true>(exINI, this->AIHousesLists, "AIHousesList");
-	detail::ParseVector(exINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector<AITriggerTypeClass*, true>(exINI, this->AITriggersLists, "AITriggersList");
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
@@ -735,7 +763,13 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
 	this->UseGlobalRadApplicationDelay.Read(exINI, GameStrings::Radiation, "UseGlobalRadApplicationDelay");
 
-	this->IronCurtain_SyncDeploysInto.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
+	this->IronCurtain_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
+	this->ForceShield_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "ForceShield.KeptOnDeploy");
+
+	this->ForceShield_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "ForceShield.EffectOnOrganics");
+
+	this->IronCurtain_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "IronCurtain.EffectOnOrganics");
+
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
@@ -816,14 +850,14 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DiskLaserAnimEnabled.Read(exINI, AUDIOVISUAL_SECTION, "DiskLaserAnimEnabled");
 
 	//TODO :Disabled atm
-	//this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
-	//this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
-	//this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
-	//this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
-	//this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
-	//this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
-	//this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
-	//this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
+	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
+	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
+	this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
+	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
+	this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
+	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
+	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
+	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
 	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
@@ -956,7 +990,12 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
 		.Process(this->UseGlobalRadApplicationDelay)
-		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->IronCurtain_KeptOnDeploy)
+		.Process(this->ForceShield_KeptOnDeploy)
+		.Process(this->ForceShield_EffectOnOrganics)
+		.Process(this->ForceShield_KillOrganicsWarhead)
+		.Process(this->IronCurtain_EffectOnOrganics)
+		.Process(this->IronCurtain_KillOrganicsWarhead)
 		.Process(this->ROF_RandomDelay)
 
 		.Process(this->ToolTip_Background_Color)
@@ -1138,9 +1177,17 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Shield_ConditionGreen)
 		.Process(this->Shield_ConditionYellow)
 		.Process(this->Shield_ConditionRed)
+		.Process(this->ConditionYellow_Terrain)
 
 		.Process(this->UnitCrateVehicleCap)
 		.Process(this->FreeMCV_CreditsThreshold)
+
+		.Process(this->AirShadowBaseScale_log)
+		.Process(this->HeightShadowScaling)
+		.Process(this->HeightShadowScaling_MinScale)
+
+		.Process(this->VeinsAttack_interval)
+		.Process(this->BuildingFlameSpawnBlockFrames)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -1404,10 +1451,11 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 
 	HouseClass::Array->for_each([](HouseClass* it) {
 		const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
-		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
 		it->PlainName ? it->PlainName : NONE_STR,
 		it->IsHumanPlayer,
 		ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
+		it->ColorSchemeIndex,
 		it->ArrayIndex,
 		pType ? pType->Name : NONE_STR,
 		it->Edge,

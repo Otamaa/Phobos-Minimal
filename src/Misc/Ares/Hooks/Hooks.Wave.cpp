@@ -230,8 +230,8 @@ DEFINE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 		{
 			auto nFirerCoord = pData->SourceCoord;
 			auto nTargetCoord = Target->GetCoords();
-			const auto nRange = (pData->Weapon ? pData->Weapon->Range : Firer->GetTechnoType()->GuardRange);
-			if (nRange < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
+			int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , Firer->GetTechnoType()->GuardRange);
+			if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
 			{
 				return 0x762C40;
 			}
@@ -242,8 +242,8 @@ DEFINE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	{
 		auto nFirerCoord = pData->WeaponIdx != -1 ? Firer->GetCoords() : pData->SourceCoord;
 		auto nTargetCoord = Target->GetCoords();
-		const auto nRange = (pData->Weapon ? pData->Weapon->Range : Firer->GetTechnoType()->GuardRange);
-		if (nRange < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
+		int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , Firer->GetTechnoType()->GuardRange);
+		if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
 		{
 			return 0x762C40;
 		}

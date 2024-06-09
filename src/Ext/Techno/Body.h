@@ -33,6 +33,8 @@
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 
+#include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -53,7 +55,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	TechnoTypeClass* Type { nullptr };
+	TechnoTypeClass* Type { nullptr }; //original Type pointer
 	OptionalStruct<AbstractType, true> AbsType {};
 
 	double AE_ROF { 1.0 };
@@ -61,14 +63,19 @@ public:
 	double AE_ArmorMult { 1.0 };
 	double AE_SpeedMult { 1.0 };
 	double AE_ReceiveRelativeDamageMult { 1.0 };
-	BYTE AE_Cloak { false };
+
+	bool AE_Cloak { false };
+	bool AE_ForceDecloak { false };
+	bool AE_DisableWeapons { false };
+	bool AE_DisableSelfHeal { false };
+	bool AE_Untrackable { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6
 	BYTE idxSlot_Warp { 0 }; //7
 	BYTE idxSlot_Parasite { 0 }; //8
 	BuildingClass* GarrisonedIn { 0 }; //C
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { };
+	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
 	std::unique_ptr<AresPoweredUnit> PoweredUnit {};
@@ -89,7 +96,7 @@ public:
 	int TechnoValueAmount { 0 };
 	int Pos { };
 	std::unique_ptr<ShieldClass> Shield {};
-	std::vector<LaserTrailClass> LaserTrails {};
+	HelperedVector<LaserTrailClass> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };
 	CDTimerClass PassengerDeletionTimer {};
@@ -105,10 +112,11 @@ public:
 	HouseClass* OriginalPassengerOwner { nullptr };
 
 	bool IsInTunnel { false };
+	bool IsBurrowed { false } ;
 	CDTimerClass DeployFireTimer {};
 	CDTimerClass DisableWeaponTimer {};
 
-	std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
 
 	int GattlingDmageDelay { -1 };
 	bool GattlingDmageSound { false };
@@ -117,7 +125,6 @@ public:
 	CDTimerClass EngineerCaptureDelay {};
 
 	bool FlhChanged { false };
-	bool IsMissisleSpawn { false };
 	OptionalStruct<double, true> ReceiveDamageMultiplier {};
 	bool SkipLowDamageCheck { false };
 
@@ -127,9 +134,9 @@ public:
 
 	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
 
-	std::vector<UniversalTrail> Trails {};
+	HelperedVector<UniversalTrail> Trails {};
 	std::unique_ptr<GiftBox> MyGiftBox {};
-	std::unique_ptr<PaintBall> PaintBallState {};
+	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
 	std::unique_ptr<DamageSelfState> DamageSelfState {};
 
 	int CurrentWeaponIdx { -1 };
@@ -145,7 +152,7 @@ public:
 	CDTimerClass WarpedOutDelay { };
 
 	OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	TemporalClass* MyOriginalTemporal { nullptr };
+	Handle<TemporalClass*, GameDeleter> MyOriginalTemporal { nullptr };
 
 	bool SupressEVALost { false };
 	CDTimerClass SelfHealing_CombatDelay { };
@@ -162,7 +169,7 @@ public:
 
 	//====
 	bool IsWebbed { false };
-	Handle<AnimClass*, UninitAnim> WebbedAnim { };
+	Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
 	AbstractClass* WebbyLastTarget { nullptr };
 	Mission WebbyLastMission { Mission::Sleep };
 
@@ -174,11 +181,287 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	TechnoExtData() noexcept = default;
-	~TechnoExtData() noexcept
+	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
+
+	struct ExtraRange {
+		struct RangeData {
+			double rangeMult { 1.0 };
+			double extraRange { 0.0 };
+			std::set<WeaponTypeClass*> allow {};
+			std::set<WeaponTypeClass*> disallow {};
+
+			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+			{
+				return this->Serialize(Stm);
+			}
+
+			bool Save(PhobosStreamWriter& Stm) const
+			{
+				return const_cast<RangeData*>(this)->Serialize(Stm);
+			}
+
+			bool Eligible(WeaponTypeClass* who)
+			{
+
+				bool allowed = false;
+
+				if (allow.begin() != allow.end())
+				{
+					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+					{
+						if (*iter_allow == who)
+						{
+							allowed = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					allowed = true;
+				}
+
+				if (allowed && disallow.begin() != disallow.end())
+				{
+					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+					{
+						if (*iter_disallow == who)
+						{
+							allowed = false;
+							break;
+						}
+					}
+				}
+
+				return allowed;
+			}
+		private:
+
+			template <typename T>
+			bool Serialize(T& Stm)
+			{
+				return Stm
+					.Process(this->rangeMult)
+					.Process(this->extraRange)
+					.Success()
+					;
+			}
+		};
+
+		struct RangeDataOut {
+			double rangeMult { 1.0 };
+			double extraRange { 0.0 };
+		};
+
+		HelperedVector<RangeData> ranges { };
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<ExtraRange*>(this)->Serialize(Stm);
+		}
+
+		constexpr void Clear() {
+			ranges.clear();
+		}
+
+		constexpr bool Enabled() {
+			return !ranges.empty();
+		}
+
+		constexpr int Get(int initial , WeaponTypeClass* who) {
+			int add = 0;
+			for (auto& ex_range : ranges) {
+
+				if (!ex_range.Eligible(who))
+					continue;
+
+				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
+				add += static_cast<int>(ex_range.extraRange);
+			}
+
+			return initial + add;
+		}
+
+		constexpr void FillEligible(WeaponTypeClass* who, std::vector<RangeDataOut>& eligible) {
+			for (auto& ex_range : this->ranges) {
+				if (ex_range.Eligible(who)) {
+					eligible.emplace_back(ex_range.rangeMult , ex_range.extraRange);
+				}
+			}
+		}
+
+		static constexpr int Count(int initial, std::vector<RangeDataOut>& eligible) {
+			int add = 0;
+			for (auto& ex_range : eligible) {
+				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
+				add += static_cast<int>(ex_range.extraRange);
+			}
+
+			return initial + add;
+		}
+
+	private:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->ranges)
+				.Success()
+				;
+		}
+	} AE_ExtraRange {};
+
+	struct ExtraCrit
 	{
-		GameDelete<true, true>(MyOriginalTemporal);
-	}
+		struct CritData
+		{
+			double Mult { 1.0 };
+			double extra { 0.0 };
+			std::set<WarheadTypeClass*> allow {};
+			std::set<WarheadTypeClass*> disallow {};
+
+			bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+			{
+				return this->Serialize(Stm);
+			}
+
+			bool Save(PhobosStreamWriter& Stm) const
+			{
+				return const_cast<CritData*>(this)->Serialize(Stm);
+			}
+
+			bool Eligible(WarheadTypeClass* who)
+			{
+
+				bool allowed = false;
+
+				if (allow.begin() != allow.end())
+				{
+					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+					{
+						if (*iter_allow == who)
+						{
+							allowed = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					allowed = true;
+				}
+
+				if (allowed && disallow.begin() != disallow.end())
+				{
+					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+					{
+						if (*iter_disallow == who)
+						{
+							allowed = false;
+							break;
+						}
+					}
+				}
+
+				return allowed;
+			}
+		private:
+
+			template <typename T>
+			bool Serialize(T& Stm)
+			{
+				return Stm
+					.Process(this->Mult)
+					.Process(this->extra)
+					.Process(this->allow)
+					.Process(this->disallow)
+					.Success()
+					;
+			}
+		};
+
+		struct CritDataOut
+		{
+			double Mult { 1.0 };
+			double extra { 0.0 };
+		};
+
+		HelperedVector<CritData> ranges { };
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<ExtraCrit*>(this)->Serialize(Stm);
+		}
+
+		constexpr void Clear()
+		{
+			ranges.clear();
+		}
+
+		constexpr bool Enabled()
+		{
+			return !ranges.empty();
+		}
+
+		constexpr double Get(double initial , WarheadTypeClass* who) {
+			double add = 0.0;
+			for (auto& ex_range : ranges) {
+
+				if (!ex_range.Eligible(who))
+					continue;
+
+				initial = initial * ex_range.Mult;
+				add += ex_range.extra;
+			}
+
+			return initial + add;
+		}
+
+		constexpr void FillEligible(WarheadTypeClass* who, std::vector<CritDataOut>& eligible) {
+			for (auto& ex_range : this->ranges) {
+				if (ex_range.Eligible(who)) {
+					eligible.emplace_back(ex_range.Mult, ex_range.extra);
+				}
+			}
+		}
+
+		static constexpr double Count(double initial, std::vector<CritDataOut>& eligible) {
+			double add = 0.0;
+			for (auto& ex_range : eligible) {
+				initial *=  MaxImpl(ex_range.Mult, 0.0);
+				add += ex_range.extra;
+			}
+
+			return initial + add;
+		}
+
+	private:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->ranges)
+				.Success()
+				;
+		}
+	} AE_ExtraCrit {};
+
+	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
+
+	int ShootCount { 0 };
+	TechnoExtData() noexcept = default;
+	~TechnoExtData() noexcept = default;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);
@@ -226,6 +509,7 @@ public:
 		return sizeof(TechnoExtData) -
 			(4u //AttachedToObject
 			+ 4u //DamageNumberOffset
+			+ sizeof(bool) //CanCurrentlyDeployIntoBuilding
 			 );
 	}
 
@@ -266,6 +550,7 @@ public:
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
+	static void InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType);
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
 
@@ -278,7 +563,12 @@ public:
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
 	static double GetROFMult(TechnoClass const* pTech);
 	static bool FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
-	static bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+
+	static void ReplaceArmor(Armor& armor, ObjectClass* pTarget, WeaponTypeClass* pWeapon);
+	static void ReplaceArmor(Armor& armor, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static void ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadTypeClass* pWH);
+	static void ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH);
+
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
@@ -288,7 +578,7 @@ public:
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool IsDisguised);
-	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
+	static void SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void HandleRemove(TechnoClass* pThis, TechnoClass* pSource = nullptr, bool SkipTrackingRemove = false, bool Delete = true);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
@@ -315,7 +605,10 @@ public:
 	static bool IsCritImmune(TechnoClass* pThis);
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);
+public:
+	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
 	static bool IsEMPImmune(TechnoClass* pThis);
+public:
 	static bool IsChronoDelayDamageImmune(FootClass* pThis);
 	static bool IsRadImmune(TechnoClass* pThis);
 	static bool IsPsionicsWeaponImmune(TechnoClass* pThis);
@@ -337,7 +630,10 @@ public:
 	static bool IsCritImmune(Rank vet, TechnoClass* pThis);
 	static bool IsPsionicsImmune(Rank vet, TechnoClass* pThis);
 	static bool IsCullingImmune(Rank vet, TechnoClass* pThis);
+public:
+	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
 	static bool IsEMPImmune(Rank vet, TechnoClass* pThis);
+public:
 	static bool IsChronoDelayDamageImmune(Rank vet, FootClass* pThis);
 	static bool IsRadImmune(Rank vet, TechnoClass* pThis);
 	static bool IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis);
@@ -378,7 +674,9 @@ public:
 
 	static const BurstFLHBundle* PickFLHs(TechnoClass* pThis, int weaponidx);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
+
 	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
+	static const Armor GetTechnoArmor(ObjectClass* pThis, WarheadTypeClass* pWarhead);
 
 	static bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger);
 	static bool IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, FootClass* pFoot);
@@ -403,6 +701,7 @@ public:
 	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
 
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
+	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

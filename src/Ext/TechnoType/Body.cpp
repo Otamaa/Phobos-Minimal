@@ -373,8 +373,21 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
 		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
+		this->Convert_AutoDeath.Read(exINI, pSection, "Convert.AutoDeath");
+
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Death_WithMaster.Read(exINI, pSection, "AutoDeath.WithSlaveOwner");
+
+		this->AutoDeath_MoneyExceed.Read(exINI, pSection, "AutoDeath.MoneyExceed");
+		this->AutoDeath_MoneyBelow.Read(exINI, pSection, "AutoDeath.MoneyBelow");
+		this->AutoDeath_LowPower.Read(exINI, pSection, "AutoDeath.LowPower");
+		this->AutoDeath_FullPower.Read(exINI, pSection, "AutoDeath.FullPower");
+		this->AutoDeath_PassengerExceed.Read(exINI, pSection, "AutoDeath.PassengersExceed");
+		this->AutoDeath_PassengerBelow.Read(exINI, pSection, "AutoDeath.PassengersBelow");
+		this->AutoDeath_ContentIfAnyMatch.Read(exINI, pSection, "AutoDeath.OnAnyCondition");
+
+		this->AutoDeath_OwnedByPlayer.Read(exINI, pSection, "AutoDeath.OwnedByPlayer");
+		this->AutoDeath_OwnedByAI.Read(exINI, pSection, "AutoDeath.OwnedByAI");
 
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
@@ -432,6 +445,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->OpenTopped_IgnoreRangefinding.Read(exINI, pSection, "OpenTopped.IgnoreRangefinding");
 		this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, pSection, "OpenTopped.AllowFiringIfDeactivated");
 		this->OpenTopped_ShareTransportTarget.Read(exINI, pSection, "OpenTopped.ShareTransportTarget");
+		this->OpenTopped_UseTransportRangeModifiers.Read(exINI, pSection, "OpenTopped.UseTransportRangeModifiers");
 
 		this->AutoFire.Read(exINI, pSection, "AutoFire");
 		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
@@ -633,9 +647,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->MySpawnSupportDatas.Read(exINI, pSection);
 		this->DamageSelfData.Read(exINI, pSection);
 
-		this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+		this->IronCurtain_KeptOnDeploy.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+		this->ForceShield_KeptOnDeploy.Read(exINI, pSection, "ForceShield.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
 		this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
+		this->ForceShield_Effect.Read(exINI, pSection, "ForceShield.Effect");
+		this->ForceShield_KillWarhead.Read(exINI, pSection, "ForceShield.KillWarhead", true);
 
 		this->SellSound.Read(exINI, pSection, "SellSound");
 		this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
@@ -643,19 +660,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
 		this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
-		this->CloakMove.Read(exINI, pSection, "Cloak.Move");
 		this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
 		this->CanPassiveAquire_Naval.Read(exINI, pSection, "CanPassiveAquire.Naval");
 
 		this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
 		this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 		this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-
-		this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
-		this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
-		this->Vinifera_FrameIDx.Read(exINI, pSection, "Storage2FrameIdx");
-		this->Aboreus_FrameIDx.Read(exINI, pSection, "Storage3FrameIdx");
-
 		this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
 		this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
 		this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
@@ -681,7 +691,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->CrateGoodie_RerollChance.Read(exINI, pSection, "CrateGoodie.RerollChance");
 		this->Destroyed_CrateType.Read(exINI, pSection, "CrateGoodie.WhenDestroyed");
-
+		this->Infantry_DimWhenEMPEd.Read(exINI, pSection, "Infantry.DimUnderEMP");
+		this->Infantry_DimWhenDisabled.Read(exINI, pSection, "Infantry.DimWhenDisabled");
 #pragma region Prereq
 
 	std::string _Prerequisite_key = "Prerequisite";
@@ -721,6 +732,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Negative").c_str(), this->Prerequisite_Negative);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + ".Display").c_str(), this->Prerequisite_Display);
 		GenericPrerequisite::Parse(pINI, pSection, (_Prerequisite_key + "Override").c_str(), pThis->PrerequisiteOverride);
+
+		//TODO : properly Enable this
 		GenericPrerequisite::Parse(pINI, pSection, "BuildLimit.Requres", this->BuildLimit_Requires);
 
 		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
@@ -738,7 +751,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				signed int idx = std::atoi(cur);
-				if (idx > -1 && idx < 32)
+				if (idx > -1 && idx < MaxHouseCount)
 				{
 					this->RequiredStolenTech.set(idx);
 				}
@@ -754,6 +767,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AttachedEffect.Read(exINI);
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
 		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
+		this->AttackFriendlies_AutoAttack.Read(exINI, pSection, "AttackFriendlies.AutoAttack");
+
 		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
 
 		this->ShowSpawnsPips.Read(exINI, pSection, "ShowSpawnsPips");
@@ -1114,6 +1129,16 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DetectDisguise_Percent.Read(exINI, pSection, "DetectDisguise.Percent");
 		this->PassengerTurret.Read(exINI, pSection, "PassengerTurret");
 
+		this->Tint_Color.Read(exINI, pSection, "Tint.Color");
+		this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
+		this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
+
+		this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
+		this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
+		this->AttachEffect_Delays.Read(exINI, pSection, "AttachEffect.Delays");
+		this->AttachEffect_InitialDelays.Read(exINI, pSection, "AttachEffect.InitialDelays");
+		this->AttachEffect_RecreationDelays.Read(exINI, pSection, "AttachEffect.RecreationDelays");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -1184,12 +1209,43 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DeployedArmor.Read(exINI, pSection, "DeployedArmor");
 
 		this->Cloakable_IgnoreArmTimer.Read(exINI, pSection, "Cloakable.IgnoreROFTimer");
+		this->Convert_HumanToComputer.Read(exINI, pSection, "Convert.HumanToComputer");
+		this->Convert_ComputerToHuman.Read(exINI, pSection, "Convert.ComputerToHuman");
 
+		this->ShadowSizeCharacteristicHeight.Read(exINI, pSection, "ShadowSizeCharacteristicHeight");
+
+		if(auto pTalkBuble = FileSystem::TALKBUBL_SHP()){
+			for (int i = 0; i < pTalkBuble->Frames; ++i) {
+				std::string base = "TalkbubbleFrame";
+				base += std::to_string(i);
+				this->TalkbubbleVoices.emplace_back().Read(exINI, pSection, (base + ".Voices").c_str());
+			}
+		}
+
+		this->NoExtraSelfHealOrRepair.Read(exINI, pSection, "NoExtraSelfHealOrRepair");
+
+#pragma region BuildLimitGroup
+		this->BuildLimitGroup_Types.Read(exINI, pSection, "BuildLimitGroup.Types");
+		this->BuildLimitGroup_Nums.Read(exINI, pSection, "BuildLimitGroup.Nums");
+		this->BuildLimitGroup_Factor.Read(exINI, pSection, "BuildLimitGroup.Factor");
+		this->BuildLimitGroup_ContentIfAnyMatch.Read(exINI, pSection, "BuildLimitGroup.ContentIfAnyMatch");
+		this->BuildLimitGroup_NotBuildableIfQueueMatch.Read(exINI, pSection, "BuildLimitGroup.NotBuildableIfQueueMatch");
+		this->BuildLimitGroup_ExtraLimit_Types.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Types");
+		this->BuildLimitGroup_ExtraLimit_Nums.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.Nums");
+		this->BuildLimitGroup_ExtraLimit_MaxCount.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.MaxCount");
+		this->BuildLimitGroup_ExtraLimit_MaxNum.Read(exINI, pSection, "BuildLimitGroup.ExtraLimit.MaxNum");
+#pragma endregion
+
+		this->Tiberium_EmptyPipIdx.Read(exINI, pSection, "StorageEmptyPipIndex");
+		this->Tiberium_PipIdx.Read(exINI, pSection, "StoragePipIndexes");
+		this->Tiberium_PipShapes.Read(exINI, pSection, "StoragePipShapes");
+		this->Tiberium_PipShapes_Palette.Read(exINI, pSection, "StoragePipShapesPalette");
 
 		if (this->AttachtoType != AbstractType::BuildingType)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
+			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
 			this->DropPodProp.Read(exINI, pSection);
 		}
 	}
@@ -1208,7 +1264,25 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
-		this->ShadowIndices.Read(exArtINI, pArtSection, "ShadowIndices");
+
+		std::vector<int> shadow_indices {};
+		detail::ReadVectors(shadow_indices, exArtINI, pArtSection, "ShadowIndices");
+		std::vector<int> shadow_indices_frame {};
+		detail::ReadVectors(shadow_indices_frame, exArtINI, pArtSection, "ShadowIndices.Frame");
+
+		if (shadow_indices_frame.size() != shadow_indices.size())
+		{
+			if (!shadow_indices_frame.empty())
+				Debug::Log("[Developer warning] %s ShadowIndices.Frame size (%d) does not match ShadowIndices size (%d) \n"
+					, pSection, shadow_indices_frame.size(), shadow_indices.size());
+
+			shadow_indices_frame.resize(shadow_indices.size(), -1);
+		}
+
+		for (size_t i = 0; i < shadow_indices.size(); i++)
+			this->ShadowIndices[shadow_indices[i]] = shadow_indices_frame[i];
+
+		this->ShadowIndex_Frame.Read(exArtINI, pArtSection, "ShadowIndex.Frame");
 
 		this->LaserTrailData.clear();
 
@@ -1459,6 +1533,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->TurretOffset)
 		.Process(this->TurretShadow)
 		.Process(this->ShadowIndices)
+		.Process(this->ShadowIndex_Frame)
+		.Process(this->ShadowSizeCharacteristicHeight)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
@@ -1484,8 +1560,17 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AutoDeath_Exist_Any)
 		.Process(this->AutoDeath_Exist_AllowLimboed)
 		.Process(this->AutoDeath_VanishAnimation)
-
+		.Process(this->Convert_AutoDeath)
 		.Process(this->Death_WithMaster)
+		.Process(this->AutoDeath_MoneyExceed)
+		.Process(this->AutoDeath_MoneyBelow)
+		.Process(this->AutoDeath_LowPower)
+		.Process(this->AutoDeath_FullPower)
+		.Process(this->AutoDeath_PassengerExceed)
+		.Process(this->AutoDeath_PassengerBelow)
+		.Process(this->AutoDeath_ContentIfAnyMatch)
+		.Process(this->AutoDeath_OwnedByPlayer)
+		.Process(this->AutoDeath_OwnedByAI)
 		.Process(this->Slaved_ReturnTo)
 		.Process(this->Death_IfChangeOwnership)
 
@@ -1527,7 +1612,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->OpenTopped_IgnoreRangefinding)
 		.Process(this->OpenTopped_AllowFiringIfDeactivated)
 		.Process(this->OpenTopped_ShareTransportTarget)
-
+		.Process(this->OpenTopped_UseTransportRangeModifiers)
 		.Process(this->AutoFire)
 		.Process(this->AutoFire_TargetSelf)
 		.Process(this->NoSecondaryWeaponFallback)
@@ -1605,10 +1690,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CrouchedWeaponBurstFLHs)
 		.Process(this->DeployedWeaponBurstFLHs)
 
-		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->IronCurtain_KeptOnDeploy)
+		.Process(this->ForceShield_KeptOnDeploy)
 		.Process(this->IronCurtain_Effect)
 		.Process(this->IronCurtain_KillWarhead)
-
+		.Process(this->ForceShield_Effect)
+		.Process(this->ForceShield_KillWarhead)
 		.Process(this->SellSound)
 		.Process(this->EVA_Sold);
 		//Debug::Log("AboutToLoad WeaponFLhB\n");
@@ -1756,7 +1843,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->CommandLine_Move_Color)
 		.Process(this->CommandLine_Attack_Color)
-		.Process(this->CloakMove)
 		.Process(this->PassiveAcquire_AI)
 		.Process(this->CanPassiveAquire_Naval)
 		.Process(this->TankDisguiseAsTank)
@@ -1789,10 +1875,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Bounty_IgnoreEnablers)
 		.Process(this->MissileHoming)
 
-		.Process(this->Riparius_FrameIDx)
-		.Process(this->Cruentus_FrameIDx)
-		.Process(this->Vinifera_FrameIDx)
-		.Process(this->Aboreus_FrameIDx)
+		.Process(this->Tiberium_EmptyPipIdx)
+		.Process(this->Tiberium_PipIdx)
+		.Process(this->Tiberium_PipShapes)
+		.Process(this->Tiberium_PipShapes_Palette)
 
 		.Process(this->CrushLevel)
 		.Process(this->CrushableLevel)
@@ -2090,6 +2176,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 	Stm.Process(this->AttachedEffect)
 		.Process(this->NoAmmoEffectAnim)
 		.Process(this->AttackFriendlies_WeaponIdx)
+		.Process(this->AttackFriendlies_AutoAttack)
 		.Process(this->PipScaleIndex)
 		.Process(this->AmmoPip)
 		.Process(this->AmmoPip_Palette)
@@ -2137,11 +2224,37 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VoicePickup)
 		.Process(this->CrateGoodie_RerollChance)
 		.Process(this->Destroyed_CrateType)
+		.Process(this->Infantry_DimWhenEMPEd)
+		.Process(this->Infantry_DimWhenDisabled)
+		.Process(this->Convert_HumanToComputer)
+		.Process(this->Convert_ComputerToHuman)
+		.Process(this->TalkbubbleVoices)
+		.Process(this->HarvesterDumpAmount)
+		.Process(this->NoExtraSelfHealOrRepair)
+
+#pragma region BuildLimitGroup
+		.Process(this->BuildLimitGroup_Types)
+		.Process(this->BuildLimitGroup_Nums)
+		.Process(this->BuildLimitGroup_Factor)
+		.Process(this->BuildLimitGroup_ContentIfAnyMatch)
+		.Process(this->BuildLimitGroup_NotBuildableIfQueueMatch)
+		.Process(this->BuildLimitGroup_ExtraLimit_Types)
+		.Process(this->BuildLimitGroup_ExtraLimit_Nums)
+		.Process(this->BuildLimitGroup_ExtraLimit_MaxCount)
+		.Process(this->BuildLimitGroup_ExtraLimit_MaxNum)
+#pragma endregion
+
+		.Process(this->Tint_Color)
+		.Process(this->Tint_Intensity)
+		.Process(this->Tint_VisibleToHouses)
+
+		.Process(this->AttachEffect_AttachTypes)
+		.Process(this->AttachEffect_DurationOverrides)
+		.Process(this->AttachEffect_Delays)
+		.Process(this->AttachEffect_InitialDelays)
+		.Process(this->AttachEffect_RecreationDelays)
 		;
 }
-
-double TechnoTypeExtData::TurretMultiOffsetDefaultMult = 1.0;
-double TechnoTypeExtData::TurretMultiOffsetOneByEightMult = 0.125;
 
 // =============================
 // container
@@ -2246,9 +2359,11 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	GET(TechnoTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x380);
 
-	//if (R->Origin() == 0x716132) {
-	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
-	//}
+	if (R->Origin() == 0x716132) {
+		if(!pItem->Strength) {
+			pItem->Strength = 1;
+		}
+	}
 
 	TechnoTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x716132);
 

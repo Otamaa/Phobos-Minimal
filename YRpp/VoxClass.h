@@ -51,10 +51,10 @@ public:
 	static void __fastcall SilenceIndex(int index)
 		{ JMP_STD(0x752A40); }
 
-	static const char* GetName(int index)
+	static const char* __fastcall GetName(int index)
 		{ JMP_STD(0x753330); }
 
-	static void DeleteAll()
+	static void __fastcall DeleteAll()
 		{ JMP_STD(0x7531A0); }
 
 	//Properties

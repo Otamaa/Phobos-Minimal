@@ -11,69 +11,20 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 {
 	if (pThis->IsCharged)
 	{
-		SuperWeaponTypeClass* pSW = pThis->Type;
-		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
-
-		CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
-		CoordStruct coords = Cell->GetCoordsWithBridge();
-
+		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 		auto pFirer = this->GetFirer(pThis, Coords, false);
+		const auto nDeferement = pData->SW_Deferment.Get(-1);
 
-		if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
-		{
-			auto const pExtWh = GetWarhead(pData);
-			// single shot using cellspread warhead
-			MapClass::DamageArea(coords, GetDamage(pData), pFirer, pExtWh, pExtWh->Tiberium, pThis->Owner);
-		}
-		else
-		{
-			// ranged approach
-			auto Mutate = [=](InfantryClass* pInf) -> bool
-			{
-				if(!pInf->IsAlive || pInf->IsCrashing || pInf->IsSinking || pInf->InLimbo)
-					return true;
-
-				// is this thing affected at all?
-				if (!pData->IsHouseAffected(pThis->Owner, pInf->Owner))
-				{
-					return true;
-				}
-
-				if (!pData->IsTechnoAffected(pInf))
-				{
-					// even if it makes little sense, we do this.
-					// infantry handling is hardcoded and thus
-					// this checks water and land cells.
-					return true;
-				}
-
-				InfantryTypeClass* pType = pInf->Type;
-
-				// quick ways out
-				if (pType->Cyborg && pData->Mutate_IgnoreCyborg) {
-					return true;
-				}
-
-				if (pType->NotHuman && pData->Mutate_IgnoreNotHuman) {
-					return true;
-				}
-
-				// destroy or mutate
-				int damage = pType->Strength;
-				bool kill = (pType->Natural && pData->Mutate_KillNatural);
-				auto pWH = kill ? RulesClass::Instance->C4Warhead : GetWarhead(pData);
-
-				pInf->ReceiveDamage(&damage, 0, pWH, pFirer, true, false, pThis->Owner);
-
-				return true;
-			};
-
-			// find everything in range and mutate it
+		if (nDeferement <= 0) {
+			auto const damage = GetDamage(pData);
 			auto range = GetRange(pData);
-			Helpers::Alex::DistinctCollector<InfantryClass*> items;
-			Helpers::Alex::for_each_in_rect_or_range<InfantryClass>(Coords, range.WidthOrRange, range.Height, items);
-			items.apply_function_for_each(Mutate);
+			CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
+			auto const pWarhead = GetWarhead(pData);
+			GeneticMutatorStateMachine::ApplyGeneticMutator(pFirer, pThis, pData, this, Cell->GetCoordsWithBridge(), Coords, pWarhead, range, damage);
+		} else {
+			this->newStateMachine(nDeferement, Coords, pThis, pFirer);
 		}
+
 	}
 
 	return true;
@@ -147,12 +98,86 @@ int SW_GeneticMutator::GetDamage(const SWTypeExtData* pData) const
 
 SWRange SW_GeneticMutator::GetRange(const SWTypeExtData* pData) const
 {
-	if (!pData->SW_Range->empty()) {
+	if (!pData->SW_Range->empty())
+	{
 		return pData->SW_Range;
 	}
-	else if (RulesClass::Instance->MutateExplosion) {
-		return { 5, -1 };
-	}
 
-	return { 3, 3 };
+	return RulesClass::Instance->MutateExplosion ? SWRange { 3, 3 } : SWRange { 5, -1 };
+}
+
+void GeneticMutatorStateMachine::Update()
+{
+	if (this->Finished())
+	{
+		auto pData = this->GetTypeExtData();
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		auto const sound = pData->SW_ActivationSound.Get(-1);
+		if (sound != -1)
+		{
+			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+		}
+
+		ApplyGeneticMutator(this->Firer, this->Super, pData, this->Type, this->CoordsWithBridge, this->Coords, this->Type->GetWarhead(pData), this->Type->GetRange(pData), this->Type->GetDamage(pData));
+	}
+}
+
+void GeneticMutatorStateMachine::ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range, int damage)
+{
+	if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
+	{
+		// single shot using cellspread warhead
+		MapClass::DamageArea(coord, damage, pFirer, pWarhead, pWarhead->Tiberium, pSuper->Owner);
+	}
+	else
+	{
+		// find everything in range and mutate it
+		Helpers::Alex::DistinctCollector<InfantryClass*> items;
+		Helpers::Alex::for_each_in_rect_or_range<InfantryClass>(loc, range.WidthOrRange, range.Height, items);
+		// ranged approach
+		items.apply_function_for_each([=](InfantryClass* pInf) -> bool
+ {
+
+			 if (!pInf->IsAlive || pInf->IsCrashing || pInf->IsSinking || pInf->InLimbo)
+				 return true;
+
+			 // is this thing affected at all?
+			 if (!pData->IsHouseAffected(pSuper->Owner, pInf->Owner))
+			 {
+				 return true;
+			 }
+
+			 if (!pData->IsTechnoAffected(pInf))
+			 {
+				 // even if it makes little sense, we do this.
+				 // infantry handling is hardcoded and thus
+				 // this checks water and land cells.
+				 return true;
+			 }
+
+			 InfantryTypeClass* pType = pInf->Type;
+
+			 // quick ways out
+			 if (pType->Cyborg && pData->Mutate_IgnoreCyborg)
+			 {
+				 return true;
+			 }
+
+			 if (pType->NotHuman && pData->Mutate_IgnoreNotHuman)
+			 {
+				 return true;
+			 }
+
+			 // destroy or mutate
+			 int damage = pType->Strength;
+			 bool kill = (pType->Natural && pData->Mutate_KillNatural);
+			 auto pWH = kill ? RulesClass::Instance->C4Warhead : pWarhead;
+
+			 pInf->ReceiveDamage(&damage, 0, pWH, pFirer, true, false, pSuper->Owner);
+
+			 return true;
+		});
+	}
 }

@@ -59,7 +59,7 @@ struct RocketStruct
 	bool LazyCurve;
 	AircraftTypeClass* Type;
 
-	RocketStruct() noexcept :
+	constexpr RocketStruct() noexcept :
 		PauseFrames(0),
 		TiltFrames(0),
 		PitchInitial(0.0f),
@@ -75,8 +75,10 @@ struct RocketStruct
 		Type(nullptr)
 	{ }
 
-	explicit RocketStruct(noinit_t) noexcept
+	constexpr explicit RocketStruct(noinit_t) noexcept
 	{ }
+
+	constexpr ~RocketStruct() = default;
 };
 
 #pragma pack(push, 8)
@@ -129,6 +131,10 @@ public:
 
 	void Read_General(CCINIClass *pINI)
 		{ JMP_THIS(0x66D530); }
+
+	bool Read_Types(CCINIClass *pINI) {
+		JMP_THIS(0x679A10);
+	}
 
 	void Read_MultiplayerDialogSettings(CCINIClass *pINI)
 		{ JMP_THIS(0x671EA0); }

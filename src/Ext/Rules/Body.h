@@ -100,7 +100,12 @@ public:
 	Valueable<bool> RadHasOwner { false };
 	Valueable<bool> RadHasInvoker { false };
 	Valueable<bool> UseGlobalRadApplicationDelay { true };
-	Valueable<bool> IronCurtain_SyncDeploysInto { false };
+	Valueable<bool> IronCurtain_KeptOnDeploy { true };
+	Valueable<bool> ForceShield_KeptOnDeploy { false };
+	Valueable<IronCurtainFlag> IronCurtain_EffectOnOrganics { IronCurtainFlag::Kill};
+	Valueable<WarheadTypeClass*> IronCurtain_KillOrganicsWarhead { nullptr };
+	Valueable<IronCurtainFlag> ForceShield_EffectOnOrganics { IronCurtainFlag::Ignore };
+	Valueable<WarheadTypeClass*> ForceShield_KillOrganicsWarhead { nullptr };
 
 	Valueable<PartialVector2D<int>> ROF_RandomDelay { { 0, 2 } };
 
@@ -305,6 +310,14 @@ public:
 	double Shield_ConditionYellow {};
 	double Shield_ConditionRed {};
 
+	double ConditionYellow_Terrain {};
+
+	Valueable<bool> HeightShadowScaling { false };
+	Valueable<double> HeightShadowScaling_MinScale { 0.0 };
+	double AirShadowBaseScale_log { 0.693376137 };
+
+	Valueable<int> VeinsAttack_interval { 2 };
+	Valueable<int> BuildingFlameSpawnBlockFrames { 0 };
 	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;
@@ -338,7 +351,7 @@ public:
 	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
 	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 
-	static RulesExtData* Instance()
+	constexpr FORCEINLINE static RulesExtData* Instance()
 	{
 		return Data.get();
 	}

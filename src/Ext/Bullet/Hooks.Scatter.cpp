@@ -9,8 +9,8 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 	if (pThis->Type->Cluster > 0)
 	{
 		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-		const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExtData::DefaultBulletScatterMin);
-		const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExtData::DefaultBulletScatterMax);
+		const int min = pTypeExt->Cluster_Scatter_Min.Get();
+		const int max = pTypeExt->Cluster_Scatter_Max.Get();
 		CoordStruct coord = origCoords;
 
 		for (int i = 0; i < pThis->Type->Cluster; i++) {

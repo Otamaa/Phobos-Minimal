@@ -1,6 +1,7 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
+#include <Ext/TechnoType/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/House/Body.h>
@@ -15,7 +16,7 @@
 void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinWarhead)
 {
 	//causing game to lock up atm
-	if (pThis->Type->IsVeins && VeinWarhead)
+	if (pThis->Type->IsVeins && VeinWarhead  &&  RulesExtData::Instance()->VeinsAttack_interval)
 	{
 		auto coord = pThis->GetCoords();
 		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
@@ -26,42 +27,51 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 			|| pCoorCell->OverlayTypeIndex != 126
 			|| pCoorCell->OverlayData < 0x30u
 			|| pCoorCell->SlopeIndex
-			)
-		{
+			)  {
 			pThis->__ToDelete_197 = true; // wut
 		}
 
-		if (Unsorted::CurrentFrame % 2 == 0)
-		{
+		if (Unsorted::CurrentFrame % RulesExtData::Instance()->VeinsAttack_interval == 0)  {
 			while (pFirst != nullptr)
 			{
-				if (auto pTechno = generic_cast<TechnoClass*>(pFirst))
-				{
-					ObjectClass* pNext = pFirst->NextObject;
+				ObjectClass* pNext = pFirst->NextObject;
 
-					if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo)
-						continue;
-
-					if (pTechno->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pTechno)->DeathFrameCounter > 0)
-						continue;
-
+				if (auto pTechno = generic_cast<TechnoClass*>(pFirst)) {
 					const auto pType = pTechno->GetTechnoType();
-					if ( (!RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExtData::Instance()->VeinsDamagingWeightTreshold)
-						&& !pType->ImmuneToVeins
-						&& !pTechno->HasAbility(AbilityType::VeinProof)
-						&& pTechno->GetHeight() <= 5
-						)
-					{
-						int dmg = VeinDamage;
-						pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
-						Debug::Log("VeinAnim[%x] Damaging[%s - %x]\n", pThis, pTechno->get_ID(), pTechno);
+					if (!TechnoTypeExtContainer::Instance.Find(pType)->IsDummy &&pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo){
+						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)   {
+							if ( (!RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExtData::Instance()->VeinsDamagingWeightTreshold)
+								&& !pType->ImmuneToVeins
+								&& !pTechno->HasAbility(AbilityType::VeinProof)
+								&& pTechno->GetHeight() <= 5
+								)  {
+								int dmg = VeinDamage;
+								pFirst->ReceiveDamage(&dmg, 0, VeinWarhead, nullptr, false, false, nullptr);
+							}
+						}
 					}
-
-					pFirst = pNext;
 				}
+
+				pFirst = pNext;
 			}
 		}
 	}
+}
+
+DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis);
+
+	if (pTypeExt->AltReport.isset()) {
+		VocClass::PlayIndexAtPos(pTypeExt->AltReport, pThis->GetCoords(), nullptr);
+	}
+
+	if (pTypeExt->AdditionalHeight > 0)
+		pThis->Location.Z += pTypeExt->AdditionalHeight;
+
+	return 0;
 }
 
 DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
@@ -144,13 +154,46 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 	return 0x0;
 }
 
-//TODO :
-//DEFINE_HOOK(0x424785, AnimClass_OnLoop, 6)
+#ifdef PerformanceHoggers
+//DEFINE_HOOK_AGAIN(0x42429E, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x42437E, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x4243A6, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x424567, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x4246DC, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x424B42, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x4247EB, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x42492A, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK_AGAIN(0x424B29, AnimClass_UpdateEnd, 0x6)
+//DEFINE_HOOK(0x424B1B, AnimClass_UpdateEnd, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
-//
+//	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnUpdate(pThis);
 //	return 0;
 //}
+//
+//DEFINE_HOOK(0x424785, AnimClass_Loop, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnLoop(pThis);
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x4247F3, AnimClass_Done, 0x6)
+//DEFINE_HOOK(0x424298, AnimClass_Done, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnDone(pThis);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x424801, AnimClass_Next, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	GET(AnimTypeClass*, pNextAnimType, ECX);
+//	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnNext(pThis , pNextAnimType);
+//	return 0x0;
+//}
+#endif
 
 #ifdef ENABLE_NEWHOOKS
 TODO : retest for desync

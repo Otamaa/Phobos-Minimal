@@ -64,12 +64,15 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		ReadWinDirMult(this->WindMult, exINI, pID, ParticleClass::GasWind_X.begin(), ParticleClass::GasWind_Y.begin());
 
-		if(!Phobos::Otamaa::CompatibilityMode)
-			this->Gas_DriftSpeed.Read(exINI, pID, "Gas.DriftSpeed");
-		else {
-			this->Gas_DriftSpeed.GetEx()->Y = 0;
-			detail::read<int>(this->Gas_DriftSpeed.GetEx()->X, exINI, pID, "Gas.MaxDriftSpeed");
+		if(Phobos::Otamaa::CompatibilityMode){
+			int Max_driftX = 2;
+			detail::read(Max_driftX, exINI, pID, "Gas.MaxDriftSpeed");
+
+			this->Gas_DriftSpeedX.GetEx()->X = Max_driftX;
 		}
+
+		this->Gas_DriftSpeedX.Read(exINI, pID, "Gas.MaxDriftSpeedX");
+		this->Gas_DriftSpeedY.Read(exINI, pID, "Gas.MaxDriftSpeedY");
 
 		this->Transmogrify.Read(exINI, pID, "Gas.Transmogrify");
 		this->TransmogrifyChance.Read(exINI, pID, "Gas.TransmogrifyChance");
@@ -104,7 +107,8 @@ void ParticleTypeExtData::Serialize(T& Stm)
 		.Process(this->DamageRange)
 		.Process(this->DeleteWhenReachWater)
 		.Process(this->WindMult)
-		.Process(this->Gas_DriftSpeed)
+		.Process(this->Gas_DriftSpeedX)
+		.Process(this->Gas_DriftSpeedY)
 		.Process(this->Transmogrify)
 		.Process(this->TransmogrifyChance)
 		.Process(this->TransmogrifyType)

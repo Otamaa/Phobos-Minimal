@@ -33,9 +33,9 @@ public:
 	Valueable<AttachedAnimFlag> IdleAnim_TemporalAction;
 	Damageable<AnimTypeClass*> IdleAnim;
 	Damageable<AnimTypeClass*> IdleAnimDamaged;
-	Nullable<AnimTypeClass*> BreakAnim;
-	Nullable<AnimTypeClass*> HitAnim;
-	Nullable<WeaponTypeClass*> BreakWeapon;
+	Valueable<AnimTypeClass*> BreakAnim;
+	Valueable<AnimTypeClass*> HitAnim;
+	Valueable<WeaponTypeClass*> BreakWeapon;
 	Valueable<double> AbsorbPercent;
 	Valueable<double> PassPercent;
 	Valueable<int> ReceivedDamage_Minimum;
@@ -59,6 +59,10 @@ public:
 	Valueable<bool> CanBeHealed;
 	NullableIdx<CursorTypeClass> HealCursorType;
 	Nullable<SpotlightFlags> HitBright;
+
+	Nullable<ColorStruct> Tint_Color;
+	Valueable<double> Tint_Intensity;
+	Valueable<AffectedHouse> Tint_VisibleToHouses;
 public:
 
 	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);
@@ -74,7 +78,7 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm);
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
-	static void AddDefaults() {
+	static constexpr void AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 

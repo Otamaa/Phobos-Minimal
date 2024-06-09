@@ -64,13 +64,8 @@
 #include <iostream>
 #include <string_view>
 
-std::string __forceinline trim(const char* source)
-{
-	std::string s(source);
-	s.erase(0, s.find_first_not_of(" \n\r\t"));
-	s.erase(s.find_last_not_of(" \n\r\t") + 1);
-	return s;
-}
+#include "Enumparser.h"
+
 
 template<typename T>
 struct IndexFinder
@@ -1272,6 +1267,75 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<DiscardCondition>(DiscardCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			DiscardCondition resultData = DiscardCondition::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::DiscardCondition_to_strings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DiscardCondition");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= DiscardCondition::None; break;
+					case 1: resultData |= DiscardCondition::Entry; break;
+					case 2: resultData |= DiscardCondition::Move; break;
+					case 3: resultData |= DiscardCondition::Stationary; break;
+					case 4: resultData |= DiscardCondition::Drain; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<ExpireWeaponCondition>(ExpireWeaponCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			ExpireWeaponCondition resultData = ExpireWeaponCondition::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+				if(!ParseEnum<ExpireWeaponCondition , true>(cur, resultData))
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a ExpireWeaponCondition");
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	inline bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		return parser.ReadString(pSection, pKey)
@@ -1854,7 +1918,7 @@ void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSe
 				pCur;
 				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			this->push_back(trim(pCur));
+			this->push_back(PhobosCRT::trim(pCur));
 		}
 	}
 }
