@@ -80,7 +80,6 @@
 #include <Ext/Tactical/Body.h>
 
 //#include <New/Entity/FoggedObject.h>
-#include <Misc/DynamicPatcher/Trails/TrailType.h>
 
 #include <Misc/Ares/Hooks/Header.h>
 #pragma endregion
@@ -364,7 +363,6 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	SidebarExtData::Clear();
 	ShieldTypeClass::Clear();
 	//TacticalExt::Clear();
-	TrailType::Clear();
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();
 	//TActionExt::ExtMap.Clear();
@@ -533,7 +531,6 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<ShieldTypeClass>(pStm) &&
 		Process_Load<HoverTypeClass>(pStm) &&
 		Process_Load<BannerTypeClass>(pStm) &&
-		Process_Load<TrailType>(pStm) &&
 		Process_Load<LaserTrailTypeClass>(pStm) &&
 		Process_Load<TunnelTypeClass>(pStm) &&
 		Process_Load<SWStateMachine>(pStm) &&
@@ -586,7 +583,6 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<ShieldTypeClass>(pStm) &&
 			Process_Save<HoverTypeClass>(pStm) &&
 			Process_Save<BannerTypeClass>(pStm) &&
-			Process_Save<TrailType>(pStm) &&
 			Process_Save<LaserTrailTypeClass>(pStm) &&
 			Process_Save<TunnelTypeClass>(pStm) &&
 			Process_Save<SWStateMachine>(pStm) &&

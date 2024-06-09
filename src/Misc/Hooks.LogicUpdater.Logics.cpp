@@ -9,19 +9,6 @@
 #include <MapClass.h>
 #include <Kamikaze.h>
 
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTargetFunctional.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuardFunctional.h>
-
-
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
@@ -58,6 +45,5 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 		TechnoExtData::InitializeLaserTrail(pThis, false);
-		TrailsManager::Construct(pThis);
 	}
 }

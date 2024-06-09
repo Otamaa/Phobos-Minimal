@@ -6,6 +6,10 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
+#include <Utilities/Helpers.h>
+
 #include "Body.h"
 
 #include <CCToolTip.h>

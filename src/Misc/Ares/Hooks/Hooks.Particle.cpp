@@ -6,6 +6,10 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 
+#include <Ext/House/Body.h>
+
+#include <Utilities/Helpers.h>
+
 #include "Header.h"
 
 #include <Notifications.h>

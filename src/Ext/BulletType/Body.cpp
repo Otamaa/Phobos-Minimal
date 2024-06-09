@@ -200,7 +200,6 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #pragma region Otamaa
 
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
-		this->Trails.Read(exArtINI, pArtSection, false);
 #pragma endregion
 	}
 }
@@ -267,8 +266,6 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachedSystem)
 		.Process(this->ReturnWeapon)
 		;
-
-	this->Trails.Serialize(Stm);
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }

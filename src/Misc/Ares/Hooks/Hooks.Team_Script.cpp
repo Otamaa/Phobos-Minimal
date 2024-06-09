@@ -37,6 +37,7 @@
 
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
+#include <Ext/House/Body.h>
 
 DEFINE_HOOK(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {

@@ -21,7 +21,5 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 		}
 	}
 
-	TrailsManager::Construct(pThis);
-
 	return 0;
 }

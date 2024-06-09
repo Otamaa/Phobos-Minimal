@@ -6,8 +6,6 @@
 #include <Utilities/TemplateDefB.h>
 #include <New/Type/LaserTrailTypeClass.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 class ParticleTypeExtData final
 {
 public:
@@ -19,7 +17,6 @@ public:
 public:
 
 	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	TrailsReader Trails { };
 	Valueable<bool> ReadjustZ { true };
 	Valueable<PaletteManager*> Palette { }; //CustomPalette::PaletteMode::Temperate
 	Valueable<double> DamageRange { 0.0 };

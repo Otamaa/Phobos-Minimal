@@ -14,9 +14,6 @@
 #include <TechnoClass.h>
 #include <TacticalClass.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
 #include <Ext/Bullet/Trajectories/StraightTrajectory.h>
 
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
@@ -93,11 +90,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 				trail.Update(drawnCoords);
 			}
 		}
-
-		TrailsManager::AI(pThis);
 	}
-	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
 
 	return 0;
 }

@@ -11,6 +11,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>

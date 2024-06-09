@@ -110,8 +110,6 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 				pLaserTrail.LastLocation.clear();
 			}
 		}
-
-		TrailsManager::Hide((TechnoClass*)pPassenger);
 	}
 
 	return 0;

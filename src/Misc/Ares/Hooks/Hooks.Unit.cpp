@@ -18,6 +18,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
@@ -528,9 +529,6 @@ DEFINE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 	}
 
 	TechnoExtData::InitializeLaserTrail(pThis, true);
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
-	//LineTrailExt::DeallocateLineTrail(pUnit);
-	//LineTrailExt::ConstructLineTrails(pUnit);
 
 	return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
 }

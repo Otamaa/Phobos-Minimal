@@ -10,10 +10,6 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 #include <New/Entity/ElectricBoltClass.h>
 
-#include <Misc/DynamicPatcher/Others/DamageText.h>
-#include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
-
-
 class WeaponTypeExtData final
 {
 public:
@@ -79,7 +75,6 @@ public:
 	Valueable<bool> Targeting_Health_Percent_Below { true };
 
 	Valueable<float> RockerPitch { 0.0f };
-	AttachFireData MyAttachFireDatas {};
 
 	Valueable<int> Ammo { 1 };
 	Valueable<bool> IsDetachedRailgun { false };

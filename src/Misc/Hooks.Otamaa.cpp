@@ -13,6 +13,7 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/House/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -2215,7 +2216,6 @@ struct TibPatch__ : public TiberiumClass {
 						if (getminateIdx)
 						{
 							((CellPatch__*)(pNewCell))->_SpreadTiberium(false);
-							pNewCell->SpreadTiberium(0);
 							++increment;
 							if (getminateIdx > 1)
 							{

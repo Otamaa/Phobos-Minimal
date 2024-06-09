@@ -16,6 +16,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Ares_TechnoExt.h>

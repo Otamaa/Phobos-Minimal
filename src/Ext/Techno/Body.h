@@ -11,17 +11,6 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-#include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDive.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBox.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTarget.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
-#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
-
 #include <New/Type/DigitalDisplayTypeClass.h>
 
 #include <Utilities/BuildingBrackedPositionData.h>
@@ -134,20 +123,7 @@ public:
 
 	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
 
-	HelperedVector<UniversalTrail> Trails {};
-	std::unique_ptr<GiftBox> MyGiftBox {};
-	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
-	std::unique_ptr<DamageSelfState> DamageSelfState {};
-
 	int CurrentWeaponIdx { -1 };
-
-	FireWeaponManager MyWeaponManager { };
-	DriveData MyDriveData { };
-	AircraftDive MyDiveData { };
-
-	SpawnSupport MySpawnSuport { };
-
-	std::unique_ptr<FighterAreaGuard> MyFighterData { };
 
 	CDTimerClass WarpedOutDelay { };
 

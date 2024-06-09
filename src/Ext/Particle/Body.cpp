@@ -4,8 +4,6 @@
 #include "Ext/ParticleType/Body.h"
 #include <Utilities/Macro.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass* pThis)
 {
 	TechnoClass* pAttacker = nullptr;
@@ -47,7 +45,6 @@ void ParticleExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->LaserTrails)
-		.Process(this->Trails)
 
 		;
 }
@@ -80,8 +77,6 @@ DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 				}
 			}
 		}
-
-		TrailsManager::Construct(pItem);
 	}
 
 	return 0;

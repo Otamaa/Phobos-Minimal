@@ -1,7 +1,5 @@
 #include "Body.h"
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 /*
 static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 {
@@ -41,8 +39,6 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 			trail.Visible = pThis->IsOnMyView();
 		}
 	}
-
-	TrailsManager::AI(pThis);
 
 	return 0;
 }

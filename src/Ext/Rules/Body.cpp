@@ -33,8 +33,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailType.h>
-
 std::unique_ptr<RulesExtData>  RulesExtData::Data = nullptr;
 IStream* RulesExtData::g_pStm = nullptr;
 
@@ -116,8 +114,6 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
-
-	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
 	if (!Phobos::Otamaa::DisableCustomRadSite) {
 		RadTypeClass::LoadFromINIOnlyTheList(pINI);
@@ -752,8 +748,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AutoRepelPlayer.Read(exINI, COMBATDAMAGE_SECTION, "PlayerAutoRepel");
 	this->AIFriendlyDistance.Read(exINI, GENERAL_SECTION, "AIFriendlyDistance");
 
-	this->MyPutData.Read(exINI, GENERAL_SECTION);
-
 #pragma endregion
 	this->Storage_TiberiumIndex.Read(exINI, GENERAL_SECTION, "Storage.TiberiumIndex");
 
@@ -1189,8 +1183,6 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->VeinsAttack_interval)
 		.Process(this->BuildingFlameSpawnBlockFrames)
 		;
-
-	MyPutData.Serialize(Stm);
 
 }
 

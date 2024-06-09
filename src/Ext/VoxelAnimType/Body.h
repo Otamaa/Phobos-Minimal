@@ -10,8 +10,6 @@
 
 #include <New/Type/LaserTrailTypeClass.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 class VoxelAnimTypeExtData final
 {
 public:
@@ -33,7 +31,6 @@ public:
 	Nullable<WeaponTypeClass*> Weapon { };
 	Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
 
-	TrailsReader Trails { };
 #pragma endregion
 
 	VoxelAnimTypeExtData() noexcept = default;

@@ -20,6 +20,9 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/House/Body.h>
+
+#include <Utilities/Helpers.h>
 
 #include <numeric>
 #include "Header.h"

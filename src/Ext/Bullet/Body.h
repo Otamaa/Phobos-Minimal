@@ -7,8 +7,6 @@
 
 #include <New/Entity/LaserTrailClass.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 #include "Trajectories/PhobosTrajectory.h"
 
 class TechnoClass;
@@ -38,7 +36,6 @@ public:
 	//std::vector<LineTrail*> BulletTrails {};
 	OptionalStruct<DirStruct, true> InitialBulletDir {};
 
-	std::vector<UniversalTrail> Trails {};
 	std::unique_ptr<PhobosTrajectory> Trajectory {};
 	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
 	int DamageNumberOffset { INT32_MIN };

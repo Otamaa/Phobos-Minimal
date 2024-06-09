@@ -5,6 +5,8 @@
 #include <Ext/Techno/Body.h>
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
+#include <Utilities/Helpers.h>
+
 void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 {
 	double ROF_Mult = 1.0;

@@ -5,7 +5,6 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
@@ -98,8 +97,6 @@ public:
 
 	Valueable<ParticleSystemTypeClass*> AttachedSystem { nullptr };
 	Valueable<WeaponTypeClass*> ReturnWeapon { nullptr };
-
-	TrailsReader Trails { };
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
 

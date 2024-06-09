@@ -4,6 +4,9 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Rules/Body.h>
 
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
+#include <Utilities/Helpers.h>
+
 std::vector<const char*> SW_HunterSeeker::GetTypeString() const
 {
 	return { "HunterSeeker" };
@@ -26,8 +29,8 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	}
 
 	//testing
-	// TODO : Re-enable this 
-	// somwhat HS Causing desync on ROTE ? 
+	// TODO : Re-enable this
+	// somwhat HS Causing desync on ROTE ?
 	// need to investigate further
 	//if (IS_SAME_STR_(pType->ID, "SOVSCRAP"))
 	//	return true;

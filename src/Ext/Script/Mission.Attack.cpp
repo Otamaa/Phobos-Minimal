@@ -6,6 +6,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/House/Body.h>
 
 // Contains ScriptExtData::Mission_Attack and its helper functions.
 

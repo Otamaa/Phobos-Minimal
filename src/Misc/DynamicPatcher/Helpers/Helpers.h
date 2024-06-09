@@ -4,7 +4,7 @@
 #include <BulletClass.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/LocationMark.h>
-#include "RadialFire.h"
+
 #include "EffectHelpers.h"
 //#include <Misc/Otamaa/Delegates.h>
 
@@ -137,14 +137,6 @@ public:
 	static Vector3D<float> GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset);
 	static VelocityClass GetVelocityClass(CoordStruct sourcePos, CoordStruct targetPos);
 	static CoordStruct GetFLHAbsoluteCoords(CoordStruct source, CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset = CoordStruct::Empty);
-
-	static void FireWeaponTo(TechnoClass* pShooter,
-		TechnoClass* pAttacker,
-		AbstractClass* pTarget,
-		WeaponTypeClass* pWeapon,
-		const CoordStruct& flh,
-		const CoordStruct& bulletSourcePos = CoordStruct::Empty,
-		bool radialFire = false, int splitAngle = 180);
 
 	static void DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget);
 

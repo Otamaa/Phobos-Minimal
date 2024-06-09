@@ -988,55 +988,6 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 	return nullptr;
 }
 
-void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
-{
-	if (!pWeapon)
-		return;
-
-	if (!pTarget)
-		return;
-
-	CoordStruct targetPos {};
-	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
-		targetPos = CellClass::Cell2Coord(pFoot->GetDestinationMapCoords());
-	else
-		targetPos = pTarget->GetCoords();
-
-	if(auto const pCell  = MapClass::Instance->GetCellAt(targetPos))
-		targetPos.Z = pCell->GetFloorHeight(Point2D::Empty);
-
-	// radial fire
-	int burst = pWeapon->Burst;
-	RadialFireHelper radialFireHelper { pShooter, burst, splitAngle };
-	int flipY = -1;
-
-	for (int i = 0; i < burst; i++)
-	{
-		VelocityClass bulletVelocity { };
-		if (radialFire) {
-			flipY = (i < burst / 2.0f) ? -1 : 1;
-			bulletVelocity = radialFireHelper.GetBulletVelocity(i);
-		} else {
-			flipY *= -1;
-		}
-
-		CoordStruct sourcePos = bulletSourcePos;
-
-		if (!bulletSourcePos.IsValid())
-		{
-			CoordStruct nFLh_ = flh;
-			sourcePos = GetFLHAbsoluteCoords(pShooter, nFLh_, true, flipY);
-		}
-
-		if (!bulletVelocity.IsValid())
-		{
-			bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
-		}
-
-		FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
-	}
-}
-
 BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
 	if (!pWeapon)

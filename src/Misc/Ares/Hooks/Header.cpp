@@ -48,6 +48,7 @@
 #include <New/Type/GenericPrerequisite.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Utilities/Helpers.h>
 
 #include <Misc/Ares/EVAVoices.h>
 
@@ -197,10 +198,6 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 	if (!bImmune_pt1 && !bImmune_pt2)
 	{
 		const int nArmor = (int)TechnoExtData::GetArmor(pTarget);
-
-#ifdef COMPILE_PORTED_DP_FEATURES_
-		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
-#endif
 
 		if (const auto pAnimTypeDecided = pWarheadExt->GetArmorHitAnim(nArmor))
 		{
@@ -3417,8 +3414,6 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pExt->PassengerDeletionTimer.IsTicking()
 	&& !pToTypeExt->PassengerDeletionType.Enabled)
 		pExt->PassengerDeletionTimer.Stop();
-
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
 	// Update open topped state of potential passengers if transport's OpenTopped value changes.
 	bool toOpenTopped = pToType->OpenTopped && !pOldType->OpenTopped;

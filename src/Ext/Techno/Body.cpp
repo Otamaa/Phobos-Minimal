@@ -35,8 +35,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/LocomotionCast.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <memory>
@@ -3946,8 +3944,6 @@ void TechnoExtData::UpdateOnTunnelEnter()
 			pos->LastLocation.clear();
 		}
 
-		TrailsManager::Hide(this->AttachedToObject);
-
 		this->IsInTunnel = true;
 	}
 }
@@ -3989,82 +3985,6 @@ std::pair<WeaponTypeClass*, int> TechnoExtData::GetDeployFireWeapon(TechnoClass*
 void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 {
 	static_assert(true, "Donot Use!");
-	//auto const pThis = this->AttachedToObject;
-	//const auto pOldType = this->Type;
-	//const auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
-	//this->Type = currentType;
-	//auto const pTypeExtData = TechnoTypeExtContainer::Instance.Find(currentType);
-
-	//TechnoExtData::InitializeLaserTrail(pThis, true);
-
-	// Reset Shield
-	// This part should have been done by UpdateShield
-
-	// Reset AutoDeath Timer
-	//if (this->Death_Countdown.HasStarted())
-	//{
-	//	this->Death_Countdown.Stop();
-
-	//	if (pThis->Owner)
-	//	{
-	//		HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
-	//	}
-	//}
-
-	// Reset PassengerDeletion Timer - TODO : unchecked
-	//if (this->PassengerDeletionTimer.IsTicking()
-	//	&& !pTypeExtData->PassengerDeletionType.Enabled)
-	//	this->PassengerDeletionTimer.Stop();
-
-	//TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
-
-	/*if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
-		this->MyFighterData.reset(nullptr);
-
-	else if (pTypeExtData->MyFighterData.Enable && !this->MyFighterData)
-	{
-		this->MyFighterData = std::make_unique<FighterAreaGuard>();
-		this->MyFighterData->OwnerObject = (AircraftClass*)pThis;
-	}
-
-	if(!pTypeExtData->DamageSelfData.Enable && this->DamageSelfState)
-		this->DamageSelfState.reset(nullptr);
-	else if (pTypeExtData->DamageSelfData.Enable && !this->DamageSelfState)
-		DamageSelfState::OnPut(this->DamageSelfState, pTypeExtData->DamageSelfData);
-
-	if (!pTypeExtData->MyGiftBoxData.Enable && this->MyGiftBox)
-		this->MyGiftBox.reset(nullptr);
-	else if (pTypeExtData->MyGiftBoxData.Enable && !this->MyGiftBox)
-		GiftBoxFunctional::Init(this, pTypeExtData);*/
-
-	// Update open topped state of potential passengers if transport's OpenTopped value changes.
-	//bool toOpenTopped = currentType->OpenTopped && !pOldType->OpenTopped;
-
-	//if ((toOpenTopped || (!currentType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0)
-	//{
-	//	auto pPassenger = pThis->Passengers.FirstPassenger;
-
-	//	while (pPassenger)
-	//	{
-	//		if (toOpenTopped)
-	//		{
-	//			pThis->EnteredOpenTopped(pPassenger);
-	//		}
-	//		else
-	//		{
-	//			pThis->ExitedOpenTopped(pPassenger);
-
-	//			// Lose target & destination
-	//			pPassenger->Guard();
-
-	//			// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
-	//			// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
-	//			MapClass::Logics.get().RemoveObject(pPassenger);
-	//		}
-
-	//		pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-	//	}
-	//}
 }
 
 void TechnoExtData::UpdateBuildingLightning()
@@ -4758,13 +4678,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
 		.Process(this->SkipVoice)
-		.Process(this->ExtraWeaponTimers)
-		.Process(this->Trails)
-		.Process(this->MyGiftBox)
-		.Process(this->PaintBallStates)
-		.Process(this->DamageSelfState)
 		.Process(this->CurrentWeaponIdx)
-		.Process(this->MyFighterData)
 		.Process(this->WarpedOutDelay)
 		.Process(this->AltOccupation)
 		.Process(this->MyOriginalTemporal)
@@ -4786,10 +4700,6 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->StrafeFireCunt)
 		.Process(this->MergePreventionTimer)
 		.Process(this->TiberiumStorage)
-		.Process(this->MyWeaponManager)
-		.Process(this->MyDriveData)
-		.Process(this->MyDiveData)
-		.Process(this->MySpawnSuport)
 		.Process(this->AE_ExtraRange)
 		.Process(this->AE_ExtraCrit)
 		.Process(this->PhobosAE)
@@ -4818,8 +4728,6 @@ bool TechnoExtData::InvalidateIgnorable(AbstractClass* ptr)
 
 void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
-
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(GarrisonedIn, ptr , bRemoved);

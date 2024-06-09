@@ -11,8 +11,6 @@
 
 #include <ScriptTypeClass.h>
 
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataRules.h>
-
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 
 class AnimTypeClass;
@@ -318,7 +316,6 @@ public:
 
 	Valueable<int> VeinsAttack_interval { 2 };
 	Valueable<int> BuildingFlameSpawnBlockFrames { 0 };
-	AircraftPutDataRules MyPutData { };
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;

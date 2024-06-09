@@ -3,6 +3,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/House/Body.h>
 
 // Contains ScriptExtData::Mission_Move and its helper functions.
 

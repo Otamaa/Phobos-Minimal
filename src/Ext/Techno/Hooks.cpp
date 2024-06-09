@@ -22,8 +22,6 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <New/Entity/FlyingStrings.h>
 
 // DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
@@ -170,8 +168,6 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 			pLaserTrail.Visible = true;
 		}
 	}
-
-	TrailsManager::Hide(pThis);
 
 	return 0;
 }
@@ -502,8 +498,6 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
 		FlyingStrings::DisplayDamageNumberString(*pDamage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset);
 
 	GET(DamageState, damageState, EDI);
-
-	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pWH, damageState);
 
 	if (damageState != DamageState::PostMortem && !pThis->IsAlive)
 	{

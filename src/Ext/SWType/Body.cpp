@@ -13,6 +13,8 @@
 #include <Utilities/EnumFunctions.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
+#include <Utilities/Helpers.h>
 
 #include <Misc/PhobosToolTip.h>
 
@@ -26,8 +28,8 @@
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
 #include <New/Type/GenericPrerequisite.h>
-//#include <ExtraHeaders/DiscreteSelectionClass_s.h>
-//#include <ExtraHeaders/DiscreteDistributionClass_s.h>
+
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>

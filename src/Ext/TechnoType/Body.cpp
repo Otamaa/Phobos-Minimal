@@ -639,14 +639,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
 
-		this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
-		this->MyExtraFireData.ReadRules(exINI, pSection);
-		this->MyGiftBoxData.Read(exINI, pSection);
-		//this->MyJJData.Read(exINI, pSection);
-		this->MyPassangersData.Read(exINI, pSection);
-		this->MySpawnSupportDatas.Read(exINI, pSection);
-		this->DamageSelfData.Read(exINI, pSection);
-
 		this->IronCurtain_KeptOnDeploy.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 		this->ForceShield_KeptOnDeploy.Read(exINI, pSection, "ForceShield.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
@@ -1196,9 +1188,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->Crashable.Read(exINI, pSection, "Crashable");
-			this->MyDiveData.Read(exINI, pSection);
-			this->MyPutData.Read(exINI, pSection);
-			this->MyFighterData.Read(exINI, pSection, pThis);
 		}
 #pragma endregion
 
@@ -1356,10 +1345,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
-
-		this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
-		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
-		this->Trails.Read(exArtINI, pArtSection, true);
 
 		this->CameoPCX.Read(exArtINI.GetINI(), pArtSection, "CameoPCX");
 		this->AltCameoPCX.Read(exArtINI.GetINI(), pArtSection, "AltCameoPCX");
@@ -1861,9 +1846,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ConsideredNaval)
 		.Process(this->ConsideredVehicle)
 
-
-		.Process(this->VirtualUnit)
-
 		.Process(this->PrimaryCrawlFLH)
 		.Process(this->Elite_PrimaryCrawlFLH)
 		.Process(this->SecondaryCrawlFLH)
@@ -2160,17 +2142,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 #pragma endregion
 		;
 
-	this->MyExtraFireData.Serialize(Stm);
-	this->MyDiveData.Serialize(Stm);
-	this->MyPutData.Serialize(Stm);
-	this->MyGiftBoxData.Serialize(Stm);
-	//this->MyJJData.Serialize(Stm);
-	this->MyPassangersData.Serialize(Stm);
-	this->MySpawnSupportFLH.Serialize(Stm);
-	this->MySpawnSupportDatas.Serialize(Stm);
-	this->Trails.Serialize(Stm);
-	this->MyFighterData.Serialize(Stm);
-	this->DamageSelfData.Serialize(Stm);
 
 
 	Stm.Process(this->AttachedEffect)

@@ -130,8 +130,6 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RockerPitch = 1.0f * halfpi;
 	}
 
-	this->MyAttachFireDatas.Read(exINI, pSection);
-
 #pragma endregion
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
@@ -408,7 +406,6 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_IgnoreFromSameSource)
 		;
 
-	MyAttachFireDatas.Serialize(Stm);
 };
 
 int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)

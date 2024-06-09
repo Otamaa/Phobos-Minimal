@@ -325,8 +325,6 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
 	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
 
-	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
-	this->PaintBallData.Read(exINI, pSection);
 #pragma endregion
 
 	this->AttachedEffect.Read(exINI);
@@ -1383,11 +1381,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Webby_Cap)
 		.Process(this->Webby_Duration_Variation)
 		.Process(this->SelfHealing_CombatDelay)
-#ifdef COMPILE_PORTED_DP_FEATURES_
-		.Process(DamageTextPerArmor)
-
-#endif
-		.Process(this->PaintBallDuration)
 
 		.Process(this->KillDriver)
 		.Process(this->KillDriver_KillBelowPercent)
@@ -1413,8 +1406,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
 		.Process(this->AttachEffect_DurationOverrides)
 		;
-
-	PaintBallData.Serialize(Stm);
 }
 
 void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>& chances) const

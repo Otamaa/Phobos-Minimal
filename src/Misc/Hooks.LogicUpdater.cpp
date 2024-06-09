@@ -11,18 +11,6 @@
 #include <MapClass.h>
 #include <Kamikaze.h>
 
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTargetFunctional.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuardFunctional.h>
-
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
@@ -225,35 +213,6 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-#ifdef ENABLE_THESE
-	PassengersFunctional::AI(pThis);
-	//SpawnSupportFunctional::AI(pThis);
-
-	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-
-	if(pThis->IsAlive)
-		GiftBoxFunctional::AI(pExt, pTypeExt);
-
-	if(pThis->IsAlive){
-
-		auto it = std::remove_if(pExt->PaintBallStates.begin() , pExt->PaintBallStates.end() ,[pThis](auto& pb){
-				if(pb.second.timer.GetTimeLeft()) {
-					if (pThis->WhatAmI() == BuildingClass::AbsID) {
-						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-					}
-					return false;
-				}
-
-			return true;
-		});
-
-		pExt->PaintBallStates.erase(it);
-
-		if (auto& pDSState = pExt->DamageSelfState) {
-			pDSState->TechnoClass_Update_DamageSelf(pThis);
-		}
-	}
-#endif
 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
 	//return 0x6F9EBB;
 }
@@ -313,9 +272,6 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 
 #ifdef ENABLE_THESE
 	pExt->UpdateAircraftOpentopped();
-	AircraftPutDataFunctional::AI(pExt, pTypeExt);
-	AircraftDiveFunctional::AI(pExt, pTypeExt);
-	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 
 	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
 	//{
@@ -353,7 +309,6 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 #ifdef ENABLE_THESE
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	 DriveDataFunctional::AI(pExt);
 	 //UpdateWebbed(pThis);
 #endif
 	if (IsMovingNow)
@@ -363,7 +318,6 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
 		pExt->UpdateLaserTrails();
 
-		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
 #endif
 		return 0x4DA6A0;
 	}

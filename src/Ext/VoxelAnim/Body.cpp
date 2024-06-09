@@ -67,7 +67,6 @@ void VoxelAnimExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->Invoker)
 		.Process(this->LaserTrails)
-		.Process(this->Trails)
 		;
 }
 
@@ -88,7 +87,6 @@ DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 			pExt->InitializeLaserTrails(pTypeExt);
-			TrailsManager::Construct(pItem);
 		}
 	}
 

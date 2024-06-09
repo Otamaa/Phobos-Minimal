@@ -12,8 +12,6 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 class VoxelAnimExtData final
 {
 public:
@@ -27,7 +25,6 @@ public:
 
 	TechnoClass* Invoker { nullptr };
 	std::vector<LaserTrailClass> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
 
 	VoxelAnimExtData() noexcept = default;
 	~VoxelAnimExtData() noexcept = default;

@@ -16,9 +16,6 @@
 
 #include <Fundamentals.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
 DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 {
 	GET_STACK(BulletClass*, pThis, STACK_OFFS(0xF8, 0xE4));

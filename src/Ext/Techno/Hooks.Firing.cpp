@@ -14,8 +14,6 @@
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
 
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-
 bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 {
 	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
@@ -176,9 +174,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	//	return FireCant;
 
 	if (!TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
-		return FireIllegal;
-
-	if (PassengersFunctional::CanFire(pThis))
 		return FireIllegal;
 
 	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))

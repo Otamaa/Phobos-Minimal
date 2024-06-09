@@ -9,7 +9,9 @@
 #include <Base/Always.h>
 
 #include <HouseClass.h>
+
 #include <Utilities/Debug.h>
+#include <Utilities/Helpers.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>

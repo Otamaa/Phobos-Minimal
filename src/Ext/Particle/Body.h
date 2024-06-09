@@ -7,8 +7,6 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/ParticleType/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 class ParticleExtData final
 {
 public:
@@ -21,7 +19,6 @@ public:
 public:
 
 	std::vector<LaserTrailClass> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
 
 	ParticleExtData() noexcept = default;
 	~ParticleExtData() noexcept = default;

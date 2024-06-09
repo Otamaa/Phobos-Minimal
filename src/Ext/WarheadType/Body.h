@@ -13,9 +13,6 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
-#include <Misc/DynamicPatcher/Others/DamageText.h>
-#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
-
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/VersesData.h>
 
@@ -297,9 +294,6 @@ public:
 	Valueable<bool> RemoveInflictedLocomotor { false };
 
 	Nullable<int> Rocker_Damage {};
-
-	Nullable<int> PaintBallDuration { };
-	PaintballType PaintBallData { };
 
 	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW { -1 };
 	Valueable<int> IC_Duration { 0 };

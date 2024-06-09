@@ -543,7 +543,6 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		pData->ReloadAmmo != 0
 		|| (pData->RevengeWeapon && pData->RevengeWeapon_GrantDuration > 0)
 		|| !pData->LimboKill_IDs.empty()
-		|| (pData->PaintBallData.Color != ColorStruct::Empty)
 		|| pData->InflictLocomotor
 		|| pData->RemoveInflictedLocomotor
 		|| pData->IC_Duration != 0
@@ -717,30 +716,6 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
-
-	if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {
-		auto& paintball = pExt->PaintBallStates[this->AttachedToObject];
-		paintball.SetData(this->PaintBallData);
-		paintball.Init();
-
-		if(this->PaintBallDuration < 0 || this->PaintBallData.Accumulate){
-			int value = paintball.timer.GetTimeLeft() + this->PaintBallDuration;
-
-			if (value <= 0) {
-				paintball.timer.Stop();
-			} else {
-				paintball.timer.Add(value);
-			}
-
-		} else{
-
-			if (this->PaintBallData.Override && paintball.timer.GetTimeLeft()) {
-				paintball.timer.Start(this->PaintBallDuration);
-			} else {
-				paintball.timer.Start(this->PaintBallDuration);
-			}
-		}
-	}
 
 	if (this->GattlingStage > 0)
 	{

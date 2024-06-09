@@ -23,17 +23,6 @@
 
 #include <FileSystem.h>
 
-#include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveData.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutData.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxData.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingData.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/Passengers.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportData.h>
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterGuardAreaData.h>
-
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
@@ -629,26 +618,12 @@ public:
 	//PhobosPCXFile CameoPCX { };
 	//PhobosPCXFile AltCameoPCX { };
 
-	Valueable <bool> VirtualUnit { false };
-
 	Nullable<CoordStruct> PrimaryCrawlFLH { };
 	Nullable<CoordStruct> Elite_PrimaryCrawlFLH { };
 	Nullable<CoordStruct> SecondaryCrawlFLH { };
 	Nullable<CoordStruct> Elite_SecondaryCrawlFLH { };
 
 	Valueable<bool> MissileHoming { false };
-
-	ExtraFireData MyExtraFireData { };
-	AircraftDiveData MyDiveData { };
-	AircraftPutData MyPutData { };
-	GiftBoxData MyGiftBoxData { };
-	//JJFacingData  MyJJData { };
-	PassengersData MyPassangersData { };
-	SpawnSupportFLHData MySpawnSupportFLH { };
-	SpawnSupportData MySpawnSupportDatas { };
-	TrailsReader Trails { };
-	FighterAreaGuardData MyFighterData { };
-	DamageSelfType DamageSelfData { };
 
 	AresAttachEffectTypeClass AttachedEffect { };
 

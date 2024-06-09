@@ -9,15 +9,16 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
+
 #include <Lib/gcem/gcem.hpp>
 
 #include <New/Entity/FlyingStrings.h>
+
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 void BulletExtData::ApplyAirburst(BulletClass* pThis)
 {
@@ -761,12 +762,6 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 					pExt->LaserTrails.clear();
 					pExt->InitializeLaserTrails();
 
-					TrailsManager::CleanUp(pExt->AttachedToObject);
-					TrailsManager::Construct(pExt->AttachedToObject);
-
-					//LineTrailExt::DeallocateLineTrail(pThis);
-					//LineTrailExt::ConstructLineTrails(pThis);
-
 				   // Lose target if the current bullet is no longer interceptable.
 					if (!pNewProjTypeExt->Interceptable || (pNewProjTypeExt->Armor.isset() && GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pNewProjTypeExt->Armor.Get()) == 0.0))
 						pSource->SetTarget(nullptr);
@@ -870,7 +865,6 @@ void BulletExtData::Serialize(T& Stm)
 		.Process(this->LastObject)
 		.Process(this->BounceAmount)
 		.Process(this->InitialBulletDir)
-		.Process(this->Trails)
 		.Process(this->AttachedSystem)
 		.Process(this->OriginalTarget)
 		;

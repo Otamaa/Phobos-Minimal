@@ -19,6 +19,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/House/Body.h>
 
 #include "Header.h"
 

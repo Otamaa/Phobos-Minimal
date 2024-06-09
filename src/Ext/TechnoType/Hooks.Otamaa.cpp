@@ -10,9 +10,6 @@
 #include <Ext/WarheadType/Body.h>
 
 #include <Ares_TechnoExt.h>
-#ifdef COMPILE_PORTED_DP_FEATURES_
-#include <Misc/DynamicPatcher/Others/DamageText.h>
-#endif
 
 #include <SlaveManagerClass.h>
 
