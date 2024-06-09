@@ -2215,7 +2215,6 @@ struct TibPatch__ : public TiberiumClass {
 						if (getminateIdx)
 						{
 							((CellPatch__*)(pNewCell))->_SpreadTiberium(false);
-							pNewCell->SpreadTiberium(0);
 							++increment;
 							if (getminateIdx > 1)
 							{
