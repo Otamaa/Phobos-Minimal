@@ -276,7 +276,7 @@ public:
 	int GetContainedTiberiumValue() const
 		{ JMP_THIS(0x485020); }
 
-	bool SpreadTiberium(bool forced) const
+	[[deprecated]] bool SpreadTiberium(bool forced) const
 		{ JMP_THIS(0x483780); }
 
 	// add or create tiberium of the specified type

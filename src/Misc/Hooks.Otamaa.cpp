@@ -12,6 +12,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/Terrain/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -2005,6 +2006,123 @@ static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 	}
 }
 
+
+ struct CellPatch__ : public CellClass
+ {
+	 bool _SpreadTiberium(bool force)
+	 {
+		 int tib_ = -1;
+		 if (!force && !ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
+			 return false;
+
+		 tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+
+		 if (!force) {
+
+			 if (tib_ == -1
+				   || this->OverlayData <= tib_ / 2
+				   || this->SlopeIndex
+				   || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				   || this->FirstObject)  {
+				 return false;
+			 }
+
+		 }  else  {
+			 if (tib_ == -1) {
+				 tib_ = 0;
+			 }
+		 }
+
+		 auto pTib = TiberiumClass::Array->Items[tib_];
+		 auto facing = (BYTE)ScenarioClass::Instance->Random.RandomRangedSpecific(FacingType::Min, FacingType::Max);
+		 int index = 0;
+		 CellClass* newcell = nullptr;
+
+		 while (true)
+		 {
+			 const auto v9 = ((BYTE)index + facing) & 7;
+
+			 if (v9 < 8)
+			 {
+				 newcell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[v9] + this->MapCoords);
+			 }
+			 else
+			 {
+				 newcell = this;
+			 }
+			 if (newcell && newcell->CanTiberiumGerminate(pTib))
+			 {
+				 break;
+			 }
+
+			 if (++index >= 8)
+			 {
+				 return false;
+			 }
+		 }
+
+		 return newcell->IncreaseTiberium(tib_, 3);
+	 }
+
+	 bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force)
+	 {
+		 if (!pTerrain)
+			 Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
+
+		 auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+
+		 int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
+
+		 if (!force)
+		 {
+			 if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
+			 {
+				 return false;
+			 }
+
+			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+				 return false;
+
+			 if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				 || this->FirstObject)
+			 {
+				 return false;
+			 }
+
+		 }
+		 else
+		 {
+			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
+			 {
+				 tib_ = 0;
+			 }
+		 }
+
+		 auto pTib = TiberiumClass::Array->Items[tib_];
+		 auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
+		 size_t size = pTerrainExt->Adjencentcells.size();
+		 const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
+		 const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
+
+		 for (int i = 0; i < (int)size; i++)
+		 {
+			 CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+
+			 if (tgtCell->CanTiberiumGerminate(pTib)) {
+				 return tgtCell->IncreaseTiberium(tib_, growth);
+			 }
+		 }
+
+		 return false;
+	 }
+
+	 static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force)
+	 {
+		 pThis->_SpreadTiberium(force);
+	 }
+ };
+
+
 struct TibPatch__ : public TiberiumClass {
 
 #pragma region Spread
@@ -2096,6 +2214,7 @@ struct TibPatch__ : public TiberiumClass {
 
 						if (getminateIdx)
 						{
+							((CellPatch__*)(pNewCell))->_SpreadTiberium(false);
 							pNewCell->SpreadTiberium(0);
 							++increment;
 							if (getminateIdx > 1)
@@ -2279,113 +2398,6 @@ DEFINE_JUMP(LJMP, 0x722AF0, GET_OFFSET(TibPatch__::__QueueSpreadAtWrapper));
 DEFINE_JUMP(LJMP, 0x722F00, GET_OFFSET(TibPatch__::__GrowthWrapper));
 DEFINE_JUMP(LJMP, 0x7233A0, GET_OFFSET(TibPatch__::__RecalcGrowthWrapper));
 DEFINE_JUMP(LJMP, 0x7235A0, GET_OFFSET(TibPatch__::__QueueGrowthAtWrapper));
-
-#include <Ext/Terrain/Body.h>
-
-struct CellPatch__ : public CellClass
-{
-	bool _SpreadTiberium(bool force)
-	{
-		int tib_ = -1;
-
-		if (!force) {
-			if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads) {
-				return false;
-			}
-
-			tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
-			if(tib_ == -1
-				  || this->OverlayData <= tib_ / 2
-				  || this->SlopeIndex
-				  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
-				  || this->FirstObject)
-			{
-				return false;
-			}
-		}
-		else {
-			if (tib_ == -1) {
-				tib_ = 0;
-			}
-		}
-
-		auto pTib = TiberiumClass::Array->Items[tib_];
-		auto facing = (BYTE)ScenarioClass::Instance->Random.RandomRangedSpecific(FacingType::Min, FacingType::Max);
-		int index = 0;
-		CellClass* newcell = nullptr;
-
-		while (true)
-		{
-			const auto v9 = ((BYTE)index + facing) & 7;
-
-			if (v9 < 8) {
-				newcell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[v9] + this->MapCoords);
-			}
-			else
-			{
-				newcell = this;
-			}
-			if (newcell && newcell->CanTiberiumGerminate(pTib)) {
-				break;
-			}
-
-			if (++index >= 8) {
-				return false;
-			}
-		}
-
-		return newcell->IncreaseTiberium(tib_, 3);
-	}
-
-	bool _SpreadTiberium_2(TerrainClass* pTerrain , bool force)
-	{
-		if (!pTerrain)
-			Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
-
-		auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
-
-		int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
-
-		if (!force) {
-			if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads) {
-				return false;
-			}
-
-			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count ||(TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
-				return false;
-
-			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
-				|| this->FirstObject ){
-				return false;
-			}
-
-		} else {
-			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count) {
-				tib_ = 0;
-			}
-		}
-
-
-		auto pTib = TiberiumClass::Array->Items[tib_];
-		auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
-		size_t size = pTerrainExt->Adjencentcells.size();
-		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-
-		for (int i = 0; i < (int)size; i++) {
-				CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
-
-			if (tgtCell->CanTiberiumGerminate(pTib)) {
-				return tgtCell->IncreaseTiberium(tib_,pTerrainTypeExt->GetTiberiumGrowthStage());
-			}
-		}
-
-		return false;
-	}
-
-	static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force) {
-		pThis->_SpreadTiberium(force);
-	}
-};
 
 DEFINE_JUMP(LJMP, 0x483780, GET_OFFSET(CellPatch__::__SpreadTiberiumWrapper));
 
