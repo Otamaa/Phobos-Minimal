@@ -79,7 +79,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	return 0;
 }
 
-void FireBurst(AircraftClass* pAir, AircraftFireMode firing)
+bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 {
 
 	const auto WeaponIdx = pAir->SelectWeapon(pAir->Target);
@@ -96,25 +96,46 @@ void FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 		}
 	}
 
-	if (Scatter && pAir->Target) {
-		auto coord = pAir->Target->GetCoords();
-		if (auto pCell = MapClass::Instance->TryGetCellAt(coord)) {
-			pCell->ScatterContent(coord, true, false, false);
+	if(pAir->Target){
+		if (Scatter) {
+			auto coord = pAir->Target->GetCoords();
+			if (auto pCell = MapClass::Instance->TryGetCellAt(coord)) {
+				pCell->ScatterContent(coord, true, false, false);
+			}
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
-//was 8
-#define Hook_AircraftBurstFix(addr , Mode , ret)\
-DEFINE_HOOK(addr , AircraftClass_Mission_Attack_##Mode##_Strafe_BurstFix,0x6){ \
-GET(AircraftClass* const, pThis, ESI); \
-FireBurst(pThis, AircraftFireMode::##Mode##); return ret; }
+DEFINE_HOOK(0x4186B6, AircraftClass_Mission_Attack_FireAt_Strafe_BurstFix, 0x6) {
+	GET(AircraftClass* const, pThis, ESI);
+	FireBurst(pThis, AircraftFireMode::FireAt);
+	return 0x418720;
+}
 
-	Hook_AircraftBurstFix(0x4186B6, FireAt, 0x418720)
-	Hook_AircraftBurstFix(0x418805, Strafe2, 0x418883)
-	Hook_AircraftBurstFix(0x418914, Strafe3, 0x418992)
-	Hook_AircraftBurstFix(0x418A23, Strafe4, 0x418AA1)
-	Hook_AircraftBurstFix(0x418B1F, Strafe5, 0x418B8A)
+DEFINE_HOOK(0x418805, AircraftClass_Mission_Attack_Strafe2_Strafe_BurstFix, 0x6) {
+	GET(AircraftClass* const, pThis, ESI);
+	return !FireBurst(pThis, AircraftFireMode::Strafe2) ? 0x418883 : 0x418870;
+}
+
+DEFINE_HOOK(0x418914, AircraftClass_Mission_Attack_Strafe3_Strafe_BurstFix, 0x6) {
+	GET(AircraftClass* const, pThis, ESI);
+	return !FireBurst(pThis, AircraftFireMode::Strafe3) ? 0x418992 : 0x418985;
+}
+
+DEFINE_HOOK(0x418A23, AircraftClass_Mission_Attack_Strafe4_Strafe_BurstFix, 0x6) {
+	GET(AircraftClass* const, pThis, ESI);
+	return !FireBurst(pThis, AircraftFireMode::Strafe4) ? 0x418AA1 : 0x418A8E;
+}
+
+DEFINE_HOOK(0x418B1F, AircraftClass_Mission_Attack_Strafe5_Strafe_BurstFix, 0x6) {
+	GET(AircraftClass* const, pThis, ESI);
+	FireBurst(pThis, AircraftFireMode::Strafe5);
+	return 0x418B8A;
+}
 
 DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
 {
@@ -124,7 +145,7 @@ DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) /
 
 	FireBurst(pThis, AircraftFireMode::FireAt);
 
-	return 0x418478;
+	return 0x4184C2;
 }
 
 #undef Hook_AircraftBurstFix
