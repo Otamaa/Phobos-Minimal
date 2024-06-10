@@ -79,7 +79,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	return 0;
 }
 
-bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
+void FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 {
 
 	const auto WeaponIdx = pAir->SelectWeapon(pAir->Target);
@@ -96,7 +96,12 @@ bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 		}
 	}
 
-	return Scatter && pAir->Target;
+	if (Scatter && pAir->Target) {
+		auto coord = pAir->Target->GetCoords();
+		if (auto pCell = MapClass::Instance->TryGetCellAt(coord)) {
+			pCell->ScatterContent(coord, true, false, false);
+		}
+	}
 }
 
 //was 8
