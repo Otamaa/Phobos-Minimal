@@ -3538,6 +3538,34 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
 
+
+	// Update movement sound if still moving while type changed.
+	if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+	{
+		if (pFoot->Locomotor->Is_Moving_Now() && pFoot->__PlayingMovingSound)
+		{
+			if (pOldType->MoveSound != pToType->MoveSound)
+			{
+				// End the old sound.
+				pFoot->Audio7.AudioEventHandleStop();
+
+				if (auto const count = pOldType->MoveSound.Count)
+				{
+					// Play a new sound.
+					int soundIndex = pToType->MoveSound[Random2Class::Global->Random() % count];
+					VocClass::PlayAt(soundIndex, pFoot->Location, &pFoot->Audio7);
+					pFoot->__PlayingMovingSound = true;
+				}
+				else
+				{
+					pFoot->__PlayingMovingSound = false;
+				}
+
+				pFoot->__MovingSoundDelay = 0;
+			}
+		}
+	}
+
 	//if (pThis->LocomotorSource) {
 	//	Debug::Log("Attempt to convert TechnoType[%s] to [%s] when the locomotor is currently manipulated , return\n", pOldType->ID, pToType->ID);
 	//	return true;
