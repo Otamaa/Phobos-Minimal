@@ -281,6 +281,19 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	return 0;
 }
 
+namespace FiringAITemp
+{
+	int weaponIndex;
+}
+
+DEFINE_HOOK(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6) {
+	GET(int, weaponIndex, EDI);
+
+	FiringAITemp::weaponIndex = weaponIndex;
+
+	return 0;
+}
+
 DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 {
 	enum { Continue = 0x5209CD, ReturnFromFunction = 0x520AD9 };
@@ -288,8 +301,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	GET(InfantryClass*, pThis, EBP);
 	GET(int, firingFrame, EDX);
 
-	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
-	const auto pWeaponstruct = pThis->GetWeapon(weaponIndex);
+	const auto pWeaponstruct = pThis->GetWeapon(FiringAITemp::weaponIndex);
 
 	if (!pWeaponstruct)
 		return ReturnFromFunction;
@@ -341,7 +353,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 			}
 		}
 
-		R->EAX(weaponIndex); // Reuse the weapon index to save some time.
+		R->EAX(FiringAITemp::weaponIndex); // Reuse the weapon index to save some time.
 		return Continue;
 	}
 
