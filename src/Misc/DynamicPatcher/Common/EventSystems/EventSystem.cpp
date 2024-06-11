@@ -48,7 +48,6 @@ Event Events::ScenarioClearClassesEvent = Event("ScenarioClearClasses", "Raised 
 Event Events::ScenarioStartEvent = Event("ScenarioStart", "Raised when scenario start");
 // 渲染事件
 Event Events::GScreenRenderEvent = Event("GScreenClass_Render", "Raised when GScreen is Render");
-Event Events::SidebarRenderEvent = Event("SidebarClass_Draw_It", "Raised when Sidebar is Render");
 // 逻辑事件
 Event Events::LogicUpdateEvent = Event("LogicClassUpdate", "Raised when LogicClass update");
 Event Events::TypeChangeEvent = Event("TechnoClass_TypeChange", "Raised when Techno's type is changed");

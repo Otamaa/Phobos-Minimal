@@ -1,4 +1,4 @@
-﻿#include "AttachEffectScript.h"
+#include "AttachEffectScript.h"
 
 #include <Ext/Helper/Status.h>
 #include <Ext/Common/PrintTextManager.h>
@@ -546,7 +546,8 @@ AttachEffect* AttachEffectScript::GetAEManager()
 {
 	if (!_aeManager)
 	{
-		_aeManager = dynamic_cast<AttachEffect*>(_parent);
+		if (_parent && _parent->c_Type == ComponentType::AE)
+			_aeManager = static_cast<AttachEffect*>(_parent);
 	}
 	return _aeManager;
 }

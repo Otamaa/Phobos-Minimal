@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <Ext/ObjectType/FilterData.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/FilterData.h>
 
 enum class AffectWho : int
 {

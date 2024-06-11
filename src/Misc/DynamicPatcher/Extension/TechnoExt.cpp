@@ -1,8 +1,8 @@
-﻿#include "TechnoExt.h"
+#include "TechnoExt.h"
 
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/TechnoType/AircraftPut.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/AircraftPut.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 void TechnoExt::AddGlobalScripts(std::list<std::string>& globalScripts, ExtData* ext)
 {

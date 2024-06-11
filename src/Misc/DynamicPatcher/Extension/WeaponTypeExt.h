@@ -2,7 +2,7 @@
 
 #include <WeaponTypeClass.h>
 
-#include "Ext/ObjectType/AttachFireData.h"
+#include "Misc/DynamicPatcher/Ext/ObjectType/AttachFireData.h"
 
 #include "TypeExtension.h"
 
@@ -22,9 +22,9 @@ public:
 
 		// Phobos
 		int BoltArcCount = 8;
-		ColorStruct BoltColor1 = Colors::Empty;
-		ColorStruct BoltColor2 = Colors::Empty;
-		ColorStruct BoltColor3 = Colors::Empty;
+		ColorStruct BoltColor1 = ColorStruct::Empty;
+		ColorStruct BoltColor2 = ColorStruct::Empty;
+		ColorStruct BoltColor3 = ColorStruct::Empty;
 		bool BoltDisable1 = false;
 		bool BoltDisable2 = false;
 		bool BoltDisable3 = false;
@@ -34,7 +34,7 @@ public:
 		float RockerPitch = 0;
 		bool SelfLaunch = false;
 		bool PumpAction = false;
-		Sequence PumpInfSequence = Sequence::Crawl;
+		DoType PumpInfSequence = DoType::Crawl;
 		int HumanCannon = -1;
 
 		int NoMoneyNoTalk = 0;

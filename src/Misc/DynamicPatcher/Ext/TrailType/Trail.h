@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 #include "TrailData.h"
 #include "TrailTypeData.h"

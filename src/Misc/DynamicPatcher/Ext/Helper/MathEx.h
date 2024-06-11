@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <iterator>
 #include <algorithm>
@@ -15,37 +15,27 @@
  *@brief ScenarioClass::Instance->Random Only get the Same number in One frame
  *
  */
-class Random
-{
-public:
-	static void SetRandomSeed(int seed)
-	{
-		_engine.seed(seed);
-	}
-
-	/**
-	 *@brief Include maximum value
-	 *
-	 * @param min
-	 * @param max
-	 * @return int
-	 */
-	static int RandomRanged(int min, int max)
-	{
-		std::uniform_int_distribution<int> dis(min, max);
-		return dis(_engine);
-	}
-
-	static double RandomDouble()
-	{
-		return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1);
-	}
-private:
-	inline static std::minstd_rand _engine{};
-};
+class Random : public Phobos::Random {};
 
 template<typename T>
 static int GetRandomValue(Vector2D<T> range, int defVal)
+{
+	int min = static_cast<int>(range.X);
+	int max = static_cast<int>(range.Y);
+	if (min > max)
+	{
+		int tmp = min;
+		min = max;
+		max = tmp;
+	}
+	if (max > 0)
+	{
+		return Random::RandomRanged(min, max);
+	}
+	return defVal;
+}
+
+static int GetRandomValue(Point2D range, int defVal)
 {
 	int min = static_cast<int>(range.X);
 	int max = static_cast<int>(range.Y);

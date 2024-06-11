@@ -38,7 +38,7 @@ public:
 	template<typename T, typename F>
 	void AddHandler(Event e, T* _obj, F func)
 	{
-		_handlers[e] += newDelegate(_obj, func);
+		_handlers[e] += Delegate::newDelegate(_obj, func);
 	}
 
 	void RemoveHandler(Event e, HandleEvent func);
@@ -46,7 +46,7 @@ public:
 	template<typename T, typename F>
 	void RemoveHandler(Event e, T* _obj, F func)
 	{
-		_handlers[e] -= newDelegate(_obj, func);
+		_handlers[e] -= Delegate::newDelegate(_obj, func);
 	}
 
 	void Broadcast(Event e, void* args = EventArgsEmpty);
@@ -80,7 +80,6 @@ public:
 	static Event ScenarioStartEvent;
 	// 渲染事件
 	static Event GScreenRenderEvent;
-	static Event SidebarRenderEvent;
 	// 单位逻辑事件
 	static Event LogicUpdateEvent;
 	static Event TypeChangeEvent;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Windows.h>
 #include <algorithm>
@@ -32,21 +32,54 @@ std::basic_string<T> uppercase(const std::basic_string<T>& s)
 	return s2;
 }
 
-std::string& trim(std::string& s);
+std::string& trim(std::string& s)
+{
+	return KratosCRT::trim(s);
+}
 
-void split(std::string& s, std::string& delim, std::vector<std::string>* result);
+void split(std::string& s, std::string& delim, std::vector<std::string>* result)
+{
+	KratosCRT::split(s , delim , result);
+}
 
-std::string subreplace(std::string resource, std::string sub, std::string replace);
+std::string subreplace(std::string resource, std::string sub, std::string replace)
+{
+	return KratosCRT::subreplace(resource , sub , replace);
+}
 
-int Wchar2Char(const wchar_t* wcharStr, char* charStr);
-std::string WString2String(std::wstring wstr);
+int Wchar2Char(const wchar_t* wcharStr, char* charStr)
+{
+	return KratosCRT::Wchar2Char(wcharStr , charStr);
+}
+std::string WString2String(std::wstring wstr)
+{
+	return KratosCRT::WString2String(wstr);
+}
 
-int Char2Wchar(const char* charStr, wchar_t* wcharStr);
-std::wstring String2WString(std::string str);
+int Char2Wchar(const char* charStr, wchar_t* wcharStr)
+{
+	return KratosCRT::Char2Wchar(charStr , wcharStr);
+}
+std::wstring String2WString(std::string str)
+{
+	return KratosCRT::String2WString(str);
+}
 
-bool IsNotNone(std::string val);
+bool IsNotNone(std::string val)
+{
+	return KratosCRT::IsNotNone(val);
+}
 
-void ClearIfGetNone(std::vector<std::string>& value);
+void ClearIfGetNone(std::vector<std::string>& value)
+{
+	return KratosCRT::ClearIfGetNone(value);
+}
 
-std::string GetUUID();
-std::string GetUUIDShort();
+std::string GetUUID()
+{
+	return KratosCRT::GetUUID();
+}
+std::string GetUUIDShort()
+{
+	return KratosCRT::GetUUIDShort();
+}

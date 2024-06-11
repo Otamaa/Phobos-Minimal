@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <HouseClass.h>
@@ -11,7 +11,7 @@ class PumpState : public StateScript<PumpData>
 public:
 	STATE_SCRIPT(Pump);
 
-	bool Jump(CoordStruct targetPos, bool isLobber, Sequence flySequence, bool isHumanCannon = false);
+	bool Jump(CoordStruct targetPos, bool isLobber, DoType flySequence, bool isHumanCannon = false);
 
 	virtual void Clean() override
 	{
@@ -21,9 +21,9 @@ public:
 		_flyTimer = {}; // 飞行时间
 
 		_gravity = 0;
-		_velocity = BulletVelocity::Empty; // 飞行向量
+		_velocity = {}; // 飞行向量
 
-		_flySequence = Sequence::Ready; // 步兵飞行时的序列
+		_flySequence = DoType::Ready; // 步兵飞行时的序列
 
 		// 状态机一直处于激活状态，额外开关控制是否可以进行跳跃
 		_canJump = false;
@@ -85,16 +85,16 @@ public:
 private:
 	void SetupPump();
 
-	bool ActionJump(BulletVelocity velocity, int gravity, double straightDistance);
+	bool ActionJump(VelocityClass velocity, int gravity, double straightDistance);
 	void CancelJump();
 
 	bool _isHumanCannon = false; // 人间大炮
 	CDTimerClass _flyTimer{}; // 飞行时间
 
 	int _gravity = 0;
-	BulletVelocity _velocity = BulletVelocity::Empty; // 飞行向量
+	VelocityClass _velocity = {}; // 飞行向量
 
-	Sequence _flySequence = Sequence::Ready; // 步兵飞行时的序列
+	DoType _flySequence = DoType::Ready; // 步兵飞行时的序列
 
 	// 状态机一直处于激活状态，额外开关控制是否可以进行跳跃
 	bool _canJump = false;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cmath>
 #include <string>
@@ -9,7 +9,7 @@
 #include <BulletClass.h>
 #include <TechnoClass.h>
 
-#include <Ext/EffectType/Effect/OffsetData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/OffsetData.h>
 
 class LocationMark
 {
@@ -141,10 +141,10 @@ DirStruct Point2Dir(CoordStruct source, CoordStruct target);
 int IncludedAngle360(int bodyDirIndex, int targetDirIndex);
 
 /// @brief 目标在死区范围内更靠近哪一边
-/// @param targetBodyDelta 
-/// @param min 
-/// @param max 
-/// @return 
+/// @param targetBodyDelta
+/// @param min
+/// @param max
+/// @return
 int GetTurnAngle(int targetBodyDelta, int min, int max);
 int GetTurnAngle(int targetBodyDelta, Point2D angleZone);
 #pragma endregion

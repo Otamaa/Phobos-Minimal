@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INI.h>
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/PrintTextData.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextData.h>
 
 enum class HealthTextStyle : int
 {
@@ -208,7 +208,7 @@ struct HealthTextControlData
 
 	void Read()
 	{
-		INIBufferReader* avReader = INI::GetSection(INI::Rules, INI::SectionAudioVisual);
+		INIBufferReader* avReader = INI::GetSection(INI::Rules, GameStrings::AudioVisual());
 
 		Hidden = avReader->Get(HealthTextData::TITLE + "Hidden", false);
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <BulletClass.h>
@@ -7,13 +7,13 @@
 // 高级弹道学
 // ----------------
 #pragma region Advanced Ballistics
-BulletVelocity GetBulletVelocity(CoordStruct source, CoordStruct target);
+VelocityClass GetBulletVelocity(CoordStruct source, CoordStruct target);
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct source, CoordStruct target);
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct source, CoordStruct target);
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct target);
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct target);
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet);
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet);
 
 /// @brief 获取不精确落点的散布偏移值.
 /// @param scatterMin 最小散布范围，单位格
@@ -31,7 +31,7 @@ CoordStruct GetInaccurateOffset(float scatterMin, float scatterMax);
 /// @param straightDistance out 距离
 /// @param realSpeed out 计算后的实际速度
 /// @return velocity
-BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct targetPos,
+VelocityClass GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct targetPos,
 	double speed, double gravity, bool lobber,
 	int zOffset, double& straightDistance, double& realSpeed);
 
@@ -49,7 +49,7 @@ BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct target
 /// @param realSpeed out 实际速度
 /// @param pTargetCell out 目标格子
 /// @return velocity
-BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct& targetPos,
+VelocityClass GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct& targetPos,
 	double speed, double gravity, bool lobber, bool inaccurate, float scatterMin, float scatterMax,
 	int zOffset, double& straightDistance, double& realSpeed, CellClass*& pTargetCell);
 #pragma endregion
@@ -67,7 +67,7 @@ public:
 
 	void InitData(DirStruct dir, int splitAngle);
 
-	BulletVelocity GetBulletVelocity(int index, bool radialZ);
+	VelocityClass GetBulletVelocity(int index, bool radialZ);
 
 private:
 	int burst = 1;
@@ -89,11 +89,11 @@ void FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* 
 	bool radialFire = false, int splitAngle = 180, bool radialZ = true);
 
 BulletClass* FireBulletTo(ObjectClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, HouseClass* pAttacingHouse,
-	WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct targetPos, BulletVelocity velocity = BulletVelocity::Empty, CoordStruct flh = CoordStruct::Empty, bool isOnTurret = true);
+	WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct targetPos, VelocityClass velocity = {}, CoordStruct flh = CoordStruct::Empty, bool isOnTurret = true);
 
 BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, HouseClass* pAttacingHouse,
 	WeaponTypeClass* pWeapon, double fireMulti = 1.0,
-	CoordStruct sourcePos = CoordStruct::Empty, CoordStruct targetPos = CoordStruct::Empty, BulletVelocity velocity = BulletVelocity::Empty);
+	CoordStruct sourcePos = CoordStruct::Empty, CoordStruct targetPos = CoordStruct::Empty, VelocityClass velocity = {});
 
 void DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct targetPos,
 	TechnoClass* pAttacker, AbstractClass* pTarget, HouseClass* pAttacingHouse, CoordStruct flh, bool isOnTurret);

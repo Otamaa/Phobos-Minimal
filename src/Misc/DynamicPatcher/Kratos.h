@@ -44,4 +44,7 @@ public:
 
 	static void LoadGameInStream(IStream* stream);
 	static void LoadGameInStreamEnd(IStream* stream);
+
+	static void SaveGameInStream(IStream* stream);
+	static void SaveGameInStreamEnd(IStream* stream);
 };

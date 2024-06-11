@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -9,13 +9,13 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
 
-#include <Ext/EffectType/AttachEffectData.h>
-#include <Ext/EffectType/AttachEffectTypeData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectTypeData.h>
 
 class AttachEffectScript;
 class BulletStatus;
@@ -34,7 +34,38 @@ class TechnoStatus;
 class AttachEffect : public ObjectScript
 {
 public:
-	OBJECT_SCRIPT(AttachEffect);
+	//OBJECT_SCRIPT(AttachEffect);
+
+	AttachEffect::AttachEffect() : ObjectScript() {
+		this->Name = ScriptName;
+		this->c_Type = ComponentType::AE;
+	}
+
+	virtual void FreeComponent() override
+	{
+		Clean();
+		Pool.push_back(this);
+	}
+
+	static Component* Create()
+	{
+		Component* c = nullptr;
+		if (!Pool.empty())
+		{
+			auto it = Pool.begin();
+			c = *it;
+			Pool.erase(it);
+		}
+			if (!c)
+			{
+				c = static_cast<Component*>(new AttachEffect()); \
+			}
+				return c;
+	}
+
+	inline static std::string ScriptName = "AttachEffect";
+	inline static int g_temp_AttachEffect = ComponentFactory::GetInstance().Register("AttachEffect", AttachEffect::Create);
+	inline static std::vector<AttachEffect*> Pool {}; \
 
 	void OnDestroySelf();
 	bool OwnerIsDead();

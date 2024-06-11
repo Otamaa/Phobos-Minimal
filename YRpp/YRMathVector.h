@@ -29,6 +29,12 @@ public:
 	{
 		return Vector2D{ X + a.X, Y + a.Y };
 	}
+
+	constexpr FORCEINLINE bool IsEmpty() const
+	{
+		return (*this) != Empty;
+	}
+
 	//addition
 	constexpr Vector2D& operator+=(const Vector2D& a)
 	{
@@ -125,6 +131,11 @@ public:
 
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X,Y,Z;
+
+	constexpr FORCEINLINE bool IsEmpty() const
+	{
+		return (*this) != Empty;
+	}
 
 	//operator overloads
 	//addition

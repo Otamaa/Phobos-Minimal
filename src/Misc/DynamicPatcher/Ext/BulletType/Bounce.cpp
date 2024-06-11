@@ -1,12 +1,12 @@
-﻿#include "Bounce.h"
+#include "Bounce.h"
 
 #include "BulletStatus.h"
 #include "Trajectory/ArcingTrajectory.h"
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 void Bounce::SetBounceData(BounceData newData)
 {

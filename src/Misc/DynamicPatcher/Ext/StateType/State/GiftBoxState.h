@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <HouseClass.h>
@@ -6,7 +6,7 @@
 #include "../StateScript.h"
 #include "GiftBoxData.h"
 
-#include <Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
 
 class GiftBoxState : public StateScript<GiftBoxData>
 {

@@ -105,7 +105,7 @@ std::vector<std::pair<std::string, AresVersus>> WarheadTypeExt::GetAresArmorValu
 		}
 		// 输出日志检查是否正确
 		std::string logMsg = "[ArmorTypes]\n";
-		Debug::LogNotTitle(logMsg.c_str());
+		Debug::Log(logMsg.c_str());
 		int i = 11;
 		for (auto it : armorArray)
 		{
@@ -135,7 +135,7 @@ std::vector<std::pair<std::string, AresVersus>> WarheadTypeExt::GetAresArmorValu
 				vv = nPos >= 0 ? vv.insert(nPos, 1, sp) : vv;
 				logMsg = "  " + std::to_string(i) + " - " + key + " = " + value + " = " + vv + "\n";
 			}
-			Debug::LogNotTitle(logMsg.c_str());
+			Debug::Log(logMsg.c_str());
 			i++;
 		}
 	}

@@ -1,13 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <list>
 #include <vector>
 
 #include "Component.h"
-
-#include <Common/MyDelegate.h>
-
-using namespace Delegate;
 
 class GameObject : public Component
 {

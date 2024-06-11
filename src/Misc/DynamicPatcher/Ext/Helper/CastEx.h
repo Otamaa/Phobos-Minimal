@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <bitset>
 
@@ -18,13 +18,25 @@ static Vector3D<T> ToVector3D(Vector3D<T2>& vector)
 template<typename T>
 static CoordStruct ToCoordStruct(Vector3D<T>& vector)
 {
-	return ToVector3D<int>(vector);
+	if constexpr (std::is_same<int, typename std::remove_cv<T>::type>::value)
+	{
+		return *reinterpret_cast<CoordStruct*>(vector);
+	}
+	else
+	{
+		return CoordStruct { int(vector.X) ,  int(vector.Y) ,  int(vector.Z) };
+	}
 }
 
 template<typename T>
-static Vector3D<double> ToVelocity(Vector3D<T>& vector)
+static VelocityClass ToVelocity(Vector3D<T>& vector)
 {
-	return ToVector3D<double>(vector);
+	if constexpr (std::is_same<double, typename std::remove_cv<T>::type>::value) {
+		return *reinterpret_cast<VelocityClass*>(vector);
+	}
+	else {
+		return VelocityClass { double(vector.X) ,  double(vector.Y) ,  double(vector.Z) };
+	}
 }
 
 static CoordStruct ToCoords(Point2D point)
@@ -34,7 +46,7 @@ static CoordStruct ToCoords(Point2D point)
 
 static Point2D ToClientPos(CoordStruct& coords)
 {
-	return TacticalClass::Instance->CoordsToClient(coords);
+	return TacticalClass::Instance->CoordsToClient(coords).first;
 }
 
 static Point2D CoordsToScreen(CoordStruct coords)
@@ -46,7 +58,7 @@ static Point2D CoordsToScreen(CoordStruct coords)
 
 static bool CastToBullet(AbstractClass* pTarget, BulletClass*& pBullet)
 {
-	pBullet = dynamic_cast<BulletClass*>(pTarget);
+	pBullet = specific_cast<BulletClass*>(pTarget);
 	return pBullet != nullptr;
 	/*
 	if (pTarget)
@@ -66,12 +78,12 @@ static bool CastToBullet(AbstractClass* pTarget, BulletClass*& pBullet)
 
 static bool CastToBullet(ObjectClass* pObject, BulletClass*& pBullet)
 {
-	return CastToBullet(dynamic_cast<AbstractClass*>(pObject), pBullet);
+	return CastToBullet(static_cast<AbstractClass*>(pObject), pBullet);
 }
 
 static bool CastToTechno(AbstractClass* pTarget, TechnoClass*& pTechno)
 {
-	pTechno = dynamic_cast<TechnoClass*>(pTarget);
+	pTechno = generic_cast<TechnoClass*>(pTarget);
 	return pTechno != nullptr;
 	/*
 	if (pTarget)
@@ -93,14 +105,14 @@ static bool CastToTechno(AbstractClass* pTarget, TechnoClass*& pTechno)
 }
 static bool CastToTechno(ObjectClass* pObject, TechnoClass*& pTechno)
 {
-	return CastToTechno(dynamic_cast<AbstractClass*>(pObject), pTechno);
+	return CastToTechno(static_cast<AbstractClass*>(pObject), pTechno);
 }
 
 static bool CastToFoot(TechnoClass* pTechno, FootClass*& pFoot)
 {
 	if (pTechno->AbstractFlags & AbstractFlags::Foot)
 	{
-		pFoot = dynamic_cast<FootClass*>(pTechno);
+		pFoot = static_cast<FootClass*>(pTechno);
 		return pFoot != nullptr;
 	}
 	return false;
@@ -144,4 +156,15 @@ static unsigned int GetBright(unsigned int bright, float multi)
 		}
 	}
 	return static_cast<unsigned int>(b);
+}
+
+namespace Colors
+{
+	static ColorStruct Empty { 0, 0, 0 };
+	static ColorStruct Red { 252, 0, 0 };
+	static ColorStruct Green { 0, 252, 0 };
+	static ColorStruct Blue { 0, 0, 252 };
+	static ColorStruct Yellow { 252, 212, 0 };
+	static ColorStruct White { 252, 252, 252 };
+	static ColorStruct Black { 3, 3, 3 };
 }

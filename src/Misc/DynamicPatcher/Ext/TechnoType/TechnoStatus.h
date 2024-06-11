@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <algorithm>
 #include <string>
@@ -12,34 +12,34 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/PrintTextData.h>
-#include <Ext/EffectType/Effect/CrateBuffData.h>
-#include <Ext/EffectType/Effect/StandData.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/CrateBuffData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/StandData.h>
 
 // TODO Add new State
-#include <Ext/StateType/State/AntiBulletState.h>
-#include <Ext/StateType/State/BlackHoleState.h>
-#include <Ext/StateType/State/DamageReactionState.h>
-#include <Ext/StateType/State/DeselectState.h>
-#include <Ext/StateType/State/DestroyAnimState.h>
-#include <Ext/StateType/State/DestroySelfState.h>
-#include <Ext/StateType/State/DisableWeaponState.h>
-#include <Ext/StateType/State/FreezeState.h>
-#include <Ext/StateType/State/GiftBoxState.h>
-#include <Ext/StateType/State/NoMoneyNoTalkState.h>
-#include <Ext/StateType/State/OverrideWeaponState.h>
-#include <Ext/StateType/State/PaintballState.h>
-#include <Ext/StateType/State/PumpState.h>
-#include <Ext/StateType/State/ScatterState.h>
-#include <Ext/StateType/State/TeleportState.h>
-#include <Ext/StateType/State/TransformState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/AntiBulletState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/BlackHoleState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DamageReactionState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DeselectState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroyAnimState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroySelfState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DisableWeaponState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/FreezeState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/NoMoneyNoTalkState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/OverrideWeaponState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PaintballState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PumpState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/ScatterState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TeleportState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TransformState.h>
 
-#include <Ext/WeaponType/TargetLaserData.h>
+#include <Misc/DynamicPatcher/Ext/WeaponType/TargetLaserData.h>
 
 #include "AirstrikeData.h"
 #include "FireFLHData.h"
@@ -71,7 +71,7 @@ public:
 	{
 		auto const& argsArray = reinterpret_cast<void**>(args);
 		AbstractClass* pInvalid = (AbstractClass*)argsArray[0];
-		if (AirstrikeClass* pAirstrike = dynamic_cast<AirstrikeClass*>(pInvalid))
+		if (AirstrikeClass* pAirstrike = specific_cast<AirstrikeClass*>(pInvalid))
 		{
 			CancelAirstrike(pAirstrike);
 		}
@@ -130,8 +130,8 @@ public:
 	void BlackHoleCancel();
 
 	// 气泵
-	bool PumpAction(CoordStruct targetPos, bool isLobber, Sequence flySequence); // 爆炸冲击
-	void HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int height, bool isLobber, Sequence flySequence); // 人间大炮
+	bool PumpAction(CoordStruct targetPos, bool isLobber, DoType flySequence); // 爆炸冲击
+	void HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int height, bool isLobber, DoType flySequence); // 人间大炮
 
 	virtual void Clean() override
 	{

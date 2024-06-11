@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <AnimClass.h>
@@ -7,7 +7,7 @@
 #include <TechnoClass.h>
 #include <FootClass.h>
 
-#include <Ext/AnimType/RelationData.h>
+#include <Misc/DynamicPatcher/Ext/AnimType/RelationData.h>
 
 class AnimStatus;
 class BulletStatus;

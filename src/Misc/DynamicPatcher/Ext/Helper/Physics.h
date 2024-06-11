@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <map>
 #include <vector>
@@ -9,7 +9,7 @@
 #include <BuildingClass.h>
 #include <InfantryClass.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 #include "Status.h"
 
@@ -85,11 +85,11 @@ FallingError Falling(TechnoClass* pTechno, CoordStruct targetPos, int fallingDes
 /**
  *@brief 判断脚下能否着陆，然后往下摔
  *
- * @param pTechno 
- * @param fallingDestroyHeight 
- * @param hasParachute 
- * @return true 
- * @return false 
+ * @param pTechno
+ * @param fallingDestroyHeight
+ * @param hasParachute
+ * @return true
+ * @return false
  */
 FallingError FallingDown(TechnoClass* pTechno, int fallingDestroyHeight, bool hasParachute);
 

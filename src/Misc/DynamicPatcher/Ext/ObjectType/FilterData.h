@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <algorithm>
 #include <string>
@@ -11,12 +11,12 @@
 #include <TechnoClass.h>
 #include <BulletClass.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Helper/CastEx.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Status.h>
-#include <Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
 
 class FilterData : public INIConfig
 {
@@ -55,7 +55,7 @@ public:
 	virtual void Read(INIBufferReader* reader, std::string title)
 	{
 		AffectTypes = reader->GetList<std::string>(title + "AffectTypes", AffectTypes);
-		ClearIfGetNone(AffectTypes);
+		KratosCRT::ClearIfGetNone(AffectTypes);
 		NotAffectTypes = reader->GetList<std::string>(title + "NotAffectTypes", NotAffectTypes);
 		ClearIfGetNone(NotAffectTypes);
 

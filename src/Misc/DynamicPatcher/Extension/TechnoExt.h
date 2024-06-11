@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <TechnoClass.h>
 
 #include "GOExtension.h"
 
-#include <Ext/TechnoType/HealthTextData.h>
-#include <Ext/EffectType/Effect/StandData.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/HealthTextData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/StandData.h>
 
 
 class TechnoExt : public GOExtension<TechnoClass, TechnoExt>

@@ -1,15 +1,16 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/EffectScript.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 class FireSuperEntity
 {
@@ -34,7 +35,7 @@ public:
 	virtual void Read(INIBufferReader* reader, std::string title)
 	{
 		Supers = reader->GetList(title + "Types", Supers);
-		ClearIfGetNone(Supers);
+		KratosCRT::ClearIfGetNone(Supers);
 		Chances = reader->GetChanceList(title + "Chances", Chances);
 
 		InitDelay = reader->Get(title + "InitDelay", InitDelay);

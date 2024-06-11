@@ -322,3 +322,10 @@ inline bool Parser<short>::TryParse(const char* pValue, OutType* outValue)
 	*outValue = static_cast<short>(buffer);
 	return true;
 }
+
+template <>
+inline bool Parser<std::string>::TryParse(const char* pValue, std::string* outValue)
+{
+	outValue->assign(pValue);
+	return true;
+};

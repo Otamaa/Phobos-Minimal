@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Ext/StateType/State/GiftBoxData.h>
-#include <Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
 
 class HostData : public GiftBoxData
 {

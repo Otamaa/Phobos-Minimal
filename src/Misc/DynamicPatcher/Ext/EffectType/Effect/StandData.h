@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include <Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
 
 #include "EffectData.h"
 #include "OffsetData.h"

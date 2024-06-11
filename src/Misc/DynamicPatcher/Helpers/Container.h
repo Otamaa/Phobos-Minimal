@@ -1,11 +1,6 @@
 #pragma once
 
-#include <unordered_map>
-
-#include <CCINIClass.h>
-#include <SwizzleManagerClass.h>
-
-#include <Utilities/Savegame.h>
+#include <Utilities/Container.h>
 
 template <typename T>
 class Extension
@@ -97,139 +92,8 @@ protected:
 	virtual void LoadFromINIFile(CCINIClass* pINI) { }
 		};
 
-// a non-virtual base class for a pointer to pointer map.
-// pointers are not owned by this map, so be cautious.
-class ContainerMapBase final
-{
-public:
-	using key_type = void*;
-	using const_key_type = const void*;
-	using value_type = void*;
-	using map_type = std::unordered_map<const_key_type, value_type>;
-	using const_iterator = map_type::const_iterator;
-	using iterator = const_iterator;
-
-	ContainerMapBase() = default;
-	ContainerMapBase(ContainerMapBase const&) = delete;
-	~ContainerMapBase() = default;
-
-	ContainerMapBase& operator=(ContainerMapBase const&) = delete;
-	ContainerMapBase& operator=(ContainerMapBase&&) = delete;
-
-	value_type find(const_key_type key) const
-	{
-		auto const it = this->Items.find(key);
-		if (it != this->Items.end())
-			return it->second;
-
-		return nullptr;
-	}
-
-	void insert(const_key_type key, value_type value)
-	{
-		this->Items.emplace(key, value);
-	}
-
-	value_type remove(const_key_type key)
-	{
-		auto const it = this->Items.find(key);
-		if (it != this->Items.cend())
-		{
-			auto const value = it->second;
-			this->Items.erase(it);
-
-			return value;
-		}
-
-		return nullptr;
-	}
-
-	void clear()
-	{
-		// this leaks all objects inside. this case is logged.
-		this->Items.clear();
-	}
-
-	size_t size() const
-	{
-		return this->Items.size();
-	}
-
-	const_iterator begin() const
-	{
-		return this->Items.cbegin();
-	}
-
-	const_iterator end() const
-	{
-		return this->Items.cend();
-	}
-
-private:
-	map_type Items;
-};
-
-// looks like a typed map, but is really a thin wrapper around the untyped map
-// pointers are not owned here either, see that each pointer is deleted
-template <typename Key, typename Value>
-class ContainerMap final
-{
-public:
-	using key_type = Key*;
-	using const_key_type = const Key*;
-	using value_type = Value*;
-	using iterator = typename std::unordered_map<key_type, value_type>::const_iterator;
-
-	ContainerMap() = default;
-	ContainerMap(ContainerMap const&) = delete;
-
-	ContainerMap& operator=(ContainerMap const&) = delete;
-	ContainerMap& operator=(ContainerMap&&) = delete;
-
-	value_type find(const_key_type key) const
-	{
-		return static_cast<value_type>(this->Items.find(key));
-	}
-
-	value_type insert(const_key_type key, value_type value)
-	{
-		this->Items.insert(key, value);
-		return value;
-	}
-
-	value_type remove(const_key_type key)
-	{
-		return static_cast<value_type>(this->Items.remove(key));
-	}
-
-	void clear()
-	{
-		this->Items.clear();
-	}
-
-	size_t size() const
-	{
-		return this->Items.size();
-	}
-
-	iterator begin() const
-	{
-		auto ret = this->Items.begin();
-		return reinterpret_cast<iterator&>(ret);
-	}
-
-	iterator end() const
-	{
-		auto ret = this->Items.end();
-		return reinterpret_cast<iterator&>(ret);
-	}
-
-private:
-	ContainerMapBase Items;
-};
-
 template <class T>
-concept HasOffset = requires(T) { T::ExtPointerOffset; };
+concept HasOffsetPointer = requires(T) { T::ExtPointerOffset; };
 
 template <typename T>
 class ExtMapCointainer
@@ -240,7 +104,14 @@ private:
 	using base_type_ptr = base_type*;
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
-	using map_type = ContainerMap<base_type, extension_type>;
+	using value_type = void*;
+	using key_type = void*;
+	using const_key_type = const void*;
+
+	using map_type = std::vector<std::pair<base_type_ptr, extension_type_ptr>>;
+
+	using const_iterator = map_type::const_iterator;
+	using iterator = const_iterator;
 
 	map_type Items;
 
@@ -316,17 +187,17 @@ private:
 public:
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		if constexpr (HasOffset<T>)
+		if constexpr (HasOffsetPointer<T>)
 			ResetExtensionPointer(key);
 
 		if (auto const val = new extension_type(key))
 		{
 			val->EnsureConstanted();
 
-			if constexpr (HasOffset<T>)
+			if constexpr (HasOffsetPointer<T>)
 				SetExtensionPointer(key, val);
 
-			this->Items.insert(key, val);
+			this->Items.emplace_back(key, val);
 
 			return val;
 		}
@@ -334,16 +205,6 @@ public:
 		return nullptr;
 	}
 
-	extension_type_ptr TryAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
-	{
-		if (!key || (!bCond && !nMessage.empty()))
-		{
-			Debug::Log("%s \n", nMessage.data());
-			return nullptr;
-		}
-
-		return Allocate(key);
-	}
 
 	extension_type_ptr TryAllocate(base_type_ptr key)
 	{
@@ -365,25 +226,48 @@ public:
 		return Allocate(key);
 	}
 
+	extension_type_ptr Find_Base(const_base_type_ptr key)
+	{
+		for (auto begin = this->Items.begin(); begin != this->Items.end(); ++begin) {
+			if (begin->first == key) {
+				return begin->second;
+			}
+		}
+
+		return nullptr;
+	}
+
+	decltype(auto) GetIterator(const_base_type_ptr key) const
+	{
+		for (auto begin = this->Items.begin(); begin != this->Items.end(); ++begin) {
+			return begin;
+		}
+
+		return this->Items.end();
+	}
+
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
 		if (!key)
 			return nullptr;
 
-		if constexpr (HasOffset<T>)
+		if constexpr (HasOffsetPointer<T>)
 			return GetExtensionPointer(key);
 		else
-			return this->Items.find(key);
+			return const_cast<ExtMapCointainer<T>*>(this)->Find_Base(key);
 	}
 
 	void Remove(base_type_ptr key)
 	{
-		if (auto Item = Find(key))
-		{
-			this->Items.remove(key);
-			delete Item;
+		auto Item = GetIterator(key);
 
-			if constexpr (HasOffset<T>)
+		if (Item != this->Items.end())
+		{
+			auto delete_ = *Item;
+			this->Items.erase(Item);
+			delete delete_;
+
+			if constexpr (HasOffsetPointer<T>)
 				ResetExtensionPointer(key);
 		}
 	}
@@ -493,7 +377,7 @@ protected:
 		}
 
 		// write the current pointer, the size of the block, and the canary
-		ExByteStream saver(sizeof(*buffer));
+		PhobosByteStream saver(sizeof(*buffer));
 		PhobosStreamWriter writer(saver);
 
 		writer.Save(T::Canary);
@@ -531,7 +415,7 @@ protected:
 			return nullptr;
 		}
 
-		ExByteStream loader(0);
+		PhobosByteStream loader(0);
 		if (!loader.ReadBlockFromStream(pStm))
 		{
 			Debug::Log("LoadKey - Failed to read data from save stream?!\n");

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -11,12 +11,12 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 #include "AttachEffectData.h"
 
 class IAEScript
@@ -58,6 +58,7 @@ public:
 ///						|__ EffectScript#0
 ///						|__ EffectScript#1
 ///						|__ EffectScript#2
+
 class AttachEffectScript : public ObjectScript, public IAEScript
 {
 public:

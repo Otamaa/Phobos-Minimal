@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <typeinfo>
 #include <stack>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Misc/DynamicPatcher/Helpers/Container.h>
 
-#include <Common/INI/INI.h>
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 class AttachEffectTypeData;
 
@@ -64,10 +64,10 @@ public:
 		void Serialize(T &Stm){};
 	};
 
-	class ExtContainer : public Container<TExt>
+	class ExtContainer : public ExtMapCointainer<TExt>
 	{
 	public:
-		ExtContainer() : Container<TExt>(typeid(TExt).name()){};
+		ExtContainer() : ExtMapCointainer<TExt>(typeid(TExt).name()){};
 		~ExtContainer() = default;
 	};
 

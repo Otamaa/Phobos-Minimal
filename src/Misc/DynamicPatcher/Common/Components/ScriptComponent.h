@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <YRPP.h>
 #include <GeneralDefinitions.h>
@@ -9,16 +9,6 @@
 #include "Scriptable.h"
 
 #include <Utilities/Container.h>
-
-#include <Extension/AnimExt.h>
-#include <Extension/BulletExt.h>
-#include <Extension/EBoltExt.h>
-#include <Extension/TechnoExt.h>
-#include <Extension/SuperWeaponExt.h>
-
-#include <Ext/Helper/Status.h>
-
-#include <Ext/BulletType/Trajectory/TrajectoryData.h>
 
 /// @brief 所有的脚本都位于GameObject下
 class ScriptComponent : public Component
@@ -49,42 +39,61 @@ public:
 	} \
 	__declspec(property(get = GetOwner)) TBASE* P_NAME; \
 
+#pragma once
+
+#include "ScriptComponent.h"
+
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/EBoltExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/SuperWeaponExt.h>
+
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/TrajectoryData.h>
+
+
 class ObjectScript : public ScriptComponent, public ITechnoScript, public IBulletScript
 {
 public:
-	ObjectScript() : ScriptComponent() {}
+	ObjectScript() : ScriptComponent() { }
 
 	virtual GameObject* GetGameObject() override
 	{
-		if (TechnoExt::ExtData* technoExtData = dynamic_cast<TechnoExt::ExtData*>(_extData))
+		switch (_extData->Type)
 		{
-			return technoExtData->_GameObject;
+		case ExtType::Techno:
+			return ((TechnoExt::ExtData*)_extData)->_GameObject;
+		case ExtType::Bullet:
+			return ((BulletExt::ExtData*)_extData)->_GameObject;
+		default:
+			return nullptr;
 		}
-		else if (BulletExt::ExtData* bulletExtData = dynamic_cast<BulletExt::ExtData*>(_extData))
-		{
-			return bulletExtData->_GameObject;
-		}
-		return nullptr;
 	}
 
 	TechnoClass* GetTechno()
 	{
-		if (TechnoExt::ExtData* technoExtData = dynamic_cast<TechnoExt::ExtData*>(_extData))
+		switch (_extData->Type)
 		{
-			return technoExtData->OwnerObject();
+		case ExtType::Techno:
+			return ((TechnoExt::ExtData*)_extData)->OwnerObject();
+		default:
+			return nullptr;
 		}
-		return nullptr;
 	}
 
 	__declspec(property(get = GetTechno)) TechnoClass* pTechno;
 
 	BulletClass* GetBullet()
 	{
-		if (BulletExt::ExtData* bulletExtData = dynamic_cast<BulletExt::ExtData*>(_extData))
+		switch (_extData->Type)
 		{
-			return bulletExtData->OwnerObject();
+		case ExtType::Bullet:
+			return ((BulletExt::ExtData*)_extData)->OwnerObject();
+		default:
+			return nullptr;
 		}
-		return nullptr;
 	}
 
 	__declspec(property(get = GetBullet)) BulletClass* pBullet;
@@ -148,7 +157,7 @@ public:
 	{
 		if (IsBuilding())
 		{
-			BuildingClass* pBuilding = dynamic_cast<BuildingClass*>(pTechno);
+			BuildingClass* pBuilding = static_cast<BuildingClass*>(pTechno);
 			return pBuilding->BState == BStateType::Construction && pBuilding->CurrentMission != Mission::Selling;
 		}
 		return false;
@@ -158,7 +167,7 @@ public:
 	{
 		if (IsBuilding())
 		{
-			BuildingClass* pBuilding = dynamic_cast<BuildingClass*>(pTechno);
+			BuildingClass* pBuilding = static_cast<BuildingClass*>(pTechno);
 			return pBuilding->BState == BStateType::Construction && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus > 0;
 		}
 		return false;
@@ -308,14 +317,6 @@ protected:
 	__declspec(property(get = GetTrajectoryData)) TrajectoryData* trajectoryData;
 };
 
-class AnimScript : public ScriptComponent, public IAnimScript
-{
-public:
-	SCRIPT_COMPONENT(AnimScript, AnimClass, AnimExt, pAnim);
-
-	virtual void Clean() override { ScriptComponent::Clean(); }
-};
-
 class SuperWeaponScript : public ScriptComponent, public ISuperScript
 {
 public:
@@ -341,11 +342,11 @@ public:
 #define BULLET_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, BulletScript) \
 
-#define ANIM_SCRIPT(CLASS_NAME) \
-	DECLARE_COMPONENT(CLASS_NAME, AnimScript) \
-
 #define SUPER_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, SuperWeaponScript) \
 
 #define EBOLT_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, EBoltScript) \
+
+#define ANIM_SCRIPT(CLASS_NAME) \
+	DECLARE_COMPONENT(CLASS_NAME, AnimScript) \

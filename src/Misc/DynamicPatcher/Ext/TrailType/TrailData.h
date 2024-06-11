@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <GeneralDefinitions.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
 
 enum class TrailDrawing : int
 {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <HouseClass.h>
@@ -6,7 +6,7 @@
 #include "../StateScript.h"
 #include "TeleportData.h"
 
-#include <Ext/TechnoType/DamageText.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DamageText.h>
 
 class TeleportState : public StateScript<TeleportData>
 {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <map>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <CellClass.h>
 #include <MapClass.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 #include "CastEx.h"
 

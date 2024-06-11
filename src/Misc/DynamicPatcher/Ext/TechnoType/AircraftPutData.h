@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
 
 class AircraftPutData : public GeneralData
 {
@@ -14,7 +14,7 @@ public:
 
 	virtual void Read(INIBufferReader* reader) override
 	{
-		INIBufferReader* generalReader = INI::GetSection(INI::Rules, INI::SectionGeneral);
+		INIBufferReader* generalReader = INI::GetSection(INI::Rules, GameStrings::General());
 		GeneralData::Read(generalReader);
 
 		NoHelipadPutOffset = reader->Get("NoHelipadPutOffset", NoHelipadPutOffset);

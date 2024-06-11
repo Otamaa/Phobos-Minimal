@@ -5,6 +5,19 @@
 
 #include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
+#include <Misc/DynamicPatcher/Extension/AnimTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/SuperWeaponExt.h>
+#include <Misc/DynamicPatcher/Extension/SuperWeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/TerrainTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/VoxelAnimExt.h>
+#include <Misc/DynamicPatcher/Extension/VoxelAnimTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
 class GeneraHook
 {
@@ -229,17 +242,17 @@ private:
 using ExtTypeRegistry = TypeRegistry<
 
 	// Ext classes
-	//AnimTypeExt,
-	//AnimExt,
-	//BulletExt,
-	//BulletTypeExt,
-	//TechnoExt,
-	//TechnoTypeExt,
-	//TerrainTypeExt,
-	//VoxelAnimExt,
-	//VoxelAnimTypeExt,
-	//WarheadTypeExt,
-	//WeaponTypeExt
+	AnimTypeExt,
+	AnimExt,
+	BulletExt,
+	BulletTypeExt,
+	TechnoExt,
+	TechnoTypeExt,
+	TerrainTypeExt,
+	VoxelAnimExt,
+	VoxelAnimTypeExt,
+	WarheadTypeExt,
+	WeaponTypeExt
 	// New classes
 >;
 
@@ -303,6 +316,8 @@ void Kratos::RenderLate()
 	EventSystems::Render.Broadcast(Events::GScreenRenderEvent, EventArgsLate);
 }
 
+#pragma region SaveGame
+
 void Kratos::SaveGameStart(const char* name)
 {
 	SaveGameEventArgs args { name, true };
@@ -315,22 +330,21 @@ void Kratos::SaveGameEnd(const char* name)
 	EventSystems::SaveLoad.Broadcast(Events::SaveGameEvent, &args);
 }
 
-
-DEFINE_HOOK(0x67D300, SaveGameInStream_Start, 0x5)
+void Kratos::SaveGameInStream(IStream* stream)
 {
-	GET(IStream*, stream, ECX);
 	SaveGameEventArgs args { stream, true };
 	EventSystems::SaveLoad.Broadcast(Events::SaveGameEvent, &args);
-	return 0;
 }
-
-DEFINE_HOOK(0x67E42E, SaveGameInStream_End, 0xD)
+void Kratos::SaveGameInStreamEnd(IStream* stream)
 {
-	GET(IStream*, stream, ESI);
 	SaveGameEventArgs args { stream, false };
 	EventSystems::SaveLoad.Broadcast(Events::SaveGameEvent, &args);
-	return 0;
+
 }
+
+#pragma endregion
+
+#pragma region LoadGame
 
 void Kratos::LoadGameStart(const char* name)
 {
@@ -344,6 +358,7 @@ void Kratos::LoadGameEnd(const char* name)
 	EventSystems::SaveLoad.Broadcast(Events::LoadGameEvent, &args);
 }
 
+
 void Kratos::LoadGameInStream(IStream* stream)
 {
 	LoadGameEventArgs args { stream, true };
@@ -355,6 +370,7 @@ void Kratos::LoadGameInStreamEnd(IStream* stream)
 	LoadGameEventArgs args { stream, false };
 	EventSystems::SaveLoad.Broadcast(Events::LoadGameEvent, &args);
 }
+#pragma endregion
 
 DEFINE_HOOK(0x4101F0, AbstractClass_DTOR, 0x6)
 {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 #include <HouseClass.h>
@@ -6,7 +6,8 @@
 #include "../StateScript.h"
 #include "AntiBulletData.h"
 
-#include <Ext/TechnoType/DamageText.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DamageText.h>
+#include <Timers.h>
 
 class AntiBulletState : public StateScript<AntiBulletData>
 {

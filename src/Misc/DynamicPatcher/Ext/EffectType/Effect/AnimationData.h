@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include <Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/AnimType/RelationData.h>
 
-#include <Ext/AnimType/RelationData.h>
 #include "EffectData.h"
 #include "OffsetData.h"
 

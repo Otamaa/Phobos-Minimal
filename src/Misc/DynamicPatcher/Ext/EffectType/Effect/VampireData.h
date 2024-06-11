@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -6,10 +6,10 @@
 #include <GeneralStructures.h>
 #include <WarheadTypeClass.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 class VampireData : public EffectData
 {

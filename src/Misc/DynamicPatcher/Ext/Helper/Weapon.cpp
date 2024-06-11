@@ -1,4 +1,4 @@
-﻿#include "Weapon.h"
+#include "Weapon.h"
 #include "CastEx.h"
 #include "DrawEx.h"
 #include "FLH.h"
@@ -10,19 +10,19 @@
 #include <VocClass.h>
 #include <WarheadTypeClass.h>
 
-#include <Extension/TechnoExt.h>
-#include <Extension/BulletExt.h>
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/WeaponType/TargetLaserData.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/WeaponType/TargetLaserData.h>
 
 // ----------------
 // 高级弹道学
 // ----------------
 #pragma region Advanced Ballistics
-BulletVelocity GetBulletVelocity(CoordStruct source, CoordStruct target)
+VelocityClass GetBulletVelocity(CoordStruct source, CoordStruct target)
 {
 	CoordStruct flh{ 1, 0, 0 };
 	DirStruct dir = Point2Dir(source, target);
@@ -30,10 +30,10 @@ BulletVelocity GetBulletVelocity(CoordStruct source, CoordStruct target)
 	return ToVelocity(v);
 }
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct source, CoordStruct target)
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct source, CoordStruct target)
 {
 	CoordStruct vector = target - source;
-	BulletVelocity v = ToVelocity(vector);
+	VelocityClass v = ToVelocity(vector);
 	double dist = target.DistanceFrom(source);
 	v *= isnan(dist) || dist <= 0 ? 0 : (pBullet->Speed / dist);
 	pBullet->Velocity = v;
@@ -42,12 +42,12 @@ BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct sourc
 	return v;
 }
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct target)
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct target)
 {
 	return RecalculateBulletVelocity(pBullet, pBullet->GetCoords(), target);
 }
 
-BulletVelocity RecalculateBulletVelocity(BulletClass* pBullet)
+VelocityClass RecalculateBulletVelocity(BulletClass* pBullet)
 {
 	return RecalculateBulletVelocity(pBullet, pBullet->GetCoords(), pBullet->GetTargetCoords());
 }
@@ -67,7 +67,7 @@ CoordStruct GetInaccurateOffset(float scatterMin, float scatterMax)
 	return GetRandomOffset(min, max);
 }
 
-BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct targetPos,
+VelocityClass GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct targetPos,
 	double speed, double gravity, bool lobber,
 	int zOffset, double& straightDistance, double& realSpeed)
 {
@@ -86,7 +86,7 @@ BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct target
 	if (straightDistance == 0 || std::isnan(straightDistance))
 	{
 		// 直上直下
-		return BulletVelocity{ 0.0, 0.0, gravity };
+		return VelocityClass { 0.0, 0.0, gravity };
 	}
 	if (realSpeed == 0)
 	{
@@ -99,13 +99,13 @@ BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct target
 		realSpeed = (int)(realSpeed * 0.5);
 	}
 	double vZ = (zDiff * realSpeed) / straightDistance + 0.5 * gravity * straightDistance / realSpeed;
-	BulletVelocity v(tempTargetPos.X - tempSourcePos.X, tempTargetPos.Y - tempSourcePos.Y, 0.0);
+	VelocityClass v(tempTargetPos.X - tempSourcePos.X, tempTargetPos.Y - tempSourcePos.Y, 0.0);
 	v *= realSpeed / straightDistance;
 	v.Z = vZ;
 	return v;
 }
 
-BulletVelocity GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct& targetPos,
+VelocityClass GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct& targetPos,
 	double speed, double gravity, bool lobber, bool inaccurate, float scatterMin, float scatterMax,
 	int zOffset, double& straightDistance, double& realSpeed, CellClass*& pTargetCell)
 {
@@ -142,7 +142,7 @@ void RadialFire::InitData(DirStruct dir, int splitAngle)
 	deltaZ = 1.0f / (burst / 2.0f + 1);
 }
 
-BulletVelocity RadialFire::GetBulletVelocity(int index, bool radialZ)
+VelocityClass RadialFire::GetBulletVelocity(int index, bool radialZ)
 {
 	int z = 0;
 	float temp = burst / 2.0f;
@@ -190,7 +190,7 @@ bool InRange(ObjectClass* pObject, AbstractClass* pTarget, WeaponTypeClass* pWea
 	case AbstractType::Infantry:
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
-		return dynamic_cast<TechnoClass*>(pObject)->InRange(&location, pTarget, pWeapon);
+		return dynamic_cast<TechnoClass*>(pObject)->InRange(location, pTarget, pWeapon);
 	default:
 		CoordStruct targetPos = pTarget->GetCoords();
 		double distance = targetPos.DistanceFrom(location);
@@ -228,7 +228,7 @@ void FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* 
 	int flipY = -1;
 	for (int i = 0; i < burst; i++)
 	{
-		BulletVelocity bulletVelocity;
+		VelocityClass bulletVelocity;
 		if (radialFire)
 		{
 			flipY = (i < burst / 2.0) ? -1 : 1;
@@ -260,7 +260,7 @@ void FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* 
 }
 
 BulletClass* FireBulletTo(ObjectClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, HouseClass* pAttacingHouse,
-	WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct targetPos, BulletVelocity velocity, CoordStruct flh, bool isOnTurret)
+	WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct targetPos, VelocityClass velocity, CoordStruct flh, bool isOnTurret)
 {
 	TechnoClass* pTargetTechno = nullptr;
 	if (!pTarget || (CastToTechno(pTarget, pTargetTechno) && IsDeadOrInvisible(pTargetTechno)))
@@ -330,14 +330,14 @@ BulletClass* FireBulletTo(ObjectClass* pShooter, TechnoClass* pAttacker, Abstrac
 
 BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, HouseClass* pAttacingHouse,
 	WeaponTypeClass* pWeapon, double fireMulti,
-	CoordStruct sourcePos, CoordStruct targetPos, BulletVelocity velocity)
+	CoordStruct sourcePos, CoordStruct targetPos, VelocityClass velocity)
 {
 	BulletTypeClass* pBulletType = pWeapon->Projectile;
 	if (pBulletType)
 	{
 		int damage = static_cast<int>(pWeapon->Damage * fireMulti);
 		WarheadTypeClass* pWH = pWeapon->Warhead;
-		int speed = pWeapon->GetSpeed(sourcePos, targetPos);
+		int speed = pWeapon->GetWeaponSpeed(sourcePos, targetPos);
 		bool bright = pWeapon->Bright; // 原游戏中弹头上的bright是无效的
 		BulletClass* pBullet = pBulletType->CreateBullet(pTarget, pAttacker, damage, pWH, speed, bright);
 		pBullet->WeaponType = pWeapon;

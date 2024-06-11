@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -7,8 +7,8 @@
 #include <CellClass.h>
 #include <MapClass.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
-#include <Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
 
 
 class BounceData : public EffectData

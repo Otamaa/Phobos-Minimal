@@ -7,7 +7,8 @@
 #include <vector>
 #include <list>
 
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Helpers/MyDelegate.h>
 
 #include <Utilities/Stream.h>
 #include <Utilities/Debug.h>
@@ -46,10 +47,24 @@
 	\
 	inline static std::vector<CLASS_NAME*> Pool{}; \
 
+enum class ExtType
+{
+	unk,
+	Techno,
+	Bullet,
+};
 class IExtData
 {
 public:
 	virtual void AttachComponents() = 0;
+
+	ExtType Type { ExtType::unk };
+};
+
+enum class ComponentType
+{
+	unk,
+	AE
 };
 
 class IComponent
@@ -96,6 +111,8 @@ public:
 
 	virtual bool Load(PhobosStreamReader& stream, bool registerForChange) = 0;
 	virtual bool Save(PhobosStreamWriter& stream) const = 0;
+
+	ComponentType c_Type { ComponentType::unk };
 };
 
 class Component : public IComponent
@@ -245,7 +262,7 @@ public:
 		}
 	}
 
-	void Break()
+	void Break() //the endpoint
 	{
 		_break = true;
 	}
@@ -367,7 +384,10 @@ public:
 		// 根据子组件清单恢复
 		RestoreComponent();
 		// 读取每个子组件的内容
-		this->ForeachChild([&stream, &registerForChange](Component* c) { c->Load(stream, registerForChange); });
+		this->ForeachChild([&stream, &registerForChange , &loaded](Component* c) {
+			loaded |= c->Load(stream, registerForChange);
+		});
+
 		return loaded;
 	}
 
@@ -375,24 +395,30 @@ public:
 	{
 		Component* pThis = const_cast<Component*>(this);
 		// 生成子组件清单
-		pThis->_childrenNames.clear();
-		for (Component* c : pThis->_children)
-		{
-			pThis->_childrenNames.push_back(c->Name);
-		}
+		const_cast<Component*>(this)->FetchCurrentChildrenNames();
 		bool saved = pThis->Serialize(stream, false);
 		// 存入每个子组件的内容
-		pThis->ForeachChild([&stream](Component* c) {
-			c->Save(stream);
-			});
+		pThis->ForeachChild([&stream,&saved](Component* c) {
+			saved |= c->Save(stream);
+		});
+
 		return saved;
 	}
+
 #pragma endregion
 
 	std::string Name {};
 	std::string Tag {};
 
 protected:
+
+	FORCEINLINE void FetchCurrentChildrenNames() {
+		this->_childrenNames.clear();
+		for (Component* c : this->_children) {
+			this->_childrenNames.push_back(c->Name);
+		}
+	}
+
 	// Ext由ScriptFactory传入
 	IExtData* _extData {};
 
@@ -439,19 +465,6 @@ public:
 		return nullptr;
 	}
 
-	void PrintCreaterInfo()
-	{
-		if (!_creatorMap.empty())
-		{
-			Debug::Log("Component List:\n");
-			for (auto it : _creatorMap)
-			{
-				std::string scriptName = it.first;
-				Debug::Log(" -- %s\n", scriptName.c_str());
-			}
-		}
-	}
-
 
 private:
 	ComponentFactory() {};
@@ -459,7 +472,7 @@ private:
 
 	ComponentFactory(const ComponentFactory&) = delete;
 
-	std::map<std::string, ComponentCreator> _creatorMap{ };
+	std::map<std::string, ComponentCreator> _creatorMap { };
 };
 
 static Component* CreateComponent(const std::string name)

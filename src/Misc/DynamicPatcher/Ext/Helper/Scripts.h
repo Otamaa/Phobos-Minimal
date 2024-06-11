@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
-#include <Common/INI/INI.h>
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Extension/GOExtension.h>
+#include <Misc/DynamicPatcher/Extension/GOExtension.h>
 
 class AttachEffectTypeData;
 class AttachEffect;

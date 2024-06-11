@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
 
 
 enum class TrailMode

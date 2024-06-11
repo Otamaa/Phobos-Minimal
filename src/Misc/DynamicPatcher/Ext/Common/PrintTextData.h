@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Helper/CastEx.h>
-#include <Ext/Helper/SurfaceEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/SurfaceEx.h>
 
 enum class PrintTextAlign : int
 {

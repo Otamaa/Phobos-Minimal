@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <algorithm>
 #include <string>
@@ -24,23 +24,23 @@
 #include "Effect/StandData.h"
 #include "Effect/VampireData.h"
 // State Effects
-#include <Ext/StateType/State/AntiBulletData.h>
-#include <Ext/StateType/State/BlackHoleData.h>
-#include <Ext/StateType/State/DamageReactionData.h>
-#include <Ext/StateType/State/DeselectData.h>
-#include <Ext/StateType/State/DestroyAnimData.h>
-#include <Ext/StateType/State/DestroySelfData.h>
-#include <Ext/StateType/State/DisableWeaponData.h>
-#include <Ext/StateType/State/ECMData.h>
-#include <Ext/StateType/State/FreezeData.h>
-#include <Ext/StateType/State/GiftBoxData.h>
-#include <Ext/StateType/State/NoMoneyNoTalkData.h>
-#include <Ext/StateType/State/OverrideWeaponData.h>
-#include <Ext/StateType/State/PaintballData.h>
-#include <Ext/StateType/State/PumpData.h>
-#include <Ext/StateType/State/ScatterData.h>
-#include <Ext/StateType/State/TeleportData.h>
-#include <Ext/StateType/State/TransformData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/AntiBulletData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/BlackHoleData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DamageReactionData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DeselectData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroyAnimData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroySelfData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DisableWeaponData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/ECMData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/FreezeData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/NoMoneyNoTalkData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/OverrideWeaponData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PaintballData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PumpData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/ScatterData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TeleportData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TransformData.h>
 
 
 enum class CumulativeMode

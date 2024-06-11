@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
 
 class AirstrikeData : public INIConfig
 {

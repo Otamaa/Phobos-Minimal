@@ -1,19 +1,18 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 
-#include <Extension.h>
 #include <TechnoClass.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Extension/AnimExt.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponentDefines.Anim.h>
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
 
-#include <Ext/EffectType/Effect/FireSuperData.h>
-#include <Ext/EffectType/Effect/OffsetData.h>
-#include <Ext/StateType/State/PaintballData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/FireSuperData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/OffsetData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PaintballData.h>
 #include "AnimDamageData.h"
 #include "RelationData.h"
 #include "SpawnAnimsData.h"

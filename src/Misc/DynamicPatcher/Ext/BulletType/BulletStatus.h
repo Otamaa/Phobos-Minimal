@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <format>
@@ -11,19 +11,19 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Helper/CastEx.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 // TODO Add new State
-#include <Ext/StateType/State/BlackHoleState.h>
-#include <Ext/StateType/State/DestroySelfState.h>
-#include <Ext/StateType/State/ECMState.h>
-#include <Ext/StateType/State/GiftBoxState.h>
-#include <Ext/StateType/State/PaintballState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/BlackHoleState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroySelfState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/ECMState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PaintballState.h>
 
 #include "BulletStatusData.h"
 #include "Status/ProximityData.h"

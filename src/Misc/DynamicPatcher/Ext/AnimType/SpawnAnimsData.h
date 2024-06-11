@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <Common/INI/INIConfig.h>
-#include <Ext/Common/ExpandAnimsData.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Ext/Common/ExpandAnimsData.h>
 
 class SpawnAnimsData : public ExpandAnimsData
 {
@@ -46,7 +46,7 @@ public:
 	{
 		if (UseRandomInitDelay)
 		{
-			return GetRandomValue(RandomInitDelay, 0);
+			return GetRandomValue(*reinterpret_cast<Vector2D<int>*>(&RandomInitDelay), 0);
 		}
 		return InitDelay;
 	}
@@ -55,7 +55,7 @@ public:
 	{
 		if (UseRandomDelay)
 		{
-			return GetRandomValue(RandomDelay, 0);
+			return GetRandomValue(*reinterpret_cast<Vector2D<int>*>(&RandomInitDelay), 0);
 		}
 		return Delay;
 	}

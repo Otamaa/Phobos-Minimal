@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INI.h>
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/PrintTextData.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextData.h>
 
 class DamageTextEntity : public PrintTextData
 {
@@ -67,7 +67,7 @@ public:
 	virtual void Read(INIBufferReader* reader) override
 	{
 		int infDeath = reader->Get("InfDeath", 0);
-		INIBufferReader* avReader = INI::GetSection(INI::Rules, INI::SectionAudioVisual);
+		INIBufferReader* avReader = INI::GetSection(INI::Rules, GameStrings::AudioVisual());
 		// 读取全局设置
 		Read(avReader, TITLE);
 		Read(avReader, TITLE + std::to_string(infDeath) + ".");

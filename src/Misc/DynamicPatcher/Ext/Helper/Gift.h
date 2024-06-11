@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <functional>
 #include <string>
@@ -12,8 +12,8 @@
 
 #include <Helpers/Enumerators.h>
 
-#include <Ext/EffectType/Effect/CrateBuffData.h>
-#include <Ext/StateType/State/GiftBoxData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/CrateBuffData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxData.h>
 
 class AttachEffect;
 

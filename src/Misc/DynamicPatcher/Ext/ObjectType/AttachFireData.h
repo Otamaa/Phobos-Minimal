@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "FilterData.h"
 
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
 class AttachFireData : public FilterData
 {
@@ -156,7 +156,7 @@ public:
 					canFire = false;
 					break;
 				}
-				TechnoClass* pTargetTechno = dynamic_cast<TechnoClass*>(pTarget);
+				TechnoClass* pTargetTechno = generic_cast<TechnoClass*>(pTarget);
 				// 检查目标血量
 				if (CheckTargetHP)
 				{

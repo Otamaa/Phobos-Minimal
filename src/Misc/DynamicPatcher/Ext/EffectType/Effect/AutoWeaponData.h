@@ -1,14 +1,14 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 
 class AutoWeaponEntity
@@ -33,7 +33,7 @@ public:
 		FireFLH = reader->Get(title + "FireFLH", FireFLH);
 		TargetFLH = reader->Get(title + "TargetFLH", TargetFLH);
 		MoveTo = reader->Get(title + "MoveTo", MoveTo);
-		if (!MoveTo.IsEmpty())
+		if (MoveTo != CoordStruct::Empty)
 		{
 			TargetFLH = FireFLH + MoveTo;
 		}

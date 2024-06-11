@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 /// @brief 抛射体的生存属性
 struct BulletLife
@@ -67,6 +67,6 @@ struct RecordBulletStatus
 public:
 	int Health;
 	int Speed;
-	BulletVelocity Velocity;
+	VelocityClass Velocity;
 	bool CourseLocked;
 };

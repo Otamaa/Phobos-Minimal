@@ -9,12 +9,12 @@
 #include <WarheadTypeClass.h>
 #include <CCINIClass.h>
 
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
-#include <Ext/Helper/StringEx.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/StateType/State/DamageReactionData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DamageReactionData.h>
 
 #include "TypeExtension.h"
 
@@ -89,7 +89,10 @@ static std::map<std::string, Armor> ArmorTypeStrings
 struct AresVersus : public WarheadFlags
 {
 public:
-	AresVersus(double versus = 1.0, bool forceFire = true, bool retaliate = true, bool passiveAcquire = true) : Versus(versus), WarheadFlags(forceFire, retaliate, passiveAcquire) {}
+	AresVersus(double versus = 1.0, bool forceFire = true, bool retaliate = true, bool passiveAcquire = true) :
+		WarheadFlags(forceFire, retaliate, passiveAcquire)
+		, Versus(versus)
+	{ }
 
 	bool operator ==(const AresVersus& RHS) const {
 		return (CLOSE_ENOUGH(this->Versus, RHS.Versus));

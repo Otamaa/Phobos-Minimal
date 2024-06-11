@@ -1,6 +1,6 @@
 #include "EBoltExt.h"
 
-#include <Ext/EBoltType/EBoltStatus.h>
+#include <Misc/DynamicPatcher/Ext/EBoltType/EBoltStatus.h>
 
 void EBoltExt::AddGlobalScripts(std::list<std::string>& globalScripts, ExtData* ext)
 {

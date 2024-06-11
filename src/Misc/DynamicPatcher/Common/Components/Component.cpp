@@ -125,6 +125,7 @@ Component* Component::FindOrAllocate(const std::string& name)
 void Component::RemoveComponent(Component* component, bool disable)
 {
 	auto it = std::find(_children.begin(), _children.end(), component);
+
 	if (it != _children.end())
 	{
 		Component* c = *it;

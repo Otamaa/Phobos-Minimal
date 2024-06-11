@@ -1,24 +1,22 @@
-﻿#pragma once
+#pragma once
 
-#include <string>
-
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 class AnimDamageData : public INIConfig
 {
 public:
 
-	int Damage = 0; // 动画伤害
-	int InitDelay = 0; // 动画伤害初始延迟
-	int Delay = 0; // 动画伤害延迟
+	int Damage {}; // 动画伤害
+	int InitDelay {}; // 动画伤害初始延迟
+	int Delay {}; // 动画伤害延迟
 
-	bool KillByCreater = false; // 动画制造伤害传递攻击者为动画的创建者
+	bool KillByCreater {}; // 动画制造伤害传递攻击者为动画的创建者
 
-	std::string Warhead{ "" }; // 使用弹头制造伤害
-	bool PlayWarheadAnim = false; // 播放弹头动画
+	std::string Warhead { "" }; // 使用弹头制造伤害
+	bool PlayWarheadAnim {}; // 播放弹头动画
 
-	std::string Weapon{ "" }; // 使用武器制造伤害
-	bool UseWeaponDamage = false; // 使用武器的伤害而不是动画的伤害
+	std::string Weapon { "" }; // 使用武器制造伤害
+	bool UseWeaponDamage {}; // 使用武器的伤害而不是动画的伤害
 
 	virtual void Read(INIBufferReader* reader) override
 	{

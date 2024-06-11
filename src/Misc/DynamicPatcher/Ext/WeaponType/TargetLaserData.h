@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 #include <string>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 class TargetLaserData : public INIConfig
 {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Common/INI/INI.h>
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 class GeneralData : public INIConfig
 {
@@ -26,7 +26,7 @@ public:
 	{
 		if (!_data)
 		{
-			_data = INI::GetConfig<GeneralData>(INI::Rules, INI::SectionGeneral)->Data;
+			_data = INI::GetConfig<GeneralData>(INI::Rules, GameStrings::General())->Data;
 		}
 		return _data;
 	};
@@ -80,7 +80,7 @@ public:
 	{
 		if (!_data)
 		{
-			_data = INI::GetConfig<CombatDamageData>(INI::Rules, INI::SectionCombatDamage)->Data;
+			_data = INI::GetConfig<CombatDamageData>(INI::Rules, GameStrings::CombatDamage())->Data;
 		}
 		return _data;
 	};
@@ -122,7 +122,7 @@ public:
 	{
 		if (!_data)
 		{
-			_data = INI::GetConfig<AudioVisualData>(INI::Rules, INI::SectionAudioVisual)->Data;
+			_data = INI::GetConfig<AudioVisualData>(INI::Rules, GameStrings::AudioVisual())->Data;
 		}
 		return _data;
 	};

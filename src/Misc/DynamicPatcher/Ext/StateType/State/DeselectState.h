@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include "../StateScript.h"
 #include "DeselectData.h"
 
-#include <Ext/TechnoType/DamageText.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DamageText.h>
 
 class DeselectState : public StateScript<DeselectData>
 {

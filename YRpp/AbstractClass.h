@@ -49,14 +49,6 @@
 
 class CCINIClass;
 
-enum class InitState : int {
-	Blank = 0x0, // CTOR'd
-	Constanted = 0x1, // initialization that happen after constructing class
-	Ruled = 0x2, // class already reading data from rules file
-	Inited = 0x3, // initialization that happen before reading from ini file
-	Completed = 0x4 // value reading is completed
-};
-
 //forward declarations
 class TechnoClass;
 class HouseClass;

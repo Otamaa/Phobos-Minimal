@@ -1,14 +1,14 @@
-﻿#pragma once
+#pragma once
 
 #include <typeinfo>
 #include <string>
 #include <format>
 #include <stack>
 
-#include <Utilities/Container.h>
+#include <Misc/DynamicPatcher/Helpers/Container.h>
 #include <Utilities/Debug.h>
 
-#include <Common/Components/GameObject.h>
+#include <Misc/DynamicPatcher/Common/Components/GameObject.h>
 
 template <typename TBase, typename TExt>
 class GOExtension
@@ -22,6 +22,24 @@ public:
 
 		ExtData(TBase* OwnerObject) : Extension<TBase>(OwnerObject)
 		{
+			if constexpr (HasAbsID<TBase>) {
+				if constexpr (TBase::AbsID == AbstractType::Bullet) {
+					this->Type = ExtType::Bullet;
+				}
+				else if  constexpr  (
+					TBase::AbsID == AbstractType::Unit ||
+					TBase::AbsID == AbstractType::Aircraft ||
+					TBase::AbsID == AbstractType::Building ||
+					TBase::AbsID == AbstractType::Infantry)
+				{
+					this->Type = ExtType::Techno;
+				}
+			}
+			else if constexpr (HasDeriveredAbsID<TBase>)
+			{
+				this->Type = ExtType::Techno;
+			}
+
 			// 为了保证读存档的key一致，除GO外都不进行实例化
 			m_GameObject.Tag = typeid(TExt).name();
 			m_GameObject.SetExtData(this);
@@ -55,6 +73,7 @@ public:
 				// 序列化GameObject对象，将调用GameObject的Save/Load函数，
 				// 由GameObject自己维护自己的读存档长度
 				// GameObject自身储存的列表如何变化，都不影响Ext的读存档
+				.Process(this->Type)
 				.Process(this->m_GameObject);
 		}
 
@@ -81,8 +100,8 @@ public:
 		__declspec(property(get = GetGameObject)) GameObject* _GameObject;
 
 		/// @brief Helper调用，通过Ext查找或附加GameObject下的脚本
-		/// @tparam TScript 
-		/// @return 
+		/// @tparam TScript
+		/// @return
 		template <typename TScript>
 		TScript* FindOrAttach()
 		{
@@ -90,8 +109,8 @@ public:
 		}
 
 		/// @brief Helper调用，通过Ext查找GameObject下的脚本
-		/// @tparam TScript 
-		/// @return 
+		/// @tparam TScript
+		/// @return
 		template <typename TScript>
 		TScript* GetScript()
 		{
@@ -156,10 +175,10 @@ public:
 		bool globalScriptsCreated = false;
 	};
 
-	class ExtContainer : public Container<TExt>
+	class ExtContainer : public ExtMapCointainer<TExt>
 	{
 	public:
-		ExtContainer() : Container<TExt>(typeid(TExt).name()) {}
+		ExtContainer() : ExtMapCointainer<TExt>(typeid(TExt).name()) {}
 		~ExtContainer() = default;
 	};
 };

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -9,11 +9,11 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/EffectType/AttachEffectScript.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectScript.h>
 
 class IStateScript
 {

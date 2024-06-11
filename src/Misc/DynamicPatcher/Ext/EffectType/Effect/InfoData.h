@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include <Ext/Common/PrintTextData.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextData.h>
 #include "EffectData.h"
 
 

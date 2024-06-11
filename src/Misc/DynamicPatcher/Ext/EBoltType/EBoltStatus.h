@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 
 #include <EBolt.h>
 
-#include <Extension/EBoltExt.h>
-#include <Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Extension/EBoltExt.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
 
 /// @brief base compoment, save the EBolt status
 class EBoltStatus : public EBoltScript
@@ -25,9 +25,9 @@ public:
 
 		ArcCount = 8;
 
-		Color1 = Colors::Empty;
-		Color2 = Colors::Empty;
-		Color3 = Colors::Empty;
+		Color1 = ColorStruct::Empty;
+		Color2 = ColorStruct::Empty;
+		Color3 = ColorStruct::Empty;
 
 		Disable1 = false;
 		Disable2 = false;
@@ -46,9 +46,9 @@ public:
 
 	int ArcCount = 8;
 
-	ColorStruct Color1 = Colors::Empty;
-	ColorStruct Color2 = Colors::Empty;
-	ColorStruct Color3 = Colors::Empty;
+	ColorStruct Color1 = ColorStruct::Empty;
+	ColorStruct Color2 = ColorStruct::Empty;
+	ColorStruct Color3 = ColorStruct::Empty;
 
 	bool Disable1 = false;
 	bool Disable2 = false;

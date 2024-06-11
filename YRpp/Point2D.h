@@ -17,8 +17,14 @@ public:
 	//	return *this;
 	//}
 
+
 	constexpr bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
 	constexpr bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }
+
+	constexpr FORCEINLINE bool IsEmpty() const
+	{
+		return (*this) != Empty;
+	}
 
 	constexpr Point2D& operator++() {
 		++X;

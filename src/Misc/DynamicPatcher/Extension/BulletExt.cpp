@@ -1,8 +1,8 @@
-﻿#include "BulletExt.h"
+#include "BulletExt.h"
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/BulletType/BulletTrail.h>
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletTrail.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 
 void BulletExt::AddGlobalScripts(std::list<std::string>& globalScripts, ExtData* ext)
 {

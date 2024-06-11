@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 
 #include <GeneralStructures.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
-#include <Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
 
 class ImmuneData : public EffectData
 {
