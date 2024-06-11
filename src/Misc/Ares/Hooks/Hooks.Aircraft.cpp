@@ -147,60 +147,6 @@ DEFINE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x418478, AircraftClass_Mi_Attack_Untarget1, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x4184C2
-		;
-}
-
-DEFINE_HOOK(0x4186D7, AircraftClass_Mi_Attack_Untarget2, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x418720
-		;
-}
-
-DEFINE_HOOK(0x418826, AircraftClass_Mi_Attack_Untarget3, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x418883
-		;
-}
-
-DEFINE_HOOK(0x418935, AircraftClass_Mi_Attack_Untarget4, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x418992
-		;
-}
-
-DEFINE_HOOK(0x418A44, AircraftClass_Mi_Attack_Untarget5, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x418AA1
-		;
-}
-
-DEFINE_HOOK(0x418B40, AircraftClass_Mi_Attack_Untarget6, 0x6)
-{
-	GET(AircraftClass*, A, ESI);
-	return A->Target
-		? 0
-		: 0x418B8A
-		;
-}
-
 DEFINE_HOOK(0x415544, AircraftClass_Mi_Unload_Blocked, 0xB)
 {
 	GET(AircraftClass*, pThis, ESI);

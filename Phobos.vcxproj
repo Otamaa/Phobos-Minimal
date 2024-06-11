@@ -306,7 +306,9 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Common\EventSystems\EventSystem.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Helpers\Helpers.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Kratos.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
@@ -428,8 +430,13 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Misc\Defines.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Common\EventSystems\EventSystem.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Helpers\MyDelegate.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\EffectHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\Helpers.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Kratos.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Helpers\Container.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Version.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\New\AnonymousType\Spawns.h" />
     <ClInclude Include="src\New\AnonymousType\SpawnsStatus.h" />

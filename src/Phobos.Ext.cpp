@@ -445,11 +445,16 @@ FORCEINLINE bool Process_Save(IStream* pStm)
 //	return 0;
 //}
 //
+DEFINE_HOOK(0x67E730, LoadGame_Phobos_Global_Early_Start, 0x5)
+{
+	Phobos::Otamaa::DoingLoadGame = true;
+	return 0;
+}
+
 DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 {
 //	Debug::Log("Loading global Phobos data\n");
 //	GET(IStream*, pStm, ESI);
-	Phobos::Otamaa::DoingLoadGame = true;
 //
 //	bool ret =
 //		Process_Load<PaletteManager>(pStm) &&

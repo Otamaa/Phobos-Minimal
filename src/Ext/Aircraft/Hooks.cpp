@@ -9,6 +9,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/WarheadType/Body.h>
 //bool SecondFiringMethod = true;
 //
 //DEFINE_HOOK(0x6FF031, TechnoClass_Fire_CountAmmo, 0xA)
@@ -78,18 +79,36 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	return 0;
 }
 
+bool FireBurst(AircraftClass* pAir , AircraftFireMode firing) {
+
+	const auto WeaponIdx = pAir->SelectWeapon(pAir->Target);
+	const auto pWeaponStruct = pAir->GetWeapon(WeaponIdx);
+	bool Scatter = pAir->Target;
+
+	if (pWeaponStruct) {
+
+		const auto weaponType = pWeaponStruct->WeaponType;
+
+		if (weaponType) {
+			Scatter = !WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->PreventScatter;
+			AircraftExt::FireBurst(pAir , pAir->Target, firing, WeaponIdx, weaponType);
+		}
+	}
+
+	return Scatter;
+}
+
 //was 8
 #define Hook_AircraftBurstFix(addr , Mode , ret)\
 DEFINE_HOOK(addr , AircraftClass_Mission_Attack_##Mode##_Strafe_BurstFix,0x6){ \
 GET(AircraftClass* const, pThis, ESI); \
 AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::##Mode##); return ret; }
 
-
-	Hook_AircraftBurstFix(0x4186B6, FireAt, 0x4186D7)
-	Hook_AircraftBurstFix(0x418805, Strafe2, 0x418826)
-	Hook_AircraftBurstFix(0x418914, Strafe3, 0x418935)
-	Hook_AircraftBurstFix(0x418A23, Strafe4, 0x418A44)
-	Hook_AircraftBurstFix(0x418B1F, Strafe5, 0x418B40)
+	Hook_AircraftBurstFix(0x4186B6, FireAt, 0x418720)
+	Hook_AircraftBurstFix(0x418805, Strafe2, 0x418883)
+	Hook_AircraftBurstFix(0x418914, Strafe3, 0x418992)
+	Hook_AircraftBurstFix(0x418A23, Strafe4, 0x418AA1)
+	Hook_AircraftBurstFix(0x418B1F, Strafe5, 0x418B8A)
 
 DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
 {
@@ -97,9 +116,9 @@ DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) /
 
 	pThis->loseammo_6c8 = true;
 
-	AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt);
+	FireBurst(pThis, AircraftFireMode::FireAt);
 
-	return 0x418478;
+	return 0x4184C2;
 }
 
 #undef Hook_AircraftBurstFix

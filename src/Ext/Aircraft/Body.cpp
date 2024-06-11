@@ -76,7 +76,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
 {
-	if (!pWeapon->Burst)
+	if (!pTarget || !pWeapon->Burst)
 		return;
 
 	for (int i = 0; i < pWeapon->Burst; i++)
