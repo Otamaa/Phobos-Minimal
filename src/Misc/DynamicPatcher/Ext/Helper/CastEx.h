@@ -10,13 +10,19 @@
 #include <FootClass.h>
 
 template<typename T, typename T2>
-static Vector3D<T> ToVector3D(Vector3D<T2>& vector)
+constexpr static Vector3D<T> ToVector3D(Vector3D<T2>& vector)
 {
 	return { static_cast<T>(vector.X), static_cast<T>(vector.Y), static_cast<T>(vector.Z) };
 }
 
 template<typename T>
-static CoordStruct ToCoordStruct(Vector3D<T>& vector)
+constexpr static Vector3D<T> ToVector3D(CoordStruct& vector)
+{
+	return { static_cast<T>(vector.X), static_cast<T>(vector.Y), static_cast<T>(vector.Z) };
+}
+
+template<typename T>
+constexpr static CoordStruct ToCoordStruct(Vector3D<T>& vector)
 {
 	if constexpr (std::is_same<int, typename std::remove_cv<T>::type>::value)
 	{
@@ -29,7 +35,7 @@ static CoordStruct ToCoordStruct(Vector3D<T>& vector)
 }
 
 template<typename T>
-static VelocityClass ToVelocity(Vector3D<T>& vector)
+constexpr static VelocityClass ToVelocity(Vector3D<T>& vector)
 {
 	if constexpr (std::is_same<double, typename std::remove_cv<T>::type>::value) {
 		return *reinterpret_cast<VelocityClass*>(vector);
@@ -37,6 +43,11 @@ static VelocityClass ToVelocity(Vector3D<T>& vector)
 	else {
 		return VelocityClass { double(vector.X) ,  double(vector.Y) ,  double(vector.Z) };
 	}
+}
+
+constexpr static VelocityClass ToVelocity(CoordStruct& vector)
+{
+	return VelocityClass { double(vector.X) ,  double(vector.Y) ,  double(vector.Z) };
 }
 
 static CoordStruct ToCoords(Point2D point)

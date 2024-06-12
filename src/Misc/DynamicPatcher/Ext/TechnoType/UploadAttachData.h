@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
 
 #include <GeneralStructures.h>
 
-#include <Ext/ObjectType/FilterData.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/FilterData.h>
 
 class UploadAttachEntity : public FilterData
 {

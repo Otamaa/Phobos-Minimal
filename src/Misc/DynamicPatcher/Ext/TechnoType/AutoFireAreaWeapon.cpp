@@ -90,7 +90,7 @@ void AutoFireAreaWeapon::OnUpdate()
 			if (pTarget)
 			{
 				SkipROF = true;
-				pTechno->Fire_IgnoreType(pTarget, data->WeaponIndex);
+				pTechno->TechnoClass::Fire(pTarget, data->WeaponIndex);
 				SkipROF = false;
 			}
 

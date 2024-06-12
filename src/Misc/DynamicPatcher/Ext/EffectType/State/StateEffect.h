@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -9,11 +9,11 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 #include "StateEffectScript.h"
 
@@ -23,12 +23,13 @@ class STATE_NAME ## Effect : public StateEffect<STATE_NAME ## Data> \
 { \
 public: \
 	STATE_EFFECT_SCRIPT(STATE_NAME); \
+	virtual StateEffectTypes GetEffecType() { return StateEffectTypes::##STATE_NAME##; }\
 	virtual IStateScript* GetState(TechnoStatus* status) override \
 	{ \
 		IStateScript* state = nullptr; \
 		if (status) \
 		{ \
-			status->TryGetState<STATE_NAME ## State>(state); \
+			status->TryGetState(StateEffectTypes::##STATE_NAME##, state); \
 		} \
 		return state; \
 	} \
@@ -37,7 +38,7 @@ public: \
 		IStateScript* state = nullptr; \
 		if (status) \
 		{ \
-			status->TryGetState<STATE_NAME ## State>(state); \
+			status->TryGetState(StateEffectTypes::##STATE_NAME##, state); \
 		} \
 		return state; \
 	} \

@@ -62,7 +62,38 @@ public:
 class AttachEffectScript : public ObjectScript, public IAEScript
 {
 public:
-	OBJECT_SCRIPT(AttachEffectScript);
+	AttachEffectScript() : ObjectScript()
+	{
+		this->Name = ScriptName;
+		this->c_Type |= ComponentType::AE_Effect;
+	}
+
+	virtual void FreeComponent() override
+	{
+		Clean();
+		Pool.push_back(this);
+	}
+
+	static Component* Create()
+	{
+		Component* c = nullptr;
+		if (!Pool.empty())
+		{
+			auto it = Pool.begin();
+			c = *it;
+			Pool.erase(it);
+		}
+
+		if (!c)
+		{
+			c = static_cast<Component*>(new AttachEffectScript());
+		}
+		return c;
+	}
+
+	inline static std::string ScriptName = "AttachEffectScript";
+	inline static int g_temp_AttachEffectScript = ComponentFactory::GetInstance().Register("AttachEffectScript", AttachEffectScript::Create); \
+	inline static std::vector<AttachEffectScript*> Pool {};
 
 	virtual void ResetDuration() override;
 	int GetDuration();
@@ -73,8 +104,9 @@ public:
 	void ResetEffectsDuration();
 
 	void TimeToDie();
+	void InheritedTo(TechnoClass* pNewOwner, HouseClass* pNewOwnerHouse);
 
-	bool IsSameGroup(AttachEffectData otherType);
+	bool IsSameGroup(AttachEffectData& otherType);
 	void GetMarks(std::vector<std::string>& marks);
 
 	bool OwnerIsDead();

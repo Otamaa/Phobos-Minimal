@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cmath>
 #include <functional>
@@ -13,7 +13,7 @@
 #include <TechnoClass.h>
 #include <WarheadTypeClass.h>
 
-#include <Ext/ObjectType/FilterData.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/FilterData.h>
 
 class AttachEffect;
 

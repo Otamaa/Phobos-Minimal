@@ -1,7 +1,7 @@
-﻿#include "GiftBoxState.h"
+#include "GiftBoxState.h"
 
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
 
 bool GiftBoxState::CanOpen()
 {

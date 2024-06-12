@@ -1,14 +1,14 @@
-﻿#include "BlackHoleState.h"
+#include "BlackHoleState.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
 
 BlackHoleEntity BlackHoleState::GetDataEntity()
 {

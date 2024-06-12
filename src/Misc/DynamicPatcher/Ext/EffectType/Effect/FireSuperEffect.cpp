@@ -1,6 +1,6 @@
-﻿#include "FireSuperEffect.h"
+#include "FireSuperEffect.h"
 
-#include <Ext/Common/FireSuperManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/FireSuperManager.h>
 
 void FireSuperEffect::OnFire(AbstractClass* pTarget, int weaponIdx)
 {

@@ -5,8 +5,6 @@
 
 #include <GeneralStructures.h>
 
-#include <Misc/DynamicPatcher/Ext/EffectType/EffectScript.h>
-
 #include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 #include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
@@ -90,7 +88,6 @@ public:
 
 	FireSuperEntity Data{};
 	FireSuperEntity EliteData{};
-
 
 	virtual void Read(INIBufferReader* reader) override
 	{

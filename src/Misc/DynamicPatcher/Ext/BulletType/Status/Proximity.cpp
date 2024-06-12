@@ -1,10 +1,10 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/WeaponType/ProximityRangeData.h>
+#include <Misc/DynamicPatcher/Ext/WeaponType/ProximityRangeData.h>
 
 ProximityData* BulletStatus::GetProximityData()
 {
@@ -100,7 +100,7 @@ void BulletStatus::OnUpdateEnd_Proximity(CoordStruct& sourcePos)
 						// 无视高度和距离，格子内的对象都算碰撞目标
 						if (pTarget->WhatAmI() == AbstractType::Building)
 						{
-							if (BuildingClass* pBuilding = dynamic_cast<BuildingClass*>(pTarget))
+							if (BuildingClass* pBuilding = static_cast<BuildingClass*>(pTarget))
 							{
 								// 检查建筑在范围内
 								hit = CanHit(pBuilding, sourcePos.Z, data->Blade, data->ZOffset);

@@ -1,7 +1,7 @@
 #include "AttachEffectScript.h"
 
-#include <Ext/Helper/Status.h>
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
 #include "EffectScript.h"
 #include "Effect/AnimationEffect.h"
@@ -102,19 +102,25 @@ void AttachEffectScript::ResetDuration()
 void AttachEffectScript::ResetEffectsDuration()
 {
 	ForeachChild([](Component* c) {
-		if (auto cc = dynamic_cast<IAEScript*>(c)) { cc->ResetDuration(); }
-		});
+		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+			reinterpret_cast<IAEScript*>(c)->ResetDuration();
+		}
+	});
 }
 
 void AttachEffectScript::TimeToDie()
 {
-#ifdef DEBUG_AE
-	Debug::Log("AE[%s] TimeToDie.\n", AEData.Name.c_str());
-#endif
 	_hold = false;
 	_immortal = false;
 	_lifeTimer.Stop();
 }
+
+void AttachEffectScript::InheritedTo(TechnoClass* pNewOwner, HouseClass* pNewOwnerHouse)
+{
+	pSource = pNewOwner;
+	pSourceHouse = pNewOwnerHouse;
+}
+
 
 void AttachEffectScript::SetupInitTimer()
 {
@@ -133,7 +139,7 @@ void AttachEffectScript::SetupLifeTimer()
 	}
 }
 
-bool AttachEffectScript::IsSameGroup(AttachEffectData otherType)
+bool AttachEffectScript::IsSameGroup(AttachEffectData& otherType)
 {
 	return this->AEData.Group > -1 && otherType.Group > -1
 		&& this->AEData.Group == otherType.Group;
@@ -254,22 +260,16 @@ bool AttachEffectScript::IsAlive()
 		if (IsActive() && !_hold)
 		{
 			bool hasDead = false;
-#ifdef DEBUG_AE
-			ForeachChild([&](Component* c) {
-#else
 			ForeachChild([&hasDead](Component* c) {
-#endif
-				if (auto e = dynamic_cast<EffectScript*>(c))
+				if (c->c_Type & ComponentType::EffectScript)
 				{
+					auto e = reinterpret_cast<EffectScript*>(c);
 					hasDead = !e->IsActive() || !e->IsAlive();
-					if (hasDead)
-					{
-#ifdef DEBUG_AE
-						Debug::Log(" - AE[%s]的效果器[%s]失效了\n", AEData.Name.c_str(), e->Name.c_str());
-#endif
+					if (hasDead) {
 						c->Break();
 					}
 				}
+
 				});
 			if (hasDead)
 			{
@@ -361,7 +361,8 @@ void AttachEffectScript::End(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-		if (auto cc = dynamic_cast<IAEScript*>(c)) { cc->End(location); }
+		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+			reinterpret_cast<IAEScript*>(c)->End(location);
 		});
 }
 
@@ -395,7 +396,8 @@ void AttachEffectScript::OnGScreenRender(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-		if (auto cc = dynamic_cast<IAEScript*>(c)) { cc->OnGScreenRender(location); }
+			if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+				reinterpret_cast<IAEScript*>(c)->OnGScreenRender(location);
 		});
 }
 
@@ -406,26 +408,26 @@ void AttachEffectScript::OnGScreenRenderEnd(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-		if (auto cc = dynamic_cast<IAEScript*>(c)) { cc->OnGScreenRenderEnd(location); }
+			if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+				reinterpret_cast<IAEScript*>(c)->OnGScreenRenderEnd(location);
 		});
 }
 
 void AttachEffectScript::InitEffects()
 {
 	std::vector<std::string> scriptNames = AEData.GetScriptNames();
-	for (std::string scriptName : scriptNames)
+	for (std::string& scriptName : scriptNames)
 	{
-#ifdef DEBUG_AE
-		Debug::Log(" - AE[%s]初始化添加效果器组件[%s]\n", AEData.Name.c_str(), scriptName.c_str());
-#endif
 		Component* c = AddComponent(scriptName);
 		if (c)
 		{
-			EffectScript* e = dynamic_cast<EffectScript*>(c);
-			// 初始化Effect
-			e->AEData = this->AEData;
-			e->EnsureAwaked();
-			e->Deactivate(); // 令其失活等待唤醒
+			if(c->c_Type & ComponentType::EffectScript) {
+				EffectScript* e = reinterpret_cast<EffectScript*>(c);
+				// 初始化Effect
+				e->AEData = this->AEData;
+				e->EnsureAwaked();
+				e->Deactivate(); // 令其失活等待唤醒
+			}
 		}
 	}
 }
@@ -454,9 +456,6 @@ bool AttachEffectScript::InDelayToEnable()
 void AttachEffectScript::EnableEffects()
 {
 	_started = true;
-#ifdef DEBUG_AE
-	Debug::Log("  - [%s]%d 上的 AE[%s]%d 激活持有的%d个效果器\n", pObject->GetType()->ID, pObject, AEData.Name.c_str(), this, _children.size());
-#endif // DEBUG_AE
 	SetupLifeTimer();
 	bool pause = false;
 	if (pTechno)
@@ -477,11 +476,8 @@ void AttachEffectScript::EnableEffects()
 		// Effect is disable stats, so there cannot use ForeachChild function
 		for (Component* c : _children)
 		{
-			if (EffectScript* effect = dynamic_cast<EffectScript*>(c))
-			{
-#ifdef DEBUG_AE
-				Debug::Log("  - 效果器[%s]%d 激活\n", effect->Name.c_str(), effect);
-#endif // DEBUG_AE
+			if(c->c_Type & ComponentType::EffectScript){
+				EffectScript* effect = reinterpret_cast<EffectScript*>(c);
 				effect->Activate();
 				effect->Start();
 			}
@@ -494,10 +490,9 @@ void AttachEffectScript::PauseEffects()
 	// 暂停Effects
 	for (Component* c : _children)
 	{
-		if (auto cc = dynamic_cast<IAEScript*>(c))
-		{
-			if (c->IsActive())
-			{
+		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+			auto cc = reinterpret_cast<IAEScript*>(c);
+			if (c->IsActive()) {
 				c->Deactivate();
 				cc->Pause();
 			}
@@ -510,10 +505,9 @@ void AttachEffectScript::RecordEffects()
 	// 恢复Effects
 	for (Component* c : _children)
 	{
-		if (auto cc = dynamic_cast<IAEScript*>(c))
-		{
-			if (!c->IsActive())
-			{
+		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+			auto cc = reinterpret_cast<IAEScript*>(c);
+			if (!c->IsActive()) {
 				c->Activate();
 				cc->Recover();
 			}
@@ -534,9 +528,6 @@ bool AttachEffectScript::CheckHealthPercent()
 			_hold = false;
 			return true;
 		}
-#ifdef DEBUG_AE
-		Debug::Log("  - [%s]%d 上的 AE[%s]%d 需要满足血量触发[%s, %s]%s\n", pObject->GetType()->ID, pObject, AEData.Name.c_str(), this, _children.size(), std::to_string(min).c_str(), std::to_string(max).c_str(), std::to_string(healthPrecent).c_str());
-#endif // DEBUG_AE
 		return healthPrecent <= max && healthPrecent >= min;
 	}
 	return true;
@@ -546,7 +537,7 @@ AttachEffect* AttachEffectScript::GetAEManager()
 {
 	if (!_aeManager)
 	{
-		if (_parent && _parent->c_Type == ComponentType::AE)
+		if (_parent && _parent->c_Type & ComponentType::AE)
 			_aeManager = static_cast<AttachEffect*>(_parent);
 	}
 	return _aeManager;

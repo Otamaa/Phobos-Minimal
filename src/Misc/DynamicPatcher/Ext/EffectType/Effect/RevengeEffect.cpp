@@ -1,14 +1,14 @@
-﻿#include "RevengeEffect.h"
+#include "RevengeEffect.h"
 
-#include <Extension/WarheadTypeExt.h>
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/ObjectType/AttachFire.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachFire.h>
 
 bool RevengeEffect::CanRevenge(TechnoClass*& pRevenger, HouseClass*& pRevengerHouse, TechnoClass*& pRevengeTarget,
 	WarheadTypeClass* pWH, ObjectClass* pAttacker, HouseClass* pAttackingHouse)

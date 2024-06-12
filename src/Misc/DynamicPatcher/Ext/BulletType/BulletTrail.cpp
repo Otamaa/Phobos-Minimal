@@ -1,8 +1,8 @@
-﻿#include "BulletTrail.h"
+#include "BulletTrail.h"
 #include "BulletStatus.h"
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 void BulletTrail::SetupTrails()
 {

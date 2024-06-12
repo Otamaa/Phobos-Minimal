@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -8,10 +8,10 @@
 #include <SuperClass.h>
 #include <HouseClass.h>
 
-#include <Common/EventSystems/EventSystem.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
-#include <Ext/EffectType/Effect/FireSuperData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/FireSuperData.h>
 
 class FireSuperManager
 {
@@ -130,7 +130,7 @@ public:
 		if (arg->IsStartInStream())
 		{
 			int size = _superWeapons.size();
-			ExByteStream saver(sizeof(_superWeapons) + (size * sizeof(FireSuper)));
+			PhobosByteStream saver(sizeof(_superWeapons) + (size * sizeof(FireSuper)));
 			PhobosStreamWriter writer(saver);
 			// 写入容器
 			writer.Process(_superWeapons, false);
@@ -147,7 +147,7 @@ public:
 		LoadGameEventArgs* arg = (LoadGameEventArgs*)args;
 		if (arg->IsStartInStream())
 		{
-			ExByteStream loader(0);
+			PhobosByteStream loader(0);
 			loader.ReadBlockFromStream(arg->Stream);
 			PhobosStreamReader reader(loader);
 			// 写入容器

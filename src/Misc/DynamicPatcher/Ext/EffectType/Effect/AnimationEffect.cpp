@@ -1,14 +1,14 @@
-﻿#include "AnimationEffect.h"
+#include "AnimationEffect.h"
 
 #include <AnimTypeClass.h>
 
-#include <Extension/AnimExt.h>
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/AnimType/AnimStatus.h>
+#include <Misc/DynamicPatcher/Ext/AnimType/AnimStatus.h>
 
 void AnimationEffect::UpdateLocationOffset(CoordStruct offset)
 {

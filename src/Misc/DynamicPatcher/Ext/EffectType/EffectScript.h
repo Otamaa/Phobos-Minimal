@@ -33,6 +33,10 @@ class EffectScript : public ObjectScript, public IAEScript
 {
 public:
 
+	EffectScript() : ObjectScript() {
+		this->c_Type |= ComponentType::EffectScript;
+	}
+
 	virtual void Clean() override
 	{
 		ObjectScript::Clean();
@@ -48,9 +52,9 @@ public:
 	virtual void Pause() override;
 	virtual void Recover() override;
 
-	virtual EffectData* GetData() { return nullptr; };
+	virtual EffectData* GetData() { return nullptr; }
 
-	AttachEffectData AEData{};
+	AttachEffectData AEData {};
 
 	AttachEffectScript* _ae = nullptr;
 	AttachEffectScript* GetAE();

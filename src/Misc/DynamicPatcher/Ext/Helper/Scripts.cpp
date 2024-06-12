@@ -1,9 +1,9 @@
-﻿#include "Scripts.h"
+#include "Scripts.h"
 
-#include <Extension/BulletExt.h>
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/StateType/State/BlackHoleState.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/BlackHoleState.h>
 
 
 BlackHoleState* GetBlackHoleState(ObjectClass* pObject)
@@ -22,12 +22,12 @@ bool TryGetBlackHoleState(ObjectClass* pObject, BlackHoleState*& state)
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
 	{
-		state = GetScript<TechnoExt, BlackHoleState>(dynamic_cast<TechnoClass*>(pObject));
+		state = GetScript<TechnoExt, BlackHoleState>(static_cast<TechnoClass*>(pObject));
 		break;
 	}
 	case AbstractType::Bullet:
 	{
-		state = GetScript<BulletExt, BlackHoleState>(dynamic_cast<BulletClass*>(pObject));
+		state = GetScript<BulletExt, BlackHoleState>(static_cast<BulletClass*>(pObject));
 		break;
 	}
 	default:

@@ -33,17 +33,17 @@ bool Bounce::SpawnSplitCannon()
 		if (dist > 0 && !isnan(dist) && !isinf(dist))
 		{
 			double next = dist * _bounceData.Elasticity; // 子抛射体弹跳的距离
-			double speed = pBullet->WeaponType ? pBullet->WeaponType->GetSpeed((int)next) : pBullet->Speed;
+			double speed = pBullet->WeaponType ? pBullet->WeaponType->GetWeaponSpeed((int)next) : pBullet->Speed;
 			// Logger.Log($"{Game.CurrentFrame} [{section}]{pBullet} 初始位置{tempSourcePos}，爆炸位置{tempExplodePos}，子抛射体距离是 {dist} * {bounceData.Elasticity} = {next}，飞行速度{speed}，限制距离 {bounceData.Limit}");
 			// 往前飞一半的距离
-			if (next > Math::max(_bounceData.Limit + 1, speed))
+			if (next > MaxImpl(_bounceData.Limit + 1, speed))
 			{
 				// 检查地形，能不能跳
 				if (CellClass* pCell = MapClass::Instance->TryGetCellAt(explodePos))
 				{
 					// 地形
 					LandType landType = LandType::Clear;
-					TileType tileType = TileType::Unknown;
+					TileType tileType = TileType::Unk;
 					bool rebound = false; // 反弹
 					if (_bounceData.IsOnLandType(pCell, landType) && _bounceData.IsOnTileType(pCell, tileType) && !_bounceData.Stop(pCell, rebound))
 					{
@@ -92,7 +92,7 @@ bool Bounce::SpawnSplitCannon()
 								break;
 							}
 							// 再次确认削减之后的距离还可以跳
-							if (next > Math::max(_bounceData.Limit + 1, speed))
+							if (next > MaxImpl(_bounceData.Limit + 1, speed))
 							{
 								if (nextTargetPos.IsEmpty())
 								{
@@ -112,7 +112,7 @@ bool Bounce::SpawnSplitCannon()
 								{
 									if (pTargetCell != pCell)
 									{
-										BulletStatus* status = dynamic_cast<BulletStatus*>(_parent);
+										BulletStatus* status = static_cast<BulletStatus*>(_parent);
 										CoordStruct cellPos = pTargetCell->GetCoordsWithBridge();
 										nextTargetPos.Z = cellPos.Z;
 										AbstractClass* pTarget = pTargetCell;

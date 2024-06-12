@@ -1,7 +1,7 @@
-﻿#include "HostEffect.h"
+#include "HostEffect.h"
 
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
 
 void HostEffect::OnUpdate()
 {
@@ -83,7 +83,7 @@ void HostEffect::OnUpdate()
 				pTarget = pTechno->Target;
 				if (!IsBuilding())
 				{
-					pDest = dynamic_cast<FootClass*>(pTechno)->Destination;
+					pDest = static_cast<FootClass*>(pTechno)->Destination;
 					pFocus = pTechno->Focus;
 				}
 				// 继承血量

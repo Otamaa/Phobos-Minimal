@@ -1,14 +1,14 @@
-﻿#include "InfoEffect.h"
+#include "InfoEffect.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
 void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 {
@@ -34,8 +34,10 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			int initDelay = -1;
 			auto data = Data;
 			aem->ForeachChild([&checkDuration, &checkInitDelay, &duration, &initDelay, &data](Component* c) {
-				if (AttachEffectScript* ae = dynamic_cast<AttachEffectScript*>(c))
+
+				if (c->c_Type & ComponentType::AE_Effect)
 				{
+					AttachEffectScript* ae = static_cast<AttachEffectScript*>(c);
 					std::string aeName = ae->AEData.Name;
 					// 读取Duration
 					int durationLeft = -1;
@@ -122,7 +124,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			auto it = aem->DisableDelayTimers.find(Data->Delay.Watch);
 			if (it != aem->DisableDelayTimers.end())
 			{
-				TimerStruct timer = it->second;
+				CDTimerClass timer = it->second;
 				if (timer.InProgress())
 				{
 					delay = timer.GetTimeLeft();
@@ -151,7 +153,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 		}
 
 		// 显示附着对象的信息
-		RectangleStruct bounds = DSurface::Temp->GetRect();
+		RectangleStruct bounds = DSurface::Temp->Get_Rect();
 		bounds.Height -= 34;
 
 		// 显示单位信息
@@ -183,7 +185,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			if (Data->Reload.Mode != InfoMode::NONE && (Data->Reload.ShowEnemy || isPlayerControl) && (!Data->Reload.OnlySelected || isSelected))
 			{
 				int delay = -1;
-				TimerStruct timer = pTechno->ReloadTimer;
+				CDTimerClass timer = pTechno->ReloadTimer;
 				if (timer.InProgress())
 				{
 					delay = timer.GetTimeLeft();
@@ -197,7 +199,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			if (Data->ROF.Mode != InfoMode::NONE && (Data->ROF.ShowEnemy || isPlayerControl) && (!Data->ROF.OnlySelected || isSelected))
 			{
 				int delay = -1;
-				TimerStruct timer = pTechno->ROFTimer;
+				CDTimerClass timer = pTechno->DiskLaserTimer;
 				if (timer.InProgress())
 				{
 					delay = timer.GetTimeLeft();
@@ -221,11 +223,10 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			{
 				Mission mission = pObject->GetCurrentMission();
 				std::string text = std::to_string((int)mission);
-				for (auto it : MissionTypeStrings)
+				for (auto&[_str , _mission]: MissionTypeStrings)
 				{
-					if (it.second == mission)
-					{
-						text = it.first;
+					if (_mission == mission) {
+						text = _str;
 						break;
 					}
 				}
@@ -237,7 +238,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			if (Data->Dest.Mode != InfoMode::NONE && (Data->Dest.ShowEnemy || isPlayerControl) && (!Data->Dest.OnlySelected || isSelected))
 			{
 				AbstractClass* pDest = nullptr;
-				if (IsFoot() && (pDest = dynamic_cast<FootClass*>(pTechno)->Destination) != nullptr)
+				if (IsFoot() && (pDest = generic_cast<FootClass*>(pTechno)->Destination) != nullptr)
 				{
 					CoordStruct targetPos = pDest->GetCoords();
 					DrawDashedLine(DSurface::Temp, pos, ToClientPos(targetPos), Data->Dest.Color, bounds);
@@ -248,13 +249,15 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			{
 				DirStruct dir = pTechno->PrimaryFacing.Current();
 				DirStruct toDir = pTechno->PrimaryFacing.Desired();
-				if (pTechno->GetTechnoType()->Locomotor == LocomotionClass::CLSIDs::Jumpjet)
+				if (pTechno->GetTechnoType()->Locomotor == JumpjetLocomotionClass::ClassGUID())
 				{
-					FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-					if (JumpjetLocomotionClass* jjLoco = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
-					{
-						dir = jjLoco->LocomotionFacing.Current();
-						toDir = jjLoco->LocomotionFacing.Desired();
+					FootClass* pFoot = generic_cast<FootClass*>(pTechno);
+					auto pLoco = pFoot->Locomotor.GetInterfacePtr();
+
+					if (VTable::Get(pLoco) == JumpjetLocomotionClass::vtable) {
+						JumpjetLocomotionClass* jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
+						dir = jjLoco->Facing.Current();
+						toDir = jjLoco->Facing.Desired();
 					}
 				}
 				CoordStruct flh{ 1024, 0, 0 };
@@ -269,8 +272,8 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			// 显示单位炮塔朝向
 			if (Data->TurretDir.Mode != InfoMode::NONE && (Data->TurretDir.ShowEnemy || isPlayerControl) && (!Data->TurretDir.OnlySelected || isSelected))
 			{
-				DirStruct dir = pTechno->TurretFacing().Current();
-				DirStruct toDir = pTechno->TurretFacing().Desired();
+				DirStruct dir = pTechno->F_TurretFacing().Current();
+				DirStruct toDir = pTechno->F_TurretFacing().Desired();
 				CoordStruct flh{ 1024, 0, 0 };
 				CoordStruct targetPos = GetFLHAbsoluteCoords(sourcePos, flh, dir);
 				DrawLine(DSurface::Temp, pos, ToClientPos(targetPos), Data->TurretDir.Color, bounds);
@@ -309,14 +312,14 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 				if (pTechno)
 				{
 					int weaponIdx = pTechno->SelectWeapon(pTarget);
-					sourceLocation = pTechno->GetFLH(weaponIdx, CoordStruct::Empty);
+					pTechno->GetFLH(&sourceLocation , weaponIdx, CoordStruct::Empty);
 				}
 				CoordStruct targetLocation = pTarget->GetCoords();
 				DrawTargetLaser(DSurface::Temp, sourceLocation, targetLocation, Data->Target.Color, bounds);
 				if (Data->Target.Mode == InfoMode::TEXT && pTarget->AbstractFlags & AbstractFlags::Object)
 				{
 					Point2D targetPos = ToClientPos(targetLocation);
-					std::string id = dynamic_cast<ObjectClass*>(pTarget)->GetType()->ID;
+					std::string id = static_cast<ObjectClass*>(pTarget)->GetType()->ID;
 					PrintInfoText(id, Data->Target.Color, targetPos, Data->Target);
 				}
 			}

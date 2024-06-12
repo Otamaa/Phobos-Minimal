@@ -1,4 +1,4 @@
-﻿#include "ScatterState.h"
+#include "ScatterState.h"
 
 void ScatterState::OnUpdate()
 {
@@ -12,7 +12,7 @@ void ScatterState::OnUpdate()
 		_panic = Data.Panic;
 		if (_panic && IsInfantry())
 		{
-			InfantryClass* pInfantry = dynamic_cast<InfantryClass*>(pTechno);
+			InfantryClass* pInfantry = static_cast<InfantryClass*>(pTechno);
 			if (pInfantry->PanicDurationLeft <= 200)
 			{
 				pInfantry->PanicDurationLeft = 300;

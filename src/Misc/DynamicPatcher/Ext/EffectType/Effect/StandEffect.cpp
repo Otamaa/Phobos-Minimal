@@ -1,17 +1,17 @@
-﻿#include "StandEffect.h"
+#include "StandEffect.h"
 
-#include <DriveLocomotionClass.h>
-#include <MechLocomotionClass.h>
-#include <ShipLocomotionClass.h>
-#include <WalkLocomotionClass.h>
+#include <Locomotor/DriveLocomotionClass.h>
+#include <Locomotor/MechLocomotionClass.h>
+#include <Locomotor/ShipLocomotionClass.h>
+#include <Locomotor/WalkLocomotionClass.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Gift.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/TechnoType/TurretAngle.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TurretAngle.h>
 
 void StandEffect::CreateAndPutStand()
 {
@@ -19,7 +19,7 @@ void StandEffect::CreateAndPutStand()
 	TechnoTypeClass* pType = TechnoTypeClass::Find(Data->Type.c_str());
 	if (pType)
 	{
-		pStand = dynamic_cast<TechnoClass*>(pType->CreateObject(AE->pSourceHouse));
+		pStand = static_cast<TechnoClass*>(pType->CreateObject(AE->pSourceHouse));
 	}
 	if (pStand)
 	{
@@ -34,7 +34,7 @@ void StandEffect::CreateAndPutStand()
 		}
 		else
 		{
-			dynamic_cast<FootClass*>(pStand)->Locomotor->Lock();
+			static_cast<FootClass*>(pStand)->Locomotor->Lock();
 		}
 		// only computer units can hunt
 		Mission mission = canGuard ? Mission::Guard : Mission::Hunt;
@@ -111,7 +111,7 @@ void StandEffect::ExplodesOrDisappear(bool peaceful)
 		{
 			standStatus->DestroySelf->DestroyNow(!explodes);
 			// 如果替身处于Limbo状态，OnUpdate不会执行，需要手动触发
-			if ((masterIsRocket || pTemp->InLimbo) && !Common::IsScenarioClear)
+			if ((masterIsRocket || pTemp->InLimbo) && !Kratos::IsScenarioClear)
 			{
 				standStatus->OnUpdate();
 			}
@@ -147,7 +147,7 @@ void StandEffect::UpdateStateBullet()
 		pStand->SetTarget(pTarget);
 		if (pStand->SpawnManager)
 		{
-			pStand->SpawnManager->Destination = pTarget;
+			pStand->SpawnManager->NewTarget = pTarget;
 		}
 	}
 	switch (Data->Targeting)
@@ -188,7 +188,7 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 	}
 	// synch state
 	pStand->IsSinking = pTechno->IsSinking;
-	pStand->unknown_3CA = pTechno->unknown_3CA;
+	pStand->__shipsink_3CA = pTechno->__shipsink_3CA;
 	pStand->InLimbo = pTechno->InLimbo;
 	pStand->OnBridge = pTechno->OnBridge;
 	if (pStand->Owner == pTechno->Owner)
@@ -276,7 +276,7 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 	}
 	else if (!masterIsMoving)
 	{
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
 		masterIsMoving = pFoot->Locomotor->Is_Moving() && pFoot->GetCurrentSpeed() > 0;
 	}
 
@@ -317,10 +317,10 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 				if (CanAttack(pStand, pTechno, true))
 				{
 					// 检查ROF
-					if (pStand->ROFTimer.Expired())
+					if (pStand->DiskLaserTimer.Expired())
 					{
 						int weaponIdx = pStand->SelectWeapon(pTechno);
-						pStand->Fire_IgnoreType(pTechno, weaponIdx);
+						pStand->TechnoClass::Fire(pTechno, weaponIdx);
 						int rof = 0;
 						WeaponStruct* pWeapon = pStand->GetWeapon(weaponIdx);
 						if (pWeapon && pWeapon->WeaponType)
@@ -329,7 +329,7 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 						}
 						if (rof > 0)
 						{
-							pStand->ROFTimer.Start(rof);
+							pStand->DiskLaserTimer.Start(rof);
 						}
 					}
 				}
@@ -389,12 +389,12 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 	// synch Moving anim
 	if (Data->IsTrain || Data->SameMoving)
 	{
-		FootClass* pFoot = dynamic_cast<FootClass*>(pStand);
-		ILocomotion* loco = pFoot->Locomotor.get();
+		FootClass* pFoot = static_cast<FootClass*>(pStand);
+		ILocomotion* loco = pFoot->Locomotor.GetInterfacePtr();
 		GUID locoId = pStand->GetTechnoType()->Locomotor;
-		if (locoId == LocomotionClass::CLSIDs::Drive
-			|| locoId == LocomotionClass::CLSIDs::Walk
-			|| locoId == LocomotionClass::CLSIDs::Mech
+		if (locoId == DriveLocomotionClass::ClassGUID()
+			|| locoId == WalkLocomotionClass::ClassGUID()
+			|| locoId == MechLocomotionClass::ClassGUID()
 			)
 		{
 			if (masterIsMoving)
@@ -404,7 +404,7 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 					if (!Data->IsTrain)
 					{
 						// 移动前，设置替身的朝向与JOJO相同
-						pStand->PrimaryFacing.SetCurrent(pTechno->PrimaryFacing.Current());
+						pStand->PrimaryFacing.Set_Current(pTechno->PrimaryFacing.Current());
 					}
 					// 往前移动，播放移动动画
 					if (_walkRateTimer.Expired())
@@ -425,14 +425,14 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 					// HoverLoco.Is_Moving()与前面两个一样，只用位置判断是否在运动
 					// 以上几个是通过判断位置来确定是否在运动
 					// WalkLoco和MechLoco则只返回IsMoving来判断是否在运动
-					if (locoId == LocomotionClass::CLSIDs::Walk)
+					if (locoId == WalkLocomotionClass::ClassGUID())
 					{
-						WalkLocomotionClass* pLoco = dynamic_cast<WalkLocomotionClass*>(loco);
+						WalkLocomotionClass* pLoco = static_cast<WalkLocomotionClass*>(loco);
 						pLoco->IsReallyMoving = true;
 					}
-					else if (locoId == LocomotionClass::CLSIDs::Mech)
+					else if (locoId == MechLocomotionClass::ClassGUID())
 					{
-						MechLocomotionClass* pLoco = dynamic_cast<MechLocomotionClass*>(loco);
+						MechLocomotionClass* pLoco = static_cast<MechLocomotionClass*>(loco);
 						pLoco->IsMoving = true;
 					}
 				}
@@ -448,14 +448,14 @@ void StandEffect::UpdateStateTechno(bool masterIsDead)
 					{
 						status->StandIsMoving = false;
 					}
-					if (locoId == LocomotionClass::CLSIDs::Walk)
+					if (locoId == WalkLocomotionClass::ClassGUID())
 					{
-						WalkLocomotionClass* pLoco = dynamic_cast<WalkLocomotionClass*>(loco);
+						WalkLocomotionClass* pLoco = static_cast<WalkLocomotionClass*>(loco);
 						pLoco->IsReallyMoving = false;
 					}
-					else if (locoId == LocomotionClass::CLSIDs::Mech)
+					else if (locoId == MechLocomotionClass::ClassGUID())
 					{
-						MechLocomotionClass* pLoco = dynamic_cast<MechLocomotionClass*>(loco);
+						MechLocomotionClass* pLoco = static_cast<MechLocomotionClass*>(loco);
 						pLoco->IsMoving = false;
 					}
 				}
@@ -508,7 +508,7 @@ void StandEffect::SetFacing(DirStruct dir, bool forceSetTurret)
 		if (pStand->HasTurret() || Data->LockDirection)
 		{
 			// 替身有炮塔直接转身体
-			pStand->PrimaryFacing.SetCurrent(dir);
+			pStand->PrimaryFacing.Set_Current(dir);
 		}
 
 		// 检查是否需要同步转炮塔
@@ -527,12 +527,12 @@ void StandEffect::SetFacing(DirStruct dir, bool forceSetTurret)
 					TurretAngle* status = nullptr;
 					if (!TryGetStatus<TechnoExt>(pStand, status))
 					{
-						pStand->SecondaryFacing.SetDesired(dir);
+						pStand->SecondaryFacing.Set_Desired(dir);
 					}
 				}
 				else
 				{
-					pStand->PrimaryFacing.SetDesired(dir);
+					pStand->PrimaryFacing.Set_Desired(dir);
 				}
 			}
 		}
@@ -541,18 +541,18 @@ void StandEffect::SetFacing(DirStruct dir, bool forceSetTurret)
 
 void StandEffect::ForceFacing(DirStruct dir)
 {
-	pStand->PrimaryFacing.SetCurrent(dir);
+	pStand->PrimaryFacing.Set_Current(dir);
 	if (pStand->HasTurret())
 	{
 		// 炮塔限界
 		TurretAngle* status = nullptr;
 		if (TryGetScript<TechnoExt>(pTechno, status) && status->DefaultAngleIsChange(dir))
 		{
-			pStand->SecondaryFacing.SetCurrent(status->LockTurretDir);
+			pStand->SecondaryFacing.Set_Current(status->LockTurretDir);
 		}
 		else
 		{
-			pStand->SecondaryFacing.SetCurrent(dir);
+			pStand->SecondaryFacing.Set_Current(dir);
 		}
 	}
 }
@@ -659,30 +659,37 @@ void StandEffect::OnGScreenRender(CoordStruct location)
 					pStand->RockingSidewaysPerFrame = sideways;
 
 					// 同步 替身 与 JOJO 的地形角度
-					ILocomotion* masterLoco = dynamic_cast<FootClass*>(pTechno)->Locomotor.get();
-					ILocomotion* standLoco = dynamic_cast<FootClass*>(pStand)->Locomotor.get();
-
+					ILocomotion* masterLoco = static_cast<FootClass*>(pTechno)->Locomotor.GetInterfacePtr();
+					ILocomotion* standLoco = static_cast<FootClass*>(pStand)->Locomotor.GetInterfacePtr();
+					auto masterLoco_Vt = VTable::Get(masterLoco);
+					auto standLoco_Vt = VTable::Get(standLoco);
 					DWORD previousRamp = 0;
 					DWORD currentRamp = 0;
 
-					if (DriveLocomotionClass* pMasterDriveLoco = dynamic_cast<DriveLocomotionClass*>(masterLoco))
+					if (masterLoco_Vt == DriveLocomotionClass::vtable)
 					{
+						DriveLocomotionClass* pMasterDriveLoco = static_cast<DriveLocomotionClass*>(masterLoco);
 						previousRamp = pMasterDriveLoco->PreviousRamp;
 						currentRamp = pMasterDriveLoco->CurrentRamp;
 					}
-					else if (ShipLocomotionClass* pMasterShipLoco = dynamic_cast<ShipLocomotionClass*>(masterLoco))
+					else if (masterLoco_Vt == ShipLocomotionClass::vtable)
 					{
+						ShipLocomotionClass* pMasterShipLoco = static_cast<ShipLocomotionClass*>(masterLoco);
+
 						previousRamp = pMasterShipLoco->PreviousRamp;
 						currentRamp = pMasterShipLoco->CurrentRamp;
 					}
 
-					if (DriveLocomotionClass* pStandDriveLoco = dynamic_cast<DriveLocomotionClass*>(standLoco))
+
+					if (standLoco_Vt == DriveLocomotionClass::vtable)
 					{
+						DriveLocomotionClass* pStandDriveLoco = static_cast<DriveLocomotionClass*>(standLoco);
 						pStandDriveLoco->PreviousRamp = previousRamp;
 						pStandDriveLoco->CurrentRamp = currentRamp;
 					}
-					else if (ShipLocomotionClass* pStandShipLoco = dynamic_cast<ShipLocomotionClass*>(standLoco))
+					else if (standLoco_Vt == ShipLocomotionClass::vtable)
 					{
+						ShipLocomotionClass* pStandShipLoco = static_cast<ShipLocomotionClass*>(standLoco);
 						pStandShipLoco->PreviousRamp = previousRamp;
 						pStandShipLoco->CurrentRamp = currentRamp;
 					}
@@ -788,7 +795,11 @@ void StandEffect::OnGuardCommand()
 		// 执行替身的OnStop
 		if (auto ext = TechnoExt::ExtMap.Find(pStand))
 			ext->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnGuardCommand(); } });
+				{
+					if (IsITechnoScript(c)) {
+						reinterpret_cast<ITechnoScript*>(c)->OnGuardCommand();
+					}
+				});
 	}
 }
 
@@ -802,11 +813,14 @@ void StandEffect::OnStopCommand()
 	onStopCommand = true;
 	if (!pStand->IsSelected)
 	{
-		pStand->ClickedEvent(NetworkEvents::Idle);
+		pStand->ClickedEvent(NetworkEventType::Idle);
 		// 执行替身的OnStop
 		if (auto ext = TechnoExt::ExtMap.Find(pStand))
-			ext->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnStopCommand(); } });
+			ext->_GameObject->Foreach([](Component* c) {
+				if (IsITechnoScript(c)) {
+						reinterpret_cast<ITechnoScript*>(c)->OnStopCommand();
+				}
+			});
 	}
 }
 

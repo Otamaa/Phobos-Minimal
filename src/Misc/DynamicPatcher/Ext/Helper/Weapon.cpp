@@ -99,7 +99,7 @@ VelocityClass GetBulletArcingVelocity(CoordStruct sourcePos, CoordStruct targetP
 		realSpeed = (int)(realSpeed * 0.5);
 	}
 	double vZ = (zDiff * realSpeed) / straightDistance + 0.5 * gravity * straightDistance / realSpeed;
-	VelocityClass v(tempTargetPos.X - tempSourcePos.X, tempTargetPos.Y - tempSourcePos.Y, 0.0);
+	VelocityClass v { double(tempTargetPos.X - tempSourcePos.X), double(tempTargetPos.Y - tempSourcePos.Y), 0.0 } ;
 	v *= realSpeed / straightDistance;
 	v.Z = vZ;
 	return v;
@@ -190,7 +190,7 @@ bool InRange(ObjectClass* pObject, AbstractClass* pTarget, WeaponTypeClass* pWea
 	case AbstractType::Infantry:
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
-		return dynamic_cast<TechnoClass*>(pObject)->InRange(location, pTarget, pWeapon);
+		return static_cast<TechnoClass*>(pObject)->InRange(location, pTarget, pWeapon);
 	default:
 		CoordStruct targetPos = pTarget->GetCoords();
 		double distance = targetPos.DistanceFrom(location);
@@ -218,10 +218,10 @@ void FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* 
 	DirStruct dir;
 	if (pShooter)
 	{
-		dir = pShooter->GetRealFacing().Desired();
+		dir = pShooter->F_GetRealfacing().Desired();
 		if (pShooter->HasTurret())
 		{
-			dir = pShooter->TurretFacing().Desired();
+			dir = pShooter->F_TurretFacing().Desired();
 		}
 	}
 	RadialFire radial{ dir, burst, splitAngle };

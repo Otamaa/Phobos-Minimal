@@ -5,6 +5,8 @@
 #include <format>
 #include <stack>
 
+#include <Misc/DynamicPatcher/Kratos.h>
+
 #include <Misc/DynamicPatcher/Helpers/Container.h>
 #include <Utilities/Debug.h>
 

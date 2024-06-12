@@ -1,21 +1,21 @@
-﻿#include "AutoWeaponEffect.h"
+#include "AutoWeaponEffect.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
-#include <Extension/BulletExt.h>
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/ObjectType/AttachFire.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachFire.h>
 
 void AutoWeaponEffect::SetupFakeTargetToBullet(int index, int burst, BulletClass*& pBullet, AbstractClass*& pTarget)
 {
-	if (ObjectClass* pObj = dynamic_cast<ObjectClass*>(pTarget))
+	if (ObjectClass* pObj = generic_cast<ObjectClass*>(pTarget))
 	{
 		if (BulletStatus* status = GetStatus<BulletExt, BulletStatus>(pBullet))
 		{

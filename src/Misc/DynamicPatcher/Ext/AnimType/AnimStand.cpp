@@ -1,8 +1,8 @@
-﻿#include "AnimStand.h"
+#include "AnimStand.h"
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 StandData* AnimStand::GetStandData()
 {
@@ -26,7 +26,7 @@ void AnimStand::CreateAndPutStand()
 			pHouse = HouseClass::FindCivilianSide();
 		}
 		// Make Stand
-		pStand = dynamic_cast<TechnoClass*>(pType->CreateObject(pHouse));
+		pStand = static_cast<TechnoClass*>(pType->CreateObject(pHouse));
 		if (pStand)
 		{
 			// 初始化设置
@@ -44,7 +44,7 @@ void AnimStand::CreateAndPutStand()
 			}
 			else
 			{
-				dynamic_cast<FootClass*>(pStand)->Locomotor->Lock();
+				static_cast<FootClass*>(pStand)->Locomotor->Lock();
 			}
 			// only computer units can hunt
 			Mission mission = canGuard ? Mission::Guard : Mission::Hunt;
@@ -58,8 +58,8 @@ void AnimStand::CreateAndPutStand()
 			}
 			// 朝向
 			DirStruct targetDir = DirNormalized(data->Offset.Direction, 16);
-			pStand->PrimaryFacing.SetCurrent(targetDir);
-			pStand->SecondaryFacing.SetCurrent(targetDir);
+			pStand->PrimaryFacing.Set_Current(targetDir);
+			pStand->SecondaryFacing.Set_Current(targetDir);
 		}
 	}
 	else
@@ -113,7 +113,7 @@ void AnimStand::OnDone()
 		{
 			standStatus->DestroySelf->DestroyNow(!explodes);
 			// 如果替身处于Limbo状态，OnUpdate不会执行，需要手动触发
-			if (pTemp->InLimbo && !Common::IsScenarioClear)
+			if (pTemp->InLimbo && !Kratos::IsScenarioClear)
 			{
 				standStatus->OnUpdate();
 			}

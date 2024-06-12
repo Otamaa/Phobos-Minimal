@@ -1,17 +1,17 @@
-﻿#include "PumpState.h"
+#include "PumpState.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
 
 void PumpState::SetupPump()
 {
@@ -20,7 +20,7 @@ void PumpState::SetupPump()
 	double gravity = Data.Gravity <= 0 ? RulesClass::Instance->Gravity : Data.Gravity;
 	double straightDistance = 0;
 	double realSpeed = 0;
-	BulletVelocity velocity = BulletVelocity::Empty;
+	VelocityClass velocity = {};
 	CoordStruct targetPos = CoordStruct::Empty;
 	CellClass* pTargetCell = nullptr;
 	if (AEWarheadLocation.IsEmpty() || AEWarheadLocation == sourcePos)
@@ -73,14 +73,14 @@ void PumpState::SetupPump()
 	}
 }
 
-bool PumpState::Jump(CoordStruct targetPos, bool isLobber, Sequence flySequence, bool isHumanCannon)
+bool PumpState::Jump(CoordStruct targetPos, bool isLobber, DoType flySequence, bool isHumanCannon)
 {
 	CoordStruct sourcePos = pTechno->GetCoords();
 	int gravity = RulesClass::Instance->Gravity;
 	// 计算初速度
 	double straightDistance = 0;
 	double realSpeed = 0;
-	BulletVelocity velocity = GetBulletArcingVelocity(sourcePos, targetPos, 0, gravity, isLobber, gravity, straightDistance, realSpeed);
+	VelocityClass velocity = GetBulletArcingVelocity(sourcePos, targetPos, 0, gravity, isLobber, gravity, straightDistance, realSpeed);
 	// 跳
 	if (straightDistance > Unsorted::LeptonsPerCell && ActionJump(velocity, gravity, straightDistance))
 	{
@@ -94,23 +94,23 @@ bool PumpState::Jump(CoordStruct targetPos, bool isLobber, Sequence flySequence,
 		_flySequence = flySequence;
 		// 从占据的格子中移除自己
 		pTechno->UnmarkAllOccupationBits(sourcePos);
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
 		// 停止移动
 		ForceStopMoving(pFoot);
 		// 调整朝向飞行的方向
 		if (sourcePos.X != targetPos.X || sourcePos.Y != targetPos.Y)
 		{
 			DirStruct facingDir = Point2Dir(sourcePos, targetPos);
-			pTechno->PrimaryFacing.SetDesired(facingDir);
-			if (JumpjetLocomotionClass* jjLoco = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
+			pTechno->PrimaryFacing.Set_Desired(facingDir);
+			if (JumpjetLocomotionClass* jjLoco = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor))
 			{
 				// JJ朝向是单独的Facing
-				jjLoco->LocomotionFacing.SetDesired(facingDir);
+				jjLoco->Facing.Set_Desired(facingDir);
 			}
 			else if (IsAircraft())
 			{
 				// 飞机使用的炮塔的Facing
-				pTechno->SecondaryFacing.SetDesired(facingDir);
+				pTechno->SecondaryFacing.Set_Desired(facingDir);
 			}
 		}
 		return true;
@@ -118,13 +118,13 @@ bool PumpState::Jump(CoordStruct targetPos, bool isLobber, Sequence flySequence,
 	return false;
 }
 
-bool PumpState::ActionJump(BulletVelocity velocity, int gravity, double straightDistance)
+bool PumpState::ActionJump(VelocityClass velocity, int gravity, double straightDistance)
 {
 	if (!velocity.IsEmpty())
 	{
 		_velocity = velocity;
 		_gravity = gravity;
-		TechnoStatus* status = dynamic_cast<TechnoStatus*>(_parent);
+		TechnoStatus* status = static_cast<TechnoStatus*>(_parent);
 		status->Jumping = true;
 		pTechno->IsFallingDown = false; // 强设为false
 		return true;
@@ -134,7 +134,7 @@ bool PumpState::ActionJump(BulletVelocity velocity, int gravity, double straight
 
 void PumpState::CancelJump()
 {
-	TechnoStatus* status = dynamic_cast<TechnoStatus*>(_parent);
+	TechnoStatus* status = static_cast<TechnoStatus*>(_parent);
 	status->Jumping = false;
 	if (!status->CaptureByBlackHole && !IsDeadOrInvisible(pTechno))
 	{
@@ -145,7 +145,10 @@ void PumpState::CancelJump()
 
 void PumpState::OnStart()
 {
-	TechnoStatus* status = dynamic_cast<TechnoStatus*>(_parent);
+	TechnoStatus* status = nullptr;
+	if(_parent->c_Type & ComponentType::TechnoStatus)
+		status = reinterpret_cast<TechnoStatus*>(_parent);
+
 	AttachEffect* aem = nullptr;
 	if (IsBuilding()
 		|| !Data.Enable
@@ -169,7 +172,7 @@ void PumpState::OnEnd()
 	_canJump = false;
 
 	_gravity = RulesClass::Instance->Gravity;
-	_velocity = BulletVelocity::Empty;
+	_velocity = {};
 
 	_isHumanCannon = false;
 	_flyTimer.Stop();
@@ -185,7 +188,10 @@ void PumpState::OnUpdate()
 			SetupPump();
 		}
 		// 正在跳跃，计算新的位置并移动
-		TechnoStatus* status = dynamic_cast<TechnoStatus*>(_parent);
+		TechnoStatus* status = nullptr;
+		if(_parent->c_Type & ComponentType::TechnoStatus)
+			status = static_cast<TechnoStatus*>(_parent);
+
 		if (status && status->Jumping)
 		{
 			if (status->CaptureByBlackHole || (_isHumanCannon && _flyTimer.Expired()))
@@ -197,7 +203,7 @@ void PumpState::OnUpdate()
 			CoordStruct sourcePos = pTechno->GetCoords();
 			// 从占据的格子中移除自己
 			pTechno->UnmarkAllOccupationBits(sourcePos);
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+			FootClass* pFoot = generic_cast<FootClass*>(pTechno);
 			// 停止移动
 			ForceStopMoving(pFoot);
 			// 初速度削减重力，下一个坐标位置
@@ -240,7 +246,7 @@ void PumpState::OnUpdate()
 			MapClass::Instance->RevealArea2(&nextPos, pTechno->LastSightRange, pTechno->Owner, false, false, false, true, 1);
 			if (IsInfantry())
 			{
-				dynamic_cast<InfantryClass*>(pTechno)->PlayAnim(_flySequence);
+				static_cast<InfantryClass*>(pTechno)->PlayAnim(_flySequence);
 			}
 			switch (passError)
 			{

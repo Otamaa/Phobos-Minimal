@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 	{
 		ext->SetExtStatus(nullptr);
 		ext->_GameObject->Foreach([](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnUnInit(); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnUnInit(); } });
 	}
 	TechnoExt::ExtMap.Remove(pItem);
 
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init, 0xA)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
-			{if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnInit(); } });
+			{if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnInit(); } });
 	}
 
 	return 0;
@@ -112,7 +112,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Put, 0x7)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&pCoord, &faceDir](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnPut(pCoord, faceDir); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnPut(pCoord, faceDir); } });
 	}
 
 	return 0;
@@ -127,7 +127,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove, 0x5)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnRemove(); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnRemove(); } });
 	}
 
 	return 0;
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_Update, 0x0)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&pTemporal](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalUpdate(pTemporal); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnTemporalUpdate(pTemporal); } });
 	}
 
 	GET(int, eax, EAX);
@@ -206,7 +206,7 @@ DEFINE_HOOK(0x71A917, TemporalClass_Update_Eliminate, 0x5)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&pTemporal](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalEliminate(pTemporal); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnTemporalEliminate(pTemporal); } });
 	}
 
 	return 0;
@@ -222,7 +222,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage, 0x6)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&args](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnReceiveDamage(args); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnReceiveDamage(args); } });
 	}
 
 	// Toy warhead
@@ -335,7 +335,7 @@ DEFINE_HOOK(0x5F5498, ObjectClass_ReceiveDamage_RealDamage, 0xC)
 		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
 		{
 			pExt->_GameObject->Foreach([&](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnReceiveDamageReal(pRealDamage, pWH, pAttacker, pAttackingHouse); } });
+				{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnReceiveDamageReal(pRealDamage, pWH, pAttacker, pAttackingHouse); } });
 
 			R->ECX(*pRealDamage);
 			if (*pRealDamage < 0)
@@ -359,7 +359,7 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamageEnd, 0x7)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnReceiveDamageEnd(pRealDamage, pWH, damageState, pAttacker, pAttackingHouse); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnReceiveDamageEnd(pRealDamage, pWH, damageState, pAttacker, pAttackingHouse); } });
 	}
 
 	return 0;
@@ -372,7 +372,7 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroy, 0x6)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnReceiveDamageDestroy(); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnReceiveDamageDestroy(); } });
 	}
 
 	return 0;
@@ -388,7 +388,7 @@ DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
 	{
 		bool skip = false;
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnRegisterDestruction(pKiller, cost, skip); if (skip) c->Break(); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnRegisterDestruction(pKiller, cost, skip); if (skip) c->Break(); } });
 
 		// skip the entire veterancy
 		if (skip)
@@ -409,7 +409,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6)
 	{
 		bool ceaseFire = false;
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->CanFire(pTarget, pWeapon, ceaseFire); if (ceaseFire) c->Break(); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->CanFire(pTarget, pWeapon, ceaseFire); if (ceaseFire) c->Break(); } });
 
 		// return FireError::ILLEGAL
 		if (ceaseFire)
@@ -429,7 +429,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire, 0x6)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnFire(pTarget, weaponIdx); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnFire(pTarget, weaponIdx); } });
 	}
 	return 0;
 }
@@ -444,7 +444,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawHealthBar_Building, 0x6)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->DrawHealthBar(barLength, pPos, pBound, true); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->DrawHealthBar(barLength, pPos, pBound, true); } });
 	}
 	return 0;
 }
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawHealthBar_Other, 0x7)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->DrawHealthBar(barLength, pPos, pBound, false); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->DrawHealthBar(barLength, pPos, pBound, false); } });
 	}
 	return 0;
 }
@@ -472,7 +472,7 @@ DEFINE_HOOK(0x5F45A0, TechnoClass_Select, 0x5)
 	{
 		bool selectable = true;
 		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnSelect(selectable); } });
+			{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnSelect(selectable); } });
 
 		if (!selectable)
 		{
@@ -493,7 +493,7 @@ DEFINE_HOOK(0x730E56, ObjectClass_GuardCommand, 0x6)
 		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
 		{
 			pExt->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnGuardCommand(); } });
+				{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnGuardCommand(); } });
 		}
 	}
 	return 0;
@@ -509,7 +509,7 @@ DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 0x6)
 		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
 		{
 			pExt->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnStopCommand(); } });
+				{ if (IsITechnoScript(c)) { reinterpret_cast<ITechnoScript*>(c)->OnStopCommand(); } });
 		}
 	}
 	return 0;

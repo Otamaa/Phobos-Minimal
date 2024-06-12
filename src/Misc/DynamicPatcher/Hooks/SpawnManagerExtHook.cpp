@@ -376,7 +376,12 @@ DEFINE_HOOK(0x66304F, RocketLocomotionClass_663030, 0x5)
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnRocketExplosion(); } });
+			{ 
+				if (IsITechnoScript(c)) {
+					reinterpret_cast<ITechnoScript*>(c)->OnRocketExplosion();
+				}
+
+			 });
 	}
 
 	return 0;

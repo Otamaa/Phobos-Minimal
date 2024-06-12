@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -9,19 +9,21 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Extension/BulletExt.h>
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 #include "../EffectScript.h"
-#include <Ext/StateType/StateScript.h>
+#include <Misc/DynamicPatcher/Ext/StateType/StateScript.h>
+
+
 
 #define STATE_EFFECT_SCRIPT(EFFECT_NAME) \
 	EFFECT_SCRIPT_BASE(EFFECT_NAME, StateEffect) \
@@ -30,6 +32,11 @@ template <typename TEffectData>
 class StateEffect : public EffectScript
 {
 public:
+	StateEffect<TEffectData>() : EffectScript(){
+		this->c_Type |= ComponentType::StateEffect;
+	}
+
+	virtual StateEffectTypes GetEffecType() = 0;
 
 	virtual void ResetDuration() override final
 	{

@@ -1,8 +1,8 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 void BulletStatus::BlackHoleCapture(ObjectClass* pBlackHole, BlackHoleData data)
 {
@@ -22,7 +22,7 @@ void BulletStatus::BlackHoleCancel()
 		// Arcing摔地上，导弹不管
 		if (IsArcing() || IsBomb())
 		{
-			pBullet->Velocity = BulletVelocity::Empty;
+			pBullet->Velocity = {};
 		}
 		else
 		{

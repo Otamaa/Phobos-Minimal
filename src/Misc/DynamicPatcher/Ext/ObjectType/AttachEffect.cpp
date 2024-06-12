@@ -1,33 +1,33 @@
-﻿#include "AttachEffect.h"
+#include "AttachEffect.h"
 
 #include <BuildingClass.h>
 #include <MissionClass.h>
 
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
-#include <Ext/Helper/SurfaceEx.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/SurfaceEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
-#include <Ext/EffectType/AttachEffectScript.h>
-#include <Ext/EffectType/Effect/AttackBeaconEffect.h>
-#include <Ext/EffectType/Effect/StandEffect.h>
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/TechnoType/UploadAttachData.h>
-#include <Ext/WeaponType/FeedbackAttachData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectScript.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/AttackBeaconEffect.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/StandEffect.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/UploadAttachData.h>
+#include <Misc/DynamicPatcher/Ext/WeaponType/FeedbackAttachData.h>
 
-#include <Ext/StateType/State/AntiBulletData.h>
-#include <Ext/StateType/State/DestroyAnimData.h>
-#include <Ext/StateType/State/DestroySelfData.h>
-#include <Ext/StateType/State/GiftBoxData.h>
-#include <Ext/StateType/State/PaintballData.h>
-#include <Ext/StateType/State/TeleportData.h>
-#include <Ext/StateType/State/TransformData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/AntiBulletData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroyAnimData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/DestroySelfData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/GiftBoxData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/PaintballData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TeleportData.h>
+#include <Misc/DynamicPatcher/Ext/StateType/State/TransformData.h>
 
 BulletStatus* AttachEffect::GetBulletStatus()
 {
@@ -78,8 +78,8 @@ int AttachEffect::Count()
 void AttachEffect::GetMarks(std::vector<std::string>& marks)
 {
 	ForeachChild([&marks](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c)) {
-			ae->GetMarks(marks);
+		if (c->c_Type & ComponentType::AE_Effect) {
+			reinterpret_cast<AttachEffectScript*>(c)->GetMarks(marks);
 		}
 		});
 }
@@ -94,9 +94,8 @@ std::vector<std::string> AttachEffect::GetMarks()
 void AttachEffect::GetAENames(std::vector<std::string>& names)
 {
 	ForeachChild([&names](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c))
-		{
-			names.push_back(ae->AEData.Name);
+		if (c->c_Type & ComponentType::AE_Effect) {
+			names.push_back(reinterpret_cast<AttachEffectScript*>(c)->AEData.Name);
 		}
 		});
 }
@@ -105,28 +104,29 @@ bool AttachEffect::HasStand()
 {
 	bool find = false;
 	ForeachChild([&find](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+		if (c->c_Type & ComponentType::AE_Effect)
 		{
-			find = ae->AEData.Stand.Enable;
+			find = reinterpret_cast<AttachEffectScript*>(c)->AEData.Stand.Enable;
 			if (find)
 			{
-				ae->Break();
+				reinterpret_cast<AttachEffectScript*>(c)->Break();
 			}
 		}
 		});
 	return find;
 }
 
-#define GET_STAND_STATE(CLASS_NAME) \
- 			else if (dynamic_cast<CLASS_NAME ## Data*>(pData)) \
-			{ \
-				state = status->CLASS_NAME; \
-			} \
+#define GET_STAND_DATA_STATE(cls)\
+case EffectDataType::##cls##Data:\
+{\
+state = status->cls; \
+}break; \
 
 void AttachEffect::AEStateToStand(EffectData* pData, int duration, std::string token, bool resetDuration)
 {
 	ForeachChild([&pData, &duration, &token, &resetDuration](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c)) {
+		if (c->c_Type & ComponentType::AE_Effect) {
+			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			if (ae->AEData.Stand.Enable && ae->IsAlive())
 			{
 				if (StandEffect* standEffect = ae->GetComponent<StandEffect>())
@@ -135,37 +135,39 @@ void AttachEffect::AEStateToStand(EffectData* pData, int duration, std::string t
 					if (standEffect->IsAlive() && TryGetStatus<TechnoExt>(standEffect->pStand, status))
 					{
 						IStateScript* state = nullptr;
-						// TODO Get stand's state
+						switch (pData->GetType())
+						{
+						GET_STAND_DATA_STATE(AntiBullet)
+						GET_STAND_DATA_STATE(BlackHole)
+						GET_STAND_DATA_STATE(DamageReaction)
+						GET_STAND_DATA_STATE(Deselect)
+						GET_STAND_DATA_STATE(DestroyAnim)
+						GET_STAND_DATA_STATE(DestroySelf)
+						GET_STAND_DATA_STATE(DisableWeapon)
+						GET_STAND_DATA_STATE(Freeze)
+						GET_STAND_DATA_STATE(GiftBox)
+						GET_STAND_DATA_STATE(NoMoneyNoTalk)
+						GET_STAND_DATA_STATE(OverrideWeapon)
+						GET_STAND_DATA_STATE(Paintball)
+						GET_STAND_DATA_STATE(Pump)
+						GET_STAND_DATA_STATE(Scatter)
+						GET_STAND_DATA_STATE(Teleport)
+						GET_STAND_DATA_STATE(Transform)
+						default:
+							break;
+						}
 
-						// 状态机
-						if (state) {}
-						GET_STAND_STATE(AntiBullet)
-							GET_STAND_STATE(BlackHole)
-							GET_STAND_STATE(DamageReaction)
-							GET_STAND_STATE(Deselect)
-							GET_STAND_STATE(DestroyAnim)
-							GET_STAND_STATE(DestroySelf)
-							GET_STAND_STATE(DisableWeapon)
-							GET_STAND_STATE(Freeze)
-							GET_STAND_STATE(GiftBox)
-							GET_STAND_STATE(NoMoneyNoTalk)
-							GET_STAND_STATE(OverrideWeapon)
-							GET_STAND_STATE(Paintball)
-							GET_STAND_STATE(Pump)
-							GET_STAND_STATE(Scatter)
-							GET_STAND_STATE(Teleport)
-							GET_STAND_STATE(Transform)
-							if (state)
+						if (state)
+						{
+							if (resetDuration)
 							{
-								if (resetDuration)
-								{
-									state->ResetDuration(duration, token);
-								}
-								else
-								{
-									state->Replace(pData, duration, token, ae);
-								}
+								state->ResetDuration(duration, token);
 							}
+							else
+							{
+								state->Replace(pData, duration, token, ae);
+							}
+						}
 					}
 				}
 			}
@@ -193,7 +195,10 @@ CrateBuffData AttachEffect::CountAttachStatusMultiplier()
 	}
 	// 统计AE加成
 	ForeachChild([&multiplier](Component* c) {
-		auto temp = dynamic_cast<AttachEffectScript*>(c);
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto temp = reinterpret_cast<AttachEffectScript*>(c);
 		if (temp && temp->IsAlive() && temp->AEData.CrateBuff.Enable)
 		{
 			multiplier.FirepowerMultiplier *= temp->AEData.CrateBuff.FirepowerMultiplier;
@@ -214,9 +219,13 @@ ImmuneData AttachEffect::GetImmuneData()
 	ImmuneData data{};
 	// 统计AE加成
 	ForeachChild([&data](Component* c) {
-		auto temp = dynamic_cast<AttachEffectScript*>(c);
-		if (temp && temp->IsAlive() && temp->AEData.Immune.Enable)
+
+		if (c->c_Type & ComponentType::AE_Effect
+			&& reinterpret_cast<AttachEffectScript*>(c)->IsAlive()
+			&& reinterpret_cast<AttachEffectScript*>(c)->AEData.Immune.Enable
+			)
 		{
+			auto temp = reinterpret_cast<AttachEffectScript*>(c);
 			data.Psionics |= temp->AEData.Immune.Psionics;
 			data.PsionicWeapons |= temp->AEData.Immune.PsionicWeapons;
 			data.Radiation |= temp->AEData.Immune.Radiation;
@@ -424,9 +433,10 @@ void AttachEffect::Attach(AttachEffectData data,
 		CoordStruct location = _location;
 		// 检查持续时间，增减Duration
 		ForeachChild([&find, &add, &isAttackMark, &isHouseMark, &data, &pAttacker, &pAttackingHouse, &location](Component* c) {
-			auto temp = dynamic_cast<AttachEffectScript*>(c);
-			if (temp && temp->IsAlive())
+
+			if (c->c_Type & ComponentType::AE_Effect && reinterpret_cast<AttachEffectScript*>(c)->IsAlive())
 			{
+				auto temp = reinterpret_cast<AttachEffectScript*>(c);
 				if (data.Group < 0)
 				{
 					// 无分组，攻击者标记叠加，或同名重置计时器
@@ -521,14 +531,12 @@ void AttachEffect::Attach(AttachEffectData data,
 	{
 		int index = FindInsertIndex(data);
 		Component* c = AddComponent(AttachEffectScript::ScriptName, index); // 插队
-#ifdef DEBUG_AE
-		Debug::Log("[%s]%d 添加新的AE[%s]%d\n", pObject->GetType()->ID, pObject, data.Name.c_str(), c);
-#endif // DEBUG_AE
+
 		if (c)
 		{
 			AddStackCount(data); // 叠层计数
 			// 初始化AE
-			auto ae = dynamic_cast<AttachEffectScript*>(c);
+			auto ae = static_cast<AttachEffectScript*>(c);
 			ae->AEData = data;
 			// 激活AE
 			ae->EnsureAwaked();
@@ -621,7 +629,7 @@ void AttachEffect::AttachUploadAE()
 		ObjectClass* pPassenger = pTechno->Passengers.FirstPassenger;
 		do
 		{
-			CheckAndAttachUploadAE(dynamic_cast<TechnoClass*>(pPassenger));
+			CheckAndAttachUploadAE(generic_cast<TechnoClass*>(pPassenger));
 		} while ((pPassenger = pPassenger->NextObject) != nullptr);
 	}
 }
@@ -719,10 +727,12 @@ void AttachEffect::AttachStateEffect()
 void AttachEffect::DetachByName(std::vector<std::string> aeTypes, bool skipNext)
 {
 	ForeachChild([&aeTypes, &skipNext](Component* c) {
-		auto ae = dynamic_cast<AttachEffectScript*>(c);
+
 		// 通过名字关闭掉AE
-		if (ae && std::find(aeTypes.begin(), aeTypes.end(), ae->AEData.Name) != aeTypes.end())
+		if (c->c_Type & ComponentType::AE_Effect && std::find(aeTypes.begin(), aeTypes.end(),
+			reinterpret_cast<AttachEffectScript*>(c)->AEData.Name) != aeTypes.end())
 		{
+			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			ae->SkipNext = skipNext;
 			ae->TimeToDie();
 		}
@@ -745,10 +755,13 @@ void AttachEffect::DetachByName(std::map<std::string, int> aeTypes, bool skipNex
 	if (!names.empty())
 	{
 		ForeachChild([&](Component* c) {
-			auto ae = dynamic_cast<AttachEffectScript*>(c);
+			if (!(c->c_Type & ComponentType::AE_Effect))
+				return;
+
+			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			std::string name = ae->AEData.Name;
 			// 通过名字关闭掉AE
-			if (ae && std::find(names.begin(), names.end(), name) != names.end())
+			if (std::find(names.begin(), names.end(), name) != names.end())
 			{
 				int l = levels[name];
 				if (l < 0 || counts[name] < l)
@@ -758,14 +771,17 @@ void AttachEffect::DetachByName(std::map<std::string, int> aeTypes, bool skipNex
 					counts[name]++;
 				}
 			}
-			});
+		});
 	}
 }
 
 void AttachEffect::DetachByMarks(std::vector<std::string> marks, bool skipNext)
 {
 	ForeachChild([&marks, &skipNext](Component* c) {
-		auto ae = dynamic_cast<AttachEffectScript*>(c);
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto ae = reinterpret_cast<AttachEffectScript*>(c);
 		// 通过标记关闭掉AE
 		if (ae->AEData.Mark.Enable && CheckOnMarks(marks, ae->AEData.Mark.Names))
 		{
@@ -780,9 +796,12 @@ void AttachEffect::DetachByToken(std::string token, bool skipNext)
 	if (!token.empty())
 	{
 		ForeachChild([&token, &skipNext](Component* c) {
-			auto ae = dynamic_cast<AttachEffectScript*>(c);
+			if (!(c->c_Type & ComponentType::AE_Effect))
+				return;
+
+			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			// 通过Token关闭掉AE
-			if (ae && ae->Token == token)
+			if (ae->Token == token)
 			{
 				ae->SkipNext = skipNext;
 				ae->TimeToDie();
@@ -794,7 +813,10 @@ void AttachEffect::DetachByToken(std::string token, bool skipNext)
 void AttachEffect::DetachWhenTransform()
 {
 	ForeachChild([](Component* c) {
-		auto ae = dynamic_cast<AttachEffectScript*>(c);
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto ae = reinterpret_cast<AttachEffectScript*>(c);
 		// 通过标记关闭掉AE
 		if (ae->AEData.DiscardOnTransform && !ae->AEData.Transform.Enable)
 		{
@@ -807,7 +829,10 @@ void AttachEffect::CheckDurationAndDisable(bool silence)
 {
 	CoordStruct location = _location;
 	ForeachChild([&](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto ae = reinterpret_cast<AttachEffectScript*>(c);
 		{
 			// 执行IsAlive时，检查AE的生命状态，失效的AE会在这里被标记为Deactivate
 			if (!ae->IsAlive())
@@ -819,9 +844,6 @@ void AttachEffect::CheckDurationAndDisable(bool silence)
 				{
 					// 加入冷却计时器
 					StartDelay(data);
-#ifdef DEBUG_AE
-					Debug::Log("  - [%s]%d 关闭AE [%s]%d ,加入冷却计时 %d, %s附加NextAE[%s]\n", pObject->GetType()->ID, pObject, data.Name.c_str(), c, data.Delay, ae->skipNext ? "不" : "", data.Next.c_str());
-#endif // DEBUG_AE
 					if (!ae->SkipNext)
 					{
 						// 添加NextAE
@@ -835,9 +857,6 @@ void AttachEffect::CheckDurationAndDisable(bool silence)
 				ReduceStackCount(data);
 				// Deactivate的组件不会再执行Foreach事件，标记为失效，以便父组件将其删除
 				ae->Disable();
-#ifdef DEBUG_AE
-				Debug::Log("  - [%s]%d 移除AE [%s]%d\n", pObject->GetType()->ID, pObject, data.Name.c_str(), c);
-#endif // DEBUG_AE
 			}
 		}
 		});
@@ -1015,7 +1034,10 @@ int AttachEffect::FindInsertIndex(AttachEffectData data)
 				// Find the first same group cabin but reverse
 				for (auto it = _children.rbegin(); it != _children.rend(); it++)
 				{
-					AttachEffectScript* ae = dynamic_cast<AttachEffectScript*>(*it);
+					if (!((*it)->c_Type & ComponentType::AE_Effect))
+						continue;
+
+					AttachEffectScript* ae = reinterpret_cast<AttachEffectScript*>(*it);
 					if (ae && ae->IsAlive() && ae->AEData.Stand.Enable && ae->AEData.Stand.IsTrain)
 					{
 						if (ae->AEData.Stand.CabinGroup == data.Stand.CabinGroup)
@@ -1039,7 +1061,10 @@ int AttachEffect::FindInsertIndex(AttachEffectData data)
 				int i = 0;
 				for (Component*& c : _children)
 				{
-					auto ae = dynamic_cast<AttachEffectScript*>(c);
+					if (!(c->c_Type & ComponentType::AE_Effect))
+						continue;
+
+					auto ae = reinterpret_cast<AttachEffectScript*>(c);
 					if (ae && ae->IsAlive() && ae->AEData.Stand.Enable && ae->AEData.Stand.IsTrain)
 					{
 						if (ae->AEData.Stand.CabinGroup == data.Stand.CabinGroup)
@@ -1137,7 +1162,10 @@ void AttachEffect::OnGScreenRender(EventSystem* sender, Event e, void* args)
 	{
 		// EndRender
 		ForeachChild([&location](Component* c) {
-			if (auto ae = dynamic_cast<AttachEffectScript*>(c)) { ae->OnGScreenRenderEnd(location); }
+			if (!(c->c_Type & ComponentType::AE_Effect))
+				return;
+
+			reinterpret_cast<AttachEffectScript*>(c)->OnGScreenRenderEnd(location);
 		});
 	}
 	else
@@ -1155,7 +1183,10 @@ void AttachEffect::OnGScreenRender(EventSystem* sender, Event e, void* args)
 		// 火车的位置索引
 		int markIndex = 0;
 		ForeachChild([&](Component* c) {
-			if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+			if (!(c->c_Type & ComponentType::AE_Effect))
+				return;
+
+			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			{
 				if (ae->IsAlive())
 				{
@@ -1203,7 +1234,7 @@ void AttachEffect::OnUpdate()
 			if (!PowerOff && IsBuilding())
 			{
 				// 关闭当前建筑电源
-				PowerOff = !dynamic_cast<BuildingClass*>(pTechno)->HasPower;
+				PowerOff = !static_cast<BuildingClass*>(pTechno)->HasPower;
 			}
 		}
 
@@ -1251,7 +1282,10 @@ void AttachEffect::OnRemove()
 	_location = location;
 	ClearLocationMarks();
 	ForeachChild([&location](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto ae = reinterpret_cast<AttachEffectScript*>(c);
 		{
 			if (ae->AEData.DiscardOnEntry)
 			{
@@ -1311,7 +1345,10 @@ void AttachEffect::OnUnInit()
 	_ownerIsDead = true;
 	CoordStruct location = _location;
 	ForeachChild([&location](Component* c) {
-		if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+		if (!(c->c_Type & ComponentType::AE_Effect))
+			return;
+
+		auto ae = reinterpret_cast<AttachEffectScript*>(c);
 		{
 			ae->TimeToDie();
 			ae->End(location);

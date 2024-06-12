@@ -1,4 +1,4 @@
-﻿#include "Physics.h"
+#include "Physics.h"
 
 bool CanHit(BuildingClass* pBuilding, int targetZ, bool blade, int zOffset)
 {
@@ -183,7 +183,7 @@ FallingError Falling(TechnoClass* pTechno, CoordStruct targetPos, int fallingDes
 		}
 		if (pTechno->WhatAmI() == AbstractType::Infantry)
 		{
-			dynamic_cast<InfantryClass*>(pTechno)->PlayAnim(Sequence::Paradrop);
+			static_cast<InfantryClass*>(pTechno)->PlayAnim(DoType::Paradrop);
 		}
 		break;
 	}

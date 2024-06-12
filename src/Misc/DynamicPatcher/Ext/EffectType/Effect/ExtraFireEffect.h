@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -6,7 +6,7 @@
 
 #include <GeneralDefinitions.h>
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
 #include "../EffectScript.h"
 #include "ExtraFireData.h"

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -6,7 +6,7 @@
 #include <GeneralDefinitions.h>
 #include <AnimClass.h>
 
-#include <Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
 
 #include "../EffectScript.h"
 #include "DamageSelfData.h"

@@ -1,12 +1,12 @@
-﻿#include "MissileTrajectory.h"
+#include "MissileTrajectory.h"
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/DecoyMissile.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DecoyMissile.h>
 
 
 void MissileTrajectory::CheckTargetHasDecoy()
@@ -66,7 +66,7 @@ void MissileTrajectory::OnPut(CoordStruct* pCoord, DirType dirType)
 	// 翻转发射方向
 	if (trajectoryData->ReverseVelocity)
 	{
-		BulletVelocity velocity = pBullet->Velocity;
+		VelocityClass velocity = pBullet->Velocity;
 		pBullet->Velocity *= -1;
 		if (!trajectoryData->ReverseVelocityZ)
 		{
@@ -77,7 +77,7 @@ void MissileTrajectory::OnPut(CoordStruct* pCoord, DirType dirType)
 	// 晃动的出膛方向
 	if (trajectoryData->ShakeVelocity != 0)
 	{
-		BulletVelocity velocity = pBullet->Velocity;
+		VelocityClass velocity = pBullet->Velocity;
 		double shakeX = Random::RandomDouble() * trajectoryData->ShakeVelocity;
 		double shakeY = Random::RandomDouble() * trajectoryData->ShakeVelocity;
 		double shakeZ = Random::RandomDouble();

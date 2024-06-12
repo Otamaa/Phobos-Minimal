@@ -1,4 +1,4 @@
-﻿#include "PrintTextManager.h"
+#include "PrintTextManager.h"
 
 #include <StringTable.h>
 
@@ -42,7 +42,7 @@ void PrintTextManager::Print(std::wstring text, ColorStruct houseColor, PrintTex
 {
 	bool noNumbers = data.NoNumbers || data.SHPDrawStyle != SHPDrawStyle::NUMBER;
 	LongText longText = LongText::EMPTY;
-	auto it = LongTextStrings.find(uppercase(text));
+	auto it = LongTextStrings.find(KratosCRT::uppercase(text));
 	if (it != LongTextStrings.end())
 	{
 		longText = it->second;
@@ -96,12 +96,18 @@ void PrintTextManager::Print(std::wstring text, ColorStruct houseColor, PrintTex
 					return;
 				}
 			}
-			if (IsNotNone(file))
+			if (KratosCRT::IsNotNone(file))
 			{
 				if (SHPStruct* pCustomSHP = FileSystem::LoadSHPFile(file.c_str()))
 				{
 					// 显示对应的帧
-					pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, idx, &pos, pBound);
+					pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, idx, &pos, pBound ,
+				    (BlitterFlags)0x600,
+					0,
+					0,
+					ZGradient::Ground,
+					1000,
+					0, nullptr, 0, 0, 0);
 				}
 
 			}
@@ -165,12 +171,18 @@ void PrintTextManager::Print(std::wstring text, ColorStruct houseColor, PrintTex
 				}
 				// 找到对应的帧序号
 				frameIndex += frameOffset;
-				if (IsNotNone(data.SHPFileName))
+				if (KratosCRT::IsNotNone(data.SHPFileName))
 				{
 					if (SHPStruct* pCustomSHP = FileSystem::LoadSHPFile(data.SHPFileName.c_str()))
 					{
 						// 显示对应的帧
-						pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, frameIndex, &pos, pBound);
+						pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, frameIndex, &pos, pBound ,
+							(BlitterFlags)0x600,
+							0,
+							0,
+							ZGradient::Ground,
+							1000,
+							0, nullptr, 0, 0, 0);
 					}
 				}
 				// 调整下一个字符锚点
@@ -187,7 +199,7 @@ void PrintTextManager::Print(std::wstring text, ColorStruct houseColor, PrintTex
 		}
 		// 使用文字显示数字
 		ColorStruct textColor = data.Color; // 文字时渲染颜色
-		if (data.IsHouseColor && !houseColor == Colors::Empty)
+		if (data.IsHouseColor && houseColor)
 		{
 			textColor = houseColor;
 		}
@@ -199,9 +211,9 @@ void PrintTextManager::Print(std::wstring text, ColorStruct houseColor, PrintTex
 			if (!data.ShadowOffset.IsEmpty())
 			{
 				Point2D shadow = pos + data.ShadowOffset;
-				pSurface->DrawText(tt.c_str(), pBound, &shadow, Drawing::RGB_To_Int(data.ShadowColor));
+				pSurface->DSurfaceDrawText(tt.c_str(), pBound, &shadow, (COLORREF)Drawing::RGB_To_Int(data.ShadowColor) , (COLORREF)0 , TextPrintType::NoShadow);
 			}
-			pSurface->DrawText(tt.c_str(), pBound, &pos, Drawing::RGB_To_Int(textColor));
+			pSurface->DSurfaceDrawText(tt.c_str(), pBound, &pos, Drawing::RGB_To_Int(textColor), (COLORREF)0, TextPrintType::NoShadow);
 			// 获取字体横向位移值，即图像宽度，同时计算阶梯高度偏移
 			Point2D fontSize = GetFontSize(tt);
 			int x = fontSize.X;
@@ -223,12 +235,19 @@ void PrintTextManager::Print(int number, ColorStruct houseColor, PrintTextData d
 		{
 			frameIndex = std::min(data.MaxFrameIndex, frameIndex);
 		}
-		if (IsNotNone(file))
+		if (KratosCRT::IsNotNone(file))
 		{
 			if (SHPStruct* pCustomSHP = FileSystem::LoadSHPFile(data.SHPFileName.c_str()))
 			{
 				// 显示对应的帧
-				pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, frameIndex, &pos, pBound);
+				pSurface->DrawSHP(FileSystem::PALETTE_PAL.get(), pCustomSHP, frameIndex, &pos, pBound,
+					(BlitterFlags)0x600,
+					0,
+					0,
+					ZGradient::Ground,
+					1000,
+					0, nullptr, 0, 0, 0
+				);
 			}
 		}
 	}
@@ -240,9 +259,9 @@ void PrintTextManager::Print(int number, ColorStruct houseColor, PrintTextData d
 
 void PrintTextManager::PrintText(std::string text, ColorStruct houseColor, Point2D pos, PrintTextData data)
 {
-	std::wstring wText = String2WString(text);
+	std::wstring wText = KratosCRT::String2WString(text);
 	DSurface* pSurface = DSurface::Temp;
-	RectangleStruct bound = pSurface->GetRect();
+	RectangleStruct bound = pSurface->Get_Rect();
 	bound.Height -= 34;
 	if (InRect(pos, bound))
 	{
@@ -272,7 +291,7 @@ void PrintTextManager::PrintText(std::string text, ColorStruct color, CoordStruc
 void PrintTextManager::PrintNumber(int number, ColorStruct houseColor, Point2D pos, PrintTextData data)
 {
 	DSurface* pSurface = DSurface::Temp;
-	RectangleStruct bound = pSurface->GetRect();
+	RectangleStruct bound = pSurface->Get_Rect();
 	bound.Height -= 34;
 	if (InRect(pos, bound))
 	{
@@ -312,7 +331,7 @@ void PrintTextManager::PrintRollingText(EventSystem* sender, Event e, void* args
 	if (args) // RenderLate
 	{
 		DSurface* pSurface = DSurface::Temp;
-		RectangleStruct bound = pSurface->GetRect();
+		RectangleStruct bound = pSurface->Get_Rect();
 		bound.Height -= 34;
 		// 打印滚动文字
 		int size = _rollingTexts.size();

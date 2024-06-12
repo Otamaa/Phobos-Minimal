@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
@@ -9,19 +9,19 @@
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
-#include <Extension/TechnoExt.h>
-#include <Extension/BulletExt.h>
-#include <Extension/WarheadTypeExt.h>
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
-#include <Ext/BulletType/Trajectory/TrajectoryData.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/TrajectoryData.h>
 #include "AttachFireData.h"
 
 struct DelayFire

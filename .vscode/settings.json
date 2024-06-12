@@ -103,7 +103,8 @@
         "strstream": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "*.rh": "cpp"
     },
     "task.allowAutomaticTasks": "on"
 }

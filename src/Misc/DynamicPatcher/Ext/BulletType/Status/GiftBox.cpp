@@ -1,14 +1,14 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
 #include <FootClass.h>
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/Gift.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 void BulletStatus::OnUpdate_GiftBox()
 {

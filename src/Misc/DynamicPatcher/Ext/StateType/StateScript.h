@@ -15,6 +15,28 @@
 #include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 #include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectScript.h>
 
+enum class StateType
+{
+	unk,
+	AntiBulletState,
+	BlackHoleState,
+	DamageReactionState,
+	DeselectState,
+	DestroyAnimState,
+	DestroySelfState,
+	DisableWeaponState,
+	ECMState,
+	FreezeState,
+	GiftBoxState,
+	NoMoneyNoTalkState,
+	OverrideWeaponState,
+	PaintballState,
+	PumpState,
+	ScatterState,
+	TransformState,
+	TeleportState,
+
+};
 class IStateScript
 {
 public:
@@ -22,10 +44,48 @@ public:
 	virtual void End(std::string token = "") {};
 	virtual void Replace(EffectData* data, int duration = -1, std::string token = "", AttachEffectScript* pAE = nullptr) {};
 	virtual void ResetDuration(int duration, std::string token = "") {};
+
+	StateType s_Type { StateType::unk };
 };
 
+#define DECLARE_STATE_COMPONENT(CLASS_NAME, ...) \
+	CLASS_NAME() : __VA_ARGS__() \
+	{ \
+		this->c_Type |= ComponentType::StateType;\
+		this->s_Type = StateType::##CLASS_NAME;\
+		this->Name = ScriptName; \
+	} \
+	\
+	virtual void FreeComponent() override \
+	{ \
+		Clean(); \
+		Pool.push_back(this); \
+	} \
+	\
+	static Component* Create() \
+	{ \
+		Component* c = nullptr; \
+		if (!Pool.empty()) \
+		{ \
+			auto it = Pool.begin(); \
+			c = *it; \
+			Pool.erase(it); \
+		} \
+		if (!c) \
+		{ \
+			c = static_cast<Component*>(new CLASS_NAME()); \
+		} \
+		return c; \
+	} \
+	\
+	inline static std::string ScriptName = #CLASS_NAME; \
+	\
+	inline static int g_temp_##CLASS_NAME = ComponentFactory::GetInstance().Register(#CLASS_NAME, CLASS_NAME::Create); \
+	\
+	inline static std::vector<CLASS_NAME*> Pool{}; \
+
 #define STATE_SCRIPT(STATE_NAME) \
-	DECLARE_COMPONENT(STATE_NAME ## State, StateScript<STATE_NAME ## Data>) \
+	DECLARE_STATE_COMPONENT(STATE_NAME ## State, StateScript<STATE_NAME ## Data>) \
 
 #define STATE_VAR_DEFINE(STATE_NAME) \
 	STATE_NAME ## State * _ ## STATE_NAME = nullptr; \
@@ -43,8 +103,8 @@ public:
 	FindOrAttach<STATE_NAME ## State>(); \
 
 #define STATE_VAR_TRYGET(STATE_NAME) \
-	else if (dynamic_cast<T*>(STATE_NAME)) \
-		state = STATE_NAME; \
+case StateEffectTypes::##STATE_NAME##: \
+		state = ##STATE_NAME##; break;\
 
 #define STATE_VAR_INHERITED(STATE_NAME) \
 	*(heir->STATE_NAME) = *STATE_NAME \
@@ -53,6 +113,10 @@ template <typename TData>
 class StateScript : public ObjectScript, public IStateScript
 {
 public:
+
+	StateScript<TData>() : ObjectScript() {
+		this->c_Type |= ComponentType::StateScript;
+	}
 
 	virtual void Clean() override
 	{
@@ -75,15 +139,13 @@ public:
 
 	virtual void Start(EffectData* data, int duration = -1, std::string token = "", AttachEffectScript* pAE = nullptr) override final
 	{
-		if (TData* pData = dynamic_cast<TData*>(data))
+		if (data)
 		{
+			TData* pData = static_cast<TData*>(data);
 			Data = *pData;
 			Token = token;
 			if (pAE)
 			{
-#ifdef DEBUG_AE
-				Debug::Log("AE[%s]%d 激活[%s]%d 的状态机[%s]\n", pAE->AEData.Name.c_str(), pAE, pObject->GetType()->ID, pObject, Name.c_str());
-#endif // DEBUG_AE
 				pAESource = pAE->pSource;
 				ReceiverOwn = pAE->AEData.ReceiverOwn;
 				if (ReceiverOwn)

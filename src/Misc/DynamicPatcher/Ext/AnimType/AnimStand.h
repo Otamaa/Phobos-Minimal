@@ -1,17 +1,16 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 
-#include <Extension.h>
 #include <TechnoClass.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
-#include <Extension/AnimExt.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
 
-#include <Ext/EffectType/Effect/StandData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/StandData.h>
 
 #include "AnimStatus.h"
 

@@ -1,6 +1,6 @@
-﻿#include "PaintballState.h"
+#include "PaintballState.h"
 
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 void PaintballState::RGBIsPower()
 {

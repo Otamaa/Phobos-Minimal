@@ -1,4 +1,4 @@
-﻿#include "SurfaceEx.h"
+#include "SurfaceEx.h"
 
 #include "MathEx.h"
 
@@ -38,9 +38,9 @@ bool DrawDashedLine(DSurface* pSurface,
 {
 	if (bound.IsEmpty())
 	{
-		bound = pSurface->GetRect();
+		bound = pSurface->Get_Rect();
 	}
-	Surface::ClipLine(point1, point2, bound);
+	Game::Clip_Line(&point1, &point2, &bound);
 	// point in rect then draw
 	if (InRect(point1, bound) && InRect(point2, bound))
 	{
@@ -49,7 +49,7 @@ bool DrawDashedLine(DSurface* pSurface,
 		{
 			offset = 7 * Unsorted::CurrentFrame % 16;
 		}
-		return pSurface->DrawDashedLine(&point1, &point2, dwColor, offset);
+		return pSurface->DrawDashedLine(point1, point2, dwColor, offset);
 	}
 	return false;
 }
@@ -89,13 +89,13 @@ bool DrawLine(DSurface* pSurface,
 {
 	if (bound.IsEmpty())
 	{
-		bound = pSurface->GetRect();
+		bound = pSurface->Get_Rect();
 	}
-	Surface::ClipLine(point1, point2, bound);
+	Game::Clip_Line(&point1, &point2, &bound);
 	// point in rect then draw
 	if (InRect(point1, bound) && InRect(point2, bound))
 	{
-		return pSurface->DrawLine(&point1, &point2, dwColor);
+		return pSurface->Draw_Line(point1, point2, dwColor);
 	}
 	return false;
 }
@@ -239,8 +239,8 @@ void DrawTargetLaser(DSurface* pSurface,
 		DrawTargetLaserPoint(pSurface, point2, dwColor, bound);
 	}
 	// 绘制线条
-	int startZ = -32 - TacticalClass::AdjustForZ(startLocation.Z);
-	int endZ = -32 - TacticalClass::AdjustForZ(endLocation.Z);
+	int startZ = -32 - Game::AdjustHeight(startLocation.Z);
+	int endZ = -32 - Game::AdjustHeight(endLocation.Z);
 	int deltaX = point2.X - point1.X;
 	int deltaY = point2.Y - point1.Y;
 	int deltaZ = endZ - startZ;

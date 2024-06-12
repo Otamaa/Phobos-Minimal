@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
 class ExpireAnimData : public INIConfig
 {

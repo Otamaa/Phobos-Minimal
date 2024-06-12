@@ -1,4 +1,4 @@
-﻿#include "Finder.h"
+#include "Finder.h"
 
 #include <iterator>
 #include <algorithm>
@@ -16,19 +16,19 @@
 
 #include <Utilities/Debug.h>
 
-#include <Extension/TechnoExt.h>
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
 #include "CastEx.h"
 #include "MathEx.h"
 #include "Scripts.h"
 #include "Status.h"
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/EffectType/AttachEffectData.h>
-#include <Ext/EffectType/AttachEffectTypeData.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectTypeData.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 
 double Finder::DistanceFrom(CoordStruct sourcePos, CoordStruct targetPos, bool fullAirspace)
@@ -200,7 +200,7 @@ std::vector<TechnoClass*> GetCellSpreadTechnos(CellStruct centerCell, CoordStruc
 			{
 			case AbstractType::Building:
 			{
-				BuildingClass* pBuilding = dynamic_cast<BuildingClass*>(pTechno);
+				BuildingClass* pBuilding = static_cast<BuildingClass*>(pTechno);
 				if (pBuilding->Type->InvisibleInGame) {
 					continue;
 				}
@@ -341,7 +341,7 @@ void FindAndAttachEffect(CoordStruct location, int damage, WarheadTypeClass* pWH
 	{
 		bool attachToSource = aeTypeData->AttachToSource;
 		AttachEffect* sourceAEM = nullptr;
-		if (attachToSource && !TryGetAEManager<TechnoExt>(dynamic_cast<TechnoClass*>(pAttacker), sourceAEM))
+		if (attachToSource && !TryGetAEManager<TechnoExt>(generic_cast<TechnoClass*>(pAttacker), sourceAEM))
 		{
 			return;
 		}

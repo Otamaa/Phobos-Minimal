@@ -1,8 +1,8 @@
-﻿#include "DrawEx.h"
+#include "DrawEx.h"
 
-#include <Extension/EBoltExt.h>
-#include <Ext/EBoltType/EBoltStatus.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Extension/EBoltExt.h>
+#include <Misc/DynamicPatcher/Ext/EBoltType/EBoltStatus.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 #pragma region LaserType
 void DrawLaser(LaserType laser, CoordStruct sourcePos, CoordStruct targetPos, ColorStruct houseColor)
@@ -214,7 +214,7 @@ void DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, bool alternate)
 
 void DrawBolt(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct sourcePos, CoordStruct flh, bool isOnTurret)
 {
-	if (EBolt* bolt = pShooter->Electric_Zap(pTarget, pWeapon, sourcePos))
+	if (EBolt* bolt = pShooter->CreateEbolt(pTarget, pWeapon, sourcePos))
 	{
 		if (!flh.IsEmpty())
 		{

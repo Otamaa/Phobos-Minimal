@@ -1,15 +1,15 @@
-﻿#include "DamageSelfEffect.h"
+#include "DamageSelfEffect.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Extension/BulletExt.h>
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 void DamageSelfEffect::OnStart()
 {

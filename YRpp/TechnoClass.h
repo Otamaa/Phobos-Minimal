@@ -965,7 +965,7 @@ public:
 	HouseClass*      ChronoWarpedByHouse;
 	BYTE             _Mission_Patrol_430;
 	BYTE             IsMouseHovering;
-	BYTE             parasitecontrol_byte432;
+	BYTE             WasSelected;
 //	BYTE			 byte_433;
 	TeamClass*       OldTeam;
 	BYTE             CountedAsOwnedSpecial; // for absorbers, infantry uses this to manually control OwnedInfantry count

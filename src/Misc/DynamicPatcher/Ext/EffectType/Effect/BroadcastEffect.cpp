@@ -1,9 +1,9 @@
-﻿#include "BroadcastEffect.h"
+#include "BroadcastEffect.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 void BroadcastEffect::FindAndAttach(BroadcastEntity data, HouseClass* pHouse)
 {

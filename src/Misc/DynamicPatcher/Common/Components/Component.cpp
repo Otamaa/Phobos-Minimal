@@ -46,36 +46,6 @@ void Component::EnsureDestroy()
 	FreeComponent(); // 返回缓冲池
 }
 
-bool Component::AlreadyAwake()
-{
-	return _awaked;
-}
-
-void Component::Disable()
-{
-	_disable = true;
-}
-
-bool Component::IsEnable()
-{
-	return !_disable;
-}
-
-void Component::Activate()
-{
-	_active = true;
-}
-
-void Component::Deactivate()
-{
-	_active = false;
-}
-
-bool Component::IsActive()
-{
-	return _active;
-}
-
 void Component::AddComponent(Component* component, int index)
 {
 	// 将要加入的组件的子组件的extData全部更换

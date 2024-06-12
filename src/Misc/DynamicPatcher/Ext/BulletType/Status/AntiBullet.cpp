@@ -1,7 +1,7 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 void BulletStatus::CanAffectAndDamageBullet(BulletClass* pTarget, WarheadTypeClass* pWH)
 {

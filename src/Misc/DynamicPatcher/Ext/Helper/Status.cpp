@@ -1,12 +1,7 @@
-﻿#include "Status.h"
+#include "Status.h"
 
 #include <FootClass.h>
-#include <Interfaces.h>
-#include <DriveLocomotionClass.h>
-#include <MechLocomotionClass.h>
-#include <ShipLocomotionClass.h>
-#include <WalkLocomotionClass.h>
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 #include <CellClass.h>
 #include <MapClass.h>
 
@@ -14,13 +9,13 @@
 #include "CastEx.h"
 #include "Scripts.h"
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Common/CommonStatus.h>
-#include <Ext/AnimType/AnimStatus.h>
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/AnimType/AnimStatus.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 
 
 #pragma endregion AnimClass
@@ -104,47 +99,47 @@ LocoType GetLocoType(TechnoClass* pTechno)
 	if (pTechno && pTechno->GetTechnoType())
 	{
 		GUID locoId = pTechno->GetTechnoType()->Locomotor;
-		if (locoId == LocomotionClass::CLSIDs::Drive)
+		if (locoId == DriveLocomotionClass::ClassGUID())
 		{
 			return LocoType::Drive;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Hover)
+		else if (locoId == HoverLocomotionClass::ClassGUID())
 		{
 			return LocoType::Hover;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Tunnel)
+		else if (locoId == TunnelLocomotionClass::ClassGUID())
 		{
 			return LocoType::Tunnel;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Walk)
+		else if (locoId == WalkLocomotionClass::ClassGUID())
 		{
 			return LocoType::Walk;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Droppod)
+		else if (locoId == DropPodLocomotionClass::ClassGUID())
 		{
 			return LocoType::Droppod;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Fly)
+		else if (locoId == FlyLocomotionClass::ClassGUID())
 		{
 			return LocoType::Fly;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Teleport)
+		else if (locoId == TeleportLocomotionClass::ClassGUID())
 		{
 			return LocoType::Teleport;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Mech)
+		else if (locoId == MechLocomotionClass::ClassGUID())
 		{
 			return LocoType::Mech;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Ship)
+		else if (locoId == ShipLocomotionClass::ClassGUID())
 		{
 			return LocoType::Ship;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Jumpjet)
+		else if (locoId == JumpjetLocomotionClass::ClassGUID())
 		{
 			return LocoType::Jumpjet;
 		}
-		else if (locoId == LocomotionClass::CLSIDs::Rocket)
+		else if (locoId == RocketLocomotionClass::ClassGUID())
 		{
 			return LocoType::Rocket;
 		}
@@ -468,7 +463,7 @@ void ClearAllTarget(TechnoClass* pAttacker)
 		// 子机管理器
 		if (pAttacker->SpawnManager)
 		{
-			pAttacker->SpawnManager->Destination = nullptr;
+			pAttacker->SpawnManager->NewTarget = nullptr;
 			pAttacker->SpawnManager->Target = nullptr;
 			pAttacker->SpawnManager->SetTarget(nullptr);
 		}
@@ -490,7 +485,7 @@ void ForceStopMoving(FootClass* pFoot)
 	pFoot->LastDestination = nullptr;
 	pFoot->Focus = nullptr;
 	// 清除寻路目的地
-	ILocomotion* pLoco = pFoot->Locomotor.get();
+	ILocomotion* pLoco = pFoot->Locomotor.GetInterfacePtr();
 	pLoco->Mark_All_Occupation_Bits((int)PlacementType::Remove); // 清除HeadTo的占领
 	ForceStopMoving(pLoco);
 }
@@ -499,34 +494,34 @@ void ForceStopMoving(ILocomotion* pLoco)
 {
 	pLoco->Stop_Moving();
 	pLoco->Mark_All_Occupation_Bits((int)PlacementType::Remove);
-	if (DriveLocomotionClass* dLoco = dynamic_cast<DriveLocomotionClass*>(pLoco))
+	if (DriveLocomotionClass* dLoco = locomotion_cast<DriveLocomotionClass*>(pLoco))
 	{
 		dLoco->Destination = CoordStruct::Empty;
 		dLoco->HeadToCoord = CoordStruct::Empty;
 		dLoco->IsDriving = false;
 	}
-	else if (ShipLocomotionClass* sLoco = dynamic_cast<ShipLocomotionClass*>(pLoco))
+	else if (ShipLocomotionClass* sLoco = locomotion_cast<ShipLocomotionClass*>(pLoco))
 	{
 		sLoco->Destination = CoordStruct::Empty;
 		sLoco->HeadToCoord = CoordStruct::Empty;
 		sLoco->IsDriving = false;
 	}
-	else if (WalkLocomotionClass* wLoco = dynamic_cast<WalkLocomotionClass*>(pLoco))
+	else if (WalkLocomotionClass* wLoco = locomotion_cast<WalkLocomotionClass*>(pLoco))
 	{
-		wLoco->Destination = CoordStruct::Empty;
-		wLoco->HeadToCoord = CoordStruct::Empty;
+		wLoco->MovingDestination = CoordStruct::Empty;
+		wLoco->CoordHeadTo = CoordStruct::Empty;
 		wLoco->IsMoving = false;
 		wLoco->IsReallyMoving = false;
 	}
-	else if (MechLocomotionClass* mLoco = dynamic_cast<MechLocomotionClass*>(pLoco))
+	else if (MechLocomotionClass* mLoco = locomotion_cast<MechLocomotionClass*>(pLoco))
 	{
-		mLoco->Destination = CoordStruct::Empty;
-		mLoco->HeadToCoord = CoordStruct::Empty;
+		mLoco->MovingDestination = CoordStruct::Empty;
+		mLoco->CoordHeadTo = CoordStruct::Empty;
 		mLoco->IsMoving = false;
 	}
-	else if (JumpjetLocomotionClass* jLoco = dynamic_cast<JumpjetLocomotionClass*>(pLoco))
+	else if (JumpjetLocomotionClass* jLoco = locomotion_cast<JumpjetLocomotionClass*>(pLoco))
 	{
-		jLoco->DestinationCoords = CoordStruct::Empty;
+		jLoco->HeadToCoord = CoordStruct::Empty;
 		jLoco->IsMoving = false;
 	}
 }

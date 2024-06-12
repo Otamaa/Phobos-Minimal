@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include <Common/EventSystems/EventSystem.h>
+#include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
 #include "PrintTextData.h"
 

@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 #include "AircraftAttitudeData.h"
 

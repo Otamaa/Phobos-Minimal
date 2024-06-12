@@ -36,9 +36,9 @@ class AttachEffect : public ObjectScript
 public:
 	//OBJECT_SCRIPT(AttachEffect);
 
-	AttachEffect::AttachEffect() : ObjectScript() {
+	AttachEffect() : ObjectScript() {
 		this->Name = ScriptName;
-		this->c_Type = ComponentType::AE;
+		this->c_Type |= ComponentType::AE;
 	}
 
 	virtual void FreeComponent() override

@@ -14,7 +14,9 @@
 class ScriptComponent : public Component
 {
 public:
-	ScriptComponent() : Component() {}
+	ScriptComponent() : Component() {
+		this->c_Type |= ComponentType::Script;
+	}
 
 	virtual void Clean() override
 	{
@@ -25,8 +27,8 @@ public:
 	__declspec(property(get = GetGameObject)) GameObject* _gameObject;
 };
 
-#define SCRIPT_COMPONENT(SCRIPT_TYPE, TBASE, TEXT, P_NAME) \
-	SCRIPT_TYPE() : ScriptComponent() {} \
+#define SCRIPT_COMPONENT(SCRIPT_TYPE, TBASE, TEXT, P_NAME , C_TYPE) \
+	SCRIPT_TYPE() : ScriptComponent() {	this->c_Type |= ComponentType::##C_TYPE;} \
 	\
 	virtual GameObject* GetGameObject() override \
 	{ \
@@ -41,8 +43,6 @@ public:
 
 #pragma once
 
-#include "ScriptComponent.h"
-
 #include <Misc/DynamicPatcher/Extension/AnimExt.h>
 #include <Misc/DynamicPatcher/Extension/BulletExt.h>
 #include <Misc/DynamicPatcher/Extension/EBoltExt.h>
@@ -52,12 +52,38 @@ public:
 #include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 #include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/TrajectoryData.h>
+#include <Misc/DynamicPatcher/Extension/AnimExt.h>
 
+enum class AnimScripts {
+	unk ,
+	AnimStand,
+	AnimStatus,
+};
+
+class AnimScript : public ScriptComponent, public IAnimScript
+{
+public:
+	SCRIPT_COMPONENT(AnimScript, AnimClass, AnimExt, pAnim , Anim);
+
+	virtual void Clean() override { ScriptComponent::Clean(); }
+	virtual AnimScripts GetCurrentScriptType() = 0;
+};
+
+enum class ObjectScripts
+{
+	unk,
+	AttachEffect,
+	AttachFire,
+};
 
 class ObjectScript : public ScriptComponent, public ITechnoScript, public IBulletScript
 {
 public:
-	ObjectScript() : ScriptComponent() { }
+	ObjectScript() : ScriptComponent() {
+		this->c_Type |= ComponentType::Object;
+	 }
+
+	virtual ObjectScripts GetCurrentScriptType() = 0;
 
 	virtual GameObject* GetGameObject() override
 	{
@@ -183,10 +209,34 @@ protected:
 	AbstractType _absType = AbstractType::None;
 };
 
+enum class TechnoScripts
+{
+	unk ,
+	AircraftAttitude,
+	AircraftDive,
+	AircraftGuard,
+	AircraftPut,
+	AutoFireAreaWeapon,
+	BaseNormal,
+	CrawlingFLH,
+	DamageText,
+	DecoyMissile,
+	HealthText,
+	JumpjetCarryall,
+	JumpjetFacing,
+	MissileHoming,
+	Spawn,
+	SupportSpawns,
+	TechnoStatus,
+	TechnoTrail,
+	TurretAngle,
+
+};
+
 class TechnoScript : public ScriptComponent, public ITechnoScript
 {
 public:
-	SCRIPT_COMPONENT(TechnoScript, TechnoClass, TechnoExt, pTechno);
+	SCRIPT_COMPONENT(TechnoScript, TechnoClass, TechnoExt, pTechno, Techno);
 
 	AbstractType GetAbsType()
 	{
@@ -252,16 +302,32 @@ public:
 		_locoType = LocoType::None;
 	}
 
+	virtual TechnoScripts GetCurrentScriptType() = 0;
 protected:
 	// 单位类型
 	AbstractType _absType = AbstractType::None;
 	LocoType _locoType = LocoType::None;
 };
 
+static FORCEINLINE constexpr bool IsITechnoScript(Component* C){
+	return C->c_Type & ComponentType::Object || C->c_Type & ComponentType::Techno;
+}
+
+enum class BulletScripts
+{
+	unk,
+	Bounce,
+	BulletStatus,
+	BulletTrail,
+	ArcingTrajectory,
+	MissileTrajectory,
+	StraightTrajectory,
+
+};
 class BulletScript : public ScriptComponent, public IBulletScript
 {
 public:
-	SCRIPT_COMPONENT(BulletScript, BulletClass, BulletExt, pBullet);
+	SCRIPT_COMPONENT(BulletScript, BulletClass, BulletExt, pBullet, Bullet);
 
 	BulletType GetBulletType()
 	{
@@ -301,6 +367,7 @@ public:
 		_trajectoryData = nullptr;
 	}
 
+	virtual BulletScripts GetCurrentScriptType() = 0;
 protected:
 	// 抛射体类型
 	BulletType _bulletType = BulletType::UNKNOWN;
@@ -317,20 +384,30 @@ protected:
 	__declspec(property(get = GetTrajectoryData)) TrajectoryData* trajectoryData;
 };
 
+enum class SuperWeaponScripts
+{
+	unk
+};
 class SuperWeaponScript : public ScriptComponent, public ISuperScript
 {
 public:
-	SCRIPT_COMPONENT(SuperWeaponScript, SuperClass, SuperWeaponExt, pSuper);
+	SCRIPT_COMPONENT(SuperWeaponScript, SuperClass, SuperWeaponExt, pSuper , Super);
 
 	virtual void Clean() override { ScriptComponent::Clean(); }
+	virtual SuperWeaponScripts GetCurrentScriptType() = 0;
 };
 
+enum class EBoltScripts
+{
+	unk , EBoltStatus
+};
 class EBoltScript : public ScriptComponent
 {
 public:
-	SCRIPT_COMPONENT(EBoltScript, EBolt, EBoltExt, pBolt);
+	SCRIPT_COMPONENT(EBoltScript, EBolt, EBoltExt, pBolt , EBolt);
 
 	virtual void Clean() override { ScriptComponent::Clean(); }
+	virtual EBoltScripts GetCurrentScriptType() = 0;
 };
 
 #define OBJECT_SCRIPT(CLASS_NAME) \
@@ -338,15 +415,21 @@ public:
 
 #define TECHNO_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, TechnoScript) \
+	virtual TechnoScripts GetCurrentScriptType() override { return TechnoScripts::##CLASS_NAME##; }\
 
 #define BULLET_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, BulletScript) \
+	virtual BulletScripts GetCurrentScriptType() override { return BulletScripts::##CLASS_NAME##; }\
 
 #define SUPER_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, SuperWeaponScript) \
+	virtual SuperWeaponScripts GetCurrentScriptType() override { return SuperWeaponScripts::##CLASS_NAME##; }\
 
 #define EBOLT_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, EBoltScript) \
+	virtual EBoltScripts GetCurrentScriptType() override { return EBoltScripts::##CLASS_NAME##; }\
 
 #define ANIM_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, AnimScript) \
+	virtual AnimScripts GetCurrentScriptType() override { return AnimScripts::##CLASS_NAME##; }\
+

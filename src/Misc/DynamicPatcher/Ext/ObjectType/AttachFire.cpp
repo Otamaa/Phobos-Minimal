@@ -1,4 +1,4 @@
-﻿#include "AttachFire.h"
+#include "AttachFire.h"
 
 void AttachFire::FireMissionDone()
 {
@@ -80,7 +80,7 @@ bool AttachFire::FireCustomWeapon(TechnoClass* pAttacker, AbstractClass* pTarget
 			}
 			// 扇形攻击
 			RadialFire radialFire{ facingDir, burst, weaponTypeData.RadialAngle };
-			BulletVelocity bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
+			VelocityClass bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
 			for (int i = 0; i < burst; i++)
 			{
 				if (weaponTypeData.RadialFire)
@@ -124,7 +124,7 @@ CoordStruct AttachFire::GetSourcePos(CoordStruct flh, DirStruct& facingDir, bool
 	if (pTechno)
 	{
 		sourcePos = GetFLHAbsoluteCoords(pTechno, flh, isOnTurret, flipY);
-		facingDir = pTechno->GetRealFacing().Current();
+		facingDir = pTechno->F_GetRealfacing().Current();
 	}
 	else if (pBullet)
 	{
@@ -177,7 +177,7 @@ void AttachFire::SimulateBurstFireOnce(SimulateBurst& burst)
 		sourcePos = GetSourcePos(burst.FLH, facingDir, !burst.IsOnBody, burst.FlipY);
 	}
 
-	BulletVelocity bulletVelocity = BulletVelocity::Empty;
+	VelocityClass bulletVelocity = {};
 	// 扇形攻击
 	if (burst.WeaponTypeData.RadialFire)
 	{
@@ -229,7 +229,7 @@ void AttachFire::OnUpdate()
 					// 发射武器
 					if (delayFire.FireOwnWeapon)
 					{
-						pShooter->Fire_IgnoreType(delayFire.pTarget, delayFire.WeaponIndex);
+						pShooter->TechnoClass::Fire(delayFire.pTarget, delayFire.WeaponIndex);
 					}
 					else
 					{

@@ -138,16 +138,20 @@ public:
 		STATE_VAR_INIT(Paintball);
 	}
 
-	template <typename T>
-	bool TryGetState(IStateScript*& state)
+	bool TryGetState(StateEffectTypes cur,IStateScript*& state)
 	{
-		if (false) {}
+		switch (cur)
+		{
 		STATE_VAR_TRYGET(BlackHole)
-			STATE_VAR_TRYGET(ECM)
-			STATE_VAR_TRYGET(GiftBox)
-			STATE_VAR_TRYGET(DestroySelf)
-			STATE_VAR_TRYGET(Paintball)
-			return state != nullptr;
+		STATE_VAR_TRYGET(ECM)
+		STATE_VAR_TRYGET(GiftBox)
+		STATE_VAR_TRYGET(DestroySelf)
+		STATE_VAR_TRYGET(Paintball)
+		default:
+			break;
+		}
+
+		return state != nullptr;
 	}
 
 	TechnoClass* pSource = nullptr;

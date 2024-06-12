@@ -1,12 +1,12 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/Gift.h>
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 void BulletStatus::OnUpdate_SelfLaunchOrPumpAction()
 {
@@ -53,7 +53,7 @@ void BulletStatus::OnUpdate_SelfLaunchOrPumpAction()
 			// 从占据的格子中移除自己
 			pSource->UnmarkAllOccupationBits(sourcePos);
 			// 强令停止移动
-			ForceStopMoving(dynamic_cast<FootClass*>(pSource));
+			ForceStopMoving(generic_cast<FootClass*>(pSource));
 			// 清除移动目的地
 			pSource->SetDestination(nullptr, true);
 			// Limbo发射者
@@ -89,7 +89,7 @@ bool BulletStatus::OnDetonate_SelfLaunch(CoordStruct* pCoords)
 			// 从占据的格子中移除自己
 			pSource->UnmarkAllOccupationBits(sourcePos);
 			// 强令停止移动
-			ForceStopMoving(dynamic_cast<FootClass*>(pSource));
+			ForceStopMoving(generic_cast<FootClass*>(pSource));
 			// 清除移动目的地
 			pSource->SetDestination(nullptr, true);
 			bool onBridge = false;

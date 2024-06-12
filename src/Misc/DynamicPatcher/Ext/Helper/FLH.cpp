@@ -1,12 +1,12 @@
-﻿#include "FLH.h"
+#include "FLH.h"
 #include "CastEx.h"
 #include "MathEx.h"
 #include "Status.h"
 
-#include <LocomotionClass.h>
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/LocomotionClass.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
 
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
 // ----------------
 // FLHHelper
@@ -43,7 +43,10 @@ Matrix3D GetMatrix3D(TechnoClass* pTechno, VoxelIndexKey* pKey, bool isShadow)
 
 	if ((pTechno->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pTechno)->Locomotor)
 	{
-		mtx = isShadow ? ((FootClass*)pTechno)->Locomotor->Shadow_Matrix(pKey) : ((FootClass*)pTechno)->Locomotor->Draw_Matrix(pKey);
+		if (isShadow)
+			((FootClass*)pTechno)->Locomotor->Shadow_Matrix(&mtx, pKey);
+		 else
+			 ((FootClass*)pTechno)->Locomotor->Draw_Matrix(&mtx, pKey);
 	}
 	else // no locomotor means no rotation or transform of any kind (f.ex. buildings) - Kerbiter
 	{
@@ -134,7 +137,7 @@ CoordStruct GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct flh, bool isO
 				// step 3
 				if (pTechno->HasTurret())
 				{
-					double turretRad = pTechno->TurretFacing().Current().GetRadian();
+					double turretRad = pTechno->F_TurretFacing().Current().GetRadian();
 					double bodyRad = pTechno->PrimaryFacing.Current().GetRadian();
 					float angle = (float)(turretRad - bodyRad);
 
@@ -190,16 +193,16 @@ DirStruct GetRelativeDir(TechnoClass* pMaster, int dir, bool isOnTurret)
 		double targetRad = targetDir.GetRadian();
 		DirStruct sourceDir = pMaster->PrimaryFacing.Current();
 		GUID locoId = pMaster->GetTechnoType()->Locomotor;
-		if (locoId == LocomotionClass::CLSIDs::Jumpjet)
+		if (locoId == JumpjetLocomotionClass::ClassGUID())
 		{
-			if (JumpjetLocomotionClass* jjLoco = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
+			if (JumpjetLocomotionClass* jjLoco = static_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.GetInterfacePtr()))
 			{
-				sourceDir = jjLoco->LocomotionFacing.Current();
+				sourceDir = jjLoco->Facing.Current();
 			}
 		}
 		if (isOnTurret || pFoot->WhatAmI() == AbstractType::Aircraft) // WWSB Aircraft is a turret!!!
 		{
-			sourceDir = pMaster->GetRealFacing().Current();
+			sourceDir = pMaster->F_GetRealfacing().Current();
 		}
 		double sourceRad = sourceDir.GetRadian();
 		float angle = static_cast<float>(sourceRad - targetRad);
@@ -412,7 +415,7 @@ DirStruct Radians2Dir(double radians)
 
 DirStruct Point2Dir(CoordStruct source, CoordStruct target)
 {
-	double radians = Math::atan2(source.Y - target.Y, target.X - source.X);
+	double radians = Math::atan2(double(source.Y - target.Y), double(target.X - source.X));
 	radians -= Math::deg2rad(90);
 	return Radians2Dir(radians);
 }

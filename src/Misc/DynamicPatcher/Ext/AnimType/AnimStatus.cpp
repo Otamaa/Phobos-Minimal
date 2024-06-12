@@ -1,10 +1,10 @@
-﻿#include "AnimStatus.h"
+#include "AnimStatus.h"
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/Common/ExpandAnimsManager.h>
-#include <Ext/Common/FireSuperManager.h>
-#include <Ext/Helper/CastEx.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/ExpandAnimsManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/FireSuperManager.h>
+#include <Misc/DynamicPatcher/Ext/Helper/CastEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 #include "AnimStand.h"
 
@@ -44,8 +44,7 @@ void AnimStatus::Explosion_Damage(bool isBounce, bool bright)
 {
 	if (pAnim)
 	{
-		AnimTypeClass* pAnimType = pAnim->Type;
-		if (pAnimType)
+		if (AnimTypeClass* pAnimType = pAnim->Type)
 		{
 			CoordStruct location = pAnim->GetCoords();
 			if (isBounce)
@@ -56,7 +55,7 @@ void AnimStatus::Explosion_Damage(bool isBounce, bool bright)
 			if (damage != 0 || (IsNotNone(GetAnimDamageData()->Weapon) && GetAnimDamageData()->UseWeaponDamage))
 			{
 				// 制造伤害
-				std::string weaponType = GetAnimDamageData()->Weapon;
+				std::string& weaponType = GetAnimDamageData()->Weapon;
 				WarheadTypeClass* pWH = pAnimType->Warhead;
 				// 检查动画类型有没有写弹头
 				if (IsNotNone(weaponType))

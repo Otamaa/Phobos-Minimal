@@ -23,6 +23,7 @@
 #include "Effect/StackData.h"
 #include "Effect/StandData.h"
 #include "Effect/VampireData.h"
+
 // State Effects
 #include <Misc/DynamicPatcher/Ext/StateType/State/AntiBulletData.h>
 #include <Misc/DynamicPatcher/Ext/StateType/State/BlackHoleData.h>
@@ -305,6 +306,11 @@ public:
 		this->AffectBullet = false;
 	}
 
+	virtual EffectDataType GetType() override
+	{
+		return EffectDataType::AttachEffectData;
+	}
+
 	virtual void Read(INIBufferReader* reader) override
 	{
 		EffectData::Read(reader);
@@ -357,7 +363,7 @@ public:
 		}
 	}
 
-	bool HasContradiction(std::vector<std::string> AENames)
+	bool HasContradiction(std::vector<std::string>& AENames) const
 	{
 		bool has = !AttachWithOutTypes.empty() && !AENames.empty();
 		if (has)
@@ -416,7 +422,7 @@ public:
 	}
 #pragma endregion
 
-	int GetDuration()
+	int GetDuration() const
 	{
 		return this->HoldDuration ? -1 : this->Duration;
 	}

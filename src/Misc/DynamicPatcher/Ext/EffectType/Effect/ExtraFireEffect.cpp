@@ -1,17 +1,17 @@
-﻿#include "ExtraFireEffect.h"
+#include "ExtraFireEffect.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
-#include <Extension/BulletExt.h>
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/BulletType/BulletStatus.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/ObjectType/AttachFire.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/BulletStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachFire.h>
 
 
 bool ExtraFireEffect::CheckROF(WeaponTypeClass* pWeapon, WeaponTypeExt::TypeData* weaponData)
@@ -169,11 +169,11 @@ void ExtraFireEffect::OnFire(AbstractClass* pTarget, int weaponIdx)
 							if (weaponData->UseAlternateFLH && pTechno->Transporter)
 							{
 								// 获取开或者位于载具的序号，再获取载具的开火坐标，先进后出，序号随着乘客数量增长
-								int index = pTechno->Transporter->Passengers.IndexOf(dynamic_cast<FootClass*>(pTechno));
+								int index = pTechno->Transporter->Passengers.IndexOf(generic_cast<FootClass*>(pTechno));
 								// 有效序号1 - 5, 对应FLH 0-4
 								if (index > 0 && index < 6)
 								{
-									fireFLH = pTechno->Transporter->GetTechnoType()->AlternativeFLH[index - 1];
+									fireFLH = pTechno->Transporter->GetTechnoType()->AlternateFLH[index - 1];
 								}
 							}
 							if (weaponData->Feedback)

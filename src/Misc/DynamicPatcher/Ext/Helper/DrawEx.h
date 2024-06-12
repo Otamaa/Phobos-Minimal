@@ -1,10 +1,12 @@
-﻿#pragma once
+#pragma once
 #include <vector>
 
 #include <GeneralDefinitions.h>
 #include <ParticleSystemTypeClass.h>
 #include <TechnoClass.h>
 #include <WeaponTypeClass.h>
+
+#include "CastEx.h"
 
 #pragma region LaserType
 struct LaserType

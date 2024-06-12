@@ -1,9 +1,9 @@
-﻿#include "ExpandAnimsManager.h"
+#include "ExpandAnimsManager.h"
 
-#include <Ext/AnimType/AnimStatus.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Status.h>
-#include <Ext/Helper/StringEx.h>
+#include <Misc/DynamicPatcher/Ext/AnimType/AnimStatus.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
 
 void ExpandAnimsManager::PlayExpandAnims(ExpandAnimsData data, CoordStruct location, HouseClass* pHouse)
 {

@@ -3,34 +3,6 @@
 #include "EventSystem.h"
 #include <Utilities/Debug.h>
 
-Event::Event(const char* Name, const char* Dest)
-{
-    this->Name = Name;
-    this->Dest = Dest;
-}
-
-EventSystem::EventSystem(const char* name)
-{
-    this->Name = name;
-}
-
-void EventSystem::AddHandler(Event e, HandleEvent func)
-{
-    this->_handlers[e] += Delegate::newDelegate(func);
-    // Debug::Log("Event [%s]%s add handler: %s\n", this->Name, e.Name, typeid(&func).name());
-}
-
-void EventSystem::RemoveHandler(Event e, HandleEvent func)
-{
-    this->_handlers[e] -= Delegate::newDelegate(func);
-    // Debug::Log("Event [%s]%s remove handler: %s\n", this->Name, e.Name, typeid(&func).name());
-}
-
-void EventSystem::Broadcast(Event e, void* args)
-{
-    this->_handlers[e](this, e, args);
-}
-
 void* EventArgsLate = (void*)true;
 void* EventArgsEmpty = nullptr;
 
@@ -54,45 +26,3 @@ Event Events::TypeChangeEvent = Event("TechnoClass_TypeChange", "Raised when Tec
 // 存档事件
 Event Events::SaveGameEvent = Event("SaveGame", "Raised when saving game");
 Event Events::LoadGameEvent = Event("LoadGame", "Raised when loading game");
-
-// 事件参数
-SaveLoadEventArgs::SaveLoadEventArgs(const char* fileName, bool isStart)
-{
-    this->FileName = fileName;
-    this->Stream = nullptr;
-    this->isStart = isStart;
-    this->isStartInStream = false;
-}
-
-SaveLoadEventArgs::SaveLoadEventArgs(IStream* stream, bool isStart)
-{
-    this->FileName = nullptr;
-    this->Stream = stream;
-    this->isStart = false;
-    this->isStartInStream = isStart;
-}
-
-bool SaveLoadEventArgs::InStream()
-{
-    return Stream != nullptr;
-}
-
-bool SaveLoadEventArgs::IsStart()
-{
-    return isStart;
-}
-
-bool SaveLoadEventArgs::IsEnd()
-{
-    return !IsStart() && !InStream();
-}
-
-bool SaveLoadEventArgs::IsStartInStream()
-{
-    return isStartInStream;
-}
-
-bool SaveLoadEventArgs::IsEndInStream()
-{
-    return !IsStartInStream() && InStream();
-}

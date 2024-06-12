@@ -1,14 +1,14 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/JumpjetLocomotionClass.h>
 
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-bool TechnoStatus::PumpAction(CoordStruct targetPos, bool isLobber, Sequence flySequence)
+bool TechnoStatus::PumpAction(CoordStruct targetPos, bool isLobber, DoType flySequence)
 {
 	if (!IsBuilding() && !pTechno->IsFallingDown && !AmIStand())
 	{
@@ -17,7 +17,7 @@ bool TechnoStatus::PumpAction(CoordStruct targetPos, bool isLobber, Sequence fly
 	return false;
 }
 
-void TechnoStatus::HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int height, bool isLobber, Sequence flySequence)
+void TechnoStatus::HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int height, bool isLobber, DoType flySequence)
 {
 	if (pTechno->Passengers.NumPassengers > 0)
 	{
@@ -25,9 +25,9 @@ void TechnoStatus::HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int
 		FootClass* pPassenger = pTechno->Passengers.RemoveFirstPassenger();
 		pPassenger->Transporter = nullptr;
 		DirStruct facing = pTechno->GetRealFacing().Current();
-		++Unsorted::IKnowWhatImDoing;
+		++Unsorted::ScenarioInit;
 		pPassenger->Unlimbo(sourcePos, ToDirType(facing));
-		--Unsorted::IKnowWhatImDoing;
+		--Unsorted::ScenarioInit;
 		// 人间大炮二级准备
 		if (TechnoStatus* status = GetStatus<TechnoExt, TechnoStatus>(dynamic_cast<TechnoClass*>(pPassenger)))
 		{

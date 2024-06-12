@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
 
 #include <GeneralStructures.h>
 
-#include <Ext/EffectType/Effect/EffectData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/EffectData.h>
 
 class FeedbackAttachEntity : public EffectData
 {
@@ -14,6 +14,8 @@ public:
 	std::vector<std::string> AttachEffects{};
 	std::vector<double> AttachChances{};
 	bool AttachToTransporter = false;
+
+	virtual EffectDataType GetType() { return EffectDataType ::FeedbackAttachEntity; }
 
 	virtual void Read(INIBufferReader* reader, std::string title) override
 	{

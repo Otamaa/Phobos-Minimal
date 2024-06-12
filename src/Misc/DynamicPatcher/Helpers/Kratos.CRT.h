@@ -10,7 +10,7 @@ struct KratosCRT{
 		if (val.empty())
 			return false;
 
-		auto trans_ = PhobosCRT::trim(val);
+		std::string trans_ = PhobosCRT::trim(val);
 		PhobosCRT::lowercase(trans_);
 
 		return trans_ != "none";
@@ -25,6 +25,18 @@ struct KratosCRT{
 		s.erase(0, s.find_first_not_of(" "));
 		s.erase(s.find_last_not_of(" ") + 1);
 		return s;
+	}
+
+	//
+	// Uppercases string
+	//
+	template <typename T>
+	static std::basic_string<T> uppercase(const std::basic_string<T>& s)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin(), s2.end(), s2.begin(),
+			[](const T v) { return static_cast<T>(std::toupper(v)); });
+		return s2;
 	}
 
 	static std::string subreplace(std::string resource, std::string sub, std::string replace)

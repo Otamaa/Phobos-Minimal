@@ -1,6 +1,6 @@
-﻿#include "CrateBuffEffect.h"
+#include "CrateBuffEffect.h"
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 void CrateBuffEffect::UpdateStatus()
 {

@@ -1,7 +1,7 @@
-﻿#include "EBoltStatus.h"
+#include "EBoltStatus.h"
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
 
 void EBoltStatus::AttachTo(TechnoClass* pTechno, CoordStruct flh, bool isOnTurret, AbstractClass* pTarget)
 {

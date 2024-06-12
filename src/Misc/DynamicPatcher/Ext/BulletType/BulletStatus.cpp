@@ -1,18 +1,18 @@
-﻿#include "BulletStatus.h"
+#include "BulletStatus.h"
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/BulletType/Trajectory/ArcingTrajectory.h>
-#include <Ext/BulletType/Trajectory/MissileTrajectory.h>
-#include <Ext/BulletType/Trajectory/StraightTrajectory.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/ArcingTrajectory.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/MissileTrajectory.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/StraightTrajectory.h>
 
 #include "Bounce.h"
 
-#include <Ext/ObjectType/AttachEffect.h>
-#include <Ext/TechnoType/TechnoStatus.h>
-#include <Ext/TechnoType/DecoyMissile.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DecoyMissile.h>
 
 void BulletStatus::OnTechnoDelete(EventSystem* sender, Event e, void* args)
 {

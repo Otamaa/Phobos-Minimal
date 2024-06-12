@@ -1,4 +1,4 @@
-﻿#include "../BulletStatus.h"
+#include "../BulletStatus.h"
 
 #include "../Trajectory/StraightTrajectory.h"
 
@@ -11,7 +11,7 @@ void BulletStatus::OnUpdate_RecalculateStatus()
 		_recordStatus.Health = pBullet->Health;
 		_recordStatus.Speed = pBullet->Speed;
 		_recordStatus.Velocity = pBullet->Velocity;
-		_recordStatus.CourseLocked = pBullet->CourseLocked;
+		_recordStatus.CourseLocked = pBullet->__CourseLocked;
 	}
 	if (AttachEffect* aeManager = AEManager())
 	{
@@ -44,7 +44,7 @@ void BulletStatus::OnUpdate_RecalculateStatus()
 				// 抛物线类型的向量，只恢复方向向量，即X和Y
 				double x = _recordStatus.Velocity.X;
 				double y = _recordStatus.Velocity.Y;
-				BulletVelocity nowVelocity = pBullet->Velocity;
+				VelocityClass nowVelocity = pBullet->Velocity;
 				if (nowVelocity.X < 0 && x > 0)
 				{
 					x *= -1;
@@ -77,9 +77,9 @@ void BulletStatus::OnUpdate_RecalculateStatus()
 			else if (IsArcing())
 			{
 				// Arcing类，重算方向上向量，即X和Y
-				BulletVelocity recVelocity = _recordStatus.Velocity;
+				VelocityClass recVelocity = _recordStatus.Velocity;
 				recVelocity.Z = pBullet->Velocity.Z;
-				BulletVelocity newVelocity = recVelocity * multiplier;
+				VelocityClass newVelocity = recVelocity * multiplier;
 				pBullet->Velocity = newVelocity;
 			}
 			else

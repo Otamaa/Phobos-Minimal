@@ -1,21 +1,21 @@
-﻿#include "Gift.h"
+#include "Gift.h"
 #include "MathEx.h"
 #include "StringEx.h"
 #include "Scripts.h"
 
 #include <Unsorted.h>
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 #include <FootClass.h>
 
 #include <Utilities/Debug.h>
 
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
 
-#include <Extension/TechnoExt.h>
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
-#include <Ext/EffectType/Effect/CrateBuffData.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/CrateBuffData.h>
 
 bool TryPutTechno(TechnoClass* pTechno, CoordStruct location, CellClass* pCell, bool virtualUnit)
 {
@@ -48,15 +48,15 @@ bool TryPutTechno(TechnoClass* pTechno, CoordStruct location, CellClass* pCell, 
 				xyz = CoordStruct{ x + 64, y + 64};
 			}
 		}
-		++Unsorted::IKnowWhatImDoing;
+		++Unsorted::ScenarioInit;
 		pTechno->Unlimbo(xyz, DirType::East);
-		--Unsorted::IKnowWhatImDoing;
+		--Unsorted::ScenarioInit;
 		if (virtualUnit)
 		{
 			pCell->OccupationFlags = occFlags;
 		}
 		bool dontMove = false;
-		if (BuildingClass* pBuilding = dynamic_cast<BuildingClass*>(pTechno))
+		if (BuildingClass* pBuilding = specific_cast<BuildingClass*>(pTechno))
 		{
 			if (!virtualUnit && pBuilding->Type->Foundation != Foundation::_0x0)
 			{
@@ -85,7 +85,7 @@ bool TryPutTechno(TechnoClass* pTechno, CoordStruct location, CellClass* pCell, 
 
 TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct location, CellClass* pCell)
 {
-	TechnoClass* pTechno = dynamic_cast<TechnoClass*>(pType->CreateObject(pHouse));
+	TechnoClass* pTechno = static_cast<TechnoClass*>(pType->CreateObject(pHouse));
 	if (TryPutTechno(pTechno, location, pCell))
 	{
 		return pTechno;
@@ -227,14 +227,14 @@ void ReleaseGifts(std::vector<std::string> gifts, GiftBoxEntity data, BoxStateCa
 				if (boxState.SameDir)
 				{
 					// 同步朝向
-					pGift->PrimaryFacing.SetCurrent(boxState.BodyDir);
-					pGift->SecondaryFacing.SetCurrent(boxState.TurretDir);
+					pGift->PrimaryFacing.Set_Current(boxState.BodyDir);
+					pGift->SecondaryFacing.Set_Current(boxState.TurretDir);
 					// JJ有单独的Facing
 					if (pGiftStatus->IsJumpjet())
 					{
-						FootClass* pGiftFoot = dynamic_cast<FootClass*>(pGift);
-						JumpjetLocomotionClass* pLoco = dynamic_cast<JumpjetLocomotionClass*>(pGiftFoot->Locomotor.get());
-						pLoco->LocomotionFacing.SetCurrent(boxState.BodyDir);
+						if(FootClass* pGiftFoot = generic_cast<FootClass*>(pGift))
+							if(JumpjetLocomotionClass* pLoco = locomotion_cast<JumpjetLocomotionClass*>(pGiftFoot->Locomotor.GetInterfacePtr()))
+								pLoco->Facing.Set_Current(boxState.BodyDir);
 					}
 					// 同步编队
 					pGift->Group = boxState.Group;

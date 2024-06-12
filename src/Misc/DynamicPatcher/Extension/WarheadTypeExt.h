@@ -262,7 +262,7 @@ public:
 			if (armorIndex < 11)
 			{
 				// 默认护甲
-				for (auto it : ArmorTypeStrings)
+				for (auto& it : ArmorTypeStrings)
 				{
 					if (it.second == armor)
 					{
@@ -301,7 +301,7 @@ public:
 		{
 			std::vector<std::pair<std::string, AresVersus>> armorValues = GetAresArmorValueArray();
 			std::string title = "Versus.";
-			for (auto it : armorValues)
+			for (auto& it : armorValues)
 			{
 				// 获得所有自定义护甲的信息
 				std::string armor = it.first;

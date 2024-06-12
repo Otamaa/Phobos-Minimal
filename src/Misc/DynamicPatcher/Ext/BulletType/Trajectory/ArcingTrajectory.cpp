@@ -1,7 +1,7 @@
-﻿#include "ArcingTrajectory.h"
+#include "ArcingTrajectory.h"
 
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
 void ArcingTrajectory::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
 {
@@ -40,7 +40,7 @@ void ArcingTrajectory::ResetArcingVelocity(float speedMultiple)
 		double straightDistance = 0;
 		double realSpeed = 0;
 		CellClass* pTargetCell = nullptr;
-		BulletVelocity velocity = GetBulletArcingVelocity(sourcePos, targetPos,
+		VelocityClass velocity = GetBulletArcingVelocity(sourcePos, targetPos,
 			speed, gravity, lobber, inaccurate, min, max,
 			ToCoordStruct(pBullet->Velocity).Z, straightDistance, realSpeed, pTargetCell);
 		pBullet->Speed = (int)realSpeed;

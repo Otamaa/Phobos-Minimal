@@ -1,9 +1,9 @@
-﻿#include "AttackBeaconEffect.h"
+#include "AttackBeaconEffect.h"
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 bool AttackBeaconEffect::RecruitMission(Mission mission)
 {
@@ -111,14 +111,12 @@ void AttackBeaconEffect::OnUpdate()
 		int recruitCount = 0;
 		bool isDone = false;
 		std::map<std::string, int> numbers = data.GetNumbers();
-		for (auto candidate : candidates)
+		for (auto&[type , technos] : candidates)
 		{
-			std::string type = candidate.first;
-			auto technos = candidate.second;
 			// check this type is full.
 			int typeCount = 0;
 			bool isFull = false;
-			for (auto targetPair : technos)
+			for (auto& targetPair : technos)
 			{
 				if (isFull)
 				{

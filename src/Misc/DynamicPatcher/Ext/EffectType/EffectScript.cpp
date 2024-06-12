@@ -1,13 +1,13 @@
-﻿#include "EffectScript.h"
+#include "EffectScript.h"
 
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 AttachEffectScript* EffectScript::GetAE()
 {
-	if (!_ae)
-	{
-		_ae = dynamic_cast<AttachEffectScript*>(_parent);
+	if (!_ae && _parent->c_Type & ComponentType::AE_Effect) {
+		_ae = reinterpret_cast<AttachEffectScript*>(_parent);
 	}
+
 	return _ae;
 }
 

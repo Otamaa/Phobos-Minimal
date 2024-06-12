@@ -1,10 +1,10 @@
-﻿#include "StraightTrajectory.h"
+#include "StraightTrajectory.h"
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
 #include "../BulletStatus.h"
 
@@ -31,22 +31,22 @@ void StraightTrajectory::Setup()
 	if (trajectoryData->AbsolutelyStraight && pBullet->Owner)
 	{
 		double distance = targetPos.DistanceFrom(sourcePos);
-		DirStruct facing = pBullet->Owner->GetRealFacing().Current();
+		DirStruct facing = pBullet->Owner->F_GetRealfacing().Current();
 		targetPos = GetFLHAbsoluteCoords(sourcePos, CoordStruct{ (int)distance, 0, 0 }, facing);
 		pBullet->TargetCoords = targetPos;
 
 		// BulletEffectHelper.BlueLine(pBullet->SourceCoords, pBullet->TargetCoords, 1, 90);
 	}
 	// 重设速度
-	BulletVelocity velocity = pBullet->Velocity;
+	VelocityClass velocity = pBullet->Velocity;
 	bool reset = true;
 	if (pBullet->WeaponType)
 	{
 		WeaponTypeExt::TypeData* weaponTypeData = WeaponTypeExt::GetData<WeaponTypeExt::TypeData>(pBullet->WeaponType);
 		if (weaponTypeData->RadialFire)
 		{
-			BulletVelocity sourceV = ToVelocity(sourcePos);
-			BulletVelocity targetV = sourceV + velocity;
+			VelocityClass sourceV = ToVelocity(sourcePos);
+			VelocityClass targetV = sourceV + velocity;
 			CoordStruct forward = GetForwardCoords(sourceV, targetV, pBullet->Speed);
 			CoordStruct offset = forward - sourcePos;
 			velocity = ToVelocity(offset);
@@ -67,7 +67,7 @@ void StraightTrajectory::Setup()
 	// 设置触碰引信
 	if (pBullet->Type->Proximity)
 	{
-		dynamic_cast<BulletStatus*>(_parent)->ActiveProximity();
+		static_cast<BulletStatus*>(_parent)->ActiveProximity();
 	}
 }
 
@@ -86,7 +86,7 @@ void StraightTrajectory::OnPut(CoordStruct* pCoord, DirType dirType)
 
 void StraightTrajectory::OnUpdate()
 {
-	if (!dynamic_cast<BulletStatus*>(_parent)->CaptureByBlackHole)
+	if (!static_cast<BulletStatus*>(_parent)->CaptureByBlackHole)
 	{
 		// 强制修正速度
 		pBullet->Velocity = _straightBullet.Velocity;

@@ -351,27 +351,31 @@ public:
 		// STATE_VAR_INHERITED(Transform);
 	}
 
-	template <typename T>
-	bool TryGetState(IStateScript*& state)
+	bool TryGetState(StateEffectTypes cur,IStateScript*& state)
 	{
-		if (false) {}
+		switch (cur)
+		{
 		STATE_VAR_TRYGET(AntiBullet)
-			STATE_VAR_TRYGET(BlackHole)
-			STATE_VAR_TRYGET(DamageReaction)
-			STATE_VAR_TRYGET(Deselect)
-			STATE_VAR_TRYGET(DestroyAnim)
-			STATE_VAR_TRYGET(DestroySelf)
-			STATE_VAR_TRYGET(DisableWeapon)
-			STATE_VAR_TRYGET(Freeze)
-			STATE_VAR_TRYGET(GiftBox)
-			STATE_VAR_TRYGET(NoMoneyNoTalk)
-			STATE_VAR_TRYGET(OverrideWeapon)
-			STATE_VAR_TRYGET(Paintball)
-			STATE_VAR_TRYGET(Pump)
-			STATE_VAR_TRYGET(Scatter)
-			STATE_VAR_TRYGET(Teleport)
-			STATE_VAR_TRYGET(Transform)
-			return state != nullptr;
+		STATE_VAR_TRYGET(BlackHole)
+		STATE_VAR_TRYGET(DamageReaction)
+		STATE_VAR_TRYGET(Deselect)
+		STATE_VAR_TRYGET(DestroyAnim)
+		STATE_VAR_TRYGET(DestroySelf)
+		STATE_VAR_TRYGET(DisableWeapon)
+		STATE_VAR_TRYGET(Freeze)
+		STATE_VAR_TRYGET(GiftBox)
+		STATE_VAR_TRYGET(NoMoneyNoTalk)
+		STATE_VAR_TRYGET(OverrideWeapon)
+		STATE_VAR_TRYGET(Paintball)
+		STATE_VAR_TRYGET(Pump)
+		STATE_VAR_TRYGET(Scatter)
+		STATE_VAR_TRYGET(Teleport)
+		STATE_VAR_TRYGET(Transform)
+		default:
+			break;
+		}
+
+		return state != nullptr;
 	}
 
 	// 踩箱子获得的buff

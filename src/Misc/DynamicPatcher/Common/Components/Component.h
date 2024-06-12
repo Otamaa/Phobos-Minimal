@@ -47,6 +47,7 @@
 	\
 	inline static std::vector<CLASS_NAME*> Pool{}; \
 
+
 enum class ExtType
 {
 	unk,
@@ -64,9 +65,26 @@ public:
 enum class ComponentType
 {
 	unk,
-	AE
-};
+	Base,
+	Component,
+	Script,
+	Object,
+	Techno,
+	Bullet,
+	BulletStatus,
+	Anim,
+	Super,
+	EBolt,
+	AE,
+	AE_Effect,
+	EffectScript,
 
+	StateType,
+	StateEffect,
+	StateScript,
+
+};
+MAKE_ENUM_FLAGS(ComponentType);
 class IComponent
 {
 public:
@@ -113,11 +131,24 @@ public:
 	virtual bool Save(PhobosStreamWriter& stream) const = 0;
 
 	ComponentType c_Type { ComponentType::unk };
+
+	//avoid using dynamic_cast
+	//template<typename T>
+	//static constexpr T* ComponentCast(Component* what) {
+	//	if (what->c_type == T::CType)
+	//		return (T*)what;
+
+	//	return nullptr;
+	//}
 };
 
 class Component : public IComponent
 {
 public:
+
+	Component() : IComponent() {
+		this->c_Type |= ComponentType::Component;
+	}
 
 	void SetExtData(IExtData* extData);
 
@@ -149,23 +180,42 @@ public:
 	/// </summary>
 	virtual void FreeComponent() = 0;
 
-	bool AlreadyAwake();
+	bool AlreadyAwake() const
+	{
+		return _awaked;
+	}
 
 	/// <summary>
 	/// 关闭组件，标记为失效，组件会在执行完Foreach后被移除
 	/// </summary>
-	void Disable();
-	bool IsEnable();
+	void Disable()
+	{
+		_disable = true;
+	}
+
+	bool IsEnable() const
+	{
+		return !_disable;
+	}
 
 	/// <summary>
 	/// 激活组件，使其可以执行Foreach逻辑
 	/// </summary>
-	virtual void Activate();
+	virtual void Activate()
+	{
+		_active = true;
+	}
 	/// <summary>
 	/// 失活组件，使其跳过执行Foreach逻辑
 	/// </summary>
-	virtual void Deactivate();
-	virtual bool IsActive();
+	virtual void Deactivate()
+	{
+		_active = false;
+	}
+	virtual bool IsActive()
+	{
+		return _active;
+	}
 
 	/// <summary>
 	/// 将Component加入子列表，同时赋予自身储存的IExtData
@@ -312,7 +362,7 @@ public:
 		// find first level
 		for (Component* children : _children)
 		{
-			if (typeid(*children) == typeid(TComponent))
+			if (children->Name == typeid(TComponent).name())
 			{
 				c = (TComponent*)children;
 				break;

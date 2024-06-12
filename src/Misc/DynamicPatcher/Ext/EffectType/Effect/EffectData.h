@@ -33,6 +33,48 @@ inline bool Parser<AffectWho>::TryParse(const char* pValue, AffectWho* outValue)
 	}
 }
 
+enum class EffectDataType
+{
+	unk,
+	AnimationData,
+	AntiBulletData,
+	AttackBeaconData,
+	AttachEffectData,
+	AutoWeaponData,
+	BroadcastData,
+	BlackHoleData,
+	BounceData,
+	CrateBuffData,
+	DeselectData,
+	DestroyAnimData,
+	DestroySelfData,
+	DamageSelfData,
+	DamageReactionData,
+	DisableWeaponData,
+	ECMData,
+	ExtraFireData,
+	ExtraFireFLHData,
+	FreezeData,
+	FireSuperData,
+	GiftBoxData,
+	HostData,
+	ImmuneData,
+	InfoData,
+	MarkData,
+	NoMoneyNoTalkData,
+	OverrideWeaponData,
+	PaintballData,
+	PumpData,
+	RevengeData,
+	ScatterData,
+	StandData,
+	StackData,
+	TeleportData,
+	TransformData,
+	VampireData,
+	FeedbackAttachEntity,
+};
+
 #define EFFECT_DATA(DATA_NAME) \
 	virtual std::string GetEffectScriptName() override \
 	{ \
@@ -42,6 +84,10 @@ inline bool Parser<AffectWho>::TryParse(const char* pValue, AffectWho* outValue)
 	{ \
 		return std::string{ #DATA_NAME } + "State"; \
 	} \
+	virtual EffectDataType GetType() override\
+	{\
+		return EffectDataType::##DATA_NAME##Data;\
+	}\
 
 class EffectData : public FilterData
 {
@@ -59,6 +105,8 @@ public:
 	int TriggeredTimes = -1; // 触发次数
 	AffectWho AffectWho = AffectWho::MASTER;
 	bool DeactiveWhenCivilian = false;
+
+	virtual EffectDataType GetType() = 0;
 
 	virtual void Read(INIBufferReader* reader) override
 	{

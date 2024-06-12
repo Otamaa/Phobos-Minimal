@@ -20,38 +20,46 @@ typedef void (*HandleEvent)(EventSystem*, Event, void*);
 class Event
 {
 public:
-	Event(const char* Name, const char* Dest);
 	auto operator <=>(const Event&) const = default;
 
-	const char* Name;
-	const char* Dest;
+	std::string Name;
+	std::string Dest;
 };
 
 // 事件管理器
 class EventSystem
 {
 public:
-	EventSystem(const char* name);
 
-	void AddHandler(Event e, HandleEvent func);
+	EventSystem(const char* name) :
+		Name { name } , _handlers {}
+	{ }
+
+	~EventSystem() = default;
+
+	void AddHandler(Event e, HandleEvent func) {
+		this->_handlers[e] += Delegate::newDelegate(func);
+	}
 
 	template<typename T, typename F>
-	void AddHandler(Event e, T* _obj, F func)
-	{
+	void AddHandler(Event e, T* _obj, F func) {
 		_handlers[e] += Delegate::newDelegate(_obj, func);
 	}
 
-	void RemoveHandler(Event e, HandleEvent func);
+	void RemoveHandler(Event e, HandleEvent func) {
+		this->_handlers[e] -= Delegate::newDelegate(func);
+	}
 
 	template<typename T, typename F>
-	void RemoveHandler(Event e, T* _obj, F func)
-	{
+	void RemoveHandler(Event e, T* _obj, F func) {
 		_handlers[e] -= Delegate::newDelegate(_obj, func);
 	}
 
-	void Broadcast(Event e, void* args = EventArgsEmpty);
+	void Broadcast(Event e, void* args = EventArgsEmpty) {
+		this->_handlers[e](this, e, args);
+	}
 
-	const char* Name;
+	std::string Name;
 private:
 	std::map<Event, Delegate::CMultiDelegate<void, EventSystem*, Event, void* >> _handlers;
 };
@@ -93,16 +101,44 @@ public:
 class SaveLoadEventArgs
 {
 public:
-	SaveLoadEventArgs(const char* fileName, bool isStart);
-	SaveLoadEventArgs(IStream* stream, bool isStart);
+	constexpr SaveLoadEventArgs(const char* fileName, bool isStart) : FileName { fileName }
+		, Stream { nullptr }
+		, isStart { isStart }
+		, isStartInStream { false }
+	{ }
 
-	bool InStream();
-	bool IsStart();
-	bool IsEnd();
-	bool IsStartInStream();
-	bool IsEndInStream();
+	constexpr SaveLoadEventArgs(IStream* stream, bool isStart) : FileName { }
+		, Stream { stream }
+		, isStart { false }
+		, isStartInStream { isStart }
+	{ }
 
-	const char* FileName;
+	constexpr bool InStream()
+	{
+		return Stream != nullptr;
+	}
+
+	constexpr bool IsStart()
+	{
+		return isStart;
+	}
+
+	constexpr bool IsEnd()
+	{
+		return !IsStart() && !InStream();
+	}
+
+	constexpr bool IsStartInStream()
+	{
+		return isStartInStream;
+	}
+
+	constexpr bool IsEndInStream()
+	{
+		return !IsStartInStream() && InStream();
+	}
+
+	std::string FileName;
 	IStream* Stream;
 private:
 	bool isStart;

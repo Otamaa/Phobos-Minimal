@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include <GeneralDefinitions.h>
 
 #include <Utilities/Debug.h>
 
-#include <Common/Components/ScriptComponent.h>
+#include <Misc/DynamicPatcher/Common/Components/ScriptComponent.h>
 
-#include <Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
 #include "TrajectoryData.h"
 
@@ -20,7 +20,7 @@ public:
 	public:
 		CoordStruct sourcePos;
 		CoordStruct targetPos;
-		BulletVelocity Velocity;
+		VelocityClass Velocity;
 
 		void ResetVelocity(BulletClass* pBullet)
 		{

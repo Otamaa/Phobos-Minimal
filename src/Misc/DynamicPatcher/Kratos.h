@@ -3,6 +3,28 @@
 #include "Version.h"
 #include <Base/Always.h>
 
+enum class StateEffectTypes
+{
+	unk,
+	AntiBullet,
+	BlackHole,
+	DamageReaction,
+	Deselect,
+	DestroyAnim,
+	DestroySelf,
+	DisableWeapon,
+	ECM,
+	Freeze,
+	GiftBox,
+	NoMoneyNoTalk,
+	OverrideWeapon,
+	Paintball,
+	Pump,
+	Scatter,
+	Teleport,
+	Transform,
+};
+
 class EventSystem;
 class Event;
 
