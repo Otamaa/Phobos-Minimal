@@ -120,7 +120,7 @@ bool Bounce::SpawnSplitCannon()
 										if (pNewBullet)
 										{
 											// 新弹道控制
-											if (ArcingTrajectory* at = GetScript<BulletExt, ArcingTrajectory>(pNewBullet))
+											if (KratosArcingTrajectory* at = GetScript<BulletExt, KratosArcingTrajectory>(pNewBullet))
 											{
 												at->ResetArcingVelocity(_bounceSpeedMultiple);
 												at->CanBounce = true;

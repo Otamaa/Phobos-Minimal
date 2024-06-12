@@ -1,8 +1,8 @@
-﻿#include "MissileHoming.h"
+#include "MissileHoming.h"
 
-#include <RocketLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
 
 MissileHomingData* MissileHoming::GetHomingData()
 {
@@ -44,10 +44,10 @@ void MissileHoming::OnUpdate()
 		{
 			CoordStruct sourcePos = pTechno->GetCoords();
 			CoordStruct targetPos;
-			dynamic_cast<FootClass*>(pTechno)->Locomotor->Destination(&targetPos);
+			targetPos = static_cast<FootClass*>(pTechno)->Locomotor->Destination();
 			DirStruct dir = Point2Dir(sourcePos, targetPos);
-			pTechno->PrimaryFacing.SetCurrent(dir);
-			pTechno->SecondaryFacing.SetCurrent(dir);
+			pTechno->PrimaryFacing.Set_Current(dir);
+			pTechno->SecondaryFacing.Set_Current(dir);
 		}
 	}
 	// 读取目标位置修改飞行目的地
@@ -69,7 +69,7 @@ void MissileHoming::OnUpdate()
 		}
 		if (!HomingTargetLocation.IsEmpty())
 		{
-			RocketLocomotionClass* pLoco = dynamic_cast<RocketLocomotionClass*>(dynamic_cast<FootClass*>(pTechno)->Locomotor.get());
+			RocketLocomotionClass* pLoco = locomotion_cast<RocketLocomotionClass*>(static_cast<FootClass*>(pTechno)->Locomotor);
 			if (pLoco && pLoco->MissionState > 2)
 			{
 				pLoco->MovingDestination = HomingTargetLocation;

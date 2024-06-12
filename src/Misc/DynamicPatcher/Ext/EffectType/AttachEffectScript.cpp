@@ -102,7 +102,7 @@ void AttachEffectScript::ResetDuration()
 void AttachEffectScript::ResetEffectsDuration()
 {
 	ForeachChild([](Component* c) {
-		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+		if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript){
 			reinterpret_cast<IAEScript*>(c)->ResetDuration();
 		}
 	});
@@ -361,7 +361,7 @@ void AttachEffectScript::End(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+		if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript)
 			reinterpret_cast<IAEScript*>(c)->End(location);
 		});
 }
@@ -396,7 +396,7 @@ void AttachEffectScript::OnGScreenRender(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-			if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+			if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript)
 				reinterpret_cast<IAEScript*>(c)->OnGScreenRender(location);
 		});
 }
@@ -408,7 +408,7 @@ void AttachEffectScript::OnGScreenRenderEnd(CoordStruct location)
 		return;
 	}
 	ForeachChild([&location](Component* c) {
-			if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript)
+			if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript)
 				reinterpret_cast<IAEScript*>(c)->OnGScreenRenderEnd(location);
 		});
 }
@@ -490,7 +490,7 @@ void AttachEffectScript::PauseEffects()
 	// 暂停Effects
 	for (Component* c : _children)
 	{
-		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+		if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript){
 			auto cc = reinterpret_cast<IAEScript*>(c);
 			if (c->IsActive()) {
 				c->Deactivate();
@@ -505,7 +505,7 @@ void AttachEffectScript::RecordEffects()
 	// 恢复Effects
 	for (Component* c : _children)
 	{
-		if(c->c_Type & ComponentType::AE_Effect || c->c_Type & ComponentType::EffectScript){
+		if(c->c_Type & ComponentType::ObjectAEScript || c->c_Type & ComponentType::EffectScript){
 			auto cc = reinterpret_cast<IAEScript*>(c);
 			if (!c->IsActive()) {
 				c->Activate();
@@ -537,7 +537,7 @@ AttachEffect* AttachEffectScript::GetAEManager()
 {
 	if (!_aeManager)
 	{
-		if (_parent && _parent->c_Type & ComponentType::AE)
+		if (_parent && _parent->c_Type & ComponentType::ObjectAE)
 			_aeManager = static_cast<AttachEffect*>(_parent);
 	}
 	return _aeManager;

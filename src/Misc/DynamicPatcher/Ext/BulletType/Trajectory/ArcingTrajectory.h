@@ -9,10 +9,10 @@
 #include "TrajectoryData.h"
 
 /// @brief 动态载入组件
-class ArcingTrajectory : public BulletScript
+class KratosArcingTrajectory : public BulletScript
 {
 public:
-	BULLET_SCRIPT(ArcingTrajectory);
+	BULLET_SCRIPT(KratosArcingTrajectory);
 
 	void ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos);
 
@@ -43,7 +43,7 @@ public:
 
 #pragma region save/load
 	template <typename T>
-	bool Serialize(T& stream)
+	inline bool Serialize(T& stream)
 	{
 		return stream
 			.Process(this->CanBounce)
@@ -51,16 +51,8 @@ public:
 			.Success();
 	};
 
-	virtual bool Load(PhobosStreamReader& stream, bool registerForChange)
-	{
-		Component::Load(stream, registerForChange);
-		return this->Serialize(stream);
-	}
-	virtual bool Save(PhobosStreamWriter& stream) const
-	{
-		Component::Save(stream);
-		return const_cast<ArcingTrajectory*>(this)->Serialize(stream);
-	}
+	virtual bool Load(PhobosStreamReader& stream, bool registerForChange);
+	virtual bool Save(PhobosStreamWriter& stream) const;
 #pragma endregion
 private:
 	// 弹道控制

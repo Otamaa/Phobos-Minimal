@@ -1,11 +1,11 @@
-﻿#include "AircraftGuard.h"
+#include "AircraftGuard.h"
 
-#include <FlyLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 AircraftGuardData* AircraftGuard::GetAircraftGuardData()
 {
@@ -50,7 +50,7 @@ void AircraftGuard::StartAreaGuard()
 	{
 		// 设定新的航点
 		CoordStruct dest = CoordStruct::Empty;
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
 		AbstractClass* pDest = pFoot->Destination;
 		if (pDest)
 		{
@@ -58,7 +58,7 @@ void AircraftGuard::StartAreaGuard()
 		}
 		else
 		{
-			pFoot->Locomotor->Destination(&dest);
+			dest= pFoot->Locomotor->Destination();
 		}
 		// 获取到单位的目的地
 		if (SetupDestination(dest))
@@ -73,8 +73,7 @@ void AircraftGuard::StartAreaGuard()
 
 bool AircraftGuard::SetupDestination()
 {
-	CoordStruct dest = CoordStruct::Empty;
-	dynamic_cast<FootClass*>(pTechno)->Locomotor->Destination(&dest);
+	CoordStruct dest = static_cast<FootClass*>(pTechno)->Locomotor->Destination();
 	return SetupDestination(dest);
 }
 
@@ -181,11 +180,9 @@ bool AircraftGuard::FoundAndAttack(CoordStruct location)
 			if (!pTarget)
 			{
 				double dist = (cellSpread <= 0 ? 1 : cellSpread) * Unsorted::LeptonsPerCell;
-				for (auto standExt : TechnoExt::StandArray)
+				for (auto&[pStand , standData] : TechnoExt::StandArray)
 				{
 
-					TechnoClass* pStand = standExt.first;
-					StandData standData = standExt.second;
 					if (!standData.Immune && pStand != pTechno
 						&& sourcePos.DistanceFrom(pStand->GetCoords()) <= dist
 						&& CheckTarget(pStand))
@@ -260,8 +257,8 @@ void AircraftGuard::OnUpdate()
 	if (!IsDeadOrInvisible(pTechno))
 	{
 		AircraftGuardData* data = GetAircraftGuardData();
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-		ILocomotion* loco = pFoot->Locomotor.get();
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
+		ILocomotion* loco = pFoot->Locomotor.GetInterfacePtr();
 		switch (State)
 		{
 		case AircraftGuardStatus::READY:
@@ -427,8 +424,7 @@ void AircraftGuard::OnUpdate()
 				return;
 			}
 			// 当前飞机需要前往的目的地
-			CoordStruct destNow = CoordStruct::Empty;
-			loco->Destination(&destNow);
+			CoordStruct destNow = loco->Destination();
 			CoordStruct location = pTechno->GetCoords();
 			if (FoundAndAttack(location))
 			{

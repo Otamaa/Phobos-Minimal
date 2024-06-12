@@ -1,8 +1,8 @@
-﻿#include "Spawn.h"
+#include "Spawn.h"
 
-#include <RocketLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
 
 SpawnData* Spawn::GetSpawnData()
 {

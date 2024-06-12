@@ -23,8 +23,6 @@
 #include "../EffectScript.h"
 #include <Misc/DynamicPatcher/Ext/StateType/StateScript.h>
 
-
-
 #define STATE_EFFECT_SCRIPT(EFFECT_NAME) \
 	EFFECT_SCRIPT_BASE(EFFECT_NAME, StateEffect) \
 

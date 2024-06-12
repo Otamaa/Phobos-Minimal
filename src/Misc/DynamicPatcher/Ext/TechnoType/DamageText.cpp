@@ -1,8 +1,8 @@
-﻿#include "DamageText.h"
+#include "DamageText.h"
 
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 bool DamageText::SkipDrawDamageText(WarheadTypeClass* pWH, DamageTextData*& damageTextType)
 {
@@ -34,7 +34,7 @@ void DamageText::OrderDamageText(std::wstring text, CoordStruct location, Damage
 
 void DamageText::Awake()
 {
-	DamageTextData* data = INI::GetConfig<DamageTextData>(INI::Rules, INI::SectionAudioVisual)->Data;
+	DamageTextData* data = INI::GetConfig<DamageTextData>(INI::Rules, GameStrings::AudioVisual())->Data;
 	if (data->Hidden)
 	{
 		Disable();

@@ -146,7 +146,8 @@ void PumpState::CancelJump()
 void PumpState::OnStart()
 {
 	TechnoStatus* status = nullptr;
-	if(_parent->c_Type & ComponentType::TechnoStatus)
+	if (_parent->c_Type & ComponentType::Techno
+		&& ((TechnoScript*)_parent->c_Type)->GetCurrentScriptType() == TechnoScripts::TechnoStatus)
 		status = reinterpret_cast<TechnoStatus*>(_parent);
 
 	AttachEffect* aem = nullptr;
@@ -189,7 +190,8 @@ void PumpState::OnUpdate()
 		}
 		// 正在跳跃，计算新的位置并移动
 		TechnoStatus* status = nullptr;
-		if(_parent->c_Type & ComponentType::TechnoStatus)
+		if(_parent->c_Type & ComponentType::Techno
+			&& ((TechnoScript*)_parent->c_Type)->GetCurrentScriptType() == TechnoScripts::TechnoStatus)
 			status = static_cast<TechnoStatus*>(_parent);
 
 		if (status && status->Jumping)

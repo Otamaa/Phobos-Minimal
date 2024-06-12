@@ -23,6 +23,7 @@ class STATE_NAME ## Effect : public StateEffect<STATE_NAME ## Data> \
 { \
 public: \
 	STATE_EFFECT_SCRIPT(STATE_NAME); \
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::##STATE_NAME##; }\
 	virtual StateEffectTypes GetEffecType() { return StateEffectTypes::##STATE_NAME##; }\
 	virtual IStateScript* GetState(TechnoStatus* status) override \
 	{ \

@@ -71,15 +71,14 @@ enum class ComponentType
 	Object,
 	Techno,
 	Bullet,
-	BulletStatus,
 	Anim,
 	Super,
 	EBolt,
-	AE,
-	AE_Effect,
-	EffectScript,
 
-	StateType,
+	ObjectAE,
+	ObjectAEScript,
+
+	EffectScript,
 	StateEffect,
 	StateScript,
 
@@ -130,7 +129,7 @@ public:
 	virtual bool Load(PhobosStreamReader& stream, bool registerForChange) = 0;
 	virtual bool Save(PhobosStreamWriter& stream) const = 0;
 
-	ComponentType c_Type { ComponentType::unk };
+	ComponentType c_Type { ComponentType::Base };
 
 	//avoid using dynamic_cast
 	//template<typename T>

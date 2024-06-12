@@ -1,10 +1,10 @@
-﻿#include "SupportSpawns.h"
+#include "SupportSpawns.h"
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 SupportSpawnsData* SupportSpawns::GetSupportSpawnsData()
 {
@@ -108,14 +108,14 @@ void SupportSpawns::FireSupportWeaponToSpawn(bool checkROF)
 					// Ready to fire
 					CoordStruct sourcePos = GetFLHAbsoluteCoords(pShooter, flh, isOnTurret);
 					CoordStruct targetPos = GetFLHAbsoluteCoords(pTarget, hitFLH, true);
-					BulletVelocity v = GetBulletVelocity(sourcePos, targetPos);
+					VelocityClass v = GetBulletVelocity(sourcePos, targetPos);
 					// Fire weapon
 					FireBulletTo(pShooter, pAttacker, pTarget, pAttackingHouse, pWeapon, sourcePos, targetPos, v, flh, isOnTurret);
 					if (turnTurret && pShooter->HasTurret())
 					{
 						// 强制扭头
 						DirStruct facing = Point2Dir(sourcePos, targetPos);
-						pShooter->TurretFacing().SetCurrent(facing);
+						pShooter->F_TurretFacing().Set_Current(facing);
 					}
 					if (checkROF)
 					{

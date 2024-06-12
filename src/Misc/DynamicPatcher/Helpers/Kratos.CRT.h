@@ -5,7 +5,7 @@
 struct KratosCRT{
 
 	//this make copy
-	static bool IsNotNone(std::string val)
+	static inline bool IsNotNone(std::string val)
 	{
 		if (val.empty())
 			return false;
@@ -16,7 +16,16 @@ struct KratosCRT{
 		return trans_ != "none";
 	}
 
-	static std::string& trim(std::string& s)
+	template <typename T>
+	static inline std::basic_string<T> lowercase(const std::basic_string<T>& s)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin(), s2.end(), s2.begin(),
+			[](const T v) { return static_cast<T>(std::tolower(v)); });
+		return s2;
+	}
+
+	static inline  std::string& trim(std::string& s)
 	{
 		if (s.empty())
 		{
@@ -31,7 +40,7 @@ struct KratosCRT{
 	// Uppercases string
 	//
 	template <typename T>
-	static std::basic_string<T> uppercase(const std::basic_string<T>& s)
+	static inline  std::basic_string<T> uppercase(const std::basic_string<T>& s)
 	{
 		std::basic_string<T> s2 = s;
 		std::transform(s2.begin(), s2.end(), s2.begin(),
@@ -39,7 +48,7 @@ struct KratosCRT{
 		return s2;
 	}
 
-	static std::string subreplace(std::string resource, std::string sub, std::string replace)
+	static inline  std::string subreplace(std::string resource, std::string sub, std::string replace)
 	{
 		std::string dst_str = resource;
 		size_t pos = 0;
@@ -50,7 +59,7 @@ struct KratosCRT{
 		return dst_str;
 	}
 
-	static int Wchar2Char(const wchar_t* wcharStr, char* charStr)
+	static inline  int Wchar2Char(const wchar_t* wcharStr, char* charStr)
 	{
 		int len = WideCharToMultiByte(CP_ACP, 0, wcharStr, wcslen(wcharStr), NULL, 0, NULL, NULL);
 		WideCharToMultiByte(CP_ACP, 0, wcharStr, wcslen(wcharStr), charStr, len, NULL, NULL);
@@ -58,7 +67,7 @@ struct KratosCRT{
 		return len;
 	}
 
-	static std::string WString2String(std::wstring wstr)
+	static inline  std::string WString2String(std::wstring wstr)
 	{
 		std::string res {};
 		int len = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), NULL, 0, NULL, NULL);
@@ -78,7 +87,7 @@ struct KratosCRT{
 		return res;
 	}
 
-	static int Char2Wchar(const char* charStr, wchar_t* wcharStr)
+	static inline  int Char2Wchar(const char* charStr, wchar_t* wcharStr)
 	{
 		int len = MultiByteToWideChar(CP_ACP, 0, charStr, strlen(charStr), NULL, 0);
 		MultiByteToWideChar(CP_ACP, 0, charStr, strlen(charStr), wcharStr, len);
@@ -86,7 +95,7 @@ struct KratosCRT{
 		return len;
 	}
 
-	static std::wstring String2WString(std::string str)
+	static inline  std::wstring String2WString(std::string str)
 	{
 		std::wstring res {};
 		int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
@@ -102,7 +111,7 @@ struct KratosCRT{
 		return res;
 	}
 
-	static void ClearIfGetNone(std::vector<std::string>& value)
+	static inline  void ClearIfGetNone(std::vector<std::string>& value)
 	{
 		if (value.size() == 1 && !IsNotNone(value[0]))
 		{
@@ -110,7 +119,7 @@ struct KratosCRT{
 		}
 	}
 
-	static std::string GetUUID()
+	static inline  std::string GetUUID()
 	{
 		std::string strUUID;
 		GUID guid;
@@ -129,7 +138,7 @@ struct KratosCRT{
 		return strUUID;
 	}
 
-	static std::string GetUUIDShort()
+	static inline  std::string GetUUIDShort()
 	{
 		std::string strUUID;
 		GUID guid;
@@ -147,7 +156,7 @@ struct KratosCRT{
 		return strUUID;
 	}
 
-	static void split(std::string& s, std::string& delim, std::vector<std::string>* result)
+	static inline void split(std::string& s, std::string& delim, std::vector<std::string>* result)
 	{
 		size_t last = 0;
 		size_t index = s.find_first_of(delim, last);

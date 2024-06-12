@@ -1,8 +1,8 @@
-﻿#include "TechnoTrail.h"
+#include "TechnoTrail.h"
 #include "TechnoStatus.h"
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 void TechnoTrail::SetupTrails()
 {

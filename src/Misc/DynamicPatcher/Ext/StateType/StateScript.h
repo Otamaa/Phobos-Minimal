@@ -51,7 +51,7 @@ public:
 #define DECLARE_STATE_COMPONENT(CLASS_NAME, ...) \
 	CLASS_NAME() : __VA_ARGS__() \
 	{ \
-		this->c_Type |= ComponentType::StateType;\
+		this->c_Type |= ComponentType::StateScript;\
 		this->s_Type = StateType::##CLASS_NAME;\
 		this->Name = ScriptName; \
 	} \
@@ -83,6 +83,7 @@ public:
 	inline static int g_temp_##CLASS_NAME = ComponentFactory::GetInstance().Register(#CLASS_NAME, CLASS_NAME::Create); \
 	\
 	inline static std::vector<CLASS_NAME*> Pool{}; \
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::##CLASS_NAME##; }\
 
 #define STATE_SCRIPT(STATE_NAME) \
 	DECLARE_STATE_COMPONENT(STATE_NAME ## State, StateScript<STATE_NAME ## Data>) \
@@ -113,10 +114,6 @@ template <typename TData>
 class StateScript : public ObjectScript, public IStateScript
 {
 public:
-
-	StateScript<TData>() : ObjectScript() {
-		this->c_Type |= ComponentType::StateScript;
-	}
 
 	virtual void Clean() override
 	{

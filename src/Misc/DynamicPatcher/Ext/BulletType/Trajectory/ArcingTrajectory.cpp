@@ -3,14 +3,14 @@
 #include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
 #include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
 
-void ArcingTrajectory::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
+void KratosArcingTrajectory::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
 {
 	CoordStruct sourcePos = pBullet->GetCoords();
 	pBullet->SourceCoords = sourcePos;
 	ResetArcingVelocity(1.0f);
 }
 
-void ArcingTrajectory::ResetArcingVelocity(float speedMultiple)
+void KratosArcingTrajectory::ResetArcingVelocity(float speedMultiple)
 {
 	if (trajectoryData->AdvancedBallistics)
 	{
@@ -54,7 +54,7 @@ void ArcingTrajectory::ResetArcingVelocity(float speedMultiple)
 	}
 }
 
-void ArcingTrajectory::Awake()
+void KratosArcingTrajectory::Awake()
 {
 	if (!IsArcing())
 	{
@@ -63,7 +63,7 @@ void ArcingTrajectory::Awake()
 }
 
 
-void ArcingTrajectory::OnUpdate()
+void KratosArcingTrajectory::OnUpdate()
 {
 	if (!_initFlag)
 	{
@@ -97,4 +97,15 @@ void ArcingTrajectory::OnUpdate()
 			}
 		}
 	}
+}
+
+bool KratosArcingTrajectory::Load(PhobosStreamReader& stream, bool registerForChange)
+{
+	Component::Load(stream, registerForChange);
+	return this->Serialize(stream);
+}
+bool KratosArcingTrajectory::Save(PhobosStreamWriter& stream) const
+{
+	Component::Save(stream);
+	return const_cast<KratosArcingTrajectory*>(this)->Serialize(stream);
 }

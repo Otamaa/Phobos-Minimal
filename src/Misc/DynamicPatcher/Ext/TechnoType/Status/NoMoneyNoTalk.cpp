@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 bool TechnoStatus::CanFire_NoMoneyNoTalk(AbstractClass* pTarget, WeaponTypeClass* pWeapon)
 {

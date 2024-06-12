@@ -1,13 +1,13 @@
-﻿#include "AircraftAttitude.h"
+#include "AircraftAttitude.h"
 
-#include <FlyLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
 AircraftAttitudeData* AircraftAttitude::GetAircraftAttitudeData()
 {
@@ -21,7 +21,7 @@ AircraftAttitudeData* AircraftAttitude::GetAircraftAttitudeData()
 bool AircraftAttitude::TryGetAirportDir(int& poseDir)
 {
 	poseDir = RulesClass::Instance->PoseDir;
-	AircraftClass* pAir = dynamic_cast<AircraftClass*>(pTechno);
+	AircraftClass* pAir = static_cast<AircraftClass*>(pTechno);
 	if (pAir->HasAnyLink()) // InRadioContact
 	{
 		TechnoClass* pAirport = pAir->GetNthLink();
@@ -66,8 +66,8 @@ void AircraftAttitude::UpdateHeadToCoord(CoordStruct headTo, bool lockAngle)
 	}
 	if (!headTo.IsEmpty())
 	{
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-		FlyLocomotionClass* pFly = dynamic_cast<FlyLocomotionClass*>(pFoot->Locomotor.get());
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
+		FlyLocomotionClass* pFly = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor);
 
 		if (pFly->IsTakingOff || pFly->IsLanding || !pFly->HasMoveOrder)
 		{
@@ -168,8 +168,8 @@ void AircraftAttitude::OnUpdate()
 		if (TryGetAirportDir(dir))
 		{
 			DirStruct dirStruct = DirNormalized(dir, 8);
-			pTechno->PrimaryFacing.SetCurrent(dirStruct);
-			pTechno->SecondaryFacing.SetCurrent(dirStruct);
+			pTechno->PrimaryFacing.Set_Current(dirStruct);
+			pTechno->SecondaryFacing.Set_Current(dirStruct);
 		}
 	}
 	if (!IsDeadOrInvisible(pTechno))
@@ -188,7 +188,7 @@ void AircraftAttitude::OnUpdate()
 		}
 		// 正事
 		// 检查是否开启了吊运功能
-		if (dynamic_cast<AircraftClass*>(pTechno)->Type->Carryall)
+		if (static_cast<AircraftClass*>(pTechno)->Type->Carryall)
 		{
 			PitchAngle = 0;
 		}
@@ -218,11 +218,10 @@ void AircraftAttitude::OnUpdate()
 		if (!GetAircraftAttitudeData()->Disable && !_lockAngle)
 		{
 			// 根据速度计算出飞行的下一个位置
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-			if (FlyLocomotionClass* pFly = dynamic_cast<FlyLocomotionClass*>(pFoot->Locomotor.get()))
+			FootClass* pFoot = static_cast<FootClass*>(pTechno);
+			if (FlyLocomotionClass* pFly = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor))
 			{
-				CoordStruct destPos = CoordStruct::Empty;
-				pFoot->Locomotor->Destination(&destPos);
+				CoordStruct destPos = pFoot->Locomotor->Destination();
 				if (!destPos.IsEmpty())
 				{
 					DirStruct dir = pTechno->SecondaryFacing.Current();
@@ -283,8 +282,8 @@ void AircraftAttitude::OnUpdateEnd()
 	if (!IsDeadOrInvisible(pTechno) && !IsDeadOrInvisible(pTechno->SpawnOwner))
 	{
 		AircraftAttitudeData* data = GetAircraftAttitudeData();
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-		FlyLocomotionClass* pFly = dynamic_cast<FlyLocomotionClass*>(pFoot->Locomotor.get());
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
+		FlyLocomotionClass* pFly = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor);
 
 		TechnoClass* pSpawnOwner = pTechno->SpawnOwner;
 
@@ -293,8 +292,8 @@ void AircraftAttitude::OnUpdateEnd()
 		{
 			dir = data->SpawnLandDir;
 			DirStruct dirStruct = GetRelativeDir(pSpawnOwner, dir, false);
-			pTechno->PrimaryFacing.SetDesired(dirStruct);
-			pTechno->SecondaryFacing.SetDesired(dirStruct);
+			pTechno->PrimaryFacing.Set_Desired(dirStruct);
+			pTechno->SecondaryFacing.Set_Desired(dirStruct);
 		}
 		else if (pFly->HasMoveOrder && !pTechno->IsInAir() && pSpawnOwner->GetTechnoType()->RadialFireSegments <= 1)
 		{
@@ -304,8 +303,8 @@ void AircraftAttitude::OnUpdateEnd()
 			case Mission::Area_Guard:
 				dir = data->SpawnTakeoffDir;
 				DirStruct dirStruct = GetRelativeDir(pSpawnOwner, dir, false);
-				pTechno->PrimaryFacing.SetCurrent(dirStruct);
-				pTechno->SecondaryFacing.SetCurrent(dirStruct);
+				pTechno->PrimaryFacing.Set_Current(dirStruct);
+				pTechno->SecondaryFacing.Set_Current(dirStruct);
 				break;
 			}
 		}

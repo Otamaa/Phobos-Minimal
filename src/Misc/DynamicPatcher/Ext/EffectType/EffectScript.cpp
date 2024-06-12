@@ -4,7 +4,7 @@
 
 AttachEffectScript* EffectScript::GetAE()
 {
-	if (!_ae && _parent->c_Type & ComponentType::AE_Effect) {
+	if (!_ae && _parent->c_Type & ComponentType::ObjectAEScript) {
 		_ae = reinterpret_cast<AttachEffectScript*>(_parent);
 	}
 

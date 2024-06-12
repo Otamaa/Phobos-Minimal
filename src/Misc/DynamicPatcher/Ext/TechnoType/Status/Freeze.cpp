@@ -1,6 +1,6 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 DestroyAnimData* TechnoStatus::GetDestroyAnimData()
 {
@@ -21,7 +21,7 @@ void TechnoStatus::OnUpdate_Freeze()
 			// 清除所有目标
 			ClearAllTarget(pTechno);
 			// 马上停止活动
-			if (FootClass* pFoot = dynamic_cast<FootClass*>(pTechno))
+			if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
 			{
 				ForceStopMoving(pFoot);
 			}

@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
 
 #include <GeneralStructures.h>
 
-#include <Common/INI/INIConfig.h>
+#include <Misc/DynamicPatcher/Common/INI/INIConfig.h>
 
-#include <Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
 
 class AircraftAttitudeData : public INIConfig
 {
@@ -22,7 +22,7 @@ public:
 	virtual void Read(INIBufferReader* reader) override
 	{
 		// 读取全局
-		INIBufferReader* av = INI::GetSection(INI::Rules, INI::SectionAudioVisual);
+		INIBufferReader* av = INI::GetSection(INI::Rules, GameStrings::AudioVisual());
 		Read(av, "");
 		// 读取个体
 		Read(reader, "");

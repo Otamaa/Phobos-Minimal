@@ -282,7 +282,7 @@ void TechnoStatus::ReleaseGift(std::vector<std::string> gifts, GiftBoxData data)
 				AttachEffect* boxAEM = boxGO->GetComponent<AttachEffect>();
 				// 关闭不可继承的AE，以及含有GiftBox的AE
 				boxAEM->ForeachChild([&](Component* c) {
-					if (c->c_Type & ComponentType::AE_Effect)
+					if (c->c_Type & ComponentType::ObjectAEScript)
 					{
 						auto ae = static_cast<AttachEffectScript*>(c);
 

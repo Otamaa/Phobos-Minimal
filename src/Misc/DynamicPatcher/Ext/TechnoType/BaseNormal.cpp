@@ -1,9 +1,9 @@
-﻿#include "BaseNormal.h"
+#include "BaseNormal.h"
 
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 BaseNormalData* BaseNormal::GetBaseNormalData()
 {

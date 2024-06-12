@@ -1,10 +1,10 @@
-﻿#include "JumpjetCarryall.h"
+#include "JumpjetCarryall.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 TechnoStatus* JumpjetCarryall::GetTechnoStatus()
 {
@@ -73,9 +73,9 @@ bool JumpjetCarryall::InMission()
 
 bool JumpjetCarryall::CanLift(TechnoClass* pTarget, bool& toPayload)
 {
-	FootClass* pTargetFoot = dynamic_cast<FootClass*>(pTarget);
+	FootClass* pTargetFoot = generic_cast<FootClass*>(pTarget);
 	if (pTechno && pTargetFoot && pTechno != pTargetFoot
-		&& pTechno->Owner->IsControlledByCurrentPlayer() && pTechno->Owner->IsAlliedWith(pTargetFoot->GetOwningHouse())
+		&& pTechno->Owner->ControlledByCurrentPlayer() && pTechno->Owner->IsAlliedWith(pTargetFoot->GetOwningHouse())
 		&& !pTargetFoot->ParasiteEatingMe && !pTargetFoot->IsIronCurtained() && !pTargetFoot->WarpingOut && !pTargetFoot->IsImmobilized && !pTargetFoot->IsAttackedByLocomotor)
 	{
 		TechnoTypeClass* pType = pTechno->GetTechnoType();
@@ -150,8 +150,8 @@ void JumpjetCarryall::DropPayload()
 		}
 		if (TryPutTechno(pTarget, location))
 		{
-			pTarget->PrimaryFacing.SetCurrent(dir);
-			pTarget->SecondaryFacing.SetCurrent(dir);
+			pTarget->PrimaryFacing.Set_Current(dir);
+			pTarget->SecondaryFacing.Set_Current(dir);
 			FallingExceptAircraft(pTarget, 0, true);
 			int sound = pTechno->GetTechnoType()->LeaveTransportSound;
 			if (sound != -1)
@@ -170,7 +170,7 @@ bool JumpjetCarryall::NotToTarget()
 {
 	if (!IsDeadOrInvisible(_pTarget) && _pTargetCell)
 	{
-		if (AbstractClass* pDest = dynamic_cast<FootClass*>(pTechno)->Destination)
+		if (AbstractClass* pDest = generic_cast<FootClass*>(pTechno)->Destination)
 		{
 			CoordStruct destPos = pDest->GetCoords();
 			CellClass* pDestCell = MapClass::Instance->TryGetCellAt(destPos);
@@ -219,11 +219,11 @@ void JumpjetCarryall::OnUpdate()
 			pPayload->AngleRotatedSideways = pTechno->AngleRotatedSideways;
 		}
 		DirStruct dir = pTechno->PrimaryFacing.Current();
-		pPayload->PrimaryFacing.SetCurrent(dir);
-		pPayload->SecondaryFacing.SetCurrent(dir);
-		if (JumpjetLocomotionClass* pPayloadJJ = dynamic_cast<JumpjetLocomotionClass*>(pPayload->Locomotor.get()))
+		pPayload->PrimaryFacing.Set_Current(dir);
+		pPayload->SecondaryFacing.Set_Current(dir);
+		if (JumpjetLocomotionClass* pPayloadJJ = locomotion_cast<JumpjetLocomotionClass*>(pPayload->Locomotor))
 		{
-			pPayloadJJ->LocomotionFacing.SetCurrent(dir);
+			pPayloadJJ->Facing.Set_Current(dir);
 		}
 	}
 	if (!IsDeadOrInvisible(pTechno))
@@ -267,7 +267,7 @@ void JumpjetCarryall::OnUpdate()
 				CancelMission();
 				break;
 			}
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+			FootClass* pFoot = static_cast<FootClass*>(pTechno);
 			if (pFoot->DistanceFrom(_pTargetCell) <= 16)
 			{
 				// 抵达目标上空，开始降落
@@ -300,8 +300,8 @@ void JumpjetCarryall::OnUpdate()
 			// 下降高度
 			int z = targetPos.Z;
 			int climb = 20;
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-			JumpjetLocomotionClass* pJJ = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get());
+			FootClass* pFoot = static_cast<FootClass*>(pTechno);
+			JumpjetLocomotionClass* pJJ = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor);
 			if (pJJ)
 			{
 				climb = (int)pJJ->Climb;
@@ -320,9 +320,9 @@ void JumpjetCarryall::OnUpdate()
 					DirStruct dir = _pTarget->PrimaryFacing.Current();
 					if (pJJ)
 					{
-						pJJ->LocomotionFacing.SetDesired(dir);
+						pJJ->Facing.Set_Desired(dir);
 					}
-					pTechno->PrimaryFacing.SetDesired(dir);
+					pTechno->PrimaryFacing.Set_Desired(dir);
 				}
 			}
 			if (close)

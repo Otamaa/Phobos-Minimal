@@ -1,9 +1,9 @@
-﻿#include "JumpjetFacing.h"
+#include "JumpjetFacing.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 JumpjetFacingData* JumpjetFacing::GetJJFacingData()
 {
@@ -40,19 +40,19 @@ void JumpjetFacing::OnUpdate()
 	{
 		if (_JJNeedTurn)
 		{
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+			FootClass* pFoot = static_cast<FootClass*>(pTechno);
 			// JJ变形为其他类型的单位后，不一定具有JJLoco
-			if (JumpjetLocomotionClass* jjLoco = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
+			if (JumpjetLocomotionClass* jjLoco = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor))
 			{
 				CoordStruct sourcePos = pTechno->GetCoords();
-				CoordStruct targetPos = jjLoco->DestinationCoords;
+				CoordStruct targetPos = jjLoco->HeadToCoord;
 				if (targetPos.IsEmpty() || CellClass::Coord2Cell(sourcePos) == CellClass::Coord2Cell(targetPos))
 				{
-					DirStruct dir = jjLoco->LocomotionFacing.Current();
+					DirStruct dir = jjLoco->Facing.Current();
 					// Turning
 					_JJNeedTurn = false;
 					// pFoot->StopMoving(); // 导致飞碟中断吸取
-					jjLoco->LocomotionFacing.SetDesired(_JJTurnTo);
+					jjLoco->Facing.Set_Desired(_JJTurnTo);
 				}
 				else
 				{

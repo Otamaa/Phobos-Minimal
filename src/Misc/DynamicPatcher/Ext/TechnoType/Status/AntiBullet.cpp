@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
 #include <FootClass.h>
 
-#include <Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
 
 bool TechnoStatus::WeaponNoAA(int weaponIdx)
 {

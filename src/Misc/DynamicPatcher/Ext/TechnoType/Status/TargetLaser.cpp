@@ -1,6 +1,6 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
 
 void TechnoStatus::StartTargetLaser(AbstractClass* pTarget, WeaponTypeClass* pWeapon, TargetLaserData data, CoordStruct flh, bool isOnTurret)
 {
@@ -107,7 +107,7 @@ void TechnoStatus::OnGScreenRender(EventSystem* sender, Event e, void* args)
 	}
 	if (args)
 	{
-		RectangleStruct bounds = DSurface::Temp->GetRect();
+		RectangleStruct bounds = DSurface::Temp->Get_Rect();
 		bounds.Height -= 34;
 		// EndRender
 		for (TargetLaser& laser : _targetLasers)

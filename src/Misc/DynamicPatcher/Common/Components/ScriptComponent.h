@@ -74,6 +74,81 @@ enum class ObjectScripts
 	unk,
 	AttachEffect,
 	AttachFire,
+	AttachEffectScript,
+
+	//affect
+	Animation,
+	Stand,
+	Revenge,
+	FireSuper,
+	Vampire,
+	Host,
+	Immune,
+	ExtraFire,
+	Info,
+	Mark,
+	Broadcast,
+	Stack,
+	DamageSelf,
+	CrateBuff,
+	AttackBeacon,
+	AutoWeapon,
+
+	AntiBullet,
+	BlackHole,
+	DamageReaction,
+	Deselect,
+	DestroyAnim,
+	DestroySelf,
+	DisableWeapon,
+	ECM,
+	Freeze,
+	GiftBox,
+	NoMoneyNoTalk,
+	OverrideWeapon,
+	Paintball,
+	Pump,
+	Scatter,
+	Teleport,
+	Transform,
+
+	//state
+	AntiBulletState,
+	BlackHoleState,
+	DamageReactionState,
+	DeselectState,
+	DestroyAnimState,
+	DestroySelfState,
+	DisableWeaponState,
+	ECMState,
+	FreezeState,
+	GiftBoxState,
+	NoMoneyNoTalkState,
+	OverrideWeaponState,
+	PaintballState,
+	PumpState,
+	ScatterState,
+	TransformState,
+	TeleportState,
+
+	//state affect
+	AntiBulletEffect,
+	BlackHoleEffect,
+	DamageReactionEffect,
+	DeselectEffect,
+	DestroyAnimEffect,
+	DestroySelfEffect,
+	DisableWeaponEffect,
+	ECMEffect,
+	FreezeEffect,
+	GiftBoxEffect,
+	NoMoneyNoTalkEffect,
+	OverrideWeaponEffect,
+	PaintballEffect,
+	PumpEffect,
+	ScatterEffect,
+	TeleportEffect,
+	TransformEffect,
 };
 
 class ObjectScript : public ScriptComponent, public ITechnoScript, public IBulletScript
@@ -319,9 +394,9 @@ enum class BulletScripts
 	Bounce,
 	BulletStatus,
 	BulletTrail,
-	ArcingTrajectory,
+	KratosArcingTrajectory,
 	MissileTrajectory,
-	StraightTrajectory,
+	KratosStraightTrajectory,
 
 };
 class BulletScript : public ScriptComponent, public IBulletScript
@@ -412,6 +487,7 @@ public:
 
 #define OBJECT_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, ObjectScript) \
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::##CLASS_NAME##; }\
 
 #define TECHNO_SCRIPT(CLASS_NAME) \
 	DECLARE_COMPONENT(CLASS_NAME, TechnoScript) \

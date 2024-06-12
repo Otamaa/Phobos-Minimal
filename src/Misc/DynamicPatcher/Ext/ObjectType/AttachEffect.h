@@ -34,11 +34,10 @@ class TechnoStatus;
 class AttachEffect : public ObjectScript
 {
 public:
-	//OBJECT_SCRIPT(AttachEffect);
-
-	AttachEffect() : ObjectScript() {
+	AttachEffect() : ObjectScript()
+	{
+		this->c_Type |= ComponentType::ObjectAE;
 		this->Name = ScriptName;
-		this->c_Type |= ComponentType::AE;
 	}
 
 	virtual void FreeComponent() override
@@ -58,14 +57,14 @@ public:
 		}
 			if (!c)
 			{
-				c = static_cast<Component*>(new AttachEffect()); \
+				c = static_cast<Component*>(new AttachEffect());
 			}
 				return c;
 	}
-
 	inline static std::string ScriptName = "AttachEffect";
 	inline static int g_temp_AttachEffect = ComponentFactory::GetInstance().Register("AttachEffect", AttachEffect::Create);
-	inline static std::vector<AttachEffect*> Pool {}; \
+	inline static std::vector<AttachEffect*> Pool {};
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::AttachEffect; }
 
 	void OnDestroySelf();
 	bool OwnerIsDead();

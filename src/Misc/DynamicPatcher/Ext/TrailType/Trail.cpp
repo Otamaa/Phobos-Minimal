@@ -1,8 +1,8 @@
-﻿#include "Trail.h"
+#include "Trail.h"
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
 
 Trail::Trail() {}
 
@@ -221,7 +221,7 @@ void Trail::DrawAnimTrail(CoordStruct currentPos, CoordStruct behindPos, HouseCl
 		}
 		animType = animTypes->at(index);
 	}
-	if (IsNotNone(animType))
+	if (KratosCRT::IsNotNone(animType))
 	{
 		AnimTypeClass* pAnimType = AnimTypeClass::Find(animType.c_str());
 		if (pAnimType)

@@ -1,11 +1,11 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/EffectType/AttachEffectScript.h>
-#include <Ext/EffectType/Effect/StandEffect.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectScript.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/StandEffect.h>
 
 void TechnoStatus::SetupStand(StandData data, TechnoClass* pMaster)
 {
@@ -98,7 +98,10 @@ void TechnoStatus::OnReceiveDamage_Stand(args_ReceiveDamage* args)
 			int damage = *args->Damage;
 			AttachEffect* aem = AEManager();
 			aem->ForeachChild([&](Component* c) {
-				if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+				if (!(c->c_Type & ComponentType::ObjectAEScript))
+					return;
+
+				if (auto ae = static_cast<AttachEffectScript*>(c))
 				{
 					if (ae->AEData.Stand.Enable
 						&& !ae->AEData.Stand.Immune

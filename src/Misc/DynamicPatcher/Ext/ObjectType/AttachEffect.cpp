@@ -78,7 +78,7 @@ int AttachEffect::Count()
 void AttachEffect::GetMarks(std::vector<std::string>& marks)
 {
 	ForeachChild([&marks](Component* c) {
-		if (c->c_Type & ComponentType::AE_Effect) {
+		if (c->c_Type & ComponentType::ObjectAEScript) {
 			reinterpret_cast<AttachEffectScript*>(c)->GetMarks(marks);
 		}
 		});
@@ -94,7 +94,7 @@ std::vector<std::string> AttachEffect::GetMarks()
 void AttachEffect::GetAENames(std::vector<std::string>& names)
 {
 	ForeachChild([&names](Component* c) {
-		if (c->c_Type & ComponentType::AE_Effect) {
+		if (c->c_Type & ComponentType::ObjectAEScript) {
 			names.push_back(reinterpret_cast<AttachEffectScript*>(c)->AEData.Name);
 		}
 		});
@@ -104,7 +104,7 @@ bool AttachEffect::HasStand()
 {
 	bool find = false;
 	ForeachChild([&find](Component* c) {
-		if (c->c_Type & ComponentType::AE_Effect)
+		if (c->c_Type & ComponentType::ObjectAEScript)
 		{
 			find = reinterpret_cast<AttachEffectScript*>(c)->AEData.Stand.Enable;
 			if (find)
@@ -125,7 +125,7 @@ state = status->cls; \
 void AttachEffect::AEStateToStand(EffectData* pData, int duration, std::string token, bool resetDuration)
 {
 	ForeachChild([&pData, &duration, &token, &resetDuration](Component* c) {
-		if (c->c_Type & ComponentType::AE_Effect) {
+		if (c->c_Type & ComponentType::ObjectAEScript) {
 			auto ae = reinterpret_cast<AttachEffectScript*>(c);
 			if (ae->AEData.Stand.Enable && ae->IsAlive())
 			{
@@ -195,7 +195,7 @@ CrateBuffData AttachEffect::CountAttachStatusMultiplier()
 	}
 	// 统计AE加成
 	ForeachChild([&multiplier](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto temp = reinterpret_cast<AttachEffectScript*>(c);
@@ -220,7 +220,7 @@ ImmuneData AttachEffect::GetImmuneData()
 	// 统计AE加成
 	ForeachChild([&data](Component* c) {
 
-		if (c->c_Type & ComponentType::AE_Effect
+		if (c->c_Type & ComponentType::ObjectAEScript
 			&& reinterpret_cast<AttachEffectScript*>(c)->IsAlive()
 			&& reinterpret_cast<AttachEffectScript*>(c)->AEData.Immune.Enable
 			)
@@ -434,7 +434,7 @@ void AttachEffect::Attach(AttachEffectData data,
 		// 检查持续时间，增减Duration
 		ForeachChild([&find, &add, &isAttackMark, &isHouseMark, &data, &pAttacker, &pAttackingHouse, &location](Component* c) {
 
-			if (c->c_Type & ComponentType::AE_Effect && reinterpret_cast<AttachEffectScript*>(c)->IsAlive())
+			if (c->c_Type & ComponentType::ObjectAEScript && reinterpret_cast<AttachEffectScript*>(c)->IsAlive())
 			{
 				auto temp = reinterpret_cast<AttachEffectScript*>(c);
 				if (data.Group < 0)
@@ -729,7 +729,7 @@ void AttachEffect::DetachByName(std::vector<std::string> aeTypes, bool skipNext)
 	ForeachChild([&aeTypes, &skipNext](Component* c) {
 
 		// 通过名字关闭掉AE
-		if (c->c_Type & ComponentType::AE_Effect && std::find(aeTypes.begin(), aeTypes.end(),
+		if (c->c_Type & ComponentType::ObjectAEScript && std::find(aeTypes.begin(), aeTypes.end(),
 			reinterpret_cast<AttachEffectScript*>(c)->AEData.Name) != aeTypes.end())
 		{
 			auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -755,7 +755,7 @@ void AttachEffect::DetachByName(std::map<std::string, int> aeTypes, bool skipNex
 	if (!names.empty())
 	{
 		ForeachChild([&](Component* c) {
-			if (!(c->c_Type & ComponentType::AE_Effect))
+			if (!(c->c_Type & ComponentType::ObjectAEScript))
 				return;
 
 			auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -778,7 +778,7 @@ void AttachEffect::DetachByName(std::map<std::string, int> aeTypes, bool skipNex
 void AttachEffect::DetachByMarks(std::vector<std::string> marks, bool skipNext)
 {
 	ForeachChild([&marks, &skipNext](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -796,7 +796,7 @@ void AttachEffect::DetachByToken(std::string token, bool skipNext)
 	if (!token.empty())
 	{
 		ForeachChild([&token, &skipNext](Component* c) {
-			if (!(c->c_Type & ComponentType::AE_Effect))
+			if (!(c->c_Type & ComponentType::ObjectAEScript))
 				return;
 
 			auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -813,7 +813,7 @@ void AttachEffect::DetachByToken(std::string token, bool skipNext)
 void AttachEffect::DetachWhenTransform()
 {
 	ForeachChild([](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -829,7 +829,7 @@ void AttachEffect::CheckDurationAndDisable(bool silence)
 {
 	CoordStruct location = _location;
 	ForeachChild([&](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -1034,7 +1034,7 @@ int AttachEffect::FindInsertIndex(AttachEffectData data)
 				// Find the first same group cabin but reverse
 				for (auto it = _children.rbegin(); it != _children.rend(); it++)
 				{
-					if (!((*it)->c_Type & ComponentType::AE_Effect))
+					if (!((*it)->c_Type & ComponentType::ObjectAEScript))
 						continue;
 
 					AttachEffectScript* ae = reinterpret_cast<AttachEffectScript*>(*it);
@@ -1061,11 +1061,11 @@ int AttachEffect::FindInsertIndex(AttachEffectData data)
 				int i = 0;
 				for (Component*& c : _children)
 				{
-					if (!(c->c_Type & ComponentType::AE_Effect))
+					if (!(c->c_Type & ComponentType::ObjectAEScript))
 						continue;
 
 					auto ae = reinterpret_cast<AttachEffectScript*>(c);
-					if (ae && ae->IsAlive() && ae->AEData.Stand.Enable && ae->AEData.Stand.IsTrain)
+					if (ae->IsAlive() && ae->AEData.Stand.Enable && ae->AEData.Stand.IsTrain)
 					{
 						if (ae->AEData.Stand.CabinGroup == data.Stand.CabinGroup)
 						{
@@ -1162,7 +1162,7 @@ void AttachEffect::OnGScreenRender(EventSystem* sender, Event e, void* args)
 	{
 		// EndRender
 		ForeachChild([&location](Component* c) {
-			if (!(c->c_Type & ComponentType::AE_Effect))
+			if (!(c->c_Type & ComponentType::ObjectAEScript))
 				return;
 
 			reinterpret_cast<AttachEffectScript*>(c)->OnGScreenRenderEnd(location);
@@ -1183,7 +1183,7 @@ void AttachEffect::OnGScreenRender(EventSystem* sender, Event e, void* args)
 		// 火车的位置索引
 		int markIndex = 0;
 		ForeachChild([&](Component* c) {
-			if (!(c->c_Type & ComponentType::AE_Effect))
+			if (!(c->c_Type & ComponentType::ObjectAEScript))
 				return;
 
 			auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -1282,7 +1282,7 @@ void AttachEffect::OnRemove()
 	_location = location;
 	ClearLocationMarks();
 	ForeachChild([&location](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto ae = reinterpret_cast<AttachEffectScript*>(c);
@@ -1345,7 +1345,7 @@ void AttachEffect::OnUnInit()
 	_ownerIsDead = true;
 	CoordStruct location = _location;
 	ForeachChild([&location](Component* c) {
-		if (!(c->c_Type & ComponentType::AE_Effect))
+		if (!(c->c_Type & ComponentType::ObjectAEScript))
 			return;
 
 		auto ae = reinterpret_cast<AttachEffectScript*>(c);

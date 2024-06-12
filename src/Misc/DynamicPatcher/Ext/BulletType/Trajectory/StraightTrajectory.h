@@ -11,7 +11,7 @@
 #include "TrajectoryData.h"
 
 /// @brief 动态载入组件
-class StraightTrajectory : public BulletScript
+class KratosStraightTrajectory : public BulletScript
 {
 public:
 	/// @brief 直线导弹的状态数据
@@ -28,7 +28,7 @@ public:
 		}
 	};
 
-	BULLET_SCRIPT(StraightTrajectory);
+	BULLET_SCRIPT(KratosStraightTrajectory);
 
 	void ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos);
 
@@ -50,7 +50,7 @@ public:
 
 #pragma region save/load
 	template <typename T>
-	bool Serialize(T& stream)
+	inline bool Serialize(T& stream)
 	{
 		return stream
 			.Process(this->_straightBullet)
@@ -58,16 +58,8 @@ public:
 			.Success();
 	};
 
-	virtual bool Load(PhobosStreamReader& stream, bool registerForChange)
-	{
-		Component::Load(stream, registerForChange);
-		return this->Serialize(stream);
-	}
-	virtual bool Save(PhobosStreamWriter& stream) const
-	{
-		Component::Save(stream);
-		return const_cast<StraightTrajectory*>(this)->Serialize(stream);
-	}
+	virtual bool Load(PhobosStreamReader& stream, bool registerForChange);
+	virtual bool Save(PhobosStreamWriter& stream) const;
 #pragma endregion
 private:
 	void Setup();

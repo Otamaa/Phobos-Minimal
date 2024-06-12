@@ -35,7 +35,7 @@ void BulletStatus::OnUpdate_RecalculateStatus()
 			SpeedChanged = false;
 			LocationLocked = false;
 			pBullet->Speed = _recordStatus.Speed;
-			if (StraightTrajectory* straight = GetComponent<StraightTrajectory>())
+			if (KratosStraightTrajectory* straight = GetComponent<KratosStraightTrajectory>())
 			{
 				straight->ResetStraightMissileVelocity();
 			}
@@ -69,7 +69,7 @@ void BulletStatus::OnUpdate_RecalculateStatus()
 				multiplier = 1E-19;
 			}
 			// 导弹类需要每帧更改一次运动向量
-			if (StraightTrajectory* straight = GetComponent<StraightTrajectory>())
+			if (KratosStraightTrajectory* straight = GetComponent<KratosStraightTrajectory>())
 			{
 				// 直线导弹用保存的向量覆盖，每次都要重新计算
 				pBullet->Velocity *= multiplier;

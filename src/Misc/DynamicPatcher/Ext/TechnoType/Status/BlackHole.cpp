@@ -1,12 +1,12 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/Physics.h>
-#include <Ext/Helper/Weapon.h>
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Weapon.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
 void TechnoStatus::BlackHoleCapture(ObjectClass* pBlackHole, BlackHoleData data)
 {
@@ -22,7 +22,7 @@ void TechnoStatus::BlackHoleCancel()
 {
 	if (CaptureByBlackHole && !IsBuilding() && !IsDeadOrInvisible(pTechno))
 	{
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
 		pFoot->Locomotor->Unlock();
 		// 恢复可控制
 		if (_lostControl)
@@ -117,7 +117,7 @@ void TechnoStatus::OnUpdate_BlackHole()
 				// 移动位置
 				// 从占据的格子中移除自己
 				pTechno->UnmarkAllOccupationBits(location);
-				FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+				FootClass* pFoot = static_cast<FootClass*>(pTechno);
 				// 停止移动
 				ForceStopMoving(pFoot);
 				// 计算下一个坐标点
@@ -170,7 +170,7 @@ void TechnoStatus::OnUpdate_BlackHole()
 				// 设置动作
 				if (_blackHoleData.AllowCrawl && IsInfantry())
 				{
-					dynamic_cast<InfantryClass*>(pTechno)->PlayAnim(Sequence::Crawl);
+					static_cast<InfantryClass*>(pTechno)->PlayAnim(DoType::Crawl);
 				}
 				// 设置翻滚
 				if (_blackHoleData.AllowRotateUnit)
@@ -185,19 +185,19 @@ void TechnoStatus::OnUpdate_BlackHole()
 						if (p1.DistanceFrom(p2) >= speed)
 						{
 							DirStruct facingDir = Point2Dir(targetPos, location);
-							pTechno->PrimaryFacing.SetDesired(facingDir);
+							pTechno->PrimaryFacing.Set_Desired(facingDir);
 							if (IsJumpjet())
 							{
 								// JJ朝向是单独的Facing
-								if (JumpjetLocomotionClass* jjLoco = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
+								if (JumpjetLocomotionClass* jjLoco = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor))
 								{
-									jjLoco->LocomotionFacing.SetDesired(facingDir);
+									jjLoco->Facing.Set_Desired(facingDir);
 								}
 							}
 							else if (IsAircraft())
 							{
 								// 飞机使用的炮塔的Facing
-								pTechno->SecondaryFacing.SetDesired(facingDir);
+								pTechno->SecondaryFacing.Set_Desired(facingDir);
 							}
 						}
 					}

@@ -1,4 +1,4 @@
-﻿#include "CrawlingFLH.h"
+#include "CrawlingFLH.h"
 
 #include <InfantryClass.h>
 
@@ -17,7 +17,7 @@ CrawlingFLHData* CrawlingFLH::GetCrawlingFLHData()
 void CrawlingFLH::Setup()
 {
 	_crawlingFLHData = nullptr;
-	if (!IsInfantry() || dynamic_cast<InfantryClass*>(pTechno)->Type->Fearless)
+	if (!IsInfantry() || static_cast<InfantryClass*>(pTechno)->Type->Fearless)
 	{
 		Disable();
 	}
@@ -39,7 +39,7 @@ void CrawlingFLH::OnUpdate()
 	WeaponStruct* secondary = pTechno->GetWeapon(1);
 
 	bool isElite = pTechno->Veterancy.IsElite();
-	if (dynamic_cast<InfantryClass*>(pTechno)->Crawling)
+	if (static_cast<InfantryClass*>(pTechno)->Crawling)
 	{
 		if (isElite)
 		{

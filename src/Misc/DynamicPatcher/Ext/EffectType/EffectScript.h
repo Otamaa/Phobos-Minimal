@@ -28,6 +28,7 @@
 
 #define EFFECT_SCRIPT(EFFECT_NAME) \
 	EFFECT_SCRIPT_BASE(EFFECT_NAME, EffectScript) \
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::##EFFECT_NAME; }\
 
 class EffectScript : public ObjectScript, public IAEScript
 {

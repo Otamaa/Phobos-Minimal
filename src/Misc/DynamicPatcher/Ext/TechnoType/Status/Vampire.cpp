@@ -1,9 +1,9 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/EffectType/AttachEffectScript.h>
-#include <Ext/EffectType/Effect/VampireEffect.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/AttachEffectScript.h>
+#include <Misc/DynamicPatcher/Ext/EffectType/Effect/VampireEffect.h>
 
 void TechnoStatus::OnReceiveDamageEnd_Vampire(int* pRealDamage, WarheadTypeClass* pWH, DamageState damageState, TechnoClass* pAttacker, HouseClass* pAttackingHouse)
 {
@@ -13,7 +13,10 @@ void TechnoStatus::OnReceiveDamageEnd_Vampire(int* pRealDamage, WarheadTypeClass
 	if (!IsDead(pAttacker) && TryGetAEManager<TechnoExt>(pAttacker, aem))
 	{
 		aem->ForeachChild([&](Component* c) {
-			if (auto ae = dynamic_cast<AttachEffectScript*>(c))
+			if (!(c->c_Type & ComponentType::ObjectAEScript))
+				return;
+
+			auto ae = static_cast<AttachEffectScript*>(c);
 			{
 				if (ae->AEData.Vampire.Enable && Bingo(ae->AEData.Vampire.Chance))
 				{

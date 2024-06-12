@@ -48,14 +48,14 @@ void BulletStatus::InitState()
 	switch (GetBulletType())
 	{
 	case BulletType::ARCING:
-		FindOrAttach<ArcingTrajectory>();
+		FindOrAttach<KratosArcingTrajectory>();
 		FindOrAttach<Bounce>();
 		break;
 	case BulletType::MISSILE:
 		FindOrAttach<MissileTrajectory>();
 		break;
 	case BulletType::ROCKET:
-		FindOrAttach<StraightTrajectory>();
+		FindOrAttach<KratosStraightTrajectory>();
 		break;
 	}
 }
@@ -158,13 +158,13 @@ void BulletStatus::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
 	switch (GetBulletType())
 	{
 	case BulletType::ARCING:
-		if (ArcingTrajectory* at = GetComponent<ArcingTrajectory>())
+		if (KratosArcingTrajectory* at = GetComponent<KratosArcingTrajectory>())
 		{
 			at->ResetTarget(pNewTarget, targetPos);
 		}
 		break;
 	case BulletType::ROCKET:
-		if (StraightTrajectory* st = GetComponent<StraightTrajectory>())
+		if (KratosStraightTrajectory* st = GetComponent<KratosStraightTrajectory>())
 		{
 			st->ResetTarget(pNewTarget, targetPos);
 		}

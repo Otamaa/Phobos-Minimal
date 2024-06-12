@@ -1,6 +1,6 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
 
 unsigned int TechnoStatus::GetBerserkColor2()
 {

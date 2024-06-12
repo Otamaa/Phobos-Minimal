@@ -62,10 +62,11 @@ public:
 class AttachEffectScript : public ObjectScript, public IAEScript
 {
 public:
+
 	AttachEffectScript() : ObjectScript()
 	{
+		this->c_Type |= ComponentType::ObjectAEScript;
 		this->Name = ScriptName;
-		this->c_Type |= ComponentType::AE_Effect;
 	}
 
 	virtual void FreeComponent() override
@@ -83,17 +84,16 @@ public:
 			c = *it;
 			Pool.erase(it);
 		}
-
 		if (!c)
 		{
-			c = static_cast<Component*>(new AttachEffectScript());
+			c = static_cast<Component*>(new AttachEffect());
 		}
 		return c;
 	}
-
 	inline static std::string ScriptName = "AttachEffectScript";
-	inline static int g_temp_AttachEffectScript = ComponentFactory::GetInstance().Register("AttachEffectScript", AttachEffectScript::Create); \
+	inline static int g_temp_AttachEffect = ComponentFactory::GetInstance().Register("AttachEffectScript", AttachEffectScript::Create);
 	inline static std::vector<AttachEffectScript*> Pool {};
+	virtual ObjectScripts GetCurrentScriptType() override { return ObjectScripts::AttachEffectScript; }
 
 	virtual void ResetDuration() override;
 	int GetDuration();

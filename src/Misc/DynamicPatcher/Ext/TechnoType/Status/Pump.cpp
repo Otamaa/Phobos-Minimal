@@ -24,7 +24,7 @@ void TechnoStatus::HumanCannon(CoordStruct sourcePos, CoordStruct targetPos, int
 		// 人间大炮一级准备
 		FootClass* pPassenger = pTechno->Passengers.RemoveFirstPassenger();
 		pPassenger->Transporter = nullptr;
-		DirStruct facing = pTechno->GetRealFacing().Current();
+		DirStruct facing = pTechno->F_GetRealfacing().Current();
 		++Unsorted::ScenarioInit;
 		pPassenger->Unlimbo(sourcePos, ToDirType(facing));
 		--Unsorted::ScenarioInit;

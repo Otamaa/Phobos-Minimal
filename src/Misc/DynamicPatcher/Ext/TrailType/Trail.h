@@ -64,7 +64,7 @@ static bool TryGetImageTrails(const char* imageSection, std::vector<Trail>& trai
 		title += (i >= 0 ? std::to_string(i) : "");
 		title += ".";
 		std::string typeName = reader->Get(title + "Type", std::string{ "" });
-		if (IsNotNone(typeName) && INI::HasSection(INI::Art, typeName.c_str()))
+		if (KratosCRT::IsNotNone(typeName) && INI::HasSection(INI::Art, typeName.c_str()))
 		{
 			// 读取Section
 			TrailTypeData* typeData = INI::GetConfig<TrailTypeData>(INI::Art, typeName.c_str())->Data;

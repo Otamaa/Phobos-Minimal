@@ -1,13 +1,13 @@
-﻿#include "TurretAngle.h"
+#include "TurretAngle.h"
 
-#include <Extension/TechnoExt.h>
+#include <Misc/DynamicPatcher/Extension/TechnoExt.h>
 
-#include <Ext/Helper/DrawEx.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/DrawEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/TechnoType/TechnoStatus.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/TechnoStatus.h>
 
 TurretAngleData* TurretAngle::GetTurretAngleData()
 {
@@ -113,7 +113,7 @@ bool TurretAngle::ForceTurretToForward(DirStruct bodyDir, int bodyDirIndex, int 
 			}
 			// 逆时针回转到限位
 			LockTurretDir = DirNormalized(turnAngle, 360);
-			pTechno->SecondaryFacing.SetCurrent(LockTurretDir);
+			pTechno->SecondaryFacing.Set_Current(LockTurretDir);
 			return true;
 		}
 		else if (bodyTargetDelta < 180)
@@ -135,7 +135,7 @@ bool TurretAngle::ForceTurretToForward(DirStruct bodyDir, int bodyDirIndex, int 
 				turnAngle -= 360;
 			}
 			LockTurretDir = DirNormalized(turnAngle, 360);
-			pTechno->SecondaryFacing.SetCurrent(LockTurretDir);
+			pTechno->SecondaryFacing.Set_Current(LockTurretDir);
 			return true;
 		}
 		else if (bodyTargetDelta > 180)
@@ -189,7 +189,7 @@ void TurretAngle::TurnToRight(int turretAngle, int bodyDirIndex, DirStruct bodyD
 bool TurretAngle::TryTurnBodyToAngle(DirStruct targetDir, int bodyDirIndex, int bodyTargetDelta)
 {
 	TechnoStatus* status = GetTechnoStatue();
-	if (!IsBuilding() && !_isMoving && !pTechno->PrimaryFacing.IsRotating() && status
+	if (!IsBuilding() && !_isMoving && !pTechno->PrimaryFacing.Is_Rotating() && status
 		&& (!status->AmIStand() || !status->MyStandData.Enable || !status->MyStandData.LockDirection || status->MyStandData.FreeDirection))
 	{
 		TurretAngleData* data = GetTurretAngleData();
@@ -234,12 +234,12 @@ bool TurretAngle::TryTurnBodyToAngle(DirStruct targetDir, int bodyDirIndex, int 
 					turnDir = DirNormalized(turnDelta, 360);
 				}
 
-				pTechno->PrimaryFacing.SetDesired(turnDir);
+				pTechno->PrimaryFacing.Set_Desired(turnDir);
 			}
 		}
 		else
 		{
-			pTechno->PrimaryFacing.SetDesired(turnDir);
+			pTechno->PrimaryFacing.Set_Desired(turnDir);
 		}
 		return true;
 	}
@@ -284,11 +284,11 @@ void TurretAngle::OnUpdate()
 			ChangeDefaultDir = DefaultAngleIsChange(bodyDir);
 			if (ChangeDefaultDir)
 			{
-				pTechno->SecondaryFacing.SetCurrent(LockTurretDir);
+				pTechno->SecondaryFacing.Set_Current(LockTurretDir);
 				return;
 			}
 		}
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
 		_isMoving = pFoot->Locomotor->Is_Moving() && pFoot->GetCurrentSpeed() > 0;
 		CoordStruct sourcePos = pTechno->GetCoords();
 		// 车体朝向方向
@@ -309,12 +309,12 @@ void TurretAngle::OnUpdate()
 		bool hasTarget = pTarget != nullptr;
 		if (!hasTarget)
 		{
-			pTarget = dynamic_cast<FootClass*>(pTechno)->Destination;
+			pTarget = static_cast<FootClass*>(pTechno)->Destination;
 		}
 		if (pTarget)
 		{
 			// 目标所在方向
-			DirStruct targetDir = pTechno->Direction(pTarget);
+			DirStruct targetDir = pTechno->GetDirectionOverObject(pTarget);
 			// 游戏限制只能划180份，Index * 2
 			int targetDirIndex = Dir2FacingIndex180to360(targetDir);
 			// 取夹角的度数值

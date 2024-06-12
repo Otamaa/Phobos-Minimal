@@ -1,6 +1,6 @@
-﻿#include "AircraftPut.h"
+#include "AircraftPut.h"
 
-#include <Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
 
 AircraftPutData* AircraftPut::GetAircraftPutData()
 {
@@ -43,7 +43,7 @@ void AircraftPut::Awake()
 void AircraftPut::OnPut(CoordStruct* pCoord, DirType dirType)
 {
 	// 检查停机坪数量
-	if (dynamic_cast<AircraftClass*>(pTechno)->Type->AirportBound)
+	if (static_cast<AircraftClass*>(pTechno)->Type->AirportBound)
 	{
 		HouseClass* pHouse = pTechno->Owner;
 		if (pHouse->AirportDocks <= 0 || pHouse->AirportDocks < CountAircraft())

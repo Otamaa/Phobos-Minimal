@@ -76,7 +76,8 @@ void TeleportState::OnStart()
 	_count = 0;
 	_delay = Data.Delay;
 	TechnoStatus* status = nullptr;
-	if(_parent->c_Type & ComponentType::TechnoStatus)
+	if (_parent->c_Type & ComponentType::Techno
+	&& ((TechnoScript*)_parent->c_Type)->GetCurrentScriptType() == TechnoScripts::TechnoStatus)
 		status = static_cast<TechnoStatus*>(_parent);
 
 	if (status && status->AmIStand())

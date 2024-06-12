@@ -1,14 +1,14 @@
-﻿#include "TechnoStatus.h"
+#include "TechnoStatus.h"
 
-#include <Ext/Common/CommonStatus.h>
-#include <Ext/Common/FireSuperManager.h>
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/FireSuperManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 
 #include "AircraftAttitude.h"
 #include "AircraftDive.h"
@@ -186,8 +186,8 @@ void TechnoStatus::OnUpdate()
 		}
 		if (!IsBuilding())
 		{
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-			_isMoving = pFoot->GetCurrentSpeed() > 0 && pFoot->Locomotor.get()->Is_Moving();
+			FootClass* pFoot = static_cast<FootClass*>(pTechno);
+			_isMoving = pFoot->GetCurrentSpeed() > 0 && pFoot->Locomotor.GetInterfacePtr()->Is_Moving();
 			OnUpdate_DeployToTransform();
 			OnUpdate_Transform();
 		}
@@ -301,7 +301,7 @@ void TechnoStatus::OnReceiveDamageEnd(int* pRealDamage, WarheadTypeClass* pWH, D
 			pTechno->IsFallingDown = true;
 			if (IsInfantry())
 			{
-				dynamic_cast<InfantryClass*>(pTechno)->PlayAnim(Sequence::Paradrop);
+				static_cast<InfantryClass*>(pTechno)->PlayAnim(DoType::Paradrop);
 			}
 		}
 		// 被打死时读取弹头设置

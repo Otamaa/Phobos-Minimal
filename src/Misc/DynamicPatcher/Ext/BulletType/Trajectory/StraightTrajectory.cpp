@@ -8,19 +8,31 @@
 
 #include "../BulletStatus.h"
 
-void StraightTrajectory::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
+bool KratosStraightTrajectory::Load(PhobosStreamReader& stream, bool registerForChange)
+{
+	Component::Load(stream, registerForChange);
+	return this->Serialize(stream);
+}
+
+bool KratosStraightTrajectory::Save(PhobosStreamWriter& stream) const
+{
+	Component::Save(stream);
+	return const_cast<KratosStraightTrajectory*>(this)->Serialize(stream);
+}
+
+void KratosStraightTrajectory::ResetTarget(AbstractClass* pNewTarget, CoordStruct targetPos)
 {
 	CoordStruct sourcePos = pBullet->GetCoords();
 	pBullet->SourceCoords = sourcePos;
 	Setup();
 }
 
-void StraightTrajectory::ResetStraightMissileVelocity()
+void KratosStraightTrajectory::ResetStraightMissileVelocity()
 {
 	_straightBullet.ResetVelocity(pBullet);
 }
 
-void StraightTrajectory::Setup()
+void KratosStraightTrajectory::Setup()
 {
 	// 直线弹道
 	CoordStruct sourcePos = pBullet->SourceCoords;
@@ -71,7 +83,7 @@ void StraightTrajectory::Setup()
 	}
 }
 
-void StraightTrajectory::Awake()
+void KratosStraightTrajectory::Awake()
 {
 	if (!IsRocket())
 	{
@@ -79,12 +91,12 @@ void StraightTrajectory::Awake()
 	}
 }
 
-void StraightTrajectory::OnPut(CoordStruct* pCoord, DirType dirType)
+void KratosStraightTrajectory::OnPut(CoordStruct* pCoord, DirType dirType)
 {
 	Setup();
 }
 
-void StraightTrajectory::OnUpdate()
+void KratosStraightTrajectory::OnUpdate()
 {
 	if (!static_cast<BulletStatus*>(_parent)->CaptureByBlackHole)
 	{

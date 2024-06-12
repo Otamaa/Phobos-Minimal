@@ -80,7 +80,7 @@ public:
 #pragma endregion
 
 private:
-	const float angelStep = (float)Math::atan2(20, Unsorted::LeptonsPerCell);
+	const float angelStep = (float)Math::atan2(20.0, Unsorted::LeptonsPerCell);
 
 	TechnoStatus* _status = nullptr;
 	TechnoStatus* GetTechnoStatus()

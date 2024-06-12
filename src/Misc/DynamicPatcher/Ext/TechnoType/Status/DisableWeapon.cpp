@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Extension/WarheadTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WarheadTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
 bool TechnoStatus::CanFire_DisableWeapon(AbstractClass* pTarget, WeaponTypeClass* pWeapon)
 {

@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/Physics.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Physics.h>
 
 void TechnoStatus::OnUpdate_Transform()
 {
@@ -78,7 +78,7 @@ bool TechnoStatus::ChangeTechnoTypeTo(TechnoTypeClass* pNewType)
 		Debug::Log("Warning: %s is not FootClass, conversion not allowed\n", pNewType->get_ID());
 		return false;
 	}
-	FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+	FootClass* pFoot = static_cast<FootClass*>(pTechno);
 
 	// Detach CLEG targeting
 	auto tempUsing = pFoot->TemporalImUsing;
@@ -114,7 +114,7 @@ bool TechnoStatus::ChangeTechnoTypeTo(TechnoTypeClass* pNewType)
 
 	// Adjust ammo
 	int ammoLeft = pFoot->Ammo;
-	ammoLeft = Math::min(ammoLeft, pNewType->Ammo);
+	ammoLeft = MinImpl(ammoLeft, pNewType->Ammo);
 	pFoot->Ammo = ammoLeft;
 	if (ammoLeft < 0 || ammoLeft >= pNewType->Ammo)
 	{
@@ -152,25 +152,24 @@ bool TechnoStatus::ChangeTechnoTypeTo(TechnoTypeClass* pNewType)
 	if (absType == AbstractType::Aircraft)
 	{
 		bodyFacing = pFoot->SecondaryFacing.Current();
-		pFoot->PrimaryFacing.SetCurrent(bodyFacing);
-		pFoot->SecondaryFacing.SetROT(pNewType->ROT);
+		pFoot->PrimaryFacing.Set_Current(bodyFacing);
+		pFoot->SecondaryFacing.Set_ROT(pNewType->ROT);
 	}
 	else
 	{
-		pFoot->PrimaryFacing.SetROT(pNewType->ROT);
+		pFoot->PrimaryFacing.Set_ROT(pNewType->ROT);
 	}
 
 	// Locomotor change, referenced from Ares 0.A's abduction code, not sure if correct, untested
 	CLSID nowLocoID;
-	ILocomotion* prevLoco = pFoot->Locomotor.get();
-	if (JumpjetLocomotionClass* prevJJ = dynamic_cast<JumpjetLocomotionClass*>(prevLoco))
+	ILocomotion* prevLoco = pFoot->Locomotor.GetInterfacePtr();
+	if (JumpjetLocomotionClass* prevJJ = locomotion_cast<JumpjetLocomotionClass*>(prevLoco))
 	{
-		bodyFacing = prevJJ->LocomotionFacing.Current();
-		pFoot->PrimaryFacing.SetCurrent(bodyFacing);
-		pFoot->SecondaryFacing.SetCurrent(bodyFacing);
+		bodyFacing = prevJJ->Facing.Current();
+		pFoot->PrimaryFacing.Set_Current(bodyFacing);
+		pFoot->SecondaryFacing.Set_Current(bodyFacing);
 	}
-	CoordStruct dest = CoordStruct::Empty;
-	prevLoco->Destination(&dest);
+	CoordStruct dest = prevLoco->Destination();
 	if (dest.IsEmpty())
 	{
 		dest = pFoot->GetCoords();
@@ -188,9 +187,9 @@ bool TechnoStatus::ChangeTechnoTypeTo(TechnoTypeClass* pNewType)
 			newLoco->Link_To_Object(pFoot);
 			pFoot->Locomotor = std::move(newLoco);
 			pFoot->Locomotor->Move_To(dest);
-			if (JumpjetLocomotionClass* newJJ = dynamic_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get()))
+			if (JumpjetLocomotionClass* newJJ = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor))
 			{
-				newJJ->LocomotionFacing.SetCurrent(bodyFacing);
+				newJJ->Facing.Set_Current(bodyFacing);
 			}
 		}
 	}

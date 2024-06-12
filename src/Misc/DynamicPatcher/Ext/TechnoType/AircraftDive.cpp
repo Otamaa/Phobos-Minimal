@@ -1,8 +1,8 @@
-﻿#include "AircraftDive.h"
+#include "AircraftDive.h"
 
-#include <FlyLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
-#include <Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
 
 AircraftDiveData* AircraftDive::GetAircraftDiveData()
 {
@@ -35,11 +35,11 @@ void AircraftDive::ExtChanged()
 
 void AircraftDive::OnUpdate()
 {
-	if (!IsDeadOrInvisible(pTechno) && !dynamic_cast<AircraftClass*>(pTechno)->Type->Carryall)
+	if (!IsDeadOrInvisible(pTechno) && !static_cast<AircraftClass*>(pTechno)->Type->Carryall)
 	{
 		AircraftDiveData* data = GetAircraftDiveData();
-		FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
-		FlyLocomotionClass* pFly = dynamic_cast<FlyLocomotionClass*>(pFoot->Locomotor.get());
+		FootClass* pFoot = static_cast<FootClass*>(pTechno);
+		FlyLocomotionClass* pFly = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor);
 		if (!pTechno->IsInAir() || pFly->IsTakingOff || pFly->IsLanding)
 		{
 			// 归零

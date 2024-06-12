@@ -1,9 +1,9 @@
-﻿#include "HealthText.h"
+#include "HealthText.h"
 
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/Common/PrintTextManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
 
 HealthTextData HealthText::GetHealthTextData()
 {

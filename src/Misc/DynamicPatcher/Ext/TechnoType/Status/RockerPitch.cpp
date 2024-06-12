@@ -1,9 +1,9 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
 void TechnoStatus::RockerPitch(WeaponTypeClass* pWeapon)
 {
@@ -15,7 +15,7 @@ void TechnoStatus::RockerPitch(WeaponTypeClass* pWeapon)
 		double theta = 0;
 		if (pTechno->HasTurret())
 		{
-			double turretRad = pTechno->GetRealFacing().Current().GetRadian() - halfPI;
+			double turretRad = pTechno->F_GetRealfacing().Current().GetRadian() - halfPI;
 			double bodyRad = pTechno->PrimaryFacing.Current().GetRadian() - halfPI;
 			Matrix3D matrix3D;
 			matrix3D.RotateZ((float)turretRad);

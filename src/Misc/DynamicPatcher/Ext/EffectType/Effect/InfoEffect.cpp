@@ -35,7 +35,7 @@ void InfoEffect::OnGScreenRenderEnd(CoordStruct location)
 			auto data = Data;
 			aem->ForeachChild([&checkDuration, &checkInitDelay, &duration, &initDelay, &data](Component* c) {
 
-				if (c->c_Type & ComponentType::AE_Effect)
+				if (c->c_Type & ComponentType::ObjectAEScript)
 				{
 					AttachEffectScript* ae = static_cast<AttachEffectScript*>(c);
 					std::string aeName = ae->AEData.Name;

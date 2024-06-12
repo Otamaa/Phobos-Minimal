@@ -1,14 +1,14 @@
-﻿#include "DecoyMissile.h"
+#include "DecoyMissile.h"
 
-#include <Extension/BulletExt.h>
+#include <Misc/DynamicPatcher/Extension/BulletExt.h>
 
-#include <Ext/Helper/Finder.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/MathEx.h>
-#include <Ext/Helper/Scripts.h>
-#include <Ext/Helper/Status.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Finder.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/MathEx.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Status.h>
 
-#include <Ext/BulletType/Trajectory/MissileTrajectory.h>
+#include <Misc/DynamicPatcher/Ext/BulletType/Trajectory/MissileTrajectory.h>
 
 DecoyMissileData* DecoyMissile::GetDecoyMissileData()
 {
@@ -172,7 +172,7 @@ void DecoyMissile::OnUpdate()
 		{
 			if (pWeapon && DropOne(pWeapon))
 			{
-				FacingClass facing = pTechno->GetRealFacing();
+				FacingClass facing = pTechno->F_GetRealfacing();
 
 				CoordStruct flhL = data->FLH;
 				if (flhL.Y > 0)
@@ -216,12 +216,12 @@ void DecoyMissile::OnUpdate()
 				{
 					CoordStruct initTarget = targetL;
 					CoordStruct port = portL;
-					BulletVelocity v{ (double)velocityL.X, (double)velocityL.Y, (double)velocityL.Z };
+					VelocityClass v{ (double)velocityL.X, (double)velocityL.Y, (double)velocityL.Z };
 					if (i > 0)
 					{
 						initTarget = targetR;
 						port = portR;
-						v = BulletVelocity{ (double)velocityR.X, (double)velocityR.Y, (double)velocityR.Z };
+						v = VelocityClass{ (double)velocityR.X, (double)velocityR.Y, (double)velocityR.Z };
 					}
 					CellClass* pCell = MapClass::Instance->GetCellAt(initTarget);
 					BulletClass* pBullet = pWeapon->Projectile->CreateBullet(pCell, pTechno, pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright);

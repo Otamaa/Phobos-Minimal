@@ -1,4 +1,4 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
 
 void TechnoStatus::OnUpdate_BalloonTransporter()
@@ -10,7 +10,7 @@ void TechnoStatus::OnUpdate_BalloonTransporter()
 		{
 			BalloonFall = false;
 			// 油满出发
-			FootClass* pFoot = dynamic_cast<FootClass*>(pTechno);
+			FootClass* pFoot = generic_cast<FootClass*>(pTechno);
 			if (pFoot && !pFoot->Locomotor->Is_Moving() && !pFoot->Locomotor->Is_Moving_Now())
 			{
 				if (CellClass* pCell = MapClass::Instance->TryGetCellAt(pTechno->GetCoords()))

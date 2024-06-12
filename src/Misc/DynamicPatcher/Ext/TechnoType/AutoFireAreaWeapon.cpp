@@ -1,10 +1,10 @@
-﻿#include "AutoFireAreaWeapon.h"
+#include "AutoFireAreaWeapon.h"
 
-#include <Extension/WeaponTypeExt.h>
+#include <Misc/DynamicPatcher/Extension/WeaponTypeExt.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 
 AutoFireAreaWeaponData* AutoFireAreaWeapon::GetAutoAreaData()
 {

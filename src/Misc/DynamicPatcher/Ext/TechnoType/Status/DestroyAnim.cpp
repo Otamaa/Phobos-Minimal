@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Common/CommonStatus.h>
-#include <Ext/Helper/FLH.h>
-#include <Ext/Helper/Gift.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Helper/FLH.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Gift.h>
 
 void TechnoStatus::OnReceiveDamageEnd_DestroyAnim(int* pRealDamage, WarheadTypeClass* pWH, DamageState damageState, TechnoClass* pAttacker, HouseClass* pAttackingHouse)
 {
@@ -55,8 +55,8 @@ bool TechnoStatus::PlayDestroyAnims()
 					if (pWreak)
 					{
 						// 设置朝向和任务
-						pWreak->PrimaryFacing.SetCurrent(pTechno->PrimaryFacing.Current());
-						pWreak->SecondaryFacing.SetCurrent(pTechno->SecondaryFacing.Current());
+						pWreak->PrimaryFacing.Set_Current(pTechno->PrimaryFacing.Current());
+						pWreak->SecondaryFacing.Set_Current(pTechno->SecondaryFacing.Current());
 						// 调整任务
 						pWreak->QueueMission(data.WreckMission, true);
 						return true;
@@ -79,8 +79,8 @@ bool TechnoStatus::PlayDestroyAnims()
 					{
 						index = Random::RandomRanged(0, facing - 1);
 					}
-					std::string animId = data.Anims[index];
-					AnimTypeClass* pAnimType = AnimTypeClass::Find(animId.c_str());
+
+					AnimTypeClass* pAnimType = AnimTypeClass::Find(data.Anims[index].c_str());
 					if (pAnimType)
 					{
 						CoordStruct location = pTechno->GetCoords();

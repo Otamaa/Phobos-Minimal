@@ -1,8 +1,8 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Common/INI/INI.h>
+#include <Misc/DynamicPatcher/Common/INI/INI.h>
 
-#include <Ext/TechnoType/DamageText.h>
+#include <Misc/DynamicPatcher/Ext/TechnoType/DamageText.h>
 
 void TechnoStatus::OnUpdate_DestroySelf()
 {

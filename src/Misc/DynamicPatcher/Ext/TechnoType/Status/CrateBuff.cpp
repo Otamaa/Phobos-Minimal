@@ -1,10 +1,10 @@
-﻿#include "../TechnoStatus.h"
+#include "../TechnoStatus.h"
 
-#include <Ext/Common/CommonStatus.h>
+#include <Misc/DynamicPatcher/Ext/Common/CommonStatus.h>
 
-#include <Ext/Helper/Scripts.h>
+#include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
-#include <Ext/ObjectType/AttachEffect.h>
+#include <Misc/DynamicPatcher/Ext/ObjectType/AttachEffect.h>
 
 void TechnoStatus::RecalculateStatus()
 {
@@ -40,5 +40,5 @@ void TechnoStatus::RecalculateStatus()
 
 bool TechnoStatus::CanICloakByDefault()
 {
-	return pTechno && pTechno->GetTechnoType() && (pTechno->GetTechnoType()->Cloakable || pTechno->HasAbility(Ability::Cloak));
+	return pTechno && pTechno->GetTechnoType() && (pTechno->GetTechnoType()->Cloakable || pTechno->HasAbility(AbilityType::Cloak));
 }

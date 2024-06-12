@@ -83,10 +83,6 @@ template <typename T>
 concept Clearable = requires { T::Clear(); };
 
 template <typename T>
-concept PointerInvalidationSubscribable =
-	requires (void* ptr) { T::PointerGotInvalid(ptr); };
-
-template <typename T>
 concept DetachSubscribable =
 	requires (void* ptr, bool all) { T::ObjectWantDetach(ptr, all); };
 
