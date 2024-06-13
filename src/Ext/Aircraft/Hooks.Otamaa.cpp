@@ -29,6 +29,13 @@ bool IsFlyLoco(const ILocomotion* pLoco)
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
 }
 
+__forceinline BOOL Weapon_Is_Strafe(WeaponTypeClass* wpnType)
+{
+	if (WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing_Shots.isset())
+		return TRUE;
+	return wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso;
+}
+
 DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 {
 	GET(AircraftClass*, pThis, EDI);
@@ -67,7 +74,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	if (!pBullet)
 		return 0x41659E;
 
-	if (pThis->Is_Strafe()) {
+	if (Weapon_Is_Strafe(pBullet->WeaponType)) {
 		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
 	}
 

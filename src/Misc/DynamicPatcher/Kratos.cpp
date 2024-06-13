@@ -5,6 +5,9 @@
 
 #include <Misc/DynamicPatcher/Common/EventSystems/EventSystem.h>
 
+#include <Misc/DynamicPatcher/Ext/Common/FireSuperManager.h>
+#include <Misc/DynamicPatcher/Ext/Common/PrintTextManager.h>
+
 #include <Misc/DynamicPatcher/Extension/AnimExt.h>
 #include <Misc/DynamicPatcher/Extension/AnimTypeExt.h>
 #include <Misc/DynamicPatcher/Extension/BulletExt.h>
@@ -24,10 +27,10 @@ class GeneraHook
 public:
 	GeneraHook()
 	{
-		//EventSystems::General.AddHandler(Events::ScenarioStartEvent, FireSuperManager::Clear);
-		//EventSystems::General.AddHandler(Events::ScenarioStartEvent, PrintTextManager::Clear);
+		EventSystems::General.AddHandler(Events::ScenarioStartEvent, FireSuperManager::Clear);
+		EventSystems::General.AddHandler(Events::ScenarioStartEvent, PrintTextManager::Clear);
 		EventSystems::General.AddHandler(Events::ScenarioClearClassesEvent, ExtTypeRegistryClear);
-		//EventSystems::Logic.AddHandler(Events::LogicUpdateEvent, FireSuperManager::Update);
+		EventSystems::Logic.AddHandler(Events::LogicUpdateEvent, FireSuperManager::Update);
 	}
 };
 
@@ -38,7 +41,7 @@ class GScreenHook
 public:
 	GScreenHook()
 	{
-		//EventSystems::Render.AddHandler(Events::GScreenRenderEvent, PrintTextManager::PrintRollingText);
+		EventSystems::Render.AddHandler(Events::GScreenRenderEvent, PrintTextManager::PrintRollingText);
 	}
 };
 
@@ -49,9 +52,9 @@ class SaveGameHook
 public:
 	SaveGameHook()
 	{
-		//EventSystems::SaveLoad.AddHandler(Events::SaveGameEvent, FireSuperManager::SaveSuperQueue);
-		//EventSystems::SaveLoad.AddHandler(Events::LoadGameEvent, FireSuperManager::LoadSuperQueue);
-		//EventSystems::SaveLoad.AddHandler(Events::LoadGameEvent, TechnoExt::ClearAllArray);
+		EventSystems::SaveLoad.AddHandler(Events::SaveGameEvent, FireSuperManager::SaveSuperQueue);
+		EventSystems::SaveLoad.AddHandler(Events::LoadGameEvent, FireSuperManager::LoadSuperQueue);
+		EventSystems::SaveLoad.AddHandler(Events::LoadGameEvent, TechnoExt::ClearAllArray);
 	}
 };
 
@@ -291,18 +294,6 @@ void Kratos::ScenarioStart()
 	EventSystems::General.Broadcast(Events::ScenarioStartEvent);
 }
 
-DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6)
-{
-	EventSystems::Logic.Broadcast(Events::LogicUpdateEvent);
-	return 0;
-}
-
-DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
-{
-	EventSystems::Logic.Broadcast(Events::LogicUpdateEvent, EventArgsLate);
-	return 0;
-}
-
 void Kratos::Render()
 {
 	EventSystems::Render.Broadcast(Events::GScreenRenderEvent);
@@ -368,6 +359,7 @@ void Kratos::LoadGameInStreamEnd(IStream* stream)
 }
 #pragma endregion
 
+#ifdef ENABLE_HOOKs
 DEFINE_HOOK(0x4101F0, AbstractClass_DTOR, 0x6)
 {
 	GET(ObjectClass*, pObject, ECX);
@@ -400,3 +392,16 @@ DEFINE_HOOK(0x7258D0, DetachThisFromAll, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6)
+{
+	EventSystems::Logic.Broadcast(Events::LogicUpdateEvent);
+	return 0;
+}
+
+DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
+{
+	EventSystems::Logic.Broadcast(Events::LogicUpdateEvent, EventArgsLate);
+	return 0;
+}
+#endif
