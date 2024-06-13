@@ -368,3 +368,16 @@ FodyWeavers.xsd
 /Syringe
 /Phobos.tlog
 /enc_temp_folder
+/YRpp/CellClass.bak
+/YRpp/Conversions.bak
+/YRpp/CoordStruct.bak
+/YRpp/Point2D.bak
+/YRpp/RectangleStruct.bak
+/YRpp/StaticInits.bak
+/YRpp/VelocityClass.bak
+/YRpp/YRMathVector.bak
+/src/Ext/Techno/Body.bak
+/src/Misc/Ares/Hooks/Hooks.Unit.bak
+/src/Misc/Spawner/Bugfixes.bak
+/src/New/Type/PaletteManager.bak
+/src/Utilities/Constructs.bak
