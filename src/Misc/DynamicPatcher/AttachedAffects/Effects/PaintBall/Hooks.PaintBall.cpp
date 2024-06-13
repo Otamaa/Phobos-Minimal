@@ -7,6 +7,34 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
+std::optional<int> Forceshield_Color;
+std::optional<int> IronCurtain_Color;
+std::optional<int> LaserTarget_Color;
+std::optional<int> Berserk_Color;
+bool InitEd = false;
+
+constexpr void InitializeColors() {
+
+	if (InitEd)
+		return;
+
+	if (!InitEd)
+		InitEd = true;
+
+
+	if(!Forceshield_Color.has_value())
+		Forceshield_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
+
+	if(!IronCurtain_Color.has_value())
+		IronCurtain_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
+
+	if (!LaserTarget_Color.has_value())
+		LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
+
+	if (!Berserk_Color.has_value())
+		Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
+}
+
 int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk)
 {
 	int tintColor = 0;
