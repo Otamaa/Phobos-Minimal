@@ -12,6 +12,7 @@
 struct RectangleStruct
 {
 public:
+	static const RectangleStruct Empty;
 
 	/*
 	RectangleStruct()
@@ -49,6 +50,10 @@ public:
 		}
 		return *this;
 	}*/
+
+	constexpr bool IsEmpty() const {
+		return(*this) == RectangleStruct::Empty;
+	}
 
 	constexpr bool operator==(const RectangleStruct &that) const
 	{

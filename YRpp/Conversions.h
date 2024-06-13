@@ -3,6 +3,7 @@
 #include <CRT.h>
 #include <sstream>
 #include <WarheadFlags.h>
+#include <Helpers/Macro.h>
 
 // converters
 struct Conversions

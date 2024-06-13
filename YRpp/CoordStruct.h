@@ -72,6 +72,10 @@ public:
 		return X || Y || Z;
 	}
 
+	constexpr FORCEINLINE bool IsEmpty() const {
+		return (*this) == Empty;
+	}
+
 	constexpr CoordStruct operator+(const CoordStruct& nThat) const
 	{ return { X + nThat.X, Y + nThat.Y, Z + nThat.Z }; }
 

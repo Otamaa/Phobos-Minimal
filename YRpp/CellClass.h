@@ -136,6 +136,32 @@ public:
 	ISTILE(DestroyableCliff, 0x486900);
 
 	#undef ISTILE
+
+	TileType GetTileType() const
+	{
+		if (Tile_Is_Tunnel()) return TileType::Tunnel;
+		if (Tile_Is_Water()) return TileType::Water;
+		if (Tile_Is_Blank()) return TileType::Blank;
+		if (Tile_Is_Ramp()) return TileType::Ramp;
+		if (Tile_Is_Cliff()) return TileType::Cliff;
+		if (Tile_Is_Shore()) return TileType::Shore;
+		if (Tile_Is_Wet()) return TileType::Wet;
+		if (Tile_Is_MiscPave()) return TileType::MiscPave;
+		if (Tile_Is_Pave()) return TileType::Pave;
+		if (Tile_Is_DirtRoad()) return TileType::DirtRoad;
+		if (Tile_Is_PavedRoad()) return TileType::PavedRoad;
+		if (Tile_Is_PavedRoadEnd()) return TileType::PavedRoadEnd;
+		if (Tile_Is_PavedRoadSlope()) return TileType::PavedRoadSlope;
+		if (Tile_Is_Median()) return TileType::Median;
+		if (Tile_Is_Bridge()) return TileType::Bridge;
+		if (Tile_Is_WoodBridge()) return TileType::WoodBridge;
+		if (Tile_Is_ClearToSandLAT()) return TileType::ClearToSandLAT;
+		if (Tile_Is_Green()) return TileType::Green;
+		if (Tile_Is_NotWater()) return TileType::NotWater;
+		if (Tile_Is_DestroyableCliff()) return TileType::DestroyableCliff;
+		return TileType::Unk;
+	}
+
 	// get content objects
 	TechnoClass* FindTechnoNearestTo(Point2D const& offsetPixel, bool alt, TechnoClass const* pExcludeThis = nullptr) const
 		{ JMP_THIS(0x47C3D0); }
