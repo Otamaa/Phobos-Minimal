@@ -454,6 +454,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\ExtraHeaders\RVectorClass.h" />
+    <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
