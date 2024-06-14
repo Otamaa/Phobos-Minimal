@@ -165,8 +165,8 @@ public:
 	constexpr Mission GetAnimToInfantryMission(bool IsAi) {
 		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
 
-		if (IsAi && this->CreateUnit_AI_Mission.isset())
-			result = this->CreateUnit_AI_Mission;
+		if (IsAi && this->MakeInfantry_AI_Mission.isset())
+			result = this->MakeInfantry_AI_Mission;
 
 		return result;
 	}
