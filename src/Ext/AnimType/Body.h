@@ -20,6 +20,10 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
+	bool CreateUnit_Scatter { false };
+	bool CreateUnit_AI_Scatter { false };
+	bool MakeInfantry_Scatter { false };
+	bool MakeInfantry_AI_Scatter { false };
 
 #pragma region CreateUnit
 	Valueable<UnitTypeClass*> CreateUnit {};
@@ -29,6 +33,8 @@ public:
 	Nullable<bool> CreateUnit_RemapAnim { };
 	Valueable<bool> CreateUnit_RandomFacing { true };
 	Valueable<Mission> CreateUnit_Mission { Mission::Guard };
+	Nullable<Mission> CreateUnit_AI_Mission { };
+
 	Nullable<OwnerHouseKind> CreateUnit_Owner {};
 	Valueable<bool> CreateUnit_ConsiderPathfinding { false };
 	Valueable<AnimTypeClass*> CreateUnit_SpawnAnim { nullptr };
@@ -52,6 +58,7 @@ public:
 	Nullable<DamageDelayTargetFlag> Damage_TargetFlag {};
 
 	Nullable<Mission> MakeInfantry_Mission {};
+	Nullable<Mission> MakeInfantry_AI_Mission {};
 
 	NullableVector <AnimTypeClass*> SplashList {};
 	Valueable<bool> SplashIndexRandom { false };
@@ -137,6 +144,32 @@ public:
 	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr , WarheadTypeClass* pWH = nullptr);
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
+
+	constexpr bool ScatterCreateUnit(bool IsAi) {
+		return IsAi ? this->CreateUnit_AI_Scatter : this->CreateUnit_Scatter;
+	}
+
+	constexpr bool ScatterAnimToInfantry(bool IsAi) {
+		return IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
+	}
+
+	constexpr  Mission GetCreateUnitMission(bool IsAi) {
+		auto result = this->CreateUnit_Mission;
+
+		if (IsAi && this->CreateUnit_AI_Mission.isset())
+			result = this->CreateUnit_AI_Mission;
+
+		return result;
+	}
+
+	constexpr Mission GetAnimToInfantryMission(bool IsAi) {
+		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
+
+		if (IsAi && this->CreateUnit_AI_Mission.isset())
+			result = this->CreateUnit_AI_Mission;
+
+		return result;
+	}
 
 	void ValidateData();
 private:

@@ -40,7 +40,27 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->CreateUnit_InheritDeathFacings.Read(exINI, pID, "CreateUnit.InheritFacings");
 	this->CreateUnit_InheritTurretFacings.Read(exINI, pID, "CreateUnit.InheritTurretFacings");
 	this->CreateUnit_RemapAnim.Read(exINI, pID, "CreateUnit.RemapAnim");
-	this->CreateUnit_Mission.Read(exINI, pID, "CreateUnit.Mission");
+
+	if (exINI.ReadString(pID, "CreateUnit.Mission")) {
+		auto result = MissionClass::GetMissionById(exINI.value());
+		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter")) {
+			this->CreateUnit_Scatter = true;
+		} else if (result != Mission::None) {
+			this->CreateUnit_Scatter = false;
+			this->CreateUnit_Mission = result;
+		}
+	}
+
+	if (exINI.ReadString(pID, "CreateUnit.Mission.AI")) {
+		auto result = MissionClass::GetMissionById(exINI.value());
+		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter")) {
+			this->CreateUnit_AI_Scatter = true;
+		} else if(result != Mission::None) {
+			this->CreateUnit_AI_Scatter = false;
+			this->CreateUnit_AI_Mission = result;
+		}
+	}
+
 	this->CreateUnit_Owner.Read(exINI, pID, "CreateUnit.Owner");
 	this->CreateUnit_RandomFacing.Read(exINI, pID, "CreateUnit.RandomFacing");
 	this->CreateUnit_ConsiderPathfinding.Read(exINI, pID, "CreateUnit.ConsiderPathfinding");
@@ -67,7 +87,27 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
-	this->MakeInfantry_Mission.Read(exINI, pID, "MakeInfantry.Mission");
+
+	if (exINI.ReadString(pID, "MakeInfantry.Mission")) {
+		auto result = MissionClass::GetMissionById(exINI.value());
+		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter")) {
+			this->MakeInfantry_Scatter = true;
+		} else if(result != Mission::None) {
+			this->MakeInfantry_Scatter = false;
+			this->MakeInfantry_Mission = result;
+		}
+	}
+
+	if (exINI.ReadString(pID, "MakeInfantry.Mission.AI")) {
+		auto result = MissionClass::GetMissionById(exINI.value());
+		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter")) {
+			this->MakeInfantry_AI_Scatter = true;
+		} else if (result != Mission::None) {
+			this->MakeInfantry_AI_Scatter = false;
+			this->MakeInfantry_AI_Mission = result;
+		}
+	}
+
 	this->DetachedReport.Read(exINI, pID, "DetachedReport");
 #pragma region Otamaa
 
@@ -261,6 +301,8 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 
 		if (!pTechno->InLimbo)
 		{
+			const auto Is_AI = decidedOwner->IsControlledByHuman();
+
 			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim)
 			{
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, pAnimExt->CreateUnitLocation);
@@ -306,7 +348,10 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 				pTechno->UpdatePlacement(PlacementType::Put);
 			}
 
-			pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
+			if(!pTypeExt->ScatterCreateUnit(Is_AI))
+				pTechno->QueueMission(pTypeExt->GetCreateUnitMission(Is_AI), false);
+			else
+				pTechno->Scatter(CoordStruct::Empty, true, false);
 		}
 		else
 		{
@@ -413,6 +458,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->CreateUnit_RemapAnim)
 		.Process(this->CreateUnit_RandomFacing)
 		.Process(this->CreateUnit_Mission)
+		.Process(this->CreateUnit_AI_Mission)
 		.Process(this->CreateUnit_Owner)
 		.Process(this->CreateUnit_ConsiderPathfinding)
 		.Process(this->CreateUnit_SpawnAnim)
@@ -430,6 +476,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Damage_ConsiderOwnerVeterancy)
 		.Process(this->Damage_TargetFlag)
 		.Process(this->MakeInfantry_Mission)
+		.Process(this->MakeInfantry_AI_Mission)
 		.Process(this->Warhead_Detonate)
 
 		.Process(this->SplashList)
@@ -470,6 +517,12 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->AdditionalHeight)
 		.Process(this->AltReport)
 		.Process(this->SpawnsData)
+
+		.Process(this->CreateUnit_Scatter)
+		.Process(this->CreateUnit_AI_Scatter)
+		.Process(this->MakeInfantry_Scatter)
+		.Process(this->MakeInfantry_AI_Scatter)
+
 		;
 }
 

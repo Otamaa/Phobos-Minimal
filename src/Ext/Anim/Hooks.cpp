@@ -223,10 +223,13 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 	GET(InfantryClass*, pInf, EDI);
 
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const auto Is_AI = pInf->Owner->IsControlledByHuman();
 
-	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(Mission::Hunt);
-	//Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->Type->ID , MissionClass::MissionToString(nMission));
-	pInf->QueueMission(nMission, false);
+	if (!pTypeExt->ScatterAnimToInfantry(Is_AI))
+		pInf->QueueMission(pTypeExt->GetAnimToInfantryMission(Is_AI), false);
+	else
+		pInf->Scatter(CoordStruct::Empty, true, false);
+
 	return 0x0;
 }
 
