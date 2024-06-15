@@ -131,4 +131,9 @@ public:
 	static IronCurtainFlag GetICFlagResult(IronCurtainFlag const& Input);
 	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
 	static bool IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor);
+
+	constexpr inline bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
+	{
+		return (bool)((LandTypeFlags)(1 << (char)type) & flags);
+	}
 };

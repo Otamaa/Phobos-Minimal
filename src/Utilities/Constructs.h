@@ -56,8 +56,16 @@
 #include "Savegame.h"
 #include "Debug.h"
 
-template <typename T>
-using UniqueDLLPtr = std::unique_ptr<T, DLLDeleter>;
+template<typename T>
+struct UniqueDLLPtr : public std::unique_ptr<T, DLLDeleter> {
+
+	constexpr UniqueDLLPtr<T>() noexcept : std::unique_ptr<T, DLLDeleter>()
+	{ }
+
+	constexpr UniqueDLLPtr<T>(T* _ptr) noexcept : std::unique_ptr<T, DLLDeleter>() {
+		this->reset(_ptr);
+	}
+};
 
 // owns a resource. not copyable, but movable.
 template <typename T, typename Deleter, T Default = T()>
@@ -704,11 +712,11 @@ struct OptionalStruct {
 		return !this->HasValue;
 	}
 
-	explicit operator bool() const noexcept {
+	constexpr explicit operator bool() const noexcept {
 		return this->HasValue;
 	}
 
-	bool has_value() const noexcept {
+	constexpr bool has_value() const noexcept {
 		return this->HasValue;
 	}
 
@@ -824,17 +832,17 @@ struct GameConfig {
 		Ini->WriteCCFile(File.get());
 	}
 
-	const char* filename() noexcept
+	constexpr const char* filename() noexcept
 	{
 		return File->FileName;
 	}
 
-	CCINIClass* get() noexcept
+	constexpr CCINIClass* get() noexcept
 	{
 		return Ini.get();
 	}
 
-	CCINIClass* operator->() noexcept
+	constexpr CCINIClass* operator->() noexcept
 	{
 		return Ini.get();
 	}

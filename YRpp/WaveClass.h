@@ -75,7 +75,7 @@ public:
 	// place the object on the map
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x75F8B0);
 	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const  override JMP_THIS(0x7F6D08);
-	
+
 	static void Generate_Tables()
 		{ JMP_STD(0x75F020); }
 
@@ -145,7 +145,7 @@ protected:
 	//===========================================================================
 
 public:
-	TechnoClass* Target;
+	AbstractClass* Target;
 	WaveType Type;
 	CoordStruct LimboCoords;
 	CoordStruct Pos0;
@@ -159,8 +159,8 @@ public:
 	CoordStruct Pos8;
 	CoordStruct Pos9;
 	CoordStruct Pos10;
-	bool bool_12C;
-	bool bool_12D;
+	bool IsTraveling;
+	bool ShouldEnd;
 	int WaveIntensity;
 	int WaveCount;
 	double MatrixScale1;

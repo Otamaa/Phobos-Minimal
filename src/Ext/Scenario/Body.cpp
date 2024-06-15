@@ -7,10 +7,8 @@ std::unique_ptr<ScenarioExtData>  ScenarioExtData::Data = nullptr;
 void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 {
 	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";
-	UniqueGamePtr<CCFileClass> pFile {};
-	UniqueGamePtr<CCINIClass> pINI {};
+	UniqueGamePtr<CCFileClass> pFile { GameCreate<CCFileClass>(fileName) };
 
-	pFile.reset(GameCreate<CCFileClass>(fileName));
 	bool is_newFile = false;
 
 	if(!pFile->Exists()){
@@ -28,7 +26,7 @@ void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 		return;
 	}
 
-	pINI.reset(GameCreate<CCINIClass>());
+	UniqueGamePtr<CCINIClass> pINI { GameCreate<CCINIClass>() };
 
 	if(!is_newFile)
 		pINI->ReadCCFile(pFile.get());

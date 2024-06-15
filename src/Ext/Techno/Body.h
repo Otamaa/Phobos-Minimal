@@ -460,6 +460,9 @@ public:
 	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
 
 	int ShootCount { 0 };
+
+	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
