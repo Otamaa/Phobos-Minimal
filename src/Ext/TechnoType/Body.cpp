@@ -424,8 +424,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				_key += std::to_string(i);
 				_key += ".Types";
 
+				auto& it = this->DestroyAnimSpecific[DestroyAnimSpecificList[i]];
 				detail::ReadVectors(
-					this->DestroyAnimSpecific[DestroyAnimSpecificList[i]],
+					it,
 					exINI,
 					pSection,
 					_key.c_str()

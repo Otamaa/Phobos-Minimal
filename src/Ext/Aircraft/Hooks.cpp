@@ -124,7 +124,7 @@ DEFINE_HOOK(0x418805, AircraftClass_Mission_Attack_Strafe2_Strafe_BurstFix, 0x6)
 
 DEFINE_HOOK(0x418914, AircraftClass_Mission_Attack_Strafe3_Strafe_BurstFix, 0x6) {
 	GET(AircraftClass* const, pThis, ESI);
-	return !FireBurst(pThis, AircraftFireMode::Strafe3) ? 0x418992 : 0x418985;
+	return !FireBurst(pThis, AircraftFireMode::Strafe3) ? 0x418992 : 0x41897F;
 }
 
 DEFINE_HOOK(0x418A23, AircraftClass_Mission_Attack_Strafe4_Strafe_BurstFix, 0x6) {

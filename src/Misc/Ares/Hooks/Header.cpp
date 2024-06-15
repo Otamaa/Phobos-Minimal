@@ -3866,7 +3866,7 @@ void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 		&& pExt->Is_DriverKilled
 		&& pThis->CurrentMission != Mission::Harmless
 		&& !pFoot->IsAttackedByLocomotor
-		&& ScenarioClass::Instance->Random.RandomBool()
+		//&& ScenarioClass::Instance->Random.RandomBool()
 		)
 	{
 		pThis->SetTarget(nullptr);
