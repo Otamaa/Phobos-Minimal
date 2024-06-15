@@ -556,10 +556,27 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
 		const auto buildableResult = pHouse->CanBuild(TT, false, false);
 
-		if (buildableResult == CanBuildResult::Unbuildable
-			|| TT->GetActualCost(pHouse) > pHouse->Available_Money())
-		{
-			continue;
+		// Aircraft has it own handling
+		if constexpr (Ttype::AbsID == AbstractType::AircraftType) {
+			//Debug::Log("Aircraft [%s][%s] return result [%d] for can build");
+
+			if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(pHouse) > pHouse->Available_Money()) {
+				continue;
+			}
+
+			//yes , we checked this fucking twice just to make sure
+			const auto factoryresult = HouseExtData::HasFactory(pHouse, TT, false, true, false, true).first;
+
+			if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory) {
+				continue;
+			}
+
+		} else {
+			if (buildableResult == CanBuildResult::Unbuildable
+				|| TT->GetActualCost(pHouse) > pHouse->Available_Money())
+			{
+				continue;
+			}
 		}
 
 		if (BestValue < CurrentValue || BestValue == -1)
