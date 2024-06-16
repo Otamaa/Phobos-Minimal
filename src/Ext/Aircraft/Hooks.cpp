@@ -61,10 +61,6 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 						pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
 					}
 				}
-				else if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget5_Strafe) {
-					pExt->ShootCount = 0;
-				}
-
 			}
 			else if (fireCount > 1 && starfingCounts < fireCount) {
 
@@ -813,10 +809,7 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl const* ifly)
 
 	if(const auto wpn = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))){
 		if (auto wpnType = wpn->WeaponType) {
-			if (WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing_Shots.isset())
-				return TRUE;
-
-			return wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso;
+			return WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing.Get(wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso);
 		}
 	}
 
