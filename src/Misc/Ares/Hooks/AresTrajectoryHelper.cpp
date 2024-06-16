@@ -2,40 +2,6 @@
 
 #include <Ext/BuildingType/Body.h>
 
-bool  AresTrajectoryHelper::SubjectToAnything(
-	BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt)
-{
-	return pType->SubjectToCliffs
-		|| pType->SubjectToWalls
-		|| pTypeExt->SubjectToSolid;
-}
-
-bool AresTrajectoryHelper::IsCliffHit(
-	CellClass const* const pSource, CellClass const* const pBefore,
-	CellClass const* const pAfter)
-{
-	return pAfter->GetLevelFrom(pBefore) >= Unsorted::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
-}
-
-bool AresTrajectoryHelper::IsWallHit(
-	CellClass const* const pSource, CellClass const* const pCheck,
-	CellClass const* const pTarget, HouseClass const* const pOwner)
-{
-	if (pCheck != pTarget && pCheck->OverlayTypeIndex != -1)
-	{
-		if (OverlayTypeClass::Array->Items[pCheck->OverlayTypeIndex]->Wall)
-		{
-			if (pSource->Level <= pTarget->Level)
-			{
-				return !RulesClass::Instance->AlliedWallTransparency
-					|| (pCheck->WallOwnerIndex != -1 && !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith(pOwner));
-			}
-		}
-	}
-
-	return false;
-}
-
 bool AresTrajectoryHelper::IsBuildingHit(
 	AbstractClass const* const pSource, AbstractClass const* const pTarget,
 	CoordStruct const& crdCur, HouseClass const* const pOwner)

@@ -56,7 +56,7 @@ public:
 		TargetClass dummy; //not really used actually
 	};
 
-	static size_t GetDataSize(EventType type)
+	static constexpr size_t GetDataSize(EventType type)
 	{
 		if (type <= EventType::ABANDON_ALL) // default event
 			return EventClass::EventLength[(uint8_t)type];
@@ -88,7 +88,7 @@ public:
 		}
 	}
 
-	static bool IsValidType(Events type)
+	static constexpr bool IsValidType(Events type)
 	{
 		return (type >= Events::First && type <= Events::Last);
 	}

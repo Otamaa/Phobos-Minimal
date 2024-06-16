@@ -17,7 +17,17 @@ public:
 
 	static int CSFCount;
 	static int NextValueIndex;
-	static std::unordered_map<std::string, CSFString> DynamicStrings;
+	static std::vector<std::pair<std::string, CSFString>> DynamicStrings;
+
+	static constexpr auto FindDynamicStrings(const char* val) {
+		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin) {
+			if (begin->first == val) {
+				return begin;
+			}
+		}
+
+		return DynamicStrings.end();
+	}
 
 	static void LoadAdditionalCSF(const char* fileName, bool ignoreLanguage = false);
 	static const wchar_t* GetDynamicString(const char* name, const wchar_t* pattern, const char* def);

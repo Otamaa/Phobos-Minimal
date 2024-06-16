@@ -9,13 +9,31 @@ class WeaponTypeClass;
 class AresTrajectoryHelper
 {
 private:
-	static bool IsCliffHit(
+	static constexpr bool IsCliffHit(
 		CellClass const* pSource, CellClass const* pBefore,
-		CellClass const* pAfter);
+		CellClass const* pAfter)
+	{
+		return pAfter->GetLevelFrom(pBefore) >= Unsorted::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
+	}
 
-	static bool IsWallHit(
+	static constexpr bool IsWallHit(
 		CellClass const* pSource, CellClass const* pCheck,
-		CellClass const* pTarget, HouseClass const* pOwner);
+		CellClass const* pTarget, HouseClass const* pOwner)
+	{
+		if (pCheck != pTarget && pCheck->OverlayTypeIndex != -1)
+		{
+			if (OverlayTypeClass::Array->Items[pCheck->OverlayTypeIndex]->Wall)
+			{
+				if (pSource->Level <= pTarget->Level)
+				{
+					return !RulesClass::Instance->AlliedWallTransparency
+						|| (pCheck->WallOwnerIndex != -1 && !HouseClass::Array->Items[pCheck->WallOwnerIndex]->IsAlliedWith(pOwner));
+				}
+			}
+		}
+
+		return false;
+	}
 
 	static bool IsBuildingHit(
 		AbstractClass const* pSource, AbstractClass const* pTarget,
@@ -27,8 +45,13 @@ private:
 
 public:
 	// gets whether collision checks are needed
-	static bool SubjectToAnything(
-		BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt);
+	static constexpr bool SubjectToAnything(
+		BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt)
+	{
+		return pType->SubjectToCliffs
+			|| pType->SubjectToWalls
+			|| pTypeExt->SubjectToSolid;
+	}
 
 	// gets the obstacle when moving from pCellBullet to crdCur
 	static CellClass* GetObstacle(
