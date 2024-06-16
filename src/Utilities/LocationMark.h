@@ -14,26 +14,26 @@ struct LocationMark
 	CoordStruct Location;
 	DirStruct Direction;
 
-	LocationMark(CoordStruct location, DirStruct direction) :
+	constexpr LocationMark(CoordStruct location, DirStruct direction) :
 		Location { location }
 		, Direction { direction }
 	{ }
 
-	LocationMark(DirStruct direction , CoordStruct location) :
+	constexpr LocationMark(DirStruct direction , CoordStruct location) :
 		Location { location }
 		, Direction { direction }
 	{ }
 
-	LocationMark() :
+	constexpr LocationMark() :
 		Location { 0,0,0 }
 		, Direction { }
 	{ }
 
-	LocationMark(const LocationMark& other) = default;
-	LocationMark& operator=(const LocationMark& other) = default;
-	~LocationMark() = default;
+	constexpr LocationMark(const LocationMark& other) = default;
+	constexpr LocationMark& operator=(const LocationMark& other) = default;
+	constexpr ~LocationMark() = default;
 
-	inline bool IsValid() const
+	constexpr inline bool IsValid() const
 	{
 		return (Location != CoordStruct::Empty);
 	}

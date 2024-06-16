@@ -27,9 +27,9 @@ struct dllData
 	std::vector<module_export> Exports;
 	//std::vector<std::string> Patches;
 
-	dllData() = default;
+	constexpr dllData() = default;
 
-	dllData(const char* name, HMODULE handle, uintptr_t baseaddr) : ModuleName { name }
+	constexpr dllData(const char* name, HMODULE handle, uintptr_t baseaddr) : ModuleName { name }
 		, Handle { handle }
 		, BaseAddr { baseaddr }
 		, Impors {}
@@ -38,7 +38,7 @@ struct dllData
 	{
 	}
 
-	~dllData() = default;
+	constexpr ~dllData() = default;
 };
 
 // no more than 8 characters
@@ -49,7 +49,7 @@ struct dllData
 #pragma warning(push)
 #pragma warning( disable : 4324)
 
-struct __declspec(novtable)
+struct NOVTABLE
 	Patch
 {
 	uintptr_t offset;
@@ -100,7 +100,7 @@ struct __declspec(novtable)
 	 *  So use these helpers to commit treason and adjust the pointer... I'm sorry...
 	 */
 	template<class T>
-	static __forceinline T Adjust_Ptr(T ptr, int amount)
+	static FORCEINLINE T Adjust_Ptr(T ptr, int amount)
 	{
 		uintptr_t rawptr = reinterpret_cast<uintptr_t>(ptr);
 		return reinterpret_cast<T>(rawptr + amount);
@@ -110,38 +110,38 @@ struct __declspec(novtable)
 	static void Apply_RAW(uintptr_t offset, size_t sz, BYTE* data);
 
 	template <size_t Size>
-	static inline void Apply_RAW(uintptr_t offset, const char(&str)[Size])
+	static FORCEINLINE void Apply_RAW(uintptr_t offset, const char(&str)[Size])
 	{
 		PatchWrapper dummy { offset, Size, reinterpret_cast<BYTE*>(const_cast<char*>(str)) };
 	};
 
 	template <typename T>
-	static inline void Apply_TYPED(uintptr_t offset, std::initializer_list<T> data)
+	static FORCEINLINE void Apply_TYPED(uintptr_t offset, std::initializer_list<T> data)
 	{
 		Patch::Apply_RAW(offset, data.size() * sizeof(T), const_cast<byte*>(reinterpret_cast<const byte*>(data.begin())));
 	};
 
 
 	static void Apply_LJMP(uintptr_t offset, uintptr_t pointer);
-	static inline void Apply_LJMP(uintptr_t offset, void* pointer)
+	static FORCEINLINE void Apply_LJMP(uintptr_t offset, void* pointer)
 	{
 		Patch::Apply_LJMP(offset, reinterpret_cast<uintptr_t>(pointer));
 	};
 
 	static void Apply_CALL(uintptr_t offset, uintptr_t pointer);
-	static inline void Apply_CALL(uintptr_t offset, void* pointer)
+	static FORCEINLINE void Apply_CALL(uintptr_t offset, void* pointer)
 	{
 		Patch::Apply_CALL(offset, reinterpret_cast<uintptr_t>(pointer));
 	};
 
 	static void Apply_CALL6(uintptr_t offset, uintptr_t pointer);
-	static inline void Apply_CALL6(uintptr_t offset, void* pointer)
+	static FORCEINLINE void Apply_CALL6(uintptr_t offset, void* pointer)
 	{
 		Patch::Apply_CALL6(offset, reinterpret_cast<DWORD>(pointer));
 	};
 
 	static void Apply_VTABLE(uintptr_t offset, uintptr_t pointer);
-	static inline void Apply_VTABLE(uintptr_t offset, void* pointer)
+	static FORCEINLINE void Apply_VTABLE(uintptr_t offset, void* pointer)
 	{
 		Patch::Apply_VTABLE(offset, reinterpret_cast<uintptr_t>(pointer));
 	};
@@ -153,7 +153,7 @@ struct __declspec(novtable)
 	};
 
 
-	static inline void Apply_OFFSET(uintptr_t offset, uintptr_t* pointer)
+	static FORCEINLINE void Apply_OFFSET(uintptr_t offset, uintptr_t* pointer)
 	{
 		Patch::Apply_OFFSET(offset, reinterpret_cast<DWORD>(pointer));
 	};
@@ -167,7 +167,7 @@ struct __declspec(novtable)
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 };
 
-struct __declspec(novtable)
+struct NOVTABLE
 	PatchWrapper
 {
 	Patch Data;

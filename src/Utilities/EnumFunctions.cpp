@@ -216,6 +216,24 @@ std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::
 }
 };
 
+std::array<std::pair<const char* const, MouseHotSpotX>, 4u> EnumFunctions::MouseHotSpotX_ToStrings
+{
+{
+	{ "left", MouseHotSpotX::Left },
+	{ "center", MouseHotSpotX::Center },
+	{ "right", MouseHotSpotX::Right }
+}
+};
+
+std::array<std::pair<const char* const, MouseHotSpotY>, 4u> EnumFunctions::MouseHotSpotY_ToStrings
+{
+{
+	{ "top", MouseHotSpotY::Top },
+	{ "bottom", MouseHotSpotY::Bottom },
+	{ "middle", MouseHotSpotY::Middle }
+}
+};
+
 std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
 {
 {

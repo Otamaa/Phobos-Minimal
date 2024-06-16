@@ -46,16 +46,16 @@ class INI_EX {
 
 public:
 
-	INI_EX() noexcept : IniFile { nullptr }
+	constexpr INI_EX() noexcept : IniFile { nullptr }
 	{ }
 
-	~INI_EX() { IniFile = nullptr; }
+	constexpr ~INI_EX() { IniFile = nullptr; }
 
-	explicit INI_EX(CCINIClass* pIniFile) noexcept
+	constexpr explicit INI_EX(CCINIClass* pIniFile) noexcept
 		: IniFile { pIniFile }
 	{ }
 
-	explicit INI_EX(CCINIClass& iniFile) noexcept
+	constexpr explicit INI_EX(CCINIClass& iniFile) noexcept
 		: IniFile { &iniFile }
 	{ }
 
@@ -71,15 +71,15 @@ public:
 		return Phobos::readLength;
 	}
 
-	inline bool empty() const {
+	constexpr inline bool empty() const {
 		return !Phobos::readBuffer[0];
 	}
 
-	inline CCINIClass* GetINI() const {
+	constexpr inline CCINIClass* GetINI() const {
 		return IniFile;
 	}
 
-	INI_EX(INI_EX const& other)
+	constexpr INI_EX(INI_EX const& other)
 		: IniFile { other.IniFile }
 	{ }
 

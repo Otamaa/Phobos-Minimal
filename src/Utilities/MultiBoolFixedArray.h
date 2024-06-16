@@ -25,7 +25,7 @@ struct MultiBoolFixedArray
 	constexpr int size() const { return Amount;	}
 
 	// no index validation
-	bool at(int Index) const { 	return Datas[Index]; }
+	constexpr bool at(int Index) const { 	return Datas[Index]; }
 
 	// index validation manually done
 	bool Get(int Index) const {
