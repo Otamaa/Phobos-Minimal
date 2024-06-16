@@ -11,7 +11,7 @@ class TechnoClass;
 */
 struct TechnoTypeConvertData
 {
-	std::vector<TechnoTypeClass*> From { nullptr };
+	std::vector<TechnoTypeClass*> From { };
 	TechnoTypeClass* To { nullptr };
 	AffectedHouse Eligible { AffectedHouse::All };
 
