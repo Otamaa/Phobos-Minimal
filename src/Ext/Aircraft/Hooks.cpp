@@ -33,14 +33,15 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 {
 	GET(AircraftClass* const, pThis, ECX);
 
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
 		)
 	{
+		pExt->ShootCount = 0;
 		return 0;
 	}
-
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (const auto pWeaponStr = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))) {
 		if (pWeaponStr->WeaponType) {
