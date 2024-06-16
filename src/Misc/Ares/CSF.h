@@ -19,14 +19,15 @@ public:
 	static int NextValueIndex;
 	static std::vector<std::pair<std::string, CSFString>> DynamicStrings;
 
-	static constexpr auto FindDynamicStrings(const char* val) {
+	static constexpr auto FindOrAllocateDynamicStrings(const char* val) {
 		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin) {
 			if (begin->first == val) {
 				return begin;
 			}
 		}
 
-		return DynamicStrings.end();
+		DynamicStrings.emplace_back(val, CSFString{});
+		return DynamicStrings.begin() + (DynamicStrings.size() - 1);
 	}
 
 	static void LoadAdditionalCSF(const char* fileName, bool ignoreLanguage = false);

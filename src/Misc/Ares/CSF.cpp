@@ -45,10 +45,10 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 
 const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault)
 {
-	if (IS_SAME_STR_(pLabelName, "NOSTR:"))
+	if (!pLabelName || IS_SAME_STR_(pLabelName, "NOSTR:"))
 		return L"";
 
-	auto pData = FindDynamicStrings(pLabelName);
+	auto pData = FindOrAllocateDynamicStrings(pLabelName);
 
 	if((!pData->second.Text || !pData->second.Text[0])) {
 		swprintf_s(pData->second.Text, 101u, pPattern, pDefault);
