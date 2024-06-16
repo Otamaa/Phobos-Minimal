@@ -266,25 +266,22 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	}
 }
 
-DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
+DEFINE_HOOK(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 {
-	enum { DisallowFiring = 0x6FC86A };
+	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
 
 	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pTransport, EAX);
 
-	if (auto const pTransport = pThis->Transporter)
-	{
-		auto const  pExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
-		if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
-			return DisallowFiring;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
 
-		//if(IS_SAME_STR_("LYNXBUFF" , pThis->get_ID()))
-		// if(pTransport->IsBeingWarpedOut()){
-		 //	return DisallowFiring;
-		//}
-	}
+	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
+		return Illegal;
 
-	return 0;
+	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons && TechnoExtContainer::Instance.Find(pTransport)->AE_DisableWeapons)
+		return OutOfRange;
+
+	return Continue;
 }
 
 // Reimplements the game function with few changes / optimizations

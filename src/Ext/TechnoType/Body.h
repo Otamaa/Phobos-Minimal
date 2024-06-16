@@ -219,6 +219,7 @@ public:
 	Valueable<bool> OpenTopped_AllowFiringIfDeactivated { true };
 	Valueable<bool> OpenTopped_ShareTransportTarget { true };
 	Valueable<bool> OpenTopped_UseTransportRangeModifiers { false };
+	Valueable<bool> OpenTopped_CheckTransportDisableWeapons { false };
 	Valueable<bool> AutoFire { false };
 	Valueable<bool> AutoFire_TargetSelf { false };
 
