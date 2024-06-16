@@ -5,13 +5,6 @@
 
 #include <Objidl.h>
 
-PhobosByteStream::PhobosByteStream(size_t Reserve) : Data(), CurrentOffset(0)
-{
-	this->Data.reserve(Reserve);
-}
-
-PhobosByteStream::~PhobosByteStream() = default;
-
 bool PhobosByteStream::ReadFromStream(IStream* pStm, const size_t Length)
 {
 	auto size = this->Data.size();

@@ -5,7 +5,6 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <DebugLog.h>
 
 struct IStream;
 class PhobosStreamReader;
@@ -30,15 +29,18 @@ protected:
 	size_t CurrentOffset;
 
 public:
-	PhobosByteStream(size_t Reserve = 0x1000);
-	~PhobosByteStream();
+	constexpr PhobosByteStream(size_t Reserve = 0x1000) : Data(), CurrentOffset(0) {
+		this->Data.reserve(Reserve);
+	}
 
-	size_t Size() const
+	constexpr ~PhobosByteStream() = default;
+
+	constexpr size_t Size() const
 	{
 		return this->Data.size();
 	}
 
-	size_t Offset() const
+	constexpr size_t Offset() const
 	{
 		return this->CurrentOffset;
 	}
@@ -106,16 +108,15 @@ public:
 class PhobosStreamWorkerBase
 {
 public:
-	explicit PhobosStreamWorkerBase(PhobosByteStream& Stream) :
+	constexpr explicit PhobosStreamWorkerBase(PhobosByteStream& Stream) :
 		stream(&Stream),
 		success(true)
 	{ }
 
-	PhobosStreamWorkerBase(const PhobosStreamWorkerBase&) = delete;
+	constexpr PhobosStreamWorkerBase(const PhobosStreamWorkerBase&) = delete;
+	constexpr PhobosStreamWorkerBase& operator = (const PhobosStreamWorkerBase&) = delete;
 
-	PhobosStreamWorkerBase& operator = (const PhobosStreamWorkerBase&) = delete;
-
-	bool Success() const
+	constexpr bool Success() const
 	{
 		return this->success;
 	}
@@ -124,12 +125,12 @@ protected:
 	// set to false_type or true_type to disable or enable debugging checks
 	using stream_debugging_t = std::false_type;
 
-	bool IsValid(std::true_type) const
+	constexpr bool IsValid(std::true_type) const
 	{
 		return this->success;
 	}
 
-	bool IsValid(std::false_type) const
+	constexpr bool IsValid(std::false_type) const
 	{
 		return true;
 	}
@@ -141,10 +142,10 @@ protected:
 class PhobosStreamReader : public PhobosStreamWorkerBase
 {
 public:
-	explicit PhobosStreamReader(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
-	PhobosStreamReader(const PhobosStreamReader&) = delete;
+	constexpr explicit PhobosStreamReader(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
+	constexpr PhobosStreamReader(const PhobosStreamReader&) = delete;
 
-	PhobosStreamReader& operator = (const PhobosStreamReader&) = delete;
+	constexpr PhobosStreamReader& operator = (const PhobosStreamReader&) = delete;
 
 	template <typename _Ty>
 	PhobosStreamReader& Process(std::set<_Ty>& s, bool RegisterForChange = true)
@@ -302,10 +303,10 @@ public :
 class PhobosStreamWriter : public PhobosStreamWorkerBase
 {
 public:
-	explicit PhobosStreamWriter(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
-	PhobosStreamWriter(const PhobosStreamWriter&) = delete;
+	constexpr explicit PhobosStreamWriter(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
+	constexpr PhobosStreamWriter(const PhobosStreamWriter&) = delete;
 
-	PhobosStreamWriter& operator = (const PhobosStreamWriter&) = delete;
+	constexpr PhobosStreamWriter& operator = (const PhobosStreamWriter&) = delete;
 
 	template <typename _Ty>
 	PhobosStreamWriter& Process(std::set<_Ty>& s, bool RegisterForChange = true)

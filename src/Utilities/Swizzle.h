@@ -1,9 +1,11 @@
 #pragma once
 
-#include <unordered_map>
+#include <vector>
+#include <utility>
 #include <type_traits>
 
 #include <Objidl.h>
+#include <SwizzleManagerClass.h>
 
 class PhobosSwizzle
 {
@@ -12,39 +14,117 @@ protected:
 	/**
 	* data store for RegisterChange
 	*/
-	std::unordered_map<void*, void*> Changes;
+	std::vector<std::pair<void*, void*>> Changes;
 
 	/**
 	* data store for RegisterForChange
 	*/
-	std::unordered_multimap<void*, void**> Nodes;
+	std::vector<std::pair<void*, void**>> Nodes;
 
 public:
 	static PhobosSwizzle Instance;
 
-	PhobosSwizzle() { }
-	~PhobosSwizzle() { }
+	constexpr PhobosSwizzle() { }
+	constexpr ~PhobosSwizzle() { }
 
 	/**
 	* pass in the *address* of the pointer you want to have changed
 	* caution, after the call *p will be NULL
 	*/
-	HRESULT RegisterForChange_Hook(void** p);
+	constexpr HRESULT RegisterForChange_Hook(void** p)
+	{
+		if (p)
+		{
+			if (auto deref = *p)
+			{
+				this->Nodes.emplace_back(deref, p);
+				*p = nullptr;
+			}
+			return S_OK;
+		}
+		return E_POINTER;
+	}
 
-	HRESULT RegisterForChange(void** p);
+	HRESULT RegisterForChange(void** p)
+	{
+		return SwizzleManagerClass::Instance().Swizzle(p);
+	}
+
+	constexpr auto FindChanges(void* ptr) const {
+
+		for (auto begin = this->Changes.begin(); begin != this->Changes.end(); ++begin) {
+			if (begin->first == ptr)
+				return begin;
+		}
+
+		return this->Changes.end();
+	}
 	/**
 	* the original game objects all save their `this` pointer to the save stream
 	* that way they know what ptr they used and call this function with that old ptr and `this` as the new ptr
 	*/
-	HRESULT RegisterChange(void* was, void* is);
+	HRESULT RegisterChange(void* was, void* is)
+	{
+		return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
+	}
 
-	HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is);
+	constexpr HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
+	{
+		auto exist = this->FindChanges(was);
+
+		//the requested `was` not found
+		if (exist == this->Changes.end()) {
+			//Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] request change to both [%p] AND [%p]!\n", caller, was, exist->second, is);
+			this->Changes.emplace_back(was, is);
+		}
+		//the requested `was` found
+		//else if (exist->second != is) {
+		//	Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] declared change to both [%p] AND [%p]!\n", caller, was, exist->second, is);
+		//}
+
+		return S_OK;
+	}
+
 	/**
 	* this function will rewrite all registered nodes' values
 	*/
-	void ConvertNodes() const;
+	constexpr void ConvertNodes() const
+	{
+		//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
+		void* lastFind(nullptr);
+		void* lastRes(nullptr);
 
-	void Clear();
+		for (auto it = this->Nodes.begin(); it != this->Nodes.end(); ++it)
+		{
+			if (lastFind != it->first)
+			{
+				auto change = this->FindChanges(it->first);
+
+				/*
+				if (change == this->Changes.end())
+				{
+					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
+				}
+				else
+				*/
+				if (change != this->Changes.end())
+				{
+					lastFind = it->first;
+					lastRes = change->second;
+				}
+			}
+			if (auto p = it->second)
+			{
+				*p = lastRes;
+			}
+		}
+	}
+
+	constexpr void Clear()
+	{
+		this->Nodes.clear();
+		this->Changes.clear();
+	}
 
 	template<typename T>
 	void RegisterPointerForChange(T*& ptr)
