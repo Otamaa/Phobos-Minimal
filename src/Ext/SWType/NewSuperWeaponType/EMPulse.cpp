@@ -89,6 +89,8 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	pData->AttachedToObject->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 
+	if(!pData->EMPulse_PulseBall.isset())
+		pData->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
 }
 
 bool SW_EMPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const

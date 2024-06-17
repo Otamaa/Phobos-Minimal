@@ -528,16 +528,6 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
 
-AnimTypeExtData* AnimTypeExtContainer::Find(AnimClass* key)
-{
-	return this->GetExtAttribute(key->Type);
-}
-
-AnimTypeExtData* AnimTypeExtContainer::Find(AnimTypeClass* key)
-{
-	return this->GetExtAttribute(key);
-}
-
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);

@@ -1740,21 +1740,22 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 	return 0;
 }
 
+#include <Ext/Anim/Body.h>
+
 DEFINE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pSWExt = SWTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->LinkedSW->Type);
-	auto pPulseBall = pSWExt->EMPulse_PulseBall.Get(AnimTypeClass::Find(GameStrings::PULSBALL));
-	auto delay = pSWExt->EMPulse_PulseDelay;
+	const auto pSWExt = SWTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->LinkedSW->Type);
+	const auto delay = pSWExt->EMPulse_PulseDelay;
 
 	// also support no pulse ball
-	if (pPulseBall)
-	{
+	if (auto pPulseBall = pSWExt->EMPulse_PulseBall) {
 		CoordStruct flh;
 		pThis->GetFLH(&flh , 0, CoordStruct::Empty);
 		auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
 		pAnim->Owner = pThis->GetOwningHouse();
+		AnimExtContainer::Instance.Find(pAnim)->Invoker = pThis;
 	}
 
 	pThis->MissionStatus = 2;
@@ -1882,6 +1883,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 					pAnim->ZAdjust = -100;
 
 				pAnim->SetHouse(pThis->GetOwningHouse());
+				AnimExtContainer::Instance.Find(pAnim)->Invoker = pThis;
 			}
 
 			return SetUpNext;

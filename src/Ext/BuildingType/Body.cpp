@@ -192,12 +192,6 @@ bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
 }
 
-Point2D* BuildingTypeExtData::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
-{
-	return BuildingTypeExtContainer::Instance.Find(pThis->Type)
-		->OccupierMuzzleFlashes.data() + nOccupyIdx;
-}
-
 void BuildingTypeExtData::DisplayPlacementPreview()
 {
 	const auto pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding);

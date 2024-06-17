@@ -369,7 +369,6 @@ public:
 	};
 
 	static void DisplayPlacementPreview();
-	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
 	static void UpdateBuildupFrames(BuildingTypeClass* pThis);

@@ -43,7 +43,8 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
-		R->EDX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis, pThis->FiringOccupantIndex));
+		R->EDX(BuildingTypeExtContainer::Instance.Find(pThis->Type)
+		->OccupierMuzzleFlashes.data() + pThis->FiringOccupantIndex);
 	}
 
 	return 0;
@@ -55,7 +56,8 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
 		GET(int, nFiringIndex, EDI);
-		R->ECX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis, nFiringIndex));
+		R->ECX(BuildingTypeExtContainer::Instance.Find(pThis->Type)
+		->OccupierMuzzleFlashes.data() + nFiringIndex);
 	}
 
 	return 0;

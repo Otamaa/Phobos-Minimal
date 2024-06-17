@@ -188,8 +188,14 @@ class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 public:
 	static AnimTypeExtContainer Instance;
 
-	AnimTypeExtData* Find(AnimClass* key);
-	AnimTypeExtData* Find(AnimTypeClass* key);
+	FORCEINLINE AnimTypeExtData* Find(AnimClass* key) {
+		return this->GetExtAttribute((AnimTypeClass*)(((DWORD)key) + 0xC8));
+	}
+
+	FORCEINLINE AnimTypeExtData* Find(AnimTypeClass* key) {
+		return this->GetExtAttribute(key);
+	}
+
 
 	CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };
