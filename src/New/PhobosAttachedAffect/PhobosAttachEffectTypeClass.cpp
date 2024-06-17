@@ -81,13 +81,13 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DisableWeapons.Read(exINI, pSection, "DisableWeapons");
 
 	// Groups
-	exINI.ParseStringList(this->Groups, pSection, "Groups");
+	exINI.ParseList(this->Groups, pSection, "Groups");
 	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
 
 	for (const auto& group : this->Groups) {
 		auto iter_ = map->find(group);
 		if (iter_ == map->end())
-			map->insert(std::make_pair(group, std::set<PhobosAttachEffectTypeClass*>{this}));
+			map->emplace(group.c_str(), std::set<PhobosAttachEffectTypeClass*>{this});
 		else
 			iter_->second.insert(this);
 	}

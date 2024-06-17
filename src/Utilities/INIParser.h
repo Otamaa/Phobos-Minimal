@@ -254,7 +254,7 @@ public:
 	}
 
 	// WARNING : const char* memory address may temporary and can invalidated
-	bool ParseStringList(std::vector<const char*>& values, const char* pSection, const char* pKey) {
+	bool ParseList(std::vector<const char*>& values, const char* pSection, const char* pKey) {
 		if (this->ReadString(pSection, pKey)) {
 			values.clear();
 			char* context = nullptr;
@@ -268,7 +268,7 @@ public:
 		return false;
 	}
 
-	bool ParseStringList(std::vector<std::string>& values, const char* pSection, const char* pKey) {
+	bool ParseList(std::vector<std::string>& values, const char* pSection, const char* pKey) {
 		if (this->ReadString(pSection, pKey)) {
 			values.clear();
 			char* context = nullptr;
