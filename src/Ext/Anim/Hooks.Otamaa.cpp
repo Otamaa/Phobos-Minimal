@@ -62,7 +62,7 @@ DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
 {
 	GET(AnimClass*, pThis, ESI);
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->AltReport.isset()) {
 		VocClass::PlayIndexAtPos(pTypeExt->AltReport, pThis->GetCoords(), nullptr);
