@@ -2275,7 +2275,7 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(key);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = this->AllocateUnlchecked(key);
+		auto ptr = this->AllocateUnchecked(key);
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -2308,7 +2308,7 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
 
 	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = TechnoTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		auto ptr = TechnoTypeExtContainer::Instance.AllocateUnchecked(pItem);
 		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 

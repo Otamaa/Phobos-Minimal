@@ -23,7 +23,7 @@ public:
 	static std::array<const char* const, 21u> TileType_ToStrings;
 	static std::array<std::pair<const char*, const char*>, 11u> LocomotorPairs_ToStrings;
 	static std::array<std::pair<wchar_t*, wchar_t*>, 11u> LocomotorPairs_ToWideStrings;
-	static std::array<std::pair<const char* const, HorizontalPosition>, 4u> HorizontalPosition_ToStrings;
+	static std::array<std::pair<const char* const, HorizontalPosition>, 3u> HorizontalPosition_ToStrings;
 	static std::array<std::pair<const char* const, TextAlign>, 4u> TextAlign_ToStrings;
 
 	static std::array<const char* const, 3u> AreaFireTarget_ToStrings;
@@ -59,8 +59,8 @@ public:
 	static std::array<const char*, (size_t)DiscardCondition::count> DiscardCondition_to_strings;
 	static std::array<const char*, 5u> ExpireWeaponCondition_to_strings;
 
-	static std::array<std::pair<const char* const, MouseHotSpotX>, 4u> MouseHotSpotX_ToStrings;
-	static std::array<std::pair<const char* const, MouseHotSpotY>, 4u> MouseHotSpotY_ToStrings;
+	static std::array<std::pair<const char* const, MouseHotSpotX>, 3u> MouseHotSpotX_ToStrings;
+	static std::array<std::pair<const char* const, MouseHotSpotY>, 3u> MouseHotSpotY_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);

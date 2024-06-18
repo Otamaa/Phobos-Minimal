@@ -203,7 +203,7 @@ public:
 	//}
 
 	// Allocate extensionptr without any checking
-	constexpr extension_type_ptr AllocateUnlchecked(base_type_ptr key)
+	constexpr extension_type_ptr AllocateUnchecked(base_type_ptr key)
 	{
 		if (extension_type_ptr val = new extension_type())
 		{
@@ -226,7 +226,7 @@ public:
 
 		this->ClearExtAttribute(key);
 
-		if (extension_type_ptr val = AllocateUnlchecked(key))
+		if (extension_type_ptr val = AllocateUnchecked(key))
 		{
 			this->SetExtAttribute(key, val);
 			return val;
@@ -465,7 +465,7 @@ protected:
 			}
 
 			this->ClearExtAttribute(key);
-			auto buffer = this->AllocateUnlchecked(key);
+			auto buffer = this->AllocateUnchecked(key);
 			this->SetExtAttribute(key, buffer);
 
 			PhobosByteStream loader { 0 };

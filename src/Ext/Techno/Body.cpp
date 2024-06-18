@@ -4871,7 +4871,7 @@ DEFINE_HOOK(0x70BF6C, TechnoClass_Load_Suffix, 0x6)
 	TechnoExtContainer::Instance.LoadStatic();
 	//auto key = TechnoExtContainer::Instance.GetSavingObject();
 	//TechnoExtContainer::Instance.ClearExtAttribute(key);
-	//auto buffer = TechnoExtContainer::Instance.AllocateUnlchecked(key);
+	//auto buffer = TechnoExtContainer::Instance.AllocateUnchecked(key);
 	//TechnoExtContainer::Instance.SetExtAttribute(key, buffer);
 
 	//PhobosByteStream loader { 0 };
