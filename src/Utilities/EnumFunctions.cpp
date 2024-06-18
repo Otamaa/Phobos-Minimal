@@ -464,7 +464,7 @@ std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyV
 {
 {
 	{ "value" },
-	{ "valuepercentofconst" },
+	{ "valuepercentofcost" },
 	{ "valuepercentofsoylent" },
 	{ "cost" },
 	{ "soylent" }

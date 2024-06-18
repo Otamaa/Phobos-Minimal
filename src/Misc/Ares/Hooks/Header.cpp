@@ -2152,7 +2152,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	Point2D xyTL {};
 	CoordStruct XYZ = pSource->GetCoords();
 	TacticalClass::Instance->CoordsToClient(&XYZ, &xyTL);
-	bool Inactive = false;
+
 	ObjectTypeClass* pDisguise = nullptr;
 
 	if (pSource->InLimbo || ((pSource->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
@@ -2166,25 +2166,30 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	{
 		if (auto pAlpha = StaticVars::ObjectLinkedAlphas.get_or_default(pSource))
 			GameDelete<true, false>(std::exchange(pAlpha, nullptr));
+
+		return;
 	}
 
 	if (Unsorted::CurrentFrame % 2)
-	{ // lag reduction - don't draw a new alpha every frame
-//if(!StaticVars::ObjectLinkedAlphas.get_or_default(pSource))
-		{
-			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
-			++Unsorted::ScenarioInit;
-			GameCreate<AlphaShapeClass>(pSource,
-			(xyTL.X + off.X + ScreenArea.X),
-			(xyTL.Y + off.Y + ScreenArea.Y));
-			--Unsorted::ScenarioInit;
-			TacticalClass::Instance->RegisterDirtyArea({
-			xyTL.X + off.X,
-			xyTL.Y + off.Y,
-			pImage->Width,
-			pImage->Height },
-			true);
-		}
+	{
+		if (StaticVars::ObjectLinkedAlphas.get_or_default(pSource)
+			&& what == BuildingClass::AbsID
+			&& (pImage->Frames <= 1 || !((BuildingClass*)pSource)->HasTurret() || !((BuildingClass*)pSource)->TurretIsRotating)
+			)
+			return;
+
+		RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
+		++Unsorted::ScenarioInit;
+		GameCreate<AlphaShapeClass>(pSource,
+		(xyTL.X + off.X + ScreenArea.X),
+		(xyTL.Y + off.Y + ScreenArea.Y));
+		--Unsorted::ScenarioInit;
+		TacticalClass::Instance->RegisterDirtyArea({
+		xyTL.X + off.X,
+		xyTL.Y + off.Y,
+		pImage->Width,
+		pImage->Height },
+		true);
 	}
 }
 
