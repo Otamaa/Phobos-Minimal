@@ -431,6 +431,7 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
+std::queue<TeamExtData*> TeamExtContainer::Pool;
 
 // =============================
 // container hooks

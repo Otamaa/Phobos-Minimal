@@ -1261,7 +1261,7 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 
 	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = this->AllocateUnlchecked(key);
+		auto ptr = this->AllocateUnchecked(key);
 		Iter = BuildingTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -1299,7 +1299,7 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 
 	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = BuildingTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		auto ptr = BuildingTypeExtContainer::Instance.AllocateUnchecked(pItem);
 		Iter = BuildingTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 

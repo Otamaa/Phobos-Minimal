@@ -338,6 +338,17 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	AnimExtContainer::Instance.Clear();
+	BuildingExtContainer::Instance.Clear();
+	BulletExtContainer::Instance.Clear();
+	InfantryExtContainer::Instance.Clear();
+	ParticleExtContainer::Instance.Clear();
+	ParticleSystemExtContainer::Instance.Clear();
+	RadSiteExtContainer::Instance.Clear();
+	TeamExtContainer::Instance.Clear();
+	TechnoExtContainer::Instance.Clear();
+	VoxelAnimExtContainer::Instance.Clear();
+	WaveExtContainer::Instance.Clear();
 	MouseClassExt::ClearCameos();
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
@@ -610,3 +621,7 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 }
 
 #pragma endregion
+
+void PhobosExt::Init() {
+
+}

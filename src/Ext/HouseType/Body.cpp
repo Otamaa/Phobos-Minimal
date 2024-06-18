@@ -512,7 +512,7 @@ bool HouseTypeExtContainer::Load(HouseTypeClass* key, IStream* pStm)
 
 	if (Iter == HouseTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = this->AllocateUnlchecked(key);
+		auto ptr = this->AllocateUnchecked(key);
 		Iter = HouseTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -550,7 +550,7 @@ DEFINE_HOOK(0x511643, HouseTypeClass_CTOR, 0x5)
 
 	if (Iter == HouseTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = HouseTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		auto ptr = HouseTypeExtContainer::Instance.AllocateUnchecked(pItem);
 		Iter = HouseTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 

@@ -82,7 +82,9 @@ std::array<const char* const, (size_t)DefaultColorList::count> EnumFunctions::De
 	{ "Green" } ,
 	{ "Blue" } ,
 	{ "Yellow" } ,
-	{ "White" }
+	{ "White" } ,
+	{ "AresPCXTransparent" } ,
+	{ "Black" } ,
 }
 };
 
@@ -123,6 +125,7 @@ std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
 	{"Tunnel"} ,
 	{"Water"} ,
 	{"Ramp"} ,
+	{"Cliff"},
 	{"Blank"} ,
 	{"Shore"} ,
 	{"Wet"} ,
@@ -207,7 +210,7 @@ std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::Spot
 }
 };
 
-std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::HorizontalPosition_ToStrings
+std::array<std::pair<const char* const, HorizontalPosition>, 3u> EnumFunctions::HorizontalPosition_ToStrings
 {
 {
 	{ "left", HorizontalPosition::Left },
@@ -216,7 +219,7 @@ std::array<std::pair<const char* const, HorizontalPosition>, 4u> EnumFunctions::
 }
 };
 
-std::array<std::pair<const char* const, MouseHotSpotX>, 4u> EnumFunctions::MouseHotSpotX_ToStrings
+std::array<std::pair<const char* const, MouseHotSpotX>, 3u> EnumFunctions::MouseHotSpotX_ToStrings
 {
 {
 	{ "left", MouseHotSpotX::Left },
@@ -225,7 +228,7 @@ std::array<std::pair<const char* const, MouseHotSpotX>, 4u> EnumFunctions::Mouse
 }
 };
 
-std::array<std::pair<const char* const, MouseHotSpotY>, 4u> EnumFunctions::MouseHotSpotY_ToStrings
+std::array<std::pair<const char* const, MouseHotSpotY>, 3u> EnumFunctions::MouseHotSpotY_ToStrings
 {
 {
 	{ "top", MouseHotSpotY::Top },
@@ -237,6 +240,7 @@ std::array<std::pair<const char* const, MouseHotSpotY>, 4u> EnumFunctions::Mouse
 std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
 {
 {
+	{"none" , TextAlign::None} ,
 	{"left" , TextAlign::Left} ,
 	{"center", TextAlign::Center } ,
 	{"right", TextAlign::Right }
@@ -460,6 +464,8 @@ std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyV
 {
 {
 	{ "value" },
+	{ "valuepercentofconst" },
+	{ "valuepercentofsoylent" },
 	{ "cost" },
 	{ "soylent" }
 }

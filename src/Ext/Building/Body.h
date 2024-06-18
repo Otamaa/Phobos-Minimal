@@ -117,7 +117,72 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
+	static std::queue<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
 
+	BuildingExtData* AllocateUnchecked(BuildingClass* key)
+	{
+		BuildingExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.pop();
+			//re-init
+			val->BuildingExtData::BuildingExtData();
+		}
+		else
+		{
+			val = new BuildingExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			val->InitializeConstant();
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	BuildingExtData* Allocate(BuildingClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (BuildingExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(BuildingClass* key)
+	{
+		if (BuildingExtData* Item = TryFind(key))
+		{
+			Item->~BuildingExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.pop();
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 	CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };

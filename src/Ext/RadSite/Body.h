@@ -82,7 +82,72 @@ private:
 class RadSiteExtContainer final : public Container<RadSiteExtData>
 {
 public:
+	static std::queue<RadSiteExtData*> Pool;
 	static RadSiteExtContainer Instance;
+
+	RadSiteExtData* AllocateUnchecked(RadSiteClass* key)
+	{
+		RadSiteExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.pop();
+			//re-init
+			val->RadSiteExtData::RadSiteExtData();
+		}
+		else
+		{
+			val = new RadSiteExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	RadSiteExtData* Allocate(RadSiteClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (RadSiteExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(RadSiteClass* key)
+	{
+		if (RadSiteExtData* Item = TryFind(key))
+		{
+			Item->~RadSiteExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.pop();
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
 };

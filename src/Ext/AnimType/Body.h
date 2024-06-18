@@ -145,15 +145,15 @@ public:
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 
-	constexpr bool ScatterCreateUnit(bool IsAi) {
+	constexpr bool ScatterCreateUnit(bool IsAi) const {
 		return IsAi ? this->CreateUnit_AI_Scatter : this->CreateUnit_Scatter;
 	}
 
-	constexpr bool ScatterAnimToInfantry(bool IsAi) {
+	constexpr bool ScatterAnimToInfantry(bool IsAi) const {
 		return IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
 	}
 
-	constexpr  Mission GetCreateUnitMission(bool IsAi) {
+	constexpr  Mission GetCreateUnitMission(bool IsAi) const {
 		auto result = this->CreateUnit_Mission;
 
 		if (IsAi && this->CreateUnit_AI_Mission.isset())
@@ -162,7 +162,7 @@ public:
 		return result;
 	}
 
-	constexpr Mission GetAnimToInfantryMission(bool IsAi) {
+	constexpr Mission GetAnimToInfantryMission(bool IsAi) const {
 		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
 
 		if (IsAi && this->MakeInfantry_AI_Mission.isset())
@@ -187,15 +187,6 @@ class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 {
 public:
 	static AnimTypeExtContainer Instance;
-
-	FORCEINLINE AnimTypeExtData* Find(AnimClass* key) {
-		return this->GetExtAttribute((AnimTypeClass*)(((DWORD)key) + 0xC8));
-	}
-
-	FORCEINLINE AnimTypeExtData* Find(AnimTypeClass* key) {
-		return this->GetExtAttribute(key);
-	}
-
 
 	CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };

@@ -881,6 +881,7 @@ void BulletExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
+std::queue<BulletExtData*> BulletExtContainer::Pool;
 
 // =============================
 // container hooks

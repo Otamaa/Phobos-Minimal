@@ -1,9 +1,5 @@
 #include <Phobos.h>
 
-#ifdef ENABLE_CLR
-#include <Scripting/CLR.h>
-#endif
-
 #include <CCINIClass.h>
 #include <Unsorted.h>
 #include <Drawing.h>
@@ -31,6 +27,7 @@
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
+#include <Phobos.Ext.h>
 //#pragma comment(lib, "Shcore.lib")
 //#pragma comment(lib, "shlwapi.lib")
 //#pragma comment(lib, "version.lib")
@@ -632,6 +629,8 @@ void Phobos::ExeRun()
 	//Logger->log(spdlog::level::trace, "Hello !");
 
 	PhobosGlobal::Init();
+
+	PhobosExt::Init();
 }
 
 void Phobos::ExeTerminate()

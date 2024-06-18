@@ -55,6 +55,7 @@ void ParticleExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExtContainer ParticleExtContainer::Instance;
+std::queue<ParticleExtData*> ParticleExtContainer::Pool;
 
 // =============================
 // container hooks

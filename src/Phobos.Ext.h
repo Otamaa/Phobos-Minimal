@@ -1,3 +1,6 @@
 #pragma once
 
-#include <Utilities/SavegameDef.h>
+struct PhobosExt
+{
+	static void Init();
+};

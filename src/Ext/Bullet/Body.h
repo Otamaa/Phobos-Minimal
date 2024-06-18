@@ -89,7 +89,73 @@ private:
 class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
+	static std::queue<BulletExtData*> Pool;
 	static BulletExtContainer Instance;
+
+	BulletExtData* AllocateUnchecked(BulletClass* key)
+	{
+		BulletExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.pop();
+			//re-init
+			val->BulletExtData::BulletExtData();
+		}
+		else
+		{
+			val = new BulletExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	BulletExtData* Allocate(BulletClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (BulletExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(BulletClass* key)
+	{
+		if (BulletExtData* Item = TryFind(key))
+		{
+			Item->~BulletExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.pop();
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
+
 
 	CONSTEXPR_NOCOPY_CLASSB(BulletExtContainer, BulletExtData, "BulletClass");
 };

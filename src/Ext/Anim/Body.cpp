@@ -590,6 +590,7 @@ void AnimExtData::Serialize(T& Stm)
 // container
 
 AnimExtContainer AnimExtContainer::Instance;
+std::queue<AnimExtData*> AnimExtContainer::Pool;
 
 // =============================
 // hooks
@@ -636,6 +637,7 @@ DEFINE_HOOK(0x4253B0, AnimClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(AnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
+
 	AnimExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;

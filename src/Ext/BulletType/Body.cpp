@@ -291,7 +291,7 @@ bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
 
 	if (Iter == BulletTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = this->AllocateUnlchecked(key);
+		auto ptr = this->AllocateUnchecked(key);
 		Iter = BulletTypeExtContainer::Instance.Map.emplace(key, ptr).first;
 	}
 
@@ -325,7 +325,7 @@ DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 
 	if (Iter == BulletTypeExtContainer::Instance.Map.end())
 	{
-		auto ptr = BulletTypeExtContainer::Instance.AllocateUnlchecked(pItem);
+		auto ptr = BulletTypeExtContainer::Instance.AllocateUnchecked(pItem);
 		Iter = BulletTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
 	}
 
