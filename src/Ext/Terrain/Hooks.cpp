@@ -56,8 +56,19 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
 
 	const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+	// Skip over the removal of the tree as well as destroy sound/anim (for now) if the tree has crumble animation.
+	if (pThis->TimeToDie && pTerrainExt->HasCrumblingFrames)
+	{
+		// Needs to be added to the logic layer for the anim to work.
+		LogicClass::Instance->AddObject(pThis, false);
+		VocClass::PlayIndexAtPos(pTerrainExt->CrumblingSound, pThis->GetCoords());
+		pThis->UpdatePlacement(PlacementType::Redraw);
+		pThis->Disappear(true);
+		return 0x71BB79;
+	}
+
 	auto const nCoords = pThis->GetCenterCoords();
-	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
+	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound, nCoords);
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (auto const pAnimType = pTerrainExt->DestroyAnim) {
@@ -187,7 +198,8 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 		if (!pTerrainType->SpawnsTiberium
 			&& !pTerrainType->IsFlammable
 			&& !pTerrainType->IsAnimated
-			&& !pTerrainType->IsVeinhole) {
+			&& !pTerrainType->IsVeinhole
+			) {
 			return NoUpdate;
 		}
 	}
@@ -195,3 +207,51 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 	return FurtherCheck;
 }
 //#endif
+
+
+DEFINE_HOOK(0x71C6EE, TerrainClass_FireOut_Crumbling, 0x6)
+{
+	enum { StartCrumbling = 0x71C6F8, Skip = 0x71C72B };
+
+	GET(TerrainClass*, pThis, ESI);
+
+	auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (!pThis->TimeToDie && pTypeExt->HasCrumblingFrames)
+	{
+		// Needs to be added to the logic layer for the anim to work.
+		LogicClass::Instance->AddObject(pThis, false);
+		VocClass::PlayIndexAtPos(pTypeExt->CrumblingSound, pThis->GetCoords());
+
+		return StartCrumbling;
+	}
+
+	return Skip;
+}
+
+double PriorHealthRatio = 0.0;
+
+DEFINE_HOOK(0x71B965, TerrainClass_TakeDamage_SetContext, 0x8)
+{
+	GET(TerrainClass*, pThis, ESI);
+
+	PriorHealthRatio = pThis->GetHealthPercentage();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_RefreshDamageFrame, 0x7)
+{
+	GET(TerrainClass*, pThis, ESI);
+
+	auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+	double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
+
+	if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
+	{
+		pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
+		LogicClass::Instance->AddObject(pThis, false);
+	}
+
+	return 0;
+}
