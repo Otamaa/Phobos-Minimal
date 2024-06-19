@@ -122,19 +122,6 @@ public:
 	}
 
 protected:
-	// set to false_type or true_type to disable or enable debugging checks
-	using stream_debugging_t = std::false_type;
-
-	constexpr bool IsValid(std::true_type) const
-	{
-		return this->success;
-	}
-
-	constexpr bool IsValid(std::false_type) const
-	{
-		return true;
-	}
-
 	PhobosByteStream* stream;
 	bool success;
 };
@@ -150,8 +137,7 @@ public:
 	template <typename _Ty>
 	PhobosStreamReader& Process(std::set<_Ty>& s, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
-		{
+		if (this->Success()) {
 			s.clear();
 			size_t size;
 			this->Process(size, RegisterForChange);
@@ -162,13 +148,14 @@ public:
 				s.emplace(obj);
 			}
 		}
+
 		return *this;
 	}
 
 	template <typename _Kty, typename _Ty>
 	PhobosStreamReader& Process(std::map<_Kty, _Ty>& m, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
+		if (this->Success())
 		{
 			m.clear();
 			size_t size;
@@ -188,7 +175,7 @@ public:
 	template <typename _Kty, typename _Ty>
 	PhobosStreamReader& Process(std::multimap<_Kty, _Ty>& m, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
+		if (this->Success())
 		{
 			m.clear();
 			size_t size;
@@ -208,7 +195,7 @@ public:
 	template <typename _Ty1, typename _Ty2>
 	PhobosStreamReader& Process(std::pair<_Ty1, _Ty2>& p, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
+		if (this->Success())
 		{
 			this->Process(p.first, RegisterForChange);
 			this->Process(p.second, RegisterForChange);
@@ -219,7 +206,7 @@ public:
 	template <typename T>
 	PhobosStreamReader& Process(T& value, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
+		if (this->Success())
 			this->success &= Savegame::ReadPhobosStream(*this, value, RegisterForChange);
 		return *this;
 	}
@@ -281,11 +268,6 @@ public:
 
 	bool RegisterChange(void* newPtr);
 
-private:
-
-	void EmitSwizzleWarning(long id, void* pointer, std::true_type) const;
-	void EmitSwizzleWarning(long id, void* pointer, std::false_type) const { }
-
 public :
 	template<typename T>
 	PhobosStreamReader& operator>>(T& dt)
@@ -311,69 +293,66 @@ public:
 	template <typename _Ty>
 	PhobosStreamWriter& Process(std::set<_Ty>& s, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
-		{
+		if (this->Success()) {
 			size_t size = s.size();
 			this->Process(size, RegisterForChange);
-			for (auto& obj : s)
-			{
+			for (auto& obj : s) {
 				this->Process(obj, RegisterForChange);
 			}
 		}
+
 		return *this;
 	}
 
 	template <typename _Kty, typename _Ty>
 	PhobosStreamWriter& Process(std::map<_Kty, _Ty>& m, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
-		{
+		if (this->Success()) {
 			size_t size = m.size();
 			this->Process(size, RegisterForChange);
-			for (std::pair<const _Kty, _Ty>& p : m)
-			{
+			for (std::pair<const _Kty, _Ty>& p : m) {
 				_Kty key = p.first;
 				_Ty value = p.second;
 				this->Process(key, RegisterForChange);
 				this->Process(value, RegisterForChange);
 			}
 		}
+
 		return *this;
 	}
 
 	template <typename _Kty, typename _Ty>
 	PhobosStreamWriter& Process(std::multimap<_Kty, _Ty>& m, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
-		{
+		if (this->Success()) {
 			size_t size = m.size();
 			this->Process(size, RegisterForChange);
-			for (std::pair<const _Kty, _Ty>& p : m)
-			{
+			for (std::pair<const _Kty, _Ty>& p : m) {
 				_Kty key = p.first;
 				_Ty value = p.second;
 				this->Process(key, RegisterForChange);
 				this->Process(value, RegisterForChange);
 			}
 		}
+
 		return *this;
 	}
 
 	template <typename _Ty1, typename _Ty2>
 	PhobosStreamWriter& Process(std::pair<_Ty1, _Ty2>& p, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
-		{
+		if (this->Success()) {
 			this->Process(p.first, RegisterForChange);
 			this->Process(p.second, RegisterForChange);
 		}
+
 		return *this;
 	}
 
 	template <typename T>
 	PhobosStreamWriter& Process(T& value, bool RegisterForChange = true)
 	{
-		if (this->IsValid(stream_debugging_t()))
+		if (this->Success())
 			this->success &= Savegame::WritePhobosStream(*this, value);
 
 		return *this;

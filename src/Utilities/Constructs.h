@@ -730,40 +730,32 @@ struct OptionalStruct {
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		this->clear();
+		if constexpr (Persistable) {
+			if (Stm.Load(this->HasValue)) {
+				if (!this->HasValue || Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange)) {
+					return true;
+				}
+			}
 
-		return load(Stm, RegisterForChange, std::bool_constant<Persistable>());
+			return false;
+		}
+		else
+			return true;
 	}
 
 	bool save(PhobosStreamWriter& Stm) const {
-		return save(Stm, std::bool_constant<Persistable>());
+		if constexpr (Persistable) {
+			Stm.Save(this->HasValue);
+			if (this->HasValue) {
+				Savegame::WritePhobosStream(Stm, this->Value);
+			}
+			return true;
+
+		} else
+			return true;
 	}
 
 private:
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange, std::true_type) {
-		if (Stm.Load(this->HasValue)) {
-			if (!this->HasValue || Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool load(PhobosStreamReader& Stm, bool RegisterForChangestd, std::false_type) {
-		return true;
-	}
-
-	bool save(PhobosStreamWriter& Stm, std::true_type) const {
-		Stm.Save(this->HasValue);
-		if (this->HasValue) {
-			Savegame::WritePhobosStream(Stm, this->Value);
-		}
-		return true;
-	}
-
-	bool save(PhobosStreamWriter& Stm, std::false_type) const {
-		return true;
-	}
-
 	T Value{};
 	bool HasValue{ false };
 };
