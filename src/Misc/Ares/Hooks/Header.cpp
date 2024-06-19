@@ -6362,7 +6362,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 		//);
 
 		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
-		pAnim->IsPlaying = true;
+		pAnim->IsPlaying = !pAction->Param3;
 		pAnim->Owner = pHouse;
 	}
 

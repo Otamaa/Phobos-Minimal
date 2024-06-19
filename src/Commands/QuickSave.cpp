@@ -28,66 +28,26 @@ const wchar_t* QuickSaveCommandClass::GetUIDescription() const
 
 void QuickSaveCommandClass::Execute(WWKey eInput) const
 {
-	if (SessionClass::Instance->GameMode == GameMode::Campaign
-		|| SessionClass::Instance->GameMode == GameMode::Skirmish)
+
+	if (SessionClass::IsSingleplayer())
 	{
-		auto nMessage = StringTable::LoadString(GameStrings::TXT_SAVING_GAME());
-		auto pUI = UI::sub_623230((LPARAM)nMessage, 0, 0);
-		WWMouseClass::Instance->HideCursor();
+		*reinterpret_cast<bool*>(0xABCE08) = false;
+		Phobos::ShouldQuickSave = true;
 
-		if (pUI)
-		{
-			UI::FocusOnWindow(pUI);
-		}
-
-		auto PrintMessage = [](const wchar_t* pMessage)
-		{
-			MessageListClass::Instance->PrintMessage(
-				pMessage,
-				RulesClass::Instance->MessageDelay,
-				HouseClass::CurrentPlayer->ColorSchemeIndex,
-				true
-			);
-		};
-
-
-		SYSTEMTIME time {};
-		Imports::GetLocalTime.get()(&time);
-		const std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.sav",
-			time.wYear,
-			time.wMonth,
-			time.wDay,
-			time.wHour,
-			time.wMinute,
-			time.wSecond,
-			time.wMilliseconds
-		);
-
-		const std::wstring fDesc = std::format(L"{} - {}"
-			, SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name
-			, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved")
-		);
-
-		bool Status = ScenarioClass::SaveGame(fName.c_str(), fDesc.c_str());
-
-		WWMouseClass::Instance->ShowCursor();
-
-		if (pUI)
-		{
-			UI::EndDialog(pUI);
-		}
-
-		if (Status)
-			PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
+		if (SessionClass::IsCampaign())
+			Phobos::CustomGameSaveDescription = ScenarioClass::Instance->UINameLoaded;
 		else
-			PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
+			Phobos::CustomGameSaveDescription = ScenarioClass::Instance->Name;
+		Phobos::CustomGameSaveDescription += L" - ";
+		Phobos::CustomGameSaveDescription += GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved");
 	}
 	else
 	{
-		MessageListClass::Instance->PrintMessage(
-		GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer"),
-		RulesClass::Instance->MessageDelay,
-		HouseClass::CurrentPlayer->ColorSchemeIndex,
-		true);
+			MessageListClass::Instance->PrintMessage(
+			GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer"),
+			RulesClass::Instance->MessageDelay,
+			HouseClass::CurrentPlayer->ColorSchemeIndex,
+			true
+			);
 	}
 }

@@ -50,6 +50,8 @@ DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
 bool Phobos::Config::HideWarning = false;
 #endif
 
+bool Phobos::ShouldQuickSave = false;
+std::wstring Phobos::CustomGameSaveDescription {};
 HANDLE Phobos::hInstance = NULL;
 char Phobos::readBuffer[Phobos::readLength];
 wchar_t Phobos::wideBuffer[Phobos::readLength];
@@ -182,6 +184,55 @@ void Phobos::CheckProcessorFeatures()
 		Debug::ExitGame(533u);
 	}
 #endif
+}
+
+void Phobos::PassiveSaveGame()
+{
+	auto PrintMessage = [](const wchar_t* pMessage)
+		{
+			MessageListClass::Instance->PrintMessage(
+				pMessage,
+				RulesClass::Instance->MessageDelay,
+				HouseClass::CurrentPlayer->ColorSchemeIndex,
+				true
+			);
+};
+
+	PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
+	char fName[0x80];
+
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+
+	_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
+		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+
+	if (ScenarioClass::SaveGame(fName, Phobos::CustomGameSaveDescription.c_str()))
+		PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
+	else
+		PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
+}
+
+DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)
+{
+		// This happens right before LogicClass::Update()
+	enum { SkipSave = 0x55DC99, InitialSave = 0x55DBE6 };
+
+	bool& scenario_saved = *reinterpret_cast<bool*>(0xABCE08);
+	if (SessionClass::IsSingleplayer() && !scenario_saved)
+	{
+		scenario_saved = true;
+		if (Phobos::ShouldQuickSave)
+			{
+				Phobos::PassiveSaveGame();
+				Phobos::ShouldQuickSave = false;
+				Phobos::CustomGameSaveDescription.clear();
+		}
+		else if (Phobos::Config::SaveGameOnScenarioStart && SessionClass::IsCampaign())
+			return InitialSave;
+	}
+
+	return SkipSave;
 }
 
 void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)

@@ -91,8 +91,3 @@ bool PhobosStreamReader::RegisterChange(void* newPtr)
 
 	return false;
 }
-
-void PhobosStreamReader::EmitSwizzleWarning(long id, void* pointer, std::true_type) const
-{
-	//Debug::Log("[PhobosStreamReader] Could not register change from %X to %p\n", id, pointer);
-}

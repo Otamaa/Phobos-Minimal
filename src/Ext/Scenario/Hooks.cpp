@@ -40,8 +40,3 @@ DEFINE_HOOK(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
 	R->EAX(0x1180);
 	return 0x6873B0;
 }
-
-DEFINE_HOOK(0x55DBF5, MainLoop_SaveGame, 0xA)
-{
-	return Phobos::Config::SaveGameOnScenarioStart ? 0 : 0x55DC99;
-}

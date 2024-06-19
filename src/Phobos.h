@@ -128,6 +128,10 @@ struct Phobos final
 
 	static bool EnableConsole;
 
+	static bool ShouldQuickSave;
+	static std::wstring CustomGameSaveDescription;
+	static void PassiveSaveGame();
+
 	struct UI
 	{
 		static bool DisableEmptySpawnPositions;
