@@ -79,7 +79,7 @@ class AnimExtContainer final : public Container<AnimExtData>
 public:
 
 	//all inactive pointer will be on the back
-	static std::queue<AnimExtData*> Pool;
+	static std::vector<AnimExtData*> Pool;
 	static AnimExtContainer Instance;
 
 	AnimExtData* AllocateUnchecked(AnimClass* key)
@@ -87,7 +87,7 @@ public:
 		AnimExtData* val = nullptr;
 		if (!Pool.empty()) {
 			val = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			//re-init
 			val->AnimExtData::AnimExtData();
 		} else {
@@ -123,7 +123,7 @@ public:
 		if (AnimExtData* Item = TryFind(key)) {
 			Item->~AnimExtData();
 			Item->AttachedToObject = nullptr;
-			Pool.push(Item);
+			Pool.push_back(Item);
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -131,7 +131,7 @@ public:
 	void Clear() {
 		if (!Pool.empty()) {
 			auto ptr = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			if(ptr) {
 				delete ptr;
 			}

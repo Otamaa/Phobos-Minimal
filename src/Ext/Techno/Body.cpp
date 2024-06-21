@@ -4833,7 +4833,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-std::queue<TechnoExtData*> TechnoExtContainer::Pool;
+std::vector<TechnoExtData*> TechnoExtContainer::Pool;
 
 void TechnoExtData::InitializeConstant()
 {

@@ -45,7 +45,7 @@ private:
 class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
-	static std::queue<ParticleExtData*> Pool;
+	static std::vector<ParticleExtData*> Pool;
 	static ParticleExtContainer Instance;
 
 	ParticleExtData* AllocateUnchecked(ParticleClass* key)
@@ -54,7 +54,7 @@ public:
 		if (!Pool.empty())
 		{
 			val = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			//re-init
 			val->ParticleExtData::ParticleExtData();
 		}
@@ -94,7 +94,7 @@ public:
 		{
 			Item->~ParticleExtData();
 			Item->AttachedToObject = nullptr;
-			Pool.push(Item);
+			Pool.push_back(Item);
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -104,7 +104,7 @@ public:
 		if (!Pool.empty())
 		{
 			auto ptr = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			if (ptr)
 			{
 				delete ptr;

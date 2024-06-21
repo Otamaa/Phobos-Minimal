@@ -158,7 +158,7 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
-std::queue<WaveExtData*> WaveExtContainer::Pool;
+std::vector<WaveExtData*> WaveExtContainer::Pool;
 
 // =============================
 // container hooks

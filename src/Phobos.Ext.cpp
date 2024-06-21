@@ -390,6 +390,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PhobosAttachEffectTypeClass::Clear();
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	TechTreeTypeClass::Clear();
+
+	PhobosExt::Init();
 	return 0;
 }
 
@@ -624,4 +626,18 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 
 void PhobosExt::Init() {
 
+	if (Phobos::Otamaa::ExeTerminated)
+		return;
+
+	AnimExtContainer::Instance.Pool.reserve(100000);
+	BuildingExtContainer::Instance.Pool.reserve(100000);
+	BulletExtContainer::Instance.Pool.reserve(100000);
+	InfantryExtContainer::Instance.Pool.reserve(100000);
+	ParticleExtContainer::Instance.Pool.reserve(100000);
+	ParticleSystemExtContainer::Instance.Pool.reserve(100000);
+	RadSiteExtContainer::Instance.Pool.reserve(100000);
+	TeamExtContainer::Instance.Pool.reserve(100000);
+	TechnoExtContainer::Instance.Pool.reserve(100000);
+	VoxelAnimExtContainer::Instance.Pool.reserve(100000);
+	WaveExtContainer::Instance.Pool.reserve(100000);
 }

@@ -214,7 +214,7 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
-std::queue<RadSiteExtData*> RadSiteExtContainer::Pool;
+std::vector<RadSiteExtData*> RadSiteExtContainer::Pool;
 
 // =============================
 // container hooks

@@ -1079,7 +1079,7 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-std::queue<ParticleSystemExtData*> ParticleSystemExtContainer::Pool;
+std::vector<ParticleSystemExtData*> ParticleSystemExtContainer::Pool;
 
 // =============================
 // container hooks

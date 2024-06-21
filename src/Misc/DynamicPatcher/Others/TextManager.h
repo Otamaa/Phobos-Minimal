@@ -9,7 +9,7 @@ struct PrintTextManager
 {
 private:
 	static Point2D fontSize;
-	static std::queue<RollingText> rollingTextQueue;
+	static std::vector<RollingText> rollingTextQueue;
 public:
 
 	static Point2D FontSize()

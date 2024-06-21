@@ -320,6 +320,9 @@ public:
 	Valueable<int> BuildingFlameSpawnBlockFrames { 0 };
 	AircraftPutDataRules MyPutData { };
 
+	Nullable<SHPStruct*> PrimaryFactoryIndicator { };
+	Valueable<PaletteManager*> PrimaryFactoryIndicator_Palette { };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

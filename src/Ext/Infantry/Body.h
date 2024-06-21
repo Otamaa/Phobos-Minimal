@@ -42,7 +42,7 @@ private:
 class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
-	static std::queue<InfantryExtData*> Pool;
+	static std::vector<InfantryExtData*> Pool;
 	static InfantryExtContainer Instance;
 
 	InfantryExtData* AllocateUnchecked(InfantryClass* key)
@@ -51,7 +51,7 @@ public:
 		if (!Pool.empty())
 		{
 			val = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			//re-init
 			val->InfantryExtData::InfantryExtData();
 		}
@@ -91,7 +91,7 @@ public:
 		{
 			Item->~InfantryExtData();
 			Item->AttachedToObject = nullptr;
-			Pool.push(Item);
+			Pool.push_back(Item);
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -101,7 +101,7 @@ public:
 		if (!Pool.empty())
 		{
 			auto ptr = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			if (ptr)
 			{
 				delete ptr;

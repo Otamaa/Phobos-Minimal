@@ -117,7 +117,7 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
-	static std::queue<BuildingExtData*> Pool;
+	static std::vector<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
 
 	BuildingExtData* AllocateUnchecked(BuildingClass* key)
@@ -126,7 +126,7 @@ public:
 		if (!Pool.empty())
 		{
 			val = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			//re-init
 			val->BuildingExtData::BuildingExtData();
 		}
@@ -167,7 +167,7 @@ public:
 		{
 			Item->~BuildingExtData();
 			Item->AttachedToObject = nullptr;
-			Pool.push(Item);
+			Pool.push_back(Item);
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -177,7 +177,7 @@ public:
 		if (!Pool.empty())
 		{
 			auto ptr = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			if (ptr)
 			{
 				delete ptr;

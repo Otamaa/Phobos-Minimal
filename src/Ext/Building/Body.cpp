@@ -933,7 +933,7 @@ void BuildingExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingExtContainer BuildingExtContainer::Instance;
-std::queue<BuildingExtData*> BuildingExtContainer::Pool;
+std::vector<BuildingExtData*> BuildingExtContainer::Pool;
 
 // =============================
 // container hooks

@@ -86,7 +86,7 @@ private:
 class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
-	static std::queue<TeamExtData*> Pool;
+	static std::vector<TeamExtData*> Pool;
 	static TeamExtContainer Instance;
 
 	TeamExtData* AllocateUnchecked(TeamClass* key)
@@ -95,7 +95,7 @@ public:
 		if (!Pool.empty())
 		{
 			val = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			//re-init
 			val->TeamExtData::TeamExtData();
 		}
@@ -135,7 +135,7 @@ public:
 		{
 			Item->~TeamExtData();
 			Item->AttachedToObject = nullptr;
-			Pool.push(Item);
+			Pool.push_back(Item);
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -145,7 +145,7 @@ public:
 		if (!Pool.empty())
 		{
 			auto ptr = Pool.front();
-			Pool.pop();
+			Pool.erase(Pool.begin());
 			if (ptr)
 			{
 				delete ptr;
