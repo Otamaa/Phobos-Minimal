@@ -3347,7 +3347,7 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 			//DrawingPart
 			RectangleStruct nTextDimension;
 			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-			auto nIntersect = Drawing::Intersect(nTextDimension, *pBound);
+			auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBound, nullptr, nullptr);
 			auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
 
 			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);

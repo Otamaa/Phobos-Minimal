@@ -765,7 +765,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				//DrawingPart
 				RectangleStruct nTextDimension;
 				Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-				auto nIntersect = Drawing::Intersect(nTextDimension, *pRect);
+				auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pRect, nullptr, nullptr);
 				auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
 
 				DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
@@ -793,14 +793,11 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				//foundating check ,...
 				//can be optimized using stored bool instead checking them each frames
 				if(pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2) {
-					auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2());
-					swprintf_s(pOutDrainFormat, pDrainFormat, pOutput, pDrain);
+					swprintf_s(pOutDrainFormat, StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
 				} else {
-					auto pPowerFormat = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power = %d");
-					swprintf_s(pOutDrainFormat, pPowerFormat, pOutput);
+					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label.c_str(), pOutput);
 					DrawTheStuff(pOutDrainFormat);
-					auto pDrainFormat = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain = %d");
-					swprintf_s(pOutDrainFormat, pDrainFormat, pDrain);
+					swprintf_s(pOutDrainFormat, Phobos::UI::Drain_Label.c_str(), pDrain);
 				}
 
 				DrawTheStuff(pOutDrainFormat);
@@ -812,18 +809,14 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			if (hasStorage)
 			{
 				if(!isUsingStorage) {
-					auto pMoneyFormat = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1());
 					wchar_t pOutMoneyFormat[0x80];
 					auto nMoney = pOwner->Available_Money();
-					swprintf_s(pOutMoneyFormat, pMoneyFormat, nMoney);
+					swprintf_s(pOutMoneyFormat, StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
 					DrawTheStuff(pOutMoneyFormat);
-				}
-				else
-				{
-					auto pStorageFormat = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storage = %d");
+				} else {
 					wchar_t pOutStorageFormat[0x80];
 					auto nStorage = pBuilding->GetStoragePercentage();
-					swprintf_s(pOutStorageFormat, pStorageFormat, nStorage);
+					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label.c_str(), nStorage);
 					DrawTheStuff(pOutStorageFormat);
 				}
 			}

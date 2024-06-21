@@ -143,8 +143,8 @@ struct ColorStruct
 	ColorStruct* Lerp(ColorStruct* lower, ColorStruct* upper, float adjust) const
 	{ JMP_THIS(0x661020); }
 
-	uintptr_t ToInit() const
-	{ JMP_THIS(0x63DAD0); }
+	constexpr uintptr_t ToInit() const
+	{ return ((unsigned __int8)this->R >> RedShiftRight << RedShiftLeft) | ((unsigned __int8)this->G >> GreenShiftRight << GreenShiftLeft) | ((unsigned __int8)this->B >> BlueShiftRight << BlueShiftLeft); }
 
 	void Adjust(int adjust, const ColorStruct& that)
 	{ JMP_THIS(0x6612C0); }

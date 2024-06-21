@@ -15,7 +15,7 @@ void SurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
 	if (rect.Width <= 0 || rect.Height <= 0)
 		return;
 
-	const auto bound = Drawing::Intersect(rect, this->Get_Rect());
+	const auto bound = RectangleStruct::Intersect(rect, this->Get_Rect(), nullptr , nullptr);
 	if (bound.Width <= 0 || bound.Height <= 0)
 		return;
 

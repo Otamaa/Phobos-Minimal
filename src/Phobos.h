@@ -159,6 +159,10 @@ struct Phobos final
 
 		static const wchar_t* ShowBriefingResumeButtonLabel;
 		static char ShowBriefingResumeButtonStatusLabel[0x20];
+
+		static std::wstring Power_Label;
+		static std::wstring Drain_Label;
+		static std::wstring Storage_Label;
 	};
 
 	struct Config

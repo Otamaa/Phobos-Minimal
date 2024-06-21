@@ -214,7 +214,7 @@ void FoggedObject::Render(const RectangleStruct& viewRect) const
 	RectangleStruct buffer = Bound;
 	buffer.X += DSurface::ViewBounds->X - TacticalClass::Instance->TacticalPos.X;
 	buffer.Y += DSurface::ViewBounds->Y - TacticalClass::Instance->TacticalPos.Y;
-	RectangleStruct finalRect = Drawing::Intersect(buffer, viewRect);
+	RectangleStruct finalRect = RectangleStruct::Intersect(buffer, viewRect, nullptr, nullptr);
 	if (finalRect.Width <= 0 || finalRect.Height <= 0)
 		return;
 

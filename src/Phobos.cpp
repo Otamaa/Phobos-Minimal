@@ -84,6 +84,10 @@ double Phobos::UI::PowerDelta_ConditionRed = 1.0;
 bool Phobos::UI::CenterPauseMenuBackground = false;
 bool Phobos::UI::UnlimitedColor = false;
 
+std::wstring Phobos::UI::Power_Label;
+std::wstring Phobos::UI::Drain_Label;
+std::wstring Phobos::UI::Storage_Label;
+
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
 bool Phobos::Config::PrioritySelectionFiltering = true;
@@ -421,6 +425,11 @@ void Phobos::Config::Read()
 			Phobos::Config::ShowPowerDelta = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowPowerDelta", true);
 			Phobos::Config::ShowHarvesterCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowHarvesterCounter", true);
 			Phobos::Config::ShowWeedsCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowWeedsCounter", true);
+
+
+			Phobos::UI::Power_Label = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power = %d");
+			Phobos::UI::Drain_Label = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain = %d");
+			Phobos::UI::Storage_Label = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storage = %d");
 		}
 
 		// ToolTips

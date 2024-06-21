@@ -143,7 +143,7 @@ public:
 
 	const RectangleStruct IntersectWith(const RectangleStruct &rectangle, int *x = nullptr, int *y = nullptr) { return Intersect(*this, rectangle, x, y); }
 
-	constexpr FORCEINLINE bool IntersectsWith(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
+	constexpr FORCEINLINE bool CanIntersectsWith(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
 
 	constexpr FORCEINLINE  RectangleStruct InvalidRect() { return {0, 0, 0, 0}; }
 
