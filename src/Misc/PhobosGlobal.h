@@ -43,4 +43,22 @@ public:
 			.Process(this->TempCoveredCellsData)
 			.Success();
 	}
+
+	struct ColorsData {
+		DWORD Forceshield_Color;
+		DWORD IronCurtain_Color;
+		DWORD LaserTarget_Color;
+		DWORD Berserk_Color;
+		bool Initialized;
+
+		constexpr void reset() {
+			Forceshield_Color = 0u;
+			IronCurtain_Color = 0u;
+			LaserTarget_Color = 0u;
+			Berserk_Color = 0u;
+			Initialized = false;
+		}
+
+	} static ColorDatas;
+
 };
