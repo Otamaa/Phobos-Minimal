@@ -129,7 +129,7 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 	if (!pOwner || TrailType::Array.empty())
 		return;
 
-	if (!pOwner->Type || pOwner->Type->Inviso)
+	if (!pOwner->Type)
 		return;
 
 	const auto pClassType = pOwner->Type;

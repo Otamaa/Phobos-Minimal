@@ -214,12 +214,15 @@ DEFINE_HOOK(0x6D4E79, TacticalClass_DrawOverlay_GraphicalText, 6)
 DEFINE_HOOK(0x622223, sub_621E90_DialogBackground, 6)
 {
 	auto pShp = SideExtData::s_DialogBackgroundImage.get();
-	auto pConvert = SideExtData::s_DialogBackgroundConvert.get();
+	auto pConvert = SideExtData::s_DialogBackgroundConvert;
 
-	R->EDI(pShp);
-	R->EAX(pConvert);
+	if(pConvert && pShp) {
+		R->EDI(pShp);
+		R->EAX(pConvert);
+		return 0x62226A;
+	}
 
-	return (pConvert && pShp) ? 0x62226A : 0;
+	return 0;
 }
 
 // music piece when loading a match or mission

@@ -326,7 +326,7 @@ public:
 		return r;
 	}
 	// 2nd order Pade approximant just in case someone complains about performance
-	static constexpr double Pade2_2(double in)
+	static constexpr inline double Pade2_2(double in)
 	{
 		const double s = in - static_cast<int>(in);
 		return GeneralUtils::FastPow(0.36787944117144233, static_cast<int>(in))

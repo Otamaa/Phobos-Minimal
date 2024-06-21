@@ -323,6 +323,8 @@ public:
 	Nullable<SHPStruct*> PrimaryFactoryIndicator { };
 	Valueable<PaletteManager*> PrimaryFactoryIndicator_Palette { };
 
+	BulletTypeClass* DefautBulletType { nullptr };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

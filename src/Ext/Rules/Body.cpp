@@ -1193,6 +1193,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->PrimaryFactoryIndicator)
 		.Process(this->PrimaryFactoryIndicator_Palette)
+		.Process(this->DefautBulletType)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -4,12 +4,11 @@
 #include <Utilities/Helpers.h>
 
 UniqueGamePtrB<SHPStruct> SideExtData::s_GraphicalTextImage = nullptr;
-UniqueGamePtr<BytePalette> SideExtData::s_GraphicalTextPalette = nullptr;
-UniqueGamePtrB<ConvertClass> SideExtData::s_GraphicalTextConvert = nullptr;
+ConvertClass* SideExtData::s_GraphicalTextConvert = nullptr;
 
 UniqueGamePtrB<SHPStruct> SideExtData::s_DialogBackgroundImage = nullptr;
-UniqueGamePtr<BytePalette> SideExtData::s_DialogBackgroundPalette = nullptr;
-UniqueGamePtrB<ConvertClass> SideExtData::s_DialogBackgroundConvert = nullptr;
+ConvertClass* SideExtData::s_DialogBackgroundConvert = nullptr;
+
 
 int SideExtData::CurrentLoadTextColor = -1;
 
@@ -379,20 +378,17 @@ void SideExtData::UpdateGlobalFiles()
 	// clear old data
 	SideExtData::s_GraphicalTextImage = nullptr;
 	SideExtData::s_GraphicalTextConvert = nullptr;
-	SideExtData::s_GraphicalTextPalette = nullptr;
 
 	SideExtData::s_DialogBackgroundImage = nullptr;
 	SideExtData::s_DialogBackgroundConvert = nullptr;
-	SideExtData::s_DialogBackgroundPalette = nullptr;
 
 	int idxSide = ScenarioClass::Instance->PlayerSideIndex;
 	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
-	auto pExt = SideExtContainer::Instance.Find(pSide);
-
-	if (!pExt)
-	{
+	if (!pSide) {
 		return;
 	}
+
+	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	// load graphical text shp
 	if (pExt->GraphicalTextImage)
@@ -402,13 +398,10 @@ void SideExtData::UpdateGlobalFiles()
 	}
 
 	// load graphical text palette and create convert
-	if (pExt->GraphicalTextPalette)
-	{
-		if (auto pPal = FileSystem::AllocatePalette(pExt->GraphicalTextPalette))
-		{
-			SideExtData::s_GraphicalTextPalette.reset(pPal);
-			SideExtData::s_GraphicalTextConvert.reset(GameCreate<ConvertClass>(*pPal, FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 1, false));
-		}
+	if (pExt->GraphicalTextPalette) {
+		SideExtData::s_GraphicalTextConvert =
+			PaletteManager::FindOrAllocate(pExt->GraphicalTextPalette)
+				->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 
 	// load dialog background shp
@@ -421,33 +414,12 @@ void SideExtData::UpdateGlobalFiles()
 	// load dialog background palette and create convert
 	if (pExt->DialogBackgroundPalette)
 	{
-		if (auto pPal = FileSystem::AllocatePalette(pExt->DialogBackgroundPalette))
-		{
-			SideExtData::s_DialogBackgroundPalette.reset(pPal);
-			SideExtData::s_DialogBackgroundConvert.reset(GameCreate<ConvertClass>(*pPal, *pPal, DSurface::Alternate(), 1, false));
-		}
+		SideExtData::s_DialogBackgroundConvert =
+			PaletteManager::FindOrAllocate(pExt->DialogBackgroundPalette)
+				->GetConvert<PaletteManager::Mode::Default>();
 	}
 }
 
-SHPStruct* SideExtData::GetGraphicalTextImage()
-{
-	if (SideExtData::s_GraphicalTextImage)
-	{
-		return SideExtData::s_GraphicalTextImage.get();
-	}
-
-	return FileSystem::GRFXTXT_SHP;
-}
-
-ConvertClass* SideExtData::GetGraphicalTextConvert()
-{
-	if (SideExtData::s_GraphicalTextConvert)
-	{
-		return SideExtData::s_GraphicalTextConvert.get();
-	}
-
-	return FileSystem::GRFXTXT_Convert;
-}
 // =============================
 // load / save
 

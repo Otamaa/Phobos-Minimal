@@ -683,7 +683,7 @@ void BulletExtData::InitializeLaserTrails()
 {
 	const auto pThis = this->AttachedToObject;
 
-	if (!LaserTrails.empty() || pThis->Type->Inviso)
+	if (!LaserTrails.empty())
 		return;
 
 	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);

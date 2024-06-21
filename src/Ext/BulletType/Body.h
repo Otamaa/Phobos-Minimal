@@ -154,7 +154,7 @@ public:
 
 	static FORCEINLINE double GetAdjustedGravity(BulletTypeClass* pType);
 
-	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
+	static BulletTypeClass* GetDefaultBulletType();
 	static CoordStruct CalculateInaccurate(BulletTypeClass* pBulletType);
 
 private:

@@ -919,7 +919,7 @@ public:
 
 	Nullable<bool> TurretShadow {};
 	Valueable<int> ShadowIndex_Frame { 0 };
-	std::map<int, int> ShadowIndices {};
+	PhobosMap<int, int> ShadowIndices {};
 	Nullable<int> ShadowSizeCharacteristicHeight {};
 
 	std::vector<ValueableIdxVector<VocClass>> TalkbubbleVoices {};

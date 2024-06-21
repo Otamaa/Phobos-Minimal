@@ -347,12 +347,14 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		HouseTypeClass::Array->Items[HouseTypeIdx]
 	);
 
-	if (pExt->TauntFile.empty() || pExt->TauntFile[SampleIdx - 1].empty()) {
+	const auto& vec = pExt->TauntFile;
+
+	if (vec.empty() || vec[SampleIdx - 1].empty()) {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
-		pExt->AttachedToObject->ID, pExt->TauntFile[SampleIdx - 1].c_str());
+		pExt->AttachedToObject->ID, vec[SampleIdx - 1].c_str());
 	}
 
-	return pAudioStream->PlayWAV(pExt->TauntFile[SampleIdx - 1].c_str(), false);
+	return pAudioStream->PlayWAV(vec[SampleIdx - 1].c_str(), false);
 }
 
 #ifndef aaa

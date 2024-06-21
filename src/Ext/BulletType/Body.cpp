@@ -7,21 +7,11 @@
 
 #include <Utilities/Macro.h>
 
-BulletTypeClass* BulletTypeExtData::GetDefaultBulletType(const char* pBullet)
-{
-	BulletTypeClass* pType = nullptr;
+BulletTypeClass* BulletTypeExtData::GetDefaultBulletType() {
+	if(!RulesExtData::Instance()->DefautBulletType)
+		RulesExtData::Instance()->DefautBulletType = BulletTypeClass::Find(DEFAULT_STR2);
 
-	if (pBullet)
-	{
-		pType = BulletTypeClass::Find(pBullet);
-	}
-	else
-	{
-		pType = BulletTypeClass::Find(DEFAULT_STR2);
-	}
-
-	//an dummy bullet , huh
-	return pType;
+	return RulesExtData::Instance()->DefautBulletType;
 }
 
 CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType) {
@@ -118,6 +108,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
 
 	this->ImageConvert.clear();
+	bool trailReaded = false;
 
 	if (!parseFailAddr)
 	{
@@ -190,18 +181,23 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
 		this->ReturnWeapon.Read(exINI, pSection, "ReturnWeapon" , true);
+
+		if (pThis->Inviso) {
+			trailReaded = true;
+			this->LaserTrail_Types.Read(exINI, pSection, "LaserTrail.Types");
+			this->Trails.Read(exINI, pSection, false);
+		}
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
 		INI_EX exArtINI(pArtInI);
 
-		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
 		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
-#pragma region Otamaa
-
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
-		this->Trails.Read(exArtINI, pArtSection, false);
-#pragma endregion
+		if(!trailReaded) {
+			this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
+			this->Trails.Read(exArtINI, pArtSection, false);
+		}
 	}
 }
 

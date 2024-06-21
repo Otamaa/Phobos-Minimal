@@ -230,27 +230,21 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	}
 
 	// Main body sections
-	auto& shadowIndices = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndices;
-	if (shadowIndices.empty())
-	{
+	const auto& shadowIndices = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndices;
+	if (shadowIndices.empty()) {
 		// Only ShadowIndex
-		if (pType->ShadowIndex == shadow_index_now)
-		{
+		if (pType->ShadowIndex == shadow_index_now) {
 			int shadow_index_frame = TechnoTypeExtContainer::Instance.Find(pType)->ShadowIndex_Frame;
 			if (shadow_index_frame > -1)
 				return shadow_index_frame % pVXL->HVA->FrameCount;
-		}
-		else
-		{
+		} else {
 			// WHO THE HELL ARE YOU???
 			return 0;
 		}
-	}
-	else
-	{
-		int idx_of_now = shadowIndices[shadow_index_now];
-		if (idx_of_now > -1)
-			return idx_of_now % pVXL->HVA->FrameCount;
+	} else {
+		auto iter = shadowIndices.get_key_iterator(shadow_index_now);
+		if(iter != shadowIndices.end()  && iter->second > -1)
+			return iter->second % pVXL->HVA->FrameCount;
 	}
 
 	return pThis->WalkedFramesSoFar % pVXL->HVA->FrameCount;
