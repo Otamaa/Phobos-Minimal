@@ -25,6 +25,8 @@ public:
 	Valueable<bool> Rad_NoOwner { true };
 
 	Nullable<int> Strafing_Shots { };
+	Nullable<bool> Strafing {};
+
 	Valueable<bool> Strafing_SimulateBurst { false };
 	Valueable<AffectedTarget> CanTarget { AffectedTarget::All };
 	Valueable<AffectedHouse> CanTargetHouses { AffectedHouse::All };

@@ -128,7 +128,7 @@ public:
 	CDTimerClass WarpedOutDelay { };
 
 	OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	Handle<TemporalClass*, GameDeleter> MyOriginalTemporal { nullptr };
+	TemporalClass* MyOriginalTemporal { nullptr };
 
 	bool SupressEVALost { false };
 	CDTimerClass SelfHealing_CombatDelay { };
@@ -438,6 +438,11 @@ public:
 	int ShootCount { 0 };
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept = default;
+	//{
+	//	if (Phobos::Otamaa::ExeTerminated) {
+	//		this->MyOriginalTemporal.SetDestroyCondition(false);
+	//	}
+	//};
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);

@@ -249,7 +249,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
-	GET(AbstractClass*, pTarget, EDI);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
 
 #ifdef PERFORMANCE_HEAVY
 	//TargetSet

@@ -70,6 +70,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Strafing_Shots.Read(exINI, pSection, "Strafing.Shots");
 	this->Strafing_SimulateBurst.Read(exINI, pSection, "Strafing.SimulateBurst");
+	this->Strafing.Read(exINI, pSection, "Strafing");
+
 	this->CanTarget.Read(exINI, pSection, "CanTarget");
 
 	this->CanTargetHouses.Read(exINI, pSection, "CanTargetHouses");
@@ -200,8 +202,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->AttachEffect_RequiredTypes.Read(exINI, pSection, "AttachEffect.RequiredTypes");
 	this->AttachEffect_DisallowedTypes.Read(exINI, pSection, "AttachEffect.DisallowedTypes");
-	exINI.ParseStringList(this->AttachEffect_RequiredGroups, pSection, "AttachEffect.RequiredGroups");
-	exINI.ParseStringList(this->AttachEffect_DisallowedGroups, pSection, "AttachEffect.DisallowedGroups");
+	exINI.ParseList(this->AttachEffect_RequiredGroups, pSection, "AttachEffect.RequiredGroups");
+	exINI.ParseList(this->AttachEffect_DisallowedGroups, pSection, "AttachEffect.DisallowedGroups");
 	this->AttachEffect_RequiredMinCounts.Read(exINI, pSection, "AttachEffect.RequiredMinCounts");
 	this->AttachEffect_RequiredMaxCounts.Read(exINI, pSection, "AttachEffect.RequiredMaxCounts");
 	this->AttachEffect_DisallowedMinCounts.Read(exINI, pSection, "AttachEffect.DisallowedMinCounts");
@@ -300,6 +302,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Bolt_Disable3)
 		.Process(this->Bolt_Arcs)
 		.Process(this->Strafing_Shots)
+		.Process(this->Strafing)
 		.Process(this->Strafing_SimulateBurst)
 		.Process(this->CanTarget)
 		.Process(this->CanTargetHouses)

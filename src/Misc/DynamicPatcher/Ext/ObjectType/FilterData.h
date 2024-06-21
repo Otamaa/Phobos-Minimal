@@ -47,69 +47,69 @@ public:
 	bool AffectsEnemies = true;
 	bool AffectsCivilian = true;
 
-	virtual void Read(INIBufferReader* reader) override
+	virtual void Read(INI_EX& reader) override
 	{
 		Read(reader, "");
 	}
 
-	virtual void Read(INIBufferReader* reader, std::string title)
+	virtual void Read(INI_EX& reader, std::string title)
 	{
-		AffectTypes = reader->GetList<std::string>(title + "AffectTypes", AffectTypes);
+		reader.ParseList(AffectTypes, Type->ID, (title + "AffectTypes").c_str());
 		KratosCRT::ClearIfGetNone(AffectTypes);
-		NotAffectTypes = reader->GetList<std::string>(title + "NotAffectTypes", NotAffectTypes);
+		reader.ParseList(NotAffectTypes, Type->ID, (title + "NotAffectTypes").c_str());
 		ClearIfGetNone(NotAffectTypes);
 
-		AffectTechno = reader->Get(title + "AffectTechno", AffectTechno);
-		AffectBuilding = reader->Get(title + "AffectBuilding", AffectBuilding);
-		AffectInfantry = reader->Get(title + "AffectInfantry", AffectInfantry);
-		AffectUnit = reader->Get(title + "AffectUnit", AffectUnit);
-		AffectAircraft = reader->Get(title + "AffectAircraft", AffectAircraft);
-		if (!AffectBuilding && !AffectInfantry && !AffectUnit && !AffectAircraft)
-		{
+		reader.ReadBool(Type->ID, (title + "AffectTechno").c_str() ,&AffectTechno);
+		reader.ReadBool(Type->ID, (title + "AffectBuilding").c_str(), &AffectBuilding);
+		reader.ReadBool(Type->ID, (title + "AffectInfantry").c_str(), &AffectInfantry);
+		reader.ReadBool(Type->ID, (title + "AffectUnit").c_str(), &AffectUnit);
+		reader.ReadBool(Type->ID, (title + "AffectAircraft").c_str(), &AffectAircraft);
+
+		if (!AffectBuilding && !AffectInfantry && !AffectUnit && !AffectAircraft) {
 			AffectTechno = false;
 		}
 
-		AffectBullet = reader->Get(title + "AffectBullet", AffectBullet);
-		AffectMissile = reader->Get(title + "AffectMissile", AffectMissile);
-		AffectTorpedo = reader->Get(title + "AffectTorpedo", AffectTorpedo);
-		AffectCannon = reader->Get(title + "AffectCannon", AffectCannon);
-		AffectBomb = reader->Get(title + "AffectBomb", AffectBomb);
+		reader.ReadBool(Type->ID, (title + "AffectBullet").c_str(), &AffectBullet);
+		reader.ReadBool(Type->ID, (title + "AffectMissile").c_str(), &AffectMissile);
+		reader.ReadBool(Type->ID, (title + "AffectTorpedo").c_str(), &AffectTorpedo);
+		reader.ReadBool(Type->ID, (title + "AffectCannon").c_str(), &AffectCannon);
+		reader.ReadBool(Type->ID, (title + "AffectBomb").c_str(), &AffectBomb);
+
 		if (!AffectMissile && !AffectCannon && !AffectBomb)
 		{
 			AffectBullet = false;
 		}
 
-		AffectStand = reader->Get(title + "AffectStand", AffectStand);
-		AffectSelf = reader->Get(title + "AffectSelf", AffectSelf);
-		AffectInAir = reader->Get(title + "AffectInAir", AffectInAir);
+		reader.ReadBool(Type->ID, (title + "AffectStand").c_str(), &AffectStand);
+		reader.ReadBool(Type->ID, (title + "AffectSelf").c_str(), &AffectSelf);
+		reader.ReadBool(Type->ID, (title + "AffectInAir").c_str(), &AffectInAir);
 
-		NotAffectMarks = reader->GetList(title + "NotAffectMarks", NotAffectMarks);
+		reader.ParseList(NotAffectMarks, Type->ID, (title + "NotAffectMarks").c_str());
 		ClearIfGetNone(NotAffectMarks);
-		OnlyAffectMarks = reader->GetList(title + "OnlyAffectMarks", OnlyAffectMarks);
+		reader.ParseList(OnlyAffectMarks, Type->ID, (title + "OnlyAffectMarks").c_str());
 		ClearIfGetNone(OnlyAffectMarks);
 
 		bool affectsAllies = true;
-		if (reader->TryGet(title + "AffectsAllies", affectsAllies))
-		{
+		if (reader.ReadBool(Type->ID, (title + "AffectsAllies").c_str(), &affectsAllies)){
 			AffectsAllies = affectsAllies;
 			AffectsOwner = affectsAllies;
 		}
 
 		bool affectsOwner = true;
-		if (reader->TryGet(title + "AffectsOwner", affectsOwner))
-		{
+		if (reader.ReadBool(Type->ID, (title + "AffectsAllies").c_str(), &affectsAllies)){
 			AffectsOwner = affectsOwner;
 		}
-		AffectsEnemies = reader->Get(title + "AffectsEnemies", AffectsEnemies);
-		AffectsCivilian = reader->Get(title + "AffectsCivilian", AffectsCivilian);
+
+		reader.ReadBool(Type->ID, (title + "AffectsEnemies").c_str(), &AffectsEnemies);
+		reader.ReadBool(Type->ID, (title + "AffectsCivilian").c_str(), &AffectsCivilian);
 	}
 
-	bool CanAffectHouse(HouseClass* pHouse, HouseClass* pTargetHouse)
+	constexpr bool CanAffectHouse(HouseClass* pHouse, HouseClass* pTargetHouse)
 	{
 		return !pHouse || !pTargetHouse || (pTargetHouse == pHouse ? AffectsOwner : (IsCivilian(pTargetHouse) ? AffectsCivilian : pTargetHouse->IsAlliedWith(pHouse) ? AffectsAllies : AffectsEnemies));
 	}
 
-	bool CanAffectType(const char* ID)
+	constexpr bool CanAffectType(const char* ID)
 	{
 		if (!NotAffectTypes.empty() && std::find(NotAffectTypes.begin(), NotAffectTypes.end(), ID) != NotAffectTypes.end())
 		{
@@ -123,7 +123,7 @@ public:
 		return can;
 	}
 
-	bool CanAffectType(AbstractType absType)
+	constexpr bool CanAffectType(AbstractType absType)
 	{
 		switch (absType)
 		{
@@ -139,7 +139,7 @@ public:
 		return false;
 	}
 
-	bool CanAffectType(BulletType bulletType, bool isLevel)
+	constexpr bool CanAffectType(BulletType bulletType, bool isLevel)
 	{
 		switch (bulletType)
 		{
@@ -161,12 +161,12 @@ public:
 		return false;
 	}
 
-	bool CanAffectType(BulletClass* pBullet)
+	constexpr bool CanAffectType(BulletClass* pBullet)
 	{
 		return CanAffectType(pBullet->Type->ID) && CanAffectType(WhatAmI(pBullet), pBullet->Type->Level);
 	}
 
-	bool CanAffectType(TechnoClass* pTechno)
+	constexpr bool CanAffectType(TechnoClass* pTechno)
 	{
 		return CanAffectType(pTechno->GetTechnoType()->ID) && CanAffectType(pTechno->WhatAmI());
 	}
@@ -186,12 +186,12 @@ public:
 		return false;
 	}
 
-	bool HasMarks()
+	constexpr bool HasMarks()
 	{
 		return !OnlyAffectMarks.empty() || !NotAffectMarks.empty();
 	}
 
-	bool OnMark(std::vector<std::string> marks)
+	constexpr bool OnMark(std::vector<std::string> marks)
 	{
 		bool hasWhiteList = !OnlyAffectMarks.empty();
 		bool hasBlackList = !NotAffectMarks.empty();

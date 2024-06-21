@@ -81,7 +81,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DisableWeapons.Read(exINI, pSection, "DisableWeapons");
 
 	// Groups
-	exINI.ParseStringList(this->Groups, pSection, "Groups");
+	exINI.ParseList(this->Groups, pSection, "Groups");
 	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
 
 	for (const auto& group : this->Groups) {

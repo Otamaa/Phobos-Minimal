@@ -46,10 +46,9 @@ class AnimVisibilityData : public INIConfig
 public:
 	Relation Visibility = Relation::All;
 
-	virtual void Read(INIBufferReader* reader) override
+	virtual void Read(INI_EX& reader) override
 	{
-		Visibility = reader->Get("Visibility", Visibility);
+		reader.Read<Relation ,1u>(Type->ID, "Visibility", &Visibility);
 	}
-
 };
 

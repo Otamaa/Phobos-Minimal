@@ -361,7 +361,7 @@ public:
 		// find first level
 		for (Component* children : _children)
 		{
-			if (children->Name == typeid(TComponent).name())
+			if (typeid(*children) == typeid(TComponent))
 			{
 				c = (TComponent*)children;
 				break;

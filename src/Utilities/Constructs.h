@@ -79,10 +79,16 @@ struct Handle
 
 	~Handle() noexcept
 	{
-		if (this->Value != Default)
-		{
-			Deleter {}(this->Value);
+		if(this->destroy) {
+			if (this->Value != Default)
+			{
+				Deleter {}(this->Value);
+			}
 		}
+	}
+
+	constexpr void SetDestroyCondition(bool val) {
+		this->destroy = val;
 	}
 
 	Handle& operator = (const Handle&) = delete;
@@ -141,15 +147,22 @@ struct Handle
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		return Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
+		return
+			Savegame::ReadPhobosStream(Stm, this->destroy, RegisterForChange)
+			&& Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange)
+			;
+
 	}
 
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		return Savegame::WritePhobosStream(Stm, this->Value);
+		return Savegame::WritePhobosStream(Stm, this->destroy)
+			&& Savegame::WritePhobosStream(Stm, this->Value)
+			;
 	}
 
 private:
+	bool destroy { true };
 	T Value { Default };
 };
 

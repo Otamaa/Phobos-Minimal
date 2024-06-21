@@ -21,14 +21,22 @@ public:
 	PaletteManager(const char* const pTitle);
 	virtual ~PaletteManager() override
 	{
-		if(auto pVec = std::exchange(this->ColorschemeDataVector, nullptr)) {
-			for (int i = 0; i < pVec->Count; ++i) {
-				if (auto pScheme = std::exchange(pVec->Items[i], nullptr)) {
-						GameDelete<true,false>(pScheme);
+		if(!Phobos::Otamaa::ExeTerminated) {
+			if(auto pVec = std::exchange(this->ColorschemeDataVector, nullptr)) {
+				for (int i = 0; i < pVec->Count; ++i) {
+					if (auto pScheme = std::exchange(pVec->Items[i], nullptr)) {
+							GameDelete<true,false>(pScheme);
+					}
 				}
-			}
 
-			GameDelete(pVec);
+				GameDelete(pVec);
+			}
+		} else {
+
+			this->Convert_Temperate.SetDestroyCondition(false);
+			this->Convert.SetDestroyCondition(false);
+			this->Palette.release();
+			std::exchange(this->ColorschemeDataVector, nullptr);
 		}
 	}
 

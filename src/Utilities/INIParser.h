@@ -253,14 +253,28 @@ public:
 		return (*nBuffer != -1);
 	}
 
-	// WARNING : const char* memory address may temporary and can invalidated
-	bool ParseStringList(std::vector<const char*>& values, const char* pSection, const char* pKey) {
+	template<typename T>
+	bool ParseList(std::vector<T>& values, const char* pSection, const char* pKey) {
+		static_assert(true, "NotImplmented");
+	}
+
+	template<>
+	bool ParseList(std::vector<double>& values, const char* pSection, const char* pKey) {
 		if (this->ReadString(pSection, pKey)) {
 			values.clear();
 			char* context = nullptr;
 
-			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-				values.push_back(pCur);
+			for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context);
+				pCur;
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+				double val = 0.0;
+
+				if (strlen(pCur)) {
+					val = atof(pCur);
+				}
+
+				values.push_back(val);
+			}
 
 			return true;
 		}
@@ -268,7 +282,8 @@ public:
 		return false;
 	}
 
-	bool ParseStringList(std::vector<std::string>& values, const char* pSection, const char* pKey) {
+	template<>
+	bool ParseList(std::vector<std::string>& values, const char* pSection, const char* pKey) {
 		if (this->ReadString(pSection, pKey)) {
 			values.clear();
 			char* context = nullptr;

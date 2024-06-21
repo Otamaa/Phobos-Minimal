@@ -9,8 +9,6 @@
 #include <WarheadTypeClass.h>
 #include <CCINIClass.h>
 
-#include <Misc/DynamicPatcher/Common/INI/INI.h>
-
 #include <Misc/DynamicPatcher/Ext/Helper/StringEx.h>
 #include <Misc/DynamicPatcher/Ext/Helper/Scripts.h>
 
@@ -90,7 +88,7 @@ struct AresVersus : public WarheadFlags
 {
 public:
 	AresVersus(double versus = 1.0, bool forceFire = true, bool retaliate = true, bool passiveAcquire = true) :
-		WarheadFlags(forceFire, retaliate, passiveAcquire)
+		WarheadFlags { forceFire, retaliate, passiveAcquire }
 		, Versus(versus)
 	{ }
 
@@ -102,17 +100,17 @@ public:
 		this->Versus = Conversions::Str2Armor(str, this);
 	}
 
-	void Read(INIBufferReader* reader, std::string title, std::string armor)
+	void Read(INI_EX& reader,std::string section , std::string title, std::string armor)
 	{
-		if (reader->TryGet(title + armor, Versus))
-		{
+		if (reader.ReadDouble(section.c_str(), (title + armor).c_str(), &Versus)) {
 			PassiveAcquire = !LESS_EQUAL(Versus, 0.02);
 			Retaliate = !LESS_EQUAL(Versus, 0.01);
 			ForceFire = !LESS_EQUAL(Versus, 0.00);
 		}
-		ForceFire = reader->Get(title + armor + ".ForceFire", ForceFire);
-		Retaliate = reader->Get(title + armor + ".Retaliate", Retaliate);
-		PassiveAcquire = reader->Get(title + armor + ".PassiveAcquire", PassiveAcquire);
+
+		reader.ReadBool(section.c_str(), (title + armor + ".ForceFire").c_str(), &ForceFire);
+		reader.ReadBool(section.c_str(), (title + armor + ".Retaliate").c_str(), &Retaliate);
+		reader.ReadBool(section.c_str(), (title + armor + ".PassiveAcquire").c_str(), &PassiveAcquire);
 	}
 
 	double Versus = 1.0;
@@ -165,27 +163,31 @@ public:
 		std::vector<DamageReactionMode> IgnoreDamageReactionModes{}; // 不触发特定的伤害相应类型
 		bool IgnoreStandShareDamage = false; // 替身不分担伤害
 
-		virtual void Read(INIBufferReader* reader) override
+		virtual void Read(INI_EX& reader) override
 		{
-			Versus = reader->GetList("Verses", Versus);
+			reader.ParseList(Versus ,Type->ID, "Verses");
 			// Ares
 			ReadAresVersus(reader);
 			bool affectsAllies = true;
-			if (reader->TryGet("AffectsAllies", affectsAllies))
+			if (reader.ReadBool(Type->ID, "AffectsAllies", &affectsAllies))
 			{
 				AffectsAllies = affectsAllies;
 				AffectsOwner = affectsAllies;
 			}
 			bool affectsOwner = AffectsOwner;
-			if (reader->TryGet("AffectsOwner", affectsOwner))
+			if (reader.ReadBool(Type->ID, "AffectsOwner", &affectsOwner))
 			{
 				AffectsOwner = affectsOwner;
 			}
-			AffectsEnemies = reader->Get("AffectsEnemies", AffectsEnemies);
-			EffectsRequireDamage = reader->Get("EffectsRequireDamage", EffectsRequireDamage);
-			EffectsRequireVerses = reader->Get("EffectsRequireVerses", EffectsRequireVerses);
-			AllowZeroDamage = reader->Get("AllowZeroDamage", AllowZeroDamage);
-			PreImpactAnim = reader->Get("PreImpactAnim", PreImpactAnim);
+
+			reader.ReadBool(Type->ID, "AffectsEnemies", &AffectsEnemies);
+			reader.ReadBool(Type->ID, "EffectsRequireDamage", &EffectsRequireDamage);
+			reader.ReadBool(Type->ID, "EffectsRequireVerses", &EffectsRequireVerses);
+			reader.ReadBool(Type->ID, "AllowZeroDamage", &AllowZeroDamage);
+
+			if(reader.ReadString(Type->ID, "PreImpactAnim") > 0)
+				PreImpactAnim = reader.value();
+
 
 			// Kratos
 			AffectInAir = reader->Get("AffectInAir", AffectInAir);
@@ -297,7 +299,7 @@ public:
 		 *
 		 * @param reader
 		 */
-		void ReadAresVersus(INIBufferReader* reader)
+		void ReadAresVersus(INI_EX& reader)
 		{
 			std::vector<std::pair<std::string, AresVersus>> armorValues = GetAresArmorValueArray();
 			std::string title = "Versus.";
@@ -310,7 +312,7 @@ public:
 				// 实际的比例
 				AresVersus aresVersus = defaultValue;
 				// 读取弹头上的护甲设置
-				aresVersus.Read(reader, title, armor);
+				aresVersus.Read(reader,Type->ID, title, armor);
 				AresVersusArray.emplace_back(aresVersus);
 			}
 		}
