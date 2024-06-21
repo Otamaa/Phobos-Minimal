@@ -7,7 +7,7 @@
 
 int CSFLoader::CSFCount = 0;
 int CSFLoader::NextValueIndex = 0;
-std::vector<std::pair<std::string, CSFString>> CSFLoader::DynamicStrings;
+std::vector<CSFLoader::Storages> CSFLoader::DynamicStrings;
 
 void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 {
@@ -50,14 +50,16 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 
 	auto pData = FindOrAllocateDynamicStrings(pLabelName);
 
-	if((!pData->second.Text || !pData->second.Text[0])) {
-		swprintf_s(pData->second.Text, 101u, pPattern, pDefault);
+	if((!pData->value.Text || !pData->value.Text[0])) {
+		swprintf_s(pData->value.Text, 101u, pPattern, pDefault);
 		if(Phobos::Otamaa::OutputMissingStrings) {
-			Debug::Log("[CSFLoader] Added label \"%s\" with value \"%ls\".\n", pLabelName, pData->second.Text);
+			Debug::Log("[CSFLoader] ***NO_STRING*** label \"%s\" with value \"%ls\".\n", pLabelName, pData->value.Text);
 		}
+
+		pData->found = false;
 	}
 
-	return pData->second.Text;
+	return pData->value.Text;
 }
 
 #ifndef aaa

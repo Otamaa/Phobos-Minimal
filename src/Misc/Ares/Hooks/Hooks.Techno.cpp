@@ -796,10 +796,10 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 					auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2());
 					swprintf_s(pOutDrainFormat, pDrainFormat, pOutput, pDrain);
 				} else {
-					auto pPowerFormat = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power=%d");
+					auto pPowerFormat = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power = %d");
 					swprintf_s(pOutDrainFormat, pPowerFormat, pOutput);
 					DrawTheStuff(pOutDrainFormat);
-					auto pDrainFormat = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain=%d");
+					auto pDrainFormat = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain = %d");
 					swprintf_s(pOutDrainFormat, pDrainFormat, pDrain);
 				}
 
@@ -820,7 +820,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				}
 				else
 				{
-					auto pStorageFormat = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storage: %d");
+					auto pStorageFormat = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storag = %d");
 					wchar_t pOutStorageFormat[0x80];
 					auto nStorage = pBuilding->GetStoragePercentage();
 					swprintf_s(pOutStorageFormat, pStorageFormat, nStorage);

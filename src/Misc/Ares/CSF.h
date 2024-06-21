@@ -17,17 +17,32 @@ public:
 
 	static int CSFCount;
 	static int NextValueIndex;
-	static std::vector<std::pair<std::string, CSFString>> DynamicStrings;
+	struct Storages {
+		std::string text;
+		CSFString value;
+		bool found;
+	};
+	static std::vector<Storages> DynamicStrings;
 
 	static constexpr auto FindOrAllocateDynamicStrings(const char* val) {
 		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin) {
-			if (begin->first == val) {
+			if (begin->text == val) {
 				return begin;
 			}
 		}
 
-		DynamicStrings.emplace_back(val, CSFString{});
+		DynamicStrings.emplace_back(val, CSFString{} , true);
 		return DynamicStrings.begin() + (DynamicStrings.size() - 1);
+	}
+
+	static bool IsStringPatternFound(const char* val) {
+		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin){
+			if (begin->text == val && begin->found) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	static void LoadAdditionalCSF(const char* fileName, bool ignoreLanguage = false);
