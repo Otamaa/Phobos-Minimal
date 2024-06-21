@@ -2152,7 +2152,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	Point2D xyTL {};
 	CoordStruct XYZ = pSource->GetCoords();
 	TacticalClass::Instance->CoordsToClient(&XYZ, &xyTL);
-	bool Inactive = false;
+
 	ObjectTypeClass* pDisguise = nullptr;
 
 	if (pSource->InLimbo || ((pSource->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
@@ -2172,7 +2172,6 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 
 	if (Unsorted::CurrentFrame % 2)
 	{
-
 		if (StaticVars::ObjectLinkedAlphas.get_or_default(pSource)
 			&& what == BuildingClass::AbsID
 			&& (pImage->Frames <= 1 || !((BuildingClass*)pSource)->HasTurret() || !((BuildingClass*)pSource)->TurretIsRotating)
@@ -2187,7 +2186,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 		--Unsorted::ScenarioInit;
 		TacticalClass::Instance->RegisterDirtyArea({
 		xyTL.X + off.X,
-			xyTL.Y + off.Y,
+		xyTL.Y + off.Y,
 		pImage->Width,
 		pImage->Height },
 		true);

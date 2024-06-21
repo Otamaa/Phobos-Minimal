@@ -785,29 +785,67 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			if (isFake)
 				DrawTheStuff(GeneralUtils::LoadStringOrDefault("TXT_FAKE", L"FAKE"));
 
-			if (pType->PowerBonus > 0)
+			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)
 			{
-				auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2());
-				wchar_t pOutDraimFormat[0x80];
+				wchar_t pOutDrainFormat[0x80];
 				auto pDrain = (int)pOwner->Power_Drain();
 				auto pOutput = (int)pOwner->Power_Output();
-				swprintf_s(pOutDraimFormat, pDrainFormat, pOutput, pDrain);
-				DrawTheStuff(pOutDraimFormat);
+				//foundating check ,...
+				//can be optimized using stored bool instead checking them each frames
+				if(pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2) {
+					auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2());
+					swprintf_s(pOutDrainFormat, pDrainFormat, pOutput, pDrain);
+				} else {
+					auto pPowerFormat = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power = %d");
+					swprintf_s(pOutDrainFormat, pPowerFormat, pOutput);
+					DrawTheStuff(pOutDrainFormat);
+					auto pDrainFormat = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain = %d");
+					swprintf_s(pOutDrainFormat, pDrainFormat, pDrain);
+				}
+
+				DrawTheStuff(pOutDrainFormat);
 			}
 
-			if (pType->Storage > 0)
+			const bool hasStorage = pType->Storage > 0;
+			const bool isUsingStorage = BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage;
+
+			if (hasStorage)
 			{
-				auto pMoneyFormat = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1());
-				wchar_t pOutMoneyFormat[0x80];
-				auto nMoney = pOwner->Available_Money();
-				swprintf_s(pOutMoneyFormat, pMoneyFormat, nMoney);
-				DrawTheStuff(pOutMoneyFormat);
+				if(!isUsingStorage) {
+					auto pMoneyFormat = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1());
+					wchar_t pOutMoneyFormat[0x80];
+					auto nMoney = pOwner->Available_Money();
+					swprintf_s(pOutMoneyFormat, pMoneyFormat, nMoney);
+					DrawTheStuff(pOutMoneyFormat);
+				}
+				else
+				{
+					auto pStorageFormat = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storage = %d");
+					wchar_t pOutStorageFormat[0x80];
+					auto nStorage = pBuilding->GetStoragePercentage();
+					swprintf_s(pOutStorageFormat, pStorageFormat, nStorage);
+					DrawTheStuff(pOutStorageFormat);
+				}
 			}
 
 			if (pThis->IsPrimaryFactory)
 			{
-				DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) ?
-					GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
+				if(RulesExtData::Instance()->PrimaryFactoryIndicator) {
+						SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator;
+
+						ConvertClass* pPalette = FileSystem::PALETTE_PAL();
+						if(!RulesExtData::Instance()->PrimaryFactoryIndicator_Palette)
+							pPalette =  RulesExtData::Instance()->PrimaryFactoryIndicator_Palette->GetConvert<PaletteManager::Mode::Default>();
+
+						int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
+						Point2D pPosition = TacticalClass::Instance->CoordsToClient(pThis->GetCell()->GetCoords()).first;
+						pPosition.X -= Unsorted::CellWidthInPixels / 2 * cellsToAdjust;
+						pPosition.Y += Unsorted::CellHeightInPixels / 2 * cellsToAdjust - 4;
+						DSurface::Temp->DrawSHP(pPalette, pImage, 0, &pPosition, pRect, BlitterFlags(0x600), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+				} else {
+					DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) ?
+						GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
+				}
 			}
 
 			if(!BuildingExtContainer::Instance.Find(pBuilding)->RegisteredJammers.empty())

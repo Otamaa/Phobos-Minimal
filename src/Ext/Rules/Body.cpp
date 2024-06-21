@@ -192,6 +192,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->Promote_Vet_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.VeteranAnim");
 	pData->Promote_Elite_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.EliteAnim");
+	pData->PrimaryFactoryIndicator.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator");
+	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator.Palette");
 
 	for(int i = 0; i < WeaponTypeClass::Array->Count; ++i) {
 		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
@@ -1188,6 +1190,9 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->VeinsAttack_interval)
 		.Process(this->BuildingFlameSpawnBlockFrames)
+
+		.Process(this->PrimaryFactoryIndicator)
+		.Process(this->PrimaryFactoryIndicator_Palette)
 		;
 
 	MyPutData.Serialize(Stm);

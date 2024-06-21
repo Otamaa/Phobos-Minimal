@@ -304,6 +304,8 @@ public:
 
 	Valueable<bool> SpyEffect_SWTargetCenter { false };
 
+	Valueable<bool> ShowPower { true };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

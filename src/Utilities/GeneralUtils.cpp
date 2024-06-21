@@ -43,12 +43,18 @@ void GeneralUtils::DoubleValidCheck(double* source, const char* section, const c
 	}
 }
 
+#include <Misc/Ares/CSF.h>
+
 const wchar_t* GeneralUtils::LoadStringOrDefault(const char* key, const wchar_t* defaultValue)
 {
-	if (GeneralUtils::IsValidString(key))
-		return StringTable::LoadString(key);
-	else
-		return defaultValue;
+	if (GeneralUtils::IsValidString(key)){
+		const auto result =  StringTable::LoadString(key);
+		if(!defaultValue || CSFLoader::IsStringPatternFound(key)) {
+			return result;
+		}
+	}
+
+	return defaultValue;
 }
 
 const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue)
