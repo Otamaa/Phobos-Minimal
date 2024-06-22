@@ -84,8 +84,14 @@ public:
 
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);
 
-	double GetConditionYellow();
-	double GetConditionRed();
+	constexpr inline double GetConditionYellow() {
+		return this->ConditionYellow.Get(RulesExtData::Instance()->Shield_ConditionYellow);
+	}
+
+	constexpr inline double GetConditionRed() {
+		return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
+	}
+
 
 private:
 	template <typename T>

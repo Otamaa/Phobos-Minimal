@@ -1368,12 +1368,12 @@ struct OverlayReader
 {
 	size_t Get()
 	{
-		unsigned char ret[4];
-
-		ret[0] = ByteReaders[0].Get();
-		ret[1] = ByteReaders[1].Get();
-		ret[2] = ByteReaders[2].Get();
-		ret[3] = ByteReaders[3].Get();
+		const unsigned char ret[4] {
+			ByteReaders[0].Get(),
+			ByteReaders[1].Get(),
+			ByteReaders[2].Get(),
+			ByteReaders[3].Get()
+		};
 
 		return ret[0] == 0xFF ? 0xFFFFFFFF : (ret[0] | (ret[1] << 8) | (ret[2] << 16) | (ret[3] << 24));
 	}
@@ -1564,6 +1564,16 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 	datawriter.PutBlock(pINI);
 
 	return 0x5FD8EB;
+}
+
+
+// Ares InitialPayload fix: Man, what can I say
+DEFINE_HOOK(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
+{
+	GET(TeamClass*, pTeam, EBP);
+	GET(TechnoTypeClass*, pType, EDI);
+	R->ESI(pType->CreateObject(pTeam->Owner));
+	return 0x65DE53;
 }
 
 #ifdef aaaaa___

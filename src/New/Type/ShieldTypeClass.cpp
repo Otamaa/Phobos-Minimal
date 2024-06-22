@@ -142,15 +142,6 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
 }
 
-double ShieldTypeClass::GetConditionYellow()
-{
-	return this->ConditionYellow.Get(RulesExtData::Instance()->Shield_ConditionYellow);
-}
-double ShieldTypeClass::GetConditionRed()
-{
-	return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
-}
-
 template <typename T>
 void ShieldTypeClass::Serialize(T& Stm)
 {

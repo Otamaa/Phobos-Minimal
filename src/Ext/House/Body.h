@@ -184,7 +184,12 @@ public:
 
 	void UpdateShotCount(SuperWeaponTypeClass* pFor);
 	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
-	LauchData GetShotCount(SuperWeaponTypeClass* pFor);
+	constexpr LauchData GetShotCount(SuperWeaponTypeClass* pFor){
+		if ((size_t)pFor->ArrayIndex < this->LaunchDatas.size())
+			return this->LaunchDatas[pFor->ArrayIndex];
+
+		return {};
+	}
 
 	//void AddToLimboTracking(TechnoTypeClass* pTechnoType);
 	//void RemoveFromLimboTracking(TechnoTypeClass* pTechnoType);

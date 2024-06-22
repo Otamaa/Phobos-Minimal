@@ -1037,16 +1037,6 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const Ta
 	return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 }
 
-double SWTypeExtData::GetChargeToDrainRatio() const
-{
-	return this->SW_ChargeToDrainRatio.Get(RulesClass::Instance->ChargeToDrainRatio);
-}
-
-const char* SWTypeExtData::get_ID()
-{
-	return this->AttachedToObject->ID;
-}
-
  bool SWTypeExtData::CanFire(HouseClass* pOwner) const
  {
  	const int nAmount = this->SW_Shots;

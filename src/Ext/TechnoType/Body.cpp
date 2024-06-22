@@ -144,17 +144,30 @@ const char* TechnoTypeExtData::GetSelectionGroupID() const
 
 bool TechnoTypeExtData::IsGenericPrerequisite() const
 {
-	if (this->GenericPrerequisite.empty())
-	{
-		bool isGeneric = false;
-		for (auto const& Prereq : GenericPrerequisite::Array) {
-			if (Prereq->Alternates.Contains(this->AttachedToObject)) {
-				isGeneric = true;
-				break;
-			}
+	if(this->GenericPrerequisite.empty()) {
+		auto begin = GenericPrerequisite::Array.begin();
+		auto end  = GenericPrerequisite::Array.end();
+
+		if(begin == end ){
+			this->GenericPrerequisite = false;
+			return false;
 		}
 
-		this->GenericPrerequisite = isGeneric;
+		for(; begin != end; ++begin){
+			auto alt_begin = (*begin)->Alternates.begin();
+			auto alt_end = (*begin)->Alternates.end();
+
+			if(alt_begin == alt_end) {
+				continue;
+			}
+
+			for(; alt_begin != alt_end; ++alt_begin){
+				if((*alt_begin) == this->AttachedToObject){
+					this->GenericPrerequisite = true;
+					return true;
+				}
+			}
+		}
 	}
 
 	return this->GenericPrerequisite;

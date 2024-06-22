@@ -487,7 +487,9 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void Initialize();
 
-	const char* get_ID();
+	constexpr inline const char* get_ID(){
+		return this->AttachedToObject->ID;
+	}
 
 	//with arg(s)
 
@@ -506,7 +508,9 @@ public:
 	bool IsAvailable(HouseClass* pHouse);
 
 	//no arg(s)
-	double GetChargeToDrainRatio() const;
+	constexpr inline double GetChargeToDrainRatio() const {
+		return this->SW_ChargeToDrainRatio.Get(RulesClass::Instance->ChargeToDrainRatio);
+	}
 	SuperWeaponTarget GetAIRequiredTarget() const;
 	AffectedHouse GetAIRequiredHouse() const;
 	std::pair<TargetingConstraints, bool> GetAITargetingConstraints() const;

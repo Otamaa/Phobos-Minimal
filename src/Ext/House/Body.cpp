@@ -548,14 +548,6 @@ void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 		nData.LastFrame = Unsorted::CurrentFrame();
 }
 
-LauchData HouseExtData::GetShotCount(SuperWeaponTypeClass* pFor)
-{
-	if ((size_t)pFor->ArrayIndex < this->LaunchDatas.size())
-		return this->LaunchDatas[pFor->ArrayIndex];
-
-	return {};
-}
-
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
 	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx))

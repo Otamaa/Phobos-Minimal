@@ -28,15 +28,18 @@ int lastAction;
 
  	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
-	if (lastAction == (int)pThis->ActionKind)
-		++StaticVars::TriggerCounts[pThis];
-	else
-		StaticVars::TriggerCounts[pThis] = 0;
+	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
 
- 	//Debug::Log("TAction[%x] triggering [%d] caller[%x]\n" , pThis , (int)pThis->ActionKind , caller);
+		if (lastAction == (int)pThis->ActionKind)
+			++StaticVars::TriggerCounts[pThis];
+		else
+			StaticVars::TriggerCounts[pThis] = 0;
 
-	if (((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) && StaticVars::TriggerCounts[pThis] > 1000)
-		Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !\n", pThis, (int)pThis->ActionKind);
+	 	//Debug::Log("TAction[%x] triggering [%d] caller[%x]\n" , pThis , (int)pThis->ActionKind , caller);
+
+		if (StaticVars::TriggerCounts[pThis] > 1000)
+			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !\n", pThis, (int)pThis->ActionKind);
+	}
 
 	lastAction = (int)pThis->ActionKind;
 
