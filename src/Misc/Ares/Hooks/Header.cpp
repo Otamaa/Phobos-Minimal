@@ -3928,13 +3928,12 @@ void TechnoExperienceData::AddAirstrikeFactor(TechnoClass*& pKiller, double& d_f
 	{
 		if (const auto pDesignator = pKiller->Airstrike->Owner)
 		{
-			if (const auto pDesignatorExt = TechnoTypeExtContainer::Instance.Find(pDesignator->GetTechnoType()))
+			const auto pDesignatorExt = TechnoTypeExtContainer::Instance.Find(pDesignator->GetTechnoType());
+
+			if (pDesignatorExt->ExperienceFromAirstrike)
 			{
-				if (pDesignatorExt->ExperienceFromAirstrike)
-				{
-					pKiller = pDesignator;
-					d_factor *= pDesignatorExt->AirstrikeExperienceModifier;
-				}
+				pKiller = pDesignator;
+				d_factor *= pDesignatorExt->AirstrikeExperienceModifier;
 			}
 		}
 	}
