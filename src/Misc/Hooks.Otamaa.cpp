@@ -2977,7 +2977,7 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 					nCell = CellClass::Coord2Cell(pTech->GetCoords());
 					if (nCell.IsValid())
 					{
-						if (auto pCell = MapClass::Instance->GetCellAt(nCell))
+						if (auto pCell = MapClass::Instance->TryGetCellAt(nCell))
 						{
 							for (auto pOccupy = pCell->FirstObject;
 								pOccupy;
