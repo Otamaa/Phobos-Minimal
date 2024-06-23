@@ -36,6 +36,7 @@ void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int a
 		pRadExt->TechOwner = pTech;
 	}
 
+	pRadExt->CreationFrame = Unsorted::CurrentFrame;
 	pRadExt->AttachedToObject->BaseCell = CellClass::Coord2Cell(nCoord);
 	pRadExt->AttachedToObject->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
@@ -113,20 +114,7 @@ void RadSiteExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	const auto pThis = this->AttachedToObject;
-	const auto currentLevel = pThis->GetCurrentRadLevel();
-
-	if (currentLevel <= 0)
-		return 0.0;
-
-	const auto nMax = static_cast<double>(pThis->Spread);
-	const auto nDistance = cell.DistanceFrom(pThis->BaseCell);
-
-	if (!nMax && !nDistance)
-		return currentLevel;
-
-	return (nDistance > nMax)
-		? 0.0 : (nMax - nDistance) / nMax * currentLevel;
+	return this->GetRadLevelAt(this->AttachedToObject->BaseCell.DistanceFrom(cell));
 }
 
 bool NOINLINE IsFiniteNumber(double x) {
@@ -136,23 +124,20 @@ bool NOINLINE IsFiniteNumber(double x) {
 const double RadSiteExtData::GetRadLevelAt(double distance)
 {
 	const auto pThis = this->AttachedToObject;
-	const auto currentLevel = pThis->GetCurrentRadLevel();
-
-	if (currentLevel <= 0)
-		return 0.0;
-
 	const auto nMax = static_cast<double>(pThis->Spread);
+	double radLevel = pThis->RadLevel;
 
-	if (!nMax && !distance)
-		return currentLevel;
+	if (distance && nMax)
+		radLevel = (distance > nMax) ? 0.0 : (nMax - distance) / nMax * pThis->RadLevel;
 
-	const auto result =  (distance > nMax)
-		? 0.0 : (nMax - distance) / nMax * currentLevel;
 
-	//if (!IsFiniteNumber(result))
-	//	DebugBreak();
+	// Vanilla YR stores & updates the decremented RadLevel on CellClass.
+	// Because we're not storing multiple radiation site data on CellClass (yet?)
+	// we need to fully recalculate this stuff every time we need the radiation level for a cell coord - Starkku
+	int stepCount = (Unsorted::CurrentFrame - this->CreationFrame) / this->Type->GetLevelDelay();
+	radLevel -= (radLevel / pThis->LevelSteps) * stepCount;
 
-	return result;
+	return radLevel;
 }
 
 //return false mean it is already death
@@ -207,7 +192,7 @@ void RadSiteExtData::Serialize(T& Stm)
 		.Process(this->TechOwner)
 		.Process(this->HouseOwner)
 		.Process(this->NoOwner)
-		//.Process(this->Spread)
+		.Process(this->CreationFrame)
 		;
 }
 

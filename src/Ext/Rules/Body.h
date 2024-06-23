@@ -38,6 +38,8 @@ public:
 	Valueable<Point3D> Pips_Shield { { -1, -1, -1 } };
 	Valueable<Point3D> Pips_Shield_Buildings { { -1, -1, -1 } };
 	Valueable<int> RadApplicationDelay_Building { 0 };
+	Valueable<int> RadBuildingDamageMaxCount { -1 };
+
 	PhobosFixedString<32u> MissingCameo { GameStrings::XXICON_SHP() };
 
 	std::vector<std::vector<TechnoTypeClass*>> AITargetTypesLists { };

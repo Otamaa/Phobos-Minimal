@@ -13,6 +13,8 @@ private:
 	Nullable<int> DurationMultiple;
 	Nullable<int> ApplicationDelay;
 	Nullable<int> BuildingApplicationDelay;
+	Nullable<int> BuildingDamageMaxCount;
+
 	Nullable<double> LevelFactor;
 	Nullable<int> LevelMax;
 	Nullable<int> LevelDelay;
@@ -31,6 +33,7 @@ public:
 		, DurationMultiple {}
 		, ApplicationDelay {}
 		, BuildingApplicationDelay {}
+		, BuildingDamageMaxCount {}
 		, LevelFactor {}
 		, LevelMax {}
 		, LevelDelay {}
@@ -96,6 +99,11 @@ public:
 	constexpr inline int GetBuildingApplicationDelay() const
 	{
 		return this->BuildingApplicationDelay.Get(RulesExtData::Instance()->RadApplicationDelay_Building.Get());
+	}
+
+	constexpr inline int GetBuildingDamageMaxCount() const
+	{
+		return this->BuildingDamageMaxCount.Get(RulesExtData::Instance()->RadBuildingDamageMaxCount);
 	}
 
 	constexpr inline int GetLevelMax()  const

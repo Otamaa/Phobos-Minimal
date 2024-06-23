@@ -57,11 +57,14 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 	}
 }
 
+#include <Ext/WeaponType/Body.h>
+
 void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 {
 	bool markForRedraw = false;
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 	bool technoIsDead = !pTechno->IsAlive;
+	std::vector<WeaponTypeClass*> expireWeapons;
 
 	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
@@ -88,10 +91,9 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, it->GetType());
 
-				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
-				{
+				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None) {
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-						it->ExpireWeapon();
+						expireWeapons.push_back(pType->ExpireWeapon);
 				}
 
 				if (technoIsDead = !pTechno->IsAlive)
@@ -119,6 +121,18 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 		if (markForRedraw)
 			pTechno->MarkForRedraw();
+
+		auto coords = pTechno->GetCoords();
+		auto const pOwner = pTechno->Owner;
+
+		for (auto const& pWeapon : expireWeapons) {
+
+			TechnoClass* pTarget = pTechno;
+			if(!pTechno->IsAlive)
+				pTarget = nullptr;
+
+			WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, false, pOwner);
+		}
 	}
 }
 

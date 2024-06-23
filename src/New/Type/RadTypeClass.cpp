@@ -29,6 +29,7 @@ void RadTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DurationMultiple.Read(exINI, section, "RadDurationMultiple");
 	this->ApplicationDelay.Read(exINI, section, "RadApplicationDelay");
 	this->BuildingApplicationDelay.Read(exINI, section, "RadApplicationDelay.Building");
+	this->BuildingDamageMaxCount.Read(exINI, section, "RadBuildingDamageMaxCount");
 	this->LevelMax.Read(exINI, section, "RadLevelMax");
 	this->LevelDelay.Read(exINI, section, "RadLevelDelay");
 	this->LightDelay.Read(exINI, section, "RadLightDelay");
@@ -49,6 +50,7 @@ void RadTypeClass::Serialize(T& Stm)
 		.Process(this->LevelDelay)
 		.Process(this->LightDelay)
 		.Process(this->BuildingApplicationDelay)
+		.Process(this->BuildingDamageMaxCount)
 		.Process(this->LevelFactor)
 		.Process(this->LightFactor)
 		.Process(this->TintFactor)

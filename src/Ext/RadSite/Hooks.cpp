@@ -230,6 +230,8 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 			return Continue;
 		}
 
+		PhobosMap<RadSiteClass*, int> damageCounts;
+
 		const auto nCurCoord = pBuilding->InlineMapCoords();
 		for (auto pFoundation = pBuilding->GetFoundationData(false);
 			*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
@@ -246,6 +248,11 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 					return Dead;
 
 				const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
+
+				int maxDamageCount = pRadExt->Type->GetBuildingDamageMaxCount();
+
+				if (maxDamageCount > 0 && damageCounts[pRadSite] >= maxDamageCount)
+					continue;
 
 				// Check the distance, if not in range, just skip this one
 				const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
@@ -264,9 +271,11 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 
 				const auto damage = static_cast<int>((nRadLevel)*pType->GetLevelFactor());
 
+				if (maxDamageCount > 0)
+					damageCounts[pRadSite]++;
+
 				if (damage == 0)
 					continue;
-
 
 				switch (pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
 				{

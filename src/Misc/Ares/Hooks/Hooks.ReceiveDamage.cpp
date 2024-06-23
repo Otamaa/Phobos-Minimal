@@ -251,26 +251,36 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+	auto coords = pThis->GetCoords();
+	auto const pOwner = pThis->Owner;
+
 	if (pWarheadExt->Supress_LostEva.Get())
 		pTechExt->SupressEVALost = true;
 
 	GiftBoxFunctional::Destroy(pTechExt, pTypeExt);
 
 	std::set<PhobosAttachEffectTypeClass*> cumulativeTypes;
+	std::vector<WeaponTypeClass*> expireWeapons;
 
-	for (auto const& attachEffect : pTechExt->PhobosAE)
-	{
+	for (auto const& attachEffect : pTechExt->PhobosAE) {
 		auto const pType = attachEffect.GetType();
-		if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
-		{
-			if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pType))
-			{
+		if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
+			if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pType)) {
 				if (pType->Cumulative && pType->ExpireWeapon_CumulativeOnlyOnce)
 					cumulativeTypes.insert(pType);
 
-				attachEffect.ExpireWeapon();
+				expireWeapons.push_back(pType->ExpireWeapon);
 			}
 		}
+	}
+
+	for (auto const& pWeapon : expireWeapons) {
+
+		TechnoClass* pTarget = pThis;
+		if(!pThis->IsAlive)
+			  pTarget = nullptr;
+
+		WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, false, pOwner);
 	}
 
 	return 0x0;

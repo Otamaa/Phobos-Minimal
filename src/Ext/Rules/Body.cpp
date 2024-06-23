@@ -760,6 +760,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Storage_TiberiumIndex.Read(exINI, GENERAL_SECTION, "Storage.TiberiumIndex");
 
 	this->RadApplicationDelay_Building.Read(exINI, RADIATION_SECTION, "RadApplicationDelay.Building");
+	this->RadBuildingDamageMaxCount.Read(exINI, GameStrings::Radiation, "RadBuildingDamageMaxCount");
 	this->RadWarhead_Detonate.Read(exINI, RADIATION_SECTION, "RadSiteWarhead.Detonate");
 	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
@@ -930,6 +931,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Pips_Shield_Buildings)
 
 		.Process(this->RadApplicationDelay_Building)
+		.Process(this->RadBuildingDamageMaxCount)
 		.Process(this->MissingCameo)
 
 		.Process(this->AITargetTypesLists)

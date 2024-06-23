@@ -23,6 +23,7 @@ public:
 	TechnoClass* TechOwner { nullptr };
 	HouseClass* HouseOwner { nullptr };
 	bool NoOwner { true };
+	int CreationFrame { 0 };
 
 	RadSiteExtData() noexcept = default;
 	~RadSiteExtData() noexcept = default;
