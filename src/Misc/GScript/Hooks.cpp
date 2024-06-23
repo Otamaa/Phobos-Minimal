@@ -1,6 +1,8 @@
 #include <AircraftClass.h>
 #include <AircraftTypeClass.h>
 
+#include <Utilities/TemplateDefB.h>
+
 #include <Phobos.h>
 
 /*
@@ -172,6 +174,147 @@ enum class CustomType : int
 	, Cobra = 73
 	, Redeemer = 74
 };
+
+struct BulletAttachType
+{
+	enum class Types : BYTE{
+		none,
+		flash ,
+		orangeflash ,
+		gmissile,
+		nmissile,
+		disfiremisl
+	};
+
+	struct Resource {
+		ConvertClass* Convert;
+		bool ConvertClearable;
+		SHPStruct* Shape;
+		bool ShapeClearable;
+	};
+	static std::array<Resource, 5u> Resources;
+
+	static constexpr std::array<std::pair<Types, const char*>, 6u> to_strings {
+	{
+		{ Types::none , "none" } ,
+		{ Types::flash , "flash" } ,
+		{ Types::orangeflash , "orangeflash" } ,
+		{ Types::gmissile , "gmissile" } ,
+		{ Types::nmissile , "nmissile" } ,
+		{ Types::disfiremisl , "disfiremisl" } ,
+	}
+	};
+
+	static void InitGlobalResources() {
+		Resources[0].Convert = FileSystem::LoadPALFile("mislflashwh.pal", DSurface::Temp);
+		Resources[0].ConvertClearable = true;
+		Resources[0].Shape = FileSystem::LoadSHPFile("missileflash.shp");
+		Resources[0].ShapeClearable = true;
+
+		Resources[1].Convert = FileSystem::LoadPALFile("misflashorange.pal", DSurface::Temp);
+		Resources[1].ConvertClearable = true;
+		Resources[1].Shape = FileSystem::LoadSHPFile("missileflash.shp");
+		Resources[1].ShapeClearable = true;
+
+		Resources[2].Convert = FileSystem::UNITx_PAL();
+		Resources[2].Shape = FileSystem::LoadSHPFile("gmissile.shp");
+		Resources[2].ShapeClearable = true;
+
+		Resources[3].Convert = FileSystem::PALETTE_PAL();
+		Resources[3].Shape = FileSystem::LoadSHPFile("nmissile.shp");
+		Resources[3].ShapeClearable = true;
+
+		Resources[4].Convert = FileSystem::PALETTE_PAL();
+		Resources[4].Shape = FileSystem::LoadSHPFile("disfiremisl.shp");
+		Resources[4].ShapeClearable = true;
+	}
+
+	static void ClearGlobalResources(){
+		for (auto& datas : Resources) {
+			if (datas.ConvertClearable && datas.Convert) {
+				GameDelete(datas.Convert);
+			}
+
+			if (datas.ShapeClearable && datas.Shape) {
+				GameDelete(datas.Shape);
+			}
+
+			datas.Convert = nullptr;
+			datas.Shape = nullptr;
+		}
+	}
+
+	void Read(INI_EX& read, const char* pSection, const char* pKey) const {
+		if (read.ReadString(pSection, pKey) >= 4) {
+			for (auto& [result, str_] : to_strings) {
+				if (IS_SAME_STR_(str_, read.value())){
+					this->Val = result;
+					break;
+				}
+			}
+		}
+	}
+
+	void Draw(BulletClass* pBullet) {
+
+		ConvertClass* pConvert = nullptr;
+		SHPStruct* pAttachment = nullptr;
+		BlitterFlags flags = BlitterFlags::None;
+
+		switch (this->Val)
+		{
+		case Types::flash:
+			pConvert = Resources[0].Convert;
+			pAttachment = Resources[0].Shape;
+			flags = BlitterFlags(0x2E06u);
+			break;
+		case Types::orangeflash:
+			pConvert = Resources[1].Convert;
+			pAttachment = Resources[1].Shape;
+			flags = BlitterFlags(0x2E06u);
+			break;
+		case Types::gmissile:
+			pConvert = Resources[2].Convert;
+			pAttachment = Resources[2].Shape;
+			flags = BlitterFlags(0x2E00u);
+			break;
+		case Types::nmissile:
+			pConvert = Resources[3].Convert;
+			pAttachment = Resources[3].Shape;
+			flags = BlitterFlags(0x2E00u);
+			break;
+		case Types::disfiremisl:
+			pConvert = Resources[4].Convert;
+			pAttachment = Resources[4].Shape;
+			flags = BlitterFlags(0x2E00u);
+			break;
+		default:
+			return;
+		}
+
+		if (!pAttachment || !pConvert)
+			return;
+
+		int height = pBullet->GetHeight();
+		int z_adj = -31 - Game::AdjustHeight(height);
+		Point2D Client {};
+		TacticalClass::Instance->CoordsToClient(pBullet->Location, &Client);
+		auto rect = DSurface::Temp->Get_Rect_WithoutBottomBar();
+
+		DSurface::Temp->DrawSHP(pConvert, pAttachment, 0, &Client, &rect, flags, 0, z_adj, 0, 1000, 0, nullptr, 0, 0, 0);
+	}
+
+protected :
+	mutable Types Val;
+};
+
+std::array<BulletAttachType::Resource, 5u> BulletAttachType::Resources = {{
+	{ } ,
+	{ } ,
+	{ } ,
+	{ } ,
+	{ } ,
+}};
 
 struct DummyTechnoTypeExt
 {
