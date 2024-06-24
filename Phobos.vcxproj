@@ -697,7 +697,6 @@
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
-    <ClInclude Include="src\Utilities\Entity.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />
     <ClInclude Include="src\Ext\Aircraft\Body.h" />
     <ClInclude Include="src\Ext\AnimType\Body.h" />
@@ -718,7 +717,6 @@
     <ClInclude Include="src\Ext\VoxelAnimType\Body.h" />
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
-    <ClInclude Include="src\Utilities\Enumparser.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />

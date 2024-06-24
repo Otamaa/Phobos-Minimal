@@ -114,7 +114,7 @@ void Phobos::ExecuteLua()
 
 		if (lua_isboolean(L, -1) == 1)
 		{
-			StaticVars::MovieMDINI = lua_toboolean(L, -1);
+			Phobos::Otamaa::CompatibilityMode = lua_toboolean(L, -1);
 		}
 	}
 
