@@ -4,7 +4,7 @@
 #include <Phobos.CRT.h>
 
 #include "Enum.h"
-
+#ifdef aaa
 struct EnumCompareMode {
 	bool operator()(const std::string& s1, const std::string& s2) {
 		return IS_SAME_STR_(s1.c_str() , s2.c_str());
@@ -90,3 +90,4 @@ constexpr inline bool ParseEnum(const std::string& value, TEnum& result)
 
 	return false;
 }
+#endif

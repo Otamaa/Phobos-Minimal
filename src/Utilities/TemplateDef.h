@@ -1325,8 +1325,37 @@ namespace detail
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
-				if(!ParseEnum<ExpireWeaponCondition , true>(cur, resultData))
+
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::ExpireWeaponCondition_to_strings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a ExpireWeaponCondition");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= ExpireWeaponCondition::None; break;
+					case 1: resultData |= ExpireWeaponCondition::Expire; break;
+					case 2: resultData |= ExpireWeaponCondition::Remove; break;
+					case 3: resultData |= ExpireWeaponCondition::Death; break;
+					case 4: resultData = ExpireWeaponCondition::All;
+						break;//switch break
+						break;//loop break
+					}
+				}
 			}
 
 			value = resultData;
