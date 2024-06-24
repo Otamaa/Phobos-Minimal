@@ -577,6 +577,14 @@ enum class DisplayInfoType : BYTE
 	DisableWeapon = 11,
 	CloakDisable = 12,
 	GattlingCount = 13,
+	ROF = 14,
+	Reload = 15,
+	SpawnTimer = 16,
+	GattlingTimer = 17,
+	ProduceCash = 18,
+	PassengerKill = 19,
+	AutoDeath = 20,
+	SuperWeapon = 21,
 	count
 };
 

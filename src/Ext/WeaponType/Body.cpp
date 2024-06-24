@@ -71,8 +71,9 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Strafing.Read(exINI, pSection, "Strafing");
 	this->Strafing_Shots.Read(exINI, pSection, "Strafing.Shots");
 	this->Strafing_SimulateBurst.Read(exINI, pSection, "Strafing.SimulateBurst");
-	this->CanTarget.Read(exINI, pSection, "CanTarget");
+	this->Strafing_UseAmmoPerShot.Read(exINI, pSection, "Strafing.UseAmmoPerShot");
 
+	this->CanTarget.Read(exINI, pSection, "CanTarget");
 	this->CanTargetHouses.Read(exINI, pSection, "CanTargetHouses");
 
 	this->Burst_Delays.Read(exINI, pSection, "Burst.Delays");
@@ -305,6 +306,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Strafing)
 		.Process(this->Strafing_Shots)
 		.Process(this->Strafing_SimulateBurst)
+		.Process(this->Strafing_UseAmmoPerShot)
 		.Process(this->CanTarget)
 		.Process(this->CanTargetHouses)
 		.Process(this->RadType)

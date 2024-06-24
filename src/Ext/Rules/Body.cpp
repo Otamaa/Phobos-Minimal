@@ -160,6 +160,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
 	detail::ParseVector<AITriggerTypeClass*>(iniEX, pData->AITriggersLists, "AITriggersList");
 
+	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
+	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");
+
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
 
 	if (!pData->ForceShield_KillOrganicsWarhead)
@@ -1196,6 +1199,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->PrimaryFactoryIndicator)
 		.Process(this->PrimaryFactoryIndicator_Palette)
 		.Process(this->DefautBulletType)
+		.Process(this->AIChronoSphereSW)
+		.Process(this->AIChronoWarpSW)
 		;
 
 	MyPutData.Serialize(Stm);

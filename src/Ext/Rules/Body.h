@@ -327,6 +327,9 @@ public:
 
 	BulletTypeClass* DefautBulletType { nullptr };
 
+	ValueableIdx<SuperWeaponTypeClass> AIChronoSphereSW {};
+	ValueableIdx<SuperWeaponTypeClass> AIChronoWarpSW {};
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

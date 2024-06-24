@@ -98,6 +98,7 @@ void RadSiteExtData::Add(int amount)
 	pThis->RadDuration = nInput_2;
 	pThis->RadTimeLeft = nInput_2;
 	this->CreateLight();
+	this->CreationFrame = Unsorted::CurrentFrame;
 }
 
 void RadSiteExtData::SetRadLevel(int amount)

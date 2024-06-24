@@ -29,11 +29,10 @@ bool IsFlyLoco(const ILocomotion* pLoco)
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
 }
 
-constexpr __forceinline BOOL Weapon_Is_Strafe(WeaponTypeClass* wpnType)
+constexpr FORCEINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
-	if (WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing_Shots.isset())
-		return TRUE;
-	return wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso;
+	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
+		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
 }
 
 DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
@@ -74,8 +73,13 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	if (!pBullet)
 		return 0x41659E;
 
-	if (Weapon_Is_Strafe(pBullet->WeaponType)) {
+	if (AircraftCanStrafeWithWeapon(pBullet->WeaponType)) {
 		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
+
+		if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot) {
+			pThis->loseammo_6c8 = false;
+			pThis->Ammo--;
+		}
 	}
 
 	R->EBX(pTarget);

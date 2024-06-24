@@ -8,6 +8,72 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ares_TechnoExt.h>
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/SWType/Body.h>
+
+// Gets the superweapons used by AI for Chronoshift script actions.
+void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
+{
+	int idxCS = RulesExtData::Instance()->AIChronoSphereSW;
+	int idxCW = RulesExtData::Instance()->AIChronoWarpSW;
+
+	if (idxCS >= 0)
+	{
+		pSuperCSphere = pThis->Supers[idxCS];
+
+		if (idxCW < 0)
+		{
+			auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pSuperCSphere->Type);
+			int idxWarp = SuperWeaponTypeClass::FindIndexById(pSWTypeExt->SW_PostDependent);
+
+			if (idxWarp >= 0)
+				pSuperCWarp = pThis->Supers.Items[idxWarp];
+		}
+	}
+
+	if (idxCW >= 0)
+		pSuperCWarp = pThis->Supers[idxCW];
+
+	if (pSuperCSphere && pSuperCWarp)
+		return;
+
+	for (auto const pSuper : pThis->Supers)
+	{
+		if (pSuper->Type->Type == SuperWeaponType::ChronoSphere)
+			pSuperCSphere = pSuper;
+
+		if (pSuper->Type->Type == SuperWeaponType::ChronoWarp)
+			pSuperCWarp = pSuper;
+	}
+}
+
+DEFINE_HOOK(0x6EFEFB, TMission_ChronoShiftToBuilding_SuperWeapons, 0x6)
+{
+	enum { SkipGameCode = 0x6EFF22 };
+
+	GET(HouseClass*, pHouse, EBP);
+
+	SuperClass* pSuperCSphere = nullptr;
+	SuperClass* pSuperCWarp = nullptr;
+	GetAIChronoshiftSupers(pHouse, pSuperCSphere, pSuperCWarp);
+	R->ESI(pSuperCSphere);
+	R->EBX(pSuperCWarp);
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
+{
+	enum { SkipGameCode = 0x6F01D9 };
+
+	GET(HouseClass*, pHouse, EDI);
+	REF_STACK(SuperClass*, pSuperCWarp, STACK_OFFSET(0x30, -0x1C));
+
+	SuperClass* pSuperCSphere = nullptr;
+	GetAIChronoshiftSupers(pHouse, pSuperCSphere, pSuperCWarp);
+	R->EBX(pSuperCSphere);
+
+	return SkipGameCode;
+}
 
 DEFINE_HOOK(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
 {

@@ -47,11 +47,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 		if (pWeaponStr->WeaponType) {
 			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponStr->WeaponType);
 
-			auto strafe  = &pWeaponExt->Strafing_Shots;
-			if (!strafe->isset() || strafe->Get() == 5)
-				return 0;
-
-			int starfingCounts = strafe->Get();
+			int starfingCounts = pWeaponExt->Strafing_Shots;
 
 			int fireCount = pThis->MissionStatus - 4;
 
@@ -75,6 +71,12 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	}
 
 	return 0;
+}
+
+constexpr FORCEINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
+{
+	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
+		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
 }
 
 bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
@@ -806,14 +808,10 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl const* ifly)
 	const auto pThis = static_cast<AircraftClass const*>(ifly);
 
 	if (!pThis->Target || pThis->Target->IsInAir())
-		return FALSE;
+		return false;
 
-	if(const auto wpn = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target))){
-		if (auto wpnType = wpn->WeaponType) {
-			return WeaponTypeExtContainer::Instance.Find(wpnType)->Strafing.Get(wpnType->Projectile->ROT <= 1 && !wpnType->Projectile->Inviso);
-		}
-	}
-
-	return FALSE;
+	int weaponIndex = pThis->SelectWeapon(pThis->Target);
+	return (long)AircraftCanStrafeWithWeapon(pThis->GetWeapon(weaponIndex)->WeaponType);
 }
+
 DEFINE_JUMP(VTABLE, 0x7E2268, GET_OFFSET(AircraftClass_IFlyControl_IsStrafe));

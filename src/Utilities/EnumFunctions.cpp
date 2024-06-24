@@ -499,7 +499,15 @@ std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayIn
 	{ "ironcurtain" } ,
 	{ "disableweapon" },
 	{ "cloakdisable" } ,
-	{ "gattlingcount" }
+	{ "gattlingcount" },
+	{ "rof" },
+	{ "reload" },
+	{ "spawntimer" },
+	{ "gattlingtimer" },
+	{ "producecash" },
+	{ "passengerkill" },
+	{ "autodeath" },
+	{ "superweapon" },
 }
 };
 
