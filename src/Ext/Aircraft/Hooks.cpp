@@ -83,20 +83,17 @@ void __fastcall AircraftClass_SetTarget_Wrapper(AircraftClass* pThis, void* _, A
 DEFINE_JUMP(VTABLE, 0x7E266C, GET_OFFSET(AircraftClass_SetTarget_Wrapper));
 
 #ifndef SecondMode
-DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x7)
+DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 {
-	GET(AircraftClass* const, pThis, ECX);
+	GET(AircraftClass* const, pThis, ESI);
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	int weaponIndex = pExt->CurrentAircraftWeaponIndex;
 
-	if (weaponIndex < 0)
-	{
-		weaponIndex = pThis->SelectWeapon(pThis->Target);
-		pExt->CurrentAircraftWeaponIndex = weaponIndex;
+	if (weaponIndex < 0) {
+		pExt->CurrentAircraftWeaponIndex = weaponIndex = pThis->SelectWeapon(pThis->Target);
 	}
-
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
@@ -122,7 +119,6 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 			return 0;
 		}
 	}
-
 
 
 	int starfingCounts = pWeaponExt->Strafing_Shots;
