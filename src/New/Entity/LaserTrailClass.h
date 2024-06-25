@@ -20,6 +20,7 @@ public:
 	ColorStruct CurrentColor;
 	OptionalStruct<CoordStruct,true> LastLocation;
 	bool CanDraw;
+	bool Cloaked;
 	int InitialDelay;
 	CDTimerClass InitialDelayTimer;
 
@@ -32,6 +33,7 @@ public:
 		, CurrentColor { (pTrailType->IsHouseColor.Get() && (nHouseColor != ColorStruct::Empty)) ? nHouseColor : pTrailType->Color }
 		, LastLocation { }
 		, CanDraw { false }
+		, Cloaked { false }
 		, InitialDelay { pTrailType->InitialDelay.Get() }
 		, InitialDelayTimer { }
 	{ }
@@ -44,6 +46,7 @@ public:
 		, CurrentColor {0, 0, 0}
 		, LastLocation { }
 		, CanDraw {true}
+		, Cloaked { false }
 		, InitialDelay {0}
 		, InitialDelayTimer { }
 	{ }
@@ -66,7 +69,7 @@ private:
 
 	bool AllowDraw(CoordStruct const& location)
 	{
-		return Type && this->Visible && (this->Type->IgnoreVertical ?
+		return Type && this->Visible && !this->Cloaked && (this->Type->IgnoreVertical ?
 		  (abs(location.X - this->LastLocation.get().X) > 16 || abs(location.Y - this->LastLocation.get().Y) > 16) : true) && IsInitialDelayFinish();
 	}
 

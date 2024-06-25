@@ -888,13 +888,13 @@ DEFINE_HOOK(0x65812E, RadarClass_DiplomacyDialog_UIGameMode, 0x6) {
 	return 0;
 }
 
-// Clear UIGameMode on game load
-DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix_Spawner, 0x6) {
-	if (SpawnerMain::Configs::Enabled)
-		SpawnerMain::GameConfigs::m_Ptr->UIGameMode[0] = 0;
 
-	return 0;
-}
+// DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix_Spawner, 0x6) {
+// 	if (SpawnerMain::Configs::Enabled)
+// 		SpawnerMain::GameConfigs::m_Ptr->UIGameMode[0] = 0;
+//
+// 	return 0;
+// }
 
 #pragma region MPlayerDefeated
 namespace MPlayerDefeated

@@ -14,7 +14,7 @@
 		to do :
 		- idle anim
 		- Re-Draw function , to show damaged part
-*/
+
 DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 {
 	enum { PostMortemReturn = 0x71B994, CheckNowDead = 0x71B9A7, SetReturn = 0x71BB79 };
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 		return CheckNowDead;
 
 	return SetReturn;
-}
+}*/
 
 #include <New/Entity/FlyingStrings.h>
 
@@ -243,6 +243,15 @@ DEFINE_HOOK(0x71B965, TerrainClass_TakeDamage_SetContext, 0x8)
 DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_RefreshDamageFrame, 0x7)
 {
 	GET(TerrainClass*, pThis, ESI);
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
+
+	if (!pThis->IsBurning && *args.Damage > 0 && args.WH->Sparky) {
+		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+
+		if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance
+		   (abs(pWarheadExt->Flammability.Get())))
+			pThis->Ignite();
+	}
 
 	auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 	double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;

@@ -301,8 +301,14 @@ DEFINE_HOOK(0x689310, ScenarioClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
+#include <Misc/Spawner/Main.h>
+
 DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 {
+	// Clear UIGameMode on game load
+	if (SpawnerMain::Configs::Enabled)
+		SpawnerMain::GameConfigs::m_Ptr->UIGameMode[0] = 0;
+
 	auto buffer = ScenarioExtData::Instance();
 
 	PhobosByteStream Stm(0);

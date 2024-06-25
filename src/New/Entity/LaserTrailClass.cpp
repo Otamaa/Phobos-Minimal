@@ -62,6 +62,7 @@ bool LaserTrailClass::Serialize(T& stm)
 		.Process(this->LastLocation)
 		.Process(this->InitialDelayTimer)
 		.Process(this->CanDraw)
+		.Process(this->Cloaked)
 		.Process(this->InitialDelay)
 		.Success();
 };

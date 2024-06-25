@@ -4420,11 +4420,7 @@ void TechnoExtData::UpdateLaserTrails()
 			trail.LastLocation.clear();
 
 		CoordStruct trailLoc = TechnoExtData::GetFLHAbsoluteCoords(pThis, trail.FLH, trail.IsOnTurret);
-
-		if (pThis->CloakState == CloakState::Uncloaking && !trail.Type->CloakVisible)
-			trail.LastLocation = trailLoc;
-		else
-			trail.Update(trailLoc);
+		trail.Update(trailLoc);
 	}
 }
 
@@ -4939,6 +4935,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->PhobosAE)
 		.Process(this->ShootCount)
 		.Process(this->FiringObstacleCell)
+		.Process(this->CurrentAircraftWeaponIndex)
 		;
 }
 
