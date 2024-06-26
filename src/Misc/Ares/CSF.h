@@ -18,31 +18,19 @@ public:
 	static int CSFCount;
 	static int NextValueIndex;
 	struct Storages {
-		std::string text;
-		CSFString value;
-		bool found;
+		CSFString value {};
+		bool found { true };
 	};
-	static std::vector<Storages> DynamicStrings;
+	static std::unordered_map<std::string, CSFString> DynamicStrings;
 
-	static constexpr auto FindOrAllocateDynamicStrings(const char* val) {
-		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin) {
-			if (begin->text == val) {
-				return begin;
-			}
-		}
-
-		DynamicStrings.emplace_back(val, CSFString{} , true);
-		return DynamicStrings.begin() + (DynamicStrings.size() - 1);
+	static auto FindOrAllocateDynamicStrings(const char* val) {
+		return &DynamicStrings[val];
 	}
 
 	static bool IsStringPatternFound(const char* val) {
-		for (auto begin = DynamicStrings.begin(); begin != DynamicStrings.end(); ++begin){
-			if (begin->text == val && begin->found) {
-				return true;
-			}
-		}
-
-		return false;
+		//const auto find_ = DynamicStrings.find(val);
+		//return find_ != DynamicStrings.end() && find_->second.found;
+		return DynamicStrings.contains(val);
 	}
 
 	static void LoadAdditionalCSF(const char* fileName, bool ignoreLanguage = false);

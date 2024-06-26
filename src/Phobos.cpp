@@ -427,9 +427,9 @@ void Phobos::Config::Read()
 			Phobos::Config::ShowWeedsCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowWeedsCounter", true);
 
 
-			Phobos::UI::Power_Label = GeneralUtils::LoadStringOrDefault("TXT_POWER_FORMAT_B", L"Power = %d");
-			Phobos::UI::Drain_Label = GeneralUtils::LoadStringOrDefault("TXT_DRAIN_FORMAT_B", L"Drain = %d");
-			Phobos::UI::Storage_Label = GeneralUtils::LoadStringOrDefault("TXT_STORAGE_FORMAT", L"Storage = %d");
+			Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissing("TXT_POWER_FORMAT_B", L"Power = %d");
+			Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissing("TXT_DRAIN_FORMAT_B", L"Drain = %d");
+			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %d");
 		}
 
 		// ToolTips
@@ -441,22 +441,22 @@ void Phobos::Config::Read()
 				pINI->ReadInteger(TOOLTIPS_SECTION, "MaxWidth", 0);
 
 			pINI->ReadString(TOOLTIPS_SECTION, "CostLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::CostLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"$");
+			Phobos::UI::CostLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"$");
 
 			pINI->ReadString(TOOLTIPS_SECTION, "PowerLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::PowerLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26a1"); // ⚡
+			Phobos::UI::PowerLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u26a1"); // ⚡
 
 			pINI->ReadString(TOOLTIPS_SECTION, "PowerBlackoutLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::PowerBlackoutLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26a1\u274c"); // ⚡❌
+			Phobos::UI::PowerBlackoutLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u26a1\u274c"); // ⚡❌
 
 			pINI->ReadString(TOOLTIPS_SECTION, "TimeLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::TimeLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u231a"); // ⌚
+			Phobos::UI::TimeLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u231a"); // ⌚
 
 			pINI->ReadString(TOOLTIPS_SECTION, "PercentLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::PercentLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u231a"); // ⌚
+			Phobos::UI::PercentLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u231a"); // ⌚
 
 			pINI->ReadString(TOOLTIPS_SECTION, "RadarJammedLabel", NONE_STR, Phobos::readBuffer);
-			Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"Radar Jammed");
+			Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"Radar Jammed");
 		}
 
 		// Sidebar

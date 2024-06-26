@@ -47,19 +47,16 @@ void GeneralUtils::DoubleValidCheck(double* source, const char* section, const c
 
 const wchar_t* GeneralUtils::LoadStringOrDefault(const char* key, const wchar_t* defaultValue)
 {
-	if (GeneralUtils::IsValidString(key)){
-		const auto result =  StringTable::LoadString(key);
-		if(!defaultValue || CSFLoader::IsStringPatternFound(key)) {
-			return result;
-		}
-	}
-
-	return defaultValue;
+	if (GeneralUtils::IsValidString(key))
+		return StringTable::LoadString(key);
+	else
+		return defaultValue;
 }
 
 const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue)
 {
-	return wcsstr(LoadStringOrDefault(key, defaultValue), L"MISSING:") ? defaultValue : LoadStringOrDefault(key, defaultValue);
+	const auto get_result = LoadStringOrDefault(key, defaultValue);
+	return wcsstr(get_result, L"MISSING:") ? defaultValue : get_result;
 }
 
 void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range)
