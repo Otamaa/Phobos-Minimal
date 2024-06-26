@@ -4407,8 +4407,16 @@ void TechnoExtData::UpdateLaserTrails()
 
 	for (auto& trail : LaserTrails)
 	{
-		if (pThis->CloakState == CloakState::Cloaked && !trail.Type->CloakVisible)
-			continue;
+		if (trail.Type->CloakVisible && trail.Type->CloakVisible_Houses
+		&& !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
+		) {
+			auto const pCell = pThis->GetCell();
+			trail.Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
+		}
+		else if (!trail.Type->CloakVisible)
+		{
+			trail.Cloaked = true;
+		}
 
 		if (VTable::Get(pThis->Locomotor.GetInterfacePtr()) != DropPodLocomotionClass::vtable && trail.Type->DroppodOnly)
 			continue;
