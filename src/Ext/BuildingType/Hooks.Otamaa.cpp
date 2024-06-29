@@ -160,7 +160,7 @@ DEFINE_HOOK(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
 	GET(RulesClass*, pRules, EAX);
 
 	auto nStep = pRules->RepairStep;
-	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
+	if (auto const pBuildingType = specific_cast<BuildingTypeClass*>(pThis))
 		nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.Get(nStep);
 
 	R->EAX(nStep);
@@ -181,7 +181,7 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	}
 
 	int nStep = RulesClass::Instance->RepairStep;
-	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
+	if (auto const pBuildingType = specific_cast<BuildingTypeClass*>(pThis))
 	{
 		if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.isset())
 			nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep;

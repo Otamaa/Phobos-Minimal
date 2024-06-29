@@ -1855,7 +1855,7 @@ TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
 
 		if (!pUnit->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 		{
-			if (auto pDisUnit = type_cast<UnitTypeClass*>(pUnit->GetDisguise(true)))
+			if (auto pDisUnit = specific_cast<UnitTypeClass*>(pUnit->GetDisguise(true)))
 			{
 				Image = pDisUnit;
 			}

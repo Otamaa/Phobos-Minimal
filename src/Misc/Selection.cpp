@@ -96,7 +96,7 @@ public:
 					(*fpCheckCallback)(pTechno);
 				else
 				{
-					const auto pBldType = type_cast<BuildingTypeClass*>(pTechnoType);
+					const auto pBldType = specific_cast<BuildingTypeClass*>(pTechnoType);
 					const auto pOwner = pTechno->GetOwningHouse();
 
 					if (pOwner

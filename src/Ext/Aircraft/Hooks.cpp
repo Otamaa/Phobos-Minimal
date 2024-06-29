@@ -120,23 +120,20 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 		}
 	}
 
-
-	int starfingCounts = pWeaponExt->Strafing_Shots;
-
 	int fireCount = pThis->MissionStatus - 4;
 
-	if (starfingCounts > 5)
+	if (pWeaponExt->Strafing_Shots > 5)
 	{
 
 		if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe)
 		{
-			if ((starfingCounts - 3 - pExt->ShootCount) > 0)
+			if ((pWeaponExt->Strafing_Shots - 3 - pExt->ShootCount) > 0)
 			{
 				pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
 			}
 		}
 	}
-	else if (fireCount > 1 && starfingCounts < fireCount)
+	else if (fireCount > 1 && pWeaponExt->Strafing_Shots < fireCount)
 	{
 
 		if (!pThis->Ammo)

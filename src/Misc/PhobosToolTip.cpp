@@ -89,7 +89,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 
 inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 {
-	if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))
+	if (const auto pBldType = specific_cast<BuildingTypeClass*>(pType))
 		return pBldType->PowerBonus - pBldType->PowerDrain;
 
 	return 0;

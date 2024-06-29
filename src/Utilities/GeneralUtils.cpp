@@ -82,7 +82,7 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 		{
 			if (pItem->FindFactory(true, true, true, pOwner))
 			{
-				const auto pBuilding = type_cast<BuildingTypeClass*>(pItem);
+				const auto pBuilding = static_cast<BuildingTypeClass*>(pItem);
 
 				if (pOwner->GetPrimaryFactory(AbstractType::Building, false, pBuilding->BuildCat))
 					return false;
