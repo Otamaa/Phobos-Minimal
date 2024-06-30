@@ -11,15 +11,33 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 
 	GET(BulletClass*, pThis, EBP);
 
-	if (!pThis->SpawnNextAnim)
-	{
-		if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
-			return pTraj->OnAI() ? Detonate : 0x0;
+	auto pExt = BulletExtContainer::Instance.Find(pThis);
+	auto& pTraj = pExt->Trajectory;
+
+	if (!pThis->SpawnNextAnim && pTraj) {
+		return pTraj->OnAI() ? Detonate : 0x0;
 	}
 
 	if (!pThis->IsAlive) {
         return 0x467FEE;
     }
+
+	if (pTraj && pExt->LaserTrails.size()) {
+		CoordStruct futureCoords
+		{
+			pThis->Location.X + static_cast<int>(pThis->Velocity.X),
+			pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
+			pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
+		};
+
+		for (auto& trail : pExt->LaserTrails)
+		{
+			if (!trail.LastLocation.isset())
+				trail.LastLocation = pThis->Location;
+
+			trail.Update(futureCoords);
+		}
+	}
 
 	return 0;
 }
