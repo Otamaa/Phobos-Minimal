@@ -1576,6 +1576,20 @@ DEFINE_HOOK(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
 	return 0x65DE53;
 }
 
+DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
+	if (pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || std::abs(pThis->AngleRotatedForwards) > 0.25 || std::abs(pThis->AngleRotatedSideways) > 0.25)
+	{
+		pThis->ClearDisguise();
+		R->EAX(pThis->MindControlRingAnim);
+		return 0x746AA5;
+	}
+
+	return 0x746931;
+}
+
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>
