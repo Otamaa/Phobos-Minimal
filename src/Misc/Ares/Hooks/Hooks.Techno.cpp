@@ -822,9 +822,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 
 			if (pThis->IsPrimaryFactory)
 			{
-				if(RulesExtData::Instance()->PrimaryFactoryIndicator) {
-						SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator;
-
+				if(SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator) {
 						ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 						if(!RulesExtData::Instance()->PrimaryFactoryIndicator_Palette)
 							pPalette =  RulesExtData::Instance()->PrimaryFactoryIndicator_Palette->GetConvert<PaletteManager::Mode::Default>();
