@@ -326,16 +326,17 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
-		if (isFoot && !pExt->IsDummy && pItem->SpeedType == SpeedType::None)
+		if (isFoot && !pExt->IsDummy)
 		{
-			Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
-			Debug::RegisterParserError();
-		}
+			if(pItem->SpeedType == SpeedType::None)	{
+				Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
+				Debug::RegisterParserError();
+			}
 
-		if (isFoot && !pExt->IsDummy && pItem->MovementZone == MovementZone::None)
-		{
-			Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
-			Debug::RegisterParserError();
+			if(pItem->MovementZone == MovementZone::None) {
+				Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
+				Debug::RegisterParserError();
+			}
 		}
 
 		if (pItem->Passengers > 0 && pItem->SizeLimit < 1)
@@ -1332,28 +1333,37 @@ DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
 	return 0;
 }
 
-// Read on very first RulesClass::Object function
-DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
+DEFINE_HOOK(0x668D86, RulesData_PreFillTypeListData, 0x6)
 {
-	GET(RulesClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x4);
+	GET(CCINIClass*, pINI, ESI);
+
+	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn) {
+		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer)) {
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
 
 	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 
 	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn) {
-		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer))
+		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer)) {
 			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
-	}
-
-	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn) {
-		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer))
-			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
 	}
 
 	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn) {
-		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer))
+		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer)) {
 			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
 	}
+
+	return 0x668DD2;
+}
+
+DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
+{
+	GET(RulesClass*, pItem, ECX);
+	GET_STACK(CCINIClass*, pINI, 0x4);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
