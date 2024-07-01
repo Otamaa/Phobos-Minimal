@@ -804,16 +804,15 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			}
 
 			const bool hasStorage = pType->Storage > 0;
-			const bool isUsingStorage = BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage;
 
-			if (hasStorage)
-			{
-				if(!isUsingStorage) {
-					wchar_t pOutMoneyFormat[0x80];
-					auto nMoney = pOwner->Available_Money();
-					swprintf_s(pOutMoneyFormat, StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
-					DrawTheStuff(pOutMoneyFormat);
-				} else {
+			if (hasStorage) {
+
+				wchar_t pOutMoneyFormat[0x80];
+				auto nMoney = pOwner->Available_Money();
+				swprintf_s(pOutMoneyFormat, StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
+				DrawTheStuff(pOutMoneyFormat);
+
+				if (BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage) {
 					wchar_t pOutStorageFormat[0x80];
 					auto nStorage = pBuilding->GetStoragePercentage();
 					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label.c_str(), nStorage);
