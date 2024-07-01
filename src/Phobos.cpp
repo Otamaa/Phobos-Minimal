@@ -75,6 +75,7 @@ const wchar_t* Phobos::UI::TimeLabel;
 const wchar_t* Phobos::UI::HarvesterLabel;
 const wchar_t* Phobos::UI::PercentLabel;
 const wchar_t* Phobos::UI::BuidingRadarJammedLabel;
+const wchar_t* Phobos::UI::BuidingFakeLabel;
 const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel = L"";
 char Phobos::UI::ShowBriefingResumeButtonStatusLabel[32];
 
@@ -84,9 +85,9 @@ double Phobos::UI::PowerDelta_ConditionRed = 1.0;
 bool Phobos::UI::CenterPauseMenuBackground = false;
 bool Phobos::UI::UnlimitedColor = false;
 
-std::wstring Phobos::UI::Power_Label;
-std::wstring Phobos::UI::Drain_Label;
-std::wstring Phobos::UI::Storage_Label;
+const wchar_t* Phobos::UI::Power_Label;
+const wchar_t* Phobos::UI::Drain_Label;
+const wchar_t* Phobos::UI::Storage_Label;
 
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
@@ -429,7 +430,8 @@ void Phobos::Config::Read()
 
 			Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissing("TXT_POWER_FORMAT_B", L"Power = %d");
 			Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissing("TXT_DRAIN_FORMAT_B", L"Drain = %d");
-			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %.3lf % ");
+			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %.3lf %");
+			Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissing("TXT_FAKE", L"FAKE");
 		}
 
 		// ToolTips

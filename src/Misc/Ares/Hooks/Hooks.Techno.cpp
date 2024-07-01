@@ -783,7 +783,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 		if (IsAlly || IsObserver || bReveal)
 		{
 			if (isFake)
-				DrawTheStuff(GeneralUtils::LoadStringOrDefault("TXT_FAKE", L"FAKE"));
+				DrawTheStuff(Phobos::UI::BuidingFakeLabel);
 
 			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)
 			{
@@ -795,9 +795,9 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				if(pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2) {
 					swprintf_s(pOutDrainFormat, StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
 				} else {
-					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label.c_str(), pOutput);
+					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label, pOutput);
 					DrawTheStuff(pOutDrainFormat);
-					swprintf_s(pOutDrainFormat, Phobos::UI::Drain_Label.c_str(), pDrain);
+					swprintf_s(pOutDrainFormat, Phobos::UI::Drain_Label, pDrain);
 				}
 
 				DrawTheStuff(pOutDrainFormat);
@@ -815,7 +815,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				if (BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage) {
 					wchar_t pOutStorageFormat[0x80];
 					auto nStorage = pBuilding->GetStoragePercentage();
-					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label.c_str(), nStorage);
+					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label, nStorage);
 					DrawTheStuff(pOutStorageFormat);
 				}
 			}

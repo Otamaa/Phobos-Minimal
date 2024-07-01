@@ -156,13 +156,13 @@ struct Phobos final
 		static const wchar_t* PercentLabel;
 
 		static const wchar_t* BuidingRadarJammedLabel;
-
+		static const wchar_t* BuidingFakeLabel;
 		static const wchar_t* ShowBriefingResumeButtonLabel;
 		static char ShowBriefingResumeButtonStatusLabel[0x20];
 
-		static std::wstring Power_Label;
-		static std::wstring Drain_Label;
-		static std::wstring Storage_Label;
+		static const wchar_t* Power_Label;
+		static const wchar_t* Drain_Label;
+		static const wchar_t* Storage_Label;
 	};
 
 	struct Config
