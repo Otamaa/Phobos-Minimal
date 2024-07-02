@@ -824,7 +824,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			{
 				if(SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator) {
 						ConvertClass* pPalette = FileSystem::PALETTE_PAL();
-						if(!RulesExtData::Instance()->PrimaryFactoryIndicator_Palette)
+						if(RulesExtData::Instance()->PrimaryFactoryIndicator_Palette)
 							pPalette =  RulesExtData::Instance()->PrimaryFactoryIndicator_Palette->GetConvert<PaletteManager::Mode::Default>();
 
 						int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
