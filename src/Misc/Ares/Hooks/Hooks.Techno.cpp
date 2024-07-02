@@ -780,7 +780,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			|| pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer)
 		) {
 
-			if (pTypeExt->Fake_Of.Get(nullptr))
+			if (pTypeExt->Fake_Of)
 				DrawTheStuff(Phobos::UI::BuidingFakeLabel);
 
 			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)

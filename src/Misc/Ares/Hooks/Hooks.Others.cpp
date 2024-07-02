@@ -568,8 +568,8 @@ DEFINE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 			TechnoTypeClass* pType = pTypeExt->AttachedToObject;
-			if (pTypeExt->Fake_Of.isset())
-				pType = pTypeExt->Fake_Of.Get();
+			if (pTypeExt->Fake_Of)
+				pType = pTypeExt->Fake_Of;
 
 			nCost += pType->GetActualCost(pTechno->Owner);
 		}

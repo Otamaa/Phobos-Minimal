@@ -478,7 +478,7 @@ public:
 
 	Nullable<bool> AI_LegalTarget { };
 	Valueable<bool> DeployFire_UpdateFacing { true };
-	Nullable<TechnoTypeClass*> Fake_Of { };
+	Valueable<TechnoTypeClass*> Fake_Of { nullptr };
 	Valueable<bool> CivilianEnemy { false };
 	Valueable<bool> ImmuneToBerserk { false };
 	Valueable<double> Berzerk_Modifier { 1.0 };
@@ -839,8 +839,8 @@ public:
 	Valueable<bool> IsBomb { false };
 	Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
 
-	Nullable<TechnoTypeClass*> ClonedAs {};
-	Nullable<TechnoTypeClass*> AI_ClonedAs {};
+	Valueable<TechnoTypeClass*> ClonedAs {};
+	Valueable<TechnoTypeClass*> AI_ClonedAs {};
 	Valueable<bool> Cloneable { true };
 	ValueableVector<BuildingTypeClass*> ClonedAt {};
 	ValueableVector<BuildingTypeClass const*> BuiltAt {};

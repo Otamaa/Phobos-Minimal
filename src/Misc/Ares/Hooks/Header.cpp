@@ -1428,9 +1428,9 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 	const auto isPlayer = pFactory->Owner->IsControlledByHuman();
 
 	auto ProductionTypeAs = ProductionType;
-	if (!isPlayer && ProductionTypeData->AI_ClonedAs.isset())
+	if (!isPlayer && ProductionTypeData->AI_ClonedAs)
 		ProductionTypeAs = ProductionTypeData->AI_ClonedAs;
-	else if (ProductionTypeData->ClonedAs.isset())
+	else if (ProductionTypeData->ClonedAs)
 		ProductionTypeAs = ProductionTypeData->ClonedAs;
 
 	if (!ProductionTypeAs || !ProductionTypeAs->Strength) // ,....

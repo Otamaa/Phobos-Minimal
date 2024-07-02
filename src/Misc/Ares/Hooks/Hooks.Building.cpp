@@ -605,7 +605,7 @@ DEFINE_HOOK(0x459ed0, BuildingClass_GetUIName, 6)
 	}
 
 	auto Type = pBld->Type;
-	if (TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.isset())
+	if (TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of)
 		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.Get();
 
 	R->EAX(Type->UIName);

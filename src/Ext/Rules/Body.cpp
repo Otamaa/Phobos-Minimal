@@ -298,24 +298,24 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->Fake_Of.Get(nullptr) && pExt->Fake_Of->WhatAmI() != what)
+		if (pExt->Fake_Of && pExt->Fake_Of->WhatAmI() != what)
 		{
 			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID, myClassName);
-			pExt->Fake_Of.Reset();
+			pExt->Fake_Of = nullptr;
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->ClonedAs.Get(nullptr) && pExt->ClonedAs->WhatAmI() != what)
+		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
 		{
 			Debug::Log("[%s - %s] has ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
-			pExt->ClonedAs.Reset();
+			pExt->ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->AI_ClonedAs.Get(nullptr) && pExt->AI_ClonedAs->WhatAmI() != what)
+		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what)
 		{
 			Debug::Log("[%s - %s] has AI.ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
-			pExt->AI_ClonedAs.Reset();
+			pExt->AI_ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
