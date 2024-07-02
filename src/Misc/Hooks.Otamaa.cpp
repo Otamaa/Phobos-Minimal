@@ -3141,20 +3141,20 @@ static void Tactical_Draw_Radial(
 		}
 
 		float angle_offset = float((_offset + i) * 0.05);
-		int angle_increment = int(angle_offset / DEG_TO_RADF(360));
-		float angle = angle_offset - (angle_increment * DEG_TO_RADF(360));
+		int angle_increment = int(angle_offset / Math::DEG_TO_RADF(360));
+		float angle = angle_offset - (angle_increment * Math::DEG_TO_RADF(360));
 
 		Point2D line_start {};
 		Point2D line_end {};
 
-		if (std::fabs(angle - DEG_TO_RADF(90)) < 0.001)
+		if (std::fabs(angle - Math::DEG_TO_RADF(90)) < 0.001)
 		{
 
 			line_start = center_pixel;
 			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
 
 		}
-		else if (std::fabs(angle - DEG_TO_RADF(270)) < 0.001)
+		else if (std::fabs(angle - Math::DEG_TO_RADF(270)) < 0.001)
 		{
 
 			line_start = center_pixel;
@@ -3168,12 +3168,12 @@ static void Tactical_Draw_Radial(
 			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
 			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
 
-			if (angle > DEG_TO_RADF(90) && angle < DEG_TO_RADF(270))
+			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
 			{
 				xdist = -xdist;
 			}
 
-			if (angle < DEG_TO_RADF(180))
+			if (angle < Math::DEG_TO_RADF(180))
 			{
 				ydist = -ydist;
 			}

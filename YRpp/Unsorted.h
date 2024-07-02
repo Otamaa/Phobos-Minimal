@@ -124,12 +124,6 @@ struct Game
 
 	static constexpr reference<CoordStruct, 0x89C870u> const RelativeCoordCenter {};
 
-	static constexpr reference<int, 0x8650BCu, 16384u> const FastMath_sqrt_Table {};
-	static constexpr reference<float, 0x8610B4u, 4096u> const FastMath_atan_Table {};
-	static constexpr reference<float, 0x85D0A4u, 4096u> const FastMath_tan_Table {};
-	static constexpr reference<float, 0x859094u, 4096u> const FastMath_asin_Table {};
-	static constexpr reference<float, 0x84F084u, 4096u> const FastMath_sin_Table {};
-
 	static constexpr reference<wchar_t, 0xB730ECu, 256u> const IMEBuffer {};
 	static constexpr reference<HIMC, 0xB7355Cu> const IMEContext {};
 	static constexpr reference<wchar_t, 0xB73318u, 257u> const IMECompositionString {};

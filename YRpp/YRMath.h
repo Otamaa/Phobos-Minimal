@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <Base/Always.h>
+#include <Helpers/CompileTime.h>
 
 #define MATH_FUNC(ret ,arg ,name, address)\
 	inline NAKED ret __cdecl name(arg value) noexcept\
@@ -35,14 +36,16 @@
 		JMP_STD(address);\
 	}
 
-#define WWMATH_PI 3.14159265358979323846f // Holds the value for PI. Only up to 16 significant figures.
-
-#ifndef DEG_TO_RADF
-#define DEG_TO_RADF(x) (((float)x) * WWMATH_PI / 180.0f)
-#endif
-
 namespace Math
 {
+	static constexpr constant_ptr<float, 0x8610A4> const FastMath_OverflowTable {};
+	static constexpr reference<int, 0x8650BCu, 16384u> const FastMath_sqrt_Table {};
+	static constexpr reference<float, 0x8610B4u, 4096u> const FastMath_atan_Table {};
+	static constexpr reference<float, 0x85D0A4u, 4096u> const FastMath_tan_Table {};
+	static constexpr reference<float, 0x859094u, 4096u> const FastMath_asin_Table {};
+	static constexpr reference<float, 0x84F084u, 4096u> const FastMath_sin_Table {};
+
+	constexpr auto const WWMATH_PI = 3.14159265358979323846f;
 	constexpr auto const Pif = 3.1415927f;
 	constexpr auto const SMALL_FLOAT = 0.0000001f;
 	constexpr auto const HalfPiF = 1.57079632f;
@@ -94,47 +97,47 @@ namespace Math
 	constexpr const double BINARY_ANGLE_MAGIC_ALTERNATE = -(360.0 / (65535 - 1)) * DEG_TO_RAD_ALTERNATE;
 	constexpr const double PI_BYSIXTEEN = Math::Pi / 16;
 	constexpr const double BinaryAngleMagic = -(360.0 / (65535 - 1)) * Pi / 180.0;
+	constexpr const double radToIndex = 2607.5945;
+	constexpr const double gameval_ = 651.8986469044033;
+	constexpr const double ATANTABLEEND = 0.024413355;
 
 	// Game degrees to radians coefficient, called 'binary angle magic' by some.
 	constexpr auto const GameDegreesToRadiansCoefficient = -(360.0 / (65535 - 1)) * Pi / 180.0;
 	constexpr auto const GameDegrees90 = 0X3FFF;
 
-	 MATH_FUNC(float,double, sqrt, 0x4CAC40);
-	 MATH_FUNC(float, double, sin, 0x4CACB0);
-	 MATH_FUNC(float, double, cos, 0x4CAD00);
+	template<typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
+	static constexpr float DEG_TO_RADF(T val) { return (((float)val) * WWMATH_PI / 180.0f); }
 
-	 MATH_FUNC(double, double, tan,	0x4CAD50);
-	 MATH_FUNC(double, double, asin, 0x4CAD80);
-	 MATH_FUNC(double, double, acos, 0x4CADB0);
-	 MATH_FUNC(double, double, atan, 0x4CADE0);
+	MATH_FUNC(float, double, sqrt, 0x4CAC40);
+	MATH_FUNC(float, double, sin, 0x4CACB0);
+	MATH_FUNC(float, double, cos, 0x4CAD00);
 
-	 MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
-	 MATH_FUNC_TWOVAL(arctanfoo, 0x4CAE30);
+	MATH_FUNC(double, double, tan, 0x4CAD50);
+	MATH_FUNC(double, double, asin, 0x4CAD80);
+	MATH_FUNC(double, double, acos, 0x4CADB0);
+	MATH_FUNC(double, double, atan, 0x4CADE0);
 
-	 MATH_FUNC_FLOAT(float, float, sqrt, 0x4CB060);
-	 MATH_FUNC_FLOAT(double, float, sin,  0x4CB150);
-	 MATH_FUNC_FLOAT(double, float, cos,  0x4CB1A0);
-	 MATH_FUNC_FLOAT(double, float, asin, 0x4CB260);
-	 MATH_FUNC_FLOAT(double, float, tan,  0x4CB320);
+	MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
+	MATH_FUNC_TWOVAL(arctanfoo, 0x4CAE30);
 
-	 MATH_FUNC_FLOAT(double, float, acos, 0x4CB290);
-	 MATH_FUNC_FLOAT(double, float, atan, 0x4CB480);
-	 MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
+	MATH_FUNC_FLOAT(float, float, sqrt, 0x4CB060);
+	MATH_FUNC_FLOAT(double, float, sin, 0x4CB150);
+	MATH_FUNC_FLOAT(double, float, cos, 0x4CB1A0);
+	MATH_FUNC_FLOAT(double, float, asin, 0x4CB260);
+	MATH_FUNC_FLOAT(double, float, tan, 0x4CB320);
 
-
+	MATH_FUNC_FLOAT(double, float, acos, 0x4CB290);
+	MATH_FUNC_FLOAT(double, float, atan, 0x4CB480);
+	MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
 
 	//famous Quaqe 3 Fast Inverse Square Root
-	inline float Q_invsqrt(float number) noexcept
-	{
+	inline constexpr float Q_invsqrt(float number) noexcept {
 		static_assert(std::numeric_limits<float>::is_iec559, "Float Must be IEC559 !");
-
-		long i;
-		float x2, y;
 		constexpr float threehalfs = 1.5F;
 
-		x2 = number * 0.5F;
-		y = number;
-		i = *(long *)&y;						  // evil floating point bit level hacking
+		float x2 = number * 0.5F;
+		float y = number;
+		long i = *(long *)&y;						  // evil floating point bit level hacking
 		i = 0x5f3759df - (i >> 1);               // what the fuck?
 		y = *(float *)&i;
 		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
@@ -143,42 +146,17 @@ namespace Math
 		return y;
 	}
 
-	inline constexpr double rad2deg(double rad)
-	{
-		return rad * 180.0 / Pi;
-	}
-
-	inline constexpr double rad2deg_Alternate(double rad)
-	{
-		return rad * 180.0 / C_Sharp_Pi;
-	}
-
-	// template <typename T>
-	// inline double stdsqrt(T val) { return Math::sqrt(val); }
-
+	inline constexpr double rad2deg(double rad) { return rad * 180.0 / Pi; }
+	inline constexpr double rad2deg_Alternate(double rad) { return rad * 180.0 / C_Sharp_Pi; }
 	inline double sqrt(int val) { return sqrt(static_cast<double>(val)); }
+	inline constexpr double deg2rad(double deg) { return deg * Pi / 180.0; }
+	inline constexpr double deg2rad_Alternate(double deg) { return deg * C_Sharp_Pi / 180.0; }
 
-	inline constexpr double deg2rad(double deg)
-	{
-		return deg * Pi / 180.0;
-	}
-
-	inline constexpr double deg2rad_Alternate(double deg)
-	{
-		return deg * C_Sharp_Pi / 180.0;
-	}
-
-	//template <typename T> inline constexpr
-	//	int signum(T val) {
-	//	// http://stackoverflow.com/a/4609795
-	//	return (T(0) < val) - (val < T(0));
-	//}
-	template <typename T> inline constexpr
-		int signum(T x)
-	{
+	template <typename T>
+	inline constexpr int signum(T x) {
 		if constexpr (std::is_signed<T>()){
 			return (T{ 0 } < x) - (x < T{ 0 });
-		}else{
+		} else {
 			return T{ 0 } < x;
 		}
 	}
@@ -188,8 +166,7 @@ namespace Math
 
 	// use the sign to select min or max.
 	// 0 means no change (maximum of 0 and a positive value)
-	inline constexpr auto limit(int value, int limit)
-	{
+	inline constexpr auto limit(int value, int limit) {
 		if (limit <= 0) {
 			return MaxImpl(value, -limit);
 		} else {
