@@ -23,15 +23,17 @@ struct dllData
 	std::string ModuleName;
 	HMODULE Handle;
 	uintptr_t BaseAddr;
+	size_t Size;
 	std::vector<module_Import> Impors;
 	std::vector<module_export> Exports;
 	//std::vector<std::string> Patches;
 
 	constexpr dllData() = default;
 
-	constexpr dllData(const char* name, HMODULE handle, uintptr_t baseaddr) : ModuleName { name }
+	constexpr dllData(const char* name, HMODULE handle, uintptr_t baseaddr , size_t size) : ModuleName { name }
 		, Handle { handle }
 		, BaseAddr { baseaddr }
+		, Size { size }
 		, Impors {}
 		, Exports {}
 	//	, Patches {}

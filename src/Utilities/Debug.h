@@ -389,11 +389,10 @@ public:
 		wsprintfW(Message,
 			L"An internal error has been encountered and the game is unable to continue normally. "
 			L"Please notify the mod's creators about this issue, or Contact Otamaa at "
-			L"Discord for updates and support.\n\n"
-			L"%hs",
-			Phobos::readBuffer);
+			L"Discord for updates and support.\n"
+		);
 
-		Debug::Log("\nFatal Error: \n%s\n", Phobos::readBuffer);
+		Debug::Log("\nFatal Error: \n%s\n", Message);
 		Debug::FreeMouse();
 		MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 
@@ -401,6 +400,8 @@ public:
 		{
 			Debug::FullDump();
 		}
+
+		Debug::ExitGame();
 	}
 
 	static NOINLINE void FatalError(const char* Message, ...)

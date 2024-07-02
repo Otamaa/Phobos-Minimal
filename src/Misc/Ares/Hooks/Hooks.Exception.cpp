@@ -256,6 +256,14 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				const char* suffix = "";
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
 					suffix = "GameMemory!";
+				else {
+					for (auto& dlls : Patch::ModuleDatas) {
+						if(*ptr >= dlls.BaseAddr && *ptr <= (dlls.BaseAddr + dlls.Size)) {
+							suffix = (dlls.ModuleName +"Memory!").c_str();
+							break;
+						}
+					}
+				}
 
 				fprintf(except, "%08p: %08X %s\n", ptr, *ptr, suffix);
 				++ptr;

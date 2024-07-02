@@ -203,7 +203,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 					_strlwr_s(moduleName);
 					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
 
-					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.lpBaseOfDll);
+					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.pBaseOfDll, (size_t)info.SizeOfImage);
 
 					DWORD_PTR image_base = (DWORD_PTR)data.Handle;
 					PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
