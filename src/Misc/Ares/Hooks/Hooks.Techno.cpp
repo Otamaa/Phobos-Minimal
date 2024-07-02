@@ -775,14 +775,12 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
 			};
 
-		const bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
-		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
-		const bool isFake = pTypeExt->Fake_Of.Get();
-		const bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+		if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer)
+			|| HouseClass::CurrentPlayer->IsObserver()
+			|| pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer)
+		) {
 
-		if (IsAlly || IsObserver || bReveal)
-		{
-			if (isFake)
+			if (pTypeExt->Fake_Of.Get(nullptr))
 				DrawTheStuff(Phobos::UI::BuidingFakeLabel);
 
 			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)
