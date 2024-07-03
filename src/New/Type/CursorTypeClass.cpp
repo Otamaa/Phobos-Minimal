@@ -14,10 +14,9 @@ void CursorTypeClass::AddDefaults()
 
 	for (size_t i = 0; i < MouseCursorTypeToStrings.size(); ++i) {
 		AllocateWithDefault(MouseCursorTypeToStrings[i], MouseCursor::DefaultCursors[i]);
-	}
 
-	for (size_t a = 0; a < NewMouseCursorTypeToStrings.size(); ++a) {
-		AllocateWithDefault(NewMouseCursorTypeToStrings[a], CursorTypeClass::NewMouseCursorTypeData[a]);
+		if(i < NewMouseCursorTypeToStrings.size())
+			AllocateWithDefault(NewMouseCursorTypeToStrings[i], CursorTypeClass::NewMouseCursorTypeData[i]);
 	}
 }
 
