@@ -2064,6 +2064,9 @@ static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 
 		 int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
 
+		 if(tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
+			 tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+
 		 if (!force)
 		 {
 			 if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
@@ -2083,8 +2086,7 @@ static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 		 }
 		 else
 		 {
-			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
-			 {
+			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count) {
 				 tib_ = 0;
 			 }
 		 }
