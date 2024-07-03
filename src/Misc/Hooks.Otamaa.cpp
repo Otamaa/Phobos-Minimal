@@ -7763,7 +7763,6 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 	GET(BulletClass*, pThis, EBP);
 	GET(CoordStruct*, pCoord, ECX);
 
-	pThis = nullptr;
 	R->EAX(BulletExtData::FuseCheckup(pThis, pCoord));
 
 	return 0x467C3A;
