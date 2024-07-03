@@ -16,7 +16,7 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 	Valueable<PaletteManager*> CustomPalette { }; //CustomPalette::PaletteMode::Temperate
-	Valueable<int> SpawnsTiberium_Type { 0 };
+	Valueable<int> SpawnsTiberium_Type { -1 };
 	Valueable<int> SpawnsTiberium_Range { 1 };
 	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };
 	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim { { 1, 0 } };
@@ -45,7 +45,7 @@ public:
 
 	Valueable<bool> HasDamagedFrames { false };
 	Valueable<bool> HasCrumblingFrames { false };
-	NullableIdx<VocClass> CrumblingSound {};
+	ValueableIdx<VocClass> CrumblingSound { -1 };
 	Nullable<int> AnimationLength {};
 
 	TerrainTypeExtData()  noexcept = default;
@@ -60,13 +60,13 @@ public:
 	int GetCellsPerAnim();
 	void PlayDestroyEffects(CoordStruct coords);
 
-	int GetLightIntensity() const
+	constexpr int GetLightIntensity() const
 	{
 		auto const Intense = this->LightIntensity.Get(0.0);
 		return (int)(Intense * 1000.0);
 	}
 
-	TintStruct GetLightTint() const
+	constexpr TintStruct GetLightTint() const
 	{
 		constexpr auto ToInt = [](double nInput)
 			{ return std::clamp(((int)(nInput * 1000.0)), -2000, 2000); };
