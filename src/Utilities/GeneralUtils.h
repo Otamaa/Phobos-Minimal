@@ -53,7 +53,7 @@ public:
 		return GetColorFromColorAdd(colorAdd[colorIndex]);
 	}
 
-	static inline void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
+	static constexpr inline void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
 	{
 		if (bRandom)
 			Idx = ScenarioClass::Instance->Random.RandomFromMax(count - 1);
@@ -124,7 +124,7 @@ public:
 		return result;
 	}
 
-	static void CalculateShakeVal(int& pShakeVal, int nInput , bool Alternate = true)
+	static constexpr void CalculateShakeVal(int& pShakeVal, int nInput , bool Alternate = true)
 	{
 		if (!Alternate) {
 			pShakeVal = nInput;
@@ -172,14 +172,14 @@ public:
 		return sDigits;
 	}
 
-	static inline const int GetRangedRandomOrSingleValue(const Point2D& range)
+	static constexpr inline const int GetRangedRandomOrSingleValue(const Point2D& range)
 	{
 		return range.X >= range.Y ?
 			range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
 
 	template<typename T>
-	static inline int GetRandomValue(Vector2D<T> range, int defVal)
+	static constexpr inline int GetRandomValue(Vector2D<T> range, int defVal)
 	{
 		int min = static_cast<int>(range.X);
 		int max = static_cast<int>(range.Y);
@@ -215,7 +215,7 @@ public:
 		return GetRandomOffset(min, max);
 	}
 
-	static inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
+	static constexpr inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
 	{
 		int min = static_cast<int>(range.X * 100);
 		int max = static_cast<int>(range.Y * 100);
@@ -223,7 +223,7 @@ public:
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : (ScenarioClass::Instance->Random.RandomRanged(min, max) / 100.0);
 	}
 
-	static inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
+	static constexpr inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
 	{
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
@@ -292,7 +292,7 @@ public:
 		return index;
 	}
 
-	static inline bool Bingo(double chance)
+	static constexpr inline bool Bingo(double chance)
 	{
 		if (chance > 0)
 		{
@@ -301,7 +301,7 @@ public:
 		return false;
 	}
 
-	static inline  bool Bingo(std::vector<double>& chances, int index)
+	static constexpr inline bool Bingo(std::vector<double>& chances, int index)
 	{
 		int size = chances.size();
 		if (size < index + 1)
@@ -325,6 +325,7 @@ public:
 
 		return r;
 	}
+
 	// 2nd order Pade approximant just in case someone complains about performance
 	static constexpr inline double Pade2_2(double in)
 	{
@@ -439,7 +440,6 @@ public:
 		return { (BYTE)(R * 255), (BYTE)(G * 255), (BYTE)(B * 255) };
 	}
 
-
 	static const char* GetLocomotionName(const CLSID& clsid);
 
 	static int constexpr CountDigitsInNumber(int number)
@@ -454,7 +454,6 @@ public:
 
 		return digits;
 	}
-
 
 	// Calculates a new coordinates based on current & target coordinates within specified distance (can be negative to switch the direction) in leptons.
 	static CoordStruct CalculateCoordsFromDistance(CoordStruct currentCoords, CoordStruct targetCoords, int distance)
@@ -471,7 +470,7 @@ public:
 	}
 
 	template <typename T>
-	static void shuffleVector(std::vector<T>& items)
+	static constexpr void shuffleVector(std::vector<T>& items)
 	{
 		std::shuffle(items.begin(), items.end(), ScenarioClass::Instance->Random.Random());
 	}
@@ -516,13 +515,13 @@ public:
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values
-	static __forceinline bool cmpf(float A, float B, float epsilon = 0.005f)
+	static FORCEINLINE bool cmpf(float A, float B, float epsilon = 0.005f)
 	{
 		return (fabs(A - B) < epsilon);
 	}
 
 	template<bool UseCriticalRandomNumber = true>
-	static int GetRandomValue(const Point2D point, int defVal)
+	static constexpr int GetRandomValue(const Point2D point, int defVal)
 	{
 		int min = point.X;
 		int max = point.Y;
