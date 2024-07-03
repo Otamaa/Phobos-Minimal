@@ -257,9 +257,9 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
 					suffix = "GameMemory!";
 				else {
-					for (auto& dlls : Patch::ModuleDatas) {
-						if(*ptr >= dlls.BaseAddr && *ptr <= (dlls.BaseAddr + dlls.Size)) {
-							suffix = (dlls.ModuleName +" Memory!").c_str();
+					for(auto begin = Patch::ModuleDatas.begin() + 1; begin != Patch::ModuleDatas.end(); ++begin) {
+						if(*ptr >= begin->BaseAddr && *ptr <= (begin->BaseAddr + begin->Size)) {
+							suffix = (begin->ModuleName +" Memory!").c_str();
 							break;
 						}
 					}
