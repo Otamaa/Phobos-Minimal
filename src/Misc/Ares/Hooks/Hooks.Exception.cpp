@@ -259,7 +259,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				else {
 					for (auto& dlls : Patch::ModuleDatas) {
 						if(*ptr >= dlls.BaseAddr && *ptr <= (dlls.BaseAddr + dlls.Size)) {
-							suffix = (dlls.ModuleName +"Memory!").c_str();
+							suffix = (dlls.ModuleName +" Memory!").c_str();
 							break;
 						}
 					}
