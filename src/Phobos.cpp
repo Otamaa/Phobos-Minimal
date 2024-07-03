@@ -148,6 +148,14 @@ bool Phobos::Otamaa::NoCD = false;
 bool Phobos::Otamaa::CompatibilityMode = false;
 
 bool Phobos::EnableConsole = false;
+enum class ExceptionHandlerMode {
+	Default = 0,
+	Full = 1,
+	NoRemove = 2
+};
+
+PVOID pExceptionHandler = nullptr;
+ExceptionHandlerMode ExceptionMode = ExceptionHandlerMode::Default;
 
 #ifdef ENABLE_TLS
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_1;
@@ -301,6 +309,10 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (IS_SAME_STR_(pArg, "-b=" _STR(BUILD_NUMBER)))
 		{
 			Phobos::Config::HideWarning = true;
+		}
+		else if (_stricmp(pArg, "-EXCEPTION") == 0)
+		{
+			ExceptionMode = ExceptionHandlerMode::NoRemove;
 		}
 		else if (!strncasecmp(pArg, "-AFFINITY:", 0xAu))
 		{
@@ -685,6 +697,13 @@ void Phobos::ExeRun()
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
 			Debug::FatalErrorAndExit("dont need Ares.dll to run! \n");
 		}
+		//else if (ExceptionMode != ExceptionHandlerMode::Default
+		//		&& IS_SAME_STR_(dlls.ModuleName.c_str(), "kernel32.dll"))
+		//{
+		//	if (GetProcAddress(dlls.Handle, "AddVectoredExceptionHandler")) {
+		//		pExceptionHandler = AddVectoredExceptionHandler(1, Exception::ExceptionFilter);
+		//	}
+		//}
 	}
 
 	//Logger = std::make_shared<spdlog::logger>("debug_admin");
