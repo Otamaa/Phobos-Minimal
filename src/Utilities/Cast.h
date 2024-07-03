@@ -53,7 +53,7 @@ inline T type_cast(ObjectTypeClass* pAbstract)
 };
 
 template <typename T, bool Check = true>
-NOINLINE T type_cast(const ObjectTypeClass* pAbstract)
+inline T type_cast(const ObjectTypeClass* pAbstract)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
