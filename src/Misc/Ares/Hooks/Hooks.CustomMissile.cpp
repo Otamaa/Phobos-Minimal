@@ -187,9 +187,7 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
 			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner , true , pOwner ? pOwner->Owner : nullptr);
-			pOwner->Limbo();
-			pOwner->UnInit();
-			return 0x6632D9;
+			return 0x6632CC;
 		}
 	}
 
@@ -207,17 +205,9 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 		);
 	}
 
-	MapClass::FlashbangWarheadAt(nDamage, pWH, coords, false);
-	MapClass::DamageArea(coords, nDamage, pOwner, pWH, pWH->Tiberium, pOwner->Owner);
-
-	if(pOwner->IsAlive){
-		//int damage = pOwner->Type->Strength;
-		//if (pOwner->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr) != DamageState::NowDead) {
-			pOwner->Limbo();
-			TechnoExtData::HandleRemove(pOwner, nullptr);
-		//}
-	}
-	return 0x6632D9;
+	//modifyng code below will cause missile to alive even after detonated
+	//this need to be fixed in a different way ,..
+	return 0x66328C;
 }
 
 DEFINE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
