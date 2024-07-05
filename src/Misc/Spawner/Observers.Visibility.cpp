@@ -220,3 +220,17 @@ DEFINE_HOOK(0x6F677D, TechnoClass_DrawSelection_Observer1, 0x5)
 		: 0;
 }
 #pragma endregion
+
+
+DEFINE_HOOK(0x70DA7D, TechnoClass_RadarTrackingUpdate_Detected_ObserverSkip, 0x6) {
+	return HouseClass::IsCurrentPlayerObserver() ? 0x70DADC : 0;
+}
+
+DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect_IsCurrentPlayerOberver, 0x6)  {
+	return HouseClass::IsCurrentPlayerObserver() ? 0x70383C : 0x0;
+}
+
+DEFINE_HOOK(0x65FA70, RadarEventClass_Create_ObserverSkipSensed, 0x6) {
+	GET(RadarEventType, nType, ECX);
+	return nType == RadarEventType::EnemySensed && HouseClass::IsCurrentPlayerObserver() ? 0x65FB52 : 0;
+}

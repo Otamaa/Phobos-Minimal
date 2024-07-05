@@ -21,47 +21,6 @@
 #include <GeneralDefinitions.h>
 
 class EventClass;
-class ProtocolZero
-{
-private:
-	static constexpr int SendResponseTimeInterval = 30;
-
-public:
-	static constexpr int ResponseTime2 = 0x30;
-
-#pragma pack(push, 1)
-	struct NetData {
-		EventType Type;
-		bool IsExecuted;
-		char HouseIndex;
-		uint32_t Frame;
-		
-		union
-		{
-			char DataBuffer[104];
-
-			struct ResponseTime2
-			{
-				char MaxAhead;
-				uint8_t LatencyLevel;
-			} ResponseTime2;
-		};
-	};
-#pragma pack(pop)
-
-
-	static bool Enable;
-	static unsigned char MaxLatencyLevel;
-	static int WorstMaxAhead;
-
-	static void SendResponseTime2();
-	static void HandleResponseTime2(EventClass* event);
-
-	static inline constexpr EventType GetEventType() {
-		return static_cast<EventType>(ProtocolZero::ResponseTime2);
-	}
-};
-
 enum class LatencyLevelEnum : uint8_t
 {
 	LATENCY_LEVEL_INITIAL = 0,
@@ -92,7 +51,55 @@ public:
 		Apply(static_cast<LatencyLevelEnum>(newLatencyLevel));
 	}
 
-	static int GetMaxAhead(LatencyLevelEnum latencyLevel);
-	static const wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel);
-	static LatencyLevelEnum FromResponseTime(uint8_t rspTime);
+	static constexpr int GetMaxAhead(LatencyLevelEnum latencyLevel)
+	{
+		constexpr int maxAhead[] =
+		{
+			/* 0 */ 1
+
+			/* 1 */ ,4
+			/* 2 */ ,6
+			/* 3 */ ,12
+			/* 4 */ ,16
+			/* 5 */ ,20
+			/* 6 */ ,24
+			/* 7 */ ,28
+			/* 8 */ ,32
+			/* 9 */ ,36
+		};
+
+		return maxAhead[(int)latencyLevel];
+	}
+
+	static constexpr wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel)
+	{
+		constexpr wchar_t* message[] =
+		{
+			/* 0 */ L"CnCNet: Latency mode set to: 0 - Initial" // Players should never see this, if it doesn't then it's a bug
+
+			/* 1 */ ,L"CnCNet: Latency mode set to: 1 - Best"
+			/* 2 */ ,L"CnCNet: Latency mode set to: 2 - Super"
+			/* 3 */ ,L"CnCNet: Latency mode set to: 3 - Excellent"
+			/* 4 */ ,L"CnCNet: Latency mode set to: 4 - Very Good"
+			/* 5 */ ,L"CnCNet: Latency mode set to: 5 - Good"
+			/* 6 */ ,L"CnCNet: Latency mode set to: 6 - Good"
+			/* 7 */ ,L"CnCNet: Latency mode set to: 7 - Default"
+			/* 8 */ ,L"CnCNet: Latency mode set to: 8 - Default"
+			/* 9 */ ,L"CnCNet: Latency mode set to: 9 - Default"
+		};
+
+		return message[(int)latencyLevel];
+	}
+
+	static constexpr LatencyLevelEnum FromResponseTime(uint8_t rspTime)
+	{
+		for (auto i = LatencyLevelEnum::LATENCY_LEVEL_1; i < LatencyLevelEnum::LATENCY_LEVEL_MAX; i = static_cast<LatencyLevelEnum>(1 + static_cast<char>(i)))
+		{
+			if (rspTime <= GetMaxAhead(i))
+				return static_cast<LatencyLevelEnum>(i);
+		}
+
+		return LatencyLevelEnum::LATENCY_LEVEL_MAX;
+	}
+
 };

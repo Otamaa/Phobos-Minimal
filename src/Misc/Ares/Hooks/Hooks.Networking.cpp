@@ -25,7 +25,7 @@ DEFINE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
 	return 0x6AB7CC;
 }
 
-DEFINE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
+DEFINE_HOOK(0x64C314, Breakup_Receive_Packet_PayloadSize2, 0x8)
 {
 	GET(EventType, eventType, ESI);
 
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x64C314, sub_64BDD0_PayloadSize2, 0x8)
 	return 0x64C321;
 }
 
-DEFINE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
+DEFINE_HOOK(0x64BE83, Breakup_Receive_Packet_PayloadSize1, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x64BE83, sub_64BDD0_PayloadSize1, 0x8)
 	return (EventType::MEGAMISSION == eventType) ? 0x64BF1A : 0x64BE97;
 }
 
-DEFINE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
+DEFINE_HOOK(0x64B704, Add_Compressed_Events_PayloadSize, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
@@ -108,13 +108,13 @@ DEFINE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
+DEFINE_HOOK(0x4C6CCD, EventClass_Execute, 0xA)
 {
 	GET(int, EventKind, EAX);
 	GET(EventClass *, Event, ESI);
 
-	auto kind = static_cast<AresNetEvent::Events>(EventKind);
-	if(kind >= AresNetEvent::Events::First) {
+	const auto kind = static_cast<AresNetEvent::Events>(EventKind);
+	if(AresNetEvent::IsValidType(kind)) {
 		// Received Ares event, do something about it
 		AresNetEvent::RespondEvent(Event, kind);
 	}
@@ -125,4 +125,30 @@ DEFINE_HOOK(0x4C6CCD, Networking_RespondToEvent, 0xA)
 	 ? 0x4C8109
 	 : 0x4C6CD7
 	;
+}
+
+DEFINE_HOOK(0x4C65EF, EventClass_CTOR_Log, 0x7)
+{
+	GET(int, events, EAX);
+
+	const auto eventType = static_cast<AresNetEvent::Events>(events);
+	if (AresNetEvent::IsValidType(eventType)) {
+		// Received Ares event, send the names
+		R->ECX(AresNetEvent::GetEventNames(eventType));
+		return 0x4C65F6;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x64C5C7, Execute_DoList_Log, 0x7)
+{
+	const auto eventType = static_cast<AresNetEvent::Events>(R->AL());
+	if (AresNetEvent::IsValidType(eventType)) {
+		// Received Ares event, send the names
+		R->ECX(AresNetEvent::GetEventNames(eventType));
+		return 0x64C5CE;
+	}
+
+	return 0;
 }

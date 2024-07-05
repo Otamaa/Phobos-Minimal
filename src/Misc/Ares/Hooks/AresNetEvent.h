@@ -10,21 +10,22 @@ public:
 
 	enum class Events : uint8_t {
 		TrenchRedirectClick = 0x60,
-		FirewallToggle = 0x61,
+		ProtocolZero = 0x61,
+		FirewallToggle = 0x62,
 
 		First = TrenchRedirectClick,
 		Last = FirewallToggle
 	};
 
 	template<bool timestamp , class T , typename... ArgTypes>
-	static void AddToEvent(EventClass& event, ArgTypes... args) {
+	static bool AddToEvent(EventClass& event, ArgTypes... args) {
 		T type { args... };
 		memcpy(&event.Data.nothing, &type, T::size());
 
 		if constexpr (timestamp)
-			EventClass::AddEventWithTimeStamp(&event);
+			return EventClass::AddEventWithTimeStamp(&event);
 		else
-			EventClass::AddEvent(&event);
+			return EventClass::AddEvent(&event);
 	}
 
 	struct TrenchRedirectClick
@@ -36,11 +37,40 @@ public:
 			return (EventType)Events::TrenchRedirectClick;
 		}
 
+		static inline constexpr const char* name() { return "TrenchRedirectClick"; }
+
 		static void Raise(BuildingClass* Source, CellStruct* Target);
 		static void Respond(EventClass* Event);
 
 		TargetClass TargetCell;
 		TargetClass Source;
+	};
+
+	struct ProtocolZero
+	{
+		ProtocolZero(char maxahead, uint8_t latencylevel);
+
+		static inline constexpr size_t size() { return sizeof(ProtocolZero); }
+		static inline constexpr EventType AsEventType()
+		{
+			return (EventType)Events::ProtocolZero;
+		}
+
+		static inline constexpr const char* name() { return "ProtocolZero"; }
+
+		static void Raise();
+		static void Respond(EventClass* Event);
+
+		static constexpr int SendResponseTimeInterval = 30;
+
+		static bool Enable;
+		static unsigned char MaxLatencyLevel;
+		static int WorstMaxAhead;
+
+#pragma pack(push, 1)
+		char MaxAhead;
+		uint8_t LatencyLevel;
+#pragma pack(pop)
 	};
 
 	struct FirewallToggle
@@ -49,6 +79,8 @@ public:
 		static inline constexpr EventType AsEventType() {
 			return (EventType)Events::FirewallToggle;
 		}
+
+		static inline constexpr const char* name() { return "FirewallToggle"; }
 
 		static void Raise(HouseClass* Source);
 		static void Respond(EventClass* Event);
@@ -65,10 +97,27 @@ public:
 		{
 		case Events::TrenchRedirectClick:
 			return TrenchRedirectClick::size();
+		case Events::ProtocolZero:
+			return ProtocolZero::size();
 		case Events::FirewallToggle:
 			return FirewallToggle::size();
 		default :
 			return 0;
+		}
+	}
+
+	static constexpr const char* GetEventNames(Events type)
+	{
+		switch (type)
+		{
+		case Events::TrenchRedirectClick:
+			return TrenchRedirectClick::name();
+		case Events::ProtocolZero:
+			return ProtocolZero::name();
+		case Events::FirewallToggle:
+			return FirewallToggle::name();
+		default:
+			return "Unknown";
 		}
 	}
 
@@ -77,6 +126,10 @@ public:
 		{
 		case AresNetEvent::Events::TrenchRedirectClick: {
 			AresNetEvent::TrenchRedirectClick::Respond(pEvent);
+			break;
+		}
+		case AresNetEvent::Events::ProtocolZero: {
+			AresNetEvent::ProtocolZero::Respond(pEvent);
 			break;
 		}
 		case AresNetEvent::Events::FirewallToggle: {

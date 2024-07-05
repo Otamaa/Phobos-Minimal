@@ -2390,6 +2390,20 @@ DEFINE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
+
+	//const auto pFactory = pThis->Factory;
+
+	//if (pFactory && pFactory->Object)
+	//{
+	//	const auto pTimer = &pFactory->Production.Timer;
+	//
+	//	if (pTimer->InProgress() &&
+	//		(pThis->IsUnderEMP() ||
+	//			pThis->Deactivated ||
+	//			(!pThis->IsPowerOnline() && pThis->GetPowerDrain() == 0 && pThis->GetPowerOutput() == 0)))
+	//		pTimer->TimeLeft++;
+	//}
+
 	return 0;
 }
 

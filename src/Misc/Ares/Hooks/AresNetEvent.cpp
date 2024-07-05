@@ -6,6 +6,9 @@
 
 #include <WWKeyboardClass.h>
 
+#include <Misc/Spawner/ProtocolZero.h>
+#include <IPXManagerClass.h>
+
 AresNetEvent::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)
 	: TargetCell { target }, Source { source }
 {
@@ -41,6 +44,100 @@ void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)
 				TechnoExt_ExtData::doTraverseTo(pSourceBuilding, targetBuilding);
 		}
 	}
+}
+
+bool AresNetEvent::ProtocolZero::Enable = false;
+int AresNetEvent::ProtocolZero::WorstMaxAhead = 24;
+unsigned char AresNetEvent::ProtocolZero::MaxLatencyLevel = 0xff;
+
+AresNetEvent::ProtocolZero::ProtocolZero(char maxahead, uint8_t latencylevel)
+	: MaxAhead { maxahead } , LatencyLevel { latencylevel }
+{
+}
+
+void AresNetEvent::ProtocolZero::Raise()
+{
+	if (SessionClass::IsSingleplayer())
+		return;
+
+	static int NextSendFrame = 6 * SendResponseTimeInterval;
+	int currentFrame = Unsorted::CurrentFrame;
+
+	if (NextSendFrame >= currentFrame)
+		return;
+
+	const int ipxResponseTime = IPXManagerClass::Instance->ResponseTime();
+	if (ipxResponseTime <= -1)
+		return;
+
+	EventClass event {};
+	event.Type = ProtocolZero::AsEventType();
+	event.HouseIndex = (char)HouseClass::CurrentPlayer->ArrayIndex;
+	event.Frame = currentFrame + Game::Network::MaxAhead;
+	const auto maxAhead = char((int8_t)ipxResponseTime + 1);
+	const auto latencyLevel = (uint8_t)LatencyLevel::FromResponseTime((uint8_t)ipxResponseTime);
+	event.Data.nothing.Data[0] = maxAhead;
+	event.Data.nothing.Data[1] = latencyLevel;
+
+	if (EventClass::AddEvent(reinterpret_cast<EventClass*>(&event)))
+	{
+		NextSendFrame = currentFrame + SendResponseTimeInterval;
+		Debug::Log("[Spawner] Player %d sending response time of %d, LatencyMode = %d, Frame = %d\n"
+			, event.HouseIndex
+			, maxAhead
+			, latencyLevel
+			, currentFrame
+		);
+	}
+	else
+	{
+		++NextSendFrame;
+	}
+}
+
+void AresNetEvent::ProtocolZero::Respond(EventClass* Event)
+{
+	if (ProtocolZero::Enable == false || SessionClass::IsSingleplayer())
+		return;
+
+	const ProtocolZero* netData = reinterpret_cast<ProtocolZero*>(Event->Data.nothing.Data);
+
+	if (netData->MaxAhead == 0)
+	{
+		Debug::Log("[Spawner] Returning because event->MaxAhead == 0\n");
+		return;
+	}
+
+	static int32_t PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static uint8_t PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	static int32_t PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	int32_t houseIndex = Event->HouseIndex;
+	PlayerMaxAheads[houseIndex] = (int32_t)netData->MaxAhead;
+	PlayerLatencyMode[houseIndex] = netData->LatencyLevel;
+	PlayerLastTimingFrame[houseIndex] = Event->Frame;
+
+	uint8_t setLatencyMode = 0;
+	int maxMaxAheads = 0;
+
+	for (char i = 0; i < (char)std::size(PlayerMaxAheads); ++i)
+	{
+		if (Unsorted::CurrentFrame >= (PlayerLastTimingFrame[i] + (SendResponseTimeInterval * 4)))
+		{
+			PlayerMaxAheads[i] = 0;
+			PlayerLatencyMode[i] = 0;
+		}
+		else
+		{
+			maxMaxAheads = PlayerMaxAheads[i] > maxMaxAheads ? PlayerMaxAheads[i] : maxMaxAheads;
+			if (PlayerLatencyMode[i] > setLatencyMode)
+				setLatencyMode = PlayerLatencyMode[i];
+		}
+	}
+
+	ProtocolZero::WorstMaxAhead = maxMaxAheads;
+	LatencyLevel::Apply(setLatencyMode);
+
 }
 
 void AresNetEvent::FirewallToggle::Raise(HouseClass* Source)
