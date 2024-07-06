@@ -42,7 +42,12 @@ ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTy
 , PassthruNegativeDamage { false }
 , CanBeHealed { false }
 , HealCursorType { }
-, HitBright { }
+, HitFlash { false }
+, HitFlash_FixedSize {}
+, HitFlash_Red { true }
+, HitFlash_Green { true }
+, HitFlash_Blue { true }
+, HitFlash_Black { false }
 , Tint_Color {}
 , Tint_Intensity { 0.0 }
 , Tint_VisibleToHouses { AffectedHouse::All }
@@ -135,7 +140,13 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->PassthruNegativeDamage.Read(exINI, pSection, "PassthruNegativeDamage");
 	this->CanBeHealed.Read(exINI, pSection, "Repairable");
 	this->HealCursorType.Read(exINI, pSection, "RepairCursor");
-	this->HitBright.Read(exINI, pSection, "HitBright");
+
+	this->HitFlash.Read(exINI, pSection, "HitFlash");
+	this->HitFlash_FixedSize.Read(exINI, pSection, "HitFlash.FixedSize");
+	this->HitFlash_Red.Read(exINI, pSection, "HitFlash.Red");
+	this->HitFlash_Green.Read(exINI, pSection, "HitFlash.Green");
+	this->HitFlash_Blue.Read(exINI, pSection, "HitFlash.Blue");
+	this->HitFlash_Black.Read(exINI, pSection, "HitFlash.Black");
 
 	this->Tint_Color.Read(exINI, pSection, "Tint.Color");
 	this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
@@ -184,7 +195,12 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->PassthruNegativeDamage)
 		.Process(this->CanBeHealed)
 		.Process(this->HealCursorType)
-		.Process(this->HitBright)
+		.Process(this->HitFlash)
+		.Process(this->HitFlash_FixedSize)
+		.Process(this->HitFlash_Red)
+		.Process(this->HitFlash_Green)
+		.Process(this->HitFlash_Blue)
+		.Process(this->HitFlash_Black)
 		.Process(this->Tint_Color)
 		.Process(this->Tint_Intensity)
 		.Process(this->Tint_VisibleToHouses)

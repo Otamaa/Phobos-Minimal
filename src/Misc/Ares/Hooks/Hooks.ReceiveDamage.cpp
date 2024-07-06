@@ -107,16 +107,16 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	GET(int*, pDamage, EBX);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pShield = pExt->GetShield();
+	//const auto pShield = pExt->GetShield();
 
 	if (forced || third)
 		return ContinueChecks;
 
-	if (pShield && pShield->IsActive() && pShield->GetType()->HitBright.isset())
-	{
-		MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, pShield->GetType()->HitBright);
-	}
-	else if (pThis->IsIronCurtained())
+	//if (pShield && pShield->IsActive() && pShield->GetType()->HitBright.isset())
+	//{
+	//	MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, pShield->GetType()->HitBright);
+	//} else
+	 if (pThis->IsIronCurtained())
 	{
 		if (pThis->ProtectType == ProtectTypes::ForceShield)
 			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);

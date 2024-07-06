@@ -364,6 +364,8 @@ public:
 	ValueableVector<int> AttachEffect_CumulativeRemoveMinCounts {};
 	ValueableVector<int> AttachEffect_CumulativeRemoveMaxCounts {};
 	ValueableVector<int> AttachEffect_DurationOverrides {};
+
+	Valueable<bool> Shield_HitFlash { true };
 public:
 
 	WarheadTypeExtData() noexcept = default;

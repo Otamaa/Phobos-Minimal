@@ -92,6 +92,13 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))
 	//	Debug::Log("AlphaImageNAme [%s] \n", this->AttachedToObject->AlphaImageFile);
+
+	if (pThis->StateAIAdvance == 0 && pThis->StartStateAI < pThis->EndStateAI) {
+		Debug::RegisterParserError();
+		Debug::Log("[Developer warning] [%s] has StateAIAdvance=0 in conjunction with StartStateAI value less than EndStateAI. StateAIAdvance set to 1 to prevent crashes from occuring.\n",
+			pID);
+		pThis->StateAIAdvance = 1;
+	}
 }
 
 // =============================

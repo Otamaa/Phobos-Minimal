@@ -58,7 +58,13 @@ public:
 	Valueable<bool> PassthruNegativeDamage;
 	Valueable<bool> CanBeHealed;
 	NullableIdx<CursorTypeClass> HealCursorType;
-	Nullable<SpotlightFlags> HitBright;
+
+	Valueable<bool> HitFlash;
+	Nullable<int> HitFlash_FixedSize;
+	Valueable<bool> HitFlash_Red;
+	Valueable<bool> HitFlash_Green;
+	Valueable<bool> HitFlash_Blue;
+	Valueable<bool> HitFlash_Black;
 
 	Nullable<ColorStruct> Tint_Color;
 	Valueable<double> Tint_Intensity;
