@@ -9,25 +9,25 @@
 #include <Misc/Spawner/ProtocolZero.h>
 #include <IPXManagerClass.h>
 
-AresNetEvent::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)
+EventExt::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)
 	: TargetCell { target }, Source { source }
 {
 }
 
-void AresNetEvent::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Target)
+void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Target)
 {
 	EventClass Event {};
 
 	if (Source->Owner->ArrayIndex >= 0)
 	{
-		Event.Type = EventType(AresNetEvent::Events::TrenchRedirectClick);
+		Event.Type = EventType(EventExt::Events::TrenchRedirectClick);
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
-	AresNetEvent::AddToEvent<true , TrenchRedirectClick>(Event, Target, Source);
+	EventExt::AddToEvent<true , TrenchRedirectClick>(Event, Target, Source);
 }
 
-void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)
+void EventExt::TrenchRedirectClick::Respond(EventClass* Event)
 {
 	TargetClass* ID = reinterpret_cast<TargetClass*>(Event->Data.nothing.Data);
 	if (CellClass* pTargetCell = ID->As_Cell())
@@ -46,16 +46,16 @@ void AresNetEvent::TrenchRedirectClick::Respond(EventClass* Event)
 	}
 }
 
-bool AresNetEvent::ProtocolZero::Enable = false;
-int AresNetEvent::ProtocolZero::WorstMaxAhead = 24;
-unsigned char AresNetEvent::ProtocolZero::MaxLatencyLevel = 0xff;
+bool EventExt::ProtocolZero::Enable = false;
+int EventExt::ProtocolZero::WorstMaxAhead = 24;
+unsigned char EventExt::ProtocolZero::MaxLatencyLevel = 0xff;
 
-AresNetEvent::ProtocolZero::ProtocolZero(char maxahead, uint8_t latencylevel)
+EventExt::ProtocolZero::ProtocolZero(char maxahead, uint8_t latencylevel)
 	: MaxAhead { maxahead } , LatencyLevel { latencylevel }
 {
 }
 
-void AresNetEvent::ProtocolZero::Raise()
+void EventExt::ProtocolZero::Raise()
 {
 	if (SessionClass::IsSingleplayer())
 		return;
@@ -95,7 +95,7 @@ void AresNetEvent::ProtocolZero::Raise()
 	}
 }
 
-void AresNetEvent::ProtocolZero::Respond(EventClass* Event)
+void EventExt::ProtocolZero::Respond(EventClass* Event)
 {
 	if (ProtocolZero::Enable == false || SessionClass::IsSingleplayer())
 		return;
@@ -140,17 +140,17 @@ void AresNetEvent::ProtocolZero::Respond(EventClass* Event)
 
 }
 
-void AresNetEvent::FirewallToggle::Raise(HouseClass* Source)
+void EventExt::FirewallToggle::Raise(HouseClass* Source)
 {
 	EventClass Event;
 
-	Event.Type = static_cast<EventType>(AresNetEvent::Events::FirewallToggle);
+	Event.Type = static_cast<EventType>(EventExt::Events::FirewallToggle);
 	Event.HouseIndex = byte(Source->ArrayIndex);
 
 	EventClass::AddEvent(&Event);
 }
 
-void AresNetEvent::FirewallToggle::Respond(EventClass* Event)
+void EventExt::FirewallToggle::Respond(EventClass* Event)
 {
 	if (HouseClass* pSourceHouse = HouseClass::Array->GetItemOrDefault(Event->HouseIndex))
 	{

@@ -5,7 +5,7 @@
 class HouseClass;
 class BuildingClass;
 class CellStruct;
-class AresNetEvent {
+class EventExt {
 public:
 
 	enum class Events : uint8_t {
@@ -124,16 +124,16 @@ public:
 	static void RespondEvent(EventClass* pEvent , Events type) {
 		switch (type)
 		{
-		case AresNetEvent::Events::TrenchRedirectClick: {
-			AresNetEvent::TrenchRedirectClick::Respond(pEvent);
+		case EventExt::Events::TrenchRedirectClick: {
+			EventExt::TrenchRedirectClick::Respond(pEvent);
 			break;
 		}
-		case AresNetEvent::Events::ProtocolZero: {
-			AresNetEvent::ProtocolZero::Respond(pEvent);
+		case EventExt::Events::ProtocolZero: {
+			EventExt::ProtocolZero::Respond(pEvent);
 			break;
 		}
-		case AresNetEvent::Events::FirewallToggle: {
-			AresNetEvent::FirewallToggle::Respond(pEvent);
+		case EventExt::Events::FirewallToggle: {
+			EventExt::FirewallToggle::Respond(pEvent);
 			break;
 		}
 		default:

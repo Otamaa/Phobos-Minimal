@@ -17,7 +17,7 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 	if (newLatencyLevel > LatencyLevelEnum::LATENCY_LEVEL_MAX)
 		newLatencyLevel = LatencyLevelEnum::LATENCY_LEVEL_MAX;
 
-	auto maxLatencyLevel = static_cast<LatencyLevelEnum>(AresNetEvent::ProtocolZero::MaxLatencyLevel);
+	auto maxLatencyLevel = static_cast<LatencyLevelEnum>(EventExt::ProtocolZero::MaxLatencyLevel);
 	if (newLatencyLevel > maxLatencyLevel)
 		newLatencyLevel = maxLatencyLevel;
 
@@ -41,15 +41,15 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 
 DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
-		AresNetEvent::ProtocolZero::Raise();
+	if (EventExt::ProtocolZero::Enable)
+		EventExt::ProtocolZero::Raise();
 
 	return 0;
 }
 
 DEFINE_HOOK(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 		return 0x647BF4;
 
 	return (R->ESI() >= 5)
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 
 DEFINE_HOOK(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 	{
 		R->AL(LatencyLevel::NewFrameSendRate);
 		R->ECX((DWORD)Unsorted::CurrentFrame);
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 
 DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 	{
 		R->EDX((DWORD)Game::Network::MaxAhead & 0xffff);
 
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 
 DEFINE_HOOK(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 		return 0x4C8024;
 
 	return 0;
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
 DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 {
 	enum { break_ = 0x64C63D };
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 	{
 		auto dl = (uint8_t)R->DL();
 
@@ -103,7 +103,7 @@ DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 		if (dl == (uint8_t)EventType::PROCESS_TIME)
 			return break_;
 
-		if (dl == (uint8_t)AresNetEvent::Events::ProtocolZero){
+		if (dl == (uint8_t)EventExt::Events::ProtocolZero){
 			return break_;
 		}
 	}
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 DEFINE_HOOK_AGAIN(0x64771D, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 	{
 		GET(int, NewRetryDelta, EBP);
 		GET(int, NewRetryTimeout, EAX);
@@ -133,9 +133,9 @@ DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 DEFINE_HOOK_AGAIN(0x6476CB, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
 DEFINE_HOOK(0x647CC5, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
 {
-	if (AresNetEvent::ProtocolZero::Enable)
+	if (EventExt::ProtocolZero::Enable)
 	{
-		R->EAX(AresNetEvent::ProtocolZero::WorstMaxAhead);
+		R->EAX(EventExt::ProtocolZero::WorstMaxAhead);
 		return R->Origin() + 0x5;
 	}
 

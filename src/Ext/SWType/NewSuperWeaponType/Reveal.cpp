@@ -101,7 +101,7 @@ void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, Hou
 				}
 
 				//if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
-				//	AresNetEvent::Handlers::RaiseRevealMap(Owner);
+				//	EventExt::Handlers::RaiseRevealMap(Owner);
 			}
 			else
 			{

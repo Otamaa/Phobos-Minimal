@@ -79,5 +79,5 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 	//DumpDumped();
 
 	//if(SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN )
-		//AresNetEvent::Handlers::RaiseRevealMap(pPlayer);
+		//EventExt::Handlers::RaiseRevealMap(pPlayer);
 }

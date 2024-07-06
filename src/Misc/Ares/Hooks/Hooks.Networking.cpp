@@ -29,7 +29,7 @@ DEFINE_HOOK(0x64C314, Breakup_Receive_Packet_PayloadSize2, 0x8)
 {
 	GET(EventType, eventType, ESI);
 
-	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
+	const auto eventDataSize = EventExt::GetDataSize(eventType);
 
 	R->ECX(eventDataSize);
 	R->EBP(eventDataSize + (EventType::MEGAMISSION == eventType));
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x64BE83, Breakup_Receive_Packet_PayloadSize1, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
-	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
+	const auto eventDataSize = EventExt::GetDataSize(eventType);
 
 	R->ECX(eventDataSize);
 	R->EBP(eventDataSize);
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x64B704, Add_Compressed_Events_PayloadSize, 0x8)
 {
 	GET(EventType, eventType, EDI);
 
-	const auto eventDataSize = AresNetEvent::GetDataSize(eventType);
+	const auto eventDataSize = EventExt::GetDataSize(eventType);
 
 	R->EDX(eventDataSize);
 	R->EBP(eventDataSize);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)
 
 	if(auto targetBuilding = specific_cast<BuildingClass*>(T)) {
 		if(TechnoExt_ExtData::canTraverseTo(pThis ,targetBuilding)) {
-			//show entry cursor, hooked up to traversal logic in Misc/Network.cpp -> AresNetEvent::Handlers::RespondToTrenchRedirectClick
+			//show entry cursor, hooked up to traversal logic in Misc/Network.cpp -> EventExt::Handlers::RespondToTrenchRedirectClick
 			R->EAX(Action::Enter);
 			return 0x447273;
 		}
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x443414, BuildingClass_ActionOnObject, 6)
 	if(action == Action::Enter && pTarget->WhatAmI() == BuildingClass::AbsID) {
 		CoordStruct XYZ = pTarget->GetCoords();
 		CellStruct tgt = CellClass::Coord2Cell(XYZ);
-		AresNetEvent::TrenchRedirectClick::Raise(pThis, &tgt);
+		EventExt::TrenchRedirectClick::Raise(pThis, &tgt);
 		R->EAX(1);
 		return 0x44344D;
 	}
@@ -113,10 +113,10 @@ DEFINE_HOOK(0x4C6CCD, EventClass_Execute, 0xA)
 	GET(int, EventKind, EAX);
 	GET(EventClass *, Event, ESI);
 
-	const auto kind = static_cast<AresNetEvent::Events>(EventKind);
-	if(AresNetEvent::IsValidType(kind)) {
+	const auto kind = static_cast<EventExt::Events>(EventKind);
+	if(EventExt::IsValidType(kind)) {
 		// Received Ares event, do something about it
-		AresNetEvent::RespondEvent(Event, kind);
+		EventExt::RespondEvent(Event, kind);
 	}
 
 	--(EventKind);
@@ -131,10 +131,10 @@ DEFINE_HOOK(0x4C65EF, EventClass_CTOR_Log, 0x7)
 {
 	GET(int, events, EAX);
 
-	const auto eventType = static_cast<AresNetEvent::Events>(events);
-	if (AresNetEvent::IsValidType(eventType)) {
+	const auto eventType = static_cast<EventExt::Events>(events);
+	if (EventExt::IsValidType(eventType)) {
 		// Received Ares event, send the names
-		R->ECX(AresNetEvent::GetEventNames(eventType));
+		R->ECX(EventExt::GetEventNames(eventType));
 		return 0x4C65F6;
 	}
 
@@ -143,10 +143,10 @@ DEFINE_HOOK(0x4C65EF, EventClass_CTOR_Log, 0x7)
 
 DEFINE_HOOK(0x64C5C7, Execute_DoList_Log, 0x7)
 {
-	const auto eventType = static_cast<AresNetEvent::Events>(R->AL());
-	if (AresNetEvent::IsValidType(eventType)) {
+	const auto eventType = static_cast<EventExt::Events>(R->AL());
+	if (EventExt::IsValidType(eventType)) {
 		// Received Ares event, send the names
-		R->ECX(AresNetEvent::GetEventNames(eventType));
+		R->ECX(EventExt::GetEventNames(eventType));
 		return 0x64C5CE;
 	}
 
