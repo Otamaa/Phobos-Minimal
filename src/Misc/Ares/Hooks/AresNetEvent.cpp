@@ -76,8 +76,8 @@ void AresNetEvent::ProtocolZero::Raise()
 	event.Frame = currentFrame + Game::Network::MaxAhead;
 	const auto maxAhead = char((int8_t)ipxResponseTime + 1);
 	const auto latencyLevel = (uint8_t)LatencyLevel::FromResponseTime((uint8_t)ipxResponseTime);
-	event.Data.nothing.Data[0] = maxAhead;
-	event.Data.nothing.Data[1] = latencyLevel;
+	ProtocolZero type { maxAhead , latencyLevel };
+	memcpy(&event.Data.nothing, &type, ProtocolZero::size());
 
 	if (EventClass::AddEvent(reinterpret_cast<EventClass*>(&event)))
 	{
