@@ -428,7 +428,10 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 		//GET(int, color, EDI);
 		LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
 
-		if (Phobos::UI::AnchoredToolTips) {
+		if (Phobos::UI::AnchoredToolTips &&
+			PhobosToolTip::Instance.IsEnabled() &&
+			Phobos::Config::ToolTipDescriptions
+		) {
 			LEA_STACK(LTRBStruct*, a2, STACK_OFFSET(0x44, -0x20));
 			const auto x = DSurface::SidebarBounds->X - pRect->Width - 2;
 
