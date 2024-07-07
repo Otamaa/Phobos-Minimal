@@ -188,6 +188,13 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AltReport.Read(exINI, pID, "AltReport");
 
 	this->SpawnsData.Read(exINI, pID);
+
+	this->VisibleTo.Read(exINI, pID, "VisibleTo");
+	this->VisibleTo_ConsiderInvokerAsOwner.Read(exINI, pID, "VisibleTo.ConsiderInvokerAsOwner");
+	this->RestrictVisibilityIfCloaked.Read(exINI, pID, "RestrictVisibilityIfCloaked");
+	this->DetachOnCloak.Read(exINI, pID, "DetachOnCloak");
+	this->Translucency_Cloaked.Read(exINI, pID, "Translucency.Cloaked");
+
 #pragma endregion
 }
 
@@ -523,6 +530,11 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->MakeInfantry_Scatter)
 		.Process(this->MakeInfantry_AI_Scatter)
 
+		.Process(this->VisibleTo)
+		.Process(this->VisibleTo_ConsiderInvokerAsOwner)
+		.Process(this->RestrictVisibilityIfCloaked)
+		.Process(this->DetachOnCloak)
+		.Process(this->Translucency_Cloaked)
 		;
 }
 

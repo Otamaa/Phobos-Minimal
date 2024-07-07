@@ -496,7 +496,7 @@ void ShieldClass::OnUpdate()
 		if (GeneralUtils::HasHealthRatioThresholdChanged(LastTechnoHealthRatio, ratio))
 			this->UpdateIdleAnim();
 
-		if (!this->Cloak && !this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
+		if (!this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
 			this->CreateAnim();
 	}
 
@@ -509,6 +509,8 @@ void ShieldClass::OnUpdate()
 	this->LastTechnoHealthRatio = ratio;
 }
 
+#include <Ext/AnimType/Body.h>
+
 // The animation is automatically destroyed when the associated unit receives the isCloak statute.
 // Therefore, we must zero out the invalid pointer
 void ShieldClass::CloakCheck()
@@ -516,7 +518,7 @@ void ShieldClass::CloakCheck()
 	const auto cloakState = this->Techno->CloakState;
 	this->Cloak = cloakState == CloakState::Cloaked || cloakState == CloakState::Cloaking;
 
-	if (this->Cloak)
+	if (this->Cloak && this->IdleAnim && AnimTypeExtContainer::Instance.Find(this->IdleAnim->Type)->DetachOnCloak)
 		KillAnim();
 }
 
@@ -850,6 +852,9 @@ void ShieldClass::CreateAnim()
 
 	if (!this->IdleAnim && idleAnimType)
 	{
+		if (this->Cloak && (!idleAnimType || AnimTypeExtContainer::Instance.Find(idleAnimType)->DetachOnCloak))
+			return;
+
 		auto const pAnim = GameCreate<AnimClass>(idleAnimType, this->Techno->Location);
 		pAnim->RemainingIterations = 0xFFu;
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);

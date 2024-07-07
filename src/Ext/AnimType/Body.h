@@ -106,6 +106,12 @@ public:
 
 	Spawns SpawnsData {};
 
+	Valueable<AffectedHouse> VisibleTo { AffectedHouse::All };
+	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner { false };
+	Valueable<bool> RestrictVisibilityIfCloaked { false };
+	Valueable<bool> DetachOnCloak { true };
+	Nullable<int> Translucency_Cloaked {};
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 

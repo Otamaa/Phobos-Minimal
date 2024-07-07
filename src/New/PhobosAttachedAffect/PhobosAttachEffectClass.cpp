@@ -60,7 +60,7 @@ void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed
 
 void PhobosAttachEffectClass::AI()
 {
-	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	if (!this->Animation && !this->IsUnderTemporal && this->IsOnline && !this->IsAnimHidden)
 		return;
 
 	if (this->InitialDelay > 0)
@@ -136,7 +136,7 @@ void PhobosAttachEffectClass::AI_Temporal()
 
 		this->CloakCheck();
 
-		if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsCloaked && !this->IsAnimHidden)
+		if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsAnimHidden)
 			this->CreateAnim();
 
 		if (this->Animation)
@@ -210,20 +210,16 @@ void PhobosAttachEffectClass::OnlineCheck()
 		this->Animation->Unpause();
 	}
 }
+#include <Ext/AnimType/Body.h>
 
 void PhobosAttachEffectClass::CloakCheck()
 {
 	const auto cloakState = this->Techno->CloakState;
 
-	if (cloakState == CloakState::Cloaked || cloakState == CloakState::Cloaking)
-	{
-		this->IsCloaked = true;
+	this->IsCloaked = cloakState == CloakState::Cloaked || cloakState == CloakState::Cloaking;
+
+	if (this->IsCloaked && this->Animation && AnimTypeExtContainer::Instance.Find(this->Animation->Type)->DetachOnCloak)
 		this->KillAnim();
-	}
-	else
-	{
-		this->IsCloaked = false;
-	}
 }
 
 void PhobosAttachEffectClass::CreateAnim()
@@ -246,6 +242,9 @@ void PhobosAttachEffectClass::CreateAnim()
 	{
 		pAnimType = this->SelectedAnim;
 	}
+
+	if (this->IsCloaked && (!pAnimType || AnimTypeExtContainer::Instance.Find(pAnimType)->DetachOnCloak))
+		return;
 
 	if (!this->Animation && pAnimType)
 	{

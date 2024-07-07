@@ -958,6 +958,7 @@ public:
 	Valueable<bool> KeepTargetOnMove {};
 	Valueable<Leptons> KeepTargetOnMove_ExtraDistance {};
 
+	Valueable<bool> ForbidParallelAIQueues { false };
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
