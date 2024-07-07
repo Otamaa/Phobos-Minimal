@@ -1590,6 +1590,19 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	return 0x746931;
 }
 
+bool __fastcall Fake_HouseIsAlliedWith(HouseClass* pThis, void*, HouseClass* CurrentPlayer)
+{
+	return Phobos::Config::DevelopmentCommands
+		|| pThis->ControlledByCurrentPlayer()
+		|| pThis->IsAlliedWith(CurrentPlayer);
+}
+
+DEFINE_JUMP(CALL, 0x63B136, GET_OFFSET(Fake_HouseIsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B100, GET_OFFSET(Fake_HouseIsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B17F, GET_OFFSET(Fake_HouseIsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B1BA, GET_OFFSET(Fake_HouseIsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B2CE, GET_OFFSET(Fake_HouseIsAlliedWith));
+
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>

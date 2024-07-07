@@ -47,6 +47,8 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 #include <Misc/PhobosGlobal.h>
 
 #include <Misc/Ares/EVAVoices.h>
@@ -2404,6 +2406,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	auto pEntererExt = HouseExtContainer::Instance.Find(Enterer);
 	bool effectApplied = false;
 	bool promotionStolen = false;
+	int moneyBefore =  Owner->Available_Money();
 
 	if (!pTypeExt->SpyEffect_Custom)
 	{
@@ -2916,6 +2919,23 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	if (effectApplied)
 	{
 		EnteredBuilding->UpdatePlacement(PlacementType::Redraw);
+	}
+
+	pBldExt->AccumulatedIncome += Owner->Available_Money() - moneyBefore;
+
+	if (!Owner->IsControlledByHuman() && !RulesExtData::Instance()->DisplayIncome_AllowAI)
+	{
+		CoordStruct coord {};
+		EnteredBuilding->GetRenderCoords(&coord);
+		FlyingStrings::AddMoneyString(true,
+				pBldExt->AccumulatedIncome,
+				EnteredBuilding,
+				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses.Get()),
+				coord,
+				pTypeExt->DisplayIncome_Offset,
+				ColorStruct::Empty
+		);
+		pBldExt->AccumulatedIncome = 0;
 	}
 }
 
