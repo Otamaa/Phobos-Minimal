@@ -84,6 +84,7 @@ double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
 double Phobos::UI::PowerDelta_ConditionRed = 1.0;
 bool Phobos::UI::CenterPauseMenuBackground = false;
 bool Phobos::UI::UnlimitedColor = false;
+bool Phobos::UI::AnchoredToolTips = false;
 
 const wchar_t* Phobos::UI::Power_Label;
 const wchar_t* Phobos::UI::Drain_Label;
@@ -448,11 +449,9 @@ void Phobos::Config::Read()
 
 		// ToolTips
 		{
-			Phobos::UI::ExtendedToolTips =
-				pINI->ReadBool(TOOLTIPS_SECTION, "ExtendedToolTips", false);
-
-			Phobos::UI::MaxToolTipWidth =
-				pINI->ReadInteger(TOOLTIPS_SECTION, "MaxWidth", 0);
+			Phobos::UI::ExtendedToolTips = pINI->ReadBool(TOOLTIPS_SECTION, "ExtendedToolTips", Phobos::UI::ExtendedToolTips);
+			Phobos::UI::AnchoredToolTips = pINI->ReadBool(TOOLTIPS_SECTION, "AnchoredToolTips", Phobos::UI::AnchoredToolTips);
+			Phobos::UI::MaxToolTipWidth = pINI->ReadInteger(TOOLTIPS_SECTION, "MaxWidth", Phobos::UI::MaxToolTipWidth);
 
 			pINI->ReadString(TOOLTIPS_SECTION, "CostLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::CostLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"$");
@@ -525,6 +524,7 @@ void Phobos::Config::Read()
 
 		Phobos::Otamaa::DisableCustomRadSite = pINI->ReadBool(PHOBOS_STR, "DisableCustomRadSite", false);
 		Phobos::Config::ArtImageSwap = pINI->ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
+		Phobos::UI::UnlimitedColor = pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
 
 		if (pINI->ReadBool(GENERAL_SECTION, "CustomGS", false))
 		{
@@ -560,7 +560,7 @@ void Phobos::Config::Read()
 		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GENERAL_SECTION, "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 		Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(AUDIOVISUAL_SECTION, "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 		Phobos::Config::SaveGameOnScenarioStart = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", true);
-		Phobos::UI::UnlimitedColor = pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
+
 	});
 }
 

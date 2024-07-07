@@ -147,6 +147,7 @@ struct Phobos final
 		static bool CenterPauseMenuBackground;
 		static bool WeedsCounter_Show;
 		static bool UnlimitedColor;
+		static bool AnchoredToolTips;
 
 		static const wchar_t* CostLabel;
 		static const wchar_t* PowerLabel;
