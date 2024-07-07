@@ -1067,6 +1067,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->FactoryOwners.Read(exINI, pSection, "FactoryOwners");
 		this->FactoryOwners_Forbidden.Read(exINI, pSection, "FactoryOwners.Forbidden");
+		this->Wake.Read(exINI, pSection, "Wake");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
@@ -2149,6 +2150,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ProduceCashDisplay)
 		.Process(this->FactoryOwners)
 		.Process(this->FactoryOwners_Forbidden)
+		.Process(this->Wake)
 		.Process(this->FactoryOwners_HaveAllPlans)
 		.Process(this->FactoryOwners_HasAllPlans)
 		.Process(this->Drain_Local)

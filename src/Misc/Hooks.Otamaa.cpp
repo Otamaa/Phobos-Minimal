@@ -398,7 +398,8 @@ DEFINE_HOOK(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pDrive = static_cast<DriveLocomotionClass* const>(pLoco);
-	TechnoExtData::PlayAnim(RulesClass::Instance->Wake, pDrive->LinkedTo);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pDrive->LinkedTo->GetTechnoType());
+	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pDrive->LinkedTo);
 	return 0x4B0828;
 }
 
@@ -406,7 +407,8 @@ DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pShip = static_cast<ShipLocomotionClass* const>(pLoco);
-	TechnoExtData::PlayAnim(RulesClass::Instance->Wake, pShip->LinkedTo);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pShip->LinkedTo->GetTechnoType());
+	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pShip->LinkedTo);
 	return 0x69FEF0;
 }
 
