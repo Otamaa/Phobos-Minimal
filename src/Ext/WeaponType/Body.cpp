@@ -221,8 +221,15 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 		return range;
 	else if (pFirer && pFirer->CanOccupyFire())
 		range = RulesClass::Instance->OccupyWeaponRange * Unsorted::LeptonsPerCell;
-	else if (pThis && pFirer)
-		range = pThis->Range;
+	else if (pThis && pFirer){
+		auto pFirerExt = TechnoExtContainer::Instance.Find(pFirer);
+		int range_ = pThis->Range;
+
+		if(pFirerExt->AdditionalRange.isset())
+			range_+= pFirerExt->AdditionalRange;
+
+		range = range_;
+	}
 	else
 		return range;
 

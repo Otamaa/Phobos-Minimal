@@ -672,3 +672,61 @@ DEFINE_HOOK(0x5F46AE, ObjectClass_Select, 0x7)
 
 	return 0x0;
 }
+
+#include <EventClass.h>
+
+// Do not explicitly reset target for KeepTargetOnMove vehicles when issued move command.
+DEFINE_HOOK(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
+{
+	enum { SkipGameCode = 0x4C74C0 };
+
+	GET(EventClass*, pThis, ESI);
+	GET(TechnoClass*, pTechno, EDI);
+	GET(AbstractClass*, pTarget, EBX);
+
+	if (pTechno->WhatAmI() != AbstractType::Unit)
+		return 0;
+
+	auto const mission = static_cast<Mission>(pThis->Data.MegaMission.Mission);
+
+	if ((mission == Mission::Move)
+		&& TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->KeepTargetOnMove
+		&& pTechno->Target && !pTarget)
+	{
+		pTechno->SetDestination(pThis->Data.MegaMission.Destination.As_Abstract(), true);
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+// Reset the target if beyond weapon range.
+// This was originally in UnitClass::Mission_Move() but because that
+// is only checked every ~15 frames, it can cause responsiveness issues.
+DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
+	{
+		int weaponIndex = pThis->SelectWeapon(pThis->Target);
+
+		if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+		{
+			int extraDistance = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
+			int range = pWeapon->Range;
+			auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+			pExt->AdditionalRange = extraDistance;
+
+			if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
+				pThis->SetTarget(nullptr);
+
+			pExt->AdditionalRange.clear();
+		}
+	}
+
+	return 0;
+}

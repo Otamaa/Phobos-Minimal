@@ -58,10 +58,19 @@ public:
 	Valueable<bool> Splits { false };
 	Valueable<double> RetargetAccuracy { 0.0 };
 	Valueable<bool> RetargetOwner { true };
+	Valueable<double> RetargetSelf_Probability { 0.5 };
+
 	Valueable<double> AirburstSpread { 1.5 };
 	Nullable<bool> AroundTarget { }; // aptly named, for both Splits and Airburst, defaulting to Splits
 
 	ValueableVector<WeaponTypeClass*> AirburstWeapons { };
+
+	Valueable<bool> Airburst_UseCluster { false };
+	Valueable<bool> Airburst_RandomClusters { false };
+
+	Valueable<int> Splits_TargetCellRange { 3 };
+	Valueable<bool> Splits_UseWeaponTargeting { false };
+	Valueable<bool> AirburstWeapon_ApplyFirepowerMult { false };
 
 	Valueable<double> Splits_Range { 1280.0 };
 	Valueable<bool> Splits_RandomCellUseHarcodedRange { true };

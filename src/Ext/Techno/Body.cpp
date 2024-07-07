@@ -4943,6 +4943,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->PhobosAE)
 		.Process(this->ShootCount)
 		.Process(this->FiringObstacleCell)
+		.Process(this->AdditionalRange)
+		.Process(this->IsAboutToStartCloaking)
 		.Process(this->CurrentAircraftWeaponIndex)
 		;
 }

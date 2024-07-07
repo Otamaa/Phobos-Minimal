@@ -463,6 +463,8 @@ public:
 	int CurrentAircraftWeaponIndex { 0 };
 
 	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+	OptionalStruct<int, true> AdditionalRange {};
+	bool IsAboutToStartCloaking { false };
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept

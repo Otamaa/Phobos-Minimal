@@ -143,11 +143,20 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AirburstSpread.Read(exINI, pSection, "AirburstSpread");
 		this->RetargetAccuracy.Read(exINI, pSection, "RetargetAccuracy");
 		this->RetargetOwner.Read(exINI, pSection, "RetargetSelf");
+		this->RetargetSelf_Probability.Read(exINI, pSection, "RetargetSelf.Probability");
 		this->Splits.Read(exINI, pSection, "Splits");
 		this->AroundTarget.Read(exINI, pSection, "AroundTarget");
 		this->AirburstWeapons.Read(exINI, pSection, "AirburstWeapons");
+		this->Airburst_RandomClusters.Read(exINI, pSection, "Airburst.RandomClusters");
+		this->Airburst_UseCluster.Read(exINI, pSection, "Airburst.UseCluster");
 
 		this->Splits_Range.Read(exINI, pSection, "Splits.TechnoRange");
+		this->Splits_Range.Read(exINI, pSection, "Splits.TargetingDistance");
+
+		this->Splits_TargetCellRange.Read(exINI, pSection, "Splits.TargetCellRange");
+		this->Splits_UseWeaponTargeting.Read(exINI, pSection, "Splits.UseWeaponTargeting");
+		this->AirburstWeapon_ApplyFirepowerMult.Read(exINI, pSection, "AirburstWeapon.ApplyFirepowerMult");
+
 		this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
 		this->Splits_TargetingUseVerses.Read(exINI, pSection, "Splits.TargetingUseVerses");
 		this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
@@ -235,11 +244,17 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Splits)
 		.Process(this->RetargetAccuracy)
 		.Process(this->RetargetOwner)
+		.Process(this->RetargetSelf_Probability)
 		.Process(this->AirburstSpread)
 		.Process(this->AroundTarget)
 		.Process(this->AirburstWeapons)
+		.Process(this->Airburst_UseCluster)
+		.Process(this->Airburst_RandomClusters)
 		.Process(this->Splits_Range)
 		.Process(this->Splits_RandomCellUseHarcodedRange)
+		.Process(this->Splits_TargetCellRange)
+		.Process(this->Splits_UseWeaponTargeting)
+		.Process(this->AirburstWeapon_ApplyFirepowerMult)
 		.Process(this->Splits_TargetingUseVerses)
 		.Process(this->Splits_FillRemainingClusterWithRandomcells)
 		.Process(this->BounceAmount)

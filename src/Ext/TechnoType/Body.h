@@ -955,6 +955,9 @@ public:
 	ValueableVector<int> AttachEffect_InitialDelays {};
 	NullableVector<int> AttachEffect_RecreationDelays {};
 
+	Valueable<bool> KeepTargetOnMove {};
+	Valueable<Leptons> KeepTargetOnMove_ExtraDistance {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

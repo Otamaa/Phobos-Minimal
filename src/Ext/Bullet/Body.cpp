@@ -19,6 +19,30 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
+{
+	auto const pWH = pWeapon->Warhead;
+	auto const pType = pTarget->GetTechnoType();
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (!pType->LegalTarget || !pWHExt->CanDealDamage(pTarget,false,!useverses))
+		return false;
+
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pOwner, pTarget->Owner)
+			|| !EnumFunctions::IsCellEligible(pTarget->GetCell(), pWeaponExt->CanTarget, true, true)
+			|| !EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget))
+	{
+		return false;
+	}
+
+	if (!pWeaponExt->HasRequiredAttachedEffects(pTarget, pSource))
+		return false;
+
+	return true;
+}
+
 void BulletExtData::ApplyAirburst(BulletClass* pThis)
 {
 	const auto pType = pThis->Type;
@@ -63,47 +87,100 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				 return true;
 			});
 
+			if (pExt->Airburst_UseCluster) {
+				HelperedVector<AbstractClass*> newTargets;
+
+				if (pExt->Airburst_RandomClusters)
+				{
+					// Do random cells for amount matching Cluster.
+					int count = 0;
+					int targetCount = targets.size();
+
+					while (count < cluster)
+					{
+						int index = ScenarioClass::Instance->Random.RandomRanged(0, targetCount);
+						auto const pTarget = targets[index];
+
+						if (count > targetCount || newTargets.find(pTarget)  == newTargets.end()) {
+							newTargets.push_back(pTarget);
+							count++;
+						}
+					}
+				}
+				else
+				{
+					// Do evenly selected cells for amount matching Cluster.
+					double stepSize = (targets.size() - 1.0) / (cluster - 1.0);
+
+					for (int i = 0; i < cluster; i++) {
+						newTargets.push_back(targets[(static_cast<int>(round(stepSize * i)))]);
+					}
+				}
+
+				targets = newTargets;
+			}
+			else
+			{
+				// we want as many as we get, not more, not less
+				cluster = (int)targets.size();
+			}
+
 			// we want as many as we get, not more, not less
-			cluster = (int)targets.size();
+			//cluster = (int)targets.size();
 		}
 		else
 		{
 			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
-			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner]
+			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner]
 				(AbstractClass* pAbs)
 				{
 
 				auto pTechno = generic_cast<TechnoClass*>(pAbs);
 
-				if (pTechno && pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
-				{
-
-					if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-						return false;
-
-					if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
-					{
-						const auto nLayer = pTechno->InWhichLayer();
-
-						if (nLayer == Layer::Underground || nLayer == Layer::None)
+				if (pTechno) {
+					if(!pExt->Splits_UseWeaponTargeting) {
+						if(!pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
 							return false;
 
-						if (((!pTechno->IsInAir() && pWeapon->Projectile->AG)
-							|| (pTechno->IsInAir() && pWeapon->Projectile->AA)))
+						if (!pTechno->IsInPlayfield || !pTechno->IsOnMap || (!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
+							return false;
+
+						if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
 						{
-							return true;
+							const auto nLayer = pTechno->InWhichLayer();
+
+							if (nLayer == Layer::Underground || nLayer == Layer::None)
+								return false;
+
+							if (((!pTechno->IsInAir() && pWeapon->Projectile->AG)
+								|| (pTechno->IsInAir() && pWeapon->Projectile->AA)))
+							{
+								return true;
+							}
+						}
+					} else {
+						if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0 && (pExt->RetargetOwner || pTechno != pThis->Owner))
+						{
+							auto const coords = pTechno->GetCoords();
+
+							if ((pThis->Type->AA || !pTechno->IsInAir())
+								&& IsAllowedSplitsTarget(pBulletOwner, pBulletHouseOwner, pWeapon, pTechno, pExt->Splits_TargetingUseVerses))
+							{
+								return true;
+							}
 						}
 					}
 				}
+
 				return false;
 			});
 
 			if (pExt->Splits_FillRemainingClusterWithRandomcells)
 			{
 				// fill up the list to cluster count with random cells around destination
-				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
-				const int nMaxRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->Range / Unsorted::LeptonsPerCell;
+				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? pExt->Splits_TargetCellRange : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
+				const int nMaxRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? pExt->Splits_TargetCellRange : pWeapon->Range / Unsorted::LeptonsPerCell;
 
 				while ((int)targets.size() < (cluster))
 				{
@@ -140,7 +217,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				// firer would hit itself
 				if (pTarget == pThis->Owner)
 				{
-					if (random.RandomDouble() > 0.5)
+					if (random.RandomDouble() > pExt->RetargetSelf_Probability)
 					{
 						index = random.RandomFromMax(targets.size() - 1);
 						pTarget = targets[index];
@@ -158,7 +235,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 					Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID(), pTechno->get_ID());
 #endif
 				if (const auto pBullet = BulletTypeExtContainer::Instance
-					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon))
+					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon, true , true))
 				{
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
