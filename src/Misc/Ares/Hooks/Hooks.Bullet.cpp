@@ -116,6 +116,10 @@ DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 			pWarheadExt->SplashList_CreationInterval : pWarheadExt->AnimList_CreationInterval;
 
 	int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
+	int scatterMin = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMin.Get() : pWarheadExt->AnimList_ScatterMin.Get();
+	int scatterMax = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMax.Get() : pWarheadExt->AnimList_ScatterMax.Get();
+	bool allowScatter = scatterMax != 0 || scatterMin != 0;
+
 	if (creationInterval > 0 && pThis->Owner)
 			remainingInterval = &TechnoExtContainer::Instance.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
 
@@ -148,8 +152,15 @@ DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 				if (!pType)
 					continue;
 
+					auto animCoords = *XYZ;
+
+					if (allowScatter) {
+						int distance = ScenarioClass::Instance->Random.RandomRanged(scatterMin, scatterMax);
+						animCoords = MapClass::GetRandomCoordsNear(animCoords, distance, false);
+					}
+
 					{
-						auto const pAnim = GameCreate<AnimClass>(pType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false);
+						auto const pAnim = GameCreate<AnimClass>(pType, animCoords, 0, 1, (AnimFlag)0x2600, -15, false);
 						createdAnim = true;
 
 						if (const auto pTech = pThis->Owner) {

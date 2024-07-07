@@ -93,11 +93,16 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
 	this->SplashList_CreateAll.Read(exINI, pSection, "SplashList.CreateAll");
 	this->SplashList_CreationInterval.Read(exINI, pSection, "SplashList.CreationInterval");
+	this->SplashList_ScatterMin.Read(exINI, pSection, "SplashList.ScatterMin");
+	this->SplashList_ScatterMax.Read(exINI, pSection, "SplashList.ScatterMax");
+
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
 	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
 	this->AnimList_CreateAll.Read(exINI, pSection, "AnimList.CreateAll");
 	this->AnimList_CreationInterval.Read(exINI, pSection, "AnimList.CreationInterval");
+	this->AnimList_ScatterMin.Read(exINI, pSection, "AnimList.ScatterMin");
+	this->AnimList_ScatterMax.Read(exINI, pSection, "AnimList.ScatterMax");
 	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
 	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
 	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
@@ -1143,11 +1148,15 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SplashList_PickRandom)
 		.Process(this->SplashList_CreateAll)
 		.Process(this->SplashList_CreationInterval)
+		.Process(this->SplashList_ScatterMin)
+		.Process(this->SplashList_ScatterMax)
 		.Process(this->RemoveDisguise)
 		.Process(this->RemoveMindControl)
 		.Process(this->AnimList_PickRandom)
 		.Process(this->AnimList_CreateAll)
 		.Process(this->AnimList_CreationInterval)
+		.Process(this->AnimList_ScatterMin)
+		.Process(this->AnimList_ScatterMax)
 		.Process(this->AnimList_ShowOnZeroDamage)
 		.Process(this->DecloakDamagedTargets)
 		.Process(this->ShakeIsLocal)

@@ -313,15 +313,44 @@ bool PhobosAttachEffectClass::AllowedToBeActive() const
 	{
 		bool isMoving = pFoot->Locomotor->Is_Moving();
 
-		if (isMoving && (Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
+		if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
 			return false;
 
-		if (!isMoving && (Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
+		if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
 			return false;
 	}
 
-	if (this->Techno->DrainingMe && (Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
+	if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
 		return false;
+
+	if (this->Techno->Target)
+	{
+		bool inRange = (this->Type->DiscardOn & DiscardCondition::InRange) != DiscardCondition::None;
+		bool outOfRange = (this->Type->DiscardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
+
+		if (inRange || outOfRange)
+		{
+			int distance = -1;
+
+			if (this->Type->DiscardOn_RangeOverride.isset())
+			{
+				distance = this->Type->DiscardOn_RangeOverride.Get();
+			}
+			else
+			{
+				int weaponIndex = this->Techno->SelectWeapon(this->Techno->Target);
+				auto const pWeapon = this->Techno->GetWeapon(weaponIndex)->WeaponType;
+
+				if (pWeapon)
+					distance = pWeapon->Range;
+			}
+
+			const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
+
+			if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
+				return false;
+		}
+	}
 
 	return true;
 }

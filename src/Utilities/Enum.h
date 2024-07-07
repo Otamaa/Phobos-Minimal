@@ -59,10 +59,12 @@ MAKE_ENUM_FLAGS(LandTypeFlags);
 enum class DiscardCondition : unsigned char
 {
 	None = 0x0,
-	Entry = 0x1,
-	Move = 0x2,
-	Stationary = 0x3,
-	Drain = 0x4,
+	Entry ,
+	Move ,
+	Stationary ,
+	Drain ,
+	InRange ,
+	OutOfRange ,
 
 	count
 };

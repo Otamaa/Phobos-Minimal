@@ -10,7 +10,9 @@ std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::Discard
 	{ "entry" } ,
 	{ "move" } ,
 	{ "stationary" } ,
-	{ "drain" }
+	{ "drain" } ,
+	{ "inrange" } ,
+	{ "outofrange" }
  }
 };
 
