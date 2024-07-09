@@ -12,12 +12,63 @@ class AnimClass;
 class PhobosAttachEffectClass
 {
 public:
-	//PhobosAttachEffectClass();
+	PhobosAttachEffectClass() noexcept = default;
 
 	//PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
 	//	AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
 
 	//~PhobosAttachEffectClass() = default;
+
+	PhobosAttachEffectClass::PhobosAttachEffectClass(const PhobosAttachEffectClass& that) :
+		Duration { that.Duration } ,
+		DurationOverride { that.DurationOverride },
+		Delay { that.Delay },
+		CurrentDelay { that.CurrentDelay },
+		InitialDelay { that.InitialDelay },
+		RecreationDelay { that.RecreationDelay },
+		Type { that.Type },
+		Techno { that.Techno },
+		InvokerHouse { that.InvokerHouse },
+		Invoker { that.Invoker },
+		Source { that.Source },
+		Animation { nullptr },
+		IsAnimHidden { that.IsAnimHidden },
+		IsUnderTemporal { that.IsUnderTemporal },
+		IsOnline { that.IsOnline },
+		IsCloaked { that.IsCloaked },
+		HasInitialized { that.HasInitialized },
+		NeedsDurationRefresh { that.NeedsDurationRefresh },
+		IsFirstCumulativeInstance { that.IsFirstCumulativeInstance } {
+		//oogly
+		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
+		this->Animation.swap(c_remove->Animation);
+	}
+
+	PhobosAttachEffectClass& operator=(const PhobosAttachEffectClass& that) {
+		this->Duration = that.Duration;
+		this->DurationOverride = that.DurationOverride;
+		this->Delay = that.Delay;
+		this->CurrentDelay = that.CurrentDelay;
+		this->InitialDelay = that.InitialDelay;
+		this->RecreationDelay = that.RecreationDelay;
+		this->Type = that.Type;
+		this->Techno = that.Techno;
+		this->InvokerHouse = that.InvokerHouse;
+		this->Invoker = that.Invoker;
+		this->Source = that.Source;
+		this->IsAnimHidden = that.IsAnimHidden;
+		this->IsUnderTemporal = that.IsUnderTemporal;
+		this->IsOnline = that.IsOnline;
+		this->IsCloaked = that.IsCloaked;
+		this->HasInitialized = that.HasInitialized;
+		this->NeedsDurationRefresh = that.NeedsDurationRefresh;
+		this->IsFirstCumulativeInstance = that.IsFirstCumulativeInstance;
+
+		//oogly
+		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
+		this->Animation.swap(c_remove->Animation);
+		return *this;
+	}
 
 	void Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
@@ -68,6 +119,10 @@ public:
 
 	static int DetachByGroups(std::vector<std::string> const& groups, TechnoClass* pTarget, std::vector<int> const& minCounts, std::vector<int> const& maxCounts);
 	static void TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
+
+	~PhobosAttachEffectClass() {
+		Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 private:
 	void OnlineCheck();

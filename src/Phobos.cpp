@@ -935,8 +935,10 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Destroy();
 #endif
-	CRT::exit_noreturn(0);
-	return 0x0;
+	//CRT::exit_noreturn(0);
+	//return 0x0;
+	GET(UINT, result, EAX);
+	ExitProcess(result);
 }
 
 //DEFINE_HOOK(0x7C8B3D, Game_freeMem, 0x9)

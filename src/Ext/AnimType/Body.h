@@ -123,7 +123,7 @@ public:
 
 	void ValidateSpalshAnims();
 
-	OwnerHouseKind GetAnimOwnerHouseKind()
+	constexpr OwnerHouseKind GetAnimOwnerHouseKind()
 	{
 		if (this->CreateUnit && !this->CreateUnit_Owner.isset())
 			return OwnerHouseKind::Victim;

@@ -317,7 +317,7 @@ public:
 	void CompleteInitialization() const;
 
 	// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
-	int __forceinline GetSuperWeaponCount() const
+	constexpr int FORCEINLINE GetSuperWeaponCount() const
 	{
 		// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
 		return 2 + this->SuperWeapons.size();

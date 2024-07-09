@@ -67,7 +67,10 @@ public:
 	int SpyEffectAnimDuration {};
 
 	BuildingExtData() noexcept = default;
-	~BuildingExtData() noexcept = default;
+	~BuildingExtData() noexcept
+	{
+		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 	void InitializeConstant();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

@@ -14,9 +14,34 @@ public:
 	int Duration { 0 };
 	HouseClass* Invoker { nullptr };
 
+	AresAE::AresAE() noexcept = default;
+
+	AresAE::AresAE(const AresAE& that) : Type(that.Type)
+		, Anim { nullptr }
+		, Duration { that.Duration }
+		, Invoker { that.Invoker } {
+		//oogly
+		auto c_remove = const_cast<AresAE*>(&that);
+		this->Anim.swap(c_remove->Anim);
+	}
+
+	AresAE& operator=(const AresAE& other) {
+		this->Type = other.Type;
+		this->Duration = other.Duration;
+		this->Invoker = other.Invoker;
+		//oogly
+		auto c_remove = const_cast<AresAE*>(&other);
+		this->Anim.swap(c_remove->Anim);
+		return *this;
+	}
+
+	~AresAE() {
+		Anim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
+
 	constexpr void InvalidatePointer(AnimClass* ptr, bool bDetach)
 	{
-		if (ptr == this->Anim.get()) {
+		if (this->Anim && ptr == this->Anim.get()) {
 			this->Anim.release();
 		}
 	}

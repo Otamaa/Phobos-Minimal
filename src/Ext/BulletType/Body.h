@@ -120,13 +120,13 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	bool FORCEINLINE HasSplitBehavior() const
+	constexpr bool FORCEINLINE HasSplitBehavior() const
 	{
 		// behavior in FS: Splits defaults to Airburst.
 		return this->AttachedToObject->Airburst || this->Splits;
 	}
 
-	double FORCEINLINE GetMissileROTVar(const RulesClass* const pRules) const
+	constexpr double FORCEINLINE GetMissileROTVar(const RulesClass* const pRules) const
 	{
 		if (MissileROTVar.isset())
 			return MissileROTVar.Get();
@@ -134,7 +134,7 @@ public:
 		return pRules->MissileROTVar;
 	}
 
-	double FORCEINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
+	constexpr double FORCEINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
 			return MissileSafetyAltitude.Get();
@@ -146,7 +146,7 @@ public:
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const;
 
-	double FORCEINLINE GetAdjustedGravity() const
+	constexpr double FORCEINLINE GetAdjustedGravity() const
 	{
 		const auto nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
 		return this->AttachedToObject->Floater ? nGravity * 0.5 : nGravity;

@@ -28,7 +28,9 @@ public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
-	~ShieldClass() noexcept = default;
+	~ShieldClass() noexcept {
+		this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 	//void OnInit() { }
 	//void OnUnInit() { }

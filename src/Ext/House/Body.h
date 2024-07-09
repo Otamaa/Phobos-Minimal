@@ -19,7 +19,7 @@ struct LauchData
 	int LastFrame { Unsorted::CurrentFrame };
 	int Count { 0 };
 
-	void Update()
+	constexpr void Update()
 	{
 		++Count;
 		LastFrame = Unsorted::CurrentFrame();

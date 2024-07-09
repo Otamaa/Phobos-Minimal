@@ -46,7 +46,9 @@ public:
 	AbstractClass* OriginalTarget { nullptr };
 
 	BulletExtData() noexcept = default;
-	~BulletExtData() noexcept = default;
+	~BulletExtData() noexcept {
+		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);

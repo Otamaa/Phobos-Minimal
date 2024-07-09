@@ -23,15 +23,26 @@
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
 , Timers { }
+, IdleAnim { nullptr }
+, Cloak { false }
+, Online { true }
+, Temporal { false }
+, Available { true }
+, Attached { false }
 , AreAnimsHidden { false }
-{
-}
+, SelfHealing_Warhead { 0.0 }
+, SelfHealing_Rate_Warhead { -1 }
+, Respawn_Warhead { 0.0 }
+, Respawn_Rate_Warhead { -1 }
+, LastBreakFrame { -1 }
+, Type { nullptr }
+{ }
 
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , CurTechnoType { nullptr }
 , HP { 0 }
 , Timers { }
-, IdleAnim { }
+, IdleAnim { nullptr }
 , Cloak { false }
 , Online { true }
 , Temporal { false }

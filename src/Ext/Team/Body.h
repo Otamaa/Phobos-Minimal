@@ -55,7 +55,10 @@ public:
 
 	~TeamExtData() noexcept
 	{
-		GameDelete<true, true>(PreviousScript);
+		if(!Phobos::Otamaa::ExeTerminated) {
+			GameDelete<true, true>(PreviousScript);
+		}
+
 		PreviousScript = nullptr;
 	}
 

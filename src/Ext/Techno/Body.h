@@ -474,6 +474,9 @@ public:
 				GameDelete(pTemp);
 			}
 		}
+
+		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

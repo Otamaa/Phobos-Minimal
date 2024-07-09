@@ -42,8 +42,8 @@ void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed
 
 	if (absType == AbstractType::Anim)
 	{
-		if (ptr == this->Animation.get())
-			this->Animation.clear();
+		if (this->Animation && ptr == this->Animation.get())
+			this->Animation.release();
 	}
 	else if ((ptr->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{

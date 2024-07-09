@@ -35,7 +35,10 @@ public:
 	SpawnsStatus SpawnsStatusData {};
 
 	AnimExtData() noexcept = default;
-	~AnimExtData() noexcept = default;
+	~AnimExtData() noexcept
+	{
+		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);
@@ -64,7 +67,7 @@ public:
 
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
 
-	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
+	static constexpr HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
 	{
 		return pThis->Owner;
 	}
