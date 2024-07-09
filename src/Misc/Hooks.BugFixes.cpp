@@ -1568,13 +1568,14 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 
 
 // Ares InitialPayload fix: Man, what can I say
-DEFINE_HOOK(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
-{
-	GET(TeamClass*, pTeam, EBP);
-	GET(TechnoTypeClass*, pType, EDI);
-	R->ESI(pType->CreateObject(pTeam->Owner));
-	return 0x65DE53;
-}
+// Otamaa : this can cause deadlock , or crashes , better write proper fix
+// DEFINE_HOOK(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
+// {
+// 	GET(TeamClass*, pTeam, EBP);
+// 	GET(TechnoTypeClass*, pType, EDI);
+// 	R->ESI(pType->CreateObject(pTeam->Owner));
+// 	return 0x65DE53;
+// }
 
 DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 {
