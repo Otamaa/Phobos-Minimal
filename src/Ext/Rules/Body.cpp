@@ -667,6 +667,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
 	this->Droppod_ImageInfantry.Read(exINI, GameStrings::AudioVisual, "DropPod.InfantryPodImage");
 	this->DrawInsigniaOnlyOnSelected.Read(exINI, GameStrings::AudioVisual, "DrawInsigniaOnlyOnSelected");
+	this->DrawInsignia_AdjustPos_Infantry.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Infantry");
+	this->DrawInsignia_AdjustPos_Buildings.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Buildings");
+	this->DrawInsignia_AdjustPos_BuildingsAnchor.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.BuildingsAnchor");
+	this->DrawInsignia_AdjustPos_Units.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Units");
 
 #pragma region Otamaa
 	this->DisplayCreditsDelay.Read(exINI, AUDIOVISUAL_SECTION, "DisplayCreditsDelay");
@@ -1171,6 +1175,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->FPSCounter)
 
 		.Process(this->DrawInsigniaOnlyOnSelected)
+		.Process(this->DrawInsignia_AdjustPos_Infantry)
+		.Process(this->DrawInsignia_AdjustPos_Buildings)
+		.Process(this->DrawInsignia_AdjustPos_BuildingsAnchor)
+		.Process(this->DrawInsignia_AdjustPos_Units)
 
 		.Process(this->SelectFlashTimer)
 		.Process(this->WarheadParticleAlphaImageIsLightFlash)

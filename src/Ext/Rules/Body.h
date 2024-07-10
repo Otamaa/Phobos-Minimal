@@ -295,6 +295,10 @@ public:
 
 	bool FPSCounter { false };
 	Valueable<bool> DrawInsigniaOnlyOnSelected {};
+	Valueable<Point2D> DrawInsignia_AdjustPos_Infantry { { 5, 2 } };
+	Valueable<Point2D> DrawInsignia_AdjustPos_Buildings { { 10, 6 } };
+	Valueable<BuildingSelectBracketPosition> DrawInsignia_AdjustPos_BuildingsAnchor { BuildingSelectBracketPosition::Bottom };
+	Valueable<Point2D> DrawInsignia_AdjustPos_Units { { 10, 6 } };
 
 	Valueable<int> SelectFlashTimer { 0 };
 

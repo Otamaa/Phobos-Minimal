@@ -2478,6 +2478,25 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
 
+FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
+
+	Point2D a__ { a_.X , a_.Y};
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry:
+		offset += (RulesExtData::Instance()->DrawInsignia_AdjustPos_Infantry->operator+(a__));
+		break;
+	case AbstractType::Building:
+		offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis,
+				RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor) +
+				RulesExtData::Instance()->DrawInsignia_AdjustPos_Buildings) + a__;
+		break;
+	default:
+		offset += (RulesExtData::Instance()->DrawInsignia_AdjustPos_Units->operator+(a__));
+		break;
+	}
+}
+
 void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->CurrentRanking == Rank::Invalid || RulesExtData::Instance()->DrawInsigniaOnlyOnSelected.Get() && !pThis->IsSelected)
@@ -2521,8 +2540,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 	if (frameIndex != -1 && pShapeFile)
 	{
-		offset.X += (5 + drawOffs.X);
-		offset.Y += (pThis->WhatAmI() != InfantryClass::AbsID ? 4 : 2 + drawOffs.Y);
+		GetAdjustedInsigniaOffset(pThis, offset , drawOffs);
 
 		DSurface::Temp->DrawSHP(
 			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00),
