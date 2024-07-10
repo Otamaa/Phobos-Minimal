@@ -2659,7 +2659,7 @@ void SuperWeaponSidebar::DrawToolTip(SuperClass* pSuper, Point2D* pLoc)
 {
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-	PhobosToolTip::Instance.HelpText(pSuper->Type);
+	PhobosToolTip::Instance.HelpText(pSuper);
 
 	if (const wchar_t* pDesc = PhobosToolTip::Instance.TextBuffer.c_str())
 	{

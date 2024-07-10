@@ -25,7 +25,7 @@ public:
 
 	void HelpText(const BuildType& cameo);
 	void HelpText(TechnoTypeClass* pType);
-	void HelpText(SuperWeaponTypeClass* pType);
+	void HelpText(SuperClass* pSuper);
 
 	// Properties
 public:

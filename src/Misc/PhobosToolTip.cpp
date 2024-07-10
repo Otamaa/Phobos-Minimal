@@ -102,10 +102,11 @@ inline const wchar_t* PhobosToolTip::GetBuffer() const
 
 void PhobosToolTip::HelpText(const BuildType& cameo)
 {
-	if (cameo.ItemType == AbstractType::Special)
-		this->HelpText(SuperWeaponTypeClass::Array->Items[cameo.ItemIndex]);
-	else
+	if (cameo.ItemType == AbstractType::Special) {
+		this->HelpText(HouseClass::CurrentPlayer->Supers.Items[cameo.ItemIndex]);
+	} else {
 		this->HelpText(ObjectTypeClass::FetchTechnoType(cameo.ItemType, cameo.ItemIndex));
+	}
 }
 
 struct TimerDatas {
@@ -123,9 +124,10 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
 
-	const int nBuildTime = this->GetBuildTime(pType);
-	const int nSec = TickTimeToSeconds(nBuildTime) % 60;
-	const int nMin = TickTimeToSeconds(nBuildTime) / 60 /* % 60*/;
+	const int nBuildTime = TickTimeToSeconds(this->GetBuildTime(pType));
+
+	const int nSec = nBuildTime % 60;
+	const int nMin = nBuildTime / 60 /* % 60*/;
 	// int nHour = TickTimeToSeconds(nBuildTime) / 60 / 60;
 
 #ifdef debug_timer
@@ -187,12 +189,12 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 	//return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
 }
 
-void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
+void PhobosToolTip::HelpText(SuperClass* pSuper)
 {
-	const auto pData = SWTypeExtContainer::Instance.Find(pType);
+	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	std::wostringstream oss;
-	oss << pType->UIName;
+	oss << pSuper->Type->UIName;
 	bool showCost = false;
 
 	if (const int nCost = std::abs(pData->Money_Amount))
@@ -206,13 +208,15 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 		showCost = true;
 	}
 
-	if (pType->RechargeTime > 0)
+	const int rechargeTime = TickTimeToSeconds(pSuper->GetRechargeTime());
+
+	if (rechargeTime > 0)
 	{
 		if (!showCost)
 			oss << L"\n";
 
-		const int nSec = TickTimeToSeconds(pType->RechargeTime) % 60;
-		const int nMin = TickTimeToSeconds(pType->RechargeTime) / 60 /* % 60*/;
+		const int nSec = rechargeTime % 60;
+		const int nMin = rechargeTime / 60 /* % 60*/;
 		// int nHour = TickTimeToSeconds(pType->RechargeTime) / 60 / 60;
 
 		oss << (showCost ? L" " : L"") << Phobos::UI::TimeLabel
@@ -221,10 +225,8 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 			<< std::setw(2) << std::setfill(L'0') << nSec;
 	}
 
-	const auto pExt = SWTypeExtContainer::Instance.Find(pType);
-
-	if(pExt->SW_Power.isset()) {
-		const auto nPower = pExt->SW_Power;
+	if(pData->SW_Power.isset()) {
+		const auto nPower = pData->SW_Power;
 
 		if (nPower != 0) {
 			oss << L" " << Phobos::UI::PowerLabel;
