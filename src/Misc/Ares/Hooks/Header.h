@@ -437,25 +437,30 @@ struct AresTActionExt
 	static std::pair<TriggerAttachType, bool> GetFlag(AresNewTriggerAction nAction);
 	static std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction);
 
-	static bool ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool DeactivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool KillDriversOf(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
+#define DEFINE_ACTION(f)\
+	static bool f##(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+
+	DEFINE_ACTION(ActivateFirestorm);
+	DEFINE_ACTION(DeactivateFirestorm);
+	DEFINE_ACTION(AuxiliaryPower);
+	DEFINE_ACTION(KillDriversOf);
+	DEFINE_ACTION(SetEVAVoice);
+	DEFINE_ACTION(SetGroup);
 
 	//TODO : re-eval
-	static bool LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
+	DEFINE_ACTION(LauchhNuke);
 
 	//TODO : re-eval
-	static bool LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool LightstormStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
-	static bool DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location);
+	DEFINE_ACTION(LauchhChemMissile);
+	DEFINE_ACTION(LightstormStrike);
+	DEFINE_ACTION(MeteorStrike);
+	DEFINE_ACTION(PlayAnimAt);
+	DEFINE_ACTION(DoExplosionAt);
+
 	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col);
 
 	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret);
+#undef DEFINE_ACTION
 };
 
 struct AresTEventExt
