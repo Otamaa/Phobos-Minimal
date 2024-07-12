@@ -65,6 +65,9 @@ public:
 
 	Handle<AnimClass*, UninitAnim> SpyEffectAnim { nullptr };
 	int SpyEffectAnimDuration {};
+	int PoweredUpToLevel { 0 }; // Distinct from UpgradeLevel,
+	//and set to highest PowersUpToLevel out of
+	//applied upgrades regardless of how many are currently applied to this building.
 
 	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept

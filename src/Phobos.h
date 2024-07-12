@@ -164,6 +164,9 @@ struct Phobos final
 		static const wchar_t* Power_Label;
 		static const wchar_t* Drain_Label;
 		static const wchar_t* Storage_Label;
+		static const wchar_t* Radar_Label;
+		static const wchar_t* Spysat_Label;
+
 	};
 
 	struct Config

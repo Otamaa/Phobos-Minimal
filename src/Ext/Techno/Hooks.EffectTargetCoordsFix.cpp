@@ -16,6 +16,7 @@
 #include <Ext/WarheadType/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Misc/Ares/Hooks/AresTrajectoryHelper.h>
 
 #ifndef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
@@ -166,7 +167,7 @@ DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 }
 #endif
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 namespace FireAtTemp
 {
 	CoordStruct originalTargetCoords;
@@ -206,7 +207,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
 		coords = pBuilding->GetTargetCoords();
 
 	// This is set to a temp variable as well, as accessing it everywhere needed from TechnoExt would be more complicated.
-	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
+	FireAtTemp::pObstacleCell = AresTrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
 	TechnoExtContainer::Instance.Find(pThis)->FiringObstacleCell = FireAtTemp::pObstacleCell;
 	return 0;
 }
@@ -246,7 +247,7 @@ DEFINE_HOOK(0x762AFF, WaveClass_AI_TargetSet, 0x6)
 
 	if (pThis->Target && pThis->Owner)
 	{
-		auto const pObstacleCell = TechnoExt::ExtMap.Find(pThis->Owner)->FiringObstacleCell;
+		auto const pObstacleCell = TechnoExtContainer::Instance.Find(pThis->Owner)->FiringObstacleCell;
 
 		if (pObstacleCell == pThis->Target && pThis->Owner->Target)
 		{
@@ -284,10 +285,10 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 	GET_BASE(AbstractClass*, pOriginalTarget, 0x8);
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 	//TargetSet
 	FireAtTemp::originalTargetCoords = *pTargetCoords;
-	FireAtTemp::pOriginalTarget = pTarget;
+	FireAtTemp::pOriginalTarget = pOriginalTarget;
 
 	if (FireAtTemp::pObstacleCell)
 	{

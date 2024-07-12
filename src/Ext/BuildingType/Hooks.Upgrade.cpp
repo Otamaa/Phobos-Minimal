@@ -30,12 +30,12 @@ DEFINE_HOOK(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
 
-	for (int i = 0; i < pThis->Upgrades; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		auto const pINI = &CCINIClass::INI_Art();
 		auto const animData = &pThis->BuildingAnim[i];
 
-		std::string baseKey = std::format("PowerUp{:01}", i + 1);
+		const std::string baseKey = std::format("PowerUp{:01}", i + 1);
 
 		pINI->ReadString(pThis->ImageFile, (baseKey + "Anim").c_str(), Phobos::readDefval, animData->Anim);
 		pINI->ReadString(pThis->ImageFile, (baseKey + "DamagedAnim").c_str(), Phobos::readDefval, animData->Damaged);
@@ -54,16 +54,60 @@ DEFINE_HOOK(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 	return 0x46492E;
 }
 
+#include <Ext/Building/Body.h>
+
+DEFINE_HOOK(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
+{
+	enum { SkipGameCode = 0x4409C7 };
+
+	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass*, pTarget, EDI);
+
+	auto const pTargetExt = BuildingExtContainer::Instance.Find(pTarget);
+	pTargetExt->PoweredUpToLevel = pTarget->UpgradeLevel + 1;
+	int animIndex = pTarget->UpgradeLevel;
+
+	if (pThis->Type->PowersUpToLevel > 0)
+	{
+		pTargetExt->PoweredUpToLevel = pThis->Type->PowersUpToLevel;
+		animIndex = pTargetExt->PoweredUpToLevel - 1;
+	}
+
+	auto const animData = &pTarget->Type->BuildingAnim[animIndex];
+
+	// Only copy image name to BuildingType anim struct if it is not already set.
+	if (!GeneralUtils::IsValidString(animData->Anim))
+		strncpy_s(animData->Anim, pThis->Type->ImageFile, sizeof(animData->Anim));
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
+{
+	enum { SkipGameCode = 0x451638 };
+
+	GET(BuildingClass*, pThis, EBP);
+
+	const int animIndex = BuildingExtContainer::Instance.Find(pThis)->PoweredUpToLevel - 1;
+
+	if (animIndex) {
+		R->EAX(animIndex);
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
 // Don't allow upgrade anims to be created if building is not upgraded or they require power to be shown and the building isn't powered.
-FORCEINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, BuildingAnimSlot anim)
+constexpr FORCEINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, BuildingAnimSlot anim)
 {
 	auto const pType = pBuilding->Type;
 
 	if (pType->Upgrades != 0 && anim >= BuildingAnimSlot::Upgrade1 && anim <= BuildingAnimSlot::Upgrade3 && !pBuilding->Anims[int(anim)])
 	{
-		int upgradeLevel = pBuilding->UpgradeLevel - 1;
+		int animIndex = BuildingExtContainer::Instance.Find(pBuilding)->PoweredUpToLevel - 1;
 
-		if (upgradeLevel < 0 || (int)anim != upgradeLevel)
+		if (animIndex < 0 || (int)anim != animIndex)
 			return false;
 
 		auto const animData = pType->BuildingAnim[int(anim)];

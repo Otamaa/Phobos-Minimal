@@ -89,6 +89,8 @@ bool Phobos::UI::AnchoredToolTips = false;
 const wchar_t* Phobos::UI::Power_Label;
 const wchar_t* Phobos::UI::Drain_Label;
 const wchar_t* Phobos::UI::Storage_Label;
+const wchar_t* Phobos::UI::Radar_Label;
+const wchar_t* Phobos::UI::Spysat_Label;
 
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
@@ -445,6 +447,8 @@ void Phobos::Config::Read()
 			Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissing("TXT_DRAIN_FORMAT_B", L"Drain = %d");
 			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %.3lf %");
 			Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissing("TXT_FAKE", L"FAKE");
+			Phobos::UI::Radar_Label = GeneralUtils::LoadStringUnlessMissing("TXT_RADAR", L"Radar");
+			Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissing("TXT_SPYSAT", L"SpySat");
 		}
 
 		// ToolTips

@@ -802,6 +802,13 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			}
 
 			const bool hasStorage = pType->Storage > 0;
+			bool HasSpySat = false;
+			for(auto& _pType : pBuilding->GetTypes()) {
+				if(_pType && _pType->SpySat) {
+					HasSpySat = true;
+					break;
+				}
+			}
 
 			if (hasStorage) {
 
@@ -836,8 +843,20 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				}
 			}
 
-			if(!BuildingExtContainer::Instance.Find(pBuilding)->RegisteredJammers.empty())
-				DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
+			if(pType->Radar || HasSpySat) {
+
+				if(pType->Radar) {
+					DrawTheStuff(Phobos::UI::Radar_Label);
+				}
+
+				if(HasSpySat) {
+					DrawTheStuff(Phobos::UI::Spysat_Label);
+				}
+
+				if(!BuildingExtContainer::Instance.Find(pBuilding)->RegisteredJammers.empty())
+					DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
+
+			}
 		}
 	}
 

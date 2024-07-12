@@ -2499,7 +2499,8 @@ FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset 
 
 void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if (pThis->CurrentRanking == Rank::Invalid || RulesExtData::Instance()->DrawInsigniaOnlyOnSelected.Get() && !pThis->IsSelected)
+	if (pThis->CurrentRanking == Rank::Invalid
+		|| RulesExtData::Instance()->DrawInsigniaOnlyOnSelected.Get() && !pThis->IsSelected && !pThis->IsMouseHovering)
 		return;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);

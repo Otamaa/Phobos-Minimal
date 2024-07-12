@@ -68,6 +68,16 @@ public:
 		BulletTypeClass const* pType,
 		BulletTypeExtData const* pTypeExt, HouseClass const* pOwner);
 
+	static CellClass* FindFirstObstacle(
+		CoordStruct const& crdSrc, CoordStruct const& crdTarget,
+		BulletTypeClass* pType, HouseClass const* pOwner)
+	{
+		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
+
+		return AresTrajectoryHelper::FindFirstObstacle(
+			crdSrc, crdTarget, nullptr, nullptr, pType, pTypeExt, pOwner);
+	}
+
 	// gets the first obstacle from crdSrc to crdTarget a weapon cannot destroy
 	static CellClass* FindFirstImpenetrableObstacle(
 		CoordStruct const& crdSrc, CoordStruct const& crdTarget,

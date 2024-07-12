@@ -927,6 +927,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->LastFlameSpawnFrame)
 		.Process(this->SpyEffectAnim)
 		.Process(this->SpyEffectAnimDuration)
+		.Process(this->PoweredUpToLevel)
 		;
 }
 
