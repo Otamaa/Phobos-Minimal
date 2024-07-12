@@ -140,32 +140,10 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 {
 	if (RetintTemp::UpdateLightSources)
 	{
-		for (auto pBld : *BuildingClass::Array)
-		{
-			if (pBld->LightSource && pBld->LightSource->Activated)
-			{
-				pBld->LightSource->Activated = false;
-				pBld->LightSource->Activate();
-			}
-		}
-
-		for (auto pRadSite : *RadSiteClass::Array)
-		{
-			if (pRadSite->LightSource && pRadSite->LightSource->Activated)
-			{
-				pRadSite->LightSource->Activated = false;
-				pRadSite->LightSource->Activate();
-			}
-		}
-
-		for (auto pTerrain : *TerrainClass::Array)
-		{
-			auto pExt = TerrainExtContainer::Instance.Find(pTerrain);
-
-			if (pExt->LighSource && pExt->LighSource->Activated)
-			{
-				pExt->LighSource->Activated = false;
-				pExt->LighSource->Activate();
+		for (auto light : LightSourceClass::Array()){
+			if (light->Activated) {
+				light->Activated = false;
+				light->Activate();
 			}
 		}
 
