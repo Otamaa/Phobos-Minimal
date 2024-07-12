@@ -121,24 +121,10 @@ namespace RetintTemp
 	bool UpdateLightSources = false;
 }
 
-// Bugfix, #issue 429: Retint map script disables RGB settings on light source
-// Author: secsome, Starkku
-DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
-DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
-DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
-{
-	// Flag the light sources to update, actually do it later and only once to prevent redundancy.
-	RetintTemp::UpdateLightSources = true;
-
-	return 0;
-}
-
-#include <Ext/Terrain/Body.h>
-
 // Update light sources if they have been flagged to be updated.
 DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 {
-	if (RetintTemp::UpdateLightSources)
+	if (ScenarioExtData::UpdateLightSources)
 	{
 		for (auto light : LightSourceClass::Array()){
 			if (light->Activated) {
@@ -147,7 +133,7 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 			}
 		}
 
-		RetintTemp::UpdateLightSources = false;
+		ScenarioExtData::UpdateLightSources = false;
 	}
 
 	return 0;

@@ -43,6 +43,7 @@
 #include <Ext/TAction/Body.h>
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
@@ -6421,6 +6422,41 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 	return true;
 }
 
+bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col) {
+
+	TintStruct copy_ = ScenarioClass::Instance->NormalLighting.Tint;
+	switch (col)
+	{
+
+	case DefaultColorList::Red:
+		copy_.Red = pAction->Value * 10;
+		copy_.Green *= 10;
+		copy_.Blue *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Red = pAction->Value;
+		break;
+	case DefaultColorList::Green:
+		copy_.Green = pAction->Value * 10;
+		copy_.Red *= 10;
+		copy_.Blue *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Green = pAction->Value;
+		break;
+	case DefaultColorList::Blue:
+		copy_.Blue = pAction->Value * 10;
+		copy_.Red *= 10;
+		copy_.Green *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Blue = pAction->Value;
+		break;
+	default:
+		return false;
+	}
+
+	ScenarioExtData::UpdateLightSources = true;
+	return true;
+}
+
 bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret)
 {
 	switch ((AresNewTriggerAction)pAction->ActionKind)
@@ -6473,6 +6509,15 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 			return true;
 		case TriggerAction::DoExplosionAt:
 			ret = DoExplosionAt(pAction, pHouse, pObject, pTrigger, location);
+			return true;
+		case TriggerAction::RetintRed :
+			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Red);
+			return true;
+		case TriggerAction::RetintGreen:
+			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Green);
+			return true;
+		case TriggerAction::RetintBlue:
+			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Blue);
 			return true;
 		default:
 			break;
