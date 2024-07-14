@@ -1201,8 +1201,9 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	GET(InfantryClass*, pThis, EDI);
 	enum { LosesDestination = 0x4D4BD1 };
 
-	auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
-	if (!pThis || !pBld || pThis->Target)
+	const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
+
+	if (!pBld || pThis->Target)
 		return 0;
 
 	if (pThis->Type->Engineer)

@@ -7449,19 +7449,19 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		struct ExpendabilityStruct
 		{
 		private:
-			std::tuple<const int&, BuildingClass&> Tie() const
+			constexpr std::tuple<const int&, BuildingClass&> Tie() const
 			{
 				// compare with tie breaker to prevent desyncs
 				return std::tie(this->Value, *this->Building);
 			}
 
 		public:
-			bool operator < (const ExpendabilityStruct& rhs) const
+			constexpr bool operator < (const ExpendabilityStruct& rhs) const
 			{
 				return this->Tie() < rhs.Tie();
 			}
 
-			bool operator > (const ExpendabilityStruct& rhs) const
+			constexpr bool operator > (const ExpendabilityStruct& rhs) const
 			{
 				return this->Tie() > rhs.Tie();
 			}
