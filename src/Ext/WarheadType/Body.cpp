@@ -247,19 +247,23 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ArmorHitAnim.clear();
 	hitAnim.reserve(ArmorTypeClass::Array.size());
 
-	for (auto const& ArmorType : ArmorTypeClass::Array) {
+	for (auto const& ArmorType : ArmorTypeClass::Array)
+	{
 		AnimTypeClass* pAnimReaded = nullptr;
 		detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true);
 		hitAnim.push_back(pAnimReaded);
 	}
 
-	for (size_t i = 0; i < hitAnim.size(); ++i) {
-		if (!hitAnim[i] && ArmorTypeClass::Array[i]->DefaultTo != -1) {
+	for (size_t i = 0; i < hitAnim.size(); ++i)
+	{
+		if (!hitAnim[i] && ArmorTypeClass::Array[i]->DefaultTo != -1)
+		{
 			for (auto pDefArmor = ArmorTypeClass::Array[ArmorTypeClass::Array[i]->DefaultTo].get();
 				;
-				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
+				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
+			{
 
-				if(auto pFallback = hitAnim[ArmorTypeClass::Array[i]->DefaultTo])
+				if (auto pFallback = hitAnim[ArmorTypeClass::Array[i]->DefaultTo])
 					hitAnim[i] = pFallback;
 
 				if (pDefArmor->DefaultTo == -1)
@@ -268,8 +272,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 	}
 
-	for (size_t a = 0;  a < hitAnim.size(); ++a) {
-		if(hitAnim[a]) {
+	for (size_t a = 0; a < hitAnim.size(); ++a)
+	{
+		if (hitAnim[a])
+		{
 			this->ArmorHitAnim.emplace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
 		}
 	}
@@ -290,6 +296,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
 	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
 	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
+
+	this->DamageOwnerMultiplier.Read(exINI, pSection, "DamageOwnerMultiplier");
+	this->DamageAlliesMultiplier.Read(exINI, pSection, "DamageAlliesMultiplier");
+	this->DamageEnemiesMultiplier.Read(exINI, pSection, "DamageEnemiesMultiplier");
 
 	this->AttachTag.Read(pINI, pSection, "AttachTag");
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
@@ -474,7 +484,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SpawnsCrate_Types.clear();
 	this->SpawnsCrate_Weights.clear();
 
-	for (size_t i = 0; ; i++) {
+	for (size_t i = 0; ; i++)
+	{
 
 		std::string base("SpawnsCrate");
 		std::string base_Num = base + std::to_string(i);
@@ -520,33 +531,58 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	auto const& nAllyMod = AffectAlly_Damage_Mod;
 	auto const& nOwnerMod = AffectOwner_Damage_Mod;
 	auto const& nEnemyMod = AffectEnemies_Damage_Mod;
-
-	if ((!nAllyMod.isset() && !nOwnerMod.isset() && !nEnemyMod.isset()))
-		return;
-
-	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 	auto const pVictimHouse = pVictim->GetOwningHouse();
 
-	if (pHouse && pVictimHouse)
+	if ((nAllyMod.isset() && nOwnerMod.isset() && nEnemyMod.isset()))
 	{
-		auto const pWH = this->AttachedToObject;
-		const int nDamage = *pArgs->Damage;
+		auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 
-		if (pVictimHouse != pHouse)
+		if (pHouse && pVictimHouse)
 		{
-			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
+			auto const pWH = this->AttachedToObject;
+			const int nDamage = *pArgs->Damage;
+
+			if (pVictimHouse != pHouse)
 			{
-				*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
+				if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
+				{
+					*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
+				}
+				else if (AffectsEnemies.Get() && nEnemyMod.isset())
+				{
+					*pArgs->Damage = static_cast<int>(nDamage * nEnemyMod.Get());
+				}
 			}
-			else if (AffectsEnemies.Get() && nEnemyMod.isset())
+			else if (AffectsOwner.Get() && nOwnerMod.isset())
 			{
-				*pArgs->Damage = static_cast<int>(nDamage * nEnemyMod.Get());
+				*pArgs->Damage = static_cast<int>(nDamage * nOwnerMod.Get());
 			}
 		}
-		else if (AffectsOwner.Get() && nOwnerMod.isset())
+	}
+
+	//Calculate Damage Multiplier
+	if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
+	{
+		const int sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
+		int calculateDamage = *pArgs->Damage;
+
+		if (pVictimHouse == pArgs->SourceHouse)
 		{
-			*pArgs->Damage = static_cast<int>(nDamage * nOwnerMod.Get());
+			if (this->DamageOwnerMultiplier != 1.0)
+				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageOwnerMultiplier.Get(RulesExtData::Instance()->DamageOwnerMultiplier));
 		}
+		else if (pVictimHouse->IsAlliedWith(pArgs->SourceHouse))
+		{
+			if (this->DamageAlliesMultiplier != 1.0)
+				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageAlliesMultiplier.Get(RulesExtData::Instance()->DamageAlliesMultiplier));
+		}
+		else
+		{
+			if (this->DamageEnemiesMultiplier != 1.0)
+				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageEnemiesMultiplier.Get(RulesExtData::Instance()->DamageEnemiesMultiplier));
+		}
+
+		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
 	}
 }
 
@@ -593,11 +629,12 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	const auto multiply = std::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 	auto nAddDamage = add * multiply;
-	if (this->RecalculateDistanceDamage_ProcessVerses) {
+	if (this->RecalculateDistanceDamage_ProcessVerses)
+	{
 		nAddDamage *=
-		// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-		this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno , this->AttachedToObject)).Verses
-		;
+			// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
+			this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno, this->AttachedToObject)).Verses
+			;
 	}
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
@@ -693,7 +730,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
 {
-	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno , this->AttachedToObject);
+	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject);
 
 	if (damageIn > 0)
 		DamageResult = MapClass::GetTotalDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
@@ -960,7 +997,7 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 
 		//Default way game modify duration
 		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject,
-					TechnoExtData::GetTechnoArmor(pVictim , this->AttachedToObject), 0);
+					TechnoExtData::GetTechnoArmor(pVictim, this->AttachedToObject), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
@@ -1009,9 +1046,12 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 	return false; //default
 }
 
-AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor) {
-	for (auto begin = this->ArmorHitAnim.begin(); begin != this->ArmorHitAnim.end(); ++begin) {
-		if (begin->first == ArmorTypeClass::Array[Armor].get()) {
+AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
+{
+	for (auto begin = this->ArmorHitAnim.begin(); begin != this->ArmorHitAnim.end(); ++begin)
+	{
+		if (begin->first == ArmorTypeClass::Array[Armor].get())
+		{
 			return begin->second;
 		}
 	}
@@ -1291,6 +1331,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectEnemies_Damage_Mod)
 		.Process(this->AffectOwner_Damage_Mod)
 		.Process(this->AffectAlly_Damage_Mod)
+
+		.Process(this->DamageOwnerMultiplier)
+		.Process(this->DamageAlliesMultiplier)
+		.Process(this->DamageEnemiesMultiplier)
+
 		.Process(this->AttachTag)
 		.Process(this->AttachTag_Types)
 		.Process(this->AttachTag_Ignore)
@@ -1432,7 +1477,8 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>&
 {
 	chances = this->Crit_Chance;
 
-	if (!pFirer) {
+	if (!pFirer)
+	{
 		return;
 	}
 
@@ -1441,11 +1487,13 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>&
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
-	if (pExt->AE_ExtraCrit.Enabled()) {
+	if (pExt->AE_ExtraCrit.Enabled())
+	{
 		std::vector<TechnoExtData::ExtraCrit::CritDataOut> valids;
 		pExt->AE_ExtraCrit.FillEligible(this->AttachedToObject, valids);
 
-		for (auto& curChances : chances) {
+		for (auto& curChances : chances)
+		{
 			curChances = TechnoExtData::ExtraCrit::Count(curChances, valids);
 		}
 	}

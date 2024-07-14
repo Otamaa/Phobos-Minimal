@@ -228,6 +228,10 @@ public:
 	Nullable<double> AffectOwner_Damage_Mod {};
 	Nullable<double> AffectAlly_Damage_Mod {};
 
+	Nullable<double> DamageOwnerMultiplier {};
+	Nullable<double> DamageAlliesMultiplier {};
+	Nullable<double> DamageEnemiesMultiplier {};
+
 	PhobosFixedString<32U> AttachTag {};
 	Valueable<bool> AttachTag_Imposed { false };
 	NullableVector<TechnoTypeClass*> AttachTag_Types {};

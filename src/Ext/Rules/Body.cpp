@@ -163,6 +163,10 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
 	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");
 
+	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
+	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
+	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
+
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
 
 	if (!pData->ForceShield_KillOrganicsWarhead)
@@ -1210,6 +1214,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DefautBulletType)
 		.Process(this->AIChronoSphereSW)
 		.Process(this->AIChronoWarpSW)
+		.Process(this->DamageOwnerMultiplier)
+		.Process(this->DamageAlliesMultiplier)
+		.Process(this->DamageEnemiesMultiplier)
 		;
 
 	MyPutData.Serialize(Stm);

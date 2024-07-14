@@ -334,6 +334,10 @@ public:
 	ValueableIdx<SuperWeaponTypeClass> AIChronoSphereSW {};
 	ValueableIdx<SuperWeaponTypeClass> AIChronoWarpSW {};
 
+	Valueable<double> DamageOwnerMultiplier { 1.0 };
+	Valueable<double> DamageAlliesMultiplier { 1.0 };
+	Valueable<double> DamageEnemiesMultiplier { 1.0 };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 
