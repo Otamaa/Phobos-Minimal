@@ -370,7 +370,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 	//remove ammo rounds depending on weapon
 	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
 	*pTargetCoords = FireAtTemp::originalTargetCoords;
 	R->Base(8, FireAtTemp::pOriginalTarget);
