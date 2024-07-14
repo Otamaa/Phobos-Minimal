@@ -1604,6 +1604,41 @@ DEFINE_JUMP(CALL, 0x63B17F, GET_OFFSET(Fake_HouseIsAlliedWith));
 DEFINE_JUMP(CALL, 0x63B1BA, GET_OFFSET(Fake_HouseIsAlliedWith));
 DEFINE_JUMP(CALL, 0x63B2CE, GET_OFFSET(Fake_HouseIsAlliedWith));
 
+// An attempt to fix an issue where the ATC->CurrentVector does not contain every air Techno in given range that increases in frequency as the range goes up.
+// Real talk: I have absolutely no clue how the original function works besides doing vector looping and manipulation, as far as I can tell it never even explicitly
+// clears CurrentVector but somehow it only contains applicable items afterwards anyway. It is possible this one does not achieve everything the original does functionality and/or
+// performance-wise but it does work and produces results with greater accuracy than the original for large ranges. - Starkku
+DEFINE_HOOK(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
+{
+	enum { SkipGameCode = 0x413482 };
+
+	GET(AircraftTrackerClass*, pThis, ECX);
+	GET_STACK(CellClass*, pCell, 0x4);
+	GET_STACK(int, range, 0x8);
+
+	pThis->CurrentVector.Reset();
+
+	if (range < 1)
+		range = 1;
+
+	auto const mapCoords = pCell->MapCoords;
+	int sectorWidth = MapClass::MapCellDimension->Width / 20;
+	int sectorHeight = MapClass::MapCellDimension->Height / 20;
+	int sectorIndexXStart = std::clamp((mapCoords.X - range) / sectorWidth, 0, 19);
+	int sectorIndexYStart = std::clamp((mapCoords.Y - range) / sectorHeight, 0, 19);
+	int sectorIndexXEnd = std::clamp((mapCoords.X + range) / sectorWidth, 0, 19);
+	int sectorIndexYEnd = std::clamp((mapCoords.Y + range) / sectorHeight, 0, 19);
+
+	for (int y = sectorIndexYStart; y <= sectorIndexYEnd; y++) {
+		for (int x = sectorIndexXStart; x <= sectorIndexXEnd; x++) {
+			for (auto const pTechno : pThis->TrackerVectors[y][x])
+				pThis->CurrentVector.AddItem(pTechno);
+		}
+	}
+
+	return SkipGameCode;
+}
+
 #ifdef aaaaa___
 #pragma region BlitterFix_
 #include <Helpers/Macro.h>
