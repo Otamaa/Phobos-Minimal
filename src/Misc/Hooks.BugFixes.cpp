@@ -362,10 +362,9 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 	GET(int const, idxOverlay, EBX);
 	GET_STACK(int const, state, STACK_OFFS(0x10, -0x8));
 
-	const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
-	enum { Attachable = 0x480549 };
+	enum { Continue = 0x0 ,  Attachable = 0x480549 };
 
-	if (isWall)
+	if (const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall)
 	{
 		for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject)
 		{
@@ -386,7 +385,7 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 		}
 	}
 
-	return 0;
+	return Continue;
 }
 
 // WW take 1 second as 960 milliseconds, this will fix that back to the actual time.
