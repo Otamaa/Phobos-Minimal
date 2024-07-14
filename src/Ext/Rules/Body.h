@@ -338,6 +338,9 @@ public:
 	Valueable<double> DamageAlliesMultiplier { 1.0 };
 	Valueable<double> DamageEnemiesMultiplier { 1.0 };
 
+	Valueable<bool> FactoryProgressDisplay { false };
+	Valueable<bool> MainSWProgressDisplay { false };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

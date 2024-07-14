@@ -730,3 +730,128 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 
 	return 0;
 }
+
+
+void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
+{
+	if (pThis->WhatAmI() != AbstractType::Building)
+		return;
+
+	const bool display = RulesExtData::Instance()->FactoryProgressDisplay || HouseClass::IsCurrentPlayerObserver();
+	if (!display)
+		return;
+
+	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
+	BuildingTypeClass* const pBuildingType = pBuilding->Type;
+	HouseClass* const pHouse = pBuilding->Owner;
+	FactoryClass* pPrimaryFactory = nullptr;
+	FactoryClass* pSecondaryFactory = nullptr;
+
+	if (pHouse->IsControlledByHuman())
+	{
+		if (!pBuilding->IsPrimaryFactory)
+			return;
+
+		switch (pBuildingType->Factory)
+		{
+		case AbstractType::BuildingType:
+			pPrimaryFactory = pHouse->GetPrimaryFactory(AbstractType::BuildingType, false, BuildCat::DontCare);
+			pSecondaryFactory = pHouse->GetPrimaryFactory(AbstractType::BuildingType, false, BuildCat::Combat);
+			break;
+		case AbstractType::InfantryType:
+			pPrimaryFactory = pHouse->GetPrimaryFactory(AbstractType::InfantryType, false, BuildCat::Combat);
+			break;
+		case AbstractType::UnitType:
+			pPrimaryFactory = pHouse->GetPrimaryFactory(AbstractType::UnitType, pBuildingType->Naval, BuildCat::Combat);
+			break;
+		case AbstractType::AircraftType:
+			pPrimaryFactory = pHouse->GetPrimaryFactory(AbstractType::AircraftType, false, BuildCat::Combat);
+			break;
+		default:
+			return;
+		}
+	}
+	else // AIs have no Primary factories
+	{
+		pPrimaryFactory = pBuilding->Factory;
+
+		if (!pPrimaryFactory)
+			return;
+	}
+
+	const bool havePrimary = pPrimaryFactory && pPrimaryFactory->Object;
+	const bool haveSecondary = pSecondaryFactory && pSecondaryFactory->Object;
+
+	if (!havePrimary && !haveSecondary)
+		return;
+
+	const int maxLength = pBuildingType->GetFoundationHeight(false) * 15 >> 1;
+	const Point2D location = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
+
+	if (havePrimary)
+	{
+		const int curLength = std::clamp(static_cast<int>((static_cast<double>(pPrimaryFactory->GetProgress()) / 54) * maxLength), 0, maxLength);
+		Point2D position = location;
+
+		for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+
+		for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	if (haveSecondary)
+	{
+		const int curLength = std::clamp(static_cast<int>((static_cast<double>(pSecondaryFactory->GetProgress()) / 54) * maxLength), 0, maxLength);
+		Point2D position = havePrimary ? location + Point2D { 6, 3 } : location;
+
+		for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+
+		for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+}
+
+void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
+{
+	if (pThis->WhatAmI() != AbstractType::Building)
+		return;
+
+	const bool display = RulesExtData::Instance()->MainSWProgressDisplay || HouseClass::IsCurrentPlayerObserver();
+	if (!display)
+		return;
+
+	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
+	BuildingTypeClass* const pBuildingType = pBuilding->Type;
+
+	if (pBuildingType->SuperWeapon == -1)
+		return;
+
+	SuperClass* const pSuper = pThis->Owner->Supers.Items[pBuildingType->SuperWeapon];
+
+	if (!pSuper || pSuper->RechargeTimer.TimeLeft <= 1)
+		return;
+
+	const int maxLength = pBuildingType->GetFoundationHeight(false) * 15 >> 1;
+	const int curLength = std::clamp(static_cast<int>((static_cast<double>(pSuper->RechargeTimer.TimeLeft - pSuper->RechargeTimer.GetTimeLeft()) / pSuper->RechargeTimer.TimeLeft) * maxLength), 0, maxLength);
+	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
+
+	for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 5, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+
+	for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+}
+
+DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
+{
+	GET(TechnoClass*, pThis, EBP);
+	GET_STACK(RectangleStruct*, pBounds, STACK_OFFSET(0x98, 0x8));
+
+	DrawFactoryProgress(pThis, pBounds);
+	DrawSuperProgress(pThis, pBounds);
+
+	return 0;
+}
+
