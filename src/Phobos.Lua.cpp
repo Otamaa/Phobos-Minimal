@@ -116,6 +116,13 @@ void Phobos::ExecuteLua()
 		{
 			Phobos::Otamaa::CompatibilityMode = lua_toboolean(L, -1);
 		}
+
+		lua_getglobal(L, "ReplaceGameMemoryAllocator");
+
+		if (lua_isboolean(L, -1) == 1)
+		{
+			Phobos::Otamaa::ReplaceGameMemoryAllocator = lua_toboolean(L, -1);
+		}
 	}
 
 	LuaBridge::InitScriptLuaList(unique_lua);

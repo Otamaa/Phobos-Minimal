@@ -235,6 +235,7 @@ struct Phobos final
 		static bool NoLogo;
 		static bool NoCD;
 		static bool CompatibilityMode;
+		static bool ReplaceGameMemoryAllocator;
 	};
 
 	struct Defines
