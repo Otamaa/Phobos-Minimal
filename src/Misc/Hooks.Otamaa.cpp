@@ -5677,7 +5677,12 @@ DEFINE_HOOK(0x4F69D5, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x6)
 {
 	GET(IHouse*, pThis, ESI);
 	const auto pHouse = static_cast<HouseClass*>(pThis);
-	R->EAX((int)HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.GetAmounts());
+	auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (pExt->TiberiumStorage.m_values.empty())
+		pExt->TiberiumStorage.m_values.resize(4u);
+
+	R->EAX((int)pExt->TiberiumStorage.GetAmounts());
 	return 0x4F69E5;
 }
 
@@ -5685,15 +5690,25 @@ DEFINE_HOOK(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)
 {
 	GET(IHouse*, pThis, ESI);
 	const auto pHouse = static_cast<HouseClass*>(pThis);
-	R->EAX(HouseExtContainer::Instance.Find(pHouse)->TiberiumStorage.GetTotalTiberiumValue());
+	auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (pExt->TiberiumStorage.m_values.empty())
+		pExt->TiberiumStorage.m_values.resize(4u);
+
+	R->EAX(pExt->TiberiumStorage.GetTotalTiberiumValue());
 	return 0x4F69AE;
 }
 
 DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
 {
 	GET(HouseClass*, pThis, ESI);
+	auto pExt = HouseExtContainer::Instance.Find(pThis);
+
+	if (pExt->TiberiumStorage.m_values.empty())
+		pExt->TiberiumStorage.m_values.resize(4u);
+
 	double result = 0.0;
-	const double amount = HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts();
+	const double amount = pExt->TiberiumStorage.GetAmounts();
 
 	if ((int)amount)
 	{
