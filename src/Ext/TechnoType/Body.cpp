@@ -51,38 +51,8 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 {
 	const auto pProductTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct);
 	const auto pBExt = BuildingTypeExtContainer::Instance.Find(pFactoryType);
-
-	//weird code ,..
-	//is this bug or intended ,...
-
-	auto begin =  pProductTypeExt->BuiltAt.begin();
-	auto end =  pProductTypeExt->BuiltAt.end();
-	if(begin != end){
-		while(*begin != pFactoryType){
-			if(++begin == end)
-			return false;
-
-		}
-
-		return true;
-	}
-
-	if(!pBExt->Factory_ExplicitOnly)
-		return true;
-
-	begin = pProductTypeExt->BuiltAt.begin();
-
-	if(begin != end){
-		while(*begin != pFactoryType){
-			if(++begin == end)
-			return false;
-
-		}
-
-		return true;
-	}
-
-	return false;
+	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
+		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
 }
 
 void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)

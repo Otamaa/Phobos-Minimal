@@ -420,49 +420,6 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
 	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
-	switch (type) {
-		case AircraftTypeClass::AbsID: {
-			if(pOwner->ProducingAircraftTypeIndex >= 0) {
-				if(TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
-					[pOwner->ProducingAircraftTypeIndex])->ForbidParallelAIQueues) {
-					return Skip;
-				}
-			}
-			break;
-		}
-		case InfantryTypeClass::AbsID:{
-			if(pOwner->ProducingInfantryTypeIndex >= 0) {
-				if(TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
-					[pOwner->ProducingInfantryTypeIndex])->ForbidParallelAIQueues) {
-					return Skip;
-				}
-			}
-			break;
-		}
-		case BuildingTypeClass::AbsID:{
-			if(pOwner->ProducingBuildingTypeIndex >= 0) {
-				if(TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
-					[pOwner->ProducingBuildingTypeIndex])->ForbidParallelAIQueues) {
-					return Skip;
-				}
-			}
-			break;
-		}
-		case UnitTypeClass::AbsID:{
-			const int idx = pThis->Type->Naval ? pData->ProducingNavalUnitTypeIndex : pOwner->ProducingUnitTypeIndex;
-			if(idx >= 0) {
-				if(TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
-					[idx])->ForbidParallelAIQueues) {
-					return Skip;
-				}
-			}
-
-			break;
-		}
-		default:
-			break;
-		}
-
 	if (!curFactory) {
 		_com_issue_error(E_POINTER);
 	}
@@ -478,6 +435,62 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	}
 	else if (*curFactory != pThis)
 	{
+		switch (type)
+		{
+		case AircraftTypeClass::AbsID:
+		{
+			if (pOwner->ProducingAircraftTypeIndex >= 0)
+			{
+				if (TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
+					[pOwner->ProducingAircraftTypeIndex])->ForbidParallelAIQueues)
+				{
+					return Skip;
+				}
+			}
+			break;
+		}
+		case InfantryTypeClass::AbsID:
+		{
+			if (pOwner->ProducingInfantryTypeIndex >= 0)
+			{
+				if (TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
+					[pOwner->ProducingInfantryTypeIndex])->ForbidParallelAIQueues)
+				{
+					return Skip;
+				}
+			}
+			break;
+		}
+		case BuildingTypeClass::AbsID:
+		{
+			if (pOwner->ProducingBuildingTypeIndex >= 0)
+			{
+				if (TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
+					[pOwner->ProducingBuildingTypeIndex])->ForbidParallelAIQueues)
+				{
+					return Skip;
+				}
+			}
+			break;
+		}
+		case UnitTypeClass::AbsID:
+		{
+			const int idx = pThis->Type->Naval ? pData->ProducingNavalUnitTypeIndex : pOwner->ProducingUnitTypeIndex;
+			if (idx >= 0)
+			{
+				if (TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
+					[idx])->ForbidParallelAIQueues)
+				{
+					return Skip;
+				}
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+
 		return block ? Skip : 0x0;
 	}
 
