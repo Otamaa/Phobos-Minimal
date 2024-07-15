@@ -14,6 +14,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_BuildingType;
 		block = pRules->ForbidParallelAIQueues_Building.Get(!pRules->AllowParallelAIQueues);
+		if (pData->AttachedToObject->ProducingBuildingTypeIndex >= 0) {
+			block = TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
+				[pData->AttachedToObject->ProducingBuildingTypeIndex])->ForbidParallelAIQueues.Get(block);
+		}
 		break;
 	}
 	case AbstractType::UnitType:
@@ -21,11 +25,19 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 		if (!naval)
 		{
 			block = pRules->ForbidParallelAIQueues_Vehicle.Get(!pRules->AllowParallelAIQueues);
+			if (pData->AttachedToObject->ProducingUnitTypeIndex >= 0) {
+				block = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
+				[pData->AttachedToObject->ProducingUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
+			}
 			currFactory = &pData->Factory_VehicleType;
 		}
 		else
 		{
 			block = pRules->ForbidParallelAIQueues_Navy.Get(!pRules->AllowParallelAIQueues);
+			if (pData->ProducingNavalUnitTypeIndex >= 0) {
+				block = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
+				[pData->ProducingNavalUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
+			}
 			currFactory = &pData->Factory_NavyType;
 		}
 
@@ -34,6 +46,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	case AbstractType::InfantryType:
 	{
 		block = pRules->ForbidParallelAIQueues_Infantry.Get(!pRules->AllowParallelAIQueues);
+		if (pData->AttachedToObject->ProducingInfantryTypeIndex >= 0) {
+			block = TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
+			[pData->AttachedToObject->ProducingInfantryTypeIndex])->ForbidParallelAIQueues.Get(block);
+		}
 		currFactory = &pData->Factory_InfantryType;
 		break;
 	}
@@ -41,6 +57,11 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_AircraftType;
 		block = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
+		if (pData->AttachedToObject->ProducingAircraftTypeIndex >= 0) {
+			block = TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
+				[pData->AttachedToObject->ProducingAircraftTypeIndex])->ForbidParallelAIQueues.Get(block);
+		}
+
 		break;
 	}
 	default:
@@ -287,26 +308,25 @@ DEFINE_HOOK(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
-	auto pRules = RulesExtData::Instance();
-
-	if (!pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
-		return 0;
-
-	int index = pBuilding->Owner->ProducingAircraftTypeIndex;
-	auto const pType = index >= 0 ? AircraftTypeClass::Array()->GetItem(index) : nullptr;
-	if (pType && !TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues)
+	if (!pBuilding->Owner || pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
 		return 0x0;
 
-	if (!pBuilding->Owner || pBuilding->Owner->IsNeutral() || pBuilding->Owner->IsControlledByHuman())
+	auto pRules = RulesExtData::Instance();
+
+	bool ForbidParallelAIQueues_ = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
+
+	if (auto const pType = pBuilding->Owner->ProducingAircraftTypeIndex >= 0 ?
+		AircraftTypeClass::Array()->Items[pBuilding->Owner->ProducingAircraftTypeIndex] : nullptr) {
+		ForbidParallelAIQueues_ = TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues.Get(ForbidParallelAIQueues_);
+	}
+
+	if (!ForbidParallelAIQueues_) {
 		return 0;
+	}
 
-	if (pBuilding->Type->Factory == AbstractType::AircraftType)
-	{
-
-
+	if (pBuilding->Type->Factory == AbstractType::AircraftType) {
 		if (pBuilding->Factory
-			&& !BuildingExtData::HasFreeDocks(pBuilding))
-		{
+			&& !BuildingExtData::HasFreeDocks(pBuilding)) {
 			BuildingExtData::UpdatePrimaryFactoryAI(pBuilding);
 		}
 	}
@@ -389,9 +409,9 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 			break;
 		case UnitClass::AbsID:
 			if (!pFactory->Object->GetTechnoType()->Naval)
-					pData->Factory_VehicleType = nullptr;
+				pData->Factory_VehicleType = nullptr;
 			else
-					pData->Factory_NavyType = nullptr;
+				pData->Factory_NavyType = nullptr;
 			break;
 		case InfantryClass::AbsID:
 				pData->Factory_InfantryType = nullptr;
