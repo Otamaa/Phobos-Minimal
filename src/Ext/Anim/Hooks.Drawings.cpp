@@ -317,34 +317,36 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 
 	GET(AnimClass* const, pThis, ESI);
 
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	auto pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject);
-	HouseClass* const pCurrentHouse = HouseClass::CurrentPlayer;
+	if(!HouseClass::IsCurrentPlayerObserver()) {
+		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+		auto pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject);
+		HouseClass* const pCurrentHouse = HouseClass::CurrentPlayer;
 
-	if (pTypeExt->RestrictVisibilityIfCloaked && !HouseClass::IsCurrentPlayerObserver()
-		&& pTechno && (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking)
-		&& !pTechno->Owner->IsAlliedWith(pCurrentHouse))
-	{
-		auto const pCell = pTechno->GetCell();
+		if (pTypeExt->RestrictVisibilityIfCloaked
+			&& pTechno && (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking)
+			&& !pTechno->Owner->IsAlliedWith(pCurrentHouse))
+		{
+			auto const pCell = pTechno->GetCell();
 
-		if (pCell && !pCell->Sensors_InclHouse(pCurrentHouse->ArrayIndex))
+			if (pCell && !pCell->Sensors_InclHouse(pCurrentHouse->ArrayIndex))
+				return SkipDrawing;
+		}
+
+		auto pOwner = pThis->OwnerObject ? pThis->OwnerObject->GetOwningHouse() : pThis->Owner;
+
+		if (pTypeExt->VisibleTo_ConsiderInvokerAsOwner)
+		{
+			auto const pExt = AnimExtContainer::Instance.Find(pThis);
+
+			if (pExt->Invoker)
+				pOwner = pExt->Invoker->Owner;
+		}
+
+		AffectedHouse visibilityFlags = pTypeExt->VisibleTo;
+
+		if (!EnumFunctions::CanTargetHouse(visibilityFlags, pCurrentHouse, pOwner))
 			return SkipDrawing;
 	}
-
-	auto pOwner = pThis->OwnerObject ? pThis->OwnerObject->GetOwningHouse() : pThis->Owner;
-
-	if (pTypeExt->VisibleTo_ConsiderInvokerAsOwner)
-	{
-		auto const pExt = AnimExtContainer::Instance.Find(pThis);
-
-		if (pExt->Invoker)
-			pOwner = pExt->Invoker->Owner;
-	}
-
-	AffectedHouse visibilityFlags = pTypeExt->VisibleTo;
-
-	if (!HouseClass::IsCurrentPlayerObserver() && !EnumFunctions::CanTargetHouse(visibilityFlags, pCurrentHouse, pOwner))
-		return SkipDrawing;
 
 	return 0;
 }
@@ -357,12 +359,9 @@ DEFINE_HOOK(0x423183, AnimClass_DrawIt_CloakTranslucency, 0x6)
 
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (!pTypeExt->DetachOnCloak && pTypeExt->Translucency_Cloaked.isset())
-	{
-		if (auto const pTechno = abstract_cast<TechnoClass*>(pThis->OwnerObject))
-		{
-			if (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking)
-			{
+	if (!pTypeExt->DetachOnCloak && pTypeExt->Translucency_Cloaked.isset()) {
+		if (auto const pTechno = abstract_cast<TechnoClass*>(pThis->OwnerObject)) {
+			if (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking) {
 				R->EAX(pTypeExt->Translucency_Cloaked.Get());
 				return SkipGameCode;
 			}

@@ -149,7 +149,7 @@ bool Phobos::Otamaa::TrackParserErrors = false;
 bool Phobos::Otamaa::NoLogo = false;
 bool Phobos::Otamaa::NoCD = false;
 bool Phobos::Otamaa::CompatibilityMode = false;
-bool Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
+bool Phobos::Otamaa::ReplaceGameMemoryAllocator = false;
 bool Phobos::EnableConsole = false;
 
 enum class ExceptionHandlerMode {
