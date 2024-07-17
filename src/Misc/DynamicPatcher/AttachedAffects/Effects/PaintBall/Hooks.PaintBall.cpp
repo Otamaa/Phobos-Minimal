@@ -102,21 +102,22 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
 	}
 
-	for (auto const& attachEffect : pExt->PhobosAE)
-	{
-		auto const type = attachEffect.GetType();
+	if(pExt->AE_HasTint) {
+		for (auto const& attachEffect : pExt->PhobosAE) {
+			auto const type = attachEffect.GetType();
 
-		if (!attachEffect.IsActive() || !type->HasTint())
-			continue;
+			if (!attachEffect.IsActive() || !type->HasTint())
+				continue;
 
-		if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-			continue;
+			if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+				continue;
 
-		if (calculateTintColor && type->Tint_Color.isset())
-			*tintColor |= Drawing::RGB_To_Int(type->Tint_Color);
+			if (calculateTintColor && type->Tint_Color.isset())
+				*tintColor |= Drawing::RGB_To_Int(type->Tint_Color);
 
-		if (calculateIntensity)
-			*intensity += static_cast<int>(type->Tint_Intensity * 1000);
+			if (calculateIntensity)
+				*intensity += static_cast<int>(type->Tint_Intensity * 1000);
+		}
 	}
 
 	if (pExt->Shield && pExt->Shield->IsActive())

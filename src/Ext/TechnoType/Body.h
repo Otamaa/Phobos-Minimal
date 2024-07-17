@@ -958,8 +958,8 @@ public:
 	Valueable<bool> KeepTargetOnMove {};
 	Valueable<Leptons> KeepTargetOnMove_ExtraDistance {};
 
-	Nullable<bool> ForbidParallelAIQueues { };
-	Nullable<AnimTypeClass*> Wake {};
+	Nullable<bool> ForbidParallelAIQueues {};
+	Nullable<AnimTypeClass*> Wake{};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

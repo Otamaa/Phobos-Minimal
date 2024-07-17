@@ -69,6 +69,7 @@ public:
 	bool AE_DisableWeapons { false };
 	bool AE_DisableSelfHeal { false };
 	bool AE_Untrackable { false };
+	bool AE_HasTint { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6

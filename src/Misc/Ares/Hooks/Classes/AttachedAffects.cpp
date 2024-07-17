@@ -22,6 +22,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	auto extraCritData = &pExt->AE_ExtraCrit;
 	extraRangeData->Clear();
 	extraCritData->Clear();
+	bool hasTint = false;
 
 	std::optional<double> cur_timerAE {};
 
@@ -74,6 +75,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 		disableSelfHeal |= type->DisableSelfHeal;
 		untrackable |= type->Untrackable;
 		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
+		hasTint |= type->HasTint();
 
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
@@ -131,6 +133,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	pExt->AE_DisableWeapons = disableWeapons;
 	pExt->AE_DisableSelfHeal = disableSelfHeal;
 	pExt->AE_Untrackable = untrackable;
+	pExt->AE_HasTint = hasTint;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;

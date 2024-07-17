@@ -98,6 +98,9 @@ public:
 		return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
 	}
 
+	constexpr inline bool HasTint() const {
+		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
+	}
 
 private:
 	template <typename T>
