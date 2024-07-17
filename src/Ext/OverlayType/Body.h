@@ -16,6 +16,7 @@ public:
 public:
 
 	Valueable<PaletteManager*> Palette { };
+	Valueable<int> ZAdjust { 0 };
 
 	OverlayTypeExtData() noexcept = default;
 	~OverlayTypeExtData() noexcept = default;

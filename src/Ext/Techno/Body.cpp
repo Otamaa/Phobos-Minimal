@@ -2485,9 +2485,13 @@ FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset 
 		offset += (RulesExtData::Instance()->DrawInsignia_AdjustPos_Infantry->operator+(a__));
 		break;
 	case AbstractType::Building:
-		offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis,
-				RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor) +
-				RulesExtData::Instance()->DrawInsignia_AdjustPos_Buildings) + a__;
+		if (RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor.isset())
+				offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis,
+						RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor) +
+						RulesExtData::Instance()->DrawInsignia_AdjustPos_Buildings) + a__;
+			else
+				offset += (RulesExtData::Instance()->DrawInsignia_AdjustPos_Buildings->operator+(a__));
+
 		break;
 	default:
 		offset += (RulesExtData::Instance()->DrawInsignia_AdjustPos_Units->operator+(a__));

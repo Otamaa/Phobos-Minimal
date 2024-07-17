@@ -13,6 +13,7 @@ void OverlayTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pArtSection = pThis->ImageFile;
 
 	this->Palette.Read(exINI , pArtSection, "Palette");
+	this->ZAdjust.Read(exINI, pArtSection, "ZAdjust");
 }
 
 // =============================
@@ -24,6 +25,7 @@ void OverlayTypeExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->Palette)
+		.Process(this->ZAdjust)
 		;
 }
 
