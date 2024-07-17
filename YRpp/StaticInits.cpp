@@ -152,8 +152,7 @@ const char* ObjectClass::get_ID() const
 Point2D ObjectClass::GetScreenLocation() const
 {
 	CoordStruct crdAbsolute = this->GetCoords();
-	Point2D  posScreen = { 0,0 };
-	TacticalClass::Instance->CoordsToScreen(&posScreen, &crdAbsolute);
+	Point2D  posScreen = TacticalClass::Instance->CoordsToScreen(crdAbsolute);
 	posScreen -= TacticalClass::Instance->TacticalPos;
 
 	return posScreen;

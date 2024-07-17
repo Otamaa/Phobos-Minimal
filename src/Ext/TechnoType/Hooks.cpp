@@ -177,8 +177,8 @@ DEFINE_HOOK(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 	mtx.RotateZ(angle);
 	auto res = mtx.GetTranslation();
 	CoordStruct location { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
-	Point2D temp;
-	pos += *TacticalClass::Instance()->CoordsToScreen(&temp, &location);
+	Point2D temp = TacticalClass::Instance()->CoordsToScreen(location);
+	pos += temp;
 
 	return 0;
 }

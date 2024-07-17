@@ -175,8 +175,7 @@ namespace DrawHeathData
 				auto const nLocTemp = nLocation;
 				pBldType->Dimension2(&nDimension);
 				CoordStruct nDimension2 { -nDimension.X / 2,nDimension.Y / 2,nDimension.Z / 2 };
-				Point2D nDest {};
-				TacticalClass::Instance->CoordsToScreen(&nDest, &nDimension2);
+				Point2D nDest = TacticalClass::Instance->CoordsToScreen(nDimension2);
 
 				XOffset = nDest.X + nLocTemp.X + pTypeExt->Healnumber_Offset.Get().X + 2;
 				YOffset = nDest.Y + nLocTemp.Y + pTypeExt->Healnumber_Offset.Get().Y + pType->PixelSelectionBracketDelta;
@@ -296,9 +295,8 @@ namespace DrawHeathData
 	{
 		CoordStruct vCoords = { 0, 0, 0 };
 		pThis->GetTechnoType()->Dimension2(&vCoords);
-		Point2D vPos2 = { 0, 0 };
 		CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
-		TacticalClass::Instance->CoordsToScreen(&vPos2, &vCoords2);
+		Point2D vPos2 = TacticalClass::Instance->CoordsToScreen(vCoords2);
 
 		Point2D vLoc = *pLocation;
 		vLoc.X -= 5;

@@ -695,9 +695,7 @@ DEFINE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 			if (!MapClass::Instance->GetCellAt(cell)->IsShrouded())
 			{
 				CoordStruct crd = pBld->GetCenterCoords();
-
-				Point2D point {};
-				TacticalClass::Instance->CoordsToClient(&crd, &point);
+				Point2D point = TacticalClass::Instance->CoordsToClient(crd);
 
 				// offset the markers
 				Point2D ptRepair = point;
@@ -833,7 +831,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 							pPalette =  RulesExtData::Instance()->PrimaryFactoryIndicator_Palette->GetConvert<PaletteManager::Mode::Default>();
 
 						int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
-						Point2D pPosition = TacticalClass::Instance->CoordsToClient(pThis->GetCell()->GetCoords()).first;
+						Point2D pPosition = TacticalClass::Instance->CoordsToClient(pThis->GetCell()->GetCoords());
 						pPosition.X -= Unsorted::CellWidthInPixels / 2 * cellsToAdjust;
 						pPosition.Y += Unsorted::CellHeightInPixels / 2 * cellsToAdjust - 4;
 						DSurface::Temp->DrawSHP(pPalette, pImage, 0, &pPosition, pRect, BlitterFlags(0x600), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);

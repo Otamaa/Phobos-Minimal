@@ -263,8 +263,7 @@ DEFINE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
 	{
 		if (const auto pImage = pType->AlphaImage)
 		{
-			Point2D xy;
-			TacticalClass::Instance->CoordsToClient(XYZ, &xy);
+			Point2D xy = TacticalClass::Instance->CoordsToClient(*XYZ);
 			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
 			Point2D off = { ScreenArea.X - (pImage->Width / 2), ScreenArea.Y - (pImage->Height / 2) };
 			xy += off;

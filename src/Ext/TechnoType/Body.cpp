@@ -317,6 +317,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawn_LimitedRange.Read(exINI, pSection, "Spawner.LimitRange");
 		this->Spawn_LimitedExtraRange.Read(exINI, pSection, "Spawner.ExtraLimitRange");
 		this->Spawner_DelayFrames.Read(exINI, pSection, "Spawner.DelayFrames");
+		this->Spawner_AttackImmediately.Read(exINI, pSection, "Spawner.AttackImmediately");
 		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
 		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
 		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
@@ -2121,6 +2122,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->FactoryOwners)
 		.Process(this->FactoryOwners_Forbidden)
 		.Process(this->Wake)
+		.Process(this->Spawner_AttackImmediately)
 		.Process(this->FactoryOwners_HaveAllPlans)
 		.Process(this->FactoryOwners_HasAllPlans)
 		.Process(this->Drain_Local)

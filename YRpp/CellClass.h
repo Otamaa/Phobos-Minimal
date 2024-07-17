@@ -211,7 +211,7 @@ public:
 	RectangleStruct* OverlayShapeRect(RectangleStruct* pRet)
 		{ JMP_THIS(0x47FDE0); }
 
-	RectangleStruct GetOverlayShapeRect()
+	FORCEINLINE RectangleStruct GetOverlayShapeRect()
 	{
 		RectangleStruct nBuffer;
 		this->OverlayShapeRect(&nBuffer);
@@ -368,13 +368,13 @@ public:
 		{ JMP_THIS(0x485460); }
 	//
 	// cloak generators
-	bool CloakGen_InclHouse(unsigned int idx) const
+	constexpr FORCEINLINE bool CloakGen_InclHouse(unsigned int idx) const
 		{ return ((1 << idx) & this->CloakedByHouses) != 0; }
 
-	void CloakGen_AddHouse(unsigned int idx)
+	constexpr FORCEINLINE void CloakGen_AddHouse(unsigned int idx)
 		{ this->CloakedByHouses |= 1 << idx; }
 
-	void CloakGen_RemHouse(unsigned int idx)
+	constexpr FORCEINLINE void CloakGen_RemHouse(unsigned int idx)
 		{ this->CloakedByHouses &= ~(1 << idx); }
 
 	// unused, returns 0 if that house doesn't have cloakgens covering this cell or Player has sensors over this cell
@@ -386,27 +386,27 @@ public:
 		{ JMP_THIS(0x4870D0); }
 		//{ return this->SensorsOfHouses[idx] > 0; }
 
-	void Sensors_AddOfHouse(unsigned int idx)
+	constexpr FORCEINLINE void Sensors_AddOfHouse(unsigned int idx)
 		{ ++this->SensorsOfHouses[idx]; }
 
-	void Sensors_RemOfHouse(unsigned int idx)
+	constexpr FORCEINLINE void Sensors_RemOfHouse(unsigned int idx)
 		{ --this->SensorsOfHouses[idx]; }
 
 	// disguise sensors
-	bool DisguiseSensors_InclHouse(unsigned int idx) const
+	constexpr FORCEINLINE bool DisguiseSensors_InclHouse(unsigned int idx) const
 		{ return this->DisguiseSensorsOfHouses[idx] > 0; }
 
-	void DisguiseSensors_AddOfHouse(unsigned int idx)
+	constexpr FORCEINLINE void DisguiseSensors_AddOfHouse(unsigned int idx)
 		{ ++this->DisguiseSensorsOfHouses[idx]; }
 
-	void DisguiseSensors_RemOfHouse(unsigned int idx)
+	constexpr FORCEINLINE void DisguiseSensors_RemOfHouse(unsigned int idx)
 		{ --this->DisguiseSensorsOfHouses[idx]; }
 
 	// Rad Sites
-	void SetRadSite(RadSiteClass* pRad)
+	constexpr FORCEINLINE void SetRadSite(RadSiteClass* pRad)
 		{ this->RadSite = pRad; }
 
-	RadSiteClass* GetRadSite() const
+	constexpr FORCEINLINE RadSiteClass* GetRadSite() const
 		{ return this->RadSite; }
 
 	bool IsRadiated() const
@@ -455,7 +455,7 @@ public:
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 
-	CoordStruct FixHeight(CoordStruct crd) const
+    constexpr CoordStruct FixHeight(CoordStruct crd) const
 	{
 		if(this->ContainsBridge()) {
 			crd.Z += Unsorted::BridgeHeight;
@@ -463,7 +463,7 @@ public:
 		return crd;
 	}
 
-	void FixHeight(CoordStruct* pCrd) const {
+	constexpr void FixHeight(CoordStruct* pCrd) const {
 		if (this->ContainsBridge()) {
 			pCrd->Z += Unsorted::BridgeHeight;
 		}
@@ -494,7 +494,7 @@ public:
 	CoordStruct* FindInfantrySubposition(CoordStruct* pOutBuffer, const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords)
 		{ JMP_THIS(0x481180); }
 
-	CoordStruct FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
+	CoordStruct FORCEINLINE FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
 		CoordStruct outBuffer;
 		this->FindInfantrySubposition(&outBuffer, coords, ignoreContents, alt, useCellCoords);
 		outBuffer.Z = Zcoords;
@@ -551,7 +551,7 @@ public:
 	unsigned int MinimapCellColor(void* a1, bool a2 = false) const
 		{ JMP_THIS(0x47BDB0); }
 
-	ObjectClass* Cell_Occupier(bool alt = false) const
+	constexpr FORCEINLINE ObjectClass* Cell_Occupier(bool alt = false) const
 		{ return alt ? AltObject : FirstObject; }
 
 	unsigned int ReduceWall(int nDamage = -1) const { JMP_THIS(0x480CB0); }
@@ -572,12 +572,12 @@ public:
 	bool HasTiberium() const
 		{ JMP_THIS(0x487DF0); }
 
-	bool HasWeed() const
+	constexpr FORCEINLINE bool HasWeed() const
 		{ return LandType == LandType::Weeds; }
 
-	bool operator != (const CellClass & cell) const { return cell.MapCoords.DifferTo(MapCoords); }
-	bool operator == (const CellClass & cell) const { return cell.MapCoords.SimilarTo(MapCoords); }
-	bool IsValidMapCoords() const  { return MapCoords.IsValid(); }
+	constexpr FORCEINLINE bool operator != (const CellClass & cell) const { return cell.MapCoords.DifferTo(MapCoords); }
+	constexpr FORCEINLINE bool operator == (const CellClass & cell) const { return cell.MapCoords.SimilarTo(MapCoords); }
+	constexpr FORCEINLINE bool IsValidMapCoords() const  { return MapCoords.IsValid(); }
 	int GetCliffIndex_() const { JMP_THIS(0x487D50); }
 	CellClass* GetBulletObstacleCell(CellClass* cell, CoordStruct coord, BulletTypeClass* bullet, HouseClass* house) const { JMP_THIS(0x4CC360); }
 

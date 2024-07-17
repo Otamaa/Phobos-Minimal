@@ -2140,8 +2140,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 		{
 
 			CoordStruct XYZ = CellClass::Cell2Coord(pFoot->LastMapCoords);
-			Point2D xyTL {};
-			TacticalClass::Instance->CoordsToClient(&XYZ, &xyTL);
+			Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
 
 			TacticalClass::Instance->RegisterDirtyArea({
 				off.X - 30 + xyTL.X ,
@@ -2152,9 +2151,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 		}
 	}
 
-	Point2D xyTL {};
 	CoordStruct XYZ = pSource->GetCoords();
-	TacticalClass::Instance->CoordsToClient(&XYZ, &xyTL);
+	Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
 
 	ObjectTypeClass* pDisguise = nullptr;
 

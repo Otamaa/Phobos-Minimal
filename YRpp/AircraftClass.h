@@ -128,10 +128,10 @@ public:
 	TechnoClass* DockedTo;
 	bool unknown_bool_6D0;
 	bool unknown_bool_6D1;
-	bool __DoingOverfly;
-	char unknown_char_6D3;
-	bool carrayall6D4;
-	bool retreating_idle; //6D5
+	bool IsLocked; // Whether or not aircraft is locked to a firing run (strafing)
+	char NumParadropsLeft;
+	bool IsCarryallNotLanding;
+	bool IsReturningFromAttackRun; // Aircraft finished attack run and/or went idle and is now returning from it
 };
 
 static_assert(sizeof(AircraftClass) == 0x6D8, "Invalid size.");

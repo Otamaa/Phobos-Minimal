@@ -180,8 +180,8 @@ struct Game
 		CALL(0x7C5F00);
 	}
 
-	static int FORCEINLINE AdjustHeight(int height)  {
-		return F2I((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
+	static constexpr int FORCEINLINE AdjustHeight(int height)  {
+		return int((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 
 	// the game's own rounding function

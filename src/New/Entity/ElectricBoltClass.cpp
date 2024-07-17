@@ -34,11 +34,8 @@ void ElectricBoltClass::Draw_It()
 
 		for (int i = 0; i < IterationCount; ++i) {
 			if (Lifetime) {
-				Point2D pixel_start {};
-				Point2D pixel_end {};
-
-				TacticalClass::Instance->CoordsToClient(&StartCoord,&pixel_start);
-				TacticalClass::Instance->CoordsToClient(&EndCoord,&pixel_end);
+				Point2D pixel_start = TacticalClass::Instance->CoordsToClient(StartCoord);
+				Point2D pixel_end = TacticalClass::Instance->CoordsToClient(EndCoord);
 
 				if (Game::Clip_Line(&pixel_start, &pixel_end, &Drawing::SurfaceDimensions_Hidden()))
 					Plot_Bolt(StartCoord, EndCoord);
@@ -275,12 +272,8 @@ void ElectricBoltClass::Draw_Bolts()
 	{
 		LineDrawDataStruct& data = LineDrawList[i];
 
-		Point2D start_pixel {};
-		Point2D end_pixel {};
-
-		TacticalClass::Instance->CoordsToClient(&data.Start,&start_pixel);
-		TacticalClass::Instance->CoordsToClient(&data.End,&end_pixel);
-
+		Point2D start_pixel = TacticalClass::Instance->CoordsToClient(data.Start);
+		Point2D end_pixel = TacticalClass::Instance->CoordsToClient(data.End);
 		RectangleStruct nRect = DSurface::ViewBounds();
 
 		int start_z = data.StartZ - Game::AdjustHeight(data.Start.Z) - 2;

@@ -3077,8 +3077,7 @@ static void Tactical_Draw_Radial(
 		size = (int)((radius + 0.5) / Math::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
 	}
 
-	Point2D center_pixel {};
-	TacticalClass::Instance->CoordsToClient(&center_coord, &center_pixel);
+	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
 
 	center_pixel.X += DSurface::ViewBounds().X;
 	center_pixel.Y += DSurface::ViewBounds().Y;

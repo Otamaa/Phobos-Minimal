@@ -901,8 +901,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 		if (allowDraw || !MapClass::Instance->IsLocationShrouded(Coord))
 		{
-			Point2D outClient {};
-			TacticalClass::Instance->CoordsToClient(&Coord, &outClient);
+			Point2D outClient = TacticalClass::Instance->CoordsToClient(Coord);
 
 			const auto y_copy = rect->Y + outClient.Y;
 			outClient.Y += rect->Y;
@@ -958,8 +957,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 		if (const auto image = draw.LinkedParticleType->GetImage())
 		{
 			const auto offs = -15 - Game::AdjustHeight(draw.vel.Z);
-			Point2D outClient;
-			TacticalClass::Instance->CoordsToClient(&draw.vel, &outClient);
+			Point2D outClient = TacticalClass::Instance->CoordsToClient(draw.vel);
 			DWORD drawingFlag = 0x2E00;
 			outClient.Y += rect->X;
 			if (GameOptionsClass::Instance->DetailLevel == 2)

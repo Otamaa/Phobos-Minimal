@@ -238,9 +238,10 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	const auto& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
 	const auto nHeight = pCell->GetFloorHeight({ 0,0 });
-	Point2D nPoint { 0,0 };
 
-	if (!TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint))
+	auto& [nPoint, _result] = TacticalClass::Instance->GetCoordsToClientSituation(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ));
+
+	if (!_result)
 		return;
 
 	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));

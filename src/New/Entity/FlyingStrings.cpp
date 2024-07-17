@@ -22,7 +22,11 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 		return false;
 
 	if (auto const pCell = MapClass::Instance->TryGetCellAt(nCoords)) {
-		return (!pCell->IsFogged() && !pCell->IsShrouded()) && TacticalClass::Instance->CoordsToClient(nCoords, &outPoint);
+		if (!pCell->IsFogged() && !pCell->IsShrouded()){
+			auto& [_ret, _cond] = TacticalClass::Instance->GetCoordsToClientSituation(nCoords);
+			outPoint = _ret;
+			return _cond;
+		}
 	}
 
 	return false;

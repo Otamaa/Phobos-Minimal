@@ -144,8 +144,7 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 Point2D TechnoExtData::GetScreenLocation(TechnoClass* pThis)
 {
 	CoordStruct absolute = pThis->GetCoords();
-	Point2D  position = { 0,0 };
-	TacticalClass::Instance->CoordsToScreen(&position, &absolute);
+	Point2D position = TacticalClass::Instance->CoordsToScreen(absolute);
 	position -= TacticalClass::Instance->TacticalPos;
 
 	return position;
@@ -176,9 +175,8 @@ Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Buil
 	Point2D position = GetScreenLocation(pThis);
 	CoordStruct dim2 = CoordStruct::Empty;
 	pBuildingType->Dimension2(&dim2);
-	Point2D positionFix = Point2D::Empty;
 	dim2 = { -dim2.X / 2, dim2.Y / 2, dim2.Z };
-	TacticalClass::Instance->CoordsToScreen(&positionFix, &dim2);
+	Point2D positionFix = TacticalClass::Instance->CoordsToScreen(dim2);
 
 	const int foundationWidth = pBuildingType->GetFoundationWidth();
 	const int foundationHeight = pBuildingType->GetFoundationHeight(false);

@@ -113,7 +113,7 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 
 		if (!pThis->Ammo)
 		{
-			pThis->__DoingOverfly = false;
+			pThis->IsLocked = false;
 			pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
 
 			return 0;
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 
 		if (!pThis->Ammo)
 		{
-			pThis->__DoingOverfly = false;
+			pThis->IsLocked = false;
 		}
 
 		pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
