@@ -288,8 +288,14 @@ public:
 	}
 
 	// Get cellclasspointer with pointe2d location but it will return to instance pointer if invalid !
-	CellClass* GetTargetCell(Point2D& location)
-		{ JMP_THIS(0x565730); }
+	constexpr CellClass* GetTargetCell(Point2D& location) {
+		CellStruct cell = {
+			static_cast<short>(location.X / 256),
+			static_cast<short>(location.Y / 256)
+		};
+
+		return GetCellAt(cell);
+	}
 
 	// Is cellclass pointer is valid after using `TryGetCellAt` !
 	constexpr FORCEINLINE bool CellExists(const CellStruct &MapCoords) const {

@@ -394,7 +394,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 	{
 		const double checkLength = Unsorted::BridgeHeight / pThis->Climb * pThis->__currentSpeed;
 		const double angle = -pThis->Facing.Current().GetRadian<32>();
-		Point2D stepCoord { static_cast<int>(checkLength * cos(angle)), static_cast<int>(checkLength * sin(angle)) };
+		Point2D stepCoord { static_cast<int>(checkLength * Math::cos(angle)), static_cast<int>(checkLength * Math::sin(angle)) };
 		const int largeStep = std::max(abs(stepCoord.X), abs(stepCoord.Y));
 
 		if (largeStep)
