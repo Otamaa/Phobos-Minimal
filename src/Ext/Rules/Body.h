@@ -54,6 +54,8 @@ public:
 	Valueable<bool> JumpjetAllowLayerDeviation { true };
 	Valueable<bool> JumpjetTurnToTarget { false };
 	Valueable<bool> JumpjetCrash_Rotate { true };
+	Valueable<bool> JumpjetClimbPredictHeight { false };
+	Valueable<bool> JumpjetClimbWithoutCutOut { false };
 
 	Valueable<int> Storage_TiberiumIndex { -1 };
 	Valueable<int> PlacementGrid_TranslucentLevel { 0 };
