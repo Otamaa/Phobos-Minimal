@@ -71,7 +71,72 @@ public:
 class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
+	static std::vector<VoxelAnimExtData*> Pool;
 	static VoxelAnimExtContainer Instance;
+
+	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)
+	{
+		VoxelAnimExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+			//re-init
+			val->VoxelAnimExtData::VoxelAnimExtData();
+		}
+		else
+		{
+			val = new VoxelAnimExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	VoxelAnimExtData* Allocate(VoxelAnimClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (VoxelAnimExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(VoxelAnimClass* key)
+	{
+		if (VoxelAnimExtData* Item = TryFind(key))
+		{
+			Item->~VoxelAnimExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
 };

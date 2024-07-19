@@ -167,7 +167,7 @@ DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 }
 #endif
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 namespace FireAtTemp
 {
 	CoordStruct originalTargetCoords;
@@ -285,7 +285,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 	GET_BASE(AbstractClass*, pOriginalTarget, 0x8);
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 	//TargetSet
 	FireAtTemp::originalTargetCoords = *pTargetCoords;
 	FireAtTemp::pOriginalTarget = pOriginalTarget;
@@ -370,7 +370,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 	//remove ammo rounds depending on weapon
 	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
 
-#ifdef PERFORMANCE_HEAVY
+#ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
 	*pTargetCoords = FireAtTemp::originalTargetCoords;
 	R->Base(8, FireAtTemp::pOriginalTarget);

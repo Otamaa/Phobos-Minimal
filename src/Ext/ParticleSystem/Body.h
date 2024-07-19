@@ -151,7 +151,73 @@ private:
 class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
+	static std::vector<ParticleSystemExtData*> Pool;
 	static ParticleSystemExtContainer Instance;
+
+	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)
+	{
+		ParticleSystemExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+			//re-init
+			val->ParticleSystemExtData::ParticleSystemExtData();
+		}
+		else
+		{
+			val = new ParticleSystemExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			val->InitializeConstant();
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	ParticleSystemExtData* Allocate(ParticleSystemClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (ParticleSystemExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(ParticleSystemClass* key)
+	{
+		if (ParticleSystemExtData* Item = TryFind(key))
+		{
+			Item->~ParticleSystemExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
 };

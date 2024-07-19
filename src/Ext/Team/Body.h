@@ -89,7 +89,72 @@ private:
 class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
+	static std::vector<TeamExtData*> Pool;
 	static TeamExtContainer Instance;
+
+	TeamExtData* AllocateUnchecked(TeamClass* key)
+	{
+		TeamExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+			//re-init
+			val->TeamExtData::TeamExtData();
+		}
+		else
+		{
+			val = new TeamExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	TeamExtData* Allocate(TeamClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (TeamExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(TeamClass* key)
+	{
+		if (TeamExtData* Item = TryFind(key))
+		{
+			Item->~TeamExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
 };

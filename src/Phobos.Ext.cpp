@@ -339,6 +339,14 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	MouseClassExt::ClearCameos();
+
+	AnimExtContainer::Instance.Clear();
+	BulletExtContainer::Instance.Clear();
+	ParticleExtContainer::Instance.Clear();
+	ParticleSystemExtContainer::Instance.Clear();
+	TeamExtContainer::Instance.Clear();
+	VoxelAnimExtContainer::Instance.Clear();
+
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
@@ -379,10 +387,16 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PhobosAttachEffectTypeClass::Clear();
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	TechTreeTypeClass::Clear();
-	AnimExtContainer::Instance.Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
+	{
 		AnimExtContainer::Instance.Pool.reserve(1000);
+		BulletExtContainer::Instance.Pool.reserve(1000);
+		ParticleExtContainer::Instance.Pool.reserve(1000);
+		ParticleSystemExtContainer::Instance.Pool.reserve(1000);
+		TeamExtContainer::Instance.Pool.reserve(1000);
+		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
+	}
 
 	return 0;
 }
