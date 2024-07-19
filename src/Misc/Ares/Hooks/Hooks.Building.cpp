@@ -103,6 +103,8 @@ DEFINE_HOOK(0x44EB10, BuildingClass_GetCrew, 9)
 	return 0x44EB5B;
 }
 
+#include <Ext/SWType/Body.h>
+
 DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -188,6 +190,42 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 				//Point2D nRet;
 				//Simple_Text_Print_Wide(&nRet, pFormat.c_str(), DSurface::Temp.get(), &cameoRect, &DrawTextLoc, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			} else if(pType->SuperWeapon != -1) {
+				SuperClass* const pSuper = pThis->Owner->Supers.Items[pType->SuperWeapon];
+
+				if (pSuper->RechargeTimer.TimeLeft > 0 && SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_ShowCameo) {
+					RectangleStruct cameoRect {};
+					Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
+
+					// support for pcx cameos
+					if (auto pPCX = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPCX.GetSurface()) {
+						const int cameoWidth = 60;
+						const int cameoHeight = 48;
+
+						RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
+						RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
+						RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
+						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds)) {
+							cameoRect = destRect;
+							AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+						}
+
+					} else {
+						// old shp cameos, fixed palette
+						if (auto pCameo = pSuper->Type->SidebarImage)
+						{
+							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+
+							ConvertClass* pPal = FileSystem::CAMEO_PAL();
+							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette)
+								pPal = pManager->GetConvert<PaletteManager::Mode::Default>();
+
+							DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+						}
+					}
+				}
 			}
 		}
 	}
