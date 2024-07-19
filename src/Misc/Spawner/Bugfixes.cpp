@@ -55,25 +55,17 @@ LONG __fastcall TopLevelExceptionFilter(int exception_id, _EXCEPTION_POINTERS* E
 		ExceptionInfo->ContextRecord->Esp += 12;
 		return EXCEPTION_CONTINUE_EXECUTION;
 	//case 0x42C53E:
-	//case 0x42C507:
-	//{
-	//	FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
-	//	CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
-	//	CellStruct* pTo = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0xC);
-	//	MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
+	case 0x42C507:
+	{
+		//FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
+		//CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
+		//CellStruct* pTo = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0xC);
+		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
 
-	//	//AstarClass , broken ptr
-	//	Debug::Log("FindingPath Crash for [%s(0x%x) as [%s(%d)]- Owner[%s(0x%x)] from[%d , %d] to [%d , %d] MovementZone [%s(%d)] DriverKilled[%s] \n",
-	//	pFoot->get_ID(), pFoot,
-	//	pFoot->GetThisClassName(), pFoot->WhatAmI(),
-	//	pFoot->Owner->get_ID(), pFoot->Owner,
-	//	pFrom->X, pFrom->Y,
-	//	pTo->X, pTo->Y,
-	//	TechnoTypeClass::MovementZonesToString[int(movementZone)], int(movementZone),
-	//	TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled ? "Yes" : "No"
-	//	);
-	//	return PrintException(exception_id, ExceptionInfo);
-	//}
+		//AstarClass , broken ptr
+		Debug::Log("PathfindingCrash\n");
+		return PrintException(exception_id, ExceptionInfo);
+	}
 	//case 0x755C7F:
 	//{
 	//	Debug::Log("BounceAnimError \n");
