@@ -33,5 +33,5 @@ namespace Unsorted
 	inline constexpr int HeightMax = 728;
 	inline constexpr int BridgeLevels = 4;
 	inline constexpr int BridgeHeight = BridgeLevels * LevelHeight;
-	inline constexpr double GameMagicNumbr_ = 0.1657281546769136;
+	inline constexpr double GameMagicNumbr_ = 0.1435036008266009;
 };
