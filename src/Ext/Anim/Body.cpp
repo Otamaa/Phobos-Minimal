@@ -590,6 +590,7 @@ void AnimExtData::Serialize(T& Stm)
 // container
 
 AnimExtContainer AnimExtContainer::Instance;
+std::vector<AnimExtData*> AnimExtContainer::Pool;
 
 // =============================
 // hooks

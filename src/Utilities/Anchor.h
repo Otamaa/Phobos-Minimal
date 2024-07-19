@@ -42,35 +42,27 @@ public:
 	) const
 	{
 		Point2D result { topLeft };
-		Point2D deltaTopRight { topRight - topLeft };
-		Point2D deltaBottomLeft { bottomLeft - topLeft };
 
-		result += (deltaTopRight * this->GetRelativeOffsetHorizontal());
-		result += (deltaBottomLeft * this->GetRelativeOffsetVertical());
+		result += ((topRight - topLeft) * this->GetRelativeOffsetHorizontal());
+		result += ((bottomLeft - topLeft) * this->GetRelativeOffsetVertical());
 
 		return result;
 	}
 
 	constexpr Point2D OffsetPosition(const RectangleStruct& rect) const
 	{
-		Point2D result { rect.X, rect.Y };
-
-		result.X += static_cast<int>(rect.Width * this->GetRelativeOffsetHorizontal());
-		result.Y += static_cast<int>(rect.Height * this->GetRelativeOffsetVertical());
-
-		return result;
+		return {
+			rect.X + static_cast<int>(rect.Width * this->GetRelativeOffsetHorizontal()),
+			rect.Y + static_cast<int>(rect.Height * this->GetRelativeOffsetVertical())
+		};
 	}
 
 	constexpr Point2D OffsetPosition(const LTRBStruct& ltrb) const
 	{
-		Point2D result { ltrb.Left, ltrb.Top };
-		int deltaX = ltrb.Right - ltrb.Left;
-		int deltaY = ltrb.Bottom - ltrb.Top;
-
-		result.X += static_cast<int>(deltaX * this->GetRelativeOffsetHorizontal());
-		result.Y += static_cast<int>(deltaY * this->GetRelativeOffsetVertical());
-
-		return result;
+		return {
+			ltrb.Left + static_cast<int>((ltrb.Right - ltrb.Left) * this->GetRelativeOffsetHorizontal()),
+			ltrb.Top + static_cast<int>((ltrb.Bottom - ltrb.Top) * this->GetRelativeOffsetVertical())
+		};
 	}
 
 	void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag);

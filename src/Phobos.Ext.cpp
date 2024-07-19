@@ -379,6 +379,11 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PhobosAttachEffectTypeClass::Clear();
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	TechTreeTypeClass::Clear();
+	AnimExtContainer::Instance.Clear();
+
+	if (!Phobos::Otamaa::ExeTerminated)
+		AnimExtContainer::Instance.Pool.reserve(1000);
+
 	return 0;
 }
 
