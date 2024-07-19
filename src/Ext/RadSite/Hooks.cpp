@@ -181,7 +181,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 
 		if (pWeapon
 			&& pWeapon->DecloakToFire
-			&& (pThis->CloakState == CloakState::Cloaked || pThis->CloakState == CloakState::Cloaking))
+			&& pThis->IsInCloakState())
 		{
 			// FYI this are hack to immediately stop the Cloaking
 			// since this function is always failing to decloak and set target when cell is occupied

@@ -169,6 +169,12 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
 	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
+	pData->CombatAlert.Read(iniEX, GameStrings::AudioVisual, "CombatAlert");
+	pData->CombatAlert_IgnoreBuilding.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.IgnoreBuilding");
+	pData->CombatAlert_EVA.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.EVA");
+	pData->CombatAlert_SuppressIfInScreen.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfInScreen");
+	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
+	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
 
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
 
@@ -1227,6 +1233,12 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DamageEnemiesMultiplier)
 		.Process(this->FactoryProgressDisplay)
 		.Process(this->MainSWProgressDisplay)
+		.Process(this->CombatAlert)
+		.Process(this->CombatAlert_IgnoreBuilding)
+		.Process(this->CombatAlert_EVA)
+		.Process(this->CombatAlert_SuppressIfInScreen)
+		.Process(this->CombatAlert_Interval)
+		.Process(this->CombatAlert_SuppressIfAllyDamage)
 		;
 
 	MyPutData.Serialize(Stm);

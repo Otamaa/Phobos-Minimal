@@ -386,7 +386,7 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 	if (pType->ForceDecloak)
 	{
-		if (pTargetTechno->CloakState == CloakState::Cloaked || pTargetTechno->CloakState == CloakState::Cloaking)
+		if (pTargetTechno->IsInCloakState())
 		{
 			pTargetTechno->Uncloak(true);
 		}

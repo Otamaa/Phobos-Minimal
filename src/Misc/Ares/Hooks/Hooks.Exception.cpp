@@ -8,6 +8,8 @@
 
 #include <stdnoreturn.h>
 
+#include <Utilities/Macro.h>
+
 DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
@@ -57,8 +59,61 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 #define EXCEPTION_STACK_COLUMNS 8 // Number of columns in stack dump.
 #define EXCEPTION_STACK_DEPTH_MAX 1024
 
-[[noreturn]] LONG CALLBACK ExceptionHandler(PEXCEPTION_POINTERS const pExs)
-{
+LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
+
+	DWORD* eip_pointer = reinterpret_cast<DWORD*>(pExs->ContextRecord->Eip);
+
+	switch (*eip_pointer)
+	{
+	case 0x7BC806: {
+		*eip_pointer = 0x7BC80F;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x5D6C21: {
+	// This bug most likely happens when a map Doesn't have Waypoint 90
+		*eip_pointer = 0x5D6C36;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x7BAEA1: {
+		// A common crash in DSurface::GetPixel
+		*eip_pointer = 0x7BAEA8;
+		pExs->ContextRecord->Ebx = 0;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x535DBC: {
+		// Common crash in keyboard command class
+		*eip_pointer = 0x535DCE;
+		pExs->ContextRecord->Esp += 12;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	//case 0x42C53E:
+	case 0x42C507: {
+		//FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
+		//CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
+		//CellStruct* pTo = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0xC);
+		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
+
+		//AstarClass , broken ptr
+		Debug::Log("PathfindingCrash\n");
+		break;
+	}
+	//case 0x755C7F:
+	//{
+	//	Debug::Log("BounceAnimError \n");
+	//	return PrintException(exception_id, ExceptionInfo);
+	//}
+	case 0x000000:
+		if (pExs->ContextRecord->Esp && *(DWORD*)pExs->ContextRecord->Esp == 0x55E018) {
+			// A common crash that seems to happen when yuri prime mind controls a building and then dies while the user is pressing hotkeys
+			*eip_pointer = 0x55E018;
+			pExs->ContextRecord->Esp += 8;
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+		break;
+	default:
+		break;
+	}
+
 	Debug::FreeMouse();
 	Debug::Log("Exception handler fired!\n");
 	Debug::Log("Exception %X at %p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
@@ -161,7 +216,6 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 			PCONTEXT pCtxt = pExs->ContextRecord;
 			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
-			uint8_t* eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
 
 			for (int e = 32; e > 0; --e)
 			{
@@ -318,20 +372,23 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 	Debug::Log("Exiting...\n");
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
+	return 0u;
 };
 
-DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
-{
-	//GET(int, code, ECX);
-	GET(LPEXCEPTION_POINTERS, pExs, EDX);
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		//dont fire exception multiple times ,..
-	   //i dont know how handle recursive exception
-		ExceptionHandler(pExs);
-		__debugbreak();
-	}
-}
+DEFINE_JUMP(LJMP, 0x4C8FE0, GET_OFFSET(ExceptionHandler))
+
+//DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
+//{
+//	//GET(int, code, ECX);
+//	GET(LPEXCEPTION_POINTERS, pExs, EDX);
+//	if (!Phobos::Otamaa::ExeTerminated)
+//	{
+//		//dont fire exception multiple times ,..
+//	   //i dont know how handle recursive exception
+//		ExceptionHandler(pExs);
+//		__debugbreak();
+//	}
+//}
 
 #pragma warning(pop)
 template<typename T>

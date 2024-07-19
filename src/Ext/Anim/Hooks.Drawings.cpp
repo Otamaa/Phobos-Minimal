@@ -1,5 +1,7 @@
 #include "Body.h"
+
 #include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
 
 // Draw Tiled !
 #ifndef UsePhobosOne
@@ -317,54 +319,154 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 
 	GET(AnimClass* const, pThis, ESI);
 
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+
 	if(!HouseClass::IsCurrentPlayerObserver()) {
-		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-		auto pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject);
+
+		const auto pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject);
 		HouseClass* const pCurrentHouse = HouseClass::CurrentPlayer;
 
 		if (pTypeExt->RestrictVisibilityIfCloaked
-			&& pTechno && (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking)
-			&& !pTechno->Owner->IsAlliedWith(pCurrentHouse))
-		{
+			&& pTechno && pTechno->IsInCloakState()
+			&& (!pTechno->Owner || !pTechno->Owner->IsAlliedWith(pCurrentHouse))) {
+
 			auto const pCell = pTechno->GetCell();
 
 			if (pCell && !pCell->Sensors_InclHouse(pCurrentHouse->ArrayIndex))
 				return SkipDrawing;
 		}
 
-		auto pOwner = pThis->OwnerObject ? pThis->OwnerObject->GetOwningHouse() : pThis->Owner;
+		if(pTypeExt->VisibleTo != AffectedHouse::All) {
 
-		if (pTypeExt->VisibleTo_ConsiderInvokerAsOwner)
-		{
-			auto const pExt = AnimExtContainer::Instance.Find(pThis);
+			auto pOwner = pThis->OwnerObject ? pThis->OwnerObject->GetOwningHouse() : pThis->Owner;
 
-			if (pExt->Invoker)
-				pOwner = pExt->Invoker->Owner;
+			if (pTypeExt->VisibleTo_ConsiderInvokerAsOwner)
+			{
+				auto const pExt = AnimExtContainer::Instance.Find(pThis);
+
+				if (pExt->Invoker)
+					pOwner = pExt->Invoker->Owner;
+			}
+
+			AffectedHouse visibilityFlags = pTypeExt->VisibleTo;
+
+			if (!EnumFunctions::CanTargetHouse(visibilityFlags, pCurrentHouse, pOwner))
+				return SkipDrawing;
 		}
-
-		AffectedHouse visibilityFlags = pTypeExt->VisibleTo;
-
-		if (!EnumFunctions::CanTargetHouse(visibilityFlags, pCurrentHouse, pOwner))
-			return SkipDrawing;
 	}
 
 	return 0;
 }
 
-DEFINE_HOOK(0x423183, AnimClass_DrawIt_CloakTranslucency, 0x6)
+//DEFINE_HOOK(0x423183, AnimClass_DrawIt_CloakTranslucency, 0x6)
+//{
+//	enum { SkipGameCode = 0x423189 };
+//
+//	GET(AnimClass*, pThis, ESI);
+//
+//	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	if (!pTypeExt->DetachOnCloak && pTypeExt->Translucency_Cloaked.isset()) {
+//		if (auto const pTechno = abstract_cast<TechnoClass*>(pThis->OwnerObject)) {
+//			if (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking) {
+//				R->EAX(pTypeExt->Translucency_Cloaked.Get());
+//				return SkipGameCode;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
+
+DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 {
-	enum { SkipGameCode = 0x423189 };
+	enum { SkipGameCode = 0x4230FE, ReturnFromFunction = 0x4238A3 };
 
 	GET(AnimClass*, pThis, ESI);
+	GET(BlitterFlags, flags, EBX);
+
+	auto const pType = pThis->Type;
+	int translucencyLevel = pThis->TranslucencyLevel; // Used by building animations when building needs to be drawn partially transparent.
+
+	if (!pType->Translucent)
+	{
+		auto translucency = pThis->Type->Translucency;
+		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
+
+		if (pTypeExt->Translucency_Cloaked.isset()) {
+			if (auto const pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject)) {
+				if (pTechno->IsInCloakState())
+					translucency = pTypeExt->Translucency_Cloaked.Get();
+			}
+		}
+
+		if (translucency <= 0 && translucencyLevel)
+		{
+			if (translucencyLevel > 15)
+				return ReturnFromFunction;
+			else if (translucencyLevel > 10)
+				flags |= BlitterFlags::TransLucent50;
+			else if (translucencyLevel > 5)
+				flags |= BlitterFlags::TransLucent50;
+			else
+				flags |= BlitterFlags::TransLucent25;
+		}
+		else
+		{
+			if (translucencyLevel >= 15)
+				return ReturnFromFunction;
+			else if (translucency == 75)
+				flags |= BlitterFlags::TransLucent75;
+			else if (translucency == 50)
+				flags |= BlitterFlags::TransLucent50;
+			else if (translucency == 25)
+				flags |= BlitterFlags::TransLucent25;
+		}
+	}
+	else
+	{
+		if (translucencyLevel >= 15)
+			return ReturnFromFunction;
+
+		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
+		int currentFrame = pThis->Animation.Value;
+		int frames = pType->End;
+
+		if ((pTypeExt->Translucent_Stage3_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage3_Frame.Get())
+			|| currentFrame >= frames * pTypeExt->Translucent_Stage3_Percent)
+		{
+			flags |= pTypeExt->Translucent_Stage3_Translucency.Get();
+		}
+		else if ((pTypeExt->Translucent_Stage2_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage2_Frame.Get())
+			|| currentFrame >= frames * pTypeExt->Translucent_Stage2_Percent)
+		{
+			flags |= pTypeExt->Translucent_Stage2_Translucency.Get();
+		}
+		else if ((pTypeExt->Translucent_Stage1_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage1_Frame.Get())
+			|| currentFrame >= frames * pTypeExt->Translucent_Stage1_Percent)
+		{
+			flags |= pTypeExt->Translucent_Stage1_Translucency.Get();
+		}
+	}
+
+	R->EBX(flags);
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x425174, AnimClass_Detach_Cloak, 0x6) {
+	enum { SkipDetaching = 0x4251A3 };
+
+	GET(AnimClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, EDI);
 
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (!pTypeExt->DetachOnCloak && pTypeExt->Translucency_Cloaked.isset()) {
-		if (auto const pTechno = abstract_cast<TechnoClass*>(pThis->OwnerObject)) {
-			if (pTechno->CloakState == CloakState::Cloaked || pTechno->CloakState == CloakState::Cloaking) {
-				R->EAX(pTypeExt->Translucency_Cloaked.Get());
-				return SkipGameCode;
-			}
+	if (!pTypeExt->DetachOnCloak) {
+		if (auto const pTechno = generic_cast<TechnoClass*>(pTarget)) {
+			auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
+
+			if (pTechnoExt->IsAboutToStartCloaking || pTechno->IsInCloakState())
+				return SkipDetaching;
 		}
 	}
 

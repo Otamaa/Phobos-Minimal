@@ -9,16 +9,16 @@ class TranslucencyLevel
 public:
 	constexpr TranslucencyLevel() noexcept = default;
 
-	TranslucencyLevel(int nInt)
+	constexpr TranslucencyLevel(int nInt)
 	{
 		*this = nInt;
 	}
 
-	TranslucencyLevel(const TranslucencyLevel& other) = default;
-	TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;
-	~TranslucencyLevel() = default;
+	constexpr TranslucencyLevel(const TranslucencyLevel& other) = default;
+	constexpr TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;
+	constexpr ~TranslucencyLevel() = default;
 
-	TranslucencyLevel& operator = (int nInt)
+	constexpr TranslucencyLevel& operator = (int nInt)
 	{
 		switch (nInt)
 		{
@@ -40,12 +40,12 @@ public:
 		return *this;
 	}
 
-	constexpr operator BlitterFlags()
+	constexpr operator BlitterFlags() const
 	{
 		return this->value;
 	}
 
-	constexpr BlitterFlags GetBlitterFlags()
+	constexpr BlitterFlags GetBlitterFlags() const
 	{
 		return *this;
 	}

@@ -447,6 +447,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachEffect_CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
 	this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
 	this->Shield_HitFlash.Read(exINI, pSection, "Shield.HitFlash");
+	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
 
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
@@ -1468,6 +1469,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
 		.Process(this->AttachEffect_DurationOverrides)
 		.Process(this->Shield_HitFlash)
+		.Process(this->CombatAlert_Suppress)
 		;
 
 	PaintBallData.Serialize(Stm);

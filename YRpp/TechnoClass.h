@@ -761,6 +761,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x43B150);
 	}
 
+	constexpr bool IsInCloakState() const {
+		return this->CloakState == CloakState::Cloaked || this->CloakState == CloakState::Cloaking;
+	}
+
 	// Invokes AI response on their 'base' being attacked. Used by buildings, ToProtect=true technos and Whiner=true team members.
 	void BaseIsAttacked(TechnoClass* pEnemy) const
 	{ JMP_THIS(0x708080); }

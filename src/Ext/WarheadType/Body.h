@@ -375,6 +375,7 @@ public:
 	ValueableVector<int> AttachEffect_DurationOverrides {};
 
 	Valueable<bool> Shield_HitFlash { true };
+	Nullable<bool> CombatAlert_Suppress { };
 public:
 
 	WarheadTypeExtData() noexcept = default;

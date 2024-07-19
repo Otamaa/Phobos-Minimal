@@ -255,11 +255,8 @@ void TrailsManager::AI(TechnoClass* pOwner)
 
 	for (auto& pTrails : pExt->Trails)
 	{
-		if (((TechnoClass*)pOwner)->CloakState == CloakState::Cloaking ||
-				((TechnoClass*)pOwner)->CloakState == CloakState::Cloaked)
-		{
-			if (pTrails.Type->HideWhenCloak.Get())
-				continue;
+		if (((TechnoClass*)pOwner)->IsInCloakState() && pTrails.Type->HideWhenCloak.Get()) {
+			continue;
 		}
 
 		if (!pExt->IsInTunnel)

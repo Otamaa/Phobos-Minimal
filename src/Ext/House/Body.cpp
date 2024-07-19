@@ -1848,6 +1848,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->TiberiumStorage)
 
 		.Process(this->SideTechTree)
+		.Process(this->CombatAlertTimer)
 		//.Process(this->BuiltAircraftTypes)
 		//.Process(this->BuiltInfantryTypes)
 		//.Process(this->BuiltUnitTypes)

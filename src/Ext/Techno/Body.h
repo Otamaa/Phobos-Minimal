@@ -465,7 +465,7 @@ public:
 
 	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
 	OptionalStruct<int, true> AdditionalRange {};
-	bool IsAboutToStartCloaking { false };
+	bool IsAboutToStartCloaking { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
 
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept

@@ -112,6 +112,16 @@ public:
 	Valueable<bool> DetachOnCloak { true };
 	Nullable<int> Translucency_Cloaked {};
 
+	Valueable<double> Translucent_Stage1_Percent { 0.2 };
+	Nullable<int> Translucent_Stage1_Frame {};
+	Valueable<TranslucencyLevel> Translucent_Stage1_Translucency { 25 };
+	Valueable<double> Translucent_Stage2_Percent { 0.4 };
+	Nullable<int> Translucent_Stage2_Frame {};
+	Valueable<TranslucencyLevel> Translucent_Stage2_Translucency { 50 };
+	Valueable<double> Translucent_Stage3_Percent { 0.6 };
+	Nullable<int> Translucent_Stage3_Frame {};
+	Valueable<TranslucencyLevel> Translucent_Stage3_Translucency { 75 };
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 

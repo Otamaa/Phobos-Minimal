@@ -156,6 +156,7 @@ public:
 	//TrackerClass CollectedCrates {};
 
 	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
+	CDTimerClass CombatAlertTimer {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;

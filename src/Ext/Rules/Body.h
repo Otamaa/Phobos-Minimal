@@ -343,6 +343,13 @@ public:
 	Valueable<bool> FactoryProgressDisplay { false };
 	Valueable<bool> MainSWProgressDisplay { false };
 
+	Valueable<bool> CombatAlert { false };
+	Valueable<bool> CombatAlert_IgnoreBuilding { true };
+	Valueable<bool> CombatAlert_EVA { true };
+	Valueable<bool> CombatAlert_SuppressIfInScreen { true };
+	Valueable<int> CombatAlert_Interval { 150 };
+	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

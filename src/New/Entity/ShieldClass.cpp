@@ -526,8 +526,7 @@ void ShieldClass::OnUpdate()
 // Therefore, we must zero out the invalid pointer
 void ShieldClass::CloakCheck()
 {
-	const auto cloakState = this->Techno->CloakState;
-	this->Cloak = cloakState == CloakState::Cloaked || cloakState == CloakState::Cloaking;
+	this->Cloak = this->Techno->IsInCloakState();
 
 	if (this->Cloak && this->IdleAnim && AnimTypeExtContainer::Instance.Find(this->IdleAnim->Type)->DetachOnCloak)
 		KillAnim();

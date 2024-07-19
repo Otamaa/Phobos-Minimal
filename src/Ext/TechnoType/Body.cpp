@@ -45,6 +45,7 @@ void TechnoTypeExtData::Initialize()
 
 	this->Eva_Complete = VoxClass::FindIndexById(Eva_ready);
 	this->EVA_Sold = VoxClass::FindIndexById(Eva_sold);
+	this->EVA_Combat = VoxClass::FindIndexById("EVA_UnitsInCombat");
 }
 
 bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)

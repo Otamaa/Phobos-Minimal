@@ -100,10 +100,37 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	pWHExt->ApplyDamageMult(pThis, &args);
 	//SkipAllReaction = false
 
-	if (!args.IgnoreDefenses)
-	{
-		if (auto pShieldData = TechnoExtContainer::Instance.Find(pThis)->GetShield())
-		{
+	if (!args.IgnoreDefenses) {
+
+		const auto pHouse = pThis->Owner;
+		const auto pWH = args.WH;
+		const auto pSourceHouse = args.SourceHouse;
+		const auto pType = pThis->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert) && pThis->IsOwnedByCurrentPlayer &&
+			*args.Damage > 1 && pThis->IsInPlayfield && !pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious)) {
+			if (const auto pHouseExt = HouseExtContainer::Instance.TryFind(pHouse)) {
+				if (pHouse->IsControlledByHuman() && !pHouseExt->CombatAlertTimer.HasTimeLeft()) {
+					if (!RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage || !pHouse->IsAlliedWith(pSourceHouse)) {
+						if (((pThis->WhatAmI() != AbstractType::Building ||
+							pTypeExt->CombatAlert_NotBuilding) ||
+							!RulesExtData::Instance()->CombatAlert_IgnoreBuilding)
+						) {
+							if (!RulesExtData::Instance()->CombatAlert_SuppressIfInScreen || pThis->IsOnMyView()) {
+								pHouseExt->CombatAlertTimer.Start(RulesExtData::Instance()->CombatAlert_Interval);
+								RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
+								if (RulesExtData::Instance()->CombatAlert_EVA) {
+									VoxClass::PlayIndex(pTypeExt->EVA_Combat);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (auto pShieldData = TechnoExtContainer::Instance.Find(pThis)->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);
 		}
 		//else
