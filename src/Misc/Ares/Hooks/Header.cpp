@@ -3575,10 +3575,12 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 				if (auto const count = pOldType->MoveSound.Count)
 				{
-					// Play a new sound.
-					int soundIndex = pToType->MoveSound[Random2Class::Global->Random() % count];
-					VocClass::PlayAt(soundIndex, pFoot->Location, &pFoot->Audio7);
-					pFoot->__PlayingMovingSound = true;
+					if(pToType->MoveSound.Count) {
+						// Play a new sound.
+						int soundIndex = pToType->MoveSound[Random2Class::Global->Random() % count];
+						VocClass::PlayAt(soundIndex, pFoot->Location, &pFoot->Audio7);
+						pFoot->__PlayingMovingSound = true;
+					}
 				}
 				else
 				{
