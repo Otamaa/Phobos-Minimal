@@ -267,17 +267,17 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTechno, TechnoC
 	{
 		auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_DisallowedMinCounts, this->AttachEffect_DisallowedMaxCounts))
+		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 			return false;
 
-		if (hasDisallowedGroups && PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_DisallowedGroups), false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_DisallowedMinCounts, this->AttachEffect_DisallowedMaxCounts))
+		if (hasDisallowedGroups && PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_DisallowedGroups), false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 			return false;
 
-		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_RequiredMinCounts, this->AttachEffect_RequiredMaxCounts))
+		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 			return false;
 
 		if (hasRequiredGroups &&
-			!PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_RequiredGroups), true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, this->AttachEffect_RequiredMinCounts, this->AttachEffect_RequiredMaxCounts))
+			!PhobosAEFunctions::HasAttachedEffects(pTechno, PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_RequiredGroups), true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 			return false;
 	}
 

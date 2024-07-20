@@ -63,6 +63,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 {
 	bool markForRedraw = false;
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool technoIsDead = !pTechno->IsAlive;
 	std::vector<WeaponTypeClass*> expireWeapons;
 
@@ -72,8 +73,8 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			break;
 
 		{
-			if (!pExt->IsInTunnel && !pExt->IsBurrowed)
-				it->SetAnimationVisibility(true);
+			if (inTunnel)
+				it->SetAnimationTunnelState(true);
 
 			it->AI();
 
@@ -137,7 +138,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 }
 
 bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<PhobosAttachEffectTypeClass*>& attachEffectTypes, bool requireAll, bool ignoreSameSource,
-		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const& minCounts, std::vector<int> const& maxCounts)
+		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts)
 {
 	unsigned int foundCount = 0;
 	unsigned int typeCounter = 1;
@@ -152,21 +153,22 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 				if (ignoreSameSource && pInvoker && pSource && attachEffect.IsFromSource(pInvoker, pSource))
 					continue;
 
-				unsigned int minSize = minCounts.size();
-				unsigned int maxSize = maxCounts.size();
 
-				if (type->Cumulative && (minSize > 0 || maxSize > 0))
+				if (type->Cumulative && (minCounts || maxCounts > 0))
 				{
 					int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, type, ignoreSameSource, pInvoker, pSource);
 
+					unsigned int minSize = minCounts ? minCounts->size() : 0;
+					unsigned int maxSize = maxCounts ? maxCounts->size() : 0;
+
 					if (minSize > 0)
 					{
-						if (cumulativeCount < minCounts.at(typeCounter - 1 >= minSize ? minSize - 1 : typeCounter - 1))
+						if (cumulativeCount < minCounts->operator[](typeCounter - 1 >= minSize ? minSize - 1 : typeCounter - 1))
 							continue;
 					}
 					if (maxSize > 0)
 					{
-						if (cumulativeCount > maxCounts.at(typeCounter - 1 >= maxSize ? maxSize - 1 : typeCounter - 1))
+						if (cumulativeCount > maxCounts->operator[](typeCounter - 1 >= maxSize ? maxSize - 1 : typeCounter - 1))
 							continue;
 					}
 				}

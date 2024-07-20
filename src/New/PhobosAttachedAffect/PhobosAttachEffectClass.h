@@ -33,6 +33,7 @@ public:
 		Source { that.Source },
 		Animation { nullptr },
 		IsAnimHidden { that.IsAnimHidden },
+		IsInTunnel { that.IsInTunnel },
 		IsUnderTemporal { that.IsUnderTemporal },
 		IsOnline { that.IsOnline },
 		IsCloaked { that.IsCloaked },
@@ -57,6 +58,7 @@ public:
 		this->Invoker = that.Invoker;
 		this->Source = that.Source;
 		this->IsAnimHidden = that.IsAnimHidden;
+		this->IsInTunnel = that.IsInTunnel;
 		this->IsUnderTemporal = that.IsUnderTemporal;
 		this->IsOnline = that.IsOnline;
 		this->IsCloaked = that.IsCloaked;
@@ -75,7 +77,7 @@ public:
 	void AI();
 	void AI_Temporal();
 	void KillAnim();
-	void SetAnimationVisibility(bool visible);
+	void SetAnimationTunnelState(bool visible);
 	constexpr FORCEINLINE PhobosAttachEffectTypeClass* GetType() const {
 		return this->Type;
 	}
@@ -127,6 +129,7 @@ public:
 private:
 	void OnlineCheck();
 	void CloakCheck();
+	void AnimCheck();
 	void CreateAnim();
 
 	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, std::vector<PhobosAttachEffectClass>& targetAEs,
@@ -151,6 +154,7 @@ private:
 	AbstractClass* Source { nullptr };
 	Handle<AnimClass*, UninitAnim> Animation { nullptr };
 	bool IsAnimHidden { false };
+	bool IsInTunnel { false };
 	bool IsUnderTemporal { false };
 	bool IsOnline { false };
 	bool IsCloaked { false };

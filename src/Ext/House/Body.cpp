@@ -1272,7 +1272,15 @@ std::vector<int> HouseExtData::GetBuildLimitGroupLimits(HouseClass* pHouse, Tech
 
 	if (!pTypeExt->BuildLimitGroup_ExtraLimit_Types.empty() && !pTypeExt->BuildLimitGroup_ExtraLimit_Nums.empty()) {
 		for (size_t i = 0; i < pTypeExt->BuildLimitGroup_ExtraLimit_Types.size(); i++) {
-			int count = pHouse->CountOwnedNow(pTypeExt->BuildLimitGroup_ExtraLimit_Types[i]);
+
+			int count = 0;
+			auto pTmpType = pTypeExt->BuildLimitGroup_ExtraLimit_Types[i];
+			auto const pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
+
+			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			else
+				count = pHouse->CountOwnedNow(pTmpType);
 
 			if (i < pTypeExt->BuildLimitGroup_ExtraLimit_MaxCount.size() && pTypeExt->BuildLimitGroup_ExtraLimit_MaxCount[i] > 0)
 				count = MinImpl(count, pTypeExt->BuildLimitGroup_ExtraLimit_MaxCount[i]);
@@ -1345,7 +1353,15 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			if (!ignoreQueued)
 				queued += QueuedNum(pHouse, pTmpType) * pTmpTypeExt->BuildLimitGroup_Factor;
 
-			count += pHouse->CountOwnedNow(pTmpType) * pTmpTypeExt->BuildLimitGroup_Factor;
+			int owned = 0;
+			const auto pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
+
+			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			else
+				owned = pHouse->CountOwnedNow(pTmpType);
+
+			count += owned * pTmpTypeExt->BuildLimitGroup_Factor;
 
 			if (pTmpType == pType)
 				inside = true;
@@ -1373,7 +1389,15 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			TechnoTypeClass* pTmpType = pTypeExt->BuildLimitGroup_Types[i];
 			const auto pTmpTypeExt = TechnoTypeExtContainer::Instance.Find(pTmpType);
 			int queued = ignoreQueued ? 0 : QueuedNum(pHouse, pTmpType) * pTmpTypeExt->BuildLimitGroup_Factor;
-			int num = pHouse->CountOwnedNow(pTmpType) * pTmpTypeExt->BuildLimitGroup_Factor - limits[i];
+			int num = 0;
+			const auto pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
+
+			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				num = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			else
+				num = pHouse->CountOwnedNow(pTmpType);
+
+			num *= pTmpTypeExt->BuildLimitGroup_Factor - limits[i];
 
 			if (pType == pTmpType && num + queued >= 1 - pTypeExt->BuildLimitGroup_Factor)
 			{
@@ -1520,8 +1544,14 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 
 		for (size_t i = 0; i < MinImpl(pItemExt->BuildLimitGroup_Types.size(), pItemExt->BuildLimitGroup_Nums.size()); i++) {
 			TechnoTypeClass* pType = pItemExt->BuildLimitGroup_Types[i];
+			const auto pBuildingType = specific_cast<BuildingTypeClass*>(pType);
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-			int ownedNow = HouseExtData::CountOwnedIncludeDeploy(pThis, pType) * pTypeExt->BuildLimitGroup_Factor;
+			int ownedNow = 0;
+
+			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+			else
+				ownedNow = CountOwnedIncludeDeploy(pThis, pType);
 
 			if (ownedNow >= limits[i] + 1 - pItemExt->BuildLimitGroup_Factor)
 				reachedLimit |= !(includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType));
@@ -1539,7 +1569,15 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 			for (auto& pType : pItemExt->BuildLimitGroup_Types)
 			{
 				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-				sum += HouseExtData::CountOwnedIncludeDeploy(pThis, pType) * pTypeExt->BuildLimitGroup_Factor;
+				const auto pBuildingType = specific_cast<BuildingTypeClass*>(pType);
+				int owned = 0;
+
+				if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+					owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+				else
+					owned = CountOwnedIncludeDeploy(pThis, pType);
+
+				sum += owned * pTypeExt->BuildLimitGroup_Factor;
 			}
 
 			if (sum >= limits[0] + 1 - pItemExt->BuildLimitGroup_Factor) {
@@ -1556,7 +1594,15 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 			{
 				TechnoTypeClass* pType = pItemExt->BuildLimitGroup_Types[i];
 				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-				int ownedNow = HouseExtData::CountOwnedIncludeDeploy(pThis, pType) * pTypeExt->BuildLimitGroup_Factor;
+				const auto pBuildingType = specific_cast<BuildingTypeClass*>(pType);
+				int ownedNow = 0;
+
+				if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+					ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+				else
+					ownedNow = CountOwnedIncludeDeploy(pThis, pType);
+
+				ownedNow *= pTypeExt->BuildLimitGroup_Factor;
 
 				if ((pItem == pType && ownedNow < limits[i] + 1 - pItemExt->BuildLimitGroup_Factor) || includeQueued && FactoryClass::FindByOwnerAndProduct(pThis, pType))
 					return CanBuildResult::Buildable;

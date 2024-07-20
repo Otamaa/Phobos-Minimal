@@ -124,8 +124,7 @@ void PhobosAttachEffectClass::AI()
 	this->CloakCheck();
 	this->OnlineCheck();
 
-	if (!this->Animation && !this->IsUnderTemporal && this->IsOnline && !this->IsCloaked && !this->IsAnimHidden)
-		this->CreateAnim();
+if (!this->Animation && !this->IsUnderTemporal && this->IsOnline && !this->IsCloaked && !this->IsInTunnel && !this->IsAnimHidden)		this->CreateAnim();
 }
 
 void PhobosAttachEffectClass::AI_Temporal()
@@ -136,8 +135,7 @@ void PhobosAttachEffectClass::AI_Temporal()
 
 		this->CloakCheck();
 
-		if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsAnimHidden)
-			this->CreateAnim();
+	if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsCloaked && !this->IsInTunnel && !this->IsAnimHidden)			this->CreateAnim();
 
 		if (this->Animation)
 		{
@@ -159,6 +157,29 @@ void PhobosAttachEffectClass::AI_Temporal()
 				this->Animation->UnderTemporal = true;
 				break;
 			}
+
+			this->AnimCheck();
+		}
+	}
+}
+
+void PhobosAttachEffectClass::AnimCheck()
+{
+	if (!this->Type->Animation_HideIfAttachedWith.empty())
+	{
+		auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+
+		if (PhobosAEFunctions::HasAttachedEffects(this->Techno, this->Type->Animation_HideIfAttachedWith, false, false, nullptr, nullptr, nullptr, nullptr))
+		{
+			this->KillAnim();
+			this->IsAnimHidden = true;
+		}
+		else
+		{
+			this->IsAnimHidden = false;
+
+			if (!this->Animation && (!this->IsUnderTemporal || this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides))
+				this->CreateAnim();
 		}
 	}
 }
@@ -272,12 +293,13 @@ void PhobosAttachEffectClass::KillAnim()
 	}
 }
 
-void PhobosAttachEffectClass::SetAnimationVisibility(bool visible)
+void PhobosAttachEffectClass::SetAnimationTunnelState(bool visible)
 {
-	if (!this->IsAnimHidden && !visible)
+	if (!this->IsInTunnel && !visible)
 		this->KillAnim();
 
-	this->IsAnimHidden = !visible;
+
+	this->IsInTunnel = !visible;
 }
 
 void PhobosAttachEffectClass::RefreshDuration(int durationOverride)

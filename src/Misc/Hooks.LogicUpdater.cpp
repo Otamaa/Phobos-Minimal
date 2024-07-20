@@ -47,7 +47,7 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	}
 
 	for (auto& attachEffect : pExt->PhobosAE){
-		attachEffect.SetAnimationVisibility(false);
+		attachEffect.SetAnimationTunnelState(false);
 	}
 
 	return 0;
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 			pShieldData->SetAnimationVisibility(true);
 
 		for (auto& attachEffect : pExt->PhobosAE) {
-			attachEffect.SetAnimationVisibility(true);
+			attachEffect.SetAnimationTunnelState(true);
 		}
 	}
 

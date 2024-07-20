@@ -32,5 +32,5 @@ struct PhobosAEFunctions
 /// <param name="pSource">Source AbstractClass instance used for same source check.</param>
 /// <returns>True if techno has active AttachEffects that satisfy the source, false if not.</returns>
 	static bool HasAttachedEffects(TechnoClass* pTechno, std::vector<PhobosAttachEffectTypeClass*>& attachEffectTypes, bool requireAll, bool ignoreSameSource,
-		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const& minCounts, std::vector<int> const& maxCounts);
+		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts);
 };

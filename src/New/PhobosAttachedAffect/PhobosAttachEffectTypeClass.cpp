@@ -48,6 +48,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Animation_OfflineAction.Read(exINI, pSection, "Animation.OfflineAction");
 	this->Animation_TemporalAction.Read(exINI, pSection, "Animation.TemporalAction");
 	this->Animation_UseInvokerAsOwner.Read(exINI, pSection, "Animation.UseInvokerAsOwner");
+	this->Animation_HideIfAttachedWith.Read(exINI, pSection, "Animation.HideIfAttachedWith");
 
 	this->ExpireWeapon.Read(exINI, pSection, "ExpireWeapon" , true);
 	this->ExpireWeapon_TriggerOn.Read(exINI, pSection, "ExpireWeapon.TriggerOn");
@@ -115,6 +116,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->Animation_OfflineAction)
 		.Process(this->Animation_TemporalAction)
 		.Process(this->Animation_UseInvokerAsOwner)
+		.Process(this->Animation_HideIfAttachedWith)
 		.Process(this->ExpireWeapon)
 		.Process(this->ExpireWeapon_TriggerOn)
 		.Process(this->ExpireWeapon_CumulativeOnlyOnce)
