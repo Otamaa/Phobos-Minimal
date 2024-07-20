@@ -1131,6 +1131,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->KeepTargetOnMove_ExtraDistance.Read(exINI, pSection, "KeepTargetOnMove.ExtraDistance");
 		this->ForbidParallelAIQueues.Read(exINI, pSection, "ForbidParallelAIQueues");
 
+		this->EVA_Combat.Read(exINI, pSection, "EVA.Combat");
+		this->CombatAlert.Read(exINI, pSection, "CombatAlert");
+		this->CombatAlert_NotBuilding.Read(exINI, pSection, "CombatAlert.NotBuilding");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -2252,6 +2256,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepTargetOnMove)
 		.Process(this->KeepTargetOnMove_ExtraDistance)
 		.Process(this->ForbidParallelAIQueues)
+
+		.Process(this->EVA_Combat)
+		.Process(this->CombatAlert)
+		.Process(this->CombatAlert_NotBuilding)
 		;
 }
 
