@@ -378,6 +378,8 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 //	return 0;
 //}
 
+//these should be calculated when anim created
+//but `Type` change is the one fucked up those
 DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 {
 	enum { SkipGameCode = 0x4230FE, ReturnFromFunction = 0x4238A3 };

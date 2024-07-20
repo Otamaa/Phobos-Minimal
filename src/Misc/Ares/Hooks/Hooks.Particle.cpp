@@ -403,7 +403,7 @@ DEFINE_HOOK(0x62E2AD, ParticleSystemClass_Draw, 6)
 	GET(ParticleSystemClass*, pThis, EDI);
 	GET(ParticleSystemTypeClass*, pThisType, EAX);
 
-	if (pThisType->ParticleCap)
+	if (pThisType->ParticleCap > 0)
 	{
 		R->ECX(pThis->Particles.Count +
 			ParticleSystemExtContainer::Instance.Find(pThis)->OtherParticleData.size());

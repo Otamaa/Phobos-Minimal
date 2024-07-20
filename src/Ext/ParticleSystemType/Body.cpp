@@ -27,7 +27,8 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	}
 	break;
 	case ParticleSystemTypeBehavesLike::Spark:
-		if (pThis->ParticleCap < 2){
+		//these bug only happen on vanilla particle drawings
+		if (pThis->ParticleCap < 2 && !this->ApplyOptimization){
 			Debug::Log("ParticleSystem[%s] BehavesLike=Spark ParticleCap need to be more than 1 , fixing\n", pID);
 			pThis->ParticleCap = 2;
 		}

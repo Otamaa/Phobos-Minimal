@@ -86,7 +86,8 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		pExs->ContextRecord->Esp += 12;
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
-	//case 0x42C53E:
+	case 0x42C554:
+	case 0x42C53E:
 	case 0x42C507: {
 		//FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
 		//CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
@@ -216,18 +217,19 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 			PCONTEXT pCtxt = pExs->ContextRecord;
 			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
+			uint8_t* _eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
 
 			for (int e = 32; e > 0; --e)
 			{
-				if (IsBadReadPtr(eip_pointer, sizeof(uint8_t)))
+				if (IsBadReadPtr(_eip_pointer, sizeof(uint8_t)))
 				{
 					fprintf(except, "?? ");
 				}
 				else
 				{
-					fprintf(except, "%02X ", (uintptr_t)*eip_pointer);
+					fprintf(except, "%02X ", (uintptr_t)*_eip_pointer);
 				}
-				++eip_pointer;
+				++_eip_pointer;
 			}
 
 			fprintf(except, "\n\nRegisters:\n");

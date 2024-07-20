@@ -335,6 +335,19 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	return 0;
 }
 
+#define LogPool(s) Debug::Log("%s MemoryPool size %d\n", _STR_(s) , ##s::Instance.Pool.size());
+
+DEFINE_HOOK(0x48CEDC, Game_Exit_RecordPoolSize, 0x6)
+{
+	LogPool(AnimExtContainer)
+	LogPool(BulletExtContainer)
+	LogPool(ParticleExtContainer)
+	LogPool(ParticleSystemExtContainer)
+	LogPool(TeamExtContainer)
+	LogPool(VoxelAnimExtContainer)
+	return 0x0;
+}
+
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
@@ -400,6 +413,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 
 	return 0;
 }
+
+#undef LogPool
 
 // Ares saves its things at the end of the save
 // Phobos will save the things at the beginning of the save
