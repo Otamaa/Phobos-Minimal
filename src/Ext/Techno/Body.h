@@ -724,7 +724,73 @@ public:
 class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
+	static std::vector<TechnoExtData*> Pool;
 	static TechnoExtContainer Instance;
+
+	TechnoExtData* AllocateUnchecked(TechnoClass* key)
+	{
+		TechnoExtData* val = nullptr;
+		if (!Pool.empty())
+		{
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+			//re-init
+			val->TechnoExtData::TechnoExtData();
+		}
+		else
+		{
+			val = new TechnoExtData();
+		}
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			val->InitializeConstant();
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	TechnoExtData* Allocate(TechnoClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (TechnoExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(TechnoClass* key)
+	{
+		if (TechnoExtData* Item = TryFind(key))
+		{
+			Item->~TechnoExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
 };

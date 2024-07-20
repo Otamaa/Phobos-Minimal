@@ -339,6 +339,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 DEFINE_HOOK(0x48CEDC, Game_Exit_RecordPoolSize, 0x6)
 {
+	LogPool(TechnoExtContainer)
 	LogPool(AnimExtContainer)
 	LogPool(BulletExtContainer)
 	LogPool(ParticleExtContainer)
@@ -353,6 +354,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	MouseClassExt::ClearCameos();
 
+	TechnoExtContainer::Instance.Clear();
 	AnimExtContainer::Instance.Clear();
 	BulletExtContainer::Instance.Clear();
 	ParticleExtContainer::Instance.Clear();
@@ -403,7 +405,8 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		AnimExtContainer::Instance.Pool.reserve(1000);
+		TechnoExtContainer::Instance.Pool.reserve(2000);
+		AnimExtContainer::Instance.Pool.reserve(10000);
 		BulletExtContainer::Instance.Pool.reserve(1000);
 		ParticleExtContainer::Instance.Pool.reserve(1000);
 		ParticleSystemExtContainer::Instance.Pool.reserve(1000);

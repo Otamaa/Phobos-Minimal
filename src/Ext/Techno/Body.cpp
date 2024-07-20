@@ -5006,6 +5006,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
+std::vector<TechnoExtData*> TechnoExtContainer::Pool;
 
 void TechnoExtData::InitializeConstant()
 {
