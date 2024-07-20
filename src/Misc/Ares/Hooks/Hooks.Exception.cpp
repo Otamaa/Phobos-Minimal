@@ -61,7 +61,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 
 LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
-	DWORD* eip_pointer = reinterpret_cast<DWORD*>(pExs->ContextRecord->Eip);
+	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
 
 	switch (*eip_pointer)
 	{
