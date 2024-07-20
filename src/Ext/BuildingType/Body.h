@@ -226,6 +226,7 @@ public:
 
 	// #218 Specific Occupiers
 	ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
+	ValueableVector<InfantryTypeClass*> DisallowedOccupiers {};
 
 	Valueable<bool> BunkerRaidable { false };
 	Valueable<bool> Firestorm_Wall { false };

@@ -189,7 +189,13 @@ void BuildingTypeExtData::Initialize()
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 {
 	// if CanBeOccupiedBy isn't empty, we have to check if this soldier is allowed in
-	return this->AllowedOccupiers.empty() || this->AllowedOccupiers.Contains(whom->Type);
+	if(!this->DisallowedOccupiers.empty() && this->DisallowedOccupiers.Contains(whom->Type))
+		return false;
+
+	if(!this->AllowedOccupiers.empty() && !this->AllowedOccupiers.Contains(whom->Type))
+		return false;
+
+	return true;
 }
 
 void BuildingTypeExtData::DisplayPlacementPreview()
@@ -885,6 +891,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			pThis->CanBeOccupied = true;
 		}
 
+		this->DisallowedOccupiers.Read(exINI, pSection, "CannotBeOccupiedBy");
 		this->BunkerRaidable.Read(exINI, pSection, "Bunker.Raidable");
 		this->Firestorm_Wall.Read(exINI, pSection, "Firestorm.Wall");
 
@@ -1190,6 +1197,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		//.Process(this->LaserFencePostLinks)
 		//.Process(this->LaserFenceDirection)
 		.Process(this->AllowedOccupiers)
+		.Process(this->DisallowedOccupiers)
 		.Process(this->BunkerRaidable)
 		.Process(this->Firestorm_Wall)
 
