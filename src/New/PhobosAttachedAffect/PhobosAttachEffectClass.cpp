@@ -453,16 +453,16 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 		int initialDelay = 0;
 		int recreationDelay = -1;
 
-		if (durationOverrides.size() > 0)
+		if (!durationOverrides.empty())
 			durationOverride = durationOverrides[durationOverrides.size() > i ? i : durationOverrides.size() - 1];
 
-		if (delays && delays->size() > 0)
+		if (delays && !delays->empty())
 			delay = (*delays)[delays->size() > i ? i : delays->size() - 1];
 
-		if (initialDelays && initialDelays->size() > 0)
+		if (initialDelays && !initialDelays->empty())
 			initialDelay = (*initialDelays)[initialDelays->size() > i ? i : initialDelays->size() - 1];
 
-		if (recreationDelays && recreationDelays->size() > 0)
+		if (recreationDelays && !recreationDelays->empty())
 			recreationDelay = (*recreationDelays)[recreationDelays->size() > i ? i : recreationDelays->size() - 1];
 
 		if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(pType, pTarget, pTargetExt->PhobosAE, pInvokerHouse, pInvoker, pSource, durationOverride, delay, initialDelay, recreationDelay))
@@ -595,8 +595,8 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 
 	for (auto const pType : types)
 	{
-		int minCount = minSize > 0 ? (index < minSize ? minCounts.at(index) : minCounts.at(minSize - 1)) : -1;
-		int maxCount = maxSize > 0 ? (index < maxSize ? maxCounts.at(index) : maxCounts.at(maxSize - 1)) : -1;
+		int minCount = minSize > 0 ? (index < minSize ? minCounts.operator[](index) : minCounts.back()) : -1;
+		int maxCount = maxSize > 0 ? (index < maxSize ? maxCounts.operator[](index) : minCounts.back()) : -1;
 
 		int count = PhobosAttachEffectClass::RemoveAllOfType(pType, pTarget, minCount, maxCount);
 

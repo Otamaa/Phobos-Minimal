@@ -154,7 +154,7 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 					continue;
 
 
-				if (type->Cumulative && (minCounts || maxCounts > 0))
+				if (type->Cumulative && (minCounts || maxCounts))
 				{
 					int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, type, ignoreSameSource, pInvoker, pSource);
 
