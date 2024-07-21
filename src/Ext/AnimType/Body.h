@@ -166,7 +166,7 @@ public:
 	}
 
 	constexpr bool ScatterAnimToInfantry(bool IsAi) {
-		return IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
+		return !IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
 	}
 
 	constexpr  Mission GetCreateUnitMission(bool IsAi) {
