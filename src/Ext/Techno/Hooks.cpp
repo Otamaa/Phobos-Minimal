@@ -763,11 +763,17 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	const bool display = RulesExtData::Instance()->FactoryProgressDisplay || HouseClass::IsCurrentPlayerObserver();
-	if (!display)
+	const bool display = RulesExtData::Instance()->FactoryProgressDisplay;
+	const bool obs = HouseClass::IsCurrentPlayerObserver();
+	if (!display && !obs)
 		return;
 
 	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
+	CellClass* pCell = pBuilding->GetCell();
+
+	if (!obs && (pBuilding->IsFogged || (pCell && pCell->IsShrouded())))
+		return;
+
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 	HouseClass* const pHouse = pBuilding->Owner;
 	FactoryClass* pPrimaryFactory = nullptr;
@@ -778,7 +784,7 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 		if (!pBuilding->IsPrimaryFactory)
 			return;
 
-		switch (pBuildingType->Factory)
+		switch (pBuilding->Type->Factory)
 		{
 		case AbstractType::BuildingType:
 			pPrimaryFactory = pHouse->GetPrimaryFactory(AbstractType::BuildingType, false, BuildCat::DontCare);
@@ -844,11 +850,17 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	const bool display = RulesExtData::Instance()->MainSWProgressDisplay || HouseClass::IsCurrentPlayerObserver();
-	if (!display)
+	const bool display = RulesExtData::Instance()->FactoryProgressDisplay;
+	const bool obs = HouseClass::IsCurrentPlayerObserver();
+	if (!display && !obs)
 		return;
 
 	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
+	CellClass* pCell = pBuilding->GetCell();
+
+	if (!obs && (pBuilding->IsFogged || (pCell && pCell->IsShrouded())))
+		return;
+
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 
 	if (pBuildingType->SuperWeapon == -1)
