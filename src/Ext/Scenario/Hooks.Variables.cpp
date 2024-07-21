@@ -14,27 +14,40 @@ DEFINE_HOOK(0x685EB1, PhobosSaveVariables, 0x5)//Lose
 		ScenarioExtData::SaveVariablesToFile(false);
 		ScenarioExtData::SaveVariablesToFile(true);
 	}
-	else if (R->Origin() == 0x6857EA) // Only Win
-	{
-		ScenarioExtData::SaveVariablesToFile(true);
-	}
 
 	return 0;
 }
 
-// I'm not sure how it works, this seems to solve the problem for now.
-DEFINE_HOOK(0x4C6217, ScenarioClass_LoadVariables, 0x5)
-{
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
-	ScenarioExtData::Instance()->LoadVariablesToFile(true);
+std::vector<std::pair<int, int>> CarryOverGlobalsBuffer {};
 
-	if (!Phobos::Config::SaveVariablesOnScenarioEnd)
+DEFINE_HOOK(0x685354, ClearLotsOfShit_GlobalVariable, 0x9)
+{
+	for (auto& [idx, var] : ScenarioExtData::Instance()->Global_Variables)
 	{
-		// Is it better not to delete the file?
-		DeleteFileA("globals.ini");
+		if (var.Value)
+		{
+			var.Value = 0;
+			ScenarioClass::Instance->VariablesChanged = true;
+			TagClass::NotifyGlobalChanged(idx);
+		}
 	}
+	return 0x68538D;
+}
+
+DEFINE_HOOK(0x4C6217, EvadeClass_DoShit_Globals, 0x0)
+{
+	for (auto const& [idx, var] : CarryOverGlobalsBuffer)
+		ScenarioExtData::Instance()->SetVariableToByID(true, idx, static_cast<char>(var));
 
 	return 0x4C622F;
+}
+
+DEFINE_HOOK(0x4C6185, EvadeClass_CarryOverShit_Globals, 0x0)
+{
+	CarryOverGlobalsBuffer.clear();
+	for (auto const& [idx, var] : ScenarioExtData::Instance()->Global_Variables)
+		CarryOverGlobalsBuffer.emplace_back(idx, var.Value);
+	return 0x4C61A3;
 }
 
 // Inside the original code it forces the use of ScenarioClass::Instance->GlobalVariables[1] as a startup switch.

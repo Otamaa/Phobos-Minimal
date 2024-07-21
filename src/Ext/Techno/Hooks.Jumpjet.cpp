@@ -451,3 +451,20 @@ DEFINE_HOOK(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
+{
+	GET(FootClass*, pLinked, EAX);
+	auto const* pType = pLinked->GetTechnoType();
+
+	pLinked->PrimaryFacing.Set_ROT(pType->ROT);
+
+	if (pType->SensorsSight)
+	{
+		pLinked->RemoveSensorsAt(pLinked->LastFlightMapCoords);
+		pLinked->RemoveSensorsAt(pLinked->GetMapCoords());
+		pLinked->AddSensorsAt(pLinked->GetMapCoords());
+	}
+
+	return 0;
+}
