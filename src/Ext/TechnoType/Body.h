@@ -483,7 +483,7 @@ public:
 	Valueable<bool> ImmuneToBerserk { false };
 	Valueable<double> Berzerk_Modifier { 1.0 };
 
-	Valueable<bool> IgnoreToProtect { false };
+	//Valueable<bool> IgnoreToProtect { false };
 	Valueable<int> TargetLaser_Time { 15 };
 	ValueableVector<int> TargetLaser_WeaponIdx { };
 
