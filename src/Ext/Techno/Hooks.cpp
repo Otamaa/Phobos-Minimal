@@ -771,7 +771,7 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
 	CellClass* pCell = pBuilding->GetCell();
 
-	if (!obs && (pBuilding->IsFogged || (pCell && pCell->IsShrouded())))
+	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))
 		return;
 
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
@@ -858,7 +858,7 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	BuildingClass* const pBuilding = specific_cast<BuildingClass*>(pThis);
 	CellClass* pCell = pBuilding->GetCell();
 
-	if (!obs && (pBuilding->IsFogged || (pCell && pCell->IsShrouded())))
+	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))
 		return;
 
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;

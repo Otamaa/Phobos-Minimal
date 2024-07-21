@@ -94,7 +94,10 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 		}
 
 		//Debug::Log("[%s]ResultDamage1 for armor[%s] %d Caller [%x]\n", pWH->ID, ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
-		res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
+		if(!pExt->ApplyModifiersOnNegativeDamage)
+			res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
+		else
+			res = int(res * vsData->Verses);
 		//Debug::Log("[%s]ResultDamage2 for armor[%s] %d Caller [%x]\n", pWH->ID , ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
 
 		if (res > RulesClass::Instance->MaxDamage)
