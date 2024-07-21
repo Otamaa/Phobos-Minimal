@@ -223,7 +223,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 	GET(InfantryClass*, pInf, EDI);
 
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	const auto Is_AI = pInf->Owner->IsControlledByHuman();
+	const auto Is_AI = !pInf->Owner->IsControlledByHuman();
 
 	if (!pTypeExt->ScatterAnimToInfantry(Is_AI))
 		pInf->QueueMission(pTypeExt->GetAnimToInfantryMission(Is_AI), false);

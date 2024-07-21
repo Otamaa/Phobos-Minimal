@@ -317,7 +317,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 
 		if (!pTechno->InLimbo)
 		{
-			const auto Is_AI = decidedOwner->IsControlledByHuman();
+			const auto Is_AI = !decidedOwner->IsControlledByHuman();
 
 			if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim)
 			{
