@@ -409,7 +409,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		AnimExtContainer::Instance.Pool.reserve(10000);
 		BulletExtContainer::Instance.Pool.reserve(1000);
 		ParticleExtContainer::Instance.Pool.reserve(1000);
-		ParticleSystemExtContainer::Instance.Pool.reserve(1000);
+		ParticleSystemExtContainer::Instance.Pool.reserve(2000);
 		TeamExtContainer::Instance.Pool.reserve(1000);
 		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
 	}
