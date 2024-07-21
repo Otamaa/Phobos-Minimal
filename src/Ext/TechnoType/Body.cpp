@@ -665,7 +665,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
 		this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerserk");
 		this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
-		this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
+		//this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
 		this->TargetLaser_Time.Read(exINI, pSection, "TargetLaser.Time");
 		this->TargetLaser_WeaponIdx.Read(exINI, pSection, "TargetLaser.WeaponIndexes");
 		this->AdjustCrushProperties();
@@ -1890,7 +1890,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CivilianEnemy)
 		.Process(this->ImmuneToBerserk)
 		.Process(this->Berzerk_Modifier)
-		.Process(this->IgnoreToProtect)
+		//.Process(this->IgnoreToProtect)
 		.Process(this->TargetLaser_Time)
 		.Process(this->TargetLaser_WeaponIdx)
 		.Process(this->CurleyShuffle)
