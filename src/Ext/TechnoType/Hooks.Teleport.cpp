@@ -39,8 +39,7 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 		&& pExt->ChronoTrigger.GetOrDefault(pOwner, RulesClass::Instance->ChronoTrigger))
 	{
 		const auto f_factor = pExt->ChronoDistanceFactor.GetOrDefault(pOwner, RulesClass::Instance->ChronoDistanceFactor);
-		int factor = std::max(f_factor, 1);
-		duree = std::max(distance / factor, duree);
+		duree = MaxImpl(distance / MaxImpl(f_factor, 1), duree);
 
 	}
 
