@@ -45,6 +45,7 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 	}
 
 	pLocomotor->Timer.Start(duree);
+	pOwner->WarpingOut = true;
 
 	if (auto pUnit = specific_cast<UnitClass*>(pOwner)) {
 		if (pUnit->Type->Harvester || pUnit->Type->Weeder) {
