@@ -252,31 +252,6 @@ DEFINE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
 	return 0x71AF19;
 }
 
-DEFINE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
-{
-	GET(FootClass*, pObject, ECX);
-	GET(CoordStruct*, XYZ, EDX);
-	*XYZ = pObject->GetCoords();
-	R->EAX<CoordStruct*>(XYZ);
-
-	if (auto pType = pObject->GetTechnoType())
-	{
-		if (const auto pImage = pType->AlphaImage)
-		{
-			Point2D xy = TacticalClass::Instance->CoordsToClient(*XYZ);
-			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
-			Point2D off = { ScreenArea.X - (pImage->Width / 2), ScreenArea.Y - (pImage->Height / 2) };
-			xy += off;
-			RectangleStruct Dirty =
-			{ xy.X - ScreenArea.X, xy.Y - ScreenArea.Y,
-			  pImage->Width, pImage->Height };
-			TacticalClass::Instance->RegisterDirtyArea(Dirty, true);
-		}
-	}
-
-	return 0x719454;
-}
-
 DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 {
 	GET(TemporalClass* , pThis ,ESI);
