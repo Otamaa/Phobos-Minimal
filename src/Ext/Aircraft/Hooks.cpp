@@ -276,11 +276,16 @@ DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 	{
 		float ars = pAir->AngleRotatedSideways;
 		float arf = pAir->AngleRotatedForwards;
+		REF_STACK(Matrix3D, mat, STACK_OFFSET(0x38, -0x30));
+		auto slope_idx = MapClass::Instance->GetCellAt(pAir->Location)->SlopeIndex;
+		mat = Game::VoxelRampMatrix[slope_idx] * mat;
+
 		if (std::abs(ars) > 0.005 || std::abs(arf) > 0.005)
 		{
-			LEA_STACK(Matrix3D*, mat, STACK_OFFSET(0x38, -0x30));
-			mat->TranslateZ(float(std::abs(Math::sin(ars)) * pAir->Type->VoxelScaleX
+			mat.TranslateZ(float(std::abs(Math::sin(ars))
+				* pAir->Type->VoxelScaleX
 				+ std::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
+
 			R->ECX(pAir);
 			return 0x4CF6AD;
 		}

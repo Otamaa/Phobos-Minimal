@@ -179,8 +179,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
 
 	pThis->LocomotionClass::Draw_Matrix(ret ,pIndex);
-	if (onGround && slope_idx && pIndex && pIndex->Is_Valid_Key())
-		*ret = Game::VoxelRampMatrix[slope_idx] * *ret;
+	*ret = Game::VoxelRampMatrix[onGround ? slope_idx : 0] * *ret;
 
 	float arf = linked->AngleRotatedForwards;
 	float ars = linked->AngleRotatedSideways;

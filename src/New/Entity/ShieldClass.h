@@ -37,7 +37,7 @@ public:
 	//void OnDetonate(CoordStruct* location) { }
 	//void OnPut(CoordStruct pCoord, short faceDirValue8) { }
 	void OnRemove();
-	void OnReceiveDamage(args_ReceiveDamage* args);
+	int OnReceiveDamage(args_ReceiveDamage* args);
 	//void OnFire(AbstractClass* pTarget, int weaponIndex) { }
 
 	//void OnSelect(bool& selectable) { }

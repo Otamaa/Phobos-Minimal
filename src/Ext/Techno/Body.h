@@ -70,6 +70,7 @@ public:
 	bool AE_DisableSelfHeal { false };
 	bool AE_Untrackable { false };
 	bool AE_HasTint { false };
+	bool AE_ReflectDamage { false };
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6

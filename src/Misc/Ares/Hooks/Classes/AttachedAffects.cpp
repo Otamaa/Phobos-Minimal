@@ -23,6 +23,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	extraRangeData->Clear();
 	extraCritData->Clear();
 	bool hasTint = false;
+	bool reflectsDamage = false;
 
 	std::optional<double> cur_timerAE {};
 
@@ -110,6 +111,8 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 			for (auto& disallow : type->Crit_DisallowWarheads)
 				ranges_.disallow.insert(disallow);
 		}
+
+		reflectsDamage |= type->ReflectDamage;
 	}
 
 	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
@@ -134,6 +137,7 @@ void AresAE::RecalculateStat(AresAEData* ae, TechnoClass* pThis)
 	pExt->AE_DisableSelfHeal = disableSelfHeal;
 	pExt->AE_Untrackable = untrackable;
 	pExt->AE_HasTint = hasTint;
+	pExt->AE_ReflectDamage = reflectsDamage;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pThis)->SpeedMultiplier = Speed_Mult;

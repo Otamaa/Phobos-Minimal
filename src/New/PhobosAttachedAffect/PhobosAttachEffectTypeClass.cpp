@@ -97,6 +97,12 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DisableSelfHeal.Read(exINI, pSection, "DisableSelfHeal");
 	this->Untrackable.Read(exINI, pSection, "Untrackable");
 	this->AnimRandomPick.Read(exINI, pSection, "Anim.RandomPick");
+
+	this->ReflectDamage.Read(exINI, pSection, "ReflectDamage");
+	this->ReflectDamage_Warhead.Read(exINI, pSection, "ReflectDamage.Warhead");
+	this->ReflectDamage_Warhead_Detonate.Read(exINI, pSection, "ReflectDamage.Warhead.Detonate");
+	this->ReflectDamage_Multiplier.Read(exINI, pSection, "ReflectDamage.Multiplier");
+	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouses");
 }
 
 template <typename T>
@@ -146,6 +152,12 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DisableSelfHeal)
 		.Process(this->Untrackable)
 		.Process(this->AnimRandomPick)
+
+		.Process(this->ReflectDamage)
+		.Process(this->ReflectDamage_Warhead)
+		.Process(this->ReflectDamage_Warhead_Detonate)
+		.Process(this->ReflectDamage_Multiplier)
+		.Process(this->ReflectDamage_AffectsHouses)
 		;
 }
 

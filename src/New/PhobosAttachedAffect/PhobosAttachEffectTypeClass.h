@@ -55,6 +55,12 @@ public:
 	Valueable<double> ReceiveRelativeDamageMult;
 	Valueable<bool> AnimRandomPick;
 
+	Valueable<bool> ReflectDamage;
+	Nullable<WarheadTypeClass*> ReflectDamage_Warhead;
+	Valueable<bool> ReflectDamage_Warhead_Detonate;
+	Valueable<double> ReflectDamage_Multiplier;
+	Valueable<AffectedHouse> ReflectDamage_AffectsHouses;
+
 	PhobosAttachEffectTypeClass(const char* const pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Cumulative { false }
@@ -99,6 +105,12 @@ public:
 		, Untrackable { false }
 		, ReceiveRelativeDamageMult { 1.0 }
 		, AnimRandomPick { false }
+
+		, ReflectDamage { false }
+		, ReflectDamage_Warhead {}
+		, ReflectDamage_Warhead_Detonate { false }
+		, ReflectDamage_Multiplier { 1.0 }
+		, ReflectDamage_AffectsHouses { AffectedHouse::All }
 	{};
 
 	constexpr FORCEINLINE bool HasTint() {

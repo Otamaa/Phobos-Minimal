@@ -154,16 +154,16 @@ bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 	return false;
 }
 
-void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
+int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 {
 	if (!IsActive())
-		return;
+		return *args->Damage;
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 
 	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0)
 	{
-		return;
+		return *args->Damage;
 	}
 
 	if (*args->Damage < 0) {
@@ -177,7 +177,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	if(this->Techno->IsIronCurtained() || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
-		return;
+		return *args->Damage;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;
 	int nDamage = 0;
@@ -337,6 +337,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		TechnoExtContainer::Instance.Find(this->Techno)->SkipLowDamageCheck = true;
 	}
 
+	return nDamageResult;
 }
 
 void ShieldClass::ResponseAttack() const
