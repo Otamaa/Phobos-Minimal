@@ -1351,6 +1351,7 @@ DEFINE_HOOK(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
 		TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed)
 		));
 
+	pThis->State = TunnelLocomotionClass::State::DIGGING_IN;
 	pThis->Timer.Start(time_left);
 	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, true, true);
 	return 0x729365;
