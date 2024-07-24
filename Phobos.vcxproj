@@ -150,7 +150,7 @@
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Hook.NewTeamSelector.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
-    <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
+    <ClCompile Include="src\Ext\TechnoType\Hook.Tunnel.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Droppod.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />

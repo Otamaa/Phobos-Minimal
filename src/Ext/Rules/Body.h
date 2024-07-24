@@ -349,6 +349,7 @@ public:
 	Valueable<bool> CombatAlert_SuppressIfInScreen { true };
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
+	Valueable<int> SubterraneanHeight { -256 };
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;

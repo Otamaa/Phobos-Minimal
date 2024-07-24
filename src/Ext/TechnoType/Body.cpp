@@ -1134,6 +1134,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->EVA_Combat.Read(exINI, pSection, "EVA.Combat");
 		this->CombatAlert.Read(exINI, pSection, "CombatAlert");
 		this->CombatAlert_NotBuilding.Read(exINI, pSection, "CombatAlert.NotBuilding");
+		this->SubterraneanHeight.Read(exINI, pSection, "SubterraneanHeight");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2260,6 +2261,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->EVA_Combat)
 		.Process(this->CombatAlert)
 		.Process(this->CombatAlert_NotBuilding)
+		.Process(this->SubterraneanHeight)
 		;
 }
 

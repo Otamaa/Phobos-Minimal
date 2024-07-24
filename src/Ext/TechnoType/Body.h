@@ -964,7 +964,8 @@ public:
 
 	ValueableIdx<VoxClass> EVA_Combat { -1 };
 	Nullable<bool> CombatAlert {};
-	Nullable<bool> CombatAlert_NotBuilding;
+	Nullable<bool> CombatAlert_NotBuilding {};
+	Nullable<int> SubterraneanHeight {};
 
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;

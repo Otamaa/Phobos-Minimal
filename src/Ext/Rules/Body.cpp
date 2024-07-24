@@ -175,6 +175,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->CombatAlert_SuppressIfInScreen.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfInScreen");
 	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
 	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
+	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
 
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
 
@@ -1239,6 +1240,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CombatAlert_SuppressIfInScreen)
 		.Process(this->CombatAlert_Interval)
 		.Process(this->CombatAlert_SuppressIfAllyDamage)
+		.Process(this->SubterraneanHeight)
 		;
 
 	MyPutData.Serialize(Stm);

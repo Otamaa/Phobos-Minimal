@@ -1277,7 +1277,9 @@ std::vector<int> HouseExtData::GetBuildLimitGroupLimits(HouseClass* pHouse, Tech
 			auto pTmpType = pTypeExt->BuildLimitGroup_ExtraLimit_Types[i];
 			auto const pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+			if (pBuildingType && 
+				(BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 				count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				count = pHouse->CountOwnedNow(pTmpType);
@@ -1356,7 +1358,8 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			int owned = 0;
 			const auto pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 				owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				owned = pHouse->CountOwnedNow(pTmpType);
@@ -1392,7 +1395,8 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			int num = 0;
 			const auto pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 				num = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				num = pHouse->CountOwnedNow(pTmpType);
@@ -1548,7 +1552,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			int ownedNow = 0;
 
-			if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 				ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
 			else
 				ownedNow = CountOwnedIncludeDeploy(pThis, pType);
@@ -1572,7 +1577,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 				const auto pBuildingType = specific_cast<BuildingTypeClass*>(pType);
 				int owned = 0;
 
-				if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 					owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
 				else
 					owned = CountOwnedIncludeDeploy(pThis, pType);
@@ -1597,7 +1603,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 				const auto pBuildingType = specific_cast<BuildingTypeClass*>(pType);
 				int ownedNow = 0;
 
-				if (pBuildingType && (pBuildingType->PowersUpBuilding || BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0))
+				if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
+				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 					ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
 				else
 					ownedNow = CountOwnedIncludeDeploy(pThis, pType);
