@@ -1342,13 +1342,16 @@ DEFINE_HOOK(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
 	return 0x728F74;
 }
 
-DEFINE_HOOK(0x7292CF, TunnelLocomotionClass_sub_7291F0_Dig, 8)
+DEFINE_HOOK(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
 {
-	GET(RepeatableTimerStruct*, pTimer, EDX);
 	GET(TunnelLocomotionClass*, pThis, ESI);
-	GET(int, nTimeLeft, EAX);
 
-	pTimer->Start(nTimeLeft);
+	auto const pType = pThis->LinkedTo->GetTechnoType();
+	int time_left = (int(64.0 / pType->ROT /
+		TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed)
+		));
+
+	pThis->Timer.Start(time_left);
 	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, true, true);
 	return 0x729365;
 }

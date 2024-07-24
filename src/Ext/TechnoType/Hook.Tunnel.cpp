@@ -1,25 +1,36 @@
 #include "Body.h"
 #include <Locomotor/Cast.h>
 
-DEFINE_HOOK(0x72929D, TunnelLocomotionClass_7291F0_Speed, 0x8) //6
-{
-	GET(TechnoClass*, pLinkedTo, ECX);
-	auto const pType = pLinkedTo->GetTechnoType();
-	R->EAX(int(64.0 / pType->ROT /
-		TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType())->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed)
-	));
-	return 0x7292BF;
-}
+DEFINE_HOOK(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
+	GET(TunnelLocomotionClass* const, pLoco, ECX);
 
-DEFINE_HOOK(0x72951C, TunnelLocomotionClass_7294E0_Speed, 0x8)
-{
-	GET(TunnelLocomotionClass* const, pLoco, ESI);
-	GET(RulesClass*, pRules, ECX);
-	GET(int, nCurrentMovementSpeed, EAX);
-	R->EAX(int((nCurrentMovementSpeed) *
-	TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed)
-	));
-	return 0x72952C;
+	const auto pLinkedTo = pLoco->LinkedTo;
+	const auto pType = pLinkedTo->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	CoordStruct nCoord = pLinkedTo->Location;
+	const auto _height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
+
+	if(nCoord.Z <= _height) {
+		pLinkedTo->UpdatePlacement(PlacementType::Remove);
+		pLoco->State = TunnelLocomotionClass::State::DIGGING;
+	} else {
+		const auto _addSpeed = TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed);
+		auto curSpeed = pLinkedTo->GetCurrentSpeed();
+
+		curSpeed = int(curSpeed * _addSpeed);
+
+		if(curSpeed <= 5){
+			curSpeed = 5;
+		}
+
+		nCoord.Z -= curSpeed;
+		if(nCoord.Z < _height)
+			nCoord.Z = _height;
+
+		pLinkedTo->SetLocation(nCoord);
+	}
+
+	return 0x729564;
 }
 
 DEFINE_HOOK(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
