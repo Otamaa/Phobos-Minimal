@@ -359,11 +359,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
+		if (pItem->MainVoxel.VXL) {
+			if (auto pHVA = pItem->MainVoxel.HVA) {
 
-		if (auto pHVA = pItem->MainVoxel.HVA)
-		{
-			if (pItem->MainVoxel.VXL)
-			{
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
 
@@ -373,6 +371,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 						pItem->ID, shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
+			}
+			else
+			{
+				Debug::FatalError("Techno[%s - %s] Has VXL but has no HVA wtf ?\n" , myClassName , pItem->ID);
 			}
 		}
 

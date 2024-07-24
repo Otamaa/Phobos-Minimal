@@ -7672,16 +7672,17 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
-//DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
-//{
-//	GET(AircraftTypeClass*, pType, ESI);
-//	if (!pType->MainVoxel.HVA) {
-//		Debug::Log("Aircraft[%s] Has No HVA ! \n", pType->ID);
-//		return 0x4149F6;
-//	}
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
+{
+	GET(AircraftTypeClass*, pType, ESI);
+
+	if (!pType->MainVoxel.HVA) {
+		Debug::Log("Aircraft[%s] Has No HVA ! \n", pType->ID);
+		return 0x4149F6;
+	}
+
+	return 0x0;
+}
 
 
 #include <BulletClass.h>
