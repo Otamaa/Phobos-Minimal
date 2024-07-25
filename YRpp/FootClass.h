@@ -134,6 +134,10 @@ public:
 	void EnterAsPassenger(FootClass* pPassenger)
 	{ JMP_THIS(0x4DE630); }
 
+	void QueueNavList(AbstractClass* pTarget) const {
+		JMP_THIS(0x4DA0E0);
+	}
+
 	void ClearNavQueue() // clears 5AC
 	{ JMP_THIS(0x4DA1C0); }
 

@@ -34,32 +34,88 @@ public:
 	virtual void SendToEachLink(RadioCommand command) JMP_THIS(0x65ACE0); //__Transmit_Message_To_All
 
 	// get specific link
-	TechnoClass* const GetNthLink(int idx = 0) const {
-		return this->RadioLinks.IsAllocated ? this->RadioLinks[idx] : nullptr;
+	constexpr FORCEINLINE TechnoClass* const GetNthLink(int idx = 0) const {
+		return this->RadioLinks.IsAllocated ? this->RadioLinks.Items[idx] : nullptr;
 	}
 
-	TechnoClass* const GetRadioContact(int idx = 0) const {
-		JMP_THIS(0x65AD30);
+	constexpr FORCEINLINE TechnoClass* const GetRadioContact(int idx = 0) const {
+		return this->RadioLinks.Items[idx];
 	}
 	// whether any link is pLink
-	bool ContainsLink(TechnoClass const* pLink) const
-		{ JMP_THIS(0x65AD50); }
+	//bool ContainsLink(TechnoClass const* pLink) const
+	//	{ JMP_THIS(0x65AD50); }
+
+	constexpr bool ContainsLink(TechnoClass const* pLink) const {
+		const int count = this->RadioLinks.Capacity;
+		if (!pLink || count <= 0)
+			return false;
+
+		int tot = 0;
+		for (auto i = this->RadioLinks.Items; *i != pLink; ++i)
+		{
+			if (++tot >= count)
+				return false;
+		}
+
+		return true;
+	}
 
 	// note: null pointers will always return -1
-	int FindLinkIndex(TechnoClass const* pLink) const
-		{ JMP_THIS(0x65AD90); }
+	//int FindLinkIndex(TechnoClass const* pLink) const
+	//	{ JMP_THIS(0x65AD90); }
+
+	constexpr int FindLinkIndex(TechnoClass const* pLink) const {
+		const int count = this->RadioLinks.Capacity;
+		if (!pLink || count <= 0)
+			return -1;
+
+		int tot = 0;
+		for (auto i = this->RadioLinks.Items; *i != pLink; ++i)
+		{
+			if (++tot >= count)
+				return -1;
+		}
+
+		return tot;
+	}
 
 	// iow: not full
-	bool HasFreeLink() const
-		{ JMP_THIS(0x65ADC0); }
+	//bool HasFreeLink() const
+	//	{ JMP_THIS(0x65ADC0); }
+
+	constexpr bool HasFreeLink() const {
+		const int count = this->RadioLinks.Capacity;
+		if (count <= 0)
+			return false;
+
+		int tot = 0;
+		for (auto i = this->RadioLinks.Items; *i; ++i) {
+			if (++tot >= count)
+				return false;
+		}
+
+		return true;
+	}
 
 	// iow: not full; consider pIgnore's link empty
 	bool HasFreeLink(TechnoClass const* pIgnore) const
 		{ JMP_THIS(0x65ADF0); }
 
 	// iow. at least one link used
-	bool HasAnyLink() const
-		{ JMP_THIS(0x65AE30); }
+	constexpr bool HasAnyLink() const {
+		//JMP_THIS(0x65AE30);
+		const int count = this->RadioLinks.Capacity;
+		if (count <= 0)
+			return false;
+
+		int tot = 0;
+		for (auto i = this->RadioLinks.Items; !*i; ++i) {
+			if (++tot >= count)
+				return false;
+		}
+
+		return true;
+	}
 
 	// resizes the vector and nulls the new elements
 	void SetLinkCount(int count)

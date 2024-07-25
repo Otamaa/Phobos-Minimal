@@ -361,6 +361,10 @@ public:
 	void AcceptDefeat()
 		{ JMP_THIS(0x4FC0B0); }
 
+	CellStruct* WhereToGo(CellStruct* buff, TechnoClass* pDest) const {
+		JMP_THIS(0x500200);
+	}
+
 	// every matching object takes damage and explodes
 	void DestroyAll()
 		{ JMP_THIS(0x4FC6D0); }

@@ -507,8 +507,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void SetCurrentWeaponStage(int idx)
 		{ JMP_THIS(0x70DDD0); }
 
-	void SetFocus(AbstractClass* pFocus)
-		{ JMP_THIS(0x70C610); }
+	constexpr FORCEINLINE void SetFocus(AbstractClass* pFocus) { //JMP_THIS(0x70C610);
+		this->Focus = pFocus;
+	}
 
 	void DrawVoxelShadow(VoxelStruct* vxl,
 			int shadow_index,

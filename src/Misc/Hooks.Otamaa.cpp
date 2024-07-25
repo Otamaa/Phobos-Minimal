@@ -7784,3 +7784,588 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 
 	return 0x467C3A;
 }
+
+/* TODO : Aircraft , Building , Changes
+int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct overrider)
+{
+	if (!pTechnoToKick) {
+		return 0;
+	}
+
+	pTechnoToKick->IsLocked = true;
+	auto pBuildingType = pThis->Type;
+
+	switch (pTechnoToKick->WhatAmI())
+	{
+	case AbstractType::Unit:
+	{
+		if (!pBuildingType->Hospital &&
+			!pBuildingType->Armory &&
+			!pBuildingType->WeaponsFactory &&
+			!pThis->HasAnyLink()
+			)
+		{
+			return 1;
+		}
+
+		if (!pBuildingType->Hospital && !pBuildingType->Armory) {
+			pThis->Owner->WhimpOnMoney(AbstractType::Unit);
+			pThis->Owner->ProducingUnitTypeIndex = -1;
+		}
+
+		if (pBuildingType->Refinery || pBuildingType->Weeder) {
+			auto _coord = pThis->GetCoords();
+			auto _coord_cell = CellClass::Coord2Cell(_coord);
+			_coord_cell.X += CellSpread::AdjacentCell[5].X;
+			_coord_cell.Y += CellSpread::AdjacentCell[5].Y;
+
+			_coord_cell.X += CellSpread::AdjacentCell[4].X;
+			_coord_cell.Y += CellSpread::AdjacentCell[4].Y;
+
+			_coord = CellClass::Cell2Coord(_coord_cell);
+
+			++Unsorted::ScenarioInit;
+
+			if (pTechnoToKick->Unlimbo(_coord, DirType::SouthWest)) {
+				DirStruct _pri {};
+				_pri.Raw = 0x8000;
+				pTechnoToKick->PrimaryFacing.Set_Current(_pri);
+				pTechnoToKick->QueueMission(Mission::Harvest, false);
+			}
+
+			--Unsorted::ScenarioInit;
+			return 0;
+		}
+
+		if (!pBuildingType->WeaponsFactory) {
+			if (pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning) {
+				pTechnoToKick->SetFocus(pThis->Focus);
+				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+				if (!docked_.IsValid())
+					return 0;
+
+				auto _coord = pThis->GetCoords();
+				auto _cellcoord = CellClass::Cell2Coord(docked_);
+				DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+				CellStruct _copy = docked_;
+				auto cell = pThis->GetMapCoords();
+				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X)) {
+					_copy.X += 1;
+				} else {
+					_copy.X -= 1;
+				}
+
+				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y)) {
+					_copy.Y += 1;
+				} else {
+					_copy.Y -= 1;
+				}
+
+				_cellcoord = CellClass::Cell2Coord(_copy);
+
+				++Unsorted::ScenarioInit;
+
+				if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir())) {
+					auto pToKickType = pTechnoToKick->GetTechnoType();
+
+					if (pTechnoToKick->Focus
+					  && !pToKickType->JumpJet
+					  && !pToKickType->Teleporter) {
+						if (pTechnoToKick->Focus) {
+							pTechnoToKick->SetFocus(pTechnoToKick->Focus);
+						}
+
+						pTechnoToKick->QueueMission(Mission::Move, false);
+						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_),true);
+					}
+
+					if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital) {
+						pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+						CellStruct Where {};
+						pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+						if (!Where.IsValid()) {
+							pTechnoToKick->SetFocus(nullptr);
+						} else {
+							auto pDest = MapClass::Instance->GetCellAt(Where);
+							pTechnoToKick->SetFocus(pDest);
+							((FootClass*)pTechnoToKick)->QueueNavList(pDest);
+						}
+					}
+
+					if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive) {
+						pThis->SendCommand(RadioCommand::RequestUnload, pTechnoToKick);
+					}
+
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+
+				--Unsorted::ScenarioInit;
+				return 0;
+			}
+			else
+			{
+				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+				if (!docked_.IsValid())
+					return 0;
+
+				auto _coord = pThis->GetCoords();
+				auto _cellcoord = CellClass::Cell2Coord(docked_);
+				DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+				CellStruct _copy = docked_;
+				auto cell = pThis->GetMapCoords();
+				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+				{
+					_copy.X += 1;
+				}
+				else
+				{
+					_copy.X -= 1;
+				}
+
+				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+				{
+					_copy.Y += 1;
+				}
+				else
+				{
+					_copy.Y -= 1;
+				}
+
+				auto _cellcoord_res = CellClass::Cell2Coord(_copy);
+
+				++Unsorted::ScenarioInit;
+
+				if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir())) {
+					pTechnoToKick->QueueMission(Mission::Move, false);
+					pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+
+					if (!pThis->Owner->IsControlledByHuman())
+					{
+						pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+						CellStruct Where {};
+						pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+						if (!Where.IsValid())
+						{
+							pTechnoToKick->SetFocus(nullptr);
+						}
+						else
+						{
+							auto pDest = MapClass::Instance->GetCellAt(Where);
+							pTechnoToKick->SetFocus(pDest);
+						}
+					}
+
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+
+				--Unsorted::ScenarioInit;
+				return 0;
+			}
+		}
+
+		if (!pBuildingType->Naval) {
+			pTechnoToKick->SetFocus(pThis->Focus);
+
+			if (pThis->GetMission() == Mission::Unload) {
+				const int _bldCount = pThis->Owner->Buildings.Count;
+
+				if (_bldCount <= 0)
+					return 1;
+
+				for (int i = 0; i < _bldCount; ++i)
+				{
+					if (pThis->Owner->Buildings[i]->Type == pBuildingType && pThis->Owner->Buildings[i] != pThis)
+					{
+						if (pThis->Owner->Buildings[i]->GetMission() == Mission::Guard && pThis->Owner->Buildings[i]->Factory)
+						{
+							pThis->Owner->Buildings[i]->Factory = std::exchange(pThis->Factory, nullptr);
+							return (int)pThis->Owner->Buildings[i]->KickOutUnit(pTechnoToKick, overrider);
+						}
+					}
+				}
+
+				return 1;
+			}
+
+			++Unsorted::ScenarioInit;
+			CoordStruct docked_ {};
+			pThis->GetExitCoords(&docked_ , 0);
+
+			if (pTechnoToKick->Unlimbo(docked_, DirType::East))
+			{
+				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->SetLocation(docked_);
+				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
+				pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
+				pThis->QueueMission(Mission::Unload, false);
+				--Unsorted::ScenarioInit;
+				return 2;
+			}
+
+			--Unsorted::ScenarioInit;
+			return 0;
+		}
+
+		if(!pThis->HasAnyLink())
+			pThis->QueueMission(Mission::Unload, false);
+		auto _this_Mapcoord = pThis->GetMapCoords();
+		auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
+
+		if (pThis->Focus) {
+			auto _focus_coord = pThis->Focus->GetCoords();
+			auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
+			DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
+
+			auto v41 = MapClass::Instance->GetCellAt(_this_Mapcoord);
+			int v40 = 0;
+			if (v41->GetBuilding() == pThis)
+			{
+				auto v42 = &CellSpread::AdjacentCell[(int)__face.GetDir() & 7];
+				CellClass* v44 = nullptr;
+
+				do {
+					v44 = MapClass::Instance->GetCellAt(CellStruct{ short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y)});
+				}
+				while (v44->GetBuilding() == pThis);
+			}
+		}
+
+		if (!pThis->Focus
+			 || _this_cell->LandType != LandType::Water
+			 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
+			 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
+		{
+
+			auto _near = MapClass::Instance->NearByLocation(_this_Mapcoord, pTechnoToKick->GetTechnoType()->SpeedType, -1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+			auto _near_cell = MapClass::Instance->GetCellAt(_near);
+			auto _near_coord = _near_cell->GetCoords();
+
+			if (pTechnoToKick->Unlimbo(_near_coord,DirType::East))
+			{
+				if (pThis->Focus) {
+					pTechnoToKick->SetDestination(pThis->Focus, true);
+					pTechnoToKick->QueueMission(Mission::Move, 0);
+				}
+
+				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->SetLocation(_near_coord);
+				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				return 2;
+			}
+		}
+		return 0;
+	}
+		case AbstractType::Infantry:
+		{
+			if (!pBuildingType->Hospital &&
+				!pBuildingType->Armory &&
+				!pBuildingType->WeaponsFactory &&
+				!pThis->HasAnyLink()
+				)
+			{
+				return 1;
+			}
+
+			if (!pBuildingType->Hospital && !pBuildingType->Armory)
+			{
+				pThis->Owner->WhimpOnMoney(AbstractType::Infantry);
+				pThis->Owner->ProducingInfantryTypeIndex = -1;
+			}
+
+			if (pBuildingType->Refinery || pBuildingType->Weeder) {
+				pTechnoToKick->Scatter(CoordStruct::Empty, true , false);
+				return 0;
+			}
+
+			if (!pBuildingType->WeaponsFactory)
+			{
+				if (pBuildingType->Factory == AbstractType::InfantryType || pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
+				{
+					pTechnoToKick->SetFocus(pThis->Focus);
+					auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+					if (!docked_.IsValid())
+						return 0;
+
+					if (pBuildingType->Factory == AbstractType::InfantryType && !pBuildingType->Cloning) {
+						for (auto i = 0; i < pThis->Owner->CloningVats.Count; ++i) {
+							auto pTech = (TechnoClass*)pTechnoToKick->GetTechnoType()->CreateObject(pThis->Owner->CloningVats[i]->Owner);
+							pThis->Owner->CloningVats[i]->KickOutUnit(pTech, CellStruct::Empty);
+						}
+					}
+
+					auto _coord = pThis->GetCoords();
+					auto _cellcoord = CellClass::Cell2Coord(docked_);
+					DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+					CellStruct _copy = docked_;
+					auto cell = pThis->GetMapCoords();
+					if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+					{
+						_copy.X += 1;
+					}
+					else
+					{
+						_copy.X -= 1;
+					}
+
+					if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+					{
+						_copy.Y += 1;
+					}
+					else
+					{
+						_copy.Y -= 1;
+					}
+
+					_cellcoord = CellClass::Cell2Coord(_copy);
+					if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2) {
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2) {
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1) {
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					++Unsorted::ScenarioInit;
+
+					if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir()))
+					{
+						auto pToKickType = pTechnoToKick->GetTechnoType();
+
+						if (pTechnoToKick->Focus
+						  && !pToKickType->JumpJet
+						  && !pToKickType->Teleporter)
+						{
+							if (pTechnoToKick->Focus)
+							{
+								pTechnoToKick->SetFocus(pTechnoToKick->Focus);
+							}
+
+							pTechnoToKick->QueueMission(Mission::Move, false);
+							pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+						}
+
+						if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital)
+						{
+							pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+							CellStruct Where {};
+							pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+							if (!Where.IsValid())
+							{
+								pTechnoToKick->SetFocus(nullptr);
+							}
+							else
+							{
+								auto pDest = MapClass::Instance->GetCellAt(Where);
+								pTechnoToKick->SetFocus(pDest);
+								((FootClass*)pTechnoToKick)->QueueNavList(pDest);
+							}
+						}
+
+						if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive)
+						{
+							pThis->SendCommand(RadioCommand::RequestUnload, pTechnoToKick);
+						}
+
+						--Unsorted::ScenarioInit;
+						return 2;
+					}
+
+					--Unsorted::ScenarioInit;
+					return 0;
+				}
+				else
+				{
+					auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+					if (!docked_.IsValid())
+						return 0;
+
+					auto _coord = pThis->GetCoords();
+					auto _cellcoord = CellClass::Cell2Coord(docked_);
+					DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+					CellStruct _copy = docked_;
+					auto cell = pThis->GetMapCoords();
+					if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+					{
+						_copy.X += 1;
+					}
+					else
+					{
+						_copy.X -= 1;
+					}
+
+					if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+					{
+						_copy.Y += 1;
+					}
+					else
+					{
+						_copy.Y -= 1;
+					}
+
+					auto _cellcoord_res = CellClass::Cell2Coord(_copy);
+					if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2)
+					{
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2)
+					{
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1)
+					{
+						_cellcoord += pBuildingType->ExitCoord;
+					}
+
+					++Unsorted::ScenarioInit;
+
+					if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir()))
+					{
+						pTechnoToKick->QueueMission(Mission::Move, false);
+						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+
+						if (!pThis->Owner->IsControlledByHuman())
+						{
+							pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+							CellStruct Where {};
+							pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+							if (!Where.IsValid())
+							{
+								pTechnoToKick->SetFocus(nullptr);
+							}
+							else
+							{
+								auto pDest = MapClass::Instance->GetCellAt(Where);
+								pTechnoToKick->SetFocus(pDest);
+							}
+						}
+
+						--Unsorted::ScenarioInit;
+						return 2;
+					}
+
+					--Unsorted::ScenarioInit;
+					return 0;
+				}
+			}
+
+			if (!pBuildingType->Naval)
+			{
+				pTechnoToKick->SetFocus(pThis->Focus);
+
+				if (pThis->GetMission() == Mission::Unload)
+				{
+					const int _bldCount = pThis->Owner->Buildings.Count;
+
+					if (_bldCount <= 0)
+						return 1;
+
+					for (int i = 0; i < _bldCount; ++i)
+					{
+						if (pThis->Owner->Buildings[i]->Type == pBuildingType && pThis->Owner->Buildings[i] != pThis)
+						{
+							if (pThis->Owner->Buildings[i]->GetMission() == Mission::Guard && pThis->Owner->Buildings[i]->Factory)
+							{
+								pThis->Owner->Buildings[i]->Factory = std::exchange(pThis->Factory, nullptr);
+								return (int)pThis->Owner->Buildings[i]->KickOutUnit(pTechnoToKick, overrider);
+							}
+						}
+					}
+
+					return 1;
+				}
+
+				++Unsorted::ScenarioInit;
+				CoordStruct docked_ {};
+				pThis->GetExitCoords(&docked_, 0);
+
+				if (pTechnoToKick->Unlimbo(docked_, DirType::East))
+				{
+					pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+					pTechnoToKick->SetLocation(docked_);
+					pTechnoToKick->UpdatePlacement(PlacementType::Put);
+					pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
+					pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
+					pThis->QueueMission(Mission::Unload, false);
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+
+				--Unsorted::ScenarioInit;
+				return 0;
+			}
+
+			if (!pThis->HasAnyLink())
+				pThis->QueueMission(Mission::Unload, false);
+			auto _this_Mapcoord = pThis->GetMapCoords();
+			auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
+
+			if (pThis->Focus)
+			{
+				auto _focus_coord = pThis->Focus->GetCoords();
+				auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
+				DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
+
+				auto v41 = MapClass::Instance->GetCellAt(_this_Mapcoord);
+				int v40 = 0;
+				if (v41->GetBuilding() == pThis)
+				{
+					auto v42 = &CellSpread::AdjacentCell[(int)__face.GetDir() & 7];
+					CellClass* v44 = nullptr;
+
+					do
+					{
+						v44 = MapClass::Instance->GetCellAt(CellStruct { short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y) });
+					}
+					while (v44->GetBuilding() == pThis);
+				}
+			}
+
+			if (!pThis->Focus
+				 || _this_cell->LandType != LandType::Water
+				 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
+				 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
+			{
+
+				auto _near = MapClass::Instance->NearByLocation(_this_Mapcoord, pTechnoToKick->GetTechnoType()->SpeedType, -1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+				auto _near_cell = MapClass::Instance->GetCellAt(_near);
+				auto _near_coord = _near_cell->GetCoords();
+
+				if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
+				{
+					if (pThis->Focus)
+					{
+						pTechnoToKick->SetDestination(pThis->Focus, true);
+						pTechnoToKick->QueueMission(Mission::Move, 0);
+					}
+
+					pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+					pTechnoToKick->SetLocation(_near_coord);
+					pTechnoToKick->UpdatePlacement(PlacementType::Put);
+					return 2;
+				}
+			}
+			return 0;
+		}
+
+	default:
+		return 0;
+	}
+}
+*/

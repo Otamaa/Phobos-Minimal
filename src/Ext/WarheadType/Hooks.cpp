@@ -142,6 +142,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis);
+	pWHExt->Splashed = true;
 
 	if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList))
 	{
@@ -201,7 +202,10 @@ DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
 	if (!warhead)
 		return NoAnim;
 
-	if (damage == 0 && !WarheadTypeExtContainer::Instance.Find(warhead)->AnimList_ShowOnZeroDamage)
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
+
+	pWHExt->Splashed = false;
+	if (damage == 0 && !pWHExt->AnimList_ShowOnZeroDamage)
 		return NoAnim;
 	else if (damage < 0)
 		damage = -damage;
