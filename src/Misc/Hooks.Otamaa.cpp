@@ -807,7 +807,11 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 {
 	enum { continuecheck = 0x62A929, returnfalse = 0x62A976, continuecheckB = 0x62A933 };
+	GET(ParasiteClass* , pThis , EDI);
 	GET(FootClass* const, pVictim, ESI);
+
+	if(pThis->Owner->InLimbo)
+		return returnfalse;
 
 	if (TechnoExtData::IsParasiteImmune(pVictim))
 		return returnfalse;

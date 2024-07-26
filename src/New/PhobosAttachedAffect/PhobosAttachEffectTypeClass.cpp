@@ -22,7 +22,7 @@ std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesF
 		}
 	}
 
-	return std::vector<PhobosAttachEffectTypeClass*>(types.begin(), types.end());
+	return { types.begin(), types.end() };
 }
 
 void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
