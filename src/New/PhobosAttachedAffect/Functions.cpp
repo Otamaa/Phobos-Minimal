@@ -203,6 +203,10 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pNewType);
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
+	if (pExt->PhobosAE.begin() == pExt->PhobosAE.end())
+		return;
+
 	std::vector<WeaponTypeClass*> expireWeapons;
 	std::vector<PhobosAttachEffectTypeClass*> existingTypes;
 
