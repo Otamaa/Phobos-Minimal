@@ -6,6 +6,7 @@
 class PhobosAttachEffectTypeClass;
 class AbstractClass;
 class TechnoClass;
+class TechnoTypeClass;
 struct PhobosAEFunctions
 {
 	/// <summary>
@@ -33,4 +34,6 @@ struct PhobosAEFunctions
 /// <returns>True if techno has active AttachEffects that satisfy the source, false if not.</returns>
 	static bool HasAttachedEffects(TechnoClass* pTechno, std::vector<PhobosAttachEffectTypeClass*>& attachEffectTypes, bool requireAll, bool ignoreSameSource,
 		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts);
+
+	static void UpdateSelfOwnedAttachEffects(TechnoClass* pTechno , TechnoTypeClass* pNewType);
 };

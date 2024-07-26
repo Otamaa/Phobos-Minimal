@@ -194,3 +194,85 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 
 	return false;
 }
+
+#include <Ext/TechnoType/Body.h>
+#include <TechnoTypeClass.h>
+#include <Ext/WeaponType/Body.h>
+
+void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, TechnoTypeClass* pNewType) {
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pNewType);
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+	std::vector<WeaponTypeClass*> expireWeapons;
+	std::vector<PhobosAttachEffectTypeClass*> existingTypes;
+
+	bool markForRedraw = false;
+
+	// Delete ones on old type and not on current.
+	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
+	{
+		auto const pType = it->GetType();
+		bool selfOwned = it->IsSelfOwned();
+		bool remove = selfOwned && !pTypeExt->AttachEffect_AttachTypes.Contains(pType);
+
+		if (remove)
+		{
+			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None) {
+				if (!pType->Cumulative
+					|| !pType->ExpireWeapon_CumulativeOnlyOnce
+					|| PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno , pType) < 1)
+					expireWeapons.push_back(pType->ExpireWeapon);
+			}
+
+			markForRedraw |= pType->HasTint();
+			it = pExt->PhobosAE.erase(it);
+		}
+		else
+		{
+			if (selfOwned)
+				existingTypes.push_back(pType);
+
+			it++;
+		}
+	}
+
+	auto const coords = pTechno->GetCoords();
+	auto const pOwner = pTechno->Owner;
+
+	for (auto const& pWeapon : expireWeapons) {
+		WeaponTypeExtData::DetonateAt(pWeapon, coords, pTechno , pWeapon->Damage,true, pOwner);
+
+		if (!pTechno->IsAlive)
+			return;
+	}
+
+	bool attached = false;
+	bool hasTint = false;
+
+	// Add new ones.
+	for (size_t i = 0; i < pTypeExt->AttachEffect_AttachTypes.size(); i++)
+	{
+		auto const pAEType = pTypeExt->AttachEffect_AttachTypes[i];
+
+		// Skip ones that are already there.
+		if (std::count(existingTypes.begin(), existingTypes.end(), pAEType))
+			continue;
+
+		int durationOverride = 0;
+		int delay = 0;
+		int initialDelay = 0;
+		int recreationDelay = -1;
+
+		PhobosAttachEffectClass::SetValuesHelper(i, pTypeExt->AttachEffect_DurationOverrides, pTypeExt->AttachEffect_Delays, pTypeExt->AttachEffect_InitialDelays, pTypeExt->AttachEffect_RecreationDelays, durationOverride, delay, initialDelay, recreationDelay);
+		bool wasAttached = PhobosAttachEffectClass::Attach(pAEType, pTechno, pOwner, pTechno, pTechno, durationOverride, delay, initialDelay, recreationDelay);
+
+		attached |= initialDelay <= 0 && wasAttached;
+		hasTint |= wasAttached && pAEType->HasTint();
+	}
+
+	if (!attached)
+		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTechno)->AeData, pTechno);
+
+	if (markForRedraw && !hasTint)
+		pTechno->MarkForRedraw();
+}

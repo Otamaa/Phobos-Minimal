@@ -112,6 +112,23 @@ public:
 	static bool Attach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
 		AbstractClass* pSource, int durationOverride = 0, int delay = 0, int initialDelay = 0, int recreationDelay = -1);
 
+	// Used for figuring out the correct values to use for a particular effect index when attaching them.
+	static constexpr void SetValuesHelper(unsigned int index, std::vector<int>& durationOverrides, std::vector<int> const& delays, std::vector<int> const& initialDelays, std::vector<int> const& recreationDelays, int& durationOverride, int& delay, int& initialDelay, int& recreationDelay) {
+		if (durationOverrides.size() > 0)
+			durationOverride = durationOverrides[durationOverrides.size() > index ? index : durationOverrides.size() - 1];
+
+		if (delays.size() > 0)
+			delay = delays[delays.size() > index ? index : delays.size() - 1];
+
+		if (initialDelays.size() > 0)
+			initialDelay = initialDelays[initialDelays.size() > index ? index : initialDelays.size() - 1];
+
+		if (recreationDelays.size() > 0)
+			recreationDelay = recreationDelays[recreationDelays.size() > index ? index : recreationDelays.size() - 1];
+	}
+
+
+
 	static int Attach(std::vector<PhobosAttachEffectTypeClass*> const& types, TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
 		AbstractClass* pSource, std::vector<int>& durationOverrides, std::vector<int> const* delays, std::vector<int> const* initialDelays, std::vector<int> const* recreationDelays);
 

@@ -134,7 +134,7 @@ void PhobosAttachEffectClass::AI_Temporal()
 		this->IsUnderTemporal = true;
 		this->CloakCheck();
 
-	if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsInTunnel && !this->IsAnimHidden)		
+	if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsInTunnel && !this->IsAnimHidden)
 		this->CreateAnim();
 
 		if (this->Animation)

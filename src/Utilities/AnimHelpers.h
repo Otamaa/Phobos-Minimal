@@ -12,7 +12,7 @@ namespace Helper
 		{
 			if (nSplash.HasValue()) {
 				if (nSplash.size() > 0) {
-					return nSplash[Random ? ScenarioClass::Instance->Random.RandomFromMax((nSplash.size() - 1)) : nSplash.size() - 1];
+					return nSplash[Random ? ScenarioClass::Instance->Random.RandomFromMax((nSplash.size() - 1)) : IsMeteor ? nSplash.size() - 1 : 0];
 				}
 			}
 

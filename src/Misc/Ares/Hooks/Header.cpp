@@ -67,6 +67,8 @@
 #include <TriggerTypeClass.h>
 #include <TagTypeClass.h>
 
+#include <New/PhobosAttachedAffect/Functions.h>
+
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
 std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
@@ -3399,10 +3401,11 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	pOwner->RecheckTechTree = true;
 	TechnoExtContainer::Instance.Find(pThis)->Is_Operated = false;
-
-	PhobosAttachEffectClass::Detach(pToTypeExt->AttachEffect_AttachTypes, pThis);
 	AresAE::RemoveSpecific(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis, pOldType);
-	TechnoExtData::InitializeAttachEffects(pThis, pToType);
+	PhobosAEFunctions::UpdateSelfOwnedAttachEffects(pThis, pToType);
+
+	if (!pThis->IsAlive)
+		return false;
 
 	// remove previous line trail
 	GameDelete<true, true>(pThis->LineTrailer);
