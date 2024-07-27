@@ -810,7 +810,7 @@ DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 	GET(ParasiteClass* , pThis , EDI);
 	GET(FootClass* const, pVictim, ESI);
 
-	if(pThis->Owner->InLimbo)
+	if(pThis->Owner->Transporter)
 		return returnfalse;
 
 	if (TechnoExtData::IsParasiteImmune(pVictim))
