@@ -360,6 +360,7 @@
     <ClCompile Include="src\New\Type\GenericPrerequisite.cpp" />
     <ClCompile Include="src\New\Type\TechTreeTypeClass.cpp" />
     <ClCompile Include="src\New\Type\TheaterTypeClass.cpp" />
+    <ClCompile Include="src\New\Type\ThemeTypeClass.cpp" />
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
@@ -470,6 +471,7 @@
     <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.h" />
     <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectTypeClass.h" />
     <ClInclude Include="src\New\Type\TechTreeTypeClass.h" />
+    <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
     <ClInclude Include="src\Commands\SaveVariablesToFile.h" />

@@ -10,11 +10,6 @@
 
 std::vector<ElectricBoltClass> ElectricBoltManager::ElectricBoltArray;
 
-void ElectricBoltClass::Clear()
-{
-	LineDrawList.clear();
-}
-
 void ElectricBoltClass::Draw_It()
 {
 	if (DrawFrame == Unsorted::CurrentFrame) {

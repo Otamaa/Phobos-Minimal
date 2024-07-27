@@ -31,10 +31,8 @@ public:
 	CoordStruct* GetCoords(CoordStruct* pBuffer) const
 		{ JMP_THIS(0x4399A0); }
 
-	CoordStruct GetCoords() const {
-		CoordStruct buffer;
-		this->GetCoords(&buffer);
-		return buffer;
+	constexpr FORCEINLINE CoordStruct GetCoords() const {
+		return { (int)this->Coords.X , (int)this->Coords.Y , (int)this->Coords.Z};
 	}
 
 	double Distance() const

@@ -145,10 +145,6 @@ public:
 		Data.Disabled[2] = col3_disable;
 	}
 
-	~ElectricBoltClass() {
-		Clear();
-	}
-
 	void Draw_It();
 	static void Create(CoordStruct const& start, CoordStruct const& end,
 		ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3,
@@ -156,7 +152,7 @@ public:
 		int z_adjust = 0, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 	static void Create(CoordStruct const& start, CoordStruct const& end, const BoltData& nData, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 
-	void Flag_To_Delete() { Lifetime = 0; }
+	void constexpr FORCEINLINE Flag_To_Delete() { Lifetime = 0; }
 
 	static inline auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
 	{
@@ -168,7 +164,7 @@ public:
 		 ));
 	}
 
-	static inline int Sim_Random_Pick(int a, int b) {
+	static constexpr FORCEINLINE int Sim_Random_Pick(int a, int b) {
 		return Random2Class::NonCriticalRandomNumber()(a, b);
 	}
 
@@ -176,9 +172,11 @@ public:
 	ElectricBoltClass& operator=(const ElectricBoltClass& other) = default;
 
 private:
-	void Clear();
+	void constexpr FORCEINLINE Clear() {
+		LineDrawList.clear();
+	}
 
-	void Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
+	void constexpr FORCEINLINE Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
 		LineDrawList.emplace_back(start, end, line_color, start_z, end_z);
 	}
 

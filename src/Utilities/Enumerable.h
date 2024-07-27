@@ -71,6 +71,14 @@ public:
 		return -1;
 	}
 
+	static inline constexpr T* TryFindFromIndex(int Idx) {
+
+		if (size_t(Idx) > Array.size())
+			return nullptr;
+
+		return Array[static_cast<size_t>(Idx)].get();
+	}
+
 	// Warning : no Idx validation !
 	static inline constexpr T* FindFromIndex(int Idx)
 	{
