@@ -1208,8 +1208,14 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	if (pThis->Type->Engineer)
 		return 0;
 
+	// interaction issues with Ares,
+	// no more further checking to make life easier.
+	// If someone still try to abuse the bug I won't try to stop them
 	if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
-		return 0;// had to be a bit tolerable on this one due to interaction issue
+		return 0;
+
+	if (pBld->IsStrange())
+		return 0;
 
 	if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
 		return 0;
