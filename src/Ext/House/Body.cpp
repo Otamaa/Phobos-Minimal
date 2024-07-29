@@ -565,7 +565,7 @@ int HouseExtData::GetSurvivorDivisor(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 
-	if (pTypeExt && (pTypeExt->SurvivorDivisor.Get(-1) > 0))
+	if (pTypeExt && (pTypeExt->SurvivorDivisor.Get() > 0))
 		return pTypeExt->SurvivorDivisor;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -580,7 +580,7 @@ InfantryTypeClass* HouseExtData::GetCrew(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Crew.Get(nullptr))
+	if (pTypeExt && pTypeExt->Crew)
 		return pTypeExt->Crew;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -595,7 +595,7 @@ InfantryTypeClass* HouseExtData::GetEngineer(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Engineer.Get(nullptr))
+	if (pTypeExt && pTypeExt->Engineer)
 		return pTypeExt->Engineer;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -610,7 +610,7 @@ InfantryTypeClass* HouseExtData::GetTechnician(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Technician.Get(nullptr))
+	if (pTypeExt && pTypeExt->Technician)
 		return pTypeExt->Technician;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -625,7 +625,7 @@ InfantryTypeClass* HouseExtData::GetDisguise(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Disguise.Get(nullptr))
+	if (pTypeExt && pTypeExt->Disguise)
 		return pTypeExt->Disguise;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -643,7 +643,7 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
 	AircraftTypeClass* pRest = nullptr;
 
-	if (pTypeExt && pTypeExt->ParaDropPlane.Get(nullptr))
+	if (pTypeExt && pTypeExt->ParaDropPlane)
 	{
 		pRest = pTypeExt->ParaDropPlane;
 	}
@@ -673,19 +673,14 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 	AircraftTypeClass* pRest = nullptr;
 
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->SpyPlane.Get(nullptr))
+	if (pTypeExt && pTypeExt->SpyPlane)
 	{
 		pRest = pTypeExt->SpyPlane;
 	}
 
-	if (!pRest)
-	{
-		if (const auto pSide = HouseExtData::GetSide(pHouse))
-		{
-			const auto pSideExt = SideExtContainer::Instance.Find(pSide);
-
-			if (pSideExt->SpyPlane.Get(nullptr))
-				pRest = pSideExt->SpyPlane;
+	if (!pRest) {
+		if (const auto pSide = HouseExtData::GetSide(pHouse)) {
+			pRest = SideExtContainer::Instance.Find(pSide)->SpyPlane;
 		}
 	}
 
@@ -703,7 +698,7 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->HunterSeeker.Get(nullptr))
+	if (pTypeExt && pTypeExt->HunterSeeker)
 	{
 		return pTypeExt->HunterSeeker;
 	}
@@ -719,7 +714,7 @@ UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 {
 	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->ParachuteAnim.Get(nullptr))
+	if (pTypeExt && pTypeExt->ParachuteAnim)
 	{
 		return pTypeExt->ParachuteAnim;
 	}
@@ -1277,7 +1272,7 @@ std::vector<int> HouseExtData::GetBuildLimitGroupLimits(HouseClass* pHouse, Tech
 			auto pTmpType = pTypeExt->BuildLimitGroup_ExtraLimit_Types[i];
 			auto const pBuildingType = specific_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && 
+			if (pBuildingType &&
 				(BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0)
 				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding))
 				count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));

@@ -20,13 +20,13 @@ public:
 public:
 	bool SettingsInherited { false };
 
-	Nullable<int> SurvivorDivisor { };
-	Nullable<InfantryTypeClass*> Crew { };
-	Nullable<InfantryTypeClass*> Engineer { };
-	Nullable<InfantryTypeClass*> Technician { };
-	Nullable<AircraftTypeClass*> ParaDropPlane { };
-	Nullable<AircraftTypeClass*> SpyPlane { };
-	Nullable<UnitTypeClass*> HunterSeeker { };
+	Valueable<int> SurvivorDivisor { -1 };
+	Valueable<InfantryTypeClass*> Crew { nullptr };
+	Valueable<InfantryTypeClass*> Engineer { nullptr };
+	Valueable<InfantryTypeClass*> Technician { nullptr };
+	Valueable<AircraftTypeClass*> ParaDropPlane { nullptr };
+	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
+	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
 
 	ValueableVector<TechnoTypeClass*> ParaDropTypes { };
 	ValueableVector<int> ParaDropNum { };
@@ -40,7 +40,7 @@ public:
 	Valueable<bool> GivesBounty { true };
 	Nullable<bool> CanBeDriven {};
 
-	Nullable<AnimTypeClass*> ParachuteAnim {};
+	Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
 	Valueable<bool> StartInMultiplayer_WithConst { false };
 	ValueableVector<BuildingTypeClass*> Powerplants {};
 
@@ -49,7 +49,7 @@ public:
 	Valueable<std::string> TauntFileName {};
 
 	Nullable<bool> Degrades {};
-	Nullable<InfantryTypeClass*> Disguise {};
+	Valueable<InfantryTypeClass*> Disguise {};
 
 	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
 

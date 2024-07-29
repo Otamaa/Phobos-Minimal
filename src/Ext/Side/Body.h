@@ -50,7 +50,7 @@ public:
 	Nullable<InfantryTypeClass*> Engineer { };
 	Nullable<InfantryTypeClass*> Technician { };
 	ValueableIdx<AircraftTypeClass> ParaDropPlane { -1 };
-	Nullable<AircraftTypeClass*> SpyPlane { };
+	Valueable<AircraftTypeClass*> SpyPlane { };
 	Valueable<UnitTypeClass*> HunterSeeker;
 
 	NullableVector<TechnoTypeClass*> ParaDropTypes { };
