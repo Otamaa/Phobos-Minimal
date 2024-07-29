@@ -164,5 +164,6 @@ struct UninitConvert
 	void operator() (ConvertClass* pConvert) const
 	{
 		GameDelete<true, true>(pConvert);
+		pConvert = nullptr;
 	}
 };

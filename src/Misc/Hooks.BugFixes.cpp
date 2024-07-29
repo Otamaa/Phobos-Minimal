@@ -139,12 +139,10 @@ DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 
 DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(UnitClass*, pThis, ESI);
 
-	if (auto pUnit = specific_cast<UnitClass*>(pThis)) {
-		if (pUnit->DeathFrameCounter > 0) {
-			return 0x737D26;
-		}
+	if (pThis->DeathFrameCounter > 0) {
+		return 0x737D26;
 	}
 
 	return 0x0;

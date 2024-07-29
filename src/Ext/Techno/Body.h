@@ -204,7 +204,6 @@ public:
 
 			bool Eligible(WeaponTypeClass* who)
 			{
-
 				bool allowed = false;
 
 				if (allow.begin() != allow.end())
@@ -473,7 +472,7 @@ public:
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
 			if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr)) {
-				GameDelete(pTemp);
+				GameDelete<true,false>(pTemp);
 			}
 		}
 

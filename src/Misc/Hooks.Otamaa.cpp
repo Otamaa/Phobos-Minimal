@@ -7789,6 +7789,40 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 	return 0x467C3A;
 }
 
+//#pragma optimize("", off )
+//PhobosMap<TemporalClass*, DWORD> __iDent {};
+//
+//DEFINE_HOOK(0x680CB0, TemporalClass_Save_WhyCrashes, 0x6) {
+//	GET(TemporalClass*, pTemp, EAX);
+//	GET_STACK(int, _ArrayCount, 0x10);
+//	GET(int, _CurLoop, ESI);
+//	auto pArr = TemporalClass::Array->Items;
+//
+//	if (!pTemp || VTable::Get(pTemp) != TemporalClass::vtable) {
+//		Debug::FatalError("nullptr !\n");
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x71A4E0, TemporalClass_CTOR_Source, 0x5)
+//{
+//	GET(TemporalClass*, pItem, ESI);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	__iDent[pItem] = caller;
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x71B1B0, TemporalClass_SDDTOR, 0x8)
+//DEFINE_HOOK(0x71A5D0, TemporalClass_SDDTOR, 0x8)
+//{
+//	GET(TemporalClass*, pItem, ESI);
+//	__iDent.erase(pItem);
+//	return 0;
+//}
+//#pragma optimize("", on )
+
 /* TODO : Aircraft , Building , Changes
 int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct overrider)
 {

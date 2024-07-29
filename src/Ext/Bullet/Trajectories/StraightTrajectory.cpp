@@ -3,6 +3,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
 
+#include <Ext/WeaponType/Body.h>
+
 bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
@@ -11,6 +13,7 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 		.Process(this->SnapThreshold)
 		.Process(this->TargetSnapDistance)
 		.Process(this->PassThrough)
+		.Process(this->DetonationDistance_ApplyRangeModifiers)
 		;
 
 }
@@ -23,6 +26,7 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 		.Process(this->SnapThreshold)
 		.Process(this->TargetSnapDistance)
 		.Process(this->PassThrough)
+		.Process(this->DetonationDistance_ApplyRangeModifiers)
 		;
 
 }
@@ -106,6 +110,7 @@ bool StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 	this->DetonationDistance.Read(exINI, pSection, "Trajectory.Straight.DetonationDistance");
 	this->TargetSnapDistance.Read(exINI, pSection, "Trajectory.Straight.TargetSnapDistance");
 	this->PassThrough.Read(exINI, pSection, "Trajectory.Straight.PassThrough");
+	this->DetonationDistance_ApplyRangeModifiers.Read(exINI, pSection, "Trajectory.Straight.ApplyRangeModifiers");
 	return true;
 }
 
@@ -132,6 +137,9 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	auto const type = this->GetTrajectoryType();
 	auto const pBullet = this->AttachedTo;
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons(102));
+
+	if (type->DetonationDistance_ApplyRangeModifiers)
+		this->DetonationDistance = Leptons(WeaponTypeExtData::GetRangeWithModifiers(pBullet->WeaponType, pBullet->Owner, this->DetonationDistance));
 
 	this->FirerZPosition = this->GetFirerZPosition();
 	this->TargetZPosition = this->GetTargetPosition().Z;

@@ -154,7 +154,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	//got invalidated early , so parse it again
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*>(iniEX, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<ScriptTypeClass*,true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
 	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");

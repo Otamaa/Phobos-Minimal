@@ -9,6 +9,7 @@ public:
 	Nullable<Leptons> SnapThreshold { Leptons(Unsorted::LeptonsPerCell) };
 	Valueable<Leptons> TargetSnapDistance { Leptons(0) };
 	Valueable<bool> PassThrough { false };
+	Valueable<bool> DetonationDistance_ApplyRangeModifiers { false };
 
 	StraightTrajectoryType(TrajectoryFlag variant) : PhobosTrajectoryType { variant }
 	{ }

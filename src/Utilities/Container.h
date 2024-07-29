@@ -381,29 +381,33 @@ public:
 
 	void SaveStatic()
 	{
-		Debug::Log("[SaveStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
-		if (this->SavingObject && this->SavingStream) {
-			if (!this->Save(this->SavingObject, this->SavingStream))
+		auto obj = this->SavingObject;
+		Debug::Log("[SaveStatic] For object %p as '%s Start\n", obj, this->Name.data());
+		if (obj && this->SavingStream) {
+			if (!this->Save(obj, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
 		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
+		Debug::Log("[SaveStatic] For object %p as '%s Done\n", obj, this->Name.data());
 	}
 
 	bool LoadStatic()
 	{
-		Debug::Log("[LoadStatic] For object %p as '%s\n", this->SavingObject, this->Name.data());
+		auto obj = this->SavingObject;
+		Debug::Log("[LoadStatic] For object %p as '%s Start\n", obj, this->Name.data());
 		if (this->SavingObject && this->SavingStream)
 		{
-			if (!this->Load(this->SavingObject, this->SavingStream)){
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+			if (!this->Load(obj, this->SavingStream)){
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", obj, this->Name.data());
 				return false;
 			}
 		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
+		Debug::Log("[LoadStatic] For object %p as '%s Done\n", obj, this->Name.data());
 		return true;
 	}
 

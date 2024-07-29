@@ -204,6 +204,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Translucent_Stage3_Percent.Read(exINI, pID, "Translucent.Stage3.Percent");
 	this->Translucent_Stage3_Frame.Read(exINI, pID, "Translucent.Stage3.Frame");
 	this->Translucent_Stage3_Translucency.Read(exINI, pID, "Translucent.Stage3.Translucency");
+
+	this->CreateUnit_SpawnHeight.Read(exINI, pID, "CreateUnit.SpawnHeight");
 #pragma endregion
 }
 
@@ -251,6 +253,10 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
 		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(Location);
 		Location.Z = MaxImpl(nCellHeight + bridgeZ, z);
+
+		const int baseHeight = pTypeExt->CreateUnit_SpawnHeight.isset() ? pTypeExt->CreateUnit_SpawnHeight : Location.Z;
+		const int zCoord = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : baseHeight;
+		Location.Z = MaxImpl(MapClass::Instance->GetCellFloorHeight(Location) + bridgeZ, zCoord);
 
 		const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
 
@@ -331,8 +337,10 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 				pTechno->SecondaryFacing.Set_Current(pAnimExt->DeathUnitTurretFacing.get());
 			}
 
-			if (pThis->IsInAir() && !pTypeExt->CreateUnit_AlwaysSpawnOnGround)
+			if (!pTypeExt->CreateUnit_AlwaysSpawnOnGround)
 			{
+				bool inAir = pThis->IsOnMap && pAnimExt->CreateUnitLocation.Z >= Unsorted::CellHeight * 2;
+
 				if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pTechno->Locomotor))
 				{
 					pJJLoco->Facing.Set_Current(DirStruct(static_cast<DirType>(resultingFacing)));
@@ -345,13 +353,13 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
 						pJJLoco->Height = pTechno->Type->JumpjetData.JumpjetHeight;
 					}
-					else
+					else if (inAir)
 					{
 						// Order non-BalloonHover jumpjets to land.
 						pJJLoco->Move_To(pAnimExt->CreateUnitLocation);
 					}
 				}
-				else
+				else if (inAir)
 				{
 					pTechno->IsFallingDown = true;
 				}
@@ -553,6 +561,8 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Translucent_Stage3_Percent)
 		.Process(this->Translucent_Stage3_Frame)
 		.Process(this->Translucent_Stage3_Translucency)
+
+		.Process(this->CreateUnit_SpawnHeight)
 		;
 }
 

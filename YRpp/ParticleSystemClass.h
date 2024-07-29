@@ -112,10 +112,8 @@ struct UninitAttachedSystem
 {
 	void operator() (ParticleSystemClass* pAnim) const
 	{
-		if (pAnim && pAnim->IsAlive)
-		{
-			pAnim->Owner = nullptr;
-			pAnim->UnInit();
+		if (pAnim) {
+			GameDelete<true,false>(pAnim);
 		}
 
 		pAnim = nullptr;

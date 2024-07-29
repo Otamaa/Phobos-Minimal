@@ -122,6 +122,8 @@ public:
 	Nullable<int> Translucent_Stage3_Frame {};
 	Valueable<TranslucencyLevel> Translucent_Stage3_Translucency { 75 };
 
+	Nullable<int> CreateUnit_SpawnHeight {};
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 
