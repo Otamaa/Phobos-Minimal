@@ -2724,16 +2724,14 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 	double amount = 1.0;
 
-	if (pThis->Type->Weeder)
-	{
-
+	if (pThis->Type->Weeder) {
 		pCell->RemoveWeed();
 		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
 		return 0x73D502;
 	}
 
 	int tibType = pCell->GetContainedTiberiumIndex();
-	double cur = storage->GetAmount(tibType);
+	double cur = storage->GetAmounts();
 
 	if (((double)pThis->Type->Storage - cur) <= 1.0)
 	{
