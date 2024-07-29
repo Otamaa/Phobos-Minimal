@@ -442,7 +442,13 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 	TechnoExtData::ProcessDigitalDisplays(pThis);
 
-	return 0x6F6A58;
+	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		return 0x6F6AB6u;
+
+	if(HouseClass::IsCurrentPlayerObserver())
+		return 0x6F6A8E;
+
+	return 0u;
 }
 
 

@@ -366,7 +366,7 @@ int JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(Point2D location)
 
 	if (pObject && pObject->WhatAmI() == AbstractType::Building)
 	{
-		BuildingClass* pBuilding = abstract_cast<BuildingClass*>(pObject);
+		BuildingClass* pBuilding = static_cast<BuildingClass*>(pObject);
 		CoordStruct dim2 = CoordStruct::Empty;
 		pBuilding->Type->Dimension2(&dim2);
 		return dim2.Z + height;

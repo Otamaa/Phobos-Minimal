@@ -1143,8 +1143,6 @@ namespace Tiberiumpip
 		}
 
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
-
-
 		static std::vector<PackedTibPipData> Amounts(TiberiumClass::Array->Count);
 
 		const bool isWeeder = pBuilding&& pBuilding->Type->Weeder || pUnit && pUnit->Type->Weeder;
@@ -2748,12 +2746,12 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	return 0x73D623;
 }
 
-DEFINE_HOOK(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
-{
-	GET(UnitTypeClass*, pType, EDX);
-	R->AL(pType->Harvester || pType->Weeder);
-	return 0x73E9A6;
-}
+// DEFINE_HOOK(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
+// {
+// 	GET(UnitTypeClass*, pType, EDX);
+// 	R->AL(pType->Harvester || pType->Weeder);
+// 	return 0x73E9A6;
+// }
 
 DEFINE_HOOK(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
 {
@@ -4202,17 +4200,17 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
 	return 0x6E8315;
 }
 
-DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
-{
-	GET(UnitClass*, pThis, EBP);
-	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
-	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
-	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
+ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
+ {
+ 	GET(UnitClass*, pThis, EBP);
+ 	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
+ 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
+ 	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
 
-	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
+ 	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
 
-	return 0x73ED7A;
-}
+ 	return 0x73ED7A;
+ }
 
 // DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 // {
@@ -5407,7 +5405,7 @@ DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto storange = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
-	R->EAX(storange->GetAmounts());
+	R->EAX((float)storange->GetAmounts());
 	return 0x708CE4;
 }
 #endif
@@ -5447,14 +5445,16 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 
 	const  auto pType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
-	const double totalAmount = unit_storage->GetAmount(idxTiberium);
-	const float amountRemoved = idxTiberium != -1 ? std::fabs(pType->HarvesterDumpAmount.Get((float)totalAmount)) : 0.0f;//after decreased
+	//const double totalAmount = ;
+	const float amountRemoved = idxTiberium != -1 ? std::fabs(pType->HarvesterDumpAmount.Get((float)unit_storage->GetAmount(idxTiberium))) : 0.0f;//after decreased
 
 	if (idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved, idxTiberium) <= 0.0)
 	{
 		if (pBld->Type->Refinery)
 		{ //weed ???
-			pBld->PlayNthAnim(BuildingAnimSlot::Production, pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow);
+			pBld->Game_PlayNthAnim(BuildingAnimSlot::Production,
+				pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow,
+				false , false);
 		}
 		pThis->MissionStatus = 4;
 
@@ -5713,7 +5713,7 @@ DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
 
 	if ((int)amount)
 	{
-		result = double(amount) / double(pThis->TotalStorage);
+		result = amount / double(pThis->TotalStorage);
 	}
 
 	__asm fld result;
@@ -5730,7 +5730,7 @@ DEFINE_HOOK(0x4F8C05, HouseeClass_AI_StorageSpeak_GetTiberiumStorageAmounts, 0x6
 DEFINE_HOOK(0x4F96BF, HouseClass_FindBestStorage_GetStorageTotalAmounts, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
-	R->EAX(HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+	R->EAX((float)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 	return 0x4F96C4;
 }
 
@@ -5759,7 +5759,6 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 		{
 			for (auto& pBld : pThis->Buildings)
 			{
-
 				if (pBld)
 				{
 					auto bldStorage = &TechnoExtContainer::Instance.Find(pBld)->TiberiumStorage;
@@ -5794,7 +5793,6 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 					}
 				}
 
-
 				if (deduced == 0)
 					break;
 			}
@@ -5809,7 +5807,7 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 DEFINE_HOOK(0x4F99A6, HouseClass_UpdateAllSilos_GetStorageTotalAmounts, 0x6)
 {
 	GET(HouseClass*, pThis, EDI);
-	R->EAX(HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+	R->EAX((float)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 	return 0x4F99B1;
 }
 
@@ -8405,3 +8403,16 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 	}
 }
 */
+
+DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
+{
+	GET(Mission, setTo, EBX);
+	GET(FootClass*, pMember, ESI);
+
+	if (setTo == Mission::Harvest) {
+		pMember->EnterIdleMode(false , true);
+		return 0x6EDA77;
+	}
+
+	return 0x0;
+}
