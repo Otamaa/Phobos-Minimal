@@ -53,12 +53,14 @@ DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 	GET(UnitClass*, pThis, EBX);
 
 	if(pThis && pBuilding->Owner->IsAlliedWith(pThis)) {
-		if(auto pTeam = pThis->Team) {
-			if(auto pScript = pTeam->CurrentScript) {
-				auto mission = pScript->GetCurrentAction();
-				if(mission.Action == TeamMissionType::Gather_at_base && TeamMissionType((int)mission.Action + 1 ) == TeamMissionType::Load){
-					//dont fucking load the passenger here
-					return 0x73F823;
+		if(pThis->Type->Passengers > 0) {
+			if(auto pTeam = pThis->Team) {
+				if(auto pScript = pTeam->CurrentScript) {
+					auto mission = pScript->GetCurrentAction();
+					if(mission.Action == TeamMissionType::Gather_at_base && TeamMissionType((int)mission.Action + 1 ) == TeamMissionType::Load){
+						//dont fucking load the passenger here
+						return 0x73F823;
+					}
 				}
 			}
 		}
