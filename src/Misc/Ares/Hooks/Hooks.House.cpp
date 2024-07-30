@@ -492,13 +492,15 @@ DEFINE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 DEFINE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
 {
 	enum { Eligible = 0, Jammed = 0x508F08 };
+
 	GET(BuildingClass*, Radar, EAX);
 
-	return (!BuildingExtContainer::Instance.Find(Radar)->RegisteredJammers.empty()
-					|| (Radar->EMPLockRemaining > 0))
-		? Jammed
-		: Eligible
-		;
+	if(BuildingExtContainer::Instance.Find(Radar)->RegisteredJammers.empty() &&
+			Radar->EMPLockRemaining <= 0) {
+		return Eligible;
+	}
+
+	return Jammed;
 }
 
 static std::vector<BuildingTypeClass*> Eligible;

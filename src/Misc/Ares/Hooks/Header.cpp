@@ -5593,13 +5593,10 @@ void AresJammer::Unjam(BuildingClass* TargetBuilding) const
 {
 	//keep item unique
 	auto& jammMap = BuildingExtContainer::Instance.Find(TargetBuilding)->RegisteredJammers;
+	jammMap.remove(this->AttachedToObject);
 
-	if (jammMap.remove(this->AttachedToObject))
-	{
-		if (jammMap.empty())
-		{
-			TargetBuilding->Owner->RecheckRadar = true;
-		}
+	if (jammMap.empty()) {
+		TargetBuilding->Owner->RecheckRadar = true;
 	}
 }
 
