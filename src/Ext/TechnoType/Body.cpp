@@ -1136,6 +1136,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CombatAlert_NotBuilding.Read(exINI, pSection, "CombatAlert.NotBuilding");
 		this->SubterraneanHeight.Read(exINI, pSection, "SubterraneanHeight");
 
+		this->Spawner_RecycleRange.Read(exINI, pSection, "Spawner.RecycleRange");
+		this->Spawner_RecycleFLH.Read(exINI, pSection, "Spawner.FLH");
+		this->Spawner_RecycleOnTurret.Read(exINI, pSection, "Spawner.RecycleOnTurret");
+		this->Spawner_RecycleAnim.Read(exINI, pSection, "Spawner.RecycleAnim");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -2262,6 +2267,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CombatAlert)
 		.Process(this->CombatAlert_NotBuilding)
 		.Process(this->SubterraneanHeight)
+
+		.Process(this->Spawner_RecycleRange)
+		.Process(this->Spawner_RecycleFLH)
+		.Process(this->Spawner_RecycleOnTurret)
+		.Process(this->Spawner_RecycleAnim)
 		;
 }
 

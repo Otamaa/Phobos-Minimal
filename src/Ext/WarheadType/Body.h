@@ -376,6 +376,11 @@ public:
 
 	Valueable<bool> Shield_HitFlash { true };
 	Nullable<bool> CombatAlert_Suppress { };
+
+	Valueable<bool> AffectsOnFloor { true };
+	Valueable<bool> AffectsInAir { true };
+	Valueable<bool> CellSpread_Cylinder { false };
+
 public:
 
 	WarheadTypeExtData() noexcept = default;

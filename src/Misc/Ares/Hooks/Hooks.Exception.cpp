@@ -10,6 +10,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <Misc/PhobosGlobal.h>
+
 DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
@@ -304,6 +306,17 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 				pCtxt->Dr6,
 				pCtxt->Dr7
 			);
+
+
+			{
+				auto& pp = PhobosGlobal::Instance()->PathfindTechno;
+				if (pp.IsValid()) {
+					Debug::Log("LastPathfind [%s] - [%s] from (%d - %d) to (%d - %d)\n", pp.Finder->get_ID() , pp.Finder->GetThisClassName(),
+						pp.From.X , pp.From.Y ,
+						pp.To.X , pp.To.Y
+					);
+				}
+			}
 
 			fprintf(except, "\nStack dump (depth : %d):\n", EXCEPTION_STACK_DEPTH_MAX);
 			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);

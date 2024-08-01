@@ -893,3 +893,42 @@ DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 	return 0;
 }
 
+DEFINE_HOOK(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
+{
+	//enum { RecycleIsOk = 0x6B77FF, RecycleIsNotOk = 0x6B7838 };
+
+	GET(SpawnManagerClass* const, pThis, ESI);
+	GET(TechnoClass* const, pSpawned, EDI);
+	GET(CellStruct* const, pSpawnerMapCrd, EBP);
+
+	const auto pSpawner = pThis->Owner;
+	const auto pSpawnerType = pSpawner->GetTechnoType();
+	const auto pSpawnedMapCrd = pSpawned->GetMapCoords();
+	const auto pSpawnerExt = TechnoTypeExtContainer::Instance.Find(pSpawnerType);
+	const auto SpawnerCrd = pSpawner->GetCoords();
+	const auto SpawnedCrd = pSpawned->GetCoords();
+	const auto DeltaCrd = SpawnedCrd - SpawnerCrd;
+	const int RecycleRange = pSpawnerExt->Spawner_RecycleRange;
+
+	const auto what = pSpawner->WhatAmI();
+	const bool bShouldRecycleSpawned = (RecycleRange == -1 && (what == AbstractType::Building && DeltaCrd.X <= 182 && DeltaCrd.Y <= 182 && DeltaCrd.Z < 20 ||
+			what != AbstractType::Building && pSpawnedMapCrd.X == pSpawnerMapCrd->X && pSpawnedMapCrd.Y == pSpawnerMapCrd->Y && DeltaCrd.Z < 20)) ||
+			Math::sqrt(DeltaCrd.X * DeltaCrd.X + DeltaCrd.Y * DeltaCrd.Y + DeltaCrd.Z * DeltaCrd.Z) <= RecycleRange;
+
+	if (bShouldRecycleSpawned) {
+
+		if (auto pAnim = pSpawnerExt->Spawner_RecycleAnim) {
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, SpawnedCrd),
+				pSpawner->GetOwningHouse(),
+				nullptr,
+				pSpawner,
+				false
+			);
+		}
+
+		pSpawned->SetLocation(SpawnerCrd);
+		R->EAX(pSpawnerMapCrd);
+	}
+
+	return 0;
+}

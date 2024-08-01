@@ -8416,3 +8416,25 @@ DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
 
 	return 0x0;
 }
+
+// ENTRY  , 42C954 , stack 3C TECHNO , size 7 , return 0
+// END 42CB3F 5 , 42CCCB
+
+#include <Misc/PhobosGlobal.h>
+
+DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7) {
+	GET_STACK(TechnoClass*, pTech, 0x3C);
+	GET_STACK(CellStruct*, from, 0x34);
+	GET_STACK(CellStruct*, to, 0x38);
+
+	PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
+	R->ESI(pTech);
+	R->EBX(R->EAX());
+	return R->EDI<int>() == -1 ? 0x42C963 : 0x42C95F;
+}
+
+DEFINE_HOOK_AGAIN(0x42CB3F, AStarClass_FindPath_Exit, 0x5)
+DEFINE_HOOK(0x42CCCB, AStarClass_FindPath_Exit, 0x5) {
+	PhobosGlobal::Instance()->PathfindTechno.Clear();
+	return 0x0;
+}

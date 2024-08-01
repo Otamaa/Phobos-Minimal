@@ -6,6 +6,7 @@
 class AbstractClass;
 class ObjectClass;
 class AlphaShapeClass;
+class TechnoClass;
 class PhobosGlobal
 {
 	static std::unique_ptr<PhobosGlobal> GlobalObject;
@@ -15,6 +16,47 @@ public:
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
 	std::vector<CellStruct> TempCoveredCellsData { };
+	struct PathfindLastData {
+		TechnoClass* Finder;
+		CellStruct From;
+		CellStruct To;
+
+		constexpr bool IsValid() const {
+			return Finder != nullptr;
+		}
+
+		constexpr void Clear() {
+			Finder = nullptr;
+			From = CellStruct::Empty;
+			To = CellStruct::Empty;
+		}
+
+		void InvalidatePointer(AbstractClass* ptr, bool bDetach) {
+			if (ptr == Finder)
+				this->Clear();
+		}
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return Stm
+				.Process(this->Finder)
+				.Process(this->From)
+				.Process(this->To)
+				.Success();
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return Stm
+				.Process(this->Finder)
+				.Process(this->From)
+				.Process(this->To)
+				.Success();
+		}
+
+	};
+
+	PathfindLastData PathfindTechno { };
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -41,6 +83,7 @@ public:
 			.Process(this->TempFoundationData1)
 			.Process(this->TempFoundationData2)
 			.Process(this->TempCoveredCellsData)
+			.Process(this->PathfindTechno)
 			.Success();
 	}
 

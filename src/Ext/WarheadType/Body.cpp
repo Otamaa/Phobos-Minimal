@@ -449,6 +449,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_HitFlash.Read(exINI, pSection, "Shield.HitFlash");
 	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
 
+	this->AffectsOnFloor.Read(exINI, pSection, "AffectsOnFloor");
+	this->AffectsInAir.Read(exINI, pSection, "AffectsInAir");
+	this->CellSpread_Cylinder.Read(exINI, pSection, "CellSpread.Cylinder");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -1470,6 +1474,10 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_DurationOverrides)
 		.Process(this->Shield_HitFlash)
 		.Process(this->CombatAlert_Suppress)
+
+		.Process(this->AffectsOnFloor)
+		.Process(this->AffectsInAir)
+		.Process(this->CellSpread_Cylinder)
 		;
 
 	PaintBallData.Serialize(Stm);

@@ -166,6 +166,9 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 					else if(args.Attacker && args.Attacker->IsAlive)
 						args.Attacker->ReceiveDamage(&damage, 0, pWH, pThis, false, false, pThis->Owner);
 				}
+
+				if (!args.Attacker->IsAlive)
+					break;
 			}
 		}
 	}
