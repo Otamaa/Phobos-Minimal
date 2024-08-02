@@ -1026,7 +1026,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 				{
 					// If is still flying wait a bit more
 					if (pTransport->IsInAir())
-						break;
+						return;
 
 					// All fine
 					if (pUnit->GetCurrentMission() != Mission::Enter)
@@ -1035,7 +1035,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 						pUnit->SetTarget(nullptr);
 						pUnit->SetDestination(pTransport, true);
 
-						break;
+						return;
 					}
 				}
 			}
@@ -1046,7 +1046,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
 		if (pUnit->GetCurrentMission() == Mission::Enter)
-			break;
+			return;
 	}
 
 	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
