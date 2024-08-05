@@ -68,7 +68,7 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			int Max_driftX = 2;
 			detail::read(Max_driftX, exINI, pID, "Gas.MaxDriftSpeed");
 
-			this->Gas_DriftSpeedX.GetEx()->X = Max_driftX;
+			this->Gas_DriftSpeedX->X = Max_driftX;
 		}
 
 		this->Gas_DriftSpeedX.Read(exINI, pID, "Gas.MaxDriftSpeedX");

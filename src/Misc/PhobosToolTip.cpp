@@ -33,14 +33,14 @@ PhobosToolTip PhobosToolTip::Instance;
 
 inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
 {
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
 		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
 inline const wchar_t* GetUIDescription(SWTypeExtData* pData)
 {
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
 		? pData->UIDescription.Get().Text
 		: nullptr;
 }

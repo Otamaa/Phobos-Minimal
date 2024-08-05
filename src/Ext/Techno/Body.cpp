@@ -2449,10 +2449,8 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 		if (frame != -1)
 			frameIndex = frame;
 
-		const auto frames = data.Frames.GetEx();
-
-		if (frames->X != -1 && frames->Y != -1 && frames->Z != -1)
-			insigniaFrames = *frames;
+		if (data.Frames->X != -1 && data.Frames->Y != -1 && data.Frames->Z != -1)
+			insigniaFrames = data.Frames;
 	}
 
 	int nRankPerFrames = insigniaFrames.X;

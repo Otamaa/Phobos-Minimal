@@ -17,7 +17,7 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	if (const auto pCustom = AnimTypeExtContainer::Instance.Find(pThis->Type)->Palette) {
+	if (auto pCustom = AnimTypeExtContainer::Instance.Find(pThis->Type)->Palette) {
 		R->EDX(pCustom->GetConvert<PaletteManager::Mode::Temperate>());
 		return 0x4236F6;
 	}
@@ -434,17 +434,17 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 		int currentFrame = pThis->Animation.Value;
 		int frames = pType->End;
 
-		if ((pTypeExt->Translucent_Stage3_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage3_Frame.Get())
+		if ((pTypeExt->Translucent_Stage3_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage3_Frame)
 			|| currentFrame >= frames * pTypeExt->Translucent_Stage3_Percent)
 		{
 			flags |= pTypeExt->Translucent_Stage3_Translucency.Get();
 		}
-		else if ((pTypeExt->Translucent_Stage2_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage2_Frame.Get())
+		else if ((pTypeExt->Translucent_Stage2_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage2_Frame)
 			|| currentFrame >= frames * pTypeExt->Translucent_Stage2_Percent)
 		{
 			flags |= pTypeExt->Translucent_Stage2_Translucency.Get();
 		}
-		else if ((pTypeExt->Translucent_Stage1_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage1_Frame.Get())
+		else if ((pTypeExt->Translucent_Stage1_Frame.isset() && currentFrame >= pTypeExt->Translucent_Stage1_Frame)
 			|| currentFrame >= frames * pTypeExt->Translucent_Stage1_Percent)
 		{
 			flags |= pTypeExt->Translucent_Stage1_Translucency.Get();

@@ -7816,7 +7816,7 @@ const MouseCursor* MouseClassExt::GetCursorData(MouseCursorType nMouse)
 {
 	if (!CursorTypeClass::Array.empty())
 	{
-		return CursorTypeClass::Array[(int)nMouse]->CursorData.GetEx();
+		return CursorTypeClass::Array[(int)nMouse]->CursorData.operator->();
 	}
 
 	// if the custom cursor array is empty , then fix then index

@@ -144,7 +144,9 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	// Using Promotable<WeaponTypeClass*>
 	// tags : "%sDeathWeapon (%s replaced with rank level);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	WeaponTypeClass* pWeaponResult = pTypeExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
+	WeaponTypeClass* pWeaponResult = pTypeExt->DeathWeapon.Get(pThis);
+	if (!pWeaponResult)
+		pWeaponResult = pType->DeathWeapon;
 
 	if (!pWeaponResult)
 	{

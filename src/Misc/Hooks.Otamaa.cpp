@@ -3247,12 +3247,12 @@ public:
 
 					if (nRadius > 0)
 					{
-						ColorStruct* Color = pTypeExt->RadialIndicatorColor.isset() ? pTypeExt->RadialIndicatorColor.GetEx() : &pTechno->Owner->Color;
+						const auto Color = pTypeExt->RadialIndicatorColor.Get(pTechno->Owner->Color);
 
-						if (*Color != ColorStruct::Empty)
+						if (Color != ColorStruct::Empty)
 						{
 							auto nCoord = pTechno->GetCoords();
-							Tactical_Draw_Radial(false, true, nCoord, *Color, (nRadius * 1.0f), false, true);
+							Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 						}
 					}
 				}
@@ -8451,8 +8451,13 @@ DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7) {
 	return R->EDI<int>() == -1 ? 0x42C963 : 0x42C95F;
 }
 
-DEFINE_HOOK_AGAIN(0x42CB3F, AStarClass_FindPath_Exit, 0x5)
-DEFINE_HOOK(0x42CCCB, AStarClass_FindPath_Exit, 0x5) {
+DEFINE_HOOK_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
+DEFINE_HOOK(0x42CCC8, AStarClass_FindPath_Exit, 0x6) {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
+}
+
+DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7) {
+	GET(TechnoClass*, pLink, EAX);
+	return !pLink ? 0x7410DD : 0x0;
 }

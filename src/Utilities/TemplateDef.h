@@ -2241,6 +2241,7 @@ bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 		&& Savegame::WritePhobosStream(Stm, this->MaxValue);
 }
 
+/*
 // PromotableVector
 template <typename T>
 void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
@@ -2377,6 +2378,7 @@ bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
 		&& Savegame::WritePhobosStream(stm, this->Veteran)
 		&& Savegame::WritePhobosStream(stm, this->Elite);
 }
+*/
 
 // TimedWarheadEffect
 template <typename T>

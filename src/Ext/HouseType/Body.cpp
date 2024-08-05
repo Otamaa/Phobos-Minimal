@@ -25,12 +25,12 @@ void HouseTypeExtData::Initialize()
 		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
 	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
-	this->TauntFileName.GetEx()->resize(19);
+	this->TauntFileName->resize(19);
 
 	switch ((Countries)index)
 	{
 	case Countries::Americans: // USA
-		std::memcpy(this->TauntFileName.GetEx()->data() , "taunts\\tauam~~.wav" , 19u);
+		std::memcpy(this->TauntFileName->data() , "taunts\\tauam~~.wav" , 19u);
 		this->LoadScreenPalette = "mplsu.pal";
 		this->LoadScreenBackground = "ls%sustates.shp";
 
@@ -44,7 +44,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("usai.shp");
 		break;
 	case Countries::Alliance: //Korea
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauko~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauko~~.wav", 19u);
 		this->LoadScreenPalette = "mplsk.pal";
 		this->LoadScreenBackground = "ls%skorea.shp";
 
@@ -58,7 +58,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("japi.shp");
 		break;
 	case Countries::French: //France
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taufr~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\taufr~~.wav", 19u);
 		this->LoadScreenPalette = "mplsf.pal";
 		this->LoadScreenBackground = "ls%sfrance.shp";
 
@@ -72,7 +72,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("frai.shp");
 		break;
 	case Countries::Germans: //Germany
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauge~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauge~~.wav", 19u);
 		this->LoadScreenPalette = "mplsg.pal";
 		this->LoadScreenBackground = "ls%sgermany.shp";
 
@@ -86,7 +86,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("geri.shp");
 		break;
 	case Countries::British: //United Kingdom
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taubr~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\taubr~~.wav", 19u);
 		this->LoadScreenPalette = "mplsuk.pal";
 		this->LoadScreenBackground = "ls%sukingdom.shp";
 
@@ -100,7 +100,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("gbri.shp");
 		break;
 	case Countries::Africans: //Libya
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauli~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauli~~.wav", 19u);
 		this->LoadScreenPalette = "mplsl.pal";
 		this->LoadScreenBackground = "ls%slibya.shp";
 
@@ -114,7 +114,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("djbi.shp");
 		break;
 	case Countries::Arabs: //Iraq
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauir~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauir~~.wav", 19u);
 		this->LoadScreenPalette = "mplsi.pal";
 		this->LoadScreenBackground = "ls%siraq.shp";
 
@@ -128,7 +128,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("arbi.shp");
 		break;
 	case Countries::Confederation: //Cuba
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\taucu~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\taucu~~.wav", 19u);
 		this->LoadScreenPalette = "mplsc.pal";
 		this->LoadScreenBackground = "ls%scuba.shp";
 
@@ -142,7 +142,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("lati.shp");
 		break;
 	case Countries::Russians: //Russia
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauru~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauru~~.wav", 19u);
 		this->LoadScreenPalette = "mplsr.pal";
 		this->LoadScreenBackground = "ls%srussia.shp";
 
@@ -156,7 +156,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("rusi.shp");
 		break;
 	case Countries::YuriCountry: //Yuri
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauyu~~.wav", 19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauyu~~.wav", 19u);
 		this->LoadScreenPalette = "mpyls.pal";
 		this->LoadScreenBackground = "ls%syuri.shp";
 
@@ -171,7 +171,7 @@ void HouseTypeExtData::Initialize()
 		this->ObserverFlagYuriPAL = true;
 		break;
 	default: //Unknown
-		std::memcpy(this->TauntFileName.GetEx()->data(), "taunts\\tauam~~.wav",19u);
+		std::memcpy(this->TauntFileName->data(), "taunts\\tauam~~.wav",19u);
 		this->LoadScreenPalette = "mplsobs.pal";
 		this->LoadScreenBackground = "ls%sobs.shp";
 

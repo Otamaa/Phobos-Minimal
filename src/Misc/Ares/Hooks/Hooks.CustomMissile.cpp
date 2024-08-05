@@ -50,7 +50,7 @@ DEFINE_HOOK(0x6622E0, RocketLocomotionClass_ILocomotion_Process_CustomMissile, 6
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pExt->IsCustomMissile) {
-		R->EAX(pExt->CustomMissileData.GetEx());
+		R->EAX(pExt->CustomMissileData.operator->());
 		return 0x66230A;
 	}
 
@@ -164,7 +164,7 @@ DEFINE_HOOK(0x66305A, RocketLocomotionClass_Explode_CustomMissile, 6)
 
 	if (pExt->IsCustomMissile)
 	{
-		*ppRocketData = pExt->CustomMissileData.GetEx();
+		*ppRocketData = pExt->CustomMissileData.operator->();
 
 		const bool isElite = pLocomotor->SpawnerIsElite;
 		*ppWarhead = (isElite ? pExt->CustomMissileEliteWarhead : pExt->CustomMissileWarhead);
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->IsCustomMissile) {
-		R->EDX(pExt->CustomMissileData.GetEx());
+		R->EDX(pExt->CustomMissileData.operator->());
 		return 0x66331E;
 	}
 
@@ -229,7 +229,7 @@ DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pExt->IsCustomMissile) {
-		R->EAX(pExt->CustomMissileData.GetEx());
+		R->EAX(pExt->CustomMissileData.operator->());
 		return 0x66351B;
 	}
 

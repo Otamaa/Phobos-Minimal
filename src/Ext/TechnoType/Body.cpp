@@ -58,8 +58,7 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 
 void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
-	const auto offs = this->TurretOffset.GetEx();
-	mtx->Translate((float)(offs->X * factor), (float)(offs->Y * factor), (float)(offs->Z * factor));
+	mtx->Translate((float)(this->TurretOffset->X * factor), (float)(this->TurretOffset->Y * factor), (float)(this->TurretOffset->Z * factor));
 }
 
 AnimTypeClass* TechnoTypeExtData::GetSinkAnim(TechnoClass* pThis)
@@ -1162,7 +1161,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 			this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
 			this->CustomMissileData.Read(exINI, pSection, "Missile");
-			this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
+			this->CustomMissileData->Type = static_cast<AircraftTypeClass*>(pThis);
 			this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
 			this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
 			this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");

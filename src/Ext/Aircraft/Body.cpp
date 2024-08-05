@@ -16,7 +16,6 @@ bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct ed
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	auto coords = CellClass::Cell2Coord(edgeCell);
-	coords.Z = 0;
 	AbstractClass* pTarget = nullptr;
 
 	if (pTypeExt->SpawnDistanceFromTarget.isset())
@@ -43,7 +42,9 @@ void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
+	auto pCrashWeapon = pTypeExt->CrashWeapon.Get(pThis);
+	if (!pCrashWeapon)
+		pCrashWeapon = pTypeExt->CrashWeapon_s.Get();
 
 	if (!TechnoExtData::FireWeaponAtSelf(pThis, pCrashWeapon))
 		pThis->FireDeathWeapon(nMult);
