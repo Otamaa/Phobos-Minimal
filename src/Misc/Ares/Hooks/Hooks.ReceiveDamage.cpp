@@ -116,7 +116,7 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	//{
 	//	MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, pShield->GetType()->HitBright);
 	//} else
-	 if (WarheadTypeExtContainer::Instance.Find(pWh)->CanAffectInvulnerable(pThis))
+	 if (!WarheadTypeExtContainer::Instance.Find(pWh)->CanAffectInvulnerable(pThis))
 	{
 		if (pThis->ProtectType == ProtectTypes::ForceShield)
 			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);

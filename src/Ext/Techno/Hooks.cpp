@@ -384,7 +384,7 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 			}
 
 			for (const auto& weapon : pExt->RevengeWeapons) {
-				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
+				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
 					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
 			}
 		}
