@@ -221,8 +221,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 		if (pExt->LimboID != -1)
 			return Continue;
 
-		if (pBuilding->IsIronCurtained() ||
-			pBuilding->BeingWarpedOut ||
+		if (pBuilding->BeingWarpedOut ||
 			pBuilding->TemporalTargetingMe ||
 			pBuilding->Type->Immune
 			)
@@ -362,7 +361,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 	if (pThis->IsInAir())
 		return (CheckOtherState);
 
-	if (pThis->GetTechnoType()->Immune || pThis->IsIronCurtained())
+	if (pThis->GetTechnoType()->Immune)
 		return (CheckOtherState);
 
 	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pThis))

@@ -176,7 +176,9 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		}
 	}
 
-	if(this->Techno->IsIronCurtained() || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
+	bool IC = pWHExt->CanAffectInvulnerable(this->Techno);
+
+	if(!IC || CanBePenetrated(args->WH) || TechnoExtData::IsTypeImmune(this->Techno, args->Attacker))
 		return *args->Damage;
 
 	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;

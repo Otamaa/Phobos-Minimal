@@ -370,26 +370,21 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		bool AllowRevenge = true;
-
-		if (pWH)
-		{
-			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-			AllowRevenge = !pWHExt->IgnoreRevenge;
-		}
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+		const bool hasFilters = pWHExt->SuppressRevengeWeapons_Types.size() > 0;
 		auto SourCoords = pSource->GetCoords();
 
-		if (AllowRevenge)
+		if (!pWHExt->SuppressRevengeWeapons)
 		{
 			if (pTypeExt->RevengeWeapon &&
-				EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+				EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner) &&
+				hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
 			{
 				WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
 			}
 
-			for (const auto& weapon : pExt->RevengeWeapons)
-			{
-				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
+			for (const auto& weapon : pExt->RevengeWeapons) {
+				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
 					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
 			}
 		}
@@ -402,6 +397,9 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 			auto const pType = attachEffect.GetType();
 
 			if (!pType->RevengeWeapon)
+				continue;
+
+			if (pWHExt->SuppressRevengeWeapons && (!hasFilters || pWHExt->SuppressRevengeWeapons_Types.Contains(pType->RevengeWeapon)))
 				continue;
 
 			if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))

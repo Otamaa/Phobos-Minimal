@@ -351,16 +351,27 @@ public:
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
 	Valueable<int> SubterraneanHeight { -256 };
 
+	Nullable<Vector3D<float>> VoxelLightSource {};
+	Nullable<Vector3D<float>> VoxelShadowLightSource {};
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
+	void ReplaceVoxelLightSources();
 
 	void Initialize();
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void LoadFromStream(PhobosStreamReader& Stm) {
+		this->Serialize(Stm);
+		this->ReplaceVoxelLightSources();
+	}
+
+	void SaveToStream(PhobosStreamWriter& Stm) {
+		this->Serialize(Stm);
+		this->ReplaceVoxelLightSources();
+	}
 
 private:
 	template <typename T>

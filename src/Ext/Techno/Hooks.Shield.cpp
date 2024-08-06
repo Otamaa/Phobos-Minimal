@@ -130,11 +130,10 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 			}
 		}
 
-		int nDamageLeft = *(args.Damage);
 		auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (auto pShieldData = pExt->GetShield()) {
-			nDamageLeft = pShieldData->OnReceiveDamage(&args);
+			pShieldData->OnReceiveDamage(&args);
 		}
 		//else
 		//{
@@ -145,32 +144,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 		//		Debug::Log("GereIam !\n");
 		//	}
 		//}
-
-		if(pExt->AE_ReflectDamage && nDamageLeft > 0 && args.Attacker && args.Attacker->IsAlive) {
-			for (auto& attachEffect : pExt->PhobosAE) {
-
-				if (!attachEffect.IsActive())
-					continue;
-
-				auto const pType = attachEffect.GetType();
-
-				if (!pType->ReflectDamage)
-					continue;
-
-				int damage = static_cast<int>(nDamageLeft * pType->ReflectDamage_Multiplier);
-				auto const pWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
-
-				if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, args.SourceHouse)) {
-					if (pType->ReflectDamage_Warhead_Detonate)
-						WarheadTypeExtData::DetonateAt(pWH, args.Attacker, pThis, damage, pThis->Owner);
-					else if(args.Attacker && args.Attacker->IsAlive)
-						args.Attacker->ReceiveDamage(&damage, 0, pWH, pThis, false, false, pThis->Owner);
-				}
-
-				if (!args.Attacker->IsAlive)
-					break;
-			}
-		}
 	}
 
 	return 0;

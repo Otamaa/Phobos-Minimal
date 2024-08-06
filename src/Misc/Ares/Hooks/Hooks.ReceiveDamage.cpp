@@ -116,7 +116,7 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	//{
 	//	MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, pShield->GetType()->HitBright);
 	//} else
-	 if (pThis->IsIronCurtained())
+	 if (WarheadTypeExtContainer::Instance.Find(pWh)->CanAffectInvulnerable(pThis))
 	{
 		if (pThis->ProtectType == ProtectTypes::ForceShield)
 			MapClass::FlashbangWarheadAt(2 * (*pDamage), pWh, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
@@ -127,6 +127,18 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	}
 
 	return ContinueChecks;
+}
+
+DEFINE_HOOK(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
+{
+	enum { BypassInvulnerability = 0x48996D };
+
+	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+
+	if (WarheadTypeExtContainer::Instance.Find(pWarhead)->PenetratesIronCurtain)
+		return BypassInvulnerability;
+
+	return 0;
 }
 
 DEFINE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
@@ -435,6 +447,7 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	GET(int*, pDamage, EBX);
 
 	const auto nRank = pThis->Veterancy.GetRemainingLevel();
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 	if (pWHExt->ImmunityType.isset() && TechnoExtData::HasImmunity(nRank, pThis, pWHExt->ImmunityType))
@@ -487,6 +500,35 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 					pInf->GoBerzerkFor(10);
 				}
 			}
+		}
+	}
+
+	if(pExt->AE_ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
+		for (auto& attachEffect : pExt->PhobosAE) {
+
+			if (!attachEffect.IsActive())
+				continue;
+
+			auto const pType = attachEffect.GetType();
+
+			if (!pType->ReflectDamage)
+				continue;
+
+			if (pWHExt->SuppressReflectDamage && pWHExt->SuppressReflectDamage_Types.Contains(pType))
+				continue;
+
+			int damage = static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier);
+			auto const pWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
+
+			if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House)) {
+				if (pType->ReflectDamage_Warhead_Detonate)
+						WarheadTypeExtData::DetonateAt(pWH, pAttacker, pThis, damage, pThis->Owner);
+				else if(pAttacker && pAttacker->IsAlive)
+						pAttacker->ReceiveDamage(&damage, 0, pWH, pThis, false, false, pThis->Owner);
+			}
+
+			if (!pAttacker->IsAlive)
+				break;
 		}
 	}
 

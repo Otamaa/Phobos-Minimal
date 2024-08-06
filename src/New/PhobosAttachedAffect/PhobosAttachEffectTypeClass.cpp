@@ -41,7 +41,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn.Read(exINI, pSection, "DiscardOn");
 	this->DiscardOn_RangeOverride.Read(exINI, pSection, "DiscardOn.RangeOverride");
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
-
+	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
 	this->Animation.Read(exINI, pSection, "Animation");
 	this->CumulativeAnimations.Read(exINI, pSection, "CumulativeAnimations");
 	this->Animation_ResetOnReapply.Read(exINI, pSection, "Animation.ResetOnReapply");
@@ -116,6 +116,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn)
 		.Process(this->DiscardOn_RangeOverride)
 		.Process(this->PenetratesIronCurtain)
+		.Process(this->PenetratesForceShield)
 		.Process(this->Animation)
 		.Process(this->CumulativeAnimations)
 		.Process(this->Animation_ResetOnReapply)

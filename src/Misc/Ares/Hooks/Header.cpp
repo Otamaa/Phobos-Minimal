@@ -184,7 +184,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 	auto const bIgnoreDefense = args->IgnoreDefenses;
 	bool bImmune_pt2 = false;
 	bool const bImmune_pt1 =
-		(pTarget->IsIronCurtained() && !bIgnoreDefense) ||
+		(!pWarheadExt->CanAffectInvulnerable(pTechno) && !bIgnoreDefense) ||
 		(pType->Immune && !bIgnoreDefense) || pTarget->InLimbo
 		;
 

@@ -53,6 +53,28 @@ void RulesExtData::Initialize()
 {
 }
 
+void RulesExtData::ReplaceVoxelLightSources()
+{
+	bool needCacheFlush = false;
+
+	if (this->VoxelLightSource.isset())
+	{
+		needCacheFlush = true;
+		auto source = this->VoxelLightSource.Get().Normalized();
+		Game::VoxelLightSource = Game::VoxelDefaultMatrix.get() * source;
+	}
+
+	if (this->VoxelShadowLightSource.isset())
+	{
+		needCacheFlush = true;
+		auto source = this->VoxelShadowLightSource.Get().Normalized();
+		Game::VoxelShadowLightSource = Game::VoxelDefaultMatrix.get() * source;
+	}
+
+	if (needCacheFlush)
+		Game::DestroyVoxelCaches();
+}
+
 void RulesExtData::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 {
 }
@@ -151,6 +173,11 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	RadTypeClass::ReadListFromINI(pINI);
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 	TechTreeTypeClass::ReadListFromINI(pINI);
+
+	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
+	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
+
+	pData->ReplaceVoxelLightSources();
 
 	//got invalidated early , so parse it again
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
@@ -1243,6 +1270,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CombatAlert_Interval)
 		.Process(this->CombatAlert_SuppressIfAllyDamage)
 		.Process(this->SubterraneanHeight)
+
+		.Process(this->VoxelLightSource)
+		.Process(this->VoxelShadowLightSource)
 		;
 
 	MyPutData.Serialize(Stm);

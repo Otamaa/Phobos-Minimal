@@ -534,6 +534,7 @@ bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		pData->Shield_SelfHealing_Duration > 0 ||
 		!pData->Shield_AttachTypes.empty() ||
 		!pData->Shield_RemoveTypes.empty() ||
+		pData->Shield_RemoveAll ||
 		pData->Transact ||
 		pData->PermaMC ||
 		pData->GattlingStage > 0 ||
@@ -801,12 +802,9 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 	// Remove shield.
 	if (pExt->GetShield())
 	{
-
-
-
 		shieldIndex = this->Shield_RemoveTypes.IndexOf(pExt->Shield->GetType());
 
-		if (shieldIndex >= 0)
+		if (shieldIndex >= 0 || this->Shield_RemoveAll)
 		{
 			oldRatio = pExt->Shield->GetHealthRatio();
 			pExt->CurrentShieldType = ShieldTypeClass::Array[0].get();
@@ -826,6 +824,8 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 				const int nMax = (Shield_AttachTypes.size() - 1);
 				shieldType = Shield_AttachTypes[MinImpl(shieldIndex, nMax)];
 			}
+			else if (this->Shield_RemoveAll)
+				shieldType = Shield_AttachTypes[0];
 
 		}
 		else

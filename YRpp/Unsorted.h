@@ -133,6 +133,9 @@ struct Game
 	static constexpr reference<bool, 0xA8B8B5u> const DrawMPDebugStats{};
 	static constexpr reference<bool, 0xB04880u> const EnableMPSyncDebug{};
 
+	static constexpr reference<Vector3D<float>, 0x887470> const VoxelLightSource { };
+	static constexpr reference<Vector3D<float>, 0x887420> const VoxelShadowLightSource { };
+
 	struct Network
 	{
 
@@ -169,6 +172,10 @@ struct Game
 
 	static int __fastcall Get_Volume_Index(int timeout) {
 		JMP_STD(0x4790A0);
+	}
+
+	static void __fastcall DestroyVoxelCaches() {
+		JMP_STD(0x755C50);
 	}
 
 	// the game's own rounding function

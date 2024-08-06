@@ -134,7 +134,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	// Shields
 	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
-
+	this->Shield_RemoveAll.Read(exINI, pSection, "Shield.RemoveAll");
 	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
 	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
 	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
@@ -516,7 +516,14 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SpawnsCrate_Weights.emplace_back(weight);
 	}
 
-	this->IgnoreRevenge.Read(exINI, pSection, "IgnoreRevenge");
+	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
+	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
+
+
+	this->SuppressRevengeWeapons.Read(exINI, pSection, "SuppressRevengeWeapons");
+	this->SuppressRevengeWeapons_Types.Read(exINI, pSection, "SuppressRevengeWeapons.Types");
+	this->SuppressReflectDamage.Read(exINI, pSection, "SuppressReflectDamage");
+	this->SuppressReflectDamage_Types.Read(exINI, pSection, "SuppressReflectDamage.Types");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -731,6 +738,15 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 	}
 
 	return Bypass;
+}
+
+bool WarheadTypeExtData::CanAffectInvulnerable(TechnoClass* pTarget) const {
+
+	if (!pTarget || !pTarget->IsIronCurtained())
+		return true;
+
+	return pTarget->ProtectType == ProtectTypes::ForceShield ?
+		this->PenetratesForceShield.Get(this->PenetratesIronCurtain) : this->PenetratesIronCurtain;
 }
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
@@ -1464,8 +1480,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SpawnsCrate_Types)
 		.Process(this->SpawnsCrate_Weights)
 
-		.Process(this->IgnoreRevenge)
-
 		.Process(this->AttachEffect_AttachTypes)
 		.Process(this->AttachEffect_RemoveTypes)
 		.Process(this->AttachEffect_RemoveGroups)
@@ -1478,6 +1492,16 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectsOnFloor)
 		.Process(this->AffectsInAir)
 		.Process(this->CellSpread_Cylinder)
+
+		.Process(this->PenetratesIronCurtain)
+		.Process(this->PenetratesForceShield)
+		.Process(this->Shield_RemoveAll)
+
+		.Process(this->SuppressRevengeWeapons)
+		.Process(this->SuppressRevengeWeapons_Types)
+		.Process(this->SuppressReflectDamage)
+		.Process(this->SuppressReflectDamage_Types)
+
 		;
 
 	PaintBallData.Serialize(Stm);

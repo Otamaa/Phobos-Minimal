@@ -38,6 +38,7 @@
 //	return 0;
 //}
 
+DEFINE_HOOK_AGAIN(0x46A2FB, BulletClass_Logics_Return, 0x5)
 DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 {
 	GET(BulletClass*, pThis, ESI);

@@ -365,8 +365,6 @@ public:
 	std::vector<int> SpawnsCrate_Types {};
 	std::vector<int> SpawnsCrate_Weights {};
 
-	Valueable<bool> IgnoreRevenge { false };
-
 	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
 	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_RemoveTypes {};
 	std::vector<std::string> AttachEffect_RemoveGroups {};
@@ -380,6 +378,15 @@ public:
 	Valueable<bool> AffectsOnFloor { true };
 	Valueable<bool> AffectsInAir { true };
 	Valueable<bool> CellSpread_Cylinder { false };
+
+	Valueable<bool> PenetratesIronCurtain { false };
+	Nullable<bool> PenetratesForceShield { };
+	Valueable<bool> Shield_RemoveAll { false };
+	Valueable<bool> SuppressRevengeWeapons { false };
+	ValueableVector<WeaponTypeClass*> SuppressRevengeWeapons_Types { };
+	Valueable<bool> SuppressReflectDamage { false };
+	ValueableVector<PhobosAttachEffectTypeClass*> SuppressReflectDamage_Types { };
+
 
 public:
 
@@ -434,6 +441,7 @@ public:
 	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const;
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
 	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false) const;
+	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
 	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const;
 	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const;

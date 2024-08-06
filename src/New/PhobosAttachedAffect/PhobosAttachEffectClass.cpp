@@ -510,8 +510,13 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	if (!pType || !pTarget)
 		return nullptr;
 
-	if (!pType->PenetratesIronCurtain && pTarget->IsIronCurtained())
-		return nullptr;
+	if (pTarget->IsIronCurtained())
+	{
+		const bool penetrates = pTarget->ProtectType == ProtectTypes::ForceShield ? pType->PenetratesForceShield.Get(pType->PenetratesIronCurtain) : pType->PenetratesIronCurtain;
+
+		if (!penetrates)
+			return nullptr;
+	}
 
 	int currentTypeCount = 0;
 	PhobosAttachEffectClass* match = nullptr;

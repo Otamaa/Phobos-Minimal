@@ -6,6 +6,21 @@
 
 namespace detail
 {
+	template <>
+	inline bool read<Vector3D<float>>(Vector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read3Float(pSection, pKey, (float*)&value))
+		{
+			if (!parser.empty()) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 float Values");
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
 	template<>
 	inline bool read<Foundation>(Foundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{

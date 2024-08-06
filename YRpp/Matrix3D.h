@@ -199,11 +199,9 @@ public:
 		*this = *this * nAnother;
 	}
 
-	Vector3D<float> operator*(const Vector3D<float>& point) const
+	constexpr Vector3D<float> operator*(const Vector3D<float>& point) const
 	{
-		Vector3D<float> ret;
-		MatrixMultiply(&ret, this, &point);
-		return ret;
+		return RotateVector(point) + GetTranslation();
 	}
 
 	// Non virtual
@@ -626,7 +624,7 @@ public:
 	}
 
 	//Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
-	constexpr Vector3D<float> RotateVector(Vector3D<float>& rotate) {
+	constexpr Vector3D<float> RotateVector(const Vector3D<float>& rotate) const {
 		return {
 				row[0][0] * rotate.X + row[0][1] * rotate.Y + row[0][2] * rotate.Z,
 				row[1][0] * rotate.X + row[1][1] * rotate.Y + row[1][2] * rotate.Z,

@@ -186,6 +186,31 @@ public:
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
 
+	//scalar division
+	constexpr Vector3D operator/(double r) const {
+		return {
+			static_cast<T>(X / r),
+			static_cast<T>(Y / r),
+			static_cast<T>(Z / r)
+		};
+	}
+
+	//constexpr Vector3D operator/(T nval) const {
+	//	return {
+	//		static_cast<T>(X / nval),
+	//		static_cast<T>(Y / nval),
+	//		static_cast<T>(Z / nval)
+	//	};
+	//}
+
+	//scalar division
+	constexpr Vector3D& operator/=(double r) {
+		X /= r;
+		Y /= r;
+		Z /= r;
+		return *this;
+	}
+
 	//scalar multiplication
 	constexpr Vector3D operator*(double r) const
 	{
@@ -194,9 +219,6 @@ public:
 			static_cast<T>(Y * r),
 			static_cast<T>(Z * r) };
 	}
-
-	constexpr Vector3D operator/(T nval) const
-	{ return { (X / nval), (Y / nval), (Z / nval) }; }
 
 	//scalar multiplication
 	constexpr Vector3D& operator*=(double r)
@@ -256,7 +278,7 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr   double pow() const {
+	constexpr double pow() const {
 		return double(X * X) + double(Y * Y) + double(Z * Z);
 	}
 
@@ -272,6 +294,13 @@ public:
 		return (that - *this).pow();
 	}
 
+
+	//normalize
+	Vector3D Normalized() const
+	{
+		double magnitude = this->Length();
+		return magnitude > 0.0 ? *this / magnitude : Vector3D::Empty;
+	}
 };
 
 template <typename T>
