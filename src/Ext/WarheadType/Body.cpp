@@ -1502,6 +1502,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SuppressReflectDamage)
 		.Process(this->SuppressReflectDamage_Types)
 
+		.Process(this->Reflected)
 		;
 
 	PaintBallData.Serialize(Stm);

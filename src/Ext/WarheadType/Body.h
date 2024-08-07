@@ -387,7 +387,7 @@ public:
 	Valueable<bool> SuppressReflectDamage { false };
 	ValueableVector<PhobosAttachEffectTypeClass*> SuppressReflectDamage_Types { };
 
-
+	bool Reflected { false };
 public:
 
 	WarheadTypeExtData() noexcept = default;

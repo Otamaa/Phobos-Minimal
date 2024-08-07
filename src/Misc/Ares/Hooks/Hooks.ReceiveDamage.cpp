@@ -518,13 +518,20 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 				continue;
 
 			int damage = static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier);
-			auto const pWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
+			auto const pReflectWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
 
 			if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House)) {
+
+				auto const pWHExtRef = WarheadTypeExtContainer::Instance.Find(pReflectWH);
+
+				pWHExtRef->Reflected = true;
+
 				if (pType->ReflectDamage_Warhead_Detonate)
-						WarheadTypeExtData::DetonateAt(pWH, pAttacker, pThis, damage, pThis->Owner);
+						WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pThis, damage, pThis->Owner);
 				else if(pAttacker && pAttacker->IsAlive)
-						pAttacker->ReceiveDamage(&damage, 0, pWH, pThis, false, false, pThis->Owner);
+						pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pThis, false, false, pThis->Owner);
+
+				pWHExtRef->Reflected = false;
 			}
 
 			if (!pAttacker->IsAlive)
