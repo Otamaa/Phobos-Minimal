@@ -65,6 +65,50 @@ bool HouseExtData::IsMutualAllies(HouseClass const* pThis, HouseClass const* pHo
 			&& pHouse->Allies.Contains(pThis->ArrayIndex));
 }
 
+float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) const
+{
+	float mult = 1.0;
+	auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+
+	for (auto const pBuilding : this->RestrictedFactoryPlants)
+	{
+		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+		if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 && !pTypeExt->FactoryPlant_AllowTypes.Contains(pTechnoType))
+			continue;
+
+		if (pTypeExt->FactoryPlant_DisallowTypes.size() > 0 && pTypeExt->FactoryPlant_DisallowTypes.Contains(pTechnoType))
+			continue;
+
+		float currentMult = 1.0f;
+
+		switch (pTechnoType->WhatAmI())
+		{
+		case AbstractType::BuildingType:
+			if (((BuildingTypeClass*)pTechnoType)->BuildCat == BuildCat::Combat)
+				currentMult -= pBuilding->Type->DefensesCostBonus;
+			else
+				currentMult -= pBuilding->Type->BuildingsCostBonus;
+			break;
+		case AbstractType::AircraftType:
+			currentMult -= pBuilding->Type->AircraftCostBonus;
+			break;
+		case AbstractType::InfantryType:
+			currentMult -= pBuilding->Type->InfantryCostBonus;
+			break;
+		case AbstractType::UnitType:
+			currentMult -= pBuilding->Type->UnitsCostBonus;
+			break;
+		default:
+			break;
+		}
+
+		mult *= (1.0f - currentMult * pTechnoTypeExt->FactoryPlant_Multiplier);
+	}
+
+	return mult;
+}
+
 RequirementStatus HouseExtData::RequirementsMet(
 	HouseClass* pHouse, TechnoTypeClass* pItem)
 {
@@ -812,6 +856,7 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
+	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
 
 	if (bRemoved)
 		AutoDeathObjects.erase((TechnoClass*)ptr);
@@ -1897,6 +1942,8 @@ void HouseExtData::Serialize(T& Stm)
 
 		.Process(this->SideTechTree)
 		.Process(this->CombatAlertTimer)
+		.Process(this->EMPulseWeaponIndex)
+		.Process(this->RestrictedFactoryPlants)
 		//.Process(this->BuiltAircraftTypes)
 		//.Process(this->BuiltInfantryTypes)
 		//.Process(this->BuiltUnitTypes)

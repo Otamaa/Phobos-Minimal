@@ -830,6 +830,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SpyEffect_SWTargetCenter.Read(exINI, pSection, "SpyEffect.SWTargetCenter");
 		this->ShowPower.Read(exINI, pSection, "ShowPower");
+		this->EMPulseCannon_UseWeaponSelection.Read(exINI, pSection, "EMPulseCannon.UseWeaponSelection");
 
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
@@ -944,6 +945,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->EVA_Offline.Read(exINI, pSection, "EVA.Offline");
 
 		this->Explodes_DuringBuildup.Read(exINI, pSection, "Explodes.DuringBuildup");
+
+		this->FactoryPlant_AllowTypes.Read(exINI, pSection, "FactoryPlant.AllowTypes");
+		this->FactoryPlant_DisallowTypes.Read(exINI, pSection, "FactoryPlant.DisallowTypes");
 
 		if (Phobos::Otamaa::CompatibilityMode) {
 			if (pThis->NumberOfDocks > 0)
@@ -1256,6 +1260,10 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SpyEffect_SWTargetCenter)
 		.Process(this->ShowPower)
+		.Process(this->EMPulseCannon_UseWeaponSelection)
+
+		.Process(this->FactoryPlant_AllowTypes)
+		.Process(this->FactoryPlant_DisallowTypes)
 		;
 }
 

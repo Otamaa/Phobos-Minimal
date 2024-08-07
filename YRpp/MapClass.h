@@ -22,11 +22,15 @@ public:
 
 	static constexpr reference<GroundType, 0x89EA40u, 12u> const Array {};
 
-	static __forceinline GroundType* Get(LandType land) {
+	static constexpr FORCEINLINE GroundType* Get(LandType land) {
 		return &Array[(int)land];
 	}
 
-	static __forceinline float GetCost(LandType land, SpeedType speed) {
+	static LandType __fastcall GetLandTypeFromName(const char* name) {
+		JMP_STD(0x48DF80);
+	}
+
+	static constexpr FORCEINLINE float GetCost(LandType land, SpeedType speed) {
 		return Get(land)->Cost[(int)speed];
 	}
 };

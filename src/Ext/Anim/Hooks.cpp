@@ -254,3 +254,17 @@ DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 	return hasExtra && pTypeExt->ExtraShadow ?
 		DrawShadow : SkipDrawShadow;
 }
+
+DEFINE_HOOK(0x425060, AnimClass_Expire_ScorchFlamer, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	auto const pType = pThis->Type;
+
+	if (!pType->Flamer && !pType->Scorch)
+		return 0;
+
+	AnimExtData::SpawnFireAnims(pThis);
+
+	return 0;
+}

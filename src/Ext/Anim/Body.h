@@ -72,6 +72,7 @@ public:
 		return pThis->Owner;
 	}
 
+	static void SpawnFireAnims(AnimClass* pThis);
 private:
 	template <typename T>
 	void Serialize(T& Stm);

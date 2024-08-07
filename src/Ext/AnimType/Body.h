@@ -124,6 +124,18 @@ public:
 
 	Nullable<int> CreateUnit_SpawnHeight {};
 
+	Valueable<bool> ConstrainFireAnimsToCellSpots { true };
+	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes {};
+	Nullable<bool> AttachFireAnimsToParent { false };
+	Nullable<int> SmallFireCount {};
+	ValueableVector<AnimTypeClass*> SmallFireAnims {};
+	ValueableVector<double> SmallFireChances {};
+	ValueableVector<double> SmallFireDistances {};
+	Valueable<int> LargeFireCount { 1 };
+	ValueableVector<AnimTypeClass*> LargeFireAnims {};
+	ValueableVector<double> LargeFireChances {};
+	ValueableVector<double> LargeFireDistances {};
+
 	AnimTypeExtData() noexcept = default;
 	~AnimTypeExtData() noexcept = default;
 

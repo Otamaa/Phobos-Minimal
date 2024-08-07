@@ -2439,6 +2439,7 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
+	pHouseExt->RestrictedFactoryPlants.clear();
 	//==========================
 	//const bool LowpOwerHouse = pThis->HasLowPower();
 
@@ -2472,6 +2473,10 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
 				{
+					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0) {
+						pHouseExt->RestrictedFactoryPlants.push_back_unique(pBld);
+					}
+
 					pThis->CostDefensesMult *= (*begin)->DefensesCostBonus;
 					pThis->CostUnitsMult *= (*begin)->UnitsCostBonus;
 					pThis->CostInfantryMult *= (*begin)->InfantryCostBonus;

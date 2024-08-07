@@ -306,6 +306,10 @@ public:
 	Valueable<bool> SpyEffect_SWTargetCenter { false };
 
 	Valueable<bool> ShowPower { true };
+	Valueable<bool> EMPulseCannon_UseWeaponSelection { false };
+
+	ValueableVector<TechnoTypeClass*> FactoryPlant_AllowTypes {};
+	ValueableVector<TechnoTypeClass*> FactoryPlant_DisallowTypes {};
 
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;

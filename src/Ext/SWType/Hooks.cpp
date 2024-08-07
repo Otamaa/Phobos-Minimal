@@ -1793,6 +1793,49 @@ DEFINE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	return ProcessEMPulse;
 }
 
+namespace EMPulseCannonTemp
+{
+	int weaponIndex = 0;
+}
+
+DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
+{
+	enum { SkipGameCode = 0x44CEF8 };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	int weaponIndex = 0;
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+
+	if (pHouseExt->EMPulseWeaponIndex >= 0)
+	{
+		weaponIndex = pHouseExt->EMPulseWeaponIndex;
+	}
+	else if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->EMPulseCannon_UseWeaponSelection) {
+		if (auto const pCell = MapClass::Instance->TryGetCellAt(pThis->Owner->EMPTarget)) {
+			AbstractClass* pTarget = pCell;
+
+			if (auto const pObject = pCell->GetContent())
+				pTarget = pObject;
+
+			weaponIndex = pThis->SelectWeapon(pTarget);
+		}
+	}
+
+	EMPulseCannonTemp::weaponIndex = weaponIndex;
+	R->EAX(pThis->GetWeapon(weaponIndex));
+	return SkipGameCode;
+}
+
+CoordStruct* __fastcall BuildingClass_MI_Missile_EMPUlse_GetFireCoords_Wrapper(BuildingClass* pThis, void* _, CoordStruct* pCrd, int weaponIndex)
+{
+	CoordStruct coords {};
+	MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget)->GetCellCoords(&coords);
+	pCrd = pThis->GetFLH(&coords, EMPulseCannonTemp::weaponIndex, *pCrd);
+	return pCrd;
+}
+DEFINE_JUMP(CALL6, 0x44D1F9, GET_OFFSET(BuildingClass_MI_Missile_EMPUlse_GetFireCoords_Wrapper));
+
 DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);

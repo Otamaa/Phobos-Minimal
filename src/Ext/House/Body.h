@@ -157,6 +157,8 @@ public:
 
 	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 	CDTimerClass CombatAlertTimer {};
+	int EMPulseWeaponIndex { -1 };
+	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
@@ -324,6 +326,8 @@ public:
 	static void InitializeTrackers(HouseClass* pHouse);
 
 	static bool IsMutualAllies(HouseClass const* pThis , HouseClass const* pHouse);
+
+	float GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) const;
 
 private:
 	bool UpdateHarvesterProduction();

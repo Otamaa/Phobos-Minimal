@@ -207,6 +207,18 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->CreateUnit_SpawnHeight.Read(exINI, pID, "CreateUnit.SpawnHeight");
 #pragma endregion
+
+	this->ConstrainFireAnimsToCellSpots.Read(exINI, pID, "ConstrainFireAnimsToCellSpots");
+	this->FireAnimDisallowedLandTypes.Read(exINI, pID, "FireAnimDisallowedLandTypes");
+	this->AttachFireAnimsToParent.Read(exINI, pID, "AttachFireAnimsToParent");
+	this->SmallFireCount.Read(exINI, pID, "SmallFireCount");
+	this->SmallFireAnims.Read(exINI, pID, "SmallFireAnims");
+	this->SmallFireChances.Read(exINI, pID, "SmallFireChances");
+	this->SmallFireDistances.Read(exINI, pID, "SmallFireDistances");
+	this->LargeFireCount.Read(exINI, pID, "LargeFireCount");
+	this->LargeFireAnims.Read(exINI, pID, "LargeFireAnims");
+	this->LargeFireChances.Read(exINI, pID, "LargeFireChances");
+	this->LargeFireDistances.Read(exINI, pID, "LargeFireDistances");
 }
 
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
@@ -563,6 +575,18 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Translucent_Stage3_Translucency)
 
 		.Process(this->CreateUnit_SpawnHeight)
+
+		.Process(this->ConstrainFireAnimsToCellSpots)
+		.Process(this->FireAnimDisallowedLandTypes)
+		.Process(this->AttachFireAnimsToParent)
+		.Process(this->SmallFireCount)
+		.Process(this->SmallFireAnims)
+		.Process(this->SmallFireChances)
+		.Process(this->SmallFireDistances)
+		.Process(this->LargeFireCount)
+		.Process(this->LargeFireAnims)
+		.Process(this->LargeFireChances)
+		.Process(this->LargeFireDistances)
 		;
 }
 
