@@ -1711,3 +1711,61 @@ DEFINE_HOOK(492776, BlitTransLucent75_Fix, 0)
 }
 #pragma endregion
 #endif
+
+DEFINE_HOOK(0x51C9B8, InfantryClass_CanFire_HitAndRun1, 0x17)
+{
+	enum { CheckPass = 0x51C9CF, CheckNotPass = 0x51CAFA };
+
+	GET(InfantryClass*, pThis, EBX);
+
+	const auto pType = pThis->GetTechnoType();
+	if ((pThis->CanAttackOnTheMove() && pType && pType->OpportunityFire)
+		|| pThis->SpeedPercentage <= 0.1) // vanilla check
+	{
+		return CheckPass;
+	}
+	else
+	{
+		return CheckNotPass;
+	}
+}
+
+DEFINE_HOOK(0x51CAAC, InfantryClass_CanFire_HitAndRun2, 0x13)
+{
+	enum { CheckPass = 0x51CACD, CheckNotPass = 0x51CABF };
+
+	GET(InfantryClass*, pThis, EBX);
+
+	const auto pType = pThis->GetTechnoType();
+	if ((pThis->CanAttackOnTheMove() && pType && pType->OpportunityFire)
+		|| !pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now()) // vanilla check
+	{
+		return CheckPass;
+	}
+	else
+	{
+		return CheckNotPass;
+	}
+}
+
+//Fix the bug that parasite will vanish if it missed its target when its previous cell is occupied.
+DEFINE_HOOK(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
+{
+	GET(DWORD, dwdIsReturnSuccess, EAX);
+	bool bIsReturnSuccess = (BYTE)((WORD)(dwdIsReturnSuccess));
+	GET(ParasiteClass*, pParasite, ESI);
+
+	auto pParasiteTechno = pParasite->Owner;
+	if (bIsReturnSuccess || !pParasiteTechno) {
+		return 0;
+	}
+	auto pType = pParasiteTechno->GetTechnoType();
+	auto cell = MapClass::Instance->NearByLocation(pParasiteTechno->LastMapCoords,
+				pType->SpeedType, -1, pType->MovementZone, false, 1, 1, false,
+				false, false, true, CellStruct::Empty, false, false);
+	auto crd = MapClass::Instance->GetCellAt(cell)->GetCoords();
+	bIsReturnSuccess = pParasiteTechno->Unlimbo(crd, DirType::North);
+	R->AL(bIsReturnSuccess);
+
+	return 0;
+}
