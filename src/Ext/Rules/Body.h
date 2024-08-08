@@ -353,6 +353,7 @@ public:
 
 	Nullable<Vector3D<float>> VoxelLightSource {};
 	Nullable<Vector3D<float>> VoxelShadowLightSource {};
+	Valueable<bool> UseFixedVoxelLighting { false };
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;

@@ -176,6 +176,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
 	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
+	pData->UseFixedVoxelLighting.Read(iniEX, GameStrings::AudioVisual, "UseFixedVoxelLighting");
 
 	pData->ReplaceVoxelLightSources();
 
@@ -1273,6 +1274,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
+		.Process(this->UseFixedVoxelLighting)
 		;
 
 	MyPutData.Serialize(Stm);
