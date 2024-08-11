@@ -113,7 +113,7 @@ public:
 	Nullable<int> Shield_ReceivedDamage_Maximum {};
 
 	Valueable<int> Shield_Respawn_Duration { 0 };
-	Valueable<double> Shield_Respawn_Amount { 0.0 };
+	Nullable<double> Shield_Respawn_Amount { 0.0 };
 	Valueable<int> Shield_Respawn_Rate { -1 };
 
 private:

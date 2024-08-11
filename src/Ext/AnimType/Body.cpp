@@ -67,6 +67,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->CreateUnit_SpawnAnim.Read(exINI, pID, "CreateUnit.SpawnAnim");
 	this->CreateUnit_AlwaysSpawnOnGround.Read(exINI, pID, "CreateUnit.AlwaysSpawnOnGround");
 	this->CreateUnit_KeepOwnerIfDefeated.Read(exINI, pID, "CreateUnit.KeepOwnerIfDefeated");
+	this->CreateUnit_SpawnParachutedInAir.Read(exINI, pID, "CreateUnit.SpawnParachutedInAir");
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
@@ -321,8 +322,15 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 
 		auto pCell = MapClass::Instance->GetCellAt(pAnimExt->CreateUnitLocation);
 		const bool IsBridge = pCell->ContainsBridge();
+		bool inAir = pThis->IsOnMap && pAnimExt->CreateUnitLocation.Z >= Unsorted::CellHeight * 2;
+		bool parachuted = false;
 
-		if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !IsBridge)
+		if (pTypeExt->CreateUnit_SpawnParachutedInAir && !pTypeExt->CreateUnit_AlwaysSpawnOnGround && inAir)
+		{
+			parachuted = true;
+			pTechno->SpawnParachuted(pAnimExt->CreateUnitLocation);
+		}
+		else if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !IsBridge)
 		{
 			++Unsorted::ScenarioInit;
 			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);
@@ -372,7 +380,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 						pJJLoco->Move_To(pAnimExt->CreateUnitLocation);
 					}
 				}
-				else if (inAir)
+				else if (inAir && !parachuted)
 				{
 					pTechno->IsFallingDown = true;
 				}
@@ -501,6 +509,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->CreateUnit_SpawnAnim)
 		.Process(this->CreateUnit_AlwaysSpawnOnGround)
 		.Process(this->CreateUnit_KeepOwnerIfDefeated)
+		.Process(this->CreateUnit_SpawnParachutedInAir)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)

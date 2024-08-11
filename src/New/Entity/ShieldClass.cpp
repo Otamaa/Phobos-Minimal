@@ -819,7 +819,7 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTi
 	auto timerWH = &this->Timers.Respawn_Warhead;
 	const bool modifierTimerInProgress = timerWH->InProgress();
 
-	this->Respawn_Warhead = amount > 0 ? amount : Type->Respawn;
+	this->Respawn_Warhead = amount;
 	this->Respawn_Rate_Warhead = rate >= 0 ? rate : Type->Respawn_Rate;
 
 	timerWH->Start(duration);

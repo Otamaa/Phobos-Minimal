@@ -207,14 +207,26 @@ namespace Helpers {
 			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
 			auto const range = static_cast<size_t>(spread + 0.99);
 			for (CellSpreadEnumerator it(range); it; ++it) {
-				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
+				auto cellCoords = CellClass::Coord2Cell(coords);
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
 					if (auto const pTechno = abstract_cast<T*>(*obj))
 					{
 						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 							if (pTechno->WhatAmI() == AbstractType::Building) {
-								auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
+								auto const cellCenterCoords = pCell->GetCenterCoords();
+								auto dist = cellCenterCoords.DistanceFrom(coords);
+
+								// If this is the center cell, there's some different behaviour.
+								if (isCenter)
+								{
+									if (coords.Z - cellCenterCoords.Z <= Unsorted::LevelHeight)
+										dist = 0;
+									else
+										dist -= Unsorted::LevelHeight;
+								}
 
 								if (dist > spreadMult)
 									continue;
@@ -340,13 +352,23 @@ namespace Helpers {
 			auto const range = static_cast<size_t>(spread + 0.99);
 
 			for (CellSpreadEnumerator it(range); it; ++it) {
-				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
+				auto cellCoords = CellClass::Coord2Cell(coords);
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
 					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj)) {
 
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 						if (pTechno->WhatAmI() == AbstractType::Building) {
-							auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
+							auto const cellCenterCoords = pCell->GetCenterCoords();
+							auto dist = cellCenterCoords.DistanceFrom(coords);
+							// If this is the center cell, there's some different behaviour.
+							if (isCenter) {
+								if (coords.Z - cellCenterCoords.Z <= Unsorted::LevelHeight)
+									dist = 0;
+								else
+									dist -= Unsorted::LevelHeight;
+							}
 
 							if (dist > arange)
 								continue;
@@ -406,7 +428,9 @@ namespace Helpers {
 			auto const range = static_cast<size_t>(spread + 0.99);
 			for (CellSpreadEnumerator it(range); it; ++it)
 			{
-				auto const pCell = MapClass::Instance->GetCellAt(*it + CellClass::Coord2Cell(coords));
+				auto cellCoords = CellClass::Coord2Cell(coords);
+				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
+				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj)
 				{
 					if (auto const pTechno = abstract_cast<T*>(*obj))
@@ -416,7 +440,16 @@ namespace Helpers {
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 							if (pTechno->WhatAmI() == AbstractType::Building)
 							{
-								auto const dist = pCell->GetCenterCoords().DistanceFrom(coords);
+								auto const cellCenterCoords = pCell->GetCenterCoords();
+								auto dist = cellCenterCoords.DistanceFrom(coords);
+
+								// If this is the center cell, there's some different behaviour.
+								if (isCenter) {
+									if (coords.Z - cellCenterCoords.Z <= Unsorted::LevelHeight)
+										dist = 0;
+									else
+										dist -= Unsorted::LevelHeight;
+								}
 
 								if (dist > spreadMult)
 									continue;

@@ -53,7 +53,27 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 		}
 	}
 
+	TechnoExtContainer::Instance.Find(pOwner)->LastWarpInDelay = pLocomotor->Timer.GetTimeLeft();
 	return 0x7195BC;
+}
+
+DEFINE_HOOK(0x4DA53E, FootClass_AI_WarpInDelay, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->HasCarryoverWarpInDelay) {
+		if (pExt->LastWarpInDelay) {
+			pExt->LastWarpInDelay--;
+		}
+		else {
+			pExt->HasCarryoverWarpInDelay = false;
+			pThis->WarpingOut = false;
+		}
+	}
+
+	return 0;
 }
 
 DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)

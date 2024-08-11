@@ -864,7 +864,10 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 			pExt->Shield->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
 
 		if (this->Shield_Respawn_Duration > 0 && this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-			pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, this->Shield_Respawn_Amount, this->Shield_Respawn_Rate, this->Shield_Respawn_RestartTimer);
+		{
+				double amount = this->Shield_Respawn_Amount.Get(pExt->Shield->GetType()->Respawn);
+				pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, amount, this->Shield_Respawn_Rate, this->Shield_Respawn_RestartTimer);
+		}
 
 		if (this->Shield_SelfHealing_Duration > 0 && this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 		{

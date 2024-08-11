@@ -40,6 +40,7 @@ public:
 	Valueable<AnimTypeClass*> CreateUnit_SpawnAnim { nullptr };
 	Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
 	Valueable<bool> CreateUnit_KeepOwnerIfDefeated { true };
+	Valueable<bool> CreateUnit_SpawnParachutedInAir { false };
 #pragma endregion
 
 	Valueable<int> XDrawOffset { 0 };
