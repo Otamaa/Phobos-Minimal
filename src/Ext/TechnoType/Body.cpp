@@ -2271,6 +2271,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Spawner_RecycleFLH)
 		.Process(this->Spawner_RecycleOnTurret)
 		.Process(this->Spawner_RecycleAnim)
+
+		.Process(this->HugeBar)
+		.Process(this->HugeBar_Priority)
 		;
 }
 

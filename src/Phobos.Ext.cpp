@@ -51,6 +51,8 @@
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <New/HugeBar.h>
+
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
@@ -331,6 +333,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
+	HugeBar::InvalidatePointer(pInvalid, removed);
 	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
@@ -402,6 +405,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PhobosAttachEffectTypeClass::Clear();
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	TechTreeTypeClass::Clear();
+	HugeBar::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -581,7 +585,8 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<TiberiumExtContainer>(pStm) &&
 		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
 		Process_Load<TechTreeTypeClass>(pStm) &&
-		Process_Load<StaticVars>(pStm)
+		Process_Load<StaticVars>(pStm) &&
+		Process_Load<HugeBar>(pStm)
 		;
 
 	if (!ret)
@@ -634,7 +639,8 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<TiberiumExtContainer>(pStm) &&
 			Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
 			Process_Save<TechTreeTypeClass>(pStm) &&
-			Process_Save<StaticVars>(pStm)
+			Process_Save<StaticVars>(pStm) &&
+			Process_Save<HugeBar>(pStm)
 			;
 
 		if (!ret)

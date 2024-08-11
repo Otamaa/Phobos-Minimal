@@ -350,6 +350,7 @@
     <ClCompile Include="src\New\AnonymousType\MultipleFactoryCaps.cpp" />
     <ClCompile Include="src\New\AnonymousType\Spawns.cpp" />
     <ClCompile Include="src\New\AnonymousType\SpawnsStatus.cpp" />
+    <ClCompile Include="src\New\HugeBar.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\Functions.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.cpp" />
@@ -465,6 +466,7 @@
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
+    <ClInclude Include="src\New\HugeBar.h" />
     <ClInclude Include="src\New\Interfaces\IEntity.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
     <ClInclude Include="src\New\PhobosAttachedAffect\Functions.h" />

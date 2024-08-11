@@ -495,6 +495,9 @@ DEFINE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
+	if(R->Origin() == 0x6F6F20)
+		HugeBar::InitializeHugeBar(pThis);
+
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsUnavailable();

@@ -122,6 +122,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (!pThis->IsAlive)
 		return retDead;
 
+	HugeBar::InitializeHugeBar(pThis);
+
 	PhobosAEFunctions::UpdateAttachEffects(pThis);
 
 	if (!pThis->IsAlive)

@@ -154,6 +154,14 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
 
+	if (Data->HugeBar_Config.empty()) {
+		Data->HugeBar_Config.emplace_back(DisplayInfoType::Health);
+		Data->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
+	}
+
+	Data->HugeBar_Config[0].LoadFromINI(pINI);
+	Data->HugeBar_Config[1].LoadFromINI(pINI);
+
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
 
@@ -1275,6 +1283,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)
+		.Process(this->HugeBar_Config)
 		;
 
 	MyPutData.Serialize(Stm);

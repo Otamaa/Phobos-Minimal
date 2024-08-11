@@ -22,9 +22,12 @@
 
 #include <Ext/House/Body.h>
 
+#include <New/HugeBar.h>
+
 DEFINE_HOOK(0x4F4583, GScreenClass_Render, 0x6)
 {
 	Phobos::DrawVersionWarning();
+	HugeBar::ProcessHugeBar();
 	return 0;
 }
 

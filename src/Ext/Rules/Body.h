@@ -14,6 +14,7 @@
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataRules.h>
 
 #include <New/AnonymousType/MultipleFactoryCaps.h>
+#include <New/HugeBar.h>
 
 class AnimTypeClass;
 class MouseCursor;
@@ -354,6 +355,8 @@ public:
 	Nullable<Vector3D<float>> VoxelLightSource {};
 	Nullable<Vector3D<float>> VoxelShadowLightSource {};
 	Valueable<bool> UseFixedVoxelLighting { false };
+
+	std::vector<HugeBar> HugeBar_Config {};
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;

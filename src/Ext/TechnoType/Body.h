@@ -972,6 +972,9 @@ public:
 	Valueable<bool> Spawner_RecycleOnTurret { false };
 	Valueable<AnimTypeClass*> Spawner_RecycleAnim { nullptr };
 
+	Valueable<bool> HugeBar { false };
+	Valueable<int> HugeBar_Priority { -1 };
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
