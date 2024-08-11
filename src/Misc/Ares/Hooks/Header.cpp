@@ -1963,11 +1963,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 		// check the hunter seeker SW
 		if (auto const pSuper =
-#ifndef Replace_SW
 			TechnoExtContainer::Instance.Find(pThis)->LinkedSW
-#else
-			pThis->align_154->AttachedSuperWeapon
-#endif
 			)
 		{
 			pOwner = pSuper->Owner;

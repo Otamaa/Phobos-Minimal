@@ -383,7 +383,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->InflictLocomotor.Read(exINI, pSection, "InflictLocomotor");
 	this->RemoveInflictedLocomotor.Read(exINI, pSection, "RemoveInflictedLocomotor");
-	this->Rocker_Damage.Read(exINI, pSection, "Rocker.Damage");
+	this->Rocker_AmplitudeMultiplier.Read(exINI, pSection, "Rocker.AmplitudeMultiplier");
+	this->Rocker_AmplitudeOverride.Read(exINI, pSection, "Rocker.AmplitudeOverride");
 	this->NukePayload_LinkedSW.Read(exINI, pSection, "NukeMaker.LinkedSW");
 	this->IC_Duration.Read(exINI, pSection, "IronCurtain.Duration");
 	this->IC_Cap.Read(exINI, pSection, "IronCurtain.Cap");
@@ -1422,7 +1423,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->InflictLocomotor)
 		.Process(this->RemoveInflictedLocomotor)
-		.Process(this->Rocker_Damage)
+		.Process(this->Rocker_AmplitudeMultiplier)
+		.Process(this->Rocker_AmplitudeOverride)
 		.Process(this->NukePayload_LinkedSW)
 		.Process(this->IC_Duration)
 		.Process(this->IC_Cap)

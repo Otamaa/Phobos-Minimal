@@ -1711,6 +1711,11 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	return ret;
 //}
 
+namespace EMPulseCannonTemp
+{
+	int weaponIndex = 0;
+}
+
 DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -1723,7 +1728,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 		pBullet->SetWeaponType(pWeapon);
 
 		CoordStruct src;
-		pThis->GetFLH(&src ,  0, pThis->GetRenderCoords());
+		pThis->GetFLH(&src , EMPulseCannonTemp::weaponIndex, pThis->GetRenderCoords());
 		CoordStruct dest = *pCoord;
 		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
 
@@ -1791,11 +1796,6 @@ DEFINE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	}
 
 	return ProcessEMPulse;
-}
-
-namespace EMPulseCannonTemp
-{
-	int weaponIndex = 0;
 }
 
 DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
