@@ -3640,6 +3640,24 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 	}
 
+	if (auto pInf = specific_cast<InfantryClass*>(pThis))
+	{
+		// It's still not recommended to have such idea, please avoid using this
+		if (static_cast<InfantryTypeClass*>(pOldType)->Deployer && !static_cast<InfantryTypeClass*>(pToType)->Deployer)
+		{
+			switch (pInf->SequenceAnim)
+			{
+			case DoType::Deploy:
+			case DoType::Deployed:
+			case DoType::DeployedIdle:
+				pInf->PlayAnim(DoType::Ready, true); break;
+			case DoType::DeployedFire:
+				pInf->PlayAnim(DoType::FireUp, true); break;
+			default:break;
+			}
+		}
+	}
+
 	return true;
 }
 
