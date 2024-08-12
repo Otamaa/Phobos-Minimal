@@ -159,6 +159,7 @@ public:
 	CDTimerClass CombatAlertTimer {};
 	int EMPulseWeaponIndex { -1 };
 	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
+	CDTimerClass AISellAllDelayTimer {};
 
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;

@@ -307,3 +307,43 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 //	return 0;
 //}
 #pragma endregion
+
+// Sell all and all in.
+DEFINE_HOOK(0x4FD8F7, HouseClass_UpdateAI_OnLastLegs, 0x10)
+{
+	enum { ret = 0x4FD907 };
+
+	GET(HouseClass*, pThis, EBX);
+
+	auto const pRules = RulesExtData::Instance();
+	auto const pExt = HouseExtContainer::Instance.Find(pThis);
+
+	if (pRules->AISellAllOnLastLegs)
+	{
+		if (pRules->AISellAllDelay <= 0 || !pExt ||
+			pExt->AISellAllDelayTimer.Completed())
+		{
+			pThis->Fire_Sale();
+		}
+		else if (!pExt->AISellAllDelayTimer.HasStarted())
+		{
+			pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
+		}
+	}
+
+	if (pRules->AIAllInOnLastLegs)
+		pThis->All_To_Hunt();
+
+	return ret;
+}
+
+// I must not regroup my forces.
+DEFINE_HOOK(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)
+{
+	enum { SkipRegroup = 0x73992B, DoNotSkipRegroup = 0 };
+
+	if (!RulesExtData::Instance()->RegroupWhenMCVDeploy)
+		return SkipRegroup;
+	else
+		return DoNotSkipRegroup;
+}

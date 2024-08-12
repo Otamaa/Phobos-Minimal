@@ -358,6 +358,12 @@ public:
 
 	std::vector<HugeBar> HugeBar_Config {};
 
+	Valueable<bool> RegroupWhenMCVDeploy { true };
+	Valueable<bool> AISellAllOnLastLegs { true };
+	Valueable<int> AISellAllDelay { 0 };
+	Valueable<bool> AIAllInOnLastLegs { true };
+	ValueableVector<bool> RepairBaseNodes { };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

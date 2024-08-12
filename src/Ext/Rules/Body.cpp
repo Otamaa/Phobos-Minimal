@@ -938,6 +938,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
 	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
 
+	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General, "RegroupWhenMCVDeploy");
+	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General, "AISellAllOnLastLegs");
+	this->AISellAllDelay.Read(exINI, GameStrings::General, "AISellAllDelay");
+	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllInOnLastLegs");
+	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
 }
 
 void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -1284,6 +1289,12 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)
 		.Process(this->HugeBar_Config)
+
+		.Process(this->RegroupWhenMCVDeploy)
+		.Process(this->AISellAllOnLastLegs)
+		.Process(this->AISellAllDelay)
+		.Process(this->AIAllInOnLastLegs)
+		.Process(this->RepairBaseNodes)
 		;
 
 	MyPutData.Serialize(Stm);
