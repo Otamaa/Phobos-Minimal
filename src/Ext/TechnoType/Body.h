@@ -975,6 +975,8 @@ public:
 	Valueable<bool> HugeBar { false };
 	Valueable<int> HugeBar_Priority { -1 };
 
+	std::vector<Valueable<CoordStruct>> SprayOffsets {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

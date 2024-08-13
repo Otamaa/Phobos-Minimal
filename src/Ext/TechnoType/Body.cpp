@@ -1266,6 +1266,56 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 
+		this->SprayOffsets.resize(8);
+		//
+		this->SprayOffsets[0]->X = 256;
+		this->SprayOffsets[0]->Y = 0;
+		this->SprayOffsets[0]->Z = 0;
+		//
+		this->SprayOffsets[1]->X = 180;
+		this->SprayOffsets[1]->Y = 180;
+		this->SprayOffsets[1]->Z = 0;
+		//
+		this->SprayOffsets[2]->X = 0;
+		this->SprayOffsets[2]->Y = 256;
+		this->SprayOffsets[2]->Z = 0;
+		//
+		this->SprayOffsets[3]->X = -180;
+		this->SprayOffsets[3]->Y = 180;
+		this->SprayOffsets[3]->Z = 0;
+		//
+		this->SprayOffsets[4]->X = -256;
+		this->SprayOffsets[4]->Y = 0;
+		this->SprayOffsets[4]->Z = 0;
+		//
+		this->SprayOffsets[5]->X = -180;
+		this->SprayOffsets[5]->Y = -180;
+		this->SprayOffsets[5]->Z = 0;
+		//
+		this->SprayOffsets[6]->X = 0;
+		this->SprayOffsets[6]->Y = -256;
+		this->SprayOffsets[6]->Z = 0;
+		//
+		this->SprayOffsets[7]->X = 180;
+		this->SprayOffsets[7]->Y = -180;
+		this->SprayOffsets[7]->Z = 0;
+
+		for (size_t i = 0; ; ++i) {
+			std::string __base_key = "SprawOffsets";
+			__base_key += std::to_string(i);
+			CoordStruct val {};
+
+			if (!detail::read(val, exArtINI, pArtSection, __base_key.c_str()))
+				break;
+			else
+			{
+				if (i < this->SprayOffsets.size())
+					this->SprayOffsets[i] = val;
+				else
+					this->SprayOffsets.emplace_back(std::move(val));
+			}
+		}
+
 		std::vector<int> shadow_indices {};
 		detail::ReadVectors(shadow_indices, exArtINI, pArtSection, "ShadowIndices");
 		std::vector<int> shadow_indices_frame {};
@@ -2274,6 +2324,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->HugeBar)
 		.Process(this->HugeBar_Priority)
+		.Process(this->SprayOffsets)
 		;
 }
 

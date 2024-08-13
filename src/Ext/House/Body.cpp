@@ -488,6 +488,9 @@ void HouseExtData::ApplyAcademy(
 		// aggregate the bonuses
 		for (auto const& pBld : this->Academies)
 		{
+			if (!pBld)
+				continue;
+
 			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
@@ -1929,7 +1932,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->StolenTech)
 		.Process(this->RadarPersist)
 		.Process(this->FactoryOwners_GatheredPlansOf)
-		.Process(this->Academies)
+		.Process(this->Academies, true)
 		.Process(this->Reversed)
 
 		.Process(this->Is_NavalYardSpied)
