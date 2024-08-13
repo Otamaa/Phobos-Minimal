@@ -1301,7 +1301,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SprayOffsets[7]->Z = 0;
 
 		for (size_t i = 0; ; ++i) {
-			std::string __base_key = "SprawOffsets";
+			std::string __base_key = "SprayOffsets";
 			__base_key += std::to_string(i);
 			CoordStruct val {};
 
