@@ -368,7 +368,7 @@ public:
 
 	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
 	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_RemoveTypes {};
-	std::vector<std::string> AttachEffect_RemoveGroups {};
+	ValueableVector<std::string> AttachEffect_RemoveGroups {};
 	ValueableVector<int> AttachEffect_CumulativeRemoveMinCounts {};
 	ValueableVector<int> AttachEffect_CumulativeRemoveMaxCounts {};
 	ValueableVector<int> AttachEffect_DurationOverrides {};
@@ -387,6 +387,8 @@ public:
 	ValueableVector<WeaponTypeClass*> SuppressRevengeWeapons_Types { };
 	Valueable<bool> SuppressReflectDamage { false };
 	ValueableVector<PhobosAttachEffectTypeClass*> SuppressReflectDamage_Types { };
+
+	ValueableVector<std::string> SuppressReflectDamage_Groups {};
 
 	bool Reflected { false };
 public:

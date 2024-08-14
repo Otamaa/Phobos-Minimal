@@ -514,10 +514,13 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 			if (!pType->ReflectDamage)
 				continue;
 
-			if (pWHExt->SuppressReflectDamage && pWHExt->SuppressReflectDamage_Types.Contains(pType))
+			if (pType->ReflectDamage_Chance.isset() && abs(pType->ReflectDamage_Chance) < ScenarioClass::Instance->Random.RandomDouble())
 				continue;
 
-			int damage = static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier);
+			if (pWHExt->SuppressReflectDamage && (pWHExt->SuppressReflectDamage_Types.Contains(pType) || pType->HasGroups(pWHExt->SuppressReflectDamage_Groups, false)))
+				continue;
+
+			int damage = pType->ReflectDamage_Override.Get(static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier));
 			auto const pReflectWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
 
 			if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House)) {

@@ -103,6 +103,14 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ReflectDamage_Warhead_Detonate.Read(exINI, pSection, "ReflectDamage.Warhead.Detonate");
 	this->ReflectDamage_Multiplier.Read(exINI, pSection, "ReflectDamage.Multiplier");
 	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouses");
+
+	this->ReflectDamage_Chance.Read(exINI, pSection, "ReflectDamage.Chance");
+	this->ReflectDamage_Override.Read(exINI, pSection, "ReflectDamage.Override");
+
+	this->DiscardOn_AbovePercent.Read(exINI, pSection, "DiscardOn.AbovePercent");
+	this->DiscardOn_BelowPercent.Read(exINI, pSection, "DiscardOn.BelowPercent");
+	this->AffectAbovePercent.Read(exINI, pSection, "AffectAbovePercent");
+	this->AffectBelowPercent.Read(exINI, pSection, "AffectBelowPercent");
 }
 
 template <typename T>
@@ -159,6 +167,14 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ReflectDamage_Warhead_Detonate)
 		.Process(this->ReflectDamage_Multiplier)
 		.Process(this->ReflectDamage_AffectsHouses)
+
+		.Process(this->ReflectDamage_Chance)
+		.Process(this->ReflectDamage_Override)
+
+		.Process(this->DiscardOn_AbovePercent)
+		.Process(this->DiscardOn_BelowPercent)
+		.Process(this->AffectAbovePercent)
+		.Process(this->AffectBelowPercent)
 		;
 }
 

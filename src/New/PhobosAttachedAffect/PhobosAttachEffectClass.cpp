@@ -330,6 +330,12 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 
 bool PhobosAttachEffectClass::AllowedToBeActive() const
 {
+	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthPercentage() >= this->Type->DiscardOn_AbovePercent.Get())
+		return false;
+
+	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthPercentage() <= this->Type->DiscardOn_BelowPercent.Get())
+		return false;
+
 	if (auto const pFoot = abstract_cast<FootClass*>(this->Techno))
 	{
 		bool isMoving = pFoot->Locomotor->Is_Moving();
@@ -508,6 +514,12 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
 	if (!pType || !pTarget)
+		return nullptr;
+
+	if (pType->AffectAbovePercent.isset() && pTarget->GetHealthPercentage() < pType->AffectAbovePercent.Get())
+		return nullptr;
+
+	if (pType->AffectBelowPercent.isset() && pTarget->GetHealthPercentage() > pType->AffectBelowPercent.Get())
 		return nullptr;
 
 	if (pTarget->IsIronCurtained())

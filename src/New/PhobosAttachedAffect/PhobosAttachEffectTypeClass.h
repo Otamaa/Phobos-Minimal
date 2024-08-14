@@ -62,6 +62,14 @@ public:
 	Valueable<double> ReflectDamage_Multiplier;
 	Valueable<AffectedHouse> ReflectDamage_AffectsHouses;
 
+	Nullable<double> ReflectDamage_Chance;
+	Nullable<int> ReflectDamage_Override;
+
+	Nullable<double> DiscardOn_AbovePercent;
+	Nullable<double> DiscardOn_BelowPercent;
+	Nullable<double> AffectAbovePercent;
+	Nullable<double> AffectBelowPercent;
+
 	PhobosAttachEffectTypeClass(const char* const pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Cumulative { false }
@@ -113,6 +121,14 @@ public:
 		, ReflectDamage_Warhead_Detonate { false }
 		, ReflectDamage_Multiplier { 1.0 }
 		, ReflectDamage_AffectsHouses { AffectedHouse::All }
+
+		, ReflectDamage_Chance {}
+		, ReflectDamage_Override {}
+
+		, DiscardOn_AbovePercent {}
+		, DiscardOn_BelowPercent {}
+		, AffectAbovePercent {}
+		, AffectBelowPercent {}
 	{};
 
 	constexpr FORCEINLINE bool HasTint() {
