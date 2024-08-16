@@ -103,7 +103,7 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 			break;
 		}
 
-		mult *= (1.0f - currentMult * pTechnoTypeExt->FactoryPlant_Multiplier);
+		mult *= float(1.0f - currentMult * pTechnoTypeExt->FactoryPlant_Multiplier);
 	}
 
 	return mult;
