@@ -372,7 +372,9 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 						pJJLoco->IsMoving = true;
 						pJJLoco->HeadToCoord = pAnimExt->CreateUnitLocation;
 						pJJLoco->Height = pTechno->Type->JumpjetData.JumpjetHeight;
-						AircraftTrackerClass::Instance->Add(pTechno);
+
+						if (!inAir)
+							AircraftTrackerClass::Instance->Add(pTechno);
 					}
 					else if (inAir)
 					{

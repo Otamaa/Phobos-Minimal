@@ -1,6 +1,6 @@
 #include "PhobosAttachEffectTypeClass.h"
 
-std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
+PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
 Enumerable<PhobosAttachEffectTypeClass>::container_t Enumerable<PhobosAttachEffectTypeClass>::Array;
 template<>
 const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
@@ -15,7 +15,7 @@ std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesF
 
 	for (const auto& group : groupIDs)
 	{
-		auto iter = map->find(group);
+		auto iter = map->get_key_iterator(group);
 		if (iter != map->end())
 		{
 			types.insert(iter->second.begin(), iter->second.end());
@@ -83,13 +83,13 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DisableWeapons.Read(exINI, pSection, "DisableWeapons");
 
 	// Groups
-	exINI.ParseList(this->Groups, pSection, "Groups");
+	this->Groups.Read(exINI, pSection, "Groups");
 	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
 
 	for (const auto& group : this->Groups) {
-		auto iter_ = map->find(group);
+		auto iter_ = map->get_key_iterator(group);
 		if (iter_ == map->end())
-			map->emplace(group.c_str(), std::set<PhobosAttachEffectTypeClass*>{this});
+			map->emplace_unchecked(group.c_str(), std::set<PhobosAttachEffectTypeClass*>{this});
 		else
 			iter_->second.insert(this);
 	}

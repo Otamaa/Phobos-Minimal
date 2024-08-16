@@ -24,6 +24,7 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#include <New/PhobosAttachedAffect/Functions.h>
 #include <New/Entity/FlyingStrings.h>
 
 // DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
@@ -371,40 +372,24 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-		const bool hasFilters = pWHExt->SuppressRevengeWeapons_Types.size() > 0;
 		auto SourCoords = pSource->GetCoords();
 
 		if (!pWHExt->SuppressRevengeWeapons)
 		{
 			if (pTypeExt->RevengeWeapon &&
 				EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner) &&
-				hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
+				!pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
 			{
 				WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
 			}
 
 			for (const auto& weapon : pExt->RevengeWeapons) {
-				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && hasFilters && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
+				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && !pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
 					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
 			}
 		}
 
-		for (auto& attachEffect : pExt->PhobosAE)
-		{
-			if (!attachEffect.IsActive())
-				continue;
-
-			auto const pType = attachEffect.GetType();
-
-			if (!pType->RevengeWeapon)
-				continue;
-
-			if (pWHExt->SuppressRevengeWeapons && (!hasFilters || pWHExt->SuppressRevengeWeapons_Types.Contains(pType->RevengeWeapon)))
-				continue;
-
-			if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis, true, nullptr);
-		}
+		PhobosAEFunctions::ApplyRevengeWeapon(pThis,pSource,pWH);
 	}
 
 	if (pThis->AttachedBomb)

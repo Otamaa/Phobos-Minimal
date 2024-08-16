@@ -1784,3 +1784,16 @@ DEFINE_HOOK(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x0)
 }
 
 //DEFINE_PATCH(0x753D96, 0xC7, 0x44, 0x24, 0x20, 0x00, 0x00, 0x00, 0x00);
+
+#include <Misc/Ares/Hooks/Header.h>
+
+DEFINE_HOOK(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
+{
+	enum { SkipGameCode = 0x705D7C };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	R->EAX(TechnoExtData::GetSimpleDisguiseType(pThis, true, false));
+
+	return SkipGameCode;
+}

@@ -2159,7 +2159,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
-			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() || BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID != -1)
+			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() 
+				|| BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID != -1)
 			)
 	)
 	{

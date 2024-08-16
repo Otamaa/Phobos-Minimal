@@ -22,9 +22,10 @@
 DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 {
 	SWStateMachine::UpdateAll();
-	for (auto pHouse : *HouseClass::Array)
-	{
-		HouseExtContainer::Instance.Find(pHouse)->UpdateAutoDeathObjects();
+	for (auto pHouse : *HouseClass::Array) {
+		auto pExt = HouseExtContainer::Instance.Find(pHouse);
+		pExt->UpdateAutoDeathObjects();
+		pExt->UpdateTransportReloaders();
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;

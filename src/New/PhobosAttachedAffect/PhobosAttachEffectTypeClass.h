@@ -49,7 +49,7 @@ public:
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
 	Valueable<bool> DisableWeapons;
 
-	std::vector<std::string> Groups;
+	ValueableVector<std::string> Groups;
 
 	Valueable<bool> DisableSelfHeal;
 	Valueable<bool> Untrackable;
@@ -180,7 +180,7 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
-	static std::unordered_map<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
+	static PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

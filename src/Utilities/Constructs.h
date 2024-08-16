@@ -88,11 +88,10 @@ struct Handle
 	~Handle() noexcept
 	{
 		if(this->destroy) {
-			if (this->Value != Default)
-			{
-				Deleter {}(this->Value);
-			}
+			Deleter {}(this->Value);
 		}
+
+		this->Value = Default;
 	}
 
 	constexpr void SetDestroyCondition(bool val) {

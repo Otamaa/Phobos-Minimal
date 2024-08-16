@@ -533,6 +533,32 @@ public:
 			 );
 	}
 
+	static bool FORCEINLINE IsOnBridge(FootClass* pUnit)
+	{
+		auto const pCell = MapClass::Instance->GetCellAt(pUnit->GetCoords());
+		auto const pCellAjd = pCell->GetNeighbourCell(FacingType::North);
+		bool containsBridge = pCell->ContainsBridge();
+		bool containsBridgeDir = static_cast<bool>(pCell->Flags & CellFlags::BridgeDir);
+
+		if ((containsBridge || containsBridgeDir || pCellAjd->ContainsBridge()) && (!containsBridge || pCell->GetNeighbourCell(FacingType::West)->ContainsBridge()))
+			return true;
+
+		return false;
+	}
+
+	static FORCEINLINE void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false)
+	{
+		double currentLevel = pThis->GetHeight() / static_cast<double>(Unsorted::LevelHeight);
+		levelIntensity = static_cast<int>(level * currentLevel * levelMult);
+		int bridgeBonus = applyBridgeBonus ? 4 * level : 0;
+		cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Intensity_Normal + bridgeBonus;
+
+		if (cellMult > 0.0)
+			cellIntensity = std::clamp(cellIntensity + static_cast<int>((1000 - cellIntensity) * currentLevel * cellMult), 0, 1000);
+		else if (cellMult < 0.0)
+			cellIntensity = 1000;
+	}
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -609,6 +635,7 @@ public:
 	static int GetInitialStrength(TechnoTypeClass* pType, int nHP);
 
 	static std::pair<TechnoTypeClass*, HouseClass*> GetDisguiseType(TechnoClass* pTarget, bool CheckHouse, bool CheckVisibility, bool bVisibleResult = false);
+	static TechnoTypeClass* GetSimpleDisguiseType(TechnoClass* pTarget, bool CheckVisibility, bool bVisibleResult = false);
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
 	static void EjectPassengers(FootClass* pThis, int howMany);
@@ -730,6 +757,7 @@ public:
 	static std::vector<TechnoExtData*> Pool;
 	static TechnoExtContainer Instance;
 
+	/*
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)
 	{
 		TechnoExtData* val = nullptr;
@@ -794,6 +822,7 @@ public:
 			}
 		}
 	}
+	*/
 
 	CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
 };

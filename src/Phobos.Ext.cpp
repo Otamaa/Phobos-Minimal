@@ -334,6 +334,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
 	HugeBar::InvalidatePointer(pInvalid, removed);
+
 	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }

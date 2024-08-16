@@ -690,6 +690,12 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
 	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
 
+	this->AircraftLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftLevelLightMultiplier");
+	this->AircraftCellLightLevelMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftCellLightLevelMultiplier");
+	this->JumpjetLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "JumpjetLevelLightMultiplier");
+	this->JumpjetCellLightLevelMultiplier.Read(exINI, GameStrings::AudioVisual, "JumpjetCellLightLevelMultiplier");
+	this->JumpjetCellLightApplyBridgeHeight.Read(exINI, GameStrings::AudioVisual, "JumpjetCellLightApplyBridgeHeight");
+
 	double AirShadowBaseScale = 0.0;
 	if (detail::read<double>(AirShadowBaseScale ,exINI , GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
 		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
@@ -1295,6 +1301,12 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISellAllDelay)
 		.Process(this->AIAllInOnLastLegs)
 		.Process(this->RepairBaseNodes)
+
+		.Process(this->AircraftLevelLightMultiplier)
+		.Process(this->AircraftCellLightLevelMultiplier)
+		.Process(this->JumpjetLevelLightMultiplier)
+		.Process(this->JumpjetCellLightLevelMultiplier)
+		.Process(this->JumpjetCellLightApplyBridgeHeight)
 		;
 
 	MyPutData.Serialize(Stm);

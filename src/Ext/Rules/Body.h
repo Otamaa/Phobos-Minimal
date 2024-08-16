@@ -364,6 +364,13 @@ public:
 	Valueable<bool> AIAllInOnLastLegs { true };
 	ValueableVector<bool> RepairBaseNodes { };
 
+
+	Valueable<double> AircraftLevelLightMultiplier { 1.0 };
+	Valueable<double> AircraftCellLightLevelMultiplier { 0.0 };
+	Valueable<double> JumpjetLevelLightMultiplier { 0.0 };
+	Valueable<double> JumpjetCellLightLevelMultiplier { 0.0 };
+	Valueable<bool> JumpjetCellLightApplyBridgeHeight { true };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

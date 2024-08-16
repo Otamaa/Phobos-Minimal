@@ -2415,6 +2415,27 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExtData::GetDisguiseType(TechnoCl
 	return { pTypeOut, pHouseOut };
 }
 
+TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool CheckVisibility, bool bVisibleResult)
+{
+	TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
+
+	//Building cant disguise , so dont bother to check
+	if (pTarget->WhatAmI() == BuildingClass::AbsID)
+		return pTypeOut;
+
+	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
+
+	if (pTarget->IsDisguised() && !bIsVisible) {
+		if (pTarget->Disguise != pTypeOut) {
+			if (const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->Disguise)) {
+				return pDisguiseType;
+			}
+		}
+	}
+
+	return pTypeOut;
+}
+
 std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
@@ -5119,6 +5140,11 @@ DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 			pExt->WebbedAnim.release();
 
 		pExt->AeData.InvalidatePointer(pAnim, pThis);
+
+		for (auto& _phobos_AE : pExt->PhobosAE) {
+			if (_phobos_AE.Animation.get() == pAnim)
+				_phobos_AE.Animation.release();
+		}
 	}
 
 	return 0x0;

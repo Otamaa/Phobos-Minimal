@@ -750,7 +750,59 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 #pragma endregion Prereq
 
+#ifndef _Handle_Old_
 		this->AttachedEffect.Read(exINI);
+#else
+		int _AE_Dur { 0 };
+		this->AttachEffect_AttachTypes.clear();
+		if (detail::read(_AE_Dur, exINI, pSection, "AttachEffect.Duration") && _AE_Dur != 0) {
+			auto& back = this->AttachEffect_AttachTypes.emplace_back(PhobosAttachEffectTypeClass::FindOrAllocate(pSection));
+			back->Duration = _AE_Dur;
+			back->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
+			back->Animation.Read(exINI, pSection, "AttachEffect.Animation", true);
+			if (!back->Animation)
+				Debug::Log("Failed to find [%s] AE Anim[%s]\n", pSection, exINI.c_str());
+
+			back->Animation_ResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
+
+			bool AE_TemporalHidesAnim {};
+			if (detail::read(AE_TemporalHidesAnim, exINI, pSection, "AttachEffect.TemporalHidesAnim") && AE_TemporalHidesAnim)
+				back->Animation_TemporalAction = AttachedAnimFlag::Hides;
+
+			back->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");
+
+			bool AE_DiscardOnEntry {};
+			if(detail::read(AE_DiscardOnEntry, exINI, pSection, "AttachEffect.DiscardOnEntry") && AE_DiscardOnEntry)
+				back->DiscardOn = DiscardCondition::Entry;
+
+			back->FirepowerMultiplier.Read(exINI, pSection, "AttachEffect.FirepowerMultiplier");
+			back->ArmorMultiplier.Read(exINI, pSection, "AttachEffect.ArmorMultiplier");
+			back->SpeedMultiplier.Read(exINI, pSection, "AttachEffect.SpeedMultiplier");
+			back->ROFMultiplier.Read(exINI, pSection, "AttachEffect.ROFMultiplier");
+			back->ReceiveRelativeDamageMult.Read(exINI, pSection, "AttachEffect.ReceiveRelativeDamageMultiplier");
+			back->Cloakable.Read(exINI, pSection, "AttachEffect.Cloakable");
+			int AE_Delay {};
+			detail::read(AE_Delay , exINI, pSection, "AttachEffect.Delay");
+			this->AttachEffect_Delays.emplace_back(AE_Delay);
+
+			int AE_IinitialDelay {};
+			detail::read(AE_IinitialDelay, exINI, pSection, "AttachEffect.InitialDelay");
+			this->AttachEffect_InitialDelays.emplace_back(AE_IinitialDelay);
+
+			back->PenetratesIronCurtain.Read(exINI, pSection, "AttachEffect.PenetratesIronCurtain");
+			back->DisableSelfHeal.Read(exINI, pSection, "AttachEffect.DisableSelfHeal");
+			back->DisableWeapons.Read(exINI, pSection, "AttachEffect.DisableWeapons");
+			back->Untrackable.Read(exINI, pSection, "AttachEffect.Untrackable");
+
+			back->WeaponRange_Multiplier.Read(exINI, pSection, "AttachEffect.WeaponRange.Multiplier");
+			back->WeaponRange_ExtraRange.Read(exINI, pSection, "AttachEffect.WeaponRange.ExtraRange");
+			back->WeaponRange_AllowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.AllowWeapons");
+			back->WeaponRange_DisallowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.DisallowWeapons");
+
+			back->ROFMultiplier_ApplyOnCurrentTimer.Read(exINI, pSection, "AttachEffect.ROFMultiplier.ApplyOnCurrentTimer");
+		}
+#endif
+
 		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
 		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
 		this->AttackFriendlies_AutoAttack.Read(exINI, pSection, "AttackFriendlies.AutoAttack");
@@ -1300,17 +1352,17 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SprayOffsets[7]->Y = -180;
 		this->SprayOffsets[7]->Z = 0;
 
-		for (size_t i = 0; ; ++i) {
+		for (size_t c = 0; ; ++c) {
 			std::string __base_key = "SprayOffsets";
-			__base_key += std::to_string(i);
+			__base_key += std::to_string(c);
 			CoordStruct val {};
 
 			if (!detail::read(val, exArtINI, pArtSection, __base_key.c_str()))
 				break;
 			else
 			{
-				if (i < this->SprayOffsets.size())
-					this->SprayOffsets[i] = val;
+				if (c < this->SprayOffsets.size())
+					this->SprayOffsets[c] = val;
 				else
 					this->SprayOffsets.emplace_back(std::move(val));
 			}

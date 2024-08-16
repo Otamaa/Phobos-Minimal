@@ -21,6 +21,7 @@
 
 #include <Conversions.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/PhobosAttachedAffect/Functions.h>
 
 #include "Header.h"
 
@@ -271,30 +272,19 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 
 	GiftBoxFunctional::Destroy(pTechExt, pTypeExt);
 
-	std::set<PhobosAttachEffectTypeClass*> cumulativeTypes;
-	std::vector<WeaponTypeClass*> expireWeapons;
+	if(pThis->IsAlive) {
+		std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
+		std::vector<WeaponTypeClass*> expireWeapons {};
+		PhobosAEFunctions::ApplyExpireWeapon(expireWeapons, cumulativeTypes, pThis);
 
-	for (auto const& attachEffect : pTechExt->PhobosAE) {
-		auto const pType = attachEffect.GetType();
-		if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
-			if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pType)) {
-				if (pType->Cumulative && pType->ExpireWeapon_CumulativeOnlyOnce)
-					cumulativeTypes.insert(pType);
+		for (auto const& pWeapon : expireWeapons) {
+			TechnoClass* pTarget = pThis;
+			if(!pThis->IsAlive)
+				pTarget = nullptr;
 
-				expireWeapons.push_back(pType->ExpireWeapon);
-			}
+			WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, false, pOwner);
 		}
 	}
-
-	for (auto const& pWeapon : expireWeapons) {
-
-		TechnoClass* pTarget = pThis;
-		if(!pThis->IsAlive)
-			  pTarget = nullptr;
-
-		WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, false, pOwner);
-	}
-
 	return 0x0;
 }
 
@@ -503,44 +493,7 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		}
 	}
 
-	if(pExt->AE_ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
-		for (auto& attachEffect : pExt->PhobosAE) {
-
-			if (!attachEffect.IsActive())
-				continue;
-
-			auto const pType = attachEffect.GetType();
-
-			if (!pType->ReflectDamage)
-				continue;
-
-			if (pType->ReflectDamage_Chance.isset() && abs(pType->ReflectDamage_Chance) < ScenarioClass::Instance->Random.RandomDouble())
-				continue;
-
-			if (pWHExt->SuppressReflectDamage && (pWHExt->SuppressReflectDamage_Types.Contains(pType) || pType->HasGroups(pWHExt->SuppressReflectDamage_Groups, false)))
-				continue;
-
-			int damage = pType->ReflectDamage_Override.Get(static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier));
-			auto const pReflectWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
-
-			if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House)) {
-
-				auto const pWHExtRef = WarheadTypeExtContainer::Instance.Find(pReflectWH);
-
-				pWHExtRef->Reflected = true;
-
-				if (pType->ReflectDamage_Warhead_Detonate)
-						WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pThis, damage, pThis->Owner);
-				else if(pAttacker && pAttacker->IsAlive)
-						pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pThis, false, false, pThis->Owner);
-
-				pWHExtRef->Reflected = false;
-			}
-
-			if (!pAttacker->IsAlive)
-				break;
-		}
-	}
+	PhobosAEFunctions::ApplyReflectDamage(pThis, pDamage, pAttacker, pAttacker_House, pWH);
 
 	return RetObjectClassRcvDamage;
 }

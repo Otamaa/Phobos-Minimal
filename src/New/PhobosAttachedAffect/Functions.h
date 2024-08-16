@@ -2,11 +2,15 @@
 
 #include <Base/Always.h>
 #include <vector>
+#include <set>
 
 class PhobosAttachEffectTypeClass;
 class AbstractClass;
 class TechnoClass;
 class TechnoTypeClass;
+class WarheadTypeClass;
+class WeaponTypeClass;
+class HouseClass;
 struct PhobosAEFunctions
 {
 	/// <summary>
@@ -36,4 +40,8 @@ struct PhobosAEFunctions
 		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts);
 
 	static void UpdateSelfOwnedAttachEffects(TechnoClass* pTechno , TechnoTypeClass* pNewType);
+
+	static void ApplyRevengeWeapon(TechnoClass* pThis , TechnoClass* pSource , WarheadTypeClass* pWH);
+	static void ApplyExpireWeapon(std::vector<WeaponTypeClass*>& expireWeapons, std::set<PhobosAttachEffectTypeClass*>& cumulativeTypes, TechnoClass* pThis);
+	static void ApplyReflectDamage(TechnoClass* pThis, int* pDamage, TechnoClass* pAttacker, HouseClass* pAttacker_House, WarheadTypeClass* pWH);
 };

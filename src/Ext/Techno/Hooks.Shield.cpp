@@ -194,36 +194,28 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	bool altered = false;
 
 	// Do not remove attached effects from undeploying buildings.
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		if ((pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2))
-		{
+	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		if ((pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2)) {
 			return 0;
 		}
 	}
 
-	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
-	{
-		if ((it->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
-		{
+	pExt->PhobosAE.remove_if([&](auto& it){
+		if ((it.GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None) {
 			altered = true;
 
-			if (it->GetType()->HasTint())
+			if (it.GetType()->HasTint())
 				markForRedraw = true;
 
-			if (it->ResetIfRecreatable())
-			{
-				++it;
-				continue;
+			if (it.ResetIfRecreatable()) {
+				return false;
 			}
 
-			it = pExt->PhobosAE.erase(it);
+			return true;
 		}
-		else
-		{
-			++it;
-		}
-	}
+
+		return false;
+	});
 
 	if (altered)
 		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis);

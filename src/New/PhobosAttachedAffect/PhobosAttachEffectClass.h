@@ -12,12 +12,11 @@ class AnimClass;
 class PhobosAttachEffectClass
 {
 public:
+
 	PhobosAttachEffectClass() noexcept = default;
 
-	//PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
-	//	AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
-
-	//~PhobosAttachEffectClass() = default;
+	////PhobosAttachEffectClass(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
+	////	AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
 
 	PhobosAttachEffectClass::PhobosAttachEffectClass(const PhobosAttachEffectClass& that) :
 		Duration { that.Duration } ,
@@ -42,7 +41,8 @@ public:
 		IsFirstCumulativeInstance { that.IsFirstCumulativeInstance } {
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
-		this->Animation.swap(c_remove->Animation);
+		auto ptr = c_remove->Animation.release();
+		this->Animation.reset(ptr);
 	}
 
 	PhobosAttachEffectClass& operator=(const PhobosAttachEffectClass& that) {
@@ -68,7 +68,8 @@ public:
 
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
-		this->Animation.swap(c_remove->Animation);
+		auto ptr = c_remove->Animation.release();
+		this->Animation.reset(ptr);
 		return *this;
 	}
 
@@ -102,8 +103,6 @@ public:
 		return pInvoker == this->Invoker && pSource == this->Source;
 	}
 
-	void ExpireWeapon() const;
-
 	void InvalidatePointer(AbstractClass* ptr, bool removed);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
@@ -127,8 +126,6 @@ public:
 			recreationDelay = recreationDelays[recreationDelays.size() > index ? index : recreationDelays.size() - 1];
 	}
 
-
-
 	static int Attach(std::vector<PhobosAttachEffectTypeClass*> const& types, TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker,
 		AbstractClass* pSource, std::vector<int>& durationOverrides, std::vector<int> const* delays, std::vector<int> const* initialDelays, std::vector<int> const* recreationDelays);
 
@@ -143,13 +140,12 @@ public:
 		Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
-private:
 	void OnlineCheck();
 	void CloakCheck();
 	void AnimCheck();
 	void CreateAnim();
 
-	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, std::vector<PhobosAttachEffectClass>& targetAEs,
+	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<PhobosAttachEffectClass>& targetAEs,
 		HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride = 0, int delay = 0, int initialDelay = 0, int recreationDelay = -1);
 
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
@@ -157,6 +153,7 @@ private:
 
 	template <typename T>
 	bool Serialize(T& Stm);
+public:
 
 	int Duration { 0 };
 	int DurationOverride { 0 };
@@ -178,6 +175,5 @@ private:
 	bool HasInitialized { false };
 	bool NeedsDurationRefresh { false };
 	AnimTypeClass* SelectedAnim { nullptr };
-public:
 	bool IsFirstCumulativeInstance { false };
 };

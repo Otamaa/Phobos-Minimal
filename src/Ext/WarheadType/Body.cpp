@@ -344,7 +344,50 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->PaintBallData.Read(exINI, pSection);
 #pragma endregion
 
+#ifndef _Handle_Old_
 	this->AttachedEffect.Read(exINI);
+#else
+	int _AE_Dur { 0 };
+	this->AttachEffect_AttachTypes.clear();
+	if (detail::read(_AE_Dur, exINI, pSection, "AttachEffect.Duration") && _AE_Dur != 0)
+	{
+		auto& back = this->AttachEffect_AttachTypes.emplace_back(PhobosAttachEffectTypeClass::FindOrAllocate(pSection));
+		back->Duration = _AE_Dur;
+		back->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
+		back->Animation.Read(exINI, pSection, "AttachEffect.Animation", true);
+		back->Animation_ResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
+
+		bool AE_TemporalHidesAnim {};
+		if (detail::read(AE_TemporalHidesAnim, exINI, pSection, "AttachEffect.TemporalHidesAnim") && AE_TemporalHidesAnim)
+			back->Animation_TemporalAction = AttachedAnimFlag::Hides;
+
+		back->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");
+
+		bool AE_DiscardOnEntry {};
+		if (detail::read(AE_DiscardOnEntry, exINI, pSection, "AttachEffect.DiscardOnEntry") && AE_DiscardOnEntry)
+			back->DiscardOn = DiscardCondition::Entry;
+
+		back->FirepowerMultiplier.Read(exINI, pSection, "AttachEffect.FirepowerMultiplier");
+		back->ArmorMultiplier.Read(exINI, pSection, "AttachEffect.ArmorMultiplier");
+		back->SpeedMultiplier.Read(exINI, pSection, "AttachEffect.SpeedMultiplier");
+		back->ROFMultiplier.Read(exINI, pSection, "AttachEffect.ROFMultiplier");
+		back->ReceiveRelativeDamageMult.Read(exINI, pSection, "AttachEffect.ReceiveRelativeDamageMultiplier");
+		back->Cloakable.Read(exINI, pSection, "AttachEffect.Cloakable");
+
+		back->PenetratesIronCurtain.Read(exINI, pSection, "AttachEffect.PenetratesIronCurtain");
+		back->DisableSelfHeal.Read(exINI, pSection, "AttachEffect.DisableSelfHeal");
+		back->DisableWeapons.Read(exINI, pSection, "AttachEffect.DisableWeapons");
+		back->Untrackable.Read(exINI, pSection, "AttachEffect.Untrackable");
+
+		back->WeaponRange_Multiplier.Read(exINI, pSection, "AttachEffect.WeaponRange.Multiplier");
+		back->WeaponRange_ExtraRange.Read(exINI, pSection, "AttachEffect.WeaponRange.ExtraRange");
+		back->WeaponRange_AllowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.AllowWeapons");
+		back->WeaponRange_DisallowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.DisallowWeapons");
+
+		back->ROFMultiplier_ApplyOnCurrentTimer.Read(exINI, pSection, "AttachEffect.ROFMultiplier.ApplyOnCurrentTimer");
+	}
+#endif
+
 	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
