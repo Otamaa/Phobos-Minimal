@@ -4445,21 +4445,23 @@ void TechnoExtData::UpdateLaserTrails()
 	if (LaserTrails.empty())
 		return;
 
+	const bool IsDroppod = VTable::Get(pThis->Locomotor.GetInterfacePtr()) == DropPodLocomotionClass::vtable;
+
 	for (auto& trail : LaserTrails)
 	{
-		if (trail.Type->CloakVisible && trail.Type->CloakVisible_Houses
-		&& !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
-		) {
-			auto const pCell = pThis->GetCell();
-			trail.Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
-		}
-		else if (!trail.Type->CloakVisible)
-		{
-			trail.Cloaked = true;
-		}
-
-		if (VTable::Get(pThis->Locomotor.GetInterfacePtr()) != DropPodLocomotionClass::vtable && trail.Type->DroppodOnly)
+		if (trail.Type->DroppodOnly && !IsDroppod)
 			continue;
+
+		if (pThis->CloakState == CloakState::Cloaked)
+		{
+			if (!trail.Type->CloakVisible)
+			{
+				trail.Cloaked = true;
+			} else if (trail.Type->CloakVisible_Houses && !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)) {
+				auto const pCell = pThis->GetCell();
+				trail.Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
+			}
+		}
 
 		if (!IsInTunnel)
 			trail.Visible = true;
@@ -4468,6 +4470,9 @@ void TechnoExtData::UpdateLaserTrails()
 			trail.LastLocation.clear();
 
 		CoordStruct trailLoc = TechnoExtData::GetFLHAbsoluteCoords(pThis, trail.FLH, trail.IsOnTurret);
+		if (pThis->CloakState == CloakState::Uncloaking && !trail.Type->CloakVisible)
+		trail.LastLocation = trailLoc;
+		else
 		trail.Update(trailLoc);
 	}
 }
