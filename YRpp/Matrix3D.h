@@ -175,23 +175,43 @@ public:
 
 	constexpr Matrix3D operator*(const Matrix3D& nAnother) const
 	{
-		Matrix3D ret {};
-		for (int i = 0; i < 3; ++i)
-		{
-			for (int j = 0; j < 3; ++j)
-				ret.row[i][j] =
-				this->row[i][0] * nAnother.row[0][j] +
-				this->row[i][1] * nAnother.row[1][j] +
-				this->row[i][2] * nAnother.row[2][j];
+		Matrix3D C {}; // [esp+40h] [ebp-30h] BYREF
 
-			ret.row[i][3] =
-				this->row[i][0] * nAnother.row[0][3] +
-				this->row[i][1] * nAnother.row[1][3] +
-				this->row[i][2] * nAnother.row[2][3] +
-				this->row[i][3];
-		}
+		float a_row_10 = this->row[1][0];
+		float a_row_11 = this->row[1][1];
+		float v4 = this->row[0][0];
+		float a_row_12 = this->row[1][2];
+		float v5 = this->row[0][1];
+		float v6 = this->row[0][2];
+		float a_row_20 = this->row[2][0];
+		float a_row_21 = this->row[2][1];
+		float a_row_22 = this->row[2][2];
+		float v8 = nAnother.row[0][0];
+		float v9 = nAnother.row[1][0];
+		float v10 = nAnother.row[2][0];
+		float b_row_01 = nAnother.row[0][1];
+		float b_row_02 = nAnother.row[0][2];
+		float b_row_03 = nAnother.row[0][3];
+		float b_row_11 = nAnother.row[1][1];
+		float b_row_12 = nAnother.row[1][2];
+		float b_row_13 = nAnother.row[1][3];
+		float b_row_21 = nAnother.row[2][1];
+		float b_row_22 = nAnother.row[2][2];
+		float b_row_23 = nAnother.row[2][3];
 
-		return ret;
+		C.row[0][0] = (v10 * v6 + v9 * v5 + v8 * v4);
+		C.row[1][0] = (v10 * a_row_12 + v9 * a_row_11 + v8 * a_row_10);
+		C.row[2][0] = (v10 * a_row_22 + v9 * a_row_21 + v8 * a_row_20);
+		C.row[0][1] = (b_row_21 * v6 + b_row_11 * v5 + b_row_01 * v4);
+		C.row[1][1] = b_row_21 * a_row_12 + b_row_11 * a_row_11 + b_row_01 * a_row_10;
+		C.row[2][1] = b_row_21 * a_row_22 + b_row_11 * a_row_21 + b_row_01 * a_row_20;
+		C.row[0][2] = (b_row_22 * v6 + b_row_12 * v5 + b_row_02 * v4);
+		C.row[1][2] = b_row_22 * a_row_12 + b_row_12 * a_row_11 + b_row_02 * a_row_10;
+		C.row[2][2] = b_row_22 * a_row_22 + b_row_12 * a_row_21 + b_row_02 * a_row_20;
+		C.row[0][3] = (b_row_23 * v6 + b_row_13 * v5 + b_row_03 * v4 + this->row[0][3]);
+		C.row[1][3] = b_row_23 * a_row_12 + b_row_13 * a_row_11 + b_row_03 * a_row_10 + this->row[1][3];
+		C.row[2][3] = b_row_23 * a_row_22 + b_row_13 * a_row_21 + b_row_03 * a_row_20 + this->row[2][3];
+		return C;
 	}
 
 	constexpr void operator*=(const Matrix3D& nAnother)
@@ -636,28 +656,28 @@ public:
 	void LookAt2(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF710); }
 
 	//static Matrix3D* __fastcall MatrixMultiply__(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
-	static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
+	constexpr static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
 	{
 		//Matrix3D buffer;
 		//MatrixMultiply__(&buffer, &A, &B);
 		return A * B;
 	}
 
-	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
-		JMP_FAST(0x5AFB80);
-   		 //vecret->X = mat->row[0][2] * vec->Z + mat->row[0][1] * vec->Y + mat->Row[0].X * vec->X + mat->row[0][3];
-    	 //vecret->Y = mat->row[1][0] * vec->X + mat->row[1][2] * vec->Z + mat->row[1][1] * vec->Y + mat->row[1][3];
-   		 //return vecret;
+	constexpr static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
+		//JMP_FAST(0x5AFB80);
+   		 vecret->X = mat->row[0][2] * vec->Z + mat->row[0][1] * vec->Y + mat->Row[0][0] * vec->X + mat->row[0][3];
+    	 vecret->Y = mat->row[1][0] * vec->X + mat->row[1][2] * vec->Z + mat->row[1][1] * vec->Y + mat->row[1][3];
+   		 return vecret;
 	}
 
-	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)
+	constexpr static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vect)
 	{
 		Vector3D<float> buffer;
 		MatrixMultiply(&buffer, &mat, &vect);
 		return buffer;
 	}
 
-	static Vector3D<float> MatrixMultiply(Matrix3D* mtx, const Vector3D<float>& vect)
+	constexpr static Vector3D<float> MatrixMultiply(Matrix3D* mtx, const Vector3D<float>& vect)
 	{
 		Vector3D<float> buffer;
 		MatrixMultiply(&buffer, mtx, &vect);
