@@ -944,10 +944,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
 	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
 
-	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General, "RegroupWhenMCVDeploy");
-	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General, "AISellAllOnLastLegs");
-	this->AISellAllDelay.Read(exINI, GameStrings::General, "AISellAllDelay");
-	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllInOnLastLegs");
+	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General, "GatherWhenMCVDeploy");
+	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General, "AIFireSale");
+	this->AISellAllDelay.Read(exINI, GameStrings::General, "AIFireSaleDelay");
+	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllToHunt");
 	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
 }
 
