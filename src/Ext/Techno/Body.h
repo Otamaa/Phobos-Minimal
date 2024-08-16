@@ -757,7 +757,6 @@ public:
 	static std::vector<TechnoExtData*> Pool;
 	static TechnoExtContainer Instance;
 
-	/*
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)
 	{
 		TechnoExtData* val = nullptr;
@@ -822,7 +821,6 @@ public:
 			}
 		}
 	}
-	*/
 
 	CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
 };
