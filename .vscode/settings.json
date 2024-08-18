@@ -105,5 +105,6 @@
         "valarray": "cpp",
         "variant": "cpp"
     },
-    "task.allowAutomaticTasks": "on"
+    "task.allowAutomaticTasks": "on",
+    "commentTranslate.hover.enabled": true
 }

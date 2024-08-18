@@ -1437,7 +1437,6 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AITargetingPreference.Read(exINI, pSection, "SW.AITargeting.Preference");
 	this->SW_FireToShroud.Read(exINI, pSection, "SW.FireIntoShroud");
 	this->SW_UseAITargeting.Read(exINI, pSection, "SW.UseAITargeting");
-	this->Message_CannotFire.Read(exINI, pSection, "Message.CannotFire");
 	this->SW_RequiresTarget.Read(exINI, pSection, "SW.RequiresTarget");
 	this->SW_RequiresHouse.Read(exINI, pSection, "SW.RequiresHouse");
 
