@@ -36,18 +36,19 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 	int delay = ScenarioClass::Instance->Random.RandomRanged(0, 2);
 	const bool IsHuman = pThis->Owner->IsHumanPlayer || pThis->Owner->IsControlledByHuman();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pRules = RulesClass::Instance();
 
 	if (pThis->CurrentMission == Mission::Area_Guard) {
 		if (IsHuman) {
-			delay += pTypeExt->PlayerGuardAreaTargetingDelay.Get(RulesExtData::Instance()->PlayerGuardAreaTargetingDelay.Get(RulesClass::Instance->GuardAreaTargetingDelay));
+			delay += pTypeExt->PlayerGuardAreaTargetingDelay.Get(RulesExtData::Instance()->PlayerGuardAreaTargetingDelay.Get(pRules->GuardAreaTargetingDelay));
 		} else {
-			delay += pTypeExt->AIGuardAreaTargetingDelay.Get(RulesExtData::Instance()->AIGuardAreaTargetingDelay.Get(RulesClass::Instance->GuardAreaTargetingDelay));
+			delay += pTypeExt->AIGuardAreaTargetingDelay.Get(RulesExtData::Instance()->AIGuardAreaTargetingDelay.Get(pRules->GuardAreaTargetingDelay));
 		}
 	} else {
 		if (IsHuman) {
-			delay += pTypeExt->PlayerNormalTargetingDelay.Get(RulesExtData::Instance()->PlayerNormalTargetingDelay.Get(RulesClass::Instance->NormalTargetingDelay));
+			delay += pTypeExt->PlayerNormalTargetingDelay.Get(RulesExtData::Instance()->PlayerNormalTargetingDelay.Get(pRules->NormalTargetingDelay));
 		} else {
-			delay += pTypeExt->AINormalTargetingDelay.Get(RulesExtData::Instance()->AINormalTargetingDelay.Get(RulesClass::Instance->NormalTargetingDelay));
+			delay += pTypeExt->AINormalTargetingDelay.Get(RulesExtData::Instance()->AINormalTargetingDelay.Get(pRules->NormalTargetingDelay));
 		}
 	}
 
