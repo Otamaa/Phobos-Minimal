@@ -17,6 +17,8 @@ char Debug::LogMessageBuffer[0x1000];
 std::vector<std::string> Debug::DeferredLogData;
 
 bool Debug::LogEnabled = false;
+bool Debug::made = false;
+
 FILE* Debug::LogFile = nullptr;
 std::wstring Debug::ApplicationFilePath {};
 std::wstring Debug::LogFilePathName {};

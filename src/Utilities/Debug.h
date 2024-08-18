@@ -7,6 +7,8 @@
 #include <MessageListClass.h>
 #include <WWMouseClass.h>
 
+#include <chrono>
+
 class Console
 {
 public:
@@ -225,17 +227,29 @@ public:
 
 	}
 
-	static NOINLINE void PrepareLogFile()
+	static NOINLINE std::wstring GetCurTime()
 	{
-		static bool made = 0;
-		if (!made)
-		{
-			SYSTEMTIME time;
+		const auto now = std::chrono::system_clock::now();
+		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+		const std::tm* localTime = std::localtime(&currentTime);
 
-			GetLocalTime(&time);
+		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}",
+			localTime->tm_year + 1900,
+			localTime->tm_mon + 1 ,
+			localTime->tm_mday,
+			localTime->tm_hour,
+			localTime->tm_min,
+			localTime->tm_sec);
+	}
+
+	static bool made;
+
+	static NOINLINE void PrepareLogFile() {
+
+		if (!made) {
 			Debug::LogFileTempName = Debug::LogFilePathName + Debug::LogFileMainName + Debug::LogFileExt;
-			Debug::LogFileMainFormattedName = Debug::LogFilePathName + std::format(L"{}.{:04}{:02}{:02}-{:02}{:02}{:02}",
-			Debug::LogFileMainName, time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond) + Debug::LogFileExt;
+			Debug::LogFileMainFormattedName = Debug::LogFilePathName + std::format(L"{}.{}",
+			Debug::LogFileMainName, GetCurTime()) + Debug::LogFileExt;
 
 			made = 1;
 		}
@@ -243,11 +257,8 @@ public:
 
 	static NOINLINE std::wstring PrepareSnapshotDirectory()
 	{
-		SYSTEMTIME time;
-		GetLocalTime(&time);
-
-		std::wstring buffer = Debug::LogFilePathName + std::format(L"\\snapshot-{:04}{:02}{:02}-{:02}{:02}{:02}",
-				time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
+		std::wstring buffer = Debug::LogFilePathName + std::format(L"\\snapshot-{}",
+				GetCurTime());
 
 		CreateDirectoryW(buffer.c_str(), nullptr);
 

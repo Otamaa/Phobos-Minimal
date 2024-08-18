@@ -65,6 +65,7 @@ struct GameStrings
 	// mix file names
 	GAMEMD_STR(LOCALMD_MIX, 0x826644u);
 	GAMEMD_STR(RA2MD_MIX, 0x82667Cu);
+	GAMEMD_STR(EXPANDMD02d, 0x82668C);
 	//..
 
 	// ini file names

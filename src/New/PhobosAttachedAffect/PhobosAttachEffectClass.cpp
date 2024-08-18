@@ -43,8 +43,8 @@ void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed
 	//else
 	//	Debug::Log(__FUNCTION__" Executed Without Techno \n");
 
-	if (this->Animation && ptr == this->Animation)
-		this->Animation.release();
+	//if (this->Animation && ptr == this->Animation)
+	//	this->Animation.release();
 
 	//if (removed && ptr == static_cast<void*>(this->Techno))
 	//	this->Techno = nullptr;

@@ -176,41 +176,23 @@ public:
 	constexpr Matrix3D operator*(const Matrix3D& nAnother) const
 	{
 		Matrix3D C {}; // [esp+40h] [ebp-30h] BYREF
+		const Matrix3D C_another = nAnother;
 
-		float a_row_10 = this->row[1][0];
-		float a_row_11 = this->row[1][1];
-		float v4 = this->row[0][0];
-		float a_row_12 = this->row[1][2];
-		float v5 = this->row[0][1];
-		float v6 = this->row[0][2];
-		float a_row_20 = this->row[2][0];
-		float a_row_21 = this->row[2][1];
-		float a_row_22 = this->row[2][2];
-		float v8 = nAnother.row[0][0];
-		float v9 = nAnother.row[1][0];
-		float v10 = nAnother.row[2][0];
-		float b_row_01 = nAnother.row[0][1];
-		float b_row_02 = nAnother.row[0][2];
-		float b_row_03 = nAnother.row[0][3];
-		float b_row_11 = nAnother.row[1][1];
-		float b_row_12 = nAnother.row[1][2];
-		float b_row_13 = nAnother.row[1][3];
-		float b_row_21 = nAnother.row[2][1];
-		float b_row_22 = nAnother.row[2][2];
-		float b_row_23 = nAnother.row[2][3];
+		for (int i = 0; i < 3; ++i) {
+			for (int j = 0; j < 3; ++j) {
+				C.row[i][j] =
+				this->row[i][0] * C_another.row[0][j] +
+				this->row[i][1] * C_another.row[1][j] +
+				this->row[i][2] * C_another.row[2][j];
+			}
 
-		C.row[0][0] = (v10 * v6 + v9 * v5 + v8 * v4);
-		C.row[1][0] = (v10 * a_row_12 + v9 * a_row_11 + v8 * a_row_10);
-		C.row[2][0] = (v10 * a_row_22 + v9 * a_row_21 + v8 * a_row_20);
-		C.row[0][1] = (b_row_21 * v6 + b_row_11 * v5 + b_row_01 * v4);
-		C.row[1][1] = b_row_21 * a_row_12 + b_row_11 * a_row_11 + b_row_01 * a_row_10;
-		C.row[2][1] = b_row_21 * a_row_22 + b_row_11 * a_row_21 + b_row_01 * a_row_20;
-		C.row[0][2] = (b_row_22 * v6 + b_row_12 * v5 + b_row_02 * v4);
-		C.row[1][2] = b_row_22 * a_row_12 + b_row_12 * a_row_11 + b_row_02 * a_row_10;
-		C.row[2][2] = b_row_22 * a_row_22 + b_row_12 * a_row_21 + b_row_02 * a_row_20;
-		C.row[0][3] = (b_row_23 * v6 + b_row_13 * v5 + b_row_03 * v4 + this->row[0][3]);
-		C.row[1][3] = b_row_23 * a_row_12 + b_row_13 * a_row_11 + b_row_03 * a_row_10 + this->row[1][3];
-		C.row[2][3] = b_row_23 * a_row_22 + b_row_13 * a_row_21 + b_row_03 * a_row_20 + this->row[2][3];
+			C.row[i][3] =
+				this->row[i][0] * C_another.row[0][3] +
+				this->row[i][1] * C_another.row[1][3] +
+				this->row[i][2] * C_another.row[2][3] +
+				this->row[i][3];
+		}
+
 		return C;
 	}
 

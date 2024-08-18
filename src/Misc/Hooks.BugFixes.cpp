@@ -1797,3 +1797,18 @@ DEFINE_HOOK(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
 
 	return SkipGameCode;
 }
+
+DEFINE_HOOK(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
+{
+	GET(BulletTypeClass*, projectile, EAX);
+	return projectile->Inviso ? 0x467C2A : 0;
+}
+
+DEFINE_HOOK(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
+{
+	enum { SkipDamageArea = 0x51A7F8 };
+
+	GET(CellClass*, pCell, EAX);
+
+	return pCell->ContainsBridge() ? 0 : SkipDamageArea;
+}
