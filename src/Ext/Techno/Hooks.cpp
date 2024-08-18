@@ -135,25 +135,6 @@ DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 	return 0;
 }
 
-DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
-{
-	enum { Skip = 0x7099B8, Continue = 0x0 };
-
-	GET(TechnoClass* const, pThis, ESI);
-
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (pExt->AutoFire)
-	{
-		pThis->SetTarget(pExt->AutoFire_TargetSelf ? pThis :
-		static_cast<AbstractClass*>(pThis->GetCell()));
-
-		return Skip;
-	}
-
-	return Continue;
-}
-
 #include <Ext/Super/Body.h>
 
 DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)

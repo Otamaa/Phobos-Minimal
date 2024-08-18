@@ -371,6 +371,11 @@ public:
 	Valueable<double> JumpjetCellLightLevelMultiplier { 0.0 };
 	Valueable<bool> JumpjetCellLightApplyBridgeHeight { true };
 
+	Nullable<int> AINormalTargetingDelay { };
+	Nullable<int> PlayerNormalTargetingDelay { };
+	Nullable<int> AIGuardAreaTargetingDelay { };
+	Nullable<int> PlayerGuardAreaTargetingDelay { };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

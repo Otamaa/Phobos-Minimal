@@ -977,6 +977,12 @@ public:
 
 	std::vector<Valueable<CoordStruct>> SprayOffsets {};
 
+
+	Nullable<int> AINormalTargetingDelay {};
+	Nullable<int> PlayerNormalTargetingDelay {};
+	Nullable<int> AIGuardAreaTargetingDelay {};
+	Nullable<int> PlayerGuardAreaTargetingDelay {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

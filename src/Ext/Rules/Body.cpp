@@ -60,14 +60,14 @@ void RulesExtData::ReplaceVoxelLightSources()
 	if (this->VoxelLightSource.isset())
 	{
 		needCacheFlush = true;
-		auto source = this->VoxelLightSource.Get().Normalized();
+		auto source = this->VoxelLightSource->Normalized();
 		Game::VoxelLightSource = Game::VoxelDefaultMatrix.get() * source;
 	}
 
 	if (this->VoxelShadowLightSource.isset())
 	{
 		needCacheFlush = true;
-		auto source = this->VoxelShadowLightSource.Get().Normalized();
+		auto source = this->VoxelShadowLightSource->Normalized();
 		Game::VoxelShadowLightSource = Game::VoxelDefaultMatrix.get() * source;
 	}
 
@@ -690,6 +690,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
 	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
 
+	this->AINormalTargetingDelay.Read(exINI, GameStrings::General, "AINormalTargetingDelay");
+	this->PlayerNormalTargetingDelay.Read(exINI, GameStrings::General, "PlayerNormalTargetingDelay");
+	this->AIGuardAreaTargetingDelay.Read(exINI, GameStrings::General, "AIGuardAreaTargetingDelay");
+	this->PlayerGuardAreaTargetingDelay.Read(exINI, GameStrings::General, "PlayerGuardAreaTargetingDelay");
+
 	this->AircraftLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftLevelLightMultiplier");
 	this->AircraftCellLightLevelMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftCellLightLevelMultiplier");
 	this->JumpjetLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "JumpjetLevelLightMultiplier");
@@ -1307,6 +1312,12 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->JumpjetLevelLightMultiplier)
 		.Process(this->JumpjetCellLightLevelMultiplier)
 		.Process(this->JumpjetCellLightApplyBridgeHeight)
+
+		.Process(this->UseFixedVoxelLighting)
+		.Process(this->AINormalTargetingDelay)
+		.Process(this->PlayerNormalTargetingDelay)
+		.Process(this->AIGuardAreaTargetingDelay)
+		.Process(this->PlayerGuardAreaTargetingDelay)
 		;
 
 	MyPutData.Serialize(Stm);

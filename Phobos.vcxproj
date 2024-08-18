@@ -173,7 +173,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.MapZone.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />

@@ -1192,6 +1192,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_RecycleOnTurret.Read(exINI, pSection, "Spawner.RecycleOnTurret");
 		this->Spawner_RecycleAnim.Read(exINI, pSection, "Spawner.RecycleAnim");
 
+		this->AINormalTargetingDelay.Read(exINI, pSection, "AINormalTargetingDelay");
+		this->PlayerNormalTargetingDelay.Read(exINI, pSection, "PlayerNormalTargetingDelay");
+		this->AIGuardAreaTargetingDelay.Read(exINI, pSection, "AIGuardAreaTargetingDelay");
+		this->PlayerGuardAreaTargetingDelay.Read(exINI, pSection, "PlayerGuardAreaTargetingDelay");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -2377,6 +2382,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->HugeBar)
 		.Process(this->HugeBar_Priority)
 		.Process(this->SprayOffsets)
+		.Process(this->AINormalTargetingDelay)
+		.Process(this->PlayerNormalTargetingDelay)
+		.Process(this->AIGuardAreaTargetingDelay)
+		.Process(this->PlayerGuardAreaTargetingDelay)
 		;
 }
 
