@@ -25,7 +25,13 @@ DEFINE_HOOK(0x6FA697, TechnoClass_Update_DontScanIfUnarmed, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	return pThis->IsArmed() ? DoTargeting : SkipTargeting;
+	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
+		if (pInf->Type->Slaved && pInf->SlaveOwner) {
+			return SkipTargeting;
+		}
+	}
+
+	return pThis->IsArmed()  ? DoTargeting : SkipTargeting;
 }
 
 DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
