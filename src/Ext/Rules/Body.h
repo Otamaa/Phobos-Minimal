@@ -376,6 +376,12 @@ public:
 	Nullable<int> AIGuardAreaTargetingDelay { };
 	Nullable<int> PlayerGuardAreaTargetingDelay { };
 
+	Valueable<bool> CheckUnitBaseNormal { false };
+	Valueable<bool> ExpandBuildingPlace { true };
+	Valueable<bool> CheckExpandPlaceGrid { false };
+	Valueable<CoordStruct> ExpandLandGridFrames { { 1, 0, 0 } };
+	Valueable<CoordStruct> ExpandWaterGridFrames { { 1, 0, 0 } };
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

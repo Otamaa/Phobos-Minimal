@@ -470,6 +470,8 @@ public:
 	bool HasCarryoverWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
 	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasCarryoverWarpInDelay
 
+	CDTimerClass UnitAutoDeployTimer {};
+
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{

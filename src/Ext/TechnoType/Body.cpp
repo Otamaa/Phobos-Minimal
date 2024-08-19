@@ -1196,6 +1196,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PlayerNormalTargetingDelay.Read(exINI, pSection, "PlayerNormalTargetingDelay");
 		this->AIGuardAreaTargetingDelay.Read(exINI, pSection, "AIGuardAreaTargetingDelay");
 		this->PlayerGuardAreaTargetingDelay.Read(exINI, pSection, "PlayerGuardAreaTargetingDelay");
+		this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
+		this->UnitBaseNormal.Read(exINI, pSection, "UnitBaseNormal");
+		this->UnitBaseForAllyBuilding.Read(exINI, pSection, "UnitBaseForAllyBuilding");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2386,6 +2389,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->PlayerNormalTargetingDelay)
 		.Process(this->AIGuardAreaTargetingDelay)
 		.Process(this->PlayerGuardAreaTargetingDelay)
+		.Process(this->CanBeBuiltOn)
+		.Process(this->UnitBaseNormal)
+		.Process(this->UnitBaseForAllyBuilding)
 		;
 }
 

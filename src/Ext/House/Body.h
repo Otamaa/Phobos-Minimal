@@ -161,6 +161,13 @@ public:
 	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
 	CDTimerClass AISellAllDelayTimer {};
 
+	std::vector<UnitClass*> OwnedDeployingUnits {};
+	std::vector<CellStruct> BaseNormalCells {};
+	BuildingTypeClass* CurrentBuildingType { nullptr };
+	CellStruct CurrentBuildingTopLeft {};
+	CDTimerClass CurrentBuildingTimer {};
+	int CurrentBuildingTimes { 0 };
+
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 

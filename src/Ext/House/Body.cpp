@@ -1958,6 +1958,13 @@ void HouseExtData::Serialize(T& Stm)
 		//.Process(this->KilledBuildingTypes)
 		//.Process(this->CapturedBuildings)
 		//.Process(this->CollectedCrates)
+
+		.Process(this->OwnedDeployingUnits)
+		.Process(this->BaseNormalCells)
+		.Process(this->CurrentBuildingType)
+		.Process(this->CurrentBuildingTopLeft)
+		.Process(this->CurrentBuildingTimer)
+		.Process(this->CurrentBuildingTimes)
 		;
 }
 

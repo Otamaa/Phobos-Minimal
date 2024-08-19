@@ -4995,6 +4995,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CurrentAircraftWeaponIndex)
 		.Process(this->HasCarryoverWarpInDelay)
 		.Process(this->LastWarpInDelay)
+		.Process(this->UnitAutoDeployTimer)
 		;
 }
 

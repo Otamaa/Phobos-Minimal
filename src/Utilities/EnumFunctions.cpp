@@ -593,7 +593,10 @@ bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget 
 				else
 					return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
 			case BuildingClass::AbsID:
-				return (allowed & AffectedTarget::Building) != AffectedTarget::None;
+				if (pTechno->IsStrange())
+					return (allowed & AffectedTarget::Unit) != AffectedTarget::None;
+				else
+					return (allowed & AffectedTarget::Building) != AffectedTarget::None;
 			}
 		}
 		else

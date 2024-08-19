@@ -983,6 +983,10 @@ public:
 	Nullable<int> AIGuardAreaTargetingDelay {};
 	Nullable<int> PlayerGuardAreaTargetingDelay {};
 
+	Valueable<bool> CanBeBuiltOn { false };
+	Valueable<bool> UnitBaseNormal { false };
+	Valueable<bool> UnitBaseForAllyBuilding { false };
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 
