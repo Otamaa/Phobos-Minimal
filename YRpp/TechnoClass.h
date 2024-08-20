@@ -942,11 +942,11 @@ public:
 	BYTE             IsUseless; //3D0
 	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
 	BYTE			 Cloakable; //3D2
-	BYTE			 IsPrimaryFactory; //3D3 IsLoaner
-	//BYTE			 IsALoaner; // 3D4
-	//BYTE			 IsLocked; // 3D5
-	BYTE			 Spawned; // 3D6
-	BYTE             IsInPlayfield; // 3D7
+	BYTE			 IsPrimaryFactory; //3D3
+//	BYTE			 IsALoaner; // 3D4
+//	BYTE			 IsLocked; // 3D5
+	BYTE			 Spawned; // 3D6 //IsALoaner
+	BYTE             IsInPlayfield; // 3D7 // Is_Locked
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
 	DECLARE_PROPERTY(RecoilData, BarrelRecoil);
 	BYTE             IsTethered; //418

@@ -170,6 +170,10 @@ public:
 	BaseNodeClass* NextBuildable(int type = -1)
 		{ JMP_THIS(0x42EB20); }
 
+	int NextBuildableIdx(int type) {
+		JMP_THIS(0x42EB50);
+	}
+
 	void ReadINI(CCINIClass* ini, char* hname)
 		{ JMP_THIS(0x42EBE0); }
 
@@ -1079,6 +1083,19 @@ public:
 	constexpr bool inline IsInitiallyObserver() const
 	{
 		return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);
+	}
+
+	bool HasSpaceFor(BuildingTypeClass* pBld , CellStruct* where) const {
+		JMP_THIS(0x50B760);
+	}
+
+	typedef int(__fastcall* placement_callback)(int , int);
+	CellStruct* FindBuildLocation(CellStruct* buffer, BuildingTypeClass* pBld, placement_callback, int something) const {
+		JMP_THIS(0x5060B0);
+	}
+
+	CellStruct* GetPoweups(CellStruct* buffer, BuildingTypeClass* a3) const {
+		JMP_THIS(0x506B90);
 	}
 
 	//Constructor

@@ -706,7 +706,7 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 	return 0;
 }
 
- DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
+DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
 
@@ -807,10 +807,10 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 {
 	enum { continuecheck = 0x62A929, returnfalse = 0x62A976, continuecheckB = 0x62A933 };
-	GET(ParasiteClass* , pThis , EDI);
+	GET(ParasiteClass*, pThis, EDI);
 	GET(FootClass* const, pVictim, ESI);
 
-	if(pThis->Owner->Transporter)
+	if (pThis->Owner->Transporter)
 		return returnfalse;
 
 	if (TechnoExtData::IsParasiteImmune(pVictim))
@@ -1145,7 +1145,7 @@ namespace Tiberiumpip
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
 		static std::vector<PackedTibPipData> Amounts(TiberiumClass::Array->Count);
 
-		const bool isWeeder = pBuilding&& pBuilding->Type->Weeder || pUnit && pUnit->Type->Weeder;
+		const bool isWeeder = pBuilding && pBuilding->Type->Weeder || pUnit && pUnit->Type->Weeder;
 
 		for (size_t i = 0; i < Amounts.size(); i++)
 		{
@@ -1205,60 +1205,60 @@ namespace Tiberiumpip
 }
 
 void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+{
+	const auto pType = pTechno->GetTechnoType();
+	const auto nMax = pType->SpawnsNumber;
+
+	if (nMax <= 0)
+		return;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	Point2D nOffs {};
+
+	const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
+	const auto pShape = pBuilding ?
+		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
+
+	ConvertClass* nPal = FileSystem::THEATER_PAL();
+
+	//if (pBuilding)
+	//{
+	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	//
+	//	if (pBuildingTypeExt->PipShapes01Remap)
+	//		nPal = pTechno->GetRemapColour();
+	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	//
+	//}
+
+	for (int i = 0; i < nMax; i++)
 	{
-		const auto pType = pTechno->GetTechnoType();
-		const auto nMax = pType->SpawnsNumber;
+		const auto nSpawnMax = pTechno->SpawnManager ? pTechno->SpawnManager->CountDockedSpawns() : 0;
 
-		if (nMax <= 0)
-			return;
+		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+		CC_Draw_Shape(
+			DSurface::Temp(),
+			nPal,
+			pShape,
+			i < nSpawnMax,
+			&nPointHere,
+			pRect,
+			0x600,
+			0,
+			0,
+			0,
+			1000,
+			0,
+			0,
+			0,
+			0,
+			0);
 
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		Point2D nOffs {};
-
-		const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
-		const auto pShape = pBuilding ?
-			pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
-
-		ConvertClass* nPal = FileSystem::THEATER_PAL();
-
-		//if (pBuilding)
-		//{
-		//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-		//
-		//	if (pBuildingTypeExt->PipShapes01Remap)
-		//		nPal = pTechno->GetRemapColour();
-		//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-		//		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-		//
-		//}
-
-		for (int i = 0; i < nMax; i++)
-		{
-			const auto nSpawnMax = pTechno->SpawnManager ? pTechno->SpawnManager->CountDockedSpawns() : 0;
-
-			Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
-			CC_Draw_Shape(
-				DSurface::Temp(),
-				nPal,
-				pShape,
-				i < nSpawnMax,
-				&nPointHere,
-				pRect,
-				0x600,
-				0,
-				0,
-				0,
-				1000,
-				0,
-				0,
-				0,
-				0,
-				0);
-
-			nOffs.X += nOffsetX;
-			nOffs.Y += nOffsetY;
-		}
+		nOffs.X += nOffsetX;
+		nOffs.Y += nOffsetY;
 	}
+}
 
 DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 {
@@ -1670,15 +1670,18 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (const auto pFoot = generic_cast<FootClass*>(pThis)) {
+	if (const auto pFoot = generic_cast<FootClass*>(pThis))
+	{
 
 		const auto pType = pFoot->GetTechnoType();
-		if (!pType->Bunkerable || !pType->Turret) {
+		if (!pType->Bunkerable || !pType->Turret)
+		{
 			R->EAX(false);
 			return 0x70FBCA;
 		}
 
-		if (!pFoot->IsArmed()) {
+		if (!pFoot->IsArmed())
+		{
 			R->EAX(false);
 			return 0x70FBCA;
 		}
@@ -1686,19 +1689,22 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 		const auto nSpeedType = pType->SpeedType;
 		if (nSpeedType == SpeedType::Hover
 			|| nSpeedType == SpeedType::Winged
-			|| nSpeedType == SpeedType::None) {
+			|| nSpeedType == SpeedType::None)
+		{
 			R->EAX(false);
 			return 0x70FBCA;
 		}
 
-		if (pFoot->ParasiteEatingMe) {
+		if (pFoot->ParasiteEatingMe)
+		{
 			R->EAX(false);
 			return 0x70FBCA;
 		}
 
 		//crash the game , dont allow it
 		//maybe because of force_track stuffs,..
-		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor)) {
+		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor))
+		{
 			R->EAX(false);
 			return 0x70FBCA;
 		}
@@ -1962,16 +1968,17 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 
 static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 
- constexpr int GetMapSizeTotals() {
+constexpr int GetMapSizeTotals()
+{
 	return (2 * MapSize->Width * (MapSize->Height + 4));
 }
 
- constexpr int CellStruct_totibarray_42B1C0(CellStruct* pCell)
+constexpr int CellStruct_totibarray_42B1C0(CellStruct* pCell)
 {
 	return (((pCell->X - pCell->Y + MapSize->Width - 1) >> 1) + MapSize->Width * (pCell->X - MapSize->Width + pCell->Y - 1));
 }
 
- constexpr void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
+constexpr void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
 {
 	int left = 2 * index;
 	int right = 2 * index + 1;
@@ -2002,125 +2009,133 @@ static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 }
 
 
- struct CellPatch__ : public CellClass
- {
-	 bool _SpreadTiberium(bool force)
-	 {
-		 int tib_ = -1;
-		 if (!force && !ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
-			 return false;
+struct CellPatch__ : public CellClass
+{
+	bool _SpreadTiberium(bool force)
+	{
+		int tib_ = -1;
+		if (!force && !ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
+			return false;
 
-		 tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+		tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
 
-		 if (!force) {
+		if (!force)
+		{
 
-			 if (tib_ == -1
-				   || this->OverlayData <= tib_ / 2
-				   || this->SlopeIndex
-				   || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
-				   || this->FirstObject)  {
-				 return false;
-			 }
+			if (tib_ == -1
+				  || this->OverlayData <= tib_ / 2
+				  || this->SlopeIndex
+				  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				  || this->FirstObject)
+			{
+				return false;
+			}
 
-		 }  else  {
-			 if (tib_ == -1) {
-				 tib_ = 0;
-			 }
-		 }
+		}
+		else
+		{
+			if (tib_ == -1)
+			{
+				tib_ = 0;
+			}
+		}
 
-		 auto pTib = TiberiumClass::Array->Items[tib_];
-		 auto facing = (BYTE)ScenarioClass::Instance->Random.RandomRangedSpecific(FacingType::Min, FacingType::Max);
-		 int index = 0;
-		 CellClass* newcell = nullptr;
+		auto pTib = TiberiumClass::Array->Items[tib_];
+		auto facing = (BYTE)ScenarioClass::Instance->Random.RandomRangedSpecific(FacingType::Min, FacingType::Max);
+		int index = 0;
+		CellClass* newcell = nullptr;
 
-		 while (true)
-		 {
-			 const auto v9 = ((BYTE)index + facing) & 7;
+		while (true)
+		{
+			const auto v9 = ((BYTE)index + facing) & 7;
 
-			 if (v9 < 8)
-			 {
-				 newcell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[v9] + this->MapCoords);
-			 }
-			 else
-			 {
-				 newcell = this;
-			 }
-			 if (newcell && newcell->CanTiberiumGerminate(pTib))
-			 {
-				 break;
-			 }
+			if (v9 < 8)
+			{
+				newcell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[v9] + this->MapCoords);
+			}
+			else
+			{
+				newcell = this;
+			}
+			if (newcell && newcell->CanTiberiumGerminate(pTib))
+			{
+				break;
+			}
 
-			 if (++index >= 8)
-			 {
-				 return false;
-			 }
-		 }
+			if (++index >= 8)
+			{
+				return false;
+			}
+		}
 
-		 return newcell->IncreaseTiberium(tib_, 3);
-	 }
+		return newcell->IncreaseTiberium(tib_, 3);
+	}
 
-	 bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force)
-	 {
-		 if (!pTerrain)
-			 Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
+	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force)
+	{
+		if (!pTerrain)
+			Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
 
-		 auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
+		auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-		 int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
+		int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
 
-		 if(tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
-			 tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
+		if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
+			tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
 
-		 if (!force)
-		 {
-			 if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
-			 {
-				 return false;
-			 }
+		if (!force)
+		{
+			if (!ScenarioClass::Instance->SpecialFlags.StructEd.TiberiumSpreads)
+			{
+				return false;
+			}
 
-			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
-				 return false;
+			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+				return false;
 
-			 if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
-				 || this->FirstObject)
-			 {
-				 return false;
-			 }
+			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
+				|| this->FirstObject)
+			{
+				return false;
+			}
 
-		 }
-		 else
-		 {
-			 if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count) {
-				 tib_ = 0;
-			 }
-		 }
+		}
+		else
+		{
+			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
+			{
+				tib_ = 0;
+			}
+		}
 
-		 auto pTib = TiberiumClass::Array->Items[tib_];
-		 auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
-		 size_t size = pTerrainExt->Adjencentcells.size();
-		 const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-		 const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
+		auto pTib = TiberiumClass::Array->Items[tib_];
+		auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
+		size_t size = pTerrainExt->Adjencentcells.size();
+		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
+		const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 
-		 for (int i = 0; i < (int)size; i++)
-		 {
-			 CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+		for (int i = 0; i < (int)size; i++)
+		{
+			CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
 
-			 if (tgtCell->CanTiberiumGerminate(pTib)) {
-				 return tgtCell->IncreaseTiberium(tib_, growth);
-			 }
-		 }
+			if (tgtCell->CanTiberiumGerminate(pTib))
+			{
+				return tgtCell->IncreaseTiberium(tib_, growth);
+			}
+		}
 
-		 return false;
-	 }
+		return false;
+	}
 
-	 static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force)
-	 {
-		 pThis->_SpreadTiberium(force);
-	 }
- };
+	static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force)
+	{
+		pThis->_SpreadTiberium(force);
+	}
+};
 
 
-struct TibPatch__ : public TiberiumClass {
+struct TibPatch__ : public TiberiumClass
+{
 
 #pragma region Spread
 
@@ -2154,9 +2169,10 @@ struct TibPatch__ : public TiberiumClass {
 		int tib_arr = CellStruct_totibarray_42B1C0(pCell);
 		auto pCellClass = MapClass::Instance->GetCellAt(pCell);
 
-		if (pCellClass->CanTiberiumSpread() && !this->SpreadLogic.States[tib_arr]) {
+		if (pCellClass->CanTiberiumSpread() && !this->SpreadLogic.States[tib_arr])
+		{
 			if (this->Spread >= GetMapSizeTotals() - 20)
-			 __RecalcSpreadData();
+				__RecalcSpreadData();
 
 			this->SpreadLogic.Datas[this->Spread].MapCoord = *pCell;
 			this->SpreadLogic.Datas[this->Spread].Score = (float)(Unsorted::CurrentFrame + (int)abs(abs(ScenarioClass::Instance->Random.Random() % 50)));
@@ -2203,7 +2219,8 @@ struct TibPatch__ : public TiberiumClass {
 
 						int getminateIdx = 0;
 						auto pNewCell = MapClass::Instance->GetCellAt(pSurface->MapCoord);
-						for (int c = 0; c < 8; ++c) {
+						for (int c = 0; c < 8; ++c)
+						{
 							auto pAdjencent = pNewCell->GetAdjacentCell((FacingType)c);
 							if (pAdjencent->CanTiberiumGerminate(nullptr))
 								++getminateIdx;
@@ -2287,7 +2304,8 @@ struct TibPatch__ : public TiberiumClass {
 		}
 	}
 
-	void __Growth() {
+	void __Growth()
+	{
 		auto growthHeaps = this->GrowthLogic.Heap;
 
 		if (growthHeaps && growthHeaps->Count && this->GrowthPercentage > 0.00001)
@@ -2302,18 +2320,21 @@ struct TibPatch__ : public TiberiumClass {
 			int copy_heapSize = growthHeaps->Count;
 			int size_after = abs(ScenarioClass::Instance->Random.Random()) % get_percent + 1;
 
-			if (copy_heapSize > GetMapSizeTotals() - 2 * size_after) {
+			if (copy_heapSize > GetMapSizeTotals() - 2 * size_after)
+			{
 				this->__RecalcGrowthData();
 			}
 
 			MapSurfaceData* pSurface = nullptr;
-			if (auto poped = growthHeaps->Top()) {
+			if (auto poped = growthHeaps->Top())
+			{
 				pSurface = poped;
 				Heapify(growthHeaps, 1);
 			}
 
 			int increment = 0;
-			if (size_after > 0) {
+			if (size_after > 0)
+			{
 
 				while (true)
 				{
@@ -2327,7 +2348,8 @@ struct TibPatch__ : public TiberiumClass {
 						if (pNewCell->GetContainedTiberiumIndex() == this->ArrayIndex)
 						{
 							pNewCell->GrowTiberium();
-							if (pNewCell->OverlayData >= 11u) {
+							if (pNewCell->OverlayData >= 11u)
+							{
 								this->GrowthLogic.States[CellStruct_totibarray_42B1C0(&pNewCell->MapCoords)] = false;
 							}
 							else
@@ -2403,15 +2425,20 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 	GET(TerrainClass* const, pThis, ESI);
 
-	if (pThis->Type) {
-		if (pThis->Type->IsAnimated) {
+	if (pThis->Type)
+	{
+		if (pThis->Type->IsAnimated)
+		{
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
-			if (auto pImage = pThis->Type->GetImage()) {
-				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))) {
+			if (auto pImage = pThis->Type->GetImage())
+			{
+				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1))))
+				{
 					pThis->Animation.Value = 0;
 					pThis->Animation.Start(0);
 
-					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location)) {
+					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
+					{
 						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
 							((CellPatch__*)MapClass::Instance->GetCellAt(pThis->Location))->_SpreadTiberium_2(pThis, true);
 					}
@@ -2473,7 +2500,8 @@ BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
 				{
-					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0) {
+					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
+					{
 						pHouseExt->RestrictedFactoryPlants.push_back_unique(pBld);
 					}
 
@@ -2629,8 +2657,9 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 	GET_STACK(CoordStruct*, pResult, 0x4);
 	GET_STACK(DWORD, caller, 0x0);
 
-	if (!pThis) {
-		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] \n" , caller);
+	if (!pThis)
+	{
+		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] \n", caller);
 	}
 
 	return retContinue;
@@ -2727,7 +2756,8 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 	double amount = 1.0;
 
-	if (pThis->Type->Weeder) {
+	if (pThis->Type->Weeder)
+	{
 		pCell->RemoveWeed();
 		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
 		return 0x73D502;
@@ -2862,7 +2892,7 @@ DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 					false,
 					pSource && !pHouse ? pSource->Owner : pHouse
 				) == DamageState::NowDead)
-					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X , pMonster->MonsterCell.Y);
+					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X, pMonster->MonsterCell.Y);
 
 		}
 
@@ -3768,7 +3798,8 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 		const auto vtable = VTable::Get(pThis);
 		if (vtable != UnitClass::vtable
 			&& vtable != InfantryClass::vtable
-			&& vtable != AircraftClass::vtable) {
+			&& vtable != AircraftClass::vtable)
+		{
 			return 0x6D4793;
 		}
 
@@ -3776,17 +3807,20 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 		|| pThis->InLimbo
 		|| pThis->IsCrashing
 		|| pThis->IsSinking
-		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0)) {
+		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
+		{
 			return 0x6D4793;
 		}
 
 		auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-		if (pExt->AE_Untrackable || TechnoExtData::IsUntrackable(pThis)) {
+		if (pExt->AE_Untrackable || TechnoExtData::IsUntrackable(pThis))
+		{
 			return 0x6D4793;
 		}
 
-		if (pThis->CurrentlyOnSensor()) {
+		if (pThis->CurrentlyOnSensor())
+		{
 			return 0x6D478C; //draw dashed line
 		}
 	}
@@ -3985,7 +4019,7 @@ DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
 	GET(ObjectClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x18 + 0x8);
 	GET(int, damage, EBX);
-	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis,pWeapon->Warhead), 0));
+	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
 	return 0x6FDD2E;
 }
 
@@ -4205,17 +4239,17 @@ DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
 	return 0x6E8315;
 }
 
- DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
- {
- 	GET(UnitClass*, pThis, EBP);
- 	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
- 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
- 	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
+DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
+	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
 
- 	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
+	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
 
- 	return 0x73ED7A;
- }
+	return 0x73ED7A;
+}
 
 // DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 // {
@@ -4637,15 +4671,16 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					};
 
 				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
-				{
-					if (CrateTypeClass::Array[(int)idx]->Sound <= -1)
-						return;
+					{
+						if (CrateTypeClass::Array[(int)idx]->Sound <= -1)
+							return;
 
-					if (pCollectorOwner->ControlledByCurrentPlayer()) {
-						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-						VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx]->Sound, loc, nullptr);
-					}
-				};
+						if (pCollectorOwner->ControlledByCurrentPlayer())
+						{
+							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx]->Sound, loc, nullptr);
+						}
+					};
 
 				auto GeiveMoney = [&]()
 					{
@@ -4667,7 +4702,8 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							? pCollectorOwner : HouseClass::CurrentPlayer();
 
 						pHouseDest->TransactMoney(soloCrateMoney);
-						if (pCollectorOwner->ControlledByCurrentPlayer()) {
+						if (pCollectorOwner->ControlledByCurrentPlayer())
+						{
 							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly);
 						}
@@ -5012,15 +5048,16 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 										int PromotedCount = 0;
 										if (MaxPromotedCount > 0.0)
 										{
-											do{
+											do
+											{
 												if (pTechno->Veterancy.IsVeteran())
 													pTechno->Veterancy.SetElite();
 												else
-												if (pTechno->Veterancy.IsRookie())
-													pTechno->Veterancy.SetVeteran();
-												else
-												if (pTechno->Veterancy.IsNegative())
-													pTechno->Veterancy.SetRookie();
+													if (pTechno->Veterancy.IsRookie())
+														pTechno->Veterancy.SetVeteran();
+													else
+														if (pTechno->Veterancy.IsNegative())
+															pTechno->Veterancy.SetRookie();
 
 												++PromotedCount;
 											}
@@ -5153,8 +5190,9 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				case Powerup::Pod:
 				{
 					Debug::Log("Crate at %d,%d contains Pod\n", pCell->MapCoords.X, pCell->MapCoords.Y);
-					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
-						 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+ {
+	 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5170,7 +5208,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				default:
 					//TODO :: the affects
-					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y , CrateTypeClass::Array[(int)data]->Name);
+					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name);
 					PlaySoundAffect(data);
 					PlayAnimAffect(data);
 					break;
@@ -5459,7 +5497,7 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 		{ //weed ???
 			pBld->Game_PlayNthAnim(BuildingAnimSlot::Production,
 				pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow,
-				false , false);
+				false, false);
 		}
 		pThis->MissionStatus = 4;
 
@@ -6686,11 +6724,11 @@ DEFINE_HOOK(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
 	return 0x4249D8;
 }
 
- DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
- {
- 	R->EBX(HouseExtData::FindFirstCivilianHouse());
- 	return 0x45826E;
- }
+DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
+{
+	R->EBX(HouseExtData::FindFirstCivilianHouse());
+	return 0x45826E;
+}
 
 DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
@@ -6998,11 +7036,11 @@ int __cdecl HouseClass_ReadINI_MakeAllies(REGISTERS* a1)
 #pragma endregion
 
 #ifdef CheckForMapSaveCrash
-DEFINE_HOOK(0x50126A , HouseClass_WritetoIni0 , 0x6)
+DEFINE_HOOK(0x50126A, HouseClass_WritetoIni0, 0x6)
 {
 	GET(HouseClass*, pThis, EBX);
 
-	if(IS_SAME_STR_("USSR" , pThis->Type->ID))
+	if (IS_SAME_STR_("USSR", pThis->Type->ID))
 		Debug::Log("Writing to ini TechLevel for[%s]\n", pThis->Type->ID);
 
 	return 0x0;
@@ -7068,7 +7106,7 @@ DEFINE_HOOK(0x50134C, HouseClass_WritetoIni7, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x50136E , HouseClass_WritetoIni8 , 0x5)
+DEFINE_HOOK(0x50136E, HouseClass_WritetoIni8, 0x5)
 {
 	GET(HouseClass*, pThis, EBX);
 
@@ -7099,7 +7137,7 @@ DEFINE_HOOK(0x42ED72, BaseClass_WriteToINI1, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x42ED8C , BaseClass_WriteToINI2,0x5)
+DEFINE_HOOK(0x42ED8C, BaseClass_WriteToINI2, 0x5)
 {
 	GET(BaseClass*, pThis, ESI);
 	HouseClass* ptr = reinterpret_cast<HouseClass*>((DWORD)pThis - offsetof(HouseClass, Base));
@@ -7681,7 +7719,8 @@ DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 {
 	GET(AircraftTypeClass*, pType, ESI);
 
-	if (!pType->MainVoxel.HVA) {
+	if (!pType->MainVoxel.HVA)
+	{
 		Debug::Log("Aircraft[%s] Has No HVA ! \n", pType->ID);
 		return 0x4149F6;
 	}
@@ -7695,33 +7734,41 @@ DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 // TODO :
 class BulletClass_patch : public BulletClass
 {
-	void _AI() {
+	void _AI()
+	{
 
 	}
 
-	constexpr double GetFloaterGravity() {
+	constexpr double GetFloaterGravity()
+	{
 		return BulletTypeExtContainer::Instance.Find(this->Type)->Gravity.Get(RulesClass::Instance->Gravity) * 0.5;
 	}
 
-	DirStruct _Motion(CoordStruct& intialCoord , VelocityClass& InitialVelocity , Coordinate& targetCoord , int InitialDir) {
+	DirStruct _Motion(CoordStruct& intialCoord, VelocityClass& InitialVelocity, Coordinate& targetCoord, int InitialDir)
+	{
 		DirStruct inital { this->__CourseLocked ? InitialDir : 0 };
 		const bool IsTargetFlying = this->Target && this->Target->WhatAmI() == AbstractType::Aircraft;
 		const bool IsAirburst = this->Type->Airburst;
 		const bool IsVeryHeigh = this->Type->VeryHigh;
 		const bool IsLevel = this->Type->Level;
 
-		if (targetCoord.IsEmpty()) {
+		if (targetCoord.IsEmpty())
+		{
 			double length_XY = InitialVelocity.LengthXY();
 			DirStruct XY { (double)InitialVelocity.Z, length_XY };
 			DirStruct Initial_ { 0x2000 };
 			DirStruct _dummy {};
 
-			if (XY.CompareToTwoDir(Initial_, inital)) {
+			if (XY.CompareToTwoDir(Initial_, inital))
+			{
 				XY.Raw = Initial_.Raw;
 			}
-			else if ((_dummy = (Initial_ - XY)).Raw >= 0) {
+			else if ((_dummy = (Initial_ - XY)).Raw >= 0)
+			{
 				XY += inital;
-			} else {
+			}
+			else
+			{
 				XY -= inital;
 			}
 
@@ -7730,7 +7777,8 @@ class BulletClass_patch : public BulletClass
 			double angle = double(((int16_t)_dummy.Raw - 0x3FFF) * -0.00009587672516830327);
 			double length_XYZ = InitialVelocity.Length();
 
-			if(angle != 0.0){
+			if (angle != 0.0)
+			{
 				InitialVelocity.X /= Math::cos(angle);
 				InitialVelocity.Y /= Math::sin(angle);
 			}
@@ -7746,7 +7794,7 @@ class BulletClass_patch : public BulletClass
 			};
 
 			intialCoord -= Vel;
-			return DirStruct{ (int)intialCoord.Length() };
+			return DirStruct { (int)intialCoord.Length() };
 		}
 
 		const CoordStruct Vel {
@@ -7763,17 +7811,22 @@ class BulletClass_patch : public BulletClass
 		double length_Xt = distance_XY.Length();
 		VelocityClass distance_vel { double(distance_.X), double(distance_.Y), double(distance_.Z) };
 		// the variable around here is messed up , idk
-		double angle = Math::atan2((double) -inital.Raw, (double)inital.Raw);
+		double angle = Math::atan2((double)-inital.Raw, (double)inital.Raw);
 		double rad = angle - Math::DEG90_AS_RAD;
 		DirStruct distance_Dir { (int)rad * Math::BINARY_ANGLE_MAGIC };
 		DirStruct distance_Dir_ { -distance_vel.Y , distance_vel.Y };
 		DirStruct _dummy {};
 
-		if (distance_Dir.CompareToTwoDir(distance_Dir_, inital)) {
+		if (distance_Dir.CompareToTwoDir(distance_Dir_, inital))
+		{
 			distance_Dir.Raw = distance_Dir_.Raw;
-		} else if ((_dummy = (distance_Dir_ - distance_Dir)).Raw >= 0) {
+		}
+		else if ((_dummy = (distance_Dir_ - distance_Dir)).Raw >= 0)
+		{
 			distance_Dir.Raw += inital.Raw;
-		} else {
+		}
+		else
+		{
 			distance_Dir.Raw -= inital.Raw;
 		}
 
@@ -7824,14 +7877,17 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 //}
 //#pragma optimize("", on )
 
+#include <SlaveManagerClass.h>
+
 /* TODO : Aircraft , Building , Changes
 int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct overrider)
 {
-	if (!pTechnoToKick) {
+	if (!pTechnoToKick)
+	{
 		return 0;
 	}
 
-	pTechnoToKick->IsLocked = true;
+	pTechnoToKick->IsTethered = true;
 	auto pBuildingType = pThis->Type;
 
 	switch (pTechnoToKick->WhatAmI())
@@ -7847,12 +7903,14 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			return 1;
 		}
 
-		if (!pBuildingType->Hospital && !pBuildingType->Armory) {
+		if (!pBuildingType->Hospital && !pBuildingType->Armory)
+		{
 			pThis->Owner->WhimpOnMoney(AbstractType::Unit);
 			pThis->Owner->ProducingUnitTypeIndex = -1;
 		}
 
-		if (pBuildingType->Refinery || pBuildingType->Weeder) {
+		if (pBuildingType->Refinery || pBuildingType->Weeder)
+		{
 			auto _coord = pThis->GetCoords();
 			auto _coord_cell = CellClass::Coord2Cell(_coord);
 			_coord_cell.X += CellSpread::AdjacentCell[5].X;
@@ -7865,7 +7923,8 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			++Unsorted::ScenarioInit;
 
-			if (pTechnoToKick->Unlimbo(_coord, DirType::SouthWest)) {
+			if (pTechnoToKick->Unlimbo(_coord, DirType::SouthWest))
+			{
 				DirStruct _pri {};
 				_pri.Raw = 0x8000;
 				pTechnoToKick->PrimaryFacing.Set_Current(_pri);
@@ -7876,8 +7935,10 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			return 0;
 		}
 
-		if (!pBuildingType->WeaponsFactory) {
-			if (pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning) {
+		if (!pBuildingType->WeaponsFactory)
+		{
+			if (pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
+			{
 				pTechnoToKick->SetFocus(pThis->Focus);
 				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
 
@@ -7889,15 +7950,21 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 				DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
 				CellStruct _copy = docked_;
 				auto cell = pThis->GetMapCoords();
-				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X)) {
+				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+				{
 					_copy.X += 1;
-				} else {
+				}
+				else
+				{
 					_copy.X -= 1;
 				}
 
-				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y)) {
+				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+				{
 					_copy.Y += 1;
-				} else {
+				}
+				else
+				{
 					_copy.Y -= 1;
 				}
 
@@ -7905,35 +7972,43 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 				++Unsorted::ScenarioInit;
 
-				if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir())) {
+				if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir()))
+				{
 					auto pToKickType = pTechnoToKick->GetTechnoType();
 
 					if (pTechnoToKick->Focus
 					  && !pToKickType->JumpJet
-					  && !pToKickType->Teleporter) {
-						if (pTechnoToKick->Focus) {
+					  && !pToKickType->Teleporter)
+					{
+						if (pTechnoToKick->Focus)
+						{
 							pTechnoToKick->SetFocus(pTechnoToKick->Focus);
 						}
 
 						pTechnoToKick->QueueMission(Mission::Move, false);
-						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_),true);
+						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
 					}
 
-					if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital) {
+					if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital)
+					{
 						pTechnoToKick->QueueMission(Mission::Area_Guard, false);
 						CellStruct Where {};
 						pThis->Owner->WhereToGo(&Where, pTechnoToKick);
 
-						if (!Where.IsValid()) {
+						if (!Where.IsValid())
+						{
 							pTechnoToKick->SetFocus(nullptr);
-						} else {
+						}
+						else
+						{
 							auto pDest = MapClass::Instance->GetCellAt(Where);
 							pTechnoToKick->SetFocus(pDest);
 							((FootClass*)pTechnoToKick)->QueueNavList(pDest);
 						}
 					}
 
-					if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive) {
+					if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive)
+					{
 						pThis->SendCommand(RadioCommand::RequestUnload, pTechnoToKick);
 					}
 
@@ -7978,7 +8053,8 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 				++Unsorted::ScenarioInit;
 
-				if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir())) {
+				if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir()))
+				{
 					pTechnoToKick->QueueMission(Mission::Move, false);
 					pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
 
@@ -8008,10 +8084,12 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			}
 		}
 
-		if (!pBuildingType->Naval) {
+		if (!pBuildingType->Naval)
+		{
 			pTechnoToKick->SetFocus(pThis->Focus);
 
-			if (pThis->GetMission() == Mission::Unload) {
+			if (pThis->GetMission() == Mission::Unload)
+			{
 				const int _bldCount = pThis->Owner->Buildings.Count;
 
 				if (_bldCount <= 0)
@@ -8034,7 +8112,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			++Unsorted::ScenarioInit;
 			CoordStruct docked_ {};
-			pThis->GetExitCoords(&docked_ , 0);
+			pThis->GetExitCoords(&docked_, 0);
 
 			if (pTechnoToKick->Unlimbo(docked_, DirType::East))
 			{
@@ -8052,12 +8130,13 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			return 0;
 		}
 
-		if(!pThis->HasAnyLink())
+		if (!pThis->HasAnyLink())
 			pThis->QueueMission(Mission::Unload, false);
 		auto _this_Mapcoord = pThis->GetMapCoords();
 		auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
 
-		if (pThis->Focus) {
+		if (pThis->Focus)
+		{
 			auto _focus_coord = pThis->Focus->GetCoords();
 			auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
 			DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
@@ -8069,8 +8148,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 				auto v42 = &CellSpread::AdjacentCell[(int)__face.GetDir() & 7];
 				CellClass* v44 = nullptr;
 
-				do {
-					v44 = MapClass::Instance->GetCellAt(CellStruct{ short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y)});
+				do
+				{
+					v44 = MapClass::Instance->GetCellAt(CellStruct { short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y) });
 				}
 				while (v44->GetBuilding() == pThis);
 			}
@@ -8086,9 +8166,318 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			auto _near_cell = MapClass::Instance->GetCellAt(_near);
 			auto _near_coord = _near_cell->GetCoords();
 
-			if (pTechnoToKick->Unlimbo(_near_coord,DirType::East))
+			if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
 			{
-				if (pThis->Focus) {
+				if (pThis->Focus)
+				{
+					pTechnoToKick->SetDestination(pThis->Focus, true);
+					pTechnoToKick->QueueMission(Mission::Move, 0);
+				}
+
+				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->SetLocation(_near_coord);
+				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				return 2;
+			}
+		}
+
+		return 0;
+	}
+	case AbstractType::Infantry:
+	{
+		if (!pBuildingType->Hospital &&
+			!pBuildingType->Armory &&
+			!pBuildingType->WeaponsFactory &&
+			!pThis->HasAnyLink()
+			)
+		{
+			return 1;
+		}
+
+		if (!pBuildingType->Hospital && !pBuildingType->Armory)
+		{
+			pThis->Owner->WhimpOnMoney(AbstractType::Infantry);
+			pThis->Owner->ProducingInfantryTypeIndex = -1;
+		}
+
+		if (pBuildingType->Refinery || pBuildingType->Weeder)
+		{
+			pTechnoToKick->Scatter(CoordStruct::Empty, true, false);
+			return 0;
+		}
+
+		if (!pBuildingType->WeaponsFactory)
+		{
+			if (pBuildingType->Factory == AbstractType::InfantryType || pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
+			{
+				pTechnoToKick->SetFocus(pThis->Focus);
+				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+				if (!docked_.IsValid())
+					return 0;
+
+				if (pBuildingType->Factory == AbstractType::InfantryType && !pBuildingType->Cloning)
+				{
+					for (auto i = 0; i < pThis->Owner->CloningVats.Count; ++i)
+					{
+						auto pTech = (TechnoClass*)pTechnoToKick->GetTechnoType()->CreateObject(pThis->Owner->CloningVats[i]->Owner);
+						pThis->Owner->CloningVats[i]->KickOutUnit(pTech, CellStruct::Empty);
+					}
+				}
+
+				auto _coord = pThis->GetCoords();
+				auto _cellcoord = CellClass::Cell2Coord(docked_);
+				DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+				CellStruct _copy = docked_;
+				auto cell = pThis->GetMapCoords();
+				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+				{
+					_copy.X += 1;
+				}
+				else
+				{
+					_copy.X -= 1;
+				}
+
+				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+				{
+					_copy.Y += 1;
+				}
+				else
+				{
+					_copy.Y -= 1;
+				}
+
+				_cellcoord = CellClass::Cell2Coord(_copy);
+				if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				++Unsorted::ScenarioInit;
+
+				if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir()))
+				{
+					auto pToKickType = pTechnoToKick->GetTechnoType();
+
+					if (pTechnoToKick->Focus
+					  && !pToKickType->JumpJet
+					  && !pToKickType->Teleporter)
+					{
+						if (pTechnoToKick->Focus)
+						{
+							pTechnoToKick->SetFocus(pTechnoToKick->Focus);
+						}
+
+						pTechnoToKick->QueueMission(Mission::Move, false);
+						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+					}
+
+					if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital)
+					{
+						pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+						CellStruct Where {};
+						pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+						if (!Where.IsValid())
+						{
+							pTechnoToKick->SetFocus(nullptr);
+						}
+						else
+						{
+							auto pDest = MapClass::Instance->GetCellAt(Where);
+							pTechnoToKick->SetFocus(pDest);
+							((FootClass*)pTechnoToKick)->QueueNavList(pDest);
+						}
+					}
+
+					if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive)
+					{
+						pThis->SendCommand(RadioCommand::RequestUnload, pTechnoToKick);
+					}
+
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+
+				--Unsorted::ScenarioInit;
+				return 0;
+			}
+			else
+			{
+				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+
+				if (!docked_.IsValid())
+					return 0;
+
+				auto _coord = pThis->GetCoords();
+				auto _cellcoord = CellClass::Cell2Coord(docked_);
+				DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
+				CellStruct _copy = docked_;
+				auto cell = pThis->GetMapCoords();
+				if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+				{
+					_copy.X += 1;
+				}
+				else
+				{
+					_copy.X -= 1;
+				}
+
+				if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
+				{
+					_copy.Y += 1;
+				}
+				else
+				{
+					_copy.Y -= 1;
+				}
+
+				auto _cellcoord_res = CellClass::Cell2Coord(_copy);
+				if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1)
+				{
+					_cellcoord += pBuildingType->ExitCoord;
+				}
+
+				++Unsorted::ScenarioInit;
+
+				if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir()))
+				{
+					pTechnoToKick->QueueMission(Mission::Move, false);
+					pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+
+					if (!pThis->Owner->IsControlledByHuman())
+					{
+						pTechnoToKick->QueueMission(Mission::Area_Guard, false);
+						CellStruct Where {};
+						pThis->Owner->WhereToGo(&Where, pTechnoToKick);
+
+						if (!Where.IsValid())
+						{
+							pTechnoToKick->SetFocus(nullptr);
+						}
+						else
+						{
+							auto pDest = MapClass::Instance->GetCellAt(Where);
+							pTechnoToKick->SetFocus(pDest);
+						}
+					}
+
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+
+				--Unsorted::ScenarioInit;
+				return 0;
+			}
+		}
+
+		if (!pBuildingType->Naval)
+		{
+			pTechnoToKick->SetFocus(pThis->Focus);
+
+			if (pThis->GetMission() == Mission::Unload)
+			{
+				const int _bldCount = pThis->Owner->Buildings.Count;
+
+				if (_bldCount <= 0)
+					return 1;
+
+				for (int i = 0; i < _bldCount; ++i)
+				{
+					if (pThis->Owner->Buildings[i]->Type == pBuildingType && pThis->Owner->Buildings[i] != pThis)
+					{
+						if (pThis->Owner->Buildings[i]->GetMission() == Mission::Guard && pThis->Owner->Buildings[i]->Factory)
+						{
+							pThis->Owner->Buildings[i]->Factory = std::exchange(pThis->Factory, nullptr);
+							return (int)pThis->Owner->Buildings[i]->KickOutUnit(pTechnoToKick, overrider);
+						}
+					}
+				}
+
+				return 1;
+			}
+
+			++Unsorted::ScenarioInit;
+			CoordStruct docked_ {};
+			pThis->GetExitCoords(&docked_, 0);
+
+			if (pTechnoToKick->Unlimbo(docked_, DirType::East))
+			{
+				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->SetLocation(docked_);
+				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
+				pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
+				pThis->QueueMission(Mission::Unload, false);
+				--Unsorted::ScenarioInit;
+				return 2;
+			}
+
+			--Unsorted::ScenarioInit;
+			return 0;
+		}
+
+		if (!pThis->HasAnyLink())
+			pThis->QueueMission(Mission::Unload, false);
+		auto _this_Mapcoord = pThis->GetMapCoords();
+		auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
+
+		if (pThis->Focus)
+		{
+			auto _focus_coord = pThis->Focus->GetCoords();
+			auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
+			DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
+
+			auto v41 = MapClass::Instance->GetCellAt(_this_Mapcoord);
+			int v40 = 0;
+			if (v41->GetBuilding() == pThis)
+			{
+				auto v42 = &CellSpread::AdjacentCell[(int)__face.GetDir() & 7];
+				CellClass* v44 = nullptr;
+
+				do
+				{
+					v44 = MapClass::Instance->GetCellAt(CellStruct { short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y) });
+				}
+				while (v44->GetBuilding() == pThis);
+			}
+		}
+
+		if (!pThis->Focus
+			 || _this_cell->LandType != LandType::Water
+			 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
+			 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
+		{
+
+			auto _near = MapClass::Instance->NearByLocation(_this_Mapcoord, pTechnoToKick->GetTechnoType()->SpeedType, -1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+			auto _near_cell = MapClass::Instance->GetCellAt(_near);
+			auto _near_coord = _near_cell->GetCoords();
+
+			if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
+			{
+				if (pThis->Focus)
+				{
 					pTechnoToKick->SetDestination(pThis->Focus, true);
 					pTechnoToKick->QueueMission(Mission::Move, 0);
 				}
@@ -8101,308 +8490,397 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 		}
 		return 0;
 	}
-		case AbstractType::Infantry:
+	case AbstractType::Aircraft:
+	{
+		pThis->Owner->WhimpOnMoney(AbstractType::Aircraft);
+		pThis->Owner->ProducingAircraftTypeIndex = -1;
+		auto air = static_cast<AircraftClass*>(pTechnoToKick);
+
+		if (pThis->HasFreeLink(pTechnoToKick) || pThis->Owner->IonSensitivesShouldBeOffline() && !air->Type->AirportBound)
 		{
-			if (!pBuildingType->Hospital &&
-				!pBuildingType->Armory &&
-				!pBuildingType->WeaponsFactory &&
-				!pThis->HasAnyLink()
-				)
-			{
-				return 1;
-			}
 
-			if (!pBuildingType->Hospital && !pBuildingType->Armory)
-			{
-				pThis->Owner->WhimpOnMoney(AbstractType::Infantry);
-				pThis->Owner->ProducingInfantryTypeIndex = -1;
-			}
+			pTechnoToKick->MarkDownSetZ(0);
 
-			if (pBuildingType->Refinery || pBuildingType->Weeder) {
-				pTechnoToKick->Scatter(CoordStruct::Empty, true , false);
-				return 0;
-			}
-
-			if (!pBuildingType->WeaponsFactory)
+			++Unsorted::ScenarioInit;
+			if (pThis->Owner->IonSensitivesShouldBeOffline())
 			{
-				if (pBuildingType->Factory == AbstractType::InfantryType || pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
+				CellStruct v14 {};
+				pTechnoToKick->NearbyLocation(&v14, pThis);
+				auto coord_v14 = CellClass::Cell2Coord(v14);
+				auto pose_dir = RulesClass::Instance->PoseDir;
+
+				if (pTechnoToKick->Unlimbo(coord_v14, (DirType)pose_dir))
 				{
-					pTechnoToKick->SetFocus(pThis->Focus);
-					auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+					--Unsorted::ScenarioInit;
+					return 2;
+				}
+			}
+			else
+			{
+				auto pose_dir = RulesClass::Instance->PoseDir;
+				auto DockCoord = pThis->GetDockCoords(pTechnoToKick);
 
-					if (!docked_.IsValid())
-						return 0;
+				if (pTechnoToKick->Unlimbo(DockCoord, (DirType)pose_dir))
+				{
+					pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
+					pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
+					pTechnoToKick->SetLocation(DockCoord);
+					air->DockedTo = pThis;
 
-					if (pBuildingType->Factory == AbstractType::InfantryType && !pBuildingType->Cloning) {
-						for (auto i = 0; i < pThis->Owner->CloningVats.Count; ++i) {
-							auto pTech = (TechnoClass*)pTechnoToKick->GetTechnoType()->CreateObject(pThis->Owner->CloningVats[i]->Owner);
-							pThis->Owner->CloningVats[i]->KickOutUnit(pTech, CellStruct::Empty);
-						}
-					}
-
-					auto _coord = pThis->GetCoords();
-					auto _cellcoord = CellClass::Cell2Coord(docked_);
-					DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
-					CellStruct _copy = docked_;
-					auto cell = pThis->GetMapCoords();
-					if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+					if (pThis->Focus && !air->Type->AirportBound)
 					{
-						_copy.X += 1;
-					}
-					else
-					{
-						_copy.X -= 1;
-					}
-
-					if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
-					{
-						_copy.Y += 1;
-					}
-					else
-					{
-						_copy.Y -= 1;
-					}
-
-					_cellcoord = CellClass::Cell2Coord(_copy);
-					if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2) {
-						_cellcoord += pBuildingType->ExitCoord;
-					}
-
-					if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2) {
-						_cellcoord += pBuildingType->ExitCoord;
-					}
-
-					if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1) {
-						_cellcoord += pBuildingType->ExitCoord;
-					}
-
-					++Unsorted::ScenarioInit;
-
-					if (pTechnoToKick->Unlimbo(_cellcoord, _dir.GetDir()))
-					{
-						auto pToKickType = pTechnoToKick->GetTechnoType();
-
-						if (pTechnoToKick->Focus
-						  && !pToKickType->JumpJet
-						  && !pToKickType->Teleporter)
-						{
-							if (pTechnoToKick->Focus)
-							{
-								pTechnoToKick->SetFocus(pTechnoToKick->Focus);
-							}
-
-							pTechnoToKick->QueueMission(Mission::Move, false);
-							pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
-						}
-
-						if (!pThis->Owner->IsControlledByHuman() || pBuildingType->Hospital)
-						{
-							pTechnoToKick->QueueMission(Mission::Area_Guard, false);
-							CellStruct Where {};
-							pThis->Owner->WhereToGo(&Where, pTechnoToKick);
-
-							if (!Where.IsValid())
-							{
-								pTechnoToKick->SetFocus(nullptr);
-							}
-							else
-							{
-								auto pDest = MapClass::Instance->GetCellAt(Where);
-								pTechnoToKick->SetFocus(pDest);
-								((FootClass*)pTechnoToKick)->QueueNavList(pDest);
-							}
-						}
-
-						if (pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick) == RadioCommand::AnswerPositive)
-						{
-							pThis->SendCommand(RadioCommand::RequestUnload, pTechnoToKick);
-						}
-
-						--Unsorted::ScenarioInit;
-						return 2;
+						air->SetDestination(pThis->Focus, true);
+						air->QueueMission(Mission::Move, false);
 					}
 
 					--Unsorted::ScenarioInit;
-					return 0;
+					return 2;
+				}
+			}
+		}
+		else
+		{
+			if (air->Type->AirportBound)
+			{
+				return 0;
+			}
+			static constexpr reference<RectangleStruct, 0x87F8E4> MapClass_MapLocalSize {};
+
+			CellStruct v211 {};
+			CellStruct v206 {};
+			CellStruct v215 {};
+			CellStruct v216 {};
+			CellStruct v205 {};
+
+			v211.X = MapClass_MapLocalSize->Y;
+			v211.Y = MapClass_MapLocalSize->Y;
+			v206.Y = MapClass_MapLocalSize->Width;
+			v215.X = MapClass_MapLocalSize->X;
+			v215.Y = -MapClass_MapLocalSize->X;
+			v216.X = MapClass_MapLocalSize->X + 1;
+			v216.Y = MapClass_MapLocalSize->Width - MapClass_MapLocalSize->X;
+			v206.X = MapClass_MapLocalSize->Y + MapClass_MapLocalSize->X + 1;
+			v206.Y = MapClass_MapLocalSize->Width - MapClass_MapLocalSize->X + MapClass_MapLocalSize->Y;
+			auto mapCoord_ = pThis->GetCoords();
+			auto mapCoord_cell = CellClass::Coord2Cell(mapCoord_);
+			++Unsorted::ScenarioInit;
+
+			if ((((mapCoord_cell.X - v206.X) - (mapCoord_cell.Y) - v206.Y)) <= MapClass_MapLocalSize->Width)
+			{
+				--v206.X;
+			}
+			else
+			{
+				v216.X = MapClass_MapLocalSize->Width;
+				v215.Y = v206.Y;
+				v216.Y = -MapClass_MapLocalSize->Width;
+				v215.X = v206.X - 1;
+				v206.X = MapClass_MapLocalSize->Width + v206.X - 1;
+				v206.Y = v206.Y - MapClass_MapLocalSize->Width;
+			}
+
+			auto v9 = ScenarioClass::Instance->Random.RandomFromMax(MapClass_MapLocalSize->Height);
+			v205.X = v9 + v206.X;
+			v205.Y = v9 + v206.Y;
+			auto v205_coord = CellClass::Cell2Coord(v205);
+
+			if (pTechnoToKick->Unlimbo(v205_coord, DirType::Min))
+			{
+				if (auto pFocus = pThis->Focus)
+				{
+					pTechnoToKick->SetDestination(pFocus, true);
 				}
 				else
 				{
-					auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
+					CellStruct v230 {};
+					air->NearbyLocation(&v230, pThis);
 
-					if (!docked_.IsValid())
-						return 0;
-
-					auto _coord = pThis->GetCoords();
-					auto _cellcoord = CellClass::Cell2Coord(docked_);
-					DirStruct _dir { double(_coord.Y - _cellcoord.Y) , double(_coord.X - _cellcoord.X) };
-					CellStruct _copy = docked_;
-					auto cell = pThis->GetMapCoords();
-					if (_copy.X < (cell.X + pBuildingType->GetFoundationWidth()) && (_copy.X < cell.X))
+					if (!v230.IsValid())
 					{
-						_copy.X += 1;
+						pTechnoToKick->SetDestination(nullptr, true);
 					}
 					else
 					{
-						_copy.X -= 1;
+						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(v230), true);
 					}
+				}
 
-					if (_copy.Y < (cell.Y + pBuildingType->GetFoundationHeight(false)) && (_copy.Y < cell.Y))
-					{
-						_copy.Y += 1;
-					}
-					else
-					{
-						_copy.Y -= 1;
-					}
+				pTechnoToKick->ForceMission(Mission::Move);
+				--Unsorted::ScenarioInit;
+				return 2;
+			}
+		}
 
-					auto _cellcoord_res = CellClass::Cell2Coord(_copy);
-					if (pBuildingType->GDIBarracks && docked_.X == cell.X + 1 && docked_.Y == cell.Y + 2)
-					{
-						_cellcoord += pBuildingType->ExitCoord;
-					}
+		// ????????
+		--Unsorted::ScenarioInit;
+		return  0;
+	}
+	case AbstractType::Building:
+	{
 
-					if (pBuildingType->NODBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 2)
-					{
-						_cellcoord += pBuildingType->ExitCoord;
-					}
+		if (pThis->Owner->IsControlledByHuman())
+		{
+			return 0;
+		}
 
-					if (pBuildingType->YuriBarracks && docked_.X == cell.X + 2 && docked_.Y == cell.Y + 1)
-					{
-						_cellcoord += pBuildingType->ExitCoord;
-					}
+		auto bld = static_cast<BuildingClass*>(pTechnoToKick);
+		pThis->Owner->WhimpOnMoney(AbstractType::Building);
+		pThis->Owner->ProducingBuildingTypeIndex = -1;
 
-					++Unsorted::ScenarioInit;
+		const auto node = pThis->Owner->Base.NextBuildable(bld->Type->ArrayIndex);
+		CoordStruct build_Coord {};
 
-					if (pTechnoToKick->Unlimbo(_cellcoord_res, _dir.GetDir()))
-					{
-						pTechnoToKick->QueueMission(Mission::Move, false);
-						pTechnoToKick->SetDestination(MapClass::Instance->GetCellAt(docked_), true);
+		if (node && node->MapCoords.IsValid())
+		{
+			if (bld->Type->PowersUpBuilding[0] || pThis->Owner->HasSpaceFor(bld->Type, &node->MapCoords))
+			{
+				build_Coord = CellClass::Cell2Coord(node->MapCoords);
+			}
+			else
+			{
+				CellStruct _loc {};
+				pThis->Owner->FindBuildLocation(&_loc, bld->Type, *reinterpret_cast<HouseClass::placement_callback*>(0x505F80), -1);
+				build_Coord = CellClass::Cell2Coord(_loc);
 
-						if (!pThis->Owner->IsControlledByHuman())
-						{
-							pTechnoToKick->QueueMission(Mission::Area_Guard, false);
-							CellStruct Where {};
-							pThis->Owner->WhereToGo(&Where, pTechnoToKick);
-
-							if (!Where.IsValid())
-							{
-								pTechnoToKick->SetFocus(nullptr);
-							}
-							else
-							{
-								auto pDest = MapClass::Instance->GetCellAt(Where);
-								pTechnoToKick->SetFocus(pDest);
-							}
-						}
-
-						--Unsorted::ScenarioInit;
-						return 2;
-					}
-
-					--Unsorted::ScenarioInit;
+				if (build_Coord.IsEmpty())
+				{
 					return 0;
 				}
+
+				node->MapCoords = _loc;
+			}
+		}
+		else
+		{
+			if (bld->Type->PowersUpBuilding[0])
+			{
+				CellStruct v143 {};
+				pThis->Owner->GetPoweups(&v143, bld->Type);
+
+				if (v143.IsValid())
+				{
+					build_Coord = CellClass::Cell2Coord(v143);
+				}
+			}
+			else
+			{
+				CellStruct _loc {};
+				pThis->Owner->FindBuildLocation(&_loc, bld->Type, *reinterpret_cast<HouseClass::placement_callback*>(0x505F80), -1);
+				build_Coord = CellClass::Cell2Coord(_loc);
 			}
 
-			if (!pBuildingType->Naval)
+			if (node && build_Coord.IsValid())
 			{
-				pTechnoToKick->SetFocus(pThis->Focus);
+				node->MapCoords = CellClass::Coord2Cell(build_Coord);
+			}
+		}
 
-				if (pThis->GetMission() == Mission::Unload)
+		if (build_Coord.IsEmpty())
+		{
+			if (bld->Type->PowersUpBuilding[0])
+			{
+				if (pThis->Owner->Base.NextBuildable() == node)
 				{
-					const int _bldCount = pThis->Owner->Buildings.Count;
+					int idx__ = pThis->Owner->Base.NextBuildableIdx(-1);
 
-					if (_bldCount <= 0)
-						return 1;
-
-					for (int i = 0; i < _bldCount; ++i)
+					if (idx__ < pThis->Owner->Base.BaseNodes.Count)
 					{
-						if (pThis->Owner->Buildings[i]->Type == pBuildingType && pThis->Owner->Buildings[i] != pThis)
+						int last__ = pThis->Owner->Base.BaseNodes.Count - 1;
+						pThis->Owner->Base.BaseNodes.Count = last__;
+						if (idx__ < last__)
 						{
-							if (pThis->Owner->Buildings[i]->GetMission() == Mission::Guard && pThis->Owner->Buildings[i]->Factory)
+							auto v194 = 4 * idx__;
+							int v193 = 0;
+							do
 							{
-								pThis->Owner->Buildings[i]->Factory = std::exchange(pThis->Factory, nullptr);
-								return (int)pThis->Owner->Buildings[i]->KickOutUnit(pTechnoToKick, overrider);
+								auto at_ = (BaseNodeClass*)&pThis->Owner->Base.BaseNodes[v194 + 4];
+								auto v197 = (BaseNodeClass*)&pThis->Owner->Base.BaseNodes[v194];
+								++v193;
+								v194 += 4;
+								*v197 = *at_;
 							}
+							while (v193 < pThis->Owner->Base.BaseNodes.Count);
+
 						}
 					}
-
-					return 1;
-				}
-
-				++Unsorted::ScenarioInit;
-				CoordStruct docked_ {};
-				pThis->GetExitCoords(&docked_, 0);
-
-				if (pTechnoToKick->Unlimbo(docked_, DirType::East))
-				{
-					pTechnoToKick->UpdatePlacement(PlacementType::Remove);
-					pTechnoToKick->SetLocation(docked_);
-					pTechnoToKick->UpdatePlacement(PlacementType::Put);
-					pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
-					pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
-					pThis->QueueMission(Mission::Unload, false);
-					--Unsorted::ScenarioInit;
-					return 2;
-				}
-
-				--Unsorted::ScenarioInit;
-				return 0;
-			}
-
-			if (!pThis->HasAnyLink())
-				pThis->QueueMission(Mission::Unload, false);
-			auto _this_Mapcoord = pThis->GetMapCoords();
-			auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
-
-			if (pThis->Focus)
-			{
-				auto _focus_coord = pThis->Focus->GetCoords();
-				auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
-				DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
-
-				auto v41 = MapClass::Instance->GetCellAt(_this_Mapcoord);
-				int v40 = 0;
-				if (v41->GetBuilding() == pThis)
-				{
-					auto v42 = &CellSpread::AdjacentCell[(int)__face.GetDir() & 7];
-					CellClass* v44 = nullptr;
-
-					do
-					{
-						v44 = MapClass::Instance->GetCellAt(CellStruct { short(_this_Mapcoord.X + v42->X) , short(_this_Mapcoord.Y + v42->Y) });
-					}
-					while (v44->GetBuilding() == pThis);
-				}
-			}
-
-			if (!pThis->Focus
-				 || _this_cell->LandType != LandType::Water
-				 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
-				 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
-			{
-
-				auto _near = MapClass::Instance->NearByLocation(_this_Mapcoord, pTechnoToKick->GetTechnoType()->SpeedType, -1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
-				auto _near_cell = MapClass::Instance->GetCellAt(_near);
-				auto _near_coord = _near_cell->GetCoords();
-
-				if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
-				{
-					if (pThis->Focus)
-					{
-						pTechnoToKick->SetDestination(pThis->Focus, true);
-						pTechnoToKick->QueueMission(Mission::Move, 0);
-					}
-
-					pTechnoToKick->UpdatePlacement(PlacementType::Remove);
-					pTechnoToKick->SetLocation(_near_coord);
-					pTechnoToKick->UpdatePlacement(PlacementType::Put);
-					return 2;
 				}
 			}
 			return 0;
 		}
 
+		auto built_cell = CellClass::Coord2Cell(build_Coord);
+		if (int v147 = bld->Type->FlushPlacement(&built_cell, pThis->Owner))
+		{
+			auto v148 = v147 - 1;
+			if (!v148)
+			{
+				auto v149 = pThis->Owner->Base.FailedToPlaceNode(node);
+
+				if (SessionClass::Instance->GameMode != GameMode::Campaign)
+				{
+					if (v149 > RulesClass::Instance->MaximumBuildingPlacementFailures)
+					{
+						if (node)
+						{
+							int v150 = pThis->Owner->Base.BaseNodes.FindItemIndex(*node);
+
+							auto v151 = &pThis->Owner->Base.BaseNodes;
+							auto v152 = v151->Count;
+
+							if (v150 < v152)
+							{
+								auto v153 = v152 - 1;
+								auto v154 = v150;
+								v151->Count = v153;
+
+								if (v150 < v153)
+								{
+									auto v155 = 4 * v150;
+									do
+									{
+										auto v157 = &v151->Items[v155 + 4];
+										auto v158 = &v151->Items[v155];
+										++v154;
+										v155 += 4;
+										*v158 = *v157;
+										v158[1] = v157[1];
+										v158[2] = v157[2];
+										v158[3] = v157[3];
+									}
+									while (v154 < v151->Count);
+								}
+							}
+						}
+					}
+				}
+				return 1;
+			}
+			if (v148 != 1)
+			{
+				return 0;
+			}
+		}
+		else if (pTechnoToKick->Unlimbo(build_Coord, DirType::Min))
+		{
+			auto SlaveManager = bld->SlaveManager;
+			if (SlaveManager)
+			{
+				SlaveManager->Deploy2();
+			}
+
+			if (node)
+			{
+				if (bld->Type->ArrayIndex == pThis->Owner->ProducingBuildingTypeIndex)
+				{
+					pThis->Owner->ProducingBuildingTypeIndex = -1;
+				}
+			}
+
+			if (bld->CurrentMission == Mission::None && bld->QueuedMission == Mission::Selling)
+			{
+				bld->NextMission();
+			}
+
+
+			if (bld->Type->FirestormWall) {
+				MapClass::Instance->BuildingToFirestormWall(CellClass::Coord2Cell(build_Coord), pThis->Owner, bld->Type);
+			}
+			else
+			{
+				auto ToOverlay = bld->Type->ToOverlay;
+				if (ToOverlay && ToOverlay->Wall) {
+					MapClass::Instance->BuildingToWall(CellClass::Coord2Cell(build_Coord), pThis->Owner, bld->Type);
+				}
+			}
+
+			if (bld->Type == RulesClass::Instance->WallTower)
+			{
+				auto v163 = pThis->Owner->Base.BaseNodes.FindItemIndex(*node);
+
+				auto v165 = v163 + 1;
+				auto v166 = pThis->Owner->Base.BaseNodes.Count;
+				if (v163 + 1 < v166)
+				{
+					auto v167 = pThis->Owner->Base.BaseNodes.Items;
+					for (auto i = (int*)&v167[4 * v165]; *i < 0 || !BuildingTypeClass::Array->Items[*i]->IsBaseDefense; i += 4)
+					{
+						if (++v165 >= v166)
+						{
+							return 2;
+						}
+					}
+					 v167[4 * v165 + 1].MapCoords = CellClass::Coord2Cell(bld->Location);
+				}
+			}
+			return 2;
+		}
+
+		if (!node) {
+			return 0;
+		}
+
+		auto v171 = pThis->Owner->Base.BaseNodes.FindItemIndex(*node);
+		auto v172 = BuildingTypeClass::Array->Items[node->BuildingTypeIndex];
+
+		if (!v172->Wall && !v172->Gate)
+		{
+			v173 = this->t.House;
+			v174 = 0;
+			v175 = *(_DWORD*)&v211 / 256;
+			v176 = v212 / 256;
+
+			if (pThis->Owner->Base.BaseNodes.Count <= 0)
+			{
+				return 0;
+			}
+
+			int v177 = 0;
+			do
+			{
+				v178 = v173->Base.Nodes.Vector_Item;
+				v179 = LOWORD(v178[v177 + 1]) == (unsigned __int16)v175;
+				v180 = (int)&v178[v177 + 1];
+				if (v179 && *(_WORD*)(v180 + 2) == (_WORD)v176)
+				{
+					ActiveCount.X = 0;
+					ActiveCount.Y = 0;
+					*(_DWORD*)v180 = 0;
+				}
+				v173 = this->t.House;
+				++v174;
+				v177 += 4;
+			}
+			while (v174 < v173->Base.Nodes.ActiveCount);
+			return 0;
+		}
+		v181 = &this->t.House->Base.Nodes;
+		v182 = v181->ActiveCount;
+		if (v171 < v182)
+		{
+			v183 = v182 - 1;
+			v184 = v171;
+			v181->ActiveCount = v183;
+			if (v171 < v183)
+			{
+				v185 = 4 * v171;
+				do
+				{
+					v186 = v181->Vector_Item;
+					v187 = &v186[v185 + 4];
+					v188 = &v186[v185];
+					++v184;
+					v185 += 4;
+					*v188 = *v187;
+					v188[1] = v187[1];
+					v188[2] = v187[2];
+					v188[3] = v187[3];
+				}
+				while (v184 < v181->ActiveCount);
+				return 0;
+			}
+		}
+		return 0;
+	}
 	default:
 		return 0;
 	}
@@ -8414,8 +8892,9 @@ DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
 	GET(Mission, setTo, EBX);
 	GET(FootClass*, pMember, ESI);
 
-	if (setTo == Mission::Harvest) {
-		pMember->EnterIdleMode(false , true);
+	if (setTo == Mission::Harvest)
+	{
+		pMember->EnterIdleMode(false, true);
 		return 0x6EDA77;
 	}
 
@@ -8437,7 +8916,7 @@ DEFINE_HOOK(0x42D197, AStarClass_Attempt_Entry, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x42D44C , AStarClass_Attempt_Exit,0x6)
+DEFINE_HOOK_AGAIN(0x42D44C, AStarClass_Attempt_Exit, 0x6)
 DEFINE_HOOK(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
@@ -8445,7 +8924,8 @@ DEFINE_HOOK(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 }
 //#pragma optimize("", on )
 
-DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7) {
+DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7)
+{
 	GET_STACK(TechnoClass*, pTech, 0x3C);
 	GET_STACK(CellStruct*, from, 0x34);
 	GET_STACK(CellStruct*, to, 0x38);
@@ -8457,12 +8937,14 @@ DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7) {
 }
 
 DEFINE_HOOK_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
-DEFINE_HOOK(0x42CCC8, AStarClass_FindPath_Exit, 0x6) {
+DEFINE_HOOK(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
+{
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }
 
-DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7) {
+DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
+{
 	GET(TechnoClass*, pLink, EAX);
 	return !pLink ? 0x7410DD : 0x0;
 }
