@@ -61,11 +61,12 @@ constexpr WeaponStruct* __fastcall AircraftClass_GetWeapon_Wrapper(AircraftClass
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->CurrentAircraftWeaponIndex >= 0)
-		return pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex);
+		return pThis->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
 	else
-		return pThis->GetWeapon(pThis->SelectWeapon(pThis->Target));
+		return pThis->TechnoClass::GetWeapon(pThis->SelectWeapon(pThis->Target));
 }
 
+//DEFINE_JUMP(VTABLE, 0x7E269C, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
 DEFINE_JUMP(CALL6, 0x4180F9, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
 DEFINE_JUMP(CALL6, 0x4184E3, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
 DEFINE_JUMP(CALL6, 0x41852B, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));

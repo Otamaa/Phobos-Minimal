@@ -2369,11 +2369,13 @@ DEFINE_HOOK(0x53A140, LightningStorm_Strike, 7)
 			coords.Z += pExt->Weather_CloudHeight;
 
 			if(auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1))) {
-				// create the cloud and do some book keeping.
-				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				pAnim->SetHouse(pSuper->Owner);
-				LightningStorm::CloudsManifesting->AddItem(pAnim);
-				LightningStorm::CloudsPresent->AddItem(pAnim);
+				if(pAnimType->GetImage()) {
+					// create the cloud and do some book keeping.
+					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+					pAnim->SetHouse(pSuper->Owner);
+					LightningStorm::CloudsManifesting->AddItem(pAnim);
+					LightningStorm::CloudsPresent->AddItem(pAnim);
+				}
 			}
 		}
 
@@ -2414,9 +2416,11 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		{
 			if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)))
 			{
-				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				pAnim->SetHouse(pSuper->Owner);
-				LightningStorm::BoltsPresent->AddItem(pAnim);
+				if(pAnimType->GetImage()) {
+					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+					pAnim->SetHouse(pSuper->Owner);
+					LightningStorm::BoltsPresent->AddItem(pAnim);
+				}
 			}
 		}
 

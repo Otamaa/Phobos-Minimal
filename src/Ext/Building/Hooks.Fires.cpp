@@ -99,7 +99,7 @@ DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
 //DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
 //DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6) { return 0x46048E; }
 DEFINE_JUMP(LJMP, 0x46038A, 0x46048E);
-
+DEFINE_JUMP(LJMP, 0x43C0D0, 0x43C29B);
 //DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \

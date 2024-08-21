@@ -346,7 +346,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual int IsNotSprayAttack2() const R0;
 	virtual WeaponStruct* GetDeployWeapon() const R0;
 	virtual WeaponStruct* GetPrimaryWeapon() const JMP_THIS(0x70E1A0); //Get_Primary_Weapon
-	virtual WeaponStruct* GetWeapon(int nWeaponIndex) const R0;
+	virtual WeaponStruct* GetWeapon(int nWeaponIndex) const JMP_THIS(0x70E140);
 	virtual bool HasTurret() const R0;
 	virtual bool CanOccupyFire() const R0;
 	virtual int GetOccupyRangeBonus() const R0;
