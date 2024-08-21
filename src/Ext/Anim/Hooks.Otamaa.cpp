@@ -91,14 +91,14 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
 	GET(CellClass* const, location, ESI);
 
-	if (location->GetContainedTiberiumValue() > 0)
-	{
-		auto const pTibExt = TiberiumExtContainer::Instance.Find(
-			TiberiumClass::Array->GetItemOrDefault(location->GetContainedTiberiumIndex())
-		);
+	const int tib_idx = location->GetContainedTiberiumIndex();
+	const int value = tib_idx == -1 ? 0 : TiberiumClass::Array->Items[tib_idx]->Value;
 
-		if(!pTibExt)
-			return 0x0;
+	if (value > 0)
+	{
+		const auto pTibExt = TiberiumExtContainer::Instance.Find(
+			TiberiumClass::Array->Items[tib_idx]
+		);
 
 		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {

@@ -1517,18 +1517,6 @@ DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
 	return 0x7027AE;
 }
 
-DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamagedSoundFallback, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->DisableDamageSound.Get())
-	{
-		return R->Origin() + 0x6;
-	}
-
-	return 0x0;
-}
-
 // this just an duplicate
 DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
 

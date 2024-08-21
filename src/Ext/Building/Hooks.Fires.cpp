@@ -60,6 +60,9 @@ namespace DamageFireAnims
 			!pTypeext->DamageFire_Offs.empty())
 		{
 			pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
+			const auto render_coords = pThis->GetRenderCoords();
+			const auto nBuildingHeight = pType->GetFoundationHeight(false);
+			const auto nWidth = pType->GetFoundationWidth();
 
 			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{
@@ -67,21 +70,19 @@ namespace DamageFireAnims
 				const auto&[nPiX ,nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
 
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
-				nPixCoord += pThis->GetRenderCoords();
+				nPixCoord += render_coords;
 
 				if (const auto pFireType = pFire[pFire.size() == 1 ?
 					 0 : ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
 				{
 					auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord);
-					const auto nBuildingHeight = pType->GetFoundationHeight(false);
-					const auto nWidth = pType->GetFoundationWidth();
 					const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
 					pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
 					if (pAnim->Type->End > 0)
 						pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
-					pAnim->Owner = pThis->GetOwningHouse();
-					pExt->DamageFireAnims[i] = std::move(pAnim);
+					pAnim->Owner = pThis->Owner;
+					pExt->DamageFireAnims[i] = pAnim;
 				}
 			}
 		}
@@ -96,12 +97,10 @@ DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
 }
 
 //DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
-DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6)
-{
-	return 0x46048E;
-}
+//DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6) { return 0x46048E; }
+DEFINE_JUMP(LJMP, 0x46038A, 0x46048E);
+
 //DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
-//DEFINE_JUMP(LJMP, 0x46038A, 0x46048E);
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
 DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
@@ -143,20 +142,24 @@ DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 }
 
 //remove it from load
-//DEFINE_JUMP(LJMP, 0x454154, 0x454170);
-DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
-	return 0x454170;
-}
+DEFINE_JUMP(LJMP, 0x454154, 0x454170);
+//DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
+//	return 0x454170;
+//}
 #endif
 
-DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamage_OnFire, 0x9)
+DEFINE_HOOK(0x4426C8, BuildingClass_ReceiveDamage_Handle, 0xA)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pFoundationArray, 0x10);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	if (args.WH->Sparky)
-	{
+	if (!BuildingTypeExtContainer::Instance.Find(pThis->Type)->DisableDamageSound && pThis->Type->DamageSound == -1) {
+		VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, pThis->Location, nullptr);
+	}
+
+	if (args.WH->Sparky) {
+
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 		auto const pBldExt = BuildingExtContainer::Instance.Find(pThis);
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
@@ -168,6 +171,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamage_OnFire, 0x9)
 				return 0x4428FE;
 
 			pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+			const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
 			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
 			{
@@ -188,7 +192,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamage_OnFire, 0x9)
 					}
 				};
 
-				switch (ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5))
+				switch (ScenarioClass::Instance->Random.RandomFromMax(rand_))
 				{
 				case 1:
 				case 2:
