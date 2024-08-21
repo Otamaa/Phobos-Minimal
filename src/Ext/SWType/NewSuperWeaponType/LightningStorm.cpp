@@ -392,9 +392,11 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			RulesClass::Instance->WeatherConBolts))
 		{
 			if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))) {
-				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
-				BoltsPresent.push_back(pAnim);
+				if(pAnimType->GetImage()) {
+				 auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+				 AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
+				 BoltsPresent.push_back(pAnim);
+				}
 			}
 		}
 
@@ -515,11 +517,13 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 		coords.Z += pExt->Weather_CloudHeight;
 
 		if(auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1))) {
-			// create the cloud and do some book keeping.
-			auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-			AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
-			CloudsManifest.push_back(pAnim);
-			CloudsPresent.push_back(pAnim);
+			if (pAnimType->GetImage()) {
+				// create the cloud and do some book keeping.
+				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false);
+				CloudsManifest.push_back(pAnim);
+				CloudsPresent.push_back(pAnim);
+			}
 		}
 	}
 
