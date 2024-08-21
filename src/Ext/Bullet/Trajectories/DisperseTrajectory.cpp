@@ -661,6 +661,8 @@ bool DisperseTrajectory::PrepareDisperseWeapon(HouseClass* pOwner)
 	return false;
 }
 
+#include <Ext/Techno/Body.h>
+
 std::vector<TechnoClass*> DisperseTrajectory::GetValidTechnosInSame(std::vector<TechnoClass*>& Technos,
 	HouseClass* pOwner, WarheadTypeClass* pWH, bool Mode) const
 {
@@ -693,7 +695,8 @@ std::vector<TechnoClass*> DisperseTrajectory::GetValidTechnosInSame(std::vector<
 		if (pTechno->CloakState == CloakState::Cloaked)
 			continue;
 
-		if (MapClass::GetTotalDamage(100, pWH, pTechno->GetTechnoType()->Armor, 0) == 0)
+		auto const armor_ = TechnoExtData::GetArmor(pTechno);
+		if (MapClass::GetTotalDamage(100, pWH, armor_, 0) == 0)
 			continue;
 
 		ValidTechnos.push_back(pTechno);

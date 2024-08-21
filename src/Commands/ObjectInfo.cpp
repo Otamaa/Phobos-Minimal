@@ -162,28 +162,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		Append(buffer, "\n");
 	}
 
-	if (pFoot->CurrentMission == Mission::Attack
-		|| pFoot->CurrentMission == Mission::AttackMove
-		|| pFoot->CurrentMission == Mission::Hunt
-		|| pFoot->CurrentMission == Mission::Sabotage
-		|| pFoot->CurrentMission == Mission::Enter
-		)
-	{
-		if (pFoot->Target)
-		{
-			if (pFoot->Target->AbstractFlags & AbstractFlags::Object)
-			{
-				const auto pTarget = static_cast<ObjectClass*>(pFoot->Target);
-				Append(buffer, "Target = %s, Dist = %d, Loc = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->InlineMapCoords().X, pTarget->InlineMapCoords().Y);
-			}
-			else if (pFoot->Target->WhatAmI() == CellClass::AbsID)
-			{
-				const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
-				Append(buffer, "Target = Cell, Dist = %d, Loc = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
-			}
-		}
-	}
-	else if (pFoot->CurrentMission == Mission::Move || pFoot->CurrentMission == Mission::Capture)
+	if (pFoot->CurrentMission == Mission::Move || pFoot->CurrentMission == Mission::Capture)
 	{
 		if (pFoot->Destination)
 		{
@@ -197,6 +176,22 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 			{
 				const auto pDestCell = static_cast<CellClass*>(pFoot->Destination);
 				Append(buffer, "Destination = Cell, Dist = %d, Loc = (%d, %d)\n", static_cast<int>(pDestCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pDestCell->MapCoords.X, pDestCell->MapCoords.Y);
+			}
+		}
+	}
+	else
+	{
+		if (pFoot->Target)
+		{
+			if (pFoot->Target->AbstractFlags & AbstractFlags::Object)
+			{
+				const auto pTarget = static_cast<ObjectClass*>(pFoot->Target);
+					Append(buffer, "Target = %s, Dist = %d, Loc = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->InlineMapCoords().X, pTarget->InlineMapCoords().Y);
+			}
+			else if (pFoot->Target->WhatAmI() == CellClass::AbsID)
+			{
+				const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
+				Append(buffer, "Target = Cell, Dist = %d, Loc = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
 			}
 		}
 	}
