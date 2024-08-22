@@ -119,6 +119,7 @@ public:
 	virtual int GetSound(const SWTypeExtData* pData) const;
 	virtual int GetDamage(const SWTypeExtData* pData) const;
 
+	virtual void ValidateData(SWTypeExtData* pData) const { }
 	bool IsLaunchsiteAlive(BuildingClass* pBuilding) const;
 	bool IsSWTypeAttachedToThis(const SWTypeExtData* pData ,BuildingClass* pBuilding) const;
 public:

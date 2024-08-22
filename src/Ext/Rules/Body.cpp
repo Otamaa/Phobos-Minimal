@@ -269,6 +269,8 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 	return false;
 }
 
+#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+
 #ifndef aaa
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
@@ -618,8 +620,12 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (auto pSuper : *SuperWeaponTypeClass::Array) {
 		const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
 		{
+			//if (auto pNew = pSuperExt->GetNewSWType()) {
+			//	pNew->ValidateData(pSuperExt);
+			//}
+
 			for (auto& pTech : pSuperExt->Aux_Techno) {
-					TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
+				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
 			}
 
 			if(!pSuperExt->DropPod_Types.empty())
@@ -635,7 +641,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	//for (auto pAnim : *AnimTypeClass::Array) {
-	//	AnimTypeExtContainer::Instance.Find(pAnim)->ValidateData();
+	//	if (!pAnim->GetImage()) {
+	//		Debug::Log("Anim[%s] Has no proper Image!\n", pAnim->ID);
+	//		Debug::RegisterParserError();
+	//	}
 	//}
 
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {

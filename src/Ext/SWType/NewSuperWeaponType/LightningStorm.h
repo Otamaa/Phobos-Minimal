@@ -21,6 +21,8 @@ public:
 	virtual int GetDamage(const SWTypeExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
 
+	virtual void ValidateData(SWTypeExtData* pData) const override;
+
 	static SuperClass* CurrentLightningStorm;
 
 	using TStateMachine = CloneableLighningStormStateMachine;

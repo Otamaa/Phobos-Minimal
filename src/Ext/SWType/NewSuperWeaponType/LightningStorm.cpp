@@ -145,6 +145,49 @@ SWRange SW_LightningStorm::GetRange(const SWTypeExtData* pData) const
 	return pData->SW_Range->empty() ? SWRange(RulesClass::Instance->LightningCellSpread) : pData->SW_Range;
 }
 
+void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
+{
+	Debug::Log("%s - %s SW Validating Data ---------------------------:\n", pData->AttachedToObject->ID, this->GetTypeString()[0]);
+
+	if (pData->Weather_BoltExplosion.isset()) {
+		if (pData->Weather_BoltExplosion) {
+			if (!pData->Weather_BoltExplosion->GetImage()) {
+				Debug::Log("Anim[%s] Has no proper Image!\n", pData->Weather_BoltExplosion->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
+
+	if (pData->Weather_Clouds.HasValue()) {
+		for (auto& explo : pData->Weather_Clouds) {
+			if (explo && !explo->GetImage()) {
+				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
+
+	if (pData->Weather_Bolts.HasValue()) {
+		for (auto& explo : pData->Weather_Bolts) {
+			if (explo && !explo->GetImage()) {
+				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
+
+	if (pData->Weather_Debris.HasValue()) {
+		for (auto& explo : pData->Weather_Debris) {
+			if (explo && !explo->GetImage()) {
+				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
+
+	Debug::Log("-----------------------------------------------------\n");
+}
+
 bool CloneableLighningStormStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return SWStateMachine::Load(Stm, RegisterForChange)
