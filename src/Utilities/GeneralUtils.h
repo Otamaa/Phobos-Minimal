@@ -35,7 +35,7 @@ public:
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
-	static bool is_number(const std::string& s)
+	static constexpr bool is_number(const std::string& s)
 	{
 		return !s.empty() && std::find_if(s.begin(),
 			s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
@@ -197,7 +197,7 @@ public:
 		return defVal;
 	}
 
-	static inline CoordStruct GetRandomOffset(int min, int max)
+	static constexpr inline CoordStruct GetRandomOffset(int min, int max)
 	{
 		double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 		if (r > 0)
@@ -209,7 +209,7 @@ public:
 		return CoordStruct::Empty;
 	}
 
-	static inline CoordStruct GetRandomOffset(double maxSpread, double minSpread)
+	static constexpr inline CoordStruct GetRandomOffset(double maxSpread, double minSpread)
 	{
 		int min = static_cast<int>((minSpread <= 0 ? 0 : minSpread) * 256);
 		int max = static_cast<int>((maxSpread > 0 ? maxSpread : 1) * 256);
@@ -251,10 +251,10 @@ public:
 		return -1;
 	}
 
-	static inline std::map<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
+	static inline PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
 	{
 		const int weightCount = weights.size();
-		std::map<Point2D, int> targetPad {};
+		PhobosMap<Point2D, int> targetPad {};
 		maxValue = 0;
 
 		for (int index = 0; index < count; index++)
@@ -277,7 +277,7 @@ public:
 		return targetPad;
 	}
 
-	static inline int Hit(std::map<Point2D, int>& targetPad, int maxValue)
+	static constexpr inline int Hit(PhobosMap<Point2D, int>& targetPad, int maxValue)
 	{
 		int index = 0;
 		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
@@ -519,6 +519,21 @@ public:
 	static FORCEINLINE bool cmpf(float A, float B, float epsilon = 0.005f)
 	{
 		return (fabs(A - B) < epsilon);
+	}
+
+	template <typename T>
+	static constexpr void Shuffle(std::vector<T>& items)
+	{
+		if (items.size() <= 1)
+			return;
+
+		size_t size = items.size();
+
+		for (size_t i = 0; i < size; i++)
+		{
+			size_t idx = ScenarioClass::Instance->Random.RandomRanged(i, size - 1);
+			std::swap(items[i], items[idx]);
+		}
 	}
 
 	template<bool UseCriticalRandomNumber = true>

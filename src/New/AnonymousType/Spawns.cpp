@@ -25,7 +25,7 @@ void Spawns::SpawnAnims(TechnoClass* pInvoker,
 		}
 
 		int maxValue = 0;
-		std::map<Point2D, int> targetPad = GeneralUtils::MakeTargetPad(this->RandomWeights, animCount, maxValue);
+		PhobosMap<Point2D, int> targetPad = GeneralUtils::MakeTargetPad(this->RandomWeights, animCount, maxValue);
 
 		for (int i = 0; i < times; i++)
 		{
