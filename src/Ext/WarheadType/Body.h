@@ -495,7 +495,7 @@ public:
 
 	static void DetonateAt(
 		WarheadTypeClass* pThis,
-		const CoordStruct& coords,
+		const CoordStruct coords, //do make copy
 		TechnoClass* pOwner,
 		int damage,
 		bool targetCell = false,
@@ -505,7 +505,7 @@ public:
 	static void DetonateAt(
 		WarheadTypeClass* pThis,
 		AbstractClass* pTarget,
-		const CoordStruct& coords,
+		const CoordStruct coords,//do make copy
 		TechnoClass* pOwner,
 		int damage,
 		HouseClass* pFiringHouse = nullptr

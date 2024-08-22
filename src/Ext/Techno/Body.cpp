@@ -2247,7 +2247,6 @@ const Nullable<CoordStruct>* TechnoExtData::GetInfrantyCrawlFLH(InfantryClass* p
 
 const Armor TechnoExtData::GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead)
 {
-	auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pThis);
 	Armor nArmor = TechnoExtData::GetArmor(pThis);
 	TechnoExtData::ReplaceArmor(nArmor, pThis, pWarhead);
 	return nArmor;
@@ -4836,7 +4835,11 @@ void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadType
 void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH)
 {
 	if(const auto& pShieldData = TechnoExtContainer::Instance.Find(pTarget)->Shield){
-		if(pShieldData->IsActive() && pShieldData->CanBePenetrated(pWH)){
+		//if (IS_SAME_STR_("CAOILD", pTarget->get_ID())) {
+		//	Debug::Log("CAOILD Armor Replaced with Shield[%s]\n", pShieldData->GetType()->Name.data());
+		//}
+
+		if(pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
 			armor = pShieldData->GetType()->Armor;
 		}
 	}

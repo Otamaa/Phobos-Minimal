@@ -428,6 +428,9 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
+	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		return 0x6F6AB6u;
+
 	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -442,13 +445,10 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 	TechnoExtData::ProcessDigitalDisplays(pThis);
 
-	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
-		return 0x6F6AB6u;
-
 	if(HouseClass::IsCurrentPlayerObserver())
 		return 0x6F6A8E;
 
-	return 0u;
+	return 0x6F6AB6u;
 }
 
 

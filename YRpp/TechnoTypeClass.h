@@ -391,7 +391,7 @@ public:
 	int             InitialAmmo;
 	int             Ammo;
 	int             IFVMode;
-	int             AirRangeBonus;
+	Leptons         AirRangeBonus;
 	bool            BerserkFriendly;
 	bool            SprayAttack;
 	bool            Pushy;

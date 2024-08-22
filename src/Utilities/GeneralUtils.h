@@ -27,6 +27,7 @@ class GeneralUtils final
 public:
 
 	static bool IsValidString(const char* str);
+	static bool IsValidString(const wchar_t* str);
 	static void IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min = MIN_VAL(int), int max = MAX_VAL(int));
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);

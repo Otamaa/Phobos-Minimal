@@ -2946,23 +2946,23 @@ DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 	return 0x6E96A8;
 }
 
-DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
-{
-	GET(BulletClass*, pThis, EBX);
-	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
+// DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
+// {
+// 	GET(BulletClass*, pThis, EBX);
+// 	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
 
-	if (!pThis->Target)
-	{
-		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
-			pThis->get_ID(), pThis);
+// 	if (!pThis->Target)
+// 	{
+// 		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+// 			pThis->get_ID(), pThis);
 
-		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
-		R->EAX(pUnlimboCoords);
-		return 0x46870A;
-	}
+// 		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
+// 		R->EAX(pUnlimboCoords);
+// 		return 0x46870A;
+// 	}
 
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 {

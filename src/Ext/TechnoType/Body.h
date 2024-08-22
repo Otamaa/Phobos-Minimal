@@ -956,7 +956,7 @@ public:
 	NullableVector<int> AttachEffect_RecreationDelays {};
 
 	Valueable<bool> KeepTargetOnMove {};
-	Valueable<Leptons> KeepTargetOnMove_ExtraDistance {};
+	Nullable<Leptons> KeepTargetOnMove_ExtraDistance {};
 
 	Nullable<bool> ForbidParallelAIQueues {};
 	Nullable<AnimTypeClass*> Wake {};

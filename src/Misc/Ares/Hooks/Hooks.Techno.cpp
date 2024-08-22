@@ -1066,13 +1066,14 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 // westwood does firingUnit->WhatAmI() == abs_AircraftType
 // which naturally never works
 // let's see what this change does
-DEFINE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
-{
-	GET(AbstractType, pTarget, EAX);
-	GET(CoordStruct*, pCoord, ESI);
-	R->EAX(pCoord->X);
-	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
-}
+// DEFINE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
+// {
+// 	GET(AbstractType, pTarget, EAX);
+// 	GET(CoordStruct*, pCoord, ESI);
+// 	R->EAX(pCoord->X);
+// 	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
+// }
+DEFINE_PATCH(0x6F7563,0x2);
 
 // No data found on .inj for this
 //DEFINE_HOOK(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)

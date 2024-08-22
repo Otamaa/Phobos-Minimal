@@ -37,6 +37,7 @@ DEFINE_HOOK(0x6FA697, TechnoClass_Update_DontScanIfUnarmed, 0x6)
 DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(int, threat, 0x1C);
 
 	pThis->__creationframe_4FC = R->EAX();
 	int delay = ScenarioClass::Instance->Random.RandomRanged(0, 2);
@@ -58,6 +59,7 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 		}
 	}
 
+
 	pThis->TargetingTimer.Start(delay);
 
 	if (pTypeExt->AutoFire) {
@@ -66,5 +68,6 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 		return 0x7099B8;
 	}
 
+	R->EDI(threat & 3);
 	return 0x7098B9;
 }

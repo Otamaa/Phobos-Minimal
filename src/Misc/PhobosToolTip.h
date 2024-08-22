@@ -21,12 +21,14 @@ private:
 	static int TickTimeToSeconds(int tickTime);
 public:
 	inline bool IsEnabled() const;
-	inline const wchar_t* GetBuffer() const;
+	constexpr inline const wchar_t* GetBuffer() const
+	{
+		return this->TextBuffer.c_str();
+	}
 
 	void HelpText(const BuildType& cameo);
 	void HelpText(TechnoTypeClass* pType);
 	void HelpText(SuperClass* pSuper);
-
 	// Properties
 public:
 	std::wstring TextBuffer {};

@@ -95,11 +95,6 @@ inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 	return 0;
 }
 
-inline const wchar_t* PhobosToolTip::GetBuffer() const
-{
-	return this->TextBuffer.c_str();
-}
-
 void PhobosToolTip::HelpText(const BuildType& cameo)
 {
 	if (cameo.ItemType == AbstractType::Special) {

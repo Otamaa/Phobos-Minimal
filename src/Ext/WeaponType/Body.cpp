@@ -449,14 +449,14 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
-	if (pThis->Warhead->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
+	// if (pThis->Warhead->NukeMaker)
+	// {
+	// 	if (!pTarget)
+	// 	{
+	// 		Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	// 		return;
+	// 	}
+	// }
 
 	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
@@ -487,14 +487,14 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
-	if (pThis->Warhead->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
+	// if (pThis->Warhead->NukeMaker)
+	// {
+	// 	if (!pTarget)
+	// 	{
+	// 		Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	// 		return;
+	// 	}
+	// }
 
 	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);

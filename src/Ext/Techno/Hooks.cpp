@@ -107,20 +107,6 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 	return idxCurrentBurst <= 0 || idxCurrentBurst > 4 ? 0x6FD084 : 0x6FD067;
 }
 
-DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0x6) //C
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	if (auto const pTransport = pThis->Transporter)
-	{
-		R->EAX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
-			->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus));
-		return 0x6F72DE;
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 {
 	GET(TemporalClass* const, pThis, ESI);
@@ -673,22 +659,19 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
-	{
-		int weaponIndex = pThis->SelectWeapon(pThis->Target);
+	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move) {
+		if(pTypeExt->KeepTargetOnMove_ExtraDistance.isset()) {
+			int weaponIndex = pThis->SelectWeapon(pThis->Target);
 
-		if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
-		{
-			int extraDistance = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
-			int range = pWeapon->Range;
-			auto pExt = TechnoExtContainer::Instance.Find(pThis);
+			if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType) {
+				auto pExt = TechnoExtContainer::Instance.Find(pThis);
+				pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
 
-			pExt->AdditionalRange = extraDistance;
+				if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
+					pThis->SetTarget(nullptr);
 
-			if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
-				pThis->SetTarget(nullptr);
-
-			pExt->AdditionalRange.clear();
+				pExt->AdditionalRange.clear();
+			}
 		}
 	}
 
@@ -857,42 +840,42 @@ DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
-{
-	//enum { RecycleIsOk = 0x6B77FF, RecycleIsNotOk = 0x6B7838 };
-
-	GET(SpawnManagerClass* const, pThis, ESI);
-	GET(TechnoClass* const, pSpawned, EDI);
-	GET(CellStruct* const, pSpawnerMapCrd, EBP);
-
-	const auto pSpawner = pThis->Owner;
-	const auto pSpawnerType = pSpawner->GetTechnoType();
-	const auto pSpawnedMapCrd = pSpawned->GetMapCoords();
-	const auto pSpawnerExt = TechnoTypeExtContainer::Instance.Find(pSpawnerType);
-	const auto SpawnerCrd = pSpawner->GetCoords();
-	const auto SpawnedCrd = pSpawned->GetCoords();
-	const auto DeltaCrd = SpawnedCrd - SpawnerCrd;
-	const int RecycleRange = pSpawnerExt->Spawner_RecycleRange;
-
-	const auto what = pSpawner->WhatAmI();
-	const bool bShouldRecycleSpawned = (RecycleRange == -1 && (what == AbstractType::Building && DeltaCrd.X <= 182 && DeltaCrd.Y <= 182 && DeltaCrd.Z < 20 ||
-			what != AbstractType::Building && pSpawnedMapCrd.X == pSpawnerMapCrd->X && pSpawnedMapCrd.Y == pSpawnerMapCrd->Y && DeltaCrd.Z < 20)) ||
-			Math::sqrt(DeltaCrd.X * DeltaCrd.X + DeltaCrd.Y * DeltaCrd.Y + DeltaCrd.Z * DeltaCrd.Z) <= RecycleRange;
-
-	if (bShouldRecycleSpawned) {
-
-		if (auto pAnim = pSpawnerExt->Spawner_RecycleAnim) {
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, SpawnedCrd),
-				pSpawner->GetOwningHouse(),
-				nullptr,
-				pSpawner,
-				false
-			);
-		}
-
-		pSpawned->SetLocation(SpawnerCrd);
-		R->EAX(pSpawnerMapCrd);
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
+// {
+// 	//enum { RecycleIsOk = 0x6B77FF, RecycleIsNotOk = 0x6B7838 };
+//
+// 	GET(SpawnManagerClass* const, pThis, ESI);
+// 	GET(TechnoClass* const, pSpawned, EDI);
+// 	GET(CellStruct* const, pSpawnerMapCrd, EBP);
+// 	GET(CellStruct* const , pSpawnedMapCrd, EAX);
+//
+// 	const auto pSpawner = pThis->Owner;
+// 	const auto pSpawnerType = pSpawner->GetTechnoType();
+// 	const auto pSpawnerExt = TechnoTypeExtContainer::Instance.Find(pSpawnerType);
+// 	const auto SpawnerCrd = pSpawner->Location;
+// 	const auto SpawnedCrd = pSpawned->Location;
+// 	const auto DeltaCrd = SpawnedCrd - SpawnerCrd;
+// 	const int RecycleRange = pSpawnerExt->Spawner_RecycleRange;
+//
+// 	const auto what = pSpawner->WhatAmI();
+// 	const bool bShouldRecycleSpawned = (RecycleRange == -1 && (what == AbstractType::Building && DeltaCrd.X <= 182 && DeltaCrd.Y <= 182 && DeltaCrd.Z < 20 ||
+// 			what != AbstractType::Building && pSpawnedMapCrd->X == pSpawnerMapCrd->X && pSpawnedMapCrd->Y == pSpawnerMapCrd->Y && DeltaCrd.Z < 20)) ||
+// 			Math::sqrt(DeltaCrd.X * DeltaCrd.X + DeltaCrd.Y * DeltaCrd.Y + DeltaCrd.Z * DeltaCrd.Z) <= RecycleRange;
+//
+// 	if (bShouldRecycleSpawned) {
+//
+// 		if (auto pAnim = pSpawnerExt->Spawner_RecycleAnim) {
+// 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, SpawnedCrd),
+// 				pSpawner->GetOwningHouse(),
+// 				nullptr,
+// 				pSpawner,
+// 				false
+// 			);
+// 		}
+//
+// 		pSpawned->SetLocation(SpawnerCrd);
+// 		R->EAX(pSpawnerMapCrd);
+// 	}
+//
+// 	return 0;
+// }

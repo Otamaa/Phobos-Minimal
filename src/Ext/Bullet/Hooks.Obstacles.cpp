@@ -77,7 +77,7 @@ public:
 		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;
 		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
 
-		if (!isTargetingCheck &&isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
+		if (!isTargetingCheck && isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
 			return true;
 		else if (!isCellWater && pBulletTypeExt->SubjectToLand.Get(false))
 			return !isTargetingCheck ? pBulletTypeExt->SubjectToLand_Detonate : true;
@@ -90,33 +90,33 @@ public:
 
 // Hooks
 
- DEFINE_HOOK(0x4688A9, BulletClass_Unlimbo_Obstacles, 0x6)
- {
- 	enum { SkipGameCode = 0x468A3F, Continue = 0x4688BD };
+DEFINE_HOOK(0x4688A9, BulletClass_Unlimbo_Obstacles, 0x6)
+{
+	enum { SkipGameCode = 0x468A3F, Continue = 0x4688BD };
 
- 	GET(BulletClass*, pThis, EBX);
- 	GET(CoordStruct const* const, sourceCoords, EDI);
- 	REF_STACK(CoordStruct const, targetCoords, STACK_OFFSET(0x54, -0x10));
+	GET(BulletClass*, pThis, EBX);
+	GET(CoordStruct const* const, sourceCoords, EDI);
+	REF_STACK(CoordStruct const, targetCoords, STACK_OFFSET(0x54, -0x10));
 
- 	if (pThis->Type->Inviso)
- 	{
- 		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
- 		const auto pObstacleCell = BulletObstacleHelper::FindFirstObstacle(*sourceCoords, targetCoords, pThis->Owner, pThis->Target, pOwner, pThis->Type, false);
+	if (pThis->Type->Inviso)
+	{
+		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
+		const auto pObstacleCell = BulletObstacleHelper::FindFirstObstacle(*sourceCoords, targetCoords, pThis->Owner, pThis->Target, pOwner, pThis->Type, false);
 
- 		if (pObstacleCell)
- 		{
- 			pThis->SetLocation(pObstacleCell->GetCoords());
- 			pThis->Speed = 0;
- 			pThis->Velocity = {0,0,0};
+		if (pObstacleCell)
+		{
+			pThis->SetLocation(pObstacleCell->GetCoords());
+			pThis->Speed = 0;
+			pThis->Velocity = { 0,0,0 };
 
- 			return SkipGameCode;
- 		}
+			return SkipGameCode;
+		}
 
- 		return Continue;
- 	}
+		return Continue;
+	}
 
- 	return 0;
- }
+	return 0;
+}
 
 DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 {
@@ -147,38 +147,46 @@ DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 
 DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
-	enum { SkipGameCode = 0x6F724E };
+	enum { ContinueCheck = 0x6F72E3, RetTrue = 0x6F7256, RetFalse = 0x6F7655 };
 
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, ECX);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
+	if (!pTarget || !pWeapon)
+		return RetFalse;
+
 	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
-	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget)) {
-		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset()) {
-			const auto pFootCell = pFoot->GetCell();
-			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
-				range += pThisTypeExt->NavalRangeBonus.Get();
+
+	if (range == -512)
+		return RetTrue;
+
+	const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if(pThisTypeExt->NavalRangeBonus.isset()){
+		if (auto const pFoot = abstract_cast<FootClass* const>(pTarget)) {
+			if (pFoot->GetTechnoType()->Naval) {
+				const auto pFootCell = pFoot->GetCell();
+				if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
+					range += pThisTypeExt->NavalRangeBonus.Get();
+			}
 		}
 	}
 
+	if (pTarget->IsInAir())
+		range += pThisTypeExt->AttachedToObject->AirRangeBonus;
+
+	if (pThis->BunkerLinkedItem && pThis->BunkerLinkedItem->WhatAmI() != AbstractType::Building)
+		range += RulesClass::Instance->BunkerWeaponRangeBonus * Unsorted::LeptonsPerCell;
+
+	if (pThis->Transporter)
+	{
+		range += TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())
+			->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus) * Unsorted::LeptonsPerCell;
+	}
+
 	R->EDI(range);
-
-	return SkipGameCode;
-}
-
-DEFINE_HOOK(0x6F7294, TechnoClass_InRange_OccupyRange, 0x5)
-{
-	enum { SkipGameCode = 0x6F729F };
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, range, EDI);
-
-	const int occupyRange = WeaponTypeExtData::GetRangeWithModifiers(nullptr, pThis) / Unsorted::LeptonsPerCell;
-	R->EDI(range + occupyRange);
-
-	return SkipGameCode;
+	return ContinueCheck;
 }
 
 DEFINE_HOOK(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)

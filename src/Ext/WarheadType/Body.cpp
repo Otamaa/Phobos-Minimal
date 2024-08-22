@@ -1146,7 +1146,7 @@ void WarheadTypeExtData::DetonateAt(
 
 void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
-	const CoordStruct& coords,
+	const CoordStruct coords,
 	TechnoClass* pOwner,
 	int damage,
 	bool targetCell,
@@ -1166,7 +1166,7 @@ void WarheadTypeExtData::DetonateAt(
 void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
 	AbstractClass* pTarget,
-	const CoordStruct& coords,
+	const CoordStruct coords,
 	TechnoClass* pOwner,
 	int damage,
 	HouseClass* pFiringHouse
@@ -1177,14 +1177,14 @@ void WarheadTypeExtData::DetonateAt(
 
 	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WarheadTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
+	//if (pThis->NukeMaker)
+	//{
+	//	if (!pTarget)
+	//	{
+	//		Debug::Log("WarheadTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	//		return;
+	//	}
+	//}
 
 	if (!pOwner)
 	{

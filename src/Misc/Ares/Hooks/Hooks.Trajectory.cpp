@@ -32,8 +32,8 @@ DEFINE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 	return 0x468C86;
 }
 
-DEFINE_HOOK_AGAIN(0x6F7631, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
-DEFINE_HOOK(0x6F7511, TechnoClass_IsCloseEnoughToTarget_Obstacle, 6)
+DEFINE_HOOK_AGAIN(0x6F7631, TechnoClass_InRange_Obstacle, 6)
+DEFINE_HOOK(0x6F7511, TechnoClass_InRange_Obstacle, 6)
 {
 	GET_BASE(WeaponTypeClass* const, pWeapon, 0x10);
 	GET_BASE(AbstractClass* const, pTarget, 0xC);

@@ -252,11 +252,9 @@ DEFINE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	if (!Wave->IsTraveling)
 		return 0x762D57;
 
-	CoordStruct FLH;
+	CoordStruct FLH = pData->SourceCoord;
 	if(pData->WeaponIdx != -1)
 		Firer->GetFLH(&FLH , pData->WeaponIdx, CoordStruct::Empty);
-	else
-		 FLH = pData->SourceCoord;
 
 	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
 
