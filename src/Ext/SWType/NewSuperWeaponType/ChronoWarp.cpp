@@ -84,7 +84,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		pAnim->Owner = pSource->Owner;
 	}
 
-	std::vector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
+	HelperedVector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
 	// collect every techno in this range only once. apply the Chronosphere.
 
 	auto range = NewSWType::GetNewSWType(pSourceSWExt)->GetRange(pSourceSWExt);

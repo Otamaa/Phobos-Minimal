@@ -257,7 +257,7 @@ public:
 	{
 	}
 
-	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType, std::vector<ChronoWarpContainer> Buildings)
+	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType, HelperedVector<ChronoWarpContainer> Buildings)
 		: SWStateMachine(Duration, XY, pSuper, pSWType), Buildings(std::move(Buildings)), Duration(Duration)
 	{
 	}
@@ -281,7 +281,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 protected:
-	std::vector<ChronoWarpContainer> Buildings;
+	HelperedVector<ChronoWarpContainer> Buildings;
 	int Duration;
 };
 
@@ -483,9 +483,9 @@ public:
 	void Stop() { TimeToEnd = true; }
 
 public:
-	std::vector<AnimClass*> CloudsPresent;
-	std::vector<AnimClass*> CloudsManifest;
-	std::vector<AnimClass*> BoltsPresent;
+	HelperedVector<AnimClass*> CloudsPresent;
+	HelperedVector<AnimClass*> CloudsManifest;
+	HelperedVector<AnimClass*> BoltsPresent;
 
 	int ActualDuration;
 	int StartTime; //storing current frame
