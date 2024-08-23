@@ -519,10 +519,10 @@ public:
 		else { this->push_back(other); }
 	}
 
-	constexpr FORCEINLINE void EmpalacebackUnique(const T& other)
+	constexpr FORCEINLINE void EmplacebackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
-		else { this->empalace_back(other); }
+		else { this->emplace_back(other); }
 	}
 
 	template <typename Func>
