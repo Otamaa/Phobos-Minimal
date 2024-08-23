@@ -320,6 +320,7 @@
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Hooks.Multithread.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />

@@ -318,7 +318,7 @@ DEFINE_HOOK(0x43A002, Bounclass_Update_FixCrash, 0x9)
 
 	//the fuck this ramp result is wrong ,..
 	if(ramp > 11){
-		Debug::Log("Updating Bounce with rampIdx %d\n", ramp);
+		//Debug::Log("Updating Bounce with rampIdx %d\n", ramp);
 		return 0x43A05D;
 	}
 

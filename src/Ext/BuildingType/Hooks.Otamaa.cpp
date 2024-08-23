@@ -5,7 +5,12 @@
 
 #include <BuildingClass.h>
 #include <HouseClass.h>
+
 #include <Ext/Rules/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/WeaponType/Body.h>
+
 #include <Utilities/Macro.h>
 
 #include <Utilities/EnumFunctions.h>
@@ -14,71 +19,103 @@
 
 #pragma region Otamaa
 
-DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
+DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 {
-	enum { ApplyDamageBonus = 0x6FE405, Nothing = 0x0 };
 	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+	GET_STACK(int, nDamage, 0x2C);
+	GET_BASE(int, weapon_idx, 0xC);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
 
-	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
-		GET_STACK(int, nDamage, 0x2C);
-		R->EAX(int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)));
-		return ApplyDamageBonus;
+	if(pThis->CanOccupyFire()) {
+		if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
+			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
+		} else {
+			nDamage = int(nDamage * RulesClass::Instance->OccupyDamageMultiplier);
+		}
 	}
 
-	return Nothing;
-}
-
-DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
-{
-	enum { ApplyDamageBonus = 0x6FE435, Nothing = 0x0 };
-	GET(TechnoClass* const, pThis, ESI);
-
-	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
-		GET_STACK(int, nDamage, 0x2C);
-		R->EAX(int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)));
-		return ApplyDamageBonus;
+	if(pThis->WhatAmI() != BuildingClass::AbsID) {
+		if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
+		}
 	}
 
-	return Nothing;
+	if (pThis->InOpenToppedTransport) {
+		if (auto const  pTransport = pThis->Transporter) {
+			float nDamageMult = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
+				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
+			nDamage = int(nDamage * nDamageMult);
+		}
+		else
+		{
+			nDamage = int(nDamage * RulesClass::Instance->OpenToppedDamageMultiplier);
+		}
+	}
+
+	if(!pWeapon->DiskLaser) {
+		R->EDI(nDamage);
+		R->Stack(0x2C, nDamage);
+		return 0x6FE4F6; // continue check
+	}
+
+	auto pDiskLaser = GameCreate<DiskLaserClass>();
+
+	++pThis->CurrentBurstIndex;
+	int rearm = pThis->GetROF(weapon_idx);
+	pThis->ROF = rearm;
+	pThis->DiskLaserTimer.Start(rearm);
+	pThis->CurrentBurstIndex %= pWeapon->Burst;
+	pDiskLaser->Fire(pThis, pTarget, pWeapon, nDamage);
+
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	//this may crash the game , since the object got deleted after killself ,..
+	if (pWeaponExt->RemoveTechnoAfterFiring.Get())
+		TechnoExtData::KillSelf(pThis, KillMethod::Vanish);
+	else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
+		TechnoExtData::KillSelf(pThis, KillMethod::Explode);
+
+	return 0x6FE4E7; //end of func
 }
 
-DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
+DEFINE_HOOK(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 {
-	enum { ApplyRofMod = 0x6FD1AB, SkipRofMod = 0x6FD1B1, Nothing = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(int, nROF, 0x14);
 
-	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
-		auto const nMult = BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyROFMult.Get(RulesClass::Instance->OccupyROFMultiplier);
+	auto const Building = specific_cast<BuildingClass*>(pThis);
 
-		if (nMult != 0.0f) {
-			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
-			R->EAX(int(((double)nROF) / nMult));
-			return ApplyRofMod;
+	if (pThis->CanOccupyFire()) {
+		const auto occupant = pThis->GetOccupantCount();
+
+		if (occupant > 0) {
+			nROF /= occupant;
 		}
 
-		return SkipRofMod;
-	}
+		auto OccupyRofMult = RulesClass::Instance->OccupyROFMultiplier;
 
-	return Nothing;
-}
-
-DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
-{
-	enum { ApplyRofMod = 0x6FD1EF, SkipRofMod = 0x6FD1F1, Nothing = 0x0 };
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
-			auto const nMult = BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerROFMult.Get(RulesClass::Instance->BunkerROFMultiplier);
-		if (nMult != 0.0f) {
-			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
-			R->EAX(int(((double)nROF) / nMult));
-				return ApplyRofMod;
+		if (Building) {
+			OccupyRofMult = BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyROFMult.Get(OccupyRofMult);
 		}
 
-		return SkipRofMod;
+		if (OccupyRofMult > 0.0)
+			nROF = int(float(nROF) / OccupyRofMult);
+
 	}
 
-	return Nothing;
+	if (pThis->BunkerLinkedItem && !Building) {
+		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
+		if (auto const pBunkerIsBuilding = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
+		}
+
+		if(BunkerMult != 0.0)
+			nROF = int(float(nROF) / BunkerMult);
+	}
+
+	R->EAX(nROF);
+	return 0x6FD1F3;
 }
 
 #pragma region BunkerSounds

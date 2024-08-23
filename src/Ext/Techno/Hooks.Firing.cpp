@@ -226,29 +226,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	return Continue;
 }
 
-// Weapon Firing
-DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
-{
-	enum { ApplyDamageMult = 0x6FE45A, ContinueCheck = 0x6FE460 };
-
-	GET(TechnoClass* const, pThis, ESI);
-
-	//replacing whole check due to `fild`
-	if (pThis->InOpenToppedTransport)
-	{
-		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
-		if (auto const  pTransport = pThis->Transporter)
-		{
-			float nDamageMult = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
-				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
-			R->EAX(int(nDamage * nDamageMult));
-			return ApplyDamageMult;
-		}
-	}
-
-	return ContinueCheck;
-}
-
 DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 {
 	enum { Continue = 0x0, DoNotFire = 0x6FE4E7, SkipSetTarget = 0x6FE1D5 };

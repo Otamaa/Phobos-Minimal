@@ -382,6 +382,8 @@ public:
 	Valueable<CoordStruct> ExpandLandGridFrames { { 1, 0, 0 } };
 	Valueable<CoordStruct> ExpandWaterGridFrames { { 1, 0, 0 } };
 
+	Valueable<AnimTypeClass*> DefaultExplodeFireAnim {};
+
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
 

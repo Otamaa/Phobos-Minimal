@@ -248,6 +248,11 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->PrimaryFactoryIndicator.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator");
 	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator.Palette");
 
+	pData->DefaultExplodeFireAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DefaultExplodeOverlayFireAnim");
+
+	if (!pData->DefaultExplodeFireAnim)
+		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
+
 	for(int i = 0; i < WeaponTypeClass::Array->Count; ++i) {
 		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
 	}
@@ -1335,6 +1340,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->PlayerGuardAreaTargetingDelay)
 		.Process(this->CheckUnitBaseNormal)
 		.Process(this->ExpandBuildingPlace)
+		.Process(this->DefaultExplodeFireAnim)
 		.Process(this->CheckExpandPlaceGrid)
 		.Process(this->ExpandLandGridFrames)
 		.Process(this->ExpandWaterGridFrames)

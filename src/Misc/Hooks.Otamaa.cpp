@@ -463,6 +463,7 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	GET(int, zAdd, EDI);
 
 	CoordStruct nLoc { X , Y , Z + zAdd };
+
 	if (auto const pType = pThis->Type->Explosion.Items[ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1)])
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
@@ -484,7 +485,7 @@ DEFINE_HOOK(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	GET(BuildingClass*, pThis, ESI);
 	LEA_STACK(CoordStruct*, pCoord, 0x64 - 0x54);
 
-	if (auto pType = AnimTypeClass::Find(GameStrings::Anim_FIRE3))
+	if (auto pType = RulesExtData::Instance()->DefaultExplodeFireAnim)
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
@@ -705,6 +706,34 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 
 	return 0;
 }
+
+//DEFINE_HOOK(0x6FE46E, TechnoClass_FireAt_DiskLaser, 0x7) {
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(WeaponTypeClass* const, pWeapon, EBX);
+//	GET(int, damage, EDI);
+//	GET_BASE(int, weapon_idx, 0xC);
+//	GET_BASE(AbstractClass*, pTarget, 0x8);
+//
+//	auto pDiskLaser = GameCreate<DiskLaserClass>();
+//
+//	++pThis->CurrentBurstIndex;
+//	int rearm = pThis->GetROF(weapon_idx);
+//	pThis->ROF = rearm;
+//	pThis->DiskLaserTimer.Start(rearm);
+//	pThis->CurrentBurstIndex %= pWeapon->Burst;
+//	pDiskLaser->Fire(pThis, pTarget, pWeapon, damage);
+//
+//	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+//
+//	//this may crash the game , since the object got deleted after killself ,..
+//	if (pWeaponExt->RemoveTechnoAfterFiring.Get())
+//		TechnoExtData::KillSelf(pThis, KillMethod::Vanish);
+//	else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
+//		TechnoExtData::KillSelf(pThis, KillMethod::Explode);
+//
+//	return 0x6FE4E7;
+//}
+
 
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
@@ -2432,7 +2461,7 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					}
 				}
 			}
-			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
+			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->ID); }
 		}
 	}
 
@@ -2972,7 +3001,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 	const auto pHouse = pType->GetHouse();
 	if (!pHouse)
 	{
-		Debug::Log("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n", pType->ID);
+		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n", pType->ID);
 	}
 
 	R->EAX(pHouse);
