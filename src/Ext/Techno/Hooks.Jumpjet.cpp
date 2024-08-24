@@ -354,23 +354,18 @@ namespace JumpjetRushHelpers
 int JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(Point2D location)
 {
 	CellClass* const pCell = MapClass::Instance->GetTargetCell(location);
-
-	if (!pCell)
-		return -1;
-
 	int height = pCell->GetFloorHeight(Point2D { location.X & 0xFF, location.Y & 0xFF });
 	ObjectClass* pObject = pCell->FirstObject;
-
-	while (pObject && pObject->WhatAmI() != AbstractType::Building)
-		pObject = pObject->NextObject;
-
-	if (pObject && pObject->WhatAmI() == AbstractType::Building)
-	{
-		BuildingClass* pBuilding = static_cast<BuildingClass*>(pObject);
-		CoordStruct dim2 = CoordStruct::Empty;
-		pBuilding->Type->Dimension2(&dim2);
-		return dim2.Z + height;
-	}
+    
+	for(auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
+   {
+      if(auto pBld = specific_cast<BuildingClass*>(pObject)) 
+	  {
+        CoordStruct dim2 = CoordStruct::Empty;
+		pBld->Type->Dimension2(&dim2);
+	    return dim2.Z + height;
+	  }
+   }
 
 	if (pCell->FindTechnoNearestTo(Point2D::Empty, false))
 		height += 85;
