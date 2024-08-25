@@ -353,14 +353,15 @@ namespace JumpjetRushHelpers
 
 int JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(Point2D location)
 {
-	CellClass* const pCell = MapClass::Instance->GetTargetCell(location);
-	int height = pCell->GetFloorHeight(Point2D { location.X & 0xFF, location.Y & 0xFF });
+	CellClass* const pCell = MapClass::Instance->TryGetCellAt(location, { short(location.X >> 8) , short(location.Y >> 8) });
+	if(!pCell)
+		return -1;
+
+	int height = pCell->GetFloorHeight({ location.X & 0xFF, location.Y & 0xFF });
 	ObjectClass* pObject = pCell->FirstObject;
     
-	for(auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
-   {
-      if(auto pBld = specific_cast<BuildingClass*>(pObject)) 
-	  {
+	for(auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
+      if(auto pBld = specific_cast<BuildingClass*>(pObject))  {
         CoordStruct dim2 = CoordStruct::Empty;
 		pBld->Type->Dimension2(&dim2);
 	    return dim2.Z + height;
