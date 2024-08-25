@@ -916,9 +916,9 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 		const double dice = this->Crit_ApplyChancePerTarget ?
 			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
-		
-		const auto chance = this->Crit_CurrentChance.size() == 1 ?  this->Crit_CurrentChance[0] : 
-			 this->Crit_CurrentChance.size() < level ? this->Crit_CurrentChance[level] : 0.0
+
+		const auto chance = this->Crit_CurrentChance.size() == 1 ? this->Crit_CurrentChance[0] :
+			this->Crit_CurrentChance.size() < level ? this->Crit_CurrentChance[level] : 0.0;
 
 		if (!this->Crit_ActiveChanceAnims.empty() && chance > 0.0) {
 
@@ -928,7 +928,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 			pHouse,
 			pTarget->GetOwningHouse(),
 			pOwner,
-			false
+			false);
 		}
 
 		if (chance < dice) {
