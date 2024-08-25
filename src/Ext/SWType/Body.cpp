@@ -1382,6 +1382,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboDelivery_Types.Read(exINI, pSection, "LimboDelivery.Types");
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
+	this->LimboDelivery_RandomWeightsData.clear();
 
 	for (size_t i = 0; ; ++i)
 	{
@@ -1391,7 +1392,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (weights.empty())
 			break;
 
-		this->LimboDelivery_RandomWeightsData.push_back(weights);
+		this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
 	}
 
 	std::vector<int> weights {};
@@ -1480,7 +1481,8 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Next_IgnoreInhibitors.Read(exINI, pSection, "SW.Next.IgnoreInhibitors");
 	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
 	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
-
+	this->SW_Next_RandomWeightsData.clear();
+	
 	std::string basetag = "SW.Next.RandomWeights";
 	for (size_t i = 0; ; ++i) {
 		ValueableVector<int> weights2;

@@ -210,6 +210,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachEffect_RequiredMaxCounts.Read(exINI, pSection, "AttachEffect.RequiredMaxCounts");
 	this->AttachEffect_DisallowedMinCounts.Read(exINI, pSection, "AttachEffect.DisallowedMinCounts");
 	this->AttachEffect_DisallowedMaxCounts.Read(exINI, pSection, "AttachEffect.DisallowedMaxCounts");
+	this->AttachEffect_CheckOnFirer.Read(exINI, pSection, "AttachEffect.CheckOnFirer");
 	this->AttachEffect_IgnoreFromSameSource.Read(exINI, pSection, "AttachEffect.IgnoreFromSameSource");
 }
 
@@ -256,15 +257,22 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 #include <New/PhobosAttachedAffect/Functions.h>
 
-bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTechno, TechnoClass* pFirer)
+bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoClass* pFirer)
 {
-	bool hasRequiredTypes = this->AttachEffect_RequiredTypes.size() > 0;
-	bool hasDisallowedTypes = this->AttachEffect_DisallowedTypes.size() > 0;
-	bool hasRequiredGroups = this->AttachEffect_RequiredGroups.size() > 0;
-	bool hasDisallowedGroups = this->AttachEffect_DisallowedGroups.size() > 0;
+	bool hasRequiredTypes = !this->AttachEffect_RequiredTypes.empty();
+	bool hasDisallowedTypes = !this->AttachEffect_DisallowedTypes.empty();
+	bool hasRequiredGroups = !this->AttachEffect_RequiredGroups.empty();
+	bool hasDisallowedGroups = !this->AttachEffect_DisallowedGroups.empty();
 
 	if (hasRequiredTypes || hasDisallowedTypes || hasRequiredGroups || hasDisallowedGroups)
 	{
+		auto pTechno = pTarget;
+		if (this->AttachEffect_CheckOnFirer && pFirer)
+			pTechno = pFirer;
+			
+		if(!pTechno || !pTechno->IsAlive)
+			return true;
+
 		auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
 
 		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
@@ -416,6 +424,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_RequiredMaxCounts)
 		.Process(this->AttachEffect_DisallowedMinCounts)
 		.Process(this->AttachEffect_DisallowedMaxCounts)
+		.Process(this->AttachEffect_CheckOnFirer)
 		.Process(this->AttachEffect_IgnoreFromSameSource)
 		;
 

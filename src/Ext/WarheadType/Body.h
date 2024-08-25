@@ -83,6 +83,7 @@ public:
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> Crit_AnimList {};
 	Nullable<bool> Crit_AnimList_PickRandom {};
+	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims {};
 	Valueable<bool> Crit_AnimOnAffectedTargets { false };
 	ValueableVector<double> Crit_AffectBelowPercent { };
 	Valueable<bool> Crit_SuppressOnIntercept { false };
@@ -374,6 +375,7 @@ public:
 	ValueableVector<int> AttachEffect_DurationOverrides {};
 
 	Valueable<bool> Shield_HitFlash { true };
+	Valueable<bool> Shield_SkipHitAnim { false };
 	Nullable<bool> CombatAlert_Suppress { };
 
 	Valueable<bool> AffectsOnFloor { true };

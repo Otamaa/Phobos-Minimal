@@ -52,7 +52,9 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
 		const auto pPrimaryExt = WeaponTypeExtContainer::Instance.Find(pWeaponPrimary);
 
-		if (pWeaponSecondary && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true))
+		if (pWeaponSecondary && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
+			|| (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis)
+		)
 		{
 			R->EAX(1);
 			return UseWeaponIndex;
@@ -61,7 +63,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		{
 			auto const pOverlayType = OverlayTypeClass::Array()->Items[pCell->OverlayTypeIndex];
 
-			if (pCell->OverlayData >> 4 != pOverlayType->DamageLevels)
+			if (pOverlayType->Wall && pCell->OverlayData >> 4 != pOverlayType->DamageLevels)
 			{
 				R->EAX(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayType));
 				return UseWeaponIndex;

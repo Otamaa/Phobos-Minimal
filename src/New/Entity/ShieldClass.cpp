@@ -293,7 +293,9 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				MapClass::FlashbangWarheadAt(size, args->WH, this->Techno->Location, true, flags);
 			}
 
-			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim);
+			if(!pWHExt->Shield_SkipHitAnim)
+				this->WeaponNullifyAnim(pWHExt->Shield_HitAnim);
+
 			this->HP -= DamageToShield; //set the HP remaining after get hit
 			UpdateIdleAnim();
 			//absorb all the damage

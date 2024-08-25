@@ -159,6 +159,7 @@ public:
 	ValueableVector<int> AttachEffect_RequiredMaxCounts {};
 	ValueableVector<int> AttachEffect_DisallowedMinCounts {};
 	ValueableVector<int> AttachEffect_DisallowedMaxCounts {};
+	Valueable<bool> AttachEffect_CheckOnFirer { false };
 	Valueable<bool> AttachEffect_IgnoreFromSameSource { false };
 
 
@@ -184,7 +185,7 @@ public:
 	}
 
 	ColorStruct GetBeamColor() const;
-	bool HasRequiredAttachedEffects(TechnoClass* pTechno, TechnoClass* pFirer);
+	bool HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoClass* pFirer);
 
 	constexpr FORCEINLINE static size_t size_Of()
 	{

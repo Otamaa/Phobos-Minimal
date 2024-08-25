@@ -117,6 +117,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
 	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
 	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
+	this->Crit_ActiveChanceAnims.Read(exINI, pSection, "Crit.ActiveChanceAnims");
 	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
 	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
 	this->Crit_SuppressOnIntercept.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
@@ -491,6 +492,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachEffect_CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
 	this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
 	this->Shield_HitFlash.Read(exINI, pSection, "Shield.HitFlash");
+	this->Shield_SkipHitAnim.Read(exINI, pSection, "Shield.SkipHitAnim");
 	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
 
 	this->AffectsOnFloor.Read(exINI, pSection, "AffectsOnFloor");
@@ -1275,6 +1277,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_AffectsHouses)
 		.Process(this->Crit_AnimList)
 		.Process(this->Crit_AnimList_PickRandom)
+		.Process(this->Crit_ActiveChanceAnims)
 		.Process(this->Crit_AnimOnAffectedTargets)
 		.Process(this->Crit_AffectBelowPercent)
 		.Process(this->Crit_SuppressOnIntercept)
@@ -1533,6 +1536,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
 		.Process(this->AttachEffect_DurationOverrides)
 		.Process(this->Shield_HitFlash)
+		.Process(this->Shield_SkipHitAnim)
 		.Process(this->CombatAlert_Suppress)
 
 		.Process(this->AffectsOnFloor)

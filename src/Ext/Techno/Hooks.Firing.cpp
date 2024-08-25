@@ -412,6 +412,7 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 // 	return weaponPrimary;
 // }
 
+
 DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
 {
 	enum { SkipGameCode = 0x51C1FE };

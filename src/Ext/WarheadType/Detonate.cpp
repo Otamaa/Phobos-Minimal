@@ -916,10 +916,22 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 		const double dice = this->Crit_ApplyChancePerTarget ?
 			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
+		
+		const auto chance = this->Crit_CurrentChance.size() == 1 ?  this->Crit_CurrentChance[0] : 
+			 this->Crit_CurrentChance.size() < level ? this->Crit_CurrentChance[level] : 0.0
 
-		if (this->Crit_CurrentChance.size() == 1 && this->Crit_CurrentChance[0] < dice) {
-			return;
-		} else if (this->Crit_CurrentChance.size() <= level || this->Crit_CurrentChance[level] < dice) {
+		if (!this->Crit_ActiveChanceAnims.empty() && chance > 0.0) {
+
+			int idx = ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_ActiveChanceAnims.size() - 1);
+
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], pTarget->Location),
+			pHouse,
+			pTarget->GetOwningHouse(),
+			pOwner,
+			false
+		}
+
+		if (chance < dice) {
 			return;
 		}
 	}

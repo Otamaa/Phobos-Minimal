@@ -1494,18 +1494,23 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 	int weaponIndex = -1;
 	auto pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndex);
 
-	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) || !pWallOverlayType)
+	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) || !pWallOverlayType || !pWallOverlayType->Wall)
 		return weaponIndex;
 	else if (weaponIndex == -1)
 		return 0;
 
-	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)))
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pWeapon);
+	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
+
+	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)) || TechnoExt::CanFireNoAmmoWeapon(pThis, 1) || aeForbidsPrimary)
 	{
 		int weaponIndexSec = -1;
 		pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
+		pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+		bool aeForbidsSecondary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 		if (pWeapon && (pWeapon->Warhead->Wall || (pWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
-			&& !TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback))
+			&& (!TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback || aeForbidsPrimary)) && !aeForbidsSecondary)
 		{
 			return weaponIndexSec;
 		}
@@ -4620,7 +4625,7 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 	if (auto const pSecondExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponTwo))
 	{
 		auto const pFirstExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponOne);
-
+		
 		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
@@ -4631,15 +4636,17 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 		}
 		else if (pFirstExt)
 		{
-			bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
+			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
+			const bool firstAllowedAE = pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis);
 
-			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1))
+			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) 
+					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) && firstAllowedAE)
 				return weaponIndexOne;
 
 			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
 				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
 					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
-					|| !pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
+					|| !firstAllowedAE
 					)))
 			{
 				return weaponIndexTwo;
@@ -4999,6 +5006,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->HasCarryoverWarpInDelay)
 		.Process(this->LastWarpInDelay)
 		.Process(this->UnitAutoDeployTimer)
+		.Process(this->SubterraneanHarvRallyPoint)
 		;
 }
 

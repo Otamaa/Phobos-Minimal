@@ -63,34 +63,6 @@ public:
 
 // Hooks
 
-DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
-{
-	enum { IsBlockage = 0x51C7D0, Continue = 0x51C20D };
-
-	GET(InfantryClass*, pThis, EBP);
-	GET(OverlayTypeClass*, pOverlayType, ESI);
-
-	if (Phobos::Config::UseImprovedPathfindingBlockageHandling)
-	{
-		if (pThis->GetTechnoType()->LandTargeting == LandTargetingType::Land_not_okay)
-			return IsBlockage;
-
-		int weaponIndex = TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayType, true);
-
-		if (weaponIndex == -1 || BulletTypeExtContainer::Instance.Find(pThis->GetWeapon(weaponIndex)->WeaponType->Projectile)->AAOnly)
-			return IsBlockage;
-	}
-	else
-	{
-		auto const pWeapon = pThis->GetWeapon(0)->WeaponType;
-
-		if (!pWeapon || !pWeapon->Warhead->Wall)
-			return IsBlockage;
-	}
-
-	return Continue;
-}
-
 DEFINE_HOOK(0x51C52D, InfantryClass_CanEnterCell_BlockageGate, 0x5)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C549, SkipToNext = 0x51C70F };
@@ -160,33 +132,6 @@ DEFINE_HOOK(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
 		return Continue;
 
 	return Skip;
-}
-
-DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
-{
-	enum { IsBlockage = 0x73FCD0, Continue = 0x73F4D8 };
-
-	GET(UnitClass*, pThis, EBX);
-	GET(OverlayTypeClass*, pOverlayType, ESI);
-
-	if (Phobos::Config::UseImprovedPathfindingBlockageHandling)
-	{
-		if (pThis->GetTechnoType()->LandTargeting == LandTargetingType::Land_not_okay)
-			return IsBlockage;
-
-		int weaponIndex = TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayType, true);
-		if (weaponIndex == -1 || BulletTypeExtContainer::Instance.Find(pThis->GetWeapon(weaponIndex)->WeaponType->Projectile)->AAOnly)
-			return IsBlockage;
-	}
-	else
-	{
-		auto const pWarhead = pThis->GetWeapon(0)->WeaponType->Warhead;
-
-		if (pWarhead->Wall && (!pWarhead->Wood || pOverlayType->Armor != Armor::Wood))
-			return IsBlockage;
-	}
-
-	return Continue;
 }
 
 DEFINE_HOOK(0x73F734, UnitClass_CanEnterCell_BlockageGate, 0x9)

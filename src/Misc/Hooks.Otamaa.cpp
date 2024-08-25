@@ -7605,21 +7605,6 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 //DEFINE_SKIP_HOOK(0x4417A7, BuildingClass_Destroy_UnusedRandom, 0x0, 44180A);
 DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
 
-DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-
-	const auto pType = pThis->GetTechnoType();
-	if (pThis->WhatAmI() == UnitClass::AbsID && pType->ResourceGatherer)
-	{
-		//https://github.com/Phobos-developers/Phobos/issues/326
-		if (pType->IsSubterranean || VTable::Get(((UnitClass*)pThis)->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable)
-			pThis->QueueMission(Mission::Harvest, false);
-	}
-	pThis->EnterIdleMode(false, true);
-	return 0x4D4248;
-}
-
 DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);

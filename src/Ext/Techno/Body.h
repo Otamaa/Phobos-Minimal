@@ -471,7 +471,8 @@ public:
 	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasCarryoverWarpInDelay
 
 	CDTimerClass UnitAutoDeployTimer {};
-
+	CellClass* SubterraneanHarvRallyPoint { nullptr };
+	
 	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
