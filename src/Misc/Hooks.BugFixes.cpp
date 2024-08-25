@@ -158,7 +158,7 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 constexpr TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
 
 	if (pType->DebrisAnims.Count <= 0) {
-		if (!pType->DebrisTypes.Count && !RulesClass::Instance->MetallicDebris.Count)
+		if (!pType->DebrisTypes.Count &&  !RulesClass::Instance->MetallicDebris.Count)
 			return nullptr;
 
 		return &RulesClass::Instance->MetallicDebris;

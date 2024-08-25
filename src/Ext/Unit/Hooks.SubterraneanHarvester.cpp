@@ -1,6 +1,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Locomotor/Cast.h>
 // Hooks that allow harvesters / weeders to work correctly with MovementZone=Subterannean (sic).
 
 // Author : Otamaa
@@ -18,7 +19,7 @@ DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	return 0x4D4248;
 }
 
-//==================================================================== Author : Starkku
+/*==================================================================== Author : Starkku
 // Allow scanning for docks in all map zones.
 DEFINE_HOOK(0x4DEFC6, FootClass_FindDock_SubterraneanHarvester, 0x5)
 {
@@ -111,4 +112,4 @@ DEFINE_HOOK(0x73EDA1, UnitClass_Mission_Harvest_SubterraneanHarvester, 0x6)
 		TechnoExtContainer::Instance.Find(pThis)->SubterraneanHarvRallyPoint = nullptr;
 
 	return 0;
-}
+}*/
