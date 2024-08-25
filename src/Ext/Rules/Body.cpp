@@ -707,6 +707,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ExpandLandGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandLandGridFrames");
 	this->ExpandWaterGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandWaterGridFrames");
 
+	this->AISuperWeaponDelay.Read(exINI, GameStrings::General, "AISuperWeaponDelay");
+
 	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
 	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
 
@@ -1344,6 +1346,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CheckExpandPlaceGrid)
 		.Process(this->ExpandLandGridFrames)
 		.Process(this->ExpandWaterGridFrames)
+		.Process(this->AISuperWeaponDelay)
 		;
 
 	MyPutData.Serialize(Stm);

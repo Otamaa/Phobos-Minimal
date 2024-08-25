@@ -1965,6 +1965,8 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->CurrentBuildingTopLeft)
 		.Process(this->CurrentBuildingTimer)
 		.Process(this->CurrentBuildingTimes)
+
+		.Process(this->AISuperWeaponDelayTimer)
 		;
 }
 

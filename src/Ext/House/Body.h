@@ -168,6 +168,7 @@ public:
 	CDTimerClass CurrentBuildingTimer {};
 	int CurrentBuildingTimes { 0 };
 
+	CDTimerClass AISuperWeaponDelayTimer {};
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 

@@ -383,6 +383,7 @@ public:
 	Valueable<CoordStruct> ExpandWaterGridFrames { { 1, 0, 0 } };
 
 	Valueable<AnimTypeClass*> DefaultExplodeFireAnim {};
+	Nullable<int> AISuperWeaponDelay {};
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
