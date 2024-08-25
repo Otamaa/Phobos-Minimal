@@ -507,41 +507,41 @@ DEFINE_HOOK(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
-	GET(int, nIdx, EAX);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-
-	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	pAnim->AnimClass::AnimClass(RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-	pThis->GetOwningHouse(), false);
-
-	return 0x70256B;
-}
-
-DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(AnimClass*, pAnim, EBX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
-	GET(int, nIdx, EDI);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-
-	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	pAnim->AnimClass::AnimClass(pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExtData::SetAnimOwnerHouseKind(pAnim,
-		args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-		pThis->GetOwningHouse(),
-		false
-	);
-
-	return 0x7024AF;
-}
+// DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(AnimClass*, pAnim, EDI);
+// 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
+// 	GET(int, nIdx, EAX);
+// 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
+//
+// 	//well , the owner dies , so taking Invoker is not nessesary here ,..
+// 	pAnim->AnimClass::AnimClass(RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+// 	AnimExtData::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
+// 	pThis->GetOwningHouse(), false);
+//
+// 	return 0x70256B;
+// }
+//
+// DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(TechnoTypeClass* const, pType, EAX);
+// 	GET(AnimClass*, pAnim, EBX);
+// 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
+// 	GET(int, nIdx, EDI);
+// 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
+//
+// 	//well , the owner dies , so taking Invoker is not nessesary here ,..
+// 	pAnim->AnimClass::AnimClass(pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+// 	AnimExtData::SetAnimOwnerHouseKind(pAnim,
+// 		args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
+// 		pThis->GetOwningHouse(),
+// 		false
+// 	);
+//
+// 	return 0x7024AF;
+// }
 
 //ObjectClass TakeDamage , 5F559C
 //UnitClass TakeDamage , 737F0E
@@ -1547,7 +1547,7 @@ DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
 }
 
 // this just an duplicate
-DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
+//DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
 
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {

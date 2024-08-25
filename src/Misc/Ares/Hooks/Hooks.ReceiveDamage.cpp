@@ -142,36 +142,35 @@ DEFINE_HOOK(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
-{
+DEFINE_HOOK(0x702117,  TechnoClass_ReceiveDamage_OverrideSounds , 0xA){
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->DieSound_Override;
+	auto pType = pThis->GetTechnoType();
 
-	if (nSound.isset())
-	{
-		VocClass::PlayIndexAtPos(nSound, pThis->Location);
-		return 0x702200;
+	if(pType->VoiceDie.Count > 0 && pThis->Owner->ControlledByCurrentPlayer()){
+		auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->DieSound_Override;
+
+		if(nSound.isset()) {
+			VocClass::PlayIndexAtPos(nSound, pThis->Location);
+		} else {
+			int rand = Random2Class::NonCriticalRandomNumber->Random();
+			VocClass::PlayIndexAtPos(pType->VoiceDie[rand % pType->VoiceDie.Count], pThis->Location);
+		}
 	}
 
-	return 0x0;
-}
+	if(pType->DieSound.Count > 0){
+		auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->VoiceSound_Override;
 
-DEFINE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
-{
-	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const& nSound = WarheadTypeExtContainer::Instance.Find(pWh)->VoiceSound_Override;
-
-	if (nSound.isset())
-	{
-		VocClass::PlayIndexAtPos(nSound, pThis->Location);
-		return 0x702200;
+		if(nSound.isset()) {
+			VocClass::PlayIndexAtPos(nSound, pThis->Location);
+		} else {
+			int rand = Random2Class::NonCriticalRandomNumber->Random();
+			VocClass::PlayIndexAtPos(pType->DieSound[rand % pType->DieSound.Count], pThis->Location);
+		}
 	}
 
-	return 0x0;
+	return 0x702200;
 }
 
 //original hooks , jut in case the stuffs fail
