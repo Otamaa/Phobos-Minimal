@@ -155,6 +155,18 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 
 #include <Ext/Anim/Body.h>
 
+constexpr TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
+
+	if (pType->DebrisAnims.Count <= 0) {
+		if (!pType->DebrisTypes.Count && !RulesClass::Instance->MetallicDebris.Count)
+			return nullptr;
+
+		return &RulesClass::Instance->MetallicDebris;
+	}
+
+	return &pType->DebrisAnims;
+}
+
 // Restore DebrisMaximums logic (issue #109)
 // Author: Otamaa
 DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
@@ -198,18 +210,19 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 		}
 	}
 
-	if (!pType->DebrisTypes.Count && totalSpawnAmount > 0)
+	if (totalSpawnAmount > 0)
 	{
-		auto debrisAnim_Coord = nCoords;
-		debrisAnim_Coord.Z += 20;
-		const auto array_ = pType->DebrisAnims.Count <= 0 ? &RulesClass::Instance->MetallicDebris : &pType->DebrisAnims;
+		if(const auto pArray = GetDebrisAnim(pType)) {
+			auto debrisAnim_Coord = nCoords;
+			debrisAnim_Coord.Z += 20;
 
-		for (int b = 0; b < totalSpawnAmount; ++b)
-		{
-			if (auto pDebrisAnimType = array_->Items[ScenarioClass::Instance->Random.RandomFromMax(array_->Count - 1)])
+			for (int b = 0; b < totalSpawnAmount; ++b)
 			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDebrisAnimType, debrisAnim_Coord, 0, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400, 0, 0), args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-				pThis->GetOwningHouse(), false);
+				if (auto pDebrisAnimType = pArray->Items[ScenarioClass::Instance->Random.RandomFromMax(pArray->Count - 1)])
+				{
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDebrisAnimType, debrisAnim_Coord, 0, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400, 0, 0), args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
+					pThis->GetOwningHouse(), false);
+				}
 			}
 		}
 	}
