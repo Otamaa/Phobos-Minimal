@@ -6128,7 +6128,7 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 	DoType result = weaponIdx == 0 ? DoType::FireFly :
 		DoType(42);
 
-	if (!pThis->Type->Sequence->GetSequence(result).CountFrames)
+	if (!((NewDoType*)pThis->Type->Sequence)->GetSequence(result).CountFrames)
 		return 0;
 
 	pThis->PlayAnim(result);
@@ -6143,7 +6143,7 @@ DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne)
 	{
 
-		if (!pThis->Type->Sequence->GetSequence(DoType(43)).CountFrames)
+		if (!((NewDoType*)pThis->Type->Sequence)->GetSequence(DoType(43)).CountFrames)
 			return 0x0;
 
 		type = DoType(43);

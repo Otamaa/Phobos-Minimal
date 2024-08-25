@@ -1505,11 +1505,11 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) || aeForbidsPrimary)
 	{
 		int weaponIndexSec = -1;
-		pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
-		pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-		bool aeForbidsSecondary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
+		auto pSecondaryWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
+		auto pSecondaryWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pSecondaryWeapon);
+		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
-		if (pWeapon && (pWeapon->Warhead->Wall || (pWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
+		if (pSecondaryWeapon && (pSecondaryWeapon->Warhead->Wall || (pSecondaryWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
 			&& (!TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback || aeForbidsPrimary)) && !aeForbidsSecondary)
 		{
 			return weaponIndexSec;

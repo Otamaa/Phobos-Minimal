@@ -944,11 +944,12 @@ DEFINE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F9004,HouseClass_Update_TrySWFire, 7)
+DEFINE_HOOK(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 {
 	enum { UpdateAIExpert = 0x4F9015 , Continue = 0x4F9038};
 
 	GET(HouseClass*, pThis, ESI);
+
 	//Debug::Log("House[%s - %x , calling %s\n" , pThis->get_ID() , pThis ,__FUNCTION__);
 	if(R->AL()) { // HumanControlled
 		pThis->AI_TryFireSW();
