@@ -1,6 +1,7 @@
 #include "AresTrajectoryHelper.h"
 
 #include <Ext/BuildingType/Body.h>
+#include <Ext/BulletType/Body.h>
 
 bool AresTrajectoryHelper::IsBuildingHit(
 	AbstractClass const* const pSource, AbstractClass const* const pTarget,
@@ -65,7 +66,7 @@ CellClass* AresTrajectoryHelper::GetObstacle(
 	AbstractClass const* const pSource, AbstractClass const* const pTarget,
 	CellClass const* const pCellBullet, CoordStruct const& crdCur,
 	BulletTypeClass const* const pType, BulletTypeExtData const* pTypeExt,
-	HouseClass const* const pOwner)
+	HouseClass const* const pOwner, bool SubjectToObstacles)
 {
 	auto const cellCur = CellClass::Coord2Cell(crdCur);
 	auto const pCellCur = MapClass::Instance->GetCellAt(cellCur);
@@ -75,13 +76,53 @@ CellClass* AresTrajectoryHelper::GetObstacle(
 		|| pType->SubjectToWalls
 		&& AresTrajectoryHelper::IsWallHit(pCellSource, pCellCur, pCellTarget, pOwner)
 
-		|| pTypeExt && pTypeExt->SubjectToSolid
+		|| pTypeExt->SubjectToSolid
 		&& AresTrajectoryHelper::IsBuildingHit(pSource, pTarget, crdCur, pOwner)
 
 		;
 
-	return isHit ? pCellCur : nullptr;
+	if (isHit)
+		return pCellCur;
+
+	if (SubjectToObstacles && AresTrajectoryHelper::SubjectToTerrain(const_cast<CellClass*>(pCellCur), const_cast<BulletTypeClass*>(pType)))
+		return const_cast<CellClass*>(pCellCur);
+
+	return nullptr;
 }
+
+CellClass* AresTrajectoryHelper::GetObstacle(
+	CellClass const* const pCellSource, CellClass const* const pCellTarget,
+	AbstractClass const* const pSource, AbstractClass const* const pTarget,
+	CellClass const* const pCellBullet, CoordStruct const& crdCur,
+	BulletTypeClass const* const pType,
+	HouseClass const* const pOwner, bool SubjectToObstacles)
+{
+	auto const cellCur = CellClass::Coord2Cell(crdCur);
+	auto const pCellCur = MapClass::Instance->GetCellAt(cellCur);
+	auto pTypeExt = BulletTypeExtContainer::Instance.Find(const_cast<BulletTypeClass*>(pType));
+
+	auto const isHit = pType->SubjectToCliffs
+		&& AresTrajectoryHelper::IsCliffHit(pCellSource, pCellBullet, pCellCur)
+
+		|| pType->SubjectToWalls
+		&& AresTrajectoryHelper::IsWallHit(pCellSource, pCellCur, pCellTarget, pOwner)
+
+
+
+		|| pTypeExt->SubjectToSolid
+		&& AresTrajectoryHelper::IsBuildingHit(pSource, pTarget, crdCur, pOwner)
+
+		;
+
+	if (isHit)
+		return pCellCur;
+
+	if (SubjectToObstacles && AresTrajectoryHelper::SubjectToTerrain(const_cast<CellClass*>(pCellCur), const_cast<BulletTypeClass*>(pType)))
+		return const_cast<CellClass*>(pCellCur);;
+
+	return nullptr;
+}
+
 
 CellClass* AresTrajectoryHelper::FindFirstObstacle(
 	CoordStruct const& crdSrc, CoordStruct const& crdTarget,
@@ -90,8 +131,10 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 	BulletTypeExtData const* const pTypeExt,
 	HouseClass const* const pOwner)
 {
-	if (AresTrajectoryHelper::SubjectToAnything(pType, pTypeExt))
-	{
+
+	const bool isSUbjecttoObs = AresTrajectoryHelper::SubjectToObstacles(const_cast<BulletTypeClass*>(pType));
+
+	if (AresTrajectoryHelper::SubjectToAnything(pType, pTypeExt) || isSUbjecttoObs) {
 		auto const cellTarget = CellClass::Coord2Cell(crdTarget);
 		auto const pCellTarget = MapClass::Instance->GetCellAt(cellTarget);
 
@@ -109,7 +152,7 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 		for (size_t i = 0; i < maxDelta; ++i)
 		{
 			if (auto const pCell = AresTrajectoryHelper::GetObstacle(pCellSrc, pCellTarget, pSource,
-				pTarget, pCellCur, crdCur, pType, pTypeExt, pOwner))
+				pTarget, pCellCur, crdCur, pType, pTypeExt, pOwner, isSUbjecttoObs))
 			{
 				return pCell;
 			}

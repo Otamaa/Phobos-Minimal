@@ -22,8 +22,13 @@ DEFINE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
 		if (AresTrajectoryHelper::GetObstacle(
-			pCellSource, pCellTarget, pThis->Owner, pThis->Target, pCellLast,
-			*pOutCoords, pThis->Type, pTypeExt, pOwner))
+			pCellSource,
+			pCellTarget,
+			pThis->Owner,
+			pThis->Target,
+			pCellLast,
+			*pOutCoords,
+			pThis->Type, pOwner, false))
 		{
 			return 0x468C76;
 		}
@@ -63,7 +68,7 @@ DEFINE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 
 	const auto ret = AresTrajectoryHelper::GetObstacle(
 		pCellSource, pCellTarget, nullptr, nullptr, pCellBullet, crdCur, pType,
-		pTypeExt, pOwner);
+		pTypeExt, pOwner, false);
 
 	R->EAX(ret);
 	return 0x4CC671;

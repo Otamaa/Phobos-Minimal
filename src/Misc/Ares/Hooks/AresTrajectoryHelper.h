@@ -9,6 +9,8 @@ class WeaponTypeClass;
 class AresTrajectoryHelper
 {
 private:
+
+
 	static constexpr bool IsCliffHit(
 		CellClass const* pSource, CellClass const* pBefore,
 		CellClass const* pAfter)
@@ -44,6 +46,34 @@ private:
 	static Vector2D<int> AbsoluteDifference(const CellStruct& cell);
 
 public:
+
+	static constexpr bool SubjectToObstacles(BulletTypeClass* pBulletType)
+	{
+		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
+		const bool subjectToTerrain = pBulletTypeExt->SubjectToLand.isset() || pBulletTypeExt->SubjectToWater.isset();
+
+		if (!subjectToTerrain)
+			return pBulletType->Level;
+
+		return true;;
+	}
+
+	static constexpr bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType)
+	{
+		const bool isCellWater = (pCurrentCell->LandType == LandType::Water || pCurrentCell->LandType == LandType::Beach) && pCurrentCell->ContainsBridge();
+		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;
+		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
+
+		if (isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
+			return true;
+		else if (!isCellWater && pBulletTypeExt->SubjectToLand.Get(false))
+			return pBulletTypeExt->SubjectToLand_Detonate;
+		else if (isCellWater && pBulletTypeExt->SubjectToWater.Get(false))
+			return pBulletTypeExt->SubjectToWater_Detonate;
+
+		return false;
+	}
+
 	// gets whether collision checks are needed
 	static constexpr bool SubjectToAnything(
 		BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt)
@@ -59,7 +89,13 @@ public:
 		AbstractClass const* pSource, AbstractClass const* pTarget,
 		CellClass const* pCellBullet, CoordStruct const& crdCur,
 		BulletTypeClass const* pType,
-		BulletTypeExtData const* pTypeExt, HouseClass const* pOwner);
+		BulletTypeExtData const* pTypeExt, HouseClass const* pOwner , bool SubjectToObstacles);
+
+	static CellClass* GetObstacle(
+	CellClass const* pCellSource, CellClass const* pCellTarget,
+	AbstractClass const* pSource, AbstractClass const* pTarget,
+	CellClass const* pCellBullet, CoordStruct const& crdCur,
+	BulletTypeClass const* pType, HouseClass const* pOwner, bool SubjectToObstacles);
 
 	// gets the first obstacle when moving from crdSrc to crdTarget
 	static CellClass* FindFirstObstacle(
@@ -76,6 +112,20 @@ public:
 
 		return AresTrajectoryHelper::FindFirstObstacle(
 			crdSrc, crdTarget, nullptr, nullptr, pType, pTypeExt, pOwner);
+	}
+
+	static CellClass* FindFirstObstacle(
+	CoordStruct const& crdSrc,
+	CoordStruct const& crdTarget,
+	BulletTypeClass* pType,
+	AbstractClass const* pSource,
+	AbstractClass const* pTarget,
+	HouseClass const* pOwner)
+	{
+		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
+
+		return AresTrajectoryHelper::FindFirstObstacle(
+			crdSrc, crdTarget, pSource, pTarget, pType, pTypeExt, pOwner);
 	}
 
 	// gets the first obstacle from crdSrc to crdTarget a weapon cannot destroy
