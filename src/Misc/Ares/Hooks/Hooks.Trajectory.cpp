@@ -11,8 +11,9 @@ DEFINE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 	GET(CoordStruct* const, pOutCoords, EDI);
 
 	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+	const bool isSUbjecttoObs = AresTrajectoryHelper::SubjectToObstacles(const_cast<BulletTypeClass*>(pThis->Type));
 
-	if (AresTrajectoryHelper::SubjectToAnything(pThis->Type, pTypeExt))
+	if (AresTrajectoryHelper::SubjectToAnything(pThis->Type, pTypeExt) || isSUbjecttoObs)
 	{
 		auto const Map = MapClass::Instance();
 		auto const pCellSource = Map->GetCellAt(pThis->SourceCoords);
@@ -28,7 +29,7 @@ DEFINE_HOOK(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 			pThis->Target,
 			pCellLast,
 			*pOutCoords,
-			pThis->Type, pOwner, false))
+			pThis->Type, pOwner, isSUbjecttoObs))
 		{
 			return 0x468C76;
 		}
@@ -65,10 +66,10 @@ DEFINE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 	GET_STACK(HouseClass const* const, pOwner, 0x18);
 
 	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
-
+	const bool isSUbjecttoObs = AresTrajectoryHelper::SubjectToObstacles(const_cast<BulletTypeClass*>(pType));
 	const auto ret = AresTrajectoryHelper::GetObstacle(
 		pCellSource, pCellTarget, nullptr, nullptr, pCellBullet, crdCur, pType,
-		pTypeExt, pOwner, false);
+		pTypeExt, pOwner, isSUbjecttoObs);
 
 	R->EAX(ret);
 	return 0x4CC671;
