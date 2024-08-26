@@ -1803,8 +1803,7 @@ void HouseExtData::UpdateTransportReloaders()
 			&& pTech->Transporter && pTech->Transporter->IsInLogic)
 		{
 			const auto pType = pTech->GetTechnoType();
-			if (pType->Ammo > 0 && TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport)
-			{
+			if (TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
 				pTech->Reload();
 			}
 		}
