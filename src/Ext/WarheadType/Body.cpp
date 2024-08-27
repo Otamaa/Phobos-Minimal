@@ -334,7 +334,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SuppressDeathWeapon_Infantry.Read(exINI, pSection, "DeathWeapon.SuppressInfantry");
 	this->SuppressDeathWeapon.Read(exINI, pSection, "DeathWeapon.Suppress");
 	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
-	this->SuppressDeathWeapon_Chance.Read(exINI, pSection, "DeathWeapon.SuppressChance", true);
+	this->SuppressDeathWeapon_Chance.Read(exINI, pSection, "DeathWeapon.SuppressChance");
 
 	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
 	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
@@ -1602,13 +1602,13 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 	if (SuppressDeathWeapon_Exclude.Contains(pVictimType))
 		return false;
 
+	if (!SuppressDeathWeapon.empty() && !SuppressDeathWeapon.Contains(pVictimType))
+		return false;
+
 	if (absType == UnitClass::AbsID && !SuppressDeathWeapon_Vehicles)
 		return false;
 
 	if (absType == InfantryClass::AbsID && !SuppressDeathWeapon_Infantry)
-		return false;
-
-	if (!SuppressDeathWeapon.Contains(pVictimType))
 		return false;
 
 	if (SuppressDeathWeapon_Chance.isset())

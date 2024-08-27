@@ -281,42 +281,35 @@ public:
 	}
 
 #ifdef _INLINED_VERSION
-	bool IsAlliedWith_(int idxHouse) const
-	{
-		if (idxHouse == this->ArrayIndex)
-		{
+	constexpr bool IsAlliedWith(int idxHouse) const {
+		if (idxHouse == this->ArrayIndex) {
 			return true;
 		}
 
-		if (idxHouse >= 0)
-		{
+		if (idxHouse >= 0) {
 			return ((1u << idxHouse) & this->Allies) != 0u;
 		}
+
 		return false;
 	}
 
-	bool IsAlliedWith_(HouseClass const* pHouse) const
-	{
-		return pHouse && (pHouse == this || this->IsAlliedWith_(pHouse->ArrayIndex));
+	constexpr bool IsAlliedWith(HouseClass const* pHouse) const {
+		return pHouse && (pHouse == this || this->IsAlliedWith(pHouse->ArrayIndex));
 	}
 
-	bool IsAlliedWith_(ObjectClass const* pObject) const
-	{
-		return this->IsAlliedWith_((AbstractClass*)pObject);
+	bool IsAlliedWith(ObjectClass const* pObject) const {
+		return this->IsAlliedWith((AbstractClass*)pObject);
 	}
 
-	bool IsAlliedWith_(TechnoClass const* pTechno) const
-	{
-		return this->IsAlliedWith_(pTechno->Owner);
+	constexpr bool IsAlliedWith(TechnoClass const* pTechno) const {
+		return this->IsAlliedWith(pTechno->Owner);
 	}
 
-	bool IsAlliedWith_(AbstractClass const* pAbstract) const
-	{
-		return this->IsAlliedWith_(pAbstract->GetOwningHouse());
+	bool IsAlliedWith(AbstractClass const* pAbstract) const {
+		return this->IsAlliedWith(pAbstract->GetOwningHouse());
 	}
 
-	bool IsMutualAllies(HouseClass const* pHouse) const
-	{
+	constexpr bool IsMutualAllies(HouseClass const* pHouse) const {
 		return pHouse == this
 			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
 	}
