@@ -169,6 +169,14 @@ public:
 	int CurrentBuildingTimes { 0 };
 
 	CDTimerClass AISuperWeaponDelayTimer {};
+
+	// Factories that exist but don't count towards multiple factory bonus.
+	int NumAirpads_NonMFB { 0 };
+	int NumBarracks_NonMFB { 0 };
+	int NumWarFactories_NonMFB { 0 };
+	int NumConYards_NonMFB { 0 };
+	int NumShipyards_NonMFB { 0 };
+
 	HouseExtData() noexcept = default;
 	~HouseExtData() noexcept = default;
 
@@ -209,6 +217,9 @@ public:
 
 	void UpdateAcademy(BuildingClass* pAcademy, bool added);
 	void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
+
+	void UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, bool isNaval);
+	int GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval);
 
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 	static bool IsAnyFirestormActive;

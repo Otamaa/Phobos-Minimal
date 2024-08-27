@@ -311,6 +311,8 @@ public:
 	ValueableVector<TechnoTypeClass*> FactoryPlant_AllowTypes {};
 	ValueableVector<TechnoTypeClass*> FactoryPlant_DisallowTypes {};
 
+	Valueable<bool> ExcludeFromMultipleFactoryBonus { false };
+
 	BuildingTypeExtData() noexcept = default;
 	~BuildingTypeExtData() noexcept = default;
 

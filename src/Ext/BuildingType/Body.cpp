@@ -974,6 +974,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
+
+		this->ExcludeFromMultipleFactoryBonus.Read(exINI, pSection, "ExcludeFromMultipleFactoryBonus");
+
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1264,6 +1267,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->FactoryPlant_AllowTypes)
 		.Process(this->FactoryPlant_DisallowTypes)
+
+		.Process(this->ExcludeFromMultipleFactoryBonus)
 		;
 }
 

@@ -10,6 +10,38 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 
+DEFINE_HOOK_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
+DEFINE_HOOK(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+	GET(HouseClass*, pThis, EDI);
+	GET(bool, isNaval, ECX);
+
+	if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
+			->ExcludeFromMultipleFactoryBonus) {
+
+		HouseExtContainer::Instance.Find(pThis)
+			->UpdateNonMFBFactoryCounts(pBuilding->Type->Factory, R->Origin()
+			== 0x4FF9C9, isNaval);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x500910, HouseClass_GetFactoryCount, 0x5)
+{
+	enum { SkipGameCode = 0x50095D };
+
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(AbstractType, rtti, 0x4);
+	GET_STACK(bool, isNaval, 0x8);
+
+	R->EAX(HouseExtContainer::Instance.Find(pThis)
+		->GetFactoryCountWithoutNonMFB(rtti, isNaval));
+
+	return SkipGameCode;
+}
+
 //remove the SW processing from the original place
 DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
 	return RulesExtData::Instance()->AISuperWeaponDelay.isset() ?
