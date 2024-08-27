@@ -10,28 +10,59 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 
-DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5)
-{
-	enum { SkipSWProcess = 0x4FD7A0 , RetTryFireSW = 0x4FD799};
+//remove the SW processing from the original place
+DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
+	return RulesExtData::Instance()->AISuperWeaponDelay.isset() ?
+		0x4FD7A0 : 0;
+}
+
+//update it separately
+DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
+
 	GET(HouseClass*, pThis, ESI);
 
-	bool TryFireSW = !SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons;
+	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset() || pThis->IsControlledByHuman() || pThis->Type->MultiplayPassive)
+		return 0;
 
-	if(RulesExtData::Instance()->AISuperWeaponDelay.isset()) {
-		const int delay = RulesExtData::Instance()->AISuperWeaponDelay;
+	const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
 
-		if (delay > 0) {
-			auto const pExt = HouseExtContainer::Instance.Find(pThis);
+	if (delay > 0) {
+		auto const pExt = HouseExtContainer::Instance.Find(pThis);
 
-			if (!pExt->AISuperWeaponDelayTimer.HasTimeLeft())
-				TryFireSW = false;
-			else
-				pExt->AISuperWeaponDelayTimer.Start(delay);
-		}
+		if (pExt->AISuperWeaponDelayTimer.HasTimeLeft())
+			return 0;
+
+		pExt->AISuperWeaponDelayTimer.Start(delay);
 	}
 
-	return !TryFireSW  ? SkipSWProcess : RetTryFireSW;
+	if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
+		pThis->AI_TryFireSW();
+
+	return 0;
 }
+
+// DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5)
+// {
+// 	enum { SkipSWProcess = 0x4FD7A0 , RetTryFireSW = 0x4FD799};
+// 	GET(HouseClass*, pThis, ESI);
+//
+// 	bool TryFireSW = !SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons;
+//
+// 	if(RulesExtData::Instance()->AISuperWeaponDelay.isset()) {
+// 		const int delay = RulesExtData::Instance()->AISuperWeaponDelay;
+//
+// 		if (delay > 0) {
+// 			auto const pExt = HouseExtContainer::Instance.Find(pThis);
+//
+// 			if (!pExt->AISuperWeaponDelayTimer.HasTimeLeft())
+// 				TryFireSW = false;
+// 			else
+// 				pExt->AISuperWeaponDelayTimer.Start(delay);
+// 		}
+// 	}
+//
+// 	return !TryFireSW  ? SkipSWProcess : RetTryFireSW;
+// }
 
 // Gets the superweapons used by AI for Chronoshift script actions.
 void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
