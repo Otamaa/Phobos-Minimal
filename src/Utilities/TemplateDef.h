@@ -1814,11 +1814,14 @@ void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char
 	if (detail::read(this->Value, parser, pSection, pKey, Allocate))
 	{
 		const char* val = parser.value();
+		const std::string _val = val;
 
-		if (IS_SAME_STR_(val, DEFAULT_STR2)) {
-			this->Reset();
-		} else {
-			this->HasValue = true;
+		if(!_val.empty()) {
+			if (IS_SAME_STR_(val, DEFAULT_STR2)) {
+				this->Reset();
+			} else {
+				this->HasValue = true;
+			}
 		}
 	}
 }
@@ -1847,11 +1850,48 @@ bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 }
 
 // NullableIdx
-template <typename Lookuper>
-void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+template <typename Lookuper, EnumCheckMode mode>
+void NOINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if(detail::getindex<Lookuper>(this->Value , parser , pSection , pKey))
-		this->HasValue = true;
+	if constexpr (mode == EnumCheckMode::default) {
+		if (detail::getindex<Lookuper>(this->Value, parser, pSection, pKey))
+			this->HasValue = true;
+	}
+	else
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			const char* val = parser.value();
+
+			if constexpr (mode != EnumCheckMode::disable){
+				if (GameStrings::IsBlank(val)) {
+					this->Value = -1;
+					this->HasValue = true;
+					return;
+				}
+			}
+
+			int idx = this->Value;
+
+			if constexpr (std::is_pointer<Lookuper>::value)
+			{
+				using base_type = std::remove_pointer_t<Lookuper>;
+				idx = base_type::FindIndexById(val);
+			}
+			else
+			{
+				idx = Lookuper::FindIndexById(val);
+			}
+
+			if (idx != -1)
+			{
+				this->Value = idx;
+				this->HasValue = true;
+			}
+
+			Debug::INIParseFailed(pSection, pKey, val);
+		}
+	}
 }
 
 // Promotable

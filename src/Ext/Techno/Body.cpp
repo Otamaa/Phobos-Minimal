@@ -672,13 +672,13 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
 
 		if (((TechnoClass*)pThis)->Veterancy.IsVeteran() && pTypeExt->VeteranArmor.isset())
-			res = (Armor)pTypeExt->VeteranArmor.Get();
+			res = pTypeExt->VeteranArmor;
 		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
-			res = (Armor)pTypeExt->EliteArmor.Get();
+			res = pTypeExt->EliteArmor;
 
 		if(pThis->WhatAmI() == AbstractType::Infantry) {
 			if (((InfantryClass*)pThis)->IsDeployed() && pTypeExt->DeployedArmor.isset()) {
-				res = (Armor)pTypeExt->DeployedArmor.Get();
+				res = pTypeExt->DeployedArmor;
 			}
 		}
 

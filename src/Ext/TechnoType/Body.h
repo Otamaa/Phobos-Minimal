@@ -893,9 +893,9 @@ public:
 
 	Nullable<PartialVector3D<double>> DetectDisguise_Percent {};
 
-	NullableIdx<ArmorTypeClass*> EliteArmor {};
-	NullableIdx<ArmorTypeClass*> VeteranArmor {};
-	NullableIdx<ArmorTypeClass*> DeployedArmor {};
+	Nullable<Armor> EliteArmor {};
+	Nullable<Armor> VeteranArmor {};
+	Nullable<Armor> DeployedArmor {};
 
 	Valueable<bool> Cloakable_IgnoreArmTimer { false };
 

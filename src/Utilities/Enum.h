@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+// use to put check on `NullableIdx`
+// TODO : put this on other `Idx` based stuffs ,..
+enum class EnumCheckMode
+{
+	default, ignore, disable
+};
+
 enum class LandTypeFlags : unsigned short
 {
 	None = 0,
