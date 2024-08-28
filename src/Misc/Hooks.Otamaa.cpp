@@ -8951,9 +8951,9 @@ DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 	return !pLink ? 0x7410DD : 0x0;
 }
 
-DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
-{
-	GET(BulletClass*, pThis, EBX);
-	pThis->Velocity = {};
-	return 0x468A3F;
-}
+//DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
+//{
+//	GET(BulletClass*, pThis, EBX);
+//	pThis->Velocity = {};
+//	return 0x468A3F;
+//}

@@ -987,6 +987,9 @@ public:
 	Valueable<bool> UnitBaseNormal { false };
 	Valueable<bool> UnitBaseForAllyBuilding { false };
 
+	Nullable<int> ChronoSpherePreDelay {};
+	Nullable<int> ChronoSphereDelay {};
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

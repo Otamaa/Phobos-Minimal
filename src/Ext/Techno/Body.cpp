@@ -5003,10 +5003,11 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AdditionalRange)
 		.Process(this->IsAboutToStartCloaking)
 		.Process(this->CurrentAircraftWeaponIndex)
-		.Process(this->HasCarryoverWarpInDelay)
+		.Process(this->HasRemainingWarpInDelay)
 		.Process(this->LastWarpInDelay)
 		.Process(this->UnitAutoDeployTimer)
 		.Process(this->SubterraneanHarvRallyPoint)
+		.Process(this->IsBeingChronoSphered)
 		;
 }
 

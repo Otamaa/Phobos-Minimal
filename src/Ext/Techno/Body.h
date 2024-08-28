@@ -467,8 +467,9 @@ public:
 	OptionalStruct<int, true> AdditionalRange {};
 	bool IsAboutToStartCloaking { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
 
-	bool HasCarryoverWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
-	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasCarryoverWarpInDelay
+	bool HasRemainingWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
+	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
+	bool IsBeingChronoSphered { false }; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
 
 	CDTimerClass UnitAutoDeployTimer {};
 	CellClass* SubterraneanHarvRallyPoint { nullptr };

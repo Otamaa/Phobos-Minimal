@@ -13,6 +13,43 @@
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+DEFINE_HOOK(0x7197E4, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
+{
+	GET(TeleportLocomotionClass*, pThis, ESI);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
+	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	R->ECX(pTypeExtData->ChronoSpherePreDelay.Get(RulesExtData::Instance()->ChronoSpherePreDelay));
+
+	return 0;
+}
+
+DEFINE_HOOK(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
+{
+	GET(TeleportLocomotionClass*, pThis, ESI);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
+
+	if (!pExt->IsBeingChronoSphered)
+		return 0;
+
+	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	int delay = pTypeExtData->ChronoSphereDelay.Get(RulesExtData::Instance()->ChronoSphereDelay);
+
+	if (delay > 0)
+	{
+		pThis->Owner->WarpingOut = true;
+		pExt->HasRemainingWarpInDelay = true;
+		pExt->LastWarpInDelay = std::max(delay, pExt->LastWarpInDelay);
+	}
+	else
+	{
+		pExt->IsBeingChronoSphered = false;
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
 {
 	GET_LOCO(ESI);
@@ -53,7 +90,8 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 		}
 	}
 
-	TechnoExtContainer::Instance.Find(pOwner)->LastWarpInDelay = pLocomotor->Timer.GetTimeLeft();
+	auto const pLinkedExt = TechnoExtContainer::Instance.Find(pOwner);
+	pLinkedExt->LastWarpInDelay = std::max(pLocomotor->Timer.GetTimeLeft(), pLinkedExt->LastWarpInDelay);
 	return 0x7195BC;
 }
 
@@ -63,12 +101,13 @@ DEFINE_HOOK(0x4DA53E, FootClass_AI_WarpInDelay, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->HasCarryoverWarpInDelay) {
+	if (pExt->HasRemainingWarpInDelay) {
 		if (pExt->LastWarpInDelay) {
 			pExt->LastWarpInDelay--;
 		}
 		else {
-			pExt->HasCarryoverWarpInDelay = false;
+			pExt->HasRemainingWarpInDelay = false;
+			pExt->IsBeingChronoSphered = false;
 			pThis->WarpingOut = false;
 		}
 	}

@@ -3602,7 +3602,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pOldType->Locomotor != pToType->Locomotor)
 	{
 		if (pOldType->Locomotor == CLSIDs::Teleport && pToType->Locomotor != CLSIDs::Teleport && pThis->WarpingOut)
-			TechnoExtContainer::Instance.Find(pThis)->HasCarryoverWarpInDelay = true;
+			TechnoExtContainer::Instance.Find(pThis)->HasRemainingWarpInDelay = true;
 
 		AbstractClass* pTarget = pThis->Target;
 		AbstractClass* pDest = pThis->Focus;

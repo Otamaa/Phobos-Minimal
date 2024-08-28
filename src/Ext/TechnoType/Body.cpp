@@ -1199,6 +1199,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 		this->UnitBaseNormal.Read(exINI, pSection, "UnitBaseNormal");
 		this->UnitBaseForAllyBuilding.Read(exINI, pSection, "UnitBaseForAllyBuilding");
+		this->ChronoSpherePreDelay.Read(exINI, pSection, "ChronoSpherePreDelay");
+		this->ChronoSphereDelay.Read(exINI, pSection, "ChronoSphereDelay");
 
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
@@ -2392,6 +2394,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CanBeBuiltOn)
 		.Process(this->UnitBaseNormal)
 		.Process(this->UnitBaseForAllyBuilding)
+		.Process(this->ChronoSpherePreDelay)
+		.Process(this->ChronoSphereDelay)
 		;
 }
 
