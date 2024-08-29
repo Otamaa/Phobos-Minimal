@@ -213,11 +213,11 @@ DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
 			}
 
 			if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
-				const int idx = pWarhead->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
+				const size_t idx = pWarhead->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
 					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
-					MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25;
+					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
 
-				R->EAX(pWHExt->Crit_AnimList[idx]);
+				R->EAX(pWHExt->Crit_AnimList[idx < pWHExt->Crit_AnimList.size() ? idx : pWHExt->Crit_AnimList.size() - 1]);
 				return 0x48A615;
 			}
 
@@ -226,7 +226,7 @@ DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
 					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
 					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
 
-				R->EAX(pWarhead->AnimList.Items[idx]);
+				R->EAX(pWarhead->AnimList.Items[idx < pWarhead->AnimList.Count ? idx : pWarhead->AnimList.Count - 1]);
 				return 0x48A615;
 			}
 		}
