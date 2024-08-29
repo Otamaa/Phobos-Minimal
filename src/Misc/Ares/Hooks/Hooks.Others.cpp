@@ -1071,13 +1071,13 @@ DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 	return 0;
 }
 
-DEFINE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
-{
-	GET(int, Damage, EDI);
-	Damage = abs(Damage);
-	R->EDI(Damage);
-	return Damage ? 0x48A4FF : 0x48A618;
-}
+// DEFINE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
+// {
+// 	GET(int, Damage, EDI);
+// 	Damage = abs(Damage);
+// 	R->EDI(Damage);
+// 	return Damage ? 0x48A4FF : 0x48A618;
+// }
 
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)

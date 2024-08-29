@@ -156,49 +156,84 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 
 #pragma endregion
 
-DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
+#include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
+
+DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
 {
-	GET(WarheadTypeClass* const, pThis, ESI);
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis);
-	pWHExt->Splashed = true;
+	GET(int, damage, ECX);
+	GET(WarheadTypeClass*, pWarhead, EDX);
+	GET_STACK(LandType, land, 0x4);
+	GET_STACK(CoordStruct*, pCoord, 0x8);
 
-	if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList))
-	{
-		GET(int, nDamage, ECX);
-		int idx = pWHExt->SplashList_PickRandom ?
-			ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
-			MinImpl(Vec.size() * 35 - 1, (size_t)nDamage) / 35;
+	if (pWarhead) {
 
-		R->EAX(Vec[idx]);
-		return 0x48A5AD;
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+		pWHExt->Splashed = false;
+
+		//allowing zero damage to pass ,..
+		//hopefully it wont do any harm to these thing , ...
+
+		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
+
+			if (damage < 0)
+				damage = -damage;
+
+			if (land == LandType::Water
+				&& pWarhead->Conventional
+				&& !MapClass::Instance->GetCellAt(pCoord)->ContainsBridge()
+				&& pCoord->Z < (MapClass::Instance->GetCellFloorHeight(pCoord) + Unsorted::CellHeight)
+				) {
+				pWHExt->Splashed = true;
+
+				if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList)) {
+
+					int idx = pWHExt->SplashList_PickRandom ?
+						ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
+						MinImpl(Vec.size() * 35 - 1, (size_t)damage) / 35;
+
+					R->EAX(Vec[idx]);
+					return 0x48A615;
+				}
+
+				R->EAX<AnimTypeClass*>(nullptr);
+				return 0x48A615;
+			}
+
+			if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm) {
+				auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+				if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
+					if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
+						RulesClass::Instance->WeatherConBoltExplosion))
+					{
+						R->EAX(pAnimType);
+						return 0x48A615;
+					}
+				}
+			}
+
+			if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
+				const int idx = pWarhead->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
+					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
+					MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25;
+
+				R->EAX(pWHExt->Crit_AnimList[idx]);
+				return 0x48A615;
+			}
+
+			if (pWarhead->AnimList.Count > 0) {
+				const int idx = pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect) ?
+					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
+					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
+
+				R->EAX(pWarhead->AnimList.Items[idx]);
+				return 0x48A615;
+			}
+		}
 	}
 
-	return 0;
-}
-
-DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
-{
-	GET(WarheadTypeClass* const, pThis, ESI);
-	return WarheadTypeExtContainer::Instance.Find(pThis)->AnimList_PickRandom.Get(pThis->EMEffect)
-		? 0x48A5C7 : 0x48A5EB;
-}
-
-DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
-{
-	GET(WarheadTypeClass* const, pThis, ESI);
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis);
-
-	if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets)
-	{
-		GET(int, nDamage, ECX);
-		int idx = pThis->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
-			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
-			MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)nDamage) / 25;
-		R->EAX(pWHExt->Crit_AnimList[idx]);
-		return 0x48A5AD;
-	}
-
-	return 0;
+	R->EAX<AnimTypeClass*>(nullptr);
+	return 0x48A615;
 }
 
 DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
@@ -208,29 +243,6 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
-}
-
-DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
-{
-	enum { SkipGameCode = 0x48A507, NoAnim = 0x48A618 };
-
-	GET(int, damage, ECX);
-	GET(WarheadTypeClass* const, warhead, EDX);
-
-	if (!warhead)
-		return NoAnim;
-
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
-
-	pWHExt->Splashed = false;
-	if (damage == 0 && !pWHExt->AnimList_ShowOnZeroDamage)
-		return NoAnim;
-	else if (damage < 0)
-		damage = -damage;
-
-	R->EDI(damage);
-	R->ESI(warhead);
-	return SkipGameCode;
 }
 
 // Cylinder CellSpread

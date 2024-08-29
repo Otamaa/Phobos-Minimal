@@ -1939,26 +1939,6 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 
 }
 
-DEFINE_HOOK(0x48A59A, MapClass_SelectDamageAnimation_LightningWarhead, 5)
-{
-	// override the lightning bolt explosion
-	GET(WarheadTypeClass* const, pWarhead, ESI);
-	if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm)
-	{
-		auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-		if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
-			if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
-				RulesClass::Instance->WeatherConBoltExplosion)) {
-				R->EAX(pAnimType);
-				return 0x48A5AD;
-			}
-		}
-	}
-
-	return 0;
-}
-
 // this is a complete rewrite of LightningStorm::Start.
 DEFINE_HOOK(0x539EB0, LightningStorm_Start, 5)
 {
