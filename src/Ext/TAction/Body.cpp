@@ -248,7 +248,7 @@ bool TActionExt::TransactMoneyFor(TActionClass* pThis, HouseClass* pHouse, Objec
 	{
 		auto nAmount = pOwner->Available_Money();
 		pOwner->TakeMoney(nAmount);
-		pOwner->GiveMoney(abs(pThis->Value));
+		pOwner->GiveMoney(Math::abs(pThis->Value));
 	}
 	else
 	{
@@ -269,7 +269,7 @@ bool TActionExt::SetAIMode(TActionClass* pThis, HouseClass* pHouse, ObjectClass*
 	if (!pOwner)
 		return false;
 
-	switch (abs(pThis->Value))
+	switch (Math::abs(pThis->Value))
 	{
 	case 0:
 		pOwner->AIMode = AIMode::General;
@@ -1249,7 +1249,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 	}
 
 	// Read the ID list of technos
-	int listIdx = std::abs(pThis->Param5);
+	int listIdx = Math::abs(pThis->Param5);
 
 	if ((size_t)listIdx < RulesExtData::Instance()->AIHousesLists.size()
 		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {

@@ -76,7 +76,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			if (!pWarhead->DebrisMaximums[nCurIdx])
 				continue;
 
-				int nAmountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % pWarhead->DebrisMaximums[nCurIdx];
+				int nAmountToSpawn = Math::abs(int(ScenarioClass::Instance->Random.Random())) % pWarhead->DebrisMaximums[nCurIdx];
 				nAmountToSpawn = LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
 				nTotalSpawn -= nAmountToSpawn;
 

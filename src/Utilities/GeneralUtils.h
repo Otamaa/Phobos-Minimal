@@ -251,7 +251,7 @@ public:
 		return -1;
 	}
 
-	static inline PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
+	static constexpr inline PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
 	{
 		const int weightCount = weights.size();
 		PhobosMap<Point2D, int> targetPad {};

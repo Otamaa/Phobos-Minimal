@@ -358,6 +358,12 @@ struct Game
 	{
 		JMP_STD(0x48A8D0);
 	}
+
+	static void __fastcall ComputeFrameCRC()
+	{ JMP_STD(0x64DAB0); }
+
+	static void __fastcall LogFrameCRC(int frameIndex)
+	{ JMP_STD(0x650A90); }
 };
 
 // this fake class contains the IIDs used by the game

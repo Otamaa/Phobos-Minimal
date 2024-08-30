@@ -462,7 +462,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		}
 		else if (whSequence.isset())
 		{
-			resultSequence = std::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
+			resultSequence = std::clamp(Die(Math::abs(whSequence.Get())), Die(1), Die(5));
 		}
 
 		InfantryExtContainer::Instance.Find(pThis)->IsUsingDeathSequence = true;

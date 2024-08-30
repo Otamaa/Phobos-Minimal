@@ -153,7 +153,8 @@ namespace Math
 	inline constexpr double deg2rad_Alternate(double deg) { return deg * C_Sharp_Pi / 180.0; }
 
 	template <typename T>
-	inline constexpr int signum(T x) {
+	[[nodiscard]] inline constexpr int signum(T x)noexcept
+			requires std::is_arithmetic_v<T> {
 		if constexpr (std::is_signed<T>()){
 			return (T{ 0 } < x) - (x < T{ 0 });
 		} else {
@@ -161,12 +162,25 @@ namespace Math
 		}
 	}
 
+	//https://github.com/rhalbersma/xstd/blob/master/include/xstd/cstdlib.hpp
+
+	template<class T>
+	[[nodiscard]] inline constexpr auto abs(T const& x) noexcept
+		requires std::is_arithmetic_v<T> {
+		return( // deal with signed-zeros
+		x == T(0) ? \
+			T(0) :
+		// else
+		x < T(0) ? \
+			- x : x);
+	}
+
 	template <typename T>
 	using value_return_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 	// use the sign to select min or max.
 	// 0 means no change (maximum of 0 and a positive value)
-	inline constexpr auto limit(int value, int limit) {
+	[[nodiscard]] inline constexpr auto limit(int value, int limit) noexcept {
 		if (limit <= 0) {
 			return MaxImpl(value, -limit);
 		} else {

@@ -281,11 +281,11 @@ DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 		auto slope_idx = MapClass::Instance->GetCellAt(pAir->Location)->SlopeIndex;
 		mat = Game::VoxelRampMatrix[slope_idx] * mat;
 
-		if (std::abs(ars) > 0.005 || std::abs(arf) > 0.005)
+		if (Math::abs(ars) > 0.005 || Math::abs(arf) > 0.005)
 		{
-			mat.TranslateZ(float(std::abs(Math::sin(ars))
+			mat.TranslateZ(float(Math::abs(Math::sin(ars))
 				* pAir->Type->VoxelScaleX
-				+ std::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
+				+ Math::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
 
 			R->ECX(pAir);
 			return 0x4CF6AD;

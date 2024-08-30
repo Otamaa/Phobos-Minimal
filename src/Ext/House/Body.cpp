@@ -2089,6 +2089,10 @@ void HouseExtContainer::Clear()
 DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
+
+	if (RulesExtData::Instance()->EnablePowerSurplus)
+		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
+
 	HouseExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

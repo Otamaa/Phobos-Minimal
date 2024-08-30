@@ -36,12 +36,12 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 
 	const auto& force = WeaponTypeExtContainer::Instance.Find(pTraj->WeaponType)->RecoilForce;
 
-	if (!force.isset() || std::abs(force) < 0.005)
+	if (!force.isset() || Math::abs(force.Get()) < 0.005)
 		return 0x0;
 
 	double force_result = force / MaxImpl(pThis->Type->Weight, 1.);
 
-	if (std::abs(force) < 0.002)
+	if (Math::abs(force.Get()) < 0.002)
 		return 0;
 
 	const double theta = pThis->GetRealFacing().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>();

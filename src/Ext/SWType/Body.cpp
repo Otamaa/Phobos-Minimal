@@ -1642,7 +1642,7 @@ void SWTypeExtData::WeightedRollsHandler(std::vector<int>& nResult, Valueable<do
 	for (size_t i = 0; i < rollsSize; i++)
 	{
 		RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && RandomBuffer > abs(rolls[i]))
+		if (!rollOnce && RandomBuffer > Math::abs(rolls[i]))
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
@@ -1674,7 +1674,7 @@ std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, 
 	for (size_t i = 0; i < rollsSize; i++)
 	{
 		this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && this->RandomBuffer > abs((*rolls)[i]))
+		if (!rollOnce && this->RandomBuffer > Math::abs((*rolls)[i]))
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list

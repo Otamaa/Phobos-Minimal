@@ -382,7 +382,7 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 	auto const pData = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pData->Shrapnel_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() < std::abs(pData->Shrapnel_Chance)) {
+		&& ScenarioClass::Instance->Random.RandomDouble() < Math::abs(pData->Shrapnel_Chance.Get())) {
 			return false;
 	}
 
@@ -523,7 +523,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 	 return true; // return true to continue
 			});
 
-			auto const nRemaining = abs(nCount - nTotal);
+			auto const nRemaining = Math::abs(nCount - nTotal);
 
 			// get random coords for last remaining shrapnel if the total still less than ncount
 			if (nRemaining)
@@ -787,7 +787,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 	{
 		auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor.Get()).Verses;
-		if (((std::abs(versus) >= 0.001)))
+		if (((Math::abs(versus) >= 0.001)))
 		{
 			canAffect = true;
 			const int damage = static_cast<int>(pWeapon->Damage * versus * TechnoExtData::GetDamageMult(pSource));

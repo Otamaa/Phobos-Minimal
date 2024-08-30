@@ -2873,7 +2873,7 @@ void TechnoExtData::UpdateInterceptor()
 		if (pBulletTypeExt->Armor.isset())
 		{
 			auto const pWhExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			if (std::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
+			if (Math::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
 				//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
 				< 0.001)
 				continue;
@@ -4495,7 +4495,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get())
 		return;
 
-	auto const nDelay = abs(pTypeExt->Gattling_Overload_Frames.Get(0));
+	auto const nDelay = Math::abs(pTypeExt->Gattling_Overload_Frames.Get(0));
 
 	if (!nDelay)
 		return;

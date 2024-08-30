@@ -395,7 +395,7 @@ bool DisperseTrajectory::CurveVelocityChange()
 
 		if (HorizonDistance > 0)
 		{
-			double HorizonMult = abs(pBullet->Velocity.Z / 64.0) / HorizonDistance;
+			double HorizonMult = Math::abs(pBullet->Velocity.Z / 64.0) / HorizonDistance;
 			pBullet->Velocity.X += HorizonMult * HorizonVelocity.X;
 			pBullet->Velocity.Y += HorizonMult * HorizonVelocity.Y;
 			double HorizonLength = std::sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);

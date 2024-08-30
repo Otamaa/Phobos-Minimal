@@ -313,7 +313,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 	{
 		auto const pRulesExt = RulesExtData::Instance();
 
-		if (this->Type->AutoSellTime.isset() && std::abs(this->Type->AutoSellTime.Get()) > 0.00f)
+		if (this->Type->AutoSellTime.isset() && Math::abs(this->Type->AutoSellTime.Get()) > 0.00f)
 		{
 			if (!AutoSellTimer.HasStarted())
 				AutoSellTimer.Start(static_cast<int>(this->Type->AutoSellTime.Get() * 900.0));

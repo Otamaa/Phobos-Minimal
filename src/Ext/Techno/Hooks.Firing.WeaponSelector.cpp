@@ -376,7 +376,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 		if (!skipRemainingChecks)
 		{
 
-			if (std::abs(
+			if (Math::abs(
 				//GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead , pTargetTechno->GetTechnoType()->Armor)
 				WarheadTypeExtContainer::Instance.Find(pWeaponOdd->Warhead)->GetVerses(
 					TechnoExtData::GetArmor(pTargetTechno)).Verses

@@ -2284,8 +2284,8 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 				for (auto const& pCloud : LightningStorm::CloudsPresent.get())
 				{
 					auto const cellCloud = pCloud->GetMapCoords();
-					auto const dist = std::abs(cellCloud.X - ret.X)
-						+ std::abs(cellCloud.Y - ret.Y);
+					auto const dist = Math::abs(cellCloud.X - ret.X)
+						+ Math::abs(cellCloud.Y - ret.Y);
 
 					if (dist < separation)
 					{

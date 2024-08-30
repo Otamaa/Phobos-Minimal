@@ -172,7 +172,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 
  	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
  		&& ScenarioClass::Instance->Random.RandomDouble() >=
- 		abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
+ 		Math::abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
  		) {
  		return SkipDamaging;
  	}

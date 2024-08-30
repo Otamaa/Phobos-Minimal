@@ -406,7 +406,7 @@ int StraightTrajectoryVarianC::GetVelocityZ() const
 	if (!pType->PassThrough)
 		return velocity;
 
-	if (pBullet->Owner && abs(pBullet->Owner->GetCoords().Z - pBullet->TargetCoords.Z) <= 32)
+	if (pBullet->Owner && Math::abs(pBullet->Owner->GetCoords().Z - pBullet->TargetCoords.Z) <= 32)
 	{
 		double DistanceOfTwo = pBullet->SourceCoords.DistanceFrom(pBullet->TargetCoords);
 		double TheDistance = this->DetonationDistance;
@@ -744,12 +744,12 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner)
 			if ((TechnoCrd.X - SourceCrd.X) * pBullet->Velocity.X + (TechnoCrd.Y - SourceCrd.Y) * pBullet->Velocity.Y < 0)
 				continue;
 
-			double Distance = abs(TechnoCrd.X - BulletCrd.X);
+			double Distance = Math::abs(TechnoCrd.X - BulletCrd.X);
 
 			if (FutureCrd.X != BulletCrd.X)
 			{
 				double Factor = (FutureCrd.Y - BulletCrd.Y) / (FutureCrd.X - BulletCrd.X);
-				Distance = abs(Factor * TechnoCrd.X - TechnoCrd.Y + BulletCrd.Y - Factor * BulletCrd.X) / sqrt(Factor * Factor + 1);
+				Distance = Math::abs(Factor * TechnoCrd.X - TechnoCrd.Y + BulletCrd.Y - Factor * BulletCrd.X) / sqrt(Factor * Factor + 1);
 			}
 
 			if (TechnoType != AbstractType::Building && Distance > pTrajType->ProximityRadius * 256.0)
@@ -943,7 +943,7 @@ std::vector<CellClass*> StraightTrajectoryVarianC::GetCellsInProximityRadius()
 std::vector<CellStruct> StraightTrajectoryVarianC::GetCellsInRectangle(CellStruct bStaCell, CellStruct lMidCell, CellStruct rMidCell, CellStruct tEndCell)
 {
 	std::vector<CellStruct> RecCells;
-	int CellNums = (abs(tEndCell.Y - bStaCell.Y) + 1) * (abs(rMidCell.X - lMidCell.X) + 1);
+	int CellNums = (Math::abs(tEndCell.Y - bStaCell.Y) + 1) * (abs(rMidCell.X - lMidCell.X) + 1);
 	RecCells.reserve(CellNums);
 	RecCells.push_back(bStaCell);
 
@@ -1207,10 +1207,10 @@ bool StraightTrajectoryVarianC::PassAndConfineAtHeight(double StraightSpeed)
 		CoordStruct CellCoords = pCell->GetCoordsWithBridge();
 		int DifferenceOnBridge = CellCoords.Z - FutureCoords.Z;
 
-		if (abs(DifferenceOnBridge) < abs(CheckDifference))
+		if (Math::abs(DifferenceOnBridge) < Math::abs(CheckDifference))
 			CheckDifference = DifferenceOnBridge;
 
-		if (abs(CheckDifference) < 384 || !pBullet->Type->SubjectToCliffs)
+		if (Math::abs(CheckDifference) < 384 || !pBullet->Type->SubjectToCliffs)
 		{
 			pBullet->Velocity.Z += static_cast<double>(CheckDifference + pType->ConfineAtHeight);
 			if (CalculateBulletVelocity(StraightSpeed))

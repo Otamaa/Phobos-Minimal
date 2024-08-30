@@ -701,6 +701,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
+
 	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General, "CheckUnitBaseNormal");
 	this->ExpandBuildingPlace.Read(exINI, GameStrings::General, "ExpandBuildingPlace");
 	this->CheckExpandPlaceGrid.Read(exINI, GameStrings::AudioVisual, "CheckExpandPlaceGrid");
@@ -1351,6 +1353,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISuperWeaponDelay)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
+		.Process(this->EnablePowerSurplus)
 		;
 
 	MyPutData.Serialize(Stm);

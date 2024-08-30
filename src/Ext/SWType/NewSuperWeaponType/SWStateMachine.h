@@ -535,8 +535,8 @@ public:
 		, LaserStrikeDuration { 0 }
 		, AlreadyActivated { false }
 		, Deferment { deferment }
-		, MaxCount { abs(maxcount) }
-		, MaxCountCounter { abs(maxcount) }
+		, MaxCount { Math::abs(maxcount) }
+		, MaxCountCounter { Math::abs(maxcount) }
 	{ }
 
 	virtual void Update();

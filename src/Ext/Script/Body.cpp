@@ -1275,7 +1275,7 @@ void ScriptExtData::IncreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJum
 		modifier = pTeam->CurrentScript->GetCurrentAction().Argument;
 
 	if (modifier <= 0)
-		modifier = abs(RulesClass::Instance->AITriggerSuccessWeightDelta);
+		modifier = Math::abs(RulesClass::Instance->AITriggerSuccessWeightDelta);
 
 	ScriptExtData::ModifyCurrentTriggerWeight(pTeam, forceJumpLine, modifier);
 
@@ -1329,7 +1329,7 @@ void ScriptExtData::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	TeamExtContainer::Instance.Find(pTeam)->WaitNoTargetAttempts = abs(attempts);
+	TeamExtContainer::Instance.Find(pTeam)->WaitNoTargetAttempts = Math::abs(attempts);
 
 	// This action finished
 	pTeam->StepCompleted = true;

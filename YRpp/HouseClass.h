@@ -1391,7 +1391,7 @@ public:
 	int TotalOwnedInfantryCost;
 	int TotalOwnedVehicleCost;
 	int TotalOwnedAircraftCost;
-	DWORD unknown_power_160B4;
+	int PowerSurplus;
 };
 
 static_assert(sizeof(HouseClass) == 0x160B8, "Invalid Size !.");

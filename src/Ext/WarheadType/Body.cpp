@@ -778,7 +778,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 		if (!SkipVerses && EffectsRequireVerses.Get())
 		{
-			return (std::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject)).Verses) >= 0.001);
+			return (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject)).Verses) >= 0.001);
 		}
 
 		return true;
@@ -1612,7 +1612,7 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 		return false;
 
 	if (SuppressDeathWeapon_Chance.isset())
-		return ScenarioClass::Instance->Random.RandomDouble() >= abs(SuppressDeathWeapon_Chance.Get());
+		return ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(SuppressDeathWeapon_Chance.Get());
 
 	return true;
 }

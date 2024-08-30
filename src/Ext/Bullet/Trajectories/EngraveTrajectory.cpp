@@ -259,7 +259,7 @@ bool EngraveTrajectory::OnAI()
 
 		int CheckDifference = GetFloorCoordHeight(FutureCoords) - FutureCoords.Z;
 
-		if (abs(CheckDifference) >= 384)
+		if (Math::abs(CheckDifference) >= 384)
 		{
 			if (CheckDifference > 0)
 			{
@@ -385,7 +385,7 @@ int EngraveTrajectory::GetFloorCoordHeight(CoordStruct Coord) const
 		CoordStruct CellCoords = pCell->GetCoordsWithBridge();
 		int OnBridge = CellCoords.Z - this->SourceHeight;
 
-		if (OnBridge < 0 && abs(OnBridge - Difference) > 384)
+		if (OnBridge < 0 && Math::abs(OnBridge - Difference) > 384)
 			Difference = OnBridge;
 	}
 

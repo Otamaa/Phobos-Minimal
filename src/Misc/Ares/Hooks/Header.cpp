@@ -2159,7 +2159,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
-			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline() 
+			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline()
 				|| BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID != -1)
 			)
 	)
@@ -2358,15 +2358,10 @@ void TechnoExt_ExtData::UpdateDisplayTo(BuildingClass* pThis)
 	{
 		auto pHouse = pThis->Owner;
 		DWORD presistData = HouseExtContainer::Instance.Find(pHouse)->RadarPersist.data;
-		auto walk = pHouse->Buildings.begin();
-		const auto end = pHouse->Buildings.end();
 
-		for (; walk != end; ++walk)
-		{
-			if (!(*walk)->InLimbo)
-			{
-				if (BuildingTypeExtContainer::Instance.Find((*walk)->Type)->SpyEffect_RevealRadar)
-				{
+		for (auto walk = pHouse->Buildings.begin(); walk != pHouse->Buildings.end(); ++walk) {
+			if (!(*walk)->InLimbo) {
+				if (BuildingTypeExtContainer::Instance.Find((*walk)->Type)->SpyEffect_RevealRadar) {
 					presistData |= (*walk)->DisplayProductionTo.data;
 				}
 			}

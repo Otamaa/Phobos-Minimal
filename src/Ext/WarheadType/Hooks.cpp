@@ -96,20 +96,20 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 	PhobosGlobal::Instance()->DetonateDamageArea = true;
 }
 
-DEFINE_HOOK(0x46A2A1, BulletClass_Logics_ReturnB, 0x5){
-	GET(BulletClass* , pThis ,ESI);
-	GET_BASE(CoordStruct*, coords, 0x8);
+// DEFINE_HOOK(0x46A2A1, BulletClass_Logics_ReturnB, 0x5){
+// 	GET(BulletClass* , pThis ,ESI);
+// 	GET_BASE(CoordStruct*, coords, 0x8);
+//
+// 	if(auto pNullify = RulesClass::Instance->WeaponNullifyAnim){
+// 		GameCreate<AnimClass>(pNullify , coords ,0,1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,-15,0);
+// 	}
+//
+// 	ApplyLogics(pThis, coords);
+//
+// 	return 0x46A2FB;
+// }
 
-	if(auto pNullify = RulesClass::Instance->WeaponNullifyAnim){
-		GameCreate<AnimClass>(pNullify , coords ,0,1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,-15,0);
-	}
-
-	ApplyLogics(pThis, coords);
-
-	return 0x46A2FB;
-}
-
-DEFINE_HOOK(0x46A290, BulletClass_Logics_Return_A, 0x5)
+DEFINE_HOOK(0x469AA4, BulletClass_Logics_Extras, 0x5)
 {
 	GET(BulletClass* , pThis ,ESI);
 	GET_BASE(CoordStruct*, coords, 0x8);

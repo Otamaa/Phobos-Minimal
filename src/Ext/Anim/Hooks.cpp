@@ -82,7 +82,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 		auto const pCell = pThis->GetCell();
 
 		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue()
-			<= abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
+			<= Math::abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
 
 		return 0x423BBF;
 	}

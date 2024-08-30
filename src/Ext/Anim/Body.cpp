@@ -298,7 +298,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 					{
 						CoordStruct nDestCoord = CoordStruct::Empty;
 						if (!pAnimTypeExt->ParticleChance.isset() ||
-							(ScenarioClass::Instance->Random.RandomFromMax(99) < abs(pAnimTypeExt->ParticleChance.Get())))
+							(ScenarioClass::Instance->Random.RandomFromMax(99) < Math::abs(pAnimTypeExt->ParticleChance.Get())))
 						{
 							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), InitialCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
@@ -321,7 +321,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 
 							for (; numParticle > 0; --numParticle) {
 
-								int rand = std::abs(ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax));
+								int rand = Math::abs(ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax));
 								double randDouble = ScenarioClass::Instance->Random.RandomDouble() * rad + start_distance;
 								CoordStruct dest {
 									InitialCoord.X + int(rand * Math::cos(randDouble)),

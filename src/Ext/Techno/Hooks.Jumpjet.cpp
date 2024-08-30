@@ -184,7 +184,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	float arf = linked->AngleRotatedForwards;
 	float ars = linked->AngleRotatedSideways;
 
-	if (std::abs(ars) >= 0.005 || std::abs(arf) >= 0.005)
+	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
 		if (pIndex)
 			pIndex->Invalidate();
@@ -194,7 +194,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			double scalex = linked->GetTechnoType()->VoxelScaleX;
 			double scaley = linked->GetTechnoType()->VoxelScaleY;
 			Matrix3D pre = Matrix3D::GetIdentity();
-			pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
+			pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
 			ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
 			ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
 			ret->RotateX(ars);
@@ -254,7 +254,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	GET(JumpjetLocomotionClass* const, pThis, ESI);
 
 	//prevent float zero division error
-	if (pThis->LinkedTo->IsUnderEMP() || std::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
+	if (pThis->LinkedTo->IsUnderEMP() || Math::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
 		return NoWobble;
 	}
 
@@ -390,7 +390,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 		const double checkLength = Unsorted::BridgeHeight / pThis->Climb * pThis->__currentSpeed;
 		const double angle = -pThis->Facing.Current().GetRadian<32>();
 		Point2D stepCoord { static_cast<int>(checkLength * Math::cos(angle)), static_cast<int>(checkLength * Math::sin(angle)) };
-		const int largeStep = std::max(abs(stepCoord.X), abs(stepCoord.Y));
+		const int largeStep = std::max(Math::abs(stepCoord.X), Math::abs(stepCoord.Y));
 
 		if (largeStep)
 		{

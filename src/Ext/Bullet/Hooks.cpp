@@ -50,7 +50,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		const auto ThisCoord = pThis->GetCoords();
 		const auto TargetCoords = pThis->GetBulletTargetCoords();
 
-		if (abs(ThisCoord.DistanceFrom(TargetCoords))
+		if (Math::abs(ThisCoord.DistanceFrom(TargetCoords))
 			<= pTypeExt->PreExplodeRange.Get(0) * 256)
 			if (BulletExtData::HandleBulletRemove(pThis, true, true))
 				return retDead;

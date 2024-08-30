@@ -386,8 +386,8 @@ void CloneableLighningStormStateMachine::Update()
 				for (auto const& pCloud : CloudsPresent)
 				{
 					auto const cellCloud = pCloud->GetMapCoords();
-					auto const dist = std::abs(cellCloud.X - ret.X)
-						+ std::abs(cellCloud.Y - ret.Y);
+					auto const dist = Math::abs(cellCloud.X - ret.X)
+						+ Math::abs(cellCloud.Y - ret.Y);
 
 					if (dist < separation)
 					{

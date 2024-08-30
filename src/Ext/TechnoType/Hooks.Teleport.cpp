@@ -192,7 +192,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 	float arf = loco->Owner->AngleRotatedForwards;
 	float ars = loco->Owner->AngleRotatedSideways;
 
-	if (std::abs(ars) >= 0.005 || std::abs(arf) >= 0.005)
+	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
 		//just forget about ramp here, math too complicated, not considered for other locos either
 		if (pIndex)
@@ -202,7 +202,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		double scaley = loco->Owner->GetTechnoType()->VoxelScaleY;
 
 		Matrix3D pre = Matrix3D::GetIdentity();
-		pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
+		pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
 		ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
 		ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
 		ret->RotateX(ars);

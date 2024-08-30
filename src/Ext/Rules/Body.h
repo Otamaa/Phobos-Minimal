@@ -387,6 +387,7 @@ public:
 
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
+	Valueable<bool> EnablePowerSurplus { false };
 
 	RulesExtData() noexcept = default;
 	~RulesExtData() noexcept = default;
