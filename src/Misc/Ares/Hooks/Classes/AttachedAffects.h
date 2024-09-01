@@ -67,7 +67,6 @@ public:
 	static void RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeClass* pRemove);
 	static bool Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno, int duration, HouseClass* pInvokerOwner);
 	static void TransferAttachedEffects(TechnoClass* From, TechnoClass* To);
-	static void RecalculateStat(AresAEData* ae, TechnoClass* pThis);
 	static void applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coords, HouseClass* Source);
 
 private:

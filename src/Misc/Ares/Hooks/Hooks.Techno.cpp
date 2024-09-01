@@ -510,15 +510,6 @@ DEFINE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FD0BF, TechnoClass_GetROF_AttachEffect, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	const auto nRof = TechnoExtContainer::Instance.Find(pThis)->AE_ROF;
-	__asm { fmul nRof };
-	return 0x0;
-}
-
 DEFINE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
 {
 	GET(TechnoClass*, pThis, ECX);

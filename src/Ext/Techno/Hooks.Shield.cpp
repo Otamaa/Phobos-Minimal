@@ -218,7 +218,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 	});
 
 	if (altered)
-		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pThis)->AeData, pThis);
+		AEProperties::Recalculate(pThis);
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();

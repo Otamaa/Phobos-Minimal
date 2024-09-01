@@ -92,24 +92,6 @@ DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	const int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
-
-	if (burstDelay >= 0)
-	{
-		R->EAX(burstDelay);
-		return 0x6FD099;
-	}
-
-	// Restore overridden instructions
-	GET(int, idxCurrentBurst, ECX);
-	return idxCurrentBurst <= 0 || idxCurrentBurst > 4 ? 0x6FD084 : 0x6FD067;
-}
-
 DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 {
 	GET(TemporalClass* const, pThis, ESI);
@@ -233,23 +215,90 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 
 DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {
-	enum { ApplyFullRearmDelay = 0x6FD09E };
-
 	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(int , currentBurstIdx , ECX);
+
+	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
 	// Currently only used with infantry, so a performance saving measure.
-	if (const auto pInf = specific_cast<InfantryClass*>(pThis))
-	{
-		const auto pExt = InfantryExtContainer::Instance.Find(pInf);
-		if (pExt->ForceFullRearmDelay)
-		{
-			pExt->ForceFullRearmDelay = false;
+	if (const auto pInf = specific_cast<InfantryClass*>(pThis)) {
+		const auto pInfExt = InfantryExtContainer::Instance.Find(pInf);
+		if (pInfExt->ForceFullRearmDelay) {
+			pInfExt->ForceFullRearmDelay = false;
 			pThis->CurrentBurstIndex = 0;
-			return ApplyFullRearmDelay;
+			rearm = true;
 		}
 	}
 
-	return 0;
+	if(!rearm)
+	{
+		const int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
+
+		if (burstDelay >= 0) {
+			R->EAX(burstDelay);
+			return 0x6FD099;
+		}
+
+		// Restore overridden instructions
+		return currentBurstIdx <= 0 || currentBurstIdx > 4 ? 0x6FD084 : 0x6FD067;
+	}
+
+	int nResult = 0;
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pExt->ROF_Random.Get()) {
+		const auto nDefault = Point2D{RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
+	}
+
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if(pWeaponExt->ROF_RandomDelay.isset()){
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
+	}
+
+	int _ROF = int(
+		(double)pWeapon->ROF *
+		TechnoExtContainer::Instance.Find(pThis)->AE.ROFMultiplier *
+		pThis->Owner->ROFMultiplier + nResult
+	);
+
+	if(pThis->HasAbility(AbilityType::ROF))
+		_ROF = int(_ROF * RulesClass::Instance->VeteranROF);
+
+	auto const Building = specific_cast<BuildingClass*>(pThis);
+
+	if (pThis->CanOccupyFire()) {
+		const auto occupant = pThis->GetOccupantCount();
+
+		if (occupant > 0) {
+			_ROF /= occupant;
+		}
+
+		auto OccupyRofMult = RulesClass::Instance->OccupyROFMultiplier;
+
+		if (Building) {
+			OccupyRofMult = BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyROFMult.Get(OccupyRofMult);
+		}
+
+		if (OccupyRofMult > 0.0)
+			_ROF = int(float(_ROF) / OccupyRofMult);
+
+	}
+
+	if (pThis->BunkerLinkedItem && !Building) {
+		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
+		if (auto const pBunkerIsBuilding = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
+		}
+
+		if(BunkerMult != 0.0)
+			_ROF = int(float(_ROF) / BunkerMult);
+	}
+
+	R->EAX(_ROF);
+	return 0x6FD1F5;
 }
 
 namespace FiringAITemp

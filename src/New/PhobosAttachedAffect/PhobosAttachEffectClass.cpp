@@ -421,7 +421,7 @@ bool PhobosAttachEffectClass::Attach(PhobosAttachEffectTypeClass* pType, TechnoC
 	{
 		if (initialDelay <= 0)
 		{
-			AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+			AEProperties::Recalculate(pTarget);
 
 			if (pType->HasTint())
 				pTarget->MarkForRedraw();
@@ -496,7 +496,7 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 
 
 	if (attachedCount > 0)
-		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+		AEProperties::Recalculate(pTarget);
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();
@@ -596,7 +596,7 @@ int PhobosAttachEffectClass::Detach(PhobosAttachEffectTypeClass* pType, TechnoCl
 
 	if (detachedCount > 0)
 	{
-		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+		AEProperties::Recalculate(pTarget);
 
 		if (pType->HasTint())
 			pTarget->MarkForRedraw();
@@ -640,7 +640,7 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 	}
 
 	if (detachedCount > 0)
-		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+		AEProperties::Recalculate(pTarget);
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();
@@ -671,7 +671,7 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 	}
 
 	if (recalc && detachedCount > 0)
-		AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+		AEProperties::Recalculate(pTarget);
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();

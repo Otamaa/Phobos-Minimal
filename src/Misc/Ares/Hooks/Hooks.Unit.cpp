@@ -368,7 +368,7 @@ DEFINE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 	if(pExt->DisableWeaponTimer.InProgress())
 		return FireRange;
 
-	if(pExt->AE_DisableWeapons)
+	if(pExt->AE.DisableWeapons)
 		return FireRange;
 
 	return ContinueCheck;

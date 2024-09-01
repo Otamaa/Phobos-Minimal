@@ -248,8 +248,8 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 	{
 		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-		if (pExt->AE_ExtraRange.Enabled()){
-			range = pExt->AE_ExtraRange.Get(range, pThis);
+		if (pExt->AE.ExtraRange.Enabled()){
+			range = pExt->AE.ExtraRange.Get(range, pThis);
 		}
 	}
 	return MaxImpl(range, 0);
@@ -269,7 +269,7 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoC
 		auto pTechno = pTarget;
 		if (this->AttachEffect_CheckOnFirer && pFirer)
 			pTechno = pFirer;
-			
+
 		if(!pTechno || !pTechno->IsAlive)
 			return true;
 

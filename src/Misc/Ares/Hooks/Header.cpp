@@ -802,7 +802,7 @@ bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassi
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	// object disallowed from cloaking
-	if (!pTypeExt->CloakAllowed || pExt->AE_ForceDecloak)
+	if (!pTypeExt->CloakAllowed || pExt->AE.ForceDecloak)
 	{
 		return false;
 	}
@@ -4155,7 +4155,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 					pAnim->ZAdjust = -1024;
 			}
 
-			AresAE::RecalculateStat(&TechnoExtContainer::Instance.Find(pExpReceiver)->AeData, pExpReceiver);
+			AEProperties::Recalculate(pExpReceiver);
 		}
 
 		pExpReceiver->CurrentRanking = newRank;

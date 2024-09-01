@@ -102,7 +102,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
 	}
 
-	if(pExt->AE_HasTint) {
+	if(pExt->AE.HasTint) {
 		for (auto const& attachEffect : pExt->PhobosAE) {
 			auto const type = attachEffect.GetType();
 

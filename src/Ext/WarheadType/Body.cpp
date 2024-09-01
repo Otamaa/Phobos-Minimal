@@ -1024,7 +1024,7 @@ static constexpr int GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* 
 
 	if (IsTechno && relative > 0)
 	{
-		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE_ReceiveRelativeDamageMult);
+		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE.ReceiveRelativeDamageMult);
 	}
 
 	return relative;
@@ -1572,14 +1572,13 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>&
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
-	if (pExt->AE_ExtraCrit.Enabled())
+	if (pExt->AE.ExtraCrit.Enabled())
 	{
-		std::vector<TechnoExtData::ExtraCrit::CritDataOut> valids;
-		pExt->AE_ExtraCrit.FillEligible(this->AttachedToObject, valids);
+		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
+		pExt->AE.ExtraCrit.FillEligible(this->AttachedToObject, valids);
 
-		for (auto& curChances : chances)
-		{
-			curChances = TechnoExtData::ExtraCrit::Count(curChances, valids);
+		for (auto& curChances : chances) {
+			curChances = AEProperties::ExtraCrit::Count(curChances, valids);
 		}
 	}
 }

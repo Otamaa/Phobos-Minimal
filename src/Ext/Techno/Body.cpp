@@ -4902,18 +4902,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->Type, true)
 		.Process(this->AbsType)
-		.Process(this->AE_ROF)
-		.Process(this->AE_FirePowerMult)
-		.Process(this->AE_ArmorMult)
-		.Process(this->AE_SpeedMult)
-		.Process(this->AE_ReceiveRelativeDamageMult)
-		.Process(this->AE_Cloak)
-		.Process(this->AE_ForceDecloak)
-		.Process(this->AE_DisableWeapons)
-		.Process(this->AE_DisableSelfHeal)
-		.Process(this->AE_Untrackable)
-		.Process(this->AE_HasTint)
-		.Process(this->AE_ReflectDamage)
+		.Process(this->AE)
 		.Process(this->idxSlot_Wave)
 		.Process(this->idxSlot_Beam)
 		.Process(this->idxSlot_Warp)
@@ -4995,8 +4984,6 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyDriveData)
 		.Process(this->MyDiveData)
 		.Process(this->MySpawnSuport)
-		.Process(this->AE_ExtraRange)
-		.Process(this->AE_ExtraCrit)
 		.Process(this->PhobosAE)
 		.Process(this->ShootCount)
 		.Process(this->FiringObstacleCell)
@@ -5052,6 +5039,160 @@ void TechnoExtData::InitializeConstant()
 {
 	//Debug::Log("Initilizing Tiberium storage for [%x] with [%d] count !\n", this->AttachedToObject, TiberiumClass::Array->Count);
 	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+}
+
+void AEProperties::Recalculate(TechnoClass* pTechno) {
+
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
+	auto _AresAE = &pExt->AeData;
+	//auto _PhobosAE = &pExt->PhobosAE;
+	auto _AEProp = &pExt->AE;
+
+	double ROF_Mult = 1.0;
+	double ReceiveRelativeDamageMult = 1.0;
+	double FP_Mult = _AEProp->FirepowerMultiplier;
+	double Armor_Mult = _AEProp->ArmorMultiplier;
+	double Speed_Mult = _AEProp->SpeedMultiplier;
+
+	bool Cloak = pTechno->GetTechnoType()->Cloakable || pTechno->HasAbility(AbilityType::Cloak);
+
+	bool forceDecloak = false;
+	bool disableWeapons = false;
+	bool disableSelfHeal = false;
+	bool untrackable = false;
+
+	auto extraRangeData = &_AEProp->ExtraRange;
+	auto extraCritData = &_AEProp->ExtraCrit;
+
+	extraRangeData->Clear();
+	extraCritData->Clear();
+
+	bool hasTint = false;
+	bool reflectsDamage = false;
+
+	std::optional<double> cur_timerAE {};
+
+	for (const auto& aeData : _AresAE->Data) {
+
+		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer)
+		{
+			if (!cur_timerAE.has_value())
+				cur_timerAE = aeData.Type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= aeData.Type->ROFMultiplier;
+		}
+
+		ROF_Mult *= aeData.Type->ROFMultiplier;
+		ReceiveRelativeDamageMult += aeData.Type->ReceiveRelativeDamageMult;
+		FP_Mult *= aeData.Type->FirepowerMultiplier;
+		Speed_Mult *= aeData.Type->SpeedMultiplier;
+		Armor_Mult *= aeData.Type->ArmorMultiplier;
+		Cloak |= aeData.Type->Cloakable;
+		forceDecloak |= aeData.Type->ForceDecloak;
+		disableWeapons |= aeData.Type->DisableWeapons;
+		disableSelfHeal |= aeData.Type->DisableSelfHeal;
+		untrackable |= aeData.Type->Untrackable;
+
+		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0))
+		{
+
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
+			ranges_.extraRange = aeData.Type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
+				ranges_.disallow.insert(disallow);
+		}
+	}
+
+	for (const auto& attachEffect : pExt->PhobosAE) {
+
+		if (!attachEffect.IsActive())
+			continue;
+
+		auto const type = attachEffect.GetType();
+		FP_Mult *= type->FirepowerMultiplier;
+		Speed_Mult *= type->SpeedMultiplier;
+		Armor_Mult *= type->ArmorMultiplier;
+		ROF_Mult *= type->ROFMultiplier;
+		Cloak |= type->Cloakable;
+		forceDecloak |= type->ForceDecloak;
+		disableWeapons |= type->DisableWeapons;
+		disableSelfHeal |= type->DisableSelfHeal;
+		untrackable |= type->Untrackable;
+		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
+		hasTint |= type->HasTint();
+
+		if (type->ROFMultiplier_ApplyOnCurrentTimer)
+		{
+			if (!cur_timerAE.has_value())
+				cur_timerAE = type->ROFMultiplier;
+			else
+				cur_timerAE.value() *= type->ROFMultiplier;
+		}
+
+		if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
+		{
+			auto& ranges_ = extraRangeData->ranges.emplace_back();
+			ranges_.rangeMult = type->WeaponRange_Multiplier;
+			ranges_.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+
+			for (auto& allow : type->WeaponRange_AllowWeapons)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : type->WeaponRange_DisallowWeapons)
+				ranges_.disallow.insert(disallow);
+		}
+
+		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
+		{
+			auto& ranges_ = extraCritData->ranges.emplace_back();
+			ranges_.Mult = type->Crit_Multiplier;
+			ranges_.extra = type->Crit_ExtraChance;
+
+			for (auto& allow : type->Crit_AllowWarheads)
+				ranges_.allow.insert(allow);
+
+			for (auto& disallow : type->Crit_DisallowWarheads)
+				ranges_.disallow.insert(disallow);
+		}
+
+		reflectsDamage |= type->ReflectDamage;
+	}
+
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
+		const int timeleft = pTechno->DiskLaserTimer.GetTimeLeft();
+
+		if (timeleft > 0)
+		{
+			pTechno->DiskLaserTimer.Start(int(timeleft * cur_timerAE.value()));
+		}
+		else
+		{
+			pTechno->DiskLaserTimer.Stop();
+		}
+
+		pTechno->ROF = static_cast<int>(pTechno->ROF * cur_timerAE.value());
+	}
+
+	pTechno->FirepowerMultiplier = FP_Mult;
+	pTechno->ArmorMultiplier = Armor_Mult;
+	_AEProp->ROFMultiplier = ROF_Mult;
+	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
+	pTechno->Cloakable = Cloak;
+	_AEProp->ForceDecloak = forceDecloak;
+	_AEProp->DisableWeapons = disableWeapons;
+	_AEProp->DisableSelfHeal = disableSelfHeal;
+	_AEProp->Untrackable = untrackable;
+	_AEProp->HasTint = hasTint;
+	_AEProp->ReflectDamage = reflectsDamage;
+
+	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
+		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
+	}
 }
 
 // =============================

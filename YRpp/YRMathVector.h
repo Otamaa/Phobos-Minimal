@@ -464,3 +464,16 @@ class PartialVector4D : public Vector4D<T>
 public:
 	size_t ValueCount;
 };
+
+template <typename T> class MinMaxValue {
+public :
+	static const MinMaxValue Empty;
+
+public :
+
+	T Min;
+	T Max;
+};
+
+template <typename T>
+const MinMaxValue<T> MinMaxValue<T>::Empty = { T(), T() };

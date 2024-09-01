@@ -285,30 +285,6 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	//return 0x0;
 }
 
-DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	int nResult = 0;
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (pExt->ROF_Random.Get())
-	{
-		const auto nDefault = Point2D{RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
-		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
-	}
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if(pWeaponExt->ROF_RandomDelay.isset()){
-		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
-	}
-
-	R->EAX(nResult);
-	return 0x6FD0B5;
-}
-
 DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 {
 	GET(FootClass* const, pThis, ESI);
