@@ -448,7 +448,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	if(HouseClass::IsCurrentPlayerObserver())
 		return 0x6F6A8E;
 
-	return 0x6F6AB6u;
+	return 0x6F6A58u;
 }
 
 
