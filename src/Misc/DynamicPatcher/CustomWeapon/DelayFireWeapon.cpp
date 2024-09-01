@@ -10,7 +10,7 @@ void DelayFireWeapon::ReduceOnce()
 
 bool DelayFireWeapon::NotDone() const { return Count > 0; }
 bool DelayFireWeapon::Load(PhobosStreamReader& Stm, bool RegisterForChange) { return Serialize(Stm);  }
-bool DelayFireWeapon::Save(PhobosStreamWriter& Stm) const { return 
+bool DelayFireWeapon::Save(PhobosStreamWriter& Stm) const { return
 	const_cast<DelayFireWeapon*>(this)->Serialize(Stm);
 }
 
@@ -20,8 +20,8 @@ bool DelayFireWeapon::Serialize(T& Stm)
 	return Stm
 		.Process(FireOwnWeapon)
 		.Process(WeaponIndex)
-		.Process(Weapon)
-		.Process(Target)
+		.Process(Weapon, true)
+		.Process(Target, true)
 		.Process(Delay)
 		.Process(Count)
 		.Process(Timer)

@@ -63,7 +63,7 @@ private:
 			.Process(RetargetRadius)
 			.Process(SuicideAboveRange)
 			.Process(SuicideIfNoWeapon)
-			.Process(Weapon)
+			.Process(Weapon, true)
 			.Process(WeaponBurst)
 			.Process(WeaponCount)
 			.Process(WeaponDelay)

@@ -113,8 +113,8 @@ void TerrainExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->LighSource)
-		.Process(this->AttachedAnim)
+		.Process(this->LighSource, true)
+		.Process(this->AttachedAnim, true)
 		.Process(this->Adjencentcells)
 		;
 }

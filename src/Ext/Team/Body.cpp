@@ -403,9 +403,9 @@ void TeamExtData::Serialize(T& Stm)
 		.Process(this->ForceJump_Countdown)
 		.Process(this->ForceJump_InitialCountdown)
 		.Process(this->ForceJump_RepeatMode)
-		.Process(this->TeamLeader)
+		.Process(this->TeamLeader, true)
 
-		.Process(this->LastFoundSW)
+		.Process(this->LastFoundSW, true)
 
 		.Process(this->ConditionalJump_Evaluation)
 		.Process(this->ConditionalJump_ComparatorMode)

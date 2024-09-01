@@ -76,10 +76,10 @@ private:
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(Type)
-			.Process(Anim)
+			.Process(Type, true)
+			.Process(Anim, true)
 			.Process(Duration)
-			.Process(Invoker)
+			.Process(Invoker, true)
 			.Success()
 			&& Stm.RegisterChange(this) // announce this type
 			;

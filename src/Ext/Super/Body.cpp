@@ -126,7 +126,7 @@ void SuperExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)
-		.Process(this->Type)
+		.Process(this->Type, true)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
 		.Process(this->CameoFirstClickDone)

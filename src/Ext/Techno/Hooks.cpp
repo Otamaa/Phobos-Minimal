@@ -60,6 +60,9 @@ DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 	return 0;
 }
 
+// TunnelLocomotionClass_IsToHaveShadow, skip shadow on all but idle.
+// TODO: Investigate if it is possible to fix the shadows not tilting on the burrowing etc. states.
+DEFINE_JUMP(LJMP, 0x72A070, 0x72A07F);
 
 DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 {

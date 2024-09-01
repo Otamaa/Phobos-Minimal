@@ -41,7 +41,7 @@ private:
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(this->Techno)
+			.Process(this->Techno, true)
 			.Process(this->LastScan)
 			.Process(this->Powered)
 			.Success()

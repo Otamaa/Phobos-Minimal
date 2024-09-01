@@ -147,7 +147,7 @@ void WaveExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->Weapon)
+		.Process(this->Weapon, true)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
 		.Process(this->SourceCoord)

@@ -155,7 +155,7 @@ struct Handle
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return
-			Savegame::ReadPhobosStream(Stm, this->destroy, RegisterForChange)
+			Savegame::ReadPhobosStream(Stm, this->destroy, false)
 			&& Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange)
 			;
 

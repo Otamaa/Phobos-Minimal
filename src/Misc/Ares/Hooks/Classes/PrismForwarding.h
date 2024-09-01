@@ -225,7 +225,7 @@ public:
 	{
 		// support pointer to this type
 		return Stm
-			.Process(this->Owner, RegisterForChange)
+			.Process(this->Owner, true)
 			.Process(this->Senders, RegisterForChange)
 			.Process(this->SupportTarget, RegisterForChange)
 			.Process(this->PrismChargeDelay)

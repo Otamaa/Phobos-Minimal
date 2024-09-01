@@ -60,7 +60,7 @@ bool StraightVariantCTrajectoryType::Load(PhobosStreamReader& Stm, bool Register
 		.Process(this->ProximityAllies)
 		.Process(this->ThroughVehicles)
 		.Process(this->ThroughBuilding)
-		.Process(this->StraightWarhead)
+		.Process(this->StraightWarhead, true)
 		.Process(this->StraightDamage)
 		.Process(this->SubjectToGround)
 		.Process(this->ConfineAtHeight)

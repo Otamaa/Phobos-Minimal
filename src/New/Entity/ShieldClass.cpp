@@ -70,11 +70,11 @@ template <typename T>
 bool ShieldClass::Serialize(T& Stm)
 {
 	return Stm
-		.Process(this->Techno)
-		.Process(this->CurTechnoType)
+		.Process(this->Techno, true)
+		.Process(this->CurTechnoType, true)
 		.Process(this->HP)
 		.Process(this->Timers)
-		.Process(this->IdleAnim)
+		.Process(this->IdleAnim, true)
 		.Process(this->Cloak)
 		.Process(this->Online)
 		.Process(this->Temporal)
@@ -89,7 +89,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Respawn_Rate_Warhead)
 		.Process(this->LastBreakFrame)
 		.Process(this->LastTechnoHealthRatio)
-		.Process(this->Type)
+		.Process(this->Type, true)
 
 		.Success();
 }

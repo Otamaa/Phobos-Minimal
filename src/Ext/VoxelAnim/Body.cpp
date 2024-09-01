@@ -65,7 +65,7 @@ void VoxelAnimExtData::Serialize(T& Stm)
 
 	 Stm
 		.Process(this->Initialized)
-		.Process(this->Invoker)
+		.Process(this->Invoker, true)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
 		;

@@ -15,7 +15,7 @@ bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange
 		.Process(this->TargetSnapDistance, false)
 		.Process(this->FreeFallOnTarget, false)
 		.Process(this->NoLaunch, false)
-		.Process(this->TurningPointAnim, false)
+		.Process(this->TurningPointAnim, true)
 		;
 }
 

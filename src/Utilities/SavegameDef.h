@@ -1097,13 +1097,17 @@ namespace Savegame
 			Value.clear();
 
 			size_t Count = 0;
-			if (!Stm.Load(Count))
-			{
+			if (!Stm.Load(Count)) {
 				return false;
 			}
 
-			for (auto ix = 0u; ix < Count; ++ix)
-			{
+			//Debug::Log("Loading std::set with(%s) size %d\n", typeid(T).name(), Count);
+
+			if (!Count)
+				return true;
+
+			for (auto ix = 0u; ix < Count; ++ix) {
+
 				T buffer = T();
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
 				{
@@ -1118,14 +1122,14 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::set<T>& Value) const
 		{
 			Stm.Save(Value.size());
+			//Debug::Log("Saving std::set with(%s) size %d\n", typeid(T).name(), Value.size());
 
-			for (const auto& item : Value)
-			{
-				if (!Savegame::WritePhobosStream(Stm, item))
-				{
+			for (const auto& item : Value) {
+				if (!Savegame::WritePhobosStream(Stm, item)) {
 					return false;
 				}
 			}
+
 			return true;
 		}
 	};

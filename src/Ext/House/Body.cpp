@@ -1797,7 +1797,7 @@ void HouseExtData::UpdateTransportReloaders()
 {
 	for (auto& pTech : this->LimboTechno)
 	{
-		if (pTech->IsAlive
+		if (pTech && pTech->IsAlive // the null check is only for Save game load , for some reason it contains nullptr ,...
 			&& pTech->WhatAmI() != AircraftClass::AbsID
 			&& pTech->WhatAmI() != BuildingClass::AbsID
 			&& pTech->Transporter && pTech->Transporter->IsInLogic)
@@ -1960,24 +1960,24 @@ void HouseExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->Degrades)
-		.Process(this->PowerPlantEnhancerBuildings)
-		.Process(this->Building_BuildSpeedBonusCounter)
-		.Process(this->Building_OrePurifiersCounter)
+		.Process(this->PowerPlantEnhancerBuildings, true)
+		.Process(this->Building_BuildSpeedBonusCounter, true)
+		.Process(this->Building_OrePurifiersCounter, true)
 		.Process(this->m_ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
 		//.Process(this->RandomNumber)
-		.Process(this->Factory_BuildingType)
-		.Process(this->Factory_InfantryType)
-		.Process(this->Factory_VehicleType)
-		.Process(this->Factory_NavyType)
-		.Process(this->Factory_AircraftType)
+		.Process(this->Factory_BuildingType, true)
+		.Process(this->Factory_InfantryType, true)
+		.Process(this->Factory_VehicleType, true)
+		.Process(this->Factory_NavyType, true)
+		.Process(this->Factory_AircraftType, true)
 		.Process(this->AllRepairEventTriggered)
 		.Process(this->LastBuildingTypeArrayIdx)
 		.Process(this->RepairBaseNodes)
 		.Process(this->LastBuiltNavalVehicleType)
 		.Process(this->ProducingNavalUnitTypeIndex)
 
-		.Process(this->AutoDeathObjects)
+		.Process(this->AutoDeathObjects, true)
 		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
@@ -1986,15 +1986,20 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Seed)
 
 		.Process(this->SWLastIndex)
-		.Process(this->Batteries)
-		.Process(this->LimboTechno)
+		.Process(this->Batteries, true)
+	//	;
+
+	//Debug::Log("LimboTechnoCount %d\n",this->LimboTechno.size());
+	//Stm
+		.Process(this->LimboTechno, true)
+
 		.Process(this->AvaibleDocks)
 
 		.Process(this->StolenTech)
 		.Process(this->RadarPersist)
-		.Process(this->FactoryOwners_GatheredPlansOf)
+		.Process(this->FactoryOwners_GatheredPlansOf, true)
 		.Process(this->Academies, true)
-		.Process(this->Reversed)
+		.Process(this->Reversed, true)
 
 		.Process(this->Is_NavalYardSpied)
 		.Process(this->Is_AirfieldSpied)
@@ -2004,10 +2009,10 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->KeepAliveBuildingCount)
 		.Process(this->TiberiumStorage)
 
-		.Process(this->SideTechTree)
+		.Process(this->SideTechTree , true)
 		.Process(this->CombatAlertTimer)
 		.Process(this->EMPulseWeaponIndex)
-		.Process(this->RestrictedFactoryPlants)
+		.Process(this->RestrictedFactoryPlants, true)
 		.Process(this->AISellAllDelayTimer)
 		//.Process(this->BuiltAircraftTypes)
 		//.Process(this->BuiltInfantryTypes)
@@ -2020,10 +2025,10 @@ void HouseExtData::Serialize(T& Stm)
 		//.Process(this->CapturedBuildings)
 		//.Process(this->CollectedCrates)
 
-		.Process(this->OwnedDeployingUnits)
+		.Process(this->OwnedDeployingUnits, true)
 		.Process(this->BaseNormalCells)
-		.Process(this->CurrentBuildingType)
-		.Process(this->CurrentBuildingTopLeft)
+		.Process(this->CurrentBuildingType, true)
+		.Process(this->CurrentBuildingTopLeft, true)
 		.Process(this->CurrentBuildingTimer)
 		.Process(this->CurrentBuildingTimes)
 
@@ -2109,17 +2114,18 @@ DEFINE_HOOK(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(HouseClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
+
 	HouseExtContainer::Instance.PrepareStream(pItem, pStm);
 	return 0;
 }
 
-DEFINE_HOOK(0x504069, HouseClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x5031E6, HouseClass_Load_Suffix, 0x6)
 {
 	HouseExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x5046DE, HouseClass_Save_Suffix, 0x7)
+DEFINE_HOOK(0x5040A2, HouseClass_Save_Suffix, 0x6)
 {
 	HouseExtContainer::Instance.SaveStatic();
 	return 0;

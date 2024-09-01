@@ -188,10 +188,10 @@ void RadSiteExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->Weapon)
-		.Process(this->Type)
-		.Process(this->TechOwner)
-		.Process(this->HouseOwner)
+		.Process(this->Weapon, true)
+		.Process(this->Type, true)
+		.Process(this->TechOwner, true)
+		.Process(this->HouseOwner, true)
 		.Process(this->NoOwner)
 		.Process(this->CreationFrame)
 		;

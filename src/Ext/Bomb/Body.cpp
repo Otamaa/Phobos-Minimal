@@ -18,7 +18,7 @@ void BombExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Initialized)
-		.Process(this->Weapon)
+		.Process(this->Weapon, true)
 		;
 }
 

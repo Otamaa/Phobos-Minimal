@@ -306,8 +306,8 @@ double PhobosTrajectory::GetTrajectorySpeed() const
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return 	Stm
-		.Process(this->AttachedTo)
-		.Process(this->Type)
+		.Process(this->AttachedTo, true)
+		.Process(this->Type, true)
 		.Process(this->DetonationDistance)
 		.Success()
 		;

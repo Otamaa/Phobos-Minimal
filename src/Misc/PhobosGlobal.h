@@ -39,7 +39,7 @@ public:
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
 			return Stm
-				.Process(this->Finder)
+				.Process(this->Finder, true)
 				.Process(this->From)
 				.Process(this->To)
 				.Success();

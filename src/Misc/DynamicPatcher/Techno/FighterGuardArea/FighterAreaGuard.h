@@ -49,7 +49,7 @@ struct FighterAreaGuard
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(OwnerObject)
+			.Process(OwnerObject, true)
 			.Process(State)
 			.Process(Clockwise)
 			.Process(destCenter)

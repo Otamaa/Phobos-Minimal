@@ -58,7 +58,7 @@ struct TunnelData
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(Vector)
+			.Process(Vector, true)
 			.Process(MaxCap)
 			.Success()
 			//&& Stm.RegisterChange(this)

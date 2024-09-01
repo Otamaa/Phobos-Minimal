@@ -1070,7 +1070,7 @@ void ParticleSystemExtData::Serialize(T& Stm)
 		.Process(this->What)
 		.Process(this->OtherParticleData)
 		.Process(this->SmokeData)
-		.Process(this->HeldType)
+		.Process(this->HeldType, true)
 		;
 }
 
