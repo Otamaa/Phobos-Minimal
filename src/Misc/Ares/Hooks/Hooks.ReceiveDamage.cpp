@@ -182,7 +182,9 @@ DEFINE_HOOK(0x702B67, TechnoClass_ReceiveDamage_ScatterCheck, 0x5)
 	if(WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter)
 		return 0x702D11;
 
-	if (auto pFoot = generic_cast<FootClass*>(pThis)) {
+	if (pThis->AbstractFlags & AbstractFlags::Foot) {
+		const auto pFoot = static_cast<FootClass*>(pThis);
+
 		if (!pFoot->Target && !pFoot->Destination) {
 			const bool scatter =
 				(R->Origin() == 0x702B67 && (RulesClass::Instance->Scatter || pFoot->HasAbility(AbilityType::Scatter)))
