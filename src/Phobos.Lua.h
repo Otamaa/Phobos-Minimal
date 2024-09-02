@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Lua542/lua.hpp>
+#include <Lua547/lua.hpp>
 #include <string>
 #include <memory>
 
