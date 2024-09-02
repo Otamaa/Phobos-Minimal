@@ -173,29 +173,37 @@ DEFINE_HOOK(0x702117,  TechnoClass_ReceiveDamage_OverrideSounds , 0xA){
 	return 0x702200;
 }
 
-//original hooks , jut in case the stuffs fail
-DEFINE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter_Deep, 6)
+DEFINE_HOOK_AGAIN(0x702BFE , TechnoClass_ReceiveDamage_ScatterCheck,0x8)
+DEFINE_HOOK(0x702B67, TechnoClass_ReceiveDamage_ScatterCheck, 0x5)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
 
-	// only allow to scatter if not prevented
-	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter)
-	{
-		pThis->Scatter(CoordStruct::Empty, true, false);
+	if(WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter)
+		return 0x702D11;
+
+	if (auto pFoot = generic_cast<FootClass*>(pThis)) {
+		if (!pFoot->Target && !pFoot->Destination) {
+			const bool scatter =
+				(R->Origin() == 0x702B67 && (RulesClass::Instance->Scatter || pFoot->HasAbility(AbilityType::Scatter)))
+				||
+				(!pFoot->IsTethered &&
+					pFoot->GetCurrentMissionControl()->Scatter &&
+					!pFoot->Locomotor.GetInterfacePtr()->Is_Moving() &&
+					pFoot->WhatAmI() != AircraftClass::AbsID &&
+					(!pFoot->Owner->IsControlledByHuman() ||
+						RulesClass::Instance->Scatter ||
+						pFoot->HasAbility(AbilityType::Scatter)
+					)
+				);
+
+			if (scatter) {
+				pFoot->Scatter(CoordStruct::Empty, true, false);
+			}
+		}
 	}
 
 	return 0x702D11;
-}
-
-//these hook were really early checks
-DEFINE_HOOK_AGAIN(0x702BFE, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
-DEFINE_HOOK(0x702B47, TechnoClass_ReceiveDamage_PreventScatter, 0x8)
-{
-	//GET(FootClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	return WarheadTypeExtContainer::Instance.Find(pWarhead)->PreventScatter ? 0x702D11 : 0x0;
 }
 
 // #1283653: fix for jammed buildings and attackers in open topped transports
@@ -284,6 +292,7 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 6)
 			WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, false, pOwner);
 		}
 	}
+
 	return 0x0;
 }
 
