@@ -27,7 +27,7 @@ void* __fastcall fake_MessageListClass__Add_Message(MessageListClass* pThis,
 													int32_t duration,
 													bool SinglePlayer)
 {
-	if (Name == NULL || !SpawnerMain::GetMainConfigs()->AllowChat) {
+	if (Name == NULL || SpawnerMain::GetMainConfigs()->AllowChat) {
 		return pThis->AddMessage(Name, ID, message, color, PrintType, duration, SinglePlayer);
 	}
 
