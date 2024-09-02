@@ -190,9 +190,9 @@ DEFINE_HOOK(0x702B67, TechnoClass_ReceiveDamage_ScatterCheck, 0x5)
 				(R->Origin() == 0x702B67 && (RulesClass::Instance->Scatter || pFoot->HasAbility(AbilityType::Scatter)))
 				||
 				(!pFoot->IsTethered &&
+					pFoot->WhatAmI() != AircraftClass::AbsID &&
 					pFoot->GetCurrentMissionControl()->Scatter &&
 					!pFoot->Locomotor.GetInterfacePtr()->Is_Moving() &&
-					pFoot->WhatAmI() != AircraftClass::AbsID &&
 					(!pFoot->Owner->IsControlledByHuman() ||
 						RulesClass::Instance->Scatter ||
 						pFoot->HasAbility(AbilityType::Scatter)
