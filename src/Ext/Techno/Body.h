@@ -428,7 +428,7 @@ public:
 	TechnoTypeClass* Type { nullptr }; //original Type pointer
 	OptionalStruct<AbstractType, true> AbsType {};
 
-	AEProperties AE;
+	AEProperties AE {};
 
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6

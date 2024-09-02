@@ -76,3 +76,14 @@ public:
 	ObjectClass* FollowingObject;
 	TechnoClass* OwnerObject;
 };
+
+struct UninitBuildingLight
+{
+	void operator() (BuildingLightClass* pBld) const
+	{
+		if (pBld) {
+			pBld->UnInit();
+		}
+		pBld = nullptr;
+	}
+};
