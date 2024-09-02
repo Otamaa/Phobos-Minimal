@@ -115,7 +115,7 @@ MSVC++
 		_asm{push eax}
 
 //call
-#define CALL(pFunction) \
+#define ASM_CALL(pFunction) \
 		_asm{mov eax, pFunction}\
 		_asm{call eax}
 

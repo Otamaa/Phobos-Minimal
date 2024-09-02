@@ -170,28 +170,28 @@ public:
 
 	static void Start(int duration, int deferment, CellStruct cell, HouseClass* pOwner)
 		{ PUSH_VAR32(pOwner); PUSH_VAR32(cell); SET_REG32(EDX, deferment); SET_REG32(ECX, duration);
-			CALL(0x539EB0); }
+			ASM_CALL(0x539EB0); }
 
 	static void RequestStop()
-		{ CALL(0x53A090); }
+		{ ASM_CALL(0x53A090); }
 
 	static bool HasDeferment()
-		{ CALL(0x53A0E0); }
+		{ ASM_CALL(0x53A0E0); }
 
 	static void Strike(CellStruct cell)
-		{ PUSH_VAR32(cell); CALL(0x53A140); }
+		{ PUSH_VAR32(cell); ASM_CALL(0x53A140); }
 
 	static void __stdcall Strike2(CoordStruct coords)
 		{ JMP_STD(0x53A300); }
 
 	static void PrintMessage()
-		{ CALL(0x53AE00); }
+		{ ASM_CALL(0x53AE00); }
 
 	static void Update()
-		{ CALL(0x53A6C0); }
+		{ ASM_CALL(0x53A6C0); }
 
 	static void Init()
-		{ CALL(0x53AB50); }
+		{ ASM_CALL(0x53AB50); }
 };
 
 class PsyDom
@@ -204,19 +204,19 @@ public:
 
 	static void Start(HouseClass* pOwner, CellStruct coords)
 		{ PUSH_VAR32(coords); SET_REG32(ECX, pOwner);
-			CALL(0x53AE50); }
+			ASM_CALL(0x53AE50); }
 
 	static void Update()
-		{ CALL(0x53AF40); }
+		{ ASM_CALL(0x53AF40); }
 
 	static void Fire()
-		{ CALL(0x53B080); }
+		{ ASM_CALL(0x53B080); }
 
 	static void PrintMessage()
-		{ CALL(0x53B410); }
+		{ ASM_CALL(0x53B410); }
 
 	static bool IsActive()
-		{ CALL(0x53B400); }
+		{ ASM_CALL(0x53B400); }
 };
 
 class ChronoScreenEffect
@@ -227,13 +227,13 @@ public:
 
 	static void Start(int duration)
 		{ SET_REG32(ECX, duration);
-			CALL(0x53B460); }
+			ASM_CALL(0x53B460); }
 
 	static void Update()
-		{ CALL(0x53B560); }
+		{ ASM_CALL(0x53B560); }
 
 	static bool Active()
-		{ CALL(0x53BAD0); }
+		{ ASM_CALL(0x53BAD0); }
 };
 
 class NukeFlash
@@ -244,14 +244,14 @@ public:
 	static constexpr reference<int, 0x827FCCu> const Duration{};
 
 	static void FadeIn()
-		{ CALL(0x53AB70); }
+		{ ASM_CALL(0x53AB70); }
 
 	static void FadeOut()
-		{ CALL(0x53AC50); }
+		{ ASM_CALL(0x53AC50); }
 
 	static bool IsFadingIn()
-		{ CALL(0x53A110); }
+		{ ASM_CALL(0x53A110); }
 
 	static bool IsFadingOut()
-		{ CALL(0x53A120); }
+		{ ASM_CALL(0x53A120); }
 };

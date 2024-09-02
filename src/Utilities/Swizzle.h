@@ -7,6 +7,8 @@
 #include <Objidl.h>
 #include <SwizzleManagerClass.h>
 
+#include <Utilities/Debug.h>
+
 class PhobosSwizzle
 {
 protected:
@@ -42,7 +44,7 @@ public:
 		return E_POINTER;
 	}
 
-	inline HRESULT RegisterForChange(void** p)
+	FORCEINLINE HRESULT RegisterForChange(void** p)
 	{
 		return SwizzleManagerClass::Instance().Swizzle(p);
 	}
@@ -60,7 +62,7 @@ public:
 	* the original game objects all save their `this` pointer to the save stream
 	* that way they know what ptr they used and call this function with that old ptr and `this` as the new ptr
 	*/
-	inline HRESULT RegisterChange(void* was, void* is)
+	FORCEINLINE HRESULT RegisterChange(void* was, void* is)
 	{
 		return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
 	}
@@ -85,7 +87,8 @@ public:
 	/**
 	* this function will rewrite all registered nodes' values
 	*/
-	constexpr void ConvertNodes() const
+
+	constexpr auto ConvertNodes(bool* found) const
 	{
 		//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
 		void* lastFind(nullptr);
@@ -95,36 +98,40 @@ public:
 		{
 			if (lastFind != it->first)
 			{
-				auto change = this->FindChanges(it->first);
+				const auto change = this->FindChanges(it->first);
 
-				/*
-				if (change == this->Changes.end())
-				{
-					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
-				}
-				else
-				*/
-				if (change != this->Changes.end())
+				if (change == this->Changes.end()) {
+					if (found)
+						*found = false;
+
+				} else //if (change != this->Changes.end())
 				{
 					lastFind = it->first;
 					lastRes = change->second;
+
+					if (found)
+						*found = true;
 				}
 			}
-			if (auto p = it->second)
-			{
+
+			if (auto p = it->second) {
 				*p = lastRes;
 			}
+
+			return it;
 		}
+
+		return this->Nodes.end();
 	}
 
-	constexpr inline void Clear()
+	constexpr FORCEINLINE void Clear()
 	{
 		this->Nodes.clear();
 		this->Changes.clear();
 	}
 
 	template<typename T>
-	inline void RegisterPointerForChange(T*& ptr) {
+	FORCEINLINE void RegisterPointerForChange(T*& ptr) {
 		this->RegisterForChange(reinterpret_cast<void**>(const_cast<std::remove_cv_t<T>**>(&ptr)));
 	}
 };

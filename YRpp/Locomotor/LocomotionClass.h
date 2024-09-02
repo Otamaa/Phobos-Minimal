@@ -93,17 +93,17 @@ public:
 
 	// Non virtuals
 	static HRESULT TryPiggyback(IPiggyback** Piggy, ILocomotion** Loco)
-	{ PUSH_VAR32(Loco); SET_REG32(ECX, Piggy); CALL(0x45AF20); }
+	{ PUSH_VAR32(Loco); SET_REG32(ECX, Piggy); ASM_CALL(0x45AF20); }
 
 	static HRESULT CreateInstance(ILocomotion** ppv, const CLSID* rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext)
-	{ PUSH_VAR32(dwClsContext); PUSH_VAR32(pUnkOuter); PUSH_VAR32(rclsid); SET_REG32(ECX, ppv); CALL(0x41C250); }
+	{ PUSH_VAR32(dwClsContext); PUSH_VAR32(pUnkOuter); PUSH_VAR32(rclsid); SET_REG32(ECX, ppv); ASM_CALL(0x41C250); }
 
 	// these two are identical, why do they both exist...
 	static void AddRef1(LocomotionClass** Loco)
-	{ SET_REG32(ECX, Loco); CALL(0x45A170); }
+	{ SET_REG32(ECX, Loco); ASM_CALL(0x45A170); }
 
 	static void AddRef2(LocomotionClass** Loco)
-	{ SET_REG32(ECX, Loco); CALL(0x6CE270); }
+	{ SET_REG32(ECX, Loco); ASM_CALL(0x6CE270); }
 
 	static void ChangeLocomotorTo(FootClass *Object, const CLSID &clsid);
 

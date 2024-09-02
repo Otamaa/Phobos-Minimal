@@ -51,7 +51,7 @@ public:
 	virtual int Size() const override R0;
 
 	static bool LoadFromINIList(CCINIClass *pINI, bool IsGlobal)
-		{ PUSH_VAR8(IsGlobal); SET_REG32(ECX, pINI); CALL(0x6F19B0); }
+		{ PUSH_VAR8(IsGlobal); SET_REG32(ECX, pINI); ASM_CALL(0x6F19B0); }
 
 	TeamClass * CreateTeam(HouseClass *pHouse)
 		{ JMP_THIS(0x6F09C0); }

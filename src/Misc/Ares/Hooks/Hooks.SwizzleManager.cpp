@@ -6,7 +6,13 @@
 ///
 DEFINE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 7)
 {
-	PhobosSwizzle::Instance.ConvertNodes();
+	bool found = true;
+	auto it = PhobosSwizzle::Instance.ConvertNodes(&found);
+
+	if(!found) {
+		Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
+	}
+
 	PhobosSwizzle::Instance.Clear();
 
 	return 0x6CF400;

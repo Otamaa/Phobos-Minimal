@@ -26,7 +26,7 @@ public:
 			PUSH_VAR32(pButton1Text);
 			PUSH_VAR32(pMessage);
 			SET_REG32(ecx,ppTitle);
-			CALL(0x5D3490);
+			ASM_CALL(0x5D3490);
 		}
 
 	static eMessageBoxResult Show(const wchar_t* pMessage)

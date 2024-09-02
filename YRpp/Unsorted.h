@@ -184,7 +184,7 @@ struct Game
 	{
 		double something = val;
 		__asm { fld something };
-		CALL(0x7C5F00);
+		ASM_CALL(0x7C5F00);
 	}
 
 	static constexpr int FORCEINLINE AdjustHeight(int height)  {
@@ -204,7 +204,7 @@ struct Game
 	}
 
 	static void ClearScenario() {
-		CALL(0x6851F0);
+		ASM_CALL(0x6851F0);
 	}
 
 	// actually is SessionClass::Callback
@@ -212,7 +212,7 @@ struct Game
 	{ SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
 
 	static void CallBack()
-	{ CALL(0x48D080); }
+	{ ASM_CALL(0x48D080); }
 
 	static int __fastcall GetResource(int ID, int Type)
 	{ JMP_STD(0x4A3B40); }
@@ -245,7 +245,7 @@ struct Game
 	{ JMP_STD(0x732D00); }
 
 	static double GetFloaterGravity()
-	{ CALL(0x48ACF0); }
+	{ ASM_CALL(0x48ACF0); }
 
 	static void __fastcall KeyboardProcess(DWORD& input)
 	{ JMP_STD(0x55DEE0); }
@@ -254,22 +254,22 @@ struct Game
 	{ JMP_STD(0x4093B0); }
 
 	static void InitRandom()
-	{ CALL(0x52FC20); }
+	{ ASM_CALL(0x52FC20); }
 
 	static void ShowSpecialDialog()
-	{ CALL(0x48C8B0); }
+	{ ASM_CALL(0x48C8B0); }
 
 	static bool __fastcall InitNetwork()
 	{ JMP_STD(0x5DA6C0); }
 
 	static void InitUIStuff()
 	{
-		/* InitCommonDialogStuff() */ CALL(0x600560);
+		/* InitCommonDialogStuff() */ ASM_CALL(0x600560);
 
 		if (!PCXInitialized)
 		{
-			/* InitUIColorShifts() */ CALL(0x61F190);
-			/* LoadPCXFiles() */      CALL(0x61F210);
+			/* InitUIColorShifts() */ ASM_CALL(0x61F190);
+			/* LoadPCXFiles() */      ASM_CALL(0x61F210);
 			PCXInitialized = true;
 		}
 	}

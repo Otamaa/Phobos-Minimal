@@ -228,7 +228,6 @@
     <ClCompile Include="src\Lib\Lua547\ltable.c" />
     <ClCompile Include="src\Lib\Lua547\ltablib.c" />
     <ClCompile Include="src\Lib\Lua547\ltm.c" />
-    <ClCompile Include="src\Lib\Lua547\luac.c" />
     <ClCompile Include="src\Lib\Lua547\lundump.c" />
     <ClCompile Include="src\Lib\Lua547\lutf8lib.c" />
     <ClCompile Include="src\Lib\Lua547\lvm.c" />
@@ -332,6 +331,7 @@
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Misc\Spawner\Bugfixes.cpp" />
+    <ClCompile Include="src\Misc\Spawner\Chats.cpp" />
     <ClCompile Include="src\Misc\Spawner\DisableEdgeScrolling.cpp" />
     <ClCompile Include="src\Misc\Spawner\DumpTypeDataArrayToFile.cpp" />
     <ClCompile Include="src\Misc\Spawner\InGameChat.cpp" />

@@ -118,7 +118,7 @@ public:
 		PUSH_VAR32(this);
 		PUSH_VAR32(pText);
 		PUSH_PTR(tmp);
-		CALL(0x4A60E0);
+		ASM_CALL(0x4A60E0);
 
 		ADD_ESP(0x20);
 	}

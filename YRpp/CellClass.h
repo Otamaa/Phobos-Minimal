@@ -488,7 +488,7 @@ public:
 	void ChainReaction() {
 		CellStruct* cell = &this->MapCoords;
 		SET_REG32(ecx, cell);
-		CALL(0x489270);
+		ASM_CALL(0x489270);
 	}
 
 	CoordStruct* FindInfantrySubposition(CoordStruct* pOutBuffer, const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords)
