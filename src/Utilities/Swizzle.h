@@ -30,7 +30,7 @@ public:
 	* pass in the *address* of the pointer you want to have changed
 	* caution, after the call *p will be NULL
 	*/
-	constexpr HRESULT RegisterForChange_Hook(void** p)
+	FORCEINLINE constexpr HRESULT RegisterForChange_Hook(void** p)
 	{
 		if (p)
 		{
@@ -49,7 +49,7 @@ public:
 		return SwizzleManagerClass::Instance().Swizzle(p);
 	}
 
-	constexpr auto FindChanges(void* ptr) const {
+	FORCEINLINE constexpr auto FindChanges(void* ptr) const {
 
 		for (auto begin = this->Changes.begin(); begin != this->Changes.end(); ++begin) {
 			if (begin->first == ptr)
@@ -58,6 +58,7 @@ public:
 
 		return this->Changes.end();
 	}
+
 	/**
 	* the original game objects all save their `this` pointer to the save stream
 	* that way they know what ptr they used and call this function with that old ptr and `this` as the new ptr
@@ -67,7 +68,7 @@ public:
 		return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
 	}
 
-	constexpr HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
+	FORCEINLINE constexpr HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
 	{
 		auto exist = this->FindChanges(was);
 
@@ -88,7 +89,9 @@ public:
 	* this function will rewrite all registered nodes' values
 	*/
 
-	constexpr auto ConvertNodes(bool* found) const
+	//constexpr , removed since need to log ,..
+	// probably make constexpr Debug::Log
+		void ConvertNodes() const
 	{
 		//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
 		void* lastFind(nullptr);
@@ -101,16 +104,11 @@ public:
 				const auto change = this->FindChanges(it->first);
 
 				if (change == this->Changes.end()) {
-					if (found)
-						*found = false;
-
+					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
 				} else //if (change != this->Changes.end())
 				{
 					lastFind = it->first;
 					lastRes = change->second;
-
-					if (found)
-						*found = true;
 				}
 			}
 
@@ -118,10 +116,7 @@ public:
 				*p = lastRes;
 			}
 
-			return it;
 		}
-
-		return this->Nodes.end();
 	}
 
 	constexpr FORCEINLINE void Clear()
