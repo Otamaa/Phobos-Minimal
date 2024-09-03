@@ -17,6 +17,8 @@
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
+
+#include <Misc/Ares/Hooks/Header.h>
 #pragma endregion
 
 DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
@@ -26,6 +28,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 		auto pExt = HouseExtContainer::Instance.Find(pHouse);
 		pExt->UpdateAutoDeathObjects();
 		pExt->UpdateTransportReloaders();
+		AresHouseExt::UpdateTogglePower(pHouse);
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;

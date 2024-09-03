@@ -5119,6 +5119,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 
 		pBuilding->DisableStuff();
 		AresEMPulse::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
 	}
 	else if (abs == AbstractType::Aircraft)
 	{
@@ -5212,6 +5213,7 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 			pBuilding->EnableStuff();
 		}
 		AresEMPulse::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
 	}
 
 	if (hasPower && pVictim->Deactivated)
@@ -5274,6 +5276,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 
 		pBuilding->DisableStuff();
 		AresEMPulse::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
 	}
 	else if (abs == AbstractType::Aircraft)
 	{
@@ -5370,6 +5373,7 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 			pBuilding->EnableStuff();
 		}
 		AresEMPulse::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
 	}
 
 	if (hasPower && pVictim->Deactivated)
@@ -7516,6 +7520,9 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 		for (auto const& pBld : pThis->Buildings)
 		{
+			if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+				continue;
+
 			auto pType = pBld->Type;
 			if (pType->CanTogglePower() && pType->PowerDrain > 0)
 			{

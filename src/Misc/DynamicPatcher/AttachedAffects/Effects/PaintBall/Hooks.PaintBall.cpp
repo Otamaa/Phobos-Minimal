@@ -154,16 +154,27 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7067E4, TechnoClass_DrawVoxel_TintColor, 0x8)
+DEFINE_HOOK(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 {
+	enum { SkipTint = 0x7067E4 };
+
 	GET(TechnoClass*, pThis, EBP);
-	GET(int, intensity, EDI);
+
+	auto const rtti = pThis->WhatAmI();
+
+	// Vehicles already have had tint intensity as well as custom tints applied, no need to do it twice.
+	if (rtti == AbstractType::Unit)
+		return SkipTint;
+
+	GET(int, intensity, EAX);
 	REF_STACK(int, color, STACK_OFFSET(0x50, 0x24));
 
-	color |= ApplyTintColor(pThis, true, false, true);
-	ApplyCustomTint(pThis, &color, nullptr);
+	if (rtti == AbstractType::Aircraft)
+		color = ApplyTintColor(pThis, true, false, false);
 
-	R->EDI(intensity);
+	// Non-aircraft voxels do not need custom tint color applied again, discard that component for them.
+	ApplyCustomTint(pThis, rtti == AbstractType::Aircraft ? &color : nullptr, &intensity);
+	R->EAX(intensity);
 
 	return 0;
 }
