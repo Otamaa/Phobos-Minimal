@@ -16,13 +16,8 @@ static constexpr reference<int, 0xB0B500> const SidebarObject_Height {};
 static constexpr reference<int, 0xB0B4FC> const SidebarObject_Width {};
 #ifndef CAMEOS_
 
-DEFINE_HOOK(0x6A4EA5, SidebarClass_CTOR_InitCameosList, 6)
-{
-	MouseClassExt::ClearCameos();
-	return 0;
-}
-
-DEFINE_HOOK(0x6A4FD8, SidebarClass_Load_InitCameosList, 6)
+DEFINE_HOOK_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
+DEFINE_HOOK(0x6A4EA5, SidebarClass_CameosList, 6)
 {
 	MouseClassExt::ClearCameos();
 	return 0;
@@ -71,7 +66,7 @@ DEFINE_HOOK(0x6A63B7, SidebarClass_AddCameo_SkipSizeCheck, 5)
 	return NewlyAdded;
 }
 
-static NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildType& x)
+static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildType& x)
 {
 	BuildType* it;
 	typename std::iterator_traits<BuildType*>::difference_type count, step;
@@ -208,7 +203,7 @@ DEFINE_HOOK(0x6A95C8, StripClass_Draw_Status, 8)
 
 	R->EDX<DWORD*>(&MouseClassExt::TabCameos
 		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].unknown_10
+		[CameoIndex].Status
 	);
 
 	return 0x6A95D3;
@@ -220,7 +215,7 @@ DEFINE_HOOK(0x6A9866, StripClass_Draw_Status_1, 8)
 
 	return (MouseClassExt::TabCameos
 		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].unknown_10 == 1)
+		[CameoIndex].Status == 1)
 		? 0x6A9874
 		: 0x6A98CF
 		;
@@ -251,7 +246,7 @@ DEFINE_HOOK(0x6A9EBA, StripClass_Draw_Status_3, 8)
 
 	return (MouseClassExt::TabCameos
 		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].unknown_10 == 2
+		[CameoIndex].Status == 2
 		)
 		? 0x6A9ECC
 		: 0x6AA01C
@@ -310,7 +305,7 @@ DEFINE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 
 	R->EAX<DWORD*>(&MouseClassExt::TabCameos
 		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].unknown_10
+		[CameoIndex].Status
 	);
 
 	return 0x6AB0BE;
@@ -337,7 +332,7 @@ DEFINE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 
 	auto& Item = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex];
 
-	Item.unknown_10 = 1;
+	Item.Status = 1;
 
 	auto Progress = (Item.CurrentFactory)
 		? Item.CurrentFactory->GetProgress()
@@ -347,7 +342,7 @@ DEFINE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 	R->EAX<int>(Progress);
 	R->EBP<void*>(nullptr);
 
-	if (Item.unknown_10 == 1) {
+	if (Item.Status == 1) {
 		if (Item.Progress.Value > Progress) {
 			Progress = (Item.Progress.Value + Progress) / 2;
 		}
@@ -375,7 +370,7 @@ DEFINE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 DEFINE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
 	GET(int, CameoIndex, EAX);
-	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].unknown_10 = 1;
+	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].Status = 1;
 	return 0x6AB814;
 }
 

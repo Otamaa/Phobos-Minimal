@@ -15,7 +15,7 @@ struct BuildType
 	AbstractType      ItemType;
 	BuildCat		  Cat; // set on buildings that go on tab 2
 	FactoryClass* CurrentFactory;
-	DWORD             unknown_10;
+	DWORD             Status;
 	ProgressTimer     Progress; // 0 to 54, how much of this object is constructed (gclock anim level)
 	int               FlashEndFrame;
 
@@ -26,7 +26,7 @@ public:
 		ItemType { AbstractType::None },
 		Cat { BuildCat::DontCare },
 		CurrentFactory { nullptr },
-		unknown_10 { 0 },
+		Status { 0 },
 		Progress { },
 		FlashEndFrame { 0 }
 	{
@@ -37,7 +37,7 @@ public:
 		ItemType { itemType },
 		Cat { BuildCat::DontCare },
 		CurrentFactory { nullptr },
-		unknown_10 { 0 },
+		Status { 0 },
 		Progress { },
 		FlashEndFrame { 0 }
 	{
