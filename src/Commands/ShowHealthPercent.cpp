@@ -3,7 +3,7 @@
 #include <Utilities/GeneralUtils.h>
 
 // CommandClass
-const char* ShowHealthPercentCommandClass::GetName() const 
+const char* ShowHealthPercentCommandClass::GetName() const
 {
 	return "Show Health Percent";
 }

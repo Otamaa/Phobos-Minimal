@@ -792,6 +792,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 		//std::atexit(Phobos::_dump_memory_leaks);
 
+		if (lpReserved) {
+			Debug::LogDeferred("Phobos is being loaded statically.\n");
+		} else {
+			Debug::LogDeferred("Phobos is being loaded dynamicly.\n");
+		}
+
 		Phobos::hInstance = hInstance;
 
 		Debug::InitLogFile();
@@ -934,11 +940,7 @@ DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
 }
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
-#ifndef aaa
 DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
-#else
-DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
-#endif
 {
 	Phobos::ExeTerminate();
 #ifdef EXPERIMENTAL_IMGUI
@@ -968,11 +970,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	return 0;
 }
 
-#ifndef aaa
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
-#else
-DEFINE_HOOK(0x6BDB0C, _YR_CmdLineParse, 0x5)
-#endif
 {
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);

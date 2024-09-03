@@ -6,13 +6,13 @@
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
  *
- *  @project       Vinifera
+ *  @project       Phobos-minimal
  *
- *  @file          BLOWFISH.CPP
+ *  @file          BlowfishEngine.CPP
  *
  *  @author        Joe L. Bostic (see notes below)
  *
- *  @contributors  CCHyper
+ *  @contributors  CCHyper, Otamaa
  *
  *  @brief         This implements the Blowfish algorithm.
  *

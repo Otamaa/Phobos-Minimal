@@ -447,8 +447,11 @@ public:
 	constexpr FORCEINLINE int GetLevel() const
 	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
-	static constexpr FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0) {
-		return { (cell.X * 256) + 128  , cell.Y * 256 + 128 ,z };
+	static constexpr FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0 , bool snap = true) {
+		if(snap)
+			return { (cell.X * 256) + 128  , (cell.Y * 256) + 128 ,z };
+		else
+			return { (cell.X * 256)  , (cell.Y * 256) ,z };
 	}
 
 	static constexpr FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
