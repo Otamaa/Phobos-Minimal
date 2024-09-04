@@ -17,7 +17,7 @@
  *  @brief         This implements the Blowfish algorithm.
  *
  *  @note          This file contains heavily modified code from the source code
- *                 released by Electronic Arts for the C&C Remastered Collection
+ *                 released by Vinifera for the C&C: Tiberian Sun engine extension
  *                 under the GPL3 license. Source:
  *                 https://github.com/Vinifera-Developers/Vinifera/blob/develop
  *
