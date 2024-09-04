@@ -24,9 +24,10 @@
 // 	return 0;
 // }
 
-// TODO : evaluate this
-// interesting mechanic to replace negative damage always remove parasite
-void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
+//TODO : evaluate this
+//interesting mechanic to replace negative damage always remove parasite
+//https://github.com/Phobos-developers/Phobos/pull/1126
+static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
 	if (ScriptExtData::IsUnitAvailable(pThis, false))
 	{
@@ -88,6 +89,52 @@ void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 	}
 }
 
+
+//TODO : update , add the new tags problaby
+//the newer implementation is seems weird
+//https://github.com/Phobos-developers/Phobos/pull/1313
+static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args) {
+	const auto pHouse = pThis->Owner;
+	const auto pWH = args->WH;
+	const auto pSourceHouse = args->SourceHouse;
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (!pType->Insignificant)
+	{
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
+
+		if (pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert) && pThis->IsOwnedByCurrentPlayer &&
+			*args->Damage > 1 && pThis->IsInPlayfield && !pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious || pWHExt->Nonprovocative))
+		{
+			if (const auto pHouseExt = HouseExtContainer::Instance.TryFind(pHouse))
+			{
+				if (pHouse->IsControlledByHuman() && !pHouseExt->CombatAlertTimer.HasTimeLeft())
+				{
+					if (!RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage || !pHouse->IsAlliedWith(pSourceHouse))
+					{
+						if (((pThis->WhatAmI() != AbstractType::Building ||
+							pTypeExt->CombatAlert_NotBuilding) ||
+							!RulesExtData::Instance()->CombatAlert_IgnoreBuilding)
+						)
+						{
+							if (!RulesExtData::Instance()->CombatAlert_SuppressIfInScreen || pThis->IsOnMyView())
+							{
+								pHouseExt->CombatAlertTimer.Start(RulesExtData::Instance()->CombatAlert_Interval);
+								RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
+								if (RulesExtData::Instance()->CombatAlert_EVA)
+								{
+									VoxClass::PlayIndex(pTypeExt->EVA_Combat);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 // #issue 88 : shield logic
 // TODO : Emp reset shield
 DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
@@ -102,48 +149,13 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 
 	if (!args.IgnoreDefenses) {
 
-		const auto pHouse = pThis->Owner;
-		const auto pWH = args.WH;
-		const auto pSourceHouse = args.SourceHouse;
-		const auto pType = pThis->GetTechnoType();
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert) && pThis->IsOwnedByCurrentPlayer &&
-			*args.Damage > 1 && pThis->IsInPlayfield && !pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious)) {
-			if (const auto pHouseExt = HouseExtContainer::Instance.TryFind(pHouse)) {
-				if (pHouse->IsControlledByHuman() && !pHouseExt->CombatAlertTimer.HasTimeLeft()) {
-					if (!RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage || !pHouse->IsAlliedWith(pSourceHouse)) {
-						if (((pThis->WhatAmI() != AbstractType::Building ||
-							pTypeExt->CombatAlert_NotBuilding) ||
-							!RulesExtData::Instance()->CombatAlert_IgnoreBuilding)
-						) {
-							if (!RulesExtData::Instance()->CombatAlert_SuppressIfInScreen || pThis->IsOnMyView()) {
-								pHouseExt->CombatAlertTimer.Start(RulesExtData::Instance()->CombatAlert_Interval);
-								RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
-								if (RulesExtData::Instance()->CombatAlert_EVA) {
-									VoxClass::PlayIndex(pTypeExt->EVA_Combat);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		applyCombatAlert(pThis, &args);
 
 		auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (auto pShieldData = pExt->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);
 		}
-		//else
-		//{
-		//	if (pThis->Owner == HouseClass::CurrentPlayer
-		//		&& pThis->OnBridge
-		//		&& (pThis->CurrentMission == Mission::Harmless || pThis->CurrentMission == Mission::Sleep))
-		//	{
-		//		Debug::Log("GereIam !\n");
-		//	}
-		//}
 	}
 
 	return 0;

@@ -4,6 +4,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+// https://github.com/Phobos-developers/Phobos/pull/1294
+// TODO : update
+
 bool StraightVariantCTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
 	if (!this->StraightTrajectoryType::Read(pINI, pSection))
@@ -748,7 +751,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner)
 
 			if (FutureCrd.X != BulletCrd.X)
 			{
-				double Factor = (FutureCrd.Y - BulletCrd.Y) / (FutureCrd.X - BulletCrd.X);
+				double Factor = double(FutureCrd.Y - BulletCrd.Y) / double(FutureCrd.X - BulletCrd.X);
 				Distance = Math::abs(Factor * TechnoCrd.X - TechnoCrd.Y + BulletCrd.Y - Factor * BulletCrd.X) / sqrt(Factor * Factor + 1);
 			}
 

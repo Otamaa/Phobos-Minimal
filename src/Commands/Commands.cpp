@@ -18,6 +18,7 @@
 #include "ToggleDesignatorRange.h"
 #include "SaveVariablesToFile.h"
 #include "DetachFromTeam.h"
+#include "SelectCaptured.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -69,7 +70,9 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(TogglePowerCommandClass);
 #endif
 
+
 	Make(DetachFromTeamCommandClass);
+	Make(SelectCapturedCommandClass);
 	return 0x0;
 }
 

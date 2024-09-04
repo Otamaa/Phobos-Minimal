@@ -123,22 +123,22 @@ public:
 		return DirStruct(*this) -= rhs;
 	}
 
-	constexpr FORCEINLINE DirStruct operator - () const {
-		return DirStruct(-this->Raw);
-	}
+	//constexpr FORCEINLINE DirStruct operator - () const {
+	//	return DirStruct(-this->Raw);
+	//}
 
-	DirStruct operator + () const {
-		return *this;
-	}
+	//DirStruct operator + () const {
+	//	return *this;
+	//}
 
-	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return std::abs(pDirFrom.Raw) >= std::abs(this->Raw - pBaseDir.Raw); }
+	constexpr bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return Math::abs(pDirFrom.Raw) >= Math::abs(this->Raw - pBaseDir.Raw); }
 
 	DirStruct* GetDirOver(CoordStruct* coord1, CoordStruct* coord2)
 	{ JMP_THIS(0x4265B0); }
 
-	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
+	constexpr void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
 
-		if (std::abs(pDir3.Raw) < std::abs(this->Raw - pDir2.Raw))
+		if (Math::abs(pDir3.Raw) < Math::abs(this->Raw - pDir2.Raw))
 		{
 			if ((pDir2.Raw - this->Raw) >= 0)
 			{
@@ -222,7 +222,7 @@ public:
 	}
 
 	template <size_t FacingCount = 16>
-	double GetRadian() const
+	constexpr double GetRadian() const
 	{
 		static_assert(std::has_single_bit(FacingCount));
 
@@ -235,7 +235,7 @@ public:
 	}
 
 	template <size_t FacingCount = 16>
-	void SetRadian(double rad)
+	constexpr void SetRadian(double rad)
 	{
 		static_assert(std::has_single_bit(FacingCount));
 

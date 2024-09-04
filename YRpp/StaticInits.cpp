@@ -32,15 +32,17 @@
 
 #include <WWKeyboardClass.h>
 
-const CoordStruct CoordStruct::Empty = { 0,0,0 };
-const ColorStruct ColorStruct::Empty = { 0,0,0 };
-const Color16Struct Color16Struct::Empty = { 0,0,0 };
-const CellStruct CellStruct::Empty = { 0,0 };
+const CoordStruct CoordStruct::Empty = {};
+const ColorStruct ColorStruct::Empty = {};
+const Color16Struct Color16Struct::Empty = {};
+const CellStruct CellStruct::Empty = {};
+const CellStruct CellStruct::EOL = { 0x7FFF , 0x7FFF };
+const VelocityClass VelocityClass::Empty = {};
 const CellStruct CellStruct::DefaultUnloadCell = { 3 , 1 };
-const Point2D Point2D::Empty = { 0,0 };
-const Point2DBYTE Point2DBYTE::Empty = { 0u,0u };
-const Point3D Point3D::Empty = { 0,0,0 };
-const RectangleStruct RectangleStruct::Empty = { 0 ,0 ,0 ,0 };
+const Point2D Point2D::Empty = {};
+const Point2DBYTE Point2DBYTE::Empty = {};
+const Point3D Point3D::Empty = {};
+const RectangleStruct RectangleStruct::Empty = {};
 
 std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 {

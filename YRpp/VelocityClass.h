@@ -8,6 +8,8 @@ class Fixed;
 class VelocityClass final : public Vector3D<double>
 {
 public:
+	static const VelocityClass Empty;
+
 	//operator overloads
 	//addition
 	constexpr VelocityClass operator+(const VelocityClass& a) const {
@@ -34,8 +36,15 @@ public:
 	DirStruct* GetDirectionFromXY(DirStruct* pRetDir)
 	{ JMP_THIS(0x41C2E0); }
 
-	void SetIfZeroXY()
-	{ JMP_THIS(0x41C460); }
+	constexpr FORCEINLINE void SetIfZeroXY() {
+		if ( X == 0.0 && Y == 0.0 )
+       		 X = 100.0;
+    }
+
+	constexpr FORCEINLINE void SetIfZeroXYZ() {
+		if ( X == 0.0 && Y == 0.0 && Z == 0.0)
+       		 X = 100.0;
+    }
 
 	void Func_5B2A30(Fixed* pFixed)
 	{ JMP_THIS(0x5B2A30); }

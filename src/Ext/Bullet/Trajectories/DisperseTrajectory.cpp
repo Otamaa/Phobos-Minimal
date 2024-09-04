@@ -10,6 +10,9 @@
 #include <ScenarioClass.h>
 #include <Utilities/Helpers.h>
 
+// https://github.com/Phobos-developers/Phobos/pull/1295
+// TODO : Update
+
 bool DisperseTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->PhobosTrajectoryType::Load(Stm, false);

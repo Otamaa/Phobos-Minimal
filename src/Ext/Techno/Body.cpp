@@ -255,7 +255,7 @@ Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(Techno
 	return pTypeExt->DigitalDisplayTypes;
 }
 
-bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
+static bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -353,6 +353,8 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 	}
 }
 
+// https://github.com/Phobos-developers/Phobos/pull/1287
+// TODO : update
 void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue)
 {
 	const auto pType = pThis->GetTechnoType();
@@ -2499,7 +2501,7 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
 
-FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
+static FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
 
 	Point2D a__ { a_.X , a_.Y};
 	switch (pThis->WhatAmI())
@@ -2625,7 +2627,7 @@ void TechnoExtData::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 #include <format>
 
 // convert UTF-8 string to wstring
-std::wstring Str2Wstr(const std::string& str)
+static std::wstring Str2Wstr(const std::string& str)
 {
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
 	std::wstring wstrTo(size_needed, 0);
@@ -3336,7 +3338,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	}
 }
 
-KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
+static KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
 {
 	if (deathOption == KillMethod::Random)
 	{ //ensure no death loop , only random when needed to
@@ -3478,6 +3480,8 @@ bool NOINLINE ImmeditelyReturn(TechnoClass* pTech, bool any, bool& result)
 }
 
 // Feature: Kill Object Automatically
+// https://github.com/Phobos-developers/Phobos/pull/1346
+// TODO : update
 bool TechnoExtData::CheckDeathConditions()
 {
 	auto const pThis = this->AttachedToObject;
@@ -4295,6 +4299,8 @@ void TechnoExtData::UpdateShield()
 		pShieldData->OnUpdate();
 }
 
+// https://github.com/Phobos-developers/Phobos/pull/1111
+// TODO : Upate to this , seems new
 void TechnoExtData::UpdateMobileRefinery()
 {
 	auto const pThis = this->AttachedToObject;

@@ -5,6 +5,9 @@
 #include <Ext/TechnoType/Body.h>
 #include <LaserDrawClass.h>
 
+// https://github.com/Phobos-developers/Phobos/pull/1293
+// TODO : update
+
 bool EngraveTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->PhobosTrajectoryType::Load(Stm, RegisterForChange);

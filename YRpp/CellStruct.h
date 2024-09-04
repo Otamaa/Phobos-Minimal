@@ -11,6 +11,7 @@ public:
 	short Y { 0 };
 
 	static const CellStruct Empty;
+	static const CellStruct EOL;
 	static const CellStruct DefaultUnloadCell;
 
 	constexpr FORCEINLINE bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }

@@ -17,6 +17,7 @@
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
     <ClCompile Include="src\Commands\SaveVariablesToFile.cpp" />
+    <ClCompile Include="src\Commands\SelectCaptured.cpp" />
     <ClCompile Include="src\Commands\ShowAnimNames.cpp" />
     <ClCompile Include="src\Commands\RevealMap.cpp" />
     <ClCompile Include="src\Commands\CaptureObjects.cpp" />
@@ -457,6 +458,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\ExtraHeaders\RVectorClass.h" />
     <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />

@@ -170,7 +170,7 @@ public:
 		return { X * a.X , Y * a.Y , Z * a.Z };
 	}
 
-	static const  CoordStruct Empty;
+	static const CoordStruct Empty;
 
 	//inline int& operator[](int i) { return (&X)[i]; }
 	//inline const int& operator[](int i) const { return (&X)[i]; }

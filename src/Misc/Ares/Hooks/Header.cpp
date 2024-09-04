@@ -2992,7 +2992,7 @@ void TechnoExt_ExtData::KickOutOfRubble(BuildingClass* pBld)
 	KickList.Reset();
 	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
 	// get the number of non-end-marker cells and a pointer to the cell data
-	for (auto i = pBld->Type->FoundationData; *i != CellStruct { 0x7FFF, 0x7FFF }; ++i)
+	for (auto i = pBld->Type->FoundationData; *i != CellStruct::EOL; ++i)
 	{
 		// remove every techno that resides on this cell
 		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
@@ -3764,8 +3764,16 @@ void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExtData* pTyp
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
-		auto const passengerNumber = MinImpl(pThis->Passengers.NumPassengers, TechnoTypeClass::MaxWeapons - 1);
-		pThis->CurrentTurretNumber = MinImpl(passengerNumber, pType->TurretCount - 1);
+		pThis->CurrentTurretNumber = MinImpl(
+		MinImpl(pThis->Passengers.NumPassengers, TechnoTypeClass::MaxWeapons - 1),
+		pType->TurretCount - 1);
+
+	}
+
+	if (pTypeData->PassengerWeapon && !pType->IsGattling && pType->WeaponCount > 0){
+		pThis->CurrentWeaponNumber = MinImpl(
+			MinImpl(pThis->Passengers.NumPassengers, TechnoTypeClass::MaxWeapons - 1),
+			pType->WeaponCount - 1);
 	}
 }
 
@@ -6267,6 +6275,8 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 }
 
 //TODO : re-eval
+#include <lib/gcem/gcem.hpp>
+
 bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
 	const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
@@ -6278,8 +6288,9 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		double nSin = Math::sin(1.570748388432313);
-		double nCos = Math::cos(-0.00009587672516830327);
+		constexpr double nSin = gcem::sin(1.570748388432313);
+		constexpr double nCos = gcem::cos(-0.00009587672516830327);
+	
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 
@@ -7782,7 +7793,7 @@ void CustomFoundation::GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
 	int v4 = 512;
 	int v5 = 512;
 
-	if (a2->X == 0x7FFF && a2->Y == 0x7FFF)
+	if (*a2 == CellStruct::EOL)
 	{
 		a1.X = 0;
 		a1.Y = 0;

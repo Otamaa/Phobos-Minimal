@@ -990,6 +990,8 @@ public:
 	Nullable<int> ChronoSpherePreDelay {};
 	Nullable<int> ChronoSphereDelay {};
 
+	Valueable<bool> PassengerWeapon { false };
+
 	TechnoTypeExtData() noexcept = default;
 	~TechnoTypeExtData() noexcept = default;
 

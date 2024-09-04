@@ -233,7 +233,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 
 		const auto nCurCoord = pBuilding->InlineMapCoords();
 		for (auto pFoundation = pBuilding->GetFoundationData(false);
-			*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+			*pFoundation != CellStruct::EOL; ++pFoundation)
 		{
 			if (!pBuilding->IsAlive)
 				return Dead;

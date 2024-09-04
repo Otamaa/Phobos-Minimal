@@ -510,7 +510,7 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* 
 	}
 }
 
-void SpawnCrate(std::vector<int>& types, std::vector<int>& weights, CoordStruct& place)
+static void SpawnCrate(std::vector<int>& types, std::vector<int>& weights, CoordStruct& place)
 {
 	if (!types.empty()) {
 		const int index = GeneralUtils::ChooseOneWeighted(ScenarioClass::Instance->Random.RandomDouble(), weights);
@@ -521,7 +521,7 @@ void SpawnCrate(std::vector<int>& types, std::vector<int>& weights, CoordStruct&
 	}
 }
 
-bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
+static bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 {
 	// List all Warheads here that respect CellSpread
 
@@ -897,6 +897,8 @@ void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pT
 	}
 }
 
+// https://github.com/Phobos-developers/Phobos/pull/1263
+ // TODO : update
 void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
 	if (TechnoExtData::IsCritImmune(pTarget))

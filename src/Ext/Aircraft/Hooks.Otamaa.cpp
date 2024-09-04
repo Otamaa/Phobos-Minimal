@@ -24,6 +24,9 @@ DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(TriggerCrashWeapon_Wrapper));
 //}
 
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Bullet/Body.h>
+#include <lib/gcem/gcem.hpp>
+
 bool IsFlyLoco(const ILocomotion* pLoco)
 {
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
@@ -87,18 +90,55 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	if (pTypeExt->Firing_IgnoreGravity.Get())
 		return 0x41631F;
 
+	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+	//TODO if actually merged !
+	// https://github.com/Phobos-developers/Phobos/pull/1295
+	// https://github.com/Phobos-developers/Phobos/pull/1374
+	//const bool skipROT0Check = pBulletExt->Trajectory && pBulletExt->Trajectory->Flag == TrajectoryFlag::Disperse || pBulletExt->Trajectory->Flag == TrajectoryFlag::Parabola;
+
 	if (!pBullet->Type->ROT)
 	{
 		if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr()))
 		{
-			if (pBullet->Type->Cluster)
-				return 0x415F4D;
-
 			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
-			const double currentSpeed = pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis);
+			double currentSpeed = !pBullet->Type->Cluster ?
+			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
+			: pLocomotor->Apparent_Speed();
 
-			R->EAX(int(currentSpeed));
-			return 0x415F5C;
+			auto& vel = pBullet->Velocity;
+
+			vel.SetIfZeroXYZ();
+			currentSpeed /= vel.Length();
+			vel *= currentSpeed;
+			DirStruct dir {};
+			vel.GetDirectionFromXY(&dir);
+			auto distancexy_vel = vel.Length();
+			auto rad_ = dir.GetRadian();
+
+			if(rad_ != 0.0){
+				vel.X /= Math::cos(distancexy_vel);
+				vel.Y /= Math::cos(rad_);
+			}
+
+			constexpr auto sin_ = gcem::sin(-0.00009587672516830327);
+			constexpr auto cos_ = gcem::cos(-0.00009587672516830327);
+
+			vel.X *= cos_;
+			vel.Y *= cos_;
+			vel.Z =  sin_* Math::sin(distancexy_vel);
+
+			auto facing_ = pThis->SecondaryFacing.Current();
+			vel.SetIfZeroXY();
+			distancexy_vel = vel.LengthXY();
+			vel.GetDirectionFromXY(&dir);
+			rad_ = dir.GetRadian();
+			const auto sin__ = Math::cos(rad_) * distancexy_vel;
+			vel.X = sin__;
+			vel.Y = -sin__;
+
+			//R->EAX(int(currentSpeed));
+			//return 0x415F5C;
+			return 0x41631F;
 		}
 
 		return 0x415F4D;

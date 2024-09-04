@@ -27,7 +27,6 @@ void BuildingExtData::InitializeConstant()
 
 const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)
 {
-	const CellStruct foundationEnd = { 0x7FFF, 0x7FFF };
 	auto const pFoundation = pThis->GetFoundationData(false);
 
 	int occupyHeight = includeOccupyHeight ? pThis->Type->OccupyHeight : 1;
@@ -37,14 +36,14 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 
 	auto pCellIterator = pFoundation;
 
-	while ((*pCellIterator).DifferTo(foundationEnd))
+	while ((*pCellIterator).DifferTo(CellStruct::EOL))
 		++pCellIterator;
 
 	std::vector<CellStruct> foundationCells;
 	foundationCells.reserve(static_cast<int>(std::distance(pFoundation, pCellIterator + 1)) * occupyHeight);
 	pCellIterator = pFoundation;
 
-	while ((*pCellIterator).DifferTo(foundationEnd))
+	while ((*pCellIterator).DifferTo(CellStruct::EOL))
 	{
 		auto actualCell = baseCoords + *pCellIterator;
 
@@ -914,7 +913,7 @@ bool BuildingExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType, Cel
 	std::vector<CellClass*> checkedCells;
 	checkedCells.reserve(24);
 
-	for (auto pFoundation = pBuildingType->GetFoundationData(false); *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+	for (auto pFoundation = pBuildingType->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
 	{
 		CellStruct currentCoord = topLeftCell + *pFoundation;
 
@@ -959,7 +958,7 @@ bool BuildingExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType, Cel
 	std::vector<CellClass*> optionalCells;
 	optionalCells.reserve(24);
 
-	for (auto pFoundation = pBuildingType->FoundationOutside; *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+	for (auto pFoundation = pBuildingType->FoundationOutside; *pFoundation != CellStruct::EOL ; ++pFoundation)
 	{
 		CellStruct searchCell = topLeftCell + *pFoundation;
 
