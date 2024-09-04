@@ -8010,15 +8010,12 @@ size_t MouseClassExt::GetActionIndex(Action nAction)
 	{
 		return (size_t)Action::count;
 	}
-	break;
 	case AresNewActionType::SuperWeaponDisallowed:
 	{
 		return (size_t)Action::count + 1;
 	}
-	break;
 	default:
 		return (size_t)nAction;
-		break;
 	}
 }
 
