@@ -32,7 +32,6 @@ public:
 		}
 	}
 
-
 	void Submit_Key(void const* key, int length)
 	{
 		//static_assert(length <= MAX_KEY_LENGTH);

@@ -99,6 +99,8 @@ struct SpawnerMain
 			{
 			}
 
+			~PlayerConfig() = default;
+
 			void LoadFromINIFile(CCINIClass* pINI, int index);
 		};
 
@@ -110,12 +112,14 @@ struct SpawnerMain
 			int SpawnLocations;
 			int Alliances[8];
 
-			HouseConfig()
+			constexpr HouseConfig()
 				: IsObserver { false }
 				, SpawnLocations { -2 }
 				, Alliances { -1, -1, -1, -1, -1, -1, -1, -1 }
 			{
 			}
+
+			constexpr ~HouseConfig() = default;
 
 			void LoadFromINIFile(CCINIClass* pINI, int index);
 		};
@@ -302,11 +306,11 @@ struct SpawnerMain
 	static void LoadConfigurations(); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
 
-	static Configs* GetMainConfigs() {
+	static constexpr Configs* GetMainConfigs() {
 		return Configs::m_Ptr.get();
 	}
 
-	static GameConfigs* GetGameConfigs() {
+	static constexpr GameConfigs* GetGameConfigs() {
 		return GameConfigs::m_Ptr.get();
 	}
 };
