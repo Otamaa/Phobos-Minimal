@@ -452,7 +452,7 @@ struct TargetingFuncs
 {
 #pragma region Helpers
 	template<typename It, typename Valuator>
-	static ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
+	static constexpr ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
 	{
 		ObjectClass* pTarget = nullptr;
 		int maxValue = 0;
@@ -508,7 +508,7 @@ struct TargetingFuncs
 		return targets.Select(ScenarioClass::Instance->Random);
 	}
 
-	static bool IsTargetAllowed(TechnoClass* pTechno)
+	static constexpr bool IsTargetAllowed(TechnoClass* pTechno)
 	{
 		return !pTechno->InLimbo && pTechno->IsAlive;
 	}
@@ -523,7 +523,7 @@ struct TargetingFuncs
 		return false;
 	}
 
-	static TargetResult NoTarget()
+	static constexpr TargetResult NoTarget()
 	{
 		return { CellStruct::Empty , SWTargetFlags::AllowEmpty };
 	}
@@ -687,17 +687,16 @@ struct TargetingFuncs
 			  return -1;
 			}
 
-			//if(pTargeting->TypeExt->AttachedToObject->Type == SuperWeaponType::GeneticMutator) {
-			//	auto pTechnoType = pTechno->GetTechnoType();
-			//
-			//	if (pTechnoType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg) {
-			//		return -1;
-			//	}
-			//
-			//	if (pTechnoType->NotHuman && pTargeting->TypeExt->Mutate_IgnoreNotHuman) {
-			//		return -1;
-			//	}
-			//}
+			if(pTargeting->TypeExt->AttachedToObject->Type == SuperWeaponType::GeneticMutator && pTechno->WhatAmI() == InfantryClass::AbsID) {
+				const auto pInfantryType = ((InfantryClass*)pTechno)->Type;
+
+				if (pInfantryType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg) {
+					return -1;
+				}
+				if (pInfantryType->NotHuman && pTargeting->TypeExt->Mutate_IgnoreNotHuman) {
+					return -1;
+				}
+			}
 
 			auto cell = pTechno->GetCell()->MapCoords;
 			int value = 0;
@@ -1482,7 +1481,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
 	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
 	this->SW_Next_RandomWeightsData.clear();
-	
+
 	std::string basetag = "SW.Next.RandomWeights";
 	for (size_t i = 0; ; ++i) {
 		ValueableVector<int> weights2;
