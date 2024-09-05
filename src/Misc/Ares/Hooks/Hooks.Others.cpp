@@ -1036,13 +1036,6 @@ DEFINE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 		;
 }
 
-DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
-{
-	GET(int, idxOverlay, EAX);
-	const bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
-	return Wall ? 0x480549 : 0x480552;
-}
-
 DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 {
 	GET(DiskLaserClass* const, pThis, ESI);

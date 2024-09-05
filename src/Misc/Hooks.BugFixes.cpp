@@ -264,7 +264,7 @@ DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pCell, STACK_OFFS(0x84, -0x8));
 
-	if (pThis->GetTechnoType()->UndeploysInto)
+	if (pThis->Type->UndeploysInto)
 	{
 		IsUndeploy = true;
 		pThis->SetRallypoint(pCell, false);
@@ -389,36 +389,34 @@ DEFINE_HOOK(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
 	return !RulesClass::Instance->NSGates.Contains(pThis) ? 0 : 0x4410F3;
 }
 
-DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
+DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
+	GET(int, idxOverlay, EAX);
 	GET(CellClass* const, pThis, EBP);
-	GET(int const, idxOverlay, EBX);
 	GET_STACK(int const, state, STACK_OFFS(0x10, -0x8));
+	const bool Wall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall;
 
-	enum { Continue = 0x0, Attachable = 0x480549 };
+	if (Wall) {
+		return 0x480549;
 
-	if (const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->Items[idxOverlay]->Wall)
-	{
-		for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject)
-		{
-			if (pObject->Health > 0)
-			{
-				if (const auto pBuilding = specific_cast<BuildingClass*>(pObject))
-				{
-					const auto pBType = pBuilding->Type;
+	}
 
-					if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
-						return Attachable;
-					else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
-						return Attachable;
-					else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
-						return Attachable;
-				}
+	for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject) {
+		if (pObject->Health > 0) {
+			if (const auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
+				const auto pBType = pBuilding->Type;
+
+				if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
+					return 0x480549;
+				else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
+					return 0x480549;
+				else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
+					return 0x480549;
 			}
 		}
 	}
 
-	return Continue;
+	return 0x480552;
 }
 
 // WW take 1 second as 960 milliseconds, this will fix that back to the actual time.
