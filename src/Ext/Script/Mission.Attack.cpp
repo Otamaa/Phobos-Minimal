@@ -149,15 +149,15 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			curAct,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			nextAct,
-			nextArg);
+		// ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
+		// 	pTeam->Type->ID,
+		// 	pScript->Type->ID,
+		// 	pScript->CurrentMission,
+		// 	curAct,
+		// 	scriptArgument,
+		// 	pScript->CurrentMission + 1,
+		// 	nextAct,
+		// 	nextArg);
 
 		return;
 	}

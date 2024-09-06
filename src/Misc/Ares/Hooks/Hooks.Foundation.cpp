@@ -33,6 +33,11 @@ DEFINE_STRONG_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
 
+	if (!pThis){
+		GET_STACK(DWORD, caller, 0x0);
+		Debug::FatalError("__FUNCTION__ called without this ptr caller [0x%d]", caller);
+	}
+
 	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
 		const bool bIncludeBib = (R->Stack8(0x4) != 0);
 		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight + (bIncludeBib && pThis->Bib));

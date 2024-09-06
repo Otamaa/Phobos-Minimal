@@ -691,7 +691,11 @@ void Phobos::ExeRun()
 	Patch::PrintAllModuleAndBaseAddr();
 	Phobos::InitAdminDebugMode();
 
+	int i = 0;
+
 	for (auto&dlls : Patch::ModuleDatas) {
+		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
+
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
 			HasCNCnet = true;
 		}
@@ -705,6 +709,7 @@ void Phobos::ExeRun()
 		//		pExceptionHandler = AddVectoredExceptionHandler(1, Exception::ExceptionFilter);
 		//	}
 		//}
+
 	}
 
 	//Logger = std::make_shared<spdlog::logger>("debug_admin");

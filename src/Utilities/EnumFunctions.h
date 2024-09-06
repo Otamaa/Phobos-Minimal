@@ -94,6 +94,12 @@ public:
 					*value = arr.second;
 					return true;
 				}
+
+				if (IS_SAME_STR_(key, "centre"))
+				{
+					*value = MouseHotSpotX::Center;
+					return true;
+				}
 			}
 		}
 		return false;

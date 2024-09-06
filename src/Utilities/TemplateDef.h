@@ -910,6 +910,12 @@ namespace detail
 				}
 			}
 
+			if (IS_SAME_STR_(parser.value(), "centre"))
+			{
+				value = HorizontalPosition::Center;
+				return true;
+			}
+
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
 		}
 
@@ -948,6 +954,12 @@ namespace detail
 					value = VerticalPosition(i);
 					return true;
 				}
+			}
+
+			if (IS_SAME_STR_(parser.value(), "centre"))
+			{
+				value = VerticalPosition::Center;
+				return true;
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
@@ -1431,6 +1443,12 @@ namespace detail
 					value = val;
 					return true;
 				}
+			}
+
+			if (IS_SAME_STR_(parser.value(), "centre"))
+			{
+				value = TextAlign::Center;
+				return true;
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");

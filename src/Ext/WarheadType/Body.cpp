@@ -1188,8 +1188,7 @@ void WarheadTypeExtData::DetonateAt(
 	//	}
 	//}
 
-	if (!pOwner)
-	{
+	if (!pOwner && Phobos::Otamaa::IsAdmin) {
 		Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !\n", pThis->get_ID(), pOwner);
 	}
 
