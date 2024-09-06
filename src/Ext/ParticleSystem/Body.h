@@ -24,7 +24,7 @@ public:
 		Smoke = 3
 	};
 
-	Behave What { Behave::None };
+	Behave What { Behave::Smoke };
 	ParticleTypeClass* HeldType { nullptr };
 
 	//everything else use this

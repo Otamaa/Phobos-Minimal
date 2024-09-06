@@ -87,7 +87,7 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Trails.Read(exINI, pID, false);
 
-	this->Palette.Read(exINI, pID, "CustomPalette");
+	this->Palette.Read(exINI, pID, "Palette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 
 	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))

@@ -4282,16 +4282,19 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 
 //DEFINE_PATCH(0x6443E2, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x90);
 //
-//DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
-//{
-//	GET_STACK(DWORD, caller ,0x0);
-//	GET(ParticleSystemClass*, pThis, ECX);
-//
-//	if (!pThis)
-//		Debug::FatalErrorAndExit("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]\n", caller);
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
+{
+	GET_STACK(DWORD, caller ,0x0);
+	GET(ParticleSystemClass*, pThis, ECX);
+
+	if (!pThis) {
+		// Fuck off
+		//Debug::Log("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]\n", caller);
+		return 0x62E4B4;
+	}
+
+	return 0x0;
+}
 
 //DEFINE_HOOK(0x5AE610, Matrix_OPMultiply, 0x5)
 //{

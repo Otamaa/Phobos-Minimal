@@ -266,55 +266,55 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		args += " ";
 		args += pArg;
 
-		if (IS_SAME_STR_(pArg, "-Icon"))
+		if (IS_SAME_STR_I(pArg, "-Icon"))
 		{
 			Phobos::AppIconPath = ppArgs[++i];
 		}
-		else if (IS_SAME_STR_(pArg, "-LOG"))
+		else if (IS_SAME_STR_I(pArg, "-LOG"))
 		{
 			Debug::LogEnabled = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-CONSOLE"))
+		else if (IS_SAME_STR_I(pArg, "-CONSOLE"))
 		{
 			consoleEnabled = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-AI-CONTROL"))
+		else if (IS_SAME_STR_I(pArg, "-AI-CONTROL"))
 		{
 			Phobos::Otamaa::AllowAIControl = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-LOG-CSF"))
+		else if (IS_SAME_STR_I(pArg, "-LOG-CSF"))
 		{
 			Phobos::Otamaa::OutputMissingStrings = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-LOG-AUDIO"))
+		else if (IS_SAME_STR_I(pArg, "-LOG-AUDIO"))
 		{
 			Phobos::Otamaa::OutputAudioLogs = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-STRICT"))
+		else if (IS_SAME_STR_I(pArg, "-STRICT"))
 		{
 			Phobos::Otamaa::StrictParser = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-NOLOGO"))
+		else if (IS_SAME_STR_I(pArg, "-NOLOGO"))
 		{
 			Phobos::Otamaa::NoLogo = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-CD"))
+		else if (IS_SAME_STR_I(pArg, "-CD"))
 		{
 			Phobos::Otamaa::NoCD = true;
 		}
-		else if (IS_SAME_STR_N(pArg, "-Inheritance"))
+		else if (IS_SAME_STR_I(pArg, "-Inheritance"))
 		{
 			Phobos::Config::UseNewInheritance = true;
 		}
-		else if (IS_SAME_STR_N(pArg, "-Include"))
+		else if (IS_SAME_STR_I(pArg, "-Include"))
 		{
 			Phobos::Config::UseNewIncludes = true;
 		}
-		else if (IS_SAME_STR_(pArg, "-b=" _STR(BUILD_NUMBER)))
+		else if (IS_SAME_STR_I(pArg, "-b=" _STR(BUILD_NUMBER)))
 		{
 			Phobos::Config::HideWarning = true;
 		}
-		else if (_stricmp(pArg, "-EXCEPTION") == 0)
+		else if (IS_SAME_STR_I(pArg, "-EXCEPTION") == 0)
 		{
 			ExceptionMode = ExceptionHandlerMode::NoRemove;
 		}
@@ -446,7 +446,7 @@ void Phobos::Config::Read()
 
 			Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissing("TXT_POWER_FORMAT_B", L"Power = %d");
 			Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissing("TXT_DRAIN_FORMAT_B", L"Drain = %d");
-			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %.3lf %");
+			Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissing("TXT_STORAGE_FORMAT", L"Storage = %.3lf");
 			Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissing("TXT_FAKE", L"FAKE");
 			Phobos::UI::Radar_Label = GeneralUtils::LoadStringUnlessMissing("TXT_RADAR", L"Radar");
 			Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissing("TXT_SPYSAT", L"SpySat");

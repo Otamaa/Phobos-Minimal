@@ -25,6 +25,7 @@
 
 #define IS_SAME_STR_(a ,b) (IMPL_STRCMPI(a,b) == 0)
 #define IS_SAME_STR_N(a ,b) (IMPL_STRCMP(a,b) == 0)
+#define IS_SAME_STR_I(a,b) ( _stricmp(a,b) == 0)
 #define IS_SAME_WSTR(a,b) (IMPL_WSTRCMPI(a,b) == 0)
 
 class CCINIClass;

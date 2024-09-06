@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Phobos.h>
+#include <Phobos.CRT.h>
 
 #include <Dbghelp.h>
 #include <Unsorted.h>
@@ -394,21 +395,26 @@ public:
 		ExitProcess(code);
 	}
 
-	static NOINLINE void FatalError(bool Dump = false) /* takes formatted message from Ares::readBuffer */
+	static NOINLINE void FatalErrorCore(bool Dump, const std::string& msg) /* takes formatted message from Ares::readBuffer */
 	{
-		static wchar_t Message[0x400];
-		wsprintfW(Message,
-			L"An internal error has been encountered and the game is unable to continue normally. "
-			L"Please notify the mod's creators about this issue, or Contact Otamaa at "
-			L"Discord for updates and support.\n"
-		);
+		if(msg.empty()) {
+			static wchar_t Message[0x400];
+			wsprintfW(Message,
+				L"An internal error has been encountered and the game is unable to continue normally. "
+				L"Please notify the mod's creators about this issue, or Contact Otamaa at "
+				L"Discord for updates and support.\n"
+			);
 
-		Debug::Log("\nFatal Error: \n%s\n", Message);
-		Debug::FreeMouse();
-		MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+			Debug::Log("\nFatal Error: \n%s\n", PhobosCRT::WideStringToString(Message).c_str());
+			Debug::FreeMouse();
+			MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+		} else {
+			Debug::Log("\nFatal Error: \n%s\n", msg.c_str());
+			Debug::FreeMouse();
+			MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+		}
 
-		if (Dump)
-		{
+		if (Dump) {
 			Debug::FullDump();
 		}
 
@@ -424,7 +430,7 @@ public:
 		vsnprintf_s(Phobos::readBuffer, Phobos::readLength - 1, Message, args); /* note that the message will be truncated somewhere after 0x300 chars... */
 		va_end(args);
 
-		Debug::FatalError(false);
+		Debug::FatalErrorCore(false, Phobos::readBuffer);
 	}
 
 	[[noreturn]] static NOINLINE void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
@@ -433,7 +439,7 @@ public:
 		va_start(args, pFormat);
 		vsprintf_s(Phobos::readBuffer, pFormat, args);
 		va_end(args);
-		Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
+		Debug::FatalErrorCore(Phobos::Config::DebugFatalerrorGenerateDump , Phobos::readBuffer);
 		Debug::ExitGame();
 	}
 
@@ -443,7 +449,7 @@ public:
 		va_start(args, pFormat);
 		vsprintf_s(Phobos::readBuffer, pFormat, args);
 		va_end(args);
-		Debug::FatalError(Phobos::Config::DebugFatalerrorGenerateDump);
+		Debug::FatalErrorCore(Phobos::Config::DebugFatalerrorGenerateDump, Phobos::readBuffer);
 		Debug::ExitGame();
 	}
 

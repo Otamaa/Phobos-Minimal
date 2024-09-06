@@ -6290,7 +6290,7 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 		pBullet->SetWeaponType(pFind);
 		constexpr double nSin = gcem::sin(1.570748388432313);
 		constexpr double nCos = gcem::cos(-0.00009587672516830327);
-	
+
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 

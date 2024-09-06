@@ -1287,7 +1287,10 @@ ObjectClass* AnimTypeClass::CreateObject(HouseClass* owner)
 
 bool GameStrings::IsBlank(const char* pValue)
 {
-	return CRT::strcmpi(pValue, NoneStr()) == 0
+	if(!pValue)
+		return true;
+
+	return CRT::strcmpi(pValue, NoneStr.get()) == 0
 		|| CRT::strcmpi(pValue, NoneStrb()) == 0;
 }
 
