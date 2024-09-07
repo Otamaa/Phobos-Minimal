@@ -680,6 +680,7 @@ bool HasCNCnet = false;
 //#include <spdlog/sinks/basic_file_sink.h>
 //
 //std::shared_ptr<spdlog::logger> Logger;
+static std::vector<Patch> Patches;
 
 void Phobos::ExeRun()
 {
@@ -712,13 +713,20 @@ void Phobos::ExeRun()
 
 	}
 
+	const auto size_ = Patches.size();
+	Debug::LogDeferred("Applying %d Static Patches\n", size_);
+
+	for (auto& patch : Patches) {
+		patch.Apply();
+	}
+
+	Patches.clear();
+
 	//Logger = std::make_shared<spdlog::logger>("debug_admin");
 	//Logger->sinks().push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt> ("debug_admin.log"));
 	//Logger->set_level(spdlog::level::trace);
 	//Logger->flush_on(spdlog::level::trace);
 	//Logger->log(spdlog::level::trace, "Hello !");
-
-	PhobosGlobal::Init();
 }
 
 void Phobos::ExeTerminate()
@@ -784,7 +792,9 @@ bool Phobos::DetachFromDebugger()
 }
 #pragma warning( pop )
 
+
 #pragma endregion
+
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -811,6 +821,17 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		LuaData::LuaDir = PhobosCRT::WideStringToString(Debug::ApplicationFilePath);
 		LuaData::LuaDir += "\\Resources";
 
+		void* buffer;
+		const int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
+
+		for (int offset = 0; offset < len; offset += sizeof(Patch)) {
+			const auto pPatch = (Patch*)((DWORD)buffer + offset);
+			if (pPatch->offset == 0)
+				continue;
+
+			Patches.emplace_back(*pPatch);
+		}
+
 		Phobos::ExecuteLua();
 
 		if(Phobos::Otamaa::ReplaceGameMemoryAllocator) {
@@ -826,6 +847,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_LJMP(0x7C93E8, &free);
 			Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
 		}
+
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -968,10 +990,10 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
-	Patch::ApplyStatic();
-	Phobos::ExeRun();
-	SpawnerMain::ExeRun(HasCNCnet);
 
+	Phobos::ExeRun();
+
+	SpawnerMain::ExeRun(HasCNCnet);
 	return 0;
 }
 

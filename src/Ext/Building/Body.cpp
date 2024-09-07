@@ -815,7 +815,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 
 	Debug::Log("BuildingExtData::LimboKill -  Killing Building[%x - %s] ! \n", pBuilding, pBuilding->get_ID());
 
-#ifndef SIMPLIFY_CAUSECRASH
+#ifdef SIMPLIFY_CAUSECRASH
 	pBuilding->Stun();
 	pBuilding->Limbo();
 	pBuilding->RegisterDestruction(nullptr);
@@ -879,6 +879,8 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	}
 
 	pTargetHouse->UpdateSuperWeaponsUnavailable();
+	pBuilding->Stun();
+	pBuilding->Limbo();
 #endif
 
 	// Remove completely

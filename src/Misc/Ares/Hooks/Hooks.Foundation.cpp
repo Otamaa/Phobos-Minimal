@@ -29,23 +29,56 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	return 0x465239;
 }
 
-DEFINE_STRONG_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+#pragma optimize("", off )
+DEFINE_HOOK(0x44FBE9, BuildingClass_ReadINI_UnlimboSomething, 0x8)
 {
-	GET(BuildingTypeClass*, pThis, ECX);
-
-	if (!pThis){
-		GET_STACK(DWORD, caller, 0x0);
-		Debug::FatalError("__FUNCTION__ called without this ptr caller [0x%d]", caller);
-	}
-
-	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
-		const bool bIncludeBib = (R->Stack8(0x4) != 0);
-		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight + (bIncludeBib && pThis->Bib));
-		return 0x45ECDA;
-	}
-
-	return 0;
+	GET(BuildingClass*, pBld, ESI);
+	Debug::Log("Currently Unlimbo For building [%x - %s]\n", pBld, pBld->Type->ID);
+	return 0x0;
 }
+
+DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_test, 0x6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	LEA_STACK(CoordStruct*, pBuffer, 0x2C);
+	if (!pBld || VTable::Get(pBld) != BuildingClass::vtable) {
+		Debug::FatalError(__FUNCTION__ " called without this ptr");
+	}
+	*pBuffer = pBld->Location;
+	R->EAX(pBuffer);
+	return 0x4FD20F;
+}
+
+DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	if (!pThis || VTable::Get(pThis) != BuildingClass::vtable){
+		GET_STACK(DWORD, caller, 0x0);
+		Debug::DumpStack(R, 0x50);
+		Debug::FatalError(__FUNCTION__ " called without this ptr caller [0x%x]", caller);
+	}
+
+	return 0x0;
+}
+
+//DEFINE_STRONG_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+//{
+//	GET(BuildingTypeClass*, pThis, ECX);
+//
+//	if (!pThis){
+//		GET_STACK(DWORD, caller, 0x0);
+//		Debug::FatalError(__FUNCTION__ " called without this ptr caller [0x%x]", caller);
+//	}
+//
+//	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
+//		const bool bIncludeBib = (R->Stack8(0x4) != 0);
+//		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight + (bIncludeBib && pThis->Bib));
+//		return 0x45ECDA;
+//	}
+//
+//	return 0;
+//}
+#pragma optimize("", on)
 
 DEFINE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {

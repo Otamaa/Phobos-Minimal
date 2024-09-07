@@ -2,16 +2,12 @@
 
 #include <AbstractClass.h>
 
-std::unique_ptr<PhobosGlobal> PhobosGlobal::GlobalObject;
-PhobosGlobal::ColorsData PhobosGlobal::ColorDatas;
+std::unique_ptr<PhobosGlobal> PhobosGlobal::GlobalObject = std::make_unique<PhobosGlobal>();
+PhobosGlobal::ColorsData PhobosGlobal::ColorDatas {};
 
 void PhobosGlobal::Clear()
 {
 	auto pInstance = PhobosGlobal::Instance();
-
-	if (!pInstance)
-		return;
-
 	pInstance->DetonateDamageArea = true;
 
 	pInstance->TempFoundationData1.clear();
@@ -24,10 +20,6 @@ void PhobosGlobal::Clear()
 void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)
 {
 	auto pInstance = PhobosGlobal::Instance();
-
-	if (!pInstance)
-		return;
-
 	pInstance->PathfindTechno.InvalidatePointer(ptr , removed);
 }
 

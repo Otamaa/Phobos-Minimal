@@ -61,7 +61,7 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
 
-	inline static PhobosGlobal* Instance() {
+	constexpr FORCEINLINE static PhobosGlobal* Instance() {
 		return GlobalObject.get();
 	}
 
@@ -70,10 +70,6 @@ public:
 
 	static void Clear();
 	static void PointerGotInvalid(AbstractClass* ptr, bool removed);
-
-	static void Init() {
-		GlobalObject = std::make_unique<PhobosGlobal>();
-	}
 
 	template <typename T>
 	bool Serialize(T& stm)

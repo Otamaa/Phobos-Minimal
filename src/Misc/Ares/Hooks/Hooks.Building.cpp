@@ -1418,7 +1418,7 @@ DEFINE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 // start after free unit checks 0x446B16
 //FreeUnit end 0x446EE2
 
-DEFINE_HOOK(0x45EE30 , BuildingClass_GetActualCost_FreeUnitCount , 0x6)
+DEFINE_HOOK(0x45EE30 , BuildingTypeClass_GetActualCost_FreeUnitCount , 0x6)
 {
 	GET(BuildingTypeClass* , pThis ,EBX);
 	GET(HouseClass* , pHouse , EBP);
