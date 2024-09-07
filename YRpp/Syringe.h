@@ -410,7 +410,7 @@ hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 //		patchdecl patch = { ##hook, (BYTE*)##data , ##size, #funcname};	\
 //	}
 
-#define DEBUG_HOOK
+//#define DEBUG_HOOK
 
 #ifndef DEBUG_HOOK
 #define DEFINE_HOOK(hook,funcname,size) \
