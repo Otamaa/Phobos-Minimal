@@ -34,7 +34,7 @@ DEFINE_HOOK(0x685354, ClearLotsOfShit_GlobalVariable, 0x9)
 	return 0x68538D;
 }
 
-DEFINE_HOOK(0x4C6217, EvadeClass_DoShit_Globals, 0x0)
+DEFINE_HOOK(0x4C6217, EvadeClass_DoShit_Globals, 0x5)
 {
 	for (auto const& [idx, var] : CarryOverGlobalsBuffer)
 		ScenarioExtData::Instance()->SetVariableToByID(true, idx, static_cast<char>(var));
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x4C6217, EvadeClass_DoShit_Globals, 0x0)
 	return 0x4C622F;
 }
 
-DEFINE_HOOK(0x4C6185, EvadeClass_CarryOverShit_Globals, 0x0)
+DEFINE_HOOK(0x4C6185, EvadeClass_CarryOverShit_Globals, 0x8)
 {
 	CarryOverGlobalsBuffer.clear();
 	for (auto const& [idx, var] : ScenarioExtData::Instance()->Global_Variables)

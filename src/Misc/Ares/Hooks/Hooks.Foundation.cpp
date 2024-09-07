@@ -29,29 +29,15 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	return 0x465239;
 }
 
-#pragma optimize("", off )
-DEFINE_HOOK(0x44FBE9, BuildingClass_ReadINI_UnlimboSomething, 0x8)
-{
-	GET(BuildingClass*, pBld, ESI);
-	Debug::Log("Currently Unlimbo For building [%x - %s]\n", pBld, pBld->Type->ID);
-	return 0x0;
-}
+//#pragma optimize("", off )
+//DEFINE_HOOK(0x44FBE9, BuildingClass_ReadINI_UnlimboSomething, 0x8)
+//{
+//	GET(BuildingClass*, pBld, ESI);
+//	Debug::Log("Currently Unlimbo For building [%x - %s]\n", pBld, pBld->Type->ID);
+//	return 0x0;
+//}
 
-DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_test, 0x6)
-{
-	GET(BuildingClass*, pBld, ESI);
-	LEA_STACK(CoordStruct*, pBuffer_2, 0x38);
-	LEA_STACK(CoordStruct*, pBuffer, 0x2C);
-
-	const auto coord = pBld->GetCoords();
-	*pBuffer = coord;
-	*pBuffer_2 = coord;
-	R->EBP(R->EBP<int>() + coord.X);
-	R->EBX(R->EBX<int>() + coord.Y);
-	return 0x4FD228;
-}
-
-DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
+/*DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	if (!pThis || VTable::Get(pThis) != BuildingClass::vtable){
@@ -61,7 +47,7 @@ DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
 	}
 
 	return 0x0;
-}
+}*/
 
 //DEFINE_STRONG_HOOK(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 //{
@@ -80,7 +66,7 @@ DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
 //
 //	return 0;
 //}
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 DEFINE_HOOK(0x656584, RadarClass_GetFoundationShape, 6)
 {

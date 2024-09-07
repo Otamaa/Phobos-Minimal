@@ -266,6 +266,18 @@ DEFINE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 	GET(FootClass* const, pThis, ESI);
 
 	auto const pType = pThis->GetTechnoType();
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->HasRemainingWarpInDelay) {
+		if (pExt->LastWarpInDelay) {
+			pExt->LastWarpInDelay--;
+		}
+		else {
+			pExt->HasRemainingWarpInDelay = false;
+			pExt->IsBeingChronoSphered = false;
+			pThis->WarpingOut = false;
+		}
+	}
 
 	if (HouseExtData::IsAnyFirestormActive) {
 		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {

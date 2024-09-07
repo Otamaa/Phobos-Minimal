@@ -8954,6 +8954,33 @@ DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 	return !pLink ? 0x7410DD : 0x0;
 }
 
+DEFINE_HOOK(0x4255C0, AnimClass_DetachObject_IsAlive, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	if (!pThis->OwnerObject->IsAlive)
+	{
+		pThis->OwnerObject = nullptr;
+		return 0x4255C6;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	LEA_STACK(CoordStruct*, pBuffer_2, 0x38);
+	LEA_STACK(CoordStruct*, pBuffer, 0x2C);
+
+	const auto coord = pBld->GetCoords();
+	*pBuffer = coord;
+	*pBuffer_2 = coord;
+	R->EBP(R->EBP<int>() + coord.X);
+	R->EBX(R->EBX<int>() + coord.Y);
+	return 0x4FD228;
+}
+
 //DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBX);
