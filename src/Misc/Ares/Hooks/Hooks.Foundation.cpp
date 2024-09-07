@@ -40,13 +40,15 @@ DEFINE_HOOK(0x44FBE9, BuildingClass_ReadINI_UnlimboSomething, 0x8)
 DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_test, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
+	LEA_STACK(CoordStruct*, pBuffer_2, 0x38);
 	LEA_STACK(CoordStruct*, pBuffer, 0x2C);
-	if (!pBld || VTable::Get(pBld) != BuildingClass::vtable) {
-		Debug::FatalError(__FUNCTION__ " called without this ptr");
-	}
-	*pBuffer = pBld->Location;
-	R->EAX(pBuffer);
-	return 0x4FD20F;
+
+	const auto coord = pBld->GetCoords();
+	*pBuffer = coord;
+	*pBuffer_2 = coord;
+	R->EBP(R->EBP<int>() + coord.X);
+	R->EBX(R->EBX<int>() + coord.Y);
+	return 0x4FD228;
 }
 
 DEFINE_HOOK(0x447AD1 , BuildingClass_Center_Coord_ThisPtr , 0x6)
