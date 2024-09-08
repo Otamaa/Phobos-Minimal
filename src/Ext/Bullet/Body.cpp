@@ -133,13 +133,10 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 		{
 			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
+			// this thing , i hope compiler optimized properly ,..
+			// if not i will make another variant of the function that pass the vector referece instead of doing this
 			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner]
-				(AbstractClass* pAbs)
-				{
 
-				auto pTechno = generic_cast<TechnoClass*>(pAbs);
-
-				if (pTechno) {
 					if(!pExt->Splits_UseWeaponTargeting) {
 						if(!pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
 							return false;
@@ -172,7 +169,6 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 							}
 						}
 					}
-				}
 
 				return false;
 			});
@@ -298,8 +294,8 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = Math::sin(radians_fromXY);
 	double const cos_rad = Math::cos(radians_fromXY);
-	const double nMult_Cos = Math::cos(0.7853262558535721);
-	const double nMult_Sin = Math::sin(0.7853262558535721);
+	constexpr double nMult_Cos = gcem::cos(0.7853262558535721);
+	constexpr double nMult_Sin = gcem::sin(0.7853262558535721);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -316,15 +312,11 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 			velocity.X /= Math::cos(radians_foZ);
 			velocity.Y /= Math::cos(radians_foZ);
 		}
-
+		
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
-
-		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
-		{
-			velocity.X = 100.0;
-		}
+		velocity.SetIfZeroXYZ();
 
 		const double nFullMag = velocity.Length();
 		const double nDevidedBySpeed = nSpeed / nFullMag;
@@ -350,10 +342,7 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
 
-		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
-		{
-			velocity.X = 100.0;
-		}
+		velocity.SetIfZeroXYZ();
 	}
 
 	return velocity;
