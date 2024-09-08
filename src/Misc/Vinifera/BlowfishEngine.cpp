@@ -23,7 +23,7 @@
  *
  ******************************************************************************/
 
-std::string encryptDecrypt(const std::string& toEncrypt , const std::string& key) {
+constexpr std::string encryptDecrypt(const std::string& toEncrypt , const std::string& key) {
     std::string output = toEncrypt;
     //char pkey[3] = {'K', 'C', 'Q'}; //Any chars will work, in an array of any size
 	//i % (sizeof(pkey) / sizeof(char))

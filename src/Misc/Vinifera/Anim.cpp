@@ -72,12 +72,12 @@ void Vinivera::ApplyAreaDamage(AnimClass* pThis)
 						// Find the cell of the building that is closest
 						// to the explosion point and use that as the reference point for the distance
 
-						BuildingClass* building = reinterpret_cast<BuildingClass*>(object);
+						BuildingClass* building = static_cast<BuildingClass*>(object);
 
 						auto occupy = building->Type->GetFoundationData(false);
 						distances[count] = INT_MAX;
 
-						while (occupy->X != 32767 && occupy->Y != 32767)
+						while (*occupy != CellStruct::EOL)
 						{
 							Coordinate buildingcellcoord = building->Location + CellClass::Cell2Coord(*occupy) - Coordinate(256 / 2, 256 / 2, 0);
 							distance = (int)CellClass::Cell2Coord(cell).DistanceFrom(buildingcellcoord);

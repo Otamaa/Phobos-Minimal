@@ -75,6 +75,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 		// create a list of cluster targets
 		std::vector<AbstractClass*> targets;
+		targets.reserve(clusters + 1);
 
 		if (!pExt->Splits.Get())
 		{
