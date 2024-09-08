@@ -75,7 +75,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 		// create a list of cluster targets
 		std::vector<AbstractClass*> targets;
-		targets.reserve(clusters + 1);
+		targets.reserve(cluster + 1);
 
 		if (!pExt->Splits.Get())
 		{
@@ -135,8 +135,8 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 			// this thing , i hope compiler optimized properly ,..
 			// if not i will make another variant of the function that pass the vector referece instead of doing this
-			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner]
-
+			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner](AbstractClass* pTech){
+				auto pTechno = static_cast<TechnoClass*>(pTech);
 					if(!pExt->Splits_UseWeaponTargeting) {
 						if(!pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
 							return false;
@@ -157,7 +157,9 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 								return true;
 							}
 						}
-					} else {
+					}
+					else
+					{
 						if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0 && (pExt->RetargetOwner || pTechno != pThis->Owner))
 						{
 							auto const coords = pTechno->GetCoords();
@@ -168,8 +170,8 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 								return true;
 							}
 						}
-					}
 
+					}
 				return false;
 			});
 
@@ -312,7 +314,7 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 			velocity.X /= Math::cos(radians_foZ);
 			velocity.Y /= Math::cos(radians_foZ);
 		}
-		
+
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
