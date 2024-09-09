@@ -226,15 +226,24 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 
 }
 
+#include <Ext/Script/Body.h>
+
 DEFINE_HOOK(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
+	GET(ScriptTypeClass* , pThis, ESI);
 	GET(int, team, ECX);
 
 	for (auto& cur : SriptNumbers) {
 		if (cur.Alternate == team) {
-			Debug::Log("Replacing TMission[%d to %d]\n", team, cur.Original);
+			Debug::Log("[%s]Replacing TMission[%d to %d]\n", pThis->ID, team, cur.Original);
 			R->ECX(cur.Original);
+			return 0x0;
 		}
 	}
+
+	if(team >= (int)TeamMissionType::count
+		&& team >= (int)AresScripts::count
+		&& team >= (int)PhobosScripts::count)
+			Debug::Log("[%s]contains unknow TMission[%d]\n", pThis->ID, team);
 
 	return 0x0;
 }
