@@ -212,24 +212,25 @@ DEFINE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
 	//	GET_BASE(VelocityClass *, Trajectory, 0xC);
 
 	R->EBX<BulletClass*>(Bullet);
-	if (!Bullet->Target) {
-		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
-			Bullet->get_ID(), Bullet);
-
-		Bullet->Target = MapClass::Instance->GetCellAt(XYZ);
-	}
+	// if (!Bullet->Target) {
+	// 	Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+	// 		Bullet->get_ID(), Bullet);
+	//
+	// 	Bullet->Target = MapClass::Instance->GetCellAt(XYZ);
+	// }
 
 	const auto pBulletData = BulletTypeExtContainer::Instance.Find(Bullet->Type);
 
 	bool result = false;
-	if (pBulletData->Parachuted)
-	{
+	if (pBulletData->Parachuted) {
 		result = Bullet->SpawnParachuted(*XYZ);
 		Bullet->IsABomb = true;
-	}
-	else
-	{
+	} else {
 		result = Bullet->ObjectClass::Unlimbo(*XYZ, DirType::North);
+	}
+
+	if (!Bullet->Target) {
+		Bullet->Target = MapClass::Instance->GetCellAt(XYZ);
 	}
 
 	R->EAX(result);

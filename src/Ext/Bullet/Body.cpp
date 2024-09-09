@@ -850,24 +850,22 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 	}
 }
 
-bool TimerIsRunning(CDTimerClass& nTimer)
+constexpr bool TimerIsRunning(CDTimerClass& nTimer)
 {
-	auto nStart = nTimer.StartTime;
+	const auto nStart = nTimer.StartTime;
+
+	if (nStart == -1 && nTimer.TimeLeft) {
+		return true;
+	}
+
 	auto nTimerLeft = nTimer.TimeLeft;
 
-	if (nStart == -1)
-	{
-	CheckTimeLeft:
+	if (Unsorted::CurrentFrame() - nStart < nTimerLeft) {
+		nTimerLeft -= Unsorted::CurrentFrame() - nStart;
+
 		if (nTimerLeft) {
 			return true;
 		}
-
-		return false;
-	}
-	if (Unsorted::CurrentFrame() - nStart < nTimerLeft)
-	{
-		nTimerLeft -= Unsorted::CurrentFrame() - nStart;
-		goto CheckTimeLeft;
 	}
 
 	return false;
