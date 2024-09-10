@@ -556,7 +556,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		int destroyedBridgesCount = 0;
 		int undamagedBridgesCount = 0;
-		std::map<TechnoTypeClass*, int> ownedRecruitables;
+		PhobosMap<TechnoTypeClass*, int> ownedRecruitables;
 
 		for (auto const pTechno : *TechnoClass::Array)
 		{
@@ -914,10 +914,12 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 							// Check if each unit in the taskforce has the available recruitable units in the map
 							if (allObjectsCanBeBuiltOrRecruited && entry.Type && entry.Amount > 0)
 							{
-								if ((int)ownedRecruitables.count(entry.Type) < entry.Amount)
-								{
-									allObjectsCanBeBuiltOrRecruited = false;
-									break;
+								auto iter = ownedRecruitables.get_key_iterator(entry.Type);
+								if(iter != ownedRecruitables.end()){
+									if ((iter->second) < entry.Amount) {
+										allObjectsCanBeBuiltOrRecruited = false;
+										break;
+									}
 								}
 							}
 						}
@@ -1057,6 +1059,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
+					break;
 				}
 			}
 			break;
@@ -1080,6 +1083,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
+					break;
 				}
 			}
 			break;
@@ -1103,6 +1107,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
+					break;
 				}
 			}
 			break;
@@ -1126,6 +1131,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
+					break;
 				}
 			}
 			break;
@@ -1149,6 +1155,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
+					break;
 				}
 			}
 			break;

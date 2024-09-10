@@ -39,23 +39,22 @@ bool OverlayTypeExtContainer::Load(OverlayTypeClass* key, IStream* pStm)
 	if (!key)
 		return false;
 
-	auto Iter = OverlayTypeExtContainer::Instance.Map.find(key);
+	auto ptr = OverlayTypeExtContainer::Instance.Map.get_or_default(key);
 
-	if (Iter == OverlayTypeExtContainer::Instance.Map.end())
-	{
-		auto ptr = this->AllocateUnchecked(key);
-		Iter = OverlayTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	if (!ptr) {
+		ptr = OverlayTypeExtContainer::Instance.Map.insert_unchecked(key,
+			  this->AllocateUnchecked(key));
 	}
 
 	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, Iter->second);
+	this->SetExtAttribute(key, ptr);
 
 	PhobosByteStream loader { 0 };
 	if (loader.ReadBlockFromStream(pStm)) {
 		PhobosStreamReader reader { loader };
 		if (reader.Expect(OverlayTypeExtData::Canary)
-			&& reader.RegisterChange(Iter->second)) {
-			Iter->second->LoadFromStream(reader);
+			&& reader.RegisterChange(ptr)) {
+			ptr->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock()) {
 				return true;
 			}
@@ -72,15 +71,14 @@ DEFINE_HOOK(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 {
 	GET(OverlayTypeClass*, pItem, EAX);
 
-	auto Iter = OverlayTypeExtContainer::Instance.Map.find(pItem);
+	auto ptr = OverlayTypeExtContainer::Instance.Map.get_or_default(pItem);
 
-	if (Iter == OverlayTypeExtContainer::Instance.Map.end())
-	{
-		auto ptr = OverlayTypeExtContainer::Instance.AllocateUnchecked(pItem);
-		Iter = OverlayTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	if (!ptr) {
+		ptr = OverlayTypeExtContainer::Instance.Map.insert_unchecked(pItem,
+			  OverlayTypeExtContainer::Instance.AllocateUnchecked(pItem));
 	}
 
-	OverlayTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
+	OverlayTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
 
 	return 0;
 }
@@ -92,7 +90,8 @@ DEFINE_HOOK(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 	auto extData = OverlayTypeExtContainer::Instance.GetExtAttribute(pItem);
 	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	OverlayTypeExtContainer::Instance.Map.erase(pItem);
-	delete extData;
+	if(extData)
+		DLLDelete(extData);
 
 	return 0;
 }

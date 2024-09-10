@@ -25,9 +25,6 @@ public:
 	bool NoOwner { true };
 	int CreationFrame { 0 };
 
-	RadSiteExtData() noexcept = default;
-	~RadSiteExtData() noexcept = default;
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	static bool InvalidateIgnorable(AbstractClass* ptr)

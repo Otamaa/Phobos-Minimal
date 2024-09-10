@@ -48,9 +48,6 @@ public:
 	Valueable<std::string> LinkedOverlayType {};
 	Valueable<int> PipIndex { -1 };
 
-	TiberiumExtData()noexcept = default;
-	~TiberiumExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -112,7 +109,7 @@ class TiberiumExtContainer final : public Container<TiberiumExtData>
 {
 public:
 	static TiberiumExtContainer Instance;
-	static std::map<OverlayTypeClass* , TiberiumClass*> LinkedType;
+	static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

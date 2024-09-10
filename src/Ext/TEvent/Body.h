@@ -73,8 +73,6 @@ public:
 public:
 	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
 
-	TEventExtData() noexcept = default;
-	~TEventExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

@@ -51,8 +51,6 @@ public:
 	ScriptClass* PreviousScript { nullptr };
 	std::vector<BuildingClass*> BridgeRepairHuts {};
 
-	TeamExtData() noexcept = default;
-
 	~TeamExtData() noexcept
 	{
 		if(!Phobos::Otamaa::ExeTerminated) {
@@ -95,20 +93,16 @@ public:
 	TeamExtData* AllocateUnchecked(TeamClass* key)
 	{
 		TeamExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->TeamExtData::TeamExtData();
-		}
-		else
-		{
-			val = new TeamExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<TeamExtData>();
 		}
 
-		if (val)
-		{
+		if (val) {
+			val->TeamExtData::TeamExtData();
 			val->AttachedToObject = key;
 			return val;
 		}

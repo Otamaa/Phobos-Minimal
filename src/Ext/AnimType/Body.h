@@ -137,9 +137,6 @@ public:
 	ValueableVector<double> LargeFireChances {};
 	ValueableVector<double> LargeFireDistances {};
 
-	AnimTypeExtData() noexcept = default;
-	~AnimTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 
@@ -207,10 +204,6 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 
-private:
-	AnimTypeExtData(const AnimTypeExtData&) = delete;
-	AnimTypeExtData& operator = (const AnimTypeExtData&) = delete;
-	AnimTypeExtData& operator = (AnimTypeExtData&&) = delete;
 };
 
 class AnimClass;

@@ -33,9 +33,6 @@ public:
 
 	ValueableIdxVector<VocClass> VoiceGarrison {};
 
-	InfantryTypeExtData() noexcept = default;
-	~InfantryTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

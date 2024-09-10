@@ -23,9 +23,6 @@ public:
 	std::vector<LaserTrailClass> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 
-	ParticleExtData() noexcept = default;
-	~ParticleExtData() noexcept = default;
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
@@ -51,20 +48,16 @@ public:
 	ParticleExtData* AllocateUnchecked(ParticleClass* key)
 	{
 		ParticleExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->ParticleExtData::ParticleExtData();
-		}
-		else
-		{
-			val = new ParticleExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<ParticleExtData>();
 		}
 
-		if (val)
-		{
+		if (val) {
+			val->ParticleExtData::ParticleExtData();
 			val->AttachedToObject = key;
 			return val;
 		}

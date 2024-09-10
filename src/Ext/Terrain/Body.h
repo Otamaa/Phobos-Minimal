@@ -26,7 +26,6 @@ public:
 	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
 	std::vector<CellStruct> Adjencentcells{};
 
-	TerrainExtData()  noexcept = default;
 	~TerrainExtData() noexcept
 	{
 		LighSource.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);

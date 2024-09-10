@@ -124,7 +124,7 @@ private:
 	using extension_type_ptr = extension_type*;
 	using extension_type_ref_ptr = extension_type**;
 	using const_extension_type_ptr = const extension_type*;
-	using iterator = typename std::unordered_map<base_type_ptr, extension_type_ptr>::const_iterator;
+	//using iterator = typename std::unordered_map<base_type_ptr, extension_type_ptr>::const_iterator;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -203,10 +203,11 @@ public:
 	//}
 
 	// Allocate extensionptr without any checking
-	constexpr extension_type_ptr AllocateUnchecked(base_type_ptr key)
+	extension_type_ptr AllocateUnchecked(base_type_ptr key)
 	{
-		if (extension_type_ptr val = new extension_type())
-		{
+		// avoiding stupid memset ,......
+		if (extension_type_ptr val = DLLCreate<extension_type>()) {
+
 			val->AttachedToObject = key;
 			if constexpr (CTORInitable<T>) {
 				if(!Phobos::Otamaa::DoingLoadGame)
@@ -219,7 +220,7 @@ public:
 		return nullptr;
 	}
 
-	constexpr extension_type_ptr Allocate(base_type_ptr key)
+	extension_type_ptr Allocate(base_type_ptr key)
 	{
 		if (!key || Phobos::Otamaa::DoingLoadGame)
 			return nullptr;
@@ -235,18 +236,7 @@ public:
 		return nullptr;
 	}
 
-	constexpr void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
-	{
-		if (!key || (!bCond && !nMessage.empty()))
-		{
-			Debug::Log("%s \n", nMessage.data());
-			return;
-		}
-
-		this->Allocate(key);
-	}
-
-	constexpr extension_type_ptr FindOrAllocate(base_type_ptr key)
+	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
 		// Find Always check for nullptr here
 		if (extension_type_ptr const ptr = TryFind(key))
@@ -273,11 +263,11 @@ public:
 	//	return this->GetExtAttributeSafe(key);
 	//}
 
-	constexpr void Remove(base_type_ptr key)
+	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key))
 		{
-			delete Item;
+			DLLDelete(Item);
 			this->ClearExtAttribute(key);
 		}
 	}

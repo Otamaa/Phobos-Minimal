@@ -7,6 +7,8 @@
 #include <Utilities/Debug.h>
 #include <Helpers/Macro.h>
 
+#include <Memory.h>
+
 //enum class SonicBeamSurfacePatternType : int
 //{
 //	CIRCLE,
@@ -256,8 +258,6 @@ public:
 	Vector3D<double> SonicBeamEndPinRight { 30.0, 100.0, 0.0 };
 	*/
 
-	WaveExtData() noexcept = default;
-	~WaveExtData() noexcept = default;
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -288,7 +288,78 @@ public:
 class WaveExtContainer final : public Container<WaveExtData>
 {
 public:
+	static std::vector<WaveExtData*> Pool;
 	static WaveExtContainer Instance;
+
+	WaveExtData* AllocateUnchecked(WaveClass* key)
+	{
+		WaveExtData* val = nullptr;
+		if (!Pool.empty()) {
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+		} else {
+			val = DLLAllocWithoutCTOR<WaveExtData>();
+		}
+
+		if (val)
+ {
+			//re-init
+			val->WaveExtData::WaveExtData();
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	WaveExtData* FindOrAllocate(WaveClass* key)
+	{
+		// Find Always check for nullptr here
+		if (WaveExtData* const ptr = TryFind(key))
+			return ptr;
+
+		return this->Allocate(key);
+	}
+
+	WaveExtData* Allocate(WaveClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (WaveExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(WaveClass* key)
+	{
+		if (WaveExtData* Item = TryFind(key))
+		{
+			Item->~WaveExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
 };

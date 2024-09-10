@@ -34,7 +34,6 @@ public:
 	CoordStruct CreateUnitLocation {};
 	SpawnsStatus SpawnsStatusData {};
 
-	AnimExtData() noexcept = default;
 	~AnimExtData() noexcept
 	{
 		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
@@ -89,20 +88,17 @@ public:
 	AnimExtData* AllocateUnchecked(AnimClass* key)
 	{
 		AnimExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->AnimExtData::AnimExtData();
-		}
-		else
-		{
-			val = new AnimExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<AnimExtData>();
 		}
 
 		if (val)
 		{
+			val->AnimExtData::AnimExtData();
 			val->AttachedToObject = key;
 			return val;
 		}

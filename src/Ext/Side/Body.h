@@ -99,8 +99,7 @@ public:
 	Valueable<int> SidebarMixFileIndex { -1 };
 
 	Valueable<SHPStruct*> MouseShape { nullptr };
-	SideExtData() noexcept = default;
-	~SideExtData() noexcept = default;
+
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

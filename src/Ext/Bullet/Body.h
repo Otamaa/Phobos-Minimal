@@ -45,7 +45,6 @@ public:
 
 	AbstractClass* OriginalTarget { nullptr };
 
-	BulletExtData() noexcept = default;
 	~BulletExtData() noexcept {
 		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
@@ -97,20 +96,17 @@ public:
 	BulletExtData* AllocateUnchecked(BulletClass* key)
 	{
 		BulletExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->BulletExtData::BulletExtData();
-		}
-		else
-		{
-			val = new BulletExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<BulletExtData>();
 		}
 
 		if (val)
 		{
+			val->BulletExtData::BulletExtData();
 			val->AttachedToObject = key;
 			return val;
 		}

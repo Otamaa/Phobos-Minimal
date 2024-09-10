@@ -163,11 +163,6 @@ public:
 	Valueable<bool> AttachEffect_IgnoreFromSameSource { false };
 
 
-
-
-	WeaponTypeExtData() noexcept = default;
-	~WeaponTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

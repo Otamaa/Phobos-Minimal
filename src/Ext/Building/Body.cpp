@@ -1288,6 +1288,7 @@ void BuildingExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingExtContainer BuildingExtContainer::Instance;
+std::vector<BuildingExtData*> BuildingExtContainer::Pool;
 
 // =============================
 // container hooks

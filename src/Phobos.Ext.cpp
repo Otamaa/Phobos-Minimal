@@ -334,22 +334,29 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
 	HugeBar::InvalidatePointer(pInvalid, removed);
-
+	EBolt::Array->for_each([&](EBolt* pThis) {
+		if (removed && pThis->Owner == pInvalid) {
+			pThis->Owner = nullptr;
+		}
+	});
 	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
 
 #define LogPool(s) Debug::Log("%s MemoryPool size %d\n", _STR_(s) , ##s::Instance.Pool.size());
 
-DEFINE_HOOK(0x48CEDC, Game_Exit_RecordPoolSize, 0x6)
+DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 {
 	LogPool(TechnoExtContainer)
+	LogPool(BuildingExtContainer)
+	LogPool(InfantryExtContainer)
 	LogPool(AnimExtContainer)
 	LogPool(BulletExtContainer)
 	LogPool(ParticleExtContainer)
 	LogPool(ParticleSystemExtContainer)
 	LogPool(TeamExtContainer)
 	LogPool(VoxelAnimExtContainer)
+	LogPool(WaveExtContainer)
 	return 0x0;
 }
 
@@ -411,12 +418,15 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
 		TechnoExtContainer::Instance.Pool.reserve(2000);
+		BuildingExtContainer::Instance.Pool.reserve(2000);
+		InfantryExtContainer::Instance.Pool.reserve(2000);
 		AnimExtContainer::Instance.Pool.reserve(10000);
 		BulletExtContainer::Instance.Pool.reserve(1000);
 		ParticleExtContainer::Instance.Pool.reserve(1000);
 		ParticleSystemExtContainer::Instance.Pool.reserve(2000);
 		TeamExtContainer::Instance.Pool.reserve(1000);
 		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
+		WaveExtContainer::Instance.Pool.reserve(1000);
 	}
 
 	return 0;

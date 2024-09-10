@@ -23,8 +23,6 @@ public :
 	Valueable<int> Tileset { -1 };
 	Valueable<PaletteManager*> Palette {};
 
-	IsometricTileTypeExtData() noexcept = default;
-	~IsometricTileTypeExtData() noexcept = default;
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

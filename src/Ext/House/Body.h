@@ -177,9 +177,6 @@ public:
 	int NumConYards_NonMFB { 0 };
 	int NumShipyards_NonMFB { 0 };
 
-	HouseExtData() noexcept = default;
-	~HouseExtData() noexcept = default;
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	constexpr FORCEINLINE static size_t size_Of()

@@ -389,9 +389,6 @@ public:
 	Valueable<int> ChronoSphereDelay { 0 };
 	Valueable<bool> EnablePowerSurplus { false };
 
-	RulesExtData() noexcept = default;
-	~RulesExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

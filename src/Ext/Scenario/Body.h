@@ -69,9 +69,6 @@ public:
 	Valueable<bool> ShowBriefing { false };
 	int BriefingTheme { -1 };
 
-	ScenarioExtData() noexcept = default;
-	~ScenarioExtData() noexcept = default;
-
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
 	void ReadVariables(const bool IsGlobal, CCINIClass* pINI);

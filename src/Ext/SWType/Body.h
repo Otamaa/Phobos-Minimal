@@ -463,7 +463,7 @@ public:
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
 	Valueable<bool> CrateGoodies { false };
-	SWTypeExtData() noexcept = default;
+
 	~SWTypeExtData() noexcept;
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);

@@ -21,9 +21,6 @@ public:
 	int CurrentDoType { -1 };
 	bool ForceFullRearmDelay { false };
 
-	InfantryExtData() noexcept = default;
-	~InfantryExtData() noexcept = default;
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
@@ -42,7 +39,76 @@ private:
 class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
+	static std::vector<InfantryExtData*> Pool;
 	static InfantryExtContainer Instance;
+
+	InfantryExtData* AllocateUnchecked(InfantryClass* key) {
+		InfantryExtData* val = nullptr;
+		if (!Pool.empty()) {
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+		} else {
+			val = DLLAllocWithoutCTOR<InfantryExtData>();
+		}
+
+		if (val) {
+			//re-init
+			val->InfantryExtData::InfantryExtData();
+			val->AttachedToObject = key;
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	InfantryExtData* FindOrAllocate(InfantryClass* key)
+	{
+		// Find Always check for nullptr here
+		if (InfantryExtData* const ptr = TryFind(key))
+			return ptr;
+
+		return this->Allocate(key);
+	}
+
+	InfantryExtData* Allocate(InfantryClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (InfantryExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(InfantryClass* key)
+	{
+		if (InfantryExtData* Item = TryFind(key))
+		{
+			Item->~InfantryExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };

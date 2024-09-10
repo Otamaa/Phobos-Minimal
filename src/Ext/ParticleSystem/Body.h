@@ -117,9 +117,6 @@ public:
 	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
 	HelperedVector<Draw> SmokeData { };
 
-	ParticleSystemExtData() noexcept = default;
-	~ParticleSystemExtData() noexcept = default;
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
@@ -157,20 +154,16 @@ public:
 	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)
 	{
 		ParticleSystemExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->ParticleSystemExtData::ParticleSystemExtData();
-		}
-		else
-		{
-			val = new ParticleSystemExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<ParticleSystemExtData>();
 		}
 
-		if (val)
-		{
+		if (val) {
+			val->ParticleSystemExtData::ParticleSystemExtData();
 			val->AttachedToObject = key;
 			val->InitializeConstant();
 			return val;

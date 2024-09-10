@@ -18,9 +18,6 @@ public:
 
 	Valueable<bool> Clearable { true };
 
-	SmudgeTypeExtData() noexcept = default;
-	~SmudgeTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

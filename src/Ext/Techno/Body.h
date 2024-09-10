@@ -559,7 +559,6 @@ public:
 	CDTimerClass UnitAutoDeployTimer {};
 	CellClass* SubterraneanHarvRallyPoint { nullptr };
 
-	TechnoExtData() noexcept = default;
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -849,20 +848,16 @@ public:
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)
 	{
 		TechnoExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->TechnoExtData::TechnoExtData();
-		}
-		else
-		{
-			val = new TechnoExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<TechnoExtData>();
 		}
 
-		if (val)
-		{
+		if (val) {
+			val->TechnoExtData::TechnoExtData();
 			val->AttachedToObject = key;
 			val->InitializeConstant();
 			return val;

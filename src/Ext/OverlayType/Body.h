@@ -18,9 +18,6 @@ public:
 	Valueable<PaletteManager*> Palette { };
 	Valueable<int> ZAdjust { 0 };
 
-	OverlayTypeExtData() noexcept = default;
-	~OverlayTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -39,7 +36,7 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 {
 public:
 	static OverlayTypeExtContainer Instance;
-	std::unordered_map<OverlayTypeClass*, OverlayTypeExtData*> Map;
+	PhobosMap<OverlayTypeClass*, OverlayTypeExtData*> Map;
 
 	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
 

@@ -112,9 +112,6 @@ public:
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
 
-	BulletTypeExtData() noexcept = default;
-	~BulletTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -179,7 +176,7 @@ class BulletTypeExtContainer final : public Container<BulletTypeExtData>
 {
 public:
 	static BulletTypeExtContainer Instance;
-	std::unordered_map<BulletTypeClass*, BulletTypeExtData*> Map;
+	PhobosMap<BulletTypeClass*, BulletTypeExtData*> Map;
 
 	virtual bool Load(BulletTypeClass* key, IStream* pStm);
 

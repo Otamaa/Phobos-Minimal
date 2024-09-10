@@ -1281,25 +1281,23 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 	if (!key)
 		return false;
 
-	auto Iter = BuildingTypeExtContainer::Instance.Map.find(key);
+	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(key);
 
-	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
-	{
-		auto ptr = this->AllocateUnchecked(key);
-		Iter = BuildingTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	if (!pExt) {
+		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
 	}
 
 	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, Iter->second);
+	this->SetExtAttribute(key, pExt);
 
 	PhobosByteStream loader { 0 };
 	if (loader.ReadBlockFromStream(pStm))
 	{
 		PhobosStreamReader reader { loader };
 		if (reader.Expect(BuildingTypeExtData::Canary)
-			&& reader.RegisterChange(Iter->second))
+			&& reader.RegisterChange(pExt))
 		{
-			Iter->second->LoadFromStream(reader);
+			pExt->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())
 			{
 				// reset the buildup time
@@ -1319,15 +1317,14 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
 
-	auto Iter = BuildingTypeExtContainer::Instance.Map.find(pItem);
+	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(pItem);
 
-	if (Iter == BuildingTypeExtContainer::Instance.Map.end())
-	{
-		auto ptr = BuildingTypeExtContainer::Instance.AllocateUnchecked(pItem);
-		Iter = BuildingTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	if (!pExt) {
+		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(pItem,
+			   BuildingTypeExtContainer::Instance.AllocateUnchecked(pItem));
 	}
 
-	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
+	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, pExt);
 
 	return 0;
 }
@@ -1339,7 +1336,8 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	auto extData = BuildingTypeExtContainer::Instance.GetExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.Map.erase(pItem);
-	delete extData;
+	if(extData)
+		DLLDelete(extData);
 
 	return 0;
 }

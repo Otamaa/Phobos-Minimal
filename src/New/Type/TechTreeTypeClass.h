@@ -40,7 +40,7 @@ public:
 	ValueableVector<BuildingTypeClass*> BuildDefense;
 	ValueableVector<BuildingTypeClass*> BuildOther;
 	ValueableVector<int> BuildOtherCounts;
-	std::map<BuildingTypeClass*, size_t> BuildOtherCountMap;
+	PhobosMap<BuildingTypeClass*, size_t> BuildOtherCountMap;
 
 	TechTreeTypeClass(const char* pTitle) : Enumerable(pTitle) { }
 

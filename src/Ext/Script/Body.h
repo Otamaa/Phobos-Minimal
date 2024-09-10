@@ -209,9 +209,6 @@ public:
 public:
 	// Nothing yet
 
-	ScriptExtData()  noexcept = default;
-	~ScriptExtData() noexcept = default;
-
 	static bool ProcessScriptActions(TeamClass* pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass* pTeam);
 	static void LoadIntoTransports(TeamClass* pTeam);

@@ -18,9 +18,6 @@ public:
 
 	int NewPowerups { -1 };
 
-	CellExtData() noexcept = default;
-	~CellExtData() noexcept = default;
-
 	constexpr FORCEINLINE static size_t size_Of()
 	{
 		return sizeof(CellExtData) -

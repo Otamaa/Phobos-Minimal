@@ -238,7 +238,6 @@ public:
 	NullableVector<TechnoTypeClass*> AttachTag_Types {};
 	NullableVector<TechnoTypeClass*> AttachTag_Ignore {};
 
-
 	Valueable<bool> RecalculateDistanceDamage { false };
 	Valueable<bool> RecalculateDistanceDamage_IgnoreMaxDamage { false };
 	Valueable<int> RecalculateDistanceDamage_Add { 0 };
@@ -394,9 +393,6 @@ public:
 
 	bool Reflected { false };
 public:
-
-	WarheadTypeExtData() noexcept = default;
-	~WarheadTypeExtData() noexcept = default;
 
 	void InitializeConstant();
 	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const;

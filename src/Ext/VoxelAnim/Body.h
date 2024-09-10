@@ -29,9 +29,6 @@ public:
 	std::vector<LaserTrailClass> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 
-	VoxelAnimExtData() noexcept = default;
-	~VoxelAnimExtData() noexcept = default;
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	static bool InvalidateIgnorable(AbstractClass* ptr)
@@ -77,20 +74,17 @@ public:
 	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)
 	{
 		VoxelAnimExtData* val = nullptr;
-		if (!Pool.empty())
-		{
+		if (!Pool.empty()) {
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-			val->VoxelAnimExtData::VoxelAnimExtData();
-		}
-		else
-		{
-			val = new VoxelAnimExtData();
+		} else {
+			val = DLLAllocWithoutCTOR<VoxelAnimExtData>();
 		}
 
 		if (val)
 		{
+			val->VoxelAnimExtData::VoxelAnimExtData();
 			val->AttachedToObject = key;
 			return val;
 		}

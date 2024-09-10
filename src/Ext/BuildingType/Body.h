@@ -313,9 +313,6 @@ public:
 
 	Valueable<bool> ExcludeFromMultipleFactoryBonus { false };
 
-	BuildingTypeExtData() noexcept = default;
-	~BuildingTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -400,7 +397,7 @@ class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
 {
 public:
 	static BuildingTypeExtContainer Instance;
-	std::unordered_map<BuildingTypeClass*, BuildingTypeExtData*> Map;
+	PhobosMap<BuildingTypeClass*, BuildingTypeExtData*> Map;
 
 	virtual bool Load(BuildingTypeClass* key, IStream* pStm);
 

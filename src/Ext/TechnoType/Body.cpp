@@ -2414,24 +2414,23 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 		return false;
 	}
 
-	auto Iter = TechnoTypeExtContainer::Instance.Map.find(key);
+	auto ptr = TechnoTypeExtContainer::Instance.Map.get_or_default(key);
 
-	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = this->AllocateUnchecked(key);
-		Iter = TechnoTypeExtContainer::Instance.Map.emplace(key, ptr).first;
+	if (!ptr) {
+		ptr = TechnoTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
 	}
 
 	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, Iter->second);
+	this->SetExtAttribute(key, ptr);
 
 	PhobosByteStream loader { 0 };
 	if (loader.ReadBlockFromStream(pStm))
 	{
 		PhobosStreamReader reader { loader };
 		if (reader.Expect(TechnoTypeExtData::Canary)
-			&& reader.RegisterChange(Iter->second))
+			&& reader.RegisterChange(ptr))
 		{
-			Iter->second->LoadFromStream(reader);
+			ptr->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())
 				return true;
 		}
@@ -2447,14 +2446,14 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
 
-	auto Iter = TechnoTypeExtContainer::Instance.Map.find(pItem);
+	auto ptr = TechnoTypeExtContainer::Instance.Map.get_or_default(pItem);
 
-	if (Iter == TechnoTypeExtContainer::Instance.Map.end()) {
-		auto ptr = TechnoTypeExtContainer::Instance.AllocateUnchecked(pItem);
-		Iter = TechnoTypeExtContainer::Instance.Map.emplace(pItem, ptr).first;
+	if (!ptr) {
+		ptr = TechnoTypeExtContainer::Instance.Map.insert_unchecked(pItem,
+			  TechnoTypeExtContainer::Instance.AllocateUnchecked(pItem));
 	}
 
-	TechnoTypeExtContainer::Instance.SetExtAttribute(pItem, Iter->second);
+	TechnoTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
 
 	return 0;
 }
@@ -2466,7 +2465,8 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 	auto extData = TechnoTypeExtContainer::Instance.GetExtAttribute(pItem);
 	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	TechnoTypeExtContainer::Instance.Map.erase(pItem);
-	delete extData;
+	if(extData)
+		DLLDelete(extData);
 
 	return 0;
 }

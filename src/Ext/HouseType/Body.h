@@ -73,9 +73,6 @@ public:
 	PhobosPCXFile ObserverBackground {};
 	SHPStruct* ObserverBackgroundSHP {};
 
-	HouseTypeExtData() noexcept = default;
-	~HouseTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromRulesFile(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -105,7 +102,7 @@ class HouseTypeExtContainer final : public Container<HouseTypeExtData>
 {
 public:
 	static HouseTypeExtContainer Instance;
-	std::unordered_map<HouseTypeClass*, HouseTypeExtData*> Map;
+	PhobosMap<HouseTypeClass*, HouseTypeExtData*> Map;
 
 	virtual bool Load(HouseTypeClass* key, IStream* pStm);
 

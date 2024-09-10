@@ -36,9 +36,6 @@ public:
 	TrailsReader Trails { };
 #pragma endregion
 
-	VoxelAnimTypeExtData() noexcept = default;
-	~VoxelAnimTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 

@@ -389,3 +389,9 @@ struct DLLDTORCaller
 		DLLCallDTOR(ptr);
 	}
 };
+
+template <typename T>
+static FORCEINLINE T* DLLAllocWithoutCTOR() {
+	DllAllocator<T> alloc {};
+	return (T*)std::allocator_traits<DllAllocator<T>>::allocate(alloc, 1);
+}

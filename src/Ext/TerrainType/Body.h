@@ -48,9 +48,6 @@ public:
 	ValueableIdx<VocClass> CrumblingSound { -1 };
 	Nullable<int> AnimationLength {};
 
-	TerrainTypeExtData()  noexcept = default;
-	~TerrainTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

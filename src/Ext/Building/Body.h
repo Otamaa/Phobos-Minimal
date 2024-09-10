@@ -69,7 +69,6 @@ public:
 	//and set to highest PowersUpToLevel out of
 	//applied upgrades regardless of how many are currently applied to this building.
 
-	BuildingExtData() noexcept = default;
 	~BuildingExtData() noexcept
 	{
 		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
@@ -126,7 +125,70 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
+	static std::vector<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
+
+	BuildingExtData* AllocateUnchecked(BuildingClass* key)
+	{
+		BuildingExtData* val = nullptr;
+		if (!Pool.empty()) {
+			val = Pool.front();
+			Pool.erase(Pool.begin());
+			//re-init
+		} else {
+			val = DLLAllocWithoutCTOR<BuildingExtData>();
+		}
+
+		if (val)
+		{
+			val->BuildingExtData::BuildingExtData();
+			val->AttachedToObject = key;
+			val->InitializeConstant();
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	BuildingExtData* Allocate(BuildingClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+
+		if (BuildingExtData* val = AllocateUnchecked(key))
+		{
+			this->SetExtAttribute(key, val);
+			return val;
+		}
+
+		return nullptr;
+	}
+
+	void Remove(BuildingClass* key)
+	{
+		if (BuildingExtData* Item = TryFind(key))
+		{
+			Item->~BuildingExtData();
+			Item->AttachedToObject = nullptr;
+			Pool.push_back(Item);
+			this->ClearExtAttribute(key);
+		}
+	}
+
+	void Clear()
+	{
+		if (!Pool.empty())
+		{
+			auto ptr = Pool.front();
+			Pool.erase(Pool.begin());
+			if (ptr)
+			{
+				delete ptr;
+			}
+		}
+	}
 
 	CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };

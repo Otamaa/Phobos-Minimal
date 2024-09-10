@@ -57,9 +57,6 @@ public:
 	//TechnoClass* Firer { nullptr };
 	SWStatus Statusses { };
 
-	SuperExtData() noexcept = default;
-	~SuperExtData() noexcept = default;
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	{
 		//	AnnounceInvalidPointer(Firer, ptr);

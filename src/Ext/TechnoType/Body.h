@@ -992,9 +992,6 @@ public:
 
 	Valueable<bool> PassengerWeapon { false };
 
-	TechnoTypeExtData() noexcept = default;
-	~TechnoTypeExtData() noexcept = default;
-
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
@@ -1047,7 +1044,7 @@ class TechnoTypeExtContainer final : public Container<TechnoTypeExtData>
 public:
 	static TechnoTypeExtContainer Instance;
 
-	std::unordered_map<TechnoTypeClass*, TechnoTypeExtData*> Map;
+	PhobosMap<TechnoTypeClass*, TechnoTypeExtData*> Map;
 
 	virtual bool Load(TechnoTypeClass* key, IStream* pStm) override;
 
