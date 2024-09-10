@@ -207,8 +207,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
 	DamageToShieldAfterMinMax = std::clamp(DamageToShield,
-		pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum),
-		pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum));
+		int(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) * pWHExt->Shield_ReceivedDamage_MinMultiplier),
+		int(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) * pWHExt->Shield_ReceivedDamage_MaxMultiplier));
 
 	if (DamageToShieldAfterMinMax == 0)
 	{

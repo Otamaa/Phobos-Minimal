@@ -190,14 +190,18 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 	if (!EnumFunctions::CanTargetHouse(Affects.Get(), pAttackerHouse, pTargetHouse))
 		return;
 
-	for (const auto& pBuilding : pTargetHouse->Buildings)
-	{
+	HelperedVector<BuildingClass*> LimboedID {};
+	for (const auto& pBuilding : pTargetHouse->Buildings) {
 		const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
 
 		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
 			continue;
 
-		BuildingExtData::LimboKill(pBuilding);
+		LimboedID.push_back(pBuilding);
+	}
+
+	for(auto& pLimboBld : LimboedID){
+		BuildingExtData::LimboKill(pLimboBld);
 	}
 }
 
