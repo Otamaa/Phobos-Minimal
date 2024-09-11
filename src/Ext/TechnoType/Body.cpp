@@ -158,16 +158,16 @@ bool TechnoTypeExtData::HasSelectionGroupID(ObjectTypeClass* pType, const std::s
 	return (IS_SAME_STR_(id, pID.c_str()));
 }
 
-bool TechnoTypeExtData::IsCountedAsHarvester() const
+bool TechnoTypeExtData::IsCountedAsHarvester()
 {
 	if(!this->Harvester_Counted.isset()) {
 		if(this->AttachedToObject->Enslaves){
-			return true;
+			this->Harvester_Counted = true;
 		}
 
 		if (const auto pUnit = specific_cast<UnitTypeClass*>(this->AttachedToObject)){
 			if(pUnit->Harvester || pUnit->Enslaves){
-				return true;
+				this->Harvester_Counted = true;
 			}
 		}
 	}

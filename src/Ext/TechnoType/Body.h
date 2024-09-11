@@ -999,7 +999,7 @@ public:
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	bool IsCountedAsHarvester() const;
+	bool IsCountedAsHarvester();
 
 	void AdjustCrushProperties();
 

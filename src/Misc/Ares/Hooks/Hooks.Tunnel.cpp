@@ -179,28 +179,6 @@ DEFINE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 	return FindSameTunnel ? RetActionSelf : Nothing;
 }
 
-DEFINE_HOOK(0x7014B9, TechnoClass_SetOwningHouse_Tunnel, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-
-		const auto nTunnelVec = HouseExtData::GetTunnelVector(pBuilding->Type, pThis->Owner);
-
-		if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pBuilding))
-			return 0x0;
-
-		for (auto nPos = nTunnelVec->Vector.begin();
-			nPos != nTunnelVec->Vector.end(); ++nPos) {
-			TunnelFuncs::KillFootClass(*nPos, nullptr);
-		}
-
-		nTunnelVec->Vector.clear();
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 {
 	GET(BuildingClass*, pThis, EBP);

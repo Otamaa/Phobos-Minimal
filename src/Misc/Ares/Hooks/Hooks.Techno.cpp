@@ -934,6 +934,21 @@ DEFINE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 		pJammer->UnjamAll();
 	}
 
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+
+		const auto nTunnelVec = HouseExtData::GetTunnelVector(pBuilding->Type, pThis->Owner);
+
+		if (!nTunnelVec || TunnelFuncs::FindSameTunnel(pBuilding))
+			return 0x0;
+
+		for (auto nPos = nTunnelVec->Vector.begin();
+			nPos != nTunnelVec->Vector.end(); ++nPos) {
+			TunnelFuncs::KillFootClass(*nPos, nullptr);
+		}
+
+		nTunnelVec->Vector.clear();
+	}
+
 	if (TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount != 0)
 		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 

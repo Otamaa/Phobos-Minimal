@@ -149,18 +149,18 @@ struct InvalidatePointerAction
 	{
 		if constexpr (HasExtMap<T>)
 		{
-			if constexpr (PointerInvalidationIgnorAble<T>)
-				if (!T::ExtMap::InvalidateIgnorable(ptr))
-					return;
+			//if constexpr (PointerInvalidationIgnorAble<T>)
+				//if (!T::ExtMap::InvalidateIgnorable(ptr))
+					//return;
 
 			if constexpr (PointerInvalidationSubscribable<T>)
 				T::ExtMap::PointerGotInvalid(ptr, removed);
 		}
 		else
 		{
-			if constexpr (PointerInvalidationIgnorAble<T>)
-				if (!T::InvalidateIgnorable(ptr))
-					return;
+			//if constexpr (PointerInvalidationIgnorAble<T>)
+				//if (!T::InvalidateIgnorable(ptr))
+					//return;
 
 			if constexpr (PointerInvalidationSubscribable<T>)
 				T::PointerGotInvalid(ptr, removed);
