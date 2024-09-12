@@ -234,13 +234,30 @@ public:
 		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 		const std::tm* localTime = std::localtime(&currentTime);
 
-		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}",
+		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}-{:5}",
 			localTime->tm_year + 1900,
 			localTime->tm_mon + 1 ,
 			localTime->tm_mday,
 			localTime->tm_hour,
 			localTime->tm_min,
-			localTime->tm_sec);
+			localTime->tm_sec,
+			localTime->tm_sec * 1000);
+	}
+
+	static NOINLINE std::string GetCurTimeA()
+	{
+		const auto now = std::chrono::system_clock::now();
+		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+		const std::tm* localTime = std::localtime(&currentTime);
+
+		return std::format("{:04}{:02}{:02}-{:02}{:02}{:02}-{:5}",
+			localTime->tm_year + 1900,
+			localTime->tm_mon + 1,
+			localTime->tm_mday,
+			localTime->tm_hour,
+			localTime->tm_min,
+			localTime->tm_sec,
+			localTime->tm_sec * 1000);
 	}
 
 	static bool made;

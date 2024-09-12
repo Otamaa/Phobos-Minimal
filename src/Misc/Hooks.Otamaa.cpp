@@ -8981,6 +8981,7 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 	return 0x4FD228;
 }
 
+
 //DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBX);

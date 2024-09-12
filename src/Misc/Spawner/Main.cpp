@@ -68,11 +68,6 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<FileEntryClass*>, FileEntries);
 };
 
-void SpawnerMain::ExeRun(bool HasCNCnet) {
-	if (HasCNCnet) {
-		Debug::FatalErrorAndExit("This dll already include cncnet5.dll code , please remove first\n");
-	}
-}
 #ifdef IS_ANTICHEAT_VER
 #define SPAWNER_PRODUCT_NAME "YR-Spawner (AntiCheat)"
 #else

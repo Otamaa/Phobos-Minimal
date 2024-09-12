@@ -299,7 +299,6 @@ struct SpawnerMain
 
 	static std::list<MixFileClass*> LoadedMixFiles;
 
-	static void ExeRun(bool HasCNCnet);
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();
 

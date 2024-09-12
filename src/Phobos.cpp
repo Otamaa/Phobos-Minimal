@@ -149,7 +149,7 @@ bool Phobos::Otamaa::TrackParserErrors = false;
 bool Phobos::Otamaa::NoLogo = false;
 bool Phobos::Otamaa::NoCD = false;
 bool Phobos::Otamaa::CompatibilityMode = false;
-bool Phobos::Otamaa::ReplaceGameMemoryAllocator = false;
+bool Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
 bool Phobos::EnableConsole = false;
 
 enum class ExceptionHandlerMode {
@@ -216,15 +216,10 @@ void Phobos::PassiveSaveGame()
 };
 
 	PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
-	char fName[0x80];
+	const auto time = Debug::GetCurTimeA();
+	const std::string name = std::format("Map.{}.sav", time);
 
-	SYSTEMTIME time;
-	GetLocalTime(&time);
-
-	_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
-		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
-	if (ScenarioClass::SaveGame(fName, Phobos::CustomGameSaveDescription.c_str()))
+	if (ScenarioClass::SaveGame(name.c_str(), Phobos::CustomGameSaveDescription.c_str()))
 		PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
 	else
 		PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
@@ -698,10 +693,10 @@ void Phobos::ExeRun()
 		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
 
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
-			HasCNCnet = true;
+			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first\n");
 		}
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
-			Debug::FatalErrorAndExit("dont need Ares.dll to run! \n");
+			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first \n");
 		}
 		//else if (ExceptionMode != ExceptionHandlerMode::Default
 		//		&& IS_SAME_STR_(dlls.ModuleName.c_str(), "kernel32.dll"))
@@ -806,11 +801,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		//_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 		//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 		//std::atexit(Phobos::_dump_memory_leaks);
+		const auto time = Debug::GetCurTimeA();
 
 		if (lpReserved) {
-			Debug::LogDeferred("Phobos is being loaded statically.\n");
+			Debug::LogDeferred("Phobos is being loaded (%s) statically.\n", time.c_str());
 		} else {
-			Debug::LogDeferred("Phobos is being loaded dynamicly.\n");
+			Debug::LogDeferred("Phobos is being loaded (%s) dynamicly.\n", time.c_str());
 		}
 
 		Phobos::hInstance = hInstance;
@@ -821,7 +817,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		LuaData::LuaDir = PhobosCRT::WideStringToString(Debug::ApplicationFilePath);
 		LuaData::LuaDir += "\\Resources";
 
-		void* buffer;
+		void* buffer {};
 		const int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
 
 		for (int offset = 0; offset < len; offset += sizeof(Patch)) {
@@ -992,8 +988,6 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 
 	Phobos::ExeRun();
-
-	SpawnerMain::ExeRun(HasCNCnet);
 	return 0;
 }
 
@@ -1003,8 +997,8 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Debug::LogDeferredFinalize();
 	Phobos::InitConsole();
+	Debug::LogDeferredFinalize();
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();
 #endif
