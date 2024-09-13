@@ -162,6 +162,7 @@ public:
 	Valueable<bool> AttachEffect_CheckOnFirer { false };
 	Valueable<bool> AttachEffect_IgnoreFromSameSource { false };
 
+	Valueable<bool> FireOnce_ResetSequence { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

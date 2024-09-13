@@ -52,6 +52,41 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 	return 0;
 }
 
+#include <Ext/Infantry/Body.h>
+
+DEFINE_HOOK(0x6FF905, TechnoClass_FireAt_FireOnce, 0x6) {
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto const pInf = specific_cast<InfantryClass*>(pThis))
+	{
+		GET(WeaponTypeClass*, pWeapon, EBX);
+
+		if (!WeaponTypeExtContainer::Instance.Find(pWeapon)->FireOnce_ResetSequence)
+			InfantryExtContainer::Instance.Find(pInf)->SkipTargetChangeResetSequence = true;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
+{
+	enum { SkipGameCode = 0x51B255 };
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, EBX);
+
+	auto const pExt = InfantryExtContainer::Instance.Find(pThis);
+
+	if (!pTarget && pExt->SkipTargetChangeResetSequence)
+	{
+		pThis->IsFiring = false;
+		pExt->SkipTargetChangeResetSequence = false;
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
 //https://github.com/Phobos-developers/Phobos/pull/1073/
 // DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 // {

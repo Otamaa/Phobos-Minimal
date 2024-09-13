@@ -1051,6 +1051,8 @@ void ParticleSystemExtData::InitializeConstant()
 		{
 			auto bIsZero = (int)this->HeldType->BehavesLike;
 			auto nBehave = (int)pType->BehavesLike;
+			if (bIsZero <= 1)
+				bIsZero = bIsZero == 0;
 
 			if (nBehave == bIsZero)
 			{

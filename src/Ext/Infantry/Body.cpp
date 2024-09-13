@@ -11,6 +11,7 @@ void InfantryExtData::Serialize(T& Stm)
 		.Process(this->IsUsingDeathSequence)
 		.Process(this->CurrentDoType)
 		.Process(this->ForceFullRearmDelay)
+		.Process(this->SkipTargetChangeResetSequence)
 		;
 }
 
