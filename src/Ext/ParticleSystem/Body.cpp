@@ -1051,24 +1051,24 @@ void ParticleSystemExtData::InitializeConstant()
 		{
 			auto bIsZero = (int)this->HeldType->BehavesLike;
 			auto nBehave = (int)pType->BehavesLike;
-			if (bIsZero <= 1)
-				bIsZero = bIsZero == 0;
 
 			if (nBehave == bIsZero)
 			{
-				switch (pType->BehavesLike)
-				{
-				case ParticleSystemTypeBehavesLike::Smoke:
+				if (!nBehave) {
 					this->What = Behave::Smoke;
-					break;
-				case ParticleSystemTypeBehavesLike::Spark:
+					return;
+				}
+
+				auto v11 = nBehave - 3;
+				if (!v11)                       // 0
+				{
 					this->What = Behave::Spark;
-					break;
-				case ParticleSystemTypeBehavesLike::Railgun:
+					return;
+				}
+				if (v11 == 1)                   // // 1
+				{
 					this->What = Behave::Railgun;
-					break;
-				default:
-					break;
+					return;
 				}
 			}
 		}
