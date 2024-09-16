@@ -424,8 +424,8 @@ void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	AnnounceInvalidPointer(this->Invoker, ptr, bRemoved);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
 
-	if (this->AttachedSystem.get() == ptr)
-		this->AttachedSystem.release();
+	if (this->AttachedSystem == ptr)
+		this->AttachedSystem = nullptr;
 }
 
 void AnimExtData::CreateAttachedSystem()
@@ -441,7 +441,7 @@ void AnimExtData::CreateAttachedSystem()
 	if (pData->AttachedSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 		nLoc.Z += 100;
 
-	this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(
+	this->AttachedSystem = (GameCreate<ParticleSystemClass>(
 		pData->AttachedSystem.Get(),
 		nLoc,
 		pThis->GetCell(),

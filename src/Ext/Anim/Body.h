@@ -30,14 +30,9 @@ public:
 	// and the building is not on same cell as the animation.
 	BuildingClass* ParentBuilding { nullptr };
 
-	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
+	ParticleSystemClass* AttachedSystem { nullptr };
 	CoordStruct CreateUnitLocation {};
 	SpawnsStatus SpawnsStatusData {};
-
-	~AnimExtData() noexcept
-	{
-		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);
@@ -45,6 +40,17 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	void CreateAttachedSystem();
+
+	~AnimExtData()
+	{
+		// mimicking how this thing does , since the detach seems not properly handle these
+		if (auto pAttach = AttachedSystem)
+		{
+			pAttach->Owner = nullptr;
+			pAttach->UnInit();
+			pAttach->TimeToDie = true;
+		}
+	}
 
 	constexpr FORCEINLINE static size_t size_Of()
 	{

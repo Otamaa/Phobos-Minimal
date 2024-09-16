@@ -103,6 +103,17 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 	return false;
 }
 
+AnimTypeClass* GeneralUtils::SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& const vec, AnimTypeClass* fallback)
+{
+	if (vec.empty())
+		return fallback;
+
+	if (vec.size() < 2)
+		return vec[0];
+
+	return vec[ScenarioClass::Instance->Random.RandomFromMax(vec.size() - 1)];
+}
+
 const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
 {
 	if (clsid == CLSIDs::Drive())

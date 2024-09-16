@@ -40,14 +40,10 @@ public:
 
 	std::vector<UniversalTrail> Trails {};
 	std::unique_ptr<PhobosTrajectory> Trajectory {};
-	Handle<ParticleSystemClass*, UninitAttachedSystem> AttachedSystem { nullptr };
+	ParticleSystemClass* AttachedSystem { nullptr };
 	int DamageNumberOffset { INT32_MIN };
 
 	AbstractClass* OriginalTarget { nullptr };
-
-	~BulletExtData() noexcept {
-		this->AttachedSystem.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool InvalidateIgnorable(AbstractClass* ptr);
@@ -59,6 +55,15 @@ public:
 	void InitializeLaserTrails();
 
 	void CreateAttachedSystem();
+
+	~BulletExtData() {
+		// mimicking how this thing does , since the detach seems not properly handle these
+		if (auto pAttach = AttachedSystem) {
+			pAttach->Owner = nullptr;
+			pAttach->UnInit();
+			pAttach->TimeToDie = true;
+		}
+	}
 
 	constexpr FORCEINLINE static size_t size_Of(){
 		return sizeof(BulletExtData) -

@@ -333,8 +333,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void Destroyed(ObjectClass *Killer) PURE;
 	virtual FireError GetFireErrorWithoutRange(AbstractClass *pTarget, int nWeaponIndex) const RT(FireError);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const JMP_THIS(0x6FC0B0); //CanFire
-	virtual AbstractClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0; //Greatest_Threat
-	virtual void SetTarget(AbstractClass *pTarget) JMP_THIS(0x6FCDB0);
+	virtual AbstractClass* GreatestThreat(ThreatType threat, CoordStruct* pCoord, bool onlyTargetHouseEnemy) JMP_THIS(0x6F8DF0);	virtual void SetTarget(AbstractClass *pTarget) JMP_THIS(0x6FCDB0);
 	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
 	virtual void Guard() RX; // clears target and destination and puts in guard mission
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true)JMP_THIS(0x7014A0);
@@ -459,7 +458,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 
 // slave of the next one
 	bool CanAutoTargetObject(
-		TargetFlags targetFlags,
+		ThreatType targetFlags,
 		int canTargetWhatAmI,
 		int wantedDistance,
 		TechnoClass* pTarget,
@@ -470,7 +469,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 
 // called by AITeam Attack Target Type and autoscan
 	bool TryAutoTargetObject(
-		TargetFlags targetFlags,
+		ThreatType targetFlags,
 		int canTargetWhatAmI,
 		CellStruct* pCoords,
 		DWORD dwUnk1,

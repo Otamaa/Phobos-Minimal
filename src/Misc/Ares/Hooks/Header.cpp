@@ -254,8 +254,8 @@ bool TechnoTypeExt_ExtData::CarryallCanLift(AircraftTypeClass* pCarryAll, UnitCl
 	const auto CarryAllData = TechnoTypeExtContainer::Instance.Find(pCarryAll);
 	const auto TargetData = TechnoTypeExtContainer::Instance.Find(Target->Type);
 
-	UnitTypeClass* TargetType = Target->Type;
-	const bool passengerEligible = !TargetType->Organic && !TargetType->NonVehicle;
+	UnitTypeClass* pTargetType = Target->Type;
+	const bool passengerEligible = !pTargetType->Organic && !pTargetType->NonVehicle;
 
 	if (!TargetData->CarryallAllowed.Get(passengerEligible))
 		return false;
@@ -5884,7 +5884,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		nTargetCoords = pTarget->GetCoords();
 
 	const auto Attacker = pOwner;
-	const auto TargetType = Target->GetTechnoType();
+	const auto pTargetType = Target->GetTechnoType();
 	const auto AttackerType = Attacker->GetTechnoType();
 
 	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse()))
@@ -5998,7 +5998,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	// throw away the current locomotor and instantiate
 	// a new one of the default type for this unit.
-	if (auto NewLoco = LocomotionClass::CreateInstance(TargetType->Locomotor))
+	if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
 	{
 		Target->Locomotor = std::move(NewLoco);
 		Target->Locomotor->Link_To_Object(Target);

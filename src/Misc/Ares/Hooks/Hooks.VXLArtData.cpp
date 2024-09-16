@@ -223,8 +223,11 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 		auto who_are_you = reinterpret_cast<uintptr_t*>(reinterpret_cast<DWORD>(pVXL) - (offsetof(TechnoTypeClass, MainVoxel)));
 		if (who_are_you[0] == UnitTypeClass::vtable)
 			pType = reinterpret_cast<TechnoTypeClass*>(who_are_you);//you are someone else
-		else
-			return pThis->TurretAnimFrame % pVXL->HVA->FrameCount;
+		else {
+				if((&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData) != pVXL)
+					return pThis->TurretAnimFrame % pVXL->HVA->FrameCount;
+		}
+
 		// you might also be SpawnAlt voxel, but I can't know
 		// otherwise what would you expect me to do, shift back to ares typeext base and check if ownerobject is technotype?
 	}

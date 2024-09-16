@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Ext/Rules/Body.h>
 
 void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
 {
@@ -19,6 +20,8 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 		return;
 
 	INI_EX exINI(pINI);
+	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
+
 	switch (pThis->BehavesLike)
 	{
 	case ParticleSystemTypeBehavesLike::Fire:
@@ -37,7 +40,6 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 		break;
 	}
 
-	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
 	this->AdjustTargetCoordsOnRotation.Read(exINI, pID, "AdjustTargetCoordsOnRotation");
 
 	if (pThis->LightSize > 94)

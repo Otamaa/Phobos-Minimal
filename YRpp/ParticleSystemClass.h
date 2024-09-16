@@ -71,7 +71,7 @@ public:
 
 	ParticleSystemClass(
 		ParticleSystemTypeClass* pParticleSystemType,
-		CoordStruct* coords, 
+		CoordStruct* coords,
 		AbstractClass* pTarget,
 		ObjectClass* pOwner,
 		CoordStruct* targetCoords,

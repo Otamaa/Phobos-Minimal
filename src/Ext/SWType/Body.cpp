@@ -601,7 +601,7 @@ struct TargetingFuncs
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult PickByHouseType(HouseClass* pThis, TargetType type)
+	static TargetResult PickByHouseType(HouseClass* pThis, QuarryType type)
 	{
 		const auto nTarget = pThis->PickTargetByType(type);
 		return nTarget.IsValid() ?
@@ -653,7 +653,7 @@ struct TargetingFuncs
 		static const int SpaceSize = 5;
 		auto target = CellStruct::Empty;
 
-		if (pTargeting->Owner->PreferredTargetType == TargetType::Anything)
+		if (pTargeting->Owner->PreferredTargetType == QuarryType::Anything)
 		{
 			// if no enemy yet, reinforce own base
 			const auto pTargetPlayer = HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex, pTargeting->Owner);
@@ -754,7 +754,7 @@ struct TargetingFuncs
 
 	static TargetResult GetNukeAndLighningTarget(NewSWType* pNewType, const TargetingData* pTargeting)
 	{
-		if (pTargeting->Owner->PreferredTargetType == TargetType::Anything) {
+		if (pTargeting->Owner->PreferredTargetType == QuarryType::Anything) {
 			return TargetingFuncs::GetIonCannonTarget(pNewType ,pTargeting,
 				HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex),
 				CloakHandling::IgnoreCloaked);

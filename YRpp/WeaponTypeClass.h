@@ -78,8 +78,11 @@ public:
 
 	bool IsWallDestoyer() const { JMP_THIS(0x772AC0); }
 
-	TargetFlags EligibleTarget() const
-	{ JMP_THIS(0x772A90); }
+	ThreatType EligibleTarget() const
+		{ JMP_THIS(0x772A90); }
+
+	ThreatType AllowedThreats() const
+		{ JMP_THIS(0x772A90); }
 
 	//Constructor
 	WeaponTypeClass(const char* pID = nullptr)

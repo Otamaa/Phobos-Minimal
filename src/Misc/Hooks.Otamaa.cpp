@@ -168,13 +168,13 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 	GET(AnimTypeClass* const, pMuzzleAnimType, EDI);
-	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
+	LEA_STACK(CoordStruct*, pFLH, 0x44);
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
 	{
-		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
+		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? *pFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
 		{
 			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
 			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);

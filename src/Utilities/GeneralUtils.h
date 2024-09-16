@@ -21,6 +21,7 @@
 #define MIN_VAL(x) std::numeric_limits<x>::min()
 #define MAX_VAL(x) std::numeric_limits<x>::max()
 
+class AnimTypeClass;
 class GeneralUtils final
 {
 	NO_CONSTRUCT_CLASS(GeneralUtils)
@@ -34,6 +35,7 @@ public:
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
+	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 
 	static constexpr bool is_number(const std::string& s)
 	{

@@ -62,7 +62,52 @@ DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 
 // TunnelLocomotionClass_IsToHaveShadow, skip shadow on all but idle.
 // TODO: Investigate if it is possible to fix the shadows not tilting on the burrowing etc. states.
-DEFINE_JUMP(LJMP, 0x72A070, 0x72A07F);
+//DEFINE_JUMP(LJMP, 0x72A070, 0x72A07F);
+
+#include <Locomotor/TunnelLocomotionClass.h>
+
+Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matrix3D* ret,VoxelIndexKey* key)
+{
+	auto tLoco = static_cast<TunnelLocomotionClass*>(iloco);
+	tLoco->LocomotionClass::Shadow_Matrix(ret , key);
+
+	if (tLoco->State != TunnelLocomotionClass::State::IDLE)
+	{
+		double theta = 0.;
+		switch (tLoco->State)
+		{
+		case TunnelLocomotionClass::State::DIGGING:
+			if (key)key->Invalidate();
+			theta = Math::HalfPi;
+			if (auto total = tLoco->Timer.Duration)
+				theta *= 1.0 - double(tLoco->Timer.GetTimeLeft()) / double(total);
+			break;
+		case TunnelLocomotionClass::State::DUG_IN:
+			theta = Math::HalfPi;
+			break;
+		case TunnelLocomotionClass::State::PRE_DIG_OUT:
+			theta = -Math::HalfPi;
+			break;
+		case TunnelLocomotionClass::State::DIGGING_OUT:
+			if (key)key->Invalidate();
+			theta = -Math::HalfPi;
+			if (auto total = tLoco->Timer.Duration)
+				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
+			break;
+		case TunnelLocomotionClass::State::DUG_OUT:
+			if (key)key->Invalidate();
+			theta = Math::HalfPi;
+			if (auto total = tLoco->Timer.Duration)
+				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
+			break;
+		default:break;
+		}
+		ret->ScaleX((float)Math::cos(theta));// I know it's ugly
+	}
+	return ret;
+}
+
+DEFINE_JUMP(VTABLE, 0x7F5A4C, GET_OFFSET(TunnelLocomotionClass_ShadowMatrix));
 
 DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 {
@@ -70,7 +115,7 @@ DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto const pAircraft = abstract_cast<AircraftClass*>(pThis))
+	if (auto const pAircraft = specific_cast<AircraftClass*>(pThis))
 	{
 		if (pAircraft->Type->Carryall && pAircraft->HasAnyLink() &&
 			pAircraft->Destination && (pAircraft->Destination->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
