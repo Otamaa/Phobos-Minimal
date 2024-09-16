@@ -84,11 +84,9 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			it.SetAnimationTunnelState(true);
 
 		it.AI();
+		const bool NeedDelete = (!it.Invoker || !it.Invoker->IsAlive) && (it.Type->DiscardOn & DiscardCondition::InvokerDeleted) != DiscardCondition::None;
 
-		if ((!it.Invoker || !it.Invoker->IsAlive) && (it.Type->DiscardOn & DiscardCondition::InvokerDeleted) != DiscardCondition::None)
-			return true;
-
-		if (it.HasExpired() || (it.IsActive() && !it.AllowedToBeActive()))
+		if (NeedDelete || it.HasExpired() || (it.IsActive() && !it.AllowedToBeActive()))
 		{
 			auto const pType = it.GetType();
 
@@ -102,7 +100,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 					expireWeapons.push_back(pType->ExpireWeapon);
 			}
 
-			if (!it.AllowedToBeActive() && it.ResetIfRecreatable()) {
+			if (!NeedDelete && !it.AllowedToBeActive() && it.ResetIfRecreatable()) {
 				return false;
 			}
 
