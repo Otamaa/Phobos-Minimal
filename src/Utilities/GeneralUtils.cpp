@@ -103,7 +103,7 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 	return false;
 }
 
-AnimTypeClass* GeneralUtils::SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& const vec, AnimTypeClass* fallback)
+AnimTypeClass* GeneralUtils::SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback)
 {
 	if (vec.empty())
 		return fallback;

@@ -85,6 +85,9 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 		it.AI();
 
+		if ((!it.Invoker || !it.Invoker->IsAlive) && (it.Type->DiscardOn & DiscardCondition::InvokerDeleted) != DiscardCondition::None)
+			return true;
+
 		if (it.HasExpired() || (it.IsActive() && !it.AllowedToBeActive()))
 		{
 			auto const pType = it.GetType();

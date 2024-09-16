@@ -1,4 +1,4 @@
-#include "Body.h"
+ #include "Body.h"
 #include <SpecificStructures.h>
 
 #include <Utilities/Macro.h>
@@ -189,7 +189,7 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 #include <Ext/Super/Body.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
+DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
