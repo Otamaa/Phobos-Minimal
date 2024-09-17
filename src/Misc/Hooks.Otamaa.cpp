@@ -8978,6 +8978,7 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 	*pBuffer_2 = coord;
 	R->EBP(R->EBP<int>() + coord.X);
 	R->EBX(R->EBX<int>() + coord.Y);
+	R->EAX(R->Stack<int>(0x18));
 	return 0x4FD228;
 }
 
