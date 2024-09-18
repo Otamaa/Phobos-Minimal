@@ -110,6 +110,7 @@
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.SidebarGDIPositions.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />

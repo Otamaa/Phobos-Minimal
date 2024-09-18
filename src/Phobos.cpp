@@ -86,6 +86,9 @@ bool Phobos::UI::CenterPauseMenuBackground = false;
 bool Phobos::UI::UnlimitedColor = false;
 bool Phobos::UI::AnchoredToolTips = false;
 
+bool Phobos::UI::ExclusiveSuperWeaponSidebar = false;
+int Phobos::UI::ExclusiveSuperWeaponSidebar_Max = 0;
+
 const wchar_t* Phobos::UI::Power_Label;
 const wchar_t* Phobos::UI::Drain_Label;
 const wchar_t* Phobos::UI::Storage_Label;
@@ -507,6 +510,19 @@ void Phobos::Config::Read()
 			Phobos::UI::CenterPauseMenuBackground =
 				pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
+
+			Phobos::UI::ExclusiveSuperWeaponSidebar =
+				pINI->ReadBool(SIDEBAR_SECTION_T, "ExclusiveSuperWeaponSidebar", Phobos::UI::ExclusiveSuperWeaponSidebar);
+
+			Phobos::UI::ExclusiveSuperWeaponSidebar_Max =
+				pINI->ReadInteger(SIDEBAR_SECTION_T, "ExclusiveSuperWeaponSidebar.Max", Phobos::UI::ExclusiveSuperWeaponSidebar_Max);
+
+			const int screenHeight = GameOptionsClass::Instance->ScreenHeight - 192;
+
+			if (Phobos::UI::ExclusiveSuperWeaponSidebar_Max > 0)
+				Phobos::UI::ExclusiveSuperWeaponSidebar_Max = std::min(Phobos::UI::ExclusiveSuperWeaponSidebar_Max, screenHeight / 48);
+			else
+				Phobos::UI::ExclusiveSuperWeaponSidebar_Max = screenHeight / 48;
 		}
 
 	});

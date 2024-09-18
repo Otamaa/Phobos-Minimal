@@ -1581,6 +1581,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_GrantOneTime_RollChances.Read(exINI, pSection, "SW.GrantOneTime.RollChances");
 
 	this->CrateGoodies.Read(exINI, pSection, "CrateGoodies");
+	this->AllowInExclusiveSidebar.Read(exINI, pSection, "AllowInExclusiveSidebar");
 
 	// SW.GrantOneTime.RandomWeights
 	this->SW_GrantOneTime_RandomWeightsData.clear();
@@ -2432,6 +2433,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_GrantOneTime_RollChances)
 
 		.Process(this->CrateGoodies)
+		.Process(this->AllowInExclusiveSidebar)
 		;
 
 }

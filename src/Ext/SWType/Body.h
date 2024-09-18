@@ -463,6 +463,7 @@ public:
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
 	Valueable<bool> CrateGoodies { false };
+	Valueable<bool> AllowInExclusiveSidebar { false };
 
 	~SWTypeExtData() noexcept;
 

@@ -8,6 +8,8 @@
 
 #include <map>
 
+#include <ToggleClass.h>
+
 class SidebarExtData final
 {
 private:
@@ -47,4 +49,63 @@ public:
 	}
 
 	static void DrawProducingProgress();
+};
+
+
+class TacticalButtonClass : public ToggleClass
+{
+	constexpr FORCEINLINE void swap(TacticalButtonClass& other) noexcept
+	{
+		using std::swap;
+		swap(this->Next, other.Next);
+		swap(this->Previous, other.Previous);
+		swap(this->Flags, other.Flags);
+		swap(this->Disabled, other.Disabled);
+		swap(this->IsSticky, other.IsSticky);
+		swap(this->NeedsRedraw, other.NeedsRedraw);
+		swap(this->Rect, other.Rect);
+		swap(this->ToggleType, other.ToggleType);
+		swap(this->IsOn, other.IsOn);
+		swap(this->IsPressed, other.IsPressed);
+		swap(this->ID, other.ID);
+		swap(this->SendTo, other.SendTo);
+		swap(this->IsHovering, other.IsHovering);
+		swap(this->SuperIndex, other.SuperIndex);
+	}
+
+public:
+	TacticalButtonClass() = default;
+	TacticalButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height);
+
+	friend void swap(TacticalButtonClass& lhs, TacticalButtonClass& rhs) noexcept
+	{
+		lhs.swap(rhs);
+	}
+
+	~TacticalButtonClass();
+
+	virtual bool Draw(bool forced) override;
+	virtual void OnMouseEnter() override;
+	virtual void OnMouseLeave() override;
+	virtual bool Action(GadgetFlag fags, DWORD* pKey, KeyModifier modifier) override;
+
+	bool LaunchSuper(int superIdx);
+
+public:
+	static bool AddButton(int superIdx);
+	static bool RemoveButton(int superIdx);
+	static constexpr void ClearButtons() {
+		CurrentButton = nullptr;
+		Buttons.clear();
+	}
+
+	static void SortButtons();
+
+public:
+	static HelperedVector<TacticalButtonClass> Buttons;
+	static bool Initialized;
+	static TacticalButtonClass* CurrentButton;
+
+	bool IsHovering { false };
+	int SuperIndex { -1 };
 };
