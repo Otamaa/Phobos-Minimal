@@ -112,18 +112,24 @@ DEFINE_HOOK(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
 
 	for (const auto pSuper : pCurrent->Supers)
 	{
-		if (!pSuper->Granted)
-			continue;
-
 		const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
+		if (!pSuper->Granted || !pSWExt->IsAvailable(pCurrent))
+			continue;
+
+
 		if (pSWExt->AllowInExclusiveSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire)) {
-			if (!pSWExt->IsAvailable(pCurrent))
+
+			auto& buttons = TacticalButtonClass::Buttons;
+
+			if (buttons.any_of([pSuper](const TacticalButtonClass& button) { return button.SuperIndex == pSuper->Type->ArrayIndex; }))
 				continue;
 
-			TacticalButtonClass::AddButton(pSuper->Type->ArrayIndex);
+			buttons.emplace_back(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48);
 		}
 	}
+
+	TacticalButtonClass::SortButtons();
 
 	return 0;
 }
