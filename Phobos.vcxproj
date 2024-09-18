@@ -67,6 +67,7 @@
     <ClCompile Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\MeteorTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\SpiralTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectory.cpp" />
@@ -464,6 +465,7 @@
     <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />

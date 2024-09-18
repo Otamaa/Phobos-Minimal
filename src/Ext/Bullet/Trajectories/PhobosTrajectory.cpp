@@ -122,6 +122,7 @@ std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::Tra
 	{"StraightVarianC" },
 	{"Disperse" },
 	{"Engrave" },
+	{"Parabola" },
  }
 };
 
@@ -134,7 +135,8 @@ bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 		TrajectoryFlag::Bombard,
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Disperse,
-		TrajectoryFlag::Engrave
+		TrajectoryFlag::Engrave,
+		TrajectoryFlag::Parabola
 	};
 
 	for (auto flag : flags) {
@@ -152,6 +154,26 @@ bool PhobosTrajectory::BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj)
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Disperse,
 		TrajectoryFlag::Engrave
+	};
+
+	for (auto flag : flags) {
+		if (traj->Flag == flag) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool PhobosTrajectory::IgnoreAircraftROT0(std::unique_ptr<PhobosTrajectory>& traj)
+{
+	if (!traj)
+		return false;
+
+	constexpr TrajectoryFlag flags[] = {
+		TrajectoryFlag::StraightVariantC,
+		TrajectoryFlag::Parabola,
+		TrajectoryFlag::Disperse,
 	};
 
 	for (auto flag : flags) {

@@ -19,6 +19,7 @@ enum class TrajectoryFlag : int
 	StraightVariantC = 10,
 	Disperse = 11 ,
 	Engrave = 12,
+	Parabola = 13,
 	Count
 };
 
@@ -103,6 +104,7 @@ public:
 
 	static bool CanSnap(std::unique_ptr<PhobosTrajectory>& traj);
 	static bool BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj);
+	static bool IgnoreAircraftROT0(std::unique_ptr<PhobosTrajectory>& traj);
 protected:
 	static bool UpdateType(BulletClass* pBullet , std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType);
 };

@@ -91,15 +91,17 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 		return 0x41631F;
 
 	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-	//TODO if actually merged !
-	// https://github.com/Phobos-developers/Phobos/pull/1295
-	// https://github.com/Phobos-developers/Phobos/pull/1374
-	//const bool skipROT0Check = pBulletExt->Trajectory && pBulletExt->Trajectory->Flag == TrajectoryFlag::Disperse || pBulletExt->Trajectory->Flag == TrajectoryFlag::Parabola;
+	const bool skipROT0Check = PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory);
 
-	if (!pBullet->Type->ROT)
-	{
-		if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr()))
-		{
+
+
+	if (!pBullet->Type->ROT) {
+
+		if (skipROT0Check)
+			return 0x41631F;
+
+		if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr())) {
+
 			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
 			double currentSpeed = !pBullet->Type->Cluster ?
 			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)

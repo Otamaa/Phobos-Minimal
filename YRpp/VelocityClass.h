@@ -29,8 +29,22 @@ public:
 		return { X - a.X, Y - a.Y, Z - a.Z };
 	}
 
+	constexpr VelocityClass CrossProduct(const VelocityClass& a) const {
+		return {
+			Y * a.Z - Z * a.Y,
+			Z * a.X - X * a.Z,
+			X * a.Y - Y * a.X };
+	}
+
 	constexpr FORCEINLINE Vector3D<double> asVec3D() const {
 		return { this->X , this->Y , this->Z };
+	}
+
+	constexpr FORCEINLINE double operator*(const VelocityClass& a) const
+	{
+		return static_cast<double>(X * a.X)
+			+ static_cast<double>(Y * a.Y)
+			+ static_cast<double>(Z * a.Z);
 	}
 
 	DirStruct* GetDirectionFromXY(DirStruct* pRetDir)
