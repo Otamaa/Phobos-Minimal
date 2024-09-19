@@ -123,7 +123,7 @@ DEFINE_HOOK(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
 				if (buttons.any_of([pSuper](TacticalButtonClass* const button) { return button->SuperIndex == pSuper->Type->ArrayIndex; }))
 					continue;
 
-				buttons.emplace_back(GameCreate<TacticalButtonClass>(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48));
+				GameCreate<TacticalButtonClass>(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48);
 			}
 		}
 

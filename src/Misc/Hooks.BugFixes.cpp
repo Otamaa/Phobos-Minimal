@@ -2081,3 +2081,28 @@ DEFINE_HOOK(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
 
 	return SkipGameCode;
 }
+
+
+DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9)
+{
+	GET(TunnelLocomotionClass* const, pLoco, ESI);
+	GET(int const, distance, EAX);
+
+	return distance >= pLoco->LinkedTo->GetCurrentSpeed() ? 0x72980F : 0x7295CE;
+}
+
+DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9)
+{
+	GET(FootClass*, pLinkedTo, ECX);
+	GET(int const, distance, EAX);
+
+	return distance >= pLinkedTo->GetCurrentSpeed() ? 0x75BF85 : 0x75BD79;
+}
+
+DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9)
+{
+	GET(FootClass*, pLinkedTo, ECX);
+	GET(int const, distance, EAX);
+
+	return distance >= pLinkedTo->GetCurrentSpeed() ? 0x5B14AA : 0x5B11E6;
+}
