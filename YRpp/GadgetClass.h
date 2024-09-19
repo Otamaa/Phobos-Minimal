@@ -30,13 +30,12 @@ public:
 	static constexpr reference<GadgetClass*, 0x8B3E90> Focused {};
 
 	//Destructor
-	virtual ~GadgetClass() JMP_THIS(0x4E1A60);
+	virtual ~GadgetClass() RX;
 
 	//LinkClass
 	virtual GadgetClass* GetNext() override JMP_THIS(0x4E14A0);
 	virtual GadgetClass* GetPrev() override JMP_THIS(0x4E14B0);
 	virtual GadgetClass* Remove() override JMP_THIS(0x4E1480);
-	virtual void Zap() override RX;
 
 	//GadgetClass
 	virtual DWORD Input() JMP_THIS(0x4E1640);

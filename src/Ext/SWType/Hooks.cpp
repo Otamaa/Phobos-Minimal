@@ -6,6 +6,8 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Sidebar/Body.h>
+
 #include "Body.h"
 
 #include <CCToolTip.h>
@@ -1023,6 +1025,9 @@ DEFINE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 
 		ret = true;
 	}
+
+	if (ret && pThis->Owner == HouseClass::CurrentPlayer)
+		TacticalButtonClass::RemoveButton(pThis->Type->ArrayIndex);
 
 	R->EAX(ret);
 	return 0x6CB810;

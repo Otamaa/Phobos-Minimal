@@ -12,7 +12,7 @@ IStream* SidebarExtData::g_pStm = nullptr;
 std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress {};
 std::unique_ptr<SidebarExtData> SidebarExtData::Data = nullptr;
 
-HelperedVector<TacticalButtonClass> TacticalButtonClass::Buttons {};
+HelperedVector<TacticalButtonClass*> TacticalButtonClass::Buttons {};
 bool TacticalButtonClass::Initialized { false };
 TacticalButtonClass* TacticalButtonClass::CurrentButton { nullptr };
 
@@ -81,12 +81,15 @@ TacticalButtonClass::TacticalButtonClass(unsigned int id, int superIdx, int x, i
 	: ToggleClass(id, x, y, width, height)
 	, SuperIndex(superIdx)
 {
+	TacticalButtonClass::Buttons.emplace_back(this);
 	this->Zap();
 	GScreenClass::Instance->AddButton(this);
 }
 
 TacticalButtonClass::~TacticalButtonClass()
 {
+	TacticalButtonClass::Buttons.remove(this);
+
 	if (TacticalButtonClass::CurrentButton == this)
 		TacticalButtonClass::CurrentButton = nullptr;
 
@@ -264,10 +267,10 @@ bool TacticalButtonClass::AddButton(int superIdx)
 
 	auto& buttons = TacticalButtonClass::Buttons;
 
-	if(buttons.any_of([superIdx](const TacticalButtonClass& button) { return button.SuperIndex == superIdx; }))
+	if(buttons.any_of([superIdx](TacticalButtonClass* const button) { return button->SuperIndex == superIdx; }))
 		return false;
 
-	buttons.emplace_back(superIdx + 2200, superIdx, 0, 0, 60, 48);
+	GameCreate<TacticalButtonClass>(superIdx + 2200, superIdx, 0, 0, 60, 48);
 	SortButtons();
 	return true;
 }
@@ -276,9 +279,29 @@ bool TacticalButtonClass::RemoveButton(int superIdx)
 {
 	auto& buttons = TacticalButtonClass::Buttons;
 
-	buttons.remove_if([superIdx](const TacticalButtonClass& button) { return button.SuperIndex == superIdx; });
+	const auto it = std::find_if(buttons.begin(), buttons.end(),
+			[superIdx](TacticalButtonClass* const button)
+			{ return button->SuperIndex == superIdx; });
+
+	if (it == buttons.end())
+		return false;
+
+	(*it)->NeedsRedraw = true;
+	(*it)->Disabled = true;
+	GameDelete<true>(*it);
 	SortButtons();
 	return true;
+}
+
+void TacticalButtonClass::ClearButtons()
+{
+	TacticalButtonClass::CurrentButton = nullptr;
+
+	for (auto& button : TacticalButtonClass::Buttons){
+		GameDelete<true>(button);
+		button = nullptr;
+	}
+	TacticalButtonClass::Buttons.clear();
 }
 
 void TacticalButtonClass::SortButtons()
@@ -290,20 +313,22 @@ void TacticalButtonClass::SortButtons()
 		if (TacticalButtonClass::CurrentButton)
 			TacticalButtonClass::CurrentButton->OnMouseLeave();
 
-		std::stable_sort(buttons.begin(), buttons.end(), [](const TacticalButtonClass&  a, const TacticalButtonClass&  b) {
-			return BuildType::SortsBefore(AbstractType::Special, a.SuperIndex, AbstractType::Special, b.SuperIndex);
+		std::stable_sort(buttons.begin(), buttons.end(),
+		[](TacticalButtonClass* const a, TacticalButtonClass* const b) {
+			return BuildType::SortsBefore
+			(AbstractType::Special, a->SuperIndex, AbstractType::Special, b->SuperIndex);
 		});
 
 		const int buttonCount = static_cast<int>(buttons.size());
 		const int cameoWidth = 60, cameoHeight = 48;
 		const int maximum = Phobos::UI::ExclusiveSuperWeaponSidebar_Max;
-		Point2D location = { 0, (DSurface::ViewBounds().Height - std::min(buttonCount, maximum) * cameoHeight) / 2 };
+		Point2D location = { 0, (DSurface::ViewBounds->Height - std::min(buttonCount, maximum) * cameoHeight) / 2 };
 		int location_Y = location.Y;
 		int row = 0, line = 0;
 
 		for (int idx = 0; idx < buttonCount && maximum - line > 0; idx++)
 		{
-			const auto button = &buttons[idx];
+			const auto button = buttons[idx];
 			button->SetPosition(location.X, location.Y);
 			row++;
 

@@ -47,16 +47,6 @@ DEFINE_HOOK(0x724B2E, ToolTipManager_SetX_TacticalButtons, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CB7BA, SuperClass_Lose_UpdateTacticalButton, 0x6)
-{
-	GET(SuperClass*, pSuper, ECX);
-
-	if (pSuper->Owner == HouseClass::CurrentPlayer)
-		TacticalButtonClass::RemoveButton(pSuper->Type->ArrayIndex);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6A6300, SidebarClass_AddCameo_SuperWeapon_TacticalButton, 0x6)
 {
 	enum { SkipGameCode = 0x6A6606 };
@@ -92,6 +82,15 @@ DEFINE_HOOK(0x6A6300, SidebarClass_AddCameo_SuperWeapon_TacticalButton, 0x6)
 	return 0;
 }
 
+//DEFINE_HOOK(0x6A60A0, SidebarClass_StripClass_Redreaw, 0xA) {
+//	GET_STACK(int, tab_, 0x4);
+//
+//	if (tab_ == 1){
+//		TacticalButtonClass::Initialized = false;
+//	}
+//	return 0x0;
+//}
+
 DEFINE_HOOK(0x6A5030, SidebarClass_Init_Clear_InitializedTacticalButton, 0x6)
 {
 	TacticalButtonClass::Initialized = false;
@@ -101,35 +100,34 @@ DEFINE_HOOK(0x6A5030, SidebarClass_Init_Clear_InitializedTacticalButton, 0x6)
 
 DEFINE_HOOK(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
 {
-	if (TacticalButtonClass::Initialized)
-		return 0;
+	if (!TacticalButtonClass::Initialized) {
+		TacticalButtonClass::Initialized = true;
+		TacticalButtonClass::ClearButtons();
+		const auto pCurrent = HouseClass::CurrentPlayer();
 
-	TacticalButtonClass::Initialized = true;
-	const auto pCurrent = HouseClass::CurrentPlayer();
+		if (!pCurrent || pCurrent->Defeated)
+			return 0;
 
-	if (!pCurrent || pCurrent->Defeated)
-		return 0;
+		for (const auto pSuper : pCurrent->Supers)
+		{
+			const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-	for (const auto pSuper : pCurrent->Supers)
-	{
-		const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-		if (!pSuper->Granted || !pSWExt->IsAvailable(pCurrent))
-			continue;
-
-
-		if (pSWExt->AllowInExclusiveSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire)) {
-
-			auto& buttons = TacticalButtonClass::Buttons;
-
-			if (buttons.any_of([pSuper](const TacticalButtonClass& button) { return button.SuperIndex == pSuper->Type->ArrayIndex; }))
+			if (!pSuper->Granted || !pSWExt->IsAvailable(pCurrent))
 				continue;
 
-			buttons.emplace_back(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48);
+
+			if (pSWExt->AllowInExclusiveSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire)) {
+
+				auto& buttons = TacticalButtonClass::Buttons;
+
+				if (buttons.any_of([pSuper](TacticalButtonClass* const button) { return button->SuperIndex == pSuper->Type->ArrayIndex; }))
+					continue;
+
+				buttons.emplace_back(GameCreate<TacticalButtonClass>(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48));
+			}
 		}
+
+		TacticalButtonClass::SortButtons();
 	}
-
-	TacticalButtonClass::SortButtons();
-
 	return 0;
 }
