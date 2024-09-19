@@ -304,7 +304,7 @@ public:
 	ValueableVector<int> MobileRefinery_FrontOffset {};
 	ValueableVector<int> MobileRefinery_LeftOffset {};
 	Valueable<bool> MobileRefinery_Display { true };
-	Valueable<ColorStruct> MobileRefinery_DisplayColor { { 57, 197, 187 } };
+	Valueable<AffectedHouse> MobileRefinery_Display_House { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> MobileRefinery_Anims {};
 	Valueable<bool> MobileRefinery_AnimMove { false };
 	Valueable<bool> Explodes_KillPassengers { true };

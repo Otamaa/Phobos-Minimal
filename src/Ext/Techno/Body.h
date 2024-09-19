@@ -559,6 +559,8 @@ public:
 	CDTimerClass UnitAutoDeployTimer {};
 	CellClass* SubterraneanHarvRallyPoint { nullptr };
 
+	CDTimerClass MobileRefineryTimer {};
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {

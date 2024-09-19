@@ -494,15 +494,16 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SelectBrd_ShowEnemy.Read(exINI, pSection, "SelectBrd.ShowEnemy");
 
 		this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
-		this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransRate");
+		this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransDelay");
 		this->MobileRefinery_CashMultiplier.Read(exINI, pSection, "MobileRefinery.CashMultiplier");
 		this->MobileRefinery_AmountPerCell.Read(exINI, pSection, "MobileRefinery.AmountPerCell");
 		this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
 		this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
 		this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
-		this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
+		this->MobileRefinery_Display_House.Read(exINI, pSection, "MobileRefinery.Display.House");
 		this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
 		this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
+
 		this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
 
 		this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
@@ -1779,7 +1780,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->MobileRefinery_FrontOffset)
 		.Process(this->MobileRefinery_LeftOffset)
 		.Process(this->MobileRefinery_Display)
-		.Process(this->MobileRefinery_DisplayColor)
+		.Process(this->MobileRefinery_Display_House)
 		.Process(this->MobileRefinery_Anims)
 		.Process(this->MobileRefinery_AnimMove)
 		.Process(this->Explodes_KillPassengers)

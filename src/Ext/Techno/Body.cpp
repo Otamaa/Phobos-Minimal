@@ -4304,21 +4304,21 @@ void TechnoExtData::UpdateShield()
 void TechnoExtData::UpdateMobileRefinery()
 {
 	auto const pThis = this->AttachedToObject;
-
-	if (!(pThis->AbstractFlags & AbstractFlags::Foot))
-		return;
-
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (!pTypeExt->MobileRefinery || !pThis->Owner || (pTypeExt->MobileRefinery_TransRate > 0 &&
-		Unsorted::CurrentFrame % pTypeExt->MobileRefinery_TransRate))
+	if (!(pThis->AbstractFlags & AbstractFlags::Foot)
+	|| !pTypeExt->MobileRefinery
+	|| pTypeExt->MobileRefinery_TransRate < 0
+	||  this->MobileRefineryTimer.InProgress()){
 		return;
+	}
 
 	const int cellCount =
 		std::clamp(static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()), 1,
 				static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()));
 
 	CoordStruct flh = { 0,0,0 };
+	bool active = false;
 
 	for (int idx = 0; idx < cellCount; idx++)
 	{
@@ -4332,8 +4332,8 @@ void TechnoExtData::UpdateMobileRefinery()
 
 		nPos.Z += pThis->Location.Z;
 
-		if (const int tValue = pCell->GetContainedTiberiumValue())
-		{
+		if (const int tValue = pCell->GetContainedTiberiumValue()) {
+			active = true;
 			const int tibValue = TiberiumClass::Array->Items[pCell->GetContainedTiberiumIndex()]->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
 			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? MinImpl(tAmount, pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
@@ -4343,7 +4343,7 @@ void TechnoExtData::UpdateMobileRefinery()
 			if (pThis->Owner->CanTransactMoney(value))
 			{
 				pThis->Owner->TransactMoney(value);
-				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display, value, pThis, AffectedHouse::All, nPos, Point2D::Empty, pTypeExt->MobileRefinery_DisplayColor);
+				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display, value, pThis, pTypeExt->RevengeWeapon_AffectsHouses, nPos, Point2D::Empty);
 			}
 
 			if (!pTypeExt->MobileRefinery_Anims.empty())
@@ -4381,6 +4381,9 @@ void TechnoExtData::UpdateMobileRefinery()
 			}
 		}
 	}
+
+	if (active)
+		this->MobileRefineryTimer.Start(pTypeExt->MobileRefinery_TransRate);
 }
 
 void TechnoExtData::UpdateRevengeWeapons()
@@ -5001,6 +5004,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->UnitAutoDeployTimer)
 		.Process(this->SubterraneanHarvRallyPoint, true)
 		.Process(this->IsBeingChronoSphered)
+		.Process(this->MobileRefineryTimer)
 		;
 }
 
