@@ -204,7 +204,7 @@ void ParticleSystemExtData::UpdateSpark()
 				{
 					if (this->HeldType->StartColor1 && this->HeldType->StartColor2)
 					{
-						data->Colors = ColorStruct::Interpolate(this->HeldType->StartColor1, this->HeldType->StartColor2, random->RandomDouble());
+						data->Colors = ColorStruct::Interpolate(&this->HeldType->StartColor1, &this->HeldType->StartColor2, random->RandomDouble());
 					}
 					else
 					{

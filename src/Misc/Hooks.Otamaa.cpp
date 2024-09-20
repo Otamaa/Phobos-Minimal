@@ -3151,7 +3151,7 @@ static void Tactical_Draw_Radial(
 
 	if (animate)
 	{
-		draw_color.Adjust(50, ColorStruct(0, 0, 0));
+		draw_color.Adjust(50, &ColorStruct::Empty);
 	}
 
 	unsigned ellipse_color = DSurface::RGB_To_Pixel(draw_color.R, draw_color.G, draw_color.B);
