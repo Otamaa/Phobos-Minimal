@@ -30,7 +30,7 @@ constexpr std::string encryptDecrypt(const std::string& toEncrypt , const std::s
 
     for (int i = 0; i < toEncrypt.size(); i++)
         output[i] = toEncrypt[i] ^ key[i % (sizeof(key.size() - 1) / sizeof(char))];
-    
+
     return output;
 }
 
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x438300, BlowStraw_Key_replace, 0x6)
 	GET(BlowStraw*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
 	GET_STACK(int, len , 0x8);
-	pThis->Key(pKey, len);
+	pThis->BlowStraw::Key(pKey, len);
 	return 0x43833D;
 }
 
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x4381D0, BlowPipe_Key_replace, 0x6)
 	GET(BlowPipe*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
 	GET_STACK(int, len, 0x8);
-	pThis->Key(pKey, len);
+	pThis->BlowPipe::Key(pKey, len);
 	return 0x43820D;
 }
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x437FD0, BlowfishEngine_Submit_Key, 0x6)
 	GET(BlowfishEngine*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
 	GET_STACK(int, len, 0x8);
-	pThis->Submit_Key(pKey, len);
+	pThis->BlowfishEngine::Submit_Key(pKey, len);
 	return 0x437FF5;
 }
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x437FD0, BlowfishEngine_Encrypt, 0x6)
 	GET_STACK(int, len, 0x4);
 	GET_STACK(void*, pKey, 0x8);
 	GET_STACK(void*, pChyper, 0xC);
-	R->EAX(pThis->Encrypt(pKey, len , pChyper));
+	R->EAX(pThis->BlowfishEngine::Encrypt(pKey, len , pChyper));
 	return 0x437FF5;
 }
 
@@ -120,6 +120,6 @@ DEFINE_HOOK(0x438030, BlowfishEngine_Decrypt, 0x6)
 	GET_STACK(int, len, 0x4);
 	GET_STACK(void*, pKey, 0x8);
 	GET_STACK(void*, pChyper, 0xC);
-	R->EAX(pThis->Decrypt(pKey, len, pChyper));
+	R->EAX(pThis->BlowfishEngine::Decrypt(pKey, len, pChyper));
 	return 0x43805C;
 }

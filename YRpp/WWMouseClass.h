@@ -13,24 +13,15 @@ struct MouseThreadParameter
 	static constexpr reference<HANDLE, 0xB78154u> const Thread_Handle {};
 	static constexpr reference<DWORD, 0xB78158u> const ThreadID {};
 
-	MouseThreadParameter() :
-		  SkipProcessing { 0 }
-		, RefCount { 0 }
-		, SkipSleep { 0 }
-		, field_C { 0 }
-		, SleepTime { 16 }
-		, dword14 { 0 }
-		, SomeState18 { 0 }
+public:
 
-	{ }
-
-	DWORD SkipProcessing;
-	DWORD RefCount;
-	DWORD SkipSleep;
-	DWORD field_C;
-	DWORD SleepTime;
-	DWORD dword14;
-	DWORD SomeState18;
+	DWORD SkipProcessing { 0 };
+	DWORD RefCount { 0 };
+	DWORD SkipSleep { 0 };
+	DWORD field_C { 0 };
+	DWORD SleepTime { 16 };
+	DWORD dword14 { 0 };
+	DWORD SomeState18 { 0 };
 };
 
 //static_assert(sizeof(MouseThreadParameter) == 0x1C);
