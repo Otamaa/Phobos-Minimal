@@ -465,6 +465,8 @@ public:
 	Valueable<bool> CrateGoodies { false };
 	Valueable<bool> AllowInExclusiveSidebar { false };
 
+	Valueable<int> TabIndex { 1 };
+
 	~SWTypeExtData() noexcept;
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);
