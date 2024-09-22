@@ -122,7 +122,6 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 
 			if (pToExt->Shield->GetHP() == 0)
 				pToExt->Shield->SetRespawn(pTypeExt->ShieldType->Respawn_Rate, pTypeExt->ShieldType->Respawn, pTypeExt->ShieldType->Respawn_Rate, true);
-
 		}
 	}
 	else
@@ -131,9 +130,7 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 		pToExt->Shield.reset(pFromExt->Shield.release());
 		pToExt->Shield->KillAnim();
 		pToExt->Shield->Techno = pTo;
-		pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
 		pToExt->Shield->CreateAnim();
-		pFromExt->Shield = nullptr;
 	}
 }
 

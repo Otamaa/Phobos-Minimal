@@ -1145,13 +1145,9 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_D
 	GET(TechnoClass*, pFrom, EBP);
 	GET(TechnoClass*, pTo, EBX);
 
-	// attahed bomb
-	// ae
-	// original owner
 	TechnoExt_ExtData::TransferIvanBomb(pFrom , pTo);
 	AresAE::TransferAttachedEffects(pFrom , pTo);
 	TechnoExt_ExtData::TransferOriginalOwner(pFrom , pTo);
-	//AresData::TechnoTransferAffects(pFrom, pTo);
 	TechnoExtData::TransferMindControlOnDeploy(pFrom, pTo);
 	ShieldClass::SyncShieldToAnother(pFrom, pTo);
 	TechnoExtData::SyncInvulnerability(pFrom, pTo);
@@ -1159,7 +1155,7 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_D
 	if (pFrom->AttachedTag)
 		pTo->AttachTrigger(pFrom->AttachedTag);
 
-	if (R->Origin() == 0x44A03C)
+	if (R->Origin() == 0x44A03C && pTo->IsArmed())
 		pTo->QueueMission(Mission::Hunt, true);
 
 	return 0;
