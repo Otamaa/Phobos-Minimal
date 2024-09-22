@@ -240,6 +240,7 @@ struct Phobos final
 		static bool NoCD;
 		static bool CompatibilityMode;
 		static bool ReplaceGameMemoryAllocator;
+		static bool AllowMultipleInstance;
 	};
 
 	struct Defines

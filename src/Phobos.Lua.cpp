@@ -123,6 +123,12 @@ void Phobos::ExecuteLua()
 		{
 			Phobos::Otamaa::ReplaceGameMemoryAllocator = lua_toboolean(L, -1);
 		}
+
+		lua_getglobal(L, "AllowMultipleInstances");
+
+		if (lua_isboolean(L, -1) == 1) {
+			Phobos::Otamaa::AllowMultipleInstance = lua_toboolean(L, -1);
+		}
 	}
 
 	LuaBridge::InitScriptLuaList(unique_lua);

@@ -153,6 +153,7 @@ bool Phobos::Otamaa::NoLogo = false;
 bool Phobos::Otamaa::NoCD = false;
 bool Phobos::Otamaa::CompatibilityMode = false;
 bool Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
+bool Phobos::Otamaa::AllowMultipleInstance = false;
 bool Phobos::EnableConsole = false;
 
 enum class ExceptionHandlerMode {
@@ -969,6 +970,10 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 //	fesetround(FE_TOWARDZERO);
 //	return 0x0;
 //}
+
+DEFINE_HOOK(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
+	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
+}
 
 DEFINE_HOOK_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
