@@ -11,6 +11,7 @@
 #include <Utilities/Macro.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Misc/SyncLogging.h>
 
 DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
@@ -741,6 +742,7 @@ DEFINE_STRONG_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME_TXT(), HouseClass::CurrentPlayer->ArrayIndex);
 
 	LogFrame(LogFilename, OffendingEvent);
+	SyncLogger::WriteSyncLog(LogFilename);
 
 	return 0x64DF3D;
 }
@@ -754,6 +756,7 @@ DEFINE_STRONG_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME2_TXT(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
 
 	LogFrame(LogFilename, OffendingEvent);
+	SyncLogger::WriteSyncLog(LogFilename);
 
 	return 0x651781;
 }

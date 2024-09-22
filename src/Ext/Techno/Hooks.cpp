@@ -27,6 +27,8 @@
 #include <New/PhobosAttachedAffect/Functions.h>
 #include <New/Entity/FlyingStrings.h>
 
+#include <Misc/SyncLogging.h>
+
 // DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
 // {
 // 	GET(BuildingClass* const, pThis, ESI);
@@ -49,6 +51,32 @@
 //
 //	return announce ? 0 : 0x44848F; //early bailout
 //}
+
+DEFINE_HOOK(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
+{
+	GET(InfantryClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pDest, 0x4);
+	GET_STACK(unsigned int, callerAddress, 0x0);
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (!SyncLogger::HooksDisabled)
+		SyncLogger::AddDestinationChangeSyncLogEvent(pThis, pDest, callerAddress);
+
+	//if (pExt->IsWebbed && pThis->ParalysisTimer.HasTimeLeft())
+	//{
+	//	if (pThis->Target)
+	//	{
+	//		pThis->SetTarget(nullptr);
+	//		pThis->FootClass::SetDestination(nullptr, false);
+	//		pThis->QueueMission(Mission::Sleep, false);
+	//	}
+	//
+	//	return 0x51B1DE;
+	//}
+
+	return 0;
+}
 
 DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {

@@ -241,6 +241,8 @@ struct Phobos final
 		static bool CompatibilityMode;
 		static bool ReplaceGameMemoryAllocator;
 		static bool AllowMultipleInstance;
+
+		static DWORD PhobosBaseAddress;
 	};
 
 	struct Defines

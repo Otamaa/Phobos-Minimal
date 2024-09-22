@@ -693,31 +693,59 @@ std::vector<AnimExtData*> AnimExtContainer::Pool;
 // =============================
 // hooks
 
+#include <Misc/SyncLogging.h>
+
+namespace CTORTemp
+{
+	CoordStruct coords;
+	unsigned int callerAddress;
+}
+
+DEFINE_HOOK(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
+{
+	GET_STACK(CoordStruct*, coords, 0x8);
+	GET_STACK(unsigned int, callerAddress, 0x0);
+
+	CTORTemp::coords = *coords;
+	CTORTemp::callerAddress = callerAddress;
+
+	return 0;
+}
+
 //Only Extend Anim that Has "Type" Pointer
 DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 
-	if (pItem)
+	if (Phobos::Otamaa::DoingLoadGame)
+		return 0x0;
+
+	auto const callerAddress = CTORTemp::callerAddress;
+
+	// Do this here instead of using a duplicate hook in SyncLogger.cpp
+	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
+		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, callerAddress);
+
+	if (pItem->UniqueID == -2 && pItem->Type)
 	{
-		if (pItem->Fetch_ID() == -2 && pItem->Type)
-		{
-			Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
-		}
+		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
+	}
 
-		if (!pItem->Type)
-		{
-			Debug::Log("Anim[%x] with no Type pointer\n", pItem);
-			return 0x0;
-		}
+	if (!pItem->Type)
+	{
+		Debug::FatalError("Anim[%x] with no Type pointer from [0x%08x]\n", pItem , callerAddress);
+		return 0x0;
+	}
 
-		if (auto pExt = AnimExtContainer::Instance.Allocate(pItem))
-		{
-			// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
-			if (!pItem->HasExtras)
-				pExt->CreateAttachedSystem();
-		}
+	AnimExtContainer::Instance.ClearExtAttribute(pItem);
+
+	if (AnimExtData* val = AnimExtContainer::Instance.AllocateUnchecked(pItem)) {
+		AnimExtContainer::Instance.SetExtAttribute(pItem, val);
+
+		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
+		if (!pItem->HasExtras)
+			val->CreateAttachedSystem();
 	}
 
 	return 0;

@@ -1,26 +1,3 @@
-DEFINE_HOOK(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
-{
-	GET(InfantryClass*, pThis, ECX);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->IsWebbed && pThis->ParalysisTimer.HasTimeLeft())
-	{
-		if (pThis->Target)
-		{
-			pThis->SetTarget(nullptr);
-			pThis->FootClass::SetDestination(nullptr, false);
-			pThis->QueueMission(Mission::Sleep, false);
-		}
-
-		return 0x51B1DE;
-	}
-
-
-	return 0;
-}
-
-
 DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 {
 	enum { SkipDrawCode = 0x5192B5 };

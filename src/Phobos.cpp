@@ -154,6 +154,7 @@ bool Phobos::Otamaa::NoCD = false;
 bool Phobos::Otamaa::CompatibilityMode = false;
 bool Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
 bool Phobos::Otamaa::AllowMultipleInstance = false;
+DWORD Phobos::Otamaa::PhobosBaseAddress = 0u;
 bool Phobos::EnableConsole = false;
 
 enum class ExceptionHandlerMode {
@@ -715,6 +716,9 @@ void Phobos::ExeRun()
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
 			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first \n");
 		}
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S)) {
+			Phobos::Otamaa::PhobosBaseAddress = dlls.BaseAddr;
+		}
 		//else if (ExceptionMode != ExceptionHandlerMode::Default
 		//		&& IS_SAME_STR_(dlls.ModuleName.c_str(), "kernel32.dll"))
 		//{
@@ -722,7 +726,6 @@ void Phobos::ExeRun()
 		//		pExceptionHandler = AddVectoredExceptionHandler(1, Exception::ExceptionFilter);
 		//	}
 		//}
-
 	}
 
 	const auto size_ = Patches.size();

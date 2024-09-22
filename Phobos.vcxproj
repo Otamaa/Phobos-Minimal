@@ -350,6 +350,7 @@
     <ClCompile Include="src\Misc\Spawner\SkipScoreScreen.cpp" />
     <ClCompile Include="src\Misc\Spawner\Statistics.cpp" />
     <ClCompile Include="src\Misc\Spawner\VideoMode.cpp" />
+    <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\Misc\Vinifera\BlowfishEngine.cpp" />
     <ClCompile Include="src\New\AnonymousType\BuildSpeedBonus.cpp" />
@@ -470,6 +471,7 @@
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
+    <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\Vinifera\BlowfishEngine.h" />
     <ClInclude Include="src\New\AnonymousType\Spawns.h" />
     <ClInclude Include="src\New\AnonymousType\SpawnsStatus.h" />
