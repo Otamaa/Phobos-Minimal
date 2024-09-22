@@ -9,15 +9,19 @@ class GenericPrerequisite final : public Enumerable<GenericPrerequisite>
 public:
 	GenericPrerequisite(const char* pTitle);
 
-	virtual ~GenericPrerequisite() override;
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
-	virtual void LoadFromINI(CCINIClass* pINI) override;
+	static void constexpr inline AddDefaults() {
+		FindOrAllocate(GameStrings::POWER());
+		FindOrAllocate(GameStrings::FACTORY());
+		FindOrAllocate(GameStrings::BARRACKS());
+		FindOrAllocate(GameStrings::RADAR());
+		FindOrAllocate("TECH");
+		FindOrAllocate("PROC");
+	}
 
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
-	static void AddDefaults();
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec);
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);

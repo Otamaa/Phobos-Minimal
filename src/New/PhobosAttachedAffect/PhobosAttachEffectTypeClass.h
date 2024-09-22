@@ -70,7 +70,7 @@ public:
 	Nullable<double> AffectAbovePercent;
 	Nullable<double> AffectBelowPercent;
 
-	PhobosAttachEffectTypeClass(const char* const pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
+	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Cumulative { false }
 		, Cumulative_MaxCount { -1 }
@@ -173,11 +173,9 @@ public:
 		return this->CumulativeAnimations[index];
 	}
 
-	virtual ~PhobosAttachEffectTypeClass() override = default;
-
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
 	static PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;

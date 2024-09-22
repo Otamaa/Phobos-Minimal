@@ -5228,7 +5228,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				default:
 					//TODO :: the affects
-					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name);
+					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
 					PlaySoundAffect(data);
 					PlayAnimAffect(data);
 					break;

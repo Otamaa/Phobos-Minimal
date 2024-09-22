@@ -30,13 +30,17 @@ public:
 	{ }
 
 	static void ReadListFromINI(CCINIClass* pINI);
-	static void AddDefaults();
+	static void constexpr inline AddDefaults(){
+		for (auto crate : Powerups::Effects){
+			FindOrAllocate(crate);
+		}
+	}
+
 	static void ReadFromINIList(CCINIClass* pINI);
 
-	virtual ~CrateTypeClass() override = default;
-	virtual void LoadFromINI(CCINIClass *pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader &Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter &Stm) override;
+	void LoadFromINI(CCINIClass *pINI);
+	void LoadFromStream(PhobosStreamReader &Stm);
+	void SaveToStream(PhobosStreamWriter &Stm);
 
 private:
 	template <typename T>

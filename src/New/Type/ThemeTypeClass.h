@@ -26,10 +26,6 @@ public:
 		, Side { -1 }
 	{ }
 
-	virtual ~ThemeTypeClass() override = default;
-
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) { }
-	virtual void SaveToStream(PhobosStreamWriter& Stm) { }
+	void LoadFromINI(CCINIClass* pINI);
 
 };

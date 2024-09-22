@@ -114,10 +114,9 @@ public:
 	StandType StandTypeData;
 	//TransformType TransformTypeData;
 
-	virtual ~AttachEffectType() override = default;
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+	void LoadFromINI(CCINIClass* pINI) override;
+	void LoadFromStream(PhobosStreamReader& Stm) override;
+	void SaveToStream(PhobosStreamWriter& Stm) override;
 
 	int GetDuration() {
 		return HoldDuration ? -1 : Duration;

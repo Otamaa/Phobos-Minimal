@@ -72,19 +72,12 @@ public:
 public:
 
 	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);
-	virtual ~ShieldTypeClass() override  = default;
-	//{
-	//	if(Pips_Background_SHP.Get(nullptr)) {
-	//		GameDelete(Pips_Background_SHP.Get());
-	//		Pips_Background_SHP.Reset();
-	//	}
-	//};
 
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
-	static constexpr void AddDefaults() {
+	static void constexpr inline AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 

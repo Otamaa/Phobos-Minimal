@@ -12,7 +12,7 @@ const char* Enumerable<LaserTrailTypeClass>::GetMainSection()
 
 void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	const char* section = this->Name;
+	const char* section = this->Name.c_str();
 
 	INI_EX exINI(pINI);
 

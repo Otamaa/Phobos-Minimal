@@ -83,7 +83,7 @@ public:
 		}
 	}ParticleTrailType ;
 
-	TrailType(const char* const pTitle) : Enumerable<TrailType>(pTitle)
+	TrailType(const char* pTitle) : Enumerable<TrailType>(pTitle)
 		, Mode { TrailMode::LASER }
 		, Distance { 64 }
 		, IgnoreVertical { false }
@@ -101,10 +101,9 @@ public:
 
 	{ }
 
-	virtual ~TrailType() override = default;
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 private:
 	template <typename T>

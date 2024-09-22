@@ -12,6 +12,7 @@
 #include <ArrayClasses.h>
 #include <CCINIClass.h>
 
+
 // an wrapper class to make `Type` like in the game
 // remember to not modify the array ouside allocation new item(s) from the back
 // it will mess upt the `ArrayIndex` !
@@ -216,15 +217,14 @@ public:
 		for (size_t i = 0; i < Count; ++i)
 		{
 			void* oldPtr = nullptr;
-			decltype(Name) name;
+			std::string name {};
 
 			if (!Stm.Load(oldPtr) ||
 				!Stm.Load(name))
 				return false;
 
-			auto newPtr = Allocate(name);
+			auto newPtr = Allocate(name.c_str());
 			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
-
 			newPtr->LoadFromStream(Stm);
 		}
 
@@ -248,18 +248,18 @@ public:
 
 	static const char* GetMainSection();
 
-	Enumerable(const char* Title) : Name { Title }
-	{ }
+	//Enumerable(const char* Title) : Name { Title }
+	//{ }
 
-	virtual ~Enumerable() = default;
-	virtual void LoadFromINI(CCINIClass* pINI) { }
-	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
+	//virtual ~Enumerable() = default;
+	//virtual void LoadFromINI(CCINIClass* pINI) { }
+	//virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
+	//virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
 public:
-	FixedString<32> Name;
+	std::string Name {};
 
-private:
-	Enumerable<T>&operator=(Enumerable<T> const& value) = default;
-	Enumerable<T>&operator=(Enumerable<T>&& value) = default;
+//private:
+//	Enumerable<T>&operator=(Enumerable<T> const& value) = default;
+//	Enumerable<T>&operator=(Enumerable<T>&& value) = default;
 };

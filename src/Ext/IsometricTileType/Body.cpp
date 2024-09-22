@@ -17,7 +17,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 	if(pOvrl) {
 		auto pExt = IsometricTileTypeExtContainer::Instance.Find(pOvrl);
 		if(pExt->Palette) {
-			ConverName = pExt->Palette->Name;
+			ConverName = pExt->Palette->Name.c_str();
 			pISOPal = pExt->Palette->Palette.get();
 		}
 	}

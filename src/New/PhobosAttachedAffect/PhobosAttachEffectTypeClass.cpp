@@ -27,7 +27,7 @@ std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesF
 
 void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	const char* pSection = this->Name;
+	const char* pSection = this->Name.c_str();
 
 	if (IS_SAME_STR_N(pSection, NONE_STR))
 		return;

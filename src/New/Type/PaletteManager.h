@@ -19,7 +19,7 @@ public:
 	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
 
 	PaletteManager(const char* const pTitle);
-	virtual ~PaletteManager() override
+	~PaletteManager()
 	{
 		if(!Phobos::Otamaa::ExeTerminated) {
 			if(auto pVec = std::exchange(this->ColorschemeDataVector, nullptr)) {
@@ -40,8 +40,8 @@ public:
 		}
 	}
 
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 public:
 

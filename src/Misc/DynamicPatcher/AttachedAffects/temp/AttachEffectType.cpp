@@ -10,7 +10,7 @@ const char* Enumerable<AttachEffectType>::GetMainSection()
 
 void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 {
-	const char* pSection = this->Name;
+	const char* pSection = this->Name.c_str();
 	INI_EX exINI(pINI);
 
 	#pragma region CommonAE

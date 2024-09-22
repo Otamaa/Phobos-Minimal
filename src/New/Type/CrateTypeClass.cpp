@@ -45,13 +45,6 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 	}
 }
 
-void CrateTypeClass::AddDefaults()
-{
-	for (auto crate : Powerups::Effects){
-		CrateTypeClass::FindOrAllocate(crate);
-	}
-}
-
 void CrateTypeClass::ReadFromINIList(CCINIClass* pINI)
 {
 	CrateTypeClass::AddDefaults();
@@ -60,7 +53,7 @@ void CrateTypeClass::ReadFromINIList(CCINIClass* pINI)
 
 void CrateTypeClass::LoadFromINI(CCINIClass *pINI)
 {
-	const char *section = this->Name;
+	const char *section = this->Name.c_str();
 
 	INI_EX exINI(pINI);
 

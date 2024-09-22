@@ -9,14 +9,12 @@ public:
 
 	Valueable<Point3D> Colors { };
 
-	ColorTypeClass(const char* const pTitle) : Enumerable<ColorTypeClass>(pTitle)
+	ColorTypeClass(const char* pTitle) : Enumerable<ColorTypeClass>(pTitle)
 	{ }
 
-	virtual ~ColorTypeClass() override = default;
-
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 

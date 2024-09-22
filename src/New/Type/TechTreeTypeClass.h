@@ -42,11 +42,11 @@ public:
 	ValueableVector<int> BuildOtherCounts;
 	PhobosMap<BuildingTypeClass*, size_t> BuildOtherCountMap;
 
-	TechTreeTypeClass(const char* pTitle) : Enumerable(pTitle) { }
+	TechTreeTypeClass(const char* pTitle) : Enumerable<TechTreeTypeClass>(pTitle) { }
 
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 	bool IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const;
 	size_t CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const;

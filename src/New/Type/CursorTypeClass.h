@@ -20,12 +20,22 @@ public:
 		, CursorData { cursor }
 	{ }
 
-	virtual ~CursorTypeClass() override = default;
-	static void AddDefaults();
+	static void inline AddDefaults() {
+		if (!Array.empty())
+			return;
 
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+		for (size_t i = 0; i < MouseCursorTypeToStrings.size(); ++i) {
+			AllocateWithDefault(MouseCursorTypeToStrings[i], MouseCursor::DefaultCursors[i]);
+		}
+
+		for (size_t a = 0; a < NewMouseCursorTypeToStrings.size(); ++a) {
+			AllocateWithDefault(NewMouseCursorTypeToStrings[a], CursorTypeClass::NewMouseCursorTypeData[a]);
+		}
+	}
+
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 

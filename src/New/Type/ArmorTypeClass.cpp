@@ -33,15 +33,6 @@ const char* Enumerable<ArmorTypeClass>::GetMainSection()
 	return "ArmorTypes";
 }
 
-void ArmorTypeClass::AddDefaults()
-{
-	for (auto const& nDefault : Unsorted::ArmorNameArray)
-	{
-		if (auto pVanillaArmor = FindOrAllocate(nDefault))
-			pVanillaArmor->IsVanillaArmor = true;
-	}
-}
-
 bool ArmorTypeClass::IsDefault(const char* pName)
 {
 	for (auto const& nDefault : Unsorted::ArmorNameArray)

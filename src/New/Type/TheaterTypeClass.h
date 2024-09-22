@@ -85,12 +85,10 @@ public:
 	{
 		UIName = theater.UIName;
 	}
-	virtual ~TheaterTypeClass() override = default;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
-
-	virtual void LoadFromINI(CCINIClass* pINI) override;
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromINI(CCINIClass* pINI);
 
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();

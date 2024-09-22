@@ -112,10 +112,10 @@ public:
 	StandType StandTypeData;
 	TransformType TransformTypeData;
 
-	virtual ~AttachEffectType() override = default;
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+	//virtual ~AttachEffectType() override = default;
+	void LoadFromINI(CCINIClass* pINI) override;
+	void LoadFromStream(PhobosStreamReader& Stm) override;
+	void SaveToStream(PhobosStreamWriter& Stm) override;
 
 
 private:

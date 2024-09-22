@@ -163,7 +163,7 @@ public:
 
 				if (aeType->Group < 0)
 				{
-					if (std::strcmp(temp->Type->Name, aeType->Name) == 0)
+					if (std::strcmp(temp->Type->Name.c_str(), aeType->Name.c_str()) == 0)
 					{
 						find = true;
 						if (isAttackMark)

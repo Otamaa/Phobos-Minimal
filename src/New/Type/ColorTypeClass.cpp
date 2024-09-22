@@ -12,7 +12,7 @@ const char* Enumerable<ColorTypeClass>::GetMainSection()
 
 void ColorTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	const char* pName = this->Name.data();
+	const char* pName = this->Name.c_str();
 
 	INI_EX exINI(pINI);
 	this->Colors.Read(exINI, GetMainSection(), pName, false);

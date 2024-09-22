@@ -66,7 +66,7 @@ const char* Enumerable<TechTreeTypeClass>::GetMainSection()
 
 void TechTreeTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	const char* section = this->Name;
+	const char* section = this->Name.c_str();
 
 	INI_EX exINI(pINI);
 

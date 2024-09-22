@@ -17,8 +17,6 @@ GenericPrerequisite::GenericPrerequisite(const char* const pTitle)
 	: Enumerable<GenericPrerequisite>(pTitle)
 { }
 
-GenericPrerequisite::~GenericPrerequisite() = default;
-
 void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec)
 {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
@@ -94,7 +92,7 @@ void GenericPrerequisite::LoadFromINI(CCINIClass* pINI)
 	std::string _buffer("Prerequisite");
 	_buffer += name;
 	GenericPrerequisite::Parse(pINI, GameStrings::General(), _buffer.c_str(), this->Prereqs);
-	GenericPrerequisite::Parse(pINI, section, this->Name, this->Prereqs);
+	GenericPrerequisite::Parse(pINI, section, this->Name.data(), this->Prereqs);
 	_buffer += "Alternate";
 	this->Alternates.Read(iniEx, GameStrings::General(), _buffer.c_str());
 }
@@ -111,16 +109,6 @@ void GenericPrerequisite::SaveToStream(PhobosStreamWriter& Stm)
 	Stm
 		.Process(this->Prereqs)
 		.Process(this->Alternates);
-}
-
-void GenericPrerequisite::AddDefaults()
-{
-	FindOrAllocate(GameStrings::POWER());
-	FindOrAllocate(GameStrings::FACTORY());
-	FindOrAllocate(GameStrings::BARRACKS());
-	FindOrAllocate(GameStrings::RADAR());
-	FindOrAllocate("TECH");
-	FindOrAllocate("PROC");
 }
 
 void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)

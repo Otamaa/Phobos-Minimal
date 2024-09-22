@@ -7,23 +7,9 @@ const char* Enumerable<CursorTypeClass>::GetMainSection()
 	return "MouseCursors";
 }
 
-void CursorTypeClass::AddDefaults()
-{
-	if (!Array.empty())
-		return;
-
-	for (size_t i = 0; i < MouseCursorTypeToStrings.size(); ++i) {
-		AllocateWithDefault(MouseCursorTypeToStrings[i], MouseCursor::DefaultCursors[i]);
-	}
-
-	for (size_t a = 0; a < NewMouseCursorTypeToStrings.size(); ++a) {
-		AllocateWithDefault(NewMouseCursorTypeToStrings[a], CursorTypeClass::NewMouseCursorTypeData[a]);
-	}
-}
-
 void CursorTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	auto const pKey = this->Name.data();
+	auto const pKey = this->Name.c_str();
 
 	if (IS_SAME_STR_(pKey, MouseCursorTypeToStrings[0]))
 		return;

@@ -73,7 +73,7 @@ AnimTypeClass* ShieldTypeClass::GetIdleAnimType(bool isDamaged, double healthRat
 
 void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 {
-	const char* pSection = this->Name;
+	const char* pSection = this->Name.c_str();
 	if (IS_SAME_STR_(pSection, DEFAULT_STR2))
 		return;
 

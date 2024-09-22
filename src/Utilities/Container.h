@@ -72,6 +72,15 @@ template <typename T>
 concept CanThisSaveToStream =
 	requires (T t, PhobosStreamWriter & stm) { t.SaveToStream(stm); };
 
+template <typename T>
+concept CanThisPtrLoadFromStream =
+	requires (T t, PhobosStreamReader & stm) { t->LoadFromStream(stm); };
+
+template <typename T>
+concept CanThisPtrSaveToStream =
+	requires (T t, PhobosStreamWriter & stm) { t->SaveToStream(stm); };
+
+
 //template <typename T>
 //class Extension
 //{

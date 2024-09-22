@@ -31,8 +31,6 @@ public:
 		, HoverBoost()
 	{ }
 
-	virtual ~HoverTypeClass() override = default;
-
 	constexpr inline AnimTypeClass* GetAboveWaterAnim() const {
 		return this->AboveWaterAnim.Get(RulesClass::Instance->Wake);
 	}
@@ -65,16 +63,16 @@ public:
 		return this->HoverBoost.Get(RulesClass::Instance->HoverBoost);
 	}
 
-	constexpr inline static void AddDefaults() {
+	static void constexpr inline AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 
 	constexpr static const HoverTypeClass* GetMyHover(int nIdx)
 	{ return HoverTypeClass::FindFromIndex(nIdx); }
 
-	virtual void LoadFromINI(CCINIClass *pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+	void LoadFromINI(CCINIClass *pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 private:
 	template <typename T>

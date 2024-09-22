@@ -47,9 +47,10 @@ public:
 		, RadHasInvoker {}
 	{ }
 
-	virtual ~RadTypeClass() override = default;
-
-	static void AddDefaults();
+	static void constexpr inline AddDefaults()
+	{
+		FindOrAllocate(RADIATION_SECTION);
+	}
 
 	constexpr inline WarheadTypeClass* GetWarhead() const
 	{
@@ -136,9 +137,9 @@ public:
 		return this->TintFactor.Get(RulesClass::Instance->RadTintFactor);
 	}
 
-	virtual void LoadFromINI(CCINIClass* pINI) override;
-	virtual void LoadFromStream(PhobosStreamReader& Stm);
-	virtual void SaveToStream(PhobosStreamWriter& Stm);
+	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
 private:
 	template <typename T>
