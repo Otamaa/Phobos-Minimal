@@ -2108,3 +2108,17 @@ DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 	GET(int const, distance, EAX);
 	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
 }
+
+// Apply cell lighting on UseNormalLight=no MakeInfantry anims.
+DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
+{
+	enum { SkipGameCode = 0x4232C5 };
+	GET(AnimClass*, pThis, ESI);
+	if (pThis->Type->MakeInfantry != -1)
+	{
+		auto const pCell = pThis->GetCell();
+		R->EAX(pCell->Intensity_Normal);
+		return SkipGameCode;
+	}
+	return 0;
+}
