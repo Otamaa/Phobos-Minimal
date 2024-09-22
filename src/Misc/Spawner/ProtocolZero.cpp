@@ -84,17 +84,14 @@ DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 
 DEFINE_HOOK(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
 {
-	if (EventExt::ProtocolZero::Enable)
-		return 0x4C8024;
-
-	return 0;
+	return EventExt::ProtocolZero::Enable ? 0x4C8024 : 0;
 }
 
 DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 {
 	enum { break_ = 0x64C63D };
-	if (EventExt::ProtocolZero::Enable)
-	{
+
+	if (EventExt::ProtocolZero::Enable) {
 		auto dl = (uint8_t)R->DL();
 
 		if (dl == (uint8_t)EventType::EMPTY)
@@ -102,10 +99,6 @@ DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 
 		if (dl == (uint8_t)EventType::PROCESS_TIME)
 			return break_;
-
-		if (dl == (uint8_t)EventExt::Events::ProtocolZero){
-			return break_;
-		}
 	}
 
 	return 0;
