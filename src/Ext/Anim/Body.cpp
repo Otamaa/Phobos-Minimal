@@ -662,6 +662,60 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 	}
 }
 
+// Changes type of anim in similar fashion to Next.
+void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool resetLoops, bool restart)
+{
+	double percentThrough = pAnim->Animation.Value / static_cast<double>(pAnim->Type->End);
+
+	if (pNewType->End == -1)
+	{
+		pNewType->End = pNewType->GetImage()->Frames;
+		if (pNewType->Shadow)
+			pNewType->End /= 2;
+	}
+
+	if (pNewType->LoopEnd == -1)
+	{
+		pNewType->LoopEnd = pNewType->End;
+	}
+
+	pAnim->Type = pNewType;
+
+	if (resetLoops)
+		pAnim->RemainingIterations = static_cast<byte>(pNewType->LoopCount);
+
+	pAnim->Accum = 0;
+	pAnim->UnableToContinue = false;
+	pAnim->Reverse = pNewType->Reverse;
+
+	int rate = pNewType->Rate;
+	if (pNewType->RandomRate.Min || pNewType->RandomRate.Max)
+		rate = ScenarioClass::Instance->Random.RandomRanged(pNewType->RandomRate.Min, pNewType->RandomRate.Max);
+	if (pNewType->Normalized)
+		rate = GameOptionsClass::Instance->GetAnimSpeed(rate);
+
+	pAnim->Animation.Start(rate, pNewType->Reverse ? -1 : 1);
+
+	if (restart)
+	{
+		pAnim->Animation.Value = pNewType->Reverse ? pNewType->End : pNewType->Start;
+		pAnim->Start();
+	}
+	else
+	{
+		pAnim->Animation.Value = static_cast<int>(pNewType->End * percentThrough);
+	}
+
+	const auto pExt = AnimExtContainer::Instance.Find(pAnim);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pNewType);
+
+	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
+		pExt->AttachedSystem = nullptr;
+
+	if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
+		pExt->CreateAttachedSystem();
+}
+
 // =============================
 // load / save
 

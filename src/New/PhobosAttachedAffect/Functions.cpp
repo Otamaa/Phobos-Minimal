@@ -35,32 +35,43 @@ int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, Ph
 }
 
 // Updates state of AttachEffects of same cumulative type on techno, (which one is first active instance existing, if any), kills animations if needed.
-void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType)
+void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType, PhobosAttachEffectClass* pRemoved)
 {
-	//Debug::Log(__FUNCTION__" Executed [%s - %s]\n", pTechno->GetThisClassName(), pTechno->get_ID());
-	if (!pAttachEffectType || !pAttachEffectType->Cumulative)
-		return;
-
-	bool foundFirst = false;
+	PhobosAttachEffectClass* pAELargestDuration = nullptr;
+	PhobosAttachEffectClass* pAEWithAnim = nullptr;
+	int duration = 0;
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 	for (auto& attachEffect : pExt->PhobosAE)
 	{
-		if (attachEffect.GetType() != pAttachEffectType || !attachEffect.IsActive())
+		if (attachEffect.GetType() != pAttachEffectType)
 			continue;
 
-		if (!foundFirst)
+		if (attachEffect.HasCumulativeAnim)
 		{
-			foundFirst = true;
-			attachEffect.IsFirstCumulativeInstance = true;
+			pAEWithAnim = &attachEffect;
 		}
-		else
+		else if (attachEffect.CanShowAnim())
 		{
-			attachEffect.IsFirstCumulativeInstance = false;
+			int currentDuration = attachEffect.Duration;
+			if (currentDuration < 0 || currentDuration > duration)
+			{
+				pAELargestDuration = &attachEffect;
+				duration = currentDuration;
+			}
 		}
+	}
 
-		if (pAttachEffectType->CumulativeAnimations.HasValue() && !pAttachEffectType->CumulativeAnimations.empty())
-			attachEffect.KillAnim();
+	if (pAEWithAnim)
+	{
+		pAEWithAnim->UpdateCumulativeAnim();
+
+		if (pRemoved == pAEWithAnim)
+		{
+			pAEWithAnim->HasCumulativeAnim = false;
+			if (pAELargestDuration)
+				pAELargestDuration->TransferCumulativeAnim(pAEWithAnim);
+		}
 	}
 }
 
@@ -93,7 +104,8 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			if (!markForRedraw && pType->HasTint())
 				markForRedraw = true;
 
-			PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, it.GetType());
+			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno, it.GetType(), &it);
 
 			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None) {
 				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)

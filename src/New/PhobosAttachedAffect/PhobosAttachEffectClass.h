@@ -38,7 +38,7 @@ public:
 		IsCloaked { that.IsCloaked },
 		HasInitialized { that.HasInitialized },
 		NeedsDurationRefresh { that.NeedsDurationRefresh },
-		IsFirstCumulativeInstance { that.IsFirstCumulativeInstance } {
+		HasCumulativeAnim { that.HasCumulativeAnim } {
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
 		auto ptr = c_remove->Animation.release();
@@ -64,7 +64,7 @@ public:
 		this->IsCloaked = that.IsCloaked;
 		this->HasInitialized = that.HasInitialized;
 		this->NeedsDurationRefresh = that.NeedsDurationRefresh;
-		this->IsFirstCumulativeInstance = that.IsFirstCumulativeInstance;
+		this->HasCumulativeAnim = that.HasCumulativeAnim;
 
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
@@ -79,6 +79,12 @@ public:
 	void AI_Temporal();
 	void KillAnim();
 	void SetAnimationTunnelState(bool visible);
+
+	void CreateAnim();
+	void UpdateCumulativeAnim();
+	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
+	bool CanShowAnim() const;
+
 	constexpr FORCEINLINE PhobosAttachEffectTypeClass* GetType() const {
 		return this->Type;
 	}
@@ -143,7 +149,6 @@ public:
 	void OnlineCheck();
 	void CloakCheck();
 	void AnimCheck();
-	void CreateAnim();
 
 	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<PhobosAttachEffectClass>& targetAEs,
 		HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride = 0, int delay = 0, int initialDelay = 0, int recreationDelay = -1);
@@ -175,5 +180,5 @@ public:
 	bool HasInitialized { false };
 	bool NeedsDurationRefresh { false };
 	AnimTypeClass* SelectedAnim { nullptr };
-	bool IsFirstCumulativeInstance { false };
+	bool HasCumulativeAnim { false };
 };

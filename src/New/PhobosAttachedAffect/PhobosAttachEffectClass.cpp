@@ -28,7 +28,7 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->IsCloaked = false;
 	this->HasInitialized = (initialDelay <= 0);
 	this->NeedsDurationRefresh = false;
-	this->IsFirstCumulativeInstance = false;
+	this->HasCumulativeAnim = false;
 	this->SelectedAnim = pType->Animation;
 
 }
@@ -124,7 +124,7 @@ void PhobosAttachEffectClass::AI()
 	this->CloakCheck();
 	this->OnlineCheck();
 
-	if (!this->Animation && !this->IsUnderTemporal && this->IsOnline && !this->IsCloaked && !this->IsInTunnel && !this->IsAnimHidden)
+	if (!this->Animation && this->CanShowAnim())
 		this->CreateAnim();
 
 	this->AnimCheck();
@@ -139,7 +139,7 @@ void PhobosAttachEffectClass::AI_Temporal()
 		this->IsUnderTemporal = true;
 		this->CloakCheck();
 
-	if (!this->Animation && this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides && this->IsOnline && !this->IsInTunnel && !this->IsAnimHidden)
+	if (!this->Animation && this->CanShowAnim())
 		this->CreateAnim();
 
 		if (this->Animation)
@@ -185,10 +185,43 @@ void PhobosAttachEffectClass::AnimCheck()
 		{
 			this->IsAnimHidden = false;
 
-			if (!this->Animation && (!this->IsUnderTemporal || this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides))
+			if (!this->Animation && this->CanShowAnim())
 				this->CreateAnim();
 		}
 	}
+}
+
+void PhobosAttachEffectClass::UpdateCumulativeAnim()
+{
+	if (!this->HasCumulativeAnim || !this->Animation)
+		return;
+	int count = PhobosAEFunctions::GetAttachedEffectCumulativeCount(this->Techno, this->Type);
+	if (count < 1)
+	{
+		this->KillAnim();
+		return;
+	}
+	auto const pAnimType = this->Type->GetCumulativeAnimation(count);
+	if (this->Animation->Type != pAnimType)
+		AnimExtData::ChangeAnimType(this->Animation, pAnimType, false, this->Type->CumulativeAnimations_RestartOnChange);
+}
+
+void PhobosAttachEffectClass::TransferCumulativeAnim(PhobosAttachEffectClass* pSource)
+{
+	if (!pSource || !pSource->Animation)
+		return;
+
+	this->KillAnim();
+	this->Animation.swap(pSource->Animation);
+	this->HasCumulativeAnim = true;
+	pSource->HasCumulativeAnim = false;
+}
+
+bool PhobosAttachEffectClass::CanShowAnim() const
+{
+	return (!this->IsUnderTemporal || this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides)
+		&& (this->IsOnline || this->Type->Animation_OfflineAction != AttachedAnimFlag::Hides)
+		&& !this->IsCloaked && !this->IsInTunnel && !this->IsAnimHidden;
 }
 
 void PhobosAttachEffectClass::OnlineCheck()
@@ -263,7 +296,7 @@ void PhobosAttachEffectClass::CreateAnim()
 
 	if (this->Type->Cumulative && this->Type->CumulativeAnimations.HasValue())
 	{
-		if (!this->IsFirstCumulativeInstance || this->Type->CumulativeAnimations.empty())
+		if (!this->HasCumulativeAnim || this->Type->CumulativeAnimations.empty())
 			return;
 
 		const int count = PhobosAEFunctions::GetAttachedEffectCumulativeCount(this->Techno, this->Type);
@@ -321,7 +354,8 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 	if (this->Type->Animation_ResetOnReapply)
 	{
 		this->KillAnim();
-		this->CreateAnim();
+		if (this->CanShowAnim())
+			this->CreateAnim();
 	}
 }
 
@@ -488,8 +522,8 @@ int PhobosAttachEffectClass::Attach(std::vector<PhobosAttachEffectTypeClass*> co
 				if (pType->HasTint())
 					markForRedraw = true;
 
-				if (pType->Cumulative)
-					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType);
+				if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType , nullptr);
 			}
 		}
 	}
@@ -572,7 +606,12 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	{
 		targetAEs.emplace_back();
 		targetAEs.back().Initialize(pType, pTarget, pInvokerHouse, pInvoker, pSource, durationOverride, delay, initialDelay, recreationDelay);
-		return &targetAEs.back();
+		auto pBack =  &targetAEs.back();
+
+		if (!currentTypeCount && pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+			pBack->HasCumulativeAnim = true;
+
+		return pBack;
 	}
 
 	return nullptr;
@@ -632,9 +671,6 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 		if (count && pType->HasTint())
 			markForRedraw = true;
 
-		if (count && pType->Cumulative)
-			PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType);
-
 		detachedCount += count;
 		index++;
 	}
@@ -663,9 +699,6 @@ int PhobosAttachEffectClass::Detach(std::vector<PhobosAttachEffectTypeClass*> co
 
 		if (count && pType->HasTint())
 			markForRedraw = true;
-
-		if (count && pType->Cumulative)
-			PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType);
 
 		detachedCount += count;
 	}
@@ -745,6 +778,9 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 					expireWeapons.push_back(pType->ExpireWeapon);
 			}
 
+			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType, nullptr);
+
 			if (it.ResetIfRecreatable()) {
 				return false;
 			}
@@ -802,6 +838,9 @@ int PhobosAttachEffectClass::RemoveAllOfTypeAndSource(PhobosAttachEffectTypeClas
 				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType) < 2)
 					expireWeapons.push_back(pType->ExpireWeapon);
 			}
+
+			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType, nullptr);
 
 			if (it.ResetIfRecreatable())
 			{

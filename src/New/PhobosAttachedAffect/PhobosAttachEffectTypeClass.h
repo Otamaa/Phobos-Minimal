@@ -19,6 +19,7 @@ public:
 	Nullable<bool> PenetratesForceShield;
 	Valueable<AnimTypeClass*> Animation;
 	NullableVector<AnimTypeClass*> CumulativeAnimations;
+	Valueable<bool> CumulativeAnimations_RestartOnChange;
 	Valueable<bool> Animation_ResetOnReapply;
 	Valueable<AttachedAnimFlag> Animation_OfflineAction;
 	Valueable<AttachedAnimFlag> Animation_TemporalAction;
@@ -81,6 +82,7 @@ public:
 		, PenetratesForceShield {}
 		, Animation {}
 		, CumulativeAnimations {}
+		, CumulativeAnimations_RestartOnChange { true }
 		, Animation_ResetOnReapply { false }
 		, Animation_OfflineAction { AttachedAnimFlag::Hides }
 		, Animation_TemporalAction { AttachedAnimFlag::None }
