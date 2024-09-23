@@ -980,6 +980,11 @@ namespace detail
 				}
 			}
 
+			if (IS_SAME_STR_(parser.value(), "noheal")){
+				value = SelfHealGainType::None;
+				return true;
+			}
+
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
 		}
 
