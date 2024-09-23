@@ -914,6 +914,7 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->IsCloaked)
 		.Process(this->HasInitialized)
 		.Process(this->SelectedAnim)
+		.Process(this->NeedsDurationRefresh)
 		.Success() && Stm.RegisterChange(this);
 }
 

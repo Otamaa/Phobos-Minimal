@@ -90,12 +90,6 @@ public:
 		this->Unpaused = true;
 	}
 
-	void Middle_() const
-		{ JMP_THIS(0x424F00); }
-
-	void Start_() const
-		{ JMP_THIS(0x424CE0); }
-
 	BounceClass::Status BounceAI() const { JMP_THIS(0x423930); }
 
 	void FlamingGuy_AI() const { JMP_THIS(0x425670); }
@@ -119,6 +113,14 @@ public:
 	{ JMP_THIS(0x4255B0); }
 
 	void DestroyPointer() const { JMP_THIS(0x4228E0); }
+
+	// Anim start logic: sound event handling, tiberium chain reaction etc.
+	void Start() const
+	{ JMP_THIS(0x424CE0); }
+
+	// Anim midpoint logic: particle spawning, smudges etc.
+	bool Middle() const
+	{ JMP_THIS(0x424F00); }
 
 	//Constructor
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay = 0,
