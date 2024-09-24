@@ -2069,18 +2069,18 @@ DEFINE_JUMP(CALL, 0x647684, GET_OFFSET(ComputeGameCRC));
 
 // Fix TechnoTypeClass::CanBeHidden
 
-DEFINE_PATCH(0x711229, 0xC6, 0x86, 0x24, 0x07, 0x00, 0x00, 0x00) // TechnoTypeClass::CTOR
-DEFINE_PATCH(0x6FA2AA, 0x75, 0x2E) // TechnoClass::AI
-
-DEFINE_HOOK(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
-{
-	enum { SkipGameCode = 0x712208 };
-
-	GET(TechnoTypeClass*, pTechnoType, EBP);
-	pTechnoType->CanBeHidden = CCINIClass::INI_Art->ReadBool(pTechnoType->ImageFile, "CanBeHidden", pTechnoType->CanBeHidden);
-
-	return SkipGameCode;
-}
+//DEFINE_PATCH(0x711229, 0xC6, 0x86, 0x24, 0x07, 0x00, 0x00, 0x00) // TechnoTypeClass::CTOR
+//DEFINE_PATCH(0x6FA2AA, 0x75, 0x2E) // TechnoClass::AI
+//
+//DEFINE_HOOK(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
+//{
+//	enum { SkipGameCode = 0x712208 };
+//
+//	GET(TechnoTypeClass*, pTechnoType, EBP);
+//	pTechnoType->CanBeHidden = CCINIClass::INI_Art->ReadBool(pTechnoType->ImageFile, "CanBeHidden", pTechnoType->CanBeHidden);
+//
+//	return SkipGameCode;
+//}
 
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
