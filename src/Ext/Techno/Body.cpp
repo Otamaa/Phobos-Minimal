@@ -3716,7 +3716,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			}
 			break;
 			default:
-				return;
+				break;
 			}
 
 			if (applyHeal && amount)
