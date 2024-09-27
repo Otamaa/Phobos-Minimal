@@ -360,7 +360,7 @@ DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 	INI_EX exINI(pINI);
 
 	if (SessionClass::IsCampaign()) {
-		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), GameStrings::MCVRedeploys(), false);
+		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), GameStrings::MCVRedeploys(), RulesExtData::Instance()->MCVRedeploysInCampaign);
 	}
 
 	return 0x0;

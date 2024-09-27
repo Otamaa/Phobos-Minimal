@@ -980,6 +980,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AISellAllDelay.Read(exINI, GameStrings::General, "AIFireSaleDelay");
 	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllToHunt");
 	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
+	this->MCVRedeploysInCampaign.Read(exINI, GameStrings::General, "MCVRedeploysInCampaign");
 }
 
 void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
@@ -1332,6 +1333,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISellAllDelay)
 		.Process(this->AIAllInOnLastLegs)
 		.Process(this->RepairBaseNodes)
+		.Process(this->MCVRedeploysInCampaign)
 
 		.Process(this->AircraftLevelLightMultiplier)
 		.Process(this->AircraftCellLightLevelMultiplier)
