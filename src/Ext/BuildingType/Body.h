@@ -313,6 +313,10 @@ public:
 
 	Valueable<bool> ExcludeFromMultipleFactoryBonus { false };
 
+	Valueable<bool> NoBuildAreaOnBuildup {};
+	ValueableVector<BuildingTypeClass*> Adjacent_Allowed {};
+	ValueableVector<BuildingTypeClass*> Adjacent_Disallowed {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

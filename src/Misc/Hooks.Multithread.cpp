@@ -20,7 +20,6 @@ namespace Multithreading
 	static constexpr reference<bool, 0xB0B519u> const BlitMouse {};
 	static constexpr reference<bool, 0xA9FAB0u> const IonStormClass_ChronoScreenEffect_Status {};
 	static constexpr reference<GadgetClass*, 0xA8EF54u> const Buttons {};
-	static constexpr reference<bool, 0xA8ED6Bu> const DebugDebugDebug {};
 	static constexpr reference<bool, 0xA8B8B4u> const EnableMultiplayerDebug {};
 
 	void MultiplayerDebugPrint()
@@ -118,7 +117,7 @@ void Multithreading::Render(GScreenClass* pThis)
 		TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 2);
 	}
 
-	if (BlitMouse.get() && !DebugDebugDebug.get())
+	if (BlitMouse.get() && !Unsorted::ArmageddonMode)
 	{
 		WWMouseClass::Instance->func_40(DSurface::Sidebar, true);
 		BlitMouse = false;

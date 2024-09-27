@@ -977,6 +977,10 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->ExcludeFromMultipleFactoryBonus.Read(exINI, pSection, "ExcludeFromMultipleFactoryBonus");
 
+
+		this->NoBuildAreaOnBuildup.Read(exINI, pSection, "NoBuildAreaOnBuildup");
+		this->Adjacent_Allowed.Read(exINI, pSection, "Adjacent.Allowed");
+		this->Adjacent_Disallowed.Read(exINI, pSection, "Adjacent.Disallowed");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1269,6 +1273,10 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->FactoryPlant_DisallowTypes)
 
 		.Process(this->ExcludeFromMultipleFactoryBonus)
+
+		.Process(this->NoBuildAreaOnBuildup)
+		.Process(this->Adjacent_Allowed)
+		.Process(this->Adjacent_Disallowed)
 		;
 }
 

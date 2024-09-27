@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/Rules/Body.h>
+
 IStream* ScenarioExtData::g_pStm = nullptr;
 bool ScenarioExtData::CellParsed = false;
 std::unique_ptr<ScenarioExtData>  ScenarioExtData::Data = nullptr;

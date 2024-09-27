@@ -992,12 +992,6 @@ DEFINE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 	return 0x41D5E0;
 }
 
-DEFINE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
-{
-	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
-}
-
 //DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
 DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
