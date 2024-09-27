@@ -15,7 +15,7 @@ public:
 
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
-	std::vector<CellStruct> TempCoveredCellsData { };
+	HelperedVector<CellStruct> TempCoveredCellsData { };
 	struct PathfindLastData {
 		TechnoClass* Finder;
 		CellStruct From;

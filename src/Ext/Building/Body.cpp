@@ -39,7 +39,7 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 	while ((*pCellIterator).DifferTo(CellStruct::EOL))
 		++pCellIterator;
 
-	std::vector<CellStruct> foundationCells;
+	HelperedVector<CellStruct> foundationCells;
 	foundationCells.reserve(static_cast<int>(std::distance(pFoundation, pCellIterator + 1)) * occupyHeight);
 	pCellIterator = pFoundation;
 
@@ -56,14 +56,9 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 		++pCellIterator;
 	}
 
-	std::sort(foundationCells.begin(), foundationCells.end(),
-		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
-	{
+	foundationCells.remove_all_duplicates([](const CellStruct& lhs, const CellStruct& rhs) -> bool {
 		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
 	});
-
-	auto const it = std::unique(foundationCells.begin(), foundationCells.end());
-	foundationCells.erase(it, foundationCells.end());
 
 	return foundationCells;
 }

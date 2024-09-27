@@ -7653,7 +7653,7 @@ void AresHouseExt::FormulateTypeList(std::vector<TechnoTypeClass*>& types, Techn
 std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList()
 {
 	DWORD avaibleHouses = 0u;
-	std::vector<TechnoTypeClass*> types;
+	HelperedVector<TechnoTypeClass*> types;
 	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
 
 	for (auto pHouse : *HouseClass::Array)
@@ -7678,26 +7678,21 @@ std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList()
 
 	//remove any `BaseUnit` included
 	//base unit given for free then ?
-	auto Iter = std::remove_if(types.begin(), types.end(), [](TechnoTypeClass* pItem)
- {
-	 for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i)
-	 {
-		 if (pItem == (RulesClass::Instance->BaseUnit.Items[i]))
-		 {
-			 return true;
-		 }
-	 }
+	types.remove_if([](TechnoTypeClass* pItem) {
+		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i) {
+			if (pItem == (RulesClass::Instance->BaseUnit.Items[i])) {
+				return true;
+			}
+		}
 
-	 return false;
+		return false;
 	});
 
 	//idk these part
 	//but lets put it here
 	//need someone to test this to make sure if the calculation were correct :s
 	//-Otamaa
-
-	types.erase(Iter, types.end());
-	types.erase(std::unique(types.begin(), types.end()), types.end());
+	types.remove_all_duplicates();
 	return types;
 }
 
@@ -7770,18 +7765,9 @@ const std::vector<CellStruct>* CustomFoundation::GetCoveredCells(
 		++pFCell;
 	}
 
-	std::sort(PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
-			  PhobosGlobal::Instance()->TempCoveredCellsData.end(),
-		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
- {
-	 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
-		});
-
-	auto const it = std::unique(
-		PhobosGlobal::Instance()->TempCoveredCellsData.begin(),
-		PhobosGlobal::Instance()->TempCoveredCellsData.end());
-
-	PhobosGlobal::Instance()->TempCoveredCellsData.erase(it, PhobosGlobal::Instance()->TempCoveredCellsData.end());
+	PhobosGlobal::Instance()->TempCoveredCellsData.remove_all_duplicates([](const CellStruct& lhs, const CellStruct& rhs) -> bool {
+		 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	});
 
 	return &PhobosGlobal::Instance()->TempCoveredCellsData;
 }

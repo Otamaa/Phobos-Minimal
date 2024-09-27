@@ -69,6 +69,16 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template <typename Func>
+	void FORCEINLINE remove_all_duplicates(Func&& act) {
+		std::sort(this->begin(), this->end(), std::forward<Func>(act));
+		this->erase(std::unique(this->begin(), this->end()), this->end());
+	}
+
+	void FORCEINLINE remove_all_duplicates() {
+		this->erase(std::unique(this->begin(), this->end()), this->end());
+	}
+
+	template <typename Func>
 	bool FORCEINLINE remove_all_if(Func&& act)
 	{
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
