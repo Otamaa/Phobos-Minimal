@@ -589,47 +589,6 @@ DEFINE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 	return 0x6AB95A;
 }
 
-DEFINE_HOOK(0x6A932B, StripClass_GetTip_MoneySW, 6)
-{
-	GET(SuperWeaponTypeClass*, pSW, EAX);
-
-	const auto pData = SWTypeExtContainer::Instance.Find(pSW);
-
-	if (pData->Money_Amount < 0)
-	{
-		// account for no-name SWs
-		if (CCToolTip::HideName() || !wcslen(pSW->UIName))
-		{
-			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
-			swprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, -pData->Money_Amount);
-		}
-		else
-		{
-			// then, this must be brand SWs
-			const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
-			swprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipBuffer.size(), pFormat, pSW->UIName, -pData->Money_Amount);
-		}
-
-		SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
-
-		// replace space by new line
-		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
-		{
-			if (SidebarClass::TooltipBuffer[i] == 0x20)
-			{
-				SidebarClass::TooltipBuffer[i] = 0xA;
-				break;
-			}
-		}
-
-		// put it there
-		R->EAX(SidebarClass::TooltipBuffer());
-		return 0x6A93E5;
-	}
-
-	return 0;
-}
-
 // 4AC20C, 7
 // translates SW click to type
 DEFINE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)

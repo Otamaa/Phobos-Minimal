@@ -105,16 +105,16 @@ public:
 	RectangleStruct   Bounds;
 	int               Index; // the index of this tab
 	bool              NeedsRedraw;
-	BYTE              unknown_3D;
-	BYTE              unknown_3E;
-	BYTE              unknown_3F;
-	DWORD             unknown_40;
+	BYTE              IsBuilding;
+	BYTE              IsScrollingDown;
+	BYTE              IsScrolling;
+	DWORD             Flasher;
 	int               TopRowIndex; // scroll position, which row is topmost visible
-	DWORD             unknown_48;
-	DWORD             unknown_4C;
-	DWORD             unknown_50;
-	int               CameoCount; // filled cameos
-	BuildType         Cameos[75];
+	DWORD             Scroller;
+	DWORD             Slid;
+	DWORD             __LastSlid;
+	int               BuildableCount; // filled cameos
+	BuildType         Buildables[75];
 };
 
 typedef StripClass TabDataStruct;

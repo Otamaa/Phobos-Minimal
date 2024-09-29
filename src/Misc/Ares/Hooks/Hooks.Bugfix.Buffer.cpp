@@ -91,30 +91,6 @@ DEFINE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 	return 0x75D75D;
 }
 
-DEFINE_HOOK(0x6A9348, StripClass_GetTip_FixLength, 9)
-{
-	DWORD HideObjectName = R->AL();
-
-	GET(TechnoTypeClass*, Object, ESI);
-
-	int Cost = Object->GetActualCost(HouseClass::CurrentPlayer);
-	if (HideObjectName)
-	{
-		const wchar_t* Format = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1);
-		_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
-	}
-	else
-	{
-		const wchar_t* UIName = Object->UIName;
-		const wchar_t* Format = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_2);
-		_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
-	}
-
-	SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
-
-	return 0x6A93B2;
-}
-
 //WarheadTypeClass_LoadFromINI_SkipLists
 DEFINE_JUMP(LJMP, 0x75DAE6, 0x75DDCC);
 

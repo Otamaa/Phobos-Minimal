@@ -45,11 +45,6 @@ inline const wchar_t* GetUIDescription(SWTypeExtData* pData)
 		: nullptr;
 }
 
-inline bool PhobosToolTip::IsEnabled() const
-{
-	return Phobos::UI::ExtendedToolTips;
-}
-
 inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 {
 	// TechnoTypeClass only has 4 final classes :
@@ -241,19 +236,6 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 #ifndef aaa
 
 // Hooks
-DEFINE_HOOK(0x6A9316, SidebarClass_StripClass_HelpText, 0x6)
-{
-	PhobosToolTip::Instance.IsCameo = true;
-
-	if (!PhobosToolTip::Instance.IsEnabled())
-		return 0;
-
-	GET(StripClass*, pThis, EAX);
-	PhobosToolTip::Instance.HelpText(pThis->Cameos[0]); // pStrip->Cameos[nID] in fact
-	R->EAX(L"X");
-	return 0x6A93DE;
-}
-
 // TODO: reimplement CCToolTip::Draw2 completely
 
 DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)

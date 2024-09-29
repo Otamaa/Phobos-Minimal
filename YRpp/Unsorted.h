@@ -21,6 +21,8 @@ struct CoordStruct;
 class CCFileClass;
 class CCINIClass;
 class CellClass;
+class BuildingClass;
+class BuildingTypeClass;
 
 struct PacketField {
 	char str[4];
@@ -160,6 +162,10 @@ struct Game
 
 	static bool __fastcall File_Finder_Start(char* filename) {
 		JMP_STD(0x47AF70);
+	}
+
+	static BuildingTypeClass* __fastcall Set_Sidebar_Tab_Object(BuildingClass* pThis) {
+		JMP_STD(0x734250);
 	}
 
 	static bool __fastcall File_Finder_Next_Name(char* filename) {

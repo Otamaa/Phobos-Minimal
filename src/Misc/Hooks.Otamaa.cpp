@@ -8982,10 +8982,130 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 	return 0x4FD228;
 }
 
-
 //DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBX);
 //	pThis->Velocity = {};
 //	return 0x468A3F;
+//}
+
+//void UpdateStrip(StripClass* pStrip, int* pKey, Point2D* pDraw) {
+//
+//	bool redraw = false;
+//
+//	/*
+//	**	Reflect the scroll desired direction/value into the scroll
+//	**	logic handler. This might result in up or down scrolling.
+//	*/
+//	if (!pStrip->IsScrolling && pStrip->Scroller)
+//	{
+//		if (pStrip->BuildableCount <= SidebarClassExtension::Max_Visible())
+//		{
+//			pStrip->Scroller = 0;
+//		}
+//		else
+//		{
+//			/*
+//			**	Top of list is moving toward lower ordered entries in the object list. It looks like
+//			**	the "window" to the object list is moving up even though the actual object images are
+//			**	scrolling downward.
+//			*/
+//			if (pStrip->Scroller < 0)
+//			{
+//				if (pStrip->TopRowIndex <= 0)
+//				{
+//					pStrip->TopRowIndex = 0;
+//					pStrip->Scroller = 0;
+//				}
+//				else
+//				{
+//					pStrip->Scroller++;
+//					pStrip->IsScrollingDown = false;
+//					pStrip->IsScrolling = true;
+//					pStrip->TopRowIndex -= 2;
+//					pStrip->Slid = 0;
+//				}
+//
+//			}
+//			else
+//			{
+//				if (pStrip->TopRowIndex + SidebarClassExtension::Max_Visible() > pStrip->BuildableCount)
+//				{
+//					pStrip->Scroller = 0;
+//				}
+//				else
+//				{
+//					pStrip->Scroller--;
+//					pStrip->Slid = OBJECT_HEIGHT;
+//					pStrip->IsScrollingDown = true;
+//					pStrip->IsScrolling = true;
+//				}
+//			}
+//		}
+//	}
+//
+//	/*
+//	**	Scroll logic is handled here.
+//	*/
+//	if (pStrip->IsScrolling)
+//	{
+//		if (pStrip->IsScrollingDown)
+//		{
+//			pStrip->Slid -= SCROLL_RATE;
+//			if (pStrip->Slid <= 0)
+//			{
+//				pStrip->IsScrolling = false;
+//				pStrip->Slid = 0;
+//				pStrip->TopRowIndex += 2;
+//			}
+//		}
+//		else
+//		{
+//			pStrip->Slid += SCROLL_RATE;
+//			if (pStrip->Slid >= OBJECT_HEIGHT)
+//			{
+//				pStrip->IsScrolling = false;
+//				pStrip->Slid = 0;
+//			}
+//		}
+//		redraw = true;
+//	}
+//
+//	/*
+//	**	Handle any flashing logic. Flashing occurs when the player selects an object
+//	**	and provides the visual feedback of a recognized and legal selection.
+//	*/
+//	if (pStrip->Flasher != -1)
+//	{
+//		if (Graphic_Logic())
+//		{
+//			redraw = true;
+//			if (Fetch_Stage() >= 7)
+//			{
+//				Set_Rate(0);
+//				Set_Stage(0);
+//				pStrip->Flasher = -1;
+//			}
+//		}
+//	}
+//
+//	/*
+//	**	If any of the logic determined that this side strip needs to be redrawn, then
+//	**	set the redraw flag for this side strip.
+//	*/
+//	static constexpr reference<bool, 0x884B8E> tootip_something {};
+//	static constexpr reference<bool, 0x884B8Fu> const tootip_Bound {};
+//	static constexpr reference<bool, 0xB0B518> const SidebarBlitRequested_FullRedraw {};
+//	static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
+//	static constexpr reference<int, 0x884B84> const something_884B84 {};
+//
+//	if (redraw) {
+//		tootip_something = 1;
+//		Collum_begin[something_884B84].NeedsRedraw = true;
+//		GScreenClass::Instance->MarkNeedsRedraw(false);
+//		pStrip->NeedsRedraw = true;
+//		GScreenClass::Instance->MarkNeedsRedraw(false);
+//		tootip_Bound = 1;
+//		SidebarBlitRequested_FullRedraw = true;
+//	}
 //}
