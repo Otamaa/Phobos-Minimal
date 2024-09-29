@@ -34,8 +34,10 @@ DEFINE_HOOK(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
 	const int TabIndex = SidebarClass::GetObjectTabIdx(rtti, typeIdx, 0);
 	auto& Tab = MouseClass::Instance->Tabs[TabIndex];
 
-	for (auto& cameo : MouseClassExt::TabCameos[TabIndex]) {
-		if (cameo.ItemIndex == typeIdx && cameo.ItemType == rtti) {
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == typeIdx && cameo.ItemType == rtti)
+		{
 			cameo.CurrentFactory = pFactory;
 			Tab.NeedsRedraw = 1;
 			Tab.IsBuilding = 1;
@@ -60,8 +62,10 @@ DEFINE_HOOK(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
 	R->Stack(0x18, TabIndex);
 
 	// don't check for 75 cameos in active tab
-	for (auto const& cameo : MouseClassExt::TabCameos[TabIndex]) {
-		if (cameo.ItemIndex == typeIdx && cameo.ItemType == absType) {
+	for (auto const& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == typeIdx && cameo.ItemType == absType)
+		{
 			return AlreadyExists;
 		}
 	}
@@ -70,7 +74,7 @@ DEFINE_HOOK(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
 	return NewlyAdded;
 }
 
-static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size , const BuildType& x)
+static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
 {
 	BuildType* it;
 	typename std::iterator_traits<BuildType*>::difference_type count, step;
@@ -82,7 +86,8 @@ static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size , co
 		step = count / 2;
 		std::advance(it, step);
 
-		if (*it < x) {
+		if (*it < x)
+		{
 			first = ++it;
 			count -= step + 1;
 		}
@@ -100,15 +105,17 @@ DEFINE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 	GET_STACK(int, ItemIndex, 0x8);
 
 	BuildType newCameo(ItemIndex, ItemType);
-	if (ItemType == BuildingTypeClass::AbsID) {
+	if (ItemType == BuildingTypeClass::AbsID)
+	{
 		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
 	}
 
 	auto& cameo = MouseClassExt::TabCameos[pTab->Index];
-	auto lower = lower_bound(cameo.begin(), cameo.Count , newCameo);
+	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
 	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
 
-	if (cameo.IsValidArray()) {
+	if (cameo.IsValidArray())
+	{
 		BuildType* added = cameo.Items + idx;
 		BuildType* added_plusOne = std::next(added);
 		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
@@ -128,7 +135,8 @@ DEFINE_HOOK(0x6A8D07, StripClass_SidebarClass_AI_FlashCameos_FixPointer, 5)
 
 	GET(StripClass*, pTab, EBX);
 
-	if (BuildableCount <= 0) {
+	if (BuildableCount <= 0)
+	{
 		return 0x6A8D8B;
 	}
 
@@ -138,89 +146,89 @@ DEFINE_HOOK(0x6A8D07, StripClass_SidebarClass_AI_FlashCameos_FixPointer, 5)
 }
 
 // pointer #2
-DEFINE_HOOK(0x6A8DB5, StripClass_SidebarClass_AI_MouseMove_FixPointer, 8)
+DEFINE_HOOK(0x6A8D9F, StripClass_SidebarClass_AI_MouseMove_FixPointer, 5)
 {
-	GET(int, BuildableCount, EAX);
 	GET(StripClass*, pTab, EBX);
 
-	if (BuildableCount <= 0) {
+	if (pTab->BuildableCount <= 0)
+	{
 		return 0x6A8F64;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].Items);
-	ptr += 0x10;
-	R->EBP<byte*>(ptr);
 
-	return 0x6A8DC0;
-	/* eii broken
-	for (int i = 0; i < BuildableCount; ++i) {
-		for (auto& cameos : MouseClassExt::TabCameos[pTab->Index]) {
-			auto pFactory = cameos.CurrentFactory;
-
-			if (pFactory) {
-				if (pFactory->HasProgressChanged()) {
-					R->Stack(0x13, true); //redraw
-					if (pFactory->CompletedProduction())
+	for (auto& cameos : MouseClassExt::TabCameos[pTab->Index])
+	{
+		auto pFactory = cameos.CurrentFactory;
+		if (pTab->IsBuilding)
+		{
+			if (pFactory && pFactory->HasProgressChanged())
+			{
+				R->Stack(0x13, true); //redraw
+				if (pFactory->IsDone())
+				{
+					if (auto pPending = pFactory->GetFactoryObject())
 					{
-						if (auto pPending = pFactory->GetFactoryObject())
+						switch (pPending->WhatAmI())
 						{
-							switch (pPending->WhatAmI())
-							{
-							case AbstractType::Aircraft:
-							case AbstractType::Infantry:
-							case AbstractType::Unit:
-							{
-								auto iSNaval = pPending->GetTechnoType()->Naval;
-								auto pOwner = pPending->GetOwningHouse();
-								EventClass vEvent { pOwner->ArrayIndex , EventType::PRODUCE , pPending->WhatAmI(), pPending->GetArrayIndex(), iSNaval };
-								EventClass::AddEvent(&vEvent);
-								cameos.CurrentFactory = nullptr;
-								pFactory = nullptr;
-							}
+						case AbstractType::Aircraft:
+						case AbstractType::Infantry:
+						case AbstractType::Unit:
+						{
+							auto iSNaval = pPending->GetTechnoType()->Naval;
+							auto pOwner = pPending->GetOwningHouse();
+							EventClass vEvent { pOwner->ArrayIndex , EventType::PLACE , pPending->WhatAmI(), -1, iSNaval , CellStruct::Empty };
+							EventClass::AddEvent(&vEvent);
+							//cameos.CurrentFactory = nullptr;
+							//pFactory = nullptr;
+						}
+						break;
+						case AbstractType::Building:
+						{
+							VoxClass::Play(GameStrings::EVA_ConstructionComplete);
+							Game::Set_Sidebar_Tab_Object((BuildingClass*)pPending);
+						}
+						break;
+						default:
 							break;
-							case AbstractType::Building:
-							{
-								VoxClass::Play(GameStrings::EVA_ConstructionComplete);
-								Game::Set_Sidebar_Tab_Object((BuildingClass*)pPending);
-							}
-							break;
-							default:
-								break;
-							}
 						}
 					}
 				}
 			}
+		}
 
-			auto& prog = cameos.Progress;
-			if (prog.Value == 1) {
-				if (pFactory && (!pFactory->Production.Timer.Duration || pFactory->IsSuspended || pFactory->OnHold)) {
-					prog.Start(0);
-				}
 
-				if (prog.Timer.GetTimeLeft() || !prog.Timer.Duration) {
-					prog.HasChanged = false;
-				}
-				else {
-					// timer expired. move one step forward.
-					prog.Value += prog.Step;
-					prog.HasChanged = true;
-					prog.Timer.Start(prog.Value >= 53 ? 0: prog.Value);
-					R->Stack(0x13, true); //redraw
-				}
-			}
+		if (pFactory && (!pFactory->Production.Timer.Duration || pFactory->IsSuspended || pFactory->OnHold))
+		{
+			cameos.Progress.Timer.StartTime = Unsorted::CurrentFrame;
+			cameos.Progress.Timer.TimeLeft = 0;
+			cameos.Status = 0;
+		}
+
+		if (cameos.Progress.Timer.GetTimeLeft() || cameos.Progress.Value == 0)
+		{
+			cameos.Progress.HasChanged = false;
+		}
+		else
+		{
+			// timer expired. move one step forward.
+			cameos.Progress.Value += cameos.Progress.Step;
+			cameos.Progress.HasChanged = true;
+			cameos.Progress.Timer.Start(cameos.Progress.Value >= 53 ? 0 : cameos.Progress.Value);
+			R->Stack(0x13, true); //redraw
 		}
 	}
-	*/
+
 	return 0x6A902D;
 }
 
+#ifdef aaaaA____
 // pointer #3 , Re-Enabled until above code got fixed
 DEFINE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 {
 	GET(StripClass*, pTab, ESI);
 
-	if (pTab->BuildableCount <= 0) {
+	if (pTab->BuildableCount <= 0)
+	{
 		return 0x6A902D;
 	}
 
@@ -231,6 +239,7 @@ DEFINE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 
 	return 0x6A8F7C;
 }
+#endif
 
 #include <Misc/PhobosToolTip.h>
 #include <Ext/SWType/Body.h>
@@ -243,24 +252,30 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 	auto& cameo = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][buildableCount];
 	PhobosToolTip::Instance.IsCameo = true;
 
-	if (PhobosToolTip::Instance.IsEnabled()) {
+	if (PhobosToolTip::Instance.IsEnabled())
+	{
 		PhobosToolTip::Instance.HelpText(&cameo);
 		R->EAX(L"X");
 		return 0x6A93DE;
 	}
 
-	if (cameo.ItemType == AbstractType::Special) {
+	if (cameo.ItemType == AbstractType::Special)
+	{
 
 		auto pSW = SuperWeaponTypeClass::Array->Items[cameo.ItemIndex];
 		const auto pData = SWTypeExtContainer::Instance.Find(pSW);
 
-		if (pData->Money_Amount < 0) {
+		if (pData->Money_Amount < 0)
+		{
 
 			// account for no-name SWs
-			if (CCToolTip::HideName() || !wcslen(pSW->UIName)) {
+			if (CCToolTip::HideName() || !wcslen(pSW->UIName))
+			{
 				const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, -pData->Money_Amount);
-			} else {
+			}
+			else
+			{
 				// then, this must be brand SWs
 				const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, pSW->UIName, -pData->Money_Amount);
@@ -269,7 +284,8 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 			SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
 
 			// replace space by new line
-			for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i) {
+			for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
+			{
 				if (SidebarClass::TooltipBuffer[i] == 0x20)
 				{
 					SidebarClass::TooltipBuffer[i] = 0xA;
@@ -280,7 +296,8 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 			R->EAX(SidebarClass::TooltipBuffer());
 			return 0x6A93DE;
 		}
-		else {
+		else
+		{
 			R->EAX(pSW->UIName);
 		}
 
@@ -290,10 +307,13 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 	{
 		const int Cost = pTechnoType->GetActualCost(HouseClass::CurrentPlayer);
 
-		if (CCToolTip::HideName || !wcslen(pTechnoType->UIName)) {
+		if (CCToolTip::HideName || !wcslen(pTechnoType->UIName))
+		{
 			const wchar_t* Format = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
 			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
-		} else {
+		}
+		else
+		{
 			const wchar_t* UIName = pTechnoType->UIName;
 			const wchar_t* Format = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
 			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
@@ -301,8 +321,10 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 
 		SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
 		// replace space by new line
-		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i) {
-			if (SidebarClass::TooltipBuffer[i] == 0x20) {
+		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
+		{
+			if (SidebarClass::TooltipBuffer[i] == 0x20)
+			{
 				SidebarClass::TooltipBuffer[i] = 0xA;
 				break;
 			}
@@ -315,6 +337,7 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 	return 0x6A93E2;
 }
 
+#pragma region Draw
 DEFINE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
 {
 	GET(int, CameoIndex, ECX);
@@ -408,6 +431,9 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 		: 0x6A9BC5
 		;
 }
+#pragma endregion
+
+#pragma region ProcessInput
 
 DEFINE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
@@ -415,7 +441,8 @@ DEFINE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 
 	auto& cameos = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
 
-	if (CameoIndex >= cameos.Count) {
+	if (CameoIndex >= cameos.Count)
+	{
 		return 0x6AB94F;
 	}
 
@@ -479,8 +506,10 @@ DEFINE_HOOK(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 	R->EAX<int>(Progress);
 	R->EBP<void*>(nullptr);
 
-	if (Item.Status == 1) {
-		if (Item.Progress.Value > Progress) {
+	if (Item.Status == 1)
+	{
+		if (Item.Progress.Value > Progress)
+		{
 			Progress = (Item.Progress.Value + Progress) / 2;
 		}
 	}
@@ -530,21 +559,34 @@ DEFINE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
 	return 0x6AB936;
 }
+#pragma endregion
 
-DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
+DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_fix, 7)
 {
 	GET(int, BuildableCount, EAX);
 	GET(StripClass*, pTab, ESI);
+	GET(FactoryClass*, pFactory, EDI);
 
-	if (BuildableCount <= 0 ) {
+	if (BuildableCount <= 0)
+	{
 		return 0x6ABC2F;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->Index].Items);
-	ptr += 0xC;
-	R->ESI<byte*>(ptr);
+	for (auto& cameos : MouseClassExt::TabCameos[pTab->Index])
+	{
+		if (cameos.CurrentFactory == pFactory)
+		{
+			pFactory->AbandonProduction();
+			cameos.CurrentFactory = nullptr;
+			cameos.Status = 0;
+			R->Stack(0x18, true);//redraw
+		}
+		else if (cameos.CurrentFactory)
+			R->Stack(0x18, false);//redraw
+	}
 
-	return 0x6ABBD2;
+	R->BL(R->Stack<int>(0x18));
+	return 0x6ABC06;
 }
 
 DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
@@ -555,8 +597,10 @@ DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 	const auto TabIndex = SidebarClass::GetObjectTabIdx(absType, typeIdx, 0);
 
 	// don't limit to 75
-	for (auto& cameo : MouseClassExt::TabCameos[TabIndex]) {
-		if (cameo.ItemIndex == typeIdx) {
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == typeIdx)
+		{
 			cameo.FlashEndFrame = Unsorted::CurrentFrame + Duration;
 			break;
 		}
@@ -669,14 +713,19 @@ bool NOINLINE RemoveCameo(BuildType* item)
 {
 	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
 	bool removeCameo = true;
-	if (TechnoType) {
-		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer())) {
+	if (TechnoType)
+	{
+		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
+		{
 			removeCameo = Factory->Owner->CanBuild(TechnoType, false, true) == CanBuildResult::Unbuildable;
 		}
-	} else {
+	}
+	else
+	{
 
 		auto& Supers = HouseClass::CurrentPlayer->Supers;
-		if (Supers.ValidIndex(item->ItemIndex)) {
+		if (Supers.ValidIndex(item->ItemIndex))
+		{
 			removeCameo = !Supers.Items[item->ItemIndex]->Granted;
 		}
 	}
@@ -739,8 +788,9 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item) {
-		return RemoveCameo(&item);
+	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item)
+ {
+	 return RemoveCameo(&item);
 	});
 
 	const auto count_after = std::distance(tabs.begin(), removeIter);
@@ -775,8 +825,8 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 			}
 		}
 
-		if(!IsBreak && pThis->Index == SidebarClass::something_884B84())
-			SidebarClass::Instance->ChangeTab(std::distance(Collum_begin() , begin_c));
+		if (!IsBreak && pThis->Index == SidebarClass::something_884B84())
+			SidebarClass::Instance->ChangeTab(std::distance(Collum_begin(), begin_c));
 	}
 	else
 	{
@@ -784,7 +834,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	}
 
 	auto iter = lower_bound(tabs.begin(), tabs.Count, { idx , rtt });
-	auto idxLower = std::distance(tabs.begin() , iter);
+	auto idxLower = std::distance(tabs.begin(), iter);
 	auto buildCount = pThis->BuildableCount - SidebarClass::Instance->Func_6AC430();
 	int value = (buildCount >= 0 ? buildCount : 0) / 2;
 
@@ -851,7 +901,8 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 // so lets just dump the assembly code instead , lmao
 // -otamaa
 declhook(0x6A8220, StripClass_Initialize, 0x7)
-extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS * R) {
+extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS* R)
+{
 	__asm
 	{
 		push ecx
@@ -867,7 +918,7 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 		mov ebp, [ebx + 0x24]
 		mov eax, [eax + 0x4]
 		inc ebp
-		mov [ebx + 0x38], eax
+		mov[ebx + 0x38], eax
 		mov eax, [ebx + 0x20]
 		mov[esp + 0x18], eax
 		call SidebarClass_6AC430
@@ -877,16 +928,16 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 		mov[esp + 0x10], edi
 		test edi, edi
 		jz short retfunc_
-		mov ecx, dword ptr ds:0xB0B500
+		mov ecx, dword ptr ds : 0xB0B500
 		mov eax, 0xB07E94
 		lea ebx, [ebx + 0x0]
-	loopfunc_:
+		loopfunc_ :
 		mov[eax + 0x1C], esi
 		mov edx, esi
 		mov dword ptr[eax + 0x10], 0xCA
 		and edx, 0xFFFFFFFE
 		mov[eax + 0x18], ebx
-		mov edi, dword ptr ds:0xB0B4FC
+		mov edi, dword ptr ds : 0xB0B4FC
 		imul edx, ecx
 		mov ecx, esi
 		and ecx, 1
@@ -904,14 +955,14 @@ extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGI
 		cmp eax, ecx
 		lea ecx, [edx + 4]
 		jnz loopfunc_
-	retfunc_ :
+		retfunc_ :
 		pop edi
-		pop esi
-		pop ebp
-		mov eax, 0x6A8329
-		pop ebx
-		pop ecx
-		retn
+			pop esi
+			pop ebp
+			mov eax, 0x6A8329
+			pop ebx
+			pop ecx
+			retn
 	}
 }
 
@@ -949,8 +1000,10 @@ DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 	for (int i = 0; i < 0xF0; ++i)
 		CCToolTip::Instance->Remove(i + Offset);
 
-	if(nCurIdx > 0){
-		for (size_t a = 0; a < nCurIdx; ++a) {
+	if (nCurIdx > 0)
+	{
+		for (size_t a = 0; a < nCurIdx; ++a)
+		{
 			CCToolTip::Instance->Add(ToolTip { a + Offset ,
 				ButtonsPtr[a].Rect,
 				nullptr,
@@ -968,8 +1021,10 @@ DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 
 	bool IsDone = pFactory->IsDone();
 
-	if (IsDone) {
-		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object)) {
+	if (IsDone)
+	{
+		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object))
+		{
 			IsDone = pBuilding->FindFactory(true, true) != nullptr;
 		}
 	}

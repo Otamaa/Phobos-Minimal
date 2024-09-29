@@ -93,8 +93,6 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 	const bool skipROT0Check = PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory);
 
-
-
 	if (!pBullet->Type->ROT) {
 
 		if (skipROT0Check)
@@ -107,6 +105,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
 			: pLocomotor->Apparent_Speed();
 
+#ifndef broken_
 			auto& vel = pBullet->Velocity;
 
 			vel.SetIfZeroXYZ();
@@ -118,7 +117,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 			auto rad_ = dir.GetRadian();
 
 			if(rad_ != 0.0){
-				vel.X /= Math::cos(distancexy_vel);
+				vel.X /= Math::cos(rad_);
 				vel.Y /= Math::cos(rad_);
 			}
 
@@ -132,15 +131,15 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 			auto facing_ = pThis->SecondaryFacing.Current();
 			vel.SetIfZeroXY();
 			distancexy_vel = vel.LengthXY();
-			vel.GetDirectionFromXY(&dir);
-			rad_ = dir.GetRadian();
-			const auto sin__ = Math::cos(rad_) * distancexy_vel;
-			vel.X = sin__;
-			vel.Y = -sin__;
-
-			//R->EAX(int(currentSpeed));
-			//return 0x415F5C;
+			rad_ = facing_.GetRadian();
+			vel.X = Math::cos(rad_) * distancexy_vel;
+			vel.Y = -(Math::sin(rad_) * distancexy_vel);
 			return 0x41631F;
+#else
+			R->EAX(int(currentSpeed));
+			return 0x415F5C;
+
+#endif
 		}
 
 		return 0x415F4D;
