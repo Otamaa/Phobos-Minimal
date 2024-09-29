@@ -1,8 +1,9 @@
 #pragma once
 #include <SuperWeaponTypeClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
+#include <Utilities/PhobosPCXFile.h>
+#include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Type/CursorTypeClass.h>
@@ -463,7 +464,9 @@ public:
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
 	Valueable<bool> CrateGoodies { false };
-	Valueable<bool> AllowInExclusiveSidebar { false };
+	Valueable<bool> ExclusiveSidebar_Allow { true };
+	DWORD ExclusiveSidebar_PriorityHouses { 0u };
+	DWORD ExclusiveSidebar_RequiredHouses { 0xFFFFFFFFu };
 
 	Valueable<int> TabIndex { 1 };
 
@@ -573,7 +576,7 @@ class SWTypeExtContainer final : public Container<SWTypeExtData>
 public:
 	static SWTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(SWTypeExtContainer, SWTypeExtData, "SuperWeaponTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(SWTypeExtContainer, SWTypeExtData, "SuperWeaponTypeClass");
 public:
 
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

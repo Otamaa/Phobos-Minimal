@@ -3,17 +3,13 @@
 #include <VoxelAnimClass.h>
 
 #include <Utilities/Container.h>
-#include <Utilities/Template.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Debug.h>
+#include <Utilities/SavegameDef.h>
 
-#include <Helpers/Macro.h>
-
-#include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
+class VoxelAnimTypeExtData;
 class VoxelAnimExtData final
 {
 public:
@@ -50,6 +46,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
+
 	constexpr FORCEINLINE static size_t size_Of()
 	{
 		return sizeof(VoxelAnimExtData) -
@@ -132,6 +129,6 @@ public:
 		}
 	}
 
-	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
+	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
 };
 

@@ -19,6 +19,8 @@
 #include "SaveVariablesToFile.h"
 #include "DetachFromTeam.h"
 #include "SelectCaptured.h"
+#include "ToggleSWSidebar.h"
+#include "FireTacticalSW.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -49,7 +51,9 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(ToggleRadialIndicatorDrawModeClass);
 	Make(ToggleDigitalDisplayCommandClass);
 	Make(ToggleDesignatorRangeCommandClass);
+	Make(ToggleSWSidebar);
 	Make(SaveVariablesToFileCommandClass);
+
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1
 	Make(FrameStepCommandClass<10>); // Speed 2
@@ -70,9 +74,20 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make(TogglePowerCommandClass);
 #endif
 
-
 	Make(DetachFromTeamCommandClass);
 	Make(SelectCapturedCommandClass);
+
+	Make(FireTacticalSWCommandClass<0>);
+	Make(FireTacticalSWCommandClass<1>);
+	Make(FireTacticalSWCommandClass<2>);
+	Make(FireTacticalSWCommandClass<3>);
+	Make(FireTacticalSWCommandClass<4>);
+	Make(FireTacticalSWCommandClass<5>);
+	Make(FireTacticalSWCommandClass<6>);
+	Make(FireTacticalSWCommandClass<7>);
+	Make(FireTacticalSWCommandClass<8>);
+	Make(FireTacticalSWCommandClass<9>);
+
 	return 0x0;
 }
 

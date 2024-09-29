@@ -4,7 +4,7 @@
 #include <RulesClass.h>
 
 #include <Utilities/Container.h>
-#include <Utilities/Constructs.h>
+#include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
 
 #include <Utilities/Debug.h>

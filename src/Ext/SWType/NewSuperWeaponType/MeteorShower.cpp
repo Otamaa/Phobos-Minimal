@@ -3,6 +3,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/SWType/Body.h>
 
 std::vector<const char*> SW_MeteorShower::GetTypeString() const
 {

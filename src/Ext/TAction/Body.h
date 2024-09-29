@@ -1,14 +1,12 @@
 #pragma once
 
-#include <Utilities/Container.h>
-#include <Utilities/Template.h>
-
-#include <Helpers/Template.h>
-
 #include <TActionClass.h>
 
 class HouseClass;
-
+class ObjectClass;
+class TriggerClass;
+class HouseClass;
+class CellStruct;
 enum class PhobosTriggerAction : unsigned int
 {
 	SaveGame = 500,

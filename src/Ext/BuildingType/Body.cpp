@@ -1345,7 +1345,7 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BuildingTypeExtContainer::Instance.Map.erase(pItem);
 	if(extData)
-		DLLDelete(extData);
+		DLLCallDTOR(extData);
 
 	return 0;
 }

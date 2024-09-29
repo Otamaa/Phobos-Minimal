@@ -212,5 +212,5 @@ class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 public:
 	static AnimTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };

@@ -34,7 +34,7 @@ DEFINE_HOOK(0x6CE1A0, SuperClass_AI_FlashingBar, 0x5) {
 
 	enum { Continue = 0x0 , RetFalse = 0x6CE1E7 };
 
-	return SWTypeExtContainer::Instance.Find(pThis->Type)->AllowInExclusiveSidebar ?
+	return SWTypeExtContainer::Instance.Find(pThis->Type)->ExclusiveSidebar_Allow ?
 		RetFalse : Continue;
 }
 

@@ -40,5 +40,5 @@ class BombExtContainer final : public Container<BombExtData>
 public:
 	static BombExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
+	//CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
 };

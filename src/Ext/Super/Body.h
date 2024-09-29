@@ -1,11 +1,8 @@
 #pragma once
 #include <SuperClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-#include <Ext/SWType/Body.h>
-#include <Ext/House/Body.h>
 
 // cache all super weapon statuses
 struct SWStatus
@@ -39,6 +36,7 @@ struct SWStatus
 	}
 };
 
+class SWTypeExtData;
 class SuperExtData final
 {
 public:
@@ -97,5 +95,5 @@ class SuperExtContainer final : public Container<SuperExtData>
 public:
 	static SuperExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(SuperExtContainer, SuperExtData, "SuperClass");
+	//CONSTEXPR_NOCOPY_CLASSB(SuperExtContainer, SuperExtData, "SuperClass");
 };

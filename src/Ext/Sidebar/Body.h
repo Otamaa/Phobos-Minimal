@@ -1,14 +1,11 @@
 #pragma once
 
 #include <SidebarClass.h>
+#include <ArrayClasses.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-
-#include <map>
-
-#include <ToggleClass.h>
+#include <Utilities/SavegameDef.h>
 
 class SidebarExtData final
 {
@@ -22,6 +19,10 @@ public:
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
+
+	bool SWSidebar_Enable { true };
+	DynamicVectorClass<int> SWSidebar_Indices {};
+
 public:
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -52,32 +53,7 @@ public:
 };
 
 
-class TacticalButtonClass : public ToggleClass
-{
-public:
-	TacticalButtonClass() = default;
-	TacticalButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height);
 
-	virtual ~TacticalButtonClass();
 
-	virtual bool Draw(bool forced) override;
-	virtual void OnMouseEnter() override;
-	virtual void OnMouseLeave() override;
-	virtual bool Action(GadgetFlag fags, DWORD* pKey, KeyModifier modifier) override;
 
-	bool LaunchSuper(int superIdx);
 
-public:
-	static bool AddButton(int superIdx);
-	static bool RemoveButton(int superIdx);
-	static void ClearButtons();
-	static void SortButtons();
-
-public:
-	static HelperedVector<TacticalButtonClass*> Buttons;
-	static bool Initialized;
-	static TacticalButtonClass* CurrentButton;
-
-	bool IsHovering { false };
-	int SuperIndex { -1 };
-};

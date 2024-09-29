@@ -3,6 +3,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/SWType/Body.h>
 
 std::vector<const char*> SW_HunterSeeker::GetTypeString() const
 {
@@ -26,8 +27,8 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	}
 
 	//testing
-	// TODO : Re-enable this 
-	// somwhat HS Causing desync on ROTE ? 
+	// TODO : Re-enable this
+	// somwhat HS Causing desync on ROTE ?
 	// need to investigate further
 	//if (IS_SAME_STR_(pType->ID, "SOVSCRAP"))
 	//	return true;

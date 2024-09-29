@@ -1,9 +1,9 @@
 #pragma once
 #include <TemporalClass.h>
 
-#include <Utilities/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+//#include <Utilities/Macro.h>
+//#include <Utilities/Container.h>
+//#include <Utilities/TemplateDef.h>
 
 class WeaponTypeClass;
 class TemporalExt

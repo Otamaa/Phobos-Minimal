@@ -111,5 +111,5 @@ public:
 		}
 	}
 
-	CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
+	//CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };

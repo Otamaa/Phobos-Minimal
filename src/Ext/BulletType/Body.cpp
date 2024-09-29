@@ -348,7 +348,7 @@ DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	BulletTypeExtContainer::Instance.Map.erase(pItem);
 	if(extData)
-		DLLDelete(extData);
+		DLLCallDTOR(extData);
 	return 0;
 }
 

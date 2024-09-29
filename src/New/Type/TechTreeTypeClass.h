@@ -1,10 +1,9 @@
 #pragma once
 
 #include <functional>
-#include <map>
-#include <set>
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
+#include <Utilities/PhobosMap.h>
 
 class TechTreeTypeClass final : public Enumerable<TechTreeTypeClass>
 {

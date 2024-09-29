@@ -2,6 +2,7 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/GameUniquePointers.h>
+#include <Utilities/Handle.h>
 
 class PaletteManager final : public Enumerable<PaletteManager>
 {

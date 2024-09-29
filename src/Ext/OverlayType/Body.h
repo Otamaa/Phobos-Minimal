@@ -4,6 +4,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/PhobosMap.h>
 
 class OverlayTypeExtData final
 {
@@ -36,7 +37,7 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 {
 public:
 	static OverlayTypeExtContainer Instance;
-	PhobosMap<OverlayTypeClass*, OverlayTypeExtData*> Map;
+	PhobosMap<OverlayTypeClass*, OverlayTypeExtData*> Map {};
 
 	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
 
@@ -45,15 +46,15 @@ public:
 		this->Map.clear();
 	}
 
-	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
-		, Map {}
-	{ }
-
-	virtual ~OverlayTypeExtContainer() override = default;
-
-private:
-	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
-	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
-	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
+//	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
+//		, Map {}
+//	{ }
+//
+//	virtual ~OverlayTypeExtContainer() override = default;
+//
+//private:
+//	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
+//	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
+//	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
 };
 

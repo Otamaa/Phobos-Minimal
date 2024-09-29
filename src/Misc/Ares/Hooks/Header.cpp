@@ -7692,7 +7692,7 @@ std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList()
 	//but lets put it here
 	//need someone to test this to make sure if the calculation were correct :s
 	//-Otamaa
-	types.remove_all_duplicates();
+	types.remove_all_duplicates_noshort();
 	return types;
 }
 

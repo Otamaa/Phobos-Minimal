@@ -3,11 +3,11 @@
 
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
+#include <Utilities/PhobosPCXFile.h>
+#include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
 
-#ifndef disable_aresOverride
 #include <Misc/Ares/EVAVoices.h>
-#endif
 
 class SideExtData final
 {
@@ -100,6 +100,10 @@ public:
 
 	Valueable<SHPStruct*> MouseShape { nullptr };
 
+	PhobosPCXFile ExclusiveSWSidebar_TopPCX { };
+	PhobosPCXFile ExclusiveSWSidebar_CenterPCX { };
+	PhobosPCXFile ExclusiveSWSidebar_BottomPCX { };
+	Valueable<SHPStruct*> ExclusiveSWSidebar_ToggleShape { };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -172,5 +176,5 @@ class SideExtContainer final : public Container<SideExtData>
 {
 public:
 	static SideExtContainer Instance;
-	CONSTEXPR_NOCOPY_CLASSB(SideExtContainer, SideExtData, "SideClass");
+	//CONSTEXPR_NOCOPY_CLASSB(SideExtContainer, SideExtData, "SideClass");
 };

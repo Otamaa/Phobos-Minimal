@@ -54,5 +54,5 @@ class InfantryTypeExtContainer final : public Container<InfantryTypeExtData>
 public:
 	static InfantryTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(InfantryTypeExtContainer, InfantryTypeExtData, "InfantryTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(InfantryTypeExtContainer, InfantryTypeExtData, "InfantryTypeClass");
 };

@@ -3,6 +3,7 @@
 #include <Ares_TechnoExt.h>
 
 #include <Ext/Building/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>
 

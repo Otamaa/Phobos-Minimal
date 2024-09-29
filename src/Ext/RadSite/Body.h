@@ -82,5 +82,5 @@ class RadSiteExtContainer final : public Container<RadSiteExtData>
 public:
 	static RadSiteExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
+	//CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
 };

@@ -3,20 +3,20 @@
 #include <BulletClass.h>
 #include <HouseClass.h>
 
-#include <Utilities/EnumFunctions.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
-#include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Type/ArmorTypeClass.h>
 
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 

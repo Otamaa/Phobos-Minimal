@@ -985,9 +985,6 @@ DEFINE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 		ret = true;
 	}
 
-	if (ret && pThis->Owner == HouseClass::CurrentPlayer)
-		TacticalButtonClass::RemoveButton(pThis->Type->ArrayIndex);
-
 	R->EAX(ret);
 	return 0x6CB810;
 }

@@ -91,7 +91,7 @@ DEFINE_HOOK(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	OverlayTypeExtContainer::Instance.Map.erase(pItem);
 	if(extData)
-		DLLDelete(extData);
+		DLLCallDTOR(extData);
 
 	return 0;
 }

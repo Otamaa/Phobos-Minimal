@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/TemplateDef.h>
+#include <Utilities/OptionalStruct.h>
 
 #include <ColorStruct.h>
 #include <GeneralStructures.h>
@@ -10,7 +10,7 @@
 
 class TechnoClass;
 class REGISTERS;
-
+class INI_EX;
 class PaintballType
 {
 public:

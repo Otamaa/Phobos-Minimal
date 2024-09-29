@@ -1,12 +1,10 @@
 #pragma once
 #include <TerrainClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
-
-#include <Ext/TerrainType/Body.h>
+#include <Utilities/Handle.h>
 
 #include <LightSourceClass.h>
 #include <CellClass.h>
@@ -73,5 +71,5 @@ class TerrainExtContainer final : public Container<TerrainExtData>
 public:
 	static TerrainExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(TerrainExtContainer, TerrainExtData, "TerrainClass");
+	//CONSTEXPR_NOCOPY_CLASSB(TerrainExtContainer, TerrainExtData, "TerrainClass");
 };

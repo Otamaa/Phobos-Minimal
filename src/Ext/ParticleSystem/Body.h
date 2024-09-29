@@ -212,5 +212,5 @@ public:
 		}
 	}
 
-	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
+	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
 };

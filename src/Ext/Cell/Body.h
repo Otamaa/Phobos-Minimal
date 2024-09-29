@@ -46,5 +46,5 @@ class CellExtContainer final : public Container<CellExtData>
 public:
 	static CellExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(CellExtContainer, CellExtData, "CellClass");
+	//CONSTEXPR_NOCOPY_CLASSB(CellExtContainer, CellExtData, "CellClass");
 };

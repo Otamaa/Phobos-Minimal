@@ -1,40 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <Helpers/Concepts.h>
 
 template<typename T, typename A = std::allocator<T>>
 struct HelperedVector : public std::vector<T , A>
 {
-	static FORCEINLINE void MoveExtend(std::vector<T, A>* src) {
-		if (this->empty()) {
-			*this = std::move(*src);
-		} else {
-			for (size_t i = 0; i < src->size(); i++)
-				this->emplace_back(std::move(src->at(i)));
-
-			src->clear();
-		}
-	}
-
-	static FORCEINLINE T pop_back() {
-		T t = std::move(this->back());
-		this->pop_back();
-		return t;
-	}
-
-	static FORCEINLINE void insert_at(size_t at, const T& item) {
-		this->insert(this->begin() + at, item);
-	}
-
-	static FORCEINLINE void insert_at(size_t at, T&& item) {
-		this->insert(this->begin() + at, std::forward<T>(item));
-	}
-
-	template<class... Args>
-	static FORCEINLINE void emplace_at(size_t at, Args&&... item) {
-		this->emplace(this->begin() + at, std::forward<Args>(item)...);
-	}
 
 	bool FORCEINLINE remove_at(size_t index) {
 		if (this->valid_index(index)) {
@@ -74,7 +46,7 @@ struct HelperedVector : public std::vector<T , A>
 		this->erase(std::unique(this->begin(), this->end()), this->end());
 	}
 
-	void FORCEINLINE remove_all_duplicates() {
+	void FORCEINLINE remove_all_duplicates_noshort() {
 		this->erase(std::unique(this->begin(), this->end()), this->end());
 	}
 
@@ -89,6 +61,11 @@ struct HelperedVector : public std::vector<T , A>
 		}
 
 		return false;
+	}
+
+	template <typename Func>
+	auto FORCEINLINE find_if(Func&& act) {
+		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
 	auto FORCEINLINE find(const T& item) const {

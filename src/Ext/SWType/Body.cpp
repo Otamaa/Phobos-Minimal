@@ -1581,7 +1581,9 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_GrantOneTime_RollChances.Read(exINI, pSection, "SW.GrantOneTime.RollChances");
 
 	this->CrateGoodies.Read(exINI, pSection, "CrateGoodies");
-	this->AllowInExclusiveSidebar.Read(exINI, pSection, "AllowInExclusiveSidebar");
+	this->ExclusiveSidebar_Allow.Read(exINI, pSection, "ExclusiveSidebar.Allow");
+	this->ExclusiveSidebar_PriorityHouses = pINI->ReadHouseTypesList(pSection, "ExclusiveSidebar.PriorityHouses", this->ExclusiveSidebar_PriorityHouses);
+	this->ExclusiveSidebar_RequiredHouses = pINI->ReadHouseTypesList(pSection, "ExclusiveSidebar.RequiredHouses", this->ExclusiveSidebar_RequiredHouses);
 	this->TabIndex.Read(exINI, pSection, "TabIndex");
 
 	// SW.GrantOneTime.RandomWeights
@@ -2434,7 +2436,9 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_GrantOneTime_RollChances)
 
 		.Process(this->CrateGoodies)
-		.Process(this->AllowInExclusiveSidebar)
+		.Process(this->ExclusiveSidebar_Allow)
+		.Process(this->ExclusiveSidebar_PriorityHouses)
+		.Process(this->ExclusiveSidebar_RequiredHouses)
 		.Process(this->TabIndex)
 		;
 

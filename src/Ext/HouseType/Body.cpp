@@ -565,7 +565,7 @@ DEFINE_HOOK(0x5127CF, HouseTypeClass_DTOR, 0x6)
 	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	HouseTypeExtContainer::Instance.Map.erase(pItem);
 	if(extData)
-		DLLDelete(extData);
+		DLLCallDTOR(extData);
 
 	return 0;
 }

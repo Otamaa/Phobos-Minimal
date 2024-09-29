@@ -5,9 +5,9 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <New/Type/CursorTypeClass.h>
-
 
 SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 

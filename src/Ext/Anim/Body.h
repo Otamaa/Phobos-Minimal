@@ -1,12 +1,13 @@
 #pragma once
 #include <AnimClass.h>
 
-#include <Helpers/Macro.h>
-
 #include <Utilities/Container.h>
+#include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
+
 #include <New/AnonymousType/SpawnsStatus.h>
 
+class HouseClass;
 class ParticleSystemClass;
 class AnimExtData final //: public Extension<AnimClass>
 {
@@ -152,5 +153,5 @@ public:
 		}
 	}
 
-	CONSTEXPR_NOCOPY_CLASSB(AnimExtContainer , AnimExtData, "AnimClass");
+	//CONSTEXPR_NOCOPY_CLASSB(AnimExtContainer , AnimExtData, "AnimClass");
 };

@@ -1,10 +1,8 @@
 #pragma once
 #include <SmudgeTypeClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-#include <Utilities/Macro.h>
 
 class SmudgeTypeExtData final
 {
@@ -38,5 +36,5 @@ class SmudgeTypeExtContainer final : public Container<SmudgeTypeExtData>
 public:
 	static SmudgeTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(SmudgeTypeExtContainer, SmudgeTypeExtData, "SmudgeTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(SmudgeTypeExtContainer, SmudgeTypeExtData, "SmudgeTypeClass");
 };

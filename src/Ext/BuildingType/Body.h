@@ -5,8 +5,9 @@
 
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
+
 #include <DirStruct.h>
 
 #include <Ext/TechnoType/Body.h>
@@ -401,7 +402,7 @@ class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
 {
 public:
 	static BuildingTypeExtContainer Instance;
-	PhobosMap<BuildingTypeClass*, BuildingTypeExtData*> Map;
+	PhobosMap<BuildingTypeClass*, BuildingTypeExtData*> Map {};
 
 	virtual bool Load(BuildingTypeClass* key, IStream* pStm);
 
@@ -427,16 +428,16 @@ public:
 		this->Map.clear();
 	}
 
-	BuildingTypeExtContainer() : Container<BuildingTypeExtData> { "BuildingTypeClass" }
-		, Map {}
-	{ }
+	//BuildingTypeExtContainer() : Container<BuildingTypeExtData> { "BuildingTypeClass" }
+	//	, Map {}
+	//{ }
 
-	virtual ~BuildingTypeExtContainer() override = default;
+	//virtual ~BuildingTypeExtContainer() override = default;
 	//CONSTEXPR_NOCOPY_CLASSB(BulletTypeExtContainer, BulletTypeExtData, "BulletTypeClass");
 
-private:
-	BuildingTypeExtContainer(const BuildingTypeExtContainer&) = delete;
-	BuildingTypeExtContainer(BuildingTypeExtContainer&&) = delete;
-	BuildingTypeExtContainer& operator=(const BuildingTypeExtContainer& other) = delete;
+//private:
+//	BuildingTypeExtContainer(const BuildingTypeExtContainer&) = delete;
+//	BuildingTypeExtContainer(BuildingTypeExtContainer&&) = delete;
+//	BuildingTypeExtContainer& operator=(const BuildingTypeExtContainer& other) = delete;
 
 };

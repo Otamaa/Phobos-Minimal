@@ -150,8 +150,10 @@ struct Phobos final
 		static bool UnlimitedColor;
 		static bool AnchoredToolTips;
 
-		static bool ExclusiveSuperWeaponSidebar;
-		static int ExclusiveSuperWeaponSidebar_Max;
+		static bool ExclusiveSWSidebar;
+		static int ExclusiveSWSidebar_Interval;
+		static int ExclusiveSWSidebar_Max;
+		static int ExclusiveSWSidebar_MaxColumn;
 
 		static const wchar_t* CostLabel;
 		static const wchar_t* PowerLabel;

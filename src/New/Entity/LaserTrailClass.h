@@ -1,12 +1,13 @@
 #pragma once
 
-
-
 #include <GeneralStructures.h>
 #include <LaserDrawClass.h>
 #include <HouseClass.h>
+#include <CoordStruct.h>
+#include <Timers.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
+#include <Utilities/OptionalStruct.h>
 
 #include <vector>
 
@@ -67,13 +68,13 @@ private:
 	template <typename T>
 	bool Serialize(T& stm);
 
-	bool AllowDraw(CoordStruct const& location)
+	constexpr bool AllowDraw(CoordStruct const& location)
 	{
 		return Type && this->Visible && !this->Cloaked && (this->Type->IgnoreVertical ?
-		  (abs(location.X - this->LastLocation.get().X) > 16 || abs(location.Y - this->LastLocation.get().Y) > 16) : true) && IsInitialDelayFinish();
+		  (Math::abs(location.X - this->LastLocation.get().X) > 16 || Math::abs(location.Y - this->LastLocation.get().Y) > 16) : true) && IsInitialDelayFinish();
 	}
 
-	bool IsInitialDelayFinish()
+	constexpr bool IsInitialDelayFinish()
 	{
 		if (!Type)
 			return false;

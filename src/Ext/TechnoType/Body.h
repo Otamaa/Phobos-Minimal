@@ -2,8 +2,10 @@
 #include <TechnoTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PhobosPCXFile.h>
+#include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/PhobosMap.h>
 
 #include <New/InsigniaData.h>
 #include <New/LaserTrailDataEntry.h>
@@ -1044,7 +1046,7 @@ class TechnoTypeExtContainer final : public Container<TechnoTypeExtData>
 public:
 	static TechnoTypeExtContainer Instance;
 
-	PhobosMap<TechnoTypeClass*, TechnoTypeExtData*> Map;
+	PhobosMap<TechnoTypeClass*, TechnoTypeExtData*> Map {};
 
 	virtual bool Load(TechnoTypeClass* key, IStream* pStm) override;
 
@@ -1052,14 +1054,14 @@ public:
 		this->Map.clear();
 	}
 
-	TechnoTypeExtContainer() : Container<TechnoTypeExtData> { "TechnoTypeClass" }
-		, Map {}
-	{ }
-
-	virtual ~TechnoTypeExtContainer() override = default;
-
-private:
-	TechnoTypeExtContainer(const TechnoTypeExtContainer&) = delete;
-	TechnoTypeExtContainer(TechnoTypeExtContainer&&) = delete;
-	TechnoTypeExtContainer& operator=(const TechnoTypeExtContainer& other) = delete;
+//	TechnoTypeExtContainer() : Container<TechnoTypeExtData> { "TechnoTypeClass" }
+//		, Map {}
+//	{ }
+//
+//	virtual ~TechnoTypeExtContainer() override = default;
+//
+//private:
+//	TechnoTypeExtContainer(const TechnoTypeExtContainer&) = delete;
+//	TechnoTypeExtContainer(TechnoTypeExtContainer&&) = delete;
+//	TechnoTypeExtContainer& operator=(const TechnoTypeExtContainer& other) = delete;
 };

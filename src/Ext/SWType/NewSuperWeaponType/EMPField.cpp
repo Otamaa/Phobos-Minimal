@@ -1,6 +1,7 @@
 #include "EMPField.h"
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/SWType/Body.h>
 
 std::vector<const char*> SW_EMPField::GetTypeString() const
 {
@@ -18,7 +19,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	auto pFirer = this->GetFirer(pThis,Coords , false);
 
 	// TODO : creating version that not require WH to be function !
-	// 
+	//
 	//AresEMPulse::CreateEMPulse()
 	//does not work ?
 	return GameCreate<EMPulseClass>(Coords, this->GetRange(pData).width() , pData->EMPField_Duration.Get(), pFirer);

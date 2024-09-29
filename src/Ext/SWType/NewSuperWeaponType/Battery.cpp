@@ -1,6 +1,7 @@
 #include "Battery.h"
 
 #include <Ext/House/Body.h>
+#include <Ext/SWType/Body.h>
 
 std::vector<const char*> SW_Battery::GetTypeString() const
 {

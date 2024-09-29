@@ -4,6 +4,7 @@
 
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
+#include <Utilities/GameConfig.h>
 
 #include <LoadOptionsClass.h>
 #include <UDPInterfaceClass.h>

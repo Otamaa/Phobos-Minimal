@@ -2,14 +2,9 @@
 #include <VoxelAnimTypeClass.h>
 
 #include <Utilities/Container.h>
-#include <Utilities/Constructs.h>
-#include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
-#include <Utilities/Debug.h>
-#include <Helpers/Macro.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
-
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 class VoxelAnimTypeExtData final
@@ -58,5 +53,5 @@ class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
 };

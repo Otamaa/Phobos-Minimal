@@ -29,6 +29,9 @@
 #include <Ext/SWType/Body.h>
 #include <Misc/PhobosGlobal.h>
 
+#include <New/Entity/SWSidebarClass.h>
+#include <New/Entity/TacticalButtonClass.h>
+
 PhobosToolTip PhobosToolTip::Instance;
 
 inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
@@ -236,8 +239,51 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 #ifndef aaa
 
 // Hooks
-// TODO: reimplement CCToolTip::Draw2 completely
+DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
+{
+	enum { ApplyToolTip = 0x4AE69D };
 
+	if (SWSidebarClass::IsEnabled())
+	{
+		if (auto button = SWSidebarClass::Global()->CurrentButton)
+		{
+			PhobosToolTip::Instance.IsCameo = true;
+			PhobosToolTip::Instance.HelpText(HouseClass::CurrentPlayer->Supers[button->SuperIndex]);
+			R->EAX(PhobosToolTip::Instance.GetBuffer());
+			return ApplyToolTip;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x72426F, ToolTipManager_ProcessMessage_TacticalButton, 0x5)
+{
+	if (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton)
+		R->EDX(0);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x72428C, ToolTipManager_ProcessMessage_TacticalButton2, 0x5)
+{
+	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x724297 : 0;
+}
+
+DEFINE_HOOK(0x724B2E, ToolTipManager_SetX_TacticalButtons, 0x6)
+{
+	if (SWSidebarClass::IsEnabled()) {
+		if (const auto button = SWSidebarClass::Global()->CurrentButton) {
+			R->EDX(button->Rect.X + button->Rect.Width);
+			R->EAX(button->Rect.Y + 27);
+		}
+	}
+
+	return 0;
+}
+
+
+// TODO: reimplement CCToolTip::Draw2 completely
 DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 {
 	if (PhobosToolTip::Instance.IsEnabled() && PhobosToolTip::Instance.IsCameo)

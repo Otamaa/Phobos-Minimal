@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
+    <ClCompile Include="src\Commands\FireTacticalSW.cpp" />
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
     <ClCompile Include="src\Commands\SaveVariablesToFile.cpp" />
     <ClCompile Include="src\Commands\SelectCaptured.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="src\Commands\ToggleDesignatorRange.cpp" />
     <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
+    <ClCompile Include="src\Commands\ToggleSWSidebar.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
@@ -112,7 +114,6 @@
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.SWCameo.cpp" />
-    <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.cpp" />
     <ClCompile Include="src\Ext\Side\Hooks.SidebarGDIPositions.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
@@ -358,6 +359,10 @@
     <ClCompile Include="src\New\AnonymousType\Spawns.cpp" />
     <ClCompile Include="src\New\AnonymousType\SpawnsStatus.cpp" />
     <ClCompile Include="src\New\Entity\NewSpawnManager.cpp" />
+    <ClCompile Include="src\New\Entity\SWColumnClass.cpp" />
+    <ClCompile Include="src\New\Entity\SWSidebarClass.cpp" />
+    <ClCompile Include="src\New\Entity\TacticalButtonClass.cpp" />
+    <ClCompile Include="src\New\Entity\ToggleSWButtonClass.cpp" />
     <ClCompile Include="src\New\HugeBar.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\Functions.cpp" />
@@ -441,10 +446,15 @@
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
+    <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Body.cpp" />
+    <ClCompile Include="src\Utilities\GameConfig.cpp" />
+    <ClCompile Include="src\Utilities\Handle.cpp" />
     <ClCompile Include="src\Utilities\Helpers.cpp" />
+    <ClCompile Include="src\Utilities\OptionalStruct.cpp" />
+    <ClCompile Include="src\Utilities\PhobosPCXFile.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
     <ClCompile Include="src\Utilities\Stream.cpp" />
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
@@ -454,6 +464,7 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
+    <ClCompile Include="src\Utilities\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
     <ClCompile Include="YRpp\DebugLog.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
@@ -462,7 +473,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\Commands\FireTacticalSW.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
+    <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
     <ClInclude Include="src\ExtraHeaders\RVectorClass.h" />
     <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
@@ -478,6 +491,10 @@
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
     <ClInclude Include="src\New\Entity\NewSpawnManager.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
+    <ClInclude Include="src\New\Entity\SWColumnClass.h" />
+    <ClInclude Include="src\New\Entity\SWSidebarClass.h" />
+    <ClInclude Include="src\New\Entity\TacticalButtonClass.h" />
+    <ClInclude Include="src\New\Entity\ToggleSWButtonClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
     <ClInclude Include="src\New\HugeBar.h" />
     <ClInclude Include="src\New\Interfaces\IEntity.h" />
@@ -713,6 +730,7 @@
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
+    <ClInclude Include="src\Utilities\CSFText.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />
     <ClInclude Include="src\Ext\Aircraft\Body.h" />
     <ClInclude Include="src\Ext\AnimType\Body.h" />
@@ -733,12 +751,17 @@
     <ClInclude Include="src\Ext\VoxelAnimType\Body.h" />
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
+    <ClInclude Include="src\Utilities\GameConfig.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
+    <ClInclude Include="src\Utilities\Handle.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />
     <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
+    <ClInclude Include="src\Utilities\OptionalStruct.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
+    <ClInclude Include="src\Utilities\PhobosMap.h" />
+    <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
@@ -766,8 +789,10 @@
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
     <ClInclude Include="src\Utilities\TemplateDefB.h" />
+    <ClInclude Include="src\Utilities\TheaterSpecificSHP.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="src\Utilities\VectorHelper.h" />
+    <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
   </ItemGroup>

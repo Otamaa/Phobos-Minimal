@@ -68,13 +68,13 @@ public:
 			;
 	}
 
-	IsometricTileTypeExtContainer() : Container<IsometricTileTypeExtData> { "IsometricTileTypeClass" }
-	{ }
-
-	virtual ~IsometricTileTypeExtContainer() override = default;
-
-private:
-	IsometricTileTypeExtContainer(const IsometricTileTypeExtContainer&) = delete;
-	IsometricTileTypeExtContainer(IsometricTileTypeExtContainer&&) = delete;
-	IsometricTileTypeExtContainer& operator=(const IsometricTileTypeExtContainer& other) = delete;
+//	IsometricTileTypeExtContainer() : Container<IsometricTileTypeExtData> { "IsometricTileTypeClass" }
+//	{ }
+//
+//	virtual ~IsometricTileTypeExtContainer() override = default;
+//
+//private:
+//	IsometricTileTypeExtContainer(const IsometricTileTypeExtContainer&) = delete;
+//	IsometricTileTypeExtContainer(IsometricTileTypeExtContainer&&) = delete;
+//	IsometricTileTypeExtContainer& operator=(const IsometricTileTypeExtContainer& other) = delete;
 };

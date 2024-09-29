@@ -2,7 +2,10 @@
 #include <HouseTypeClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/Container.h>
+#include <Utilities/PhobosFixedString.h>
+#include <Utilities/PhobosPCXFile.h>
 #include <Utilities/TemplateDef.h>
 
 class HouseTypeExtData final
@@ -102,7 +105,7 @@ class HouseTypeExtContainer final : public Container<HouseTypeExtData>
 {
 public:
 	static HouseTypeExtContainer Instance;
-	PhobosMap<HouseTypeClass*, HouseTypeExtData*> Map;
+	PhobosMap<HouseTypeClass*, HouseTypeExtData*> Map {};
 
 	virtual bool Load(HouseTypeClass* key, IStream* pStm);
 
@@ -111,15 +114,15 @@ public:
 		this->Map.clear();
 	}
 
-	HouseTypeExtContainer() : Container<HouseTypeExtData> { "HouseTypeClass" }
-		, Map {}
-	{ }
-
-	virtual ~HouseTypeExtContainer() override = default;
-
-private:
-	HouseTypeExtContainer(const HouseTypeExtContainer&) = delete;
-	HouseTypeExtContainer(HouseTypeExtContainer&&) = delete;
-	HouseTypeExtContainer& operator=(const HouseTypeExtContainer& other) = delete;
+//	HouseTypeExtContainer() : Container<HouseTypeExtData> { "HouseTypeClass" }
+//		, Map {}
+//	{ }
+//
+//	virtual ~HouseTypeExtContainer() override = default;
+//
+//private:
+//	HouseTypeExtContainer(const HouseTypeExtContainer&) = delete;
+//	HouseTypeExtContainer(HouseTypeExtContainer&&) = delete;
+//	HouseTypeExtContainer& operator=(const HouseTypeExtContainer& other) = delete;
 
 };

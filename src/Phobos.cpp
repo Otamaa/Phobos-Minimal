@@ -13,6 +13,7 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
+#include <Utilities/GameConfig.h>
 
 #include <Misc/Patches.h>
 
@@ -86,8 +87,10 @@ bool Phobos::UI::CenterPauseMenuBackground = false;
 bool Phobos::UI::UnlimitedColor = false;
 bool Phobos::UI::AnchoredToolTips = false;
 
-bool Phobos::UI::ExclusiveSuperWeaponSidebar = false;
-int Phobos::UI::ExclusiveSuperWeaponSidebar_Max = 0;
+bool Phobos::UI::ExclusiveSWSidebar = false;
+int Phobos::UI::ExclusiveSWSidebar_Interval = 0;
+int Phobos::UI::ExclusiveSWSidebar_Max = 0;
+int Phobos::UI::ExclusiveSWSidebar_MaxColumn = INT32_MAX;
 
 const wchar_t* Phobos::UI::Power_Label;
 const wchar_t* Phobos::UI::Drain_Label;
@@ -189,7 +192,6 @@ void Phobos::CheckProcessorFeatures()
 	static_assert(false, "Phobos compiled using unsupported architecture.");
 #endif
 
-#ifdef INSTRUCTION_SET_NAME
 	Debug::Log("Phobos requires a CPU with " INSTRUCTION_SET_NAME " support. %s.\n",
 		supported ? "Available" : "Not available");
 
@@ -205,7 +207,6 @@ void Phobos::CheckProcessorFeatures()
 		Debug::Log("Game will now exit.\n");
 		Debug::ExitGame(533u);
 	}
-#endif
 }
 
 void Phobos::PassiveSaveGame()
@@ -513,18 +514,24 @@ void Phobos::Config::Read()
 				pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
 
-			Phobos::UI::ExclusiveSuperWeaponSidebar =
-				pINI->ReadBool(SIDEBAR_SECTION_T, "ExclusiveSuperWeaponSidebar", Phobos::UI::ExclusiveSuperWeaponSidebar);
+			Phobos::UI::ExclusiveSWSidebar =
+			pINI->ReadBool(SIDEBAR_SECTION, "ExclusiveSWSidebar", Phobos::UI::ExclusiveSWSidebar);
 
-			Phobos::UI::ExclusiveSuperWeaponSidebar_Max =
-				pINI->ReadInteger(SIDEBAR_SECTION_T, "ExclusiveSuperWeaponSidebar.Max", Phobos::UI::ExclusiveSuperWeaponSidebar_Max);
+			Phobos::UI::ExclusiveSWSidebar_Interval =
+				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.Interval", Phobos::UI::ExclusiveSWSidebar_Interval);
+
+			Phobos::UI::ExclusiveSWSidebar_Max =
+				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.Max", Phobos::UI::ExclusiveSWSidebar_Max);
 
 			const int screenHeight = GameOptionsClass::Instance->ScreenHeight - 192;
 
-			if (Phobos::UI::ExclusiveSuperWeaponSidebar_Max > 0)
-				Phobos::UI::ExclusiveSuperWeaponSidebar_Max = std::min(Phobos::UI::ExclusiveSuperWeaponSidebar_Max, screenHeight / 48);
+			if (Phobos::UI::ExclusiveSWSidebar_Max > 0)
+				Phobos::UI::ExclusiveSWSidebar_Max = MinImpl(Phobos::UI::ExclusiveSWSidebar_Max, screenHeight / 48);
 			else
-				Phobos::UI::ExclusiveSuperWeaponSidebar_Max = screenHeight / 48;
+				Phobos::UI::ExclusiveSWSidebar_Max = screenHeight / 48;
+
+			Phobos::UI::ExclusiveSWSidebar_MaxColumn =
+				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.MaxColumn", Phobos::UI::ExclusiveSWSidebar_MaxColumn);
 		}
 
 	});

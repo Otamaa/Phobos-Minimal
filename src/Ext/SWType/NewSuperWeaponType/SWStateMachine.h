@@ -1,11 +1,12 @@
 #pragma once
 
-#include <Ext/SWType/Body.h>
 #include "NewSWType.h"
-#include <ProgressTimer.h>
 
 #include <Ext/WeaponType/Body.h>
-#include <New/Entity/ElectricBoltClass.h>
+#include <Ext/SWType/Body.h>
+#include <Ext/House/Body.h>
+
+#include <ProgressTimer.h>
 
 enum class SWStateMachineIdentifier : int
 {

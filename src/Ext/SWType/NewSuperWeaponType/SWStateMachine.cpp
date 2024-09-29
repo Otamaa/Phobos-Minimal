@@ -7,6 +7,8 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <New/Entity/ElectricBoltClass.h>
+
 std::vector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()

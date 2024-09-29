@@ -2,10 +2,8 @@
 #include <WaveClass.h>
 
 #include <Utilities/Container.h>
-#include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
-#include <Helpers/Macro.h>
 
 #include <Memory.h>
 
@@ -361,6 +359,6 @@ public:
 		}
 	}
 
-	CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
+	//CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
 };
 

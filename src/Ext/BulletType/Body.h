@@ -2,7 +2,10 @@
 #include <BulletTypeClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/PhobosMap.h>
+#include <Utilities/SavegameDef.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
@@ -176,7 +179,7 @@ class BulletTypeExtContainer final : public Container<BulletTypeExtData>
 {
 public:
 	static BulletTypeExtContainer Instance;
-	PhobosMap<BulletTypeClass*, BulletTypeExtData*> Map;
+	PhobosMap<BulletTypeClass*, BulletTypeExtData*> Map {};
 
 	virtual bool Load(BulletTypeClass* key, IStream* pStm);
 
@@ -184,17 +187,17 @@ public:
 		this->Map.clear();
 	}
 
-	BulletTypeExtContainer() : Container<BulletTypeExtData> { "BulletTypeClass" }
-		, Map {}
-	{ }
+	//BulletTypeExtContainer() : Container<BulletTypeExtData> { "BulletTypeClass" }
+	//	, Map {}
+	//{ }
 
-	virtual ~BulletTypeExtContainer() override = default;
+	//virtual ~BulletTypeExtContainer() override = default;
 	//CONSTEXPR_NOCOPY_CLASSB(BulletTypeExtContainer, BulletTypeExtData, "BulletTypeClass");
 
-private:
-	BulletTypeExtContainer(const BulletTypeExtContainer&) = delete;
-	BulletTypeExtContainer(BulletTypeExtContainer&&) = delete;
-	BulletTypeExtContainer& operator=(const BulletTypeExtContainer& other) = delete;
+//private:
+//	BulletTypeExtContainer(const BulletTypeExtContainer&) = delete;
+//	BulletTypeExtContainer(BulletTypeExtContainer&&) = delete;
+//	BulletTypeExtContainer& operator=(const BulletTypeExtContainer& other) = delete;
 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)

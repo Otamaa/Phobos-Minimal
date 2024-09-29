@@ -142,12 +142,12 @@ public:
 	PROTECTED_PROPERTY(BYTE, unused_66[2]);
 	AnimClass* Animation;                // 0x68
 	bool AnimationGotInvalid;
-	bool Granted; //Is this SW enabled
-	bool OneTime; // remove this SW when it has been fired once
-	bool IsCharged;
-	bool IsOnHold;
+	bool Granted; //Is this SW enabled , IsPresent
+	bool OneTime; // remove this SW when it has been fired once , IsOneTime
+	bool IsCharged; //IsReady
+	bool IsOnHold; // IsSuspended
 	PROTECTED_PROPERTY(BYTE, unused_71[3]);
-	int ReadinessFrame; // when did it become ready?
+	int ReadinessFrame; // when did it become ready? ,ReadyFrame
 	int CameoChargeState;
 	ChargeDrainState ChargeDrainState;
 };

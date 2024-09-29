@@ -1,9 +1,10 @@
 #pragma once
 
 #include <TriggerTypeClass.h>
-#include <Utilities/Container.h>
+//#include <Utilities/Container.h>
 
 class TriggerClass;
+class HouseClass;
 class TriggerTypeExt
 {
 public:

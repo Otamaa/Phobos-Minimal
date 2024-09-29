@@ -1,22 +1,24 @@
 #pragma once
 #include <WarheadTypeClass.h>
+#include <CoordStruct.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
+#include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
-#include <New/Type/ShieldTypeClass.h>
-#include <New/Entity/LauchSWData.h>
 
+#include <New/AnonymousType/AresAttachEffectTypeClass.h>
+
+#include <New/Type/ShieldTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <New/Entity/LauchSWData.h>
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 
-#include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/VersesData.h>
 
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
@@ -521,7 +523,7 @@ class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
 public:
 	static WarheadTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(WarheadTypeExtContainer, WarheadTypeExtData, "WarheadTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(WarheadTypeExtContainer, WarheadTypeExtData, "WarheadTypeClass");
 public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

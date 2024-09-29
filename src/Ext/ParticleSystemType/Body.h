@@ -40,5 +40,5 @@ class ParticleSystemTypeExtContainer final : public Container<ParticleSystemType
 public:
 	static ParticleSystemTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(ParticleSystemTypeExtContainer, ParticleSystemTypeExtData, "ParticleSystemTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemTypeExtContainer, ParticleSystemTypeExtData, "ParticleSystemTypeClass");
 };

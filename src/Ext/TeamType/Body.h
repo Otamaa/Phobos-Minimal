@@ -1,10 +1,10 @@
 #pragma once
 #include <TeamTypeClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Macro.h>
+//#include <Helpers/Macro.h>
+//#include <Utilities/Container.h>
+//#include <Utilities/TemplateDef.h>
+//#include <Utilities/Macro.h>
 
 class TeamTypeExt
 {

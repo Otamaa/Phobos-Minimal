@@ -14,6 +14,7 @@
 #include <ParticleSystemClass.h>
 #include <ColorScheme.h>
 #include <SmudgeTypeClass.h>
+#include <CoordStruct.h>
 
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
@@ -200,7 +201,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	if (appliedDamage <= 0 || pThis->IsPlaying)
 		return  SkipDamage;
 
-	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
+	const CoordStruct nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
 	if (auto const pWeapon = pTypeExt->Weapon)

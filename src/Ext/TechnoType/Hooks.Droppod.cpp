@@ -4,6 +4,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
 struct DroppodProperties_

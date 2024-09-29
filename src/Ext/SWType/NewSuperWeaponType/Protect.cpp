@@ -1,6 +1,8 @@
 #include "Protect.h"
 
 #include <Ext/TechnoType/Body.h>
+#include <Ext/SWType/Body.h>
+
 #include <Utilities/Helpers.h>
 
 std::vector<const char*> SW_Protect::GetTypeString() const

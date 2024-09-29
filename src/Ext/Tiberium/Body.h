@@ -1,7 +1,6 @@
 #pragma once
 #include <TiberiumClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/Macro.h>
@@ -23,6 +22,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+
 	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
 	Nullable<AnimTypeClass*> OreTwinkle {};
 	Nullable<int> OreTwinkleChance {};
@@ -116,5 +116,5 @@ public:
 
 	void Clear();
 
-	CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
+	//CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };

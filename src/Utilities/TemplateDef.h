@@ -52,11 +52,13 @@
 #include <VoxClass.h>
 #include <VelocityClass.h>
 #include <SWRange.h>
+#include <CoordStruct.h>
 
 #include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>
 
 #include <Utilities/TechnoTypeConvertData.h>
+#include <Utilities/CSFText.h>
 
 #include <New/Type/PaletteManager.h>
 

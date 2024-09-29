@@ -2467,7 +2467,7 @@ DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
 	TechnoTypeExtContainer::Instance.Map.erase(pItem);
 	if(extData)
-		DLLDelete(extData);
+		DLLCallDTOR(extData);
 
 	return 0;
 }

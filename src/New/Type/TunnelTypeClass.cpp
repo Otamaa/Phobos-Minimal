@@ -1,5 +1,7 @@
 #include "TunnelTypeClass.h"
 
+#include <Utilities/INIParser.h>
+
 Enumerable<TunnelTypeClass>::container_t Enumerable<TunnelTypeClass>::Array;
 
 const char* Enumerable<TunnelTypeClass>::GetMainSection()
@@ -25,10 +27,10 @@ void TunnelTypeClass::Serialize(T& Stm)
 		;
 }
 
-void TunnelTypeClass::LoadFromStream(PhobosStreamReader& Stm) { 
+void TunnelTypeClass::LoadFromStream(PhobosStreamReader& Stm) {
 	this->Serialize(Stm);
 }
 
-void TunnelTypeClass::SaveToStream(PhobosStreamWriter& Stm) { 
+void TunnelTypeClass::SaveToStream(PhobosStreamWriter& Stm) {
 	this->Serialize(Stm);
 }

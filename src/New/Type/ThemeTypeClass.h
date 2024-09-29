@@ -3,6 +3,7 @@
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/PhobosFixedString.h>
 
 class ThemeTypeClass final : public Enumerable<ThemeTypeClass>
 {

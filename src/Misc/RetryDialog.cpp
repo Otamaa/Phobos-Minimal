@@ -9,6 +9,7 @@
 
 #include <GameStrings.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/Debug.h>
 
 namespace RetryDialogFlag
 {

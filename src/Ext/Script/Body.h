@@ -324,5 +324,5 @@ class ScriptExtContainer final : public Container<ScriptExtData>
 public:
 	static ScriptExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(ScriptExtContainer, ScriptExtData, "ScriptClass");
+	//CONSTEXPR_NOCOPY_CLASSB(ScriptExtContainer, ScriptExtData, "ScriptClass");
 };

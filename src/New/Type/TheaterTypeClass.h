@@ -9,6 +9,7 @@
 #include <string>
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/PhobosFixedString.h>
 
 #include <Phobos.CRT.h>
 

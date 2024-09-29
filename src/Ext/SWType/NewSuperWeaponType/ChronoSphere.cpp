@@ -1,5 +1,7 @@
 #include "ChronoSphere.h"
 
+#include <Ext/SWType/Body.h>
+
 bool SW_ChronoSphere::HandleThisType(SuperWeaponType type) const
 {
 	return (type == SuperWeaponType::ChronoSphere);

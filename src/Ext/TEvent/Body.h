@@ -1,13 +1,10 @@
 #pragma once
 
-#include <Utilities/Container.h>
-#include <Utilities/Template.h>
-
-#include <Helpers/Template.h>
-
 #include <TEventClass.h>
 
-#include <Utilities/Constructs.h>
+#include <Utilities/Container.h>
+#include <Utilities/Template.h>
+#include <Utilities/OptionalStruct.h>
 
 class HouseClass;
 
@@ -71,8 +68,8 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
 
+	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -116,5 +113,5 @@ class TEventExtContainer final : public Container<TEventExtData>
 public:
 	static TEventExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
+	//CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
 };

@@ -3,10 +3,8 @@
 #include <ScenarioClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
-
-#include <map>
 
 struct ExtendedVariable
 {

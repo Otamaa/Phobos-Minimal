@@ -3,6 +3,8 @@
 #include <TeamClass.h>
 
 #include <Helpers/Macro.h>
+
+#include <Utilities/OptionalStruct.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/VectorHelper.h>
@@ -369,8 +371,8 @@ public:
 
 class HouseExtContainer final : public Container<HouseExtData>
 {
-public:
-	CONSTEXPR_NOCOPY_CLASSB(HouseExtContainer, HouseExtData, "HouseClass");
+//public:
+//	CONSTEXPR_NOCOPY_CLASSB(HouseExtContainer, HouseExtData, "HouseClass");
 public:
 	static HouseExtContainer Instance;
 

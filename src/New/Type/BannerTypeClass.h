@@ -3,6 +3,7 @@
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/Enum.h>
+#include <Utilities/PhobosFixedString.h>
 
 enum class BannerType : int
 {

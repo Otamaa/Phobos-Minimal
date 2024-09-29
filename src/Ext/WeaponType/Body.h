@@ -2,12 +2,13 @@
 #include <BulletClass.h>
 #include <WeaponTypeClass.h>
 
-#include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
+
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+
 #include <New/Entity/ElectricBoltClass.h>
 
 #include <Misc/DynamicPatcher/Others/DamageText.h>
@@ -220,7 +221,7 @@ class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
 public:
 	static WeaponTypeExtContainer Instance;
 
-	CONSTEXPR_NOCOPY_CLASSB(WeaponTypeExtContainer, WeaponTypeExtData, "WeaponTypeClass");
+	//CONSTEXPR_NOCOPY_CLASSB(WeaponTypeExtContainer, WeaponTypeExtData, "WeaponTypeClass");
 
 public:
 

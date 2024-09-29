@@ -1,6 +1,7 @@
 #include "Firewall.h"
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/SWType/Body.h>
 
 SuperWeaponType SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 
