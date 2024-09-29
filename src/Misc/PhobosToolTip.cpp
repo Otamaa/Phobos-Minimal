@@ -19,8 +19,8 @@
 #include <CCToolTip.h>
 #include <BitFont.h>
 #include <BitText.h>
-#include <Phobos.h>
 #include <FPSCounter.h>
+#include <SidebarClass.h>
 
 #include <sstream>
 #include <iomanip>
@@ -90,12 +90,12 @@ inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 	return 0;
 }
 
-void PhobosToolTip::HelpText(const BuildType& cameo)
+void PhobosToolTip::HelpText(const BuildType* cameo)
 {
-	if (cameo.ItemType == AbstractType::Special) {
-		this->HelpText(HouseClass::CurrentPlayer->Supers.Items[cameo.ItemIndex]);
+	if (cameo->ItemType == AbstractType::Special) {
+		this->HelpText(HouseClass::CurrentPlayer->Supers.Items[cameo->ItemIndex]);
 	} else {
-		this->HelpText(ObjectTypeClass::FetchTechnoType(cameo.ItemType, cameo.ItemIndex));
+		this->HelpText(ObjectTypeClass::FetchTechnoType(cameo->ItemType, cameo->ItemIndex));
 	}
 }
 

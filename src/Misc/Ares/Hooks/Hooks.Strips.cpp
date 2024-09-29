@@ -244,7 +244,7 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 	PhobosToolTip::Instance.IsCameo = true;
 
 	if (PhobosToolTip::Instance.IsEnabled()) {
-		PhobosToolTip::Instance.HelpText(cameo); // pStrip->Cameos[nID] in fact
+		PhobosToolTip::Instance.HelpText(&cameo);
 		R->EAX(L"X");
 		return 0x6A93DE;
 	}

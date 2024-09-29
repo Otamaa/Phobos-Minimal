@@ -7,6 +7,7 @@
 struct StripClass;
 class TechnoTypeClass;
 class SuperClass;
+struct BuildType;
 
 class PhobosToolTip
 {
@@ -28,7 +29,7 @@ public:
 		return this->TextBuffer.c_str();
 	}
 
-	void HelpText(const BuildType& cameo);
+	void HelpText(const BuildType* cameo);
 	void HelpText(TechnoTypeClass* pType);
 	void HelpText(SuperClass* pSuper);
 
