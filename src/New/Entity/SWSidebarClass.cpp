@@ -410,6 +410,9 @@ DEFINE_HOOK(0x6A6300, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 
 DEFINE_HOOK(0x6A5082, SidebarClass_Init_Clear_InitializeSWSidebar, 0x5)
 {
+	if (!SWSidebarClass::Global())
+		SWSidebarClass::Allocate();
+
 	SWSidebarClass::Global()->Init_Clear();
 	return 0;
 }
