@@ -388,6 +388,7 @@ public:
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
 	Valueable<bool> EnablePowerSurplus { false };
+	Valueable<bool> ShakeScreenUseTSCalculation { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

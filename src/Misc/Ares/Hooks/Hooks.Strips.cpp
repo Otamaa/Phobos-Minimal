@@ -993,11 +993,11 @@ DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 //duuunno
 DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
-	GET(FactoryClass*, pSomething, EDI);
+	GET(StripClass*, pThis, EDI);
 	GET(int, idx_first, ECX);
 	GET(int, idx_Second, EDX);
 	R->EAX(&SelectButtonCombined[idx_Second + 2 * idx_first]);
-	return pSomething->Production.Step > 0 ? 0x6A9703 : 0x6A9714;
+	return pThis->IsScrolling ? 0x6A9703 : 0x6A9714;
 }
 
 DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)

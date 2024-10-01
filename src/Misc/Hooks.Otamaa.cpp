@@ -9133,3 +9133,15 @@ void ShakeScreen(GScreenClass* pScreen) {
 		pScreen->ScreenShakeY = pScreen->ScreenShakeY + 1;
 	}
 }
+
+DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5) {
+
+	GET(GScreenClass*, pThis, ECX);
+
+	if (RulesExtData::Instance()->ShakeScreenUseTSCalculation) {
+		ShakeScreen(pThis);
+		return 0x4F4BEF;
+	}
+
+	return 0x0;
+}
