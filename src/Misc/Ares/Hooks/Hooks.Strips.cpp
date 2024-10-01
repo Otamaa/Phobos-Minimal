@@ -4,16 +4,19 @@
 #include <EventClass.h>
 #include <ShapeButtonClass.h>
 
-static constexpr reference2D<SelectClass, 0xB07E80u, 1, 14u> const Buttons {};
-static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
-static constexpr constant_ptr<SelectClass, 0xB07E94> const ButtonsPtr_2 {};
-static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
-static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
-static constexpr size_t sizeofShapeBtn = sizeof(ShapeButtonClass);
-static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
-static constexpr constant_ptr<StripClass, 0x884B7C> const Collum_end {};
+// top button
+static constexpr reference<ControlClass, 0xB07C48u, 4u> const ShapeButtons {};
+// collum
+static constexpr reference<StripClass, 0x880D2Cu, 4u> const Column {};
+// buttons
+
+static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 56u> const SelectButton {};
+
+static constexpr reference<SelectClass, 0xB07E80u, 224> const SelectButtonCombined {};
+
 static constexpr reference<int, 0xB0B500> const SidebarObject_Height {};
 static constexpr reference<int, 0xB0B4FC> const SidebarObject_Width {};
+
 #ifndef CAMEOS_
 
 DEFINE_HOOK_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
@@ -807,11 +810,11 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	{
 		ShapeButtons[pThis->Index].Disable();
 
-		StripClass* begin_c = Collum_begin();
+		StripClass* begin_c = Column.begin();
 		bool IsBreak = false;
 		while ((*begin_c).BuildableCount <= 0)
 		{
-			if (++begin_c == Collum_end())
+			if (++begin_c == Column.end())
 			{
 				SidebarClass::Instance->ToggleStuffs();
 				if (SidebarClass::Shape_B0B478())
@@ -826,7 +829,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 		}
 
 		if (!IsBreak && pThis->Index == SidebarClass::something_884B84())
-			SidebarClass::Instance->ChangeTab(std::distance(Collum_begin(), begin_c));
+			SidebarClass::Instance->ChangeTab(std::distance(Column.begin(), begin_c));
 	}
 	else
 	{
@@ -861,38 +864,43 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 //the compiled result offseting the array begin too much
 //not sure what happen , altho there is similar code exist
 //just this one generating too far offsetted array begin pointer
+#pragma optimize("", off )
+static void DoStuffs(int idx,StripClass* pStrip,  int height, int width , int y , SelectClass* pBegin) {
+	int MaxShown = SidebarClass::Instance->Func_6AC430();
+
+	if (MaxShown)
+	{
+
+		int a = 0;
+		auto i = (pBegin);
+		do
+		{
+			i->Index = a;
+			i->ID = 202;
+			i->Strip = pStrip;
+			const auto nY_stuff = height * (a & 0xFFFFFFFE);
+			const auto  nX_stuff = a++ & 1;
+			i->Rect.X = pStrip->Location.X + width + nX_stuff;
+			i->Rect.Y = y + nY_stuff;
+			i->Rect.Height = 60;
+			i->Rect.Width = 48;
+
+			i++;
+
+		}
+		while (i != (MaxShown + pBegin));
+	}
+}
+#pragma optimize("", on )
+
 //DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 //{
 //	GET(StripClass*, pThis, ECX);
 //	GET_STACK(int, nIdx, 0x4);
 //
-//	//pThis->unknown_50 = nIdx;
-//	//auto nInc_y = pThis->Location.X + 1;
-//
-//	int const nXIdx = SidebarClass::Instance->Func_6AC430();
-//	int a = 0;
-//
-//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i) {
-//		(*i).Index = a;
-//		(*i).ID = 202;
-//		(*i).Strip = pThis;
-//		++a;
-//	}
-//
-//	//	int nIncb = 0;
-//	//	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i)
-//	//	{
-//	//		(*i).Index = nIncb;
-//	//		(*i).ID = 202;
-//	//		(*i).Strip = pThis;
-//	//		const auto nY_stuff = SidebarObject_Height() * (nIncb & 0xFFFFFFFE);
-//	//		const auto  nX_stuff = nIncb++ & 1;
-//	//		(*i).Rect.X = pThis->Location.Y + SidebarObject_Width() + nX_stuff;
-//	//		(*i).Rect.Y = nInc_y + nY_stuff;
-//	//		(*i).Rect.Height = 60;
-//	//		(*i).Rect.Width = 48;
-//	//	}
-//
+//	pThis->__LastSlid = nIdx;
+//	auto nInc_y = pThis->Location.X + 1;
+//	DoStuffs(nIdx, pThis, SidebarObject_Height(), SidebarObject_Width(), nInc_y, SelectButton[nIdx]);
 //	return 0x6A8329;
 //}
 
@@ -985,11 +993,11 @@ DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 //duuunno
 DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
-	GET(DWORD*, pSomething, EDI);
+	GET(FactoryClass*, pSomething, EDI);
 	GET(int, idx_first, ECX);
 	GET(int, idx_Second, EDX);
-	R->EAX(reinterpret_cast<SelectClass*>(56 * (idx_Second + 2 * idx_first) + ButtonsPtr.getAddrs()));
-	return *reinterpret_cast<bool*>((((BYTE*)pSomething) + 0x3fu)) != 0 ? 0x6A9703 : 0x6A9714;
+	R->EAX(&SelectButtonCombined[idx_Second + 2 * idx_first]);
+	return pSomething->Production.Step > 0 ? 0x6A9703 : 0x6A9714;
 }
 
 DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
@@ -1005,7 +1013,7 @@ DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 		for (size_t a = 0; a < nCurIdx; ++a)
 		{
 			CCToolTip::Instance->Add(ToolTip { a + Offset ,
-				ButtonsPtr[a].Rect,
+				SelectButtonCombined[a].Rect,
 				nullptr,
 				true });
 
@@ -1035,7 +1043,7 @@ DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 
 DEFINE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
 {
-	for (auto begin = ButtonsPtr(); begin != Buttons_endPtr(); ++begin)
+	for (auto begin = SelectButtonCombined.begin(); begin != SelectButtonCombined.end(); ++begin)
 		GScreenClass::Instance->RemoveButton(begin);
 
 	return 0x6A8415;
@@ -1046,8 +1054,7 @@ DEFINE_HOOK(0x6A8330, StripClass_EnableInput, 5)
 	GET(StripClass*, pThis, ECX);
 
 	int const nIdx = SidebarClass::Instance->Func_6AC430();
-
-	for (auto i = ButtonsPtr(); i != (&ButtonsPtr[nIdx]); ++i)
+	for (auto i = SelectButtonCombined.begin(); i != (&SelectButtonCombined[nIdx]); ++i)
 	{
 		(*i).Zap();
 		(*i).Strip = pThis;
@@ -1060,7 +1067,7 @@ DEFINE_HOOK(0x6A8330, StripClass_EnableInput, 5)
 
 DEFINE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
 {
-	R->ESI<DWORD>(ButtonsPtr.getAddrs());
+	R->ESI(SelectButtonCombined.begin());
 	return 0x6ABF49;
 }
 

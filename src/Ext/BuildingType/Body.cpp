@@ -981,6 +981,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->NoBuildAreaOnBuildup.Read(exINI, pSection, "NoBuildAreaOnBuildup");
 		this->Adjacent_Allowed.Read(exINI, pSection, "Adjacent.Allowed");
 		this->Adjacent_Disallowed.Read(exINI, pSection, "Adjacent.Disallowed");
+
+		this->Units_RepairRate.Read(exINI, pSection, "Units.RepairRate");
+		this->Units_RepairStep.Read(exINI, pSection, "Units.RepairStep");
+		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
+		this->Units_DisableRepairCost.Read(exINI, pSection, "Units.DisableRepairCost");
+
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1277,6 +1283,11 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NoBuildAreaOnBuildup)
 		.Process(this->Adjacent_Allowed)
 		.Process(this->Adjacent_Disallowed)
+
+		.Process(this->Units_RepairRate)
+		.Process(this->Units_RepairStep)
+		.Process(this->Units_RepairPercent)
+		.Process(this->Units_DisableRepairCost)
 		;
 }
 

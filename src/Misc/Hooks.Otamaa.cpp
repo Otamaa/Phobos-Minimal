@@ -9109,3 +9109,27 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 //		SidebarBlitRequested_FullRedraw = true;
 //	}
 //}
+
+//static std::vector<bool> ShakeScreenTibsunStyle {};
+
+void ShakeScreen(GScreenClass* pScreen) {
+	/**
+	 *   TibSun style.
+	 */
+
+	if (pScreen->ScreenShakeX >= 0) {
+		if (pScreen->ScreenShakeX > 0) {
+			pScreen->ScreenShakeX = pScreen->ScreenShakeX - 1;
+		}
+	} else {
+		pScreen->ScreenShakeX = pScreen->ScreenShakeX + 1;
+	}
+
+	if (pScreen->ScreenShakeY >= 0) {
+		if (pScreen->ScreenShakeY > 0) {
+			pScreen->ScreenShakeY = pScreen->ScreenShakeY - 1;
+		}
+	} else {
+		pScreen->ScreenShakeY = pScreen->ScreenShakeY + 1;
+	}
+}

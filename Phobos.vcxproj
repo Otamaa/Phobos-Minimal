@@ -52,6 +52,7 @@
     <ClCompile Include="src\Ext\Building\Hooks.Fires.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.SellFixes.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.UnitRepair.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Upgrades.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hook.Init.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.ArcingFix.cpp" />

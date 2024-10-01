@@ -326,7 +326,7 @@ void SWSidebarClass::RecordHotkey(int buttonIndex, int key)
 	}
 
 	oss << GetKeyName(key & 0xFF);
-	this->KeyCodeText[index] = oss.str();
+	this->KeyCodeText[index] = std::move(oss.str());
 }
 
 int SWSidebarClass::GetMaximumButtonCount()

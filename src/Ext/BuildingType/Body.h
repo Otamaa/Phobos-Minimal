@@ -318,6 +318,11 @@ public:
 	ValueableVector<BuildingTypeClass*> Adjacent_Allowed {};
 	ValueableVector<BuildingTypeClass*> Adjacent_Disallowed {};
 
+	Nullable<double> Units_RepairRate {};
+	Nullable<int> Units_RepairStep {};
+	Nullable<double> Units_RepairPercent {};
+	Valueable<bool> Units_DisableRepairCost { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
