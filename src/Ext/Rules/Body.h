@@ -362,7 +362,7 @@ public:
 	Valueable<bool> AISellAllOnLastLegs { true };
 	Valueable<int> AISellAllDelay { 0 };
 	Valueable<bool> AIAllInOnLastLegs { true };
-	ValueableVector<bool> RepairBaseNodes { };
+	Valueable<bool> RepairBaseNodes { };
 	Valueable<bool> MCVRedeploysInCampaign { false };
 
 	Valueable<double> AircraftLevelLightMultiplier { 1.0 };

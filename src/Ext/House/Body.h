@@ -109,7 +109,7 @@ public:
 	bool AllRepairEventTriggered { false };
 	int LastBuildingTypeArrayIdx { -1 };
 
-	bool RepairBaseNodes[3] { false };
+	Nullable<bool> RepairBaseNodes[3] { };
 
 	//#817
 	int LastBuiltNavalVehicleType { -1 };

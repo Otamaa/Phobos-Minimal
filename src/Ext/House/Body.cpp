@@ -555,7 +555,13 @@ void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
-	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
+	bool readBaseNodeRepairInfo[3];
+	size_t var = exINI.Read3Bool(pSection, "RepairBaseNodes", readBaseNodeRepairInfo);
+	if (var <= 3) {
+		for (size_t i = 0; i < var; i++) {
+			this->RepairBaseNodes[i] = readBaseNodeRepairInfo[i];
+		}
+	}
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
 }

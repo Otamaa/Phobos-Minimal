@@ -1625,7 +1625,8 @@ DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	const auto pType = pThis->Type;
 
-	if(pThis->Transporter) {
+	if (pThis->Transporter)
+	{
 		if (TechnoTypeExtContainer::Instance.Find(pType)->ReloadInTransport
 			&& pType->Ammo > 0
 			&& pThis->Ammo < pType->Ammo
@@ -4284,10 +4285,11 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 //
 DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 {
-	GET_STACK(DWORD, caller ,0x0);
+	GET_STACK(DWORD, caller, 0x0);
 	GET(ParticleSystemClass*, pThis, ECX);
 
-	if (!pThis) {
+	if (!pThis)
+	{
 		// Fuck off
 		//Debug::Log("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]\n", caller);
 		return 0x62E4B4;
@@ -9112,36 +9114,90 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 
 //static std::vector<bool> ShakeScreenTibsunStyle {};
 
-void ShakeScreen(GScreenClass* pScreen) {
+void ShakeScreen(GScreenClass* pScreen)
+{
 	/**
 	 *   TibSun style.
 	 */
 
-	if (pScreen->ScreenShakeX >= 0) {
-		if (pScreen->ScreenShakeX > 0) {
+	if (pScreen->ScreenShakeX >= 0)
+	{
+		if (pScreen->ScreenShakeX > 0)
+		{
 			pScreen->ScreenShakeX = pScreen->ScreenShakeX - 1;
 		}
-	} else {
+	}
+	else
+	{
 		pScreen->ScreenShakeX = pScreen->ScreenShakeX + 1;
 	}
 
-	if (pScreen->ScreenShakeY >= 0) {
-		if (pScreen->ScreenShakeY > 0) {
+	if (pScreen->ScreenShakeY >= 0)
+	{
+		if (pScreen->ScreenShakeY > 0)
+		{
 			pScreen->ScreenShakeY = pScreen->ScreenShakeY - 1;
 		}
-	} else {
+	}
+	else
+	{
 		pScreen->ScreenShakeY = pScreen->ScreenShakeY + 1;
 	}
 }
 
-DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5) {
+DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
+{
 
 	GET(GScreenClass*, pThis, ECX);
 
-	if (RulesExtData::Instance()->ShakeScreenUseTSCalculation) {
+	if (RulesExtData::Instance()->ShakeScreenUseTSCalculation)
+	{
 		ShakeScreen(pThis);
 		return 0x4F4BEF;
 	}
 
 	return 0x0;
 }
+
+void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
+{
+	auto pType = pThis->Type;
+	auto pParticle = pType->RefinerySmokeParticleSystem;
+
+	if (!pParticle)
+		return;
+
+	Coordinate coord = pThis->Location;
+
+	if (pType->RefinerySmokeOffsetOne.IsValid())
+	{
+		auto coord1 = coord + pType->RefinerySmokeOffsetOne;
+		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1);
+		particle->Lifetime = pType->RefinerySmokeFrames;
+	}
+
+	if (pType->RefinerySmokeOffsetTwo.IsValid())
+	{
+		auto coord2 = coord + pType->RefinerySmokeOffsetTwo;
+		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2);
+		particle->Lifetime = pType->RefinerySmokeFrames;
+	}
+
+
+	if (pType->RefinerySmokeOffsetThree.IsValid())
+	{
+		auto coord3 = coord + pType->RefinerySmokeOffsetThree;
+		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3);
+		particle->Lifetime = pType->RefinerySmokeFrames;
+	}
+
+
+	if (pType->RefinerySmokeOffsetFour.IsValid())
+	{
+		auto coord4 = coord + pType->RefinerySmokeOffsetFour;
+		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4);
+		particle->Lifetime = pType->RefinerySmokeFrames;
+	}
+}
+
+DEFINE_JUMP(VTABLE, 0x459900, GET_OFFSET(Spawn_Refinery_Smoke_Particles));

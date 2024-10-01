@@ -136,7 +136,7 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 		if (BuildingExtContainer::Instance.Find(pThis)->IsCreatedFromMapFile)
 			return ShouldNotRebuild;
 
-		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
+		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty].Get(RulesExtData::Instance()->RepairBaseNodes))
 		return ShouldNotRebuild;
 	}
 
