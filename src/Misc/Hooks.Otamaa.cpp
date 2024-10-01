@@ -9159,45 +9159,36 @@ DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 	return 0x0;
 }
 
+static inline constexpr CoordStruct RelativeCenterCoord { 128 , 128 , 0};
+
 void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
 {
 	auto pType = pThis->Type;
-	auto pParticle = pType->RefinerySmokeParticleSystem;
+	if (auto pParticle = pType->RefinerySmokeParticleSystem) {
+		if (pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord) {
+			auto coord1 = pType->RefinerySmokeOffsetOne + pThis->Location;
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1);
+			particle->Lifetime = pType->RefinerySmokeFrames;
+		}
 
-	if (!pParticle)
-		return;
+		if (pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord) {
+			auto coord2 = pType->RefinerySmokeOffsetTwo + pThis->Location;
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2);
+			particle->Lifetime = pType->RefinerySmokeFrames;
+		}
 
-	Coordinate coord = pThis->Location;
+		if (pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)  {
+			auto coord3 = pType->RefinerySmokeOffsetThree + pThis->Location;
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3);
+			particle->Lifetime = pType->RefinerySmokeFrames;
+		}
 
-	if (pType->RefinerySmokeOffsetOne.IsValid())
-	{
-		auto coord1 = coord + pType->RefinerySmokeOffsetOne;
-		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1);
-		particle->Lifetime = pType->RefinerySmokeFrames;
-	}
-
-	if (pType->RefinerySmokeOffsetTwo.IsValid())
-	{
-		auto coord2 = coord + pType->RefinerySmokeOffsetTwo;
-		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2);
-		particle->Lifetime = pType->RefinerySmokeFrames;
-	}
-
-
-	if (pType->RefinerySmokeOffsetThree.IsValid())
-	{
-		auto coord3 = coord + pType->RefinerySmokeOffsetThree;
-		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3);
-		particle->Lifetime = pType->RefinerySmokeFrames;
-	}
-
-
-	if (pType->RefinerySmokeOffsetFour.IsValid())
-	{
-		auto coord4 = coord + pType->RefinerySmokeOffsetFour;
-		auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4);
-		particle->Lifetime = pType->RefinerySmokeFrames;
-	}
+		if (pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord) {
+			auto coord4 = pType->RefinerySmokeOffsetFour + pThis->Location;
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4);
+			particle->Lifetime = pType->RefinerySmokeFrames;
+		}
+    }
 }
 
-DEFINE_JUMP(VTABLE, 0x459900, GET_OFFSET(Spawn_Refinery_Smoke_Particles));
+//DEFINE_JUMP(VTABLE, 0x7E4324, GET_OFFSET(Spawn_Refinery_Smoke_Particles));

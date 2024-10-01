@@ -160,6 +160,9 @@ struct Game
 		{ JMP_STD(0x5DA6C0); }
 	};
 
+	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
+		{ JMP_STD(0x61EF70); }
+
 	static bool __fastcall File_Finder_Start(char* filename) {
 		JMP_STD(0x47AF70);
 	}
