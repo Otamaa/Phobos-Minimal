@@ -23,16 +23,16 @@
  *
  ******************************************************************************/
 
-constexpr std::string encryptDecrypt(const std::string& toEncrypt , const std::string& key) {
-    std::string output = toEncrypt;
-    //char pkey[3] = {'K', 'C', 'Q'}; //Any chars will work, in an array of any size
-	//i % (sizeof(pkey) / sizeof(char))
-
-    for (int i = 0; i < toEncrypt.size(); i++)
-        output[i] = toEncrypt[i] ^ key[i % (sizeof(key.size() - 1) / sizeof(char))];
-
-    return output;
-}
+//constexpr std::string encryptDecrypt(const std::string& toEncrypt , const std::string& key) {
+//    std::string output = toEncrypt;
+//    //char pkey[3] = {'K', 'C', 'Q'}; //Any chars will work, in an array of any size
+//	//i % (sizeof(pkey) / sizeof(char))
+//
+//    for (int i = 0; i < toEncrypt.size(); i++)
+//        output[i] = toEncrypt[i] ^ key[i % (sizeof(key.size() - 1) / sizeof(char))];
+//
+//    return output;
+//}
 
 DEFINE_JUMP(LJMP, 0x6BC33A, 0x6BC425);
 DEFINE_JUMP(LJMP, 0x6BD6CA, 0x6BD71D);
