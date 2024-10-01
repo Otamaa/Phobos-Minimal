@@ -478,6 +478,10 @@ DEFINE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 	return 0x6AB0BE;
 }
 
+//#include <Utilities/Macro.h>
+
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB49D , 0xBF,0x00,0x00,0x00,0x00,0x89,0xF9);
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB4E8, 0x31, 0xD2, 0x90);
 DEFINE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
 {
 	R->EDI<void*>(nullptr);
@@ -530,11 +534,13 @@ DEFINE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
 	return 0x6AB627;
 }
 
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB620, 0x31, 0xC9, 0x90, 0x90, 0x90, 0x90, 0x90);
 DEFINE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 {
 	R->EDX<void*>(nullptr);
 	return 0x6AB748;
 }
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB741, 0x31, 0xD2, 0x90, 0x90, 0x90, 0x90, 0x90);
 
 DEFINE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
@@ -551,11 +557,16 @@ DEFINE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
 	return 0x6AB82A;
 }
 
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB825, 0x31, 0xD2, 0x90);
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB920, 0x31, 0xC9, 0x90, 0x90, 0x90, 0x90, 0x90);
+
 DEFINE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB927;
 }
+
+//DEFINE_PATCH_TYPED(BYTE, 0x6AB92F, 0x8B, 0x5B, 0x6C, 0x90, 0x90, 0x90, 0x90);
 
 DEFINE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 {
@@ -853,14 +864,6 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 #endif
 
 #ifndef STRIPS
-
-int __fastcall SidebarClass_6AC430(SidebarClass*)
-{
-	JMP_THIS(0x6AC430)
-}
-//B0B500 SidebarClass::ObjectHeight int
-//B0B4FC SidebarClass::ObjectWidth_ int
-
 //the compiled result offseting the array begin too much
 //not sure what happen , altho there is similar code exist
 //just this one generating too far offsetted array begin pointer
@@ -985,7 +988,7 @@ DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 	const DWORD pCur = pPtr + 0x3480;
 	R->ESI(pCur);
 	R->Stack(0x10, pCur);
-	return (DWORD)pCur < SelectClass::Buttons_endPtr.getAddrs() ?
+	return (DWORD)pCur < (DWORD)SelectButtonCombined.end() ?
 		ContinueLoop : BreakLoop;
 }
 
