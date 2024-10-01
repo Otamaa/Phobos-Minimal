@@ -98,6 +98,8 @@ const wchar_t* Phobos::UI::Storage_Label;
 const wchar_t* Phobos::UI::Radar_Label;
 const wchar_t* Phobos::UI::Spysat_Label;
 
+const wchar_t* Phobos::UI::SWShotsFormat = L"";
+
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
 bool Phobos::Config::PrioritySelectionFiltering = true;
@@ -476,6 +478,9 @@ void Phobos::Config::Read()
 
 			pINI->ReadString(TOOLTIPS_SECTION, "RadarJammedLabel", NONE_STR, Phobos::readBuffer);
 			Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"Radar Jammed");
+
+			pINI->ReadString(TOOLTIPS_SECTION, "SWShotsFormat", NONE_STR, Phobos::readBuffer);
+			Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"%d/%d shots"); // ⌚
 		}
 
 		// Sidebar

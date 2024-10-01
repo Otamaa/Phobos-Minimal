@@ -173,6 +173,8 @@ struct Phobos final
 		static const wchar_t* Radar_Label;
 		static const wchar_t* Spysat_Label;
 
+		static const wchar_t* SWShotsFormat;
+
 	};
 
 	struct Config

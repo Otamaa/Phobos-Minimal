@@ -188,7 +188,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 
 	std::wostringstream oss;
 	oss << pSuper->Type->UIName;
-	bool showCost = false;
+	bool showSth = false;
 
 	if (const int nCost = std::abs(pData->Money_Amount))
 	{
@@ -198,25 +198,42 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 			oss << '+';
 
 		oss << Phobos::UI::CostLabel << nCost;
-		showCost = true;
+		showSth = true;
 	}
 
 	const int rechargeTime = TickTimeToSeconds(pSuper->GetRechargeTime());
 
 	if (rechargeTime > 0)
 	{
-		if (!showCost)
+		if (!showSth)
 			oss << L"\n";
 
 		const int nSec = rechargeTime % 60;
 		const int nMin = rechargeTime / 60 /* % 60*/;
 		// int nHour = TickTimeToSeconds(pType->RechargeTime) / 60 / 60;
 
-		oss << (showCost ? L" " : L"") << Phobos::UI::TimeLabel
+		oss << (showSth ? L" " : L"") << Phobos::UI::TimeLabel
 			// << std::setw(2) << std::setfill(L'0') << nHour << L":"
 			<< std::setw(2) << std::setfill(L'0') << nMin << L":"
 			<< std::setw(2) << std::setfill(L'0') << nSec;
+
+		showSth = true;
 	}
+
+
+	auto const& sw_ext = HouseExtContainer::Instance.Find(pSuper->Owner)->GetShotCount(pSuper->Type);
+	int sw_shots = pData->SW_Shots;
+	int remain_shots = pData->SW_Shots - sw_ext.Count;
+	if (sw_shots > 0) {
+
+		if (!showSth)
+			oss << L"\n";
+
+		wchar_t buffer[64];
+		swprintf_s(buffer, Phobos::UI::SWShotsFormat, remain_shots, sw_shots);
+		oss << (showSth ? L" " : L"") << buffer;
+	}
+
 
 	if(pData->SW_Power.isset()) {
 		const auto nPower = pData->SW_Power;
