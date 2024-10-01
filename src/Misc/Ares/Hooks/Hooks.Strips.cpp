@@ -6,10 +6,11 @@
 
 // top button
 static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
+
 // collum
 static constexpr reference<StripClass, 0x880D2Cu, 4u> const Column {};
-// buttons
 
+// buttons
 static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 60u> const SelectButton {};
 
 static constexpr reference<SelectClass, 0xB07E80u, 240> const SelectButtonCombined {};
@@ -623,106 +624,6 @@ DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 	return 0x6AC71A;
 }
 
-// Ares 3.0 replace 3 hooks with //[0x6aa600 , StripClass_RecheckCameos , 0]
-#ifdef USE_OLDIMPL
-DEFINE_DISABLE_HOOK(0x6aa600, StripClass_RecheckCameos_ares)
-
-DEFINE_HOOK(0x6AA6EA, StripClass_RecheckCameos_Memcpy, 0)
-{
-	GET(int, CameoIndex, EAX);
-	GET(StripClass*, pTab, EBP);
-
-	R->ESI<BuildType*>(&MouseClassExt::TabCameos[pTab->Index][CameoIndex]);
-	R->EBX<int>(R->Stack<int>(0x30));
-	R->ECX<int>(0xD);
-	return 0x6AA6FD;
-}
-
-DEFINE_HOOK(0x6AA711, StripClass_RecheckCameos_FilterAllowedCameos, 0)
-{
-	GET(StripClass*, pTab, EBP);
-
-	auto& cameos = MouseClassExt::TabCameos[pTab->Index];
-
-	GET_STACK(int, StripLength, 0x30);
-	GET_STACK(BuildType*, StripData, 0x1C);
-
-	for (auto ix = (int)cameos.size(); ix > 0; --ix)
-	{
-		auto& cameo = cameos[ix - 1];
-
-		auto TechnoType = ObjectTypeClass::FetchTechnoType(cameo.ItemType, cameo.ItemIndex);
-		bool KeepCameo = false;
-		if (TechnoType)
-		{
-			if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
-			{
-				KeepCameo = Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable;
-			}
-		}
-		else
-		{
-			auto& Supers = HouseClass::CurrentPlayer->Supers;
-			if (Supers.ValidIndex(cameo.ItemIndex))
-			{
-				KeepCameo = Supers[cameo.ItemIndex]->Granted;
-			}
-		}
-
-		if (!KeepCameo)
-		{
-			if (cameo.CurrentFactory)
-			{
-				EventClass Event { HouseClass::CurrentPlayer->ArrayIndex  , EventType::ABANDON ,cameo.ItemType ,cameo.ItemIndex, bool(TechnoType ? TechnoType->Naval : 0) };
-				EventClass::AddEvent(&Event);
-			}
-
-			if (cameo.ItemType == BuildingTypeClass::AbsID || cameo.ItemType == BuildingClass::AbsID)
-			{
-				MouseClass::Instance->CurrentBuilding = nullptr;
-				MouseClass::Instance->CurrentBuildingType = nullptr;
-				MouseClass::Instance->unknown_11AC = 0xFFFFFFFF;
-				MouseClass::Instance->SetActiveFoundation(nullptr);
-			}
-
-			if (TechnoType)
-			{
-				auto Me = TechnoType->WhatAmI();
-				if (HouseClass::CurrentPlayer->GetPrimaryFactory(Me, TechnoType->Naval, BuildCat::DontCare))
-				{
-					EventClass Event { HouseClass::CurrentPlayer->ArrayIndex  , EventType::ABANDON_ALL ,cameo.ItemType ,cameo.ItemIndex, bool(TechnoType ? TechnoType->Naval : 0) };
-					EventClass::AddEvent(&Event);
-				}
-			}
-
-			for (auto ixStrip = StripLength; ixStrip > 0; --ixStrip)
-			{
-				auto& stripCameo = StripData[ixStrip - 1];
-				if (stripCameo == cameo)
-				{
-					stripCameo = BuildType();
-				}
-			}
-
-			cameos.erase(cameos.begin() + (ix - 1));
-			--pTab->BuildableCount;
-
-			R->Stack8(0x17, 1);
-		}
-	}
-
-	return 0x6AAAB3;
-}
-
-DEFINE_HOOK(0x6AAC10, TabCameoListClass_RecheckCameos_GetPointer, 0)
-{
-	R->Stack<int>(0x10, R->ECX<int>());
-	GET(StripClass*, pTab, EBP);
-	R->ECX(MouseClassExt::TabCameos[pTab->Index].data());
-	return 0x6AAC17;
-}
-#endif
-
 bool NOINLINE RemoveCameo(BuildType* item)
 {
 	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
@@ -864,11 +765,8 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 #endif
 
 #ifndef STRIPS
-//the compiled result offseting the array begin too much
-//not sure what happen , altho there is similar code exist
-//just this one generating too far offsetted array begin pointer
-#pragma optimize("", off )
-static void DoStuffs(int idx,StripClass* pStrip,  int height, int width , int y , SelectClass* pBegin) {
+
+static FORCEINLINE void DoStuffs(int idx,StripClass* pStrip,  int height, int width , int y , SelectClass* pBegin) {
 	int MaxShown = SidebarClass::Instance->Func_6AC430();
 
 	if (MaxShown)
@@ -893,7 +791,6 @@ static void DoStuffs(int idx,StripClass* pStrip,  int height, int width , int y 
 		while (i != (MaxShown + pBegin));
 	}
 }
-#pragma optimize("", on )
 
 DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 {
@@ -905,76 +802,6 @@ DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 	DoStuffs(nIdx, pThis, SidebarObject_Height(), SidebarObject_Width(), nInc_y, SelectButtonCombined.begin());
 	return 0x6A8329;
 }
-
-// yeah , fuck it
-// i cant reproduce the exact code
-// so lets just dump the assembly code instead , lmao
-// -otamaa
-//declhook(0x6A8220, StripClass_Initialize, 0x7)
-//extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS* R)
-//{
-//	__asm
-//	{
-//		push ecx
-//		mov eax, [esp + 0x8]
-//		mov ecx, 0x87F7E8
-//		push ebx
-//		push ebp
-//		push esi
-//		mov ebx, [eax + 0x20]
-//		xor esi, esi
-//		mov eax, [eax + 0x14]
-//		push edi
-//		mov ebp, [ebx + 0x24]
-//		mov eax, [eax + 0x4]
-//		inc ebp
-//		mov[ebx + 0x38], eax
-//		mov eax, [ebx + 0x20]
-//		mov[esp + 0x18], eax
-//		call SidebarClass_6AC430
-//		lea edi, ds : 0[eax * 8]
-//		sub edi, eax
-//		shl edi, 3
-//		mov[esp + 0x10], edi
-//		test edi, edi
-//		jz short retfunc_
-//		mov ecx, dword ptr ds : 0xB0B500
-//		mov eax, 0xB07E94
-//		lea ebx, [ebx + 0x0]
-//		loopfunc_ :
-//		mov[eax + 0x1C], esi
-//		mov edx, esi
-//		mov dword ptr[eax + 0x10], 0xCA
-//		and edx, 0xFFFFFFFE
-//		mov[eax + 0x18], ebx
-//		mov edi, dword ptr ds : 0xB0B4FC
-//		imul edx, ecx
-//		mov ecx, esi
-//		and ecx, 1
-//		inc esi
-//		imul ecx, edi
-//		add edx, ebp
-//		add ecx, [esp + 0x18]
-//		mov[eax - 8], ecx
-//		mov ecx, [esp + 0x10]
-//		mov[eax - 4], edx
-//		add ecx, 0xB07E94
-//		mov dword ptr[eax], 0x3C
-//		mov dword ptr[eax + 4], 0x30
-//		add eax, 0x38
-//		cmp eax, ecx
-//		lea ecx, [edx + 4]
-//		jnz loopfunc_
-//		retfunc_ :
-//		pop edi
-//			pop esi
-//			pop ebp
-//			mov eax, 0x6A8329
-//			pop ebx
-//			pop ecx
-//			retn
-//	}
-//}
 
 DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {
@@ -992,7 +819,6 @@ DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 		ContinueLoop : BreakLoop;
 }
 
-//duuunno
 DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 {
 	GET(StripClass*, pThis, EDI);
