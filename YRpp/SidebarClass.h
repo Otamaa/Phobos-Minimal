@@ -103,7 +103,7 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_1D[3]);
 	Point2D           Location;
 	RectangleStruct   Bounds;
-	int               Index; // the index of this tab
+	int               TabIndex; // the index of this tab
 	bool              NeedsRedraw;
 	BYTE              IsBuilding;
 	BYTE              IsScrollingDown;

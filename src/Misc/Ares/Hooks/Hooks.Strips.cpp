@@ -5,14 +5,14 @@
 #include <ShapeButtonClass.h>
 
 // top button
-static constexpr reference<ControlClass, 0xB07C48u, 4u> const ShapeButtons {};
+static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
 // collum
 static constexpr reference<StripClass, 0x880D2Cu, 4u> const Column {};
 // buttons
 
-static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 56u> const SelectButton {};
+static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 60u> const SelectButton {};
 
-static constexpr reference<SelectClass, 0xB07E80u, 224> const SelectButtonCombined {};
+static constexpr reference<SelectClass, 0xB07E80u, 240> const SelectButtonCombined {};
 
 static constexpr reference<int, 0xB0B500> const SidebarObject_Height {};
 static constexpr reference<int, 0xB0B4FC> const SidebarObject_Width {};
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
 	}
 
-	auto& cameo = MouseClassExt::TabCameos[pTab->Index];
+	auto& cameo = MouseClassExt::TabCameos[pTab->TabIndex];
 	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
 	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
 
@@ -143,7 +143,7 @@ DEFINE_HOOK(0x6A8D07, StripClass_SidebarClass_AI_FlashCameos_FixPointer, 5)
 		return 0x6A8D8B;
 	}
 
-	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->Index].Items);
+	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
 	R->EBP(0);//xor
 	return 0x6A8D23;
 }
@@ -158,7 +158,7 @@ DEFINE_HOOK(0x6A8D9F, StripClass_SidebarClass_AI_MouseMove_FixPointer, 5)
 		return 0x6A8F64;
 	}
 
-	for (auto& cameos : MouseClassExt::TabCameos[pTab->Index])
+	for (auto& cameos : MouseClassExt::TabCameos[pTab->TabIndex])
 	{
 		auto pFactory = cameos.CurrentFactory;
 		if (pTab->IsBuilding)
@@ -575,7 +575,7 @@ DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_fix, 7)
 		return 0x6ABC2F;
 	}
 
-	for (auto& cameos : MouseClassExt::TabCameos[pTab->Index])
+	for (auto& cameos : MouseClassExt::TabCameos[pTab->TabIndex])
 	{
 		if (cameos.CurrentFactory == pFactory)
 		{
@@ -787,7 +787,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 		return 0x6AACAE;
 	}
 
-	auto& tabs = MouseClassExt::TabCameos[pThis->Index];
+	auto& tabs = MouseClassExt::TabCameos[pThis->TabIndex];
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
@@ -808,7 +808,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	pThis->BuildableCount = count_after;
 	if (count_after <= 0)
 	{
-		ShapeButtons[pThis->Index].Disable();
+		ShapeButtons[pThis->TabIndex].Disable();
 
 		StripClass* begin_c = Column.begin();
 		bool IsBreak = false;
@@ -828,7 +828,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 			}
 		}
 
-		if (!IsBreak && pThis->Index == SidebarClass::something_884B84())
+		if (!IsBreak && pThis->TabIndex == SidebarClass::something_884B84())
 			SidebarClass::Instance->ChangeTab(std::distance(Column.begin(), begin_c));
 	}
 	else
@@ -897,7 +897,7 @@ DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 	GET(StripClass*, pThis, ECX);
 	GET_STACK(int, nIdx, 0x4);
 
-	pThis->Index = nIdx;
+	pThis->TabIndex = nIdx;
 	auto nInc_y = pThis->Location.X + 1;
 	DoStuffs(nIdx, pThis, SidebarObject_Height(), SidebarObject_Width(), nInc_y, SelectButtonCombined.begin());
 	return 0x6A8329;
