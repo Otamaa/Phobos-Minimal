@@ -3,6 +3,7 @@
 #include <PowerClass.h>
 #include <ProgressTimer.h>
 #include <ControlClass.h>
+#include <ShapeButtonClass.h>
 #include <RectangleStruct.h>
 
 class ColorScheme;
@@ -120,13 +121,61 @@ public:
 typedef StripClass TabDataStruct;
 static_assert(sizeof(StripClass) == 0xF94);
 
+class NOVTABLE SelectClass : public ControlClass
+{
+
+public:
+
+	//Destructor
+	virtual ~SelectClass() RX;
+
+	//GadgetClass
+
+	//ControlClass
+
+	void SetOwner(StripClass* pStrip, int nIdx) const { JMP_THIS(0x6AACE0); }
+	void OnMouseEnter() const { JMP_THIS(0x6AB990); }
+	void OnMouseLeave() const { JMP_THIS(0x6AB9E0); }
+	int Action(int flags, int* key, DWORD nKeyModifierFlag) const { JMP_THIS(0x6AAD00); }
+
+	//Constructors
+	SelectClass() noexcept
+		: ControlClass(noinit_t())
+	{
+		JMP_THIS(0x6AACB0);
+	}
+
+protected:
+	explicit __forceinline SelectClass(noinit_t)  noexcept
+		: ControlClass(noinit_t())
+	{
+	}
+
+public:
+	StripClass* Strip;
+	int Index;
+	DWORD __MouseOver;
+};
+
+static_assert(sizeof(SelectClass) == 0x38);
+
 class NOVTABLE SidebarClass : public PowerClass
 {
 public:
 	//Static
 	static inline constexpr size_t TooltipLength = 0x42;
 	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
-	static constexpr reference<DWORD, 0xB0B500u> const ObjectHeight {};
+
+	static constexpr reference<int, 0xB0B500u> const ObjectHeight {};
+	static constexpr reference<int, 0xB0B4FC> const ObjectWidth {};
+
+	static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 60u> const SelectButton {};
+	static constexpr reference<SelectClass, 0xB07E80u, 240> const SelectButtonCombined {};
+
+	static constexpr reference<StripClass, 0x880D2Cu, 4u> const Column {};
+
+	static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
+
 	static constexpr reference<wchar_t, 0xB07BC4u, TooltipLength> const TooltipBuffer {};
 	static constexpr reference<SHPFrame*, 0xB0B478u> const Shape_B0B478 {};
 	static constexpr reference<int, 0x884B7C> const something_884B7C {};
@@ -232,46 +281,3 @@ public:
 	bool unknown_bool_5515;
 	PROTECTED_PROPERTY(BYTE, padding_5516[2]);
 };
-
-class NOVTABLE SelectClass : public ControlClass
-{
-
-public:
-
-	static constexpr reference<SelectClass*, 0xB07E80u , 14u> const Buttons {};
-	static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
-	static constexpr constant_ptr<SelectClass, 0xB07E8C> const Buttons_beginPtr {};
-	static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
-
-	//Destructor
-	virtual ~SelectClass() RX;
-
-	//GadgetClass
-
-	//ControlClass
-
-	void SetOwner(StripClass* pStrip, int nIdx) const { JMP_THIS(0x6AACE0); }
-	void OnMouseEnter() const { JMP_THIS(0x6AB990); }
-	void OnMouseLeave() const { JMP_THIS(0x6AB9E0); }
-	int Action(int flags, int* key, DWORD nKeyModifierFlag) const { JMP_THIS(0x6AAD00); }
-
-	//Constructors
-	SelectClass() noexcept
-		: ControlClass(noinit_t())
-	{
-		JMP_THIS(0x6AACB0);
-	}
-
-protected:
-	explicit __forceinline SelectClass(noinit_t)  noexcept
-		: ControlClass(noinit_t())
-	{
-	}
-
-public:
-	StripClass* Strip;
-	int Index;
-	DWORD __MouseOver;
-};
-
-static_assert(sizeof(SelectClass) == 0x38);
