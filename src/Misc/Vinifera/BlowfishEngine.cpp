@@ -104,14 +104,14 @@ DEFINE_HOOK(0x437FD0, BlowfishEngine_Submit_Key, 0x6)
 	return 0x437FF5;
 }
 
-DEFINE_HOOK(0x437FD0, BlowfishEngine_Encrypt, 0x6)
+DEFINE_HOOK(0x438000, BlowfishEngine_Encrypt, 0x6)
 {
 	GET(BlowfishEngine*, pThis, ECX);
 	GET_STACK(int, len, 0x4);
 	GET_STACK(void*, pKey, 0x8);
 	GET_STACK(void*, pChyper, 0xC);
 	R->EAX(pThis->BlowfishEngine::Encrypt(pKey, len , pChyper));
-	return 0x437FF5;
+	return 0x43802C;
 }
 
 DEFINE_HOOK(0x438030, BlowfishEngine_Decrypt, 0x6)
