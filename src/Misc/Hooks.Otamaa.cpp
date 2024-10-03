@@ -9167,25 +9167,25 @@ void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
 	if (auto pParticle = pType->RefinerySmokeParticleSystem) {
 		if (pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord) {
 			auto coord1 = pType->RefinerySmokeOffsetOne + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1);
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1, nullptr, pThis);
 			particle->Lifetime = pType->RefinerySmokeFrames;
 		}
 
 		if (pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord) {
 			auto coord2 = pType->RefinerySmokeOffsetTwo + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2);
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2, nullptr, pThis);
 			particle->Lifetime = pType->RefinerySmokeFrames;
 		}
 
 		if (pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)  {
 			auto coord3 = pType->RefinerySmokeOffsetThree + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3);
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3, nullptr, pThis);
 			particle->Lifetime = pType->RefinerySmokeFrames;
 		}
 
 		if (pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord) {
 			auto coord4 = pType->RefinerySmokeOffsetFour + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4);
+			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4, nullptr , pThis);
 			particle->Lifetime = pType->RefinerySmokeFrames;
 		}
     }

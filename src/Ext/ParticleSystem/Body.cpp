@@ -646,7 +646,7 @@ void ParticleSystemExtData::UpdateSmoke()
 	auto const pOwnerObjType = pOwnerObj->Type;
 	auto const pOwnerObj_Owner = pOwnerObj->Owner;
 
-	if (pOwnerObj_Owner && pOwnerObj_Owner->AbstractFlags & AbstractFlags::Object)
+	if (pOwnerObj_Owner && pOwnerObj_Owner->AbstractFlags & AbstractFlags::Foot)
 	{
 		auto coords = pOwnerObj_Owner->GetCoords();
 		CoordStruct SpawnDistance = coords + pOwnerObj->SpawnDistanceToOwner;
