@@ -527,7 +527,8 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 Vector3D<float> Helpers_DP::GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh)
 {
 	matrix3D.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
-	Vector3D<float> result = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
+	Vector3D<float> result {};
+	Matrix3D::MatrixMultiply(&result , &matrix3D, &Vector3D<float>::Empty);
 	result.Y *= -1;
 	return result;
 }

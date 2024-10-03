@@ -3043,7 +3043,8 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	// Step 4: apply FLH offset
 	mtx.Translate(static_cast<float>(pCoord.X), static_cast<float>(pCoord.Y), static_cast<float>(pCoord.Z));
 
-	Vector3D<float> result = Matrix3D::MatrixMultiply(mtx, Vector3D<float>::Empty);
+	Vector3D<float> result {};
+	Matrix3D::MatrixMultiply(&result , &mtx, &Vector3D<float>::Empty);
 	// Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
 
@@ -3987,8 +3988,9 @@ Matrix3D TechnoExtData::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoo
 
 CoordStruct TechnoExtData::GetFLHAbsoluteCoordsB(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
 {
-	Vector3D<float> result = Matrix3D::MatrixMultiply(
-	TechnoExtData::GetFLHMatrix(pThis, nCoord, isOnTurret), Vector3D<float>::Empty);
+	Vector3D<float> result {};
+	Matrix3D mtx = TechnoExtData::GetFLHMatrix(pThis, nCoord, isOnTurret);
+	Matrix3D::MatrixMultiply(&result , &mtx , &Vector3D<float>::Empty);
 
 	// Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;

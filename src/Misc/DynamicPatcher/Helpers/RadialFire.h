@@ -38,7 +38,8 @@ struct RadialFireHelper
 		Matrix3D matrix3D = Matrix3D::GetIdentity();
 		matrix3D.RotateZ(static_cast<float>(targetDir.GetRadian()));
 		matrix3D.Translate(1, 0, 0);
-		Vector3D<float> offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
+		Vector3D<float> offset {};
+		Matrix3D::MatrixMultiply(&offset , &matrix3D, &Vector3D<float>::Empty);
 		return { static_cast<double>(offset.X), static_cast<double>(-offset.Y), static_cast<double>(DeltaZ * z) };
 	}
 

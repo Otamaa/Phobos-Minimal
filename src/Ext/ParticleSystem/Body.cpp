@@ -443,7 +443,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 				0 , Math::cos(radians) ,Math::sin(radians)
 			};
 
-			Vector3D<float> mtx_mult = Matrix3D::MatrixMultiply(&mtx, first_);
+			Vector3D<float> mtx_mult {};
+			Matrix3D::MatrixMultiply(&mtx_mult  , &mtx, &first_);
 
 			const Vector3D<float> PositionPerturbation_ {
 				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient

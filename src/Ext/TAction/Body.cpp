@@ -328,7 +328,9 @@ bool TActionExt::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, ObjectC
 		{
 			do
 			{
-				Vector3D<float> Vec3Dresult = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { v29 * 1.0f, nDimension * 1.0f, 0.0f });
+				Vector3D<float> Vec3Dresult {};
+				Vector3D<float> Vec3rot { v29 * 1.0f, nDimension * 1.0f, 0.0f };
+				Matrix3D::MatrixMultiply(&Vec3Dresult , &TacticalClass::Instance->IsoTransformMatrix,&Vec3rot);
 				GameCreate<AnimClass>(pAnimType, CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 });
 				nDimension += nShpWidth_;
 			}
@@ -454,7 +456,9 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	auto v2 = 30 * MapRect.Height;
 	auto vect_X = ScenarioClass::Instance->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
 	auto vect_Y = (v2 / 2 + ScenarioClass::Instance->Random.RandomFromMax(v2));
-	Vector3D<float> Vec3Dresult = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { (float)vect_X, (float)vect_Y, 0.0f });
+	Vector3D<float> Vec3Dresult {};
+	Vector3D<float> Vec3Drot { (float)vect_X, (float)vect_Y, 0.0f };
+	Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, &Vec3Drot);
 	a1->Z = 0;
 	a1->X = (int)Vec3Dresult.X;
 	a1->Y = (int)Vec3Dresult.Y;
