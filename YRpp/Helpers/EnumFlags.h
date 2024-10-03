@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-template <typename T>
+template <typename T> requires std::is_enum_v<T>
 struct EnumFlagHelper
 {
 	using type = std::underlying_type_t<T>;
