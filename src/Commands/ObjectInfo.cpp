@@ -83,6 +83,14 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "ID = %s, ", pType->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Loc = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
+
+	//if(pFoot->Health < 0){
+	//	auto pLastWH = TechnoExtContainer::Instance.Find(pFoot);
+	//	if(pLastWH->LastDamageWH) {
+	//		Append(buffer, "LastDamagingWH = (%s), ", pLastWH->LastDamageWH->ID);
+	//	}
+	//}
+
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
 	Append(buffer, "sp = %fl, fp = %fl , am = %fl , EMP: %d ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier, pFoot->EMPLockRemaining);
 	if (pFoot->WhatAmI() != InfantryClass::AbsID)

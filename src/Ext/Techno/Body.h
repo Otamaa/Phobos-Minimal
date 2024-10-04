@@ -560,6 +560,7 @@ public:
 	CellClass* SubterraneanHarvRallyPoint { nullptr };
 
 	CDTimerClass MobileRefineryTimer {};
+	WarheadTypeClass* LastDamageWH {};
 
 	~TechnoExtData() noexcept
 	{

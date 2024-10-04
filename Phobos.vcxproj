@@ -878,7 +878,7 @@
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalOptions>/w14287 /w15038 /Zm2000 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/w14287 /w15038 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

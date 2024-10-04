@@ -128,15 +128,28 @@ const double RadSiteExtData::GetRadLevelAt(double distance)
 	const auto nMax = static_cast<double>(pThis->Spread);
 	double radLevel = pThis->RadLevel;
 
-	if (distance && nMax)
-		radLevel = (distance > nMax) ? 0.0 : (nMax - distance) / nMax * pThis->RadLevel;
+	//  will produce `-nan(ind)` result if both dist and max is zero
+	// and used on formula below this check
+	// ,.. -Otamaa
+	if (distance && nMax) {
 
+		//distance is too far
+		if (distance > nMax) {
+			return 0.0;
+		}
+		else {
+			radLevel = (nMax - distance) / nMax * pThis->RadLevel;
+		}
+	}
 
 	// Vanilla YR stores & updates the decremented RadLevel on CellClass.
 	// Because we're not storing multiple radiation site data on CellClass (yet?)
 	// we need to fully recalculate this stuff every time we need the radiation level for a cell coord - Starkku
-	int stepCount = (Unsorted::CurrentFrame - this->CreationFrame) / this->Type->GetLevelDelay();
-	radLevel -= (radLevel / pThis->LevelSteps) * stepCount;
+	const auto frame_Step = (Unsorted::CurrentFrame - this->CreationFrame);
+	const int stepCount = frame_Step ? frame_Step / this->Type->GetLevelDelay() : 0;
+
+	if(radLevel && pThis->LevelSteps)
+		radLevel -= (radLevel / pThis->LevelSteps) * stepCount;
 
 	return radLevel;
 }

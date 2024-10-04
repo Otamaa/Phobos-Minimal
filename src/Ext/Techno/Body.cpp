@@ -5007,6 +5007,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->SubterraneanHarvRallyPoint, true)
 		.Process(this->IsBeingChronoSphered)
 		.Process(this->MobileRefineryTimer)
+		.Process(this->LastDamageWH)
 		;
 }
 

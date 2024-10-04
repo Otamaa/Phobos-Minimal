@@ -279,7 +279,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		//if (pCellAfter->ContainsBridge())
 			//return;
 
-		if (!MapClass::Instance->IsWithinUsableArea(Location))
+		if (!MapClass::Instance->IsWithinUsableArea(Location) || pCellAfter->GetBuilding())
 			return;
 
 		pExt->AllowCreateUnit = true;
@@ -330,7 +330,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			parachuted = true;
 			pTechno->SpawnParachuted(pAnimExt->CreateUnitLocation);
 		}
-		else if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !pCell->GetBuilding() || !IsBridge)
+		else if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get() || !IsBridge)
 		{
 			++Unsorted::ScenarioInit;
 			pTechno->Unlimbo(pAnimExt->CreateUnitLocation, resultingFacing);

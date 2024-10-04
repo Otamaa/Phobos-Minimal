@@ -143,15 +143,15 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
+	//pExt->LastDamageWH = args.WH;
 	pWHExt->ApplyDamageMult(pThis, &args);
 	//SkipAllReaction = false
 
 	if (!args.IgnoreDefenses) {
 
 		applyCombatAlert(pThis, &args);
-
-		auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		if (auto pShieldData = pExt->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);

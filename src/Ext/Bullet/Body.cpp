@@ -597,7 +597,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 
 	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
 
-	if(!pTarget)
+	if(!pTarget || !pTarget->IsAlive)
 		return false;
 
 	const auto pTargetType = pTarget->GetTechnoType();

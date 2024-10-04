@@ -262,7 +262,7 @@ void BuildingExtData::UpdatePoweredKillSpawns() const
 			{
 				if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
 				{
-					if (pItem->Unit)
+					if (pItem->Unit && pItem->Unit->IsAlive)
 						pItem->Unit->ReceiveDamage(&pItem->Unit->GetType()->Strength, 0,
 							RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
 				}

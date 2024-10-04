@@ -268,7 +268,7 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 				if (nRadLevel == 0.0 || !pType->GetWarhead())
 					continue;
 
-				const auto damage = static_cast<int>((nRadLevel)*pType->GetLevelFactor());
+				const auto damage = static_cast<int>((nRadLevel) * pType->GetLevelFactor());
 
 				if (maxDamageCount > 0)
 					damageCounts[pRadSite]++;
