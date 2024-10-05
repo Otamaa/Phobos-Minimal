@@ -219,7 +219,13 @@ int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 
 SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 {
-	return pThis->Owner->Supers.GetItemOrDefault(GetFirstSuperWeaponIndex(pThis));
+	const size_t idx = GetFirstSuperWeaponIndex(pThis);
+
+	if (idx < (size_t)pThis->Owner->Supers.Count) {
+		pThis->Owner->Supers[idx];
+	}
+
+	return nullptr;
 }
 
 void BuildingExtData::DisplayIncomeString()
