@@ -222,7 +222,7 @@ SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 	const size_t idx = GetFirstSuperWeaponIndex(pThis);
 
 	if (idx < (size_t)pThis->Owner->Supers.Count) {
-		pThis->Owner->Supers[idx];
+		return pThis->Owner->Supers[idx];
 	}
 
 	return nullptr;

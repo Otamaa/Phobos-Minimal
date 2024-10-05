@@ -455,22 +455,31 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x425174, AnimClass_Detach_Cloak, 0x6) {
-	enum { SkipDetaching = 0x4251A3 };
-
+DEFINE_HOOK(0x4255B6, AnimClass_Remove_DetachOnCloak, 0x6)
+{
 	GET(AnimClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, EDI);
-
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (!pTypeExt->DetachOnCloak) {
-		if (auto const pTechno = generic_cast<TechnoClass*>(pTarget)) {
-			auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
+	if (pThis->OwnerObject) {
 
-			if (pTechnoExt->IsAboutToStartCloaking || pTechno->IsInCloakState())
-				return SkipDetaching;
+		if (!pTypeExt->DetachOnCloak || pThis->OwnerObject->IsAlive) {
+
+			pThis->OwnerObject = nullptr;
+			return 0x4255CF;
 		}
+
+		pThis->OwnerObject->AnimPointerExpired(pThis);
+
+		// Replace the AnimClass::AttachTo() call with a simplified version that does not bother to deal
+		// with coords for anim that is about to be removed to fix a crash with DetachOnCloak=no anims.
+
+		if (pThis->IsOnMap)
+			DisplayClass::Instance->RemoveObject(pThis);
+
+		pThis->OwnerObject->Extinguish();
+		pThis->OwnerObject->HasParachute = false;
+		pThis->OwnerObject = nullptr;
 	}
 
-	return 0;
+	return 0x4255CF;
 }

@@ -550,7 +550,7 @@ public:
 
 	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
 	OptionalStruct<int, true> AdditionalRange {};
-	bool IsAboutToStartCloaking { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
+	bool IsDetachingForCloak { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
 
 	bool HasRemainingWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
 	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay

@@ -200,24 +200,33 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	return Continue;
 }
 
-DEFINE_HOOK_AGAIN(0x703789, TechnoClass_CloakUpdateMCAnim, 0x6) // TechnoClass_Do_Cloak
-DEFINE_HOOK(0x6FB9D7, TechnoClass_CloakUpdateMCAnim, 0x6)       // TechnoClass_Cloaking_AI
+DEFINE_HOOK_AGAIN(0x6FBBC3, TechnoClass_Cloak_BeforeDetach, 0x5)  // TechnoClass_Cloaking_AI
+DEFINE_HOOK(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	pExt->UpdateMindControlAnim();
-
-	if (R->Origin() == 0x703789)
-			pExt->IsAboutToStartCloaking = true;
+	pExt->IsDetachingForCloak = true;
 
 	return 0;
 }
 
-DEFINE_HOOK(0x703799, TechnoClass_DoCloak_UnsetCloakFlag, 0xA)
+DEFINE_HOOK_AGAIN(0x6FBBCE, TechnoClass_Cloak_AfterDetach, 0x7)  // TechnoClass_Cloaking_AI
+DEFINE_HOOK(0x703799, TechnoClass_Cloak_AfterDetach, 0xA)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExtContainer::Instance.Find(pThis)->IsAboutToStartCloaking = false;
+	TechnoExtContainer::Instance.Find(pThis)->IsDetachingForCloak = false;
+	return 0;
+}
+
+DEFINE_HOOK(0x6FB9D7, TechnoClass_Cloak_RestoreMCAnim, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
+		pExt->UpdateMindControlAnim();
+
 	return 0;
 }
 
