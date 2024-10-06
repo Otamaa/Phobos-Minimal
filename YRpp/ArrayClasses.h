@@ -358,6 +358,17 @@ public:
 #pragma endregion
 
 #pragma region iteratorpointer
+	int FindItemIndexFromIterator(T* iter) {
+		if (!this->IsInitialized) {
+			return 0;
+		}
+
+		if (iter == this->end())
+			return -1;
+
+		return std::distance(this->begin(), iter);
+	}
+
 	constexpr T* begin() const
 	{
 		return &this->Items[0];
@@ -480,12 +491,9 @@ public:
 
 		if (this->IsValidArray()) {
 
-			if (index < this->Count)
-			{
-				T* nSource = this->Items + index;
-				T* nDest = std::next(nSource);
-				std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
-			}
+			T* nSource = this->Items + index;
+			T* nDest = std::next(nSource);
+			std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
 
 			this->Items[index] = std::move_if_noexcept(object);
 			++this->Count;

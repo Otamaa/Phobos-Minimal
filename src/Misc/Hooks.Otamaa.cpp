@@ -9179,3 +9179,123 @@ void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
 }
 
 //DEFINE_JUMP(VTABLE, 0x7E4324, GET_OFFSET(Spawn_Refinery_Smoke_Particles));
+
+/*
+*	NPExt TODO :
+*	IsNormalPlane -> DescendProximity , AscentSpeed
+*/
+
+#include <Ext/Aircraft/Body.h>
+
+KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot ,CoordStruct* pCoord)
+{
+	++Unsorted::ScenarioInit;
+	auto const pPlane = static_cast<AircraftClass*>(HouseExtData::GetParadropPlane(pBld->Owner)->CreateObject(pBld->Owner));
+	--Unsorted::ScenarioInit;
+
+	auto pOwner = pBld->Owner;
+
+	if (!pPlane){
+		return KickOutResult::Failed;
+	}
+
+	pPlane->Spawned = true;
+
+	//Get edge (direction for plane to come from)
+	auto edge = pOwner->GetHouseEdge();
+
+	// seems to retrieve a random cell struct at a given edge
+	auto const spawn_cell = MapClass::Instance->PickCellOnEdge(
+		edge, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true,
+		MovementZone::Normal);
+
+	pPlane->QueueMission(Mission::ParadropApproach, false);
+
+	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
+
+	if (!bSpawned) {
+		GameDelete<true, false>(pPlane);
+		return KickOutResult::Failed;
+	}
+
+	auto pTarget = MapClass::Instance->GetCellAt(pCoord);
+	auto pType = pFoot->GetTechnoType();
+
+	// find the nearest cell the paradrop troopers can land on
+		// the movement zone etc is checked within first types of the passanger
+	CellClass* pDest = pTarget;
+	bool allowBridges = GroundType::GetCost(LandType::Clear, pType->SpeedType) > 0.0;
+	bool isBridge = allowBridges && pDest->ContainsBridge();
+
+	while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, ZoneType::None, pType->MovementZone, -1, isBridge))
+	{
+		pDest = MapClass::Instance->GetCellAt(
+			MapClass::Instance->NearByLocation(
+				pDest->MapCoords,
+				pType->SpeedType,
+				-1,
+				pType->MovementZone, isBridge, 1, 1, true, false, false, isBridge, CellStruct::Empty, false, false));
+
+		isBridge = allowBridges && pDest->ContainsBridge();
+	}
+
+	pTarget = pDest;
+
+	pPlane->SetTarget(pTarget);
+
+	//only allow infantry and vehicles
+	auto const abs = pType->WhatAmI();
+	if (abs == AbstractType::UnitType || abs == AbstractType::InfantryType)
+	{
+		auto const pNew = static_cast<FootClass*>(pType->CreateObject(pOwner));
+
+		if (!pNew) {
+			++Unsorted::ScenarioInit;
+			return KickOutResult::Failed;
+		}
+
+			pNew->SetLocation(pPlane->Location);
+			pNew->Limbo();
+
+			if (pPlane->Type->OpenTopped)
+			{
+				pPlane->EnteredOpenTopped(pNew);
+			}
+
+			pNew->Transporter = pPlane;
+			pPlane->AddPassenger(static_cast<FootClass*>(pNew));
+	}
+
+	pPlane->HasPassengers = true;
+	pPlane->NextMission();
+
+	return KickOutResult::Succeeded;
+}
+
+// always fail need to  retry it until not
+// the coords seems not suitable
+KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
+{
+	if (!TechnoExtData::CreateWithDroppod(pFoot, *pCoord))
+		return KickOutResult::Failed;
+
+	return KickOutResult::Succeeded;
+}
+
+//DEFINE_HOOK(0x444565 , BuildingClass_ExitObject_NonNavalUnit_Test, 0x6)
+//{
+//	GET(BuildingClass* , pThis , ESI);
+//	GET(FootClass* , pProduct , EDI);
+//
+//	CoordStruct coord {};
+//	pThis->GetExitCoords(&coord ,0u);
+//
+//	if(SendDroppodProduction(pThis , pProduct , &coord ) == KickOutResult::Succeeded){
+//		TechnoExt_ExtData::KickOutClones(pThis, pProduct);
+//		++Unsorted::ScenarioInit;
+//		return 0x444971;
+//	}
+//
+//	++Unsorted::ScenarioInit;
+//	return 0x444EDE;
+//}

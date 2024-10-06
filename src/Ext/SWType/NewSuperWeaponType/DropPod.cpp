@@ -112,15 +112,7 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 			// get a random type from the list and create an instance
 			TechnoTypeClass* pType = Types[needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0];
 
-			if (!pType || pType->Strength <= 0 || pType->WhatAmI() == BuildingTypeClass::AbsID)
-			{
-				continue;
-			}
-
 			FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
-			if (!pFoot)
-				continue;
-
 			// update veterancy only if higher
 			if (veterancy > pFoot->Veterancy.Veterancy)
 			{

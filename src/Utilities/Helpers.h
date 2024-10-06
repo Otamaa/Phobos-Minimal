@@ -679,6 +679,12 @@ namespace Helpers {
 			// remove all types that aren't either infantry or unit types
 
 			types.erase(std::remove_if(types.begin(), types.end(), [section, key](TechnoTypeClass* pItem) -> bool {
+
+				if(!pItem) {
+					Debug::INIParseFailed(section, key, pItem->ID, "Invalid types are removed.");
+					return true;
+				}
+
 				if (!is_any_of(pItem->WhatAmI(), AbstractType::InfantryType, AbstractType::UnitType)) {
 					Debug::INIParseFailed(section, key, pItem->ID, "Only InfantryTypes and UnitTypes are supported.");
 					return true;

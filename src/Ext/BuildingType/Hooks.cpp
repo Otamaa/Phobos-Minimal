@@ -144,7 +144,7 @@ bool FORCEINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, i
 								goto continue_bld;
 
 							auto owner = base->Owner;
-							if (owner->ArrayIndex == nHouse && base->Type->IsBaseDefense && !BuildingExtContainer::Instance.Find(base)->IsFromSW) {
+							if (owner->ArrayIndex == nHouse && base->Type->BaseNormal && !BuildingExtContainer::Instance.Find(base)->IsFromSW) {
 								retval = 1;
 							}
 
@@ -168,46 +168,46 @@ bool FORCEINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, i
 	}
 	return retval;
 }
+#ifndef Original
+ DEFINE_HOOK(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
+ 	GET(DisplayClass*, pThis, ECX);
+ 	GET_STACK(BuildingTypeClass*, pObj, 0x4);
+ 	GET_STACK(int , house, 0x8);
+ 	GET_STACK(CellStruct*, pList, 0xC);
+ 	GET_STACK(CellStruct*, pTry, 0x10);
+ 	R->EAX(CanBePlacedHere(pThis , pObj , house , pList , pTry));
+ 	return 0x4A9063;
+ }
 
-DEFINE_HOOK(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
-	GET(DisplayClass*, pThis, ECX);
-	GET_STACK(BuildingTypeClass*, pObj, 0x4);
-	GET_STACK(int , house, 0x8);
-	GET_STACK(CellStruct*, pList, 0xC);
-	GET_STACK(CellStruct*, pTry, 0x10);
-	R->EAX(CanBePlacedHere(pThis , pObj , house , pList , pTry));
-	return 0x4A9063;
-}
-
-#ifdef Original
+#else
 DEFINE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
 }
 
-DEFINE_HOOK(0x4A8FD7, DisplayClass_BuildingProximityCheck_BuildArea, 0x6)
-{
-	enum { SkipBuilding = 0x4A902C , Continue = 0x0 };
-
-	GET(BuildingClass*, pCellBuilding, ESI);
-	GET_STACK(BuildingTypeClass*, pType, 0x4 + 0x28);
-
-	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pCellBuilding->Type);
-
-	if (pTypeExt->NoBuildAreaOnBuildup && pCellBuilding->CurrentMission == Mission::Construction)
-		return SkipBuilding;
-
-	auto const& pBuildingsAllowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Allowed;
-
-	if (!pBuildingsAllowed.empty() && !pBuildingsAllowed.Contains(pCellBuilding->Type))
-		return SkipBuilding;
-
-	auto const& pBuildingsDisallowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Disallowed;
-
-	if (!pBuildingsDisallowed.empty() && pBuildingsDisallowed.Contains(pCellBuilding->Type))
-		return SkipBuilding;
-
-	return Continue;
-}
+//DEFINE_HOOK(0x4A8FD7, DisplayClass_BuildingProximityCheck_BuildArea, 0x6)
+//{
+//	enum { SkipBuilding = 0x4A902C , Continue = 0x0 };
+//
+//	GET(BuildingClass*, pCellBuilding, ESI);
+//	GET_STACK(BuildingTypeClass*, pType, 0x4 + 0x28);
+//
+//	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pCellBuilding->Type);
+//
+//	if (pTypeExt->NoBuildAreaOnBuildup && pCellBuilding->CurrentMission == Mission::Construction)
+//		return SkipBuilding;
+//
+//	auto const& pBuildingsAllowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Allowed;
+//
+//	if (!pBuildingsAllowed.empty() && !pBuildingsAllowed.Contains(pCellBuilding->Type))
+//		return SkipBuilding;
+//
+//	auto const& pBuildingsDisallowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Disallowed;
+//
+//	if (!pBuildingsDisallowed.empty() && pBuildingsDisallowed.Contains(pCellBuilding->Type))
+//		return SkipBuilding;
+//
+//	return Continue;
+//}
 #endif
