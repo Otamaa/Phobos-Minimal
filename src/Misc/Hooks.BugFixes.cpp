@@ -1869,101 +1869,7 @@ DEFINE_HOOK(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
 }
 
 #include <Ext/AnimType/Body.h>
-
-static bool __forceinline DisallowObject(ObjectClass* pObj)
-{
-	auto const rtti = pObj->WhatAmI();
-
-	if (rtti == AbstractType::Anim)
-	{
-		if (pObj->UniqueID == -2)
-			return true;
-
-		auto const pAnim = static_cast<AnimClass*>(pObj);
-		auto const pType = pAnim->Type;
-
-		if (pType->Damage != 0.0 || pType->Bouncer || pType->IsMeteor || pType->IsTiberium || pType->TiberiumChainReaction
-			|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnit)
-		{
-			return false;
-		}
-
-		return true;
-	}
-	else if (rtti == AbstractType::Particle)
-	{
-		auto const pParticle = static_cast<ParticleClass*>(pObj);
-		auto const pType = pParticle->Type;
-
-		if (pType->Damage)
-			return false;
-
-		return true;
-	}
-
-	return false;
-}
-
 #include <EventClass.h>
-
-DEFINE_HOOK(0x64DAB0, ComputeFrameCRC, 0x6)
-{
-	enum { SkipGameCode = 0x64DE7C };
-
-	auto& GameCRC = EventClass::CurrentFrameCRC.get();
-	GameCRC = 0;
-
-	for (auto const pInf : *InfantryClass::Array)
-	{
-		int primaryFacing = (((pInf->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
-		GameCRC = pInf->Location.X / 10 + ((pInf->Location.Y / 10) << 16) + primaryFacing + (GameCRC >> 31) + 2 * GameCRC;
-	}
-
-	for (auto const pUnit : *UnitClass::Array)
-	{
-		int primaryFacing = (((pUnit->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
-		int secondaryFacing = (((pUnit->SecondaryFacing.Current().Raw >> 7) + 1) >> 1);
-		GameCRC = pUnit->Location.X / 10 + ((pUnit->Location.Y / 10) << 16) + primaryFacing + secondaryFacing + (GameCRC >> 31) + 2 * GameCRC;
-	}
-
-	for (auto const pBuilding : *BuildingClass::Array)
-	{
-		int primaryFacing = (((pBuilding->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
-		GameCRC = pBuilding->Location.X / 10 + ((pBuilding->Location.Y / 10) << 16) + primaryFacing + (GameCRC >> 31) + 2 * GameCRC;
-	}
-
-	for (auto const pHouse : *HouseClass::Array)
-	{
-		GameCRC = pHouse->MapIsClear + (GameCRC >> 31) + 2 * GameCRC;
-	}
-
-	for (int i = 0; i < 5; i++)
-	{
-		auto const layer = DisplayClass::GetLayer((Layer)i);
-
-		for (auto const pObj : *layer)
-		{
-			if (DisallowObject(pObj))
-				continue;
-
-			GameCRC = pObj->Location.X / 10 + ((pObj->Location.Y / 10) << 16) + (int)pObj->WhatAmI() + (GameCRC >> 31) + 2 * GameCRC;
-		}
-	}
-
-	auto const& logic = LogicClass::Instance.get();
-	for (auto const pObj : logic)
-	{
-		if (DisallowObject(pObj))
-			continue;
-
-		GameCRC = pObj->Location.X / 10 + ((pObj->Location.Y / 10) << 16) + (int)pObj->WhatAmI() + (GameCRC >> 31) + 2 * GameCRC;
-	}
-
-	GameCRC = ScenarioClass::Instance->Random.Random() + (GameCRC >> 31) + 2 * GameCRC;
-	Game::LogFrameCRC(Unsorted::CurrentFrame % 256);
-
-	return SkipGameCode;
-}
 
 #pragma region FrameCRC
 
@@ -2013,7 +1919,7 @@ static constexpr int FORCEINLINE GetCoordHash(CoordStruct location)
 
 void __fastcall ComputeGameCRC()
 {
-	auto& GameCRC = EventClass::CurrentFrameCRC.get();
+	auto GameCRC = EventClass::CurrentFrameCRC.get();
 	GameCRC = 0;
 
 	for (auto const pInf : *InfantryClass::Array)
