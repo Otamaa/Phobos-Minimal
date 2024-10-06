@@ -758,9 +758,11 @@ void Phobos::ExeRun()
 
 void Phobos::ExeTerminate()
 {
-	Phobos::Otamaa::ExeTerminated = true;
-	Debug::LogFileClose(111);
-	Console::Release();
+	if(!Phobos::Otamaa::ExeTerminated){
+		Phobos::Otamaa::ExeTerminated = true;
+		Debug::LogFileClose(111);
+		Console::Release();
+	}
 }
 
 #pragma warning( push )
@@ -821,7 +823,34 @@ bool Phobos::DetachFromDebugger()
 
 
 #pragma endregion
+#include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
 
+void __cdecl PatchExit(int uExitCode) {
+	Phobos::ExeTerminate();
+#ifdef EXPERIMENTAL_IMGUI
+	PhobosWindowClass::Destroy();
+#endif
+	CRT::exit_returnsomething(uExitCode, 0, 0);
+}
+
+DECLARE_PATCH(_set_fp_mode)
+{
+	// Call to "store_fpu_codeword"
+	_asm { mov edx, 0x007C5EE4 };
+	_asm { call edx };
+
+	/**
+	 *  Set the FPU mode to match the game (rounding towards zero [chop mode]).
+	 */
+	_set_controlfp(_RC_CHOP, _MCW_RC);
+
+	/**
+	 *  And this is required for the std c++ lib.
+	 */
+	fesetround(FE_TOWARDZERO);
+
+	JMP(0x6BBFCE);
+}
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -829,19 +858,26 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-		//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		//_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
-		//_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-		//std::atexit(Phobos::_dump_memory_leaks);
+		Phobos::hInstance = hInstance;
+
+		Patch::Apply_LJMP(0x6BBFC9, &_set_fp_mode);
+
 		const auto time = Debug::GetCurTimeA();
+
+		Patch::Apply_CALL(0x6BD718, &PatchExit);
+		Patch::Apply_CALL(0x6BD92F, &PatchExit);
+		Patch::Apply_CALL(0x6BDAF4, &PatchExit);
+		Patch::Apply_CALL(0x6BDC8C, &PatchExit);
+		Patch::Apply_CALL(0x6BDD29, &PatchExit);
+		Patch::Apply_CALL(0x6BE1B0, &PatchExit);
+		Patch::Apply_CALL(0x6BEC51, &PatchExit);
+		Patch::Apply_CALL(0x7CD8F3, &PatchExit);
 
 		if (lpReserved) {
 			Debug::LogDeferred("Phobos is being loaded (%s) statically.\n", time.c_str());
 		} else {
 			Debug::LogDeferred("Phobos is being loaded (%s) dynamicly.\n", time.c_str());
 		}
-
-		Phobos::hInstance = hInstance;
 
 		Debug::InitLogFile();
 		Debug::LogFileRemove();
@@ -864,7 +900,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		if(Phobos::Otamaa::ReplaceGameMemoryAllocator) {
 			/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
-			  not really sure what is the real cause atm .///*/
+			  not really sure what is the real cause atm . */
 			Patch::Apply_LJMP(0x7D107D, &_msize);
 			Patch::Apply_LJMP(0x7D5408, &_strdup);
 			Patch::Apply_LJMP(0x7C8E17, &malloc);
@@ -978,14 +1014,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 #pragma region hooks
 
-//DEFINE_HOOK(0x6BBFCE, WinMain_SetFPU_SyncDLL, 0x5)
-//{
-//	_set_controlfp(_RC_CHOP, _MCW_RC);
-//
-//	fesetround(FE_TOWARDZERO);
-//	return 0x0;
-//}
-
 DEFINE_HOOK(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
 	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
 }
@@ -996,19 +1024,6 @@ DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
 	Debug::Log("Init Phobos Randomizer seed %x\n", Game::Seed());
 	Phobos::Random::SetRandomSeed(Game::Seed());
 	return 0;
-}
-
-//DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
-DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
-{
-	Phobos::ExeTerminate();
-#ifdef EXPERIMENTAL_IMGUI
-	PhobosWindowClass::Destroy();
-#endif
-	//CRT::exit_noreturn(0);
-	//return 0x0;
-	GET(UINT, result, EAX);
-	ExitProcess(result);
 }
 
 //DEFINE_HOOK(0x7C8B3D, Game_freeMem, 0x9)
@@ -1022,7 +1037,6 @@ DEFINE_HOOK(0x7cd8ef, Game_ExeTerminate, 9)
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
-
 	Phobos::ExeRun();
 	return 0;
 }

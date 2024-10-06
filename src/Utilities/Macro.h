@@ -35,6 +35,61 @@ struct MiscTools
 
 #define NAKED __declspec(naked)
 
+template<typename T>
+void FORCEINLINE Patch_Jump(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
+
+	SIZE_T bytes_written;
+
+	_LJMP cmd { 0u, 0u };
+	cmd.command = LJMP_LETTER;
+	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_LJMP);
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+}
+
+template<typename T>
+void FORCEINLINE Patch_Call(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
+
+	SIZE_T bytes_written;
+
+	_CALL cmd { 0u, 0u };
+	cmd.command = CALL_LETTER;
+	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_CALL);
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
+}
+
+template<typename T>
+void FORCEINLINE Patch_Call6(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_CALL6) == 6, "Jump struct not expected size!");
+
+	SIZE_T bytes_written;
+
+	_CALL6 cmd { 0u, 0u };
+	cmd.command = LJMP_LETTER;
+	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_LJMP);
+	cmd.nop = NOP_LETTER;
+
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+}
+
+template<typename T>
+void FORCEINLINE Patch_Vtable(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_VTABLE) == 4, "Jump struct not expected size!");
+
+	SIZE_T bytes_written;
+
+	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
+}
+
+#define DECLARE_PATCH(name) \
+    [[ noreturn ]] static NOINLINE NAKED void name() noexcept
+
 #pragma region Patch Macros
 
 #pragma region Patch Structs

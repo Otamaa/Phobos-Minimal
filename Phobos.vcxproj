@@ -483,6 +483,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
+    <ClInclude Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />

@@ -19,6 +19,8 @@
 
 #include <New/Type/CursorTypeClass.h>
 
+#include "Hooks.MouseCursors.h"
+
 DEFINE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
 {
 	GET(int, nAction, EAX);
@@ -29,6 +31,19 @@ DEFINE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
 	}
 
 	return nAction > (int)Action::PsychicReveal ? DisAllowMini : ReConsiderAllowMini;
+}
+
+void MouseHooker::Exec()
+{
+	//Patch_Jump(0x5BDDC0, &MouseClassExt::_Update);
+	//Patch_Jump(0x5BDC80, &MouseClassExt::_Override_Mouse_Shape);
+	//Patch_Vtable(0x7E19B8, &MouseClassExt::_Mouse_Small);
+	//Patch_Jump(0x5BDAB0, &MouseClassExt::_Mouse_Small);
+	//Patch_Jump(0x5BDBC0, &MouseClassExt::_Get_Mouse_Current_Frame);
+	//Patch_Jump(0x5BDB90, &MouseClassExt::_Get_Mouse_Frame);
+	//Patch_Jump(0x5BDC00, &MouseClassExt::_Get_Mouse_Hotspot);
+	//Patch_Jump(0x5BE970, &MouseClassExt::_Get_Mouse_Start_Frame);
+	//Patch_Jump(0x5BE990, &MouseClassExt::_Get_Mouse_Frame_Count);
 }
 
 DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
@@ -58,7 +73,6 @@ DEFINE_HOOK(0x5BDAB0, MouseClass_Small_Replace, 0x7)
 
 	pMouse->_Mouse_Small(wsmall);
 	return 0x5BDB82;
-
 }
 
 DEFINE_HOOK(0x5BDBC0, MouseClass_Get_Mouse_Current_Frame_Replace, 0xB)
