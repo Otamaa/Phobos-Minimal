@@ -2085,29 +2085,29 @@ DEFINE_JUMP(CALL, 0x647684, GET_OFFSET(ComputeGameCRC));
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
-DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
-	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
-
-	GET(TunnelLocomotionClass* const, pLoco, ESI);
-	GET(int const, distance, EAX);
-	return distance >= pLoco->LinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-}
-
-DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
-	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
-
-	GET(FootClass* const, pLinkedTo, ECX);
-	GET(int const, distance, EAX);
-	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-}
-
-DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
-	enum { KeepMoving = 0x5B14AA, CloseEnough = 0x5B11E6 };
-
-	GET(FootClass* const, pLinkedTo, ECX);
-	GET(int const, distance, EAX);
-	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-}
+//DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
+//	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
+//
+//	GET(TunnelLocomotionClass* const, pLoco, ESI);
+//	GET(int const, distance, EAX);
+//	return distance >= pLoco->LinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+//}
+//
+//DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+//	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
+//
+//	GET(FootClass* const, pLinkedTo, ECX);
+//	GET(int const, distance, EAX);
+//	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+//}
+//
+//DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+//	enum { KeepMoving = 0x5B14AA, CloseEnough = 0x5B11E6 };
+//
+//	GET(FootClass* const, pLinkedTo, ECX);
+//	GET(int const, distance, EAX);
+//	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+//}
 
 // Apply cell lighting on UseNormalLight=no MakeInfantry anims.
 DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)

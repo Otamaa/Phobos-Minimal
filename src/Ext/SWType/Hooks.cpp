@@ -2834,14 +2834,13 @@ DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 
 int __fastcall BuildingClass_MI_MissileWrapper(BuildingClass* pThis, DWORD) {
 
-	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW) {
+	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW && pThis->MissionStatus < 3) {
 		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
-		return 0;
+	} else if (TechnoExtContainer::Instance.Find(pThis)->LinkedSW && pThis->MissionStatus >= 3) {
+		TechnoExtContainer::Instance.Find(pThis)->LinkedSW = nullptr;
 	}
 
-	const int ret = pThis->BuildingClass::Mission_Missile();
-	TechnoExtContainer::Instance.Find(pThis)->LinkedSW = nullptr;
-	return ret;
+	return pThis->BuildingClass::Mission_Missile();
 }
 DEFINE_JUMP(VTABLE, 0x7E410C, GET_OFFSET(BuildingClass_MI_MissileWrapper));
 #endif
