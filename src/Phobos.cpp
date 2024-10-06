@@ -846,7 +846,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Debug::InitLogFile();
 		Debug::LogFileRemove();
 
-		LuaData::LuaDir = PhobosCRT::WideStringToString(Debug::ApplicationFilePath);
+		LuaData::LuaDir = std::move(PhobosCRT::WideStringToString(Debug::ApplicationFilePath));
 		LuaData::LuaDir += "\\Resources";
 
 		void* buffer {};
