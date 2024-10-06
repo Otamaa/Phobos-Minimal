@@ -1771,7 +1771,8 @@ DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 
 	int weaponIndex = 0;
-	auto const pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 
 	if (pHouseExt->EMPulseWeaponIndex >= 0)
 	{
@@ -1785,6 +1786,22 @@ DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 				pTarget = pObject;
 
 			weaponIndex = pThis->SelectWeapon(pTarget);
+		}
+	}
+
+	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
+
+	//why this fuckery even exist ,..
+	//the SW can be state can be exploited at some point , smh
+	if (pSWExt->EMPulse_SuspendOthers) {
+		auto iter = pHouseExt->SuspendedEMPulseSWs.get_key_iterator(pLinked);
+
+		if (iter != pHouseExt->SuspendedEMPulseSWs.end()) {
+			for (auto const& pSuper : iter->second) {
+				pSuper->IsOnHold = false;
+			}
+
+			pHouseExt->SuspendedEMPulseSWs.erase(iter);
 		}
 	}
 
@@ -1819,19 +1836,6 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 
 	R->EDI(PsiWarn);
 	return 0x44CA74;
-}
-
-DEFINE_HOOK(0x44C992, BuildingClass_MI_Missile_Safeguard, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW)
-	{
-		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
-		return 0x44D584;
-	}
-
-	return 0x0;
 }
 
 // Create bullet pointing up to the sky
@@ -2828,4 +2832,16 @@ DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 	return 0x7120C6;
 }
 
+int __fastcall BuildingClass_MI_MissileWrapper(BuildingClass* pThis, DWORD) {
+
+	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW) {
+		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
+		return 0;
+	}
+
+	const int ret = pThis->BuildingClass::Mission_Missile();
+	TechnoExtContainer::Instance.Find(pThis)->LinkedSW = nullptr;
+	return ret;
+}
+DEFINE_JUMP(VTABLE, 0x7E410C, GET_OFFSET(BuildingClass_MI_MissileWrapper));
 #endif

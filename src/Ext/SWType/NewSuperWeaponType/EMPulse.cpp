@@ -28,6 +28,44 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 		return this->IsLaunchSiteEligible(pData, Coords, pBld, ignoreRange);
 	};
 
+	//why this fuckery even exist ,..
+	//the SW can be state can be exploited at some point , smh
+	if (pData->EMPulse_SuspendOthers)
+	{
+		auto const pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+
+		for (auto const& pSuper : pThis->Owner->Supers)
+		{
+			if (static_cast<AresNewSuperType>(pSuper->Type->Type) != AresNewSuperType::EMPulse || pSuper == pThis || pSuper->IsOnHold)
+				continue;
+
+			bool suspend = false;
+			auto pSuper_pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+			if (pSuper_pData->EMPulse_Cannons.empty() && pData->EMPulse_Cannons.empty()) {
+				suspend = true;
+			}
+			else {
+				// Suspend if the two cannon lists share common items.
+				suspend = std::find_first_of(pData->EMPulse_Cannons.begin(), pData->EMPulse_Cannons.end(),
+					pSuper_pData->EMPulse_Cannons.begin(), pSuper_pData->EMPulse_Cannons.end()) != pData->EMPulse_Cannons.end();
+			}
+
+			if (suspend)
+			{
+				pSuper->IsOnHold = true;
+				auto iter = pHouseExt->SuspendedEMPulseSWs.get_key_iterator(pThis);
+
+				if (iter == pHouseExt->SuspendedEMPulseSWs.end()) {
+					pHouseExt->SuspendedEMPulseSWs.insert(pThis, std::vector<SuperClass*>{});
+					pHouseExt->SuspendedEMPulseSWs.back().second.emplace_back(pSuper);
+				} else {
+					iter->second.emplace_back(pSuper);
+				}
+			}
+		}
+	}
+
 	// only call on up to Count buildings that suffice IsEligible
 	Helpers::Alex::for_each_if_n(pThis->Owner->Buildings.begin(), pThis->Owner->Buildings.end(),
 		Count, IsEligible, [=](BuildingClass* pBld)
@@ -86,6 +124,8 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_PulseDelay.Read(exINI, section, "EMPulse.PulseDelay");
 	pData->EMPulse_PulseBall.Read(exINI, section, "EMPulse.PulseBall");
 	pData->EMPulse_Cannons.Read(exINI, section, "EMPulse.Cannons");
+
+	pData->EMPulse_SuspendOthers.Read(exINI, section, "EMPulse.SuspendOthers");
 
 	pData->AttachedToObject->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 

@@ -2272,6 +2272,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->EMPulse_PulseDelay)
 		.Process(this->EMPulse_PulseBall)
 		.Process(this->EMPulse_Cannons)
+		.Process(this->EMPulse_SuspendOthers)
 
 		.Process(this->Mutate_Explosion)
 		.Process(this->Mutate_IgnoreCyborg)

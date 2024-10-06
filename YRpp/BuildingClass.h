@@ -60,6 +60,8 @@ public:
 	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x442230);
 
 	//MissionClass
+	virtual int Mission_Missile() override JMP_THIS(0x44C980);
+
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
 	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x44D760);

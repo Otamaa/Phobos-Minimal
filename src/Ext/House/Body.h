@@ -179,6 +179,8 @@ public:
 	int NumConYards_NonMFB { 0 };
 	int NumShipyards_NonMFB { 0 };
 
+	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
+
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	constexpr FORCEINLINE static size_t size_Of()

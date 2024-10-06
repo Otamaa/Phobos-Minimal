@@ -21,40 +21,40 @@ DEFINE_HOOK(0x724B2E, ToolTipManager_SetX_TacticalButtons, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A6300, SidebarClass_AddCameo_SuperWeapon_TacticalButton, 0x6)
-{
-	enum { SkipGameCode = 0x6A6606 };
+// DEFINE_HOOK(0x6A6300, SidebarClass_AddCameo_SuperWeapon_TacticalButton, 0x6)
+// {
+// 	enum { SkipGameCode = 0x6A6606 };
+//
+// 	if (Phobos::UI::ExclusiveSuperWeaponSidebar)
+// 	{
+// 		GET_STACK(AbstractType, whatAmI, 0x4);
+// 		GET_STACK(int, index, 0x8);
 
-	if (Phobos::UI::ExclusiveSuperWeaponSidebar)
-	{
-		GET_STACK(AbstractType, whatAmI, 0x4);
-		GET_STACK(int, index, 0x8);
+// 		switch (whatAmI)
+// 		{
+// 		case AbstractType::Super:
+// 		case AbstractType::SuperWeaponType:
+// 		case AbstractType::Special:
+// 			if (const auto pSWType = SuperWeaponTypeClass::Array->GetItemOrDefault(index))
+// 			{
+// 				const auto pSWExt = SWTypeExtContainer::Instance.Find(pSWType);
+//
+// 				if (pSWExt->AllowInExclusiveSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire))
+// 				{
+// 					TacticalButtonClass::AddButton(index);
+// 					R->AL(false);
+// 					return SkipGameCode;
+// 				}
+// 			}
+// 			break;
 
-		switch (whatAmI)
-		{
-		case AbstractType::Super:
-		case AbstractType::SuperWeaponType:
-		case AbstractType::Special:
-			if (const auto pSWType = SuperWeaponTypeClass::Array->GetItemOrDefault(index))
-			{
-				const auto pSWExt = SWTypeExtContainer::Instance.Find(pSWType);
-
-				if (pSWExt->AllowInExclusiveSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire))
-				{
-					TacticalButtonClass::AddButton(index);
-					R->AL(false);
-					return SkipGameCode;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
+// 		default:
+// 			break;
+// 		}
+// 	}
+//
+// 	return 0;
+// }
 
 //DEFINE_HOOK(0x6A60A0, SidebarClass_StripClass_Redreaw, 0xA) {
 //	GET_STACK(int, tab_, 0x4);
