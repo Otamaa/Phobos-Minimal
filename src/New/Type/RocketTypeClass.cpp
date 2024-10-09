@@ -8,6 +8,70 @@ const char* Enumerable<RocketTypeClass>::GetMainSection()
 	return "RocketTypes";
 }
 
+void RocketTypeClass::ReadListFromINI(CCINIClass* pINI, bool bDebug) {
+	size_t i = 0;
+	for (auto& pItem : Array) {
+		pItem->LoadFromINI_B(pINI, ++i);
+	}
+}
+
+void RocketTypeClass::LoadFromINI_B(CCINIClass* pINI, size_t idx){
+
+	if (idx == 0 || idx == 1 || idx == 2) {
+
+		const char* pSection = this->Name.c_str();
+
+		INI_EX exINI(pINI);
+
+		detail::read(this->RocketData.PauseFrames, exINI, GameStrings::General, (this->Name + "PauseFrames").c_str());
+		detail::read(this->RocketData.TiltFrames, exINI, GameStrings::General, (this->Name + "TiltFrames").c_str());
+		detail::read(this->RocketData.PitchInitial, exINI, GameStrings::General, (this->Name + "PitchInitial").c_str());
+		detail::read(this->RocketData.PitchFinal, exINI, GameStrings::General, (this->Name + "PitchFinal").c_str());
+		detail::read(this->RocketData.TurnRate, exINI, GameStrings::General, (this->Name + "TurnRate").c_str());
+
+		// sic! integer read like a float.
+		float buffer = 0.0f;
+		if (detail::read(buffer, exINI, GameStrings::General, (this->Name + "RaiseRate").c_str())) {
+			this->RocketData.RaiseRate = int(buffer);
+		}
+
+		detail::read(this->RocketData.Acceleration, exINI, GameStrings::General, (this->Name + "Acceleration").c_str());
+		detail::read(this->RocketData.Altitude, exINI, GameStrings::General, (this->Name + "Altitude").c_str());
+		detail::read(this->RocketData.Damage, exINI, GameStrings::General, (this->Name + "Damage").c_str());
+		detail::read(this->RocketData.EliteDamage, exINI, GameStrings::General, (this->Name + "EliteDamage").c_str());
+		detail::read(this->RocketData.BodyLength, exINI, GameStrings::General, (this->Name + "BodyLength").c_str());
+		detail::read(this->RocketData.LazyCurve, exINI, GameStrings::General, (this->Name + "LazyCurve").c_str());
+		detail::read(this->RocketData.Type, exINI, GameStrings::General, (this->Name + "Type").c_str());
+
+		this->TrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+		this->TakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+
+		switch (idx)
+		{
+		case 0:
+		{
+			this->PreLauchAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+			this->Offset->X = 40;
+			this->Offset->Y = 40;
+			break;
+		}
+		case 1:
+		{
+			break;
+		}
+		case 2:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+
+	}
+
+	this->LoadFromINI(pINI);
+}
+
 void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.c_str();

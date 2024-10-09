@@ -36,19 +36,24 @@ public:
 
 	static void constexpr inline AddDefaults() {
 		for (auto& rocket:  DefaultRockets) {
-			FindOrAllocate(rocket);
+			FindOrAllocate(rocket.c_str());
 		}
 	}
 
-	static constexpr std::array<const char*, 3u> DefaultRockets {
+	static constexpr std::array<std::string, 3u> DefaultRockets {
 		{ "CMisl" , "DMisl" , "V3Rocket" }
 	};
+
+	static void ReadListFromINI(CCINIClass* pINI, bool bDebug = false);
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm) { Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { Serialize(Stm); }
 
 private:
+
+	void LoadFromINI_B(CCINIClass* pINI , size_t idx);
+
 	template <typename T>
 	void Serialize(T& Stm)
 	{

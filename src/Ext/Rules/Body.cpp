@@ -124,9 +124,6 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ColorTypeClass::LoadFromINIList_New(pINI);
 	CursorTypeClass::LoadFromINIList_New(pINI);
 
-	RocketTypeClass::AddDefaults();
-
-	RocketTypeClass::LoadFromINIList(pINI);
 	TunnelTypeClass::LoadFromINIList(pINI);
 
 	CrateTypeClass::ReadFromINIList(pINI); //yeah ,..
@@ -1518,6 +1515,15 @@ DEFINE_HOOK(0x668D86, RulesData_PreFillTypeListData, 0x6)
 	}
 
 	return 0x668DD2;
+}
+
+DEFINE_HOOK(0x668E8D, RulesClass_LoadAfterAircraftTypeList, 0x8) {
+	GET(CCINIClass*, pINI, ESI);
+	//GET(RulesClass*, pRules, EDI);
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIList(pINI);
+	RocketTypeClass::ReadListFromINI(pINI);
+	return 0x0;
 }
 
 DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
