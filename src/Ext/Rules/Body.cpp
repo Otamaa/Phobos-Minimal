@@ -989,7 +989,15 @@ void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 { }
 
 void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
-{ }
+{
+	/// Additional `JumpjetControls`
+	INI_EX exINI(pINI);
+
+	RulesExtData::Instance()->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
+	RulesExtData::Instance()->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
+
+	///
+}
 
 bool RulesExtData::DetailsCurrentlyEnabled()
 {
@@ -1448,39 +1456,10 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x52C9C4, GameInit_SkipReadingStuffsTooEarly, 0x6)
-{
-//	//AnimTypeClass::Array->ForEach([](AnimTypeClass* pType) {
-//	//	pType->LoadFromINI(&CCINIClass::INI_Art());
-//	//});
-//
-//	//BuildingTypeClass::Array->ForEach([](BuildingTypeClass* pType) {
-//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-//	//});
-//
-//	//SuperWeaponTypeClass::Array->ForEach([](SuperWeaponTypeClass* pType) {
-//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-//	//});
-//
-//	//WeaponTypeClass::Array->ForEach([](WeaponTypeClass* pType) {
-//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-//	//});
-//
-//	//WarheadTypeClass::Array->ForEach([](WarheadTypeClass* pType) {
-//	//	pType->LoadFromINI(CCINIClass::INI_Rules());
-//	//});
-//
-	return 0x52CA37;
-}
-
-// DEFINE_HOOK(0x52D149, InitRules_PostInit, 0x5)
-// {
-// 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
-// 	return 0;
-// }
+DEFINE_JUMP(LJMP, 0x52C9C4 , 0x52CA37);
 
 // Read on very first RulesClass::Process function
-DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
+DEFINE_HOOK(0x668BF0, RulesClass_Process_Addition, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x4);
@@ -1490,7 +1469,7 @@ DEFINE_HOOK(0x668BF0, RulesClass_Addition, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x668D86, RulesData_PreFillTypeListData, 0x6)
+DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 {
 	GET(CCINIClass*, pINI, ESI);
 
@@ -1520,15 +1499,20 @@ DEFINE_HOOK(0x668D86, RulesData_PreFillTypeListData, 0x6)
 static void __fastcall _Replace_JumpjetReading(RulesClass* pRules, DWORD, CCINIClass* pINI) {
 	RocketTypeClass::AddDefaults();
 	RocketTypeClass::LoadFromINIList(pINI);
-	RocketTypeClass::ReadListFromINI(pINI);
 }
 
-DEFINE_JUMP(CALL, 0x668EB8, GET_OFFSET(_Replace_JumpjetReading));
+static void __fastcall _Replace_ReadColors(RulesClass* pRules, DWORD, CCINIClass* pINI) {
+	RulesExtData::LoadEarlyBeforeColor(pRules, pINI);
 
-DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
-{
-	GET(RulesClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x4);
+	pRules->Read_JumpjetControls(pINI);
+	pRules->Read_Colors(pINI);
+}
+
+static void __fastcall _Replace_GeneralReading(RulesClass* pRules, DWORD, CCINIClass* pINI) {
+
+	RulesExtData::LoadBeforeGeneralData(pRules, pINI);
+	pRules->Read_General(pINI);
+	RocketTypeClass::ReadListFromINI(pINI);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
 		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
@@ -1540,71 +1524,41 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 
 	// All TypeClass Created but not yet read INI
 	//	RulesClass::Initialized = true;
-	RulesExtData::s_LoadBeforeTypeData(pItem, pINI);
 
-	return 0;
-}
-
-#include <Ext/WarheadType/Body.h>
-// Read on very end RulesClass::Object function
-DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
-{
-	RulesClass* pItem = RulesClass::Instance();
-	GET(CCINIClass*, pINI, ESI);
-
+	RulesExtData::s_LoadBeforeTypeData(pRules, pINI);
+	pRules->Read_Types(pINI);
 
 	// Ensure entry not fail because of late instantiation
 	// add more if needed , it will double the error log at some point
 	// but it will take care some of missing stuffs that previously loaded late
 
-	{
-		for (auto pWeapon : *WeaponTypeClass::Array)
-		{
-			pWeapon->LoadFromINI(pINI);
-		}
-
-		for (auto pBullet : *BulletTypeClass::Array)
-		{
-			pBullet->LoadFromINI(pINI);
-		}
-
-		for (auto pWarhead : *WarheadTypeClass::Array)
-		{
-			pWarhead->LoadFromINI(pINI);
-		}
-
-		for (auto pAnims : *AnimTypeClass::Array)
-		{
-			pAnims->LoadFromINI(pINI);
-		}
+	for (auto pWeapon : *WeaponTypeClass::Array) {
+		pWeapon->LoadFromINI(pINI);
 	}
 
-	RulesExtData::LoadAfterTypeData(pItem, pINI);
+	for (auto pBullet : *BulletTypeClass::Array) {
+			pBullet->LoadFromINI(pINI);
+	}
 
-	return 0;
-}
+	for (auto pWarhead : *WarheadTypeClass::Array) {
+		pWarhead->LoadFromINI(pINI);
+	}
 
-//DEFINE_HOOK(0x66D530, RulesData_LoadBeforeGeneralData, 0x6)
-//{
-//	GET(RulesClass*, pItem, ECX);
-//	GET_STACK(CCINIClass*, pINI, 0x4);
-//
-//	RulesExtData::LoadBeforeGeneralData(pItem, pINI);
-//
-//	return 0;
-//}
+	for (auto pAnims : *AnimTypeClass::Array) {
+		pAnims->LoadFromINI(pINI);
+	}
 
-DEFINE_HOOK(0x668EF5, RulesData_LoadAfterAllLogicData, 0x5)
-{
-	GET(RulesClass*, pItem, EDI);
-	GET(CCINIClass*, pINI, ESI);
-
-	pItem->Read_Difficulties(pINI);
+	RulesExtData::LoadAfterTypeData(pRules, pINI);
+	pRules->Read_Difficulties(pINI);
 	TiberiumClass::_ReadFromINI(pINI);
-	RulesExtData::LoadAfterAllLogicData(pItem, pINI);
+	RulesExtData::LoadAfterAllLogicData(pRules, pINI);
 
-	return 0x668F6A;
 }
+
+DEFINE_JUMP(CALL, 0x668EB8, GET_OFFSET(_Replace_JumpjetReading));
+DEFINE_JUMP(CALL, 0x52D0FF, GET_OFFSET(_Replace_ReadColors));
+DEFINE_JUMP(CALL, 0x668EE8 , GET_OFFSET(_Replace_GeneralReading));
+DEFINE_JUMP(LJMP, 0x668EED , 0x668F6A);
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
@@ -1659,20 +1613,6 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x679C92, RulesClass_ReadAllFromINI_ReIterate, 0x7)
-//{
-//	GET(CCINIClass*, pINI, ESI);
-//
-//	for (auto pAnim : *AnimTypeClass::Array) {
-//		pAnim->LoadFromINI(pINI);
-//	}
-//
-//	return 0x0;
-//}
-
-//DEFINE_SKIP_HOOK(0x668F2B, RulesClass_Process_RemoveThese, 0x8, 668F63);
-//DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading
-
  // remove reading warhead from `SpecialWeapon`
 DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x5B //pop EBX
@@ -1681,7 +1621,6 @@ DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
 	, 0x90, 0x90, 0x90, 0x90, 0x90
 );
-
 
 DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5) {
 

@@ -31,31 +31,31 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 //DEFINE_SKIP_HOOK(0x668EB5 , RulesClass_Process_SkipJumpjetControls ,0x8 , 668EBD);
 //DEFINE_JUMP(LJMP, 0x668EB5, 0x668EBD); // RulesClass_Process_SkipJumpjetControls
 
-DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
-{
-	GET(RulesClass*, pThis, ECX);
-	GET(CCINIClass*, pINI, EAX);
+// DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
+// {
+// 	GET(RulesClass*, pThis, ECX);
+// 	GET(CCINIClass*, pINI, EAX);
+//
+// 	RulesExtData::LoadEarlyBeforeColor(pThis, pINI);
+// 	pThis->Read_JumpjetControls(pINI);
+//
+// 	return 0;
+// }
 
-	RulesExtData::LoadEarlyBeforeColor(pThis, pINI);
-	pThis->Read_JumpjetControls(pINI);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
-{
-	if (const auto pRulesExt = RulesExtData::Instance())
-	{
-		GET(CCINIClass*, pINI, EDI);
-
-		INI_EX exINI(pINI);
-
-		pRulesExt->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
-		pRulesExt->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
+//{
+//	if (const auto pRulesExt = RulesExtData::Instance())
+//	{
+//		GET(CCINIClass*, pINI, EDI);
+//
+//		INI_EX exINI(pINI);
+//
+//		pRulesExt->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
+//		pRulesExt->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
+//	}
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 {

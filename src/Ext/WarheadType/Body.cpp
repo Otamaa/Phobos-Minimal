@@ -1189,15 +1189,15 @@ void WarheadTypeExtData::DetonateAt(
 	//		return;
 	//	}
 	//}
-
-	if (!pOwner && Phobos::Otamaa::IsAdmin) {
-		Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !\n", pThis->get_ID(), pOwner);
-	}
+	//
+	//if (!pOwner && Phobos::Otamaa::IsAdmin) {
+	//	Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !\n", pThis->get_ID(), pOwner);
+	//}
 
 	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
-		pBullet->MoveTo(coords, {});
+		pBullet->MoveTo(coords, VelocityClass::Empty);
 
 		//something like 0x6FF08B
 		const auto pCellCoord = MapClass::Instance->GetCellAt(coords);
