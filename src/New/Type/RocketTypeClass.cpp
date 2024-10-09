@@ -76,6 +76,9 @@ void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.c_str();
 
+	//if (!pINI->GetSection(pSection))
+	//	return;
+
 	INI_EX exINI(pINI);
 
 	detail::read(this->RocketData.PauseFrames, exINI, pSection,"PauseFrames");
@@ -98,7 +101,17 @@ void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
 	detail::read(this->RocketData.LazyCurve, exINI, pSection,"LazyCurve");
 	detail::read(this->RocketData.Type, exINI, pSection,"Type");
 
-	this->Raise.Read(exINI, pSection, nullptr , "%sRaiseBeforeLaunching");
+	std::string flag_raise = "RaiseBeforeLaunching";
+
+	bool placeholder {};
+	if (detail::read(placeholder, exINI, pSection, flag_raise.c_str())) {
+		this->Raise.SetAll(placeholder);
+	}
+
+	detail::read(this->Raise.Rookie, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]) + "." + flag_raise).c_str());
+	detail::read(this->Raise.Veteran, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]) + "." + flag_raise).c_str());
+	detail::read(this->Raise.Elite, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Elite]) + "." + flag_raise).c_str());
+
 	this->Offset.Read(exINI, pSection, "CoordOffset");
 	this->Warhead.Read(exINI, pSection, "Warhead");
 	this->EliteWarhead.Read(exINI, pSection, "EliteWarhead");

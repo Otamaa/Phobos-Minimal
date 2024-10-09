@@ -1517,14 +1517,13 @@ DEFINE_HOOK(0x668D86, RulesData_PreFillTypeListData, 0x6)
 	return 0x668DD2;
 }
 
-DEFINE_HOOK(0x668E8D, RulesClass_LoadAfterAircraftTypeList, 0x8) {
-	GET(CCINIClass*, pINI, ESI);
-	//GET(RulesClass*, pRules, EDI);
+static void __fastcall _Replace_JumpjetReading(RulesClass* pRules, DWORD, CCINIClass* pINI) {
 	RocketTypeClass::AddDefaults();
 	RocketTypeClass::LoadFromINIList(pINI);
 	RocketTypeClass::ReadListFromINI(pINI);
-	return 0x0;
 }
+
+DEFINE_JUMP(CALL, 0x668EB8, GET_OFFSET(_Replace_JumpjetReading));
 
 DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 {
