@@ -374,6 +374,9 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 
 bool PhobosAttachEffectClass::AllowedToBeActive() const
 {
+	if (this->ShouldBeDiscarded)
+		return false;
+
 	//Debug::Log(__FUNCTION__" Executed [%s - %s]\n", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthPercentage() >= this->Type->DiscardOn_AbovePercent.Get())
 		return false;
@@ -585,7 +588,10 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 			currentTypeCount++;
 			match = &aePtr;
 
-			if (aePtr.Source == pSource && aePtr.Invoker == pInvoker)
+			if (aePtr.Source == pSource && 
+				aePtr.Invoker == pInvoker && 
+				(!sourceMatch || sourceMatch->Duration > aePtr.Duration)
+				)
 				sourceMatch = &aePtr;
 		}
 	}
@@ -954,6 +960,7 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->HasInitialized)
 		.Process(this->SelectedAnim)
 		.Process(this->NeedsDurationRefresh)
+		.Process(this->ShouldBeDiscarded)
 		.Success() && Stm.RegisterChange(this);
 }
 

@@ -455,31 +455,35 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4255B6, AnimClass_Remove_DetachOnCloak, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pThis->OwnerObject) {
-
-		if (!pTypeExt->DetachOnCloak || pThis->OwnerObject->IsAlive) {
-
-			pThis->OwnerObject = nullptr;
-			return 0x4255CF;
-		}
-
-		pThis->OwnerObject->AnimPointerExpired(pThis);
-
-		// Replace the AnimClass::AttachTo() call with a simplified version that does not bother to deal
-		// with coords for anim that is about to be removed to fix a crash with DetachOnCloak=no anims.
-
-		if (pThis->IsOnMap)
-			DisplayClass::Instance->RemoveObject(pThis);
-
-		pThis->OwnerObject->Extinguish();
-		pThis->OwnerObject->HasParachute = false;
-		pThis->OwnerObject = nullptr;
-	}
-
-	return 0x4255CF;
-}
+// this shit is broken
+// causing dangling pointer problems
+// DEFINE_HOOK(0x4255B6, AnimClass_Remove_DetachOnCloak, 0x6)
+// {
+// 	GET(AnimClass*, pThis, ESI);
+// 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+//
+// 	if (pThis->OwnerObject) {
+//
+// 		if (!pTypeExt->DetachOnCloak || !pThis->OwnerObject->IsAlive) {
+//
+// 			pThis->OwnerObject = nullptr;
+// 			return 0x4255CF;
+// 		}
+//
+// 		pThis->OwnerObject->AnimPointerExpired(pThis);
+//
+// 		 // Replace the AnimClass::AttachTo() call with a simplified version that does not bother to deal
+// 		 // with coords for anim that is about to be removed to fix a crash with DetachOnCloak=no anims.
+//
+// 		if (pThis->IsOnMap)
+// 			DisplayClass::Instance->RemoveObject(pThis);
+//
+// 		pThis->OwnerObject->Extinguish();
+// 		pThis->OwnerObject->HasParachute = false;
+// 		pThis->OwnerObject = nullptr;
+// 	}
+//
+// 	//pThis->SetOwnerObject(nullptr);
+//
+// 	return 0x4255CF;
+// }

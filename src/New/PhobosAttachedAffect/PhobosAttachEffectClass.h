@@ -38,7 +38,8 @@ public:
 		IsCloaked { that.IsCloaked },
 		HasInitialized { that.HasInitialized },
 		NeedsDurationRefresh { that.NeedsDurationRefresh },
-		HasCumulativeAnim { that.HasCumulativeAnim } {
+		HasCumulativeAnim { that.HasCumulativeAnim } ,
+		ShouldBeDiscarded { that.ShouldBeDiscarded }{
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
 		auto ptr = c_remove->Animation.release();
@@ -65,6 +66,7 @@ public:
 		this->HasInitialized = that.HasInitialized;
 		this->NeedsDurationRefresh = that.NeedsDurationRefresh;
 		this->HasCumulativeAnim = that.HasCumulativeAnim;
+		this->ShouldBeDiscarded= that.ShouldBeDiscarded;
 
 		//oogly
 		auto c_remove = const_cast<PhobosAttachEffectClass*>(&that);
@@ -181,4 +183,5 @@ public:
 	bool NeedsDurationRefresh { false };
 	AnimTypeClass* SelectedAnim { nullptr };
 	bool HasCumulativeAnim { false };
+	bool ShouldBeDiscarded { false };
 };

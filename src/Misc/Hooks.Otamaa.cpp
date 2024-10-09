@@ -5739,17 +5739,18 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 //HouseClass
 #ifndef HOUSE_STORAGE_HOOK
-DEFINE_HOOK(0x4F69D5, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x6)
+DEFINE_HOOK(0x4F69D0, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x5)
 {
 	GET(IHouse*, pThis, ESI);
+	const int value = *reinterpret_cast<int*>(((DWORD)pThis) + 0x2EC);
 	const auto pHouse = static_cast<HouseClass*>(pThis);
 	auto pExt = HouseExtContainer::Instance.Find(pHouse);
 
 	if (pExt->TiberiumStorage.m_values.empty())
 		pExt->TiberiumStorage.m_values.resize(4u);
 
-	R->EAX((int)pExt->TiberiumStorage.GetAmounts());
-	return 0x4F69E5;
+	R->EAX(value - (int)pExt->TiberiumStorage.GetAmounts());
+	return 0x4F69F0;
 }
 
 DEFINE_HOOK(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)

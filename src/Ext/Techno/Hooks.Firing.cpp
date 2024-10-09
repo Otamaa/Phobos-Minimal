@@ -507,17 +507,27 @@ DEFINE_HOOK(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
 
 #pragma endregion
 
-//DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(AbstractClass*, pTarget, EDI);
-//	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-//	if (pThis->Passengers.FirstPassenger)
-//	{
-//		// TODO : implement this for UnitClass
-//		pThis->DropOffParadropCargo();
-//	}
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, EDI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->AE.HasOnFireDiscardables) {
+		for (auto& attachEffect : pExt->PhobosAE) {
+			if ((attachEffect.GetType()->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None)
+				attachEffect.ShouldBeDiscarded = true;
+		}
+	}
+
+
+	// if (pThis->Passengers.FirstPassenger)
+	// {
+	// 	// TODO : implement this for UnitClass
+	// 	pThis->DropOffParadropCargo();
+	// }
+
+	return 0x0;
+}

@@ -1527,11 +1527,9 @@ void TechnoExtData::SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete)
 {
 	auto const pType = pThis->GetTechnoType();
 
-	const Mission nEndMission = !pType->ResourceGatherer ?
-		pThis->IsArmed() ?
-		pThis->Owner && pThis->Owner->IsHumanPlayer ? Mission::Guard : Mission::Area_Guard
-		: Mission::Sleep
-		: Mission::Harvest;
+	const Mission nEndMission = pThis->IsArmed() ?
+		(pThis->Owner->IsHumanPlayer ? Mission::Hunt : Mission::Guard) :
+		(!pType->ResourceGatherer ? Mission::Sleep : Mission::Harvest);
 
 	pThis->QueueMission(nEndMission, Immediete);
 }
@@ -5083,6 +5081,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	bool hasTint = false;
 	bool reflectsDamage = false;
+	bool hasOnFireDiscardables = false;
 
 	std::optional<double> cur_timerAE {};
 
@@ -5107,8 +5106,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		disableSelfHeal |= aeData.Type->DisableSelfHeal;
 		untrackable |= aeData.Type->Untrackable;
 
-		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0))
-		{
+		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)) {
 
 			auto& ranges_ = extraRangeData->ranges.emplace_back();
 			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
@@ -5174,6 +5172,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		}
 
 		reflectsDamage |= type->ReflectDamage;
+		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
+
 	}
 
 	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
@@ -5202,6 +5202,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->Untrackable = untrackable;
 	_AEProp->HasTint = hasTint;
 	_AEProp->ReflectDamage = reflectsDamage;
+	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
 
 	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;

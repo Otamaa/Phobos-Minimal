@@ -77,6 +77,7 @@ enum class DiscardCondition : unsigned char
 	InRange ,
 	OutOfRange ,
 	InvokerDeleted,
+	Firing,
 	count
 };
 

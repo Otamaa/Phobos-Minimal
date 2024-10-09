@@ -359,6 +359,7 @@ struct AEProperties
 
 	bool HasRangeModifier { false };
 	bool HasTint { false };
+	bool HasOnFireDiscardables { false };
 
 	bool ReflectDamage { false };
 
@@ -403,6 +404,7 @@ protected:
 			.Process(this->DisableSelfHeal)
 			.Process(this->HasRangeModifier)
 			.Process(this->HasTint)
+			.Process(this->HasOnFireDiscardables)
 			.Process(this->ReflectDamage)
 			.Process(this->Untrackable)
 			.Success() && Stm.RegisterChange(this)

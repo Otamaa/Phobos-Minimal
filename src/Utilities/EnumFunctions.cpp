@@ -13,7 +13,8 @@ std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::Discard
 	{ "drain" } ,
 	{ "inrange" } ,
 	{ "outofrange" },
-	{ "InvokerDeleted" }
+	{ "InvokerDeleted" },
+	{ "firing "}
  }
 };
 
