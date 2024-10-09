@@ -41,7 +41,21 @@ public:
 	ValueableVector<int> BuildOtherCounts;
 	PhobosMap<BuildingTypeClass*, size_t> BuildOtherCountMap;
 
-	TechTreeTypeClass(const char* pTitle) : Enumerable<TechTreeTypeClass>(pTitle) { }
+	TechTreeTypeClass(const char* pTitle) : Enumerable<TechTreeTypeClass>(pTitle)
+		, SideIndex {}
+		, ConstructionYard {}
+		, BuildPower {}
+		, BuildBarracks {}
+		, BuildWeapons {}
+		, BuildRadar {}
+		, BuildHelipad {}
+		, BuildNavalYard {}
+		, BuildTech {}
+		, BuildAdvancedPower {}
+		, BuildDefense {}
+		, BuildOtherCounts {}
+		, BuildOtherCountMap {}
+	{ }
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);
@@ -49,7 +63,7 @@ public:
 
 	bool IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const;
 	size_t CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const;
-	constexpr const std::vector<BuildingTypeClass*>* GetBuildList(BuildType buildType) const {
+	constexpr FORCEINLINE const std::vector<BuildingTypeClass*>* GetBuildList(BuildType buildType) const {
 		switch (buildType)
 		{
 		case BuildType::BuildPower:

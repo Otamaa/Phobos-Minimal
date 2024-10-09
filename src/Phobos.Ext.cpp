@@ -50,6 +50,11 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
+#include <New/Type/ImmunityTypeClass.h>
+#include <New/Type/RocketTypeClass.h>
+#include <New/Type/ShieldTypeClass.h>
+#include <New/Type/TechTreeTypeClass.h>
+#include <New/Type/ThemeTypeClass.h>
 
 #include <New/HugeBar.h>
 
@@ -414,6 +419,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PhobosAttachEffectTypeClass::GroupsMap.clear();
 	TechTreeTypeClass::Clear();
 	HugeBar::Clear();
+	RocketTypeClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -597,7 +603,8 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
 		Process_Load<TechTreeTypeClass>(pStm) &&
 		Process_Load<StaticVars>(pStm) &&
-		Process_Load<HugeBar>(pStm)
+		Process_Load<HugeBar>(pStm) &&
+		Process_Load<RocketTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -651,7 +658,8 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
 			Process_Save<TechTreeTypeClass>(pStm) &&
 			Process_Save<StaticVars>(pStm) &&
-			Process_Save<HugeBar>(pStm)
+			Process_Save<HugeBar>(pStm) &&
+			Process_Save<RocketTypeClass>(pStm)
 			;
 
 		if (!ret)

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/PhobosFixedString.h>
 

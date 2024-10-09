@@ -1,10 +1,7 @@
 #pragma once
-#include <SuperWeaponTypeClass.h>
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
 #include <Utilities/TemplateDefB.h>
-#include <Utilities/GeneralUtils.h>
 
 class AnimTypeClass;
 class VocClass;

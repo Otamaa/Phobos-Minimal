@@ -2,6 +2,8 @@
 
 #include "Header.h"
 
+#include <Utilities/Macro.h>
+
 //TechnoTypeClass_LoadFromINI_Weapons2
 DEFINE_JUMP(LJMP, 0x715B1F, 0x715F9E);
 

@@ -4,6 +4,8 @@
 #include <Ext/Cell/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Utilities/Macro.h>
+
 void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (this->LighSource.get() == ptr) {

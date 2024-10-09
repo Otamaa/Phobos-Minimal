@@ -16,6 +16,7 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
 #include <New/Type/TechTreeTypeClass.h>
+#include <New/Type/RocketTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -123,6 +124,9 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ColorTypeClass::LoadFromINIList_New(pINI);
 	CursorTypeClass::LoadFromINIList_New(pINI);
 
+	RocketTypeClass::AddDefaults();
+
+	RocketTypeClass::LoadFromINIList(pINI);
 	TunnelTypeClass::LoadFromINIList(pINI);
 
 	CrateTypeClass::ReadFromINIList(pINI); //yeah ,..

@@ -1,18 +1,12 @@
 #pragma once
 
-#include <Utilities/Debug.h>
-#include <Utilities/Macro.h>
-#include <ScenarioClass.h>
-#include <Utilities/Constructs.h>
-#include <CCINIClass.h>
 #include <Theater.h>
-#include <string>
+
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/PhobosFixedString.h>
 
-#include <Phobos.CRT.h>
-
+class CCINIClass;
 class TheaterTypeClass final : public Enumerable<TheaterTypeClass>
 {
 public:

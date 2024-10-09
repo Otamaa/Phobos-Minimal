@@ -21,6 +21,8 @@
 #include "NewSuperWeaponType/Dominator.h"
 
 #include <Misc/Ares/Hooks/Header.h>
+
+#include <Utilities/Macro.h>
 #pragma endregion
 
 DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)

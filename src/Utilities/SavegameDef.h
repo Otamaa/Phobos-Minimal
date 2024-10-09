@@ -21,6 +21,7 @@
 #include <ScriptTypeClass.h>
 #include <queue>
 #include <optional>
+#include <RocketStruct.h>
 
 #include "TranslucencyLevel.h"
 #include "Swizzle.h"

@@ -6,6 +6,8 @@
 
 #include <MixFileClass.h>
 
+#include <Utilities/Macro.h>
+
 Enumerable<TheaterTypeClass>::container_t Enumerable<TheaterTypeClass>::Array;
 
 const char* Enumerable<TheaterTypeClass>::GetMainSection()

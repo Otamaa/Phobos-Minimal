@@ -13,6 +13,8 @@
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <Utilities/Macro.h>
+
 std::vector<int> HouseExtData::AIProduction_CreationFrames;
 std::vector<int> HouseExtData::AIProduction_Values;
 std::vector<int> HouseExtData::AIProduction_BestChoices;

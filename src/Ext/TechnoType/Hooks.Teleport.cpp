@@ -6,6 +6,9 @@
 
 #include <Locomotor/Cast.h>
 
+#include <Utilities/Macro.h>
+
+
 #define GET_LOCO(reg_Loco) \
 	GET(ILocomotion*, Loco, reg_Loco); \
 	TeleportLocomotionClass* pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \

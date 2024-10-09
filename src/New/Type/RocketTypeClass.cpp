@@ -1,0 +1,48 @@
+#include "RocketTypeClass.h"
+
+Enumerable<RocketTypeClass>::container_t Enumerable<RocketTypeClass>::Array;
+
+// pretty nice, eh
+const char* Enumerable<RocketTypeClass>::GetMainSection()
+{
+	return "RocketTypes";
+}
+
+void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
+{
+	const char* pSection = this->Name.c_str();
+
+	INI_EX exINI(pINI);
+
+	detail::read(this->RocketData.PauseFrames, exINI, pSection,"PauseFrames");
+	detail::read(this->RocketData.TiltFrames, exINI, pSection,"TiltFrames");
+	detail::read(this->RocketData.PitchInitial, exINI, pSection,"PitchInitial");
+	detail::read(this->RocketData.PitchFinal, exINI, pSection,"PitchFinal");
+	detail::read(this->RocketData.TurnRate, exINI, pSection,"TurnRate");
+
+	// sic! integer read like a float.
+	float buffer = 0.0f;
+	if (detail::read(buffer, exINI, pSection,"RaiseRate")) {
+		this->RocketData.RaiseRate = int(buffer);
+	}
+
+	detail::read(this->RocketData.Acceleration, exINI, pSection,"Acceleration");
+	detail::read(this->RocketData.Altitude, exINI, pSection,"Altitude");
+	detail::read(this->RocketData.Damage, exINI, pSection,"Damage");
+	detail::read(this->RocketData.EliteDamage, exINI, pSection,"EliteDamage");
+	detail::read(this->RocketData.BodyLength, exINI, pSection,"BodyLength");
+	detail::read(this->RocketData.LazyCurve, exINI, pSection,"LazyCurve");
+	detail::read(this->RocketData.Type, exINI, pSection,"Type");
+
+	this->Raise.Read(exINI, pSection, nullptr , "%sRaiseBeforeLaunching");
+	this->Offset.Read(exINI, pSection, "CoordOffset");
+	this->Warhead.Read(exINI, pSection, "Warhead");
+	this->EliteWarhead.Read(exINI, pSection, "EliteWarhead");
+	this->TakeoffAnim.Read(exINI, pSection, "TakeOffAnim");
+	this->PreLauchAnim.Read(exINI, pSection, "PreLaunchAnim");
+	this->TrailerAnim.Read(exINI, pSection, "TrailerAnim");
+	this->TrailerSeparation.Read(exINI, pSection, "TrailerSeparation");
+	this->Weapon.Read(exINI, pSection, "Weapon");
+	this->EliteWeapon.Read(exINI, pSection, "EliteWeapon");
+
+}
