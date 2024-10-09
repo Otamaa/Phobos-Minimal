@@ -76,8 +76,8 @@ void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.c_str();
 
-	//if (!pINI->GetSection(pSection))
-	//	return;
+	if (!pINI->GetSection(pSection))
+		return;
 
 	INI_EX exINI(pINI);
 
