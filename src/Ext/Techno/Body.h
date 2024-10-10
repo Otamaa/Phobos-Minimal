@@ -545,7 +545,7 @@ public:
 
 	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
 
-	HelperedVector<PhobosAttachEffectClass> PhobosAE {};
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
 
 	int ShootCount { 0 };
 	int CurrentAircraftWeaponIndex { 0 };

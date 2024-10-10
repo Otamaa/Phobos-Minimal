@@ -487,12 +487,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Nonprovocative.Read(exINI, pSection, "Nonprovocative");
 
-	this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
-	this->AttachEffect_RemoveTypes.Read(exINI, pSection, "AttachEffect.RemoveTypes");
-	this->AttachEffect_RemoveGroups.Read(exINI, pSection, "AttachEffect.RemoveGroups");
-	this->AttachEffect_CumulativeRemoveMinCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMinCounts");
-	this->AttachEffect_CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
-	this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
+	// AttachEffect
+	this->PhobosAttachEffects.LoadFromINI(pINI, pSection);
 	this->Shield_HitFlash.Read(exINI, pSection, "Shield.HitFlash");
 	this->Shield_SkipHitAnim.Read(exINI, pSection, "Shield.SkipHitAnim");
 	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
@@ -1532,12 +1528,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SpawnsCrate_Types)
 		.Process(this->SpawnsCrate_Weights)
 
-		.Process(this->AttachEffect_AttachTypes)
-		.Process(this->AttachEffect_RemoveTypes)
-		.Process(this->AttachEffect_RemoveGroups)
-		.Process(this->AttachEffect_CumulativeRemoveMinCounts)
-		.Process(this->AttachEffect_CumulativeRemoveMaxCounts)
-		.Process(this->AttachEffect_DurationOverrides)
+		.Process(this->PhobosAttachEffects)
+
 		.Process(this->Shield_HitFlash)
 		.Process(this->Shield_SkipHitAnim)
 		.Process(this->CombatAlert_Suppress)
@@ -1591,9 +1583,10 @@ void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pI
 	if (!pTarget)
 		return;
 
-	PhobosAttachEffectClass::Attach(this->AttachEffect_AttachTypes, pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, this->AttachEffect_DurationOverrides, nullptr, nullptr, nullptr);
-	PhobosAttachEffectClass::Detach(this->AttachEffect_RemoveTypes, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
-	PhobosAttachEffectClass::DetachByGroups(this->AttachEffect_RemoveGroups, pTarget, this->AttachEffect_CumulativeRemoveMinCounts, this->AttachEffect_CumulativeRemoveMaxCounts);
+	auto const info = &this->PhobosAttachEffects;
+	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, info);
+	PhobosAttachEffectClass::Detach(pTarget, info);
+	PhobosAttachEffectClass::DetachByGroups(pTarget, info);
 }
 
 bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const

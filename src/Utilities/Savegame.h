@@ -6,6 +6,24 @@
 #include <type_traits>
 
 namespace Savegame {
+
+	template <typename T>
+	concept ImplementsUpperCaseSaveLoad = requires (PhobosStreamWriter& stmWriter, PhobosStreamReader& stmReader, T& value, bool registerForChange)
+	{
+		value.Save(stmWriter);
+		value.Load(stmReader, registerForChange);
+	};
+
+	template <typename T>
+	concept ImplementsLowerCaseSaveLoad = requires (PhobosStreamWriter& stmWriter, PhobosStreamReader& stmReader, T& value, bool registerForChange)
+	{
+		value.save(stmWriter);
+		value.load(stmReader, registerForChange);
+	};
+
+	template <typename T>
+	concept ImplementsSaveLoad = ImplementsUpperCaseSaveLoad<T> || ImplementsLowerCaseSaveLoad<T>;
+
 	template <typename T>
 	bool ReadPhobosStream(PhobosStreamReader& Stm, T& Value, bool RegisterForChange = true);
 

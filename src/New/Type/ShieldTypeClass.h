@@ -68,6 +68,10 @@ public:
 	Nullable<ColorStruct> Tint_Color;
 	Valueable<double> Tint_Intensity;
 	Valueable<AffectedHouse> Tint_VisibleToHouses;
+
+	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed { };
+	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed { };
+	Valueable<bool> InheritArmorFromTechno { };
 public:
 
 	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);

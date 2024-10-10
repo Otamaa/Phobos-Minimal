@@ -104,9 +104,12 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 
 	if(pExt->AE.HasTint) {
 		for (auto const& attachEffect : pExt->PhobosAE) {
-			auto const type = attachEffect.GetType();
+			if(!attachEffect)
+				continue;
 
-			if (!attachEffect.IsActive() || !type->HasTint())
+			auto const type = attachEffect->GetType();
+
+			if (!attachEffect->IsActive() || !type->HasTint())
 				continue;
 
 			if (!EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))

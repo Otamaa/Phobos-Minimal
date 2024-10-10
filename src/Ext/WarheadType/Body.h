@@ -14,7 +14,7 @@
 #include <New/Type/CrateTypeClass.h>
 
 #include <New/Entity/LauchSWData.h>
-#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+#include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
@@ -370,12 +370,7 @@ public:
 	std::vector<int> SpawnsCrate_Types {};
 	std::vector<int> SpawnsCrate_Weights {};
 
-	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
-	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_RemoveTypes {};
-	ValueableVector<std::string> AttachEffect_RemoveGroups {};
-	ValueableVector<int> AttachEffect_CumulativeRemoveMinCounts {};
-	ValueableVector<int> AttachEffect_CumulativeRemoveMaxCounts {};
-	ValueableVector<int> AttachEffect_DurationOverrides {};
+	AEAttachInfoTypeClass PhobosAttachEffects {};
 
 	Valueable<bool> Shield_HitFlash { true };
 	Valueable<bool> Shield_SkipHitAnim { false };

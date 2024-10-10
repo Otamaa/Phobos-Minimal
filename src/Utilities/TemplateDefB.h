@@ -482,6 +482,26 @@ namespace detail
 		return false;
 	}
 
+	template <>
+	inline bool read<InterpolationMode>(InterpolationMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocat)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto str = parser.value();
+
+			for (auto& [pString, val] : EnumFunctions::InterpolationMode_ToStrings) {
+				if (IS_SAME_STR_(pString, str)) {
+					value = val;
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, str, "Expected an interpolation mode");
+		}
+
+		return false;
+	}
+
 	template<typename T, bool Alloc = false>
 	inline void ParseVector(INI_EX& IniEx, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
 	{

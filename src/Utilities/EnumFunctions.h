@@ -3,6 +3,7 @@
 #include <Phobos.h>
 
 #include "Enum.h"
+#include "Interpolation.h"
 
 class HouseClass;
 class CellClass;
@@ -62,6 +63,7 @@ public:
 	static std::array<std::pair<const char* const, MouseHotSpotX>, 3u> MouseHotSpotX_ToStrings;
 	static std::array<std::pair<const char* const, MouseHotSpotY>, 3u> MouseHotSpotY_ToStrings;
 
+	static std::array<std::pair<const char* const, InterpolationMode>, 2u> InterpolationMode_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);

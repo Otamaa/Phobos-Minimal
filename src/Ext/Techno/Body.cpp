@@ -2992,11 +2992,10 @@ void TechnoExtData::InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass*
 {
 	if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType))
 	{
-		if (pTypeExt->AttachEffect_AttachTypes.size() < 1)
+		if (pTypeExt->PhobosAttachEffects.AttachTypes.size() < 1)
 			return;
 
-		PhobosAttachEffectClass::Attach(pTypeExt->AttachEffect_AttachTypes, pThis, pThis->Owner, pThis, pThis,
-			pTypeExt->AttachEffect_DurationOverrides, &pTypeExt->AttachEffect_Delays, &pTypeExt->AttachEffect_InitialDelays,&pTypeExt->AttachEffect_RecreationDelays);
+		PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 	}
 }
 
@@ -4856,7 +4855,7 @@ void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadType
 		//}
 
 		if(pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
-			armor = pShieldData->GetType()->Armor;
+			armor = pShieldData->GetArmor(armor);
 		}
 	}
 }
@@ -5039,7 +5038,9 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(BuildingLight, ptr);
 
 	for (auto& _phobos_AE : PhobosAE) {
-		_phobos_AE.InvalidatePointer(ptr, bRemoved);
+		if(_phobos_AE) {
+			_phobos_AE->InvalidatePointer(ptr, bRemoved);
+		}
 	}
 }
 
@@ -5057,7 +5058,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 	auto _AresAE = &pExt->AeData;
-	//auto _PhobosAE = &pExt->PhobosAE;
 	auto _AEProp = &pExt->AE;
 
 	double ROF_Mult = 1.0;
@@ -5121,10 +5121,10 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	for (const auto& attachEffect : pExt->PhobosAE) {
 
-		if (!attachEffect.IsActive())
+		if (!attachEffect || !attachEffect->IsActive())
 			continue;
 
-		auto const type = attachEffect.GetType();
+		auto const type = attachEffect->GetType();
 		FP_Mult *= type->FirepowerMultiplier;
 		Speed_Mult *= type->SpeedMultiplier;
 		Armor_Mult *= type->ArmorMultiplier;
@@ -5315,8 +5315,12 @@ DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 		pExt->AeData.InvalidatePointer(pAnim, pThis);
 
 		for (auto& _phobos_AE : pExt->PhobosAE) {
-			if (_phobos_AE.Animation.get() == pAnim)
-				_phobos_AE.Animation.release();
+
+			if(!_phobos_AE)
+				continue;
+
+			if (_phobos_AE->Animation.get() == pAnim)
+				_phobos_AE->Animation.release();
 		}
 	}
 

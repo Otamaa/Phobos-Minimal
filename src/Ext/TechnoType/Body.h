@@ -19,7 +19,7 @@
 #include <New/Type/DroppodProperties.h>
 #include <New/Type/CrateTypeClass.h>
 
-#include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+#include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
@@ -951,11 +951,7 @@ public:
 	Valueable<double> Tint_Intensity { 0.0 };
 	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
 
-	ValueableVector<PhobosAttachEffectTypeClass*> AttachEffect_AttachTypes {};
-	ValueableVector<int> AttachEffect_DurationOverrides {};
-	ValueableVector<int> AttachEffect_Delays {};
-	ValueableVector<int> AttachEffect_InitialDelays {};
-	NullableVector<int> AttachEffect_RecreationDelays {};
+	AEAttachInfoTypeClass PhobosAttachEffects {};
 
 	Valueable<bool> KeepTargetOnMove {};
 	Nullable<Leptons> KeepTargetOnMove_ExtraDistance {};

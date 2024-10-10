@@ -549,9 +549,9 @@ static bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		|| pData->RemoveInflictedLocomotor
 		|| pData->IC_Duration != 0
 
-		|| pData->AttachEffect_AttachTypes.size() > 0
-		|| pData->AttachEffect_RemoveTypes.size() > 0
-		|| pData->AttachEffect_RemoveGroups.size() > 0
+		|| !pData->PhobosAttachEffects.AttachTypes.empty()
+		|| !pData->PhobosAttachEffects.RemoveTypes.empty()
+		|| !pData->PhobosAttachEffects.RemoveGroups.empty()
 
 		;
 }
@@ -776,7 +776,10 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (this->RemoveInflictedLocomotor)
 		this->ApplyLocomotorInflictionReset(pTarget);
 
-	if (this->AttachEffect_AttachTypes.size() > 0 || this->AttachEffect_RemoveTypes.size() > 0 || this->AttachEffect_RemoveGroups.size() > 0)
+	if (!this->PhobosAttachEffects.AttachTypes.empty()
+		|| !this->PhobosAttachEffects.RemoveTypes.empty()
+		|| !this->PhobosAttachEffects.RemoveGroups.empty()
+	)
 		this->ApplyAttachEffects(pTarget, pHouse, pOwner);
 }
 

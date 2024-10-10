@@ -837,23 +837,37 @@ DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
-//{
-//	GET(AnimClass* const, pThis, ESI);
-//	GET(void*, target, EDI);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-//	R->EBX(0);
-//	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
-//}
-
-void __fastcall AnimClass_Detach_Wrapper(AnimClass* pThis, DWORD, AbstractClass* target, bool all)
+DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 {
+	GET(AnimClass* const, pThis, ESI);
+	GET(AbstractClass*, target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
 	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-	pThis->AnimClass::PointerExpired(target, all);
+
+	R->EBX(0);
+
+	if(pThis->OwnerObject == target){
+
+		if(!target)
+			return 0x4251A3;
+
+		if (auto const pTechno = abstract_cast<TechnoClass*>(target)) {
+			if (TechnoExtContainer::Instance.Find(pTechno)->IsDetachingForCloak)
+				return 0x4251A3;
+		}
+
+		return 0x425174;
+	}
+
+	return 0x4251A3;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
+// void __fastcall AnimClass_Detach_Wrapper(AnimClass* pThis, DWORD, AbstractClass* target, bool all)
+// {
+// 	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
+// 	pThis->AnimClass::PointerExpired(target, all);
+// }
+//
+// DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExtData::GetOwningHouse_Wrapper));

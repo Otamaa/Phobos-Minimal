@@ -97,9 +97,20 @@ public:
 		return this->Type;
 	}
 
-	constexpr FORCEINLINE Armor GetArmor() const
+	constexpr FORCEINLINE Armor GetArmor(Armor inherit) const
 	{
-		return this->Type->Armor;
+		const auto pShieldType = this->Type;
+
+		if (pShieldType->InheritArmorFromTechno)
+		{
+			const auto pTechnoType = this->Techno->GetTechnoType();
+
+			if (pShieldType->InheritArmor_Allowed.empty() || pShieldType->InheritArmor_Allowed.Contains(pTechnoType)
+				&& (pShieldType->InheritArmor_Disallowed.empty() || !pShieldType->InheritArmor_Disallowed.Contains(pTechnoType)))
+				return inherit;
+		}
+
+		return pShieldType->Armor.Get();
 	}
 
 	constexpr FORCEINLINE int GetFramesSinceLastBroken() const

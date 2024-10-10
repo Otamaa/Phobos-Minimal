@@ -539,6 +539,14 @@ std::array<const char*, 8u> EnumFunctions::FacingType_to_strings
 }
 };
 
+std::array<std::pair<const char* const, InterpolationMode>, 2u> EnumFunctions::InterpolationMode_ToStrings
+{
+{
+	{ "none"  , InterpolationMode::None} ,
+	{ "linear" , InterpolationMode::Linear } ,
+}
+};
+
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
 	if (flags == AffectedHouse::All)

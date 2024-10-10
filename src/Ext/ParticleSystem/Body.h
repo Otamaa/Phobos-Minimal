@@ -117,6 +117,8 @@ public:
 	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
 	HelperedVector<Draw> SmokeData { };
 
+	bool AlphaIsLightFlash { true };
+
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

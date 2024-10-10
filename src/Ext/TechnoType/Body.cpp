@@ -1173,11 +1173,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
 		this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
 
-		this->AttachEffect_AttachTypes.Read(exINI, pSection, "AttachEffect.AttachTypes");
-		this->AttachEffect_DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
-		this->AttachEffect_Delays.Read(exINI, pSection, "AttachEffect.Delays");
-		this->AttachEffect_InitialDelays.Read(exINI, pSection, "AttachEffect.InitialDelays");
-		this->AttachEffect_RecreationDelays.Read(exINI, pSection, "AttachEffect.RecreationDelays");
+		this->PhobosAttachEffects.LoadFromINI(pINI, pSection);
 
 		this->KeepTargetOnMove.Read(exINI, pSection, "KeepTargetOnMove");
 		this->KeepTargetOnMove_ExtraDistance.Read(exINI, pSection, "KeepTargetOnMove.ExtraDistance");
@@ -2366,11 +2362,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Tint_Intensity)
 		.Process(this->Tint_VisibleToHouses)
 
-		.Process(this->AttachEffect_AttachTypes)
-		.Process(this->AttachEffect_DurationOverrides)
-		.Process(this->AttachEffect_Delays)
-		.Process(this->AttachEffect_InitialDelays)
-		.Process(this->AttachEffect_RecreationDelays)
+		.Process(this->PhobosAttachEffects)
 
 		.Process(this->KeepTargetOnMove)
 		.Process(this->KeepTargetOnMove_ExtraDistance)

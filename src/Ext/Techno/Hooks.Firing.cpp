@@ -507,7 +507,7 @@ DEFINE_HOOK(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
 
 #pragma endregion
 
-DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
+DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, EDI);
@@ -517,8 +517,11 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
 
 	if (pExt->AE.HasOnFireDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
-			if ((attachEffect.GetType()->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None)
-				attachEffect.ShouldBeDiscarded = true;
+				if(!attachEffect)
+					continue;
+
+			if ((attachEffect->GetType()->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None)
+				attachEffect->ShouldBeDiscarded = true;
 		}
 	}
 

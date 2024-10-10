@@ -366,6 +366,7 @@
     <ClCompile Include="src\New\Entity\ToggleSWButtonClass.cpp" />
     <ClCompile Include="src\New\HugeBar.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
+    <ClCompile Include="src\New\PhobosAttachedAffect\AEAttachInfoTypeClass.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\Functions.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.cpp" />
     <ClCompile Include="src\New\PhobosAttachedAffect\PhobosAttachEffectTypeClass.cpp" />
@@ -503,6 +504,8 @@
     <ClInclude Include="src\New\HugeBar.h" />
     <ClInclude Include="src\New\Interfaces\IEntity.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
+    <ClInclude Include="src\New\PhobosAttachedAffect\AEAttachInfoTypeClass.h" />
+    <ClInclude Include="src\New\PhobosAttachedAffect\AEAttachParams.h" />
     <ClInclude Include="src\New\PhobosAttachedAffect\Functions.h" />
     <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectClass.h" />
     <ClInclude Include="src\New\PhobosAttachedAffect\PhobosAttachEffectTypeClass.h" />
@@ -759,6 +762,7 @@
     <ClInclude Include="src\Utilities\GameConfig.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\Handle.h" />
+    <ClInclude Include="src\Utilities\Interpolation.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />

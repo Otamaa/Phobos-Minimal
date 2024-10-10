@@ -196,15 +196,11 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DetachOnCloak.Read(exINI, pID, "DetachOnCloak");
 	this->Translucency_Cloaked.Read(exINI, pID, "Translucency.Cloaked");
 
-	this->Translucent_Stage1_Percent.Read(exINI, pID, "Translucent.Stage1.Percent");
-	this->Translucent_Stage1_Frame.Read(exINI, pID, "Translucent.Stage1.Frame");
-	this->Translucent_Stage1_Translucency.Read(exINI, pID, "Translucent.Stage1.Translucency");
-	this->Translucent_Stage2_Percent.Read(exINI, pID, "Translucent.Stage2.Percent");
-	this->Translucent_Stage2_Frame.Read(exINI, pID, "Translucent.Stage2.Frame");
-	this->Translucent_Stage2_Translucency.Read(exINI, pID, "Translucent.Stage2.Translucency");
-	this->Translucent_Stage3_Percent.Read(exINI, pID, "Translucent.Stage3.Percent");
-	this->Translucent_Stage3_Frame.Read(exINI, pID, "Translucent.Stage3.Frame");
-	this->Translucent_Stage3_Translucency.Read(exINI, pID, "Translucent.Stage3.Translucency");
+	if (this->AttachedToObject->Translucent)
+	{
+		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", this->AttachedToObject->End);
+		this->Translucent_Keyframes.InterpolationMode = InterpolationMode::None;
+	}
 
 	this->CreateUnit_SpawnHeight.Read(exINI, pID, "CreateUnit.SpawnHeight");
 #pragma endregion
@@ -288,7 +284,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 	}
 }
 
-HouseClass* GetOwnerForSpawned(AnimClass* pThis)
+static HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
@@ -576,15 +572,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->RestrictVisibilityIfCloaked)
 		.Process(this->DetachOnCloak)
 		.Process(this->Translucency_Cloaked)
-		.Process(this->Translucent_Stage1_Percent)
-		.Process(this->Translucent_Stage1_Frame)
-		.Process(this->Translucent_Stage1_Translucency)
-		.Process(this->Translucent_Stage2_Percent)
-		.Process(this->Translucent_Stage2_Frame)
-		.Process(this->Translucent_Stage2_Translucency)
-		.Process(this->Translucent_Stage3_Percent)
-		.Process(this->Translucent_Stage3_Frame)
-		.Process(this->Translucent_Stage3_Translucency)
+		.Process(this->Translucent_Keyframes)
 
 		.Process(this->CreateUnit_SpawnHeight)
 

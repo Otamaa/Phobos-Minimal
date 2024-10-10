@@ -1258,6 +1258,7 @@ void ParticleSystemExtData::Serialize(T& Stm)
 		.Process(this->OtherParticleData)
 		.Process(this->SmokeData)
 		.Process(this->HeldType, true)
+		.Process(this->AlphaIsLightFlash)
 		;
 }
 

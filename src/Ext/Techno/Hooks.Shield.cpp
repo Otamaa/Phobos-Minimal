@@ -213,13 +213,17 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 	}
 
 	pExt->PhobosAE.remove_if([&](auto& it){
-		if ((it.GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None) {
+
+		if(!it)
+			return true;
+
+		if ((it->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None) {
 			altered = true;
 
-			if (it.GetType()->HasTint())
+			if (it->GetType()->HasTint())
 				markForRedraw = true;
 
-			if (it.ResetIfRecreatable()) {
+			if (it->ResetIfRecreatable()) {
 				return false;
 			}
 
