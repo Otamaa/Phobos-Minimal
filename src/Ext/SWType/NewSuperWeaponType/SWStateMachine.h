@@ -31,7 +31,7 @@ enum class SWStateMachineIdentifier : int
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
 class SWStateMachine
 {
-	static std::vector<std::unique_ptr<SWStateMachine>> Array;
+	static HelperedVector<std::unique_ptr<SWStateMachine>> Array;
 
 public:
 
