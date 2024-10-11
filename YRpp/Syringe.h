@@ -292,19 +292,19 @@ public:
 #define EXPORT_FUNC_NAKED(name) extern "C" __declspec(naked , dllexport) DWORD __cdecl name (REGISTERS *R)
 
 //Handshake definitions
-struct SyringeHandshakeInfo
-{
-	int cbSize;
-	int num_hooks;
-	unsigned int checksum;
-	DWORD exeFilesize;
-	DWORD exeTimestamp;
-	unsigned int exeCRC;
-	int cchMessage;
-	char* Message;
-};
+//struct SyringeHandshakeInfo
+//{
+//	int cbSize;
+//	int num_hooks;
+//	unsigned int checksum;
+//	DWORD exeFilesize;
+//	DWORD exeTimestamp;
+//	unsigned int exeCRC;
+//	int cchMessage;
+//	char* Message;
+//};
 
-#define SYRINGE_HANDSHAKE(pInfo) extern "C" __declspec(dllexport) HRESULT __cdecl SyringeHandshake(SyringeHandshakeInfo* pInfo)
+//#define SYRINGE_HANDSHAKE(pInfo) static extern "C" __declspec(dllexport) HRESULT __cdecl SyringeHandshake(SyringeHandshakeInfo* pInfo)
 
 #if SYR_VER == 2
 

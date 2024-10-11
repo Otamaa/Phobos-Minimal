@@ -1583,7 +1583,7 @@ struct OverlayWriter
 		ByteWriters[3].Put(bytes[3]);
 	}
 
-	void PutBlock(CCINIClass* pINI)
+	void PutBlock(CCINIClass* pINI) const
 	{
 		ByteWriters[0].PutBlock(pINI);
 		ByteWriters[1].PutBlock(pINI);
