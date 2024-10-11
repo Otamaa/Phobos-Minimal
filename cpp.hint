@@ -1,0 +1,6 @@
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+#define DEFINE_HOOK(hook, funcname, size) declhook(hook, funcname, size) EXPORT_FUNC(funcname)
+#define DEFINE_HOOK(hook, funcname, size) declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) {DebugData::Start(R->Origin(), #funcname , size);DWORD ret=funcname##_DEBUG_(R);DebugData::End(R->Origin(), #funcname, size);return ret;}EXPORT_DEBUG(funcname##_DEBUG_)
+#define MAKEREG(RegName, inherit, type) struct RegName : public inherit { constexpr inline const char* name() const { return Register_names[(int)RegistersType::type]; } constexpr inline RegistersType type() const { return RegistersType::type; }};static_assert(sizeof(RegName) == sizeof(inherit));

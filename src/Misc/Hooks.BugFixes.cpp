@@ -306,7 +306,7 @@ DEFINE_HOOK(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
 	return 0x70D787;
 }
 
-bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
+static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 {
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
@@ -961,7 +961,7 @@ static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 // }
 
 // Update attached anim layers after parent unit changes layer.
-void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, ObjectClass* pObject)
+static void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, ObjectClass* pObject)
 {
 	pThis->SubmitObject(pObject);
 	//Known to be techno already , dont need to cast
@@ -1647,7 +1647,7 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	return 0x746931;
 }
 
-bool __fastcall Fake_HouseIsAlliedWith(HouseClass* pThis, void*, HouseClass* CurrentPlayer)
+static bool __fastcall Fake_HouseIsAlliedWith(HouseClass* pThis, void*, HouseClass* CurrentPlayer)
 {
 	return Phobos::Config::DevelopmentCommands
 		|| pThis->ControlledByCurrentPlayer()

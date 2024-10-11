@@ -809,6 +809,7 @@
     <ResourceCompile Include="src\version.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
     <None Include="sampleconfig\Resources\ScriptAlternativeNumbering.lua" />
     <None Include="sampleconfig\tools\ExtractTheAlternativeNumbering.cs" />
