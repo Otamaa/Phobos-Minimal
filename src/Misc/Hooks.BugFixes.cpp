@@ -155,7 +155,7 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 
 #include <Ext/Anim/Body.h>
 
-constexpr TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
+static constexpr TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
 
 	if (pType->DebrisAnims.Count <= 0) {
 		if (!pType->DebrisTypes.Count &&  !RulesClass::Instance->MetallicDebris.Count)
@@ -311,7 +311,7 @@ bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
 
-void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
+static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 {
 	if (pThis->TemporalTargetingMe)
 	{
@@ -893,7 +893,7 @@ DEFINE_HOOK(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
 	return 0x6DAD45;
 }
 
-FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
+static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 {
 	// do not use explicit toggle for this
 	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == JumpjetLocomotionClass::State::Crashing)
@@ -924,7 +924,7 @@ DEFINE_JUMP(LJMP, 0x447709, 0x447727);
 
 
 // Updates layers of all animations attached to the given techno.
-void UpdateAttachedAnimLayers(TechnoClass* pThis)
+static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 {
 	// Skip if has no attached animations.
 	if (!pThis || !pThis->HasParachute || !pThis->IsAlive)
@@ -1046,7 +1046,7 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 //}
 
 // Fix initial facing when jumpjet locomotor is being attached
-void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
+static void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
 {
 	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(pThis);
 	pThisLoco->Facing.Set_Current(pThisLoco->LinkedTo->PrimaryFacing.Current());
@@ -1270,7 +1270,7 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	return 0x4D4BD1;
 }
 
-void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
+static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 {
 	int spawn_position = pHouse->GetSpawnPosition();
 
@@ -1536,12 +1536,12 @@ struct OverlayByteWriter
 			YRMemory::Deallocate(this->Buffer);
 	}
 
-	void Put(unsigned char data)
+	void  FORCEINLINE Put(unsigned char data)
 	{
 		uuLength += lp.Put(&data, 1);
 	}
 
-	void PutBlock(CCINIClass* pINI)
+	void FORCEINLINE PutBlock(CCINIClass* pINI) const
 	{
 		pINI->Clear(this->lpSectionName, nullptr);
 		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
@@ -1711,19 +1711,19 @@ DEFINE_HOOK(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
 
 #define BLENDING_MASK 0xF7DEu
 
-inline uint16_t  Blit50TranslucencyFix(uint16_t  dst, uint16_t  src)
+static inline uint16_t  Blit50TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	return (((src ^ dst) & BLENDING_MASK) >> 1) + (src & dst);
 }
 
-inline uint16_t  Blit75TranslucencyFix(uint16_t  dst, uint16_t  src)
+static inline uint16_t  Blit75TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	uint16_t  div = Blit50TranslucencyFix(dst, src);
 	return (div >> 1 & HALF_RANGE_MASK) + (dst >> 1 & HALF_RANGE_MASK);
 }
 
 //same as 75, just reversed order of args
-inline uint16_t  Blit25TranslucencyFix(uint16_t  dst, uint16_t  src)
+static inline uint16_t  Blit25TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	return Blit75TranslucencyFix(src, dst);
 }
@@ -1917,7 +1917,7 @@ static constexpr int FORCEINLINE GetCoordHash(CoordStruct location)
 	return location.X / 10 + ((location.Y / 10) << 16);
 }
 
-void __fastcall ComputeGameCRC()
+static void __fastcall ComputeGameCRC()
 {
 	auto GameCRC = EventClass::CurrentFrameCRC.get();
 	GameCRC = 0;
