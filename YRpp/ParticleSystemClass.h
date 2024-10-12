@@ -64,7 +64,7 @@ public:
 		ParticleSystemTypeClass* pParticleSystemType,
 		const CoordStruct& coords,
 		AbstractClass* pTarget = nullptr,
-		ObjectClass* pOwner = nullptr,
+		TechnoClass* pOwner = nullptr,
 		const CoordStruct& targetCoords = CoordStruct::Empty,
 		HouseClass* pOwnerHouse = nullptr) noexcept : ParticleSystemClass(noinit_t())
 			{ JMP_THIS(0x62DC50); }
@@ -73,7 +73,7 @@ public:
 		ParticleSystemTypeClass* pParticleSystemType,
 		CoordStruct* coords,
 		AbstractClass* pTarget,
-		ObjectClass* pOwner,
+		TechnoClass* pOwner,
 		CoordStruct* targetCoords,
 		HouseClass* pOwnerHouse) noexcept : ParticleSystemClass(noinit_t())
 	{

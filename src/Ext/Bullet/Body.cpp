@@ -278,7 +278,7 @@ void BulletExtData::CreateAttachedSystem()
 				pAttach,
 				pThis->Location,
 				pThis->Owner,
-				pThis,
+				nullptr,
 				CoordStruct::Empty,
 				pOwner
 			));

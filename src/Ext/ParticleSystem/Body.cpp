@@ -893,152 +893,152 @@ bool ParticleSystemExtData::UpdateHandled()
 	default:
 
 
-		switch (this->AttachedToObject->Type->BehavesLike)
-		{
-		case ParticleSystemTypeBehavesLike::Smoke:
-		{
-			const auto pOwner = this->AttachedToObject;
+	//	switch (this->AttachedToObject->Type->BehavesLike)
+	//	{
+	//	case ParticleSystemTypeBehavesLike::Smoke:
+	//	{
+	//		const auto pOwner = this->AttachedToObject;
 
-			pOwner->Smoke_AI();
-			/*
-			if (auto pAttachedOwner = generic_cast<FootClass*>(pOwner->Owner))
-			{
-				auto pAttachedOwner_loc = pAttachedOwner->GetCoords();
-				pAttachedOwner_loc += pOwner->SpawnDistanceToOwner;
-				pOwner->SetLocation(pAttachedOwner_loc);
-			}
+	//		pOwner->Smoke_AI();
+	//		/*
+	//		if (auto pAttachedOwner = generic_cast<FootClass*>(pOwner->Owner))
+	//		{
+	//			auto pAttachedOwner_loc = pAttachedOwner->GetCoords();
+	//			pAttachedOwner_loc += pOwner->SpawnDistanceToOwner;
+	//			pOwner->SetLocation(pAttachedOwner_loc);
+	//		}
 
-			pOwner->Particles.for_each([](ParticleClass* pPart) {
-				pPart->BehaviourUpdate();
-			});
+	//		pOwner->Particles.for_each([](ParticleClass* pPart) {
+	//			pPart->BehaviourUpdate();
+	//		});
 
-			pOwner->Particles.for_each([pOwner](ParticleClass* pPart) {
+	//		pOwner->Particles.for_each([pOwner](ParticleClass* pPart) {
 
-				if(pPart->hasremaining && pPart->Type->NextParticle == -1){
-					pPart->UnInit();
-					return;
-				} else if (!pPart->hasremaining){
-					pPart->BehaviourUpdate();
-					return;
-				}
+	//			if(pPart->hasremaining && pPart->Type->NextParticle == -1){
+	//				pPart->UnInit();
+	//				return;
+	//			} else if (!pPart->hasremaining){
+	//				pPart->BehaviourUpdate();
+	//				return;
+	//			}
 
-				if ( pPart->Type->NextParticle != -1) {
-					auto pPartLoc = pPart->Location;
-					auto rad = pPart->Type->Radius >> 3;
-					auto _xAdd = ScenarioClass::Instance->Random.Random() % rad;
-					rad = _xAdd > 0 ? rad + _xAdd : _xAdd - rad;
-					pPartLoc.X += rad;
-					rad = pPart->Type->Radius >> 3;
-					auto _yAdd = ScenarioClass::Instance->Random.Random() % rad;
-					rad = _yAdd > 0 ? rad + _yAdd : _yAdd - rad;
-					pPartLoc.Y += rad;
-					auto pNext = ParticleTypeClass::Array->Items[pPart->Type->NextParticle];
-					auto pPart_nn = GameCreate<ParticleClass>(pNext, pPartLoc, CoordStruct::Empty, pOwner);
-					pOwner->Particles.AddItem(pPart_nn);
-					pPart_nn->Velocity = pPart->Velocity;
-					auto v22 = ScenarioClass::Instance->Random.Random() % 6;
-					pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
+	//			if ( pPart->Type->NextParticle != -1) {
+	//				auto pPartLoc = pPart->Location;
+	//				auto rad = pPart->Type->Radius >> 3;
+	//				auto _xAdd = ScenarioClass::Instance->Random.Random() % rad;
+	//				rad = _xAdd > 0 ? rad + _xAdd : _xAdd - rad;
+	//				pPartLoc.X += rad;
+	//				rad = pPart->Type->Radius >> 3;
+	//				auto _yAdd = ScenarioClass::Instance->Random.Random() % rad;
+	//				rad = _yAdd > 0 ? rad + _yAdd : _yAdd - rad;
+	//				pPartLoc.Y += rad;
+	//				auto pNext = ParticleTypeClass::Array->Items[pPart->Type->NextParticle];
+	//				auto pPart_nn = GameCreate<ParticleClass>(pNext, pPartLoc, CoordStruct::Empty, pOwner);
+	//				pOwner->Particles.AddItem(pPart_nn);
+	//				pPart_nn->Velocity = pPart->Velocity;
+	//				auto v22 = ScenarioClass::Instance->Random.Random() % 6;
+	//				pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
 
-				} else {
+	//			} else {
 
-					auto pPart_nn = GameCreate<ParticleClass>(pPart->Type, pPart->Location, CoordStruct::Empty, pOwner);
-					pOwner->Particles.AddItem(pPart_nn);
-					pPart_nn->Velocity = pPart->Velocity;
-					auto v22 = ScenarioClass::Instance->Random.Random() % 6;
-					pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
-					pPart->UnInit();
-				}
-			});
+	//				auto pPart_nn = GameCreate<ParticleClass>(pPart->Type, pPart->Location, CoordStruct::Empty, pOwner);
+	//				pOwner->Particles.AddItem(pPart_nn);
+	//				pPart_nn->Velocity = pPart->Velocity;
+	//				auto v22 = ScenarioClass::Instance->Random.Random() % 6;
+	//				pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
+	//				pPart->UnInit();
+	//			}
+	//		});
 
-			if (!pOwner->TimeToDie && pOwner->IsAlive && !(Unsorted::CurrentFrame() % (int)pOwner->SpawnFrames))
-			{
+	//		if (!pOwner->TimeToDie && pOwner->IsAlive && !(Unsorted::CurrentFrame() % (int)pOwner->SpawnFrames))
+	//		{
 
-			}
-			*/
-			pOwner->Lifetime--;
-			if (pOwner->Lifetime == 0)
-				pOwner->UnInit();
+	//		}
+	//		*/
+	//		pOwner->Lifetime--;
+	//		if (pOwner->Lifetime == 0)
+	//			pOwner->UnInit();
 
-			if (pOwner->IsAlive
-				&& pOwner->TimeToDie
-				&& !pOwner->Particles.Count)
-			{
-				pOwner->Limbo();
-				pOwner->IsAlive = false;
-				AbstractClass::Array2->AddItem(pOwner);
-			}
+	//		if (pOwner->IsAlive
+	//			&& pOwner->TimeToDie
+	//			&& !pOwner->Particles.Count)
+	//		{
+	//			pOwner->Limbo();
+	//			pOwner->IsAlive = false;
+	//			AbstractClass::Array2->AddItem(pOwner);
+	//		}
 
+	//		return false;
+	//	}
+
+	//	case ParticleSystemTypeBehavesLike::Fire:
+	//	{
+	//		this->AttachedToObject->Fire_AI();
+
+	//		const auto pOwner = this->AttachedToObject;
+
+	//		pOwner->Lifetime--;
+	//		if (pOwner->Lifetime == 0)
+	//			pOwner->UnInit();
+
+	//		if (pOwner->IsAlive
+	//			&& pOwner->TimeToDie
+	//			&& !pOwner->Particles.Count)
+	//		{
+	//			pOwner->Limbo();
+	//			pOwner->IsAlive = false;
+	//			AbstractClass::Array2->AddItem(pOwner);
+	//		}
+
+	//		return false;
+	//	}
+
+	//	case ParticleSystemTypeBehavesLike::Gas:
+	//	{
+	//		this->AttachedToObject->Gas_AI();
+
+	//		const auto pOwner = this->AttachedToObject;
+
+	//		pOwner->Lifetime--;
+	//		if (pOwner->Lifetime == 0)
+	//			pOwner->UnInit();
+
+	//		if (pOwner->IsAlive
+	//			&& pOwner->TimeToDie
+	//			&& !pOwner->Particles.Count)
+	//		{
+	//			pOwner->Limbo();
+	//			pOwner->IsAlive = false;
+	//			AbstractClass::Array2->AddItem(pOwner);
+	//		}
+
+	//		return false;
+	//	}
+
+	//	case ParticleSystemTypeBehavesLike::Railgun:
+	//	{
+	//		this->AttachedToObject->Railgun_AI();
+
+	//		const auto pOwner = this->AttachedToObject;
+
+	//		pOwner->Lifetime--;
+	//		if (pOwner->Lifetime == 0)
+	//			pOwner->UnInit();
+
+	//		if (pOwner->IsAlive
+	//			&& pOwner->TimeToDie
+	//			&& !pOwner->Particles.Count)
+	//		{
+	//			pOwner->Limbo();
+	//			pOwner->IsAlive = false;
+	//			AbstractClass::Array2->AddItem(pOwner);
+	//		}
+
+	//		return false;
+	//	}
+	//	default:
 			return false;
-		}
-
-		case ParticleSystemTypeBehavesLike::Fire:
-		{
-			this->AttachedToObject->Fire_AI();
-
-			const auto pOwner = this->AttachedToObject;
-
-			pOwner->Lifetime--;
-			if (pOwner->Lifetime == 0)
-				pOwner->UnInit();
-
-			if (pOwner->IsAlive
-				&& pOwner->TimeToDie
-				&& !pOwner->Particles.Count)
-			{
-				pOwner->Limbo();
-				pOwner->IsAlive = false;
-				AbstractClass::Array2->AddItem(pOwner);
-			}
-
-			return false;
-		}
-
-		case ParticleSystemTypeBehavesLike::Gas:
-		{
-			this->AttachedToObject->Gas_AI();
-
-			const auto pOwner = this->AttachedToObject;
-
-			pOwner->Lifetime--;
-			if (pOwner->Lifetime == 0)
-				pOwner->UnInit();
-
-			if (pOwner->IsAlive
-				&& pOwner->TimeToDie
-				&& !pOwner->Particles.Count)
-			{
-				pOwner->Limbo();
-				pOwner->IsAlive = false;
-				AbstractClass::Array2->AddItem(pOwner);
-			}
-
-			return false;
-		}
-
-		case ParticleSystemTypeBehavesLike::Railgun:
-		{
-			this->AttachedToObject->Railgun_AI();
-
-			const auto pOwner = this->AttachedToObject;
-
-			pOwner->Lifetime--;
-			if (pOwner->Lifetime == 0)
-				pOwner->UnInit();
-
-			if (pOwner->IsAlive
-				&& pOwner->TimeToDie
-				&& !pOwner->Particles.Count)
-			{
-				pOwner->Limbo();
-				pOwner->IsAlive = false;
-				AbstractClass::Array2->AddItem(pOwner);
-			}
-
-			return false;
-		}
-		default:
-			return false;
-		}
+	//	}
 	}
 
 	const auto pOwner = this->AttachedToObject;

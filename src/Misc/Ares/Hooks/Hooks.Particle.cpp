@@ -235,7 +235,7 @@ DEFINE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 //	return 0x62C309;
 //}
 
-void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker , HouseClass* pOwner , int distance, const CoordStruct& loc, ParticleTypeExtData* pTypeExt, HouseClass* transmoOwner)
+static void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker , HouseClass* pOwner , int distance, const CoordStruct& loc, ParticleTypeExtData* pTypeExt, HouseClass* transmoOwner)
 {
 	int damage = pTypeExt->AttachedToObject->Damage;
 	if (pItem->ReceiveDamage(&damage, distance, pTypeExt->AttachedToObject->Warhead, pAttacker, false, false, pOwner) == DamageState::NowDead) {

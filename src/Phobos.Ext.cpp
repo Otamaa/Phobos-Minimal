@@ -55,6 +55,7 @@
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
+#include <New/Type/BarTypeClass.h>
 
 #include <New/HugeBar.h>
 
@@ -420,6 +421,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TechTreeTypeClass::Clear();
 	HugeBar::Clear();
 	RocketTypeClass::Clear();
+	BarTypeClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -604,7 +606,8 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<TechTreeTypeClass>(pStm) &&
 		Process_Load<StaticVars>(pStm) &&
 		Process_Load<HugeBar>(pStm) &&
-		Process_Load<RocketTypeClass>(pStm)
+		Process_Load<RocketTypeClass>(pStm) &&
+		Process_Load<BarTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -659,7 +662,8 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<TechTreeTypeClass>(pStm) &&
 			Process_Save<StaticVars>(pStm) &&
 			Process_Save<HugeBar>(pStm) &&
-			Process_Save<RocketTypeClass>(pStm)
+			Process_Save<RocketTypeClass>(pStm) &&
+			Process_Save<BarTypeClass>(pStm)
 			;
 
 		if (!ret)

@@ -1309,6 +1309,28 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
 			this->DropPodProp.Read(exINI, pSection);
 		}
+
+		this->RefinerySmokeParticleSystemOne.Read(exINI, pSection, "RefinerySmokeParticleSystemOne");
+		this->RefinerySmokeParticleSystemTwo.Read(exINI, pSection, "RefinerySmokeParticleSystemTwo");
+		this->RefinerySmokeParticleSystemThree.Read(exINI, pSection, "RefinerySmokeParticleSystemThree");
+		this->RefinerySmokeParticleSystemFour.Read(exINI, pSection, "RefinerySmokeParticleSystemFour");
+
+		if (!RefinerySmokeParticleSystemOne.isset()) {
+			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
+		}
+
+		if (!RefinerySmokeParticleSystemTwo.isset()) {
+			RefinerySmokeParticleSystemTwo = this->AttachedToObject->RefinerySmokeParticleSystem;
+		}
+
+		if (!RefinerySmokeParticleSystemThree.isset()) {
+			RefinerySmokeParticleSystemThree = this->AttachedToObject->RefinerySmokeParticleSystem;
+		}
+
+		if (!RefinerySmokeParticleSystemFour.isset()) {
+			RefinerySmokeParticleSystemFour = this->AttachedToObject->RefinerySmokeParticleSystem;
+		}
+
 	}
 
 	// Art tags
@@ -2391,6 +2413,13 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
 		.Process(this->PassengerWeapon)
+
+
+		.Process(this->RefinerySmokeParticleSystemOne)
+		.Process(this->RefinerySmokeParticleSystemTwo)
+		.Process(this->RefinerySmokeParticleSystemThree)
+		.Process(this->RefinerySmokeParticleSystemFour)
+
 		;
 }
 

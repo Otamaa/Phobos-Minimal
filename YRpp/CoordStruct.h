@@ -81,17 +81,13 @@ public:
 
 	constexpr CoordStruct operator+(const CoordStruct& nThat)
 	{
-		X += nThat.X;
-		Y += nThat.Y;
-		Z += nThat.Z;
-		return *this;
-
+		return { X + nThat.X, Y + nThat.Y, Z + nThat.Z };
 	}
 
 	constexpr CoordStruct operator+(int nThat ) const
 	{ return { X + nThat, Y + nThat, Z + nThat }; }
 
-	constexpr CoordStruct operator+(int nThat)
+	constexpr CoordStruct operator+=(int nThat)
 	{
 		X += nThat;
 		Y += nThat;

@@ -38,7 +38,7 @@ public:
 	constexpr CellStruct operator+(short nThat) const
 	{ return { short(X + nThat), short(Y + nThat) }; }
 
-	constexpr CellStruct operator+(short nThat)
+	constexpr CellStruct operator+=(short nThat)
 	{
 		X += nThat;
 		Y += nThat;

@@ -9147,39 +9147,43 @@ DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 	return 0x0;
 }
 
-static inline constexpr CoordStruct RelativeCenterCoord { 128 , 128 , 0};
+static inline constexpr CoordStruct RelativeCenterCoord { 128 , 128 , 0 };
 
-void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
+static void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis, DWORD)
 {
 	auto pType = pThis->Type;
-	if (auto pParticle = pType->RefinerySmokeParticleSystem) {
-		if (pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord) {
-			auto coord1 = pType->RefinerySmokeOffsetOne + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord1, nullptr, pThis);
-			particle->Lifetime = pType->RefinerySmokeFrames;
-		}
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-		if (pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord) {
-			auto coord2 = pType->RefinerySmokeOffsetTwo + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord2, nullptr, pThis);
-			particle->Lifetime = pType->RefinerySmokeFrames;
-		}
+	if (pTypeExt->RefinerySmokeParticleSystemOne && pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord)
+	{
+		auto coord1 = pType->RefinerySmokeOffsetOne + pThis->Location;
+		auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne, coord1, nullptr, pThis);
+		particle1->Lifetime = pType->RefinerySmokeFrames;
+	}
 
-		if (pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)  {
-			auto coord3 = pType->RefinerySmokeOffsetThree + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord3, nullptr, pThis);
-			particle->Lifetime = pType->RefinerySmokeFrames;
-		}
+	if (pTypeExt->RefinerySmokeParticleSystemTwo && pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord)
+	{
+		auto coord2 = pType->RefinerySmokeOffsetTwo + pThis->Location;
+		auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo, coord2, nullptr, pThis);
+		particle2->Lifetime = pType->RefinerySmokeFrames;
+	}
 
-		if (pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord) {
-			auto coord4 = pType->RefinerySmokeOffsetFour + pThis->Location;
-			auto particle = GameCreate<ParticleSystemClass>(pParticle, coord4, nullptr , pThis);
-			particle->Lifetime = pType->RefinerySmokeFrames;
-		}
-    }
+	if (pTypeExt->RefinerySmokeParticleSystemThree && pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)
+	{
+		auto coord3 = pType->RefinerySmokeOffsetThree + pThis->Location;
+		auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree, coord3, nullptr, pThis);
+		particle3->Lifetime = pType->RefinerySmokeFrames;
+	}
+
+	if (pTypeExt->RefinerySmokeParticleSystemFour && pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord)
+	{
+		auto coord4 = pType->RefinerySmokeOffsetFour + pThis->Location;
+		auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour, coord4, nullptr, pThis);
+		particle4->Lifetime = pType->RefinerySmokeFrames;
+	}
 }
 
-//DEFINE_JUMP(VTABLE, 0x7E4324, GET_OFFSET(Spawn_Refinery_Smoke_Particles));
+DEFINE_JUMP(VTABLE, 0x7E4324, GET_OFFSET(Spawn_Refinery_Smoke_Particles));
 
 /*
 *	NPExt TODO :
@@ -9188,7 +9192,7 @@ void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis , DWORD)
 
 #include <Ext/Aircraft/Body.h>
 
-KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot ,CoordStruct* pCoord)
+KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
 {
 	++Unsorted::ScenarioInit;
 	auto const pPlane = static_cast<AircraftClass*>(HouseExtData::GetParadropPlane(pBld->Owner)->CreateObject(pBld->Owner));
@@ -9196,7 +9200,8 @@ KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot ,CoordStr
 
 	auto pOwner = pBld->Owner;
 
-	if (!pPlane){
+	if (!pPlane)
+	{
 		return KickOutResult::Failed;
 	}
 
@@ -9214,7 +9219,8 @@ KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot ,CoordStr
 
 	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
 
-	if (!bSpawned) {
+	if (!bSpawned)
+	{
 		GameDelete<true, false>(pPlane);
 		return KickOutResult::Failed;
 	}
@@ -9250,21 +9256,22 @@ KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot ,CoordStr
 	{
 		auto const pNew = static_cast<FootClass*>(pType->CreateObject(pOwner));
 
-		if (!pNew) {
+		if (!pNew)
+		{
 			++Unsorted::ScenarioInit;
 			return KickOutResult::Failed;
 		}
 
-			pNew->SetLocation(pPlane->Location);
-			pNew->Limbo();
+		pNew->SetLocation(pPlane->Location);
+		pNew->Limbo();
 
-			if (pPlane->Type->OpenTopped)
-			{
-				pPlane->EnteredOpenTopped(pNew);
-			}
+		if (pPlane->Type->OpenTopped)
+		{
+			pPlane->EnteredOpenTopped(pNew);
+		}
 
-			pNew->Transporter = pPlane;
-			pPlane->AddPassenger(static_cast<FootClass*>(pNew));
+		pNew->Transporter = pPlane;
+		pPlane->AddPassenger(static_cast<FootClass*>(pNew));
 	}
 
 	pPlane->HasPassengers = true;
