@@ -74,7 +74,7 @@ public:
 	CDTimerClass TrailerTimer; //timer34
 	RocketMissionState MissionState;
 	DWORD unknown_44;
-	double CurrentSpeed;
+	float CurrentSpeed;
 	bool NeedToSubmit;
 	bool SpawnerIsElite;
 	float CurrentPitch;

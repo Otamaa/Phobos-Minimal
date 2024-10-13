@@ -287,7 +287,7 @@ struct _KamikazetrackerClass {
 		}
 
 		const auto control = GameCreate<Kamikaze::KamikazeControl>(pAir , !pTarget ?
-			pAir->GetCell()->GetAdjacentCell(FacingType((((*(unsigned int*)pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7)) :
+			pAir->GetCell()->GetAdjacentCell(FacingType(pAir->PrimaryFacing.Current().GetFacing<8>())) :
 			MapClass::Instance->GetCellAt(pTarget->GetCoords()));
 
 		pAir->IsKamikaze = true;
@@ -311,7 +311,7 @@ struct _KamikazetrackerClass {
 			if (cell)
 				aircraft->SetTarget(cell);
 			else
-				aircraft->SetTarget(aircraft->GetCell()->GetAdjacentCell(FacingType((((*(unsigned int*)aircraft->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7)));
+				aircraft->SetTarget(aircraft->GetCell()->GetAdjacentCell(FacingType(aircraft->PrimaryFacing.Current().GetFacing<8>())));
 
 			aircraft->QueueMission(Mission::Attack , false);
 		}
@@ -359,37 +359,47 @@ DEFINE_JUMP(LJMP, 0x54E6F0, GET_OFFSET(_KamikazetrackerClass::Clear));
 
 struct _RocketLocomotionClass
 {
-	static Matrix3D* __stdcall RocketLocomotionClass_Draw_Matrix(RocketLocomotionClass* pThis, Matrix3D* result, int* key) {
+	static NOINLINE RocketStruct* GetRocketData(FootClass* pRocket)
+	{
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pRocket->GetTechnoType());
+
+		if (pTypeExt->IsCustomMissile) {
+			return pTypeExt->CustomMissileData.operator->();
+		}
+
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type) {
+			return &RulesClass::Instance->CMisl;
+		}
+
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type) {
+			return &RulesClass::Instance->DMisl;
+		}
+
+		return &RulesClass::Instance->V3Rocket;
+	}
+
+	// this one not correct
+	// followed the dissasembly but still
+	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, int* key) {
+		*result = {};
 		result->MakeIdentity();
-		const auto pAir = pThis->Owner;
 
-		auto pitch = double(((((*(unsigned int*)pAir->PrimaryFacing.Current().Raw >> 10) + 1) >> 1) & 31) - 8);
-		auto angle = (double)(int)pitch * -0.1963495408493621;
-		result->RotateZ(angle);
+		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+		const auto pAir = pRocket->Owner;
 
-		if (pitch != 0.0)
+		auto angle = double(pAir->PrimaryFacing.Current().GetFacing<32>() - 8) * -0.1963495408493621;
+		result->RotateZ((float)angle);
+
+		if (pRocket->CurrentPitch != 0.0)
 		{
-			result->RotateY(-pitch);
-			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
-			RocketStruct* rocket = nullptr;
-			if (pTypeExt->IsCustomMissile) {
-				rocket = pTypeExt->CustomMissileData.operator->();
-			}
-			else if (pTypeExt->AttachedToObject == RulesClass::Instance->V3Rocket.Type) {
-				rocket = &RulesClass::Instance->V3Rocket;
-			}
-			else if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type) {
-				rocket = &RulesClass::Instance->CMisl;
-			}
-			else if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type) {
-				rocket = &RulesClass::Instance->DMisl;
-			}
+			result->RotateY((-pRocket->CurrentPitch));
+			const RocketStruct* rocket = GetRocketData(pAir);
 
 			if (key)
 			{
-				if (pitch == rocket->PitchInitial * Math::deg2rad(90))
+				if (pRocket->CurrentPitch == (rocket->PitchInitial * Math::DEG90_AS_RAD))
 					*key |= 0x20;
-				else if (pitch == rocket->PitchFinal * Math::deg2rad(90))
+				else if (pRocket->CurrentPitch == (rocket->PitchFinal * Math::DEG90_AS_RAD))
 					*key |= 0x40;
 				else
 					*key = -1;
@@ -403,38 +413,21 @@ struct _RocketLocomotionClass
 		return result;
 	}
 
-	static void __stdcall RocketLocomotionClass_Move_To(RocketLocomotionClass* pThis, Coordinate to)
+	static void __stdcall _Move_To(ILocomotion* pThis, Coordinate to)
 	{
-		const auto pAir = pThis->Owner;
+		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+		const auto pAir = pRocket->Owner;
+		const RocketStruct* rocket = GetRocketData(pAir);
 
-		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
-		RocketStruct* rocket = nullptr;
-		if (pTypeExt->IsCustomMissile)
+		if (!pRocket->MovingDestination.IsValid())
 		{
-			rocket = pTypeExt->CustomMissileData.operator->();
-		}
-		else if (pTypeExt->AttachedToObject == RulesClass::Instance->V3Rocket.Type)
-		{
-			rocket = &RulesClass::Instance->V3Rocket;
-		}
-		else if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)
-		{
-			rocket = &RulesClass::Instance->CMisl;
-		}
-		else if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type)
-		{
-			rocket = &RulesClass::Instance->DMisl;
-		}
-
-		/**
-		 *  Rockets only accept a destination once.
-		 */
-		if (!pThis->MovingDestination.IsValid())
-		{
-			pThis->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
-			pThis->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
-			pThis->CurrentPitch = rocket->PitchInitial * Math::deg2rad(90);
-			pThis->MovingDestination = to;
+			pRocket->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
+			pRocket->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
+			pRocket->CurrentPitch = (float)(rocket->PitchInitial * Math::DEG90_AS_RAD);
+			pRocket->MovingDestination = to;
 		}
 	}
 };
+
+DEFINE_JUMP(VTABLE, 0x7F0B60, GET_OFFSET(_RocketLocomotionClass::_Move_To));
+//DEFINE_JUMP(VTABLE, 0x7F0B40, GET_OFFSET(_RocketLocomotionClass::_Draw_Matrix));

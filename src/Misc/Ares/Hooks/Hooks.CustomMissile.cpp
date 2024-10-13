@@ -241,19 +241,6 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 
 #pragma endregion
 
-DEFINE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
-{
-	GET(AircraftTypeClass* const, pType, EDX);
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pExt->IsCustomMissile) {
-		R->EDX(pExt->CustomMissileData.operator->());
-		return 0x66331E;
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 6)
 {
 	GET(AircraftTypeClass* const, pType, ECX);
