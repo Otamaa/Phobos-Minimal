@@ -403,10 +403,8 @@ static TechnoClass* CreateFoot(
 
 			return pTechno;
 		}
-		else
-		{
-			if (pTechno)
-				pTechno->UnInit();
+		else {
+			TechnoExtData::HandleRemove(pTechno);
 		}
 	}
 
@@ -453,7 +451,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 		else
 			Scatter = true;
 
-		if (!CreateFoot(pTechnoType,
+		if (CreateFoot(pTechnoType,
 			pAnimExt->CreateUnitLocation,
 			primaryFacing,
 			secondaryFacing,
