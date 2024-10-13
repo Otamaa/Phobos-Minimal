@@ -683,8 +683,6 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 				res = pTypeExt->DeployedArmor;
 			}
 		}
-
-		return res;
 	}
 
 	//Debug::Log("%s Armor [%d = %s]\n", pType->ID, res, ArmorTypeClass::Array[(int)res]->Name.data());

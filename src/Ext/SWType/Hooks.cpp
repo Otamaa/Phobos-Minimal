@@ -78,7 +78,7 @@ DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
+	//Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
 #ifndef aaa
 	if (
 		SWTypeExtData::Activate(pSuper, *pCell, isPlayer)

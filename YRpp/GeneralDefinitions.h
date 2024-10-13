@@ -61,6 +61,17 @@ enum class PacketFieldRep : int
 	VID,
 };
 
+enum class RocketMissionState : int
+{
+	None = 0,
+	Pause = 1,
+	Tilt = 2,
+	GainingAltitude = 3,
+	Flight = 4,
+	ClosingIn = 5,
+	VerticalTakeOff = 6,
+};
+
 enum class PassabilityType : DWORD
 {
 	Passable = 0,

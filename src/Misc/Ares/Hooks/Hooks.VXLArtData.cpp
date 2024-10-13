@@ -253,7 +253,7 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	return pThis->WalkedFramesSoFar % pVXL->HVA->FrameCount;
 }
 
-Matrix3D* __fastcall BounceClass_ShadowMatrix(BounceClass* self, void*, Matrix3D* ret) {
+static Matrix3D* __fastcall BounceClass_ShadowMatrix(BounceClass* self, void*, Matrix3D* ret) {
 
 	Matrix3D::FromQuaternion(ret, &self->CurrentAngle);
 	*ret = Matrix3D { 1, 0, 0 , 0,	0, 0.25f, -0.4330127018922194f , 0, 0, 0, 0 , 0 } * (*ret);
@@ -391,7 +391,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	return FinishDrawing;
 }
 
-void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass* pType) {
+static void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass* pType) {
 	float arf = pThis->AngleRotatedForwards;
 	float ars = pThis->AngleRotatedSideways;
 	// lazy, don't want to hook inside Shadow_Matrix
@@ -407,7 +407,7 @@ void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass
 	}
 }
 
-VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexKey& key){
+static VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexKey& key){
 
 	if (pType->NoSpawnAlt && pThis->SpawnManager && pThis->SpawnManager->CountDockedSpawns() == 0)
 	{
@@ -418,7 +418,7 @@ VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , VoxelIndexK
 	return &pType->MainVoxel;
 }
 
-void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
+static void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
 {
 	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
 

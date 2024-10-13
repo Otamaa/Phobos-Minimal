@@ -113,14 +113,9 @@ DEFINE_HOOK(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 	if (pTypeExt->StartInMultiplayer_Types.empty())
 		return 0x5D743E;
 
-	for (auto& start : pTypeExt->StartInMultiplayer_Types)
-	{
-		const auto what = start->WhatAmI();
-
-		if (what == UnitTypeClass::AbsID)
-			pUnitVec->AddItem(start);
-		else
-			pInfVec->AddItem(start);
+	for (auto& start : pTypeExt->StartInMultiplayer_Types) {
+		(start->WhatAmI() == UnitTypeClass::AbsID
+			? pUnitVec : pInfVec)->AddItem(start);
 	}
 
 	return 0x5D72AB;

@@ -690,8 +690,7 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item)
- {
+	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item) {
 	 return RemoveCameo(&item);
 	});
 

@@ -275,3 +275,166 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 }
 
 #pragma endregion
+
+#include <Kamikaze.h>
+
+struct _KamikazetrackerClass {
+	static void __fastcall Add(Kamikaze* pThis, DWORD, AircraftClass* pAir, AbstractClass* pTarget)
+	{
+		if (!pAir->Type->MissileSpawn) {
+			pAir->Crash(nullptr);
+			return;
+		}
+
+		const auto control = GameCreate<Kamikaze::KamikazeControl>(pAir , !pTarget ?
+			pAir->GetCell()->GetAdjacentCell(FacingType((((*(unsigned int*)pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7)) :
+			MapClass::Instance->GetCellAt(pTarget->GetCoords()));
+
+		pAir->IsKamikaze = true;
+		pAir->Ammo = 1;
+		pThis->Nodes.AddItem(control);
+	}
+
+	static void __fastcall AI(Kamikaze* pThis, DWORD)
+	{
+		if (!pThis->UpdateTimer.Expired())
+			return;
+
+		pThis->UpdateTimer.Start(30);
+
+		for (auto& control : pThis->Nodes) {
+			CellClass* cell = control->Cell;
+			AircraftClass* aircraft = control->Item;
+
+			aircraft->Ammo = 1;
+
+			if (cell)
+				aircraft->SetTarget(cell);
+			else
+				aircraft->SetTarget(aircraft->GetCell()->GetAdjacentCell(FacingType((((*(unsigned int*)aircraft->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7)));
+
+			aircraft->QueueMission(Mission::Attack , false);
+		}
+	}
+
+	static void __fastcall Detach(Kamikaze* pThis, DWORD , AbstractClass const* pTarget)
+	{
+		if (!pThis->Nodes.Count)
+			return;
+
+		auto removeIter = std::remove_if(pThis->Nodes.begin(), pThis->Nodes.end(), [=](auto& item)
+		{
+			if (item->Item == pTarget) {
+				GameDelete<false, false>(item);
+				item = nullptr;
+				return true;
+			}
+
+			if (item->Cell == pTarget) {
+				item->Cell = MapClass::Instance->GetCellAt(pTarget->GetCoords());
+			}
+
+			return false;
+		});
+
+		pThis->Nodes.Reset(std::distance(pThis->Nodes.begin(), removeIter));
+
+	}
+
+	static void __fastcall Clear(Kamikaze* pThis, DWORD)
+	{
+		for (int i = 0; i < pThis->Nodes.Count; i++) {
+			GameDelete<false, false>(pThis->Nodes[i]);
+		}
+
+		pThis->Nodes.Clear();
+		pThis->UpdateTimer.Start(1);
+	}
+};
+
+DEFINE_JUMP(LJMP, 0x54E3B0, GET_OFFSET(_KamikazetrackerClass::Add));
+DEFINE_JUMP(LJMP, 0x54E4D0, GET_OFFSET(_KamikazetrackerClass::AI));
+DEFINE_JUMP(LJMP, 0x54E590, GET_OFFSET(_KamikazetrackerClass::Detach));
+DEFINE_JUMP(LJMP, 0x54E6F0, GET_OFFSET(_KamikazetrackerClass::Clear));
+
+struct _RocketLocomotionClass
+{
+	static Matrix3D* __stdcall RocketLocomotionClass_Draw_Matrix(RocketLocomotionClass* pThis, Matrix3D* result, int* key) {
+		result->MakeIdentity();
+		const auto pAir = pThis->Owner;
+
+		auto pitch = double(((((*(unsigned int*)pAir->PrimaryFacing.Current().Raw >> 10) + 1) >> 1) & 31) - 8);
+		auto angle = (double)(int)pitch * -0.1963495408493621;
+		result->RotateZ(angle);
+
+		if (pitch != 0.0)
+		{
+			result->RotateY(-pitch);
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
+			RocketStruct* rocket = nullptr;
+			if (pTypeExt->IsCustomMissile) {
+				rocket = pTypeExt->CustomMissileData.operator->();
+			}
+			else if (pTypeExt->AttachedToObject == RulesClass::Instance->V3Rocket.Type) {
+				rocket = &RulesClass::Instance->V3Rocket;
+			}
+			else if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type) {
+				rocket = &RulesClass::Instance->CMisl;
+			}
+			else if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type) {
+				rocket = &RulesClass::Instance->DMisl;
+			}
+
+			if (key)
+			{
+				if (pitch == rocket->PitchInitial * Math::deg2rad(90))
+					*key |= 0x20;
+				else if (pitch == rocket->PitchFinal * Math::deg2rad(90))
+					*key |= 0x40;
+				else
+					*key = -1;
+			}
+		}
+
+		if (key) {
+			*key |= pAir->PrimaryFacing.Current().GetFacing<32>();
+		}
+
+		return result;
+	}
+
+	static void __stdcall RocketLocomotionClass_Move_To(RocketLocomotionClass* pThis, Coordinate to)
+	{
+		const auto pAir = pThis->Owner;
+
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
+		RocketStruct* rocket = nullptr;
+		if (pTypeExt->IsCustomMissile)
+		{
+			rocket = pTypeExt->CustomMissileData.operator->();
+		}
+		else if (pTypeExt->AttachedToObject == RulesClass::Instance->V3Rocket.Type)
+		{
+			rocket = &RulesClass::Instance->V3Rocket;
+		}
+		else if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)
+		{
+			rocket = &RulesClass::Instance->CMisl;
+		}
+		else if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type)
+		{
+			rocket = &RulesClass::Instance->DMisl;
+		}
+
+		/**
+		 *  Rockets only accept a destination once.
+		 */
+		if (!pThis->MovingDestination.IsValid())
+		{
+			pThis->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
+			pThis->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
+			pThis->CurrentPitch = rocket->PitchInitial * Math::deg2rad(90);
+			pThis->MovingDestination = to;
+		}
+	}
+};
