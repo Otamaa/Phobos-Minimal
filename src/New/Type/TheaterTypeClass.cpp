@@ -733,6 +733,8 @@ DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 	return 0x0;
 }
 
+DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
+
 #undef CURRENT_THEATER
 
 #endif

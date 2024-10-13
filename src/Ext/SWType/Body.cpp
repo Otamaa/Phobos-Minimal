@@ -2101,7 +2101,7 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 	const auto pSuperTypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 	if (!pLauncherTypeExt->SW_Next_RealLaunch || (pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
 	{
-		if (pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell)
+		if ((pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell))
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
 		{
 			int oldstart = pSuper->RechargeTimer.StartTime;
