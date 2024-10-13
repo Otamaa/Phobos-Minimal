@@ -26,7 +26,7 @@ public:
 	bool MakeInfantry_AI_Scatter { false };
 
 #pragma region CreateUnit
-	Valueable<UnitTypeClass*> CreateUnit {};
+	Valueable<TechnoTypeClass*> CreateUnit {};
 	Valueable<DirType> CreateUnit_Facing { DirType::North };
 	Valueable<bool> CreateUnit_InheritDeathFacings { false };
 	Valueable<bool> CreateUnit_InheritTurretFacings { false };
@@ -115,7 +115,7 @@ public:
 
 	Animatable<TranslucencyLevel> Translucent_Keyframes {};
 
-	Nullable<int> CreateUnit_SpawnHeight {};
+	Valueable<int> CreateUnit_SpawnHeight { -1 };
 
 	Valueable<bool> ConstrainFireAnimsToCellSpots { true };
 	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes {};

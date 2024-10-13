@@ -46,41 +46,41 @@ struct AbilitiesStruct
 
 struct JumpjetProperties
 {
-	int             JumpjetTurnRate;
-	int             JumpjetSpeed;
-	float           JumpjetClimb;
-	float           JumpjetCrash;
-	int             JumpjetHeight;
-	float           JumpjetAccel;
-	float           JumpjetWobbles;
-	bool            JumpjetNoWobbles;
-	int             JumpjetDeviation;
+	int             TurnRate;
+	int             Speed;
+	float           Climb;
+	float           Crash;
+	int             Height;
+	float           Accel;
+	float           Wobbles;
+	bool            NoWobbles;
+	int             Deviation;
 
 
 	bool operator==(const JumpjetProperties& that) noexcept
 	{
-		return JumpjetTurnRate == that.JumpjetTurnRate &&
-			JumpjetSpeed == that.JumpjetSpeed &&
-			JumpjetClimb == that.JumpjetClimb &&
-			JumpjetCrash == that.JumpjetCrash &&
-			JumpjetHeight == that.JumpjetHeight &&
-			JumpjetAccel == that.JumpjetAccel &&
-			JumpjetWobbles == that.JumpjetWobbles &&
-			JumpjetNoWobbles == that.JumpjetNoWobbles &&
-			JumpjetDeviation == that.JumpjetDeviation;
+		return TurnRate == that.TurnRate &&
+			Speed == that.Speed &&
+			Climb == that.Climb &&
+			Crash == that.Crash &&
+			Height == that.Height &&
+			Accel == that.Accel &&
+			Wobbles == that.Wobbles &&
+			NoWobbles == that.NoWobbles &&
+			Deviation == that.Deviation;
 	}
 
 	bool operator!=(const JumpjetProperties& that) noexcept
 	{
-		return JumpjetTurnRate != that.JumpjetTurnRate ||
-			JumpjetSpeed != that.JumpjetSpeed ||
-			JumpjetClimb != that.JumpjetClimb ||
-			JumpjetCrash != that.JumpjetCrash ||
-			JumpjetHeight != that.JumpjetHeight ||
-			JumpjetAccel != that.JumpjetAccel ||
-			JumpjetWobbles != that.JumpjetWobbles ||
-			JumpjetNoWobbles != that.JumpjetNoWobbles ||
-			JumpjetDeviation != that.JumpjetDeviation;
+		return TurnRate != that.TurnRate ||
+			Speed != that.Speed ||
+			Climb != that.Climb ||
+			Crash != that.Crash ||
+			Height != that.Height ||
+			Accel != that.Accel ||
+			Wobbles != that.Wobbles ||
+			NoWobbles != that.NoWobbles ||
+			Deviation != that.Deviation;
 	}
 };
 
