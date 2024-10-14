@@ -1988,32 +1988,69 @@ DEFINE_JUMP(CALL, 0x647684, GET_OFFSET(ComputeGameCRC));
 //	return SkipGameCode;
 //}
 
+DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
+{
+	enum { SkipGameCode = 0x71469F };
+
+	GET(TechnoTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, ESI);
+	GET(char*, pSection, EBX);
+	GET(int, eliteAirstrikeRechargeTime, EAX);
+
+	// Restore overridden instructions.
+	pThis->EliteAirstrikeRechargeTime = eliteAirstrikeRechargeTime;
+
+	double parsedSpeed = pINI->ReadDouble(pSection, "Speed", -1.0);
+
+	if (parsedSpeed >= 0.0)
+	{
+		int speed = Game::F2I((std::min(parsedSpeed, 100.0) * 256.0) / 100.0);
+		pThis->Speed = std::min(speed, 255);
+	}
+
+	return SkipGameCode;
+}
+
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
-//DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
-//	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
-//
-//	GET(TunnelLocomotionClass* const, pLoco, ESI);
-//	GET(int const, distance, EAX);
-//	return distance >= pLoco->LinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-//}
-//
-//DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
-//	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
-//
-//	GET(FootClass* const, pLinkedTo, ECX);
-//	GET(int const, distance, EAX);
-//	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-//}
-//
-//DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
-//	enum { KeepMoving = 0x5B14AA, CloseEnough = 0x5B11E6 };
-//
-//	GET(FootClass* const, pLinkedTo, ECX);
-//	GET(int const, distance, EAX);
-//	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
-//}
+DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
+	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
+
+	GET(TunnelLocomotionClass* const, pLoco, ESI);
+	GET(int const, distance, EAX);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType());
+	int currentSpeed = 19;
+
+	// The movement speed was actually also hardcoded here to 19, so the distance check made sense
+	// It can now be lifted by setting this key on TechnoType or globally - Starkku
+	if (pTypeExt->SubterraneanUseSpeed.Get(RulesExtData::Instance()->SubterraneanUseSpeed))
+	{
+		// Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.
+		pLoco->LinkedTo->SpeedPercentage = 1.0;
+		currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
+	}
+
+	TunnelLocomotionClass::TunnelMovementSpeed = currentSpeed;
+
+	return distance >= currentSpeed + 1 ? KeepMoving : CloseEnough;
+}
+
+DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
+
+	GET(FootClass* const, pLinkedTo, ECX);
+	GET(int const, distance, EAX);
+	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+}
+
+DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+	enum { KeepMoving = 0x5B14AA, CloseEnough = 0x5B11E6 };
+
+	GET(FootClass* const, pLinkedTo, ECX);
+	GET(int const, distance, EAX);
+	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+}
 
 // Apply cell lighting on UseNormalLight=no MakeInfantry anims.
 DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)

@@ -995,6 +995,8 @@ public:
 	Nullable<ParticleSystemTypeClass*> RefinerySmokeParticleSystemThree {};
 	Nullable<ParticleSystemTypeClass*> RefinerySmokeParticleSystemFour {};
 
+	Nullable<bool> SubterraneanUseSpeed {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

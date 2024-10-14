@@ -390,6 +390,8 @@ public:
 	Valueable<bool> EnablePowerSurplus { false };
 	Valueable<bool> ShakeScreenUseTSCalculation { false };
 
+	Valueable<bool> SubterraneanUseSpeed { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

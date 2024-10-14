@@ -22,6 +22,7 @@ public:
 	static constexpr inline uintptr_t vtable = 0x7F5AF0;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7F5A24;
 	static constexpr reference<CLSID const, 0x7E9A50u> const ClassGUID {};
+	static constexpr reference<double, 0x7F5B20u> const TunnelMovementSpeed {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

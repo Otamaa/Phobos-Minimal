@@ -276,17 +276,20 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 
 #pragma endregion
 
+
 #include <Kamikaze.h>
 
-struct _KamikazetrackerClass {
+struct _KamikazetrackerClass
+{
 	static void __fastcall Add(Kamikaze* pThis, DWORD, AircraftClass* pAir, AbstractClass* pTarget)
 	{
-		if (!pAir->Type->MissileSpawn) {
+		if (!pAir->Type->MissileSpawn)
+		{
 			pAir->Crash(nullptr);
 			return;
 		}
 
-		const auto control = GameCreate<Kamikaze::KamikazeControl>(pAir , !pTarget ?
+		const auto control = GameCreate<Kamikaze::KamikazeControl>(pAir, !pTarget ?
 			pAir->GetCell()->GetAdjacentCell(FacingType(pAir->PrimaryFacing.Current().GetFacing<8>())) :
 			MapClass::Instance->GetCellAt(pTarget->GetCoords()));
 
@@ -302,7 +305,8 @@ struct _KamikazetrackerClass {
 
 		pThis->UpdateTimer.Start(30);
 
-		for (auto& control : pThis->Nodes) {
+		for (auto& control : pThis->Nodes)
+		{
 			CellClass* cell = control->Cell;
 			AircraftClass* aircraft = control->Item;
 
@@ -313,24 +317,26 @@ struct _KamikazetrackerClass {
 			else
 				aircraft->SetTarget(aircraft->GetCell()->GetAdjacentCell(FacingType(aircraft->PrimaryFacing.Current().GetFacing<8>())));
 
-			aircraft->QueueMission(Mission::Attack , false);
+			aircraft->QueueMission(Mission::Attack, false);
 		}
 	}
 
-	static void __fastcall Detach(Kamikaze* pThis, DWORD , AbstractClass const* pTarget)
+	static void __fastcall Detach(Kamikaze* pThis, DWORD, AbstractClass const* pTarget)
 	{
 		if (!pThis->Nodes.Count)
 			return;
 
 		auto removeIter = std::remove_if(pThis->Nodes.begin(), pThis->Nodes.end(), [=](auto& item)
 		{
-			if (item->Item == pTarget) {
+			if (item->Item == pTarget)
+			{
 				GameDelete<false, false>(item);
 				item = nullptr;
 				return true;
 			}
 
-			if (item->Cell == pTarget) {
+			if (item->Cell == pTarget)
+			{
 				item->Cell = MapClass::Instance->GetCellAt(pTarget->GetCoords());
 			}
 
@@ -343,7 +349,8 @@ struct _KamikazetrackerClass {
 
 	static void __fastcall Clear(Kamikaze* pThis, DWORD)
 	{
-		for (int i = 0; i < pThis->Nodes.Count; i++) {
+		for (int i = 0; i < pThis->Nodes.Count; i++)
+		{
 			GameDelete<false, false>(pThis->Nodes[i]);
 		}
 
@@ -363,15 +370,18 @@ struct _RocketLocomotionClass
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pRocket->GetTechnoType());
 
-		if (pTypeExt->IsCustomMissile) {
+		if (pTypeExt->IsCustomMissile)
+		{
 			return pTypeExt->CustomMissileData.operator->();
 		}
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type) {
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)
+		{
 			return &RulesClass::Instance->CMisl;
 		}
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type) {
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type)
+		{
 			return &RulesClass::Instance->DMisl;
 		}
 
@@ -380,7 +390,8 @@ struct _RocketLocomotionClass
 
 	// this one not correct
 	// followed the dissasembly but still
-	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, int* key) {
+	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, int* key)
+	{
 		*result = {};
 		result->MakeIdentity();
 
@@ -406,7 +417,8 @@ struct _RocketLocomotionClass
 			}
 		}
 
-		if (key) {
+		if (key)
+		{
 			*key |= pAir->PrimaryFacing.Current().GetFacing<32>();
 		}
 
