@@ -150,7 +150,7 @@ public:
 private:
 	int NumSteps() const
 	{
-		return std::abs(Difference_Raw()) / ROT.Raw;
+		return Math::abs(Difference_Raw()) / ROT.Raw;
 	}
 
 public:

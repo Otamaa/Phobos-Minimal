@@ -9307,3 +9307,209 @@ KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot, Coord
 //	++Unsorted::ScenarioInit;
 //	return 0x444EDE;
 //}
+
+//DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 6)
+//{
+//	GET(AircraftTypeClass* const, pType, ECX);
+//	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+//
+//	if (pExt->IsCustomMissile) {
+//		R->EAX(pExt->CustomMissileData.operator->());
+//		return 0x66351B;
+//	}
+//
+//	return 0;
+//}
+
+
+#include <Kamikaze.h>
+
+struct _KamikazetrackerClass
+{
+	static void __fastcall Add(Kamikaze* pThis, DWORD, AircraftClass* pAir, AbstractClass* pTarget)
+	{
+		if (!pAir->Type->MissileSpawn)
+		{
+			pAir->Crash(nullptr);
+			return;
+		}
+
+		const auto control = GameCreate<Kamikaze::KamikazeControl>(pAir, !pTarget ?
+			pAir->GetCell()->GetAdjacentCell(FacingType(pAir->PrimaryFacing.Current().GetFacing<8>())) :
+			MapClass::Instance->GetCellAt(pTarget->GetCoords()));
+
+		pAir->IsKamikaze = true;
+		pAir->Ammo = 1;
+		pThis->Nodes.AddItem(control);
+	}
+
+	static void __fastcall AI(Kamikaze* pThis, DWORD)
+	{
+		if (!pThis->UpdateTimer.Expired())
+			return;
+
+		pThis->UpdateTimer.Start(30);
+
+		for (auto& control : pThis->Nodes)
+		{
+			CellClass* cell = control->Cell;
+			AircraftClass* aircraft = control->Item;
+
+			aircraft->Ammo = 1;
+
+			if (cell)
+				aircraft->SetTarget(cell);
+			else
+				aircraft->SetTarget(aircraft->GetCell()->GetAdjacentCell(FacingType(aircraft->PrimaryFacing.Current().GetFacing<8>())));
+
+			aircraft->QueueMission(Mission::Attack, false);
+		}
+	}
+
+	static void __fastcall Detach(Kamikaze* pThis, DWORD, AbstractClass const* pTarget)
+	{
+		if (!pThis->Nodes.Count)
+			return;
+
+		auto removeIter = std::remove_if(pThis->Nodes.begin(), pThis->Nodes.end(), [=](auto& item)
+		{
+			if (item->Item == pTarget)
+			{
+				GameDelete<false, false>(item);
+				item = nullptr;
+				return true;
+			}
+
+			if (item->Cell == pTarget)
+			{
+				item->Cell = MapClass::Instance->GetCellAt(pTarget->GetCoords());
+			}
+
+			return false;
+		});
+
+		pThis->Nodes.Reset(std::distance(pThis->Nodes.begin(), removeIter));
+
+	}
+
+	static void __fastcall Clear(Kamikaze* pThis, DWORD)
+	{
+		for (int i = 0; i < pThis->Nodes.Count; i++)
+		{
+			GameDelete<false, false>(pThis->Nodes[i]);
+		}
+
+		pThis->Nodes.Clear();
+		pThis->UpdateTimer.Start(1);
+	}
+};
+
+DEFINE_JUMP(LJMP, 0x54E3B0, GET_OFFSET(_KamikazetrackerClass::Add));
+DEFINE_JUMP(LJMP, 0x54E4D0, GET_OFFSET(_KamikazetrackerClass::AI));
+DEFINE_JUMP(LJMP, 0x54E590, GET_OFFSET(_KamikazetrackerClass::Detach));
+DEFINE_JUMP(LJMP, 0x54E6F0, GET_OFFSET(_KamikazetrackerClass::Clear));
+
+#include <VoxelIndex.h>
+
+#pragma optimize("", off )
+struct _RocketLocomotionClass
+{
+	static NOINLINE RocketStruct* GetRocketData(FootClass* pRocket)
+	{
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pRocket->GetTechnoType());
+
+		if (pTypeExt->IsCustomMissile)
+		{
+			return pTypeExt->CustomMissileData.operator->();
+		}
+
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)
+		{
+			return &RulesClass::Instance->CMisl;
+		}
+
+		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type)
+		{
+			return &RulesClass::Instance->DMisl;
+		}
+
+		return &RulesClass::Instance->V3Rocket;
+	}
+
+	// this one not correct
+	// followed the dissasembly but still
+	struct Mtx_ : public Matrix3D {
+		void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
+
+		void RotateY(float theta) const { JMP_THIS(0x5AF080); }
+
+	};
+
+	struct FacingClass_ : public FacingClass {
+		DirStruct* _Current(DirStruct* retstr) {
+			JMP_THIS(0x4C93D0);
+		}
+
+		size_t _Getfacing32() {
+			DirStruct _ret {};
+			this->_Current(&_ret);
+
+			return (((_ret.Raw >> 10) + 1) >> 1) & 0x1F;
+		}
+	};
+
+	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, VoxelIndexKey* key)
+	{
+		result->MakeIdentity();
+
+		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+		const auto pAir = pRocket->Owner;
+
+		double angle = double((int)(((FacingClass_*)(&pAir->PrimaryFacing))->_Getfacing32() - 8) * -0.1963495408493621);
+		result->RotateZ((float)angle);
+
+		if (pRocket->CurrentPitch != 0.0)
+		{
+			result->RotateY((-pRocket->CurrentPitch));
+			const RocketStruct* rocket = GetRocketData(pAir);
+
+			if (key)
+			{
+				if (pRocket->CurrentPitch == float(rocket->PitchInitial * Math::DEG90_AS_RAD))
+					*(int*)(key) |= 0x20;
+				else if (pRocket->CurrentPitch == float(rocket->PitchFinal * Math::DEG90_AS_RAD))
+					*(int*)(key) |= 0x40;
+				else
+					key->Invalidate();
+			}
+		}
+
+		auto sizzz = sizeof(double);
+
+		if (key)
+		{
+			*(int*)(key) |= ((FacingClass_*)(&pAir->PrimaryFacing))->_Getfacing32();
+		}
+
+		return result;
+	}
+
+	static void __stdcall _Move_To(ILocomotion* pThis, Coordinate to)
+	{
+		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+		const auto pAir = pRocket->Owner;
+		const RocketStruct* rocket = GetRocketData(pAir);
+
+		if (!pRocket->MovingDestination.IsValid())
+		{
+			pRocket->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
+			pRocket->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
+			pRocket->CurrentPitch = (float)(rocket->PitchInitial * Math::DEG90_AS_RAD);
+			pRocket->MovingDestination = to;
+		}
+	}
+};
+#pragma optimize("", on )
+
+DEFINE_JUMP(VTABLE, 0x7F0B60, GET_OFFSET(_RocketLocomotionClass::_Move_To));
+DEFINE_JUMP(VTABLE, 0x7F0B40, GET_OFFSET(_RocketLocomotionClass::_Draw_Matrix));
