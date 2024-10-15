@@ -10,6 +10,10 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+
+
+#include <Misc/MapRevealer.h>
+
 //bool SecondFiringMethod = true;
 //
 //DEFINE_HOOK(0x6FF031, TechnoClass_Fire_CountAmmo, 0xA)
@@ -315,11 +319,12 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 
 DEFINE_JUMP(VTABLE, 0x7E2268, GET_OFFSET(AircraftClass_IFlyControl_IsStrafe));
 
-static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis)
+static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->GetWeapon(0)->WeaponType);
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
 	if (!pWeaponExt->Strafing_Shots.isset())
 		return true;
 
@@ -330,14 +335,54 @@ static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis)
 	return true;
 }
 
-DEFINE_HOOK(0x415666, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6)
-{
+DEFINE_HOOK(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
 	GET(AircraftClass*, pThis, ESI);
-	return CheckSpyPlaneCameraCount(pThis) ? 0 : 0x41570C;
+	GET(int, range, EBX);
+
+	const auto pPrimary = pThis->GetWeapon(0);
+
+	if (range <= pPrimary->WeaponType->Range.value ) {
+
+		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
+			return 0x41570C;
+
+		pThis->vt_entry_48C(nullptr ,0u,false , nullptr);
+		auto create = CoordStruct::Empty;
+		pThis->ForceCreate(create, pPrimary->WeaponType->Damage);
+
+		MapRevealer const revealer(pThis->Location);
+		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
+
+		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
+				->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
+
+		VocClass::PlayAt(cameraSound, pThis->Location);
+	}
+
+	return 0x415700;
 }
 
-DEFINE_HOOK(0x4157EB, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
+DEFINE_HOOK(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	return !CheckSpyPlaneCameraCount(pThis) ? 0x415863 : 0;
+	GET(int, range, EAX);
+
+	R->EDI(R->EAX());
+
+	const auto pPrimary = pThis->GetWeapon(0);
+
+	if (range <= pPrimary->WeaponType->Range.value) {
+
+		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
+			return 0x415863;
+
+		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
+		auto create = CoordStruct::Empty;
+		pThis->ForceCreate(create, pPrimary->WeaponType->Damage);
+
+		MapRevealer const revealer(pThis->Location);
+		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
+	}
+
+	return 0x415859;
 }

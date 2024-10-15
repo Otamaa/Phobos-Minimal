@@ -190,14 +190,6 @@ DEFINE_HOOK(0x416580, AircraftClass_FireAt_AttackRangeSight_2, 0x7)
 	return 0x416587;
 }
 
-DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
-{
-	GET(RulesClass* const, pRules, EAX);
-	GET(AircraftClass* const, pThis, ESI);
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SpyplaneCameraSound.Get(pRules->SpyPlaneCamera));
-	return 0x4156F7;
-}
-
 DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
 {
 	GET(AircraftClass*, pThis, ESI);
