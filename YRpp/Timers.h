@@ -189,6 +189,35 @@ public:
 	{
 		this->CDTimerClass::Start(this->Duration);
 	}
+
+	constexpr inline unsigned long Value() const
+	{
+		unsigned long rate = TimeLeft;
+		unsigned long remain = Duration;
+
+		if (((unsigned long)StartTime) != 0xFFFFFFFFU) {
+
+			unsigned long value = this->CurrentTime - ((unsigned long)StartTime);
+
+			if (value < remain) {
+				return (rate - (remain - (value - ((unsigned long)StartTime)))) / rate;
+			} else {
+				return 0;
+			}
+		}
+
+		return (rate - remain / rate);
+	}
+
+	constexpr inline float Percent_Expired() const
+	{
+		unsigned long rate = TimeLeft;
+		if (!rate) {
+			return 1.0;
+		}
+
+		return (float)(rate - Value()) / (float)rate;
+	}
 };
 
 typedef RepeatableTimerStruct RateTimer;

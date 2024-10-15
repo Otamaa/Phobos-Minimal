@@ -9411,9 +9411,10 @@ DEFINE_JUMP(LJMP, 0x54E6F0, GET_OFFSET(_KamikazetrackerClass::Clear));
 
 #include <VoxelIndex.h>
 
-#pragma optimize("", off )
 struct _RocketLocomotionClass
 {
+	static constexpr int ROCKET_SPEED = 416;
+
 	static NOINLINE RocketStruct* GetRocketData(FootClass* pRocket)
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pRocket->GetTechnoType());
@@ -9458,6 +9459,7 @@ struct _RocketLocomotionClass
 		}
 	};
 
+
 	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, VoxelIndexKey* key)
 	{
 		result->MakeIdentity();
@@ -9465,7 +9467,7 @@ struct _RocketLocomotionClass
 		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
 		const auto pAir = pRocket->Owner;
 
-		double angle = double((int)(((FacingClass_*)(&pAir->PrimaryFacing))->_Getfacing32() - 8) * -0.1963495408493621);
+		double angle = double((int)(pAir->PrimaryFacing.Current().GetFacing<32>() - 8) * -0.1963495408493621);
 		result->RotateZ((float)angle);
 
 		if (pRocket->CurrentPitch != 0.0)
@@ -9488,7 +9490,7 @@ struct _RocketLocomotionClass
 
 		if (key)
 		{
-			*(int*)(key) |= ((FacingClass_*)(&pAir->PrimaryFacing))->_Getfacing32();
+			*(int*)(key) |= pAir->PrimaryFacing.Current().GetFacing<32>();
 		}
 
 		return result;
@@ -9508,8 +9510,813 @@ struct _RocketLocomotionClass
 			pRocket->MovingDestination = to;
 		}
 	}
+
+	static bool __stdcall Is_Moving_Now(ILocomotion* pThis)
+	{
+		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+		return pRocket->MissionState >= RocketMissionState::GainingAltitude && pRocket->MissionState <= RocketMissionState::ClosingIn;
+	}
+
+
+	//static bool __stdcall Process(ILocomotion* pThis)
+	//{
+	//	auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
+	//	const auto pAir = pRocket->Owner;
+	//	const auto pAirType = pAir->GetTechnoType();
+	//	const RocketStruct* rocket = GetRocketData(pAir);
+	//
+	//	TechnoClass* spawn_owner = pAir->SpawnOwner;
+	//
+	//	switch (pRocket->MissionState)
+	//	{
+	//		/**
+	//		 *  The rocket is currently waiting to be launched.
+	//		 */
+	//	case RocketMissionState::Pause:
+	//	{
+	//		pRocket->CurrentSpeed = 0.0;
+	//		pRocket->SpawnerIsElite = spawn_owner && spawn_owner->Veterancy.IsElite();
+	//
+	//		/**
+	//		 *  Cruise missiles spawn a "taking off" animation in this state.
+	//		 */
+	//		if (rocket->IsCruiseMissile)
+	//		{
+	//			if (pRocket->TrailerTimer.Expired() && rocket->TakeoffAnim)
+	//			{
+	//				GameCreate<AnimClass>(rocket->TakeoffAnim, pAir->Location, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+	//				pRocket->TrailerTimer.Start(24);
+	//			}
+	//
+	//			if (pRocket->NeedToSubmit)
+	//			{
+	//				pAir->Mark(MARK_UP);
+	//				pRocket->NeedToSubmit = false;
+	//				DisplayClass::Instance->SubmitObject(pAir);
+	//				pAir->Mark(MARK_DOWN);
+	//			}
+	//		}
+	//		else
+	//		{
+	//			pRocket->NeedToSubmit = true;
+	//		}
+	//
+	//		/**
+	//		 *  If we're done waiting, proceed to take off.
+	//		 *  Cruise missiles take off vertically, while regular rockets tilt up first.
+	//		 */
+	//		if (pRocket->MissionTimer.Expired())
+	//		{
+	//			pRocket->MissionState = rocket->IsCruiseMissile ? RocketMissionState::VerticalTakeOff : RocketMissionState::GainingAltitude;
+	//			pRocket->MissionTimer.Start(rocket->TiltFrames);
+	//		}
+	//
+	//	}
+	//	break;
+	//
+	//	/**
+	//	 *  The rocket is currently tilting up to its firing position.
+	//	 */
+	//	case RocketMissionState::Tilt:
+	//	{
+	//		pRocket->CurrentSpeed = 0;
+	//		pRocket->SpawnerIsElite = spawn_owner && spawn_owner->Veterancy.IsElite();
+	//
+	//		/**
+	//		 *  If the rocket is done tilting, play a sound and animation, and proceed to take off.
+	//		 */
+	//		if (pRocket->MissionTimer.Expired())
+	//		{
+	//			pRocket->CurrentPitch = rocket->PitchFinal * Math::DEG90_AS_RAD;
+	//			pRocket->MissionState = RocketMissionState::GainingAltitude;
+	//
+	//			if (rocket->TakeoffAnim)
+	//				GameCreate<AnimClass>(rocket->TakeoffAnim, pAir->Location, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+	//
+	//
+	//			VocClass::PlayAt(pAirType->AuxSound1, pAir->Location);
+	//		}
+	//		/**
+	//		 *  Otherwise, keep tilting.
+	//		 */
+	//		else
+	//		{
+	//			const double pitch_initial = rocket->PitchInitial * Math::DEG90_AS_RAD;
+	//			const double pitch_final = rocket->PitchFinal * Math::DEG90_AS_RAD;
+	//			pRocket->CurrentPitch = (pitch_final - pitch_initial) * pRocket->MissionTimer.Percent_Expired() + pitch_initial;
+	//		}
+	//		break;
+	//	}
+	//
+	//	/**
+	//	 *  The rocket is currently gaining altitude.
+	//	 */
+	//	case RocketMissionState::GainingAltitude:
+	//	{
+	//		if (!pRocket->NeedToSubmit)
+	//		{
+	//			pAir->Mark(MARK_UP);
+	//			pRocket->NeedToSubmit = true;
+	//			DisplayClass::Instance->SubmitObject(pAir);
+	//			pAir->Mark(MARK_DOWN);
+	//		}
+	//
+	//		/**
+	//		 *  Accelerate towards the maximum speed.
+	//		 */
+	//		pRocket->CurrentSpeed += rocket->Acceleration;
+	//		pRocket->CurrentSpeed = std::min(pRocket->CurrentSpeed, static_cast<double>(pAirType->Speed));
+	//
+	//		/**
+	//		 *  If the rocket has reached its cruising altitude, proceed to flight.
+	//		 *  Save the distance to the destination for lazy curve rockets.
+	//		 */
+	//		if (pAir->GetHeight() >= rocket->Altitude)
+	//		{
+	//			pRocket->MissionState = RocketMissionState::Flight;
+	//			Coordinate center_coord = pAir->GetCoords();
+	//			pRocket->ApogeeDistance = static_cast<int>(Vector2D<float>(static_cast<float>(center_coord.X - pRocket->MovingDestination.X), static_cast<float>(center_coord.Y - pRocket->MovingDestination.Y)).Length());
+	//		}
+	//		break;
+	//	}
+	//
+	//	/**
+	//	 *  The rocket is currently in flight.
+	//	 */
+	//	case RocketMissionState::Flight:
+	//	{
+	//		/**
+	//		 *  Check if we're still above ground. If not, explode.
+	//		 */
+	//		if (pAir->GetHeight() > 0)
+	//		{
+	//			/**
+	//			 *  Keep accelerating towards the maximum speed.
+	//			 */
+	//			pRocket->CurrentSpeed += rocket->Acceleration;
+	//			pRocket->CurrentSpeed = std::min(pRocket->CurrentSpeed, static_cast<double>(pAirType->Speed));
+	//
+	//			/**
+	//			 *  Lazy curve rockets curve towards the destination.
+	//			 */
+	//			if (rocket->IsLazyCurve && pRocket->ApogeeDistance)
+	//			{
+	//				/**
+	//				 *  Since the rocket doesn't dip towards the ground explicitly,
+	//				 *  we need to check if it's time to explode.
+	//				 */
+	//				if (Time_To_Explode(pRocket ,rocket))
+	//					return false;
+	//
+	//				/**
+	//				 *  Calculate how much to tilt the rocket based on the distance to the destination
+	//				 *  compared to how far it was when it reached its cruising altitude.
+	//				 */
+	//				const Coordinate center_coord = pAir->GetCoords();
+	//				const double dist = Vector2D<float>(static_cast<float>(center_coord.X - pRocket->MovingDestination.X), static_cast<float>(center_coord.Y - pRocket->MovingDestination.Y)).Length();
+	//				const double ratio = dist / pRocket->ApogeeDistance;
+	//
+	//				pRocket->CurrentPitch = rocket->PitchFinal * ratio * Math::DEG90_AS_RAD + Get_Next_Pitch(pRocket) * (1 - ratio);
+	//			}
+	//			else
+	//			{
+	//				/**
+	//				 *  Level off the rocket, slowly.
+	//				 */
+	//				if (pRocket->CurrentPitch > 0.0)
+	//				{
+	//					pRocket->CurrentPitch -= rocket->TurnRate;
+	//					pRocket->CurrentPitch = std::max((double)pRocket->CurrentPitch, 0.0);
+	//				}
+	//
+	//				/**
+	//				 *  If we're there, proceed to closing in.
+	//				 */
+	//				const Coordinate center_coord = pAir->GetCoords();
+	//				const Coordinate coord(center_coord.X - pRocket->MovingDestination.X, center_coord.Y - pRocket->MovingDestination.Y, center_coord.Z - pAir->Coord.Z);
+	//				if (coord.Length() <= pAir->Location.Z - pRocket->MovingDestination.Z)
+	//					pRocket->MissionState = RocketMissionState::ClosingIn;
+	//			}
+	//
+	//			/**
+	//			 *  Orient the rocket towards the destination.
+	//			 */
+	//			const Coordinate center_coord = pAir->GetCoords();
+	//			const DirStruct desired  { center_coord.X, pRocket->MovingDestination.Y, pRocket->MovingDestination.X, center_coord.Y };
+	//			pAir->PrimaryFacing.Set_Desired(desired);
+	//		}
+	//		else
+	//		{
+	//			/**
+	//			 *  KABOOM!!!
+	//			 */
+	//			Explode(pRocket);
+	//			return false;
+	//		}
+	//		break;
+	//	}
+	//
+	//	case RocketMissionState::ClosingIn:
+	//	{
+	//		/**
+	//		 *  Check if it's time to explode.
+	//		 */
+	//		if (Time_To_Explode(pRocket , rocket))
+	//			return false;
+	//
+	//		/**
+	//		 *  Pitch towards the destination.
+	//		 */
+	//		const double pitch = Get_Next_Pitch(pRocket) - pRocket->CurrentPitch;
+	//
+	//		if (Math::abs(pitch) > rocket->TurnRate)
+	//			pRocket->CurrentPitch = pitch < 0 ? pRocket->CurrentPitch - rocket->TurnRate : pRocket->CurrentPitch + rocket->TurnRate;
+	//		else
+	//			pRocket->CurrentPitch += pitch;
+	//
+	//		break;
+	//	}
+	//
+	//	/**
+	//	 *  Cruise missiles take off vertically.
+	//	 */
+	//	case RocketMissionState::VerticalTakeOff:
+	//	{
+	//		pRocket->SpawnerIsElite = spawn_owner && spawn_owner->Veterancy.IsElite();
+	//
+	//		/**
+	//		 *  Spawn the trail animation, as if the rocket is doing its best to lift off.
+	//		 */
+	//		if (pRocket->TrailerTimer.Expired())
+	//		{
+	//			if (rocket->TakeoffAnim)
+	//			{
+	//				GameCreate<AnimClass>(rocket->TakeoffAnim, pAir->Location, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+	//				pRocket->TrailerTimer.Start(24);
+	//			}
+	//		}
+	//
+	//		/**
+	//		 *  If we're done taking off, play a sound and proceed to flight.
+	//		 */
+	//		if (pRocket->MissionTimer.Expired())
+	//		{
+	//			pRocket->CurrentPitch = rocket->PitchFinal * Math::DEG90_AS_RAD;
+	//
+	//			VocClass::PlayAt(pAirType->AuxSound1, pAir->Location);
+	//
+	//			pRocket->TrailerTimer.Start(0);
+	//			pRocket->MissionState = RocketMissionState::GainingAltitude;
+	//		}
+	//		/**
+	//		 *  Otherwise, slowly nudge the rocket upwards to simulate taking off.
+	//		 */
+	//		else
+	//		{
+	//			Coordinate coord = pAir->Location;
+	//			coord.Z += rocket->RaiseRate;
+	//			if (MapClass::Instance->IsWithinUsableArea(CellClass::Coord2Cell(coord),true))
+	//				pAir->SetLocation(coord);
+	//		}
+	//	}
+	//	break;
+	//
+	//	default:
+	//		break;
+	//	}
+	//
+	//	/**
+	//	 *  Spawn the rocket's trail.
+	//	 */
+	//	if (Is_Moving_Now(pRocket) && pRocket->TrailerTimer.Expired() && rocket->TrailAnim)
+	//	{
+	//		GameCreate<AnimClass>(rocket->TrailAnim, pAir->Location, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER);
+	//		pRocket->TrailerTimer.Start(3);
+	//	}
+	//
+	//	/**
+	//	 *  Move the rocket.
+	//	 */
+	//	if (pRocket->CurrentSpeed > 0.0)
+	//	{
+	//		Coordinate coord = Get_Next_Position(pRocket, static_cast<int>(pRocket->CurrentSpeed));
+	//
+	//		if (MapClass::Instance->IsWithinUsableArea(CellClass::Coord2Cell(coord), true))
+	//			pAir->SetLocation(coord);
+	//
+	//		if (pAirType->Strength <= 0)
+	//			Explode(pRocket);
+	//	}
+	//
+	//	return pRocket->Is_Moving();
+	//}
+
+public :
+
+	static void Explode(RocketLocomotionClass* pThis)
+	{
+		auto pLinked = pThis->LinkedTo;
+		const auto pLinkedType = pLinked->GetTechnoType();
+		const RocketStruct* rocket = GetRocketData(pLinked);
+		/**
+		 *  Calculate where it's moving right now.
+		 */
+		Coordinate coord = Get_Next_Position(pThis ,rocket->BodyLength);
+		CellStruct cell = CellClass::Coord2Cell(coord);
+
+		/**
+		 *  The rocket uses its spawner's elite status to determine if it should deal elite damage.
+		 */
+		int damage = pThis->SpawnerIsElite ? rocket->EliteDamage : rocket->Damage;
+
+		/**
+		 *  KABOOM!!!
+		 */
+		const auto animtype = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, MapClass::Instance->GetCellAt(cell)->LandType, &coord);
+		if (animtype)
+			GameCreate<AnimClass>(animtype, coord, 0, 1, 0x600, -15);
+
+		MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, coord, false, SpotlightFlags::None);
+		MapClass::DamageArea(coord, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+		pLinked->UnInit();
+	}
+
+	//static bool Time_To_Explode(RocketLocomotionClass* pThis ,const RocketStruct* rocket)
+	//{
+	//	auto pLinked = pThis->Owner;
+	//	Coordinate coord = Get_Next_Position(pThis , rocket->BodyLength);
+	//
+	//	/**
+	//	 *  Check if we're there yet.
+	//	 */
+	//	if (coord.Z > pThis->MovingDestination.Z)
+	//	{
+	//		const CellClass* rocket_cell = pLinked->GetCell();
+	//		if (!rocket_cell || !rocket_cell->Bit2_16 || pThis->MovingDestination.Z != rocket_cell->GetCoords().Z || coord.Z > pThis->MovingDestination.Z + ROCKET_SPEED)
+	//		{
+	//			/**
+	//			 *  Nope, too early.
+	//			 */
+	//			if (pLinked->GetHeight() > 0)
+	//				return false;
+	//		}
+	//	}
+	//
+	//	/**
+	//	 *  KABOOM!!!
+	//	 */
+	//	Explode(pThis);
+	//	return true;
+	//}
+
+	static double Get_Next_Pitch(RocketLocomotionClass* pThis)
+	{
+		/**
+		 *  Calculate how much is there left to go.
+		 */
+		const Coordinate left_to_go = pThis->MovingDestination - pThis->Owner->Location;
+		const double length = Vector2D<float> { static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y) }.Length();
+
+		/**
+		 *  If we're still not there, calculate the pitch at which we should go.
+		 */
+		if (length > 0)
+			return Math::atan(double(left_to_go.Z / length));
+
+		/**
+		 *  Otherwise it's time to go straight down.
+		 */
+		return -Math::DEG90_AS_RAD;
+	}
+
+	static  Coordinate Get_Next_Position(RocketLocomotionClass* pThis, double speed)
+	{
+		Coordinate coord {};
+
+		const double horizontal_speed = Math::cos(pThis->CurrentPitch) * speed;
+		const double horizontal_angle = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
+
+		coord.X = static_cast<int>(pThis->Owner->Location.X + Math::cos(horizontal_angle) * horizontal_speed);
+		coord.Y = static_cast<int>(pThis->Owner->Location.Y - Math::sin(horizontal_angle) * horizontal_speed);
+		coord.Z = static_cast<int>(pThis->Owner->Location.Z + Math::sin(pThis->CurrentPitch) * speed);
+
+		return coord;
+	}
 };
-#pragma optimize("", on )
 
 DEFINE_JUMP(VTABLE, 0x7F0B60, GET_OFFSET(_RocketLocomotionClass::_Move_To));
 DEFINE_JUMP(VTABLE, 0x7F0B40, GET_OFFSET(_RocketLocomotionClass::_Draw_Matrix));
+
+struct _SpawnManager
+{
+	//static void AI(SpawnManagerClass* pThis)
+	//{
+	//	/**
+	//	 *  The spawner only does logic every 10 frames.
+	//	 */
+	//	if (!pThis->UpdateTimer.Expired())
+	//		return;
+	//
+	//	pThis->UpdateTimer.Start(10);
+	//
+	//	for (int i = 0; i < SpawnControls.Count(); i++)
+	//	{
+	//		SpawnControl* control = SpawnControls[i];
+	//		AircraftClass* spawnee = control->Spawnee;
+	//		const auto owner_ext = Extension::Fetch<TechnoClassExtension>(Owner);
+	//		const auto owner_type_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class());
+	//
+	//		switch (control->Status)
+	//		{
+	//			/**
+	//			 *  The spawn is currently idle.
+	//			 */
+	//		case SpawnControlStatus::Idle:
+	//		{
+	//			/**
+	//			 *  If we don't have a target, no need to do anything about it.
+	//			 */
+	//			if (!Target)
+	//				continue;
+	//
+	//			/**
+	//			 *  If it's not yet time to respawn, skip.
+	//			 */
+	//			if (!SpawnTimer.Expired())
+	//				continue;
+	//
+	//			/**
+	//			 *  If we're on cooldown.
+	//			 */
+	//			if (Status == SpawnManagerStatus::Cooldown)
+	//				continue;
+	//
+	//			/**
+	//			 *  No spawning during an Ion Storm.
+	//			 */
+	//			if (IonStorm_Is_Active())
+	//				continue;
+	//
+	//			/**
+	//			 *  If the spawner can move (i. e. is not a building), don't allow spawning while it's on the move.
+	//			 */
+	//			if (control->IsSpawnedMissile && Owner->Is_Foot())
+	//			{
+	//				if (static_cast<FootClass*>(Owner)->Locomotion->Is_Moving() || static_cast<FootClass*>(Owner)->Locomotion->Is_Moving_Now())
+	//					continue;
+	//			}
+	//
+	//			/**
+	//			 *  Not quite sure what's up here.
+	//			 *  Maybe should check the missile instead, huh?
+	//			 */
+	//			SpawnTimer = owner_type_ext->IsMissileSpawn ? 9 : 20;
+	//
+	//			/**
+	//			 *  We can spawn 2 missiles using the burst logic.
+	//			 */
+	//			const auto weapon = Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
+	//			if (control->IsSpawnedMissile && weapon->Burst > 1 && i < weapon->Burst)
+	//				Owner->CurrentBurstIndex = i;
+	//			else
+	//				Owner->CurrentBurstIndex = 0;
+	//
+	//			/**
+	//			 *  Update our status.
+	//			 */
+	//			control->Status = SpawnControlStatus::Preparing;
+	//
+	//			WeaponSlotType weapon_slot = Extension::Fetch<WeaponTypeClassExtension>(Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)->IsSpawner ? WEAPON_SLOT_PRIMARY : WEAPON_SLOT_SECONDARY;
+	//
+	//			/**
+	//			 *  Apply SecondSpawnOffset if this is the second missile in a burst.
+	//			 */
+	//			Coordinate fire_coord;
+	//			if (Owner->CurrentBurstIndex % 2 == 0)
+	//				fire_coord = owner_ext->Fire_Coord(weapon_slot);
+	//			else
+	//				fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
+	//
+	//			Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
+	//
+	//			const auto rocket = RocketTypeClass::From_AircraftType(SpawnType);
+	//			if (rocket && rocket->IsCruiseMissile)
+	//			{
+	//				spawn_coord.X -= 40;
+	//				spawn_coord.Y -= 40;
+	//			}
+	//
+	//			/**
+	//			 *  Place the spawn in the world.
+	//			 */
+	//			DirStruct dir = Owner->PrimaryFacing.Current();
+	//			spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
+	//
+	//			/**
+	//			 *  Cruise missiles spawn their takeoff animation.
+	//			 */
+	//			if (rocket && rocket->IsCruiseMissile && rocket->TakeoffAnim)
+	//				new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+	//
+	//			/**
+	//			 *  Reset burst since if we're done with this volley.
+	//			 */
+	//			if (i == SpawnControls.Count() - 1)
+	//				Owner->CurrentBurstIndex = 0;
+	//
+	//			/**
+	//			 *  Missiles only take a destination once, so they go straight to the target.
+	//			 */
+	//			if (control->IsSpawnedMissile)
+	//			{
+	//				Next_Target();
+	//				spawnee->Assign_Destination(Target);
+	//				spawnee->Assign_Mission(MISSION_MOVE);
+	//			}
+	//			/**
+	//			 *  Aircraft first "organize" next to the spawner.
+	//			 */
+	//			else
+	//			{
+	//				CellClass* owner_cell = Owner->Get_Cell_Ptr();
+	//				CellClass* adjacent_cell = &owner_cell->Adjacent_Cell(FACING_S);
+	//				spawnee->Assign_Destination(adjacent_cell);
+	//				spawnee->Assign_Mission(MISSION_MOVE);
+	//			}
+	//
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The rocket is taking off (handled by the locomotor), so wait until it's done, then let it go.
+	//		 */
+	//		case SpawnControlStatus::Takeoff:
+	//		{
+	//			if (control->ReloadTimer.Expired())
+	//				Detach(spawnee);
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The aircraft is preparing to attack.
+	//		 */
+	//		case SpawnControlStatus::Preparing:
+	//		{
+	//			/**
+	//			 *  Missiles don't do this.
+	//			 */
+	//			if (control->IsSpawnedMissile)
+	//				break;
+	//
+	//			/**
+	//			 *  If there's not target, return to base.
+	//			 */
+	//			Next_Target();
+	//			if (Target != nullptr)
+	//			{
+	//				spawnee->Assign_Destination(Owner);
+	//				spawnee->Assign_Target(nullptr);
+	//				spawnee->Assign_Mission(MISSION_MOVE);
+	//				spawnee->Commence();
+	//				control->Status = SpawnControlStatus::Returning;
+	//				break;
+	//			}
+	//
+	//			/**
+	//			 *  Send the aircraft to attack.
+	//			 */
+	//			CellClass* owner_cell = Owner->Get_Cell_Ptr();
+	//			CellClass* adjacent_cell = &owner_cell->Adjacent_Cell(FACING_S);
+	//			spawnee->Assign_Destination(adjacent_cell);
+	//			spawnee->Assign_Mission(MISSION_MOVE);
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The aircraft is currently attacking.
+	//		 */
+	//		case SpawnControlStatus::Attacking:
+	//		{
+	//			/**
+	//			 *  If there's still ammo and a target, attack.
+	//			 */
+	//			Next_Target();
+	//			if (spawnee->Ammo > 0 && Target)
+	//			{
+	//				spawnee->Assign_Target(Target);
+	//				spawnee->Assign_Mission(MISSION_ATTACK);
+	//			}
+	//			/**
+	//			 *  Otherwise, return to base.
+	//			 */
+	//			else
+	//			{
+	//				spawnee->Assign_Destination(Owner);
+	//				spawnee->Assign_Target(nullptr);
+	//				spawnee->Assign_Mission(MISSION_MOVE);
+	//				control->Status = SpawnControlStatus::Returning;
+	//			}
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The aircraft is retuning back to the spawner.
+	//		 */
+	//		case SpawnControlStatus::Returning:
+	//		{
+	//			/**
+	//			 *  Check if we've got ammo and there's a target now.
+	//			 *  If so, attack it.
+	//			 */
+	//			Next_Target();
+	//			if (spawnee->Ammo > 0 && Target)
+	//			{
+	//				control->Status = SpawnControlStatus::Attacking;
+	//				spawnee->Assign_Target(Target);
+	//				spawnee->Assign_Mission(MISSION_ATTACK);
+	//				break;
+	//			}
+	//
+	//			/**
+	//			 *  If we've arrived at the spawner, "land" (despawn).
+	//			 *  Otherwise, keep going towards the spawner.
+	//			 */
+	//			Cell owner_coord = Owner->Get_Cell();
+	//			Cell spawnee_coord = spawnee->Get_Cell();
+	//
+	//			if (owner_coord == spawnee_coord && spawnee->Coord.Z - Owner->Coord.Z < 20)
+	//			{
+	//				spawnee->Limbo();
+	//				control->Status = SpawnControlStatus::Reloading;
+	//				control->ReloadTimer = ReloadRate;
+	//			}
+	//			else
+	//			{
+	//				spawnee->Assign_Destination(Owner);
+	//				spawnee->Assign_Target(nullptr);
+	//				spawnee->Assign_Mission(MISSION_MOVE);
+	//			}
+	//
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The aircraft has expended its ammo and is reloading.
+	//		 */
+	//		case SpawnControlStatus::Reloading:
+	//		{
+	//			/**
+	//			 *  Wait until the reload timer expires.
+	//			 */
+	//			if (!control->ReloadTimer.Expired())
+	//				break;
+	//
+	//			/**
+	//			 *  Then reset the spawn to max ammo and health.
+	//			 */
+	//			control->Status = SpawnControlStatus::Idle;
+	//			spawnee->Ammo = spawnee->Class->MaxAmmo;
+	//			spawnee->Strength = spawnee->Class->MaxStrength;
+	//			break;
+	//		}
+	//
+	//		/**
+	//		 *  The spawn has been destroyed and is respawning.
+	//		 */
+	//		case SpawnControlStatus::Dead:
+	//		{
+	//			/**
+	//			 *  Wait until the reload timer expires.
+	//			 */
+	//			if (!control->ReloadTimer.Expired())
+	//				break;
+	//
+	//			/**
+	//			 *  Create a new spawn and set it to idle.
+	//			 */
+	//			control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
+	//			control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
+	//			control->Spawnee->Limbo();
+	//			Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
+	//			control->Status = SpawnControlStatus::Idle;
+	//			break;
+	//		}
+	//		}
+	//	}
+	//
+	//	switch (pThis->Status)
+	//	{
+	//	case SpawnManagerStatus::Idle: {
+	//		Next_Target();
+	//
+	//		if (Target) {
+	//			WeaponSlotType weapon = Owner->What_Weapon_Should_I_Use(Target);
+	//			if (Owner->In_Range_Of(Target, weapon))
+	//				Status = SpawnManagerStatus::Launching;
+	//			else
+	//				Abandon_Target();
+	//		}
+	//	}break;
+	//
+	//	case SpawnManagerStatus::Launching: {
+	//		/**
+	//		 *  If we're launching spawns, but there isn't a target anymore, stop it.
+	//		 */
+	//		if (Target == nullptr)
+	//		{
+	//			Abandon_Target();
+	//			return;
+	//		}
+	//
+	//		/**
+	//		 *  Check to make sure all of our spawns are currently preparing to launch.
+	//		 *  This should only happen when the spawns are missiles, I believe.
+	//		 */
+	//		for (int i = 0; i < SpawnControls.Count(); i++)
+	//		{
+	//			const SpawnControl* control = SpawnControls[i];
+	//			if (control->Status != SpawnControlStatus::Preparing && control->Status != SpawnControlStatus::Dead)
+	//				return;
+	//		}
+	//
+	//		/**
+	//		 *  Process all our missiles.
+	//		 */
+	//		bool is_missile_launcher = false;
+	//		for (int i = 0; i < SpawnControls.Count(); i++)
+	//		{
+	//			SpawnControl* control = SpawnControls[i];
+	//			AircraftClass* spawnee = control->Spawnee;
+	//
+	//			/**
+	//			 *  Don't process dead spawns.
+	//			 */
+	//			if (control->Status == SpawnControlStatus::Preparing)
+	//			{
+	//				/**
+	//				 *  If the spawn is a missile, add it to the kamikaze tracker and set it to take off.
+	//				 *  Also set the reload timer to the missile's takeoff time.
+	//				 */
+	//				if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
+	//				{
+	//					is_missile_launcher = true;
+	//					KamikazeTracker->Add(spawnee, Target);
+	//					KamikazeTracker->UpdateTimer = 2;
+	//
+	//					if (control->IsSpawnedMissile)
+	//					{
+	//						control->Status = SpawnControlStatus::Takeoff;
+	//						const auto atype = control->Spawnee->Class;
+	//						const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
+	//						control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
+	//					}
+	//					else
+	//					{
+	//						Detach(spawnee);
+	//					}
+	//				}
+	//				/**
+	//				 *  On the off chance it's not a missile, just set it to attack.
+	//				 */
+	//				else
+	//				{
+	//					control->Status = SpawnControlStatus::Attacking;
+	//					spawnee->Assign_Target(Target);
+	//					spawnee->Assign_Mission(MISSION_ATTACK);
+	//				}
+	//			}
+	//		}
+	//
+	//		/**
+	//		 *  If this is a missile launcher,
+	//		 *  abandon the target.
+	//		 */
+	//		if (is_missile_launcher)
+	//			Abandon_Target();
+	//
+	//		/**
+	//		 *  Phew, time to go on cooldown.
+	//		 */
+	//		Status = SpawnManagerStatus::Cooldown;
+	//	}break;
+	//	case SpawnManagerStatus::Cooldown :
+	//	{
+	//		bool is_idle = true;
+	//		for (int i = 0; i < SpawnControls.Count(); i++)
+	//		{
+	//			SpawnControl* control = SpawnControls[i];
+	//			if (control->Status == SpawnControlStatus::Attacking || control->Status == SpawnControlStatus::Returning)
+	//			{
+	//				is_idle = false;
+	//				break;
+	//			}
+	//		}
+	//
+	//		if (is_idle)
+	//			Status = SpawnManagerStatus::Idle;
+	//	}break
+	//	default:
+	//		break;
+	//	}
+	//}
+};

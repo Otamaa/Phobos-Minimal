@@ -122,19 +122,20 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 	}
 
 	int fireCount = pThis->MissionStatus - 4;
+	int count = pWeaponExt->Strafing_Shots.Get(5);
 
-	if (pWeaponExt->Strafing_Shots > 5)
+	if (count > 5)
 	{
 
 		if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe)
 		{
-			if ((pWeaponExt->Strafing_Shots - 3 - pExt->ShootCount) > 0)
+			if ((count - 3 - pExt->ShootCount) > 0)
 			{
 				pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
 			}
 		}
 	}
-	else if (fireCount > 1 && pWeaponExt->Strafing_Shots < fireCount)
+	else if (fireCount > 1 && count < fireCount)
 	{
 
 		if (!pThis->Ammo)
@@ -313,3 +314,30 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 }
 
 DEFINE_JUMP(VTABLE, 0x7E2268, GET_OFFSET(AircraftClass_IFlyControl_IsStrafe));
+
+static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis)
+{
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->GetWeapon(0)->WeaponType);
+	if (!pWeaponExt->Strafing_Shots.isset())
+		return true;
+
+	if (pExt->ShootCount >= pWeaponExt->Strafing_Shots)
+		return false;
+
+	pExt->ShootCount++;
+	return true;
+}
+
+DEFINE_HOOK(0x415666, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	return CheckSpyPlaneCameraCount(pThis) ? 0 : 0x41570C;
+}
+
+DEFINE_HOOK(0x4157EB, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	return !CheckSpyPlaneCameraCount(pThis) ? 0x415863 : 0;
+}

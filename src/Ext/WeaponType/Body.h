@@ -29,7 +29,7 @@ public:
 	Nullable<RadTypeClass*> RadType {};
 	Valueable<bool> Rad_NoOwner { true };
 
-	Valueable<int> Strafing_Shots { 5 };
+	Nullable<int> Strafing_Shots { };
 	Valueable<bool> Strafing_SimulateBurst { false };
 	Nullable<bool> Strafing { };
 	Valueable<bool> Strafing_UseAmmoPerShot { false };

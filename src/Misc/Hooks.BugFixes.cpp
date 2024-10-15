@@ -2065,3 +2065,5 @@ DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 	}
 	return 0;
 }
+
+DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
