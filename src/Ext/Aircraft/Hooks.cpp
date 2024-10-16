@@ -347,8 +347,7 @@ DEFINE_HOOK(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
 			return 0x41570C;
 
 		pThis->vt_entry_48C(nullptr ,0u,false , nullptr);
-		auto create = CoordStruct::Empty;
-		pThis->ForceCreate(create, pPrimary->WeaponType->Damage);
+		pThis->ForceCreate(CoordStruct{}, pPrimary->WeaponType->Damage);
 
 		MapRevealer const revealer(pThis->Location);
 		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
@@ -377,8 +376,7 @@ DEFINE_HOOK(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 			return 0x415863;
 
 		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
-		auto create = CoordStruct::Empty;
-		pThis->ForceCreate(create, pPrimary->WeaponType->Damage);
+		pThis->ForceCreate(CoordStruct {}, pPrimary->WeaponType->Damage);
 
 		MapRevealer const revealer(pThis->Location);
 		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
