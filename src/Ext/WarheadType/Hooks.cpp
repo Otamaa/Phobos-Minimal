@@ -418,3 +418,12 @@ DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
 	R->Stack(0x88, rocker);
 	return 0x489B92;
 }
+
+DEFINE_HOOK(0x4D73DE, FootClass_ReceiveDamage_RemoveParasites, 0x5)
+{
+	enum { Continue = 0x4D73E3, Skip = 0x4D7413 };
+	GET(WarheadTypeClass*, pWarhead, EBP);
+	GET(int*, damage, EDI);
+	auto const pTypeExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+	return pTypeExt->RemoveParasites.Get(*damage < 0) ? Continue : Skip;
+}

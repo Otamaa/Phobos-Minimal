@@ -569,6 +569,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SuppressReflectDamage.Read(exINI, pSection, "SuppressReflectDamage");
 	this->SuppressReflectDamage_Types.Read(exINI, pSection, "SuppressReflectDamage.Types");
 	this->SuppressReflectDamage_Groups.Read(exINI, pSection, "SuppressReflectDamage.Groups");
+
+	this->RemoveParasites.Read(exINI, pSection, "RemoveParasites");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1547,6 +1549,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SuppressReflectDamage)
 		.Process(this->SuppressReflectDamage_Types)
 		.Process(this->SuppressReflectDamage_Groups)
+		.Process(this->RemoveParasites)
 		.Process(this->Reflected)
 		;
 

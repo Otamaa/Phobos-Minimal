@@ -388,6 +388,8 @@ public:
 
 	ValueableVector<std::string> SuppressReflectDamage_Groups {};
 
+	Nullable<bool> RemoveParasites {};
+
 	bool Reflected { false };
 public:
 
