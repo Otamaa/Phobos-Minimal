@@ -10330,3 +10330,23 @@ struct _SpawnManager
 //
 //	return 0x0;
 //}
+
+
+static bool __fastcall UnitClass_Paradrop_wrapper(UnitClass* pThis, DWORD, CoordStruct* pCoords)
+{
+	if (!pThis->ObjectClass::SpawnParachuted(*pCoords)) {
+		return false;
+	}
+
+	if (pThis->Type->ResourceGatherer || pThis->Type->Harvester) {
+		pThis->QueueMission(Mission::Harvest, false);
+	}else if (pThis->Owner->IsControlledByHuman()) {
+		pThis->QueueMission(Mission::Guard, false);
+	} else {
+		pThis->QueueMission(Mission::Hunt, false);
+	}
+
+	return true;
+}
+
+DEFINE_JUMP(VTABLE, 0x7F5D58, GET_OFFSET(UnitClass_Paradrop_wrapper));

@@ -333,11 +333,6 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 			for (int k = 0; k < Nums[i]; ++k)
 			{
 				auto const pNew = static_cast<FootClass*>(pType->CreateObject(pOwner));
-
-				if (!pNew) {
-					continue;
-				}
-
 				pNew->SetLocation(pPlane->Location);
 				pNew->Limbo();
 
