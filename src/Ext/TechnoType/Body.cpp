@@ -1317,6 +1317,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		exINI.ReadSpeed(pSection, "SubterraneanSpeed", &this->SubterraneanSpeed);
 
+		this->ForceWeapon_InRange.Read(exINI, pSection, "ForceWeapon.InRange");
+		this->ForceWeapon_InRange_Overrides.Read(exINI, pSection, "ForceWeapon.InRange.Overrides");
+		this->ForceWeapon_InRange_ApplyRangeModifiers.Read(exINI, pSection, "ForceWeapon.InRange.ApplyRangeModifiers");
+
 		if (!RefinerySmokeParticleSystemOne.isset()) {
 			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
 		}
@@ -2423,6 +2427,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->RefinerySmokeParticleSystemFour)
 
 		.Process(this->SubterraneanSpeed)
+
+		.Process(this->ForceWeapon_InRange)
+		.Process(this->ForceWeapon_InRange_Overrides)
+		.Process(this->ForceWeapon_InRange_ApplyRangeModifiers)
 		;
 }
 

@@ -120,6 +120,43 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
 			return ReturnHandled;
 		}
+
+		if (!pTechnoTypeExt->ForceWeapon_InRange.empty())
+		{
+			for (size_t i = 0; i < pTechnoTypeExt->ForceWeapon_InRange.size(); i++)
+			{
+				int distance = 0;
+
+				// Value below 0 means Range won't be overriden
+				if (i < pTechnoTypeExt->ForceWeapon_InRange_Overrides.size() && pTechnoTypeExt->ForceWeapon_InRange_Overrides[i] > 0)
+					distance = static_cast<int>(pTechnoTypeExt->ForceWeapon_InRange_Overrides[i] * 256.0);
+
+				if (pTechnoTypeExt->ForceWeapon_InRange[i] >= 0)
+				{
+					auto const pWeapon = pThis->GetWeapon(pTechnoTypeExt->ForceWeapon_InRange[i])->WeaponType;
+					distance = distance > 0 ? distance : pWeapon->Range;
+
+					if (pTechnoTypeExt->ForceWeapon_InRange_ApplyRangeModifiers)
+						distance = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis, distance);
+
+					if (pThis->DistanceFrom(pTarget) <= distance)
+					{
+						R->EAX(pTechnoTypeExt->ForceWeapon_InRange[i]);
+						return ReturnHandled;
+					}
+				}
+				else
+				{
+					// Apply range modifiers regardless of weapon
+					if (pTechnoTypeExt->ForceWeapon_InRange_ApplyRangeModifiers)
+						distance = WeaponTypeExtData::GetRangeWithModifiers(nullptr, pThis, distance);
+
+					// Don't force weapon if range satisfied
+					if (pThis->DistanceFrom(pTarget) <= distance)
+						break;
+				}
+			}
+		}
 	}
 
 	return 0;

@@ -997,6 +997,10 @@ public:
 
 	int SubterraneanSpeed { -1 };
 
+	ValueableVector<int> ForceWeapon_InRange {};
+	ValueableVector<double> ForceWeapon_InRange_Overrides {};
+	Valueable<bool> ForceWeapon_InRange_ApplyRangeModifiers { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
