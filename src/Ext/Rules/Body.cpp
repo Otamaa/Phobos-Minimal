@@ -704,7 +704,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
 	this->ShakeScreenUseTSCalculation.Read(exINI, GameStrings::AudioVisual, "ShakeScreenUseTSCalculation");
-	this->SubterraneanUseSpeed.Read(exINI, GameStrings::General, "SubterraneanUseSpeed");
+	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
 
 	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General, "CheckUnitBaseNormal");
 	this->ExpandBuildingPlace.Read(exINI, GameStrings::General, "ExpandBuildingPlace");
@@ -1332,7 +1332,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CombatAlert_SuppressIfInScreen)
 		.Process(this->CombatAlert_Interval)
 		.Process(this->CombatAlert_SuppressIfAllyDamage)
-		.Process(this->SubterraneanHeight)
+		.Process(this->SubterraneanSpeed)
 
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
@@ -1368,7 +1368,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ChronoSphereDelay)
 		.Process(this->EnablePowerSurplus)
 		.Process(this->ShakeScreenUseTSCalculation)
-		.Process(this->SubterraneanUseSpeed)
+		.Process(this->SubterraneanSpeed)
 		;
 
 	MyPutData.Serialize(Stm);

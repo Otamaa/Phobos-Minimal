@@ -236,7 +236,7 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 	}
 
 	auto miss = pThis->GetCurrentMissionControl();
-	R->EAX(Game::F2I(miss->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2));
+	R->EAX(int(miss->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2));
 
 	return 0x44E388;
 }

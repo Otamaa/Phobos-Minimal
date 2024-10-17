@@ -354,7 +354,7 @@ DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
 	{
 		CoordStruct crdOld = pThis->GetCoords();
 
-		pThis->Range -= Game::F2I(CrdNew.DistanceFrom(crdOld));
+		pThis->Range -= int(CrdNew.DistanceFrom(crdOld));
 		if (pThis->Range <= 0)
 		{
 			Destroy = true;

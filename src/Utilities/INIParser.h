@@ -248,6 +248,19 @@ public:
 		return Read<short, 2>(pSection, pKey, nBuffer);
 	}
 
+	bool ReadSpeed(const char* pSection, const char* pKey, int* nBuffer)
+	{
+		double parsedSpeed = IniFile->ReadDouble(pSection, pKey, -1.0);
+
+		if (parsedSpeed >= 0.0)
+		{
+			int speed = int((MinImpl(parsedSpeed, 100.0) * 256.0) / 100.0);
+			*nBuffer = MinImpl(speed, 255);
+		}
+
+		return (*nBuffer != -1);
+	}
+
 	bool ReadArmor(const char *pSection, const char *pKey, int *nBuffer) {
 		*nBuffer = IniFile->ReadArmorType(pSection, pKey, *nBuffer);
 		return (*nBuffer != -1);

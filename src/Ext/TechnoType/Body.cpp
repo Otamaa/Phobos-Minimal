@@ -1315,7 +1315,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RefinerySmokeParticleSystemThree.Read(exINI, pSection, "RefinerySmokeParticleSystemThree");
 		this->RefinerySmokeParticleSystemFour.Read(exINI, pSection, "RefinerySmokeParticleSystemFour");
 
-		this->SubterraneanUseSpeed.Read(exINI, pSection, "SubterraneanUseSpeed");
+		exINI.ReadSpeed(pSection, "SubterraneanSpeed", &this->SubterraneanSpeed);
 
 		if (!RefinerySmokeParticleSystemOne.isset()) {
 			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
@@ -2422,7 +2422,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->RefinerySmokeParticleSystemThree)
 		.Process(this->RefinerySmokeParticleSystemFour)
 
-		.Process(this->SubterraneanUseSpeed)
+		.Process(this->SubterraneanSpeed)
 		;
 }
 

@@ -242,7 +242,7 @@ namespace Helpers {
 			if (includeInAir)
 			{
 				auto const airTracker = &AircraftTrackerClass::Instance.get();
-				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(spread));
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), int(spread));
 
 				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get())
 				{
@@ -382,7 +382,7 @@ namespace Helpers {
 			// flying objects are not included normally, use AircraftTrackerClass to find the affected ones.
 			if (IncludeAir) {
 				auto const airTracker = &AircraftTrackerClass::Instance.get();
-				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(arange));
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), int(arange));
 
 				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get()) {
 					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->Health > 0) {
@@ -464,7 +464,7 @@ namespace Helpers {
 			// flying objects are not included normally, use AircraftTrackerClass to find the affected ones.
 			if (includeInAir) {
 				auto const airTracker = &AircraftTrackerClass::Instance.get();
-				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), Game::F2I(spread));
+				airTracker->AircraftTrackerClass_logics_412B40(MapClass::Instance->GetCellAt(coords), int(spread));
 
 				for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get()) {
 					if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->Health > 0) {

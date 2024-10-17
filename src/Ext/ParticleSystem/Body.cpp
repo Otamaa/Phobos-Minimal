@@ -518,7 +518,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 			GameCreate<LaserDrawClass>(
 				pThis->Location,
 				pThis->TargetCoords,
-				0, 1u,
+				0, 1,
 				pThis->Type->LaserColor,
 				ColorStruct::Empty,
 				ColorStruct::Empty,

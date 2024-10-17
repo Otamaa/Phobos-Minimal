@@ -486,7 +486,7 @@ void WriteLog(const FootClass* it, int idx, DWORD checksum, FILE* F)
 
 	fprintf(F, "; Destination: %s (%d; %d,%d); SpeedPercentage %d ; Height %d",
 		destID, destIndex, destCrd.X, destCrd.Y
-		, Game::F2I(it->SpeedPercentage * 256)
+		, int(it->SpeedPercentage * 256)
 		, it->GetHeight()
 	);
 }
@@ -665,7 +665,7 @@ bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 
 		fprintf(LogFile, "My Random Number: %08X\n", ScenarioClass::Instance->Random.Random());
 		fprintf(LogFile, "My Frame: %08X\n", Unsorted::CurrentFrame());
-		fprintf(LogFile, "Average FPS: %d\n", Game::F2I(FPSCounter::GetAverageFrameRate()));
+		fprintf(LogFile, "Average FPS: %d\n", int(FPSCounter::GetAverageFrameRate()));
 		fprintf(LogFile, "Max MaxAhead: %d\n", Game::Network::MaxMaxAhead());
 		fprintf(LogFile, "Latency setting: %d\n", Game::Network::LatencyFudge());
 		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);

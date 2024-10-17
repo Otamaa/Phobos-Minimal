@@ -2000,13 +2000,8 @@ DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 	// Restore overridden instructions.
 	pThis->EliteAirstrikeRechargeTime = eliteAirstrikeRechargeTime;
 
-	double parsedSpeed = pINI->ReadDouble(pSection, "Speed", -1.0);
-
-	if (parsedSpeed >= 0.0)
-	{
-		int speed = Game::F2I((std::min(parsedSpeed, 100.0) * 256.0) / 100.0);
-		pThis->Speed = std::min(speed, 255);
-	}
+	INI_EX exINI(pINI);
+	exINI.ReadSpeed(pSection, "Speed", &pThis->Speed);
 
 	return SkipGameCode;
 }
@@ -2017,19 +2012,20 @@ DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
 	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
 
+	//this fix reqire change of `pType->Speed`
+	//which is ridicculus really - Otamaa
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
 	GET(int const, distance, EAX);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType());
-	int currentSpeed = 19;
+	int currentSpeed = pTypeExt->SubterraneanSpeed >= 0 ?
+			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
 
-	// The movement speed was actually also hardcoded here to 19, so the distance check made sense
-	// It can now be lifted by setting this key on TechnoType or globally - Starkku
-	if (pTypeExt->SubterraneanUseSpeed.Get(RulesExtData::Instance()->SubterraneanUseSpeed))
-	{
-		// Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.
-		pLoco->LinkedTo->SpeedPercentage = 1.0;
-		currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
-	}
+	// Calculate speed multipliers.
+	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->AttachedToObject->Speed;
+	int maxSpeed = pTypeExt->AttachedToObject->Speed;
+	pTypeExt->AttachedToObject->Speed = currentSpeed;
+	currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
+	pTypeExt->AttachedToObject->Speed = maxSpeed;
 
 	TunnelLocomotionClass::TunnelMovementSpeed = currentSpeed;
 

@@ -938,7 +938,7 @@ DEFINE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 	const double percentage = (std::fabs(rechargeTime2 * ratio) > 0.001)  ?
 		1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio) : 0.0;
 
-	R->EAX(Game::F2I(percentage * 54.0));
+	R->EAX(int(percentage * 54.0));
 	return 0x6CC053;
 }
 

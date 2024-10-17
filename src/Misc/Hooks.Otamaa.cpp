@@ -10320,3 +10320,13 @@ struct _SpawnManager
 	//	}
 	//}
 };
+
+//DEFINE_HOOK(0x6F1FAF, TeamTypeClass_6F1FA0_CheckTaskforce, 0x7)
+//{
+//	GET(TeamTypeClass*, pTeam, ESI);
+//
+//	if (!pTeam->TaskForce)
+//		Debug::FatalError("Team[%s] missing TaskForce Pointer !\n", pTeam->ID);
+//
+//	return 0x0;
+//}

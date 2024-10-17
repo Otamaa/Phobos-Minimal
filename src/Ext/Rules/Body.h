@@ -390,7 +390,7 @@ public:
 	Valueable<bool> EnablePowerSurplus { false };
 	Valueable<bool> ShakeScreenUseTSCalculation { false };
 
-	Valueable<bool> SubterraneanUseSpeed { false };
+	int SubterraneanSpeed { 19 };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
