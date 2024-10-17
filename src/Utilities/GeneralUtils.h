@@ -613,4 +613,14 @@ public:
 
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
+
+	static void PrintMessage(const wchar_t* pMessage) {
+		MessageListClass::Instance->PrintMessage(
+			pMessage,
+			RulesClass::Instance->MessageDelay,
+			HouseClass::CurrentPlayer->ColorSchemeIndex,
+				true
+		);
+	}
+
 };

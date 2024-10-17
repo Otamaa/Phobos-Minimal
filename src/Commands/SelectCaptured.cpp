@@ -71,13 +71,14 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 	}
 	while (pCurrentObject != pFirstObject);
 
-	if (capturedPresent)
-	{
+	auto pMessage = capturedPresent ?
+		GeneralUtils::LoadStringUnlessMissing("MSG:SelectCaptured", L"Captured units selected.") :
+		StringTable::LoadString("MSG:NothingSelected")
+		;
+
+	if (capturedPresent) {
 		MapClass::Instance->MarkNeedsRedraw(1);
-		MessageListClass::Instance->PrintMessage(GeneralUtils::LoadStringUnlessMissing("MSG:SelectCaptured", L"Captured units selected."), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
 	}
-	else
-	{
-		MessageListClass::Instance->PrintMessage(StringTable::LoadString("MSG:NothingSelected"), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
-	}
+
+	GeneralUtils::PrintMessage(pMessage);
 }

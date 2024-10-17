@@ -29,13 +29,8 @@ void SaveVariablesToFileCommandClass::Execute(WWKey eInput) const
 	if (this->CheckDebugDeactivated())
 		return;
 
-	MessageListClass::Instance->PrintMessage(
-		GeneralUtils::LoadStringUnlessMissing("MSG:VariablesSaved", L"Variables saved."),
-		RulesClass::Instance->MessageDelay,
-		HouseClass::CurrentPlayer->ColorSchemeIndex,
-		true
-	);
-
+	auto pMessage = GeneralUtils::LoadStringUnlessMissing("MSG:VariablesSaved", L"Variables saved.");
+	GeneralUtils::PrintMessage(pMessage);
 	ScenarioExtData::SaveVariablesToFile(false);
 	ScenarioExtData::SaveVariablesToFile(true);
 }

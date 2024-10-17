@@ -241,14 +241,13 @@ public:
 		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 		const std::tm* localTime = std::localtime(&currentTime);
 
-		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}-{:5}",
+		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}",
 			localTime->tm_year + 1900,
 			localTime->tm_mon + 1 ,
 			localTime->tm_mday,
 			localTime->tm_hour,
 			localTime->tm_min,
-			localTime->tm_sec,
-			localTime->tm_sec * 1000);
+			localTime->tm_sec);
 	}
 
 	static NOINLINE std::string GetCurTimeA()
@@ -257,14 +256,13 @@ public:
 		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 		const std::tm* localTime = std::localtime(&currentTime);
 
-		return std::format("{:04}{:02}{:02}-{:02}{:02}{:02}-{:5}",
+		return std::format("{:04}{:02}{:02}-{:02}{:02}{:02}",
 			localTime->tm_year + 1900,
 			localTime->tm_mon + 1,
 			localTime->tm_mday,
 			localTime->tm_hour,
 			localTime->tm_min,
-			localTime->tm_sec,
-			localTime->tm_sec * 1000);
+			localTime->tm_sec);
 	}
 
 	static bool made;
@@ -273,8 +271,7 @@ public:
 
 		if (!made) {
 			Debug::LogFileTempName = Debug::LogFilePathName + Debug::LogFileMainName + Debug::LogFileExt;
-			Debug::LogFileMainFormattedName = Debug::LogFilePathName + std::format(L"{}.{}",
-			Debug::LogFileMainName, GetCurTime()) + Debug::LogFileExt;
+			Debug::LogFileMainFormattedName = Debug::LogFilePathName + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
 
 			made = 1;
 		}
@@ -282,11 +279,8 @@ public:
 
 	static NOINLINE std::wstring PrepareSnapshotDirectory()
 	{
-		std::wstring buffer = Debug::LogFilePathName + std::format(L"\\snapshot-{}",
-				GetCurTime());
-
+		const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + GetCurTime();
 		CreateDirectoryW(buffer.c_str(), nullptr);
-
 		return buffer;
 	}
 

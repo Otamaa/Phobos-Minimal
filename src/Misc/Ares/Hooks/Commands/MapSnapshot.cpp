@@ -29,12 +29,7 @@ void MapSnapshotCommandClass::Execute(WWKey dwUnk) const
 		return;
 	}
 
-	SYSTEMTIME time;
-	GetLocalTime(&time);
-
-	std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.yrm",
-		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
+	const std::string fName =  "Map." + Debug::GetCurTimeA() + ".yrm";
 	Game::WriteMapFiles(fName.c_str());
 	wchar_t msg[0xA0] = L"\0";
 	wsprintfW(msg, L"Map Snapshot saved as '%hs'.", fName.c_str());

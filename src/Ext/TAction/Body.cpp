@@ -650,32 +650,10 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 			UI::FocusOnWindow(pUI);
 		}
 
-		auto PrintMessage = [](const wchar_t* pMessage)
-			{
-				MessageListClass::Instance->PrintMessage(
-					pMessage,
-					RulesClass::Instance->MessageDelay,
-					HouseClass::CurrentPlayer->ColorSchemeIndex,
-					true
-				);
-			};
-
-		SYSTEMTIME time;
-		Imports::GetLocalTime.get()(&time);
-		const std::string fName = std::format("Map.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.sav",
-			time.wYear,
-			time.wMonth,
-			time.wDay,
-			time.wHour,
-			time.wMinute,
-			time.wSecond,
-			time.wMilliseconds
-		);
-
-		const std::wstring fDesc = std::format(L"{} - {}"
-			, SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name
-			, StringTable::LoadString(pThis->Text)
-		);
+		const std::string fName = "Map." + Debug::GetCurTimeA() + ".sav";
+		std::wstring fDesc = SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name;
+		fDesc += L" - ";
+		fDesc += StringTable::LoadString(pThis->Text);
 
 		bool Status = ScenarioClass::Instance->SaveGame(fName.c_str(), fDesc.c_str());
 
@@ -686,10 +664,11 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 			UI::EndDialog(pUI);
 		}
 
-		if (Status)
-			PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
-		else
-			PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
+		auto pMessage = Status ?
+			StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED) :
+			StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME);
+
+		GeneralUtils::PrintMessage(pMessage);
 	}
 
 	return true;

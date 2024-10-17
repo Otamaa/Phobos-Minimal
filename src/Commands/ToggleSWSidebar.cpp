@@ -30,10 +30,11 @@ void ToggleSWSidebar::Execute(WWKey eInput) const
 {
 	ToggleSWButtonClass::SwitchSidebar();
 
-	if (SidebarExtData::Instance()->SWSidebar_Enable)
-		MessageListClass::Instance->PrintMessage(GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_VISIBLE", L"Set exclusive SW sidebar visible."), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
-	else
-		MessageListClass::Instance->PrintMessage(GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_INVISIBLE", L"Set exclusive SW sidebar invisible."), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+	auto pMessage = SidebarExtData::Instance()->SWSidebar_Enable ?
+		GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_VISIBLE", L"Set exclusive SW sidebar visible.") :
+		GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_INVISIBLE", L"Set exclusive SW sidebar invisible.");
+
+	GeneralUtils::PrintMessage(pMessage);
 
 	if (SWSidebarClass::Global()->CurrentColumn)
 		MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);

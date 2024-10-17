@@ -2843,7 +2843,7 @@ void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
 		if (this->EVA_GrantOneTimeLaunched.isset())
 			VoxClass::PlayIndex(this->EVA_GrantOneTimeLaunched.Get(), -1, -1);
 
-		MessageListClass::Instance->PrintMessage(this->Message_GrantOneTimeLaunched.Get(), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+		GeneralUtils::PrintMessage(this->Message_GrantOneTimeLaunched.Get());
 	}
 }
 // =============================

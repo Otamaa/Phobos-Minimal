@@ -445,6 +445,7 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
+    <ClCompile Include="src\Phobos.COM.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
@@ -765,6 +766,7 @@
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\Handle.h" />
     <ClInclude Include="src\Utilities\Interpolation.h" />
+    <ClInclude Include="src\Utilities\LambdaFunctionArgCount.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />

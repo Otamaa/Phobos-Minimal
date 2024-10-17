@@ -213,24 +213,13 @@ void Phobos::CheckProcessorFeatures()
 
 void Phobos::PassiveSaveGame()
 {
-	auto PrintMessage = [](const wchar_t* pMessage)
-		{
-			MessageListClass::Instance->PrintMessage(
-				pMessage,
-				RulesClass::Instance->MessageDelay,
-				HouseClass::CurrentPlayer->ColorSchemeIndex,
-				true
-			);
-};
-
-	PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
-	const auto time = Debug::GetCurTimeA();
-	const std::string name = std::format("Map.{}.sav", time);
+	GeneralUtils::PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
+	const auto name = "Map." + Debug::GetCurTimeA() + ".sav";
 
 	if (ScenarioClass::SaveGame(name.c_str(), Phobos::CustomGameSaveDescription.c_str()))
-		PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
+		GeneralUtils::PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
 	else
-		PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
+		GeneralUtils::PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
 }
 
 DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)

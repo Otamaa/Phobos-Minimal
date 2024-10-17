@@ -69,9 +69,7 @@ void NextIdleHarvesterCommandClass::Execute(WWKey eInput) const
 		pObjectToSelect->Select();
 		MapClass::Instance->CenterMap();
 		MapClass::Instance->MarkNeedsRedraw(1);
-	}
-	else
-	{
-		MessageListClass::Instance->PrintMessage(StringTable::LoadString("MSG:NothingSelected"), RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+	} else {
+		GeneralUtils::PrintMessage(StringTable::LoadString("MSG:NothingSelected"));
 	}
 }

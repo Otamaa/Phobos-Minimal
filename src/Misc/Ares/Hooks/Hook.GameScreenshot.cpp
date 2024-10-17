@@ -33,13 +33,7 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 			if (WORD* buffer = reinterpret_cast<WORD*>(Surface->Lock(0, 0)))
 			{
 				//char fName[0x80];
-
-				SYSTEMTIME time;
-				GetLocalTime(&time);
-
-				std::string fName = std::format("SCRN.{:04}{:02}{:02}-{:02}{:02}{:02}-{:05}.BMP",
-					time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
+				const std::string fName = "SCRN." + Debug::GetCurTimeA() + ".BMP";
 				CCFileClass ScreenShot { fName.c_str()};
 				ScreenShot.Open(FileAccessMode::Write);
 

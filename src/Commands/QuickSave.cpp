@@ -43,11 +43,7 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 	}
 	else
 	{
-			MessageListClass::Instance->PrintMessage(
-			GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer"),
-			RulesClass::Instance->MessageDelay,
-			HouseClass::CurrentPlayer->ColorSchemeIndex,
-			true
-			);
+		auto pMessage = GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer");
+		GeneralUtils::PrintMessage(pMessage);
 	}
 }

@@ -9,7 +9,9 @@
 #include <MessageListClass.h>
 #include <RulesClass.h>
 
+#include <Utilities/GameConfig.h>
 #include <Utilities/GeneralUtils.h>
+
 #include <Unsorted.h>
 
 void DumpTypeDataArrayToFile::writeLog(CCFileClass* file, const char* pSectionName)
@@ -48,40 +50,30 @@ static void LogType(const char* pSectionName, CCFileClass* file)
 
 void DumpTypeDataArrayToFile::Dump()
 {
-	CCFileClass file = CCFileClass("DumpRulesTypes.ini");
+	GameConfig file { "DumpRulesTypes.ini" };
 
-	if (!file.Exists()) {
-		if (!file.CreateFileA()) {
-			return;
-		}
-	}
+	file.OpenOrCreateAction([](CCINIClass* pINI , CCFileClass* pFile){
+		LogType<HouseTypeClass>("[Countries]", pFile);
 
-	if (file.Open(FileAccessMode::Write))
-	{
-		LogType<HouseTypeClass>("[Countries]", &file);
+		LogType<InfantryTypeClass>("[InfantryTypes]", pFile);
+		LogType<UnitTypeClass>("[VehicleTypes]", pFile);
+		LogType<AircraftTypeClass>("[AircraftTypes]", pFile);
+		LogType<BuildingTypeClass>("[BuildingTypes]", pFile);
 
-		LogType<InfantryTypeClass>("[InfantryTypes]", &file);
-		LogType<UnitTypeClass>("[VehicleTypes]", &file);
-		LogType<AircraftTypeClass>("[AircraftTypes]", &file);
-		LogType<BuildingTypeClass>("[BuildingTypes]", &file);
+		LogType<TerrainTypeClass>("[TerrainTypes]", pFile);
+		LogType<SmudgeTypeClass>("[SmudgeTypes]", pFile);
+		LogType<OverlayTypeClass>("[OverlayTypes]", pFile);
 
-		LogType<TerrainTypeClass>("[TerrainTypes]", &file);
-		LogType<SmudgeTypeClass>("[SmudgeTypes]", &file);
-		LogType<OverlayTypeClass>("[OverlayTypes]", &file);
+		LogType<AnimTypeClass>("[Animations]", pFile);
+		LogType<VoxelAnimTypeClass>("[VoxelAnims]", pFile);
+		LogType<ParticleTypeClass>("[Particles]", pFile);
+		LogType<ParticleSystemTypeClass>("[ParticleSystems]", pFile);
 
-		LogType<AnimTypeClass>("[Animations]", &file);
-		LogType<VoxelAnimTypeClass>("[VoxelAnims]", &file);
-		LogType<ParticleTypeClass>("[Particles]", &file);
-		LogType<ParticleSystemTypeClass>("[ParticleSystems]", &file);
+		LogType<WeaponTypeClass>("[WeaponTypes]", pFile);
+		LogType<SuperWeaponTypeClass>("[SuperWeaponTypes]", pFile);
+		LogType<WarheadTypeClass>("[Warheads]", pFile);
 
-		LogType<WeaponTypeClass>("[WeaponTypes]", &file);
-		LogType<SuperWeaponTypeClass>("[SuperWeaponTypes]", &file);
-		LogType<WarheadTypeClass>("[Warheads]", &file);
+		LogType<BulletTypeClass>("[Projectiles]", pFile);
+	});
 
-		LogType<BulletTypeClass>("[Projectiles]", &file);
-	}
-	else
-	{
-		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, file.FileName);
-	}
 }
