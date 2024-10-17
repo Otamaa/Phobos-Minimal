@@ -5290,11 +5290,8 @@ DEFINE_HOOK(0x7077C0, TechnoClass_Detach, 0x7)
 
 	return 0x0;
 }
-#ifndef aaa
+
 DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
-#else
-DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
-#endif
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);

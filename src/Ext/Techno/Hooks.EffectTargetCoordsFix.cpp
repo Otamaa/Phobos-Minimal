@@ -357,7 +357,6 @@ DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 }
 #endif
 
-#ifndef aaa
 DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -425,4 +424,3 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 
 	return 0x6FF660;
 }
-#endif

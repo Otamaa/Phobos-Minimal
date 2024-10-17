@@ -4,7 +4,7 @@
 #include <TEventClass.h>
 
 // AI Naval queue bugfix hooks
-#ifndef aaa
+
 namespace ExitObjectTemp
 {
 	int ProducingUnitIndex = -1;
@@ -184,4 +184,3 @@ DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 	HouseExtContainer::Instance.Find(pThis)->ProducingNavalUnitTypeIndex = -1;
 	return 0;
 }
-#endif

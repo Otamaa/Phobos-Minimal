@@ -324,11 +324,7 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 	}
 }
 
-#ifndef aaa
 DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
-#else
-DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
-#endif
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);

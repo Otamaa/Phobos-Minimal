@@ -1,7 +1,7 @@
  #include "Body.h"
 
 #include <Ext/House/Body.h>
-#ifndef aaa
+
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
@@ -765,4 +765,3 @@ DEFINE_HOOK(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 	R->EAX(15);
 	return 0x4FF534;
 }
-#endif

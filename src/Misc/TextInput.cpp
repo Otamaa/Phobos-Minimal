@@ -29,7 +29,6 @@ wchar_t LocalizeCaracter(char character)
 	return result;
 }
 
-#ifndef aaa
 DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
 {
 	if (!Game::IMEBuffer[0])
@@ -54,4 +53,3 @@ DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 //
 //	return 0;
 //}
-#endif

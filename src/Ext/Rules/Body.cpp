@@ -277,7 +277,6 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
-#ifndef aaa
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
@@ -661,7 +660,6 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	return 0x0;
 }
-#endif
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)

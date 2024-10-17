@@ -357,8 +357,6 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 	return pAudioStream->PlayWAV(vec[SampleIdx - 1].c_str(), false);
 }
 
-#ifndef aaa
-
 DEFINE_HOOK(0x752b70 , PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
@@ -534,4 +532,3 @@ DEFINE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 
 	return 0;
 }
-#endif

@@ -18,9 +18,7 @@ public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
 
-#ifndef aaa
 	static constexpr size_t ExtOffset = 0x2C4; //ares
-#endif
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

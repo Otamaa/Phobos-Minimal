@@ -253,8 +253,6 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 	this->TextBuffer = oss.str();
 }
 
-#ifndef aaa
-
 // Hooks
 DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 {
@@ -525,4 +523,3 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 
 	return 0;
 }
-#endif

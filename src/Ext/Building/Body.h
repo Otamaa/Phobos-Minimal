@@ -19,9 +19,7 @@ public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
 
-#ifndef aaa
 	static constexpr size_t ExtOffset = 0x71C; //ares
-#endif
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };

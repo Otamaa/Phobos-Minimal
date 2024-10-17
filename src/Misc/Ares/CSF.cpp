@@ -60,7 +60,6 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 	return pData->Text;
 }
 
-#ifndef aaa
 DEFINE_HOOK(0x7349cf, StringTable_ParseFile_Buffer, 7)
 {
 	LEA_STACK(CCFileClass*, pFile, 0x28);
@@ -210,4 +209,3 @@ DEFINE_HOOK(0x734EC2, CSF_LoadString_2, 7)
 	R->EAX(CSFLoader::GetDynamicString(pName, L"MISSING:'%hs'", pName));
 	return 0x734F0F;
 }
-#endif

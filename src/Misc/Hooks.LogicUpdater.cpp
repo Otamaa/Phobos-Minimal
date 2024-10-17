@@ -101,11 +101,7 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-#ifndef aaa
 DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
-#else
-DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
-#endif
 {
 	enum { retDead = 0x6FAFFD, Continue = 0x6F9E6C };
 
@@ -114,12 +110,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (pThis->IsMouseHovering)
 		pThis->IsMouseHovering = false;
 
-	//if (!pThis || !pThis->IsAlive)
-	//	return retDead;
-
-#ifndef aaa
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
-#endif
 
 	if (!pThis->IsAlive)
 		return retDead;
@@ -152,10 +143,6 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		}
 	}
 #endif
-	// Set only if unset or type is changed
-	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
-	//if (pExt->Type != pType)
-
 
 	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
 	if (pExt->IsInTunnel)
@@ -180,7 +167,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
-	//pExt->UpdateMobileRefinery();
+	pExt->UpdateMobileRefinery();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();

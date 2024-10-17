@@ -53,7 +53,6 @@ void EVAVoices::RegisterType(const char* type)
 	}
 }
 
-#ifndef aaa
 // replace the complete ini loading function
 DEFINE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 {
@@ -187,4 +186,3 @@ DEFINE_HOOK(0x7534e0 , VoxClass_SetEVAIndex , 5)
 
 	return 0x7534F3;
 }
-#endif

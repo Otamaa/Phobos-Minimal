@@ -68,35 +68,19 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 	return 0x0;
 }
 
-#ifndef aaa
 DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
-#else
-DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
-#endif
 {
 	GET(SuperClass* const, pSuper, ECX);
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
 	//Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
-#ifndef aaa
-	if (
-		SWTypeExtData::Activate(pSuper, *pCell, isPlayer)
-		)
-#endif
-	{
-#ifndef aaa
+	if ( SWTypeExtData::Activate(pSuper, *pCell, isPlayer) ) {
 		SWTypeExtContainer::Instance.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
-		return 0x6CDE40;
-#endif
 	}
 
 	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
-#ifndef aaa
 	return 0x6CDE40;
-#else
-	return 0x0;
-#endif
 }
 
 DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
@@ -237,8 +221,6 @@ DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
 	GET(SuperClass*, pSuper, EDI);
 	return SWTypeExtContainer::Instance.Find(pSuper->Type)->UseWeeds ? Skip : 0;
 }
-
-#ifndef aaa
 
 DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 {
@@ -2845,4 +2827,3 @@ int __fastcall BuildingClass_MI_MissileWrapper(BuildingClass* pThis, DWORD) {
 	return pThis->BuildingClass::Mission_Missile();
 }
 DEFINE_JUMP(VTABLE, 0x7E410C, GET_OFFSET(BuildingClass_MI_MissileWrapper));
-#endif
