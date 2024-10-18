@@ -196,12 +196,21 @@ public:
 
 	static NOINLINE void LogDeferredFinalize()
 	{
-		for (auto const& Logs : DeferredLogData)
-		{
-			if (!Logs.empty())
-				GameDebugLog::Log("%s", Logs);
+		if (!Debug::LogFileActive())
+			return;
+
+		for (auto const& Logs : DeferredLogData) {
+
+			if (Logs.empty())
+				continue;
+
+			if(Console::ConsoleHandle != NULL)
+				WriteConsole(Console::ConsoleHandle, Logs.c_str(), Logs.size(), nullptr, nullptr);
+
+			fprintf(Debug::LogFile, Logs.c_str());
 		}
 
+		Debug::Flush();
 		DeferredLogData.clear();
 	}
 
