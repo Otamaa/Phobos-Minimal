@@ -699,12 +699,12 @@ class ParaDropStateMachine : public SWStateMachine
 {
 public:
 	ParaDropStateMachine()
-		: SWStateMachine(), Target { nullptr }, PlaneType { nullptr }, Types {}, Nums {}
+		: SWStateMachine(), Target { nullptr }, PlaneType { }, Types {}, Nums {}
 	{
 	}
 
 	ParaDropStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType ,CellClass* pTarget)
-		: SWStateMachine(Deferment, XY, pSuper, pSWType), Target { pTarget }, PlaneType { nullptr }, Types {}, Nums {}
+		: SWStateMachine(Deferment, XY, pSuper, pSWType), Target { pTarget }, PlaneType { }, Types {}, Nums {}
 	{
 		this->UpdateProperties();
 	}

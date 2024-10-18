@@ -145,7 +145,7 @@ public:
 	 // maybe Object instead of Techno? Raises Map Events, grants veterancy, increments house kill counters
 	virtual void RegisterKill(HouseClass *Destroyer) RX; // ++destroyer's kill counters , etc E0
 
-	virtual bool SpawnParachuted(const CoordStruct& coords) JMP_THIS(0x7E238C);
+	virtual bool SpawnParachuted(const CoordStruct& coords) JMP_THIS(0x5F5940);
 	virtual void DropAsBomb() RX;
 	virtual void MarkAllOccupationBits(const CoordStruct& coords) RX;
 	virtual void UnmarkAllOccupationBits(const CoordStruct& coords) RX;
