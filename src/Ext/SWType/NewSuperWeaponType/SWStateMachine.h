@@ -15,7 +15,7 @@ enum class SWStateMachineIdentifier : int
 	ChronoWarp = 1,
 	PsychicDominator = 2,
 	CloneableLighningStorm = 3 ,
-	DropPod = 4,
+	Droppod = 4,
 	IonCannon = 5,
 	LaserStrike = 6 ,
 	GenericWarhead = 7,
@@ -139,7 +139,7 @@ public:
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
-		return SWStateMachineIdentifier::DropPod;
+		return SWStateMachineIdentifier::Droppod;
 	}
 
 	virtual const char* GetIdentifierStrings() const override
@@ -751,6 +751,10 @@ protected:
 	std::vector<Iterator<int>> Nums;
 };
 
+#define MakeStatemachine(a) \
+case SWStateMachineIdentifier::## a ##:\
+return std::make_unique<## a ##StateMachine>();\
+
 template <>
 struct Savegame::ObjectFactory<SWStateMachine>
 {
@@ -761,32 +765,19 @@ struct Savegame::ObjectFactory<SWStateMachine>
 		{
 			switch (type)
 			{
-			case SWStateMachineIdentifier::UnitDelivery:
-				return std::make_unique<UnitDeliveryStateMachine>();
-			case SWStateMachineIdentifier::ChronoWarp:
-				return std::make_unique<ChronoWarpStateMachine>();
-			case SWStateMachineIdentifier::PsychicDominator:
-				return std::make_unique<PsychicDominatorStateMachine>();
-			case SWStateMachineIdentifier::CloneableLighningStorm:
-				return std::make_unique<CloneableLighningStormStateMachine>();
-			case SWStateMachineIdentifier::DropPod:
-				return std::make_unique<DroppodStateMachine>();
-			case SWStateMachineIdentifier::IonCannon:
-				return std::make_unique<IonCannonStateMachine>();
-			case SWStateMachineIdentifier::LaserStrike:
-				return std::make_unique<LaserStrikeStateMachine>();
-			case SWStateMachineIdentifier::GenericWarhead:
-				return std::make_unique<GenericWarheadStateMachine>();
-			case SWStateMachineIdentifier::SonarPulse:
-				return std::make_unique<SonarPulseStateMachine>();
-			case SWStateMachineIdentifier::SpyPlane:
-				return std::make_unique<SpyPlaneStateMachine>();
-			case SWStateMachineIdentifier::Reveal:
-				return std::make_unique<RevealStateMachine>();
-			case SWStateMachineIdentifier::GeneticMutator:
-				return std::make_unique<GeneticMutatorStateMachine>();
-			case SWStateMachineIdentifier::ParaDrop:
-				return std::make_unique<ParaDropStateMachine>();
+			MakeStatemachine(UnitDelivery)
+			MakeStatemachine(ChronoWarp)
+			MakeStatemachine(PsychicDominator)
+			MakeStatemachine(CloneableLighningStorm)
+			MakeStatemachine(Droppod)
+			MakeStatemachine(IonCannon)
+			MakeStatemachine(LaserStrike)
+			MakeStatemachine(GenericWarhead)
+			MakeStatemachine(SonarPulse)
+			MakeStatemachine(SpyPlane)
+			MakeStatemachine(Reveal)
+			MakeStatemachine(GeneticMutator)
+			MakeStatemachine(ParaDrop)
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));
@@ -796,3 +787,4 @@ struct Savegame::ObjectFactory<SWStateMachine>
 		return nullptr;
 	}
 };
+#undef MakeStatemachine
