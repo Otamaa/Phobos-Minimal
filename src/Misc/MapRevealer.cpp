@@ -240,7 +240,7 @@ DEFINE_HOOK(0x567DA0, MapClass_RevealArea2, 5)
 	return 0x567F61;
 }
 #else
-DEFINE_JUMP(LJMP, 0x5673A0, GET_OFFSET(MapRevealer::MapClass_RevealArea0));
-DEFINE_JUMP(LJMP, 0x5678E0, GET_OFFSET(MapRevealer::MapClass_RevealArea1));
-DEFINE_JUMP(LJMP, 0x567DA0, GET_OFFSET(MapRevealer::MapClass_RevealArea2));
+DEFINE_JUMP(LJMP, 0x5673A0, MiscTools::to_DWORD(&MapRevealer::MapClass_RevealArea0));
+DEFINE_JUMP(LJMP, 0x5678E0, MiscTools::to_DWORD(&MapRevealer::MapClass_RevealArea1));
+DEFINE_JUMP(LJMP, 0x567DA0, MiscTools::to_DWORD(&MapRevealer::MapClass_RevealArea2));
 #endif

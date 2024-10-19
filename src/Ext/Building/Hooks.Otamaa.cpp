@@ -5,6 +5,8 @@
 
 #include <Ext/BuildingType/Body.h>
 
+#include <Misc/Hooks.Otamaa.h>
+
 #pragma region Otamaa
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
@@ -108,8 +110,11 @@ DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 
 // 	return 0x0;
 // }
+bool FakeBuildingClass::_IsFactory() {
+	return this->Type->Factory == AbstractType::AircraftType || this->IsFactory();
+}
 
-DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExtData::IsFactory));
+DEFINE_JUMP(VTABLE, 0x7E4140, MiscTools::to_DWORD(&FakeBuildingClass::_IsFactory));
 
 /*
 #ifdef ENABLE_NEWHOOKS

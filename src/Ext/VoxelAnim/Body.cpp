@@ -143,10 +143,12 @@ DEFINE_HOOK(0x74AA10, VoxelAnimClass_Save_Ext, 0x8)
 	return 0x74AA24;
 }
 
-static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemoved)
+#include <Misc/Hooks.Otamaa.h>
+
+void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
-	pThis->ObjectClass::PointerExpired(pTarget, bRemoved);
-	VoxelAnimExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemoved);
+	this->ObjectClass::PointerExpired(pTarget, bRemoved);
+	VoxelAnimExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemoved);
 }
 
-DEFINE_JUMP(VTABLE ,0x7F6340 , GET_OFFSET(VoxelAnimClass_Detach))
+DEFINE_JUMP(VTABLE ,0x7F6340 , MiscTools::to_DWORD(&FakeVoxelAnimClass::_Detach))

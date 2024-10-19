@@ -1496,68 +1496,73 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 	return 0x668DD2;
 }
 
-static void __fastcall _Replace_JumpjetReading(RulesClass* pRules, DWORD, CCINIClass* pINI) {
-	RocketTypeClass::AddDefaults();
-	RocketTypeClass::LoadFromINIList(pINI);
-}
-
-static void __fastcall _Replace_ReadColors(RulesClass* pRules, DWORD, CCINIClass* pINI) {
-	RulesExtData::LoadEarlyBeforeColor(pRules, pINI);
-
-	pRules->Read_JumpjetControls(pINI);
-	pRules->Read_Colors(pINI);
-}
-
-static void __fastcall _Replace_GeneralReading(RulesClass* pRules, DWORD, CCINIClass* pINI) {
-
-	RulesExtData::LoadBeforeGeneralData(pRules, pINI);
-	pRules->Read_General(pINI);
-	RocketTypeClass::ReadListFromINI(pINI);
-
-	SideClass::Array->for_each([pINI](SideClass* pSide) {
-		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
-	});
-
-	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
-		HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
-	});
-
-	// All TypeClass Created but not yet read INI
-	//	RulesClass::Initialized = true;
-
-	RulesExtData::s_LoadBeforeTypeData(pRules, pINI);
-	pRules->Read_Types(pINI);
-
-	// Ensure entry not fail because of late instantiation
-	// add more if needed , it will double the error log at some point
-	// but it will take care some of missing stuffs that previously loaded late
-
-	for (auto pWeapon : *WeaponTypeClass::Array) {
-		pWeapon->LoadFromINI(pINI);
+class FakeRulesClass : public RulesClass
+{
+public:
+	void _ReadJumpjet(CCINIClass* pINI) {
+		RocketTypeClass::AddDefaults();
+		RocketTypeClass::LoadFromINIList(pINI);
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array) {
-			pBullet->LoadFromINI(pINI);
+	void _ReadColors(CCINIClass* pINI) {
+		RulesExtData::LoadEarlyBeforeColor(this, pINI);
+
+		this->Read_JumpjetControls(pINI);
+		this->Read_Colors(pINI);
 	}
 
-	for (auto pWarhead : *WarheadTypeClass::Array) {
-		pWarhead->LoadFromINI(pINI);
+	void _ReadGeneral(CCINIClass* pINI) {
+
+		RulesExtData::LoadBeforeGeneralData(this, pINI);
+		this->Read_General(pINI);
+		RocketTypeClass::ReadListFromINI(pINI);
+
+		SideClass::Array->for_each([pINI](SideClass* pSide) {
+			SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+		});
+
+		HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
+			HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+		});
+
+		// All TypeClass Created but not yet read INI
+		//	RulesClass::Initialized = true;
+
+		RulesExtData::s_LoadBeforeTypeData(this, pINI);
+		this->Read_Types(pINI);
+
+		// Ensure entry not fail because of late instantiation
+		// add more if needed , it will double the error log at some point
+		// but it will take care some of missing stuffs that previously loaded late
+
+		for (auto pWeapon : *WeaponTypeClass::Array) {
+			pWeapon->LoadFromINI(pINI);
+		}
+
+		for (auto pBullet : *BulletTypeClass::Array) {
+				pBullet->LoadFromINI(pINI);
+		}
+
+		for (auto pWarhead : *WarheadTypeClass::Array) {
+			pWarhead->LoadFromINI(pINI);
+		}
+
+		for (auto pAnims : *AnimTypeClass::Array) {
+			pAnims->LoadFromINI(pINI);
+		}
+
+		RulesExtData::LoadAfterTypeData(this, pINI);
+		this->Read_Difficulties(pINI);
+		TiberiumClass::_ReadFromINI(pINI);
+		RulesExtData::LoadAfterAllLogicData(this, pINI);
 	}
+};
+static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");
+//===================================================================================
 
-	for (auto pAnims : *AnimTypeClass::Array) {
-		pAnims->LoadFromINI(pINI);
-	}
-
-	RulesExtData::LoadAfterTypeData(pRules, pINI);
-	pRules->Read_Difficulties(pINI);
-	TiberiumClass::_ReadFromINI(pINI);
-	RulesExtData::LoadAfterAllLogicData(pRules, pINI);
-
-}
-
-DEFINE_JUMP(CALL, 0x668EB8, GET_OFFSET(_Replace_JumpjetReading));
-DEFINE_JUMP(CALL, 0x52D0FF, GET_OFFSET(_Replace_ReadColors));
-DEFINE_JUMP(CALL, 0x668EE8 , GET_OFFSET(_Replace_GeneralReading));
+DEFINE_JUMP(CALL, 0x668EB8, MiscTools::to_DWORD(&FakeRulesClass::_ReadJumpjet));
+DEFINE_JUMP(CALL, 0x52D0FF,  MiscTools::to_DWORD(&FakeRulesClass::_ReadColors));
+DEFINE_JUMP(CALL, 0x668EE8 , MiscTools::to_DWORD(&FakeRulesClass::_ReadGeneral));
 DEFINE_JUMP(LJMP, 0x668EED , 0x668F6A);
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9

@@ -227,9 +227,12 @@ DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 //	return 0x75F645;
 //}
 
-void __fastcall WaveClass_Detach_Wrapper(WaveClass* pThis ,DWORD , AbstractClass* target , bool all)\
+#include <Misc/Hooks.Otamaa.h>
+
+void FakeWaveClass::_Detach(AbstractClass* target , bool all)\
 {
 	//WaveExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
-	pThis->WaveClass::PointerExpired(target , all);
+	this->WaveClass::PointerExpired(target , all);
 }
-DEFINE_JUMP(VTABLE, 0x7F6C1C, GET_OFFSET(WaveClass_Detach_Wrapper))
+
+DEFINE_JUMP(VTABLE, 0x7F6C1C, MiscTools::to_DWORD(&FakeWaveClass::_Detach))

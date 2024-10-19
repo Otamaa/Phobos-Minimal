@@ -2166,9 +2166,11 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 //		0x4FB9C3 : 0x4FB9C9;
 //}
 
-void __fastcall HouseClass_Detach_Wrapper(HouseClass* pThis, DWORD, AbstractClass* target, bool all)
-{
-	HouseExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-	pThis->HouseClass::PointerExpired(target, all);
+#include <Misc/Hooks.Otamaa.h>
+
+void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
+	HouseExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->HouseClass::PointerExpired(target, all);
 }
-DEFINE_JUMP(VTABLE, 0x7EA8C8, GET_OFFSET(HouseClass_Detach_Wrapper))
+
+DEFINE_JUMP(VTABLE, 0x7EA8C8,  MiscTools::to_DWORD(&FakeHouseClass::_Detach))

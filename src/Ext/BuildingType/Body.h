@@ -386,7 +386,6 @@ public:
 
 	static void UpdateBuildupFrames(BuildingTypeClass* pThis);
 
-	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
 	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 
 private:

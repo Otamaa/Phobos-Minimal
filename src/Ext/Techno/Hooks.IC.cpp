@@ -4,6 +4,8 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
+#include <Misc/Hooks.Otamaa.h>
+
 #ifdef IC_AFFECT
 //https://github.com/Phobos-developers/Phobos/pull/674
 DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
@@ -65,21 +67,6 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 	return 0x4DEBA2;
 }
 #endif
-
-static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void* _, int nDur, HouseClass* pSource, bool bIsFC) {
-
-	if (pThis->Type->Engineer && pThis->TemporalTargetingMe && pThis->Destination) {
-		if (auto const pCell = pThis->GetCell()) {
-			if (auto const pBld = pCell->GetBuilding()) {
-				if (pThis->Destination == pBld && pBld->Type->BridgeRepairHut) {
-					return DamageState::Unaffected;
-				}
-			}
-		}
-	}
-
-	return pThis->TechnoClass::IronCurtain(nDur, pSource, bIsFC);
-}
 
 DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 {
@@ -157,4 +144,4 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_JUMP(VTABLE, 0x7EB1AC, GET_OFFSET(InfantryClass_IronCurtain));
+DEFINE_JUMP(VTABLE, 0x7EB1AC, MiscTools::to_DWORD(&FakeInfantryClass::_IronCurtain));

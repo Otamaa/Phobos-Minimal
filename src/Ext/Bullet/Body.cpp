@@ -1010,16 +1010,13 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 // 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
 // }
 
-void __fastcall BulletClass_Detach_Wrapper(BulletClass* pThis ,DWORD , AbstractClass* target , bool all)\
-{
-	BulletExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-	pThis->BulletClass::PointerExpired(target , all);
-}
-DEFINE_JUMP(VTABLE, 0x7E470C, GET_OFFSET(BulletClass_Detach_Wrapper))
+#include <Misc/Hooks.Otamaa.h>
 
-static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
+void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {
-	pThis->ObjectClass::AnimPointerExpired(pTarget);
+	BulletExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->BulletClass::PointerExpired(target , all);
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))
+DEFINE_JUMP(VTABLE, 0x7E470C, MiscTools::to_DWORD(&FakeBulletClass::_Detach))
+DEFINE_JUMP(VTABLE, 0x7E4744, MiscTools::to_DWORD(&FakeBulletClass::_AnimPointerExpired))

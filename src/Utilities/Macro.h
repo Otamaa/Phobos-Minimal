@@ -24,12 +24,17 @@ struct MiscTools
 	}
 
 	template<typename T>
-	volatile T& Memory(const uintptr_t ptr) {
+	static volatile T& Memory(const uintptr_t ptr) {
 		return *reinterpret_cast<T*>(ptr);
 	}
 
-	volatile uint8_t& Memory(const uint16_t ptr) {
+	static volatile uint8_t& Memory(const uint16_t ptr) {
 		return *reinterpret_cast<uint8_t*>(ptr);
+	}
+
+	template<typename T>
+	static constexpr FORCEINLINE DWORD to_DWORD(T new_address) {
+		return reinterpret_cast<DWORD>(((void*&)new_address));
 	}
 };
 
@@ -180,7 +185,6 @@ struct _VTABLE
 #pragma endregion Patch Structs
 
 #pragma region Macros
-#define GET_OFFSET(pointer) reinterpret_cast<DWORD>(pointer)
 
 #pragma region Static Patch
 #define _ALLOCATE_STATIC_PATCH(offset, size, data)                \

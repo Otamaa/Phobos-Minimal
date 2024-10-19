@@ -1340,20 +1340,11 @@ DEFINE_HOOK(0x4541B2, BuildingClass_Save_Suffix, 0x6)
 	return 0;
 }
 
-// DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
-// {
-// 	GET(BuildingClass*, pThis, ESI);
-// 	GET(void*, target, EBP);
-// 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-// 	BuildingExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-// 	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
-// }
+#include <Misc/Hooks.Otamaa.h>
 
-void __fastcall BuildingClass_Detach_Wrapper(BuildingClass* pThis , DWORD , AbstractClass* target , bool all)
-{
-	BuildingExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-	pThis->BuildingClass::PointerExpired(target , all);
+void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
+	BuildingExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->BuildingClass::PointerExpired(target , all);
 }
-DEFINE_JUMP(VTABLE, 0x7E3EE4, GET_OFFSET(BuildingClass_Detach_Wrapper))
+
+DEFINE_JUMP(VTABLE, 0x7E3EE4, MiscTools::to_DWORD(&FakeBuildingClass::_Detach))

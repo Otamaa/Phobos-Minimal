@@ -60,12 +60,6 @@ public:
 	const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
 	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
-	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _)
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
-		return pCell->GetCoordsWithBridge();
-	}
-
 	constexpr FORCEINLINE static size_t size_Of()
 	{
 		return sizeof(RadSiteExtData) -

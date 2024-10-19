@@ -25,6 +25,7 @@
 #include "Header.h"
 
 #include <Misc/PhobosGlobal.h>
+#include <Misc/Hooks.Otamaa.h>
 
 DEFINE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
 {
@@ -695,18 +696,7 @@ DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 	return 0x0;
 }
 
-bool __fastcall BuildingClass_SetOwningHouse_Wrapper(BuildingClass* pThis, void*, HouseClass* pHouse, bool announce)
-{
-	const bool res = pThis->BuildingClass::SetOwningHouse(pHouse , announce);
-
-	// Fix : update powered anims
-	if (res && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
-		pThis->UpdatePowerDown();
-
-	return res;
-}
-
-DEFINE_JUMP(VTABLE, 0x7E4290, GET_OFFSET(BuildingClass_SetOwningHouse_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7E4290, MiscTools::to_DWORD(&FakeBuildingClass::_SetOwningHouse));
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {

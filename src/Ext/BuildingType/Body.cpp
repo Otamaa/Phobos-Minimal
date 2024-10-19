@@ -395,14 +395,6 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 
 }
 
-bool __fastcall BuildingTypeExtData::IsFactory(BuildingClass* pThis, void* _)
-{
-	if (!pThis || !pThis->Type)
-		return false;
-
-	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
-}
-
 void __fastcall BuildingTypeExtData::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
 	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExtData::Instance()->PlacementGrid_TranslucentLevel.Get());

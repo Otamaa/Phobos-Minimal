@@ -11,6 +11,8 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/AnimHelpers.h>
 
+#include <Misc/Hooks.Otamaa.h>
+
 #include <ParticleSystemClass.h>
 #include <ColorScheme.h>
 #include <SmudgeTypeClass.h>
@@ -870,4 +872,4 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 // }
 //
 // DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
-DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExtData::GetOwningHouse_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7E3390, MiscTools::to_DWORD(&FakeAnimClass::_GetOwningHouse));

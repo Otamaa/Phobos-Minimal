@@ -11,8 +11,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-
 #include <Misc/MapRevealer.h>
+
+#include <Misc/Hooks.Otamaa.h>
 
 //bool SecondFiringMethod = true;
 //
@@ -60,32 +61,31 @@ DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 	return 0;
 }
 
-constexpr WeaponStruct* __fastcall AircraftClass_GetWeapon_Wrapper(AircraftClass* pThis, void* _, int weaponIndex)
+WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(this);
 
 	if (pExt->CurrentAircraftWeaponIndex >= 0)
-		return pThis->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
+		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
 	else
-		return pThis->TechnoClass::GetWeapon(pThis->SelectWeapon(pThis->Target));
+		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
 }
 
-//DEFINE_JUMP(VTABLE, 0x7E269C, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x4180F9, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x4184E3, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x41852B, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x418893, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x4189A2, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x418AB1, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
-DEFINE_JUMP(CALL6, 0x418B9A, GET_OFFSET(AircraftClass_GetWeapon_Wrapper));
+DEFINE_JUMP(CALL6, 0x4180F9, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x4184E3, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x41852B, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x418893, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x4189A2, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x418AB1, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+DEFINE_JUMP(CALL6, 0x418B9A, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
 
-constexpr void __fastcall AircraftClass_SetTarget_Wrapper(AircraftClass* pThis, void* _, AbstractClass* pTarget)
+void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 {
-	pThis->TechnoClass::SetTarget(pTarget);
-	TechnoExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex = -1;
+	this->TechnoClass::SetTarget(pTarget);
+	TechnoExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E266C, GET_OFFSET(AircraftClass_SetTarget_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7E266C, MiscTools::to_DWORD(&FakeAircraftClass::_SetTarget));
 
 #ifndef SecondMode
 DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
@@ -317,7 +317,7 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 	return false;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E2268, GET_OFFSET(AircraftClass_IFlyControl_IsStrafe));
+DEFINE_JUMP(VTABLE, 0x7E2268, MiscTools::to_DWORD(&AircraftClass_IFlyControl_IsStrafe));
 
 static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {

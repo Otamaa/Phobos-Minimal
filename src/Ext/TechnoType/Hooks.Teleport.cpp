@@ -200,7 +200,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 
 //DEFINE_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
 
-DEFINE_JUMP(VTABLE , 0x7F5024, GET_OFFSET(LocomotionClass_Draw_Matrix))
+DEFINE_JUMP(VTABLE , 0x7F5024, MiscTools::to_DWORD(&LocomotionClass_Draw_Matrix))
 
 DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 {

@@ -324,24 +324,24 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //}
 //#endif
 
-static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+#include <Misc/Hooks.Otamaa.h>
+
+void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){
-		RadSiteExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemove);
+		RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
 	}
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
+DEFINE_JUMP(VTABLE, 0x7F0838, MiscTools::to_DWORD(&FakeRadSiteClass::_Detach));
 
-static HouseClass* __fastcall RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
+HouseClass* FakeRadSiteClass::_GetOwningHouse()
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){
-		if (const auto pExt = RadSiteExtContainer::Instance.Find(pThis)){
-			return pExt->HouseOwner;
-		}
+		return RadSiteExtContainer::Instance.Find(this)->HouseOwner;
 	}
 
 	return nullptr;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F084C, GET_OFFSET(RadSiteClass_OwningHouse));
+DEFINE_JUMP(VTABLE, 0x7F084C, MiscTools::to_DWORD(&FakeRadSiteClass::_GetOwningHouse));

@@ -135,7 +135,7 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 	return ret;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5A4C, GET_OFFSET(TunnelLocomotionClass_ShadowMatrix));
+DEFINE_JUMP(VTABLE, 0x7F5A4C, MiscTools::to_DWORD(&TunnelLocomotionClass_ShadowMatrix));
 
 DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 {

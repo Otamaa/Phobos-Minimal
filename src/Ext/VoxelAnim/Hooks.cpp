@@ -132,15 +132,8 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 	return 0x74A884;
 }
 
-static void __fastcall VoxelAnimClass_Remove_This(VoxelAnimClass* pThis)
-{
-	if (pThis->Type)
-		VocClass::PlayIndexAtPos(pThis->Type->StopSound, pThis->Location);
+#include <Misc/Hooks.Otamaa.h>
 
-	pThis->ObjectClass::UnInit();
-
-}
-
-DEFINE_JUMP(VTABLE, 0x7F6410, GET_OFFSET(VoxelAnimClass_Remove_This));
+DEFINE_JUMP(VTABLE, 0x7F6410, MiscTools::to_DWORD(&FakeVoxelAnimClass::_RemoveThis));
 
 #pragma endregion

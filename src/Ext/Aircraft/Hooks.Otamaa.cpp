@@ -7,12 +7,15 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BulletType/Body.h>
 
+#include <Misc/Hooks.Otamaa.h>
+
 #pragma region Otamaa
-static void __fastcall TriggerCrashWeapon_Wrapper(AircraftClass* pThis, DWORD, int nMult) {
-	AircraftExt::TriggerCrashWeapon(pThis, nMult);
+
+void FakeAircraftClass::_Destroyed(int mult){
+	AircraftExt::TriggerCrashWeapon(this, mult);
 }
 
-DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(TriggerCrashWeapon_Wrapper));
+DEFINE_JUMP(CALL, 0x4CD809, MiscTools::to_DWORD(&FakeAircraftClass::_Destroyed));
 
 //DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 //{

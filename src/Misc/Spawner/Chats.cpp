@@ -38,5 +38,5 @@ void* __fastcall fake_MessageListClass__Add_Message(MessageListClass* pThis,
 	return NULL;
 }
 
-DEFINE_JUMP(CALL, 0x48D979, GET_OFFSET(fake_MessageListClass__Add_Message));
-DEFINE_JUMP(CALL, 0x55F0F5, GET_OFFSET(fake_MessageListClass__Add_Message));
+DEFINE_JUMP(CALL, 0x48D979, MiscTools::to_DWORD(&fake_MessageListClass__Add_Message));
+DEFINE_JUMP(CALL, 0x55F0F5, MiscTools::to_DWORD(&fake_MessageListClass__Add_Message));

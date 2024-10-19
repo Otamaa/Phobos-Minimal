@@ -105,7 +105,7 @@ static	void __fastcall DrawShape_VeinHole
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_JUMP(CALL, 0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
+DEFINE_JUMP(CALL, 0x74D5BC, MiscTools::to_DWORD(&DrawShape_VeinHole));
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
@@ -374,7 +374,7 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 	return !pThis->Spawned;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
+DEFINE_JUMP(VTABLE, 0x7E2908, MiscTools::to_DWORD(&AircraftTypeClass_CanUseWaypoint));
 
 DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
@@ -1472,21 +1472,21 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 		&& pThis->DeployAnim ? SkipWholeFunction : Continue;
 }
 
-CoordStruct* __fastcall UnitClass_GetFLH(UnitClass* pThis, DWORD, CoordStruct* buffer, int wepon, CoordStruct base)
+CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* buffer, int wepon, CoordStruct base)
 {
-	if (pThis->InOpenToppedTransport && pThis->Transporter)
+	if (this->InOpenToppedTransport && this->Transporter)
 	{
-		const int idx = pThis->Transporter->Passengers.IndexOf(pThis);
+		const int idx = this->Transporter->Passengers.IndexOf(this);
 		if (idx != 0)
 		{
-			return pThis->Transporter->GetFLH(buffer, -idx, base);
+			return this->Transporter->GetFLH(buffer, -idx, base);
 		}
 	}
 
-	return pThis->TechnoClass::GetFLH(buffer, wepon, base);
+	return this->TechnoClass::GetFLH(buffer, wepon, base);
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5D20, GET_OFFSET(UnitClass_GetFLH));
+DEFINE_JUMP(VTABLE, 0x7F5D20, MiscTools::to_DWORD(&FakeUnitClass::_GetFLH));
 
 DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
@@ -2142,12 +2142,7 @@ struct CellPatch__ : public CellClass
 		return false;
 	}
 
-	static void __fastcall __SpreadTiberiumWrapper(CellPatch__* pThis, DWORD, bool force)
-	{
-		pThis->_SpreadTiberium(force);
-	}
 };
-
 
 struct TibPatch__ : public TiberiumClass
 {
@@ -2391,48 +2386,16 @@ struct TibPatch__ : public TiberiumClass
 
 #pragma endregion
 
-#pragma region Wrappers
-	static void __fastcall __GrowthWrapper(TibPatch__* pThis, DWORD)
-	{
-		pThis->__Growth();
-	}
-
-	static void __fastcall __RecalcGrowthWrapper(TibPatch__* pThis, DWORD)
-	{
-		pThis->__RecalcGrowthData();
-	}
-
-	static void __fastcall __QueueGrowthAtWrapper(TibPatch__* pThis, DWORD, CellStruct* pCell)
-	{
-		pThis->__QueueGrowthAt(pCell);
-	}
-
-	static void __fastcall __SpreadWrapper(TibPatch__* pThis, DWORD)
-	{
-		pThis->__Spread();
-	}
-
-	static void __fastcall __RecalcSpreadWrapper(TibPatch__* pThis, DWORD)
-	{
-		pThis->__RecalcSpreadData();
-	}
-
-	static void __fastcall __QueueSpreadAtWrapper(TibPatch__* pThis, DWORD, CellStruct* pCell)
-	{
-		pThis->__QueueSpreadAt(pCell);
-	}
-#pragma endregion
-
 };
 
-DEFINE_JUMP(LJMP, 0x722440, GET_OFFSET(TibPatch__::__SpreadWrapper));
-DEFINE_JUMP(LJMP, 0x7228B0, GET_OFFSET(TibPatch__::__RecalcSpreadWrapper));
-DEFINE_JUMP(LJMP, 0x722AF0, GET_OFFSET(TibPatch__::__QueueSpreadAtWrapper));
-DEFINE_JUMP(LJMP, 0x722F00, GET_OFFSET(TibPatch__::__GrowthWrapper));
-DEFINE_JUMP(LJMP, 0x7233A0, GET_OFFSET(TibPatch__::__RecalcGrowthWrapper));
-DEFINE_JUMP(LJMP, 0x7235A0, GET_OFFSET(TibPatch__::__QueueGrowthAtWrapper));
+DEFINE_JUMP(LJMP, 0x722440, MiscTools::to_DWORD(&TibPatch__::__Spread));
+DEFINE_JUMP(LJMP, 0x7228B0, MiscTools::to_DWORD(&TibPatch__::__RecalcSpreadData));
+DEFINE_JUMP(LJMP, 0x722AF0, MiscTools::to_DWORD(&TibPatch__::__QueueSpreadAt));
+DEFINE_JUMP(LJMP, 0x722F00, MiscTools::to_DWORD(&TibPatch__::__Growth));
+DEFINE_JUMP(LJMP, 0x7233A0, MiscTools::to_DWORD(&TibPatch__::__RecalcGrowthData));
+DEFINE_JUMP(LJMP, 0x7235A0, MiscTools::to_DWORD(&TibPatch__::__QueueGrowthAt));
 
-DEFINE_JUMP(LJMP, 0x483780, GET_OFFSET(CellPatch__::__SpreadTiberiumWrapper));
+DEFINE_JUMP(LJMP, 0x483780, MiscTools::to_DWORD(&CellPatch__::_SpreadTiberium));
 
 DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 {
@@ -3261,58 +3224,55 @@ static void Tactical_Draw_Radial(
 	}
 }
 
-class ObjectClassExt : public ObjectClass
+
+void FakeObjectClass::_DrawRadialIndicator(int val)
 {
-public:
-	static void __fastcall _DrawFootRadialIndicator(ObjectClass* pThis, DWORD, int val)
+	if (auto pTechno = generic_cast<TechnoClass*>(this))
 	{
-		if (auto pTechno = generic_cast<TechnoClass*>(pThis))
+		auto pType = pTechno->GetTechnoType();
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
 		{
-			auto pType = pTechno->GetTechnoType();
-			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-			if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
+			if (HouseClass::IsCurrentPlayerObserver()
+				|| pTechno->Owner->ControlledByCurrentPlayer())
 			{
-				if (HouseClass::IsCurrentPlayerObserver()
-					|| pTechno->Owner->ControlledByCurrentPlayer())
+				int nRadius = 0;
+
+				if (pTypeExt->RadialIndicatorRadius.isset())
+					nRadius = pTypeExt->RadialIndicatorRadius.Get();
+				else if (pType->GapGenerator)
+					nRadius = pTypeExt->GapRadiusInCells.Get();
+				else
 				{
-					int nRadius = 0;
+					const auto pWeapons = pTechno->GetPrimaryWeapon();
+					if (!pWeapons || !pWeapons->WeaponType)
+						return;
 
-					if (pTypeExt->RadialIndicatorRadius.isset())
-						nRadius = pTypeExt->RadialIndicatorRadius.Get();
-					else if (pType->GapGenerator)
-						nRadius = pTypeExt->GapRadiusInCells.Get();
-					else
-					{
-						const auto pWeapons = pTechno->GetPrimaryWeapon();
-						if (!pWeapons || !pWeapons->WeaponType)
-							return;
+					const int range_ = WeaponTypeExtData::GetRangeWithModifiers(pWeapons->WeaponType, pTechno);
+					if (range_ <= 0)
+						return;
 
-						const int range_ = WeaponTypeExtData::GetRangeWithModifiers(pWeapons->WeaponType, pTechno);
-						if (range_ <= 0)
-							return;
+					nRadius = range_ / Unsorted::LeptonsPerCell;;
+				}
 
-						nRadius = range_ / Unsorted::LeptonsPerCell;;
-					}
-
-					if (nRadius > 0)
-					{
+				if (nRadius > 0)
+				{
 						const auto Color = pTypeExt->RadialIndicatorColor.Get(pTechno->Owner->Color);
 
-						if (Color != ColorStruct::Empty)
-						{
-							auto nCoord = pTechno->GetCoords();
-							Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
-						}
+					if (Color != ColorStruct::Empty)
+					{
+						auto nCoord = pTechno->GetCoords();
+						Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 					}
 				}
 			}
 		}
 	}
-};
+}
 
-DEFINE_JUMP(VTABLE, 0x7F5DA0, GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
-DEFINE_JUMP(VTABLE, 0x7EB188, GET_OFFSET(ObjectClassExt::_DrawFootRadialIndicator))
+DEFINE_JUMP(VTABLE, 0x7F5DA0, MiscTools::to_DWORD(&FakeObjectClass::_DrawRadialIndicator))
+DEFINE_JUMP(VTABLE, 0x7EB188, MiscTools::to_DWORD(&FakeObjectClass::_DrawRadialIndicator))
 
 //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 //Fixes recursive passenger kills not being accredited
@@ -9146,41 +9106,41 @@ DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 
 static inline constexpr CoordStruct RelativeCenterCoord { 128 , 128 , 0 };
 
-static void __fastcall Spawn_Refinery_Smoke_Particles(BuildingClass* pThis, DWORD)
+void FakeBuildingClass::_Spawn_Refinery_Smoke_Particles()
 {
-	auto pType = pThis->Type;
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto pType = this->Type;
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 	if (pTypeExt->RefinerySmokeParticleSystemOne && pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord)
 	{
-		auto coord1 = pType->RefinerySmokeOffsetOne + pThis->Location;
-		auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne, coord1, nullptr, pThis);
+		auto coord1 = pType->RefinerySmokeOffsetOne + this->Location;
+		auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne, coord1, nullptr, this);
 		particle1->Lifetime = pType->RefinerySmokeFrames;
 	}
 
 	if (pTypeExt->RefinerySmokeParticleSystemTwo && pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord)
 	{
-		auto coord2 = pType->RefinerySmokeOffsetTwo + pThis->Location;
-		auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo, coord2, nullptr, pThis);
+		auto coord2 = pType->RefinerySmokeOffsetTwo + this->Location;
+		auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo, coord2, nullptr, this);
 		particle2->Lifetime = pType->RefinerySmokeFrames;
 	}
 
 	if (pTypeExt->RefinerySmokeParticleSystemThree && pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)
 	{
-		auto coord3 = pType->RefinerySmokeOffsetThree + pThis->Location;
-		auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree, coord3, nullptr, pThis);
+		auto coord3 = pType->RefinerySmokeOffsetThree + this->Location;
+		auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree, coord3, nullptr, this);
 		particle3->Lifetime = pType->RefinerySmokeFrames;
 	}
 
 	if (pTypeExt->RefinerySmokeParticleSystemFour && pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord)
 	{
-		auto coord4 = pType->RefinerySmokeOffsetFour + pThis->Location;
-		auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour, coord4, nullptr, pThis);
+		auto coord4 = pType->RefinerySmokeOffsetFour + this->Location;
+		auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour, coord4, nullptr, this);
 		particle4->Lifetime = pType->RefinerySmokeFrames;
 	}
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4324, GET_OFFSET(Spawn_Refinery_Smoke_Particles));
+DEFINE_JUMP(VTABLE, 0x7E4324, MiscTools::to_DWORD(&FakeBuildingClass::_Spawn_Refinery_Smoke_Particles));
 
 /*
 *	NPExt TODO :
@@ -9401,10 +9361,10 @@ struct _KamikazetrackerClass
 	}
 };
 
-DEFINE_JUMP(LJMP, 0x54E3B0, GET_OFFSET(_KamikazetrackerClass::Add));
-DEFINE_JUMP(LJMP, 0x54E4D0, GET_OFFSET(_KamikazetrackerClass::AI));
-DEFINE_JUMP(LJMP, 0x54E590, GET_OFFSET(_KamikazetrackerClass::Detach));
-DEFINE_JUMP(LJMP, 0x54E6F0, GET_OFFSET(_KamikazetrackerClass::Clear));
+DEFINE_JUMP(LJMP, 0x54E3B0, MiscTools::to_DWORD(&_KamikazetrackerClass::Add));
+DEFINE_JUMP(LJMP, 0x54E4D0, MiscTools::to_DWORD(&_KamikazetrackerClass::AI));
+DEFINE_JUMP(LJMP, 0x54E590, MiscTools::to_DWORD(&_KamikazetrackerClass::Detach));
+DEFINE_JUMP(LJMP, 0x54E6F0, MiscTools::to_DWORD(&_KamikazetrackerClass::Clear));
 
 #include <VoxelIndex.h>
 
@@ -9878,9 +9838,9 @@ public :
 	}
 };
 
-DEFINE_JUMP(VTABLE, 0x7F0B60, GET_OFFSET(_RocketLocomotionClass::_Move_To));
-DEFINE_JUMP(VTABLE, 0x7F0B40, GET_OFFSET(_RocketLocomotionClass::_Draw_Matrix));
-DEFINE_JUMP(VTABLE, 0x7F0B9C, GET_OFFSET(_RocketLocomotionClass::_Is_Moving_Now))
+DEFINE_JUMP(VTABLE, 0x7F0B60, MiscTools::to_DWORD(&_RocketLocomotionClass::_Move_To));
+DEFINE_JUMP(VTABLE, 0x7F0B40, MiscTools::to_DWORD(&_RocketLocomotionClass::_Draw_Matrix));
+DEFINE_JUMP(VTABLE, 0x7F0B9C, MiscTools::to_DWORD(&_RocketLocomotionClass::_Is_Moving_Now))
 
 struct _SpawnManager
 {
@@ -10306,21 +10266,21 @@ struct _SpawnManager
 //	return 0x0;
 //}
 
-static bool __fastcall UnitClass_Paradrop_wrapper(UnitClass* pThis, DWORD, CoordStruct* pCoords)
+bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 {
-	if (!pThis->ObjectClass::SpawnParachuted(*pCoords)) {
+	if (!this->ObjectClass::SpawnParachuted(*pCoords)) {
 		return false;
 	}
 
-	if (pThis->Type->ResourceGatherer || pThis->Type->Harvester) {
-		pThis->QueueMission(Mission::Harvest, false);
-	}else if (pThis->Owner->IsControlledByHuman()) {
-		pThis->QueueMission(Mission::Guard, false);
+	if (this->Type->ResourceGatherer || this->Type->Harvester) {
+		this->QueueMission(Mission::Harvest, false);
+	}else if (this->Owner->IsControlledByHuman()) {
+		this->QueueMission(Mission::Guard, false);
 	} else {
-		pThis->QueueMission(Mission::Hunt, false);
+		this->QueueMission(Mission::Hunt, false);
 	}
 
 	return true;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5D58, GET_OFFSET(UnitClass_Paradrop_wrapper));
+DEFINE_JUMP(VTABLE, 0x7F5D58, MiscTools::to_DWORD(&FakeUnitClass::_Paradrop));

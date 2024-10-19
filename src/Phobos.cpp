@@ -862,12 +862,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Patch::Apply_CALL(0x6BEC51, &PatchExit);
 		Patch::Apply_CALL(0x7CD8F3, &PatchExit);
 
-		if (lpReserved) {
-			Debug::LogDeferred("Phobos is being loaded (%s) statically.\n", time.c_str());
-		} else {
-			Debug::LogDeferred("Phobos is being loaded (%s) dynamicly.\n", time.c_str());
-		}
+		const char* loadMode = lpReserved ? "statically" : "dynamicly";
 
+		Debug::LogDeferred("Phobos is being loaded (%s) %s.\n", time.c_str() , loadMode);
 		Debug::InitLogFile();
 		Debug::LogFileRemove();
 

@@ -217,10 +217,11 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 //
 //	return 0x71CFF7;
 //}
+#include <Misc/Hooks.Otamaa.h>
 
-void __fastcall TerrainClass_Detach_Wrapper(TerrainClass* pThis, DWORD, AbstractClass* target, bool all)
+void FakeTerrainClass::_Detach(AbstractClass* target, bool all)
 {
-	TerrainExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-	pThis->TerrainClass::PointerExpired(target, all);
+	TerrainExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->TerrainClass::PointerExpired(target, all);
 }
-DEFINE_JUMP(VTABLE, 0x7F5254, GET_OFFSET(TerrainClass_Detach_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F5254, MiscTools::to_DWORD(&FakeTerrainClass::_Detach));

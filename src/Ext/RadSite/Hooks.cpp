@@ -15,6 +15,8 @@
 #include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Misc/Hooks.Otamaa.h>
+
 /*
 	Custom Radiations
 	Worked out from old uncommented Ares RadSite Hook , adding some more hook
@@ -467,5 +469,5 @@ DEFINE_HOOK(0x65BB67, RadSite_Deactivate, 0x6)
 	return Continue;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0858, GET_OFFSET(RadSiteExtData::GetAltCoords_Wrapper));
-DEFINE_JUMP(VTABLE, 0x7F0868, GET_OFFSET(RadSiteExtData::GetAltCoords_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F0858,  MiscTools::to_DWORD(&FakeRadSiteClass::__GetAltCoords));
+DEFINE_JUMP(VTABLE, 0x7F0868,  MiscTools::to_DWORD(&FakeRadSiteClass::__GetAltCoords));

@@ -125,11 +125,13 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 	return 0x62D82C;
 }
 
-static void __fastcall ParticleClass_Detach(ParticleClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+#include <Misc/Hooks.Otamaa.h>
+
+void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
-	pThis->ObjectClass::PointerExpired(pTarget ,bRemove);
+	this->ObjectClass::PointerExpired(pTarget ,bRemove);
 
 	//ParticleExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
 }
 
-DEFINE_JUMP(VTABLE, 0x7EF97C, GET_OFFSET(ParticleClass_Detach))
+DEFINE_JUMP(VTABLE, 0x7EF97C, MiscTools::to_DWORD(&FakeParticleClass::_Detach))

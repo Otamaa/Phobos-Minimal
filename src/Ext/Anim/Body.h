@@ -73,11 +73,6 @@ public:
 
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
 
-	static constexpr HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
-	{
-		return pThis->Owner;
-	}
-
 	static void SpawnFireAnims(AnimClass* pThis);
 private:
 	template <typename T>

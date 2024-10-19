@@ -1794,14 +1794,16 @@ DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 	return SkipGameCode;
 }
 
-CoordStruct* __fastcall BuildingClass_MI_Missile_EMPUlse_GetFireCoords_Wrapper(BuildingClass* pThis, void* _, CoordStruct* pCrd, int weaponIndex)
+#include <Misc/Hooks.Otamaa.h>
+
+CoordStruct* FakeBuildingClass::_GetFLH(CoordStruct* pCrd, int weaponIndex)
 {
 	CoordStruct coords {};
-	MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget)->GetCellCoords(&coords);
-	pCrd = pThis->GetFLH(&coords, EMPulseCannonTemp::weaponIndex, *pCrd);
+	MapClass::Instance->GetCellAt(this->Owner->EMPTarget)->GetCellCoords(&coords);
+	pCrd = this->GetFLH(&coords, EMPulseCannonTemp::weaponIndex, *pCrd);
 	return pCrd;
 }
-DEFINE_JUMP(CALL6, 0x44D1F9, GET_OFFSET(BuildingClass_MI_Missile_EMPUlse_GetFireCoords_Wrapper));
+DEFINE_JUMP(CALL6, 0x44D1F9, MiscTools::to_DWORD(&FakeBuildingClass::_GetFLH));
 
 DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 {
@@ -2816,14 +2818,14 @@ DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 	return 0x7120C6;
 }
 
-int __fastcall BuildingClass_MI_MissileWrapper(BuildingClass* pThis, DWORD) {
+int FakeBuildingClass::_Mission_Missile() {
 
-	if (!TechnoExtContainer::Instance.Find(pThis)->LinkedSW && pThis->MissionStatus < 3) {
-		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", pThis->get_ID());
-	} else if (TechnoExtContainer::Instance.Find(pThis)->LinkedSW && pThis->MissionStatus >= 3) {
-		TechnoExtContainer::Instance.Find(pThis)->LinkedSW = nullptr;
+	if (!TechnoExtContainer::Instance.Find(this)->LinkedSW && this->MissionStatus < 3) {
+		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", this->get_ID());
+	} else if (TechnoExtContainer::Instance.Find(this)->LinkedSW && this->MissionStatus >= 3) {
+		TechnoExtContainer::Instance.Find(this)->LinkedSW = nullptr;
 	}
 
-	return pThis->BuildingClass::Mission_Missile();
+	return this->BuildingClass::Mission_Missile();
 }
-DEFINE_JUMP(VTABLE, 0x7E410C, GET_OFFSET(BuildingClass_MI_MissileWrapper));
+DEFINE_JUMP(VTABLE, 0x7E410C, MiscTools::to_DWORD(&FakeBuildingClass::_Mission_Missile));

@@ -902,7 +902,7 @@ static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 	return FireError::OK;
 }
 
-DEFINE_JUMP(VTABLE, 0x7ECDF4, GET_OFFSET(JumpjetLocomotionClass_Can_Fire))
+DEFINE_JUMP(VTABLE, 0x7ECDF4, MiscTools::to_DWORD(&JumpjetLocomotionClass_Can_Fire))
 
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 //DEFINE_SKIP_HOOK(0x447380, BuildingClass_What_Action_RemoveAGCheckA, 0x6, 44739E);
@@ -968,8 +968,8 @@ static void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _,
 	UpdateAttachedAnimLayers((TechnoClass*)pObject);
 }
 
-DEFINE_JUMP(CALL, 0x54B18E, GET_OFFSET(DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
-DEFINE_JUMP(CALL, 0x4CD4E7, GET_OFFSET(DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
+DEFINE_JUMP(CALL, 0x54B18E, MiscTools::to_DWORD(&DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
+DEFINE_JUMP(CALL, 0x4CD4E7, MiscTools::to_DWORD(&DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
@@ -1053,7 +1053,7 @@ static void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
 	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
 }
 
-DEFINE_JUMP(VTABLE, 0x7ECDB8, GET_OFFSET(JumpjetLocomotionClass_Unlimbo))
+DEFINE_JUMP(VTABLE, 0x7ECDB8, MiscTools::to_DWORD(&JumpjetLocomotionClass_Unlimbo))
 
 // This fixes the issue when locomotor is crashing in grounded or
 // hovering state and the crash processing code won't be reached.
@@ -1647,18 +1647,20 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	return 0x746931;
 }
 
-static bool __fastcall Fake_HouseIsAlliedWith(HouseClass* pThis, void*, HouseClass* CurrentPlayer)
+#include <Misc/Hooks.Otamaa.h>
+
+bool FakeHouseClass::_IsAlliedWith(HouseClass* pOther)
 {
 	return Phobos::Config::DevelopmentCommands
-		|| pThis->ControlledByCurrentPlayer()
-		|| pThis->IsAlliedWith(CurrentPlayer);
+		|| this->ControlledByCurrentPlayer()
+		|| this->IsAlliedWith(pOther);
 }
 
-DEFINE_JUMP(CALL, 0x63B136, GET_OFFSET(Fake_HouseIsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B100, GET_OFFSET(Fake_HouseIsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B17F, GET_OFFSET(Fake_HouseIsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B1BA, GET_OFFSET(Fake_HouseIsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B2CE, GET_OFFSET(Fake_HouseIsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B136, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B100, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B17F, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B1BA, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
+DEFINE_JUMP(CALL, 0x63B2CE, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
 
 // An attempt to fix an issue where the ATC->CurrentVector does not contain every air Techno in given range that increases in frequency as the range goes up.
 // Real talk: I have absolutely no clue how the original function works besides doing vector looping and manipulation, as far as I can tell it never even explicitly
@@ -1968,8 +1970,8 @@ static void __fastcall ComputeGameCRC()
 	Game::LogFrameCRC(Unsorted::CurrentFrame % 256);
 }
 
-DEFINE_JUMP(CALL, 0x64731C, GET_OFFSET(ComputeGameCRC));
-DEFINE_JUMP(CALL, 0x647684, GET_OFFSET(ComputeGameCRC));
+DEFINE_JUMP(CALL, 0x64731C, MiscTools::to_DWORD(&ComputeGameCRC));
+DEFINE_JUMP(CALL, 0x647684, MiscTools::to_DWORD(&ComputeGameCRC));
 
 #pragma endregion
 

@@ -391,7 +391,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	return 0u;
 };
 
-DEFINE_JUMP(LJMP, 0x4C8FE0, GET_OFFSET(ExceptionHandler))
+DEFINE_JUMP(LJMP, 0x4C8FE0, MiscTools::to_DWORD(&ExceptionHandler))
 
 //DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 //{
