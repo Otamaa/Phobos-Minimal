@@ -54,6 +54,10 @@ public:
 			JMP_THIS(0x52AB80);
 		}
 
+		void VectorDealloc(char args) {
+			JMP_THIS(0x52AE00);
+		}
+
 		//virtual ~INISection() = default;
 		//INISection() = delete; //TODO
 	};

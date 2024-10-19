@@ -874,8 +874,9 @@ DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 {
 	GET(SidebarClass* const, pThis, ESI);
-	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
-	return 0x6A7AE7;
+
+	return Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode ?
+		0x6A7AFE : 0x6A7AE7;
 }
 
 DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
@@ -9437,29 +9438,6 @@ struct _RocketLocomotionClass
 		return &RulesClass::Instance->V3Rocket;
 	}
 
-	// this one not correct
-	// followed the dissasembly but still
-	struct Mtx_ : public Matrix3D {
-		void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
-
-		void RotateY(float theta) const { JMP_THIS(0x5AF080); }
-
-	};
-
-	struct FacingClass_ : public FacingClass {
-		DirStruct* _Current(DirStruct* retstr) {
-			JMP_THIS(0x4C93D0);
-		}
-
-		size_t _Getfacing32() {
-			DirStruct _ret {};
-			this->_Current(&_ret);
-
-			return (((_ret.Raw >> 10) + 1) >> 1) & 0x1F;
-		}
-	};
-
-
 	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, VoxelIndexKey* key)
 	{
 		result->MakeIdentity();
@@ -9511,7 +9489,7 @@ struct _RocketLocomotionClass
 		}
 	}
 
-	static bool __stdcall Is_Moving_Now(ILocomotion* pThis)
+	static bool __stdcall _Is_Moving_Now(ILocomotion* pThis)
 	{
 		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
 		return pRocket->MissionState >= RocketMissionState::GainingAltitude && pRocket->MissionState <= RocketMissionState::ClosingIn;
@@ -9906,6 +9884,7 @@ public :
 
 DEFINE_JUMP(VTABLE, 0x7F0B60, GET_OFFSET(_RocketLocomotionClass::_Move_To));
 DEFINE_JUMP(VTABLE, 0x7F0B40, GET_OFFSET(_RocketLocomotionClass::_Draw_Matrix));
+DEFINE_JUMP(VTABLE, 0x7F0B9C, GET_OFFSET(_RocketLocomotionClass::_Is_Moving_Now))
 
 struct _SpawnManager
 {
@@ -10330,7 +10309,6 @@ struct _SpawnManager
 //
 //	return 0x0;
 //}
-
 
 static bool __fastcall UnitClass_Paradrop_wrapper(UnitClass* pThis, DWORD, CoordStruct* pCoords)
 {

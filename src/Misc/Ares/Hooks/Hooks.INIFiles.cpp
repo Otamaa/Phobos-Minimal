@@ -20,50 +20,8 @@ constexpr const char* const iteratorReplacementFormat = "var_%d";
 
 int iteratorValue = 0;
 #include <New/Type/GenericPrerequisite.h>
-#include "Classes/INISection_.h"
 
 #pragma region Classes
-class INIClassCopy
-{
-public:
-
-	char* CurrentSectionName;
-	INISection* CurrentSection;
-	DECLARE_PROPERTY(ListOfINISection, Sections);
-	DECLARE_PROPERTY(IndexClassOfINISection, SectionIndex); // <CRCValue of the Name, Pointer to the section>
-	INIComment* LineComments;
-
-	INIClassCopy()
-	{ JMP_THIS(0x535AA0); }
-
-public:
-
-	virtual ~INIClassCopy()
-	{
-		this->Clear(nullptr, nullptr);
-
-		auto find = this->LineComments;
-		if (this->LineComments)
-		{
-			do
-			{
-				auto cur = std::exchange(find, find->Next);
-				if (cur->Value)
-					CRT::free(cur->Value);
-
-				YRMemory::Deallocate(cur);
-			}
-			while (find);
-		}
-
-		this->Sections.UnlinkAll();
-		this->SectionIndex.~IndexClassOfINISection();
-	}
-
-	void Clear(const char* s1, char* s2)
-	{ JMP_THIS(0x5257C0); }
-};
-static_assert(sizeof(INIClassCopy) == 0x40);//64
 
 NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
 {
@@ -149,12 +107,6 @@ NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const cha
 	return pDefault;
 }
 
-struct INIClass_
-{
-	BYTE gap[44];
-	IndexClassOfINISection SectionIndex;
-};
-static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 #pragma endregion
 
 DEFINE_STRONG_HOOK(0x528A10, INIClass_GetString, 5)
@@ -248,6 +200,12 @@ DEFINE_STRONG_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 
 DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
+	struct INIClass_ {
+		BYTE gap[44];
+		IndexClass<int, INIClass::INISection*> SectionIndex;
+	};
+	static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
+
 	GET_STACK(INIClass_*, pThis, 0x38);
 	GET(int, CRC, EAX);
 
