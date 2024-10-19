@@ -2097,9 +2097,9 @@ struct CellPatch__ : public CellClass
 
 		auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-		int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
+		size_t tib_ = (size_t)pTerrainTypeExt->SpawnsTiberium_Type;
 
-		if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
+		if (tib_ >= (size_t)TiberiumClass::Array->Count)
 			tib_ = OverlayClass::GetTiberiumType(this->OverlayTypeIndex);
 
 		if (!force)
@@ -2109,7 +2109,7 @@ struct CellPatch__ : public CellClass
 				return false;
 			}
 
-			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+			if (tib_ >= (size_t)TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 				return false;
 
 			if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
@@ -2119,10 +2119,8 @@ struct CellPatch__ : public CellClass
 			}
 
 		}
-		else
-		{
-			if (tib_ <= -1 || tib_ >= TiberiumClass::Array->Count)
-			{
+		else {
+			if (tib_ >= (size_t)TiberiumClass::Array->Count) {
 				tib_ = 0;
 			}
 		}
@@ -2133,12 +2131,10 @@ struct CellPatch__ : public CellClass
 		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 		const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 
-		for (int i = 0; i < (int)size; i++)
-		{
+		for (int i = 0; i < (int)size; i++) {
 			CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
 
-			if (tgtCell->CanTiberiumGerminate(pTib))
-			{
+			if (tgtCell->CanTiberiumGerminate(pTib)) {
 				return tgtCell->IncreaseTiberium(tib_, growth);
 			}
 		}
