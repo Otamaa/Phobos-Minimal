@@ -68,31 +68,34 @@ DEFINE_HOOK(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 
 	return 0;
 }
+#include <Misc/Hooks.Otamaa.h>
 
-DEFINE_HOOK_AGAIN(0x74B810, VoxelAnimTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x74B8D0, VoxelAnimTypeClass_SaveLoad_Prefix, 0x8)
+HRESULT __stdcall FakeVoxelAnimTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(VoxelAnimTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	VoxelAnimTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->VoxelAnimTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		VoxelAnimTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-// Before :  DEFINE_HOOK(0x74B8C2, VoxelAnimTypeClass_Load_Suffix, 0x7)
-DEFINE_HOOK(0x74B8C0 , VoxelAnimTypeClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	VoxelAnimTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->VoxelAnimTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		VoxelAnimTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-// Before :  DEFINE_HOOK(0x74B8EA, VoxelAnimTypeClass_Save_Suffix, 0x5)
-DEFINE_HOOK(0x74B8E8, VoxelAnimTypeClass_Save_Suffix, 0x5)
-{
-	VoxelAnimTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F655C, MiscTools::to_DWORD(&FakeVoxelAnimTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F6560, MiscTools::to_DWORD(&FakeVoxelAnimTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)

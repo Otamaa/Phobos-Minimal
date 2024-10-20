@@ -215,28 +215,34 @@ DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x7220D0, TiberiumClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix, 0x7)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeTiberiumClass::_Load(IStream* pStm)
 {
-	GET_STACK(TiberiumClass*, pThis, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	TiberiumExtContainer::Instance.PrepareStream(pThis, pStm);
+	TiberiumExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TiberiumClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		TiberiumExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x72208C, TiberiumClass_Load_Suffix, 0x7)
+HRESULT __stdcall FakeTiberiumClass::_Save(IStream* pStm, bool clearDirty)
 {
-	TiberiumExtContainer::Instance.LoadStatic();
-	return 0;
+
+	TiberiumExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TiberiumClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		TiberiumExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x72212C, TiberiumClass_Save_Suffix, 0x5)
-{
-	TiberiumExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F573C, MiscTools::to_DWORD(&FakeTiberiumClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F5740, MiscTools::to_DWORD(&FakeTiberiumClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
 DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)

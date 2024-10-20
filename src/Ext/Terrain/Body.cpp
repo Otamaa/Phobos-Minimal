@@ -180,28 +180,35 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 	return 0x71B845;
 }
 
-DEFINE_HOOK_AGAIN(0x71CDA0, TerrainClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x71CF30, TerrainClass_SaveLoad_Prefix, 0x8)
+
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeTerrainClass::_Load(IStream* pStm)
 {
-	GET_STACK(TerrainClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	TerrainExtContainer::Instance.PrepareStream(pItem, pStm);
+	TerrainExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TerrainClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		TerrainExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x71CEAC, TerrainClass_Load_Suffix, 0x9)
+HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, bool clearDirty)
 {
-	TerrainExtContainer::Instance.LoadStatic();
-	return 0;
+
+	TerrainExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TerrainClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		TerrainExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
-{
-	TerrainExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F5240, MiscTools::to_DWORD(&FakeTerrainClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F5244, MiscTools::to_DWORD(&FakeTerrainClass::_Save))
 
 //DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
 //{

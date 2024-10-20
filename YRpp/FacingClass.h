@@ -6,30 +6,42 @@
 class FacingClass
 {
 public:
-	explicit FacingClass() noexcept { }
-	explicit FacingClass(int rate) noexcept
-	{
-		Set_ROT(rate);
+	constexpr explicit FacingClass() noexcept :
+		DesiredFacing{ } ,
+		StartFacing { },// The starting direction from which to calcuate the rotation.
+		RotationTimer { },
+		ROT{ }
+	{ }
+
+	constexpr explicit FacingClass(int rate) noexcept :
+		DesiredFacing { },
+		StartFacing { },// The starting direction from which to calcuate the rotation.
+		RotationTimer { },
+		ROT { (DirType)MinImpl(rate,127) } {
 	}
 
-	explicit FacingClass(const DirStruct& facing) noexcept
-	{
-		DesiredFacing = facing;
+	constexpr explicit FacingClass(const DirStruct& facing) noexcept :
+		DesiredFacing { facing },
+		StartFacing { },// The starting direction from which to calcuate the rotation.
+		RotationTimer { },
+		ROT { } {
 	}
 
-	explicit FacingClass(DirType dir) noexcept
-	{
-		DesiredFacing.SetDir(dir);
-	}
+	constexpr explicit FacingClass(DirType dir) noexcept :
+		DesiredFacing { dir },
+		StartFacing { },// The starting direction from which to calcuate the rotation.
+		RotationTimer { },
+		ROT { }
+	{ }
 
-	FacingClass(const FacingClass& another) noexcept
+	constexpr FacingClass(const FacingClass& another) noexcept
 		: DesiredFacing { another.DesiredFacing }
 		, StartFacing { another.StartFacing }
 		, RotationTimer { another.RotationTimer }
 		, ROT { another.ROT }
 	{ }
 
-	FacingClass& operator=(const FacingClass& another) noexcept
+	constexpr FacingClass& operator=(const FacingClass& another) noexcept
 	{
 		if (this != &another)
 		{
@@ -42,15 +54,15 @@ public:
 		return *this;
 	}
 
-	short Difference_Raw() const {
+	constexpr short Difference_Raw() const {
 		return short(DesiredFacing.Raw) - short(StartFacing.Raw);
 	}
 
-	short turn_rate() const {
+	constexpr short turn_rate() const {
 		return short(this->ROT.Raw);
 	}
 
-	bool Set_Desired(const DirStruct& facing)
+	constexpr bool Set_Desired(const DirStruct& facing)
 	{
 		if (DesiredFacing == facing)
 			return false;
@@ -64,7 +76,7 @@ public:
 		return true;
 	}
 
-	bool Set_Current(const DirStruct& facing)
+	constexpr bool Set_Current(const DirStruct& facing)
 	{
 		bool ret = Current() != facing;
 		if (ret)
@@ -76,12 +88,12 @@ public:
 		return ret;
 	}
 
-	DirStruct Desired() const
+	constexpr DirStruct Desired() const
 	{
 		return DesiredFacing;
 	}
 
-	DirStruct Current(int offset = 0) const
+	constexpr DirStruct Current(int offset = 0) const
 	{
 		DirStruct ret = this->DesiredFacing;
 		if (Is_Rotating()) {
@@ -97,32 +109,19 @@ public:
 		return ret;
 	}
 
-	static DirStruct FORCEINLINE Current(FacingClass* facing, int offset) {
-		DirStruct ret = facing->DesiredFacing;
-		if (facing->Is_Rotating())
-		{
-			short diff = facing->Difference_Raw();
-			short num_steps = short(facing->NumSteps());
-
-			if (num_steps > 0)
-			{
-				int steps_left = facing->RotationTimer.GetTimeLeft() - offset;
-				ret.Raw = unsigned short(((short)ret.Raw - steps_left * diff / num_steps));
-			}
-		}
-
-		return ret;
+	static constexpr DirStruct FORCEINLINE Current(FacingClass* facing, int offset) {
+		return facing->Current(offset);
 	}
 
-	DirStruct Next()
+	constexpr DirStruct Next()
 	{ return Current(1); }
 
-	bool Is_Rotating() const
+	constexpr bool Is_Rotating() const
 	{
 		return turn_rate() > 0 && RotationTimer.GetTimeLeft();
 	}
 
-	bool Is_Rotating_L() const
+	constexpr bool Is_Rotating_L() const
 	{
 		if (!Is_Rotating())
 			return false;
@@ -130,7 +129,7 @@ public:
 		return Difference_Raw() < 0;
 	}
 
-	bool Is_Rotating_G() const
+	constexpr bool Is_Rotating_G() const
 	{
 		if (!Is_Rotating())
 			return false;
@@ -138,17 +137,17 @@ public:
 		return Difference_Raw() > 0;
 	}
 
-	DirStruct Difference() const {
+	constexpr DirStruct Difference() const {
 		return DirStruct{ short(DesiredFacing.Raw) - short(StartFacing.Raw) };
 	}
 
-	void Set_ROT(int rate)
+	constexpr void Set_ROT(int rate)
 	{
 		ROT.SetDir((DirType)MinImpl(rate,127));
 	}
 
 private:
-	int NumSteps() const
+	constexpr int NumSteps() const
 	{
 		return Math::abs(Difference_Raw()) / ROT.Raw;
 	}

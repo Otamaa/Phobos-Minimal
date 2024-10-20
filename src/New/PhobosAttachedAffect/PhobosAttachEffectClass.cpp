@@ -81,7 +81,7 @@ void PhobosAttachEffectClass::AI()
 
 	if (this->NeedsDurationRefresh)
 	{
-		if (AllowedToBeActive())
+		if (!ShouldBeDiscardedNow())
 		{
 			this->RefreshDuration();
 			this->NeedsDurationRefresh = false;
@@ -102,7 +102,7 @@ void PhobosAttachEffectClass::AI()
 
 		if (this->Delay > 0)
 			this->KillAnim();
-		else if (AllowedToBeActive())
+		else if (ShouldBeDiscardedNow())
 			this->RefreshDuration();
 		else
 			this->NeedsDurationRefresh = true;
@@ -362,31 +362,31 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	return true;
 }
 
-bool PhobosAttachEffectClass::AllowedToBeActive() const
+bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
 {
 	if (this->ShouldBeDiscarded)
-		return false;
+		return true;
 
 	//Debug::Log(__FUNCTION__" Executed [%s - %s]\n", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthPercentage() >= this->Type->DiscardOn_AbovePercent.Get())
-		return false;
+		return true;
 
 	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthPercentage() <= this->Type->DiscardOn_BelowPercent.Get())
-		return false;
+		return true;
 
 	if (auto const pFoot = abstract_cast<FootClass*>(this->Techno))
 	{
 		bool isMoving = pFoot->Locomotor->Is_Really_Moving_Now();
 
 		if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
-			return false;
+			return true;
 
 		if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
-			return false;
+			return true;
 	}
 
 	if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
-		return false;
+		return true;
 
 	if (this->Techno->Target)
 	{
@@ -413,11 +413,11 @@ bool PhobosAttachEffectClass::AllowedToBeActive() const
 			const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
 
 			if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
-				return false;
+				return true;
 		}
 	}
 
-	return true;
+	return false;
 }
 
 #pragma region StaticFunctions_AttachDetachTransfer

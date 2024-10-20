@@ -580,28 +580,34 @@ DEFINE_HOOK(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x772EB0, WeaponTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x772CD0, WeaponTypeClass_SaveLoad_Prefix, 0x7)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeWeaponTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(WeaponTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	WeaponTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->WeaponTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		WeaponTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	WeaponTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->WeaponTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		WeaponTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x772F8C, WeaponTypeClass_Save, 0x5)
-{
-	WeaponTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F73CC, MiscTools::to_DWORD(&FakeWeaponTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F73D0, MiscTools::to_DWORD(&FakeWeaponTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)

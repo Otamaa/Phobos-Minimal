@@ -2119,8 +2119,10 @@ struct CellPatch__ : public CellClass
 			}
 
 		}
-		else {
-			if (tib_ >= (size_t)TiberiumClass::Array->Count) {
+		else
+		{
+			if (tib_ >= (size_t)TiberiumClass::Array->Count)
+			{
 				tib_ = 0;
 			}
 		}
@@ -2131,10 +2133,12 @@ struct CellPatch__ : public CellClass
 		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 		const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 
-		for (int i = 0; i < (int)size; i++) {
+		for (int i = 0; i < (int)size; i++)
+		{
 			CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
 
-			if (tgtCell->CanTiberiumGerminate(pTib)) {
+			if (tgtCell->CanTiberiumGerminate(pTib))
+			{
 				return tgtCell->IncreaseTiberium(tib_, growth);
 			}
 		}
@@ -3258,7 +3262,7 @@ void FakeObjectClass::_DrawRadialIndicator(int val)
 
 				if (nRadius > 0)
 				{
-						const auto Color = pTypeExt->RadialIndicatorColor.Get(pTechno->Owner->Color);
+					const auto Color = pTypeExt->RadialIndicatorColor.Get(pTechno->Owner->Color);
 
 					if (Color != ColorStruct::Empty)
 					{
@@ -3269,6 +3273,14 @@ void FakeObjectClass::_DrawRadialIndicator(int val)
 			}
 		}
 	}
+}
+
+DEFINE_HOOK(0x456724, BuildingClass_GetRangeOfRadial_WeaponRange, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EAX);
+	GET(BuildingClass*, pThis, ESI);
+	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
+	return 0x45672A;
 }
 
 DEFINE_JUMP(VTABLE, 0x7F5DA0, MiscTools::to_DWORD(&FakeObjectClass::_DrawRadialIndicator))
@@ -9239,7 +9251,7 @@ KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, CoordStr
 
 // always fail need to  retry it until not
 // the coords seems not suitable
-KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
+static KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
 {
 	if (!TechnoExtData::CreateWithDroppod(pFoot, *pCoord))
 		return KickOutResult::Failed;
@@ -9745,7 +9757,7 @@ struct _RocketLocomotionClass
 	//	return pRocket->Is_Moving();
 	//}
 
-public :
+public:
 
 	static void Explode(RocketLocomotionClass* pThis)
 	{
@@ -9755,7 +9767,7 @@ public :
 		/**
 		 *  Calculate where it's moving right now.
 		 */
-		Coordinate coord = Get_Next_Position(pThis ,rocket->BodyLength);
+		Coordinate coord = Get_Next_Position(pThis, rocket->BodyLength);
 		CellStruct cell = CellClass::Coord2Cell(coord);
 
 		/**
@@ -10014,14 +10026,12 @@ struct _SpawnManager
 	//				spawnee->Assign_Mission(MISSION_MOVE);
 	//				spawnee->Commence();
 	//				control->Status = SpawnControlStatus::Returning;
-	//				break;
 	//			}
 	//
 	//			/**
 	//			 *  Send the aircraft to attack.
 	//			 */
-	//			CellClass* owner_cell = Owner->Get_Cell_Ptr();
-	//			CellClass* adjacent_cell = &owner_cell->Adjacent_Cell(FACING_S);
+	//          CellClass* adjacent_cell = &Owner->Get_Cell_Ptr()->Adjacent_Cell(FACING_S);
 	//			spawnee->Assign_Destination(adjacent_cell);
 	//			spawnee->Assign_Mission(MISSION_MOVE);
 	//			break;
@@ -10274,7 +10284,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 
 	if (this->Type->ResourceGatherer || this->Type->Harvester) {
 		this->QueueMission(Mission::Harvest, false);
-	}else if (this->Owner->IsControlledByHuman()) {
+	} else if (this->Owner->IsControlledByHuman()) {
 		this->QueueMission(Mission::Guard, false);
 	} else {
 		this->QueueMission(Mission::Hunt, false);

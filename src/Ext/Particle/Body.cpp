@@ -96,36 +96,34 @@ DEFINE_HOOK(0x62D9CD, ParticleClass_DTOR, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x62D810, ParticleClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(ParticleClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	ParticleExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x62D801, ParticleClass_Load_Suffix, 0x6)
-{
-	ParticleExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
-{
-	GET(const HRESULT , nRest, EAX);
-
-	ParticleExtContainer::Instance.GetSavingObject()->byte130 = true;
-	if (SUCCEEDED(nRest)) {
-		ParticleExtContainer::Instance.SaveStatic();
-	}
-
-	return 0x62D82C;
-}
-
 #include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeParticleClass::_Load(IStream* pStm)
+{
+
+	ParticleExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->ParticleClass::Load(pStm);
+
+	if (SUCCEEDED(res))
+		ParticleExtContainer::Instance.LoadStatic();
+
+	return res;
+}
+
+HRESULT __stdcall FakeParticleClass::_Save(IStream* pStm, bool clearDirty)
+{
+
+	ParticleExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->ParticleClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		ParticleExtContainer::Instance.SaveStatic();
+
+	return res;
+}
+
+DEFINE_JUMP(VTABLE, 0x7EF968, MiscTools::to_DWORD(&FakeParticleClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7EF96C, MiscTools::to_DWORD(&FakeParticleClass::_Save))
 
 void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {

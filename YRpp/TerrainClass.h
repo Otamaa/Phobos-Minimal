@@ -23,8 +23,8 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x71CDA0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x71CF30);
 
 	//Destructor
 	virtual ~TerrainClass() RX;

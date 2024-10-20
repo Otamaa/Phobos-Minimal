@@ -45,10 +45,12 @@ DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	if (pThis->BunkerLinkedItem && pThis->BunkerLinkedItem->WhatAmI() != AbstractType::Building)
 		range += RulesClass::Instance->BunkerWeaponRangeBonus * Unsorted::LeptonsPerCell;
 
-	if (pThis->Transporter)
-	{
-		range += TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())
-			->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus) * Unsorted::LeptonsPerCell;
+	if (pThis->InOpenToppedTransport) {
+		if(auto pTrans = pThis->Transporter)
+			range += TechnoTypeExtContainer::Instance.Find(pTrans->GetTechnoType())
+				->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus) * Unsorted::LeptonsPerCell;
+		  else
+		  	range += (RulesClass::Instance->OpenToppedRangeBonus* Unsorted::LeptonsPerCell);
 	}
 
 	R->EDI(range);

@@ -58,7 +58,7 @@ public:
 	static std::array<const char*, (size_t)TrajectoryCheckReturnType::count> TrajectoryCheckReturnType_to_strings;
 
 	static std::array<const char*, (size_t)DiscardCondition::count> DiscardCondition_to_strings;
-	static std::array<const char*, 5u> ExpireWeaponCondition_to_strings;
+	static std::array<const char*, 6u> ExpireWeaponCondition_to_strings;
 
 	static std::array<std::pair<const char* const, MouseHotSpotX>, 3u> MouseHotSpotX_ToStrings;
 	static std::array<std::pair<const char* const, MouseHotSpotY>, 3u> MouseHotSpotY_ToStrings;

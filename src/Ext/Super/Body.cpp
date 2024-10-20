@@ -163,28 +163,34 @@ DEFINE_HOOK(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6CDEF0, SuperClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x6CDFD0, SuperClass_SaveLoad_Prefix, 0x8)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
 {
-	GET_STACK(SuperClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	SuperExtContainer::Instance.PrepareStream(pItem, pStm);
+	SuperExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SuperClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		SuperExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6CDFC4, SuperClass_Load_Suffix, 0x7)
+HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, bool clearDirty)
 {
-	SuperExtContainer::Instance.LoadStatic();
-	return 0;
+
+	SuperExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SuperClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		SuperExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
-{
-	SuperExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F3FFC, MiscTools::to_DWORD(&FakeSuperClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F4000, MiscTools::to_DWORD(&FakeSuperClass::_Save))
 
 // DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
 // {

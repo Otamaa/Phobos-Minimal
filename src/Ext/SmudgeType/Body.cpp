@@ -46,28 +46,34 @@ DEFINE_HOOK(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6B5850, SmudgeTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x6B58B0, SmudgeTypeClass_SaveLoad_Prefix, 0x8)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeSmudgeTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(SmudgeTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	SmudgeTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
+
+	SmudgeTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SmudgeTypeClass::Load(pStm);
+
+	if (SUCCEEDED(res))
+		SmudgeTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-// Before : DEFINE_HOOK(0x6B589F, SmudgeTypeClass_Load_Suffix, 0x5)
-DEFINE_HOOK(0x6B589D , SmudgeTypeClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	SmudgeTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	SmudgeTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SmudgeTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		SmudgeTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-// Before : DEFINE_HOOK(0x6B58CA, SmudgeTypeClass_Save_Suffix, 0x5)
-DEFINE_HOOK(0x6B58C8, SmudgeTypeClass_Save_Suffix, 0x5)
-{
-	SmudgeTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F353C, MiscTools::to_DWORD(&FakeSmudgeTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F3540, MiscTools::to_DWORD(&FakeSmudgeTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x6B57DA , SmudgeTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)

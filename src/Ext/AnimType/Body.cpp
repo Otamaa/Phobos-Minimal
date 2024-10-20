@@ -679,30 +679,34 @@ DEFINE_HOOK(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x428970, AnimTypeClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(AnimTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	AnimTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->AnimTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		AnimExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-// Before :
-DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
-DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	AnimTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->AnimTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		AnimTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3)
-{
-	AnimTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7E361C, MiscTools::to_DWORD(&FakeAnimTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E3620, MiscTools::to_DWORD(&FakeAnimTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)

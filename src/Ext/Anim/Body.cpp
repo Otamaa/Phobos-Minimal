@@ -815,29 +815,30 @@ DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x425280, AnimClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x4253B0, AnimClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(AnimClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	AnimExtContainer::Instance.PrepareStream(pItem, pStm);
+HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm) {
 
-	return 0;
+	AnimExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->AnimClass::Load(pStm);
+
+	if(SUCCEEDED(res))
+		AnimExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK_AGAIN(0x425391, AnimClass_Load_Suffix, 0x7)
-DEFINE_HOOK_AGAIN(0x4253A2, AnimClass_Load_Suffix, 0x7)
-DEFINE_HOOK(0x425358, AnimClass_Load_Suffix, 0x7)
-{
-	AnimExtContainer::Instance.LoadStatic();
-	return 0;
+HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty) {
+
+	AnimExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->AnimClass::Save(pStm , clearDirty);
+
+	if (SUCCEEDED(res))
+		AnimExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
-{
-	AnimExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7E3368 , MiscTools::to_DWORD(&FakeAnimClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E336C, MiscTools::to_DWORD(&FakeAnimClass::_Save))
 
 DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 {
@@ -865,11 +866,4 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	return 0x4251A3;
 }
 
-// void __fastcall AnimClass_Detach_Wrapper(AnimClass* pThis, DWORD, AbstractClass* target, bool all)
-// {
-// 	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-// 	pThis->AnimClass::PointerExpired(target, all);
-// }
-//
-// DEFINE_JUMP(VTABLE, 0x7E337C, GET_OFFSET(AnimClass_Detach_Wrapper));
 DEFINE_JUMP(VTABLE, 0x7E3390, MiscTools::to_DWORD(&FakeAnimClass::_GetOwningHouse));

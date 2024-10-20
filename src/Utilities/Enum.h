@@ -89,8 +89,9 @@ enum class ExpireWeaponCondition : unsigned char
 	Expire = 0x1,
 	Remove = 0x2,
 	Death = 0x4,
+	Discard = 0x5,
 
-	All = Expire | Remove | Death,
+	All = 0xFF,
 };
 
 MAKE_ENUM_FLAGS(ExpireWeaponCondition);

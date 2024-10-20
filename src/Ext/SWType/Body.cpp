@@ -2918,28 +2918,34 @@ DEFINE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6CE8D0, SuperWeaponTypeClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x6CE800, SuperWeaponTypeClass_SaveLoad_Prefix, 0xA)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeSuperWeaponTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(SuperWeaponTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	SWTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	SWTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SuperWeaponTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		SWTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6CE8BE, SuperWeaponTypeClass_Load_Suffix, 0x7)
+HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	SWTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	SWTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->SuperWeaponTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		SWTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6CE8EA, SuperWeaponTypeClass_Save_Suffix, 0x3)
-{
-	SWTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F40A4, MiscTools::to_DWORD(&FakeSuperWeaponTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F40A8, MiscTools::to_DWORD(&FakeSuperWeaponTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)

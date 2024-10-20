@@ -18,12 +18,13 @@ std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::Discard
  }
 };
 
-std::array<const char*, 5u>  EnumFunctions::ExpireWeaponCondition_to_strings {
+std::array<const char*, 6u>  EnumFunctions::ExpireWeaponCondition_to_strings {
  {
 	{ "none" } ,
 	{ "expire" } ,
 	{ "remove" } ,
 	{ "death" } ,
+	{ "discard" },
 	{ "all" }
  }
 };

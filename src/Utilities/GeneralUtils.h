@@ -623,4 +623,8 @@ public:
 		);
 	}
 
+	template <typename T> requires std::is_enum_v<T>
+	static constexpr bool Contains(T thisEnum, T thatEnum) {
+		return (thisEnum & thatEnum) != T::None;
+	}
 };

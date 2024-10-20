@@ -74,7 +74,7 @@ public:
 	explicit DirStruct(double rad) noexcept : Raw { 0 }
 	{ SetRadian<65536>(rad); }
 
-	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
+	constexpr explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
 
 	constexpr explicit DirStruct(const FacingType face) noexcept :
@@ -85,10 +85,10 @@ public:
 		Raw { ((unsigned short)((unsigned char)face << 11)) }
 	{}
 
-	explicit DirStruct(size_t bits, const DirType value) noexcept : Raw { 0 }
+	constexpr explicit DirStruct(size_t bits, const DirType value) noexcept : Raw { 0 }
 	{ SetDir(bits, (unsigned short)(value)); }
 
-	explicit DirStruct(const noinit_t&) noexcept
+	constexpr explicit DirStruct(const noinit_t&) noexcept
 	{ }
 
 	explicit DirStruct(double Y, double X) noexcept : Raw { 0 }

@@ -1656,27 +1656,34 @@ DEFINE_HOOK(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 	WarheadTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+#include <Misc/Hooks.Otamaa.h>
 
-DEFINE_HOOK_AGAIN(0x75E2C0, WarheadTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x75E0C0, WarheadTypeClass_SaveLoad_Prefix, 0x8)
+HRESULT __stdcall FakeWarheadTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(WarheadTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	WarheadTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
+
+	WarheadTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->WarheadTypeClass::Load(pStm);
+
+	if (SUCCEEDED(res))
+		WarheadTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x75E2AE, WarheadTypeClass_Load_Suffix, 0x7)
+HRESULT __stdcall FakeWarheadTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	WarheadTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	WarheadTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->WarheadTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		WarheadTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x75E39C, WarheadTypeClass_Save_Suffix, 0x5)
-{
-	WarheadTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F6B44, MiscTools::to_DWORD(&FakeWarheadTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F6B48, MiscTools::to_DWORD(&FakeWarheadTypeClass::_Save))
 
 // is return not valid
 DEFINE_HOOK_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)

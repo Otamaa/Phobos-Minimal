@@ -407,40 +407,31 @@ DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x71F930, TEventClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeTEventClass::_Load(IStream* pStm)
 {
-	GET_STACK(TEventClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	TEventExtContainer::Instance.PrepareStream(pItem, pStm);
+	TEventExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TEventClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		TEventExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
+HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, bool clearDirty)
 {
-	TEventExtContainer::Instance.LoadStatic();
-	return 0x0;
+
+	TEventExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TEventClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		TEventExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
-{
-	TEventExtContainer::Instance.SaveStatic();
-	return 0x0;
-}
-
-//DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)
-//{
-//	GET(TEventClass*, pThis, ECX);
-//	GET(void*, pTarget, EDX);
-//	GET_STACK(bool, bRemoved, 0x8);
-//
-//	if (pThis->TeamType == pTarget) {
-//		pThis->TeamType = nullptr;
-//	}
-//
-//	TEventExtContainer::Instance.InvalidatePointerFor(pThis, pTarget, bRemoved);
-//
-//	return 0x71F81D;
-//}
+DEFINE_JUMP(VTABLE, 0x7F558C, MiscTools::to_DWORD(&FakeTEventClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F5590, MiscTools::to_DWORD(&FakeTEventClass::_Save))

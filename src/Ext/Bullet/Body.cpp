@@ -968,49 +968,34 @@ DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x46AFB0, BulletClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x46AE70, BulletClass_SaveLoad_Prefix, 0x5)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeBulletClass::_Load(IStream* pStm)
 {
-	GET_STACK(BulletClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	BulletExtContainer::Instance.PrepareStream(pItem, pStm);
+	BulletExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BulletClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		BulletExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-//Before :
-//DEFINE_HOOK_AGAIN(0x46AF97, BulletClass_Load_Suffix, 0x7)
-//DEFINE_HOOK(0x46AF9E, BulletClass_Load_Suffix, 0x7)
-
-DEFINE_HOOK(0x46AF97, BulletClass_Load_Suffix, 0x7)
+HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, bool clearDirty)
 {
-	BulletExtContainer::Instance.LoadStatic();
-	return 0;
-}
 
-DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
-{
-	GET(const HRESULT, nRes, EAX);
+	BulletExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BulletClass::Save(pStm, clearDirty);
 
-	if(SUCCEEDED(nRes))
+	if (SUCCEEDED(res))
 		BulletExtContainer::Instance.SaveStatic();
 
-	return 0;
+	return res;
 }
 
-// DEFINE_HOOK(	, BulletClass_Detach, 0x6)
-// {
-// 	GET(BulletClass*, pThis, ESI);
-// 	GET(void*, target, EDI);
-// 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-// 	BulletExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-// 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-// }
-
-#include <Misc/Hooks.Otamaa.h>
+DEFINE_JUMP(VTABLE, 0x7E46F8, MiscTools::to_DWORD(&FakeBulletClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E46FC, MiscTools::to_DWORD(&FakeBulletClass::_Save))
 
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {

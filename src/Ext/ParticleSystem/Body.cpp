@@ -1284,25 +1284,31 @@ DEFINE_HOOK(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x62FF20, ParticleSystemClass_SaveLoad_Prefix, 0x7)
-DEFINE_HOOK(0x630090, ParticleSystemClass_SaveLoad_Prefix, 0x5)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeParticleSystemClass::_Load(IStream* pStm)
 {
-	GET_STACK(ParticleSystemClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	ParticleSystemExtContainer::Instance.PrepareStream(pItem, pStm);
+	ParticleSystemExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->ParticleSystemClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		ParticleSystemExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x630088, ParticleSystemClass_Load_Suffix, 0x5)
+HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, bool clearDirty)
 {
-	ParticleSystemExtContainer::Instance.LoadStatic();
-	return 0;
+
+	ParticleSystemExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->ParticleSystemClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		ParticleSystemExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6300F3, ParticleSystemClass_Save_Suffix, 0x6)
-{
-	ParticleSystemExtContainer::Instance.SaveStatic();
-	return 0x0;
-}
+DEFINE_JUMP(VTABLE, 0x7EFBB0, MiscTools::to_DWORD(&FakeParticleSystemClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7EFBB4, MiscTools::to_DWORD(&FakeParticleSystemClass::_Save))

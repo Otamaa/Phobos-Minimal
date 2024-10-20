@@ -352,43 +352,34 @@ DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x46C730, BulletTypeClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x46C6A0, BulletTypeClass_SaveLoad_Prefix, 0x5)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeBulletTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(BulletTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	BulletTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BulletTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		BulletTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-//// Before : 0x46C722 , 0x4
-//// After : 46C70F , 0x6
-DEFINE_HOOK(0x46C70F, BulletTypeClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	GET(BulletTypeClass*, pThis, ESI);
 
-	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ShrapnelWeapon);
-	BulletTypeExtContainer::Instance.LoadStatic();
+	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BulletTypeClass::Save(pStm, clearDirty);
 
-	return 0x46C720;
-}
-
-//// Before : 0x46C74A , 0x3
-//// After : 46C744 , 0x6
-DEFINE_HOOK(0x46C744, BulletTypeClass_Save_Suffix, 0x6)
-{
-	GET(HRESULT, nRes, EAX);
-
-	if (SUCCEEDED(nRes))
-	{
-		nRes = 0;
+	if (SUCCEEDED(res))
 		BulletTypeExtContainer::Instance.SaveStatic();
-	}
 
-	return 0x46C74A;
+	return res;
 }
+
+DEFINE_JUMP(VTABLE, 0x7E495C, MiscTools::to_DWORD(&FakeBulletTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E4960, MiscTools::to_DWORD(&FakeBulletTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)

@@ -241,47 +241,34 @@ DEFINE_HOOK(0x65B344, RadSiteClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x65B3D0, RadSiteClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x65B450, RadSiteClass_SaveLoad_Prefix, 0x8)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		GET_STACK(RadSiteClass*, pItem, 0x4);
-		GET_STACK(IStream*, pStm, 0x8);
 
-		RadSiteExtContainer::Instance.PrepareStream(pItem, pStm);
-	}
+	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->RadSiteClass::Load(pStm);
 
-	return 0;
-}
-
-// Before :
- // DEFINE_HOOK(0x65B43F, RadSiteClass_Load_Suffix, 0x7)
-DEFINE_HOOK(0x65B431 , RadSiteClass_Load_Suffix , 0x9)
-{
-	GET(RadSiteClass*, pThis, ESI);
-
-	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->LightSource);
-
-	if (!Phobos::Otamaa::DisableCustomRadSite)
+	if (SUCCEEDED(res))
 		RadSiteExtContainer::Instance.LoadStatic();
 
-	//return 0;
-	return 0x65B43F;
+	return res;
 }
 
-DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
+HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
 {
-	GET(const HRESULT , nRes, EAX);
 
-	if(SUCCEEDED(nRes)) {
-		if (!Phobos::Otamaa::DisableCustomRadSite) {
-			RadSiteExtContainer::Instance.SaveStatic();
-		}
-	}
+	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->RadSiteClass::Save(pStm, clearDirty);
 
-	return 0;
+	if (SUCCEEDED(res))
+		RadSiteExtContainer::Instance.SaveStatic();
+
+	return res;
 }
+
+DEFINE_JUMP(VTABLE, 0x7F0824, MiscTools::to_DWORD(&FakeRadSiteClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F0828, MiscTools::to_DWORD(&FakeRadSiteClass::_Save))
 
 //#ifdef AAENABLE_NEWHOOKS
 //DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
@@ -323,8 +310,6 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //	return 0x0;
 //}
 //#endif
-
-#include <Misc/Hooks.Otamaa.h>
 
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {

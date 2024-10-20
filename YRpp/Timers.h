@@ -43,23 +43,22 @@ public:
 
 	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
 
-
-	explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
+	constexpr explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
 		this->StartTime = this->CurrentTime;
 	}
 
 	constexpr TimerClass(noinit_t()){ }
 	constexpr ~TimerClass() = default;
 
-	TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
+	constexpr TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
 
-	TimerClass& operator=(const TimerClass& other) {
+	constexpr TimerClass& operator=(const TimerClass& other) {
 		this->StartTime = other.StartTime;
 		this->TimeLeft = other.TimeLeft;
 		return *this;
 	}
 
-	TimerClass& operator = (TimerClass&&) =  default;
+	constexpr TimerClass& operator = (TimerClass&&) =  default;
 
 	constexpr FORCEINLINE void Start(int duration)
 	{
@@ -174,10 +173,10 @@ public:
 	int Duration { 0 };
 
 	constexpr RepeatableTimerStruct() = default;
-	RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
-	RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
-	RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
-	RepeatableTimerStruct(int duration) { this->Start(duration); }
+	constexpr RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
+	constexpr RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
+	constexpr RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
+	constexpr RepeatableTimerStruct(int duration) { this->Start(duration); }
 
 	constexpr FORCEINLINE void Start(int duration)
 	{

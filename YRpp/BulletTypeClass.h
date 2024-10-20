@@ -46,8 +46,8 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x46C750);
 
 	//IPersistStream
-	//virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46C6A0);
-	//virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46C730);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46C6A0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46C730);
 
 	//Destructor
 	virtual ~BulletTypeClass() override JMP_THIS(0x46C890);

@@ -1371,7 +1371,8 @@ namespace detail
 					case 1: resultData |= ExpireWeaponCondition::Expire; break;
 					case 2: resultData |= ExpireWeaponCondition::Remove; break;
 					case 3: resultData |= ExpireWeaponCondition::Death; break;
-					case 4: resultData = ExpireWeaponCondition::All;
+					case 4: resultData |= ExpireWeaponCondition::Discard; break;
+					case 5: resultData = ExpireWeaponCondition::All;
 						break;//switch break
 						break;//loop break
 					}

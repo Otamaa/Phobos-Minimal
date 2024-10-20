@@ -47,7 +47,8 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46AE70);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46AFB0);
 
 	//Destructor
 	virtual ~BulletClass() RX;

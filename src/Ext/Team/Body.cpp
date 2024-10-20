@@ -451,29 +451,34 @@ DEFINE_HOOK(0x6E8ECB, TeamClass_DTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6EC450, TeamClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x6EC540, TeamClass_SaveLoad_Prefix, 0x8)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
 {
-	GET_STACK(TeamClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	TeamExtContainer::Instance.PrepareStream(pItem, pStm);
+	TeamExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TeamClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		TeamExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6EC52F, TeamClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, bool clearDirty)
 {
-	TeamExtContainer::Instance.LoadStatic();
 
-	return 0;
+	TeamExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->TeamClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		TeamExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
-{
-	TeamExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7F4744, MiscTools::to_DWORD(&FakeTeamClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7F4748, MiscTools::to_DWORD(&FakeTeamClass::_Save))
 
  DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
  {

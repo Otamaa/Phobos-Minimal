@@ -570,28 +570,34 @@ DEFINE_HOOK(0x5127CF, HouseTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x512480, HouseTypeClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x512290, HouseTypeClass_SaveLoad_Prefix, 0x5)
+#include <Misc/Hooks.Otamaa.h>
+
+HRESULT __stdcall FakeHouseTypeClass::_Load(IStream* pStm)
 {
-	GET_STACK(HouseTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
 
-	HouseTypeExtContainer::Instance.PrepareStream(pItem, pStm);
+	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->HouseTypeClass::Load(pStm);
 
-	return 0;
+	if (SUCCEEDED(res))
+		HouseTypeExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x51246D, HouseTypeClass_Load_Suffix, 0x5)
+HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, bool clearDirty)
 {
-	HouseTypeExtContainer::Instance.LoadStatic();
-	return 0;
+
+	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->HouseTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(res))
+		HouseTypeExtContainer::Instance.SaveStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x51255C, HouseTypeClass_Save_Suffix, 0x5)
-{
-	HouseTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7EAB6C, MiscTools::to_DWORD(&FakeHouseTypeClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7EAB70, MiscTools::to_DWORD(&FakeHouseTypeClass::_Save))
 
 DEFINE_HOOK_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)

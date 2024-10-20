@@ -97,9 +97,12 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 				attachEffect->SetAnimationTunnelState(true);
 
 			attachEffect->AI();
+			bool hasExpired = attachEffect->HasExpired();
+			bool shouldDiscard = attachEffect->IsActive() && attachEffect->ShouldBeDiscardedNow();
 
-			if (attachEffect->HasExpired() || (attachEffect->IsActive() && !attachEffect->AllowedToBeActive()))
+			if (hasExpired || shouldDiscard)
 			{
+				attachEffect->ShouldBeDiscarded = false;
 				auto const pType = attachEffect->GetType();
 
 				if (pType->HasTint())
@@ -108,13 +111,13 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 				if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
 					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno , attachEffect->GetType(), attachEffect);
 
-				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
-				{
+			if (pType->ExpireWeapon && ((hasExpired && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
+				|| (shouldDiscard && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Discard) != ExpireWeaponCondition::None)))	{
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
 						expireWeapons.push_back(pType->ExpireWeapon);
 				}
 
-				if (!attachEffect->AllowedToBeActive() && attachEffect->ResetIfRecreatable())
+				if (shouldDiscard && attachEffect->ResetIfRecreatable())
 				{
 					++it;
 					continue;

@@ -517,10 +517,10 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	if (pExt->AE.HasOnFireDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
-				if(!attachEffect)
+				if(!attachEffect || attachEffect->ShouldBeDiscarded)
 					continue;
 
-			if ((attachEffect->GetType()->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None)
+			if(GeneralUtils::Contains<DiscardCondition>(attachEffect->GetType()->DiscardOn ,DiscardCondition::Firing))
 				attachEffect->ShouldBeDiscarded = true;
 		}
 	}

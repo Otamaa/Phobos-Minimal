@@ -43,7 +43,7 @@ public:
 		return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
 	}
 
-	bool AllowedToBeActive() const;
+	bool ShouldBeDiscardedNow() const;
 
 	constexpr FORCEINLINE bool IsActive() const {
 		if (this->IsSelfOwned())
