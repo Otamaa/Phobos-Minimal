@@ -1710,7 +1710,7 @@ DEFINE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 		pThis->GetFLH(&flh , 0, CoordStruct::Empty);
 		auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
 		pAnim->Owner = pThis->GetOwningHouse();
-		AnimExtContainer::Instance.Find(pAnim)->Invoker = pThis;
+		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
 	}
 
 	pThis->MissionStatus = 2;
@@ -1882,7 +1882,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 					pAnim->ZAdjust = -100;
 
 				pAnim->SetHouse(pThis->GetOwningHouse());
-				AnimExtContainer::Instance.Find(pAnim)->Invoker = pThis;
+				((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
 			}
 
 			return SetUpNext;

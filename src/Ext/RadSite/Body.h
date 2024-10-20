@@ -78,3 +78,23 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
 };
+
+class FakeRadSiteClass : public RadSiteClass
+{
+public:
+	void _Detach(AbstractClass* target, bool all);
+	HouseClass* _GetOwningHouse();
+	CoordStruct __GetAltCoords()
+	{
+		auto const pCell = MapClass::Instance->GetCellAt(this->BaseCell);
+		return pCell->GetCoordsWithBridge();
+	}
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	RadSiteExtData* _GetExtData() {
+		return *reinterpret_cast<RadSiteExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+};
+static_assert(sizeof(FakeRadSiteClass) == sizeof(RadSiteClass), "Invalid Size !");

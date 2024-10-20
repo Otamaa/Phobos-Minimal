@@ -164,8 +164,7 @@ DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 						createdAnim = true;
 
 						if (const auto pTech = pThis->Owner) {
-							if (auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))
-								pAnimExt->Invoker = pTech;
+							((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pTech;
 						}
 
 						if (pAnim->Type->MakeInfantry > -1)

@@ -391,6 +391,8 @@ public:
 	Nullable<bool> RemoveParasites {};
 
 	bool Reflected { false };
+	Valueable<bool> CLIsBlack { false };
+
 public:
 
 	void InitializeConstant();
@@ -526,3 +528,16 @@ public:
 	static void Clear();
 };
 
+class FakeWarheadTypeClass : public WarheadTypeClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	WarheadTypeExtData* _GetExtData() {
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeWarheadTypeClass) == sizeof(WarheadTypeClass), "Invalid Size !");

@@ -24,7 +24,7 @@ void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 	if (!pThis->Type)
 		return;
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pTypeExt = ((FakeAnimTypeClass*)pThis->Type)->_GetExtData();
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
 	{
@@ -56,7 +56,7 @@ bool AnimExtData::OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point
 	if (!pType)
 		return false;
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
+	const auto pTypeExt = ((FakeAnimTypeClass*)pThis->Type)->_GetExtData();
 
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 	{
@@ -157,7 +157,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	if (!pThis->Type)
 		return CheckIsActive;
 
-	const auto pExt = AnimExtContainer::Instance.Find(pThis);
+	const auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	const int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
@@ -399,8 +399,7 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 	}
 	case DamageDelayTargetFlag::Invoker:
 	{
-		if (auto const pExt = AnimExtContainer::Instance.Find(pThis))
-			return pExt->Invoker;
+		return ((FakeAnimClass*)pThis)->_GetExtData()->Invoker;
 	}
 	}
 
@@ -489,9 +488,7 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 
 	if (forceOwnership || !pTypeExt->NoOwner)
 	{
-
-		if (auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim))
-			pAnimExt->Invoker = pTechnoInvoker;
+		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pTechnoInvoker;
 
 		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
 
@@ -530,8 +527,8 @@ TechnoClass* AnimExtData::GetTechnoInvoker(AnimClass* pThis)
 	}
 
 	//additional behaviour 1
-	auto const pExt = AnimExtContainer::Instance.Find(pThis);
-	if (pExt && pExt->Invoker)
+	auto const pExt = ((FakeAnimClass*)pThis)->_GetExtData();
+	if (pExt->Invoker)
 		return pExt->Invoker;
 
 	//additional behaviour 2
@@ -570,7 +567,7 @@ Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, void* _)
 void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 {
 	auto const pType = pThis->Type;
-	auto const pExt = AnimExtContainer::Instance.Find(pThis);
+	auto const pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 	auto const coords = pThis->GetCoords();
 
@@ -596,7 +593,7 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 			if (attach && pThis->OwnerObject)
 				pAnim->SetOwnerObject(pThis->OwnerObject);
 
-			auto const pExtNew = AnimExtContainer::Instance.Find(pAnim);
+			auto const pExtNew = ((FakeAnimClass*)pAnim)->_GetExtData();
 			pExtNew->Invoker = pExt->Invoker ? pExt->Invoker : pExtNew->Invoker;
 		};
 
@@ -709,7 +706,7 @@ void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool
 		pAnim->Animation.Value = static_cast<int>(pNewType->End * percentThrough);
 	}
 
-	const auto pExt = AnimExtContainer::Instance.Find(pAnim);
+	const auto pExt = ((FakeAnimClass*)pAnim)->_GetExtData();
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pNewType);
 
 	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
@@ -744,8 +741,7 @@ void AnimExtData::Serialize(T& Stm)
 // =============================
 // container
 
-AnimExtContainer AnimExtContainer::Instance;
-std::vector<AnimExtData*> AnimExtContainer::Pool;
+std::vector<AnimExtData*> FakeAnimClass::Pool;
 
 // =============================
 // hooks
@@ -795,10 +791,10 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 		return 0x0;
 	}
 
-	AnimExtContainer::Instance.ClearExtAttribute(pItem);
+	FakeAnimClass::ClearExtAttribute(pItem);
 
-	if (AnimExtData* val = AnimExtContainer::Instance.AllocateUnchecked(pItem)) {
-		AnimExtContainer::Instance.SetExtAttribute(pItem, val);
+	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(pItem)) {
+		FakeAnimClass::SetExtAttribute(pItem, val);
 
 		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
 		if (!pItem->HasExtras)
@@ -811,28 +807,66 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
-	AnimExtContainer::Instance.Remove(pItem);
+	FakeAnimClass::Remove(pItem);
 	return 0;
 }
 
 HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm) {
 
-	AnimExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->AnimClass::Load(pStm);
 
-	if(SUCCEEDED(res))
-		AnimExtContainer::Instance.LoadStatic();
+	if(SUCCEEDED(res)) {
+		FakeAnimClass::ClearExtAttribute(this);
+		auto buffer = FakeAnimClass::AllocateUnchecked(this);
+		FakeAnimClass::SetExtAttribute(this, buffer);
+
+		if (!buffer)
+			return -1;
+
+		PhobosByteStream loader { 0 };
+		if (!loader.ReadBlockFromStream(pStm))
+			return -1;
+
+		PhobosStreamReader reader { loader };
+		if (!reader.Expect(AnimExtData::Canary))
+			return -1;
+
+		reader.RegisterChange(buffer);
+		buffer->LoadFromStream(reader);
+
+		if (reader.ExpectEndOfBlock()) {
+			return S_OK;
+		}
+	}
 
 	return res;
 }
 
 HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty) {
 
-	AnimExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->AnimClass::Save(pStm , clearDirty);
 
-	if (SUCCEEDED(res))
-		AnimExtContainer::Instance.SaveStatic();
+	if (SUCCEEDED(res)) {
+		AnimExtData* const buffer = FakeAnimClass::GetExtAttribute(this);
+
+		// write the current pointer, the size of the block, and the canary
+		PhobosByteStream saver { AnimExtData::size_Of() };
+		PhobosStreamWriter writer { saver };
+
+		writer.Save(AnimExtData::Canary);
+		writer.Save(buffer);
+
+		// save the data
+		buffer->SaveToStream(writer);
+
+		// save the block
+		if (!saver.WriteBlockToStream(pStm)) {
+			//Debug::Log("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream\n", saver.Size());
+			return -1;
+		}
+
+		//Debug::Log("[SaveGame] FakeAnimClass used up 0x%X bytes\n", saver.Size());
+	}
 
 	return res;
 }
@@ -842,11 +876,11 @@ DEFINE_JUMP(VTABLE, 0x7E336C, MiscTools::to_DWORD(&FakeAnimClass::_Save))
 
 DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 {
-	GET(AnimClass* const, pThis, ESI);
+	GET(FakeAnimClass* const, pThis, ESI);
 	GET(AbstractClass*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	AnimExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
+	pThis->_GetExtData()->InvalidatePointer(target, all);
 
 	R->EBX(0);
 

@@ -3,12 +3,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-HouseClass*  __fastcall BombExtData::GetOwningHouse(BombClass* pThis, void*)
-{
-	return pThis->OwnerHouse;
-}
-
-void __fastcall BombExtData::InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed){ }
+#include <Utilities/Macro.h>
 
 // =============================
 // load / save
@@ -52,29 +47,29 @@ DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x438B40, BombClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x438BD0, BombClass_SaveLoad_Prefix, 0x8)
+HRESULT __stdcall FakeBombClass::_Load(IStream* pStm)
 {
-	GET_STACK(BombClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	BombExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
+
+	BombExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BombClass::Load(pStm);
+
+	if (SUCCEEDED(res))
+		BombExtContainer::Instance.LoadStatic();
+
+	return res;
 }
 
-DEFINE_HOOK(0x438BAD, BombClass_Load_Suffix, 0x9)
+HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, bool clearDirty)
 {
-	GET(BombClass*, pThis, ESI);
-	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->Target);
-	BombExtContainer::Instance.LoadStatic();
-	return 0x438BBB;
-}
 
-DEFINE_HOOK(0x438BE4, BombClass_Save_Suffix, 0x5)
-{
-	GET(HRESULT, nRes, EAX);
+	BombExtContainer::Instance.PrepareStream(this, pStm);
+	HRESULT res = this->BombClass::Save(pStm, clearDirty);
 
-	if(SUCCEEDED(nRes))
+	if (SUCCEEDED(res))
 		BombExtContainer::Instance.SaveStatic();
 
-	return 0;
+	return res;
 }
+
+DEFINE_JUMP(VTABLE, 0x7E3D24, MiscTools::to_DWORD(&FakeBombClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E3D28, MiscTools::to_DWORD(&FakeBombClass::_Save))

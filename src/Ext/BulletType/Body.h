@@ -202,3 +202,16 @@ double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
 {
 	return BulletTypeExtContainer::Instance.Find(pType)->GetAdjustedGravity();
 }
+
+class FakeBulletTypeClass : public BulletTypeClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	BulletTypeExtData* _GetExtData() {
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this) + BulletTypeExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeBulletTypeClass) == sizeof(BulletTypeClass), "Invalid Size !");

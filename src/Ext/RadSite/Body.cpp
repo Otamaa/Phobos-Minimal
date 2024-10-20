@@ -249,7 +249,7 @@ HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
 	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->RadSiteClass::Load(pStm);
 
-	if (SUCCEEDED(res))
+	if (SUCCEEDED(res) && Phobos::Otamaa::DisableCustomRadSite)
 		RadSiteExtContainer::Instance.LoadStatic();
 
 	return res;
@@ -261,7 +261,7 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
 	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->RadSiteClass::Save(pStm, clearDirty);
 
-	if (SUCCEEDED(res))
+	if (SUCCEEDED(res) && Phobos::Otamaa::DisableCustomRadSite)
 		RadSiteExtContainer::Instance.SaveStatic();
 
 	return res;

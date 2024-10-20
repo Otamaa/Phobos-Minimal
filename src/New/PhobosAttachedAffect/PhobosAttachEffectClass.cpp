@@ -311,7 +311,7 @@ void PhobosAttachEffectClass::CreateAnim()
 		this->Animation->Owner = this->Type->Animation_UseInvokerAsOwner ? InvokerHouse : this->Techno->Owner;
 		this->Animation->RemainingIterations = 0xFFu;
 		if (this->Type->Animation_UseInvokerAsOwner) {
-				AnimExtContainer::Instance.Find(this->Animation)->Invoker = Invoker;
+			((FakeAnimClass*)this->Animation.get())->_GetExtData()->Invoker = Invoker;
 		}
 	}
 }

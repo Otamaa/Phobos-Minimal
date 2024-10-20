@@ -206,3 +206,16 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };
+
+class FakeAnimTypeClass : public AnimTypeClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	AnimTypeExtData* _GetExtData() {
+		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeAnimTypeClass) == sizeof(AnimTypeClass), "Invalid Size !");

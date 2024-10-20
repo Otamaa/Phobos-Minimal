@@ -8,6 +8,7 @@
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
@@ -121,24 +122,24 @@ DEFINE_HOOK(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 #pragma region BunkerSounds
 DEFINE_HOOK(0x45933D, BuildingClass_BunkerWallUpSound, 0x5)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
+	GET(FakeBuildingClass* const, pThis, ESI);
+	const auto nSound = pThis->_GetTypeExtData()->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
 	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x459374;
 }
 
 DEFINE_HOOK(0x4595D9, BuildingClass_4595C0_BunkerDownSound, 0x5)
 {
-	GET(BuildingClass* const, pThis, EDI);
-	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+	GET(FakeBuildingClass* const, pThis, EDI);
+	const auto nSound = pThis->_GetTypeExtData()->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
 	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x459612;
 }
 
 DEFINE_HOOK(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+	GET(FakeBuildingClass* const, pThis, ESI);
+	const auto nSound = pThis->_GetTypeExtData()->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
 	VocClass::PlayIndexAtPos(nSound, pThis->Location);
 	return 0x4594CD;
 }
@@ -168,11 +169,8 @@ DEFINE_HOOK(0x44A86A, BuildingClass_Mi_Selling_PackupSound, 0xC)
 
 DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 {
-	GET(BuildingClass* const, pThis, ESI);
-
-	R->EAX(int(BuildingTypeExtContainer::Instance.Find(pThis->Type)
-			->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-
+	GET(FakeBuildingClass* const, pThis, ESI);
+	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
 	return 0x450837;
 }
 

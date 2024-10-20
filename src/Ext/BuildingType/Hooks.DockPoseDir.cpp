@@ -117,7 +117,7 @@ DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 	AircraftClass::Array->for_each([](AircraftClass* const pThis) {
 		if (pThis && pThis->Type->AirportBound) {
 			if (auto pCell = pThis->GetCell()) {
-				if (auto pBuilding = pCell->GetBuilding()) {	
+				if (auto pBuilding = pCell->GetBuilding()) {
 					if (pBuilding->Type->Helipad && pThis->Type->Dock.Contains(pBuilding->Type)) {
 						pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
 						pBuilding->SendCommand(RadioCommand::RequestTether, pThis);

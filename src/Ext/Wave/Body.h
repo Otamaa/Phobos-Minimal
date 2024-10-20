@@ -362,3 +362,15 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
 };
 
+class FakeWaveClass : public WaveClass
+{
+public:
+
+	void _Detach(AbstractClass* target, bool all);
+
+	WaveExtData* _GetExtData() {
+		return *reinterpret_cast<WaveExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeWaveClass) == sizeof(WaveClass), "Invalid Size !");

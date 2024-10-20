@@ -161,3 +161,29 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(BulletExtContainer, BulletExtData, "BulletClass");
 };
+
+class BulletTypeExtData;
+class FakeBulletClass : public BulletClass
+{
+public:
+
+	void _AnimPointerExpired(AnimClass* pTarget)
+	{
+		this->ObjectClass::AnimPointerExpired(pTarget);
+	}
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	void _Detach(AbstractClass* target, bool all);
+
+	BulletExtData* _GetExtData() {
+		return *reinterpret_cast<BulletExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	BulletTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Type) + 0x2C4);
+	}
+};
+
+static_assert(sizeof(FakeBulletClass) == sizeof(BulletClass), "Invalid Size !");

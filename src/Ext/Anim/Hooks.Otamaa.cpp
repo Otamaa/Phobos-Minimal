@@ -96,9 +96,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 	if (value > 0)
 	{
-		const auto pTibExt = TiberiumExtContainer::Instance.Find(
-			TiberiumClass::Array->Items[tib_idx]
-		);
+		const auto pTibExt = ((FakeTiberiumClass*)TiberiumClass::Array->Items[tib_idx])->_GetExtData();
 
 		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {

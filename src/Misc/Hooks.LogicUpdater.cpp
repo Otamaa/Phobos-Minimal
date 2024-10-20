@@ -414,18 +414,11 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 		{
 			auto pExt = BuildingExtContainer::Instance.Find(pBldTarget);
 
-			std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
-			{ {
-			{ pBldTarget->Type , &pBldTarget->CashProductionTimer },
-			{ pBldTarget->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
-			{ pBldTarget->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
-			 { pBldTarget->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
-			} };
-
-			for (auto& [pbld, timer] : Timers)
-			{
-				if (pbld)
-					timer->Pause();
+			pBldTarget->CashProductionTimer.Pause();
+			for (size_t i = 0; i < std::size(pBldTarget->Upgrades); ++i) {
+				if (pBldTarget->Upgrades[i]) {
+					pExt->CashUpgradeTimers[i].Pause();
+				}
 			}
 		}
 	}

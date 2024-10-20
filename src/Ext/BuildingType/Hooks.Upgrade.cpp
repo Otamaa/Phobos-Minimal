@@ -61,9 +61,9 @@ DEFINE_HOOK(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
 	enum { SkipGameCode = 0x4409C7 };
 
 	GET(BuildingClass*, pThis, ESI);
-	GET(BuildingClass*, pTarget, EDI);
+	GET(FakeBuildingClass*, pTarget, EDI);
 
-	auto const pTargetExt = BuildingExtContainer::Instance.Find(pTarget);
+	auto const pTargetExt = pTarget->_GetExtData();
 	pTargetExt->PoweredUpToLevel = pTarget->UpgradeLevel + 1;
 	int animIndex = pTarget->UpgradeLevel;
 
@@ -86,9 +86,9 @@ DEFINE_HOOK(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
 {
 	enum { SkipGameCode = 0x451638 };
 
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
 
-	const int animIndex = BuildingExtContainer::Instance.Find(pThis)->PoweredUpToLevel - 1;
+	const int animIndex = pThis->_GetExtData()->PoweredUpToLevel - 1;
 
 	if (animIndex) {
 		R->EAX(animIndex);

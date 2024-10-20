@@ -312,22 +312,22 @@ DEFINE_HOOK(0x42350C, AnimClass_Draw_ForceShieldICColor, 0x7)
 
 DEFINE_HOOK(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EAX);
 
 	if (!pBuilding)
-		R->EAX(AnimExtContainer::Instance.Find(pThis)->ParentBuilding);
+		R->EAX(pThis->_GetExtData()->ParentBuilding);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 	GET(int, color, EBP);
 	REF_STACK(int, intensity, STACK_OFFSET(0x110, -0xD8));
 
-	auto const pBuilding = AnimExtContainer::Instance.Find(pThis)->ParentBuilding;
+	auto const pBuilding = pThis->_GetExtData()->ParentBuilding;
 
 	if (!pBuilding || !pBuilding->IsAlive || pBuilding->InLimbo)
 		return 0;

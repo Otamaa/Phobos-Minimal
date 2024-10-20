@@ -79,22 +79,46 @@ private:
 	void Serialize(T& Stm);
 };
 
-class AnimExtContainer final : public Container<AnimExtData>
+class AnimTypeExtData;
+class FakeAnimClass : public AnimClass
 {
 public:
-
-	//all inactive pointer will be on the back
 	static std::vector<AnimExtData*> Pool;
-	static AnimExtContainer Instance;
 
-	AnimExtData* AllocateUnchecked(AnimClass* key)
+	static constexpr FORCEINLINE void ClearExtAttribute(AnimClass* key)
+	{
+		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+	}
+
+	static constexpr FORCEINLINE void SetExtAttribute(AnimClass* key, AnimExtData* val)
+	{
+		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
+	}
+
+	static constexpr FORCEINLINE AnimExtData* GetExtAttribute(AnimClass* key)
+	{
+		return (AnimExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
+	}
+
+	static constexpr AnimExtData* TryFind(AnimClass* key)
+	{
+		if (!key)
+			return nullptr;
+
+		return FakeAnimClass::GetExtAttribute(key);
+	}
+
+	static AnimExtData* AllocateUnchecked(AnimClass* key)
 	{
 		AnimExtData* val = nullptr;
-		if (!Pool.empty()) {
+		if (!Pool.empty())
+		{
 			val = Pool.front();
 			Pool.erase(Pool.begin());
 			//re-init
-		} else {
+		}
+		else
+		{
 			val = DLLAllocWithoutCTOR<AnimExtData>();
 		}
 
@@ -108,34 +132,34 @@ public:
 		return nullptr;
 	}
 
-	AnimExtData* Allocate(AnimClass* key)
+	static AnimExtData* Allocate(AnimClass* key)
 	{
 		if (!key || Phobos::Otamaa::DoingLoadGame)
 			return nullptr;
 
-		this->ClearExtAttribute(key);
+		FakeAnimClass::ClearExtAttribute(key);
 
 		if (AnimExtData* val = AllocateUnchecked(key))
 		{
-			this->SetExtAttribute(key, val);
+			FakeAnimClass::SetExtAttribute(key, val);
 			return val;
 		}
 
 		return nullptr;
 	}
 
-	void Remove(AnimClass* key)
+	static void Remove(AnimClass* key)
 	{
-		if (AnimExtData* Item = TryFind(key))
+		if (AnimExtData* Item = FakeAnimClass::TryFind(key))
 		{
 			Item->~AnimExtData();
 			Item->AttachedToObject = nullptr;
 			Pool.push_back(Item);
-			this->ClearExtAttribute(key);
+			FakeAnimClass::ClearExtAttribute(key);
 		}
 	}
 
-	void Clear()
+	static void Clear()
 	{
 		if (!Pool.empty())
 		{
@@ -148,5 +172,20 @@ public:
 		}
 	}
 
-	//CONSTEXPR_NOCOPY_CLASSB(AnimExtContainer , AnimExtData, "AnimClass");
+	HouseClass* _GetOwningHouse()
+	{
+		return this->Owner;
+	}
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	AnimExtData* _GetExtData() {
+		return *reinterpret_cast<AnimExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	AnimTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
 };
+static_assert(sizeof(FakeAnimClass) == sizeof(AnimClass), "Invalid Size !");

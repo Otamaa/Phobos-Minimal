@@ -61,11 +61,11 @@ WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveCol
 	if (!colorDatas->Color && !colorDatas->Intent_Color.IsValid())
 		return false;
 
-	ColorStruct modified;
+	ColorStruct modified {};
 	Drawing::WordToColorStruct(src, modified);
 
 	// ugly hack to fix byte wraparound problems
-	auto const upcolor = [=, &modified, &colorDatas]
+	auto const upcolor = [&modified, &colorDatas , &intensity]
 	(int Point3D::* intentmember, BYTE ColorStruct::* member)
 	{
 		auto const component = std::clamp(modified.*member

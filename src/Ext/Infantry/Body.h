@@ -113,3 +113,33 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };
+
+class FakeInfantryClass : public InfantryClass
+{
+public:
+	void _Dummy(Mission, bool) RX;
+	DamageState _IronCurtain(int nDur, HouseClass* pSource, bool bIsFC)
+	{
+		if (this->Type->Engineer && this->TemporalTargetingMe && this->Destination)
+		{
+			if (auto const pCell = this->GetCell())
+			{
+				if (auto const pBld = pCell->GetBuilding())
+				{
+					if (this->Destination == pBld && pBld->Type->BridgeRepairHut)
+					{
+						return DamageState::Unaffected;
+					}
+				}
+			}
+		}
+
+		return this->TechnoClass::IronCurtain(nDur, pSource, bIsFC);
+	}
+
+	InfantryExtData* _GetExtData()
+	{
+		return *reinterpret_cast<InfantryExtData**>(((DWORD)this) + InfantryExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeInfantryClass) == sizeof(InfantryClass), "Invalid Size !");

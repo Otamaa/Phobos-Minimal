@@ -14,13 +14,13 @@ DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 {
 	enum { SkipGameCode = 0x4FB702 };
 
-	GET(HouseClass* const, pThis, EDI);
+	GET(FakeHouseClass* const, pThis, EDI);
 	GET(UnitTypeClass* const, pUnitType, EDX);
 	GET(int const, ID, EAX);
 
 	if (pUnitType->Naval)
 	{
-		HouseExtContainer::Instance.Find(pThis)->LastBuiltNavalVehicleType = ID;
+		pThis->_GetExtData()->LastBuiltNavalVehicleType = ID;
 		return SkipGameCode;
 	}
 
@@ -32,10 +32,10 @@ DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 	enum { Occured = 0x71F014, Skip = 0x71F163 };
 
 	GET(TEventClass* const, pThis, EBP);
-	GET(HouseClass* const, pHouse, EAX);
+	GET(FakeHouseClass* const, pHouse, EAX);
 
 	if (pHouse->LastBuiltVehicleType != pThis->Value &&
-		HouseExtContainer::Instance.Find(pHouse)->LastBuiltNavalVehicleType != pThis->Value)
+		pHouse->_GetExtData()->LastBuiltNavalVehicleType != pThis->Value)
 	{
 		return Skip;
 	}
@@ -152,9 +152,9 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 {
 	enum { SkipGameCode = 0x4F9265, CheckBuildingProduction = 0x4F9240 };
 
-	GET(HouseClass* const, pThis, ESI);
+	GET(FakeHouseClass* const, pThis, ESI);
 
-	auto const pExt = HouseExtContainer::Instance.Find(pThis);
+	auto const pExt = pThis->_GetExtData();
 
 	bool cantBuild = pThis->ProducingUnitTypeIndex == -1 && pThis->ProducingInfantryTypeIndex == -1 &&
 		pThis->ProducingAircraftTypeIndex == -1 && pExt->ProducingNavalUnitTypeIndex == -1;
@@ -180,7 +180,7 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 
 DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 {
-	GET(HouseClass* const, pThis, ESI);
-	HouseExtContainer::Instance.Find(pThis)->ProducingNavalUnitTypeIndex = -1;
+	GET(FakeHouseClass* const, pThis, ESI);
+	pThis->_GetExtData()->ProducingNavalUnitTypeIndex = -1;
 	return 0;
 }

@@ -101,7 +101,8 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionRed);
 }
 
-DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5){
+DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)
+{
 	GET(DWORD, ptr, ESI);
 	GET(CCINIClass*, pINI, EDI);
 
@@ -142,7 +143,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
-	if (!Phobos::Otamaa::DisableCustomRadSite) {
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
 		RadTypeClass::LoadFromINIOnlyTheList(pINI);
 	}
 
@@ -155,7 +157,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
 
-	if (Data->HugeBar_Config.empty()) {
+	if (Data->HugeBar_Config.empty())
+	{
 		Data->HugeBar_Config.emplace_back(DisplayInfoType::Health);
 		Data->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
 	}
@@ -191,7 +194,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	//got invalidated early , so parse it again
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*,true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<ScriptTypeClass*, true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
 	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
@@ -238,9 +241,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DecloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DecloakAnim");
 	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
 
-	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION , "VeinholeWarhead");
+	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION, "VeinholeWarhead");
 
-	pData->WallTowers.Read(iniEX , GENERAL_SECTION , "WallTowers");
+	pData->WallTowers.Read(iniEX, GENERAL_SECTION, "WallTowers");
 	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
 		pData->WallTowers.push_back(pThis->WallTower);
 
@@ -254,20 +257,24 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (!pData->DefaultExplodeFireAnim)
 		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
 
-	for(int i = 0; i < WeaponTypeClass::Array->Count; ++i) {
+	for (int i = 0; i < WeaponTypeClass::Array->Count; ++i)
+	{
 		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
 	}
 
-	for (int i = 0; i < BuildingTypeClass::Array->Count; ++i) {
+	for (int i = 0; i < BuildingTypeClass::Array->Count; ++i)
+	{
 		BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[i])
 			->CompleteInitialization();
 	}
 }
 
-static bool NOINLINE IsVanillaDummy(const char* ID) {
+static bool NOINLINE IsVanillaDummy(const char* ID)
+{
 	static constexpr const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
 
-	for (auto const& gameDummy : exception) {
+	for (auto const& gameDummy : exception)
+	{
 		if (IS_SAME_STR_(ID, gameDummy))
 			return true;
 	}
@@ -280,13 +287,14 @@ static bool NOINLINE IsVanillaDummy(const char* ID) {
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
-	for (int i = 0; i < SideClass::Array->Count; ++i){
+	for (int i = 0; i < SideClass::Array->Count; ++i)
+	{
 		auto pExt = SideExtContainer::Instance.Find(SideClass::Array->Items[i]);
 
 		Crews[i] = pExt->GetCrew();
 		// remove all types that cannot paradrop
-		if(pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
-			 Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, SideClass::Array->Items[i]->ID, "ParaDrop.Types");
+		if (pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
+			Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, SideClass::Array->Items[i]->ID, "ParaDrop.Types");
 	}
 
 	auto pINI = CCINIClass::INI_Rules();
@@ -316,7 +324,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		if (pItem->Sight < 0) {
+		if (pItem->Sight < 0)
+		{
 			Debug::Log("TechnoType[%s - %s] , registered with less than 0 Sight , Fixing.\n",
 			pItem->ID, myClassName);
 			Debug::RegisterParserError();
@@ -331,7 +340,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (pExt->Promote_Vet_Type && pExt->Promote_Vet_Type->Strength <= 0)
 		{
 			Debug::Log("TechnoType[%s - %s] , registered PromoteVet[%s] with 0 strength , Fixing.\n",
-				pItem->ID, myClassName , pExt->Promote_Vet_Type->ID);
+				pItem->ID, myClassName, pExt->Promote_Vet_Type->ID);
 
 			pExt->Promote_Vet_Type = nullptr;
 			Debug::RegisterParserError();
@@ -385,12 +394,14 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (isFoot && !pExt->IsDummy)
 		{
-			if(pItem->SpeedType == SpeedType::None)	{
+			if (pItem->SpeedType == SpeedType::None)
+			{
 				Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
 
-			if(pItem->MovementZone == MovementZone::None) {
+			if (pItem->MovementZone == MovementZone::None)
+			{
 				Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
@@ -402,8 +413,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
-		if (pItem->MainVoxel.VXL) {
-			if (auto pHVA = pItem->MainVoxel.HVA) {
+		if (pItem->MainVoxel.VXL)
+		{
+			if (auto pHVA = pItem->MainVoxel.HVA)
+			{
 
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
@@ -417,7 +430,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 			else
 			{
-				Debug::FatalError("Techno[%s - %s] Has VXL but has no HVA wtf ?\n" , myClassName , pItem->ID);
+				Debug::FatalError("Techno[%s - %s] Has VXL but has no HVA wtf ?\n", myClassName, pItem->ID);
 			}
 		}
 
@@ -548,7 +561,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const auto pExt = WeaponTypeExtContainer::Instance.Find(pItem);
 
 		if ((pItem->IsRailgun || pExt->IsDetachedRailgun || pItem->UseSparkParticles || pItem->UseFireParticles)
-				&& !pItem->AttachedParticleSystem) {
+				&& !pItem->AttachedParticleSystem)
+		{
 
 			Debug::Log("Weapon[%s] is an Railgun/Detached Railgun/UseSparkParticles/UseFireParticles but it missing AttachedParticleSystem", pItem->ID);
 			Debug::RegisterParserError();
@@ -560,8 +574,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto const& pConst : RulesClass::Instance->BuildConst) {
-		if (!pConst->AIBuildThis) {
+	for (auto const& pConst : RulesClass::Instance->BuildConst)
+	{
+		if (!pConst->AIBuildThis)
+		{
 			Debug::Log("[AI]BuildConst= includes [%s], which doesn't have "
 				"AIBuildThis=yes!\n", pConst->ID);
 		}
@@ -572,7 +588,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	//	Debug::RegisterParserError();
 	//}
 
-	for (auto pWH : *WarheadTypeClass::Array) {
+	for (auto pWH : *WarheadTypeClass::Array)
+	{
 		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 		{
 			const size_t versesSize = pWHExt->Verses.size();
@@ -585,60 +602,70 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i) {
-		if (auto& pShield = ShieldTypeClass::Array[i]) {
-			if (pShield->Strength <= 0) {
+	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i)
+	{
+		if (auto& pShield = ShieldTypeClass::Array[i])
+		{
+			if (pShield->Strength <= 0)
+			{
 				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array) {
+	for (auto pBullet : *BulletTypeClass::Array)
+	{
 
 		//if(PhobosTrajectoryType::TrajectoryValidation(pBullet))
 		//	Debug::RegisterParserError();
 
 		auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 		{
-			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
+			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke)
+			{
 				Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pBullet->ID, pExt->AttachedSystem->ID);
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	for (auto pHouse : *HouseTypeClass::Array) {
+	for (auto pHouse : *HouseTypeClass::Array)
+	{
 		auto pExt = HouseTypeExtContainer::Instance.Find(pHouse);
 
 		{
 			// remove all types that cannot paradrop
 
-			if(!pExt->ParaDropTypes.empty())
+			if (!pExt->ParaDropTypes.empty())
 				Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, pHouse->ID, "ParaDrop.Types");
 
-			if(pExt->StartInMultiplayer_Types.HasValue() && !pExt->StartInMultiplayer_Types.empty())
+			if (pExt->StartInMultiplayer_Types.HasValue() && !pExt->StartInMultiplayer_Types.empty())
 				Helpers::Alex::remove_non_paradroppables(pExt->StartInMultiplayer_Types, pHouse->ID, "StartInMultiplayer.Types");
 		}
 	}
 
-	for (auto pSuper : *SuperWeaponTypeClass::Array) {
+	for (auto pSuper : *SuperWeaponTypeClass::Array)
+	{
 		const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
 		{
 			//if (auto pNew = pSuperExt->GetNewSWType()) {
 			//	pNew->ValidateData(pSuperExt);
 			//}
 
-			for (auto& pTech : pSuperExt->Aux_Techno) {
+			for (auto& pTech : pSuperExt->Aux_Techno)
+			{
 				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
 			}
 
-			if(!pSuperExt->DropPod_Types.empty())
+			if (!pSuperExt->DropPod_Types.empty())
 				Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 
-			for (auto& para : pSuperExt->ParaDropDatas) {
-				for (auto& pVec : para.second) {
-					if(!pVec.Types.empty())
+			for (auto& para : pSuperExt->ParaDropDatas)
+			{
+				for (auto& pVec : para.second)
+				{
+					if (!pVec.Types.empty())
 						Helpers::Alex::remove_non_paradroppables(pVec.Types, pSuper->ID, "ParaDrop.Types");
 				}
 			}
@@ -652,7 +679,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	//	}
 	//}
 
-	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected) {
+	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected)
+	{
 		Debug::FatalErrorAndExit(
 			"One or more errors were detected while parsing the INI files.\r\n"
 			"Please review the contents of the debug log and correct them.");
@@ -678,7 +706,8 @@ void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	if(pINI == CCINIClass::INI_Rules()){
+	if (pINI == CCINIClass::INI_Rules())
+	{
 
 		//Load All the default value here
 		this->ElectricDeath = AnimTypeClass::FindOrAllocate("ELECTRO");
@@ -729,7 +758,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->JumpjetCellLightApplyBridgeHeight.Read(exINI, GameStrings::AudioVisual, "JumpjetCellLightApplyBridgeHeight");
 
 	double AirShadowBaseScale = 0.0;
-	if (detail::read<double>(AirShadowBaseScale ,exINI , GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
+	if (detail::read<double>(AirShadowBaseScale, exINI, GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
 		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
 
 	this->HeightShadowScaling.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling");
@@ -744,9 +773,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
 	this->Aircraft_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
 
-	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0) {
+	if (pINI->ReadString("GlobalControls", "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0)
+	{
 		bool temp[3] {};
-		for (int i = 0; i < (int)Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i) {
+		for (int i = 0; i < (int)Parser<bool, 3>::Parse(Phobos::readBuffer, temp); ++i)
+		{
 			int diffIdx = 2 - i; // remapping so that HouseClass::AIDifficulty can be used as an index
 			this->AllowBypassBuildLimit[diffIdx] = temp[i];
 		}
@@ -1400,7 +1431,8 @@ DEFINE_HOOK(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(IStream*, pStm, 0x4);
 
-	if (R->Origin() == 0x675210){
+	if (R->Origin() == 0x675210)
+	{
 		pItem->BarrelDebris.Clear();
 		pItem->DeadBodies.Clear();
 		pItem->DropPod.Clear();
@@ -1436,7 +1468,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 {
 	auto buffer = RulesExtData::Instance();
 	/* 5 extra boolean that added to the save
-	 	.Process(Phobos::Config::ArtImageSwap)
+		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
@@ -1456,7 +1488,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_JUMP(LJMP, 0x52C9C4 , 0x52CA37);
+DEFINE_JUMP(LJMP, 0x52C9C4, 0x52CA37);
 
 // Read on very first RulesClass::Process function
 DEFINE_HOOK(0x668BF0, RulesClass_Process_Addition, 0x5)
@@ -1473,22 +1505,28 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 {
 	GET(CCINIClass*, pINI, ESI);
 
-	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn) {
-		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer)) {
+	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn)
+	{
+		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer))
+		{
 			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
 		}
 	}
 
 	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 
-	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn) {
-		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer)) {
+	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
+	{
+		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer))
+		{
 			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
 		}
 	}
 
-	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn) {
-		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer)) {
+	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn)
+	{
+		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer))
+		{
 			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
 		}
 	}
@@ -1496,74 +1534,78 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 	return 0x668DD2;
 }
 
-class FakeRulesClass : public RulesClass
+
+void FakeRulesClass::_ReadJumpjet(CCINIClass* pINI)
 {
-public:
-	void _ReadJumpjet(CCINIClass* pINI) {
-		RocketTypeClass::AddDefaults();
-		RocketTypeClass::LoadFromINIList(pINI);
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIList(pINI);
+}
+
+void FakeRulesClass::_ReadColors(CCINIClass* pINI)
+{
+	RulesExtData::LoadEarlyBeforeColor(this, pINI);
+
+	this->Read_JumpjetControls(pINI);
+	this->Read_Colors(pINI);
+}
+
+void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
+{
+
+	RulesExtData::LoadBeforeGeneralData(this, pINI);
+	this->Read_General(pINI);
+	RocketTypeClass::ReadListFromINI(pINI);
+
+	SideClass::Array->for_each([pINI](SideClass* pSide)
+{
+	SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+	});
+
+	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse)
+{
+	HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+	});
+
+	// All TypeClass Created but not yet read INI
+	//	RulesClass::Initialized = true;
+
+	RulesExtData::s_LoadBeforeTypeData(this, pINI);
+	this->Read_Types(pINI);
+
+	// Ensure entry not fail because of late instantiation
+	// add more if needed , it will double the error log at some point
+	// but it will take care some of missing stuffs that previously loaded late
+
+	for (auto pWeapon : *WeaponTypeClass::Array)
+	{
+		pWeapon->LoadFromINI(pINI);
 	}
 
-	void _ReadColors(CCINIClass* pINI) {
-		RulesExtData::LoadEarlyBeforeColor(this, pINI);
-
-		this->Read_JumpjetControls(pINI);
-		this->Read_Colors(pINI);
+	for (auto pBullet : *BulletTypeClass::Array)
+	{
+		pBullet->LoadFromINI(pINI);
 	}
 
-	void _ReadGeneral(CCINIClass* pINI) {
-
-		RulesExtData::LoadBeforeGeneralData(this, pINI);
-		this->Read_General(pINI);
-		RocketTypeClass::ReadListFromINI(pINI);
-
-		SideClass::Array->for_each([pINI](SideClass* pSide) {
-			SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
-		});
-
-		HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
-			HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
-		});
-
-		// All TypeClass Created but not yet read INI
-		//	RulesClass::Initialized = true;
-
-		RulesExtData::s_LoadBeforeTypeData(this, pINI);
-		this->Read_Types(pINI);
-
-		// Ensure entry not fail because of late instantiation
-		// add more if needed , it will double the error log at some point
-		// but it will take care some of missing stuffs that previously loaded late
-
-		for (auto pWeapon : *WeaponTypeClass::Array) {
-			pWeapon->LoadFromINI(pINI);
-		}
-
-		for (auto pBullet : *BulletTypeClass::Array) {
-				pBullet->LoadFromINI(pINI);
-		}
-
-		for (auto pWarhead : *WarheadTypeClass::Array) {
-			pWarhead->LoadFromINI(pINI);
-		}
-
-		for (auto pAnims : *AnimTypeClass::Array) {
-			pAnims->LoadFromINI(pINI);
-		}
-
-		RulesExtData::LoadAfterTypeData(this, pINI);
-		this->Read_Difficulties(pINI);
-		TiberiumClass::_ReadFromINI(pINI);
-		RulesExtData::LoadAfterAllLogicData(this, pINI);
+	for (auto pWarhead : *WarheadTypeClass::Array)
+	{
+		pWarhead->LoadFromINI(pINI);
 	}
-};
-static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");
-//===================================================================================
+
+	for (auto pAnims : *AnimTypeClass::Array)
+	{
+		pAnims->LoadFromINI(pINI);
+	}
+
+	RulesExtData::LoadAfterTypeData(this, pINI);
+	this->Read_Difficulties(pINI);
+	TiberiumClass::_ReadFromINI(pINI);
+	RulesExtData::LoadAfterAllLogicData(this, pINI);
+}
 
 DEFINE_JUMP(CALL, 0x668EB8, MiscTools::to_DWORD(&FakeRulesClass::_ReadJumpjet));
-DEFINE_JUMP(CALL, 0x52D0FF,  MiscTools::to_DWORD(&FakeRulesClass::_ReadColors));
-DEFINE_JUMP(CALL, 0x668EE8 , MiscTools::to_DWORD(&FakeRulesClass::_ReadGeneral));
-DEFINE_JUMP(LJMP, 0x668EED , 0x668F6A);
+DEFINE_JUMP(CALL, 0x52D0FF, MiscTools::to_DWORD(&FakeRulesClass::_ReadColors));
+DEFINE_JUMP(CALL, 0x668EE8, MiscTools::to_DWORD(&FakeRulesClass::_ReadGeneral));
+DEFINE_JUMP(LJMP, 0x668EED, 0x668F6A);
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
@@ -1588,37 +1630,40 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
-	Debug::Log("Scenario Map Name [%s] \n" , SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
+	Debug::Log("Scenario Map Name [%s] \n", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
 
-	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
-		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
+	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex))
+	{
+		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape)
+		{
 			GameDelete<true, true>(std::exchange(MouseClass::ShapeData(), pSideMouse));
 		}
 	}
 
-	HouseClass::Array->for_each([](HouseClass* it) {
-		const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
-		Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
-		it->PlainName ? it->PlainName : NONE_STR,
-		it->IsHumanPlayer,
-		ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
-		it->ColorSchemeIndex,
-		it->ArrayIndex,
-		pType ? pType->Name : NONE_STR,
-		it->Edge,
-		(int)it->StartingAllies.data,
-		it->StartingCell.X,
-		it->StartingCell.Y,
-		it->Visionary,
-		it->MapIsClear,
-		it->Available_Money()
-		);
+	HouseClass::Array->for_each([](HouseClass* it)
+ {
+	 const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
+	 Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+	 it->PlainName ? it->PlainName : NONE_STR,
+	 it->IsHumanPlayer,
+	 ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
+	 it->ColorSchemeIndex,
+	 it->ArrayIndex,
+	 pType ? pType->Name : NONE_STR,
+	 it->Edge,
+	 (int)it->StartingAllies.data,
+	 it->StartingCell.X,
+	 it->StartingCell.Y,
+	 it->Visionary,
+	 it->MapIsClear,
+	 it->Available_Money()
+	 );
 	});
 
 	return 0x0;
 }
 
- // remove reading warhead from `SpecialWeapon`
+// remove reading warhead from `SpecialWeapon`
 DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x5B //pop EBX
 	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
@@ -1627,7 +1672,8 @@ DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x90, 0x90, 0x90, 0x90, 0x90
 );
 
-DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5) {
+DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
+{
 
 	GET(ParticleSystemClass*, pMem, ESI);
 

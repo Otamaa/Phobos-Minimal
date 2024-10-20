@@ -352,7 +352,7 @@ DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 	LogPool(TechnoExtContainer)
 	LogPool(BuildingExtContainer)
 	LogPool(InfantryExtContainer)
-	LogPool(AnimExtContainer)
+	Debug::Log("%s MemoryPool size %d\n", _STR_(s), FakeAnimClass::Pool.size());
 	LogPool(BulletExtContainer)
 	LogPool(ParticleExtContainer)
 	LogPool(ParticleSystemExtContainer)
@@ -368,7 +368,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	MouseClassExt::ClearCameos();
 
 	TechnoExtContainer::Instance.Clear();
-	AnimExtContainer::Instance.Clear();
+	FakeAnimClass::Clear();
 	BulletExtContainer::Instance.Clear();
 	ParticleExtContainer::Instance.Clear();
 	ParticleSystemExtContainer::Instance.Clear();
@@ -424,7 +424,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		TechnoExtContainer::Instance.Pool.reserve(2000);
 		BuildingExtContainer::Instance.Pool.reserve(2000);
 		InfantryExtContainer::Instance.Pool.reserve(2000);
-		AnimExtContainer::Instance.Pool.reserve(10000);
+		FakeAnimClass::Pool.reserve(10000);
 		BulletExtContainer::Instance.Pool.reserve(1000);
 		ParticleExtContainer::Instance.Pool.reserve(1000);
 		ParticleSystemExtContainer::Instance.Pool.reserve(2000);

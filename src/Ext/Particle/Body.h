@@ -107,3 +107,23 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(ParticleExtContainer, ParticleExtData, "ParticleClass");
 };
+
+class ParticleTypeExtData;
+class FakeParticleClass : public ParticleClass
+{
+public:
+	void _Detach(AbstractClass* target, bool all);
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	ParticleExtData* _GetExtData() {
+		return *reinterpret_cast<ParticleExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	ParticleTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<ParticleTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeParticleClass) == sizeof(ParticleClass), "Invalid Size !");

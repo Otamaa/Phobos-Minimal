@@ -86,6 +86,9 @@ DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
 			return SkipFlash;
 
+		if (pWHExt->CLIsBlack)
+			R->EBX(SpotlightFlags::NoColor);
+
 		return Continue;
 	}
 

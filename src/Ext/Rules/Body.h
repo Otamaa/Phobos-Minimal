@@ -441,3 +441,12 @@ public:
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
 };
+
+class FakeRulesClass : public RulesClass
+{
+public:
+	void _ReadJumpjet(CCINIClass* pINI);
+	void _ReadColors(CCINIClass* pINI);
+	void _ReadGeneral(CCINIClass* pINI);
+};
+static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");

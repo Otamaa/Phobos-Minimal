@@ -442,3 +442,13 @@ public:
 //	BuildingTypeExtContainer& operator=(const BuildingTypeExtContainer& other) = delete;
 
 };
+
+class FakeBuildingTypeClass : public BuildingTypeClass
+{
+public:
+
+	BuildingTypeExtData* _GetExtData() {
+		return *reinterpret_cast<BuildingTypeExtData**>(((DWORD)this) + BuildingTypeExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeBuildingTypeClass) == sizeof(BuildingTypeClass), "Invalid Size !");

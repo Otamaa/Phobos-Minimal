@@ -115,3 +115,17 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
 };
+
+class FakeTEventClass : public TEventClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	TEventExtData* _GetExtData() {
+		return *reinterpret_cast<TEventExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeTEventClass) == sizeof(TEventClass), "Invalid Size !");

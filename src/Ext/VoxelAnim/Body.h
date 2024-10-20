@@ -132,3 +132,29 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
 };
 
+class VoxelAnimTypeExtData;
+class FakeVoxelAnimClass : public VoxelAnimClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	void _Detach(AbstractClass* target, bool all);
+	void _RemoveThis()
+	{
+		if (this->Type)
+			VocClass::PlayIndexAtPos(this->Type->StopSound, this->Location);
+
+		this->ObjectClass::UnInit();
+	}
+
+	VoxelAnimExtData* _GetExtData() {
+		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + VoxelAnimExtData::ExtOffset);
+	}
+
+	VoxelAnimTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<VoxelAnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
+};
+static_assert(sizeof(FakeVoxelAnimClass) == sizeof(VoxelAnimClass), "Invalid Size !");

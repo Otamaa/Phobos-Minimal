@@ -41,11 +41,10 @@ DEFINE_HOOK(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 
 DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
-		R->EDX(BuildingTypeExtContainer::Instance.Find(pThis->Type)
-		->OccupierMuzzleFlashes.data() + pThis->FiringOccupantIndex);
+		R->EDX(pThis->_GetTypeExtData()->OccupierMuzzleFlashes.data() + pThis->FiringOccupantIndex);
 	}
 
 	return 0;
@@ -53,12 +52,11 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 
 DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
 	if (pThis->Type->MaxNumberOccupants > 10) {
 		GET(int, nFiringIndex, EDI);
-		R->ECX(BuildingTypeExtContainer::Instance.Find(pThis->Type)
-		->OccupierMuzzleFlashes.data() + nFiringIndex);
+		R->ECX(pThis->_GetTypeExtData()->OccupierMuzzleFlashes.data() + nFiringIndex);
 	}
 
 	return 0;
@@ -169,6 +167,7 @@ bool FORCEINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, i
 	return retval;
 }
 #ifndef Original
+
  DEFINE_HOOK(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
  	GET(DisplayClass*, pThis, ECX);
  	GET_STACK(BuildingTypeClass*, pObj, 0x4);

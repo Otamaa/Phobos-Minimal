@@ -239,7 +239,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 	if (!pThis->Type)
 		return;
 
-	auto pExt = AnimExtContainer::Instance.Find(pThis);
+	auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 
 	if (pExt->AllowCreateUnit)
 		return;
@@ -417,7 +417,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 		return;
 
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	const auto pAnimExt = AnimExtContainer::Instance.Find(pThis);
+	const auto pAnimExt = ((FakeAnimClass*)pThis)->_GetExtData();
 
 	//location is not marked , so dont !
 	if (!pAnimExt->AllowCreateUnit)
@@ -465,7 +465,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			if (auto pSpawnAnim = pTypeExt->CreateUnit_SpawnAnim) {
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pSpawnAnim, pAnimExt->CreateUnitLocation);
 				pCreateUnitAnim->Owner = decidedOwner;
-				AnimExtContainer::Instance.Find(pCreateUnitAnim)->Invoker = AnimExtData::GetTechnoInvoker(pThis);
+				((FakeAnimClass*)pCreateUnitAnim)->_GetExtData()->Invoker = AnimExtData::GetTechnoInvoker(pThis);
 			}
 		}
 	}
@@ -527,7 +527,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 
 	auto pAnim = GameCreate<AnimClass>(pAnimType, location);
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
-	auto pAnimExt = AnimExtContainer::Instance.Find(pAnim);
+	auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
 	HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
 
@@ -688,7 +688,7 @@ HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
 	HRESULT res = this->AnimTypeClass::Load(pStm);
 
 	if (SUCCEEDED(res))
-		AnimExtContainer::Instance.LoadStatic();
+		AnimTypeExtContainer::Instance.LoadStatic();
 
 	return res;
 }

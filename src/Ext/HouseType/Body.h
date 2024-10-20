@@ -124,3 +124,15 @@ public:
 //	HouseTypeExtContainer& operator=(const HouseTypeExtContainer& other) = delete;
 
 };
+
+class FakeHouseTypeClass : public HouseTypeClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	HouseTypeExtData* _GetExtData() {
+		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this) + HouseTypeExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeHouseTypeClass) == sizeof(HouseTypeClass), "Invalid Size !");

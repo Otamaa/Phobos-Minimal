@@ -342,7 +342,7 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 
 			if (pTypeExt->VisibleTo_ConsiderInvokerAsOwner)
 			{
-				auto const pExt = AnimExtContainer::Instance.Find(pThis);
+				auto const pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 
 				if (pExt->Invoker)
 					pOwner = pExt->Invoker->Owner;

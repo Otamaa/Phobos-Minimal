@@ -27,9 +27,6 @@ public:
 			 );
 	}
 
-	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
-	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
-
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -42,3 +39,23 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
 };
+
+class FakeBombClass : public BombClass
+{
+public:
+
+	HouseClass* _GetOwningHouse() {
+		return this->OwnerHouse;
+	}
+
+	void _Detach(AbstractClass* target, bool all) { };
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	BombExtData* _GetExtData() {
+		return *reinterpret_cast<BombExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeBombClass) == sizeof(BombClass), "Invalid Size !");

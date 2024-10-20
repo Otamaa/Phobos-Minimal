@@ -9,9 +9,9 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 {
 	enum { Detonate = 0x467E53 };
 
-	GET(BulletClass*, pThis, EBP);
+	GET(FakeBulletClass*, pThis, EBP);
 
-	auto pExt = BulletExtContainer::Instance.Find(pThis);
+	auto pExt = pThis->_GetExtData();
 	auto& pTraj = pExt->Trajectory;
 
 	if (!pThis->SpawnNextAnim && pTraj) {
@@ -51,9 +51,9 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 
 DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 {
-	GET(BulletClass*, pThis, EBP);
+	GET(FakeBulletClass*, pThis, EBP);
 
-	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
+	if (auto& pTraj = pThis->_GetExtData()->Trajectory)
 		pTraj->OnAIPreDetonate();
 
 	return 0;
@@ -103,11 +103,11 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 
 DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 {
-	GET(BulletClass*, pThis, EBP);
+	GET(FakeBulletClass*, pThis, EBP);
 	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
 	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
-	if (auto& pTraj = BulletExtContainer::Instance.Find(pThis)->Trajectory)
+	if (auto& pTraj = pThis->_GetExtData()->Trajectory)
 		pTraj->OnAIVelocity(pSpeed, pPosition);
 
 	return 0;
@@ -115,7 +115,6 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 
 DEFINE_HOOK(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
 {
-
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
 

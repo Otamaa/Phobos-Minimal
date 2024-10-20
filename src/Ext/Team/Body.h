@@ -152,3 +152,17 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
 };
+
+class FakeTeamClass : public TeamClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	TeamExtData* _GetExtData() {
+		return *reinterpret_cast<TeamExtData**>(this->unknown_18);
+	}
+
+};
+
+static_assert(sizeof(FakeTeamClass) == sizeof(TeamClass), "Invalid Size !");

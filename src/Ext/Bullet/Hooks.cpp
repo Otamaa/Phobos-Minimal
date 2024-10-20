@@ -22,9 +22,9 @@
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	enum { retContunue = 0x0 , retDead = 0x466781 };
-	GET(BulletClass* const, pThis, EBP);
+	GET(FakeBulletClass* const, pThis, EBP);
 
-	const auto pBulletExt = BulletExtContainer::Instance.Find(pThis);
+	const auto pBulletExt = pThis->_GetExtData();
 	bool bChangeOwner = false;
 	auto const pBulletCurOwner = pThis->GetOwningHouse();
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		}
 	}
 
-	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pTypeExt = pThis->_GetTypeExtData();
 
 	if (pTypeExt->PreExplodeRange.isset())
 	{
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 			}
 		}
 
-		TrailsManager::AI(pThis);
+		TrailsManager::AI((BulletClass*)pThis);
 	}
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
 	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
@@ -150,8 +150,8 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
 	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
-	GET(BulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && BulletExtContainer::Instance.Find(pThis)->IsInterceptor)
+	GET(FakeBulletClass*, pThis, EBP);
+	return (pThis->Type->Inviso && pThis->_GetExtData()->IsInterceptor)
 		? DetonateBullet : Continue;
 }
 
@@ -159,7 +159,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 {
 	enum { ReturnFromFunction = 0x46A2FB };
 
-	GET(BulletClass* const, pThis, ESI);
+	GET(FakeBulletClass* const, pThis, ESI);
 
 	if (!BulletExtData::IsReallyAlive(pThis)) {
 		return ReturnFromFunction;
@@ -210,7 +210,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				 }
 			 }
 
-			pThis->Target = BulletExtContainer::Instance.Find(pThis)->OriginalTarget;
+			pThis->Target = pThis->_GetExtData()->OriginalTarget;
 			pThis->Location = originalLocation;
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 			return ReturnFromFunction;

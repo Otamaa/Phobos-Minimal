@@ -190,3 +190,35 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };
+
+class FakeBuildingClass : public BuildingClass
+{
+public:
+	void _Detach(AbstractClass* target, bool all);
+	bool _IsFactory();
+	CoordStruct* _GetFLH(CoordStruct* pCrd, int weaponIndex);
+	int _Mission_Missile();
+	void _Spawn_Refinery_Smoke_Particles();
+	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
+	{
+		const bool res = this->BuildingClass::SetOwningHouse(pHouse, announce);
+
+		// Fix : update powered anims
+		if (res && (this->Type->Powered || this->Type->PoweredSpecial))
+			this->UpdatePowerDown();
+
+		return res;
+	}
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	BuildingExtData* _GetExtData() {
+		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
+	}
+
+	FORCEINLINE BuildingTypeExtData* _GetTypeExtData() {
+		return ((FakeBuildingTypeClass*)this->Type)->_GetExtData();
+	}
+};
+static_assert(sizeof(FakeBuildingClass) == sizeof(BuildingClass), "Invalid Size !");

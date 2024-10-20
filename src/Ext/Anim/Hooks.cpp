@@ -4,7 +4,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
-
+#include <Ext/Infantry/Body.h>
 #include <Ext/AnimType/Body.h>
 
 #include <Misc/Hooks.Otamaa.h>
@@ -12,10 +12,8 @@
 DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EBP);
-
-	AnimExtContainer::Instance.Find(pAnim)->ParentBuilding = pThis;
-
+	GET(FakeAnimClass*, pAnim, EBP);
+	pAnim->_GetExtData()->ParentBuilding = pThis;
 	return 0;
 }
 
@@ -34,13 +32,10 @@ DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
 // Deferred creation of attached particle systems for debris anims.
 DEFINE_HOOK(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
 {
-	GET(AnimClass*, pThis, EBP);
-
-	AnimExtContainer::Instance.Find(pThis)->CreateAttachedSystem();
-
+	GET(FakeAnimClass*, pThis, EBP);
+	pThis->_GetExtData()->CreateAttachedSystem();
 	return 0;
 }
-
 
 DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
@@ -77,14 +72,14 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
-	GET(AnimTypeClass* const, pType, EDX);
+	GET(FakeAnimTypeClass* const, pType, EDX);
 
 	if (pType && pType->HideIfNoOre)
 	{
 		auto const pCell = pThis->GetCell();
 
 		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue()
-			<= Math::abs(AnimTypeExtContainer::Instance.Find(pType)->HideIfNoOre_Threshold.Get());
+			<= Math::abs(pType->_GetExtData()->HideIfNoOre_Threshold.Get());
 
 		return 0x423BBF;
 	}
@@ -176,7 +171,7 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 
 DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
 	LEA_STACK(CoordStruct*, pCoords, STACK_OFFS(0x34, 0xC));
 
@@ -188,7 +183,7 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 			pObject->GetRenderCoords(pCoords);
 
 			//save original coords because centering it broke damage
-			AnimExtContainer::Instance.Find(pThis)->BackupCoords = pObject->Location;
+			pThis->_GetExtData()->BackupCoords = pObject->Location;
 
 			pCoords->X += 128;
 			pCoords->Y += 128;
@@ -202,11 +197,11 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 
 DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 
 	if (pThis->Type)
 	{
-		const auto pExt = AnimExtContainer::Instance.Find(pThis);
+		const auto pExt = pThis->_GetExtData();
 		const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
 		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())

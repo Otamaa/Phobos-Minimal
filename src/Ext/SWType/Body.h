@@ -586,3 +586,16 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 };
+
+class FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	SWTypeExtData* _GetExtData() {
+		return *reinterpret_cast<SWTypeExtData**>(this->unknown_18);
+	}
+
+};
+static_assert(sizeof(FakeSuperWeaponTypeClass) == sizeof(SuperWeaponTypeClass), "Invalid Size !");

@@ -97,3 +97,21 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(SuperExtContainer, SuperExtData, "SuperClass");
 };
+
+class SWTypeExtData;
+class FakeSuperClass : public SuperClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	SuperExtData* _GetExtData() {
+		return *reinterpret_cast<SuperExtData**>(this->unknown_18);
+	}
+
+	SWTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<SWTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
+};
+
+static_assert(sizeof(FakeSuperClass) == sizeof(SuperClass), "Invalid Size !");

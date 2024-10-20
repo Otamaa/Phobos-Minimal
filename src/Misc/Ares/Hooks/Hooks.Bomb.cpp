@@ -168,8 +168,8 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 }
 
 //new
-DEFINE_JUMP(VTABLE, 0x7E3D4C, MiscTools::to_DWORD(&BombExtData::GetOwningHouse));
-DEFINE_JUMP(VTABLE, 0x7E3D38, MiscTools::to_DWORD(&BombExtData::InvalidatePointer));
+DEFINE_JUMP(VTABLE, 0x7E3D4C, MiscTools::to_DWORD(&FakeBombClass::_GetOwningHouse));
+DEFINE_JUMP(VTABLE, 0x7E3D38, MiscTools::to_DWORD(&FakeBombClass::_Detach));
 
 //new
 //DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)

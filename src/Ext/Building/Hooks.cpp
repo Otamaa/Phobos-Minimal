@@ -13,11 +13,9 @@ DEFINE_HOOK(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 {
 	enum { IsBlockage = 0x483CD4 };
 
-	GET(BuildingClass*, pBuilding, ESI);
+	GET(FakeBuildingClass*, pBuilding, ESI);
 
-	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-
-	if (pTypeExt->IsDestroyableObstacle)
+	if (pBuilding->_GetTypeExtData()->IsDestroyableObstacle)
 		return IsBlockage;
 
 	return 0;
@@ -27,10 +25,13 @@ DEFINE_HOOK(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
 {
 	enum { Apply = 0x43D6EF, Skip = 0x43D712 };
 
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	GET(Mission, mission, EAX);
 
-	if ((mission != Mission::Selling && mission != Mission::Construction) || BuildingTypeExtContainer::Instance.Find(pThis->Type)->ZShapePointMove_OnBuildup)
+	if (
+		(mission != Mission::Selling && mission != Mission::Construction) ||
+			pThis->_GetTypeExtData()->ZShapePointMove_OnBuildup
+		)
 		return Apply;
 
 	return Skip;
@@ -40,23 +41,23 @@ DEFINE_HOOK(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 {
 	enum { Skip = 0x4511E6, Continue = 0x4511DF };
 
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->SellBuildupLength == pThis->Animation.Value
+	return pThis->_GetTypeExtData()->SellBuildupLength == pThis->Animation.Value
 		? Continue : Skip;
 }
 
 DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 {
 	GET(UnitClass*, pUnit, EBP);
-	GET(BuildingClass*, pStructure, EBX);
+	GET(FakeBuildingClass*, pStructure, EBX);
 
 	if (R->AL())
 	{
 		if (pUnit->Type->DeployToFire && pUnit->Target)
 			pStructure->LastTarget = pUnit->Target;
 
-		BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
+		pStructure->_GetExtData()->DeployedTechno = true;
 
 		return 0x73971F;
 	}
@@ -79,10 +80,10 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 
 DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
 	Mission nMission = Mission::Guard;
-	if (BuildingExtContainer::Instance.Find(pThis)->DeployedTechno && pThis->LastTarget) {
+	if (pThis->_GetExtData()->DeployedTechno && pThis->LastTarget) {
 		pThis->SetTarget(pThis->LastTarget);
 		nMission = Mission::Attack;
 	}
@@ -125,7 +126,7 @@ DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {
     enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
-	GET(BuildingClass* const, pThis, ESI);
+	GET(FakeBuildingClass* const, pThis, ESI);
 
 	if(SessionClass::IsCampaign())
 	{
@@ -133,7 +134,7 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 			return ShouldNotRebuild;
 
 		// Preplaced structures are already managed before
-		if (BuildingExtContainer::Instance.Find(pThis)->IsCreatedFromMapFile)
+		if (pThis->_GetExtData()->IsCreatedFromMapFile)
 			return ShouldNotRebuild;
 
 		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty].Get(RulesExtData::Instance()->RepairBaseNodes))
@@ -148,9 +149,9 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 {
 	enum { ReturnFromFunction = 0x465D6A , Continue = 0x0 };
 
-	GET(BuildingTypeClass*, pThis, ECX);
+	GET(FakeBuildingTypeClass*, pThis, ECX);
 
-	const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pThis);
+	const auto pBldExt = pThis->_GetExtData();
 	const bool IsCustomEligible = pThis->Foundation == BuildingTypeExtData::CustomFoundation
 			&& pBldExt->CustomHeight == 1 && pBldExt->CustomWidth == 1;
 
@@ -162,9 +163,9 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x6)
 {
-	GET(BuildingClass*, pBuilding, EBP);
+	GET(FakeBuildingClass*, pBuilding, EBP);
 
-	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	const auto pTypeExt = pBuilding->_GetTypeExtData();
 
 	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
 	{
@@ -180,9 +181,9 @@ DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x
 
 DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 {
-	GET(BuildingClass*, pBuilding, ESI);
+	GET(FakeBuildingClass*, pBuilding, ESI);
 
-	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	const auto pTypeExt = pBuilding->_GetTypeExtData();
 
 	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
 	{

@@ -216,3 +216,22 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
 };
+
+class ParticleSystemTypeExtData;
+class FakeParticleSystemClass : public ParticleSystemClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	ParticleSystemExtData* _GetExtData() {
+		return *reinterpret_cast<ParticleSystemExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	ParticleSystemTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<ParticleSystemTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
+
+};
+static_assert(sizeof(FakeParticleSystemClass) == sizeof(ParticleSystemClass), "Invalid Size !");

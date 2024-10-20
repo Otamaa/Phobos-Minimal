@@ -116,3 +116,16 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };
+
+class FakeTiberiumClass : public TiberiumClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	TiberiumExtData* _GetExtData() {
+		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + TiberiumExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeTiberiumClass) == sizeof(TiberiumClass), "Invalid Size !");

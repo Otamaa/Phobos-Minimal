@@ -384,3 +384,20 @@ public:
 
 	void Clear();
 };
+
+class HouseTypeExtData;
+class FakeHouseClass : public HouseClass
+{
+public:
+	bool _IsAlliedWith(HouseClass* pOther);
+	void _Detach(AbstractClass* target, bool all);
+
+	HouseExtData* _GetExtData() {
+		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);
+	}
+
+	HouseTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this->Type) + 0xC4);
+	}
+};
+static_assert(sizeof(FakeHouseClass) == sizeof(HouseClass), "Invalid Size !");
