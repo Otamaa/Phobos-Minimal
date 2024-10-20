@@ -60,6 +60,9 @@ bool AnimExtData::OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point
 
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 	{
+		if (pType->Flamer || pType->Scorch)
+			AnimExtData::SpawnFireAnims(pThis);
+
 		auto nCoord = pThis->GetCoords();
 		if (!pType->Scorch || (pType->Crater && ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
 		{
