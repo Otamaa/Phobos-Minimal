@@ -32,6 +32,8 @@
 #include <New/Entity/SWSidebarClass.h>
 #include <New/Entity/TacticalButtonClass.h>
 
+#include <YRMath.h>
+
 PhobosToolTip PhobosToolTip::Instance;
 
 inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
@@ -145,7 +147,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	std::wostringstream oss;
 	oss << pType->UIName << L"\n"
 		<< (cost < 0 ? L"+" : L"")
-		<< Phobos::UI::CostLabel << std::abs(cost) << L" "
+		<< Phobos::UI::CostLabel << Math::abs(cost) << L" "
 		<< Phobos::UI::TimeLabel
 		// << std::setw(2) << std::setfill(L'0') << nHour << L":"
 		<< std::setw(2) << std::setfill(L'0') << nMin << L":"
@@ -190,7 +192,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 	oss << pSuper->Type->UIName;
 	bool showSth = false;
 
-	if (const int nCost = std::abs(pData->Money_Amount))
+	if (const int nCost = Math::abs(pData->Money_Amount.Get()))
 	{
 		oss << L"\n";
 

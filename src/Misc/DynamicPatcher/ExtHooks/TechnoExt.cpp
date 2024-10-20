@@ -152,7 +152,7 @@ namespace CalculatePinch
 			const auto ext = WeaponTypeExtContainer::Instance.Find(pWeapon->WeaponType);
 
 			{
-				if (std::abs(ext->RockerPitch.Get()) < 0.005)
+				if (Math::abs(ext->RockerPitch.Get()) < 0.005)
 					return;
 
 				const double theta = pFirer->GetRealFacing().GetRadian<32>() -

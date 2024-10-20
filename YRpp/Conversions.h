@@ -4,6 +4,7 @@
 #include <sstream>
 #include <WarheadFlags.h>
 #include <Helpers/Macro.h>
+#include <YRMath.h>
 
 // converters
 struct Conversions
@@ -17,7 +18,7 @@ struct Conversions
 			val = atof(buf);
 		}
 
-		const double nValCopy = std::abs(val);
+		const double nValCopy = Math::abs(val);
 
 		if (!nValCopy) { //0.0
 			whFlags->ForceFire = false;

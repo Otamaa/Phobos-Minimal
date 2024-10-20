@@ -394,7 +394,7 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 		return true;
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-	return (std::abs( pWHExt->GetVerses(this->Type->Armor).Verses ) >= 0.001);
+	return (Math::abs( pWHExt->GetVerses(this->Type->Armor).Verses ) >= 0.001);
 }
 
 bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const

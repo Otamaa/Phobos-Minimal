@@ -3941,7 +3941,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		swprintf_s(moneyStr, L"%ls%ls%d", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, std::abs(value));
+		swprintf_s(moneyStr, L"%ls%ls%d", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
 
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
@@ -4977,7 +4977,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 {
 	auto const pData = TechnoTypeExtContainer::Instance.Find(Victim->GetTechnoType());
-	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (std::abs(pData->EMP_Threshold)))
+	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (Math::abs(pData->EMP_Threshold)))
 	{
 		if (pData->EMP_Threshold > 0)
 		{
@@ -5020,7 +5020,7 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pWarhead);
 		auto const& Verses = pWHExt->GetVerses(armor).Verses;
 
-		if (std::abs(Verses) < 0.001)
+		if (Math::abs(Verses) < 0.001)
 		{
 			return;
 		}

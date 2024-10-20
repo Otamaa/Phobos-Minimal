@@ -147,7 +147,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 //	double scaley = linkedType->VoxelScaleY;
 //
 //	Matrix3D pre = Matrix3D::GetIdentity();
-//	pre.TranslateZ(float(std::abs(Math::sin(ars)) * scalex + std::abs(Math::sin(arf)) * scaley));
+//	pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
 //
 //	Matrix3D post = Matrix3D::GetIdentity();
 //	post.TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));

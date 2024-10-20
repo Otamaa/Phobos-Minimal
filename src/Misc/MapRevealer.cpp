@@ -96,7 +96,7 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 			auto const cell = base + *it;
 
 			if (this->IsCellAvailable(cell)) {
-				if (std::abs(it->X) <= static_cast<int>(spread) && it->pow() < spread_limit_sqr) {
+				if (Math::abs(it->X) <= static_cast<int>(spread) && it->pow() < spread_limit_sqr) {
 					if (!checkLevel || this->CheckLevel(*it, level)) {
 						func(MapClass::Instance->GetCellAt(cell));
 					}

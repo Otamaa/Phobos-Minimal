@@ -53,12 +53,12 @@ bool AresTrajectoryHelper::IsBuildingHit(
 
 Vector2D<int> AresTrajectoryHelper::AbsoluteDifference(const CoordStruct& coords)
 {
-	return{ std::abs(coords.X), std::abs(coords.Y) };
+	return{ Math::abs(coords.X), Math::abs(coords.Y) };
 }
 
 Vector2D<int> AresTrajectoryHelper::AbsoluteDifference(const CellStruct& cell)
 {
-	return{ std::abs(cell.X), std::abs(cell.Y) };
+	return{ Math::abs(cell.X), Math::abs(cell.Y) };
 }
 
 CellClass* AresTrajectoryHelper::GetObstacle(

@@ -24,7 +24,7 @@ void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coord
 				continue;
 			}
 
-			if (std::abs(pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , pWH)).Verses) < 0.001)
+			if (Math::abs(pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , pWH)).Verses) < 0.001)
 			{
 				continue;
 			}

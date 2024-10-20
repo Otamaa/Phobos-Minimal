@@ -180,7 +180,7 @@ bool TestLocomotionClass::Is_Moving_Here(CoordStruct to)
 {
 	CoordStruct headTo = Head_To_Coord();
 	return CellClass::Coord2Cell(headTo) == CellClass::Coord2Cell(to)
-		&& std::abs(headTo.Z - to.Z) <= Unsorted::CellHeight;
+		&& Math::abs(headTo.Z - to.Z) <= Unsorted::CellHeight;
 }
 
 bool TestLocomotionClass::Is_Really_Moving_Now()

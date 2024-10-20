@@ -116,7 +116,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<
 
 	// 计算下一个坐标
 	double d = speed / dist;
-	double absX = std::abs(sourceV.X - targetV.X) * d;
+	double absX = Math::abs(sourceV.X - targetV.X) * d;
 	double x = sourceV.X;
 
 	if (sourceV.X < targetV.X)
@@ -132,7 +132,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<
 		x = sourceV.X - absX;
 	}
 
-	double absY = std::abs(sourceV.Y - targetV.Y) * d;
+	double absY = Math::abs(sourceV.Y - targetV.Y) * d;
 	double y = sourceV.Y;
 	if (sourceV.Y < targetV.Y)
 	{
@@ -142,7 +142,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<
 	{
 		y = sourceV.Y - absY;
 	}
-	double absZ = std::abs(sourceV.Z - targetV.Z) * d;
+	double absZ = Math::abs(sourceV.Z - targetV.Z) * d;
 	double z = sourceV.Z;
 	if (sourceV.Z < targetV.Z)
 	{
@@ -165,7 +165,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<float> const& sourceV, Vector3
 
 	// 计算下一个坐标
 	double d = speed / dist;
-	double absX = std::abs(sourceV.X - targetV.X) * d;
+	double absX = Math::abs(sourceV.X - targetV.X) * d;
 	double x = sourceV.X;
 
 	if (sourceV.X < targetV.X)
@@ -181,7 +181,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<float> const& sourceV, Vector3
 		x = sourceV.X - absX;
 	}
 
-	double absY = std::abs(sourceV.Y - targetV.Y) * d;
+	double absY = Math::abs(sourceV.Y - targetV.Y) * d;
 	double y = sourceV.Y;
 	if (sourceV.Y < targetV.Y)
 	{
@@ -191,7 +191,7 @@ CoordStruct Helpers_DP::GetForwardCoords(Vector3D<float> const& sourceV, Vector3
 	{
 		y = sourceV.Y - absY;
 	}
-	double absZ = std::abs(sourceV.Z - targetV.Z) * d;
+	double absZ = Math::abs(sourceV.Z - targetV.Z) * d;
 	double z = sourceV.Z;
 	if (sourceV.Z < targetV.Z)
 	{
@@ -416,7 +416,7 @@ CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruc
 	}
 	else
 	{
-		if (std::abs(x) <= 256)
+		if (Math::abs(x) <= 256)
 		{
 			offset.X = x;
 			if (angle > 0)
@@ -432,7 +432,7 @@ CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruc
 		else
 		{
 			offset.Y = y;
-			if (std::abs(angle) < 0.5 * Math::Pi)
+			if (Math::abs(angle) < 0.5 * Math::Pi)
 			{
 				offset.X = 256;
 			}
@@ -820,7 +820,7 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 	{
 		if (data->EffectsRequireVerses)
 		{
-			if(std::abs(
+			if(Math::abs(
 				data->GetVerses(Armor).Verses
 				//GeneralUtils::GetWarheadVersusArmor(pWH , Armor)
 				) < 0.001)

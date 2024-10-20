@@ -183,7 +183,7 @@ public:
 	virtual bool __stdcall Is_Moving_Here(CoordStruct to) override {
 		auto nBuff = CellClass::Coord2Cell(Head_To_Coord());
 		CoordStruct headto_cell { nBuff.X , nBuff.Y ,0 };
-		return nBuff.X == headto_cell.X && nBuff.Y == headto_cell.Y && std::abs(headto_cell.Z - to.Z) <= Unsorted::CellHeight;
+		return nBuff.X == headto_cell.X && nBuff.Y == headto_cell.Y && Math::abs(headto_cell.Z - to.Z) <= Unsorted::CellHeight;
 	}
 
 	//virtual bool __stdcall Will_Jump_Tracks() override { return LocomotionClass::Will_Jump_Tracks(); }

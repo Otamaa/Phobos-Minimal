@@ -63,9 +63,9 @@ public:
 		return AdjacentCell[(size_t)direction];
 	}
 
-	static size_t GetDistance(int dx, int dy) {
-		auto x = static_cast<size_t>(std::abs(dx));
-		auto y = static_cast<size_t>(std::abs(dy));
+	static constexpr size_t GetDistance(int dx, int dy) {
+		auto x = static_cast<size_t>(Math::abs(dx));
+		auto y = static_cast<size_t>(Math::abs(dy));
 
 		// distance is longer component plus
 		// half the shorter component

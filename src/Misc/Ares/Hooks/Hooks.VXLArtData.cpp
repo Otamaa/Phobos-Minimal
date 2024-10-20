@@ -339,7 +339,7 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 		if (flyloco->CurrentSpeed > pThis->Type->PitchSpeed)
 			arf += pThis->Type->PitchAngle;
 		double ars = pThis->AngleRotatedSideways;
-		if (key.Is_Valid_Key() && (std::abs(arf) > 0.005 || std::abs(ars) > 0.005))
+		if (key.Is_Valid_Key() && (Math::abs(arf) > 0.005 || Math::abs(ars) > 0.005))
 			key.Invalidate();
 
 		shadow_mtx.ScaleY((float)Math::cos(ars));

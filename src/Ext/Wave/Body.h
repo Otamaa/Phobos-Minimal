@@ -60,7 +60,7 @@
 //						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt(x + y));
 //						break;
 //					case SonicBeamSurfacePatternType::SQUARE:
-//						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt(MaxImpl(std::abs(x), std::abs(y))));
+//						SonicBeamSurfacePatternTable[x][y] = (short)(Math::sqrt(MaxImpl(Math::abs(x), Math::abs(y))));
 //						break;
 //					};
 //				}
@@ -86,7 +86,7 @@
 //				case SonicBeamSinePatternType::TRIANGLE:
 //				{
 //					double sawtooth = 2 * (i / SonicBeamSineDuration - std::floor(i / SonicBeamSineDuration + 1 / 2));
-//					SonicBeamSineTable[i] = (short)(2 * std::abs(sawtooth) - 1);
+//					SonicBeamSineTable[i] = (short)(2 * Math::abs(sawtooth) - 1);
 //					break;
 //				}
 //				};
@@ -134,8 +134,8 @@
 //		/**
 //		 *  Calculate the pixel offset position based on the surface pattern.
 //		 */
-//		int wave_pos = pThis->WaveCount + (WORD)SonicBeamSurfacePatternTable[a3][std::abs(a1 - pThis->InitialWavePixels_0.X - a2)];
-//		int pos = std::abs(SonicBeamSineTable[wave_pos]);
+//		int wave_pos = pThis->WaveCount + (WORD)SonicBeamSurfacePatternTable[a3][Math::abs(a1 - pThis->InitialWavePixels_0.X - a2)];
+//		int pos = Math::abs(SonicBeamSineTable[wave_pos]);
 //
 //		/**
 //		 *  #issue-540
