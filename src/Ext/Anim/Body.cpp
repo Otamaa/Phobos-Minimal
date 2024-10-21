@@ -768,8 +768,6 @@ DEFINE_HOOK(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 	return 0;
 }
 
-//Only Extend Anim that Has "Type" Pointer
-DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
@@ -783,15 +781,8 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, callerAddress);
 
-	if (pItem->UniqueID == -2 && pItem->Type)
-	{
+	if (pItem->UniqueID == -2) {
 		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
-	}
-
-	if (!pItem->Type)
-	{
-		Debug::FatalError("Anim[%x] with no Type pointer from [0x%08x]\n", pItem , callerAddress);
-		return 0x0;
 	}
 
 	FakeAnimClass::ClearExtAttribute(pItem);
