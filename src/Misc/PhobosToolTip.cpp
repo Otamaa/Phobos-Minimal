@@ -466,60 +466,43 @@ void NAKED _CCToolTip_Draw2_FillRect_RET()
 
 DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 {
-	if (PhobosToolTip::Instance.IsCameo)
-	{
-		GET(SurfaceExt*, pThis, ESI);
+	GET(SurfaceExt*, pThis, ESI);
 		//GET(int, color, EDI);
-		LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
+	LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
 
-		if (Phobos::UI::AnchoredToolTips &&
-			PhobosToolTip::Instance.IsEnabled() &&
-			Phobos::Config::ToolTipDescriptions
-		) {
-			LEA_STACK(LTRBStruct*, a2, STACK_OFFSET(0x44, -0x20));
-			const auto x = DSurface::SidebarBounds->X - pRect->Width - 2;
+	if (PhobosToolTip::Instance.IsCameo &&
+		Phobos::UI::AnchoredToolTips &&
+		PhobosToolTip::Instance.IsEnabled() &&
+		Phobos::Config::ToolTipDescriptions
+	) {
+		LEA_STACK(LTRBStruct*, a2, STACK_OFFSET(0x44, -0x20));
+		const auto x = DSurface::SidebarBounds->X - pRect->Width - 2;
 
-			pRect->X = x;
-			a2->Left = x;
-			pRect->Y -= 40;
-			a2->Top -= 40;
-		}
+		pRect->X = x;
+		a2->Left = x;
+		pRect->Y -= 40;
+		a2->Top -= 40;
+	}
 
-		// Should we make some SideExt items as static to improve the effeciency?
-		// Though it might not be a big improvement... - secsome
-		const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
-		if (const auto pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
+	// Should we make some SideExt items as static to improve the effeciency?
+	// Though it might not be a big improvement... - secsome
+	const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
+	if (const auto pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
+	{
+		if (const auto pData = SideExtContainer::Instance.Find(pSide))
 		{
-			if (const auto pData = SideExtContainer::Instance.Find(pSide))
-			{
+			if(PhobosToolTip::Instance.IsCameo)
 				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 
-				pThis->Fill_Rect_Trans(pRect
-					, pData->ToolTip_Background_Color.GetEx(RulesExtData::Instance()->ToolTip_Background_Color)
-					, pData->ToolTip_Background_Opacity.Get(RulesExtData::Instance()->ToolTip_Background_Opacity)
-				);
-				//ColorStruct colorEdi = Drawing::Int_To_RGB(color);
-				//int color_int = Drawing::RGB_To_Int(CCToolTip::ToolTipTextColor());
+			pThis->Fill_Rect_Trans(pRect
+				, pData->ToolTip_Background_Color.GetEx(RulesExtData::Instance()->ToolTip_Background_Color)
+				, pData->ToolTip_Background_Opacity.Get(RulesExtData::Instance()->ToolTip_Background_Opacity)
+			);
 
-				//Debug::Log(__FUNCTION__" Caller [%x] idx [%d - %s] resultafter[%d][%d %d %d]  EDI[%d][%d %d %d]\n",
-				//	R->Stack<DWORD>(0x0),
-				//	nPlayerSideIndex,
-				//	pSide->ID,
-				//	color_int,
-				//	CCToolTip::ToolTipTextColor->R,
-				//	CCToolTip::ToolTipTextColor->G,
-				//	CCToolTip::ToolTipTextColor->B,
-				//	color,
-				//	colorEdi.R,
-				//	colorEdi.G,
-				//	colorEdi.B
-				//);
+			if (Phobos::Config::ToolTipBlur)
+				pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
 
-				//if (Phobos::Config::ToolTipBlur)
-				//	pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
-
-				return (int)_CCToolTip_Draw2_FillRect_RET;
-			}
+			return (int)_CCToolTip_Draw2_FillRect_RET;
 		}
 	}
 
