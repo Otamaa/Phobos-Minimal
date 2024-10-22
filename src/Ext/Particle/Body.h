@@ -117,11 +117,15 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	ParticleExtData* _GetExtData() {
+	FORCEINLINE ParticleClass* _AsParticle() const {
+		return (ParticleClass*)this;
+	}
+
+	FORCEINLINE ParticleExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	ParticleTypeExtData* _GetTypeExtData() {
+	FORCEINLINE ParticleTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<ParticleTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 

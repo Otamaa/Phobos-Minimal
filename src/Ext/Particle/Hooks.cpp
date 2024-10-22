@@ -18,14 +18,9 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 
 DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the beginning: 0x62CE49 0x6
 {
-	GET(ParticleClass*, pThis, ESI);
+	GET(FakeParticleClass*, pThis, ESI);
 
-	const auto pParticleExt = ParticleExtContainer::Instance.TryFind(pThis);
-
-	if (!pParticleExt) {
-		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
-		return 0;
-	}
+	const auto pParticleExt = pThis->_GetExtData();
 
 	if (!pParticleExt->LaserTrails.empty())
 	{
@@ -42,7 +37,7 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 		}
 	}
 
-	TrailsManager::AI(pThis);
+	TrailsManager::AI(pThis->_AsParticle());
 
 	return 0;
 }
@@ -51,8 +46,8 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
-	GET(ParticleClass*, pThis, ESI);
-	const auto& mult = ParticleTypeExtContainer::Instance.Find(pThis->Type)->WindMult[facing];
+	GET(FakeParticleClass*, pThis, ESI);
+	const auto& mult = pThis->_GetTypeExtData()->WindMult[facing];
 	R->ECX(mult.X);
 	R->EAX(mult.Y);
 	return 0x62D30D;
@@ -61,8 +56,8 @@ DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
 DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
-	GET(ParticleClass*, pThis, ESI);
-	const auto& mult = ParticleTypeExtContainer::Instance.Find(pThis->Type)->WindMult[facing];
+	GET(FakeParticleClass*, pThis, ESI);
+	const auto& mult = pThis->_GetTypeExtData()->WindMult[facing];
 	R->ECX(mult.X);
 	R->EAX(mult.Y);
 	return 0x62D456;
@@ -109,10 +104,10 @@ DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 DEFINE_HOOK(0x62BE2B, ParticleClass_Gas_AI_DriftSpeed, 0x5)
 {
 
-	GET(ParticleClass*, pParticle, EBP);
+	GET(FakeParticleClass*, pParticle, EBP);
 	GET(int, value_X, EBX);
 	GET(int, value_Y, EDI);
-	const auto pExt = ParticleTypeExtContainer::Instance.Find(pParticle->Type);
+	const auto pExt = pParticle->_GetTypeExtData();
 	const auto maxDriftSpeedX = &pExt->Gas_DriftSpeedX.Get();
 	const auto minDriftSpeedY = &pExt->Gas_DriftSpeedY.Get();
 
