@@ -231,6 +231,10 @@ public:
 	static void Clear();
 };
 
+class BulletTypeExtData;
+class WarheadTypeExtData;
+class FakeBulletTypeClass;
+class FakeWarheadTypeClass;
 class FakeWeaponTypeClass : public WeaponTypeClass
 {
 public:
@@ -238,8 +242,25 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	WeaponTypeExtData* _GetExtData() {
+	FORCEINLINE WeaponTypeExtData* _GetExtData() {
 		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
+
+	FORCEINLINE BulletTypeExtData* _GetBulletTypeExtData() {
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Projectile) + 0x2C4);
+	}
+
+	FORCEINLINE FakeBulletTypeClass* _GetBulletType() {
+		return (FakeBulletTypeClass*)this->Projectile;
+	}
+
+	FORCEINLINE FakeWarheadTypeClass* _GetWarheadType() {
+		return (FakeWarheadTypeClass*)this->Warhead;
+	}
+
+	FORCEINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->Warhead) + 0x1CC);
+	}
+
 };
 static_assert(sizeof(FakeWeaponTypeClass) == sizeof(WeaponTypeClass), "Invalid Size !");

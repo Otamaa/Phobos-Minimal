@@ -19,9 +19,9 @@ DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
 
 DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pTypeExt = pThis->_GetTypeExtData();
 
 	if (pTypeExt->DetachedReport.isset())
 		VocClass::PlayAt(pTypeExt->DetachedReport.Get(), pThis->GetCoords());
@@ -41,9 +41,9 @@ DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
 	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };
 
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pTypeExt = pThis->_GetTypeExtData();
 	int schemeIndex = RulesExtData::Instance()->AnimRemapDefaultColorScheme;
 
 	if (((pTypeExt->CreateUnit && pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
@@ -58,12 +58,12 @@ DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
-	GET(AnimClass* const, pThis, ECX);
+	GET(FakeAnimClass* const, pThis, ECX);
 	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
 
 	if (pThis->Type)
 	{
-		pCoord->X += AnimTypeExtContainer::Instance.Find(pThis->Type)->XDrawOffset;
+		pCoord->X += pThis->_GetTypeExtData()->XDrawOffset;
 	}
 
 	return 0;
@@ -147,12 +147,12 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 {
 	enum { ReturnValue = 0x424CBF };
 
-	GET(AnimClass*, pThis, ECX);
+	GET(FakeAnimClass*, pThis, ECX);
 
 	if(!pThis->Type)
 		return 0x0;
 
-	auto pExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	auto pExt = pThis->_GetTypeExtData();
 
 	if (pThis->OwnerObject && pExt->Layer_UseObjectLayer.isset())
 	{
@@ -175,11 +175,8 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 	GET(ObjectClass*, pObject, EDI);
 	LEA_STACK(CoordStruct*, pCoords, STACK_OFFS(0x34, 0xC));
 
-	if (pThis->Type)
-	{
-		if (AnimTypeExtContainer::Instance.Find(pThis->Type)
-			->UseCenterCoordsIfAttached)
-		{
+	if (pThis->Type) {
+		if (pThis->_GetTypeExtData() ->UseCenterCoordsIfAttached) {
 			pObject->GetRenderCoords(pCoords);
 
 			//save original coords because centering it broke damage
@@ -202,7 +199,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 	if (pThis->Type)
 	{
 		const auto pExt = pThis->_GetExtData();
-		const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+		const auto pTypeExt = pThis->_GetTypeExtData();
 
 		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 			pExt->AttachedSystem = nullptr;
@@ -216,10 +213,10 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 
 DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pTypeExt = pThis->_GetTypeExtData();
 	const auto Is_AI = !pInf->Owner->IsControlledByHuman();
 
 	if (!pTypeExt->ScatterAnimToInfantry(Is_AI))
@@ -240,15 +237,14 @@ DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {
 	enum { DrawShadow = 0x42336D, SkipDrawShadow = 0x4233EE };
 
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 
 	if (!pThis->Type->Shadow)
 		return SkipDrawShadow;
 
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	bool hasExtra = R->AL();
+	const bool hasExtra = R->AL();
 
-	return hasExtra && pTypeExt->ExtraShadow ?
+	return hasExtra && pThis->_GetTypeExtData()->ExtraShadow ?
 		DrawShadow : SkipDrawShadow;
 }
 

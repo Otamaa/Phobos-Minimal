@@ -15,9 +15,9 @@
 
 DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
-	GET(AnimClass* const, pThis, ESI);
+	GET(FakeAnimClass* const, pThis, ESI);
 
-	if (auto pCustom = AnimTypeExtContainer::Instance.Find(pThis->Type)->Palette) {
+	if (auto pCustom = pThis->_GetTypeExtData()->Palette) {
 		R->EDX(pCustom->GetConvert<PaletteManager::Mode::Temperate>());
 		return 0x4236F6;
 	}
@@ -317,9 +317,9 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 {
 	enum { SkipDrawing = 0x4238A3 };
 
-	GET(AnimClass* const, pThis, ESI);
+	GET(FakeAnimClass* const, pThis, ESI);
 
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pTypeExt = pThis->_GetTypeExtData();
 
 	if(!HouseClass::IsCurrentPlayerObserver()) {
 
@@ -384,16 +384,17 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 {
 	enum { SkipGameCode = 0x4230FE, ReturnFromFunction = 0x4238A3 };
 
-	GET(AnimClass*, pThis, ESI);
+	GET(FakeAnimClass*, pThis, ESI);
 	GET(BlitterFlags, flags, EBX);
 
 	auto const pType = pThis->Type;
 	int translucencyLevel = pThis->TranslucencyLevel; // Used by building animations when building needs to be drawn partially transparent.
 
+	auto const pTypeExt = pThis->_GetTypeExtData();
+
 	if (!pType->Translucent)
 	{
 		auto translucency = pThis->Type->Translucency;
-		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 
 		if (pTypeExt->Translucency_Cloaked.isset()) {
 			if (auto const pTechno = generic_cast<TechnoClass*>(pThis->OwnerObject)) {
@@ -430,7 +431,6 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 		if (translucencyLevel >= 15)
 			return ReturnFromFunction;
 
-		auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 		int currentFrame = pThis->Animation.Value;
 		int frames = pType->End;
 		if (pTypeExt->Translucent_Keyframes.KeyframeData.size() > 0) {

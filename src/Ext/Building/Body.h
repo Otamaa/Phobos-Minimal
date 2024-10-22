@@ -213,7 +213,11 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	BuildingExtData* _GetExtData() {
+	FORCEINLINE BuildingClass* _AsBuilding() const {
+		return (BuildingClass*)this;
+	}
+
+	FORCEINLINE BuildingExtData* _GetExtData() {
 		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
 	}
 

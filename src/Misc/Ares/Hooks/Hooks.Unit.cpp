@@ -111,13 +111,12 @@ DEFINE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 
 	unsigned short ret = 0;
 
-	if (pThis->Type->Facings > 0 && !pThis->IsDisguised())
-	{
+	if (pThis->Type->Facings > 0 && !pThis->IsDisguised()) {
 		auto highest = Conversions::Int2Highest(pThis->Type->Facings);
 
 		// 2^highest is the frame count, 3 means 8 frames
 		if (highest >= 3) {
-			ret = pThis->PrimaryFacing.Current().GetValue(highest, 1u << (highest - 3));
+			ret = (unsigned short)pThis->PrimaryFacing.Current().GetValue(highest, 1u << (highest - 3));
 		}
 	}
 

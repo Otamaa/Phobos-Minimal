@@ -48,10 +48,10 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 
 DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	GET_STACK(int, nPowMult, 0x8);
 
-	R->EAX((int)(!BuildingTypeExtContainer::Instance.Find(pThis->Type)->Power_DegradeWithHealth.Get()
+	R->EAX((int)(!pThis->_GetTypeExtData()->Power_DegradeWithHealth.Get()
 		? (nPowMult) : (nPowMult * pThis->GetHealthPercentage_())));
 
 	return 0x44E86F;

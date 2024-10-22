@@ -13,15 +13,12 @@
 DEFINE_HOOK_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 DEFINE_HOOK(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 {
-	GET(BuildingClass*, pBuilding, ESI);
-	GET(HouseClass*, pThis, EDI);
+	GET(FakeBuildingClass*, pBuilding, ESI);
+	GET(FakeHouseClass*, pThis, EDI);
 	GET(bool, isNaval, ECX);
 
-	if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-			->ExcludeFromMultipleFactoryBonus) {
-
-		HouseExtContainer::Instance.Find(pThis)
-			->UpdateNonMFBFactoryCounts(pBuilding->Type->Factory, R->Origin()
+	if (pBuilding->_GetTypeExtData()->ExcludeFromMultipleFactoryBonus) {
+		pThis->_GetExtData()->UpdateNonMFBFactoryCounts(pBuilding->Type->Factory, R->Origin()
 			== 0x4FF9C9, isNaval);
 	}
 
@@ -32,11 +29,11 @@ DEFINE_HOOK(0x500910, HouseClass_GetFactoryCount, 0x5)
 {
 	enum { SkipGameCode = 0x50095D };
 
-	GET(HouseClass*, pThis, ECX);
+	GET(FakeHouseClass*, pThis, ECX);
 	GET_STACK(AbstractType, rtti, 0x4);
 	GET_STACK(bool, isNaval, 0x8);
 
-	R->EAX(HouseExtContainer::Instance.Find(pThis)
+	R->EAX(pThis->_GetExtData()
 		->GetFactoryCountWithoutNonMFB(rtti, isNaval));
 
 	return SkipGameCode;
@@ -51,7 +48,7 @@ DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
 //update it separately
 DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 
-	GET(HouseClass*, pThis, ESI);
+	GET(FakeHouseClass*, pThis, ESI);
 
 	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset() || pThis->IsControlledByHuman() || pThis->Type->MultiplayPassive)
 		return 0;
@@ -59,7 +56,7 @@ DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 	const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
 
 	if (delay > 0) {
-		auto const pExt = HouseExtContainer::Instance.Find(pThis);
+		auto const pExt = pThis->_GetExtData();
 
 		if (pExt->AISuperWeaponDelayTimer.HasTimeLeft())
 			return 0;
@@ -187,9 +184,9 @@ DEFINE_HOOK(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 
 DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 {
-	GET(HouseClass*, pThis, ECX);
+	GET(FakeHouseClass*, pThis, ECX);
 
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis);
+	const auto pHouseExt = pThis->_GetExtData();
 
 	pHouseExt->PowerPlantEnhancerBuildings.clear();
 

@@ -4,10 +4,9 @@ DEFINE_HOOK(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 {
 	enum { SkipGameCode = 0x44BD3E };
 
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
 
-	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-	double repairRate = pTypeExt->Units_RepairRate.Get(RulesClass::Instance->URepairRate);
+	double repairRate = pThis->_GetTypeExtData()->Units_RepairRate.Get(RulesClass::Instance->URepairRate);
 	__asm { fld repairRate }
 
 	return SkipGameCode;
@@ -17,11 +16,11 @@ bool SeparateRepair = false;
 
 DEFINE_HOOK(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
 
 	if (pThis->Type->UnitReload)
 	{
-		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+		auto const pTypeExt = pThis->_GetTypeExtData();
 
 		if (pTypeExt->Units_RepairRate.isset())
 		{

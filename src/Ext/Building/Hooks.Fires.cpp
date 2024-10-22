@@ -14,11 +14,7 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void FORCEINLINE HandleRemoveAsExt(BuildingExtData* pExt)
-	{
-		if (!pExt)
-			return;
-
+	void FORCEINLINE HandleRemoveAsExt(BuildingExtData* pExt) {
 		for (auto& nFires : pExt->DamageFireAnims) {
 			if (nFires && nFires->Type) {
  				//GameDelete<true,false>(nFires);
@@ -29,17 +25,12 @@ namespace DamageFireAnims
 		}
 	}
 
-	void FORCEINLINE HandleRemove(BuildingClass* pThis) {
-		auto pExt = BuildingExtContainer::Instance.Find(pThis);
-		HandleRemoveAsExt(pExt);
+	void FORCEINLINE HandleRemove(FakeBuildingClass* pThis) {
+		HandleRemoveAsExt(pThis->_GetExtData());
 	}
 
-	void FORCEINLINE HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
-		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
-		if (!pExt)
-			return;
-
-		for (auto& nFires : pExt->DamageFireAnims) {
+	void FORCEINLINE HandleInvalidPtr(FakeBuildingClass* pThis, void* ptr) {
+		for (auto& nFires : pThis->_GetExtData()->DamageFireAnims) {
 			if (nFires == ptr) {
 				nFires = nullptr;
 			}
@@ -104,7 +95,7 @@ DEFINE_JUMP(LJMP, 0x43C0D0, 0x43C29B);
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
 DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
-	GET(BuildingClass*, pThis, reg);\
+	GET(FakeBuildingClass*, pThis, reg);\
 	DamageFireAnims::HandleRemove(pThis);\
 	return ret;\
 }
@@ -119,23 +110,22 @@ HANDLEREMOVE_HOOKS(0x4458E4,ESI, Fire4, 0x6, 0x445905)
 
 DEFINE_HOOK(0x4415F9, BuildingClass_handleRemoveFire5, 0x5)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	DamageFireAnims::HandleRemove(pThis);
-
 	R->EBX(0);
 	return 0x44161C;
 }
 
 DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 {
-	GET(BuildingClass*, pThis, ECX);
+	GET(FakeBuildingClass*, pThis, ECX);
 	DamageFireAnims::HandleRemove(pThis);
 	return 0x43C2C9;
 }
 
 DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	GET(void*, ptr, EBP);
 	DamageFireAnims::HandleInvalidPtr(pThis, ptr);
 	return 0x44EA2F;
@@ -150,18 +140,18 @@ DEFINE_JUMP(LJMP, 0x454154, 0x454170);
 
 DEFINE_HOOK(0x4426C8, BuildingClass_ReceiveDamage_Handle, 0xA)
 {
-	GET(BuildingClass* const, pThis, ESI);
+	GET(FakeBuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pFoundationArray, 0x10);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	if (!BuildingTypeExtContainer::Instance.Find(pThis->Type)->DisableDamageSound && pThis->Type->DamageSound == -1) {
+	if (!pThis->_GetTypeExtData()->DisableDamageSound && pThis->Type->DamageSound == -1) {
 		VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, pThis->Location, nullptr);
 	}
 
 	if (args.WH->Sparky) {
 
-		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-		auto const pBldExt = BuildingExtContainer::Instance.Find(pThis);
+		auto const pTypeExt = pThis->_GetTypeExtData();
+		auto const pBldExt = pThis->_GetExtData();
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 

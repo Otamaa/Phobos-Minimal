@@ -57,7 +57,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 {
 	GET(FakeBulletClass*, pThis, ESI);
 	GET(int, nTotalSpawn, EBX);
-	GET(WarheadTypeClass*, pWarhead, EAX);
+	GET(FakeWarheadTypeClass*, pWarhead, EAX);
 
 	auto pExt = pThis->_GetExtData();
 	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
@@ -98,8 +98,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 
 	if (!nDebrisTypes.Count && (nTotalSpawn > 0))
 	{
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		const auto AnimDebris = pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris);
+		const auto AnimDebris = pWarhead->_GetExtData()->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris);
 
 		if (!AnimDebris.empty())
 		{

@@ -94,7 +94,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 			}
 		}
 
-		TrailsManager::AI((BulletClass*)pThis);
+		TrailsManager::AI(pThis->_AsBullet());
 	}
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
 	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
@@ -104,10 +104,9 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 
 DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl_Override, 0x6)
 {
-	GET(BulletClass*, pThis, ESI);
+	GET(FakeBulletClass*, pThis, ESI);
 
-	const auto pTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-	const auto pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
+	const auto pControlledAnimType = pThis->_GetWarheadTypeExtData()->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
 	const auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
 	const auto Controller = pThis->Owner;
 
@@ -134,11 +133,11 @@ DEFINE_JUMP(LJMP, 0x4690D4, 0x469130)
 
 DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 {
-	GET(BulletClass*, pThis, ESI);
+	GET(FakeBulletClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, ECX);
 
 	if (!pHouse)
-		R->ECX(BulletExtContainer::Instance.Find(pThis)->Owner);
+		R->ECX(pThis->_GetExtData()->Owner);
 
 	return 0;
 }
@@ -167,7 +166,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 
 	if (pThis->WH)
 	{
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
+		const auto pWHExt = pThis->_GetWarheadTypeExtData();
 
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
@@ -224,14 +223,13 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 {
 	enum { SkipGameCode = 0x469EBA, SetDebrisCount = 0x469D36 };
 
-	GET(BulletClass*, pThis, ESI);
+	GET(FakeBulletClass*, pThis, ESI);
 
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
 	auto const pCell = pThis->GetCell();
 	const bool isLand = !pCell ? true :
 	pCell->LandType != LandType::Water || pCell->ContainsBridge();
 
-	if (!isLand && pWHExt->Debris_Conventional.Get())
+	if (!isLand && pThis->_GetWarheadTypeExtData()->Debris_Conventional.Get())
 		return SkipGameCode;
 
 	// Fix the debris count to be in range of Min, Max instead of Min, Max-1.
@@ -244,9 +242,7 @@ DEFINE_HOOK(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 {
 	enum { SkipChecks = 0x469BA2 };
 
-	GET(BulletClass*, pThis, ESI);
+	GET(FakeBulletClass*, pThis, ESI);
 
-	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-
-	return  pWHExt->Conventional_IgnoreUnits ? SkipChecks : 0;
+	return pThis->_GetWarheadTypeExtData()->Conventional_IgnoreUnits ? SkipChecks : 0;
 }

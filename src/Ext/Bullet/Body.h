@@ -162,7 +162,11 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(BulletExtContainer, BulletExtData, "BulletClass");
 };
 
+class FakeWarheadTypeClass;
+class WarheadTypeExtData;
 class BulletTypeExtData;
+class WeaponTypeExtData;
+class FakeWeaponType;
 class FakeBulletClass : public BulletClass
 {
 public:
@@ -177,12 +181,32 @@ public:
 
 	void _Detach(AbstractClass* target, bool all);
 
-	BulletExtData* _GetExtData() {
+	FORCEINLINE BulletClass* _AsBullet() const {
+		return (BulletClass*)this;
+	}
+
+	FORCEINLINE BulletExtData* _GetExtData() {
 		return *reinterpret_cast<BulletExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	BulletTypeExtData* _GetTypeExtData() {
+	FORCEINLINE BulletTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Type) + 0x2C4);
+	}
+
+	FORCEINLINE FakeWarheadTypeClass* _GetWarheadType() {
+		return (FakeWarheadTypeClass*)this->WH;
+	}
+
+	FORCEINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->WH) + 0x1CC);
+	}
+
+	FORCEINLINE FakeWeaponType* _GetWeaponType() {
+		return (FakeWeaponType*)this->WeaponType;
+	}
+
+	FORCEINLINE WeaponTypeExtData* _GetWeaponTypeExtData() {
+		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this->WeaponType) + AbstractExtOffset);
 	}
 };
 

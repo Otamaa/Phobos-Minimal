@@ -172,19 +172,22 @@ public:
 		}
 	}
 
-	HouseClass* _GetOwningHouse()
-	{
+	FORCEINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;
 	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	AnimExtData* _GetExtData() {
+	FORCEINLINE AnimClass* _AsAnim() const {
+		return (AnimClass*)this;
+	}
+
+	FORCEINLINE AnimExtData* _GetExtData() {
 		return *reinterpret_cast<AnimExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	AnimTypeExtData* _GetTypeExtData() {
+	FORCEINLINE AnimTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 };
