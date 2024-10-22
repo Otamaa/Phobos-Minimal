@@ -775,11 +775,9 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (Phobos::Otamaa::DoingLoadGame)
 		return 0x0;
 
-	auto const callerAddress = CTORTemp::callerAddress;
-
 	// Do this here instead of using a duplicate hook in SyncLogger.cpp
 	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
-		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, callerAddress);
+		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
 	if (pItem->UniqueID == -2) {
 		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);

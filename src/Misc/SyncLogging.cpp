@@ -410,6 +410,10 @@ DEFINE_HOOK(0x683AB0, ScenarioClass_Start_DisableSyncLog, 0x6)
 
 	SyncLogger::HooksDisabled = true;
 
+	Patch::Apply_RAW(0x421EA0, // Disable AnimClass_CTOR_SetContext
+	{ 0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8 }
+	);
+
 	Patch::Apply_RAW(0x65C7D0, // Disable Random2Class_Random_SyncLog
 	{ 0xC3, 0x90, 0x90, 0x90, 0x90, 0x90 }
 	);
