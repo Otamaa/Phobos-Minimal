@@ -83,6 +83,7 @@ public:
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> Crit_AnimList {};
 	Nullable<bool> Crit_AnimList_PickRandom {};
+	Nullable<bool> Crit_AnimList_CreateAll {};
 	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims {};
 	Valueable<bool> Crit_AnimOnAffectedTargets { false };
 	ValueableVector<double> Crit_AffectBelowPercent { };

@@ -614,6 +614,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
+	 this->HasCrit = false;
 	 this->GetCritChance(pOwner, this->Crit_CurrentChance);
 
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
@@ -621,7 +622,6 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	if (IsCellSpreadWH(this) || (this->Crit_CurrentChance.size() == 1 && this->Crit_CurrentChance[0] > 0.0) || this->Crit_CurrentChance.size() > 1)
 	{
-		this->HasCrit = false;
 		const bool ThisbulletWasIntercepted = pBullet ? BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
 		const float cellSpread = this->AttachedToObject->CellSpread;
 
@@ -962,15 +962,30 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	if (this->Crit_AnimOnAffectedTargets && !this->Crit_AnimList.empty())
 	{
-		const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
-			ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;
+		if (!this->Crit_AnimList_CreateAll.Get(false))
+		{
+			const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
+				ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;
 
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
-			pHouse,
-			pTarget->GetOwningHouse(),
-			pOwner,
-			false
-		);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
+				pHouse,
+				pTarget->GetOwningHouse(),
+				pOwner,
+				false
+			);
+		}else{
+			for (auto const& pType : this->Crit_AnimList) {
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pTarget->Location),
+				pHouse,
+				pTarget->GetOwningHouse(),
+				pOwner,
+				false
+			);
+			}
+		}
+
+
+
 	}
 
 	int damage = 0;

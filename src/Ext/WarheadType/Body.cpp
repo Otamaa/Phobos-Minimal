@@ -117,6 +117,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
 	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
 	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
+	this->Crit_AnimList_CreateAll.Read(exINI, pSection, "Crit.AnimList.CreateAll");
 	this->Crit_ActiveChanceAnims.Read(exINI, pSection, "Crit.ActiveChanceAnims");
 	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
 	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
@@ -1285,6 +1286,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->RandomBuffer)
 		.Process(this->HasCrit)
 		.Process(this->Crit_CurrentChance)
+		.Process(this->Crit_AnimList_CreateAll)
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
