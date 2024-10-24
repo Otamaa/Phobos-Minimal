@@ -10338,6 +10338,10 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 		return false;
 	}
 
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+	if (pExt->Is_DriverKilled)
+		return true;
+
 	if (this->Type->ResourceGatherer || this->Type->Harvester) {
 		this->QueueMission(Mission::Harvest, false);
 	} else if (this->Owner->IsControlledByHuman()) {
