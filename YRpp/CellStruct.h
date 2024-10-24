@@ -19,7 +19,7 @@ public:
 	constexpr FORCEINLINE bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
 
 	//equality
-	constexpr bool operator==(const CellStruct& a) const {
+	constexpr FORCEINLINE bool operator==(const CellStruct& a) const {
 		return (X == a.X && Y == a.Y);
 	}
 

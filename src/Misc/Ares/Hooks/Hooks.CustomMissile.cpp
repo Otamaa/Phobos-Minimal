@@ -47,6 +47,7 @@
 
 #pragma region Process
 
+/*
 DEFINE_HOOK(0x6622E0, RocketLocomotionClass_ILocomotion_Process_CustomMissile, 6)
 {
 	GET(AircraftClass* const, pThis, ECX);
@@ -177,10 +178,12 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 	return Continue;
 }
 
+*/
 #pragma endregion
 
 #pragma region Explode
 
+/*
 DEFINE_HOOK(0x66305A, RocketLocomotionClass_Explode_CustomMissile, 6)
 {
 	GET(AircraftTypeClass* const, pType, ECX);
@@ -238,7 +241,7 @@ DEFINE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	//this need to be fixed in a different way ,..
 	return 0x66328C;
 }
-
+*/
 #pragma endregion
 
 #pragma endregion

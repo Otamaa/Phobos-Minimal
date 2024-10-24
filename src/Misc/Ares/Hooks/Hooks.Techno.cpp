@@ -1475,7 +1475,7 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 
 	auto pType = pThis->GetTechnoType();
 
-	if (pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
+	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
 		return ForceAttack;
 	}
 

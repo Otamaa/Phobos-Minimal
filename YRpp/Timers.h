@@ -31,6 +31,11 @@ public:
 	operator long() const { return timeGetTime(); }
 };
 
+template<TimerType Clock>
+class BasicTimer {
+	int Time;
+	Clock CTime; // timer
+};
 
 //used for timed events, time measured in frames!
 template<TimerType Clock>
@@ -152,7 +157,6 @@ public:
 	}
 };
 
-
 using SystemTimerClass = TimerClass<SystemTimer>;
 using MSTimerClass = TimerClass<MSTimer>;
 
@@ -189,33 +193,34 @@ public:
 		this->CDTimerClass::Start(this->Duration);
 	}
 
-	constexpr inline unsigned long Value() const
+	constexpr inline bool Expired() const { return Percent_Expired() == 1.0f; }
+
+	constexpr inline unsigned long GetValue() const
 	{
-		unsigned long rate = TimeLeft;
-		unsigned long remain = Duration;
+		unsigned long remain = TimeLeft;
 
 		if (((unsigned long)StartTime) != 0xFFFFFFFFU) {
 
 			unsigned long value = this->CurrentTime - ((unsigned long)StartTime);
 
 			if (value < remain) {
-				return (rate - (remain - (value - ((unsigned long)StartTime)))) / rate;
+				return remain - value;
 			} else {
 				return 0;
 			}
 		}
 
-		return (rate - remain / rate);
+		return remain;
 	}
 
 	constexpr inline float Percent_Expired() const
 	{
-		unsigned long rate = TimeLeft;
+		unsigned long rate = Duration;
 		if (!rate) {
 			return 1.0;
 		}
 
-		return (float)(rate - Value()) / (float)rate;
+		return (float)(rate - GetValue()) / (float)rate;
 	}
 };
 
