@@ -56,13 +56,11 @@ public:
 
 	//IPersistStream
 	virtual HRESULT __stdcall IsDirty() { return LocomotionClass::IsDirty(); }
-
 	virtual HRESULT __stdcall Load(IStream* pStm) {
 
 		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
 		return hr;
 	}
-
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty)  {
 
 		this->Characteristic.Drag = 1.00;
@@ -75,126 +73,33 @@ public:
 
 		return hr;
 	}
-
-	//virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) {
-	//
-	//	if (pcbSize == nullptr) {
-	//		return E_POINTER;
-	//	}
-
-	//	return LocomotionClass::GetSizeMax(pcbSize);
-	//}
-
 	virtual ~LevitateLocomotionClass() override = default; // should be SDDTOR in fact
 	virtual int Size() override { return sizeof(*this); }
-
 	virtual HRESULT __stdcall Link_To_Object(void* pointer) override {
-		HRESULT hr = LocomotionClass::Link_To_Object(pointer);
-		//if (SUCCEEDED(hr)) {
-		//	GameDebugLog::Log("LevitateLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
-		//}
-		return hr;
+		return LocomotionClass::Link_To_Object(pointer);
 	}
 
-	virtual bool __stdcall Is_Moving() override { return IsMoving; };
-	virtual CoordStruct __stdcall Destination() override {
-		if (IsMoving)
-		{
-			return DestinationCoord;
-		}
-
-		return CoordStruct::Empty;
-	}
-
-	virtual CoordStruct __stdcall Head_To_Coord() override {
-		if (IsMoving)
-			return HeadToCoord;
-
-		return LinkedTo->GetCenterCoords();
-	}
-
+	virtual bool __stdcall Is_Moving() override { return LinkedTo != nullptr; };
+	virtual CoordStruct __stdcall Destination() override { return CoordStruct::Empty; }
+	virtual CoordStruct __stdcall Head_To_Coord() override { return LinkedTo->GetCoords(); }
 	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override {
 		return LinkedTo->IsCellOccupied(MapClass::Instance->GetCellAt(cell), FacingType::None, -1, nullptr, false);
 	}
-
-	//virtual bool __stdcall Is_To_Have_Shadow() override { return LocomotionClass::Is_To_Have_Shadow(); }
-	//virtual Matrix3D* __stdcall Draw_Matrix(Matrix3D* pMatrix, VoxelIndexKey* key) override { return LocomotionClass::Draw_Matrix(pMatrix , key); }
-	//virtual Matrix3D* __stdcall Shadow_Matrix(Matrix3D* pMatrix, VoxelIndexKey* key) override { return LocomotionClass::Shadow_Matrix(pMatrix ,key); }
-	//virtual Point2D __stdcall Draw_Point() override	{ return LocomotionClass::Draw_Point(); }
-	//virtual Point2D __stdcall Shadow_Point() override { return LocomotionClass::Shadow_Point(); }
-	//virtual VisualType __stdcall Visual_Character(VARIANT_BOOL unused) override { return VisualType::Normal; }
-	//virtual int __stdcall Z_Adjust() override { return LocomotionClass::Z_Adjust(); }
-	//virtual ZGradient __stdcall Z_Gradient() override { return LocomotionClass::Z_Gradient(); }
 	virtual bool __stdcall Process() override;
 
-	virtual void __stdcall Move_To(CoordStruct to) override {
-		DestinationCoord = to;
-
-		IsMoving = HeadToCoord != CoordStruct::Empty
-			|| DestinationCoord != CoordStruct::Empty;
-	}
-
-	virtual void __stdcall Stop_Moving() override {
-		HeadToCoord = CoordStruct::Empty;
-		DestinationCoord = CoordStruct::Empty;
-
-		IsMoving = false;
-	}
-	virtual void __stdcall Do_Turn(DirStruct coord) override { LinkedTo->PrimaryFacing.Set_Current(coord); }
-	//virtual void __stdcall Unlimbo() override { Force_New_Slope(LinkedTo->GetCell()->RedrawCountMAYBE); }
-	//virtual void __stdcall Tilt_Pitch_AI() override { }
-	//virtual bool __stdcall Power_On() override { return LocomotionClass::Power_On(); }
-	//virtual bool __stdcall Power_Off() override { return LocomotionClass::Power_Off(); }
-	//virtual bool __stdcall Is_Powered() override { return Powered; }
-	//virtual bool __stdcall Is_Ion_Sensitive() override { return false; }
-	//virtual bool __stdcall Push(DirStruct dir) override { return false; }
-	//virtual bool __stdcall Shove(DirStruct dir) override { return false; }
-	//virtual void __stdcall Force_Track(int track, CoordStruct coord) override { }
 	virtual Layer __stdcall In_Which_Layer()override { return Layer::Ground; }
-	virtual void __stdcall Force_Immediate_Destination(CoordStruct coord) override { DestinationCoord = coord; }
-	//virtual void __stdcall Force_New_Slope(int ramp) override { }
-	virtual bool __stdcall Is_Moving_Now() override {
-		if (LinkedTo->PrimaryFacing.Is_Rotating())
-			return true;
-
-		if (Is_Moving())
-			return HeadToCoord != CoordStruct::Empty && Apparent_Speed() > 0;
-
-		return false;
-	}
-	//virtual int __stdcall Apparent_Speed() override { return LinkedTo->GetCurrentSpeed(); }
-	//virtual int __stdcall Drawing_Code() override { return 0; }
-	//virtual FireError __stdcall Can_Fire() override { return FireError::OK; }
-	//virtual int __stdcall Get_Status() override { return 0; }
-	//virtual void __stdcall Acquire_Hunter_Seeker_Target() override { }
-	//virtual bool __stdcall Is_Surfacing() override { return LocomotionClass::Is_Surfacing(); }
+	virtual bool __stdcall Is_Moving_Now() override { return LinkedTo != nullptr; }
 	virtual void __stdcall Mark_All_Occupation_Bits(int mark) override {
 		auto headto = Head_To_Coord();
-		if (mark != 0)
+		if (mark)
 		{
 			LinkedTo->MarkAllOccupationBits(headto);
 		}
 		else
 		{
-			LinkedTo->MarkAllOccupationBits(headto);
+			LinkedTo->UnmarkAllOccupationBits(headto);
 		}
 	}
-
-	virtual bool __stdcall Is_Moving_Here(CoordStruct to) override {
-		auto nBuff = CellClass::Coord2Cell(Head_To_Coord());
-		CoordStruct headto_cell { nBuff.X , nBuff.Y ,0 };
-		return nBuff.X == headto_cell.X && nBuff.Y == headto_cell.Y && Math::abs(headto_cell.Z - to.Z) <= Unsorted::CellHeight;
-	}
-
-	//virtual bool __stdcall Will_Jump_Tracks() override { return LocomotionClass::Will_Jump_Tracks(); }
-	virtual bool __stdcall Is_Really_Moving_Now() override { return IsMoving; }
-	//virtual void __stdcall Stop_Movement_Animation() override { LocomotionClass::Stop_Movement_Animation(); }
-	//virtual void __stdcall Clear_Coords() override { LocomotionClass::Clear_Coords(); }
-	//virtual void __stdcall Lock() override { LocomotionClass::Lock(); }
-	//virtual void __stdcall Unlock() override { LocomotionClass::Unlock(); }
-	//virtual int __stdcall Get_Track_Number() override { return LocomotionClass::Get_Track_Number(); }
-	//virtual int __stdcall Get_Track_Index() override { return LocomotionClass::Get_Track_Index(); }
-	//virtual int __stdcall Get_Speed_Accum() override { return LocomotionClass::Get_Speed_Accum(); }
 
 	void ProcessHovering();
 	void DoPhase1();
@@ -206,7 +111,7 @@ public:
 	void DoPhase7();
 	bool IsDestValid();
 	bool IsTargetValid();
-	bool IsMoreThanProximityDistance(CoordStruct nCoord);
+	bool IsCloseEnough(CoordStruct nCoord);
 	bool IsLessSameThanProximityDistance(CoordStruct nCoord);
 	void CalculateDir_Close(CoordStruct nTarget);
 	void CalculateDir_Far(CoordStruct nTarget);
@@ -227,9 +132,6 @@ public:
 		, CurrentSpeed { 0.0 }
 		, Dampen { 0.0 }
 		, field_58 { 0.0 }
-		, IsMoving { false }
-		, DestinationCoord { }
-		, HeadToCoord { }
 	{ }
 
 	LevitateLocomotionClass(noinit_t) : LocomotionClass {noinit_t()}
@@ -248,7 +150,4 @@ public:
 	double CurrentSpeed; // CurrentSpeed?
 	double Dampen; // Dampen? 50
 	double field_58;
-	bool IsMoving;
-	CoordStruct DestinationCoord;
-	CoordStruct HeadToCoord;
 };
