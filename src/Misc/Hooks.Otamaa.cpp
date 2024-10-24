@@ -9838,8 +9838,8 @@ public:
 			CellStruct cell = CellClass::Coord2Cell(next);
 			const auto pCell = MapClass::Instance->GetCellAt(next);
 
-			int damage = pThis->SpawnerIsElite ? rocket->EliteDamage : rocket->Damage;
-			auto pWH = GetRocketWarhead(pRocketType, pThis->SpawnerIsElite);
+			const int damage = pThis->SpawnerIsElite ? rocket->EliteDamage : rocket->Damage;
+			const auto pWH = GetRocketWarhead(pRocketType, pThis->SpawnerIsElite);
 
 			if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, pCell->LandType, next)) 	{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, next, 0, 1, 0x2600, -15),
@@ -9850,8 +9850,9 @@ public:
 				);
 			}
 
-			MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, next, false, SpotlightFlags::None);
-			MapClass::DamageArea(next, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+			MapClass::FlashbangWarheadAt(damage, pWH, next, false, SpotlightFlags::None);
+			//setting ownership here will cause bug , better not
+			MapClass::DamageArea(next, damage, nullptr, pWH, true, nullptr);
 		}
 
 		if (pLinked->IsAlive)
