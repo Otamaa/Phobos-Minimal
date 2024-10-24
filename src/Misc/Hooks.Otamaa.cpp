@@ -9394,18 +9394,15 @@ struct _RocketLocomotionClass
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (pTypeExt->IsCustomMissile)
-		{
+		if (pTypeExt->IsCustomMissile) {
 			return pTypeExt->CustomMissileData.operator->();
 		}
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)
-		{
+		if (pType == RulesClass::Instance->CMisl.Type) {
 			return &RulesClass::Instance->CMisl;
 		}
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type)
-		{
+		if (pType == RulesClass::Instance->DMisl.Type) {
 			return &RulesClass::Instance->DMisl;
 		}
 
@@ -9418,11 +9415,11 @@ struct _RocketLocomotionClass
 		if (pTypeExt->IsCustomMissile)
 			return IsElite ? pTypeExt->CustomMissileEliteWarhead : pTypeExt->CustomMissileWarhead;
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->CMisl.Type)  {
+		if (pType == RulesClass::Instance->CMisl.Type)  {
 			return IsElite  ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
 		}
 
-		if (pTypeExt->AttachedToObject == RulesClass::Instance->DMisl.Type) {
+		if (pType == RulesClass::Instance->DMisl.Type) {
 			return IsElite  ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
 		}
 
@@ -9454,7 +9451,7 @@ struct _RocketLocomotionClass
 	}
 
 	static NOINLINE bool CanRaise(TechnoTypeClass* pType , bool IsElite) {
-		auto& _opt = TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileRaise;
+		const auto& _opt = TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileRaise;
 		return IsElite ? _opt.Elite : _opt.Rookie;
 	}
 
