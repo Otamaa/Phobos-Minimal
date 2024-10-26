@@ -167,6 +167,8 @@ struct NOVTABLE
 	static int GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress);
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
+public :
+	static HANDLE CurrentProcess;
 };
 
 struct NOVTABLE

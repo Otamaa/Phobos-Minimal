@@ -72,44 +72,39 @@ CCINIClass* TheaterTypeClass::GetConfigINI()
 	return nullptr;
 }
 
+#include <Utilities/GameConfig.h>
+
 void TheaterTypeClass::LoadAllTheatersToArray()
 {
-	TheaterTypeClass::AddDefaults();
+	GameConfig _conf { "Theaters.ini" };
 
-	const auto filename = "Theaters.ini";
-	CCFileClass file { filename };
-
-	if (file.Exists() && file.Open(FileAccessMode::Read)) {
-		CCINIClass ini {};
-		ini.ReadCCFile(&file);
+	_conf.OpenINIAction([](CCINIClass* pINI) {
 		const char* pSection = TheaterTypeClass::GetMainSection();
-		if (ini.GetSection(pSection)) {
-			for (int i = 0; i < ini.GetKeyCount(pSection); ++i) {
-				if (ini.ReadString(pSection,
-					ini.GetKeyName(pSection, i),
-					Phobos::readDefval,
-					Phobos::readBuffer)  > 0
-					) {
+
+		if (pINI->GetSection(pSection)) {
+			for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {
+				if (pINI->ReadString(pSection,
+				pINI->GetKeyName(pSection, i),
+				Phobos::readDefval,
+				Phobos::readBuffer) > 0
+					)
+				{
 					if (auto pTheater = FindOrAllocate(Phobos::readBuffer))
-						pTheater->LoadFromINI(&ini);
+						pTheater->LoadFromINI(pINI);
 					else
 						Debug::Log("Error Reading %s \"%s\".\n", pSection, Phobos::readBuffer);
 				}
 			}
 		}
-	} else {
-		Debug::Log("Theaters.ini not found!\n");
-	}
+	});
 }
 
 void TheaterTypeClass::AddDefaults()
 {
-	if (Array.empty())
-	{
+	if (Array.empty()) {
 		Array.reserve(Theater::Array.size());
 
 		for (size_t i = 0; i < Theater::Array.size(); ++i) {
-			Debug::Log("Allocating Default Theater [%s] ! \n", Theater::Array[i].Identifier);
 			AllocateWithDefault(
 				Theater::Array[i].Identifier ,
 				Theater::Array[i] ,

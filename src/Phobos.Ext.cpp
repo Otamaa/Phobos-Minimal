@@ -346,6 +346,13 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
+	ShieldClass::Array.for_each([pInvalid , removed](ShieldClass* pShield) {
+		if (pShield->IdleAnim.get() == pInvalid) {
+			pShield->IdleAnim.release();
+		}
+
+	 });
+
 	EBolt::Array->for_each([&](EBolt* pThis) {
 		if (removed && pThis->Owner == pInvalid) {
 			pThis->Owner = nullptr;
@@ -429,6 +436,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	RocketTypeClass::Clear();
 	BarTypeClass::Clear();
 	SWFirerClass::Clear();
+	ShieldClass::Array.clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{

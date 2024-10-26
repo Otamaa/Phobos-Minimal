@@ -143,11 +143,9 @@ void SpawnerMain::ApplyStaticOptions()
 		Patch::Apply_TYPED<DWORD>(0x542DC2, { 392 });
 	}
 
-	if (pMainConfigs->SingleProcAffinity)
-	{
-		auto const process = GetCurrentProcess();
+	if (pMainConfigs->SingleProcAffinity) {
 		DWORD_PTR const processAffinityMask = 1;
-		SetProcessAffinityMask(process, processAffinityMask);
+		SetProcessAffinityMask(Patch::CurrentProcess, processAffinityMask);
 	}
 
 	if (pMainConfigs->WindowedMode)

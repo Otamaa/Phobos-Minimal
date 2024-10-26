@@ -345,6 +345,36 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::PrintInitializeLog();
 	}
 
+	SID_IDENTIFIER_AUTHORITY _ID {};
+	HANDLE _Token {};
+	DWORD _RetLength {};
+	PSID _PID {};
+
+	if (AllocateAndInitializeSid(&_ID, 1u, 0, 0, 0, 0, 0, 0, 0, 0, &_PID))
+	{
+		if (OpenProcessToken(Patch::CurrentProcess, 8u, &_Token))
+		{
+			GetTokenInformation(_Token, TokenUser, 0, 0, &_RetLength);
+			if (_RetLength <= 0x400)
+			{
+				HLOCAL _Alloc = LocalAlloc(0x40u, 0x400u);
+				if (GetTokenInformation(_Token, TokenUser, _Alloc, 0x400u, &_RetLength))
+				{
+					ACL _Acl {};
+					if (InitializeAcl(&_Acl, 0x400u, 2u)
+					  && AddAccessDeniedAce(&_Acl, 2u, 0xFAu, _PID)
+					  && AddAccessAllowedAce(&_Acl, 2u, 0x100701u, _PID))
+					{
+						SetSecurityInfo(Patch::CurrentProcess, SE_KERNEL_OBJECT, 0x80000004, 0, 0, &_Acl, 0);
+					}
+				}
+			}
+		}
+	}
+
+	if (_PID)
+		FreeSid(_PID);
+
 	Phobos::CheckProcessorFeatures();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
@@ -353,8 +383,7 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	if (processAffinityMask)
 	{
 		Debug::Log("Set Process Affinity: %lu (%x)\n", processAffinityMask, processAffinityMask);
-		auto const process = GetCurrentProcess();
-		SetProcessAffinityMask(process, processAffinityMask);
+		SetProcessAffinityMask(Patch::CurrentProcess, processAffinityMask);
 	}
 
 	if (!CDDriveManagerClass::Instance->NumCDDrives)
@@ -696,12 +725,22 @@ bool HasCNCnet = false;
 //std::shared_ptr<spdlog::logger> Logger;
 static std::vector<Patch> Patches;
 
+#include <New/Type/TheaterTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
 	Game::Savegame_Magic = 0x1414D121;
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
+
+	MouseCursor::GetCursor(MouseCursorType::ParaDrop).FrameRate = 4;
+	MouseCursor::GetCursor(MouseCursorType::Chronosphere).FrameRate = 4;
+	MouseCursor::GetCursor(MouseCursorType::IronCurtain).FrameRate = 4;
+	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
+	MouseCursor::GetCursor(MouseCursorType::Cursor_36).FrameRate = 4;
+	MouseCursor::GetCursor(MouseCursorType::IvanBomb).FrameRate = 4;
 
 	Patch::PrintAllModuleAndBaseAddr();
 	Phobos::InitAdminDebugMode();
@@ -738,11 +777,8 @@ void Phobos::ExeRun()
 
 	Patches.clear();
 
-	//Logger = std::make_shared<spdlog::logger>("debug_admin");
-	//Logger->sinks().push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt> ("debug_admin.log"));
-	//Logger->set_level(spdlog::level::trace);
-	//Logger->flush_on(spdlog::level::trace);
-	//Logger->log(spdlog::level::trace, "Hello !");
+	TheaterTypeClass::AddDefaults();
+	CursorTypeClass::AddDefaults();
 }
 
 void Phobos::ExeTerminate()
@@ -775,8 +811,7 @@ bool Phobos::DetachFromDebugger()
 				(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(module.Handle, "NtClose");
 
 			HANDLE hDebug {};
-			HANDLE hCurrentProcess = GetCurrentProcess();
-			NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+			NTSTATUS status = NtQueryInformationProcess(Patch::CurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
 			if (0 <= status)
 			{
 				ULONG killProcessOnExit = FALSE;
@@ -785,8 +820,8 @@ bool Phobos::DetachFromDebugger()
 
 				if (0 <= status)
 				{
-					const auto pid = Patch::GetDebuggerProcessId(GetProcessId(hCurrentProcess));
-					status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+					const auto pid = Patch::GetDebuggerProcessId(GetProcessId(Patch::CurrentProcess));
+					status = NtRemoveProcessDebug(Patch::CurrentProcess, hDebug);
 					if (0 <= status)
 					{
 						HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
@@ -800,9 +835,6 @@ bool Phobos::DetachFromDebugger()
 
 				NtClose(hDebug);
 			}
-
-			if (hCurrentProcess != NULL)
-				CloseHandle(hCurrentProcess);
 		}
 	}
 
@@ -848,7 +880,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
-
+		Patch::CurrentProcess = GetCurrentProcess();
 		Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
 		const auto time = Debug::GetCurTimeA();

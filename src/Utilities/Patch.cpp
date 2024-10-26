@@ -8,6 +8,7 @@
 #include <Psapi.h>
 
 std::vector<dllData> Patch::ModuleDatas;
+HANDLE Patch::CurrentProcess;
 
 int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress)
 {
@@ -124,9 +125,8 @@ std::vector<module_export> Patch::enumerate_module_exports(HMODULE handle)
 
 uintptr_t Patch::GetModuleBaseAddress(const char* modName)
 {
-	HANDLE hCurrentProcess = GetCurrentProcess();
 	uintptr_t modBaseAddr = 0;
-	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(hCurrentProcess));
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(Patch::CurrentProcess));
 	if (hSnap != NULL && hSnap != INVALID_HANDLE_VALUE)
 	{
 		MODULEENTRY32 modEntry { };
@@ -182,23 +182,21 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 
 void Patch::PrintAllModuleAndBaseAddr()
 {	// Get a handle to the current process
-	HANDLE hProcess = GetCurrentProcess();
-
 	// Enumerate the loaded modules in the process
 	HMODULE hModules[1024];
 	DWORD cbNeeded;
-	if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
+	if (EnumProcessModules(Patch::CurrentProcess, hModules, sizeof(hModules), &cbNeeded))
 	{
 		const int moduleCount = static_cast<int>(cbNeeded / sizeof(HMODULE));
 		for (int i = 0; i < moduleCount; ++i)
 		{
 			// Get the base name of the module
 			CHAR moduleName[MAX_PATH] = { 0 };
-			if (GetModuleBaseNameA(hProcess, hModules[i], moduleName, sizeof(moduleName)))
+			if (GetModuleBaseNameA(Patch::CurrentProcess, hModules[i], moduleName, sizeof(moduleName)))
 			{
 				// Get information about the module
 				MODULEINFO info = { 0 };
-				if (GetModuleInformation(hProcess, hModules[i], &info, sizeof(info)))
+				if (GetModuleInformation(Patch::CurrentProcess, hModules[i], &info, sizeof(info)))
 				{
 					_strlwr_s(moduleName);
 					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter

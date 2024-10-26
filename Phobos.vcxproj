@@ -254,9 +254,9 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\MapSnapshot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\TogglePower.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.GameScreenshot.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />

@@ -19,6 +19,7 @@
 #include <RadarEventClass.h>
 #include <TacticalClass.h>
 
+HelperedVector<ShieldClass*> ShieldClass::Array;
 
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
@@ -36,7 +37,9 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , Respawn_Rate_Warhead { -1 }
 , LastBreakFrame { -1 }
 , Type { nullptr }
-{ }
+{
+	Array.push_back(this);
+}
 
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , CurTechnoType { nullptr }
@@ -59,6 +62,8 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 	this->UpdateType();
 	SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
 	this->CurTechnoType = pTechno->GetTechnoType();
+
+	Array.push_back(this);
 }
 
 void ShieldClass::UpdateType()

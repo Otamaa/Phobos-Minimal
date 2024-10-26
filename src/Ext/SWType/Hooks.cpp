@@ -31,7 +31,6 @@ DEFINE_HOOK(0x55B6F8, LogicClass_Updata_End, 0xC)
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();
 	HouseExtData::UpdateAutoDeathObjects();
-
 	return 0x0;
 }
 
