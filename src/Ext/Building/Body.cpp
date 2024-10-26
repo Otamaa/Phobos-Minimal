@@ -800,7 +800,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
 
-		if (!pOwnerExt->AutoDeathObjects.contains(pBuilding))
+		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
 			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
 
@@ -809,7 +809,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 				&& !pBuildingExt->TechnoExt->Death_Countdown.HasStarted())
 			{
 				pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
-				pOwnerExt->AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
+				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}

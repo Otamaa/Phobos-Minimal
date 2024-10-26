@@ -33,8 +33,8 @@ void JumpTo4(LevitateLocomotionClass* pThis, float a2)
 	pThis->AccelerationDurationNegSinus = 0.0;
 	pThis->AccelerationDurationCosinus = 0.0;
 	pThis->AccelerationDuration = 0;
-	pThis->DeltaX = pThis->Characteristic.Intentional_DriftVelocity * v3;
-	pThis->DeltaY = -(pThis->Characteristic.Intentional_DriftVelocity * v5);
+	pThis->Delta.X = pThis->Characteristic.Intentional_DriftVelocity * v3;
+	pThis->Delta.Y = -(pThis->Characteristic.Intentional_DriftVelocity * v5);
 	pThis->CurrentVelocity = pThis->Characteristic.Intentional_DriftVelocity;
 	pThis->State = 4;
 }
@@ -110,8 +110,8 @@ void LevitateLocomotionClass::DoPhase1()
 				this->AccelerationDurationNegSinus = 0.0;
 				this->AccelerationDurationCosinus = 0.0;
 				this->CurrentVelocity = 0.0;
-				this->DeltaY = 0;
-				this->DeltaX = 0;
+				this->Delta.Y = 0;
+				this->Delta.X = 0;
 				this->State = 5;
 			} else{
 
@@ -163,8 +163,8 @@ void LevitateLocomotionClass::DoPhase1()
 			this->AccelerationDurationNegSinus = 0.0;
 			this->AccelerationDurationCosinus = 0.0;
 			this->CurrentVelocity = 0.0;
-			this->DeltaY = 0;
-			this->DeltaX = 0;
+			this->Delta.Y = 0;
+			this->Delta.X = 0;
 			this->State = 5;
 		}
 		else
@@ -255,15 +255,15 @@ void LevitateLocomotionClass::CalculateDir_Close(CoordStruct nTarget)
 	this->AccelerationDurationNegSinus = 0.0;
 	this->AccelerationDurationCosinus = 0.0;
 	this->AccelerationDuration = 0;
-	this->DeltaY = Characteristic.Intentional_DriftVelocity * nMath_4;
-	this->DeltaX = -(Characteristic.Intentional_DriftVelocity * nMath_3);
+	this->Delta.Y = Characteristic.Intentional_DriftVelocity * nMath_4;
+	this->Delta.X = -(Characteristic.Intentional_DriftVelocity * nMath_3);
 	this->CurrentVelocity = Characteristic.Intentional_DriftVelocity;
 	this->State = 4;
 
-	if ((int)Math::abs(this->DeltaX) > Math::abs(Coord.X - TCoord.X))
-		this->DeltaX = (double)(Coord.X - TCoord.X);
-	if ((int)Math::abs(this->DeltaY) > Math::abs(Coord.Y - TCoord.Y))
-		this->DeltaY = (double)(Coord.Y - TCoord.Y);
+	if ((int)Math::abs(this->Delta.X) > Math::abs(Coord.X - TCoord.X))
+		this->Delta.X = (double)(Coord.X - TCoord.X);
+	if ((int)Math::abs(this->Delta.Y) > Math::abs(Coord.Y - TCoord.Y))
+		this->Delta.Y = (double)(Coord.Y - TCoord.Y);
 }
 
 // Done
@@ -282,11 +282,11 @@ void LevitateLocomotionClass::DirtoSomething(double dValue)
 	const auto nCos = Math::cos((float)dValue);
 	AccelerationDurationCosinus = nAccel * nCos;
 	AccelerationDurationNegSinus = -(nAccel * nCos);
-	DeltaX = nInitboost * nCos + DeltaX;
-	DeltaY = DeltaX - nInitboost * nSin;;
-	CurrentVelocity = DeltaY * DeltaY + DeltaX * DeltaX;
+	Delta.X = nInitboost * nCos + Delta.X;
+	Delta.Y = Delta.X - nInitboost * nSin;;
+	CurrentVelocity = Delta.Y * Delta.Y + Delta.X * Delta.X;
 	auto nCenter = LinkedTo->GetCoords();
-	const auto pSys = GameCreate<ParticleSystemClass>(ParticleSystemTypeClass::Find("GasPuffSys"), nCenter);
+	const auto pSys = GameCreate<ParticleSystemClass>(RulesExtData::Instance()->DefaultGlobalParticleInstance, nCenter);
 	auto nEmpty = CoordStruct { 0,0,0 };
 	const auto pParticle = pSys->SpawnHeldParticle(&nCenter, &nEmpty);
 	pParticle->GasVelocity.X = (int)(nCos * -16.0);
@@ -363,8 +363,8 @@ void LevitateLocomotionClass::DoPhase3()
 	else
 	{
 		CurrentSpeed = Characteristic.Drag;
-		DeltaX = 0.0;
-		DeltaY = 0.0;
+		Delta.X = 0.0;
+		Delta.Y = 0.0;
 		State = 0;
 
 		if (!LinkedTo->IsPathBlocked){
@@ -389,8 +389,8 @@ void LevitateLocomotionClass::DoPhase4()
 					this->AccelerationDurationNegSinus = 0.0;
 					this->AccelerationDurationCosinus = 0.0;
 					this->CurrentVelocity = 0.0;
-					this->DeltaY = 0.0;
-					this->DeltaX = 0.0;
+					this->Delta.Y = 0.0;
+					this->Delta.X = 0.0;
 					this->State = 5;
 					this->AccelerationDuration = 0;
 					return;
@@ -418,8 +418,8 @@ void LevitateLocomotionClass::DoPhase4()
 		{
 			LinkedTo->Destination = nullptr;
 			CurrentSpeed = Characteristic.Drag;
-			DeltaX = 0.0;
-			DeltaY = 0.0;
+			Delta.X = 0.0;
+			Delta.Y = 0.0;
 			State = 0;
 			LinkedTo->SetSpeedPercentage(0.0);
 			LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
@@ -432,8 +432,8 @@ void LevitateLocomotionClass::DoPhase4()
 			this->AccelerationDurationNegSinus = 0.0;
 			this->AccelerationDurationCosinus = 0.0;
 			this->CurrentVelocity = 0.0;
-			this->DeltaY = 0.0;
-			this->DeltaX = 0.0;
+			this->Delta.Y = 0.0;
+			this->Delta.X = 0.0;
 			this->State = 5;
 			this->AccelerationDuration = 0;
 			return;
@@ -475,15 +475,15 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 			this->AccelerationDurationNegSinus = 0.0;
 			this->AccelerationDurationCosinus = 0.0;
 			this->AccelerationDuration = 0;
-			this->DeltaY = Characteristic.Intentional_DriftVelocity * nMath_4;
-			this->DeltaX = -(Characteristic.Intentional_DriftVelocity * nMath_3);
+			this->Delta.Y = Characteristic.Intentional_DriftVelocity * nMath_4;
+			this->Delta.X = -(Characteristic.Intentional_DriftVelocity * nMath_3);
 			this->CurrentVelocity = Characteristic.Intentional_DriftVelocity;
 			this->State = 4;
 
-			if ((int)Math::abs(this->DeltaX) > Math::abs(Coord.X - coord.X))
-				this->DeltaX = (double)(Coord.X - coord.X);
-			if ((int)Math::abs(this->DeltaY) > Math::abs(Coord.Y - coord.Y))
-				this->DeltaY = (double)(Coord.Y - coord.Y);
+			if ((int)Math::abs(this->Delta.X) > Math::abs(Coord.X - coord.X))
+				this->Delta.X = (double)(Coord.X - coord.X);
+			if ((int)Math::abs(this->Delta.Y) > Math::abs(Coord.Y - coord.Y))
+				this->Delta.Y = (double)(Coord.Y - coord.Y);
 		}
 	}
 	else
@@ -492,8 +492,8 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 		this->AccelerationDurationNegSinus = 0.0;
 		this->AccelerationDurationCosinus = 0.0;
 		this->CurrentVelocity = 0.0;
-		this->DeltaY = 0.0;
-		this->DeltaX = 0.0;
+		this->Delta.Y = 0.0;
+		this->Delta.X = 0.0;
 		this->AccelerationDuration = 0;
 	}
 }
@@ -510,8 +510,8 @@ void LevitateLocomotionClass::DoPhase6()
 				this->AccelerationDurationNegSinus = 0.0;
 				this->AccelerationDurationCosinus = 0.0;
 				this->CurrentVelocity = 0.0;
-				this->DeltaY = 0.0;
-				this->DeltaX = 0.0;
+				this->Delta.Y = 0.0;
+				this->Delta.X = 0.0;
 				this->State = 5;
 				this->AccelerationDuration = 0;
 				return;
@@ -557,8 +557,8 @@ void LevitateLocomotionClass::DoPhase6()
 	LinkedTo->Destination = nullptr;
 	this->CurrentSpeed = Characteristic.Drag;
 	this->CurrentVelocity = 0.0;
-	this->DeltaY = 0.0;
-	this->DeltaX = 0.0;
+	this->Delta.Y = 0.0;
+	this->Delta.X = 0.0;
 	this->State = 0;
 	return;
 }
@@ -567,9 +567,8 @@ void LevitateLocomotionClass::DoPhase7()
 {
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
 	const auto nCoord = LinkedTo->GetCenterCoords();
-	const auto nCoordCell = CellClass::Coord2Cell(nCoord);
-	const auto nCoordCellToCoord = CoordStruct { nCoordCell.X , nCoordCell.Y , nCoord.Z };
-	const auto nDistance = (int)nCoordCellToCoord.DistanceFromXY(LinkedTo->GetCoords());
+	const auto nCoordCell = CoordStruct{ (nCoord.X * 256) + 128  , (nCoord.Y * 256) + 128 ,nCoord.Z };
+	const auto nDistance = (nCoordCell  - LinkedTo->GetCoords()).LengthXY();
 
 	if (nDistance < 5)
 	{
@@ -583,7 +582,7 @@ void LevitateLocomotionClass::DoPhase7()
 				LinkedTo->UpdatePathfinding(nTargetCoordCell, CellStruct::Empty, 0);
 				const auto nSelected = LinkedTo->IsSelected;
 				LinkedTo->IsSelected = false;
-				LinkedTo->SetLocation(nCoordCellToCoord);
+				LinkedTo->SetLocation(nCoordCell);
 				LinkedTo->IsSelected = nSelected;
 				const auto nCoord_diff = nTargetCoord - LinkedTo->GetCenterCoords();
 				const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
@@ -597,8 +596,8 @@ void LevitateLocomotionClass::DoPhase7()
 				this->AccelerationDurationNegSinus = 0.0;
 				this->AccelerationDurationCosinus = 0.0;
 				this->AccelerationDuration = 0;
-				this->DeltaX = nSin * Characteristic.Intentional_DriftVelocity;
-				this->DeltaY = -(nCos * Characteristic.Intentional_DriftVelocity);
+				this->Delta.X = nSin * Characteristic.Intentional_DriftVelocity;
+				this->Delta.Y = -(nCos * Characteristic.Intentional_DriftVelocity);
 				this->CurrentVelocity = Characteristic.Intentional_DriftVelocity;
 				this->State = 7;
 				return;
@@ -624,7 +623,7 @@ void LevitateLocomotionClass::DoPhase7()
 			LinkedTo->UpdatePathfinding(nTargetCoordCell, CellStruct::Empty, 0);
 			const auto nSelected = LinkedTo->IsSelected;
 			LinkedTo->IsSelected = false;
-			LinkedTo->SetLocation(nCoordCellToCoord);
+			LinkedTo->SetLocation(nCoordCell);
 			LinkedTo->IsSelected = nSelected;
 			const auto nCoord_diff = nTargetCoord - LinkedTo->GetRenderCoords();
 			const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
@@ -638,8 +637,8 @@ void LevitateLocomotionClass::DoPhase7()
 			this->AccelerationDurationNegSinus = 0.0;
 			this->AccelerationDurationCosinus = 0.0;
 			this->AccelerationDuration = 0;
-			this->DeltaX = nSin * Characteristic.Intentional_DriftVelocity;
-			this->DeltaY = -(nCos * Characteristic.Intentional_DriftVelocity);
+			this->Delta.X = nSin * Characteristic.Intentional_DriftVelocity;
+			this->Delta.Y = -(nCos * Characteristic.Intentional_DriftVelocity);
 			this->CurrentVelocity = Characteristic.Intentional_DriftVelocity;
 			this->State = 7;
 			return;
@@ -654,12 +653,12 @@ void LevitateLocomotionClass::DoPhase7()
 	}
 
 	const auto nCoordHere = LinkedTo->GetRenderCoords();
-	JumpTo4(this, (float)GetFacingVal(nCoordHere, nCoordCellToCoord));
+	JumpTo4(this, (float)GetFacingVal(nCoordHere, nCoordCell));
 
-	if ((int)Math::abs(this->DeltaY) > Math::abs(nCoordCellToCoord.X - nCoordHere.X))
-		this->DeltaX = (double)(nCoordCellToCoord.X - nCoordHere.X);
-	if ((int)Math::abs(this->DeltaY) > Math::abs(nCoordCellToCoord.Y - nCoordHere.Y))
-		this->DeltaY = (double)(nCoordCellToCoord.Y - nCoordHere.Y);
+	if ((int)Math::abs(this->Delta.Y) > Math::abs(nCoordCell.X - nCoordHere.X))
+		this->Delta.X = (double)(nCoordCell.X - nCoordHere.X);
+	if ((int)Math::abs(this->Delta.Y) > Math::abs(nCoordCell.Y - nCoordHere.Y))
+		this->Delta.Y = (double)(nCoordCell.Y - nCoordHere.Y);
 
 	this->State = 6;
 }
@@ -698,26 +697,26 @@ void LevitateLocomotionClass::ProcessSomething()
 		if (this->CurrentVelocity > 0.0)
 		{
 			const auto v2 = v39 / this->CurrentVelocity;
-			this->DeltaX = v2 * this->DeltaX;
-			this->DeltaY = v2 * this->DeltaY;
+			this->Delta.X = v2 * this->Delta.X;
+			this->Delta.Y = v2 * this->Delta.Y;
 		}
 	}
 	else
 	{
-		this->DeltaY = 0.0;
-		this->DeltaX = 0.0;
+		this->Delta.Y = 0.0;
+		this->Delta.X = 0.0;
 	}
 
 	if (this->AccelerationDuration > 0)
 	{
 		--this->AccelerationDuration;
-		this->DeltaX = this->AccelerationDurationCosinus + this->DeltaX;
-		this->DeltaY = this->AccelerationDurationNegSinus + this->DeltaY;
+		this->Delta.X = this->AccelerationDurationCosinus + this->Delta.X;
+		this->Delta.Y = this->AccelerationDurationNegSinus + this->Delta.Y;
 	}
 
-	this->CurrentVelocity = Math::sqrt(this->DeltaY * this->DeltaY + this->DeltaX * this->DeltaX);
+	this->CurrentVelocity = Math::sqrt(this->Delta.Y * this->Delta.Y + this->Delta.X * this->Delta.X);
 
-	const CoordStruct nDelta = { (int)this->DeltaX , (int)this->DeltaY , 0 };
+	const CoordStruct nDelta = { (int)this->Delta.X , (int)this->Delta.Y , 0 };
 	const CoordStruct nRender = LinkedTo->GetCenterCoords();
 	const CoordStruct nDeltaCoord = nRender + nDelta;
 	const CellStruct nDeltaCell = CellClass::Coord2Cell(nDelta);
@@ -811,10 +810,10 @@ void LevitateLocomotionClass::ProcessSomething()
 
 	JumpTo4(this, (float)GetFacingVal(nRender_Coord, nRender_coord_trans));
 
-	if ((int)Math::abs(this->DeltaX) > Math::abs(nRender_coord_trans.X - nRender_Coord.X))
-		this->DeltaX = (double)(nRender_coord_trans.X - nRender_Coord.X);
-	if ((int)Math::abs(this->DeltaY) > Math::abs(nRender_coord_trans.Y - nRender_Coord.Y))
-		this->DeltaY = (double)(nRender_coord_trans.Y - nRender_Coord.Y);
+	if ((int)Math::abs(this->Delta.X) > Math::abs(nRender_coord_trans.X - nRender_Coord.X))
+		this->Delta.X = (double)(nRender_coord_trans.X - nRender_Coord.X);
+	if ((int)Math::abs(this->Delta.Y) > Math::abs(nRender_coord_trans.Y - nRender_Coord.Y))
+		this->Delta.Y = (double)(nRender_coord_trans.Y - nRender_Coord.Y);
 
 	this->State = 6;
 }
@@ -917,7 +916,7 @@ bool __stdcall LevitateLocomotionClass::Process()
 	this->ProcessSomething();
 
 	//Done
-	if (this->Is_To_Have_Shadow())
+	if (this->Is_Moving_Now())
 	{
 		if (!(Unsorted::CurrentFrame % 10))
 		{

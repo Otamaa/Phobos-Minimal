@@ -3647,8 +3647,7 @@ bool TechnoExtData::CheckDeathConditions()
 		if (!Death_Countdown.HasStarted())
 		{
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
-			if (pThis->Owner)
-				HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.insert(pThis, nMethod);
+			HouseExtData::AutoDeathObjects.insert(pThis, nMethod);
 		}
 		else if (Death_Countdown.Completed())
 		{
@@ -4194,9 +4193,8 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 	//{
 	//	this->Death_Countdown.Stop();
 
-	//	if (pThis->Owner)
 	//	{
-	//		HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
+	//		HouseExtData::AutoDeathObjects.erase(pThis);
 	//	}
 	//}
 

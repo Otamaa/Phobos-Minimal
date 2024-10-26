@@ -3423,14 +3423,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TechnoExtData::InitializeLaserTrail(pThis, true);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted())
-	{
+	if (pExt->Death_Countdown.HasStarted()) {
 		pExt->Death_Countdown.Stop();
-
-		if (pThis->Owner)
-		{
-			HouseExtContainer::Instance.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
-		}
+		HouseExtData::AutoDeathObjects.erase(pThis);
 	}
 
 	if (pExt->PassengerDeletionTimer.IsTicking()

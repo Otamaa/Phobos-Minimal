@@ -84,6 +84,7 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
+#include <New/Entity/SWFirerClass.h>
 
 #include <Ext/Tactical/Body.h>
 
@@ -335,6 +336,15 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
+	if (removed) {
+		for (auto& item : HouseExtData::AutoDeathObjects) {
+			if(item.first == pInvalid) {
+				item.first = nullptr;
+				item.second = KillMethod::None;
+			}
+		}
+	}
+
 	HugeBar::InvalidatePointer(pInvalid, removed);
 	EBolt::Array->for_each([&](EBolt* pThis) {
 		if (removed && pThis->Owner == pInvalid) {
@@ -418,6 +428,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HugeBar::Clear();
 	RocketTypeClass::Clear();
 	BarTypeClass::Clear();
+	SWFirerClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -431,6 +442,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		TeamExtContainer::Instance.Pool.reserve(1000);
 		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
 		WaveExtContainer::Instance.Pool.reserve(1000);
+		SWFirerClass::Array.reserve(1000);
 	}
 
 	return 0;
@@ -603,7 +615,8 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<StaticVars>(pStm) &&
 		Process_Load<HugeBar>(pStm) &&
 		Process_Load<RocketTypeClass>(pStm) &&
-		Process_Load<BarTypeClass>(pStm)
+		Process_Load<BarTypeClass>(pStm) &&
+		Process_Load<SWFirerClass>(pStm)
 		;
 
 	if (!ret)
@@ -659,7 +672,8 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<StaticVars>(pStm) &&
 			Process_Save<HugeBar>(pStm) &&
 			Process_Save<RocketTypeClass>(pStm) &&
-			Process_Save<BarTypeClass>(pStm)
+			Process_Save<BarTypeClass>(pStm) &&
+			Process_Save<SWFirerClass>(pStm)
 			;
 
 		if (!ret)

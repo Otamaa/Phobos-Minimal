@@ -768,6 +768,79 @@ DEFINE_HOOK(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 	return 0;
 }
 
+
+#ifdef TEST
+#define GET_REGISTER_STATIC_2(type, dst, reg) static type dst; _asm { mov dst, reg }
+
+[[ noreturn ]] static NOINLINE NAKED void AnimClass_DTOR_Ext() noexcept {
+	GET_REGISTER_STATIC_2(AnimClass*, this_ptr, esi);
+	if (!this_ptr->Type) {
+		goto original_code;
+	}
+
+	FakeAnimClass::Remove(this_ptr);
+
+original_code:
+	_asm { mov eax, ds:0xA8E9A0 } // GameActive
+	JMP_REG(ebx, 0x422912);
+}
+
+[[ noreturn ]] static NOINLINE NAKED void AnimClass_CTOR_Ext() noexcept {
+	GET_REGISTER_STATIC_2(AnimClass*, this_ptr, esi); // Current "this" pointer.
+
+	if (Phobos::Otamaa::DoingLoadGame || !this_ptr->Type)
+		goto original_code;
+
+	// Do this here instead of using a duplicate hook in SyncLogger.cpp
+	if (!SyncLogger::HooksDisabled && this_ptr->UniqueID != -2)
+		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
+
+	if (this_ptr->UniqueID == -2)
+	{
+		Debug::Log("Anim[%s - %x] with some weird ID\n", this_ptr->Type->ID, this_ptr);
+	}
+
+	FakeAnimClass::ClearExtAttribute(this_ptr);
+
+	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(this_ptr))
+	{
+		FakeAnimClass::SetExtAttribute(this_ptr, val);
+
+		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
+		if (!this_ptr->HasExtras)
+			val->CreateAttachedSystem();
+	}
+
+
+
+original_code:
+	/**
+	 *  Stolen bytes/code.
+	 */
+	this_ptr->IsAlive = true;
+
+	/**
+	 *  Restore some registers.
+	 */
+	_asm { mov ecx, this_ptr }
+	_asm { mov edx, [ecx + 0xC8] } // this->Class
+	_asm { mov eax, edx }
+
+	JMP_REG(edx, 0x4220B7);
+}
+
+#undef GET_REGISTER_STATIC_2
+DEFINE_JUMP(LJMP, 0x4220AA, MiscTools::to_DWORD(&AnimClass_CTOR_Ext));
+DEFINE_JUMP(LJMP, 0x42290B, MiscTools::to_DWORD(&AnimClass_DTOR_Ext));
+
+//DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
+//{
+//	GET(AnimClass* const, pItem, ESI);
+//	FakeAnimClass::Remove(pItem);
+//	return 0;
+//}
+
+#else
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
@@ -779,13 +852,15 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
-	if (pItem->UniqueID == -2) {
+	if (pItem->UniqueID == -2)
+	{
 		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
 	}
 
 	FakeAnimClass::ClearExtAttribute(pItem);
 
-	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(pItem)) {
+	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(pItem))
+	{
 		FakeAnimClass::SetExtAttribute(pItem, val);
 
 		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
@@ -803,11 +878,16 @@ DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 	return 0;
 }
 
-HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm) {
+#endif
+
+
+HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm)
+{
 
 	HRESULT res = this->AnimClass::Load(pStm);
 
-	if(SUCCEEDED(res)) {
+	if (SUCCEEDED(res))
+	{
 		FakeAnimClass::ClearExtAttribute(this);
 		auto buffer = FakeAnimClass::AllocateUnchecked(this);
 		FakeAnimClass::SetExtAttribute(this, buffer);
@@ -826,7 +906,8 @@ HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm) {
 		reader.RegisterChange(buffer);
 		buffer->LoadFromStream(reader);
 
-		if (reader.ExpectEndOfBlock()) {
+		if (reader.ExpectEndOfBlock())
+		{
 			return S_OK;
 		}
 	}
@@ -834,11 +915,13 @@ HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm) {
 	return res;
 }
 
-HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty) {
+HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty)
+{
 
-	HRESULT res = this->AnimClass::Save(pStm , clearDirty);
+	HRESULT res = this->AnimClass::Save(pStm, clearDirty);
 
-	if (SUCCEEDED(res)) {
+	if (SUCCEEDED(res))
+	{
 		AnimExtData* const buffer = FakeAnimClass::GetExtAttribute(this);
 
 		// write the current pointer, the size of the block, and the canary
@@ -852,7 +935,8 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty) {
 		buffer->SaveToStream(writer);
 
 		// save the block
-		if (!saver.WriteBlockToStream(pStm)) {
+		if (!saver.WriteBlockToStream(pStm))
+		{
 			//Debug::Log("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream\n", saver.Size());
 			return -1;
 		}
@@ -863,7 +947,7 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty) {
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3368 , MiscTools::to_DWORD(&FakeAnimClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7E3368, MiscTools::to_DWORD(&FakeAnimClass::_Load))
 DEFINE_JUMP(VTABLE, 0x7E336C, MiscTools::to_DWORD(&FakeAnimClass::_Save))
 
 DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
@@ -872,7 +956,8 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET(AbstractClass*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	pThis->_GetExtData()->InvalidatePointer(target, all);
+	if(auto pExt = pThis->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 
 	R->EBX(0);
 

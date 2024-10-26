@@ -356,15 +356,6 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 			pNewOwnerExt->LimboTechno.insert(pThis);
 	}
 
-	const auto Item = pOldOwnerExt->AutoDeathObjects.get_key_iterator(pThis);
-	if (Item != pOldOwnerExt->AutoDeathObjects.end())
-	{
-		pOldOwnerExt->AutoDeathObjects.erase(pThis);
-
-		if(pThis->IsAlive)
-			pNewOwnerExt->AutoDeathObjects.insert(pThis, Item->second);
-	}
-
 	OldOwner = pThis->Owner;
 	return 0;
 }

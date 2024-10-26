@@ -119,12 +119,24 @@ public:
 	void ProcessSomething();
 	bool IsAdjentCellEligible(CoordStruct nArgsCoord);
 
+	void Reset(int state) {
+		State = state;
+		CurrentVelocity = 0;
+		Delta = {};
+		AccelerationDurationCosinus = 0;
+		AccelerationDurationNegSinus = 0;
+		AccelerationDuration = 0;
+		BlocksCounter = 0;
+		CurrentSpeed = 0;
+		Dampen = 0;
+		field_58 = 0;
+	}
+
 	LevitateLocomotionClass() : LocomotionClass {}
 		, Characteristic {}
 		, State { 0 }
 		, CurrentVelocity { 0.0 }
-		, DeltaX { 0.0 }
-		, DeltaY { 0.0 }
+		, Delta { }
 		, AccelerationDurationCosinus { 0.0 }
 		, AccelerationDurationNegSinus { 0.0 }
 		, AccelerationDuration { 0 }
@@ -141,8 +153,7 @@ public:
 	LevitateCharacteristics Characteristic;
 	int State; // State?
 	double CurrentVelocity; // CurrentVelocity?
-	double DeltaX; // DeltaX?
-	double DeltaY; // DeltaY?
+	Vector2D<double> Delta;
 	double AccelerationDurationCosinus; // AccelerationDurationCosinus?
 	double AccelerationDurationNegSinus; // AccelerationDurationNegSinus?
 	int AccelerationDuration; // AccelerationDuration?

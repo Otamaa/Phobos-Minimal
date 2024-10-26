@@ -361,6 +361,7 @@
     <ClCompile Include="src\New\AnonymousType\SpawnsStatus.cpp" />
     <ClCompile Include="src\New\Entity\NewSpawnManager.cpp" />
     <ClCompile Include="src\New\Entity\SWColumnClass.cpp" />
+    <ClCompile Include="src\New\Entity\SWFirerClass.cpp" />
     <ClCompile Include="src\New\Entity\SWSidebarClass.cpp" />
     <ClCompile Include="src\New\Entity\TacticalButtonClass.cpp" />
     <ClCompile Include="src\New\Entity\ToggleSWButtonClass.cpp" />
@@ -499,6 +500,7 @@
     <ClInclude Include="src\New\Entity\NewSpawnManager.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\SWColumnClass.h" />
+    <ClInclude Include="src\New\Entity\SWFirerClass.h" />
     <ClInclude Include="src\New\Entity\SWSidebarClass.h" />
     <ClInclude Include="src\New\Entity\TacticalButtonClass.h" />
     <ClInclude Include="src\New\Entity\ToggleSWButtonClass.h" />

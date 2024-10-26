@@ -20,6 +20,8 @@ std::vector<int> HouseExtData::AIProduction_Values;
 std::vector<int> HouseExtData::AIProduction_BestChoices;
 std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 
+PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
+
 int HouseExtData::LastGrindingBlanceUnit = 0;
 int HouseExtData::LastGrindingBlanceInf = 0;
 int HouseExtData::LastHarvesterBalance = 0;
@@ -870,9 +872,6 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
 
-	if (bRemoved)
-		AutoDeathObjects.erase((TechnoClass*)ptr);
-
 	for (auto& nTun : Tunnels)
 		AnnounceInvalidPointer(nTun.Vector, ptr, bRemoved);
 
@@ -1276,36 +1275,33 @@ bool HouseExtData::IsDisabledFromShell(
 
 void HouseExtData::UpdateAutoDeathObjects()
 {
-	if (this->AutoDeathObjects.empty())
+	if (HouseExtData::AutoDeathObjects.empty())
 		return;
 
-	for (const auto& [pThis, nMethod] : this->AutoDeathObjects)
+	const auto iter = std::remove_if(HouseExtData::AutoDeathObjects.begin(), HouseExtData::AutoDeathObjects.end(), [](auto& item)
 	{
-		if (pThis->IsInLogic || !pThis->IsAlive || nMethod == KillMethod::None)
-			continue;
-
-		auto const pExt = TechnoExtContainer::Instance.TryFind(pThis);
-		if (!pExt)
-		{
-			Debug::Log("HouseExtData::UpdateAutoDeathObject -  Killing Techno Failed , No Extptr [%x - %s] ! \n", pThis, pThis->get_ID());
-			continue;
+		if (!item.first || item.second == KillMethod::None || !item.first->IsAlive) {
+			return true;
 		}
 
-		if (!pExt->Death_Countdown.Completed())
-			continue;
+		auto const pExt = TechnoExtContainer::Instance.Find(item.first);
 
-		Debug::Log("HouseExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
-		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
-		{
-			if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
-			{
-				//this->RemoveFromLimboTracking(pBuilding->Type);
-				BuildingExtData::LimboKill(pBuilding);
-				continue;
+		if (!item.first->IsInLogic && pExt->Death_Countdown.Completed()) {
+			if (auto const pBuilding = specific_cast<BuildingClass*>(item.first)) {
+				if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1) {
+					BuildingExtData::LimboKill(pBuilding);
+					return true;
+				}
 			}
-		}
 
-		TechnoExtData::KillSelf(pThis, nMethod, true, TechnoTypeExtContainer::Instance.Find(pExt->Type)->AutoDeath_VanishAnimation);
+			TechnoExtData::KillSelf(item.first, item.second, true, TechnoTypeExtContainer::Instance.Find(pExt->Type)->AutoDeath_VanishAnimation);
+			return true;
+		}
+		return false;
+	});
+
+	if (iter != HouseExtData::AutoDeathObjects.end()) {
+		HouseExtData::AutoDeathObjects.erase(iter);
 	}
 }
 
@@ -2061,6 +2057,7 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
 
@@ -2072,6 +2069,7 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
 
@@ -2098,6 +2096,8 @@ void HouseExtContainer::Clear()
 	Civilian = 0;
 	Special = 0;
 	Neutral = 0;
+
+	HouseExtData::AutoDeathObjects.clear();
 }
 // =============================
 // container hooks

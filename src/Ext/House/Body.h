@@ -112,9 +112,6 @@ public:
 	int LastBuiltNavalVehicleType { -1 };
 	int ProducingNavalUnitTypeIndex { -1 };
 
-	//#830
-	PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects {};
-
 	std::vector<LauchData> LaunchDatas {};
 	bool CaptureObjectExecuted { false };
 	CDTimerClass DiscoverEvaDelay {};
@@ -197,7 +194,6 @@ public:
 	void InitializeConstant();
 
 	void UpdateVehicleProduction();
-	void UpdateAutoDeathObjects();
 	void UpdateTransportReloaders();
 
 	void UpdateShotCount(SuperWeaponTypeClass* pFor);
@@ -260,6 +256,8 @@ public:
 
 	static bool PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem);
 	static bool PrerequisitesMet(HouseClass* pThis, int* items , int size);
+
+	static void UpdateAutoDeathObjects();
 
 	//static bool HasGenericPrerequisite(int idx, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
 	//static int FindGenericPrerequisite(const char* id);
@@ -358,6 +356,7 @@ public:
 	static std::vector<int> AIProduction_Values;
 	static std::vector<int> AIProduction_BestChoices;
 	static std::vector<int> AIProduction_BestChoicesNaval;
+	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
 
 	static int LastGrindingBlanceUnit;
 	static int LastGrindingBlanceInf;
