@@ -114,6 +114,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };
 
+class InfantryTypeExtData;
 class FakeInfantryClass : public InfantryClass
 {
 public:
@@ -140,6 +141,10 @@ public:
 	InfantryExtData* _GetExtData()
 	{
 		return *reinterpret_cast<InfantryExtData**>(((DWORD)this) + InfantryExtData::ExtOffset);
+	}
+
+	InfantryTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this->Type) + 0xECC);
 	}
 };
 static_assert(sizeof(FakeInfantryClass) == sizeof(InfantryClass), "Invalid Size !");

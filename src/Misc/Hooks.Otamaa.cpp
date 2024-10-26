@@ -6110,25 +6110,49 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 	return 0x520831;
 }
 
+// Fixes SecondaryFire / SecondaryProne sequences not remapping to WetAttack in water.
+// Ideally there would be WetAttackSecondary but adding new sequences would be a big undertaking.
+// Also adds a toggle for not using water sequences at all - Starkku
+// Also add new sequence - Otamaa
 DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(FakeInfantryClass*, pThis, ESI);
 	GET(DoType, type, EDI);
+
+	enum
+	{
+		Continue = 0x0,
+		SkipWaterSequences = 0x51D842,
+		UseSwim = 0x51D83D,
+		UseWetAttack = 0x51D82F,
+		ApplySequence = 0x51D842
+	};
+	if (pThis->_GetTypeExtData()->OnlyUseLandSequences)
+	{
+		R->EBP(false);
+		return SkipWaterSequences;
+	}
+
+	if (type == DoType::Walk || type == DoType::Crawl) // Restore overridden instructions.
+	{
+		R->EBP(false);
+		return UseSwim;
+	}
 
 	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne)
 	{
+		R->EBP(false);
 
 		if (!((NewDoType*)pThis->Type->Sequence)->GetSequence(DoType(43)).CountFrames)
-			return 0x0;
+		{
+			return UseWetAttack;
+		}
 
-		type = DoType(43);
-
-		R->EBP(false);
-		R->EDI(type);
-		return 0x51D842;
+		R->EDI(DoType(43));
+		return ApplySequence;
 	}
 
-	return 0x0;
+	return Continue;
 }
 
 //the fuck is this ,...
@@ -9394,43 +9418,50 @@ struct _RocketLocomotionClass
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (pTypeExt->IsCustomMissile) {
+		if (pTypeExt->IsCustomMissile)
+		{
 			return pTypeExt->CustomMissileData.operator->();
 		}
 
-		if (pType == RulesClass::Instance->CMisl.Type) {
+		if (pType == RulesClass::Instance->CMisl.Type)
+		{
 			return &RulesClass::Instance->CMisl;
 		}
 
-		if (pType == RulesClass::Instance->DMisl.Type) {
+		if (pType == RulesClass::Instance->DMisl.Type)
+		{
 			return &RulesClass::Instance->DMisl;
 		}
 
 		return &RulesClass::Instance->V3Rocket;
 	}
 
-	static NOINLINE WarheadTypeClass* GetRocketWarhead(TechnoTypeClass* pType , bool IsElite) {
+	static NOINLINE WarheadTypeClass* GetRocketWarhead(TechnoTypeClass* pType, bool IsElite)
+	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (pTypeExt->IsCustomMissile)
 			return IsElite ? pTypeExt->CustomMissileEliteWarhead : pTypeExt->CustomMissileWarhead;
 
-		if (pType == RulesClass::Instance->CMisl.Type)  {
-			return IsElite  ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
+		if (pType == RulesClass::Instance->CMisl.Type)
+		{
+			return IsElite ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
 		}
 
-		if (pType == RulesClass::Instance->DMisl.Type) {
-			return IsElite  ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
+		if (pType == RulesClass::Instance->DMisl.Type)
+		{
+			return IsElite ? RulesClass::Instance->CMislEliteWarhead : RulesClass::Instance->CMislWarhead;
 		}
 
 		return IsElite ? RulesClass::Instance->V3EliteWarhead : RulesClass::Instance->V3Warhead;
 	}
 
-	static NOINLINE bool RocketHasWeapon(FootClass* pRocket , TechnoTypeClass* pType, bool IsElite, CoordStruct coords)
+	static NOINLINE bool RocketHasWeapon(FootClass* pRocket, TechnoTypeClass* pType, bool IsElite, CoordStruct coords)
 	{
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (auto const& pWeapon = IsElite ? pTypeExt->CustomMissileEliteWeapon : pTypeExt->CustomMissileWeapon) {
+		if (auto const& pWeapon = IsElite ? pTypeExt->CustomMissileEliteWeapon : pTypeExt->CustomMissileWeapon)
+		{
 			WeaponTypeExtData::DetonateAt(pWeapon, coords, pRocket, true, pRocket ? pRocket->Owner : nullptr);
 			return true;
 		}
@@ -9438,24 +9469,29 @@ struct _RocketLocomotionClass
 		return false;
 	}
 
-	static NOINLINE bool IsCruise(TechnoTypeClass* pType) {
+	static NOINLINE bool IsCruise(TechnoTypeClass* pType)
+	{
 		return pType == RulesClass::Instance->CMisl.Type;
 	}
 
-	static NOINLINE AnimTypeClass* GetTrailAnim(TechnoTypeClass* pType) {
+	static NOINLINE AnimTypeClass* GetTrailAnim(TechnoTypeClass* pType)
+	{
 		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerAnim;
 	}
 
-	static NOINLINE AnimTypeClass* GetTakeOffAnim(TechnoTypeClass* pType) {
+	static NOINLINE AnimTypeClass* GetTakeOffAnim(TechnoTypeClass* pType)
+	{
 		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTakeoffAnim;
 	}
 
-	static NOINLINE bool CanRaise(TechnoTypeClass* pType , bool IsElite) {
+	static NOINLINE bool CanRaise(TechnoTypeClass* pType, bool IsElite)
+	{
 		const auto& _opt = TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileRaise;
 		return IsElite ? _opt.Elite : _opt.Rookie;
 	}
 
-	static NOINLINE int GetTrailerSeparation(TechnoTypeClass* pType) {
+	static NOINLINE int GetTrailerSeparation(TechnoTypeClass* pType)
+	{
 		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerSeparation;
 	}
 
@@ -9535,10 +9571,12 @@ struct _RocketLocomotionClass
 
 			const bool iscruise = IsCruise(pAirType);
 
-			if (!iscruise) {
+			if (!iscruise)
+			{
 				pRocket->NeedToSubmit = true;
 			}
-			else {
+			else
+			{
 				if (pRocket->TrailerTimer.Expired())
 				{
 					if (auto pTakeOff = GetTakeOffAnim(pAirType))
@@ -9596,7 +9634,8 @@ struct _RocketLocomotionClass
 					pRocket->CurrentPitch = float(rocket->PitchFinal * Math::DEG90_AS_RAD);
 					auto Lastflight_coord = pAir->GetLastFlightMapCoords();
 
-					if(Lastflight_coord == CellStruct::Empty) {
+					if (Lastflight_coord == CellStruct::Empty)
+					{
 						VocClass::PlayAt(pAirType->AuxSound1, pAir->Location);
 						AircraftTrackerClass::Instance->Add(pAir);
 					}
@@ -9633,7 +9672,8 @@ struct _RocketLocomotionClass
 				if (lastFlight == CellStruct::Empty)
 					AircraftTrackerClass::Instance->Add(pAir);
 
-				if (auto pTakeOff = GetTakeOffAnim(pAirType)) {
+				if (auto pTakeOff = GetTakeOffAnim(pAirType))
+				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pTakeOff, pAir->Location, 2, 1, 0x600, -10),
 					  pAir->Owner,
 					  pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
@@ -9684,7 +9724,7 @@ struct _RocketLocomotionClass
 
 				if (rocket->LazyCurve && pRocket->ApogeeDistance)
 				{
-					if (Time_To_Explode(pRocket ,rocket))
+					if (Time_To_Explode(pRocket, rocket))
 						return false;
 
 					const Coordinate center_coord = pAir->GetCoords();
@@ -9712,7 +9752,7 @@ struct _RocketLocomotionClass
 				}
 
 				const Coordinate center_coord = pAir->GetCoords();
-				const DirStruct desired  { center_coord.X, pRocket->MovingDestination.Y, pRocket->MovingDestination.X, center_coord.Y };
+				const DirStruct desired { center_coord.X, pRocket->MovingDestination.Y, pRocket->MovingDestination.X, center_coord.Y };
 				pAir->PrimaryFacing.Set_Desired(desired);
 			}
 			else
@@ -9721,7 +9761,8 @@ struct _RocketLocomotionClass
 				return false;
 			}
 
-			if (!MapClass::Instance->IsWithinUsableArea(pAir->GetCoords())) {
+			if (!MapClass::Instance->IsWithinUsableArea(pAir->GetCoords()))
+			{
 				pAir->UnInit();
 				return false;
 			}
@@ -9730,7 +9771,7 @@ struct _RocketLocomotionClass
 		}
 		case RocketMissionState::ClosingIn:
 		{
-			if (Time_To_Explode(pRocket , rocket))
+			if (Time_To_Explode(pRocket, rocket))
 				return false;
 
 			const double pitch = Get_Next_Pitch(pRocket) - pRocket->CurrentPitch;
@@ -9766,7 +9807,8 @@ struct _RocketLocomotionClass
 				pRocket->CurrentPitch = float(rocket->PitchFinal * Math::DEG90_AS_RAD);
 				auto Lastflight_coord = pAir->GetLastFlightMapCoords();
 
-				if (Lastflight_coord == CellStruct::Empty) {
+				if (Lastflight_coord == CellStruct::Empty)
+				{
 					VocClass::PlayAt(pAirType->AuxSound1, pAir->Location);
 					AircraftTrackerClass::Instance->Add(pAir);
 				}
@@ -9778,7 +9820,7 @@ struct _RocketLocomotionClass
 			{
 				Coordinate coord = pAir->Location;
 				coord.Z += rocket->RaiseRate;
-				if (MapClass::Instance->IsWithinUsableArea(CellClass::Coord2Cell(coord),true))
+				if (MapClass::Instance->IsWithinUsableArea(CellClass::Coord2Cell(coord), true))
 					pAir->SetLocation(coord);
 			}
 			break;
@@ -9787,8 +9829,10 @@ struct _RocketLocomotionClass
 			break;
 		}
 
-		if (pRocket->Is_Moving_Now() && pRocket->TrailerTimer.Expired()) {
-			if(auto pAnim = GetTrailAnim(pAirType)){
+		if (pRocket->Is_Moving_Now() && pRocket->TrailerTimer.Expired())
+		{
+			if (auto pAnim = GetTrailAnim(pAirType))
+			{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pAir->Location, 2, 1, 0x600),
 					pAir->Owner,
 					pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
@@ -9799,7 +9843,8 @@ struct _RocketLocomotionClass
 			}
 		}
 
-		if (pRocket->CurrentSpeed > 0.0) {
+		if (pRocket->CurrentSpeed > 0.0)
+		{
 
 			Coordinate coord = Get_Next_Position(pRocket, pRocket->CurrentSpeed);
 
@@ -9820,17 +9865,18 @@ struct _RocketLocomotionClass
 
 public:
 
-	static void Explode(RocketLocomotionClass* pThis ,CoordStruct next = CoordStruct::Empty)
+	static void Explode(RocketLocomotionClass* pThis, CoordStruct next = CoordStruct::Empty)
 	{
 		auto pLinked = pThis->LinkedTo;
 		auto pRocketType = pLinked->GetTechnoType();
 
 		const RocketStruct* rocket = GetRocketData(pRocketType);
 
-		if(next == CoordStruct::Empty)
+		if (next == CoordStruct::Empty)
 			next = Get_Next_Position(pThis, rocket->BodyLength);
 
-		if(!RocketHasWeapon(pLinked , pRocketType, pThis->SpawnerIsElite , next)) {
+		if (!RocketHasWeapon(pLinked, pRocketType, pThis->SpawnerIsElite, next))
+		{
 
 			CellStruct cell = CellClass::Coord2Cell(next);
 			const auto pCell = MapClass::Instance->GetCellAt(next);
@@ -9838,7 +9884,8 @@ public:
 			const int damage = pThis->SpawnerIsElite ? rocket->EliteDamage : rocket->Damage;
 			const auto pWH = GetRocketWarhead(pRocketType, pThis->SpawnerIsElite);
 
-			if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, pCell->LandType, next)) 	{
+			if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, pCell->LandType, next))
+			{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, next, 0, 1, 0x2600, -15),
 					pLinked->Owner,
 					pLinked->Target ? pLinked->Target->GetOwningHouse() : nullptr,
@@ -9856,9 +9903,10 @@ public:
 			TechnoExtData::HandleRemove(pLinked, nullptr, false, false);
 	}
 
-	static bool Time_To_Explode(RocketLocomotionClass* pThis ,const RocketStruct* rocket) {
+	static bool Time_To_Explode(RocketLocomotionClass* pThis, const RocketStruct* rocket)
+	{
 		auto pLinked = pThis->Owner;
-		Coordinate coord = Get_Next_Position(pThis , rocket->BodyLength);
+		Coordinate coord = Get_Next_Position(pThis, rocket->BodyLength);
 
 		if (coord.Z > pThis->MovingDestination.Z)
 		{
@@ -9866,7 +9914,8 @@ public:
 			if (!rocket_cell
 				|| (rocket_cell->UINTFlags & 0x100) == 0
 				|| pThis->MovingDestination.Z != rocket_cell->GetCoords().Z
-				|| coord.Z > pThis->MovingDestination.Z + Unsorted::BridgeHeight) {
+				|| coord.Z > pThis->MovingDestination.Z + Unsorted::BridgeHeight)
+			{
 				if (pLinked->GetHeight() > 0)
 					return false;
 			}
@@ -10332,7 +10381,8 @@ struct _SpawnManager
 
 bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 {
-	if (!this->ObjectClass::SpawnParachuted(*pCoords)) {
+	if (!this->ObjectClass::SpawnParachuted(*pCoords))
+	{
 		return false;
 	}
 
@@ -10340,11 +10390,16 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	if (pExt->Is_DriverKilled)
 		return true;
 
-	if (this->Type->ResourceGatherer || this->Type->Harvester) {
+	if (this->Type->ResourceGatherer || this->Type->Harvester)
+	{
 		this->QueueMission(Mission::Harvest, false);
-	} else if (this->Owner->IsControlledByHuman()) {
+	}
+	else if (this->Owner->IsControlledByHuman())
+	{
 		this->QueueMission(Mission::Guard, false);
-	} else {
+	}
+	else
+	{
 		this->QueueMission(Mission::Hunt, false);
 	}
 
@@ -10352,3 +10407,119 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 }
 
 DEFINE_JUMP(VTABLE, 0x7F5D58, MiscTools::to_DWORD(&FakeUnitClass::_Paradrop));
+
+DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(FootClass*, pProduct, EDI);
+	GET(RadioCommand, respond, EAX);
+
+	if (respond == RadioCommand::AnswerPositive)
+	{
+		pThis->SendCommand(RadioCommand::RequestUnload, pProduct);
+
+		if (auto pDest = pProduct->Focus)
+		{
+			pProduct->SetDestination(pDest, true);
+			return 0x444971;
+		}
+
+		pProduct->Scatter(CoordStruct::Empty, true, false);
+	}
+
+	return 0x444971;
+}
+
+#include <Surface.h>
+
+#define VoxelBufferSize 256
+static char VoxelPixelBuffer[VoxelBufferSize][VoxelBufferSize];
+//static char VoxelShadowPixelBuffer[256][256];
+//static BSurface NewVoxelBuffer { 256 , 256 , 1 , VoxelPixelBuffer };
+//static BSurface NewVoxelShadowBuffer { 256 , 256 , 1 , VoxelPixelBuffer };
+
+DEFINE_HOOK(0x754720, Voxel_Clear_Voxel_Surface_Buffer, 0x6) {
+	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
+	return 0x754730;
+}
+
+DEFINE_HOOK(0x7547A0, Voxel_Init_Surface_Stuff_Memset3, 0x5) {
+	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
+	return 0x7547AE;
+}
+
+DEFINE_HOOK(0x753EB7 , Voxel_Init_Surface_Stuff_Memset2, 0x5) {
+	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
+	return 0x753EC5;
+}
+
+DEFINE_HOOK(0x753E1E, Voxel_Init_Surface_Stuff_Memset1, 0x5) {
+	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
+	*reinterpret_cast<bool*>(0x8467E0) = R->EBX();
+	return 0x753E32;
+}
+
+
+//size max
+//DEFINE_PATCH_TYPED(DWORD, 0x754752, VoxelBufferSize)
+//DEFINE_PATCH_TYPED(DWORD, 0x75475F, VoxelBufferSize)
+DEFINE_PATCH_TYPED(DWORD, 0x753E5F, VoxelBufferSize - 1)
+DEFINE_PATCH_TYPED(DWORD, 0x753E6F, VoxelBufferSize - 1)
+//DEFINE_PATCH_TYPED(DWORD, 0x7547D8, VoxelBufferSize)
+//DEFINE_PATCH_TYPED(DWORD, 0x7547E4, VoxelBufferSize)
+DEFINE_PATCH_TYPED(DWORD, 0x753E93, VoxelBufferSize)
+//surface size
+DEFINE_PATCH_TYPED(DWORD, 0x7539D1, VoxelBufferSize)
+
+// some pointer shifting
+//DEFINE_PATCH_TYPED(BYTE, 0x754786, 0x8)
+//7547F2
+
+DEFINE_PATCH_TYPED(DWORD, 0x7539D6 , sizeof(VoxelPixelBuffer))
+DEFINE_PATCH_TYPED(DWORD, 0x753C61, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7539DB, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x753E26, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x753E84, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x753EBF, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x754729, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x754776, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7547A8, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x754803, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x754832, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x756A7B, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x756A88, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x756B4C, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x756B52, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x756EDF, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757063, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x75728B, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757291, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x75748C, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757492, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x7576EE, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7576F4, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x7578B1, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7578B7, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x757B1B, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757B21, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x757D4F, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757D55, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x757F81, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x757F87, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x758118, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x75811E, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x758358, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x75835E, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x75855A, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x758560, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x7DF8A7, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DF998, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFAB8, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFBCA, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFCE5, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFDD7, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFEE5, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFEEB, DWORD(&VoxelPixelBuffer) + 1)//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFFD7, DWORD(&VoxelPixelBuffer))//
+DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
+#undef VoxelBufferSize

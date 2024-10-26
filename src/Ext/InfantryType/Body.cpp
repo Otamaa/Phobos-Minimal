@@ -89,6 +89,9 @@ void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->HideWhenDeployAnimPresent.Read(exINI, pID, "Deploy.HideWhenDeployAnimPresent");
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 	this->VoiceGarrison.Read(exINI, pID, "VoiceGarrison");
+
+	this->OnlyUseLandSequences.Read(iniEX_art, pSection_art, "OnlyUseLandSequences");
+
 	// TODO , this stupid parsing thing
 	//auto const nPriData = this->Get()->GetWeapon(0);
 	//auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
@@ -154,6 +157,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->DeathBodies_UseDieSequenceAsIndex)
 		.Process(this->CrawlingWeaponDatas)
 		.Process(this->VoiceGarrison)
+		.Process(this->OnlyUseLandSequences)
 		;
 }
 

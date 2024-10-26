@@ -33,6 +33,8 @@ public:
 
 	ValueableIdxVector<VocClass> VoiceGarrison {};
 
+	Valueable<bool> OnlyUseLandSequences { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -56,3 +58,13 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(InfantryTypeExtContainer, InfantryTypeExtData, "InfantryTypeClass");
 };
+
+class FakeInfantryTypeClass : public InfantryTypeClass
+{
+public:
+
+	InfantryTypeExtData* _GetExtData() {
+		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this) + InfantryTypeExtData::ExtOffset);
+	}
+};
+static_assert(sizeof(FakeInfantryTypeClass) == sizeof(InfantryTypeClass), "Invalid Size !");
