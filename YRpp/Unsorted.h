@@ -468,7 +468,7 @@ struct Imports
 	static constexpr referencefunc<FP_EndDialog, 0x7E13C8> const EndDialog {};
 
 	typedef HWND(__stdcall* FP_SetFocus)(HWND hWnd);
-	static constexpr referencefunc<FP_SetFocus, 0x7E13CC> const SetFocus {};
+	static constexpr referencefunc<FP_SetFocus, 0x7E13CC> const SetArchiveTarget {};
 
 	typedef BOOL(__stdcall* FP_SetDlgItemTextA)(HWND hDlg, int nIDDlgItem, LPCSTR lpString);
 	static constexpr referencefunc<FP_SetDlgItemTextA, 0x7E13D0> const SetDlgItemTextA {};

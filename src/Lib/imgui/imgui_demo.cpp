@@ -6204,13 +6204,13 @@ static void ShowDemoWindowColumns()
 
 static void ShowDemoWindowInputs()
 {
-    IMGUI_DEMO_MARKER("Inputs & Focus");
-    if (ImGui::CollapsingHeader("Inputs & Focus"))
+    IMGUI_DEMO_MARKER("Inputs & ArchiveTarget");
+    if (ImGui::CollapsingHeader("Inputs & ArchiveTarget"))
     {
         ImGuiIO& io = ImGui::GetIO();
 
         // Display inputs submitted to ImGuiIO
-        IMGUI_DEMO_MARKER("Inputs & Focus/Inputs");
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Inputs");
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode("Inputs"))
         {
@@ -6246,7 +6246,7 @@ static void ShowDemoWindowInputs()
         }
 
         // Display ImGuiIO output flags
-        IMGUI_DEMO_MARKER("Inputs & Focus/Outputs");
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Outputs");
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         if (ImGui::TreeNode("Outputs"))
         {
@@ -6264,7 +6264,7 @@ static void ShowDemoWindowInputs()
             ImGui::Text("io.WantSetMousePos: %d", io.WantSetMousePos);
             ImGui::Text("io.NavActive: %d, io.NavVisible: %d", io.NavActive, io.NavVisible);
 
-            IMGUI_DEMO_MARKER("Inputs & Focus/Outputs/WantCapture override");
+            IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Outputs/WantCapture override");
             if (ImGui::TreeNode("WantCapture override"))
             {
                 HelpMarker(
@@ -6291,7 +6291,7 @@ static void ShowDemoWindowInputs()
         }
 
         // Display mouse cursors
-        IMGUI_DEMO_MARKER("Inputs & Focus/Mouse Cursors");
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Mouse Cursors");
         if (ImGui::TreeNode("Mouse Cursors"))
         {
             const char* mouse_cursors_names[] = { "Arrow", "TextInput", "ResizeAll", "ResizeNS", "ResizeEW", "ResizeNESW", "ResizeNWSE", "Hand", "NotAllowed" };
@@ -6319,7 +6319,7 @@ static void ShowDemoWindowInputs()
             ImGui::TreePop();
         }
 
-        IMGUI_DEMO_MARKER("Inputs & Focus/Tabbing");
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Tabbing");
         if (ImGui::TreeNode("Tabbing"))
         {
             ImGui::Text("Use TAB/SHIFT+TAB to cycle through keyboard editable fields.");
@@ -6335,12 +6335,12 @@ static void ShowDemoWindowInputs()
             ImGui::TreePop();
         }
 
-        IMGUI_DEMO_MARKER("Inputs & Focus/Focus from code");
-        if (ImGui::TreeNode("Focus from code"))
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/ArchiveTarget from code");
+        if (ImGui::TreeNode("ArchiveTarget from code"))
         {
-            bool focus_1 = ImGui::Button("Focus on 1"); ImGui::SameLine();
-            bool focus_2 = ImGui::Button("Focus on 2"); ImGui::SameLine();
-            bool focus_3 = ImGui::Button("Focus on 3");
+            bool focus_1 = ImGui::Button("ArchiveTarget on 1"); ImGui::SameLine();
+            bool focus_2 = ImGui::Button("ArchiveTarget on 2"); ImGui::SameLine();
+            bool focus_3 = ImGui::Button("ArchiveTarget on 3");
             int has_focus = 0;
             static char buf[128] = "click on a button to set focus";
 
@@ -6367,9 +6367,9 @@ static void ShowDemoWindowInputs()
             // Use >= 0 parameter to SetKeyboardFocusHere() to focus an upcoming item
             static float f3[3] = { 0.0f, 0.0f, 0.0f };
             int focus_ahead = -1;
-            if (ImGui::Button("Focus on X")) { focus_ahead = 0; } ImGui::SameLine();
-            if (ImGui::Button("Focus on Y")) { focus_ahead = 1; } ImGui::SameLine();
-            if (ImGui::Button("Focus on Z")) { focus_ahead = 2; }
+            if (ImGui::Button("ArchiveTarget on X")) { focus_ahead = 0; } ImGui::SameLine();
+            if (ImGui::Button("ArchiveTarget on Y")) { focus_ahead = 1; } ImGui::SameLine();
+            if (ImGui::Button("ArchiveTarget on Z")) { focus_ahead = 2; }
             if (focus_ahead != -1) ImGui::SetKeyboardFocusHere(focus_ahead);
             ImGui::SliderFloat3("Float3", &f3[0], 0.0f, 1.0f);
 
@@ -6377,7 +6377,7 @@ static void ShowDemoWindowInputs()
             ImGui::TreePop();
         }
 
-        IMGUI_DEMO_MARKER("Inputs & Focus/Dragging");
+        IMGUI_DEMO_MARKER("Inputs & ArchiveTarget/Dragging");
         if (ImGui::TreeNode("Dragging"))
         {
             ImGui::TextWrapped("You can use ImGui::GetMouseDragDelta(0) to query for the dragged amount on any widget.");

@@ -97,7 +97,7 @@ public:
 	CellClass*     SpawnCell;
 	FootClass*	   ClosestMember;
 	AbstractClass* QueuedFocus;
-	AbstractClass* Focus;
+	AbstractClass* ArchiveTarget;
 	int            unknown_44;
 	int            TotalObjects;
 	int            TotalThreatValue;

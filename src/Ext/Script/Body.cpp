@@ -1452,7 +1452,7 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 
 	if (!ScriptExtData::IsUnitAvailable(pFocus, false))
 	{
-		pTeam->Focus = nullptr;
+		pTeam->ArchiveTarget = nullptr;
 		return false;
 	}
 
@@ -2183,19 +2183,19 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	}
 
 	// Reset Team's target if the current target isn't a repair hut
-	if (pTeam->Focus)
+	if (pTeam->ArchiveTarget)
 	{
-		if (pTeam->Focus->WhatAmI() != AbstractType::Building)
+		if (pTeam->ArchiveTarget->WhatAmI() != AbstractType::Building)
 		{
-			pTeam->Focus = nullptr;
+			pTeam->ArchiveTarget = nullptr;
 		}
 		else
 		{
-			auto pBuilding = static_cast<BuildingClass*>(pTeam->Focus);
+			auto pBuilding = static_cast<BuildingClass*>(pTeam->ArchiveTarget);
 
 			if (!pBuilding->Type->BridgeRepairHut)
 			{
-				pTeam->Focus = nullptr;
+				pTeam->ArchiveTarget = nullptr;
 			}
 			else
 			{
@@ -2203,12 +2203,12 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 				// If the Bridge was repaired then the repair hut isn't valid anymore
 				if (!MapClass::Instance->IsLinkedBridgeDestroyed(cell))
-					pTeam->Focus = nullptr;
+					pTeam->ArchiveTarget = nullptr;
 			}
 		}
 	}
 
-	TechnoClass* selectedTarget = pTeam->Focus ? static_cast<TechnoClass*>(pTeam->Focus) : nullptr;
+	TechnoClass* selectedTarget = pTeam->ArchiveTarget ? static_cast<TechnoClass*>(pTeam->ArchiveTarget) : nullptr;
 	bool isEngineerAmphibious = false;
 	std::vector<FootClass*> engineers;
 	std::vector<FootClass*> otherTeamMembers;
@@ -2219,7 +2219,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		if (!IsUnitAvailable(pUnit, true))
 			continue;
 
-		if (!pTeam->Focus)
+		if (!pTeam->ArchiveTarget)
 		{
 			pUnit->SetTarget(nullptr);
 			pUnit->SetDestination(nullptr, false);
@@ -2358,7 +2358,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	}
 
 	// Setting the team's target & mission
-	pTeam->Focus = selectedTarget;
+	pTeam->ArchiveTarget = selectedTarget;
 
 	for (auto engineer : engineers)
 	{

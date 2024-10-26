@@ -256,9 +256,9 @@ DEFINE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
 
-	if (pTechno->CurrentMission != Mission::Selling || pTechno->Focus)
+	if (pTechno->CurrentMission != Mission::Selling || pTechno->ArchiveTarget)
 	{
-		pTechno->SetFocus(pFocus);
+		pTechno->SetArchiveTarget(pFocus);
 	}
 
 	return 0x4C6DE3;

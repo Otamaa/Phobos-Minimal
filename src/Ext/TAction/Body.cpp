@@ -146,7 +146,7 @@ bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, Obj
 
 		// Why does having this allow it to undeploy?
 		// Why don't vehicles move when waypoints are placed off the map?
-		pBld->SetFocus(pCell);
+		pBld->SetArchiveTarget(pCell);
 		pBld->Sell(true);
 	}
 

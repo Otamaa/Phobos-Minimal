@@ -4526,7 +4526,7 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
     if (g.MovingWindow != NULL)
     {
         // We actually want to move the root window. g.MovingWindow == window we clicked on (could be a child window).
-        // We track it to preserve Focus and so that generally ActiveIdWindow == MovingWindow and ActiveId == MovingWindow->MoveId for consistency.
+        // We track it to preserve ArchiveTarget and so that generally ActiveIdWindow == MovingWindow and ActiveId == MovingWindow->MoveId for consistency.
         KeepAliveID(g.ActiveId);
         IM_ASSERT(g.MovingWindow && g.MovingWindow->RootWindowDockTree);
         ImGuiWindow* moving_window = g.MovingWindow->RootWindowDockTree;
@@ -6866,7 +6866,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         UpdateWindowParentAndRootLinks(window, flags, parent_window);
         window->ParentWindowInBeginStack = parent_window_in_stack;
 
-        // Focus route
+        // ArchiveTarget route
         // There's little point to expose a flag to set this: because the interesting cases won't be using parent_window_in_stack,
         // Use for e.g. linking a tool window in a standalone viewport to a document window, regardless of their Begin() stack parenting. (#6798)
         window->ParentWindowForFocusRoute = (window->RootWindow != window) ? parent_window_in_stack : NULL;
@@ -7815,7 +7815,7 @@ void ImGui::FocusWindow(ImGuiWindow* window, ImGuiFocusRequestFlags flags)
     bool active_id_window_is_dock_node_host = (g.ActiveIdWindow && dock_node && dock_node->HostWindow == g.ActiveIdWindow);
 
     // Steal active widgets. Some of the cases it triggers includes:
-    // - Focus a window while an InputText in another window is active, if focus happens before the old InputText can run.
+    // - ArchiveTarget a window while an InputText in another window is active, if focus happens before the old InputText can run.
     // - When using Nav to activate menu items (due to timing of activating on press->new window appears->losing ActiveId)
     // - Using dock host items (tab, collapse button) can trigger this before we redirect the ActiveIdWindow toward the child window.
     if (g.ActiveId != 0 && g.ActiveIdWindow && g.ActiveIdWindow->RootWindow != focus_front_window)
@@ -8508,7 +8508,7 @@ void ImGui::SetNavFocusScope(ImGuiID focus_scope_id)
     IM_ASSERT(g.NavFocusRoute.Size < 100); // Maximum depth is technically 251 as per CalcRoutingScore(): 254 - 3
 }
 
-// Focus = move navigation cursor, set scrolling, set focus window.
+// ArchiveTarget = move navigation cursor, set scrolling, set focus window.
 void ImGui::FocusItem()
 {
     ImGuiContext& g = *GImGui;
@@ -8534,7 +8534,7 @@ void ImGui::ActivateItemByID(ImGuiID id)
     g.NavNextActivateFlags = ImGuiActivateFlags_None;
 }
 
-// Note: this will likely be called ActivateItem() once we rework our Focus/Activation system!
+// Note: this will likely be called ActivateItem() once we rework our ArchiveTarget/Activation system!
 // But ActivateItem() should function without altering scroll/focus?
 void ImGui::SetKeyboardFocusHere(int offset)
 {
@@ -12996,7 +12996,7 @@ void ImGui::NavMoveRequestApplyResult()
         g.NavJustMovedToKeyMods = g.NavMoveKeyMods;
     }
 
-    // Apply new NavID/Focus
+    // Apply new NavID/ArchiveTarget
     IMGUI_DEBUG_LOG_NAV("[nav] NavMoveRequest: result NavID 0x%08X in Layer %d Window \"%s\"\n", result->ID, g.NavLayer, g.NavWindow->Name);
     ImVec2 preferred_scoring_pos_rel = g.NavWindow->RootWindowForNav->NavPreferredScoringPosRel[g.NavLayer];
     SetNavID(result->ID, g.NavLayer, result->FocusScopeId, result->RectRel);
@@ -13011,7 +13011,7 @@ void ImGui::NavMoveRequestApplyResult()
         g.NavWindow->RootWindowForNav->NavPreferredScoringPosRel[g.NavLayer] = preferred_scoring_pos_rel;
     }
 
-    // Tabbing: Activates Inputable, otherwise only Focus
+    // Tabbing: Activates Inputable, otherwise only ArchiveTarget
     if ((g.NavMoveFlags & ImGuiNavMoveFlags_IsTabbing) && (result->InFlags & ImGuiItemFlags_Inputable) == 0)
         g.NavMoveFlags &= ~ImGuiNavMoveFlags_Activate;
 
@@ -13340,7 +13340,7 @@ static void ImGui::NavUpdateWindowing()
         }
     }
 
-    // Keyboard: Focus
+    // Keyboard: ArchiveTarget
     if (g.NavWindowingTarget && g.NavInputSource == ImGuiInputSource_Keyboard)
     {
         // Visuals only appears after a brief time after pressing TAB the first time, so that a fast CTRL+TAB doesn't add visual noise
@@ -14755,7 +14755,7 @@ static void ImGui::UpdateViewportsNewFrame()
                 focused_viewport->LastFocusedStampCount = ++g.ViewportFocusedStampCount;
             g.PlatformLastFocusedViewportId = focused_viewport->ID;
 
-            // Focus associated dear imgui window
+            // ArchiveTarget associated dear imgui window
             // - if focus didn't happen with a click within imgui boundaries, e.g. Clicking platform title bar. (#6299)
             // - if focus didn't happen because we destroyed another window (#6462)
             // FIXME: perhaps 'FocusTopMostWindowUnderOne()' can handle the 'focused_window->Window != NULL' case as well.
@@ -14767,7 +14767,7 @@ static void ImGui::UpdateViewportsNewFrame()
                 if (focused_viewport->Window != NULL)
                     FocusWindow(focused_viewport->Window, focus_request_flags);
                 else if (focused_viewport->LastFocusedHadNavWindow)
-                    FocusTopMostWindowUnderOne(NULL, NULL, focused_viewport, focus_request_flags); // Focus top most in viewport
+                    FocusTopMostWindowUnderOne(NULL, NULL, focused_viewport, focus_request_flags); // ArchiveTarget top most in viewport
                 else
                     FocusWindow(NULL, focus_request_flags); // No window had focus last time viewport was focused
             }
@@ -14903,7 +14903,7 @@ static void ImGui::UpdateViewportsNewFrame()
         // If the backend doesn't know how to honor ImGuiViewportFlags_NoInputs, we do a search ourselves. Note that this search:
         // A) won't take account of the possibility that non-imgui windows may be in-between our dragged window and our target window.
         // B) won't take account of how the backend apply parent<>child relationship to secondary viewports, which affects their Z order.
-        // C) uses LastFrameAsRefViewport as a flawed replacement for the last time a window was focused (we could/should fix that by introducing Focus functions in PlatformIO)
+        // C) uses LastFrameAsRefViewport as a flawed replacement for the last time a window was focused (we could/should fix that by introducing ArchiveTarget functions in PlatformIO)
         viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
     }
     if (viewport_hovered != NULL)
@@ -21183,7 +21183,7 @@ void ImGui::ShowDebugLogWindow(bool* p_open)
     ShowDebugLogFlag("ActiveId", ImGuiDebugLogFlags_EventActiveId);
     ShowDebugLogFlag("Clipper", ImGuiDebugLogFlags_EventClipper);
     ShowDebugLogFlag("Docking", ImGuiDebugLogFlags_EventDocking);
-    ShowDebugLogFlag("Focus", ImGuiDebugLogFlags_EventFocus);
+    ShowDebugLogFlag("ArchiveTarget", ImGuiDebugLogFlags_EventFocus);
     ShowDebugLogFlag("IO", ImGuiDebugLogFlags_EventIO);
     ShowDebugLogFlag("Nav", ImGuiDebugLogFlags_EventNav);
     ShowDebugLogFlag("Popup", ImGuiDebugLogFlags_EventPopup);

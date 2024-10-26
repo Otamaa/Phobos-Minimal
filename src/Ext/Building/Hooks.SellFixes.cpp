@@ -23,7 +23,7 @@ bool BuildingCanUnload(BuildingClass* pThis)
 			return false;
 	}
 
-	return pThis->Focus;
+	return pThis->ArchiveTarget;
 }
 
 // Skip SessionClass::IsCampaign() checks
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 	GET(BuildingClass*, pThis, EBP);
 
 	if (pThis->IsOwnedByCurrentPlayer &&
-		(!pThis->Focus || !pThis->Type->UndeploysInto)) {
+		(!pThis->ArchiveTarget || !pThis->Type->UndeploysInto)) {
 		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pThis->Type)->EVA_Sold.Get());
 	}
 

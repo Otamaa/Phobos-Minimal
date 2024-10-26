@@ -63,11 +63,11 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	if (pTeamData->WaitNoTargetAttempts > 0)
 		pTeamData->WaitNoTargetAttempts--;
 
-	auto pFocus = abstract_cast<TechnoClass*>(pTeam->Focus);
+	auto pFocus = abstract_cast<TechnoClass*>(pTeam->ArchiveTarget);
 
 	if (!ScriptExtData::IsUnitAvailable(pFocus, true))
 	{
-		pTeam->Focus = nullptr;
+		pTeam->ArchiveTarget = nullptr;
 		pFocus = nullptr;
 	}
 
@@ -93,7 +93,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 				// Let's clean the Killer mess
 				pKillerTechnoData->LastKillWasTeamTarget = false;
-				pTeam->Focus = nullptr;
+				pTeam->ArchiveTarget = nullptr;
 				pFocus = nullptr;
 				LastKillTechnoWasTeamtarget = true;
 
@@ -237,7 +237,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 				selectedTarget->get_ID(),
 				selectedTarget->UniqueID);*/
 
-			pTeam->Focus = selectedTarget;
+			pTeam->ArchiveTarget = selectedTarget;
 			pFocus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
 			pTeamData->WaitNoTargetTimer.Stop();
@@ -333,7 +333,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		// This part of the code is used for updating the "Attack" mission in each team unit
 		if (!ScriptExtData::IsUnitAvailable(pFocus, true))
 		{
-			pTeam->Focus = nullptr;
+			pTeam->ArchiveTarget = nullptr;
 			pFocus = nullptr;
 			return;
 		}
@@ -444,7 +444,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		}
 		else
 		{
-			pTeam->Focus = nullptr;
+			pTeam->ArchiveTarget = nullptr;
 		}
 	}
 }

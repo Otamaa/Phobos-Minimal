@@ -246,7 +246,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 		if (!IsBuilding) {
 			pDest = static_cast<FootClass*>(pOwner)->Destination;
-			pFocus = pOwner->Focus;
+			pFocus = pOwner->ArchiveTarget;
 		}
 
 		std::vector<TechnoTypeClass*> nOut;
@@ -297,7 +297,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 						if (pFocus)
 						{
-							pGift->SetFocus(pFocus);
+							pGift->SetArchiveTarget(pFocus);
 							if (pGift->WhatAmI() != BuildingClass::AbsID)
 							{
 								des = pFocus->GetCoords();

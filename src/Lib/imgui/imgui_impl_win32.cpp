@@ -1172,7 +1172,7 @@ static void ImGui_ImplWin32_SetWindowFocus(ImGuiViewport* viewport)
     IM_ASSERT(vd->Hwnd != 0);
     ::BringWindowToTop(vd->Hwnd);
     ::SetForegroundWindow(vd->Hwnd);
-    ::SetFocus(vd->Hwnd);
+    ::SetArchiveTarget(vd->Hwnd);
 }
 
 static bool ImGui_ImplWin32_GetWindowFocus(ImGuiViewport* viewport)

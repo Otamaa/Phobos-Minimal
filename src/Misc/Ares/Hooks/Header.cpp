@@ -3595,7 +3595,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 			TechnoExtContainer::Instance.Find(pThis)->HasRemainingWarpInDelay = true;
 
 		AbstractClass* pTarget = pThis->Target;
-		AbstractClass* pDest = pThis->Focus;
+		AbstractClass* pDest = pThis->ArchiveTarget;
 		Mission prevMission = pThis->GetCurrentMission();
 
 		// throw away the current locomotor and instantiate
@@ -3611,7 +3611,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	{
 		move = false;
 		AbstractClass* pTarget = pThis->Target;
-		AbstractClass* pDest = pThis->Focus;
+		AbstractClass* pDest = pThis->ArchiveTarget;
 		Mission prevMission = pThis->GetCurrentMission();
 
 		// throw away the current locomotor and instantiate
@@ -5159,7 +5159,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	if (!pVictim->Deactivated && AresEMPulse::IsDeactivationAdvisable(pVictim))
 	{
 		auto const selected = pVictim->IsSelected;
-		auto const pFocus = pVictim->Focus;
+		auto const pFocus = pVictim->ArchiveTarget;
 
 		pVictim->Deactivate();
 
@@ -5173,7 +5173,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 
 		if (abs == AbstractType::Building)
 		{
-			pVictim->Focus = pFocus;
+			pVictim->ArchiveTarget = pFocus;
 		}
 	}
 
@@ -5221,11 +5221,11 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 
 	if (hasPower && pVictim->Deactivated)
 	{
-		auto const pFocus = pVictim->Focus;
+		auto const pFocus = pVictim->ArchiveTarget;
 		pVictim->Reactivate();
 		if (abs == AbstractType::Building)
 		{
-			pVictim->Focus = pFocus;
+			pVictim->ArchiveTarget = pFocus;
 		}
 	}
 
@@ -5316,7 +5316,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 		}
 
 		auto const selected = pVictim->IsSelected;
-		auto const pFocus = pVictim->Focus;
+		auto const pFocus = pVictim->ArchiveTarget;
 
 		pVictim->Deactivate();
 
@@ -5330,7 +5330,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 
 		if (abs == AbstractType::Building)
 		{
-			pVictim->Focus = pFocus;
+			pVictim->ArchiveTarget = pFocus;
 		}
 		else
 		{
@@ -5381,11 +5381,11 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 
 	if (hasPower && pVictim->Deactivated)
 	{
-		auto const pFocus = pVictim->Focus;
+		auto const pFocus = pVictim->ArchiveTarget;
 		pVictim->Reactivate();
 		if (abs == AbstractType::Building)
 		{
-			pVictim->Focus = pFocus;
+			pVictim->ArchiveTarget = pFocus;
 		}
 
 		// allow to spawn units again.
@@ -5906,7 +5906,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
 	Target->SetTarget(nullptr);
 	Target->CurrentTargets.Clear(); // Target->ShouldLoseTargetNow ?
-	Target->SetFocus(nullptr);
+	Target->SetArchiveTarget(nullptr);
 	Target->QueueMission(Mission::Sleep, true);
 	Target->unknown_C4 = 0; // don't ask
 	Target->unknown_5A0 = 0;

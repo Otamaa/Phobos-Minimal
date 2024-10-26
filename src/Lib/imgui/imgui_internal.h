@@ -925,7 +925,7 @@ enum ImGuiSelectableFlagsPrivate_
     ImGuiSelectableFlags_SelectOnClick          = 1 << 22,  // Override button behavior to react on Click (default is Click+Release)
     ImGuiSelectableFlags_SelectOnRelease        = 1 << 23,  // Override button behavior to react on Release (default is Click+Release)
     ImGuiSelectableFlags_SpanAvailWidth         = 1 << 24,  // Span all avail width even if we declared less for layout purpose. FIXME: We may be able to remove this (added in 6251d379, 2bcafc86 for menus)
-    ImGuiSelectableFlags_SetNavIdOnHover        = 1 << 25,  // Set Nav/Focus ID on mouse hover (used by MenuItem)
+    ImGuiSelectableFlags_SetNavIdOnHover        = 1 << 25,  // Set Nav/ArchiveTarget ID on mouse hover (used by MenuItem)
     ImGuiSelectableFlags_NoPadWithHalfSpacing   = 1 << 26,  // Disable padding each side with ItemSpacing * 0.5f
     ImGuiSelectableFlags_NoSetKeyOwner          = 1 << 27,  // Don't set key/input owner on the initial click (note: mouse buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
 };
@@ -1596,7 +1596,7 @@ enum ImGuiNavMoveFlags_
     ImGuiNavMoveFlags_Forwarded             = 1 << 7,
     ImGuiNavMoveFlags_DebugNoResult         = 1 << 8,   // Dummy scoring for debug purpose, don't apply result
     ImGuiNavMoveFlags_FocusApi              = 1 << 9,   // Requests from focus API can land/focus/activate items even if they are marked with _NoTabStop (see NavProcessItemForTabbingRequest() for details)
-    ImGuiNavMoveFlags_IsTabbing             = 1 << 10,  // == Focus + Activate if item is Inputable + DontChangeNavHighlight
+    ImGuiNavMoveFlags_IsTabbing             = 1 << 10,  // == ArchiveTarget + Activate if item is Inputable + DontChangeNavHighlight
     ImGuiNavMoveFlags_IsPageMove            = 1 << 11,  // Identify a PageDown/PageUp request.
     ImGuiNavMoveFlags_Activate              = 1 << 12,  // Activate/select target item.
     ImGuiNavMoveFlags_NoSelect              = 1 << 13,  // Don't trigger selection by not setting g.NavJustMovedTo
@@ -2823,7 +2823,7 @@ struct IMGUI_API ImGuiWindow
     ImGuiID                 NavLastIds[ImGuiNavLayer_COUNT];    // Last known NavId for this window, per layer (0/1)
     ImRect                  NavRectRel[ImGuiNavLayer_COUNT];    // Reference rectangle, in window relative space
     ImVec2                  NavPreferredScoringPosRel[ImGuiNavLayer_COUNT]; // Preferred X/Y position updated when moving on a given axis, reset to FLT_MAX.
-    ImGuiID                 NavRootFocusScopeId;                // Focus Scope ID at the time of Begin()
+    ImGuiID                 NavRootFocusScopeId;                // ArchiveTarget Scope ID at the time of Begin()
 
     int                     MemoryDrawListIdxCapacity;          // Backup of last idx/vtx count, so when waking up the window we can preallocate and avoid iterative alloc/copy
     int                     MemoryDrawListVtxCapacity;
@@ -3251,7 +3251,7 @@ namespace ImGui
     inline ImRect           WindowRectRelToAbs(ImGuiWindow* window, const ImRect& r) { ImVec2 off = window->DC.CursorStartPos; return ImRect(r.Min.x + off.x, r.Min.y + off.y, r.Max.x + off.x, r.Max.y + off.y); }
     inline ImVec2           WindowPosRelToAbs(ImGuiWindow* window, const ImVec2& p)  { ImVec2 off = window->DC.CursorStartPos; return ImVec2(p.x + off.x, p.y + off.y); }
 
-    // Windows: Display Order and Focus Order
+    // Windows: Display Order and ArchiveTarget Order
     IMGUI_API void          FocusWindow(ImGuiWindow* window, ImGuiFocusRequestFlags flags = 0);
     IMGUI_API void          FocusTopMostWindowUnderOne(ImGuiWindow* under_this_window, ImGuiWindow* ignore_window, ImGuiViewport* filter_viewport, ImGuiFocusRequestFlags flags);
     IMGUI_API void          BringWindowToFocusFront(ImGuiWindow* window);
@@ -3413,10 +3413,10 @@ namespace ImGui
     IMGUI_API void          SetNavID(ImGuiID id, ImGuiNavLayer nav_layer, ImGuiID focus_scope_id, const ImRect& rect_rel);
     IMGUI_API void          SetNavFocusScope(ImGuiID focus_scope_id);
 
-    // Focus/Activation
+    // ArchiveTarget/Activation
     // This should be part of a larger set of API: FocusItem(offset = -1), FocusItemByID(id), ActivateItem(offset = -1), ActivateItemByID(id) etc. which are
     // much harder to design and implement than expected. I have a couple of private branches on this matter but it's not simple. For now implementing the easy ones.
-    IMGUI_API void          FocusItem();                    // Focus last item (no selection/activation).
+    IMGUI_API void          FocusItem();                    // ArchiveTarget last item (no selection/activation).
     IMGUI_API void          ActivateItemByID(ImGuiID id);   // Activate an item by ID (button, checkbox, tree node etc.). Activation is queued and processed on the next frame when the item is encountered again.
 
     // Inputs
@@ -3495,7 +3495,7 @@ namespace ImGui
     // - Routes are resolved during NewFrame(): if keyboard modifiers are matching current ones: SetKeyOwner() is called + route is granted for the frame.
     // - Route is granted to a single owner. When multiple requests are made we have policies to select the winning route.
     // - Multiple read sites may use the same owner id and will all get the granted route.
-    // - For routing: when owner_id is 0 we use the current Focus Scope ID as a default owner in order to identify our location.
+    // - For routing: when owner_id is 0 we use the current ArchiveTarget Scope ID as a default owner in order to identify our location.
     // - TL;DR;
     //   - IsKeyChordPressed() compares mods + call IsKeyPressed() -> function has no side-effect.
     //   - Shortcut() submits a route then if currently can be routed calls IsKeyChordPressed() -> function has (desirable) side-effects.
@@ -3561,7 +3561,7 @@ namespace ImGui
     IMGUI_API void          DockBuilderCopyWindowSettings(const char* src_name, const char* dst_name);
     IMGUI_API void          DockBuilderFinish(ImGuiID node_id);
 
-    // [EXPERIMENTAL] Focus Scope
+    // [EXPERIMENTAL] ArchiveTarget Scope
     // This is generally used to identify a unique input location (for e.g. a selection set)
     // There is one per window (automatically set in Begin), but:
     // - Selection patterns generally need to react (e.g. clear a selection) when landing on one item of the set.
@@ -3571,7 +3571,7 @@ namespace ImGui
     // We don't use the ID Stack for this as it is common to want them separate.
     IMGUI_API void          PushFocusScope(ImGuiID id);
     IMGUI_API void          PopFocusScope();
-    inline ImGuiID          GetCurrentFocusScope() { ImGuiContext& g = *GImGui; return g.CurrentFocusScopeId; }   // Focus scope we are outputting into, set by PushFocusScope()
+    inline ImGuiID          GetCurrentFocusScope() { ImGuiContext& g = *GImGui; return g.CurrentFocusScopeId; }   // ArchiveTarget scope we are outputting into, set by PushFocusScope()
 
     // Drag and Drop
     IMGUI_API bool          IsDragDropActive();

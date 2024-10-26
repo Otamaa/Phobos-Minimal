@@ -77,7 +77,7 @@ DEFINE_HOOK(0x738A3E, UnitClass_EnterIdleMode_SubterraneanHarvester, 0x5)
 			pExt->SubterraneanHarvRallyPoint = nullptr;
 			pThis->SetDestination(nullptr, false);
 			pThis->ClearNavQueue();
-			pThis->SetFocus(nullptr);
+			pThis->SetArchiveTarget(nullptr);
 			pThis->ForceMission(Mission::Harvest);
 			return ReturnFromFunction;
 		}
@@ -96,7 +96,7 @@ DEFINE_HOOK(0x44459A, BuildingClass_ExitObject_SubterraneanHarvester, 0x5)
 		auto const pType = pUnit->Type;
 
 		if ((pType->Harvester || pType->Weeder) && pType->MovementZone == MovementZone::Subterrannean) {
-			TechnoExtContainer::Instance.Find(pThis)->SubterraneanHarvRallyPoint = abstract_cast<CellClass*>(pThis->Focus);
+			TechnoExtContainer::Instance.Find(pThis)->SubterraneanHarvRallyPoint = abstract_cast<CellClass*>(pThis->ArchiveTarget);
 		}
 	}
 

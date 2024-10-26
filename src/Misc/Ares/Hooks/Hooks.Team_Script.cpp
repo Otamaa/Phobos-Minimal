@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 		if (pTeamData->ForceJump_RepeatMode)
 		{
 			pScript->CurrentMission--;
-			pThis->Focus = nullptr;
+			pThis->ArchiveTarget = nullptr;
 			pThis->QueuedFocus = nullptr;
 			const auto nextAction = pScript->GetNextAction();
 			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to the same line -> (Reason: Timed Jump loop)\n",
@@ -186,14 +186,14 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 
 	if (RulesExtData::Instance()->TeamRetaliate)
 	{
-		auto Focus = pThis->Focus;
+		auto ArchiveTarget = pThis->ArchiveTarget;
 		CellClass* SpawnCell = pThis->SpawnCell;
 
-		if (!Focus
-		  || ((char)Focus->AbstractFlags & 1) == 0
-		  || (!((FootClass*)Focus)->IsArmed())
+		if (!ArchiveTarget
+		  || ((char)ArchiveTarget->AbstractFlags & 1) == 0
+		  || (!((FootClass*)ArchiveTarget)->IsArmed())
 		  || SpawnCell
-		  && (((FootClass*)Focus)->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords())))
+		  && (((FootClass*)ArchiveTarget)->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords())))
 		{
 			if ((int)pAttacker->WhatAmI() != 2)
 			{
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 				  || !((FootClass*)pAttacker)->InLimbo
 				  && !((FootClass*)pAttacker)->GetTechnoType()->ConsideredAircraft)
 				{
-					pThis->Focus = pAttacker;
+					pThis->ArchiveTarget = pAttacker;
 				}
 			}
 		}
@@ -221,7 +221,7 @@ DEFINE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 		return 0x6EB47A;
 	}
 
-	auto pFocus = abstract_cast<TechnoClass*>(pThis->Focus);
+	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
 	auto pSpawn = pThis->SpawnCell;
 
 	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords())) {

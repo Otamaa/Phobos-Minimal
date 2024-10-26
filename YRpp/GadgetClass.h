@@ -48,7 +48,7 @@ public:
 	virtual unsigned int const GetID() JMP_THIS(0x4AEBA0); //return 0;
 	virtual void MarkRedraw() JMP_THIS(0x4E1960);
 	virtual void PeerToPeer(unsigned int flags, DWORD* pKey, GadgetClass* pSendTo) JMP_THIS(0x48E650);
-	virtual void SetFocus() JMP_THIS(0x4E19A0);
+	virtual void SetArchiveTarget() JMP_THIS(0x4E19A0);
 	virtual void KillFocus() JMP_THIS(0x4E19D0);
 	virtual bool IsFocused() JMP_THIS(0x4E19FA);
 	virtual bool IsListToRedraw() JMP_THIS(0x4E1A00);

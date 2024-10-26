@@ -217,7 +217,7 @@ private:
 	void SetLocation(CoordStruct location)
 	{
 		pStand->SetLocation(location);
-		pStand->SetFocus(nullptr);
+		pStand->SetArchiveTarget(nullptr);
 	}
 
 	void SetDirection(DirStruct direction, bool forceSetTurret)

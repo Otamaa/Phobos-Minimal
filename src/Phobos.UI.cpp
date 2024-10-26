@@ -662,7 +662,7 @@ bool PhobosWindowClass::TeamList()
 			ImGui::Text("IsSuspended %d", team->IsSuspended);
 			ImGui::Text("AchievedGreatSuccess %d", team->AchievedGreatSuccess);
 			ImGui::Text("QueuedFocus [0x%x(%s)]", team->QueuedFocus , team->QueuedFocus ? team->QueuedFocus->GetThisClassName() : NONE_STR);
-			ImGui::Text("Focus [0x%x(%s)]", team->Focus, team->Focus ? team->Focus->GetThisClassName() : NONE_STR);
+			ImGui::Text("ArchiveTarget [0x%x(%s)]", team->ArchiveTarget, team->ArchiveTarget ? team->ArchiveTarget->GetThisClassName() : NONE_STR);
 			ImGui::Text("SpawnCell [0x%x(%d , %d)]", team->SpawnCell, team->SpawnCell ? team->SpawnCell->MapCoords.X : 0 , team->SpawnCell ? team->SpawnCell->MapCoords.Y : 0);
 
 			ImGui::TreePop();

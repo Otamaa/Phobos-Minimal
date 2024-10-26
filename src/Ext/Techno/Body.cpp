@@ -2046,7 +2046,7 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 		pPassenger->SetDestination(nullptr, true);
 		pPassenger->SetTarget(nullptr);
 		pPassenger->CurrentTargets.Clear();
-		pPassenger->SetFocus(nullptr);
+		pPassenger->SetArchiveTarget(nullptr);
 		pPassenger->unknown_C4 = 0; // don't ask
 		pPassenger->unknown_5A0 = 0;
 		pPassenger->CurrentGattlingStage = 0;
@@ -2684,7 +2684,7 @@ void TechnoExtData::Stop(TechnoClass* pThis, Mission const& eMission)
 {
 	pThis->ForceMission(eMission);
 	pThis->CurrentTargets.Clear();
-	pThis->SetFocus(nullptr);
+	pThis->SetArchiveTarget(nullptr);
 	pThis->Stun();
 }
 
@@ -2743,7 +2743,7 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 		if (auto const pFootKiller = generic_cast<FootClass*>(pObjectKiller)) {
 			auto pKillerExt = TechnoExtContainer::Instance.Find(pObjectKiller);
 
-			if (auto const pFocus = generic_cast<TechnoClass*>(pFootKiller->Team->Focus))
+			if (auto const pFocus = generic_cast<TechnoClass*>(pFootKiller->Team->ArchiveTarget))
 				pKillerExt->LastKillWasTeamTarget =
 				pFocus->GetTechnoType() == pVictim->GetTechnoType()
 				|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()

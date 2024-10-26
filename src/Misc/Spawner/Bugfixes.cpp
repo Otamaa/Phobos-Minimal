@@ -35,7 +35,7 @@ DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2); // WinMain
 // Remove focus from the Leave Game button in the player waiting window
 DEFINE_HOOK(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
 {
-	Imports::SetFocus.get()(0);
+	Imports::SetArchiveTarget.get()(0);
 	return 0;
 }
 

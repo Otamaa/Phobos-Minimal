@@ -4111,7 +4111,7 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 //	GET(BuildingClass*, pThis, EBP);
 //
 //	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM")) {
-//		Debug::FatalError("DBEHIM has Undeploys to but still endup here , WTF! HasNoFocuse %s \n", pThis->Focus ? "Yes" : "No");
+//		Debug::FatalError("DBEHIM has Undeploys to but still endup here , WTF! HasNoFocuse %s \n", pThis->ArchiveTarget ? "Yes" : "No");
 //	}
 //
 //	return 0x0;
@@ -7940,7 +7940,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 		{
 			if (pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
 			{
-				pTechnoToKick->SetFocus(pThis->Focus);
+				pTechnoToKick->SetArchiveTarget(pThis->ArchiveTarget);
 				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
 
 				if (!docked_.IsValid())
@@ -7977,13 +7977,13 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 				{
 					auto pToKickType = pTechnoToKick->GetTechnoType();
 
-					if (pTechnoToKick->Focus
+					if (pTechnoToKick->ArchiveTarget
 					  && !pToKickType->JumpJet
 					  && !pToKickType->Teleporter)
 					{
-						if (pTechnoToKick->Focus)
+						if (pTechnoToKick->ArchiveTarget)
 						{
-							pTechnoToKick->SetFocus(pTechnoToKick->Focus);
+							pTechnoToKick->SetArchiveTarget(pTechnoToKick->ArchiveTarget);
 						}
 
 						pTechnoToKick->QueueMission(Mission::Move, false);
@@ -7998,12 +7998,12 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 						if (!Where.IsValid())
 						{
-							pTechnoToKick->SetFocus(nullptr);
+							pTechnoToKick->SetArchiveTarget(nullptr);
 						}
 						else
 						{
 							auto pDest = MapClass::Instance->GetCellAt(Where);
-							pTechnoToKick->SetFocus(pDest);
+							pTechnoToKick->SetArchiveTarget(pDest);
 							((FootClass*)pTechnoToKick)->QueueNavList(pDest);
 						}
 					}
@@ -8067,12 +8067,12 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 						if (!Where.IsValid())
 						{
-							pTechnoToKick->SetFocus(nullptr);
+							pTechnoToKick->SetArchiveTarget(nullptr);
 						}
 						else
 						{
 							auto pDest = MapClass::Instance->GetCellAt(Where);
-							pTechnoToKick->SetFocus(pDest);
+							pTechnoToKick->SetArchiveTarget(pDest);
 						}
 					}
 
@@ -8087,7 +8087,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 		if (!pBuildingType->Naval)
 		{
-			pTechnoToKick->SetFocus(pThis->Focus);
+			pTechnoToKick->SetArchiveTarget(pThis->ArchiveTarget);
 
 			if (pThis->GetMission() == Mission::Unload)
 			{
@@ -8136,9 +8136,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 		auto _this_Mapcoord = pThis->GetMapCoords();
 		auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
 
-		if (pThis->Focus)
+		if (pThis->ArchiveTarget)
 		{
-			auto _focus_coord = pThis->Focus->GetCoords();
+			auto _focus_coord = pThis->ArchiveTarget->GetCoords();
 			auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
 			DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
 
@@ -8157,7 +8157,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			}
 		}
 
-		if (!pThis->Focus
+		if (!pThis->ArchiveTarget
 			 || _this_cell->LandType != LandType::Water
 			 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
 			 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
@@ -8169,9 +8169,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
 			{
-				if (pThis->Focus)
+				if (pThis->ArchiveTarget)
 				{
-					pTechnoToKick->SetDestination(pThis->Focus, true);
+					pTechnoToKick->SetDestination(pThis->ArchiveTarget, true);
 					pTechnoToKick->QueueMission(Mission::Move, 0);
 				}
 
@@ -8211,7 +8211,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 		{
 			if (pBuildingType->Factory == AbstractType::InfantryType || pBuildingType->Hospital || pBuildingType->Armory || pBuildingType->Cloning)
 			{
-				pTechnoToKick->SetFocus(pThis->Focus);
+				pTechnoToKick->SetArchiveTarget(pThis->ArchiveTarget);
 				auto docked_ = pThis->FindBuildingExitCell(pTechnoToKick, overrider);
 
 				if (!docked_.IsValid())
@@ -8271,13 +8271,13 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 				{
 					auto pToKickType = pTechnoToKick->GetTechnoType();
 
-					if (pTechnoToKick->Focus
+					if (pTechnoToKick->ArchiveTarget
 					  && !pToKickType->JumpJet
 					  && !pToKickType->Teleporter)
 					{
-						if (pTechnoToKick->Focus)
+						if (pTechnoToKick->ArchiveTarget)
 						{
-							pTechnoToKick->SetFocus(pTechnoToKick->Focus);
+							pTechnoToKick->SetArchiveTarget(pTechnoToKick->ArchiveTarget);
 						}
 
 						pTechnoToKick->QueueMission(Mission::Move, false);
@@ -8292,12 +8292,12 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 						if (!Where.IsValid())
 						{
-							pTechnoToKick->SetFocus(nullptr);
+							pTechnoToKick->SetArchiveTarget(nullptr);
 						}
 						else
 						{
 							auto pDest = MapClass::Instance->GetCellAt(Where);
-							pTechnoToKick->SetFocus(pDest);
+							pTechnoToKick->SetArchiveTarget(pDest);
 							((FootClass*)pTechnoToKick)->QueueNavList(pDest);
 						}
 					}
@@ -8375,12 +8375,12 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 						if (!Where.IsValid())
 						{
-							pTechnoToKick->SetFocus(nullptr);
+							pTechnoToKick->SetArchiveTarget(nullptr);
 						}
 						else
 						{
 							auto pDest = MapClass::Instance->GetCellAt(Where);
-							pTechnoToKick->SetFocus(pDest);
+							pTechnoToKick->SetArchiveTarget(pDest);
 						}
 					}
 
@@ -8395,7 +8395,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 		if (!pBuildingType->Naval)
 		{
-			pTechnoToKick->SetFocus(pThis->Focus);
+			pTechnoToKick->SetArchiveTarget(pThis->ArchiveTarget);
 
 			if (pThis->GetMission() == Mission::Unload)
 			{
@@ -8444,9 +8444,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 		auto _this_Mapcoord = pThis->GetMapCoords();
 		auto _this_cell = MapClass::Instance->GetCellAt(_this_Mapcoord);
 
-		if (pThis->Focus)
+		if (pThis->ArchiveTarget)
 		{
-			auto _focus_coord = pThis->Focus->GetCoords();
+			auto _focus_coord = pThis->ArchiveTarget->GetCoords();
 			auto _focus_coord_cell = CellClass::Coord2Cell(_focus_coord);
 			DirStruct __face { double(_this_Mapcoord.Y - _focus_coord_cell.Y) ,  double(_this_Mapcoord.X - _focus_coord_cell.X) };
 
@@ -8465,7 +8465,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			}
 		}
 
-		if (!pThis->Focus
+		if (!pThis->ArchiveTarget
 			 || _this_cell->LandType != LandType::Water
 			 || _this_cell->FindTechnoNearestTo(Point2D::Empty, false, nullptr)
 			 || !MapClass::Instance->IsWithinUsableArea(_this_Mapcoord, true))
@@ -8477,9 +8477,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			if (pTechnoToKick->Unlimbo(_near_coord, DirType::East))
 			{
-				if (pThis->Focus)
+				if (pThis->ArchiveTarget)
 				{
-					pTechnoToKick->SetDestination(pThis->Focus, true);
+					pTechnoToKick->SetDestination(pThis->ArchiveTarget, true);
 					pTechnoToKick->QueueMission(Mission::Move, 0);
 				}
 
@@ -8528,9 +8528,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 					pTechnoToKick->SetLocation(DockCoord);
 					air->DockedTo = pThis;
 
-					if (pThis->Focus && !air->Type->AirportBound)
+					if (pThis->ArchiveTarget && !air->Type->AirportBound)
 					{
-						air->SetDestination(pThis->Focus, true);
+						air->SetDestination(pThis->ArchiveTarget, true);
 						air->QueueMission(Mission::Move, false);
 					}
 
@@ -8587,7 +8587,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			if (pTechnoToKick->Unlimbo(v205_coord, DirType::Min))
 			{
-				if (auto pFocus = pThis->Focus)
+				if (auto pFocus = pThis->ArchiveTarget)
 				{
 					pTechnoToKick->SetDestination(pFocus, true);
 				}
@@ -10418,7 +10418,7 @@ DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 	{
 		pThis->SendCommand(RadioCommand::RequestUnload, pProduct);
 
-		if (auto pDest = pProduct->Focus)
+		if (auto pDest = pProduct->ArchiveTarget)
 		{
 			pProduct->SetDestination(pDest, true);
 			return 0x444971;

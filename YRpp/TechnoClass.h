@@ -507,8 +507,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void SetCurrentWeaponStage(int idx)
 		{ JMP_THIS(0x70DDD0); }
 
-	constexpr FORCEINLINE void SetFocus(AbstractClass* pFocus) { //JMP_THIS(0x70C610);
-		this->Focus = pFocus;
+	constexpr FORCEINLINE void SetArchiveTarget(AbstractClass* pFocus) { //JMP_THIS(0x70C610);
+		this->ArchiveTarget = pFocus;
 	}
 
 	void DrawVoxelShadow(VoxelStruct* vxl,
@@ -833,14 +833,14 @@ public:
 	DECLARE_PROPERTY(IndexBitfield<HouseClass *>, DisplayProductionTo); // each bit corresponds to one player on the map, telling us whether that player has (1) or hasn't (0) spied this building, and the game should display what's being produced inside it to that player. The bits are arranged by player ID, i.e. bit 0 refers to house #0 in HouseClass::Array, 1 to 1, etc.; query like ((1 << somePlayer->ArrayIndex) & someFactory->DisplayProductionToHouses) != 0
 
 	int              Group; //0-9, assigned by CTRL+Number, these kinds // also set by aimd TeamType->Group !
-	/*  Focus on RA1 Source , called `ArchiveTarget` ,
+	/*  ArchiveTarget on RA1 Source , called `ArchiveTarget` ,
 		For units in area guard mode, this is the recorded home position. The guarding
 		unit will try to stay near this location in the course of it's maneuvers. This is
 		also used to record a pending transport for those passengers that are waiting for
 		the transport to become available. It is also used by harvesters so that they know
 		where to head back to after unloading.
 	*/
-	AbstractClass*   Focus;
+	AbstractClass*   ArchiveTarget;
 	HouseClass*      Owner;
 	CloakState       CloakState;
 	DECLARE_PROPERTY(StageClass, CloakProgress); // phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
