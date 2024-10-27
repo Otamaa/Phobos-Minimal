@@ -144,13 +144,12 @@ SuperExtContainer SuperExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK_AGAIN(0x6CAF32 , SuperClass_CTOR, 0x6)
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
 
-	if (auto pExt = SuperExtContainer::Instance.FindOrAllocate(pItem)) {
-		pExt->Type = SWTypeExtContainer::Instance.TryFind(pItem->Type);
+	if (auto pExt = SuperExtContainer::Instance.Allocate(pItem)) {
+		pExt->Type = SWTypeExtContainer::Instance.Find(pItem->Type);
 	}
 
 	return 0;
