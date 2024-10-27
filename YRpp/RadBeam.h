@@ -20,14 +20,10 @@ public:
 
 	static RadBeam* ManualAllocate(RadBeamType mode)
 	{
-		if (auto pBeam = GameCreate<RadBeam>(mode))
-		{
-			RadBeam::Array()->AddItem(pBeam);
-			pBeam->unknown_18 = (mode != RadBeamType::RadBeam) ? 20.0 : 10.0;
-			return pBeam;
-		}
-
-		return nullptr;
+		auto pBeam = GameCreate<RadBeam>(mode);
+		RadBeam::Array()->AddItem(pBeam);
+		pBeam->unknown_18 = (mode != RadBeamType::RadBeam) ? 20.0 : 10.0;
+		return pBeam;
 	}
 
 	void SetColor(const ColorStruct &color)

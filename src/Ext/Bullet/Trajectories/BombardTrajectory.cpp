@@ -59,7 +59,8 @@ void BombardTrajectory::ApplyTurningPointAnim(CoordStruct& Position)
 	auto const pType = this->GetTrajectoryType();
 
 	if (pType->TurningPointAnim) {
-		if (auto const pAnim = GameCreate<AnimClass>(pType->TurningPointAnim, Position)) {
+		auto const pAnim = GameCreate<AnimClass>(pType->TurningPointAnim, Position);
+		{
 			auto pExt = BulletExtContainer::Instance.Find(this->AttachedTo);
 			auto pTechno = this->AttachedTo->Owner ? this->AttachedTo->Owner : nullptr;
 			auto pOwner = pTechno && pTechno->Owner ? pTechno->Owner : pExt->Owner;

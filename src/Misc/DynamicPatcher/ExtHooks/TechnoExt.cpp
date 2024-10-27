@@ -317,20 +317,6 @@ DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-
-	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-
-	if (!pExt->MyFighterData)
-		return 0x0;
-
-	pExt->MyFighterData->StartAreaGuard();
-
-	return 0x41A97A;
-}
-
 //DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
 //{
 //	GET(ILocomotion*, Iloco, ESI);

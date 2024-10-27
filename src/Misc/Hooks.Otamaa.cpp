@@ -6372,7 +6372,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
 	{
 		GET(InfantryClass*, pThis, ESI);
 
-		if (const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+		const auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords());
 		{
 			const auto pOwner = pThis->Owner;
 			pAnim->Owner = pOwner;

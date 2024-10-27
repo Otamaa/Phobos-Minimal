@@ -384,3 +384,128 @@ DEFINE_HOOK(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 
 	return 0x415859;
 }
+
+// AreaGuard: return when no ammo or first target died
+DEFINE_HOOK_AGAIN(0x41A982, AircraftClass_Mission_AreaGuard, 0x6)
+DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
+{
+	enum { SkipGameCode = 0x41A97A };
+
+	GET(AircraftClass*, pThis, ESI);
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->MyFighterData) {
+		pExt->MyFighterData->StartAreaGuard();
+		return SkipGameCode;
+	}
+
+	if (!pThis->Team && pThis->Ammo && pThis->IsArmed())
+	{
+		CoordStruct coords = pThis->GetCoords();
+
+		if (pThis->TargetAndEstimateDamage(&coords, ThreatType::Normal))
+		{
+			pThis->QueueMission(Mission::Attack, false);
+			return SkipGameCode;
+		}
+	}
+
+	return 0;
+}
+
+// AttackMove: return when no ammo or arrived destination
+#include <Ext/AircraftTypeClass/Body.h>
+
+DEFINE_JUMP(VTABLE, 0x7E290C,  MiscTools::to_DWORD(&FakeAircraftTypeClass::_CanAttackMove))
+
+DEFINE_HOOK(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircrafts not search for targets while resting at the airport, this is designed to adapt to loop waypoint
+{
+	enum { SkipGameCode = 0x6FA6F5 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	return (pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight)) ? SkipGameCode : 0;
+}
+
+DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
+{
+	enum { LoseCurrentTarget = 0x4DF3D3, HoldCurrentTarget = 0x4DF4AB };
+
+	GET(FootClass* const, pThis, ESI);
+
+	return (pThis->WhatAmI() == AbstractType::Aircraft
+		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
+}
+
+DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6)
+{
+	enum { Continue = 0x418C43, Return = 0x418CE8 };
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	if (!pThis->Target)
+	{
+		if (!pThis->vt_entry_4C4() || !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
+			return Continue;
+
+		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->target5C8_CandidateTarget), false); // pThis->MegaDestination
+		pThis->QueueMission(Mission::Move, true);
+		pThis->newtargetassigned_5D1 = false; // pThis->HaveAttackMoveTarget
+	}
+	else
+	{
+		pThis->MissionStatus = 1;
+	}
+
+	R->EAX(1);
+	return Return;
+}
+
+// Idle: clear the target if no ammo
+DEFINE_HOOK(0x414D4D, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
+{
+	enum { ClearTarget = 0x414D3F };
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	if (!pThis->Ammo && !SessionClass::IsCampaign())
+	{
+		if (TeamClass* const pTeam = pThis->Team)
+			pTeam->LiberateMember(pThis);
+
+		return ClearTarget;
+	}
+
+	return 0;
+}
+
+// Stop: clear the mega mission and return to airbase immediately
+DEFINE_HOOK(0x4C762A, EventClass_RespondToEvent_StopAircraftAction, 0x6)
+{
+	GET(TechnoClass* const, pTechno, ESI);
+
+	if (pTechno->WhatAmI() == AbstractType::Aircraft && !pTechno->Airstrike && !pTechno->Spawned)
+	{
+		if (pTechno->vt_entry_4C4()) // pTechno->MegaMissionIsAttackMove()
+			pTechno->vt_entry_4A8(); // pTechno->ClearMegaMissionData()
+
+		if (pTechno->GetHeight() > Unsorted::CellHeight)
+			pTechno->EnterIdleMode(false, true);
+	}
+
+	return 0;
+}
+AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
+{
+	if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
+		threatType |= pPrimaryWeapon->AllowedThreats();
+
+	if (WeaponTypeClass* const pSecondaryWeapon = this->GetWeapon(1)->WeaponType)
+		threatType |= pSecondaryWeapon->AllowedThreats();
+
+	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
+}
+
+// GreatestThreat: for all the mission that should let the aircraft auto select a target
+DEFINE_JUMP(VTABLE, 0x7E2668, MiscTools::to_DWORD(&FakeAircraftClass::_GreatestThreat))

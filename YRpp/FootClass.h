@@ -48,6 +48,8 @@ public:
 	virtual bool Crash(ObjectClass* Killer) override JMP_THIS(0x4DEBB0);
 	virtual bool IsAllowedToLeaveMap() const override JMP_THIS(0x4DA1D0); // 0x320
 	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x4D98C0);
+	virtual AbstractClass* GreatestThreat(ThreatType threat, CoordStruct* pCoord, bool onlyTargetHouseEnemy) JMP_THIS(0x4D9920);
+
 
 	//FootClass
 	virtual void ReceiveGunner(FootClass* Gunner) RX;

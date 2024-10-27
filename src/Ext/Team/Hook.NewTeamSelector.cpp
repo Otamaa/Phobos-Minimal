@@ -620,6 +620,18 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			// Ignore the deactivated triggers
 			if (pTrigger->IsEnabled)
 			{
+					//pTrigger->OwnerHouseType;
+				if (pTrigger->TechLevel > pHouse->StaticData.TechLevel)
+					continue;
+
+				// ignore it if isn't set for the house AI difficulty
+				if ((int)houseDifficulty == 0 && !pTrigger->Enabled_Hard
+					|| (int)houseDifficulty == 1 && !pTrigger->Enabled_Normal
+					|| (int)houseDifficulty == 2 && !pTrigger->Enabled_Easy)
+				{
+					continue;
+				}
+
 				// The trigger must be compatible with the owner
 				if ((triggerHouse == -1 || houseTypeIdx == triggerHouse) && (triggerSide == 0 || sideTypeIdx == triggerSide))
 				{

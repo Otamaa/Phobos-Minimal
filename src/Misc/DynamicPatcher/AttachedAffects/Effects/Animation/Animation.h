@@ -25,7 +25,7 @@ public:
 
 		if (auto pAnimType = TypeData->ActiveAnim.Get())
 		{
-			if (auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords()))
+			auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords());
 			{
 				pCreated->SetOwnerObject(pObject);
 				if (!pCreated->GetOwningHouse())
@@ -71,7 +71,7 @@ public:
 
 		if (auto  pAnimType = TypeData->HitAnim.Get())
 		{
-			if (auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords()))
+			auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords());
 			{
 				pCreated->SetOwnerObject(pObject);
 				if (!pCreated->GetOwningHouse())
@@ -114,7 +114,7 @@ private:
 		{
 			if (auto pAnimType = TypeData->IdleAnim.Get())
 			{
-				if (auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords()))
+				auto pCreated = GameCreate<AnimClass>(pAnimType, pObject->GetCoords());
 				{
 					pCreated->SetOwnerObject(pObject);
 					if (!pCreated->GetOwningHouse())

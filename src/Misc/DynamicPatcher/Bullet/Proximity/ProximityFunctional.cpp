@@ -254,7 +254,7 @@ bool ProximityFunctional::ManualDetonation(BulletClass* pBullet, CoordStruct sou
 		LandType landType = BulletProx->pCheckedCell ? LandType::Clear : BulletProx->pCheckedCell->LandType;
 
 		if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, landType, sourcePos))
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, sourcePos))
+			auto pAnim = GameCreate<AnimClass>(pAnimType, sourcePos);
 				pAnim->Owner = pBulletOwner->GetOwningHouse();
 
 		BulletProx->ThroughOnce();

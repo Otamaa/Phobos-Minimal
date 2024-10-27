@@ -55,16 +55,3 @@ public:
 static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");
 
 //===================================================================================
-
-class FakeAircraftClass : public AircraftClass
-{
-public:
-
-	WeaponStruct* _GetWeapon(int weaponIndex);
-	void _SetTarget(AbstractClass* pTarget);
-	void _Destroyed(int mult);
-
-};
-static_assert(sizeof(FakeAircraftClass) == sizeof(AircraftClass), "Invalid Size !");
-
-//===================================================================================

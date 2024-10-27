@@ -484,6 +484,7 @@
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
     <ClInclude Include="src\ExtraHeaders\RVectorClass.h" />
     <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
+    <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
