@@ -335,6 +335,7 @@
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
+    <ClCompile Include="src\Misc\Spawner\AutoSave.cpp" />
     <ClCompile Include="src\Misc\Spawner\Bugfixes.cpp" />
     <ClCompile Include="src\Misc\Spawner\Chats.cpp" />
     <ClCompile Include="src\Misc\Spawner\DisableEdgeScrolling.cpp" />
@@ -493,6 +494,7 @@
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
+    <ClInclude Include="src\Misc\Spawner\AutoSave.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\Vinifera\BlowfishEngine.h" />
     <ClInclude Include="src\New\AnonymousType\Spawns.h" />

@@ -201,8 +201,8 @@ public:
 	int AltHomeCell; //CellStruct?
 	int UniqueID; //defaults to 1,000,000 - random salt for this game's communications
 	DECLARE_PROPERTY(Random2Class, Random); //218
-	DWORD Difficulty1;
-	DWORD Difficulty2; // 2 - Difficulty1
+	AIDifficulty Difficulty1;
+	AIDifficulty Difficulty2; // 2 - Difficulty1
 	CDTimerClass ElapsedTimer;
 	CDTimerClass PauseTimer;
 	DWORD unknown_62C;

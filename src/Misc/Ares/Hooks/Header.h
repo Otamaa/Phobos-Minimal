@@ -456,6 +456,7 @@ struct AresTActionExt
 	DEFINE_ACTION(MeteorStrike);
 	DEFINE_ACTION(PlayAnimAt);
 	DEFINE_ACTION(DoExplosionAt);
+	DEFINE_ACTION(EnableTrigger);
 
 	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col);
 

@@ -6444,6 +6444,26 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 	return true;
 }
 
+bool AresTActionExt::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (pTrigger)
+	{
+		TriggerClass::Array->for_each([pTrigger](TriggerClass* pTrig){
+
+			if (pTrig == pTrigger) {
+				if (ScenarioClass::Instance->Difficulty1 == AIDifficulty::Easy && pTrig->Type->Difficulty[0]
+					|| ScenarioClass::Instance->Difficulty1 == AIDifficulty::Normal && pTrig->Type->Difficulty[1]
+					|| ScenarioClass::Instance->Difficulty1 == AIDifficulty::Hard && pTrig->Type->Difficulty[2]) {
+
+					pTrig->Enable();
+				}
+			}
+		});
+	}
+
+	return true;
+}
+
 bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col) {
 
 	TintStruct copy_ = ScenarioClass::Instance->NormalLighting.Tint;
