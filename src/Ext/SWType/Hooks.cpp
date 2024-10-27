@@ -81,13 +81,13 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 
 DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 {
-	GET(SuperClass* const, pSuper, ECX);
+	GET(FakeSuperClass* const, pSuper, ECX);
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
 	//Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
 	if ( SWTypeExtData::Activate(pSuper, *pCell, isPlayer) ) {
-		SWTypeExtContainer::Instance.Find(pSuper->Type)->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
+		pSuper->_GetTypeExtData()->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 	}
 
 	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
@@ -96,7 +96,7 @@ DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 
 DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 {
-	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(FakeSuperWeaponTypeClass*, pThis, EBP);
 	GET(CCINIClass*, pINI, EBX);
 	GET(Action, result, ECX);
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 			found = true;
 		}
 
-		SWTypeExtContainer::Instance.Find(pThis)->LastAction = result;
+		pThis->_GetExtData()->LastAction = result;
 	}
 
 
@@ -155,9 +155,9 @@ DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 	};
 
 	GET(SuperClass*, pSuper, ECX);
-	GET(SuperWeaponTypeClass*, pSWType, EBX);
+	GET(FakeSuperWeaponTypeClass*, pSWType, EBX);
 
-	auto pExt = SWTypeExtContainer::Instance.Find(pSWType);
+	auto pExt = pSWType->_GetExtData();
 
 	if (pExt->UseWeeds)
 	{
@@ -190,9 +190,9 @@ DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 		Charged = 0x6CBD73
 	};
 
-	GET(SuperClass*, pSuper, ESI);
+	GET(FakeSuperClass*, pSuper, ESI);
 
-	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	const auto pExt = pSuper->_GetTypeExtData();
 
 	if (pExt->UseWeeds) {
 
@@ -229,13 +229,13 @@ DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
 {
 	enum { Skip = 0x6CC251 };
 
-	GET(SuperClass*, pSuper, EDI);
-	return SWTypeExtContainer::Instance.Find(pSuper->Type)->UseWeeds ? Skip : 0;
+	GET(FakeSuperClass*, pSuper, EDI);
+	return pSuper->_GetTypeExtData()->UseWeeds ? Skip : 0;
 }
 
 DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 {
-	GET(SuperWeaponTypeClass*, pThis, EBP);
+	GET(FakeSuperWeaponTypeClass*, pThis, EBP);
 	GET(CCINIClass*, pINI, EBX);
 
 	INI_EX exINI(pINI);
@@ -248,7 +248,7 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
 			{
 				pThis->Type = (SuperWeaponType)(i);
-				SWTypeExtContainer::Instance.Find(pThis)->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
+				pThis->_GetExtData()->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
 			}
 		}
 
@@ -334,10 +334,10 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 DEFINE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
 	enum { advance = 0x41F0FD, breakloop = 0x41F10D };
-	GET(SuperClass*, pSuper, EDI);
+	GET(FakeSuperClass*, pSuper, EDI);
 
 	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
-		&& SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pSuper->Owner))
+		&& pSuper->_GetTypeExtData()->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
 }
 
@@ -345,20 +345,20 @@ DEFINE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 // should check if the SW itself avaible before deciding it!
 DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 {
-	GET(SuperClass*, pSuper, EAX);
+	GET(FakeSuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EBP);
 
-	return SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner) ?
+	return pSuper->_GetTypeExtData()->IsAvailable(pOwner) ?
 		0x0//allow
 		: 0x6EFF1C;//advance
 }
 
 DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 {
-	GET(SuperClass*, pSuper, EAX);
+	GET(FakeSuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EDI);
 
-	return SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner) ?
+	return pSuper->_GetTypeExtData()->IsAvailable(pOwner) ?
 		0x0//allow
 		: 0x6F01D3;//advance
 }
@@ -730,8 +730,8 @@ DEFINE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 // 6CBDD7, 6
 DEFINE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 {
-	GET(SuperWeaponTypeClass*, pThis, EAX);
-	const auto pData = SWTypeExtContainer::Instance.Find(pThis);
+	GET(FakeSuperWeaponTypeClass*, pThis, EAX);
+	const auto pData = pThis->_GetExtData();
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
@@ -747,8 +747,8 @@ DEFINE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 // 6CC0EA, 9
 DEFINE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 {
-	GET(SuperClass*, pThis, ESI);
-	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
+	GET(FakeSuperClass*, pThis, ESI);
+	const auto pData = pThis->_GetTypeExtData();
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
@@ -838,8 +838,9 @@ DEFINE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 
 DEFINE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 {
-	GET(SuperClass*, pThis, ECX);
-	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
+	GET(FakeSuperClass*, pThis, ECX);
+
+	const auto pData = pThis->_GetTypeExtData();
 
 	// complete rewrite of this method.
 
@@ -924,10 +925,10 @@ DEFINE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 	GET_STACK(int, rechargeTime2, 0x14);
 	GET_STACK(int, timeLeft, 0xC);
 
-	GET(SuperWeaponTypeClass*, pType, EBX);
+	GET(FakeSuperWeaponTypeClass*, pType, EBX);
 
 	// use per-SW charge-to-drain ratio.
-	const double ratio = SWTypeExtContainer::Instance.Find(pType)->GetChargeToDrainRatio();
+	const double ratio = pType->_GetExtData()->GetChargeToDrainRatio();
 	const double percentage = (std::fabs(rechargeTime2 * ratio) > 0.001)  ?
 		1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio) : 0.0;
 

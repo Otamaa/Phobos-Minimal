@@ -594,7 +594,7 @@ public:
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
 	SWTypeExtData* _GetExtData() {
-		return *reinterpret_cast<SWTypeExtData**>(this->unknown_18);
+		return *reinterpret_cast<SWTypeExtData**>((DWORD)this + AbstractExtOffset);
 	}
 
 };

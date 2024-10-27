@@ -2901,9 +2901,9 @@ void SWTypeExtContainer::Clear()
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
+DEFINE_HOOK(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 {
-	GET(SuperWeaponTypeClass*, pItem, EAX);
+	GET(SuperWeaponTypeClass*, pItem, EBP);
 
 	NewSWType::Init();
 	SWTypeExtContainer::Instance.Allocate(pItem);
