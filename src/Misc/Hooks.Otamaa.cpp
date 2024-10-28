@@ -4488,18 +4488,18 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				else
 				{
 					int totalshares = 0;
-					for (auto& pCrate : CrateTypeClass::Array)
+					for (auto& crate : CrateTypeClass::Array)
 					{
-						totalshares += pCrate->Weight;
+						totalshares += crate.Weight;
 					}
 
 					int random = ScenarioClass::Instance->Random.RandomRanged(1, totalshares);
 					int sharecount = 0;
 					unsigned int ovelaydata = 0u;
 
-					for (auto& pCrate : CrateTypeClass::Array)
+					for (auto& crate : CrateTypeClass::Array)
 					{
-						sharecount += pCrate->Weight;
+						sharecount += crate.Weight;
 						if (random <= sharecount)
 							break;
 
@@ -4611,7 +4611,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 #pragma endregion
 
-					if (landType == LandType::Water && !CrateTypeClass::Array[(int)data]->Naval)
+					if (landType == LandType::Water && !CrateTypeClass::Array[(int)data].Naval)
 					{
 						data = Powerup::Unit;
 					}
@@ -4648,12 +4648,12 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					MapClass::Instance->Place_Random_Crate();
 				}
 #pragma region MainAffect
-				const auto something = CrateTypeClass::Array[(int)data]->Argument;
+				const auto something = CrateTypeClass::Array[(int)data].Argument;
 				//not always get used same way ?
 
 				auto PlayAnimAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
 					{
-						if (const auto pAnimType = CrateTypeClass::Array[(int)idx]->Anim)
+						if (const auto pAnimType = CrateTypeClass::Array[(int)idx].Anim)
 						{
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
 
@@ -4663,13 +4663,13 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
 					{
-						if (CrateTypeClass::Array[(int)idx]->Sound <= -1)
+						if (CrateTypeClass::Array[(int)idx].Sound <= -1)
 							return;
 
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-							VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx]->Sound, loc, nullptr);
+							VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx].Sound, loc, nullptr);
 						}
 					};
 
@@ -5199,7 +5199,7 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				default:
 					//TODO :: the affects
-					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
+					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data].Name.data());
 					PlaySoundAffect(data);
 					PlayAnimAffect(data);
 					break;

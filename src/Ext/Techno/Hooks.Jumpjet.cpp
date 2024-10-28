@@ -165,7 +165,7 @@ DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 // }
 
 // Just rewrite this completely to avoid headache
-Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matrix3D* ret, VoxelIndexKey* pIndex)
+Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matrix3D* ret, int* pIndex)
 {
 	__assume(iloco != nullptr);
 	auto const pThis = static_cast<JumpjetLocomotionClass*>(iloco);
@@ -175,19 +175,16 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	// Man, what can I say, you don't want to stick your rotor into the ground
 	auto slope_idx = MapClass::Instance->GetCellAt(linked->Location)->SlopeIndex;
 
-	if (onGround && pIndex && pIndex->Is_Valid_Key())
-		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
-
-	pThis->LocomotionClass::Draw_Matrix(ret ,pIndex);
-	*ret = Game::VoxelRampMatrix[onGround ? slope_idx : 0] * *ret;
+	*ret = Game::VoxelRampMatrix[onGround ? slope_idx : 0];
+	auto curf = pThis->Facing.Current();
+	ret->RotateZ((float)curf.GetRadian<32>());
 
 	float arf = linked->AngleRotatedForwards;
 	float ars = linked->AngleRotatedSideways;
 
 	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
-		if (pIndex)
-			pIndex->Invalidate();
+	if (pIndex) *pIndex = -1;
 
 		if (onGround)
 		{
@@ -208,6 +205,13 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			ret->RotateY(arf);
 		}
 	}
+
+	if (pIndex && *pIndex != -1) {
+		if (onGround) *pIndex = slope_idx + (*pIndex << 6);
+		*pIndex *= 32;
+		*pIndex |= curf.GetFacing<32>();
+	}
+
 	return ret;
 }
 

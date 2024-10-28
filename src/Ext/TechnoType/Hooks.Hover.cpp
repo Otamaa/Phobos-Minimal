@@ -22,7 +22,7 @@ static const HoverTypeClass* GetHover(TechnoClass* pThis)
 	if (HoverTypeClass::Array.empty())
 		defaulthover = HoverTypeClass::Allocate(DEFAULT_STR2);
 	else
-		defaulthover = HoverTypeClass::Array[0].get();
+		defaulthover = &HoverTypeClass::Array[0];
 
 
 	if (pThis) {

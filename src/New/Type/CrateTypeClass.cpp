@@ -40,7 +40,7 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 				pAlloc->Sound = sound;
 			}
 
-			Array[i]->LoadFromINI(pINI);
+			Array[i].LoadFromINI(pINI);
 		}
 	}
 }

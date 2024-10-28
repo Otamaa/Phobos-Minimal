@@ -16,8 +16,16 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 void PaletteManager::Clear_Internal()
 {
 	this->Palette.release();
-	this->Convert_Temperate.clear();
-	this->Convert.clear();
+	if(this->Convert_Temperate){
+		GameDelete(this->Convert_Temperate);
+		this->Convert_Temperate = nullptr;
+	}
+
+	if (this->Convert) {
+		GameDelete(this->Convert);
+		this->Convert = nullptr;
+	}
+
 	this->ColorschemeDataVector = nullptr;
 
 	//if (this->ColorschemeDataVector)
@@ -36,8 +44,8 @@ void PaletteManager::CreateConvert()
 		return;
 	}
 
-	this->Convert_Temperate.reset(GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
-	this->Convert.reset(GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
+	this->Convert_Temperate = (GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
+	this->Convert = (GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
 
 	std::string realname = _strlwr(this->Name.data());
 

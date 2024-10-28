@@ -52,7 +52,7 @@ void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 
 	for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 	{
-		LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
+		LaserTrails.emplace_back(&LaserTrailTypeClass::Array[idxTrail], pOwner->LaserColor);
 	}
 }
 

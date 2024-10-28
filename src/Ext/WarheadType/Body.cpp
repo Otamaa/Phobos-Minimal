@@ -45,9 +45,9 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (size_t i = Verses.size(); i < ArmorTypeClass::Array.size(); ++i)
 	{
 		auto& pArmor = ArmorTypeClass::Array[i];
-		const int nDefaultIdx = pArmor->DefaultTo;
+		const int nDefaultIdx = pArmor.DefaultTo;
 		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
-				? pArmor->DefaultVersesValue
+				? pArmor.DefaultVersesValue
 				: Verses[nDefaultIdx]
 		);
 	}
@@ -254,20 +254,20 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	for (auto const& ArmorType : ArmorTypeClass::Array)
 	{
 		AnimTypeClass* pAnimReaded = nullptr;
-		detail::read(pAnimReaded, exINI, pSection, ArmorType->HitAnim_Tag.c_str(), true);
+		detail::read(pAnimReaded, exINI, pSection, ArmorType.HitAnim_Tag.c_str(), true);
 		hitAnim.push_back(pAnimReaded);
 	}
 
 	for (size_t i = 0; i < hitAnim.size(); ++i)
 	{
-		if (!hitAnim[i] && ArmorTypeClass::Array[i]->DefaultTo != -1)
+		if (!hitAnim[i] && ArmorTypeClass::Array[i].DefaultTo != -1)
 		{
-			for (auto pDefArmor = ArmorTypeClass::Array[ArmorTypeClass::Array[i]->DefaultTo].get();
-				;
-				pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
+			for (auto pDefArmor = &ArmorTypeClass::Array[ArmorTypeClass::Array[i].DefaultTo];
+				pDefArmor != &ArmorTypeClass::Array[ArmorTypeClass::Array.size()];
+				pDefArmor = &ArmorTypeClass::Array[pDefArmor->DefaultTo])
 			{
 
-				if (auto pFallback = hitAnim[ArmorTypeClass::Array[i]->DefaultTo])
+				if (auto pFallback = hitAnim[ArmorTypeClass::Array[i].DefaultTo])
 					hitAnim[i] = pFallback;
 
 				if (pDefArmor->DefaultTo == -1)
@@ -280,7 +280,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		if (hitAnim[a])
 		{
-			this->ArmorHitAnim.emplace_unchecked(ArmorTypeClass::Array[a].get(), hitAnim[a]);
+			this->ArmorHitAnim.emplace_unchecked(&ArmorTypeClass::Array[a], hitAnim[a]);
 		}
 	}
 
@@ -1114,7 +1114,7 @@ AnimTypeClass* WarheadTypeExtData::GetArmorHitAnim(int Armor)
 {
 	for (auto begin = this->ArmorHitAnim.begin(); begin != this->ArmorHitAnim.end(); ++begin)
 	{
-		if (begin->first == ArmorTypeClass::Array[Armor].get())
+		if (begin->first == &ArmorTypeClass::Array[Armor])
 		{
 			return begin->second;
 		}

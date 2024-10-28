@@ -604,7 +604,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (size_t i = 1; i < ShieldTypeClass::Array.size(); ++i)
 	{
-		if (auto& pShield = ShieldTypeClass::Array[i])
+		if (auto pShield = &ShieldTypeClass::Array[i])
 		{
 			if (pShield->Strength <= 0)
 			{

@@ -45,22 +45,22 @@ public:
 		FallbackTheaterExtension()
 	{}
 
-	TheaterTypeClass(const char* const pTitle, const Theater& theater ,bool IsArtic , bool AllowMapGen) : Enumerable<TheaterTypeClass>(pTitle),
+	TheaterTypeClass(const char* const pTitle, const Theater* theater ,bool IsArtic , bool AllowMapGen) : Enumerable<TheaterTypeClass>(pTitle),
 		UIName(),
-		ControlFileName(theater.ControlFileName),
-		ArtFileName(theater.ArtFileName),
-		PaletteFileName(theater.PaletteFileName),
-		Extension(theater.Extension),
-		MMExtension(theater.MMExtension),
-		Letter(theater.Letter),
+		ControlFileName(theater->ControlFileName),
+		ArtFileName(theater->ArtFileName),
+		PaletteFileName(theater->PaletteFileName),
+		Extension(theater->Extension),
+		MMExtension(theater->MMExtension),
+		Letter(theater->Letter),
 		IsArctic(IsArtic),
 		IsAllowedInMapGenerator(AllowMapGen),
-		LowRadarBrightness1(theater.RadarTerrainBrightness),
-		HighRadarBrightness(theater.RadarTerrainBrightnessAtMaxLevel),
-		unknown_float_60(theater.unknown_float_60),
-		unknown_float_64(theater.unknown_float_64),
-		unknown_int_68(theater.unknown_int_68),
-		unknown_int_6C(theater.unknown_int_6C),
+		LowRadarBrightness1(theater->RadarTerrainBrightness),
+		HighRadarBrightness(theater->RadarTerrainBrightnessAtMaxLevel),
+		unknown_float_60(theater->unknown_float_60),
+		unknown_float_64(theater->unknown_float_64),
+		unknown_int_68(theater->unknown_int_68),
+		unknown_int_6C(theater->unknown_int_6C),
 		PaletteUnit(),
 		PaletteISO(),
 		TerrainControl(),
@@ -78,7 +78,7 @@ public:
 		BuildingTypeExtension(),
 		FallbackTheaterExtension(Theater::Array[0].Extension)
 	{
-		UIName = theater.UIName;
+		UIName = theater->UIName;
 	}
 
 	void LoadFromStream(PhobosStreamReader& Stm);
@@ -88,16 +88,16 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static constexpr TheaterTypeClass* FindFromTheaterType(TheaterType nType) {
-		return nType != TheaterType::None && (size_t)nType < Array.size() ?
-			Array[(int)nType].get() : Array[0].get();
+		return &(nType != TheaterType::None && (size_t)nType < Array.size() ?
+			Array[(int)nType] : Array[0]);
 	}
 
 	static inline constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
-		return Array[(int)nType].get();
+		return &Array[(int)nType];
 	}
 
 	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
-		Array.emplace_back(std::make_unique<TheaterTypeClass>(Title, theater , IsArtic , AllowMapGen));
+		Array.emplace_back(Title, &theater , IsArtic , AllowMapGen);
 	}
 
 	// no !

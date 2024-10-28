@@ -2980,7 +2980,7 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 		for (auto const& entry : pTypeExt->LaserTrailData)
 		{
 			pExt->LaserTrails.emplace_back(
-					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
+					&LaserTrailTypeClass::Array[entry.idxType], pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
 		}
 	}
 

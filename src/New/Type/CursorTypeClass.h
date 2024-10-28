@@ -12,12 +12,9 @@ class CursorTypeClass final : public Enumerable<CursorTypeClass>
 public:
 
 	Valueable<MouseCursor> CursorData;
-	CursorTypeClass(const char* const pTitle) : Enumerable<CursorTypeClass>(pTitle)
-		, CursorData { }
-	{ }
 
-	CursorTypeClass(const char* const pTitle, const MouseCursor& cursor) : Enumerable<CursorTypeClass>(pTitle)
-		, CursorData { cursor }
+	CursorTypeClass(const char* pTitle) : Enumerable<CursorTypeClass>(pTitle)
+		, CursorData { }
 	{ }
 
 	static void inline AddDefaults() {
@@ -90,8 +87,9 @@ public:
 		}
 	};
 
-	static inline constexpr void AllocateWithDefault(const char* Title , MouseCursor cursor) {
-		Array.emplace_back(std::make_unique<CursorTypeClass>(Title , cursor));
+	static inline void AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
+		Array.emplace_back(Title);
+		Array.back().CursorData = cursor;
 	}
 
 private:

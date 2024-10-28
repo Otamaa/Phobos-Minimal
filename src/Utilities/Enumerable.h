@@ -18,8 +18,7 @@
 // it will mess upt the `ArrayIndex` !
 template <typename T> class Enumerable
 {
-	typedef std::vector<std::unique_ptr<T>> container_t;
-
+	typedef std::vector<T> container_t;
 public:
 
 	static container_t Array;
@@ -42,7 +41,7 @@ public:
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
-			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
+			if (IS_SAME_STR_(pos->Name.data(), Title)) {
 				return std::distance(Array.begin(), pos);
 			}
 		}
@@ -57,14 +56,14 @@ public:
 		if (nResult < 0)
 			return nullptr;
 
-		return Array[nResult].get();
+		return &Array[nResult];
 	}
 
 	static inline constexpr int FindIndexFromType(T* pType)
 	{
 		if (pType) {
 			for (size_t i = 0; i < Array.size(); ++i) {
-				if (Array[i].get() == pType)
+				if ((&Array[i]) == pType)
 					return i;
 			}
 		}
@@ -77,30 +76,31 @@ public:
 		if (size_t(Idx) > Array.size())
 			return nullptr;
 
-		return Array[static_cast<size_t>(Idx)].get();
+		return &Array[static_cast<size_t>(Idx)];
 	}
 
 	// Warning : no Idx validation !
 	static inline constexpr T* FindFromIndex(int Idx)
 	{
-		return Array[static_cast<size_t>(Idx)].get();
+		return &Array[static_cast<size_t>(Idx)];
 	}
 
 	// With Idx validation ,return to the first item if Idx is invalid
 	static inline constexpr T* FindFromIndexFix(int Idx)
 	{
-		return Array[size_t(Idx) > Array.size() ? 0 : Idx].get();
+		return &Array[size_t(Idx) > Array.size() ? 0 : Idx];
 	}
 
 	static inline constexpr T* Allocate(const char* Title)
 	{
 		AllocateNoCheck(Title);
-		return Array.back().get();
+		return &Array.back();
 	}
 
 	static inline constexpr void AllocateNoCheck(const char* Title)
 	{
-		Array.emplace_back(std::make_unique<T>(Title));
+		static_assert(std::constructible_from<T, const char*>);
+		Array.emplace_back(Title);
 	}
 
 	static inline constexpr T* FindOrAllocate(const char* Title)
@@ -137,7 +137,7 @@ public:
 	static void ReadListFromINI(CCINIClass* pINI, bool bDebug = false)
 	{
 		for (auto& pItem : Array)
-			pItem->LoadFromINI(pINI);
+			pItem.LoadFromINI(pINI);
 	}
 
 	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false)
@@ -219,13 +219,12 @@ public:
 			void* oldPtr = nullptr;
 			std::string name {};
 
-			if (!Stm.Load(oldPtr) ||
-				!Stm.Load(name))
+			if (!Stm.Load(oldPtr) || !Stm.Load(name))
 				return false;
 
-			auto newPtr = Allocate(name.c_str());
-			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
-			newPtr->LoadFromStream(Stm);
+			auto pNew = Allocate(name.c_str());
+			PhobosSwizzle::Instance.RegisterChange(oldPtr, pNew);
+			pNew->LoadFromStream(Stm);
 		}
 
 		return true;
@@ -235,12 +234,11 @@ public:
 	{
 		Stm.Save(Array.size());
 
-		for (const auto& item : Array)
-		{
+		for (auto& item : Array) {
 			// write old pointer and name, then delegate
-			Stm.Save(item.get());
-			Stm.Save(item->Name);
-			item->SaveToStream(Stm);
+			Stm.Save(&item);
+			Stm.Save(item.Name);
+			item.SaveToStream(Stm);
 		}
 
 		return true;
@@ -248,18 +246,5 @@ public:
 
 	static const char* GetMainSection();
 
-	//Enumerable(const char* Title) : Name { Title }
-	//{ }
-
-	//virtual ~Enumerable() = default;
-	//virtual void LoadFromINI(CCINIClass* pINI) { }
-	//virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
-	//virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
-
-public:
 	std::string Name {};
-
-//private:
-//	Enumerable<T>&operator=(Enumerable<T> const& value) = default;
-//	Enumerable<T>&operator=(Enumerable<T>&& value) = default;
 };

@@ -709,7 +709,7 @@ void BulletExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, 
 	const auto pThis = this->AttachedToObject;
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Array[0].get());
+	const auto pRadType = pWeaponExt->RadType.Get(&RadTypeClass::Array[0]);
 
 		auto const it = RadSiteClass::Array->find_if([=](RadSiteClass* const pSite) {
 
@@ -764,7 +764,7 @@ void BulletExtData::InitializeLaserTrails()
 		pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExtData::FindFirstCivilianHouse());
 
 	for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
-		this->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
+		this->LaserTrails.emplace_back(&LaserTrailTypeClass::Array[idxTrail], pOwner->LaserColor);
 	}
 }
 

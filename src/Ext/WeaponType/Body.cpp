@@ -13,7 +13,7 @@ PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt
 void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);
-	this->RadType = RadTypeClass::Array[0].get();
+	this->RadType = &RadTypeClass::Array[0];
 }
 
 // =============================

@@ -312,10 +312,10 @@ DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	return 0x4B9BBF;
 }
 
-DEFINE_HOOK(0x4B9A52, DropshipLoadout_PrintArmor, 5)
+DEFINE_HOOK(0x4B9A4A, DropshipLoadout_PrintArmor, 7)
 {
-	R->Stack(0x4, ArmorTypeClass::Array[R->EDX()].get());
-	return 0;
+	R->EAX(ArmorTypeClass::Array[R->EDX()].Name.data());
+	return 0x4B9A51;
 }
 
 DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)

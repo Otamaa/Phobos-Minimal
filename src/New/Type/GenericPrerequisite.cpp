@@ -117,7 +117,7 @@ void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 		return;
 
 	for(auto& defaultItem : Array) { //load all the default data first
-		defaultItem->LoadFromINI(pINI);
+		defaultItem.LoadFromINI(pINI);
 	}
 
 	const char* pSection = GetMainSection();
@@ -145,13 +145,13 @@ bool Prereqs::HouseOwnsGeneric(HouseClass const* const pHouse, int const Index)
 	const auto idxPrereq = static_cast<size_t>(-1 - Index);
 
 	if (idxPrereq < GenericPrerequisite::Array.size()) {
-		for (const auto& index : GenericPrerequisite::Array[idxPrereq]->Prereqs) {
+		for (const auto& index : GenericPrerequisite::Array[idxPrereq].Prereqs) {
 			if (Prereqs::HouseOwnsSpecific(pHouse, index)) {
 				return true;
 			}
 		}
 
-		for (const auto& pType : GenericPrerequisite::Array[idxPrereq]->Alternates) {
+		for (const auto& pType : GenericPrerequisite::Array[idxPrereq].Alternates) {
 			if (pHouse->CountOwnedNow(pType)) {
 				return true;
 			}
@@ -267,7 +267,7 @@ bool Prereqs::ListContainsGeneric(BuildingTypeClass** items, int size, int const
 	// hack - POWER is -1 , this way converts to 0, and onwards
 	const auto idxPrereq = static_cast<size_t>(-1 - Index);
 	if (idxPrereq < GenericPrerequisite::Array.size()) {
-		for (const auto& index : GenericPrerequisite::Array[idxPrereq]->Prereqs) {
+		for (const auto& index : GenericPrerequisite::Array[idxPrereq].Prereqs) {
 			if (Prereqs::ListContainsSpecific(items, size, index)) {
 				return true;
 			}
