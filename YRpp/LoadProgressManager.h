@@ -58,18 +58,9 @@ public:
 
 	DWORD field_4;
 	DWORD field_8;
-	DWORD field_C;
-	DWORD field_10;
-	DWORD field_14;
-	DWORD field_18;
-	DWORD field_1C;
-	DWORD field_20;
-	DWORD field_24;
-	DWORD field_28;
-	DWORD field_2C;
-	DWORD field_30;
-	DWORD field_34;
-	DWORD field_38;
+	RectangleStruct TitleBarRect;
+	RectangleStruct BackgroundRect;
+	RectangleStruct LoadBarRect;
 	wchar_t* LoadMessage;
 	wchar_t* LoadBriefing;
 	SHPStruct * TitleBarSHP;
@@ -81,7 +72,7 @@ public:
 	DWORD field_54;
 	DWORD field_58;
 	DWORD field_5C;
-	Surface * ProgressSurface;
+	DSurface * ProgressSurface;
 };
 
 static_assert(sizeof(LoadProgressManager) == 0x64 , "Invalid Size");
