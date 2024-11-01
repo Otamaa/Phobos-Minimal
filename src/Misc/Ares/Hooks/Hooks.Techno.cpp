@@ -999,7 +999,10 @@ DEFINE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 {
 	GET(TechnoClass* const, pThis, ESI);
+
 	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	CaptureManagerClass* pCapturer = nullptr;
 	ParasiteClass* pParasite = nullptr;
@@ -1007,6 +1010,15 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	SpawnManagerClass* pSpawnManager = nullptr;
 	SlaveManagerClass* pSlaveManager = nullptr;
 	AirstrikeClass* pAirstrike = nullptr;
+
+	//AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
+		if (pTypeExt->MyFighterData.Enable) {
+			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
+			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
+		}
+	}
 
 	if (pType->Spawns) {
 		pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
@@ -1021,49 +1033,46 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 	}
 
 	const bool IsFoot = pThis->WhatAmI() != BuildingClass::AbsID;
-
 	const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
 
-	for (auto i = 0; i < WeaponCount; ++i)
-	{
+	for (auto i = 0; i < WeaponCount; ++i) {
 
-		if (auto const pWeapon = pType->GetWeapon(i)->WeaponType)
-		{
+		if (auto const pWeapon = pType->GetWeapon(i)->WeaponType) {
 			TechnoExt_ExtData::InitWeapon(pThis, pType, pWeapon, i, pCapturer, pParasite, pTemporal, "Weapon", IsFoot);
 		}
 
-		if (auto const pWeaponE = pType->GetEliteWeapon(i)->WeaponType)
-		{
+		if (auto const pWeaponE = pType->GetEliteWeapon(i)->WeaponType) {
 			TechnoExt_ExtData::InitWeapon(pThis, pType, pWeaponE, i, pCapturer, pParasite, pTemporal, "EliteWeapon", IsFoot);
 		}
 	}
 
 	pThis->CaptureManager = pCapturer;
 	pThis->TemporalImUsing = pTemporal;
-	if (IsFoot)
-	{
+	if (IsFoot) {
 		((FootClass*)pThis)->ParasiteImUsing = pParasite;
 	}
+
 	pThis->SpawnManager = pSpawnManager;
 	pThis->SlaveManager = pSlaveManager;
 	pThis->Airstrike = pAirstrike;
 
-	if (auto pOwner = pThis->Owner)
-	{
+	if (auto pOwner = pThis->Owner) {
 		const auto pHouseType = pOwner->Type;
 		const auto pParentHouseType = pHouseType->FindParentCountry();
 		TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
 	}
-	else
-	{
+	else {
 		Debug::Log("Techno[%s] Init Without any ownership!\n", pType->ID);
 	}
+
 	// if override is in effect, do not create initial payload.
 	// this object might have been deployed, undeployed, ...
-	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame)
-	{
+	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
 		TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
 	}
+
+	TechnoExtData::InitializeItems(pThis, pType);
+	TechnoExtData::InitializeAttachEffects(pThis, pType);
 
 	R->EAX(pType);
 	return 0x6F4212;

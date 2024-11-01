@@ -21,6 +21,7 @@ std::vector<int> HouseExtData::AIProduction_BestChoices;
 std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
+HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
 
 int HouseExtData::LastGrindingBlanceUnit = 0;
 int HouseExtData::LastGrindingBlanceInf = 0;
@@ -868,7 +869,6 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
-	AnnounceInvalidPointer<TechnoClass*>(LimboTechno, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
 
@@ -1800,7 +1800,7 @@ int HouseExtData::CountOwnedNowTotal(
 
 void HouseExtData::UpdateTransportReloaders()
 {
-	for (auto& pTech : this->LimboTechno)
+	for (auto& pTech : HouseExtData::LimboTechno)
 	{
 		if (pTech && pTech->IsAlive // the null check is only for Save game load , for some reason it contains nullptr ,...
 			&& pTech->WhatAmI() != AircraftClass::AbsID
@@ -1992,11 +1992,6 @@ void HouseExtData::Serialize(T& Stm)
 
 		.Process(this->SWLastIndex)
 		.Process(this->Batteries, true)
-	//	;
-
-	//Debug::Log("LimboTechnoCount %d\n",this->LimboTechno.size());
-	//Stm
-		.Process(this->LimboTechno, true)
 
 		.Process(this->AvaibleDocks)
 
@@ -2057,6 +2052,7 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
@@ -2069,6 +2065,7 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
@@ -2097,6 +2094,7 @@ void HouseExtContainer::Clear()
 	Special = 0;
 	Neutral = 0;
 
+	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
 }
 // =============================

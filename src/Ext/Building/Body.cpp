@@ -745,7 +745,6 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		pBuilding->DiscoveredBy(pOwner);
 
-		pOwnerExt->LimboTechno.insert(pBuilding);
 		//pOwner->AddTracking(pBuilding);
 		pOwner->RegisterGain(pBuilding, false);
 		pOwner->UpdatePower();
@@ -847,8 +846,6 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
 	pTargetHouse->Buildings.Remove(pBuilding);
-	static_assert(offsetof(HouseClass, Buildings) == 0x68, "ClassMember Shifted !");
-	pOwnerExt->LimboTechno.erase(pBuilding);
 	pTargetHouse->RegisterLoss(pBuilding, false);
 	//pTargetHouse->RemoveTracking(pBuilding);
 

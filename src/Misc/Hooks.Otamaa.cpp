@@ -10523,3 +10523,20 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFEEB, DWORD(&VoxelPixelBuffer) + 1)//
 DEFINE_PATCH_TYPED(DWORD, 0x7DFFD7, DWORD(&VoxelPixelBuffer))//
 DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 #undef VoxelBufferSize
+
+#include <Notifications.h>
+
+DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+	GET(AbstractClass*, pTarget, ESI);
+	GET(bool, bRemoved, EDI);
+
+	for (int i = 0; i < PointerExpiredNotification::NotifyInvalidObject->Array.Count; ++i) {
+		if (auto pItem = PointerExpiredNotification::NotifyInvalidObject->Array[i]) {
+			pItem->PointerExpired(pTarget, bRemoved);
+		} else {
+			Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer at [%d]\n", i);
+		}
+	}
+
+	return 0x725961;
+}

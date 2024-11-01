@@ -120,7 +120,6 @@ public:
 
 	int SWLastIndex { -1 };
 	HelperedVector<SuperClass*> Batteries {};
-	std::set<TechnoClass*> LimboTechno {};
 
 	int AvaibleDocks { 0 };
 
@@ -194,7 +193,6 @@ public:
 	void InitializeConstant();
 
 	void UpdateVehicleProduction();
-	void UpdateTransportReloaders();
 
 	void UpdateShotCount(SuperWeaponTypeClass* pFor);
 	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
@@ -258,6 +256,7 @@ public:
 	static bool PrerequisitesMet(HouseClass* pThis, int* items , int size);
 
 	static void UpdateAutoDeathObjects();
+	static void UpdateTransportReloaders();
 
 	//static bool HasGenericPrerequisite(int idx, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
 	//static int FindGenericPrerequisite(const char* id);
@@ -357,6 +356,7 @@ public:
 	static std::vector<int> AIProduction_BestChoices;
 	static std::vector<int> AIProduction_BestChoicesNaval;
 	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
+	static HelperedVector<TechnoClass*> LimboTechno;
 
 	static int LastGrindingBlanceUnit;
 	static int LastGrindingBlanceInf;

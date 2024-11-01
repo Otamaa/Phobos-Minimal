@@ -285,7 +285,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if(pThis->IsAlive){
-		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.insert(pThis);
+		HouseExtData::LimboTechno.push_back_unique(pThis);
 	}
 
 	return 0;
@@ -294,7 +294,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.erase(pThis);
+	HouseExtData::LimboTechno.remove(pThis);
 	return 0;
 }
 
@@ -348,13 +348,6 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	//if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
 	//	TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	//}
-
-	if (pThis->InLimbo) {
-		pOldOwnerExt->LimboTechno.erase(pThis);
-
-		if (pThis->IsAlive)
-			pNewOwnerExt->LimboTechno.insert(pThis);
-	}
 
 	OldOwner = pThis->Owner;
 	return 0;

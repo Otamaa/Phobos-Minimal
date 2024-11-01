@@ -23,40 +23,6 @@ DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
 }
 
 
-// init inside type check
-// should be no problem here
-DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	auto pType = pThis->GetTechnoType();
-
-	if (!pType)
-		return 0x0;
-
-	if (pThis->Owner) {
-		HouseExtContainer::Instance.Find(pThis->Owner)->LimboTechno.insert(pThis);
-	}
-
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	//AircraftDiveFunctional::Init(pExt, pTypeExt);
-
-	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID)
-	{
-		if (pTypeExt->MyFighterData.Enable)
-		{
-			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
-			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
-		}
-	}
-
-	TechnoExtData::InitializeItems(pThis, pType);
-	TechnoExtData::InitializeAttachEffects(pThis, pType);
-	return 0x0;
-}
-
 DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);

@@ -45,9 +45,6 @@
 // Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
 bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
 {
-	if (!pThis)
-		return false;
-
 	auto const pDeployType = pThis->Type->DeploysInto;
 
 	if (!pDeployType)
@@ -2988,13 +2985,12 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 void TechnoExtData::InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType))
-	{
-		if (pTypeExt->PhobosAttachEffects.AttachTypes.size() < 1)
-			return;
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
-	}
+	if (pTypeExt->PhobosAttachEffects.AttachTypes.size() < 1)
+		return;
+
+	PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 }
 
 bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
@@ -3590,8 +3586,8 @@ bool TechnoExtData::CheckDeathConditions()
 				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
 				{
 					if(allowLimbo) {
-						for (const auto& limbo : HouseExtContainer::Instance.Find(pHouse)->LimboTechno) {
-							if (!limbo->IsAlive)
+						for (const auto& limbo : HouseExtData::LimboTechno) {
+							if (!limbo->IsAlive || limbo->Owner != pHouse)
 								continue;
 
 							const auto limboType = limbo->GetTechnoType();
@@ -5211,6 +5207,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
+	HouseExtData::LimboTechno.push_back_unique(pItem);
 	TechnoExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -5218,6 +5215,15 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
+
+	for (auto& item : HouseExtData::AutoDeathObjects) {
+		if (item.first == pItem) {
+			item.first = nullptr;
+			item.second = KillMethod::None;
+		}
+	}
+
+	HouseExtData::LimboTechno.remove(pItem);
 	TechnoExtContainer::Instance.Remove(pItem);
 	return 0;
 }

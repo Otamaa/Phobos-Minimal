@@ -31,6 +31,7 @@ DEFINE_HOOK(0x55B6F8, LogicClass_Updata_End, 0xC)
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();
 	HouseExtData::UpdateAutoDeathObjects();
+	HouseExtData::UpdateTransportReloaders();
 	return 0x0;
 }
 
@@ -39,10 +40,10 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();
 	HouseExtData::UpdateAutoDeathObjects();
+	HouseExtData::UpdateTransportReloaders();
 
 	for (auto pHouse : *HouseClass::Array) {
 		auto pExt = HouseExtContainer::Instance.Find(pHouse);
-		pExt->UpdateTransportReloaders();
 		AresHouseExt::UpdateTogglePower(pHouse);
 	}
 
