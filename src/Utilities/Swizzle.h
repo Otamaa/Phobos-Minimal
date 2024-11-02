@@ -10,7 +10,7 @@
 
 class PhobosSwizzle
 {
-protected:
+public:
 
 	/**
 	* data store for RegisterChange
@@ -31,13 +31,12 @@ public:
 	*/
 	FORCEINLINE constexpr HRESULT RegisterForChange_Hook(void** p)
 	{
-		if (p)
-		{
-			if (auto deref = *p)
-			{
+		if (p) {
+			if (auto deref = *p) {
 				this->Nodes.emplace_back(deref, p);
 				*p = nullptr;
 			}
+
 			return S_OK;
 		}
 		return E_POINTER;
@@ -67,46 +66,36 @@ public:
 		return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
 	}
 
-	FORCEINLINE constexpr HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
+	FORCEINLINE HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
 	{
 		auto exist = this->FindChanges(was);
 
 		//the requested `was` not found
 		if (exist == this->Changes.end()) {
-			//Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] request change to both [%p] AND [%p]!\n", caller, was, exist->second, is);
+			Debug::LogFlushed("PhobosSwizze[0x%x] :: Pointer [0x%x] request change to [0x%x]!\n", caller, was, is);
 			this->Changes.emplace_back(was, is);
 		}
 		//the requested `was` found
-		//else if (exist->second != is) {
-		//	Debug::Log("PhobosSwizze[0x%x] :: Pointer [%p] declared change to both [%p] AND [%p]!\n", caller, was, exist->second, is);
-		//}
+		else if (exist->second != is) {
+			Debug::Log("PhobosSwizze[0x%x] :: Pointer [0x%x] are declared change to both [0x%x] AND [0x%x]!\n", caller, was, exist->second, is);
+		}
 
 		return S_OK;
 	}
 
-	/**
-	* this function will rewrite all registered nodes' values
-	*/
-
-	constexpr //, removed since need to log ,..
-	// probably make constexpr Debug::Log
-		void ConvertNodes() const
+	void ConvertNodes() const
 	{
-		//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
+		Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
 		void* lastFind(nullptr);
 		void* lastRes(nullptr);
 
-		for (auto it = this->Nodes.begin(); it != this->Nodes.end(); ++it)
-		{
-			if (lastFind != it->first)
-			{
+		for (auto it = this->Nodes.begin(); it != this->Nodes.end(); ++it) {
+			if (lastFind != it->first) {
 				const auto change = this->FindChanges(it->first);
 
-				//if (change == this->Changes.end()) {
-				//	Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
-				//} else
-					if (change != this->Changes.end())
-				{
+				if (change == this->Changes.end()) {
+					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
+				} else {
 					lastFind = it->first;
 					lastRes = change->second;
 				}

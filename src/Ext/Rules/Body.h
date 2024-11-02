@@ -392,6 +392,13 @@ public:
 
 	int SubterraneanSpeed { 19 };
 
+	Valueable<bool> UnitIdleRotateTurret { false };
+	Valueable<bool> UnitIdlePointToMouse { false };
+	Valueable<int> UnitIdleActionRestartMin { 150 };
+	Valueable<int> UnitIdleActionRestartMax { 300 };
+	Valueable<int> UnitIdleActionIntervalMin { 150 };
+	Valueable<int> UnitIdleActionIntervalMax { 450 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

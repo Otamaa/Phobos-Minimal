@@ -10505,17 +10505,23 @@ DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
 	GET(AbstractClass*, pTarget, ESI);
 	GET(bool, bRemoved, EDI);
 
-	for (int i = 0; i < PointerExpiredNotification::NotifyInvalidObject->Array.Count; ++i) {
-		if (auto pItem = PointerExpiredNotification::NotifyInvalidObject->Array[i]) {
-			pItem->PointerExpired(pTarget, bRemoved);
-		} else {
-			Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer at [%d]\n", i);
-		}
-	}
+	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+			if (!pItem) {
+				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
+				return true;
+			} else {
+				pItem->PointerExpired(pTarget, bRemoved);
+			}
+
+			return false;
+	});
+
+	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
 
 	return 0x725961;
 }
-
 
 constexpr int __fastcall charToID(char* string)
 {
@@ -10562,3 +10568,145 @@ constexpr int __fastcall charToID(char* string)
 //
 //	return 0x6E8315;
 //}
+
+DEFINE_HOOK(0x4DA87A, FootClass_Update_UpdateLayer, 0x6) {
+	GET(TechnoClass*, pTechno, ESI);
+
+	if (pTechno->IsAlive && !pTechno->InLimbo) {
+		if (pTechno->InWhichLayer() != pTechno->LastLayer) {
+			DisplayClass::Instance->SubmitObject(pTechno);
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	GET(CellClass*, pCell, EAX);
+
+	ObjectClass* pObject = pCell->FirstObject;
+
+	do
+	{
+		if (pObject)
+		{
+			switch (pObject->WhatAmI())
+			{
+			case AbstractType::Building:
+			{
+				if (pObject != pTechno) {
+					// skip change the OccFlag of this cell
+					return 0x453E12;
+				}
+				break;
+			}
+			}
+		}
+	}
+	while (pObject && (pObject = pObject->NextObject) != nullptr);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
+{
+	GET(AircraftClass*, pAir, ESI);
+
+	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe())
+	{
+		AbstractClass* pTarget = pAir->Target;
+
+		int weaponIdx = pAir->SelectWeapon(pTarget);
+		if (pAir->IsCloseEnough(pTarget, weaponIdx)) {
+			pAir->IsLocked = true;
+			CoordStruct pos = pAir->GetCoords();
+			CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
+			pAir->SetDestination(pCell, true);
+			return 0x418087;
+		} else {
+			int dest = pAir->DistanceFrom(pAir->Target);
+			WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType;
+			CoordStruct nextPos = CoordStruct::Empty;
+			if (dest < pWeapon->MinimumRange)
+			{
+				CoordStruct flh = CoordStruct::Empty;
+				flh.X = (int)(pWeapon->Range * 0.5);
+				nextPos = TechnoExtData::GetFLHAbsoluteCoords(pAir, flh, true);
+			}
+			else if (dest > pWeapon->Range)
+			{
+				int length = (int)(pWeapon->Range * 0.5);
+				int flipY = 1;
+
+				if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1) {
+					flipY *= -1;
+				}
+
+				CoordStruct sourcePos = pAir->GetCoords();
+				int r = (dest - length) * Unsorted::LeptonsPerCell;
+				r = ScenarioClass::Instance->Random.RandomRanged(0, r);
+				CoordStruct flh { 0, r * flipY, 0 };
+				CoordStruct targetPos = pAir->Target->GetCoords();
+				DirStruct dir = Helpers_DP::Point2Dir(sourcePos, targetPos);
+				sourcePos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, flh, dir);
+				sourcePos.Z = 0;
+				targetPos.Z = 0;
+				nextPos = Helpers_DP::GetForwardCoords(targetPos, sourcePos, length);
+			}
+			if (!nextPos.IsEmpty())
+			{
+				CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
+				pAir->SetDestination(pCell, true);
+				return 0x418087;
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
+{
+	GET(AircraftClass*, pAir, ESI);
+	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter) {
+		pAir->MissionStatus = 0x4; // AIR_ATT_FIRE_AT_TARGET0
+		return 0x4181E6;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
+	return 0x418506;
+}
+
+DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
+{
+	GET(FlyLocomotionClass*, pFly, ESI);
+
+	AircraftClass* pAir = specific_cast<AircraftClass*>(pFly->LinkedTo);
+
+	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
+	{
+		if (AbstractClass* pDest = pAir->Destination)
+		{
+			CoordStruct sourcePos = pAir->GetCoords();
+			int dist = pAir->DistanceFrom(pDest);
+
+			if (dist < 64 && dist >= 16) {
+				CoordStruct targetPos = pDest->GetCoords();
+				sourcePos.X = targetPos.X;
+				sourcePos.Y = targetPos.Y;
+				dist = 0;
+			}
+
+			if (dist < 16) {
+				R->Stack(0x50, sourcePos);
+			}
+		}
+	}
+	return 0;
+}
+

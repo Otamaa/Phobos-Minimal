@@ -1073,6 +1073,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 
 	TechnoExtData::InitializeItems(pThis, pType);
 	TechnoExtData::InitializeAttachEffects(pThis, pType);
+	TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
 	R->EAX(pType);
 	return 0x6F4212;

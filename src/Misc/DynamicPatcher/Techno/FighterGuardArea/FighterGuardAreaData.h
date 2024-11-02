@@ -1,5 +1,5 @@
 #pragma once
-#ifdef COMPILE_PORTED_DP_FEATURES
+
 #include <Utilities/TemplateDef.h>
 
 struct FighterAreaGuardData
@@ -44,4 +44,3 @@ struct FighterAreaGuardData
 		//Stm.RegisterChange(this);
 	}
 };
-#endif

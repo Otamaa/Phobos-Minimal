@@ -562,6 +562,12 @@ public:
 	CDTimerClass MobileRefineryTimer {};
 	WarheadTypeClass* LastDamageWH {};
 
+	bool UnitIdleAction {};
+	bool UnitIdleActionSelected {};
+	bool UnitIdleIsSelected {};
+	CDTimerClass UnitIdleActionTimer {};
+	CDTimerClass UnitIdleActionGapTimer {};
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -614,6 +620,12 @@ public:
 
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
+
+	static void InitializeUnitIdleAction(TechnoClass* pThis , TechnoTypeClass* pType);
+	void StopIdleAction();
+	void ApplyIdleAction();
+	void ManualIdleAction();
+	void StopRotateWithNewROT(int ROT = -1);
 
 	constexpr FORCEINLINE static size_t size_Of()
 	{

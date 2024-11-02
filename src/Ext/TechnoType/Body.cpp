@@ -593,6 +593,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
 		this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
+
+		if(Phobos::Otamaa::CompatibilityMode)
+			this->SinkAnim.Read(exINI, pSection, "Wake.Sink");
+
 		this->SinkAnim.Read(exINI, pSection, "Sink.Anim");
 		this->Tunnel_Speed.Read(exINI, pSection, "TunnelSpeed");
 		this->HoverType.Read(exINI, pSection, "HoverType");
@@ -1092,6 +1096,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryOwners.Read(exINI, pSection, "FactoryOwners");
 		this->FactoryOwners_Forbidden.Read(exINI, pSection, "FactoryOwners.Forbidden");
 		this->Wake.Read(exINI, pSection, "Wake");
+
+		this->UnitIdleRotateTurret.Read(exINI, pSection, "UnitIdleRotateTurret");
+		this->UnitIdlePointToMouse.Read(exINI, pSection, "UnitIdlePointToMouse");
+
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
@@ -2431,6 +2439,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceWeapon_InRange)
 		.Process(this->ForceWeapon_InRange_Overrides)
 		.Process(this->ForceWeapon_InRange_ApplyRangeModifiers)
+
+		.Process(this->UnitIdleRotateTurret)
+		.Process(this->UnitIdlePointToMouse)
 		;
 }
 
