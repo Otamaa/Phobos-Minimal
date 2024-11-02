@@ -103,19 +103,19 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 // }
 
 // Bugfix: Align jumpjet turret's facing with body's
-DEFINE_HOOK_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
-DEFINE_HOOK_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-DEFINE_HOOK_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-DEFINE_HOOK(0x54C64B, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Descending
-{
-	GET(FootClass* const, pThis, ECX);
-
-	if (pThis->Destination == pThis->GetCell()) {
-		pThis->SetDestination(nullptr, true);
-	}
-
-	return 0;
-}
+// DEFINE_HOOK_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
+// DEFINE_HOOK_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
+// DEFINE_HOOK_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
+// DEFINE_HOOK(0x54C64B, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Descending
+// {
+// 	GET(FootClass* const, pThis, ECX);
+//
+// 	if (pThis->Destination == pThis->GetCell()) {
+// 		pThis->SetDestination(nullptr, true);
+// 	}
+//
+// 	return 0;
+// }
 
 //
 //DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)

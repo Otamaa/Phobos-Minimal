@@ -4201,31 +4201,6 @@ DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 	return 0x4DB3A4;
 }
 
-int __fastcall charToID(char*)
-{
-	JMP_STD(0x412610);
-}
-
-DEFINE_HOOK(0x6E5FA3, TagTypeClass_SwizzleTheID, 0x8)
-{
-	GET(char*, ID, EDI);
-	GET(TagTypeClass*, pCreated, ESI);
-
-	Debug::Log("TagType[%s] Allocated as [%p]!\n", ID, pCreated);
-
-	return 0x6E5FB6;
-}
-
-DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
-{
-	LEA_STACK(char*, ID, 0x2C - 0x18);
-	GET(TaskForceClass*, pCreated, ESI);
-
-	Debug::Log("TaskForce[%s] Allocated as [%p]\n", ID, pCreated);
-
-	return 0x6E8315;
-}
-
 DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 {
 	GET(UnitClass*, pThis, EBP);
@@ -10540,3 +10515,50 @@ DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
 
 	return 0x725961;
 }
+
+
+constexpr int __fastcall charToID(char* string)
+{
+	char* v1 = string;
+	int v2 = 0;
+	while (v1)
+	{
+		if (!isxdigit(*v1))
+		{
+			break;
+		}
+		char v3 = *v1;
+		int v4 = 16 * v2;
+		++v1;
+		if (v3 < '0' || v3 > '9')
+		{
+			v2 = v4 + toupper(v3) - '7';
+		}
+		else
+		{
+			v2 = v4 + v3 - '0';
+		}
+	}
+	return v2;
+}
+
+//
+//DEFINE_HOOK(0x6E5FA3, TagTypeClass_SwizzleTheID, 0x8)
+//{
+//	GET(char*, ID, EDI);
+//	GET(TagTypeClass*, pCreated, ESI);
+//
+//	Debug::Log("TagType[%s] Allocated as [%p]!\n", ID, pCreated);
+//
+//	return 0x6E5FB6;
+//}
+//
+//DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
+//{
+//	LEA_STACK(char*, ID, 0x2C - 0x18);
+//	GET(TaskForceClass*, pCreated, ESI);
+//
+//	Debug::Log("TaskForce[%s] Allocated as [%p]\n", ID, pCreated);
+//
+//	return 0x6E8315;
+//}

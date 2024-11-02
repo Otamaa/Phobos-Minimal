@@ -88,7 +88,7 @@ public:
 	* this function will rewrite all registered nodes' values
 	*/
 
-	//constexpr , removed since need to log ,..
+	constexpr //, removed since need to log ,..
 	// probably make constexpr Debug::Log
 		void ConvertNodes() const
 	{
@@ -102,9 +102,10 @@ public:
 			{
 				const auto change = this->FindChanges(it->first);
 
-				if (change == this->Changes.end()) {
-					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
-				} else //if (change != this->Changes.end())
+				//if (change == this->Changes.end()) {
+				//	Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
+				//} else
+					if (change != this->Changes.end())
 				{
 					lastFind = it->first;
 					lastRes = change->second;

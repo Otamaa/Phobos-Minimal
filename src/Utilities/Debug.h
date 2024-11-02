@@ -182,7 +182,7 @@ public:
 		}
 	}
 
-	static FORCEINLINE bool LogFileActive() {
+	static constexpr FORCEINLINE bool LogFileActive() {
 		return Debug::LogEnabled && Debug::LogFile;
 	}
 
