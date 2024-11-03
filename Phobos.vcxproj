@@ -207,38 +207,6 @@
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
-    <ClCompile Include="src\Lib\Lua547\lapi.c" />
-    <ClCompile Include="src\Lib\Lua547\lauxlib.c" />
-    <ClCompile Include="src\Lib\Lua547\lbaselib.c" />
-    <ClCompile Include="src\Lib\Lua547\lcode.c" />
-    <ClCompile Include="src\Lib\Lua547\lcorolib.c" />
-    <ClCompile Include="src\Lib\Lua547\lctype.c" />
-    <ClCompile Include="src\Lib\Lua547\ldblib.c" />
-    <ClCompile Include="src\Lib\Lua547\ldebug.c" />
-    <ClCompile Include="src\Lib\Lua547\ldo.c" />
-    <ClCompile Include="src\Lib\Lua547\ldump.c" />
-    <ClCompile Include="src\Lib\Lua547\lfunc.c" />
-    <ClCompile Include="src\Lib\Lua547\lgc.c" />
-    <ClCompile Include="src\Lib\Lua547\linit.c" />
-    <ClCompile Include="src\Lib\Lua547\liolib.c" />
-    <ClCompile Include="src\Lib\Lua547\llex.c" />
-    <ClCompile Include="src\Lib\Lua547\lmathlib.c" />
-    <ClCompile Include="src\Lib\Lua547\lmem.c" />
-    <ClCompile Include="src\Lib\Lua547\loadlib.c" />
-    <ClCompile Include="src\Lib\Lua547\lobject.c" />
-    <ClCompile Include="src\Lib\Lua547\lopcodes.c" />
-    <ClCompile Include="src\Lib\Lua547\loslib.c" />
-    <ClCompile Include="src\Lib\Lua547\lparser.c" />
-    <ClCompile Include="src\Lib\Lua547\lstate.c" />
-    <ClCompile Include="src\Lib\Lua547\lstring.c" />
-    <ClCompile Include="src\Lib\Lua547\lstrlib.c" />
-    <ClCompile Include="src\Lib\Lua547\ltable.c" />
-    <ClCompile Include="src\Lib\Lua547\ltablib.c" />
-    <ClCompile Include="src\Lib\Lua547\ltm.c" />
-    <ClCompile Include="src\Lib\Lua547\lundump.c" />
-    <ClCompile Include="src\Lib\Lua547\lutf8lib.c" />
-    <ClCompile Include="src\Lib\Lua547\lvm.c" />
-    <ClCompile Include="src\Lib\Lua547\lzio.c" />
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
@@ -610,34 +578,6 @@
     <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Lib\Lua542\include\lua.hpp" />
-    <ClInclude Include="src\Lib\Lua547\lapi.h" />
-    <ClInclude Include="src\Lib\Lua547\lauxlib.h" />
-    <ClInclude Include="src\Lib\Lua547\lcode.h" />
-    <ClInclude Include="src\Lib\Lua547\lctype.h" />
-    <ClInclude Include="src\Lib\Lua547\ldebug.h" />
-    <ClInclude Include="src\Lib\Lua547\ldo.h" />
-    <ClInclude Include="src\Lib\Lua547\lfunc.h" />
-    <ClInclude Include="src\Lib\Lua547\lgc.h" />
-    <ClInclude Include="src\Lib\Lua547\ljumptab.h" />
-    <ClInclude Include="src\Lib\Lua547\llex.h" />
-    <ClInclude Include="src\Lib\Lua547\llimits.h" />
-    <ClInclude Include="src\Lib\Lua547\lmem.h" />
-    <ClInclude Include="src\Lib\Lua547\lobject.h" />
-    <ClInclude Include="src\Lib\Lua547\lopcodes.h" />
-    <ClInclude Include="src\Lib\Lua547\lopnames.h" />
-    <ClInclude Include="src\Lib\Lua547\lparser.h" />
-    <ClInclude Include="src\Lib\Lua547\lprefix.h" />
-    <ClInclude Include="src\Lib\Lua547\lstate.h" />
-    <ClInclude Include="src\Lib\Lua547\lstring.h" />
-    <ClInclude Include="src\Lib\Lua547\ltable.h" />
-    <ClInclude Include="src\Lib\Lua547\ltm.h" />
-    <ClInclude Include="src\Lib\Lua547\lua.h" />
-    <ClInclude Include="src\Lib\Lua547\lua.hpp" />
-    <ClInclude Include="src\Lib\Lua547\luaconf.h" />
-    <ClInclude Include="src\Lib\Lua547\lualib.h" />
-    <ClInclude Include="src\Lib\Lua547\lundump.h" />
-    <ClInclude Include="src\Lib\Lua547\lvm.h" />
-    <ClInclude Include="src\Lib\Lua547\lzio.h" />
     <ClInclude Include="src\Misc\Ares\Audio.h" />
     <ClInclude Include="src\Misc\Ares\CSF.h" />
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
@@ -912,7 +852,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dbghelp.lib;onecore.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dbghelp.lib;onecore.lib;winmm.lib;LuaProj.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ProgramDatabaseFile>$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>

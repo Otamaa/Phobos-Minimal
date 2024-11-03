@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Lua547/lua.hpp>
+#include <Lib/LuaProj/src/lua.hpp>
+
 #include <string>
 #include <memory>
 
