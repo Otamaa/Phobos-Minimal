@@ -1,6 +1,6 @@
 function OnExecute (team)
 	 _args = _TeamClass_GetCurrentScriptArg(team)
-	
+
 		 if _args <= 0 then
 			 _TeamClass_SetStepCompleted(team)
 		 else

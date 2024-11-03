@@ -52,7 +52,7 @@ MainWindowString = "Yuri's Revenge"
 --Internal DLL name will be put here if needed
 MovieMDINI = "MOVIEMD.INI"
 
---Activate this to enable certain compatibily settings 
+--Activate this to enable certain compatibily settings
 -- Phobos Develop `Convert` tags now readed as it is
 -- "PlacementPreview.Show" -> "PlacementPreview"
 -- "ShowBuildingPlacementPreview" -> "PlacementPreview"
