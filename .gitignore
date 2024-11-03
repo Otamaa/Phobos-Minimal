@@ -381,3 +381,4 @@ FodyWeavers.xsd
 /src/Misc/Spawner/Bugfixes.bak
 /src/New/Type/PaletteManager.bak
 /src/Utilities/Constructs.bak
+*.lib
