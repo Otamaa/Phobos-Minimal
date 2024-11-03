@@ -1294,23 +1294,23 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 	Debug::Log("%s, %ls, position %d\n", pHouse->PlainName, pHouse->UIName, spawn_position);
 }
 
-DEFINE_HOOK(0x68804A, AssignHouses_PlayerHouses, 0x5)
-{
-	GET(HouseClass*, pPlayerHouse, EBP);
+//DEFINE_HOOK(0x68804A, AssignHouses_PlayerHouses, 0x5)
+//{
+//	GET(HouseClass*, pPlayerHouse, EBP);
+//
+//	SetSkirmishHouseName(pPlayerHouse, true);
+//
+//	return 0x68808E;
+//}
 
-	SetSkirmishHouseName(pPlayerHouse, true);
-
-	return 0x68808E;
-}
-
-DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
-{
-	GET(HouseClass*, pAiHouse, EBP);
-
-	SetSkirmishHouseName(pAiHouse, false);
-
-	return 0x688252;
-}
+//DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
+//{
+//	GET(HouseClass*, pAiHouse, EBP);
+//
+//	SetSkirmishHouseName(pAiHouse, false);
+//
+//	return 0x688252;
+//}
 
 // Reverted on Develop #7ad3506
 // // Allow infantry to use all amphibious/water movement zones and still display sequence correctly.
@@ -2065,3 +2065,27 @@ DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 }
 
 DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
+
+// Map <Player @ X> as object owner name to correct HouseClass index.
+DEFINE_HOOK(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
+{
+	enum { ReturnFromFunction = 0x50C203 };
+	GET(const char*, name, ECX);
+	// Bail out early in campaign mode or if the name does not start with <
+	if (SessionClass::IsCampaign() || *name != '<')
+		return 0;
+	int playerAtIndex = HouseClass::GetPlayerAtFromString(name);
+	if (playerAtIndex != -1)
+	{
+		auto const pHouse = HouseClass::FindByPlayerAt(playerAtIndex);
+		if (pHouse)
+		{
+			R->EDX(pHouse->ArrayIndex);
+			return ReturnFromFunction;
+		}
+	}
+
+	return 0;
+}
+// Skip check that prevents buildings from being created for local player.
+DEFINE_JUMP(LJMP, 0x44F8D5, 0x44F8E1);
