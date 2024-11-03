@@ -2,6 +2,7 @@
 
 struct PhobosWindowClass
 {
+#ifdef EXPERIMENTAL_IMGUI
 	static bool Create();
 	static bool Destroy();
 
@@ -18,4 +19,5 @@ struct PhobosWindowClass
 private:
 	static void MessageHandler();
 	static void Loop();
+#endif
 };
