@@ -5143,6 +5143,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleIsSelected)
 		.Process(this->UnitIdleActionTimer)
 		.Process(this->UnitIdleActionGapTimer)
+		.Process(this->MyTargetingFrame)
 		;
 }
 
@@ -5371,6 +5372,7 @@ DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 
 	HouseExtData::LimboTechno.remove(pItem);
 	TechnoExtContainer::Instance.Remove(pItem);
+
 	return 0;
 }
 

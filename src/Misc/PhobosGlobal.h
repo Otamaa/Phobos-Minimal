@@ -9,7 +9,7 @@ class AlphaShapeClass;
 class TechnoClass;
 class PhobosGlobal
 {
-	static std::unique_ptr<PhobosGlobal> GlobalObject;
+	static PhobosGlobal GlobalObject;
 public:
 	bool DetonateDamageArea { true };
 
@@ -62,11 +62,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& stm);
 
 	constexpr FORCEINLINE static PhobosGlobal* Instance() {
-		return GlobalObject.get();
+		return &GlobalObject;
 	}
-
-	PhobosGlobal() = default;
-	~PhobosGlobal() = default;
 
 	static void Clear();
 	static void PointerGotInvalid(AbstractClass* ptr, bool removed);

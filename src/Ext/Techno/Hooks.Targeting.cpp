@@ -71,3 +71,26 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 	R->EDI(threat & 3);
 	return 0x7098B9;
 }
+
+DEFINE_HOOK(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
+{
+	enum { Targeting = 0x6FA687, SkipTargeting = 0x6FA6F5 };
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pRulesExt = RulesExtData::Instance();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	bool allowed = !pThis->Owner->IsControlledByHuman() ? true : !pRulesExt->DistributeTargetingFrame_AIOnly;
+
+	if (allowed && pTypeExt && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame))
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		if (Unsorted::CurrentFrame % 16 != pExt->MyTargetingFrame)
+		{
+			return SkipTargeting;
+		}
+	}
+
+	R->EAX(pThis->vt_entry_4C4());
+	return Targeting;
+}

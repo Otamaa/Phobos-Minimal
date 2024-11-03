@@ -2,7 +2,7 @@
 
 #include <AbstractClass.h>
 
-std::unique_ptr<PhobosGlobal> PhobosGlobal::GlobalObject = std::make_unique<PhobosGlobal>();
+PhobosGlobal PhobosGlobal::GlobalObject;
 PhobosGlobal::ColorsData PhobosGlobal::ColorDatas {};
 
 void PhobosGlobal::Clear()

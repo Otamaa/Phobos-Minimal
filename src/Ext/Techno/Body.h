@@ -568,6 +568,8 @@ public:
 	CDTimerClass UnitIdleActionTimer {};
 	CDTimerClass UnitIdleActionGapTimer {};
 
+	int MyTargetingFrame { ScenarioClass::Instance->Random.RandomRanged(0,15) };
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {

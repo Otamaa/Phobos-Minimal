@@ -375,6 +375,8 @@ public:
 	Nullable<int> PlayerNormalTargetingDelay { };
 	Nullable<int> AIGuardAreaTargetingDelay { };
 	Nullable<int> PlayerGuardAreaTargetingDelay { };
+	Valueable<bool> DistributeTargetingFrame { false };
+	Valueable<bool> DistributeTargetingFrame_AIOnly { true };
 
 	Valueable<bool> CheckUnitBaseNormal { false };
 	Valueable<bool> ExpandBuildingPlace { true };
