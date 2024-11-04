@@ -36,7 +36,7 @@ void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStr
 {
 	Item item { coords, pixelOffset, Unsorted::CurrentFrame, Drawing::ColorStructToWordRGB(color), TextPrintType::Center | TextPrintType::NoShadow, L""};
 	PhobosCRT::wstrCopy(item.Text, text, 0x20);
-	Data.push_back(item);
+	Data.push_back(std::move(item));
 }
 
 void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)

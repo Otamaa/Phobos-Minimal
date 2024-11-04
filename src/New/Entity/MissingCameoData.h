@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Ext/Rules/Body.h>
+#include <Utilities/PhobosPCXFile.h>
 
 struct MissingCameoData
 {

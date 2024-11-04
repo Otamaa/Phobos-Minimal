@@ -19,47 +19,16 @@ class FireTacticalSWCommandClass : public PhobosCommandClass
 template<size_t Index>
 inline const char* FireTacticalSWCommandClass<Index>::GetName() const
 {
-	class to_string_t
-	{
-	public:
-		char buffer[17];
-
-	public:
-		constexpr to_string_t() noexcept
-			: buffer { "FireTacticalSW" }
-		{
-			size_t idx = 14;
-			buffer[idx++] = Index + '0';
-			buffer[idx++] = '\0';
-		}
-
-		constexpr operator char* () noexcept { return buffer; }
-	};
-	static to_string_t ret;
-	return ret;
+	_snprintf_s(Phobos::readBuffer, Phobos::readLength, "FireTacticalSW%d", Index + 1);
+	return Phobos::readBuffer;
 }
 
 template<size_t Index>
 inline const wchar_t* FireTacticalSWCommandClass<Index>::GetUIName() const
 {
-	class to_string_t
-	{
-	public:
-		wchar_t buffer[20];
-
-	public:
-		constexpr to_string_t() noexcept
-			: buffer { L"Fire tactical SW " }
-		{
-			size_t idx = 17;
-			buffer[idx++] = Index + '0';
-			buffer[idx++] = '\0';
-		}
-
-		constexpr operator wchar_t* () noexcept { return buffer; }
-	};
-	static to_string_t ret;
-	return StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX", ret);
+	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX", L"Fire Super Weapon %d");
+	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index + 1);
+	return Phobos::wideBuffer;
 }
 
 template<size_t Index>
@@ -71,24 +40,9 @@ inline const wchar_t* FireTacticalSWCommandClass<Index>::GetUICategory() const
 template<size_t Index>
 inline const wchar_t* FireTacticalSWCommandClass<Index>::GetUIDescription() const
 {
-	class to_string_t
-	{
-	public:
-		wchar_t buffer[20];
-
-	public:
-		constexpr to_string_t() noexcept
-			: buffer { L"Fire tactical SW " }
-		{
-			size_t idx = 17;
-			buffer[idx++] = Index + '0';
-			buffer[idx++] = '\0';
-		}
-
-		constexpr operator wchar_t* () noexcept { return buffer; }
-	};
-	static to_string_t ret;
-	return StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX_DESC", ret);
+	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX_DESC", L"Fires the Super Weapon at position %d in the Super Weapon sidebar.");
+	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index + 1);
+	return Phobos::wideBuffer;
 }
 
 template<size_t Index>
