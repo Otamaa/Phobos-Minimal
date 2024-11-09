@@ -471,8 +471,8 @@ DEFINE_HOOK(0x414D4D, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 
 	GET(AircraftClass* const, pThis, ESI);
 
-	//if (!RulesExtData::Instance()->ExpandAircraftMission)
-	//	return 0x0;
+	if (!RulesExtData::Instance()->ExpandAircraftMission)
+		return 0x0;
 
 	if (!pThis->Spawned &&
 		!pThis->Ammo && !SessionClass::IsCampaign())
