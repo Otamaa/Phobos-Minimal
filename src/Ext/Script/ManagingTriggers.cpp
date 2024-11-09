@@ -4,6 +4,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
+#include <AITriggerTypeClass.h>
+
 void ScriptExtData::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = -1, bool isEnabled = false)
 {
 	auto pScript = pTeam->CurrentScript;

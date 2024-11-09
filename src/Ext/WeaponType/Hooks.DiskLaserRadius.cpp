@@ -1,5 +1,8 @@
 #include "Body.h"
 
+#include <Helpers/Macro.h>
+#include <DiskLaserClass.h>
+
 // Angles = [ Pi/180*int((i*360/16+270)%360) for i in range(0,16)]
 static constexpr double CosLUT[DiskLaserClass::DrawCoords.c_size()]
 {

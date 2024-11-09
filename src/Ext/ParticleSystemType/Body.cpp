@@ -1,6 +1,8 @@
 #include "Body.h"
 #include <Ext/Rules/Body.h>
 
+#include <ParticleSystemClass.h>
+
 void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
 {
 	for (size_t i = 0; i < arr.size(); ++i) {

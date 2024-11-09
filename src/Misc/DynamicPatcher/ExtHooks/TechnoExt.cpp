@@ -14,6 +14,8 @@
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
 //#include <Misc/DynamicPatcher/Techno/AttackBeacon/AttackBeaconFunctional.h>
 
+#include <SpawnManagerClass.h>
+
 /*
 DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 {

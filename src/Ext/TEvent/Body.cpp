@@ -14,6 +14,8 @@
 
 #include <New/Entity/ShieldClass.h>
 
+#include <TeamTypeClass.h>
+
 // =============================
 // load / save
 

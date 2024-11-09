@@ -54,7 +54,7 @@ struct SpawnerMain
 		bool AllowChat { true };
 	public:
 
-		static std::unique_ptr<Configs> m_Ptr;
+		static Configs m_Ptr;
 	};
 
 	struct GameConfigs {
@@ -63,7 +63,7 @@ struct SpawnerMain
 		static void AssignHouses();
 
 	public:
-		static std::unique_ptr<GameConfigs> m_Ptr;
+		static  GameConfigs m_Ptr;
 
 	private:
 		static bool StartNewScenario(const char* scenarioName);
@@ -281,7 +281,7 @@ struct SpawnerMain
 			// Extended Options
 			, Ra2Mode { false }
 			, QuickMatch { false }
-			, SkipScoreScreen { Configs::m_Ptr->SkipScoreScreen }
+			, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 			, WriteStatistics { false }
 			, AINamesByDifficulty { false }
 			, ContinueWithoutHumans { false }
@@ -306,10 +306,10 @@ struct SpawnerMain
 	static void ApplyStaticOptions(); // Apply all the settings
 
 	static constexpr Configs* GetMainConfigs() {
-		return Configs::m_Ptr.get();
+		return &Configs::m_Ptr;
 	}
 
 	static constexpr GameConfigs* GetGameConfigs() {
-		return GameConfigs::m_Ptr.get();
+		return &GameConfigs::m_Ptr;
 	}
 };

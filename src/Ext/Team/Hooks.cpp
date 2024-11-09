@@ -50,6 +50,8 @@ DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 //}
 #include <Ext/Techno/Body.h>
 
+#include <TaskForceClass.h>
+
 bool IsSamebefore(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 {
 	if (TechnoExtContainer::Instance.Find(pGoing)->Type == reinfocement) {

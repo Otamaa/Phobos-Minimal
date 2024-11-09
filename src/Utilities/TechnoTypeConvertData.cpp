@@ -2,6 +2,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 #include <Utilities/Debug.h>
+#include <AnimClass.h>
 
 void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget, AnimTypeClass* SucceededAnim)
 {

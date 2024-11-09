@@ -2,23 +2,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-bool TeamExtData::InvalidateIgnorable(AbstractClass* ptr) {
-
-	switch (ptr->WhatAmI())
-	{
-	case BuildingClass::AbsID:
-	case AircraftClass::AbsID:
-	case UnitClass::AbsID:
-	case InfantryClass::AbsID:
-	case ScriptClass::AbsID:
-	case SuperClass::AbsID:
-	{
-		return false;
-	}
-	}
-
-	return true;
-}
+#include <AITriggerTypeClass.h>
 
 void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {

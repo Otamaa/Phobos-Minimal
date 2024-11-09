@@ -975,7 +975,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Units_RepairRate.Read(exINI, pSection, "Units.RepairRate");
 		this->Units_RepairStep.Read(exINI, pSection, "Units.RepairStep");
 		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
-		this->Units_DisableRepairCost.Read(exINI, pSection, "Units.DisableRepairCost");
+		this->Units_UseRepairCost.Read(exINI, pSection, "Units.UseRepairCost");
 
 	}
 #pragma endregion
@@ -1277,7 +1277,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Units_RepairRate)
 		.Process(this->Units_RepairStep)
 		.Process(this->Units_RepairPercent)
-		.Process(this->Units_DisableRepairCost)
+		.Process(this->Units_UseRepairCost)
 		;
 }
 

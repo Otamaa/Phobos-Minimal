@@ -2,11 +2,11 @@
 
 #include <Ext/TechnoType/Body.h>
 
-#include <Ares_TechnoExt.h>
-
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+
+#include <InfantryClass.h>
 
 DEFINE_HOOK_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
 DEFINE_HOOK_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)

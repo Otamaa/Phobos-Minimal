@@ -33,6 +33,8 @@
 //}
 #include <Ext/Techno/Body.h>
 
+#include <Locomotor/FlyLocomotionClass.h>
+
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
 DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 {
@@ -400,7 +402,7 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 		return SkipGameCode;
 	}
 
-	if (!pThis->Team && pThis->Ammo && pThis->IsArmed())
+	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{
 		CoordStruct coords = pThis->GetCoords();
 
@@ -425,7 +427,7 @@ DEFINE_HOOK(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircr
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	return (pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight)) ? SkipGameCode : 0;
+	return (!RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight)) ? SkipGameCode : 0;
 }
 
 DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
@@ -434,7 +436,7 @@ DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0
 
 	GET(FootClass* const, pThis, ESI);
 
-	return (pThis->WhatAmI() == AbstractType::Aircraft
+	return (RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft
 		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
 }
 
@@ -446,7 +448,7 @@ DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6
 
 	if (!pThis->Target)
 	{
-		if (!pThis->vt_entry_4C4() || !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
+		if (!RulesExtData::Instance()->ExpandAircraftMission || !pThis->vt_entry_4C4() || !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
 			return Continue;
 
 		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->target5C8_CandidateTarget), false); // pThis->MegaDestination
@@ -469,7 +471,11 @@ DEFINE_HOOK(0x414D4D, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 
 	GET(AircraftClass* const, pThis, ESI);
 
-	if (!pThis->Ammo && !SessionClass::IsCampaign())
+	//if (!RulesExtData::Instance()->ExpandAircraftMission)
+	//	return 0x0;
+
+	if (!pThis->Spawned &&
+		!pThis->Ammo && !SessionClass::IsCampaign())
 	{
 		if (TeamClass* const pTeam = pThis->Team)
 			pTeam->LiberateMember(pThis);
@@ -485,24 +491,29 @@ DEFINE_HOOK(0x4C762A, EventClass_RespondToEvent_StopAircraftAction, 0x6)
 {
 	GET(TechnoClass* const, pTechno, ESI);
 
-	if (pTechno->WhatAmI() == AbstractType::Aircraft && !pTechno->Airstrike && !pTechno->Spawned)
+	if (RulesExtData::Instance()->ExpandAircraftMission)
 	{
-		if (pTechno->vt_entry_4C4()) // pTechno->MegaMissionIsAttackMove()
-			pTechno->vt_entry_4A8(); // pTechno->ClearMegaMissionData()
+		if (pTechno->WhatAmI() == AbstractType::Aircraft && !pTechno->Airstrike && !pTechno->Spawned)
+		{
+			if (pTechno->vt_entry_4C4()) // pTechno->MegaMissionIsAttackMove()
+				pTechno->vt_entry_4A8(); // pTechno->ClearMegaMissionData()
 
-		if (pTechno->GetHeight() > Unsorted::CellHeight)
-			pTechno->EnterIdleMode(false, true);
+			if (pTechno->GetHeight() > Unsorted::CellHeight)
+				pTechno->EnterIdleMode(false, true);
+		}
 	}
 
 	return 0;
 }
 AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
 {
-	if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
-		threatType |= pPrimaryWeapon->AllowedThreats();
+	if (RulesExtData::Instance()->ExpandAircraftMission){
+		if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
+			threatType |= pPrimaryWeapon->AllowedThreats();
 
-	if (WeaponTypeClass* const pSecondaryWeapon = this->GetWeapon(1)->WeaponType)
-		threatType |= pSecondaryWeapon->AllowedThreats();
+		if (WeaponTypeClass* const pSecondaryWeapon = this->GetWeapon(1)->WeaponType)
+			threatType |= pSecondaryWeapon->AllowedThreats();
+	}
 
 	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
 }

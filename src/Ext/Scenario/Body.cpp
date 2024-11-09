@@ -310,7 +310,7 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 {
 	// Clear UIGameMode on game load
 	if (SpawnerMain::Configs::Enabled)
-		SpawnerMain::GameConfigs::m_Ptr->UIGameMode[0] = 0;
+		SpawnerMain::GameConfigs::m_Ptr.UIGameMode[0] = 0;
 
 	auto buffer = ScenarioExtData::Instance();
 

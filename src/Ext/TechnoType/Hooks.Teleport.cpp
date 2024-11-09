@@ -8,6 +8,7 @@
 
 #include <Utilities/Macro.h>
 
+#include <TacticalClass.h>
 
 #define GET_LOCO(reg_Loco) \
 	GET(ILocomotion*, Loco, reg_Loco); \

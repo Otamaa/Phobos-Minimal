@@ -106,17 +106,6 @@ public:
 				AnnounceInvalidPointer(nMap.second, ptr);
 			}
 		}
-
-		static bool InvalidateIgnorable(AbstractClass* ptr)
-		{
-			switch (ptr->WhatAmI())
-			{
-			case TriggerClass::AbsID:
-				return false;
-			}
-
-			return true;
-		}
 	};
 
 	static ExtContainer ExtMap;

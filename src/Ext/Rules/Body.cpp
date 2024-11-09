@@ -736,6 +736,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitIdleActionIntervalMin.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMin");
 	this->UnitIdleActionIntervalMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMax");
 
+	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExpandAircraftMission");
+
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
 	this->ShakeScreenUseTSCalculation.Read(exINI, GameStrings::AudioVisual, "ShakeScreenUseTSCalculation");
 	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
@@ -1415,6 +1417,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionRestartMax)
 		.Process(this->UnitIdleActionIntervalMin)
 		.Process(this->UnitIdleActionIntervalMax)
+		.Process(this->ExpandAircraftMission)
 		;
 
 	MyPutData.Serialize(Stm);

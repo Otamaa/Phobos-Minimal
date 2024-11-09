@@ -1,6 +1,8 @@
 #include <Utilities/Swizzle.h>
 #include <Phobos.h>
 
+#include <Helpers/Macro.h>
+
 DEFINE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 7)
 {
 	PhobosSwizzle::Instance.ConvertNodes();

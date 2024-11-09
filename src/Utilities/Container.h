@@ -47,10 +47,6 @@ concept ThisPointerInvalidationSubscribable =
 	requires (T t, AbstractClass* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
 
 template <typename T>
-concept PointerInvalidationIgnorAble =
-	requires (AbstractClass* ptr) { T::InvalidateIgnorable(ptr); };
-
-template <typename T>
 concept CanLoadFromStream =
 	requires (PhobosStreamReader & stm) { T::LoadFromStream(stm); };
 
@@ -258,20 +254,12 @@ public:
 	void InvalidatePointerFor(base_type_ptr key, AbstractClass* const ptr, bool bRemoved)
 	{
 		if constexpr (ThisPointerInvalidationSubscribable<T>){
-			if (Phobos::Otamaa::ExeTerminated || !ptr)
+			if (Phobos::Otamaa::ExeTerminated)
 				return;
 
-			extension_type_ptr Extptr = this->TryFind(key);
+			if (extension_type_ptr Extptr = this->TryFind(key))
+				Extptr->InvalidatePointer(ptr, bRemoved);
 
-			if (!Extptr)
-				return;
-
-			if constexpr (PointerInvalidationIgnorAble<T>){
-				if (!extension_type::InvalidateIgnorable(ptr))
-					Extptr->InvalidatePointer(ptr, bRemoved);
-			} else {
-					Extptr->InvalidatePointer(ptr, bRemoved);
-			}
 		}
 	}
 

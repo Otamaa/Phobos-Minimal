@@ -21,6 +21,8 @@
 
 #include "Header.h"
 
+#include <InfantryClass.h>
+
 //weapons can take more than one round of ammo
 DEFINE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {

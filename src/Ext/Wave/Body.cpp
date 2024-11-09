@@ -6,6 +6,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <InfantryClass.h>
+
 void WaveExtData::InitWeaponData()
 {
 	if (!this->Weapon)

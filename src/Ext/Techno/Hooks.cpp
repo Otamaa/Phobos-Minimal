@@ -29,6 +29,9 @@
 
 #include <Misc/SyncLogging.h>
 
+#include <BombClass.h>
+#include <SpawnManagerClass.h>
+
 // DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
 // {
 // 	GET(BuildingClass* const, pThis, ESI);
@@ -292,6 +295,8 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET(int , currentBurstIdx , ECX);
 
+	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = false;
+
 	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
 	// Currently only used with infantry, so a performance saving measure.
@@ -317,6 +322,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 		return currentBurstIdx <= 0 || currentBurstIdx > 4 ? 0x6FD084 : 0x6FD067;
 	}
 
+	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = true;
 	int nResult = 0;
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
@@ -1004,3 +1010,33 @@ DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 //
 // 	return 0;
 // }
+
+DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
+{
+	enum { SkipGameCode = 0x6FA5BE };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->ROF <= 0) {
+		pThis->CurrentTurretNumber = 0;
+		return SkipGameCode;
+	}
+
+	auto const pType = pThis->GetTechnoType();
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	int timeLeft = pThis->DiskLaserTimer.GetTimeLeft();
+
+	if (pExt->ChargeTurretTimer.HasStarted())
+		timeLeft = pExt->ChargeTurretTimer.GetTimeLeft();
+	else if (pExt->ChargeTurretTimer.Expired())
+		pExt->ChargeTurretTimer.Stop();
+
+	int turretCount = pType->TurretCount;
+	int turretIndex = std::max(0, timeLeft * turretCount / pThis->ROF);
+
+	if (turretIndex >= turretCount)
+		turretIndex = turretCount - 1;
+
+	pThis->CurrentTurretNumber = turretIndex;
+	return SkipGameCode;
+}

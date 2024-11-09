@@ -4,6 +4,9 @@
 #include <EventClass.h>
 #include <ShapeButtonClass.h>
 
+#include <Helpers/Macro.h>
+
+#include <FactoryClass.h>
 
 #ifndef CAMEOS_
 

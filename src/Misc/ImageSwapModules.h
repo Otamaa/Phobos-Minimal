@@ -5,6 +5,7 @@
 #include <AircraftTypeClass.h>
 
 #include <Phobos.h>
+#include <CCINIClass.h>
 
 struct TechnoImageReplacer
 {

@@ -7,6 +7,9 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 #include <Misc/PhobosGlobal.h>
 
+#include <AirstrikeClass.h>
+#include <InfantryClass.h>
+
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
 constexpr void InitializeColors() {
 	if (!PhobosGlobal::ColorDatas.Initialized) {

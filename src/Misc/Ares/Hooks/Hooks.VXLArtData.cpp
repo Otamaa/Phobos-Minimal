@@ -25,6 +25,7 @@
 #include <Conversions.h>
 
 #include <Locomotor/Cast.h>
+#include <SpawnManagerClass.h>
 
 DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 {

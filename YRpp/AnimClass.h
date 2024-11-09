@@ -54,7 +54,7 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x4253B0);
 
 	//Destructor
-	virtual ~AnimClass() JMP_THIS(0x426590);
+	virtual ~AnimClass();
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x425150);
@@ -124,29 +124,15 @@ public:
 
 	//Constructor
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay = 0,
-		int LoopCount = 1, AnimFlag flags = AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, int ForceZAdjust = 0, bool reverse = false) noexcept
-		: AnimClass(noinit_t())
-	{ JMP_THIS(0x421EA0); }
+		int LoopCount = 1, AnimFlag flags = AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, int ForceZAdjust = 0, bool reverse = false);
 
-	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay , int LoopCount, DWORD flags , int ForceZAdjust = 0, bool reverse = false) noexcept
-		: AnimClass(noinit_t())
-	{ JMP_THIS(0x421EA0); }
+	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay, int LoopCount, DWORD flags, int ForceZAdjust = 0, bool reverse = false);
 
 	//Coord were refence , just to save time crated this
 	AnimClass(AnimTypeClass* pAnimType, CoordStruct* pLocation, int LoopDelay,
-	int LoopCount , AnimFlag flags , int ForceZAdjust , bool reverse) noexcept
-		: AnimClass(noinit_t())
-	{ JMP_THIS(0x421EA0); }
+	int LoopCount, AnimFlag flags, int ForceZAdjust, bool reverse);
 
-protected:
-	explicit __forceinline AnimClass(noinit_t) noexcept
-		: ObjectClass(noinit_t())
-	{ }
-
-	//===========================================================================
-	//===== Properties ==========================================================
-	//===========================================================================
-
+	AnimClass();
 public:
 
 	DECLARE_PROPERTY(StageClass, Animation);

@@ -16,6 +16,8 @@
 
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
+#include <TerrainClass.h>
+
 bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 {
 	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))

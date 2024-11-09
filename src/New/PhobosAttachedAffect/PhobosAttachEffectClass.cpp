@@ -64,6 +64,11 @@ void PhobosAttachEffectClass::AI()
 	if (!this->HasInitialized && this->InitialDelay == 0)
 	{
 		this->HasInitialized = true;
+		auto const pExt = TechnoExtContainer::Instance.Find(this->Techno);
+		auto const pTechno = this->Techno;
+
+		if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
+			pTechno->ROF = static_cast<int>(pTechno->ROF * this->Type->ROFMultiplier);
 
 		if (this->Type->HasTint())
 			this->Techno->MarkForRedraw();
@@ -457,6 +462,12 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType , nullptr);
 			}
 		}
+	}
+
+	if (ROFModifier != 1.0)
+	{
+		if (!pTargetExt->ChargeTurretTimer.HasStarted() && pTargetExt->LastRearmWasFullDelay)
+			pTarget->ROF = static_cast<int>(pTarget->ROF * ROFModifier);
 	}
 
 	if (attachedCount > 0)

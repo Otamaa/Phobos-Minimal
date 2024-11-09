@@ -4,6 +4,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
+#include <TeamTypeClass.h>
+
 void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
 	for (auto& angerNode : pTeam->Owner->AngerNodes)

@@ -318,7 +318,7 @@ public:
 	Nullable<double> Units_RepairRate {};
 	Nullable<int> Units_RepairStep {};
 	Nullable<double> Units_RepairPercent {};
-	Valueable<bool> Units_DisableRepairCost { false };
+	Nullable<bool> Units_UseRepairCost { };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

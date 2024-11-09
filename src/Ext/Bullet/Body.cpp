@@ -19,6 +19,8 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <InfantryClass.h>
+
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
 {
 	auto const pWH = pWeapon->Warhead;
@@ -669,23 +671,6 @@ HouseClass* BulletExtData::GetHouse(BulletClass* const pThis)
 	}
 
 	return BulletExtContainer::Instance.Find(pThis)->Owner;
-}
-
-bool BulletExtData::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (VTable::Get(ptr))
-	{
-	case BuildingClass::vtable:
-	case InfantryClass::vtable:
-	case UnitClass::vtable:
-	case AircraftClass::vtable:
-	case HouseClass::vtable:
-	case ParticleSystemClass::vtable:
-		return false;
-	}
-
-	return true;
-
 }
 
 void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {

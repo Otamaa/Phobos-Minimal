@@ -32,7 +32,7 @@ public:
 		}
 
 		void InvalidatePointer(AbstractClass* ptr, bool bDetach) {
-			if (ptr == Finder)
+			if (ptr == (AbstractClass*)Finder)
 				this->Clear();
 		}
 

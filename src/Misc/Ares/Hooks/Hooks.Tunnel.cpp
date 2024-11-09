@@ -26,6 +26,9 @@
 
 #include "Header.h"
 
+#include <InfantryClass.h>
+#include <CaptureManagerClass.h>
+
 DEFINE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 {
 	GET(TechnoClass* const, pThis, EBP);
@@ -217,10 +220,10 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 	const auto nTunnelVec = HouseExtData::GetTunnelVector(pThisType, pThis->Owner);
 
 	if (!nTunnelVec)
-		return 0x0; //something on `TechnoClass::AI` is causing building uneable to 
+		return 0x0; //something on `TechnoClass::AI` is causing building uneable to
 	// properly reset the mission after Unload + Turret
 	// seems strange
-	// method used below is one that working for the thing 
+	// method used below is one that working for the thing
 
 	if (!nTunnelVec->Vector.empty()) {
 		TunnelFuncs::HandleUnload(&nTunnelVec->Vector, pThis);

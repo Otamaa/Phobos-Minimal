@@ -10,6 +10,8 @@
 #include <Locomotor/Cast.h>
 
 #include <FootClass.h>
+#include <VoxelAnimClass.h>
+#include <SpawnManagerClass.h>
 
 void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon)
 {

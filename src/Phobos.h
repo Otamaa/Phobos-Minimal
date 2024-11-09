@@ -1,5 +1,4 @@
 #pragma once
-#include <YRPPGlobal.h>
 
 #include <Phobos.version.h>
 #include <Base/Always.h>
@@ -11,6 +10,8 @@
 
 #include <format>
 #include <random>
+
+#include <ColorStruct.h>
 
 #ifndef NANOPRINTF_IMPLEMENTATION
 #define IMPL_SNPRNINTF _snprintf_s

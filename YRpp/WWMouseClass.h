@@ -4,6 +4,8 @@
 #include <Helpers/CompileTime.h>
 #include <RectangleStruct.h>
 #include <Surface.h>
+#include <GScreenClass.h>
+#include <MouseClass.h>
 
 struct MouseThreadParameter
 {
@@ -28,6 +30,7 @@ public:
 
 struct SHPStruct;
 struct CoordStruct;
+struct ShapeFileStruct;
 class WWMouseClass
 {
 public:

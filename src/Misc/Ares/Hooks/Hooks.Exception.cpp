@@ -13,6 +13,16 @@
 #include <Misc/PhobosGlobal.h>
 #include <Misc/SyncLogging.h>
 
+#include <AnimClass.h>
+#include <FootClass.h>
+#include <InfantryClass.h>
+#include <UnitClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
+
+#include <GameModeOptionsClass.h>
+#include <GameOptionsClass.h>
+
 DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely

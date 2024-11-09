@@ -3,6 +3,10 @@
 #include <TerrainTypeClass.h>
 #include <Utilities/GeneralUtils.h>
 
+#include <TerrainClass.h>
+#include <TacticalClass.h>
+#include <Helpers/Macro.h>
+
 void TerrainTypeExtData::Initialize()
 {
 	this->AttachedAnim.reserve(1);

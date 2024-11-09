@@ -6,6 +6,10 @@
 #include <Ext/Sidebar/Body.h>
 #include <Ext/Side/Body.h>
 
+#include <SuperWeaponTypeClass.h>
+#include <SuperClass.h>
+#include <CommandClass.h>
+
 std::unique_ptr<SWSidebarClass> SWSidebarClass::Instance = nullptr;
 
 static constexpr std::array <std::pair<int, const wchar_t*>, 114> KeyMap {

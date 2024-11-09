@@ -1,7 +1,5 @@
 #include "Body.h"
 
-#include <Ares_TechnoExt.h>
-
 #include <Ext/Building/Body.h>
 #include <Ext/SWType/Body.h>
 

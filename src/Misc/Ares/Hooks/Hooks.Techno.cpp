@@ -23,6 +23,11 @@
 #include "Header.h"
 
 #include <Conversions.h>
+#include <GameOptionsClass.h>
+#include <TacticalClass.h>
+#include <RadarEventClass.h>
+#include <SpawnManagerClass.h>
+#include <AirstrikeClass.h>
 
 DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {

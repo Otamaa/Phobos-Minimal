@@ -12,8 +12,6 @@
 
 #include <CCToolTip.h>
 
-#include <Ares_TechnoExt.h>
-
 #include "SuperWeaponSidebar.h"
 
 #include "NewSuperWeaponType/NuclearMissile.h"

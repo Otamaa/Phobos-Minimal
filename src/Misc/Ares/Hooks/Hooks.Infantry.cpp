@@ -18,9 +18,11 @@
 #include <Ext/InfantryType/Body.h>
 
 #include <WWKeyboardClass.h>
-#include <Ares_TechnoExt.h>
 
 #include "Header.h"
+
+#include <Locomotor/TeleportLocomotionClass.h>
+#include <CaptureManagerClass.h>
 
 DEFINE_HOOK(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
 {

@@ -154,23 +154,12 @@ struct InvalidatePointerAction
 	template <typename T>
 	static void Process(AbstractClass* ptr, bool removed)
 	{
-		if constexpr (HasExtMap<T>)
-		{
-			//if constexpr (PointerInvalidationIgnorAble<T>)
-				//if (!T::ExtMap::InvalidateIgnorable(ptr))
-					//return;
-
-			if constexpr (PointerInvalidationSubscribable<T>)
-				T::ExtMap::PointerGotInvalid(ptr, removed);
+		if constexpr (HasExtMap<T> && PointerInvalidationSubscribable<T>) {
+			T::ExtMap::PointerGotInvalid(ptr, removed);
 		}
-		else
+		else if constexpr(PointerInvalidationSubscribable<T>)
 		{
-			//if constexpr (PointerInvalidationIgnorAble<T>)
-				//if (!T::InvalidateIgnorable(ptr))
-					//return;
-
-			if constexpr (PointerInvalidationSubscribable<T>)
-				T::PointerGotInvalid(ptr, removed);
+			T::PointerGotInvalid(ptr, removed);
 		}
 	}
 };
@@ -300,10 +289,8 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 	if constexpr (HasExtMap<T>)
 	{
 		if constexpr (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
-				PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
-			if (!T::ExtMap.InvalidateIgnorable(pInvalid)) {
-				T::ExtMap.InvalidatePointer(pInvalid, removed);
-			}
+			PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
+			T::ExtMap.InvalidatePointer(pInvalid, removed);
 		}
 		else if(PointerInvalidationSubscribable<decltype(T::ExtMap)>)
 		{
@@ -312,16 +299,7 @@ FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remov
 	}
 	else
 	{
-		if constexpr (PointerInvalidationIgnorAble<T> &&
-				PointerInvalidationSubscribable<T>) {
-			if (!T::InvalidateIgnorable(pInvalid)) {
-				T::InvalidatePointer(pInvalid, removed);
-			}
-		}
-		else if(PointerInvalidationSubscribable<T>)
-		{
-			T::InvalidatePointer(pInvalid, removed);
-		}
+		T::InvalidatePointer(pInvalid, removed);
 	}
 }
 

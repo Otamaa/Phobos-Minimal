@@ -149,6 +149,7 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	\author AlexB
 	\date 2010-07-19
 */
+
 bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 {
 	auto const pType = pThis->Type;

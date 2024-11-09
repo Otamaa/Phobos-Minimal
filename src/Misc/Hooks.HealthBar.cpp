@@ -7,6 +7,9 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Cast.h>
 
+#include <InfantryClass.h>
+#include <TacticalClass.h>
+
 DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);

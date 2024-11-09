@@ -2,6 +2,7 @@
 
 #include <Ext/TechnoType/Body.h>
 
+#include <InfantryClass.h>
 
 DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x5)
 {

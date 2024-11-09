@@ -52,27 +52,7 @@ public:
 	CellStruct Temp_CellStruct { };
 	bool CameoFirstClickDone { false };
 	bool FirstClickAutoFireDone { false };
-	//TechnoClass* Firer { nullptr };
 	SWStatus Statusses { };
-
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
-	{
-		//	AnnounceInvalidPointer(Firer, ptr);
-	}
-
-	static bool InvalidateIgnorable(AbstractClass* ptr)
-	{
-		switch (VTable::Get(ptr))
-		{
-		case BuildingClass::vtable:
-		case AircraftClass::vtable:
-		case UnitClass::vtable:
-		case InfantryClass::vtable:
-			return false;
-		}
-
-		return true;
-	}
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

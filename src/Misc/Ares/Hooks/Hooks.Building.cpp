@@ -27,6 +27,8 @@
 #include <Misc/PhobosGlobal.h>
 #include <Misc/Hooks.Otamaa.h>
 
+#include <RadarEventClass.h>
+
 DEFINE_HOOK(0x446EE2, BuildingClass_Place_InitialPayload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);

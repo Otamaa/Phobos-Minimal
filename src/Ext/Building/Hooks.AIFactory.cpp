@@ -2,6 +2,9 @@
 
 #include <Ext/House/Body.h>
 
+#include <TeamTypeClass.h>
+#include <InfantryClass.h>
+
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
@@ -89,7 +92,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 //	GET_STACK(int, size, 0x4);
 //	GET_STACK(DWORD, caller, 0x0);
 //
-//	const auto pTr = YRMemory::__mh_malloc(size , 1);
+//	const auto pTr = __mh_malloc(size , 1);
 //	MappedCaller[pTr] = std::to_string(caller);
 //	R->EAX(pTr);
 //	return 0x7C8E24;
@@ -100,7 +103,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 //	GET_STACK(int, size, 0x4);
 //	GET_STACK(DWORD, caller, 0x0);
 //
-//	const auto pTr = YRMemory::__mh_malloc(size, CRT::AllocatorMode());
+//	const auto pTr = __mh_malloc(size, CRT::AllocatorMode());
 //	MappedCaller[pTr] = std::to_string(caller);
 //	R->EAX(pTr);
 //	return 0x7C9441;
@@ -110,7 +113,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 //{
 //	GET_STACK(void*, ptr, 0x4);
 //	MappedCaller.erase(ptr);
-//	YRMemory::__free(ptr);
+//	__free(ptr);
 //	return 0x7C8B47;
 //}
 

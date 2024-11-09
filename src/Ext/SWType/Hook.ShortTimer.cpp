@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Helpers\Macro.h>
+
 DEFINE_HOOK(0x6CB5EB, SuperClass_Grant_ShowTimer, 0x5)
 {
 	GET(SuperClass*, pThis, ESI);

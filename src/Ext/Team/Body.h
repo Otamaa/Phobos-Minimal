@@ -8,6 +8,8 @@
 class TechnoTypeClass;
 class HouseClass;
 class FootClass;
+class SuperClass;
+class AITriggerTypeClass;
 class TeamExtData final
 {
 public:
@@ -61,7 +63,6 @@ public:
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

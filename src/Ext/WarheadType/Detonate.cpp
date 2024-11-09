@@ -25,7 +25,6 @@
 
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
-#include <Ares_TechnoExt.h>
 
 void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 {

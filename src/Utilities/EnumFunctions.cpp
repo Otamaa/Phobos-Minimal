@@ -4,6 +4,12 @@
 #include <HouseClass.h>
 #include <CellClass.h>
 
+#include <TechnoClass.h>
+#include <UnitClass.h>
+#include <InfantryClass.h>
+#include <AircraftClass.h>
+#include <GeneralDefinitions.h>
+
 std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::DiscardCondition_to_strings {
  {
 	{ "none" } ,

@@ -23,6 +23,9 @@
 // Parasite not removed when heal
 // Parasite Gain victim control instead of damaging
 
+#include <TerrainClass.h>
+#include <InfantryClass.h>
+
 DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
 {
 	enum { SkipGameCode = 0x62ABA5, ReturnZero = 0x62ABA0 };

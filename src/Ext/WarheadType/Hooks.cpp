@@ -17,6 +17,8 @@
 #include <VeinholeMonsterClass.h>
 #include <Misc/PhobosGlobal.h>
 
+#include <TacticalClass.h>
+
 #pragma region DETONATION
 
 //DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)

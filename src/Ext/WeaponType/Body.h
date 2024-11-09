@@ -56,6 +56,7 @@ public:
 	Valueable<int> DelayedFire_DurationTimer { 0 };
 	Valueable<bool> Burst_FireWithinSequence { false };
 	Nullable<PartialVector2D<int>> ROF_RandomDelay {};
+	ValueableVector<int> ChargeTurret_Delays {};
 	Valueable<bool> OmniFire_TurnToTarget { false };
 
 	Valueable<int>Xhi { 0 };

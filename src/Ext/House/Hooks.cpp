@@ -6,7 +6,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
-#include <Ares_TechnoExt.h>
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 

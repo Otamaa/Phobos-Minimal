@@ -9,6 +9,9 @@
 #include <RadBeam.h>
 #include <New/Entity/ElectricBoltClass.h>
 
+#include <ParticleSystemTypeClass.h>
+#include <ParticleSystemClass.h>
+
 // ToDo : proper bolt colors
 struct LaserType
 {

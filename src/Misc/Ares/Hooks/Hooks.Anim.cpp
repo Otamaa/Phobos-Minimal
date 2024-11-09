@@ -23,6 +23,7 @@
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Notifications.h>
+#include <InfantryClass.h>
 
 #include "Header.h"
 

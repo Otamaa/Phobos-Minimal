@@ -8,6 +8,8 @@
 #include <Ext/Anim/Body.h>
 #include <Utilities/Macro.h>
 
+#include <TacticalClass.h>
+
 #ifndef ENABLE_NEWHOOKS
 // Brief :
 // The AnimClass* memory is owned by the vector , dont delete it

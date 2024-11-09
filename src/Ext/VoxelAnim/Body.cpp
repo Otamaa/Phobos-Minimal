@@ -7,6 +7,11 @@
 
 #include <Utilities/Macro.h>
 
+#include <AircraftClass.h>
+#include <BuildingClass.h>
+#include <UnitClass.h>
+#include <InfantryClass.h>
+
 TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);

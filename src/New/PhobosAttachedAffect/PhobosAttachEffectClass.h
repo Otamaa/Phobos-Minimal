@@ -5,10 +5,11 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
+#include <AnimClass.h>
+
 class AbstractClass;
 class TechnoClass;
 class HouseClass;
-class AnimClass;
 struct AEAttachParams;
 class AEAttachInfoTypeClass;
 class PhobosAttachEffectClass

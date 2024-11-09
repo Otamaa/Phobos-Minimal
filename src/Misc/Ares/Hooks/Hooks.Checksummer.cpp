@@ -1,6 +1,8 @@
 #include <Phobos.h>
 #include "AresChecksummer.h"
 
+#include <Helpers/Macro.h>
+
 DEFINE_STRONG_HOOK(0x4A1C10, Checksummer_Add_BYTE, 5)
 {
 	GET(Checksummer*, pThis, ECX);

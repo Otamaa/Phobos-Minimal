@@ -3,6 +3,8 @@
 #include <ScenarioClass.h>
 #include <LoadOptionsClass.h>
 
+#include <Helpers/Macro.h>
+
 DEFINE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));

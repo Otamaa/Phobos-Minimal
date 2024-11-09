@@ -18,6 +18,10 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Type/ArmorTypeClass.h>
 
+#include <IonBlastClass.h>
+#include <InfantryClass.h>
+#include <TerrainClass.h>
+
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
 void WarheadTypeExtData::InitializeConstant()

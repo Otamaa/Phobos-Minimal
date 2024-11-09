@@ -1,5 +1,7 @@
 #include "Header.h"
 
+#include <Helpers/Macro.h>
+
 DEFINE_HOOK(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
 {
 	GET(NodeNameType* const, pStartingSpot, ESI);

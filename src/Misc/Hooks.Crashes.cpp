@@ -94,7 +94,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 // 	GET(UnitClass*, pThis, EBP);
 //
 // 	if (pThis->Owner) {
-// 		R->EAX<void*>(YRMemory::Allocate(sizeof(BuildingClass)));
+// 		R->EAX<void*>(Allocate(sizeof(BuildingClass)));
 // 	} else {
 // 		Debug::Log("Unit[%s] Trying to undeploy but missing Ownership!\n", pThis->Type->ID);
 // 		R->EAX<void*>(nullptr);

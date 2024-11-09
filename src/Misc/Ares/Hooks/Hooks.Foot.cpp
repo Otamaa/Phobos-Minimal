@@ -21,6 +21,9 @@
 
 #include <New/Type/ArmorTypeClass.h>
 
+#include <InfantryClass.h>
+#include <RadarEventClass.h>
+
 DEFINE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);

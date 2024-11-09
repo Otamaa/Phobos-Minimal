@@ -4,6 +4,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <TeamTypeClass.h>
+
 // 1-based like the original action '6,n' (so the first script line is n=1)
 void ScriptExtData::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = -1)
 {

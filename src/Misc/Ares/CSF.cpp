@@ -5,6 +5,8 @@
 
 #include <Utilities/Debug.h>
 
+#include <Helpers/Macro.h>
+
 int CSFLoader::CSFCount = 0;
 int CSFLoader::NextValueIndex = 0;
 std::unordered_map<std::string , CSFString> CSFLoader::DynamicStrings;

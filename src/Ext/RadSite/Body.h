@@ -26,23 +26,6 @@ public:
 	int CreationFrame { 0 };
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-
-	static bool InvalidateIgnorable(AbstractClass* ptr)
-	{
-
-		switch (VTable::Get(ptr))
-		{
-		case BuildingClass::vtable:
-		case AircraftClass::vtable:
-		case UnitClass::vtable:
-		case InfantryClass::vtable:
-		case HouseClass::vtable:
-			return false;
-		}
-
-		return true;
-	}
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

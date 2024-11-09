@@ -29,6 +29,7 @@
 #include <WinBase.h>
 #include <CD.h>
 #include <aclapi.h>
+#include <GameOptionsClass.h>
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>

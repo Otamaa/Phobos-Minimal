@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Helpers\Macro.h>
+
 void SmudgeTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->AttachedToObject;

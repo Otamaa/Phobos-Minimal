@@ -35,6 +35,8 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 
+#include <TemporalClass.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -103,6 +105,8 @@ struct AEProperties
 				return Stm
 					.Process(this->rangeMult)
 					.Process(this->extraRange)
+					.Process(this->allow)
+					.Process(this->disallow)
 					.Success()
 					;
 			}
@@ -335,6 +339,137 @@ struct AEProperties
 		}
 	} ExtraCrit {};
 
+	struct ArmorMult
+	{
+		struct MultData
+		{
+			double Mult { 1.0 };
+			std::set<WarheadTypeClass*> allow {};
+			std::set<WarheadTypeClass*> disallow {};
+
+			bool FORCEINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+			{
+				return this->Serialize(Stm);
+			}
+
+			bool FORCEINLINE Save(PhobosStreamWriter& Stm) const
+			{
+				return const_cast<MultData*>(this)->Serialize(Stm);
+			}
+
+			bool Eligible(WarheadTypeClass* who)
+			{
+				bool allowed = false;
+
+				if (allow.begin() != allow.end())
+				{
+					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
+					{
+						if (*iter_allow == who)
+						{
+							allowed = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					allowed = true;
+				}
+
+				if (allowed && disallow.begin() != disallow.end())
+				{
+					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
+					{
+						if (*iter_disallow == who)
+						{
+							allowed = false;
+							break;
+						}
+					}
+				}
+
+				return allowed;
+			}
+		private:
+
+			template <typename T>
+			bool FORCEINLINE Serialize(T& Stm)
+			{
+				return Stm
+					.Process(this->Mult)
+					.Process(this->allow)
+					.Process(this->disallow)
+					.Success()
+					;
+			}
+		};
+
+		HelperedVector<MultData> mults { };
+
+		bool FORCEINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return this->Serialize(Stm);
+		}
+
+		bool FORCEINLINE Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<ArmorMult*>(this)->Serialize(Stm);
+		}
+
+		constexpr void Clear()
+		{
+			mults.clear();
+		}
+
+		constexpr bool Enabled()
+		{
+			return !mults.empty();
+		}
+
+		constexpr double Get(double initial, WarheadTypeClass* who)
+		{
+			for (auto& ex_range : mults)
+			{
+
+				if (!ex_range.Eligible(who))
+					continue;
+
+				initial *= ex_range.Mult;
+			}
+
+			return initial;
+		}
+
+		constexpr void FillEligible(WarheadTypeClass* who, std::vector<double>& eligible)
+		{
+			for (auto& ex_range : this->mults) {
+				if (ex_range.Eligible(who)) {
+					eligible.emplace_back(ex_range.Mult);
+				}
+			}
+		}
+
+		static constexpr double Apply(double initial, std::vector<double>& eligible)
+		{
+			for (auto& ex_range : eligible) {
+				initial *= ex_range;
+			}
+
+			return initial;
+		}
+		private:
+
+		template <typename T>
+		bool FORCEINLINE Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->mults)
+				.Success()
+				;
+		}
+	} ArmorMultData {};
+
 	double FirepowerMultiplier { 1.0 };
 	double ArmorMultiplier { 1.0 };
 	double SpeedMultiplier { 1.0 };
@@ -407,6 +542,7 @@ protected:
 			.Process(this->HasOnFireDiscardables)
 			.Process(this->ReflectDamage)
 			.Process(this->Untrackable)
+			.Process(this->ArmorMultData)
 			.Success() && Stm.RegisterChange(this)
 			;
 	}
@@ -570,6 +706,9 @@ public:
 
 	int MyTargetingFrame { ScenarioClass::Instance->Random.RandomRanged(0,15) };
 
+	CDTimerClass ChargeTurretTimer {};// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+	bool LastRearmWasFullDelay { false };
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -583,10 +722,8 @@ public:
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr);
 
-	ShieldClass* GetShield() const
-	{
+	constexpr FORCEINLINE ShieldClass* GetShield() const {
 		return this->Shield.get();
 	}
 

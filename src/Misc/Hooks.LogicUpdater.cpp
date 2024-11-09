@@ -30,6 +30,8 @@
 
 #include <Locomotor/TunnelLocomotionClass.h>
 
+#include <InfantryClass.h>
+
 #define ENABLE_THESE
 
 DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)

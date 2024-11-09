@@ -17,6 +17,7 @@
 #include <ColorScheme.h>
 #include <SmudgeTypeClass.h>
 #include <CoordStruct.h>
+#include <GameOptionsClass.h>
 
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
@@ -407,21 +408,6 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 	}
 
 	return nullptr;
-}
-
-bool AnimExtData::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (VTable::Get(ptr))
-	{
-	case BuildingClass::vtable:
-	case InfantryClass::vtable:
-	case UnitClass::vtable:
-	case AircraftClass::vtable:
-	case ParticleSystemClass::vtable:
-		return false;
-	}
-
-	return true;
 }
 
 void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)

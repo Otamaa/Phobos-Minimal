@@ -371,7 +371,7 @@ void ViVectorClass<T>::Clear()
 {
 	if (Vector != nullptr && IsAllocated)
 	{
-		YRMemory::Deallocate(Vector);
+		Deallocate(Vector);
 		Vector = nullptr;
 	}
 
@@ -414,7 +414,7 @@ bool ViVectorClass<T>::Resize(int newsize, T* arr)
 
 			if (IsAllocated)
 			{
-				YRMemory::Deallocate(Vector);
+				Deallocate(Vector);
 				Vector = nullptr;
 			}
 		}
@@ -867,7 +867,7 @@ bool SimpleVecClass<T>::Resize(int newsize)
 			int copycount = (newsize < VectorMax) ? newsize : VectorMax;
 			std::memcpy(newptr, Vector, copycount * sizeof(T));
 
-			YRMemory::Deallocate(Vector);
+			Deallocate(Vector);
 			Vector = nullptr;
 		}
 
@@ -879,7 +879,7 @@ bool SimpleVecClass<T>::Resize(int newsize)
 		VectorMax = 0;
 		if (Vector != nullptr)
 		{
-			YRMemory::Deallocate(Vector);
+			Deallocate(Vector);
 			Vector = nullptr;
 		}
 	}
@@ -896,7 +896,7 @@ bool SimpleVecClass<T>::Uninitialised_Grow(int newsize)
 
 	if (newsize > 0)
 	{
-		YRMemory::Deallocate(Vector);
+		Deallocate(Vector);
 		Vector = GameCreateArray<T>(newsize);
 		VectorMax = newsize;
 	}
@@ -976,7 +976,7 @@ SimpleDynVecClass<T>::~SimpleDynVecClass()
 {
 	if (Vector != nullptr)
 	{
-		YRMemory::Deallocate(Vector);
+		Deallocate(Vector);
 		Vector = nullptr;
 	}
 }

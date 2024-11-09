@@ -6,6 +6,8 @@
 
 #include "../../Helpers/Helpers.h"
 
+#include <SpawnManagerClass.h>
+
 void SpawnSupportFunctional::Construct(TechnoClass* pThis)
 {
 	auto const pType = pThis->GetTechnoType();

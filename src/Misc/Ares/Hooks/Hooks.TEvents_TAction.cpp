@@ -29,6 +29,9 @@
 
 #include "Header.h"
 
+#include <TEventClass.h>
+#include <TActionClass.h>
+
 DEFINE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 {
 	GET(int, nLoopVal, EAX);

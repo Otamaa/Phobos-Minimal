@@ -20,7 +20,7 @@ public:
 	static void __fastcall EndDialog(HWND hDlg)
 		{ JMP_STD(0x622720); }
 
-	static HWND __fastcall sub_623230(LPARAM lParam, LPARAM a2, LONG dwNewLong)
+	static HWND __fastcall ShowMessageWithCancelOnly(LPARAM lParam, LPARAM a2, LONG dwNewLong)
 		{ JMP_STD(0x623230); }
 
 	static bool Updated()

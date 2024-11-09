@@ -3,6 +3,9 @@
 #include "Savegame.h"
 #include "Debug.h"
 
+#include <CCINIClass.h>
+#include <SwizzleManagerClass.h>
+
 bool PhobosPCXFile::Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
 {
 	char buffer[Capacity];

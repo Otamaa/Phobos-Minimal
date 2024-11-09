@@ -984,7 +984,7 @@ DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 // {
 // 	GET(TeamTypeClass* const, pThis, ESI);
 // 	GET(HouseClass* const, pHouse, EDI);
-// 	const void* ptr = YRMemory::Allocate(sizeof(TeamClass));
+// 	const void* ptr = Allocate(sizeof(TeamClass));
 // 	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
 // 	R->EAX(ptr);
 // 	return 0x6F0A5A;
@@ -10710,3 +10710,28 @@ DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 	return 0;
 }
 
+#include <WeaponTypeClass.h>
+
+static AnimTypeClass* Techno_Get_Firing_Anim(TechnoClass* this_ptr, WeaponTypeClass* weapon)
+{
+	const int anim_count = weapon->Anim.Count;
+	DirStruct& dir = this_ptr->TurretFacing();
+
+	if (anim_count == 8) {
+		return weapon->Anim[(dir.GetFacing<8>() + 8 / 8) % 8];
+	}
+	else if (anim_count == 16) {
+		return weapon->Anim[(dir.GetFacing<16>() + 16 / 8) % 16];
+	}
+	else if (anim_count == 32) {
+		return weapon->Anim[(dir.GetFacing<32>() + 32 / 8) % 32];
+	}
+	else if (anim_count == 64) {
+		return weapon->Anim[(dir.GetFacing<64>() + 64 / 8) % 64];
+	}
+	else if (anim_count > 0) {
+		return weapon->Anim[0];
+	}
+
+	return nullptr;
+}

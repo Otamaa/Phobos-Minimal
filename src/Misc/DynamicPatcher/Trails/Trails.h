@@ -8,6 +8,8 @@
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
 #include "../Helpers/EffectHelpers.h"
 
+#include <AnimClass.h>
+
 //class TrailsManager;
 class UniversalTrail
 {

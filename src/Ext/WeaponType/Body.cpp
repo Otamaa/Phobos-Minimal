@@ -7,6 +7,9 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <DiskLaserClass.h>
+#include <EBolt.h>
+
 int WeaponTypeExtData::nOldCircumference = DiskLaserClass::Radius;
 PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt;
 
@@ -96,6 +99,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DelayedFire_DurationTimer.Read(exINI, pSection, "DelayedFire.DurationTimer");
 	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
 	this->ROF_RandomDelay.Read(exINI, pSection, "ROF.RandomDelay");
+	this->ChargeTurret_Delays.Read(exINI, pSection, "ChargeTurret.Delays");
 	this->OmniFire_TurnToTarget.Read(exINI, pSection, "OmniFire.TurnToTarget");
 
 #pragma region Otamaa
@@ -345,6 +349,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->Burst_FireWithinSequence)
 		.Process(this->ROF_RandomDelay)
+		.Process(this->ChargeTurret_Delays)
 		.Process(this->OmniFire_TurnToTarget)
 		.Process(this->Ylo)
 		.Process(this->Xlo)

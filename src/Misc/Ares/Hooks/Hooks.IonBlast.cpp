@@ -16,6 +16,8 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Infantry/Body.h>
 
+#include <IonBlastClass.h>
+
 DEFINE_HOOK(0x53CB91, IonBlastClass_DTOR, 6)
 {
 	GET(IonBlastClass*, IB, ECX);

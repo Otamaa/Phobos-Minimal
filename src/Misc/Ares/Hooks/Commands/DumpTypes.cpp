@@ -10,6 +10,9 @@
 #include <Utilities/GeneralUtils.h>
 #include <Unsorted.h>
 
+#include <AITriggerTypeClass.h>
+#include <ScriptTypeClass.h>
+
 template <typename T>
 void DumperTypesCommandClass::LogType(const char* pSection) const
 {

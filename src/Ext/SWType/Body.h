@@ -577,11 +577,9 @@ class SWTypeExtContainer final : public Container<SWTypeExtData>
 public:
 	static SWTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(SWTypeExtContainer, SWTypeExtData, "SuperWeaponTypeClass");
 public:
 
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();

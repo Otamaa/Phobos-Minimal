@@ -5,6 +5,9 @@
 #include "Enum.h"
 #include "Interpolation.h"
 
+#include <MouseClass.h>
+
+class TechnoClass;
 class HouseClass;
 class CellClass;
 class LocomotionClass;

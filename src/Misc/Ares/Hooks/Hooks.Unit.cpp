@@ -27,6 +27,8 @@
 
 #include "Header.h"
 
+#include <InfantryClass.h>
+
 DEFINE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 {
 	GET(TechnoClass*, pTechno, ECX);

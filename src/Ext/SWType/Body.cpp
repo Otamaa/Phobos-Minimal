@@ -2857,17 +2857,6 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, ptr);
 }
 
-bool SWTypeExtContainer::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (ptr->WhatAmI())
-	{
-	case SuperClass::AbsID:
-		return false;
-	}
-
-	return true;
-}
-
 bool SWTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	const bool First = Stm

@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <TiberiumClass.h>
+
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1)

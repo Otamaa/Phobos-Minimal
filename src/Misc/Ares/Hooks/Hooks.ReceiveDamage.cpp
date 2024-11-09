@@ -25,6 +25,8 @@
 
 #include "Header.h"
 
+#include <InfantryClass.h>
+
 //DEFINE_HOOK(0x489280, Dmage_Area_Caller, 0x6)
 //{
 //	GET_STACK(DWORD, caller, 0x0);

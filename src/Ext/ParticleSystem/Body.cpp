@@ -9,6 +9,8 @@
 #include <ParticleTypeClass.h>
 #include <ParticleClass.h>
 #include <SpotlightClass.h>
+#include <GameOptionsClass.h>
+#include <TacticalClass.h>
 
 void ParticleSystemExtData::UpdateLocations()
 {

@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Helpers\Macro.h>
+
 DEFINE_HOOK(0x47F71D, CellClass_DrawOverlay_ZAdjust, 0x5)
 {
 	GET(int, zAdjust, EDI);

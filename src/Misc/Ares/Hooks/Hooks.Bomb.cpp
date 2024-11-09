@@ -29,6 +29,7 @@
 #include "Header.h"
 
 #include <New/Entity/FlyingStrings.h>
+#include <InfantryClass.h>
 
 //BombListClass_Plant_AttachSound
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);

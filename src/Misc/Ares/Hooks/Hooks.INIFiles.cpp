@@ -6,6 +6,9 @@
 #include <Utilities/Constructs.h>
 
 #include "AresChecksummer.h"
+
+#include <Helpers/Macro.h>
+
 /*
 	Line 2541: [15:45:23] SyringeDebugger::HandleException: Ares.dll [0x525ca5 , INIClass_Parse_IniSectionIncludes_PreProcess1 , 8]
 	Line 2543: [15:45:23] SyringeDebugger::HandleException: Ares.dll [0x525ddb , INIClass_Parse_IniSectionIncludes_PreProcess2 , 5]

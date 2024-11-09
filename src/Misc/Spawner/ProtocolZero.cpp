@@ -9,6 +9,8 @@
 
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 
+#include <Helpers/Macro.h>
+
 LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LatencyLevelEnum::LATENCY_LEVEL_INITIAL;
 unsigned char LatencyLevel::NewFrameSendRate = 3;
 

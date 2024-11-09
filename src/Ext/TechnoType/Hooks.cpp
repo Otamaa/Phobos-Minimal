@@ -15,6 +15,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 
+#include <TacticalClass.h>
+
 // DEFINE_HOOK(0x711F39, TechnoTypeClass_CostOf_FactoryPlant, 0x8)
 // {
 // 	GET(TechnoTypeClass*, pThis, ESI);
@@ -25,7 +27,7 @@
 //
 // 	if (!pHouseExt->RestrictedFactoryPlants.empty())
 // 		mult *= pHouseExt->GetRestrictedFactoryPlantMult(pThis);
-	
+
 // 	return 0;
 // }
 

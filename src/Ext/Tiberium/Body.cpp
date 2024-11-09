@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <InfantryClass.h>
+
 void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->AttachedToObject;

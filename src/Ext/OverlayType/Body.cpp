@@ -1,5 +1,7 @@
 #include "Body.h"
+
 #include <Utilities/GeneralUtils.h>
+#include <Helpers\Macro.h>
 
 void OverlayTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {

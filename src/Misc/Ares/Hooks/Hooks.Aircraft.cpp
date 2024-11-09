@@ -17,6 +17,8 @@
 
 #include "Header.h"
 
+#include <SpawnManagerClass.h>
+
 //AircraftClass_Update_DontloseTargetInAir
 DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
 

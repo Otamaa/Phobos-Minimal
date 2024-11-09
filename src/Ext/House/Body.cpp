@@ -818,23 +818,6 @@ bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeCla
 	return (Types && Num);
 }
 
-bool HouseExtData::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (VTable::Get(ptr))
-	{
-	case BuildingClass::vtable:
-	case InfantryClass::vtable:
-	case UnitClass::vtable:
-	case AircraftClass::vtable:
-	case TeamClass::vtable:
-	case SuperClass::vtable:
-		return false;
-	}
-
-	return true;
-
-}
-
 TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 
 	if(!this->SideTechTree.isset()){

@@ -16,6 +16,10 @@
 #include <Misc/Defines.h>
 #include <map>
 
+#include <SuperWeaponTypeClass.h>
+
+class TActionClass;
+
 struct LauchData
 {
 	int LastFrame { Unsorted::CurrentFrame };
@@ -182,8 +186,6 @@ public:
 			(4u //AttachedToObject
 			 );
 	}
-
-	static bool InvalidateIgnorable(AbstractClass* ptr);
 
 	TechTreeTypeClass* GetTechTreeType();
 

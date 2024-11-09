@@ -21,6 +21,9 @@
 #define MIN_VAL(x) std::numeric_limits<x>::min()
 #define MAX_VAL(x) std::numeric_limits<x>::max()
 
+#include <Drawing.h>
+#include <HouseClass.h>
+
 class AnimTypeClass;
 class GeneralUtils final
 {

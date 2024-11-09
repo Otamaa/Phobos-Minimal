@@ -18,6 +18,8 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
 
+#include <DiskLaserClass.h>
+
 #pragma region Otamaa
 
 DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B

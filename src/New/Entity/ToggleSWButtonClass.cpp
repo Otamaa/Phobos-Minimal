@@ -8,6 +8,7 @@
 #include <Misc/PhobosToolTip.h>
 
 #include <CCToolTip.h>
+#include <GameOptionsClass.h>
 
 ToggleSWButtonClass::ToggleSWButtonClass(unsigned int id, int x, int y, int width, int height)
 	: ControlClass(id, x, y, width, height, static_cast<GadgetFlag>((int)GadgetFlag::LeftPress | (int)GadgetFlag::LeftRelease), true)

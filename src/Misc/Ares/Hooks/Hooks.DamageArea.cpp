@@ -5,6 +5,8 @@
 
 #include <Misc/PhobosGlobal.h>
 
+#include <AircraftClass.h>
+
 // hook up the area damage delivery with chain reactions
 DEFINE_HOOK(0x48964F, DamageArea_CellChainReaction, 5)
 {

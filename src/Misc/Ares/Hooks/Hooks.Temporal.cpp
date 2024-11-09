@@ -31,8 +31,11 @@
 #include <SlaveManagerClass.h>
 
 #include "Header.h"
-#include <Ares_TechnoExt.h>
+
+
 #include <Misc/PhobosGlobal.h>
+
+#include <RadarEventClass.h>
 
 DEFINE_HOOK(0x46920B, BulletClass_Detonate, 6)
 {

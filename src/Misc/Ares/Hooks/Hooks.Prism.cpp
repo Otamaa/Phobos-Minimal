@@ -6,6 +6,11 @@
 
 #include <Ext/WeaponType/Body.h>
 
+#include <CaptureManagerClass.h>
+
+#include <EBolt.h>
+#include <SpawnManagerClass.h>
+
 void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
 {
 	if (auto const supportRadBeam = RadBeam::Allocate(RadBeamType::RadBeam))

@@ -22,6 +22,7 @@
 #include <queue>
 #include <optional>
 #include <RocketStruct.h>
+#include <ScenarioClass.h>
 
 #include "TranslucencyLevel.h"
 #include "Swizzle.h"

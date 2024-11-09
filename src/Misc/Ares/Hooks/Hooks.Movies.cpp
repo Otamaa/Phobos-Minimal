@@ -3,6 +3,8 @@
 #include <Utilities/Constructs.h>
 #include "Header.h"
 
+#include <Helpers/Macro.h>
+
 class MoviesList
 {
 	struct Item : public MovieUnlockableInfo

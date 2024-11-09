@@ -1,5 +1,7 @@
 #include <Ext/Techno/Body.h>
 
+#include <InfantryClass.h>
+
 DEFINE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);

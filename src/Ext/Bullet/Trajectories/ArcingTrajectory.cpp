@@ -2,6 +2,8 @@
 
 #include <Ext/BulletType/Body.h>
 
+#include <BulletClass.h>
+
 bool ArcingTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return this->PhobosTrajectoryType::Load(Stm, false) && Stm

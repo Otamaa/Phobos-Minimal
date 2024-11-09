@@ -1,6 +1,6 @@
 #include "ImageSwapModules.h"
 
-#include <Syringe.h>
+#include <Helpers/Macro.h>
 
 DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
 {

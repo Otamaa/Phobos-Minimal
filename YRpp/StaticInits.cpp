@@ -1,7 +1,6 @@
 //This file initializes static constant values.
 
 #include <YRPP.h>
-#include <YRPPGlobal.h>
 #include <ASMMacros.h>
 #include <YRPPCore.h>
 #include <Unsorted.h>

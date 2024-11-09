@@ -1,5 +1,17 @@
 #include "Body.h"
 
+
+DEFINE_HOOK(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
+{
+	enum { SkipGameCode = 0x44B8F7 };
+
+	GET(FakeBuildingClass*, pThis, EBP);
+	double repairRate = pThis->_GetTypeExtData()->Units_RepairRate.Get(RulesClass::Instance->IRepairRate);
+	__asm { fld repairRate }
+	return SkipGameCode;
+}
+
+
 DEFINE_HOOK(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 {
 	enum { SkipGameCode = 0x44BD3E };
@@ -54,7 +66,7 @@ DEFINE_HOOK(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 
 DEFINE_HOOK(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 {
-	enum { AnswerNegative = 0x6F4CB4 };
+	enum { AnswerNegative = 0x6F4CB4 , Continue = 0x0 };
 
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pFrom, STACK_OFFSET(0x18, 0x4));
@@ -73,7 +85,7 @@ DEFINE_HOOK(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 		repairStep = pTypeExt->Units_RepairStep.Get(repairStep);
 		double repairPercent = pTypeExt->Units_RepairPercent.Get(RulesClass::Instance->RepairPercent);
 
-		if (!pTypeExt->Units_DisableRepairCost) {
+		if (pTypeExt->Units_UseRepairCost.Get(pThis->WhatAmI() != AbstractType::Infantry)) {
 
 			repairCost = static_cast<int>((pType->GetCost() / (pType->Strength / static_cast<double>(repairStep))) * repairPercent);
 

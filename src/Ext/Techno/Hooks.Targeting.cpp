@@ -1,6 +1,7 @@
 #include <Ext/TechnoType/Body.h>
 
 #include "Body.h"
+#include <InfantryClass.h>
 
 DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 {

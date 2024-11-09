@@ -10,6 +10,8 @@
 
 #include <New/Type/ShieldTypeClass.h>
 
+#include <AnimClass.h>
+
 enum class SelfHealingStatus : char {
 	Online = 1, Offline = 2
 };

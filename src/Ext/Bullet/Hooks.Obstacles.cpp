@@ -92,7 +92,7 @@ DEFINE_HOOK(0x41810F, AircraftClass_MissionAttack_WeaponRangeCheck1, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET(int, distance, EAX);
 
-	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, (TechnoClass*)pThis);
 
 	if (distance < range)
 		return WithinDistance;
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x418BA8, AircraftClass_MissionAttack_WeaponRangeCheck2, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EAX);
 
-	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
+	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, (TechnoClass*)pThis));
 
 	return SkipGameCode;
 }

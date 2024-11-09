@@ -6,6 +6,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <AITriggerTypeClass.h>
+
 // TODO :
 // - Optimization a lot of duplicate code ,..
 // - Type convert probably not handled properly yet

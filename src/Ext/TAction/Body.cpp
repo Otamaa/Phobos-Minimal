@@ -642,7 +642,7 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
 		auto nMessage = StringTable::LoadString(GameStrings::TXT_SAVING_GAME());
-		auto pUI = UI::sub_623230((LPARAM)nMessage, 0, 0);
+		auto pUI = UI::ShowMessageWithCancelOnly((LPARAM)nMessage, 0, 0);
 		WWMouseClass::Instance->HideCursor();
 
 		if (pUI)

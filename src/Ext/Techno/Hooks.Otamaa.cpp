@@ -21,6 +21,9 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
+#include <Locomotor/FlyLocomotionClass.h>
+#include <DiskLaserClass.h>
+
 #pragma region Otamaa
 
 DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)

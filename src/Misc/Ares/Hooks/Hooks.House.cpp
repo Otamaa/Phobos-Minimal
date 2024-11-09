@@ -23,6 +23,10 @@
 
 #include "Header.h"
 
+#include <TaskForceClass.h>
+
+#include <InfantryClass.h>
+
 static constexpr int ObserverBackgroundWidth = 121;
 static constexpr int ObserverBackgroundHeight = 96;
 

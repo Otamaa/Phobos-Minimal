@@ -1,6 +1,8 @@
 #include "Body.h"
 #include <Ext/TechnoType/Body.h>
 
+#include <InfantryClass.h>
+
 //Author : Otamaa
 DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 {

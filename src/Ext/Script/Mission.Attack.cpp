@@ -7,7 +7,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-// Contains ScriptExtData::Mission_Attack and its helper functions.
+#include <TeamTypeClass.h>
+#include <InfantryClass.h>
 
 void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {

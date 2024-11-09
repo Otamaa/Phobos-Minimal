@@ -30,6 +30,8 @@ DEFINE_JUMP(CALL, 0x4CD809, MiscTools::to_DWORD(&FakeAircraftClass::_Destroyed))
 #include <Ext/Bullet/Body.h>
 #include <lib/gcem/gcem.hpp>
 
+#include <Locomotor/FlyLocomotionClass.h>
+
 bool IsFlyLoco(const ILocomotion* pLoco)
 {
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);

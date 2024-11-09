@@ -3,6 +3,7 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <CoordStruct.h>
 #include <Utilities/GameUniquePointers.h>
+#include <AnimClass.h>
 
 struct AresAEData;
 class WarheadTypeClass;

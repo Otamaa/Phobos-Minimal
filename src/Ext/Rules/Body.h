@@ -16,6 +16,7 @@
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 #include <New/HugeBar.h>
 
+class AITriggerTypeClass;
 class AnimTypeClass;
 class MouseCursor;
 class TechnoTypeClass;
@@ -400,6 +401,8 @@ public:
 	Valueable<int> UnitIdleActionRestartMax { 300 };
 	Valueable<int> UnitIdleActionIntervalMin { 150 };
 	Valueable<int> UnitIdleActionIntervalMax { 450 };
+
+	Valueable<bool> ExpandAircraftMission {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

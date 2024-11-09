@@ -40,7 +40,6 @@
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <memory>
-#include <Ares_TechnoExt.h>
 
 // Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
 bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
@@ -5144,26 +5143,9 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionTimer)
 		.Process(this->UnitIdleActionGapTimer)
 		.Process(this->MyTargetingFrame)
+		.Process(this->ChargeTurretTimer)
+		.Process(this->LastRearmWasFullDelay)
 		;
-}
-
-bool TechnoExtData::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (ptr->WhatAmI())
-	{
-	case AnimClass::AbsID:
-	case HouseClass::AbsID:
-	case BuildingClass::AbsID:
-	case AircraftClass::AbsID:
-	case UnitClass::AbsID:
-	case InfantryClass::AbsID:
-	case TemporalClass::AbsID:
-	case SuperClass::AbsID:
-	case BuildingLightClass::AbsID:
-		return false;
-	}
-
-	return true;
 }
 
 void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
@@ -5214,9 +5196,11 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
+	auto armormultData = &_AEProp->ArmorMultData;
 
 	extraRangeData->Clear();
 	extraCritData->Clear();
+	armormultData->Clear();
 
 	bool hasTint = false;
 	bool reflectsDamage = false;
@@ -5266,7 +5250,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		auto const type = attachEffect->GetType();
 		FP_Mult *= type->FirepowerMultiplier;
 		Speed_Mult *= type->SpeedMultiplier;
-		Armor_Mult *= type->ArmorMultiplier;
 		ROF_Mult *= type->ROFMultiplier;
 		Cloak |= type->Cloakable;
 		forceDecloak |= type->ForceDecloak;
@@ -5308,6 +5291,18 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 			for (auto& disallow : type->Crit_DisallowWarheads)
 				ranges_.disallow.insert(disallow);
+		}
+
+		if ((type->ArmorMultiplier != 1.0 && (type->ArmorMultiplier_AllowWarheads.size() > 0 || type->ArmorMultiplier_DisallowWarheads.size() > 0))) {
+			auto& mults_ = armormultData->mults.emplace_back();
+			mults_.Mult = type->ArmorMultiplier;
+
+
+			for (auto& allow : type->ArmorMultiplier_AllowWarheads)
+				mults_.allow.insert(allow);
+
+			for (auto& disallow : type->ArmorMultiplier_DisallowWarheads)
+				mults_.disallow.insert(disallow);
 		}
 
 		reflectsDamage |= type->ReflectDamage;

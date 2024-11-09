@@ -8,6 +8,7 @@
 
 #include <LightSourceClass.h>
 #include <CellClass.h>
+#include <AnimClass.h>
 
 class TerrainExtData final
 {
@@ -31,18 +32,6 @@ public:
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr)
-	{
-		switch (ptr->WhatAmI())
-		{
-		case AnimClass::AbsID:
-		case LightSourceClass::AbsID:
-			return false;
-		}
-
-		return true;
-	}
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

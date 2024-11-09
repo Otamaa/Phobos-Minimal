@@ -25,6 +25,7 @@ typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValu
 
 struct args_ReceiveDamage;
 class ArmorTypeClass;
+class IonBlastClass;
 class WarheadTypeExtData final
 {
 public:

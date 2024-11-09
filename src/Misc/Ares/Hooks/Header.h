@@ -13,6 +13,8 @@
 #include <vector>
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 
+#include <WaveClass.h>
+
 enum class AresHijackActionResult
 {
 	None = 0,

@@ -1,7 +1,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-#include <Ares_TechnoExt.h>
 #include <BuildingLightClass.h>
 #include <SpotlightClass.h>
 

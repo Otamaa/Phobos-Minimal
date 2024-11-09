@@ -19,6 +19,7 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#include <InfantryClass.h>
 
 DEFINE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 {

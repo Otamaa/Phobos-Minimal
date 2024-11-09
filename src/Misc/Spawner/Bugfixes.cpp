@@ -21,6 +21,8 @@
 #include <Phobos.h>
 #include <Ext/Techno/Body.h>
 
+#include <EBolt.h>
+
 // Open campaign briefing when pressing Tab
 DEFINE_HOOK(0x55E08F, KeyboardProcess_PressTab, 0x5)
 {

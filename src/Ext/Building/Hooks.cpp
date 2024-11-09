@@ -9,6 +9,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
+#include <GameOptionsClass.h>
+
 DEFINE_HOOK(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 {
 	enum { IsBlockage = 0x483CD4 };

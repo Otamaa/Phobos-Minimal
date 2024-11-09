@@ -474,17 +474,6 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	this->PrismForwarding.InvalidatePointer(ptr, bRemoved);
 }
 
-bool BuildingExtData::InvalidateIgnorable(AbstractClass* ptr)
-{
-	switch (ptr->WhatAmI())
-	{
-	case BuildingClass::AbsID:
-		return false;
-	}
-
-	return true;
-}
-
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
 {
 	auto const pDepositableTiberium = TiberiumClass::Array->Items[idxStorageTiberiumType];

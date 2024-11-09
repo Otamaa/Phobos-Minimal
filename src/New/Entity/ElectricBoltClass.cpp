@@ -8,6 +8,8 @@
 #include <Unsorted.h>
 #include <RulesClass.h>
 
+#include <ParticleSystemClass.h>
+
 std::vector<ElectricBoltClass> ElectricBoltManager::ElectricBoltArray;
 
 void ElectricBoltClass::Draw_It()

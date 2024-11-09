@@ -7,8 +7,9 @@
 
 #include <New/AnonymousType/SpawnsStatus.h>
 
+#include <ParticleSystemClass.h>
+
 class HouseClass;
-class ParticleSystemClass;
 class AnimExtData final //: public Extension<AnimClass>
 {
 public:
@@ -36,7 +37,7 @@ public:
 	SpawnsStatus SpawnsStatusData {};
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool InvalidateIgnorable(AbstractClass* ptr);
+
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

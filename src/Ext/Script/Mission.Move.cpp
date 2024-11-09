@@ -4,6 +4,8 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <TeamTypeClass.h>
+
 // Contains ScriptExtData::Mission_Move and its helper functions.
 
 void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)

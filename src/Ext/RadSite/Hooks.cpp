@@ -17,6 +17,8 @@
 #include <Utilities/Macro.h>
 #include <Misc/Hooks.Otamaa.h>
 
+#include <SpawnManagerClass.h>
+
 /*
 	Custom Radiations
 	Worked out from old uncommented Ares RadSite Hook , adding some more hook

@@ -2,6 +2,8 @@
 
 #include <TechnoClass.h>
 #include <BulletClass.h>
+#include <AircraftClass.h>
+
 #include <Utilities/Constructs.h>
 #include <Utilities/LocationMark.h>
 #include "RadialFire.h"
@@ -10,9 +12,7 @@
 
 #include <unordered_set>
 
-//typedef Delegate<BulletClass*> FoundBullet;
-//typedef Delegate<TechnoClass*> FoundTechno;
-//typedef Delegate<AircraftClass*> FoundAircraft;
+class VoxelAnimClass;
 
 //typedef bool(__stdcall* FireBulletToTarget)(int index, int burst, BulletClass* pBullet, AbstractClass* pTarget);
 struct ArcingVelocityData

@@ -2089,3 +2089,62 @@ DEFINE_HOOK(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
 }
 // Skip check that prevents buildings from being created for local player.
 DEFINE_JUMP(LJMP, 0x44F8D5, 0x44F8E1);
+
+// Starkku: These fix issues with follower train cars etc) indices being thrown off by preplaced vehicles not being created, having other vehicles as InitialPayload etc.
+// This fix basically works by not using the global UnitClass array at all for setting the followers, only a list of preplaced units, successfully created or not.
+#pragma region Follower
+namespace UnitParseTemp
+{
+	std::vector<UnitClass*> ParsedUnits;
+	bool WasCreated = false;
+}
+
+// Add vehicles successfully created to list of parsed vehicles.
+DEFINE_HOOK(0x7435DE, UnitClass_ReadFromINI_Follower1, 0x6)
+{
+	GET(UnitClass*, pUnit, ESI);
+	UnitParseTemp::ParsedUnits.push_back(pUnit);
+	UnitParseTemp::WasCreated = true;
+	return 0;
+}
+
+// Add vehicles that were not successfully created to list of parsed vehicles as well as to followers list.
+DEFINE_HOOK(0x74364C, UnitClass_ReadFromINI_Follower2, 0x8)
+{
+	REF_STACK(TypeList<int>, followers, STACK_OFFSET(0xD0, -0xC0));
+	if (!UnitParseTemp::WasCreated)
+	{
+		followers.AddItem(-1);
+		UnitParseTemp::ParsedUnits.push_back(nullptr);
+	}
+	UnitParseTemp::WasCreated = false;
+	return 0;
+}
+
+// Set followers based on parsed vehicles.
+DEFINE_HOOK(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
+{
+	enum { SkipGameCode = 0x7436AC };
+	REF_STACK(TypeList<int>, followers, STACK_OFFSET(0xCC, -0xC0));
+	auto& units = UnitParseTemp::ParsedUnits;
+	for (size_t i = 0; i < units.size(); i++)
+	{
+		auto const pUnit = units[i];
+		if (!pUnit)
+			continue;
+		int followerIndex = followers[i];
+		if (followerIndex < 0 || followerIndex >= static_cast<int>(units.size()))
+		{
+			pUnit->FollowerCar = nullptr;
+		}
+		else
+		{
+			auto const pFollower = units[followerIndex];
+			pUnit->FollowerCar = pFollower;
+			pFollower->HasFollowerCar = true;
+		}
+	}
+	units.clear();
+	return SkipGameCode;
+}
+#pragma endregion

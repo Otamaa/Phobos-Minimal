@@ -3649,6 +3649,8 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
+	pThis->See(0u,0u);
+
 	return true;
 }
 
@@ -5982,10 +5984,12 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	if (!Target->Limbo())
 	{
 		Debug::Log("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
+		//return;
 	}
 
-	Target->OnBridge = false;
-	Target->NextObject = 0;
+	//Target->AnnounceExpiredPointer(false);
+	Target->OnBridge = false; // ????
+	Target->NextObject = 0; // ??
 	//Target->UpdatePlacement(PlacementType::Remove);
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.

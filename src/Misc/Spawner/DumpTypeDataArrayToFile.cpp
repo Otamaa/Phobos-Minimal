@@ -8,6 +8,11 @@
 #include <HouseClass.h>
 #include <MessageListClass.h>
 #include <RulesClass.h>
+#include <BulletTypeClass.h>
+#include <ParticleTypeClass.h>
+#include <SuperWeaponTypeClass.h>
+#include <VoxelAnimTypeClass.h>
+#include <ParticleSystemTypeClass.h>
 
 #include <Utilities/GameConfig.h>
 #include <Utilities/GeneralUtils.h>

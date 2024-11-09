@@ -3,6 +3,8 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#include <TacticalClass.h>
+
 void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs = 120, int nDelay = 24 , bool bHidden = false , int ZAdjust = 0)
 {
 	if (bHidden || (Unsorted::CurrentFrame % nDelay))

@@ -26,22 +26,6 @@ public:
 	std::vector<UniversalTrail> Trails { };
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-
-	static bool InvalidateIgnorable(AbstractClass* ptr)
-	{
-
-		switch (ptr->WhatAmI())
-		{
-		case AircraftClass::AbsID:
-		case BuildingClass::AbsID:
-		case InfantryClass::AbsID:
-		case UnitClass::AbsID:
-			return false;
-		}
-
-		return true;
-	}
-
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 

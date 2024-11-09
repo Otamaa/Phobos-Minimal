@@ -2,6 +2,8 @@
 
 #include "Header.h"
 
+#include <Helpers/Macro.h>
+
 //use the padding ,...
 DEFINE_STRONG_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
 DEFINE_STRONG_HOOK(0x4068E0, Debug_Log, 1)
