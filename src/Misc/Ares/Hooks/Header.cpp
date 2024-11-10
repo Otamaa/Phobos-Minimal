@@ -5974,11 +5974,11 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		);
 	}
 
-	Target->Locomotor.GetInterfacePtr()->Force_Track(-1, CoordStruct::Empty);
-	CoordStruct coordsUnitSource = Target->GetCoords();
-	Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
-	Target->MarkAllOccupationBits(coordsUnitSource);
-	Target->ClearPlanningTokens(nullptr);
+	//Target->Locomotor.GetInterfacePtr()->Force_Track(-1, CoordStruct::Empty);
+	//CoordStruct coordsUnitSource = Target->GetCoords();
+	//Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
+	//Target->MarkAllOccupationBits(coordsUnitSource);
+	//Target->ClearPlanningTokens(nullptr);
 	Target->Flashing.DurationRemaining = 0;
 
 	if (!Target->Limbo())
@@ -5993,15 +5993,15 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	//Target->UpdatePlacement(PlacementType::Remove);
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
-	while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
+	//while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
 
 	// throw away the current locomotor and instantiate
 	// a new one of the default type for this unit.
-	if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
-	{
-		Target->Locomotor = std::move(NewLoco);
-		Target->Locomotor->Link_To_Object(Target);
-	}
+	//if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
+	//{
+	//	Target->Locomotor = std::move(NewLoco);
+	//	Target->Locomotor->Link_To_Object(Target);
+	//}
 
 	// handling for Locomotor weapons: since we took this unit from the Magnetron
 	// in an unfriendly way, set these fields here to unblock the unit
