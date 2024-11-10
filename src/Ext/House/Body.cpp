@@ -2212,12 +2212,10 @@ int FakeHouseClass::_Expert_AI()
 		 *  Records the urgency of all actions possible.
 		 */
 
-		constexpr int STRATEGY_COUNT = 4;
-		UrgencyType urgency[STRATEGY_COUNT];
+		UrgencyType urgency[(int)StrategyType::Count] { UrgencyType::None  , UrgencyType::None };
 
-		for (int strat = (int)StrategyType::First; strat < STRATEGY_COUNT; strat++)
+		for (int strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++)
 		{
-			urgency[strat] = UrgencyType::None;
 			switch (strat)
 			{
 			case 0:
@@ -2227,20 +2225,15 @@ int FakeHouseClass::_Expert_AI()
 				urgency[strat] = this->Check_Raise_Money();
 				break;
 			default:
+				urgency[strat] = UrgencyType::None;
 				break;
 			}
 		}
 
-		/**
-		 *  Performs the action required for each of the strategies that share
-		 *  the most urgent category. Stop processing if any strategy at the
-		 *  highest urgency performed any action. This is because higher urgency
-		 *  actions tend to greatly affect the lower urgency actions.
-		 */
 		for (int u = (int)UrgencyType::Critical; u >= (int)UrgencyType::Low; u--)
 		{
 			bool acted = false;
-			for (int strat = (int)StrategyType::First; strat < STRATEGY_COUNT; strat++)
+			for (int strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++)
 			{
 				if (urgency[strat] == (UrgencyType)u)
 				{
@@ -2258,6 +2251,9 @@ int FakeHouseClass::_Expert_AI()
 				}
 			}
 		}
+
+	} else {
+		Check_Fire_Sale();
 	}
 
 	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + 105;
