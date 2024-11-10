@@ -4697,8 +4697,8 @@ MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					if (!Given)
 					{
-						if (pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
-						 || pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0
+						if ((pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
+							|| pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0)
 						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex)
 						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex)
 						)

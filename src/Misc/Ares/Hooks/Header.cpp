@@ -5903,7 +5903,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
 	// so we abduct the target...
-
+	Target->EnterIdleMode(true, 0);
 	Target->StopMoving();
 	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
 	Target->SetTarget(nullptr);
@@ -5978,22 +5978,6 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	//CoordStruct coordsUnitSource = Target->GetCoords();
 	//Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
 	//Target->MarkAllOccupationBits(coordsUnitSource);
-	//Target->ClearPlanningTokens(nullptr);
-	Target->Flashing.DurationRemaining = 0;
-
-	if (!Target->Limbo())
-	{
-		Debug::Log("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
-		//return;
-	}
-
-	//Target->AnnounceExpiredPointer(false);
-	Target->OnBridge = false; // ????
-	Target->NextObject = 0; // ??
-	//Target->UpdatePlacement(PlacementType::Remove);
-	// because we are throwing away the locomotor in a split second, piggybacking
-	// has to be stopped. otherwise the object might remain in a weird state.
-	//while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
 
 	// throw away the current locomotor and instantiate
 	// a new one of the default type for this unit.
@@ -6002,6 +5986,24 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	//	Target->Locomotor = std::move(NewLoco);
 	//	Target->Locomotor->Link_To_Object(Target);
 	//}
+
+	Target->ClearPlanningTokens(nullptr);
+	Target->Flashing.DurationRemaining = 0;
+
+	if (!Target->Limbo())
+	{
+		Debug::FatalError("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
+		return false;
+	}
+
+	// because we are throwing away the locomotor in a split second, piggybacking
+	// has to be stopped. otherwise the object might remain in a weird state.
+	while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
+
+	//Target->AnnounceExpiredPointer(false);
+	Target->OnBridge = false; // ????
+	Target->NextObject = 0; // ??
+	//Target->UpdatePlacement(PlacementType::Remove);
 
 	// handling for Locomotor weapons: since we took this unit from the Magnetron
 	// in an unfriendly way, set these fields here to unblock the unit
