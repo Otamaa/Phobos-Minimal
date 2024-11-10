@@ -201,6 +201,7 @@ DEFINE_STRONG_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
+
 DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 {
 	struct INIClass_ {

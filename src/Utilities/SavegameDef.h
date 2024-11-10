@@ -588,16 +588,13 @@ namespace Savegame
 		{
 			size_t size = 0;
 
-			if (Stm.Load(size))
-			{
+			if (Stm.Load(size)) {
 				Value.resize(size);
-				std::vector<char> buffer(size);
-
-				if (!size ||Stm.Read(reinterpret_cast<BYTE*>(&buffer[0]), size)) {
-					std::memcpy(Value.data(), buffer.data(), size);
+				if (!size ||Stm.Read(reinterpret_cast<BYTE*>(&Value[0]), size)) {
 					return true;
 				}
 			}
+
 			return false;
 		}
 

@@ -1031,13 +1031,6 @@ void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
-	/// Additional `JumpjetControls`
-	INI_EX exINI(pINI);
-
-	RulesExtData::Instance()->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
-	RulesExtData::Instance()->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
-
-	///
 }
 
 bool RulesExtData::DetailsCurrentlyEnabled()
@@ -1533,6 +1526,14 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 		}
 	}
 
+	for (int i = 0; i < pINI->GetKeyCount(GameStrings::Tiberiums()); ++i)
+	{
+		if (pINI->ReadString(GameStrings::Tiberiums(), pINI->GetKeyName(GameStrings::Tiberiums(), i), Phobos::readDefval, Phobos::readBuffer) > 0)
+		{
+			TiberiumClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
 	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 
 	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
@@ -1554,19 +1555,15 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 	return 0x668DD2;
 }
 
-
-void FakeRulesClass::_ReadJumpjet(CCINIClass* pINI)
-{
-	RocketTypeClass::AddDefaults();
-	RocketTypeClass::LoadFromINIList(pINI);
-}
-
 void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 {
 	RulesExtData::LoadEarlyBeforeColor(this, pINI);
 
 	this->Read_JumpjetControls(pINI);
 	this->Read_Colors(pINI);
+
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIList(pINI);
 }
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
@@ -1576,14 +1573,12 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	this->Read_General(pINI);
 	RocketTypeClass::ReadListFromINI(pINI);
 
-	SideClass::Array->for_each([pINI](SideClass* pSide)
-{
-	SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+	SideClass::Array->for_each([pINI](SideClass* pSide) {
+		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
 	});
 
-	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse)
-{
-	HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
+		HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
 	});
 
 	// All TypeClass Created but not yet read INI
@@ -1596,36 +1591,46 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	// add more if needed , it will double the error log at some point
 	// but it will take care some of missing stuffs that previously loaded late
 
-	for (auto pWeapon : *WeaponTypeClass::Array)
-	{
+	for (auto pWeapon : *WeaponTypeClass::Array) {
 		pWeapon->LoadFromINI(pINI);
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array)
-	{
+	for (auto pBullet : *BulletTypeClass::Array) {
 		pBullet->LoadFromINI(pINI);
 	}
 
-	for (auto pWarhead : *WarheadTypeClass::Array)
-	{
+	for (auto pWarhead : *WarheadTypeClass::Array) {
 		pWarhead->LoadFromINI(pINI);
 	}
 
-	for (auto pAnims : *AnimTypeClass::Array)
-	{
+	for (auto pAnims : *AnimTypeClass::Array) {
 		pAnims->LoadFromINI(pINI);
 	}
 
 	RulesExtData::LoadAfterTypeData(this, pINI);
 	this->Read_Difficulties(pINI);
-	TiberiumClass::_ReadFromINI(pINI);
 	RulesExtData::LoadAfterAllLogicData(this, pINI);
+
+	for (auto pTib : *TiberiumClass::Array) {
+		//Debug::Log("Reading Tiberium[%s] Configurations!\n", pTib->ID);
+		pTib->LoadFromINI(pINI);
+	}
 }
 
-DEFINE_JUMP(CALL, 0x668EB8, MiscTools::to_DWORD(&FakeRulesClass::_ReadJumpjet));
-DEFINE_JUMP(CALL, 0x52D0FF, MiscTools::to_DWORD(&FakeRulesClass::_ReadColors));
+DEFINE_JUMP(CALL, 0x668BFE, MiscTools::to_DWORD(&FakeRulesClass::_ReadColors));
 DEFINE_JUMP(CALL, 0x668EE8, MiscTools::to_DWORD(&FakeRulesClass::_ReadGeneral));
 DEFINE_JUMP(LJMP, 0x668EED, 0x668F6A);
+
+DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
+{
+	GET(CCINIClass*, pINI, EDI);
+	INI_EX exINI(pINI);
+
+	RulesExtData::Instance()->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls, "Crash");
+	RulesExtData::Instance()->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls, "NoWobbles");
+
+	return 0;
+}
 
 DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
