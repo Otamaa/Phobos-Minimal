@@ -378,7 +378,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
 		pExt->UpdateLaserTrails();
 
-		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
+		TrailsManager::AI(pThis);
 #endif
 		return 0x4DA6A0;
 	}

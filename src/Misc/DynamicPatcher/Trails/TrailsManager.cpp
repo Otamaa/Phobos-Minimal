@@ -216,15 +216,9 @@ void TrailsManager::AI(T* pOwner)
 }
 
 template<>
-void TrailsManager::AI(TechnoClass* pOwner)
+void TrailsManager::AI(FootClass* pOwner)
 {
-	if (pOwner->WhatAmI() == BuildingClass::AbsID)
-		return;
-
 	const auto pExt = TechnoExtContainer::Instance.Find((TechnoClass*)pOwner);
-
-	if (pExt->Trails.empty())
-		return;
 
 	for (auto& pTrails : pExt->Trails)
 	{
@@ -256,9 +250,6 @@ void TrailsManager::AI(BulletClass* pOwner)
 {
 	const auto pExt = BulletExtContainer::Instance.Find(pOwner);
 
-	if (pExt->Trails.empty())
-		return;
-
 	for (auto& pTrails : pExt->Trails)
 	{
 		CoordStruct location = (pOwner)->Location;
@@ -282,17 +273,11 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 {
 	const auto pExt = VoxelAnimExtContainer::Instance.Find(pOwner);
 	const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pOwner->Type);
+	auto const pTechnoOwner = VoxelAnimExtData::GetTechnoOwner(pOwner);
 
-	if (pExt->Trails.empty())
-		return;
-
-	CoordStruct location = (pOwner)->Bounce.GetCoords();
-
-	for (auto& pTrails : pExt->Trails)
-	{
-		auto const pTechnoOwner = VoxelAnimExtData::GetTechnoOwner(pOwner);
+	for (auto& pTrails : pExt->Trails) {
 		auto const pHouseOwner = pTechnoOwner ? pTechnoOwner->GetOwningHouse() : pOwner->GetOwningHouse();
-		pTrails.DrawTrail(pHouseOwner, location, pTrails.FLH);
+		pTrails.DrawTrail(pHouseOwner, (pOwner)->Bounce.GetCoords(), pTrails.FLH);
 	}
 }
 
@@ -301,14 +286,8 @@ void TrailsManager::AI(ParticleClass* pOwner)
 {
 	const auto pExt = ParticleExtContainer::Instance.Find(pOwner);
 
-	if (pExt->Trails.empty())
-		return;
-
-	CoordStruct location = (pOwner)->GetCoords();
-
-	for (auto& pTrails : pExt->Trails)
-	{
-		pTrails.DrawTrail((pOwner)->GetOwningHouse(), location, pTrails.FLH);
+	for (auto& pTrails : pExt->Trails) {
+		pTrails.DrawTrail((pOwner)->GetOwningHouse(), pOwner->Location, pTrails.FLH);
 	}
 }
 
