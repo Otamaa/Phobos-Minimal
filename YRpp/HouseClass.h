@@ -280,6 +280,13 @@ public:
 		JMP_THIS(0x5095D0);
 	}
 
+	UrgencyType Check_Fire_Sale() const JMP_THIS(0x4FD940);
+	UrgencyType Check_Raise_Money() const JMP_THIS(0x4FD9A0);
+
+	bool AI_Fire_Sale(UrgencyType ur) const JMP_THIS(0x4FDCE0);
+	bool AI_Raise_Money(UrgencyType ur) const JMP_THIS(0x4FDD10);
+
+
 #ifdef _INLINED_VERSION
 	constexpr bool IsAlliedWith(int idxHouse) const {
 		if (idxHouse == this->ArrayIndex) {
@@ -347,6 +354,9 @@ public:
 
 	void UpdateAngerNodes(int nScoreAdd, HouseClass* pHouse)
 		{ JMP_THIS(0x504790); }
+
+	void RemoveFromAngerNodes(HouseClass* pHouse)
+		{ JMP_THIS(0x5093C0); }
 
 	void AllyAIHouses()
 		{ JMP_THIS(0x501640); }

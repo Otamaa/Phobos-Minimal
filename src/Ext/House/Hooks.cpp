@@ -39,11 +39,11 @@ DEFINE_HOOK(0x500910, HouseClass_GetFactoryCount, 0x5)
 }
 
 //remove the SW processing from the original place
-DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
-	return RulesExtData::Instance()->AISuperWeaponDelay.isset() ?
-		0x4FD7A0 : 0;
-}
-
+// DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
+// 	return RulesExtData::Instance()->AISuperWeaponDelay.isset() ?
+// 		0x4FD7A0 : 0;
+// }
+//
 //update it separately
 DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 
@@ -374,34 +374,66 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 //}
 #pragma endregion
 
-// Sell all and all in.
-DEFINE_HOOK(0x4FD8F7, HouseClass_UpdateAI_OnLastLegs, 0x6)
-{
-	enum { ret = 0x4FD907 };
+DEFINE_HOOK(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(UrgencyType, urg , 0x4);
 
-	GET(HouseClass*, pThis, EBX);
+	bool ret = false;
+	if(urg == UrgencyType::Critical){
+		auto const pRules = RulesExtData::Instance();
+		auto const pExt = HouseExtContainer::Instance.Find(pThis);
 
-	auto const pRules = RulesExtData::Instance();
-	auto const pExt = HouseExtContainer::Instance.Find(pThis);
-
-	if (pRules->AISellAllOnLastLegs)
-	{
-		if (pRules->AISellAllDelay <= 0 || !pExt ||
-			pExt->AISellAllDelayTimer.Completed())
+		if (pRules->AISellAllOnLastLegs)
 		{
-			pThis->Fire_Sale();
+			if (pRules->AISellAllDelay <= 0 ||
+				pExt->AISellAllDelayTimer.Completed())
+			{
+				pThis->Fire_Sale();
+			}
+			else if (!pExt->AISellAllDelayTimer.HasStarted())
+			{
+				pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
+			}
 		}
-		else if (!pExt->AISellAllDelayTimer.HasStarted())
-		{
-			pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
-		}
+
+		if (pRules->AIAllInOnLastLegs)
+			pThis->All_To_Hunt();
+
+		ret = true;
 	}
 
-	if (pRules->AIAllInOnLastLegs)
-		pThis->All_To_Hunt();
-
-	return ret;
+	R->AL(ret);
+	return 0x4FDD00;
 }
+
+// Sell all and all in.
+// DEFINE_HOOK(0x4FD8F7, HouseClass_UpdateAI_OnLastLegs, 0x6)
+// {
+// 	enum { ret = 0x4FD907 };
+//
+// 	GET(HouseClass*, pThis, EBX);
+//
+// 	auto const pRules = RulesExtData::Instance();
+// 	auto const pExt = HouseExtContainer::Instance.Find(pThis);
+//
+// 	if (pRules->AISellAllOnLastLegs)
+// 	{
+// 		if (pRules->AISellAllDelay <= 0 ||
+// 			pExt->AISellAllDelayTimer.Completed())
+// 		{
+// 			pThis->Fire_Sale();
+// 		}
+// 		else if (!pExt->AISellAllDelayTimer.HasStarted())
+// 		{
+// 			pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
+// 		}
+// 	}
+//
+// 	if (pRules->AIAllInOnLastLegs)
+// 		pThis->All_To_Hunt();
+//
+// 	return ret;
+// }
 
 // I must not regroup my forces.
 DEFINE_HOOK(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)

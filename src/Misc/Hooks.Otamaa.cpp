@@ -161,51 +161,51 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	return 0x4668BD;
 }
 
-DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
-{
-	enum { CreateMuzzleAnim = 0x6FF39C, SkipCreateMuzzleAnim = 0x6FF43F };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-	GET(AnimTypeClass* const, pMuzzleAnimType, EDI);
-	LEA_STACK(CoordStruct*, pFLH, 0x44);
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
-	{
-		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? *pFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
-		{
-			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
-			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
-			if (pThis->WhatAmI() != BuildingClass::AbsID)
-				pFeedBackAnim->SetOwnerObject(pThis);
-		}
-	}
-
-	return pMuzzleAnimType ? CreateMuzzleAnim : SkipCreateMuzzleAnim;
-}
-
-DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
-{
-	enum
-	{
-		Goto2NdCheck = 0x6FF427, DontSetAnim = 0x6FF43F,
-		AdjustCoordsForBuilding = 0x6FF3D9, Continue = 0x0
-	};
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	//GET(WeaponTypeClass*, pWeapon, EBX);
-	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
-
-	if (!pAnim)
-		return DontSetAnim;
-
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
-
-	return pThis->WhatAmI() == BuildingClass::AbsID ? AdjustCoordsForBuilding : Goto2NdCheck;
-}
+// DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
+// {
+// 	enum { CreateMuzzleAnim = 0x6FF39C, SkipCreateMuzzleAnim = 0x6FF43F };
+//
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(WeaponTypeClass* const, pWeapon, EBX);
+// 	GET(AnimTypeClass* const, pMuzzleAnimType, EDI);
+// 	LEA_STACK(CoordStruct*, pFLH, 0x44);
+//
+// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+//
+// 	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
+// 	{
+// 		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? *pFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
+// 		{
+// 			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
+// 			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+// 			if (pThis->WhatAmI() != BuildingClass::AbsID)
+// 				pFeedBackAnim->SetOwnerObject(pThis);
+// 		}
+// 	}
+//
+// 	return pMuzzleAnimType ? CreateMuzzleAnim : SkipCreateMuzzleAnim;
+// }
+//
+// DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
+// {
+// 	enum
+// 	{
+// 		Goto2NdCheck = 0x6FF427, DontSetAnim = 0x6FF43F,
+// 		AdjustCoordsForBuilding = 0x6FF3D9, Continue = 0x0
+// 	};
+//
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(AnimClass*, pAnim, EDI);
+// 	//GET(WeaponTypeClass*, pWeapon, EBX);
+// 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
+//
+// 	if (!pAnim)
+// 		return DontSetAnim;
+//
+// 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+//
+// 	return pThis->WhatAmI() == BuildingClass::AbsID ? AdjustCoordsForBuilding : Goto2NdCheck;
+// }
 
 #pragma region WallTower
 DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)

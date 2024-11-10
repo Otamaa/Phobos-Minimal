@@ -26,20 +26,20 @@
 
 #pragma region Otamaa
 
-DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
-		pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
-	}
-
-	R->EDI(pDecidedMuzzle);
-	return 0x6FF32F;
-}
+// DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+// 	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
+//
+// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+// 	if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
+// 		pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+// 	}
+//
+// 	R->EDI(pDecidedMuzzle);
+// 	return 0x6FF32F;
+// }
 
 // this hook already inside loop function !
 DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)

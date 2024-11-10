@@ -1134,21 +1134,23 @@ DEFINE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
 }
 
 // customizable berserk fire rate modification
-DEFINE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
-{
-	enum { SkipROF = 0x6FF2BE , SetROF = 0x6FF29E };
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, ROF, EAX);
-
-	if (pThis->Berzerk) {
-		const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		double multiplier = pExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
-		ROF = static_cast<int>(ROF * multiplier);
-	}
-
-	R->EAX(ROF);
-	return SetROF;
-}
+// DEFINE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(int, ROF, EAX);
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+// 	if (pThis->Berzerk) {
+// 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+// 		const double multiplier = pExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
+// 		ROF = static_cast<int>(ROF * multiplier);
+// 	}
+//
+// 	TechnoExtData::SetChargeTurretDelay(pThis, ROF, pWeapon);
+//
+// 	R->EAX(ROF);
+// 	return 0x6FF2A4;
+// }
 
 DEFINE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
 {
@@ -1251,25 +1253,25 @@ DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
 //TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
-DEFINE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	int nIdx = 0;
-
-	if (pWeapon->Anim.Count > 1) { //only execute if the anim count is more than 1
-		const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
-
-		// 2^highest is the frame count, 3 means 8 frames
-		if (highest >= 3) {
-			nIdx = pThis->GetRealFacing().GetValue(highest, 1u << (highest - 3));
-		}
-	}
-
-	R->EDI(pWeapon->Anim.GetItemOrDefault(nIdx , nullptr));
-	return 0x6FF31B;
-}
+// DEFINE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+// 	int nIdx = 0;
+//
+// 	if (pWeapon->Anim.Count > 1) { //only execute if the anim count is more than 1
+// 		const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+//
+// 		// 2^highest is the frame count, 3 means 8 frames
+// 		if (highest >= 3) {
+// 			nIdx = pThis->GetRealFacing().GetValue(highest, 1u << (highest - 3));
+// 		}
+// 	}
+//
+// 	R->EDI(pWeapon->Anim.GetItemOrDefault(nIdx , nullptr));
+// 	return 0x6FF31B;
+// }
 
 DEFINE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 {

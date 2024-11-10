@@ -536,3 +536,24 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	return 0x0;
 }
+
+#include <Ext/WeaponType/Body.h>
+
+void TechnoExtData::SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, WeaponTypeClass* pWeapon)
+{
+	pThis->ROF = rearmDelay;
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (pWeaponExt->ChargeTurret_Delays.size() > 0)
+	{
+		size_t burstIndex = pWeapon->Burst > 1 ? pThis->CurrentBurstIndex - 1 : 0;
+		size_t index = burstIndex < pWeaponExt->ChargeTurret_Delays.size() ? burstIndex : pWeaponExt->ChargeTurret_Delays.size() - 1;
+		int delay = pWeaponExt->ChargeTurret_Delays[index];
+
+		if (delay <= 0)
+			return;
+
+		pThis->ROF = delay;
+		TechnoExtContainer::Instance.Find(pThis)->ChargeTurretTimer.Start(delay);
+	}
+}

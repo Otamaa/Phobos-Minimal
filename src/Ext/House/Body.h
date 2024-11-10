@@ -392,6 +392,7 @@ class FakeHouseClass : public HouseClass
 public:
 	bool _IsAlliedWith(HouseClass* pOther);
 	void _Detach(AbstractClass* target, bool all);
+	int _Expert_AI();
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

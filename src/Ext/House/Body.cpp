@@ -2080,6 +2080,191 @@ void HouseExtContainer::Clear()
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
 }
+
+/**
+ *  Handles expert AI processing.
+ *
+ *  @author: 09/29/1995 JLB - Created.
+ *           10/11/2024 ZivDero - Adjustments for Tiberian Sun
+ * *         10/11/2024 Otamaa - Adjustments for YR + Ares + Phobos
+ */
+
+int FakeHouseClass::_Expert_AI()
+{
+	/**
+	 *  If there is no enemy assigned to this house, then assign one now. The
+	 *  enemy that is closest is picked. However, don't pick an enemy if the
+	 *  base has not been established yet.
+	 */
+	if (this->ExpertAITimer.Expired())
+	{
+		if (this->EnemyHouseIndex == -1
+			&& SessionClass::Instance->GameMode != GameMode::Campaign
+			&& !this->Type->MultiplayPassive)
+		{
+			auto center = this->BaseCenter.IsValid() ? &this->BaseCenter : &this->BaseSpawnCell;
+
+			if (center->IsValid())
+			{
+				int close = INT_MAX;
+				HouseClass* enemy = nullptr;
+				for (int i = 0; i < HouseClass::Array->Count; i++)
+				{
+					HouseClass* house = HouseClass::Array->Items[i];
+					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsAlliedWith(house) && !this->IsObserver())
+					{
+						/**
+						 *  Determine a priority value based on distance to the center of the
+						 *  candidate base. The higher the value, the better the candidate house
+						 *  is to becoming the preferred enemy for this house.
+						 */
+						auto enemycenter = house->BaseCenter.IsValid() ? house->BaseCenter : house->BaseSpawnCell;
+						const int value = (int)center->DistanceFrom(enemycenter);
+
+						/**
+						 *  Compare the calculated value for this candidate house and if it is
+						 *  greater than the previously recorded maximum, record this house as
+						 *  the prime candidate for enemy.
+						 */
+						if (value < close)
+						{
+							close = value;
+							enemy = house;
+						}
+					}
+				}
+				/**
+				 *  Record this closest enemy base as the first enemy to attack.
+				 */
+				if (enemy)
+				{
+					this->UpdateAngerNodes(1, enemy);
+				}
+			}
+		}
+	}
+
+	/**
+	 *  If the current enemy no longer has a base or is defeated, then don't consider
+	 *  that house a threat anymore. Clear out the enemy record and then try
+	 *  to find a new enemy.
+	 */
+	if (this->EnemyHouseIndex != -1)
+	{
+		HouseClass* h = HouseClass::Array->Items[this->EnemyHouseIndex];
+
+		if (h->Defeated || this->IsAlliedWith(h) || this->IsObserver())
+		{
+			this->RemoveFromAngerNodes(h);
+			this->EnemyHouseIndex = -1;
+		}
+	}
+
+	/**
+	 *  Use any ready super weapons.
+	 */
+
+	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset()
+		&& (!SessionClass::IsCampaign() || this->IQLevel2 >= RulesClass::Instance->SuperWeapons)) {
+		this->AI_TryFireSW();
+	}
+
+	/**
+	 *  House state transition check occurs here. Transitions that occur here are ones
+	 *  that relate to general base condition rather than specific combat events.
+	 *  Typically, this is limited to transitions between normal buildup mode and
+	 *  broke mode.
+	 */
+	if (this->AIMode == AIMode::SellAll)
+	{
+		Fire_Sale();
+		All_To_Hunt();
+	}
+	else
+	{
+		if (this->AIMode == AIMode::General)
+		{
+			if (this->Available_Money() < 25)
+			{
+				this->AIMode = AIMode::LowOnCash;
+			}
+		}
+		if (this->AIMode == AIMode::LowOnCash)
+		{
+			if (this->Available_Money() >= 25)
+			{
+				this->AIMode = AIMode::General;
+			}
+		}
+		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame)
+		{
+			this->AIMode = AIMode::General;
+		}
+		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame)
+		{
+			this->AIMode = AIMode::BuildBase;
+		}
+	}
+
+	if (SessionClass::Instance->GameMode != GameMode::Campaign)
+	{
+		/**
+		 *  Records the urgency of all actions possible.
+		 */
+
+		constexpr int STRATEGY_COUNT = 4;
+		UrgencyType urgency[STRATEGY_COUNT];
+
+		for (int strat = (int)StrategyType::First; strat < STRATEGY_COUNT; strat++)
+		{
+			urgency[strat] = UrgencyType::None;
+			switch (strat)
+			{
+			case 0:
+				urgency[strat] = this->Check_Fire_Sale();
+				break;
+			case 1:
+				urgency[strat] = this->Check_Raise_Money();
+				break;
+			default:
+				break;
+			}
+		}
+
+		/**
+		 *  Performs the action required for each of the strategies that share
+		 *  the most urgent category. Stop processing if any strategy at the
+		 *  highest urgency performed any action. This is because higher urgency
+		 *  actions tend to greatly affect the lower urgency actions.
+		 */
+		for (int u = (int)UrgencyType::Critical; u >= (int)UrgencyType::Low; u--)
+		{
+			bool acted = false;
+			for (int strat = (int)StrategyType::First; strat < STRATEGY_COUNT; strat++)
+			{
+				if (urgency[strat] == (UrgencyType)u)
+				{
+					switch (strat)
+					{
+					case 0:
+						acted |= AI_Fire_Sale((UrgencyType)u);
+						break;
+					case 1:
+						acted |= AI_Raise_Money((UrgencyType)u);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + 105;
+}
+
+DEFINE_JUMP(CALL ,0x4F9017, MiscTools::to_DWORD(&FakeHouseClass::_Expert_AI))
+
 // =============================
 // container hooks
 

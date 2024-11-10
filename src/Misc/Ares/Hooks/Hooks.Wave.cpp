@@ -27,19 +27,19 @@
 
 #include "Header.h"
 
-DEFINE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pSource, EBX);
-
-	GET_BASE(AbstractClass*, pTarget, 0x8);
-
-	REF_STACK(CoordStruct const, crdSrc, 0x44);
-	REF_STACK(CoordStruct const, crdTgt, 0x88);
-
-	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
-	return 0x6FF48A;
-}
+// DEFINE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(WeaponTypeClass* const, pSource, EBX);
+//
+// 	GET_BASE(AbstractClass*, pTarget, 0x8);
+//
+// 	REF_STACK(CoordStruct const, crdSrc, 0x44);
+// 	REF_STACK(CoordStruct const, crdTgt, 0x88);
+//
+// 	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
+// 	return 0x6FF48A;
+// }
 
 DEFINE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 {

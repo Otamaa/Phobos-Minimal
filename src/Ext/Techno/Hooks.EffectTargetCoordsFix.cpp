@@ -276,45 +276,159 @@ DEFINE_HOOK(0x762D57, WaveClass_AI_TargetUnset, 0x6)
 
 #endif
 
+#include <Conversions.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/Wave/Body.h>
+
 // Adjust target for bolt / beam / wave drawing.
 // same hook with TechnoClass_FireAt_FeedbackWeapon
-DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_Additional, 0x6)
+
+DEFINE_HOOK(0x6FF28F, TechnoClass_FireAt_Additionals_B, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
+	GET(int, ROF, EAX);
+	GET(FakeWeaponTypeClass*, pWeapon, EBX);
+
+	REF_STACK(CoordStruct, flh, 0x44);
+	REF_STACK(CoordStruct, crdTgt, 0x88);
+
 	GET_BASE(AbstractClass*, pOriginalTarget, 0x8);
+
+	R->Stack(0x10, &flh);
+
+	if (pThis->Berzerk) {
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const double multiplier = pExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
+		ROF = static_cast<int>(ROF * multiplier);
+	}
+
+	TechnoExtData::SetChargeTurretDelay(pThis, ROF, pWeapon);
+
+	pThis->DiskLaserTimer.Start(ROF);
+
+	// Issue #46: Laser is mirrored relative to FireFLH
+	// Author: Starkku
+	--pThis->CurrentBurstIndex;
+
+	AnimTypeClass* pFiringAnim = nullptr;
+	auto pWeaponExt = pWeapon->_GetExtData();
+
+	if (pThis->CanOccupyFire()) {
+		if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
+			pFiringAnim = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+		} else {
+			pFiringAnim = pWeapon->OccupantAnim;
+		}
+
+	} else {
+
+		if (pWeapon->Anim.Count > 0)
+		{
+			int nIdx = -1;
+
+			if (pWeapon->Anim.Count == 1)
+				nIdx = 0;
+			else {
+				//only execute if the anim count is more than 1
+				const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+
+				// 2^highest is the frame count, 3 means 8 frames
+				if (highest >= 3) {
+					nIdx = pThis->GetRealFacing().GetValue(highest, 1u << (highest - 3));
+				}
+
+				nIdx %= pWeapon->Anim.Count;
+			}
+
+			pFiringAnim = pWeapon->Anim.Items[nIdx];
+		}
+	}
+
+	if (pWeapon->Report.Count > 0 && !pThis->GetTechnoType()->IsGattling) {
+		if (pWeapon->Report.Count == 1) {
+			VocClass::PlayAt(pWeapon->Report[0], flh, nullptr);
+		} else {
+			auto v116 = pThis->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count;
+			VocClass::PlayAt(pWeapon->Report[v116], flh, nullptr);
+		}
+	}
+
+	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get()) {
+			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? flh : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset; {
+			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
+			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+
+			if (pThis->WhatAmI() != BuildingClass::AbsID) {
+				pFeedBackAnim->SetOwnerObject(pThis);
+			}
+			else {
+				if (pThis->GetOccupantCount() > 0) {
+					pFeedBackAnim->ZAdjust = -200;
+				} else {
+					auto rend = pThis->GetRenderCoords();
+					pFeedBackAnim->ZAdjust = (flh.Y - rend.Y) / -4 >= 0 ? 0 : (flh.Y - rend.Y) / -4;
+				}
+			}
+		}
+	}
+
+	if (!pThis->IsAlive) {
+		return 0x6FF92F;
+	}
+
+	if (pFiringAnim)
+	{
+		auto pFiring = GameCreate<AnimClass>(pFiringAnim, flh, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+		AnimExtData::SetAnimOwnerHouseKind(pFiring, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+		if (pThis->WhatAmI() != BuildingClass::AbsID)
+		{
+			pFiring->SetOwnerObject(pThis);
+		} else {
+			if (pThis->GetOccupantCount() > 0) {
+				pFiring->ZAdjust = -200;
+			} else {
+				auto rend = pThis->GetRenderCoords();
+				pFiring->ZAdjust = (flh.Y - rend.Y) / -4 >= 0 ? 0 : (flh.Y - rend.Y) / -4;
+			}
+		}
+	}
+
+	if (!pThis->IsAlive) {
+		return 0x6FF92F;
+	}
 
 #ifndef PERFORMANCE_HEAVY
 	//TargetSet
-	FireAtTemp::originalTargetCoords = *pTargetCoords;
+	FireAtTemp::originalTargetCoords = crdTgt;
 	FireAtTemp::pOriginalTarget = pOriginalTarget;
 
 	if (FireAtTemp::pObstacleCell)
 	{
-		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+		crdTgt = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
 		R->Base(8, FireAtTemp::pObstacleCell); // Replace original target so it gets used by Ares sonic wave stuff etc. as well.
+		pOriginalTarget = FireAtTemp::pObstacleCell;
 	}
 #endif
 
 	//FeedbackWeapon
-	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
 	if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
 	{
-		if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
-			return 0;
-
-		WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
-
-		//pThis techno was die after after getting affect of FeedbackWeapon
-		//if the function not bail out , it will crash the game because the vtable is already invalid
-		if(!pThis->IsAlive) {
-			return 0x6FF92F;
+		if (!pThis->InOpenToppedTransport || fbWeapon->FireInTransport){
+			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
+			//pThis techno was die after after getting affect of FeedbackWeapon
+			//if the function not bail out , it will crash the game because the vtable is already invalid
+			if (!pThis->IsAlive) {
+				return 0x6FF92F;
+			}
 		}
 	}
 
-	return 0;
+	if(pWeapon->IsSonic){
+		pThis->Wave = WaveExtData::Create(flh, crdTgt, pThis, WaveType::Sonic, pOriginalTarget, pWeapon);
+	}
+
+	return 0x6FF48A;
 }
 
 #ifndef ENABLE_THESE_THINGS
@@ -360,7 +474,7 @@ DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	GET_BASE(AbstractClass* const, pTarget, 0x8);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
 	GET(WeaponTypeClass* const, pWeaponType, EBX);
 	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
 	GET_BASE(int, weaponIndex, 0xC);
@@ -373,6 +487,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals, 0xA)
 	// Restore original target & coords
 	*pTargetCoords = FireAtTemp::originalTargetCoords;
 	R->Base(8, FireAtTemp::pOriginalTarget);
+	pTarget = FireAtTemp::pOriginalTarget;
 	R->EDI(FireAtTemp::pOriginalTarget);
 
 	// Reset temp values

@@ -991,6 +991,8 @@ public:
 
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
 	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
+
+	static void SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, WeaponTypeClass* pWeapon);
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

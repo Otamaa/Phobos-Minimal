@@ -820,6 +820,29 @@ enum class LogicNeedType : int {
 	BuildingNNumber,
 };
 
+enum class UrgencyType : int
+{
+	None,           // No action on this matter is needed or desired.
+	Low,            // Minimal attention requested.
+	Medium,         // Normal attention requested.
+	Hight,           // High attention requested.
+	Critical,       // This matter must be addressed immediately.
+
+	Count,
+	First = 0
+};
+MAKE_ENUM_FLAGS(UrgencyType);
+
+enum class StrategyType : int
+{
+	FireSale,         // Situation hopeless, sell and attack.
+	RaiseMoney,       // Money is low, emergency raise cash.
+
+	Count,
+	First = 0
+};
+MAKE_ENUM_FLAGS(StrategyType);
+
 enum class AIMode : int {
 	General = 0,
 	LowOnCash = 1, // if HouseClass::AvailableMoney < 25 ! stupidly low value

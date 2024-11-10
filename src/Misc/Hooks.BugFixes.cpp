@@ -246,14 +246,14 @@ DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 
 // Issue #46: Laser is mirrored relative to FireFLH
 // Author: Starkku
-DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	--pThis->CurrentBurstIndex;
-
-	return 0x6FF2D1;
-}
+// DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+//
+// 	--pThis->CurrentBurstIndex;
+//
+// 	return 0x6FF2D1;
+// }
 
 bool IsUndeploy = false;
 
@@ -725,7 +725,6 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 	return SpawnCrate;
 }
 
-#pragma optimize("", off )
 DEFINE_HOOK_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 {
@@ -742,7 +741,6 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
 	return 0;
 }
-#pragma optimize("", on)
 
 DEFINE_HOOK(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 {
