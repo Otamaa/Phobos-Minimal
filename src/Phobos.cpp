@@ -730,9 +730,9 @@ static std::vector<Patch> Patches;
 #include <New/Type/CursorTypeClass.h>
 
 void Phobos::ExeRun()
-{
+{	
 	Phobos::Otamaa::ExeTerminated = false;
-	Game::Savegame_Magic = 0x1414D121;
+	Game::Savegame_Magic = AresGlobalData::InternalVersion;
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 

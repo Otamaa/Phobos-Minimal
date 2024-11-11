@@ -1189,15 +1189,6 @@ DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x7cd819, ExeRun, 5)
-{
-	Game::Savegame_Magic = AresGlobalData::InternalVersion;
-	Game::bVideoBackBuffer = false;
-	Game::bAllowVRAMSidebar = false;
-
-	return 0;
-}
-
 DEFINE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
 	StaticVars::aresMIX.reset(nullptr);
