@@ -709,6 +709,9 @@ public:
 	CDTimerClass ChargeTurretTimer {};// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
 	bool LastRearmWasFullDelay { false };
 
+	int DropCrate { -1 }; // Drop crate on death, modified by map action
+	PowerupEffects DropCrateType { PowerupEffects::Money };
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -993,6 +996,8 @@ public:
 	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
 
 	static void SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, WeaponTypeClass* pWeapon);
+
+	static bool TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup = PowerupEffects::Money, int maxCellRange = 10);
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

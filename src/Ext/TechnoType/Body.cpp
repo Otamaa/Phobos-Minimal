@@ -1103,6 +1103,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FallingDownDamage.Read(exINI, pSection, "FallingDownDamage");
 		this->FallingDownDamage_Water.Read(exINI, pSection, "FallingDownDamage.Water");
 
+		this->DropCrate.Read(exINI, pSection, "DropCrate");
+
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
@@ -2454,6 +2456,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->FallingDownDamage)
 		.Process(this->FallingDownDamage_Water)
+		.Process(this->DropCrate)
 		;
 }
 

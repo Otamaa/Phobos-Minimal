@@ -16,6 +16,9 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Script/Body.h>
+#include <Ext/Techno/Body.h>
+
+#include <TriggerTypeClass.h>
 
 //Static init
 #include <TagClass.h>
@@ -561,6 +564,9 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	case PhobosTriggerAction::PrintMessageRemainingTechnos:
 		ret = TActionExt::PrintMessageRemainingTechnos(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
+	case PhobosTriggerAction::SetDropCrate:
+		ret = TActionExt::SetDropCrate(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	default:
 	{
 
@@ -584,6 +590,42 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 }
 
 //========================================================================================
+
+bool TActionExt::SetDropCrate(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		const auto pAttachedTag = pTechno->AttachedTag;
+
+		if (!pAttachedTag)
+			continue;
+
+		bool foundTrigger = false;
+		auto pAttachedTrigger = pAttachedTag->FirstTrigger;
+
+		// A tag can link multiple triggers
+		do
+		{
+			if (IS_SAME_STR_(pAttachedTrigger->Type->ID, pTrigger->Type->ID) == 0)
+				foundTrigger = true;
+
+			pAttachedTrigger = pAttachedTrigger->NextTrigger;
+		}
+		while (pAttachedTrigger && !foundTrigger);
+
+		if (!foundTrigger)
+			continue;
+
+		// Overwrite the default techno's crate properties
+		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+		pExt->DropCrate = pThis->Value;
+
+		if (pExt->DropCrate == 1)
+			pExt->DropCrateType = static_cast<PowerupEffects>(pThis->Param3);
+	}
+
+	return true;
+}
 
 bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {

@@ -879,6 +879,7 @@ DEFINE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
+	GET(Layer , curLayer , EAX);
 
 	const auto pTechnoType = pThis->GetTechnoType();
 	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
@@ -900,7 +901,75 @@ DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 		nMaxFallRate = pThis->FallRate - nFallRate;
 
 	pThis->FallRate = nMaxFallRate;
-	return 0x5F3FFD;
+
+	if(curLayer != pThis->InWhichLayer()) {
+		DisplayClass::Instance->SubmitObject(pThis);
+	}
+
+	if(!pThis->IsFallingDown){
+
+		if(pThis->IsABomb && pThis->Health > 0) {
+
+			if (pTechnoType)
+			{
+				auto const pTechno = static_cast<TechnoClass*>(pThis);
+
+				auto pCell = pTechno->GetCell();
+				const auto pExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+
+				if (!pCell || !pCell->IsClearToMove(pTechnoType->SpeedType, true, true, ZoneType::None, pTechnoType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
+					return 0;
+
+
+				double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
+						  pExt->FallingDownDamage_Water.Get(pExt->FallingDownDamage.Get())
+						: pExt->FallingDownDamage.Get();
+
+				int damage = 0;
+
+				if (ratio < 0.0)
+					damage = int(pThis->Health * Math::abs(ratio));
+				else if (ratio >= 0.0 && ratio <= 1.0)
+					damage = int(pThis->GetTechnoType()->Strength * ratio);
+				else
+					damage = int(ratio);
+
+				pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+
+				if (pThis->Health > 0 && pThis->IsAlive)
+				{
+					pThis->IsABomb = false;
+
+					if (pThis->WhatAmI() == AbstractType::Infantry)
+					{
+						auto pInf = static_cast<InfantryClass*>(pTechno);
+						const bool isWater = pCell->Tile_Is_Water();
+
+						if (isWater && pInf->SequenceAnim != DoType::Swim)
+							pInf->PlayAnim(DoType::Swim, true, false);
+						else if (!isWater && pInf->SequenceAnim != DoType::Guard)
+							pInf->PlayAnim(DoType::Guard, true, false);
+					}
+
+					return 0x5F413F;
+
+				} else {
+					pTechno->UpdatePosition((int)PCPType::During);
+					return 0x5F413F;
+				}
+
+			} else {
+				int _str = pThis->Health;
+				pThis->ReceiveDamage(&_str, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+			}
+		}
+
+		//iam confused with the code ..
+		//probably calculating the desired destination ..
+		return 0x5F405B;
+	}
+
+	return 0x5F413F;
 }
 
 // temporal per-slot

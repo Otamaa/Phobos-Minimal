@@ -29,6 +29,8 @@ enum class PhobosTriggerAction : unsigned int
 	//#1164
 	UndeployToWaypoint = 511,
 
+	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
+
 	//ES
 	SetTriggerTechnoVeterancy = 700,
 	TransactMoneyFor = 701,
@@ -156,5 +158,7 @@ public:
 	ACTION_FUNC(UndeployToWaypoint);
 
 	ACTION_FUNC(PrintMessageRemainingTechnos);
+
+	ACTION_FUNC(SetDropCrate);
 #undef ACTION_FUNC
 };

@@ -3612,6 +3612,82 @@ DEFINE_HOOK(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
 	return 0x0;
 }
 
+// Check adjacent cells from the center
+// The current MapClass::Instance->PlacePowerupCrate(...) doesn't like slopes and maybe other cases
+bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup, int maxCellRange)
+{
+	CellStruct centerCell = CellClass::Coord2Cell(location);
+	short currentRange = 0;
+	bool placed = false;
+
+	do
+	{
+		short x = -currentRange;
+		short y = -currentRange;
+
+		CellStruct checkedCell;
+		checkedCell.Y = centerCell.Y + y;
+
+		// Check upper line
+		for (short i = -currentRange; i <= currentRange; i++)
+		{
+			checkedCell.X = centerCell.X + i;
+			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+				break;
+		}
+
+		if (placed)
+			break;
+
+		checkedCell.Y = centerCell.Y + Math::abs(y);
+
+		// Check lower line
+		for (short i = -currentRange; i <= currentRange; i++)
+		{
+			checkedCell.X = centerCell.X + i;
+
+			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+				break;
+		}
+
+		if (placed)
+			break;
+
+		checkedCell.X = centerCell.X + x;
+
+		// Check left line
+		for (short j = -currentRange + 1; j < currentRange; j++)
+		{
+			checkedCell.Y = centerCell.Y + j;
+
+			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+				break;
+		}
+
+		if (placed)
+			break;
+
+		checkedCell.X = centerCell.X + Math::abs(x);
+
+		// Check right line
+		for (short j = -currentRange + 1; j < currentRange; j++)
+		{
+			checkedCell.Y = centerCell.Y + j;
+
+			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+				break;
+		}
+
+		currentRange++;
+	}
+	while (!placed && currentRange < maxCellRange);
+
+	if (!placed)
+		Debug::Log(__FUNCTION__": Failed to place a crate in the cell (%d,%d) and around that location.\n", centerCell.X, centerCell.Y, maxCellRange);
+
+	return placed;
+}
+
 DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
@@ -3630,41 +3706,34 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 
 	double result = maxSpeed * houseSpeed * thisMult;
 
-	if (pThis->HasAbility(AbilityType::Faster))
-	{
+	if (pThis->HasAbility(AbilityType::Faster)) {
 		result *= RulesClass::Instance->VeteranSpeed;
 	}
 
 	int speedResult = (int)(result * pThis->SpeedPercentage);
 
-	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
-	{
+	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1) {
 		speedResult /= 2;
 	}
 
 	// Drop crate if is dead
 	if (!pThis->Health)
 	{
-		const auto pExt = TechnoExt::ExtMap.Find(pThis);
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 		int nSelectedPowerup = -1;
 
-		if (pExt->DropCrate >= 0)
-		{
-			if (pExt->DropCrate == 1)
-				nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
-		}
-		else if (pTypeExt->DropCrate.isset())
-		{
-			nSelectedPowerup = pTypeExt->DropCrate.isset() ? static_cast<int>(pTypeExt->DropCrate.Get()) : -1;
+		if (pExt->DropCrate >= 0 && pExt->DropCrate == 1) {
+			nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
+		} else if (pTypeExt->DropCrate.isset()) {
+			nSelectedPowerup = pTypeExt->DropCrate.Get();
 		}
 
-		if (nSelectedPowerup < 0)
-			return 0;
+		if (nSelectedPowerup >= 0){
+			TechnoExtData::TryToCreateCrate(pThis->Location,  static_cast<PowerupEffects>(nSelectedPowerup));
+		}
 
-		Powerup selectedPowerup = static_cast<Powerup>(nSelectedPowerup);
-		TechnoExt::TryToCreateCrate(pThis->Location, selectedPowerup);
 	}
 
 	R->EAX((int)speedResult);

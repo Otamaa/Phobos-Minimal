@@ -1057,58 +1057,55 @@ DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	if (auto const pTechno = abstract_cast<TechnoClass*>(pThis))
-	{
-		auto pCell = pTechno->GetCell();
-		auto pType = pTechno->GetTechnoType();
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (!pCell ||
-			!pCell->IsClearToMove(pType->SpeedType,
-				true, true, ZoneType::None, pType->MovementZone,
-				pCell->GetLevel(), pCell->ContainsBridge()))
-			return 0;
-
-
-		double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
-				pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
-				: pTypeExt->FallingDownDamage.Get();
-
-		int damage = 0;
-
-		if (ratio < 0.0)
-			damage = int(pThis->Health * abs(ratio));
-		else if (ratio >= 0.0 && ratio <= 1.0)
-			damage = int(pThis->GetTechnoType()->Strength * ratio);
-		else
-			damage = int(ratio);
-
-		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-
-		if (pThis->Health > 0 && pThis->IsAlive)
-		{
-			pThis->IsABomb = false;
-
-			if (pThis->WhatAmI() == AbstractType::Infantry)
-			{
-				auto pInf = static_cast<InfantryClass*>(pTechno);
-				const bool isWater = pCell->Tile_Is_Water();
-
-				if (isWater && pInf->SequenceAnim != DoType::Swim)
-					pInf->PlayAnim(DoType::Swim, true, false);
-				else if (!isWater && pInf->SequenceAnim != DoType::Guard)
-					pInf->PlayAnim(DoType::Guard, true, false);
-			}
-		} else {
-			pTechno->UpdatePosition((int)PCPType::During);
-		}
-
-		return 0x5F405B;
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
+//{
+//	GET(ObjectClass*, pThis, ESI);
+//
+//	if (auto const pTechno = abstract_cast<TechnoClass*>(pThis))
+//	{
+//		auto pCell = pTechno->GetCell();
+//		auto pType = pTechno->GetTechnoType();
+//		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//
+//		if (!pCell || !pCell->IsClearToMove(pType->SpeedType, true, true, ZoneType::None, pType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
+//			return 0;
+//
+//
+//		double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
+//				pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
+//				: pTypeExt->FallingDownDamage.Get();
+//
+//		int damage = 0;
+//
+//		if (ratio < 0.0)
+//			damage = int(pThis->Health * abs(ratio));
+//		else if (ratio >= 0.0 && ratio <= 1.0)
+//			damage = int(pThis->GetTechnoType()->Strength * ratio);
+//		else
+//			damage = int(ratio);
+//
+//		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+//
+//		if (pThis->Health > 0 && pThis->IsAlive)
+//		{
+//			pThis->IsABomb = false;
+//
+//			if (pThis->WhatAmI() == AbstractType::Infantry)
+//			{
+//				auto pInf = static_cast<InfantryClass*>(pTechno);
+//				const bool isWater = pCell->Tile_Is_Water();
+//
+//				if (isWater && pInf->SequenceAnim != DoType::Swim)
+//					pInf->PlayAnim(DoType::Swim, true, false);
+//				else if (!isWater && pInf->SequenceAnim != DoType::Guard)
+//					pInf->PlayAnim(DoType::Guard, true, false);
+//			}
+//		} else {
+//			pTechno->UpdatePosition((int)PCPType::During);
+//		}
+//
+//		return 0x5F405B;
+//	}
+//
+//	return 0;
+//}

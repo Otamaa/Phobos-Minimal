@@ -5145,6 +5145,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->MyTargetingFrame)
 		.Process(this->ChargeTurretTimer)
 		.Process(this->LastRearmWasFullDelay)
+		.Process(this->DropCrate)
+		.Process(this->DropCrateType)
 		;
 }
 

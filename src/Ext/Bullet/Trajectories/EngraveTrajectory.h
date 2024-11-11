@@ -70,7 +70,7 @@ public:
 	}
 
 	virtual ~EngraveTrajectory() override = default;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+	//virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
