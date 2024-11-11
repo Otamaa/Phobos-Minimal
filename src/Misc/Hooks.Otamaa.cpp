@@ -734,7 +734,6 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 //	return 0x6FE4E7;
 //}
 
-
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
@@ -1234,7 +1233,7 @@ namespace Tiberiumpip
 
 }
 
-void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+static void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	const auto pType = pTechno->GetTechnoType();
 	const auto nMax = pType->SpawnsNumber;
@@ -2027,7 +2026,6 @@ constexpr void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
 	}
 }
 
-
 struct CellPatch__ : public CellClass
 {
 	bool _SpreadTiberium(bool force)
@@ -2147,6 +2145,7 @@ struct CellPatch__ : public CellClass
 	}
 
 };
+static_assert(sizeof(CellPatch__) == sizeof(CellClass), "Missmathc size !");
 
 struct TibPatch__ : public TiberiumClass
 {
@@ -2391,6 +2390,7 @@ struct TibPatch__ : public TiberiumClass
 #pragma endregion
 
 };
+static_assert(sizeof(TibPatch__) == sizeof(TiberiumClass), "Missmathc size !");
 
 DEFINE_JUMP(LJMP, 0x722440, MiscTools::to_DWORD(&TibPatch__::__Spread));
 DEFINE_JUMP(LJMP, 0x7228B0, MiscTools::to_DWORD(&TibPatch__::__RecalcSpreadData));
@@ -2433,7 +2433,7 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 	return SkipGameCode;
 }
 
-BuildingClass* IsAnySpysatActive(HouseClass* pThis)
+static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 {
 	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();
 
@@ -3568,23 +3568,30 @@ DEFINE_JUMP(LJMP, 0x50BF60, 0x50C04A)// Disable CalcCost mult
 //		style);
 //}
 
-DEFINE_HOOK(0x6D4656, TacticalClass_Render_Veinhole, 0x5)
-{
+static void __fastcall IonBlastDrawAll() {
 	VeinholeMonsterClass::DrawAll();
 	IonBlastClass::DrawAll();
-	return 0x6D465B;
 }
+DEFINE_JUMP(CALL , 0x6D4656 , MiscTools::to_DWORD(&IonBlastDrawAll))
 
-DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
+static void __fastcall LaserDrawclassDrawAll()
 {
 	LaserDrawClass::DrawAll();
-
-	//InitColorDraw();
-
 	EBolt::DrawAll();
 	ElectricBoltManager::Draw_All();
-	return 0x6D4673;
 }
+DEFINE_JUMP(CALL, 0x6D4669, MiscTools::to_DWORD(&LaserDrawclassDrawAll))
+
+//DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
+//{
+//	LaserDrawClass::DrawAll();
+//
+//	//InitColorDraw();
+//
+//	EBolt::DrawAll();
+//	ElectricBoltManager::Draw_All();
+//	return 0x6D4673;
+//}
 
 DEFINE_HOOK(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 {
@@ -3633,6 +3640,31 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
 	{
 		speedResult /= 2;
+	}
+
+	// Drop crate if is dead
+	if (!pThis->Health)
+	{
+		const auto pExt = TechnoExt::ExtMap.Find(pThis);
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+		int nSelectedPowerup = -1;
+
+		if (pExt->DropCrate >= 0)
+		{
+			if (pExt->DropCrate == 1)
+				nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
+		}
+		else if (pTypeExt->DropCrate.isset())
+		{
+			nSelectedPowerup = pTypeExt->DropCrate.isset() ? static_cast<int>(pTypeExt->DropCrate.Get()) : -1;
+		}
+
+		if (nSelectedPowerup < 0)
+			return 0;
+
+		Powerup selectedPowerup = static_cast<Powerup>(nSelectedPowerup);
+		TechnoExt::TryToCreateCrate(pThis->Location, selectedPowerup);
 	}
 
 	R->EAX((int)speedResult);
@@ -3817,7 +3849,7 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 
 // Gives player houses names based on their spawning spot
 
-int GetPlayerPosByName(const char* pName)
+static int GetPlayerPosByName(const char* pName)
 {
 	if (pName[0] != '<' || strlen(pName) != 12)
 		return -1;
@@ -4431,7 +4463,7 @@ enum class MoveResult : char
 };
 
 // what is the boolean return for , heh
-MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
+static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
 	if (pCollector && pCell->OverlayTypeIndex > -1)
 	{
@@ -5566,7 +5598,7 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 
 //IfantryClass
 #ifndef INFANTRY_STROAGE_HOOK
-//#pragma optimize("", off )
+
 DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
@@ -5611,7 +5643,6 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 
 	return 0x522EAB;
 }
-//#pragma optimize("", on )
 
 DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 {
@@ -6193,7 +6224,7 @@ DEFINE_HOOK(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
 #pragma endregion
 
 #pragma region ReadSequence
-void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
+static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	INI_EX IniEX(pINI);
 
@@ -8872,7 +8903,7 @@ DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // END 42CB3F 5 , 42CCCB
 
 #include <Misc/PhobosGlobal.h>
-//#pragma optimize("", off )
+
 DEFINE_HOOK(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
 	GET_STACK(TechnoClass*, pTech, 0x24);
@@ -8889,7 +8920,7 @@ DEFINE_HOOK(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }
-//#pragma optimize("", on )
+
 
 DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7)
 {
@@ -9061,7 +9092,7 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 
 //static std::vector<bool> ShakeScreenTibsunStyle {};
 
-void ShakeScreen(GScreenClass* pScreen)
+static constexpr void ShakeScreen(GScreenClass* pScreen)
 {
 	/**
 	 *   TibSun style.
@@ -9151,7 +9182,7 @@ DEFINE_JUMP(VTABLE, 0x7E4324, MiscTools::to_DWORD(&FakeBuildingClass::_Spawn_Ref
 
 #include <Ext/Aircraft/Body.h>
 
-KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
+static KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
 {
 	++Unsorted::ScenarioInit;
 	auto const pPlane = static_cast<AircraftClass*>(HouseExtData::GetParadropPlane(pBld->Owner)->CreateObject(pBld->Owner));
@@ -9486,8 +9517,6 @@ struct _RocketLocomotionClass
 					key->Invalidate();
 			}
 		}
-
-		auto sizzz = sizeof(double);
 
 		if (key)
 		{
@@ -10682,9 +10711,10 @@ DEFINE_HOOK(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
-	return 0x418506;
-}
+DEFINE_JUMP(LJMP, 0x4184FC , 0x418506);
+// DEFINE_HOOK(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
+// 	return 0x418506;
+// }
 
 DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 {
@@ -10738,4 +10768,10 @@ static AnimTypeClass* Techno_Get_Firing_Anim(TechnoClass* this_ptr, WeaponTypeCl
 	}
 
 	return nullptr;
+}
+
+DEFINE_HOOK(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
+{
+	GET(BuildingClass*, pBld, EAX);
+	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ? 0x4FD983 : 0x0;
 }

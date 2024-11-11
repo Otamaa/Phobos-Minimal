@@ -97,10 +97,10 @@ DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 
 #include <Locomotor/TunnelLocomotionClass.h>
 
-Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matrix3D* ret,VoxelIndexKey* key)
+Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matrix3D* ret, VoxelIndexKey* key)
 {
 	auto tLoco = static_cast<TunnelLocomotionClass*>(iloco);
-	tLoco->LocomotionClass::Shadow_Matrix(ret , key);
+	tLoco->LocomotionClass::Shadow_Matrix(ret, key);
 
 	if (tLoco->State != TunnelLocomotionClass::State::IDLE)
 	{
@@ -293,27 +293,30 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET(int , currentBurstIdx , ECX);
+	GET(int, currentBurstIdx, ECX);
 
 	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = false;
 
 	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
 	// Currently only used with infantry, so a performance saving measure.
-	if (const auto pInf = specific_cast<InfantryClass*>(pThis)) {
+	if (const auto pInf = specific_cast<InfantryClass*>(pThis))
+	{
 		const auto pInfExt = InfantryExtContainer::Instance.Find(pInf);
-		if (pInfExt->ForceFullRearmDelay) {
+		if (pInfExt->ForceFullRearmDelay)
+		{
 			pInfExt->ForceFullRearmDelay = false;
 			pThis->CurrentBurstIndex = 0;
 			rearm = true;
 		}
 	}
 
-	if(!rearm)
+	if (!rearm)
 	{
 		const int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
 
-		if (burstDelay >= 0) {
+		if (burstDelay >= 0)
+		{
 			R->EAX(burstDelay);
 			return 0x6FD099;
 		}
@@ -326,14 +329,16 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	int nResult = 0;
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (pExt->ROF_Random.Get()) {
-		const auto nDefault = Point2D{RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
+	if (pExt->ROF_Random.Get())
+	{
+		const auto nDefault = Point2D { RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
 	}
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if(pWeaponExt->ROF_RandomDelay.isset()){
+	if (pWeaponExt->ROF_RandomDelay.isset())
+	{
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
 	}
 
@@ -343,21 +348,24 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 		pThis->Owner->ROFMultiplier + nResult
 	);
 
-	if(pThis->HasAbility(AbilityType::ROF))
+	if (pThis->HasAbility(AbilityType::ROF))
 		_ROF = int(_ROF * RulesClass::Instance->VeteranROF);
 
 	auto const Building = specific_cast<BuildingClass*>(pThis);
 
-	if (pThis->CanOccupyFire()) {
+	if (pThis->CanOccupyFire())
+	{
 		const auto occupant = pThis->GetOccupantCount();
 
-		if (occupant > 0) {
+		if (occupant > 0)
+		{
 			_ROF /= occupant;
 		}
 
 		auto OccupyRofMult = RulesClass::Instance->OccupyROFMultiplier;
 
-		if (Building) {
+		if (Building)
+		{
 			OccupyRofMult = BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyROFMult.Get(OccupyRofMult);
 		}
 
@@ -366,13 +374,15 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	}
 
-	if (pThis->BunkerLinkedItem && !Building) {
+	if (pThis->BunkerLinkedItem && !Building)
+	{
 		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
-		if (auto const pBunkerIsBuilding = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+		if (auto const pBunkerIsBuilding = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem))
+		{
 			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
 		}
 
-		if(BunkerMult != 0.0)
+		if (BunkerMult != 0.0)
 			_ROF = int(float(_ROF) / BunkerMult);
 	}
 
@@ -385,7 +395,8 @@ namespace FiringAITemp
 	int weaponIndex;
 }
 
-DEFINE_HOOK(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6) {
+DEFINE_HOOK(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6)
+{
 	GET(int, weaponIndex, EDI);
 
 	FiringAITemp::weaponIndex = weaponIndex;
@@ -481,13 +492,14 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 				WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
 			}
 
-			for (const auto& weapon : pExt->RevengeWeapons) {
+			for (const auto& weapon : pExt->RevengeWeapons)
+			{
 				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && !pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
 					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
 			}
 		}
 
-		PhobosAEFunctions::ApplyRevengeWeapon(pThis,pSource,pWH);
+		PhobosAEFunctions::ApplyRevengeWeapon(pThis, pSource, pWH);
 	}
 
 	if (pThis->AttachedBomb)
@@ -790,11 +802,14 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move) {
-		if(pTypeExt->KeepTargetOnMove_ExtraDistance.isset()) {
+	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
+	{
+		if (pTypeExt->KeepTargetOnMove_ExtraDistance.isset())
+		{
 			int weaponIndex = pThis->SelectWeapon(pThis->Target);
 
-			if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType) {
+			if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+			{
 				auto pExt = TechnoExtContainer::Instance.Find(pThis);
 				pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
 
@@ -1017,7 +1032,8 @@ DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis->ROF <= 0) {
+	if (pThis->ROF <= 0)
+	{
 		pThis->CurrentTurretNumber = 0;
 		return SkipGameCode;
 	}
@@ -1039,4 +1055,60 @@ DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 
 	pThis->CurrentTurretNumber = turretIndex;
 	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if (auto const pTechno = abstract_cast<TechnoClass*>(pThis))
+	{
+		auto pCell = pTechno->GetCell();
+		auto pType = pTechno->GetTechnoType();
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (!pCell ||
+			!pCell->IsClearToMove(pType->SpeedType,
+				true, true, ZoneType::None, pType->MovementZone,
+				pCell->GetLevel(), pCell->ContainsBridge()))
+			return 0;
+
+
+		double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
+				pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
+				: pTypeExt->FallingDownDamage.Get();
+
+		int damage = 0;
+
+		if (ratio < 0.0)
+			damage = int(pThis->Health * abs(ratio));
+		else if (ratio >= 0.0 && ratio <= 1.0)
+			damage = int(pThis->GetTechnoType()->Strength * ratio);
+		else
+			damage = int(ratio);
+
+		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+
+		if (pThis->Health > 0 && pThis->IsAlive)
+		{
+			pThis->IsABomb = false;
+
+			if (pThis->WhatAmI() == AbstractType::Infantry)
+			{
+				auto pInf = static_cast<InfantryClass*>(pTechno);
+				const bool isWater = pCell->Tile_Is_Water();
+
+				if (isWater && pInf->SequenceAnim != DoType::Swim)
+					pInf->PlayAnim(DoType::Swim, true, false);
+				else if (!isWater && pInf->SequenceAnim != DoType::Guard)
+					pInf->PlayAnim(DoType::Guard, true, false);
+			}
+		} else {
+			pTechno->UpdatePosition((int)PCPType::During);
+		}
+
+		return 0x5F405B;
+	}
+
+	return 0;
 }
