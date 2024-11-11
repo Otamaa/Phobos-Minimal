@@ -352,6 +352,9 @@ public:
 	Valueable<int> CustomMissileTrailerSeparation { 3 };
 	Valueable<WeaponTypeClass*> CustomMissileWeapon { nullptr };
 	Valueable<WeaponTypeClass*> CustomMissileEliteWeapon { nullptr };
+	Valueable<int> CustomMissileInaccuracy { };
+	Valueable<int> CustomMissileTrailAppearDelay { 2 };
+
 	Promotable<bool> CustomMissileRaise { true };
 	Nullable<Point2D> CustomMissileOffset { };
 

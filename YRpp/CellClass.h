@@ -106,7 +106,7 @@ public:
 		if (!(int)tileType)
 			return false;
 
-		using fp_type = bool(__fastcall*)(const CellClass*, void*);
+		using fp_type = bool(__thiscall*)(const CellClass*, void*);
 		return reinterpret_cast<fp_type>(TileArray[(int)tileType])(this, nullptr);
 	}
 

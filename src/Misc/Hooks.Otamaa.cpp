@@ -9509,7 +9509,20 @@ struct _RocketLocomotionClass
 			pRocket->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
 			pRocket->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
 			pRocket->CurrentPitch = (float)(rocket->PitchInitial * Math::DEG90_AS_RAD);
-			pRocket->MovingDestination = to;
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
+
+			/**
+		    *  Apply some inaccuracy to the coordinate if the rocket type specifies so.
+		    */
+			int accur = pTypeExt->CustomMissileInaccuracy;
+
+			if (accur <= 0) {
+				pRocket->MovingDestination = to;
+			} else {
+				const int randomx = ScenarioClass::Instance->Random.RandomRanged(-accur, accur);
+				const int randomy = ScenarioClass::Instance->Random.RandomRanged(-accur, accur);
+				pRocket->MovingDestination = to + Coordinate(randomx, randomy, 0);
+			}
 		}
 	}
 
@@ -9525,7 +9538,7 @@ struct _RocketLocomotionClass
 		const auto pAir = pRocket->Owner;
 		const auto pAirType = pAir->GetTechnoType();
 		const RocketStruct* rocket = GetRocketData(pAirType);
-
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAirType);
 		TechnoClass* spawn_owner = pAir->SpawnOwner;
 
 		switch (pRocket->MissionState)
@@ -9799,7 +9812,7 @@ struct _RocketLocomotionClass
 		{
 			if (auto pAnim = GetTrailAnim(pAirType))
 			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pAir->Location, 2, 1, 0x600),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pAir->Location, pTypeExt->CustomMissileTrailAppearDelay, 1, 0x600),
 					pAir->Owner,
 					pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 					pAir,
@@ -10282,7 +10295,7 @@ struct _SpawnManager
 	//						control->Status = SpawnControlStatus::Takeoff;
 	//						const auto atype = control->Spawnee->Class;
 	//						const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
-	//						control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
+	//						control->ReloadTimer = rocket->PauseFrames + rocket->TiltFrames;
 	//					}
 	//					else
 	//					{

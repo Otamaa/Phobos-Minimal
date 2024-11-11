@@ -2208,46 +2208,18 @@ int FakeHouseClass::_Expert_AI()
 
 	if (SessionClass::Instance->GameMode != GameMode::Campaign)
 	{
-		/**
-		 *  Records the urgency of all actions possible.
-		 */
+		using fp_type = bool(__thiscall*)(HouseClass*, int);
 
-		UrgencyType urgency[(int)StrategyType::Count] { UrgencyType::None  , UrgencyType::None };
+		const std::pair<UrgencyType, DWORD> urgency[(int)StrategyType::Count] {
+			{ this->Check_Fire_Sale() ,  0x4FDCE0 }  ,
+			{ this->Check_Raise_Money() , 0x4FDD10 }
+		};
 
-		for (int strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++)
-		{
-			switch (strat)
-			{
-			case 0:
-				urgency[strat] = this->Check_Fire_Sale();
-				break;
-			case 1:
-				urgency[strat] = this->Check_Raise_Money();
-				break;
-			default:
-				urgency[strat] = UrgencyType::None;
-				break;
-			}
-		}
-
-		for (int u = (int)UrgencyType::Critical; u >= (int)UrgencyType::Low; u--)
-		{
+		for (auto u = (int)UrgencyType::Critical; u >= (int)UrgencyType::Low; u--) {
 			bool acted = false;
-			for (int strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++)
-			{
-				if (urgency[strat] == (UrgencyType)u)
-				{
-					switch (strat)
-					{
-					case 0:
-						acted |= AI_Fire_Sale((UrgencyType)u);
-						break;
-					case 1:
-						acted |= AI_Raise_Money((UrgencyType)u);
-						break;
-					default:
-						break;
-					}
+			for (auto&[urg, call] : urgency) {
+				if (urg == (UrgencyType)u) {
+					acted |= reinterpret_cast<fp_type>(call)(this, u);
 				}
 			}
 		}

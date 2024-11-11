@@ -1241,6 +1241,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
 			this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
 			this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
+			this->CustomMissileInaccuracy.Read(exINI, pSection, "Missile.Inaccuracy");
+			this->CustomMissileTrailAppearDelay.Read(exINI, pSection, "Missile.TrailerAppearDelay");
 
 			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
 			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
@@ -1899,6 +1901,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileTrailerSeparation)
 		.Process(this->CustomMissileWeapon)
 		.Process(this->CustomMissileEliteWeapon)
+		.Process(this->CustomMissileInaccuracy)
+		.Process(this->CustomMissileTrailAppearDelay)
 		.Process(this->CustomMissileRaise)
 		.Process(this->CustomMissileOffset)
 
