@@ -879,7 +879,7 @@ DEFINE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
-	GET(Layer , curLayer , EAX);
+	GET(Layer , curLayer , EBP);
 
 	const auto pTechnoType = pThis->GetTechnoType();
 	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
