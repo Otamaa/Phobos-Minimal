@@ -10,8 +10,6 @@
 #include "PaletteManager.h"
 #include <string>
 
-Enumerable<DigitalDisplayTypeClass>::container_t Enumerable<DigitalDisplayTypeClass>::Array;
-
 const char* Enumerable<DigitalDisplayTypeClass>::GetMainSection()
 {
 	return "DigitalDisplayTypes";

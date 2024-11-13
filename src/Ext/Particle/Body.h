@@ -42,7 +42,7 @@ private:
 class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
-	static std::vector<ParticleExtData*> Pool;
+	inline static std::vector<ParticleExtData*> Pool;
 	static ParticleExtContainer Instance;
 
 	ParticleExtData* AllocateUnchecked(ParticleClass* key)

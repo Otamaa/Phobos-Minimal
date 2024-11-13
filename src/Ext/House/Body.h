@@ -216,7 +216,6 @@ public:
 	int GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval);
 
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
-	static bool IsAnyFirestormActive;
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);
@@ -353,20 +352,22 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static std::vector<int> AIProduction_CreationFrames;
-	static std::vector<int> AIProduction_Values;
-	static std::vector<int> AIProduction_BestChoices;
-	static std::vector<int> AIProduction_BestChoicesNaval;
-	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
-	static HelperedVector<TechnoClass*> LimboTechno;
+	inline static std::vector<int> AIProduction_CreationFrames;
+	inline static std::vector<int> AIProduction_Values;
+	inline static std::vector<int> AIProduction_BestChoices;
+	inline static std::vector<int> AIProduction_BestChoicesNaval;
+	inline static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
+	inline static HelperedVector<TechnoClass*> LimboTechno;
 
-	static int LastGrindingBlanceUnit;
-	static int LastGrindingBlanceInf;
-	static int LastHarvesterBalance;
-	static int LastSlaveBalance;
+	inline static int LastGrindingBlanceUnit;
+	inline static int LastGrindingBlanceInf;
+	inline static int LastHarvesterBalance;
+	inline static int LastSlaveBalance;
 
-	static CDTimerClass CloakEVASpeak;
-	static CDTimerClass SubTerraneanEVASpeak;
+	inline static CDTimerClass CloakEVASpeak;
+	inline static CDTimerClass SubTerraneanEVASpeak;
+
+	static inline bool IsAnyFirestormActive;
 };
 
 class HouseExtContainer final : public Container<HouseExtData>

@@ -1,7 +1,5 @@
 #include "BarTypeClass.h"
 
-Enumerable<BarTypeClass>::container_t Enumerable<BarTypeClass>::Array;
-
 template<>
 const char* Enumerable<BarTypeClass>::GetMainSection()
 {

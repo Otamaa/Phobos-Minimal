@@ -15,23 +15,6 @@
 
 #include <Utilities/Macro.h>
 
-std::vector<int> HouseExtData::AIProduction_CreationFrames;
-std::vector<int> HouseExtData::AIProduction_Values;
-std::vector<int> HouseExtData::AIProduction_BestChoices;
-std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
-
-PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
-HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
-
-int HouseExtData::LastGrindingBlanceUnit = 0;
-int HouseExtData::LastGrindingBlanceInf = 0;
-int HouseExtData::LastHarvesterBalance = 0;
-int HouseExtData::LastSlaveBalance = 0;
-
-bool HouseExtData::IsAnyFirestormActive = false;
-
-CDTimerClass HouseExtData::CloakEVASpeak;
-CDTimerClass HouseExtData::SubTerraneanEVASpeak;
 void HouseExtData::InitializeConstant()
 {
 	//BuiltAircraftTypes.PopulateCounts(10000);

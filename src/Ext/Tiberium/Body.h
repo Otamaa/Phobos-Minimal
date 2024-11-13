@@ -107,7 +107,7 @@ class TiberiumExtContainer final : public Container<TiberiumExtData>
 {
 public:
 	static TiberiumExtContainer Instance;
-	static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
+	inline static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -8,10 +8,6 @@
 #include <CCToolTip.h>
 #include <EventClass.h>
 
-IStream* SidebarExtData::g_pStm = nullptr;
-std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress {};
-std::unique_ptr<SidebarExtData> SidebarExtData::Data = nullptr;
-
 void SidebarExtData::Allocate(SidebarClass* pThis)
 {
 	Data = std::make_unique<SidebarExtData>();

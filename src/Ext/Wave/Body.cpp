@@ -160,7 +160,6 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
-std::vector<WaveExtData*> WaveExtContainer::Pool;
 
 // =============================
 // container hooks

@@ -14,8 +14,6 @@
 
 #include <Utilities/EnumFunctions.h>
 
-std::vector<FlyingStrings::Item> FlyingStrings::Data;
-
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {
 	if (!nCoords.IsValid())

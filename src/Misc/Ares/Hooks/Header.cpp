@@ -7872,9 +7872,6 @@ const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)
 
 #pragma region MappedAction
 
-std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
-DynamicVectorClass<BuildType, DllAllocator<BuildType>> MouseClassExt::TabCameos[4u];
-
 void MouseClassExt::ClearMappedAction()
 {
 	std::memset(CursorIdx.data(), 0, sizeof(MappedActions) * CursorIdx.size());
@@ -8238,44 +8235,6 @@ Action MouseClassExt::ValidateShroudedAction(Action nAction)
 	return nAction;
 }
 #pragma endregion
-
-
-DWORD AresGlobalData::InternalVersion = 0x1414D121;
-char AresGlobalData::ModName[0x40] = "Yuri's Revenge";
-char AresGlobalData::ModVersion[0x40] = "1.001";
-int AresGlobalData::ModIdentifier = 0;
-CSFText AresGlobalData::ModNote = {};
-byte AresGlobalData::GFX_DX_Force = 0;
-int AresGlobalData::colorCount = 8;
-int AresGlobalData::version = AresGlobalData::ModIdentifier;
-
-int AresGlobalData::uiColorText;
-int AresGlobalData::uiColorTextButton = 0xFFFF; // #1644: needed for CD prompt
-int AresGlobalData::uiColorTextCheckbox;
-int AresGlobalData::uiColorTextRadio;
-int AresGlobalData::uiColorTextLabel = 0xFFFF; // #1644: needed for CD prompt
-int AresGlobalData::uiColorTextList;
-int AresGlobalData::uiColorTextCombobox;
-int AresGlobalData::uiColorTextGroupbox;
-int AresGlobalData::uiColorTextEdit;
-int AresGlobalData::uiColorTextSlider;
-int AresGlobalData::uiColorTextObserver;
-int AresGlobalData::uiColorCaret;
-int AresGlobalData::uiColorSelection;
-int AresGlobalData::uiColorSelectionCombobox;
-int AresGlobalData::uiColorSelectionList;
-int AresGlobalData::uiColorSelectionObserver;
-int AresGlobalData::uiColorBorder1;
-int AresGlobalData::uiColorBorder2;
-int AresGlobalData::uiColorDisabled;
-int AresGlobalData::uiColorDisabledLabel;
-int AresGlobalData::uiColorDisabledButton;
-int AresGlobalData::uiColorDisabledCombobox;
-int AresGlobalData::uiColorDisabledCheckbox;
-int AresGlobalData::uiColorDisabledList;
-int AresGlobalData::uiColorDisabledSlider;
-int AresGlobalData::uiColorDisabledObserver;
-AresGlobalData::ColorData AresGlobalData::Colors[16 + 1];
 
 void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 {

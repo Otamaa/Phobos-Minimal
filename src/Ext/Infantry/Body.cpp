@@ -19,7 +19,6 @@ void InfantryExtData::Serialize(T& Stm)
 // container
 
 InfantryExtContainer InfantryExtContainer::Instance;
-std::vector<InfantryExtData*> InfantryExtContainer::Pool;
 
 // =============================
 // container hooks

@@ -17,6 +17,7 @@
 #include <New/Type/CrateTypeClass.h>
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/RocketTypeClass.h>
+#include <New/Type/InsigniaTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -35,9 +36,6 @@
 #include <Utilities/Helpers.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
-
-std::unique_ptr<RulesExtData>  RulesExtData::Data = nullptr;
-IStream* RulesExtData::g_pStm = nullptr;
 
 void RulesExtData::Allocate(RulesClass* pThis)
 {
@@ -124,6 +122,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ArmorTypeClass::LoadFromINIList_New(pINI);
 	ColorTypeClass::LoadFromINIList_New(pINI);
 	CursorTypeClass::LoadFromINIList_New(pINI);
+	InsigniaTypeClass::LoadFromINIList(pINI);
 
 	TunnelTypeClass::LoadFromINIList(pINI);
 

@@ -4,6 +4,7 @@
 #include <GeneralDefinitions.h>
 #include <Randomizer.h>
 #include <vector>
+#include <array>
 
 // These determine how many of each type of sync log event are stored in the buffers.
 // Any events added beyond this count overwrite old ones.
@@ -146,12 +147,12 @@ struct AnimCreationSyncLogEvent : SyncLogEvent
 class SyncLogger
 {
 private:
-	static SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> RNGCalls;
-	static SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> FacingChanges;
-	static SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> TargetChanges;
-	static SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> DestinationChanges;
-	static SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> MissionOverrides;
-	static SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> AnimCreations;
+	inline static SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> RNGCalls;
+	inline static SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> FacingChanges;
+	inline static SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> TargetChanges;
+	inline static SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> DestinationChanges;
+	inline static SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> MissionOverrides;
+	inline static SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> AnimCreations;
 
 	static void WriteRNGCalls(FILE* const pLogFile, int frameDigits);
 	static void WriteFacingChanges(FILE* const pLogFile, int frameDigits);
@@ -160,10 +161,10 @@ private:
 	static void WriteMissionOverrides(FILE* const pLogFile, int frameDigits);
 	static void WriteAnimCreations(FILE* const pLogFile, int frameDigits);
 public:
-	static bool HooksDisabled;
-	static int AnimCreations_HighestX;
-	static int AnimCreations_HighestY;
-	static int AnimCreations_HighestZ;
+	inline static bool HooksDisabled;
+	inline static int AnimCreations_HighestX;
+	inline static int AnimCreations_HighestY;
+	inline static int AnimCreations_HighestZ;
 
 	static void AddRNGCallSyncLogEvent(Random2Class* pRandomizer, int type, unsigned int callerAddress, int min = 0, int max = 0);
 	static void AddFacingChangeSyncLogEvent(unsigned short facing, unsigned int callerAddress);

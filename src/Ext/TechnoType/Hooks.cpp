@@ -536,7 +536,8 @@ DEFINE_HOOK(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 		R->Stack(0x88, pThis->Location.X + Coord->X);//X
 		R->Stack(0x8C, pThis->Location.Y + Coord->Y);//Y
 		R->EAX(pThis->Location.Z + Coord->Z); //Z
+		return 0x6FE218;
 	}
 
-	return 0x6FE218;
+	return 0x6FE140;
 }

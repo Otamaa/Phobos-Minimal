@@ -1,7 +1,5 @@
 #include "ShieldTypeClass.h"
 
-Enumerable<ShieldTypeClass>::container_t Enumerable<ShieldTypeClass>::Array;
-
 ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
 , Strength { 0 }
 , InitialStrength {}

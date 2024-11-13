@@ -1003,7 +1003,7 @@ public:
 class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
-	static std::vector<TechnoExtData*> Pool;
+	inline static std::vector<TechnoExtData*> Pool;
 	static TechnoExtContainer Instance;
 
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)

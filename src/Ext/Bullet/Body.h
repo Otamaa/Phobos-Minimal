@@ -93,7 +93,7 @@ private:
 class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
-	static std::vector<BulletExtData*> Pool;
+	inline static std::vector<BulletExtData*> Pool;
 	static BulletExtContainer Instance;
 
 	BulletExtData* AllocateUnchecked(BulletClass* key)

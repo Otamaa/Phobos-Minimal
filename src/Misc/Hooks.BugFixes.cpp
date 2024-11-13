@@ -295,16 +295,16 @@ DEFINE_JUMP(LJMP, 0x47CA05, 0x47CA33);
 
 // bugfix: DeathWeapon not properly detonates
 // Author: Uranusian
-DEFINE_HOOK(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
-{
-	GET(BulletClass*, pBullet, EBX);
-	GET(CoordStruct*, pCoord, EAX);
-
-	pBullet->SetLocation(*pCoord);
-	pBullet->Explode(true);
-
-	return 0x70D787;
-}
+// DEFINE_HOOK(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
+// {
+// 	GET(BulletClass*, pBullet, EBX);
+// 	GET(CoordStruct*, pCoord, EAX);
+//
+// 	pBullet->SetLocation(*pCoord);
+// 	pBullet->Explode(true);
+//
+// 	return 0x70D787;
+// }
 
 static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 {

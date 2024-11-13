@@ -12,24 +12,6 @@
 #include <vector>
 #include <Phobos.h>
 
-char Debug::DeferredStringBuffer[0x1000];
-char Debug::LogMessageBuffer[0x1000];
-std::vector<std::string> Debug::DeferredLogData;
-
-bool Debug::LogEnabled = false;
-bool Debug::made = false;
-
-FILE* Debug::LogFile = nullptr;
-std::wstring Debug::ApplicationFilePath {};
-std::wstring Debug::LogFilePathName {};
-std::wstring Debug::LogFileMainName { L"\\debug" };
-std::wstring Debug::LogFileMainFormattedName {};
-std::wstring Debug::LogFileTempName {};
-std::wstring Debug::LogFileExt { L".log" };
-
-Console::ConsoleTextAttribute Console::TextAttribute;
-HANDLE Console::ConsoleHandle;
-
 bool Console::Create()
 {
 	if (FALSE == AllocConsole())

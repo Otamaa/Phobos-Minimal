@@ -9,7 +9,7 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
-HelperedVector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
+//HelperedVector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 void SWStateMachine::UpdateAll()
 {

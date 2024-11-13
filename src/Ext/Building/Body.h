@@ -122,7 +122,7 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
-	static std::vector<BuildingExtData*> Pool;
+	inline static std::vector<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
 
 	BuildingExtData* AllocateUnchecked(BuildingClass* key)

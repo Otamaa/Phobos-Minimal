@@ -1,6 +1,7 @@
 #pragma once
-#include <BulletClass.h>
+
 #include <WeaponTypeClass.h>
+#include <DiskLaserClass.h>
 
 #include <Utilities/TemplateDef.h>
 
@@ -197,8 +198,8 @@ private:
 
 public:
 
-	static int nOldCircumference;
-	static PhobosMap<EBolt*, const WeaponTypeExtData*> boltWeaponTypeExt;
+	inline static int nOldCircumference { DiskLaserClass::Radius };
+	inline static PhobosMap<EBolt*, const WeaponTypeExtData*> boltWeaponTypeExt;
 
 	static int GetBurstDelay(WeaponTypeClass* pThis, int burstIndex);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);

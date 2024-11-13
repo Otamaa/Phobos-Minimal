@@ -1,6 +1,5 @@
 #include "CrateTypeClass.h"
 
-Enumerable<CrateTypeClass>::container_t Enumerable<CrateTypeClass>::Array;
 const char * Enumerable<CrateTypeClass>::GetMainSection() { return "CrateTypes"; }
 
 void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {

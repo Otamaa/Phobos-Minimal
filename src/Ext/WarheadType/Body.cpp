@@ -22,8 +22,6 @@
 #include <InfantryClass.h>
 #include <TerrainClass.h>
 
-PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
-
 void WarheadTypeExtData::InitializeConstant()
 {
 	this->AttachedEffect.Owner = this->AttachedToObject;

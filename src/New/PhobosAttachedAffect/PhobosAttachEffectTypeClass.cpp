@@ -1,7 +1,5 @@
 #include "PhobosAttachEffectTypeClass.h"
 
-PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
-Enumerable<PhobosAttachEffectTypeClass>::container_t Enumerable<PhobosAttachEffectTypeClass>::Array;
 template<>
 const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
 {

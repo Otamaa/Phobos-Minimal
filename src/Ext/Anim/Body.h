@@ -84,7 +84,7 @@ class AnimTypeExtData;
 class FakeAnimClass : public AnimClass
 {
 public:
-	static std::vector<AnimExtData*> Pool;
+	inline static std::vector<AnimExtData*> Pool;
 
 	static constexpr FORCEINLINE void ClearExtAttribute(AnimClass* key)
 	{

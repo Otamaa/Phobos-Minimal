@@ -79,7 +79,6 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
-std::vector<VoxelAnimExtData*> VoxelAnimExtContainer::Pool;
 
 DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {

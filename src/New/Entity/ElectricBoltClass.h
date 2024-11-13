@@ -240,7 +240,7 @@ public:
 
 struct ElectricBoltManager
 {
-	static std::vector<ElectricBoltClass> ElectricBoltArray;
+	inline static std::vector<ElectricBoltClass> ElectricBoltArray;
 
 	static void Draw_All();
 	static void Clear();

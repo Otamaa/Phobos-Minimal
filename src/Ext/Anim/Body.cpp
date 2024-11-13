@@ -167,7 +167,6 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
 	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
 
-	double damage = 0;
 	int appliedDamage = 0;
 
 	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
@@ -179,12 +178,13 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
-		damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
+		double damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
 
 		// Deal damage if it is at least 1, otherwise accumulate it for later.
 		if (damage >= 1.0) {
 			appliedDamage = static_cast<int>(std::round(damage));
 			pThis->Accum = damage - appliedDamage;
+
 		} else {
 			pThis->Accum = damage;
 			return SkipDamage;
@@ -193,10 +193,9 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	else
 	{
 		// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
-		damage = pThis->Accum + 1.0;
-		pThis->Accum = damage;
+		pThis->Accum =+ 1.0;
 
-		if (damage < delay)
+		if (pThis->Accum < delay)
 			return SkipDamage;
 
 		// Use Type->Damage as the actually dealt damage.
@@ -213,14 +212,6 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	if (auto const pWeapon = pTypeExt->Weapon)
 	{
 		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
-		// use target loc instead of anim loc , it doesnt work well with bridges
-		//auto pBullet = pWeapon->Projectile->CreateBullet(pTarget, pInvoker, nDamageResult, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright);
-		//pBullet->SetWeaponType(pWeapon);
-		//pBullet->Limbo();
-		//pBullet->SetLocation(nCoord);
-		//pBullet->Explode(true);
-		//pBullet->UnInit();
-
 		WeaponTypeExtData::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
 	}
 	else
@@ -228,29 +219,6 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		/*if (IS_SAME_STR_("ZTARGET_B", pThis->Type->ID) && pInvoker &&  IS_SAME_STR_("MDUMMY7", pInvoker->get_ID())){
-			auto invoker_loc = pInvoker->GetCoords();
-			Debug::Log(__FUNCTION__" Executed Invoker [%d %d %d] Anim[%d %d %d]\n",
-				invoker_loc.X,
-				invoker_loc.Y,
-				invoker_loc.Z,
-				nCoord.X,
-				nCoord.Y,
-				nCoord.Z
-			);
-
-			auto checks = Helpers::Alex::getCellSpreadItems(pThis->GetCoords(), pWarhead->CellSpread, false, false);
-			for (auto pTech : checks) {
-				if (pTech->Owner && !pTech->Owner->IsAlliedWith(pOwner)
-					&& abs(GeneralUtils::GetWarheadVersusArmor(pWarhead, pTech->GetTechnoType()->Armor) > 0.001)
-					)
-				{
-					GameDebugLog::Log("Affecting Techno[%s] with owner[%s] from [%s]\n", pTech->get_ID(), pTech->Owner->get_ID(), pOwner->get_ID());
-				}
-			}
-
-			PhobosGlobal::Instance()->AnimAttachedto = pInvoker;
-		}*/
 		const auto nDamageResult = static_cast<int>(appliedDamage * TechnoExtData::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
@@ -728,11 +696,6 @@ void AnimExtData::Serialize(T& Stm)
 }
 
 // =============================
-// container
-
-std::vector<AnimExtData*> FakeAnimClass::Pool;
-
-// =============================
 // hooks
 
 #include <Misc/SyncLogging.h>
@@ -865,7 +828,6 @@ DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 }
 
 #endif
-
 
 HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm)
 {

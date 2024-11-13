@@ -25,7 +25,7 @@ public:
 	static bool IsEnabled();
 
 private:
-	static std::unique_ptr<SWSidebarClass> Instance;
+	inline static std::unique_ptr<SWSidebarClass> Instance;
 public:
 	static constexpr void Allocate() {
 		Instance = std::make_unique<SWSidebarClass>();

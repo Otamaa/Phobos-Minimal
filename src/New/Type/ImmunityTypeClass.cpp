@@ -1,7 +1,5 @@
 #include "ImmunityTypeClass.h"
 
-Enumerable<ImmunityTypeClass>::container_t Enumerable<ImmunityTypeClass>::Array;
-
 const char* Enumerable<ImmunityTypeClass>::GetMainSection()
 {
 	return "ImmunityTypes";
@@ -9,9 +7,6 @@ const char* Enumerable<ImmunityTypeClass>::GetMainSection()
 
 void ImmunityTypeClass::LoadFromINIList(CCINIClass * pINI, bool bDebug)
 {
-	if (!pINI)
-		return;
-
 	const char* section = ImmunityTypeClass::GetMainSection();
 
 	if (!pINI->GetSection(section))

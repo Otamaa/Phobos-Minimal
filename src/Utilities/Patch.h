@@ -3,7 +3,6 @@
 #include <Base/Always.h>
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 struct module_export
 {
@@ -61,7 +60,7 @@ struct NOVTABLE
 	static void ApplyStatic();
 	void Apply();
 
-	static std::vector<dllData> ModuleDatas;
+	inline static std::vector<dllData> ModuleDatas;
 
 	template<typename TFrom, typename To>
 	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -168,7 +167,7 @@ struct NOVTABLE
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 public :
-	static HANDLE CurrentProcess;
+	inline static HANDLE CurrentProcess;
 };
 
 struct NOVTABLE

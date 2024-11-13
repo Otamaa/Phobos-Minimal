@@ -31,8 +31,8 @@ class CCINIClass;
 struct SpawnerMain
 {
 	struct Configs {
-		static bool Enabled; // false
-		static bool Active; //false
+		static inline bool Enabled; // false
+		static inline bool Active; //false
 
 	public:
 
@@ -297,7 +297,7 @@ struct SpawnerMain
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
-	static std::list<MixFileClass*> LoadedMixFiles;
+	inline static std::list<MixFileClass*> LoadedMixFiles;
 
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();

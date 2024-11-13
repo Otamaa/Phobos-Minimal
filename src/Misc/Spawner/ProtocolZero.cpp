@@ -11,8 +11,6 @@
 
 #include <Helpers/Macro.h>
 
-LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LatencyLevelEnum::LATENCY_LEVEL_INITIAL;
-unsigned char LatencyLevel::NewFrameSendRate = 3;
 
 void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 {

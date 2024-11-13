@@ -1,8 +1,5 @@
 #include "AttachEffectType.h"
 
-
-Enumerable<AttachEffectType>::container_t Enumerable<AttachEffectType>::Array;
-
 const char* Enumerable<AttachEffectType>::GetMainSection()
 {
 	return "AttachEffectTypes";

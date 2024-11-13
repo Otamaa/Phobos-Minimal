@@ -54,8 +54,8 @@ public:
 			bool Unused : 1;
 		};
 	};
-	static ConsoleTextAttribute TextAttribute;
-	static HANDLE ConsoleHandle;
+	inline static ConsoleTextAttribute TextAttribute;
+	inline static HANDLE ConsoleHandle;
 
 	static bool Create();
 	static void Release();
@@ -91,19 +91,19 @@ public:
 		Fatal = 5
 	};
 
-	static FILE* LogFile;
-	static bool LogEnabled;
+	inline static FILE* LogFile;
+	inline static bool LogEnabled;
 
-	static std::wstring ApplicationFilePath;
-	static std::wstring LogFilePathName;
-	static std::wstring LogFileMainName;
-	static std::wstring LogFileTempName;
-	static std::wstring LogFileMainFormattedName;
-	static std::wstring LogFileExt;
+	inline static std::wstring ApplicationFilePath {};
+	inline static std::wstring LogFilePathName {};
+	inline static std::wstring LogFileMainName { L"\\debug" };
+	inline static std::wstring LogFileTempName {};
+	inline static std::wstring LogFileMainFormattedName {};
+	inline static std::wstring LogFileExt { L".log" };
 
-	static char DeferredStringBuffer[0x1000];
-	static char LogMessageBuffer[0x1000];
-	static std::vector<std::string> DeferredLogData;
+	inline static char DeferredStringBuffer[0x1000];
+	inline static char LogMessageBuffer[0x1000];
+	inline static std::vector<std::string> DeferredLogData;
 
 	enum class ExitCode : size_t
 	{
@@ -274,7 +274,7 @@ public:
 			localTime->tm_sec);
 	}
 
-	static bool made;
+	static inline bool made;
 
 	static NOINLINE void PrepareLogFile() {
 

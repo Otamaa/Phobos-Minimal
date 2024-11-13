@@ -6,8 +6,6 @@
 
 #include <Ext/TechnoType/Body.h>
 
-Enumerable<GenericPrerequisite>::container_t Enumerable<GenericPrerequisite>::Array;
-
 const char* Enumerable<GenericPrerequisite>::GetMainSection()
 {
 	return "GenericPrerequisites";

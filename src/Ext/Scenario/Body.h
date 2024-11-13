@@ -35,7 +35,7 @@ struct ExtendedVariable
 class ScenarioExtData final
 {
 private:
-	static std::unique_ptr<ScenarioExtData> Data;
+	inline static std::unique_ptr<ScenarioExtData> Data;
 public:
 	static constexpr size_t Canary = 0xABCD1595;
 	using base_type = ScenarioClass;
@@ -85,8 +85,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	static IStream* g_pStm;
-	static bool CellParsed;
+	inline static IStream* g_pStm;
+	inline static bool CellParsed;
 
 	static void Allocate(ScenarioClass* pThis);
 	static void Remove(ScenarioClass* pThis);
@@ -107,5 +107,5 @@ public:
 	static void LoadVariablesToFile(bool isGlobal);
 
 	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
-	static bool UpdateLightSources;
+	inline static bool UpdateLightSources;
 };

@@ -49,7 +49,7 @@ public:
 class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
-	static std::vector<VoxelAnimExtData*> Pool;
+	inline static std::vector<VoxelAnimExtData*> Pool;
 	static VoxelAnimExtContainer Instance;
 
 	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)

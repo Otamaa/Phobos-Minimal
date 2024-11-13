@@ -29,7 +29,7 @@ private:
 	};
 
 	static constexpr int Duration = 75;
-	static std::vector<Item> Data;
+	inline static std::vector<Item> Data;
 
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 

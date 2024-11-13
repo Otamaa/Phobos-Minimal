@@ -42,8 +42,8 @@ enum class LatencyLevelEnum : uint8_t
 class LatencyLevel
 {
 public:
-	static LatencyLevelEnum CurentLatencyLevel;
-	static uint8_t NewFrameSendRate;
+	inline static LatencyLevelEnum CurentLatencyLevel { LatencyLevelEnum::LATENCY_LEVEL_INITIAL };
+	inline static uint8_t NewFrameSendRate { 3 };
 
 	static void Apply(LatencyLevelEnum newLatencyLevel);
 	static void __forceinline Apply(uint8_t newLatencyLevel)

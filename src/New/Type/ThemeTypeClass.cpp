@@ -4,8 +4,6 @@
 
 #include <Helpers/Macro.h>
 
-Enumerable<ThemeTypeClass>::container_t Enumerable<ThemeTypeClass>::Array;
-
 const char* Enumerable<ThemeTypeClass>::GetMainSection()
 {
 	return "Themes";

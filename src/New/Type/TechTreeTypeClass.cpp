@@ -5,9 +5,6 @@
 #include <Utilities/TemplateDef.h>
 #include "Utilities/Debug.h"
 
-
-Enumerable<TechTreeTypeClass>::container_t Enumerable<TechTreeTypeClass>::Array;
-
 size_t TechTreeTypeClass::CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const
 {
 	size_t count = 0;

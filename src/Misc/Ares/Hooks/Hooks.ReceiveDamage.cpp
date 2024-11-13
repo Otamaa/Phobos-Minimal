@@ -185,25 +185,28 @@ DEFINE_HOOK(0x702B67, TechnoClass_ReceiveDamage_ScatterCheck, 0x5)
 		return 0x702D11;
 
 	if (pThis->AbstractFlags & AbstractFlags::Foot) {
-		const auto pFoot = static_cast<FootClass*>(pThis);
+
+		auto pFoot = reinterpret_cast<FootClass*>(pThis);
 
 		if (!pFoot->Target && !pFoot->Destination) {
-			const bool scatter =
-				(R->Origin() == 0x702B67 && (RulesClass::Instance->Scatter || pFoot->HasAbility(AbilityType::Scatter)))
-				||
-				(!pFoot->IsTethered &&
-					pFoot->WhatAmI() != AircraftClass::AbsID &&
-					pFoot->GetCurrentMissionControl()->Scatter &&
-					!pFoot->Locomotor.GetInterfacePtr()->Is_Moving() &&
-					(!pFoot->Owner->IsControlledByHuman() ||
-						RulesClass::Instance->Scatter ||
-						pFoot->HasAbility(AbilityType::Scatter)
-					)
-				);
 
-			if (scatter) {
+			if (R->Origin() == 0x702B67 && (RulesClass::Instance->PlayerScatter || pFoot->HasAbility(AbilityType::Scatter))) {
 				pFoot->Scatter(CoordStruct::Empty, true, false);
 			}
+			else if (!pFoot->IsTethered && pFoot->WhatAmI() != AircraftClass::AbsID && pThis->GetCurrentMissionControl()->Scatter) {
+				const bool IsMoving = pFoot->Locomotor.GetInterfacePtr()->Is_Moving();
+
+				if (!IsMoving) {
+					const bool IsHuman = pFoot->Owner->IsControlledByHuman();
+					const bool IsScatter = RulesClass::Instance->PlayerScatter;
+					const bool IscatterAbility = pFoot->HasAbility(AbilityType::Scatter);
+					if (!IsHuman || IsScatter || IscatterAbility) {
+						pFoot->Scatter(CoordStruct::Empty, true, false);
+					}
+				}
+
+			}
+
 		}
 	}
 

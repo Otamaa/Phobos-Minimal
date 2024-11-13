@@ -4,8 +4,6 @@
 
 #include <WarheadTypeClass.h>
 
-Enumerable<RadTypeClass>::container_t Enumerable<RadTypeClass>::Array;
-
 // pretty nice, eh
 const char* Enumerable<RadTypeClass>::GetMainSection()
 {

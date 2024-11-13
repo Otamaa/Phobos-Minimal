@@ -23,7 +23,6 @@
 #include <MessageBox.h>
 
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
-std::list<MixFileClass*> SpawnerMain::LoadedMixFiles {};
 
 FORCEINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
 {
@@ -41,9 +40,6 @@ FORCEINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std
 }
 
 SpawnerMain::Configs SpawnerMain::Configs::m_Ptr {};
-
-bool SpawnerMain::Configs::Enabled = false;
-bool SpawnerMain::Configs::Active = false;
 
 class NOVTABLE StaticLoadOptionsClass {
 public:

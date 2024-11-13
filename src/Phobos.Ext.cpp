@@ -56,6 +56,7 @@
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
 #include <New/Type/BarTypeClass.h>
+#include <New/Type/InsigniaTypeClass.h>
 
 #include <New/HugeBar.h>
 
@@ -415,6 +416,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	BarTypeClass::Clear();
 	SWFirerClass::Clear();
 	ShieldClass::Array.clear();
+	InsigniaTypeClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -602,7 +604,8 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<HugeBar>(pStm) &&
 		Process_Load<RocketTypeClass>(pStm) &&
 		Process_Load<BarTypeClass>(pStm) &&
-		Process_Load<SWFirerClass>(pStm)
+		Process_Load<SWFirerClass>(pStm) &&
+		Process_Load<InsigniaTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -659,7 +662,8 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<HugeBar>(pStm) &&
 			Process_Save<RocketTypeClass>(pStm) &&
 			Process_Save<BarTypeClass>(pStm) &&
-			Process_Save<SWFirerClass>(pStm)
+			Process_Save<SWFirerClass>(pStm) &&
+			Process_Save<InsigniaTypeClass>(pStm)
 			;
 
 		if (!ret)

@@ -10,8 +10,6 @@
 #include <Utilities/ShapeTextPrinter.h>
 #include <Utilities/TemplateDef.h>
 
-std::vector<TechnoClass*> HugeBar::Technos;
-
 HugeBar::HugeBar(DisplayInfoType infoType)
 	: HugeBar_RectWidthPercentage(0.82)
 	, HugeBar_RectWH({ -1, 30 })

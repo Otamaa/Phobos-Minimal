@@ -7,11 +7,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-#include <DiskLaserClass.h>
-#include <EBolt.h>
 
-int WeaponTypeExtData::nOldCircumference = DiskLaserClass::Radius;
-PhobosMap<EBolt*, const WeaponTypeExtData*> WeaponTypeExtData::boltWeaponTypeExt;
+#include <EBolt.h>
 
 void WeaponTypeExtData::Initialize()
 {

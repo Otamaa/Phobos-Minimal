@@ -34,11 +34,6 @@
 
 #include "SuperWeaponSidebar.h"
 
-bool SWTypeExtData::Handled = false;
-SuperClass* SWTypeExtData::TempSuper = nullptr;
-SuperClass* SWTypeExtData::LauchData = nullptr;
-SuperWeaponTypeClass* SWTypeExtData::CurrentSWType = nullptr;
-
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExtData::AITargetingModes =
 {

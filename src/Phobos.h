@@ -1,16 +1,13 @@
 #pragma once
 
 #include <Phobos.version.h>
-#include <Base/Always.h>
+
 #include <GameStrings.h>
+#include <Utilities/Patch.h>
 
-#include <vector>
-#include <string>
 #include <Wstring.h>
-
 #include <format>
 #include <random>
-
 #include <ColorStruct.h>
 
 #ifndef NANOPRINTF_IMPLEMENTATION
@@ -77,6 +74,12 @@ constexpr const char* UIMD_ = "uimd.ini";
 #define Eva_UnitSold GameStrings::EVA_UnitSold()
 #define Eva_OreMinerUnderAttack GameStrings::EVA_OreMinerUnderAttack()
 
+enum class ExceptionHandlerMode {
+	Default = 0,
+	Full = 1,
+	NoRemove = 2
+};
+
 struct Phobos final
 {
 	class Random
@@ -111,70 +114,72 @@ struct Phobos final
 	static void InitAdminDebugMode();
 	static void ThrowUsageWarning(CCINIClass* pINI);
 	static void InitConsole();
-	//variables
-	static HANDLE hInstance;
-
-	static constexpr size_t readLength = 2048;
-	static char readBuffer[readLength];
-	static wchar_t wideBuffer[readLength];
-	static const char readDelims[4];
-	static const char readDefval[4];
-
-	static std::string AppIconPath;
-	static bool Debug_DisplayDamageNumbers;
-	static const wchar_t* VersionDescription;
 
 	static bool DetachFromDebugger();
 	static HRESULT SaveGameDataAfter(IStream* pStm);
 	static void LoadGameDataAfter(IStream* pStm);
-
-	static bool EnableConsole;
-
-	static bool ShouldQuickSave;
-	static std::wstring CustomGameSaveDescription;
 	static void PassiveSaveGame();
+
+	//variables
+	static inline HANDLE hInstance;
+	static inline  constexpr size_t readLength = 2048;
+	static inline  char readBuffer[readLength];
+	static inline  wchar_t wideBuffer[readLength];
+	static inline  const char readDelims[4] { "," };
+	static inline  const char readDefval[4] { "" };
+	static inline std::string AppIconPath;
+	static inline bool Debug_DisplayDamageNumbers;
+	static inline const wchar_t* VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
+	static inline bool EnableConsole;
+	static inline bool ShouldQuickSave;
+	static inline std::wstring CustomGameSaveDescription;
+	static inline PVOID pExceptionHandler;
+	static inline ExceptionHandlerMode ExceptionMode;
+
+	static inline bool HasCNCnet;
+	static inline std::vector<Patch> Patches;
 
 	struct UI
 	{
-		static bool DisableEmptySpawnPositions;
-		static bool ExtendedToolTips;
-		static int MaxToolTipWidth;
-		static bool ShowHarvesterCounter;
-		static double HarvesterCounter_ConditionYellow;
-		static double HarvesterCounter_ConditionRed;
-		static bool ShowProducingProgress;
-		static bool ShowPowerDelta;
-		static double PowerDelta_ConditionYellow;
-		static double PowerDelta_ConditionRed;
-		static bool CenterPauseMenuBackground;
-		static bool WeedsCounter_Show;
-		static bool UnlimitedColor;
-		static bool AnchoredToolTips;
+		static inline bool DisableEmptySpawnPositions;
+		static inline bool ExtendedToolTips;
+		static inline int MaxToolTipWidth;
+		static inline bool ShowHarvesterCounter;
+		static inline double HarvesterCounter_ConditionYellow { 0.99 };
+		static inline double HarvesterCounter_ConditionRed { 0.5 };
+		static inline bool ShowProducingProgress;
+		static inline bool ShowPowerDelta;
+		static inline double PowerDelta_ConditionYellow { 0.75 };
+		static inline double PowerDelta_ConditionRed { 1.0 };
+		static inline bool CenterPauseMenuBackground;
+		static inline bool WeedsCounter_Show;
+		static inline bool UnlimitedColor;
+		static inline bool AnchoredToolTips;
 
-		static bool ExclusiveSWSidebar;
-		static int ExclusiveSWSidebar_Interval;
-		static int ExclusiveSWSidebar_Max;
-		static int ExclusiveSWSidebar_MaxColumn;
+		static inline bool ExclusiveSWSidebar;
+		static inline int ExclusiveSWSidebar_Interval;
+		static inline int ExclusiveSWSidebar_Max;
+		static inline int ExclusiveSWSidebar_MaxColumn { INT32_MAX };
 
-		static const wchar_t* CostLabel;
-		static const wchar_t* PowerLabel;
-		static const wchar_t* PowerBlackoutLabel;
-		static const wchar_t* TimeLabel;
-		static const wchar_t* HarvesterLabel;
-		static const wchar_t* PercentLabel;
+		static inline const wchar_t* CostLabel;
+		static inline const wchar_t* PowerLabel;
+		static inline const wchar_t* PowerBlackoutLabel;
+		static inline const wchar_t* TimeLabel;
+		static inline const wchar_t* HarvesterLabel;
+		static inline const wchar_t* PercentLabel;
 
-		static const wchar_t* BuidingRadarJammedLabel;
-		static const wchar_t* BuidingFakeLabel;
-		static const wchar_t* ShowBriefingResumeButtonLabel;
-		static char ShowBriefingResumeButtonStatusLabel[0x20];
+		static inline const wchar_t* BuidingRadarJammedLabel;
+		static inline const wchar_t* BuidingFakeLabel;
+		static inline const wchar_t* ShowBriefingResumeButtonLabel { L"" };
+		static inline char ShowBriefingResumeButtonStatusLabel[0x20];
 
-		static const wchar_t* Power_Label;
-		static const wchar_t* Drain_Label;
-		static const wchar_t* Storage_Label;
-		static const wchar_t* Radar_Label;
-		static const wchar_t* Spysat_Label;
+		static inline const wchar_t* Power_Label;
+		static inline const wchar_t* Drain_Label;
+		static inline const wchar_t* Storage_Label;
+		static inline const wchar_t* Radar_Label;
+		static inline const wchar_t* Spysat_Label;
 
-		static const wchar_t* SWShotsFormat;
+		static inline const wchar_t* SWShotsFormat { L"" };
 
 	};
 
@@ -182,72 +187,73 @@ struct Phobos final
 	{
 		static void Read();
 
-		static bool HideWarning;
-		static bool ToolTipDescriptions;
-		static bool ToolTipBlur;
-		static bool PrioritySelectionFiltering;
-		static bool DevelopmentCommands;
-		static bool ArtImageSwap;
+		static inline bool HideWarning;
+		static inline bool ToolTipDescriptions { true };
+		static inline bool ToolTipBlur;
+		static inline bool PrioritySelectionFiltering { true };
+		static inline bool DevelopmentCommands { true };
+		static inline bool ArtImageSwap;
 
-		static bool EnableBuildingPlacementPreview;
-		static bool EnableSelectBrd;
+		static inline bool EnableBuildingPlacementPreview;
+		static inline bool EnableSelectBrd;
 
-		static bool TogglePowerInsteadOfRepair;
-		static bool ShowTechnoNamesIsActive;
+		static inline bool TogglePowerInsteadOfRepair;
+		static inline bool ShowTechnoNamesIsActive;
 
-		static bool RealTimeTimers;
-		static bool RealTimeTimers_Adaptive;
-		static int CampaignDefaultGameSpeed;
+		static inline bool RealTimeTimers;
+		static inline bool RealTimeTimers_Adaptive;
+		static inline int CampaignDefaultGameSpeed { 2 };
 
-		static bool DigitalDisplay_Enable;
+		static inline bool DigitalDisplay_Enable;
 
-		static bool ApplyShadeCountFix;
+		static inline bool ApplyShadeCountFi { true };
 
-		static bool SaveVariablesOnScenarioEnd;
+		static inline bool SaveVariablesOnScenarioEnd;
 
-		static bool MultiThreadSinglePlayer;
-		static bool UseImprovedPathfindingBlockageHandling;
-		static bool HideLightFlashEffects;
+		static inline bool MultiThreadSinglePlayer;
+		static inline bool UseImprovedPathfindingBlockageHandling;
+		static inline bool HideLightFlashEffects;
 
-		static bool DebugFatalerrorGenerateDump;
-		static bool SaveGameOnScenarioStart;
+		static inline bool DebugFatalerrorGenerateDump;
+		static inline bool SaveGameOnScenarioStart { true };
 
-		static bool ShowPowerDelta;
-		static bool ShowHarvesterCounter;
-		static bool ShowWeedsCounter;
+		static inline bool ShowPowerDelta { true };
+		static inline bool ShowHarvesterCounter;
+		static inline bool ShowWeedsCounter;
 
-		static bool UseNewInheritance;
-		static bool UseNewIncludes;
+		static inline bool UseNewInheritance;
+		static inline bool UseNewIncludes;
+		static inline bool ApplyShadeCountFix { true };
 	};
 
 	struct Misc
 	{
-		static bool CustomGS;
-		static int CustomGS_ChangeInterval[7];
-		static int CustomGS_ChangeDelay[7];
-		static int CustomGS_DefaultDelay[7];
+		static inline bool CustomGS;
+		static inline int CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
+		static inline int CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+		static inline int CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
 	};
 
 	struct Otamaa
 	{
-		static bool DisableCustomRadSite;
-		static bool IsAdmin;
-		static bool ShowHealthPercentEnabled;
-		static bool ExeTerminated;
-		static bool DoingLoadGame;
-		static bool AllowAIControl;
-		static bool OutputMissingStrings;
-		static bool OutputAudioLogs;
-		static bool StrictParser;
-		static bool ParserErrorDetected;
-		static bool TrackParserErrors;
-		static bool NoLogo;
-		static bool NoCD;
-		static bool CompatibilityMode;
-		static bool ReplaceGameMemoryAllocator;
-		static bool AllowMultipleInstance;
+		static inline bool DisableCustomRadSite;
+		static inline bool IsAdmin;
+		static inline bool ShowHealthPercentEnabled;
+		static inline bool ExeTerminated;
+		static inline bool DoingLoadGame;
+		static inline bool AllowAIControl;
+		static inline bool OutputMissingStrings;
+		static inline bool OutputAudioLogs;
+		static inline bool StrictParser;
+		static inline bool ParserErrorDetected;
+		static inline bool TrackParserErrors;
+		static inline bool NoLogo;
+		static inline bool NoCD;
+		static inline bool CompatibilityMode;
+		static inline bool ReplaceGameMemoryAllocator;
+		static inline bool AllowMultipleInstance;
 
-		static DWORD PhobosBaseAddress;
+		static inline DWORD PhobosBaseAddress;
 	};
 
 	struct Defines

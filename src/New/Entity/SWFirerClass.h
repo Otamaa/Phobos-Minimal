@@ -40,7 +40,7 @@ public:
 	~SWFirerClass() = default;
 
 public:
-	static HelperedVector<SWFirerClass> Array;
+	inline static HelperedVector<SWFirerClass> Array;
 
 	static void Clear() { Array.clear(); }
 	static void Update();

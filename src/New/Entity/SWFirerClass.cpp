@@ -1,7 +1,5 @@
 #include "SWFirerClass.h"
 
-HelperedVector<SWFirerClass> SWFirerClass::Array;
-
 void SWFirerClass::Update()
 {
 	Array.remove_all_if([](auto& item) {

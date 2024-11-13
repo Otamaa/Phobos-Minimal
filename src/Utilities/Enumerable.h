@@ -21,7 +21,7 @@ template <typename T> class Enumerable
 	typedef std::vector<T> container_t;
 public:
 
-	static container_t Array;
+	inline 	static container_t Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
@@ -142,9 +142,6 @@ public:
 
 	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false)
 	{
-		if (!pINI)
-			return;
-
 		const char* section = GetMainSection();
 
 		if (!pINI->GetSection(section))
@@ -172,9 +169,6 @@ public:
 
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false)
 	{
-		if (!pINI)
-			return;
-
 		const char* section = GetMainSection();
 
 		if (!pINI->GetSection(section))

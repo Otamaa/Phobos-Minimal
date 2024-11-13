@@ -154,7 +154,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	static HelperedVector<ShieldClass*> Array;
+	inline static HelperedVector<ShieldClass*> Array;
 
 private:
 	template <typename T>

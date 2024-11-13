@@ -344,24 +344,24 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	return vsData_Primary->Verses != 0.0 ? FurtherCheck : Secondary;
 }
 
-DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-	GET_BASE(int, weaponIndex, 0xC);
-
-	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeapon->IsLaser)
-	{
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-		if (pExt->CurrentLaserWeaponIndex.empty())
-			pExt->CurrentLaserWeaponIndex = weaponIndex;
-		else
-			pExt->CurrentLaserWeaponIndex.clear();
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(WeaponTypeClass* const, pWeapon, EBX);
+// 	GET_BASE(int, weaponIndex, 0xC);
+//
+// 	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeapon->IsLaser)
+// 	{
+// 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+//
+// 		if (pExt->CurrentLaserWeaponIndex.empty())
+// 			pExt->CurrentLaserWeaponIndex = weaponIndex;
+// 		else
+// 			pExt->CurrentLaserWeaponIndex.clear();
+// 	}
+//
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 {

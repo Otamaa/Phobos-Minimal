@@ -340,70 +340,94 @@ DEFINE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	return 0x44ACE2;
 }
 
-DEFINE_HOOK(0x6FF4DE, TechnoClass_Fire_IsLaser, 6)
+DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 {
-	GET(TechnoClass* const, pThis, ECX);
+	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTarget, EDI);
 	GET(WeaponTypeClass* const, pFiringWeaponType, EBX);
+	GET_BASE(int, idxWeapon, 0xC);// don't use stack offsets - function uses on-the-fly stack realignments which mean offsets are not constants
 
-	auto const idxWeapon = R->Base<int>(0xC); // don't use stack offsets - function uses on-the-fly stack realignments which mean offsets are not constants
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
-	int const Thickness = pData->Laser_Thickness;
+	auto pType = pThis->GetTechnoType();
+	if(pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer()) {
 
-	if (auto const pBld = abstract_cast<BuildingClass*>(pThis))
-	{
-		auto const pTWeapon = pBld->GetPrimaryWeapon()->WeaponType;
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-		if (auto const pLaser = pBld->CreateLaser(pTarget, idxWeapon, pTWeapon, CoordStruct::Empty))
+		if (pTypeExt->TargetLaser_WeaponIdx.empty()
+			|| pTypeExt->TargetLaser_WeaponIdx.Contains(idxWeapon))
 		{
+			pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
+		}
+	}
 
-			//default thickness for buildings. this was 3 for PrismType (rising to 5 for supported prism) but no idea what it was for non-PrismType - setting to 3 for all BuildingTypes now.
-			pLaser->Thickness = Thickness == -1 ? 3 : Thickness;
-			auto const pBldTypeData = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+	if(pFiringWeaponType->IsLaser) {
+		auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
+		int const Thickness = pData->Laser_Thickness;
 
-			if (pBldTypeData->PrismForwarding.CanAttack())
+		if (auto const pBld = specific_cast<BuildingClass*>(pThis))
+		{	//ToggleLaserWeaponIndex
+
+			if (pExt->CurrentLaserWeaponIndex.empty())
+				pExt->CurrentLaserWeaponIndex = idxWeapon;
+			else
+				pExt->CurrentLaserWeaponIndex.clear();
+
+			auto const pTWeapon = pBld->GetPrimaryWeapon()->WeaponType;
+
+			if (auto const pLaser = pBld->CreateLaser(pTarget, idxWeapon, pTWeapon, CoordStruct::Empty))
 			{
-				//is a prism tower
 
-				if (pBld->SupportingPrisms > 0)
-				{ //Ares sets this to the longest backward chain
-					//is being supported... so increase beam intensity
-					if (pBldTypeData->PrismForwarding.Intensity < 0)
-					{
-						pLaser->Thickness -= pBldTypeData->PrismForwarding.Intensity; //add on absolute intensity
-					}
-					else if (pBldTypeData->PrismForwarding.Intensity > 0)
-					{
-						pLaser->Thickness += (pBldTypeData->PrismForwarding.Intensity * pBld->SupportingPrisms);
-					}
+				//default thickness for buildings. this was 3 for PrismType (rising to 5 for supported prism) but no idea what it was for non-PrismType - setting to 3 for all BuildingTypes now.
+				pLaser->Thickness = Thickness == -1 ? 3 : Thickness;
+				auto const pBldTypeData = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-					// always supporting
-					pLaser->IsSupported = true;
+				if (pBldTypeData->PrismForwarding.CanAttack())
+				{
+					//is a prism tower
+
+					if (pBld->SupportingPrisms > 0)
+					{ //Ares sets this to the longest backward chain
+						//is being supported... so increase beam intensity
+						if (pBldTypeData->PrismForwarding.Intensity < 0)
+						{
+							pLaser->Thickness -= pBldTypeData->PrismForwarding.Intensity; //add on absolute intensity
+						}
+						else if (pBldTypeData->PrismForwarding.Intensity > 0)
+						{
+							pLaser->Thickness += (pBldTypeData->PrismForwarding.Intensity * pBld->SupportingPrisms);
+						}
+
+						// always supporting
+						pLaser->IsSupported = true;
+					}
 				}
 			}
 		}
-	}
-	else
-	{
-		if (auto const pLaser = pThis->CreateLaser(pTarget, idxWeapon, pFiringWeaponType, CoordStruct::Empty))
+		else
 		{
-			if (Thickness == -1)
+			if (auto const pLaser = pThis->CreateLaser(pTarget, idxWeapon, pFiringWeaponType, CoordStruct::Empty))
 			{
-				pLaser->Thickness = 2;
-			}
-			else
-			{
-				pLaser->Thickness = Thickness;
+				if (Thickness == -1)
+				{
+					pLaser->Thickness = 2;
+				}
+				else
+				{
+					pLaser->Thickness = Thickness;
 
-				// required for larger Thickness to work right
-				pLaser->IsSupported = (Thickness > 3);
+					// required for larger Thickness to work right
+					pLaser->IsSupported = (Thickness > 3);
+				}
 			}
 		}
+
+		// skip all default handling
+		return 0x6FF656;
 	}
 
-	// skip all default handling
-	return 0x6FF656;
+	//other affects
+	return 0x6FF57D;
 }
 
 //these are all for cleaning up when a prism tower becomes unavailable

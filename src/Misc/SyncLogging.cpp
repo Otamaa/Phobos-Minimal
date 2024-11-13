@@ -9,19 +9,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
-bool SyncLogger::HooksDisabled = false;
-int SyncLogger::AnimCreations_HighestX = 0;
-int SyncLogger::AnimCreations_HighestY = 0;
-int SyncLogger::AnimCreations_HighestZ = 0;
-
-SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> SyncLogger::RNGCalls;
-SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> SyncLogger::FacingChanges;
-SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> SyncLogger::TargetChanges;
-SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> SyncLogger::DestinationChanges;
-SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> SyncLogger::MissionOverrides;
-SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> SyncLogger::AnimCreations;
-
-static constexpr void __forceinline MakeCallerRelative(unsigned int& caller)
+static constexpr void FORCEINLINE MakeCallerRelative(unsigned int& caller)
 {
 	// B for Bobos
 	if (caller > Phobos::Otamaa::PhobosBaseAddress && caller < (Phobos::Otamaa::PhobosBaseAddress + 0x100000))

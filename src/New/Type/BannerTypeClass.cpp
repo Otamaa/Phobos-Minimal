@@ -5,8 +5,6 @@
 
 #include <PCX.h>
 
-Enumerable<BannerTypeClass>::container_t Enumerable<BannerTypeClass>::Array;
-
 const char* Enumerable<BannerTypeClass>::GetMainSection()
 {
 	return "BannerTypes";

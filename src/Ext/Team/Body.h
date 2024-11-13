@@ -88,7 +88,7 @@ private:
 class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
-	static std::vector<TeamExtData*> Pool;
+	inline static std::vector<TeamExtData*> Pool;
 	static TeamExtContainer Instance;
 
 	TeamExtData* AllocateUnchecked(TeamClass* key)

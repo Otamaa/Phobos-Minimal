@@ -28,7 +28,7 @@ class CursorTypeClass;
 class RulesExtData final
 {
 private:
-	static std::unique_ptr<RulesExtData> Data;
+	inline static std::unique_ptr<RulesExtData> Data;
 
 public:
 	static constexpr size_t Canary = 0x12341234;
@@ -425,7 +425,7 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static IStream* g_pStm;
+	inline static IStream* g_pStm;
 
 	static void Allocate(RulesClass* pThis);
 	static void Remove(RulesClass* pThis);

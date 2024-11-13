@@ -1,5 +1,4 @@
 #include "TrailType.h"
-Enumerable<TrailType>::container_t Enumerable<TrailType>::Array;
 
 const char* Enumerable<TrailType>::GetMainSection()
 {

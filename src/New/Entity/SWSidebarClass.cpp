@@ -10,8 +10,6 @@
 #include <SuperClass.h>
 #include <CommandClass.h>
 
-std::unique_ptr<SWSidebarClass> SWSidebarClass::Instance = nullptr;
-
 static constexpr std::array <std::pair<int, const wchar_t*>, 114> KeyMap {
 			std::make_pair(0x00, L"  "),
 			std::make_pair(0x01, L"MouseLeft"),

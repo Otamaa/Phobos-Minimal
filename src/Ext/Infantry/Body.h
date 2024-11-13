@@ -40,7 +40,7 @@ private:
 class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
-	static std::vector<InfantryExtData*> Pool;
+	inline static std::vector<InfantryExtData*> Pool;
 	static InfantryExtContainer Instance;
 
 	InfantryExtData* AllocateUnchecked(InfantryClass* key) {

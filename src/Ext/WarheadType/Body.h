@@ -484,7 +484,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
+	inline static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
+
 	static void DetonateAt(
 		WarheadTypeClass* pThis,
 		ObjectClass* pTarget,

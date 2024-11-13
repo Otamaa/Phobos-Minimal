@@ -286,7 +286,7 @@ public:
 class WaveExtContainer final : public Container<WaveExtData>
 {
 public:
-	static std::vector<WaveExtData*> Pool;
+	inline static std::vector<WaveExtData*> Pool;
 	static WaveExtContainer Instance;
 
 	WaveExtData* AllocateUnchecked(WaveClass* key)

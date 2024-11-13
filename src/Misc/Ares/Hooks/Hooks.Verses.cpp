@@ -49,6 +49,7 @@ void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass
 			pData->Verses);
 }
 
+#ifndef _test
 DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 {
 	GET(int, damage, ECX);
@@ -100,7 +101,7 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 			res = int(res * vsData->Verses);
 		//Debug::Log("[%s]ResultDamage2 for armor[%s] %d Caller [%x]\n", pWH->ID , ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
 
-		if (res > RulesClass::Instance->MaxDamage)
+		if (res >= RulesClass::Instance->MaxDamage)
 			res = RulesClass::Instance->MaxDamage;
 	}
 	else
@@ -111,6 +112,19 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	R->EAX(res);
 	return 0x48926A;
 }
+#else
+DEFINE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
+{
+	GET(FakeWarheadTypeClass*, pWH, EDI);
+	GET(int, nArmor, EDX);
+	GET(int, nDamage, ECX);
+
+	const auto vsData = &pWH->_GetExtData()->Verses[nArmor];
+
+	R->EAX(static_cast<int>((nDamage * vsData->Verses)));
+	return 0x489249;
+}
+#endif
 
 DEFINE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {

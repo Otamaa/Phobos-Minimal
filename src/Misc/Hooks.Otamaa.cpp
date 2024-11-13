@@ -1667,22 +1667,26 @@ DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 	return 0x6F9F6E;
 }
 
-DEFINE_HOOK(0x6FF4B0, TechnoClass_FireAt_TargetLaser, 0x5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (!pTypeExt->TargetLaser_WeaponIdx.empty()
-		&& !pTypeExt->TargetLaser_WeaponIdx.Contains(pExt->CurrentWeaponIdx))
-	{
-		return 0x6FF4CC;
-	}
-
-	pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
-	return 0x6FF4CC;
-}
+// DEFINE_HOOK(0x6FF48D , TechnoClass_FireAt_TargetLaser, 0x5)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	//GET(WeaponTypeClass* const, pWeapon, EBX);
+// 	GET_BASE(int, weaponIndex, 0xC);
+//
+// 	auto pType = pThis->GetTechnoType();
+// 	if(pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer()) {
+//
+// 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+// 		if (pTypeExt->TargetLaser_WeaponIdx.empty()
+// 			|| pTypeExt->TargetLaser_WeaponIdx.Contains(weaponIndex))
+// 		{
+// 			pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
+// 		}
+// 	}
+//
+// 	return 0x6FF4CC;
+// }
 
 DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {

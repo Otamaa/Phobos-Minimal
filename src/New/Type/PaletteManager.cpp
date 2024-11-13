@@ -4,8 +4,6 @@
 
 #include <MixFileClass.h>
 
-Enumerable<PaletteManager>::container_t Enumerable<PaletteManager>::Array;
-
 PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteManager>(pTitle)
 , Convert_Temperate {}
 , Convert {}

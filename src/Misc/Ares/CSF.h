@@ -15,13 +15,13 @@ public:
 	static size_t constexpr MaxEntries = 320000u
 		;
 
-	static int CSFCount;
-	static int NextValueIndex;
+	inline static int CSFCount;
+	inline static int NextValueIndex;
 	struct Storages {
 		CSFString value {};
 		bool found { true };
 	};
-	static std::unordered_map<std::string, CSFString> DynamicStrings;
+	inline static std::unordered_map<std::string, CSFString> DynamicStrings;
 
 	static auto FindOrAllocateDynamicStrings(const char* val) {
 		return &DynamicStrings[val];

@@ -33,10 +33,6 @@
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
-//#pragma comment(lib, "Shcore.lib")
-//#pragma comment(lib, "shlwapi.lib")
-//#pragma comment(lib, "version.lib")
-//#pragma comment(lib, "comctl32.lib")
 
 #ifdef EXPERIMENTAL_IMGUI
 DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
@@ -47,130 +43,6 @@ DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
 #endif
 
 #pragma region DEFINES
-
-#ifndef IS_RELEASE_VER
-bool Phobos::Config::HideWarning = false;
-#endif
-
-bool Phobos::ShouldQuickSave = false;
-std::wstring Phobos::CustomGameSaveDescription {};
-HANDLE Phobos::hInstance = NULL;
-char Phobos::readBuffer[Phobos::readLength];
-wchar_t Phobos::wideBuffer[Phobos::readLength];
-const char Phobos::readDelims[4] = ",";
-const char Phobos::readDefval[4] = "";
-
-const wchar_t* Phobos::VersionDescription = L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping.";
-
-bool Phobos::UI::DisableEmptySpawnPositions = false;
-bool Phobos::UI::ExtendedToolTips = false;
-int Phobos::UI::MaxToolTipWidth = 0;
-bool Phobos::UI::ShowHarvesterCounter = false;
-bool Phobos::UI::WeedsCounter_Show = false;
-double Phobos::UI::HarvesterCounter_ConditionYellow = 0.99;
-double Phobos::UI::HarvesterCounter_ConditionRed = 0.5;
-bool Phobos::UI::ShowProducingProgress = false;
-const wchar_t* Phobos::UI::CostLabel;
-const wchar_t* Phobos::UI::PowerLabel;
-const wchar_t* Phobos::UI::PowerBlackoutLabel = L"";
-const wchar_t* Phobos::UI::TimeLabel;
-const wchar_t* Phobos::UI::HarvesterLabel;
-const wchar_t* Phobos::UI::PercentLabel;
-const wchar_t* Phobos::UI::BuidingRadarJammedLabel;
-const wchar_t* Phobos::UI::BuidingFakeLabel;
-const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel = L"";
-char Phobos::UI::ShowBriefingResumeButtonStatusLabel[32];
-
-bool Phobos::UI::ShowPowerDelta = false;
-double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
-double Phobos::UI::PowerDelta_ConditionRed = 1.0;
-bool Phobos::UI::CenterPauseMenuBackground = false;
-bool Phobos::UI::UnlimitedColor = false;
-bool Phobos::UI::AnchoredToolTips = false;
-
-bool Phobos::UI::ExclusiveSWSidebar = false;
-int Phobos::UI::ExclusiveSWSidebar_Interval = 0;
-int Phobos::UI::ExclusiveSWSidebar_Max = 0;
-int Phobos::UI::ExclusiveSWSidebar_MaxColumn = INT32_MAX;
-
-const wchar_t* Phobos::UI::Power_Label;
-const wchar_t* Phobos::UI::Drain_Label;
-const wchar_t* Phobos::UI::Storage_Label;
-const wchar_t* Phobos::UI::Radar_Label;
-const wchar_t* Phobos::UI::Spysat_Label;
-
-const wchar_t* Phobos::UI::SWShotsFormat = L"";
-
-bool Phobos::Config::ToolTipDescriptions = true;
-bool Phobos::Config::ToolTipBlur = false;
-bool Phobos::Config::PrioritySelectionFiltering = true;
-bool Phobos::Config::DevelopmentCommands = true;
-bool Phobos::Config::ArtImageSwap = false;
-
-bool Phobos::Config::EnableBuildingPlacementPreview = false;
-
-bool Phobos::Config::RealTimeTimers = false;
-bool Phobos::Config::RealTimeTimers_Adaptive = false;
-int Phobos::Config::CampaignDefaultGameSpeed = 2;
-
-bool Phobos::Config::MultiThreadSinglePlayer = false;
-bool Phobos::Config::HideLightFlashEffects = false;
-
-bool Phobos::Config::DebugFatalerrorGenerateDump = false;
-bool Phobos::Config::SaveGameOnScenarioStart = true;
-
-bool Phobos::Misc::CustomGS = false;
-int Phobos::Misc::CustomGS_ChangeInterval[7] = { -1, -1, -1, -1, -1, -1, -1 };
-int Phobos::Misc::CustomGS_ChangeDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
-int Phobos::Misc::CustomGS_DefaultDelay[7] = { 0, 1, 2, 3, 4, 5, 6 };
-
-bool Phobos::Config::EnableSelectBrd = false;
-
-bool Phobos::Config::TogglePowerInsteadOfRepair = false;
-bool Phobos::Config::ShowTechnoNamesIsActive = false;
-
-bool Phobos::Config::DigitalDisplay_Enable = false;
-
-bool Phobos::Config::ApplyShadeCountFix = true;
-bool Phobos::Config::SaveVariablesOnScenarioEnd = false;
-
-bool Phobos::Config::ShowHarvesterCounter = false;
-bool Phobos::Config::ShowPowerDelta = true;
-bool Phobos::Config::ShowWeedsCounter = false;
-bool Phobos::Config::UseNewInheritance = false;
-bool Phobos::Config::UseNewIncludes = false;
-
-std::string Phobos::AppIconPath;
-
-bool Phobos::Debug_DisplayDamageNumbers = false;
-
-bool Phobos::Otamaa::DisableCustomRadSite = false;
-bool Phobos::Otamaa::IsAdmin = false;
-bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
-bool Phobos::Otamaa::ExeTerminated = true;
-bool Phobos::Otamaa::DoingLoadGame = false;
-bool Phobos::Otamaa::AllowAIControl = false;
-bool Phobos::Otamaa::OutputMissingStrings = false;
-bool Phobos::Otamaa::OutputAudioLogs = false;
-bool Phobos::Otamaa::StrictParser = false;
-bool Phobos::Otamaa::ParserErrorDetected = false;
-bool Phobos::Otamaa::TrackParserErrors = false;
-bool Phobos::Otamaa::NoLogo = false;
-bool Phobos::Otamaa::NoCD = false;
-bool Phobos::Otamaa::CompatibilityMode = false;
-bool Phobos::Otamaa::ReplaceGameMemoryAllocator = false;
-bool Phobos::Otamaa::AllowMultipleInstance = false;
-DWORD Phobos::Otamaa::PhobosBaseAddress = 0u;
-bool Phobos::EnableConsole = false;
-
-enum class ExceptionHandlerMode {
-	Default = 0,
-	Full = 1,
-	NoRemove = 2
-};
-
-PVOID pExceptionHandler = nullptr;
-ExceptionHandlerMode ExceptionMode = ExceptionHandlerMode::Default;
 
 #ifdef ENABLE_TLS
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_1;
@@ -426,19 +298,22 @@ void Phobos::Config::Read()
 	//Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
 	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
 
-	// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
-	Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
+	if(!Phobos::Otamaa::IsAdmin){
 
-	if (Phobos::Config::CampaignDefaultGameSpeed > 6 || Phobos::Config::CampaignDefaultGameSpeed < 0)
-		Phobos::Config::CampaignDefaultGameSpeed = 2;
+		// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
+		Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
 
-	{
-		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
-		// We overwrite the instructions that force GameSpeed to 2 (GS4)
-		Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+		if (Phobos::Config::CampaignDefaultGameSpeed > 6 || Phobos::Config::CampaignDefaultGameSpeed < 0)
+			Phobos::Config::CampaignDefaultGameSpeed = 2;
 
-		// when speed control is off. Doesn't need a hook.
-		Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
+		{
+			BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
+			// We overwrite the instructions that force GameSpeed to 2 (GS4)
+			Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+
+			// when speed control is off. Doesn't need a hook.
+			Patch::Apply_RAW(0x55D78D , sizeof(defaultspeed), &defaultspeed);
+		}
 	}
 
 	GameConfig UIMD { UIMD_FILENAME };
@@ -718,19 +593,12 @@ void Phobos::InitConsole()
 	}
 }
 
-bool HasCNCnet = false;
-
-//#include <spdlog/spdlog-inl.h>
-//#include <spdlog/sinks/basic_file_sink.h>
-//
-//std::shared_ptr<spdlog::logger> Logger;
-static std::vector<Patch> Patches;
 
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
 void Phobos::ExeRun()
-{	
+{
 	Phobos::Otamaa::ExeTerminated = false;
 	Game::Savegame_Magic = AresGlobalData::InternalVersion;
 	Game::bVideoBackBuffer = false;
@@ -912,7 +780,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			if (pPatch->offset == 0)
 				continue;
 
-			Patches.emplace_back(*pPatch);
+			Phobos::Patches.emplace_back(*pPatch);
 		}
 
 		Phobos::ExecuteLua();

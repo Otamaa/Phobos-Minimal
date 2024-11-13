@@ -19,8 +19,6 @@
 #include <RadarEventClass.h>
 #include <TacticalClass.h>
 
-HelperedVector<ShieldClass*> ShieldClass::Array;
-
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
 , Timers { }

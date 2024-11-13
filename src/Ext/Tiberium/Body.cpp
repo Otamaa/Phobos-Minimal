@@ -178,7 +178,6 @@ void TiberiumExtData::Serialize(T& Stm)
 }
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
-PhobosMap<OverlayTypeClass*, TiberiumClass*> TiberiumExtContainer::LinkedType;
 
 bool TiberiumExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {

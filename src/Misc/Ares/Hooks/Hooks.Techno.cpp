@@ -135,31 +135,31 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 //
 //DEFINE_DISABLE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2_ares)
 
-DEFINE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
-{
-	//GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	//const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
-
-	//if (IsRailgun && Is_Aircraft(pThis))
-	//{
-		//Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
-		//return 0x6FF274;
-	//}
-
-	return pWeaponExt->IsDetachedRailgun
-		? 0x6FF20F : 0x0;
-}
-
-DEFINE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	return WeaponTypeExtContainer::Instance.Find(pWeapon)->IsDetachedRailgun
-		? 0x6FF274 : 0x0;
-}
+// DEFINE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+// {
+// 	//GET(TechnoClass*, pThis, ESI);
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+// 	//const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
+//
+// 	//if (IsRailgun && Is_Aircraft(pThis))
+// 	//{
+// 		//Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
+// 		//return 0x6FF274;
+// /	//}
+//
+// 	//return pWeaponExt->IsDetachedRailgun
+// 		? 0x6FF20F : 0x0;
+// }
+//
+// DEFINE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+// 	return WeaponTypeExtContainer::Instance.Find(pWeapon)->IsDetachedRailgun
+// 		? 0x6FF274 : 0x0;
+// }
 
 DEFINE_HOOK(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5)
 {

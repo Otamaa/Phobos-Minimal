@@ -3,8 +3,6 @@
 #include <Utilities/TemplateDef.h>
 #include <HouseClass.h>
 
-Enumerable<LaserTrailTypeClass>::container_t Enumerable<LaserTrailTypeClass>::Array;
-
 const char* Enumerable<LaserTrailTypeClass>::GetMainSection()
 {
 	return "LaserTrailTypes";

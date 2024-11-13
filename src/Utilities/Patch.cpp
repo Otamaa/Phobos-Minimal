@@ -7,9 +7,6 @@
 #include <tlhelp32.h>
 #include <Psapi.h>
 
-std::vector<dllData> Patch::ModuleDatas;
-HANDLE Patch::CurrentProcess;
-
 int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress)
 {
 	char buf[MAX_PATH + 1] = { 0 };

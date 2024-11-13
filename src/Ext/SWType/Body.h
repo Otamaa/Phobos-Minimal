@@ -557,11 +557,11 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static bool Handled;
-	static SuperClass* TempSuper;
-	static SuperClass* LauchData;
+	inline static bool Handled;
+	inline static SuperClass* TempSuper;
+	inline static SuperClass* LauchData;
 	static std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> AITargetingModes;
-	static SuperWeaponTypeClass* CurrentSWType;
+	inline static SuperWeaponTypeClass* CurrentSWType;
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
