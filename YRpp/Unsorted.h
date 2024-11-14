@@ -41,6 +41,9 @@ struct Game
 
 	static constexpr reference<DynamicVectorClass<ULONG>, 0xB0BC88u> const ClassFactories {};
 
+	static constexpr reference<unsigned, 0x8B3A84u> const ExceptionReturnBase {};
+	static constexpr reference<unsigned, 0x8B3A7Cu> const ExceptionReturnStack {};
+	static constexpr reference<unsigned, 0x8B3A80u> const ExceptionReturnAddress {};
 	static constexpr reference<HWND, 0xB73550u> const hWnd {};
 	static constexpr reference<HINSTANCE, 0xB732F0u> const hInstance {};
 

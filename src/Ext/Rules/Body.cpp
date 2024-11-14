@@ -162,8 +162,9 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		Data->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
 	}
 
-	Data->HugeBar_Config[0].LoadFromINI(pINI);
-	Data->HugeBar_Config[1].LoadFromINI(pINI);
+	for (auto& huge_bar : Data->HugeBar_Config) {
+		huge_bar.LoadFromINI(pINI);
+	}
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
