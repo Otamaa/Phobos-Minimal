@@ -382,3 +382,7 @@ FodyWeavers.xsd
 /src/New/Type/PaletteManager.bak
 /src/Utilities/Constructs.bak
 *.lib
+/Phobos/DisableDPFeatures/Phobos.tlog/Masm.read.1u.tlog
+/Phobos/DisableDPFeatures/Phobos.tlog/Masm.write.1u.tlog
+/Phobos/DisableDPFeatures/Phobos.tlog/Phobos.lastbuildstate
+/Phobos/DisableDPFeatures/Phobos.tlog/unsuccessfulbuild
