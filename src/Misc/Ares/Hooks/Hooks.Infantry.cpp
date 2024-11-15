@@ -141,17 +141,17 @@ DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
-{
-	GET(InfantryClass*, pThis, ESI);
-	//GET_STACK(ObjectClass *, pAttacker, 0xE0);
-
-	// there is not InfantryExt ExtMap yet!
-	// too much space would get wasted since there is only four bytes worth of data we need to store per object
-	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
-
-	return TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
-}
+// DEFINE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
+// {
+// 	GET(InfantryClass*, pThis, ESI);
+// 	//GET_STACK(ObjectClass *, pAttacker, 0xE0);
+//
+// 	// there is not InfantryExt ExtMap yet!
+// 	// too much space would get wasted since there is only four bytes worth of data we need to store per object
+// 	// so those four bytes get stashed in Techno Map instead. they will get their own map if there's ever enough data to warrant it
+//
+// 	return TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn ? 0x5185F1 : 0;
+// }
 
 DEFINE_HOOK(0x517D51, InfantryClass_Init_Academy, 6)
 {

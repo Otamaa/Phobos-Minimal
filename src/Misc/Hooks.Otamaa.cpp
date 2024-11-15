@@ -3033,13 +3033,13 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
  //	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
  //}
 
-DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
-{
-	GET(InfantryClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pSource, 0xD0 + 0x10);
-	R->AL(pThis->Crash(pSource));
-	return 0x518611;
-}
+// DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
+// {
+// 	GET(InfantryClass*, pThis, ESI);
+// 	GET_STACK(TechnoClass*, pSource, 0xD0 + 0x10);
+// 	R->AL(pThis->Crash(pSource));
+// 	return 0x518611;
+// }
 
 DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 {

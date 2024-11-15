@@ -292,17 +292,17 @@ DEFINE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
 	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
 }
 
-DEFINE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
-{
-	AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
-
-	if (!El) {
-		El = AnimTypeClass::Array->Items[0];
-	}
-
-	R->EDX(El);
-	return 0x51874D;
-}
+// DEFINE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
+// {
+// 	AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
+//
+// 	if (!El) {
+// 		El = AnimTypeClass::Array->Items[0];
+// 	}
+//
+// 	R->EDX(El);
+// 	return 0x51874D;
+// }
 
 DEFINE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 {

@@ -138,6 +138,8 @@ public:
 		return this->TechnoClass::IronCurtain(nDur, pSource, bIsFC);
 	}
 
+	void _DestroyThis(char flag) JMP_THIS(0x523350);
+
 	InfantryExtData* _GetExtData()
 	{
 		return *reinterpret_cast<InfantryExtData**>(((DWORD)this) + InfantryExtData::ExtOffset);
