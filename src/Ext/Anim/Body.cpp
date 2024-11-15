@@ -193,7 +193,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	else
 	{
 		// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
-		pThis->Accum =+ 1.0;
+		pThis->Accum += 1.0;
 
 		if (pThis->Accum < delay)
 			return SkipDamage;

@@ -7,283 +7,6 @@
 #include <Helpers/Macro.h>
 
 #include <FactoryClass.h>
-
-#ifndef CAMEOS_
-
-DEFINE_HOOK_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
-DEFINE_HOOK(0x6A4EA5, SidebarClass_CameosList, 6)
-{
-	MouseClassExt::ClearCameos();
-	return 0;
-}
-
-DEFINE_HOOK(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
-{
-	GET(SidebarClass*, pThis, ECX);
-	GET_STACK(FactoryClass*, pFactory, 0x4);
-	GET_STACK(AbstractType, rtti, 0x8);
-	GET_STACK(int, typeIdx, 0xC);
-
-	bool found = false;
-	const int TabIndex = SidebarClass::GetObjectTabIdx(rtti, typeIdx, 0);
-	auto& Tab = MouseClass::Instance->Tabs[TabIndex];
-
-	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
-	{
-		if (cameo.ItemIndex == typeIdx && cameo.ItemType == rtti)
-		{
-			cameo.CurrentFactory = pFactory;
-			Tab.NeedsRedraw = 1;
-			Tab.IsBuilding = 1;
-			MouseClass::Instance->RedrawSidebar(0);
-			found = true;
-			break;
-		}
-	}
-
-	R->AL(found);
-	return 0x6A6215;
-}
-
-DEFINE_HOOK(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
-{
-	enum { AlreadyExists = 0x6A65FF, NewlyAdded = 0x6A63FD };
-
-	GET(AbstractType const, absType, ESI);
-	GET(int const, typeIdx, EBP);
-
-	const auto TabIndex = SidebarClass::GetObjectTabIdx(absType, typeIdx, 0);
-	R->Stack(0x18, TabIndex);
-
-	// don't check for 75 cameos in active tab
-	for (auto const& cameo : MouseClassExt::TabCameos[TabIndex])
-	{
-		if (cameo.ItemIndex == typeIdx && cameo.ItemType == absType)
-		{
-			return AlreadyExists;
-		}
-	}
-
-	R->EDI<StripClass*>(&MouseClass::Instance->Tabs[TabIndex]);
-	return NewlyAdded;
-}
-
-static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
-{
-	BuildType* it;
-	typename std::iterator_traits<BuildType*>::difference_type count, step;
-	count = size;
-
-	while (count > 0)
-	{
-		it = first;
-		step = count / 2;
-		std::advance(it, step);
-
-		if (*it < x)
-		{
-			first = ++it;
-			count -= step + 1;
-		}
-		else
-			count = step;
-	}
-
-	return first;
-}
-
-DEFINE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
-{
-	GET(StripClass*, pTab, ECX);
-	GET_STACK(AbstractType, ItemType, 0x4);
-	GET_STACK(int, ItemIndex, 0x8);
-
-	BuildType newCameo(ItemIndex, ItemType);
-	if (ItemType == BuildingTypeClass::AbsID)
-	{
-		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
-	}
-
-	auto& cameo = MouseClassExt::TabCameos[pTab->TabIndex];
-	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
-	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
-
-	if (cameo.IsValidArray())
-	{
-		BuildType* added = cameo.Items + idx;
-		BuildType* added_plusOne = std::next(added);
-		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
-		cameo.Items[idx] = std::move_if_noexcept(newCameo);
-		++cameo.Count;
-	}
-
-	++pTab->BuildableCount;
-
-	return 0x6A87E7;
-}
-
-#ifdef _NewImpl
-// TODO , there few bugs here , need fixing !
-// pointer #1
-DEFINE_HOOK(0x6A8D07, StripClass_SidebarClass_AI_FlashCameos_FixPointer, 5)
-{
-	GET(int, BuildableCount, EAX);
-
-	GET(StripClass*, pTab, EBX);
-
-	if (BuildableCount <= 0)
-	{
-		return 0x6A8D8B;
-	}
-
-	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
-	R->EBP(0);//xor
-	return 0x6A8D23;
-}
-
-// pointer #2
-DEFINE_HOOK(0x6A8D9F, StripClass_SidebarClass_AI_MouseMove_FixPointer, 5)
-{
-	GET(StripClass*, pTab, EBX);
-
-	if (pTab->BuildableCount <= 0)
-	{
-		return 0x6A8F64;
-	}
-
-	if (pTab->BuildableCount > 0)
-	{
-		for (auto& cameos : MouseClassExt::TabCameos[pTab->TabIndex])
-		{
-			auto pFactory = cameos.CurrentFactory;
-			if (pTab->IsBuilding)
-			{
-				if (pFactory && pFactory->HasProgressChanged())
-				{
-					R->Stack(0x13, true); //redraw
-					if (pFactory->IsDone())
-					{
-						if (auto pPending = pFactory->GetFactoryObject())
-						{
-							switch (pPending->WhatAmI())
-							{
-							case AbstractType::Aircraft:
-							case AbstractType::Infantry:
-							case AbstractType::Unit:
-							{
-								auto iSNaval = pPending->GetTechnoType()->Naval;
-								auto pOwner = pPending->GetOwningHouse();
-								EventClass vEvent { pOwner->ArrayIndex , EventType::PLACE , pPending->WhatAmI(), -1, iSNaval , CellStruct::Empty };
-								EventClass::AddEvent(&vEvent);
-								//cameos.CurrentFactory = nullptr;
-								//pFactory = nullptr;
-							}
-							break;
-							case AbstractType::Building:
-							{
-								VoxClass::Play(GameStrings::EVA_ConstructionComplete);
-								Game::Set_Sidebar_Tab_Object((BuildingClass*)pPending);
-							}
-							break;
-							default:
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if (pTab->BuildableCount > 0)
-	{
-		for (auto& cameos : MouseClassExt::TabCameos[pTab->TabIndex])
-		{
-			auto pFactory = cameos.CurrentFactory;
-			if (cameos.Progress.Timer.StartTime == 1)
-			{
-				if (pFactory && (!pFactory->Production.Timer.Duration || pFactory->IsSuspended || pFactory->OnHold))
-				{
-					cameos.Progress.Timer.StartTime = Unsorted::CurrentFrame;
-					cameos.Progress.Timer.TimeLeft = 0;
-					cameos.Status = 0;
-				}
-
-				if (cameos.Progress.Timer.GetTimeLeft() || cameos.Progress.Value == 0)
-				{
-					cameos.Progress.HasChanged = false;
-				}
-				else
-				{
-					// timer expired. move one step forward.
-					cameos.Progress.Value += cameos.Progress.Step;
-					cameos.Progress.HasChanged = true;
-					cameos.Progress.Timer.Start(cameos.Progress.Value >= 53 ? 0 : cameos.Progress.Value);
-					R->Stack(0x13, true); //redraw
-				}
-			}
-		}
-	}
-
-	R->ESI(pTab);
-	return 0x6A902D;
-}
-#else
-// pointer #1
-DEFINE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
-{
-	GET(int, CameoCount, EAX);
-
-	GET(StripClass*, pTab, EBX);
-
-	if (CameoCount <= 0)
-	{
-		return 0x6A8D8B;
-	}
-
-	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TopRowIndex].Items);
-	return 0x6A8D23;
-}
-
-// pointer #2
-DEFINE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
-{
-	GET(int, CameoCount, EAX);
-	GET(StripClass*, pTab, EBX);
-
-	if (CameoCount <= 0)
-	{
-		return 0x6A8F64;
-	}
-
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TopRowIndex].Items);
-	ptr += 0x10;
-	R->EBP<byte*>(ptr);
-
-	return 0x6A8DC0;
-}
-
-// pointer #3
-DEFINE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
-{
-	GET(StripClass*, pTab, ESI);
-
-	if (pTab->BuildableCount <= 0)
-	{
-		return 0x6A902D;
-	}
-
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TopRowIndex].Items);
-	ptr += 0x1C;
-	R->ESI<byte*>(ptr);
-	R->EBP<int>(R->Stack<int>(0x20));
-
-	return 0x6A8F7C;
-}
-
-#endif
-
-
 #include <Misc/PhobosToolTip.h>
 #include <Ext/SWType/Body.h>
 
@@ -380,7 +103,518 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 	return 0x6A93E2;
 }
 
-#pragma region Draw
+#ifndef STRIPS
+
+#ifndef _newIpml
+static FORCEINLINE void DoStuffs(int idx, StripClass* pStrip, int height, int width, int y, SelectClass* pBegin)
+{
+	int MaxShown = SidebarClass::Instance->Func_6AC430();
+
+	if (MaxShown)
+	{
+		int a = 0;
+		auto i = (pBegin);
+		do
+		{
+			i->Index = a;
+			i->ID = 202;
+			i->Strip = pStrip;
+			const auto nY_stuff = height * (a & 0xFFFFFFFE);
+			const auto  nX_stuff = a++ & 1;
+			i->Rect.X = pStrip->Location.X + width + nX_stuff;
+			i->Rect.Y = y + nY_stuff;
+			i->Rect.Height = 60;
+			i->Rect.Width = 48;
+
+			i++;
+
+		}
+		while (i != (MaxShown + pBegin));
+	}
+}
+
+DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
+{
+	GET(StripClass*, pThis, ECX);
+	GET_STACK(int, nIdx, 0x4);
+
+	pThis->TabIndex = nIdx;
+	auto nInc_y = pThis->Location.X + 1;
+	DoStuffs(nIdx,
+		pThis,
+		SidebarClass::ObjectHeight(),
+		SidebarClass::ObjectWidth(),
+		nInc_y,
+		SidebarClass::SelectButtonCombined.begin()
+	);
+	return 0x6A8329;
+}
+
+DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
+{
+	enum
+	{
+		ContinueLoop = 0x6ABF66,
+		BreakLoop = 0x6ABFC4,
+	};
+
+	GET(DWORD, pPtr, ESI);
+	const DWORD pCur = pPtr + 0x3480;
+	R->ESI(pCur);
+	R->Stack(0x10, pCur);
+	return (DWORD)pCur < (DWORD)SidebarClass::SelectButtonCombined.end() ?
+		ContinueLoop : BreakLoop;
+}
+
+DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
+{
+	GET(StripClass*, pThis, EDI);
+	GET(int, idx_first, ECX);
+	GET(int, idx_Second, EDX);
+	R->EAX(&SidebarClass::SelectButtonCombined[idx_Second + 2 * idx_first]);
+	return pThis->IsScrolling ? 0x6A9703 : 0x6A9714;
+}
+#else
+int __fastcall SidebarClass_6AC430(SidebarClass*)
+{
+	JMP_THIS(0x6AC430)
+}
+
+// yeah , fuck it
+// i cant reproduce the exact code
+// so lets just dump the assembly code instead , lmao
+// -otamaa
+declhook(0x6A8220, StripClass_Initialize, 0x7)
+extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS* R)
+{
+	__asm
+	{
+		push ecx
+		mov eax, [esp + 0x8]
+		mov ecx, 0x87F7E8
+		push ebx
+		push ebp
+		push esi
+		mov ebx, [eax + 0x20]
+		xor esi, esi
+		mov eax, [eax + 0x14]
+		push edi
+		mov ebp, [ebx + 0x24]
+		mov eax, [eax + 0x4]
+		inc ebp
+		mov[ebx + 0x38], eax
+		mov eax, [ebx + 0x20]
+		mov[esp + 0x18], eax
+		call SidebarClass_6AC430
+		lea edi, ds : 0[eax * 8]
+		sub edi, eax
+		shl edi, 3
+		mov[esp + 0x10], edi
+		test edi, edi
+		jz short retfunc_
+		mov ecx, dword ptr ds : 0xB0B500
+		mov eax, 0xB07E94
+		lea ebx, [ebx + 0x0]
+		loopfunc_ :
+		mov[eax + 0x1C], esi
+		mov edx, esi
+		mov dword ptr[eax + 0x10], 0xCA
+		and edx, 0xFFFFFFFE
+		mov[eax + 0x18], ebx
+		mov edi, dword ptr ds : 0xB0B4FC
+		imul edx, ecx
+		mov ecx, esi
+		and ecx, 1
+		inc esi
+		imul ecx, edi
+		add edx, ebp
+		add ecx, [esp + 0x18]
+		mov[eax - 8], ecx
+		mov ecx, [esp + 0x10]
+		mov[eax - 4], edx
+		add ecx, 0xB07E94
+		mov dword ptr[eax], 0x3C
+		mov dword ptr[eax + 4], 0x30
+		add eax, 0x38
+		cmp eax, ecx
+		lea ecx, [edx + 4]
+		jnz loopfunc_
+		retfunc_ :
+		pop edi
+			pop esi
+			pop ebp
+			mov eax, 0x6A8329
+			pop ebx
+			pop ecx
+			retn
+	}
+}
+
+static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
+static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
+
+DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
+{
+	enum
+	{
+		ContinueLoop = 0x6ABF66,
+		BreakLoop = 0x6ABFC4,
+	};
+
+	GET(DWORD, pPtr, ESI);
+	const DWORD pCur = pPtr + 0x3480;
+	R->ESI(pCur);
+	R->Stack(0x10, pCur);
+	return (DWORD)pCur < Buttons_endPtr.getAddrs() ?
+		ContinueLoop : BreakLoop;
+}
+
+//duuunno
+DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
+{
+	GET(DWORD*, pSomething, EDI);
+	GET(int, idx_first, ECX);
+	GET(int, idx_Second, EDX);
+	R->EAX(reinterpret_cast<SelectClass*>(56 * (idx_Second + 2 * idx_first) + ButtonsPtr.getAddrs()));
+	return *reinterpret_cast<bool*>((((BYTE*)pSomething) + 0x3fu)) != 0 ? 0x6A9703 : 0x6A9714;
+}
+
+#endif
+
+DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
+{
+	GET_STACK(size_t, nCurIdx, 0x14);
+	constexpr int Offset = 0x3E8;
+
+	for (int i = 0; i < 0xF0; ++i)
+		CCToolTip::Instance->Remove(i + Offset);
+
+	if (nCurIdx > 0)
+	{
+		for (size_t a = 0; a < nCurIdx; ++a)
+		{
+
+			CCToolTip::Instance->Add(ToolTip { a + Offset ,
+				SidebarClass::SelectButtonCombined[a].Rect,
+					nullptr,
+				true });
+
+		}
+	}
+
+	return 0x6AC0A7;
+}
+
+DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
+{
+	GET(FactoryClass*, pFactory, ECX);
+
+	bool IsDone = pFactory->IsDone();
+
+	if (IsDone)
+	{
+		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object))
+		{
+			IsDone = pBuilding->FindFactory(true, true) != nullptr;
+		}
+	}
+
+	R->EAX(IsDone);
+	return 0x6A9827;
+}
+
+DEFINE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
+{
+	for (auto begin = SidebarClass::SelectButtonCombined.begin();
+		begin != SidebarClass::SelectButtonCombined.end();
+		++begin)
+		GScreenClass::Instance->RemoveButton(begin);
+
+	return 0x6A8415;
+}
+
+DEFINE_HOOK(0x6A8330, StripClass_EnableInput, 5)
+{
+	GET(StripClass*, pThis, ECX);
+
+	int const nIdx = SidebarClass::Instance->Func_6AC430();
+	for (auto i = SidebarClass::SelectButtonCombined.begin();
+		i != (&SidebarClass::SelectButtonCombined[nIdx]);
+		++i)
+	{
+		(*i).Zap();
+		(*i).Strip = pThis;
+		GScreenClass::Instance->AddButton(i);
+	}
+
+	CCToolTip::Bound = true;
+	return 0x6A83DA;
+}
+
+DEFINE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
+{
+	R->ESI(SidebarClass::SelectButtonCombined.begin());
+	return 0x6ABF49;
+}
+
+DEFINE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
+	return 0x6A7F9F;
+}
+
+DEFINE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	pThis->Tabs[pThis->ActiveTabIndex].Deactivate();
+	return 0x6A8061;
+}
+
+DEFINE_HOOK(0x6A64C9, SidebarClass_AddCameo_Strip, 6)
+{
+	GET(SidebarClass*, pThis, EBX);
+	GET(int, nStrip, EDI);
+	pThis->ChangeTab(nStrip);
+	return 0x6A65D6;
+}
+
+DEFINE_HOOK(0x6A75B9, SidebarClass_SetActiveTab_Strip1, 6)
+{
+	GET(SidebarClass*, pThis, EBP);
+	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
+	return 0x6A7602;
+}
+
+DEFINE_HOOK(0x6A7619, SidebarClass_SetActiveTab_Strip2, 6)
+{
+	GET(SidebarClass*, pThis, EBP);
+	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
+	return 0x6A76CA;
+}
+
+DEFINE_HOOK(0x6A793F, SidebarClass_Update_Strip1, 6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
+	return 0x6A7988;
+}
+
+DEFINE_HOOK(0x6A79A0, SidebarClass_Update_Strip2, 6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
+	return 0x6A7A51;
+}
+
+DEFINE_HOOK(0x6A93F0, StripClass_Activate, 6)
+{
+	GET(StripClass*, pThis, ECX);
+	pThis->AllowedToDraw = true;
+	pThis->Activate();
+	return 0x6A94A0;
+}
+
+DEFINE_HOOK(0x6A94B0, StripClass_Deactivate, 6)
+{
+	GET(StripClass*, pThis, ECX);
+	pThis->AllowedToDraw = false;
+	pThis->Deactivate();
+	return 0x6A94E9;
+}
+#endif
+
+#ifndef CAMEOS_
+
+DEFINE_HOOK_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
+DEFINE_HOOK(0x6A4EA5, SidebarClass_CameosList, 6)
+{
+	MouseClassExt::ClearCameos();
+	return 0;
+}
+
+DEFINE_HOOK(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
+{
+	GET(SidebarClass*, pThis, ECX);
+	GET_STACK(FactoryClass*, pFactory, 0x4);
+	GET_STACK(AbstractType, rtti, 0x8);
+	GET_STACK(int, typeIdx, 0xC);
+
+	bool found = false;
+	const int TabIndex = SidebarClass::GetObjectTabIdx(rtti, typeIdx, 0);
+	auto& Tab = MouseClass::Instance->Tabs[TabIndex];
+
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == typeIdx && cameo.ItemType == rtti)
+		{
+			cameo.CurrentFactory = pFactory;
+			Tab.NeedsRedraw = 1;
+			Tab.IsBuilding = 1;
+			MouseClass::Instance->RedrawSidebar(0);
+			found = true;
+			break;
+		}
+	}
+
+	R->AL(found);
+	return 0x6A6215;
+}
+
+DEFINE_HOOK(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
+{
+	enum { AlreadyExists = 0x6A65FF, NewlyAdded = 0x6A63FD };
+
+	GET(AbstractType const, absType, ESI);
+	GET(int const, typeIdx, EBP);
+
+	const auto TabIndex = SidebarClass::GetObjectTabIdx(absType, typeIdx, 0);
+	R->Stack(0x18, TabIndex);
+
+	// don't check for 75 cameos in active tab
+	for (auto const& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == typeIdx && cameo.ItemType == absType)
+		{
+			return AlreadyExists;
+		}
+	}
+
+	R->EDI<StripClass*>(&MouseClass::Instance->Tabs[TabIndex]);
+	return NewlyAdded;
+}
+
+DEFINE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
+{
+	enum { Found = 0x6A6210, NotFound = 0x6A61E6 };
+
+	GET(int, TabIndex, EAX);
+	GET(AbstractType, ItemType, EDI);
+	GET(int, ItemIndex, EBP);
+	GET_STACK(FactoryClass*, Factory, 0x10);
+
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
+	{
+		if (cameo.ItemIndex == ItemIndex && cameo.ItemType == ItemType)
+		{
+			cameo.CurrentFactory = Factory;
+			auto& Tab = MouseClass::Instance->Tabs[TabIndex];
+			Tab.NeedsRedraw = 1;
+			Tab.IsBuilding = 1;
+			MouseClass::Instance->RedrawSidebar(0);
+			return Found;
+		}
+	}
+
+	return NotFound;
+}
+
+static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
+{
+	BuildType* it;
+	typename std::iterator_traits<BuildType*>::difference_type count, step;
+	count = size;
+
+	while (count > 0)
+	{
+		it = first;
+		step = count / 2;
+		std::advance(it, step);
+
+		if (*it < x)
+		{
+			first = ++it;
+			count -= step + 1;
+		}
+		else
+			count = step;
+	}
+
+	return first;
+}
+
+DEFINE_HOOK(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
+{
+	GET(StripClass*, pTab, ECX);
+	GET_STACK(AbstractType, ItemType, 0x4);
+	GET_STACK(int, ItemIndex, 0x8);
+
+	BuildType newCameo(ItemIndex, ItemType);
+	if (ItemType == BuildingTypeClass::AbsID)
+	{
+		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
+	}
+
+	auto& cameo = MouseClassExt::TabCameos[pTab->TabIndex];
+	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
+	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
+
+	if (cameo.IsValidArray())
+	{
+		BuildType* added = cameo.Items + idx;
+		BuildType* added_plusOne = std::next(added);
+		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
+		cameo.Items[idx] = std::move_if_noexcept(newCameo);
+		++cameo.Count;
+	}
+
+	++pTab->BuildableCount;
+
+	return 0x6A87E7;
+}
+
+// pointer #1
+DEFINE_HOOK(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
+{
+	GET(int, CameoCount, EAX);
+
+	GET(StripClass*, pTab, EBX);
+
+	if (CameoCount <= 0)
+	{
+		return 0x6A8D8B;
+	}
+
+	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	return 0x6A8D23;
+}
+
+// pointer #2
+DEFINE_HOOK(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
+{
+	GET(int, CameoCount, EAX);
+	GET(StripClass*, pTab, EBX);
+
+	if (CameoCount <= 0)
+	{
+		return 0x6A8F64;
+	}
+
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	ptr += 0x10;
+	R->EBP<byte*>(ptr);
+
+	return 0x6A8DC0;
+}
+
+// pointer #3
+DEFINE_HOOK(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
+{
+	GET(StripClass*, pTab, ESI);
+
+	if (pTab->BuildableCount <= 0)
+	{
+		return 0x6A902D;
+	}
+
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	ptr += 0x1C;
+	R->ESI<byte*>(ptr);
+	R->EBP<int>(R->Stack<int>(0x20));
+
+	return 0x6A8F7C;
+}
+
 DEFINE_HOOK(0x6A9747, StripClass_Draw_GetCameo, 6)
 {
 	GET(int, CameoIndex, ECX);
@@ -474,9 +708,6 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 		: 0x6A9BC5
 		;
 }
-#pragma endregion
-
-#pragma region ProcessInput
 
 DEFINE_HOOK(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
@@ -518,10 +749,6 @@ DEFINE_HOOK(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 	return 0x6AB0BE;
 }
 
-//#include <Utilities/Macro.h>
-
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB49D , 0xBF,0x00,0x00,0x00,0x00,0x89,0xF9);
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB4E8, 0x31, 0xD2, 0x90);
 DEFINE_HOOK(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
 {
 	R->EDI<void*>(nullptr);
@@ -574,13 +801,11 @@ DEFINE_HOOK(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
 	return 0x6AB627;
 }
 
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB620, 0x31, 0xC9, 0x90, 0x90, 0x90, 0x90, 0x90);
 DEFINE_HOOK(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 {
 	R->EDX<void*>(nullptr);
 	return 0x6AB748;
 }
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB741, 0x31, 0xD2, 0x90, 0x90, 0x90, 0x90, 0x90);
 
 DEFINE_HOOK(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
@@ -597,50 +822,33 @@ DEFINE_HOOK(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
 	return 0x6AB82A;
 }
 
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB825, 0x31, 0xD2, 0x90);
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB920, 0x31, 0xC9, 0x90, 0x90, 0x90, 0x90, 0x90);
-
 DEFINE_HOOK(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
 {
 	R->ECX<void*>(nullptr);
 	return 0x6AB927;
 }
 
-//DEFINE_PATCH_TYPED(BYTE, 0x6AB92F, 0x8B, 0x5B, 0x6C, 0x90, 0x90, 0x90, 0x90);
-
 DEFINE_HOOK(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 {
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
 	return 0x6AB936;
 }
-#pragma endregion
 
-DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_fix, 7)
+DEFINE_HOOK(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
 {
 	GET(int, BuildableCount, EAX);
 	GET(StripClass*, pTab, ESI);
-	GET(FactoryClass*, pFactory, EDI);
 
 	if (BuildableCount <= 0)
 	{
 		return 0x6ABC2F;
 	}
 
-	for (auto& cameos : MouseClassExt::TabCameos[pTab->TabIndex])
-	{
-		if (cameos.CurrentFactory == pFactory)
-		{
-			pFactory->AbandonProduction();
-			cameos.CurrentFactory = nullptr;
-			cameos.Status = 0;
-			R->Stack(0x18, true);//redraw
-		}
-		else if (cameos.CurrentFactory)
-			R->Stack(0x18, false);//redraw
-	}
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	ptr += 0xC;
+	R->ESI<byte*>(ptr);
 
-	R->BL(R->Stack<int>(0x18));
-	return 0x6ABC06;
+	return 0x6ABBD2;
 }
 
 DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
@@ -801,218 +1009,4 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	return 0x6AACAE;
 }
 
-#endif
-
-#ifndef STRIPS
-
-static FORCEINLINE void DoStuffs(int idx, StripClass* pStrip, int height, int width, int y, SelectClass* pBegin)
-{
-	int MaxShown = SidebarClass::Instance->Func_6AC430();
-
-	if (MaxShown)
-	{
-		int a = 0;
-		auto i = (pBegin);
-		do
-		{
-			i->Index = a;
-			i->ID = 202;
-			i->Strip = pStrip;
-			const auto nY_stuff = height * (a & 0xFFFFFFFE);
-			const auto  nX_stuff = a++ & 1;
-			i->Rect.X = pStrip->Location.X + width + nX_stuff;
-			i->Rect.Y = y + nY_stuff;
-			i->Rect.Height = 60;
-			i->Rect.Width = 48;
-
-			i++;
-
-		}
-		while (i != (MaxShown + pBegin));
-	}
-}
-
-DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
-{
-	GET(StripClass*, pThis, ECX);
-	GET_STACK(int, nIdx, 0x4);
-
-	pThis->TabIndex = nIdx;
-	auto nInc_y = pThis->Location.X + 1;
-	DoStuffs(nIdx,
-		pThis,
-		SidebarClass::ObjectHeight(),
-		SidebarClass::ObjectWidth(),
-		nInc_y,
-		SidebarClass::SelectButtonCombined.begin()
-	);
-	return 0x6A8329;
-}
-
-DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
-{
-	enum
-	{
-		ContinueLoop = 0x6ABF66,
-		BreakLoop = 0x6ABFC4,
-	};
-
-	GET(DWORD, pPtr, ESI);
-	const DWORD pCur = pPtr + 0x3480;
-	R->ESI(pCur);
-	R->Stack(0x10, pCur);
-	return (DWORD)pCur < (DWORD)SidebarClass::SelectButtonCombined.end() ?
-		ContinueLoop : BreakLoop;
-}
-
-DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
-{
-	GET(StripClass*, pThis, EDI);
-	GET(int, idx_first, ECX);
-	GET(int, idx_Second, EDX);
-	R->EAX(&SidebarClass::SelectButtonCombined[idx_Second + 2 * idx_first]);
-	return pThis->IsScrolling ? 0x6A9703 : 0x6A9714;
-}
-
-DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
-{
-	GET_STACK(size_t, nCurIdx, 0x14);
-	constexpr int Offset = 0x3E8;
-
-	for (int i = 0; i < 0xF0; ++i)
-		CCToolTip::Instance->Remove(i + Offset);
-
-	if (nCurIdx > 0)
-	{
-		for (size_t a = 0; a < nCurIdx; ++a)
-		{
-
-			CCToolTip::Instance->Add(ToolTip { a + Offset ,
-				SidebarClass::SelectButtonCombined[a].Rect,
-					nullptr,
-				true });
-
-		}
-	}
-
-	return 0x6AC0A7;
-}
-
-DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
-{
-	GET(FactoryClass*, pFactory, ECX);
-
-	bool IsDone = pFactory->IsDone();
-
-	if (IsDone)
-	{
-		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object))
-		{
-			IsDone = pBuilding->FindFactory(true, true) != nullptr;
-		}
-	}
-
-	R->EAX(IsDone);
-	return 0x6A9827;
-}
-
-DEFINE_HOOK(0x6A83E0, StripClass_DisableInput, 6)
-{
-	for (auto begin = SidebarClass::SelectButtonCombined.begin();
-		begin != SidebarClass::SelectButtonCombined.end();
-		++begin)
-		GScreenClass::Instance->RemoveButton(begin);
-
-	return 0x6A8415;
-}
-
-DEFINE_HOOK(0x6A8330, StripClass_EnableInput, 5)
-{
-	GET(StripClass*, pThis, ECX);
-
-	int const nIdx = SidebarClass::Instance->Func_6AC430();
-	for (auto i = SidebarClass::SelectButtonCombined.begin();
-		i != (&SidebarClass::SelectButtonCombined[nIdx]);
-		++i)
-	{
-		(*i).Zap();
-		(*i).Strip = pThis;
-		GScreenClass::Instance->AddButton(i);
-	}
-
-	CCToolTip::Bound = true;
-	return 0x6A83DA;
-}
-
-DEFINE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
-{
-	R->ESI(SidebarClass::SelectButtonCombined.begin());
-	return 0x6ABF49;
-}
-
-DEFINE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
-	return 0x6A7F9F;
-}
-
-DEFINE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Deactivate();
-	return 0x6A8061;
-}
-
-DEFINE_HOOK(0x6A64C9, SidebarClass_AddCameo_Strip, 6)
-{
-	GET(SidebarClass*, pThis, EBX);
-	GET(int, nStrip, EDI);
-	pThis->ChangeTab(nStrip);
-	return 0x6A65D6;
-}
-
-DEFINE_HOOK(0x6A75B9, SidebarClass_SetActiveTab_Strip1, 6)
-{
-	GET(SidebarClass*, pThis, EBP);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
-	return 0x6A7602;
-}
-
-DEFINE_HOOK(0x6A7619, SidebarClass_SetActiveTab_Strip2, 6)
-{
-	GET(SidebarClass*, pThis, EBP);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
-	return 0x6A76CA;
-}
-
-DEFINE_HOOK(0x6A793F, SidebarClass_Update_Strip1, 6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A94B0_GScreenRemoveButton();
-	return 0x6A7988;
-}
-
-DEFINE_HOOK(0x6A79A0, SidebarClass_Update_Strip2, 6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
-	return 0x6A7A51;
-}
-
-DEFINE_HOOK(0x6A93F0, StripClass_Activate, 6)
-{
-	GET(StripClass*, pThis, ECX);
-	pThis->AllowedToDraw = true;
-	pThis->Activate();
-	return 0x6A94A0;
-}
-
-DEFINE_HOOK(0x6A94B0, StripClass_Deactivate, 6)
-{
-	GET(StripClass*, pThis, ECX);
-	pThis->AllowedToDraw = false;
-	pThis->Deactivate();
-	return 0x6A94E9;
-}
 #endif

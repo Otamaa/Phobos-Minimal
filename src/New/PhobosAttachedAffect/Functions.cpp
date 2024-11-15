@@ -81,6 +81,10 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
+	if (pExt->PhobosAE.empty())
+		return;
+
 	auto const pThis = pTechno;
 	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool markForRedraw = false;
