@@ -460,8 +460,8 @@ struct AresTActionExt
 	DEFINE_ACTION(DoExplosionAt);
 	DEFINE_ACTION(EnableTrigger);
 
-	DEFINE_ACTION(Retint);
-	DEFINE_ACTION(Execute);
+	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col);
+	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret);
 #undef DEFINE_ACTION
 };
 
