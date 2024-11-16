@@ -136,12 +136,12 @@ struct AresGlobalData {
 };
 
 struct StaticVars {
-	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
-	static std::vector<unsigned char> ShpCompression1Buffer;
-	static std::map<const TActionClass*, int> TriggerCounts;
-	static UniqueGamePtrB<MixFileClass> aresMIX;
-	static std::string MovieMDINI;
-	static WaveColorData TempColor;
+	static inline PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static inline std::vector<unsigned char> ShpCompression1Buffer;
+	static inline std::map<const TActionClass*, int> TriggerCounts;
+	static inline UniqueGamePtrB<MixFileClass> aresMIX;
+	static inline std::string MovieMDINI { "MOVIEMD.INI" };
+	static inline WaveColorData TempColor;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -460,9 +460,8 @@ struct AresTActionExt
 	DEFINE_ACTION(DoExplosionAt);
 	DEFINE_ACTION(EnableTrigger);
 
-	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col);
-
-	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret);
+	DEFINE_ACTION(Retint);
+	DEFINE_ACTION(Execute);
 #undef DEFINE_ACTION
 };
 

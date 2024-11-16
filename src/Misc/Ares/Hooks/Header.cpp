@@ -69,12 +69,7 @@
 
 #include <New/PhobosAttachedAffect/Functions.h>
 
-PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas {};
-std::vector<unsigned char> StaticVars::ShpCompression1Buffer {};
-std::map<const TActionClass*, int>  StaticVars::TriggerCounts {};
-UniqueGamePtrB<MixFileClass> StaticVars::aresMIX {};
-std::string StaticVars::MovieMDINI { "MOVIEMD.INI" };
-WaveColorData StaticVars::TempColor {};
+#include <Utilities/GameConfig.h>
 
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {
@@ -99,27 +94,16 @@ void StaticVars::Clear()
 
 void StaticVars::LoadGlobalsConfig()
 {
-	CCFileClass IniFile { "Ares.ini" };
-	if (!IniFile.Exists() || !IniFile.Open(FileAccessMode::Read))
-	{
-		Debug::Log("Failed to Open file %s \n", IniFile.FileName);
-		return;
-	}
-
-	CCINIClass Ini {};
-	Ini.ReadCCFile(&IniFile);
-
-	if (Ini.ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
-	{
-		if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
-		{
-			AresGlobalData::GFX_DX_Force = 0x01l; //HW
+	GameConfig ares_ini { "Ares.ini" };
+	ares_ini.OpenINIAction([](CCINIClass* pINI) {
+		if (pINI->ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer)) {
+			if (IS_SAME_STR_(Phobos::readBuffer, "hardware")) {
+				AresGlobalData::GFX_DX_Force = 0x01l; //HW
+			} else if (IS_SAME_STR_(Phobos::readBuffer, "emulation")) {
+				AresGlobalData::GFX_DX_Force = 0x02l; //EM
+			}
 		}
-		else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
-		{
-			AresGlobalData::GFX_DX_Force = 0x02l; //EM
-		}
-	}
+	});
 
 	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))
 	{
