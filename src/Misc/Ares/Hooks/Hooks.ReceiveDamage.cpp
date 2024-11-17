@@ -813,7 +813,7 @@ DEFINE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EAX);
 // 	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
-
+//
 // 	// Rules->InfantryVirus animation has been created. set the owner, but
 // 	auto pInvoker = Arguments.Attacker
 // 		? Arguments.Attacker->Owner
@@ -830,20 +830,20 @@ DEFINE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
 //
 // 	return 0x5185F1;
 // }
-
+//
 // DEFINE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EDI);
 // 	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
-
+//
 // 	// Rules->InfantryMutate animation has been created. set the owner and color.
 // 	auto pInvoker = Arguments.Attacker
 // 		? Arguments.Attacker->Owner
 // 		: Arguments.SourceHouse;
-
+//
 // 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, Arguments.Attacker, false, true);
-
+//
 // 	return 0x518AFF;
 // }
 
@@ -1064,6 +1064,20 @@ DEFINE_HOOK(0x7027E6, TechnoClass_ReceiveDamage_Nonprovocative, 0x8)
 //}
 
 #include <Ext/Infantry/Body.h>
+DWORD NOINLINE Crashable(FootClass* pThis ,TechnoTypeClass* pType , ObjectClass* pKiller) {
+
+	if (pType->Crashable) {
+		if (!pThis->Crash(pKiller)) {
+			pThis->UnInit();
+			return 0x518623;
+		}
+
+	} else{
+		pThis->UnInit();
+	}
+
+	return 0x518623;
+}
 
 DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0x7)
 {
@@ -1103,18 +1117,14 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 					GameCreate<AnimClass>(RulesClass::Instance->SplashList[0], splash_loc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
 				}
 
-				if (pThis->Type->Crashable)
-				{
-					pThis->Crash(args.Attacker);
-				}
-
-				pThis->UnInit();
-				return RetResult4;
+				return Crashable(pThis , pThis->Type,args.Attacker);
 			}
 		}
 
-		if(!pThis->Type->Cyborg)
-		{
+		if (pThis->Type->Cyborg && pThis->Crawling) {
+			GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			return Crashable(pThis, pThis->Type, args.Attacker);
+		} else {
 			auto infDeath = args.WH->InfDeath;
 			if (!pThis->Type->JumpJet)
 			{
@@ -1219,13 +1229,7 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 								return RetResult4;
 						}
 
-						if (pThis->Type->Crashable)
-						{
-							pThis->Crash(args.Attacker);
-						}
-
-						pThis->UnInit();
-						return RetResult4;
+						return Crashable(pThis, pThis->Type, args.Attacker);
 					}
 					else
 					{
@@ -1377,13 +1381,7 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 							}
 						}
 
-						if (pThis->Type->Crashable)
-						{
-							pThis->Crash(args.Attacker);
-						}
-
-						pThis->UnInit();
-						return RetResult4;
+						return Crashable(pThis, pThis->Type, args.Attacker);
 					}
 				}
 				else
@@ -1415,10 +1413,5 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 		GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
 	}
 
-	if (pThis->Type->Crashable) {
-		pThis->Crash(args.Attacker);
-	}
-
-	pThis->UnInit();
-	return RetResult4;
+	return Crashable(pThis, pThis->Type, args.Attacker);
 }

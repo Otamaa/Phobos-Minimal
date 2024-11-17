@@ -10823,30 +10823,6 @@ DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 
 #include <WeaponTypeClass.h>
 
-static AnimTypeClass* Techno_Get_Firing_Anim(TechnoClass* this_ptr, WeaponTypeClass* weapon)
-{
-	const int anim_count = weapon->Anim.Count;
-	DirStruct& dir = this_ptr->TurretFacing();
-
-	if (anim_count == 8) {
-		return weapon->Anim[(dir.GetFacing<8>() + 8 / 8) % 8];
-	}
-	else if (anim_count == 16) {
-		return weapon->Anim[(dir.GetFacing<16>() + 16 / 8) % 16];
-	}
-	else if (anim_count == 32) {
-		return weapon->Anim[(dir.GetFacing<32>() + 32 / 8) % 32];
-	}
-	else if (anim_count == 64) {
-		return weapon->Anim[(dir.GetFacing<64>() + 64 / 8) % 64];
-	}
-	else if (anim_count > 0) {
-		return weapon->Anim[0];
-	}
-
-	return nullptr;
-}
-
 DEFINE_HOOK(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {
 	GET(BuildingClass*, pBld, EAX);
