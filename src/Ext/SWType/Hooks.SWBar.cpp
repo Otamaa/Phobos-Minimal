@@ -434,7 +434,7 @@ DEFINE_HOOK(0x4F4583, GScreenClass_DrawOnTop_TheDarkSideOfTheMoon, 0x6)
 				}
 				else
 				{
-					auto pConvert = pSWExt->SidebarPalette ? pSWExt->SidebarPalette->GetConvert<PaletteManager::Mode::Default>() : FileSystem::CAMEO_PAL();
+					auto pConvert = pSWExt->SidebarPalette ? pSWExt->SidebarPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(FileSystem::CAMEO_PAL()) : FileSystem::CAMEO_PAL();
 					pSurface->DrawSHP
 					(
 						pConvert,

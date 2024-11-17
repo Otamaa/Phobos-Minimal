@@ -173,7 +173,7 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 						ConvertClass* pPal = FileSystem::CAMEO_PAL();
 						if (auto pManager = pProdTypeExt->CameoPal)
-							pPal = pManager->GetConvert<PaletteManager::Mode::Default>();
+							pPal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal);
 
 						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 					}
@@ -223,7 +223,7 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 
 							ConvertClass* pPal = FileSystem::CAMEO_PAL();
 							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette)
-								pPal = pManager->GetConvert<PaletteManager::Mode::Default>();
+								pPal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal);
 
 							DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 						}

@@ -2649,7 +2649,7 @@ bool SuperWeaponSidebar::DrawCameos(SuperClass* pSuper, RectangleStruct* pDestRe
 		{
 			ConvertClass* SWConvert = FileSystem::CAMEO_PAL();
 			if (auto pManager = pSWExt->SidebarPalette)
-				SWConvert = pManager->GetConvert<PaletteManager::Mode::Default>();
+				SWConvert = pManager->GetOrDefaultConvert<PaletteManager::Mode::Default>(SWConvert);
 
 			Drawer->DrawSHP(SWConvert, pCameo, 0, pLoc, Bounds, BlitterFlags(0x400), 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 			return true;

@@ -257,7 +257,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 			{
 				pSHP = pAnimType->GetImage();
 				if (const auto pPalette = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette)
-					pDrawer = pPalette->GetConvert<PaletteManager::Mode::Temperate>();
+					pDrawer = pPalette->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(FileSystem::ANIM_PAL);
 			}
 
 			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % nFramesPerFacing;

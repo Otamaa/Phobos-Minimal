@@ -99,7 +99,7 @@ static	void __fastcall DrawShape_VeinHole
 )
 {
 	if (auto pManager = RulesExtData::Instance()->VeinholePal)
-		Pal = pManager->GetConvert<PaletteManager::Mode::Temperate>();
+		Pal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(Pal);
 
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
@@ -7361,15 +7361,19 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 }
 
 
-DEFINE_HOOK(0x4580D1, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
+DEFINE_HOOK(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 {
-	GET(HouseClass*, pHouse, ECX);
 	GET(BuildingClass*, pThis, ESI);
 	GET(FootClass*, pOccupier, EDI);
 
-	if (!pHouse)
+	if (!pThis->Owner)
 	{
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", pThis, pThis->get_ID(), pOccupier, pOccupier->get_ID());
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", 
+			pThis, 
+			pThis->get_ID(), 
+			pOccupier, 
+			pOccupier->get_ID()
+		);
 	}
 
 	return 0x0;

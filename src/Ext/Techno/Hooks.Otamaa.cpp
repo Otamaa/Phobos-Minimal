@@ -74,7 +74,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 				pPipFile = pGarrisonPip;
 				nPipFrameIndex = std::clamp((int)pExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
 				if (auto const pConvertData = pExt->PipGarrison_Palette)
-					pPalette = pConvertData->GetConvert<PaletteManager::Mode::Default>();
+					pPalette = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Default>( FileSystem::THEATER_PAL);
 			}
 			else
 			{

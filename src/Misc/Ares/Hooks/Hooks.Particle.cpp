@@ -273,8 +273,8 @@ DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 						continue;
 				 }
 
-				 auto nX = abs(pThis->Location.X - pOccupy->Location.X);
-				 auto nY = abs(pThis->Location.Y - pOccupy->Location.Y);
+				 auto nX = Math::abs(pThis->Location.X - pOccupy->Location.X);
+				 auto nY = Math::abs(pThis->Location.Y - pOccupy->Location.Y);
 				 ParticleClass_Gas_Transmography(pOccupy, pAttacker, pOwner, Game::AdjustHeight(nX + nY), pOccupy->Location, pTypeExt, transmoOwner);
 			}
 		}
@@ -288,8 +288,8 @@ DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 			if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
 				continue;
 
-			auto nX = abs(pThis->Location.X - pItem->Location.X);
-			auto nY = abs(pThis->Location.Y - pItem->Location.Y);
+			auto nX = Math::abs(pThis->Location.X - pItem->Location.X);
+			auto nY = Math::abs(pThis->Location.Y - pItem->Location.Y);
 			ParticleClass_Gas_Transmography(pItem, pAttacker, pOwner, Game::AdjustHeight(nX + nY), pItem->Location, pTypeExt, transmoOwner);
 		}
 	}
@@ -303,9 +303,8 @@ DEFINE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 
 	ConvertClass* pConvert = FileSystem::ANIM_PAL();
 	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
-	if (const auto pConvertData = pTypeExt->Palette)
-	{
-		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	if (const auto pConvertData = pTypeExt->Palette) {
+		pConvert = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pConvert);
 	}
 
 	R->EDX(pConvert);

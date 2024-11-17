@@ -64,7 +64,7 @@ DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 		nPal = pThis->GetRemapColour();
 	}
 	else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
-		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+		nPal = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(nPal);
 	}
 
 	R->EDX(nPal);
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 		nPal = pThis->GetRemapColour();
 	}
 	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
-		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+		nPal = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(nPal);
 	}
 
 	//PipShapes01Palette
@@ -246,7 +246,7 @@ namespace DrawHeathData
 		if (pTypeExt->HealthbarRemap.Get())
 			pPalette = pTechConvert;
 		else if (const auto pConvertData = pTypeExt->HealthBarSHP_Palette)
-			pPalette = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+			pPalette = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pPalette);
 
 		Point2D nLocation = *pLocation;
 		nLocation += pTypeExt->HealthBarSHP_PointOffset.Get();

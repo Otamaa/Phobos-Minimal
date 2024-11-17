@@ -39,7 +39,7 @@ CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType)
 const ConvertClass* BulletTypeExtData::GetBulletConvert()
 {
 	if(!this->ImageConvert.empty())
-		return  this->ImageConvert;
+		return this->ImageConvert;
 	else
 	{
 		ConvertClass* pConvert = nullptr;

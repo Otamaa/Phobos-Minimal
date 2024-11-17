@@ -48,8 +48,10 @@ DEFINE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 
 	if (pData ) {
 		if(const auto pConvertData = pData->Palette) {
-			R->ECX<ConvertClass*>(pConvertData->GetConvert<PaletteManager::Mode::Temperate>());
-			return 0x4232D4;
+			if(auto pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>()){
+				R->ECX<ConvertClass*>(pConvert);
+				return 0x4232D4;
+			}
 		}
 	}
 

@@ -159,7 +159,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	}
 
 	const auto ExtraFrame = GeneralUtils::GetItemByHealthRatio<FrameData>(static_cast<double>(value) / maxValue, { 0, 30 }, { 10 , 32 }, { 20 , 34 });
-	ConvertClass* pPal = Palette.Get() ? Palette->GetConvert<PaletteManager::Mode::Temperate>() : FileSystem::PALETTE_PAL;
+	ConvertClass* pPal = Palette.Get() ? Palette->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(FileSystem::PALETTE_PAL) : FileSystem::PALETTE_PAL;
 
 	ShapeTextPrintData shapeTextPrintData
 	(

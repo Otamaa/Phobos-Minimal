@@ -18,7 +18,7 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 	GET(FakeAnimClass* const, pThis, ESI);
 
 	if (auto pCustom = pThis->_GetTypeExtData()->Palette) {
-		R->EDX(pCustom->GetConvert<PaletteManager::Mode::Temperate>());
+		R->EDX(pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(FileSystem::ANIM_PAL()));
 		return 0x4236F6;
 	}
 

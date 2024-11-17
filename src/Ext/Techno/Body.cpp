@@ -2331,7 +2331,7 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 	ConvertClass* SelectBrdPAL = (pTypeExt->SHP_SelectBrdPAL ?
 		pTypeExt->SHP_SelectBrdPAL :
 		(isInfantry ? RulesExtData::Instance()->SHP_SelectBrdPAL_INF : RulesExtData::Instance()->SHP_SelectBrdPAL_UNIT))
-		->GetConvert<PaletteManager::Mode::Temperate>();
+		->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(FileSystem::ANIM_PAL);
 
 	if (!SelectBrdPAL)
 		return;

@@ -262,7 +262,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	{
 		if (const auto pCustom = pTypeExt->PlacementPreview_Palette)
 		{
-			pDecidedPal = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
+			pDecidedPal = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecidedPal);
 		}
 
 	}
