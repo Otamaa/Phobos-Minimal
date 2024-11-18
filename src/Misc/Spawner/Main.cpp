@@ -339,6 +339,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	}
 
 	// Extended Options
+	SpawnerHackMPNodes = pINI->ReadBool(GameStrings::Settings(), "UseMPAIBaseNodes", SpawnerHackMPNodes);
 	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
 	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
 	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);

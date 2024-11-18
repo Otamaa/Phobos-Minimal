@@ -2064,6 +2064,8 @@ void HouseExtContainer::Clear()
 	HouseExtData::AutoDeathObjects.clear();
 }
 
+#include <Misc/Spawner/Main.h>
+
 /**
  *  Handles expert AI processing.
  *
@@ -2189,7 +2191,7 @@ int FakeHouseClass::_Expert_AI()
 		}
 	}
 
-	if (SessionClass::Instance->GameMode != GameMode::Campaign)
+	if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign)
 	{
 		using fp_type = bool(__thiscall*)(HouseClass*, int);
 

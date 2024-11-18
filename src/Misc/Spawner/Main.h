@@ -184,8 +184,8 @@ struct SpawnerMain
 		HouseConfig Houses[8];
 
 		// Extended Options
-		bool Ra2Mode;
 		bool QuickMatch;
+		bool SpawnerHackMPNodes;
 		bool SkipScoreScreen;
 		bool WriteStatistics;
 		bool AINamesByDifficulty;
@@ -279,7 +279,7 @@ struct SpawnerMain
 			}
 
 			// Extended Options
-			, Ra2Mode { false }
+			, SpawnerHackMPNodes { false }
 			, QuickMatch { false }
 			, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 			, WriteStatistics { false }
