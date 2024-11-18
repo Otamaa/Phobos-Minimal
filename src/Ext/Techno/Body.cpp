@@ -4941,7 +4941,7 @@ void TechnoExtData::ApplyIdleAction()
 		bool noNeedTurnForward = false;
 
 		if (UnitClass* const pUnit = specific_cast<UnitClass*>(pThis))
-			noNeedTurnForward = pUnit->BunkerLinkedItem || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
+			noNeedTurnForward = pUnit->BunkerLinkedItem ||!pUnit->Type->Speed || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 		else if (pThis->WhatAmI() == AbstractType::Building)
 			noNeedTurnForward = true;
 
@@ -4962,7 +4962,7 @@ void TechnoExtData::ApplyIdleAction()
 			bool noNeedTurnForward = false;
 
 			if (UnitClass* const pUnit = specific_cast<UnitClass*>(pThis))
-				noNeedTurnForward = pUnit->BunkerLinkedItem || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
+				noNeedTurnForward = pUnit->BunkerLinkedItem ||!pUnit->Type->Speed || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 			else if (pThis->WhatAmI() == AbstractType::Building)
 				noNeedTurnForward = true;
 
@@ -4982,7 +4982,7 @@ void TechnoExtData::ApplyIdleAction()
 		bool noNeedTurnForward = false;
 
 		if (UnitClass* const pUnit = specific_cast<UnitClass*>(pThis))
-			noNeedTurnForward = pUnit->BunkerLinkedItem || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
+			noNeedTurnForward = pUnit->BunkerLinkedItem || !pUnit->Type->Speed ||(pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 		else if (pThis->WhatAmI() == AbstractType::Building)
 			noNeedTurnForward = true;
 
