@@ -53,8 +53,8 @@ void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass
 DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 {
 	GET(int, damage, ECX);
-	GET(WarheadTypeClass*, pWH, EDX);
-	GET_STACK(int, armorIdx, 0x4);
+	GET(FakeWarheadTypeClass*, pWH, EDX);
+	GET_STACK(Armor, armor, 0x4);
 	GET_STACK(int, distance, 0x8);
 
 	int res = 0;
@@ -68,25 +68,16 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 		return 0x48926A;
 	}
 
-	const auto pExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	const auto pExt = pWH->_GetExtData();
 
 	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
 	{
 		const double dDamage = (double)damage;
-		//const float fDamage = float(dDamage);
 		const double dCellSpreadRadius = pWH->CellSpread * 256.0;
 		const int cellSpreadRadius = int(dCellSpreadRadius);
 
 		const double Atmax = double(dDamage * pWH->PercentAtMax);
-		const auto vsData = &pExt->Verses[armorIdx];
-		//Debug::Log("[%s]ResultDamage before for armor[%s] %d atmax %fl spread %fl fDamage %fl Caller [%x]\n",
-		//	pWH->ID,
-		//	ArmorTypeClass::Array[armorIdx]->Name.data(),
-		//	damage,
-		//	Atmax,
-		//	(float)dCellSpreadRadius,
-		//	fDamage,
-		//	R->Stack<DWORD>(0x0));
+		const auto vsData = pWH->GetVersesData(armor);
 
 		if (Atmax != dDamage && cellSpreadRadius) {
 			res = int((double)(dDamage - Atmax) * (double)(cellSpreadRadius - distance) / dCellSpreadRadius + Atmax);
@@ -94,12 +85,10 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 			res = damage;
 		}
 
-		//Debug::Log("[%s]ResultDamage1 for armor[%s] %d Caller [%x]\n", pWH->ID, ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
 		if(!pExt->ApplyModifiersOnNegativeDamage)
 			res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
 		else
 			res = int(res * vsData->Verses);
-		//Debug::Log("[%s]ResultDamage2 for armor[%s] %d Caller [%x]\n", pWH->ID , ArmorTypeClass::Array[armorIdx]->Name.data(), res, R->Stack<DWORD>(0x0));
 
 		if (res >= RulesClass::Instance->MaxDamage)
 			res = RulesClass::Instance->MaxDamage;
@@ -131,18 +120,13 @@ DEFINE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 
 	GET(ObjectClass*, pTarget, ESI);
-	GET(WarheadTypeClass*, pWH, ECX);
+	GET(FakeWarheadTypeClass*, pWH, ECX);
 	GET(WeaponTypeClass*, pWeapon , EBP);
 	//GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 	Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
-	const auto vsData = &pData->Verses[(int)armor];
-
-	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
+	return pWH->GetVersesData(armor)->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
 		? ContinueCheck
 		: ReturnFalse
 		;
@@ -153,17 +137,13 @@ DEFINE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	enum { FireIllegal = 0x6FCB7E, ContinueCheck = 0x6FCBCD, };
 
 	GET(ObjectClass*, pTarget, EBP);
-	GET(WarheadTypeClass*, pWH, EDI);
+	GET(FakeWarheadTypeClass*, pWH, EDI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	//GET(int, nArmor, EAX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
 	Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
-	const auto vsData = &pData->Verses[(int)armor];
-	auto& armorType = ArmorTypeClass::Array[(int)armor];
-
-	//if (IS_SAME_STR_("CAOILD" , pTarget->get_ID()) && !IS_SAME_STR_(armorType->Name.data(), "CiTechAr"))
-	//	Debug::Log(__FUNCTION__" Oil Derric With Armor[%s] !\n", armorType->Name.data());
+	const auto vsData = pWH->GetVersesData(armor);
 
 	// i think there is no way for the techno know if it attack using force fire or not
 	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
@@ -188,16 +168,13 @@ DEFINE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0
 {
 	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
-	GET(WarheadTypeClass*, pTargetWH, EAX);
+	GET(FakeWarheadTypeClass*, pTargetWH, EAX);
 	GET_STACK(double, mult, 0x18);
 	GET(TechnoTypeClass*, pThisType, EBX);
 
 	const auto pData = WarheadTypeExtContainer::Instance.Find(pTargetWH);
-
-	//if ((int)pThisType->Armor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
-	const auto armor = (int)TechnoExtData::GetTechnoArmor(pThis, pTargetWH);
-	const auto vsData = &pData->Verses[armor];
+	const auto armor = TechnoExtData::GetTechnoArmor(pThis, pTargetWH);
+	const auto vsData = pTargetWH->GetVersesData(armor);
 
 	double nMult = 0.0;
 
@@ -214,20 +191,14 @@ DEFINE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB
 {
 	GET(ObjectClass*, pTarget, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(WarheadTypeClass*, pWH, ECX);
+	GET(FakeWarheadTypeClass*, pWH, ECX);
 	//GET(int, nArmor, EAX);
 	GET_STACK(double, dmult, 0x10);
 	GET_STACK(double, dCoeff, 0x30);
 
-	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
 	Armor armor = TechnoExtData::GetTechnoArmor(pTarget , pWH);
+	R->Stack(0x10, dCoeff * pWH->GetVersesData(armor)->Verses + dmult);
 
-	const auto vsData = &pData->Verses[(int)armor];
-
-	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
 	return 0x70CF58;
 }
 
@@ -264,21 +235,15 @@ DEFINE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	enum { Retaliate = 0x708B0B, DoNotRetaliate = 0x708B17 };
 
 	GET(TechnoClass* , pSource , EBP);
-	GET(WarheadTypeClass*, pWH, ECX);
+	GET(FakeWarheadTypeClass*, pWH, ECX);
 	//GET(WeaponTypeClass*, pWeapon, ESI);
 	//GET(int, nArmor, EAX);
 
-	const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
-	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
-
-	if(pData->Nonprovocative)
+	if(pWH->_GetExtData()->Nonprovocative)
 		return DoNotRetaliate;
 
 	Armor armor = TechnoExtData::GetTechnoArmor(pSource , pWH);
-	const auto vsData = &pData->Verses[(int)armor];
-
-	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
+	return pWH->GetVersesData(armor)->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
 		? Retaliate
 		: DoNotRetaliate
 		;

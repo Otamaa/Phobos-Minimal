@@ -542,5 +542,9 @@ public:
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);
 	}
 
+	constexpr VersesData* GetVersesData(Armor armor) {
+		return this->_GetExtData()->Verses.data() + static_cast<size_t>(armor);
+	}
+
 };
 static_assert(sizeof(FakeWarheadTypeClass) == sizeof(WarheadTypeClass), "Invalid Size !");

@@ -279,8 +279,8 @@ struct SpawnerMain
 			}
 
 			// Extended Options
-			, SpawnerHackMPNodes { false }
 			, QuickMatch { false }
+			, SpawnerHackMPNodes { false }
 			, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 			, WriteStatistics { false }
 			, AINamesByDifficulty { false }
