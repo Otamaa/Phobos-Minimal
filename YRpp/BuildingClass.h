@@ -348,6 +348,10 @@ public:
 	void KickAllOccupants(bool missionHunt, bool donotKill) const {
 		JMP_THIS(0x457DE0);
 	}
+
+	bool CanUpgrade(BuildingTypeClass* pType, HouseClass * pHouse) const
+	{ JMP_THIS(0x452670); }
+
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

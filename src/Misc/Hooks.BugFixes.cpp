@@ -2051,14 +2051,13 @@ DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 // Apply cell lighting on UseNormalLight=no MakeInfantry anims.
 DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 {
-	enum { SkipGameCode = 0x4232C5 };
 	GET(AnimClass*, pThis, ESI);
-	if (pThis->Type->MakeInfantry != -1)
-	{
-		auto const pCell = pThis->GetCell();
-		R->EAX(pCell->Intensity_Normal);
-		return SkipGameCode;
+
+	if (pThis->Type->MakeInfantry != -1) {
+		R->EAX(pThis->GetCell()->Intensity_Normal);
+		return 0x4232C5;
 	}
+
 	return 0;
 }
 
@@ -2069,15 +2068,15 @@ DEFINE_HOOK(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
 {
 	enum { ReturnFromFunction = 0x50C203 };
 	GET(const char*, name, ECX);
+
 	// Bail out early in campaign mode or if the name does not start with <
 	if (SessionClass::IsCampaign() || *name != '<')
 		return 0;
+
 	int playerAtIndex = HouseClass::GetPlayerAtFromString(name);
-	if (playerAtIndex != -1)
-	{
-		auto const pHouse = HouseClass::FindByPlayerAt(playerAtIndex);
-		if (pHouse)
-		{
+
+	if (playerAtIndex != -1) {
+		if (auto const pHouse = HouseClass::FindByPlayerAt(playerAtIndex)) {
 			R->EDX(pHouse->ArrayIndex);
 			return ReturnFromFunction;
 		}
@@ -2085,6 +2084,7 @@ DEFINE_HOOK(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
 
 	return 0;
 }
+
 // Skip check that prevents buildings from being created for local player.
 DEFINE_JUMP(LJMP, 0x44F8D5, 0x44F8E1);
 
@@ -2149,42 +2149,22 @@ DEFINE_HOOK(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
 
 #pragma region End_Piggyback PowerOn
 // Author: tyuah8
-static void End_Piggyback_PowerOn(ILocomotion* loco)
+
+DEFINE_HOOK_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
+DEFINE_HOOK_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
+DEFINE_HOOK_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
+DEFINE_HOOK(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
 {
-	const auto pLoco = static_cast<LocomotionClass*>(loco);
-	const auto pLinkedTo = pLoco->LinkedTo;
+	ILocomotion* loco = R->Origin() == 0x719F17 ? R->ECX<ILocomotion*>() : R->EAX<ILocomotion*>();
+	auto pLoco = static_cast<LocomotionClass*>(loco);
+	auto pLinkedTo = pLoco->LinkedTo;
 
 	if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
 		pLoco->Power_On();
 	else
 		pLoco->Power_Off();
-}
 
-DEFINE_HOOK(0x4AF94D, DriveLocomotionClass__End_Piggyback__PowerOn, 0x7)
-{
-	GET(ILocomotion*, loco, EAX);
-	End_Piggyback_PowerOn(loco);
 	return 0;
 }
 
-DEFINE_HOOK(0x54DADC, JumpjetLocomotionClass__End_Piggyback__PowerOn, 0x5)
-{
-	GET(ILocomotion*, loco, EAX);
-	End_Piggyback_PowerOn(loco);
-	return 0;
-}
-
-DEFINE_HOOK(0x69F05D, ShipLocomotionClass__End_Piggyback__PowerOn, 0x7)
-{
-	GET(ILocomotion*, loco, EAX);
-	End_Piggyback_PowerOn(loco);
-	return 0;
-}
-
-DEFINE_HOOK(0x719F17, TeleportLocomotionClass__End_Piggyback__PowerOn, 0x5)
-{
-	GET(ILocomotion*, loco, ECX);
-	End_Piggyback_PowerOn(loco);
-	return 0;
-}
 #pragma endregion

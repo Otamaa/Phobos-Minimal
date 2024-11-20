@@ -575,6 +575,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->RemoveParasites.Read(exINI, pSection, "RemoveParasites");
 	this->CLIsBlack.Read(exINI, pSection, "CLIsBlack");
+	this->ApplyMindamage.Read(exINI, pSection, "ApplyMinDamage");
+	this->MinDamage.Read(exINI, pSection, "MinDamage");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1551,6 +1553,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->RemoveParasites)
 		.Process(this->Reflected)
 		.Process(this->CLIsBlack)
+		.Process(this->ApplyMindamage)
+		.Process(this->MinDamage)
 		;
 
 	PaintBallData.Serialize(Stm);

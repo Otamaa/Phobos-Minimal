@@ -72,8 +72,11 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 
 	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
 	{
+		if (pExt->ApplyMindamage)
+			damage = MaxImpl(pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage, damage);
+
 		const double dDamage = (double)damage;
-		const double dCellSpreadRadius = pWH->CellSpread * 256.0;
+		const double dCellSpreadRadius = pWH->CellSpread * Unsorted::d_LeptonsPerCell;
 		const int cellSpreadRadius = int(dCellSpreadRadius);
 
 		const double Atmax = double(dDamage * pWH->PercentAtMax);
@@ -90,11 +93,17 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 		else
 			res = int(res * vsData->Verses);
 
-		if (res >= RulesClass::Instance->MaxDamage)
-			res = RulesClass::Instance->MaxDamage;
-	}
-	else
-	{
+		/**
+		 *	Allow damage to drop to zero only if the distance would have
+		 *	reduced damage to less than 1/4 full damage. Otherwise, ensure
+		 *	that at least one damage point is done.
+		 */
+		if (pExt->ApplyMindamage && distance < 4)
+			damage = MaxImpl(damage, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
+
+		damage = MinImpl(damage, RulesClass::Instance->MaxDamage);
+
+	} else {
 		res = distance >= 8 ? 0 : damage;
 	}
 

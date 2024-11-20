@@ -394,6 +394,8 @@ public:
 
 	bool Reflected { false };
 	Valueable<bool> CLIsBlack { false };
+	Valueable<bool> ApplyMindamage { false };
+	Valueable<int> MinDamage { -1 };
 
 public:
 
