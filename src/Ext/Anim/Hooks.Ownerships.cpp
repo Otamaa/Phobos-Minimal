@@ -34,10 +34,8 @@ DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 
 	CoordStruct nCoord { X , Y , Z };
 
-	const auto nMax = ScenarioClass::Instance->Random.RandomFromMax((pThis->Type->SpawnCount * 2));
-
-	if(nMax <= 0)
-		return 0x423FC6;
+	const auto nMax = pThis->Type->SpawnCount == 1 ?
+		 1 : ScenarioClass::Instance->Random.RandomFromMax((pThis->Type->SpawnCount * 2));
 
 	const auto pAnimTypeExt = pThis->_GetTypeExtData();
 	TechnoClass* pTech = AnimExtData::GetTechnoInvoker(pThis);

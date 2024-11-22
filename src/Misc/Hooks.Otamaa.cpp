@@ -463,8 +463,10 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	GET(int, zAdd, EDI);
 
 	CoordStruct nLoc { X , Y , Z + zAdd };
+	const int idx = pThis->Type->Explosion.Count == 1 ?
+		0 : ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1);
 
-	if (auto const pType = pThis->Type->Explosion.Items[ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1)])
+	if (auto const pType = pThis->Type->Explosion.Items[idx])
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
@@ -7368,10 +7370,10 @@ DEFINE_HOOK(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 
 	if (!pThis->Owner)
 	{
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n", 
-			pThis, 
-			pThis->get_ID(), 
-			pOccupier, 
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n",
+			pThis,
+			pThis->get_ID(),
+			pOccupier,
 			pOccupier->get_ID()
 		);
 	}
