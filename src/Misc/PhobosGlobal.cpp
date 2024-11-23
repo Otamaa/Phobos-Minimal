@@ -3,7 +3,6 @@
 #include <AbstractClass.h>
 
 PhobosGlobal PhobosGlobal::GlobalObject;
-PhobosGlobal::ColorsData PhobosGlobal::ColorDatas {};
 
 void PhobosGlobal::Clear()
 {
@@ -13,9 +12,10 @@ void PhobosGlobal::Clear()
 	pInstance->TempFoundationData1.clear();
 	pInstance->TempFoundationData2.clear();
 	pInstance->TempCoveredCellsData.clear();
-	PhobosGlobal::ColorDatas.reset();
+	pInstance->ColorDatas.reset();
 	pInstance->PathfindTechno.Clear();
 	pInstance->CurCopyArray.clear();
+
 }
 
 void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)

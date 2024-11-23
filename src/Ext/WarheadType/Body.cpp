@@ -1557,6 +1557,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->CLIsBlack)
 		.Process(this->ApplyMindamage)
 		.Process(this->MinDamage)
+		.Process(this->IntendedTarget)
 		;
 
 	PaintBallData.Serialize(Stm);

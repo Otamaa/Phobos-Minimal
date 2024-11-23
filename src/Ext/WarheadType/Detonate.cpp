@@ -29,9 +29,9 @@
 // Wrapper for MapClass::DamageArea() that sets a pointer in WarheadTypeExt::ExtData that is used to figure 'intended' target of the Warhead detonation, if set and there's no CellSpread.
 DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget)
 {
-	WarheadTypeExtData::IntendedTarget = pTarget;
+	this->IntendedTarget = pTarget;
 	auto result = MapClass::DamageArea(coords, damage, pSource, pWH, true, pSourceHouse);
-	WarheadTypeExtData::IntendedTarget = nullptr;
+	this->IntendedTarget = nullptr;
 	return result;
 }
 
@@ -688,10 +688,10 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 			}
 
 		}
-		else if (WarheadTypeExtData::IntendedTarget)
+		else if (auto pIntended = this->IntendedTarget)
 		{
-			if (coords.DistanceFrom(WarheadTypeExtData::IntendedTarget->GetCoords()) < Unsorted::LeptonsPerCell / 4) {
-				this->DetonateOnOneUnit(pHouse, WarheadTypeExtData::IntendedTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+			if (coords.DistanceFrom(pIntended->GetCoords()) < Unsorted::LeptonsPerCell / 4) {
+				this->DetonateOnOneUnit(pHouse, pIntended, damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
 				if (this->Transact) {
 
@@ -706,8 +706,8 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 							return !CanTargetHouse(pHouse, pTech);
 					};
 
-					if(!NotEligible(WarheadTypeExtData::IntendedTarget))
-						this->TransactOnOneUnit(WarheadTypeExtData::IntendedTarget, pOwner, 1);
+					if(!NotEligible(pIntended))
+						this->TransactOnOneUnit(pIntended, pOwner, 1);
 				}
 			}
 		}

@@ -398,6 +398,7 @@ public:
 	Valueable<bool> ApplyMindamage { false };
 	Valueable<int> MinDamage { -1 };
 
+	TechnoClass* IntendedTarget { nullptr };
 public:
 
 	void InitializeConstant();
@@ -516,13 +517,11 @@ public:
 		HouseClass* pFiringHouse = nullptr
 	);
 
-	static DamageAreaResult DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
+	DamageAreaResult DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
 
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 
 	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
-
-	static inline TechnoClass* IntendedTarget;
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>

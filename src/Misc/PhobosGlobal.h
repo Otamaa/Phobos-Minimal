@@ -4,6 +4,25 @@
 #include <Utilities/Constructs.h>
 #include <Utilities/PhobosMap.h>
 
+struct ColorsData
+{
+	DWORD Forceshield_Color;
+	DWORD IronCurtain_Color;
+	DWORD LaserTarget_Color;
+	DWORD Berserk_Color;
+	bool Initialized;
+
+	constexpr void reset()
+	{
+		Forceshield_Color = 0u;
+		IronCurtain_Color = 0u;
+		LaserTarget_Color = 0u;
+		Berserk_Color = 0u;
+		Initialized = false;
+	}
+
+};
+
 class AbstractClass;
 class ObjectClass;
 class AlphaShapeClass;
@@ -134,6 +153,8 @@ public:
 	};
 
 	PathfindLastData PathfindTechno { };
+	ColorsData ColorDatas { };
+
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -155,24 +176,8 @@ public:
 			.Process(this->TempCoveredCellsData)
 			.Process(this->PathfindTechno)
 			.Process(this->CurCopyArray)
+			.Process(this->ColorDatas)
 			.Success();
 	}
-
-	struct ColorsData {
-		DWORD Forceshield_Color;
-		DWORD IronCurtain_Color;
-		DWORD LaserTarget_Color;
-		DWORD Berserk_Color;
-		bool Initialized;
-
-		constexpr void reset() {
-			Forceshield_Color = 0u;
-			IronCurtain_Color = 0u;
-			LaserTarget_Color = 0u;
-			Berserk_Color = 0u;
-			Initialized = false;
-		}
-
-	} static ColorDatas;
 
 };

@@ -12,27 +12,29 @@
 
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
 constexpr void InitializeColors() {
-	if (!PhobosGlobal::ColorDatas.Initialized) {
-		PhobosGlobal::ColorDatas.Initialized = true;
-		PhobosGlobal::ColorDatas.Forceshield_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
-		PhobosGlobal::ColorDatas.IronCurtain_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
-		PhobosGlobal::ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
-		PhobosGlobal::ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
+	auto g_instance = PhobosGlobal::Instance();
+
+	if (!g_instance->ColorDatas.Initialized) {
+		g_instance->ColorDatas.Initialized = true;
+		g_instance->ColorDatas.Forceshield_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
+		g_instance->ColorDatas.IronCurtain_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
+		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
+		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
 }
 
 int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk)
 {
 	int tintColor = 0;
-
+	auto g_instance = PhobosGlobal::Instance();
 	InitializeColors();
 
 	if (invulnerability && pThis->IsIronCurtained())
-		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ? PhobosGlobal::ColorDatas.Forceshield_Color : PhobosGlobal::ColorDatas.IronCurtain_Color;
+		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ?  g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
 	if (airstrike && pThis->Airstrike && pThis->Airstrike->Target == pThis)
-		tintColor |= PhobosGlobal::ColorDatas.LaserTarget_Color;
+		tintColor |= g_instance->ColorDatas.LaserTarget_Color;
 	if (berserk && pThis->Berzerk)
-		tintColor |= PhobosGlobal::ColorDatas.Berserk_Color;
+		tintColor |=  g_instance->ColorDatas.Berserk_Color;
 
 	return tintColor;
 }
