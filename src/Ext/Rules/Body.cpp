@@ -648,9 +648,18 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (auto pSuper : *SuperWeaponTypeClass::Array)
 	{
 		const auto pSuperExt = SWTypeExtContainer::Instance.Find(pSuper);
+		Nullable<MouseCursor> _Temp_MouseCursor {};
+
 		{
 			//if (auto pNew = pSuperExt->GetNewSWType()) {
 			//	pNew->ValidateData(pSuperExt);
+			//}
+			//_Temp_MouseCursor.Read(iniEX, pSuper->ID, "Cursor");
+			//if (_Temp_MouseCursor.isset()) {
+			//	std::string _name = pSuper->ID;
+			//	_name += "Cursor";
+			//
+			//	CursorTypeClass::AllocateWithDefault(_name.c_str(), _Temp_MouseCursor);
 			//}
 
 			for (auto& pTech : pSuperExt->Aux_Techno)

@@ -279,7 +279,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	detail::ParseVector<TerrainTypeClass*>(pRules->DefaultMirageDisguises, exINI, section, GameStrings::DefaultMirageDisguises, "Expect valid TerrainType");
 
 	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer) > 0) {
-		if (const auto pBuilding = BuildingTypeClass::Find(Phobos::readBuffer)) {
+		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer)) {
 			pRules->WallTower = pBuilding;
 		} else {
 			Debug::Log("WallTower Building readed as [%s] but it is nullptr ! \n" , Phobos::readBuffer);
