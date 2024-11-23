@@ -10834,3 +10834,38 @@ DEFINE_HOOK(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 	GET(BuildingClass*, pBld, EAX);
 	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ? 0x4FD983 : 0x0;
 }
+
+DEFINE_HOOK_AGAIN(0x4C2C19 , Ebolt_DTOR_TechnoIsNotTechno, 0x6)
+DEFINE_HOOK(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
+{
+	GET(TechnoClass*, pTr, ECX);
+	const auto vtable = VTable::Get(pTr);
+
+	if (vtable != AircraftClass::vtable
+		&& vtable != UnitClass::vtable
+		&& vtable != BuildingClass::vtable
+		&& vtable != InfantryClass::vtable
+		) {
+		return R->Origin() + 0x6; //skip setting ebolt for the techno because it corrupted pointer
+	}
+
+	return 0x0;
+}
+
+//TODO : S/L along with rules
+struct LandTypeExt {
+	Valueable<double> Bounce_Elasticity;
+};
+static inline std::array<LandTypeExt, 12u> LandTypeConfigExts;
+
+int counter = 0;
+DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
+{
+	GET(CCINIClass*, pINI, EDI);
+	GET(const char**, pSection_iter, ESI);
+	INI_EX ex_INI(pINI);
+	LandTypeConfigExts[counter].Bounce_Elasticity.Read(ex_INI,*pSection_iter,"Bounce.Elasticity");
+	Debug::Log("Reading LandTypeData of [%s - %d]\n" , *pSection_iter, counter);
+	++counter;
+	return 0;
+}
