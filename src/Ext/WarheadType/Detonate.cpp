@@ -26,6 +26,15 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/Ares/Hooks/AresNetEvent.h>
 
+// Wrapper for MapClass::DamageArea() that sets a pointer in WarheadTypeExt::ExtData that is used to figure 'intended' target of the Warhead detonation, if set and there's no CellSpread.
+DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget)
+{
+	WarheadTypeExtData::IntendedTarget = pTarget;
+	auto result = MapClass::DamageArea(coords, damage, pSource, pWH, true, pSourceHouse);
+	WarheadTypeExtData::IntendedTarget = nullptr;
+	return result;
+}
+
 void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 {
 	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
@@ -639,11 +648,9 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 				this->TransactOnAllUnits(pTargetv, pHouse, pOwner);
 			}
 
-		}
-		else
+		} //no cellspread but it has bullet
+		else if (pBullet && pBullet->Target)
 		{
-			//no cellspread but it has bullet
-			if (pBullet && pBullet->Target)
 			{
 				if (pBullet->DistanceFrom(pBullet->Target) < Unsorted::LeptonsPerCell / 4) {
 					switch (pBullet->Target->WhatAmI())
@@ -677,6 +684,30 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 					default:
 						break;
 					}
+				}
+			}
+
+		}
+		else if (WarheadTypeExtData::IntendedTarget)
+		{
+			if (coords.DistanceFrom(WarheadTypeExtData::IntendedTarget->GetCoords()) < Unsorted::LeptonsPerCell / 4) {
+				this->DetonateOnOneUnit(pHouse, WarheadTypeExtData::IntendedTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+
+				if (this->Transact) {
+
+					//since we are on last chain of the event , we can do these thing
+					const auto NotEligible = [this, pHouse, pOwner](TechnoClass* const pTech) {
+							if (!CanDealDamage(pTech))
+								return true;
+
+							if (!pTech->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
+								return true;
+
+							return !CanTargetHouse(pHouse, pTech);
+					};
+
+					if(!NotEligible(WarheadTypeExtData::IntendedTarget))
+						this->TransactOnOneUnit(WarheadTypeExtData::IntendedTarget, pOwner, 1);
 				}
 			}
 		}

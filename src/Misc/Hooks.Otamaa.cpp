@@ -10481,13 +10481,17 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	{
 		this->QueueMission(Mission::Harvest, false);
 	}
+	else if (this->IsArmed())
+	{
+		this->QueueMission(Mission::Hunt, false);
+	}
 	else if (this->Owner->IsControlledByHuman())
 	{
 		this->QueueMission(Mission::Guard, false);
 	}
 	else
 	{
-		this->QueueMission(Mission::Hunt, false);
+		this->QueueMission(Mission::Area_Guard, false);
 	}
 
 	return true;

@@ -111,7 +111,7 @@ TransactData WarheadTypeExtData::TransactGetSourceAndTarget(TechnoClass* pTarget
 
 	targetValues.push_back(targetExp / targets);
 
-	allVal.push_back({ sourceValues, targetValues, TransactValueType::Experience }) ;
+	allVal.emplace_back(sourceValues, targetValues, TransactValueType::Experience) ;
 
 	return allVal;
 }

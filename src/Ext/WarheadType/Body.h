@@ -175,6 +175,7 @@ public:
 	Valueable<bool> MindControl_CanKill { false };
 
 	Valueable<bool> DetonateOnAllMapObjects { false };
+	Valueable<bool> DetonateOnAllMapObjects_Full { true };
 	Valueable<bool> DetonateOnAllMapObjects_RequireVerses { false };
 	Valueable<AffectedTarget> DetonateOnAllMapObjects_AffectTargets { AffectedTarget::All };
 	Valueable<AffectedHouse> DetonateOnAllMapObjects_AffectHouses { AffectedHouse::All };
@@ -515,9 +516,13 @@ public:
 		HouseClass* pFiringHouse = nullptr
 	);
 
+	static DamageAreaResult DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
+
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 
 	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
+
+	static inline TechnoClass* IntendedTarget;
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>

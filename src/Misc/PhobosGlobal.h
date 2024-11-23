@@ -2,11 +2,16 @@
 
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/PhobosMap.h>
 
 class AbstractClass;
 class ObjectClass;
 class AlphaShapeClass;
 class TechnoClass;
+class AircraftClass;
+class BuildingClass;
+class InfantryClass;
+class UnitClass;
 class PhobosGlobal
 {
 	static PhobosGlobal GlobalObject;
@@ -16,6 +21,78 @@ public:
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
 	HelperedVector<CellStruct> TempCoveredCellsData { };
+
+	struct CopyArray{
+		std::vector<AircraftClass*> Aircraft {};
+		std::vector<BuildingClass*> Building {};
+		std::vector<InfantryClass*> Infantry {};
+		std::vector<UnitClass*> Unit {};
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<CopyArray*>(this)->Serialize(Stm);
+		}
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(Aircraft)
+				.Process(Building)
+				.Process(Infantry)
+				.Process(Unit)
+				.Success()
+				;
+		}
+
+		constexpr void clear() {
+			Aircraft.clear();
+			Building.clear();
+			Infantry.clear();
+			Unit.clear();
+		}
+
+		void Invalidate(AbstractClass* ptr, bool removed)
+		{
+			for (auto& item : Aircraft) {
+				if (removed && (AbstractClass*)item == ptr) {
+					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
+				}
+			}
+
+			for (auto& item : Building)
+			{
+				if (removed && (AbstractClass*)item == ptr)
+				{
+					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
+				}
+			}
+
+			for (auto& item : Infantry)
+			{
+				if (removed && (AbstractClass*)item == ptr)
+				{
+					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
+				}
+			}
+
+			for (auto& item : Unit)
+			{
+				if (removed && (AbstractClass*)item == ptr)
+				{
+					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
+				}
+			}
+		}
+	};
+
+	PhobosMap<WarheadTypeClass*, CopyArray> CurCopyArray {};
+
 	struct PathfindLastData {
 		TechnoClass* Finder;
 		CellStruct From;
@@ -77,6 +154,7 @@ public:
 			.Process(this->TempFoundationData2)
 			.Process(this->TempCoveredCellsData)
 			.Process(this->PathfindTechno)
+			.Process(this->CurCopyArray)
 			.Success();
 	}
 

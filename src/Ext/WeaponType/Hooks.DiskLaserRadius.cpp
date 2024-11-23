@@ -22,13 +22,11 @@ static constexpr double SinLUT[DiskLaserClass::DrawCoords.c_size()]
 
 DEFINE_HOOK(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
 {
-	GET(WeaponTypeClass*, pWeapon, EDX);
+	GET(FakeWeaponTypeClass*, pWeapon, EDX);
 
-	auto const pTypeData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	if (WeaponTypeExtData::nOldCircumference != pWeapon->_GetExtData()->DiskLaser_Circumference) {
 
-	if (WeaponTypeExtData::nOldCircumference != pTypeData->DiskLaser_Circumference) {
-
-		const int new_Circumference = pTypeData->DiskLaser_Circumference;
+		const int new_Circumference = pWeapon->_GetExtData()->DiskLaser_Circumference;
 		WeaponTypeExtData::nOldCircumference = new_Circumference;
 
 		for (size_t i = 0u; i < DiskLaserClass::DrawCoords.c_size(); i++)
