@@ -1315,13 +1315,12 @@ DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 	GET(UnitClass* const, pThis, EDI);
 	GET(ObjectClass* const, pVictim, ESI);
 
-	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim))
-	{
-		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim)) {
 
 		WhenCrushedBy(pThis , pVictimTechno);
 
 		if(pThis->IsAlive) {
+			const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 			const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
 			const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 			auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
