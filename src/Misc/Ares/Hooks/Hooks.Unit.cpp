@@ -1291,6 +1291,25 @@ DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
 	return DoNotTilt;
 }
 
+static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
+{
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+
+	if (auto pWeapon = pExt->WhenCrushed_Weapon.Get(pVictim)) {
+		int damage = pExt->WhenCrushed_Damage.GetOrDefault(pVictim , pWeapon->Damage);
+		WeaponTypeExtData::DetonateAt(pWeapon, pVictim->GetCoords(), pVictim, damage, pVictim->GetOwningHouse());
+	}
+	else if (auto pWarhead = pExt->WhenCrushed_Warhead.Get(pVictim))
+	{
+		int damage = pExt->WhenCrushed_Damage.GetOrDefault(pVictim, 0u);
+
+		if (pExt->WhenCrushed_Warhead_Full)
+			WarheadTypeExtData::DetonateAt(pWarhead, pVictim->GetCoords(), pVictim, damage, pVictim->GetOwningHouse());
+		else
+			MapClass::DamageArea(pVictim->GetCoords(), damage, pVictim, pWarhead, true, pVictim->GetOwningHouse());
+	}
+}
+
 DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 {
 	GET(UnitClass* const, pThis, EDI);
@@ -1298,26 +1317,31 @@ DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 
 	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim))
 	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
-		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
-		auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
 
-		if (pThisTypeExt->Crusher_SupressLostEva)
-			pExt->SupressEVALost = true;
+		WhenCrushedBy(pThis , pVictimTechno);
 
-		if (damage != 0)
-		{
-			const auto pWarhead = pVictimTypeExt->CrushDamageWarhead.Get(
-				RulesClass::Instance->C4Warhead);
+		if(pThis->IsAlive) {
+			const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
+			const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+			auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
 
-			pThis->ReceiveDamage(
-				&damage, 0, pWarhead, nullptr, false, false, nullptr);
-			if (pVictimTypeExt->CrushDamagePlayWHAnim) {
-				auto loc = pVictim->GetCoords();
-				if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pThis->GetCell()->LandType, loc)) {
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
-						pThis->Owner, pVictim->GetOwningHouse(), pThis, false);
+			if (pThisTypeExt->Crusher_SupressLostEva)
+				pExt->SupressEVALost = true;
+
+			if (damage != 0)
+			{
+				const auto pWarhead = pVictimTypeExt->CrushDamageWarhead.Get(
+					RulesClass::Instance->C4Warhead);
+
+				pThis->ReceiveDamage(
+					&damage, 0, pWarhead, nullptr, false, false, nullptr);
+				if (pVictimTypeExt->CrushDamagePlayWHAnim) {
+					auto loc = pVictim->GetCoords();
+					if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pThis->GetCell()->LandType, loc)) {
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
+							pThis->Owner, pVictim->GetOwningHouse(), pThis, false);
+					}
 				}
 			}
 		}

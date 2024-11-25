@@ -913,6 +913,9 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
+	if (RulesExtData::Instance()->CivilianSideIndex == -1)
+		Debug::FatalError("Civilian Index is invalid !\n");
+
 	if(!HouseExtContainer::Civilian){
 		HouseExtContainer::Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
 	}
@@ -923,6 +926,9 @@ HouseClass* HouseExtData::FindFirstCivilianHouse()
 
 HouseClass* HouseExtData::FindSpecial()
 {
+	if (RulesExtData::Instance()->SpecialCountryIndex == -1)
+		Debug::FatalError("Special Index is invalid !\n");
+
 	if(!HouseExtContainer::Special){
 		HouseExtContainer::Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
 	}
@@ -932,6 +938,9 @@ HouseClass* HouseExtData::FindSpecial()
 
 HouseClass* HouseExtData::FindNeutral()
 {
+	if (RulesExtData::Instance()->NeutralCountryIndex == -1)
+		Debug::FatalError("Neutral Index is invalid !\n");
+
 	if(!HouseExtContainer::Neutral){
 		HouseExtContainer::Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
 	}

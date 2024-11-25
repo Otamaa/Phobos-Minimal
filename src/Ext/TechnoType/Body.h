@@ -1012,6 +1012,11 @@ public:
 
 	NullableIdx<CrateTypeClass> DropCrate {};
 
+	Promotable<WarheadTypeClass*> WhenCrushed_Warhead {};
+	Promotable<WeaponTypeClass*> WhenCrushed_Weapon {};
+	NullablePromotable<int> WhenCrushed_Damage {};
+	Valueable<bool> WhenCrushed_Warhead_Full { true };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

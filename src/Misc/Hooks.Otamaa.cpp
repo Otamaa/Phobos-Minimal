@@ -6818,8 +6818,17 @@ DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
 	return 0x45826E;
 }
 
+DEFINE_HOOK(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
+{
+	R->EBX(HouseExtData::FindFirstCivilianHouse());
+	return 0x41ECE8;
+}
+
 DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
+	if (RulesExtData::Instance()->CivilianSideIndex == -1)
+		Debug::FatalError("Civilian Index is invalid !\n");
+
 	R->EAX(RulesExtData::Instance()->CivilianSideIndex);
 	return 0x501586;
 }
@@ -6836,11 +6845,25 @@ DEFINE_HOOK(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
 	return 0x6B0B3C;
 }
 
-DEFINE_HOOK(0x6869AB, split_from_Read_Scenario_INI_Special, 0x5)
+// the rules data not yet instansiated
+//DEFINE_HOOK(0x688338, AssignHouse_SpecialHouse, 0x5)
+//{
+//	R->EAX(RulesExtData::Instance()->SpecialCountryIndex);
+//	return 0x688342;
+//}
+
+DEFINE_HOOK(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
 {
 	R->EAX(HouseExtData::FindSpecial());
-	return 0x6869BC;
+	return 0x5A921E;
 }
+
+// the rules data not yet instansiated
+//DEFINE_HOOK(0x6869AB, split_from_Read_Scenario_INI_Special, 0x5)
+//{
+//	R->EAX(HouseExtData::FindSpecial());
+//	return 0x6869BC;
+//}
 
 #pragma region House32LimitFix
 //HelperedVector<HouseTypeClass*> Allies;

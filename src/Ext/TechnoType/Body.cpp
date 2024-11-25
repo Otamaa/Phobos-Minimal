@@ -1105,6 +1105,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DropCrate.Read(exINI, pSection, "DropCrate");
 
+		this->WhenCrushed_Warhead.Read(exINI, pSection, "WhenCrushed.%sWarhead", nullptr,  true);
+		this->WhenCrushed_Weapon.Read(exINI, pSection, "WhenCrushed.%sWeapon", nullptr, true);
+		this->WhenCrushed_Damage.Read(exINI, pSection, "WhenCrushed.%sDamage");
+		this->WhenCrushed_Warhead_Full.Read(exINI, pSection, "WhenCrushed.Warhead.Full");
+
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
@@ -2457,6 +2462,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->FallingDownDamage)
 		.Process(this->FallingDownDamage_Water)
 		.Process(this->DropCrate)
+
+		.Process(this->WhenCrushed_Warhead)
+		.Process(this->WhenCrushed_Weapon)
+		.Process(this->WhenCrushed_Damage)
+		.Process(this->WhenCrushed_Warhead_Full)
 		;
 }
 
