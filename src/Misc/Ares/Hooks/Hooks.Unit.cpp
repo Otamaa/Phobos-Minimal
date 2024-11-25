@@ -1297,7 +1297,7 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 
 	if (auto pWeapon = pExt->WhenCrushed_Weapon.Get(pVictim)) {
 		int damage = pExt->WhenCrushed_Damage.GetOrDefault(pVictim , pWeapon->Damage);
-		WeaponTypeExtData::DetonateAt(pWeapon, pVictim->GetCoords(), pVictim, damage, pVictim->GetOwningHouse());
+		WeaponTypeExtData::DetonateAt(pWeapon, pVictim->GetCoords(), pVictim, damage ,false, pVictim->GetOwningHouse());
 	}
 	else if (auto pWarhead = pExt->WhenCrushed_Warhead.Get(pVictim))
 	{
