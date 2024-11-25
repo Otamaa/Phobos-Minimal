@@ -415,7 +415,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {
-		if (pShieldData->IsAvailable())
+		if (pShieldData->IsAvailable()&& !pShieldData->IsBrokenAndNonRespawning())
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 	}
 
@@ -438,7 +438,7 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {
-		if (pShieldData->IsAvailable()) {
+		if (pShieldData->IsAvailable()&& !pShieldData->IsBrokenAndNonRespawning()) {
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 		}
 	}

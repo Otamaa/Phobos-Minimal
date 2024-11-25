@@ -2116,7 +2116,7 @@ void TechnoExtData::SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo)
 			;
 
 		if (bSync) {
-			pTo->IronCurtain(pFrom->IronCurtainTimer.GetTimeLeft(), pFrom->Owner, isForceShielded);
+			pFrom->IronCurtainTimer = pFrom->IronCurtainTimer;
 			pTo->IronTintStage = pFrom->IronTintStage;
 		}
 	}

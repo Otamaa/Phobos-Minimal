@@ -9,7 +9,7 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
-DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
+ DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(FakeAnimClass*, pAnim, EBP);

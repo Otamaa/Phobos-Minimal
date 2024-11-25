@@ -4145,6 +4145,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 			}
 
 			AEProperties::Recalculate(pExpReceiver);
+			pExpReceiver->See(0u,0u);
 		}
 
 		pExpReceiver->CurrentRanking = newRank;

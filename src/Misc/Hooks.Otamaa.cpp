@@ -10869,3 +10869,14 @@ DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 	++counter;
 	return 0;
 }
+
+DEFINE_HOOK(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
+{
+	GET(ConvertClass*, pConvert, EDX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (!pConvert)
+		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]\n", caller);
+
+	return 0x0;
+}
