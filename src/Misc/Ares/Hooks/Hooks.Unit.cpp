@@ -1260,37 +1260,6 @@ DEFINE_HOOK(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->CrusherDecloak ? Decloak : DoNotDecloak;
 }
 
-DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
-{
-	enum { DoNotTilt = 0x7418AA , Tilt = 0x7418A6 };
-	GET(ObjectClass* const, pVictim, ESI);
-	GET(UnitClass* const, pThis, EDI);
-	GET(AbstractType, nWhat, EAX);
-
-	if (!pThis->IsVoxel())
-		return DoNotTilt;
-
-	switch (nWhat)
-	{
-	case AbstractType::Unit:
-	case AbstractType::Aircraft:
-	case AbstractType::Terrain:
-		return Tilt;
-	case AbstractType::Infantry:
-	{
-		const auto pInf = static_cast<InfantryClass*>(pVictim);
-		if (pInf->Type->Cyborg)
-			return Tilt;
-
-		break;
-	}
-	default:
-		break;
-	}
-
-	return DoNotTilt;
-}
-
 static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 {
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
@@ -1310,13 +1279,11 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 	}
 }
 
-DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
-{
-	GET(UnitClass* const, pThis, EDI);
-	GET(ObjectClass* const, pVictim, ESI);
+static void CrushAffect(UnitClass* pThis , ObjectClass* pVictim , bool victimIsTechno){
 
-	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim)) {
+	if (victimIsTechno){
 
+		auto const pVictimTechno = static_cast<TechnoClass*>(pVictim);
 		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 		const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
 		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -1328,10 +1295,10 @@ DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 		if (damage != 0)
 		{
 			const auto pWarhead = pVictimTypeExt->CrushDamageWarhead.Get(
-				RulesClass::Instance->C4Warhead);
+					RulesClass::Instance->C4Warhead);
 
 			pThis->ReceiveDamage(
-				&damage, 0, pWarhead, nullptr, false, false, nullptr);
+					&damage, 0, pWarhead, nullptr, false, false, nullptr);
 			if (pVictimTypeExt->CrushDamagePlayWHAnim)
 			{
 				auto loc = pVictim->GetCoords();
@@ -1348,7 +1315,46 @@ DEFINE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 		}
 	}
 
-	return 0;// continue crush function
+}
+
+DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
+{
+	enum { DoNotTilt = 0x7418AA , Tilt = 0x7418A6 };
+	GET(ObjectClass* const, pVictim, ESI);
+	GET(UnitClass* const, pThis, EDI);
+	GET(AbstractType, whatVictim, EAX);
+
+	DWORD ret_ = DoNotTilt ;
+	bool victim_isTechno = false;
+
+	if (pThis->IsVoxel()) {
+
+		switch (whatVictim)
+		{
+		case AbstractType::Unit:
+		case AbstractType::Aircraft:
+		victim_isTechno = true;
+		ret_ = Tilt;
+		break;
+		case AbstractType::Terrain:
+			ret_= Tilt;
+			break;
+		case AbstractType::Infantry:
+		{
+			victim_isTechno = true;
+
+			if (static_cast<InfantryClass*>(pVictim)->Type->Cyborg)
+				ret_= Tilt;
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	CrushAffect(pThis , pVictim , victim_isTechno);
+	return ret_;
 }
 
 DEFINE_HOOK(0x735584, UnitClass_CTOR_TurretROT, 6)
