@@ -1348,6 +1348,10 @@ DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
 
 			break;
 		}
+		case AbstractType::Building :
+			victim_isTechno = true;
+			break;
+
 		default:
 			break;
 		}
