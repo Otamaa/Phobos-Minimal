@@ -1368,7 +1368,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		for (auto const& pSide : *SideClass::Array) {
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
 			technoType.Read(exINI, pSection, tempBuffer);
-			if (technoType.isset() && technoType && technoType != pThis) {
+			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Get());
 			}
 		}
@@ -1377,7 +1377,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		for (auto const& pTHouse : *HouseTypeClass::Array) {
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
 			technoType.Read(exINI, pSection, tempBuffer);
-			if (technoType.isset() && technoType && technoType != pThis) {
+			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
 			}
 		}
