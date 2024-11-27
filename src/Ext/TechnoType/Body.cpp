@@ -1358,6 +1358,29 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			RefinerySmokeParticleSystemFour = this->AttachedToObject->RefinerySmokeParticleSystem;
 		}
 
+		char tempBuffer[32];
+
+		this->Convert_ToHouseOrCountry.clear();
+		Nullable<TechnoTypeClass*> technoType;
+		// put all sides into the map
+		this->Convert_ToHouseOrCountry.reserve(SideClass::Array->Count + HouseTypeClass::Array->Count);
+
+		for (auto const& pSide : *SideClass::Array) {
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
+			technoType.Read(exINI, pSection, tempBuffer);
+			if (technoType.isset() && technoType && technoType != pThis) {
+				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Get());
+			}
+		}
+
+		// put all countries into the map
+		for (auto const& pTHouse : *HouseTypeClass::Array) {
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
+			technoType.Read(exINI, pSection, tempBuffer);
+			if (technoType.isset() && technoType && technoType != pThis) {
+				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
+			}
+		}
 	}
 
 	// Art tags
@@ -2467,6 +2490,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->WhenCrushed_Weapon)
 		.Process(this->WhenCrushed_Damage)
 		.Process(this->WhenCrushed_Warhead_Full)
+		.Process(this->Convert_ToHouseOrCountry)
 		;
 }
 

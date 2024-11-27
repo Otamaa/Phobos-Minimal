@@ -1017,6 +1017,8 @@ public:
 	NullablePromotable<int> WhenCrushed_Damage {};
 	Valueable<bool> WhenCrushed_Warhead_Full { true };
 
+	PhobosMap<AbstractTypeClass*, TechnoTypeClass*> Convert_ToHouseOrCountry {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

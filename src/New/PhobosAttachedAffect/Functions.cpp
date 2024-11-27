@@ -88,14 +88,11 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	auto const pThis = pTechno;
 	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool markForRedraw = false;
-	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
 	std::vector<WeaponTypeClass*> expireWeapons;
 
-	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
+	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
-		auto const attachEffect = it->get();
-
-		if(attachEffect) {
+		if(auto const attachEffect = it->get()) {
 
 			if (!inTunnel)
 				attachEffect->SetAnimationTunnelState(true);
@@ -124,13 +121,10 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 				if (shouldDiscard && attachEffect->ResetIfRecreatable())
 				{
 					++it;
-					continue;
+				} else {
+					it = pExt->PhobosAE.erase(it);
 				}
-
-				it = pExt->PhobosAE.erase(it);
-			}
-			else
-			{
+			} else {
 				++it;
 			}
 		} else {
@@ -216,58 +210,65 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 	auto const pThis = pTechno;
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pNewType);
-
-	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
-	std::vector<WeaponTypeClass*> expireWeapons;
 	bool markForRedraw = false;
 
-	// Delete ones on old type and not on current.
-	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
-	{
-		if(!it->get()) {
-			it++;
-			continue;
-		}
+	if (!pExt->PhobosAE.empty()){
 
-		auto const attachEffect = it->get();
-		auto const pType = attachEffect->GetType();
-		bool selfOwned = attachEffect->IsSelfOwned();
-		bool remove = selfOwned && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType);
+		std::vector<WeaponTypeClass*> expireWeapons;
 
-		if (remove)
+		// Delete ones on old type and not on current.
+		for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 		{
-			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
-			{
-				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-					expireWeapons.push_back(pType->ExpireWeapon);
+			if (it->get()) {
+
+				auto const attachEffect = it->get();
+				auto const pType = attachEffect->GetType();
+				bool selfOwned = attachEffect->IsSelfOwned();
+				bool remove = selfOwned && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType);
+
+				if (remove)
+				{
+					if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
+					{
+						if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
+							expireWeapons.push_back(pType->ExpireWeapon);
+					}
+
+					markForRedraw |= pType->HasTint();
+					it = pExt->PhobosAE.erase(it);
+				}
+				else
+				{
+					it++;
+				}
 			}
-
-			markForRedraw |= pType->HasTint();
-			it = pExt->PhobosAE.erase(it);
+			else
+			{
+				it = pExt->PhobosAE.erase(it);
+			}
 		}
-		else
-		{
-			it++;
+
+		auto const coords = pThis->GetCoords();
+		auto const pOwner = pThis->Owner;
+		auto pTarget = pThis;
+
+		for (auto const& pWeapon : expireWeapons) {
+
+			WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, pTarget, pWeapon->Damage, false , pOwner);
+
+			if (!pTarget->IsAlive)
+					pTarget = nullptr;
 		}
-	}
 
-	auto const coords = pThis->GetCoords();
-	auto const pOwner = pThis->Owner;
-	auto pTarget = pThis;
-
-	for (auto const& pWeapon : expireWeapons) {
-
-		WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, pTarget, pWeapon->Damage, false , pOwner);
-
-		if (!pTarget->IsAlive)
-				pTarget = nullptr;
 	}
 
 	// Add new ones.
 	int count = PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 
-	if (!count)
+	if (!count){
 		AEProperties::Recalculate(pTechno);
+		markForRedraw = true;
+	}
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();

@@ -433,7 +433,7 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 	auto const& types = attachEffectInfo->AttachTypes;
 
 	if (types.size() < 1 || !pTarget)
-		return false;
+		return 0;
 
 	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 	int attachedCount = 0;

@@ -312,8 +312,20 @@ DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pMe->GetTechnoType());
 			bool I_am_human = OldOwner->IsControlledByHuman();
 			bool You_are_human = pNewOwner->IsControlledByHuman();
-			TechnoTypeClass* const pConvertTo = (I_am_human && !You_are_human) ? pTypeExt->Convert_HumanToComputer.Get() :
+			TechnoTypeClass* pConvertTo = (I_am_human && !You_are_human) ? pTypeExt->Convert_HumanToComputer.Get() :
 				(!I_am_human && You_are_human) ? pTypeExt->Convert_ComputerToHuman.Get() : nullptr;
+
+			if (!pConvertTo)
+			{
+				auto& map = pTypeExt->Convert_ToHouseOrCountry;
+				for(auto it = map.begin(); it != map.end(); ++it) {
+					if(it->first == pNewOwner->Type ||
+					 	it->first == SideClass::Array->Items[pNewOwner->Type->SideIndex]){
+						 pConvertTo = it->second;
+						 break;
+					}
+				}
+			}
 
 			if (pConvertTo)
 				TechnoExt_ExtData::ConvertToType(pMe, pConvertTo,true , false);
