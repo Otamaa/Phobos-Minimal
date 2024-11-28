@@ -153,9 +153,9 @@ public:
 	//	return &(&FrameData)[index * sizeof(SHPFrame)];
 	//}
 
-	int GetWidth() const { return Header.Width; }
-	int GetHeight() const { return Header.Height; }
-	int GetFrameCount() const { return Header.Frames; }
+	constexpr inline int GetWidth() const { return Header.Width; }
+	constexpr inline int GetHeight() const { return Header.Height; }
+	constexpr inline int GetFrameCount() const { return Header.Frames; }
 
 private:
 	SHPStruct Header;
