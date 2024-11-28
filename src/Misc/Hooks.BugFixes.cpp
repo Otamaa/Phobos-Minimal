@@ -1241,31 +1241,35 @@ DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 	GET(InfantryClass*, pThis, EDI);
 	enum { LosesDestination = 0x4D4BD1 };
 
-	const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
+	if(pThis){
+		const auto pBld = specific_cast<BuildingClass*>(pThis->Destination);
 
-	if (!pBld || pThis->Target)
-		return 0;
+		if (!pBld || pThis->Target)
+			return 0;
 
-	if (pThis->Type->Engineer)
-		return 0;
+		if (pThis->Type->Engineer)
+			return 0;
 
-	// interaction issues with Ares,
-	// no more further checking to make life easier.
-	// If someone still try to abuse the bug I won't try to stop them
-	if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
-		return 0;
+		// interaction issues with Ares,
+		// no more further checking to make life easier.
+		// If someone still try to abuse the bug I won't try to stop them
+		if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
+			return 0;
 
-	if (pBld->IsStrange())
-		return 0;
+		if (pBld->IsStrange())
+			return 0;
 
-	if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
-		return 0;
+		if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
+			return 0;
 
-	if (TechnoExtData::ISC4Holder(pThis))
-		return 0;
+		if (TechnoExtData::ISC4Holder(pThis))
+			return 0;
 
-	pThis->SetDestination(nullptr, false);
-	return 0x4D4BD1;
+		pThis->SetDestination(nullptr, false);
+		return 0x4D4BD1;
+	}
+
+	return 0;
 }
 
 static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
