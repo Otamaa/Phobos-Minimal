@@ -86,7 +86,7 @@ DEFINE_HOOK(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 	if (pThis->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)) {
 		_default = 0u;
 		for (auto i = strtok(Phobos::readBuffer, Phobos::readDelims); i; i = strtok(0, Phobos::readDelims)) {
-			_default |= HouseClass::FindIndexByName(i);
+			_default |= (1 << HouseClass::FindIndexByName(i));
 		}
 	}
 
