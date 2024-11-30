@@ -977,6 +977,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
 		this->Units_UseRepairCost.Read(exINI, pSection, "Units.UseRepairCost");
 
+		this->PowerPlant_DamageFactor.Read(exINI, pSection, "PowerPlant.DamageFactor");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1278,6 +1279,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Units_RepairStep)
 		.Process(this->Units_RepairPercent)
 		.Process(this->Units_UseRepairCost)
+		.Process(this->PowerPlant_DamageFactor)
 		;
 }
 

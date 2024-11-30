@@ -94,7 +94,7 @@ DEFINE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
 	const auto nLoc = pObj->Location;
-	const auto nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
+	const auto nDist = Math::abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
 
 	if (nDist < nRadius) {
 		auto nDamage = (int)pType->Damage;

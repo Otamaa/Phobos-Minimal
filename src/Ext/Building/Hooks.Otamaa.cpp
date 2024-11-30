@@ -52,7 +52,9 @@ DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 	GET_STACK(int, nPowMult, 0x8);
 
 	R->EAX((int)(!pThis->_GetTypeExtData()->Power_DegradeWithHealth.Get()
-		? (nPowMult) : (nPowMult * pThis->GetHealthPercentage_())));
+		? (nPowMult) :
+		 MaxImpl(
+			 ((nPowMult * pThis->_GetTypeExtData()->PowerPlant_DamageFactor) * pThis->GetHealthPercentage_()), 0)));
 
 	return 0x44E86F;
 }
