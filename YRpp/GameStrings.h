@@ -83,8 +83,11 @@ struct GameStrings
 	//..
 
 	// ini section names
+	GAMEMD_STR(Events, 0x844A2C);
 	GAMEMD_STR(Tiberiums, 0x84492C);
+	GAMEMD_STR(Triggers,0x844A3C);
 	GAMEMD_STR(Action, 0x817270);
+	GAMEMD_STR(Actions, 0x844A34);
 	GAMEMD_STR(General, 0x826278u);
 	GAMEMD_STR(AI, 0x839DA4);
 	GAMEMD_STR(Basic, 0x82BF9Cu);

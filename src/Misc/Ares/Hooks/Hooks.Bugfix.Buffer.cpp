@@ -9,58 +9,89 @@
 #include <AnimTypeClass.h>
 #include <TerrainTypeClass.h>
 #include <SmudgeTypeClass.h>
+#include <TriggerTypeClass.h>
+#include <TEventClass.h>
+#include <TActionClass.h>
 
-
-DEFINE_HOOK(0x7274AF, TriggerTypeClass_LoadFromINI_Read_Events, 5)
+DEFINE_HOOK(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
 {
-	R->Stack(0x0, Phobos::readBuffer);
-	R->Stack(0x4, Phobos::readLength);
-	return 0;
+	GET(TriggerTypeClass*, pThis, EBP);
+	GET_STACK(CCINIClass*, pINI, 0x248);
+
+	if (pINI->ReadString(GameStrings::Events(), pThis->ID, Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)) {
+		if (auto v16 = CRT::atoi(CRT::strtok(Phobos::readBuffer, Phobos::readDelims)))
+		{
+			do
+			{
+				auto pEvent = GameCreate<TEventClass>();
+				pEvent->LoadFromINI();
+				--v16;
+				pEvent->NextEvent = pThis->FirstEvent;
+				pThis->FirstEvent = pEvent;
+			}
+			while (v16);
+		}
+	}
+
+	if (pINI->ReadString(GameStrings::Actions(), pThis->ID, Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)) {
+		pThis->FirstAction = nullptr;
+		TActionClass* pTemp = nullptr;
+
+		if (auto v16 = CRT::atoi(CRT::strtok(Phobos::readBuffer, Phobos::readDelims)))
+		{
+			do
+			{
+				auto pAction = GameCreate<TActionClass>();
+				pAction->LoadFromINI();
+				if (pThis->FirstAction) {
+					pTemp->NextAction = pAction;
+				} else {
+					pThis->FirstAction = pAction;
+				}
+				--v16;
+				pTemp = pAction;
+			}
+			while (v16);
+		}
+	}
+
+	return 0x7275A5;
 }
 
-DEFINE_HOOK(0x7274C8, TriggerTypeClass_LoadFromINI_Strtok_Events, 5)
+DEFINE_HOOK(0x4750D0, CCINIClass_ReadHouseTypeList_Buffers, 0xA)
 {
-	R->ECX(Phobos::readBuffer);
-	return 0;
+	GET(CCINIClass*, pThis, ECX);
+	GET_STACK(const char*, pSection, 0x4);
+	GET_STACK(const char*, pKey, 0x8);
+	GET_STACK(DWORD , _default, 0xC);
+
+	if (pThis->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)) {
+		_default = 0u;
+		for (auto i = strtok(Phobos::readBuffer, Phobos::readDelims); i; i = strtok(0, Phobos::readDelims)) {
+			_default |= HouseTypeClass::FindIndexOfNameShiftToTheRightOnce(i);
+		}
+	}
+
+	R->EAX(_default);
+	return 0x475140;
 }
 
-DEFINE_HOOK(0x727529, TriggerTypeClass_LoadFromINI_Read_Actions, 5)
+DEFINE_HOOK(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 {
-	R->Stack(0x0, Phobos::readBuffer);
-	R->Stack(0x4, Phobos::readLength);
-	return 0;
-}
+	GET(CCINIClass*, pThis, ECX);
+	GET_STACK(const char*, pSection, 0x4);
+	GET_STACK(const char*, pKey, 0x8);
+	GET_STACK(DWORD, _default, 0xC);
 
-DEFINE_HOOK(0x727544, TriggerTypeClass_LoadFromINI_Strtok_Actions, 5)
-{
-	R->EDX(Phobos::readBuffer);
-	return 0;
-}
+	if (pThis->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)) {
+		_default = 0u;
+		for (auto i = strtok(Phobos::readBuffer, Phobos::readDelims); i; i = strtok(0, Phobos::readDelims)) {
+			_default |= HouseClass::FindIndexByName(i);
+		}
+	}
 
-DEFINE_HOOK(0x4750EC, INIClass_ReadHouseTypesList, 7)
-{
-	R->Stack(0x0, Phobos::readBuffer);
-	R->Stack(0x4, Phobos::readLength);
-	return 0;
-}
-
-DEFINE_HOOK(0x475107, INIClass_ReadHouseTypesList_Strtok, 5)
-{
-	R->ECX(Phobos::readBuffer);
-	return 0;
-}
-
-DEFINE_HOOK(0x47527C, INIClass_GetAlliesBitfield, 7)
-{
-	R->Stack(0x0, Phobos::readBuffer);
-	R->Stack(0x4, Phobos::readLength);
-	return 0;
-}
-
-DEFINE_HOOK(0x475297, INIClass_GetAlliesBitfield_Strtok, 5)
-{
-	R->ECX(Phobos::readBuffer);
-	return 0;
+	R->EAX(_default);
+	return 0x4752D9;
 }
 
 // == WeaponType ==
@@ -194,8 +225,8 @@ inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const ch
 		char* context = nullptr;
 
 		using BaseType = std::remove_pointer_t<T>;
-		Debug::Log("Parsing [%s] form [%s] result\n", key ,  section);
-		Debug::Log("%s\n", IniEx.value());
+		Debug::Log("Parsing [%s] form [%s] result\n %s\n", key ,  section , IniEx.value());
+
 		for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
 			 cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
