@@ -397,29 +397,29 @@ DEFINE_HOOK(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
-{
-	GET_BASE(WarheadTypeClass*, pWH, 0xC);
-	GET_STACK(int, damage, 0xE0 - 0xBC);
-
-	//dont do any calculation when it is not even a rocker
-	R->EBX(pWH);
-	if (!pWH->Rocker) {
-		return 0x489E87;
-	}
-
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-	double rocker = pWHExt->Rocker_AmplitudeOverride.Get(damage);
-
-	if (pWHExt->Rocker_AmplitudeMultiplier.isset())
-		rocker *= pWHExt->Rocker_AmplitudeMultiplier;
-
-	if (rocker >= 4.0)
-		rocker = 4.0;
-
-	R->Stack(0x88, rocker);
-	return 0x489B92;
-}
+// DEFINE_HOOK(0x489B49, MapClass_DamageArea_Rocker, 0xA)
+// {
+// 	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+// 	GET_STACK(int, damage, 0xE0 - 0xBC);
+//
+// 	//dont do any calculation when it is not even a rocker
+// 	R->EBX(pWH);
+// 	if (!pWH->Rocker) {
+// 		return 0x489E87;
+// 	}
+//
+// 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+// 	double rocker = pWHExt->Rocker_AmplitudeOverride.Get(damage);
+//
+// 	if (pWHExt->Rocker_AmplitudeMultiplier.isset())
+// 		rocker *= pWHExt->Rocker_AmplitudeMultiplier;
+//
+// 	if (rocker >= 4.0)
+// 		rocker = 4.0;
+//
+// 	R->Stack(0x88, rocker);
+// 	return 0x489B92;
+// }
 
 DEFINE_HOOK(0x4D73DE, FootClass_ReceiveDamage_RemoveParasites, 0x5)
 {

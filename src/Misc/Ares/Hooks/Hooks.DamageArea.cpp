@@ -394,11 +394,12 @@ static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
 
 DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 {
-	REF_STACK(DamageGroup**, items, 0x3C);
-	REF_STACK(int, count, 0x48);
-	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+	REF_STACK(DamageGroup**, items, 0xE0 - 0xA4);
+	REF_STACK(int, count, 0xE0 - 0x98);
+	REF_STACK(bool, isAllocated, 0xE0 - 0x9B);
+	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
-	const int MaxAffect = WarheadTypeExtContainer::Instance.Find(pWarhead)->CellSpread_MaxAffect;
+	const int MaxAffect = pWarhead->_GetExtData()->CellSpread_MaxAffect;
 
 	if (MaxAffect > 0) {
 
@@ -486,10 +487,37 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				R->Stack(0x1F, 1);
 			}
 		}
+
+		GameDelete(*(items + i));
 	}
 
-	R->ECX(count);
-	return 0x489AD6;
+	count = 0;
+
+	if (Something) {
+		if (items && isAllocated) {
+			GameDelete(items);
+		}
+
+		return 0x489B3B;
+	}
+
+	//dont do any calculation when it is not even a rocker
+	R->EBX(pWarhead);
+
+	if (!pWarhead->Rocker) {
+		return 0x489E87;
+	}
+
+	double rocker = pWarhead->_GetExtData()->Rocker_AmplitudeOverride.Get(idamage);
+
+	if (pWarhead->_GetExtData()->Rocker_AmplitudeMultiplier.isset())
+		rocker *= pWarhead->_GetExtData()->Rocker_AmplitudeMultiplier;
+
+	if (rocker >= 4.0)
+		rocker = 4.0;
+
+	R->Stack(0x88, rocker);
+	return 0x489B92;
 }
 
 DEFINE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
