@@ -6265,7 +6265,7 @@ DEFINE_HOOK(0x51D925, InfantryClass_DoType_ReplaceMasterControl1, 0x7)
 	return 0x51D92C;
 }
 
-DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2, 0x7)
+DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2_Rates, 0x7)
 {
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(int, _doType, EDI);
@@ -6274,7 +6274,7 @@ DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2, 0x7)
 	return 0x51DA01;
 }
 
-DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3, 0x7)
+DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3_Rates, 0x7)
 {
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(int, _doType, EDI);
@@ -6307,15 +6307,14 @@ DEFINE_HOOK(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
 #pragma endregion
 
 #pragma region ReadSequence
-static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
+static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	INI_EX IniEX(pINI);
 
 	char section[0x100] = {};
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0)
 	{
-		auto pExt = InfantryTypeExtContainer::Instance.Allocate(pInf);
-		pExt->SquenceRates.resize(std::size(Sequences_ident));
+		pInf->_GetExtData()->SquenceRates.resize(std::size(Sequences_ident));
 
 		for (size_t i = 0; i < std::size(Sequences_ident); ++i)
 		{
@@ -6325,7 +6324,7 @@ static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClas
 				auto& data = pDoInfo->Data[i];
 				const std::string basename = Sequences_ident[i];
 
-				pExt->SquenceRates[i] = pINI->ReadInteger(section, (basename + ".Rate").c_str(), Sequences_Master[i].Rate);
+				pInf->_GetExtData()->SquenceRates[i] = pINI->ReadInteger(section, (basename + ".Rate").c_str(), Sequences_Master[i].Rate);
 
 				char bufferFacing[4];
 				if (sscanf(sequenceData, "%d,%d,%d,%s",
@@ -6379,7 +6378,7 @@ static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClas
 
 DEFINE_HOOK(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
 {
-	GET(InfantryTypeClass*, pThis, ECX);
+	GET(FakeInfantryTypeClass*, pThis, ECX);
 	ReadSequence(pThis->Sequence, pThis, &CCINIClass::INI_Art());
 	return 0x524096;
 }
