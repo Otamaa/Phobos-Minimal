@@ -6203,6 +6203,7 @@ DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 		UseWetAttack = 0x51D82F,
 		ApplySequence = 0x51D842
 	};
+
 	if (pThis->_GetTypeExtData()->OnlyUseLandSequences)
 	{
 		R->EBP(false);
@@ -6237,18 +6238,13 @@ DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 
 #pragma region ReplaceMasterControl
 
-DEFINE_HOOK(0x51C9E4, InfantryClass_FireError_ReplaceMasterControl, 0x7)
+DEFINE_HOOK_AGAIN(0x51D1BA, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//Scatter
+DEFINE_HOOK_AGAIN(0x51D925, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//DoType
+DEFINE_HOOK(0x51C9E4, InfantryClass_ReplaceMasterControl_Interrupt, 0x7) //FireError
 {
 	GET(DoType, type, EAX);
 	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
-	return 0x51C9EB;
-}
-
-DEFINE_HOOK(0x51D1BA, InfantryClass_Scatter_ReplaceMasterControl, 0x7)
-{
-	GET(DoType, type, EAX);
-	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
-	return 0x51D1C1;
+	return R->Origin() + 0x7;
 }
 
 DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
@@ -6258,29 +6254,14 @@ DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
 	return 0x521C03;
 }
 
-DEFINE_HOOK(0x51D925, InfantryClass_DoType_ReplaceMasterControl1, 0x7)
-{
-	GET(DoType, type, EAX);
-	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
-	return 0x51D92C;
-}
-
-DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2_Rates, 0x7)
+DEFINE_HOOK_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
+DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
 {
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(int, _doType, EDI);
 
 	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
-	return 0x51DA01;
-}
-
-DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3_Rates, 0x7)
-{
-	GET(FakeInfantryClass*, pThis, ESI);
-	GET(int, _doType, EDI);
-
-	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
-	return 0x51DA2E;
+	return R->Origin() + 0x7;
 }
 
 #pragma endregion
