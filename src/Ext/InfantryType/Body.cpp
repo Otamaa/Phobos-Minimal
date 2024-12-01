@@ -158,6 +158,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->CrawlingWeaponDatas)
 		.Process(this->VoiceGarrison)
 		.Process(this->OnlyUseLandSequences)
+		.Process(this->SquenceRates)
 		;
 }
 
@@ -168,13 +169,15 @@ InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x523970, InfantryTypeClass_CTOR, 0x5)
-{
-	GET(InfantryTypeClass*, pItem, ESI);
-	if(auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
-		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);
-	return 0;
-}
+
+//merged with the new sequence hooks
+//DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR, 0x6)
+//{
+//	GET(InfantryTypeClass*, pItem, ESI);
+//	if(auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
+//		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);
+//	return 0;
+//}
 
 DEFINE_HOOK(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 {

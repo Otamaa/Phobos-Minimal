@@ -34,6 +34,7 @@ public:
 	ValueableIdxVector<VocClass> VoiceGarrison {};
 
 	Valueable<bool> OnlyUseLandSequences { false };
+	std::vector<int> SquenceRates {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

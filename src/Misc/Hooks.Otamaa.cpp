@@ -6164,6 +6164,10 @@ DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 	pItem->Bunkerable = 0;
 	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
 	pItem->Sequence->Initialize();
+
+	if (auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
+		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);
+
 	return 0x523970;
 }
 
@@ -6263,15 +6267,19 @@ DEFINE_HOOK(0x51D925, InfantryClass_DoType_ReplaceMasterControl1, 0x7)
 
 DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl2, 0x7)
 {
-	GET(InfantryClass*, pThis, ESI);
-	R->AL(NewDoType::GetSequenceData(pThis->SequenceAnim)->Rate);
+	GET(FakeInfantryClass*, pThis, ESI);
+	GET(int, _doType, EDI);
+
+	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
 	return 0x51DA01;
 }
 
 DEFINE_HOOK(0x51DA27, InfantryClass_DoType_ReplaceMasterControl3, 0x7)
 {
-	GET(InfantryClass*, pThis, ESI);
-	R->AL(NewDoType::GetSequenceData(pThis->SequenceAnim)->Rate);
+	GET(FakeInfantryClass*, pThis, ESI);
+	GET(int, _doType, EDI);
+
+	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
 	return 0x51DA2E;
 }
 
@@ -6306,6 +6314,9 @@ static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClas
 	char section[0x100] = {};
 	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0)
 	{
+		auto pExt = InfantryTypeExtContainer::Instance.Allocate(pInf);
+		pExt->SquenceRates.resize(std::size(Sequences_ident));
+
 		for (size_t i = 0; i < std::size(Sequences_ident); ++i)
 		{
 			char sequenceData[0x100] = {};
@@ -6313,6 +6324,8 @@ static void ReadSequence(DoControls* pDoInfo, InfantryTypeClass* pInf, CCINIClas
 			{
 				auto& data = pDoInfo->Data[i];
 				const std::string basename = Sequences_ident[i];
+
+				pExt->SquenceRates[i] = pINI->ReadInteger(section, (basename + ".Rate").c_str(), Sequences_Master[i].Rate);
 
 				char bufferFacing[4];
 				if (sscanf(sequenceData, "%d,%d,%d,%s",
