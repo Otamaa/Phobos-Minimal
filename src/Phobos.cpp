@@ -767,6 +767,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Debug::LogDeferred("Phobos is being loaded (%s) %s.\n", time.c_str() , loadMode);
 		Debug::InitLogFile();
+		Debug::PrepareLogFile();
 		Debug::LogFileRemove();
 
 		LuaData::LuaDir = std::move(PhobosCRT::WideStringToString(Debug::ApplicationFilePath));

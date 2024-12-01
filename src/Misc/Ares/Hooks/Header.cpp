@@ -5964,14 +5964,6 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	//Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
 	//Target->MarkAllOccupationBits(coordsUnitSource);
 
-	// throw away the current locomotor and instantiate
-	// a new one of the default type for this unit.
-	//if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
-	//{
-	//	Target->Locomotor = std::move(NewLoco);
-	//	Target->Locomotor->Link_To_Object(Target);
-	//}
-
 	Target->ClearPlanningTokens(nullptr);
 	Target->Flashing.DurationRemaining = 0;
 
@@ -5984,6 +5976,13 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
 	while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
+
+	// throw away the current locomotor and instantiate
+	// a new one of the default type for this unit.
+	if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor)) {
+		Target->Locomotor = std::move(NewLoco);
+		Target->Locomotor->Link_To_Object(Target);
+	}
 
 	//Target->AnnounceExpiredPointer(false);
 	Target->OnBridge = false; // ????
