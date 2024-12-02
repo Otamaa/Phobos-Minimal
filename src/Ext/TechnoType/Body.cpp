@@ -1381,6 +1381,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
 			}
 		}
+
+		this->SuppressKillWeapons.Read(exINI, pSection, "SuppressKillWeapons");
+		this->SuppressKillWeapons_Types.Read(exINI, pSection, "SuppressKillWeapons.Types");
 	}
 
 	// Art tags
@@ -2491,6 +2494,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->WhenCrushed_Damage)
 		.Process(this->WhenCrushed_Warhead_Full)
 		.Process(this->Convert_ToHouseOrCountry)
+
+		.Process(this->SuppressKillWeapons)
+		.Process(this->SuppressKillWeapons_Types)
 		;
 }
 

@@ -578,6 +578,14 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->CLIsBlack.Read(exINI, pSection, "CLIsBlack");
 	this->ApplyMindamage.Read(exINI, pSection, "ApplyMinDamage");
 	this->MinDamage.Read(exINI, pSection, "MinDamage");
+
+	this->KillWeapon.Read(exINI, pSection, "KillWeapon");
+	this->KillWeapon_AffectTargets.Read(exINI, pSection, "KillWeapon.AffectTargets");
+	this->KillWeapon_AffectHouses.Read(exINI, pSection, "KillWeapon.AffectHouses");
+	this->KillWeapon_AffectTypes.Read(exINI, pSection, "KillWeapon.AffectTypes");
+	this->KillWeapon_IgnoreTypes.Read(exINI, pSection, "KillWeapon.IgnoreTypes");
+
+
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1558,6 +1566,12 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyMindamage)
 		.Process(this->MinDamage)
 		.Process(this->IntendedTarget)
+
+		.Process(this->KillWeapon)
+		.Process(this->KillWeapon_AffectTargets)
+		.Process(this->KillWeapon_AffectHouses)
+		.Process(this->KillWeapon_AffectTypes)
+		.Process(this->KillWeapon_IgnoreTypes)
 		;
 
 	PaintBallData.Serialize(Stm);

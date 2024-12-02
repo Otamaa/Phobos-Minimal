@@ -399,6 +399,12 @@ public:
 	Valueable<int> MinDamage { -1 };
 
 	TechnoClass* IntendedTarget { nullptr };
+
+	Valueable<WeaponTypeClass*> KillWeapon {};
+	Valueable<AffectedTarget> KillWeapon_AffectTargets { AffectedTarget::All } ;
+	Valueable<AffectedHouse> KillWeapon_AffectHouses { AffectedHouse::All };
+	ValueableVector<TechnoTypeClass*> KillWeapon_AffectTypes {};
+	ValueableVector<TechnoTypeClass*> KillWeapon_IgnoreTypes {};
 public:
 
 	void InitializeConstant();

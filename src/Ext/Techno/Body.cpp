@@ -41,6 +41,34 @@
 
 #include <memory>
 
+void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, WarheadTypeClass* pWH)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (!pWHExt->KillWeapon || pTypeExt->SuppressKillWeapons || !EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectHouses, pSource->Owner, pThis->Owner))
+		return;
+
+	if (pWHExt->KillWeapon_AffectTypes.size() > 0 && !pWHExt->KillWeapon_AffectTypes.Contains(pType))
+		return;
+
+	if (pWHExt->KillWeapon_IgnoreTypes.size() > 0 && pWHExt->KillWeapon_IgnoreTypes.Contains(pType))
+		return;
+
+	if (pTypeExt->SuppressKillWeapons_Types.size() > 0 && pTypeExt->SuppressKillWeapons_Types.Contains(pWHExt->KillWeapon))
+		return;
+
+	if (pType->WhatAmI() == AbstractType::AircraftType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
+		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+	else if (pType->WhatAmI() == AbstractType::BuildingType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
+		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+	else if (pType->WhatAmI() == AbstractType::InfantryType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
+		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+	else if (pType->WhatAmI() == AbstractType::UnitType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
+		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+}
+
 // Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.
 bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue)
 {

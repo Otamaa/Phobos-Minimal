@@ -12,7 +12,6 @@
 
 #include <RadarEventClass.h>
 
-
 static int CalculateArmorMultipliers(TechnoClass* pThis, int damage, WarheadTypeClass* pWarhead)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -42,7 +41,6 @@ DEFINE_HOOK(0x701966, TechnoClass_ReceiveDamage_ArmorMultiplier, 0x6)
 
 	return 0;
 }
-
 
 // namespace EvaluateObjectTemp
 // {
@@ -123,7 +121,6 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 	}
 }
 
-
 //TODO : update , add the new tags problaby
 //the newer implementation is seems weird
 //https://github.com/Phobos-developers/Phobos/pull/1313
@@ -182,6 +179,8 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	//pExt->LastDamageWH = args.WH;
 	pWHExt->ApplyDamageMult(pThis, &args);
 	//SkipAllReaction = false
+
+	TechnoExtData::ApplyKillWeapon(pThis, args.Attacker, args.WH);
 
 	if (!args.IgnoreDefenses) {
 
