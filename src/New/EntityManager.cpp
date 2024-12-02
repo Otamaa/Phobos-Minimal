@@ -83,26 +83,37 @@ struct TurretObject {
 
 };
 
+struct TechnoTypeClass {
+
+};
+
+struct TypeObjectReference {
+	TechnoTypeClass* Type;
+};
+
 /*
 	[Entity] -> [AbstractBase] //common classes
 			 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] //manipulatable object]
-
-						 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] [TurretObject] [MissionBase] [RadioBase] // Manipulatable object with mission]
-						 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] [Drawable] [MissionBase] [RadioBase] // Manipulatable object with mission]
-						 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] [Drawable] [Movememnt] [Aircraft] [MissionBase] [RadioBase] // Manipulatable object with mission]
-						 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] [Drawable] [Movememnt] [Infantry] [MissionBase] [RadioBase] // Manipulatable object with mission]
-						 -> [AbstractBase] [[ObjectBase] [PlacementStatusses] [Transform] [TurretObject] [Drawable] [Movememnt] [Unit] [MissionBase] [RadioBase] // Manipulatable object with mission]
-
-			-> [AbstractBase] [AbsractType] //Type object
+				-> [AbstractBase] [[ObjectBase] [PlacementStatusses] [TypeObjectReference] [Transform] [MissionBase] [RadioBase] // Manipulatable object with mission]
+					-> [AbstractBase] [[ObjectBase] [PlacementStatusses] [TypeObjectReference] [Transform] [[Drawable] [TurretObject]] [MissionBase] [RadioBase] // Manipulatable object with mission]
+					-> [AbstractBase] [[ObjectBase] [PlacementStatusses] [TypeObjectReference] [Transform] [Drawable] [Movememnt] [Aircraft] [MissionBase] [RadioBase] // Manipulatable object with mission]
+					-> [AbstractBase] [[ObjectBase] [PlacementStatusses] [TypeObjectReference] [Transform] [Drawable] [Movememnt] [Infantry] [MissionBase] [RadioBase] // Manipulatable object with mission]
+					-> [AbstractBase] [[ObjectBase] [PlacementStatusses] [TypeObjectReference] [Transform] [[Drawable] [TurretObject]] [Movememnt] [Unit] [MissionBase] [RadioBase] // Manipulatable object with mission]
 
 			 std::vector<Entity> Entities {};
+			 std::vector<Drawable> DrawableExist {};
 
-			 void UpdateEntitiy()
-			 {
+			 void UpdateEntitiy() {
 				Entities.for_each([](auto& ent)) {
-					if(!ent.contins(AbsractType)) {
-						ent.AI(); //anything that doesnt have [AbsractType] is logic attached
+					ent.AI();
+				}
+			}
+
+			void UpdateDrawable() {
+				DrawableExist.for_each([](auto& ent)) {
+						ent.Draw();
 					}
 				}
 			}
+
 */
