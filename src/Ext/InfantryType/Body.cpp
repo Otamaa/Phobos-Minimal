@@ -92,6 +92,11 @@ void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->OnlyUseLandSequences.Read(iniEX_art, pSection_art, "OnlyUseLandSequences");
 
+	this->WhenInfiltrate_Warhead.Read(exINI, pID, "WhenInfiltrate.Warhead.%s");
+	this->WhenInfiltrate_Weapon.Read(exINI, pID, "WhenInfiltrate.Weapon.%s");
+	this->WhenInfiltrate_Damage.Read(exINI, pID, "WhenInfiltrate.Damage.%s");
+	this->WhenInfiltrate_Warhead_Full.Read(exINI, pID, "WhenInfiltrate.Warhead.Full");
+
 	// TODO , this stupid parsing thing
 	//auto const nPriData = this->Get()->GetWeapon(0);
 	//auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
@@ -159,6 +164,11 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->VoiceGarrison)
 		.Process(this->OnlyUseLandSequences)
 		.Process(this->SquenceRates)
+
+		.Process(this->WhenInfiltrate_Warhead)
+		.Process(this->WhenInfiltrate_Weapon)
+		.Process(this->WhenInfiltrate_Damage)
+		.Process(this->WhenInfiltrate_Warhead_Full)
 		;
 }
 

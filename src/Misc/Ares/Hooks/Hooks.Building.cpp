@@ -1850,6 +1850,37 @@ DEFINE_HOOK(0x4571E0, BuildingClass_Infiltrate, 5)
 	return 0x4575A2;
 }
 
+#include <Ext/Infantry/Body.h>
+
+// This function is called when an infantry infiltrates a structure.
+void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
+{
+	// Weapon / warhead detonation upon infiltration.
+	// Note that, despite the detonate or area damage func are called right before the normal infiltration effects,
+	// the actual damage is resolved some time later, at least later than the normal infiltration effects resolve.
+	// So there is no need to worry if the building or the spy itself will be killed before the infiltration.
+
+	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.Get(pSpy)) {
+		WeaponTypeExtData::DetonateAt(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
+	} else {
+		auto pWarhead =  pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead.Get(pSpy);
+		const int damage =  pSpy->_GetTypeExtData()->WhenInfiltrate_Damage.Get(pSpy);
+
+		if( damage != 0){
+
+			if (!pWarhead)
+				pWarhead = RulesClass::Instance->C4Warhead;
+
+			if (pWarhead) {
+				if ( pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead_Full)
+					WarheadTypeExtData::DetonateAt(pWarhead, pBuilding->GetCoords(), pSpy, damage, pSpy->Owner);
+				else
+					MapClass::DamageArea(pBuilding->GetCoords(), damage, pSpy, pWarhead, true, pSpy->Owner);
+			}
+		}
+	}
+}
+
 DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 {
 	enum
@@ -1859,7 +1890,7 @@ DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		InfiltrateSucceded = 0x51A010,
 	};
 
-	GET(InfantryClass* const, pThis, ESI);
+	GET(FakeInfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
 	const auto nResult = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBuilding);
@@ -1870,8 +1901,18 @@ DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
-		pBuilding->Infiltrate(pHouse);
-		return InfiltrateSucceded;
+		WhenInfiltratesInto(pThis , pBuilding);
+
+		if(pThis->IsAlive) {
+			if(pBuilding->IsAlive) {
+				pBuilding->Infiltrate(pHouse);
+				return InfiltrateSucceded;
+			}
+
+			return SkipInfiltrate;
+		}
+
+		return 0x51A034 ;
 	}
 	else
 		if (nResult == Action::NoMove)

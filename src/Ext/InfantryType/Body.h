@@ -36,6 +36,12 @@ public:
 	Valueable<bool> OnlyUseLandSequences { false };
 	std::vector<int> SquenceRates {};
 
+	// When infiltrates: detonates a weapon or damage
+	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead {};
+	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon {};
+	Promotable<int> WhenInfiltrate_Damage {};
+	Valueable<bool> WhenInfiltrate_Warhead_Full { true };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

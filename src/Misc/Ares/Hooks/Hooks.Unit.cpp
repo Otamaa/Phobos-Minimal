@@ -1305,10 +1305,8 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 
 static void CrushAffect(UnitClass* pThis, ObjectClass* pVictim, bool victimIsTechno)
 {
-
 	if (victimIsTechno)
 	{
-
 		auto const pVictimTechno = static_cast<TechnoClass*>(pVictim);
 		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 		const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);

@@ -1105,9 +1105,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DropCrate.Read(exINI, pSection, "DropCrate");
 
-		this->WhenCrushed_Warhead.Read(exINI, pSection, "WhenCrushed.%sWarhead", nullptr,  true);
-		this->WhenCrushed_Weapon.Read(exINI, pSection, "WhenCrushed.%sWeapon", nullptr, true);
-		this->WhenCrushed_Damage.Read(exINI, pSection, "WhenCrushed.%sDamage");
+		this->WhenCrushed_Warhead.Read(exINI, pSection, "WhenCrushed.Warhead.%s", nullptr,  true);
+		this->WhenCrushed_Weapon.Read(exINI, pSection, "WhenCrushed.Weapon.%s", nullptr, true);
+		this->WhenCrushed_Damage.Read(exINI, pSection, "WhenCrushed.Damage.%s");
 		this->WhenCrushed_Warhead_Full.Read(exINI, pSection, "WhenCrushed.Warhead.Full");
 
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.HaveAllPlans");
@@ -1366,7 +1366,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Convert_ToHouseOrCountry.reserve(SideClass::Array->Count + HouseTypeClass::Array->Count);
 
 		for (auto const& pSide : *SideClass::Array) {
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
 			technoType.Read(exINI, pSection, tempBuffer);
 			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Get());
@@ -1375,7 +1375,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		// put all countries into the map
 		for (auto const& pTHouse : *HouseTypeClass::Array) {
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
 			technoType.Read(exINI, pSection, tempBuffer);
 			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
