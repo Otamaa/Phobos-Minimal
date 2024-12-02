@@ -1909,10 +1909,9 @@ DEFINE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		if(pThis->IsAlive) {
 			if(pBuilding->IsAlive) {
 				pBuilding->Infiltrate(pHouse);
-				return InfiltrateSucceded;
 			}
 
-			return SkipInfiltrate;
+			return InfiltrateSucceded;
 		}
 
 		return 0x51A034 ;
