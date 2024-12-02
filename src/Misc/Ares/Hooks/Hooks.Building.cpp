@@ -1859,14 +1859,17 @@ void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
 	// Note that, despite the detonate or area damage func are called right before the normal infiltration effects,
 	// the actual damage is resolved some time later, at least later than the normal infiltration effects resolve.
 	// So there is no need to worry if the building or the spy itself will be killed before the infiltration.
+	auto const rank = pSpy->Veterancy.GetRemainingLevel();
 
-	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.Get(pSpy)) {
+	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.GetFromSpecificRank(rank)) {
 		WeaponTypeExtData::DetonateAt(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
 	} else {
-		auto pWarhead =  pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead.Get(pSpy);
-		const int damage =  pSpy->_GetTypeExtData()->WhenInfiltrate_Damage.Get(pSpy);
+
+		const int damage =  pSpy->_GetTypeExtData()->WhenInfiltrate_Damage.GetFromSpecificRank(rank);
 
 		if( damage != 0){
+
+			auto pWarhead = pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead.GetFromSpecificRank(rank);
 
 			if (!pWarhead)
 				pWarhead = RulesClass::Instance->C4Warhead;
