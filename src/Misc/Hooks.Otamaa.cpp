@@ -4569,26 +4569,37 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					data = (Powerup)pCell->OverlayData;
 				else
 				{
-					int totalshares = 0;
-					for (auto& crate : CrateTypeClass::Array)
-					{
-						totalshares += crate.Weight;
+					int total_shares = 0;
+					std::vector<Powerup> crates(CrateTypeClass::Array.size());
+
+					for (size_t i = 0; i < CrateTypeClass::Array.size(); i++) {
+						auto crate = &CrateTypeClass::Array[i];
+
+						if (pCell->LandType == LandType::Water && !crate->Naval) {
+							continue;
+						}
+
+						if (!pCell->IsClearToMove(crate->Speed,
+							true, true,
+							ZoneType::None,
+							MovementZone::Normal, -1, true)) continue;
+
+						if (crate->Weight > 0) {
+							total_shares += crate->Weight;
+							crates.push_back((Powerup)i);
+						}
 					}
 
-					int random = ScenarioClass::Instance->Random.RandomRanged(1, totalshares);
-					int sharecount = 0;
-					unsigned int ovelaydata = 0u;
+					int random = ScenarioClass::Instance->Random.RandomRanged(1, total_shares);
+					int share_count = 0;
 
-					for (auto& crate : CrateTypeClass::Array)
-					{
-						sharecount += crate.Weight;
-						if (random <= sharecount)
+					for (size_t i = 0; i < crates.size(); i++) {
+						share_count += CrateTypeClass::Array[(size_t)crates[i]].Weight;
+						if (random <= share_count) {
+							data = (Powerup)crates[i];
 							break;
-
-						++ovelaydata;
+						}
 					}
-
-					data = (Powerup)ovelaydata;
 				}
 #pragma endregion
 
@@ -4693,11 +4704,6 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 #pragma endregion
 
-					if (landType == LandType::Water && !CrateTypeClass::Array[(int)data].Naval)
-					{
-						data = Powerup::Unit;
-					}
-
 					HouseExtData::IncremetCrateTracking(pCollectorOwner, data);
 
 				}
@@ -4729,6 +4735,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					MapClass::Instance->Place_Random_Crate();
 				}
+
 #pragma region MainAffect
 				const auto something = CrateTypeClass::Array[(int)data].Argument;
 				//not always get used same way ?

@@ -12,18 +12,20 @@ class CrateTypeClass final : public Enumerable<CrateTypeClass>
 {
 public:
 
-	Valueable<int> Weight { 0 };
-	Valueable<AnimTypeClass*> Anim { nullptr };
-	Valueable<double> Argument { 0.0 };
-	Valueable<bool> Naval { false };
-	ValueableIdx<VocClass> Sound { -1 };
+	Valueable<int> Weight;
+	Valueable<AnimTypeClass*> Anim;
+	Valueable<double> Argument;
+	Valueable<bool> Naval;
+	ValueableIdx<VocClass> Sound;
+	SpeedType Speed;
 
     CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle)
 		, Weight { }
 		, Anim { nullptr }
 		, Argument { 0.0 }
 		, Naval { false }
-		, Sound {}
+		, Sound { -1 }
+		, Speed { SpeedType::Track }
 	{ }
 
 	static void ReadListFromINI(CCINIClass* pINI);

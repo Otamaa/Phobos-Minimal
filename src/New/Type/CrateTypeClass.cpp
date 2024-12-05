@@ -13,30 +13,27 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 				pAlloc->Naval = Powerups::Naval[i];
 				pAlloc->Anim = AnimTypeClass::Array->GetItemOrDefault(Powerups::Anims[i]);
 
-				int sound = -1;
 				switch (Powerup(i))
 				{
 				case Powerup::Money:
-					sound = RulesClass::Instance->CrateMoneySound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateMoneySound; break;
 				case Powerup::HealBase:
-					sound = RulesClass::Instance->HealCrateSound; break;
+					pAlloc->Sound = RulesClass::Instance->HealCrateSound; break;
 				case Powerup::Armor:
-					sound = RulesClass::Instance->CrateArmourSound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateArmourSound; break;
 				case Powerup::Speed:
-					sound = RulesClass::Instance->CrateSpeedSound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateSpeedSound; break;
 				case Powerup::Firepower:
-					sound = RulesClass::Instance->CrateFireSound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateFireSound; break;
 				case Powerup::Reveal:
-					sound = RulesClass::Instance->CrateRevealSound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateRevealSound; break;
 				case Powerup::Unit:
-					sound = RulesClass::Instance->CrateUnitSound; break;
+					pAlloc->Sound = RulesClass::Instance->CrateUnitSound; break;
 				case Powerup::Veteran:
-					sound = RulesClass::Instance->CratePromoteSound; break;
+					pAlloc->Sound = RulesClass::Instance->CratePromoteSound; break;
 				default:
 					break;
 				}
-
-				pAlloc->Sound = sound;
 			}
 
 			Array[i].LoadFromINI(pINI);
@@ -61,7 +58,7 @@ void CrateTypeClass::LoadFromINI(CCINIClass *pINI)
 	this->Argument.Read(exINI, section, "Crate.Argument");
 	this->Naval.Read(exINI, section, "Crate.Naval");
 	this->Sound.Read(exINI, section, "Crate.Sound");
-
+	this->Speed = pINI->ReadSpeedType(section, "Crate.SpeedType", this->Speed);
 	//this->Super.Read(exINI, section, "Crate.SuperWeapon",true);
 	//this->SuperGrant.Read(exINI, section, "Crate.SuperWeaponGrant");
 
@@ -90,6 +87,7 @@ void CrateTypeClass::Serialize(T& Stm)
 		.Process(this->Argument)
 		.Process(this->Naval)
 		.Process(this->Sound)
+		.Process(this->Speed)
 		;
 }
 
