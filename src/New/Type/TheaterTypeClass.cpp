@@ -30,6 +30,7 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 	MMExtension.Read(pINI, pSection, "MMExtension");
 	Letter.Read(pINI, pSection, "ImageLetter");
 	IsArctic.Read(exIni, pSection, "IsArtic");
+	IsLunar.Read(exIni, pSection, "IsLunar");
 	IsAllowedInMapGenerator.Read(exIni, pSection, "IsAllowedInMapGenerator");
 	LowRadarBrightness1.Read(exIni, pSection, "LowRadarBrightness");
 
@@ -107,7 +108,8 @@ void TheaterTypeClass::AddDefaults()
 				Theater::Array[i].Identifier ,
 				Theater::Array[i] ,
 				i == (size_t)TheaterType::Snow ,
-				!(i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar)
+				!(i == (size_t)TheaterType::NewUrban || i == (size_t)TheaterType::Lunar),
+				 i == (size_t)TheaterType::Lunar
 			);
 		}
 	}
@@ -726,7 +728,11 @@ DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 	return 0x0;
 }
 
-DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
+DEFINE_HOOK(0x546C8B , IsometricTileTypeClass_ReadData_LunarLimitation ,0x8)
+{
+	GET_STACK(TheaterType , theater , 0xB4);
+	return TheaterTypeClass::FindFromTheaterType_NoCheck(theater)->IsLunar ? 0x546C95 : 0x546CBF;
+}
 
 #undef CURRENT_THEATER
 

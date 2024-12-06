@@ -21,6 +21,7 @@ public:
 		Letter("X"),
 		IsArctic(false),
 		IsAllowedInMapGenerator(false),
+		IsLunar(false),
 		LowRadarBrightness1(0.0f),
 		HighRadarBrightness(1.0f),
 		unknown_float_60(0.0f),
@@ -45,7 +46,7 @@ public:
 		FallbackTheaterExtension()
 	{}
 
-	TheaterTypeClass(const char* const pTitle, const Theater* theater ,bool IsArtic , bool AllowMapGen) : Enumerable<TheaterTypeClass>(pTitle),
+	TheaterTypeClass(const char* const pTitle, const Theater* theater ,bool IsArtic , bool AllowMapGen , bool islunar) : Enumerable<TheaterTypeClass>(pTitle),
 		UIName(),
 		ControlFileName(theater->ControlFileName),
 		ArtFileName(theater->ArtFileName),
@@ -55,6 +56,7 @@ public:
 		Letter(theater->Letter),
 		IsArctic(IsArtic),
 		IsAllowedInMapGenerator(AllowMapGen),
+		IsLunar(islunar),
 		LowRadarBrightness1(theater->RadarTerrainBrightness),
 		HighRadarBrightness(theater->RadarTerrainBrightnessAtMaxLevel),
 		unknown_float_60(theater->unknown_float_60),
@@ -96,8 +98,8 @@ public:
 		return &Array[(int)nType];
 	}
 
-	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen) {
-		Array.emplace_back(Title, &theater , IsArtic , AllowMapGen);
+	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {
+		Array.emplace_back(Title, &theater , IsArtic , AllowMapGen , islunar);
 	}
 
 	// no !
@@ -118,6 +120,7 @@ private:
 			.Process(Letter)
 			.Process(IsArctic)
 			.Process(IsAllowedInMapGenerator)
+			.Process(IsLunar)
 			.Process(LowRadarBrightness1)
 			.Process(HighRadarBrightness)
 			.Process(unknown_float_60)
@@ -164,6 +167,7 @@ public:
 	PhobosFixedString<2>Letter;
 	Valueable<bool> IsArctic;
 	Valueable<bool> IsAllowedInMapGenerator;
+	Valueable<bool> IsLunar;
 	Valueable<float> LowRadarBrightness1;
 	Valueable<float> HighRadarBrightness;
 	Valueable<float> unknown_float_60;
