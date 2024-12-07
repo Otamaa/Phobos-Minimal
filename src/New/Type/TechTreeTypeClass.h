@@ -5,6 +5,9 @@
 #include <Utilities/Template.h>
 #include <Utilities/PhobosMap.h>
 
+#include <BuildingTypeClass.h>
+#include <HouseClass.h>
+
 class TechTreeTypeClass final : public Enumerable<TechTreeTypeClass>
 {
 public:
@@ -61,8 +64,36 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm);
 	void SaveToStream(PhobosStreamWriter& Stm);
 
-	bool IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const;
-	size_t CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const;
+	template <typename Func>
+	bool IsCompleted(HouseClass* pHouse, Func&& filter) const
+	{
+		for (BuildType i = BuildType::BuildPower; i < BuildType::BuildOther; i = BuildType((int)i + 1)) {
+			if (!GetBuildable(i, std::forward<Func>(filter)).empty() && CountSideOwnedBuildings(pHouse, i) < 1) {
+				return false;
+			}
+		}
+
+		for (const auto& [type, count] : BuildOtherCountMap) {
+			if (filter(type) && CountSideOwnedBuildings(pHouse, BuildType::BuildOther) < count) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	size_t CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const
+	{
+		size_t count = 0;
+		if (auto pBuild = this->GetBuildList(buildType)) {
+			for (const auto pBuilding : *pBuild) {
+				count += pHouse->ActiveBuildingTypes.GetItemCount(pBuilding->ArrayIndex);
+			}
+		}
+
+		return count;
+	}
+
 	constexpr FORCEINLINE const std::vector<BuildingTypeClass*>* GetBuildList(BuildType buildType) const {
 		switch (buildType)
 		{
@@ -93,9 +124,28 @@ public:
 		}
 	}
 
-	std::vector<BuildingTypeClass*> GetBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const;
-	BuildingTypeClass* GetRandomBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const;
+	template <typename Func>
+	constexpr FORCEINLINE std::vector<BuildingTypeClass*> GetBuildable(BuildType buildType, Func&& filter) const
+	{
+		std::vector<BuildingTypeClass*> filtered;
+		if(auto pBuild = this->GetBuildList(buildType)){
+			std::ranges::copy_if(*pBuild, std::back_inserter(filtered), std::forward<Func>(filter));
+		}
 
+		return filtered;
+	}
+
+	template <typename Func>
+	constexpr BuildingTypeClass* GetRandomBuildable(BuildType buildType, Func&& filter) const
+	{
+		const std::vector<BuildingTypeClass*> buildable = GetBuildable(buildType, std::forward<Func>(filter));
+		if (!buildable.empty()) {
+			return buildable[ScenarioClass::Instance->Random.RandomRanged(0, buildable.size() - 1)];
+
+		}
+
+		return nullptr;
+	}
 
 private:
 	template <typename T>

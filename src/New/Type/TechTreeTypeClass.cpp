@@ -5,56 +5,6 @@
 #include <Utilities/TemplateDef.h>
 #include "Utilities/Debug.h"
 
-size_t TechTreeTypeClass::CountSideOwnedBuildings(HouseClass* pHouse, BuildType buildType) const
-{
-	size_t count = 0;
-	if(auto pBuild = this->GetBuildList(buildType)){
-		for (const auto pBuilding : *pBuild) {
-			count += pHouse->ActiveBuildingTypes.GetItemCount(pBuilding->ArrayIndex);
-		}
-	}
-
-	return count;
-}
-
-bool TechTreeTypeClass::IsCompleted(HouseClass* pHouse, std::function<bool(BuildingTypeClass*)> const& filter) const
-{
-	for (BuildType i = BuildType::BuildPower; i < BuildType::BuildOther; i = BuildType((int) i + 1)) {
-		if (!GetBuildable(i, filter).empty() && CountSideOwnedBuildings(pHouse, i) < 1) {
-			return false;
-		}
-	}
-
-	for (const auto& [type , count] : BuildOtherCountMap) {
-		if (filter(type) && CountSideOwnedBuildings(pHouse, BuildType::BuildOther) < count) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-std::vector<BuildingTypeClass*> TechTreeTypeClass::GetBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const
-{
-	std::vector<BuildingTypeClass*> filtered;
-	if(auto pBuild = this->GetBuildList(buildType)){
-		std::ranges::copy_if(*pBuild, std::back_inserter(filtered), filter);
-	}
-
-	return filtered;
-}
-
-BuildingTypeClass* TechTreeTypeClass::GetRandomBuildable(BuildType buildType, std::function<bool(BuildingTypeClass*)> const& filter) const
-{
-	const std::vector<BuildingTypeClass*> buildable = GetBuildable(buildType, filter);
-	if (!buildable.empty()) {
-		return buildable[ScenarioClass::Instance->Random.RandomRanged(0, buildable.size() - 1)];
-
-	}
-
-	return nullptr;
-}
-
 template<>
 const char* Enumerable<TechTreeTypeClass>::GetMainSection()
 {
