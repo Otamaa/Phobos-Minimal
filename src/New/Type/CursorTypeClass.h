@@ -21,6 +21,8 @@ public:
 		if (!Array.empty())
 			return;
 
+		Array.reserve(MouseCursorTypeToStrings.size() + NewMouseCursorTypeToStrings.size());
+
 		for (size_t i = 0; i < MouseCursorTypeToStrings.size(); ++i) {
 			AllocateWithDefault(MouseCursorTypeToStrings[i], MouseCursor::DefaultCursors[i]);
 		}

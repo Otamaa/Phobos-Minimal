@@ -29,9 +29,14 @@ public:
 	{ }
 
 	static void ReadListFromINI(CCINIClass* pINI);
-	static void constexpr inline AddDefaults(){
-		for (auto crate : Powerups::Effects){
-			FindOrAllocate(crate);
+	static void inline AddDefaults(){
+		if (Array.empty()){
+			Array.reserve(Powerups::Effects.size());
+
+			for (auto crate : Powerups::Effects){
+				Debug::Log("Creating default Crate of [%s]\n" , crate);
+				Allocate(crate);
+			}
 		}
 	}
 

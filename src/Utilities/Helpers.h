@@ -231,6 +231,10 @@ namespace Helpers {
 								if (dist > spreadMult)
 									continue;
 							}
+							else if (pTechno->Location.DistanceFrom(coords) > spreadMult)
+							{
+								continue;
+							}
 						}
 
 						set.insert(pTechno);
@@ -373,6 +377,10 @@ namespace Helpers {
 							if (dist > arange)
 								continue;
 						}
+						else if (pTechno->Location.DistanceFrom(coords) > arange)
+						{
+							continue;
+						}
 
 						set.insert(pTechno);
 					}
@@ -453,6 +461,10 @@ namespace Helpers {
 
 								if (dist > spreadMult)
 									continue;
+							}
+							else if (pTechno->Location.DistanceFrom(coords) > spreadMult)
+							{
+								continue;
 							}
 						}
 

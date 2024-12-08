@@ -14,6 +14,8 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm);
 
 	static void constexpr inline AddDefaults() {
+		Array.reserve(6u);
+
 		FindOrAllocate(GameStrings::POWER());
 		FindOrAllocate(GameStrings::FACTORY());
 		FindOrAllocate(GameStrings::BARRACKS());

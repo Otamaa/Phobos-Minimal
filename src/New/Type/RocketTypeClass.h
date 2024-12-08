@@ -35,6 +35,8 @@ public:
 	{ }
 
 	static void constexpr inline AddDefaults() {
+		Array.reserve(DefaultRockets.size());
+
 		for (auto& rocket:  DefaultRockets) {
 			FindOrAllocate(rocket.c_str());
 		}
