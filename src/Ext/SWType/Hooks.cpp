@@ -24,22 +24,8 @@
 #include <New/Entity/SWFirerClass.h>
 #pragma endregion
 
-DEFINE_HOOK(0x55B6F8, LogicClass_Updata_End, 0xC)
-{
-	SWFirerClass::Update();
-	SWStateMachine::UpdateAll();
-	HouseExtData::UpdateAutoDeathObjects();
-	HouseExtData::UpdateTransportReloaders();
-
-	for (auto pHouse : *HouseClass::Array) {
-		auto pExt = HouseExtContainer::Instance.Find(pHouse);
-		AresHouseExt::UpdateTogglePower(pHouse);
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
+DEFINE_HOOK_AGAIN(0x55B6F8, LogicClass_Updata, 0xC) //_End
+DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();

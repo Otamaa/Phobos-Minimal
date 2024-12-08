@@ -99,7 +99,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		if (!pType || pType->Strength == 0)
 			continue;
 
-		int howMuch = pData->SW_DeliverableCounts.size() && i < pData->SW_DeliverableCounts.size() ? pData->SW_DeliverableCounts[i] : 1;
+		size_t howMuch = pData->SW_DeliverableCounts.size() && i < pData->SW_DeliverableCounts.size() ? pData->SW_DeliverableCounts[i] : 1;
 
 		if (howMuch < 0)
 			continue;
