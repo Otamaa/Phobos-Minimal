@@ -418,13 +418,11 @@ void CloneableLighningStormStateMachine::Update()
 
 void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 {
-	auto const pData = this->GetTypeExtData();
-	auto const pCell = MapClass::Instance->GetCellAt(nCoord);
-	auto const coords = pCell->GetCoordsWithBridge();
-
-	if (coords != CoordStruct::Empty)
+	if (nCoord != CoordStruct::Empty)
 	{
-
+		auto const pData = this->GetTypeExtData();
+		auto const pCell = MapClass::Instance->GetCellAt(nCoord);
+		auto const coords = pCell->GetCoordsWithBridge();
 		// create a bolt animation
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
@@ -531,16 +529,15 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 {
-
 	auto const pExt = this->GetTypeExtData();
 
-	// get center of cell coords
-	auto const pCell = MapClass::Instance->GetCellAt(nCell);
-	auto coords = pCell->GetCoordsWithBridge();
-
 	// create a cloud animation
-	if (coords != CoordStruct::Empty)
+	if (nCell != CellStruct::Empty)
 	{
+		// get center of cell coords
+		auto const pCell = MapClass::Instance->GetCellAt(nCell);
+		auto coords = pCell->GetCoordsWithBridge();
+
 		// select the anim
 		auto const itClouds = pExt->Weather_Clouds.GetElements(RulesClass::Instance->WeatherConClouds);
 
