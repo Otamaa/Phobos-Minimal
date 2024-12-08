@@ -2324,6 +2324,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->Sonar_Delay)
 
 		.Process(this->SW_Deliverables)
+		.Process(this->SW_DeliverableCounts)
 		.Process(this->SW_Deliverables_Facing)
 		.Process(this->SW_DeliverBuildups)
 		.Process(this->SW_BaseNormal)
