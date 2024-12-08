@@ -12,6 +12,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/Team/Body.h>
+//#include <ExtraHeaders/StackVector.h>
 
 /*
 *	Scripts is a part of `TeamClass` that executed sequentally form `ScriptTypeClass`

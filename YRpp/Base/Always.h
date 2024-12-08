@@ -143,7 +143,10 @@ typedef union {
 #define SELECTANY __declspec(selectany)
 #define NAKED __declspec(naked)
 #define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
+
 #define ALIGN(val) __declspec(align(val))
+#define ALIGNOF(type) (sizeof(type) - sizeof(type) + __alignof(type))
+#define ALIGNAS(byte_alignment) __declspec(align(byte_alignment))
 
 #define SAFE_RELEASE(ptr) {if(ptr) delete[] ptr;}
 
@@ -156,3 +159,9 @@ typedef union {
 template<int s> struct SIZEOF_ ## t ## _IS; \
 struct foo { int a,b; }; \
 SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
+
+// A macro to disallow the copy constructor and operator= functions
+// This should be used in the private: declarations for a class
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&);               \
+  void operator=(const TypeName&)
