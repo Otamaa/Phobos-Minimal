@@ -1818,12 +1818,11 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 {
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	if (pData->WaterImage && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor)
-	{
-		return pData->WaterImage;
+	if ((pData->WaterImage || pData->WaterDamagedImage) && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
+		return  (pData->WaterDamagedImage && (pThis->IsYellowHP() || pThis->IsRedHP()) ? &pData->WaterDamagedImage : &pData->WaterImage)->Get();
 	}
 
-	return nullptr;
+	return pData->DamagedImage  && (pThis->IsYellowHP() || pThis->IsRedHP()) ? pData->DamagedImage.Get() : nullptr;
 }
 
 TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)

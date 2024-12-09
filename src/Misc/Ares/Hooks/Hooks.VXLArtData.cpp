@@ -697,6 +697,8 @@ DEFINE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 
 	INI_EX exINI(pINI);
 	TechnoTypeExtContainer::Instance.Find(pType)->WaterImage.Read(exINI, pType->ID, "WaterImage");
+	TechnoTypeExtContainer::Instance.Find(pType)->DamagedImage.Read(exINI, pType->ID, "DamagedImage");
+	TechnoTypeExtContainer::Instance.Find(pType)->WaterDamagedImage.Read(exINI, pType->ID, "WaterDamagedImage");
 
 	return 0;
 }

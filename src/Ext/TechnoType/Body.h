@@ -549,6 +549,8 @@ public:
 
 	Nullable<int> TurretRot { };
 	Valueable<UnitTypeClass*> WaterImage { nullptr };
+	Valueable<UnitTypeClass*> DamagedImage { nullptr };
+	Valueable<UnitTypeClass*> WaterDamagedImage { nullptr };
 
 	Valueable<int> FallRate_Parachute { 1 };
 	Valueable<int> FallRate_NoParachute { 1 };
