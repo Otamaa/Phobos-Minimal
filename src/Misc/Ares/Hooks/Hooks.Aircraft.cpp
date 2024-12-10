@@ -19,9 +19,6 @@
 
 #include <SpawnManagerClass.h>
 
-//AircraftClass_Update_DontloseTargetInAir
-DEFINE_JUMP(LJMP,0x414D36 ,0x414D4D);
-
 DEFINE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 {
 	GET(AircraftClass*, pThis, ESI);

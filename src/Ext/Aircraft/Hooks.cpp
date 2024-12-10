@@ -440,6 +440,27 @@ DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0
 		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
 }
 
+DEFINE_HOOK_AGAIN(0x4168C7, AircraftClass_Mission_Move_SmoothMoving, 0x5)
+DEFINE_HOOK(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
+{
+	enum { EnterIdleAndReturn = 0x416AC0, ContinueMoving1 = 0x416908, ContinueMoving2 = 0x416A47 };
+
+	GET(AircraftClass* const, pThis, ESI);
+	GET(CoordStruct* const, pCoords, EAX);
+
+	if (!RulesExtData::Instance()->ExpandAircraftMission)
+		return 0;
+
+	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
+	const auto pType = pThis->Type;
+
+	if (distance > MaxImpl((pType->SlowdownDistance >> 1), (2048 / pType->ROT)))
+		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
+
+	pThis->EnterIdleMode(false, true);
+	return EnterIdleAndReturn;
+}
+
 DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6)
 {
 	enum { Continue = 0x418C43, Return = 0x418CE8 };
@@ -465,46 +486,26 @@ DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6
 }
 
 // Idle: clear the target if no ammo
-DEFINE_HOOK(0x414D4D, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
+DEFINE_HOOK(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 {
 	enum { ClearTarget = 0x414D3F };
 
 	GET(AircraftClass* const, pThis, ESI);
 
-	if (!RulesExtData::Instance()->ExpandAircraftMission)
-		return 0x0;
+	if (RulesExtData::Instance()->ExpandAircraftMission) {
+		if (!pThis->Spawned &&
+			!pThis->Ammo && !SessionClass::IsCampaign()) {
 
-	if (!pThis->Spawned &&
-		!pThis->Ammo && !SessionClass::IsCampaign())
-	{
-		if (TeamClass* const pTeam = pThis->Team)
-			pTeam->LiberateMember(pThis);
+			if (TeamClass* const pTeam = pThis->Team)
+				pTeam->LiberateMember(pThis);
 
-		return ClearTarget;
-	}
-
-	return 0;
-}
-
-// Stop: clear the mega mission and return to airbase immediately
-DEFINE_HOOK(0x4C762A, EventClass_RespondToEvent_StopAircraftAction, 0x6)
-{
-	GET(TechnoClass* const, pTechno, ESI);
-
-	if (RulesExtData::Instance()->ExpandAircraftMission)
-	{
-		if (pTechno->WhatAmI() == AbstractType::Aircraft && !pTechno->Airstrike && !pTechno->Spawned)
-		{
-			if (pTechno->vt_entry_4C4()) // pTechno->MegaMissionIsAttackMove()
-				pTechno->vt_entry_4A8(); // pTechno->ClearMegaMissionData()
-
-			if (pTechno->GetHeight() > Unsorted::CellHeight)
-				pTechno->EnterIdleMode(false, true);
+			return ClearTarget;
 		}
 	}
 
-	return 0;
+	return 0x414D4D; //AircraftClass_Update_DontloseTargetInAir
 }
+
 AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
 {
 	if (RulesExtData::Instance()->ExpandAircraftMission){

@@ -1835,7 +1835,7 @@ UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 	if(pData->Image_Yellow && pThis->IsYellowHP())
 		return pData->Image_Yellow;
 
-	return nullptr
+	return nullptr;
 }
 
 TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
