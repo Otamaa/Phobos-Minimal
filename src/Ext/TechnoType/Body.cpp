@@ -2135,8 +2135,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->TurretRot)
 
 		.Process(this->WaterImage)
-		.Process(this->DamagedImage)
-		.Process(this->WaterDamagedImage)
+		.Process(this->WaterImage_Yellow)
+		.Process(this->WaterImage_Red)
+
+		.Process(this->Image_Yellow)
+		.Process(this->Image_Red)
 
 		.Process(this->FallRate_Parachute)
 		.Process(this->FallRate_NoParachute)

@@ -1010,14 +1010,13 @@ DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 	return 0x6E93D6;
 }
 
-DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
+DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 {
-	GET(int const, nCellX, EAX);
-	GET(int const, nCellY, EDX);
+	GET_STACK(short const, nCellX, 0x10);
+	GET_STACK(short const, nCellY, 0x12);
 	GET(TeamClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
-	GET(TeamTypeClass* const, pTeamType, ECX);
-	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
+	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
@@ -4537,6 +4536,8 @@ enum class MoveResult : char
 	cannot, can
 };
 
+#include <ExtraHeaders/StackVector.h>
+
 // what is the boolean return for , heh
 static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
@@ -4570,7 +4571,8 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				else
 				{
 					int total_shares = 0;
-					std::vector<Powerup> crates(CrateTypeClass::Array.size());
+
+					StackVector<Powerup, 256> crates;
 
 					for (size_t i = 0; i < CrateTypeClass::Array.size(); i++) {
 						auto crate = &CrateTypeClass::Array[i];
@@ -4586,14 +4588,14 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 						if (crate->Weight > 0) {
 							total_shares += crate->Weight;
-							crates.push_back((Powerup)i);
+							crates->push_back((Powerup)i);
 						}
 					}
 
 					int random = ScenarioClass::Instance->Random.RandomRanged(1, total_shares);
 					int share_count = 0;
 
-					for (size_t i = 0; i < crates.size(); i++) {
+					for (size_t i = 0; i < crates->size(); i++) {
 						share_count += CrateTypeClass::Array[(size_t)crates[i]].Weight;
 						if (random <= share_count) {
 							data = (Powerup)crates[i];

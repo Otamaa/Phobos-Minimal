@@ -15,6 +15,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <ExtraHeaders/StackVector.h>
+
 void HouseExtData::InitializeConstant()
 {
 	//BuiltAircraftTypes.PopulateCounts(10000);
@@ -1072,7 +1074,7 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 
 	if (param < 0)
 	{
-		std::vector<HouseClass*> housesListIdx {};
+		StackVector<HouseClass* , 256> housesListIdx {};
 
 		switch (param)
 		{
@@ -1085,13 +1087,13 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 					&& !HouseExtData::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
-					housesListIdx.push_back(pHouse);
+					housesListIdx->push_back(pHouse);
 				}
 			}
 
-			return housesListIdx.empty() ?
+			return housesListIdx->empty() ?
 				-1 :
-				housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)]->ArrayIndex;
+				housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx->size() - 1)]->ArrayIndex;
 		}
 		case -2:
 		{
@@ -1115,13 +1117,13 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 					&& !pHouse->Defeated
 					&& !HouseExtData::IsObserverPlayer(pHouse))
 				{
-					housesListIdx.push_back(pHouse);
+					housesListIdx->push_back(pHouse);
 				}
 			}
 
-			return housesListIdx.empty() ?
+			return housesListIdx->empty() ?
 				-1 :
-				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))]
+				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx->size() - 1))]
 				->ArrayIndex;
 		}
 		default:

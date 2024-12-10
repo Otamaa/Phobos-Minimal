@@ -2,7 +2,7 @@
 
 #include <Ext/Scenario/Body.h>
 
-DynamicVectorClass<BannerClass*> BannerClass::Array;
+std::vector<BannerClass*> BannerClass::Array;
 
 template <typename T>
 bool BannerClass::Serialize(T& Stm)

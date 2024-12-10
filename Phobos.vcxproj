@@ -452,8 +452,6 @@
     <ClInclude Include="src\Commands\FireTacticalSW.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
-    <ClInclude Include="src\ExtraHeaders\RVectorClass.h" />
-    <ClInclude Include="src\ExtraHeaders\FixedHeapClass.h" />
     <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
@@ -510,7 +508,6 @@
     <ClInclude Include="src\Commands\ToggleDesignatorRange.h" />
     <ClInclude Include="src\Commands\ToggleDigitalDisplay.h" />
     <ClInclude Include="src\Commands\ToggleRadialIndicatorDrawMode.h" />
-    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArcingTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.h" />

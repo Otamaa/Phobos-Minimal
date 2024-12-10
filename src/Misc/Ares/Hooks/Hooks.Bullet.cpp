@@ -147,7 +147,7 @@ DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 			types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
 		else if (!pWarheadExt->Splashed){
 			bool createAll = pWarheadExt->AnimList_CreateAll;
-			if (pWarheadExt->HasCrit && !pWarheadExt->Crit_AnimOnAffectedTargets) {
+			if (pWarheadExt->HasCrit && !pWarheadExt->Crit_AnimList.empty() && !pWarheadExt->Crit_AnimOnAffectedTargets) {
 				createAll = pWarheadExt->Crit_AnimList_CreateAll.Get(createAll);
 				if (createAll)
 					types = pWarheadExt->Crit_AnimList;

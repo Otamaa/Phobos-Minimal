@@ -88,7 +88,7 @@ public:
 		}
 		else
 		{
-			return std::allocator_traits<std::allocator<T>>::allocate(n);
+			return std::allocator<T>::allocate(n);
 		}
 	}
 	// Free: when trying to free the stack buffer, just mark it as free. For

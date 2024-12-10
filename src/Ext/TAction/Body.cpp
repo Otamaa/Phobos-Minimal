@@ -156,25 +156,27 @@ bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, Obj
 	return true;
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	int houseIdx = 0;
 	if (pThis->Param3 == -3)
 	{
 		// Random Human Player
-		std::vector<int> housesListIdx;
+		StackVector<int , 256> housesListIdx;
 		for (auto ptmpHouse : *HouseClass::Array)
 		{
 			if (ptmpHouse->IsControlledByHuman()
 				&& !ptmpHouse->Defeated
 				&& !ptmpHouse->IsObserver())
 			{
-				housesListIdx.push_back(ptmpHouse->ArrayIndex);
+				housesListIdx->push_back(ptmpHouse->ArrayIndex);
 			}
 		}
 
-		if (!housesListIdx.empty())
-			houseIdx = housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))];
+		if (!housesListIdx->empty())
+			houseIdx = housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx->size() - 1))];
 		else
 			return true;
 	}
@@ -871,7 +873,7 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 
 	if (param < 0)
 	{
-		std::vector<HouseClass*> housesListIdx;
+		StackVector<HouseClass* , 256> housesListIdx;
 
 		switch (param)
 		{
@@ -884,12 +886,12 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 					&& !HouseExtData::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
-					housesListIdx.push_back(pHouse);
+					housesListIdx->push_back(pHouse);
 				}
 			}
 
-			return housesListIdx.empty() ?
-				nullptr : housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
+			return housesListIdx->empty() ?
+				nullptr : housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx->size() - 1)];
 		}
 		case -2:
 		{
@@ -913,13 +915,13 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 					&& !pHouse->Defeated
 					&& !HouseExtData::IsObserverPlayer(pHouse))
 				{
-					housesListIdx.push_back(pHouse);
+					housesListIdx->push_back(pHouse);
 				}
 			}
 
-			return housesListIdx.empty() ?
+			return housesListIdx->empty() ?
 				nullptr :
-				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))]
+				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx->size() - 1))]
 				;
 		}
 		default:
@@ -1219,7 +1221,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		return true;
 	// Example:
 	// ID=ActionCount,[Action1],507,4,[CSFKey],[HouseIndex],[AIHousesLists Index],[AITargetTypes Index],[MesageDelay],A,[ActionX]
-	std::vector<HouseClass*> pHousesList;
+	StackVector<HouseClass* , 256> pHousesList;
 
 	// Obtain houses
 	int param3 = pThis->Param3;
@@ -1242,7 +1244,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 
 	if (param3 >= 0)
 	{
-		pHousesList.push_back(HouseClass::Array->GetItem(param3));
+		pHousesList->push_back(HouseClass::Array->GetItem(param3));
 	}
 	else
 	{
@@ -1264,12 +1266,12 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		for (const auto& pHouseType : *housesList) {
 			for (auto pHouse : *HouseClass::Array) {
 				if (pHouse->Type == pHouseType && !pHouse->Defeated && !pHouse->IsObserver())
-					pHousesList.push_back(pHouse);
+					pHousesList->push_back(pHouse);
 			}
 		}
 
 		// Nothing to check
-		if (pHousesList.empty())
+		if (pHousesList->empty())
 			return true;
 	}
 
@@ -1295,7 +1297,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 			if (!IsUnitAvailable(pTechno, false) || pTechno->GetTechnoType() != pType)
 				continue;
 
-			for (const auto& pHouse : pHousesList) {
+			for (const auto& pHouse : pHousesList.container()) {
 				if (pTechno->Owner == pHouse) {
 					globalRemaining++;
 					nRemaining++;

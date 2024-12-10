@@ -487,6 +487,8 @@ int PhobosAttachEffectClass::Detach(TechnoClass* pTarget, AEAttachInfoTypeClass*
 	return DetachTypes(pTarget, attachEffectInfo, attachEffectInfo->RemoveTypes);
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 int PhobosAttachEffectClass::DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo)
 {
 	auto const& groups = attachEffectInfo->RemoveGroups;
@@ -527,7 +529,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 
 	int currentTypeCount = 0;
 	PhobosAttachEffectClass* match = nullptr;
-	std::vector<PhobosAttachEffectClass*> cumulativeMatches;
+	StackVector<PhobosAttachEffectClass* , 256> cumulativeMatches;
 
 	for (auto const& aePtr : targetAEs)
 	{
@@ -539,7 +541,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 			match = attachEffect;
 
 			if (pType->Cumulative && (!attachParams.CumulativeRefreshSameSourceOnly || (attachEffect->Source == pSource && attachEffect->Invoker == pInvoker)))
-				cumulativeMatches.push_back(attachEffect);
+				cumulativeMatches->push_back(attachEffect);
 		}
 	}
 
@@ -549,18 +551,18 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 		{
 			if (attachParams.CumulativeRefreshAll)
 			{
-				for (auto const& ae : cumulativeMatches)
+				for (auto const& ae : cumulativeMatches.container())
 				{
 					ae->RefreshDuration(attachParams.DurationOverride);
 				}
 			}
 			else
 			{
-				if (cumulativeMatches.size() > 0)
+				if (cumulativeMatches->size() > 0)
 				{
 					PhobosAttachEffectClass* best = nullptr;
 
-					for (auto const& ae : cumulativeMatches)
+					for (auto const& ae : cumulativeMatches.container())
 					{
 						if (!best || ae->Duration < best->Duration)
 							best = ae;
@@ -574,7 +576,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 		}
 		else if (attachParams.CumulativeRefreshAll && attachParams.CumulativeRefreshAll_OnAttach)
 		{
-			for (auto const& ae : cumulativeMatches)
+			for (auto const& ae : cumulativeMatches.container())
 			{
 				ae->RefreshDuration(attachParams.DurationOverride);
 			}
@@ -650,7 +652,8 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 	if (pTargetExt->PhobosAE.begin() == pTargetExt->PhobosAE.end())
 		return 0;
 
-	std::vector<WeaponTypeClass*> expireWeapons {};
+	StackVector<WeaponTypeClass*, 256> expireWeapons;
+
 	pTargetExt->PhobosAE.remove_if([&](auto& it) {
 
 		if(!it)
@@ -664,7 +667,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 
 			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None) {
 				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTarget, pType) < 2)
-					expireWeapons.push_back(pType->ExpireWeapon);
+					expireWeapons->push_back(pType->ExpireWeapon);
 			}
 
 			if (pType->Cumulative && !pType->CumulativeAnimations.empty())
@@ -684,7 +687,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 	auto const pOwner = pTarget->Owner;
 	auto _pTarget = pTarget;
 
-	for (auto const& pWeapon : expireWeapons) {
+	for (auto const& pWeapon : expireWeapons.container()) {
 		if (_pTarget && !_pTarget->IsAlive)
 			_pTarget = nullptr;
 
@@ -700,9 +703,7 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
-	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
-
-	for (it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
+	for (auto it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
 	{
 		auto const attachEffect = it->get();
 		if(!attachEffect) {

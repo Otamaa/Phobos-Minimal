@@ -3,6 +3,7 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <ExtraHeaders/StackVector.h>
 
 int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain)
 {
@@ -34,7 +35,8 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 	TargetTower->Owner->GetRenderCoords(&MyPosition);
 
 	//first, find eligible towers
-	std::vector<PrismTargetData> EligibleTowers;
+	StackVector<PrismTargetData , 256> EligibleTowers;
+
 	for (auto const SlaveTower : *BuildingClass::Array)
 	{
 		auto const pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
@@ -43,15 +45,15 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 			SlaveTower->GetRenderCoords(&curPosition);
 			int Distance = static_cast<int>(MyPosition.DistanceFrom(curPosition));
 			PrismTargetData pd = { &pSlaveData->PrismForwarding, Distance };
-			EligibleTowers.push_back(pd);
+			EligibleTowers->push_back(pd);
 		}
 	}
 
-	std::stable_sort(EligibleTowers.begin(), EligibleTowers.end());
+	std::stable_sort(EligibleTowers->begin(), EligibleTowers->end());
 
 	//now enslave the towers in order of proximity
 	auto iFeeds = 0;
-	for (const auto& eligible : EligibleTowers)
+	for (const auto& eligible : EligibleTowers.container())
 	{
 		// feed limit enabled and reached
 		if (MaxFeeds != -1 && iFeeds >= MaxFeeds)

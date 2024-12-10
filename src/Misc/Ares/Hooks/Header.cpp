@@ -1818,11 +1818,24 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 {
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	if ((pData->WaterImage || pData->WaterDamagedImage) && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
-		return  (pData->WaterDamagedImage && (pThis->IsYellowHP() || pThis->IsRedHP()) ? &pData->WaterDamagedImage : &pData->WaterImage)->Get();
+	if ((pData->WaterImage || pData->WaterImage_Yellow || pData->WaterImage_Red) && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor) {
+
+		if(pData->WaterImage_Red && pThis->IsRedHP())
+			return pData->WaterImage_Red;
+
+		if(pData->WaterImage_Yellow && pThis->IsYellowHP())
+			return pData->WaterImage_Red;
+
+		return  pData->WaterImage;
 	}
 
-	return pData->DamagedImage  && (pThis->IsYellowHP() || pThis->IsRedHP()) ? pData->DamagedImage.Get() : nullptr;
+	if(pData->Image_Red && pThis->IsRedHP())
+		return pData->Image_Red;
+
+	if(pData->Image_Yellow && pThis->IsYellowHP())
+		return pData->Image_Yellow;
+
+	return nullptr
 }
 
 TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
@@ -1931,13 +1944,15 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	TechnoExt_ExtData::EvalRaidStatus(currentBuilding); // if the traversal emptied the current building, it'll have to be returned to its owner
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 {
 
 	if (!pThis->Target)
 	{
-		std::vector<TechnoClass*> preferredTargets;
-		std::vector<TechnoClass*> randomTargets;
+		StackVector<TechnoClass* , 256> preferredTargets;
+		StackVector<TechnoClass* , 256> randomTargets;
 
 		// defaults if SW isn't set
 		auto pOwner = pThis->GetOwningHouse();
@@ -2057,21 +2072,21 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			// add to the right list
 			if (isPreferred)
 			{
-				preferredTargets.push_back(i);
+				preferredTargets->push_back(i);
 			}
 			else
 			{
-				randomTargets.push_back(i);
+				randomTargets->push_back(i);
 			}
 		}
 
-		auto const targets = &(preferredTargets.size() > 0 ? preferredTargets : randomTargets);
+		auto const targets = &(preferredTargets->size() > 0 ? preferredTargets : randomTargets);
 
-		if (auto const count = targets->size())
+		if (auto const count = (*targets)->size())
 		{
 			// that's our target
 			pThis->SetTarget
-			(*(targets->data() + (size_t(count == 1 ?
+			(*((*targets)->data() + (size_t(count == 1 ?
 				0 : ScenarioClass::Instance->Random.RandomFromMax(count - 1)))
 				));
 			return true;
@@ -7528,8 +7543,8 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 		// create a list of all buildings that can be powered down
 		// and give each building an expendability value
-		std::vector<ExpendabilityStruct> Buildings;
-		Buildings.reserve(pThis->Buildings.Count);
+		StackVector<ExpendabilityStruct, 4096> Buildings;
+		//Buildings.reserve(pThis->Buildings.Count);
 
 		const auto HasLowPower = pThis->HasLowPower();
 
@@ -7545,7 +7560,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 				// power, we look for builidings that are disabled
 				if (pBld->StuffEnabled == HasLowPower)
 				{
-					Buildings.emplace_back(pBld, GetExpendability(pBld));
+					Buildings->emplace_back(pBld, GetExpendability(pBld));
 				}
 			}
 		}
@@ -7555,10 +7570,10 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		if (HasLowPower)
 		{
 			// most expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::greater<>());
+			std::sort(Buildings->begin(), Buildings->end(), std::greater<>());
 
 			// turn off the expendable buildings until power is restored
-			for (const auto& item : Buildings)
+			for (const auto& item : Buildings.container())
 			{
 				auto Drain = item.Building->Type->PowerDrain;
 
@@ -7574,10 +7589,10 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		else
 		{
 			// least expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::less<>());
+			std::sort(Buildings->begin(), Buildings->end(), std::less<>());
 
 			// turn on as many of them as possible
-			for (const auto& item : Buildings)
+			for (const auto& item : Buildings.container())
 			{
 				auto Drain = item.Building->Type->PowerDrain;
 				if (Surplus - Drain >= 0)
@@ -7620,15 +7635,13 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse, bool const active)
 	pHouse->FirestormActive = active;
 	UpdateAnyFirestormActive(active);
 
-	DynamicVectorClass<CellStruct> AffectedCoords;
+	DynamicVectorClass<CellStruct> AffectedCoords {};
+	AffectedCoords.SetCapacity(pHouse->Buildings.Count);
 
-	for (auto const& pBld : pHouse->Buildings)
-	{
-		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
-		{
+	for (auto const& pBld : pHouse->Buildings) {
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall) {
 			FirewallFunctions::UpdateFirewall(pBld, true);
-			auto const temp = pBld->GetMapCoords();
-			AffectedCoords.AddItem(temp);
+			AffectedCoords.AddItem(pBld->GetMapCoords());
 		}
 	}
 

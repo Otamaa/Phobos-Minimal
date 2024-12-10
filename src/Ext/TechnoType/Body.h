@@ -548,9 +548,13 @@ public:
 	Nullable<int> Harvester_KickDelay { };
 
 	Nullable<int> TurretRot { };
+
 	Valueable<UnitTypeClass*> WaterImage { nullptr };
-	Valueable<UnitTypeClass*> DamagedImage { nullptr };
-	Valueable<UnitTypeClass*> WaterDamagedImage { nullptr };
+	Valueable<UnitTypeClass*> WaterImage_Yellow { nullptr };
+	Valueable<UnitTypeClass*> WaterImage_Red { nullptr };
+
+	Valueable<UnitTypeClass*> Image_Yellow { nullptr };
+	Valueable<UnitTypeClass*> Image_Red{ nullptr };
 
 	Valueable<int> FallRate_Parachute { 1 };
 	Valueable<int> FallRate_NoParachute { 1 };

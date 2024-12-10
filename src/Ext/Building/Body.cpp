@@ -65,6 +65,8 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 	return foundationCells;
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 // Assigns a secret production option to the building.
 void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {
@@ -91,7 +93,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 		return;
 	}
 
-	std::vector<TechnoTypeClass*> Options;
+	StackVector<TechnoTypeClass* , 256> Options;
 	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
 	;
 	auto AddToOptions = [OwnerBits , pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
@@ -106,7 +108,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 					{
 					case RequirementStatus::Forbidden:
 					case RequirementStatus::Incomplete:
-						Options.emplace_back(Option);
+						Options->emplace_back(Option);
 						break;
 					default:
 						break;
@@ -128,9 +130,9 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	}
 
 	// pick one of all eligible items
-	if (!Options.empty())
+	if (!Options->empty())
 	{
-		const auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options.size() - 1)];
+		const auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options->size() - 1)];
 		Debug::Log("[Secret Lab] rolled %s for %s\n", Result->ID, pType->ID);
 		pThis->SecretProduction = Result;
 		pExt->SecretLab_Placed = true;

@@ -199,7 +199,6 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			auto const originalLocation = pThis->Location;
 			const auto pHouse = BulletExtData::GetHouse(pThis);
 			BulletExtContainer::Instance.Find(pThis)->OriginalTarget = pThis->Target;
-			std::vector<TechnoClass*> targets;
 
 			constexpr auto copy_dvc = []<typename T>(std::vector<T>& dest, const DynamicVectorClass<T>&dvc) {
 				dest.resize(dvc.Count);

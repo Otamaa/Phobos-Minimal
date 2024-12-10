@@ -78,6 +78,8 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 	}
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
@@ -88,7 +90,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	auto const pThis = pTechno;
 	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool markForRedraw = false;
-	std::vector<WeaponTypeClass*> expireWeapons;
+	StackVector<WeaponTypeClass* , 256> expireWeapons;
 
 	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
@@ -115,7 +117,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			if (pType->ExpireWeapon && ((hasExpired && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
 				|| (shouldDiscard && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Discard) != ExpireWeaponCondition::None)))	{
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-						expireWeapons.push_back(pType->ExpireWeapon);
+						expireWeapons->push_back(pType->ExpireWeapon);
 				}
 
 				if (shouldDiscard && attachEffect->ResetIfRecreatable())
@@ -141,7 +143,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	auto const pOwner = pThis->Owner;
 	auto pTarget = pThis;
 
-	for (auto const& pWeapon : expireWeapons) {
+	for (auto const& pWeapon : expireWeapons.container()) {
 		WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, pTarget , pWeapon->Damage ,false , pOwner);
 
 		if (!pTarget->IsAlive)
@@ -214,7 +216,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 	if (!pExt->PhobosAE.empty()){
 
-		std::vector<WeaponTypeClass*> expireWeapons;
+		StackVector<WeaponTypeClass* , 256> expireWeapons;
 
 		// Delete ones on old type and not on current.
 		for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
@@ -231,7 +233,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 					if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
 					{
 						if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-							expireWeapons.push_back(pType->ExpireWeapon);
+							expireWeapons->push_back(pType->ExpireWeapon);
 					}
 
 					markForRedraw |= pType->HasTint();
@@ -252,7 +254,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		auto const pOwner = pThis->Owner;
 		auto pTarget = pThis;
 
-		for (auto const& pWeapon : expireWeapons) {
+		for (auto const& pWeapon : expireWeapons.container()) {
 
 			WeaponTypeExtData::DetonateAt(pWeapon, coords, pTarget, pTarget, pWeapon->Damage, false , pOwner);
 

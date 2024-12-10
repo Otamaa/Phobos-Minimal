@@ -1250,12 +1250,14 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 	return UpdateTeam(pHouse) ? SkipCode : UseOriginalSelector;
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 DEFINE_HOOK(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 {
 	// For each house save a list with only AI Triggers that can be used
 	for (HouseClass* pHouse : *HouseClass::Array)
 	{
-		std::vector<int> list;
+		StackVector<int , 4096> list;
 		const int houseIdx = pHouse->ArrayIndex;
 		const int sideIdx = pHouse->SideIndex + 1;
 
@@ -1269,11 +1271,11 @@ DEFINE_HOOK(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 
 				// The trigger must be compatible with the owner
 				if ((triggerHouse == -1 || houseIdx == triggerHouse) && (triggerSide == 0 || sideIdx == triggerSide))
-					list.push_back(i);
+					list->push_back(i);
 			}
 		}
 
-		Debug::Log("House %d [%s] could use %d AI triggers in this map.\n", pHouse->ArrayIndex, pHouse->Type->ID, list.size());
+		Debug::Log("House %d [%s] could use %d AI triggers in this map.\n", pHouse->ArrayIndex, pHouse->Type->ID, list->size());
 	}
 
 	return 0;

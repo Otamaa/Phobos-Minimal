@@ -6,6 +6,8 @@
 
 #include <TeamTypeClass.h>
 
+#include <ExtraHeaders/StackVector.h>
+
 void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
 	for (auto& angerNode : pTeam->Owner->AngerNodes)
@@ -164,7 +166,7 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 		return;
 	}
 
-	std::vector<HouseClass*> objectsList;
+	StackVector<HouseClass* , 256> objectsList;
 	int IdxSelectedObject = -1;
 	HouseClass* selectedHouse = nullptr;
 	int highestHateLevel = 0;
@@ -187,7 +189,7 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 
 		if (random)
 		{
-			objectsList.push_back(angerNode.House);
+			objectsList->push_back(angerNode.House);
 		}
 		else
 		{
@@ -201,9 +203,9 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 	// Pick a enemy house
 	if (random)
 	{
-		if (!objectsList.empty())
+		if (!objectsList->empty())
 		{
-			IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
+			IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList->size() - 1);
 			selectedHouse = objectsList[IdxSelectedObject];
 		}
 	}
@@ -858,7 +860,7 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 {
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
-	std::vector<HouseClass*> objectsList;
+	StackVector<HouseClass*, 256> objectsList;
 	HouseClass* selectedHouse = nullptr;
 	int newHateLevel = 5000;
 
@@ -872,7 +874,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !angerNode.House->Type->MultiplayPassive
 			&& !angerNode.House->IsObserver())
 		{
-			objectsList.push_back(angerNode.House);
+			objectsList->push_back(angerNode.House);
 		}
 	}
 
@@ -884,17 +886,17 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !pTeam->Owner->IsObserver()
 			&& !pTeam->Owner->IsControlledByHuman())
 		{
-			objectsList.push_back(pTeam->Owner);
+			objectsList->push_back(pTeam->Owner);
 		}
 	}
 
 	// Positive indexes are specific house indexes. -1 is translated as "pick 1 random" & -2 is the owner of the Team executing the script action
-	if (!objectsList.empty())
+	if (!objectsList->empty())
 	{
 		if (index < 0)
 		{
 			if (index == -1)
-				index = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
+				index = ScenarioClass::Instance->Random.RandomFromMax(objectsList->size() - 1);
 
 			if (index == -2)
 				index = pTeam->Owner->ArrayIndex;
@@ -920,7 +922,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 	if (selectedHouse || index == -3)
 	{
 		// For each playable house set the selected house as the one with highest hate value;
-		for (auto& pHouse : objectsList)
+		for (auto& pHouse : objectsList.container())
 		{
 			int highestHateLevel = 0;
 

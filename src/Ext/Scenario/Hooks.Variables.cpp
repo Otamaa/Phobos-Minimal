@@ -18,7 +18,7 @@ DEFINE_HOOK(0x685EB1, PhobosSaveVariables, 0x5)//Lose
 	return 0;
 }
 
-std::vector<std::pair<int, int>> CarryOverGlobalsBuffer {};
+static std::vector<std::pair<int, int>> CarryOverGlobalsBuffer {};
 
 DEFINE_HOOK(0x685354, ClearLotsOfShit_GlobalVariable, 0x9)
 {

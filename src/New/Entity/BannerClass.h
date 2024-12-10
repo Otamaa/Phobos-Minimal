@@ -15,7 +15,7 @@
 class BannerClass
 {
 public:
-	static DynamicVectorClass<BannerClass*> Array;
+	static std::vector<BannerClass*> Array;
 
 	BannerTypeClass* Type;
 	int Id;
@@ -30,7 +30,7 @@ public:
 		Variables(),
 		IsGlobalVariable(isGlobalVariable)
 	{
-		BannerClass::Array.AddItem(this);
+		BannerClass::Array.push_back(this);
 		this->Type->LoadImage();
 		for (int i = 0; i < 4; i++)
 			this->Variables[i] = variable[i];
@@ -43,7 +43,17 @@ public:
 		Variables(),
 		IsGlobalVariable()
 	{
-		BannerClass::Array.AddItem(this);
+		BannerClass::Array.push_back(this);
+	}
+
+	~BannerClass() {
+
+		auto it = std::remove_if(BannerClass::Array.begin() , BannerClass::Array.end(),[this](BannerClass* pBanner){
+			return pBanner == this;
+		});
+
+		if(it != BannerClass::Array.end());
+			BannerClass::Array.erase(it);
 	}
 
 	void Render();

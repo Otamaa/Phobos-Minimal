@@ -1084,6 +1084,9 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 	GET(FakeInfantryClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage, args, STACK_OFFS(0xD0, -0x4));
 
+	if(!pThis->_GetExtData())
+		Debug::FatalError("Wut [%s - %x] \n" , pThis->Type->ID , pThis);
+
 	enum
 	{
 		RetResult4 = 0x518623,
@@ -1193,11 +1196,10 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 								resultSequence = std::clamp(Die(Math::abs(whSequence.Get())), Die(1), Die(5));
 							}
 
-							InfantryExtContainer::Instance.Find(pThis)->IsUsingDeathSequence = true;
+							pThis->_GetExtData()->IsUsingDeathSequence = true;
 
 							//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
-							if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true))
-							{
+							if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true)) {
 								Succeeded = true;
 							}
 						}
@@ -1227,6 +1229,9 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 
 							if (!IsForcedCyborg)
 								return RetResult4;
+
+						} else {
+							pThis->UnInit();
 						}
 
 						return Crashable(pThis, pThis->Type, args.Attacker);
