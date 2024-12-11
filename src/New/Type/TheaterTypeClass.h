@@ -90,16 +90,16 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static constexpr TheaterTypeClass* FindFromTheaterType(TheaterType nType) {
-		return &(nType != TheaterType::None && (size_t)nType < Array.size() ?
-			Array[(int)nType] : Array[0]);
+		return (nType != TheaterType::None && (size_t)nType < Array.size() ?
+			 Array[(int)nType] : Array[0]).get();
 	}
 
 	static inline constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
-		return &Array[(int)nType];
+		return Array[(int)nType].get();
 	}
 
 	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {
-		Array.emplace_back(Title, &theater , IsArtic , AllowMapGen , islunar);
+		Array.emplace_back(std::move(std::make_unique<TheaterTypeClass>(Title, &theater , IsArtic , AllowMapGen , islunar)));
 	}
 
 	// no !

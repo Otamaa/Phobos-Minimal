@@ -65,7 +65,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 void ArmorTypeClass::EvaluateDefault()
 {
 	for (size_t i = 0; i < Array.size(); ++i) {
-		auto pArmor = &Array[i];
+		auto pArmor = Array[i].get();
 
 		if (IsDefault(pArmor->Name.data()) || pArmor->DefaultString.empty() || !strlen(pArmor->DefaultString.c_str()))
 			continue;
@@ -73,7 +73,7 @@ void ArmorTypeClass::EvaluateDefault()
 		if (pArmor->DefaultTo == -1)
 		{
 			const auto nDefault = FindIndexById(pArmor->DefaultString.c_str());
-			const auto pDefault = &Array[nDefault];
+			const auto pDefault = Array[nDefault].get();
 
 			if ((int)i < nDefault)
 			{
@@ -134,7 +134,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
-		const auto pArmor = &ArmorTypeClass::Array[i];
+		const auto pArmor = ArmorTypeClass::Array[i].get();
 
 		if (exINI.ReadString(section, pArmor->BaseTag.c_str()) > 0)
 		{
@@ -147,7 +147,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 				const auto nDefault = pArmor->DefaultTo;
 				if ((int)i < nDefault)
 				{
-					const auto pDefault = &ArmorTypeClass::Array[nDefault];
+					const auto pDefault = ArmorTypeClass::Array[nDefault].get();
 					if (exINI.ReadString(section, pDefault->BaseTag.c_str()) > 0)
 					{
 						pWHExt->Verses[nDefault].Parse_NoCheck(exINI.value());
@@ -171,7 +171,7 @@ void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
-		const auto pArmor = &ArmorTypeClass::Array[i];
+		const auto pArmor = ArmorTypeClass::Array[i].get();
 
 		if (pArmor->DefaultTo != -1)
 		{
@@ -180,9 +180,9 @@ void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 			if (i < nDefault)
 			{
 				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-					section, i, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault].Name.data());
+					section, i, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
 
-				pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault].DefaultVersesValue;
+				pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
 
 			}
 			else

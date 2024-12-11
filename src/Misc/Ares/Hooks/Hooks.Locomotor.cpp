@@ -314,7 +314,7 @@ DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 
 DEFINE_HOOK(0x4B9A4A, DropshipLoadout_PrintArmor, 7)
 {
-	R->EAX(ArmorTypeClass::Array[R->EDX()].Name.data());
+	R->EAX(ArmorTypeClass::Array[R->EDX()]->Name.data());
 	return 0x4B9A51;
 }
 

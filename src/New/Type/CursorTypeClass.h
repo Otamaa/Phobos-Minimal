@@ -89,9 +89,9 @@ public:
 		}
 	};
 
-	static inline void AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
-		Array.emplace_back(Title);
-		Array.back().CursorData = cursor;
+	static inline constexpr void AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
+		Array.emplace_back(std::move(std::make_unique<CursorTypeClass>(Title)));
+		Array.back()->CursorData = cursor;
 	}
 
 private:

@@ -2587,7 +2587,7 @@ bool Animatable<TValue>::KeyframeDataEntry::Save(PhobosStreamWriter& Stm) const
 }
 
 template <typename TValue>
-TValue Animatable<TValue>::Get(double const percentage) const noexcept
+constexpr TValue Animatable<TValue>::Get(double const percentage) const noexcept
 {
 	// This currently assumes the keyframes are ordered and there are no duplicates for same frame/percentage.
 	// Thing is still far from lightweight as searching for the correct items requires going through the vector.

@@ -577,7 +577,7 @@ namespace detail
 				auto res = PhobosCRT::trim(cur);
 
 				if (!res.empty())
-					nVecDest[i].push_back(res.c_str());
+					nVecDest[i].emplace_back(res);
 
 				if (bVerbose)
 					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());

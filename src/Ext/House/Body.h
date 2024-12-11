@@ -51,8 +51,13 @@ struct LauchData
 
 struct TunnelData
 {
-	std::vector<FootClass*> Vector {};
-	int MaxCap { 1 };
+	std::vector<FootClass*> Vector;
+	int MaxCap;
+
+	constexpr TunnelData() noexcept : Vector {}, MaxCap { 1 } { }
+	constexpr ~TunnelData() noexcept = default;
+	constexpr TunnelData(int MaxCap) noexcept : Vector {} , MaxCap { MaxCap } {}
+
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }

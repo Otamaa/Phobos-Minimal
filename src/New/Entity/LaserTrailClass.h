@@ -25,7 +25,7 @@ public:
 	int InitialDelay;
 	CDTimerClass InitialDelayTimer;
 
-	LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
+	constexpr LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :
 		Type { pTrailType }
 		, Visible { true }
@@ -39,7 +39,7 @@ public:
 		, InitialDelayTimer { }
 	{ }
 
-	LaserTrailClass() :
+	constexpr LaserTrailClass() :
 		Type {nullptr}
 		, Visible {false}
 		, FLH { }
@@ -54,9 +54,9 @@ public:
 
 	virtual ~LaserTrailClass() = default;
 
-	LaserTrailClass(const LaserTrailClass& other) = default;
-	LaserTrailClass& operator=(const LaserTrailClass& other) = default;
-	LaserTrailClass(LaserTrailClass&&) = default;
+	constexpr LaserTrailClass(const LaserTrailClass& other) = default;
+	constexpr LaserTrailClass& operator=(const LaserTrailClass& other) = default;
+	constexpr LaserTrailClass(LaserTrailClass&&) = default;
 
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);

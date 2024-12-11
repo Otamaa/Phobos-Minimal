@@ -841,7 +841,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 		if (shieldIndex >= 0 || this->Shield_RemoveAll)
 		{
 			oldRatio = pExt->Shield->GetHealthRatio();
-			pExt->CurrentShieldType = &ShieldTypeClass::Array[0];
+			pExt->CurrentShieldType = ShieldTypeClass::Array.begin()->get();
 			pExt->Shield.reset(nullptr);
 		}
 	}

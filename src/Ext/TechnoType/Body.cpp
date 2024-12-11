@@ -19,7 +19,7 @@
 
 void TechnoTypeExtData::Initialize()
 {
-	this->ShieldType = &ShieldTypeClass::Array[0];
+	this->ShieldType = ShieldTypeClass::Array.begin()->get();
 
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
@@ -124,8 +124,8 @@ bool TechnoTypeExtData::IsGenericPrerequisite() const
 		}
 
 		for(; begin != end; ++begin){
-			auto alt_begin = begin->Alternates.begin();
-			auto alt_end = begin->Alternates.end();
+			auto alt_begin = begin->get()->Alternates.begin();
+			auto alt_end = begin->get()->Alternates.end();
 
 			if(alt_begin == alt_end) {
 				continue;

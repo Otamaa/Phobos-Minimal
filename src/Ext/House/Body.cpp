@@ -565,7 +565,7 @@ TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 
 	while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size())
 	{
-		pHouseExt->Tunnels.emplace_back().MaxCap = TunnelTypeClass::Array[nTunnelIdx].Passengers;
+		pHouseExt->Tunnels.emplace_back(TunnelTypeClass::Array[nTunnelIdx]->Passengers);
 	}
 
 	return pHouseExt->Tunnels.data() + nTunnelIdx;
@@ -809,15 +809,15 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 		TechTreeTypeClass* ret = nullptr;
 
 		for (auto& pType : TechTreeTypeClass::Array) {
-			if (pType.SideIndex == this->AttachedToObject->SideIndex) {
-				ret = &pType;
+			if (pType->SideIndex == this->AttachedToObject->SideIndex) {
+				ret = pType.get();
 			}
 		}
 
 		if(!ret){
 			Debug::Log("TechTreeTypeClass::GetForSide: Could not find tech tree for side %d, returning tech tree 0: %s",
-				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array[0].Name.data());
-			ret = &TechTreeTypeClass::Array[0];
+				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
+			ret = TechTreeTypeClass::Array.begin()->get();
 		}
 
 		this->SideTechTree = ret;

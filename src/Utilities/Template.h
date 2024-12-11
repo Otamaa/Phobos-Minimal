@@ -58,18 +58,18 @@ public:
 	//using value_type = T;
 	//using base_type = std::remove_pointer_t<T>;
 
-	Valueable() = default;
-	explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
-	Valueable(Valueable const& other) = default;
-	Valueable(Valueable&& other) = default;
+	constexpr Valueable() = default;
+	constexpr explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
+	constexpr Valueable(Valueable const& other) = default;
+	constexpr Valueable(Valueable&& other) = default;
 
-	~Valueable() = default;
+	constexpr ~Valueable() = default;
 
-	Valueable& operator = (Valueable const& value) = default;
-	Valueable& operator = (Valueable&& value) = default;
+	constexpr Valueable& operator = (Valueable const& value) = default;
+	constexpr Valueable& operator = (Valueable&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	Valueable& operator = (Val value)
+	constexpr Valueable& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		return *this;
@@ -148,17 +148,17 @@ template<typename Lookuper>
 class ValueableIdx : public Valueable<int>
 {
 public:
-	ValueableIdx() noexcept : Valueable<int>(-1) { }
-	explicit ValueableIdx(int value) noexcept : Valueable<int>(value) { }
-	ValueableIdx(ValueableIdx const& other) = default;
-	ValueableIdx(ValueableIdx&& other) = default;
-	~ValueableIdx() = default;
+	constexpr ValueableIdx() noexcept : Valueable<int>(-1) { }
+	constexpr explicit ValueableIdx(int value) noexcept : Valueable<int>(value) { }
+	constexpr ValueableIdx(ValueableIdx const& other) = default;
+	constexpr ValueableIdx(ValueableIdx&& other) = default;
+	constexpr ~ValueableIdx() = default;
 
-	ValueableIdx& operator = (ValueableIdx const& value) = default;
-	ValueableIdx& operator = (ValueableIdx&& value) = default;
+	constexpr ValueableIdx& operator = (ValueableIdx const& value) = default;
+	constexpr ValueableIdx& operator = (ValueableIdx&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<int&, Val&&>::value>>
-	ValueableIdx& operator = (Val value)
+	constexpr ValueableIdx& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		return *this;
@@ -178,17 +178,17 @@ protected:
 	bool HasValue { false };
 public:
 
-	Nullable() = default;
-	explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
-	Nullable(Nullable const& other) = default;
-	Nullable(Nullable&& other) = default;
-	~Nullable() = default;
+	constexpr Nullable() = default;
+	constexpr explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
+	constexpr Nullable(Nullable const& other) = default;
+	constexpr Nullable(Nullable&& other) = default;
+	constexpr ~Nullable() = default;
 
-	Nullable& operator = (Nullable const& value) = default;
-	Nullable& operator = (Nullable&& value) = default;
+	constexpr Nullable& operator = (Nullable const& value) = default;
+	constexpr Nullable& operator = (Nullable&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	Nullable& operator = (Val value)
+	constexpr Nullable& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		this->HasValue = true;
@@ -259,14 +259,14 @@ public:
 			return Isset ? &this->Value : &ndefault.Value;
 	}
 
-	FORCEINLINE void Reset()
+	constexpr FORCEINLINE void Reset()
 	{
 		this->Value = T();
 		this->HasValue = false;
 	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	void Reset(Val ndefault) const
+	constexpr void Reset(Val ndefault) const
 	{
 		this->Value = std::move(ndefault); // set the value to args
 		this->HasValue = true;
@@ -299,17 +299,17 @@ template<typename Lookuper, EnumCheckMode mode = EnumCheckMode::default >
 class NullableIdx : public Nullable<int>
 {
 public:
-	NullableIdx() noexcept : Nullable<int>(-1) { this->HasValue = false; }
-	explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
-	NullableIdx(NullableIdx const& other) = default;
-	NullableIdx(NullableIdx&& other) = default;
-	~NullableIdx() = default;
+	constexpr NullableIdx() noexcept : Nullable<int>(-1) { this->HasValue = false; }
+	constexpr explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
+	constexpr NullableIdx(NullableIdx const& other) = default;
+	constexpr NullableIdx(NullableIdx&& other) = default;
+	constexpr ~NullableIdx() = default;
 
-	NullableIdx& operator = (NullableIdx const& value) = default;
-	NullableIdx& operator = (NullableIdx&& value) = default;
+	constexpr NullableIdx& operator = (NullableIdx const& value) = default;
+	constexpr NullableIdx& operator = (NullableIdx&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<int&, Val&&>::value>>
-	NullableIdx& operator = (Val value)
+	constexpr NullableIdx& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		this->HasValue = true;
@@ -339,19 +339,19 @@ public:
 	T Veteran {};
 	T Elite {};
 
-	Promotable() = default;
-	explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
-	explicit Promotable(T const& r, T const& v, T const& e)
+	constexpr Promotable() = default;
+	constexpr explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	constexpr explicit Promotable(T const& r, T const& v, T const& e)
 	noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e) { }
 
-	Promotable(const Promotable&) = default;
-	Promotable(Promotable&&) = default;
-	Promotable& operator=(const Promotable& other) = default;
+	constexpr Promotable(const Promotable&) = default;
+	constexpr Promotable(Promotable&&) = default;
+	constexpr Promotable& operator=(const Promotable& other) = default;
 
-	~Promotable() = default;
+	constexpr ~Promotable() = default;
 
-	FORCEINLINE void SetAll(const T& val) {
+	constexpr FORCEINLINE void SetAll(const T& val) {
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
@@ -711,35 +711,35 @@ public:
 	Nullable<T> ConditionYellow {};
 	Nullable<T> ConditionRed {};
 
-	Damageable() noexcept = default;
+	constexpr Damageable() noexcept = default;
 
-	explicit Damageable(T const& all)
+	constexpr explicit Damageable(T const& all)
 		noexcept(noexcept(T { all }))
 		: BaseValue { all }
 	{
 	}
 
-	explicit Damageable(T const& undamaged, T const& damaged)
+	constexpr explicit Damageable(T const& undamaged, T const& damaged)
 		noexcept(noexcept(T { undamaged }) && noexcept(T { damaged }))
 		: BaseValue { undamaged }, ConditionYellow { damaged }
 	{
 	}
 
-	explicit Damageable(T const& green, T const& yellow, T const& red)
+	constexpr explicit Damageable(T const& green, T const& yellow, T const& red)
 		noexcept(noexcept(T { green }) && noexcept(T { yellow }) && noexcept(T { red }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }
 	{
 	}
 
-	~Damageable() = default;
+	constexpr ~Damageable() = default;
 
-	Damageable(const Damageable&) = default;
-	Damageable(Damageable&&) = default;
-	Damageable& operator=(const Damageable& other) = default;
+	constexpr Damageable(const Damageable&) = default;
+	constexpr Damageable(Damageable&&) = default;
+	constexpr Damageable& operator=(const Damageable& other) = default;
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
 
-	const T& Get(TechnoClass* pTechno) const noexcept
+	constexpr const T& Get(TechnoClass* pTechno) const noexcept
 	{
 		return Get(pTechno->GetHealthPercentage());
 	}
@@ -822,52 +822,52 @@ public:
 	NullableVector<T> ConditionRed {};
 	NullableVector<T> MaxValue {};
 
-	DamageableVector() noexcept  = default;
+	constexpr DamageableVector() noexcept  = default;
 
-	explicit DamageableVector(ValueableVector<T> const& all)
+	constexpr explicit DamageableVector(ValueableVector<T> const& all)
 		noexcept(noexcept(ValueableVector<T> { all }))
 		: BaseValue { all }
 	{
 	}
 
-	explicit DamageableVector(ValueableVector<T> const& undamaged, NullableVector<T> const& damaged)
+	constexpr explicit DamageableVector(ValueableVector<T> const& undamaged, NullableVector<T> const& damaged)
 		noexcept(noexcept(ValueableVector<T> { undamaged }) && noexcept(NullableVector<T> { damaged }))
 		: BaseValue { undamaged }, ConditionYellow { damaged }
 	{
 	}
 
-	explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red)
+	constexpr explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red)
 		noexcept(noexcept(ValueableVector<T> { green }) && noexcept(NullableVector<T> { yellow }) && noexcept(NullableVector<T> { red }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }
 	{
 	}
 
-	explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red, NullableVector<T> const& max)
+	constexpr explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red, NullableVector<T> const& max)
 		noexcept(noexcept(ValueableVector<T> { green }) && noexcept(NullableVector<T> { yellow }) && noexcept(NullableVector<T> { red }) && noexcept(NullableVector<T> { max }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }, MaxValue { max }
 	{
 	}
 
-	~DamageableVector() = default;
+	constexpr ~DamageableVector() = default;
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
-	const ValueableVector<T>* GetEx(TechnoClass* pTechno) const noexcept
+	constexpr const ValueableVector<T>* GetEx(TechnoClass* pTechno) const noexcept
 	{
 		return &this->Get(pTechno);
 	}
 
-	const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
+	constexpr const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
 	{
 		return Get(pTechno->GetHealthPercentage());
 	}
 
-	const ValueableVector<T>* GetEx(double ratio) const noexcept
+	constexpr const ValueableVector<T>* GetEx(double ratio) const noexcept
 	{
 		return &this->Get(ratio);
 	}
 
-	const ValueableVector<T>& Get(double ratio) const noexcept
+	constexpr const ValueableVector<T>& Get(double ratio) const noexcept
 	{
 		if (this->ConditionRed.HasValue() && ratio <= RulesClass::Instance->ConditionRed)
 			return this->ConditionRed;
@@ -963,13 +963,13 @@ public:
 	AffectedHouse ApplyToHouses  { AffectedHouse::None };
 	WarheadTypeClass* SourceWarhead { };
 
-	TimedWarheadValue(const TimedWarheadValue&) = default;
-	TimedWarheadValue(TimedWarheadValue&&) = default;
-	TimedWarheadValue& operator=(const TimedWarheadValue& other) = default;
+	constexpr TimedWarheadValue(const TimedWarheadValue&) = default;
+	constexpr TimedWarheadValue(TimedWarheadValue&&) = default;
+	constexpr TimedWarheadValue& operator=(const TimedWarheadValue& other) = default;
 
-	TimedWarheadValue() = default;
+	constexpr TimedWarheadValue() = default;
 
-	TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
+	constexpr TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
 		Value { value }
 		, Timer {}
 		, ApplyToHouses { applyToHouses }
@@ -978,17 +978,17 @@ public:
 		Timer.Start(duration);
 	}
 
-	TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
+	constexpr TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
 	{
 		TimedWarheadValue(value, duration, applyToHouses, nullptr);
 	}
 
-	TimedWarheadValue(T const& value, int duration)
+	constexpr TimedWarheadValue(T const& value, int duration)
 	{
 		TimedWarheadValue(value, duration, AffectedHouse::All, nullptr);
 	}
 
-	~TimedWarheadValue() = default;
+	constexpr ~TimedWarheadValue() = default;
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	inline bool Save(PhobosStreamWriter& Stm) const;
@@ -1003,20 +1003,20 @@ public:
 	Nullable<T> Veteran {};
 	Nullable<T> Elite {};
 
-	NullablePromotable() = default;
-	explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
-	explicit NullablePromotable(T const& r, T const& v, T const& e)
+	constexpr NullablePromotable() = default;
+	constexpr explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	constexpr explicit NullablePromotable(T const& r, T const& v, T const& e)
 		noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e)
 	{
 	}
 
-	NullablePromotable(const NullablePromotable&) = default;
-	NullablePromotable(NullablePromotable&&) = default;
-	NullablePromotable& operator=(const NullablePromotable& other) = default;
-	~NullablePromotable() = default;
+	constexpr NullablePromotable(const NullablePromotable&) = default;
+	constexpr NullablePromotable(NullablePromotable&&) = default;
+	constexpr NullablePromotable& operator=(const NullablePromotable& other) = default;
+	constexpr ~NullablePromotable() = default;
 
-	void SetAll(const T& val)
+	constexpr void SetAll(const T& val)
 	{
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
@@ -1120,7 +1120,7 @@ public:
 
 	// TODO ctors and stuff
 
-	inline TValue Get(double const percentage) const noexcept;
+	constexpr inline TValue Get(double const percentage) const noexcept;
 
 	inline void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength = absolute_length_t(0));
 

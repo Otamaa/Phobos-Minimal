@@ -9,7 +9,7 @@ const char* Enumerable<RocketTypeClass>::GetMainSection()
 void RocketTypeClass::ReadListFromINI(CCINIClass* pINI, bool bDebug) {
 	size_t i = 0;
 	for (auto& pItem : Array) {
-		pItem.LoadFromINI_B(pINI, i++);
+		pItem->LoadFromINI_B(pINI, i++);
 	}
 }
 

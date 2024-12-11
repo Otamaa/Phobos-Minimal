@@ -45,4 +45,10 @@ public:
 	{
 		return this->container().operator[](i);
 	}
+
+	template <typename Func>
+	constexpr void FORCEINLINE remove_all_duplicates(Func&& act) {
+		std::sort(this->begin(), this->end(), std::forward<Func>(act));
+		this->erase(std::unique(this->begin(), this->end()), this->end());
+	}
 };

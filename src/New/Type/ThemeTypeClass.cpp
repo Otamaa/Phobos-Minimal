@@ -108,7 +108,7 @@ DEFINE_HOOK(0x720A69, ThemeClass_AI_Play, 0x8)
 		((pThis->LastTheme == idx && pThis->CurrentTheme == idx) ||
 			pThis->LastTheme != idx))
 	{
-		if (auto const pThemeExt = &ThemeTypeClass::Array[pThis->LastTheme])
+		if (auto const pThemeExt = ThemeTypeClass::Array[pThis->LastTheme].get())
 		{
 			if (!pThemeExt->Repeat &&
 				strcmp(pThemeExt->NextText.data(), ""))

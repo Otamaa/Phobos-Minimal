@@ -27,7 +27,7 @@ void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int a
 	}
 	else
 	{
-		pRadExt->Type = &RadTypeClass::Array[0];
+		pRadExt->Type = RadTypeClass::Array.begin()->get();
 	}
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())

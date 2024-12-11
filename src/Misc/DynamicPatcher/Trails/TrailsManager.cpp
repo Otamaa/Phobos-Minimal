@@ -102,7 +102,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 
 	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = &TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
@@ -133,7 +133,7 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 
 	for (const auto & pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = &TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
@@ -164,7 +164,7 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted)
 
 	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = &TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
@@ -194,7 +194,7 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted)
 
 	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = &TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 		if (pType->Mode != TrailMode::NONE)
 		{
 			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);

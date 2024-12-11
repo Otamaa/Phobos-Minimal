@@ -1014,7 +1014,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		//char tempFire_OffsBuffer[0x25];
 		for (size_t i = 0;; ++i)
 		{
-			Point2D nFire_offs;
+			Point2D nFire_offs {};
 			if (!detail::read(nFire_offs, exArtINI, pArtSection, (std::string(GameStrings::DamageFireOffset()) + std::to_string(i)).c_str()))
 				break;
 

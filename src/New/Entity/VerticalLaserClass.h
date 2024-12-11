@@ -24,7 +24,14 @@ public:
 
 	VerticalLaserClass();
 	VerticalLaserClass(WeaponTypeClass* Weapon ,CoordStruct From , int Height);
-	virtual ~VerticalLaserClass() = default;
+	virtual ~VerticalLaserClass() {
+		auto it = std::find_if(Array.begin(), Array.end(), [this](auto pItem){
+			return this == pItem;
+		});
+
+		if(it != Array .end())
+			Array.erase(it);
+	}
 
 	void AI();
 	CoordStruct GetCoords(int start , int i , int increase);

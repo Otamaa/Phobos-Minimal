@@ -76,7 +76,7 @@ DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 
 				for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 				{
-					pExt->LaserTrails.emplace_back(&LaserTrailTypeClass::Array[idxTrail], nColor, nFLH);
+					pExt->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH);
 				}
 			}
 		}
