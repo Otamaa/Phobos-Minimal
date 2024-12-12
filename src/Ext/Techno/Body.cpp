@@ -5405,6 +5405,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->DisableRadar = disableRadar;
 	_AEProp->DisableSpySat = disableSpySat;
 
+	if(disableRadar || disableSpySat)
+		pTechno->Owner->RecheckRadar = true;
+
 	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
 	}
