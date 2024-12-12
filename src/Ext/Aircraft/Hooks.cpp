@@ -451,8 +451,12 @@ DEFINE_HOOK(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	if (!RulesExtData::Instance()->ExpandAircraftMission)
 		return 0;
 
-	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 	const auto pType = pThis->Type;
+
+	if (!pType->AirportBound || pThis->Airstrike || pThis->Spawned)
+		return 0;
+
+	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 
 	if (distance > MaxImpl((pType->SlowdownDistance >> 1), (2048 / pType->ROT)))
 		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
@@ -469,10 +473,13 @@ DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6
 
 	if (!pThis->Target)
 	{
-		if (!RulesExtData::Instance()->ExpandAircraftMission || !pThis->vt_entry_4C4() || !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
+		if (!RulesExtData::Instance()->ExpandAircraftMission
+			|| !pThis->vt_entry_4C4()
+			|| !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
 			return Continue;
 
 		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->target5C8_CandidateTarget), false); // pThis->MegaDestination
+		pThis->QueueMission(Mission::Move, true);
 		pThis->QueueMission(Mission::Move, true);
 		pThis->newtargetassigned_5D1 = false; // pThis->HaveAttackMoveTarget
 	}
@@ -493,7 +500,7 @@ DEFINE_HOOK(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 
 	if (RulesExtData::Instance()->ExpandAircraftMission) {
-		if (!pThis->Spawned &&
+		if (!pThis->Spawned && !pThis->Airstrike &&
 			!pThis->Ammo && !SessionClass::IsCampaign()) {
 
 			if (TeamClass* const pTeam = pThis->Team)
