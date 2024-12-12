@@ -530,7 +530,7 @@ void Phobos::DrawVersionWarning()
 		if (!pSurface || VTable::Get(pSurface) != DSurface::vtable)
 			return;
 
-		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
+		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, Point2D::Empty, 0, 2, 0);
 
 		RectangleStruct rect {
 			pSurface->Get_Width() - wanted.Width - 10,
