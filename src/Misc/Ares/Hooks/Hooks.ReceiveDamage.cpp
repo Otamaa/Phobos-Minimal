@@ -1067,15 +1067,12 @@ DEFINE_HOOK(0x7027E6, TechnoClass_ReceiveDamage_Nonprovocative, 0x8)
 DWORD NOINLINE Crashable(FootClass* pThis ,TechnoTypeClass* pType , ObjectClass* pKiller) {
 
 	if (pType->Crashable) {
-		if (!pThis->Crash(pKiller)) {
-			pThis->UnInit();
+		if(pThis->Crash(pKiller)) {
 			return 0x518623;
 		}
-
-	} else{
-		pThis->UnInit();
 	}
 
+	pThis->UnInit();
 	return 0x518623;
 }
 
@@ -1232,6 +1229,7 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 
 						} else {
 							pThis->UnInit();
+							return 0x518623;
 						}
 
 						return Crashable(pThis, pThis->Type, args.Attacker);
