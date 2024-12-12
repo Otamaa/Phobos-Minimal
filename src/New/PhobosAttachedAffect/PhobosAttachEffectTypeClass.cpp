@@ -112,6 +112,9 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn_BelowPercent.Read(exINI, pSection, "DiscardOn.BelowPercent");
 	this->AffectAbovePercent.Read(exINI, pSection, "AffectAbovePercent");
 	this->AffectBelowPercent.Read(exINI, pSection, "AffectBelowPercent");
+
+	this->DisableRadar.Read(exINI, pSection, "DisableRadar");
+	this->DisableSpySat.Read(exINI, pSection, "DisableSpySat");
 }
 
 template <typename T>
@@ -179,6 +182,9 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_BelowPercent)
 		.Process(this->AffectAbovePercent)
 		.Process(this->AffectBelowPercent)
+
+		.Process(this->DisableRadar)
+		.Process(this->DisableSpySat)
 		;
 }
 

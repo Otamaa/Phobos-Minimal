@@ -890,9 +890,12 @@ DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 
 DEFINE_HOOK(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
 {
-	GET(BuildingClass*, pBld, EAX);
+	GET(FakeBuildingClass*, pBld, EAX);
 
-	return (!pBld->DiscoveredByCurrentPlayer && BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) ?
+	if(TechnoExtContainer::Instance.Find(pBld)->AE.DisableRadar)
+		return 0x508F08; // continue
+
+	return (!pBld->DiscoveredByCurrentPlayer && pBld->_GetExtData()->LimboID != -1) ?
 		0x508EEF : 0x0;
 }
 
@@ -2464,6 +2467,9 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
 			const bool IsLimboDelivered = pExt->LimboID != -1;
 
+			if (TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
+				continue;
+
 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
 				continue;
 
@@ -2522,13 +2528,9 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 		}
 	}
 
-	int Purifiers = 0;
-
 	//count them
 	for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
-		Purifiers += purifier.second;
-
-	pThis->NumOrePurifiers = Purifiers;
+		pThis->NumOrePurifiers += purifier.second;
 
 	return Spysat;
 }

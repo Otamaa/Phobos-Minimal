@@ -43,6 +43,9 @@ public:
 
 	Valueable<bool> ROFMultiplier_ApplyOnCurrentTimer { false };
 
+	Valueable<bool> DisableRadar {};
+	Valueable<bool> DisableSpySat {};
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
 	bool Save(PhobosStreamWriter& Stm) const;
@@ -87,6 +90,8 @@ private:
 			.Process(this->WeaponRange_AllowWeapons)
 			.Process(this->WeaponRange_DisallowWeapons)
 			.Process(this->ROFMultiplier_ApplyOnCurrentTimer)
+			.Process(this->DisableRadar)
+			.Process(this->DisableSpySat)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}

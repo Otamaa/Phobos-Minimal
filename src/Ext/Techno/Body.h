@@ -500,6 +500,9 @@ struct AEProperties
 
 	bool Untrackable { false };
 
+	bool DisableRadar { false };
+	bool DisableSpySat { false };
+
 public :
 
 	static void Recalculate(TechnoClass* pTechno);
@@ -542,6 +545,8 @@ protected:
 			.Process(this->HasOnFireDiscardables)
 			.Process(this->ReflectDamage)
 			.Process(this->Untrackable)
+			.Process(this->DisableRadar)
+			.Process(this->DisableSpySat)
 			.Process(this->ArmorMultData)
 			.Success() && Stm.RegisterChange(this)
 			;

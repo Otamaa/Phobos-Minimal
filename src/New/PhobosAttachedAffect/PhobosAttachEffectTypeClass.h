@@ -75,6 +75,9 @@ public:
 	Nullable<double> AffectAbovePercent;
 	Nullable<double> AffectBelowPercent;
 
+	Valueable<bool> DisableRadar;
+	Valueable<bool> DisableSpySat;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Cumulative { false }
@@ -137,6 +140,9 @@ public:
 		, DiscardOn_BelowPercent {}
 		, AffectAbovePercent {}
 		, AffectBelowPercent {}
+
+		, DisableRadar {}
+		, DisableSpySat {}
 	{};
 
 	constexpr FORCEINLINE bool HasTint() {

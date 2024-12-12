@@ -5251,6 +5251,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	bool disableWeapons = false;
 	bool disableSelfHeal = false;
 	bool untrackable = false;
+	bool disableRadar = false;
+	bool disableSpySat = false;
 
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
@@ -5286,6 +5288,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		disableWeapons |= aeData.Type->DisableWeapons;
 		disableSelfHeal |= aeData.Type->DisableSelfHeal;
 		untrackable |= aeData.Type->Untrackable;
+		disableRadar |= aeData.Type->DisableRadar;
+		disableSpySat |= aeData.Type->DisableSpySat;
 
 		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)) {
 
@@ -5316,6 +5320,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		untrackable |= type->Untrackable;
 		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
 		hasTint |= type->HasTint();
+
+		disableRadar |= type->DisableRadar;
+		disableSpySat |= type->DisableSpySat;
 
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
@@ -5395,6 +5402,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->HasTint = hasTint;
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->DisableRadar = disableRadar;
+	_AEProp->DisableSpySat = disableSpySat;
 
 	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;

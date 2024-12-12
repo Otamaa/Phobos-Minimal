@@ -47,4 +47,7 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->WeaponRange_DisallowWeapons.Read(exINI, pSection, "AttachEffect.WeaponRange.DisallowWeapons");
 
 	this->ROFMultiplier_ApplyOnCurrentTimer.Read(exINI, pSection, "AttachEffect.ROFMultiplier.ApplyOnCurrentTimer");
+
+	this->DisableRadar.Read(exINI, pSection, "AttachEffect.DisableRadar");
+	this->DisableSpySat.Read(exINI, pSection, "AttachEffect.DisableSpySat");
 }
