@@ -5402,11 +5402,12 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->HasTint = hasTint;
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
+
+	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
+		pTechno->Owner->RecheckRadar = true;
+
 	_AEProp->DisableRadar = disableRadar;
 	_AEProp->DisableSpySat = disableSpySat;
-
-	if(disableRadar || disableSpySat)
-		pTechno->Owner->RecheckRadar = true;
 
 	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
