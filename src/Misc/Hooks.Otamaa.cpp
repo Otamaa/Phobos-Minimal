@@ -9028,6 +9028,25 @@ DEFINE_HOOK(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 	return 0x0;
 }
 
+DEFINE_HOOK_AGAIN(0x42C8E2, AStarClass_FindHierarcial_Exit, 0x5)
+DEFINE_HOOK(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
+{
+	PhobosGlobal::Instance()->PathfindTechno.Clear();
+	return 0x0;
+}
+
+
+DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
+{
+	GET_STACK(TechnoClass*, pTech, 0x7C);
+	GET_STACK(CellStruct*, from, 0x70);
+	GET_STACK(CellStruct*, to, 0x74);
+
+	if(pTech)
+		PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
+
+	return 0x0;
+}
 
 DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7)
 {
