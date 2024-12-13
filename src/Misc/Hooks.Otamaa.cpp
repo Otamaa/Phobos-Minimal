@@ -10880,19 +10880,13 @@ DEFINE_HOOK(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
 	return 0x0;
 }
 
-//TODO : S/L along with rules
-struct LandTypeExt {
-	Valueable<double> Bounce_Elasticity;
-};
-static inline std::array<LandTypeExt, 12u> LandTypeConfigExts;
-
 int counter = 0;
 DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 {
 	GET(CCINIClass*, pINI, EDI);
 	GET(const char**, pSection_iter, ESI);
 	INI_EX ex_INI(pINI);
-	LandTypeConfigExts[counter].Bounce_Elasticity.Read(ex_INI,*pSection_iter,"Bounce.Elasticity");
+	RulesExtData::Instance()->LandTypeConfigExts[counter].Bounce_Elasticity.Read(ex_INI,*pSection_iter,"Bounce.Elasticity");
 	Debug::Log("Reading LandTypeData of [%s - %d]\n" , *pSection_iter, counter);
 	++counter;
 	return 0;

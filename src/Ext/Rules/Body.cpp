@@ -1420,6 +1420,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionIntervalMin)
 		.Process(this->UnitIdleActionIntervalMax)
 		.Process(this->ExpandAircraftMission)
+
+		.Process(this->LandTypeConfigExts)
 		;
 
 	MyPutData.Serialize(Stm);

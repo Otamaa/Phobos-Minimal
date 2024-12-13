@@ -404,6 +404,24 @@ public:
 
 	Valueable<bool> ExpandAircraftMission {};
 
+	struct LandTypeExt {
+		Valueable<double> Bounce_Elasticity;
+
+		void LoadFromStream(PhobosStreamReader& Stm)
+		{
+			Stm.
+				Process(Bounce_Elasticity);
+		}
+
+		void SaveToStream(PhobosStreamWriter& Stm)
+		{
+			Stm.
+				Process(Bounce_Elasticity);
+		}
+	};
+
+	std::array<LandTypeExt, 12u> LandTypeConfigExts {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
@@ -452,6 +470,7 @@ public:
 
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
+
 };
 
 class FakeRulesClass : public RulesClass
