@@ -111,6 +111,9 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		Debug::Log("PathfindingCrash\n");
 		break;
 	}
+	case 0x584DF7:
+			Debug::Log("SubzoneTrackingCrash\n");
+	break;
 	//case 0x755C7F:
 	//{
 	//	Debug::Log("BounceAnimError \n");
