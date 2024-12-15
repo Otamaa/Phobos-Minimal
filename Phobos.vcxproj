@@ -484,6 +484,7 @@
     <ClInclude Include="src\Commands\FireTacticalSW.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
+    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />

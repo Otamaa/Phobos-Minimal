@@ -9054,6 +9054,28 @@ DEFINE_HOOK(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 	return 0x0;
 }
 
+#include <ExtraHeaders/AStarClass.h>
+
+class FakeAStarPathFinderClass : public AStarPathFinderClass
+{
+public:
+
+	PathType* __AStarClass__Find_Path(CellStruct* a2,
+		CellStruct* dest,
+		TechnoClass* a4,
+		int* path,
+		int max_count,
+		MovementZone a7,
+		int cellPath)
+	{
+		PhobosGlobal::Instance()->PathfindTechno = { a4  ,*a2 , *dest };
+
+		return this->AStarClass__Find_Path(a2 , dest , a4 , path , max_count , a7 , cellPath);
+	}
+};
+
+DEFINE_JUMP(CALL, 0x4CBC31, MiscTools::to_DWORD(&FakeAStarPathFinderClass::__AStarClass__Find_Path))
+
 DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
 	GET(TechnoClass*, pTech, ESI);

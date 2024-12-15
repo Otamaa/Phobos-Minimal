@@ -79,8 +79,9 @@ public:
 
 	AStarPathFinderClass() JMP_THIS(0x42A6D0);
 	~AStarPathFinderClass() JMP_THIS(0x42A900);
+
+	static CellStruct* __fastcall Find_Some_Cell(CellStruct* retstr, CellStruct* cell, int count, int path) JMP_STD(0x429780);
 	/*
-	Find_Some_Cell        00429780
 	AStarClass__Get_Movement_Cost        00429830
 	AStarClass__AStar_Find_Path_Regular        00429A90
 	AStarClass__Create_Node        0042A460
@@ -102,10 +103,16 @@ public:
 	AStarClass__Adjacent_Cell_Regular        0042BCA0
 	AStarClass__Plot_Straight_Line_Regular        0042BE20
 	*/
-	void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0)
-	/*AStarClass__AStar_Find_Path_Hierarchical        0042C290
-	AStarClass__Find_Path        0042C900
-	AStarClass__Init_Cell_Index_Sets        0042CCD0
+	void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0);
+	//AStarClass__AStar_Find_Path_Hierarchical        0042C290
+	PathType* AStarClass__Find_Path(CellStruct* a2,
+		CellStruct* dest,
+		TechnoClass* a4,
+		int* path,
+		int max_count,
+		MovementZone a7,
+		int cellPath)       JMP_THIS(0x42C900);
+	/*AStarClass__Init_Cell_Index_Sets        0042CCD0
 	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
 	AStarClass__Register_Cell_Index_Set        0042CF10
 	AStarClass__Register_Cell_Index_Sets        0042CF80
