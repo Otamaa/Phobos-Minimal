@@ -9056,9 +9056,9 @@ DEFINE_HOOK(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 
 DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
-	GET_STACK(TechnoClass*, pTech, 0x7C);
-	GET_STACK(CellStruct*, from, 0x70);
-	GET_STACK(CellStruct*, to, 0x74);
+	GET(TechnoClass*, pTech, ESI);
+	GET_BASE(CellStruct*, from, 0x8);
+	GET_BASE(CellStruct*, to, 0xC);
 
 	if(pTech)
 		PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };

@@ -325,7 +325,20 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 			{
 				auto& pp = PhobosGlobal::Instance()->PathfindTechno;
 				if (pp.IsValid()) {
-					Debug::Log("LastPathfind [%s] - [%s] from (%d - %d) to (%d - %d)\n", pp.Finder->get_ID() , pp.Finder->GetThisClassName(),
+					const char* pTechnoID = GameStrings::NoneStr();
+					const char* what = GameStrings::NoneStr();
+					if(pp.Finder) {
+						const auto vtable = VTable::Get(pp.Finder);
+						if(vtable == UnitClass::vtable) {
+							pTechnoID = pp.Finder->get_ID();
+							what = "UnitClass";
+						} else if (vtable == InfantryClass::vtable) {
+							what = "InfantryClass";
+							pTechnoID = pp.Finder->get_ID();
+						}
+					}
+
+					Debug::Log("LastPathfind (%x)[%s] - [%s] from (%d - %d) to (%d - %d)\n", pp.Finder , what , pTechnoID,
 						pp.From.X , pp.From.Y ,
 						pp.To.X , pp.To.Y
 					);
