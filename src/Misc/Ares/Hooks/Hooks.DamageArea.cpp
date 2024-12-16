@@ -161,6 +161,11 @@ DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 0x9)
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
 #include <AircraftTrackerClass.h>
+#include <VeinholeMonsterClass.h>
+#include <ParticleSystemClass.h>
+#include <OverlayTypeClass.h>
+#include <VoxelAnimClass.h>
+#include <TacticalClass.h>
 
 /* BridgeTargeting part is shit
 void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadTypeClass* warhead, bool affectTiberium, HouseClass* house) {
@@ -212,13 +217,18 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 	}
 
 	//obtain Object within the spread distance
-	for (CellSpreadEnumerator it(spread_int); it; ++it) {
+	{
+
+		for (CellSpreadEnumerator it(spread_int); it; ++it) {
 		auto const cellhere = cell + *it;
 
 		auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
+		auto cur_cellCoord = pCurCell->GetCoords();
+
 		if (pCurCell->OverlayTypeIndex > -1) {
 			auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
 			if (pOvelay->ChainReaction && (!pOvelay->Tiberium || warhead->Tiberium) && affectTiberium) {
+				pCurCell->ChainReaction();
 				pCurCell->ReduceTiberium(damage / 10);
 			}
 
@@ -230,10 +240,16 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 					pCurCell->ReduceWall(damage);
 				}
 			}
-		}
-		else
-		{
-			TechnoClass::ClearWhoTargetingThis(pCell);
+
+			if (pCurCell->OverlayTypeIndex == -1) {
+				TechnoClass::ClearWhoTargetingThis(pCurCell);
+			}
+
+			if (pOvelay->IsVeinholeMonster) {
+				if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cell)) {
+					DamageGroups.emplace_back(veinhole, (cur_cellCoord - coord).Length());
+				}
+			}
 		}
 
 		auto pNext = OnBridge ? pCurCell->AltObject : pCurCell->FirstObject;
@@ -251,14 +267,11 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 			const auto what = pCur->WhatAmI();
 
 			if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0)) {
-				auto Harvs = Iterator(RulesClass::Instance->HarvesterUnit);
-
-				if (Harvs.contains((UnitTypeClass*)source->GetTechnoType()))
+				if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)source)->Type) != -1)
 					continue;
 			}
 
 			auto& cur_Group = DamageGroups.emplace_back(what, 0);
-			auto cur_cellCoord = pCurCell->GetCoords();
 
 			if (what == BuildingClass::AbsID)
 			{
@@ -290,7 +303,10 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 		}
 	}
 
-	for (auto& pTarget : DamageGroups) {
+	}
+
+	{//actually dealing damage
+		for (auto& pTarget : DamageGroups) {
 		auto curDistance = pTarget.Distance;
 		auto pObj = pTarget.Target;
 
@@ -310,46 +326,45 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 			}
 		}
 	}
+	}
 
 	if (NotAllowed) {
 		DamageGroups.clear();
+		return;
 	}
 
 	//rocker
-	double rockerSpread = damage * 0.01;
+	if(warhead->Rocker){
 
-	if(warhead->Rocker && rockerSpread > 0.0){
+		const double rockerSpread = MinImpl(damage * 0.01, 4.0);
 
-		if (rockerSpread > 4.0) {
-			rockerSpread = 4.0;
-		}
+		if(rockerSpread > 0.3) {
+			const int cell_radius = 3;
+			for (int x = -cell_radius; x <= cell_radius; x++) {
+				for (int y = -cell_radius; y <= cell_radius; y++) {
+					int xpos = cell.X + x;
+					int ypos = cell.Y + y;
 
-		for (CellSpreadEnumerator it((size_t)rockerSpread); it; ++it) {
+					auto object = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos))->Cell_Occupier(OnBridge);
 
-			auto pRockCell = MapClass::Instance->GetCellAt(*it);
-			auto pNext = OnBridge ? pRockCell->AltObject : pRockCell->FirstObject;
-
-			if (pNext)
-				break;
-
-			for (NextObject next(pNext); next; next++) {
-				if (auto pFoot = generic_cast<FootClass*>(*next)) {
-					Point3D value;
-
-					if (source) {
-						auto foot_coord = pFoot->GetCoords();
-						auto source_coord = source->GetCoords();
-						auto difference = (source_coord - foot_coord);
-						const auto distance = difference.Length();
-						value = distance == 0.0 ?
-							Point3D { difference.X, difference.Y, difference.Z } :
-							Point3D { int((double)difference.X / distance) , int((double)difference.Y / distance), int((double)difference.Z / distance) };
+					while (object) {
+						if (TechnoClass* techno = generic_cast<TechnoClass*>(object))
+						{
+							if (xpos == cell.X && ypos == cell.Y && source)
+							{
+								Coordinate rockercoord = (source->GetCoords() - techno->GetCoords());
+								Vector3D<float> rockervec = Vector3D<float>(rockercoord.X, rockercoord.Y, rockercoord.Z).Normalized() * 10.0f;
+								Point3D rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
+								techno->RockByValue(&rock_, rockerSpread);
+							}
+							else if(warhead->CellSpread > 0.0f)
+							{
+								Point3D rock_(coord.X, coord.Y, coord.Z);
+								techno->RockByValue(&rock_, rockerSpread);
+							}
+						}
+						object = object->NextObject;
 					}
-					else if (spread > 0.0) {
-						value = Point3D{ coord.X , coord.Y , coord.Z };
-					}
-
-					pFoot->RockByValue(&value, rockerSpread);
 				}
 			}
 		}
@@ -358,24 +373,117 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 	const bool isIoncannonWH = warhead == RulesClass::Instance->IonCannonWarhead;
 
 	if (((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0) && warhead->Wall) {
-		auto bit = pCell->UINTFlags;
-		auto cur_set = pCell->IsoTileTypeIndex - CellClass::BridgeSetIdx + 1;
-		CellStruct Brige_OwnerCell;
-		CellClass* pBrige_OwnerCell;
-		int OverlayIdx;
+		const CellClass* bridge_owner_cell = pCell->GetBridgeOwner();
 
-		int middle =
-			(bit & 0x100) != 0
-			&& ((bit & 0x80u) == 0 ? (Brige_OwnerCell = pCell->BridgeOwnerCell->MapCoords) : (Brige_OwnerCell = pCell->MapCoords),
-				(pBrige_OwnerCell = MapClass::Instance->GetCellAt(Brige_OwnerCell), (pBrige_OwnerCell) != 0)
-			 && ((OverlayIdx = pBrige_OwnerCell->OverlayTypeIndex, OverlayIdx == 24) || OverlayIdx == 25))
-				CellClass::BridgeMiddle1Idx:
-			;
+		int bridgeStartIdx = 0;
+													   //BridgeSet
+		int curbridgeTile = pCell->IsoTileTypeIndex - (*reinterpret_cast<int*>(0xAA0E28)) + 1;
+
+		if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge())
+		{
+								//BridgeMiddle1
+			bridgeStartIdx = *reinterpret_cast<int*>(0xABAD30);
+		}
+		else
+		{
+
+		}
 
 
+		if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
+			|| pCell->Is_Tile_Bridge_Middle()) {
+			if (Is_Bridge_Level(*cellptr, coord)) {
+				if (isIoncannonWH || ScenarioClass::Instance->Random.RandomRanged(1, Rule->BridgeStrength) < strength)
+				{
+					for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+						if (Map.Destroy_Bridge_At(cell)) {
+							TechnoClass::Update_Mission_Targets(cellptr);
+							break;
+						}
+					}
+
+					Point2D point;
+					TacticalMap->Coord_To_Pixel(coord, point);
+					TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+				}
+			}
+
+			if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
+			   || cellptr->Is_Tile_Train_Bridge_Middle()) {
+				if (Is_Bridge_Level(*cellptr, coord)) {
+					if (isIoncannonWH || ScenarioClass::Instance->Random.RandomRanged(1, Rule->BridgeStrength) < strength) {
+						for (int i = 0; i < (isIoncannonWH ? 4 : 1); i++) {
+							if (Map.Destroy_Bridge_At(cell)) {
+								TechnoClass::ClearWhoTargetingThis(pCell);
+								break;
+							}
+						}
+
+						Point2D point = TacticalClass::Instance->CoordsToClient(coord);
+						RectangleStruct dirty { point.X - 96, point.Y - 96, 192, 192 };
+						TacticalClass::Instance->RegisterDirtyArea(dirty, false);
+					}
+				}
+			}
+
+			if (cellptr->Is_Overlay_Low_Bridge()) {
+				if (isIoncannonWH || ScenarioClass::Instance->Random.RandomRanged(1, Rule->BridgeStrength) < strength) {
+					const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
+					Map.Destroy_Low_Bridge_At(cell);
+					if (destroyed)
+					{
+						TechnoClass::ClearWhoTargetingThis(pCell);
+					}
+				}
+			}
+		}
 	}
-}*/
 
+	if (pCell->OverlayTypeIndex > -1 && OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Explodes)
+	{
+		pCell->MarkForRedraw();
+		pCell->OverlayTypeIndex = -1;
+		pCell->RecalcAttributes(-1);
+
+		MapClass::Instance->ResetZones(pCell->MapCoords);
+		MapClass::Instance->RecalculateSubZones(pCell->MapCoords);
+		TechnoClass::ClearWhoTargetingThis(pCell);
+
+		if (auto pBarrelExplode = RulesClass::Instance->BarrelExplode)
+			GameCreate<AnimClass>(pBarrelExplode, Coord);
+
+		//recursive call ..
+		MapClass::DamageArea(&Coord, RulesClass::Instance->AmmoCrateDamage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+
+		for (auto brrelDebris : RulesClass::Instance->BarrelDebris) {
+			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 15) {
+				GameCreate<VoxelAnimClass>(brrelDebris, Coord);
+				break;
+			}
+		}
+
+		if (auto barrelParticle = RulesClass::Instance->BarrelParticle) {
+			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 25) {
+				GameCreate<ParticleSystemClass>(barrelParticle, Coord)
+					->SpawnHeldParticle(&Coord, &Coord);
+			}
+		}
+	}
+
+	if (pCell->Tile_Is_DestroyableCliff()) {
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->CollapseChance) {
+			MapClass::Instance->DestroyCliff(pCell);
+		}
+	}
+
+	if (auto pParticle = warhead->Particle) {
+		(pParticle->BehavesLike == ParticleTypeBehavesLike::Smoke ?
+		ParticleSystemClass::Instance() :
+		GameCreate<ParticleSystemClass>(pParticle, Coord))
+		->SpawnHeldParticle(&Coord, &Coord);
+	}
+}
+*/
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
 static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
 

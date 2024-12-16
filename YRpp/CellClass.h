@@ -592,6 +592,16 @@ public:
 		JMP_THIS(0x486E30);
 	}
 
+	constexpr CellClass* GetBridgeOwner() const {
+		if (this->ContainsBridge()) {
+			return this->ContainsBridgeBody() ? const_cast<CellClass*>(this) : this->BridgeOwnerCell;
+		}
+
+		return nullptr;
+	}
+
+	constexpr bool Is_Overlay_Bridge() const { return this->OverlayTypeIndex == 24 || this->OverlayTypeIndex == 25; }
+
 protected:
 	//Constructor
 	CellClass() noexcept
