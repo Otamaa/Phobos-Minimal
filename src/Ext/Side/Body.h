@@ -100,10 +100,10 @@ public:
 
 	Valueable<SHPStruct*> MouseShape { nullptr };
 
-	PhobosPCXFile ExclusiveSWSidebar_TopPCX { };
-	PhobosPCXFile ExclusiveSWSidebar_CenterPCX { };
-	PhobosPCXFile ExclusiveSWSidebar_BottomPCX { };
-	Valueable<SHPStruct*> ExclusiveSWSidebar_ToggleShape { };
+	Valueable<SHPStruct*> SuperWeaponSidebar_CenterShape { };
+	Valueable<SHPStruct*> SuperWeaponSidebar_TopShape { };
+	Valueable<SHPStruct*> SuperWeaponSidebar_BottomShape { };
+	Valueable<SHPStruct*> SuperWeaponSidebar_ToggleShape { };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

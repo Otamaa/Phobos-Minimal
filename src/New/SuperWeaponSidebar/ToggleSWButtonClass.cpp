@@ -24,7 +24,7 @@ bool ToggleSWButtonClass::Draw(bool forced)
 		return false;
 
 	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
-	const auto pShape = pSideExt->ExclusiveSWSidebar_ToggleShape.Get();
+	const auto pShape = pSideExt->SuperWeaponSidebar_ToggleShape.Get();
 
 	if (!pShape)
 		return false;
@@ -81,7 +81,7 @@ bool ToggleSWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modi
 	if (((int)flags & (int)GadgetFlag::LeftRelease) && this->IsPressed)
 	{
 		this->IsPressed = false;
-		VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
+		VocClass::PlayGlobal(RulesClass::Instance->GUIMainButtonSound, Panning::Center, 1.0);
 		ToggleSWButtonClass::SwitchSidebar();
 	}
 

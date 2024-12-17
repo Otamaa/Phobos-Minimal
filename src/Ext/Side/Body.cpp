@@ -372,10 +372,10 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SidebarMixFileIndex.Read(exINI, pSection, "Sidebar.MixFileIndex");
 	this->MouseShape.Read(exINI, pSection, "MouseShape");
 
-	this->ExclusiveSWSidebar_TopPCX.Read(pINI, pSection, "ExclusiveSWSidebar.TopPCX");
-	this->ExclusiveSWSidebar_CenterPCX.Read(pINI, pSection, "ExclusiveSWSidebar.CenterPCX");
-	this->ExclusiveSWSidebar_BottomPCX.Read(pINI, pSection, "ExclusiveSWSidebar.BottomPCX");
-	this->ExclusiveSWSidebar_ToggleShape.Read(exINI, pSection, "ExclusiveSWSidebar.ToggleShape");
+	this->SuperWeaponSidebar_TopShape.Read(exINI, pSection, "SuperWeaponSidebar.TopPCX");
+	this->SuperWeaponSidebar_CenterShape.Read(exINI, pSection, "SuperWeaponSidebar.CenterPCX");
+	this->SuperWeaponSidebar_BottomShape.Read(exINI, pSection, "SuperWeaponSidebar.BottomPCX");
+	this->SuperWeaponSidebar_ToggleShape.Read(exINI, pSection, "SuperWeaponSidebar.ToggleShape");
 }
 
 void SideExtData::UpdateGlobalFiles()
@@ -502,10 +502,10 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->SidebarMixFileIndex)
 		.Process(this->MouseShape)
 
-		.Process(this->ExclusiveSWSidebar_TopPCX)
-		.Process(this->ExclusiveSWSidebar_CenterPCX)
-		.Process(this->ExclusiveSWSidebar_BottomPCX)
-		.Process(this->ExclusiveSWSidebar_ToggleShape)
+		.Process(this->SuperWeaponSidebar_TopShape)
+		.Process(this->SuperWeaponSidebar_CenterShape)
+		.Process(this->SuperWeaponSidebar_BottomShape)
+		.Process(this->SuperWeaponSidebar_ToggleShape)
 		;
 }
 

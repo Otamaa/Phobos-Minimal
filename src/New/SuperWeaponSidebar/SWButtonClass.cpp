@@ -1,4 +1,4 @@
-#include "TacticalButtonClass.h"
+#include "SWButtonClass.h"
 
 #include <Ext/SWType/Body.h>
 #include <Ext/Rules/Body.h>
@@ -12,7 +12,7 @@
 
 #include <Misc/PhobosToolTip.h>
 
-TacticalButtonClass::TacticalButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height)
+SWButtonClass::SWButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height)
 	: ControlClass(id, x, y, width, height, GadgetFlag::LeftPress, true)
 	, SuperIndex(superIdx)
 {
@@ -20,7 +20,7 @@ TacticalButtonClass::TacticalButtonClass(unsigned int id, int superIdx, int x, i
 		backColumn->Buttons.emplace_back(this);
 }
 
-bool TacticalButtonClass::Draw(bool forced)
+bool SWButtonClass::Draw(bool forced)
 {
 	if (!forced)
 		return false;
@@ -68,7 +68,7 @@ bool TacticalButtonClass::Draw(bool forced)
 	}
 
 	if (pSuper->IsCharged && !pCurrent->CanTransactMoney(pSWExt->Money_Amount) ||
-		(pSWExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSuper,true)))
+		(pSWExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSuper, true)))
 	{
 		RectangleStruct darkenBounds { 0, 0, location.X + this->Rect.Width, location.Y + this->Rect.Height };
 		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::DARKEN_SHP, 0, &location, &darkenBounds, BlitterFlags::bf_400 | BlitterFlags::Darken, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
@@ -80,16 +80,28 @@ bool TacticalButtonClass::Draw(bool forced)
 	if (ready && this->ColumnIndex == 0)
 	{
 		auto& buttons = SWSidebarClass::Global()->Columns[this->ColumnIndex]->Buttons;
-		const int distance = std::distance(buttons.begin(), std::find(buttons.begin(), buttons.end(), this));
+		const int buttonId = std::distance(buttons.begin(), std::find(buttons.begin(), buttons.end(), this));
 
-		if (distance < 10 && !SWSidebarClass::Global()->KeyCodeText[distance].empty())
+		if (buttonId < 10)
 		{
-			const auto buffer = SWSidebarClass::Global()->KeyCodeText[distance].c_str();
+			unsigned short hotkey = 0;
+			for (int i = 0; i < CommandClass::Hotkeys->IndexCount; i++)
+			{
+				if (CommandClass::Hotkeys->IndexTable[i].Data == SWSidebarClass::Commands[buttonId])
+					hotkey = CommandClass::Hotkeys->IndexTable[i].ID;
+			}
+
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
 			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
-			TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+			constexpr TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
-			pSurface->DrawText_Old(buffer, &bounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
+			wchar_t buffer[64];
+			Game::GetKeyboardKeyString(hotkey, buffer);
+
+			if (std::wcslen(buffer)) {
+				pSurface->DSurfaceDrawText(buffer, &bounds, &textLoc, foreColor, 0, printType);
+				drawReadiness = false;
+			}
 			drawReadiness = false;
 		}
 	}
@@ -115,7 +127,7 @@ bool TacticalButtonClass::Draw(bool forced)
 	return true;
 }
 
-void TacticalButtonClass::OnMouseEnter()
+void SWButtonClass::OnMouseEnter()
 {
 	if (!SWSidebarClass::IsEnabled())
 		return;
@@ -126,7 +138,7 @@ void TacticalButtonClass::OnMouseEnter()
 	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
-void TacticalButtonClass::OnMouseLeave()
+void SWButtonClass::OnMouseLeave()
 {
 	if (!SWSidebarClass::IsEnabled())
 		return;
@@ -138,7 +150,7 @@ void TacticalButtonClass::OnMouseLeave()
 	CCToolTip::Instance->MarkToRedraw(CCToolTip::Instance->CurrentToolTipData);
 }
 
-bool TacticalButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
+bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 {
 	if ((int)flags & (int)GadgetFlag::LeftPress)
 	{
@@ -149,7 +161,7 @@ bool TacticalButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modi
 	return this->ControlClass::Action(flags, pKey, KeyModifier::None);
 }
 
-bool TacticalButtonClass::LaunchSuper() const
+bool SWButtonClass::LaunchSuper() const
 {
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
@@ -168,7 +180,7 @@ bool TacticalButtonClass::LaunchSuper() const
 		VoxClass::PlayIndex(pSWExt->EVA_InsufficientFunds);
 		pSWExt->PrintMessage(pSWExt->Message_InsufficientFunds, pCurrent);
 	}
-	else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper , true))
+	else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		if (!manual && !unstopable)
 		{

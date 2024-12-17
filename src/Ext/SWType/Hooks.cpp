@@ -12,7 +12,7 @@
 
 #include <CCToolTip.h>
 
-#include "SuperWeaponSidebar.h"
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
 
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
@@ -1471,7 +1471,6 @@ DEFINE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 						// hide the cameo (only if this is an auto-firing SW)
 						if (pExt->Type->SW_ShowCameo || !pExt->Type->SW_AutoFire)
 						{
-							SuperWeaponSidebar::Instance()->AddSuper(pSuper);
 							MouseClass::Instance->AddCameo(AbstractType::Special, index);
 							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
 						}

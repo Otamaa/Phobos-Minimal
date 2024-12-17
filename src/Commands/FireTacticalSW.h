@@ -2,9 +2,9 @@
 
 #include "Commands.h"
 
-#include <New/Entity/SWSidebarClass.h>
-#include <New/Entity/SWColumnClass.h>
-#include <New/Entity/TacticalButtonClass.h>
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+#include <New/SuperWeaponSidebar/SWColumnClass.h>
+#include <New/SuperWeaponSidebar/SWButtonClass.h>
 
 template<size_t Index>
 class FireTacticalSWCommandClass : public PhobosCommandClass

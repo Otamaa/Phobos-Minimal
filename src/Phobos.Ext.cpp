@@ -20,7 +20,6 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
-#include <Ext/SWType/SuperWeaponSidebar.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
@@ -404,7 +403,6 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TunnelTypeClass::Clear();
 	WeaponTypeExtContainer::Instance.Clear();
 	WarheadTypeExtContainer::Instance.Clear();
-	SuperWeaponSidebar::Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
 	StaticVars::Clear();

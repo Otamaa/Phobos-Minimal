@@ -3,8 +3,8 @@
 #include <Utilities/GeneralUtils.h>
 #include <Ext/Sidebar/Body.h>
 
-#include <New/Entity/ToggleSWButtonClass.h>
-#include <New/Entity/SWSidebarClass.h>
+#include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
 
 const char* ToggleSWSidebar::GetName() const
 {

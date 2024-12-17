@@ -29,8 +29,8 @@
 #include <Ext/SWType/Body.h>
 #include <Misc/PhobosGlobal.h>
 
-#include <New/Entity/SWSidebarClass.h>
-#include <New/Entity/TacticalButtonClass.h>
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+#include <New/SuperWeaponSidebar/SWButtonClass.h>
 
 #include <YRMath.h>
 
@@ -305,6 +305,7 @@ DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 {
 	if (PhobosToolTip::Instance.IsEnabled() && PhobosToolTip::Instance.IsCameo)
 		R->EDI(PhobosToolTip::Instance.GetBuffer());
+
 	return 0;
 }
 

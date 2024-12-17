@@ -7,7 +7,8 @@
 
 class SWColumnClass;
 class ToggleSWButtonClass;
-class TacticalButtonClass;
+class SWButtonClass;
+class CommandClass;
 class SWSidebarClass
 {
 public:
@@ -19,7 +20,6 @@ public:
 	bool AddButton(int superIdx);
 	void SortButtons();
 
-	void RecordHotkey(int buttonIndex, int key);
 	int GetMaximumButtonCount();
 
 	static bool IsEnabled();
@@ -43,14 +43,16 @@ public:
 	static constexpr void Clear()
 	{
 		Allocate();
+
+		//for(auto& com : Commands)
+		//  com = nullptr;
 	}
 
 public:
 	std::vector<SWColumnClass*> Columns {};
 	SWColumnClass* CurrentColumn { nullptr };
-	TacticalButtonClass* CurrentButton { nullptr };
+	SWButtonClass* CurrentButton { nullptr };
 	ToggleSWButtonClass* ToggleButton { nullptr };
 
-	std::wstring KeyCodeText[10] {};
-	int KeyCodeData[10] {};
+	static inline CommandClass* Commands[10];
 };

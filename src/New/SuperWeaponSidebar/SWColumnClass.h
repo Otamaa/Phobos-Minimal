@@ -3,7 +3,7 @@
 #include <vector>
 #include <ControlClass.h>
 
-class TacticalButtonClass;
+class SWButtonClass;
 class SWColumnClass : public ControlClass
 {
 public:
@@ -25,6 +25,6 @@ public:
 		this->Rect.Height = height;
 	}
 
-	std::vector<TacticalButtonClass*> Buttons {};
+	std::vector<SWButtonClass*> Buttons {};
 	int MaxButtons { 0 };
 };

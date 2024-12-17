@@ -466,9 +466,9 @@ public:
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
 	Valueable<bool> CrateGoodies { false };
-	Valueable<bool> ExclusiveSidebar_Allow { true };
-	DWORD ExclusiveSidebar_PriorityHouses { 0u };
-	DWORD ExclusiveSidebar_RequiredHouses { 0xFFFFFFFFu };
+	Valueable<bool> SuperWeaponSidebar_Allow { true };
+	DWORD SuperWeaponSidebar_PriorityHouses { 0u };
+	DWORD SuperWeaponSidebar_RequiredHouses { 0xFFFFFFFFu };
 
 	Valueable<int> TabIndex { 1 };
 

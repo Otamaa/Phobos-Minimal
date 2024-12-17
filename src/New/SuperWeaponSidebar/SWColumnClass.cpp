@@ -1,6 +1,6 @@
 #include "SWColumnClass.h"
 #include "SWSidebarClass.h"
-#include "TacticalButtonClass.h"
+#include "SWButtonClass.h"
 
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
@@ -25,28 +25,26 @@ bool SWColumnClass::Draw(bool forced)
 	auto bounds = pSurface->Get_Rect();
 
 	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
-	const auto centerPCX = pSideExt->ExclusiveSWSidebar_CenterPCX.GetSurface();
 
-	if (centerPCX)
+	if (const auto centerShape = pSideExt->SuperWeaponSidebar_CenterShape)
 	{
-		RectangleStruct backRect = { this->Rect.X, this->Rect.Y, centerPCX->Get_Width(), centerPCX->Get_Height() };
-		backRect.Width = centerPCX->Get_Width();
-		backRect.Height = centerPCX->Get_Height();
-		PCX::Instance->BlitToSurface(&backRect, pSurface, centerPCX);
+		for (const auto button : this->Buttons)
+		{
+			Point2D drawPoint = { this->Rect.X, button->Rect.Y };
+			pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, centerShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		}
 	}
 
-	if (const auto topPCX = pSideExt->ExclusiveSWSidebar_TopPCX.GetSurface())
+	if (const auto topShape = pSideExt->SuperWeaponSidebar_TopShape)
 	{
-		RectangleStruct backRect = { this->Rect.X, this->Rect.Y, topPCX->Get_Width(), topPCX->Get_Height() };;
-		backRect.Y -= backRect.Height;
-		PCX::Instance->BlitToSurface(&backRect, pSurface, topPCX);
+		Point2D drawPoint = { this->Rect.X, this->Rect.Y - topShape->Height };
+		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, topShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
-	if (const auto bottomPCX = pSideExt->ExclusiveSWSidebar_BottomPCX.GetSurface())
+	if (const auto bottomShape = pSideExt->SuperWeaponSidebar_BottomShape.Get())
 	{
-		RectangleStruct backRect = { this->Rect.X, this->Rect.Y, bottomPCX->Get_Width(), bottomPCX->Get_Height() };
-		backRect.Y += this->Rect.Height;
-		PCX::Instance->BlitToSurface(&backRect, pSurface, bottomPCX);
+		Point2D drawPoint = { this->Rect.X, this->Rect.Y + bottomShape->Height };
+		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, bottomShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
 	for (const auto& button : this->Buttons)
@@ -91,12 +89,12 @@ bool SWColumnClass::AddButton(int superIdx)
 		if (!Phobos::UI::ExclusiveSWSidebar)
 			return false;
 
-		if (!pSWExt->ExclusiveSidebar_Allow)
+		if (!pSWExt->SuperWeaponSidebar_Allow)
 			return false;
 
 		const unsigned int ownerBits = 1u << HouseClass::CurrentPlayer->Type->ArrayIndex;
 
-		if ((pSWExt->ExclusiveSidebar_RequiredHouses & ownerBits) == 0)
+		if ((pSWExt->SuperWeaponSidebar_RequiredHouses & ownerBits) == 0)
 			return false;
 	}
 	else
@@ -109,7 +107,7 @@ bool SWColumnClass::AddButton(int superIdx)
 	if (static_cast<int>(buttons.size()) >= this->MaxButtons && !SWSidebarClass::Global()->AddColumn())
 		return false;
 
-	const auto button = DLLCreate<TacticalButtonClass>(TacticalButtonClass::StartID + superIdx, superIdx, 0, 0, 60, 48);
+	const auto button = DLLCreate<SWButtonClass>(SWButtonClass::StartID + superIdx, superIdx, 0, 0, 60, 48);
 
 	if (!button)
 		return false;
@@ -125,7 +123,7 @@ bool SWColumnClass::RemoveButton(int superIdx)
 	auto& buttons = this->Buttons;
 
 	const auto it = std::find_if(buttons.begin(), buttons.end(),
-		[superIdx](TacticalButtonClass* const button)
+		[superIdx](SWButtonClass* const button)
 		{ return button->SuperIndex == superIdx; }
 	);
 
