@@ -448,8 +448,9 @@ void HouseExtData::ApplyAcademy(
 {
 	// mutex in effect, ignore academies to fix preplaced order issues.
 	// also triggered in game for certain "conversions" like deploy
-	if (Unsorted::ScenarioInit)
-	{
+	// Otamaa : added IsTethered check , so techno form WF wont get ignored !
+
+	if (Unsorted::ScenarioInit && !pTechno->IsTethered) {
 		return;
 	}
 
