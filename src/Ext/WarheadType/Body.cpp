@@ -1618,22 +1618,24 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 	auto const absType = pVictim->WhatAmI();
 	auto const pVictimType = pVictim->GetTechnoType();
 
-	if (SuppressDeathWeapon_Exclude.Contains(pVictimType))
-		return false;
+	if (!this->SuppressDeathWeapon_Exclude.Contains(pVictimType)) {
 
-	if (!SuppressDeathWeapon.empty() && !SuppressDeathWeapon.Contains(pVictimType))
-		return false;
+		if (this->SuppressDeathWeapon.empty() || this->SuppressDeathWeapon.Contains(pVictimType)){
 
-	if (absType == UnitClass::AbsID && !SuppressDeathWeapon_Vehicles)
-		return false;
+			if (absType == UnitClass::AbsID && !this->SuppressDeathWeapon_Vehicles)
+				return false;
 
-	if (absType == InfantryClass::AbsID && !SuppressDeathWeapon_Infantry)
-		return false;
+			if (absType == InfantryClass::AbsID && !this->SuppressDeathWeapon_Infantry)
+				return false;
 
-	if (SuppressDeathWeapon_Chance.isset())
-		return ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(SuppressDeathWeapon_Chance.Get());
+			if (this->SuppressDeathWeapon_Chance.isset())
+				return ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(this->SuppressDeathWeapon_Chance.Get());
 
-	return true;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 // =============================

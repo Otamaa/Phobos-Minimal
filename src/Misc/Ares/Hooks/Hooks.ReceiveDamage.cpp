@@ -263,8 +263,9 @@ DEFINE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x9)
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0xC4, -0xC));
 
-	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->ApplySuppressDeathWeapon(pThis))
-	{
+	const bool result = WarheadTypeExtContainer::Instance.Find(pWarhead)->ApplySuppressDeathWeapon(pThis);
+
+	if (!result) {
 		pThis->FireDeathWeapon(0);
 	}
 
