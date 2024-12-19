@@ -1620,7 +1620,7 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 
 	if (!this->SuppressDeathWeapon_Exclude.Contains(pVictimType)) {
 
-		if (this->SuppressDeathWeapon.empty() || this->SuppressDeathWeapon.Contains(pVictimType)){
+		if (this->SuppressDeathWeapon.Contains(pVictimType)){
 
 			if (absType == UnitClass::AbsID && !this->SuppressDeathWeapon_Vehicles)
 				return false;
