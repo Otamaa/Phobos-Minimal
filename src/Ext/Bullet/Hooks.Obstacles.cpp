@@ -11,6 +11,9 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+#include <InfantryClass.h>
+#include <AircraftClass.h>
+
 DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
 	enum { ContinueCheck = 0x6F72E3, RetTrue = 0x6F7256, RetFalse = 0x6F7655 };
@@ -18,9 +21,6 @@ DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, ECX);
 	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	if (!pTarget || !pWeapon)
-		return RetFalse;
 
 	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
 
@@ -42,8 +42,24 @@ DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	if (pTarget->IsInAir())
 		range += pThisTypeExt->AttachedToObject->AirRangeBonus;
 
-	if (pThis->BunkerLinkedItem && pThis->BunkerLinkedItem->WhatAmI() != AbstractType::Building)
-		range += RulesClass::Instance->BunkerWeaponRangeBonus * Unsorted::LeptonsPerCell;
+	if (pThis->BunkerLinkedItem) {
+		const auto vtable = VTable::Get(pThis->BunkerLinkedItem);
+
+		bool clear = false;
+		if ((vtable != BuildingClass::vtable) && (vtable != InfantryClass::vtable)
+			&& (vtable != AircraftClass::vtable)
+			&& (vtable != UnitClass::vtable))
+		{
+			Debug::Log("TechnoClass_InRange Techno[%s] bunker linked item is broken pointer[%0x] !\n", pThisTypeExt->AttachedToObject->ID , pThis->BunkerLinkedItem);
+			clear = true;
+			pThis->BunkerLinkedItem = nullptr;
+		}
+
+		if(!clear && vtable != BuildingClass::vtable) {
+			range += RulesClass::Instance->BunkerWeaponRangeBonus * Unsorted::LeptonsPerCell;
+		}
+	}
+
 
 	if (pThis->InOpenToppedTransport) {
 		if(auto pTrans = pThis->Transporter)

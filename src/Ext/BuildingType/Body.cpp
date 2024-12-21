@@ -184,6 +184,7 @@ void BuildingTypeExtData::Initialize()
 	this->PrismForwarding.Initialize(this->AttachedToObject);
 	this->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
 	this->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
+	this->NextBuilding_CurrentHeapId = this->AttachedToObject->ArrayIndex;
 }
 
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
@@ -978,6 +979,12 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Units_UseRepairCost.Read(exINI, pSection, "Units.UseRepairCost");
 
 		this->PowerPlant_DamageFactor.Read(exINI, pSection, "PowerPlant.DamageFactor");
+
+		// Next Building
+		{
+			this->NextBuilding_Next.Read(exINI, pSection, "NextBuilding.Next");
+			this->NextBuilding_Prev.Read(exINI, pSection, "NextBuilding.Prev");
+		}
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1280,6 +1287,10 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Units_RepairPercent)
 		.Process(this->Units_UseRepairCost)
 		.Process(this->PowerPlant_DamageFactor)
+
+		.Process(this->NextBuilding_Prev)
+		.Process(this->NextBuilding_Next)
+		.Process(this->NextBuilding_CurrentHeapId)
 		;
 }
 

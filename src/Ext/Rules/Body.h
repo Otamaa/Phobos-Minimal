@@ -421,6 +421,7 @@ public:
 	};
 
 	std::array<LandTypeExt, 12u> LandTypeConfigExts {};
+	HelperedVector<TechnoTypeClass*> Secrets {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

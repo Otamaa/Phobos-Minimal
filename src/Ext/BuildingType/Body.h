@@ -322,6 +322,11 @@ public:
 
 	Valueable<double> PowerPlant_DamageFactor { 1.0 };
 
+	// NextBuilding feature linked list
+	Valueable<BuildingTypeClass*> NextBuilding_Prev { nullptr };
+	Valueable<BuildingTypeClass*> NextBuilding_Next { nullptr };
+	int NextBuilding_CurrentHeapId;
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

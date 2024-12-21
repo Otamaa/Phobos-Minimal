@@ -595,9 +595,10 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				R->Stack(0x1F, 1);
 			}
 		}
-
-		GameDelete(*(items + i));
 	}
+
+	for (int i = 0; i < count; ++i)
+		GameDelete(*(items + i));
 
 	count = 0;
 

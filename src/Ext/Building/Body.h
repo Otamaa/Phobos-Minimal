@@ -67,6 +67,8 @@ public:
 	//and set to highest PowersUpToLevel out of
 	//applied upgrades regardless of how many are currently applied to this building.
 
+	FactoryClass* FactoryBuildingMe {};
+
 	~BuildingExtData() noexcept
 	{
 		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);

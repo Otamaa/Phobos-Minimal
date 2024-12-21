@@ -99,6 +99,7 @@ struct StripClass
 	void Func_6AC740(int nIndex, int nDuration) const { JMP_THIS(0x6AC740); }
 
 public:
+
 	StageClass        Progress;
 	bool              AllowedToDraw; // prevents redrawing when layouting the list
 	PROTECTED_PROPERTY(BYTE, align_1D[3]);
@@ -232,14 +233,13 @@ public:
 	{ JMP_STD(0x6ABC60); }
 
 	// which tab does the 'th object of that type belong in?
-	static int __fastcall GetObjectTabIdx(AbstractType abs, BuildCat buildCat, bool isNaval)
-	{ JMP_STD(0x6ABCD0); }
+	static int __fastcall GetObjectTabIdx(AbstractType abs, BuildCat buildCat, bool isNaval) { JMP_STD(0x6ABCD0); }
 
 	void ChangeTab(int nStrip) const { JMP_THIS(0x6A7590); }
-
 	void Recalc() const { JMP_THIS(0x6A7D20); }
-
+	bool Scroll(bool up, int column) { JMP_THIS(0x6A6A00); }
 	int Func_6AC430() const { JMP_THIS(0x6AC430); }
+
 protected:
 	//Constructor
 	SidebarClass() noexcept	//don't need this

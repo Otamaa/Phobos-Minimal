@@ -67,6 +67,30 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 
 #include <ExtraHeaders/StackVector.h>
 
+static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
+	StackVector<TechnoTypeClass*, 256>& Options,
+	TechnoTypeClass** Data ,
+	size_t size
+) {
+
+	for (size_t i = 0; i < size; ++i) {
+		auto Option = *(Data + i);
+		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
+
+		if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) {
+			switch (HouseExtData::RequirementsMet(pOwner, Option))
+			{
+			case RequirementStatus::Forbidden:
+			case RequirementStatus::Incomplete:
+				Options->emplace_back(Option);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+};
+
 // Assigns a secret production option to the building.
 void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {
@@ -95,39 +119,14 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 
 	StackVector<TechnoTypeClass* , 256> Options;
 	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
-	;
-	auto AddToOptions = [OwnerBits , pOwner, &Options](const Iterator<TechnoTypeClass*>& items)
-		{
-			for (const auto& Option : items)
-			{
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
 
-				if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits))
-				{
-					switch (HouseExtData::RequirementsMet(pOwner, Option))
-					{
-					case RequirementStatus::Forbidden:
-					case RequirementStatus::Incomplete:
-						Options->emplace_back(Option);
-						break;
-					default:
-						break;
-					}
-				}
-			}
-		};
+	TechnoTypeClass** vec_data = pData->Secret_Boons.HasValue() ?
+		pData->Secret_Boons.data() : RulesExtData::Instance()->Secrets.data();
+	size_t vec_size = pData->Secret_Boons.HasValue() ?
+		pData->Secret_Boons.size() : RulesExtData::Instance()->Secrets.size();
 
 	// generate a list of items
-	if (pData->Secret_Boons.HasValue())
-	{
-		AddToOptions(pData->Secret_Boons);
-	}
-	else
-	{
-		AddToOptions(make_iterator(RulesClass::Instance->SecretInfantry));
-		AddToOptions(make_iterator(RulesClass::Instance->SecretUnits));
-		AddToOptions(make_iterator(RulesClass::Instance->SecretBuildings));
-	}
+	AddToOptions(OwnerBits,pOwner, Options, vec_data, vec_size);
 
 	// pick one of all eligible items
 	if (!Options->empty())
@@ -136,9 +135,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 		Debug::Log("[Secret Lab] rolled %s for %s\n", Result->ID, pType->ID);
 		pThis->SecretProduction = Result;
 		pExt->SecretLab_Placed = true;
-	}
-	else
-	{
+	} else {
 		Debug::Log("[Secret Lab] %s has no boons applicable to country [%s]!\n",
 			pType->ID, pOwner->Type->ID);
 	}
@@ -1272,6 +1269,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->SpyEffectAnim, true)
 		.Process(this->SpyEffectAnimDuration)
 		.Process(this->PoweredUpToLevel)
+		.Process(this->FactoryBuildingMe, true)
 		;
 }
 

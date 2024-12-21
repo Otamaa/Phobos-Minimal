@@ -284,6 +284,14 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
+template<typename T>
+static constexpr void FillSecrets(DynamicVectorClass<T>& secrets) {
+
+	for(auto Option : secrets){
+		RulesExtData::Instance()->Secrets.emplace_back(Option);
+	}
+}
+
 DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
@@ -296,6 +304,14 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (pExt->ParaDropTypes.HasValue() && !pExt->ParaDropTypes.empty())
 			Helpers::Alex::remove_non_paradroppables(pExt->ParaDropTypes, SideClass::Array->Items[i]->ID, "ParaDrop.Types");
 	}
+
+	FillSecrets(RulesClass::Instance->SecretInfantry);
+	FillSecrets(RulesClass::Instance->SecretUnits);
+	FillSecrets(RulesClass::Instance->SecretBuildings);
+
+	RulesExtData::Instance()->Secrets.remove_all_duplicates([](auto a, auto b) {
+		return a == b;
+	});
 
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
@@ -1422,6 +1438,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ExpandAircraftMission)
 
 		.Process(this->LandTypeConfigExts)
+		.Process(this->Secrets)
 		;
 
 	MyPutData.Serialize(Stm);
