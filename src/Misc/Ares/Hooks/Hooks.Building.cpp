@@ -693,7 +693,7 @@ DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 	GET(BuildingClass* ,pThis ,ECX);
 	GET_STACK(bool, announce, 0x8);
 	// Fix : Suppress capture EVA event if ConsideredVehicle=yes
-	announce = announce && !pThis->Type->IsVehicle();
+	announce = announce && !pThis->IsStrange();
 	Bld_ChangeOwnerAnnounce = announce;
 	return 0x0;
 }
