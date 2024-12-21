@@ -242,8 +242,8 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 {
 	enum { SkipCheck = 0x489702 };
 
-	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+	GET_BASE(FakeWarheadTypeClass*, pWH, 0xC);
+	auto const pWHExt = pWH->_GetExtData();
 	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
 }
 
@@ -251,12 +251,10 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 DEFINE_HOOK(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
 {
 	//GET(int, nDetoCrdZ, EDX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET_STACK(int, nVictimCrdZ, STACK_OFFSET(0xE0, -0x5C));
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	if (pWHExt->CellSpread_Cylinder)
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{
 		R->EDX(nVictimCrdZ);
 	}
@@ -267,12 +265,12 @@ DEFINE_HOOK(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
 DEFINE_HOOK(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
 {
 	//GET(int, nDetoCrdZ, EDX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, ESI);
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pWHExt->CellSpread_Cylinder)
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{
 		R->EDX(nVictimCrdZ);
 	}
@@ -283,12 +281,10 @@ DEFINE_HOOK(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
 DEFINE_HOOK(0x48979C, MapClass_DamageArea_Cylinder_3, 0x8)
 {
 	//GET(int, nDetoCrdZ, ECX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, EDX);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	if (pWHExt->CellSpread_Cylinder)
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{
 		R->ECX(nVictimCrdZ);
 	}
@@ -299,12 +295,10 @@ DEFINE_HOOK(0x48979C, MapClass_DamageArea_Cylinder_3, 0x8)
 DEFINE_HOOK(0x4897C3, MapClass_DamageArea_Cylinder_4, 0x5)
 {
 	//GET(int, nDetoCrdZ, ECX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, EDX);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	if (pWHExt->CellSpread_Cylinder)
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{
 		R->ECX(nVictimCrdZ);
 	}
@@ -315,12 +309,10 @@ DEFINE_HOOK(0x4897C3, MapClass_DamageArea_Cylinder_4, 0x5)
 DEFINE_HOOK(0x48985A, MapClass_DamageArea_Cylinder_5, 0x5)
 {
 	//GET(int, nDetoCrdZ, ECX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, EDX);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	if (pWHExt->CellSpread_Cylinder)
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{
 		R->ECX(nVictimCrdZ);
 	}
@@ -331,13 +323,10 @@ DEFINE_HOOK(0x48985A, MapClass_DamageArea_Cylinder_5, 0x5)
 DEFINE_HOOK(0x4898BF, MapClass_DamageArea_Cylinder_6, 0x5)
 {
 	//GET(int, nDetoCrdZ, EDX);
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, ECX);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	if (pWHExt->CellSpread_Cylinder)
-	{
+	if (pWH->_GetExtData()->CellSpread_Cylinder) {
 		R->EDX(nVictimCrdZ);
 	}
 
@@ -345,14 +334,14 @@ DEFINE_HOOK(0x4898BF, MapClass_DamageArea_Cylinder_6, 0x5)
 }
 
 // AffectsInAir and AffectsOnFloor
-DEFINE_HOOK(0x489416, MapClass_DamageArea_CheckHeight_1, 0x6)
+DEFINE_HOOK(0x489416, MapClass_DamageArea_CheckHeight_AircraftTarcker, 0x6)
 {
 	enum { SkipThisObject = 0x489547 };
 
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(ObjectClass*, pObject, EBX);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	auto pWHExt = pWH->_GetExtData();
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
@@ -368,10 +357,10 @@ DEFINE_HOOK(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 {
 	enum { SkipThisObject = 0x4899B3 };
 
-	GET_BASE(WarheadTypeClass* const, pWH, 0x0C);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(ObjectClass*, pObject, ESI);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	auto pWHExt = pWH->_GetExtData();
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
@@ -424,8 +413,7 @@ DEFINE_HOOK(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 DEFINE_HOOK(0x4D73DE, FootClass_ReceiveDamage_RemoveParasites, 0x5)
 {
 	enum { Continue = 0x4D73E3, Skip = 0x4D7413 };
-	GET(WarheadTypeClass*, pWarhead, EBP);
+	GET(FakeWarheadTypeClass*, pWarhead, EBP);
 	GET(int*, damage, EDI);
-	auto const pTypeExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-	return pTypeExt->RemoveParasites.Get(*damage < 0) ? Continue : Skip;
+	return pWarhead->_GetExtData()->RemoveParasites.Get(*damage < 0) ? Continue : Skip;
 }
