@@ -216,6 +216,7 @@ public:
 
 	void UpdateAcademy(BuildingClass* pAcademy, bool added);
 	void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
+	void ApplyAcademyWithoutMutexCheck(TechnoClass* pTechno, AbstractType considerAs) const;
 
 	void UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, bool isNaval);
 	int GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval);

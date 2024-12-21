@@ -443,6 +443,63 @@ void HouseExtData::ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, Abstra
 	HouseExtContainer::Instance.Find(pHouse)->ApplyAcademy(pTechno, considerAs);
 }
 
+void HouseExtData::ApplyAcademyWithoutMutexCheck(
+	TechnoClass* const pTechno, AbstractType const considerAs) const
+{
+	auto const pType = pTechno->GetTechnoType();
+	if (pType->Trainable)
+	{
+		// get the academy data for this type
+		Valueable<double> BuildingTypeExtData::* pmBonus = nullptr;
+		switch (considerAs)
+		{
+		case AbstractType::Infantry:
+		case AbstractType::InfantryType:
+			pmBonus = &BuildingTypeExtData::AcademyInfantry;
+			break;
+		case AbstractType::AircraftType:
+		case AbstractType::Aircraft:
+			pmBonus = &BuildingTypeExtData::AcademyAircraft;
+			break;
+		case AbstractType::UnitType:
+		case AbstractType::Unit:
+			pmBonus = &BuildingTypeExtData::AcademyVehicle;
+			break;
+		default:
+			pmBonus = &BuildingTypeExtData::AcademyBuilding;
+			break;
+		}
+
+		auto veterancyBonus = 0.0;
+
+		// aggregate the bonuses
+		for (auto const& pBld : this->Academies)
+		{
+			if (!pBld)
+				continue;
+
+			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+
+			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
+				|| pExt->AcademyWhitelist.Contains(pType);
+
+			if (isWhitelisted && !pExt->AcademyBlacklist.Contains(pType))
+			{
+				const auto& data = pExt->*pmBonus;
+				veterancyBonus = MaxImpl(veterancyBonus, data.Get());
+			}
+		}
+
+		// apply the bonus
+		auto& value = pTechno->Veterancy.Veterancy;
+		if (veterancyBonus > value)
+		{
+			value = static_cast<float>(MinImpl(
+				veterancyBonus, RulesClass::Instance->VeteranCap));
+		}
+	}
+}
+
 void HouseExtData::ApplyAcademy(
 	TechnoClass* const pTechno, AbstractType const considerAs) const
 {
@@ -450,9 +507,9 @@ void HouseExtData::ApplyAcademy(
 	// also triggered in game for certain "conversions" like deploy
 	// Otamaa : added IsTethered check , so techno form WF wont get ignored !
 	//
-	//if (Unsorted::ScenarioInit && !pTechno->IsTethered) {
-	//	return;
-	//}
+	if (Unsorted::ScenarioInit) {
+		return;
+	}
 
 	auto const pType = pTechno->GetTechnoType();
 	if (pType->Trainable)

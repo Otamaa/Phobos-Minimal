@@ -975,6 +975,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 	if (pTypeExt->InitialPayload_Types.empty())
 		return;
 
+	const bool re_AppyAcademyBonusses = Unsorted::ScenarioInit && (!pType->UndeploysInto || !pType->DeploysInto);
 	auto const pBld = specific_cast<BuildingClass*>(pThis);
 
 	auto freeSlots = (pBld && pBld->Type->CanBeOccupied)
@@ -1030,6 +1031,10 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 				pObject->Veterancy.SetVeteran();
 			else if (rank == Rank::Elite)
 				pObject->Veterancy.SetElite();
+
+				if(re_AppyAcademyBonusses) {
+					HouseExtContainer::Instance.Find(pThis->Owner)->ApplyAcademyWithoutMutexCheck(pObject, absPayload);
+				}
 
 			if (pBld)
 			{
