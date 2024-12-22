@@ -258,16 +258,19 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 // Hooks
 DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 {
-	enum { ApplyToolTip = 0x4AE69D };
+	if (SWSidebarClass::IsEnabled()) {
+		if (auto button = SWSidebarClass::Global()->CurrentButton) {
 
-	if (SWSidebarClass::IsEnabled())
-	{
-		if (auto button = SWSidebarClass::Global()->CurrentButton)
-		{
-			PhobosToolTip::Instance.IsCameo = true;
-			PhobosToolTip::Instance.HelpText(HouseClass::CurrentPlayer->Supers[button->SuperIndex]);
-			R->EAX(PhobosToolTip::Instance.GetBuffer());
-			return ApplyToolTip;
+			const auto pSuper = HouseClass::CurrentPlayer->Supers[button->SuperIndex];
+
+			if (PhobosToolTip::Instance.IsEnabled()) {
+				PhobosToolTip::Instance.HelpText(pSuper);
+				R->EAX(PhobosToolTip::Instance.GetBuffer());
+			} else {
+				R->EAX(pSuper->Type->UIName);
+			}
+
+			return 0x4AE69D;
 		}
 	}
 

@@ -87,6 +87,7 @@
     <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
+    <ClCompile Include="src\Ext\InfantryType\Hooks.Sequences.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\IsometricTileType\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Hooks.Drawing.cpp" />
