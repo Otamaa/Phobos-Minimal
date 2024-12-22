@@ -118,7 +118,7 @@ public:
 	int                ArrayIndex; // this is off by one (always one higher than the actual index). that's because consistency and reason suck.
 	DECLARE_PROPERTY(BytePalette , Colors);
 	const char*       ID;
-	DECLARE_PROPERTY(ColorStruct, BaseColor);
+	DECLARE_PROPERTY(HSVClass, BaseColor);
 	LightConvertClass* LightConvert;	//??? remap - indices #16-#31 are changed to mathefuckikally derived shades of BaseColor, think unittem.pal
 	int   ShadeCount;
 	PROTECTED_PROPERTY(BYTE,     unknown_314[0x1C]);

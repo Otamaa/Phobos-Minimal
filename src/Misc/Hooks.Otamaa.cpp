@@ -6529,29 +6529,36 @@ void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* la
 	auto pComposite = DSurface::Composite();
 	auto rect = pComposite->Get_Rect();
 	Point2D _temp {};
-	Fancy_Text_Print_Wide(
+	ColorStruct out {};
+	color->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
 		&_temp,
 		buffer.c_str(),
 		pComposite,
 		&rect,
 		&point,
-		color,
-		0u,
-		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background
+		(COLORREF)out.ToInit(),
+		(COLORREF)0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+		true
 	);
 
 	point.X = rect_bound.Width - 3;
 	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
 	rect = pComposite->Get_Rect();
-	Fancy_Text_Print_Wide(
+	fore->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
 	&_temp,
 	timer_.c_str(),
 	pComposite,
 	&rect,
 	&point,
-	fore,
-	0u,
-	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background
+	(COLORREF)out.ToInit(),
+	(COLORREF)0u,
+	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+	true
 	);
 }
 

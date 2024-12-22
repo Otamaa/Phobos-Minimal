@@ -71,7 +71,9 @@ DEFINE_HOOK(0x6D4684, TacticalClass_Draw_Addition, 6)
 				if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
 				{
 					Point2D tmp { 0,0 };
-					Fancy_Text_Print_Wide(tmp, pText.c_str(), DSurface::Temp(), bound, pos, ColorScheme::Array->Items[pOWner->ColorSchemeIndex], 0, TextPrintType::Center, 1);
+					ColorStruct _color{};
+					ColorScheme::Array->Items[pResultOwner->ColorSchemeIndex]->BaseColor.ToColorStruct(&_color);
+					Simple_Text_Print_Wide(&tmp, pText.c_str(), DSurface::Temp(), &bound, &pos, _color.ToInit() , 0, TextPrintType::Center, 1);
 				}
 			}
 		}

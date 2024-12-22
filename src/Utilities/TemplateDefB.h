@@ -161,7 +161,7 @@ namespace detail
 				{
 					if (auto const& nResult = ColorScheme::Find(parser.value()))
 					{
-						value = nResult->BaseColor;
+						nResult->BaseColor.ToColorStruct(&value);
 						return true;
 					}
 				}

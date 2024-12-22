@@ -174,10 +174,52 @@ struct HSVClass
 	char Sat;
 	char Val;
 
-	ColorStruct* ToColorStruct(ColorStruct* pResult)
+	constexpr ColorStruct ToColorStruct()
 	{
+		//JMP_THIS(0x517440);
+		__int8 values[7];
+		auto val = (unsigned __int8)this->Val;
+		auto sat = (unsigned __int8)this->Sat;
+		auto hue = ((unsigned __int8)this->Hue) * 2;
+
+		values[1] = val;
+		values[2] = val;
+		values[3] = val * (255 - sat * (hue % 255) / 0xFFu) / 0xFF;
+		values[4] = values[5] = val * (255 - sat) / 255;
+		values[6] = val * (255 - sat * (255 - hue % 255) / 255u) / 255;
+
+		unsigned int red_arr = ((unsigned int)(hue / 255) > 4 ? -4 : 2) + hue / 255;
+		unsigned int green_arr = (red_arr > 4 ? 0xFFFFFFFC : 2) + red_arr;
+		unsigned int blue_arr = green_arr + (green_arr > 4 ? -4 : 2);
+
+		return { (BYTE)values[red_arr] , (BYTE)values[green_arr] , (BYTE)values[blue_arr] };
+	}
+
+	constexpr uintptr_t ToColorStructInt()
+	{
+		//JMP_THIS(0x517440);
+		uint8_t values[7] {};
+		uint8_t val = (uint8_t)this->Val;
+		uint8_t sat = (uint8_t)this->Sat;
+		uint8_t hue = ((uint8_t)this->Hue) * 2;
+
+		values[1] = val;
+		values[2] = val;
+		values[3] = val * (255 - sat * (hue % 255) / 0xFFu) / 0xFF;
+		values[4] = values[5] = val * (255 - sat) / 255;
+		values[6] = val * (255 - sat * (255 - hue % 255) / 255u) / 255;
+
+		uint32_t red_arr = ((uint32_t)(hue / 255) > 4 ? -4 : 2) + hue / 255;
+		uint32_t green_arr = (red_arr > 4 ? 0xFFFFFFFC : 2) + red_arr;
+		uint32_t blue_arr = green_arr + (green_arr > 4 ? -4 : 2);
+
+		return ColorStruct{ (BYTE)values[red_arr] , (BYTE)values[green_arr] , (BYTE)values[blue_arr] }.ToInit();
+	}
+
+	ColorStruct* ToColorStruct(ColorStruct* ret) {
 		JMP_THIS(0x517440);
 	}
+
 };
 
 #pragma pack(push, 1)
