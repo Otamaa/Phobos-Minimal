@@ -121,28 +121,28 @@ struct NewDoType
 		}
 	}
 
-	static const char* GetSequenceName(DoType sequence)
+	constexpr FORCEINLINE static const char* GetSequenceName(DoType sequence)
 	{
 		return Sequences_ident[(int)sequence];
 	}
 
-	DoInfoStruct GetSequence(DoType sequence) const
+	constexpr FORCEINLINE DoInfoStruct GetSequence(DoType sequence) const
 	{
 		return this->Data[(int)sequence];
 	}
 
-	DoInfoStruct& GetSequence(DoType sequence)
+	constexpr FORCEINLINE DoInfoStruct& GetSequence(DoType sequence)
 	{
 		return this->Data[(int)sequence];
 	}
 
-	static DoStruct* GetSequenceData(DoType sequence)
+	constexpr FORCEINLINE static DoStruct* GetSequenceData(DoType sequence)
 	{
 		return const_cast<DoStruct*>(&Sequences_Master[(int)sequence]);
 	}
 
-	constexpr DoInfoStruct* begin() { return std::begin(Data); }
-	constexpr DoInfoStruct* end() { return std::end(Data); }
+	constexpr FORCEINLINE  DoInfoStruct* begin() { return std::begin(Data); }
+	constexpr FORCEINLINE  DoInfoStruct* end() { return std::end(Data); }
 
 	DoInfoStruct Data[std::size(Sequences_ident)];
 };
