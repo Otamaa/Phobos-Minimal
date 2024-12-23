@@ -39,14 +39,14 @@ PhobosToolTip PhobosToolTip::Instance;
 inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
-		? pData->UIDescription.Get().Text
+		? pData->UIDescription->Text
 		: nullptr;
 }
 
 inline const wchar_t* GetUIDescription(SWTypeExtData* pData)
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
-		? pData->UIDescription.Get().Text
+		? pData->UIDescription->Text
 		: nullptr;
 }
 
@@ -236,12 +236,11 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		oss << (showSth ? L" " : L"") << buffer;
 	}
 
-
 	if(pData->SW_Power.isset()) {
 		const auto nPower = pData->SW_Power;
 
 		if (nPower != 0) {
-			oss << L" " << Phobos::UI::PowerLabel;
+			oss << (L" ") << Phobos::UI::PowerLabel;
 			if (nPower > 0)
 				oss << L"+";
 

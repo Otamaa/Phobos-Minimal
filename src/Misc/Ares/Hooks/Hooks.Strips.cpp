@@ -150,6 +150,81 @@ DEFINE_HOOK(0x6A8220, StripClass_Initialize, 7)
 	return 0x6A8329;
 }
 
+int __fastcall SidebarClass_6AC430(SidebarClass*)
+{
+	JMP_THIS(0x6AC430)
+}
+
+// yeah , fuck it
+// i cant reproduce the exact code
+// so lets just dump the assembly code instead , lmao
+// -otamaa
+//declhook(0x6A8220, StripClass_Initialize, 0x7)
+//extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS* R)
+//{
+//	__asm
+//	{
+//		push ecx
+//		mov eax, [esp + 0x8]
+//		mov ecx, 0x87F7E8
+//		push ebx
+//		push ebp
+//		push esi
+//		mov ebx, [eax + 0x20]
+//		xor esi, esi
+//		mov eax, [eax + 0x14]
+//		push edi
+//		mov ebp, [ebx + 0x24]
+//		mov eax, [eax + 0x4]
+//		inc ebp
+//		mov[ebx + 0x38], eax
+//		mov eax, [ebx + 0x20]
+//		mov[esp + 0x18], eax
+//		call SidebarClass_6AC430
+//		lea edi, ds : 0[eax * 8]
+//		sub edi, eax
+//		shl edi, 3
+//		mov[esp + 0x10], edi
+//		test edi, edi
+//		jz short retfunc_
+//		mov ecx, dword ptr ds : 0xB0B500
+//		mov eax, 0xB07E94
+//		lea ebx, [ebx + 0x0]
+//		loopfunc_ :
+//		mov[eax + 0x1C], esi
+//		mov edx, esi
+//		mov dword ptr[eax + 0x10], 0xCA
+//		and edx, 0xFFFFFFFE
+//		mov[eax + 0x18], ebx
+//		mov edi, dword ptr ds : 0xB0B4FC
+//		imul edx, ecx
+//		mov ecx, esi
+//		and ecx, 1
+//		inc esi
+//		imul ecx, edi
+//		add edx, ebp
+//		add ecx, [esp + 0x18]
+//		mov[eax - 8], ecx
+//		mov ecx, [esp + 0x10]
+//		mov[eax - 4], edx
+//		add ecx, 0xB07E94
+//		mov dword ptr[eax], 0x3C
+//		mov dword ptr[eax + 4], 0x30
+//		add eax, 0x38
+//		cmp eax, ecx
+//		lea ecx, [edx + 4]
+//		jnz loopfunc_
+//		retfunc_ :
+//		pop edi
+//			pop esi
+//			pop ebp
+//			mov eax, 0x6A8329
+//			pop ebx
+//			pop ecx
+//			retn
+//	}
+//}
+
 DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {
 	enum
@@ -175,80 +250,6 @@ DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 	return pThis->IsScrolling ? 0x6A9703 : 0x6A9714;
 }
 #else
-int __fastcall SidebarClass_6AC430(SidebarClass*)
-{
-	JMP_THIS(0x6AC430)
-}
-
-// yeah , fuck it
-// i cant reproduce the exact code
-// so lets just dump the assembly code instead , lmao
-// -otamaa
-declhook(0x6A8220, StripClass_Initialize, 0x7)
-extern "C" __declspec(naked, dllexport) DWORD __cdecl StripClass_Initialize(REGISTERS* R)
-{
-	__asm
-	{
-		push ecx
-		mov eax, [esp + 0x8]
-		mov ecx, 0x87F7E8
-		push ebx
-		push ebp
-		push esi
-		mov ebx, [eax + 0x20]
-		xor esi, esi
-		mov eax, [eax + 0x14]
-		push edi
-		mov ebp, [ebx + 0x24]
-		mov eax, [eax + 0x4]
-		inc ebp
-		mov[ebx + 0x38], eax
-		mov eax, [ebx + 0x20]
-		mov[esp + 0x18], eax
-		call SidebarClass_6AC430
-		lea edi, ds : 0[eax * 8]
-		sub edi, eax
-		shl edi, 3
-		mov[esp + 0x10], edi
-		test edi, edi
-		jz short retfunc_
-		mov ecx, dword ptr ds : 0xB0B500
-		mov eax, 0xB07E94
-		lea ebx, [ebx + 0x0]
-		loopfunc_ :
-		mov[eax + 0x1C], esi
-		mov edx, esi
-		mov dword ptr[eax + 0x10], 0xCA
-		and edx, 0xFFFFFFFE
-		mov[eax + 0x18], ebx
-		mov edi, dword ptr ds : 0xB0B4FC
-		imul edx, ecx
-		mov ecx, esi
-		and ecx, 1
-		inc esi
-		imul ecx, edi
-		add edx, ebp
-		add ecx, [esp + 0x18]
-		mov[eax - 8], ecx
-		mov ecx, [esp + 0x10]
-		mov[eax - 4], edx
-		add ecx, 0xB07E94
-		mov dword ptr[eax], 0x3C
-		mov dword ptr[eax + 4], 0x30
-		add eax, 0x38
-		cmp eax, ecx
-		lea ecx, [edx + 4]
-		jnz loopfunc_
-		retfunc_ :
-		pop edi
-			pop esi
-			pop ebp
-			mov eax, 0x6A8329
-			pop ebx
-			pop ecx
-			retn
-	}
-}
 
 static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
 static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
