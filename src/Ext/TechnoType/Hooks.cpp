@@ -329,45 +329,87 @@ AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 	return pThis->Type->DeployingAnim;
 }
 
-bool NOINLINE SetAnim(AnimTypeClass* pAnimType , UnitClass* pUnit , bool isDeploying)
-{
-	if(pUnit->DeployAnim) {
-		return true;
-	}
+// bool NOINLINE SetAnim(AnimTypeClass* pAnimType , UnitClass* pUnit , bool isDeploying)
+// {
+// 	if(pUnit->DeployAnim) {
+// 		return true;
+// 	}
+//
+// 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
+//
+// 	if (pAnimType) {
+// 		auto const pAnim = GameCreate<AnimClass>(pAnimType,
+// 			pUnit->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+// 				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false);
+//
+// 			pUnit->DeployAnim = pAnim;
+// 			pAnim->SetOwnerObject(pUnit);
+//
+// 			if (pExt->DeployingAnim_UseUnitDrawer) {
+// 				pAnim->LightConvert = pUnit->GetRemapColour();
+// 			}
+//
+// 		return true;
+// 	}
+//
+// 	return false;
+// }
 
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
-
-	if (pAnimType) {
-		auto const pAnim = GameCreate<AnimClass>(pAnimType,
-			pUnit->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-				!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false);
-
-			pUnit->DeployAnim = pAnim;
-			pAnim->SetOwnerObject(pUnit);
-
-			if (pExt->DeployingAnim_UseUnitDrawer) {
-				pAnim->LightConvert = pUnit->GetRemapColour();
-			}
-
-		return true;
-	}
-
-	return false;
-}
-
-DEFINE_HOOK(0x739B90 , UnitClass_Deploy_DeployAnim , 0x6)
+DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
+	auto const pType = pThis->Type;
+	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
 
-	const auto pAnimType = GetDeployAnim(pThis);
+	if (!pThis->InAir)
+	{
+		R->BL(true);
 
-	if(!pAnimType)
-		return 0x739C6A;
+		if (const auto pAnimType = GetDeployAnim(pThis))
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	R->BL(true);
+			if (!pTypeExt->DeployingAnim_AllowAnyDirection) {
+				// not sure what is the bitfrom or bitto so it generate this result
+				// yes iam dum , iam sorry - otamaa
+				const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+				const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+				const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
 
-	return SetAnim(pAnimType, pThis, true) ?
-		0x739C20 : 0x739C62;
+				if (nCurrent != (int)nRaw)
+				{
+					if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
+					{
+						if (!pLoco->Is_Moving_Now())
+						{
+							pLoco->Do_Turn(DirStruct { nRaw });
+						}
+
+						return PlayDeploySound; //adjust the facing first
+					}
+				}
+			}
+
+			if(pThis->DeployAnim)
+				return SetAnimTimer;
+
+			auto const pAnim = GameCreate<AnimClass>(pAnimType,
+			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+
+			pThis->DeployAnim = pAnim;
+			pAnim->SetOwnerObject(pThis);
+
+			if (pTypeExt->DeployingAnim_UseUnitDrawer) {
+				pAnim->LightConvert = pThis->GetRemapColour();
+			}
+
+			return SetAnimTimer;
+		}
+
+		return SetDeployingState;
+	}
+
+	return PlayDeploySound;
 }
 
 DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
@@ -379,8 +421,23 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 	if(!pAnimType)
 		return 0x739E4F;
 
-	return SetAnim(pAnimType , pThis , false) ?
-		0x739E04 : 0x739E46;
+	if(pThis->DeployAnim)
+		return 0x739E04;
+
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	auto const pAnim = GameCreate<AnimClass>(pAnimType,
+	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+				pExt->DeployingAnim_ReverseForUndeploy);
+
+	pThis->DeployAnim = pAnim;
+	pAnim->SetOwnerObject(pThis);
+
+	if (pExt->DeployingAnim_UseUnitDrawer) {
+		pAnim->LightConvert = pThis->GetRemapColour();
+	}
+
+	return 0x739E04;
 }
 
 //DEFINE_HOOK(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
