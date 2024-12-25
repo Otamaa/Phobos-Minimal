@@ -34,8 +34,16 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 				{
 					if (SucceededAnim)
 					{
-						auto pAnim = GameCreate<AnimClass>(SucceededAnim, pTarget->Location);
-						pAnim->SetOwnerObject(pTarget);
+						auto pDrawer = pTarget;
+						if (pTarget->InLimbo && pTarget->Transporter)
+							pDrawer = pTarget->Transporter;
+						else if(pTarget->InLimbo && !pTarget->Transporter)
+							pDrawer = nullptr;
+
+						if(pDrawer){
+							auto pAnim = GameCreate<AnimClass>(SucceededAnim, pDrawer->Location);
+							pAnim->SetOwnerObject(pDrawer);
+						}
 					}
 				}
 			}
@@ -48,8 +56,17 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 			{
 				if (SucceededAnim)
 				{
-					auto pAnim = GameCreate<AnimClass>(SucceededAnim, pTarget->Location);
-					pAnim->SetOwnerObject(pTarget);
+					auto pDrawer = pTarget;
+					if (pTarget->InLimbo && pTarget->Transporter)
+						pDrawer = pTarget->Transporter;
+					else if (pTarget->InLimbo && !pTarget->Transporter)
+						pDrawer = nullptr;
+
+					if (pDrawer)
+					{
+						auto pAnim = GameCreate<AnimClass>(SucceededAnim, pDrawer->Location);
+						pAnim->SetOwnerObject(pDrawer);
+					}
 				}
 			}
 		}
