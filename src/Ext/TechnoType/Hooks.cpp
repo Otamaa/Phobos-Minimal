@@ -364,7 +364,9 @@ DEFINE_HOOK(0x739B90 , UnitClass_Deploy_DeployAnim , 0x6)
 	if(!pAnimType)
 		return 0x739C6A;
 
-	return SetAnim(pAnimType , pThis , true) ?
+	R->BL(true);
+
+	return SetAnim(pAnimType, pThis, true) ?
 		0x739C20 : 0x739C62;
 }
 
