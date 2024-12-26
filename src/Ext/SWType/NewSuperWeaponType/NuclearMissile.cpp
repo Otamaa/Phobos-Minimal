@@ -42,7 +42,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 
 		if ((!pThis->Granted || !pThis->OneTime) && pData->Nuke_SiloLaunch) {
 			// find a building owned by the player that can fire this SWType
-			 pSilo = specific_cast<BuildingClass*>(this->GetFirer(pThis, Coords, false));
+			 pSilo = cast_to<BuildingClass*>(this->GetFirer(pThis, Coords, false));
 		}
 
 		// via silo

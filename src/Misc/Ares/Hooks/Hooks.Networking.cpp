@@ -69,7 +69,7 @@ DEFINE_HOOK(0x44725F, BuildingClass_GetActionOnObject_TargetABuilding, 5)
 	GET(TechnoClass *, T, EBP);
 	// not decided on UI handling yet
 
-	if(auto targetBuilding = specific_cast<BuildingClass*>(T)) {
+	if(auto targetBuilding = cast_to<BuildingClass*>(T)) {
 		if(TechnoExt_ExtData::canTraverseTo(pThis ,targetBuilding)) {
 			//show entry cursor, hooked up to traversal logic in Misc/Network.cpp -> EventExt::Handlers::RespondToTrenchRedirectClick
 			R->EAX(Action::Enter);

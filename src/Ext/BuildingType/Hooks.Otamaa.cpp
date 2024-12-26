@@ -31,7 +31,7 @@ DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	GET_BASE(AbstractClass*, pTarget, 0x8);
 
 	if(pThis->CanOccupyFire()) {
-		if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
+		if (auto const Building = cast_to<BuildingClass*>(pThis)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
 		} else {
 			nDamage = int(nDamage * RulesClass::Instance->OccupyDamageMultiplier);
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	}
 
 	if(pThis->WhatAmI() != BuildingClass::AbsID) {
-		if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+		if (auto const Building = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
 		}
 	}
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, nROF, 0x14);
 
-	auto const Building = specific_cast<BuildingClass*>(pThis);
+	auto const Building = cast_to<BuildingClass*>(pThis);
 
 	if (pThis->CanOccupyFire()) {
 		const auto occupant = pThis->GetOccupantCount();
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 
 	if (pThis->BunkerLinkedItem && !Building) {
 		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
-		if (auto const pBunkerIsBuilding = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
+		if (auto const pBunkerIsBuilding = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
 			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
 		}
 
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
 	GET(RulesClass*, pRules, EAX);
 
 	auto nStep = pRules->RepairStep;
-	if (auto const pBuildingType = specific_cast<BuildingTypeClass*>(pThis))
+	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
 		nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.Get(nStep);
 
 	R->EAX(nStep);
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	}
 
 	int nStep = RulesClass::Instance->RepairStep;
-	if (auto const pBuildingType = specific_cast<BuildingTypeClass*>(pThis))
+	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
 	{
 		if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.isset())
 			nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep;

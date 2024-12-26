@@ -24,7 +24,7 @@ DEFINE_HOOK(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 		{
 			for (auto i = 0; i < pTarget->RadioLinks.Capacity; ++i)
 			{
-				if (auto const pAir = specific_cast<AircraftClass*>(pTarget->RadioLinks[i]))
+				if (auto const pAir = cast_to<AircraftClass*>(pTarget->RadioLinks[i]))
 				{
 					if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe)
 					{

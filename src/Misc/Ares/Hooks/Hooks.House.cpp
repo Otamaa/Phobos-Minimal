@@ -1195,7 +1195,7 @@ DEFINE_HOOK(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 	}
 
 	// check whether this is a building
-	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+	if (auto pBld = cast_to<BuildingClass*>(pTechno))
 	{
 		auto pInitialOwner = pBld->InitialOwner;
 

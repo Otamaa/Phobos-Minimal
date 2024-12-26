@@ -11,7 +11,7 @@ DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	int weapon = pThis->Type->DeployFireWeapon;
 	if (pThis->Type->DeployFireWeapon == -1)
 	{
-		if (const auto pTarget = generic_cast<TechnoClass*>(pThis->Target)) {
+		if (const auto pTarget = flag_cast_to<TechnoClass*>(pThis->Target)) {
 			if (pTarget->IsAlive) {
 				weapon = pThis->SelectWeapon(pTarget);
 			}
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	pThis->SetTarget(nullptr);
-	if (auto pUnit = specific_cast<UnitClass*>(pThis)) {
+	if (auto pUnit = cast_to<UnitClass*>(pThis)) {
 		if (pUnit->Type->DeployFire
 			&& !pUnit->Type->IsSimpleDeployer
 			&& !pUnit->Deployed
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pUnit = specific_cast<UnitClass*>(pThis);
+	auto const pUnit = cast_to<UnitClass*>(pThis);
 
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
 	if (pUnit && pUnit->Type->DeployFire
@@ -141,7 +141,7 @@ DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pUnit = specific_cast<UnitClass*>(pThis);
+	auto const pUnit = cast_to<UnitClass*>(pThis);
 	if (pUnit
 		&& pUnit->CurrentMission == Mission::Unload
 		&& pUnit->Type->DeployFire

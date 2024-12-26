@@ -57,7 +57,7 @@ public:
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6918A0);
 	virtual bool SaveToINI(CCINIClass* pINI) override JMP_THIS(0x6917F0);
-	
+
 	static bool LoadFromINIList(CCINIClass *pINI, bool IsGlobal)
 		{ JMP_STD(0x691970); }
 

@@ -385,7 +385,7 @@ void InfantryClass::RemoveMe_FromGunnerTransport()
 {
 	if (auto pTransport = this->Transporter)
 	{
-		if (auto pUnit = specific_cast<UnitClass*>(pTransport))
+		if (auto pUnit = cast_to<UnitClass*>(pTransport))
 		{
 			if (pUnit->GetTechnoType()->Gunner)
 			{
@@ -1367,7 +1367,7 @@ void TechnoClass::FreeSpecificSlave(HouseClass* Affector) {
 	//as I wrote it in http://bugs.renegadeprojects.com/view.php?id=357#c10331
 	//So, expand that one instead, kthx.
 
-	if (InfantryClass* pSlave = specific_cast<InfantryClass*>(this)) {
+	if (InfantryClass* pSlave = cast_to<InfantryClass*>(this)) {
 		auto Manager = pSlave->SlaveOwner->SlaveManager;
 
 		//LostSlave can free the unit from the miner, so we're awesome.

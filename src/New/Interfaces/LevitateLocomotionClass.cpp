@@ -100,7 +100,7 @@ void LevitateLocomotionClass::ProcessHovering()
 // Done
 void LevitateLocomotionClass::DoPhase1()
 {
-	if (const auto pTargetT = generic_cast<TechnoClass*>(LinkedTo->Target))
+	if (const auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
 	{
 		if (pTargetT->IsAlive && pTargetT->IsOnMap)
 		{
@@ -136,7 +136,7 @@ void LevitateLocomotionClass::DoPhase1()
 	}
 
 	if(LinkedTo->Destination) {
-		const auto pTargetNav = generic_cast<TechnoClass*>(LinkedTo->Destination);
+		const auto pTargetNav = flag_cast_to<TechnoClass*>(LinkedTo->Destination);
 
 		if (!pTargetNav || !pTargetNav->IsAlive || !pTargetNav->IsOnMap)
 		{
@@ -309,7 +309,7 @@ void LevitateLocomotionClass::DoPhase3()
 {
 
 	if(LinkedTo->Target) {
-		const auto pTargetT = generic_cast<TechnoClass*>(LinkedTo->Target);
+		const auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target);
 
 		if (pTargetT && pTargetT->IsAlive && pTargetT->IsOnMap)
 		{
@@ -329,7 +329,7 @@ void LevitateLocomotionClass::DoPhase3()
 	}
 
 	if(LinkedTo->Destination) {
-		const auto pNavT = generic_cast<TechnoClass*>(LinkedTo->Destination);
+		const auto pNavT = flag_cast_to<TechnoClass*>(LinkedTo->Destination);
 
 		if (pNavT && pNavT->IsAlive && pNavT->IsOnMap)
 		{
@@ -380,7 +380,7 @@ void LevitateLocomotionClass::DoPhase4()
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
 	if (CurrentVelocity < 0.01)
 	{
-		if (auto pTargetT = generic_cast<TechnoClass*>(LinkedTo->Target))
+		if (auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
 		{
 			if (pTargetT->IsAlive && pTargetT->IsOnMap)
 			{
@@ -412,7 +412,7 @@ void LevitateLocomotionClass::DoPhase4()
 			LinkedTo->SetTarget(nullptr);
 		}
 
-		const auto pNavT = generic_cast<TechnoClass*>(LinkedTo->Destination);
+		const auto pNavT = flag_cast_to<TechnoClass*>(LinkedTo->Destination);
 
 		if (!pNavT || !pNavT->IsAlive || !pNavT->IsOnMap)
 		{
@@ -501,7 +501,7 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 void LevitateLocomotionClass::DoPhase6()
 {
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	if (auto pTargetT = generic_cast<TechnoClass*>(LinkedTo->Target))
+	if (auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
 	{
 		if (pTargetT->IsAlive && pTargetT->IsOnMap)
 		{
@@ -535,7 +535,7 @@ void LevitateLocomotionClass::DoPhase6()
 		LinkedTo->SetTarget(nullptr);
 	}
 
-	if (auto pDestT = generic_cast<TechnoClass*>(LinkedTo->Destination))
+	if (auto pDestT = flag_cast_to<TechnoClass*>(LinkedTo->Destination))
 	{
 		if (pDestT->IsAlive && pDestT->IsOnMap)
 		{
@@ -572,7 +572,7 @@ void LevitateLocomotionClass::DoPhase7()
 
 	if (nDistance < 5)
 	{
-		if (const auto pTargetT = generic_cast<TechnoClass*>(LinkedTo->Target))
+		if (const auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
 		{
 			if (pTargetT->IsAlive && pTargetT->IsOnMap)
 			{
@@ -613,7 +613,7 @@ void LevitateLocomotionClass::DoPhase7()
 			return;
 		}
 
-		const auto pDestT = generic_cast<TechnoClass*>(LinkedTo->Destination);
+		const auto pDestT = flag_cast_to<TechnoClass*>(LinkedTo->Destination);
 
 		if (pDestT && pDestT->IsAlive && pDestT->IsOnMap)
 		{
@@ -666,7 +666,7 @@ void LevitateLocomotionClass::DoPhase7()
 bool LevitateLocomotionClass::IsDestValid()
 {
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	if (const auto pNavT = generic_cast<TechnoClass*>(LinkedTo->Destination))
+	if (const auto pNavT = flag_cast_to<TechnoClass*>(LinkedTo->Destination))
 	{
 		if (pNavT->IsAlive && pNavT->IsOnMap)
 		{ return true; }
@@ -679,7 +679,7 @@ bool LevitateLocomotionClass::IsDestValid()
 bool LevitateLocomotionClass::IsTargetValid()
 {
 	//GameDebugLog::Log(__FUNCTION__" Called !  \n");
-	if (const auto pNavT = generic_cast<TechnoClass*>(LinkedTo->Target))
+	if (const auto pNavT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
 	{
 		if (pNavT->IsAlive && pNavT->IsOnMap)
 		{ return true; }

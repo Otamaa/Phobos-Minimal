@@ -32,7 +32,7 @@ DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 	REF_STACK(bool, bLoadFailed, 0x13);
 	GET(ObjectTypeClass*, pThis, ESI);
 
-	const auto pType = specific_cast<UnitTypeClass*>(pThis);
+	const auto pType = type_cast<UnitTypeClass*>(pThis);
 
 	if (!pType)
 		return 0x5F8640;

@@ -25,7 +25,7 @@ struct CellRectIterator
 	void operator () (LTRBStruct bounds, Func&& action) const {
 		CellRectIterator<ObjectClass>{}(bounds, [&action](ObjectClass* const pObject)
 		{
-			if(auto const pItem = abstract_cast<T*>(pObject)) {
+			if(auto const pItem = flag_cast_to<T*>(pObject)) {
 				if(!action(pItem)) {
 					return false;
 				}
@@ -83,7 +83,7 @@ struct CellRangeIterator
 	void operator () (CellStruct const center, double radius, Func&& action) const {
 		CellRangeIterator<ObjectClass>{}(center, radius, [&action](ObjectClass* const pObject)
 		{
-			if(auto const pItem = abstract_cast<T*>(pObject)) {
+			if(auto const pItem = flag_cast_to<T*>(pObject)) {
 				if(!action(pItem)) {
 					return false;
 				}
@@ -142,7 +142,7 @@ struct CellSpreadIterator
 	void operator () (CellStruct const center, size_t const spread, Func&& action) const {
 		CellSpreadIterator<ObjectClass>{}(center, spread, [&action](ObjectClass* const pObject)
 		{
-			if(auto const pItem = abstract_cast<T*>(pObject)) {
+			if(auto const pItem = flag_cast_to<T*>(pObject)) {
 				if(!action(pItem)) {
 					return false;
 				}

@@ -599,7 +599,7 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 	{
 		pThis->Guard();
 
-		if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
 		{
 			pFoot->Locomotor.GetInterfacePtr()->Power_On();
 		}
@@ -622,7 +622,7 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 			}
 
 			// change: update factories
-			if (auto const pBld = specific_cast<BuildingClass*>(pThis))
+			if (auto const pBld = cast_to<BuildingClass*>(pThis))
 			{
 				TechnoExt_ExtData::UpdateFactoryQueues(pBld);
 			}
@@ -661,7 +661,7 @@ DEFINE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 	GET_STACK(RectangleStruct*, pRect, 0xA0);
 
-	if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+	if (auto pBld = cast_to<BuildingClass*>(pTechno))
 	{
 		const auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 		const auto isObserver = HouseClass::IsCurrentPlayerObserver();
@@ -747,7 +747,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	if (!HouseClass::CurrentPlayer)
 		return 0x70AD4C;
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	if (auto pBuilding = cast_to<BuildingClass*>(pThis))
 	{
 		auto const pType = pBuilding->Type;
 		auto const pOwner = pBuilding->Owner;
@@ -886,7 +886,7 @@ DEFINE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 	pThis->Guard();
 	pThis->Deselect();
 
-	if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+	if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
 	{
 		pFoot->Locomotor.GetInterfacePtr()->Power_Off();
 	}
@@ -909,7 +909,7 @@ DEFINE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 		}
 
 		// change: update factories
-		if (auto const pBld = specific_cast<BuildingClass*>(pThis))
+		if (auto const pBld = cast_to<BuildingClass*>(pThis))
 		{
 			TechnoExt_ExtData::UpdateFactoryQueues(pBld);
 		}
@@ -939,7 +939,7 @@ DEFINE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 		pJammer->UnjamAll();
 	}
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+	if (auto pBuilding = cast_to<BuildingClass*>(pThis)) {
 
 		const auto nTunnelVec = HouseExtData::GetTunnelVector(pBuilding->Type, pThis->Owner);
 
@@ -1318,7 +1318,7 @@ DEFINE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x5)
 
 	// if the potential target is attacking an allied object, consider it an enemy
 	// to not allow civilians to overrun a player
-	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
+	if (const auto pTargetTarget = flag_cast_to<TechnoClass*>(pTarget->Target)) {
 		if (pThis->Owner->IsAlliedWith(pTargetTarget)) {
 			const auto pData = RulesExtData::Instance();
 
@@ -1482,7 +1482,7 @@ DEFINE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 
 	bool IsAlly = false;
 
-	if (const auto pTechTarget = generic_cast<ObjectClass*>(pThis->Target)) {
+	if (const auto pTechTarget = flag_cast_to<ObjectClass*>(pThis->Target)) {
 		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
 			if (pOwner->IsAlliedWith(pTargetHouse)) {
 				IsAlly = true;

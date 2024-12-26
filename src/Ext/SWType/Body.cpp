@@ -300,7 +300,7 @@ bool SWTypeExtData::CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool
 	}
 
 	// check for techno type match
-	auto const pTechno = abstract_cast<TechnoClass*>(pCell->GetContent());
+	auto const pTechno = flag_cast_to<TechnoClass*>(pCell->GetContent());
 	auto const AllowedHouse = !manual ? this->GetAIRequiredHouse() : this->SW_RequiresHouse;
 	if (pTechno && AllowedHouse != AffectedHouse::None)
 	{
@@ -509,7 +509,7 @@ struct TargetingFuncs
 
 	static bool IgnoreThis(TechnoClass* pTechno)
 	{
-		if (const auto pBld = specific_cast<BuildingClass*>(pTechno)) {
+		if (const auto pBld = cast_to<BuildingClass*>(pTechno)) {
 			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 				return true;
 		}
@@ -618,7 +618,7 @@ struct TargetingFuncs
 			for (size_t i = 0; i < CellSpread::NumCells(3); ++i)
 			{
 				 auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
-				 for (NextObject j(pCell->FirstObject); abstract_cast<FootClass*>(*j); ++j)
+				 for (NextObject j(pCell->FirstObject); flag_cast_to<FootClass*>(*j); ++j)
 				 {
 					 const auto pFoot = static_cast<FootClass*>(*j);
 
@@ -699,7 +699,7 @@ struct TargetingFuncs
 			{
 				 const auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
-				 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); specific_cast<InfantryClass*>(*j); ++j)
+				 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); cast_to<InfantryClass*>(*j); ++j)
 				 {
 					const auto pInf = static_cast<InfantryClass*>(*j);
 

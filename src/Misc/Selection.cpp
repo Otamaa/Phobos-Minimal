@@ -96,7 +96,7 @@ public:
 					(*fpCheckCallback)(pTechno);
 				else
 				{
-					const auto pBldType = specific_cast<BuildingTypeClass*>(pTechnoType);
+					const auto pBldType = type_cast<BuildingTypeClass*>(pTechnoType);
 					const auto pOwner = pTechno->GetOwningHouse();
 
 					if (pOwner
@@ -130,7 +130,7 @@ public:
 
 			LTRBStruct rect { nLeft , nTop, nRight - nLeft + 1, nBottom - nTop + 1 };
 
-			const bool bPriorityFiltering = Phobos::Config::PrioritySelectionFiltering 
+			const bool bPriorityFiltering = Phobos::Config::PrioritySelectionFiltering
 			&& pThis->IsHighPriorityInRect(&rect);
 
 			pThis->SelectFiltered(&rect, fpCheckCallback, bPriorityFiltering);

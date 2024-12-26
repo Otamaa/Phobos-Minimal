@@ -140,7 +140,7 @@ DEFINE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 
 	// ensure the target won't get away
 	if (pThis->GetTechnoType()->HunterSeeker) {
-		if (auto const pTarget = abstract_cast<TechnoClass*>(pThis->Target)) {
+		if (auto const pTarget = flag_cast_to<TechnoClass*>(pThis->Target)) {
 
 			const auto pWpS = pThis->GetWeapon(0);
 

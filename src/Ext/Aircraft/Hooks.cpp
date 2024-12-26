@@ -44,7 +44,7 @@ DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 	if (!pTarget)
 		return 0;
 
-	auto const pObject = abstract_cast<ObjectClass*>(pTarget);
+	auto const pObject = flag_cast_to<ObjectClass*>(pTarget);
 
 	if (!pObject || !pObject->IsInAir())
 		return 0;
@@ -278,7 +278,7 @@ DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 {
 	GET(ILocomotion*, iloco, ESI);
 	auto loco = static_cast<FlyLocomotionClass*>(iloco);
-	auto pAir = specific_cast<AircraftClass*>(loco->LinkedTo);
+	auto pAir = cast_to<AircraftClass*>(loco->LinkedTo);
 
 	if (pAir && pAir->GetHeight() <= 0)
 	{

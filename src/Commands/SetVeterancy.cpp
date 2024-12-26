@@ -32,7 +32,7 @@ void SetVeterancyCommandClass::Execute(WWKey eInput) const
 
 	for (auto pObj : ObjectClass::CurrentObjects())
 	{
-		const auto pTechn = generic_cast<TechnoClass*>(pObj);
+		const auto pTechn = flag_cast_to<TechnoClass*>(pObj);
 
 		if (!pTechn)
 			continue;

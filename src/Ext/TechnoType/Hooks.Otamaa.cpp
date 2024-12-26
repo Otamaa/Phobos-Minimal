@@ -61,7 +61,7 @@ DEFINE_HOOK(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	if (const auto pBuilding = cast_to<BuildingClass*>(pThis))
 	{
 		if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->IsJuggernaut)
 		{

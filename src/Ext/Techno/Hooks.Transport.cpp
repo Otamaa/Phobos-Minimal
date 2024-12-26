@@ -78,7 +78,7 @@ DEFINE_HOOK(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
 
 			while (pPassenger && pPassenger->NextObject)
 			{
-				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
 
 				if (pPassenger)
 					pPassenger->SetOwningHouse(pThis->Owner, false);

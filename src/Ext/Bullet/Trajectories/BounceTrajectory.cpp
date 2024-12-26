@@ -12,7 +12,7 @@ namespace Utils
 		CoordStruct coords = nCoord;
 		auto payback = pFrom->Owner;
 
-		if (!generic_cast<TechnoClass*>(pFrom->Owner))
+		if (!flag_cast_to<TechnoClass*>(pFrom->Owner))
 		{
 			payback = nullptr;
 		}
@@ -35,7 +35,7 @@ namespace Utils
 
 bool BounceTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return PhobosTrajectoryType::Load(Stm, RegisterForChange) && 
+	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
 	Stm.Process(this->BounceAmount, false)
 	   .Process(this->BounceWeapon, true);
 }

@@ -42,7 +42,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 		return;
 
 	ObjectClass::CurrentObjects->for_each([](ObjectClass* const object) {
-		if (TechnoClass* techno = generic_cast<TechnoClass*>(object)) {
+		if (TechnoClass* techno = flag_cast_to<TechnoClass*>(object)) {
 
 			auto const pToOwner = HouseClass::CurrentPlayer();
 

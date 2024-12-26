@@ -178,7 +178,7 @@ DEFINE_HOOK(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 	GET(InfantryClass*, pSelected, EDI);
 	GET(ObjectClass*, pTarget, ESI);
 
-	TechnoClass* pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
+	TechnoClass* pTechnoTarget = flag_cast_to<TechnoClass*>(pTarget);
 
 	if (!pTechnoTarget)
 		return DontCapture;
@@ -242,7 +242,7 @@ DEFINE_HOOK(0x519675, InfantryClass_UpdatePosition_BeforeInfantrySpecific, 0xA)
 		// steal vehicles / reclaim KillDriver'd units using CanDrive
 		if (pThis->CurrentMission == Mission::Capture)
 		{
-			if (TechnoClass* pDest = generic_cast<TechnoClass*>(pThis->Destination))
+			if (TechnoClass* pDest = flag_cast_to<TechnoClass*>(pThis->Destination))
 			{
 				// this is the possible target we stand on
 				CellClass* pCell = pThis->GetCell();
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 {
 	GET(InfantryClass* const, pThis, EBP);
 
-	const auto pTargetTechno = generic_cast<TechnoClass* const>(pThis->Target);
+	const auto pTargetTechno = flag_cast_to<TechnoClass* const>(pThis->Target);
 
 	if (!pTargetTechno || RulesClass::Instance->ConditionGreen <= pTargetTechno->GetHealthPercentage())
 		pThis->SetTarget(nullptr);
@@ -575,7 +575,7 @@ DEFINE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 	GET(InfantryClass*, pThis, EDI);
 	GET(ObjectClass*, pTarget, ESI);
 
-	if (auto pTargetBld = abstract_cast<BuildingClass*>(pTarget)) {
+	if (auto pTargetBld = cast_to<BuildingClass*>(pTarget)) {
 		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith(pTargetBld)) {
 
 			if (!InputManagerClass::Instance->IsForceFireKeyPressed()) {

@@ -107,7 +107,7 @@ DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl_Override, 0x6)
 	GET(FakeBulletClass*, pThis, ESI);
 
 	const auto pControlledAnimType = pThis->_GetWarheadTypeExtData()->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
-	const auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
+	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 	const auto Controller = pThis->Owner;
 
 	R->AL(CaptureExt::CaptureUnit(Controller->CaptureManager,
@@ -206,7 +206,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 				return &dest;
 			};
 
-			void (*tryDetonate)(BulletClass*, TechnoClass*, WarheadTypeExtData*, HouseClass*) 
+			void (*tryDetonate)(BulletClass*, TechnoClass*, WarheadTypeExtData*, HouseClass*)
 					= pWHExt->DetonateOnAllMapObjects_Full ? TryDetonateFull : TryDetonateDamageArea;
 
 			auto& CurCopyArray = PhobosGlobal::Instance()->CurCopyArray[pThis->WH];

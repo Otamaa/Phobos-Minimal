@@ -567,7 +567,7 @@ Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 	// Step 1: get body transform matrix
 	Matrix3D matrix3D = Matrix3D::GetIdentity();
 
-	if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
+	if (auto const pFoot = flag_cast_to<FootClass*>(pTechno))
 	{
 		if (auto const pLoco = pFoot->Locomotor.GetInterfacePtr())
 		{
@@ -941,7 +941,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 {
 	if (pType)
 	{
-		auto const pTechno = generic_cast<TechnoClass*>(pType->CreateObject(pHouse));
+		auto const pTechno = flag_cast_to<TechnoClass*>(pType->CreateObject(pHouse));
 		bool UnlimboSuccess = false;
 
 		if (!pCell && location != CoordStruct::Empty)
@@ -1000,7 +1000,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 		return;
 
 	CoordStruct targetPos {};
-	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
+	if (auto const pFoot = flag_cast_to<FootClass*>(pTarget))
 		targetPos = CellClass::Cell2Coord(pFoot->GetDestinationMapCoords());
 	else
 		targetPos = pTarget->GetCoords();

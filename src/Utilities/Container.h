@@ -17,9 +17,6 @@ template <class T>
 concept HasAbsID = requires(T) { T::AbsID; };
 
 template <class T>
-concept HasDeriveredAbsID = requires(T) { T::AbsDerivateID; };
-
-template <class T>
 concept HasTypeBase = requires(T) { T::AbsTypeBase; };
 
 template <typename T>

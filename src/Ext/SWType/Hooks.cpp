@@ -2217,7 +2217,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 				if (auto const pObj = pCell->FindTechnoNearestTo(
 					Point2D::Empty, false, pCellBld))
 				{
-					if (auto const pBld = specific_cast<BuildingClass*>(pObj))
+					if (auto const pBld = cast_to<BuildingClass*>(pObj))
 					{
 						if (pBld->Type->LightningRod)
 						{
@@ -2373,7 +2373,7 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 
 		auto const empty = Point2D::Empty;
 		auto const pObj = pCell->FindTechnoNearestTo(empty, false, nullptr);
-		auto const isInfantry = specific_cast<InfantryClass*>(pObj) != nullptr;
+		auto const isInfantry = cast_to<InfantryClass*>(pObj) != nullptr;
 
 		// empty cell action
 		if (!pBld && !pObj)
@@ -2390,7 +2390,7 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 		auto damage = pNewSW->GetDamage(pData);
 		if (!pData->Weather_IgnoreLightningRod)
 		{
-			if (auto const pBldObj = specific_cast<BuildingClass*>(pObj))
+			if (auto const pBldObj = cast_to<BuildingClass*>(pObj))
 			{
 				const auto& nRodTypes = pData->Weather_LightningRodTypes;
 				auto const pBldType = pBldObj->Type;
@@ -2598,7 +2598,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// add to the other newly captured minions.
-				if (FootClass* pFoot = generic_cast<FootClass*>(pTechno))
+				if (FootClass* pFoot = flag_cast_to<FootClass*>(pTechno))
 				{
 					// the AI sends all new minions to hunt
 					const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :

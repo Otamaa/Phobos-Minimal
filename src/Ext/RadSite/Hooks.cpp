@@ -326,7 +326,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
 		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 
-		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
 		{
 			//Spawnee trying to chase Aircraft that go out of map until it reset
 			//fix this , so reset immedietely if target is not on map
@@ -352,7 +352,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 	}
 
 	const auto nLoc = pThis->InlineMapCoords();
-	auto const pUnit = specific_cast<UnitClass*>(pThis);
+	auto const pUnit = cast_to<UnitClass*>(pThis);
 
 	//R->BL(false);
 

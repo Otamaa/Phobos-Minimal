@@ -100,7 +100,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		{
 			auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames);
 			pManager->ControlNodes.AddItem(pControlNode);
-			const auto pBld = specific_cast<BuildingClass*>(pTarget);
+			const auto pBld = cast_to<BuildingClass*>(pTarget);
 
 			if (pBld) {
 				BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = true;

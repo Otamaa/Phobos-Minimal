@@ -9,6 +9,8 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 
+#include <Utilities/Cast.h>
+
 DEFINE_HOOK_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 DEFINE_HOOK(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 {
@@ -307,7 +309,7 @@ DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 	auto pNewOwner= pThis->Owner;
 
 	if(OldOwner){
-		if (auto pMe = generic_cast<FootClass*>(pThis))
+		if (auto pMe = flag_cast_to<FootClass*>(pThis))
 		{
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pMe->GetTechnoType());
 			bool I_am_human = OldOwner->IsControlledByHuman();

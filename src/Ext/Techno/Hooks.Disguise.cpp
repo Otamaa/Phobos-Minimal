@@ -26,7 +26,7 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 	GET(AbstractClass*, pTarget, ESI);
 	GET(UnitClass*, pThis, EDI);
 
-	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
+	auto const pObjectT = flag_cast_to<ObjectClass*>(pTarget);
 
 	if (!pObjectT || pObjectT->IsDisguised())
 		return 0x0;

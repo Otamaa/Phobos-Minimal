@@ -16,7 +16,7 @@ SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 
 void KillCargo(TechnoClass* pTech , HouseClass* killer)
 {
-	if(auto pBuilding = specific_cast<BuildingClass*>(pTech)) {
+	if(auto pBuilding = cast_to<BuildingClass*>(pTech)) {
 		for(auto& pOcc : pBuilding->Occupants) {
 			pOcc->RegisterKill(killer);
 			pOcc->UnInit();
@@ -25,7 +25,7 @@ void KillCargo(TechnoClass* pTech , HouseClass* killer)
 		pBuilding->Occupants.Count = 0;
 	}
 
-	const auto pFoot = generic_cast<FootClass*>(pTech);
+	const auto pFoot = flag_cast_to<FootClass*>(pTech);
 
 	while(pTech->Passengers.GetFirstPassenger())
 	{
@@ -112,7 +112,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 		// differentiate between buildings and vehicle-type buildings
 		bool IsVehicle = false;
-		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = cast_to<BuildingClass*>(pTechno))
 		{
 			// always ignore bridge repair huts
 			if (pBld->Type->BridgeRepairHut || pBld->Type->InvisibleInGame)
@@ -188,7 +188,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		// remove squids. terror drones stay inside.
-		if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pTechno))
 		{
 			if (auto const pSquid = pFoot->ParasiteEatingMe)
 			{
@@ -206,12 +206,12 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		// disconnect bunker and contents
 		if (pTechno->BunkerLinkedItem)
 		{
-			if (auto const pBunkerLink = specific_cast<BuildingClass*>(pTechno->BunkerLinkedItem))
+			if (auto const pBunkerLink = cast_to<BuildingClass*>(pTechno->BunkerLinkedItem))
 			{
 				// unit will be destroyed or chronoported. in every case the bunker will be empty.
 				pBunkerLink->ClearBunker();
 			}
-			else if (auto const pBunker = specific_cast<BuildingClass*>(pTechno))
+			else if (auto const pBunker = cast_to<BuildingClass*>(pTechno))
 			{
 				// the bunker leaves...
 				pBunker->UnloadBunker();
@@ -220,7 +220,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		}
 
 		// building specific preparations
-		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = cast_to<BuildingClass*>(pTechno))
 		{
 			// tell all linked units to get off
 			pBld->SendToEachLink(RadioCommand::RequestRedraw);
@@ -250,7 +250,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		if(pSourceSWExt->Chronosphere_KillCargo)
 			KillCargo(pTechno , false);
 
-		if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pTechno))
 		{
 #pragma region ChangeLoco
 			// move the unit to the new position
@@ -278,7 +278,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pFoot->ChronoWarpedByHouse = pThis->Owner;
 			pFoot->SetDestination(pCellUnitTarget, true);
 		}
-		else if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
+		else if (auto const pBld = cast_to<BuildingClass*>(pTechno))
 		{
 			// begin the building chronoshift
 			TechnoClass::ClearWhoTargetingThis(pBld);

@@ -141,7 +141,7 @@ void ShieldClass::OnRemove() { KillAnim(); }
 
 bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 {
-	if (const auto pThis = generic_cast<TechnoClass*>(pAttached))
+	if (const auto pThis = flag_cast_to<TechnoClass*>(pAttached))
 	{
 		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -167,7 +167,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	if (*args->Damage < 0) {
-		if (auto const pFoot = abstract_cast<FootClass*>(this->Techno)) {
+		if (auto const pFoot = flag_cast_to<FootClass*>(this->Techno)) {
 			if (auto const pParasite = pFoot->ParasiteEatingMe) {
 					// Remove parasite.
 					pParasite->ParasiteImUsing->SuppressionTimer.Start(50);

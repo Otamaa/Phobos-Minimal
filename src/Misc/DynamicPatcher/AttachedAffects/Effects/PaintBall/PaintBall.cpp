@@ -44,7 +44,7 @@ void PaintBall::Init()
 
  bool PaintBall::AllowDraw(TechnoClass* pWho)
 {
-	if (auto const pBld = specific_cast<BuildingClass*>(pWho))
+	if (auto const pBld = cast_to<BuildingClass*>(pWho))
 	{
 		if (pBld->IsFogged && !Data->IgnoreFog)
 			return false;

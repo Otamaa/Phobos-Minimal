@@ -46,7 +46,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	if (const auto pCell = specific_cast<CellClass*>(pTarget))
+	if (const auto pCell = cast_to<CellClass*>(pTarget))
 	{
 		auto const pWeaponPrimary = pThis->GetWeapon(0)->WeaponType;
 		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;

@@ -36,7 +36,7 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 			{
 				ObjectClass* pNext = pFirst->NextObject;
 
-				if (auto pTechno = generic_cast<TechnoClass*>(pFirst)) {
+				if (auto pTechno = flag_cast_to<TechnoClass*>(pFirst)) {
 					const auto pType = pTechno->GetTechnoType();
 					if (!TechnoTypeExtContainer::Instance.Find(pType)->IsDummy &&pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo){
 						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)   {

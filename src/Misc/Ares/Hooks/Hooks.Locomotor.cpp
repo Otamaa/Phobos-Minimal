@@ -429,7 +429,7 @@ DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 				auto damage = pWeapon->Damage;
 
 				//if the target exist , damage the target
-				if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget)) {
+				if (auto const pTechno = flag_cast_to<TechnoClass*>(pTarget)) {
 					pTechno->ReceiveDamage(&damage, 0, pWeapon->Warhead, pObject, true, true, pObject->Owner);
 				}
 

@@ -201,7 +201,7 @@ bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
 
 void BuildingTypeExtData::DisplayPlacementPreview()
 {
-	const auto pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding);
+	const auto pBuilding = cast_to<BuildingClass*>(DisplayClass::Instance->CurrentBuilding);
 
 	if (!pBuilding)
 		return;

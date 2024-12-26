@@ -292,3 +292,6 @@ public:
 static_assert(sizeof(AbstractClass) == 0x24, "Invalid size.");
 //typedef AbstractClass* TARGET;
 //#pragma pack(pop)
+
+template <class T>
+concept HasDeriveredAbsID = requires(T) { T::AbsDerivateID; };

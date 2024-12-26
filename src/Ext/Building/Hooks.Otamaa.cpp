@@ -85,7 +85,7 @@ DEFINE_HOOK(0x43F000, BuildingClass_GetStaticImage_Sell, 0x6)
 DEFINE_HOOK_AGAIN(0x6D5EB1, BuildingClass_PlaceCementGrid_Shape, 0x6)
 DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 {
-	if (auto const pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)) {
+	if (auto const pBuilding = cast_to<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)) {
 		R->EDX(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
 		return R->Origin() + 0x6;
 	}

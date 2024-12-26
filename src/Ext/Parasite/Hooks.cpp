@@ -35,7 +35,7 @@ DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
 	const auto pTerrain = [](CellClass* pCell)->TerrainClass* {
 		for (ObjectClass* pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
-			const auto pTerrain = specific_cast<TerrainClass*>(pObject);
+			const auto pTerrain = cast_to<TerrainClass*>(pObject);
 
 			if (pTerrain && !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable)
 				return pTerrain;

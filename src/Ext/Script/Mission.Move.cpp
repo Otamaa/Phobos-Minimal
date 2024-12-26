@@ -111,7 +111,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	}
 
 	TechnoTypeClass * pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
-	TechnoClass* pFocus = abstract_cast<TechnoClass*>(pTeam->ArchiveTarget);
+	TechnoClass* pFocus = flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget);
 
 	if (!pFocus && !bAircraftsWithoutAmmo)
 	{
@@ -244,7 +244,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 	// Favorite Enemy House case. If set, AI will focus against that House
 	if (!pickAllies && pTechno->BelongsToATeam())
 	{
-		if (auto pFoot = abstract_cast<FootClass*>(pTechno))
+		if (auto pFoot = flag_cast_to<FootClass*>(pTechno))
 		{
 			const int enemyHouseIndex = pFoot->Team->FirstUnit->Owner->EnemyHouseIndex;
 			const auto pHouseExt = HouseExtContainer::Instance.Find(pFoot->Team->Owner);

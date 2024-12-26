@@ -30,7 +30,7 @@ DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if(pThisTypeExt->NavalRangeBonus.isset()){
-		if (auto const pFoot = abstract_cast<FootClass* const>(pTarget)) {
+		if (auto const pFoot = flag_cast_to<FootClass* const>(pTarget)) {
 			if (pThisTypeExt->AttachedToObject->Naval) {
 				const auto pFootCell = pFoot->GetCell();
 				if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())

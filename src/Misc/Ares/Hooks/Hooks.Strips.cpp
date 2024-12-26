@@ -314,7 +314,7 @@ DEFINE_HOOK(0x6a9822, StripClass_Draw_Power, 5)
 
 	if (IsDone)
 	{
-		if (auto pBuilding = specific_cast<BuildingClass*>(pFactory->Object))
+		if (auto pBuilding = cast_to<BuildingClass*>(pFactory->Object))
 		{
 			IsDone = pBuilding->FindFactory(true, true) != nullptr;
 		}

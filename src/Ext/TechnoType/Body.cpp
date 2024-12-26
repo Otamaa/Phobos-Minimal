@@ -165,7 +165,7 @@ bool TechnoTypeExtData::IsCountedAsHarvester()
 			this->Harvester_Counted = true;
 		}
 
-		if (const auto pUnit = specific_cast<UnitTypeClass*>(this->AttachedToObject)){
+		if (const auto pUnit = type_cast<UnitTypeClass*>(this->AttachedToObject)){
 			if(pUnit->Harvester || pUnit->Enslaves){
 				this->Harvester_Counted = true;
 			}
@@ -1656,7 +1656,7 @@ void TechnoTypeExtData::AdjustCrushProperties()
 	if (this->CrushableLevel.Elite <= 0)
 		this->CrushableLevel.Elite = this->CrushableLevel.Veteran;
 
-	if (const auto pInfType = abstract_cast<InfantryTypeClass*>(pThis))
+	if (const auto pInfType = type_cast<InfantryTypeClass*>(pThis))
 	{
 		if (this->DeployCrushableLevel.Rookie <= 0)
 		{

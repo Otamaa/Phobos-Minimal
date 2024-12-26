@@ -241,7 +241,7 @@ DEFINE_HOOK(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
 	if (pTarget->InLimbo || !pTarget->IsAlive)
 		return 0x6F894F;
 
-	if (const auto pTechno = generic_cast<TechnoClass*>(pTarget))
+	if (const auto pTechno = flag_cast_to<TechnoClass*>(pTarget))
 	{
 
 		if (pTechno->IsCrashing || pTechno->IsSinking)

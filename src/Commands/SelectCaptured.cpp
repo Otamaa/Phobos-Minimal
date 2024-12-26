@@ -48,7 +48,7 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 
 	do
 	{
-		if (auto pTechno = abstract_cast<TechnoClass*>(pCurrentObject))
+		if (auto pTechno = flag_cast_to<TechnoClass*>(pCurrentObject))
 		{
 			TacticalClass* const pTactical = TacticalClass::Instance;
 			const Point2D coordInScreen = pTactical->CoordsToScreen(pTechno->GetCoords()) - pTactical->TacticalPos;

@@ -60,7 +60,7 @@ DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 
 	GET(FootClass*, pThis, ESI);
 
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis->Destination))
+	if (auto const pBuilding = cast_to<BuildingClass*>(pThis->Destination))
 	{
 		if (pBuilding->Type->Grinding && !BuildingExtData::CanGrindTechno(pBuilding, pThis))
 		{
@@ -80,9 +80,9 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(Action, action, EBP);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
 	{
-		if (action == Action::Select 
+		if (action == Action::Select
 			&& pBuilding->Type->Grinding
 			&& pThis->Owner->IsControlledByHuman()
 			&& !pBuilding->IsBeingWarpedOut() )
@@ -103,7 +103,7 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	GET(InfantryClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
 	{
 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
@@ -136,9 +136,9 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	if (WWKeyboardClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
 	{
-		if (action == Action::Select 
+		if (action == Action::Select
 			&& pThis->Owner->IsControlledByHuman()
 			&& !pBuilding->IsBeingWarpedOut())
 		{

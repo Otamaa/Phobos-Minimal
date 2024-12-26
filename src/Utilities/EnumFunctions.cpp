@@ -576,7 +576,7 @@ bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const&
 {
 	if (explicitEmptyCells)
 	{
-		const auto pTechno = abstract_cast<TechnoClass*>(pCell->GetContent());
+		const auto pTechno = flag_cast_to<TechnoClass*>(pCell->GetContent());
 
 		if (!pTechno && !(allowed & AffectedTarget::NoContent))
 			return false;
@@ -671,7 +671,7 @@ bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTa
 		if (!object || !eligible)
 			break;
 
-		if (auto pTechno = abstract_cast<TechnoClass*>(object))
+		if (auto pTechno = flag_cast_to<TechnoClass*>(object))
 		{
 			if (owner)
 			{

@@ -160,7 +160,7 @@ void BombardTrajectory::OnAIPreDetonate()
 {
 	auto const pBullet = this->AttachedTo;
 
-	auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
+	auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
 	auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
 
 	if (pCoords.DistanceFrom(pBullet->Location) <= this->GetTrajectoryType()->TargetSnapDistance.Get())

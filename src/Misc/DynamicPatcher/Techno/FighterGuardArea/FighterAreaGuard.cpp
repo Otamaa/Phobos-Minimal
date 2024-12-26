@@ -379,7 +379,7 @@ void FighterAreaGuard::OnUpdate()
 											continue;
 
 										bool IsBuilding = false;
-										if (const auto pBuilding = specific_cast<BuildingClass*>(pTech))
+										if (const auto pBuilding = cast_to<BuildingClass*>(pTech))
 										{
 											IsBuilding = true;
 											if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
@@ -581,7 +581,7 @@ bool FighterAreaGuard::FoundAndAttack(CoordStruct location)
 			const bool canAA = (hasPrimary && pPrimary->WeaponType->Projectile->AA) || (hasSecondary && pSecondary->WeaponType->Projectile->AA);
 
 			const double dist = (pTypeExt->MyFighterData.GuardRange <= 0 ? 1 : pTypeExt->MyFighterData.GuardRange) * 255;
-			for (auto const pTargetTechno : Helpers::Alex::getCellSpreadItems(sourcePos, dist, canAA))
+			for (auto const pTargetTechno : Helpers::Alex::getCellSpreadItems<TechnoClass>(sourcePos, dist, canAA))
 			{
 				if (CheckTarget(pTargetTechno))
 				{
@@ -661,7 +661,7 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 			return false;
 	}
 
-	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
+	if (const auto pBuildingTarget = cast_to<BuildingClass*>(pTarget))
 	{
 		if (BuildingExtContainer::Instance.Find(pBuildingTarget)->LimboID != -1)
 			return false;

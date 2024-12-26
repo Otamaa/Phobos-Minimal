@@ -27,7 +27,7 @@ DEFINE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 	GET(ObjectTypeClass*, pType, EBX);
 
 	if(pType) {
-		if(auto pBullet = specific_cast<BulletClass*>(pThis)) {
+		if(auto pBullet = cast_to<BulletClass*>(pThis)) {
 			BulletExtContainer::Instance.Find(pBullet)->CreateAttachedSystem();
 		}
 
@@ -129,7 +129,7 @@ DEFINE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 		HouseClass* pInvoker = nullptr ;
 		HouseClass* pVictim = nullptr;
 
-		if (const TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target)) {
+		if (const TechnoClass* Target = flag_cast_to<TechnoClass*>(pThis->Target)) {
 			pVictim = Target->Owner;
 		}
 

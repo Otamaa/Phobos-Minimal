@@ -363,7 +363,7 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 		}
 		else
 		{
-			if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+			if (auto const pBullet = cast_to<BulletClass*>(pThis->OwnerObject))
 				return pBullet->Owner;
 			else
 				return pThis->OwnerObject;
@@ -507,12 +507,12 @@ Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, void* _)
 
 	if (pExt->Layer_UseObjectLayer.Get())
 	{
-		if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pThis->OwnerObject))
 		{
 			if (auto const pLocomotor = pFoot->Locomotor.GetInterfacePtr())
 				return pLocomotor->In_Which_Layer();
 		}
-		else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+		else if (auto const pBullet = cast_to<BulletClass*>(pThis->OwnerObject))
 			return pBullet->InWhichLayer();
 
 		return pThis->OwnerObject->ObjectClass::InWhichLayer();
@@ -914,7 +914,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 		if(!target)
 			return 0x4251A3;
 
-		if (auto const pTechno = abstract_cast<TechnoClass*>(target)) {
+		if (auto const pTechno = flag_cast_to<TechnoClass*>(target)) {
 			if (TechnoExtContainer::Instance.Find(pTechno)->IsDetachingForCloak)
 				return 0x4251A3;
 		}

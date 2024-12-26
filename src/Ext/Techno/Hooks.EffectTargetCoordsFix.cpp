@@ -29,7 +29,7 @@ DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 	GET(const AbstractClass* const, pTarget, ECX);
 	LEA_STACK(CoordStruct*, nCoord, 0x40 - 0x18);
 
-	if (const auto pBuilding = specific_cast<const BuildingClass*>(pTarget)) {
+	if (const auto pBuilding = cast_to<const BuildingClass*>(pTarget)) {
 		//auto const& nTargetCoord = pBuilding->Type->TargetCoordOffset;
 		//Debug::Log("__FUNCTION__ Building  Target [%s] with TargetCoord %d , %d , %d \n", pBuilding->get_ID(), nTargetCoord.X , nTargetCoord.Y , nTargetCoord.Z);
 		pBuilding->GetTargetCoords(nCoord);
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 	auto coords = pOriginalTarget->GetCenterCoords();
 
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pOriginalTarget))
+	if (const auto pBuilding = cast_to<BuildingClass*>(pOriginalTarget))
 		coords = pBuilding->GetTargetCoords();
 
 	// This is set to a temp variable as well, as accessing it everywhere needed from TechnoExt would be more complicated.
@@ -535,7 +535,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	++pThis->CurrentBurstIndex;
 	pThis->CurrentBurstIndex %= pWeaponType->Burst;
 
-	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
+	if (auto const pTargetObject = cast_to<BulletClass* const>(pTarget))
 	{
 		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
 		{

@@ -59,7 +59,7 @@ DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 	GET(Point2D*, pPoint, ECX);
 	GET(RectangleStruct*, pBound, EAX);
 
-	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+	if (const auto pBld = cast_to<BuildingClass*>(pThis))
 	{
 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 		{
@@ -744,7 +744,7 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 	GET_STACK(bool, bIgnore, 0xD8);
 
 	const bool IsCurrentlyDamageImmune = pThis->IsBeingWarpedOut()
-		|| TechnoExtData::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pThis));
+		|| TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*>(pThis));
 
 	return (IsCurrentlyDamageImmune && !bIgnore) ? NullifyDamage : ContinueCheck;
 }
@@ -1248,7 +1248,7 @@ static void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStru
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	Point2D nOffs {};
 
-	const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
+	const auto pBuilding = cast_to<BuildingClass*>(pTechno);
 	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
 
@@ -1696,7 +1696,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (const auto pFoot = generic_cast<FootClass*>(pThis))
+	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
 	{
 
 		const auto pType = pFoot->GetTechnoType();
@@ -2964,7 +2964,7 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 			CellStruct nCell = CellStruct::Empty;
 			if (pThis->Destination->WhatAmI() != CellClass::AbsID)
 			{
-				if (auto pTech = generic_cast<TechnoClass*>(pThis))
+				if (auto pTech = flag_cast_to<TechnoClass*>(pThis))
 				{
 					nCell = CellClass::Coord2Cell(pTech->GetCoords());
 					if (nCell.IsValid())
@@ -3211,7 +3211,7 @@ static void Tactical_Draw_Radial(
 
 void FakeObjectClass::_DrawRadialIndicator(int val)
 {
-	if (auto pTechno = generic_cast<TechnoClass*>(this))
+	if (auto pTechno = flag_cast_to<TechnoClass*>(this))
 	{
 		auto pType = pTechno->GetTechnoType();
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -3311,7 +3311,7 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
 	{
-		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
 		{
 			if (!pFoot->BelongsToATeam())
 				return 0x0;
@@ -3354,7 +3354,7 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
 	{
-		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
 		{
 			if (auto pTeam = pFoot->Team)
 			{
@@ -4226,7 +4226,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 {
 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBld = specific_cast<BuildingClass*>(pTarget))
+	if (auto pBld = cast_to<BuildingClass*>(pTarget))
 	{
 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 		{
@@ -4882,7 +4882,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					PlaySoundAffect(Powerup::HealBase);
 					for (int i = 0; i < LogicClass::Instance->Count; ++i)
 					{
-						if (auto pTechno = abstract_cast<TechnoClass*>(LogicClass::Instance->Items[i]))
+						if (auto pTechno = flag_cast_to<TechnoClass*>(LogicClass::Instance->Items[i]))
 						{
 							if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner)
 							{
@@ -4949,7 +4949,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
 							if (pTechno->IsAlive)
 							{
@@ -4980,7 +4980,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						if (auto pTechno = generic_cast<FootClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						if (auto pTechno = flag_cast_to<FootClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
 							if (pTechno->IsAlive && pTechno->WhatAmI() != AbstractType::Aircraft)
 							{
@@ -5011,7 +5011,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
 							if (pTechno->IsAlive)
 							{
@@ -5043,7 +5043,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
-						if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+						if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 						{
 							if (pTechno->IsAlive && pTechno->IsOnMap)
 							{
@@ -5092,7 +5092,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					{
 						for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 						{
-							if (auto pTechno = generic_cast<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
+							if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 							{
 								if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
 								{
@@ -7259,7 +7259,7 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 
 	for (auto pPas = pThis->Passengers.GetFirstPassenger();
 		pPas;
-		pPas = generic_cast<FootClass*>(pPas->NextObject))
+		pPas = flag_cast_to<FootClass*>(pPas->NextObject))
 	{
 
 		powertotal += abs(TechnoTypeExtContainer::Instance.Find(pPas->GetTechnoType())
@@ -9807,7 +9807,7 @@ DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 {
 	GET(FlyLocomotionClass*, pFly, ESI);
 
-	AircraftClass* pAir = specific_cast<AircraftClass*>(pFly->LinkedTo);
+	AircraftClass* pAir = cast_to<AircraftClass*>(pFly->LinkedTo);
 
 	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
 	{

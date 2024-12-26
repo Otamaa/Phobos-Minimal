@@ -37,7 +37,7 @@ DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(const CoordStruct& coo
 
 void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 {
-	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
+	auto pTargetFoot = flag_cast_to<FootClass*>(pTarget);
 	if (!pTargetFoot)
 		return;
 
@@ -58,7 +58,7 @@ void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 
 void WarheadTypeExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget) const
 {
-	auto pTargetFoot = abstract_cast<FootClass*>(pTarget);
+	auto pTargetFoot = flag_cast_to<FootClass*>(pTarget);
 
 	if (!pTargetFoot)
 		return;
@@ -310,7 +310,7 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 	if (!Owner || !this->PermaMC)
 		return false;
 
-	const auto pTargetTechno = abstract_cast<TechnoClass*>(Target);
+	const auto pTargetTechno = flag_cast_to<TechnoClass*>(Target);
 	if (!pTargetTechno)
 		return false;
 
@@ -344,7 +344,7 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 
 	if (auto const pAnimType = RulesClass::Instance->PermaControlledAnimationType)
 	{
-		auto const pBld = specific_cast<BuildingClass*>(pTargetTechno);
+		auto const pBld = cast_to<BuildingClass*>(pTargetTechno);
 
 		CoordStruct location = pTargetTechno->GetCoords();
 
@@ -477,7 +477,7 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 	if (nTransactVal != 0 && bSucceed && TransactMoney_Display.Get())
 	{
 		auto displayCoord = TransactMoney_Display_AtFirer ? (pOwner ? pOwner->Location : coords) : (!bForSelf ? pBullet && pBullet->Target ? pBullet->Target->GetCoords() : coords : coords);
-		auto pDrawOwner = TransactMoney_Display_AtFirer ? (pOwner ? pOwner : nullptr) : (!bForSelf ? (pBullet && pBullet->Target ? generic_cast<TechnoClass*>(pBullet->Target) : nullptr) : nullptr);
+		auto pDrawOwner = TransactMoney_Display_AtFirer ? (pOwner ? pOwner : nullptr) : (!bForSelf ? (pBullet && pBullet->Target ? flag_cast_to<TechnoClass*>(pBullet->Target) : nullptr) : nullptr);
 
 		FlyingStrings::AddMoneyString(true, nTransactVal, pDrawOwner, TransactMoney_Display_Houses.Get(), displayCoord, TransactMoney_Display_Offset.Get());
 	}
@@ -492,7 +492,7 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* 
 
 	if (cellSpread == 0.0)
 	{
-		if (auto const pBullet = specific_cast<BulletClass*>(pOwner->Target))
+		if (auto const pBullet = cast_to<BulletClass*>(pOwner->Target))
 		{
 			// 1/8th of a cell as a margin of error.
 			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable && (pWeapon->Projectile->Inviso || pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
@@ -922,7 +922,7 @@ void WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass*
 void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
-	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
+	if (auto const pFoot = flag_cast_to<FootClass*>(pTarget))
 	{
 		if (pFoot->IsDisguised())
 		{

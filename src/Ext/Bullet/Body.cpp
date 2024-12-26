@@ -404,7 +404,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 		const auto pWhExt = WarheadTypeExtContainer::Instance.Find(pWH);
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->Type->ShrapnelWeapon);
 
-		if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
+		if (const auto pTargetObj = flag_cast_to<ObjectClass*>(pTarget))
 		{
 			auto pTargetType = static_cast<TechnoClass*>(pTargetObj)->GetType();
 
@@ -597,7 +597,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 	//if(!pWarheadExt->MindControl_UseTreshold)
 	//	return false;
 
-	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
+	const auto pTarget = flag_cast_to<TechnoClass*>(pThis->Target);
 
 	if(!pTarget || !pTarget->IsAlive)
 		return false;

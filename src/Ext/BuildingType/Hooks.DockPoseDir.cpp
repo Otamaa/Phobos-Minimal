@@ -11,7 +11,7 @@ FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 		if (!pBld){
 
 			for (auto i = 0; i < pAir->RadioLinks.Capacity; ++i) {
-				if (auto possiblebld = specific_cast<BuildingClass*>(pAir->RadioLinks[i])) {
+				if (auto possiblebld = cast_to<BuildingClass*>(pAir->RadioLinks[i])) {
 					pBld = possiblebld;
 				}
 			}

@@ -286,7 +286,7 @@ DEFINE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	GET(CaptureManagerClass*, Controlled, EDI);
 	//GET(TechnoClass *, Item, ECX);
 
-	if (FootClass* F = generic_cast<FootClass*>(Controlled->Owner))
+	if (FootClass* F = flag_cast_to<FootClass*>(Controlled->Owner))
 	{
 		if (F->ParasiteImUsing && F->InLimbo)
 		{
@@ -557,7 +557,7 @@ DEFINE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 
 	for (const auto pObj : ObjectClass::CurrentObjects())
 	{
-		if (const auto pTechno = generic_cast<const TechnoClass*>(pObj))
+		if (const auto pTechno = flag_cast_to<const TechnoClass*>(pObj))
 		{
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
@@ -1136,7 +1136,7 @@ DEFINE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (const auto pTechno = generic_cast<TechnoClass*>(pThis))
+	if (const auto pTechno = flag_cast_to<TechnoClass*>(pThis))
 	{
 		auto pType = pTechno->GetTechnoType();
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);

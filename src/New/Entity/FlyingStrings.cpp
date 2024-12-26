@@ -65,7 +65,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 		BitFont::Instance->GetTextDimension(moneyStr, &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
 
-		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
+		if (const auto pBuilding = cast_to<BuildingClass*>(owner))
 			coords.Z += 104 * pBuilding->Type->Height;
 		else
 			coords.Z += 256;
@@ -124,7 +124,7 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		BitFont::Instance->GetTextDimension(text.c_str(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
 
-		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
+		if (const auto pBuilding = cast_to<BuildingClass*>(owner))
 			coords.Z += 104 * pBuilding->Type->Height;
 		else
 			coords.Z += 256;

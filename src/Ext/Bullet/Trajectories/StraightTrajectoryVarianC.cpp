@@ -207,7 +207,7 @@ void StraightTrajectoryVarianC::OnAIPreDetonate()
 
 	if (pType->EdgeAttenuation != 1.0 || pType->ProximityAllies != 0)
 	{
-		TechnoClass* pTechno = abstract_cast<TechnoClass*>(pBullet->Target);
+		TechnoClass* pTechno = flag_cast_to<TechnoClass*>(pBullet->Target);
 		int Damage = static_cast<int>(pBullet->WeaponType->Damage * this->FirepowerMult * GetExtraDamageMultiplier(pTechno, pOwner, true));
 		pBullet->Construct(pBullet->Type, pBullet->Target, pBullet->Owner, Damage, pBullet->WH, pBullet->Speed, pBullet->Bright);
 	}
@@ -222,7 +222,7 @@ void StraightTrajectoryVarianC::OnAIPreDetonate()
 	if (pType->PassThrough || pType->TargetSnapDistance.Value <= 0)
 		return;
 
-	auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
+	auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
 	auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
 
 	if (pCoords.DistanceFrom(pBullet->Location) <= pType->TargetSnapDistance.Value)
@@ -288,7 +288,7 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 			this->OffsetCoord.Y = -(this->OffsetCoord.Y);
 	}
 
-	ObjectClass* pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
+	ObjectClass* pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
 	CoordStruct TheTargetCoords = pBullet->TargetCoords;
 	CoordStruct TheSourceCoords = pBullet->SourceCoords;
 
@@ -549,7 +549,7 @@ void StraightTrajectoryVarianC::BulletDetonateLastCheck(HouseClass* pOwner, doub
 
 			while (pObject)
 			{
-				auto const pTechno = abstract_cast<TechnoClass*>(pObject);
+				auto const pTechno = flag_cast_to<TechnoClass*>(pObject);
 				pObject = pObject->NextObject;
 
 				if (!pTechno)
@@ -669,7 +669,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner)
 	size_t ThisSize = 0;
 	std::vector<TechnoClass*> ValidTechnos;
 	ValidTechnos.reserve(CellSize);
-	TechnoClass* pTargetTechno = abstract_cast<TechnoClass*>(pBullet->Target);
+	TechnoClass* pTargetTechno = flag_cast_to<TechnoClass*>(pBullet->Target);
 
 	for (auto const pRecCell : RecCellClass)
 	{
@@ -677,7 +677,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner)
 
 		while (pObject)
 		{
-			auto const pTechno = abstract_cast<TechnoClass*>(pObject);
+			auto const pTechno = flag_cast_to<TechnoClass*>(pObject);
 			pObject = pObject->NextObject;
 
 			if (!pTechno)

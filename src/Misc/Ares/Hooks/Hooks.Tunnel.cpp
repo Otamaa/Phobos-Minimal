@@ -94,7 +94,7 @@ DEFINE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	GET(BuildingClass*, pTarget, EDI);
 
 	if (auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
-		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, generic_cast<TechnoClass*>(pKiller));
+		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, flag_cast_to<TechnoClass*>(pKiller));
 
 	return 0;
 }
@@ -348,7 +348,7 @@ DEFINE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		return CanEnter;
 
 	bool Enterable = false;
-	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
+	if (const auto pBuildingTarget = cast_to<BuildingClass*>(pTarget))
 	{
 		Enterable = BuildingTypeExtContainer::Instance.Find(pBuildingTarget->Type)->TunnelType >= 0;
 	}

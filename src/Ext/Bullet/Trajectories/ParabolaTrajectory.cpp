@@ -202,7 +202,7 @@ void ParabolaTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 			this->OffsetCoord.Y = -(this->OffsetCoord.Y);
 	}
 
-	if (!pType->LeadTimeCalculate || !abstract_cast<FootClass*>(pBullet->Target))
+	if (!pType->LeadTimeCalculate || !flag_cast_to<FootClass*>(pBullet->Target))
 		this->PrepareForOpenFire();
 	else
 		this->WaitOneFrame.Start(1);
@@ -241,7 +241,7 @@ void ParabolaTrajectory::OnAIPreDetonate()
 	if (pType->TargetSnapDistance.Get() <= 0)
 		return;
 
-	const ObjectClass* const pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
+	const ObjectClass* const pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
 	const CoordStruct coords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
 
 	if (coords.DistanceFrom(pBullet->Location) <= pType->TargetSnapDistance.Get())

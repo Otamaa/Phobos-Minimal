@@ -502,7 +502,7 @@ DEFINE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 	bool allowed = false;
 	action = Action::NoTogglePower;
 
-	if (auto pBld = specific_cast<BuildingClass*>(pTarget))
+	if (auto pBld = cast_to<BuildingClass*>(pTarget))
 	{
 		auto pOwner = pBld->GetOwningHouse();
 
@@ -1729,7 +1729,7 @@ DEFINE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 	GET(ObjectClass* const, pObject, EDI);
 
 	bool infiltratable = false;
-	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject))
+	if (const auto pBldObject = cast_to<BuildingClass*>(pObject))
 	{
 		infiltratable = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject) != Action::None;
 	}
@@ -1746,7 +1746,7 @@ DEFINE_HOOK(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	GET(InfantryClass*, pThis, EDI);
 	GET(ObjectClass*, pObject, ESI);
 
-	if (auto pBldObject = specific_cast<BuildingClass*>(pObject))
+	if (auto pBldObject = cast_to<BuildingClass*>(pObject))
 	{
 		if (pThis->Owner && !pThis->Owner->IsAlliedWith(pBldObject))
 		{
@@ -1816,7 +1816,7 @@ DEFINE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	GET(ObjectClass* const, pTarget, EDI);
 
-	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget)) {
+	if (const auto pBldObject = cast_to<BuildingClass*>(pTarget)) {
 		const auto nResult = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject);
 
 		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
@@ -2025,7 +2025,7 @@ DEFINE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 	GET(TechnoClass* const, pThis, EBP);
 
 	bool showTiberium = true;
-	if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+	if (const auto pBld = cast_to<BuildingClass*>(pThis))
 	{
 		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
 		{

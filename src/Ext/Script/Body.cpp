@@ -1075,7 +1075,7 @@ void ScriptExtData::WaitUntilFullAmmoAction(TeamClass* pTeam)
 			if (pType->Ammo > 0 && pUnit->Ammo < pType->Ammo)
 			{
 				// If an aircraft object have AirportBound it must be evaluated
-				if (auto const pAircraft = abstract_cast<AircraftClass*>(pUnit))
+				if (auto const pAircraft = cast_to<AircraftClass*>(pUnit))
 				{
 					if (pAircraft->Type->AirportBound)
 					{

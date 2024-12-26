@@ -360,7 +360,7 @@ static TechnoClass* CreateFoot(
 					if (auto const pFlyLoco = locomotion_cast<FlyLocomotionClass*>(pTechno->Locomotor))
 					{
 						pTechno->SetLocation(location);
-						bool airportBound = rtti == AbstractType::AircraftType && abstract_cast<AircraftTypeClass*>(pType)->AirportBound;
+						bool airportBound = rtti == AbstractType::AircraftType && static_cast<AircraftTypeClass*>(pType)->AirportBound;
 						if (pCell->GetContent() || airportBound)
 							pTechno->EnterIdleMode(false, true);
 						else

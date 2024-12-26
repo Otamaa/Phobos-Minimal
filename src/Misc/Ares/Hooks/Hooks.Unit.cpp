@@ -163,7 +163,7 @@ DEFINE_HOOK(0x736E8E, UnitClass_UpdateFiringState_Heal, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	const auto pTargetTechno = generic_cast<TechnoClass*>(pThis->Target);
+	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 
 	if (!pTargetTechno || pTargetTechno->GetHealthPercentage() <= RulesClass::Instance()->ConditionGreen)
 		pThis->SetTarget(nullptr);
@@ -175,7 +175,7 @@ DEFINE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 {
 	GET(UnitClass*, U, ESI);
 
-	if (auto Bld = specific_cast<BuildingClass*>(U->BunkerLinkedItem))
+	if (auto Bld = cast_to<BuildingClass*>(U->BunkerLinkedItem))
 	{
 		Bld->ClearBunker();
 	}
@@ -429,7 +429,7 @@ DEFINE_HOOK(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 
 	if (pCell->Tile_Is_Wet() && !pCell->ContainsBridge())
 	{
-		if (UnitClass* pUnit = specific_cast<UnitClass*>(pTechno[3]))
+		if (UnitClass* pUnit = cast_to<UnitClass*>(pTechno[3]))
 		{
 			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
 			{
@@ -834,7 +834,7 @@ DEFINE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 	GET(ObjectClass*, pTarget, EDI);
 	GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
 
-	const auto pThatTechno = generic_cast<TechnoClass*>(pTarget);
+	const auto pThatTechno = flag_cast_to<TechnoClass*>(pTarget);
 
 	if (!pThatTechno || pThatTechno->IsIronCurtained())
 	{
@@ -864,7 +864,7 @@ DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
 	GET(ObjectClass*, pThat, ESI);
 
 	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
-	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+	const auto pThatTechno = flag_cast_to<TechnoClass*>(pThat);
 
 	if (!pThatTechno)
 	{
@@ -899,7 +899,7 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 			return { true , -1 };
 		}
 
-		const auto pFoot = abstract_cast<FootClass*>(pTarget);
+		const auto pFoot = flag_cast_to<FootClass*>(pTarget);
 
 		if (!pThatShield->CanBePenetrated(pWeapon->Warhead) || ((pFoot && pFoot->ParasiteEatingMe)))
 		{
@@ -947,7 +947,7 @@ DEFINE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	if (pThis == pThat)
 		return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoSelfGuardArea ? NextCheck2 : ActionGuardArea;
 
-	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+	const auto pThatTechno = flag_cast_to<TechnoClass*>(pThat);
 	if (!pThatTechno)
 		return NextCheck;
 
@@ -957,7 +957,7 @@ DEFINE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 
 	if (ret)
 	{
-		if (const auto pBuilding = specific_cast<BuildingClass*>(pThatTechno))
+		if (const auto pBuilding = cast_to<BuildingClass*>(pThatTechno))
 		{
 			if (pBuilding->Type->Grinding)
 			{
@@ -985,7 +985,7 @@ DEFINE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	if (nAct == Action::GuardArea)
 		return ContinueCheck;
 
-	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+	const auto pThatTechno = flag_cast_to<TechnoClass*>(pThat);
 	if (WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||
 		pThis == pThat ||
 		!pThatTechno ||
@@ -993,7 +993,7 @@ DEFINE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	  )
 		return DoActionSelect;
 
-	if (auto const pAir = specific_cast<AircraftClass*>(pThat))
+	if (auto const pAir = cast_to<AircraftClass*>(pThat))
 	{
 		if (pAir->GetCell()->GetBuilding())
 		{
@@ -1218,7 +1218,7 @@ DEFINE_HOOK(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
 {
 	GET(ObjectClass* const, pVictim, ESI);
 
-	if (auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim))
+	if (auto const pVictimTechno = flag_cast_to<TechnoClass*>(pVictim))
 	{
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
 

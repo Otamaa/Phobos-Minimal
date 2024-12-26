@@ -53,7 +53,8 @@ DEFINE_HOOK(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
 	GET(AlphaShapeClass*, pAlpha, EDX);
 	GET(SHPStruct *, pImage, ECX);
 
-	if(const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+	if (const auto pTechno = flag_cast_to <TechnoClass*>(pAlpha->AttachedTo))
+	{
 		unsigned int idx = 0;
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
@@ -74,7 +75,7 @@ DEFINE_HOOK(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 
-	if(const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+	if(const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo)) {
 		unsigned int idx = 0;
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
@@ -97,7 +98,7 @@ DEFINE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 	unsigned int idx = 0;
 
-	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo))  {
+	if (const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo))  {
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
@@ -115,7 +116,7 @@ DEFINE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 	GET(SHPStruct*, pImage, ECX);
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
-	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+	if (const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo)) {
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();

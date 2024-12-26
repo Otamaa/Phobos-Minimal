@@ -39,7 +39,7 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 					AbstractClass* pTarget = burst.Target;
 					WeaponTypeClass* pWeaponType = burst.WeaponType;
 
-					auto const pTargetTech = generic_cast<TechnoClass*>(pTarget);
+					auto const pTargetTech = flag_cast_to<TechnoClass*>(pTarget);
 
 					if (pWeaponType
 						&& pShooter && pShooter->IsAlive

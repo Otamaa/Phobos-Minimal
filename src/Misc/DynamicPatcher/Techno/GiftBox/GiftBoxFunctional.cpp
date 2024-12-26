@@ -270,7 +270,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					}
 				}
 
-				if (auto pAir = specific_cast<AircraftClass*>(pGift))
+				if (auto pAir = cast_to<AircraftClass*>(pGift))
 				{
 					if (pAir->GetHeight() > 0)
 					{

@@ -194,7 +194,7 @@ namespace Helpers {
 			\author AlexB
 			\date 2010-06-28
 		*/
-		template<class T = TechnoClass>
+		template<class T = TechnoClass> requires HasDeriveredAbsID<T>
 		inline std::vector<T*> getCellSpreadItems_Original(
 		CoordStruct const& coords, double const spread,
 		bool const includeInAir, bool const allowLimbo)
@@ -211,7 +211,7 @@ namespace Helpers {
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = abstract_cast<T*>(*obj))
+					if (auto const pTechno = flag_cast_to<T*>(*obj))
 					{
 						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
@@ -360,7 +360,7 @@ namespace Helpers {
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = abstract_cast<TechnoClass*>(*obj)) {
+					if (auto const pTechno = flag_cast_to<TechnoClass*>(*obj)) {
 
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 						if (pTechno->WhatAmI() == AbstractType::Building) {
@@ -414,7 +414,7 @@ namespace Helpers {
 			return ret;
 		}
 
-		template<class T = TechnoClass>
+		template<class T = TechnoClass> requires HasDeriveredAbsID<T>
 		inline std::vector<T*> getCellSpreadItems(
 			CoordStruct const& coords, double const spread,
 			bool const includeInAir = false, bool allowLimbo = false)
@@ -441,7 +441,7 @@ namespace Helpers {
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj)
 				{
-					if (auto const pTechno = abstract_cast<T*>(*obj))
+					if (auto const pTechno = flag_cast_to<T*>(*obj))
 					{
 						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
 						{

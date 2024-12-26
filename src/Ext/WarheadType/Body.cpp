@@ -761,7 +761,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 		if (pType->Immune)
 			return false;
 
-		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = cast_to<BuildingClass*>(pTechno))
 		{
 			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
@@ -774,7 +774,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 				return false;
 		}
 
-		if (const auto pFoot = abstract_cast<FootClass*>(pTechno))
+		if (const auto pFoot = flag_cast_to<FootClass*>(pTechno))
 		{
 			if (TechnoExtData::IsChronoDelayDamageImmune(pFoot))
 				return false;
@@ -883,7 +883,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 	if (!this->Webby || this->Webby_Duration == 0)
 		return;
 
-	if (auto pInf = specific_cast<InfantryClass*>(pTarget))
+	if (auto pInf = cast_to<InfantryClass*>(pTarget))
 	{
 		if (TechnoExtData::IsWebImmune(pInf))
 			return;
@@ -974,7 +974,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 	if (!pThis->Culling || !pSource)
 		return false;
 
-	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget))
+	if (auto const pTargetTechno = flag_cast_to<TechnoClass*>(pTarget))
 	{
 		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;

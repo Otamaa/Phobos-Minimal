@@ -364,7 +364,7 @@ void CloneableLighningStormStateMachine::Update()
 				if (auto const pObj = pCell->FindTechnoNearestTo(
 					Point2D::Empty, false, pCellBld))
 				{
-					if (auto const pBld = specific_cast<BuildingClass*>(pObj))
+					if (auto const pBld = cast_to<BuildingClass*>(pObj))
 					{
 						if(pBld->Type->LightningRod) {
 							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))
@@ -449,7 +449,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 		auto const& empty = Point2D::Empty;
 		auto const pObj = pCell->FindTechnoNearestTo(empty, false, nullptr);
-		auto const isInfantry = specific_cast<InfantryClass*>(pObj) != nullptr;
+		auto const isInfantry = cast_to<InfantryClass*>(pObj) != nullptr;
 
 		// empty cell action
 		if (!pBld && !pObj)
@@ -466,7 +466,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		auto damage = Type->GetDamage(pData);
 		if (!pData->Weather_IgnoreLightningRod)
 		{
-			if (auto const pBldObj = specific_cast<BuildingClass*>(pObj))
+			if (auto const pBldObj = cast_to<BuildingClass*>(pObj))
 			{
 				const auto& nRodTypes = pData->Weather_LightningRodTypes;
 				auto const pBldType = pBldObj->Type;
