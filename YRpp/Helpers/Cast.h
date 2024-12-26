@@ -10,14 +10,14 @@ class RadioClass;
 class TechnoClass;
 class FootClass;
 
-template <typename T>
+template <typename T , bool check = true>
 FORCEINLINE T cast_to(AbstractClass* pAbstract) {
 	using Base = std::remove_pointer_t<T>;
 
-	return const_cast<Base*>(cast_to<const Base*>(static_cast<const AbstractClass*>(pAbstract)));
+	return const_cast<Base*>(cast_to<const Base*, check>(static_cast<const AbstractClass*>(pAbstract)));
 };
 
-template <typename T>
+template <typename T, bool check = true>
 FORCEINLINE T cast_to(const AbstractClass* pAbstract) {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
@@ -30,10 +30,13 @@ FORCEINLINE T cast_to(const AbstractClass* pAbstract) {
 	static_assert(!std::is_abstract<Base>::value,
 		"specific_cast: Abstract types (not fully implemented classes) are not suppored.");
 
-	return pAbstract && pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
+	if constexpr (check)
+		return pAbstract && pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
+	else
+		return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 };
 
-template <typename T>
+template <typename T, bool check = true>
 FORCEINLINE T flag_cast_to(const AbstractClass* pAbstract) {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
@@ -44,12 +47,15 @@ FORCEINLINE T flag_cast_to(const AbstractClass* pAbstract) {
 		//&& std::is_abstract<Base>::value
 		,"generic_cast: T is required to be an abstract type derived from ObjectClass.");
 
-	return (pAbstract && (pAbstract->AbstractFlags & Base::AbsDerivateID) != AbstractFlags::None)  ? static_cast<T>(pAbstract) : nullptr;
+	if constexpr (check)
+		return (pAbstract && (pAbstract->AbstractFlags & Base::AbsDerivateID) != AbstractFlags::None)  ? static_cast<T>(pAbstract) : nullptr;
+	else
+		return (pAbstract->AbstractFlags & Base::AbsDerivateID) != AbstractFlags::None ? static_cast<T>(pAbstract) : nullptr;
 };
 
-template <typename T>
+template <typename T, bool check = true>
 FORCEINLINE T flag_cast_to(AbstractClass* pAbstract) {
 	using Base = std::remove_pointer_t<T>;
 
-	return const_cast<T>(flag_cast_to<const Base*>(static_cast<const AbstractClass*>(pAbstract)));
+	return const_cast<T>(flag_cast_to<const Base*, check>(static_cast<const AbstractClass*>(pAbstract)));
 };
