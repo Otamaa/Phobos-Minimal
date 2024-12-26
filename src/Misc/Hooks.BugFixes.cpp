@@ -130,7 +130,7 @@ DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pUnit = cast_to<UnitClass*>(pThis))
+	if (auto pUnit = cast_to<UnitClass*, false>(pThis))
 	{
 		if (pUnit->DeathFrameCounter > 0)
 		{
@@ -403,7 +403,7 @@ DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 
 	for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject) {
 		if (pObject->Health > 0) {
-			if (const auto pBuilding = cast_to<BuildingClass*>(pObject)) {
+			if (const auto pBuilding = cast_to<BuildingClass*, false>(pObject)) {
 				const auto pBType = pBuilding->Type;
 
 				if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
@@ -2179,7 +2179,7 @@ DEFINE_HOOK(0x4C75E6, EventClass_RespondToEvent_Stop, 0x5)
 
 	// Clearing the current target should still be necessary for all technos
 	pTechno->SetTarget(nullptr);
-	const auto pFoot = flag_cast_to<FootClass*>(pTechno);
+	const auto pFoot = flag_cast_to<FootClass*, false>(pTechno);
 	const auto pJumpjetLoco = pFoot ? locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor) : nullptr;
 
 	// To avoid jumpjets falling into a state of standing idly by

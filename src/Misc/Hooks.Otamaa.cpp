@@ -59,7 +59,7 @@ DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 	GET(Point2D*, pPoint, ECX);
 	GET(RectangleStruct*, pBound, EAX);
 
-	if (const auto pBld = cast_to<BuildingClass*>(pThis))
+	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 		{
@@ -744,7 +744,7 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 	GET_STACK(bool, bIgnore, 0xD8);
 
 	const bool IsCurrentlyDamageImmune = pThis->IsBeingWarpedOut()
-		|| TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*>(pThis));
+		|| TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pThis));
 
 	return (IsCurrentlyDamageImmune && !bIgnore) ? NullifyDamage : ContinueCheck;
 }
@@ -1248,7 +1248,7 @@ static void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStru
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	Point2D nOffs {};
 
-	const auto pBuilding = cast_to<BuildingClass*>(pTechno);
+	const auto pBuilding = cast_to<BuildingClass*, false>(pTechno);
 	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
 
@@ -1696,7 +1696,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
+	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
 	{
 
 		const auto pType = pFoot->GetTechnoType();
@@ -2964,7 +2964,7 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 			CellStruct nCell = CellStruct::Empty;
 			if (pThis->Destination->WhatAmI() != CellClass::AbsID)
 			{
-				if (auto pTech = flag_cast_to<TechnoClass*>(pThis))
+				if (auto pTech = flag_cast_to<TechnoClass*, false>(pThis))
 				{
 					nCell = CellClass::Coord2Cell(pTech->GetCoords());
 					if (nCell.IsValid())
@@ -3211,7 +3211,7 @@ static void Tactical_Draw_Radial(
 
 void FakeObjectClass::_DrawRadialIndicator(int val)
 {
-	if (auto pTechno = flag_cast_to<TechnoClass*>(this))
+	if (auto pTechno = flag_cast_to<TechnoClass*, false>(this))
 	{
 		auto pType = pTechno->GetTechnoType();
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -3311,7 +3311,7 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
 	{
-		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 		{
 			if (!pFoot->BelongsToATeam())
 				return 0x0;
@@ -3354,7 +3354,7 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
 	{
-		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 		{
 			if (auto pTeam = pFoot->Team)
 			{
@@ -9807,7 +9807,7 @@ DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 {
 	GET(FlyLocomotionClass*, pFly, ESI);
 
-	AircraftClass* pAir = cast_to<AircraftClass*>(pFly->LinkedTo);
+	AircraftClass* pAir = cast_to<AircraftClass*, false>(pFly->LinkedTo);
 
 	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
 	{
@@ -9878,6 +9878,16 @@ DEFINE_HOOK(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 
 	return 0x0;
 }
+
+//DEFINE_HOOK(0x43FE27, BuildingClass_AfterAnimAI_Check, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (!pThis->IsAlive)
+//		return 0x440573;
+//
+//	return 0x0;
+//}
 
 /* AnimTypeClass::FromName patch
 415102 SGRYSMK1

@@ -28,7 +28,7 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 		return DoNotSelfHeal;
 	}
 
-	const auto nUnit = cast_to<UnitClass*>(pThis);
+	const auto nUnit = cast_to<UnitClass*, false>(pThis);
 	if (nUnit && nUnit->DeathFrameCounter > 0) {
 		return DoNotSelfHeal;
 	}

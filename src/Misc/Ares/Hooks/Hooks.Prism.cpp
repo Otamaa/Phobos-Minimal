@@ -365,7 +365,7 @@ DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 		auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
 		int const Thickness = pData->Laser_Thickness;
 
-		if (auto const pBld = cast_to<BuildingClass*>(pThis))
+		if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
 		{	//ToggleLaserWeaponIndex
 
 			if (pExt->CurrentLaserWeaponIndex.empty())
@@ -527,7 +527,7 @@ DEFINE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	GET(TechnoClass* const, pDrainee, EDI);
 	if (pDrainee->DrainingMe != pThis)
 	{ // else we're already being drained, nothing to do
-		if (auto const pBld = cast_to<BuildingClass*>(pDrainee))
+		if (auto const pBld = cast_to<BuildingClass*, false>(pDrainee))
 		{
 			BuildingExtContainer::Instance.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
 		}

@@ -202,7 +202,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	{
 		for (NextObject obj(pTeamData->TeamLeader->Passengers.FirstPassenger->NextObject); obj; ++obj)
 		{
-			auto const passenger = flag_cast_to<FootClass*>(*obj);
+			auto const passenger = flag_cast_to<FootClass*, false>(*obj);
 			bool passengerWeaponsHaveAG = false;
 			bool passengerWeaponsHaveAA = false;
 			ScriptExtData::CheckUnitTargetingCapabilities(passenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
@@ -652,7 +652,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		return false;
 
 	bool IsBuilding = false;
-	if (const auto pBuilding = cast_to<BuildingClass*>(pTechno))
+	if (const auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 	{
 		IsBuilding = true;
 
@@ -689,7 +689,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (!buildingIsConsideredVehicle)
 				return true;
 
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 			{
 				const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
@@ -743,7 +743,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (buildingIsConsideredVehicle)
 				return true;
 
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 			{
 				const auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 				return (pBld->Type->Artillary
@@ -762,7 +762,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	{
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 				return pBld->Type->Factory != AbstractType::None;
 		}
 		return false;
@@ -771,7 +771,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	{
 		// Defense
 		if (!pTechno->Owner->IsNeutral())
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 				return pBld->Type->IsBaseDefense;
 
 		return false;
@@ -819,7 +819,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		// Power Plant
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 			{
 				for (const auto type : pBld->GetTypes())
 				{
@@ -834,7 +834,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 10:
 	{
 		// Occupied Building
-		if (auto pBld = cast_to<BuildingClass*>(pTechno))
+		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
 			return (pBld->Occupants.Count > 0);
 		}
@@ -844,7 +844,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 11:
 	{
 		// Civilian Tech
-		if (auto pBld = cast_to<BuildingClass*>(pTechno))
+		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
 			if (RulesClass::Instance->NeutralTechBuildings.Count > 0)
 				return RulesClass::Instance->NeutralTechBuildings.Contains(pBld->Type);
@@ -865,7 +865,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		// Refinery
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pUnit = cast_to<UnitClass*>(pTechno))
+			if (auto pUnit = cast_to<UnitClass*, false>(pTechno))
 			{
 				return !(pUnit->Type->Harvester || pUnit->Type->Weeder)
 					&& pUnit->Type->ResourceGatherer
@@ -873,7 +873,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 					;
 			}
 
-			if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+			if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 			{
 				return pBuilding->Type->ResourceGatherer
 					|| (pBuilding->Type->Refinery || (pBuilding->SlaveManager && pBuilding->Type->Enslaves));
@@ -956,7 +956,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (auto pInfT = type_cast<InfantryTypeClass*>(pTechnoType))
 				return pInfT->ResourceGatherer && (pInfT->Slaved && pTechno->SlaveOwner);
 
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 			{
 				for (auto const type : pBld->GetTypes())
 				{
@@ -1005,7 +1005,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		// Radar & SpySat
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pBld = cast_to<BuildingClass*>(pTechno))
+			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 			{
 				if(pBld->Type->Radar)
 					return true;
@@ -1149,7 +1149,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		// Any non-building unit
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pUnit = cast_to<UnitClass*>(pTechno))
+			if (auto pUnit = cast_to<UnitClass*, false>(pTechno))
 			{
 				return !pUnit->Type->DeploysInto;
 			}

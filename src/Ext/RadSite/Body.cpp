@@ -161,7 +161,7 @@ const RadSiteExtData::DamagingState RadSiteExtData::ApplyRadiationDamage(TechnoC
 	if (!pTarget->IsAlive || pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
 		return RadSiteExtData::DamagingState::Dead;
 
-	auto const pUnit = cast_to<UnitClass*>(pTarget);
+	auto const pUnit = cast_to<UnitClass*, false>(pTarget);
 
 	if ((pUnit && pUnit->DeathFrameCounter > 0))
 		return RadSiteExtData::DamagingState::Ignore;

@@ -364,7 +364,7 @@ void CloneableLighningStormStateMachine::Update()
 				if (auto const pObj = pCell->FindTechnoNearestTo(
 					Point2D::Empty, false, pCellBld))
 				{
-					if (auto const pBld = cast_to<BuildingClass*>(pObj))
+					if (auto const pBld = cast_to<BuildingClass*, false>(pObj))
 					{
 						if(pBld->Type->LightningRod) {
 							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))

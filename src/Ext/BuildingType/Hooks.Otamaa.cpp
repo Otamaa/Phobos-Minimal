@@ -31,7 +31,7 @@ DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	GET_BASE(AbstractClass*, pTarget, 0x8);
 
 	if(pThis->CanOccupyFire()) {
-		if (auto const Building = cast_to<BuildingClass*>(pThis)) {
+		if (auto const Building = cast_to<BuildingClass*, false>(pThis)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
 		} else {
 			nDamage = int(nDamage * RulesClass::Instance->OccupyDamageMultiplier);
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	}
 
 	if(pThis->WhatAmI() != BuildingClass::AbsID) {
-		if (auto const Building = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
+		if (auto const Building = cast_to<BuildingClass*, false>(pThis->BunkerLinkedItem)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
 		}
 	}
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, nROF, 0x14);
 
-	auto const Building = cast_to<BuildingClass*>(pThis);
+	auto const Building = cast_to<BuildingClass*, false>(pThis);
 
 	if (pThis->CanOccupyFire()) {
 		const auto occupant = pThis->GetOccupantCount();

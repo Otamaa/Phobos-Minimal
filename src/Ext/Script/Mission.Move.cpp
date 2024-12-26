@@ -244,7 +244,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 	// Favorite Enemy House case. If set, AI will focus against that House
 	if (!pickAllies && pTechno->BelongsToATeam())
 	{
-		if (auto pFoot = flag_cast_to<FootClass*>(pTechno))
+		if (auto pFoot = flag_cast_to<FootClass*, false>(pTechno))
 		{
 			const int enemyHouseIndex = pFoot->Team->FirstUnit->Owner->EnemyHouseIndex;
 			const auto pHouseExt = HouseExtContainer::Instance.Find(pFoot->Team->Owner);

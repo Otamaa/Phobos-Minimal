@@ -146,7 +146,7 @@ DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto const pAircraft = cast_to<AircraftClass*>(pThis))
+	if (auto const pAircraft = cast_to<AircraftClass*, false>(pThis))
 	{
 		if (pAircraft->Type->Carryall && pAircraft->HasAnyLink() &&
 			pAircraft->Destination && (pAircraft->Destination->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
@@ -300,7 +300,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
 	// Currently only used with infantry, so a performance saving measure.
-	if (const auto pInf = cast_to<InfantryClass*>(pThis))
+	if (const auto pInf = cast_to<InfantryClass*, false>(pThis))
 	{
 		const auto pInfExt = InfantryExtContainer::Instance.Find(pInf);
 		if (pInfExt->ForceFullRearmDelay)
@@ -351,7 +351,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	if (pThis->HasAbility(AbilityType::ROF))
 		_ROF = int(_ROF * RulesClass::Instance->VeteranROF);
 
-	auto const Building = cast_to<BuildingClass*>(pThis);
+	auto const Building = cast_to<BuildingClass*, false>(pThis);
 
 	if (pThis->CanOccupyFire())
 	{
@@ -377,7 +377,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	if (pThis->BunkerLinkedItem && !Building)
 	{
 		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
-		if (auto const pBunkerIsBuilding = cast_to<BuildingClass*>(pThis->BunkerLinkedItem))
+		if (auto const pBunkerIsBuilding = cast_to<BuildingClass*, false>(pThis->BunkerLinkedItem))
 		{
 			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
 		}
@@ -861,7 +861,7 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (!display && !obs)
 		return;
 
-	BuildingClass* const pBuilding = cast_to<BuildingClass*>(pThis);
+	BuildingClass* const pBuilding = cast_to<BuildingClass*, false>(pThis);
 	CellClass* pCell = pBuilding->GetCell();
 
 	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))
@@ -948,7 +948,7 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (!display && !obs)
 		return;
 
-	BuildingClass* const pBuilding = cast_to<BuildingClass*>(pThis);
+	BuildingClass* const pBuilding = cast_to<BuildingClass*, false>(pThis);
 	CellClass* pCell = pBuilding->GetCell();
 
 	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))

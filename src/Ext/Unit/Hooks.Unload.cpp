@@ -44,7 +44,7 @@ DEFINE_HOOK(0x730C70, DeployClass_Execute_RemoveDeploying, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (cast_to<UnitClass*>(pThis)) {
+	if (cast_to<UnitClass*, false>(pThis)) {
 		UnitDeployConvertHelpers::RemoveDeploying(R);
 		return 0x730C7A;
 	}

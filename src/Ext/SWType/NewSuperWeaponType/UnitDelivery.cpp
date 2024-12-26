@@ -113,7 +113,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 			//Debug::Log("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] \n", pData->get_ID(), pOwner->get_ID() , pType->ID);
 
-			const auto ItemBuilding = cast_to<BuildingClass*>(Item);
+			const auto ItemBuilding = cast_to<BuildingClass*, false>(Item);
 
 			// get the best options to search for a place
 			short extentX = 1;

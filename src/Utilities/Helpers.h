@@ -211,7 +211,7 @@ namespace Helpers {
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = flag_cast_to<T*>(*obj))
+					if (auto const pTechno = flag_cast_to<T*, false>(*obj))
 					{
 						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
@@ -360,7 +360,7 @@ namespace Helpers {
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
-					if (auto const pTechno = flag_cast_to<TechnoClass*>(*obj)) {
+					if (auto const pTechno = flag_cast_to<TechnoClass*, false>(*obj)) {
 
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 						if (pTechno->WhatAmI() == AbstractType::Building) {
@@ -441,7 +441,7 @@ namespace Helpers {
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj)
 				{
-					if (auto const pTechno = flag_cast_to<T*>(*obj))
+					if (auto const pTechno = flag_cast_to<T*, false>(*obj))
 					{
 						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
 						{

@@ -567,7 +567,7 @@ Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 	// Step 1: get body transform matrix
 	Matrix3D matrix3D = Matrix3D::GetIdentity();
 
-	if (auto const pFoot = flag_cast_to<FootClass*>(pTechno))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pTechno))
 	{
 		if (auto const pLoco = pFoot->Locomotor.GetInterfacePtr())
 		{
@@ -941,7 +941,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 {
 	if (pType)
 	{
-		auto const pTechno = flag_cast_to<TechnoClass*>(pType->CreateObject(pHouse));
+		auto const pTechno = flag_cast_to<TechnoClass*, false>(pType->CreateObject(pHouse));
 		bool UnlimboSuccess = false;
 
 		if (!pCell && location != CoordStruct::Empty)

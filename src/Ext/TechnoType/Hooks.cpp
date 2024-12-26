@@ -532,7 +532,7 @@ DEFINE_HOOK(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
 
 	GET(LocomotionClass*, pThis, ECX);
 
-	if (auto const pUnit = cast_to<UnitClass*>(pThis->Owner)) {
+	if (auto const pUnit = cast_to<UnitClass*, false>(pThis->Owner)) {
 		if (pUnit->Deploying && pUnit->Type->DeployToLand)
 			return SkipBobbing;
 	}
@@ -550,7 +550,7 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	if (!HouseExtData::IsObserverPlayer())
 	{
-		if (auto pFoot = flag_cast_to<FootClass*>(pObject))
+		if (auto pFoot = flag_cast_to<FootClass*, false>(pObject))
 		{
 			if (!pObject->IsDisguised())
 			{

@@ -957,7 +957,7 @@ DEFINE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 
 	if (ret)
 	{
-		if (const auto pBuilding = cast_to<BuildingClass*>(pThatTechno))
+		if (const auto pBuilding = cast_to<BuildingClass*, false>(pThatTechno))
 		{
 			if (pBuilding->Type->Grinding)
 			{

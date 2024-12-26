@@ -27,7 +27,7 @@ DEFINE_HOOK(0x5f4fe7, ObjectClass_Put, 8)
 	GET(ObjectTypeClass*, pType, EBX);
 
 	if(pType) {
-		if(auto pBullet = cast_to<BulletClass*>(pThis)) {
+		if(auto pBullet = cast_to<BulletClass*, false>(pThis)) {
 			BulletExtContainer::Instance.Find(pBullet)->CreateAttachedSystem();
 		}
 

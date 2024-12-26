@@ -309,7 +309,7 @@ DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 	auto pNewOwner= pThis->Owner;
 
 	if(OldOwner){
-		if (auto pMe = flag_cast_to<FootClass*>(pThis))
+		if (auto pMe = flag_cast_to<FootClass* , false>(pThis))
 		{
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pMe->GetTechnoType());
 			bool I_am_human = OldOwner->IsControlledByHuman();

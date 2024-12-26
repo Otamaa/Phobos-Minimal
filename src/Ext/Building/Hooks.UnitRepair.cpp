@@ -75,7 +75,7 @@ DEFINE_HOOK(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 	int repairStep = pType->GetRepairStep();
 	int repairCost = pType->GetRepairStepCost();
 
-	if (auto const pBuilding = cast_to<BuildingClass*>(pFrom))
+	if (auto const pBuilding = cast_to<BuildingClass* , false>(pFrom))
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 

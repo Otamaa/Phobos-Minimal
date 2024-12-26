@@ -80,7 +80,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(Action, action, EBP);
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
+	if (auto pBuilding = cast_to<BuildingClass*, false>(pTarget))
 	{
 		if (action == Action::Select
 			&& pBuilding->Type->Grinding

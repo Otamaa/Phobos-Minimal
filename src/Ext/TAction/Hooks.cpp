@@ -176,7 +176,7 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 						do
 						{
 							pPassenger->SetOwningHouse(NewOwnerPtr, false);
-							pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
+							pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
 						}
 						while (pPassenger != nullptr && pPassenger->Transporter == pItem);
 					}
@@ -221,14 +221,14 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 					do
 					{
 						pPassenger->SetOwningHouse(NewOwnerPtr, false);
-						pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
+						pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
 					}
 					while (pPassenger != nullptr && pPassenger->Transporter == pItem);
 				}
 
 				pItem->SetOwningHouse(NewOwnerPtr, false);
 
-				if (BuildingClass* pBuilding = cast_to<BuildingClass*>(pItem))
+				if (BuildingClass* pBuilding = cast_to<BuildingClass*, false>(pItem))
 				{
 					if (pBuilding->Type->Powered || pBuilding->Type->PoweredSpecial)
 					{

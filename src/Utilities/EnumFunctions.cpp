@@ -671,7 +671,7 @@ bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTa
 		if (!object || !eligible)
 			break;
 
-		if (auto pTechno = flag_cast_to<TechnoClass*>(object))
+		if (auto pTechno = flag_cast_to<TechnoClass*, false>(object))
 		{
 			if (owner)
 			{

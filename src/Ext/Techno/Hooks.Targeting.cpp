@@ -26,7 +26,7 @@ DEFINE_HOOK(0x6FA697, TechnoClass_Update_DontScanIfUnarmed, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pInf = cast_to<InfantryClass*>(pThis)) {
+	if (auto pInf = cast_to<InfantryClass*, false>(pThis)) {
 		if (pInf->Type->Slaved && pInf->SlaveOwner) {
 			return SkipTargeting;
 		}

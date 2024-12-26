@@ -528,7 +528,7 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	{
 		// restoring TS berzerk cyborg
 		//this will happen regardless the immunity i guess
-		if (auto pInf = cast_to<InfantryClass*>(pThis))
+		if (auto pInf = cast_to<InfantryClass*, false>(pThis))
 		{
 			if (RulesClass::Instance->BerzerkAllowed && pInf->Type->Cyborg && pThis->IsYellowHP())
 			{
@@ -582,7 +582,7 @@ DEFINE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 
 			while (pPassenger->NextObject)
 			{
-				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
+				pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
 				pExt = TechnoExtContainer::Instance.Find(pPassenger);
 
 				if (pExt->OriginalPassengerOwner)
@@ -693,8 +693,8 @@ DEFINE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 
 	if (TechnoTypeExtContainer::Instance.Find(pType)->TiberiumSpill)
 	{
-		const auto pUnit = cast_to<UnitClass*>(pThis);
-		const auto pBld = cast_to<BuildingClass*>(pThis);
+		const auto pUnit = cast_to<UnitClass*, false>(pThis);
+		const auto pBld = cast_to<BuildingClass*, false>(pThis);
 
 		if (pUnit && pUnit->Type->Weeder || pBld && pBld->Type->Weeder)
 			return 0x0;

@@ -86,7 +86,7 @@ void UpdateWebbed(FootClass* pThis)
 	if (!pExt->IsWebbed)
 		return;
 
-	if (auto pInf = cast_to<InfantryClass*>(pThis)){
+	if (auto pInf = cast_to<InfantryClass*, false>(pThis)){
 		if (pInf->ParalysisTimer.Completed()) {
 
 			pExt->IsWebbed = false;
@@ -412,7 +412,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 				ae->AI_Temporal();
 		}
 
-		if (auto pBldTarget = cast_to<BuildingClass*>(pTarget))
+		if (auto pBldTarget = cast_to<BuildingClass*, false>(pTarget))
 		{
 			auto pExt = BuildingExtContainer::Instance.Find(pBldTarget);
 

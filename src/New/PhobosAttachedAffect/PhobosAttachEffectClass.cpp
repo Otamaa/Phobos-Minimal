@@ -379,7 +379,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
 	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthPercentage() <= this->Type->DiscardOn_BelowPercent.Get())
 		return true;
 
-	if (auto const pFoot = flag_cast_to<FootClass*>(this->Techno))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno))
 	{
 		bool isMoving = pFoot->Locomotor->Is_Really_Moving_Now();
 

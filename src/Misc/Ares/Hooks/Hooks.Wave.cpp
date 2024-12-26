@@ -328,7 +328,7 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 		if (pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
 			return 0x75F432;
 
-		if (const auto pUnit = cast_to<UnitClass*>(pVictim)) {
+		if (const auto pUnit = cast_to<UnitClass* , false>(pVictim)) {
 			if (pUnit->DeathFrameCounter > 0)
 				return 0x75F432;
 		}

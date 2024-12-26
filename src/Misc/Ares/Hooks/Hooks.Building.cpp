@@ -2025,7 +2025,7 @@ DEFINE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 	GET(TechnoClass* const, pThis, EBP);
 
 	bool showTiberium = true;
-	if (const auto pBld = cast_to<BuildingClass*>(pThis))
+	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
 		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
 		{

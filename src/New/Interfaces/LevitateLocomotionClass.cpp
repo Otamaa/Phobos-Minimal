@@ -100,7 +100,7 @@ void LevitateLocomotionClass::ProcessHovering()
 // Done
 void LevitateLocomotionClass::DoPhase1()
 {
-	if (const auto pTargetT = flag_cast_to<TechnoClass*>(LinkedTo->Target))
+	if (const auto pTargetT = flag_cast_to<TechnoClass*, false>(LinkedTo->Target))
 	{
 		if (pTargetT->IsAlive && pTargetT->IsOnMap)
 		{

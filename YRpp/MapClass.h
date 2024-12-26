@@ -262,11 +262,17 @@ public:
 	//Non-virtuals
 
 	// Get cellclasspointe with cellstruct Pointer but it will return nullptr if invalid !
+	// this one usually used on operator[]
 	constexpr CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
+		int idx = GetCellIndex(MapCoords);
+		return (idx >= 0 && idx < Cells.Capacity) ? Cells.Items[idx] : nullptr;
+	}
+
+	// ??
+	constexpr CellClass* TryGetCellAtB(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
 		return (idx >= 0 && idx < MaxCells) ? Cells.Items[idx] : nullptr;
 	}
-
 	// Get cellclasspointer with coords but it will return nullptr if invalid !
 	constexpr CellClass* TryGetCellAt(const CoordStruct& Crd) const {
 		CellStruct cell = CellClass::Coord2Cell(Crd);
@@ -313,7 +319,7 @@ public:
 		{ JMP_THIS(0x586360); }
 
 	static constexpr FORCEINLINE int GetCellIndex(const CellStruct &MapCoords) {
-		return (MapCoords.Y << 9) + MapCoords.X;
+		return MapCoords.X + (MapCoords.Y << 9);
 	}
 
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords

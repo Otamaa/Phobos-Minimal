@@ -761,7 +761,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 		if (pType->Immune)
 			return false;
 
-		if (auto const pBld = cast_to<BuildingClass*>(pTechno))
+		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
 			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
@@ -774,7 +774,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 				return false;
 		}
 
-		if (const auto pFoot = flag_cast_to<FootClass*>(pTechno))
+		if (const auto pFoot = flag_cast_to<FootClass*, false>(pTechno))
 		{
 			if (TechnoExtData::IsChronoDelayDamageImmune(pFoot))
 				return false;
@@ -974,7 +974,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 	if (!pThis->Culling || !pSource)
 		return false;
 
-	if (auto const pTargetTechno = flag_cast_to<TechnoClass*>(pTarget))
+	if (auto const pTargetTechno = flag_cast_to<TechnoClass*, false>(pTarget))
 	{
 		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;

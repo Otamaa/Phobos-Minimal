@@ -344,7 +344,7 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 
 	if (auto const pAnimType = RulesClass::Instance->PermaControlledAnimationType)
 	{
-		auto const pBld = cast_to<BuildingClass*>(pTargetTechno);
+		auto const pBld = cast_to<BuildingClass*, false>(pTargetTechno);
 
 		CoordStruct location = pTargetTechno->GetCoords();
 

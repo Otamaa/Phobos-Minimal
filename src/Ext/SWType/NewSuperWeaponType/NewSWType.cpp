@@ -126,7 +126,7 @@ bool NewSWType::IsDesignatorEligible(const SWTypeExtData* pData, HouseClass* pOw
 
 		// get the designator's center
 		auto center = pTechno->GetCoords();
-		if (auto pBuilding = cast_to<BuildingClass*>(pTechno)) {
+		if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno)) {
 			center = BuildingExtData::GetCenterCoords(pBuilding);
 		}
 
@@ -146,7 +146,7 @@ bool NewSWType::IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, Tech
 			return false;
 		}
 
-		if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
+		if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
 			if (!pBld->IsPowerOnline()) {
 				return false;
 			}
@@ -182,7 +182,7 @@ bool NewSWType::IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* pOwn
 
 		// get the inhibitor's center
 		auto center = pTechno->GetCoords();
-		if (auto pBuilding = cast_to<BuildingClass*>(pTechno)) {
+		if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno)) {
 			center = BuildingExtData::GetCenterCoords(pBuilding);
 		}
 
@@ -228,7 +228,7 @@ bool NewSWType::IsAttractorEligible(const SWTypeExtData* pData, HouseClass* pOwn
 
 		// get the Attractor's center
 		auto center = pTechno->GetCoords();
-		if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+		if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 		{
 			center = BuildingExtData::GetCenterCoords(pBuilding);
 		}
@@ -249,7 +249,7 @@ bool NewSWType::IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, Tec
 			return false;
 		}
 
-		if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
+		if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
 			if (!pBld->IsPowerOnline())
 			{ return false; }
 		}
@@ -282,7 +282,7 @@ bool NewSWType::IsSuppressorEligible(const SWTypeExtData* pData, HouseClass* pOw
 
 		// get the Suppressor's center
 		auto center = pTechno->GetCoords();
-		if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+		if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 		{
 			center = BuildingExtData::GetCenterCoords(pBuilding);
 		}
@@ -389,7 +389,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 			{
 				// get the designator's center
 				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 				{
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
@@ -416,7 +416,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 			{
 				// get the designator's center
 				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 				{
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
@@ -443,7 +443,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 			{
 				// get the inhibitor's center
 				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 				{
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
@@ -470,7 +470,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 			{
 				// get the inhibitor's center
 				auto center = pTechno->GetCoords();
-				if (auto pBuilding = cast_to<BuildingClass*>(pTechno))
+				if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
 				{
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}

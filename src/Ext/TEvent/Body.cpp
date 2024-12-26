@@ -260,7 +260,7 @@ bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, Objec
 
 	bool found = false;
 
-	if (auto const pTechno = flag_cast_to<TechnoClass*>(pObject)) {
+	if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
 		auto const pTechnoType = pTechno->GetTechnoType();
 
 		for (const auto& pDesiredItem : RulesExtData::Instance()->AITargetTypesLists[desiredListIdx]) {
@@ -290,7 +290,7 @@ bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pOb
 			return false;
 		}
 
-		if (auto const pTechno = flag_cast_to<TechnoClass*>(pObject)) {
+		if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
 			auto const pTechnoType = pTechno->GetTechnoType();
 
 			if (pDesiredType == pTechnoType) {

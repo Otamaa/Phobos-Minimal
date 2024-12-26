@@ -149,7 +149,7 @@ DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (flag_cast_to<FootClass*>(pThis) && locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) && !pThis->GetTechnoType()->TiltCrashJumpjet)
+	if (flag_cast_to<FootClass*, false>(pThis) && locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) && !pThis->GetTechnoType()->TiltCrashJumpjet)
 		return 0x70BCA4;
 
 	return 0;
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	if (pThis->NoWobbles)
 		return NoWobble;
 
-	if (const auto pUnit = cast_to<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){
+	if (const auto pUnit = cast_to<UnitClass*, false>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){
 		if(TechnoExtData::IsReallyTechno(pUnit) && pUnit->IsAlive) {
 			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
 		}
@@ -365,7 +365,7 @@ int JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(Point2D location)
 	ObjectClass* pObject = pCell->FirstObject;
 
 	for(auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
-      if(auto pBld = cast_to<BuildingClass*>(pObject))  {
+      if(auto pBld = cast_to<BuildingClass*, false>(pObject))  {
         CoordStruct dim2 = CoordStruct::Empty;
 		pBld->Type->Dimension2(&dim2);
 	    return dim2.Z + height;

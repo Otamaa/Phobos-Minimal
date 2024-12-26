@@ -352,7 +352,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_ReplaceRadiationDamageProcessing, 0x5)
 	}
 
 	const auto nLoc = pThis->InlineMapCoords();
-	auto const pUnit = cast_to<UnitClass*>(pThis);
+	auto const pUnit = cast_to<UnitClass*, false>(pThis);
 
 	//R->BL(false);
 

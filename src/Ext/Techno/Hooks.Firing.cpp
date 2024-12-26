@@ -59,7 +59,7 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 DEFINE_HOOK(0x6FF905, TechnoClass_FireAt_FireOnce, 0x6) {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto const pInf = cast_to<InfantryClass*>(pThis))
+	if (auto const pInf = cast_to<InfantryClass*, false>(pThis))
 	{
 		GET(WeaponTypeClass*, pWeapon, EBX);
 
@@ -199,9 +199,9 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	enum { FireIllegal = 0x6FCB7E, Continue = 0x0 , FireCant = 0x6FCD29 };
 
-	auto const pObjectT = flag_cast_to<ObjectClass*>(pTarget);
+	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
 
-	if (auto pTerrain = cast_to<TerrainClass*>(pTarget))
+	if (auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
 		if (pTerrain->Type->Immune)
 			return FireIllegal;
 
@@ -380,7 +380,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
 
 	const auto pType = pThis->GetTechnoType();
-	auto pCell = cast_to<CellClass*>(pTarget);
+	auto pCell = cast_to<CellClass*, false>(pTarget);
 
 	if (pCell)
 	{
@@ -390,7 +390,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 			return DisallowFiring;
 		}
 	}
-	else if (const auto pTerrain = cast_to<TerrainClass*>(pTarget))
+	else if (const auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
 	{
 		pCell = pTerrain->GetCell();
 
@@ -416,7 +416,7 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 	GET(AbstractClass*, pTarget, EBX);
 	GET(TechnoClass*, pThis, ESI);
 
-	CellClass* pCell = cast_to<CellClass*>(pTarget);
+	CellClass* pCell = cast_to<CellClass*, false>(pTarget);
 	if (!pCell)
 		return SkipLandTargetingCheck;
 

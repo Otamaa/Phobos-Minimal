@@ -677,7 +677,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt(HouseClass* pOwner)
 
 		while (pObject)
 		{
-			auto const pTechno = flag_cast_to<TechnoClass*>(pObject);
+			auto const pTechno = flag_cast_to<TechnoClass* , false>(pObject);
 			pObject = pObject->NextObject;
 
 			if (!pTechno)

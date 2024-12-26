@@ -404,7 +404,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 		const auto pWhExt = WarheadTypeExtContainer::Instance.Find(pWH);
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->Type->ShrapnelWeapon);
 
-		if (const auto pTargetObj = flag_cast_to<ObjectClass*>(pTarget))
+		if (const auto pTargetObj = flag_cast_to<ObjectClass* , false>(pTarget))
 		{
 			auto pTargetType = static_cast<TechnoClass*>(pTargetObj)->GetType();
 

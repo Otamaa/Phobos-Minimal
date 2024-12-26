@@ -2217,7 +2217,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 				if (auto const pObj = pCell->FindTechnoNearestTo(
 					Point2D::Empty, false, pCellBld))
 				{
-					if (auto const pBld = cast_to<BuildingClass*>(pObj))
+					if (auto const pBld = cast_to<BuildingClass*, false>(pObj))
 					{
 						if (pBld->Type->LightningRod)
 						{
@@ -2598,7 +2598,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// add to the other newly captured minions.
-				if (FootClass* pFoot = flag_cast_to<FootClass*>(pTechno))
+				if (FootClass* pFoot = flag_cast_to<FootClass*, false>(pTechno))
 				{
 					// the AI sends all new minions to hunt
 					const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :

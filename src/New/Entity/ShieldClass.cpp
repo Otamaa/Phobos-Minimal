@@ -167,7 +167,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	if (*args->Damage < 0) {
-		if (auto const pFoot = flag_cast_to<FootClass*>(this->Techno)) {
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
 			if (auto const pParasite = pFoot->ParasiteEatingMe) {
 					// Remove parasite.
 					pParasite->ParasiteImUsing->SuppressionTimer.Start(50);

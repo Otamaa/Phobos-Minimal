@@ -264,7 +264,7 @@ DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 		{
 			if (pOccupy && pOccupy->IsAlive && pOccupy->Health > 0)
 			{
-				 if (auto pTechno = flag_cast_to<TechnoClass*>(pOccupy))
+				 if (auto pTechno = flag_cast_to<TechnoClass*, false>(pOccupy))
 				 {
 				 	if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 				 		continue;
@@ -327,7 +327,7 @@ DEFINE_HOOK(0x62CCB8, ParticleClass_Update_Fire, 7)
 			if (pThis->ParticleSystem && pOccupy == pThis->ParticleSystem->Owner)
 				continue;
 
-			if (auto pTechno = flag_cast_to<TechnoClass*>(pOccupy))
+			if (auto pTechno = flag_cast_to<TechnoClass*, false>(pOccupy))
 			{
 				if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 					continue;
@@ -374,7 +374,7 @@ DEFINE_HOOK(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
 	GET(TechnoClass*, pThis, EBX);
 	GET(Point2D*, pLocation, EAX);
 
-	const auto pBuilding = cast_to<BuildingClass*>(pThis);
+	const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
 
 	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
 	{

@@ -101,7 +101,7 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 	if (!pTechnoTo || TechnoExtData::IsPsionicsImmune(pTechnoTo))
 		return;
 
-	const auto pBld = cast_to<BuildingClass*>(pTechnoTo);
+	const auto pBld = cast_to<BuildingClass*, false>(pTechnoTo);
 
 	// anim must be transfered before `Free` call , because it will get invalidated !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
@@ -596,8 +596,8 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pThis->WhatAmI() != AbstractType::Building)
 			return;
 
-		const auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
-		const auto pBuilding = cast_to<BuildingClass*>(pThis);
+		const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
+		const auto pBuilding = static_cast<BuildingClass*>(pThis);
 
 		if (pBuildingType->ProduceCashAmount <= 0)
 			return;
@@ -976,7 +976,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 		return;
 
 	const bool re_AppyAcademyBonusses = Unsorted::ScenarioInit && (!pType->UndeploysInto || !pType->DeploysInto);
-	auto const pBld = cast_to<BuildingClass*>(pThis);
+	auto const pBld = cast_to<BuildingClass*, false>(pThis);
 
 	auto freeSlots = (pBld && pBld->Type->CanBeOccupied)
 		? pBld->Type->MaxNumberOccupants - pBld->GetOccupantCount()
@@ -1364,12 +1364,12 @@ bool TechnoExtData::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 		return false;
 
 	auto const pAttackerType = pAttacker->GetTechnoType();
-	auto const pVictimTechno = flag_cast_to<TechnoClass*>(pVictim);
+	auto const pVictimTechno = flag_cast_to<TechnoClass*, false>(pVictim);
 	auto const pAttackerTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pAttackerType);
 
 	if (!pVictimTechno)
 	{
-		if (auto const pTerrain = cast_to<TerrainClass*>(pVictim))
+		if (auto const pTerrain = cast_to<TerrainClass*, false>(pVictim))
 		{
 			if (pTerrain->Type->Immune || pTerrain->Type->SpawnsTiberium || !pTerrain->Type->Crushable)
 				return false;
@@ -1410,7 +1410,7 @@ bool TechnoExtData::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 			return false;
 	}
 
-	if (TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*>(pVictim)))
+	if (TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pVictim)))
 	{
 		return false;
 	}
@@ -1635,7 +1635,7 @@ bool TechnoExtData::FireOnceAllowFiring(TechnoClass* pThis, WeaponTypeClass* pWe
 {
 	const auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (auto pUnit = cast_to<UnitClass*>(pThis))
+	if (auto pUnit = cast_to<UnitClass*, false>(pThis))
 	{
 		if (!pUnit->Type->IsSimpleDeployer && !pUnit->Deployed && pTarget)
 		{
@@ -1866,7 +1866,7 @@ bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarg
 			))
 			return false;
 
-		if (auto const pUnit = cast_to<UnitClass*>(pTarget))
+		if (auto const pUnit = cast_to<UnitClass*, false>(pTarget))
 		{
 			if (pUnit->DeathFrameCounter > 0)
 				return false;
@@ -2092,7 +2092,7 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 
 		pPassenger->DiscoveredBy(pTransporter->GetOwningHouse());
 
-		if (auto pFoot = flag_cast_to<FootClass*>(pTransporter))
+		if (auto pFoot = flag_cast_to<FootClass*, false>(pTransporter))
 		{
 			if (pTransporter->GetTechnoType()->Gunner)
 			{
@@ -2104,8 +2104,10 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 				pFoot->ExitedOpenTopped(pPassenger);
 			}
 		}
-		else if (auto pBuilding = cast_to<BuildingClass*>(pTransporter))
+		else
 		{
+			auto pBuilding = static_cast<BuildingClass*>(pTransporter);
+
 			if (pBuilding->Absorber())
 			{
 				pPassenger->Absorbed = false;
@@ -2621,7 +2623,7 @@ bool TechnoExtData::CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget)
 
 void TechnoExtData::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 {
-	const auto pFoot = cast_to<UnitClass*>(pThis);
+	const auto pFoot = cast_to<UnitClass*, false>(pThis);
 	if (!pFoot)
 		return;
 
@@ -2685,7 +2687,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset == INT32_MIN)
 		pExt->DamageNumberOffset = -maxOffset;
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pThis))
+	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis))
 		coords.Z += 104 * pBuilding->Type->Height;
 	else
 		coords.Z += 256;
@@ -2769,7 +2771,7 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 		pKiller->SpawnOwner : pKiller;
 
 	if (pObjectKiller && pObjectKiller->BelongsToATeam()) {
-		if (auto const pFootKiller = flag_cast_to<FootClass*>(pObjectKiller)) {
+		if (auto const pFootKiller = flag_cast_to<FootClass*, false>(pObjectKiller)) {
 			auto pKillerExt = TechnoExtContainer::Instance.Find(pObjectKiller);
 
 			if (auto const pFocus = flag_cast_to<TechnoClass*>(pFootKiller->Team->ArchiveTarget))
@@ -3253,7 +3255,7 @@ void TechnoExtData::UpdateEatPassengers()
 					// Handle gunner change.
 					if (pThis->GetTechnoType()->Gunner)
 					{
-						if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+						if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 						{
 							pFoot->RemoveGunner(pPassenger);
 							FootClass* pGunner = nullptr;
@@ -3270,7 +3272,7 @@ void TechnoExtData::UpdateEatPassengers()
 						pThis->ExitedOpenTopped(pPassenger);
 					}
 
-					if (const auto pBld = cast_to<BuildingClass*>(pThis))
+					if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 					{
 						if (pBld->Absorber())
 						{
@@ -4028,7 +4030,7 @@ void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, boo
 
 Matrix3D TechnoExtData::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
 {
-	Matrix3D nMTX = TechnoExtData::GetTransform(flag_cast_to<FootClass*>(pThis));
+	Matrix3D nMTX = TechnoExtData::GetTransform(flag_cast_to<FootClass*, false>(pThis));
 	TechnoExtData::TransformFLHForTurret(pThis, nMTX, isOnTurret);
 
 	// apply FLH offset
@@ -4130,7 +4132,7 @@ void TechnoExtData::UpdateMindControlAnim()
 		{
 			auto coords = pThis->GetCoords();
 			int offset = 0;
-			const auto pBuilding = cast_to<BuildingClass*>(pThis);
+			const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
 
 			if (pBuilding)
 				offset = Unsorted::LevelHeight * pBuilding->Type->Height;
@@ -4461,7 +4463,7 @@ void TechnoExtData::UpdateAircraftOpentopped()
 
 		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
 		{
-			if (auto const pInf = flag_cast_to<FootClass*>(*object))
+			if (auto const pInf = flag_cast_to<FootClass*, false>(*object))
 			{
 				if (!pInf->Transporter || !pInf->InOpenToppedTransport)
 				{
@@ -4469,7 +4471,7 @@ void TechnoExtData::UpdateAircraftOpentopped()
 						pThis->EnteredOpenTopped(pInf);
 
 					if (pType->Gunner)
-						flag_cast_to<FootClass*>(pThis)->ReceiveGunner(pInf);
+						flag_cast_to<FootClass*, false>(pThis)->ReceiveGunner(pInf);
 
 					pInf->Transporter = pThis;
 					pInf->Undiscover();
@@ -4483,7 +4485,7 @@ void TechnoExtData::UpdateAircraftOpentopped()
 
 void TechnoExtData::DepletedAmmoActions()
 {
-	const auto pUnit = cast_to<UnitClass*>(this->AttachedToObject);
+	const auto pUnit = cast_to<UnitClass*, false>(this->AttachedToObject);
 
 	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
 		return;
@@ -5002,7 +5004,7 @@ void TechnoExtData::ApplyIdleAction()
 			RandomRanged(RulesExtData::Instance()->UnitIdleActionIntervalMin, RulesExtData::Instance()->UnitIdleActionIntervalMax));
 		bool noNeedTurnForward = false;
 
-		if (UnitClass* const pUnit = cast_to<UnitClass*>(pThis))
+		if (UnitClass* const pUnit = cast_to<UnitClass*, false>(pThis))
 			noNeedTurnForward = pUnit->BunkerLinkedItem ||!pUnit->Type->Speed || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 		else if (pThis->WhatAmI() == AbstractType::Building)
 			noNeedTurnForward = true;
@@ -5023,7 +5025,7 @@ void TechnoExtData::ApplyIdleAction()
 				RandomRanged(RulesExtData::Instance()->UnitIdleActionIntervalMin, RulesExtData::Instance()->UnitIdleActionIntervalMax));
 			bool noNeedTurnForward = false;
 
-			if (UnitClass* const pUnit = cast_to<UnitClass*>(pThis))
+			if (UnitClass* const pUnit = cast_to<UnitClass*, false>(pThis))
 				noNeedTurnForward = pUnit->BunkerLinkedItem ||!pUnit->Type->Speed || (pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 			else if (pThis->WhatAmI() == AbstractType::Building)
 				noNeedTurnForward = true;
@@ -5043,7 +5045,7 @@ void TechnoExtData::ApplyIdleAction()
 			RandomRanged(RulesExtData::Instance()->UnitIdleActionRestartMin, RulesExtData::Instance()->UnitIdleActionRestartMax));
 		bool noNeedTurnForward = false;
 
-		if (UnitClass* const pUnit = cast_to<UnitClass*>(pThis))
+		if (UnitClass* const pUnit = cast_to<UnitClass*, false>(pThis))
 			noNeedTurnForward = pUnit->BunkerLinkedItem || !pUnit->Type->Speed ||(pUnit->Type->IsSimpleDeployer && pUnit->Deployed);
 		else if (pThis->WhatAmI() == AbstractType::Building)
 			noNeedTurnForward = true;

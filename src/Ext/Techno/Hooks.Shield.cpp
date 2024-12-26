@@ -63,7 +63,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 {
 	if (ScriptExtData::IsUnitAvailable(pThis, false))
 	{
-		if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
+		if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
 		{
 			// Ignore other cases that aren't useful for this logic
 			if (pFoot->ParasiteEatingMe)
@@ -239,7 +239,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 	bool altered = false;
 
 	// Do not remove attached effects from undeploying buildings.
-	if (auto const pBuilding = cast_to<BuildingClass*>(pThis)) {
+	if (auto const pBuilding = cast_to<BuildingClass*, false>(pThis)) {
 		if ((pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2)) {
 			return 0;
 		}

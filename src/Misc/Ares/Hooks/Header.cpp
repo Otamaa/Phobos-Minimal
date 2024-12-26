@@ -1133,7 +1133,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 	// was the hijacker lost in the process?
 	bool ret = false;
 
-	if (const auto pThis = cast_to<InfantryClass*>(pFrom))
+	if (const auto pThis = cast_to<InfantryClass*, false>(pFrom))
 	{
 		const auto pType = pThis->Type;
 		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -1277,7 +1277,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 
 bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 {
-	const auto pInf = cast_to<InfantryClass*>(pThis);
+	const auto pInf = cast_to<InfantryClass*, false>(pThis);
 	if (!pInf)
 		return false;
 
@@ -1840,7 +1840,7 @@ UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 
 TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
 {
-	if (const auto pUnit = cast_to<UnitClass*>(pThis))
+	if (const auto pUnit = cast_to<UnitClass*, false>(pThis))
 	{
 		TechnoTypeClass* Image = pUnit->Type;
 
@@ -2257,7 +2257,7 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 	if (pTarget && !pTarget->AttachedBomb)
 	{
 		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-		const auto pTechno = flag_cast_to <TechnoClass*>(pTarget);
+		const auto pTechno = flag_cast_to <TechnoClass*, false>(pTarget);
 
 		//https://bugs.launchpad.net/ares/+bug/1591335
 		if (pTechno && !pWHExt->CanDealDamage(pTechno))
@@ -3241,7 +3241,7 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 	}
 
 	// This unit will be freed of its duties
-	if (auto const pFoot = flag_cast_to<FootClass*>(pTarget))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pTarget))
 	{
 		if (pFoot->BelongsToATeam())
 		{
@@ -3552,7 +3552,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 
 	// Update movement sound if still moving while type changed.
-	if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 	{
 		if (pFoot->Locomotor->Is_Moving_Now() && pFoot->__PlayingMovingSound)
 		{
@@ -3629,7 +3629,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 	}
 
-	if (auto pInf = cast_to<InfantryClass*>(pThis))
+	if (auto pInf = cast_to<InfantryClass*, false>(pThis))
 	{
 		// It's still not recommended to have such idea, please avoid using this
 		if (static_cast<InfantryTypeClass*>(pOldType)->Deployer && !static_cast<InfantryTypeClass*>(pToType)->Deployer)
@@ -3812,7 +3812,7 @@ void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* p
 		if (!pBuildingBelow || (buildingBelowIsMe && pBuildingBelow->IsPowerOnline()))
 		{
 			bool Override = false;
-			if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+			if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 			{
 				if (!pBuildingBelow)
 				{
@@ -3855,7 +3855,7 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 	// prevent disabled units from driving around.
 	if (pThis->Deactivated)
 	{
-		if (auto const pUnit = cast_to<UnitClass*>(pThis))
+		if (auto const pUnit = cast_to<UnitClass*, false>(pThis))
 		{
 			if (pUnit->Locomotor->Is_Moving() && pUnit->Destination && !pThis->LocomotorSource)
 			{
@@ -3904,7 +3904,7 @@ void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 	if (pExt->TechnoValueAmount)
 		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, false);
 
-	const auto pFoot = flag_cast_to<FootClass*>(pThis);
+	const auto pFoot = flag_cast_to<FootClass*, false>(pThis);
 
 	if (pFoot
 		&& pExt->Is_DriverKilled
@@ -4255,7 +4255,7 @@ void TechnoExperienceData::EvaluateExtReceiverData(TechnoClass*& pExpReceiver, T
 		else if (pKiller->CanOccupyFire())
 		{
 			// game logic, with added check for Trainable
-			if (BuildingClass* pKillerBld = cast_to<BuildingClass*>(pKiller))
+			if (BuildingClass* pKillerBld = cast_to<BuildingClass*, false>(pKiller))
 			{
 				InfantryClass* pOccupant = pKillerBld->Occupants[pKillerBld->FiringOccupantIndex];
 				if (pOccupant->Type->Trainable)
@@ -4301,7 +4301,7 @@ void FirewallFunctions::ImmolateVictims(TechnoClass* pThis)
 	auto const pCell = pThis->GetCell();
 	for (NextObject object(pCell->FirstObject); object; ++object)
 	{
-		if (auto pFoot = flag_cast_to<FootClass*>(*object))
+		if (auto pFoot = flag_cast_to<FootClass*, false>(*object))
 		{
 			if (!pFoot->GetType()->IgnoresFirestorm)
 			{
@@ -4663,7 +4663,7 @@ void AresEMPulse::announceAttack(TechnoClass* Techno)
 	// find out what event is the most appropriate.
 	if (Techno && Techno->Owner == HouseClass::CurrentPlayer)
 	{
-		if (auto pBuilding = cast_to<BuildingClass*>(Techno))
+		if (auto pBuilding = cast_to<BuildingClass*, false>(Techno))
 		{
 			if (pBuilding->Type->ResourceGatherer)
 			{
@@ -4675,7 +4675,7 @@ void AresEMPulse::announceAttack(TechnoClass* Techno)
 				Event = AttackEvents::Base;
 			}
 		}
-		else if (auto pUnit = cast_to<UnitClass*>(Techno))
+		else if (auto pUnit = cast_to<UnitClass*, false>(Techno))
 		{
 			if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
 			{
@@ -4692,7 +4692,7 @@ void AresEMPulse::announceAttack(TechnoClass* Techno)
 			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack, -1, -1);
 		break;
 	case AttackEvents::Base:
-		HouseClass::CurrentPlayer->BuildingUnderAttack(cast_to<BuildingClass*>(Techno));
+		HouseClass::CurrentPlayer->BuildingUnderAttack(cast_to<BuildingClass*, false>(Techno));
 		break;
 	case AttackEvents::None:
 	default:
@@ -5145,7 +5145,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	}
 
 	// remove the unit from its team
-	if (auto const pFoot = flag_cast_to<FootClass*>(pVictim))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
 	{
 		if (pFoot->LocomotorTarget)
 			pFoot->LocomotorImblued(true);
@@ -5242,7 +5242,7 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 	AresEMPulse::UpdateSparkleAnim(pVictim);
 
 	// get harvesters back to work and ai units to hunt
-	if (auto const pFoot = flag_cast_to<FootClass*>(pVictim))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
 	{
 		auto hasMission = false;
 		if (abs == AbstractType::Unit)
@@ -5305,7 +5305,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 		}
 
 		// remove the unit from its team
-		if (auto const pFoot = flag_cast_to<FootClass*>(pVictim))
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
 		{
 			if (pFoot->LocomotorTarget)
 				pFoot->LocomotorImblued(true);
@@ -5398,7 +5398,7 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 		}
 
 		// get harvesters back to work and ai units to hunt
-		if (auto const pFoot = flag_cast_to<FootClass*>(pVictim))
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
 		{
 			auto hasMission = false;
 			if (abs == AbstractType::Unit)
@@ -5868,7 +5868,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	}
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->AttachedToObject->Warhead);
-	const auto Target = flag_cast_to<FootClass*>(pTarget);
+	const auto Target = flag_cast_to<FootClass*, false>(pTarget);
 
 	if (!Target)
 	{
@@ -7184,7 +7184,7 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 
 	PipData.clear();
 
-	if (const auto pBld = cast_to<BuildingClass*>(pThis))
+	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
 		const TunnelData* pTunnelData = HouseExtData::GetTunnelVector(pBld->Type, pThis->Owner);
 		const bool Absorber = pBld->Absorber();

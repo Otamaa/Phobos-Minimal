@@ -649,8 +649,9 @@ void ParticleSystemExtData::UpdateSmoke()
 	auto const pOwnerObjType = pOwnerObj->Type;
 	auto const pOwnerObj_Owner = pOwnerObj->Owner;
 
-	if (pOwnerObj_Owner && pOwnerObj_Owner->AbstractFlags & AbstractFlags::Foot)
-	{
+	FootClass* Owner_obj = flag_cast_to<FootClass*>(pOwnerObj_Owner);
+
+	if (Owner_obj) {
 		auto coords = pOwnerObj_Owner->GetCoords();
 		CoordStruct SpawnDistance = coords + pOwnerObj->SpawnDistanceToOwner;
 		pOwnerObj->SetLocation(SpawnDistance);
@@ -686,7 +687,7 @@ void ParticleSystemExtData::UpdateSmoke()
 	}
 
 	this->UpdateState();
-	FootClass* Owner_obj = flag_cast_to<FootClass*>(pOwnerObj_Owner);
+
 
 	//updating the current particle ?
 	if (!pOwnerObj->TimeToDie && pOwnerObj->IsAlive)

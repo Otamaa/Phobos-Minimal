@@ -59,7 +59,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 
 	if (calculateIntensity)
 	{
-		BuildingClass* pBld = cast_to<BuildingClass*>(pThis);
+		BuildingClass* pBld = cast_to<BuildingClass* , false>(pThis);
 
 		if (pBld)
 		{

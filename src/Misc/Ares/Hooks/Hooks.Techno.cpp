@@ -599,7 +599,7 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 	{
 		pThis->Guard();
 
-		if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 		{
 			pFoot->Locomotor.GetInterfacePtr()->Power_On();
 		}
@@ -622,7 +622,7 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 			}
 
 			// change: update factories
-			if (auto const pBld = cast_to<BuildingClass*>(pThis))
+			if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
 			{
 				TechnoExt_ExtData::UpdateFactoryQueues(pBld);
 			}
@@ -661,7 +661,7 @@ DEFINE_HOOK(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 
 	GET_STACK(RectangleStruct*, pRect, 0xA0);
 
-	if (auto pBld = cast_to<BuildingClass*>(pTechno))
+	if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 	{
 		const auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 		const auto isObserver = HouseClass::IsCurrentPlayerObserver();
@@ -747,7 +747,7 @@ DEFINE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 	if (!HouseClass::CurrentPlayer)
 		return 0x70AD4C;
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pThis))
+	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis))
 	{
 		auto const pType = pBuilding->Type;
 		auto const pOwner = pBuilding->Owner;
@@ -886,7 +886,7 @@ DEFINE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 	pThis->Guard();
 	pThis->Deselect();
 
-	if (auto const pFoot = flag_cast_to<FootClass*>(pThis))
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
 	{
 		pFoot->Locomotor.GetInterfacePtr()->Power_Off();
 	}
@@ -909,7 +909,7 @@ DEFINE_HOOK(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 		}
 
 		// change: update factories
-		if (auto const pBld = cast_to<BuildingClass*>(pThis))
+		if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
 		{
 			TechnoExt_ExtData::UpdateFactoryQueues(pBld);
 		}
@@ -939,7 +939,7 @@ DEFINE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 		pJammer->UnjamAll();
 	}
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pThis)) {
+	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis)) {
 
 		const auto nTunnelVec = HouseExtData::GetTunnelVector(pBuilding->Type, pThis->Owner);
 

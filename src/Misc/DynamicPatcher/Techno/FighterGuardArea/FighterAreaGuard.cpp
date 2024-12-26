@@ -379,7 +379,7 @@ void FighterAreaGuard::OnUpdate()
 											continue;
 
 										bool IsBuilding = false;
-										if (const auto pBuilding = cast_to<BuildingClass*>(pTech))
+										if (const auto pBuilding = cast_to<BuildingClass* , false>(pTech))
 										{
 											IsBuilding = true;
 											if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)

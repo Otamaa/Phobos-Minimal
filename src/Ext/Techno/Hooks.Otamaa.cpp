@@ -225,7 +225,7 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
-	if (const auto pAir = cast_to<AircraftClass*>(pThis->LinkedTo))
+	if (const auto pAir = cast_to<AircraftClass*, false>(pThis->LinkedTo))
 	{
 		if (pAir->IsInAir())
 			return 0x0;
@@ -311,7 +311,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 
 	GET(FootClass* const, pThis, ESI);
 
-	if(const auto pInf = cast_to<InfantryClass*>(pThis)) {
+	if(const auto pInf = cast_to<InfantryClass*, false>(pThis)) {
 		if (InfantryTypeExtContainer::Instance.Find(pInf->Type)->Is_Cow) {
 			pThis->UpdateIdleAction();
 			return pThis->Destination ? Skip : SetMissionRate;
