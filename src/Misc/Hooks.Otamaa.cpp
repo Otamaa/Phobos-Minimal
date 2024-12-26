@@ -7416,7 +7416,7 @@ class BulletClass_patch : public BulletClass
 
 	DirStruct _Motion(CoordStruct& intialCoord, VelocityClass& InitialVelocity, Coordinate& targetCoord, int InitialDir)
 	{
-		DirStruct inital { this->__CourseLocked ? InitialDir : 0 };
+ 		DirStruct inital { this->CourseLock ? InitialDir : 0 };
 		const bool IsTargetFlying = this->Target && this->Target->WhatAmI() == AbstractType::Aircraft;
 		const bool IsAirburst = this->Type->Airburst;
 		const bool IsVeryHeigh = this->Type->VeryHigh;

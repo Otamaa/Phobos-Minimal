@@ -214,11 +214,11 @@ public:
 	AbstractClass*  Destination; //navcom possibly other objects as well
 	AbstractClass*  LastDestination; //suspendednavcom
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, NavQueue);//unknown_abstract_array_5AC
-	int             state5C4;
-	DWORD           target5C8_CandidateTarget;
-	DWORD           ___CandidateTarget_5CC;
+	Mission         MegaMission; // only Mission::AttackMove or Mission::None
+	AbstractClass*  MegaDestination; // when AttackMove target is a cell
+	AbstractClass*  MegaTarget; // when AttackMove target is an object
 	BYTE            unknown_5D0;	//unused?
-	bool            newtargetassigned_5D1;
+	bool            HaveAttackMoveTarget; // fighting an enemy on the way
 	BYTE			padding_5D2[2];
 	TeamClass*      Team;
 	FootClass*      NextTeamMember;        //next unit in team
@@ -246,7 +246,7 @@ public:
 	bool              ShouldEnterOccupiable; // 690 ,orders the unit to enter the closest battle bunker
 	bool              ShouldGarrisonStructure; // 691 , orders the unit to enter the closest neutral building
 	FootClass*        ParasiteEatingMe; // the tdrone/squid that's eating me
-	DWORD             __ParasiteFireBlock_698;
+	int               LastBeParasitedStartFrame;
 	ParasiteClass*    ParasiteImUsing;	// my parasitic half, nonzero for, eg, terror drone or squiddy
 	DECLARE_PROPERTY(CDTimerClass, ParalysisTimer); // for squid victims
 	bool              unknown_bool_6AC;

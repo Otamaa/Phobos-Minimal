@@ -913,7 +913,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	{
 		MouseClass::Instance->CurrentBuilding = nullptr;
 		MouseClass::Instance->CurrentBuildingType = nullptr;
-		MouseClass::Instance->unknown_11AC = 0xFFFFFFFF;
+		MouseClass::Instance->CurrentBuildingOwnerArrayIndex = 0xFFFFFFFF;
 		MouseClass::Instance->SetActiveFoundation(nullptr);
 	}
 

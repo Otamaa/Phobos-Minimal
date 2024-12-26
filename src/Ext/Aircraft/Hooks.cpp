@@ -474,14 +474,14 @@ DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6
 	if (!pThis->Target)
 	{
 		if (!RulesExtData::Instance()->ExpandAircraftMission
-			|| !pThis->vt_entry_4C4()
-			|| !pThis->target5C8_CandidateTarget) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
+			|| !pThis->MegaMissionIsAttackMove()
+			|| !pThis->MegaDestination) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
 			return Continue;
 
-		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->target5C8_CandidateTarget), false); // pThis->MegaDestination
+		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->MegaDestination), false); // pThis->MegaDestination
 		pThis->QueueMission(Mission::Move, true);
 		pThis->QueueMission(Mission::Move, true);
-		pThis->newtargetassigned_5D1 = false; // pThis->HaveAttackMoveTarget
+		pThis->HaveAttackMoveTarget = false; // pThis->HaveAttackMoveTarget
 	}
 	else
 	{

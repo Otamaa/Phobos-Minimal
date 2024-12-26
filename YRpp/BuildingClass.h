@@ -378,7 +378,7 @@ public:
 	DWORD LastStrength; //544
 	AnimClass* FirestormAnim; //pointer
 	AnimClass* PsiWarnAnim; //pointer
-	CDTimerClass PlacementDelay; //550
+	CDTimerClass FactoryRetryTimer; //550
 
 	AnimClass * Anims [0x15];
 	bool AnimStates [0x15]; // one flag for each of the above anims (whether the anim was enabled when power went offline?)

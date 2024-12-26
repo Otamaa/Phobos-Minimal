@@ -2191,8 +2191,8 @@ DEFINE_HOOK(0x4C75E6, EventClass_RespondToEvent_Stop, 0x5)
 		pTechno->SetDestination(pTechno->GetCell()->GetNeighbourCell((FacingType)pJumpjetLoco->Facing.Current().GetValue<3>()),true);
 
 	// To avoid technos being unable to stop in attack move mega mission
-	if (pTechno->vt_entry_4C4()) // pTechno->MegaMissionIsAttackMove()
-		pTechno->vt_entry_4A8(); // pTechno->ClearMegaMissionData()
+	if (pTechno->MegaMissionIsAttackMove())
+		pTechno->ClearMegaMissionData();
 
 	// To avoid aircrafts pausing in the air and let they returning to air base immediately
 	if (pTechno->WhatAmI() == AbstractType::Aircraft && !pTechno->Airstrike && !pTechno->Spawned && pTechno->GetHeight() > Unsorted::CellHeight)

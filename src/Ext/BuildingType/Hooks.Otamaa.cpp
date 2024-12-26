@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	}
 
 	if(pThis->WhatAmI() != BuildingClass::AbsID) {
-		if (auto const Building = cast_to<BuildingClass*, false>(pThis->BunkerLinkedItem)) {
+		if (auto const Building = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
 		}
 	}

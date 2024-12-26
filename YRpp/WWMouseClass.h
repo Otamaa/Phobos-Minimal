@@ -142,11 +142,11 @@ public:
 	HWND        hWnd;
 	RectangleStruct __ConfiningRect;
 	Point2D     MouseHot;
-	DWORD       MouseBuffer;
+	BSurface*   MouseBuffer;
 	RectangleStruct MouseBuffRect;
-	DWORD       TacticalBuffer;
+	BSurface*   TacticalBuffer;
 	RectangleStruct TacticalBuffRect;
-	DWORD       SidebarBuffer;
+	BSurface*   SidebarBuffer;
 	RectangleStruct SidebarBuffRect;
 	RectangleStruct rect_80;
 	DWORD       field_90;

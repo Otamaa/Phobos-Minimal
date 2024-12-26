@@ -5909,7 +5909,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	Target->CurrentTargets.Clear(); // Target->ShouldLoseTargetNow ?
 	Target->SetArchiveTarget(nullptr);
 	Target->QueueMission(Mission::Sleep, true);
-	Target->unknown_C4 = 0; // don't ask
+	Target->MissionAccumulateTime = 0; // don't ask
 	Target->unknown_5A0 = 0;
 	Target->CurrentGattlingStage = 0;
 	Target->SetCurrentWeaponStage(0);
@@ -7135,7 +7135,7 @@ void TunnelFuncs::EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClas
 {
 	pFoot->SetTarget(nullptr);
 	pFoot->OnBridge = false;
-	pFoot->unknown_C4 = 0;
+	pFoot->MissionAccumulateTime = 0;
 	pFoot->GattlingValue = 0;
 	pFoot->SetGattlingStage(0);
 

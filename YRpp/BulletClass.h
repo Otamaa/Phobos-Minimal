@@ -166,8 +166,10 @@ public:
 	DWORD unknown_E4;
 	DECLARE_PROPERTY(VelocityClass ,Velocity);
 	DWORD unknown_100;
-	bool __CourseLocked;
-	int __CourseLockedDuration;
+	bool unknown_104;
+	bool CourseLock;
+	BYTE padding[2];
+	int CourseLockCounter;
 	AbstractClass* Target;
 	int Speed;
 	int InheritedColor;

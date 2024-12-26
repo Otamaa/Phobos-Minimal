@@ -246,7 +246,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 			fprintf(stream, "%p\n", pThis->ChronoWarpedByHouse);
 			fprintf(stream, "%d\n", pThis->_Mission_Patrol_430);
 			fprintf(stream, "%d\n", pThis->IsMouseHovering);
-			fprintf(stream, "%d\n", pThis->parasitecontrol_byte432);
+			fprintf(stream, "%d\n", pThis->ShouldBeReselectOnUnlimbo);
 			//	BYTE			 byte_433;
 			fprintf(stream, "%p\n", pThis->OldTeam);
 			fprintf(stream, "%d\n", pThis->CountedAsOwnedSpecial); // for absorbers, infantry uses this to manually control OwnedInfantry count

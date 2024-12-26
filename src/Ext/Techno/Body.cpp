@@ -2076,7 +2076,7 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 		pPassenger->SetTarget(nullptr);
 		pPassenger->CurrentTargets.Clear();
 		pPassenger->SetArchiveTarget(nullptr);
-		pPassenger->unknown_C4 = 0; // don't ask
+		pPassenger->MissionAccumulateTime = 0; // don't ask
 		pPassenger->unknown_5A0 = 0;
 		pPassenger->CurrentGattlingStage = 0;
 		pPassenger->SetCurrentWeaponStage(0);

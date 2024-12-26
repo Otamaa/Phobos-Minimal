@@ -194,9 +194,9 @@ public:
 	virtual bool DraggingInProgress() override JMP_THIS(0x693060);
 
 	//DisplayClass
-	virtual void vt_entry_8C() override JMP_THIS(0x6938C0);
-	virtual void vt_entry_B0(DWORD dwUnk) override JMP_THIS(0x693880);
-	virtual void RightMouseButtonUp(DWORD dwUnk) override JMP_THIS(0x693840);
+	virtual void ClearDragBand() override JMP_THIS(0x6938C0);
+	virtual void RightMouseButtonClick(const Point2D& point) override JMP_THIS(0x693880);
+	virtual void RightMouseButtonUp(const Point2D& point) override JMP_THIS(0x693840);
 
 	ScrollClass() JMP_THIS(0x692290);
 
