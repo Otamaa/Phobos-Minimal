@@ -363,7 +363,7 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 		}
 		else
 		{
-			if (auto const pBullet = cast_to<BulletClass*, false>(pThis->OwnerObject))
+			if (auto const pBullet = cast_to<BulletClass*, true>(pThis->OwnerObject))
 				return pBullet->Owner;
 			else
 				return pThis->OwnerObject;

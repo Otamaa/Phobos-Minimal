@@ -323,7 +323,7 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 
 	if(!HouseClass::IsCurrentPlayerObserver()) {
 
-		const auto pTechno = flag_cast_to<TechnoClass* , false>(pThis->OwnerObject);
+		const auto pTechno = flag_cast_to<TechnoClass* , true>(pThis->OwnerObject);
 		HouseClass* const pCurrentHouse = HouseClass::CurrentPlayer;
 
 		if (pTypeExt->RestrictVisibilityIfCloaked
@@ -397,7 +397,7 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 		auto translucency = pThis->Type->Translucency;
 
 		if (pTypeExt->Translucency_Cloaked.isset()) {
-			if (auto const pTechno = flag_cast_to<TechnoClass* , false>(pThis->OwnerObject)) {
+			if (auto const pTechno = flag_cast_to<TechnoClass* , true>(pThis->OwnerObject)) {
 				if (pTechno->IsInCloakState())
 					translucency = pTypeExt->Translucency_Cloaked.Get();
 			}
