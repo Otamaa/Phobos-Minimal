@@ -271,15 +271,41 @@ DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
 	return 0x521C03;
 }
 
-DEFINE_HOOK_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
-DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
-{
-	GET(FakeInfantryClass*, pThis, ESI);
-	GET(int, _doType, EDI);
+#include <GameOptionsClass.h>
 
-	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
-	return R->Origin() + 0x7;
+DEFINE_HOOK(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
+{
+	GET(DoType, todo, EDI);
+	GET(FakeInfantryClass*, pThis, ESI);
+
+	const bool normalize =
+		todo == DoType::Idle1
+		|| todo == DoType::Idle2
+		|| todo == DoType::WetIdle1
+		|| todo == DoType::WetIdle2
+		|| todo == DoType::Hover
+		|| todo == DoType::Cheer;
+
+	const auto pExt = pThis->_GetTypeExtData();
+
+	if (pExt->AllSequnceEqualRates || !normalize) {
+		pThis->Animation.Start(pExt->SquenceRates[(int)todo]);
+	} else {
+		pThis->Animation.Start(GameOptionsClass::Instance->GetAnimSpeed(pExt->SquenceRates[(int)todo]));
+	}
+
+	return 0x51DA4A;
 }
+
+//DEFINE_HOOK_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
+//DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
+//{
+//	GET(FakeInfantryClass*, pThis, ESI);
+//	GET(int, _doType, EDI);
+//
+//	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
+//	return R->Origin() + 0x7;
+//}
 
 #pragma endregion
 
