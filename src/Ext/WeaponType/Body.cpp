@@ -203,6 +203,9 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->RecoilForce.Read(exINI, pSection, "RecoilForce");
 	//this->BlockageTargetingBypassDamageOverride.Read(exINI, pSection, "BlockageTargetingBypassDamageOverride");
 
+	// AttachEffect
+	this->AttachEffects.LoadFromINI(pINI, pSection);
+
 	this->AttachEffect_RequiredTypes.Read(exINI, pSection, "AttachEffect.RequiredTypes");
 	this->AttachEffect_DisallowedTypes.Read(exINI, pSection, "AttachEffect.DisallowedTypes");
 	exINI.ParseList(this->AttachEffect_RequiredGroups, pSection, "AttachEffect.RequiredGroups");
@@ -214,7 +217,10 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachEffect_CheckOnFirer.Read(exINI, pSection, "AttachEffect.CheckOnFirer");
 	this->AttachEffect_IgnoreFromSameSource.Read(exINI, pSection, "AttachEffect.IgnoreFromSameSource");
 
+	this->AttachEffect_Enable = (this->AttachEffects.AttachTypes.size() > 0 || this->AttachEffects.RemoveTypes.size() > 0 || this->AttachEffects.RemoveGroups.size() > 0);
+
 	this->FireOnce_ResetSequence.Read(exINI, pSection, "FireOnce.ResetSequence");
+	this->NoRepeatFire.Read(exINI, pSection, "NoRepeatFire");
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -432,6 +438,10 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_IgnoreFromSameSource)
 
 		.Process(this->FireOnce_ResetSequence)
+
+		.Process(this->AttachEffects)
+		.Process(this->AttachEffect_Enable)
+		.Process(this->NoRepeatFire)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

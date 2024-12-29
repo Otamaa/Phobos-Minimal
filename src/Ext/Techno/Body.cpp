@@ -5211,6 +5211,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->LastRearmWasFullDelay)
 		.Process(this->DropCrate)
 		.Process(this->DropCrateType)
+		.Process(this->LastBeLockedFrame)
 		;
 }
 

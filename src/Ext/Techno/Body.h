@@ -717,6 +717,8 @@ public:
 	int DropCrate { -1 }; // Drop crate on death, modified by map action
 	PowerupEffects DropCrateType { PowerupEffects::Money };
 
+	int LastBeLockedFrame {};
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {

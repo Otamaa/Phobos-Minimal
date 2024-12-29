@@ -9,6 +9,7 @@
 #include <New/Type/CursorTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
+#include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
 #include <New/Entity/ElectricBoltClass.h>
 
@@ -166,6 +167,10 @@ public:
 	Valueable<bool> AttachEffect_IgnoreFromSameSource { false };
 
 	Valueable<bool> FireOnce_ResetSequence { true };
+
+	AEAttachInfoTypeClass AttachEffects {};
+	Valueable<bool> AttachEffect_Enable { false };
+	Valueable<int> NoRepeatFire {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

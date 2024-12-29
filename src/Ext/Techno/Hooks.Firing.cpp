@@ -194,12 +194,23 @@ DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(FakeWeaponTypeClass*, pWeapon, EDI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
 
 	enum { FireIllegal = 0x6FCB7E, Continue = 0x0 , FireCant = 0x6FCD29 };
 
 	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
+	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
+	auto const pWeaponExt = pWeapon->_GetExtData();
+
+	if (pWeaponExt->NoRepeatFire > 0) {
+		if (pTechnoT) {
+			const auto pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTechnoT);
+
+			if ((Unsorted::CurrentFrame - pTargetTechnoExt->LastBeLockedFrame) < pWeaponExt->NoRepeatFire)
+				return FireIllegal;
+		}
+	}
 
 	if (auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
 		if (pTerrain->Type->Immune)
@@ -513,7 +524,7 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, EDI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(FakeWeaponTypeClass*, pWeapon, EBX);
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -527,12 +538,28 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 		}
 	}
 
-
 	// if (pThis->Passengers.FirstPassenger)
 	// {
 	// 	// TODO : implement this for UnitClass
 	// 	pThis->DropOffParadropCargo();
 	// }
+
+	if (pWeapon) {
+		auto pWeaponExt = pWeapon->_GetExtData();
+		if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget)) {
+				auto const pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
+			if (pWeaponExt->NoRepeatFire > 0) {
+				pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame;
+			}
+
+			if (pWeaponExt->AttachEffect_Enable) {
+				auto const info = &pWeaponExt->AttachEffects;
+				PhobosAttachEffectClass::Attach(pTargetTechno, pThis->Owner, pThis, pWeapon->Warhead, info);
+				PhobosAttachEffectClass::Detach(pTargetTechno, info);
+				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
+			}
+		}
+	}
 
 	return 0x0;
 }
