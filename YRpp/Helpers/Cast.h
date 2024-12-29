@@ -10,6 +10,7 @@ class RadioClass;
 class TechnoClass;
 class FootClass;
 
+// pAbs->WhatAmI() == Base::AbsID check
 template <typename T , bool check = true>
 FORCEINLINE T cast_to(AbstractClass* pAbstract) {
 	using Base = std::remove_pointer_t<T>;
@@ -17,6 +18,7 @@ FORCEINLINE T cast_to(AbstractClass* pAbstract) {
 	return const_cast<Base*>(cast_to<const Base*, check>(static_cast<const AbstractClass*>(pAbstract)));
 };
 
+// pAbs->WhatAmI() == Base::AbsID check
 template <typename T, bool check = true>
 FORCEINLINE T cast_to(const AbstractClass* pAbstract) {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
@@ -36,6 +38,7 @@ FORCEINLINE T cast_to(const AbstractClass* pAbstract) {
 		return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 };
 
+// pAbs->AbstractFlags & Base::AbsDerivateID check
 template <typename T, bool check = true>
 FORCEINLINE T flag_cast_to(const AbstractClass* pAbstract) {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
@@ -53,6 +56,7 @@ FORCEINLINE T flag_cast_to(const AbstractClass* pAbstract) {
 		return (pAbstract->AbstractFlags & Base::AbsDerivateID) != AbstractFlags::None ? static_cast<T>(pAbstract) : nullptr;
 };
 
+// pAbs->pAbstract->AbstractFlags & Base::AbsDerivateID check
 template <typename T, bool check = true>
 FORCEINLINE T flag_cast_to(AbstractClass* pAbstract) {
 	using Base = std::remove_pointer_t<T>;
