@@ -310,7 +310,7 @@ public:
 	Valueable<bool> RemoveInflictedLocomotor { false };
 
 	Nullable<int> Rocker_AmplitudeOverride {};
-	Nullable<double> Rocker_AmplitudeMultiplier { };
+	Valueable<double> Rocker_AmplitudeMultiplier { 0.01 };
 
 	Nullable<int> PaintBallDuration { };
 	PaintballType PaintBallData { };

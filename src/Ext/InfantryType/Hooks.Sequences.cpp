@@ -287,6 +287,7 @@ DEFINE_HOOK(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 		|| todo == DoType::Cheer;
 
 	const auto pExt = pThis->_GetTypeExtData();
+	pThis->SequenceAnim = todo; //oof;
 
 	if (pExt->AllSequnceEqualRates || !normalize) {
 		pThis->Animation.Start(pExt->SquenceRates[(int)todo]);

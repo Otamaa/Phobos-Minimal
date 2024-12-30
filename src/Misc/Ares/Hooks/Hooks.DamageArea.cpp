@@ -507,7 +507,8 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	REF_STACK(bool, isAllocated, 0xE0 - 0x9B);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
-	const int MaxAffect = pWarhead->_GetExtData()->CellSpread_MaxAffect;
+	auto pWHExt = pWarhead->_GetExtData();
+	const int MaxAffect = pWHExt->CellSpread_MaxAffect;
 
 	if (MaxAffect > 0) {
 
@@ -617,10 +618,7 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		return 0x489E87;
 	}
 
-	double rocker = pWarhead->_GetExtData()->Rocker_AmplitudeOverride.Get(idamage);
-
-	if (pWarhead->_GetExtData()->Rocker_AmplitudeMultiplier.isset())
-		rocker *= pWarhead->_GetExtData()->Rocker_AmplitudeMultiplier;
+	double rocker = pWHExt->Rocker_AmplitudeOverride.Get(idamage) * pWHExt->Rocker_AmplitudeMultiplier;
 
 	if (rocker >= 4.0)
 		rocker = 4.0;
