@@ -154,6 +154,7 @@ public:
 
 	PathfindLastData PathfindTechno { };
 	ColorsData ColorDatas { };
+	int LandTypeParseCounter { };
 
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
@@ -177,6 +178,7 @@ public:
 			.Process(this->PathfindTechno)
 			.Process(this->CurCopyArray)
 			.Process(this->ColorDatas)
+			.Process(this->LandTypeParseCounter)
 			.Success();
 	}
 

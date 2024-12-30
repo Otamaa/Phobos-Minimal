@@ -15,6 +15,7 @@ void PhobosGlobal::Clear()
 	pInstance->ColorDatas.reset();
 	pInstance->PathfindTechno.Clear();
 	pInstance->CurCopyArray.clear();
+	pInstance->LandTypeParseCounter = 0;
 
 }
 
