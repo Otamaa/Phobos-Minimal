@@ -208,7 +208,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	const auto pType = pBuilding->Type;
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
-	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExtData::Instance()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview));
+	const bool bShow = pTypeExt->PlacementPreview_Show;
 
 	if (!bShow)
 		return;
@@ -679,7 +679,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
 
-		this->PlacementPreview_Show.Read(exINI, pSection, !Refinery_UseStorage ? "PlacementPreview.Show" : "PlacementPreview");
+		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
+		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview");
 
 		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
 		{

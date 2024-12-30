@@ -178,7 +178,7 @@ public:
 	Valueable<ParticleTypeClass*> DefaultVeinParticle { nullptr };
 	Valueable<AnimTypeClass*> DefaultSquidAnim { nullptr };
 	PhobosFixedString<0x18> NukeWarheadName {};
-	Nullable<bool> Building_PlacementPreview {};
+	Valueable<bool> Building_PlacementPreview { false };
 	Nullable<PartialVector3D<float>> AI_AutoSellHealthRatio {};
 
 	Valueable<AnimTypeClass*> CarryAll_LandAnim { nullptr };

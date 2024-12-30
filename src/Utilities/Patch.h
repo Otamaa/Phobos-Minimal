@@ -60,7 +60,7 @@ struct NOVTABLE
 	static void ApplyStatic();
 	void Apply();
 
-	inline static std::vector<dllData> ModuleDatas;
+	inline static std::vector<dllData> ModuleDatas {};
 
 	template<typename TFrom, typename To>
 	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)

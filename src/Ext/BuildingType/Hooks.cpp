@@ -72,7 +72,7 @@ DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 {
 	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
 
-	const auto trans = RulesExtData::Instance()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview) ?
+	const auto trans = RulesExtData::Instance()->Building_PlacementPreview ?
 		RulesExtData::Instance() ->PlacementGrid_TranslucencyWithPreview .Get(RulesExtData::Instance()->PlacementGrid_TranslucentLevel) : RulesExtData::Instance()->PlacementGrid_TranslucentLevel;
 
 	*blitFlags |= EnumFunctions::GetTranslucentLevel(trans);
