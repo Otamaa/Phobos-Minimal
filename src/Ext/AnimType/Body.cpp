@@ -430,10 +430,12 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 	if (const auto pTechnoType = pTypeExt->CreateUnit)
 	{
 		const auto Is_AI = !decidedOwner->IsControlledByHuman();
-		DirType facing = pTypeExt->CreateUnit_RandomFacing
-			? ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::Min, DirType::Max) : pTypeExt->CreateUnit_Facing;
+		DirType primaryFacing = pTypeExt->CreateUnit_Facing;
+		if(pTypeExt->CreateUnit_InheritDeathFacings && pAnimExt->DeathUnitFacing.has_value())
+			primaryFacing = pAnimExt->DeathUnitFacing;
+		else if(pTypeExt->CreateUnit_RandomFacing)
+			primaryFacing = ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::Min, DirType::Max);
 
-		DirType primaryFacing = pTypeExt->CreateUnit_InheritDeathFacings && pAnimExt->DeathUnitFacing.has_value() ? pAnimExt->DeathUnitFacing : facing;
 		std::optional<DirType> secondaryFacing {};
 		bool Scatter = false;
 		Mission missionAI = Mission::None;

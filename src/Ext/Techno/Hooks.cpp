@@ -856,17 +856,18 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	const bool display = RulesExtData::Instance()->FactoryProgressDisplay;
-	const bool obs = HouseClass::IsCurrentPlayerObserver();
-	if (!display && !obs)
+	if (!RulesExtData::Instance()->FactoryProgressDisplay)
 		return;
 
-	BuildingClass* const pBuilding = cast_to<BuildingClass*, false>(pThis);
+	if (!HouseClass::IsCurrentPlayerObserver())
+		return;
+
+	BuildingClass* const pBuilding = static_cast<BuildingClass*>(pThis);
+
+	if(pBuilding->Type->InvisibleInGame || pBuilding->Type->Invisible )
+		return;
+
 	CellClass* pCell = pBuilding->GetCell();
-
-	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))
-		return;
-
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 	HouseClass* const pHouse = pBuilding->Owner;
 	FactoryClass* pPrimaryFactory = nullptr;
@@ -943,17 +944,18 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	const bool display = RulesExtData::Instance()->FactoryProgressDisplay;
-	const bool obs = HouseClass::IsCurrentPlayerObserver();
-	if (!display && !obs)
+	if (!RulesExtData::Instance()->FactoryProgressDisplay)
 		return;
 
-	BuildingClass* const pBuilding = cast_to<BuildingClass*, false>(pThis);
+	if (!HouseClass::IsCurrentPlayerObserver())
+		return;
+
+	BuildingClass* const pBuilding = static_cast<BuildingClass*>(pThis);
+
+	if(pBuilding->Type->InvisibleInGame || pBuilding->Type->Invisible )
+		return;
+
 	CellClass* pCell = pBuilding->GetCell();
-
-	if (!obs && (pBuilding->IsFogged || pBuilding->Type->Invisible || pBuilding->Type->InvisibleInGame || (pCell && pCell->IsShrouded())))
-		return;
-
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 
 	if (pBuildingType->SuperWeapon == -1)

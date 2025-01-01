@@ -338,7 +338,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
 	virtual void Guard() RX; // clears target and destination and puts in guard mission
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true)JMP_THIS(0x7014A0);
-	virtual void RockByValue(Point3D* Points, float bFactor = 1.5f, bool bHalf = false) RX;
+	virtual void RockByValue(CoordStruct* sourceCoords, float bFactor = 1.5f, bool bHalf = false) RX;
 	virtual bool Crash(ObjectClass *Killer) R0;
 	virtual bool IsAreaFire() const R0;
 	virtual int IsNotSprayAttack() const R0;
@@ -769,6 +769,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	// Invokes AI response on their 'base' being attacked. Used by buildings, ToProtect=true technos and Whiner=true team members.
 	void BaseIsAttacked(TechnoClass* pEnemy) const
 	{ JMP_THIS(0x708080); }
+
+	bool planing_6385C0() const { JMP_THIS(0x6385C0); }
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

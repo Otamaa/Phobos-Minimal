@@ -1952,6 +1952,8 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	ScriptExtData::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
 }
 
+#include <Ext/SWType/Body.h>
+
 void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget)
 {
 	if (!pTeam || !pTeamLeader || !pTarget)
@@ -1964,6 +1966,9 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 
 	for (auto& pSuper : pOwner->Supers)
 	{
+		if (!SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner))
+			continue;
+
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)
 			pSuperChronosphere = pSuper;
 

@@ -502,9 +502,7 @@ static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
 
 DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 {
-	REF_STACK(DamageGroup**, items, 0xE0 - 0xA4);
-	REF_STACK(int, count, 0xE0 - 0x98);
-	REF_STACK(bool, isAllocated, 0xE0 - 0x9B);
+	REF_STACK(DynamicVectorClass<DamageGroup*>, groupvec, 0xE0 - 0xA8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
 	auto pWHExt = pWarhead->_GetExtData();
@@ -515,9 +513,9 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		Targets.Reset();
 		Handled.Reset();
 
-		const auto g_end = items + count;
+		const auto g_end = groupvec.Items + groupvec.Count;
 
-		for (auto g_begin = items; g_begin != g_end; ++g_begin) {
+		for (auto g_begin = groupvec.Items; g_begin != g_end; ++g_begin) {
 
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
@@ -549,7 +547,7 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		}
 
 		// move all the empty ones to the back, then remove them
-		auto const end = std::remove_if(items, &items[count], [](DamageGroup* pGroup)  {
+		auto const end = std::remove_if(groupvec.Items, &groupvec.Items[groupvec.Count], [](DamageGroup* pGroup)  {
 			if (!pGroup->Target)
 			{
 				GameDelete<false, false>(pGroup);
@@ -559,7 +557,7 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		   return false;
 		});
 
-		count = int(std::distance(items, end));
+		groupvec.Count = int(std::distance(groupvec.Items, end));
 	}
 
 	GET_STACK(bool, Something, 0x17);
@@ -571,9 +569,9 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	//if (IS_SAME_STR_("Fire2", pWarhead->ID) && PhobosGlobal::Instance()->AnimAttachedto)
 	//	Debug::Log(__FUNCTION__" Executed at [%d] \n", count);
 
-	for (int i = 0; i < count; ++i)
+	for (int i = 0; i < groupvec.Count; ++i)
 	{
-		auto pTarget = *(items + i);
+		auto pTarget = *(groupvec.Items + i);
 		auto curDistance = pTarget->Distance;
 		auto pObj = pTarget->Target;
 
@@ -598,33 +596,66 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		}
 	}
 
-	for (int i = 0; i < count; ++i)
-		GameDelete(*(items + i));
+	for (int i = 0; i < groupvec.Count; ++i) {
+		GameDelete(*(groupvec.Items + i));
+		*(groupvec.Items + i) = nullptr;
+	}
 
-	count = 0;
+	groupvec.Count = 0;
+	GameDeleteArray(groupvec.Items, groupvec.Capacity);
+	groupvec.IsAllocated = false;
+	groupvec.Items = nullptr;
 
 	if (Something) {
-		if (items && isAllocated) {
-			GameDelete(items);
-		}
-
 		return 0x489B3B;
 	}
 
 	//dont do any calculation when it is not even a rocker
 	R->EBX(pWarhead);
+	GET_STACK(bool, alt, 0xE0 - 0xC2);
+	LEA_STACK(CellStruct*, pCell, 0xE0 - 0xC8);
+	LEA_STACK(CoordStruct*, pCoord, 0xE0 - 0xB8);
 
-	if (!pWarhead->Rocker) {
-		return 0x489E87;
+	if (pWarhead->Rocker) {
+
+		const double rockerSpread = MinImpl(pWHExt->Rocker_AmplitudeOverride.Get(idamage) * pWHExt->Rocker_AmplitudeMultiplier, 4.0);
+
+		if (rockerSpread > 0.3)
+		{
+			const int cell_radius = 3;
+			for (int x = -cell_radius; x <= cell_radius; x++)
+			{
+				for (int y = -cell_radius; y <= cell_radius; y++)
+				{
+					int xpos = pCell->X + x;
+					int ypos = pCell->Y + y;
+
+					auto object = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos))->Cell_Occupier(alt);
+
+					while (object)
+					{
+						if (FootClass* techno = flag_cast_to<FootClass*>(object))
+						{
+							if (xpos == pCell->X && ypos == pCell->Y && pSource)
+							{
+								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
+								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
+								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
+								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+							}
+							else if (pWarhead->CellSpread > 0.0f)
+							{
+								techno->RockByValue(pCoord, (float)rockerSpread);
+							}
+						}
+						object = object->NextObject;
+					}
+				}
+			}
+		}
 	}
 
-	double rocker = pWHExt->Rocker_AmplitudeOverride.Get(idamage) * pWHExt->Rocker_AmplitudeMultiplier;
-
-	if (rocker >= 4.0)
-		rocker = 4.0;
-
-	R->Stack(0x88, rocker);
-	return 0x489B92;
+	return 0x489E87;
 }
 
 DEFINE_HOOK(0x489562, DamageArea_DestroyCliff, 9)

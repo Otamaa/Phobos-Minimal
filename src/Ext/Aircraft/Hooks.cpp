@@ -461,8 +461,25 @@ DEFINE_HOOK(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	if (distance > MaxImpl((pType->SlowdownDistance >> 1), (2048 / pType->ROT)))
 		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
 
-	pThis->EnterIdleMode(false, true);
+	if (!pThis->planing_6385C0())
+		pThis->EnterIdleMode(false, true);
+
 	return EnterIdleAndReturn;
+}
+
+DEFINE_HOOK(0x4DDD66, FootClass_vt_entry_550_ReplaceHardcode, 0x5) // To avoid that the aircraft cannot fly towards the water surface normally
+{
+	enum { SkipGameCode = 0x4DDD8A };
+
+	GET(FootClass* const, pThis, EBP);
+	GET_STACK(CellStruct, cell, STACK_OFFSET(0x20, 0x4));
+
+	const auto pType = pThis->GetTechnoType();
+
+	// In vanilla, only aircrafts or `foots with fly locomotion` will call this virtual function
+	// So I don't know why WW use hard-coded `SpeedType::Track` and `MovementZone::Normal` to check this
+	R->AL(MapClass::Instance->GetCellAt(cell)->IsClearToMove(pType->SpeedType, false, false, ZoneType::None, pType->MovementZone, -1, true));
+	return SkipGameCode;
 }
 
 DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6)

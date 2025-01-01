@@ -368,10 +368,10 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 	//Debug::Log("AITrigger[%s] With Owner[%s] Enemy[%s].\n", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
 	auto iter = pOwner->Supers.find_if([pOwner](SuperClass* pItem) {
 		return (pItem->Type->Type == SuperWeaponType::ChronoSphere
-			&& SWTypeExtContainer::Instance.Find(pItem->Type)->IsAvailable(pOwner));
+			&& SWTypeExtContainer::Instance.Find(pItem->Type)->IsAvailable(pOwner)) && pItem->Granted;
 	});
 
-	if (iter == pOwner->Supers.end() || !(*iter)->Granted) {
+	if (iter == pOwner->Supers.end()) {
 		R->EAX(false);
 		return 0x41F1BA;
 	}
