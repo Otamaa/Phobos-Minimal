@@ -484,8 +484,6 @@ void DamageArea(CoordStruct& coord, int damage, TechnoClass* source, WarheadType
 	}
 }
 */
-static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
-static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
 
 //DEFINE_HOOK(0x4896D5, MapClass_DamageArea_FirstOccupy, 0x8) {
 //	GET(CellClass*, pCell, EBX);
@@ -509,9 +507,8 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	const int MaxAffect = pWHExt->CellSpread_MaxAffect;
 
 	if (MaxAffect > 0) {
-
-		Targets.Reset();
-		Handled.Reset();
+		DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
+		DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
 
 		const auto g_end = groupvec.Items + groupvec.Count;
 
@@ -525,7 +522,7 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				Handled.Reset();
 
 				// collect all slots containing damage groups for this target
-				std::for_each(g_begin, g_end, [group](DamageGroup* item) {
+				std::for_each(g_begin, g_end, [group ,&Handled](DamageGroup* item) {
 					if (item && item->Target == group->Target) {
 						Handled.AddItem(item);
 					}
@@ -558,6 +555,8 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		});
 
 		groupvec.Count = int(std::distance(groupvec.Items, end));
+		Targets.Count = 0;
+		Handled.Count = 0;
 	}
 
 	GET_STACK(bool, Something, 0x17);
@@ -565,9 +564,6 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	GET_STACK(int, distance, 0x68);
 	GET_BASE(TechnoClass*, pSource, 0x8);
 	GET_BASE(HouseClass*, pHouse, 0x14);
-
-	//if (IS_SAME_STR_("Fire2", pWarhead->ID) && PhobosGlobal::Instance()->AnimAttachedto)
-	//	Debug::Log(__FUNCTION__" Executed at [%d] \n", count);
 
 	for (int i = 0; i < groupvec.Count; ++i)
 	{

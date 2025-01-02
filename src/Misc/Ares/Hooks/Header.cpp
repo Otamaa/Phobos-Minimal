@@ -2980,44 +2980,32 @@ void TechnoExt_ExtData::KickOutHospitalArmory(BuildingClass* pThis)
 	}
 }
 
-static DynamicVectorClass<std::pair<FootClass*, bool>, DllAllocator<std::pair<FootClass*, bool>>> KickList;
 
 void TechnoExt_ExtData::KickOutOfRubble(BuildingClass* pBld)
 {
-	// iterate over all cells and remove all infantry
-	// Note : ares 3.0p1 seems doing faster way to do this
-	// not sure if that safe way tho -Otamaa
-	KickList.Reset();
+ 	std::vector<std::pair<FootClass*, bool>> KickList;
+
 	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
 	// get the number of non-end-marker cells and a pointer to the cell data
-	for (auto i = pBld->Type->FoundationData; *i != CellStruct::EOL; ++i)
-	{
+	for (auto i = pBld->Type->FoundationData; *i != CellStruct::EOL; ++i) {
 		// remove every techno that resides on this cell
 		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
-			GetContent()); obj; ++obj)
-		{
-			if (auto const pFoot = flag_cast_to<FootClass*>(*obj))
-			{
-				if (pFoot->Limbo())
-				{
-					KickList.AddItem({ pFoot, pFoot->IsSelected });
+			GetContent()); obj; ++obj) {
+			if (auto const pFoot = flag_cast_to<FootClass*>(*obj)) {
+				if (pFoot->Limbo()) {
+					KickList.emplace_back(pFoot, pFoot->IsSelected);
 				}
 			}
 		}
 	}
 
 	// this part kicks out all units we found in the rubble
-	for (auto const& [pFoot, bIsSelected] : KickList)
-	{
-		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded)
-		{
-			if (bIsSelected)
-			{
+	for (auto const& [pFoot, bIsSelected] : KickList) {
+		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded) {
+			if (bIsSelected) {
 				pFoot->Select();
 			}
-		}
-		else
-		{
+		} else {
 			pFoot->UnInit();
 		}
 	}
