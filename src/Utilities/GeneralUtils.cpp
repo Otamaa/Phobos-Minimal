@@ -64,7 +64,7 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wcha
 	return wcsstr(get_result, L"MISSING:") ? defaultValue : get_result;
 }
 
-void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range)
+void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
 {
 	nCells.clear();
 

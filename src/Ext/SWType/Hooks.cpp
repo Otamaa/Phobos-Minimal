@@ -24,7 +24,7 @@
 #include <New/Entity/SWFirerClass.h>
 #pragma endregion
 
-DEFINE_HOOK_AGAIN(0x55B6F8, LogicClass_Updata, 0xC) //_End
+//DEFINE_HOOK_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	SWFirerClass::Update();

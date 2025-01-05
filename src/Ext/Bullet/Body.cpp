@@ -481,41 +481,41 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 		{
 			int nTotal = 0;
 
-			CellRangeIterator<CellClass> {}(pThis->InlineMapCoords(), nRange,
-			[&](CellClass* pCell) -> bool
- {
-	 auto const pTarget = pCell->FirstObject;
-	 if (BulletExtData::ShrapnelTargetEligible(pThis, pTarget))
-	 {
-		 const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
+			for (CellSpreadEnumerator it(nRange); it; ++it)
+			{
+				auto cellhere = (pBulletCell->MapCoords + *it);
+				auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
+				auto const pTarget = pCurCell->FirstObject;
+				if (BulletExtData::ShrapnelTargetEligible(pThis, pTarget))
+				{
+					const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
 
-		 if (auto pBullet = pShrapExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
-		 {
-			 pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
+					if (auto pBullet = pShrapExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
+					{
+						pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
 
-			 auto sourcePos = pThis->Location;
-			 auto targetPos = pTarget->GetCoords();
+						auto sourcePos = pThis->Location;
+						auto targetPos = pTarget->GetCoords();
 
-			 // Draw bullet effect
-			 // TODO : Ebolt and Laser Colors
-			 Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+						// Draw bullet effect
+						// TODO : Ebolt and Laser Colors
+						Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
 
-			 // Draw particle system
-			 Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
-			 // Play report sound
-			 Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos, pThis->Owner);
-			 // Draw weapon anim
-			 Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+						// Draw particle system
+						Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
+						// Play report sound
+						Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos, pThis->Owner);
+						// Draw weapon anim
+						Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
 
-		 }
+					}
 
-		 //escapes
-		 if (++nTotal == nCount)
-			 return false; //return false to stop the loop
-	 }
+					//escapes
+					if (++nTotal == nCount)
+						break; //stop the loop
+				}
 
-	 return true; // return true to continue
-			});
+			}
 
 			auto const nRemaining = Math::abs(nCount - nTotal);
 

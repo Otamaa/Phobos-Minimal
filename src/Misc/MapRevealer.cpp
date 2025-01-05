@@ -74,7 +74,7 @@ MapRevealer::MapRevealer(const CellStruct* pCell) :
 {
 }
 
-static reference<int ,0xABDE88> SightFrom {};
+static constexpr reference<int ,0xABDE88> SightFrom {};
 
 template <typename T>
 void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseClass* const pHouse, bool const onlyOutline, bool const allowRevealByHeight, T func) const
@@ -84,7 +84,7 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 
 	if (this->AffectsHouse(pHouse) && this->IsCellAvailable(base) && radius > 0)
 	{
-		auto const spread = MinImpl(size_t(radius), CellSpreadEnumerator::Max);
+		auto const spread = MinImpl(short(radius), 255);
 		auto const spread_limit_sqr = (spread + 1) * (spread + 1);
 
 		auto const start = (!RulesClass::Instance->RevealByHeight && onlyOutline && spread > 2)
@@ -120,13 +120,13 @@ void MapRevealer::Reveal1(const CoordStruct& coords, int const radius, HouseClas
 	});
 }
 
-void MapRevealer::UpdateShroud(size_t start, size_t radius, bool fog) const
+void MapRevealer::UpdateShroud(short start, size_t radius, bool fog) const
 {
 	if (!fog)
 	{
 		auto const& base = this->Base();
-		radius = MinImpl(radius, CellSpreadEnumerator::Max);
-		start = MinImpl(start, CellSpreadEnumerator::Max - 3);
+		radius = MinImpl(radius, 255);
+		start = MinImpl(start, 255 - 3);
 
 		for (CellSpreadEnumerator it(radius, start); it; ++it)
 		{

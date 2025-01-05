@@ -176,7 +176,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				}
 				else
 				{
-					const auto mission = IsHumanControlled ? Mission::Guard : Mission::Hunt;
+					const auto mission = IsHumanControlled ? Mission::Area_Guard : Mission::Hunt;
 					//Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
 
 					// only computer units can hunt

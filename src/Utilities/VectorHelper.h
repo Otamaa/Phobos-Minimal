@@ -33,7 +33,7 @@ struct HelperedVector : public std::vector<T , A>
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
 		if (iter != this->end()) {
-			this->erase(iter);
+			this->erase(iter , this->end());
 			return true;
 		}
 
@@ -104,9 +104,13 @@ struct HelperedVector : public std::vector<T , A>
 		return this->find(other) != this->end();
 	}
 
-	void FORCEINLINE push_back_unique(const T& other) {
-		if (!this->contains(other))
+	bool FORCEINLINE push_back_unique(const T& other) {
+		if (!this->contains(other)){
 			this->push_back(other);
+			return true;
+		}
+
+		return false;
 	}
 
 	int FORCEINLINE index_of(const T& other) const {

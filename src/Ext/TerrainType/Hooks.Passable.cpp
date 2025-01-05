@@ -11,7 +11,7 @@
 #define IS_CELL_OCCUPIED(pCell)\
 pCell->OccupationFlags & 0x20 || pCell->OccupationFlags & 0x40 || pCell->OccupationFlags & 0x80 || pCell->GetInfantry(false) \
 
-DEFINE_HOOK(0x568432, MapClass_PlaceDown_0x0TerrainTypes, 0x8)
+DEFINE_HOOK(0x568411, MapClass_PlaceDown_0x0TerrainTypes, 0x6)
 {
 	GET(ObjectClass*, pObject, EDI);
 

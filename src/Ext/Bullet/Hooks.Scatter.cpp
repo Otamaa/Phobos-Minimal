@@ -1,5 +1,8 @@
 #include "Body.h"
 #include <Ext/BulletType/Body.h>
+#include <AircraftClass.h>
+#include <InfantryClass.h>
+#include <BuildingClass.h>
 
 DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 {
@@ -14,6 +17,17 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 		CoordStruct coord = origCoords;
 
 		for (int i = 0; i < pThis->Type->Cluster; i++) {
+
+			//if (pThis->Owner) {
+			//	const auto vt = VTable::Get(pThis->Owner);
+			//	if (vt != AircraftClass::vtable &&
+			//		vt != InfantryClass::vtable &&
+			//		vt != UnitClass::vtable &&
+			//		vt != BuildingClass::vtable
+			//		) {
+			//		pThis->Owner = nullptr;
+			//	}
+			//}
 
 			pThis->Detonate(coord);
 

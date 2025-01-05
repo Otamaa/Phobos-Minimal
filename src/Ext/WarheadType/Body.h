@@ -161,7 +161,7 @@ public:
 	Valueable<bool> Transact_Experience_IgnoreNotTrainable { true };
 
 	Nullable<int> NotHuman_DeathSequence { };
-	Nullable<bool> AllowDamageOnSelf { };
+	Valueable<bool> AllowDamageOnSelf { false };
 	Valueable<bool> Debris_Conventional { false };
 	Valueable<int> GattlingStage { 0 };
 	Valueable<int> GattlingRateUp { 0 };

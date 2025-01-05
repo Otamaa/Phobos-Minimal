@@ -1624,7 +1624,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 							{
 								pPilot->RegisterDestruction(pKiller);
 								Debug::Log(__FUNCTION__" Pilot Called \n");
-								TechnoExtData::HandleRemove(pPilot, pKiller, false, true);
+								TechnoExtData::HandleRemove(pPilot, pKiller, false, false);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
 							{

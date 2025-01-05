@@ -2277,3 +2277,33 @@ DEFINE_JUMP(CALL, 0x6E5FA6, MiscTools::to_DWORD(&HexStr2Int_replacement)); // Ta
 // Save GameModeOptions in campaign modes
 DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
 DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
+
+#pragma region TeamCloseRangeFix
+
+int __fastcall Check2DDistanceInsteadOf3D(AbstractClass* pSource, void* _, AbstractClass* pTarget)
+{
+	const auto sourceCoords = pSource->GetCoords();
+	const auto targetCoords = pTarget->GetCoords();
+
+	int distance = int(Point2D { sourceCoords.X - targetCoords.X, sourceCoords.Y - targetCoords.Y }.Length());
+
+	if (const auto pBuilding = cast_to<BuildingClass*>(pTarget)) // Vanilla bonus to building
+		distance -= ((pBuilding->Type->GetFoundationWidth() + pBuilding->Type->GetFoundationHeight(false)) << 6);
+
+	return distance;
+}
+DEFINE_JUMP(CALL, 0x6EB686, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToObject - TeamSpawnCell
+DEFINE_JUMP(CALL, 0x6EB8FF, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToGuard - TeamSpawnCell1
+DEFINE_JUMP(CALL, 0x6EB9C8, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToGuard - TeamSpawnCell2
+DEFINE_JUMP(CALL, 0x6EBB8C, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - TeamSpawnCell
+DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - TeamFocus
+DEFINE_JUMP(CALL, 0x6EBD6E, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - SelfDestination
+DEFINE_JUMP(CALL, 0x6EC1BB, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // InlineCall - CheckStray
+DEFINE_JUMP(CALL, 0x6ED390, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToLoad - TeamSpawnCell
+DEFINE_JUMP(CALL, 0x6ED562, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToDeploy - TeamSpawnCell
+DEFINE_JUMP(CALL, 0x6ED873, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // NewMission - TeamSpawnCell1
+DEFINE_JUMP(CALL, 0x6ED958, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // NewMission - TeamSpawnCell2
+DEFINE_JUMP(CALL, 0x6EF1AE, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToUnload - TeamSpawnCell
+
+#pragma endregion
+

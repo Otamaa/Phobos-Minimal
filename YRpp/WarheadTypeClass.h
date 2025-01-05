@@ -8,7 +8,7 @@
 
 //forward declarations
 class AnimTypeClass;
-class ParticleTypeClass;
+class ParticleSystemTypeClass;
 class VoxelAnimTypeClass;
 
 class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")
@@ -86,7 +86,7 @@ public:
 	int     DelayKillFrames;
 	float   DelayKillAtMax;
 	float   CombatLightSize;
-	ParticleTypeClass* Particle;
+	ParticleSystemTypeClass* Particle;
 	bool    Wall;
 	bool    WallAbsoluteDestroyer;
 	bool    PenetratesBunker;

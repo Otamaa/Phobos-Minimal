@@ -53,7 +53,7 @@ public:
 		});
 
 		if(it != BannerClass::Array.end());
-			BannerClass::Array.erase(it);
+			BannerClass::Array.erase(it , BannerClass::Array.end());
 	}
 
 	void Render();

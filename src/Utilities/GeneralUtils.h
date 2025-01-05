@@ -36,7 +36,7 @@ public:
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
-	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range);
+	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 
@@ -382,7 +382,7 @@ public:
 	static bool ApplyTheaterExtToString(std::string& flag);
 	static std::string ApplyTheaterSuffixToString(const std::string& str);
 
-	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
+	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, short nSpread, bool EmptyCell)
 	{
 		if (!pIn)
 			return nullptr;

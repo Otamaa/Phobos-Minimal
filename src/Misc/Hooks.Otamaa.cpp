@@ -2830,39 +2830,39 @@ DEFINE_HOOK(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_
 //allow `VeinholeMonster` to be placed anywhere flat
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
-DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
-{
-	GET(CellClass*, pCell, EBX);
-	GET(OverlayTypeClass*, pOverlay, EAX);
-
-	if (pOverlay->IsVeinholeMonster)
-	{
-		GET_STACK(int, nDamage, 0x24);
-		GET(WarheadTypeClass*, pWarhead, ESI);
-		GET_BASE(TechnoClass*, pSource, 0x8);
-		GET_BASE(HouseClass*, pHouse, 0x14);
-		GET(CoordStruct*, pCenter, EDI);
-
-		if (VeinholeMonsterClass* pMonster = VeinholeMonsterClass::GetVeinholeMonsterFrom(&pCell->MapCoords))
-		{
-			if (!pMonster->InLimbo && pMonster->IsAlive && ((int)pMonster->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
-				if (pMonster->ReceiveDamage(&nDamage,
-					(int)pCenter->DistanceFrom(CellClass::Cell2Coord(pMonster->MonsterCell)),
-					pWarhead,
-					pSource,
-					false,
-					false,
-					pSource && !pHouse ? pSource->Owner : pHouse
-				) == DamageState::NowDead)
-					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X, pMonster->MonsterCell.Y);
-
-		}
-
-		return 0x4896B2;
-	}
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
+// {
+// 	GET(CellClass*, pCell, EBX);
+// 	GET(OverlayTypeClass*, pOverlay, EAX);
+//
+// 	if (pOverlay->IsVeinholeMonster)
+// 	{
+// 		GET_STACK(int, nDamage, 0x24);
+// 		GET(WarheadTypeClass*, pWarhead, ESI);
+// 		GET_BASE(TechnoClass*, pSource, 0x8);
+// 		GET_BASE(HouseClass*, pHouse, 0x14);
+// 		GET(CoordStruct*, pCenter, EDI);
+//
+// 		if (VeinholeMonsterClass* pMonster = VeinholeMonsterClass::GetVeinholeMonsterFrom(&pCell->MapCoords))
+// 		{
+// 			if (!pMonster->InLimbo && pMonster->IsAlive && ((int)pMonster->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
+// 				if (pMonster->ReceiveDamage(&nDamage,
+// 					(int)pCenter->DistanceFrom(CellClass::Cell2Coord(pMonster->MonsterCell)),
+// 					pWarhead,
+// 					pSource,
+// 					false,
+// 					false,
+// 					pSource && !pHouse ? pSource->Owner : pHouse
+// 				) == DamageState::NowDead)
+// 					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X, pMonster->MonsterCell.Y);
+//
+// 		}
+//
+// 		return 0x4896B2;
+// 	}
+//
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {
@@ -9621,27 +9621,27 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 
 #include <Notifications.h>
 
-DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
-	GET(AbstractClass*, pTarget, ESI);
-	GET(bool, bRemoved, EDI);
-
-	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
-		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
-			if (!pItem) {
-				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
-				return true;
-			} else {
-				pItem->PointerExpired(pTarget, bRemoved);
-			}
-
-			return false;
-	});
-
-	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
-		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
-
-	return 0x725961;
-}
+//DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+//	GET(AbstractClass*, pTarget, ESI);
+//	GET(bool, bRemoved, EDI);
+//
+//	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+//		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+//			if (!pItem) {
+//				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
+//				return true;
+//			} else {
+//				pItem->PointerExpired(pTarget, bRemoved);
+//			}
+//
+//			return false;
+//	});
+//
+//	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+//		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+//
+//	return 0x725961;
+//}
 
 constexpr int __fastcall charToID(char* string)
 {

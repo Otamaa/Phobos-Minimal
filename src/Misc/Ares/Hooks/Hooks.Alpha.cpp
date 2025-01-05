@@ -97,22 +97,22 @@ DEFINE_HOOK(0x5F3D65, ObjectClass_DTOR, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x5F3E78, ObjectClass_Update_AlphaLight, 6)
-{
-	GET(ObjectClass*, pThis, ESI);
-	TechnoExt_ExtData::UpdateAlphaShape(pThis);
-	return pThis->InLimbo ? 0x5F3F11 : 0x5F3E86;
-}
+ DEFINE_HOOK(0x5F3E78, ObjectClass_Update_AlphaLight, 6)
+ {
+ 	GET(ObjectClass*, pThis, ESI);
+ 	TechnoExt_ExtData::UpdateAlphaShape(pThis);
+ 	return pThis->InLimbo ? 0x5F3F11 : 0x5F3E86;
+ }
 
-DEFINE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)
-{
-	GET(AnimClass*, pThis, ESI);
-	// flaming guys do the update via base class
-	if (!pThis->Type->IsFlamingGuy)
-	{
-		TechnoExt_ExtData::UpdateAlphaShape(pThis);
-	}
+ DEFINE_HOOK(0x423B0B, AnimClass_Update_AlphaLight, 6)
+ {
+ 	GET(AnimClass*, pThis, ESI);
+ 	// flaming guys do the update via base class
+ 	if (!pThis->Type->IsFlamingGuy)
+ 	{
+ 		TechnoExt_ExtData::UpdateAlphaShape(pThis);
+ 	}
 
-	return 0;
-}
+ 	return 0;
+ }
 #endif

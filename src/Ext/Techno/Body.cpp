@@ -1439,7 +1439,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	{
 		std::vector<CellStruct> adjacentCells {};
 		GeneralUtils::AdjacentCellsInRange(adjacentCells,
-			 static_cast<size_t>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
+			 static_cast<short>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
 
 		size_t const size = adjacentCells.size();
 
@@ -1844,7 +1844,7 @@ bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		if (!Object->InLimbo)
 		{
 			Object->See(0, 0);
-			Object->QueueMission(Object->Owner && Object->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
+			Object->QueueMission(Object->Owner && Object->Owner->IsControlledByHuman() ? Mission::Area_Guard : Mission::Hunt, 0);
 			Object->NextMission();
 			return true;
 		}

@@ -249,76 +249,75 @@ protected:
 
 	\author AlexB
 */
+template<short Max = std::numeric_limits<short>::max()>
 class CellSpreadEnumerator
 {
 	CellStruct current; //4
-	size_t spread; //4
-	size_t curspread; // 4
+	short spread; //4
+	short curspread; // 4
 	bool hasTwo; //2
 	bool hadTwo; //2
 
 public:
-	constexpr inline static const size_t Max = 0x100u;
 
-	CellSpreadEnumerator(size_t Spread, size_t start= 0u) noexcept : current(CellStruct())
-	, spread(MinImpl(Spread, Max)), curspread(0u)
-	, hasTwo(false), hadTwo(false)
-	{
-		reset(start);
-	}
+	constexpr CellSpreadEnumerator(short Spread, short start= 0) noexcept :
+	current(start ? -1 : 0  , -start),
+	spread(MinImpl(Spread, Max)),
+	curspread(start),
+	hasTwo(true),
+	hadTwo(true) { }
 
 	constexpr CellSpreadEnumerator() = default;
+	constexpr ~CellSpreadEnumerator() = default;
 
-	~CellSpreadEnumerator() = default;
-
-	operator bool () const {
+	constexpr operator bool () const {
 		return curspread <= spread;
 	}
 
-	const CellStruct& operator * () const {
+	constexpr const CellStruct& operator * () const {
 		return current;
 	}
 
-	CellSpreadEnumerator& operator ++ () {
+	constexpr CellSpreadEnumerator& operator ++ () {
 		this->next();
 		return *this;
 	}
 
-	const CellStruct* operator->() const
+	constexpr const CellStruct* operator->() const
 	{
 		return &current;
 	}
 
-	void operator ++ (int) {
+	constexpr void operator ++ (int) {
 		this->next();
 	}
 
-	void clear() {
+	constexpr void clear() {
 		this->current = CellStruct::Empty;
 		this->spread = 0;
-		this->curspread = 0u;
+		this->curspread = 0;
 		this->hasTwo = false;
 		this->hadTwo = false;
 	}
 
-	void setSpread(size_t Spread, size_t start = 0u) {
+	constexpr void setSpread(short Spread, short start = 0) {
 		this->spread = MinImpl(Spread, Max);
 		this->reset(start);
 	}
 
-	size_t getCurSpread() const {
+	constexpr size_t getCurSpread() const {
 		return this->curspread;
 	}
 protected:
-	void reset(size_t radius) {
+	constexpr void reset(short radius) {
 		curspread = radius;
 		current.X = radius ? -1 : 0;
-		current.Y = -static_cast<short>(radius);
+		current.Y = -radius;
 		hasTwo = true;
 		hadTwo = true;
 	}
 
-	bool next() {
+	constexpr bool next() {
 		// already done?
 		if(!*this) {
 			return false;
@@ -326,7 +325,7 @@ protected:
 
 		// center or top-right-most cell finishes this
 		// round. move to the start of the next one.
-		if(current.SimilarTo(CellStruct::Empty) || (current.X == 1 && current.Y == static_cast<short>(curspread))) {
+		if(current.SimilarTo(CellStruct::Empty) || (current.X == 1 && current.Y == curspread)) {
 			reset(curspread + 1);
 			return *this;
 		}
@@ -359,7 +358,7 @@ protected:
 		}
 
 		// for each line up, go two steps left
-		current.X = (static_cast<short>(curspread) + current.Y) * -2 - 1;
+		current.X = (curspread + current.Y) * -2 - 1;
 
 		int diff = current.X - current.Y;
 		hasTwo = diff >= 0;
@@ -370,7 +369,7 @@ protected:
 			current.X++;
 		} else if(diff < 0) {
 			// get from other direction
-			current.X = -current.Y / 2 - static_cast<short>(curspread);
+			current.X = -current.Y / 2 - curspread;
 		}
 
 		// revert the sign change

@@ -322,15 +322,22 @@ DEFINE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
+static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject , bool removed)
 {
-	GET(ObjectClass*, pThis, ESI);
-
-	if (!pThis->Limbo())
-		pThis->AnnounceExpiredPointer();
-
-	return 0x5F6625;
+	if (!pObject->Limbo())
+		pObject->AnnounceExpiredPointer(removed);
 }
+
+DEFINE_JUMP(CALL , 0x5F6616, MiscTools::to_DWORD(AnnounceInvalidatePointerWrapper))
+// DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
+// {
+// 	GET(ObjectClass*, pThis, ESI);
+//
+// 	if (!pThis->Limbo())
+// 		pThis->AnnounceExpiredPointer();
+//
+// 	return 0x5F6625;
+// }
 
 //speeds up preview drawing by insane amounts
 DEFINE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)

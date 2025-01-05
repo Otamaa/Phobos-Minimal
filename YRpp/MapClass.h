@@ -709,6 +709,18 @@ public:
 		JMP_THIS(0x56D3F0);
 	}
 
+	bool findsoemthing_587180(CellStruct* a2) const {
+		JMP_THIS(0x587180);
+	}
+
+	bool checkcells_57BAA0(CellStruct* a3) const {
+		JMP_THIS(0x57BAA0);
+	}
+
+	bool checkcells_57CCF0(CellStruct* a3) const {
+		JMP_THIS(0x57CCF0);
+	}
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

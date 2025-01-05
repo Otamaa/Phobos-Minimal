@@ -254,7 +254,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 		for (auto const& pTech : nOut) {
 			if (nData.RandomRange > 0) {
-				if (auto const pNewCell = GeneralUtils::GetCell(pCell, location, (size_t)(nData.RandomRange.Get()), nData.EmptyCell))
+				if (auto const pNewCell = GeneralUtils::GetCell(pCell, location, (short)(nData.RandomRange.Get()), nData.EmptyCell))
 					pCell = pNewCell;
 			}
 

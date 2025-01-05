@@ -25,7 +25,7 @@ public:
 
 	void Reveal1(const CoordStruct& coords, int const radius, HouseClass* const pHouse, bool onlyOutline, bool fog, bool allowRevealByHeight, bool add) const;
 
-	void UpdateShroud(size_t start, size_t radius, bool fog = false) const;
+	void UpdateShroud(short start, size_t radius, bool fog = false) const;
 
 	void Process0(CellClass* pCell, bool unknown, bool fog, bool add) const;
 
@@ -119,6 +119,6 @@ public:
 		CoordStruct* Coords, int Height, int Radius, bool bSkipReveal)
 	{
 		MapRevealer const revealer(*Coords);
-		revealer.UpdateShroud(static_cast<size_t>(MaxImpl(Height, 0)), static_cast<size_t>(MaxImpl(Radius, 0)), bSkipReveal);
+		revealer.UpdateShroud(static_cast<short>(MaxImpl(Height, 0)), static_cast<size_t>(MaxImpl(Radius, 0)), bSkipReveal);
 	}
 };

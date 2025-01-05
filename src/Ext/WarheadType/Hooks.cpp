@@ -120,41 +120,41 @@ DEFINE_HOOK(0x469AA4, BulletClass_Logics_Extras, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
-{
-	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
-
-	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
-	{
-		 GET(const int, Damage, EDX);
-		// GET_BASE(const bool, AffectsTiberium, 0x10);
-		GET(CoordStruct*, pCoords, ECX);
-		GET_BASE(TechnoClass*, pOwner, 0x08);
-		GET_BASE(HouseClass*, pHouse, 0x14);
-
-		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords)) {
-
-			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo) , pWHExt->Shake_UseAlternativeCalculation);
-
-			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo) , pWHExt->Shake_UseAlternativeCalculation);
-		}
-
-		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
-
-		for (const auto& Lauch : pWHExt->Launchs) {
-			if (Lauch.LaunchWhat) {
-				Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords, pOwner);
-			}
-		}
-
-		if (PhobosGlobal::Instance()->DetonateDamageArea)
-			pWHExt->Detonate(pOwner, pDecidedOwner, nullptr, *pCoords , Damage);
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
+// {
+// 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
+//
+// 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
+// 	{
+// 		 GET(const int, Damage, EDX);
+// 		// GET_BASE(const bool, AffectsTiberium, 0x10);
+// 		GET(CoordStruct*, pCoords, ECX);
+// 		GET_BASE(TechnoClass*, pOwner, 0x08);
+// 		GET_BASE(HouseClass*, pHouse, 0x14);
+//
+// 		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords)) {
+//
+// 			if (pWH->ShakeXhi || pWH->ShakeXlo)
+// 				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo) , pWHExt->Shake_UseAlternativeCalculation);
+//
+// 			if (pWH->ShakeYhi || pWH->ShakeYlo)
+// 				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo) , pWHExt->Shake_UseAlternativeCalculation);
+// 		}
+//
+// 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
+//
+// 		for (const auto& Lauch : pWHExt->Launchs) {
+// 			if (Lauch.LaunchWhat) {
+// 				Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords, pOwner);
+// 			}
+// 		}
+//
+// 		if (PhobosGlobal::Instance()->DetonateDamageArea)
+// 			pWHExt->Detonate(pOwner, pDecidedOwner, nullptr, *pCoords , Damage);
+// 	}
+//
+// 	return 0;
+// }
 
 #pragma endregion
 
@@ -238,14 +238,7 @@ DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
 	return 0x48A615;
 }
 
-DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
-{
-	enum { SkipCheck = 0x489702 };
-
-	GET_BASE(FakeWarheadTypeClass*, pWH, 0xC);
-	auto const pWHExt = pWH->_GetExtData();
-	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
-}
+#ifdef TODO_for_DamageArea
 
 // Cylinder CellSpread
 DEFINE_HOOK(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
@@ -371,7 +364,7 @@ DEFINE_HOOK(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 	return SkipThisObject;
 }
-
+#endif
 // DEFINE_HOOK(0x4891AF, GetTotalDamage_NegativeDamageModifiers, 0x6)
 // {
 // 	enum { ApplyModifiers = 0x4891C6 };

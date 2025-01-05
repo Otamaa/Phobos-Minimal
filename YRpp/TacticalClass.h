@@ -106,6 +106,13 @@ public:
 		return { x, y - Game::AdjustHeight(coord.Z) };
 	}
 
+	constexpr static Point2D CoordsToScreen(const CoordStruct* pPoord)
+	{
+		auto [x, y] = AdjustForZShapeMove(pPoord->X, pPoord->Y);
+		return { x, y - Game::AdjustHeight(pPoord->Z) };
+
+	}
+
 	CoordStruct* ClientToCoords(CoordStruct* pOutBuffer, Point2D const& client) const
 		{ JMP_THIS(0x6D2280); }
 

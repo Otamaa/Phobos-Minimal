@@ -205,8 +205,7 @@ namespace Helpers {
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
 			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-			auto const range = static_cast<size_t>(spread + 0.99);
-			for (CellSpreadEnumerator it(range); it; ++it) {
+			for (CellSpreadEnumerator it(static_cast<short>(spread + 0.99)); it; ++it) {
 				auto cellCoords = CellClass::Coord2Cell(coords);
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
@@ -353,9 +352,8 @@ namespace Helpers {
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
 			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-			auto const range = static_cast<size_t>(spread + 0.99);
 
-			for (CellSpreadEnumerator it(range); it; ++it) {
+			for (CellSpreadEnumerator it(static_cast<short>(spread + 0.99)); it; ++it) {
 				auto cellCoords = CellClass::Coord2Cell(coords);
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
 				bool isCenter = pCell->MapCoords == cellCoords;
@@ -433,8 +431,7 @@ namespace Helpers {
 
 			// the quick way. only look at stuff residing on the very cells we are affecting.
 			//auto const cellCoords = MapClass::Instance->GetCellAt(coords)->MapCoords;
-			auto const range = static_cast<size_t>(spread + 0.99);
-			for (CellSpreadEnumerator it(range); it; ++it)
+			for (CellSpreadEnumerator it(static_cast<short>(spread + 0.99)); it; ++it)
 			{
 				auto cellCoords = CellClass::Coord2Cell(coords);
 				auto const pCell = MapClass::Instance->GetCellAt(*it + cellCoords);
