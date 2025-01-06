@@ -2285,25 +2285,17 @@ int __fastcall Check2DDistanceInsteadOf3D(AbstractClass* pSource, void* _, Abstr
 	const auto sourceCoords = pSource->GetCoords();
 	const auto targetCoords = pTarget->GetCoords();
 
-	int distance = int(Point2D { sourceCoords.X - targetCoords.X, sourceCoords.Y - targetCoords.Y }.Length());
+	// Aircraft has its own unique treatment, and it will not be changed here
+	int distance = int((pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) ? // Jumpjets or sth in the air ?
+		(Point2D { sourceCoords.X - targetCoords.X, sourceCoords.Y - targetCoords.Y }.Length() * 2) : // bonus to units in the air
+		sourceCoords.DistanceFrom(targetCoords)); // Original
 
-	if (const auto pBuilding = cast_to<BuildingClass*>(pTarget)) // Vanilla bonus to building
+	if (const auto pBuilding = cast_to<BuildingClass* , false>(pTarget)) // Vanilla bonus to building
 		distance -= ((pBuilding->Type->GetFoundationWidth() + pBuilding->Type->GetFoundationHeight(false)) << 6);
 
-	return distance;
+	return MaxImpl(0, distance);
 }
-DEFINE_JUMP(CALL, 0x6EB686, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToObject - TeamSpawnCell
-DEFINE_JUMP(CALL, 0x6EB8FF, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToGuard - TeamSpawnCell1
-DEFINE_JUMP(CALL, 0x6EB9C8, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToGuard - TeamSpawnCell2
-DEFINE_JUMP(CALL, 0x6EBB8C, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - TeamSpawnCell
-DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - TeamFocus
-DEFINE_JUMP(CALL, 0x6EBD6E, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // MoveToCell - SelfDestination
-DEFINE_JUMP(CALL, 0x6EC1BB, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // InlineCall - CheckStray
-DEFINE_JUMP(CALL, 0x6ED390, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToLoad - TeamSpawnCell
-DEFINE_JUMP(CALL, 0x6ED562, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToDeploy - TeamSpawnCell
-DEFINE_JUMP(CALL, 0x6ED873, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // NewMission - TeamSpawnCell1
-DEFINE_JUMP(CALL, 0x6ED958, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // NewMission - TeamSpawnCell2
-DEFINE_JUMP(CALL, 0x6EF1AE, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D)); // TryToUnload - TeamSpawnCell
+DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D));
 
 #pragma endregion
 

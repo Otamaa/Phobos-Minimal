@@ -117,7 +117,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 		return;
 	}
 
-	StackVector<TechnoTypeClass* , 256> Options;
+	StackVector<TechnoTypeClass* , 256> Options {};
 	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
 
 	TechnoTypeClass** vec_data = pData->Secret_Boons.HasValue() ?

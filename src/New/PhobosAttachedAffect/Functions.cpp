@@ -92,47 +92,41 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	bool markForRedraw = false;
 	StackVector<WeaponTypeClass* , 256> expireWeapons;
 
-	for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
-	{
-		if(auto const attachEffect = it->get()) {
+	pExt->PhobosAE.remove_if([&](std::unique_ptr<PhobosAttachEffectClass>& attachEffect) {
+		if(!attachEffect.get()) {
+		   return true;
+		}
 
-			if (!inTunnel)
-				attachEffect->SetAnimationTunnelState(true);
+		if (!inTunnel)
+			attachEffect->SetAnimationTunnelState(true);
 
-			attachEffect->AI();
-			bool hasExpired = attachEffect->HasExpired();
-			bool shouldDiscard = attachEffect->IsActive() && attachEffect->ShouldBeDiscardedNow();
+		attachEffect->AI();
+		bool hasExpired = attachEffect->HasExpired();
+		bool shouldDiscard = attachEffect->IsActive() && attachEffect->ShouldBeDiscardedNow();
 
-			if (hasExpired || shouldDiscard)
-			{
-				attachEffect->ShouldBeDiscarded = false;
-				auto const pType = attachEffect->GetType();
+		if (hasExpired || shouldDiscard)
+		{
+			attachEffect->ShouldBeDiscarded = false;
+			auto const pType = attachEffect->GetType();
 
-				if (pType->HasTint())
-					markForRedraw = true;
+			if (pType->HasTint())
+				markForRedraw = true;
 
-				if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
-					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno , attachEffect->GetType(), attachEffect);
+			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+				PhobosAEFunctions::UpdateCumulativeAttachEffects(pTechno , attachEffect->GetType(), attachEffect.get());
 
 			if (pType->ExpireWeapon && ((hasExpired && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
 				|| (shouldDiscard && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Discard) != ExpireWeaponCondition::None)))	{
 					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-						expireWeapons->push_back(pType->ExpireWeapon);
+					expireWeapons->push_back(pType->ExpireWeapon);
 				}
 
-				if (shouldDiscard && attachEffect->ResetIfRecreatable())
-				{
-					++it;
-				} else {
-					it = pExt->PhobosAE.erase(it);
-				}
-			} else {
-				++it;
-			}
-		} else {
-		  it = pExt->PhobosAE.erase(it);
+			if (!(shouldDiscard && attachEffect->ResetIfRecreatable()))
+				return true;
 		}
-	}
+
+		return false;
+	});
 
 	AEProperties::Recalculate(pTechno);
 
@@ -219,36 +213,30 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		StackVector<WeaponTypeClass* , 256> expireWeapons;
 
 		// Delete ones on old type and not on current.
-		for (auto it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
-		{
-			if (it->get()) {
+		pExt->PhobosAE.remove_if([&](std::unique_ptr<PhobosAttachEffectClass>& it) {
 
-				auto const attachEffect = it->get();
-				auto const pType = attachEffect->GetType();
-				bool selfOwned = attachEffect->IsSelfOwned();
-				bool remove = selfOwned && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType);
+			if(!it.get()) {
+				return true;
+			}
 
-				if (remove)
-				{
-					if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)
-					{
-						if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1)
-							expireWeapons->push_back(pType->ExpireWeapon);
+			auto const attachEffect = it.get();
+			auto const pType = attachEffect->GetType();
+			bool selfOwned = attachEffect->IsSelfOwned();
+			bool remove = selfOwned && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType);
+
+			if (remove) {
+				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None) {
+					if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, pType) < 1) {
+						expireWeapons->push_back(pType->ExpireWeapon);
 					}
+				}
 
-					markForRedraw |= pType->HasTint();
-					it = pExt->PhobosAE.erase(it);
-				}
-				else
-				{
-					it++;
-				}
+				markForRedraw |= pType->HasTint();
+				return true;
 			}
-			else
-			{
-				it = pExt->PhobosAE.erase(it);
-			}
-		}
+
+			return false;
+		});
 
 		auto const coords = pThis->GetCoords();
 		auto const pOwner = pThis->Owner;
