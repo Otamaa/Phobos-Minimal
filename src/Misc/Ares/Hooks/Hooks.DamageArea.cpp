@@ -727,7 +727,7 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 					{
 						pCurCell->ReduceWall();
 					}
-					else if (pWarhead->Wall || pWarhead->Wood && pOvelay->Armor == Armor::Wood)
+					else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
 					{
 						pCurCell->ReduceWall(damage);
 					}

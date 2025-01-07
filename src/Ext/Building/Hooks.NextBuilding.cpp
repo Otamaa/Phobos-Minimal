@@ -97,17 +97,17 @@ DEFINE_HOOK(0x4FB8E4, Manual_Place_ResetBuildingTypeCurrentHeapId, 0x6)
 	}
 	return 0;
 }
+static std::vector<bool> aBuildingConnected;
 DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 {
 	// use a dynamic bitset(vector<bool>) to record the processed building types
-	std::vector<bool> aBuildingConnected;
 	aBuildingConnected.resize(BuildingTypeClass::Array->Count, false);
+
 	// We require the INIer write the NextBuilding.Next correctly at least, so we can fix the NextBuilding.Prev for them
 	for (auto pBldType : *BuildingTypeClass::Array)
 	{
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (pExt->NextBuilding_Next)
-		{
+		if (pExt->NextBuilding_Next) {
 			const auto pNextExt = BuildingTypeExtContainer::Instance.Find(pExt->NextBuilding_Next);
 			if (pNextExt->NextBuilding_Prev == nullptr)
 				pNextExt->NextBuilding_Prev = pBldType;
@@ -115,43 +115,47 @@ DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 		else
 			aBuildingConnected[pBldType->ArrayIndex] = true;
 	}
+
 	// Pre connect those already connected ones
 	for (auto pBldType : *BuildingTypeClass::Array)
 	{
 		if (aBuildingConnected[pBldType->ArrayIndex])
 			continue;
+
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
 		auto pNextBldType = pExt->NextBuilding_Next;
 		while (true)
 		{
 			if (pNextBldType == nullptr)
 				break;
-			if (pNextBldType == pBldType)
-			{
+
+			if (pNextBldType == pBldType) {
 				aBuildingConnected[pBldType->ArrayIndex] = true;
 				break;
 			}
+
 			aBuildingConnected[pNextBldType->ArrayIndex] = true;
 			const auto pNextExt = BuildingTypeExtContainer::Instance.Find(pNextBldType);
 			pNextBldType = pNextExt->NextBuilding_Next;
 		}
 	}
+
 	// Check whether there's unmatched NextBuilding_Prev and NextBuilding_Next
-	for (auto pBldType : *BuildingTypeClass::Array)
-	{
+	for (auto pBldType : *BuildingTypeClass::Array) {
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (const auto pNextBldType = pExt->NextBuilding_Next)
-		{
+		if (const auto pNextBldType = pExt->NextBuilding_Next) {
 			const auto pNextExt = BuildingTypeExtContainer::Instance.Find(pNextBldType);
 			if (pNextExt->NextBuilding_Prev != pBldType)
 				Debug::FatalErrorAndExit("Invalid NextBuilding.Prev for %s and %s", pBldType->ID, pNextBldType->ID);
 		}
 	}
+
 	// Now fix up the loop automatically
 	for (auto pBldType : *BuildingTypeClass::Array)
 	{
 		if (aBuildingConnected[pBldType->ArrayIndex])
 			continue;
+
 		aBuildingConnected[pBldType->ArrayIndex] = true;
 		auto pHeadBldType = pBldType;
 		while (true)
@@ -159,6 +163,7 @@ DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 			const auto pExt = BuildingTypeExtContainer::Instance.Find(pHeadBldType);
 			if (!pExt->NextBuilding_Prev)
 				break;
+
 			pHeadBldType = pExt->NextBuilding_Prev;
 			aBuildingConnected[pHeadBldType->ArrayIndex] = true;
 		}
@@ -168,14 +173,18 @@ DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 			const auto pExt = BuildingTypeExtContainer::Instance.Find(pTailBldType);
 			if (!pExt->NextBuilding_Next)
 				break;
+
 			pTailBldType = pExt->NextBuilding_Next;
 			aBuildingConnected[pTailBldType->ArrayIndex] = true;
 		}
+
 		const auto pHeadExt = BuildingTypeExtContainer::Instance.Find(pHeadBldType);
 		const auto pTailExt = BuildingTypeExtContainer::Instance.Find(pTailBldType);
 		pHeadExt->NextBuilding_Prev = pTailBldType;
 		pTailExt->NextBuilding_Next = pHeadBldType;
 	}
+
+	aBuildingConnected.clear();
 	return 0x679BBE;
 }
 DEFINE_HOOK(0x6AAFD0, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextBuilding_E_ABANDON, 0x5)
