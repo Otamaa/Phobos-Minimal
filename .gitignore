@@ -386,3 +386,4 @@ FodyWeavers.xsd
 /Phobos/DisableDPFeatures/Phobos.tlog/Masm.write.1u.tlog
 /Phobos/DisableDPFeatures/Phobos.tlog/Phobos.lastbuildstate
 /Phobos/DisableDPFeatures/Phobos.tlog/unsuccessfulbuild
+*.tlog
