@@ -3,18 +3,19 @@
 
 // this douchebag blows your base up when it thinks you're cheating
 // this already handled below , the validation will aways return true , this prevent  this to even happen
-//DEFINE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0x7, 55D059);
+DEFINE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0x7, 55D059);
 //DEFINE_PATCH(0x55CFD8 , 0x90, 0x90, 0x90, 0x90, 0x90);
 
-void NAKED CopyProtection_DontBlowMeUp_Ret_()
-{
-	PUSH_REG(ebx);
-	PUSH_REG(esi);
-	JMP(0x55D059);
-}
-DEFINE_HOOK(0x55CFD8, CopyProtection_DontBlowMeUp, 0x5) {
-	return (DWORD)CopyProtection_DontBlowMeUp_Ret_;
-}
+//void NAKED CopyProtection_DontBlowMeUp_Ret_()
+//{
+//	PUSH_REG(ebx);
+//	PUSH_REG(esi);
+//	JMP(0x55D059);
+//}
+//DEFINE_HOOK(0x55CFD8, CopyProtection_DontBlowMeUp, 0x5) {
+//	return (DWORD)CopyProtection_DontBlowMeUp_Ret_;
+//}
+
 // Allows run game without the launcher
 DEFINE_PATCH(0x49F5C0,    // CopyProtect_IsLauncherRunning
 	0xB0, 0x01,           // mov    al, 1

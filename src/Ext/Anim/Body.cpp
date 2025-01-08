@@ -909,20 +909,21 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 
 	R->EBX(0);
 
-	if(pThis->OwnerObject == target){
+	if(pThis->OwnerObject == target && target){
 
-		if(!target)
-			return 0x4251A3;
+		auto const pTechno = flag_cast_to<TechnoClass* , false>(target);
 
-		if (auto const pTechno = flag_cast_to<TechnoClass* , false>(target)) {
-			if (TechnoExtContainer::Instance.Find(pTechno)->IsDetachingForCloak)
-				return 0x4251A3;
+		if (!pTechno || !TechnoExtContainer::Instance.Find(pTechno)->IsDetachingForCloak) {
+			return 0x425174;
 		}
-
-		return 0x425174;
 	}
 
-	return 0x4251A3;
+	if(pThis->Type == target) {
+		Debug::Log("Anim[0x%x] detaching Type[%s] Pointer ! \n", pThis , pThis->Type->ID);
+		pThis->Type = nullptr;
+	}
+
+	return 0x4251B1;
 }
 
 DEFINE_JUMP(VTABLE, 0x7E3390, MiscTools::to_DWORD(&FakeAnimClass::_GetOwningHouse));

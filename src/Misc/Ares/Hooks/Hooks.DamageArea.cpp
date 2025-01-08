@@ -879,7 +879,9 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 
 	bool AnythingHit = false;
 
-	groupvec.for_each([&](DamageGroup* pGroup) {
+	for(auto it= groupvec.begin(); it != groupvec.end(); ++it) {
+
+		 auto pGroup = *it;
 		 auto curDistance = pGroup->Distance;
 		 auto pObj = pGroup->Target;
 
@@ -904,7 +906,7 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 		 }
 
 		 GameDelete<false, false>(std::exchange(pGroup, nullptr));
-	});
+	};
 
 	groupvec.clear();
 
@@ -1000,5 +1002,5 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 	return DamageAreaResult(AnythingHit == 0);
 }
 
-DEFINE_JUMP(LJMP, 0x489280, MiscTools::to_DWORD(DamageArea));
+//DEFINE_JUMP(LJMP, 0x489280, MiscTools::to_DWORD(DamageArea));
 #endif

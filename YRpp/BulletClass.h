@@ -188,3 +188,4 @@ public:
 	bool SpawnNextAnim;
 	int Range;
 };
+static_assert(sizeof(BulletClass) == 0x160, "Invalid size.");

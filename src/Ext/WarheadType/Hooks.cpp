@@ -45,7 +45,7 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 	if (pThis->WeaponType)
 	{
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		const size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
+		size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
 		const size_t chance_size = pWeaponExt->ExtraWarheads_DetonationChances.size();
 
 		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
@@ -61,15 +61,27 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 
 			bool detonate = true;
 
-
 			if (chance_size > i)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
 			if (chance_size > 0)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
 
+			bool isFull = true;
+			size = pWeaponExt->ExtraWarheads_FullDetonation.size();
+
+			if (size > i)
+				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
+			if (size > 0)
+				isFull = pWeaponExt->ExtraWarheads_FullDetonation[size - 1];
+
 			if (detonate) {
-				AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
-				WarheadTypeExtData::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+
+				if(isFull)
+					WarheadTypeExtData::DetonateAt(pWH, pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords), *coords, pThis->Owner, damage , pOwner);
+				else
+					WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pThis->Owner, pWH, true, pOwner, 
+					flag_cast_to<TechnoClass*>(pThis->Target));
+
 			}
 		}
 	}
@@ -111,14 +123,14 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 // 	return 0x46A2FB;
 // }
 
-DEFINE_HOOK(0x469AA4, BulletClass_Logics_Extras, 0x5)
-{
-	GET(BulletClass* , pThis ,ESI);
-	GET_BASE(CoordStruct*, coords, 0x8);
-	ApplyLogics(pThis , coords);
-
-	return 0;
-}
+//DEFINE_HOOK(0x469AA4, BulletClass_Logics_Extras, 0x5)
+//{
+//	GET(BulletClass* , pThis ,ESI);
+//	GET_BASE(CoordStruct*, coords, 0x8);
+//	ApplyLogics(pThis , coords);
+//
+//	return 0;
+//}
 
 // DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 // {
@@ -160,83 +172,83 @@ DEFINE_HOOK(0x469AA4, BulletClass_Logics_Extras, 0x5)
 
 #include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
 
-DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
-{
-	GET(int, damage, ECX);
-	GET(WarheadTypeClass*, pWarhead, EDX);
-	GET_STACK(LandType, land, 0x4);
-	GET_STACK(CoordStruct*, pCoord, 0x8);
-
-	if (pWarhead) {
-
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		pWHExt->Splashed = false;
-
-		//allowing zero damage to pass ,..
-		//hopefully it wont do any harm to these thing , ...
-
-		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
-
-			if (damage < 0)
-				damage = -damage;
-
-			if (land == LandType::Water
-				&& pWarhead->Conventional
-				&& !MapClass::Instance->GetCellAt(pCoord)->ContainsBridge()
-				&& pCoord->Z < (MapClass::Instance->GetCellFloorHeight(pCoord) + Unsorted::CellHeight)
-				) {
-				pWHExt->Splashed = true;
-
-				if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList)) {
-
-					int idx = pWHExt->SplashList_PickRandom ?
-						ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
-						MinImpl(Vec.size() * 35 - 1, (size_t)damage) / 35;
-
-					R->EAX(Vec[idx]);
-					return 0x48A615;
-				}
-
-				R->EAX<AnimTypeClass*>(nullptr);
-				return 0x48A615;
-			}
-
-			if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm) {
-				auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-				if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
-					if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
-						RulesClass::Instance->WeatherConBoltExplosion))
-					{
-						R->EAX(pAnimType);
-						return 0x48A615;
-					}
-				}
-			}
-
-			if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
-				const size_t idx = pWarhead->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
-					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
-					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
-
-				R->EAX(pWHExt->Crit_AnimList[idx < pWHExt->Crit_AnimList.size() ? idx : pWHExt->Crit_AnimList.size() - 1]);
-				return 0x48A615;
-			}
-
-			if (pWarhead->AnimList.Count > 0) {
-				const int idx = pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect) ?
-					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
-					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
-
-				R->EAX(pWarhead->AnimList.Items[idx < pWarhead->AnimList.Count ? idx : pWarhead->AnimList.Count - 1]);
-				return 0x48A615;
-			}
-		}
-	}
-
-	R->EAX<AnimTypeClass*>(nullptr);
-	return 0x48A615;
-}
+//DEFINE_HOOK(0x48A4F0, CombatAnimSelect, 0x5)
+//{
+//	GET(int, damage, ECX);
+//	GET(WarheadTypeClass*, pWarhead, EDX);
+//	GET_STACK(LandType, land, 0x4);
+//	GET_STACK(CoordStruct*, pCoord, 0x8);
+//
+//	if (pWarhead) {
+//
+//		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+//		pWHExt->Splashed = false;
+//
+//		//allowing zero damage to pass ,..
+//		//hopefully it wont do any harm to these thing , ...
+//
+//		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
+//
+//			if (damage < 0)
+//				damage = -damage;
+//
+//			if (land == LandType::Water
+//				&& pWarhead->Conventional
+//				&& !MapClass::Instance->GetCellAt(pCoord)->ContainsBridge()
+//				&& pCoord->Z < (MapClass::Instance->GetCellFloorHeight(pCoord) + Unsorted::CellHeight)
+//				) {
+//				pWHExt->Splashed = true;
+//
+//				if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList)) {
+//
+//					int idx = pWHExt->SplashList_PickRandom ?
+//						ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
+//						MinImpl(Vec.size() * 35 - 1, (size_t)damage) / 35;
+//
+//					R->EAX(Vec[idx]);
+//					return 0x48A615;
+//				}
+//
+//				R->EAX<AnimTypeClass*>(nullptr);
+//				return 0x48A615;
+//			}
+//
+//			if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm) {
+//				auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+//
+//				if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
+//					if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
+//						RulesClass::Instance->WeatherConBoltExplosion))
+//					{
+//						R->EAX(pAnimType);
+//						return 0x48A615;
+//					}
+//				}
+//			}
+//
+//			if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
+//				const size_t idx = pWarhead->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
+//					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
+//					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
+//
+//				R->EAX(pWHExt->Crit_AnimList[idx < pWHExt->Crit_AnimList.size() ? idx : pWHExt->Crit_AnimList.size() - 1]);
+//				return 0x48A615;
+//			}
+//
+//			if (pWarhead->AnimList.Count > 0) {
+//				const int idx = pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect) ?
+//					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
+//					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
+//
+//				R->EAX(pWarhead->AnimList.Items[idx < pWarhead->AnimList.Count ? idx : pWarhead->AnimList.Count - 1]);
+//				return 0x48A615;
+//			}
+//		}
+//	}
+//
+//	R->EAX<AnimTypeClass*>(nullptr);
+//	return 0x48A615;
+//}
 
 #ifdef TODO_for_DamageArea
 

@@ -139,11 +139,13 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x70CD1C, TechnoClass_Coef_CheckTarget, 0xA)
-{
-	GET_BASE(ObjectClass*, pTarget, 0x8);
-	return pTarget ? 0x0 : 0x70CD39;
-}
+//this got checked already before call , so yeah 
+// no worry
+//DEFINE_HOOK(0x70CD1C, TechnoClass_Coef_CheckTarget, 0xA)
+//{
+//	GET_BASE(ObjectClass*, pTarget, 0x8);
+//	return pTarget ? 0x0 : 0x70CD39;
+//}
 
 DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 {
@@ -152,9 +154,6 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 	};
 
 	GET(ScenStruct*, pScenStruct, EAX);
-
-	//std::vector<std::tuple<HouseClass*, int , bool>> UnAssigned;
-	//std::vector<bool> IsCurrentCellAssigned(pScenStruct->CellVector.Size());
 
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{
@@ -170,7 +169,6 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.size())
 				{
 					const auto& Cell = pScenStruct->CellVector.Items[pHouse->StartingPoint];
-					//IsCurrentCellAssigned[pHouse->StartingPoint] = true;
 					Debug::Log("SetBaseSpawnCellFor[%s at %d with [%d - %d]\n", HouseID, pHouse->StartingPoint, Cell.X, Cell.Y);
 					pHouse->SetBaseSpawnCell(Cell);
 					ScenarioClass::Instance->HouseIndices[pHouse->StartingPoint] = i;
@@ -178,7 +176,6 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 				else
 				{
 					Debug::Log("Failed SetBaseSpawnCellFor[%s at %d]\n", HouseID, pHouse->StartingPoint);
-					//UnAssigned.emplace_back(pHouse , i , false);
 				}
 			}
 		}

@@ -139,7 +139,7 @@ template <typename T>
 struct CellSpreadIterator
 {
 	template <typename Func>
-	void operator () (CellStruct const center, size_t const spread, Func&& action) const {
+	void operator () (CellStruct const center, short const spread, Func&& action) const {
 		CellSpreadIterator<ObjectClass>{}(center, spread, [&action](ObjectClass* const pObject)
 		{
 			if(auto const pItem = flag_cast_to<T*>(pObject)) {

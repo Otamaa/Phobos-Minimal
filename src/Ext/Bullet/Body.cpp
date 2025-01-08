@@ -898,7 +898,6 @@ void BulletExtData::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, Techn
 	pThis->Limbo();
 	pThis->SetLocation(nCoord);
 	pThis->Explode(true);
-	//GameDelete<true,false>(pThis);
 	pThis->UnInit();
 }
 

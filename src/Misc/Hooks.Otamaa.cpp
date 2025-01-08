@@ -1864,13 +1864,6 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 
 DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);
 
-DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
-{
-	GET(AnimClass* const, pThis, ESI);
-	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
-	return 0x0;
-}
-
 DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
 	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8, RetPrimary = 0x6F37AD };
@@ -2684,26 +2677,26 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 
 // do some pre-validation evenbefore function going to be executed
 // save some cpu cycle
-DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
-{
-	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
-}
-
-DEFINE_HOOK(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
-{
-	GET(TechnoTypeClass*, pTechnoType, EAX);
-	GET(TechnoClass*, pTechno, ESI);
-
-	if (pTechno->WhatAmI() == BuildingClass::AbsID || !RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset())
-		return 0x0;
-
-	if (pTechnoType->Weight < RulesExtData::Instance()->VeinsDamagingWeightTreshold)
-	{
-		return 0x486A55; //skip damaging
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
+//{
+//	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
+//}
+//
+//DEFINE_HOOK(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
+//{
+//	GET(TechnoTypeClass*, pTechnoType, EAX);
+//	GET(TechnoClass*, pTechno, ESI);
+//
+//	if (pTechno->WhatAmI() == BuildingClass::AbsID || !RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset())
+//		return 0x0;
+//
+//	if (pTechnoType->Weight < RulesExtData::Instance()->VeinsDamagingWeightTreshold)
+//	{
+//		return 0x486A55; //skip damaging
+//	}
+//
+//	return 0x0;
+//}
 
 #ifdef debug_veinstest
 DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
@@ -9620,28 +9613,6 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 #undef VoxelBufferSize
 
 #include <Notifications.h>
-
-//DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
-//	GET(AbstractClass*, pTarget, ESI);
-//	GET(bool, bRemoved, EDI);
-//
-//	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
-//		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
-//			if (!pItem) {
-//				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
-//				return true;
-//			} else {
-//				pItem->PointerExpired(pTarget, bRemoved);
-//			}
-//
-//			return false;
-//	});
-//
-//	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
-//		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
-//
-//	return 0x725961;
-//}
 
 constexpr int __fastcall charToID(char* string)
 {

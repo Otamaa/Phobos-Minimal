@@ -93,53 +93,53 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 }
 */
 
-DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
-{
-	GET(SpawnManagerClass*, pSpawn, ESI);
-	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
-
-	if (auto pOwner = pSpawn->Owner)
-	{
-		//if ((*pFLH) == CoordStruct::Empty)
-		{
-			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
-
-			if (pTypeExt->MySpawnSupportDatas.Enable)
-			{
-				//CoordStruct nFLH = CoordStruct::Empty;
-
-				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
-				if (auto const pTransporter = pOwner->Transporter)
-				{
-					if (auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
-					{
-						nFLHData = pTransportExt->MySpawnSupportFLH;
-					}
-				}
-
-				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
-
-				if (nFLH == CoordStruct::Empty)
-					return 0x0;
-
-				if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
-				{
-					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
-					{
-						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
-						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
-					}
-				}
-
-				R->EAX(&nFLH);
-				return 0x6B7498;
-			}
-		}
-	}
-
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
+// {
+// 	GET(SpawnManagerClass*, pSpawn, ESI);
+// 	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
+//
+// 	if (auto pOwner = pSpawn->Owner)
+// 	{
+// 		//if ((*pFLH) == CoordStruct::Empty)
+// 		{
+// 			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+//
+// 			if (pTypeExt->MySpawnSupportDatas.Enable)
+// 			{
+// 				//CoordStruct nFLH = CoordStruct::Empty;
+//
+// 				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
+// 				if (auto const pTransporter = pOwner->Transporter)
+// 				{
+// 					if (auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
+// 					{
+// 						nFLHData = pTransportExt->MySpawnSupportFLH;
+// 					}
+// 				}
+//
+// 				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
+//
+// 				if (nFLH == CoordStruct::Empty)
+// 					return 0x0;
+//
+// 				if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
+// 				{
+// 					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+// 					{
+// 						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
+// 						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
+// 					}
+// 				}
+//
+// 				R->EAX(&nFLH);
+// 				return 0x6B7498;
+// 			}
+// 		}
+// 	}
+//
+//
+// 	return 0x0;
+// }
 
 namespace CalculatePinch
 {
@@ -197,19 +197,20 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	GET_STACK(const int, nWeapon, 0x8);
 	//GET(AbstractClass*, pTarget, EDI);
 
-	CalculatePinch::Calc(pThis, nWeapon);
-	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
+	//CalculatePinch::Calc(pThis, nWeapon);
+	//ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
-	SpawnSupportFunctional::OnFire(pThis, pTarget);
-	if (auto pExt = TechnoExtContainer::Instance.Find(pThis))
-	{
+	//SpawnSupportFunctional::OnFire(pThis, pTarget);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//if ()
+	//{
 		pExt->CurrentWeaponIdx = nWeapon;
-		if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()))
-		{
-			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
-			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
-		}
-	}
+		//if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()))
+		//{
+		//	AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
+		//	//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
+		//}
+	//}
 
 	return 0x0;
 }
@@ -227,29 +228,29 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(CoordStruct*, pCoord, (0x4));
-	//GET_STACK(DirType, faceDir, (0x8));
-
-	if (auto pExt = TechnoExtContainer::Instance.Find(pThis)) {
-		if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())) {
-			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
-			GiftBoxFunctional::Init(pExt, pTypeExt);
-			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
-		}
-	}
-
-	return 0;
-}
+// DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
+// {
+// 	GET(TechnoClass*, pThis, ECX);
+// 	GET_STACK(CoordStruct*, pCoord, (0x4));
+// 	//GET_STACK(DirType, faceDir, (0x8));
+//
+// 	//if (auto pExt = TechnoExtContainer::Instance.Find(pThis)) {
+// 	//	if (auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())) {
+// 	//		DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
+// 	//		GiftBoxFunctional::Init(pExt, pTypeExt);
+// 	//		AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+// 	//	}
+// 	//}
+//
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
+	return pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
 WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
@@ -284,40 +285,40 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
     return  pBuffer;
 }
 //9
-DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
-	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+// DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+// {
+// 	GET(TechnoClass*, pTechno, ESI);
+// 	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+// 	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+//
+// 	if (auto pPri = GetWeaponType(pTechno , 0)) {
+// 		if (pPri->Range > nGuarRange)
+// 			nGuarRange = pPri->Range;
+// 	}
+//
+// 	if(auto pSec = GetWeaponType(pTechno ,1)) {
+// 		if (pSec->Range > nGuarRange)
+// 			nGuarRange = pSec->Range;
+// 	}
+//
+// 	R->EDI(nGuarRange);
+// 	return 0x6F903E;
+// }
 
-	if (auto pPri = GetWeaponType(pTechno , 0)) {
-		if (pPri->Range > nGuarRange)
-			nGuarRange = pPri->Range;
-	}
-
-	if(auto pSec = GetWeaponType(pTechno ,1)) {
-		if (pSec->Range > nGuarRange)
-			nGuarRange = pSec->Range;
-	}
-
-	R->EDI(nGuarRange);
-	return 0x6F903E;
-}
-
-DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-
-	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-
-	if (!pExt->MyFighterData)
-		return 0x0;
-
-	if(pExt->MyFighterData->IsAreaGuardRolling())
-		return 0x41A6AC;
-
-	return 0;
-}
+// DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
+// {
+// 	GET(TechnoClass*, pTechno, ESI);
+//
+// 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+//
+// 	if (!pExt->MyFighterData)
+// 		return 0x0;
+//
+// 	if(pExt->MyFighterData->IsAreaGuardRolling())
+// 		return 0x41A6AC;
+//
+// 	return 0;
+// }
 
 //DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
 //{
