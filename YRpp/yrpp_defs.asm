@@ -21,7 +21,6 @@ ASM_DEFINE_IMPLEMENTATION macro name, address
     name proc
         mov eax, address
         jmp eax
-        ; ECHO Warning: MakeName("0x&address", "&name")
     name endp
     align 10h
 endm
@@ -201,11 +200,11 @@ endm
 ;================================================================================================================
 ;ASM_DEFINE_IMPLEMENTATION ??1AudioIDXData@@UAE@XZ 00401580h ;dtor
 ;================================================================================================================
-ASM_DEFINE_IMPLEMENTATION ??1AnimClass@@UAE@XZ 00426590h ;dtor
-ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@XZ 00422720h ;ctor
-ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@ABUCoordStruct@@HHW4AnimFlag@@H_N@Z 00421EA0h ;ctor
-ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@ABUCoordStruct@@HHKH_N@Z 00421EA0h ;ctor
-ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@PAUCoordStruct@@HHW4AnimFlag@@H_N@Z 00421EA0h ;ctor
+;ASM_DEFINE_IMPLEMENTATION ??1AnimClass@@UAE@XZ 00426590h ;dtor
+;ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@XZ 00422720h ;ctor
+;ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@ABUCoordStruct@@HHW4AnimFlag@@H_N@Z 00421EA0h ;ctor
+;ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@ABUCoordStruct@@HHKH_N@Z 00421EA0h ;ctor
+;ASM_DEFINE_IMPLEMENTATION ??0AnimClass@@QAE@PAVAnimTypeClass@@PAUCoordStruct@@HHW4AnimFlag@@H_N@Z 00421EA0h ;ctor
 ;================================================================================================================
 ;ASM_DEFINE_IMPLEMENTATION ??1CellClass@@UAE@XZ 00487E80h ;dtor
 ;ASM_DEFINE_IMPLEMENTATION ??0CellClass@@QAE@XZ 0047BBF0h ;ctor

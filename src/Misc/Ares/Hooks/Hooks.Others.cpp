@@ -99,17 +99,20 @@ DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-constexpr int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
+FORCEINLINE int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
 {
-    int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
-    int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
-    int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
-    int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+    //int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
+    //int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
+    //int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
+    //int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
 
-    int x_distance = our_cell_x - their_cell_x;
-    int y_distance = our_cell_y - their_cell_y;
-    return x_distance * x_distance + y_distance * y_distance;
+    //int x_distance = our_cell_x - their_cell_x;
+    //int y_distance = our_cell_y - their_cell_y;
+    //return x_distance * x_distance + y_distance * y_distance;
+
+	return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
 }
+
 
 DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
