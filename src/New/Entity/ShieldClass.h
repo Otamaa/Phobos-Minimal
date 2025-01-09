@@ -132,17 +132,17 @@ public:
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
-	constexpr FORCEINLINE bool IsGreenSP()
+	FORCEINLINE bool IsGreenSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
-	constexpr FORCEINLINE bool IsYellowSP()
+	FORCEINLINE bool IsYellowSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
-	constexpr FORCEINLINE bool IsRedSP()
+	FORCEINLINE bool IsRedSP()
 	{
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}

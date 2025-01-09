@@ -27,25 +27,22 @@ public:
 private:
 	inline static std::unique_ptr<SWSidebarClass> Instance;
 public:
-	static constexpr void Allocate() {
+	static void Allocate() {
 		Instance = std::make_unique<SWSidebarClass>();
 	}
 
-	static constexpr void Remove() {
+	static void Remove() {
 		Instance = nullptr;
 	}
 
-	static constexpr SWSidebarClass* Global()
+	static SWSidebarClass* Global()
 	{
 		return Instance.get();
 	}
 
-	static constexpr void Clear()
+	static void Clear()
 	{
 		Allocate();
-
-		//for(auto& com : Commands)
-		//  com = nullptr;
 	}
 
 public:

@@ -733,7 +733,7 @@ public:
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-	constexpr FORCEINLINE ShieldClass* GetShield() const {
+	FORCEINLINE ShieldClass* GetShield() const {
 		return this->Shield.get();
 	}
 

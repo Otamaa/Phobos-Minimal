@@ -39,7 +39,7 @@ public:
 	static void Allocate(SidebarClass* pThis);
 	static void Remove(SidebarClass* pThis);
 
-	constexpr FORCEINLINE static SidebarExtData* Instance()
+	static SidebarExtData* Instance()
 	{
 		return Data.get();
 	}
