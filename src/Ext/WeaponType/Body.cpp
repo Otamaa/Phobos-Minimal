@@ -34,6 +34,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::Pi * 2);
 	}
 
+#ifdef _Enable
 	int Bolt_Count;
 	if (detail::read(Bolt_Count , exINI, pSection, "Bolt.Count") && Bolt_Count > 0)
 	{
@@ -52,6 +53,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->WeaponBolt_Data = data;
 	}
 	else
+#endif
+
 	{
 		this->Bolt_Color1.Read(exINI, pSection, "Bolt.Color1");
 		this->Bolt_Color2.Read(exINI, pSection, "Bolt.Color2");
@@ -402,7 +405,9 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyDamage)
 		.Process(this->Cursor_Attack)
 		.Process(this->Cursor_AttackOutOfRange)
+#ifdef _Enable
 		.Process(this->WeaponBolt_Data)
+#endif
 		.Process(this->Bolt_Color1)
 		.Process(this->Bolt_Color2)
 		.Process(this->Bolt_Color3)

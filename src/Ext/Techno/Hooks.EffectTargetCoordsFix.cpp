@@ -443,7 +443,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 			//if the function not bail out , it will crash the game because the vtable is already invalid
 			if (!pThis->IsAlive) {
 				return 0x6FF92F;
-			}
+			  }
 		}
 	}
 

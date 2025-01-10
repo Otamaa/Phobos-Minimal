@@ -3547,6 +3547,7 @@ static void __fastcall IonBlastDrawAll() {
 }
 DEFINE_JUMP(CALL , 0x6D4656 , MiscTools::to_DWORD(&IonBlastDrawAll))
 
+#ifdef _Enable
 static void __fastcall LaserDrawclassDrawAll()
 {
 	LaserDrawClass::DrawAll();
@@ -3554,6 +3555,7 @@ static void __fastcall LaserDrawclassDrawAll()
 	ElectricBoltManager::Draw_All();
 }
 DEFINE_JUMP(CALL, 0x6D4669, MiscTools::to_DWORD(&LaserDrawclassDrawAll))
+#endif
 
 //DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
 //{
@@ -9613,6 +9615,28 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 #undef VoxelBufferSize
 
 #include <Notifications.h>
+
+DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+	GET(AbstractClass*, pTarget, ESI);
+	GET(bool, bRemoved, EDI);
+
+	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+			if (!pItem) {
+				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
+				return true;
+			} else {
+				pItem->PointerExpired(pTarget, bRemoved);
+			}
+
+			return false;
+	});
+
+	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+
+	return 0x725961;
+}
 
 constexpr int __fastcall charToID(char* string)
 {

@@ -498,7 +498,7 @@ DEFINE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x5243E3, InfantryTypeClass_AllowDamageSparks, 0xB)
+DEFINE_HOOK(0x5243DD, InfantryTypeClass_AllowDamageSparks, 0x6)
 {
 	GET(InfantryTypeClass*, pThis, ESI)
 	GET(INIClass* const, pINI, EBP);

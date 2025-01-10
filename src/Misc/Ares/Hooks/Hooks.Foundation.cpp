@@ -136,9 +136,18 @@ DEFINE_HOOK(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
 	return 0x568697;
 }
 
+#include <TerrainClass.h>
+#include <TerrainTypeClass.h>
+
 DEFINE_HOOK(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
 {
-	GET(BuildingClass*, pThis, EDI);
+	GET(ObjectClass*, pThis, EDI);
+
+	if (auto pTerrain = cast_to<TerrainClass*, false>(pThis)) {
+		if (pTerrain->Type->Foundation == 21)
+			return 0x5687DF;
+	}
+
 	R->EBP(pThis->GetFoundationData(false));
 	return 0x568432;
 }

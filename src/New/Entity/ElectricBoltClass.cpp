@@ -1,5 +1,7 @@
 #include "ElectricBoltClass.h"
 
+#ifdef _Enable
+
 #include <Base/Always.h>
 #include <Utilities/TemplateDef.h>
 #include <TacticalClass.h>
@@ -300,3 +302,4 @@ void ElectricBoltManager::Draw_All()
 
 	ElectricBoltArray.erase(iter, ElectricBoltArray.end());
 }
+#endif

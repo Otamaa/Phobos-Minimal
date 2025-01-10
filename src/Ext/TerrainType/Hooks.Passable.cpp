@@ -11,18 +11,6 @@
 #define IS_CELL_OCCUPIED(pCell)\
 pCell->OccupationFlags & 0x20 || pCell->OccupationFlags & 0x40 || pCell->OccupationFlags & 0x80 || pCell->GetInfantry(false) \
 
-DEFINE_HOOK(0x568411, MapClass_PlaceDown_0x0TerrainTypes, 0x6)
-{
-	GET(ObjectClass*, pObject, EDI);
-
-	if (auto pTerrain = cast_to<TerrainClass*, false>(pObject)) {
-		if (pTerrain->Type->Foundation == 21)
-			return 0x5687DF;
-	}
-
-	return 0;
-}
-
 // Passable TerrainTypes Hook #1 - Do not set occupy bits.
 DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 {
@@ -45,7 +33,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 	if (!pThis->Owner->IsControlledByHuman() || !pThis->IsControllable())
 		return 0;
 
-	if (auto const pTerrain = cast_to<TerrainClass*>(pTarget))
+	if (auto const pTerrain = cast_to<TerrainClass* , false>(pTarget))
 	{
 		if (TerrainExtData::CanMoveHere(pThis , pTerrain) && !isForceFire)
 		{

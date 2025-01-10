@@ -1,6 +1,8 @@
 
 #pragma once
 
+#ifdef _Enable
+
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GeneralStructures.h>
@@ -245,3 +247,4 @@ struct ElectricBoltManager
 	static void Draw_All();
 	static void Clear();
 };
+#endif

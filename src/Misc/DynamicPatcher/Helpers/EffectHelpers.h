@@ -331,9 +331,11 @@ public:
 
 	static void DrawBolt(CoordStruct& sourcePos, CoordStruct& targetPos, BoltType& type)
 	{
+#ifdef _Enable
 		ElectricBoltClass::Create(sourcePos, targetPos, type.Color1 , type.Color2 , type.Color3,
 		type.Color1_disable, type.Color2_disable, type.Color3_disable ,
 		0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
+#endif
 	}
 
 	static void DrawBolt(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos)

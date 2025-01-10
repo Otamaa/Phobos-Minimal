@@ -122,7 +122,7 @@ public:
 	ValueableIdx<CursorTypeClass> Cursor_Attack { (int)MouseCursorType::Attack };
 	ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange };
 
-	Nullable<BoltData> WeaponBolt_Data {};
+	//Nullable<BoltData> WeaponBolt_Data {};
 
 	Nullable<ColorStruct> Bolt_Color1 {};
 	Nullable<ColorStruct> Bolt_Color2 {};

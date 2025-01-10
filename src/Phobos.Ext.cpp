@@ -385,7 +385,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	DigitalDisplayTypeClass::Clear();
 	ImmunityTypeClass::Clear();
 	CursorTypeClass::Clear();
-	ElectricBoltManager::Clear();
+	//ElectricBoltManager::Clear();
 	FlyingStrings::Clear();
 	PaletteManager::Clear();
 	RadTypeClass::Clear();
