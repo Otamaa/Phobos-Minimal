@@ -342,6 +342,15 @@ public:
 
 	DamageState TakeDamage(int damage, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr);
 
+	int DistanceFrom(AbstractClass* that) const
+	{ JMP_THIS(0x5F6440); }
+
+	int DistanceFromSquared(AbstractClass* pThat)const
+	{ JMP_THIS(0x5F6360); }
+
+	int DistanceFromSquared(const CoordStruct* pThat)const
+	{ JMP_THIS(0x5F6560); }
+
 	// smooth operator
 	const char* get_ID() const;
 

@@ -2329,7 +2329,7 @@ DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
 
 #pragma region TeamCloseRangeFix
 
-int __fastcall Check2DDistanceInsteadOf3D(AbstractClass* pSource, void* _, AbstractClass* pTarget)
+int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
 {
 	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
 		? pSource->DistanceFrom(pTarget) // 2D distance
@@ -2338,27 +2338,3 @@ int __fastcall Check2DDistanceInsteadOf3D(AbstractClass* pSource, void* _, Abstr
 DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D));
 
 #pragma endregion
-
-#include <Notifications.h>
-
-DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
-	GET(AbstractClass*, pTarget, ESI);
-	GET(bool, bRemoved, EDI);
-
-	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
-		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
-			if (!pItem) {
-				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
-				return true;
-			} else {
-				pItem->PointerExpired(pTarget, bRemoved);
-			}
-
-			return false;
-	});
-
-	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
-		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
-
-	return 0x725961;
-}

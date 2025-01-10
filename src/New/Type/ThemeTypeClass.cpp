@@ -21,7 +21,6 @@ void ThemeTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->UIName.Read(exINI, this->Name.data(), "Name");
 }
 
-#ifdef _EnableExtendedTheme
 /* these hooks detaching the theme from the game timer
 DEFINE_HOOK(0x406FC6, sub_406F70_ThemeClass_AI_RemoveFromGameTimer, 0x5)
 {
@@ -127,5 +126,3 @@ DEFINE_HOOK(0x720A69, ThemeClass_AI_Play, 0x6)
 	pThis->Play(idx);
 	return 0x720A74;
 }
-
-#endif
