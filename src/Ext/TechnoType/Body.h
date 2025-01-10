@@ -1077,7 +1077,11 @@ static constexpr double TurretMultiOffsetDefaultMult { 1.0 };
 
 class FakeTechnoTypeClass : public TechnoTypeClass
 {
-	//TODO : replace bigger hook with LJMP patch 
+public:
+	//TODO : replace bigger hook with LJMP patch
+	WeaponStruct* GetWeapon(int which);
+	WeaponStruct* GetEliteWeapon(int which);
+	int GetWeaponTurretIndex(int which);
 };
 
 class TechnoTypeExtContainer final : public Container<TechnoTypeExtData>

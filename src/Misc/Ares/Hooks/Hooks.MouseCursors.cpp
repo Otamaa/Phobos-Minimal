@@ -46,82 +46,20 @@ void MouseHooker::Exec()
 	//Patch_Jump(0x5BE990, &MouseClassExt::_Get_Mouse_Frame_Count);
 }
 
-DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(const  int*, keyCode, 0x4);
-	GET_STACK(const Point2D*, mouseCoords, 0x8);
+DEFINE_JUMP(LJMP, 0x5BDDC0, MiscTools::to_DWORD(&MouseClassExt::_Update));
+DEFINE_JUMP(VTABLE, 0x7E198C, MiscTools::to_DWORD(&MouseClassExt::_Update));
 
-	pMouse->_Update(keyCode, mouseCoords);
-	return 0x5BDF2A;
-}
+DEFINE_JUMP(VTABLE, 0x7E19B0, MiscTools::to_DWORD(&MouseClassExt::_Override_Mouse_Shape));
+DEFINE_JUMP(LJMP, 0x5BDC80, MiscTools::to_DWORD(&MouseClassExt::_Override_Mouse_Shape));
 
-DEFINE_HOOK(0x5BDC80, MouseClass_Override_MouseShape_Replace, 0x7)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
+DEFINE_JUMP(VTABLE, 0x7E19B8, MiscTools::to_DWORD(&MouseClassExt::_Mouse_Small));
+DEFINE_JUMP(LJMP, 0x5BDAB0, MiscTools::to_DWORD(&MouseClassExt::_Mouse_Small));
 
-	R->AL(pMouse->_Override_Mouse_Shape(mouse, wsmall));
-	return 0x5BDDB3;
-}
-
-DEFINE_HOOK(0x5BDAB0, MouseClass_Small_Replace, 0x7)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(bool, wsmall, 0x4);
-
-	pMouse->_Mouse_Small(wsmall);
-	return 0x5BDB82;
-}
-
-DEFINE_HOOK(0x5BDBC0, MouseClass_Get_Mouse_Current_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
-
-	R->EAX(pMouse->_Get_Mouse_Current_Frame(mouse, wsmall));
-	return 0x5BDBEE;
-}
-
-DEFINE_HOOK(0x5BDB90, MouseClass_Get_Mouse_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
-
-	R->EAX(pMouse->_Get_Mouse_Frame(mouse, wsmall));
-	return 0x5BDBB6;
-}
-
-DEFINE_HOOK(0x5BDC00, MouseClass_Get_Mouse_Hotspot_Replace, 0x5)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(Point2D*, pRet, 0x4);
-	GET_STACK(MouseCursorType, mouse, 0x8);
-
-	*pRet = pMouse->_Get_Mouse_Hotspot(mouse);
-	R->EAX(pRet);
-	return 0x5BDC77;
-}
-
-DEFINE_HOOK(0x5BE970, MouseClass_Get_Mouse_Start_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-
-	R->EAX(pMouse->_Get_Mouse_Start_Frame(mouse));
-	return 0x5BE984;
-}
-
-DEFINE_HOOK(0x5BE990, MouseClass_Get_Mouse_Frame_Count_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	R->EAX(pMouse->_Get_Mouse_Frame_Count(mouse));
-	return 0x5BE9A4;
-}
+DEFINE_JUMP(LJMP, 0x5BDBC0, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Current_Frame));
+DEFINE_JUMP(LJMP, 0x5BDB90, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Frame));
+DEFINE_JUMP(LJMP, 0x5BDC00, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Hotspot));
+DEFINE_JUMP(LJMP, 0x5BE970, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Start_Frame));
+DEFINE_JUMP(LJMP, 0x5BE990, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Frame_Count));
 
 DEFINE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 {

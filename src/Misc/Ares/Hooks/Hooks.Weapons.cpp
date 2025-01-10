@@ -15,29 +15,54 @@ DEFINE_HOOK(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
 	return 0x712A8F;
 }
 
-DEFINE_HOOK(0x7177C0, TechnoTypeClass_GetWeapon, 0xB)
-{
-	GET_STACK(int, idx, 0x4);
-	GET(TechnoTypeClass*, pThis, ECX);
+WeaponStruct* FakeTechnoTypeClass::GetWeapon(int which) { 
+	if (which < TechnoTypeClass::MaxWeapons)
+		return this->Weapon + which;
 
-	if (idx < 18)
-		return 0x0;
+	which -= TechnoTypeClass::MaxWeapons;
+	const auto pExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this);
+	const auto Vectors = &pExt->AdditionalWeaponDatas;
 
-	R->EAX(TechnoTypeExt_ExtData::GetWeapon(pThis, idx - TechnoTypeClass::MaxWeapons, false));
-	return 0x7177D4;
+	if ((size_t)which < Vectors->size())
+		return Vectors->data() + which;
+
+	Debug::Log("Techno[%s] Trying to get AdditionalWeapon with out of bound index[%d]\n", this->ID, which);
+	return nullptr;
 }
 
-DEFINE_HOOK(0x7177E0, TechnoTypeClass_GetEliteWeapon, 0xB)
-{
-	GET_STACK(int, idx, 0x4);
-	GET(TechnoTypeClass*, pThis, ECX);
+WeaponStruct* FakeTechnoTypeClass::GetEliteWeapon(int which) { 
+	if (which < TechnoTypeClass::MaxWeapons)
+		return this->EliteWeapon + which;
 
-	if (idx < 18)
-		return 0x0;
+	which -= TechnoTypeClass::MaxWeapons;
+	const auto pExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this);
+	const auto Vectors = &pExt->AdditionalEliteWeaponDatas;
 
-	R->EAX(TechnoTypeExt_ExtData::GetWeapon(pThis, idx - TechnoTypeClass::MaxWeapons, true));
-	return 0x7177F4;
+	if ((size_t)which < Vectors->size())
+		return Vectors->data() + which;
+
+	Debug::Log("Techno[%s] Trying to get AdditionalEliteWeapon with out of bound index[%d]\n", this->ID, which);
+	return nullptr;
 }
+
+int FakeTechnoTypeClass::GetWeaponTurretIndex(int which) { 
+	if (which < TechnoTypeClass::MaxWeapons) {
+		return *(this->TurretWeapon + which);
+	}
+
+	which -= TechnoTypeClass::MaxWeapons;
+	const auto& vec = &TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this)->AdditionalTurrentWeapon;
+
+	if ((size_t)which < vec->size())
+		return *(vec->data() + which);
+
+	Debug::Log("Techno[%s] Trying to get AdditionalTurretWeaponIndex with out of bound index[%d]\n", this->ID, which);
+	return 0;
+}
+
+DEFINE_JUMP(LJMP, 0x7177C0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetWeapon));
+DEFINE_JUMP(LJMP, 0x7177E0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetEliteWeapon));
+DEFINE_JUMP(LJMP, 0x7178B0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetWeaponTurretIndex));
 
 DEFINE_HOOK(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
 {
@@ -67,14 +92,6 @@ DEFINE_HOOK(0x70DC70, TechnoClass_SwitchGunner, 6)
 	}
 
 	return 0x70DCDB;
-}
-
-DEFINE_HOOK(0x7178B0, TechnoTypeClass_GetWeaponTurretIndex, 0xB)
-{
-	GET(TechnoTypeClass*, pThis, ECX);
-	GET_STACK(int, nWeaponIdx, 0x4);
-	R->EAX(*TechnoTypeExt_ExtData::GetTurretWeaponIndex(pThis, nWeaponIdx));
-	return 0x7178BB;
 }
 
 DEFINE_HOOK(0x746B89, UnitClass_GetUIName, 8)

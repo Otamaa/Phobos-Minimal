@@ -112,5 +112,6 @@ public:
 
 class FakeScenarioClass : public ScenarioClass
 {
+public:
 	CellStruct _Get_Waypoint_Location(int idx);
 };

@@ -146,19 +146,15 @@ DEFINE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x415544, AircraftClass_Mi_Unload_Blocked, 0xB)
+DEFINE_HOOK(0x415533, AircraftClass_Mi_Unload_Blocked, 0x5)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(FootClass*, pCargo, EDI);
-	GET(bool, bExitObjStatus, EAX);
 
-	if (bExitObjStatus)
-	{
+	if (pThis->KickOutUnit(pCargo, CellStruct::Empty) != KickOutResult::Failed) {
 		pCargo->Transporter = nullptr;
 		pCargo->IsOnCarryall = false;
-	}
-	else
-	{
+	} else {
 		pThis->AddPassenger(pCargo);
 		pThis->EnterIdleMode(false, 1);
 	}

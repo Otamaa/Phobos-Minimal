@@ -111,13 +111,15 @@ public:
 		}
 	}
 
-	//CONSTEXPR_NOCOPY_CLASSB(InfantryExtContainer, InfantryExtData, "InfantryClass");
 };
 
 class InfantryTypeExtData;
 class FakeInfantryClass : public InfantryClass
 {
 public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
 	void _Dummy(Mission, bool) RX;
 	DamageState _IronCurtain(int nDur, HouseClass* pSource, bool bIsFC)
 	{

@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Utilities/Macro.h>
+
 // =============================
 // load / save
 
@@ -50,23 +52,74 @@ DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 	return 0;
 }
 
-// Before : 0x521AEC , 0x6
-// After : 521AEA , 0x5
-DEFINE_HOOK(0x521AEA, InfantryClass_Load_Suffix, 0x5)
+HRESULT __stdcall FakeInfantryClass::_Load(IStream* pStm)
 {
-	InfantryExtContainer::Instance.LoadStatic();
-	return 0;
+
+	HRESULT res = this->InfantryClass::Load(pStm);
+
+	if (SUCCEEDED(res))
+	{
+		InfantryExtContainer::Instance.ClearExtAttribute(this);
+		auto buffer = InfantryExtContainer::Instance.AllocateUnchecked(this);
+		InfantryExtContainer::Instance.SetExtAttribute(this, buffer);
+
+		if (!buffer)
+			return -1;
+
+		PhobosByteStream loader { 0 };
+		if (!loader.ReadBlockFromStream(pStm))
+			return -1;
+
+		PhobosStreamReader reader { loader };
+		if (!reader.Expect(InfantryExtData::Canary))
+			return -1;
+
+		reader.RegisterChange(buffer);
+		buffer->LoadFromStream(reader);
+
+		if (reader.ExpectEndOfBlock())
+		{
+			return S_OK;
+		}
+	}
+
+	return res;
 }
 
-DEFINE_HOOK(0x521B14, InfantryClass_Save_Suffix, 0x3)
+HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, bool clearDirty)
 {
-	GET(const HRESULT, nRes, EAX);
 
-	if (SUCCEEDED(nRes))
-		InfantryExtContainer::Instance.SaveStatic();
+	HRESULT res = this->FootClass::Save(pStm, clearDirty);
 
-	return 0;
+	if (SUCCEEDED(res))
+	{
+		InfantryExtData* const buffer = InfantryExtContainer::Instance.GetExtAttribute(this);
+
+		// write the current pointer, the size of the block, and the canary
+		PhobosByteStream saver { InfantryExtData::size_Of() };
+		PhobosStreamWriter writer { saver };
+
+		writer.Save(InfantryExtData::Canary);
+		writer.Save(buffer);
+
+		// save the data
+		buffer->SaveToStream(writer);
+
+		// save the block
+		if (!saver.WriteBlockToStream(pStm))
+		{
+			//Debug::Log("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream\n", saver.Size());
+			return -1;
+		}
+
+		//Debug::Log("[SaveGame] FakeAnimClass used up 0x%X bytes\n", saver.Size());
+	}
+
+	return res;
 }
+
+DEFINE_JUMP(VTABLE, 0x7EB06C, MiscTools::to_DWORD(&FakeInfantryClass::_Load))
+DEFINE_JUMP(VTABLE, 0x7EB070, MiscTools::to_DWORD(&FakeInfantryClass::_Save))
 
 // DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
 // {
