@@ -122,7 +122,7 @@ public:
 	ValueableIdx<CursorTypeClass> Cursor_Attack { (int)MouseCursorType::Attack };
 	ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange };
 
-	Nullable<BoltData> WeaponBolt_Data {};
+	//Nullable<BoltData> WeaponBolt_Data {};
 
 	Nullable<ColorStruct> Bolt_Color1 {};
 	Nullable<ColorStruct> Bolt_Color2 {};
@@ -139,6 +139,7 @@ public:
 	ValueableVector<WarheadTypeClass*> ExtraWarheads {};
 	ValueableVector<int> ExtraWarheads_DamageOverrides {};
 	ValueableVector<double> ExtraWarheads_DetonationChances {};
+	ValueableVector<bool> ExtraWarheads_FullDetonation {};
 
 	Valueable<double> Burst_Retarget { 0.0 };
 	Nullable<bool> KickOutPassenger {};

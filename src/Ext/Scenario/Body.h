@@ -109,3 +109,8 @@ public:
 	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
 	inline static bool UpdateLightSources;
 };
+
+class FakeScenarioClass : public ScenarioClass
+{
+	CellStruct _Get_Waypoint_Location(int idx);
+};

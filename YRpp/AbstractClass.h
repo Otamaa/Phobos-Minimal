@@ -267,6 +267,15 @@ public:
 		JMP_THIS(0x410230);
 	}
 
+	int DistanceFrom(AbstractClass *that) const
+		{ JMP_THIS(0x5F6440); }
+
+	int DistanceFromSquared(AbstractClass* pThat)const
+		{ JMP_THIS(0x5F6360); }
+
+	int DistanceFromSquared(const CoordStruct* pThat)const
+		{ JMP_THIS(0x5F6560); }
+
 	//Constructor
 	AbstractClass() noexcept
 		: AbstractClass(noinit_t())

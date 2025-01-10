@@ -94,7 +94,7 @@ public:
 			 Array[(int)nType] : Array[0]).get();
 	}
 
-	static inline constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
+	static FORCEINLINE constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
 		return Array[(int)nType].get();
 	}
 

@@ -9,29 +9,6 @@
 #include <AircraftClass.h>
 #include <Utilities/Helpers.h>
 
-#ifndef fuck
-
-//DEFINE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
-//{
-//	return R->Stack<bool>(0xF) ? 0x48A004 : 0x489FE0;
-//}
-//
-//DEFINE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
-//{
-//	return R->Stack<bool>(0xF) ? 0x48A188 : 0x48A165;
-//}
-//
-//DEFINE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
-//{
-//	return  R->Stack<bool>(0xF) ? 0x48A250 : 0x48A231;
-//}
-//
-//DEFINE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
-//{
-//	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
-//}
-
-
 // #895990: limit the number of times a warhead with
 // CellSpread will hit the same object for each hit
 #include <AircraftTrackerClass.h>
@@ -42,411 +19,8 @@
 #include <TacticalClass.h>
 #include <AnimClass.h>
 
-//DEFINE_HOOK(0x489286, DamageArea_Damage_HandleFirst, 0x6)
-//{
-//	GET(int, damage, EDX);
-//	GET(CoordStruct*, pCoord, ECX);
-//
-//	GET_BASE(TechnoClass*, pSource, 0x8);
-//	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
-//	GET_BASE(bool, affectTiberium, 0x10);
-//	GET_BASE(HouseClass*, pHouse, 0x14);
-//
-//	if (!pWarhead ) {
-//		R->EAX(DamageAreaResult::Missed);
-//		return 0x48A4E2;
-//	}
-//
-//	const auto pWHExt = pWarhead->_GetExtData();
-//	CellStruct cell = CellClass::Coord2Cell(*pCoord);
-//
-//	if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoord)) {
-//
-//		if (pWarhead->ShakeXhi || pWarhead->ShakeXlo)
-//			GeneralUtils::CalculateShakeVal(
-//			GScreenClass::Instance->ScreenShakeX,
-//			Random2Class::NonCriticalRandomNumber->RandomRanged(pWarhead->ShakeXhi, pWarhead->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
-//
-//		if (pWarhead->ShakeYhi || pWarhead->ShakeYlo)
-//			GeneralUtils::CalculateShakeVal(
-//			GScreenClass::Instance->ScreenShakeY,
-//			Random2Class::NonCriticalRandomNumber->RandomRanged(pWarhead->ShakeYhi, pWarhead->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
-//	}
-//
-//	auto const pDecidedOwner = !pHouse && pSource ? pSource->Owner : pHouse;
-//
-//	for (const auto& Lauch : pWHExt->Launchs) {
-//		if (Lauch.LaunchWhat) {
-//			Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoord, pSource);
-//		}
-//	}
-//
-//	if (PhobosGlobal::Instance()->DetonateDamageArea)
-//		pWHExt->Detonate(pSource, pDecidedOwner, nullptr, *pCoord, damage);
-//
-//	bool alt = false;
-//	bool HitICEdTechno = false;
-//	const auto spread = pWarhead->CellSpread;
-//	const auto spreadLept = spread * 256.0;
-//	const auto spread_int = (int)spread;
-//	const bool isCrushWarhead = RulesClass::Instance->CrushWarhead == pWarhead;
-//
-//	auto pCell = MapClass::Instance->TryGetCellAt(cell);
-//	const bool spreadLow = spread <= 0.5;
-//	CoordStruct aCoord = CellClass::Cell2Coord(cell);
-//	const int coord_Z = MapClass::Instance->GetCellFloorHeight(aCoord);
-//	const int coord_Actual = MapClass::Instance->GetCellFloorHeight(pCoord);
-//	const bool cell_ContainsBridge = pCell->ContainsBridge();
-//
-//	if (((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0) || (!damage && !pWHExt->AllowZeroDamage)) {
-//		R->EAX(DamageAreaResult::Missed);
-//		return 0x48A4E2;
-//	}
-//
-//	DynamicVectorClass<DamageGroup*> groupvec {};
-//
-//	int heightAboveGround = pCoord->Z - coord_Z;
-//
-//	// consider explosions on and over bridges
-//	if (heightAboveGround > Unsorted::BridgeHeight
-//		&& cell_ContainsBridge
-//		&& RulesExtData::Instance()->DamageAirConsiderBridges)
-//	{
-//		heightAboveGround -= Unsorted::BridgeHeight;
-//	}
-//
-//	// damage units in air if detonation is above a threshold
-//	if (heightAboveGround > pWHExt->DamageAirThreshold)
-//	{
-//		AircraftTrackerClass::Instance->AircraftTrackerClass_logics_412B40(pCell, spread_int);
-//		auto Ent = AircraftTrackerClass::Instance->Get();
-//
-//		if (Ent) {
-//			do {
-//				if (Ent->IsAlive && Ent->IsOnMap && Ent->Health > 0) {
-//					auto difference = pCoord->operator-(Ent->Location);
-//					auto len = difference.Length();
-//					if (len <= spreadLept) {
-//						if (spreadLow && (int)len < 85 && Ent->IsIronCurtained() && Ent->ProtectType == ProtectTypes::IronCurtain) {
-//							HitICEdTechno = !pWHExt->PenetratesIronCurtain;
-//						}
-//
-//						groupvec.AddItem(GameCreate<DamageGroup>(Ent, (int)len));
-//					}
-//				}
-//
-//				Ent = AircraftTrackerClass::Instance->Get();
-//			}
-//			while (Ent);
-//		}
-//	}
-//
-//	if (pCell->Tile_Is_DestroyableCliff()) {
-//		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance)) {
-//			MapClass::Instance->DestroyCliff(pCell);
-//		}
-//	}
-//
-//	if (cell_ContainsBridge && (pCoord->Z > (Unsorted::BridgeHeight / 2 + coord_Actual))) {
-//		alt = true;
-//	}
-//
-//	const size_t spread_asIdx = ((size_t)(spread_int + 0.99));
-//	const size_t spreadNum = CellSpread::CellNums[spread_asIdx < CellSpread::CellNums.size() ? spread_asIdx : CellSpread::CellNums.size() - 1];
-//
-//	//obtain Object within the spread distance
-//	if(spreadNum > 0)
-//	{
-//		for (CellSpreadEnumerator it(spreadNum); it; ++it)
-//		{
-//			auto cellhere = (cell + *it);
-//			auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
-//			auto cur_cellCoord = pCurCell->GetCoords();
-//
-//			if (pCurCell->OverlayTypeIndex > -1)
-//			{
-//				auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
-//				if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
-//				{// hook up the area damage delivery with chain reactions
-//					pCurCell->ChainReaction();
-//					pCurCell->ReduceTiberium(damage / 10);
-//				}
-//
-//				if (pOvelay->Wall)
-//				{
-//					if (pWarhead->WallAbsoluteDestroyer)
-//					{
-//						pCurCell->ReduceWall();
-//					}
-//					else if (pWarhead->Wall || pWarhead->Wood && pOvelay->Armor == Armor::Wood)
-//					{
-//						pCurCell->ReduceWall(damage);
-//					}
-//				}
-//
-//				if (pCurCell->OverlayTypeIndex == -1) {
-//					TechnoClass::ClearWhoTargetingThis(pCurCell);
-//				}
-//
-//				if (pOvelay->IsVeinholeMonster)
-//				{
-//					if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
-//					{
-//						if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0)) {
-//							int nDamage = damage;
-//							if (veinhole->ReceiveDamage(&nDamage,
-//								(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
-//								pWarhead,
-//								pSource,
-//								false,
-//								false,
-//								pSource && !pHouse ? pSource->Owner : pHouse
-//							) == DamageState::NowDead) {
-//								Debug::Log("Veinhole at [%d %d] Destroyed!\n", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
-//							}
-//						}
-//					}
-//				}
-//			}
-//
-//			for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
-//			{
-//				auto pCur = *next;
-//
-//				if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
-//					continue;
-//
-//				if(!pCur->IsAlive)
-//					continue;
-//
-//				const auto what = pCur->WhatAmI();
-//				auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
-//
-//				if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
-//				{
-//					if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
-//						continue;
-//				}
-//
-//				auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
-//
-//				if (what == BuildingClass::AbsID)
-//				{
-//					if (!it.getCurSpread())
-//					{
-//						if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight)) {
-//							cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-//						}
-//
-//						if (spreadLow)
-//						{
-//							if (pCur->IsIronCurtained()
-//								&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
-//								&& cur_Group->Distance < 85
-//								)
-//							{
-//								HitICEdTechno = !pWHExt->PenetratesIronCurtain;
-//							}
-//						}
-//					}
-//					else
-//					{
-//						cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-//					}
-//				}
-//				else
-//				{
-//					cur_cellCoord = pCur->GetTargetCoords();
-//					cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-//				}
-//
-//				groupvec.AddItem(cur_Group);
-//			}
-//		}
-//	}
-//
-//	const int MaxAffect = pWHExt->CellSpread_MaxAffect;
-//
-//	if (MaxAffect > 0) {
-//		DynamicVectorClass<ObjectClass*> Targets {};
-//		DynamicVectorClass<DamageGroup*> Handled {};
-//
-//		const auto g_end = groupvec.Items + groupvec.Count;
-//
-//		for (auto g_begin = groupvec.Items; g_begin != g_end; ++g_begin) {
-//
-//			DamageGroup* group = *g_begin;
-//			// group could have been cleared by previous iteration.
-//			// only handle if has not been handled already.
-//			if (group && Targets.AddUnique(group->Target)) {
-//
-//				Handled.Reset();
-//
-//				// collect all slots containing damage groups for this target
-//				std::for_each(g_begin, g_end, [group ,&Handled](DamageGroup* item) {
-//					if (item && item->Target == group->Target) {
-//						Handled.AddItem(item);
-//					}
-//				});
-//
-//				// if more than allowed, sort them and remove the ones further away
-//				if (Handled.Count > MaxAffect) {
-//					Helpers::Alex::selectionsort(
-//						Handled.begin(), Handled.begin() + MaxAffect, Handled.end(),
-//						[](DamageGroup* a, DamageGroup* b) {
-//							return a->Distance < b->Distance;
-//						});
-//
-//					std::for_each(Handled.begin() + MaxAffect, Handled.end(), [](DamageGroup* ppItem) {
-//						ppItem->Target = nullptr;
-//					});
-//				}
-//			}
-//		}
-//
-//		// move all the empty ones to the back, then remove them
-//		auto const end = std::remove_if(groupvec.Items, &groupvec.Items[groupvec.Count], [](DamageGroup* pGroup)  {
-//			if (!pGroup->Target)
-//			{
-//				GameDelete<false, false>(pGroup);
-//				return true;
-//			}
-//
-//		   return false;
-//		});
-//
-//		groupvec.Count = int(std::distance(groupvec.Items, end));
-//	}
-//
-//	bool AnythingHit = false;
-//
-//	for (int i = 0; i < groupvec.Count; ++i)
-//	{
-//		auto pTarget = *(groupvec.Items + i);
-//		auto curDistance = pTarget->Distance;
-//		auto pObj = pTarget->Target;
-//
-//		if (pObj->IsAlive
-//		&& (pObj->WhatAmI() != BuildingClass::AbsID || !((BuildingClass*)pObj)->Type->InvisibleInGame)
-//		  && (!HitICEdTechno
-//			  || (pObj->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None
-//			  && ((TechnoClass*)pObj)->IsIronCurtained()))
-//		{
-//			if (pObj->WhatAmI() == AircraftClass::AbsID
-//			  && pObj->IsInAir())
-//			{
-//				curDistance /= 2;
-//			}
-//
-//			if (pObj->Health > 0 && pObj->IsOnMap && !pObj->InLimbo && curDistance <= spreadLept)
-//			{
-//				int Damage = damage;
-//				pObj->ReceiveDamage(&Damage, curDistance, pWarhead, pSource, false, false, pHouse);
-//				AnythingHit = true; // is this function succeed hit any item ?
-//			}
-//		}
-//	}
-//
-//	for (int i = 0; i < groupvec.Count; ++i) {
-//		GameDelete(*(groupvec.Items + i));
-//		*(groupvec.Items + i) = nullptr;
-//	}
-//
-//	groupvec.Count = 0;
-//	GameDeleteArray(groupvec.Items, groupvec.Capacity);
-//	groupvec.IsAllocated = false;
-//	groupvec.Items = nullptr;
-//
-//	if (HitICEdTechno) {
-//		R->EAX(DamageAreaResult::Nullified);
-//		return 0x48A4E2;
-//	}
-//
-//	if (pWarhead->Rocker) {
-//
-//		const double rockerSpread = MinImpl(pWHExt->Rocker_AmplitudeOverride.Get(damage) * pWHExt->Rocker_AmplitudeMultiplier, 4.0);
-//
-//		if (rockerSpread > 0.3)
-//		{
-//			const int cell_radius = 3;
-//			for (int x = -cell_radius; x <= cell_radius; x++)
-//			{
-//				for (int y = -cell_radius; y <= cell_radius; y++)
-//				{
-//					int xpos = cell.X + x;
-//					int ypos = cell.Y + y;
-//
-//					auto object = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos))->Cell_Occupier(alt);
-//
-//					while (object)
-//					{
-//						if (FootClass* techno = flag_cast_to<FootClass*>(object))
-//						{
-//							if (xpos == cell.X && ypos == cell.Y && pSource)
-//							{
-//								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
-//								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
-//								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-//								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
-//							}
-//							else if (pWarhead->CellSpread > 0.0f)
-//							{
-//								techno->RockByValue(pCoord, (float)rockerSpread);
-//							}
-//						}
-//						object = object->NextObject;
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	if (pCell->OverlayTypeIndex > -1
-//		&& OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Explodes
-//		&& damage >= RulesExtData::Instance()->OverlayExplodeThreshold)
-//	{
-//		pCell->MarkForRedraw();
-//		pCell->OverlayTypeIndex = -1;
-//		pCell->RecalcAttributes(-1);
-//
-//		MapClass::Instance->ResetZones(pCell->MapCoords);
-//		MapClass::Instance->RecalculateSubZones(pCell->MapCoords);
-//		TechnoClass::ClearWhoTargetingThis(pCell);
-//
-//		if (auto pBarrelExplode = RulesClass::Instance->BarrelExplode)
-//			GameCreate<AnimClass>(pBarrelExplode, *pCoord);
-//
-//		//recursive call ..
-//		MapClass::DamageArea(pCoord, RulesClass::Instance->AmmoCrateDamage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
-//
-//		for (auto brrelDebris : RulesClass::Instance->BarrelDebris) {
-//			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 15) {
-//				GameCreate<VoxelAnimClass>(brrelDebris, pCoord, nullptr);
-//				break;
-//			}
-//		}
-//
-//		if (auto barrelParticle = RulesClass::Instance->BarrelParticle) {
-//			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 25) {
-//				GameCreate<ParticleSystemClass>(barrelParticle, *pCoord)
-//					->SpawnHeldParticle(pCoord, pCoord);
-//			}
-//		}
-//	}
-//
-//	if (auto pParticle = pWarhead->Particle)
-//	{
-//		GameCreate<ParticleSystemClass>(pParticle, *pCoord)
-//			->SpawnHeldParticle(pCoord, pCoord);
-//	}
-//
-//	R->EAX(AnythingHit == 0);
-//	return 0x48A4E2;
-//	//return 0;
-//}
-
-static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets {};
-static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled {};
+static HelperedVector<ObjectClass*> Targets {};
+static HelperedVector<DamageGroup*> Handled {};
 
 void NOINLINE DestroyBridge(CoordStruct* pCoord , FakeWarheadTypeClass* pWarhead , int damage , CellClass* pCell, CellStruct* pCellStruct)
 {
@@ -826,8 +400,8 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 
 	if (pWHExt->CellSpread_MaxAffect > 0)
 	{
-		Targets.Reset();
-		Handled.Reset();
+		Targets.clear();
+		Handled.clear();
 
 		const auto g_end = groupvec.begin() + groupvec.size();
 
@@ -837,19 +411,19 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.AddUnique(group->Target))  {
+			if (group && Targets.push_back_unique(group->Target))  {
 
-				Handled.Reset();
+				Handled.clear();
 
 				// collect all slots containing damage groups for this target
 				std::for_each(g_begin, g_end, [group](DamageGroup* item) {
 					if (item && item->Target == group->Target) {
-					   Handled.AddItem(item);
+					   Handled.push_back(item);
 				    }
 				});
 
 				// if more than allowed, sort them and remove the ones further away
-				if (Handled.Count > pWHExt->CellSpread_MaxAffect)
+				if ((int)Handled.size() > pWHExt->CellSpread_MaxAffect)
 				{
 					Helpers::Alex::selectionsort(
 						Handled.begin(), Handled.begin() + pWHExt->CellSpread_MaxAffect, Handled.end(),
@@ -1001,4 +575,3 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 }
 
 DEFINE_JUMP(LJMP, 0x489280, MiscTools::to_DWORD(DamageArea));
-#endif

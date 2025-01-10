@@ -139,7 +139,7 @@ template <typename T>
 struct CellSpreadIterator
 {
 	template <typename Func>
-	void operator () (CellStruct const center, size_t const spread, Func&& action) const {
+	void operator () (CellStruct const center, short const spread, Func&& action) const {
 		CellSpreadIterator<ObjectClass>{}(center, spread, [&action](ObjectClass* const pObject)
 		{
 			if(auto const pItem = flag_cast_to<T*>(pObject)) {
@@ -174,7 +174,7 @@ struct CellSpreadIterator<CellClass> {
 	template <typename Func>
 	void operator () (CellStruct const center, short const spread, Func&& action) const {
 		auto const legacy = MinImpl(spread, 10);
-		auto const count = CellSpread::NumCells(legacy);
+		auto const count = (short)CellSpread::NumCells(legacy);
 		for(short i = 0; i < count; ++i) {
 			if(auto const pCell = MapClass::Instance->TryGetCellAt(center + CellSpread::GetCell(i))) {
 				if(!action(pCell)) {

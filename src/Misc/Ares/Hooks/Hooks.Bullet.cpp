@@ -214,7 +214,7 @@ DEFINE_HOOK(0x46670F, BulletClass_Update_PreImpactAnim, 6)
 	return 0x467FEE;
 }
 
-DEFINE_HOOK(0x46867F, BulletClass_SetMovement_Parachute, 5)
+DEFINE_HOOK(0x46867F , BulletClass_SetMovement_Parachute, 5)
 {
 	GET(CoordStruct*, XYZ, EAX);
 	GET(BulletClass*, Bullet, ECX);
@@ -261,12 +261,12 @@ DEFINE_HOOK(0x468FFA, BulletClass_Fire_SplitsB, 6)
 		? 0x46909Au : 0x469008u;
 }
 
-DEFINE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
-{
-	GET(BulletClass*, pThis, ESI);
-	BulletExtData::ApplyAirburst(pThis);
-	return 0x46A290;
-}
+//DEFINE_HOOK(0x469EBA, BulletClass_DetonateAt_Splits, 6)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	BulletExtData::ApplyAirburst(pThis);
+//	return 0x46A290;
+//}
 
 DEFINE_HOOK(0x468000, BulletClass_GetAnimFrame, 6)
 {

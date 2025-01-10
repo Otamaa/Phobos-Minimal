@@ -139,11 +139,13 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x70CD1C, TechnoClass_Coef_CheckTarget, 0xA)
-{
-	GET_BASE(ObjectClass*, pTarget, 0x8);
-	return pTarget ? 0x0 : 0x70CD39;
-}
+//this got checked already before call , so yeah 
+// no worry
+//DEFINE_HOOK(0x70CD1C, TechnoClass_Coef_CheckTarget, 0xA)
+//{
+//	GET_BASE(ObjectClass*, pTarget, 0x8);
+//	return pTarget ? 0x0 : 0x70CD39;
+//}
 
 DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 {

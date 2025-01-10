@@ -2331,20 +2331,34 @@ DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
 
 int __fastcall Check2DDistanceInsteadOf3D(AbstractClass* pSource, void* _, AbstractClass* pTarget)
 {
-	const auto sourceCoords = pSource->GetCoords();
-	const auto targetCoords = pTarget->GetCoords();
-
-	// Aircraft has its own unique treatment, and it will not be changed here
-	int distance = int((pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) ? // Jumpjets or sth in the air ?
-		(Point2D { sourceCoords.X - targetCoords.X, sourceCoords.Y - targetCoords.Y }.Length() * 2) : // bonus to units in the air
-		sourceCoords.DistanceFrom(targetCoords)); // Original
-
-	if (const auto pBuilding = cast_to<BuildingClass* , false>(pTarget)) // Vanilla bonus to building
-		distance -= ((pBuilding->Type->GetFoundationWidth() + pBuilding->Type->GetFoundationHeight(false)) << 6);
-
-	return MaxImpl(0, distance);
+	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
+		? pSource->DistanceFrom(pTarget) // 2D distance
+		: pSource->DistanceFromSquared(pTarget); // 3D distance (vanilla)
 }
 DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D));
 
 #pragma endregion
 
+#include <Notifications.h>
+
+DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+	GET(AbstractClass*, pTarget, ESI);
+	GET(bool, bRemoved, EDI);
+
+	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+			if (!pItem) {
+				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
+				return true;
+			} else {
+				pItem->PointerExpired(pTarget, bRemoved);
+			}
+
+			return false;
+	});
+
+	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+
+	return 0x725961;
+}

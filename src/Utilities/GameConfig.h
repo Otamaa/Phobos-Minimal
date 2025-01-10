@@ -50,17 +50,17 @@ struct GameConfig
 		Ini->WriteCCFile(File.get());
 	}
 
-	constexpr const char* filename() noexcept
+	FORCEINLINE constexpr const char* filename() noexcept
 	{
 		return File->FileName;
 	}
 
-	constexpr CCINIClass* get() noexcept
+	FORCEINLINE constexpr CCINIClass* get() noexcept
 	{
 		return Ini.get();
 	}
 
-	constexpr CCINIClass* operator->() noexcept
+	FORCEINLINE constexpr CCINIClass* operator->() noexcept
 	{
 		return Ini.get();
 	}

@@ -216,15 +216,6 @@ public:
 	virtual bool IsNotWarping() const R0; //70C5F0
 	virtual LightConvertClass *GetRemapColour() const R0;
 
-	int DistanceFrom(AbstractClass *that) const
-		{ JMP_THIS(0x5F6440); }
-
-	int DistanceFromSquared(AbstractClass* pThat)const
-		{ JMP_THIS(0x5F6360); }
-
-	int DistanceFromSquared(const CoordStruct* pThat)const
-		{ JMP_THIS(0x5F6560); }
-
 	DirStruct* GetDirectionOverObject(DirStruct* pBuffer, AbstractClass* Target) const
 		{ JMP_THIS(0x5F3DB0); }
 

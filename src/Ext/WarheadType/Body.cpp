@@ -1183,9 +1183,6 @@ void WarheadTypeExtData::DetonateAt(
 	HouseClass* pFiringHouse
 )
 {
-	if (!pThis)
-		return;
-
 	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
 	//if (pThis->NukeMaker)

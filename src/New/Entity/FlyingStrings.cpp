@@ -218,5 +218,6 @@ void FlyingStrings::UpdateAll()
 		return false;
 	});
 
+if(iter != Data.end())
 	Data.erase(iter, Data.end());
 }

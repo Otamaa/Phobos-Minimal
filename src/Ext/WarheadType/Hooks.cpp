@@ -45,7 +45,7 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 	if (pThis->WeaponType)
 	{
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		const size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
+		size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
 		const size_t chance_size = pWeaponExt->ExtraWarheads_DetonationChances.size();
 
 		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
@@ -61,15 +61,27 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 
 			bool detonate = true;
 
-
 			if (chance_size > i)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
 			if (chance_size > 0)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
 
+			bool isFull = true;
+			size = pWeaponExt->ExtraWarheads_FullDetonation.size();
+
+			if (size > i)
+				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
+			if (size > 0)
+				isFull = pWeaponExt->ExtraWarheads_FullDetonation[size - 1];
+
 			if (detonate) {
-				AbstractClass* pTarget = pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords);
-				WarheadTypeExtData::DetonateAt(pWH, pThis->Target, *coords, pThis->Owner, damage , pOwner);
+
+				if(isFull)
+					WarheadTypeExtData::DetonateAt(pWH, pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords), *coords, pThis->Owner, damage , pOwner);
+				else
+					WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pThis->Owner, pWH, true, pOwner, 
+					flag_cast_to<TechnoClass*>(pThis->Target));
+
 			}
 		}
 	}

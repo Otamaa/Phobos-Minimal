@@ -1075,6 +1075,11 @@ static constexpr double TurretMultiOffsetDefaultMult { 1.0 };
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 };
 
+class FakeTechnoTypeClass : public TechnoTypeClass
+{
+	//TODO : replace bigger hook with LJMP patch 
+};
+
 class TechnoTypeExtContainer final : public Container<TechnoTypeExtData>
 {
 public:

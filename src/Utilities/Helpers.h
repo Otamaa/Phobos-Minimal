@@ -648,7 +648,7 @@ namespace Helpers {
 			}
 
 			if (height <= 0) {
-				auto const spread = static_cast<size_t>(
+				auto const spread = static_cast<short>(
 					MaxImpl(static_cast<int>(widthOrRange), 0));
 
 				if (spread > 0) {

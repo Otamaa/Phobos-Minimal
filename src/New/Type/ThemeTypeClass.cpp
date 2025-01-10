@@ -98,7 +98,7 @@ DEFINE_HOOK(0x7209B0, ThemeClass_GetUIName, 0x7)
 	return 0x7209C6;
 }
 
-DEFINE_HOOK(0x720A69, ThemeClass_AI_Play, 0x8)
+DEFINE_HOOK(0x720A69, ThemeClass_AI_Play, 0x6)
 {
 	GET(ThemeClass*, pThis, ESI);
 

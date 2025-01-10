@@ -16,11 +16,13 @@
 void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon)
 {
 	const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+#ifdef _Enable
 	if (pTypeExt->WeaponBolt_Data.isset())
 		ElectricBoltClass::Create(sourcePos, targetPos,
 		pTypeExt->WeaponBolt_Data.Get(), 0,
 		pTypeExt->Bolt_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem), false);
 	else
+
 	{
 		BoltType type {};
 		type.IsAlternateColor = pWeapon->IsAlternateColor;
@@ -43,6 +45,7 @@ void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, Weapo
 
 		EffectHelpers::DrawBolt(sourcePos, targetPos, type);
 	}
+#endif
 }
 
 void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget)

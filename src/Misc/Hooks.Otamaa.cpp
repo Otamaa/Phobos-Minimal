@@ -3554,6 +3554,7 @@ static void __fastcall IonBlastDrawAll() {
 }
 DEFINE_JUMP(CALL , 0x6D4656 , MiscTools::to_DWORD(&IonBlastDrawAll))
 
+#ifdef _Enable
 static void __fastcall LaserDrawclassDrawAll()
 {
 	LaserDrawClass::DrawAll();
@@ -3561,6 +3562,7 @@ static void __fastcall LaserDrawclassDrawAll()
 	ElectricBoltManager::Draw_All();
 }
 DEFINE_JUMP(CALL, 0x6D4669, MiscTools::to_DWORD(&LaserDrawclassDrawAll))
+#endif
 
 //DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
 //{

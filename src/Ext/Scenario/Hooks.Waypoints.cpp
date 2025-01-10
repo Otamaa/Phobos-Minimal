@@ -5,6 +5,7 @@
 
 #include <MapClass.h>
 
+#ifdef _old
 DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 {
 	GET_STACK(CellStruct*, pCell, 0x4);
@@ -14,6 +15,13 @@ DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 	R->EAX(pCell);
 	return 0x68BCD1;
 }
+#else 
+CellStruct _Get_Waypoint_Location(int idx) { 
+	return ScenarioExtData::Instance()->Waypoints[idx];
+}
+
+DEFINE_JUMP(LJMP, 0x68BCC0, MiscTools::to_DWORD(_Get_Waypoint_Location));
+#endif
 
 DEFINE_HOOK(0x68BCE4, ScenarioClass_Get_Waypoint_Cell_0, 0x7)
 {
