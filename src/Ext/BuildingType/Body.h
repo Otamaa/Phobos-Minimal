@@ -68,7 +68,7 @@ public:
 	Valueable<bool> Grinding_PlayDieSound { false };
 	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };
 
-	Valueable<bool> PlacementPreview_Show { RulesExtData::Instance()->Building_PlacementPreview };
+	Nullable<bool> PlacementPreview_Show { };
 	Nullable<Theater_SHPStruct*> PlacementPreview_Shape {};
 	Nullable<int> PlacementPreview_ShapeFrame {};
 	Valueable<CoordStruct> PlacementPreview_Offset { {0, -15, 1} };

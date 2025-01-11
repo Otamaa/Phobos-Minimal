@@ -207,7 +207,7 @@ public:
 			if(Console::ConsoleHandle != NULL)
 				WriteConsole(Console::ConsoleHandle, Logs.c_str(), Logs.size(), nullptr, nullptr);
 
-			fprintf(Debug::LogFile, Logs.c_str());
+			fprintf(Debug::LogFile, "%s" , Logs.c_str());
 		}
 
 		Debug::Flush();

@@ -208,7 +208,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	const auto pType = pBuilding->Type;
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
-	const bool bShow = pTypeExt->PlacementPreview_Show;
+	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExtData::Instance()->Building_PlacementPreview);
 
 	if (!bShow)
 		return;
