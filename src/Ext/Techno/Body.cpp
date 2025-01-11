@@ -166,10 +166,12 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 		{
 			const bool Succeeded =
 				CaptureExt::FreeUnit(Manager, pTechnoFrom, true)
-				&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr);
+				&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr, 0);
 
 			if (Succeeded)
 			{
+				TechnoExtContainer::Instance.Find(pTechnoTo)->BeControlledThreatFrame = TechnoExtContainer::Instance.Find(pTechnoFrom)->BeControlledThreatFrame;
+
 				if (pBld)
 				{
 					// Capturing the building after unlimbo before buildup has finished or even started appears to throw certain things off,
@@ -5231,6 +5233,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->DropCrate)
 		.Process(this->DropCrateType)
 		.Process(this->LastBeLockedFrame)
+		.Process(this->BeControlledThreatFrame)
 		;
 }
 

@@ -30,7 +30,7 @@ DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
 	GET(CaptureManagerClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTechno, 0x4);
 
-	R->AL(CaptureExt::CaptureUnit(pThis, flag_cast_to<TechnoClass*>(pTechno)));
+	R->AL(CaptureExt::CaptureUnit(pThis, flag_cast_to<TechnoClass*>(pTechno), false , 0));
 
 	return 0x471D5A;
 }

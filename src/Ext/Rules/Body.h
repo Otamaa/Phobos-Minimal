@@ -423,6 +423,14 @@ public:
 	std::array<LandTypeExt, 12u> LandTypeConfigExts {};
 	HelperedVector<TechnoTypeClass*> Secrets {};
 
+	Valueable<bool> NoQueueUpToEnter {};
+	Valueable<bool> NoQueueUpToUnload {};
+
+	Valueable<bool> NoRearmInEMPState {};
+	Valueable<bool> NoRearmInTemporal {};
+
+	Valueable<int> AttackMindControlledDelay {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

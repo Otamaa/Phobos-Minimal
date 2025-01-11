@@ -1028,6 +1028,12 @@ public:
 	Valueable<bool> SuppressKillWeapons { false };
 	ValueableVector<WeaponTypeClass*> SuppressKillWeapons_Types {};
 
+	Nullable<bool> NoQueueUpToEnter {};
+	Nullable<bool> NoQueueUpToUnload {};
+
+	Nullable<bool> NoRearmInEMPState {};
+	Nullable<bool> NoRearmInTemporal {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

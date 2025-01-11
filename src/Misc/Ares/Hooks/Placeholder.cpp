@@ -280,7 +280,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 			fprintf(stream, "%d\n", pThis->__LastVoicePlayed); //4F4
 			fprintf(stream, "%d\n", pThis->deploy_bool_4F8);
 			fprintf(stream, "%d\n", pThis->__creationframe_4FC);	//gets initialized with the current Frame, but this is NOT a CDTimerClass!
-			fprintf(stream, "%p\n", pThis->LinkedBuilding); // 500 BuildingClass*
+			fprintf(stream, "%p\n", pThis->QueueUpToEnter); // 500 BuildingClass*
 			fprintf(stream, "%d\n", pThis->EMPLockRemaining);
 			fprintf(stream, "%d\n", pThis->ThreatPosed); // calculated to include cargo etc
 			fprintf(stream, "%d\n", pThis->ShouldLoseTargetNow); //the rest is padded for sure

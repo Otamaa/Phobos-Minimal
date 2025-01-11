@@ -1384,6 +1384,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SuppressKillWeapons.Read(exINI, pSection, "SuppressKillWeapons");
 		this->SuppressKillWeapons_Types.Read(exINI, pSection, "SuppressKillWeapons.Types");
+
+		this->NoQueueUpToEnter.Read(exINI, pSection, "NoQueueUpToEnter");
+		this->NoQueueUpToUnload.Read(exINI, pSection, "NoQueueUpToUnload");
+
+		this->NoRearmInEMPState.Read(exINI, pSection, "NoRearmInEMPState");
+		this->NoRearmInTemporal.Read(exINI, pSection, "NoRearmInTemporal");
 	}
 
 	// Art tags
@@ -2502,6 +2508,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SuppressKillWeapons)
 		.Process(this->SuppressKillWeapons_Types)
+
+		.Process(this->NoQueueUpToEnter)
+		.Process(this->NoQueueUpToUnload)
+ 
+		.Process(this->NoRearmInEMPState)
+		.Process(this->NoRearmInTemporal)
 		;
 }
 

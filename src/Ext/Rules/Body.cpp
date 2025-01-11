@@ -763,6 +763,14 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExpandAircraftMission");
 
+	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
+	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
+
+	this->NoRearmInEMPState.Read(exINI, GameStrings::General, "NoRearmInEMPState");
+	this->NoRearmInTemporal.Read(exINI, GameStrings::General, "NoRearmInTemporal");
+
+	this->AttackMindControlledDelay.Read(exINI, GameStrings::General, "AttackMindControlledDelay");
+
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
 	this->ShakeScreenUseTSCalculation.Read(exINI, GameStrings::AudioVisual, "ShakeScreenUseTSCalculation");
 	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
@@ -1448,6 +1456,14 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->LandTypeConfigExts)
 		.Process(this->Secrets)
+
+		.Process(this->NoQueueUpToEnter)
+		.Process(this->NoQueueUpToUnload)
+
+		.Process(this->NoRearmInEMPState)
+		.Process(this->NoRearmInTemporal)
+
+		.Process(this->AttackMindControlledDelay)
 		;
 
 	MyPutData.Serialize(Stm);

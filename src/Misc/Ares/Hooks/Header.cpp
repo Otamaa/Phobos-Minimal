@@ -1232,9 +1232,8 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		}
 
 		// hook up the original mind-controller with the target #762
-		if (controller)
-		{
-			CaptureExt::CaptureUnit(controller->CaptureManager, pThis, true);
+		if (controller) {
+			CaptureExt::CaptureUnit(controller->CaptureManager, pThis, true , 0);
 		}
 
 		// reboot the slave manager
@@ -1586,7 +1585,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 				if (auto const pController = pThis->MindControlledBy)
 				{
 					CaptureExt::FreeUnit(pController->CaptureManager, pThis, true);
-					CaptureExt::CaptureUnit(pController->CaptureManager, pHijacker, true);
+					CaptureExt::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 

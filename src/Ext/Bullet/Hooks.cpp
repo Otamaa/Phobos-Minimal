@@ -102,16 +102,43 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 	return 0;
 }
 
-DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl_Override, 0x6)
+DEFINE_HOOK(0x469276, BulletClass_DetonateAt_ApplyLogics , 0xA)
 {
+	GET(ObjectClass* const, pVictimObject, EDI);
 	GET(FakeBulletClass*, pThis, ESI);
+	const auto payback = pThis->Owner;
+
+	if(pVictimObject) {
+		if(pVictimObject->IsAlive) {
+			if(pVictimObject->AttachedTag) {
+			  pVictimObject->AttachedTag->SpringEvent(TriggerEvent::AttackedByAnybody,				pVictimObject,
+				CellStruct::Empty,
+				false,
+				payback);
+			}
+
+			// #1708: this mofo was raising an event without checking whether
+			// there is a valid tag. this is the only faulty call of this kind.
+			if(pVictimObject->AttachedTag) {
+				pVictimObject->AttachedTag->SpringEvent(TriggerEvent::AttackedByHouse,
+				pVictimObject,
+				CellStruct::Empty,
+				false,
+				payback);
+			}
+		}
+	}
 
 	const auto pControlledAnimType = pThis->_GetWarheadTypeExtData()->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
 	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
-	const auto Controller = pThis->Owner;
+	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(RulesExtData::Instance()->AttackMindControlledDelay);
 
-	R->AL(CaptureExt::CaptureUnit(Controller->CaptureManager,
-		pTechno, TechnoTypeExtContainer::Instance.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim, false  , pControlledAnimType));
+	R->AL(CaptureExt::CaptureUnit(payback->CaptureManager,
+		pTechno,
+		TechnoTypeExtContainer::Instance.Find(payback->GetTechnoType())->MultiMindControl_ReleaseVictim,
+		false,
+		pControlledAnimType,
+		threatDelay));
 
 	return 0x4692D5;
 }

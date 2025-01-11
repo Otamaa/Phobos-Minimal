@@ -1005,7 +1005,7 @@ public:
 	int            	__LastVoicePlayed; //4F4
 	BYTE             deploy_bool_4F8;
 	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a CDTimerClass!
-	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
+	TechnoClass*    QueueUpToEnter; // 500
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
 	bool            ShouldLoseTargetNow; //the rest is padded for sure

@@ -404,6 +404,8 @@ public:
 	Valueable<AffectedHouse> KillWeapon_AffectHouses { AffectedHouse::All };
 	ValueableVector<TechnoTypeClass*> KillWeapon_AffectTypes {};
 	ValueableVector<TechnoTypeClass*> KillWeapon_IgnoreTypes {};
+
+	Nullable<int> MindControl_ThreatDelay {};
 public:
 
 	void InitializeConstant();

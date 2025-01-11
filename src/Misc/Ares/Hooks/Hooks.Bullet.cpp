@@ -52,14 +52,6 @@ DEFINE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 	return 0x469AA4;
 }
 
-// #1708: this mofo was raising an event without checking whether
-// there is a valid tag. this is the only faulty call of this kind.
-DEFINE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
-{
-	GET(ObjectClass* const, pVictim, EDI);
-	return pVictim->AttachedTag ? 0 : 0x4692BD;
-}
-
 // Overpowerer no longer just infantry
 DEFINE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {

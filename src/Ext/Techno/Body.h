@@ -718,6 +718,7 @@ public:
 	PowerupEffects DropCrateType { PowerupEffects::Money };
 
 	int LastBeLockedFrame {};
+	int BeControlledThreatFrame {};
 
 	~TechnoExtData() noexcept
 	{

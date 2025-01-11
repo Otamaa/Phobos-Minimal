@@ -585,7 +585,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->KillWeapon_AffectTypes.Read(exINI, pSection, "KillWeapon.AffectTypes");
 	this->KillWeapon_IgnoreTypes.Read(exINI, pSection, "KillWeapon.IgnoreTypes");
 
-
+	this->MindControl_ThreatDelay.Read(exINI, pSection, "MindControl.ThreatDelay");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1569,6 +1569,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->KillWeapon_AffectHouses)
 		.Process(this->KillWeapon_AffectTypes)
 		.Process(this->KillWeapon_IgnoreTypes)
+		.Process(this->MindControl_ThreatDelay)
 		;
 
 	PaintBallData.Serialize(Stm);

@@ -103,6 +103,16 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
+static constexpr void UpdateRearmTimer(TechnoClass* pThis , Nullable<bool>& cond ,bool cond_default) {
+	if (pThis->IsUnderEMP() && cond.Get(cond_default)) {
+		if (pThis->DiskLaserTimer.InProgress())
+			pThis->DiskLaserTimer.StartTime++;
+
+		if (pThis->ReloadTimer.InProgress())
+			pThis->ReloadTimer.StartTime++;
+	}
+}
+
 DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 {
 	enum { retDead = 0x6FAFFD, Continue = 0x6F9E6C };
@@ -124,10 +134,14 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	if (!pThis->IsAlive)
 		return retDead;
 
+
+
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+	UpdateRearmTimer(pThis, pTypeExt->NoRearmInEMPState , RulesExtData::Instance()->NoRearmInEMPState);
 
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
@@ -397,6 +411,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 			pTarget->IsMouseHovering = false;
 
 		auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+		auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
 
 		if (const auto pShieldData = pTargetExt->GetShield())
 		{
@@ -423,6 +438,8 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 				}
 			}
 		}
+
+		UpdateRearmTimer(pTarget, pTargetTypeExt->NoRearmInTemporal, RulesExtData::Instance()->NoRearmInTemporal);
 	}
 
 	// Recovering vanilla instructions that were broken by a hook call
