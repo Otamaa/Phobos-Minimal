@@ -1981,11 +1981,6 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 		{
 			// techno ineligible
 			if (i->Health < 0 || i->InLimbo || !i->IsAlive || i->IsCrashing || i->IsSinking)
-			{
-				continue;
-			}
-
-			if (!MapClass::Instance->IsWithinUsableArea(i->GetCoords()))
 				continue;
 
 			if (!i->Location.IsValid() || !i->InlineMapCoords().IsValid())
