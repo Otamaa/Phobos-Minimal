@@ -215,14 +215,10 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	//GET_STACK(AbstractClass*, pTarget, 0x4);
-
-	R->EBX(pThis->GetWeapon(TechnoExtContainer::Instance.Find(pThis)->CurrentWeaponIdx)->WeaponType);
-	return 0x6FDD71;
+static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx) {
+	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
 }
+DEFINE_JUMP(CALL6, 0x6FDD69, MiscTools::to_DWORD(GetWeapon_));
 
  DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
  {
@@ -241,7 +237,7 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
  	return 0;
  }
 
-DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
+DEFINE_HOOK(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E :0x0;
