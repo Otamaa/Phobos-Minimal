@@ -1,4 +1,6 @@
 #include "Body.h"
+#include <Ext/Infantry/Body.h>
+
 #include <Locomotor/Cast.h>
 
 DEFINE_HOOK(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
@@ -20,7 +22,7 @@ DEFINE_HOOK(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 
 	R->ESI(levelIntensity);
 	R->EBX(cellIntensity);
-	R->EAX(pThis->Locomotor); // Restore overridden instruction
+	R->EAX(pThis->Locomotor.GetInterfacePtr()); // Restore overridden instruction
 
 	return SkipGameCode;
 }

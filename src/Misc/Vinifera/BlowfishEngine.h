@@ -19,15 +19,17 @@ typedef union {
 class BlowfishEngine
 {
 public:
-	BlowfishEngine() noexcept:
+	BlowfishEngine() noexcept :
 		IsKeyed { false },
 		P_Encrypt {},
 		P_Decrypt {},
 		bf_S {}
 	{ }
 
-	~BlowfishEngine() noexcept {
-		if (IsKeyed) {
+	~BlowfishEngine() noexcept
+	{
+		if (IsKeyed)
+		{
 			Submit_Key(nullptr, 0);
 		}
 	}
@@ -89,7 +91,7 @@ public:
 		IsKeyed = true;
 	}
 
-	int Encrypt(void const* plaintext, int length, void* cyphertext)
+	inline int Encrypt(void const* plaintext, int length, void* cyphertext)
 	{
 		if (plaintext == 0 || length == 0)
 		{
@@ -127,7 +129,11 @@ public:
 		return length;
 	}
 
-	int Decrypt(void const* cyphertext, int length, void* plaintext)
+	int Encrypt_Wrapper(int length, void const* plaintext, void* cyphertext) {
+		return this->Encrypt(plaintext, length, cyphertext);
+	}
+
+	inline int Decrypt(void const* cyphertext, int length, void* plaintext)
 	{
 		if (cyphertext == 0 || length == 0)
 		{
@@ -166,6 +172,10 @@ public:
 		}
 
 		return length;
+	}
+
+	int Decrypt_Wrapper(int length, void const* plaintext, void* cyphertext) {
+		return this->Decrypt(plaintext, length, cyphertext);
 	}
 
 	enum class Key

@@ -223,7 +223,7 @@ DEFINE_HOOK(0x65B243, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 		RadSiteExtContainer::Instance.Allocate(pThis);
-		//PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
+		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 
 	return 0;
@@ -234,7 +234,7 @@ DEFINE_HOOK(0x65B344, RadSiteClass_DTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		//PointerExpiredNotification::NotifyInvalidObject->Remove(pThis);
+		PointerExpiredNotification::NotifyInvalidObject->Remove(pThis);
 		RadSiteExtContainer::Instance.Remove(pThis);
 	}
 

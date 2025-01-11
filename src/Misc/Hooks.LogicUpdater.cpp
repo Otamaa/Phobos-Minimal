@@ -169,7 +169,7 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
-	//pExt->UpdateMobileRefinery();
+	pExt->UpdateMobileRefinery();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
@@ -238,36 +238,36 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 #ifdef ENABLE_THESE
-	//PassengersFunctional::AI(pThis);
-	//SpawnSupportFunctional::AI(pThis);
+	PassengersFunctional::AI(pThis);
+	SpawnSupportFunctional::AI(pThis);
 
-	//pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 
-	//if(pThis->IsAlive)
-	//	GiftBoxFunctional::AI(pExt, pTypeExt);
+	if(pThis->IsAlive)
+		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	//if(pThis->IsAlive){
+	if(pThis->IsAlive){
 
-		//auto it = std::remove_if(pExt->PaintBallStates.begin() , pExt->PaintBallStates.end() ,[pThis](auto& pb){
-		//		if(pb.second.timer.GetTimeLeft()) {
-		//			if (pThis->WhatAmI() == BuildingClass::AbsID) {
-		//				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-		//			}
-		//			return false;
-		//		}
-		//
-		//	return true;
-		//});
+		auto it = std::remove_if(pExt->PaintBallStates.begin() , pExt->PaintBallStates.end() ,[pThis](auto& pb){
+				if(pb.second.timer.GetTimeLeft()) {
+					if (pThis->WhatAmI() == BuildingClass::AbsID) {
+						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+					}
+					return false;
+				}
+		
+			return true;
+		});
 
-		//pExt->PaintBallStates.erase(it);
+		pExt->PaintBallStates.erase(it);
 
-		//if (auto& pDSState = pExt->DamageSelfState) {
-		//	pDSState->TechnoClass_Update_DamageSelf(pThis);
-		//}
-	//}
+		if (auto& pDSState = pExt->DamageSelfState) {
+			pDSState->TechnoClass_Update_DamageSelf(pThis);
+		}
+	}
 #endif
 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
 	//return 0x6F9EBB;
@@ -328,8 +328,8 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 
 #ifdef ENABLE_THESE
 	pExt->UpdateAircraftOpentopped();
-	//AircraftPutDataFunctional::AI(pExt, pTypeExt);
-	//AircraftDiveFunctional::AI(pExt, pTypeExt);
+	AircraftPutDataFunctional::AI(pExt, pTypeExt);
+	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 
 	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
@@ -368,7 +368,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 #ifdef ENABLE_THESE
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	// DriveDataFunctional::AI(pExt);
+	DriveDataFunctional::AI(pExt);
 	 //UpdateWebbed(pThis);
 #endif
 	if (IsMovingNow)
