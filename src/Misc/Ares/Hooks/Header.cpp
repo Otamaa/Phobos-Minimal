@@ -3574,9 +3574,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		if (pOldType->Locomotor == CLSIDs::Teleport && pToType->Locomotor != CLSIDs::Teleport && pThis->WarpingOut)
 			TechnoExtContainer::Instance.Find(pThis)->HasRemainingWarpInDelay = true;
 
-		AbstractClass* pTarget = pThis->Target;
-		AbstractClass* pDest = pThis->ArchiveTarget;
-		Mission prevMission = pThis->GetCurrentMission();
+		//AbstractClass* pTarget = pThis->Target;
+		//AbstractClass* pDest = pThis->ArchiveTarget;
+		//Mission prevMission = pThis->GetCurrentMission();
 
 		// throw away the current locomotor and instantiate
 		// a new one of the default type for this unit.
@@ -3584,7 +3584,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		{
 			newLoco->Link_To_Object(pThis);
 			((FootClass*)pThis)->Locomotor = std::move(newLoco);
-			pThis->Override_Mission(prevMission, pTarget, pDest);
+			//pThis->Override_Mission(prevMission, pTarget, pDest);
 		}
 	}
 	else if (pOldType->Locomotor == CLSIDs::Jumpjet() && pToType->Locomotor == CLSIDs::Jumpjet() && !(pOldType->JumpjetData == pToType->JumpjetData))
@@ -3629,7 +3629,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
-	pThis->See(0u,0u);
+	//pThis->See(0u,0u);
 
 	return true;
 }
@@ -7677,7 +7677,7 @@ std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList()
 
 	//remove any `BaseUnit` included
 	//base unit given for free then ?
-	types.remove_if([](TechnoTypeClass* pItem) {
+	types.remove_all_if([](TechnoTypeClass* pItem) {
 		for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i) {
 			if (pItem == (RulesClass::Instance->BaseUnit.Items[i])) {
 				return true;

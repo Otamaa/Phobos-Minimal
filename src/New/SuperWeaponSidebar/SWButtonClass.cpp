@@ -13,7 +13,7 @@
 #include <Misc/PhobosToolTip.h>
 
 SWButtonClass::SWButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height)
-	: ControlClass(id, x, y, width, height, GadgetFlag::LeftPress, true)
+	: ControlClass(id, x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::RightPress), true)
 	, SuperIndex(superIdx)
 {
 	if (const auto backColumn = SWSidebarClass::Global()->Columns.back())
@@ -98,11 +98,11 @@ bool SWButtonClass::Draw(bool forced)
 			wchar_t buffer[64];
 			Game::GetKeyboardKeyString(hotkey, buffer);
 
-			if (std::wcslen(buffer)) {
+			if (std::wcslen(buffer))
+			{
 				pSurface->DSurfaceDrawText(buffer, &bounds, &textLoc, foreColor, 0, printType);
 				drawReadiness = false;
 			}
-			drawReadiness = false;
 		}
 	}
 
@@ -112,7 +112,7 @@ bool SWButtonClass::Draw(bool forced)
 		{
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
 			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
-			TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+			constexpr TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
 			pSurface->DrawText_Old(buffer, &bounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
 		}
@@ -152,8 +152,15 @@ void SWButtonClass::OnMouseLeave()
 
 bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 {
-	if ((int)flags & (int)GadgetFlag::LeftPress)
+	if (!SWSidebarClass::IsEnabled())
+		return false;
+
+	if (flags & GadgetFlag::RightPress)
+		DisplayClass::Instance->CurrentSWTypeIndex = -1;
+
+	if (flags & GadgetFlag::LeftPress)
 	{
+		MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 		VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
 		this->LaunchSuper();
 	}
@@ -167,11 +174,11 @@ bool SWButtonClass::LaunchSuper() const
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 	const bool manual = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
-	const bool unstopable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining && pSWExt->SW_Unstoppable;
+	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining && pSWExt->SW_Unstoppable;
 
 	if (!pSuper->CanFire() && !manual)
 	{
-		VoxClass::PlayIndex(pSWExt->AttachedToObject->ImpatientVoice);
+		VoxClass::PlayIndex(pSuper->Type->ImpatientVoice);
 		return false;
 	}
 
@@ -182,7 +189,7 @@ bool SWButtonClass::LaunchSuper() const
 	}
 	else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
-		if (!manual && !unstopable)
+		if (!manual && !unstoppable)
 		{
 			const auto swIndex = pSuper->Type->ArrayIndex;
 
@@ -198,7 +205,7 @@ bool SWButtonClass::LaunchSuper() const
 				DisplayClass::Instance->CurrentBuildingOwnerArrayIndex = -1;
 				DisplayClass::Instance->SetActiveFoundation(nullptr);
 				MapClass::Instance->SetRepairMode(0);
-				DisplayClass::Instance->SetSellMode(0);
+				MapClass::Instance->SetSellMode(0);
 				DisplayClass::Instance->PowerToggleMode = false;
 				DisplayClass::Instance->PlanningMode = false;
 				DisplayClass::Instance->PlaceBeaconMode = false;

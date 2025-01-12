@@ -440,7 +440,7 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 		}
 
 		// move all the empty ones to the back, then remove them
-		groupvec.remove_if([](DamageGroup* pGroup){
+		groupvec.remove_all_if([](DamageGroup* pGroup){
 			if (!pGroup->Target) {
 				GameDelete<false, false>(pGroup);
 				pGroup = nullptr;

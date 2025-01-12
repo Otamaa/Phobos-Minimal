@@ -1062,6 +1062,115 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 }
 
+bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
+{
+	const auto techLevel = pType->TechLevel;
+
+	if (techLevel <= 0 || techLevel > Game::TechLevel)
+		return false;
+
+	const auto pHouse = HouseClass::CurrentPlayer();
+
+	if (!pHouse->InOwners(pType))
+		return false;
+
+	if (!pHouse->InRequiredHouses(pType))
+		return false;
+
+	if (pHouse->InForbiddenHouses(pType))
+		return false;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	const auto& pNegTypes = pTypeExt->Cameo_NegTechnos;
+
+
+	for (const auto& pNegType : pNegTypes) {
+		if (pNegType && pHouse->CountOwnedAndPresent(pNegType))
+			return false;
+	}
+
+	const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto& pAuxTypes = pTypeExt->Cameo_AuxTechnos;
+
+	if (pAuxTypes.begin() == pAuxTypes.end())
+	{
+		const auto sideIndex = pType->AIBasePlanningSide;
+
+		return (sideIndex == -1 || sideIndex == pHouse->Type->SideIndex);
+	}
+
+	for (const auto& pAuxType : pAuxTypes)
+	{
+		const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pAuxType);
+
+		if (!pAuxTypeExt->CameoCheckMutex)
+		{
+			if (pHouse->CountOwnedAndPresent(pAuxType))
+				return true;
+
+			pAuxTypeExt->CameoCheckMutex = true;
+			const auto exist = BuildingTypeExtData::ShouldExistGreyCameo(pAuxType);
+			pAuxTypeExt->CameoCheckMutex = false;
+
+			if (exist)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+#include <EventClass.h>
+#include <Ext/Scenario/Body.h>
+
+// Check the cameo change
+CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+	{
+		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+		const bool Ownedexist = vec.contains(pType);
+
+		if (canBuild == CanBuildResult::Unbuildable) // Unbuildable + Satisfy basic limitations = Change it to TemporarilyUnbuildable
+		{
+			pTypeExt->CameoCheckMutex = true;
+			const auto exist = BuildingTypeExtData::ShouldExistGreyCameo(pType);
+			pTypeExt->CameoCheckMutex = false;
+
+			if (exist)
+			{
+				if (!Ownedexist) // … + Not in the list = Need to add it into list
+				{
+					vec.push_back(pType);
+					SidebarClass::Instance->SidebarNeedsRepaint();
+					const EventClass event
+					(
+						HouseClass::CurrentPlayer->ArrayIndex,
+						EventType::ABANDON_ALL,
+						pType->WhatAmI(),
+						pType->GetArrayIndex(),
+						pType->Naval
+					);
+					EventClass::AddEvent(&event);
+				}
+
+				canBuild = CanBuildResult::TemporarilyUnbuildable;
+			}
+		}
+		else if (Ownedexist) // Not Unbuildable + In the list = remove it from the list and play EVA
+		{
+			vec.remove(pType);
+			SidebarClass::Instance->SidebarNeedsRepaint();
+			VoxClass::Play(GameStrings::EVA_NewConstructionOptions);
+		}
+	}
+
+	return canBuild;
+}
+
 template <typename T>
 void BuildingTypeExtData::Serialize(T& Stm)
 {

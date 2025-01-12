@@ -6,6 +6,10 @@
 #include <Ext/Side/Body.h>
 #include <Phobos.h>
 
+#include <Ext/TechnoType/Body.h>
+#include <Ext/BuildingType/Body.h>
+#include <Ext/Scenario/Body.h>
+
 DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {

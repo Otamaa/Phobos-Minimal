@@ -21,9 +21,7 @@ public:
 	bool RemoveButton(int superIdx);
 	void ClearButtons(bool remove = true);
 
-	constexpr void SetHeight(int height) {
-		this->Rect.Height = height;
-	}
+	void SetHeight(int height);
 
 	std::vector<SWButtonClass*> Buttons {};
 	int MaxButtons { 0 };

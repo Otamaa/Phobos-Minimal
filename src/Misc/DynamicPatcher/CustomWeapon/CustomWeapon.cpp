@@ -172,7 +172,7 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 
 void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	this->simulateBurstQueue.remove_if([ptr, bRemoved](const auto& queue) {
+	this->simulateBurstQueue.remove_all_if([ptr, bRemoved](const auto& queue) {
 		return (queue.Target == ptr || queue.Shooter == ptr) && bRemoved;
 	});
 }
@@ -206,7 +206,7 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 
 void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	this->DelayFires.remove_if([ptr, bRemoved](const auto& queue) {
+	this->DelayFires.remove_all_if([ptr, bRemoved](const auto& queue) {
 		return queue.Target == ptr && bRemoved;
 	});
 

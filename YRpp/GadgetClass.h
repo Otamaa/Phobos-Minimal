@@ -23,6 +23,7 @@ enum class GadgetFlag : int
 	RightUp = 0x80,
 	Keyboard = 0x100
 };
+MAKE_ENUM_FLAGS(GadgetFlag);
 
 class NOVTABLE GadgetClass : public LinkClass
 {

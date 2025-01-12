@@ -192,7 +192,7 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 
 void FlyingStrings::UpdateAll()
 {
-	auto iter = std::remove_if(Data.begin(), Data.end(), [](FlyingStrings::Item& item) {
+	Data.remove_all_if([](FlyingStrings::Item& item) {
 		if (item.Text[0]) {
 			Point2D pos {};
 			Point2D tmp {};
@@ -206,7 +206,7 @@ void FlyingStrings::UpdateAll()
 						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
 					}
 
-					Fancy_Text_Print_Wide_REF(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
+					Simple_Text_Print_Wide(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
 				}
 			}
 		}
@@ -218,6 +218,4 @@ void FlyingStrings::UpdateAll()
 		return false;
 	});
 
-	if(iter != Data.end())
-		Data.erase(iter, Data.end());
 }

@@ -259,8 +259,9 @@ void ScenarioExtData::Serialize(T& Stm)
 		//.Process(this->CurrentTint_Hashes)
 		.Process(this->AdjustLightingFix)
 
-		.Process(ShowBriefing)
-		.Process(BriefingTheme)
+		.Process(this->ShowBriefing)
+		.Process(this->BriefingTheme)
+		.Process(this->OwnedExistCameoTechnoTypes)
 		;
 
 

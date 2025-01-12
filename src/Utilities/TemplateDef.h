@@ -765,6 +765,22 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<Vector3D<int>>(Vector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 int Value");
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
 	inline bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if(parser.Read2Double(pSection, pKey, (double*)&value))

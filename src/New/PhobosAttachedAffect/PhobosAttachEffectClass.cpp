@@ -654,7 +654,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 
 	StackVector<WeaponTypeClass*, 256> expireWeapons;
 
-	pTargetExt->PhobosAE.remove_if([&](auto& it) {
+	pTargetExt->PhobosAE.remove_all_if([&](auto& it) {
 
 		if(!it)
 			return true;

@@ -8,14 +8,14 @@ template<typename T, typename A = std::allocator<T>>
 struct HelperedVector : public std::vector<T , A>
 {
 
-	bool FORCEINLINE remove_at(size_t index) {
-		if (this->valid_index(index)) {
-			this->erase(this->begin() + index);
-			return true;
-		}
+	//bool FORCEINLINE remove_at(size_t index) {
+	//	if (this->valid_index(index)) {
+	//		this->erase(this->begin() + index);
+	//		return true;
+	//	}
 
-		return false;
-	}
+	//	return false;
+	//}
 
 	bool FORCEINLINE remove(const T& item) {
 		const auto iter = std::remove(this->begin() , this->end() , item);
@@ -33,7 +33,7 @@ struct HelperedVector : public std::vector<T , A>
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
 		if (iter != this->end()) {
-			this->erase(iter , this->end());
+			this->erase(iter);
 			return true;
 		}
 

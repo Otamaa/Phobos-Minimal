@@ -513,6 +513,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");
 
+		this->Cameo_AlwaysExist.Read(exINI, pSection, "Cameo.AlwaysExist");
+		this->Cameo_AuxTechnos.Read(exINI, pSection, "Cameo.AuxTechnos");
+		this->Cameo_NegTechnos.Read(exINI, pSection, "Cameo.NegTechnos");
+		this->UIDescription_Unbuildable.Read(exINI, pSection, "UIDescription.Unbuildable");
+
 #pragma region Otamaa
 		this->DontShake.Read(exINI, pSection, "DontShakeScreen");
 		this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
@@ -1396,6 +1401,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtIni);
+
+		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 
@@ -2514,6 +2521,13 @@ void TechnoTypeExtData::Serialize(T& Stm)
  
 		.Process(this->NoRearmInEMPState)
 		.Process(this->NoRearmInTemporal)
+
+		.Process(this->Cameo_AlwaysExist)
+		.Process(this->Cameo_AuxTechnos)
+		.Process(this->Cameo_NegTechnos)
+		.Process(this->CameoCheckMutex)
+		.Process(this->UIDescription_Unbuildable)
+		.Process(this->GreyCameoPCX)
 		;
 }
 

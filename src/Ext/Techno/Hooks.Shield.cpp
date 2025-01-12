@@ -245,7 +245,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 		}
 	}
 
-	pExt->PhobosAE.remove_if([&](auto& it){
+	pExt->PhobosAE.remove_all_if([&](auto& it){
 
 		if(!it)
 			return true;

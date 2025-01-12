@@ -363,50 +363,49 @@ DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 
 	if (!pThis->InAir)
 	{
-		R->BL(true);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (!pTypeExt->DeployingAnim_AllowAnyDirection)
+		{
+			// not sure what is the bitfrom or bitto so it generate this result
+			// yes iam dum , iam sorry - otamaa
+			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+
+			if (nCurrent != (int)nRaw)
+			{
+				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
+				{
+					if (!pLoco->Is_Moving_Now())
+					{
+						pLoco->Do_Turn(DirStruct { nRaw });
+					}
+
+					return PlayDeploySound; //adjust the facing first
+				}
+			}
+		}
 
 		if (const auto pAnimType = GetDeployAnim(pThis))
 		{
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+			if(!pThis->DeployAnim) { 
+				auto const pAnim = GameCreate<AnimClass>(pAnimType,
+				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 
-			if (!pTypeExt->DeployingAnim_AllowAnyDirection) {
-				// not sure what is the bitfrom or bitto so it generate this result
-				// yes iam dum , iam sorry - otamaa
-				const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-				const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
-				const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+				pThis->DeployAnim = pAnim;
+				pAnim->SetOwnerObject(pThis);
 
-				if (nCurrent != (int)nRaw)
-				{
-					if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
-					{
-						if (!pLoco->Is_Moving_Now())
-						{
-							pLoco->Do_Turn(DirStruct { nRaw });
-						}
-
-						return PlayDeploySound; //adjust the facing first
-					}
+				if (pTypeExt->DeployingAnim_UseUnitDrawer) {
+					pAnim->LightConvert = pThis->GetRemapColour();
 				}
 			}
 
-			if(pThis->DeployAnim)
-				return SetAnimTimer;
-
-			auto const pAnim = GameCreate<AnimClass>(pAnimType,
-			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-
-			pThis->DeployAnim = pAnim;
-			pAnim->SetOwnerObject(pThis);
-
-			if (pTypeExt->DeployingAnim_UseUnitDrawer) {
-				pAnim->LightConvert = pThis->GetRemapColour();
-			}
-
-			return SetAnimTimer;
+			pThis->Animation.Value = pAnimType->Start;
+			pThis->Animation.Timer.Start(pAnimType->Rate);
 		}
 
-		return SetDeployingState;
+		pThis->Deployed = true;
 	}
 
 	return PlayDeploySound;

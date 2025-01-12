@@ -10,6 +10,7 @@ By AlexB and Joshy
 #include <ColorScheme.h>
 #include <CoordStruct.h>
 #include <Utilities/Enum.h>
+#include <Utilities/VectorHelper.h>
 
 class TechnoClass;
 class HouseClass;
@@ -29,7 +30,7 @@ private:
 	};
 
 	static constexpr int Duration = 75;
-	inline static std::vector<Item> Data;
+	inline static HelperedVector<Item> Data;
 
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 

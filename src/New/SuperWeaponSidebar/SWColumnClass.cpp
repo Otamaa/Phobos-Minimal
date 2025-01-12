@@ -1,6 +1,7 @@
 #include "SWColumnClass.h"
 #include "SWSidebarClass.h"
 #include "SWButtonClass.h"
+#include "ToggleSWButtonClass.h"
 
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
@@ -10,10 +11,9 @@
 SWColumnClass::SWColumnClass(unsigned int id, int x, int y, int width, int height)
 	: ControlClass(id, x, y, width, height, static_cast<GadgetFlag>(0), true)
 {
-	auto& columns = SWSidebarClass::Global()->Columns;
-	columns.emplace_back(this);
+	SWSidebarClass::Global()->Columns.emplace_back(this);
 
-	this->MaxButtons = Phobos::UI::ExclusiveSWSidebar_Max - (static_cast<int>(columns.size()) - 1);
+	this->MaxButtons = Phobos::UI::SuperWeaponSidebar_Max - (static_cast<int>(SWSidebarClass::Global()->Columns.size()) - 1);
 }
 
 bool SWColumnClass::Draw(bool forced)
@@ -21,33 +21,36 @@ bool SWColumnClass::Draw(bool forced)
 	if (!SWSidebarClass::IsEnabled())
 		return false;
 
-	const auto pSurface = DSurface::Composite();
-	auto bounds = pSurface->Get_Rect();
-
 	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
+	const int cameoWidth = 60, cameoHeight = 48;
+	const int cameoBackgroundWidth = Phobos::UI::SuperWeaponSidebar_Interval + cameoWidth;
 
-	if (const auto centerShape = pSideExt->SuperWeaponSidebar_CenterShape)
+	if (const auto pCenterPCX = pSideExt->SuperWeaponSidebar_CenterPCX.GetSurface())
 	{
+		const int cameoHarfInterval = (Phobos::UI::SuperWeaponSidebar_CameoHeight - cameoHeight) / 2;
+
 		for (const auto button : this->Buttons)
 		{
-			Point2D drawPoint = { this->Rect.X, button->Rect.Y };
-			pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, centerShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+			RectangleStruct drawRect { this->Rect.X, button->Rect.Y - cameoHarfInterval, cameoBackgroundWidth, Phobos::UI::SuperWeaponSidebar_CameoHeight };
+			PCX::Instance->BlitToSurface(&drawRect, DSurface::Composite, pCenterPCX);
 		}
 	}
 
-	if (const auto topShape = pSideExt->SuperWeaponSidebar_TopShape)
+	if (const auto pTopPCX = pSideExt->SuperWeaponSidebar_TopPCX.GetSurface())
 	{
-		Point2D drawPoint = { this->Rect.X, this->Rect.Y - topShape->Height };
-		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, topShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		const int height = pTopPCX->Get_Height();
+		RectangleStruct drawRect { this->Rect.X, this->Rect.Y, cameoBackgroundWidth, height };
+		PCX::Instance->BlitToSurface(&drawRect, DSurface::Composite, pTopPCX);
 	}
 
-	if (const auto bottomShape = pSideExt->SuperWeaponSidebar_BottomShape.Get())
+	if (const auto pBottomPCX = pSideExt->SuperWeaponSidebar_BottomPCX.GetSurface())
 	{
-		Point2D drawPoint = { this->Rect.X, this->Rect.Y + bottomShape->Height };
-		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, bottomShape, 0, &drawPoint, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		const int height = pBottomPCX->Get_Height();
+		RectangleStruct drawRect { this->Rect.X, this->Rect.Y + this->Rect.Height - height, cameoBackgroundWidth, height };
+		PCX::Instance->BlitToSurface(&drawRect, DSurface::Composite, pBottomPCX);
 	}
 
-	for (const auto& button : this->Buttons)
+	for (const auto button : this->Buttons)
 		button->Draw(true);
 
 	return true;
@@ -59,11 +62,13 @@ void SWColumnClass::OnMouseEnter()
 		return;
 
 	SWSidebarClass::Global()->CurrentColumn = this;
+	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
 void SWColumnClass::OnMouseLeave()
 {
 	SWSidebarClass::Global()->CurrentColumn = nullptr;
+	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
 bool SWColumnClass::Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
@@ -86,7 +91,7 @@ bool SWColumnClass::AddButton(int superIdx)
 		if (!pSWExt->SW_ShowCameo)
 			return true;
 
-		if (!Phobos::UI::ExclusiveSWSidebar)
+		if (!Phobos::UI::SuperWeaponSidebar)
 			return false;
 
 		if (!pSWExt->SuperWeaponSidebar_Allow)
@@ -107,7 +112,8 @@ bool SWColumnClass::AddButton(int superIdx)
 	if (static_cast<int>(buttons.size()) >= this->MaxButtons && !SWSidebarClass::Global()->AddColumn())
 		return false;
 
-	const auto button = DLLCreate<SWButtonClass>(SWButtonClass::StartID + superIdx, superIdx, 0, 0, 60, 48);
+	const int cameoWidth = 60, cameoHeight = 48;
+	const auto button = GameCreate<SWButtonClass>(SWButtonClass::StartID + superIdx, superIdx, 0, 0, cameoWidth, cameoHeight);
 
 	if (!button)
 		return false;
@@ -115,41 +121,47 @@ bool SWColumnClass::AddButton(int superIdx)
 	button->Zap();
 	GScreenClass::Instance->AddButton(button);
 	SWSidebarClass::Global()->SortButtons();
+
+	if (const auto toggleButton = SWSidebarClass::Global()->ToggleButton)
+		toggleButton->UpdatePosition();
+
 	return true;
 }
 
 bool SWColumnClass::RemoveButton(int superIdx)
 {
-	auto& buttons = this->Buttons;
+	for (auto it = this->Buttons.begin(); it != this->Buttons.end(); ++it) {
+		if ((*it)->SuperIndex == superIdx) {
+			AnnounceInvalidPointer(SWSidebarClass::Global()->CurrentButton, *it);
+			GScreenClass::Instance->RemoveButton(*it);
+			this->Buttons.erase(it);
+			return true;
+		}
+	}
 
-	const auto it = std::find_if(buttons.begin(), buttons.end(),
-		[superIdx](SWButtonClass* const button)
-		{ return button->SuperIndex == superIdx; }
-	);
-
-	if (it == buttons.end())
-		return false;
-
-	AnnounceInvalidPointer(SWSidebarClass::Global()->CurrentButton, *it);
-	GScreenClass::Instance->RemoveButton(*it);
-
-	DLLCallDTOR<false>(*it);
-	buttons.erase(it);
-	SWSidebarClass::Global()->SortButtons();
-	return true;
+	return false;
 }
 
- void SWColumnClass::ClearButtons(bool remove)
+void SWColumnClass::ClearButtons(bool remove)
 {
-	auto& buttons = this->Buttons;
-
-	if (remove)
-	{
-		for (const auto& button : buttons)
-		{
+	if (remove) {
+		for (const auto& button : this->Buttons) {
 			GScreenClass::Instance->RemoveButton(button);
 		}
 	}
 
-	buttons.clear();
+	this->Buttons.clear();
+}
+
+void SWColumnClass::SetHeight(int height)
+{
+	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
+
+	this->Rect.Height = height;
+
+	if (const auto pTopPCX = pSideExt->SuperWeaponSidebar_TopPCX.GetSurface())
+		this->Rect.Height += pTopPCX->Get_Height();
+
+	if (const auto pBottomPCX = pSideExt->SuperWeaponSidebar_BottomPCX.GetSurface())
+		this->Rect.Height += pBottomPCX->Get_Height();
 }

@@ -754,6 +754,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
+	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
+	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
+	this->Cameo_OverlayPalette.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayPalette");
+
 	this->UnitIdleRotateTurret.Read(exINI, GameStrings::AudioVisual, "UnitIdleRotateTurret");
 	this->UnitIdlePointToMouse.Read(exINI, GameStrings::AudioVisual, "UnitIdlePointToMouse");
 	this->UnitIdleActionRestartMin.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionRestartMin");
@@ -1464,6 +1469,11 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->NoRearmInTemporal)
 
 		.Process(this->AttackMindControlledDelay)
+
+		.Process(this->Cameo_AlwaysExist)
+		.Process(this->Cameo_OverlayShapes)
+		.Process(this->Cameo_OverlayFrames)
+		.Process(this->Cameo_OverlayPalette)
 		;
 
 	MyPutData.Serialize(Stm);

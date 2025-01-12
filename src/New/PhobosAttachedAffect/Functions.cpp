@@ -92,7 +92,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	bool markForRedraw = false;
 	StackVector<WeaponTypeClass* , 256> expireWeapons;
 
-	pExt->PhobosAE.remove_if([&](std::unique_ptr<PhobosAttachEffectClass>& attachEffect) {
+	pExt->PhobosAE.remove_all_if([&](std::unique_ptr<PhobosAttachEffectClass>& attachEffect) {
 		if(!attachEffect.get()) {
 		   return true;
 		}
@@ -213,7 +213,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		StackVector<WeaponTypeClass* , 256> expireWeapons;
 
 		// Delete ones on old type and not on current.
-		pExt->PhobosAE.remove_if([&](std::unique_ptr<PhobosAttachEffectClass>& it) {
+		pExt->PhobosAE.remove_all_if([&](std::unique_ptr<PhobosAttachEffectClass>& it) {
 
 			if(!it.get()) {
 				return true;

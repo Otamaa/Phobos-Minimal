@@ -156,10 +156,12 @@ struct Phobos final
 		static inline bool UnlimitedColor { false };
 		static inline bool AnchoredToolTips { false };
 
-		static inline bool ExclusiveSWSidebar { false };
-		static inline int ExclusiveSWSidebar_Interval { 0 };
-		static inline int ExclusiveSWSidebar_Max { 0 };
-		static inline int ExclusiveSWSidebar_MaxColumn { INT32_MAX };
+		static inline bool SuperWeaponSidebar { false };
+		static inline int SuperWeaponSidebar_Interval { 0 };
+		static inline int SuperWeaponSidebar_LeftOffset { 0 };
+		static inline int SuperWeaponSidebar_CameoHeight { 48 };
+		static inline int SuperWeaponSidebar_Max { 0 };
+		static inline int SuperWeaponSidebar_MaxColumns { INT32_MAX};
 
 		static inline const wchar_t* CostLabel { nullptr };
 		static inline const wchar_t* PowerLabel { nullptr };
@@ -205,6 +207,7 @@ struct Phobos final
 		static inline int CampaignDefaultGameSpeed { 2 };
 
 		static inline bool DigitalDisplay_Enable { false };
+		static inline bool ShowBuildingStatistics { false };
 
 		static inline bool ApplyShadeCountFi { true };
 

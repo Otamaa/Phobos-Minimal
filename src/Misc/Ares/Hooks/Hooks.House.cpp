@@ -18,6 +18,7 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <New/Type/GenericPrerequisite.h>
 
@@ -824,6 +825,9 @@ DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 
 	}
 
+	if (!buildLimitOnly && includeInProduction && pThis == HouseClass::CurrentPlayer()) // Eliminate any non-producible calls to change the list safely
+		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo(pItem, validationResult);
+
 	R->EAX(validationResult);
 	return 0x4F8361;
 }
@@ -833,14 +837,56 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
-	bool result = HouseExtData::ShouldDisableCameo(pThis, pType);
-
-	if(!result && HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
-		result = true;
+	if(HouseExtData::ShouldDisableCameo(pThis, pType)) {
+		R->EAX(true);
+		return 0x50B669;
 	}
 
-	R->EAX(result);
+	if(HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
+		R->EAX(true);
+		return 0x50B669;
+	}
+
+	if (pThis == HouseClass::CurrentPlayer)
+	{
+		GET(int*, pAddress, ESP);
+
+		if (*pAddress == 0x6A5FED || *pAddress == 0x6A97EF || *pAddress == 0x6AB65B)
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			// The types exist in the list means that they are not buildable now
+			if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+			{
+				auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+
+				if (vec.contains(pType)){
+					R->EAX(true);
+					return 0x50B669;
+				}
+			}
+		}
+	}
+
+	R->EAX(false);
 	return 0x50B669;
+}
+
+
+// All technos have Cameo_AlwaysExist=true need to change the EVA_NewConstructionOptions playing time
+DEFINE_HOOK(0x6A640B, SideBarClass_AddCameo_DoNotPlayEVA, 0x5)
+{
+	enum { SkipPlaying = 0x6A641A };
+
+	GET(AbstractType, absType, ESI);
+	GET(int, idxType, EBP);
+
+	if (const auto pType = ObjectTypeClass::FetchTechnoType(absType, idxType)) {
+		if (TechnoTypeExtContainer::Instance.Find(pType)->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+			return SkipPlaying;
+	}
+
+	return 0x0;
 }
 
 // HouseClass_Update_Factories_Queues_SkipBrokenDTOR

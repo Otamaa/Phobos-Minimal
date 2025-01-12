@@ -6,6 +6,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/SavegameDef.h>
+#include <Utilities/VectorHelper.h>
 
 class SidebarExtData final
 {
@@ -21,7 +22,7 @@ public:
 	InitState Initialized { InitState::Blank };
 
 	bool SWSidebar_Enable { true };
-	DynamicVectorClass<int> SWSidebar_Indices {};
+	HelperedVector<int> SWSidebar_Indices {};
 
 public:
 

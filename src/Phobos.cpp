@@ -297,6 +297,7 @@ void Phobos::Config::Read()
 	//Phobos::Config::RealTimeTimers = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers", Phobos::Config::RealTimeTimers);
 	//Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
 	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
+	Phobos::Config::ShowBuildingStatistics = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingStatistics", Phobos::Config::ShowBuildingStatistics);
 	Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
 
 	if(!Phobos::Otamaa::IsAdmin){
@@ -413,25 +414,35 @@ void Phobos::Config::Read()
 			Phobos::UI::CenterPauseMenuBackground =
 				pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
+			Phobos::UI::SuperWeaponSidebar =
+				pINI->ReadBool(SIDEBAR_SECTION, "SuperWeaponSidebar", Phobos::UI::SuperWeaponSidebar);
 
-			Phobos::UI::ExclusiveSWSidebar =
-			pINI->ReadBool(SIDEBAR_SECTION, "ExclusiveSWSidebar", Phobos::UI::ExclusiveSWSidebar);
+			Phobos::UI::SuperWeaponSidebar_Interval =
+				pINI->ReadInteger(SIDEBAR_SECTION, "SuperWeaponSidebar.Interval", Phobos::UI::SuperWeaponSidebar_Interval);
 
-			Phobos::UI::ExclusiveSWSidebar_Interval =
-				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.Interval", Phobos::UI::ExclusiveSWSidebar_Interval);
+			Phobos::UI::SuperWeaponSidebar_LeftOffset =
+				pINI->ReadInteger(SIDEBAR_SECTION, "SuperWeaponSidebar.LeftOffset", Phobos::UI::SuperWeaponSidebar_LeftOffset);
 
-			Phobos::UI::ExclusiveSWSidebar_Max =
-				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.Max", Phobos::UI::ExclusiveSWSidebar_Max);
+			Phobos::UI::SuperWeaponSidebar_LeftOffset = std::min(Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_LeftOffset);
 
-			const int screenHeight = GameOptionsClass::Instance->ScreenHeight - 192;
+			Phobos::UI::SuperWeaponSidebar_CameoHeight =
+				pINI->ReadInteger(SIDEBAR_SECTION, "SuperWeaponSidebar.CameoHeight", Phobos::UI::SuperWeaponSidebar_CameoHeight);
 
-			if (Phobos::UI::ExclusiveSWSidebar_Max > 0)
-				Phobos::UI::ExclusiveSWSidebar_Max = MinImpl(Phobos::UI::ExclusiveSWSidebar_Max, screenHeight / 48);
+			Phobos::UI::SuperWeaponSidebar_CameoHeight = std::max(48, Phobos::UI::SuperWeaponSidebar_CameoHeight);
+
+			Phobos::UI::SuperWeaponSidebar_Max =
+				pINI->ReadInteger(SIDEBAR_SECTION, "SuperWeaponSidebar.Max", Phobos::UI::SuperWeaponSidebar_Max);
+
+			const int reserveHeight = 96;
+			const int screenHeight = GameOptionsClass::Instance->ScreenHeight - reserveHeight;
+
+			if (Phobos::UI::SuperWeaponSidebar_Max > 0)
+				Phobos::UI::SuperWeaponSidebar_Max = std::min(Phobos::UI::SuperWeaponSidebar_Max, screenHeight / Phobos::UI::SuperWeaponSidebar_CameoHeight);
 			else
-				Phobos::UI::ExclusiveSWSidebar_Max = screenHeight / 48;
+				Phobos::UI::SuperWeaponSidebar_Max = screenHeight / Phobos::UI::SuperWeaponSidebar_CameoHeight;
 
-			Phobos::UI::ExclusiveSWSidebar_MaxColumn =
-				pINI->ReadInteger(SIDEBAR_SECTION, "ExclusiveSWSidebar.MaxColumn", Phobos::UI::ExclusiveSWSidebar_MaxColumn);
+			Phobos::UI::SuperWeaponSidebar_MaxColumns =
+				pINI->ReadInteger(SIDEBAR_SECTION, "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
 		}
 
 	});

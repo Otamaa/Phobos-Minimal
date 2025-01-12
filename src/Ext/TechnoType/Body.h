@@ -1034,6 +1034,13 @@ public:
 	Nullable<bool> NoRearmInEMPState {};
 	Nullable<bool> NoRearmInTemporal {};
 
+	Nullable<bool> Cameo_AlwaysExist {};
+	ValueableVector<TechnoTypeClass*> Cameo_AuxTechnos {};
+	ValueableVector<TechnoTypeClass*> Cameo_NegTechnos {};
+	bool CameoCheckMutex { false }; // Not read from ini
+	Valueable<CSFText> UIDescription_Unbuildable {};
+	PhobosPCXFile GreyCameoPCX {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

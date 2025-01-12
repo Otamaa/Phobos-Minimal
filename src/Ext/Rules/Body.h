@@ -431,6 +431,11 @@ public:
 
 	Valueable<int> AttackMindControlledDelay {};
 
+	Valueable<bool> Cameo_AlwaysExist { false };
+	Valueable<SHPStruct*> Cameo_OverlayShapes { FileSystem::PIPS_SHP };
+	Valueable<Vector3D<int>> Cameo_OverlayFrames { { -1, -1, -1 } };
+	Valueable<PaletteManager*> Cameo_OverlayPalette {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

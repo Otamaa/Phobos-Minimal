@@ -5,6 +5,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/VectorHelper.h>
 
 struct ExtendedVariable
 {
@@ -66,6 +67,8 @@ public:
 
 	Valueable<bool> ShowBriefing { false };
 	int BriefingTheme { -1 };
+
+	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);

@@ -24,6 +24,7 @@ public:
 
 public:
 	static constexpr int StartID = 2200;
+	static constexpr int ToolTip_Align_Y = 27;
 
 	bool IsHovering { false };
 	int ColumnIndex { -1 };

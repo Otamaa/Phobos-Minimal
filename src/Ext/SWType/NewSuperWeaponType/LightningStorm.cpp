@@ -223,12 +223,12 @@ bool CloneableLighningStormStateMachine::Save(PhobosStreamWriter& Stm) const
 void CloneableLighningStormStateMachine::Update()
 {
 	// remove all bolts from the list that are halfway done
-	this->BoltsPresent.remove_if([](AnimClass* pAnim) {
+	this->BoltsPresent.remove_all_if([](AnimClass* pAnim) {
 		return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2;
 	});
 
 	// find the clouds that should strike right now
-	this->CloudsManifest.remove_if([&](AnimClass* pAnim) {
+	this->CloudsManifest.remove_all_if([&](AnimClass* pAnim) {
 		if (!pAnim)
 			return true;
 
@@ -256,7 +256,7 @@ void CloneableLighningStormStateMachine::Update()
 	}
 	else
 	{
-		this->CloudsPresent.remove_if([&](AnimClass* pAnim) {
+		this->CloudsPresent.remove_all_if([&](AnimClass* pAnim) {
 			return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames - 1;
 		});
 
