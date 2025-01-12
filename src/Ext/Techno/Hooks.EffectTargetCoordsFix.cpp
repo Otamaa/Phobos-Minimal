@@ -255,9 +255,9 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(FakeWeaponTypeClass*, pWeapon, EBX);
 
-	REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
-	REF_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xB0, -0x28));
-	REF_STACK(CoordStruct, railgunCrrd_1, STACK_OFFSET(0xB0, -0x1C));
+	REF_STACK(CoordStruct, crdSrc, 0xB0 -0x6C);
+	REF_STACK(CoordStruct, crdTgt, 0xB0 -0x28);
+	REF_STACK(CoordStruct, railgunCrrd_1, 0xB0  -0x1C);
 
 	GET_BASE(AbstractClass*, pOriginalTarget, 0x8);
 

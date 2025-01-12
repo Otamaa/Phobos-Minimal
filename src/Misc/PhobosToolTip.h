@@ -9,6 +9,8 @@ class TechnoTypeClass;
 class SuperClass;
 struct BuildType;
 
+class TechnoTypeExtData;
+class SWTypeExtData;
 class PhobosToolTip
 {
 public:
@@ -18,6 +20,10 @@ private:
 	inline int GetBuildTime(TechnoTypeClass* pType) const;
 	inline int GetPower(TechnoTypeClass* pType) const;
 	static int TickTimeToSeconds(int tickTime);
+
+	inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData) const;
+	inline const wchar_t* GetUnbuildableUIDescription(TechnoTypeExtData* pData) const;
+	inline const wchar_t* GetUIDescription(SWTypeExtData* pData) const;
 
 public:
 	constexpr FORCEINLINE bool IsEnabled() const {

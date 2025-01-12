@@ -110,12 +110,11 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
 			: pLocomotor->Apparent_Speed();
 
-#ifndef broken_
+#ifdef broken_
 			auto& vel = pBullet->Velocity;
 
 			vel.SetIfZeroXYZ();
-			currentSpeed /= vel.Length();
-			vel *= currentSpeed;
+			vel *= (currentSpeed /= vel.Length());
 			DirStruct dir {};
 			vel.GetDirectionFromXY(&dir);
 			auto distancexy_vel = vel.Length();

@@ -579,6 +579,8 @@ DEFINE_HOOK(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
+	LEA_STACK(CoordStruct*, pCoord, 0xB0 - 0x28);
+
 	auto pType = pThis->GetTechnoType();
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -591,8 +593,8 @@ DEFINE_HOOK(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 		}
 
 		auto& Coord = pExt->SprayOffsets[pThis->SprayOffsetIndex];
-		R->Stack(0x88, pThis->Location.X + Coord->X);//X
-		R->Stack(0x8C, pThis->Location.Y + Coord->Y);//Y
+		pCoord->X = (pThis->Location.X + Coord->X);//X
+		pCoord->Y = (pThis->Location.Y + Coord->Y);//Y
 		R->EAX(pThis->Location.Z + Coord->Z); //Z
 		return 0x6FE218;
 	}

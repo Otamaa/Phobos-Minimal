@@ -6,6 +6,7 @@
 
 #include <Ext/Side/Body.h>
 #include <Ext/Surface/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Cast.h>
 
@@ -36,17 +37,24 @@
 
 PhobosToolTip PhobosToolTip::Instance;
 
-inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData)
+inline const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExtData* pData) const
 {
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
-		? pData->UIDescription->Text
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
-inline const wchar_t* GetUIDescription(SWTypeExtData* pData)
+inline const wchar_t* PhobosToolTip::GetUnbuildableUIDescription(TechnoTypeExtData* pData) const
 {
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription->empty()
-		? pData->UIDescription->Text
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription_Unbuildable.Get().empty()
+		? pData->UIDescription_Unbuildable.Get().Text
+		: nullptr;
+}
+
+inline const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExtData* pData) const
+{
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
@@ -161,8 +169,17 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		oss << std::setw(1) << nPower;
 	}
 
-	if (auto pDesc = GetUIDescription(pData))
+	if (auto pDesc = this->GetUIDescription(pData))
 		oss << L"\n" << pDesc;
+
+	if (pData->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist)) {
+		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+
+		if (vec.contains(pType)) {
+			if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
+				oss << L"\n" << pExDesc;
+		}
+	}
 
 	this->TextBuffer = oss.str();
 }

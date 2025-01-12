@@ -28,8 +28,9 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 			//		pThis->Owner = nullptr;
 			//	}
 			//}
-
+			pThis->Location = coord;
 			pThis->Detonate(coord);
+			pThis->Location = origCoords;
 
 			if (!BulletExtData::IsReallyAlive(pThis))
 				break;

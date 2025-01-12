@@ -236,7 +236,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 					Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID(), pTechno->get_ID());
 #endif
 				if (const auto pBullet = BulletTypeExtContainer::Instance
-					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon, true , true))
+					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon, pExt->AirburstWeapon_ApplyFirepowerMult, true))
 				{
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
