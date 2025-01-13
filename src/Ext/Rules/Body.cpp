@@ -309,10 +309,6 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	FillSecrets(RulesClass::Instance->SecretUnits);
 	FillSecrets(RulesClass::Instance->SecretBuildings);
 
-	RulesExtData::Instance()->Secrets.remove_all_duplicates([](auto a, auto b) {
-		return a == b;
-	});
-
 	auto pINI = CCINIClass::INI_Rules();
 	INI_EX iniEX(pINI);
 
