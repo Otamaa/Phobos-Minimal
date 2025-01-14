@@ -76,15 +76,16 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 	for (size_t i = 0; i < size; ++i) {
 		auto Option = *(Data + i);
 
-		Debug::Log("Checking [%s - %s] option for [%s] \n" ,
-			Option->ID,
-			Option->GetThisClassName() ,
-			pOwner->Type->ID
-		);
+		//Debug::Log("Checking [%s - %s] option for [%s] \n" ,
+		//	Option->ID,
+		//	Option->GetThisClassName() ,
+		//	pOwner->Type->ID
+		//);
 
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
+		const bool Eligible = (OwnerBits & pExt->Secret_RequiredHouses) != 0 && (OwnerBits & pExt->Secret_ForbiddenHouses) == 0 ;
 
-		//if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) 
+		if (Eligible)
 		{
 			const auto result = HouseExtData::RequirementsMet(pOwner, Option);
 
@@ -93,21 +94,21 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 			case RequirementStatus::Forbidden:
 			case RequirementStatus::Incomplete:
 
-				Debug::Log("[%s - %s] Is Avaible for [%s] \n",
-					Option->ID,
-					Option->GetThisClassName(),
-					pOwner->Type->ID
-				);
+				//Debug::Log("[%s - %s] Is Avaible for [%s] \n",
+				//	Option->ID,
+				//	Option->GetThisClassName(),
+				//	pOwner->Type->ID
+				//);
 				Options->emplace_back(Option);
 				break;
 			default:
 
-				Debug::Log("[%s - %s] Is Unavaible[%d] for [%s] \n",
-					Option->ID,
-					Option->GetThisClassName(),
-					result,
-					pOwner->Type->ID
-				);
+			//	Debug::Log("[%s - %s] Is Unavaible[%d] for [%s] \n",
+			//		Option->ID,
+			//		Option->GetThisClassName(),
+			//		result,
+			//		pOwner->Type->ID
+			//	);
 				break;
 			}
 		}

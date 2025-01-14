@@ -121,6 +121,12 @@ RequirementStatus HouseExtData::RequirementsMet(
 	if (pHouseExt->Reversed.contains(pItem))
 		return RequirementStatus::Overridden;
 
+	if (pData->RequiredStolenTech.any()) {
+		if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
+			return RequirementStatus::Incomplete;
+		}
+	}
+
 	if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride))
 		return RequirementStatus::Overridden;
 

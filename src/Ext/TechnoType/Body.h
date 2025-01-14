@@ -871,8 +871,8 @@ public:
 	Nullable<int> LandingDir {};
 
 	// new secret lab
-	DWORD Secret_RequiredHouses { 0xFFFFFFFF };
-	DWORD Secret_ForbiddenHouses { 0xFFFFFFFF };
+	DWORD Secret_RequiredHouses { 0xFFFFFFFFu };
+	DWORD Secret_ForbiddenHouses { 0u };
 
 	std::bitset<MaxHouseCount> RequiredStolenTech {};
 
