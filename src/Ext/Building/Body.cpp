@@ -84,10 +84,11 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
 
-		if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) {
+		//if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) 
+		{
 			const auto result = HouseExtData::RequirementsMet(pOwner, Option);
 
-			switch (HouseExtData::RequirementsMet(pOwner, Option))
+			switch (result)
 			{
 			case RequirementStatus::Forbidden:
 			case RequirementStatus::Incomplete:
