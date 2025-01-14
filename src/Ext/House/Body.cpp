@@ -104,75 +104,59 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 RequirementStatus HouseExtData::RequirementsMet(
 	HouseClass* pHouse, TechnoTypeClass* pItem)
 {
-
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const bool IsHuman = pHouse->IsControlledByHuman();
 	const bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
 
-	if (!IsUnbuildable)
-	{
-		if ((pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))) != 0)
-		{
-			if (!Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
-			{
-				if (pHouseExt->Reversed.contains(pItem)) {
-					return RequirementStatus::Overridden;
-				}
+	if (pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable))
+		return RequirementStatus::Forbidden;
 
-				if (pData->RequiredStolenTech.any()) {
-					if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
-						return RequirementStatus::Incomplete;
-					}
-				}
+	if(!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))))
+		return RequirementStatus::Forbidden;
 
-				if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride)) {
-					return RequirementStatus::Overridden;
-				}
+	if(Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
+		return RequirementStatus::Forbidden;
 
-				if (pHouse->HasFromSecretLab(pItem)) {
-					return RequirementStatus::Overridden;
-				}
+	if (pHouseExt->Reversed.contains(pItem))
+		return RequirementStatus::Overridden;
 
-				if (IsHuman && pItem->TechLevel == -1) {
-					return RequirementStatus::Incomplete;
-				}
+	if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride))
+		return RequirementStatus::Overridden;
 
-				if (!pHouse->HasAllStolenTech(pItem)) {
-					return RequirementStatus::Incomplete;
-				}
+	if (pHouse->HasFromSecretLab(pItem))
+		return RequirementStatus::Overridden;
 
-				if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem)) {
-					return RequirementStatus::Forbidden;
-				}
+	if (IsHuman && pItem->TechLevel == -1)
+		return RequirementStatus::Incomplete;
 
-				if (!HouseExtData::CheckFactoryOwners(pHouse, pItem)) {
-					return RequirementStatus::Incomplete;
-				}
+	if (!pHouse->HasAllStolenTech(pItem))
+		return RequirementStatus::Incomplete;
 
-				if (auto const pBldType = type_cast<BuildingTypeClass const*>(pItem)) {
-					if (HouseExtData::IsDisabledFromShell(pHouse, pBldType)) {
-						return RequirementStatus::Forbidden;
-					}
-				}
+	if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem))
+		return RequirementStatus::Forbidden;
 
-				if (pData->Prerequisite_Power.isset()) {
-					if (pData->Prerequisite_Power <= 0) {
-						if (-pData->Prerequisite_Power > pHouse->PowerOutput) {
-							return RequirementStatus::Incomplete;
-						}
-					} else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain) {
-						return RequirementStatus::Incomplete;
-					}
-				}
+	if (!HouseExtData::CheckFactoryOwners(pHouse, pItem))
+		return RequirementStatus::Incomplete;
 
-				return (pHouse->StaticData.TechLevel >= pItem->TechLevel) ?
-					RequirementStatus::Complete : RequirementStatus::Incomplete;
-			}
+	if (auto const pBldType = type_cast<BuildingTypeClass const*>(pItem)) {
+		if (HouseExtData::IsDisabledFromShell(pHouse, pBldType)) {
+			return RequirementStatus::Forbidden;
 		}
 	}
 
-	return RequirementStatus::Unbuildable;
+	if (pData->Prerequisite_Power.isset()) {
+		if (pData->Prerequisite_Power <= 0) {
+			if (-pData->Prerequisite_Power > pHouse->PowerOutput) {
+				return RequirementStatus::Incomplete;
+			}
+			} else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain) {
+				return RequirementStatus::Incomplete;
+		}
+	}
+
+	return (pHouse->StaticData.TechLevel >= pItem->TechLevel) ?
+		RequirementStatus::Complete : RequirementStatus::Incomplete;
 }
 
 std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
