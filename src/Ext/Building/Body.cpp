@@ -85,13 +85,28 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
 
 		if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) {
+			const auto result = HouseExtData::RequirementsMet(pOwner, Option);
+
 			switch (HouseExtData::RequirementsMet(pOwner, Option))
 			{
 			case RequirementStatus::Forbidden:
 			case RequirementStatus::Incomplete:
+
+				Debug::Log("[%s - %s] Is Avaible for [%s] \n",
+					Option->ID,
+					Option->GetThisClassName(),
+					pOwner->Type->ID
+				);
 				Options->emplace_back(Option);
 				break;
 			default:
+
+				Debug::Log("[%s - %s] Is Unavaible[%d] for [%s] \n",
+					Option->ID,
+					Option->GetThisClassName(),
+					result,
+					pOwner->Type->ID
+				);
 				break;
 			}
 		}
@@ -751,28 +766,6 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->Buildings.AddItem(pBuilding);
 
 		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
-
-		if (pType->SecretLab)
-			pOwner->SecretLabs.AddItem(pBuilding);
-
-		//if (pType->FactoryPlant)
-		//{
-		//	pOwner->FactoryPlants.AddItem(pBuilding);
-		//	pOwner->CalculateCostMultipliers();
-		//}
-
-		//if (pType->OrePurifier)
-		//	pOwner->NumOrePurifiers++;
-
-		//if (!pOwner->Type->MultiplayPassive)
-		//{
-		//	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-		//		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-		//
-		//	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-		//		pOwner->UnitsSelfHeal += pUnitSelfHeal;
-		//}
-
 		pOwner->UpdateSuperWeaponsUnavailable();
 
 		auto const pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
@@ -782,8 +775,10 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		if (BuildingTypeExtContainer::Instance.Find(pType)->Academy)
 			HouseExtContainer::Instance.Find(pOwner)->UpdateAcademy(pBuilding, true);
 
-		if (pType->SecretLab)
+		if (pType->SecretLab){
+			pOwner->SecretLabs.AddItem(pBuilding);
 			BuildingExtData::UpdateSecretLab(pBuilding);
+		}
 
 		pBuildingExt->LimboID = ID;
 		pBuildingExt->TechnoExt->Shield.release();
