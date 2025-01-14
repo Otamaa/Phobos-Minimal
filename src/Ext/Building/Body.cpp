@@ -75,6 +75,13 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 
 	for (size_t i = 0; i < size; ++i) {
 		auto Option = *(Data + i);
+
+		Debug::Log("Checking [%s - %s] option for [%s] \n" ,
+			Option->ID,
+			Option->GetThisClassName() ,
+			pOwner->Type->ID
+		);
+
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
 
 		if ((pExt->Secret_RequiredHouses & OwnerBits) && !(pExt->Secret_ForbiddenHouses & OwnerBits)) {

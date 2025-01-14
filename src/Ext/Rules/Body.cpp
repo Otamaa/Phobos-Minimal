@@ -289,6 +289,7 @@ static constexpr void FillSecrets(DynamicVectorClass<T>& secrets) {
 
 	for(auto Option : secrets){
 		RulesExtData::Instance()->Secrets.emplace_back(Option);
+		Debug::Log("Adding [%s - %s] onto Global Secrets pool\n" , Option->ID, Option->GetThisClassName());
 	}
 }
 
