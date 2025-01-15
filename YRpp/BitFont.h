@@ -5,7 +5,7 @@
 class NOVTABLE BitFont
 {
 public:
-	static constexpr reference<BitFont*, 0x89C4D0> Instance {};
+	static COMPILETIMEEVAL reference<BitFont*, 0x89C4D0> Instance {};
 
 private:
 	BitFont(const char* pFileName) { JMP_THIS(0x433880); }
@@ -19,7 +19,7 @@ public:
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }
 	unsigned char* GetCharacterBitmap(wchar_t wch) { JMP_THIS(0x4346C0); }
 
-	constexpr FORCEINLINE void SetBounds(LTRBStruct* pBound)
+	COMPILETIMEEVAL FORCEDINLINE void SetBounds(LTRBStruct* pBound)
 	{
 		if (pBound)
 			this->Bounds = *pBound;
@@ -27,7 +27,7 @@ public:
 			this->Bounds = { 0,0,0,0 };
 	}
 
-	constexpr FORCEINLINE void SetBounds_Rect(RectangleStruct* pBound)
+	COMPILETIMEEVAL FORCEDINLINE void SetBounds_Rect(RectangleStruct* pBound)
 	{
 		if (pBound)
 		{
@@ -38,17 +38,17 @@ public:
 			this->Bounds = { 0,0,0,0 };
 	}
 
-	constexpr FORCEINLINE void SetColor(WORD nColor)
+	COMPILETIMEEVAL FORCEDINLINE void SetColor(WORD nColor)
 	{
 		this->Color = nColor;
 	}
 
-	constexpr FORCEINLINE void SetField20(int x)
+	COMPILETIMEEVAL FORCEDINLINE void SetField20(int x)
 	{
 		this->field_20 = x;
 	}
 
-	constexpr FORCEINLINE void SetField41(char flag)
+	COMPILETIMEEVAL FORCEDINLINE void SetField41(char flag)
 	{
 		this->field_41 = flag;
 	}

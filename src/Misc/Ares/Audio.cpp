@@ -55,12 +55,12 @@ public:
 		return -1;
 	}
 
-	static constexpr void AllocateNoCheck(const char* Title)
+	static COMPILETIMEEVAL void AllocateNoCheck(const char* Title)
 	{
 		Array.emplace_back(Title);
 	}
 
-	static inline LooseAudioCache* Find(int idx)
+	static OPTIONALINLINE LooseAudioCache* Find(int idx)
 	{
 		if ((size_t)idx > Array.size())
 			Debug::FatalErrorAndExit("Trying To Get LoseAudioCache with Index [%d] but the array size is only [%d]\n", idx , Array.size());
@@ -114,7 +114,7 @@ public:
 		WavName += ".wav";
 	}
 
-	constexpr ~LooseAudioCache() = default;
+	COMPILETIMEEVAL ~LooseAudioCache() = default;
 private:
 	std::string Name;
 	std::string WavName;
@@ -134,12 +134,12 @@ public:
 
 	class AudioBag
 	{
-		constexpr AudioBag(const AudioBag&) = delete;
-		constexpr AudioBag& operator=(const AudioBag& other) = delete;
+		COMPILETIMEEVAL AudioBag(const AudioBag&) = delete;
+		COMPILETIMEEVAL AudioBag& operator=(const AudioBag& other) = delete;
 	public:
 
-		constexpr AudioBag() = default;
-		constexpr ~AudioBag() = default;
+		COMPILETIMEEVAL AudioBag() = default;
+		COMPILETIMEEVAL ~AudioBag() = default;
 
 		explicit AudioBag(const char* pFilename) : AudioBag() {
 			this->Open(pFilename);
@@ -180,8 +180,8 @@ public:
 						{
 							this->Entries.resize(headerIndex.numSamples, {});
 
-							constexpr size_t const IdxEntrysize = sizeof(AudioIDXEntry);
-							constexpr size_t const readBytes = IdxEntrysize - 4;
+							COMPILETIMEEVAL size_t const IdxEntrysize = sizeof(AudioIDXEntry);
+							COMPILETIMEEVAL size_t const readBytes = IdxEntrysize - 4;
 
 							if (headerIndex.Magic == 1)
 							{
@@ -283,11 +283,11 @@ public:
 		return Indexes;
 	}
 
-	constexpr void Append(const char* pFileBase) {
+	COMPILETIMEEVAL void Append(const char* pFileBase) {
 		this->Bags.emplace_back(pFileBase);
 	}
 
-	constexpr bool GetFileStruct(FileStruct& file , int idx , AudioIDXEntry*& sample) {
+	COMPILETIMEEVAL bool GetFileStruct(FileStruct& file , int idx , AudioIDXEntry*& sample) {
 
 		if (size_t(idx) < this->Files.size()) {
 			sample = &AudioIDXData::Instance->Samples[idx];
@@ -298,13 +298,13 @@ public:
 		return false;
 	}
 
-	constexpr CCFileClass* GetFileFromIndex(int idx)
+	COMPILETIMEEVAL CCFileClass* GetFileFromIndex(int idx)
 	{
 		return size_t(idx) < Files.size() ?
 			this->Files[idx].second : nullptr;
 	}
 
-	constexpr size_t TotalSampleSizes() const {
+	COMPILETIMEEVAL size_t TotalSampleSizes() const {
 		return this->Files.size();
 	}
 

@@ -17,7 +17,7 @@ class DECLSPEC_UUID("34ECD9A8-0AB0-11D2-ACA7-006008055BB5")
 public:
 	static const AbstractType AbsID = AbstractType::Factory;
 
-	static constexpr constant_ptr<DynamicVectorClass<FactoryClass*>, 0xA83E30u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<FactoryClass*>, 0xA83E30u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

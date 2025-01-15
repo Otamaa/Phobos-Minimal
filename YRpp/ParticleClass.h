@@ -15,15 +15,15 @@ class DECLSPEC_UUID("0E272DCC-9C0F-11D1-B709-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Particle;
-	static constexpr inline DWORD vtable = 0x7EF954;
-	static constexpr reference<int, 0x8366A4u, (size_t)FacingType::Count> const GasWind_X {};
-	static constexpr reference<int, 0x8366C4u, (size_t)FacingType::Count> const GasWind_Y {};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7EF954;
+	static COMPILETIMEEVAL reference<int, 0x8366A4u, (size_t)FacingType::Count> const GasWind_X {};
+	static COMPILETIMEEVAL reference<int, 0x8366C4u, (size_t)FacingType::Count> const GasWind_Y {};
 
-	static constexpr reference<int, 0x836664u, (size_t)FacingType::Count> const SmokeWind_X {};
-	static constexpr reference<int, 0x836684u, (size_t)FacingType::Count> const SmokeWind_Y {};
+	static COMPILETIMEEVAL reference<int, 0x836664u, (size_t)FacingType::Count> const SmokeWind_X {};
+	static COMPILETIMEEVAL reference<int, 0x836684u, (size_t)FacingType::Count> const SmokeWind_Y {};
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<ParticleClass*>, 0xA83DC8u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ParticleClass*>, 0xA83DC8u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x62D930);

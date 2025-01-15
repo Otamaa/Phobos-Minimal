@@ -194,7 +194,7 @@ struct BulletAttachType
 	};
 	static std::array<Resource, 5u> Resources;
 
-	static constexpr std::array<std::pair<Types, const char*>, 6u> to_strings {
+	static COMPILETIMEEVAL std::array<std::pair<Types, const char*>, 6u> to_strings {
 	{
 		{ Types::none , "none" } ,
 		{ Types::flash , "flash" } ,

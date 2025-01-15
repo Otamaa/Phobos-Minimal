@@ -234,7 +234,7 @@ namespace BriefingTemp
 {
 	bool ShowBriefing = false;
 }
-FORCEINLINE void ShowBriefing()
+FORCEDINLINE void ShowBriefing()
 {
 	if (BriefingTemp::ShowBriefing)
 	{

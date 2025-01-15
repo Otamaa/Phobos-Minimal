@@ -15,10 +15,10 @@ class DECLSPEC_UUID("5AF2CE79-0634-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::OverlayType;
-	static constexpr inline DWORD vtable = 0x7EF600;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7EF600;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<OverlayTypeClass*>, 0xA83D80u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<OverlayTypeClass*>, 0xA83D80u> const Array {};
 
 	IMPL_Find(OverlayTypeClass)
 

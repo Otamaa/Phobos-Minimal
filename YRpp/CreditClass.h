@@ -4,7 +4,7 @@
 
 class CreditClass
 {
-	static constexpr reference<int, 0x89F95Cu> const LastUpdateFrame {};
+	static COMPILETIMEEVAL reference<int, 0x89F95Cu> const LastUpdateFrame {};
 
 	void DrawIt(bool bForced) const {
 		JMP_THIS(0x4A2370);

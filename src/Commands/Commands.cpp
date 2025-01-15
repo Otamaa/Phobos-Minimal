@@ -33,7 +33,7 @@
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 
 template <typename T>
-FORCEINLINE T* Make()
+FORCEDINLINE T* Make()
 {
 	T* command = GameCreate<T>();
 	CommandClass::Array->AddItem(command);

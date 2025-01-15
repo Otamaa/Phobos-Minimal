@@ -12,7 +12,7 @@ class RadTypeClass;
 class RadSiteExtData final
 {
 public:
-	static constexpr size_t Canary = 0x87654321;
+	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
 
 	base_type* AttachedToObject {};
@@ -43,7 +43,7 @@ public:
 	const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
 	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(RadSiteExtData) -
 			(4u //AttachedToObject

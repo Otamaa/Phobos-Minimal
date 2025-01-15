@@ -22,8 +22,8 @@ class DECLSPEC_UUID("0E272DC2-9C0F-11D1-B709-00A024DDAFD1")
 public:
 	//Static
 	static const AbstractType AbsID = AbstractType::Aircraft;
-	static constexpr constant_ptr<DynamicVectorClass<AircraftClass*>, 0xA8E390u> const Array{};
-	static constexpr inline DWORD vtable = 0x7E22A4;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AircraftClass*>, 0xA8E390u> const Array{};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E22A4;
 
 	static void __fastcall Read_INI(CCINIClass& ini) JMP_STD(0x41B110);
 	static void __fastcall Write_INI(CCINIClass& ini) JMP_STD(0x41AF80);

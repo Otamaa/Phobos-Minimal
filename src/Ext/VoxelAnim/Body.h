@@ -13,9 +13,9 @@ class VoxelAnimTypeExtData;
 class VoxelAnimExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAAACAACC;
+	static COMPILETIMEEVAL size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
-	static constexpr size_t ExtOffset = 0x144;
+	static COMPILETIMEEVAL size_t ExtOffset = 0x144;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -31,7 +31,7 @@ public:
 
 	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(VoxelAnimExtData) -
 			(4u //AttachedToObject
@@ -49,7 +49,7 @@ public:
 class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
-	inline static std::vector<VoxelAnimExtData*> Pool;
+	OPTIONALINLINE static std::vector<VoxelAnimExtData*> Pool;
 	static VoxelAnimExtContainer Instance;
 
 	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)

@@ -30,7 +30,7 @@ public:
 	static const AbstractType AbsID = AbstractType::TaskForce;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<TaskForceClass*>, 0xA8E8D0u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TaskForceClass*>, 0xA8E8D0u> const Array {};
 
 	IMPL_Find(TaskForceClass)
 	IMPL_FindByName(TaskForceClass)

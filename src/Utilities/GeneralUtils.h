@@ -40,7 +40,7 @@ public:
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 
-	static constexpr bool is_number(const std::string& s)
+	static COMPILETIMEEVAL bool is_number(const std::string& s)
 	{
 		return !s.empty() && std::find_if(s.begin(),
 			s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
@@ -48,7 +48,7 @@ public:
 
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
 	// Code is pulled straight from game's draw functions that deal with the tint colors.
-	static constexpr inline int GetColorFromColorAdd(int colorIndex)
+	static COMPILETIMEEVAL OPTIONALINLINE int GetColorFromColorAdd(int colorIndex)
 	{
 		auto const& colorAdd = RulesClass::Instance->ColorAdd;
 		int colorValue = 0;
@@ -59,7 +59,7 @@ public:
 		return GetColorFromColorAdd(colorAdd[colorIndex]);
 	}
 
-	static constexpr inline void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
+	static COMPILETIMEEVAL OPTIONALINLINE void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
 	{
 		if (bRandom)
 			Idx = ScenarioClass::Instance->Random.RandomFromMax(count - 1);
@@ -72,7 +72,7 @@ public:
 		}
 	}
 
-	static constexpr inline int GetColorFromColorAdd(ColorStruct const& colors)
+	static COMPILETIMEEVAL OPTIONALINLINE int GetColorFromColorAdd(ColorStruct const& colors)
 	{
 		int colorValue = 0;
 		int red = colors.R;
@@ -90,12 +90,12 @@ public:
 		return colorValue;
 	}
 
-	static constexpr inline bool IsOperator(char c)
+	static COMPILETIMEEVAL OPTIONALINLINE bool IsOperator(char c)
 	{
 		return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
 	}
 
-	static constexpr inline  bool OperatorPriorityGreaterThan(char opa, char opb)
+	static COMPILETIMEEVAL OPTIONALINLINE  bool OperatorPriorityGreaterThan(char opa, char opb)
 	{
 		if (opb == '(' || opb == ')')
 			return false;
@@ -112,7 +112,7 @@ public:
 		return false;
 	}
 
-	static constexpr int GetValue(int a1)
+	static COMPILETIMEEVAL int GetValue(int a1)
 	{
 		int result = 0;
 
@@ -130,7 +130,7 @@ public:
 		return result;
 	}
 
-	static constexpr void CalculateShakeVal(int& pShakeVal, int nInput , bool Alternate = true)
+	static COMPILETIMEEVAL void CalculateShakeVal(int& pShakeVal, int nInput , bool Alternate = true)
 	{
 		if (!Alternate) {
 			pShakeVal = nInput;
@@ -158,7 +158,7 @@ public:
 		pShakeVal = v6;
 	}
 
-	static constexpr std::string IntToDigits(int num)
+	static COMPILETIMEEVAL std::string IntToDigits(int num)
 	{
 		std::string sDigits;
 
@@ -178,14 +178,14 @@ public:
 		return sDigits;
 	}
 
-	static constexpr inline const int GetRangedRandomOrSingleValue(const Point2D& range)
+	static COMPILETIMEEVAL OPTIONALINLINE const int GetRangedRandomOrSingleValue(const Point2D& range)
 	{
 		return range.X >= range.Y ?
 			range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
 
 	template<typename T>
-	static constexpr inline int GetRandomValue(Vector2D<T> range, int defVal)
+	static COMPILETIMEEVAL OPTIONALINLINE int GetRandomValue(Vector2D<T> range, int defVal)
 	{
 		int min = static_cast<int>(range.X);
 		int max = static_cast<int>(range.Y);
@@ -202,7 +202,7 @@ public:
 		return defVal;
 	}
 
-	static constexpr inline CoordStruct GetRandomOffset(int min, int max)
+	static COMPILETIMEEVAL OPTIONALINLINE CoordStruct GetRandomOffset(int min, int max)
 	{
 		double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 		if (r > 0)
@@ -214,14 +214,14 @@ public:
 		return CoordStruct::Empty;
 	}
 
-	static constexpr inline CoordStruct GetRandomOffset(double maxSpread, double minSpread)
+	static COMPILETIMEEVAL OPTIONALINLINE CoordStruct GetRandomOffset(double maxSpread, double minSpread)
 	{
 		int min = static_cast<int>((minSpread <= 0 ? 0 : minSpread) * 256);
 		int max = static_cast<int>((maxSpread > 0 ? maxSpread : 1) * 256);
 		return GetRandomOffset(min, max);
 	}
 
-	static constexpr inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
+	static COMPILETIMEEVAL OPTIONALINLINE double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
 	{
 		int min = static_cast<int>(range.X * 100);
 		int max = static_cast<int>(range.Y * 100);
@@ -229,7 +229,7 @@ public:
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : (ScenarioClass::Instance->Random.RandomRanged(min, max) / 100.0);
 	}
 
-	static constexpr inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
+	static COMPILETIMEEVAL OPTIONALINLINE int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
 	{
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
@@ -239,7 +239,7 @@ public:
 	// Weighted random element choice (weight) - roll for one.
 	// Takes a vector of integer type weights, which are then summed to calculate the chances.
 	// Returns chosen index or -1 if nothing is chosen.
-	static inline constexpr int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
+	static OPTIONALINLINE COMPILETIMEEVAL int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
 	{
 		float sum = 0.0;
 		float sum2 = 0.0;
@@ -256,7 +256,7 @@ public:
 		return -1;
 	}
 
-	static constexpr inline PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
+	static COMPILETIMEEVAL OPTIONALINLINE PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
 	{
 		const int weightCount = weights.size();
 		PhobosMap<Point2D, int> targetPad {};
@@ -282,7 +282,7 @@ public:
 		return targetPad;
 	}
 
-	static constexpr inline int Hit(PhobosMap<Point2D, int>& targetPad, int maxValue)
+	static COMPILETIMEEVAL OPTIONALINLINE int Hit(PhobosMap<Point2D, int>& targetPad, int maxValue)
 	{
 		int index = 0;
 		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
@@ -298,7 +298,7 @@ public:
 		return index;
 	}
 
-	static constexpr inline bool Bingo(double chance)
+	static COMPILETIMEEVAL OPTIONALINLINE bool Bingo(double chance)
 	{
 		if (chance > 0)
 		{
@@ -307,7 +307,7 @@ public:
 		return false;
 	}
 
-	static constexpr inline bool Bingo(std::vector<double>& chances, int index)
+	static COMPILETIMEEVAL OPTIONALINLINE bool Bingo(std::vector<double>& chances, int index)
 	{
 		int size = chances.size();
 		if (size < index + 1)
@@ -319,7 +319,7 @@ public:
 	}
 
 	// Direct multiplication pow
-	static constexpr inline double FastPow(double x, double n)
+	static COMPILETIMEEVAL OPTIONALINLINE double FastPow(double x, double n)
 	{
 		double r = 1.0;
 
@@ -333,7 +333,7 @@ public:
 	}
 
 	// 2nd order Pade approximant just in case someone complains about performance
-	static constexpr inline double Pade2_2(double in)
+	static COMPILETIMEEVAL OPTIONALINLINE double Pade2_2(double in)
 	{
 		const double s = in - static_cast<int>(in);
 		return GeneralUtils::FastPow(0.36787944117144233, static_cast<int>(in))
@@ -341,7 +341,7 @@ public:
 	}
 
 	template<typename T>
-	static constexpr inline T SecsomeFastPow(T x, size_t n)
+	static COMPILETIMEEVAL OPTIONALINLINE T SecsomeFastPow(T x, size_t n)
 	{
 		// Real fast pow calc x^n in O(log(n))
 		T result = 1;
@@ -356,7 +356,7 @@ public:
 	}
 
 	// Checks if health ratio has changed threshold (Healthy/ConditionYellow/Red).
-	static constexpr inline bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
+	static COMPILETIMEEVAL OPTIONALINLINE bool HasHealthRatioThresholdChanged(double const& oldRatio, double const& newRatio)
 	{
 		if (oldRatio == newRatio)
 			return false;
@@ -413,7 +413,7 @@ public:
 		return nullptr;
 	}
 
-	static inline constexpr ColorStruct HSV2RGB(int h, int s, int v)
+	static OPTIONALINLINE COMPILETIMEEVAL ColorStruct HSV2RGB(int h, int s, int v)
 	{
 		float R = 0.0f, G = 0.0f, B = 0.0f;
 		float C = 0, X = 0, Y = 0, Z = 0;
@@ -448,7 +448,7 @@ public:
 
 	static const char* GetLocomotionName(const CLSID& clsid);
 
-	static int constexpr CountDigitsInNumber(int number)
+	static int COMPILETIMEEVAL CountDigitsInNumber(int number)
 	{
 		int digits = 0;
 
@@ -476,7 +476,7 @@ public:
 	}
 
 	template <typename T>
-	static constexpr void shuffleVector(std::vector<T>& items)
+	static COMPILETIMEEVAL void shuffleVector(std::vector<T>& items)
 	{
 		std::shuffle(items.begin(), items.end(), ScenarioClass::Instance->Random.Random());
 	}
@@ -486,7 +486,7 @@ public:
 	static const int GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize);
 	static AnimTypeClass* GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter);
 
-	static inline constexpr int ScaleF2I(float value, int scale)
+	static OPTIONALINLINE COMPILETIMEEVAL int ScaleF2I(float value, int scale)
 	{
 		value = std::clamp(value, 0.0f, 1.0f);
 		return static_cast<int>(value * scale);
@@ -514,20 +514,20 @@ public:
 		return DirStruct(theta);
 	}
 
-	static inline constexpr Leptons PixelToLeptons(int pixel)
+	static OPTIONALINLINE COMPILETIMEEVAL Leptons PixelToLeptons(int pixel)
 	{ return Leptons((((pixel * 256) + (60 / 2) - ((pixel < 0) ? (60 - 1) : 0)) / 60)); }
 
-	static inline constexpr Leptons DistanceToLeptons(int distance)
+	static OPTIONALINLINE COMPILETIMEEVAL Leptons DistanceToLeptons(int distance)
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values
-	static FORCEINLINE bool cmpf(float A, float B, float epsilon = 0.005f)
+	static FORCEDINLINE bool cmpf(float A, float B, float epsilon = 0.005f)
 	{
 		return (fabs(A - B) < epsilon);
 	}
 
 	template <typename T>
-	static constexpr void Shuffle(std::vector<T>& items)
+	static COMPILETIMEEVAL void Shuffle(std::vector<T>& items)
 	{
 		if (items.size() <= 1)
 			return;
@@ -542,7 +542,7 @@ public:
 	}
 
 	template<bool UseCriticalRandomNumber = true>
-	static constexpr int GetRandomValue(const Point2D point, int defVal)
+	static COMPILETIMEEVAL int GetRandomValue(const Point2D point, int defVal)
 	{
 		int min = point.X;
 		int max = point.Y;
@@ -555,7 +555,7 @@ public:
 
 		if (max > 0)
 		{
-			if constexpr (UseCriticalRandomNumber)
+			if COMPILETIMEEVAL (UseCriticalRandomNumber)
 				return ScenarioClass::Instance->Random.RandomRanged(min, max);
 			else
 				return Random2Class::NonCriticalRandomNumber->RandomRanged(min, max);
@@ -565,7 +565,7 @@ public:
 	}
 
 	template<typename T>
-	static inline constexpr T GetItemByHealthRatio(double ratio, T green , T yellow , T red) {
+	static OPTIONALINLINE COMPILETIMEEVAL T GetItemByHealthRatio(double ratio, T green , T yellow , T red) {
 
 		if (ratio <= RulesClass::Instance->ConditionRed)
 			return red;
@@ -575,7 +575,7 @@ public:
 		return green;
 	}
 
-	static constexpr CoordStruct CoordinatesFromCell(const CellStruct& cell, bool snap = false, int zValue = 0) {
+	static COMPILETIMEEVAL CoordStruct CoordinatesFromCell(const CellStruct& cell, bool snap = false, int zValue = 0) {
 		CoordStruct tmp { cell.X * 256, cell.Y * 256, zValue };
 		if (snap) {
 			tmp.X += 256 / 2;
@@ -584,13 +584,13 @@ public:
 		return tmp;
 	}
 
-	static constexpr CellStruct CellFromCoordinates(const CoordStruct& coord) {
+	static COMPILETIMEEVAL CellStruct CellFromCoordinates(const CoordStruct& coord) {
 		return { short(coord.X / 256) , short(coord.Y / 256) };
 	}
 
 	// Zero out a non-array pointer.
 	template <typename T>
-	static inline void
+	static OPTIONALINLINE void
 		MemsetZero(T* t)
 	{
 		std::memset(t, 0, sizeof(*t));
@@ -598,18 +598,18 @@ public:
 
 	template <typename T>
 	struct cast_to_pointer {
-		static inline constexpr void* cast(const T& t) {
+		static OPTIONALINLINE COMPILETIMEEVAL void* cast(const T& t) {
 			return reinterpret_cast<void*>((uintptr_t)t);
 		}
 	};
 
 	template <typename T>
 	struct cast_to_pointer<T*> {
-		static inline constexpr const void* cast(const T* ptr) {
+		static OPTIONALINLINE COMPILETIMEEVAL const void* cast(const T* ptr) {
 			return ptr;
 		}
 
-		static inline constexpr void* cast(T* ptr) {
+		static OPTIONALINLINE COMPILETIMEEVAL void* cast(T* ptr) {
 			return ptr;
 		}
 	};
@@ -627,7 +627,7 @@ public:
 	}
 
 	template <typename T> requires std::is_enum_v<T>
-	static constexpr bool Contains(T thisEnum, T thatEnum) {
+	static COMPILETIMEEVAL bool Contains(T thisEnum, T thatEnum) {
 		return (thisEnum & thatEnum) != T::None;
 	}
 };

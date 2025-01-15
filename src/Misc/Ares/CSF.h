@@ -12,16 +12,16 @@ public:
 		wchar_t Text[0x500];
 	};
 
-	static size_t constexpr MaxEntries = 320000u
+	static size_t COMPILETIMEEVAL MaxEntries = 320000u
 		;
 
-	inline static int CSFCount;
-	inline static int NextValueIndex;
+	OPTIONALINLINE static int CSFCount;
+	OPTIONALINLINE static int NextValueIndex;
 	struct Storages {
 		CSFString value {};
 		bool found { true };
 	};
-	inline static std::unordered_map<std::string, CSFString> DynamicStrings;
+	OPTIONALINLINE static std::unordered_map<std::string, CSFString> DynamicStrings;
 
 	static auto FindOrAllocateDynamicStrings(const char* val) {
 		return &DynamicStrings[val];

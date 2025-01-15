@@ -34,7 +34,7 @@ namespace BoltTemp
 	const WeaponTypeExtData* pType = nullptr;
 }
 
-inline unsigned inline_02(ConvertClass* pConvert , int idx)
+OPTIONALINLINE unsigned inline_02(ConvertClass* pConvert , int idx)
 {
 	switch (pConvert->BytesPerPixel)
 	{

@@ -61,7 +61,7 @@ public:
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::Root;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<AbstractTypeClass*>, 0xA8E968u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AbstractTypeClass*>, 0xA8E968u> const Array {};
 
 	IMPL_Find(AbstractTypeClass)
 	IMPL_FindByName(AbstractTypeClass)

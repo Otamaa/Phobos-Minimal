@@ -132,21 +132,21 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm);
 	void SaveToStream(PhobosStreamWriter& Stm);
 
-	static void constexpr inline AddDefaults() {
+	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);
 
-	constexpr inline double GetConditionYellow() {
+	COMPILETIMEEVAL OPTIONALINLINE double GetConditionYellow() {
 		return this->ConditionYellow.Get(RulesExtData::Instance()->Shield_ConditionYellow);
 	}
 
-	constexpr inline double GetConditionRed() {
+	COMPILETIMEEVAL OPTIONALINLINE double GetConditionRed() {
 		return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
 	}
 
-	constexpr inline bool HasTint() const {
+	COMPILETIMEEVAL OPTIONALINLINE bool HasTint() const {
 		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
 	}
 

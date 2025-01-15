@@ -9,9 +9,9 @@
 class InfantryExtData final
 {
 public:
-	static constexpr size_t Canary = 0xACCAAAAA;
+	static COMPILETIMEEVAL size_t Canary = 0xACCAAAAA;
 	using base_type = InfantryClass;
-	static constexpr size_t ExtOffset = 0x6EC;
+	static COMPILETIMEEVAL size_t ExtOffset = 0x6EC;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -25,7 +25,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(InfantryExtData) -
 			(4u //AttachedToObject
@@ -40,7 +40,7 @@ private:
 class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
-	inline static std::vector<InfantryExtData*> Pool;
+	OPTIONALINLINE static std::vector<InfantryExtData*> Pool;
 	static InfantryExtContainer Instance;
 
 	InfantryExtData* AllocateUnchecked(InfantryClass* key) {

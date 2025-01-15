@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransZRemapXlatAlphaZReadWrite)
 {
 public:
-	inline explicit BlitTransZRemapXlatAlphaZReadWrite(byte* remap, T* data, int shadecount) noexcept
+	OPTIONALINLINE explicit BlitTransZRemapXlatAlphaZReadWrite(byte* remap, T* data, int shadecount) noexcept
 	{
 		Remap = &remap;
 		PaletteData = data;

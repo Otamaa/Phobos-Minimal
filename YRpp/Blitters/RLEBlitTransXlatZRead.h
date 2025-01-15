@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransXlatZRead)
 {
 public:
-	inline explicit RLEBlitTransXlatZRead(T* data) noexcept
+	OPTIONALINLINE explicit RLEBlitTransXlatZRead(T* data) noexcept
 	{
 		PaletteData = data;
 	}

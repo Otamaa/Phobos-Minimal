@@ -228,7 +228,7 @@ class WeaponTypeClass;
 class WaveExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAABAAAAC;
+	static COMPILETIMEEVAL size_t Canary = 0xAABAAAAC;
 	using base_type = WaveClass;
 
 	base_type* AttachedToObject {};
@@ -263,7 +263,7 @@ public:
 	void InitWeaponData();
 	void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(WaveExtData) -
 			(4u //AttachedToObject
@@ -286,7 +286,7 @@ public:
 class WaveExtContainer final : public Container<WaveExtData>
 {
 public:
-	inline static std::vector<WaveExtData*> Pool;
+	OPTIONALINLINE static std::vector<WaveExtData*> Pool;
 	static WaveExtContainer Instance;
 
 	WaveExtData* AllocateUnchecked(WaveClass* key)

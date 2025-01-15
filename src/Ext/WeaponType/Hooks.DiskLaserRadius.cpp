@@ -4,7 +4,7 @@
 #include <DiskLaserClass.h>
 
 // Angles = [ Pi/180*int((i*360/16+270)%360) for i in range(0,16)]
-static constexpr double CosLUT[DiskLaserClass::DrawCoords.c_size()]
+static COMPILETIMEEVAL double CosLUT[DiskLaserClass::DrawCoords.c_size()]
 {
 	0, 0.37460659341591196, 0.7071067811865474, 0.9205048534524403,
 	1, 0.9271838545667874, 0.7071067811865476, 0.3907311284892737,
@@ -12,7 +12,7 @@ static constexpr double CosLUT[DiskLaserClass::DrawCoords.c_size()]
 	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892738
 };
 
-static constexpr double SinLUT[DiskLaserClass::DrawCoords.c_size()]
+static COMPILETIMEEVAL double SinLUT[DiskLaserClass::DrawCoords.c_size()]
 {
 	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892739,
 	0, 0.374606593415912, 0.7071067811865476, 0.9205048534524404,

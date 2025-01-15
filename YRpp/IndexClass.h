@@ -31,7 +31,7 @@ public:
 	~IndexClass(void);
 	using NodeType = NodeElement<TKey, TValue>;
 
-	constexpr bool AddIndex(TKey id, const TValue& data);
+	COMPILETIMEEVAL bool AddIndex(TKey id, const TValue& data);
 	bool AddIndex(TKey id, TValue&& data);
 	bool RemoveIndex(TKey id);
 	bool IsPresent(TKey id, bool Lowerbound = false) const;
@@ -40,7 +40,7 @@ public:
 	TValue& FetchIndex(TKey id);
 	void Clear();
 	bool Reverse(int nAmount);
-	inline void Sort();
+	OPTIONALINLINE void Sort();
 	static int __cdecl Comparator(void const* ptr, void const* ptr2);
 
 
@@ -142,7 +142,7 @@ bool IndexClass<TKey, TValue>::Reverse(int amount)
 }
 
 template<typename TKey, typename TValue>
-inline void IndexClass<TKey, TValue>::Sort()
+OPTIONALINLINE void IndexClass<TKey, TValue>::Sort()
 {
 	if (!IsSorted)
 	{
@@ -229,7 +229,7 @@ void IndexClass<TKey, TValue>::SetArchive(NodeType const* node)
 }
 
 template<typename TKey, typename TValue>
-constexpr bool IndexClass<TKey, TValue>::AddIndex(TKey id, const TValue& data)
+COMPILETIMEEVAL bool IndexClass<TKey, TValue>::AddIndex(TKey id, const TValue& data)
 {
 	if (this->IndexCount + 1 > this->IndexSize)
 		if (!this->IncreaseTableSize(this->IndexSize == 0 ? 10 : this->IndexSize))

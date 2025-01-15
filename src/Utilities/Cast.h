@@ -12,27 +12,27 @@ struct type_cast_impl
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
-	static constexpr bool IsTechnoType(const AbstractType key) noexcept
+	static COMPILETIMEEVAL bool IsTechnoType(const AbstractType key) noexcept
 	{
 		return ((type_cast_data::BytesData[(int)key] & 4) != 0);
 	}
 
-	static constexpr bool IsObjectType(const AbstractType key) noexcept
+	static COMPILETIMEEVAL bool IsObjectType(const AbstractType key) noexcept
 	{
 		return ((type_cast_data::BytesData[(int)key] & 2) != 0);
 	}
 
 	T operator()(const ObjectTypeClass* pAbstract) noexcept
 	{
-		if constexpr (Base::AbsID == AbstractType::Abstract)
+		if COMPILETIMEEVAL (Base::AbsID == AbstractType::Abstract)
 		{
-			if constexpr (Base::AbsTypeBase == AbstractBaseType::TechnoType)
+			if COMPILETIMEEVAL (Base::AbsTypeBase == AbstractBaseType::TechnoType)
 			{
 				return IsTechnoType(pAbstract->WhatAmI())
 					? static_cast<T>(pAbstract) : nullptr;
 			}
 			else
-			if constexpr (Base::AbsTypeBase == AbstractBaseType::ObjectType)
+			if COMPILETIMEEVAL (Base::AbsTypeBase == AbstractBaseType::ObjectType)
 			{
 				return IsObjectType(pAbstract->WhatAmI()) ? static_cast<T>(pAbstract) : nullptr;
 			} else {
@@ -46,14 +46,14 @@ struct type_cast_impl
 };
 
 template <typename T ,bool Check = true>
-inline T type_cast(ObjectTypeClass* pAbstract)
+OPTIONALINLINE T type_cast(ObjectTypeClass* pAbstract)
 {
 	using Base = std::remove_pointer_t<T>;
 	return const_cast<Base*>(type_cast<const Base*, Check>(static_cast<const ObjectTypeClass*>(pAbstract)));
 };
 
 template <typename T, bool Check = true>
-inline T type_cast(const ObjectTypeClass* pAbstract)
+OPTIONALINLINE T type_cast(const ObjectTypeClass* pAbstract)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
@@ -66,7 +66,7 @@ inline T type_cast(const ObjectTypeClass* pAbstract)
 	static_assert(!std::bool_constant<Base::AbsID == AbstractType::Abstract && Base::AbsTypeBase == AbstractBaseType::Root>::value,
 	"type_cast: T from AbstractTypeClass is unsupported.");
 
-	if constexpr (Check)
+	if COMPILETIMEEVAL (Check)
 		return pAbstract ? type_cast_impl<T>()(pAbstract) : nullptr;
 	else
 		return type_cast_impl<T>()(pAbstract);

@@ -18,10 +18,10 @@ struct RadarEventData
 class RadarEventClass
 {
 public:
-	static constexpr constant_ptr<DynamicVectorClass<RadarEventClass*>, 0xB04DA8u> const Array {};
-	static constexpr reference<RadarEventData ,0x7F0998u , 17u> const RadarEventInfo {};
-	static constexpr reference<CellStruct, 0xB04D48, 8u> const LastRadarEventCells {};
-	static constexpr reference<int , 0xB04DD8> const LastRadarEventIndex {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<RadarEventClass*>, 0xB04DA8u> const Array {};
+	static COMPILETIMEEVAL reference<RadarEventData ,0x7F0998u , 17u> const RadarEventInfo {};
+	static COMPILETIMEEVAL reference<CellStruct, 0xB04D48, 8u> const LastRadarEventCells {};
+	static COMPILETIMEEVAL reference<int , 0xB04DD8> const LastRadarEventIndex {};
 
 	static bool Create(RadarEventType nType, CellStruct nMapCoords)
 		{ PUSH_VAR32(nMapCoords); SET_REG32(ecx, nType); ASM_CALL(0x65FA70); }

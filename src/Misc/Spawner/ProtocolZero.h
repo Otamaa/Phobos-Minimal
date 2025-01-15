@@ -42,8 +42,8 @@ enum class LatencyLevelEnum : uint8_t
 class LatencyLevel
 {
 public:
-	inline static LatencyLevelEnum CurentLatencyLevel { LatencyLevelEnum::LATENCY_LEVEL_INITIAL };
-	inline static uint8_t NewFrameSendRate { 3 };
+	OPTIONALINLINE static LatencyLevelEnum CurentLatencyLevel { LatencyLevelEnum::LATENCY_LEVEL_INITIAL };
+	OPTIONALINLINE static uint8_t NewFrameSendRate { 3 };
 
 	static void Apply(LatencyLevelEnum newLatencyLevel);
 	static void __forceinline Apply(uint8_t newLatencyLevel)
@@ -51,7 +51,7 @@ public:
 		Apply(static_cast<LatencyLevelEnum>(newLatencyLevel));
 	}
 
-	static constexpr int maxAhead[]  = {
+	static COMPILETIMEEVAL int maxAhead[]  = {
 		/* 0 */ 1
 
 		/* 1 */ ,4
@@ -65,11 +65,11 @@ public:
 		/* 9 */ ,36
 	};
 
-	static FORCEINLINE constexpr int GetMaxAhead(LatencyLevelEnum latencyLevel) {
+	static FORCEDINLINE COMPILETIMEEVAL int GetMaxAhead(LatencyLevelEnum latencyLevel) {
 		return maxAhead[(int)latencyLevel];
 	}
 
-	static constexpr wchar_t* message[] = {
+	static COMPILETIMEEVAL wchar_t* message[] = {
 		/* 0 */ L"CnCNet: Latency mode set to: 0 - Initial" // Players should never see this, if it doesn't then it's a bug
 
 		/* 1 */ ,L"CnCNet: Latency mode set to: 1 - Best"
@@ -83,11 +83,11 @@ public:
 		/* 9 */ ,L"CnCNet: Latency mode set to: 9 - Default"
 	};
 
-	static FORCEINLINE constexpr wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel) {
+	static FORCEDINLINE COMPILETIMEEVAL wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel) {
 		return message[(int)latencyLevel];
 	}
 
-	static constexpr LatencyLevelEnum FromResponseTime(uint8_t rspTime)
+	static COMPILETIMEEVAL LatencyLevelEnum FromResponseTime(uint8_t rspTime)
 	{
 		for (auto i = LatencyLevelEnum::LATENCY_LEVEL_1; i < LatencyLevelEnum::LATENCY_LEVEL_MAX; i = static_cast<LatencyLevelEnum>(1 + static_cast<char>(i)))
 		{

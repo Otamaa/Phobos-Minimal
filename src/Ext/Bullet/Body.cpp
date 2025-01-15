@@ -291,15 +291,15 @@ void BulletExtData::CreateAttachedSystem()
 VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst)
 {
 	VelocityClass velocity { 100.0 ,0.0,0.0 };
-	//inline get Direction from 2 coords
+	//OPTIONALINLINE get Direction from 2 coords
 	CoordStruct const nCenter = pTarget->GetCoords();
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
 	double const nFirstMag = velocity.LengthXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = Math::sin(radians_fromXY);
 	double const cos_rad = Math::cos(radians_fromXY);
-	constexpr double nMult_Cos = gcem::cos(0.7853262558535721);
-	constexpr double nMult_Sin = gcem::sin(0.7853262558535721);
+	COMPILETIMEEVAL double nMult_Cos = gcem::cos(0.7853262558535721);
+	COMPILETIMEEVAL double nMult_Sin = gcem::sin(0.7853262558535721);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -835,7 +835,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 	}
 }
 
-constexpr bool TimerIsRunning(CDTimerClass& nTimer)
+COMPILETIMEEVAL bool TimerIsRunning(CDTimerClass& nTimer)
 {
 	const auto nStart = nTimer.StartTime;
 

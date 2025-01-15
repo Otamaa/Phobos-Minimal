@@ -6,7 +6,7 @@ class WWKeyboardClass
 {
 public:
 
-    static constexpr reference<WWKeyboardClass*, 0x87F770u> const Instance{};
+    static COMPILETIMEEVAL reference<WWKeyboardClass*, 0x87F770u> const Instance{};
 
     ~WWKeyboardClass() {};
 

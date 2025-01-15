@@ -142,7 +142,7 @@ DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0
 	return 0x719981;
 }
 
-//FORCEINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
+//FORCEDINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
 //{
 //	double scalex = linkedType->VoxelScaleX;
 //	double scaley = linkedType->VoxelScaleY;

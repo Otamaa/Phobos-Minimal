@@ -27,7 +27,7 @@ public:
 class NOVTABLE SwizzleManagerClass : public ISwizzle
 {
 public:
-	static constexpr reference<SwizzleManagerClass, 0xB0C110u> const Instance{};
+	static COMPILETIMEEVAL reference<SwizzleManagerClass, 0xB0C110u> const Instance{};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

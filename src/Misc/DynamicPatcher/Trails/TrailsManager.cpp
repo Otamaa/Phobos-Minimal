@@ -36,7 +36,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 		if (pType->Mode != TrailMode::NONE)
 		{
 			bool OnTurrent = false;
-			if constexpr (IsTechno) OnTurrent = pTrails.Onturrents;
+			if COMPILETIMEEVAL (IsTechno) OnTurrent = pTrails.Onturrents;
 
 			auto& pBackTrail = pExt->Trails.emplace_back(pType, pTrails.FLHs, OnTurrent);
 			pBackTrail.OnLandTypes = pTrails.OnLand;

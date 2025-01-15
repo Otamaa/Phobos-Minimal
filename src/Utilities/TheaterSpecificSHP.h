@@ -9,19 +9,19 @@ class INI_EX;
 class TheaterSpecificSHP
 {
 public:
-	constexpr TheaterSpecificSHP() noexcept = default;
+	COMPILETIMEEVAL TheaterSpecificSHP() noexcept = default;
 
-	constexpr TheaterSpecificSHP(SHPStruct* pSHP)
+	COMPILETIMEEVAL TheaterSpecificSHP(SHPStruct* pSHP)
 		: value { pSHP }
 	{
 	}
 
-	constexpr operator SHPStruct* ()
+	COMPILETIMEEVAL operator SHPStruct* ()
 	{
 		return this->value;
 	}
 
-	constexpr SHPStruct* GetSHP()
+	COMPILETIMEEVAL SHPStruct* GetSHP()
 	{
 		return *this;
 	}

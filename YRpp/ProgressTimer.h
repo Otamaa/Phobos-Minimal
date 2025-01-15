@@ -13,7 +13,7 @@
 class ProgressTimer
 {
 public:
-	constexpr ProgressTimer() = default;
+	COMPILETIMEEVAL ProgressTimer() = default;
 	ProgressTimer(const ProgressTimer&) = default;
 	ProgressTimer& operator = (const ProgressTimer&) = default;
 

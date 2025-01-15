@@ -51,25 +51,25 @@ public:
 		return *this;
 	}*/
 
-	constexpr bool IsEmpty() const {
+	COMPILETIMEEVAL bool IsEmpty() const {
 		return(*this) == RectangleStruct::Empty;
 	}
 
-	constexpr bool operator==(const RectangleStruct &that) const
+	COMPILETIMEEVAL bool operator==(const RectangleStruct &that) const
 	{
 		return (that.X == X) && (that.Width == Width)
 			&& (that.Y == Y) && (that.Height == Height);
 	}
 
-	constexpr bool operator!=(const RectangleStruct &that) const
+	COMPILETIMEEVAL bool operator!=(const RectangleStruct &that) const
 	{
 		return (that.X != X) && (that.Width != Width)
 			&& (that.Y != Y) && (that.Height != Height);
 	}
 
-	constexpr RectangleStruct &operator|=(const RectangleStruct &that) { *this = Union(*this, that); return *this; }
-	constexpr RectangleStruct &operator+=(const Point2D &point) { X += point.X; Y += point.Y; return *this; }
-	constexpr RectangleStruct &operator-=(const RectangleStruct &rect)
+	COMPILETIMEEVAL RectangleStruct &operator|=(const RectangleStruct &that) { *this = Union(*this, that); return *this; }
+	COMPILETIMEEVAL RectangleStruct &operator+=(const Point2D &point) { X += point.X; Y += point.Y; return *this; }
+	COMPILETIMEEVAL RectangleStruct &operator-=(const RectangleStruct &rect)
 	{
 		X -= rect.X;
 		Y -= rect.Y;
@@ -78,8 +78,8 @@ public:
 		return *this;
 	}
 
-	constexpr RectangleStruct &operator-=(const Point2D &point) { X -= point.X; Y -= point.Y; return *this; }
-	constexpr RectangleStruct &operator+=(const RectangleStruct &rect)
+	COMPILETIMEEVAL RectangleStruct &operator-=(const Point2D &point) { X -= point.X; Y -= point.Y; return *this; }
+	COMPILETIMEEVAL RectangleStruct &operator+=(const RectangleStruct &rect)
 	{
 		X += rect.X;
 		Y += rect.Y;
@@ -88,13 +88,13 @@ public:
 		return *this;
 	}
 
-	constexpr RectangleStruct &operator&=(const RectangleStruct &that)
+	COMPILETIMEEVAL RectangleStruct &operator&=(const RectangleStruct &that)
 	{
 		*this = Intersect(*this, that, nullptr, nullptr);
 		return *this;
 	}
 
-	constexpr RectangleStruct operator+(const Point2D &point)
+	COMPILETIMEEVAL RectangleStruct operator+(const Point2D &point)
 	{
 		RectangleStruct tmp = *this;
 		tmp.X = X + point.X;
@@ -102,7 +102,7 @@ public:
 		return tmp;
 	}
 
-	constexpr RectangleStruct operator-(const Point2D &point)
+	COMPILETIMEEVAL RectangleStruct operator-(const Point2D &point)
 	{
 		RectangleStruct tmp = *this;
 		tmp.X = X - point.X;
@@ -110,44 +110,44 @@ public:
 		return tmp;
 	}
 
-	constexpr RectangleStruct operator+(const RectangleStruct &that)
+	COMPILETIMEEVAL RectangleStruct operator+(const RectangleStruct &that)
 	{
 		RectangleStruct tmp = *this;
 		tmp += that;
 		return tmp;
 	}
 
-	constexpr RectangleStruct operator-(const RectangleStruct &that)
+	COMPILETIMEEVAL RectangleStruct operator-(const RectangleStruct &that)
 	{
 		RectangleStruct tmp = *this;
 		tmp -= that;
 		return tmp;
 	}
 
-	constexpr RectangleStruct Bias_To(const RectangleStruct& rect)
+	COMPILETIMEEVAL RectangleStruct Bias_To(const RectangleStruct& rect)
 	{
 		Point2D xy = Top_Left() + rect.Top_Left();
 		return { xy.X ,xy.Y , Width, Height };
 	}
 
-	constexpr FORCEINLINE  void Reset_Position() { X = 0; Y = 0; }
+	COMPILETIMEEVAL FORCEDINLINE  void Reset_Position() { X = 0; Y = 0; }
 
-	constexpr FORCEINLINE void Move(int x, int y) { X += x; Y += y; }
-	constexpr FORCEINLINE void Move(const Point2D &point) { X += point.X; Y += point.Y; }
+	COMPILETIMEEVAL FORCEDINLINE void Move(int x, int y) { X += x; Y += y; }
+	COMPILETIMEEVAL FORCEDINLINE void Move(const Point2D &point) { X += point.X; Y += point.Y; }
 
-	constexpr FORCEINLINE  int Size() const { return Width * Height; }
-	constexpr FORCEINLINE  bool IsValid() const { return Width > 0 && Height > 0; }
-	constexpr FORCEINLINE  bool IsWithin(const RectangleStruct &rect) const { return (rect.X >= X && rect.X < (X + Width)) && (rect.Width >= Y && rect.Width < (Y + Height)); }
-	constexpr FORCEINLINE  bool IsWithin(int x, int y) const { return (x >= X && x < (X + Width)) && (y >= Y && y < (Y + Height)); }
-	constexpr FORCEINLINE  bool IsWithin(const Point2D &point) const { return (point.X >= X && point.X < (X + Width)) && (point.Y >= Y && point.Y < (Y + Height)); }
+	COMPILETIMEEVAL FORCEDINLINE  int Size() const { return Width * Height; }
+	COMPILETIMEEVAL FORCEDINLINE  bool IsValid() const { return Width > 0 && Height > 0; }
+	COMPILETIMEEVAL FORCEDINLINE  bool IsWithin(const RectangleStruct &rect) const { return (rect.X >= X && rect.X < (X + Width)) && (rect.Width >= Y && rect.Width < (Y + Height)); }
+	COMPILETIMEEVAL FORCEDINLINE  bool IsWithin(int x, int y) const { return (x >= X && x < (X + Width)) && (y >= Y && y < (Y + Height)); }
+	COMPILETIMEEVAL FORCEDINLINE  bool IsWithin(const Point2D &point) const { return (point.X >= X && point.X < (X + Width)) && (point.Y >= Y && point.Y < (Y + Height)); }
 
 	const RectangleStruct IntersectWith(const RectangleStruct &rectangle, int *x = nullptr, int *y = nullptr) { return Intersect(*this, rectangle, x, y); }
 
-	constexpr FORCEINLINE bool CanIntersectsWith(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
+	COMPILETIMEEVAL FORCEDINLINE bool CanIntersectsWith(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
 
-	constexpr FORCEINLINE  RectangleStruct InvalidRect() { return {0, 0, 0, 0}; }
+	COMPILETIMEEVAL FORCEDINLINE  RectangleStruct InvalidRect() { return {0, 0, 0, 0}; }
 
-	constexpr FORCEINLINE bool IsOverlapping(const RectangleStruct &rect)
+	COMPILETIMEEVAL FORCEDINLINE bool IsOverlapping(const RectangleStruct &rect)
 	{
 		return X < rect.X + rect.Width
 			&& Y < rect.Y + rect.Height
@@ -155,7 +155,7 @@ public:
 			&& Y + Height > rect.Y;
 	}
 
-	constexpr FORCEINLINE void Inflate(int w, int h, bool adjust_xy = false)
+	COMPILETIMEEVAL FORCEDINLINE void Inflate(int w, int h, bool adjust_xy = false)
 	{
 		if (adjust_xy)
 		{
@@ -166,23 +166,23 @@ public:
 		Height += h;
 	}
 
-	constexpr FORCEINLINE  Point2D Center_Point() const { return { X + (Width / 2), Y + (Height / 2) }; }
-	constexpr FORCEINLINE  Point2D Top_Left() const { return { X, Y }; }
-	constexpr FORCEINLINE  Point2D Top_Right() const { return { X + Width, Y }; }
-	constexpr FORCEINLINE  Point2D Bottom_Left() const { return { X, Y + Height }; }
-	constexpr FORCEINLINE  Point2D Bottom_Right() const { return { X + Width, Y + Height }; }
-	constexpr FORCEINLINE  Point2D Top_Center() const { return { (X + Width) / 2, Y }; }
-	constexpr FORCEINLINE  Point2D Bottom_Center() const { return { (X + Width) / 2, Height }; }
-	constexpr FORCEINLINE  Point2D Left_Center() const { return { X, (Y + Height) / 2 }; }
-	constexpr FORCEINLINE  Point2D Center_Right() const { return { Width, (Y + Height) / 2 }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Center_Point() const { return { X + (Width / 2), Y + (Height / 2) }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Top_Left() const { return { X, Y }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Top_Right() const { return { X + Width, Y }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Bottom_Left() const { return { X, Y + Height }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Bottom_Right() const { return { X + Width, Y + Height }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Top_Center() const { return { (X + Width) / 2, Y }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Bottom_Center() const { return { (X + Width) / 2, Height }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Left_Center() const { return { X, (Y + Height) / 2 }; }
+	COMPILETIMEEVAL FORCEDINLINE  Point2D Center_Right() const { return { Width, (Y + Height) / 2 }; }
 
-	constexpr int& operator[](int i) { return (&X)[i]; }
-	constexpr const int& operator[](int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL int& operator[](int i) { return (&X)[i]; }
+	COMPILETIMEEVAL const int& operator[](int i) const { return (&X)[i]; }
 
-	constexpr FORCEINLINE int& At(int i) { return (&X)[i]; }
-	constexpr FORCEINLINE const int& At(int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL FORCEDINLINE int& At(int i) { return (&X)[i]; }
+	COMPILETIMEEVAL FORCEDINLINE const int& At(int i) const { return (&X)[i]; }
 
-	static constexpr FORCEINLINE const RectangleStruct Union(const RectangleStruct &rect1, const RectangleStruct &rect2)
+	static COMPILETIMEEVAL FORCEDINLINE const RectangleStruct Union(const RectangleStruct &rect1, const RectangleStruct &rect2)
 	{
 		RectangleStruct r = rect1;
 
@@ -203,7 +203,7 @@ public:
 		return r;
 	}
 
-	static constexpr FORCEINLINE const RectangleStruct Intersect(const RectangleStruct &rect1, const RectangleStruct &rect2, int *x, int *y)
+	static COMPILETIMEEVAL FORCEDINLINE const RectangleStruct Intersect(const RectangleStruct &rect1, const RectangleStruct &rect2, int *x, int *y)
 	{
 		RectangleStruct r = rect2;
 

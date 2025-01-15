@@ -41,24 +41,24 @@ class TemporalClass;
 class TeamClass;
 struct VeterancyStruct
 {
-	constexpr VeterancyStruct() = default;
-	constexpr ~VeterancyStruct() = default;
+	COMPILETIMEEVAL VeterancyStruct() = default;
+	COMPILETIMEEVAL ~VeterancyStruct() = default;
 
 	explicit VeterancyStruct(double value) noexcept {
 		this->Add(value);
 	}
 
-	constexpr FORCEINLINE void Add(int ownerCost, int victimCost) noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void Add(int ownerCost, int victimCost) noexcept {
 		this->Add(static_cast<double>(victimCost)
 			/ (ownerCost * RulesClass::Instance->VeteranRatio));
 	}
 
-	constexpr FORCEINLINE void Add(double value) noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void Add(double value) noexcept {
 		float val = (float)(this->Veterancy + value);
 		this->Veterancy = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
 	}
 
-	constexpr FORCEINLINE Rank GetRemainingLevel() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE Rank GetRemainingLevel() const noexcept {
 		if(this->Veterancy >= 2.0f) {
 			return Rank::Elite;
 		}
@@ -70,7 +70,7 @@ struct VeterancyStruct
 		return Rank::Rookie;
 	}
 
-	constexpr FORCEINLINE Rank AddAndGetRank(double value)noexcept
+	COMPILETIMEEVAL FORCEDINLINE Rank AddAndGetRank(double value)noexcept
 	{
 		float val = (float)(this->Veterancy + value);
 		float result = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
@@ -87,39 +87,39 @@ struct VeterancyStruct
 		return Rank::Rookie;
 	}
 
-	constexpr FORCEINLINE bool IsNegative() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE bool IsNegative() const noexcept {
 		return this->Veterancy < 0.0f;
 	}
 
-	constexpr FORCEINLINE bool IsRookie() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE bool IsRookie() const noexcept {
 		return this->Veterancy >= 0.0f && this->Veterancy < 1.0f;
 	}
 
-	constexpr FORCEINLINE bool IsVeteran() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE bool IsVeteran() const noexcept {
 		return this->Veterancy >= 1.0f && this->Veterancy < 2.0f;
 	}
 
-	constexpr FORCEINLINE bool IsElite() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE bool IsElite() const noexcept {
 		return this->Veterancy >= 2.0f;
 	}
 
-	constexpr FORCEINLINE void Reset() noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void Reset() noexcept {
 		this->Veterancy = 0.0f;
 	}
 
-	constexpr FORCEINLINE void SetRookie() noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void SetRookie() noexcept {
 		this->Veterancy = -0.25f;
 	}
 
-	constexpr FORCEINLINE void SetVeteran() noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void SetVeteran() noexcept {
 		this->Veterancy = 1.0f;
 	}
 
-	constexpr FORCEINLINE void SetElite() noexcept {
+	COMPILETIMEEVAL FORCEDINLINE void SetElite() noexcept {
 		this->Veterancy = 2.0f;
 	}
 
-	constexpr FORCEINLINE void SetRank(Rank rank)
+	COMPILETIMEEVAL FORCEDINLINE void SetRank(Rank rank)
 	{
 		switch (rank)
 		{
@@ -216,7 +216,7 @@ public:
 
 	static const auto AbsDerivateID = AbstractFlags::Techno;
 
-	static constexpr constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x70BF50);
@@ -507,7 +507,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void SetCurrentWeaponStage(int idx)
 		{ JMP_THIS(0x70DDD0); }
 
-	constexpr FORCEINLINE void SetArchiveTarget(AbstractClass* pFocus) { //JMP_THIS(0x70C610);
+	COMPILETIMEEVAL FORCEDINLINE void SetArchiveTarget(AbstractClass* pFocus) { //JMP_THIS(0x70C610);
 		this->ArchiveTarget = pFocus;
 	}
 
@@ -574,7 +574,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		return ret;
 	}
 
-	FORCEINLINE FacingClass F_TurretFacing()
+	FORCEDINLINE FacingClass F_TurretFacing()
 	{
 		FacingClass ret;
 		typedef FacingClass*(__thiscall* F_TurretFacing)(FacingClass* buffer);
@@ -582,7 +582,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		return ret;
 	}
 
-	FORCEINLINE FacingClass F_GetRealfacing(){
+	FORCEDINLINE FacingClass F_GetRealfacing(){
 		FacingClass ret;
 		typedef FacingClass*(__thiscall* F_GetRealfacing)(FacingClass* buffer);
 		(*reinterpret_cast<F_GetRealfacing*>(&this[0x308]))(&ret);
@@ -762,7 +762,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x43B150);
 	}
 
-	constexpr bool IsInCloakState() const {
+	COMPILETIMEEVAL bool IsInCloakState() const {
 		return this->CloakState == CloakState::Cloaked || this->CloakState == CloakState::Cloaking;
 	}
 

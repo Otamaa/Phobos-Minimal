@@ -8,7 +8,7 @@ class Surface;
 class BitText
 {
 public:
-	static constexpr reference<BitText*, 0x89C4B8> Instance {};
+	static COMPILETIMEEVAL reference<BitText*, 0x89C4B8> Instance {};
 
 private:
 	BitText() { JMP_THIS(0x434AD0); }

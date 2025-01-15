@@ -15,7 +15,7 @@ public:
 		CellClass* Cell;
 	};
 
-	static constexpr reference<Kamikaze, 0xABC5F8u> const Instance{};
+	static COMPILETIMEEVAL reference<Kamikaze, 0xABC5F8u> const Instance{};
 
 	Kamikaze() noexcept : UpdateTimer(100), Nodes()
 	{ }

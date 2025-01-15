@@ -103,7 +103,7 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-static constexpr void UpdateRearmTimer(TechnoClass* pThis , Nullable<bool>& cond ,bool cond_default) {
+static COMPILETIMEEVAL void UpdateRearmTimer(TechnoClass* pThis , Nullable<bool>& cond ,bool cond_default) {
 	if (pThis->IsUnderEMP() && cond.Get(cond_default)) {
 		if (pThis->DiskLaserTimer.InProgress())
 			pThis->DiskLaserTimer.StartTime++;

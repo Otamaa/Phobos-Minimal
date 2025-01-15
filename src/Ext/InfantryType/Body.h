@@ -11,9 +11,9 @@ struct Phobos_DoControls
 class InfantryTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAAAAACCA;
+	static COMPILETIMEEVAL size_t Canary = 0xAAAAACCA;
 	using base_type = InfantryTypeClass;
-	static constexpr size_t ExtOffset = 0xECC;
+	static COMPILETIMEEVAL size_t ExtOffset = 0xECC;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -48,7 +48,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void Initialize();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(InfantryTypeExtData) -
 			(4u //AttachedToObject

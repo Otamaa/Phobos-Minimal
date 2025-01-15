@@ -85,7 +85,7 @@ class ColorScheme;
 class SWTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x11111111;
+	static COMPILETIMEEVAL size_t Canary = 0x11111111;
 	using base_type = SuperWeaponTypeClass;
 
 	base_type* AttachedToObject {};
@@ -495,7 +495,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void Initialize();
 
-	constexpr inline const char* get_ID(){
+	COMPILETIMEEVAL OPTIONALINLINE const char* get_ID(){
 		return this->AttachedToObject->ID;
 	}
 
@@ -516,7 +516,7 @@ public:
 	bool IsAvailable(HouseClass* pHouse);
 
 	//no arg(s)
-	constexpr inline double GetChargeToDrainRatio() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetChargeToDrainRatio() const {
 		return this->SW_ChargeToDrainRatio.Get(RulesClass::Instance->ChargeToDrainRatio);
 	}
 	SuperWeaponTarget GetAIRequiredTarget() const;
@@ -541,7 +541,7 @@ public:
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 	static TargetResult PickSuperWeaponTarget(NewSWType* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(SWTypeExtData) -
 			(4u //AttachedToObject
@@ -558,11 +558,11 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	inline static bool Handled;
-	inline static SuperClass* TempSuper;
-	inline static SuperClass* LauchData;
+	OPTIONALINLINE static bool Handled;
+	OPTIONALINLINE static SuperClass* TempSuper;
+	OPTIONALINLINE static SuperClass* LauchData;
 	static std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> AITargetingModes;
-	inline static SuperWeaponTypeClass* CurrentSWType;
+	OPTIONALINLINE static SuperWeaponTypeClass* CurrentSWType;
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);

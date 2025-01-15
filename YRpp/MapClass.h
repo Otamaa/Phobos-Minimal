@@ -20,9 +20,9 @@ struct GroundType
 	char Build; // Can build on this terrain?
 public:
 
-	static constexpr reference<GroundType, 0x89EA40u, 12u> const Array {};
+	static COMPILETIMEEVAL reference<GroundType, 0x89EA40u, 12u> const Array {};
 
-	static constexpr FORCEINLINE GroundType* Get(LandType land) {
+	static COMPILETIMEEVAL FORCEDINLINE GroundType* Get(LandType land) {
 		return &Array[(int)land];
 	}
 
@@ -30,7 +30,7 @@ public:
 		JMP_STD(0x48DF80);
 	}
 
-	static constexpr FORCEINLINE float GetCost(LandType land, SpeedType speed) {
+	static COMPILETIMEEVAL FORCEDINLINE float GetCost(LandType land, SpeedType speed) {
 		return Get(land)->Cost[(int)speed];
 	}
 };
@@ -60,7 +60,7 @@ struct GlobalPassabilityData
 };
 static_assert(sizeof(GlobalPassabilityData) == 0xA);
 
-static constexpr constant_ptr<GlobalPassabilityData, 0x87F858u> const GlobalPassabilityDatas {};
+static COMPILETIMEEVAL constant_ptr<GlobalPassabilityData, 0x87F858u> const GlobalPassabilityDatas {};
 
 
 //ZoneConnectionClass - Holding zone connection info from tubes or bridges (probably used for pathfinding)
@@ -96,7 +96,7 @@ static_assert(sizeof(SubzoneConnectionStruct) == 0x8, "Invalid Size !");
 
 struct SubzoneTrackingStruct
 {
-	static constexpr reference<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874 ,3u> const Array {};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874 ,3u> const Array {};
 
 	DynamicVectorClass<SubzoneConnectionStruct> SubzoneConnections;
 	WORD unknown_word_18;
@@ -174,7 +174,7 @@ static_assert(sizeof(LayerClass) == 0x18, "Invalid Size !");
 class LogicClass : public LayerClass
 {
 public:
-	static constexpr reference<LogicClass, 0x87F778u> const Instance {};
+	static COMPILETIMEEVAL reference<LogicClass, 0x87F778u> const Instance {};
 
 	virtual bool AddObject(ObjectClass* pObject, bool sorted) override
 		{ JMP_THIS(0x55BAA0); }
@@ -196,17 +196,17 @@ class NOVTABLE MapClass : public GScreenClass
 {
 public:
 	//Static
-	//static constexpr reference<int, 0x87F914u> const MapCellWidth{};
-	//static constexpr reference<int, 0x87F918u> const MapCellHeight{};
-	static constexpr reference<Dimensions , 0x87F914u> const MapCellDimension {};
+	//static COMPILETIMEEVAL reference<int, 0x87F914u> const MapCellWidth{};
+	//static COMPILETIMEEVAL reference<int, 0x87F918u> const MapCellHeight{};
+	static COMPILETIMEEVAL reference<Dimensions , 0x87F914u> const MapCellDimension {};
 
-	static constexpr constant_ptr<MapClass, 0x87F7E8u> const Instance{};
-	static constexpr reference<CellClass, 0xABDC50u> const InvalidCell{};
-	static constexpr reference<LogicClass, 0x87F778u> const Logics{};
-	static inline constexpr int const MaxCells = 0x40000;
+	static COMPILETIMEEVAL constant_ptr<MapClass, 0x87F7E8u> const Instance{};
+	static COMPILETIMEEVAL reference<CellClass, 0xABDC50u> const InvalidCell{};
+	static COMPILETIMEEVAL reference<LogicClass, 0x87F778u> const Logics{};
+	static OPTIONALINLINE COMPILETIMEEVAL int const MaxCells = 0x40000;
 
 	// this actually points to 5 vectors, one for each layer
-	static constexpr reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers{};
+	static COMPILETIMEEVAL reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers{};
 
 	static LayerClass* GetLayer(Layer lyr)
 	{
@@ -218,7 +218,7 @@ public:
 	/// <summary>
 	/// Some sort of hardcoded constant lookup matrix with rows (0-8) representing CellClass Passability(Type) and columns are MovementZones, used to determine pathfinding behaviour.
 	/// </summary>
-	static constexpr reference<int[13u], 0x82A594u, 8u> const MovementAdjustArray { };
+	static COMPILETIMEEVAL reference<int[13u], 0x82A594u, 8u> const MovementAdjustArray { };
 
 	//IGameMap
 	virtual BOOL __stdcall Is_Visible(CellStruct cell) override R0;
@@ -245,13 +245,13 @@ public:
 	//{ JMP_THIS(0x565730); }
 
 	// Get cellclasspointer with cellstruct but it will return to instance pointer if invalid !
-	constexpr FORCEINLINE CellClass* GetCellAt(CoordStruct* pCoord) {
+	COMPILETIMEEVAL FORCEDINLINE CellClass* GetCellAt(CoordStruct* pCoord) {
 		CellStruct cell = CellClass::Coord2Cell(*pCoord);
 		return GetCellAt(cell);
 	}
 
 	// Get cellclasspointer with cellstruct but it will return to instance pointer if invalid !
-	constexpr FORCEINLINE CellClass* GetCellAt(CellStruct* pCellStruct) const {
+	COMPILETIMEEVAL FORCEDINLINE CellClass* GetCellAt(CellStruct* pCellStruct) const {
 		return GetCellAt(*pCellStruct);
 	}
 
@@ -263,24 +263,24 @@ public:
 
 	// Get cellclasspointe with cellstruct Pointer but it will return nullptr if invalid !
 	// this one usually used on operator[]
-	constexpr CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
+	COMPILETIMEEVAL CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
 		return (idx >= 0 && idx < Cells.Capacity) ? Cells.Items[idx] : nullptr;
 	}
 
 	// ??
-	constexpr CellClass* TryGetCellAtB(const CellStruct& MapCoords) const {
+	COMPILETIMEEVAL CellClass* TryGetCellAtB(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
 		return (idx >= 0 && idx < MaxCells) ? Cells.Items[idx] : nullptr;
 	}
 	// Get cellclasspointer with coords but it will return nullptr if invalid !
-	constexpr CellClass* TryGetCellAt(const CoordStruct& Crd) const {
+	COMPILETIMEEVAL CellClass* TryGetCellAt(const CoordStruct& Crd) const {
 		CellStruct cell = CellClass::Coord2Cell(Crd);
 		return TryGetCellAt(cell);
 	}
 
 	// Get cellclasspointer with cellstruct but it will return to instance pointer if invalid !
-	constexpr CellClass* GetCellAt(const CellStruct &MapCoords) const {
+	COMPILETIMEEVAL CellClass* GetCellAt(const CellStruct &MapCoords) const {
 		auto pCell = TryGetCellAt(MapCoords);
 
 		if(!pCell) {
@@ -292,13 +292,13 @@ public:
 	}
 
 	// Get cellclasspointer with coords but it will return to instance pointer if invalid !
-	constexpr FORCEINLINE CellClass* GetCellAt(const CoordStruct &Crd) const {
+	COMPILETIMEEVAL FORCEDINLINE CellClass* GetCellAt(const CoordStruct &Crd) const {
 		CellStruct cell = CellClass::Coord2Cell(Crd);
 		return GetCellAt(cell);
 	}
 
 	// Get cellclasspointer with pointe2d location but it will return to instance pointer if invalid !
-	constexpr CellClass* GetTargetCell(Point2D& location) {
+	COMPILETIMEEVAL CellClass* GetTargetCell(Point2D& location) {
 		CellStruct cell = {
 			static_cast<short>(location.X / 256),
 			static_cast<short>(location.Y / 256)
@@ -308,7 +308,7 @@ public:
 	}
 
 	// Is cellclass pointer is valid after using `TryGetCellAt` !
-	constexpr FORCEINLINE bool CellExists(const CellStruct &MapCoords) const {
+	COMPILETIMEEVAL FORCEDINLINE bool CellExists(const CellStruct &MapCoords) const {
 		return TryGetCellAt(MapCoords) != nullptr;
 	}
 
@@ -318,7 +318,7 @@ public:
 	bool IsLocationShrouded(const CoordStruct &crd) const
 		{ JMP_THIS(0x586360); }
 
-	static constexpr FORCEINLINE int GetCellIndex(const CellStruct &MapCoords) {
+	static COMPILETIMEEVAL FORCEDINLINE int GetCellIndex(const CellStruct &MapCoords) {
 		return MapCoords.X + (MapCoords.Y << 9);
 	}
 
@@ -332,7 +332,7 @@ public:
 	}
 
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords
-	static FORCEINLINE CoordStruct GetRandomCoordsNear(const CoordStruct &coords, int distance, bool center) {
+	static FORCEDINLINE CoordStruct GetRandomCoordsNear(const CoordStruct &coords, int distance, bool center) {
 		CoordStruct outBuffer;
 		GetRandomCoordsNear(outBuffer, coords, distance, center);
 		return outBuffer;
@@ -341,7 +341,7 @@ public:
 	static CoordStruct* __stdcall PickInfantrySublocation(CoordStruct &outBuffer, const CoordStruct &coords, bool ignoreContents = false)
 		{ JMP_STD(0x4ACA10); }
 
-	static FORCEINLINE CoordStruct PickInfantrySublocation(const CoordStruct &coords, bool ignoreContents = false) {
+	static FORCEDINLINE CoordStruct PickInfantrySublocation(const CoordStruct &coords, bool ignoreContents = false) {
 		CoordStruct outBuffer;
 		PickInfantrySublocation(outBuffer, coords, ignoreContents);
 		return outBuffer;
@@ -408,7 +408,7 @@ public:
 		(int Damage, WarheadTypeClass *WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
 			{JMP_STD(0x48A620); }
 
-	static FORCEINLINE void FlashbangWarheadAt
+	static FORCEDINLINE void FlashbangWarheadAt
 		(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
 	{
 		auto nCoord = *pCoord;
@@ -422,11 +422,11 @@ public:
 	static int __fastcall ModifyDamage(int damage, const WarheadTypeClass* pWarhead, Armor armor, int distance)
 		{ JMP_STD(0x489180); }
 
-	static FORCEINLINE void ModifyDamage(args_ReceiveDamage* const args , Armor armor) {
+	static FORCEDINLINE void ModifyDamage(args_ReceiveDamage* const args , Armor armor) {
 		*args->Damage = ModifyDamage(*args->Damage, args->WH, armor, args->DistanceToEpicenter);
 	}
 
-	static FORCEINLINE void GetTotalDamage(args_ReceiveDamage* const args, Armor armor) {
+	static FORCEDINLINE void GetTotalDamage(args_ReceiveDamage* const args, Armor armor) {
 		*args->Damage = ModifyDamage(*args->Damage, args->WH, armor, args->DistanceToEpicenter);
 	}
 
@@ -443,7 +443,7 @@ public:
 		SpeedType SpeedType, bool ValidateReachability, MovementZone MovZone) const
 			{ JMP_THIS(0x4AA440); }
 
-	CellStruct FORCEINLINE PickCellOnEdge(Edge Edge, const CellStruct &CurrentLocation, const CellStruct &Fallback,
+	CellStruct FORCEDINLINE PickCellOnEdge(Edge Edge, const CellStruct &CurrentLocation, const CellStruct &Fallback,
 		SpeedType SpeedType, bool ValidateReachability, MovementZone MovZone) const
 	{
 		CellStruct buffer;
@@ -464,7 +464,7 @@ public:
 	CellStruct* NearByLocation(CellStruct &outBuffer, const CellStruct &position, SpeedType SpeedType, int a5, MovementZone MovementZone, bool alt, int SpaceSizeX, int SpaceSizeY, bool disallowOverlay, bool a11, bool requireBurrowable, bool allowBridge, const CellStruct &closeTo, bool a15, bool buildable)
 		{ JMP_THIS(0x56DC20); }
 
-	CellStruct FORCEINLINE NearByLocation(const CellStruct &position, SpeedType SpeedType, int a5, MovementZone MovementZone, bool alt, int SpaceSizeX, int SpaceSizeY, bool disallowOverlay, bool a11, bool requireBurrowable, bool allowBridge, const CellStruct &closeTo, bool a15, bool buildable) {
+	CellStruct FORCEDINLINE NearByLocation(const CellStruct &position, SpeedType SpeedType, int a5, MovementZone MovementZone, bool alt, int SpaceSizeX, int SpaceSizeY, bool disallowOverlay, bool a11, bool requireBurrowable, bool allowBridge, const CellStruct &closeTo, bool a15, bool buildable) {
 		CellStruct outBuffer;
 		NearByLocation(outBuffer, position, SpeedType, a5, MovementZone, alt, SpaceSizeX, SpaceSizeY, disallowOverlay, a11, requireBurrowable, allowBridge, closeTo, a15, buildable);
 		return outBuffer;
@@ -516,7 +516,7 @@ public:
 		const CoordStruct& end, HouseClass const* pHouse = nullptr) const
 	{ JMP_THIS(0x5880A0); }
 
-	CoordStruct FORCEINLINE FindFirstFirestorm(
+	CoordStruct FORCEDINLINE FindFirstFirestorm(
 		const CoordStruct& start, const CoordStruct& end,
 		HouseClass const* pHouse = nullptr) const
 	{

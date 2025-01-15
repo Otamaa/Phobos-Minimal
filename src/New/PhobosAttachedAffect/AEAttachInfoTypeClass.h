@@ -32,7 +32,7 @@ public:
 		return const_cast<AEAttachInfoTypeClass*>(this)->Serialize(stm);
 	}
 
-	constexpr AEAttachParams GetAttachParams(unsigned int index, bool selfOwned) const
+	COMPILETIMEEVAL AEAttachParams GetAttachParams(unsigned int index, bool selfOwned) const
 	{
 		AEAttachParams info { };
 		if (!this->DurationOverrides.empty())

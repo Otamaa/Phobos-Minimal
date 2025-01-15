@@ -34,5 +34,5 @@ public:
 	// adds the EVA type only if it doesn't exist
 	static void RegisterType(const char* type);
 
-	inline static std::vector<std::string> Types;
+	OPTIONALINLINE static std::vector<std::string> Types;
 };

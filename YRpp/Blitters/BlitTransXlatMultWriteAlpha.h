@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransXlatMultWriteAlpha)
 {
 public:
-	inline explicit BlitTransXlatMultWriteAlpha() noexcept
+	OPTIONALINLINE explicit BlitTransXlatMultWriteAlpha() noexcept
 	{
 	}
 

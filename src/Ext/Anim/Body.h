@@ -14,7 +14,7 @@ class AnimExtData final //: public Extension<AnimClass>
 {
 public:
 	using base_type = AnimClass;
-	static constexpr size_t Canary = 0xAADAAAA;
+	static COMPILETIMEEVAL size_t Canary = 0xAADAAAA;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -54,7 +54,7 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(AnimExtData) -
 			(4u //AttachedToObject
@@ -84,24 +84,24 @@ class AnimTypeExtData;
 class FakeAnimClass : public AnimClass
 {
 public:
-	inline static std::vector<AnimExtData*> Pool;
+	OPTIONALINLINE static std::vector<AnimExtData*> Pool;
 
-	static constexpr FORCEINLINE void ClearExtAttribute(AnimClass* key)
+	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{
 		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 	}
 
-	static constexpr FORCEINLINE void SetExtAttribute(AnimClass* key, AnimExtData* val)
+	static COMPILETIMEEVAL FORCEDINLINE void SetExtAttribute(AnimClass* key, AnimExtData* val)
 	{
 		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
 	}
 
-	static constexpr FORCEINLINE AnimExtData* GetExtAttribute(AnimClass* key)
+	static COMPILETIMEEVAL FORCEDINLINE AnimExtData* GetExtAttribute(AnimClass* key)
 	{
 		return (AnimExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
-	static constexpr AnimExtData* TryFind(AnimClass* key)
+	static COMPILETIMEEVAL AnimExtData* TryFind(AnimClass* key)
 	{
 		if (!key)
 			return nullptr;
@@ -173,22 +173,22 @@ public:
 		}
 	}
 
-	FORCEINLINE HouseClass* _GetOwningHouse() {
+	FORCEDINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;
 	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	FORCEINLINE AnimClass* _AsAnim() const {
+	FORCEDINLINE AnimClass* _AsAnim() const {
 		return (AnimClass*)this;
 	}
 
-	FORCEINLINE AnimExtData* _GetExtData() {
+	FORCEDINLINE AnimExtData* _GetExtData() {
 		return *reinterpret_cast<AnimExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	FORCEINLINE AnimTypeExtData* _GetTypeExtData() {
+	FORCEDINLINE AnimTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 };

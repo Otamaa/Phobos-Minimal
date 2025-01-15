@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransRemapXlat)
 {
 public:
-	inline explicit BlitTransRemapXlat(T* remap, T* palette) noexcept
+	OPTIONALINLINE explicit BlitTransRemapXlat(T* remap, T* palette) noexcept
 	{
 		RemapData = remap;
 		PaletteData = palette;

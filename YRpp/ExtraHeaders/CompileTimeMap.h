@@ -8,7 +8,7 @@ struct CompileTimeMap
 	std::array<std::pair<Key, Value>, Size> data;
 
 	[[nodiscard]] 
-	constexpr Value at(const Key& key) const
+	COMPILETIMEEVAL Value at(const Key& key) const
 	{
 		const auto itr = std::find_if(std::begin(data), std::end(data), [&key](const auto& item) { return item.first == key; });
 
@@ -19,7 +19,7 @@ struct CompileTimeMap
 	}
 
 	[nodiscard]
-	constexpr bool contains(const Key& key)
+	COMPILETIMEEVAL bool contains(const Key& key)
 	{
 		return std::find_if(std::begin(data), std::end(data),
 			[&key](const auto& item) {

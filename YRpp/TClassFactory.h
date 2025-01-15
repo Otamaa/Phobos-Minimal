@@ -10,7 +10,7 @@ template<typename T>
 class TClassFactory : public IClassFactory
 {
 public:
-	constexpr TClassFactory() : nRefCount {0L}
+	COMPILETIMEEVAL TClassFactory() : nRefCount {0L}
 	{}
 
 	virtual HRESULT __stdcall QueryInterface(REFIID riid, LPVOID* ppvObject) override

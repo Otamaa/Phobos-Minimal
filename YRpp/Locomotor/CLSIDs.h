@@ -6,7 +6,7 @@ class CLSIDs
 {
 public:
 #define LOCO_CLSID(_name,_addrs) \
-	static constexpr reference<CLSID const, _addrs> const _name {};
+	static COMPILETIMEEVAL reference<CLSID const, _addrs> const _name {};
 
 	LOCO_CLSID(Drive, 0x7E9A30u)
 	LOCO_CLSID(Jumpjet, 0x7E9AC0u)

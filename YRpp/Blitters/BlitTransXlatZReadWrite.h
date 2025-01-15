@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransXlatZReadWrite)
 {
 public:
-	inline explicit BlitTransXlatZReadWrite(T* data) noexcept
+	OPTIONALINLINE explicit BlitTransXlatZReadWrite(T* data) noexcept
 	{
 		PaletteData = data;
 	}

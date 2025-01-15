@@ -19,14 +19,14 @@ class DECLSPEC_UUID("C02D1591-0A2A-11D2-ACA7-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::TriggerType;
-	static constexpr inline DWORD vtable = 0x7F5904;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F5904;
 
-	static constexpr reference<const char* , 0x8449F8u , 3u> const PersistentName {};
+	static COMPILETIMEEVAL reference<const char* , 0x8449F8u , 3u> const PersistentName {};
 	static const char* PersistentNameString(Presistance nPr) { return PersistentName[(int)nPr]; }
 	static Presistance __fastcall PresistentFromName(const char* const nString) { JMP_STD(0x727190); }
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<TriggerTypeClass*>, 0x8B4178u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TriggerTypeClass*>, 0x8B4178u> const Array {};
 
 
 	IMPL_Find(TriggerTypeClass)

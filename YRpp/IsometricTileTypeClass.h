@@ -20,7 +20,7 @@ public:
 	static const AbstractType AbsID = AbstractType::IsotileType;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<IsometricTileTypeClass*>, 0xA8ED28u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<IsometricTileTypeClass*>, 0xA8ED28u> const Array {};
 
 	IMPL_Find(IsometricTileTypeClass)
 
@@ -29,8 +29,8 @@ public:
 	}
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const TileDrawers{};
-	static constexpr reference<SHPStruct*, 0xAA1060u, 0x4u> const SlopeZshape {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const TileDrawers{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAA1060u, 0x4u> const SlopeZshape {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

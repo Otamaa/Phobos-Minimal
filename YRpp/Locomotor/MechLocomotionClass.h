@@ -5,9 +5,9 @@ class //DECLSPEC_UUID("55D141B8-DB94-11d1-AC98-006008055BB5")
 	NOVTABLE MechLocomotionClass : public LocomotionClass
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7EDC38;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7EDB6C;
-	static constexpr reference<CLSID const, 0x7E9AA0u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7EDC38;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7EDB6C;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9AA0u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

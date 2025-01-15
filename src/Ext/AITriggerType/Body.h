@@ -24,8 +24,8 @@ public:
 	{
 	public:
 		using base_type = AITriggerTypeClass;
-		static constexpr size_t Canary = 0x2C2CAC2C;
-		static constexpr size_t ExtOffset = 0x10C;
+		static COMPILETIMEEVAL size_t Canary = 0x2C2CAC2C;
+		static COMPILETIMEEVAL size_t ExtOffset = 0x10C;
 
 	public:
 

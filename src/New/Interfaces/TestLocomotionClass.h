@@ -125,7 +125,7 @@ public:
 	virtual bool __stdcall Is_Piggybacking() override;
 
 public:
-	inline TestLocomotionClass() : LocomotionClass { }
+	OPTIONALINLINE TestLocomotionClass() : LocomotionClass { }
 		, DestinationCoord { }
 		, HeadToCoord { }
 		, CenterCoord { }
@@ -135,12 +135,12 @@ public:
 	{
 	}
 
-	inline TestLocomotionClass(noinit_t) : LocomotionClass { noinit_t() }
+	OPTIONALINLINE TestLocomotionClass(noinit_t) : LocomotionClass { noinit_t() }
 	{ }
 
-	//inline TestLocomotionClass(noprapere_tag) : LocomotionClass { noprapere_tag() } { }
+	//OPTIONALINLINE TestLocomotionClass(noprapere_tag) : LocomotionClass { noprapere_tag() } { }
 
-	inline virtual ~TestLocomotionClass() override = default; // should be SDDTOR in fact
+	OPTIONALINLINE virtual ~TestLocomotionClass() override = default; // should be SDDTOR in fact
 	virtual int Size() override { return sizeof(*this); }
 
 public:

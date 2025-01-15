@@ -11,12 +11,12 @@
 #include <Unsorted.h>
 #include <Utilities/SavegameDef.h>
 
-constexpr auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
-constexpr auto  EBOLT_DEFAULT_INTERATIONS = 1;
-constexpr auto EBOLT_DEFAULT_LINE_SEGEMENTS = 8;
-constexpr auto EBOLT_DEFAULT_SEGMENT_LINES = 3;
-constexpr auto EBOLT_DEFAULT_LIFETIME = 17;
-constexpr auto EBOLT_MAX_LIFETIME = 60;
+COMPILETIMEEVAL auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
+COMPILETIMEEVAL auto  EBOLT_DEFAULT_INTERATIONS = 1;
+COMPILETIMEEVAL auto EBOLT_DEFAULT_LINE_SEGEMENTS = 8;
+COMPILETIMEEVAL auto EBOLT_DEFAULT_SEGMENT_LINES = 3;
+COMPILETIMEEVAL auto EBOLT_DEFAULT_LIFETIME = 17;
+COMPILETIMEEVAL auto EBOLT_MAX_LIFETIME = 60;
 
 struct BoltData
 {
@@ -33,7 +33,7 @@ struct BoltData
 		Disabled.resize(count);
 	}
 
-	inline bool Load(PhobosStreamReader& stm, bool registerForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return
 			stm
@@ -44,7 +44,7 @@ struct BoltData
 			;
 	}
 
-	inline bool Save(PhobosStreamWriter& stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const
 	{
 		return
 			stm
@@ -72,7 +72,7 @@ struct LineDrawDataStruct
 	bool operator!=(const LineDrawDataStruct& that) const { return std::memcmp(this, &that, sizeof(LineDrawDataStruct)) != 0; }
 };
 
-constexpr ColorStruct DefaultColor[EBOLT_DEFAULT_SEGMENT_LINES] {
+COMPILETIMEEVAL ColorStruct DefaultColor[EBOLT_DEFAULT_SEGMENT_LINES] {
 	{ 255,255,255 } , { 82,81,255 } , { 82,81,255 }
 
 };
@@ -154,9 +154,9 @@ public:
 		int z_adjust = 0, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 	static void Create(CoordStruct const& start, CoordStruct const& end, const BoltData& nData, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 
-	void constexpr FORCEINLINE Flag_To_Delete() { Lifetime = 0; }
+	void COMPILETIMEEVAL FORCEDINLINE Flag_To_Delete() { Lifetime = 0; }
 
-	static inline auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
+	static OPTIONALINLINE auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
 	{
 		 CoordStruct coord = coord1 - coord2;
 		 return int(Math::sqrt(
@@ -166,7 +166,7 @@ public:
 		 ));
 	}
 
-	static constexpr FORCEINLINE int Sim_Random_Pick(int a, int b) {
+	static COMPILETIMEEVAL FORCEDINLINE int Sim_Random_Pick(int a, int b) {
 		return Random2Class::NonCriticalRandomNumber()(a, b);
 	}
 
@@ -174,11 +174,11 @@ public:
 	ElectricBoltClass& operator=(const ElectricBoltClass& other) = default;
 
 private:
-	void constexpr FORCEINLINE Clear() {
+	void COMPILETIMEEVAL FORCEDINLINE Clear() {
 		LineDrawList.clear();
 	}
 
-	void constexpr FORCEINLINE Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
+	void COMPILETIMEEVAL FORCEDINLINE Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
 		LineDrawList.emplace_back(start, end, line_color, start_z, end_z);
 	}
 
@@ -242,7 +242,7 @@ public:
 
 struct ElectricBoltManager
 {
-	inline static std::vector<ElectricBoltClass> ElectricBoltArray;
+	OPTIONALINLINE static std::vector<ElectricBoltClass> ElectricBoltArray;
 
 	static void Draw_All();
 	static void Clear();

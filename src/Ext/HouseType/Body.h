@@ -12,9 +12,9 @@ class HouseTypeExtData final
 {
 public:
 	using base_type = HouseTypeClass;
-	static constexpr size_t Canary = 0x1111111A;
+	static COMPILETIMEEVAL size_t Canary = 0x1111111A;
 
-	static constexpr size_t ExtOffset = 0xC4;//ARES
+	static COMPILETIMEEVAL size_t ExtOffset = 0xC4;//ARES
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -86,7 +86,7 @@ public:
 	Iterator<BuildingTypeClass*> GetPowerplants() const;
 	Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(HouseTypeExtData) -
 			(4u //AttachedToObject

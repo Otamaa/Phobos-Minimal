@@ -30,7 +30,7 @@ public:
 		wstrCopy(Dest, Source, Size);
 	}
 
-	constexpr inline void EraseSubString(std::string& str, const std::string& erase)
+	COMPILETIMEEVAL OPTIONALINLINE void EraseSubString(std::string& str, const std::string& erase)
 	{
 		size_t pos = str.find(erase);
 		if (pos != std::string::npos)
@@ -40,7 +40,7 @@ public:
 	}
 
 	template<typename T>
-	constexpr static std::string GetTypeIDName()
+	COMPILETIMEEVAL static std::string GetTypeIDName()
 	{
 		std::string str = typeid(T).name();
 		EraseSubString(str, "class ");
@@ -52,7 +52,7 @@ public:
 	//  Lowercases string
 	//
 	template <typename T>
-	static inline std::basic_string<T> lowercase(const std::basic_string<T>& s, size_t start = 0)
+	static OPTIONALINLINE std::basic_string<T> lowercase(const std::basic_string<T>& s, size_t start = 0)
 	{
 		std::basic_string<T> s2 = s;
 		std::transform(s2.begin() + start, s2.end(), s2.begin() + start, ::tolower);
@@ -60,7 +60,7 @@ public:
 	}
 
 	template <typename T>
-	static inline void lowercase(std::basic_string<T>& s, size_t start = 0)
+	static OPTIONALINLINE void lowercase(std::basic_string<T>& s, size_t start = 0)
 	{
 		std::transform(s.begin() + start, s.end(), s.begin() + start, ::tolower);
 	}
@@ -83,7 +83,7 @@ public:
 	}
 
 	template <size_t size>
-	static inline void lowercase(char(&nBuff)[size], char const (&nData)[size], size_t start = 0)
+	static OPTIONALINLINE void lowercase(char(&nBuff)[size], char const (&nData)[size], size_t start = 0)
 	{
 		for (size_t i = 0 + start; i < size; ++i)
 		{
@@ -92,7 +92,7 @@ public:
 	}
 
 	template <size_t size>
-	static inline void uppercase(char(&nBuff)[size], char(&nData)[size], size_t start = 0)
+	static OPTIONALINLINE void uppercase(char(&nBuff)[size], char(&nData)[size], size_t start = 0)
 	{
 		for (size_t i = 0 + start; i < size; ++i)
 		{
@@ -100,7 +100,7 @@ public:
 		}
 	}
 
-	constexpr static std::string WideStringToString(const std::wstring& wstr)
+	COMPILETIMEEVAL static std::string WideStringToString(const std::wstring& wstr)
 	{
 		if (wstr.empty())
 		{
@@ -135,7 +135,7 @@ public:
 		return ret;
 	}
 
-	constexpr static std::wstring StringToWideString(const std::string& str)
+	COMPILETIMEEVAL static std::wstring StringToWideString(const std::string& str)
 	{
 		if (str.empty())
 		{
@@ -171,7 +171,7 @@ public:
 		return ret;
 	}
 
-	static constexpr std::string FORCEINLINE trim(const char* source)
+	static COMPILETIMEEVAL std::string FORCEDINLINE trim(const char* source)
 	{
 		std::string s(source);
 		s.erase(0, s.find_first_not_of(" \n\r\t"));

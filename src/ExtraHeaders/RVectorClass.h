@@ -2,7 +2,7 @@
 
 #include <memory>
 
-inline void __cdecl Set_Bit(void* array, int bit, int value)
+OPTIONALINLINE void __cdecl Set_Bit(void* array, int bit, int value)
 {
 	__asm {
 		mov	ecx, [bit]
@@ -20,7 +20,7 @@ inline void __cdecl Set_Bit(void* array, int bit, int value)
 }
 
 
-inline int __cdecl Get_Bit(void const* array, int bit)
+OPTIONALINLINE int __cdecl Get_Bit(void const* array, int bit)
 {
 	__asm {
 		mov	eax, [bit]
@@ -33,7 +33,7 @@ inline int __cdecl Get_Bit(void const* array, int bit)
 	}
 }
 
-inline int __cdecl First_True_Bit(void const* array)
+OPTIONALINLINE int __cdecl First_True_Bit(void const* array)
 {
 	__asm {
 		mov	esi, [array]
@@ -49,7 +49,7 @@ inline int __cdecl First_True_Bit(void const* array)
 }
 
 
-inline int __cdecl First_False_Bit(void const* array)
+OPTIONALINLINE int __cdecl First_False_Bit(void const* array)
 {
 	__asm {
 

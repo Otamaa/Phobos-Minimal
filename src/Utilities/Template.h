@@ -58,46 +58,46 @@ public:
 	//using value_type = T;
 	//using base_type = std::remove_pointer_t<T>;
 
-	constexpr Valueable() = default;
-	constexpr explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
-	constexpr Valueable(Valueable const& other) = default;
-	constexpr Valueable(Valueable&& other) = default;
+	COMPILETIMEEVAL Valueable() = default;
+	COMPILETIMEEVAL explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
+	COMPILETIMEEVAL Valueable(Valueable const& other) = default;
+	COMPILETIMEEVAL Valueable(Valueable&& other) = default;
 
-	constexpr ~Valueable() = default;
+	COMPILETIMEEVAL ~Valueable() = default;
 
-	constexpr Valueable& operator = (Valueable const& value) = default;
-	constexpr Valueable& operator = (Valueable&& value) = default;
+	COMPILETIMEEVAL Valueable& operator = (Valueable const& value) = default;
+	COMPILETIMEEVAL Valueable& operator = (Valueable&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	constexpr Valueable& operator = (Val value)
+	COMPILETIMEEVAL Valueable& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		return *this;
 	}
 
-	constexpr FORCEINLINE operator const T& () const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE operator const T& () const noexcept {
 		return this->Get();
 	}
 
-	constexpr FORCEINLINE auto operator->() noexcept {
-		if constexpr (std::is_pointer<T>::type())
+	COMPILETIMEEVAL FORCEDINLINE auto operator->() noexcept {
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return this->Value;
 		else
 			return &this->Value;
 	}
 
-	constexpr FORCEINLINE auto operator->() const noexcept
+	COMPILETIMEEVAL FORCEDINLINE auto operator->() const noexcept
 	{
-		if constexpr (std::is_pointer<T>::type())
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return this->Value;
 		else
 			return &this->Value;
 	}
 
 
-	//constexpr FORCEINLINE bool operator!() const
+	//COMPILETIMEEVAL FORCEDINLINE bool operator!() const
 	//{
-	//	if constexpr (std::is_pointer<T>::type()
+	//	if COMPILETIMEEVAL (std::is_pointer<T>::type()
 	//			|| std::is_integral<T>::type()
 	//			|| std::is_same<T, bool>::value
 	//	)
@@ -108,38 +108,38 @@ public:
 	//	}
 	//}
 
-	constexpr FORCEINLINE const T& Get() const noexcept
+	COMPILETIMEEVAL FORCEDINLINE const T& Get() const noexcept
 	{
 		return this->Value;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-inline bool operator == (const Valueable<T>& val, const T& other)
+OPTIONALINLINE bool operator == (const Valueable<T>& val, const T& other)
 {
 	return val.Get() == other;
 }
 
 template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-inline bool operator == (const T& other, const Valueable<T>& val)
+OPTIONALINLINE bool operator == (const T& other, const Valueable<T>& val)
 {
 	return val.Get() == other;
 }
 
 template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-inline bool operator != (const Valueable<T>& val, const T& other)
+OPTIONALINLINE bool operator != (const Valueable<T>& val, const T& other)
 {
 	return !(val == other);
 }
 
 template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
-inline bool operator != (const T& other, const Valueable<T>& val)
+OPTIONALINLINE bool operator != (const T& other, const Valueable<T>& val)
 {
 	return !(val == other);
 }
@@ -148,27 +148,27 @@ template<typename Lookuper>
 class ValueableIdx : public Valueable<int>
 {
 public:
-	constexpr ValueableIdx() noexcept : Valueable<int>(-1) { }
-	constexpr explicit ValueableIdx(int value) noexcept : Valueable<int>(value) { }
-	constexpr ValueableIdx(ValueableIdx const& other) = default;
-	constexpr ValueableIdx(ValueableIdx&& other) = default;
-	constexpr ~ValueableIdx() = default;
+	COMPILETIMEEVAL ValueableIdx() noexcept : Valueable<int>(-1) { }
+	COMPILETIMEEVAL explicit ValueableIdx(int value) noexcept : Valueable<int>(value) { }
+	COMPILETIMEEVAL ValueableIdx(ValueableIdx const& other) = default;
+	COMPILETIMEEVAL ValueableIdx(ValueableIdx&& other) = default;
+	COMPILETIMEEVAL ~ValueableIdx() = default;
 
-	constexpr ValueableIdx& operator = (ValueableIdx const& value) = default;
-	constexpr ValueableIdx& operator = (ValueableIdx&& value) = default;
+	COMPILETIMEEVAL ValueableIdx& operator = (ValueableIdx const& value) = default;
+	COMPILETIMEEVAL ValueableIdx& operator = (ValueableIdx&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<int&, Val&&>::value>>
-	constexpr ValueableIdx& operator = (Val value)
+	COMPILETIMEEVAL ValueableIdx& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		return *this;
 	}
 
-	constexpr FORCEINLINE size_t ToUnsigned() const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE size_t ToUnsigned() const noexcept {
 		return (size_t)this->Value;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 
 template<typename T>
@@ -178,117 +178,117 @@ protected:
 	bool HasValue { false };
 public:
 
-	constexpr Nullable() = default;
-	constexpr explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
-	constexpr Nullable(Nullable const& other) = default;
-	constexpr Nullable(Nullable&& other) = default;
-	constexpr ~Nullable() = default;
+	COMPILETIMEEVAL Nullable() = default;
+	COMPILETIMEEVAL explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
+	COMPILETIMEEVAL Nullable(Nullable const& other) = default;
+	COMPILETIMEEVAL Nullable(Nullable&& other) = default;
+	COMPILETIMEEVAL ~Nullable() = default;
 
-	constexpr Nullable& operator = (Nullable const& value) = default;
-	constexpr Nullable& operator = (Nullable&& value) = default;
+	COMPILETIMEEVAL Nullable& operator = (Nullable const& value) = default;
+	COMPILETIMEEVAL Nullable& operator = (Nullable&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	constexpr Nullable& operator = (Val value)
+	COMPILETIMEEVAL Nullable& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		this->HasValue = true;
 		return *this;
 	}
 
-	constexpr FORCEINLINE bool isset() const noexcept
+	COMPILETIMEEVAL FORCEDINLINE bool isset() const noexcept
 	{
 		return this->HasValue;
 	}
 
-	constexpr FORCEINLINE const T& Get() const noexcept
+	COMPILETIMEEVAL FORCEDINLINE const T& Get() const noexcept
 	{
 		return this->Value;
 	}
 
 	// return a copy of the value instead
 	// this can be used to fill an vector after reading
-	constexpr FORCEINLINE T GetCopy() const noexcept{
+	COMPILETIMEEVAL FORCEDINLINE T GetCopy() const noexcept{
 		return this->Value;
 	}
 
-	constexpr FORCEINLINE T Get(const T& ndefault) const
+	COMPILETIMEEVAL FORCEDINLINE T Get(const T& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault;
 	}
 
-	constexpr FORCEINLINE const T& GetB(const T& ndefault) const
+	COMPILETIMEEVAL FORCEDINLINE const T& GetB(const T& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault;
 	}
 
-	constexpr FORCEINLINE T Get(const Valueable<T>& ndefault) const
+	COMPILETIMEEVAL FORCEDINLINE T Get(const Valueable<T>& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault.Get();
 	}
 
-	constexpr FORCEINLINE const T& GetB(const Valueable<T>& ndefault) const
+	COMPILETIMEEVAL FORCEDINLINE const T& GetB(const Valueable<T>& ndefault) const
 	{
 		return this->HasValue ? this->Get() : ndefault.Get();
 	}
 
-	constexpr FORCEINLINE T* GetEx(T* ndefault) noexcept
+	COMPILETIMEEVAL FORCEDINLINE T* GetEx(T* ndefault) noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
 	}
 
-	constexpr FORCEINLINE const T* GetEx(const T* ndefault) const noexcept
+	COMPILETIMEEVAL FORCEDINLINE const T* GetEx(const T* ndefault) const noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
 	}
 
-	constexpr FORCEINLINE T* GetEx(Valueable<T>& ndefault) noexcept
+	COMPILETIMEEVAL FORCEDINLINE T* GetEx(Valueable<T>& ndefault) noexcept
 	{
 		const bool Isset = this->isset();
-		if constexpr (std::is_pointer<T>::type())
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return Isset ? this->Value : ndefault.Value;
 		else
 			return Isset ? &this->Value : &ndefault.Value;
 	}
 
-	constexpr FORCEINLINE const T* GetEx(const Valueable<T>& ndefault) const noexcept
+	COMPILETIMEEVAL FORCEDINLINE const T* GetEx(const Valueable<T>& ndefault) const noexcept
 	{
 		const bool Isset = this->isset();
-		if constexpr (std::is_pointer<T>::type())
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return Isset ? this->Value : ndefault.Value;
 		else
 			return Isset ? &this->Value : &ndefault.Value;
 	}
 
-	constexpr FORCEINLINE void Reset()
+	COMPILETIMEEVAL FORCEDINLINE void Reset()
 	{
 		this->Value = T();
 		this->HasValue = false;
 	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	constexpr void Reset(Val ndefault) const
+	COMPILETIMEEVAL void Reset(Val ndefault) const
 	{
 		this->Value = std::move(ndefault); // set the value to args
 		this->HasValue = true;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 
 private:
 
-	constexpr FORCEINLINE T* GetEx() noexcept {
-		if constexpr (std::is_pointer<T>::type())
+	COMPILETIMEEVAL FORCEDINLINE T* GetEx() noexcept {
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return this->Value;
 		else
 			return &this->Value;
 	}
 
-	constexpr FORCEINLINE const T* GetEx() const noexcept {
-		if constexpr (std::is_pointer<T>::type())
+	COMPILETIMEEVAL FORCEDINLINE const T* GetEx() const noexcept {
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return this->Value;
 		else
 			return &this->Value;
@@ -299,24 +299,24 @@ template<typename Lookuper, EnumCheckMode mode = EnumCheckMode::default >
 class NullableIdx : public Nullable<int>
 {
 public:
-	constexpr NullableIdx() noexcept : Nullable<int>(-1) { this->HasValue = false; }
-	constexpr explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
-	constexpr NullableIdx(NullableIdx const& other) = default;
-	constexpr NullableIdx(NullableIdx&& other) = default;
-	constexpr ~NullableIdx() = default;
+	COMPILETIMEEVAL NullableIdx() noexcept : Nullable<int>(-1) { this->HasValue = false; }
+	COMPILETIMEEVAL explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
+	COMPILETIMEEVAL NullableIdx(NullableIdx const& other) = default;
+	COMPILETIMEEVAL NullableIdx(NullableIdx&& other) = default;
+	COMPILETIMEEVAL ~NullableIdx() = default;
 
-	constexpr NullableIdx& operator = (NullableIdx const& value) = default;
-	constexpr NullableIdx& operator = (NullableIdx&& value) = default;
+	COMPILETIMEEVAL NullableIdx& operator = (NullableIdx const& value) = default;
+	COMPILETIMEEVAL NullableIdx& operator = (NullableIdx&& value) = default;
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<int&, Val&&>::value>>
-	constexpr NullableIdx& operator = (Val value)
+	COMPILETIMEEVAL NullableIdx& operator = (Val value)
 	{
 		this->Value = std::move(value);
 		this->HasValue = true;
 		return *this;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 
 /*
@@ -339,30 +339,30 @@ public:
 	T Veteran {};
 	T Elite {};
 
-	constexpr Promotable() = default;
-	constexpr explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
-	constexpr explicit Promotable(T const& r, T const& v, T const& e)
+	COMPILETIMEEVAL Promotable() = default;
+	COMPILETIMEEVAL explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	COMPILETIMEEVAL explicit Promotable(T const& r, T const& v, T const& e)
 	noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e) { }
 
-	constexpr Promotable(const Promotable&) = default;
-	constexpr Promotable(Promotable&&) = default;
-	constexpr Promotable& operator=(const Promotable& other) = default;
+	COMPILETIMEEVAL Promotable(const Promotable&) = default;
+	COMPILETIMEEVAL Promotable(Promotable&&) = default;
+	COMPILETIMEEVAL Promotable& operator=(const Promotable& other) = default;
 
-	constexpr ~Promotable() = default;
+	COMPILETIMEEVAL ~Promotable() = default;
 
-	constexpr FORCEINLINE void SetAll(const T& val) {
+	COMPILETIMEEVAL FORCEDINLINE void SetAll(const T& val) {
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr, bool allocate = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr, bool allocate = false);
 
-	constexpr FORCEINLINE const T* GetEx(TechnoClass* pTechno) const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE const T* GetEx(TechnoClass* pTechno) const noexcept {
 		const auto rank = pTechno->Veterancy.GetRemainingLevel();
 		return this->GetValue(rank);
 	}
 
-	constexpr FORCEINLINE const T& GetFromSpecificRank(Rank rank)const noexcept
+	COMPILETIMEEVAL FORCEDINLINE const T& GetFromSpecificRank(Rank rank)const noexcept
 	{
 		if (rank == Rank::Elite)
 		{
@@ -377,7 +377,7 @@ public:
 		return this->Rookie;
 	}
 
-	constexpr FORCEINLINE const T& Get(TechnoClass* pTechno) const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE const T& Get(TechnoClass* pTechno) const noexcept {
 		auto const rank = pTechno->Veterancy.GetRemainingLevel();
 		if (rank == Rank::Elite)
 		{
@@ -390,7 +390,7 @@ public:
 		return this->Rookie;
 	}
 
-	constexpr FORCEINLINE const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
+	COMPILETIMEEVAL FORCEDINLINE const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
 		if (pTechno->CurrentRanking == Rank::Elite)
 		{
 			return this->Elite;
@@ -405,32 +405,32 @@ public:
 	// this mean 0 values will treat as false and alwas using default
 	// and floating point value will suffer from accuracy problem with these
 	// not sure how to fix it without breaking all shit
-	//constexpr FORCEINLINE const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
+	//COMPILETIMEEVAL FORCEDINLINE const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
 	//	auto nRes = Get(pTechno);
 	//	return nRes ? nRes : nDefault;
 	//}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 
 private:
-	constexpr FORCEINLINE T* GetValue(Rank rank) {
+	COMPILETIMEEVAL FORCEDINLINE T* GetValue(Rank rank) {
 		if (rank == Rank::Elite) {
-			if constexpr (std::is_pointer<T>::type())
+			if COMPILETIMEEVAL (std::is_pointer<T>::type())
 				return &this->Elite;
 			else
 				return this->Elite;
 		}
 
 		if (rank == Rank::Veteran) {
-			if constexpr (std::is_pointer<T>::type())
+			if COMPILETIMEEVAL (std::is_pointer<T>::type())
 				return &this->Veteran;
 			else
 				return this->Veteran;
 		}
 
-		if constexpr (std::is_pointer<T>::type())
+		if COMPILETIMEEVAL (std::is_pointer<T>::type())
 			return &this->Rookie;
 		else
 			return this->Rookie;
@@ -449,9 +449,9 @@ public:
 
 	//~ValueableVector() = default;
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
 
-	constexpr FORCEINLINE bool Eligible(const T& other) const
+	COMPILETIMEEVAL FORCEDINLINE bool Eligible(const T& other) const
 	{
 		if (this->empty())
 			return true;
@@ -459,9 +459,9 @@ public:
 		return this->Contains(other);
 	}
 
-	constexpr FORCEINLINE auto Find(const T& item) const
+	COMPILETIMEEVAL FORCEDINLINE auto Find(const T& item) const
 	{
-		if constexpr (direct_comparable<T>) {
+		if COMPILETIMEEVAL (direct_comparable<T>) {
 			auto i = this->begin();
 
 			for (; i != this->end(); ++i) {
@@ -476,21 +476,21 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE bool Contains(const T& other) const {
+	COMPILETIMEEVAL FORCEDINLINE bool Contains(const T& other) const {
 		return this->Find(other) != this->end();
 	}
 
-	constexpr FORCEINLINE int IndexOf(const T& other) const
+	COMPILETIMEEVAL FORCEDINLINE int IndexOf(const T& other) const
 	{
 		const auto it = this->Find(other);
 		return it != this->end() ? std::distance(this->begin(), it) : -1;
 	}
 
-	constexpr FORCEINLINE bool ValidIndex(int index) const {
+	COMPILETIMEEVAL FORCEDINLINE bool ValidIndex(int index) const {
 		return static_cast<size_t>(index) < this->size();
 	}
 
-	constexpr FORCEINLINE T GetItemAt(int nIdx) const {
+	COMPILETIMEEVAL FORCEDINLINE T GetItemAt(int nIdx) const {
 
 		if (!this->ValidIndex(nIdx))
 			return T();
@@ -498,7 +498,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr FORCEINLINE T GetItemAtOrMax(int nIdx) const
+	COMPILETIMEEVAL FORCEDINLINE T GetItemAtOrMax(int nIdx) const
 	{
 		if (!this->ValidIndex(nIdx))
 			nIdx = this->size();
@@ -506,7 +506,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr FORCEINLINE T GetItemAtOrDefault(int nIdx , const T& other) const
+	COMPILETIMEEVAL FORCEDINLINE T GetItemAtOrDefault(int nIdx , const T& other) const
 	{
 		if (!this->ValidIndex(nIdx))
 			return other;
@@ -514,20 +514,20 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr FORCEINLINE void PushbackUnique(const T& other)
+	COMPILETIMEEVAL FORCEDINLINE void PushbackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->push_back(other); }
 	}
 
-	constexpr FORCEINLINE void EmplacebackUnique(const T& other)
+	COMPILETIMEEVAL FORCEDINLINE void EmplacebackUnique(const T& other)
 	{
 		if (this->Contains(other)) return;
 		else { this->emplace_back(other); }
 	}
 
 	template <typename Func>
-	constexpr FORCEINLINE void For_Each(Func&& act) const
+	COMPILETIMEEVAL FORCEDINLINE void For_Each(Func&& act) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
@@ -535,7 +535,7 @@ public:
 	}
 
 	template <typename Func>
-	constexpr FORCEINLINE void For_Each(Func&& act)
+	COMPILETIMEEVAL FORCEDINLINE void For_Each(Func&& act)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
@@ -543,7 +543,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool None_Of(func&& fn) const
+	COMPILETIMEEVAL FORCEDINLINE bool None_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
@@ -555,7 +555,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool None_Of(func&& fn)
+	COMPILETIMEEVAL FORCEDINLINE bool None_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
@@ -567,7 +567,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool Any_Of(func&& fn) const
+	COMPILETIMEEVAL FORCEDINLINE bool Any_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
@@ -579,7 +579,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool Any_Of(func&& fn)
+	COMPILETIMEEVAL FORCEDINLINE bool Any_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
@@ -591,7 +591,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool All_Of(func&& fn) const
+	COMPILETIMEEVAL FORCEDINLINE bool All_Of(func&& fn) const
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
@@ -603,7 +603,7 @@ public:
 	}
 
 	template<typename func>
-	constexpr FORCEINLINE bool All_Of(func&& fn)
+	COMPILETIMEEVAL FORCEDINLINE bool All_Of(func&& fn)
 	{
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
@@ -619,9 +619,9 @@ public:
 		return Iterator<T>(*this);
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 template<class T>
@@ -632,14 +632,14 @@ protected:
 public:
 	//NullableVector() noexcept = default;
 	//~NullableVector() = default;
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey , bool allocate = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey , bool allocate = false);
 
-	constexpr FORCEINLINE bool HasValue() const noexcept
+	COMPILETIMEEVAL FORCEDINLINE bool HasValue() const noexcept
 	{
 		return this->hasValue;
 	}
 
-	FORCEINLINE void SetHasValue(bool bCond)
+	FORCEDINLINE void SetHasValue(bool bCond)
 	{
 		if (!bCond)
 			Reset();
@@ -647,7 +647,7 @@ public:
 			this->hasValue = true;
 	}
 
-	FORCEINLINE void Reset()
+	FORCEDINLINE void Reset()
 	{
 		this->clear();
 		this->hasValue = false;
@@ -672,23 +672,23 @@ public:
 		return this->Contains(other);
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 template<typename Lookuper>
 class ValueableIdxVector : public ValueableVector<int>
 {
 public:
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 
 template<typename Lookuper>
 class NullableIdxVector : public NullableVector<int>
 {
 public:
-	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 
 /*
@@ -711,40 +711,40 @@ public:
 	Nullable<T> ConditionYellow {};
 	Nullable<T> ConditionRed {};
 
-	constexpr Damageable() noexcept = default;
+	COMPILETIMEEVAL Damageable() noexcept = default;
 
-	constexpr explicit Damageable(T const& all)
+	COMPILETIMEEVAL explicit Damageable(T const& all)
 		noexcept(noexcept(T { all }))
 		: BaseValue { all }
 	{
 	}
 
-	constexpr explicit Damageable(T const& undamaged, T const& damaged)
+	COMPILETIMEEVAL explicit Damageable(T const& undamaged, T const& damaged)
 		noexcept(noexcept(T { undamaged }) && noexcept(T { damaged }))
 		: BaseValue { undamaged }, ConditionYellow { damaged }
 	{
 	}
 
-	constexpr explicit Damageable(T const& green, T const& yellow, T const& red)
+	COMPILETIMEEVAL explicit Damageable(T const& green, T const& yellow, T const& red)
 		noexcept(noexcept(T { green }) && noexcept(T { yellow }) && noexcept(T { red }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }
 	{
 	}
 
-	constexpr ~Damageable() = default;
+	COMPILETIMEEVAL ~Damageable() = default;
 
-	constexpr Damageable(const Damageable&) = default;
-	constexpr Damageable(Damageable&&) = default;
-	constexpr Damageable& operator=(const Damageable& other) = default;
+	COMPILETIMEEVAL Damageable(const Damageable&) = default;
+	COMPILETIMEEVAL Damageable(Damageable&&) = default;
+	COMPILETIMEEVAL Damageable& operator=(const Damageable& other) = default;
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
 
-	constexpr const T& Get(TechnoClass* pTechno) const noexcept
+	COMPILETIMEEVAL const T& Get(TechnoClass* pTechno) const noexcept
 	{
 		return Get(pTechno->GetHealthPercentage());
 	}
 
-	constexpr const T& Get(double ratio, double conditionYellow , double conditionRed) const noexcept
+	COMPILETIMEEVAL const T& Get(double ratio, double conditionYellow , double conditionRed) const noexcept
 	{
 		if (this->ConditionRed.isset() && ratio <= conditionRed)
 			return this->ConditionRed;
@@ -754,7 +754,7 @@ public:
 		return this->BaseValue;
 	}
 
-	constexpr const T& Get(HealthState const& nState) const noexcept
+	COMPILETIMEEVAL const T& Get(HealthState const& nState) const noexcept
 	{
 		if (this->ConditionRed.isset() && (nState == HealthState::Red))
 			return this->ConditionRed;
@@ -764,9 +764,9 @@ public:
 		return this->BaseValue;
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 struct HealthOnFireData
@@ -777,37 +777,37 @@ protected:
 	bool YellowOnFire;
 
 public:
-	constexpr HealthOnFireData() noexcept :
+	COMPILETIMEEVAL HealthOnFireData() noexcept :
 		RedOnFire { true }, GreenOnFire { false }, YellowOnFire { true }
 	{
 	}
 
-	constexpr HealthOnFireData(bool All) noexcept :
+	COMPILETIMEEVAL HealthOnFireData(bool All) noexcept :
 		RedOnFire { All }, GreenOnFire { All }, YellowOnFire { All }
 	{
 	}
 
-	constexpr HealthOnFireData(bool R, bool G, bool Y) noexcept :
+	COMPILETIMEEVAL HealthOnFireData(bool R, bool G, bool Y) noexcept :
 		RedOnFire { R }, GreenOnFire { G }, YellowOnFire { Y }
 	{
 	}
 
-	constexpr ~HealthOnFireData() = default;
+	COMPILETIMEEVAL ~HealthOnFireData() = default;
 
-	constexpr HealthOnFireData(const HealthOnFireData&) = default;
-	constexpr HealthOnFireData(HealthOnFireData&&) = default;
-	constexpr HealthOnFireData& operator=(const HealthOnFireData& other) = default;
+	COMPILETIMEEVAL HealthOnFireData(const HealthOnFireData&) = default;
+	COMPILETIMEEVAL HealthOnFireData(HealthOnFireData&&) = default;
+	COMPILETIMEEVAL HealthOnFireData& operator=(const HealthOnFireData& other) = default;
 
-	constexpr inline bool Get(HealthState const& nState) const noexcept
+	COMPILETIMEEVAL OPTIONALINLINE bool Get(HealthState const& nState) const noexcept
 	{
 		return (nState == HealthState::Green && GreenOnFire)
 			|| (nState == HealthState::Yellow && YellowOnFire)
 			|| (nState == HealthState::Red && RedOnFire);
 	}
 
-	inline bool Read(INI_EX& parser, const char* pSection, const char* pKey);
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Read(INI_EX& parser, const char* pSection, const char* pKey);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 template<typename T>
@@ -822,52 +822,52 @@ public:
 	NullableVector<T> ConditionRed {};
 	NullableVector<T> MaxValue {};
 
-	constexpr DamageableVector() noexcept  = default;
+	COMPILETIMEEVAL DamageableVector() noexcept  = default;
 
-	constexpr explicit DamageableVector(ValueableVector<T> const& all)
+	COMPILETIMEEVAL explicit DamageableVector(ValueableVector<T> const& all)
 		noexcept(noexcept(ValueableVector<T> { all }))
 		: BaseValue { all }
 	{
 	}
 
-	constexpr explicit DamageableVector(ValueableVector<T> const& undamaged, NullableVector<T> const& damaged)
+	COMPILETIMEEVAL explicit DamageableVector(ValueableVector<T> const& undamaged, NullableVector<T> const& damaged)
 		noexcept(noexcept(ValueableVector<T> { undamaged }) && noexcept(NullableVector<T> { damaged }))
 		: BaseValue { undamaged }, ConditionYellow { damaged }
 	{
 	}
 
-	constexpr explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red)
+	COMPILETIMEEVAL explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red)
 		noexcept(noexcept(ValueableVector<T> { green }) && noexcept(NullableVector<T> { yellow }) && noexcept(NullableVector<T> { red }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }
 	{
 	}
 
-	constexpr explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red, NullableVector<T> const& max)
+	COMPILETIMEEVAL explicit DamageableVector(ValueableVector<T> const& green, NullableVector<T> const& yellow, NullableVector<T> const& red, NullableVector<T> const& max)
 		noexcept(noexcept(ValueableVector<T> { green }) && noexcept(NullableVector<T> { yellow }) && noexcept(NullableVector<T> { red }) && noexcept(NullableVector<T> { max }))
 		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }, MaxValue { max }
 	{
 	}
 
-	constexpr ~DamageableVector() = default;
+	COMPILETIMEEVAL ~DamageableVector() = default;
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
-	constexpr const ValueableVector<T>* GetEx(TechnoClass* pTechno) const noexcept
+	COMPILETIMEEVAL const ValueableVector<T>* GetEx(TechnoClass* pTechno) const noexcept
 	{
 		return &this->Get(pTechno);
 	}
 
-	constexpr const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
+	COMPILETIMEEVAL const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
 	{
 		return Get(pTechno->GetHealthPercentage());
 	}
 
-	constexpr const ValueableVector<T>* GetEx(double ratio) const noexcept
+	COMPILETIMEEVAL const ValueableVector<T>* GetEx(double ratio) const noexcept
 	{
 		return &this->Get(ratio);
 	}
 
-	constexpr const ValueableVector<T>& Get(double ratio) const noexcept
+	COMPILETIMEEVAL const ValueableVector<T>& Get(double ratio) const noexcept
 	{
 		if (this->ConditionRed.HasValue() && ratio <= RulesClass::Instance->ConditionRed)
 			return this->ConditionRed;
@@ -879,9 +879,9 @@ public:
 		return this->BaseValue;
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 /*
@@ -914,10 +914,10 @@ public:
 	~PromotableVector() = default;
 
 	//TODO : untested
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
 	//TODO : untested
-	inline void ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate = false);
+	OPTIONALINLINE void ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate = false);
 
 	const T& Get(int index, double veterancy) const noexcept
 	{
@@ -944,9 +944,9 @@ public:
 		return this->Get(index, pTechno->Veterancy.Veterancy);
 	}
 
-	inline bool Load(PhobosStreamReader& stm, bool registerForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange);
 
-	inline bool Save(PhobosStreamWriter& stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const;
 };
 
 template <typename T>
@@ -963,13 +963,13 @@ public:
 	AffectedHouse ApplyToHouses  { AffectedHouse::None };
 	WarheadTypeClass* SourceWarhead { };
 
-	constexpr TimedWarheadValue(const TimedWarheadValue&) = default;
-	constexpr TimedWarheadValue(TimedWarheadValue&&) = default;
-	constexpr TimedWarheadValue& operator=(const TimedWarheadValue& other) = default;
+	COMPILETIMEEVAL TimedWarheadValue(const TimedWarheadValue&) = default;
+	COMPILETIMEEVAL TimedWarheadValue(TimedWarheadValue&&) = default;
+	COMPILETIMEEVAL TimedWarheadValue& operator=(const TimedWarheadValue& other) = default;
 
-	constexpr TimedWarheadValue() = default;
+	COMPILETIMEEVAL TimedWarheadValue() = default;
 
-	constexpr TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
+	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
 		Value { value }
 		, Timer {}
 		, ApplyToHouses { applyToHouses }
@@ -978,20 +978,20 @@ public:
 		Timer.Start(duration);
 	}
 
-	constexpr TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
+	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
 	{
 		TimedWarheadValue(value, duration, applyToHouses, nullptr);
 	}
 
-	constexpr TimedWarheadValue(T const& value, int duration)
+	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration)
 	{
 		TimedWarheadValue(value, duration, AffectedHouse::All, nullptr);
 	}
 
-	constexpr ~TimedWarheadValue() = default;
+	COMPILETIMEEVAL ~TimedWarheadValue() = default;
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 
@@ -1003,27 +1003,27 @@ public:
 	Nullable<T> Veteran {};
 	Nullable<T> Elite {};
 
-	constexpr NullablePromotable() = default;
-	constexpr explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
-	constexpr explicit NullablePromotable(T const& r, T const& v, T const& e)
+	COMPILETIMEEVAL NullablePromotable() = default;
+	COMPILETIMEEVAL explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	COMPILETIMEEVAL explicit NullablePromotable(T const& r, T const& v, T const& e)
 		noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
 		Rookie(r), Veteran(v), Elite(e)
 	{
 	}
 
-	constexpr NullablePromotable(const NullablePromotable&) = default;
-	constexpr NullablePromotable(NullablePromotable&&) = default;
-	constexpr NullablePromotable& operator=(const NullablePromotable& other) = default;
-	constexpr ~NullablePromotable() = default;
+	COMPILETIMEEVAL NullablePromotable(const NullablePromotable&) = default;
+	COMPILETIMEEVAL NullablePromotable(NullablePromotable&&) = default;
+	COMPILETIMEEVAL NullablePromotable& operator=(const NullablePromotable& other) = default;
+	COMPILETIMEEVAL ~NullablePromotable() = default;
 
-	constexpr void SetAll(const T& val)
+	COMPILETIMEEVAL void SetAll(const T& val)
 	{
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
-	constexpr const Nullable<T>* GetFromSpecificRank(Rank rank)const noexcept
+	COMPILETIMEEVAL const Nullable<T>* GetFromSpecificRank(Rank rank)const noexcept
 	{
 		if (rank == Rank::Elite)
 		{
@@ -1038,7 +1038,7 @@ public:
 		return &this->Rookie;
 	}
 
-	constexpr const Nullable<T>* Get(TechnoClass* pTechno) const noexcept
+	COMPILETIMEEVAL const Nullable<T>* Get(TechnoClass* pTechno) const noexcept
 	{
 		auto const rank = pTechno->Veterancy.GetRemainingLevel();
 		if (rank == Rank::Elite)
@@ -1052,7 +1052,7 @@ public:
 		return &this->Rookie;
 	}
 
-	constexpr const Nullable<T>* GetFromCurrentRank(TechnoClass* pTechno) const noexcept
+	COMPILETIMEEVAL const Nullable<T>* GetFromCurrentRank(TechnoClass* pTechno) const noexcept
 	{
 		if (pTechno->CurrentRanking == Rank::Elite)
 		{
@@ -1065,13 +1065,13 @@ public:
 		return &this->Rookie;
 	}
 
-	constexpr const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept
+	COMPILETIMEEVAL const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept
 	{
 		return Get(pTechno)->GetB(nDefault);
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 // Designates that the type can read it's value from multiple flags.
@@ -1086,14 +1086,14 @@ template<typename T, typename... TExtraArgs>
 class MultiflagValueableVector : public ValueableVector<T>
 {
 public:
-	inline void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs);
 };
 template<typename T, typename... TExtraArgs>
 	requires MultiflagReadable<T, TExtraArgs...>
 class MultiflagNullableVector : public NullableVector<T>
 {
 public:
-	inline void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs);
+	OPTIONALINLINE void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs);
 };
 
 template<typename TValue>
@@ -1108,11 +1108,11 @@ public:
 		double Percentage;
 		Valueable<TValue> Value;
 
-		inline bool Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength = absolute_length_t(0));
+		OPTIONALINLINE bool Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength = absolute_length_t(0));
 
-		inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+		OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-		inline bool Save(PhobosStreamWriter& Stm) const;
+		OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 	};
 
 	InterpolationMode InterpolationMode;
@@ -1120,13 +1120,13 @@ public:
 
 	// TODO ctors and stuff
 
-	constexpr inline TValue Get(double const percentage) const noexcept;
+	COMPILETIMEEVAL OPTIONALINLINE TValue Get(double const percentage) const noexcept;
 
-	inline void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength = absolute_length_t(0));
+	OPTIONALINLINE void Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength = absolute_length_t(0));
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
-	inline bool Save(PhobosStreamWriter& Stm) const;
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
 
 static_assert(Savegame::ImplementsSaveLoad<Animatable<std::monostate>::KeyframeDataEntry>);

@@ -28,13 +28,13 @@
 
 #include <InfantryClass.h>
 
-static constexpr int ObserverBackgroundWidth = 121;
-static constexpr int ObserverBackgroundHeight = 96;
+static COMPILETIMEEVAL int ObserverBackgroundWidth = 121;
+static COMPILETIMEEVAL int ObserverBackgroundHeight = 96;
 
-static constexpr int ObserverFlagPCXX = 70;
-static constexpr int ObserverFlagPCXY = 70;
-static constexpr int ObserverFlagPCXWidth = 45;
-static constexpr int ObserverFlagPCXHeight = 21;
+static COMPILETIMEEVAL int ObserverFlagPCXX = 70;
+static COMPILETIMEEVAL int ObserverFlagPCXY = 70;
+static COMPILETIMEEVAL int ObserverFlagPCXWidth = 45;
+static COMPILETIMEEVAL int ObserverFlagPCXHeight = 21;
 
 DEFINE_HOOK(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
 {
@@ -321,7 +321,7 @@ DEFINE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 
 			// use the sign to select min or max.
 			// 0 means no change (maximum of 0 and a positive value)
-			constexpr auto limit = [](int value, int limit)
+			COMPILETIMEEVAL auto limit = [](int value, int limit)
 				{
 					if (limit <= 0)
 					{

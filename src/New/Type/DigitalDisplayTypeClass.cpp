@@ -102,7 +102,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 	DSurface::Composite->DSurfaceDrawText(valueString.c_str(), &rect, &position, color, 0, printType);
 }
 
-constexpr Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
+COMPILETIMEEVAL Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
 {
 	if (shapeSpace.isset())
 		return shapeSpace.Get();

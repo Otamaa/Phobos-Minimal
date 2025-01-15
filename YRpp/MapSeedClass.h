@@ -12,8 +12,8 @@ protected:
 		{ JMP_THIS(0x595680); }
 
 public:
-	static constexpr reference<MapSeedClass, 0xABDFD8u> const Instance{};
-	static constexpr reference<MapSeedClass, 0xABDFD8u> const Global{};
+	static COMPILETIMEEVAL reference<MapSeedClass, 0xABDFD8u> const Instance{};
+	static COMPILETIMEEVAL reference<MapSeedClass, 0xABDFD8u> const Global{};
 	
 	virtual ~MapSeedClass()
 		{ JMP_THIS(0x5AC270); }

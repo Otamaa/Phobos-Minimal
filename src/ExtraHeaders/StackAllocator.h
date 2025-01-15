@@ -32,11 +32,11 @@ public:
 	// live.
 	struct Source
 	{
-		constexpr Source() : used_stack_buffer_(false)
+		COMPILETIMEEVAL Source() : used_stack_buffer_(false)
 		{ }
 		// Casts the buffer in its right type.
-		constexpr T* stack_buffer() { return stack_buffer_.data_as<T>(); }
-		constexpr const T* stack_buffer() const
+		COMPILETIMEEVAL T* stack_buffer() { return stack_buffer_.data_as<T>(); }
+		COMPILETIMEEVAL const T* stack_buffer() const
 		{
 			return stack_buffer_.template data_as<T>();
 		}
@@ -56,7 +56,7 @@ public:
 		typedef StackAllocator<U, stack_capacity> other;
 	};
 	// For the straight up copy c-tor, we can share storage.
-	constexpr StackAllocator(const StackAllocator<T, stack_capacity>& rhs)
+	COMPILETIMEEVAL StackAllocator(const StackAllocator<T, stack_capacity>& rhs)
 		: std::allocator<T>(), source_(rhs.source_)
 	{ }
 	// ISO C++ requires the following constructor to be defined,
@@ -69,7 +69,7 @@ public:
 	// TODO: If we were fancy pants, perhaps we could share storage
 	// iff sizeof(T) == sizeof(U).
 	template<typename U, size_t other_capacity>
-	constexpr StackAllocator(const StackAllocator<U, other_capacity>& other)
+	COMPILETIMEEVAL StackAllocator(const StackAllocator<U, other_capacity>& other)
 		: source_(NULL)
 	{ }
 
@@ -78,7 +78,7 @@ public:
 	// Actually do the allocation. Use the stack buffer if nobody has used it yet
 	// and the size requested fits. Otherwise, fall through to the standard
 	// allocator.
-	constexpr pointer allocate(size_type n)
+	COMPILETIMEEVAL pointer allocate(size_type n)
 	{
 		if (source_ != NULL && !source_->used_stack_buffer_
 			&& n <= stack_capacity)
@@ -93,7 +93,7 @@ public:
 	}
 	// Free: when trying to free the stack buffer, just mark it as free. For
 	// non-stack-buffer pointers, just fall though to the standard allocator.
-	constexpr void deallocate(pointer p, size_type n)
+	COMPILETIMEEVAL void deallocate(pointer p, size_type n)
 	{
 		if (source_ != NULL && p == source_->stack_buffer())
 			source_->used_stack_buffer_ = false;

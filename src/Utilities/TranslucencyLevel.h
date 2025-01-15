@@ -7,18 +7,18 @@
 class TranslucencyLevel
 {
 public:
-	constexpr TranslucencyLevel() noexcept = default;
+	COMPILETIMEEVAL TranslucencyLevel() noexcept = default;
 
-	constexpr TranslucencyLevel(int nInt)
+	COMPILETIMEEVAL TranslucencyLevel(int nInt)
 	{
 		*this = nInt;
 	}
 
-	constexpr TranslucencyLevel(const TranslucencyLevel& other) = default;
-	constexpr TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;
-	constexpr ~TranslucencyLevel() = default;
+	COMPILETIMEEVAL TranslucencyLevel(const TranslucencyLevel& other) = default;
+	COMPILETIMEEVAL TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;
+	COMPILETIMEEVAL ~TranslucencyLevel() = default;
 
-	constexpr TranslucencyLevel& operator = (int nInt)
+	COMPILETIMEEVAL TranslucencyLevel& operator = (int nInt)
 	{
 		switch (nInt)
 		{
@@ -40,12 +40,12 @@ public:
 		return *this;
 	}
 
-	constexpr operator BlitterFlags() const
+	COMPILETIMEEVAL operator BlitterFlags() const
 	{
 		return this->value;
 	}
 
-	constexpr BlitterFlags GetBlitterFlags() const
+	COMPILETIMEEVAL BlitterFlags GetBlitterFlags() const
 	{
 		return *this;
 	}
@@ -62,13 +62,13 @@ public:
 		return false;
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		Stm.Load(this->value);
 		return true;
 	}
 
-	inline bool Save(PhobosStreamWriter& Stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
 	{
 		Stm.Save(this->value);
 		return true;

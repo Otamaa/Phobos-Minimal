@@ -13,9 +13,9 @@
 class TerrainExtData final
 {
 public:
-	static constexpr size_t Canary = 0xE1E2E3E4;
+	static COMPILETIMEEVAL size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
-	//static constexpr size_t ExtOffset = 0xD0;
+	//static COMPILETIMEEVAL size_t ExtOffset = 0xD0;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -40,7 +40,7 @@ public:
 	void InitializeLightSource();
 	void InitializeAnim();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TerrainExtData) -
 			(4u //AttachedToObject

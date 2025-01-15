@@ -37,10 +37,10 @@ class DECLSPEC_UUID("AE8B33DB-061C-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::BuildingType;
-	static constexpr inline DWORD vtable = 0x7E4570;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E4570;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<BuildingTypeClass*>, 0xA83C68u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingTypeClass*>, 0xA83C68u> const Array {};
 
 	IMPL_Find(BuildingTypeClass)
 
@@ -52,9 +52,9 @@ public:
 		JMP_STD(0x45E7B0);
 	}
 
-	static constexpr reference<int, 0x89DDB8u> const HeightInLeptons{};
-	static constexpr reference<FoundationStruct, 0x89D368u, 22u> const FoundationOutlinesData {};
-	static constexpr reference<FoundationStruct, 0x89C900u, 22u> const FoundationlinesData {};
+	static COMPILETIMEEVAL reference<int, 0x89DDB8u> const HeightInLeptons{};
+	static COMPILETIMEEVAL reference<FoundationStruct, 0x89D368u, 22u> const FoundationOutlinesData {};
+	static COMPILETIMEEVAL reference<FoundationStruct, 0x89C900u, 22u> const FoundationlinesData {};
 
 
 	//IPersist

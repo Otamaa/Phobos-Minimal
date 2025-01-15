@@ -13,8 +13,8 @@ class PCX
 {
 public:
 
-	static constexpr reference<PCX, 0xAC4848u> const Instance{};
-	static inline constexpr WORD const DefaultTransparentColor = COLOR_PURPLE;
+	static COMPILETIMEEVAL reference<PCX, 0xAC4848u> const Instance{};
+	static OPTIONALINLINE COMPILETIMEEVAL WORD const DefaultTransparentColor = COLOR_PURPLE;
 
 	// Load a PCX file
 	bool ForceLoadFile(const char* pFileName, int flag1, int flag2)

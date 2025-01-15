@@ -99,7 +99,7 @@ DEFINE_HOOK(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
 }
 
 // Don't allow upgrade anims to be created if building is not upgraded or they require power to be shown and the building isn't powered.
-constexpr FORCEINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, BuildingAnimSlot anim)
+COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, BuildingAnimSlot anim)
 {
 	auto const pType = pBuilding->Type;
 

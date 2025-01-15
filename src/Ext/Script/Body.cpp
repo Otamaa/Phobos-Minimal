@@ -34,7 +34,7 @@ ScriptActionNode NOINLINE ScriptExtData::GetSpecificAction(ScriptClass* pScript,
 	//if (!pTypeExt->PhobosNode.empty() && nIdxR < (int)pTypeExt->PhobosNode.size()) {
 	//	return pTypeExt->PhobosNode[nIdxR];
 	//}
-	//constexpr auto const nMax = ScriptTypeClass::MaxActions - 1;
+	//COMPILETIMEEVAL auto const nMax = ScriptTypeClass::MaxActions - 1;
 	//return pScript->Type->ScriptActions[nMax];
 
 	return { -1 , 0 };

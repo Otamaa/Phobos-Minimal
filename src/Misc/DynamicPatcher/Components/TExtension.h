@@ -27,11 +27,11 @@ public:
 		this->AttachedToObject = OwnerObject;
 	}
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) {
+	virtual OPTIONALINLINE void SaveToStream(PhobosStreamWriter& Stm) {
 		Stm.Save(this->Initialized);
 	}
 
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) {
+	virtual OPTIONALINLINE void LoadFromStream(PhobosStreamReader& Stm) {
 		Stm.Load(this->Initialized);
 	}
 

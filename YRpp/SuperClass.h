@@ -15,11 +15,11 @@ class DECLSPEC_UUID("D7F754C6-391C-11D2-9B64-00104B972FE8")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Super;
-	static constexpr inline DWORD vtable = 0x7F3FE8;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F3FE8;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83CB8u> const Array{};
-	static constexpr reference<DynamicVectorClass<SuperClass*>, 0xA83D50u> const ShowTimers{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83CB8u> const Array{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<SuperClass*>, 0xA83D50u> const ShowTimers{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6CDEB0);
@@ -155,18 +155,18 @@ public:
 class LightningStorm
 {
 public:
-	static constexpr reference<double, 0xB0CDD8u> const CloudHeightFactor{};
-	static constexpr reference<CellStruct, 0xA9F9CCu> const Coords{};
-	static constexpr reference<HouseClass*, 0xA9FACCu> const Owner{};
-	static constexpr reference<int, 0xA9FAB8u> const Deferment{};
-	static constexpr reference<int, 0x827FC4u> const Duration{};
-	static constexpr reference<int, 0x827FC0u> const StartTime{};
-	static constexpr reference<bool, 0xA9FAB4u> const IsActive{};
-	static constexpr reference<bool, 0xA9FAD0u> const TimeToEnd{};
+	static COMPILETIMEEVAL reference<double, 0xB0CDD8u> const CloudHeightFactor{};
+	static COMPILETIMEEVAL reference<CellStruct, 0xA9F9CCu> const Coords{};
+	static COMPILETIMEEVAL reference<HouseClass*, 0xA9FACCu> const Owner{};
+	static COMPILETIMEEVAL reference<int, 0xA9FAB8u> const Deferment{};
+	static COMPILETIMEEVAL reference<int, 0x827FC4u> const Duration{};
+	static COMPILETIMEEVAL reference<int, 0x827FC0u> const StartTime{};
+	static COMPILETIMEEVAL reference<bool, 0xA9FAB4u> const IsActive{};
+	static COMPILETIMEEVAL reference<bool, 0xA9FAD0u> const TimeToEnd{};
 
-	static constexpr reference<DynamicVectorClass<AnimClass*>, 0xA9F9D0u> const CloudsPresent{};
-	static constexpr reference<DynamicVectorClass<AnimClass*>, 0xA9FA60u> const CloudsManifesting{};
-	static constexpr reference<DynamicVectorClass<AnimClass*>, 0xA9FA18u> const BoltsPresent{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<AnimClass*>, 0xA9F9D0u> const CloudsPresent{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<AnimClass*>, 0xA9FA60u> const CloudsManifesting{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<AnimClass*>, 0xA9FA18u> const BoltsPresent{};
 
 	static void Start(int duration, int deferment, CellStruct cell, HouseClass* pOwner)
 		{ PUSH_VAR32(pOwner); PUSH_VAR32(cell); SET_REG32(EDX, deferment); SET_REG32(ECX, duration);
@@ -197,10 +197,10 @@ public:
 class PsyDom
 {
 public:
-	static constexpr reference<PsychicDominatorStatus, 0xA9FAC0u> const Status{};
-	static constexpr reference<CellStruct, 0xA9FA48u> const Coords{};
-	static constexpr reference<HouseClass*, 0xA9FAC8u> const Owner{};
-	static constexpr reference<AnimClass*, 0xA9FAC4u> const Anim{};
+	static COMPILETIMEEVAL reference<PsychicDominatorStatus, 0xA9FAC0u> const Status{};
+	static COMPILETIMEEVAL reference<CellStruct, 0xA9FA48u> const Coords{};
+	static COMPILETIMEEVAL reference<HouseClass*, 0xA9FAC8u> const Owner{};
+	static COMPILETIMEEVAL reference<AnimClass*, 0xA9FAC4u> const Anim{};
 
 	static void Start(HouseClass* pOwner, CellStruct coords)
 		{ PUSH_VAR32(coords); SET_REG32(ECX, pOwner);
@@ -222,8 +222,8 @@ public:
 class ChronoScreenEffect
 {
 public:
-	static constexpr reference<int, 0xA9FAB0u> const Status{};
-	static constexpr reference<int, 0xA9FA98u> const Duration{};
+	static COMPILETIMEEVAL reference<int, 0xA9FAB0u> const Status{};
+	static COMPILETIMEEVAL reference<int, 0xA9FA98u> const Duration{};
 
 	static void Start(int duration)
 		{ SET_REG32(ECX, duration);
@@ -239,9 +239,9 @@ public:
 class NukeFlash
 {
 public:
-	static constexpr reference<NukeFlashStatus, 0xA9FABCu> const Status{};
-	static constexpr reference<int, 0x827FC8u> const StartTime{};
-	static constexpr reference<int, 0x827FCCu> const Duration{};
+	static COMPILETIMEEVAL reference<NukeFlashStatus, 0xA9FABCu> const Status{};
+	static COMPILETIMEEVAL reference<int, 0x827FC8u> const StartTime{};
+	static COMPILETIMEEVAL reference<int, 0x827FCCu> const Duration{};
 
 	static void FadeIn()
 		{ ASM_CALL(0x53AB70); }

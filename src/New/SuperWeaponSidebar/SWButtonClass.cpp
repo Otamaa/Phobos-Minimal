@@ -93,7 +93,7 @@ bool SWButtonClass::Draw(bool forced)
 
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
 			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
-			constexpr TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+			COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
 			wchar_t buffer[64];
 			Game::GetKeyboardKeyString(hotkey, buffer);
@@ -112,7 +112,7 @@ bool SWButtonClass::Draw(bool forced)
 		{
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
 			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
-			constexpr TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+			COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
 			pSurface->DrawText_Old(buffer, &bounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
 		}

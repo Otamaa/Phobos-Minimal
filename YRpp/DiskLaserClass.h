@@ -17,9 +17,9 @@ public:
 	static const AbstractType AbsID = AbstractType::DiskLaser;
 
 	// static
-	static constexpr constant_ptr<DynamicVectorClass<DiskLaserClass*>, 0x8A0208u> const Array{};
-	static inline constexpr int Radius = 240;
-	static constexpr reference<Point2D, 0x8A0180u, 16u> const DrawCoords {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<DiskLaserClass*>, 0x8A0208u> const Array{};
+	static OPTIONALINLINE COMPILETIMEEVAL int Radius = 240;
+	static COMPILETIMEEVAL reference<Point2D, 0x8A0180u, 16u> const DrawCoords {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

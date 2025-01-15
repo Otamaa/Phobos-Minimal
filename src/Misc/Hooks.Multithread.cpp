@@ -17,10 +17,10 @@
 
 namespace Multithreading
 {
-	static constexpr reference<bool, 0xB0B519u> const BlitMouse {};
-	static constexpr reference<bool, 0xA9FAB0u> const IonStormClass_ChronoScreenEffect_Status {};
-	static constexpr reference<GadgetClass*, 0xA8EF54u> const Buttons {};
-	static constexpr reference<bool, 0xA8B8B4u> const EnableMultiplayerDebug {};
+	static COMPILETIMEEVAL reference<bool, 0xB0B519u> const BlitMouse {};
+	static COMPILETIMEEVAL reference<bool, 0xA9FAB0u> const IonStormClass_ChronoScreenEffect_Status {};
+	static COMPILETIMEEVAL reference<GadgetClass*, 0xA8EF54u> const Buttons {};
+	static COMPILETIMEEVAL reference<bool, 0xA8B8B4u> const EnableMultiplayerDebug {};
 
 	void MultiplayerDebugPrint()
 	{ JMP_STD(0x55F1E0); }

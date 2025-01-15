@@ -19,7 +19,7 @@ class BombListClass
 	{ JMP_THIS(0x40B5C0); }
 
 public:
-	static constexpr reference<BombListClass, 0x87F5D8u> const Instance{};
+	static COMPILETIMEEVAL reference<BombListClass, 0x87F5D8u> const Instance{};
 
 	// draws all the visible bombs, expires the outdated ones
 	void Update()

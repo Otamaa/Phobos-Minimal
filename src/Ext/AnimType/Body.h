@@ -13,8 +13,8 @@ class AnimTypeExtData final
 {
 public:
 	using base_type = AnimTypeClass;
-	static constexpr size_t Canary = 0xEEECEEEE;
-	//static constexpr size_t ExtOffset = 0x374;
+	static COMPILETIMEEVAL size_t Canary = 0xEEECEEEE;
+	//static COMPILETIMEEVAL size_t ExtOffset = 0x374;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -137,7 +137,7 @@ public:
 
 	void ValidateSpalshAnims();
 
-	constexpr OwnerHouseKind GetAnimOwnerHouseKind()
+	COMPILETIMEEVAL OwnerHouseKind GetAnimOwnerHouseKind()
 	{
 		if (this->CreateUnit && !this->CreateUnit_Owner.isset())
 			return OwnerHouseKind::Victim;
@@ -154,7 +154,7 @@ public:
 		return OwnerHouseKind::Invoker;
 	}
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(AnimTypeExtData) -
 			(4u //AttachedToObject
@@ -165,15 +165,15 @@ public:
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 
-	constexpr bool ScatterCreateUnit(bool IsAi) {
+	COMPILETIMEEVAL bool ScatterCreateUnit(bool IsAi) {
 		return IsAi ? this->CreateUnit_AI_Scatter : this->CreateUnit_Scatter;
 	}
 
-	constexpr bool ScatterAnimToInfantry(bool IsAi) {
+	COMPILETIMEEVAL bool ScatterAnimToInfantry(bool IsAi) {
 		return !IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
 	}
 
-	constexpr  Mission GetCreateUnitMission(bool IsAi) {
+	COMPILETIMEEVAL  Mission GetCreateUnitMission(bool IsAi) {
 		auto result = this->CreateUnit_Mission;
 
 		if (IsAi && this->CreateUnit_AI_Mission.isset())
@@ -182,7 +182,7 @@ public:
 		return result;
 	}
 
-	constexpr Mission GetAnimToInfantryMission(bool IsAi) {
+	COMPILETIMEEVAL Mission GetAnimToInfantryMission(bool IsAi) {
 		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
 
 		if (IsAi && this->MakeInfantry_AI_Mission.isset())

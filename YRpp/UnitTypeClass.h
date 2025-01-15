@@ -9,10 +9,10 @@ class DECLSPEC_UUID("DCBD42EA-0546-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::UnitType;
-	static constexpr inline DWORD vtable = 0x7F6218;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F6218;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<UnitTypeClass*>, 0xA83CE0u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<UnitTypeClass*>, 0xA83CE0u> const Array {};
 
 	IMPL_Find(UnitTypeClass)
 

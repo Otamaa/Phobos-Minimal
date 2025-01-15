@@ -7,7 +7,7 @@
 namespace detail
 {
 	template <typename T, typename Traits = std::char_traits<T>>
-	inline __declspec(noinline) void __fastcall string_copy_n(
+	OPTIONALINLINE __declspec(noinline) void __fastcall string_copy_n(
 		T* const pDest, T const* const pSrc, size_t const cchMax) noexcept
 	{
 		auto const len = Traits::length(pSrc);
@@ -63,31 +63,31 @@ struct FixedString {
 		return *this;
 	}
 
-	constexpr explicit operator bool() {
+	COMPILETIMEEVAL explicit operator bool() {
 		return this->chars[0] != 0;
 	}
 
-	constexpr explicit operator bool() const {
+	COMPILETIMEEVAL explicit operator bool() const {
 		return this->chars[0] != 0;
 	}
 
-	constexpr bool operator !() const {
+	COMPILETIMEEVAL bool operator !() const {
 		return this->chars[0] == 0;
 	}
 
-	constexpr operator const T* () const {
+	COMPILETIMEEVAL operator const T* () const {
 		return this->chars;
 	}
 
-	constexpr operator T* () {
+	COMPILETIMEEVAL operator T* () {
 		return this->chars;
 	}
 
-	constexpr data_type& data() {
+	COMPILETIMEEVAL data_type& data() {
 		return this->chars;
 	}
 
-	constexpr const data_type& data() const {
+	COMPILETIMEEVAL const data_type& data() const {
 		return this->chars;
 	}
 
@@ -112,9 +112,9 @@ public:
 	int Format(const char* format, ...);
 	void Clear();
 
-	inline bool Empty() const { return Buffer[0] == '\0'; }
-	inline char* Peek_Buffer() { return Buffer; }
-	inline int Get_Length() const { return Length; }
+	OPTIONALINLINE bool Empty() const { return Buffer[0] == '\0'; }
+	OPTIONALINLINE char* Peek_Buffer() { return Buffer; }
+	OPTIONALINLINE int Get_Length() const { return Length; }
 
 private:
 	int Length;

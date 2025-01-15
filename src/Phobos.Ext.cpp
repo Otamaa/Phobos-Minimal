@@ -139,9 +139,9 @@ struct ClearAction
 	template <typename T>
 	static void Process()
 	{
-		if constexpr (Clearable<T>)
+		if COMPILETIMEEVAL (Clearable<T>)
 			T::Clear();
-		else if constexpr (HasExtMap<T>)
+		else if COMPILETIMEEVAL (HasExtMap<T>)
 			T::ExtMap.Clear();
 	}
 };
@@ -154,10 +154,10 @@ struct InvalidatePointerAction
 	template <typename T>
 	static void Process(AbstractClass* ptr, bool removed)
 	{
-		if constexpr (HasExtMap<T> && PointerInvalidationSubscribable<T>) {
+		if COMPILETIMEEVAL (HasExtMap<T> && PointerInvalidationSubscribable<T>) {
 			T::ExtMap::PointerGotInvalid(ptr, removed);
 		}
-		else if constexpr(PointerInvalidationSubscribable<T>)
+		else if COMPILETIMEEVAL(PointerInvalidationSubscribable<T>)
 		{
 			T::PointerGotInvalid(ptr, removed);
 		}
@@ -171,7 +171,7 @@ struct LoadGlobalsAction
 	template <typename T>
 	static bool Process(IStream* pStm)
 	{
-		if constexpr (GlobalSaveLoadable<T>)
+		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
 		{
 			PhobosByteStream stm(0);
 			stm.ReadBlockFromStream(pStm);
@@ -193,7 +193,7 @@ struct SaveGlobalsAction
 	template <typename T>
 	static bool Process(IStream* pStm)
 	{
-		if constexpr (GlobalSaveLoadable<T>)
+		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
 		{
 			PhobosByteStream stm;
 			PhobosStreamWriter writer(stm);
@@ -213,7 +213,7 @@ struct SaveGlobalsAction
 template <typename... RegisteredTypes>
 struct TypeRegistry
 {
-	constexpr __forceinline static void Clear()
+	COMPILETIMEEVAL __forceinline static void Clear()
 	{
 		va_list args;
 		va_start(args, count);
@@ -284,11 +284,11 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 // Global Pointer Invalidation Hooks
 
 template<typename T>
-FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const removed)
+FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const removed)
 {
-	if constexpr (HasExtMap<T>)
+	if COMPILETIMEEVAL (HasExtMap<T>)
 	{
-		if constexpr (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
+		if COMPILETIMEEVAL (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
 			PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
 			T::ExtMap.InvalidatePointer(pInvalid, removed);
 		}
@@ -441,25 +441,25 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 // Considering how DTA gets the scenario name, I decided to save it after Rules - secsome
 
 template<typename T>
-FORCEINLINE bool Process_Load(IStream* pStm)
+FORCEDINLINE bool Process_Load(IStream* pStm)
 {
 	PhobosByteStream stm(0);
 	stm.ReadBlockFromStream(pStm);
 	PhobosStreamReader reader(stm);
 
-	if constexpr (HasExtMap<T>)
+	if COMPILETIMEEVAL (HasExtMap<T>)
 		return T::ExtMap.LoadGlobals(reader) && reader.ExpectEndOfBlock();
 	else
 		return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
 }
 
 template<typename T>
-FORCEINLINE bool Process_Save(IStream* pStm)
+FORCEDINLINE bool Process_Save(IStream* pStm)
 {
 	PhobosByteStream stm;
 	PhobosStreamWriter writer(stm);
 
-	if constexpr (HasExtMap<T>)
+	if COMPILETIMEEVAL (HasExtMap<T>)
 		return T::ExtMap.SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
 	else
 		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);

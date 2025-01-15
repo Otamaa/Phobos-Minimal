@@ -3,25 +3,25 @@
 
 struct Leptons
 {
-	constexpr Leptons() noexcept = default;
+	COMPILETIMEEVAL Leptons() noexcept = default;
 	//explicit Leptons(int value) noexcept : value(value) {}
-	explicit constexpr Leptons(const int value) noexcept : value(value) { }
-	explicit constexpr Leptons(double velue) noexcept : value(int(velue * Unsorted::d_LeptonsPerCell)) { }
+	explicit COMPILETIMEEVAL Leptons(const int value) noexcept : value(value) { }
+	explicit COMPILETIMEEVAL Leptons(double velue) noexcept : value(int(velue * Unsorted::d_LeptonsPerCell)) { }
 
-	constexpr Leptons(const Leptons&) noexcept = default;
-	constexpr Leptons(Leptons&&) noexcept =  default;
-	constexpr Leptons&operator=(const Leptons& other) noexcept = default;
+	COMPILETIMEEVAL Leptons(const Leptons&) noexcept = default;
+	COMPILETIMEEVAL Leptons(Leptons&&) noexcept =  default;
+	COMPILETIMEEVAL Leptons&operator=(const Leptons& other) noexcept = default;
 
-	constexpr inline operator int() const
+	COMPILETIMEEVAL OPTIONALINLINE operator int() const
 	{ return this->value; }
 
-	constexpr inline unsigned long ToLong() const
+	COMPILETIMEEVAL OPTIONALINLINE unsigned long ToLong() const
 	{ return static_cast<std::make_unsigned<long>::type> (this->value); }
 
-	constexpr inline double ToDouble() const
+	COMPILETIMEEVAL OPTIONALINLINE double ToDouble() const
 	{ return static_cast<double>(this->value / Unsorted::d_LeptonsPerCell); }
 
-	constexpr inline int ToCell() const
+	COMPILETIMEEVAL OPTIONALINLINE int ToCell() const
 	{ return this->value / Unsorted::LeptonsPerCell; }
 
 	int value { 0 };

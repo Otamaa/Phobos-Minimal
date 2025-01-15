@@ -1177,7 +1177,7 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 						{
 							auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
 							// Die1-Die5 sequences are offset by 10
-							constexpr auto Die = [](int x) { return x + 10; };
+							COMPILETIMEEVAL auto Die = [](int x) { return x + 10; };
 
 							int resultSequence = Die(1);
 

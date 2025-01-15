@@ -6,7 +6,7 @@
 class WWMessageBox
 {
 public:
-	static constexpr reference<WWMessageBox, 0x82083C> Instance {};
+	static COMPILETIMEEVAL reference<WWMessageBox, 0x82083C> Instance {};
 
 	enum class Result : int
 	{

@@ -997,7 +997,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 	return  nChance < 0 || ScenarioClass::Instance->Random.RandomFromMax(99) < nChance;
 }
 
-static constexpr int GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt)
+static COMPILETIMEEVAL int GetRelativeValue(ObjectClass* pTarget, WarheadTypeExtData* pWHExt)
 {
 	auto const pWhat = pTarget->WhatAmI();
 	bool IsTechno = false;

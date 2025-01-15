@@ -17,19 +17,19 @@ public:
 	//	return *this;
 	//}
 
-	constexpr bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
-	constexpr bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }
+	COMPILETIMEEVAL bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
+	COMPILETIMEEVAL bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }
 
-	constexpr bool operator>(const Point2DBYTE& that) const { return X > that.X || X == that.X && Y > that.Y; }
-	constexpr bool operator>=(const Point2DBYTE& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
+	COMPILETIMEEVAL bool operator>(const Point2DBYTE& that) const { return X > that.X || X == that.X && Y > that.Y; }
+	COMPILETIMEEVAL bool operator>=(const Point2DBYTE& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
 
-	constexpr bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
-	constexpr bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
+	COMPILETIMEEVAL bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
+	COMPILETIMEEVAL bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
-	constexpr Point2DBYTE operator-(const Point2DBYTE& that) const { return {BYTE(X - that.X), BYTE(Y - that.Y)};}
-	constexpr Point2DBYTE& operator-=(const Point2DBYTE& that) { X -= that.X; Y -= that.Y; return *this; }
+	COMPILETIMEEVAL Point2DBYTE operator-(const Point2DBYTE& that) const { return {BYTE(X - that.X), BYTE(Y - that.Y)};}
+	COMPILETIMEEVAL Point2DBYTE& operator-=(const Point2DBYTE& that) { X -= that.X; Y -= that.Y; return *this; }
 
-	constexpr bool IsValid() const { return *this != (Point2DBYTE::Empty); }
+	COMPILETIMEEVAL bool IsValid() const { return *this != (Point2DBYTE::Empty); }
 
 	explicit operator DWORD() const {
 		DWORD result = 0;
@@ -45,19 +45,19 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr  double pow() const {
+	COMPILETIMEEVAL  double pow() const {
 		return double(X * X) + double(Y * Y);
 	}
 
-	inline double Length() const {
+	OPTIONALINLINE double Length() const {
 		return std::sqrt(this->pow());
 	}
 
-	inline double DistanceFrom(const Point2DBYTE& that) const{
+	OPTIONALINLINE double DistanceFrom(const Point2DBYTE& that) const{
 		return (that - *this).Length();
 	}
 
-	constexpr double DistanceFromSquared(const Point2DBYTE& that) const {
+	COMPILETIMEEVAL double DistanceFromSquared(const Point2DBYTE& that) const {
 		return (that - *this).pow();
 	}
 

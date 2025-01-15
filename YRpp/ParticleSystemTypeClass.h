@@ -25,16 +25,16 @@ class  DECLSPEC_UUID("703E044A-0FB1-11D2-8172-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ParticleSystemType;
-	static constexpr inline DWORD vtable = 0x7F00A8;
-	static constexpr reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
-	static constexpr reference<const char*, 0x836EE0, 5u> const BehavesString {};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F00A8;
+	static COMPILETIMEEVAL reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
+	static COMPILETIMEEVAL reference<const char*, 0x836EE0, 5u> const BehavesString {};
 
 	static ParticleSystemTypeBehavesLike __fastcall GetBehave(const char* behaveID) JMP_STD(0x644850);
 	static const char* GetBehaveName(ParticleSystemTypeBehavesLike nBhv) { return BehavesString[(int)nBhv]; }
 
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<ParticleSystemTypeClass*>, 0xA83D68u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ParticleSystemTypeClass*>, 0xA83D68u> const Array {};
 
 	IMPL_Find(ParticleSystemTypeClass)
 

@@ -7,8 +7,8 @@ class AlphaLightingRemapClass
 {
 public:
 
-	constexpr static reference<DynamicVectorClass<AlphaLightingRemapClass*>, 0x88A080> const Array {};
-	constexpr static reference<AlphaLightingRemapClass , 0x87E8A8> const Global {};
+	COMPILETIMEEVAL static reference<DynamicVectorClass<AlphaLightingRemapClass*>, 0x88A080> const Array {};
+	COMPILETIMEEVAL static reference<AlphaLightingRemapClass , 0x87E8A8> const Global {};
 	// Notice:
 	// When a ConvertClass is constructed by the game, it will generate [IntensityCount] color
 	// tables from dark to bright. Each of them just changes the intensity of the source palette.

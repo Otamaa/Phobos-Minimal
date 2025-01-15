@@ -29,10 +29,10 @@ class IonBlastClass;
 class WarheadTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x22242222;
+	static COMPILETIMEEVAL size_t Canary = 0x22242222;
 	using base_type = WarheadTypeClass;
 
-	static constexpr size_t ExtOffset = 0x1CC; //ares
+	static COMPILETIMEEVAL size_t ExtOffset = 0x1CC; //ares
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -469,11 +469,11 @@ public:
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
 	void GetCritChance(TechnoClass* pFirer , std::vector<double>& chances) const;
 
-	constexpr VersesData& GetVerses(Armor armor) {
+	COMPILETIMEEVAL VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];
 	}
 
-	constexpr const VersesData& GetVerses(Armor armor) const {
+	COMPILETIMEEVAL const VersesData& GetVerses(Armor armor) const {
 		return this->Verses[static_cast<int>(armor)];
 	}
 
@@ -484,7 +484,7 @@ public:
 
 	AnimTypeClass* GetArmorHitAnim(int Armor);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(WarheadTypeExtData) -
 			(4u //AttachedToObject
@@ -495,7 +495,7 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	inline static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
+	OPTIONALINLINE static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
 
 	static void DetonateAt(
 		WarheadTypeClass* pThis,
@@ -555,7 +555,7 @@ public:
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);
 	}
 
-	constexpr VersesData* GetVersesData(Armor armor) {
+	COMPILETIMEEVAL VersesData* GetVersesData(Armor armor) {
 		return this->_GetExtData()->Verses.data() + static_cast<size_t>(armor);
 	}
 

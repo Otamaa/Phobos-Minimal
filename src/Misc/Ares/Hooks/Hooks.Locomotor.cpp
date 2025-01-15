@@ -254,7 +254,7 @@ DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	LEA_STACK(Point2D*, BaseCoords, STACK_OFFS(0x164, 0x14C));
 	LEA_STACK(Point2D*, AltCoords, STACK_OFFS(0x164, 0x144));
 
-	constexpr size_t StringLen = 256;
+	COMPILETIMEEVAL size_t StringLen = 256;
 
 	wchar_t pName[StringLen];
 	wchar_t pArmor[StringLen];

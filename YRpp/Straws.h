@@ -5,9 +5,9 @@
 class Straw
 {
 public:
-	static inline constexpr DWORD vtable = 0x7E61F0;
+	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E61F0;
 
-	constexpr explicit Straw() = default;
+	COMPILETIMEEVAL explicit Straw() = default;
 
 	virtual ~Straw()
 	{
@@ -48,7 +48,7 @@ public:
 		return 0;
 	}
 
-	constexpr FORCEINLINE void Get_From(Straw& pipe) { Get_From(&pipe); }
+	COMPILETIMEEVAL FORCEDINLINE void Get_From(Straw& pipe) { Get_From(&pipe); }
 
 public:
 
@@ -63,7 +63,7 @@ private:
 class BufferStraw : public Straw
 {
 public:
-	constexpr explicit BufferStraw() = delete;
+	COMPILETIMEEVAL explicit BufferStraw() = delete;
 	explicit BufferStraw(void* pBuffer, int nLength) : Straw {}, Buffer { pBuffer,nLength }
 	{ }
 
@@ -106,9 +106,9 @@ private:
 class LCWStraw : public Straw
 {
 public:
-	static constexpr inline DWORD vtable = 0x7ECF44l;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ECF44l;
 
-	constexpr explicit LCWStraw() = delete;
+	COMPILETIMEEVAL explicit LCWStraw() = delete;
 	explicit LCWStraw(BOOL bControl, size_t nBlockSize) : Straw {}
 	{
 		this->Control = bControl;

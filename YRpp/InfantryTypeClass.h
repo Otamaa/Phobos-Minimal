@@ -36,7 +36,7 @@ struct DoInfoStruct
 
 struct DoControls
 {
-	constexpr void __forceinline Initialize()
+	COMPILETIMEEVAL void __forceinline Initialize()
 	{
 		for (auto at = this->begin(); at != this->end(); ++at)
 		{
@@ -52,9 +52,9 @@ struct DoControls
 		}
 	}
 
-	static inline constexpr int MaxCount = 42;
-	static constexpr reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
-	static constexpr reference<const char*, 0x8255C8u, MaxCount> const DoType_toStr { };
+	static OPTIONALINLINE COMPILETIMEEVAL int MaxCount = 42;
+	static COMPILETIMEEVAL reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
+	static COMPILETIMEEVAL reference<const char*, 0x8255C8u, MaxCount> const DoType_toStr { };
 
 	static const char* GetSequenceName(DoType sequence) {
 		return DoType_toStr[(int)sequence];
@@ -72,8 +72,8 @@ struct DoControls
 		return MasterArray.begin() + (int)sequence;
 	}
 
-	constexpr DoInfoStruct* begin() { return std::begin(Data); }
-	constexpr DoInfoStruct* end() { return std::end(Data); }
+	COMPILETIMEEVAL DoInfoStruct* begin() { return std::begin(Data); }
+	COMPILETIMEEVAL DoInfoStruct* end() { return std::end(Data); }
 
 	DoInfoStruct Data[MaxCount];
 };
@@ -85,10 +85,10 @@ class DECLSPEC_UUID("AE8B33D8-061C-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::InfantryType;
-	static constexpr inline DWORD vtable = 0x7EB610;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7EB610;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<InfantryTypeClass*>, 0xA8E348u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<InfantryTypeClass*>, 0xA8E348u> const Array {};
 
 	IMPL_Find(InfantryTypeClass)
 

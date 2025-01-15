@@ -149,7 +149,7 @@ public:
 	void GetInteger(const char* pSection, const char* pKey, int& nValue)
 		{ nValue = ReadInteger(pSection, pKey, nValue); }
 
-	inline void GetIntegerClamp(const char *pSection, const char *pKey, int nMin, int nMax, int& nValue)
+	OPTIONALINLINE void GetIntegerClamp(const char *pSection, const char *pKey, int nMin, int nMax, int& nValue)
 		{nValue = std::clamp(ReadInteger(pSection, pKey, nValue), nMin, nMax);}
 
 	//Writes an integer value.
@@ -168,7 +168,7 @@ public:
 	void GetDouble(const char* pSection, const char* pKey, double& nValue)
 		{ nValue = ReadDouble(pSection, pKey, nValue); }
 
-	inline void GetDoubleClamp(const char* pSection, const char* pKey, double nMin, double nMax ,double& nValue)
+	OPTIONALINLINE void GetDoubleClamp(const char* pSection, const char* pKey, double nMin, double nMax ,double& nValue)
 		{ nValue = std::clamp(ReadDouble(pSection, pKey, nValue), nMin, nMax); }
 
 	//Writes a decimal value.
@@ -197,7 +197,7 @@ public:
 	float ReadFloat(const char *pSection, const char *pKey, float fDefault)
 		{ return (float)ReadDouble(pSection, pKey, fDefault); }
 
-	inline void GetFloatClamp(const char *pSection, const char *pKey, float nMin, float nMax, float& fDefault)
+	OPTIONALINLINE void GetFloatClamp(const char *pSection, const char *pKey, float nMin, float nMax, float& fDefault)
 		{ fDefault = std::clamp(ReadFloat(pSection, pKey, fDefault), nMin, nMax); }
 
 	bool WriteFloat(const char *pSection, const char *pKeys, float fVal)
@@ -372,20 +372,20 @@ public:
 
 	// safer and more convenient overload for string reading
 	template <size_t Size>
-	constexpr int ReadString(const char* pSection, const char* pKey, const char* pDefault, char(&pBuffer)[Size])
+	COMPILETIMEEVAL int ReadString(const char* pSection, const char* pKey, const char* pDefault, char(&pBuffer)[Size])
 	{
 		return this->ReadString(pSection, pKey, pDefault, pBuffer, Size);
 	}
 
 	template <size_t Size>
-	constexpr int GetString(const char* pSection, const char* pKey, char(&pBuffer)[Size])
+	COMPILETIMEEVAL int GetString(const char* pSection, const char* pKey, char(&pBuffer)[Size])
 	{
 		return ReadString(pSection, pKey, pBuffer, pBuffer);
 	}
 
 	// safer and more convenient overload for escaped unicode string reading
 	template <size_t Size>
-	constexpr int ReadUnicodeString(const char* pSection, const char* pKey, const wchar_t* pDefault, wchar_t(&pBuffer)[Size])
+	COMPILETIMEEVAL int ReadUnicodeString(const char* pSection, const char* pKey, const wchar_t* pDefault, wchar_t(&pBuffer)[Size])
 	{
 		return this->ReadUnicodeString(pSection, pKey, pDefault, pBuffer, Size);
 	}
@@ -416,26 +416,26 @@ class CCINIClass : public INIClass
 {
 public:
 	//STATIC
-	static constexpr inline DWORD vtable = 0x7E1AF4;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E1AF4;
 
-	static constexpr reference<DWORD, 0xB77E00u> const RulesHash{};
-	static constexpr reference<DWORD, 0xB77E04u> const ArtHash{};
-	static constexpr reference<DWORD, 0xB77E08u> const AIHash{};
+	static COMPILETIMEEVAL reference<DWORD, 0xB77E00u> const RulesHash{};
+	static COMPILETIMEEVAL reference<DWORD, 0xB77E04u> const ArtHash{};
+	static COMPILETIMEEVAL reference<DWORD, 0xB77E08u> const AIHash{};
 
-	static constexpr reference<DWORD, 0xAC026Cu> const RulesHash_Internet{};
-	static constexpr reference<DWORD, 0xAC0270u> const ArtHash_Internet{};
-	static constexpr reference<DWORD, 0xAC0274u> const AIHash_Internet{};
+	static COMPILETIMEEVAL reference<DWORD, 0xAC026Cu> const RulesHash_Internet{};
+	static COMPILETIMEEVAL reference<DWORD, 0xAC0270u> const ArtHash_Internet{};
+	static COMPILETIMEEVAL reference<DWORD, 0xAC0274u> const AIHash_Internet{};
 
 	// westwood genius shines again
 
 	// this is a pointer in the class
-	static constexpr reference<CCINIClass*, 0x887048u> const INI_Rules{};
+	static COMPILETIMEEVAL reference<CCINIClass*, 0x887048u> const INI_Rules{};
 
 	// these are static class variables, why the fuck did you differentiate them, WW?
-	static constexpr reference<CCINIClass, 0x887128u> const INI_AI{};
-	static constexpr reference<CCINIClass, 0x887180u> const INI_Art{};
-	static constexpr reference<CCINIClass, 0x887208u> const INI_UIMD{};
-	static constexpr reference<CCINIClass, 0x8870C0u> const INI_RA2MD{};
+	static COMPILETIMEEVAL reference<CCINIClass, 0x887128u> const INI_AI{};
+	static COMPILETIMEEVAL reference<CCINIClass, 0x887180u> const INI_Art{};
+	static COMPILETIMEEVAL reference<CCINIClass, 0x887208u> const INI_UIMD{};
+	static COMPILETIMEEVAL reference<CCINIClass, 0x8870C0u> const INI_RA2MD{};
 
 	//non-static
 	CCINIClass() : INIClass(false) {

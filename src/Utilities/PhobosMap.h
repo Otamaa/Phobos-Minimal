@@ -26,7 +26,7 @@ public:
 	//	return const_cast<TValue*>(pValue);
 	//}
 
-	constexpr TValue* tryfind(const TKey& key)
+	COMPILETIMEEVAL TValue* tryfind(const TKey& key)
 	{
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end())
@@ -38,7 +38,7 @@ public:
 	}
 
 	// nonmodifiable
-	constexpr const TValue* tryfind(const TKey& key) const
+	COMPILETIMEEVAL const TValue* tryfind(const TKey& key) const
 	{
 		auto it = this->get_key_iterator(key);
 
@@ -51,7 +51,7 @@ public:
 	}
 
 	// nonmodifiable
-	constexpr TValue get_or_default(const TKey& key) const
+	COMPILETIMEEVAL TValue get_or_default(const TKey& key) const
 	{
 		if (auto pValue = this->tryfind(key))
 		{
@@ -61,7 +61,7 @@ public:
 	}
 
 	// nonmodifiable
-	constexpr TValue get_or_default(const TKey& key, TValue def) const
+	COMPILETIMEEVAL TValue get_or_default(const TKey& key, TValue def) const
 	{
 		if (auto pValue = this->tryfind(key))
 		{
@@ -70,12 +70,12 @@ public:
 		return def;
 	}
 
-	constexpr void erase(container_t::iterator iter)
+	COMPILETIMEEVAL void erase(container_t::iterator iter)
 	{
 		this->values.erase(iter, this->values.end());
 	}
 
-	constexpr bool erase(const TKey& key)
+	COMPILETIMEEVAL bool erase(const TKey& key)
 	{
 		auto it = this->get_key_iterator(key);
 		if (it != this->values.end())
@@ -86,7 +86,7 @@ public:
 		return false;
 	}
 
-	constexpr bool contains(const TKey& key) const
+	COMPILETIMEEVAL bool contains(const TKey& key) const
 	{
 		return this->get_key_iterator(key) != values.end();
 	}
@@ -106,27 +106,27 @@ public:
 		this->insert_unchecked(key, std::move(value));
 	}
 
-	constexpr size_t size() const
+	COMPILETIMEEVAL size_t size() const
 	{
 		return values.size();
 	}
 
-	constexpr bool empty() const
+	COMPILETIMEEVAL bool empty() const
 	{
 		return values.empty();
 	}
 
-	constexpr void clear()
+	COMPILETIMEEVAL void clear()
 	{
 		values.clear();
 	}
 
-	constexpr void reserve(size_t newsize)
+	COMPILETIMEEVAL void reserve(size_t newsize)
 	{
 		values.reserve(newsize);
 	}
 
-	constexpr void resize(size_t newsize)
+	COMPILETIMEEVAL void resize(size_t newsize)
 	{
 		values.resize(newsize);
 	}
@@ -166,39 +166,39 @@ public:
 		return true;
 	}
 
-	constexpr [[nodiscard]] auto begin() noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto begin() noexcept
 	{
 		return values.begin();
 	}
 
-	constexpr [[nodiscard]] auto begin() const noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto begin() const noexcept
 	{
 		return values.begin();
 	}
 
-	constexpr [[nodiscard]] auto end() noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto end() noexcept
 	{
 		return values.end();
 	}
 
-	constexpr [[nodiscard]] auto end() const noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto end() const noexcept
 	{
 		return values.end();
 	}
 
-	constexpr auto back() const
+	COMPILETIMEEVAL auto back() const
 	{
 		return values.back();
 	}
 
-	constexpr auto back()
+	COMPILETIMEEVAL auto back()
 	{
 		return values.back();
 	}
 
-	constexpr auto get_key_iterator(const TKey& key)
+	COMPILETIMEEVAL auto get_key_iterator(const TKey& key)
 	{
-		if constexpr (direct_comparable<TKey>)
+		if COMPILETIMEEVAL (direct_comparable<TKey>)
 		{
 			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item)
  {
@@ -212,9 +212,9 @@ public:
 	}
 
 	// nonmodifiable
-	constexpr auto get_key_iterator(const TKey& key) const
+	COMPILETIMEEVAL auto get_key_iterator(const TKey& key) const
 	{
-		if constexpr (direct_comparable<TKey>)
+		if COMPILETIMEEVAL (direct_comparable<TKey>)
 		{
 			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item)
  {

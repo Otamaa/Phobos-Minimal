@@ -5,10 +5,10 @@ class //DECLSPEC_UUID("4A582747-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	TeleportLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7F50CC;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7F5000;
-	static constexpr inline uintptr_t IPiggy_vtable = 0x7F4FDC;
-	static constexpr reference<CLSID const, 0x7E9A90u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7F50CC;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7F5000;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t IPiggy_vtable = 0x7F4FDC;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9A90u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

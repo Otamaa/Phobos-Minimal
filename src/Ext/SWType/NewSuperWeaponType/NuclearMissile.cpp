@@ -220,8 +220,8 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 		CoordStruct nOffs { 0 , 0, pPayload->Projectile->DetonationAltitude };
 		CoordStruct dest = to + nOffs;
 
-		constexpr auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
-		constexpr auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game
+		COMPILETIMEEVAL auto nCos = gcem::cos(1.570748388432313); // Accuracy is different from the game
+		COMPILETIMEEVAL auto nSin = gcem::sin(1.570748388432313); // Accuracy is different from the game
 
 		double nX = nCos * nCos * -1.0;
 		double nY = nCos * nSin * -1.0;

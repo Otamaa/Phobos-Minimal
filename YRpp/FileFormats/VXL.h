@@ -64,19 +64,19 @@ public:
 		}
 	}
 
-	static constexpr reference<Point3D , 0xB2D5E0u> const ClippingMax {};
-	static constexpr reference2D<char , 0xB2FF78u , 256 , 256> const PixelBuffers {};
-	static constexpr reference<char, 0xB45990u, 0x256> const NormalToLutP {};
-	static constexpr reference<WORD, 0xB45590u, 256> const DistanceLut {};
-	static constexpr reference<Matrix3D, 0xB45188u, 21> const RampMatrixes {};
-	static constexpr reference<Matrix3D, 0xB450B8u, 4> const _Matrixes {};
-	static constexpr reference<Vector3D<double>, 0xB444A0u, 256> const Unused_Vectors {};
-	static constexpr reference<Vector3D<double>, 0xB432D8u, 256> const Unused_Vectors2 {};
-	static constexpr reference<Quaternion, 0xB44348u, 21> const Unused_Quaterions {};
-	static constexpr reference<Quaternion, 0xB43188u, 21> const Unused_Quaterions2 {};
-	static constexpr reference<Matrix3D, 0xB44318u> const DefaultMatrix {};
-	static constexpr reference<Matrix3D, 0xB43F10u, 21 > const _Matrixes1 {};
-	static constexpr reference2D<short, 0xB41178u, 256, 32> const VPLLookups {};
+	static COMPILETIMEEVAL reference<Point3D , 0xB2D5E0u> const ClippingMax {};
+	static COMPILETIMEEVAL reference2D<char , 0xB2FF78u , 256 , 256> const PixelBuffers {};
+	static COMPILETIMEEVAL reference<char, 0xB45990u, 0x256> const NormalToLutP {};
+	static COMPILETIMEEVAL reference<WORD, 0xB45590u, 256> const DistanceLut {};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB45188u, 21> const RampMatrixes {};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB450B8u, 4> const _Matrixes {};
+	static COMPILETIMEEVAL reference<Vector3D<double>, 0xB444A0u, 256> const Unused_Vectors {};
+	static COMPILETIMEEVAL reference<Vector3D<double>, 0xB432D8u, 256> const Unused_Vectors2 {};
+	static COMPILETIMEEVAL reference<Quaternion, 0xB44348u, 21> const Unused_Quaterions {};
+	static COMPILETIMEEVAL reference<Quaternion, 0xB43188u, 21> const Unused_Quaterions2 {};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB44318u> const DefaultMatrix {};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB43F10u, 21 > const _Matrixes1 {};
+	static COMPILETIMEEVAL reference2D<short, 0xB41178u, 256, 32> const VPLLookups {};
 
 
 	// returns 0 on success, non zero on failure
@@ -133,8 +133,8 @@ struct VoxelDrawStruct {
 
 struct VoxelShadowDrawStruct {
 
-	static constexpr constant_ptr<VoxelShadowDrawStruct* , 0xB3FF78u> const DrawQueue {};
-	static constexpr reference<size_t , 0xB2FB70u> const DrawQueue_count {};
+	static COMPILETIMEEVAL constant_ptr<VoxelShadowDrawStruct* , 0xB3FF78u> const DrawQueue {};
+	static COMPILETIMEEVAL reference<size_t , 0xB2FB70u> const DrawQueue_count {};
 
 	VoxLib* lib;
 	int HeaderIndex;
@@ -208,7 +208,7 @@ struct VoxelSectionTailer {
 class VoxelPaletteClass
 {
 public:
-	static constexpr reference<int, 0xB45A90u, 16> const Scales1 {};
+	static COMPILETIMEEVAL reference<int, 0xB45A90u, 16> const Scales1 {};
 
 	VoxelPaletteClass(char* palette, char* lut) { JMP_THIS(0x758950); }
 	~VoxelPaletteClass() { JMP_THIS(0x7589C0); }

@@ -28,7 +28,7 @@ public:
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
 	bool CanShowAnim() const;
 
-	constexpr FORCEINLINE PhobosAttachEffectTypeClass* GetType() const {
+	COMPILETIMEEVAL FORCEDINLINE PhobosAttachEffectTypeClass* GetType() const {
 		return this->Type;
 	}
 
@@ -36,28 +36,28 @@ public:
 
 	bool ResetIfRecreatable();
 
-	constexpr FORCEINLINE bool IsSelfOwned() const {
+	COMPILETIMEEVAL FORCEDINLINE bool IsSelfOwned() const {
 		return this->Source == this->Techno;
 	}
 
-	constexpr FORCEINLINE bool HasExpired() const {
+	COMPILETIMEEVAL FORCEDINLINE bool HasExpired() const {
 		return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
 	}
 
 	bool ShouldBeDiscardedNow() const;
 
-	constexpr FORCEINLINE bool IsActive() const {
+	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const {
 		if (this->IsSelfOwned())
 			return this->InitialDelay <= 0 && this->CurrentDelay == 0 && this->HasInitialized && this->IsOnline && !this->NeedsDurationRefresh;
 		else
 			return this->Duration && this->IsOnline;
 	}
 
-	constexpr FORCEINLINE bool IsFromSource(TechnoClass* pInvoker, AbstractClass* pSource) const {
+	COMPILETIMEEVAL FORCEDINLINE bool IsFromSource(TechnoClass* pInvoker, AbstractClass* pSource) const {
 		return pInvoker == this->Invoker && pSource == this->Source;
 	}
 
-	constexpr FORCEINLINE int GetRemainingDuration() const { return this->Duration; }
+	COMPILETIMEEVAL FORCEDINLINE int GetRemainingDuration() const { return this->Duration; }
 
 	void InvalidatePointer(AbstractClass* ptr, bool removed);
 

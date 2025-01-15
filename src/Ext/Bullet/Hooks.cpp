@@ -181,7 +181,7 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 		? DetonateBullet : Continue;
 }
 
-static FORCEINLINE void TryDetonateFull(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
+static FORCEDINLINE void TryDetonateFull(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
 {
 	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
 	{
@@ -191,7 +191,7 @@ static FORCEINLINE void TryDetonateFull(BulletClass* pThis, TechnoClass* pTechno
 	}
 }
 
-static FORCEINLINE void TryDetonateDamageArea(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
+static FORCEDINLINE void TryDetonateDamageArea(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
 {
 	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
 	{
@@ -227,7 +227,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 			const auto pHouse = BulletExtData::GetHouse(pThis);
 			BulletExtContainer::Instance.Find(pThis)->OriginalTarget = pThis->Target;
 
-			constexpr auto copy_dvc = []<typename T>(std::vector<T>& dest, const DynamicVectorClass<T>&dvc) {
+			COMPILETIMEEVAL auto copy_dvc = []<typename T>(std::vector<T>& dest, const DynamicVectorClass<T>&dvc) {
 				dest.resize(dvc.Count);
 				std::copy(dvc.begin(), dvc.end(), dest.begin());
 				return &dest;

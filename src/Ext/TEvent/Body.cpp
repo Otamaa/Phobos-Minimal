@@ -38,7 +38,7 @@ namespace std
 		_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef _Ty _SECOND_ARGUMENT_TYPE_NAME;
 		_CXX17_DEPRECATE_ADAPTOR_TYPEDEFS typedef bool _RESULT_TYPE_NAME;
 
-		_NODISCARD constexpr bool operator()(const _Ty& _Left, const _Ty& _Right) const
+		_NODISCARD COMPILETIMEEVAL bool operator()(const _Ty& _Left, const _Ty& _Right) const
 		{
 			return _Left & _Right;
 		}

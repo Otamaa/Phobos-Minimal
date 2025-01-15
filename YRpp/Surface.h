@@ -19,8 +19,8 @@ class ColorScheme;
 class NOVTABLE Surface
 {
 public:
-	static constexpr inline DWORD vtable = 0x7E2198;
-	static constexpr reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern{};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E2198;
+	static COMPILETIMEEVAL reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern{};
 
 	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
@@ -165,7 +165,7 @@ class NOVTABLE XSurface : public Surface
 {
 public:
 
-	static inline constexpr DWORD vtable = 0x7E2104;
+	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2104;
 
 	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this , vtable); }
 	XSurface(int width, int height) JMP_THIS(0x5FE020);
@@ -243,8 +243,8 @@ static_assert(sizeof(XSurface) == 0x14, "Invalid Size !");
 class NOVTABLE BSurface : public XSurface
 {
 public:
-	static inline constexpr DWORD vtable = 0x7E2070;
-	static constexpr reference<BSurface, 0xB2D928> const VoxelSurface {};
+	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2070;
+	static COMPILETIMEEVAL reference<BSurface, 0xB2D928> const VoxelSurface {};
 
 	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
@@ -388,32 +388,32 @@ static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct
 class NOVTABLE DSurface : public XSurface
 {
 public:
-	static constexpr reference<DSurface*, 0x8872FCu> const Tile{};
-	static constexpr reference<DSurface*, 0x887300u> const Sidebar{};
-	static constexpr reference<DSurface*, 0x887308u> const Primary{};
-	static constexpr reference<DSurface*, 0x88730Cu> const Hidden{};
-	static constexpr reference<DSurface*, 0x887310u> const Alternate{};
-	static constexpr reference<DSurface*, 0x887314u> const Temp{};
-	static constexpr reference<DSurface*, 0x887314u> const Hidden_2{};
-	static constexpr reference<DSurface*, 0x88731Cu> const Composite{};
-	static constexpr reference<int, 0x8205D0u> const RGBMode{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x8872FCu> const Tile{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887300u> const Sidebar{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887308u> const Primary{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x88730Cu> const Hidden{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887310u> const Alternate{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Temp{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite{};
+	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBMode{};
 
-	static constexpr reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
-	static constexpr reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
-	static constexpr reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
 
-	static constexpr reference<unsigned, 0x8A0DD0u> const RedLeft{};
-	static constexpr reference<unsigned, 0x8A0DD4u> const RedRight{};
-	static constexpr reference<unsigned, 0x8A0DE0u> const GreenLeft{};
-	static constexpr reference<unsigned, 0x8A0DE4u> const GreenRight{};
-	static constexpr reference<unsigned, 0x8A0DD8u> const BlueLeft{};
-	static constexpr reference<unsigned, 0x8A0DDCu> const BlueRight{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD0u> const RedLeft{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD4u> const RedRight{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE0u> const GreenLeft{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE4u> const GreenRight{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD8u> const BlueLeft{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DDCu> const BlueRight{};
 
-	static constexpr reference<int, 0x8205D0u> const RGBPixelFormat {};
-	static constexpr reference<bool, 0x8A0DEEu> const AllowStretchBlits {};
-	static constexpr reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
+	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBPixelFormat {};
+	static COMPILETIMEEVAL reference<bool, 0x8A0DEEu> const AllowStretchBlits {};
+	static COMPILETIMEEVAL reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
 
-	static constexpr reference<bool*, 0x84310C> const PatternData {};
+	static COMPILETIMEEVAL reference<bool*, 0x84310C> const PatternData {};
 
 	// Comments from thomassneddon
 	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,

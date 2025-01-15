@@ -1,3 +1,3 @@
 #pragma once
 
-static constexpr char MaxHouseCount { 32 };
+static COMPILETIMEEVAL char MaxHouseCount { 32 };

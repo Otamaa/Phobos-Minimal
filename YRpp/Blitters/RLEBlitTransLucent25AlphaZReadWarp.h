@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransLucent25AlphaZReadWarp)
 {
 public:
-	inline explicit RLEBlitTransLucent25AlphaZReadWarp(T* data, WORD mask, int shadecount) noexcept
+	OPTIONALINLINE explicit RLEBlitTransLucent25AlphaZReadWarp(T* data, WORD mask, int shadecount) noexcept
 	{
 		PaletteData = data;
 		Mask = mask;

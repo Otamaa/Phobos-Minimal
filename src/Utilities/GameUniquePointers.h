@@ -5,10 +5,10 @@
 template<typename T>
 struct UniqueGamePtr : public std::unique_ptr<T, GameDeleter> {
 
-	constexpr UniqueGamePtr<T>() noexcept : std::unique_ptr<T, GameDeleter>()
+	COMPILETIMEEVAL UniqueGamePtr<T>() noexcept : std::unique_ptr<T, GameDeleter>()
 	{ }
 
-	constexpr UniqueGamePtr<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDeleter>(){
+	COMPILETIMEEVAL UniqueGamePtr<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDeleter>(){
 		this->reset(_ptr);
 	}
 };
@@ -16,10 +16,10 @@ struct UniqueGamePtr : public std::unique_ptr<T, GameDeleter> {
 template<typename T>
 struct UniqueGamePtrB : public std::unique_ptr<T, GameDTORCaller>{
 
-	constexpr UniqueGamePtrB<T>() noexcept : std::unique_ptr<T, GameDTORCaller>()
+	COMPILETIMEEVAL UniqueGamePtrB<T>() noexcept : std::unique_ptr<T, GameDTORCaller>()
 	{ }
 
-	constexpr UniqueGamePtrB<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDTORCaller>() {
+	COMPILETIMEEVAL UniqueGamePtrB<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDTORCaller>() {
 		this->reset(_ptr);
 	}
 };

@@ -231,7 +231,7 @@ struct PinnedVector
 };
 
 template<class T>
-inline void PinnedVector<T>::initializeArena(size_t maxElementCount)
+OPTIONALINLINE void PinnedVector<T>::initializeArena(size_t maxElementCount)
 {
 	if (beg_)
 	{
@@ -244,7 +244,7 @@ inline void PinnedVector<T>::initializeArena(size_t maxElementCount)
 }
 
 template<class T>
-inline void PinnedVector<T>::noConstructorCallResize(size_t elementCount)
+OPTIONALINLINE void PinnedVector<T>::noConstructorCallResize(size_t elementCount)
 {
 	//if (!beg_)
 	//{
@@ -265,7 +265,7 @@ inline void PinnedVector<T>::noConstructorCallResize(size_t elementCount)
 }
 
 template<class T>
-inline void PinnedVector<T>::resize(size_t elementCount)
+OPTIONALINLINE void PinnedVector<T>::resize(size_t elementCount)
 {
 	//if (!beg_)
 	//{
@@ -284,7 +284,7 @@ inline void PinnedVector<T>::resize(size_t elementCount)
 	}
 	else
 	{
-		if constexpr (!std::is_trivially_destructible<T>::value)
+		if COMPILETIMEEVAL (!std::is_trivially_destructible<T>::value)
 		{
 			for (int i = elementCount; i < size_; i++)
 			{
@@ -298,7 +298,7 @@ inline void PinnedVector<T>::resize(size_t elementCount)
 }
 
 template<class T>
-inline void PinnedVector<T>::reserve(size_t elementCount)
+OPTIONALINLINE void PinnedVector<T>::reserve(size_t elementCount)
 {
 	auto check = PINNED_VECTOR_COMMIT_MEMORY((beg_), (elementCount * sizeof(T)));
 	PINNED_VECTOR_ALLOCATION_FAILED_ASSERT(check);
@@ -306,13 +306,13 @@ inline void PinnedVector<T>::reserve(size_t elementCount)
 }
 
 template<class T>
-inline T* PinnedVector<T>::data()
+OPTIONALINLINE T* PinnedVector<T>::data()
 {
 	return beg_;
 }
 
 template<class T>
-inline void PinnedVector<T>::push_back(const T& el)
+OPTIONALINLINE void PinnedVector<T>::push_back(const T& el)
 {
 	noConstructorCallResize(size_ + 1);
 	//new(&beg_[size_ - 1])T(el);
@@ -320,7 +320,7 @@ inline void PinnedVector<T>::push_back(const T& el)
 }
 
 template<class T>
-inline void PinnedVector<T>::push_back(T&& el)
+OPTIONALINLINE void PinnedVector<T>::push_back(T&& el)
 {
 	noConstructorCallResize(size_ + 1);
 	//new(&beg_[size_ - 1])T(el);
@@ -329,9 +329,9 @@ inline void PinnedVector<T>::push_back(T&& el)
 }
 
 template<class T>
-inline void PinnedVector<T>::pop_back()
+OPTIONALINLINE void PinnedVector<T>::pop_back()
 {
-	if constexpr (!std::is_trivially_destructible<T>::value)
+	if COMPILETIMEEVAL (!std::is_trivially_destructible<T>::value)
 	{
 		beg_[size_ - 1].~T();
 	}
@@ -340,9 +340,9 @@ inline void PinnedVector<T>::pop_back()
 }
 
 template<class T>
-inline void PinnedVector<T>::clear()
+OPTIONALINLINE void PinnedVector<T>::clear()
 {
-	if constexpr (!std::is_trivially_destructible<T>::value)
+	if COMPILETIMEEVAL (!std::is_trivially_destructible<T>::value)
 	{
 		for (int i = 0; i < size_; i++)
 		{
@@ -355,9 +355,9 @@ inline void PinnedVector<T>::clear()
 
 //todo add commited size_
 template<class T>
-inline void PinnedVector<T>::free()
+OPTIONALINLINE void PinnedVector<T>::free()
 {
-	if constexpr (!std::is_trivially_destructible<T>::value)
+	if COMPILETIMEEVAL (!std::is_trivially_destructible<T>::value)
 	{
 		for (int i = 0; i < size_; i++)
 		{
@@ -388,7 +388,7 @@ inline void PinnedVector<T>::free()
 }
 
 template<class T>
-inline PinnedVector<T>::~PinnedVector()
+OPTIONALINLINE PinnedVector<T>::~PinnedVector()
 {
 	free();
 }

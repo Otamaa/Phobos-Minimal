@@ -65,11 +65,11 @@ class ScenarioClass
 {
 public:
 	//Static
-	static constexpr reference<ScenarioClass*, 0xA8B230u> const Instance{};
-	static constexpr reference<int, 0xA8ED7Cu> const NewINIFormat{};
-	static constexpr reference<TheaterType, 0x822CF8> const LastTheater {};
-	static constexpr reference<char, 0xA83E48, 128u> const CampaignScenarioName {};
-	static constexpr reference<bool, 0xA8ED5D> const ScenarioIsCampaign {};
+	static COMPILETIMEEVAL reference<ScenarioClass*, 0xA8B230u> const Instance{};
+	static COMPILETIMEEVAL reference<int, 0xA8ED7Cu> const NewINIFormat{};
+	static COMPILETIMEEVAL reference<TheaterType, 0x822CF8> const LastTheater {};
+	static COMPILETIMEEVAL reference<char, 0xA83E48, 128u> const CampaignScenarioName {};
+	static COMPILETIMEEVAL reference<bool, 0xA8ED5D> const ScenarioIsCampaign {};
 
 	static void __fastcall UpdateCellLighting()
 		{ JMP_STD(0x4AE4C0); }

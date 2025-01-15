@@ -24,10 +24,10 @@ static HelperedVector<DamageGroup*> Handled {};
 
 void NOINLINE DestroyBridge(CoordStruct* pCoord , FakeWarheadTypeClass* pWarhead , int damage , CellClass* pCell, CellStruct* pCellStruct)
 {
-	static constexpr reference<int, 0xAA0E28> BridgeSet {};
-	static constexpr reference<int, 0xABAD30> BridgeMiddle1 {};
-	static constexpr reference<int, 0xAA1028> BridgeMiddle2 {};
-	static constexpr reference<int, 0xABAD1C> WoodBridgeSet {};
+	static COMPILETIMEEVAL reference<int, 0xAA0E28> BridgeSet {};
+	static COMPILETIMEEVAL reference<int, 0xABAD30> BridgeMiddle1 {};
+	static COMPILETIMEEVAL reference<int, 0xAA1028> BridgeMiddle2 {};
+	static COMPILETIMEEVAL reference<int, 0xABAD1C> WoodBridgeSet {};
 
 	if (((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x80u) != 0) && pWarhead->WallAbsoluteDestroyer)
 	{

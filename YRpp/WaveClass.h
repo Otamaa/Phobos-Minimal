@@ -34,22 +34,22 @@ class DECLSPEC_UUID("0E272DCD-9C0F-11D1-B709-00A024DDAFD1")
 public:
 	static const AbstractType AbsID = AbstractType::Wave;
 
-	static constexpr constant_ptr<DynamicVectorClass<WaveClass*>, 0xA8EC38u> const Array{};
-	static constexpr reference<bool, 0xB725CCu> const IsLUTs_Calculated{};
-	static constexpr reference2D<short, 0xB4669Cu, 300, 300> const LUT_Pythagoras{};
-	static constexpr reference<short, 0xB45E68u, 496u> const MagneticBeamSineTable{};
-	static constexpr reference<short, 0xB46254u, 500u> const SonicBeamSineTable{};
-	static constexpr reference<int, 0xB46648u, 14u> const LUT_Linear1{};
-	static constexpr reference<Matrix3D, 0xB45DA8u, 4u> const Matrix{};
-	static constexpr reference<Matrix3D, 0xB45CA0u, 4u> const MagneticMatrix{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<WaveClass*>, 0xA8EC38u> const Array{};
+	static COMPILETIMEEVAL reference<bool, 0xB725CCu> const IsLUTs_Calculated{};
+	static COMPILETIMEEVAL reference2D<short, 0xB4669Cu, 300, 300> const LUT_Pythagoras{};
+	static COMPILETIMEEVAL reference<short, 0xB45E68u, 496u> const MagneticBeamSineTable{};
+	static COMPILETIMEEVAL reference<short, 0xB46254u, 500u> const SonicBeamSineTable{};
+	static COMPILETIMEEVAL reference<int, 0xB46648u, 14u> const LUT_Linear1{};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB45DA8u, 4u> const Matrix{};
+	static COMPILETIMEEVAL reference<Matrix3D, 0xB45CA0u, 4u> const MagneticMatrix{};
 
-	static constexpr ColorStruct const DefaultWaveColor { 255, 255, 255 }; // placeholder
-	static constexpr ColorStruct const DefaultWaveColorMagBeam { 0xB0, 0, 0xD0 }; // rp2 values
-	static constexpr ColorStruct const DefaultWaveColorSonic { 0, 0, 0 }; // 0,0,0 is a magic value for "no custom handling"
+	static COMPILETIMEEVAL ColorStruct const DefaultWaveColor { 255, 255, 255 }; // placeholder
+	static COMPILETIMEEVAL ColorStruct const DefaultWaveColorMagBeam { 0xB0, 0, 0xD0 }; // rp2 values
+	static COMPILETIMEEVAL ColorStruct const DefaultWaveColorSonic { 0, 0, 0 }; // 0,0,0 is a magic value for "no custom handling"
 
-	static constexpr WaveColorData const DefaultLaser { { 0,0,0 } , { 64,0,96 } };
-	static constexpr WaveColorData const DefaultSonic { { 0,256,256 } , {0,0,0 } };
-	static constexpr WaveColorData const DefaultMag { { 128,0,1024 } , { 0,0,0 } };
+	static COMPILETIMEEVAL WaveColorData const DefaultLaser { { 0,0,0 } , { 64,0,96 } };
+	static COMPILETIMEEVAL WaveColorData const DefaultSonic { { 0,256,256 } , {0,0,0 } };
+	static COMPILETIMEEVAL WaveColorData const DefaultMag { { 128,0,1024 } , { 0,0,0 } };
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x75F7D0);

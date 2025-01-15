@@ -11,7 +11,7 @@ public:
 	static const AbstractType AbsID = AbstractType::Campaign;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<CampaignClass*>, 0xA83CF8u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<CampaignClass*>, 0xA83CF8u> const Array {};
 
 	IMPL_Find(CampaignClass)
 	IMPL_FindOrAllocate(CampaignClass)	//Was inlined

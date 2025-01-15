@@ -43,27 +43,27 @@ private:
 	const T* items{ nullptr };
 	size_t count{ 0 };
 public:
-	constexpr Iterator() = default;
-	constexpr Iterator(const T* first, size_t count) : items(first), count(count) {}
-	constexpr Iterator(const std::vector<T>& vec) : items(vec.data()), count(vec.size()) {}
-	constexpr Iterator(const VectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Capacity)) {}
-	constexpr Iterator(const DynamicVectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Count)) {}
-	constexpr Iterator(const TypeList<T>& vec) : items(vec.Items) , count(static_cast<size_t>(vec.Count)) {}
-	constexpr Iterator(const std::set<T>& vec) : items(vec.begin()), count(vec.size()) {}
+	COMPILETIMEEVAL Iterator() = default;
+	COMPILETIMEEVAL Iterator(const T* first, size_t count) : items(first), count(count) {}
+	COMPILETIMEEVAL Iterator(const std::vector<T>& vec) : items(vec.data()), count(vec.size()) {}
+	COMPILETIMEEVAL Iterator(const VectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Capacity)) {}
+	COMPILETIMEEVAL Iterator(const DynamicVectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Count)) {}
+	COMPILETIMEEVAL Iterator(const TypeList<T>& vec) : items(vec.Items) , count(static_cast<size_t>(vec.Count)) {}
+	COMPILETIMEEVAL Iterator(const std::set<T>& vec) : items(vec.begin()), count(vec.size()) {}
 
-	constexpr T at(size_t index) const {
+	COMPILETIMEEVAL T at(size_t index) const {
 		return this->items[index];
 	}
 
-	constexpr size_t size() const {
+	COMPILETIMEEVAL size_t size() const {
 		return this->count;
 	}
 
-	constexpr const T* begin() const {
+	COMPILETIMEEVAL const T* begin() const {
 		return this->items;
 	}
 
-	constexpr const T* end() const {
+	COMPILETIMEEVAL const T* end() const {
 		if (!this->valid()) {
 			return nullptr;
 		}
@@ -71,11 +71,11 @@ public:
 		return &this->items[count];
 	}
 
-	constexpr bool ValidIndex(int index) const {
+	COMPILETIMEEVAL bool ValidIndex(int index) const {
 		return static_cast<size_t>(index) < this->size();
 	}
 
-	constexpr T GetItemAt(int nIdx) const
+	COMPILETIMEEVAL T GetItemAt(int nIdx) const
 	{
 		if(!this->valid() || !this->ValidIndex(nIdx))
 			return T();
@@ -83,7 +83,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr T GetItemAtOrMax(int nIdx) const
+	COMPILETIMEEVAL T GetItemAtOrMax(int nIdx) const
 	{
 		if (!this->valid())
 			return T();
@@ -94,7 +94,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr T GetItemAtOrDefault(int nIdx, const T& other) const
+	COMPILETIMEEVAL T GetItemAtOrDefault(int nIdx, const T& other) const
 	{
 		if (!this->valid() || !this->ValidIndex(nIdx))
 			return other;
@@ -102,16 +102,16 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	constexpr bool valid() const {
+	COMPILETIMEEVAL bool valid() const {
 		return items != nullptr;
 	}
 
-	constexpr bool empty() const {
+	COMPILETIMEEVAL bool empty() const {
 		return !this->valid() || !this->count;
 	}
 
-	constexpr bool FORCEINLINE contains(const T& other) const {
-		if constexpr (direct_comparable<T>) {
+	COMPILETIMEEVAL bool FORCEDINLINE contains(const T& other) const {
+		if COMPILETIMEEVAL (direct_comparable<T>) {
 			for (auto i = this->begin(); i != this->end(); ++i) {
 				if (*i == other) {
 					return true;
@@ -124,33 +124,33 @@ public:
 	}
 
 	template <typename Func>
-	constexpr void FORCEINLINE for_each(Func&& act) const {
+	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
 	template <typename Func>
-	constexpr void FORCEINLINE for_each(Func&& act) {
+	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
-	constexpr operator bool() const {
+	COMPILETIMEEVAL operator bool() const {
 		return !this->empty();
 	}
 
-	constexpr bool operator !() const {
+	COMPILETIMEEVAL bool operator !() const {
 		return this->empty();
 	}
 
-	constexpr const T& operator [](size_t index) const {
+	COMPILETIMEEVAL const T& operator [](size_t index) const {
 		return this->items[index];
 	}
 
 	template<typename Out, typename = std::enable_if_t<std::is_assignable<Out&, T>::value>>
-	constexpr operator Iterator<Out>() const {
+	COMPILETIMEEVAL operator Iterator<Out>() const {
 		// note: this does only work if pointer-to-derived equals pointer-to-base.
 		// if derived has virtual methods and base hasn't, this will just break.
 		return Iterator<Out>(reinterpret_cast<const Out*>(this->items), this->count);
@@ -158,55 +158,55 @@ public:
 };
 
 template <typename T>
-constexpr Iterator<T> make_iterator_single(const T& value) {
+COMPILETIMEEVAL Iterator<T> make_iterator_single(const T& value) {
 	return Iterator<T>(&value, 1);
 }
 
 template <typename T, size_t Size>
-constexpr Iterator<T> make_iterator(const T(&arr)[Size]) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const T(&arr)[Size]) {
 	return Iterator<T>(arr, Size);
 }
 
 template <typename T>
-constexpr Iterator<T> make_iterator(const T* ptr, size_t size) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const T* ptr, size_t size) {
 	return Iterator<T>(ptr, size);
 }
 
 // vector classes
 template <typename T>
-constexpr Iterator<T> make_iterator(const VectorClass<T>& value) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const VectorClass<T>& value) {
 	return Iterator<T>(value);
 }
 
 template <typename T>
-constexpr Iterator<T> make_iterator(const DynamicVectorClass<T>& value) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const DynamicVectorClass<T>& value) {
 	return Iterator<T>(value);
 }
 
 template <typename T>
-constexpr Iterator<T> make_iterator(const TypeList<T>& value){
+COMPILETIMEEVAL Iterator<T> make_iterator(const TypeList<T>& value){
 	return Iterator<T>(value);
 }
 
 template <typename T>
-constexpr Iterator<T> make_iterator(const std::vector<T>& value) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const std::vector<T>& value) {
 	return Iterator<T>(value);
 }
 
 template <typename T ,size_t count>
-constexpr Iterator<T> make_iterator(const std::array<T , count>& value){
+COMPILETIMEEVAL Iterator<T> make_iterator(const std::array<T , count>& value){
 	return Iterator<T>(value.begin() , count);
 }
 
 template <typename T>
-constexpr Iterator<T> make_iterator(const std::set<T>& value) {
+COMPILETIMEEVAL Iterator<T> make_iterator(const std::set<T>& value) {
 	return Iterator<T>(value);
 }
 
 // iterator does not keep temporary alive, thus rvalues are forbidden.
 // use the otherwise wierd const&& to not catch any lvalues
 template <typename T>
-constexpr void make_iterator_single(const T&&) = delete;
+COMPILETIMEEVAL void make_iterator_single(const T&&) = delete;
 
 template <typename T>
-constexpr void make_iterator(const T&&) = delete;
+COMPILETIMEEVAL void make_iterator(const T&&) = delete;

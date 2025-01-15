@@ -52,7 +52,7 @@ struct CSFString
 	CSFString *PreviousEntry;
 	wchar_t Text[102];
 
-	constexpr CSFString() : PreviousEntry(nullptr) {
+	COMPILETIMEEVAL CSFString() : PreviousEntry(nullptr) {
 		*Text = 0;
 	}
 };
@@ -69,17 +69,17 @@ class StringTable
 {
 public:
 
-	static constexpr reference<CSFString*, 0xB1CF88u> const LastLoadedString{};
-	static constexpr reference<int, 0xB1CF58u> const MaxLabelLen{};
-	static constexpr reference<int, 0xB1CF6Cu> const LabelCount{};
-	static constexpr reference<int, 0xB1CF70u> const ValueCount{};
-	static constexpr reference<CSFLanguages, 0x845728u> const Language{};
-	static constexpr reference<bool, 0xB1CF80u> const IsLoaded{};
-	static constexpr reference<char*, 0xB1CF68u> const FileName{};
-	static constexpr reference<CSFLabel*, 0xB1CF74u> const Labels{};
-	static constexpr reference<wchar_t**, 0xB1CF78u> const Values{};
-	static constexpr reference<char**, 0xB1CF7Cu> const ExtraValues{};
-	static constexpr reference<char , 0xB1BF38u, 4096u> const GlobalBuffer {};
+	static COMPILETIMEEVAL reference<CSFString*, 0xB1CF88u> const LastLoadedString{};
+	static COMPILETIMEEVAL reference<int, 0xB1CF58u> const MaxLabelLen{};
+	static COMPILETIMEEVAL reference<int, 0xB1CF6Cu> const LabelCount{};
+	static COMPILETIMEEVAL reference<int, 0xB1CF70u> const ValueCount{};
+	static COMPILETIMEEVAL reference<CSFLanguages, 0x845728u> const Language{};
+	static COMPILETIMEEVAL reference<bool, 0xB1CF80u> const IsLoaded{};
+	static COMPILETIMEEVAL reference<char*, 0xB1CF68u> const FileName{};
+	static COMPILETIMEEVAL reference<CSFLabel*, 0xB1CF74u> const Labels{};
+	static COMPILETIMEEVAL reference<wchar_t**, 0xB1CF78u> const Values{};
+	static COMPILETIMEEVAL reference<char**, 0xB1CF7Cu> const ExtraValues{};
+	static COMPILETIMEEVAL reference<char , 0xB1BF38u, 4096u> const GlobalBuffer {};
 
 	static const wchar_t* __fastcall LoadString(
 		const char* pLabel,

@@ -41,7 +41,7 @@ public:
 	static const AbstractType AbsID = AbstractType::SlaveManager;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<SlaveManagerClass*>, 0xB0B5F0u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SlaveManagerClass*>, 0xB0B5F0u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6B1130);

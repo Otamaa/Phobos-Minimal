@@ -22,23 +22,23 @@ struct Color16Struct;
 struct HSVClass;
 struct ColorStruct
 {
-	static inline constexpr BYTE Max = 255;
+	static OPTIONALINLINE COMPILETIMEEVAL BYTE Max = 255;
 
-	static constexpr reference<ColorStruct, 0xA80220> White {};
-	static constexpr reference<int, 0x8A0DD0> RedShiftLeft {};
-	static constexpr reference<int, 0x8A0DD4> RedShiftRight {};
-	static constexpr reference<int, 0x8A0DE0> GreenShiftLeft {};
-	static constexpr reference<int, 0x8A0DE4> GreenShiftRight {};
-	static constexpr reference<int, 0x8A0DD8> BlueShiftLeft {};
-	static constexpr reference<int, 0x8A0DDC> BlueShiftRight {};
+	static COMPILETIMEEVAL reference<ColorStruct, 0xA80220> White {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD0> RedShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD4> RedShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE0> GreenShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE4> GreenShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD8> BlueShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DDC> BlueShiftRight {};
 
-	constexpr ColorStruct() noexcept = default;
+	COMPILETIMEEVAL ColorStruct() noexcept = default;
 
-	constexpr ColorStruct(BYTE const r, BYTE const g, BYTE const b) noexcept
+	COMPILETIMEEVAL ColorStruct(BYTE const r, BYTE const g, BYTE const b) noexcept
 		: R(r), G(g), B(b)
 	{ }
 
-	constexpr ColorStruct(int const r, int const g, int const b) noexcept
+	COMPILETIMEEVAL ColorStruct(int const r, int const g, int const b) noexcept
 		: R(0) , G(0) , B(0)
 	{
 		R = std::clamp<BYTE>((BYTE)r, (BYTE)0, Max);
@@ -46,14 +46,14 @@ struct ColorStruct
 		B = std::clamp<BYTE>((BYTE)b, (BYTE)0, Max);
 	}
 
-	constexpr ColorStruct(const ColorStruct& c) noexcept
+	COMPILETIMEEVAL ColorStruct(const ColorStruct& c) noexcept
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
 	template<bool WordColor = false >
-	constexpr ColorStruct(const int& rgb)
+	COMPILETIMEEVAL ColorStruct(const int& rgb)
 	{
-		if constexpr (!WordColor)
+		if COMPILETIMEEVAL (!WordColor)
 		{
 			R = GetRValue(rgb);
 			G = GetGValue(rgb);
@@ -67,26 +67,26 @@ struct ColorStruct
 		}
 	}
 
-	inline explicit ColorStruct(Color16Struct const color);
+	OPTIONALINLINE explicit ColorStruct(Color16Struct const color);
 	static const ColorStruct Empty;
 
 	explicit ColorStruct(DWORD const color)
 	{ memcpy(this, &color, sizeof(ColorStruct)); }
 
-	inline explicit ColorStruct(WORD const color);
+	OPTIONALINLINE explicit ColorStruct(WORD const color);
 
-	FORCEINLINE constexpr bool operator == (ColorStruct const rhs) const
+	FORCEDINLINE COMPILETIMEEVAL bool operator == (ColorStruct const rhs) const
 	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
 
-	FORCEINLINE constexpr bool operator != (ColorStruct const rhs) const
+	FORCEDINLINE COMPILETIMEEVAL bool operator != (ColorStruct const rhs) const
 	{ return !(*this == rhs); }
 
-	FORCEINLINE constexpr bool operator!() const
+	FORCEDINLINE COMPILETIMEEVAL bool operator!() const
 	{
 		return (*this == ColorStruct::Empty);
 	}
 
-	FORCEINLINE constexpr operator bool() const
+	FORCEDINLINE COMPILETIMEEVAL operator bool() const
 	{
 		return !(*this == ColorStruct::Empty);
 	}
@@ -99,16 +99,16 @@ struct ColorStruct
 		return ret;
 	}
 
-	FORCEINLINE DWORD Pack() const noexcept {
+	FORCEDINLINE DWORD Pack() const noexcept {
 		return (DWORD)(*this);
 	}
 
-	inline explicit operator WORD() const;
+	OPTIONALINLINE explicit operator WORD() const;
 
 	//ColorStruct* Adjust_Brightness(ColorStruct& color, float adjust)
 	//{ JMP_THIS(0x661190); }
 
-	static FORCEINLINE constexpr ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
+	static FORCEDINLINE COMPILETIMEEVAL ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
 	{
 		return {
 			std::clamp<BYTE>((BYTE)(from->R * (1.0 - amount) + towards->R * amount), 0u, 255u) ,
@@ -117,14 +117,14 @@ struct ColorStruct
 		};
 	}
 
-	FORCEINLINE constexpr ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount) {
+	FORCEDINLINE COMPILETIMEEVAL ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount) {
 		this->R = (BYTE)std::clamp((towards->R * amount), 0.0f, 255.0f);
 		this->G = (BYTE)std::clamp((towards->G * amount), 0.0f, 255.0f);
 		this->B = (BYTE)std::clamp((towards->B * amount), 0.0f, 255.0f);
 		return this;
 	}
 
-	FORCEINLINE constexpr ColorStruct* Lerp(ColorStruct* lower, ColorStruct* upper, float adjust) {
+	FORCEDINLINE COMPILETIMEEVAL ColorStruct* Lerp(ColorStruct* lower, ColorStruct* upper, float adjust) {
 		auto adj = (1.0 - adjust);
 		this->R = (BYTE)std::clamp((double)(upper->R * adj) + (double)(lower->R * adj), 0.0, 255.0);
 		this->G = (BYTE)std::clamp((double)(upper->G * adj) + (double)(lower->G * adj), 0.0, 255.0);
@@ -132,17 +132,17 @@ struct ColorStruct
 		return this;
 	}
 
-	FORCEINLINE constexpr uintptr_t ToInit() const
+	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInit() const
 	{ return ((unsigned __int8)this->R >> RedShiftRight << RedShiftLeft) | ((unsigned __int8)this->G >> GreenShiftRight << GreenShiftLeft) | ((unsigned __int8)this->B >> BlueShiftRight << BlueShiftLeft); }
 
-	FORCEINLINE constexpr void Adjust(int adjust, const ColorStruct* that)
+	FORCEDINLINE COMPILETIMEEVAL void Adjust(int adjust, const ColorStruct* that)
 	{
 		this->R += (unsigned __int8)adjust * ((unsigned __int8)that->R - (unsigned __int8)this->R) / 256;
 		this->G += (unsigned __int8)adjust * ((unsigned __int8)that->G - (unsigned __int8)this->G) / 256;
 		this->B += (unsigned __int8)adjust * ((unsigned __int8)that->B - (unsigned __int8)this->B) / 256;
 	}
 
-	FORCEINLINE constexpr int Difference(const ColorStruct* that) const
+	FORCEDINLINE COMPILETIMEEVAL int Difference(const ColorStruct* that) const
 	{
 		auto red = (unsigned __int8)this->R - (unsigned __int8)that->R;
 		if ( red < 0 ) {
@@ -174,7 +174,7 @@ struct HSVClass
 	char Sat;
 	char Val;
 
-	constexpr ColorStruct ToColorStruct()
+	COMPILETIMEEVAL ColorStruct ToColorStruct()
 	{
 		//JMP_THIS(0x517440);
 		__int8 values[7];
@@ -195,7 +195,7 @@ struct HSVClass
 		return { (BYTE)values[red_arr] , (BYTE)values[green_arr] , (BYTE)values[blue_arr] };
 	}
 
-	constexpr uintptr_t ToColorStructInt()
+	COMPILETIMEEVAL uintptr_t ToColorStructInt()
 	{
 		//JMP_THIS(0x517440);
 		uint8_t values[7] {};
@@ -226,13 +226,13 @@ struct HSVClass
 class RGBClass
 {
 public:
-	static constexpr reference<RGBClass, 0xA80220> White {};
-	static constexpr reference<int, 0x8A0DD0> const RedShiftLeft {};
-	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
-	static constexpr reference<int, 0x8A0DE0> const GreenShiftLeft {};
-	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
-	static constexpr reference<int, 0x8A0DD8> const BlueShiftLeft {};
-	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
+	static COMPILETIMEEVAL reference<RGBClass, 0xA80220> White {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD0> const RedShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD4> const RedShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE0> const GreenShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE4> const GreenShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD8> const BlueShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
 
 	unsigned char Red;
 	unsigned char Green;
@@ -309,13 +309,13 @@ public:
 
 struct BytePalette
 {
-	static inline constexpr int EntriesCount = 256;
+	static OPTIONALINLINE COMPILETIMEEVAL int EntriesCount = 256;
 
-	constexpr BytePalette() noexcept :
+	COMPILETIMEEVAL BytePalette() noexcept :
 		Entries{}
 	{}
 
-	constexpr BytePalette(const ColorStruct& rgb) :
+	COMPILETIMEEVAL BytePalette(const ColorStruct& rgb) :
 		Entries{} {
 		for (int i = 0; i < EntriesCount; ++i)
 			Entries[i] = rgb;
@@ -326,21 +326,21 @@ struct BytePalette
 		std::memcpy(this, &that, sizeof(BytePalette));
 	}
 
-	constexpr ~BytePalette() = default;
+	COMPILETIMEEVAL ~BytePalette() = default;
 
-	constexpr FORCEINLINE operator const unsigned char* () const { return (const unsigned char*)&Entries[0]; }
-	constexpr FORCEINLINE operator unsigned char* () { return (unsigned char*)&Entries[0]; }
+	COMPILETIMEEVAL FORCEDINLINE operator const unsigned char* () const { return (const unsigned char*)&Entries[0]; }
+	COMPILETIMEEVAL FORCEDINLINE operator unsigned char* () { return (unsigned char*)&Entries[0]; }
 
-	constexpr FORCEINLINE ColorStruct& operator [](int const idx)
+	COMPILETIMEEVAL FORCEDINLINE ColorStruct& operator [](int const idx)
 	{ return this->Entries[idx]; }
 
-	constexpr FORCEINLINE ColorStruct const& operator [](int const idx) const
+	COMPILETIMEEVAL FORCEDINLINE ColorStruct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 
-	constexpr FORCEINLINE ColorStruct& at(int const idx)
+	COMPILETIMEEVAL FORCEDINLINE ColorStruct& at(int const idx)
 	{ return this->Entries[idx]; }
 
-	constexpr FORCEINLINE ColorStruct const& at(int const idx) const
+	COMPILETIMEEVAL FORCEDINLINE ColorStruct const& at(int const idx) const
 	{ return this->Entries[idx]; }
 
 	bool operator==(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) == 0; }
@@ -370,10 +370,10 @@ struct BytePalette
 		JMP_THIS(0x626200);
 	}
 
-	constexpr auto begin() const { return std::begin(Entries); }
-	constexpr auto end() const { return std::end(Entries); }
-	constexpr auto begin() { return std::begin(Entries); }
-	constexpr auto end() { return std::end(Entries); }
+	COMPILETIMEEVAL auto begin() const { return std::begin(Entries); }
+	COMPILETIMEEVAL auto end() const { return std::end(Entries); }
+	COMPILETIMEEVAL auto begin() { return std::begin(Entries); }
+	COMPILETIMEEVAL auto end() { return std::end(Entries); }
 
 public :
 	ColorStruct Entries[EntriesCount];
@@ -383,9 +383,9 @@ public :
 #pragma pack(push, 1)
 struct Color16Struct
 {
-	constexpr Color16Struct() = default;
+	COMPILETIMEEVAL Color16Struct() = default;
 
-	constexpr explicit Color16Struct(ColorStruct const color) :
+	COMPILETIMEEVAL explicit Color16Struct(ColorStruct const color) :
 		B(static_cast<unsigned short>(color.B >> 3u)),
 		R(static_cast<unsigned short>(color.R >> 3u)),
 		G(static_cast<unsigned short>(color.G >> 2u))
@@ -398,14 +398,14 @@ struct Color16Struct
 		: Color16Struct(ColorStruct(color))
 	{ }
 
-	constexpr Color16Struct(WORD const r, WORD const g, WORD const b)
+	COMPILETIMEEVAL Color16Struct(WORD const r, WORD const g, WORD const b)
 		:B(b) ,R(r) , G(g)
 	{ }
 
-	constexpr FORCEINLINE bool operator == (Color16Struct const rhs) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator == (Color16Struct const rhs) const
 	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
 
-	constexpr FORCEINLINE bool operator != (Color16Struct const rhs) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator != (Color16Struct const rhs) const
 	{ return !(*this == rhs); }
 
 	static const Color16Struct Empty;
@@ -417,7 +417,7 @@ struct Color16Struct
 		return ret;
 	}
 
-	FORCEINLINE explicit operator DWORD() const
+	FORCEDINLINE explicit operator DWORD() const
 	{ return static_cast<DWORD>(ColorStruct(*this)); }
 
 	uintptr_t ToInit() const
@@ -429,13 +429,13 @@ struct Color16Struct
 };
 #pragma pack(pop)
 
-inline ColorStruct::ColorStruct(Color16Struct const color) :
+OPTIONALINLINE ColorStruct::ColorStruct(Color16Struct const color) :
 	R(static_cast<BYTE>(color.R << 3u | color.R >> 2u)),
 	G(static_cast<BYTE>(color.G << 2u | color.G >> 4u)),
 	B(static_cast<BYTE>(color.B << 3u | color.B >> 2u))
 { }
 
-inline ColorStruct::ColorStruct(WORD const color) :
+OPTIONALINLINE ColorStruct::ColorStruct(WORD const color) :
 	ColorStruct(Color16Struct(color))
 { }
 
@@ -448,14 +448,14 @@ struct Byte16Palette
 {
 	Color16Struct Entries[256];
 
-	constexpr FORCEINLINE Color16Struct& operator [](int const idx)
+	COMPILETIMEEVAL FORCEDINLINE Color16Struct& operator [](int const idx)
 	{ return this->Entries[idx]; }
 
-	FORCEINLINE Color16Struct const& operator [](int const idx) const
+	FORCEDINLINE Color16Struct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 };
 
-static inline Color16Struct ToColor16(ColorStruct const nColor)
+static OPTIONALINLINE Color16Struct ToColor16(ColorStruct const nColor)
 {
 	Color16Struct nRet(nColor);
 	return nRet;

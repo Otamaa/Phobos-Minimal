@@ -11,7 +11,7 @@
 class ParticleTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xEAEEEEEE;
+	static COMPILETIMEEVAL size_t Canary = 0xEAEEEEEE;
 	using base_type = ParticleTypeClass;
 
 	base_type* AttachedToObject {};
@@ -42,7 +42,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void Initialize();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ParticleTypeExtData) -
 			(4u //AttachedToObject

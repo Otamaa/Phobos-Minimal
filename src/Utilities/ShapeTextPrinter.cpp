@@ -2,8 +2,8 @@
 
 #include <Surface.h>
 
-constexpr inline char* SignSequence { "/%$,.!?|" };
-constexpr inline size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
+COMPILETIMEEVAL OPTIONALINLINE char* SignSequence { "/%$,.!?|" };
+COMPILETIMEEVAL OPTIONALINLINE size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
 size_t ShapeTextPrinter::GetSignIndex(const char sign)
 {

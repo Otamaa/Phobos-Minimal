@@ -73,9 +73,9 @@ class NewSWType
 {
 	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
 
-	static inline
+	static OPTIONALINLINE
 #if _HAS_CXX23 == 1
-		constexpr
+		COMPILETIMEEVAL
 #endif
 		void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
 	{

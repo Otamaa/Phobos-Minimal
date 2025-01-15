@@ -26,11 +26,11 @@
 #define GET_BASE(clsname, var, offset) \
 	clsname var = R->Base<clsname>(offset);
 
-static inline constexpr int STACK_OFFS(int cur_offset , int wanted_offset){
+static OPTIONALINLINE COMPILETIMEEVAL int STACK_OFFS(int cur_offset , int wanted_offset){
 	 return cur_offset - wanted_offset;
 }
 
-static inline constexpr int STACK_OFFSET(int cur_offset , int wanted_offset){
+static OPTIONALINLINE COMPILETIMEEVAL int STACK_OFFSET(int cur_offset , int wanted_offset){
 	 return cur_offset + wanted_offset;
 }
 

@@ -21,7 +21,7 @@ public:
 	static const AbstractType AbsID = AbstractType::TeamType;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<TeamTypeClass*>, 0xA8ECA0u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TeamTypeClass*>, 0xA8ECA0u> const Array {};
 
 	IMPL_Find(TeamTypeClass)
 

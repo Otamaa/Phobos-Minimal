@@ -9,7 +9,7 @@ class CellExtData final
 {
 public:
 
-	static constexpr size_t Canary = 0x87688621;
+	static COMPILETIMEEVAL size_t Canary = 0x87688621;
 	using base_type = CellClass;
 
 	base_type* AttachedToObject {};
@@ -18,7 +18,7 @@ public:
 
 	int NewPowerups { -1 };
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(CellExtData) -
 			(4u //AttachedToObject

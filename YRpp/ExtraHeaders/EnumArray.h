@@ -21,10 +21,10 @@ public:
 	auto begin() { return std::begin(array_); }
 	auto end() { return std::end(array_); }
 
-	constexpr int size() const { return size_; }
+	COMPILETIMEEVAL int size() const { return size_; }
 
 private:
 	ValueType array_[static_cast<int>(IndexType::kMaxValue) + 1];
 
-	constexpr int size_ = static_cast<int>(IndexType::kMaxValue) + 1;
+	COMPILETIMEEVAL int size_ = static_cast<int>(IndexType::kMaxValue) + 1;
 };

@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransRemapDest)
 {
 public:
-	inline explicit BlitTransRemapDest(T* data) noexcept
+	OPTIONALINLINE explicit BlitTransRemapDest(T* data) noexcept
 	{
 		RemapDest = data;
 	}

@@ -21,7 +21,7 @@ class NOVTABLE ObjectTypeClass : public AbstractTypeClass
 public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::ObjectType;
-	static constexpr constant_ptr<DynamicVectorClass<ObjectTypeClass*>, 0xAC1418u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ObjectTypeClass*>, 0xAC1418u> const Array {};
 
 	IMPL_Find(ObjectTypeClass)
 	IMPL_FindByName(ObjectTypeClass)

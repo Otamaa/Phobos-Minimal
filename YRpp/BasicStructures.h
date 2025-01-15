@@ -6,11 +6,11 @@
 //used for light colors
 struct TintStruct
 {
-	constexpr TintStruct() = default;
-	constexpr ~TintStruct() = default;
+	COMPILETIMEEVAL TintStruct() = default;
+	COMPILETIMEEVAL ~TintStruct() = default;
 
-	constexpr TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
-	constexpr TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
+	COMPILETIMEEVAL TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
+	COMPILETIMEEVAL TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
 		Red { 0 }, Green { 0 }, Blue { 0 }
 	{
 		auto nValR = ((1000 * nColor.R / 255) * nTintFactor);
@@ -21,17 +21,17 @@ struct TintStruct
 		Blue = static_cast<int>(MinImpl(nValB, 2000.0));
 	}
 
-	constexpr FORCEINLINE bool operator == (TintStruct const rhs) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator == (TintStruct const rhs) const
 	{
 		return Red == rhs.Red && Green == rhs.Green && Blue == rhs.Blue;
 	}
 
-	constexpr FORCEINLINE bool operator != (TintStruct const rhs) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator != (TintStruct const rhs) const
 	{
 		return !(*this == rhs);
 	}
 
-	constexpr FORCEINLINE bool operator < (TintStruct const rhs) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator < (TintStruct const rhs) const
 	{
 		if (Red < rhs.Red)
 			return true;

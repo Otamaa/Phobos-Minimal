@@ -47,32 +47,32 @@ namespace YRMemory {
 	// original methods, and no more book keeping or cleanup has to be
 	// performed the calling convention has to match for this trick to work.
 
-	// naked does not support inlining. the inline modifier here means that
+	// naked does not support inlining. the OPTIONALINLINE modifier here means that
 	// multiple definitions are allowed.
-	inline NAKED void* __cdecl __mh_malloc(size_t size, int flag) {
+	OPTIONALINLINE NAKED void* __cdecl __mh_malloc(size_t size, int flag) {
 		JMP(0x7C9442);
 	}
 
-	inline NAKED void __cdecl __free(void* mem) {
+	OPTIONALINLINE NAKED void __cdecl __free(void* mem) {
 		JMP(0x7C93E8);
 	}
 
 	// the game's operator new
-	inline NAKED void* __cdecl Allocate(size_t sz) {
+	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz) {
 		JMP(0x7C8E17);
 	}
 
 	// C Alloc
-	inline NAKED void* __cdecl MAllocate(size_t sz) {
+	OPTIONALINLINE NAKED void* __cdecl MAllocate(size_t sz) {
 		JMP(0x7C9430);
 	}
 
 	// the game's operator delete
-	inline NAKED void __cdecl Deallocate(const void* mem) {
+	OPTIONALINLINE NAKED void __cdecl Deallocate(const void* mem) {
 		JMP(0x7C8B3D);
 	}
 
-	inline NOINLINE void* AllocateChecked(size_t sz) {
+	OPTIONALINLINE NOINLINE void* AllocateChecked(size_t sz) {
 		if(auto const ptr = YRMemory::Allocate(sz)) {
 			return ptr;
 		}
@@ -104,16 +104,16 @@ struct GameAllocator {
 										"because of [allocator.requirements].");
 
 	static const AllocatorType AllocType = AllocatorType::GameAllocator;
-	constexpr GameAllocator() noexcept = default;
+	COMPILETIMEEVAL GameAllocator() noexcept = default;
 
 	template <typename U>
-	constexpr GameAllocator(const GameAllocator<U>&) noexcept {}
+	COMPILETIMEEVAL GameAllocator(const GameAllocator<U>&) noexcept {}
 
 	_CONSTEXPR20 ~GameAllocator() = default;
 	_CONSTEXPR20 GameAllocator& operator=(const GameAllocator&) = default;
 
-	constexpr bool operator == (const GameAllocator&) const noexcept { return true; }
-	constexpr bool operator != (const GameAllocator&) const noexcept { return false; }
+	COMPILETIMEEVAL bool operator == (const GameAllocator&) const noexcept { return true; }
+	COMPILETIMEEVAL bool operator != (const GameAllocator&) const noexcept { return false; }
 
 	T* allocate(const size_t count) const noexcept {
 		return static_cast<T*>(YRMemory::AllocateChecked(count * sizeof(T)));
@@ -144,22 +144,22 @@ class Memory {
 public:
 	// construct scalars
 	template <typename T, typename TAlloc, typename... TArgs>
-	static inline T* Create(TAlloc& alloc, TArgs&&... args) {
+	static OPTIONALINLINE T* Create(TAlloc& alloc, TArgs&&... args) {
 		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1);
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 		return ptr;
 	};
 
 	template <typename T, typename TAlloc, typename... TArgs>
-	static inline void ConstructAt(TAlloc& alloc, T* ptr , TArgs&&... args)  {
+	static OPTIONALINLINE void ConstructAt(TAlloc& alloc, T* ptr , TArgs&&... args)  {
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 	};
 
 	// destruct scalars
 	template<bool calldtor = false , typename T, typename TAlloc>
-	static inline void Delete(std::true_type,TAlloc& alloc, T* ptr) {
+	static OPTIONALINLINE void Delete(std::true_type,TAlloc& alloc, T* ptr) {
 		if(ptr) {
-			if constexpr (calldtor)
+			if COMPILETIMEEVAL (calldtor)
 			  std::allocator_traits<TAlloc>::destroy(alloc, ptr);
 
 			std::allocator_traits<TAlloc>::deallocate(alloc, ptr, 1);
@@ -167,9 +167,9 @@ public:
 	};
 
 	template<bool calldtor = false, typename T, typename TAlloc>
-	static inline void Delete(std::false_type ,TAlloc& alloc, T* ptr)
+	static OPTIONALINLINE void Delete(std::false_type ,TAlloc& alloc, T* ptr)
 	{
-		if constexpr (calldtor)
+		if COMPILETIMEEVAL (calldtor)
 			std::allocator_traits<TAlloc>::destroy(alloc, ptr);
 
 		std::allocator_traits<TAlloc>::deallocate(alloc, ptr, 1);
@@ -177,13 +177,13 @@ public:
 
 	// construct vectors
 	template <typename T, typename TAlloc, typename... TArgs>
-	static inline T* CreateArray(TAlloc& alloc, size_t capacity, TArgs&&... args) {
+	static OPTIONALINLINE T* CreateArray(TAlloc& alloc, size_t capacity, TArgs&&... args) {
 
 		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, capacity);
 
 		if (capacity)
 		{
-			if constexpr (!(sizeof...(args)))
+			if COMPILETIMEEVAL (!(sizeof...(args)))
 			{
 				std::memset(ptr, 0, capacity * sizeof(T));
 			} else {
@@ -199,11 +199,11 @@ public:
 
 	// construct vectors
 	template <typename T, typename TAlloc, typename... TArgs>
-	static inline T* CreateArrayAt(TAlloc& alloc, T* ptr, size_t capacity, TArgs&&... args)
+	static OPTIONALINLINE T* CreateArrayAt(TAlloc& alloc, T* ptr, size_t capacity, TArgs&&... args)
 	{
 		if (capacity)
 		{
-			if constexpr (!(sizeof...(args)))
+			if COMPILETIMEEVAL (!(sizeof...(args)))
 			{
 				std::memset(ptr, 0, capacity * sizeof(T));
 			}
@@ -223,7 +223,7 @@ public:
 
 	// destruct vectors
 	template<typename T, typename TAlloc>
-	static inline void DeleteArray(TAlloc& alloc, T* ptr, size_t capacity) {
+	static OPTIONALINLINE void DeleteArray(TAlloc& alloc, T* ptr, size_t capacity) {
 		if(ptr) {
 			// call the destructor if required
 			if(capacity && !std::is_trivially_destructible<T>::value) {
@@ -240,7 +240,7 @@ public:
 // helper methods as free functions.
 
 template <typename T, typename... TArgs>
-static inline T* GameCreateUnchecked(TArgs&&... args)
+static OPTIONALINLINE T* GameCreateUnchecked(TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
@@ -249,7 +249,7 @@ static inline T* GameCreateUnchecked(TArgs&&... args)
 }
 
 template <typename T, typename... TArgs>
-static inline T* GameCreate(TArgs&&... args) {
+static OPTIONALINLINE T* GameCreate(TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	GameAllocator<T> alloc {};
@@ -260,7 +260,7 @@ static inline T* GameCreate(TArgs&&... args) {
 //be aware that this calling `new` on debug mode
 //it will get optimize out on release mode !
 template <typename T, typename... TArgs>
-static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
+static OPTIONALINLINE void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
@@ -270,19 +270,19 @@ static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 }
 
 template<bool calldtor = false,bool check = true, typename T>
-static inline void GameDelete(T* ptr) {
+static OPTIONALINLINE void GameDelete(T* ptr) {
 	GameAllocator<T> alloc {};
 	Memory::Delete<calldtor>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true , typename T>
-static inline void CallDTOR(T* ptr) {
+static OPTIONALINLINE void CallDTOR(T* ptr) {
 	GameAllocator<T> alloc {};
 	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template <typename T, typename... TArgs>
-static inline T* GameCreateArray(size_t capacity, TArgs&&... args) {
+static OPTIONALINLINE T* GameCreateArray(size_t capacity, TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	GameAllocator<T> alloc {};
@@ -290,7 +290,7 @@ static inline T* GameCreateArray(size_t capacity, TArgs&&... args) {
 }
 
 template <typename T, typename... TArgs>
-static inline T* GameConstructArray(T* AllocatedSpace, size_t capacity, TArgs&&... args)
+static OPTIONALINLINE T* GameConstructArray(T* AllocatedSpace, size_t capacity, TArgs&&... args)
 {
 	static_assert(std::is_constructible<T>::value, "Cannot construct T from TArgs.");
 
@@ -299,13 +299,13 @@ static inline T* GameConstructArray(T* AllocatedSpace, size_t capacity, TArgs&&.
 }
 
 template<typename T>
-static inline void GameDeleteArray(T* ptr, size_t capacity) {
+static OPTIONALINLINE void GameDeleteArray(T* ptr, size_t capacity) {
 	GameAllocator<T> alloc {};
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
 template <typename T, typename... TArgs>
-static inline T* DLLCreate(TArgs&&... args) {
+static OPTIONALINLINE T* DLLCreate(TArgs&&... args) {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
 	DllAllocator<T> alloc {};
@@ -314,7 +314,7 @@ static inline T* DLLCreate(TArgs&&... args) {
 
 
 template <typename T, typename... TArgs>
-static inline T* DLLCreateArray(size_t capacity, TArgs&&... args)
+static OPTIONALINLINE T* DLLCreateArray(size_t capacity, TArgs&&... args)
 {
 	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
 
@@ -323,20 +323,20 @@ static inline T* DLLCreateArray(size_t capacity, TArgs&&... args)
 }
 
 template<typename T>
-static inline void DLLDeleteArray(T* ptr, size_t capacity)
+static OPTIONALINLINE void DLLDeleteArray(T* ptr, size_t capacity)
 {
 	DllAllocator<T> alloc {};
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
 template<bool check = true , typename T>
-static inline void DLLDelete(T* ptr) {
+static OPTIONALINLINE void DLLDelete(T* ptr) {
 	DllAllocator<T> alloc {};
 	Memory::Delete(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true, typename T>
-static inline void DLLCallDTOR(T* ptr)
+static OPTIONALINLINE void DLLCallDTOR(T* ptr)
 {
 	DllAllocator<T> alloc {};
 	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
@@ -351,7 +351,7 @@ enum class DeleterType : int
 };
 
 struct GameDeleter {
-	static constexpr DeleterType DeleterType = DeleterType::GameDeleter;
+	static COMPILETIMEEVAL DeleterType DeleterType = DeleterType::GameDeleter;
 
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
@@ -360,7 +360,7 @@ struct GameDeleter {
 };
 
 struct GameDTORCaller {
-	static constexpr DeleterType DeleterType = DeleterType::GameDTORCaller;
+	static COMPILETIMEEVAL DeleterType DeleterType = DeleterType::GameDTORCaller;
 
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
@@ -370,7 +370,7 @@ struct GameDTORCaller {
 
 struct DLLDeleter
 {
-	static constexpr DeleterType DeleterType = DeleterType::DllDeleter;
+	static COMPILETIMEEVAL DeleterType DeleterType = DeleterType::DllDeleter;
 
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
@@ -382,7 +382,7 @@ struct DLLDeleter
 
 struct DLLDTORCaller
 {
-	static constexpr DeleterType DeleterType = DeleterType::DllDTorCaller;
+	static COMPILETIMEEVAL DeleterType DeleterType = DeleterType::DllDTorCaller;
 
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
@@ -391,7 +391,7 @@ struct DLLDTORCaller
 };
 
 template <typename T>
-static FORCEINLINE T* DLLAllocWithoutCTOR() {
+static FORCEDINLINE T* DLLAllocWithoutCTOR() {
 	DllAllocator<T> alloc {};
 	return (T*)std::allocator_traits<DllAllocator<T>>::allocate(alloc, 1);
 }

@@ -5,9 +5,9 @@ class //DECLSPEC_UUID("B7B49766-E576-11d3-9BD9-00104B972FE8")
 	NOVTABLE RocketLocomotionClass : public LocomotionClass
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7F0BE8;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7F0B1C;
-	static constexpr reference<CLSID const, 0x7E9AD0u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7F0BE8;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7F0B1C;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9AD0u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

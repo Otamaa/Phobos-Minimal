@@ -84,41 +84,41 @@ struct ShakeScreenHandle
 
 struct AresGlobalData {
 
-	static inline DWORD InternalVersion { 0x1414D121 };
-	static inline char ModName[0x40] { "Yuri's Revenge" };
-	static inline char ModVersion[0x40] { "1.001" };
-	static inline int ModIdentifier;
-	static inline CSFText ModNote;
-	static inline byte GFX_DX_Force ;
-	static inline int colorCount { 8 };
-	static inline int version;
+	static OPTIONALINLINE DWORD InternalVersion { 0x1414D121 };
+	static OPTIONALINLINE char ModName[0x40] { "Yuri's Revenge" };
+	static OPTIONALINLINE char ModVersion[0x40] { "1.001" };
+	static OPTIONALINLINE int ModIdentifier;
+	static OPTIONALINLINE CSFText ModNote;
+	static OPTIONALINLINE byte GFX_DX_Force ;
+	static OPTIONALINLINE int colorCount { 8 };
+	static OPTIONALINLINE int version;
 
-	static inline int uiColorText;
-	static inline int uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt
-	static inline int uiColorTextCheckbox;
-	static inline int uiColorTextRadio;
-	static inline int uiColorTextLabel { 0xFFFF }; // #1644: needed for CD prompt
-	static inline int uiColorTextList;
-	static inline int uiColorTextCombobox;
-	static inline int uiColorTextGroupbox;
-	static inline int uiColorTextEdit;
-	static inline int uiColorTextSlider;
-	static inline int uiColorTextObserver;
-	static inline int uiColorCaret;
-	static inline int uiColorSelection;
-	static inline int uiColorSelectionCombobox;
-	static inline int uiColorSelectionList;
-	static inline int uiColorSelectionObserver;
-	static inline int uiColorBorder1;
-	static inline int uiColorBorder2;
-	static inline int uiColorDisabled;
-	static inline int uiColorDisabledLabel;
-	static inline int uiColorDisabledButton;
-	static inline int uiColorDisabledCombobox;
-	static inline int uiColorDisabledCheckbox;
-	static inline int uiColorDisabledList;
-	static inline int uiColorDisabledSlider;
-	static inline int uiColorDisabledObserver;
+	static OPTIONALINLINE int uiColorText;
+	static OPTIONALINLINE int uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt
+	static OPTIONALINLINE int uiColorTextCheckbox;
+	static OPTIONALINLINE int uiColorTextRadio;
+	static OPTIONALINLINE int uiColorTextLabel { 0xFFFF }; // #1644: needed for CD prompt
+	static OPTIONALINLINE int uiColorTextList;
+	static OPTIONALINLINE int uiColorTextCombobox;
+	static OPTIONALINLINE int uiColorTextGroupbox;
+	static OPTIONALINLINE int uiColorTextEdit;
+	static OPTIONALINLINE int uiColorTextSlider;
+	static OPTIONALINLINE int uiColorTextObserver;
+	static OPTIONALINLINE int uiColorCaret;
+	static OPTIONALINLINE int uiColorSelection;
+	static OPTIONALINLINE int uiColorSelectionCombobox;
+	static OPTIONALINLINE int uiColorSelectionList;
+	static OPTIONALINLINE int uiColorSelectionObserver;
+	static OPTIONALINLINE int uiColorBorder1;
+	static OPTIONALINLINE int uiColorBorder2;
+	static OPTIONALINLINE int uiColorDisabled;
+	static OPTIONALINLINE int uiColorDisabledLabel;
+	static OPTIONALINLINE int uiColorDisabledButton;
+	static OPTIONALINLINE int uiColorDisabledCombobox;
+	static OPTIONALINLINE int uiColorDisabledCheckbox;
+	static OPTIONALINLINE int uiColorDisabledList;
+	static OPTIONALINLINE int uiColorDisabledSlider;
+	static OPTIONALINLINE int uiColorDisabledObserver;
 
 	struct ColorData
 	{
@@ -129,19 +129,19 @@ struct AresGlobalData {
 		const wchar_t* sttToolTipSublineText;
 	};
 
-	static inline ColorData Colors[16 + 1];
+	static OPTIONALINLINE ColorData Colors[16 + 1];
 
 	static void ReadAresRA2MD(CCINIClass* Ini);
 	static void ReadAresRA2MD();
 };
 
 struct StaticVars {
-	static inline PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
-	static inline std::vector<unsigned char> ShpCompression1Buffer;
-	static inline std::map<const TActionClass*, int> TriggerCounts;
-	static inline UniqueGamePtrB<MixFileClass> aresMIX;
-	static inline std::string MovieMDINI { "MOVIEMD.INI" };
-	static inline WaveColorData TempColor;
+	static OPTIONALINLINE PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static OPTIONALINLINE std::vector<unsigned char> ShpCompression1Buffer;
+	static OPTIONALINLINE std::map<const TActionClass*, int> TriggerCounts;
+	static OPTIONALINLINE UniqueGamePtrB<MixFileClass> aresMIX;
+	static OPTIONALINLINE std::string MovieMDINI { "MOVIEMD.INI" };
+	static OPTIONALINLINE WaveColorData TempColor;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -355,7 +355,7 @@ template <typename T>
 class AresPcxBlit final : public AresBlitter
 {
 public:
-	inline explicit AresPcxBlit(WORD mask) noexcept
+	OPTIONALINLINE explicit AresPcxBlit(WORD mask) noexcept
 	{
 		Mask = mask;
 	}
@@ -528,8 +528,8 @@ public:
 		bool AllowShourd;
 	};
 
-	inline static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
-	inline static DynamicVectorClass<BuildType,DllAllocator<BuildType>> TabCameos[4u];
+	OPTIONALINLINE static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
+	OPTIONALINLINE static DynamicVectorClass<BuildType,DllAllocator<BuildType>> TabCameos[4u];
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{

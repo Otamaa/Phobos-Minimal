@@ -11,7 +11,7 @@
 #include <InfantryClass.h>
 
 // Gets tint colors for invulnerability, airstrike laser target and berserk, depending on parameters.
-constexpr void InitializeColors() {
+COMPILETIMEEVAL void InitializeColors() {
 	auto g_instance = PhobosGlobal::Instance();
 
 	if (!g_instance->ColorDatas.Initialized) {

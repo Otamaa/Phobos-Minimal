@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTranslucentWriteAlpha)
 {
 public:
-	inline explicit BlitTranslucentWriteAlpha(T* data) noexcept
+	OPTIONALINLINE explicit BlitTranslucentWriteAlpha(T* data) noexcept
 	{
 		PaletteData = data;
 	}

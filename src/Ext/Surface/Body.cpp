@@ -40,7 +40,7 @@ void SurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
 
 	auto box_blur = [&](BYTE*& in, BYTE*& out, int r)
 	{
-		constexpr int c = 3;
+		COMPILETIMEEVAL int c = 3;
 		const int w = bound.Width;
 		const int h = bound.Height;
 		{

@@ -123,25 +123,25 @@ class NOVTABLE TechnoTypeClass : public ObjectTypeClass
 public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::TechnoType;
-	static inline constexpr auto MaxWeapons = 18;
+	static OPTIONALINLINE COMPILETIMEEVAL auto MaxWeapons = 18;
 
-	static constexpr reference<NamedValue<Foundation> , 0x81B9D8u , (size_t)Foundation::count> const BuildingFoundationName {};
-	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
-	static constexpr reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
-	static constexpr reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};
-	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
-	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares
-	static constexpr reference<const char* , 0x8463B8 ,18u> const AbilityTypeToStrings {};
+	static COMPILETIMEEVAL reference<NamedValue<Foundation> , 0x81B9D8u , (size_t)Foundation::count> const BuildingFoundationName {};
+	static COMPILETIMEEVAL reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
+	static COMPILETIMEEVAL reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
+	static COMPILETIMEEVAL reference<const char*, 0x81BA88, 13u> const MovementZonesToString {};
+	static COMPILETIMEEVAL reference<int, 0x7F4890, 40u> const BodyShapeStage {};
+	static COMPILETIMEEVAL reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares
+	static COMPILETIMEEVAL reference<const char* , 0x8463B8 ,18u> const AbilityTypeToStrings {};
 
 	//These is same with belows , just for confinient
-	static constexpr reference<bool, 0xAC1488u, 4u> const ShapesIsAllocated {};
+	static COMPILETIMEEVAL reference<bool, 0xAC1488u, 4u> const ShapesIsAllocated {};
 
-	static constexpr reference<bool, 0xAC1488u> const PIPBRD_SHP_IsAllocated {};
-	static constexpr reference<bool, 0xAC1489u> const PIPS_SHP_IsAllocated {};
-	static constexpr reference<bool, 0xAC148Au> const PIPS2_SHP_IsAllocated {};
-	static constexpr reference<bool, 0xAC148Bu> const TALKBUBL_SHP_IsAllocated {};
+	static COMPILETIMEEVAL reference<bool, 0xAC1488u> const PIPBRD_SHP_IsAllocated {};
+	static COMPILETIMEEVAL reference<bool, 0xAC1489u> const PIPS_SHP_IsAllocated {};
+	static COMPILETIMEEVAL reference<bool, 0xAC148Au> const PIPS2_SHP_IsAllocated {};
+	static COMPILETIMEEVAL reference<bool, 0xAC148Bu> const TALKBUBL_SHP_IsAllocated {};
 
-	static constexpr constant_ptr<DynamicVectorClass<TechnoTypeClass*>, 0xA8EB00u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoTypeClass*>, 0xA8EB00u> const Array {};
 
 
 	IMPL_Find(TechnoTypeClass)

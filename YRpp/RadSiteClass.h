@@ -18,7 +18,7 @@ public:
 	static const AbstractType AbsID = AbstractType::RadSite;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<RadSiteClass*>, 0xB04BD0u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<RadSiteClass*>, 0xB04BD0u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x65B470);

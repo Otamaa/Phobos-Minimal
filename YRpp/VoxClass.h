@@ -14,9 +14,9 @@ class CCINIClass;
 class VoxClass
 {
 public:
-	static constexpr constant_ptr<DynamicVectorClass<VoxClass*>, 0xB1D4A0u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<VoxClass*>, 0xB1D4A0u> const Array{};
 
-	static constexpr reference<int, 0xB1D4C8u> const EVAIndex{};
+	static COMPILETIMEEVAL reference<int, 0xB1D4C8u> const EVAIndex{};
 
 	static NOINLINE VoxClass* __fastcall Find(const char* pName)
 	{

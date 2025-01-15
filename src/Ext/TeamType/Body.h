@@ -13,7 +13,7 @@ public:
 	class ExtData final : public Extension<TeamTypeClass>
 	{
 	public:
-		static constexpr size_t Canary = 0xBEE79008;
+		static COMPILETIMEEVAL size_t Canary = 0xBEE79008;
 		using base_type = TeamTypeClass;
 
 	public:

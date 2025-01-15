@@ -13,7 +13,7 @@ public:
 	static const AbstractType AbsID = AbstractType::Side;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<SideClass*>, 0x8B4120u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SideClass*>, 0x8B4120u> const Array {};
 
 	IMPL_Find(SideClass)
 	IMPL_FindOrAllocate(SideClass)

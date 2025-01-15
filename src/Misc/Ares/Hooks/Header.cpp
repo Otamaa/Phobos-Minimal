@@ -111,7 +111,7 @@ void StaticVars::LoadGlobalsConfig()
 	}
 }
 
-static constexpr std::array<std::pair<const char*, const char*>, 17u> const SubName =
+static COMPILETIMEEVAL std::array<std::pair<const char*, const char*>, 17u> const SubName =
 { {
 	{"NormalTurretWeapon" , "NormalTurretIndex"},
 	{"RepairTurretWeapon" , "RepairTurretIndex"} ,
@@ -1482,7 +1482,7 @@ void TechnoExt_ExtData::InitWeapon(
 	bool IsFoot
 )
 {
-	constexpr auto const Note = "Constructing an instance of [%s]:\r\n"
+	COMPILETIMEEVAL auto const Note = "Constructing an instance of [%s]:\r\n"
 		"%s %s (slot %d) has no %s!";
 
 	if (!pWeapon->Projectile)
@@ -2371,7 +2371,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	auto Owner = EnteredBuilding->Owner;
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(EnteredBuilding->Type);
 	auto pBldExt = BuildingExtContainer::Instance.Find(EnteredBuilding);
-	static constexpr reference<bool, 0x884B8E> tootip_something {};
+	static COMPILETIMEEVAL reference<bool, 0x884B8E> tootip_something {};
 
 	bool raiseEva = false;
 	const bool IsOwnerControlledByCurrentPlayer = Owner->ControlledByCurrentPlayer();
@@ -6269,8 +6269,8 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		constexpr double nSin = gcem::sin(1.570748388432313);
-		constexpr double nCos = gcem::cos(-0.00009587672516830327);
+		COMPILETIMEEVAL double nSin = gcem::sin(1.570748388432313);
+		COMPILETIMEEVAL double nCos = gcem::cos(-0.00009587672516830327);
 
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
@@ -6320,7 +6320,7 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 
 bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
-	static constexpr reference<int, 0x842AFC, 5u> MeteorAddAmount {};
+	static COMPILETIMEEVAL reference<int, 0x842AFC, 5u> MeteorAddAmount {};
 
 	const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL);
 	const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE);
@@ -7477,19 +7477,19 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		struct ExpendabilityStruct
 		{
 		private:
-			constexpr std::tuple<const int&, BuildingClass&> Tie() const
+			COMPILETIMEEVAL std::tuple<const int&, BuildingClass&> Tie() const
 			{
 				// compare with tie breaker to prevent desyncs
 				return std::tie(this->Value, *this->Building);
 			}
 
 		public:
-			constexpr bool operator < (const ExpendabilityStruct& rhs) const
+			COMPILETIMEEVAL bool operator < (const ExpendabilityStruct& rhs) const
 			{
 				return this->Tie() < rhs.Tie();
 			}
 
-			constexpr bool operator > (const ExpendabilityStruct& rhs) const
+			COMPILETIMEEVAL bool operator > (const ExpendabilityStruct& rhs) const
 			{
 				return this->Tie() > rhs.Tie();
 			}
@@ -8258,8 +8258,8 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
 
 		// original color schemes
-		static constexpr reference<int, 0x8316A8, 0x9> const DefaultColors {};
-		constexpr std::string Slot_tags[] = {
+		static COMPILETIMEEVAL reference<int, 0x8316A8, 0x9> const DefaultColors {};
+		COMPILETIMEEVAL std::string Slot_tags[] = {
 			"Slot1", "Slot2", "Slot3", "Slot4",
 			"Slot5", "Slot6", "Slot7", "Slot8",
 			"Slot9", "Slot10", "Slot11", "Slot12",

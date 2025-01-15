@@ -17,10 +17,10 @@ class DECLSPEC_UUID("0E272DC1-9C0F-11D1-B709-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::VoxelAnim;
-	static constexpr inline DWORD vtable = 0x7F6318;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F6318;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<VoxelAnimClass*>, 0x887388u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<VoxelAnimClass*>, 0x887388u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

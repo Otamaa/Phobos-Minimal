@@ -2549,7 +2549,7 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
 
-static FORCEINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
+static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
 
 	Point2D a__ { a_.X , a_.Y};
 	switch (pThis->WhatAmI())

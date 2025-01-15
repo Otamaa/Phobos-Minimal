@@ -30,15 +30,15 @@ __forceinline T locomotion_cast(ILocomotion* iLoco)
 	static_assert(std::is_base_of_v<LocomotionClass, Base> && !std::is_same_v<LocomotionClass, Base>,
 		"T needs to point to a class derived from LocomotionClass");
 
-	if constexpr (check){
+	if COMPILETIMEEVAL (check){
 		if (!iLoco)
 			return (T)nullptr;
 	}
 
-	if constexpr (LocoHasILocoVtbl<Base>) {
+	if COMPILETIMEEVAL (LocoHasILocoVtbl<Base>) {
 		return (VTable::Get(iLoco) == Base::ILoco_vtable) ? static_cast<T>(iLoco) : nullptr;
 	}
-	else if constexpr (LocoHasClassGUID<Base>)
+	else if COMPILETIMEEVAL (LocoHasClassGUID<Base>)
 	{
 		CLSID locoCLSID;
 		return (SUCCEEDED(static_cast<LocomotionClass*>(iLoco)->GetClassID(&locoCLSID)) && locoCLSID == Base::ClassGUID()) ?

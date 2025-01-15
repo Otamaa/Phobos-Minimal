@@ -782,7 +782,7 @@ DEFINE_HOOK(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
 // not just the main building
 struct ProduceCashData
 {
-	static constexpr inline size_t count = 0x4;
+	static COMPILETIMEEVAL OPTIONALINLINE size_t count = 0x4;
 	std::array<int, count> CurrentProduceCashBudget {};
 	std::array<bool, count> IsCaptureOneTimeCashGiven {};
 	std::array<bool, count> IsBudgetDepleted {};

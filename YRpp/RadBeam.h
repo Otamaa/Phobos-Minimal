@@ -9,7 +9,7 @@ class TechnoClass;
 class RadBeam
 {
 public:
-	static constexpr constant_ptr<DynamicVectorClass<RadBeam*>, 0xB04A60u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<RadBeam*>, 0xB04A60u> const Array{};
 
 	// Constructor removed - do not use it, use Allocate instead
 

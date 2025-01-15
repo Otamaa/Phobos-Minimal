@@ -25,7 +25,7 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 		PrismForwarding* Tower;
 		int Distance;
 
-		constexpr bool operator < (const PrismTargetData& rhs) const
+		COMPILETIMEEVAL bool operator < (const PrismTargetData& rhs) const
 		{
 			return this->Distance < rhs.Distance;
 		}

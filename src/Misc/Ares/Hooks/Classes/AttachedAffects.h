@@ -40,7 +40,7 @@ public:
 		Anim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
-	constexpr void InvalidatePointer(AnimClass* ptr, bool bDetach)
+	COMPILETIMEEVAL void InvalidatePointer(AnimClass* ptr, bool bDetach)
 	{
 		if (this->Anim && ptr == this->Anim.get()) {
 			this->Anim.release();

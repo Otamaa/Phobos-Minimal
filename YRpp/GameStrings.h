@@ -4,7 +4,7 @@
 
 #ifndef GAMEMD_STR
 #define GAMEMD_STR(name,addr)\
-static constexpr constant_ptr<const char,addr> const name {}
+static COMPILETIMEEVAL constant_ptr<const char,addr> const name {}
 
 struct GameStrings
 {
@@ -537,7 +537,7 @@ struct GameStrings
 
 	// it suppose to be only 13 , but there is 3 bytes padding each
 	// so
-	static constexpr reference<char[16],0x825000 ,8u> const PlayerAt {};
+	static COMPILETIMEEVAL reference<char[16],0x825000 ,8u> const PlayerAt {};
 	static bool IsBlank(const char* pValue);
 };
 

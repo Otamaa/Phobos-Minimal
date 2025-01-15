@@ -46,15 +46,15 @@ public:
 		this->Items.Clear();
 	}
 
-	constexpr int GetRating() const {
+	COMPILETIMEEVAL int GetRating() const {
 		return this->Rating;
 	}
 
-	constexpr int GetCount() const {
+	COMPILETIMEEVAL int GetCount() const {
 		return this->Items.Count;
 	}
 
-	constexpr bool IsValid() const {
+	COMPILETIMEEVAL bool IsValid() const {
 		return this->GetCount() > 0;
 	}
 

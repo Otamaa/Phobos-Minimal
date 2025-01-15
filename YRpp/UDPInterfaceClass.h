@@ -5,7 +5,7 @@ class UDPInterfaceClass : public WinsockInterfaceClass
 {
 public:
 	// Static
-	static constexpr reference<UDPInterfaceClass*, 0x887628u> const Instance {};
+	static COMPILETIMEEVAL reference<UDPInterfaceClass*, 0x887628u> const Instance {};
 
 	bool OpenSocket(int port = 0)
 	{ JMP_THIS(0x7B30B0) }

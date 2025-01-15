@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransDarkenZRead)
 {
 public:
-	inline explicit BlitTransDarkenZRead(WORD mask) noexcept
+	OPTIONALINLINE explicit BlitTransDarkenZRead(WORD mask) noexcept
 	{
 		Mask = mask;
 	}

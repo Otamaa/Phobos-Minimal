@@ -18,8 +18,8 @@ public:
 	};
 
 	// constructors
-	constexpr BounceClass() = default;
-	constexpr ~BounceClass() = default;
+	COMPILETIMEEVAL BounceClass() = default;
+	COMPILETIMEEVAL ~BounceClass() = default;
 	void Init(CoordStruct& coords, double elasticity, double gravity,
 			double maxVelocity, Vector3D<float>* velocity, double angularVelocity) const
 		{ JMP_THIS(0x4397E0); }
@@ -31,7 +31,7 @@ public:
 	CoordStruct* GetCoords(CoordStruct* pBuffer) const
 		{ JMP_THIS(0x4399A0); }
 
-	constexpr FORCEINLINE CoordStruct GetCoords() const {
+	COMPILETIMEEVAL FORCEDINLINE CoordStruct GetCoords() const {
 		return { (int)this->Coords.X , (int)this->Coords.Y , (int)this->Coords.Z};
 	}
 

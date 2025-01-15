@@ -13,12 +13,12 @@ public:
 	DrivingState nState { DrivingState::Stop };
 	Mission LastMission { Mission::None };
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return Serialize(Stm);
 	}
 
-	inline bool Save(PhobosStreamWriter& Stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
 	{
 		return const_cast<DriveData*>(this)->Serialize(Stm);
 	}

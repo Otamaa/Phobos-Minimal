@@ -16,7 +16,7 @@ class NOVTABLE FoggedObjectClass : public AbstractClass
 public:
 	static const AbstractType AbsID = AbstractType::FoggedObject;
 
-	static constexpr constant_ptr<DynamicVectorClass<FoggedObjectClass*>, 0x8B3D10> Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<FoggedObjectClass*>, 0x8B3D10> Array{};
 
 	struct DrawRecord
 	{

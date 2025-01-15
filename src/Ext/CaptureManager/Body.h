@@ -16,7 +16,7 @@ public:
 	{
 	public:
 
-		static constexpr size_t Canary = 0x87654121;
+		static COMPILETIMEEVAL size_t Canary = 0x87654121;
 		using base_type = CaptureManagerClass;
 
 	public:

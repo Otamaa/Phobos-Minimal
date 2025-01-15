@@ -11,8 +11,8 @@
 class Blitter
 {
 public :
-	static constexpr reference<Blitter, 0x7F7C0C> const Blit_Trans_Uchar_vftable {};
-	static constexpr reference<Blitter, 0x7F7BF4> const Blit_Trans_Ushort_vftable {};
+	static COMPILETIMEEVAL reference<Blitter, 0x7F7C0C> const Blit_Trans_Uchar_vftable {};
+	static COMPILETIMEEVAL reference<Blitter, 0x7F7BF4> const Blit_Trans_Ushort_vftable {};
 public:
 	virtual ~Blitter() = default;
 	virtual void Blit_Copy(void* dst, byte* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;
@@ -21,7 +21,7 @@ public:
 	virtual void Blit_Move_Tinted(void* dst, byte* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint) = 0;
 
 protected:
-	inline static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
+	OPTIONALINLINE static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
 	{
 		// convert alvl from [0, 2000] into [0, 254]
 		int level = MinImpl(254, 261* MaxImpl(0, alvl) >> 11);
@@ -38,7 +38,7 @@ public:
 	virtual void Blit_Copy_Tinted(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust, WORD tint) = 0;
 
 protected:
-	inline static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
+	OPTIONALINLINE static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
 	{
 		// convert alvl from [0, 2000] into [0, 254]
 		int level = MinImpl(254, 261* MaxImpl(0, alvl) >> 11);
@@ -46,7 +46,7 @@ protected:
 	}
 
 	template<bool UseZBuffer, bool UseABuffer, typename T>
-	inline static void Process_Pre_Lines(T*& dest, byte*& src, int& len, const int& line, WORD* zbuf, WORD* abuf)
+	OPTIONALINLINE static void Process_Pre_Lines(T*& dest, byte*& src, int& len, const int& line, WORD* zbuf, WORD* abuf)
 	{
 		if (line > 0)
 		{
@@ -63,12 +63,12 @@ protected:
 			dest += off;
 			len -= off;
 
-			if constexpr (UseZBuffer)
+			if COMPILETIMEEVAL (UseZBuffer)
 			{
 				zbuf += off;
 				ZBuffer::Instance->AdjustPointer(zbuf);
 			}
-			if constexpr (UseABuffer)
+			if COMPILETIMEEVAL (UseABuffer)
 			{
 				abuf += off;
 				ABuffer::Instance->AdjustPointer(abuf);
@@ -77,7 +77,7 @@ protected:
 	}
 
 	template<bool UseZBuffer, bool UseABuffer, typename T, typename Fn>
-	inline static void Process_Pixel_Datas(T* dest, byte* src, int len, int zbase, WORD* zbuf, WORD* abuf, byte* zadjust, Fn f)
+	OPTIONALINLINE static void Process_Pixel_Datas(T* dest, byte* src, int len, int zbase, WORD* zbuf, WORD* abuf, byte* zadjust, Fn f)
 	{
 		if (len < 0)
 			return;
@@ -86,11 +86,11 @@ protected:
 		{
 			if (byte srcv = *src++)
 			{
-				if constexpr (UseZBuffer && UseABuffer)
+				if COMPILETIMEEVAL (UseZBuffer && UseABuffer)
 					f(*dest, srcv, zbase, *zbuf++, *zadjust++, *abuf++);
-				else if constexpr (UseZBuffer && !UseABuffer)
+				else if COMPILETIMEEVAL (UseZBuffer && !UseABuffer)
 					f(*dest, srcv, zbase, *zbuf++, *zadjust++);
-				else if constexpr (!UseZBuffer && UseABuffer)
+				else if COMPILETIMEEVAL (!UseZBuffer && UseABuffer)
 					f(*dest, srcv, *abuf++);
 				else // !UseZBuffer && !UseABuffer
 					f(*dest, srcv);
@@ -104,18 +104,18 @@ protected:
 				len -= off;
 				dest += off;
 
-				if constexpr (UseZBuffer)
+				if COMPILETIMEEVAL (UseZBuffer)
 				{
 					zbuf += off;
 					zadjust += off;
 				}
-				if constexpr (UseABuffer)
+				if COMPILETIMEEVAL (UseABuffer)
 					abuf += off;
 			}
 
-			if constexpr (UseZBuffer)
+			if COMPILETIMEEVAL (UseZBuffer)
 				ZBuffer::Instance->AdjustPointer(zbuf);
-			if constexpr (UseABuffer)
+			if COMPILETIMEEVAL (UseABuffer)
 				ABuffer::Instance->AdjustPointer(abuf);
 		}
 	}

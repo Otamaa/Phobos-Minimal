@@ -27,13 +27,13 @@ public:
 public:
 
 	template<PaletteManager::Mode nMode>
-	constexpr ConvertClass* GetConvert() const
+	COMPILETIMEEVAL ConvertClass* GetConvert() const
 	{
 		return nMode == Mode::Default ? Convert : Convert_Temperate;
 	}
 
 	template<PaletteManager::Mode nMode>
-	constexpr ConvertClass* GetOrDefaultConvert(ConvertClass* const& pDefault) const
+	COMPILETIMEEVAL ConvertClass* GetOrDefaultConvert(ConvertClass* const& pDefault) const
 	{
 		const auto nRet = GetConvert<nMode>();
 		return nRet ? nRet : pDefault;

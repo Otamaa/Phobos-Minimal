@@ -26,7 +26,7 @@
 #include <LoadOptionsClass.h>
 #include <optional>
 
-#define SET_SAVENAME(name) static constexpr wchar_t* SaveName = L ##name
+#define SET_SAVENAME(name) static COMPILETIMEEVAL wchar_t* SaveName = L ##name
 namespace SavedGames
 {
 	int HowManyTimesISavedForThisScenario = 0;
@@ -123,7 +123,7 @@ namespace SavedGames
 		return hasValue ? std::make_optional(info) : std::nullopt;
 	}
 
-	inline bool CreateSubdir()
+	OPTIONALINLINE bool CreateSubdir()
 	{
 		if (!std::filesystem::exists(SpawnerMain::GetGameConfigs()->SavedGameDir))
 		{
@@ -138,7 +138,7 @@ namespace SavedGames
 		return true;
 	}
 
-	inline void FormatPath(char buffer[sizeof(Phobos::readBuffer)], const char* pFileName)
+	OPTIONALINLINE void FormatPath(char buffer[sizeof(Phobos::readBuffer)], const char* pFileName)
 	{
 		sprintf_s(buffer, sizeof(Phobos::readBuffer), "%s\\%s", SpawnerMain::GetGameConfigs()->SavedGameDir, pFileName);
 	}
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x67CF11, SaveGame_SGInSubdir, 0x5)
 
 // Create random filename for save
 // Not used. But it does not hurt in case of using a third-party library
-// WW compiler made inline in LoadOptionsClass_Dialog
+// WW compiler made OPTIONALINLINE in LoadOptionsClass_Dialog
 DEFINE_HOOK(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled)

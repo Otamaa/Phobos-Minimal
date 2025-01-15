@@ -67,7 +67,7 @@ struct BurstFLHBundle
 	std::vector<CoordStruct> Flh {};
 	std::vector<CoordStruct> EFlh {};
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		// support pointer to this type
 		return Stm
@@ -77,7 +77,7 @@ struct BurstFLHBundle
 			;
 	}
 
-	inline bool Save(PhobosStreamWriter& Stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
 	{
 		// remember this object address
 		return Stm
@@ -97,12 +97,12 @@ public:
 	using ImageVector = std::vector<VoxelStruct>;
 	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
 
-	static constexpr size_t Canary = 0x22544444;
+	static COMPILETIMEEVAL size_t Canary = 0x22544444;
 	using base_type = TechnoTypeClass;
 
-	//static constexpr size_t ExtOffset = 0x35C;
-	static constexpr size_t ExtOffset = 0x2FC;
-	//static constexpr size_t ExtOffset = 0xDF4;
+	//static COMPILETIMEEVAL size_t ExtOffset = 0x35C;
+	static COMPILETIMEEVAL size_t ExtOffset = 0x2FC;
+	//static COMPILETIMEEVAL size_t ExtOffset = 0xDF4;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -1059,7 +1059,7 @@ public:
 
 	void ApplyTurretOffset(Matrix3D* mtx, double factor);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TechnoTypeExtData) -
 			(4u //AttachedToObject
@@ -1070,8 +1070,8 @@ private:
 	void Serialize(T& Stm);
 
 public:
-static constexpr double TurretMultiOffsetDefaultMult { 1.0 };
-	static constexpr double TurretMultiOffsetOneByEightMult { 0.125 };
+static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
+	static COMPILETIMEEVAL double TurretMultiOffsetOneByEightMult { 0.125 };
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);

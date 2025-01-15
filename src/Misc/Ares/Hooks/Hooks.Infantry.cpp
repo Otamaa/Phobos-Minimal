@@ -579,7 +579,7 @@ DEFINE_HOOK(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 		if (pTargetBld->Type->Grinding && pThis->Owner->IsAlliedWith(pTargetBld)) {
 
 			if (!InputManagerClass::Instance->IsForceFireKeyPressed()) {
-				static constexpr BYTE return_grind[] = {
+				static COMPILETIMEEVAL BYTE return_grind[] = {
 					0x5F, 0x5E, 0x5D, // pop edi, esi and ebp
 					0xB8, 0x0B, 0x00, 0x00, 0x00, // eax = Action::Repair (not Action::Eaten)
 					0x5B, 0x83, 0xC4, 0x28, // esp += 0x28

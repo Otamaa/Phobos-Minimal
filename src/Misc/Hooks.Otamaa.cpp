@@ -1219,7 +1219,7 @@ namespace Tiberiumpip
 			Amounts[i] = { amount , FrameIdx };
 		}
 
-		static constexpr std::array<int, 4u> defOrder { {0, 2, 3, 1} };
+		static COMPILETIMEEVAL std::array<int, 4u> defOrder { {0, 2, 3, 1} };
 		const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
 
 		for (int i = nMax; i; --i)
@@ -1341,7 +1341,7 @@ enum class NewVHPScan : int
 	count
 };
 
-constexpr std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+COMPILETIMEEVAL std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 { {
 	{ "None" }
 	,{ "Normal" }
@@ -2000,17 +2000,17 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 
 static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 
-constexpr int GetMapSizeTotals()
+COMPILETIMEEVAL int GetMapSizeTotals()
 {
 	return (2 * MapSize->Width * (MapSize->Height + 4));
 }
 
-constexpr int CellStruct_totibarray_42B1C0(CellStruct* pCell)
+COMPILETIMEEVAL int CellStruct_totibarray_42B1C0(CellStruct* pCell)
 {
 	return (((pCell->X - pCell->Y + MapSize->Width - 1) >> 1) + MapSize->Width * (pCell->X - MapSize->Width + pCell->Y - 1));
 }
 
-constexpr void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
+COMPILETIMEEVAL void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
 {
 	int left = 2 * index;
 	int right = 2 * index + 1;
@@ -4352,7 +4352,7 @@ DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 //	return 0x0;
 //}
 
-//static constexpr constant_ptr<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874> const SubzoneTrackingStructVector {};
+//static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874> const SubzoneTrackingStructVector {};
 //#include <ExtraHeaders/AStarClass.h>
 
 #ifdef _PATHFIND
@@ -6033,9 +6033,9 @@ DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 }
 
 template<class T, class U>
-constexpr int8 __CFADD__(T x, U y)
+COMPILETIMEEVAL int8 __CFADD__(T x, U y)
 {
-	constexpr int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
+	COMPILETIMEEVAL int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
 
 	if (size == 1)
 		return uint8(x) > uint8(x + y);
@@ -6223,28 +6223,28 @@ struct MixBundle
 	reference<MixFileClass*, addr_ptr> const MIXptr;
 };
 
-static constexpr MixBundle<0x826838, 0x884E38 > const CONQMD {};
-static constexpr MixBundle<0x8267EC, 0x884E3C > const CONQUER {};
+static COMPILETIMEEVAL MixBundle<0x826838, 0x884E38 > const CONQMD {};
+static COMPILETIMEEVAL MixBundle<0x8267EC, 0x884E3C > const CONQUER {};
 
-static constexpr MixBundle<0x826820, 0x884E18 > const GENERMD {};
-static constexpr MixBundle<0x826814, 0x884E14 > const GENERIC {};
+static COMPILETIMEEVAL MixBundle<0x826820, 0x884E18 > const GENERMD {};
+static COMPILETIMEEVAL MixBundle<0x826814, 0x884E14 > const GENERIC {};
 
-static constexpr MixBundle<0x826804, 0x884E28 > const ISOGENMD {};
-static constexpr MixBundle<0x8267F8, 0x884E24 > const ISOGEN {};
+static COMPILETIMEEVAL MixBundle<0x826804, 0x884E28 > const ISOGENMD {};
+static COMPILETIMEEVAL MixBundle<0x8267F8, 0x884E24 > const ISOGEN {};
 
-static constexpr MixBundle<0x8267D0, 0x884E40 > const CAMEOMD {};
-static constexpr MixBundle<0x8267B4, 0x884E44 > const CAMEO {};
+static COMPILETIMEEVAL MixBundle<0x8267D0, 0x884E40 > const CAMEOMD {};
+static COMPILETIMEEVAL MixBundle<0x8267B4, 0x884E44 > const CAMEO {};
 
-static constexpr MixBundle<0x81C284, 0x884DD8 > const MULTIMD {};
+static COMPILETIMEEVAL MixBundle<0x81C284, 0x884DD8 > const MULTIMD {};
 
-static constexpr MixBundle<0x81C24C, 0x87E738 > const THEMEMD {};
-static constexpr MixBundle<0x81C220, 0x87E738 > const THEME {};
+static COMPILETIMEEVAL MixBundle<0x81C24C, 0x87E738 > const THEMEMD {};
+static COMPILETIMEEVAL MixBundle<0x81C220, 0x87E738 > const THEME {};
 
-static constexpr reference<MixFileClass*, 0x884E64> const MapsMix {};
-static constexpr reference < MixFileClass*, 0x884E60> const MapsMDMix {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E64> const MapsMix {};
+static COMPILETIMEEVAL reference < MixFileClass*, 0x884E60> const MapsMDMix {};
 
 template<typename TMixBundle>
-inline void LoadMixFile(TMixBundle& bb)
+OPTIONALINLINE void LoadMixFile(TMixBundle& bb)
 {
 	CCFileClass _file { bb.MIXName() };
 	if (_file.Exists())
@@ -7417,7 +7417,7 @@ class BulletClass_patch : public BulletClass
 
 	}
 
-	constexpr double GetFloaterGravity()
+	COMPILETIMEEVAL double GetFloaterGravity()
 	{
 		return BulletTypeExtContainer::Instance.Find(this->Type)->Gravity.Get(RulesClass::Instance->Gravity) * 0.5;
 	}
@@ -8222,7 +8222,7 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 			{
 				return 0;
 			}
-			static constexpr reference<RectangleStruct, 0x87F8E4> MapClass_MapLocalSize {};
+			static COMPILETIMEEVAL reference<RectangleStruct, 0x87F8E4> MapClass_MapLocalSize {};
 
 			CellStruct v211 {};
 			CellStruct v206 {};
@@ -8812,11 +8812,11 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 //	**	If any of the logic determined that this side strip needs to be redrawn, then
 //	**	set the redraw flag for this side strip.
 //	*/
-//	static constexpr reference<bool, 0x884B8E> tootip_something {};
-//	static constexpr reference<bool, 0x884B8Fu> const tootip_Bound {};
-//	static constexpr reference<bool, 0xB0B518> const SidebarBlitRequested_FullRedraw {};
-//	static constexpr constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
-//	static constexpr reference<int, 0x884B84> const something_884B84 {};
+//	static COMPILETIMEEVAL reference<bool, 0x884B8E> tootip_something {};
+//	static COMPILETIMEEVAL reference<bool, 0x884B8Fu> const tootip_Bound {};
+//	static COMPILETIMEEVAL reference<bool, 0xB0B518> const SidebarBlitRequested_FullRedraw {};
+//	static COMPILETIMEEVAL constant_ptr<StripClass, 0x880D2C> const Collum_begin {};
+//	static COMPILETIMEEVAL reference<int, 0x884B84> const something_884B84 {};
 //
 //	if (redraw) {
 //		tootip_something = 1;
@@ -8831,7 +8831,7 @@ DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 
 //static std::vector<bool> ShakeScreenTibsunStyle {};
 
-static constexpr void ShakeScreen(GScreenClass* pScreen)
+static COMPILETIMEEVAL void ShakeScreen(GScreenClass* pScreen)
 {
 	/**
 	 *   TibSun style.
@@ -8876,7 +8876,7 @@ DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 	return 0x0;
 }
 
-static inline constexpr CoordStruct RelativeCenterCoord { 128 , 128 , 0 };
+static OPTIONALINLINE COMPILETIMEEVAL CoordStruct RelativeCenterCoord { 128 , 128 , 0 };
 
 void FakeBuildingClass::_Spawn_Refinery_Smoke_Particles()
 {
@@ -9651,7 +9651,7 @@ DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
 	return 0x725961;
 }
 
-constexpr int __fastcall charToID(char* string)
+COMPILETIMEEVAL int __fastcall charToID(char* string)
 {
 	char* v1 = string;
 	int v2 = 0;

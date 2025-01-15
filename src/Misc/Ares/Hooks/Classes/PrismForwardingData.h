@@ -27,7 +27,7 @@ public:
 	Valueable<signed int> EliteSupportWeaponIndex;
 
 	//methods
-	constexpr signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite)
+	COMPILETIMEEVAL signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite)
 	{
 		for (auto idxWeapon = 2u; idxWeapon < 13u; ++idxWeapon)
 		{ //13-18 is AlternateFLH0-4
@@ -41,7 +41,7 @@ public:
 		return -1;
 	}
 
-	constexpr void Initialize(BuildingTypeClass* pThis)
+	COMPILETIMEEVAL void Initialize(BuildingTypeClass* pThis)
 	{
 		this->Enabled = EnabledState::No;
 		if (pThis == RulesClass::Instance->PrismType)
@@ -53,27 +53,27 @@ public:
 
 	void LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* pINI);
 
-	constexpr int GetMaxFeeds() const
+	COMPILETIMEEVAL int GetMaxFeeds() const
 	{
 		return this->MaxFeeds.Get(RulesClass::Instance->PrismSupportMax);
 	}
 
-	constexpr int GetMaxNetworkSize() const
+	COMPILETIMEEVAL int GetMaxNetworkSize() const
 	{
 		return this->MaxNetworkSize.Get(RulesClass::Instance->PrismSupportMax);
 	}
 
-	constexpr int GetSupportModifier() const
+	COMPILETIMEEVAL int GetSupportModifier() const
 	{
 		return this->SupportModifier.Get(RulesClass::Instance->PrismSupportModifier);
 	}
 
-	constexpr bool CanAttack() const
+	COMPILETIMEEVAL bool CanAttack() const
 	{
 		return this->Enabled == EnabledState::Yes || this->Enabled == EnabledState::Attack;
 	}
 
-	constexpr bool CanForward() const
+	COMPILETIMEEVAL bool CanForward() const
 	{
 		return this->Enabled == EnabledState::Yes || this->Enabled == EnabledState::Forward;
 	}
@@ -81,7 +81,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	constexpr PrismForwardingData* AsPointer() const { return const_cast<PrismForwardingData*>(this); }
+	COMPILETIMEEVAL PrismForwardingData* AsPointer() const { return const_cast<PrismForwardingData*>(this); }
 
 	// constructor
 	PrismForwardingData() : Enabled(EnabledState::No),

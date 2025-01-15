@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransRemapXlat)
 {
 public:
-	inline explicit RLEBlitTransRemapXlat(T* remap, T* palette) noexcept
+	OPTIONALINLINE explicit RLEBlitTransRemapXlat(T* remap, T* palette) noexcept
 	{
 		RemapData = remap;
 		PaletteData = palette;

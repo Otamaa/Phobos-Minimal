@@ -35,13 +35,13 @@ class DECLSPEC_UUID("0E272DC9-9C0F-11D1-B709-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Bullet;
-	static inline constexpr VelocityClass EmptyVelocity = { 0.0 , 0.0 , 0.0 };
-	static constexpr inline DWORD vtable = 0x7E46E4;
+	static OPTIONALINLINE COMPILETIMEEVAL VelocityClass EmptyVelocity = { 0.0 , 0.0 , 0.0 };
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E46E4;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<BulletClass*>, 0xA8ED40u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BulletClass*>, 0xA8ED40u> const Array{};
 
-	static constexpr reference<DynamicVectorClass<BulletClass*>, 0x89DE18u> const ScalableBullets{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<BulletClass*>, 0x89DE18u> const ScalableBullets{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

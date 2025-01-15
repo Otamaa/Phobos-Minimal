@@ -20,11 +20,11 @@
 #include <utility>
 template <typename T>
 struct DistributionObject {
-	constexpr DistributionObject() = default;
-	constexpr explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
-	constexpr FORCEINLINE bool operator ==(const DistributionObject<T> &rhs) const { return false; }
-	constexpr FORCEINLINE bool operator !=(const DistributionObject<T> &rhs) const { return true; }
-	constexpr ~DistributionObject() = default;
+	COMPILETIMEEVAL DistributionObject() = default;
+	COMPILETIMEEVAL explicit DistributionObject(T value, unsigned int weight = 1u) : Value(std::move(value)), Weight(weight) {}
+	COMPILETIMEEVAL FORCEDINLINE bool operator ==(const DistributionObject<T> &rhs) const { return false; }
+	COMPILETIMEEVAL FORCEDINLINE bool operator !=(const DistributionObject<T> &rhs) const { return true; }
+	COMPILETIMEEVAL ~DistributionObject() = default;
 
 	T Value{};
 	unsigned int Weight{ 0u };
@@ -60,19 +60,19 @@ public:
 		this->Items.Clear();
 	}
 
-	constexpr unsigned int GetTotalWeight() const {
+	COMPILETIMEEVAL unsigned int GetTotalWeight() const {
 		return this->TotalWeight;
 	}
 
-	constexpr int GetCount() const {
+	COMPILETIMEEVAL int GetCount() const {
 		return this->Items.Count;
 	}
 
-	constexpr bool IsValid() const {
+	COMPILETIMEEVAL bool IsValid() const {
 		return this->TotalWeight > 0U && this->Items.Count > 0;
 	}
 
-	constexpr bool Select(unsigned int value, T* pOut) const {
+	COMPILETIMEEVAL bool Select(unsigned int value, T* pOut) const {
 		if(this->IsValid() && value && value <= this->TotalWeight) {
 			unsigned int acc = 0u;
 			for(auto i = this->Items.begin(); i < this->Items.end(); ++i) {

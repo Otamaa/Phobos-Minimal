@@ -16,12 +16,12 @@ class DECLSPEC_UUID("42F3A647-0789-11D2-ACA5-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ScriptType;
-	static constexpr inline DWORD vtable = 0x7F1008;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F1008;
 
-	static inline constexpr int MaxActions = 50;
+	static OPTIONALINLINE COMPILETIMEEVAL int MaxActions = 50;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<ScriptTypeClass*>, 0x8B41C8u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ScriptTypeClass*>, 0x8B41C8u> const Array {};
 
 	IMPL_Find(ScriptTypeClass)
 

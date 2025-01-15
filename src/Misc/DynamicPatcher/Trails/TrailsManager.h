@@ -27,7 +27,7 @@ struct TrailData
 	TrailData(const TrailData& other) = default;
 	TrailData& operator=(const TrailData& other) = default;
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		//Debug::Log("Processing Element From TrailData ! \n");
 		return Stm
@@ -40,7 +40,7 @@ struct TrailData
 			;
 	}
 
-	inline bool Save(PhobosStreamWriter& Stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
 	{
 		//Debug::Log("Processing Element From TrailData ! \n");
 		return Stm

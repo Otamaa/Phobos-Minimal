@@ -17,7 +17,7 @@ public:
 	int DamageReserve;					//current flat reservoir
 
 	// constructor
-	constexpr PrismForwarding() : Owner(nullptr),
+	COMPILETIMEEVAL PrismForwarding() : Owner(nullptr),
 		Senders(),
 		SupportTarget(nullptr),
 		PrismChargeDelay(0),
@@ -26,22 +26,22 @@ public:
 	{
 	}
 
-	constexpr ~PrismForwarding() {
+	COMPILETIMEEVAL ~PrismForwarding() {
 		this->RemoveFromNetwork(true);
 		this->Senders.clear();
 	}
 
-	constexpr BuildingClass* GetOwner() const
+	COMPILETIMEEVAL BuildingClass* GetOwner() const
 	{
 		return this->Owner;
 	}
 
-	constexpr PrismForwardingData* GetOwnerData() const
+	COMPILETIMEEVAL PrismForwardingData* GetOwnerData() const
 	{
 		return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();
 	}
 
-	constexpr int AcquireSlaves_MultiStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain)
+	COMPILETIMEEVAL int AcquireSlaves_MultiStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain)
 	{
 		//get all slaves for a specific stage in the prism chain
 		//this is done for all sibling chains in parallel, so we prefer multiple short chains over one really long chain
@@ -79,7 +79,7 @@ public:
 	int AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain);
 	bool ValidateSupportTower(PrismForwarding* pTargetTower, PrismForwarding* pSlaveTower);
 
-	constexpr void SetChargeDelay(int LongestChain)
+	COMPILETIMEEVAL void SetChargeDelay(int LongestChain)
 	{
 		auto const ArrayLen = LongestChain + 1;
 		std::vector<DWORD> LongestCDelay(ArrayLen, 0);
@@ -93,7 +93,7 @@ public:
 		this->SetChargeDelay_Set(0, LongestCDelay.data(), LongestFDelay.data(), LongestChain);
 	}
 
-	constexpr void SetChargeDelay_Get(int chain, int endChain, int LongestChain, DWORD* LongestCDelay, DWORD* LongestFDelay)
+	COMPILETIMEEVAL void SetChargeDelay_Get(int chain, int endChain, int LongestChain, DWORD* LongestCDelay, DWORD* LongestFDelay)
 	{
 		auto const TargetTower = this->GetOwner();
 
@@ -124,7 +124,7 @@ public:
 		}
 	}
 
-	constexpr void SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, DWORD const* LongestFDelay, int LongestChain)
+	COMPILETIMEEVAL void SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, DWORD const* LongestFDelay, int LongestChain)
 	{
 		auto const pTargetTower = this->GetOwner();
 
@@ -147,7 +147,7 @@ public:
 		}
 	}
 
-	constexpr void RemoveFromNetwork(bool bCease)
+	COMPILETIMEEVAL void RemoveFromNetwork(bool bCease)
 	{
 		if (this->PrismChargeDelay || bCease)
 		{
@@ -171,7 +171,7 @@ public:
 		}
 	}
 
-	constexpr void SetSupportTarget(PrismForwarding* pTargetTower)
+	COMPILETIMEEVAL void SetSupportTarget(PrismForwarding* pTargetTower)
 	{
 		// meet the new tower, same as the old tower
 		if (this->SupportTarget == pTargetTower)
@@ -198,7 +198,7 @@ public:
 		}
 	}
 
-	constexpr void RemoveAllSenders()
+	COMPILETIMEEVAL void RemoveAllSenders()
 	{
 		// disconnect all sender towers from their support target, which is me
 		for (auto senderIdx = ((int)this->Senders.size()) - 1; senderIdx > 0; senderIdx--)
@@ -249,7 +249,7 @@ public:
 			;
 	}
 
-	constexpr void InvalidatePointer(AbstractClass* ptr, bool bRemove)
+	COMPILETIMEEVAL void InvalidatePointer(AbstractClass* ptr, bool bRemove)
 	{
 		if (bRemove && this->SupportTarget && this->SupportTarget->Owner == ptr)
 			this->SupportTarget = nullptr;

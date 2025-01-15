@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransXlatAlphaZReadWrite)
 {
 public:
-	inline explicit RLEBlitTransXlatAlphaZReadWrite(T* data, int shadecount) noexcept
+	OPTIONALINLINE explicit RLEBlitTransXlatAlphaZReadWrite(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
 		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);

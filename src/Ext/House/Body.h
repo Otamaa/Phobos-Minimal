@@ -25,7 +25,7 @@ struct LauchData
 	int LastFrame { Unsorted::CurrentFrame };
 	int Count { 0 };
 
-	constexpr void Update()
+	COMPILETIMEEVAL void Update()
 	{
 		++Count;
 		LastFrame = Unsorted::CurrentFrame();
@@ -54,9 +54,9 @@ struct TunnelData
 	std::vector<FootClass*> Vector;
 	int MaxCap;
 
-	constexpr TunnelData() noexcept : Vector {}, MaxCap { 1 } { }
-	constexpr ~TunnelData() noexcept = default;
-	constexpr TunnelData(int MaxCap) noexcept : Vector {} , MaxCap { MaxCap } {}
+	COMPILETIMEEVAL TunnelData() noexcept : Vector {}, MaxCap { 1 } { }
+	COMPILETIMEEVAL ~TunnelData() noexcept = default;
+	COMPILETIMEEVAL TunnelData(int MaxCap) noexcept : Vector {} , MaxCap { MaxCap } {}
 
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -88,11 +88,11 @@ enum class BuildLimitStatus
 class HouseExtData final
 {
 public:
-	static constexpr size_t Canary = 0x12345678;
+	static COMPILETIMEEVAL size_t Canary = 0x12345678;
 	using base_type = HouseClass;
 
-	static constexpr size_t ExtOffset = 0x16084;//ARES
-	//static constexpr size_t ExtOffset = 0x16098;
+	static COMPILETIMEEVAL size_t ExtOffset = 0x16084;//ARES
+	//static COMPILETIMEEVAL size_t ExtOffset = 0x16098;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -185,7 +185,7 @@ public:
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(HouseExtData) -
 			(4u //AttachedToObject
@@ -203,7 +203,7 @@ public:
 
 	void UpdateShotCount(SuperWeaponTypeClass* pFor);
 	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
-	constexpr LauchData GetShotCount(SuperWeaponTypeClass* pFor){
+	COMPILETIMEEVAL LauchData GetShotCount(SuperWeaponTypeClass* pFor){
 		if ((size_t)pFor->ArrayIndex < this->LaunchDatas.size())
 			return this->LaunchDatas[pFor->ArrayIndex];
 
@@ -283,7 +283,7 @@ public:
 
 			if (pHouse->CanExpectToBuild(items[i], idxParentCountry)) {
 
-				if constexpr (T::AbsID == BuildingTypeClass::AbsID) {
+				if COMPILETIMEEVAL (T::AbsID == BuildingTypeClass::AbsID) {
 					if (HouseExtData::IsDisabledFromShell(pHouse, (const BuildingTypeClass*)items[i])) {
 						continue;
 					}
@@ -358,22 +358,22 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	inline static std::vector<int> AIProduction_CreationFrames;
-	inline static std::vector<int> AIProduction_Values;
-	inline static std::vector<int> AIProduction_BestChoices;
-	inline static std::vector<int> AIProduction_BestChoicesNaval;
-	inline static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
-	inline static HelperedVector<TechnoClass*> LimboTechno;
+	OPTIONALINLINE static std::vector<int> AIProduction_CreationFrames;
+	OPTIONALINLINE static std::vector<int> AIProduction_Values;
+	OPTIONALINLINE static std::vector<int> AIProduction_BestChoices;
+	OPTIONALINLINE static std::vector<int> AIProduction_BestChoicesNaval;
+	OPTIONALINLINE static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
+	OPTIONALINLINE static HelperedVector<TechnoClass*> LimboTechno;
 
-	inline static int LastGrindingBlanceUnit;
-	inline static int LastGrindingBlanceInf;
-	inline static int LastHarvesterBalance;
-	inline static int LastSlaveBalance;
+	OPTIONALINLINE static int LastGrindingBlanceUnit;
+	OPTIONALINLINE static int LastGrindingBlanceInf;
+	OPTIONALINLINE static int LastHarvesterBalance;
+	OPTIONALINLINE static int LastSlaveBalance;
 
-	inline static CDTimerClass CloakEVASpeak;
-	inline static CDTimerClass SubTerraneanEVASpeak;
+	OPTIONALINLINE static CDTimerClass CloakEVASpeak;
+	OPTIONALINLINE static CDTimerClass SubTerraneanEVASpeak;
 
-	static inline bool IsAnyFirestormActive;
+	static OPTIONALINLINE bool IsAnyFirestormActive;
 };
 
 class HouseExtContainer final : public Container<HouseExtData>

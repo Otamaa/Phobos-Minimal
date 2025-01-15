@@ -8,35 +8,35 @@ class MouseCursor
 {
 public:
 
-	static inline constexpr size_t DefaultCursorsCount = (size_t)MouseCursorType::count;
-	static constexpr reference<MouseCursor, 0x82D028u, (size_t)MouseCursorType::count> const DefaultCursors{};
+	static OPTIONALINLINE COMPILETIMEEVAL size_t DefaultCursorsCount = (size_t)MouseCursorType::count;
+	static COMPILETIMEEVAL reference<MouseCursor, 0x82D028u, (size_t)MouseCursorType::count> const DefaultCursors{};
 
-	static constexpr inline MouseCursor& GetDefaultCursor(MouseCursorType cursor)
+	static COMPILETIMEEVAL OPTIONALINLINE MouseCursor& GetDefaultCursor(MouseCursorType cursor)
 		{ return DefaultCursors[static_cast<int>(cursor)]; }
 
-	static constexpr inline MouseCursor& GetCursor(MouseCursorType cursor)
+	static COMPILETIMEEVAL OPTIONALINLINE MouseCursor& GetCursor(MouseCursorType cursor)
 		{ return DefaultCursors[static_cast<int>(cursor)]; }
 
-	static constexpr inline MouseCursor& GetCursor(size_t cursor)
+	static COMPILETIMEEVAL OPTIONALINLINE MouseCursor& GetCursor(size_t cursor)
 		{ return DefaultCursors[cursor]; }
 
-	FORCEINLINE constexpr int GetFrameRate() const
+	FORCEDINLINE COMPILETIMEEVAL int GetFrameRate() const
 	{
 		return FrameRate;
 	}
 
-	FORCEINLINE constexpr int GetMouseFrame(bool wsmall) const
+	FORCEDINLINE COMPILETIMEEVAL int GetMouseFrame(bool wsmall) const
 	{
 		return !wsmall || SmallFrame == -1 ?
 			StartFrame : SmallFrame;
 	}
 
-	FORCEINLINE constexpr int GetMouseFrameCount(bool wsmall) const
+	FORCEDINLINE COMPILETIMEEVAL int GetMouseFrameCount(bool wsmall) const
 	{
 		return !wsmall ? FrameCount : SmallFrameCount;
 	}
 
-	constexpr FORCEINLINE Point2D GetMouseHotSpot(const ShapeFileStruct* pShape) const
+	COMPILETIMEEVAL FORCEDINLINE Point2D GetMouseHotSpot(const ShapeFileStruct* pShape) const
 	{
 		Point2D nResult { 0 , 0 };
 
@@ -55,7 +55,7 @@ public:
 		return nResult;
 	}
 
-	FORCEINLINE constexpr Point2D GetMouseHotSpot(const SHPStruct* pShape) const
+	FORCEDINLINE COMPILETIMEEVAL Point2D GetMouseHotSpot(const SHPStruct* pShape) const
 	{
 		Point2D nResult { 0 , 0 };
 
@@ -74,16 +74,16 @@ public:
 		return nResult;
 	}
 
-	constexpr MouseCursor() = default;
+	COMPILETIMEEVAL MouseCursor() = default;
 
-	constexpr MouseCursor(
+	COMPILETIMEEVAL MouseCursor(
 		int frame, int count, int interval, int miniFrame, int miniCount,
 		MouseHotSpotX hotX, MouseHotSpotY hotY)
 		: StartFrame(frame), FrameCount(count), FrameRate(interval), SmallFrame(miniFrame),
 		SmallFrameCount(miniCount), X(hotX), Y(hotY)
 	{ }
 
-	constexpr MouseCursor(const MouseCursor& other) : StartFrame(other.StartFrame)
+	COMPILETIMEEVAL MouseCursor(const MouseCursor& other) : StartFrame(other.StartFrame)
 		, FrameCount(other.FrameCount)
 		, FrameRate(other.FrameRate)
 		, SmallFrame(other.SmallFrame)
@@ -92,7 +92,7 @@ public:
 		, Y(other.Y)
 	{ }
 
-	constexpr ~MouseCursor() noexcept = default;
+	COMPILETIMEEVAL ~MouseCursor() noexcept = default;
 
 public:
 
@@ -104,7 +104,7 @@ public:
 	MouseHotSpotX X { MouseHotSpotX::Center };
 	MouseHotSpotY Y { MouseHotSpotY::Middle };
 };
-static inline constexpr size_t MouseCursorClassSize = sizeof(MouseCursor);
+static OPTIONALINLINE COMPILETIMEEVAL size_t MouseCursorClassSize = sizeof(MouseCursor);
 
 struct MouseCursorDataStruct
 {
@@ -142,7 +142,7 @@ class TabClass : public SidebarClass, public INoticeSink
 public:
 
 	//Static
-	static constexpr constant_ptr<TabClass, 0x87F7E8u> const Instance {};
+	static COMPILETIMEEVAL constant_ptr<TabClass, 0x87F7E8u> const Instance {};
 
 	//Destructor
 	virtual ~TabClass() override JMP_THIS(0x5BE9E0)
@@ -181,7 +181,7 @@ class ScrollClass : public TabClass
 {
 public:
 	//Static
-	static constexpr constant_ptr<ScrollClass, 0x87F7E8u> const Instance{};
+	static COMPILETIMEEVAL constant_ptr<ScrollClass, 0x87F7E8u> const Instance{};
 
 	//Destructor
 	virtual ~ScrollClass() override JMP_THIS(0x6938F0);
@@ -218,11 +218,11 @@ class NOVTABLE MouseClass : public ScrollClass
 public:
 
 	//Static
-	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
-	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Global{};
-	static constexpr reference<SHPStruct*, 0xABF294u> const ShapeData{};
-	static constexpr reference<bool, 0xABF2DDu> const ShapeOverride{};
-	static constexpr reference<SystemTimerClass, 0xABF2A0u> const Timer {};
+	static COMPILETIMEEVAL constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
+	static COMPILETIMEEVAL constant_ptr<MouseClass, 0x87F7E8u> const Global{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xABF294u> const ShapeData{};
+	static COMPILETIMEEVAL reference<bool, 0xABF2DDu> const ShapeOverride{};
+	static COMPILETIMEEVAL reference<SystemTimerClass, 0xABF2A0u> const Timer {};
 
 	//Destructor
 	virtual ~MouseClass() JMP_THIS(0x40D290);

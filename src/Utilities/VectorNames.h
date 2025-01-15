@@ -28,17 +28,17 @@ public:
 		return this->Strings.GetItemOrDefault(index);
 	}
 
-	constexpr const DynamicVectorClass<const char*>* Entries() const
+	COMPILETIMEEVAL const DynamicVectorClass<const char*>* Entries() const
 	{
 		return &this->Strings;
 	}
 
-	constexpr const char** ToString() const
+	COMPILETIMEEVAL const char** ToString() const
 	{
 		return this->Strings.Items;
 	}
 
-	constexpr int Count() const
+	COMPILETIMEEVAL int Count() const
 	{
 		return this->Strings.Count;
 	}

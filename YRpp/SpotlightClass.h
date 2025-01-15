@@ -9,7 +9,7 @@ class NOVTABLE SpotlightClass
 {
 public:
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<SpotlightClass*>, 0xAC1678u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SpotlightClass*>, 0xAC1678u> const Array{};
 
 	//Destructor
 	~SpotlightClass()

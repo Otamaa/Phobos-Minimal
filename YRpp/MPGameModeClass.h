@@ -60,7 +60,7 @@ class NOVTABLE MPGameModeClass
 public:
 	//global arrays
 	static DynamicVectorClass<MPGameModeClass*>* GameModes;
-	static constexpr reference<MPGameModeClass*, 0xA8B23C> const Instance{};
+	static COMPILETIMEEVAL reference<MPGameModeClass*, 0xA8B23C> const Instance{};
 
 	static MPGameModeClass* __fastcall Get(int index)
 		{ JMP_STD(0x5D5F30); }
@@ -466,7 +466,7 @@ static_assert(sizeof(MPSiegeClass) == 0x40, "Invalid Size!");
 
 struct MPlayerScoreType
 {
-	static constexpr reference<MPlayerScoreType, 0xA8D1FCu, 8u> MPScores { };
+	static COMPILETIMEEVAL reference<MPlayerScoreType, 0xA8D1FCu, 8u> MPScores { };
 
 	char Name[0x40];
 	int Scheme;

@@ -30,7 +30,7 @@ public:
 
 	static RectangleStruct Union(const RectangleStruct& rect1, const RectangleStruct& rect2);
 protected:
-	inline int GetIndexID() const;
+	OPTIONALINLINE int GetIndexID() const;
 
 	void RenderAsBuilding(const RectangleStruct& viewRect) const;
 	void RenderAsSmudge(const RectangleStruct& viewRect) const;

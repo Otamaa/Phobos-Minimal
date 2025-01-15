@@ -31,7 +31,7 @@
 #include <Ext/House/Body.h>
 #include <New/Type/CrateTypeClass.h>
 
-bool FORCEINLINE IsStatisticsEnabled()
+bool FORCEDINLINE IsStatisticsEnabled()
 {
 	return SpawnerMain::Configs::Active
 		&& SpawnerMain::GetGameConfigs()->WriteStatistics
@@ -356,7 +356,7 @@ DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
 }
 
 template<uintptr_t offset>
-FORCEINLINE HouseClass* GetHouseClassptr(UnitTrackerClass* pTrack)
+FORCEDINLINE HouseClass* GetHouseClassptr(UnitTrackerClass* pTrack)
 {
 	uintptr_t ptr = (uintptr_t)pTrack;
 	return reinterpret_cast<HouseClass*>(ptr - offset);

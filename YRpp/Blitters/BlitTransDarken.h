@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransDarken)
 {
 public:
-	inline explicit BlitTransDarken(WORD mask) noexcept
+	OPTIONALINLINE explicit BlitTransDarken(WORD mask) noexcept
 	{
 		Mask = mask;
 	}

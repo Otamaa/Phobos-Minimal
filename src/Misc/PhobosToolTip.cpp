@@ -37,28 +37,28 @@
 
 PhobosToolTip PhobosToolTip::Instance;
 
-inline const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExtData* pData) const
+OPTIONALINLINE const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExtData* pData) const
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
 		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
-inline const wchar_t* PhobosToolTip::GetUnbuildableUIDescription(TechnoTypeExtData* pData) const
+OPTIONALINLINE const wchar_t* PhobosToolTip::GetUnbuildableUIDescription(TechnoTypeExtData* pData) const
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription_Unbuildable.Get().empty()
 		? pData->UIDescription_Unbuildable.Get().Text
 		: nullptr;
 }
 
-inline const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExtData* pData) const
+OPTIONALINLINE const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExtData* pData) const
 {
 	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
 		? pData->UIDescription.Get().Text
 		: nullptr;
 }
 
-inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
+OPTIONALINLINE int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 {
 	// TechnoTypeClass only has 4 final classes :
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
@@ -95,7 +95,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	return MaxImpl(54, nTimeToBuild);
 }
 
-inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
+OPTIONALINLINE int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 {
 	if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))
 		return pBldType->PowerBonus - pBldType->PowerDrain;

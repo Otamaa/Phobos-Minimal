@@ -62,22 +62,22 @@ public:
 
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 
-	constexpr FORCEINLINE double GetHealthRatio() const
+	COMPILETIMEEVAL FORCEDINLINE double GetHealthRatio() const
 	{
 		return static_cast<double>(this->HP) / static_cast<double>(this->Type->Strength);
 	}
 
-	constexpr FORCEINLINE void SetHP(int amount)
+	COMPILETIMEEVAL FORCEDINLINE void SetHP(int amount)
 	{
 		this->HP = amount > this->Type->Strength ? this->Type->Strength : amount;
 	}
 
-	constexpr FORCEINLINE int GetHP() const
+	COMPILETIMEEVAL FORCEDINLINE int GetHP() const
 	{
 		return this->HP;
 	}
 
-	constexpr FORCEINLINE bool IsActive() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const
 	{
 		return
 			this->Available &&
@@ -85,22 +85,22 @@ public:
 			this->Online;
 	}
 
-	constexpr FORCEINLINE bool IsAvailable() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsAvailable() const
 	{
 		return this->Available;
 	}
 
-	constexpr FORCEINLINE bool IsBrokenAndNonRespawning() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsBrokenAndNonRespawning() const
 	{
 		return this->HP <= 0 && !this->Type->Respawn;
 	}
 
-	constexpr FORCEINLINE ShieldTypeClass* GetType() const
+	COMPILETIMEEVAL FORCEDINLINE ShieldTypeClass* GetType() const
 	{
 		return this->Type;
 	}
 
-	constexpr FORCEINLINE Armor GetArmor(Armor inherit) const
+	COMPILETIMEEVAL FORCEDINLINE Armor GetArmor(Armor inherit) const
 	{
 		const auto pShieldType = this->Type;
 
@@ -116,7 +116,7 @@ public:
 		return pShieldType->Armor.Get();
 	}
 
-	constexpr FORCEINLINE int GetFramesSinceLastBroken() const
+	COMPILETIMEEVAL FORCEDINLINE int GetFramesSinceLastBroken() const
 	{
 		return Unsorted::CurrentFrame - this->LastBreakFrame;
 	}
@@ -132,17 +132,17 @@ public:
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
-	FORCEINLINE bool IsGreenSP()
+	FORCEDINLINE bool IsGreenSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
-	FORCEINLINE bool IsYellowSP()
+	FORCEDINLINE bool IsYellowSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
-	FORCEINLINE bool IsRedSP()
+	FORCEDINLINE bool IsRedSP()
 	{
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
@@ -154,7 +154,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	inline static HelperedVector<ShieldClass*> Array;
+	OPTIONALINLINE static HelperedVector<ShieldClass*> Array;
 
 private:
 	template <typename T>

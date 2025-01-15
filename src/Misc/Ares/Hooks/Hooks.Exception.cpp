@@ -176,7 +176,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
 		{
-			constexpr auto const pDelim = "------------------------------------------------------------------------------------\n";
+			COMPILETIMEEVAL auto const pDelim = "------------------------------------------------------------------------------------\n";
 			fprintf(except, "Internal Error encountered!\n");
 			fprintf(except, pDelim);
 			fprintf(except, "Ares version: 21.352.1218 With Phobos %s", PRODUCT_VERSION); //TODO
@@ -662,7 +662,7 @@ void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label 
 }
 
 #include <Phobos.version.h>
-static constexpr reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics {};
+static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics {};
 
 bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 {

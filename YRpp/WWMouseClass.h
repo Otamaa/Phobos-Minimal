@@ -9,11 +9,11 @@
 
 struct MouseThreadParameter
 {
-	static constexpr reference<bool, 0xB7816Cu> const ThreadNotActive {};
-	static constexpr reference<MouseThreadParameter, 0xB78138u> const Thread {};
-	static constexpr reference<HANDLE, 0xB78168u> const Mutex {};
-	static constexpr reference<HANDLE, 0xB78154u> const Thread_Handle {};
-	static constexpr reference<DWORD, 0xB78158u> const ThreadID {};
+	static COMPILETIMEEVAL reference<bool, 0xB7816Cu> const ThreadNotActive {};
+	static COMPILETIMEEVAL reference<MouseThreadParameter, 0xB78138u> const Thread {};
+	static COMPILETIMEEVAL reference<HANDLE, 0xB78168u> const Mutex {};
+	static COMPILETIMEEVAL reference<HANDLE, 0xB78154u> const Thread_Handle {};
+	static COMPILETIMEEVAL reference<DWORD, 0xB78158u> const ThreadID {};
 
 public:
 
@@ -34,8 +34,8 @@ struct ShapeFileStruct;
 class WWMouseClass
 {
 public:
-	static constexpr reference<WWMouseClass*, 0x887640u> const Instance{};
-	static constexpr reference<WWMouseClass*, 0xB78164u> const Thread_Instance {};
+	static COMPILETIMEEVAL reference<WWMouseClass*, 0x887640u> const Instance{};
+	static COMPILETIMEEVAL reference<WWMouseClass*, 0xB78164u> const Thread_Instance {};
 
 	virtual ~WWMouseClass()
 		{ JMP_THIS(0x0); }

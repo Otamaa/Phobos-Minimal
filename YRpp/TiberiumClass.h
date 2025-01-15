@@ -91,10 +91,10 @@ class DECLSPEC_UUID("C53DD373-151E-11D2-8175-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Tiberium;
-	static constexpr inline DWORD vtable = 0x7F5728;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F5728;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<TiberiumClass*>, 0xB0F4E8u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TiberiumClass*>, 0xB0F4E8u> const Array {};
 
 	IMPL_Find(TiberiumClass)
 	IMPL_FindOrAllocate(TiberiumClass)

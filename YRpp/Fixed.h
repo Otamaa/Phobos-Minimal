@@ -16,7 +16,7 @@
 ALIGN(4)
 class Fixed
 {
-	static constexpr unsigned int PRECISION = 1 << 8;
+	static COMPILETIMEEVAL unsigned int PRECISION = 1 << 8;
 	typedef unsigned char data_type;
 
 public:

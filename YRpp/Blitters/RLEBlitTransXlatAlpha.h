@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransXlatAlpha)
 {
 public:
-	inline explicit RLEBlitTransXlatAlpha(T* data, int shadecount) noexcept
+	OPTIONALINLINE explicit RLEBlitTransXlatAlpha(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
 		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);

@@ -8,7 +8,7 @@ template<typename T, typename A = std::allocator<T>>
 struct HelperedVector : public std::vector<T , A>
 {
 
-	//bool FORCEINLINE remove_at(size_t index) {
+	//bool FORCEDINLINE remove_at(size_t index) {
 	//	if (this->valid_index(index)) {
 	//		this->erase(this->begin() + index);
 	//		return true;
@@ -17,7 +17,7 @@ struct HelperedVector : public std::vector<T , A>
 	//	return false;
 	//}
 
-	bool FORCEINLINE remove(const T& item) {
+	bool FORCEDINLINE remove(const T& item) {
 		const auto iter = std::remove(this->begin() , this->end() , item);
 
 		if (iter != this->end()) {
@@ -29,7 +29,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template <typename Func>
-	bool FORCEINLINE remove_if(Func&& act) {
+	bool FORCEDINLINE remove_if(Func&& act) {
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
 		if (iter != this->end()) {
@@ -41,17 +41,17 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template <typename Func>
-	void FORCEINLINE remove_all_duplicates(Func&& act) {
+	void FORCEDINLINE remove_all_duplicates(Func&& act) {
 		std::sort(this->begin(), this->end(), std::forward<Func>(act));
 		this->erase(std::unique(this->begin(), this->end()), this->end());
 	}
 
-	void FORCEINLINE remove_all_duplicates_noshort() {
+	void FORCEDINLINE remove_all_duplicates_noshort() {
 		this->erase(std::unique(this->begin(), this->end()), this->end());
 	}
 
 	template <typename Func>
-	bool FORCEINLINE remove_all_if(Func&& act)
+	bool FORCEDINLINE remove_all_if(Func&& act)
 	{
 		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
 
@@ -64,12 +64,12 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template <typename Func>
-	auto FORCEINLINE find_if(Func&& act) {
+	auto FORCEDINLINE find_if(Func&& act) {
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
-	auto FORCEINLINE find(const T& item) const {
-		if constexpr (direct_comparable<T>) {
+	auto FORCEDINLINE find(const T& item) const {
+		if COMPILETIMEEVAL (direct_comparable<T>) {
 			auto i = this->begin();
 
 			for (; i != this->end(); ++i) {
@@ -84,8 +84,8 @@ struct HelperedVector : public std::vector<T , A>
 		}
 	}
 
-	auto FORCEINLINE find(const T& item) {
-		if constexpr (direct_comparable<T>) {
+	auto FORCEDINLINE find(const T& item) {
+		if COMPILETIMEEVAL (direct_comparable<T>) {
 			auto i = this->begin();
 
 			for (; i != this->end(); ++i) {
@@ -100,11 +100,11 @@ struct HelperedVector : public std::vector<T , A>
 		}
 	}
 
-	bool FORCEINLINE contains(const T& other) const {
+	bool FORCEDINLINE contains(const T& other) const {
 		return this->find(other) != this->end();
 	}
 
-	bool FORCEINLINE push_back_unique(const T& other) {
+	bool FORCEDINLINE push_back_unique(const T& other) {
 		if (!this->contains(other)){
 			this->push_back(other);
 			return true;
@@ -113,31 +113,31 @@ struct HelperedVector : public std::vector<T , A>
 		return false;
 	}
 
-	int FORCEINLINE index_of(const T& other) const {
+	int FORCEDINLINE index_of(const T& other) const {
 		auto iter = this->find(other);
 		return iter != this->end() ? std::distance(this->begin(), iter) : -1;
 	}
 
-	bool FORCEINLINE valid_index(int index) const {
+	bool FORCEDINLINE valid_index(int index) const {
 		return static_cast<size_t>(index) < this->size();
 	}
 
 	template <typename Func>
-	void FORCEINLINE for_each(Func&& act) const {
+	void FORCEDINLINE for_each(Func&& act) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
 	template <typename Func>
-	void FORCEINLINE for_each(Func&& act) {
+	void FORCEDINLINE for_each(Func&& act) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
         	act(*i);
     	}
 	}
 
 	template<typename func>
-	bool FORCEINLINE none_of(func&& fn) const {
+	bool FORCEDINLINE none_of(func&& fn) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
            	 	return false;
@@ -148,7 +148,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template<typename func>
-	bool FORCEINLINE none_of(func&& fn) {
+	bool FORCEDINLINE none_of(func&& fn) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        	 	if (fn(*i)) {
            	 	return false;
@@ -159,7 +159,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template<typename func>
-	bool FORCEINLINE any_of(func&& fn) const {
+	bool FORCEDINLINE any_of(func&& fn) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
             	return true;
@@ -170,7 +170,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template<typename func>
-	bool FORCEINLINE any_of(func&& fn) {
+	bool FORCEDINLINE any_of(func&& fn) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
        		if (fn(*i)) {
             	return true;
@@ -181,7 +181,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template<typename func>
-	bool FORCEINLINE all_of(func&& fn) const {
+	bool FORCEDINLINE all_of(func&& fn) const {
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
 				return false;
@@ -192,7 +192,7 @@ struct HelperedVector : public std::vector<T , A>
 	}
 
 	template<typename func>
-	bool FORCEINLINE all_of(func&& fn) {
+	bool FORCEDINLINE all_of(func&& fn) {
 		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (!fn(*i)) {
 				return false;

@@ -8,7 +8,7 @@ void HouseTypeExtData::Initialize()
 {
 	const char* pID = this->AttachedToObject->ID;
 
-	constexpr static char const* const countries[] = {
+	COMPILETIMEEVAL static char const* const countries[] = {
 		"Americans",
 		"Alliance",
 		"French",
@@ -367,7 +367,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 	this->ObserverFlagYuriPAL.Read(exINI, pSection, "File.ObserverFlagAltPalette");
 
 	this->TauntFileName.Read(exINI, pSection, "File.Taunt");
-	constexpr char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+	COMPILETIMEEVAL char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 	if(!this->TauntFileName->empty()) {
 

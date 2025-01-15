@@ -6,7 +6,7 @@
 
 #include <Lib/gcem/gcem.hpp>
 
-static constexpr std::array<const char* const, (size_t)ParabolaFireMode::count> ParabolaFireMode_ToStrings
+static COMPILETIMEEVAL std::array<const char* const, (size_t)ParabolaFireMode::count> ParabolaFireMode_ToStrings
 {
 	"Speed"  ,
 	"Height"  ,
@@ -20,7 +20,7 @@ static constexpr std::array<const char* const, (size_t)ParabolaFireMode::count> 
 namespace detail
 {
 	template <>
-	inline bool read<ParabolaFireMode>(ParabolaFireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	OPTIONALINLINE bool read<ParabolaFireMode>(ParabolaFireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
@@ -1044,17 +1044,17 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 		Vector2D<double> factor { 0.0, 0.0 };
 
 		 //0.3763770469559380854890894443664 ->
-		constexpr auto _1_val = Unsorted::LevelHeight / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _1_val = Unsorted::LevelHeight / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 		// 0.9264665771223091335116047861327 ->
-		constexpr auto _2_val = Unsorted::LeptonsPerCell / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _2_val = Unsorted::LeptonsPerCell / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 		// 0.3522530794922131411764879370407 ->
-		constexpr auto _3_val = Unsorted::LevelHeight / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _3_val = Unsorted::LevelHeight / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 		// 0.8670845033654477321267395373309 ->
-		constexpr auto _4_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _4_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 		// 0.5333964609104418418483761938761 ->
-		constexpr auto _5_val = Unsorted::CellHeight / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _5_val = Unsorted::CellHeight / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 		// 0.6564879518897745745826168540013 ->
-		constexpr auto _6_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _6_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 
 		if (index <= 4)
 			factor = Vector2D<double> { _1_val, _2_val };
@@ -1139,9 +1139,9 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 		}
 
 		// 0.4472135954999579392818347337463 ->
-		constexpr auto val_7 = 1 / gcem::sqrt(5);
+		COMPILETIMEEVAL auto val_7 = 1 / gcem::sqrt(5);
 		// 0.8944271909999158785636694674925 ->
-		constexpr auto val_8 = 2 / gcem::sqrt(5);
+		COMPILETIMEEVAL auto val_8 = 2 / gcem::sqrt(5);
 
 		if (index == 1)
 			return { val_8 * reverseSgnX, val_7 * reverseSgnY, 0.0 };
@@ -1149,7 +1149,7 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 			return { val_7 * reverseSgnX, val_8 * reverseSgnY, 0.0 };
 
 		// 0.7071067811865475244008443621049 ->
-		constexpr auto val_9 = 1 / gcem::sqrt(2);
+		COMPILETIMEEVAL auto val_9 = 1 / gcem::sqrt(2);
 		return { val_9 * reverseSgnX, val_9 * reverseSgnY, 0.0 };
 	}
 

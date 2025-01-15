@@ -106,7 +106,7 @@ DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 #ifndef STRIPS
 
 #ifndef _newIpml
-static FORCEINLINE void DoStuffs(int idx, StripClass* pStrip, int height, int width, int y, SelectClass* pBegin)
+static FORCEDINLINE void DoStuffs(int idx, StripClass* pStrip, int height, int width, int y, SelectClass* pBegin)
 {
 	int MaxShown = SidebarClass::Instance->Func_6AC430();
 
@@ -251,8 +251,8 @@ DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 }
 #else
 
-static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
-static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
+static COMPILETIMEEVAL constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
+static COMPILETIMEEVAL constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
 
 DEFINE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 {
@@ -285,7 +285,7 @@ DEFINE_HOOK(0x6a96d9, StripClass_Draw_Strip, 7)
 DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 {
 	GET_STACK(size_t, nCurIdx, 0x14);
-	constexpr int Offset = 0x3E8;
+	COMPILETIMEEVAL int Offset = 0x3E8;
 
 	for (int i = 0; i < 0xF0; ++i)
 		CCToolTip::Instance->Remove(i + Offset);
@@ -510,7 +510,7 @@ DEFINE_HOOK(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
 	return NotFound;
 }
 
-static constexpr NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
+static COMPILETIMEEVAL NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
 {
 	BuildType* it;
 	typename std::iterator_traits<BuildType*>::difference_type count, step;

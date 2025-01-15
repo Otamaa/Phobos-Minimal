@@ -32,7 +32,7 @@ public:
 	static const auto AbsDerivateID = AbstractFlags::Object;
 
 	//global arrays
-	static constexpr reference<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
 
 	//IUnknown
 	//virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;

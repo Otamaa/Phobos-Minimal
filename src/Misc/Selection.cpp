@@ -13,19 +13,19 @@ class ExtSelection final : public TacticalClass
 {
 public:
 	using callback_type = bool(__fastcall*)(ObjectClass*);
-	static inline struct TacticalSelectablesHelper
+	static OPTIONALINLINE struct TacticalSelectablesHelper
 	{
-		inline size_t size()
+		OPTIONALINLINE size_t size()
 		{
 			return TacticalClass::Instance->SelectableCount;
 		}
 
-		inline TacticalSelectableStruct* begin()
+		OPTIONALINLINE TacticalSelectableStruct* begin()
 		{
 			return &Unsorted::TacticalSelectables[0];
 		}
 
-		inline TacticalSelectableStruct* end()
+		OPTIONALINLINE TacticalSelectableStruct* end()
 		{
 			return &Unsorted::TacticalSelectables[size()];
 		}

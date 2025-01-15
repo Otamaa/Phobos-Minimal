@@ -6,7 +6,7 @@
 class NOVTABLE EvadeClass
 {
 public:
-	static constexpr reference<EvadeClass, 0x8A38E0> Instance {};
+	static COMPILETIMEEVAL reference<EvadeClass, 0x8A38E0> Instance {};
 
 	void Do() { JMP_THIS(0x4C6210); }
 

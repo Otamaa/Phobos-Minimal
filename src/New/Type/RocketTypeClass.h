@@ -34,7 +34,7 @@ public:
 		, Offset { }
 	{ }
 
-	static void constexpr inline AddDefaults() {
+	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults() {
 		Array.reserve(DefaultRockets.size());
 
 		for (auto& rocket:  DefaultRockets) {
@@ -42,7 +42,7 @@ public:
 		}
 	}
 
-	static constexpr std::array<std::string, 3u> DefaultRockets {
+	static COMPILETIMEEVAL std::array<std::string, 3u> DefaultRockets {
 		{ "CMisl" , "DMisl" , "V3Rocket" }
 	};
 

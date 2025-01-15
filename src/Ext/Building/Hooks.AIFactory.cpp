@@ -661,7 +661,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 		const auto buildableResult = pHouse->CanBuild(TT, false, false);
 
 		// Aircraft has it own handling
-		if constexpr (Ttype::AbsID == AbstractType::AircraftType) {
+		if COMPILETIMEEVAL (Ttype::AbsID == AbstractType::AircraftType) {
 			//Debug::Log("Aircraft [%s][%s] return result [%d] for can build");
 
 			if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(pHouse) > pHouse->Available_Money()) {

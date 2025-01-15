@@ -70,7 +70,7 @@ namespace Helpers {
 			using is_transparent = void;
 
 			template <typename T, typename U>
-			constexpr bool operator()(T&& lhs, U&& rhs) const {
+			COMPILETIMEEVAL bool operator()(T&& lhs, U&& rhs) const {
 				return std::less<>()(*lhs, *rhs);
 			}
 		};
@@ -90,44 +90,44 @@ namespace Helpers {
 			set_type _set;
 
 		public:
-			inline bool operator() (T item) {
+			OPTIONALINLINE bool operator() (T item) {
 				insert(item);
 				return true;
 			}
 
-			inline void insert(T value) {
+			OPTIONALINLINE void insert(T value) {
 				_set.insert(value);
 			}
 
-			constexpr inline size_t size() const {
+			COMPILETIMEEVAL OPTIONALINLINE size_t size() const {
 				return _set.size();
 			}
 
-			constexpr inline typename set_type::const_iterator begin() const {
+			COMPILETIMEEVAL OPTIONALINLINE typename set_type::const_iterator begin() const {
 				return _set.begin();
 			}
 
-			constexpr inline typename set_type::const_iterator end() const {
+			COMPILETIMEEVAL OPTIONALINLINE typename set_type::const_iterator end() const {
 				return _set.end();
 			}
 
 			template <typename Func>
-			constexpr inline auto for_each(Func&& action) const {
+			COMPILETIMEEVAL OPTIONALINLINE auto for_each(Func&& action) const {
 				return std::find_if_not(begin(), end(), action);
 			}
 
 			template <typename Func>
-			constexpr inline void apply_function_for_each(Func&& action) const {
+			COMPILETIMEEVAL OPTIONALINLINE void apply_function_for_each(Func&& action) const {
 				static_cast<void>(std::find_if_not(begin(), end(), action));
 			}
 
 			template <typename Func>
-			constexpr inline int for_each_count(Func&& action) const {
+			COMPILETIMEEVAL OPTIONALINLINE int for_each_count(Func&& action) const {
 				return std::distance(begin(), std::find_if_not(begin(), end(), action));
 			}
 
 			template <typename Func>
-			constexpr inline void for_each(Func&& action) {
+			COMPILETIMEEVAL OPTIONALINLINE void for_each(Func&& action) {
 				std::for_each(begin(), end(), action);
 			}
 		};
@@ -156,7 +156,7 @@ namespace Helpers {
 			\author AlexB
 			\date 2010-04-27
 		*/
-		constexpr inline int getCappedDuration(int CurrentValue, int Duration, int Cap) {
+		COMPILETIMEEVAL OPTIONALINLINE int getCappedDuration(int CurrentValue, int Duration, int Cap) {
 			// Usually, the new duration is just added.
 			int ProposedDuration = CurrentValue + Duration;
 
@@ -195,7 +195,7 @@ namespace Helpers {
 			\date 2010-06-28
 		*/
 		template<class T = TechnoClass> requires HasDeriveredAbsID<T>
-		inline std::vector<T*> getCellSpreadItems_Original(
+		OPTIONALINLINE std::vector<T*> getCellSpreadItems_Original(
 		CoordStruct const& coords, double const spread,
 		bool const includeInAir, bool const allowLimbo)
 		{
@@ -212,7 +212,7 @@ namespace Helpers {
 				for (NextObject obj(pCell->GetContent()); obj; ++obj) {
 					if (auto const pTechno = flag_cast_to<T*, false>(*obj))
 					{
-						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+						if COMPILETIMEEVAL (T::AbsDerivateID != FootClass::AbsDerivateID) {
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 							if (pTechno->WhatAmI() == AbstractType::Building) {
 								auto const cellCenterCoords = pCell->GetCenterCoords();
@@ -274,7 +274,7 @@ namespace Helpers {
 					continue;
 
 				auto const abs = pTechno->WhatAmI();
-				if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
+				if COMPILETIMEEVAL (T::AbsDerivateID != FootClass::AbsDerivateID)
 				{
 					bool isBuilding = false;
 
@@ -344,7 +344,7 @@ namespace Helpers {
 		}
 
 		template<typename Func>
-		inline std::vector<AbstractClass*> getCellTechnoRangeItems(CoordStruct const& coords, double const arange , bool IncludeAir, Func action)
+		OPTIONALINLINE std::vector<AbstractClass*> getCellTechnoRangeItems(CoordStruct const& coords, double const arange , bool IncludeAir, Func action)
 		{
 			// set of possibly affected objects. every object can be here only once.
 			DistinctCollector<AbstractClass*> set;
@@ -413,7 +413,7 @@ namespace Helpers {
 		}
 
 		template<class T = TechnoClass> requires HasDeriveredAbsID<T>
-		inline std::vector<T*> getCellSpreadItems(
+		OPTIONALINLINE std::vector<T*> getCellSpreadItems(
 			CoordStruct const& coords, double const spread,
 			bool const includeInAir = false, bool allowLimbo = false)
 		{
@@ -421,7 +421,7 @@ namespace Helpers {
 		}
 
 		template<class T = TechnoClass ,typename Func>
-		inline void ApplyFuncToCellSpreadItems(
+		OPTIONALINLINE void ApplyFuncToCellSpreadItems(
 			CoordStruct const& coords, double const spread, Func action,
 			bool const includeInAir = false , bool allowLimbo = false)
 		{
@@ -440,7 +440,7 @@ namespace Helpers {
 				{
 					if (auto const pTechno = flag_cast_to<T*, false>(*obj))
 					{
-						if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID)
+						if COMPILETIMEEVAL (T::AbsDerivateID != FootClass::AbsDerivateID)
 						{
 							// Starkku: Buildings need their distance from the origin coords checked at cell level.
 							if (pTechno->WhatAmI() == AbstractType::Building)
@@ -496,7 +496,7 @@ namespace Helpers {
 					continue;
 
 				auto const abs = pTechno->WhatAmI();
-				if constexpr (T::AbsDerivateID != FootClass::AbsDerivateID) {
+				if COMPILETIMEEVAL (T::AbsDerivateID != FootClass::AbsDerivateID) {
 					bool isBuilding = false;
 
 					// ignore buildings that are not visible, like ambient light posts
@@ -574,7 +574,7 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		inline bool for_each_in_rect(
+		OPTIONALINLINE bool for_each_in_rect(
 			CellStruct const center, float widthOrRange, int height, Func&& action)
 		{
 			if (height > 0) {
@@ -613,7 +613,7 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		inline bool for_each_in_rect_or_range(CellStruct center, float widthOrRange, int height, Func&& action) {
+		OPTIONALINLINE bool for_each_in_rect_or_range(CellStruct center, float widthOrRange, int height, Func&& action) {
 			if (for_each_in_rect<T>(center, widthOrRange, height, action)) {
 				return true;
 			}
@@ -642,7 +642,7 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		inline bool for_each_in_rect_or_spread(CellStruct center, float widthOrRange, int height, Func&& action) {
+		OPTIONALINLINE bool for_each_in_rect_or_spread(CellStruct center, float widthOrRange, int height, Func&& action) {
 			if (for_each_in_rect<T>(center, widthOrRange, height, action)) {
 				return true;
 			}
@@ -662,7 +662,7 @@ namespace Helpers {
 
 
 		template <typename InIt, typename Pred>
-		constexpr inline auto find_if(InIt first, InIt last, Pred pred)
+		COMPILETIMEEVAL OPTIONALINLINE auto find_if(InIt first, InIt last, Pred pred)
 		{
 			auto i = first;
 			for (; i != last; ++i) {
@@ -675,16 +675,16 @@ namespace Helpers {
 		}
 
 		template <typename Value, typename Option>
-		constexpr inline bool is_any_of(Value&& value, Option&& option) {
+		COMPILETIMEEVAL OPTIONALINLINE bool is_any_of(Value&& value, Option&& option) {
 			return value == option;
 		}
 
 		template <typename Value, typename Option, typename... Options>
-		constexpr inline bool is_any_of(Value&& value, Option&& first_option, Options&&... other_options) {
+		COMPILETIMEEVAL OPTIONALINLINE bool is_any_of(Value&& value, Option&& first_option, Options&&... other_options) {
 			return value == first_option || is_any_of(std::forward<Value>(value), std::forward<Options>(other_options)...);
 		}
 
-		inline void remove_non_paradroppables(std::vector<TechnoTypeClass*>& types, const char* section, const char* key) {
+		OPTIONALINLINE void remove_non_paradroppables(std::vector<TechnoTypeClass*>& types, const char* section, const char* key) {
 			// remove all types that aren't either infantry or unit types
 
 			types.erase(std::remove_if(types.begin(), types.end(), [section, key](TechnoTypeClass* pItem) -> bool {
@@ -722,7 +722,7 @@ namespace Helpers {
 			\date 2014-08-27
 		*/
 		template <typename InIt, typename Pred, typename Fn>
-		constexpr inline void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
+		COMPILETIMEEVAL OPTIONALINLINE void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
 			first = find_if(first, last, pred);
 
 			while (first != last) {
@@ -747,7 +747,7 @@ namespace Helpers {
 			\date 2014-08-27
 		*/
 		template <typename InIt, typename Pred, typename Fn>
-		constexpr inline void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
+		COMPILETIMEEVAL OPTIONALINLINE void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
 			if (count) {
 				first = find_if(first, last, pred);
 
@@ -782,24 +782,24 @@ namespace Helpers {
 			\date 2015-08-11
 		*/
 		template <typename FwdIt>
-		constexpr inline void selectionsort(FwdIt first, FwdIt last) {
+		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt last) {
 			// this is a special case of a full partial sort
 			selectionsort(first, last, last);
 		}
 
 		template <typename FwdIt, typename Pred>
-		constexpr inline void selectionsort(FwdIt first, FwdIt last, Pred pred) {
+		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt last, Pred pred) {
 			// this is a special case of a full partial sort
 			selectionsort(first, last, last, pred);
 		}
 
 		template <typename FwdIt>
-		constexpr inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
+		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
 			selectionsort(first, middle, last, std::less<>());
 		}
 
 		template <typename FwdIt, typename Pred>
-		constexpr inline void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
+		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
 			while (first != middle) {
 				auto const it = std::min_element(first, last, pred);
 				std::iter_swap(first, it);

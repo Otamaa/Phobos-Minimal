@@ -34,18 +34,18 @@ public:
 	virtual void SendToEachLink(RadioCommand command) JMP_THIS(0x65ACE0); //__Transmit_Message_To_All
 
 	// get specific link
-	constexpr FORCEINLINE TechnoClass* const GetNthLink(int idx = 0) const {
+	COMPILETIMEEVAL FORCEDINLINE TechnoClass* const GetNthLink(int idx = 0) const {
 		return this->RadioLinks.IsAllocated ? this->RadioLinks.Items[idx] : nullptr;
 	}
 
-	constexpr FORCEINLINE TechnoClass* const GetRadioContact(int idx = 0) const {
+	COMPILETIMEEVAL FORCEDINLINE TechnoClass* const GetRadioContact(int idx = 0) const {
 		return this->RadioLinks.Items[idx];
 	}
 	// whether any link is pLink
 	//bool ContainsLink(TechnoClass const* pLink) const
 	//	{ JMP_THIS(0x65AD50); }
 
-	constexpr bool ContainsLink(TechnoClass const* pLink) const {
+	COMPILETIMEEVAL bool ContainsLink(TechnoClass const* pLink) const {
 		const int count = this->RadioLinks.Capacity;
 		if (!pLink || count <= 0)
 			return false;
@@ -64,7 +64,7 @@ public:
 	//int FindLinkIndex(TechnoClass const* pLink) const
 	//	{ JMP_THIS(0x65AD90); }
 
-	constexpr int FindLinkIndex(TechnoClass const* pLink) const {
+	COMPILETIMEEVAL int FindLinkIndex(TechnoClass const* pLink) const {
 		const int count = this->RadioLinks.Capacity;
 		if (!pLink || count <= 0)
 			return -1;
@@ -83,7 +83,7 @@ public:
 	//bool HasFreeLink() const
 	//	{ JMP_THIS(0x65ADC0); }
 
-	constexpr bool HasFreeLink() const {
+	COMPILETIMEEVAL bool HasFreeLink() const {
 		const int count = this->RadioLinks.Capacity;
 		if (count <= 0)
 			return false;
@@ -102,7 +102,7 @@ public:
 		{ JMP_THIS(0x65ADF0); }
 
 	// iow. at least one link used
-	constexpr bool HasAnyLink() const {
+	COMPILETIMEEVAL bool HasAnyLink() const {
 		//JMP_THIS(0x65AE30);
 		const int count = this->RadioLinks.Capacity;
 		if (count <= 0)

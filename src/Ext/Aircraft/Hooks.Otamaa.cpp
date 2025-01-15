@@ -37,7 +37,7 @@ bool IsFlyLoco(const ILocomotion* pLoco)
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
 }
 
-constexpr FORCEINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
+COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
 	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
 		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
@@ -125,8 +125,8 @@ DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 				vel.Y /= Math::cos(rad_);
 			}
 
-			constexpr auto sin_ = gcem::sin(-0.00009587672516830327);
-			constexpr auto cos_ = gcem::cos(-0.00009587672516830327);
+			COMPILETIMEEVAL auto sin_ = gcem::sin(-0.00009587672516830327);
+			COMPILETIMEEVAL auto cos_ = gcem::cos(-0.00009587672516830327);
 
 			vel.X *= cos_;
 			vel.Y *= cos_;

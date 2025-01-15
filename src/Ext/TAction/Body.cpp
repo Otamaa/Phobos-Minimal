@@ -1201,7 +1201,7 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 	return true;
 }
 
-constexpr bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno)
 		return false;

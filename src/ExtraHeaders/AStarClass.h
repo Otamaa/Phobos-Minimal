@@ -75,7 +75,7 @@ struct PriorityQueueClass_AStarHierarchical
 class AStarPathFinderClass
 {
 public:
-	static constexpr reference<AStarPathFinderClass, 0x87E8B8> const Instance {};
+	static COMPILETIMEEVAL reference<AStarPathFinderClass, 0x87E8B8> const Instance {};
 
 	AStarPathFinderClass() JMP_THIS(0x42A6D0);
 	~AStarPathFinderClass() JMP_THIS(0x42A900);

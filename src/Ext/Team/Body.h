@@ -13,7 +13,7 @@ class AITriggerTypeClass;
 class TeamExtData final
 {
 public:
-	static constexpr size_t Canary = 0x414B4B41;
+	static COMPILETIMEEVAL size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
 
 	base_type* AttachedToObject {};
@@ -74,7 +74,7 @@ public:
 	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TeamExtData) -
 			(4u //AttachedToObject
@@ -88,7 +88,7 @@ private:
 class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
-	inline static std::vector<TeamExtData*> Pool;
+	OPTIONALINLINE static std::vector<TeamExtData*> Pool;
 	static TeamExtContainer Instance;
 
 	TeamExtData* AllocateUnchecked(TeamClass* key)

@@ -13,7 +13,7 @@ public:
 	static const AbstractType AbsID = AbstractType::EMPulse;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<EMPulseClass*>, 0x8A3870u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<EMPulseClass*>, 0x8A3870u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x4C59F0);

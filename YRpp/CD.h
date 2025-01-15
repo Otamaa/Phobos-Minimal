@@ -6,8 +6,8 @@ class CDDriveManagerClass
 {
 public:
 	//Static
-	static constexpr reference<CDDriveManagerClass*, 0x89E414u> const Instance_unknown {}; //???
-	static constexpr reference<CDDriveManagerClass, 0xA8E8E8> const Instance {};
+	static COMPILETIMEEVAL reference<CDDriveManagerClass*, 0x89E414u> const Instance_unknown {}; //???
+	static COMPILETIMEEVAL reference<CDDriveManagerClass, 0xA8E8E8> const Instance {};
 
 protected:
 	//CTOR
@@ -36,8 +36,8 @@ public:
 class CD
 {
 public:
-	static constexpr reference<int, 0x81C1D0> const Disk { };
-	static constexpr reference<bool, 0x89E3A0> const IsLocal { };
+	static COMPILETIMEEVAL reference<int, 0x81C1D0> const Disk { };
+	static COMPILETIMEEVAL reference<bool, 0x89E3A0> const IsLocal { };
 
 	virtual bool ForceAvailable(int cdNumber) JMP_THIS(0x4790E0);
 	virtual bool InsertCDDialog() JMP_THIS(0x479110);

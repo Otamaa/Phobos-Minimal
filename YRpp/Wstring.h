@@ -49,7 +49,7 @@ struct CharTrait
 	template<bool IgnoreCase = false>
 	int Compare(const char* _Str1, const char* _Str2)
 	{
-		if constexpr (!IgnoreCase)
+		if COMPILETIMEEVAL (!IgnoreCase)
 		return CRT::strcmp(_Str1, _Str2);
 		else
 		return CRT::strcmpi(_Str1, _Str2);

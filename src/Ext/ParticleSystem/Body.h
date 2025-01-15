@@ -10,7 +10,7 @@ class ParticleTypeClass;
 class ParticleSystemExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAAA2BBBB;
+	static COMPILETIMEEVAL size_t Canary = 0xAAA2BBBB;
 	using base_type = ParticleSystemClass;
 
 	base_type* AttachedToObject {};
@@ -135,7 +135,7 @@ public:
 
 	static void UpdateInAir();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ParticleSystemExtData) -
 			(4u //AttachedToObject
@@ -150,7 +150,7 @@ private:
 class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
-	inline static std::vector<ParticleSystemExtData*> Pool;
+	OPTIONALINLINE static std::vector<ParticleSystemExtData*> Pool;
 	static ParticleSystemExtContainer Instance;
 
 	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)

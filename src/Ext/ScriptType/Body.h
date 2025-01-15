@@ -16,7 +16,7 @@ public:
 	class ExtData final : public Extension<ScriptTypeClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x414B4B41;
+		static COMPILETIMEEVAL size_t Canary = 0x414B4B41;
 		using base_type = ScriptTypeClass;
 
 	public:

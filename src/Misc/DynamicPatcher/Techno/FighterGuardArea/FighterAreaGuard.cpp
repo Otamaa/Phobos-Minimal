@@ -16,7 +16,7 @@ bool FighterAreaGuard::IsAreaGuardRolling()
 
 }
 
-static constexpr std::array<CoordStruct, 6> areaGuardCoords
+static COMPILETIMEEVAL std::array<CoordStruct, 6> areaGuardCoords
 {
 	{
 		{-300, -300, 0}

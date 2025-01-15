@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include <Base/Always.h>
+
 class SWColumnClass;
 class ToggleSWButtonClass;
 class SWButtonClass;
@@ -23,7 +25,7 @@ public:
 	static bool IsEnabled();
 
 private:
-	inline static std::unique_ptr<SWSidebarClass> Instance;
+	OPTIONALINLINE static std::unique_ptr<SWSidebarClass> Instance;
 public:
 	static void Allocate() {
 		Instance = std::make_unique<SWSidebarClass>();
@@ -49,5 +51,5 @@ public:
 	SWButtonClass* CurrentButton { nullptr };
 	ToggleSWButtonClass* ToggleButton { nullptr };
 
-	static inline CommandClass* Commands[10];
+	static OPTIONALINLINE CommandClass* Commands[10];
 };

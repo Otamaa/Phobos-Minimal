@@ -12,10 +12,10 @@ class DECLSPEC_UUID("C02D1590-0A2A-11D2-ACA7-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Trigger;
-	static constexpr inline DWORD vtable = 0x7F5858;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F5858;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<TriggerClass*>, 0xA8EAE8u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TriggerClass*>, 0xA8EAE8u> const Array{};
 
 	// finds an instance using the type, or creates one
 	static TriggerClass* __fastcall GetInstance(TriggerTypeClass* pType)

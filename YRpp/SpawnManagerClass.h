@@ -39,7 +39,7 @@ public:
 	static const AbstractType AbsID = AbstractType::SpawnManager;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<SpawnManagerClass*>, 0xB0B880u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SpawnManagerClass*>, 0xB0B880u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6B7ED0);

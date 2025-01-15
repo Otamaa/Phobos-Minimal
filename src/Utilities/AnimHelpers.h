@@ -8,7 +8,7 @@ namespace Helper
 {
 	namespace Otamaa
 	{
-		inline AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
+		OPTIONALINLINE AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
 		{
 			if (nSplash.HasValue()) {
 				if (nSplash.size() > 0) {
@@ -19,7 +19,7 @@ namespace Helper
 			return !IsMeteor && nWake.isset()  ? nWake.Get() : RulesClass::Instance->Wake;
 		}
 
-		inline std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		OPTIONALINLINE std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			if (pWarhead)
 			{
@@ -40,7 +40,7 @@ namespace Helper
 			return { false , 0 };
 		}
 
-		inline std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		OPTIONALINLINE std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			if (!pWeapon.isset()) {
 				return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
@@ -51,7 +51,7 @@ namespace Helper
 			return { false , 0 };
 		}
 
-		inline void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
+		OPTIONALINLINE void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
 		{
 			if (!nAnims.empty())
 			{
@@ -85,7 +85,7 @@ namespace Helper
 			}
 		}
 
-		inline std::tuple<bool ,int , int> CheckMinMax(double nMin, double nMax)
+		OPTIONALINLINE std::tuple<bool ,int , int> CheckMinMax(double nMin, double nMax)
 		{
 			int nMinL = (int)(Math::abs(nMin) * 256.0);
 			int nMaxL = (int)(Math::abs(nMax) * 256.0);
@@ -99,7 +99,7 @@ namespace Helper
 			return { true ,nMinL,nMaxL };
 		}
 
-		inline CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, const CoordStruct& nPos, int Increment)
+		OPTIONALINLINE CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, const CoordStruct& nPos, int Increment)
 		{
 			auto const& [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
 

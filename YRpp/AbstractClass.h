@@ -56,7 +56,7 @@ class CRCEngine;
 
 struct StorageClass final
 {
-	static constexpr inline size_t  Count = 0x4u;
+	static COMPILETIMEEVAL OPTIONALINLINE size_t  Count = 0x4u;
 
 	double GetStoragePercentage(int total) const
 	{
@@ -146,12 +146,12 @@ class NOVTABLE AbstractClass : public IPersistStream, public IRTTITypeInfo, publ
 {
 public:
 	//static
-	static constexpr inline size_t TypeCount = 74;
+	static COMPILETIMEEVAL OPTIONALINLINE size_t TypeCount = 74;
 	static const AbstractType AbsID = AbstractType::Abstract;
-	static constexpr reference<IndexClass<int, AbstractClass*>, 0xB0E840u> const TargetIndex{};
-	static constexpr constant_ptr<DynamicVectorClass<AbstractClass*>, 0xB0F720u> const Array{};
-	static constexpr constant_ptr<DynamicVectorClass<AbstractClass*>, 0x00B0F698u> const Array2{};
-	static constexpr reference<AbsTypeNames, 0x816EE0u, TypeCount> const RTTIToString{};
+	static COMPILETIMEEVAL reference<IndexClass<int, AbstractClass*>, 0xB0E840u> const TargetIndex{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AbstractClass*>, 0xB0F720u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AbstractClass*>, 0x00B0F698u> const Array2{};
+	static COMPILETIMEEVAL reference<AbsTypeNames, 0x816EE0u, TypeCount> const RTTIToString{};
 
 	static const char* GetAbstractClassName(AbstractType abs) {
 		return RTTIToString[static_cast<int>(abs)].Name;

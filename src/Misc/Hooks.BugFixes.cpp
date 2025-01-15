@@ -156,7 +156,7 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 
 #include <Ext/Anim/Body.h>
 
-static constexpr TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
+static COMPILETIMEEVAL TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
 
 	if (pType->DebrisAnims.Count <= 0) {
 		if (!pType->DebrisTypes.Count &&  !RulesClass::Instance->MetallicDebris.Count)
@@ -1539,12 +1539,12 @@ struct OverlayByteWriter
 			YRMemory::Deallocate(this->Buffer);
 	}
 
-	void  FORCEINLINE Put(unsigned char data)
+	void  FORCEDINLINE Put(unsigned char data)
 	{
 		uuLength += lp.Put(&data, 1);
 	}
 
-	void FORCEINLINE PutBlock(CCINIClass* pINI) const
+	void FORCEDINLINE PutBlock(CCINIClass* pINI) const
 	{
 		pINI->Clear(this->lpSectionName, nullptr);
 		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
@@ -1716,19 +1716,19 @@ DEFINE_HOOK(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
 
 #define BLENDING_MASK 0xF7DEu
 
-static inline uint16_t  Blit50TranslucencyFix(uint16_t  dst, uint16_t  src)
+static OPTIONALINLINE uint16_t  Blit50TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	return (((src ^ dst) & BLENDING_MASK) >> 1) + (src & dst);
 }
 
-static inline uint16_t  Blit75TranslucencyFix(uint16_t  dst, uint16_t  src)
+static OPTIONALINLINE uint16_t  Blit75TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	uint16_t  div = Blit50TranslucencyFix(dst, src);
 	return (div >> 1 & HALF_RANGE_MASK) + (dst >> 1 & HALF_RANGE_MASK);
 }
 
 //same as 75, just reversed order of args
-static inline uint16_t  Blit25TranslucencyFix(uint16_t  dst, uint16_t  src)
+static OPTIONALINLINE uint16_t  Blit25TranslucencyFix(uint16_t  dst, uint16_t  src)
 {
 	return Blit75TranslucencyFix(src, dst);
 }
@@ -1912,12 +1912,12 @@ static bool IsHashable(ObjectClass* pObj)
 	return true;
 }
 
-static constexpr void FORCEINLINE AddCRC(DWORD* crc, unsigned int val)
+static COMPILETIMEEVAL void FORCEDINLINE AddCRC(DWORD* crc, unsigned int val)
 {
 	*crc = val + (*crc >> 31) + (*crc << 1);
 }
 
-static constexpr int FORCEINLINE GetCoordHash(CoordStruct location)
+static COMPILETIMEEVAL int FORCEDINLINE GetCoordHash(CoordStruct location)
 {
 	return location.X / 10 + ((location.Y / 10) << 16);
 }

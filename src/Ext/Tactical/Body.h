@@ -17,7 +17,7 @@ public:
 	class ExtData final : public Extension<TacticalClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x52DEBA12;
+		static COMPILETIMEEVAL size_t Canary = 0x52DEBA12;
 		using base_type = TacticalClass;
 
 	public:

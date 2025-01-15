@@ -108,7 +108,7 @@ std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::Tra
 
 bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 {
-	constexpr TrajectoryFlag flags[] = {
+	COMPILETIMEEVAL TrajectoryFlag flags[] = {
 		TrajectoryFlag::Straight,
 		TrajectoryFlag::StraightVariantB,
 		TrajectoryFlag::Bombard,
@@ -129,7 +129,7 @@ bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 
 bool PhobosTrajectory::BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj)
 {
-	constexpr TrajectoryFlag flags[] = {
+	COMPILETIMEEVAL TrajectoryFlag flags[] = {
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Disperse,
 		TrajectoryFlag::Engrave
@@ -149,7 +149,7 @@ bool PhobosTrajectory::IgnoreAircraftROT0(std::unique_ptr<PhobosTrajectory>& tra
 	if (!traj)
 		return false;
 
-	constexpr TrajectoryFlag flags[] = {
+	COMPILETIMEEVAL TrajectoryFlag flags[] = {
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Parabola,
 		TrajectoryFlag::Disperse,

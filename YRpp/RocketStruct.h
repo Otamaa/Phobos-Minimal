@@ -18,7 +18,7 @@ struct RocketStruct
 	bool LazyCurve;
 	AircraftTypeClass* Type;
 
-	constexpr RocketStruct() noexcept :
+	COMPILETIMEEVAL RocketStruct() noexcept :
 		PauseFrames(0),
 		TiltFrames(0),
 		PitchInitial(0.0f),
@@ -35,8 +35,8 @@ struct RocketStruct
 	{
 	}
 
-	constexpr explicit RocketStruct(noinit_t) noexcept
+	COMPILETIMEEVAL explicit RocketStruct(noinit_t) noexcept
 	{ }
 
-	constexpr ~RocketStruct() = default;
+	COMPILETIMEEVAL ~RocketStruct() = default;
 };

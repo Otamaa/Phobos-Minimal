@@ -85,7 +85,7 @@ struct SHPReference : public SHPStruct
 {
 	//=== GLOBAL LINKED LIST OF ALL LOADED SHP FILES
 	// defined but not used
-	static constexpr reference<SHPReference*, 0xB077B0u> List{};
+	static COMPILETIMEEVAL reference<SHPReference*, 0xB077B0u> List{};
 
 	SHPReference(const char* filename)
 		{ JMP_THIS(0x69E430); }
@@ -126,19 +126,19 @@ struct SHPFile : public SHPStruct
 	SHPFrame	FirstFrame;
 };
 
-inline SHPReference* SHPStruct::AsReference() {
+OPTIONALINLINE SHPReference* SHPStruct::AsReference() {
 	return IsReference() ? static_cast<SHPReference*>(this) : nullptr;
 }
 
-inline const SHPReference* SHPStruct::AsReference() const {
+OPTIONALINLINE const SHPReference* SHPStruct::AsReference() const {
 	return IsReference() ? static_cast<const SHPReference*>(this) : nullptr;
 }
 
-inline SHPFile* SHPStruct::AsFile() {
+OPTIONALINLINE SHPFile* SHPStruct::AsFile() {
 	return !IsReference() ? static_cast<SHPFile*>(this) : nullptr;
 }
 
-inline const SHPFile* SHPStruct::AsFile() const {
+OPTIONALINLINE const SHPFile* SHPStruct::AsFile() const {
 	return !IsReference() ? static_cast<const SHPFile*>(this) : nullptr;
 }
 
@@ -153,9 +153,9 @@ public:
 	//	return &(&FrameData)[index * sizeof(SHPFrame)];
 	//}
 
-	constexpr inline int GetWidth() const { return Header.Width; }
-	constexpr inline int GetHeight() const { return Header.Height; }
-	constexpr inline int GetFrameCount() const { return Header.Frames; }
+	COMPILETIMEEVAL OPTIONALINLINE int GetWidth() const { return Header.Width; }
+	COMPILETIMEEVAL OPTIONALINLINE int GetHeight() const { return Header.Height; }
+	COMPILETIMEEVAL OPTIONALINLINE int GetFrameCount() const { return Header.Frames; }
 
 private:
 	SHPStruct Header;

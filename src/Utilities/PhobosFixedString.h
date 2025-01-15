@@ -30,6 +30,6 @@ public:
 		return Phobos::readBuffer[0] != 0;
 	}
 
-	inline const char* c_str() const
+	OPTIONALINLINE const char* c_str() const
 	{ return ((*this).data()); }
 };

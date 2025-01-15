@@ -10,38 +10,38 @@ struct MapPathCellElement
 
 public :
 
-	constexpr MapPathCellElement() noexcept  = default;
-	constexpr MapPathCellElement(int nDistance, short x, short y) noexcept
+	COMPILETIMEEVAL MapPathCellElement() noexcept  = default;
+	COMPILETIMEEVAL MapPathCellElement(int nDistance, short x, short y) noexcept
 		: Distance { nDistance }, X {x} , Y {y}
 	{ }
 
-	constexpr MapPathCellElement(const MapPathCellElement& other) = default;
-	constexpr MapPathCellElement& operator=(const MapPathCellElement& other) = default;
-	constexpr ~MapPathCellElement() = default;
+	COMPILETIMEEVAL MapPathCellElement(const MapPathCellElement& other) = default;
+	COMPILETIMEEVAL MapPathCellElement& operator=(const MapPathCellElement& other) = default;
+	COMPILETIMEEVAL ~MapPathCellElement() = default;
 
 	//need to define a == operator so it can be used in array classes
-	constexpr bool operator==(const MapPathCellElement& other) const {
+	COMPILETIMEEVAL bool operator==(const MapPathCellElement& other) const {
 		return (X == other.X && Y == other.Y);
 	}
 
 	//unequality
-	constexpr bool operator!=(const MapPathCellElement& other) const {
+	COMPILETIMEEVAL bool operator!=(const MapPathCellElement& other) const {
 		return (X != other.X || Y != other.Y);
 	}
 
-	constexpr bool operator<(const MapPathCellElement& other) const {
+	COMPILETIMEEVAL bool operator<(const MapPathCellElement& other) const {
 		return (Distance < other.Distance);
 	}
 
-	constexpr bool operator>(const MapPathCellElement& other) const {
+	COMPILETIMEEVAL bool operator>(const MapPathCellElement& other) const {
 		return (Distance > other.Distance);
 	}
 
-	constexpr inline CellStruct ToCellStruct() const {
+	COMPILETIMEEVAL OPTIONALINLINE CellStruct ToCellStruct() const {
 		return { (short)X  ,(short)Y };
 	}
 
-	constexpr inline Point2D ToPoints() const {
+	COMPILETIMEEVAL OPTIONALINLINE Point2D ToPoints() const {
 		return { X  ,Y };
 	}
 

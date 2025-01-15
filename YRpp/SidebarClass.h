@@ -164,24 +164,24 @@ class NOVTABLE SidebarClass : public PowerClass
 {
 public:
 	//Static
-	static inline constexpr size_t TooltipLength = 0x42;
-	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
+	static OPTIONALINLINE COMPILETIMEEVAL size_t TooltipLength = 0x42;
+	static COMPILETIMEEVAL constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
 
-	static constexpr reference<int, 0xB0B500u> const ObjectHeight {};
-	static constexpr reference<int, 0xB0B4FC> const ObjectWidth {};
+	static COMPILETIMEEVAL reference<int, 0xB0B500u> const ObjectHeight {};
+	static COMPILETIMEEVAL reference<int, 0xB0B4FC> const ObjectWidth {};
 
-	static constexpr reference2D<SelectClass, 0xB07E80u, 4u, 60u> const SelectButton {};
-	static constexpr reference<SelectClass, 0xB07E80u, 240> const SelectButtonCombined {};
+	static COMPILETIMEEVAL reference2D<SelectClass, 0xB07E80u, 4u, 60u> const SelectButton {};
+	static COMPILETIMEEVAL reference<SelectClass, 0xB07E80u, 240> const SelectButtonCombined {};
 
-	static constexpr reference<StripClass, 0x880D2Cu, 4u> const Column {};
+	static COMPILETIMEEVAL reference<StripClass, 0x880D2Cu, 4u> const Column {};
 
-	static constexpr reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
+	static COMPILETIMEEVAL reference<ShapeButtonClass, 0xB07C48u, 4u> const ShapeButtons {};
 
-	static constexpr reference<wchar_t, 0xB07BC4u, TooltipLength> const TooltipBuffer {};
-	static constexpr reference<SHPFrame*, 0xB0B478u> const Shape_B0B478 {};
-	static constexpr reference<int, 0x884B7C> const something_884B7C {};
-	static constexpr reference<int, 0x884B80> const something_884B80 {};
-	static constexpr reference<int, 0x884B84> const something_884B84 {};
+	static COMPILETIMEEVAL reference<wchar_t, 0xB07BC4u, TooltipLength> const TooltipBuffer {};
+	static COMPILETIMEEVAL reference<SHPFrame*, 0xB0B478u> const Shape_B0B478 {};
+	static COMPILETIMEEVAL reference<int, 0x884B7C> const something_884B7C {};
+	static COMPILETIMEEVAL reference<int, 0x884B80> const something_884B80 {};
+	static COMPILETIMEEVAL reference<int, 0x884B84> const something_884B84 {};
 
 	void SidebarNeedsRepaint(int mode = 0)
 	{

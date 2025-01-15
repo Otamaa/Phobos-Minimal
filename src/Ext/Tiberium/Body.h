@@ -11,11 +11,11 @@ class AnimTypeClass;
 class TiberiumExtData final
 {
 public:
-	static constexpr size_t Canary = 0xB16B00B5;
+	static COMPILETIMEEVAL size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
 
 	//Dont forget to remove this if ares one re-enabled
-	static constexpr size_t ExtOffset = 0xAC;
+	static COMPILETIMEEVAL size_t ExtOffset = 0xAC;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -50,49 +50,49 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr FORCEINLINE AnimTypeClass* GetTwinkleAnim() const
+	COMPILETIMEEVAL FORCEDINLINE AnimTypeClass* GetTwinkleAnim() const
 	{
 		return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
 	}
 
-	constexpr FORCEINLINE int GetTwinkleChance() const
+	COMPILETIMEEVAL FORCEDINLINE int GetTwinkleChance() const
 	{
 		return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 	}
 
-	constexpr FORCEINLINE double GetHealDelay() const
+	COMPILETIMEEVAL FORCEDINLINE double GetHealDelay() const
 	{
 		return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
 	}
 
 	int GetHealStep(TechnoClass* pTechno) const;
 
-	constexpr FORCEINLINE int GetDamage() const
+	COMPILETIMEEVAL FORCEDINLINE int GetDamage() const
 	{
 		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
 	}
 
-	constexpr FORCEINLINE WarheadTypeClass* GetWarhead() const
+	COMPILETIMEEVAL FORCEDINLINE WarheadTypeClass* GetWarhead() const
 	{
 		return this->Warhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	constexpr FORCEINLINE WarheadTypeClass* GetExplosionWarhead() const
+	COMPILETIMEEVAL FORCEDINLINE WarheadTypeClass* GetExplosionWarhead() const
 	{
 		return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
 	}
 
-	constexpr FORCEINLINE int GetExplosionDamage() const
+	COMPILETIMEEVAL FORCEDINLINE int GetExplosionDamage() const
 	{
 		return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
 	}
 
-	constexpr FORCEINLINE int GetDebrisChance() const
+	COMPILETIMEEVAL FORCEDINLINE int GetDebrisChance() const
 	{
 		return this->DebrisChance;
 	}
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TiberiumExtData) -
 			(4u //AttachedToObject
@@ -107,7 +107,7 @@ class TiberiumExtContainer final : public Container<TiberiumExtData>
 {
 public:
 	static TiberiumExtContainer Instance;
-	inline static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
+	OPTIONALINLINE static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

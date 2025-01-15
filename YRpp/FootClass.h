@@ -18,7 +18,7 @@ class NOVTABLE FootClass : public TechnoClass
 public:
 	static const auto AbsDerivateID = AbstractFlags::Foot;
 
-	static constexpr constant_ptr<DynamicVectorClass<FootClass*>, 0x8B3DC0u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<FootClass*>, 0x8B3DC0u> const Array {};
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x4DB3C0);

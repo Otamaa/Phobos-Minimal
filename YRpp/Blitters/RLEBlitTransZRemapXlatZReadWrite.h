@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransXlatZReadWrite)
 {
 public:
-	inline explicit RLEBlitTransXlatZReadWrite(byte* remap, T* data) noexcept
+	OPTIONALINLINE explicit RLEBlitTransXlatZReadWrite(byte* remap, T* data) noexcept
 	{
 		Remap = &remap;
 		PaletteData = data;

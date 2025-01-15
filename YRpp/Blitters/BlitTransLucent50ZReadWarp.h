@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransLucent50ZReadWarp)
 {
 public:
-	inline explicit BlitTransLucent50ZReadWarp(T* data, WORD mask) noexcept
+	OPTIONALINLINE explicit BlitTransLucent50ZReadWarp(T* data, WORD mask) noexcept
 	{
 		PaletteData = data;
 		Mask = mask;

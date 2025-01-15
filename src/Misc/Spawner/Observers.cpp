@@ -147,7 +147,7 @@ DEFINE_HOOK(0x6A557A, SidebarClass_InitIO, 0x5)
 #pragma endregion Curent player is Observer
 
 #pragma region Show house on Observer sidebar
-bool inline ShowHouseOnObserverSidebar(HouseClass* pHouse)
+bool OPTIONALINLINE ShowHouseOnObserverSidebar(HouseClass* pHouse)
 {
 
 	if (pHouse->Type->MultiplayPassive)

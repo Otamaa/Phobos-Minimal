@@ -14,10 +14,10 @@ class DECLSPEC_UUID("6F9C48F0-1207-11D2-8174-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::LightSource;
-	static constexpr inline DWORD vtable = 0x7ED028;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ED028;
 
-	static constexpr reference<DynamicVectorClass<LightSourceClass*>, 0xABCA10u> const Array {};
-	static constexpr reference<DynamicVectorClass<PendingCellClass*>, 0xABCA40u> const Unknown_0xABCA40 {};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<LightSourceClass*>, 0xABCA10u> const Array {};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<PendingCellClass*>, 0xABCA40u> const Unknown_0xABCA40 {};
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x555080);
 
@@ -43,7 +43,7 @@ public:
 	//static int Init_Unknown_0xABCA40()
 	//	{ JMP_STD(0x5546C0); }
 
-	//static inline NAKED void __cdecl Uninit_Unknown_0xABCA40()
+	//static OPTIONALINLINE NAKED void __cdecl Uninit_Unknown_0xABCA40()
 	//	{ JMP(0xABCA40); }
 
 	void Activate(DWORD dwZero = 0)	//Start lighting

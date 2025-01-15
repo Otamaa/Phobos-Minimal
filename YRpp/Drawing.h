@@ -16,7 +16,7 @@ struct DirtyAreaStruct
 	RectangleStruct Rect;
 	bool alphabool10;
 
-	constexpr FORCEINLINE bool operator==(const DirtyAreaStruct& another) const
+	COMPILETIMEEVAL FORCEDINLINE bool operator==(const DirtyAreaStruct& another) const
 	{
 		return
 			Rect.X == another.Rect.X &&
@@ -29,24 +29,24 @@ struct DirtyAreaStruct
 
 class Blitter;
 /** Message is a vswprintf format specifier, ... is for any arguments needed */
-inline NAKED Point2D* __cdecl PrintUnicode(Point2D* Position1, wchar_t* Message, Surface* a3, RectangleStruct* Rect, Point2D* Position2,
+OPTIONALINLINE NAKED Point2D* __cdecl PrintUnicode(Point2D* Position1, wchar_t* Message, Surface* a3, RectangleStruct* Rect, Point2D* Position2,
 		ColorScheme* a6, int a7, int a8, ...) {
 	JMP(0x4A61C0);
 };
 
 struct Drawing
 {
-	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
-	constexpr static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
-	static constexpr reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
+	COMPILETIMEEVAL static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
+	COMPILETIMEEVAL static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
+	static COMPILETIMEEVAL reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
 
-	static constexpr reference<RGBMode, 0x8205D0> ColorMode {};
-	static constexpr reference<int, 0x8A0DD0> const RedShiftLeft {};
-	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
-	static constexpr reference<int, 0x8A0DE0> const GreenShiftLeft {};
-	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
-	static constexpr reference<int, 0x8A0DD8> const BlueShiftLeft {};
-	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
+	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0> ColorMode {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD0> const RedShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD4> const RedShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE0> const GreenShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DE4> const GreenShiftRight {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DD8> const BlueShiftLeft {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
 
 	static bool __fastcall DrawSurfaces(Surface* surface1, ConvertClass* convert, Surface* surface2, RectangleStruct* a2, Point2D* point, RectangleStruct* a6, int drawerval, Blitter* a7, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg, int wrap_value)
 	{ JMP_STD(0x4AF2A0); }
@@ -136,7 +136,7 @@ struct Drawing
 	}
 
 	// Converts an RGB color to a 16bit color value.
-	static constexpr WORD Color16bit(const ColorStruct& color)
+	static COMPILETIMEEVAL WORD Color16bit(const ColorStruct& color)
 	{
 		return static_cast<WORD>(
 			(color.B >> BlueShiftRight) |
@@ -144,7 +144,7 @@ struct Drawing
 			((color.R >> RedShiftRight) << 11));
 	}
 
-	static constexpr int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
+	static COMPILETIMEEVAL int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
 	{
 		// JMP_STD(0x4355D0);
 		return (red >> RedShiftRight << RedShiftLeft) |
@@ -152,34 +152,34 @@ struct Drawing
 			(blue >> BlueShiftRight << BlueShiftLeft);
 	}
 
-	static int constexpr  RGB_To_Int(int red, int green, int blue)
+	static int COMPILETIMEEVAL  RGB_To_Int(int red, int green, int blue)
 	{
 		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
 	}
 
-	static int constexpr  RGB_To_Int(const ColorStruct& Color)
+	static int COMPILETIMEEVAL  RGB_To_Int(const ColorStruct& Color)
 	{
 		return RGB_To_Int(Color.R, Color.G, Color.B);
 	}
 
-	static int constexpr  RGB_To_Int(ColorStruct&& Color)
+	static int COMPILETIMEEVAL  RGB_To_Int(ColorStruct&& Color)
 	{
 		return RGB_To_Int(Color.R, Color.G, Color.B);
 	}
 
-	static void constexpr  Int_To_RGB(int color, BYTE& red, BYTE& green, BYTE& blue)
+	static void COMPILETIMEEVAL  Int_To_RGB(int color, BYTE& red, BYTE& green, BYTE& blue)
 	{
 		red = static_cast<BYTE>(color >> RedShiftLeft << RedShiftRight);
 		green = static_cast<BYTE>(color >> GreenShiftLeft << GreenShiftRight);
 		blue = static_cast<BYTE>(color >> BlueShiftLeft << BlueShiftRight);
 	}
 
-	static void constexpr Int_To_RGB(int color, ColorStruct& buffer)
+	static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
 	{
 		Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
 	}
 
-	static constexpr  ColorStruct Int_To_RGB(int color)
+	static COMPILETIMEEVAL  ColorStruct Int_To_RGB(int color)
 	{
 		ColorStruct ret;
 		Int_To_RGB(color, ret);
@@ -197,7 +197,7 @@ struct Drawing
 	}
 
 	// Converts a 16bit color to an RGB color.
-	static constexpr ColorStruct WordColor(WORD bits) {
+	static COMPILETIMEEVAL ColorStruct WordColor(WORD bits) {
 		return {
 			static_cast<BYTE>(((bits & 0xF800) >> 11) << 3),
 			static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2),
@@ -318,7 +318,7 @@ struct BufferData
 class NOVTABLE ABuffer
 {
 public:
-	static constexpr reference<ABuffer*, 0x87E8A4u> const Instance {};
+	static COMPILETIMEEVAL reference<ABuffer*, 0x87E8A4u> const Instance {};
 
 	ABuffer(RectangleStruct rect) { JMP_THIS(0x410CE0); }
 	~ABuffer() { JMP_THIS(0x410E50); }
@@ -358,7 +358,7 @@ class NOVTABLE ZBuffer
 {
 public:
 
-	static constexpr reference<ZBuffer*, 0x887644u> const Instance {};
+	static COMPILETIMEEVAL reference<ZBuffer*, 0x887644u> const Instance {};
 
 	ZBuffer(RectangleStruct rect) JMP_THIS(0x7BC970);;
 	~ZBuffer() JMP_THIS(0x7BCAE0);

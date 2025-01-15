@@ -217,7 +217,7 @@ DEFINE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 }
 
 template<typename T, bool Allocate = false, bool Unique = false>
-inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const char* section, const char* key, const char* message = nullptr)
+OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const char* section, const char* key, const char* message = nullptr)
 {
 	if (IniEx.ReadString(section, key))
 	{
@@ -231,7 +231,7 @@ inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const ch
 			 cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			BaseType* buffer = nullptr;
-			if constexpr (Allocate)
+			if COMPILETIMEEVAL (Allocate)
 			{
 				buffer = BaseType::FindOrAllocate(cur);
 			}
@@ -242,7 +242,7 @@ inline void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const ch
 
 			if (buffer)
 			{
-				if constexpr (!Unique)
+				if COMPILETIMEEVAL (!Unique)
 				{
 					List.AddItem(buffer);
 				}

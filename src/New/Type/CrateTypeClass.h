@@ -29,7 +29,7 @@ public:
 	{ }
 
 	static void ReadListFromINI(CCINIClass* pINI);
-	static void inline AddDefaults(){
+	static void OPTIONALINLINE AddDefaults(){
 		if (Array.empty()){
 			Array.reserve(Powerups::Effects.size());
 

@@ -13,7 +13,7 @@ public:
 	{
 	public:
 		using base_type = TriggerTypeClass;
-		static constexpr size_t Canary = 0x2C2C2C2C;
+		static COMPILETIMEEVAL size_t Canary = 0x2C2C2C2C;
 
 	public:
 

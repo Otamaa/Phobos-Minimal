@@ -152,7 +152,7 @@ public:
 		return this->operator()(buffer, strlen(buffer));
 	}
 
-	static constexpr reference<unsigned int, 0x81F7B4, 256> const Table {};
+	static COMPILETIMEEVAL reference<unsigned int, 0x81F7B4, 256> const Table {};
 
 	static int Memory(const void* data, int bytes, int crc)
 	{

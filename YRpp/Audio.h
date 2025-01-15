@@ -14,17 +14,17 @@ class AudioEventClassTag;
 struct AudioAttribs;
 struct YRAudio
 {
-	static constexpr reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
-	static constexpr reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
+	static COMPILETIMEEVAL reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
+	static COMPILETIMEEVAL reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
 
-	static constexpr reference<AudioAttribs*, 0x87E73Cu> const AudioAttribsunk {};
-	static constexpr reference<AudioAttribs*, 0x87E740u> const TauntAttribs {};
-	static constexpr reference<AudioAttribs*, 0x87E744u> const ScoreAttribs {};
-	static constexpr reference<AudioAttribs*, 0x87E748u> const SoundAttribs {};
-	static constexpr reference<AudioAttribs*, 0x87E74Cu> const off_87E74C {};
-	static constexpr reference<AudioAttribs*, 0x87E750u> const TauntFadeAttribs {};
-	static constexpr reference<AudioAttribs*, 0x87E754u> const ScoreFadeAttribs {};
-	static constexpr reference<AudioAttribs*, 0x87E758u> const FadeAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E73Cu> const AudioAttribsunk {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E740u> const TauntAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E744u> const ScoreAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E748u> const SoundAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E74Cu> const off_87E74C {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E750u> const TauntFadeAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E754u> const ScoreFadeAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E758u> const FadeAttribs {};
 };
 
 struct VolumeStruct	//pretty uncreative name, but it's all I can come up with atm
@@ -128,7 +128,7 @@ struct AudioIDXEntry { // assert (IDXHeader.version != 1);
 	}
 };
 
-static constexpr inline size_t AudioIDXEntry_Size = sizeof(AudioIDXEntry);
+static COMPILETIMEEVAL OPTIONALINLINE size_t AudioIDXEntry_Size = sizeof(AudioIDXEntry);
 static_assert(AudioIDXEntry_Size == 0x24, "Invalid Size!");
 
 struct AudioSampleData {
@@ -157,7 +157,7 @@ static_assert(sizeof(AudioSampleData) == 0x20, "Invalid Size!");
 
 class AudioIDXData {
 public:
-	static constexpr reference<AudioIDXData*, 0x87E294u> const Instance{};
+	static COMPILETIMEEVAL reference<AudioIDXData*, 0x87E294u> const Instance{};
 
 	static AudioIDXData* __fastcall Create(const char* pFilename, const char* pPath)
 		{ JMP_STD(0x4011C0); };
@@ -205,7 +205,7 @@ public:
 
 class AudioStream {
 public:
-	static constexpr reference<AudioStream*, 0xB1D4D8u> const Instance{};
+	static COMPILETIMEEVAL reference<AudioStream*, 0xB1D4D8u> const Instance{};
 
 	bool __fastcall PlayWAV(const char* pFilename, bool bUnk)
 		{ JMP_STD(0x407B60); }

@@ -94,7 +94,7 @@ public:
 		return count;
 	}
 
-	constexpr FORCEINLINE const std::vector<BuildingTypeClass*>* GetBuildList(BuildType buildType) const {
+	COMPILETIMEEVAL FORCEDINLINE const std::vector<BuildingTypeClass*>* GetBuildList(BuildType buildType) const {
 		switch (buildType)
 		{
 		case BuildType::BuildPower:
@@ -125,7 +125,7 @@ public:
 	}
 
 	template <typename Func>
-	constexpr FORCEINLINE std::vector<BuildingTypeClass*> GetBuildable(BuildType buildType, Func&& filter) const
+	COMPILETIMEEVAL FORCEDINLINE std::vector<BuildingTypeClass*> GetBuildable(BuildType buildType, Func&& filter) const
 	{
 		std::vector<BuildingTypeClass*> filtered;
 		if(auto pBuild = this->GetBuildList(buildType)){
@@ -136,7 +136,7 @@ public:
 	}
 
 	template <typename Func>
-	constexpr BuildingTypeClass* GetRandomBuildable(BuildType buildType, Func&& filter) const
+	COMPILETIMEEVAL BuildingTypeClass* GetRandomBuildable(BuildType buildType, Func&& filter) const
 	{
 		const std::vector<BuildingTypeClass*> buildable = GetBuildable(buildType, std::forward<Func>(filter));
 		if (!buildable.empty()) {

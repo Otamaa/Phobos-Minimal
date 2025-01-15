@@ -9,9 +9,9 @@
 // here be dragons(plenty)
 
 template<class, template<class...> class>
-inline constexpr bool is_specialization = false;
+OPTIONALINLINE COMPILETIMEEVAL bool is_specialization = false;
 template<template<class...> class T, class... Args>
-inline constexpr bool is_specialization<T<Args...>, T> = true;
+OPTIONALINLINE COMPILETIMEEVAL bool is_specialization<T<Args...>, T> = true;
 
 template<class T>
 concept Vec = is_specialization<T, std::vector>;
@@ -54,7 +54,7 @@ protected:
 	DWORD negAddr;
 public:
 	retfunc_bool(REGISTERS *r, DWORD yAddr, DWORD nAddr) : retfunc<int>(r, yAddr), negAddr(nAddr) {};
-	constexpr DWORD operator()(bool choose) {
+	COMPILETIMEEVAL DWORD operator()(bool choose) {
 		return choose ? retAddr : negAddr;
 	}
 };
@@ -124,44 +124,44 @@ void AnnounceInvalidPointer(std::set<T>& elem, void* ptr) {
 template <typename T>
 class IndexBitfield {
 public:
-	constexpr IndexBitfield() = default;
-	constexpr explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
+	COMPILETIMEEVAL IndexBitfield() = default;
+	COMPILETIMEEVAL explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
 
-	constexpr IndexBitfield<T>& operator=(DWORD other)
+	COMPILETIMEEVAL IndexBitfield<T>& operator=(DWORD other)
 	{
 		std::swap(data, other);
 		return *this;
 	}
 
-	constexpr bool Contains(const T obj) const {
+	COMPILETIMEEVAL bool Contains(const T obj) const {
 		return Contains(obj->ArrayIndex);
 	}
 
-	constexpr bool Contains(int index) const {
+	COMPILETIMEEVAL bool Contains(int index) const {
 		return (this->data & (1u << index)) != 0u;
 	}
 
-	constexpr void Add(int index) {
+	COMPILETIMEEVAL void Add(int index) {
 		this->data |= (1u << index);
 	}
 
-	constexpr void Add(const T obj) {
+	COMPILETIMEEVAL void Add(const T obj) {
 		Add(obj->ArrayIndex);
 	}
 
-	constexpr void Remove(int index) {
+	COMPILETIMEEVAL void Remove(int index) {
 		this->data &= ~(1u << index);
 	}
 
-	constexpr void Remove(const T obj) {
+	COMPILETIMEEVAL void Remove(const T obj) {
 		Remove(obj->ArrayIndex);
 	}
 
-	constexpr void Clear() {
+	COMPILETIMEEVAL void Clear() {
 		this->data = 0u;
 	}
 
-	constexpr operator DWORD() const {
+	COMPILETIMEEVAL operator DWORD() const {
 		return this->data;
 	}
 

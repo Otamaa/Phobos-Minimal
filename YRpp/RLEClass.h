@@ -13,14 +13,14 @@ public:
 };
 
 
-inline int RLE_Compress(const Buffer &inbuff, const Buffer &outbuff)
+OPTIONALINLINE int RLE_Compress(const Buffer &inbuff, const Buffer &outbuff)
 {
 	RLEClass rle;
 	return rle.Compress(inbuff, outbuff, inbuff.Get_Size());
 }
 
 
-inline int RLE_Uncompress(const Buffer &inbuff, const Buffer &outbuff)
+OPTIONALINLINE int RLE_Uncompress(const Buffer &inbuff, const Buffer &outbuff)
 {
 	RLEClass rle;
 	return rle.Uncompress(inbuff, outbuff);

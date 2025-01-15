@@ -17,20 +17,20 @@ public:
 	static PhobosToolTip Instance;
 
 private:
-	inline int GetBuildTime(TechnoTypeClass* pType) const;
-	inline int GetPower(TechnoTypeClass* pType) const;
+	OPTIONALINLINE int GetBuildTime(TechnoTypeClass* pType) const;
+	OPTIONALINLINE int GetPower(TechnoTypeClass* pType) const;
 	static int TickTimeToSeconds(int tickTime);
 
-	inline const wchar_t* GetUIDescription(TechnoTypeExtData* pData) const;
-	inline const wchar_t* GetUnbuildableUIDescription(TechnoTypeExtData* pData) const;
-	inline const wchar_t* GetUIDescription(SWTypeExtData* pData) const;
+	OPTIONALINLINE const wchar_t* GetUIDescription(TechnoTypeExtData* pData) const;
+	OPTIONALINLINE const wchar_t* GetUnbuildableUIDescription(TechnoTypeExtData* pData) const;
+	OPTIONALINLINE const wchar_t* GetUIDescription(SWTypeExtData* pData) const;
 
 public:
-	constexpr FORCEINLINE bool IsEnabled() const {
+	COMPILETIMEEVAL FORCEDINLINE bool IsEnabled() const {
 		return Phobos::UI::ExtendedToolTips;
 	}
 
-	constexpr FORCEINLINE const wchar_t* GetBuffer() const
+	COMPILETIMEEVAL FORCEDINLINE const wchar_t* GetBuffer() const
 	{
 		return this->TextBuffer.c_str();
 	}

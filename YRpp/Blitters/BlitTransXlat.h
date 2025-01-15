@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransXlat)
 {
 public:
-	inline explicit BlitTransXlat(T* data) noexcept
+	OPTIONALINLINE explicit BlitTransXlat(T* data) noexcept
 	{
 		PaletteData = data;
 	}

@@ -24,8 +24,8 @@ public:
 		One = 1, Two
 	};
 
-	static constexpr inline DWORD vtable = 0x7E5358;
-	static constexpr constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E5358;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
 
 	static void __fastcall CreateFromFile(const char* pal_filename, BytePalette*& pPalette, ConvertClass*& pDestination)
 	  { JMP_STD(0x72ADE0); }
@@ -43,7 +43,7 @@ public:
 
 	static void Recalc_Color_Remap_Tables(int a1, int a2, int a3, int a4) JMP_THIS(0x491100);
 
-	inline unsigned inline_01(unsigned index)
+	OPTIONALINLINE unsigned inline_01(unsigned index)
 	{
 		if (BytesPerPixel == BytesPerPixel::One)
 			return reinterpret_cast<uint8_t*>(BufferA)[index];
@@ -51,7 +51,7 @@ public:
 		return reinterpret_cast<uint16_t*>(BufferA)[index];
 	}
 
-	inline unsigned inline_02(unsigned index)
+	OPTIONALINLINE unsigned inline_02(unsigned index)
 	{
 		if  (BytesPerPixel == BytesPerPixel::One)
 			return reinterpret_cast<uint8_t*>(BufferMid)[index];
@@ -111,9 +111,9 @@ static_assert(sizeof(ConvertClass) == 0x188);
 class LightConvertClass : public ConvertClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7ED0A4;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ED0A4;
 	//global array
-	static constexpr constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const Array{};
 
 	//Destructor
 	virtual ~LightConvertClass() RX;

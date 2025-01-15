@@ -12,9 +12,9 @@
 class ParticleExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAAAABBBB;
+	static COMPILETIMEEVAL size_t Canary = 0xAAAABBBB;
 	using base_type = ParticleClass;
-	//static constexpr size_t ExtOffset = 0x134;
+	//static COMPILETIMEEVAL size_t ExtOffset = 0x134;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -26,7 +26,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ParticleExtData) -
 			(4u //AttachedToObject
@@ -42,7 +42,7 @@ private:
 class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
-	inline static std::vector<ParticleExtData*> Pool;
+	OPTIONALINLINE static std::vector<ParticleExtData*> Pool;
 	static ParticleExtContainer Instance;
 
 	ParticleExtData* AllocateUnchecked(ParticleClass* key)
@@ -117,15 +117,15 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	FORCEINLINE ParticleClass* _AsParticle() const {
+	FORCEDINLINE ParticleClass* _AsParticle() const {
 		return (ParticleClass*)this;
 	}
 
-	FORCEINLINE ParticleExtData* _GetExtData() {
+	FORCEDINLINE ParticleExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	FORCEINLINE ParticleTypeExtData* _GetTypeExtData() {
+	FORCEDINLINE ParticleTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<ParticleTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 

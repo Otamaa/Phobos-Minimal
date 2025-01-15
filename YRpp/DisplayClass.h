@@ -10,8 +10,8 @@ class NOVTABLE DisplayClass : public MapClass
 public:
 	//Static
 	//WIP: DisplayClass::TacticalClass goes HERE
-	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Instance {};
-	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Global {};
+	static COMPILETIMEEVAL constant_ptr<DisplayClass, 0x87F7E8u> const Instance {};
+	static COMPILETIMEEVAL constant_ptr<DisplayClass, 0x87F7E8u> const Global {};
 
 	bool ProcessClickCoords(Point2D *src, CellStruct *XYdst, CoordStruct *XYZdst, ObjectClass **Target, BYTE *a5, BYTE *a6)
 		{ JMP_THIS(0x692300); }

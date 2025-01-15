@@ -271,7 +271,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
 {
-	static constexpr const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
+	static COMPILETIMEEVAL const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
 
 	for (auto const& gameDummy : exception)
 	{
@@ -285,7 +285,7 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
 template<typename T>
-static constexpr void FillSecrets(DynamicVectorClass<T>& secrets) {
+static COMPILETIMEEVAL void FillSecrets(DynamicVectorClass<T>& secrets) {
 
 	for(auto Option : secrets){
 		RulesExtData::Instance()->Secrets.emplace_back(Option);
@@ -552,7 +552,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	constexpr auto const Msg =
+	COMPILETIMEEVAL auto const Msg =
 		"Weapon[%s] has no %s! This usually indicates one of two things:\n"
 		"- The weapon was created too late and its rules weren't read "
 		"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
@@ -1770,7 +1770,7 @@ DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 	if (pGlobalType->Lifetime != -1)
 		Debug::FatalErrorAndExit("DefaultGlobalParticleInstance[%s] Lifetime must be -1 , otherwise it will crash the game !\n", pGlobalType->ID);
 
-	constexpr CoordStruct dummycoord { 2688  , 2688  , 0 };
+	COMPILETIMEEVAL CoordStruct dummycoord { 2688  , 2688  , 0 };
 	pMem->ParticleSystemClass::ParticleSystemClass(pGlobalType.Get(), dummycoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
 	R->EAX(pMem);
 	return 0x685040;

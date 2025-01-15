@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <Base/Always.h>
 
 class Point2D
 {
@@ -18,87 +19,87 @@ public:
 	//}
 
 
-	constexpr bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
-	constexpr bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }
+	COMPILETIMEEVAL bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
+	COMPILETIMEEVAL bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }
 
-	constexpr bool IsEmpty() const
+	COMPILETIMEEVAL bool IsEmpty() const
 	{
 		return (*this) == Empty;
 	}
 
-	constexpr Point2D& operator++() {
+	COMPILETIMEEVAL Point2D& operator++() {
 		++X;
 		++Y;
 		return *this;
 	}
 
-	constexpr Point2D& operator--() {
+	COMPILETIMEEVAL Point2D& operator--() {
 		--X;
 		--Y;
 		return *this;
 	}
 
-	constexpr Point2D operator++(int) { Point2D orig = *this; ++(*this); return orig; }
-	constexpr Point2D operator--(int) { Point2D orig = *this; --(*this); return orig; }
+	COMPILETIMEEVAL Point2D operator++(int) { Point2D orig = *this; ++(*this); return orig; }
+	COMPILETIMEEVAL Point2D operator--(int) { Point2D orig = *this; --(*this); return orig; }
 
-	constexpr Point2D operator+() const { return {+X, +Y};}
-	constexpr Point2D operator-() const { return {-X, -Y};}
+	COMPILETIMEEVAL Point2D operator+() const { return {+X, +Y};}
+	COMPILETIMEEVAL Point2D operator-() const { return {-X, -Y};}
 
-	constexpr Point2D operator+(const Point2D& that) const { return {X + that.X, Y + that.Y};}
-	constexpr Point2D& operator+=(const Point2D& that) { X += that.X; Y += that.Y; return *this; }
-	constexpr Point2D& operator+=(int factor) { X += factor; Y += factor; return *this; }
+	COMPILETIMEEVAL Point2D operator+(const Point2D& that) const { return {X + that.X, Y + that.Y};}
+	COMPILETIMEEVAL Point2D& operator+=(const Point2D& that) { X += that.X; Y += that.Y; return *this; }
+	COMPILETIMEEVAL Point2D& operator+=(int factor) { X += factor; Y += factor; return *this; }
 
-	constexpr Point2D operator-(const Point2D& that) const { return {X - that.X, Y - that.Y};}
-	constexpr Point2D& operator-=(const Point2D& that) { X -= that.X; Y -= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator-(const Point2D& that) const { return {X - that.X, Y - that.Y};}
+	COMPILETIMEEVAL Point2D& operator-=(const Point2D& that) { X -= that.X; Y -= that.Y; return *this; }
 
-	constexpr Point2D operator*(const Point2D& that) const { return {X * that.X, Y * that.Y};}
-	constexpr Point2D operator*=(const Point2D& that) { X *= that.X; Y *= that.Y; return *this; }
-	constexpr Point2D operator*(int factor) const { return {X * factor, Y * factor};}
-	constexpr Point2D& operator*=(int factor) { X *= factor; Y *= factor; return *this; }
+	COMPILETIMEEVAL Point2D operator*(const Point2D& that) const { return {X * that.X, Y * that.Y};}
+	COMPILETIMEEVAL Point2D operator*=(const Point2D& that) { X *= that.X; Y *= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator*(int factor) const { return {X * factor, Y * factor};}
+	COMPILETIMEEVAL Point2D& operator*=(int factor) { X *= factor; Y *= factor; return *this; }
 
-	constexpr Point2D operator*(double factor) const { return {static_cast<int>(X * factor), static_cast<int>(Y * factor)};}
-	constexpr Point2D& operator*=(double factor) { X *= static_cast<int>(factor); Y *= static_cast<int>(factor); return *this; }
+	COMPILETIMEEVAL Point2D operator*(double factor) const { return {static_cast<int>(X * factor), static_cast<int>(Y * factor)};}
+	COMPILETIMEEVAL Point2D& operator*=(double factor) { X *= static_cast<int>(factor); Y *= static_cast<int>(factor); return *this; }
 
-	constexpr Point2D operator/(const Point2D& that) const { return {X / that.X, Y / that.Y};}
-	constexpr Point2D operator/=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
-	constexpr Point2D operator/(int factor) const { return {X / factor, Y / factor};}
-	constexpr Point2D& operator/=(int factor) { X /= factor; Y /= factor; return *this; }
+	COMPILETIMEEVAL Point2D operator/(const Point2D& that) const { return {X / that.X, Y / that.Y};}
+	COMPILETIMEEVAL Point2D operator/=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator/(int factor) const { return {X / factor, Y / factor};}
+	COMPILETIMEEVAL Point2D& operator/=(int factor) { X /= factor; Y /= factor; return *this; }
 
-	constexpr Point2D operator%(const Point2D& that) const { return {X / that.X, Y / that.Y};}
-	constexpr Point2D operator%=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
-	constexpr Point2D operator%(int factor) const { return {X / factor, Y / factor};}
-	constexpr Point2D& operator%=(int factor) { X /= factor; Y /= factor; return *this; }
+	COMPILETIMEEVAL Point2D operator%(const Point2D& that) const { return {X / that.X, Y / that.Y};}
+	COMPILETIMEEVAL Point2D operator%=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator%(int factor) const { return {X / factor, Y / factor};}
+	COMPILETIMEEVAL Point2D& operator%=(int factor) { X /= factor; Y /= factor; return *this; }
 
-	constexpr Point2D operator&(const Point2D& that) const { return {X & that.X, Y & that.Y};}
-	constexpr Point2D operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }
-	constexpr Point2D operator&(int factor) const { return {X & factor, Y & factor};}
-	constexpr Point2D& operator&=(int factor) { X &= factor; Y &= factor; return *this; }
+	COMPILETIMEEVAL Point2D operator&(const Point2D& that) const { return {X & that.X, Y & that.Y};}
+	COMPILETIMEEVAL Point2D operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator&(int factor) const { return {X & factor, Y & factor};}
+	COMPILETIMEEVAL Point2D& operator&=(int factor) { X &= factor; Y &= factor; return *this; }
 
-	constexpr bool operator>(const Point2D& that) const { return X > that.X || X == that.X && Y > that.Y; }
-	constexpr bool operator>=(const Point2D& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
+	COMPILETIMEEVAL bool operator>(const Point2D& that) const { return X > that.X || X == that.X && Y > that.Y; }
+	COMPILETIMEEVAL bool operator>=(const Point2D& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
 
-	constexpr bool operator<(const Point2D& that) const { return X < that.X || X == that.X && Y < that.Y; }
-	constexpr bool operator<=(const Point2D& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
+	COMPILETIMEEVAL bool operator<(const Point2D& that) const { return X < that.X || X == that.X && Y < that.Y; }
+	COMPILETIMEEVAL bool operator<=(const Point2D& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
-	constexpr bool IsValid() const { return *this != (Point2D::Empty); }
+	COMPILETIMEEVAL bool IsValid() const { return *this != (Point2D::Empty); }
 
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr double pow() const {
+	COMPILETIMEEVAL double pow() const {
 		return double(X * X) + double(Y * Y);
 	}
 
-	inline double Length() const {
+	OPTIONALINLINE double Length() const {
 		return std::sqrt(this->pow());
 	}
 
-	inline double DistanceFrom(const Point2D& that) const{
+	OPTIONALINLINE double DistanceFrom(const Point2D& that) const{
 		return (that - *this).Length();
 	}
 
-	constexpr double DistanceFromSquared(const Point2D& that) const {
+	COMPILETIMEEVAL double DistanceFromSquared(const Point2D& that) const {
 		return (that - *this).pow();
 	}
 public:

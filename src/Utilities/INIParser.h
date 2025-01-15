@@ -46,40 +46,40 @@ class INI_EX {
 
 public:
 
-	constexpr INI_EX() noexcept : IniFile { nullptr }
+	COMPILETIMEEVAL INI_EX() noexcept : IniFile { nullptr }
 	{ }
 
-	constexpr ~INI_EX() { IniFile = nullptr; }
+	COMPILETIMEEVAL ~INI_EX() { IniFile = nullptr; }
 
-	constexpr explicit INI_EX(CCINIClass* pIniFile) noexcept
+	COMPILETIMEEVAL explicit INI_EX(CCINIClass* pIniFile) noexcept
 		: IniFile { pIniFile }
 	{ }
 
-	constexpr explicit INI_EX(CCINIClass& iniFile) noexcept
+	COMPILETIMEEVAL explicit INI_EX(CCINIClass& iniFile) noexcept
 		: IniFile { &iniFile }
 	{ }
 
-	inline const char* c_str() const {
+	OPTIONALINLINE const char* c_str() const {
 		return Phobos::readBuffer;
 	}
 
-	inline char* value() const {
+	OPTIONALINLINE char* value() const {
 		return Phobos::readBuffer;
 	}
 
-	inline constexpr size_t max_size() const {
+	OPTIONALINLINE COMPILETIMEEVAL size_t max_size() const {
 		return Phobos::readLength;
 	}
 
-	constexpr inline bool empty() const {
+	COMPILETIMEEVAL OPTIONALINLINE bool empty() const {
 		return !Phobos::readBuffer[0];
 	}
 
-	constexpr inline CCINIClass* GetINI() const {
+	COMPILETIMEEVAL OPTIONALINLINE CCINIClass* GetINI() const {
 		return IniFile;
 	}
 
-	constexpr INI_EX(INI_EX const& other)
+	COMPILETIMEEVAL INI_EX(INI_EX const& other)
 		: IniFile { other.IniFile }
 	{ }
 

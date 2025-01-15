@@ -12,7 +12,7 @@ class PhobosStreamWriter;
 // pcx filename storage with optional automatic loading
 class PhobosPCXFile
 {
-	static constexpr const size_t Capacity = 0x20;
+	static COMPILETIMEEVAL const size_t Capacity = 0x20;
 public:
 	explicit PhobosPCXFile() : Surface(nullptr), filename() { }
 
@@ -77,12 +77,12 @@ public:
 		return this->filename.data();
 	}
 
-	constexpr BSurface* GetSurface() const
+	COMPILETIMEEVAL BSurface* GetSurface() const
 	{
 		return this->Surface;
 	}
 
-	constexpr bool Exists() const
+	COMPILETIMEEVAL bool Exists() const
 	{
 		return this->Surface;
 	}

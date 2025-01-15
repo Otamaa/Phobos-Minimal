@@ -7,10 +7,10 @@ class DECLSPEC_UUID("AE8B33D9-061C-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::AircraftType;
-	static constexpr inline DWORD vtable = 0x7E2868;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E2868;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<AircraftTypeClass*>, 0xA8B218u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AircraftTypeClass*>, 0xA8B218u> const Array {};
 
 	IMPL_Find(AircraftTypeClass)
 

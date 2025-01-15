@@ -4,12 +4,12 @@
 #include <FootClass.h>
 
 template <class T, bool CheckInterface = false>
-FORCEINLINE T GetLocomotor(FootClass* pThis)
+FORCEDINLINE T GetLocomotor(FootClass* pThis)
 {
 	static_assert(std::is_pointer<T>::value, "T Required To Be Pointer !");
 
 	// yikes
-	if constexpr (!std::is_const<T>())
+	if COMPILETIMEEVAL (!std::is_const<T>())
 	{
 		static_assert(std::is_base_of<ILocomotion, std::remove_pointer_t<T>>::value,
 		"GetLocomotor: T is required to be a type derived from ILocomotion.");
@@ -26,7 +26,7 @@ FORCEINLINE T GetLocomotor(FootClass* pThis)
 		"GetLocomotor: T is required to be a type derived from LocomotionClass.");
 	}
 
-	if constexpr (!CheckInterface)
+	if COMPILETIMEEVAL (!CheckInterface)
 		return static_cast<T>(pThis->Locomotor.get());
 	else
 		return static_cast<T>(pThis->Locomotor);

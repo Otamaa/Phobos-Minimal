@@ -22,7 +22,7 @@ class ALIGN(4) WinsockInterfaceClass
 {
 public:
 	// Static
-	static constexpr reference<WinsockInterfaceClass*, 0x887628u> const Instance {};
+	static COMPILETIMEEVAL reference<WinsockInterfaceClass*, 0x887628u> const Instance {};
 
 	bool Init()
 	{ JMP_THIS(0x7B1DE0) }

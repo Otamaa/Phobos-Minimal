@@ -7,7 +7,7 @@
 template<class T, size_t offs>
 struct PointerOffset
 {
-	inline constexpr auto Get()
+	OPTIONALINLINE COMPILETIMEEVAL auto Get()
 	{
 		return reinterpret_cast<T>(((DWORD)this) - offs);
 	}
@@ -33,7 +33,7 @@ struct MiscTools
 	}
 
 	template<typename T>
-	static constexpr FORCEINLINE DWORD to_DWORD(T new_address) {
+	static COMPILETIMEEVAL FORCEDINLINE DWORD to_DWORD(T new_address) {
 		return reinterpret_cast<DWORD>(((void*&)new_address));
 	}
 };
@@ -41,7 +41,7 @@ struct MiscTools
 #define NAKED __declspec(naked)
 
 template<typename T>
-void FORCEINLINE Patch_Jump(uintptr_t address, T new_address)
+void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
 
@@ -54,7 +54,7 @@ void FORCEINLINE Patch_Jump(uintptr_t address, T new_address)
 }
 
 template<typename T>
-void FORCEINLINE Patch_Call(uintptr_t address, T new_address)
+void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
 
@@ -67,7 +67,7 @@ void FORCEINLINE Patch_Call(uintptr_t address, T new_address)
 }
 
 template<typename T>
-void FORCEINLINE Patch_Call6(uintptr_t address, T new_address)
+void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_CALL6) == 6, "Jump struct not expected size!");
 
@@ -82,7 +82,7 @@ void FORCEINLINE Patch_Call6(uintptr_t address, T new_address)
 }
 
 template<typename T>
-void FORCEINLINE Patch_Vtable(uintptr_t address, T new_address)
+void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_VTABLE) == 4, "Jump struct not expected size!");
 
@@ -114,14 +114,14 @@ struct _LJMP
 	BYTE command;
 	DWORD pointer;
 
-	constexpr
+	COMPILETIMEEVAL
 		_LJMP(DWORD offset, DWORD pointer) :
 		command(LJMP_LETTER),
 		pointer(pointer - offset - 5)
 	{
 	};
 
-	constexpr FORCEINLINE size_t size() const{
+	COMPILETIMEEVAL FORCEDINLINE size_t size() const{
 		return sizeof(*this);
 	}
 };
@@ -132,14 +132,14 @@ struct _CALL
 	BYTE command;
 	DWORD pointer;
 
-	constexpr
+	COMPILETIMEEVAL
 		_CALL(DWORD offset, DWORD pointer) :
 		command(CALL_LETTER),
 		pointer(pointer - offset - 5)
 	{
 	};
 
-	constexpr FORCEINLINE size_t size() const {
+	COMPILETIMEEVAL FORCEDINLINE size_t size() const {
 		return sizeof(*this);
 	}
 };
@@ -151,7 +151,7 @@ struct _CALL6
 	DWORD pointer;
 	BYTE nop;
 
-	constexpr
+	COMPILETIMEEVAL
 		_CALL6(DWORD offset, DWORD pointer) :
 		command(CALL_LETTER),
 		pointer(pointer - offset - 5),
@@ -159,7 +159,7 @@ struct _CALL6
 	{
 	};
 
-	constexpr FORCEINLINE size_t size() const {
+	COMPILETIMEEVAL FORCEDINLINE size_t size() const {
 		return sizeof(*this);
 	}
 };
@@ -169,13 +169,13 @@ struct _VTABLE
 {
 	DWORD pointer;
 
-	constexpr
+	COMPILETIMEEVAL
 		_VTABLE(DWORD offset, DWORD pointer) :
 		pointer(pointer)
 	{
 	};
 
-	constexpr FORCEINLINE size_t size() const {
+	COMPILETIMEEVAL FORCEDINLINE size_t size() const {
 		return sizeof(*this);
 	}
 };

@@ -29,7 +29,7 @@ struct BasePlanningCell {
 // this crap is used in several Base planning routines
 
 	// for qsort
-inline NAKED int __cdecl BasePlanningCellContainer_Comparator(const void*, const void*)
+OPTIONALINLINE NAKED int __cdecl BasePlanningCellContainer_Comparator(const void*, const void*)
 	{ JMP(0x5108F0); }
 
 struct BasePlanningCellContainer {
@@ -73,14 +73,14 @@ class ArrayWrapper
 {
 	T Data[count];
 public:
-	constexpr auto begin() const { return  std::begin(Data); }
-	constexpr auto end() const { return  std::end(Data); }
-	constexpr auto begin() { return std::begin(Data); }
-	constexpr auto end() { return std::end(Data); }
+	COMPILETIMEEVAL auto begin() const { return  std::begin(Data); }
+	COMPILETIMEEVAL auto end() const { return  std::end(Data); }
+	COMPILETIMEEVAL auto begin() { return std::begin(Data); }
+	COMPILETIMEEVAL auto end() { return std::end(Data); }
 
-	constexpr size_t size() const { return count; }
+	COMPILETIMEEVAL size_t size() const { return count; }
 
-	constexpr const T& at(int Index) const { return Data[Index]; }
-	constexpr T& operator[](int nIdx) { return Data[nIdx]; }
-	constexpr const T& operator[](int nIdx) const { return Data[nIdx]; }
+	COMPILETIMEEVAL const T& at(int Index) const { return Data[Index]; }
+	COMPILETIMEEVAL T& operator[](int nIdx) { return Data[nIdx]; }
+	COMPILETIMEEVAL const T& operator[](int nIdx) const { return Data[nIdx]; }
 };

@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitPlainXlatAlpha)
 {
 public:
-	inline explicit BlitPlainXlatAlpha(T* data, int shadecount) noexcept
+	OPTIONALINLINE explicit BlitPlainXlatAlpha(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
 		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);

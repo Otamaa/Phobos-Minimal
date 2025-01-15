@@ -79,7 +79,7 @@ public:
 	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
 	static bool IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor);
 
-	constexpr inline bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
+	COMPILETIMEEVAL OPTIONALINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
 	{
 		return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 	}
@@ -88,7 +88,7 @@ public:
 class MouseCursorHotSpotX
 {
 public:
-	static inline bool Parse(char* key, MouseHotSpotX* value)
+	static OPTIONALINLINE bool Parse(char* key, MouseHotSpotX* value)
 	{
 		if (key && value)
 		{
@@ -113,7 +113,7 @@ public:
 class MouseCursorHotSpotY
 {
 public:
-	static inline bool Parse(char* key, MouseHotSpotY* value)
+	static OPTIONALINLINE bool Parse(char* key, MouseHotSpotY* value)
 	{
 		if (key && value)
 		{

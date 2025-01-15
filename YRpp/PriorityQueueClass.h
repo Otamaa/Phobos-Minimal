@@ -18,7 +18,7 @@ public:
 		LMost(0),
 		RMost(-1)
 	{
-		if constexpr (!std::is_pointer<T>())
+		if COMPILETIMEEVAL (!std::is_pointer<T>())
 			memset(Nodes, 0, sizeof(T*) * (Count + 1));
 		else
 		{
@@ -38,7 +38,7 @@ public:
 
 	void Clear()
 	{
-		if constexpr (!std::is_pointer<T>())
+		if COMPILETIMEEVAL (!std::is_pointer<T>())
 			memset(Nodes, 0, sizeof(T*) * (Count + 1));
 		else
 		{

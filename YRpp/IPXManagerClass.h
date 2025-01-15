@@ -11,7 +11,7 @@ class IPXManagerClass
 {
 public:
 	// Static
-	static constexpr reference<IPXManagerClass*, 0xA8E9C0u> const Instance {};
+	static COMPILETIMEEVAL reference<IPXManagerClass*, 0xA8E9C0u> const Instance {};
 
 	ConnectionClass* SetTiming(int retrydelta, int maxretries, int timeout, bool a5)
 	{ JMP_THIS(0x7B30B0) }

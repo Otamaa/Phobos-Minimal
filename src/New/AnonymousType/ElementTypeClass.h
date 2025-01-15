@@ -28,7 +28,7 @@ std::array<const char*, (size_t)ElementType::count> ElementTypeToStrings
 namespace detail
 {
 	template <>
-	inline bool read<ElementType>(ElementType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	OPTIONALINLINE bool read<ElementType>(ElementType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{

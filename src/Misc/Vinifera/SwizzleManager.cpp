@@ -31,7 +31,7 @@ static struct SwizzleInfoDatabaseEntry
 	uint32_t Line;
 };
 
-static inline DynamicVectorClass<SwizzleInfoDatabaseEntry> SwizzleInfoDatabase;
+static OPTIONALINLINE DynamicVectorClass<SwizzleInfoDatabaseEntry> SwizzleInfoDatabase;
 
 static void Add_Swizzle_Database_Entry(uint32_t retaddr, char* function, char* variable, char* file, int line = -1)
 {

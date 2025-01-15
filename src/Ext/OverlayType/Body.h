@@ -10,7 +10,7 @@ class OverlayTypeExtData final
 {
 public:
 	using base_type = OverlayTypeClass;
-	static constexpr size_t Canary = 0x414B4B4A;
+	static COMPILETIMEEVAL size_t Canary = 0x414B4B4A;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -22,7 +22,7 @@ public:
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(OverlayTypeExtData) -
 			(4u //AttachedToObject

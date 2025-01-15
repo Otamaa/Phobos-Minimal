@@ -5,8 +5,8 @@ template<class T, int size>
 class QueueClass
 {
 public:
-	constexpr QueueClass();
-	constexpr ~QueueClass() { }
+	COMPILETIMEEVAL QueueClass();
+	COMPILETIMEEVAL ~QueueClass() { }
 
 	T& operator[](int index);
 
@@ -29,14 +29,14 @@ private:
 };
 
 template<class T, int size>
-inline QueueClass<T, size>::QueueClass() :
+OPTIONALINLINE QueueClass<T, size>::QueueClass() :
 	Count(0)
 {
 	Init();
 }
 
 template<class T, int size>
-inline void QueueClass<T, size>::Init()
+OPTIONALINLINE void QueueClass<T, size>::Init()
 {
 	Count = 0;
 	Head = 0;
@@ -44,7 +44,7 @@ inline void QueueClass<T, size>::Init()
 }
 
 template<class T, int size>
-inline bool QueueClass<T, size>::Add(const T& q)
+OPTIONALINLINE bool QueueClass<T, size>::Add(const T& q)
 {
 	if (Count >= size)
 	{
@@ -62,7 +62,7 @@ inline bool QueueClass<T, size>::Add(const T& q)
 }
 
 template<class T, int size>
-inline int QueueClass<T, size>::Next()
+OPTIONALINLINE int QueueClass<T, size>::Next()
 {
 	if (Count)
 	{
@@ -73,31 +73,31 @@ inline int QueueClass<T, size>::Next()
 }
 
 template<class T, int size>
-inline T& QueueClass<T, size>::operator[](int index)
+OPTIONALINLINE T& QueueClass<T, size>::operator[](int index)
 {
 	return Array[(Head + index) & (size - 1)];
 }
 
 template<class T, int size>
-inline T& QueueClass<T, size>::First()
+OPTIONALINLINE T& QueueClass<T, size>::First()
 {
 	return Array[Head];
 }
 
 template<class T, int size>
-inline int QueueClass<T, size>::Get_Head()
+OPTIONALINLINE int QueueClass<T, size>::Get_Head()
 {
 	return Head;
 }
 
 template<class T, int size>
-inline int QueueClass<T, size>::Get_Tail()
+OPTIONALINLINE int QueueClass<T, size>::Get_Tail()
 {
 	return Tail;
 }
 
 template<class T, int size>
-inline T* QueueClass<T, size>::Get_Array()
+OPTIONALINLINE T* QueueClass<T, size>::Get_Array()
 {
 	return Array;
 }

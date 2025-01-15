@@ -94,16 +94,16 @@ public:
 			 Array[(int)nType] : Array[0]).get();
 	}
 
-	static FORCEINLINE constexpr TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
+	static FORCEDINLINE COMPILETIMEEVAL TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
 		return Array[(int)nType].get();
 	}
 
-	static inline constexpr void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {
+	static OPTIONALINLINE COMPILETIMEEVAL void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {
 		Array.emplace_back(std::move(std::make_unique<TheaterTypeClass>(Title, &theater , IsArtic , AllowMapGen , islunar)));
 	}
 
 	// no !
-	static inline constexpr void Clear() {}
+	static OPTIONALINLINE COMPILETIMEEVAL void Clear() {}
 
 private:
 

@@ -24,7 +24,7 @@
 
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
 
-FORCEINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
+FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
 {
 	if (!pINI->GetSection(pSection))
 		return;
@@ -192,7 +192,7 @@ void SpawnerMain::ApplyStaticOptions()
 }
 
 
-constexpr char* PlayerSectionArray[8] = {
+COMPILETIMEEVAL char* PlayerSectionArray[8] = {
 	"Settings",
 	"Other1",
 	"Other2",
@@ -203,7 +203,7 @@ constexpr char* PlayerSectionArray[8] = {
 	"Other7"
 };
 
-constexpr char* MultiTagArray[8] = {
+COMPILETIMEEVAL char* MultiTagArray[8] = {
 	"Multi1",
 	"Multi2",
 	"Multi3",
@@ -214,7 +214,7 @@ constexpr char* MultiTagArray[8] = {
 	"Multi8"
 };
 
-constexpr char* AlliancesSectionArray[8] = {
+COMPILETIMEEVAL char* AlliancesSectionArray[8] = {
 	"Multi1_Alliances",
 	"Multi2_Alliances",
 	"Multi3_Alliances",
@@ -225,7 +225,7 @@ constexpr char* AlliancesSectionArray[8] = {
 	"Multi8_Alliances"
 };
 
-constexpr char* AlliancesTagArray[8] = {
+COMPILETIMEEVAL char* AlliancesTagArray[8] = {
 	"HouseAllyOne",
 	"HouseAllyTwo",
 	"HouseAllyThree",

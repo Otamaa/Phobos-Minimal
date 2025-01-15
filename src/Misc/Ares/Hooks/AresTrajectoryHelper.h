@@ -11,14 +11,14 @@ class AresTrajectoryHelper
 private:
 
 
-	static constexpr bool IsCliffHit(
+	static COMPILETIMEEVAL bool IsCliffHit(
 		CellClass const* pSource, CellClass const* pBefore,
 		CellClass const* pAfter)
 	{
 		return pAfter->GetLevelFrom(pBefore) >= Unsorted::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
 	}
 
-	static constexpr bool IsWallHit(
+	static COMPILETIMEEVAL bool IsWallHit(
 		CellClass const* pSource, CellClass const* pCheck,
 		CellClass const* pTarget, HouseClass const* pOwner)
 	{
@@ -47,7 +47,7 @@ private:
 
 public:
 
-	static constexpr bool SubjectToObstacles(BulletTypeClass* pBulletType)
+	static COMPILETIMEEVAL bool SubjectToObstacles(BulletTypeClass* pBulletType)
 	{
 		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
 		const bool subjectToTerrain = pBulletTypeExt->SubjectToLand.isset() || pBulletTypeExt->SubjectToWater.isset();
@@ -58,7 +58,7 @@ public:
 		return true;;
 	}
 
-	static constexpr bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType)
+	static COMPILETIMEEVAL bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType)
 	{
 		const bool isCellWater = (pCurrentCell->LandType == LandType::Water || pCurrentCell->LandType == LandType::Beach) && pCurrentCell->ContainsBridge();
 		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;
@@ -75,7 +75,7 @@ public:
 	}
 
 	// gets whether collision checks are needed
-	static constexpr bool SubjectToAnything(
+	static COMPILETIMEEVAL bool SubjectToAnything(
 		BulletTypeClass const* pType, BulletTypeExtData const* pTypeExt)
 	{
 		return pType->SubjectToCliffs

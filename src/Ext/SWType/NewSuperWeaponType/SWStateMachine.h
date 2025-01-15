@@ -31,7 +31,7 @@ enum class SWStateMachineIdentifier : int
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
 class SWStateMachine
 {
-	inline static HelperedVector<std::unique_ptr<SWStateMachine>> Array;
+	OPTIONALINLINE static HelperedVector<std::unique_ptr<SWStateMachine>> Array;
 
 public:
 
@@ -52,14 +52,14 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
-	constexpr inline int TimePassed() const {
+	COMPILETIMEEVAL OPTIONALINLINE int TimePassed() const {
 		return Unsorted::CurrentFrame - Clock.StartTime;
 	}
 
 	// static methods
-	static inline
+	static OPTIONALINLINE
 #if _HAS_CXX23 == 1
-		constexpr
+		COMPILETIMEEVAL
 #endif
 	SWStateMachine* Register(std::unique_ptr<SWStateMachine> Machine) {
 		if (Machine) {
@@ -70,7 +70,7 @@ public:
 		return nullptr;
 	}
 
-	constexpr inline SWTypeExtData * GetTypeExtData() const {
+	COMPILETIMEEVAL OPTIONALINLINE SWTypeExtData * GetTypeExtData() const {
 		return SWTypeExtContainer::Instance.Find(Super->Type);
 	}
 
@@ -236,7 +236,7 @@ public:
 		CoordStruct origin {};
 		bool isVehicle { false };
 
-		constexpr ChronoWarpContainer(BuildingClass* pBld, const CellStruct& target, const CoordStruct& origin, bool isVehicle) :
+		COMPILETIMEEVAL ChronoWarpContainer(BuildingClass* pBld, const CellStruct& target, const CoordStruct& origin, bool isVehicle) :
 			building(pBld),
 			target(target),
 			origin(origin),
@@ -244,13 +244,13 @@ public:
 		{
 		}
 
-		constexpr ChronoWarpContainer() = default;
+		COMPILETIMEEVAL ChronoWarpContainer() = default;
 
-		constexpr bool operator == (const ChronoWarpContainer& other) const {
+		COMPILETIMEEVAL bool operator == (const ChronoWarpContainer& other) const {
 			return this->building == other.building;
 		}
 
-		constexpr ~ChronoWarpContainer() = default;
+		COMPILETIMEEVAL ~ChronoWarpContainer() = default;
 	};
 
 	ChronoWarpStateMachine()
@@ -412,7 +412,7 @@ protected:
 class CloneableLighningStormStateMachine : public SWStateMachine
 {
 public:
-	static constexpr double CloudHeightFactor { 6.968466256176567 };
+	static COMPILETIMEEVAL double CloudHeightFactor { 6.968466256176567 };
 
 	CloneableLighningStormStateMachine()
 		: SWStateMachine(), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(nullptr)

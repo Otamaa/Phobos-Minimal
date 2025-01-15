@@ -57,9 +57,9 @@ class DECLSPEC_UUID("5192D06A-C632-11D2-B90B-006008C809ED")
 public:
 	static const AbstractType AbsID = AbstractType::VeinholeMonster;
 
-	static constexpr reference<bool*, 0xB1D2F0u> const IsCurrentPosAffected {};
-	static constexpr reference<SHPFrame*, 0xB1D2ECu> const VeinSHPData {};
-	static constexpr constant_ptr<DynamicVectorClass<VeinholeMonsterClass*>, 0xB1D290u> const Array {};
+	static COMPILETIMEEVAL reference<bool*, 0xB1D2F0u> const IsCurrentPosAffected {};
+	static COMPILETIMEEVAL reference<SHPFrame*, 0xB1D2ECu> const VeinSHPData {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<VeinholeMonsterClass*>, 0xB1D290u> const Array {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_THIS(0x74F2D0);
@@ -180,6 +180,6 @@ public:
 	int VeinCount;
 };
 
-inline NAKED void __cdecl UpdateAllVeinholes()
+OPTIONALINLINE NAKED void __cdecl UpdateAllVeinholes()
 { JMP(0x74CDF0); }
 static_assert(sizeof(VeinholeMonsterClass) == 0x108, "Invalid size."); //264

@@ -20,7 +20,7 @@
 class WeaponTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x23222222;
+	static COMPILETIMEEVAL size_t Canary = 0x23222222;
 	using base_type = WeaponTypeClass;
 
 	base_type* AttachedToObject {};
@@ -178,13 +178,13 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	bool inline IsWave() const
+	bool OPTIONALINLINE IsWave() const
 	{
 		auto const pThis = this->AttachedToObject;
 		return this->Wave_IsLaser || this->Wave_IsBigLaser || pThis->IsSonic || pThis->IsMagBeam;
 	}
 
-	int inline GetProjectileRange() const
+	int OPTIONALINLINE GetProjectileRange() const
 	{
 		return this->ProjectileRange.Get();
 	}
@@ -192,7 +192,7 @@ public:
 	ColorStruct GetBeamColor() const;
 	bool HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoClass* pFirer);
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(WeaponTypeExtData) -
 			(4u //AttachedToObject
@@ -204,8 +204,8 @@ private:
 
 public:
 
-	inline static int nOldCircumference { DiskLaserClass::Radius };
-	inline static PhobosMap<EBolt*, const WeaponTypeExtData*> boltWeaponTypeExt;
+	OPTIONALINLINE static int nOldCircumference { DiskLaserClass::Radius };
+	OPTIONALINLINE static PhobosMap<EBolt*, const WeaponTypeExtData*> boltWeaponTypeExt;
 
 	static int GetBurstDelay(WeaponTypeClass* pThis, int burstIndex);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);
@@ -250,23 +250,23 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	FORCEINLINE WeaponTypeExtData* _GetExtData() {
+	FORCEDINLINE WeaponTypeExtData* _GetExtData() {
 		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	FORCEINLINE BulletTypeExtData* _GetBulletTypeExtData() {
+	FORCEDINLINE BulletTypeExtData* _GetBulletTypeExtData() {
 		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Projectile) + 0x2C4);
 	}
 
-	FORCEINLINE FakeBulletTypeClass* _GetBulletType() {
+	FORCEDINLINE FakeBulletTypeClass* _GetBulletType() {
 		return (FakeBulletTypeClass*)this->Projectile;
 	}
 
-	FORCEINLINE FakeWarheadTypeClass* _GetWarheadType() {
+	FORCEDINLINE FakeWarheadTypeClass* _GetWarheadType() {
 		return (FakeWarheadTypeClass*)this->Warhead;
 	}
 
-	FORCEINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
+	FORCEDINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->Warhead) + 0x1CC);
 	}
 

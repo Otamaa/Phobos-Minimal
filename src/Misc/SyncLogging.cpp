@@ -9,7 +9,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
-static constexpr void FORCEINLINE MakeCallerRelative(unsigned int& caller)
+static COMPILETIMEEVAL void FORCEDINLINE MakeCallerRelative(unsigned int& caller)
 {
 	// B for Bobos
 	if (caller > Phobos::Otamaa::PhobosBaseAddress && caller < (Phobos::Otamaa::PhobosBaseAddress + 0x100000))

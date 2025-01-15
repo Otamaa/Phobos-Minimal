@@ -11,8 +11,8 @@ public:
 	static const AbstractType AbsID = AbstractType::BuildingLight;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<BuildingLightClass*>, 0x8B4190u> const Array{};
-	static constexpr inline DWORD vtable = 0x7E3AD0;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingLightClass*>, 0x8B4190u> const Array{};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3AD0;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x436910);

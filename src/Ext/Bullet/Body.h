@@ -15,7 +15,7 @@ class TechnoClass;
 class BulletExtData final
 {
 public:
-	static constexpr size_t Canary = 0x2A2A2A2A;
+	static COMPILETIMEEVAL size_t Canary = 0x2A2A2A2A;
 	using base_type = BulletClass;
 
 	base_type* AttachedToObject {};
@@ -63,7 +63,7 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE static size_t size_Of(){
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of(){
 		return sizeof(BulletExtData) -
 		( 4u //AttachedToObject
 		 	+ 4u //DamageNumberOffset
@@ -93,7 +93,7 @@ private:
 class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
-	inline static std::vector<BulletExtData*> Pool;
+	OPTIONALINLINE static std::vector<BulletExtData*> Pool;
 	static BulletExtContainer Instance;
 
 	BulletExtData* AllocateUnchecked(BulletClass* key)
@@ -179,31 +179,31 @@ public:
 
 	void _Detach(AbstractClass* target, bool all);
 
-	FORCEINLINE BulletClass* _AsBullet() const {
+	FORCEDINLINE BulletClass* _AsBullet() const {
 		return (BulletClass*)this;
 	}
 
-	FORCEINLINE BulletExtData* _GetExtData() {
+	FORCEDINLINE BulletExtData* _GetExtData() {
 		return *reinterpret_cast<BulletExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-	FORCEINLINE BulletTypeExtData* _GetTypeExtData() {
+	FORCEDINLINE BulletTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Type) + 0x2C4);
 	}
 
-	FORCEINLINE FakeWarheadTypeClass* _GetWarheadType() {
+	FORCEDINLINE FakeWarheadTypeClass* _GetWarheadType() {
 		return (FakeWarheadTypeClass*)this->WH;
 	}
 
-	FORCEINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
+	FORCEDINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->WH) + 0x1CC);
 	}
 
-	FORCEINLINE FakeWeaponType* _GetWeaponType() {
+	FORCEDINLINE FakeWeaponType* _GetWeaponType() {
 		return (FakeWeaponType*)this->WeaponType;
 	}
 
-	FORCEINLINE WeaponTypeExtData* _GetWeaponTypeExtData() {
+	FORCEDINLINE WeaponTypeExtData* _GetWeaponTypeExtData() {
 		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this->WeaponType) + AbstractExtOffset);
 	}
 };

@@ -18,8 +18,8 @@ INIClass::INISection* SectionCompare;
 int KeyCompareIdx;
 GenericNode* NodeCompare;
 
-constexpr const char* const iteratorChar = "+";
-constexpr const char* const iteratorReplacementFormat = "var_%d";
+COMPILETIMEEVAL const char* const iteratorChar = "+";
+COMPILETIMEEVAL const char* const iteratorReplacementFormat = "var_%d";
 
 int iteratorValue = 0;
 #include <New/Type/GenericPrerequisite.h>

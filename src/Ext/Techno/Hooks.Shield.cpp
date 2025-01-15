@@ -307,7 +307,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //
 //class AresScheme
 //{
-//	static inline ObjectClass* LinkedObj = nullptr;
+//	static OPTIONALINLINE ObjectClass* LinkedObj = nullptr;
 //public:
 //
 //	static void __cdecl Prefix(TechnoClass* pThis, ObjectClass* pObj, int nWeaponIndex)

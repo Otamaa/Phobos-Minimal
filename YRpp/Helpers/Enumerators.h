@@ -260,39 +260,39 @@ class CellSpreadEnumerator
 
 public:
 
-	constexpr CellSpreadEnumerator(short Spread, short start= 0) noexcept :
+	COMPILETIMEEVAL CellSpreadEnumerator(short Spread, short start= 0) noexcept :
 	current(start ? -1 : 0  , -start),
 	spread(MinImpl(Spread, Max)),
 	curspread(start),
 	hasTwo(true),
 	hadTwo(true) { }
 
-	constexpr CellSpreadEnumerator() = default;
-	constexpr ~CellSpreadEnumerator() = default;
+	COMPILETIMEEVAL CellSpreadEnumerator() = default;
+	COMPILETIMEEVAL ~CellSpreadEnumerator() = default;
 
-	constexpr operator bool () const {
+	COMPILETIMEEVAL operator bool () const {
 		return curspread <= spread;
 	}
 
-	constexpr const CellStruct& operator * () const {
+	COMPILETIMEEVAL const CellStruct& operator * () const {
 		return current;
 	}
 
-	constexpr CellSpreadEnumerator& operator ++ () {
+	COMPILETIMEEVAL CellSpreadEnumerator& operator ++ () {
 		this->next();
 		return *this;
 	}
 
-	constexpr const CellStruct* operator->() const
+	COMPILETIMEEVAL const CellStruct* operator->() const
 	{
 		return &current;
 	}
 
-	constexpr void operator ++ (int) {
+	COMPILETIMEEVAL void operator ++ (int) {
 		this->next();
 	}
 
-	constexpr void clear() {
+	COMPILETIMEEVAL void clear() {
 		this->current = CellStruct::Empty;
 		this->spread = 0;
 		this->curspread = 0;
@@ -300,16 +300,16 @@ public:
 		this->hadTwo = false;
 	}
 
-	constexpr void setSpread(short Spread, short start = 0) {
+	COMPILETIMEEVAL void setSpread(short Spread, short start = 0) {
 		this->spread = MinImpl(Spread, Max);
 		this->reset(start);
 	}
 
-	constexpr size_t getCurSpread() const {
+	COMPILETIMEEVAL size_t getCurSpread() const {
 		return this->curspread;
 	}
 protected:
-	constexpr void reset(short radius) {
+	COMPILETIMEEVAL void reset(short radius) {
 		curspread = radius;
 		current.X = radius ? -1 : 0;
 		current.Y = -radius;
@@ -317,7 +317,7 @@ protected:
 		hadTwo = true;
 	}
 
-	constexpr bool next() {
+	COMPILETIMEEVAL bool next() {
 		// already done?
 		if(!*this) {
 			return false;

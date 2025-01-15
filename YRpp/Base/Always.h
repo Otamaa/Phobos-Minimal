@@ -11,7 +11,6 @@
 #define PATH_MAX MAX_PATH
 #endif
 
-
 /**
  *  Enable inline recursion.
  */
@@ -30,7 +29,6 @@
 #define u_isspace iswspace
 #define u_tolower towlower
 #define U_COMPARE_CODE_POINT_ORDER 0x8000
-#define ILINE __forceinline
 
   /**
    *  Define some stuff here for cross platform consistency.
@@ -71,7 +69,6 @@ static_assert(sizeof(uchar) <= sizeof(ushort));
 static_assert(sizeof(ushort) <= sizeof(uint));
 static_assert(sizeof(uint) <= sizeof(ulong));
 static_assert(sizeof(ulong) <= sizeof(ulonglong));
-
 
 typedef schar int8;
 typedef schar sint8;
@@ -143,6 +140,9 @@ typedef union {
 #define SELECTANY __declspec(selectany)
 #define NAKED __declspec(naked)
 #define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
+#define FORCEDINLINE __forceinline
+#define OPTIONALINLINE inline
+#define COMPILETIMEEVAL constexpr 
 
 #define ALIGN(val) __declspec(align(val))
 #define ALIGNOF(type) (sizeof(type) - sizeof(type) + __alignof(type))

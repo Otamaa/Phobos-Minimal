@@ -544,7 +544,7 @@ DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 	//	 Packed.clear();
 	// }
 
-	// constexpr bool Enabled() {
+	// COMPILETIMEEVAL bool Enabled() {
 	//	 return !Packed.empty();
 	// }
 
@@ -570,7 +570,7 @@ DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 	// void Apply() {
 
 	// }
-	// constexpr bool Eligible(TechnoClass* attacker, HouseClass* attackerOwner , bool isInAir) {
+	// COMPILETIMEEVAL bool Eligible(TechnoClass* attacker, HouseClass* attackerOwner , bool isInAir) {
 
 
 

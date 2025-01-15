@@ -430,7 +430,7 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 // 	{
 // 		auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
 // 		// Die1-Die5 sequences are offset by 10
-// 		constexpr auto Die = [](int x) { return x + 10; };
+// 		COMPILETIMEEVAL auto Die = [](int x) { return x + 10; };
 //
 // 		int resultSequence = Die(1);
 //

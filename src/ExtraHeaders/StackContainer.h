@@ -18,7 +18,7 @@ public:
 	typedef typename ContainerType::value_type ContainedType;
 	typedef StackAllocator<ContainedType, stack_capacity> Allocator;
 	// Allocator must be constructed before the container!
-	constexpr StackContainer() : allocator_(&stack_data_), container_(allocator_)
+	COMPILETIMEEVAL StackContainer() : allocator_(&stack_data_), container_(allocator_)
 	{
 		// Make the container use the stack allocation by reserving our buffer size
 		// before doing anything else.
@@ -30,14 +30,14 @@ public:
 	// shorter lifetimes than the source. The copy will share the same allocator
 	// and therefore the same stack buffer as the original. Use std::copy to
 	// copy into a "real" container for longer-lived objects.
-	constexpr ContainerType& container() { return container_; }
-	constexpr const ContainerType& container() const { return container_; }
+	COMPILETIMEEVAL ContainerType& container() { return container_; }
+	COMPILETIMEEVAL const ContainerType& container() const { return container_; }
 
 	// Support operator-> to get to the container. This allows nicer syntax like:
 	//   StackContainer<...> foo;
 	//   std::sort(foo->begin(), foo->end());
-	constexpr ContainerType* operator->() { return &container_; }
-	constexpr const ContainerType* operator->() const { return &container_; }
+	COMPILETIMEEVAL ContainerType* operator->() { return &container_; }
+	COMPILETIMEEVAL const ContainerType* operator->() const { return &container_; }
 
 protected:
 	typename Allocator::Source stack_data_;

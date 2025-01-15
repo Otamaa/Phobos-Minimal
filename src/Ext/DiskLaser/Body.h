@@ -10,7 +10,7 @@ public:
 	class ExtData final : public Extension<DiskLaserClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x87659771;
+		static COMPILETIMEEVAL size_t Canary = 0x87659771;
 		using base_type = DiskLaserClass;
 
 	public:

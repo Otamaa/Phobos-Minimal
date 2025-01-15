@@ -5,7 +5,7 @@
 
 #include <DSound.h>
 
-static constexpr reference<IDirectSound, 0x87E89Cu> const AUD_sound_object {};
+static COMPILETIMEEVAL reference<IDirectSound, 0x87E89Cu> const AUD_sound_object {};
 
 struct AudioFormatTag
 {

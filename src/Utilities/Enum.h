@@ -62,7 +62,7 @@ enum class LandTypeFlags : unsigned short
 };
 
 MAKE_ENUM_FLAGS(LandTypeFlags);
-constexpr FORCEINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
+COMPILETIMEEVAL FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
 {
 	return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 }

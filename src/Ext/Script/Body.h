@@ -201,7 +201,7 @@ enum class DistanceMode : int
 class ScriptExtData final
 {
 public:
-	static constexpr size_t Canary = 0x3B3B3B3B;
+	static COMPILETIMEEVAL size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
 	base_type* AttachedToObject {};
@@ -297,7 +297,7 @@ public:
 	static void JumpBackToPreviousScript(TeamClass* pTeam);
 	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ScriptExtData) -
 			(4u //AttachedToObject

@@ -31,8 +31,8 @@ class CCINIClass;
 struct SpawnerMain
 {
 	struct Configs {
-		static inline bool Enabled; // false
-		static inline bool Active; //false
+		static OPTIONALINLINE bool Enabled; // false
+		static OPTIONALINLINE bool Active; //false
 
 	public:
 
@@ -112,14 +112,14 @@ struct SpawnerMain
 			int SpawnLocations;
 			int Alliances[8];
 
-			constexpr HouseConfig()
+			COMPILETIMEEVAL HouseConfig()
 				: IsObserver { false }
 				, SpawnLocations { -2 }
 				, Alliances { -1, -1, -1, -1, -1, -1, -1, -1 }
 			{
 			}
 
-			constexpr ~HouseConfig() = default;
+			COMPILETIMEEVAL ~HouseConfig() = default;
 
 			void LoadFromINIFile(CCINIClass* pINI, int index);
 		};
@@ -297,7 +297,7 @@ struct SpawnerMain
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
-	inline static std::list<MixFileClass*> LoadedMixFiles;
+	OPTIONALINLINE static std::list<MixFileClass*> LoadedMixFiles;
 
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();
@@ -305,11 +305,11 @@ struct SpawnerMain
 	static void LoadConfigurations(); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
 
-	static constexpr Configs* GetMainConfigs() {
+	static COMPILETIMEEVAL Configs* GetMainConfigs() {
 		return &Configs::m_Ptr;
 	}
 
-	static constexpr GameConfigs* GetGameConfigs() {
+	static COMPILETIMEEVAL GameConfigs* GetGameConfigs() {
 		return &GameConfigs::m_Ptr;
 	}
 };

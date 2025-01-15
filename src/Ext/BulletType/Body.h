@@ -15,10 +15,10 @@
 class BulletTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xF00DF00D;
+	static COMPILETIMEEVAL size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
 
-	static constexpr size_t ExtOffset = 0x2C4; //ares
+	static COMPILETIMEEVAL size_t ExtOffset = 0x2C4; //ares
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -118,13 +118,13 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr bool FORCEINLINE HasSplitBehavior() const
+	COMPILETIMEEVAL bool FORCEDINLINE HasSplitBehavior() const
 	{
 		// behavior in FS: Splits defaults to Airburst.
 		return this->AttachedToObject->Airburst || this->Splits;
 	}
 
-	constexpr double FORCEINLINE GetMissileROTVar(const RulesClass* const pRules) const
+	COMPILETIMEEVAL double FORCEDINLINE GetMissileROTVar(const RulesClass* const pRules) const
 	{
 		if (MissileROTVar.isset())
 			return MissileROTVar.Get();
@@ -132,7 +132,7 @@ public:
 		return pRules->MissileROTVar;
 	}
 
-	constexpr double FORCEINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
+	COMPILETIMEEVAL double FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
 			return MissileSafetyAltitude.Get();
@@ -144,7 +144,7 @@ public:
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const;
 
-	constexpr double FORCEINLINE GetAdjustedGravity() const
+	COMPILETIMEEVAL double FORCEDINLINE GetAdjustedGravity() const
 	{
 		const auto nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
 		return this->AttachedToObject->Floater ? nGravity * 0.5 : nGravity;
@@ -152,14 +152,14 @@ public:
 
 	const ConvertClass* GetBulletConvert();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(BulletTypeExtData) -
 			(4u //AttachedToObject
 			 );
 	}
 
-	static FORCEINLINE double GetAdjustedGravity(BulletTypeClass* pType);
+	static FORCEDINLINE double GetAdjustedGravity(BulletTypeClass* pType);
 
 	static BulletTypeClass* GetDefaultBulletType();
 	static CoordStruct CalculateInaccurate(BulletTypeClass* pBulletType);
@@ -168,8 +168,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	static constexpr Leptons DefaultBulletScatterMin { 256 };
-	static constexpr Leptons DefaultBulletScatterMax { 512 };
+	static COMPILETIMEEVAL Leptons DefaultBulletScatterMin { 256 };
+	static COMPILETIMEEVAL Leptons DefaultBulletScatterMax { 512 };
 
 };
 

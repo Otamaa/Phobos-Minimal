@@ -32,13 +32,13 @@ public:
 	}
 
 	template<typename T>
-	inline T Get()
+	OPTIONALINLINE T Get()
 	{
 		return *reinterpret_cast<T*>(&this->data);
 	}
 
 	template<typename T>
-	inline void Set(T value)
+	OPTIONALINLINE void Set(T value)
 	{
 		this->data = DWORD(value);
 	}
@@ -77,24 +77,24 @@ class StackRegister : public ExtendedRegister
 {
 public:
 	template<typename T>
-	inline T* lea(int byteOffset)
+	OPTIONALINLINE T* lea(int byteOffset)
 	{
 		return reinterpret_cast<T*>(static_cast<DWORD>(this->data + static_cast<DWORD>(byteOffset)));
 	}
 
-	inline DWORD lea(int byteOffset)
+	OPTIONALINLINE DWORD lea(int byteOffset)
 	{
 		return static_cast<DWORD>(this->data + static_cast<DWORD>(byteOffset));
 	}
 
 	template<typename T>
-	inline T At(int byteOffset)
+	OPTIONALINLINE T At(int byteOffset)
 	{
 		return *reinterpret_cast<T*>(this->data + static_cast<DWORD>(byteOffset));
 	}
 
 	template<typename T>
-	inline void At(int byteOffset, T value)
+	OPTIONALINLINE void At(int byteOffset, T value)
 	{
 		*reinterpret_cast<T*>(this->data + static_cast<DWORD>(byteOffset)) = value;
 	}
@@ -102,11 +102,11 @@ public:
 
 //Macros to make the following a lot easier
 #define REG_SHORTCUTS(reg) \
-	inline DWORD reg() \
+	OPTIONALINLINE DWORD reg() \
 		{ return this->_ ## reg.Get<DWORD>(); } \
-	template<typename T> inline T reg() \
+	template<typename T> OPTIONALINLINE T reg() \
 		{ return this->_ ## reg.Get<T>(); } \
-	template<typename T> inline void reg(T value) \
+	template<typename T> OPTIONALINLINE void reg(T value) \
 		{ this->_ ## reg.Set(value); } \
 
 #define REG_SHORTCUTS_X(r) \
@@ -129,7 +129,7 @@ public:
 	REG_SHORTCUTS_X(r); \
 	REG_SHORTCUTS_HL(r); \
 
-static constexpr const char* Register_names[] = {
+static COMPILETIMEEVAL const char* Register_names[] = {
   "EDI", "ESI", "EBP", "ESP", "EBX", "EDX", "ECX", "EAX"
 };
 
@@ -139,10 +139,10 @@ enum class RegistersType : int {
 
 #define MAKEREG(RegName , inherit , type)\
 struct RegName : public inherit {\
-	constexpr inline const char* name() const {\
+	COMPILETIMEEVAL OPTIONALINLINE const char* name() const {\
 		return Register_names[(int)RegistersType::type];\
 	}\
-	constexpr inline RegistersType type() const {\
+	COMPILETIMEEVAL OPTIONALINLINE RegistersType type() const {\
 		return RegistersType::type;\
 	}\
 };\
@@ -210,31 +210,31 @@ public:
 	REG_SHORTCUTS_XHL(D);
 
 	template<typename T>
-	inline T lea_Stack(int offset)
+	OPTIONALINLINE T lea_Stack(int offset)
 	{
 		return reinterpret_cast<T>(this->_ESP.lea(offset));
 	}
 
 	template<>
-	inline DWORD lea_Stack(int offset)
+	OPTIONALINLINE DWORD lea_Stack(int offset)
 	{
 		return this->_ESP.lea(offset);
 	}
 
 	template<>
-	inline int lea_Stack(int offset)
+	OPTIONALINLINE int lea_Stack(int offset)
 	{
 		return static_cast<int>(this->_ESP.lea(offset));
 	}
 
 	template<typename T>
-	inline T& ref_Stack(int offset)
+	OPTIONALINLINE T& ref_Stack(int offset)
 	{
 		return *this->lea_Stack<T*>(offset);
 	}
 
 	template<typename T>
-	inline T Stack(int offset)
+	OPTIONALINLINE T Stack(int offset)
 	{
 		return this->_ESP.At<T>(offset);
 	}
@@ -255,13 +255,13 @@ public:
 	}
 
 	template<typename T>
-	inline T Base(int offset)
+	OPTIONALINLINE T Base(int offset)
 	{
 		return this->_EBP.At<T>(offset);
 	}
 
 	template<typename T>
-	inline void Stack(int offset, T value)
+	OPTIONALINLINE void Stack(int offset, T value)
 	{
 		this->_ESP.At(offset, value);
 	}
@@ -277,7 +277,7 @@ public:
 	}
 
 	template<typename T>
-	inline void Base(int offset, T value)
+	OPTIONALINLINE void Base(int offset, T value)
 	{
 		this->_EBP.At(offset, value);
 	}

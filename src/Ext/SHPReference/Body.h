@@ -13,9 +13,9 @@ public:
 	class ExtData final : public Extension<SHPReference>
 	{
 	public:
-		static constexpr size_t Canary = 0xAB5005BA;
+		static COMPILETIMEEVAL size_t Canary = 0xAB5005BA;
 		using base_type = SHPReference;
-		static constexpr size_t ExtOffset = 0x20;
+		static COMPILETIMEEVAL size_t ExtOffset = 0x20;
 
 	public:
 

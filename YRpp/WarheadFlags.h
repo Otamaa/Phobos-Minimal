@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Base/Always.h>
+
 struct WarheadFlags
 {
 	bool ForceFire;
@@ -8,10 +10,10 @@ struct WarheadFlags
 
 public:
 
-	constexpr bool operator==(WarheadFlags const& nThat) const
+	COMPILETIMEEVAL bool operator==(WarheadFlags const& nThat) const
 	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
 
-	constexpr bool operator!=(WarheadFlags const& nThat) const
+	COMPILETIMEEVAL bool operator!=(WarheadFlags const& nThat) const
 	{ return !((*this) == nThat); }
 
 };

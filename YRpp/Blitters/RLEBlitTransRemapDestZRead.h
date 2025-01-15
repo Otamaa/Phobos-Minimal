@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransRemapDestZRead)
 {
 public:
-	inline explicit RLEBlitTransRemapDestZRead(T* data) noexcept
+	OPTIONALINLINE explicit RLEBlitTransRemapDestZRead(T* data) noexcept
 	{
 		RemapDest = data;
 	}

@@ -32,7 +32,7 @@
 
 #pragma once
 
-inline bool Parse_vanilla_double(const char* pValue, double* outValue)
+OPTIONALINLINE bool Parse_vanilla_double(const char* pValue, double* outValue)
 {
 	// Game doesn't use double precision when parsing, using double here would create inconsistency.
 	float buffer = 0.0f;
@@ -208,7 +208,7 @@ public:
 // functions will eventually call them.
 
 template<>
-inline bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
+OPTIONALINLINE bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
 
 	switch (toupper(static_cast<unsigned char>(*pValue))) {
 	case '1':
@@ -231,7 +231,7 @@ inline bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
 };
 
 template<>
-inline bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
+OPTIONALINLINE bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
 	const char* pFmt = nullptr;
 	if (*pValue == '$') {
 		pFmt = "$%x";
@@ -252,7 +252,7 @@ inline bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
 }
 
 template<>
-inline bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
+OPTIONALINLINE bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
 
 	//if (Phobos::Config::UseNewInheritance)
 	//	return Parse_vanilla_double(pValue, outValue);
@@ -273,7 +273,7 @@ inline bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
 };
 
 template<>
-inline bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
+OPTIONALINLINE bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
 	double buffer = 0.0;
 	if (Parser<double>::TryParse(pValue, &buffer)) {
 		*outValue = static_cast<float>(buffer);
@@ -283,7 +283,7 @@ inline bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
 }
 
 template<>
-inline bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
+OPTIONALINLINE bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
 	// no way to read unsigned char, use short instead.
 	const char* pFmt = nullptr;
 	if (*pValue == '$') {
@@ -307,7 +307,7 @@ inline bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
 };
 
 template<>
-inline bool Parser<short>::TryParse(const char* pValue, OutType* outValue)
+OPTIONALINLINE bool Parser<short>::TryParse(const char* pValue, OutType* outValue)
 {
 	int buffer = 0;
 	if (!Parser<int>::TryParse(pValue, &buffer))

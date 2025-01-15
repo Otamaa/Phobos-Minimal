@@ -17,7 +17,7 @@ public:
 	static const AbstractType AbsID = AbstractType::Event;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<TEventClass*>, 0xB0F1A0u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TEventClass*>, 0xB0F1A0u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

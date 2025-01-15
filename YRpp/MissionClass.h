@@ -109,8 +109,8 @@ static_assert(sizeof(MissionClass) == 0xD4);
 class MissionControlClass
 {
 public:
-	static constexpr reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
-	static constexpr reference<const char*, 0x816CACu, 31> const Names {};
+	static COMPILETIMEEVAL reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
+	static COMPILETIMEEVAL reference<const char*, 0x816CACu, 31> const Names {};
 
 	static MissionControlClass* GetMissionControl(Mission nIN) {
 		if (nIN >= Mission::count) {

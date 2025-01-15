@@ -62,7 +62,7 @@ class TechnoTypeClass;
 class TEventExtData final
 {
 public:
-	static constexpr size_t Canary = 0x91919191;
+	static COMPILETIMEEVAL size_t Canary = 0x91919191;
 	using base_type = TEventClass;
 
 	base_type* AttachedToObject {};
@@ -77,7 +77,7 @@ public:
 	// support
 	TechnoTypeClass* GetTechnoType();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TEventExtData) -
 			(4u //AttachedToObject

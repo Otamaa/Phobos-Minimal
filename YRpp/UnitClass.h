@@ -17,8 +17,8 @@ public:
 	static const AbstractType AbsID = AbstractType::Unit;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<UnitClass*>, 0x8B4108u> const Array{};
-	static constexpr inline DWORD vtable = 0x7F5C70;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<UnitClass*>, 0x8B4108u> const Array{};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F5C70;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x746DE0);

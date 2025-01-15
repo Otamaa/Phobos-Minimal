@@ -11,8 +11,8 @@ concept TimerType = std::convertible_to<T, int>&& requires (T t)
 
 struct FrameTimer
 {
-	constexpr FORCEINLINE long operator()()const { return *reinterpret_cast<long*>(0xA8ED84); }
-	constexpr FORCEINLINE operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
+	COMPILETIMEEVAL FORCEDINLINE long operator()()const { return *reinterpret_cast<long*>(0xA8ED84); }
+	COMPILETIMEEVAL FORCEDINLINE operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
 };
 
 struct SystemTimer
@@ -46,38 +46,38 @@ public:
 	Clock CurrentTime; // timer
 	int TimeLeft;
 
-	constexpr TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
+	COMPILETIMEEVAL TimerClass() : StartTime { -1 }, TimeLeft { 0 } { }
 
-	constexpr explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
+	COMPILETIMEEVAL explicit TimerClass(int duration) : StartTime { -1 }, TimeLeft { duration } {
 		this->StartTime = this->CurrentTime;
 	}
 
-	constexpr TimerClass(noinit_t()){ }
-	constexpr ~TimerClass() = default;
+	COMPILETIMEEVAL TimerClass(noinit_t()){ }
+	COMPILETIMEEVAL ~TimerClass() = default;
 
-	constexpr TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
+	COMPILETIMEEVAL TimerClass(const TimerClass& other) : StartTime { other.StartTime }, TimeLeft { other.TimeLeft } { }
 
-	constexpr TimerClass& operator=(const TimerClass& other) {
+	COMPILETIMEEVAL TimerClass& operator=(const TimerClass& other) {
 		this->StartTime = other.StartTime;
 		this->TimeLeft = other.TimeLeft;
 		return *this;
 	}
 
-	constexpr TimerClass& operator = (TimerClass&&) =  default;
+	COMPILETIMEEVAL TimerClass& operator = (TimerClass&&) =  default;
 
-	constexpr FORCEINLINE void Start(int duration)
+	COMPILETIMEEVAL FORCEDINLINE void Start(int duration)
 	{
 		this->StartTime = this->CurrentTime;
 		this->TimeLeft = duration;
 	}
 
-	constexpr FORCEINLINE void Stop()
+	COMPILETIMEEVAL FORCEDINLINE void Stop()
 	{
 		this->StartTime = -1;
 		this->TimeLeft = 0;
 	}
 
-	constexpr FORCEINLINE void Pause()
+	COMPILETIMEEVAL FORCEDINLINE void Pause()
 	{
 		if (this->IsTicking())
 		{
@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE void Resume()
+	COMPILETIMEEVAL FORCEDINLINE void Resume()
 	{
 		if (!this->IsTicking())
 		{
@@ -94,7 +94,7 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE int GetTimeLeft() const
+	COMPILETIMEEVAL FORCEDINLINE int GetTimeLeft() const
 	{
 		if (!this->IsTicking())
 		{
@@ -109,7 +109,7 @@ public:
 	}
 
 	// returns whether a ticking timer has finished counting down.
-	constexpr FORCEINLINE bool Completed() const
+	COMPILETIMEEVAL FORCEDINLINE bool Completed() const
 	{
 		return this->IsTicking() && !this->HasTimeLeft();
 	}
@@ -117,41 +117,41 @@ public:
 	// returns whether a delay is active or a timer is still counting down.
 	// this is the 'opposite' of Completed() (meaning: incomplete / still busy)
 	// and logically the same as !Expired() (meaning: blocked / delay in progress)
-	constexpr FORCEINLINE bool InProgress() const
+	COMPILETIMEEVAL FORCEDINLINE bool InProgress() const
 	{
 		return this->IsTicking() && this->HasTimeLeft();
 	}
 
-	constexpr FORCEINLINE bool IsNotActive() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsNotActive() const
 	{
 		return this->IsTicking() && !this->TimeLeft;
 	}
 
 	// returns whether a delay is inactive. same as !InProgress().
-	constexpr FORCEINLINE bool Expired() const
+	COMPILETIMEEVAL FORCEDINLINE bool Expired() const
 	{
 		return !this->IsTicking() || !this->HasTimeLeft();
 	}
 
 	// Sometimes I want to know if the timer has ever started
-	constexpr FORCEINLINE bool HasStarted() const
+	COMPILETIMEEVAL FORCEDINLINE bool HasStarted() const
 	{
 		return this->IsTicking() || this->HasTimeLeft();
 	}
 
-	constexpr FORCEINLINE void Add(int nTime)
+	COMPILETIMEEVAL FORCEDINLINE void Add(int nTime)
 	{
 		this->Pause();
 		this->TimeLeft += nTime;
 		this->Resume();
 	}
 
-	constexpr FORCEINLINE bool IsTicking() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsTicking() const
 	{
 		return this->StartTime != -1;
 	}
 
-	constexpr FORCEINLINE bool HasTimeLeft() const
+	COMPILETIMEEVAL FORCEDINLINE bool HasTimeLeft() const
 	{
 		return this->GetTimeLeft() > 0;
 	}
@@ -176,26 +176,26 @@ class RepeatableTimerStruct : public CDTimerClass
 public:
 	int Duration { 0 };
 
-	constexpr RepeatableTimerStruct() = default;
-	constexpr RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
-	constexpr RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
-	constexpr RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
-	constexpr RepeatableTimerStruct(int duration) { this->Start(duration); }
+	COMPILETIMEEVAL RepeatableTimerStruct() = default;
+	COMPILETIMEEVAL RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
+	COMPILETIMEEVAL RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
+	COMPILETIMEEVAL RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
+	COMPILETIMEEVAL RepeatableTimerStruct(int duration) { this->Start(duration); }
 
-	constexpr FORCEINLINE void Start(int duration)
+	COMPILETIMEEVAL FORCEDINLINE void Start(int duration)
 	{
 		this->Duration = duration;
 		this->Restart();
 	}
 
-	constexpr FORCEINLINE void Restart()
+	COMPILETIMEEVAL FORCEDINLINE void Restart()
 	{
 		this->CDTimerClass::Start(this->Duration);
 	}
 
-	constexpr inline bool Expired() const { return Percent_Expired() == 1.0f; }
+	COMPILETIMEEVAL OPTIONALINLINE bool Expired() const { return Percent_Expired() == 1.0f; }
 
-	constexpr inline unsigned long GetValue() const
+	COMPILETIMEEVAL OPTIONALINLINE unsigned long GetValue() const
 	{
 		unsigned long remain = TimeLeft;
 
@@ -213,7 +213,7 @@ public:
 		return remain;
 	}
 
-	constexpr inline float Percent_Expired() const
+	COMPILETIMEEVAL OPTIONALINLINE float Percent_Expired() const
 	{
 		unsigned long rate = Duration;
 		if (!rate) {

@@ -8,7 +8,7 @@
 class MemoryBuffer
 {
 public:
-	constexpr MemoryBuffer() noexcept = default;
+	COMPILETIMEEVAL MemoryBuffer() noexcept = default;
 
 	explicit MemoryBuffer(int size) noexcept
 		: MemoryBuffer(nullptr, size)
@@ -23,7 +23,7 @@ public:
 		}
 	}
 
-	constexpr MemoryBuffer(MemoryBuffer const& other) noexcept
+	COMPILETIMEEVAL MemoryBuffer(MemoryBuffer const& other) noexcept
 		: Buffer(other.Buffer), Size(other.Size)
 	{ }
 
@@ -40,8 +40,8 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE operator void * () const { return Buffer; }
-	constexpr FORCEINLINE operator char * () const { return (char *)Buffer; }
+	COMPILETIMEEVAL FORCEDINLINE operator void * () const { return Buffer; }
+	COMPILETIMEEVAL FORCEDINLINE operator char * () const { return (char *)Buffer; }
 
 	MemoryBuffer& operator = (MemoryBuffer const& other) noexcept
 	{
@@ -70,9 +70,9 @@ public:
 		this->Size = 0;
 	}
 
-	constexpr FORCEINLINE void * Get_Buffer() const { return Buffer; }
-	constexpr FORCEINLINE long Get_Size() const { return Size; }
-	constexpr FORCEINLINE bool Is_Valid() const { return Buffer != nullptr; }
+	COMPILETIMEEVAL FORCEDINLINE void * Get_Buffer() const { return Buffer; }
+	COMPILETIMEEVAL FORCEDINLINE long Get_Size() const { return Size; }
+	COMPILETIMEEVAL FORCEDINLINE bool Is_Valid() const { return Buffer != nullptr; }
 
 public:
 	void* Buffer{ nullptr };

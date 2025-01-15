@@ -33,15 +33,15 @@ protected:
 class Random2Class
 {
 public:
-	static constexpr reference<Random2Class, 0x886B88u> const NonCriticalRandomNumber{};
-	static constexpr reference<Random2Class, 0x886B88u> const Global{}; // For backward compatibility
-	static constexpr reference<double, 0x7E3570u> const INT_MAX_GAME {};
-	static constexpr reference<DWORD, 0xA8ED94u> const Seed {};
-	static constexpr reference<DWORD, 0x839644u, 19u> FirstTable {};
-	static constexpr reference<DWORD, 0x839690u, 22u> SecondTable {};
+	static COMPILETIMEEVAL reference<Random2Class, 0x886B88u> const NonCriticalRandomNumber{};
+	static COMPILETIMEEVAL reference<Random2Class, 0x886B88u> const Global{}; // For backward compatibility
+	static COMPILETIMEEVAL reference<double, 0x7E3570u> const INT_MAX_GAME {};
+	static COMPILETIMEEVAL reference<DWORD, 0xA8ED94u> const Seed {};
+	static COMPILETIMEEVAL reference<DWORD, 0x839644u, 19u> FirstTable {};
+	static COMPILETIMEEVAL reference<DWORD, 0x839690u, 22u> SecondTable {};
 
 protected:
-	constexpr explicit Random2Class(DWORD seed) noexcept
+	COMPILETIMEEVAL explicit Random2Class(DWORD seed) noexcept
 	//{ JMP_THIS(0x65C6D0); }
 	{
 		this->Index1 = 0;
@@ -65,7 +65,7 @@ protected:
 	}
 
 public:
-	constexpr int Random()
+	COMPILETIMEEVAL int Random()
 	//{ JMP_THIS(0x65C780); }
 	{
 		if (this->unknownBool_00) {
@@ -88,7 +88,7 @@ public:
 		return result;
 	}
 
-	constexpr int RandomRanged(int nMin, int nMax)
+	COMPILETIMEEVAL int RandomRanged(int nMin, int nMax)
 	//{ JMP_THIS(0x65C7E0); }
 	{
 		int result = nMin;
@@ -146,16 +146,16 @@ public:
 		return result;
 	}
 
-	constexpr FORCEINLINE int RandomRanged(const Point2D& nMinMax)
+	COMPILETIMEEVAL FORCEDINLINE int RandomRanged(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax.X, nMinMax.Y); }
 
-	constexpr FORCEINLINE int operator()(const Point2D& nMinMax)
+	COMPILETIMEEVAL FORCEDINLINE int operator()(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax); }
 
-	constexpr FORCEINLINE int operator()()
+	COMPILETIMEEVAL FORCEDINLINE int operator()()
 	{ return Random(); }
 
-	constexpr FORCEINLINE int operator()(int nMin, int nMax)
+	COMPILETIMEEVAL FORCEDINLINE int operator()(int nMin, int nMax)
 	{ return RandomRanged(nMin, nMax); }
 
 	/*
@@ -165,7 +165,7 @@ public:
 	*	True = if percent less than random 0 - 99
 	*	False = if percent more than random 0 - 99
 	*/
-	constexpr FORCEINLINE bool PercentChance(int percent)
+	COMPILETIMEEVAL FORCEDINLINE bool PercentChance(int percent)
 	{ return RandomRanged(0,99) < percent; }
 
 	/*
@@ -175,34 +175,34 @@ public:
 	*	True = if chanche less than RandomDouble() result
 	*	False = if chance more than RandomDouble() result
 	*/
-	constexpr FORCEINLINE bool PercentChance(double dChance)
+	COMPILETIMEEVAL FORCEDINLINE bool PercentChance(double dChance)
 	{ return RandomDouble() < dChance; }
 
-	constexpr FORCEINLINE double RandomDouble()
+	COMPILETIMEEVAL FORCEDINLINE double RandomDouble()
 	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10; }
 
-	constexpr FORCEINLINE double RandomDouble_Closest()
+	COMPILETIMEEVAL FORCEDINLINE double RandomDouble_Closest()
 	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10 - 0.5; }
 
-	constexpr FORCEINLINE double GameRandomDouble()
+	COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }
 
-	constexpr FORCEINLINE double GameRandomDouble_Closest()
+	COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble_Closest()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME() - 0.5; }
 
-	constexpr FORCEINLINE bool RandomBool()
+	COMPILETIMEEVAL FORCEDINLINE bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }
 
 	template<typename T> requires std::is_integral<std::underlying_type_t<T>>::value
-	constexpr FORCEINLINE T RandomRangedSpecific(T nMin, T nMax) {
+	COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
 
 	template<typename T> requires std::is_integral<T>::value
-	constexpr FORCEINLINE T RandomRangedSpecific(T nMin, T nMax) {
+	COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
-	constexpr FORCEINLINE int RandomFromMax(int nMax) {
+	COMPILETIMEEVAL FORCEDINLINE int RandomFromMax(int nMax) {
 		return RandomRanged(0, nMax);
 	}
 
@@ -251,32 +251,32 @@ private:
 class Random4Class
 {
 	// Period parameters
-	static constexpr inline int N = 624;
-	static constexpr inline int M = 397;
-	static constexpr inline unsigned int MATRIX_A = 0x9908b0df; // constant vector a
-	static constexpr inline unsigned int UPPER_MASK = 0x80000000; // most significant w-r bits
-	static constexpr inline unsigned int LOWER_MASK = 0x7fffffff;// least significant r bits
+	static COMPILETIMEEVAL OPTIONALINLINE int N = 624;
+	static COMPILETIMEEVAL OPTIONALINLINE int M = 397;
+	static COMPILETIMEEVAL OPTIONALINLINE unsigned int MATRIX_A = 0x9908b0df; // constant vector a
+	static COMPILETIMEEVAL OPTIONALINLINE unsigned int UPPER_MASK = 0x80000000; // most significant w-r bits
+	static COMPILETIMEEVAL OPTIONALINLINE unsigned int LOWER_MASK = 0x7fffffff;// least significant r bits
 
 	// Tempering parameters
-	static constexpr inline unsigned int  TEMPERING_MASK_B = 0x9d2c5680;
-	static constexpr inline unsigned int  TEMPERING_MASK_C = 0xefc60000;
+	static COMPILETIMEEVAL OPTIONALINLINE unsigned int  TEMPERING_MASK_B = 0x9d2c5680;
+	static COMPILETIMEEVAL OPTIONALINLINE unsigned int  TEMPERING_MASK_C = 0xefc60000;
 
-	static constexpr unsigned int mag01[2] = { 0x0, MATRIX_A };
-
-	template<typename T>
-	static constexpr auto TEMPERING_SHIFT_U(T y) { return y >> 11; }
+	static COMPILETIMEEVAL unsigned int mag01[2] = { 0x0, MATRIX_A };
 
 	template<typename T>
-	static constexpr auto TEMPERING_SHIFT_S(T y) { return y << 7; }
+	static COMPILETIMEEVAL auto TEMPERING_SHIFT_U(T y) { return y >> 11; }
 
 	template<typename T>
-	static constexpr auto TEMPERING_SHIFT_T(T y) { return y << 15; }
+	static COMPILETIMEEVAL auto TEMPERING_SHIFT_S(T y) { return y << 7; }
 
 	template<typename T>
-	static constexpr auto TEMPERING_SHIFT_L(T y) { return y >> 18; }
+	static COMPILETIMEEVAL auto TEMPERING_SHIFT_T(T y) { return y << 15; }
+
+	template<typename T>
+	static COMPILETIMEEVAL auto TEMPERING_SHIFT_L(T y) { return y >> 18; }
 
 public:
-	constexpr Random4Class(unsigned int seed = 4357) {
+	COMPILETIMEEVAL Random4Class(unsigned int seed = 4357) {
 		if (!seed)
 		{
 			seed = 4375;
@@ -290,8 +290,8 @@ public:
 		}
 	};
 
-	constexpr operator int() { return operator()(); }
-	constexpr int operator()()
+	COMPILETIMEEVAL operator int() { return operator()(); }
+	COMPILETIMEEVAL int operator()()
 	{
 		unsigned int y;
 
@@ -326,14 +326,14 @@ public:
 		return *x;
 	}
 
-	constexpr int operator()(int minval, int maxval)
+	COMPILETIMEEVAL int operator()(int minval, int maxval)
 	{
 		return Pick_Random_Number(*this, minval, maxval);
 	}
 
 	template<typename T> T operator()(T minval, T maxval) { return T(*this)(int(minval), int(maxval)); }
 
-	constexpr float Get_Float()
+	COMPILETIMEEVAL float Get_Float()
 	{
 		int x = (*this)();
 		unsigned int* y = (unsigned int*)&x;
@@ -347,7 +347,7 @@ public:
 	};
 
 	template<class T>
-	static constexpr int Pick_Random_Number(T& generator, int minval, int maxval) {
+	static COMPILETIMEEVAL int Pick_Random_Number(T& generator, int minval, int maxval) {
 		if (minval == maxval) return minval;
 
 		if (minval > maxval)

@@ -12,7 +12,7 @@ class StackString : public StackContainer<
 	stack_capacity>
 {
 public:
-	constexpr StackString() : StackContainer<
+	COMPILETIMEEVAL StackString() : StackContainer<
 		std::basic_string<char,
 		std::char_traits<char>,
 		StackAllocator<char, stack_capacity> >,
@@ -33,7 +33,7 @@ class StackString16 : public StackContainer<
 	stack_capacity>
 {
 public:
-	constexpr StackString16() : StackContainer<
+	COMPILETIMEEVAL StackString16() : StackContainer<
 		std::basic_string<wchar_t,
 		std::char_traits<wchar_t>,
 		StackAllocator<wchar_t, stack_capacity> >,

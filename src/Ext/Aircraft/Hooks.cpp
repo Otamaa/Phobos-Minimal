@@ -155,7 +155,7 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 	return 0;
 }
 
-constexpr FORCEINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
+COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
 	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
 		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
@@ -321,7 +321,7 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 
 DEFINE_JUMP(VTABLE, 0x7E2268, MiscTools::to_DWORD(&AircraftClass_IFlyControl_IsStrafe));
 
-static FORCEINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
+static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 

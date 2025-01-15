@@ -7,7 +7,7 @@
 
 class Registration
 {
-	constexpr static const wchar_t RegAsm[] = L"C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\RegAsm.exe";
+	COMPILETIMEEVAL static const wchar_t RegAsm[] = L"C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\RegAsm.exe";
 
 	static std::wstring GetSafePath(std::filesystem::path path)
 	{

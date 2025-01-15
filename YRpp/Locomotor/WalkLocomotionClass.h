@@ -5,9 +5,9 @@ class //DECLSPEC_UUID("4A582744-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE WalkLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7F6AC4;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7F69F8;
-	static constexpr reference<CLSID const, 0x7E9A60u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7F6AC4;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7F69F8;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9A60u> const ClassGUID {};
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) override JMP_STD(0x75C7F0);

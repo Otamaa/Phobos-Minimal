@@ -29,13 +29,13 @@ private:
 		wchar_t Text[0x20];
 	};
 
-	static constexpr int Duration = 75;
-	inline static HelperedVector<Item> Data;
+	static COMPILETIMEEVAL int Duration = 75;
+	OPTIONALINLINE static HelperedVector<Item> Data;
 
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 
 public:
-	static inline constexpr void Clear() { Data.clear(); };
+	static OPTIONALINLINE COMPILETIMEEVAL void Clear() { Data.clear(); };
 	static void Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
 	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , const ColorStruct& nOverrideColor = ColorStruct::Empty);
 	static void AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, const ColorStruct& nOverrideColor = ColorStruct::Empty);

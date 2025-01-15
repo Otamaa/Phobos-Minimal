@@ -5,7 +5,7 @@
 DEFINE_BLITTER(BlitTransLucent25)
 {
 public:
-	inline explicit BlitTransLucent25(T* data, WORD mask) noexcept
+	OPTIONALINLINE explicit BlitTransLucent25(T* data, WORD mask) noexcept
 	{
 		PaletteData = data;
 		Mask = mask;

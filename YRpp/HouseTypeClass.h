@@ -16,10 +16,10 @@ class DECLSPEC_UUID("1DD43928-046B-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::HouseType;
-	static constexpr inline DWORD vtable = 0x7EAB58;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7EAB58;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<HouseTypeClass*>, 0xA83C98u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<HouseTypeClass*>, 0xA83C98u> const Array {};
 
 	IMPL_Find(HouseTypeClass)
 

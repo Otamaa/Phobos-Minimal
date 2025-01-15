@@ -18,34 +18,34 @@ class EnumMap
 	using pair_t = std::pair<std::string, TValue>;
 	using container_t = std::vector<pair_t>;
 public:
-	constexpr auto get_key_iterator(const std::string& key) {
+	COMPILETIMEEVAL auto get_key_iterator(const std::string& key) {
 		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 			return EnumCompareMode()(item.first , key);
 		});
 	}
 
-	constexpr void emplace_back(const char* pKey, TValue val) {
+	COMPILETIMEEVAL void emplace_back(const char* pKey, TValue val) {
 		auto back = &values.emplace_back();
 		back->first = pKey;
 		back->second = val;
 	}
 
-	constexpr [[nodiscard]] auto begin() noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto begin() noexcept
 	{
 		return values.begin();
 	}
 
-	constexpr [[nodiscard]] auto begin() const noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto begin() const noexcept
 	{
 		return values.begin();
 	}
 
-	constexpr [[nodiscard]] auto end() noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto end() noexcept
 	{
 		return values.end();
 	}
 
-	constexpr [[nodiscard]] auto end() const noexcept
+	COMPILETIMEEVAL [[nodiscard]] auto end() const noexcept
 	{
 		return values.end();
 	}
@@ -56,12 +56,12 @@ private:
 };
 
 template<typename TEnum> requires std::is_enum_v<TEnum>
-constexpr inline EnumMap<TEnum, EnumCompareMode> GetEnumMapping() {
+COMPILETIMEEVAL OPTIONALINLINE EnumMap<TEnum, EnumCompareMode> GetEnumMapping() {
 	static_assert(true, "Not Implemented!");
 }
 
 template<>
-constexpr inline EnumMap<ExpireWeaponCondition, EnumCompareMode> GetEnumMapping() {
+COMPILETIMEEVAL OPTIONALINLINE EnumMap<ExpireWeaponCondition, EnumCompareMode> GetEnumMapping() {
 	EnumMap<ExpireWeaponCondition, EnumCompareMode> ret;
 	ret.emplace_back("none" , ExpireWeaponCondition::None);
 	ret.emplace_back("expire", ExpireWeaponCondition::Expire);
@@ -73,14 +73,14 @@ constexpr inline EnumMap<ExpireWeaponCondition, EnumCompareMode> GetEnumMapping(
 
 // Unificate enum parsing using this please. -Multfinite
 template<typename TEnum , bool OrOperator = false> requires std::is_enum_v<TEnum>
-constexpr inline bool ParseEnum(const std::string& value, TEnum& result)
+COMPILETIMEEVAL OPTIONALINLINE bool ParseEnum(const std::string& value, TEnum& result)
 {
 	auto mappings = GetEnumMapping<TEnum>();
 	auto iter = mappings.get_key_iterator(value);
 
 	if (iter != mappings.end()) {
 
-		if constexpr (!OrOperator)
+		if COMPILETIMEEVAL (!OrOperator)
 			result = iter->second;
 		else
 			result |= iter->second;

@@ -16,7 +16,7 @@ public:
 	MapRevealer(const CellStruct& cell);
 	MapRevealer(const CellStruct* pCell);
 
-	constexpr const CellStruct& Base() const
+	COMPILETIMEEVAL const CellStruct& Base() const
 	{
 		return this->BaseCell;
 	}
@@ -31,7 +31,7 @@ public:
 
 	void Process1(CellClass* pCell, bool fog, bool add) const;
 
-	constexpr bool IsCellAllowed(const CellStruct& cell) const
+	COMPILETIMEEVAL bool IsCellAllowed(const CellStruct& cell) const
 	{
 		if (this->RequiredChecks)
 		{
@@ -46,7 +46,7 @@ public:
 		return true;
 	}
 
-	constexpr bool IsCellAvailable(const CellStruct& cell) const
+	COMPILETIMEEVAL bool IsCellAvailable(const CellStruct& cell) const
 	{
 		auto const sum = cell.X + cell.Y;
 
@@ -60,27 +60,27 @@ public:
 
 	static bool AffectsHouse(HouseClass* const pHouse);
 
-	static constexpr bool RequiresExtraChecks()
+	static COMPILETIMEEVAL bool RequiresExtraChecks()
 	{
 		return Helpers::Alex::is_any_of(SessionClass::Instance->GameMode, GameMode::LAN, GameMode::Internet) &&
 			SessionClass::Instance->MPGameMode && !SessionClass::Instance->MPGameMode->vt_entry_04();
 	}
 
-	static constexpr CellStruct GetRelation(const CellStruct& offset)
+	static COMPILETIMEEVAL CellStruct GetRelation(const CellStruct& offset)
 	{
 		return{ static_cast<short>(Math::signum(-offset.X)),
 			static_cast<short>(Math::signum(-offset.Y)) };
 	}
 
 private:
-	FORCEINLINE CellStruct TranslateBaseCell(const CoordStruct& coords) const
+	FORCEDINLINE CellStruct TranslateBaseCell(const CoordStruct& coords) const
 	{
 		auto const adjust = (Game::AdjustHeight(coords.Z) / -30) << 8;
 		auto const baseCoords = coords + CoordStruct { adjust, adjust, 0 };
 		return CellClass::Coord2Cell(baseCoords);
 	}
 
-	constexpr CellStruct GetOffset(const CoordStruct& coords, const CellStruct& base) const
+	COMPILETIMEEVAL CellStruct GetOffset(const CoordStruct& coords, const CellStruct& base) const
 	{
 		return base - CellClass::Coord2Cell(coords) - CellStruct { 2, 2 };
 	}

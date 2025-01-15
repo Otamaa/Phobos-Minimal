@@ -884,7 +884,7 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 	const auto pThatShield = pThatTechnoExt->GetShield();
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
-	if constexpr (CheckKeyPress)
+	if COMPILETIMEEVAL (CheckKeyPress)
 	{
 		if (WWKeyboardClass::Instance->IsForceMoveKeyPressed())
 			return { true , -1 };

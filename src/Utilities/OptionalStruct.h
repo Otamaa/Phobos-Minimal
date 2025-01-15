@@ -6,7 +6,7 @@
 template <typename T, bool Persistable = false>
 struct OptionalStruct
 {
-	constexpr OptionalStruct() = default;
+	COMPILETIMEEVAL OptionalStruct() = default;
 	explicit OptionalStruct(T value) noexcept : Value(std::move(value)), HasValue(true) { }
 
 	OptionalStruct& operator= (T value)
@@ -18,46 +18,46 @@ struct OptionalStruct
 
 	~OptionalStruct() noexcept { this->clear(); }
 
-	constexpr OptionalStruct(const OptionalStruct& other) = default;
-	constexpr OptionalStruct& operator=(const OptionalStruct& other) = default;
+	COMPILETIMEEVAL OptionalStruct(const OptionalStruct& other) = default;
+	COMPILETIMEEVAL OptionalStruct& operator=(const OptionalStruct& other) = default;
 
-	constexpr operator T& () noexcept
+	COMPILETIMEEVAL operator T& () noexcept
 	{
 		return this->Value;
 	}
 
-	constexpr operator const T& () const noexcept
+	COMPILETIMEEVAL operator const T& () const noexcept
 	{
 		return this->Value;
 	}
 
-	constexpr void clear()
+	COMPILETIMEEVAL void clear()
 	{
 		this->Value = T();
 		this->HasValue = false;
 	}
 
-	constexpr bool empty() const noexcept
+	COMPILETIMEEVAL bool empty() const noexcept
 	{
 		return !this->HasValue;
 	}
 
-	constexpr explicit operator bool() const noexcept
+	COMPILETIMEEVAL explicit operator bool() const noexcept
 	{
 		return this->HasValue;
 	}
 
-	constexpr bool has_value() const noexcept
+	COMPILETIMEEVAL bool has_value() const noexcept
 	{
 		return this->HasValue;
 	}
 
-	constexpr bool isset() const noexcept
+	COMPILETIMEEVAL bool isset() const noexcept
 	{
 		return this->HasValue;
 	}
 
-	constexpr const T& get() const noexcept
+	COMPILETIMEEVAL const T& get() const noexcept
 	{
 		return this->Value;
 	}
@@ -66,7 +66,7 @@ struct OptionalStruct
 	{
 		this->clear();
 
-		if constexpr (!Persistable)
+		if COMPILETIMEEVAL (!Persistable)
 			return true;
 		else
 		{
@@ -83,7 +83,7 @@ struct OptionalStruct
 	}
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		if constexpr (!Persistable)
+		if COMPILETIMEEVAL (!Persistable)
 			return true;
 		else
 		{

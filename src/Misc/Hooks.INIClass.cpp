@@ -17,7 +17,7 @@
 namespace detail
 {
 	template <>
-	inline bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	OPTIONALINLINE bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (!parser.ReadString(pSection, pKey))
 			return false;
@@ -71,8 +71,8 @@ struct Passthrough {
 
 struct INIInheritance
 {
-	static constexpr const char* const IcludesSection = "$Include";
-	static constexpr int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
+	static COMPILETIMEEVAL const char* const IcludesSection = "$Include";
+	static COMPILETIMEEVAL int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
 	static CCINIClass* LastINIFile;
 	static std::set<std::string> SavedIncludes;
 	static PhobosMap<int, std::string> Inherits;
@@ -186,7 +186,7 @@ struct INIInheritance
 	}
 
 	template<typename T>
-	static inline T ReadTemplate(REGISTERS* R)
+	static OPTIONALINLINE T ReadTemplate(REGISTERS* R)
 	{
 		GET(CCINIClass*, ini, ECX);
 		GET_STACK(char*, section, 0x4);
@@ -201,7 +201,7 @@ struct INIInheritance
 	}
 
 	template<typename T>
-	static inline T* ReadTemplatePtr(REGISTERS* R)
+	static OPTIONALINLINE T* ReadTemplatePtr(REGISTERS* R)
 	{
 		GET(CCINIClass*, ini, ECX);
 		GET_STACK(T*, result, 0x4);
@@ -217,7 +217,7 @@ struct INIInheritance
 
 	// for some reason, WW passes the default locomotor by value
 	template<>
-	static inline CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
+	static OPTIONALINLINE CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
 	{
 		GET(CCINIClass*, ini, ECX);
 		GET_STACK(CLSID*, result, 0x4);
@@ -355,7 +355,7 @@ DEFINE_JUMP(CALL, 0x545FD4, MiscTools::to_DWORD(&IsometricTileTypeClass_ReadINI_
 //DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 //{
 //	GET(wchar_t*, buffer, ECX);
-//	constexpr size_t BufferSize = 0x80;
+//	COMPILETIMEEVAL size_t BufferSize = 0x80;
 //
 //	if (buffer[0] != L'{')
 //	{

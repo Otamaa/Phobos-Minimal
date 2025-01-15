@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransDarkenZRead)
 {
 public:
-	inline explicit RLEBlitTransDarkenZRead(WORD mask) noexcept
+	OPTIONALINLINE explicit RLEBlitTransDarkenZRead(WORD mask) noexcept
 	{
 		Mask = mask;
 	}

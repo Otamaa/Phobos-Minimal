@@ -14,13 +14,13 @@ namespace detail
 		 (type)(interpolate((double)first, (double)(second), percentage, mode));
 
 	template <typename T>
-	constexpr FORCEINLINE T interpolate(T first, T second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL FORCEDINLINE T interpolate(T first, T second, double percentage, InterpolationMode mode)
 	{
 		return first;
 	}
 
 	template <>
-	constexpr FORCEINLINE double interpolate<double>(double first, double second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL FORCEDINLINE double interpolate<double>(double first, double second, double percentage, InterpolationMode mode)
 	{
 		double result = first;
 
@@ -37,13 +37,13 @@ namespace detail
 	}
 
 	template <>
-	constexpr FORCEINLINE int interpolate<int>(int first, int second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL FORCEDINLINE int interpolate<int>(int first, int second, double percentage, InterpolationMode mode)
 	{
 		return FROM_DOUBLE(int, first, second, percentage, mode);
 	}
 
 	template <>
-	constexpr FORCEINLINE ColorStruct interpolate<ColorStruct>(ColorStruct first, ColorStruct second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL FORCEDINLINE ColorStruct interpolate<ColorStruct>(ColorStruct first, ColorStruct second, double percentage, InterpolationMode mode)
 	{
 		BYTE r = FROM_DOUBLE(BYTE, first.R, second.R, percentage, mode);
 		BYTE g = FROM_DOUBLE(BYTE, first.G, second.G, percentage, mode);

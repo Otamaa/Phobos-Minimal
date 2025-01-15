@@ -27,7 +27,7 @@
 #pragma pack(push, 1)
 struct GlobalPacket_NetMessage
 {
-	static constexpr reference<GlobalPacket_NetMessage, 0xA8D638u> const Instance {};
+	static COMPILETIMEEVAL reference<GlobalPacket_NetMessage, 0xA8D638u> const Instance {};
 
 	int Command;
 	wchar_t PlayerName[21];

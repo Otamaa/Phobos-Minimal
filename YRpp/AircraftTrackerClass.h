@@ -11,7 +11,7 @@ class CellClass;
 class AircraftTrackerClass
 {
 public:
-	static constexpr reference<AircraftTrackerClass, 0x887888u> Instance { };
+	static COMPILETIMEEVAL reference<AircraftTrackerClass, 0x887888u> Instance { };
 
 	FootClass* Get() { JMP_THIS(0x4137A0); }
 

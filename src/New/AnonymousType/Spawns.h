@@ -5,7 +5,7 @@
 
 class Spawns
 {
-	static constexpr std::string title = "Spawns.";
+	static COMPILETIMEEVAL std::string title = "Spawns.";
 public:
 	bool Enable { false };
 

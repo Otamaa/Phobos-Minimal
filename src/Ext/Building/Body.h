@@ -16,10 +16,10 @@
 class BuildingExtData final
 {
 public:
-	static constexpr size_t Canary = 0x87654321;
+	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
 
-	static constexpr size_t ExtOffset = 0x71C; //ares
+	static COMPILETIMEEVAL size_t ExtOffset = 0x71C; //ares
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -87,7 +87,7 @@ public:
 	void UpdateAutoSellTimer();
 	void UpdateSpyEffecAnimDisplay();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(BuildingExtData) -
 			(4u //AttachedToObject
@@ -124,7 +124,7 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
-	inline static std::vector<BuildingExtData*> Pool;
+	OPTIONALINLINE static std::vector<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
 
 	BuildingExtData* AllocateUnchecked(BuildingClass* key)
@@ -214,15 +214,15 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	FORCEINLINE BuildingClass* _AsBuilding() const {
+	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;
 	}
 
-	FORCEINLINE BuildingExtData* _GetExtData() {
+	FORCEDINLINE BuildingExtData* _GetExtData() {
 		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
 	}
 
-	FORCEINLINE BuildingTypeExtData* _GetTypeExtData() {
+	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {
 		return ((FakeBuildingTypeClass*)this->Type)->_GetExtData();
 	}
 };

@@ -7,7 +7,7 @@
 // replace the name 0x8255C8u
 
 #ifndef AdditionalSequence
-static constexpr const char* Sequences_ident[] = {
+static COMPILETIMEEVAL const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
 		"Prone",
@@ -54,7 +54,7 @@ static constexpr const char* Sequences_ident[] = {
 		"SecondaryWetAttack"
 };
 
-static constexpr std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
+static COMPILETIMEEVAL std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
 	{1, 0, 0, 0},
 	{1, 0, 0, 0},
 	{1, 0, 0, 6},
@@ -105,7 +105,7 @@ static constexpr std::array<DoStruct, std::size(Sequences_ident)> Sequences_Mast
 
 struct NewDoType
 {
-	constexpr void FORCEINLINE Initialize()
+	COMPILETIMEEVAL void FORCEDINLINE Initialize()
 	{
 		for (auto at = this->begin(); at != this->end(); ++at)
 		{
@@ -121,28 +121,28 @@ struct NewDoType
 		}
 	}
 
-	constexpr FORCEINLINE static const char* GetSequenceName(DoType sequence)
+	COMPILETIMEEVAL FORCEDINLINE static const char* GetSequenceName(DoType sequence)
 	{
 		return Sequences_ident[(int)sequence];
 	}
 
-	constexpr FORCEINLINE DoInfoStruct GetSequence(DoType sequence) const
+	COMPILETIMEEVAL FORCEDINLINE DoInfoStruct GetSequence(DoType sequence) const
 	{
 		return this->Data[(int)sequence];
 	}
 
-	constexpr FORCEINLINE DoInfoStruct& GetSequence(DoType sequence)
+	COMPILETIMEEVAL FORCEDINLINE DoInfoStruct& GetSequence(DoType sequence)
 	{
 		return this->Data[(int)sequence];
 	}
 
-	constexpr FORCEINLINE static DoStruct* GetSequenceData(DoType sequence)
+	COMPILETIMEEVAL FORCEDINLINE static DoStruct* GetSequenceData(DoType sequence)
 	{
 		return const_cast<DoStruct*>(&Sequences_Master[(int)sequence]);
 	}
 
-	constexpr FORCEINLINE  DoInfoStruct* begin() { return std::begin(Data); }
-	constexpr FORCEINLINE  DoInfoStruct* end() { return std::end(Data); }
+	COMPILETIMEEVAL FORCEDINLINE  DoInfoStruct* begin() { return std::begin(Data); }
+	COMPILETIMEEVAL FORCEDINLINE  DoInfoStruct* end() { return std::end(Data); }
 
 	DoInfoStruct Data[std::size(Sequences_ident)];
 };

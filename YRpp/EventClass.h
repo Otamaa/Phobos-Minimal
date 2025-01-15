@@ -92,7 +92,7 @@ union EventData
 		int Unknown_C; //4
 		BYTE ExtraData[0x58];
 	} Unknown_LongLong;
-	//static inline constexpr size_t TotalSizeOfAdditinalData_1 = sizeof(EventData::Unknown_LongLong);
+	//static OPTIONALINLINE COMPILETIMEEVAL size_t TotalSizeOfAdditinalData_1 = sizeof(EventData::Unknown_LongLong);
 	static_assert(sizeof(Unknown_LongLong) == 0x68);
 
 	struct Unknown_Tuple
@@ -149,19 +149,19 @@ public:
 class EventClass
 {
 public:
-	static constexpr reference<const char*, 0x82091C, 18> const EventNames {};
-	static constexpr reference<const char*, 0x82091C, 27> const AddEventNames {};
-	static constexpr reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
+	static COMPILETIMEEVAL reference<const char*, 0x82091C, 18> const EventNames {};
+	static COMPILETIMEEVAL reference<const char*, 0x82091C, 27> const AddEventNames {};
+	static COMPILETIMEEVAL reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
 
-	static constexpr reference<EventList<0x80>, 0xA802C8> OutList {};
+	static COMPILETIMEEVAL reference<EventList<0x80>, 0xA802C8> OutList {};
 
 	// If the event is a MegaMission, then add it to this list
-	static constexpr reference<EventList<0x100>, 0xA83ED0> MegaMissionList {};
-	static constexpr reference<EventList<0x4000>, 0x8B41F8> DoList {};
+	static COMPILETIMEEVAL reference<EventList<0x100>, 0xA83ED0> MegaMissionList {};
+	static COMPILETIMEEVAL reference<EventList<0x4000>, 0x8B41F8> DoList {};
 
 	// this points to CRCs from 0x100 last frames
-	static constexpr reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
-	static constexpr reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
+	static COMPILETIMEEVAL reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
+	static COMPILETIMEEVAL reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
 
 	static bool AddEvent(const EventClass* pEvent)
@@ -339,7 +339,7 @@ struct EventClassMainData
 };
 #pragma pack(pop)
 
-static inline constexpr size_t TotalSizeOfMaindata = sizeof(EventClassMainData);
-static inline constexpr size_t TotalSizeOfAdditinalData = sizeof(EventData);
+static OPTIONALINLINE COMPILETIMEEVAL size_t TotalSizeOfMaindata = sizeof(EventClassMainData);
+static OPTIONALINLINE COMPILETIMEEVAL size_t TotalSizeOfAdditinalData = sizeof(EventData);
 
 static_assert(sizeof(EventClass) == (TotalSizeOfMaindata + TotalSizeOfAdditinalData));

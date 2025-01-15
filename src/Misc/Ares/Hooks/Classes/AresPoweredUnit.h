@@ -10,21 +10,21 @@ class AresPoweredUnit
 	bool Powered;
 public:
 
-	static constexpr int ScanInterval = 15;
+	static COMPILETIMEEVAL int ScanInterval = 15;
 
 	bool IsPoweredBy(HouseClass* const pOwner) const;
 	void PowerUp();
 	bool PowerDown();
 	bool Update();
 
-	constexpr inline bool IsPowered() const {
+	COMPILETIMEEVAL OPTIONALINLINE bool IsPowered() const {
 		return this->Powered;
 	}
 
-	constexpr AresPoweredUnit(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
+	COMPILETIMEEVAL AresPoweredUnit(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
 	{ }
 
-	constexpr ~AresPoweredUnit() = default;
+	COMPILETIMEEVAL ~AresPoweredUnit() = default;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{

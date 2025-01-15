@@ -31,9 +31,9 @@ class DECLSPEC_UUID("CF56B38A-240D-11D2-817C-006008055BB5")
 {
 public:
 
-	static constexpr reference<TacticalClass*, 0x887324u> const Instance{};
-	static constexpr reference<BuildingClass*, 0x88098Cu> const DisplayPendingObject{};
-	static	constexpr reference<RectangleStruct, 0xB0CE28u> const view_bound { };
+	static COMPILETIMEEVAL reference<TacticalClass*, 0x887324u> const Instance{};
+	static COMPILETIMEEVAL reference<BuildingClass*, 0x88098Cu> const DisplayPendingObject{};
+	static	COMPILETIMEEVAL reference<RectangleStruct, 0xB0CE28u> const view_bound { };
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6DBCE0);
@@ -61,32 +61,32 @@ public:
 		{ JMP_THIS(0x6D6590); }
 
 	// returns whether coords are visible at the moment
-	constexpr bool IsCoordsToClientVisible(CoordStruct const& coords) const
+	COMPILETIMEEVAL bool IsCoordsToClientVisible(CoordStruct const& coords) const
 	{
 		Point2D point = CoordsToScreen(coords) - this->TacticalPos;
 		return point.X >= -360 && point.X <= view_bound->Width + 360
 			&& point.Y >= -180 && point.Y <= view_bound->Height + 180;
 	}
 
-	constexpr bool IsCoordsToClientVisible(CoordStruct const* coords) const
+	COMPILETIMEEVAL bool IsCoordsToClientVisible(CoordStruct const* coords) const
 	{
 		Point2D point = CoordsToScreen(*coords) - this->TacticalPos;
 		return point.X >= -360 && point.X <= view_bound->Width + 360
 			&& point.Y >= -180 && point.Y <= view_bound->Height + 180;
 	}
 
-   constexpr Point2D CoordsToView(CoordStruct const& coords) {
+   COMPILETIMEEVAL Point2D CoordsToView(CoordStruct const& coords) {
         return this->CoordsToClient(coords);
     }
 
-	constexpr std::pair<Point2D, bool> GetCoordsToClientSituation(const CoordStruct& coords) const {
+	COMPILETIMEEVAL std::pair<Point2D, bool> GetCoordsToClientSituation(const CoordStruct& coords) const {
 		Point2D point = CoordsToScreen(coords) - this->TacticalPos;
 		const bool visible = point.X >= -360 && point.X <= view_bound->Width + 360
 			&& point.Y >= -180 && point.Y <= view_bound->Height + 180;
 		return { point, visible };
 	}
 
-	constexpr Point2D CoordsToClient(const CoordStruct& coords) const {
+	COMPILETIMEEVAL Point2D CoordsToClient(const CoordStruct& coords) const {
 		return CoordsToScreen(coords) - this->TacticalPos;
 	}
 
@@ -100,13 +100,13 @@ public:
 	//	return Buffer;
 	//}
 
-	constexpr static Point2D CoordsToScreen(const CoordStruct& coord)
+	COMPILETIMEEVAL static Point2D CoordsToScreen(const CoordStruct& coord)
 	{
 		auto [x, y] = AdjustForZShapeMove(coord.X, coord.Y);
 		return { x, y - Game::AdjustHeight(coord.Z) };
 	}
 
-	constexpr static Point2D CoordsToScreen(const CoordStruct* pPoord)
+	COMPILETIMEEVAL static Point2D CoordsToScreen(const CoordStruct* pPoord)
 	{
 		auto [x, y] = AdjustForZShapeMove(pPoord->X, pPoord->Y);
 		return { x, y - Game::AdjustHeight(pPoord->Z) };
@@ -128,7 +128,7 @@ public:
 	//Point2D * AdjustForZShapeMove(Point2D* pDest, Point2D* pClient)
 	//	{ JMP_THIS(0x6D1FE0); }
 
-	constexpr static Point2D AdjustForZShapeMove(int x, int y)
+	COMPILETIMEEVAL static Point2D AdjustForZShapeMove(int x, int y)
 	{
 		return {
 			(-Unsorted::CellWidthInPixels * y / 2 + Unsorted::CellWidthInPixels * x / 2) / Unsorted::LeptonsPerCell,
@@ -179,7 +179,7 @@ public:
 	void DrawWallPlacement(bool bBlit, CellStruct nLoc)
 		{ JMP_THIS(0x6D5C50); }
 
-	constexpr RectangleStruct VisibleArea() const
+	COMPILETIMEEVAL RectangleStruct VisibleArea() const
 	{ return { TacticalPos.X ,TacticalPos.Y , LastTacticalPos.X ,LastTacticalPos.Y }; }
 
 	Point2D* ApplyOffsetPixel_(Point2D* pRet ,Point2D* pOffset)

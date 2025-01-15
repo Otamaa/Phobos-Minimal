@@ -10,7 +10,7 @@
 class VoxelAnimTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xAAAEEEEE;
+	static COMPILETIMEEVAL size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
 
 	base_type* AttachedToObject {};
@@ -37,7 +37,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(VoxelAnimTypeExtData) -
 			(4u //AttachedToObject

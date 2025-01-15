@@ -88,17 +88,17 @@ class MixFileClass : public Node<MixFileClass>
 	};
 
 public:
-	static constexpr reference<List<MixFileClass*>, 0xABEFD8u> const MIXes{};
+	static COMPILETIMEEVAL reference<List<MixFileClass*>, 0xABEFD8u> const MIXes{};
 
-	static constexpr reference<DynamicVectorClass<MixFileClass*>, 0x884D90u> const Array{};
-	static constexpr reference<DynamicVectorClass<MixFileClass*>, 0x884DC0u> const Array_Alt{};
-	static constexpr reference<DynamicVectorClass<MixFileClass*>, 0x884DA8u> const Maps{};
-	static constexpr reference<DynamicVectorClass<MixFileClass*>, 0x884DE0u> const Movies{};
-	static constexpr reference<PKey*, 0x886980u> const Key {};
-	static constexpr reference<MixFileClass, 0x884DD8u> const MULTIMD{};
-	static constexpr reference<MixFileClass, 0x884DDCu> const MULTI{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884D90u> const Array{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DC0u> const Array_Alt{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DA8u> const Maps{};
+	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DE0u> const Movies{};
+	static COMPILETIMEEVAL reference<PKey*, 0x886980u> const Key {};
+	static COMPILETIMEEVAL reference<MixFileClass, 0x884DD8u> const MULTIMD{};
+	static COMPILETIMEEVAL reference<MixFileClass, 0x884DDCu> const MULTI{};
 
-	static constexpr reference<GenericMixFiles, 0x884DF8u> const Generics{};
+	static COMPILETIMEEVAL reference<GenericMixFiles, 0x884DF8u> const Generics{};
 
 	static bool Bootstrap()
 		{ JMP_THIS(0x5301A0); }

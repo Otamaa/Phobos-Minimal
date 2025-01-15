@@ -31,7 +31,7 @@ static_assert(sizeof(GameTypePreferencesStruct) == 0x7C, " Invalid Size ! ");
 #pragma pack(push, 1)
 struct NodeNameType
 {
-	static constexpr constant_ptr<DynamicVectorClass<NodeNameType*>,0xA8DA74> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<NodeNameType*>,0xA8DA74> const Array{};
 
 public:
 
@@ -59,7 +59,7 @@ static_assert(sizeof(NodeNameType) == 0x85);
 
 struct GlobalPacketType
 {
-	static constexpr reference<GlobalPacketType, 0xA8D671> const Instance {};
+	static COMPILETIMEEVAL reference<GlobalPacketType, 0xA8D671> const Instance {};
 
 public:
 
@@ -604,7 +604,7 @@ static_assert(sizeof(MultiMission) == 0x1BC, " Invalid Size ! ");
 class SessionClass
 {
 public:
-	static constexpr reference<SessionClass, 0xA8B238u> const Instance {};
+	static COMPILETIMEEVAL reference<SessionClass, 0xA8B238u> const Instance {};
 
 	static bool IsSkirmish()
 	{

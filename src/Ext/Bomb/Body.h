@@ -8,7 +8,7 @@ class WeaponTypeClass;
 class BombExtData final
 {
 public:
-	static constexpr size_t Canary = 0x87659781;
+	static COMPILETIMEEVAL size_t Canary = 0x87659781;
 	using base_type = BombClass;
 
 	base_type* AttachedToObject {};
@@ -20,7 +20,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(BombExtData) -
 			(4u //AttachedToObject

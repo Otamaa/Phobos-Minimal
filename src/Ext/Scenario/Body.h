@@ -12,7 +12,7 @@ struct ExtendedVariable
 	char Name[0x100];
 	int Value;
 
-	inline bool Load(PhobosStreamReader& stm, bool registerForChange)
+	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return
 			stm
@@ -22,7 +22,7 @@ struct ExtendedVariable
 			;
 	}
 
-	inline bool Save(PhobosStreamWriter& stm) const
+	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const
 	{
 		return
 			stm
@@ -36,9 +36,9 @@ struct ExtendedVariable
 class ScenarioExtData final
 {
 private:
-	inline static std::unique_ptr<ScenarioExtData> Data;
+	OPTIONALINLINE static std::unique_ptr<ScenarioExtData> Data;
 public:
-	static constexpr size_t Canary = 0xABCD1595;
+	static COMPILETIMEEVAL size_t Canary = 0xABCD1595;
 	using base_type = ScenarioClass;
 
 	base_type* AttachedToObject {};
@@ -88,8 +88,8 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	inline static IStream* g_pStm;
-	inline static bool CellParsed;
+	OPTIONALINLINE static IStream* g_pStm;
+	OPTIONALINLINE static bool CellParsed;
 
 	static void Allocate(ScenarioClass* pThis);
 	static void Remove(ScenarioClass* pThis);
@@ -110,7 +110,7 @@ public:
 	static void LoadVariablesToFile(bool isGlobal);
 
 	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
-	inline static bool UpdateLightSources;
+	OPTIONALINLINE static bool UpdateLightSources;
 };
 
 class FakeScenarioClass : public ScenarioClass

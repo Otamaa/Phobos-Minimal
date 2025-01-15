@@ -25,93 +25,93 @@ public:
 
 	//operator overloads
 	//addition
-	constexpr Vector2D operator+(const Vector2D& a) const
+	COMPILETIMEEVAL Vector2D operator+(const Vector2D& a) const
 	{
 		return Vector2D{ X + a.X, Y + a.Y };
 	}
 
-	constexpr FORCEINLINE bool IsEmpty() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsEmpty() const
 	{
 		return (*this) == Empty;
 	}
 
 	//addition
-	constexpr Vector2D& operator+=(const Vector2D& a)
+	COMPILETIMEEVAL Vector2D& operator+=(const Vector2D& a)
 	{
 		X += a.X;
 		Y += a.Y;
 		return *this;
 	}
 	//substraction
-	constexpr Vector2D operator-(const Vector2D& a) const
+	COMPILETIMEEVAL Vector2D operator-(const Vector2D& a) const
 	{
 		return Vector2D{ X - a.X, Y - a.Y };
 	}
 	//substraction
-	constexpr Vector2D& operator-=(const Vector2D& a)
+	COMPILETIMEEVAL Vector2D& operator-=(const Vector2D& a)
 	{
 		X -= a.X;
 		Y -= a.Y;
 		return *this;
 	}
 	//negation
-	constexpr Vector2D operator-() const
+	COMPILETIMEEVAL Vector2D operator-() const
 	{
 		return Vector2D{ -X, -Y };
 	}
 	//equality
-	constexpr bool operator==(const Vector2D& a) const
+	COMPILETIMEEVAL bool operator==(const Vector2D& a) const
 	{
 		return (X == a.X && Y == a.Y);
 	}
 	//unequality
-	constexpr bool operator!=(const Vector2D& a) const
+	COMPILETIMEEVAL bool operator!=(const Vector2D& a) const
 	{
 		return (X != a.X || Y != a.Y);
 	}
 	//scalar multiplication
-	constexpr Vector2D operator*(double r) const
+	COMPILETIMEEVAL Vector2D operator*(double r) const
 	{
 		return Vector2D{ static_cast<T>(X * r), static_cast<T>(Y * r) };
 	}
 
 	//scalar multiplication
-	constexpr Vector2D& operator*=(double r)
+	COMPILETIMEEVAL Vector2D& operator*=(double r)
 	{
 		X *= r;
 		Y *= r;
 		return *this;
 	}
 
-	//inline T& operator[](int i) { return (&X)[i]; }
-	//inline const T& operator[](int i) const { return (&X)[i]; }
+	//OPTIONALINLINE T& operator[](int i) { return (&X)[i]; }
+	//OPTIONALINLINE const T& operator[](int i) const { return (&X)[i]; }
 
-	constexpr  T& at(int i) { return (&X)[i]; }
-	constexpr  const T& at(int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL  T& at(int i) { return (&X)[i]; }
+	COMPILETIMEEVAL  const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
-	constexpr double operator*(const Vector2D& a) const {
+	COMPILETIMEEVAL double operator*(const Vector2D& a) const {
 		return static_cast<double>(X) * a.X + static_cast<double>(Y) * a.Y;
 	}
 
-	constexpr   bool IsValid() const { return *this != (Vector2D<T>::Empty); }
+	COMPILETIMEEVAL   bool IsValid() const { return *this != (Vector2D<T>::Empty); }
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr   double pow() const {
+	COMPILETIMEEVAL   double pow() const {
 		return (double)(X * X) + (double)(Y * Y);
 	}
 
-	inline double Length() const {
+	OPTIONALINLINE double Length() const {
 		return std::sqrt(this->pow());
 	}
 
-	inline double DistanceFrom(const Vector2D<T>& that) const{
+	OPTIONALINLINE double DistanceFrom(const Vector2D<T>& that) const{
 		return (*this - that).Length();
 	}
 
-	constexpr   double DistanceFromSquared(const Vector2D<T>& that) const {
+	COMPILETIMEEVAL   double DistanceFromSquared(const Vector2D<T>& that) const {
 		return (that - *this).pow();
 	}
 
@@ -132,20 +132,20 @@ public:
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X,Y,Z;
 
-	constexpr FORCEINLINE bool IsEmpty() const
+	COMPILETIMEEVAL FORCEDINLINE bool IsEmpty() const
 	{
 		return (*this) != Empty;
 	}
 
 	//operator overloads
 	//addition
-	constexpr Vector3D operator+(const Vector3D& a) const
+	COMPILETIMEEVAL Vector3D operator+(const Vector3D& a) const
 	{
 		return Vector3D{ X + a.X, Y + a.Y, Z + a.Z };
 	}
 
 	//addition
-	constexpr Vector3D& operator+=(const Vector3D& a)
+	COMPILETIMEEVAL Vector3D& operator+=(const Vector3D& a)
 	{
 		X += a.X;
 		Y += a.Y;
@@ -154,13 +154,13 @@ public:
 	}
 
 	//substraction
-	constexpr Vector3D operator-(const Vector3D& a) const
+	COMPILETIMEEVAL Vector3D operator-(const Vector3D& a) const
 	{
 		return Vector3D{ X - a.X, Y - a.Y, Z - a.Z };
 	}
 
 	//substraction
-	constexpr Vector3D& operator-=(const Vector3D& a)
+	COMPILETIMEEVAL Vector3D& operator-=(const Vector3D& a)
 	{
 		X -= a.X;
 		Y -= a.Y;
@@ -169,25 +169,25 @@ public:
 	}
 
 	//negation
-	constexpr Vector3D operator-() const
+	COMPILETIMEEVAL Vector3D operator-() const
 	{
 		return Vector3D{ -X, -Y, -Z };
 	}
 
 	//equality
-	constexpr bool operator==(const Vector3D& a) const
+	COMPILETIMEEVAL bool operator==(const Vector3D& a) const
 	{
 		return (X == a.X && Y == a.Y && Z == a.Z);
 	}
 
 	//unequality
-	constexpr bool operator!=(const Vector3D& a) const
+	COMPILETIMEEVAL bool operator!=(const Vector3D& a) const
 	{
 		return (X != a.X || Y != a.Y || Z != a.Z);
 	}
 
 	//scalar division
-	constexpr Vector3D operator/(double r) const {
+	COMPILETIMEEVAL Vector3D operator/(double r) const {
 		return {
 			static_cast<T>(X / r),
 			static_cast<T>(Y / r),
@@ -195,7 +195,7 @@ public:
 		};
 	}
 
-	//constexpr Vector3D operator/(T nval) const {
+	//COMPILETIMEEVAL Vector3D operator/(T nval) const {
 	//	return {
 	//		static_cast<T>(X / nval),
 	//		static_cast<T>(Y / nval),
@@ -204,7 +204,7 @@ public:
 	//}
 
 	//scalar division
-	constexpr Vector3D& operator/=(double r) {
+	COMPILETIMEEVAL Vector3D& operator/=(double r) {
 		X /= r;
 		Y /= r;
 		Z /= r;
@@ -212,7 +212,7 @@ public:
 	}
 
 	//scalar multiplication
-	constexpr Vector3D operator*(double r) const
+	COMPILETIMEEVAL Vector3D operator*(double r) const
 	{
 		return Vector3D{
 			static_cast<T>(X * r),
@@ -221,7 +221,7 @@ public:
 	}
 
 	//scalar multiplication
-	constexpr Vector3D& operator*=(double r)
+	COMPILETIMEEVAL Vector3D& operator*=(double r)
 	{
 		X *= r;
 		Y *= r;
@@ -229,48 +229,48 @@ public:
 		return *this;
 	}
 
-	constexpr T& operator[](int i) { return (&X)[i]; }
-	constexpr const T& operator[](int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL T& operator[](int i) { return (&X)[i]; }
+	COMPILETIMEEVAL const T& operator[](int i) const { return (&X)[i]; }
 
-	constexpr  T& at(int i) { return (&X)[i]; }
-	constexpr  const T& at(int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL  T& at(int i) { return (&X)[i]; }
+	COMPILETIMEEVAL  const T& at(int i) const { return (&X)[i]; }
 
 	//vector multiplication
-	constexpr double operator*(const Vector3D& a) const
+	COMPILETIMEEVAL double operator*(const Vector3D& a) const
 	{
 		return static_cast<double>(X * a.X)
 			+ static_cast<double>(Y * a.Y)
 			+ static_cast<double>(Z * a.Z);
 	}
 
-	constexpr bool IsValid() const { return *this != (Vector3D<T>::Empty); }
+	COMPILETIMEEVAL bool IsValid() const { return *this != (Vector3D<T>::Empty); }
 
-	constexpr Vector3D<T> CrossProduct(const Vector3D<T>& a) const {
+	COMPILETIMEEVAL Vector3D<T> CrossProduct(const Vector3D<T>& a) const {
 		return {
 			Y * a.Z - Z * a.Y,
 			Z * a.X - X * a.Z,
 			X * a.Y - Y * a.X };
 	}
 
-	constexpr bool IsCollinearTo(const Vector3D<T>& a) const {
+	COMPILETIMEEVAL bool IsCollinearTo(const Vector3D<T>& a) const {
 		return CrossProduct(a).pow() == 0;
 	}
 
 
 //=============================Special cases=========================================
-	constexpr   double powXY() const {
+	COMPILETIMEEVAL   double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}
 
-	inline double LengthXY() const {
+	OPTIONALINLINE double LengthXY() const {
 		return std::sqrt(this->powXY());
 	}
 
-	inline double DistanceFromXY(const Vector3D<T>& that) const{
+	OPTIONALINLINE double DistanceFromXY(const Vector3D<T>& that) const{
 		return (that - *this).LengthXY();
 	}
 
-	constexpr   double DistanceFromSquaredXY(const Vector3D<T>& that) const {
+	COMPILETIMEEVAL   double DistanceFromSquaredXY(const Vector3D<T>& that) const {
 		return (that - *this).powXY();
 	}
 
@@ -278,19 +278,19 @@ public:
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr double pow() const {
+	COMPILETIMEEVAL double pow() const {
 		return double(X * X) + double(Y * Y) + double(Z * Z);
 	}
 
-	inline double Length() const {
+	OPTIONALINLINE double Length() const {
 		return std::sqrt(this->pow());
 	}
 
-	inline double DistanceFrom(const Vector3D<T>& that) const{
+	OPTIONALINLINE double DistanceFrom(const Vector3D<T>& that) const{
 		return (that - *this).Length();
 	}
 
-	constexpr   double DistanceFromSquared(const Vector3D<T>& that) const {
+	COMPILETIMEEVAL   double DistanceFromSquared(const Vector3D<T>& that) const {
 		return (that - *this).pow();
 	}
 
@@ -313,21 +313,21 @@ public:
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y, Z, W;
 
-	constexpr bool operator==(const Vector4D &b)
+	COMPILETIMEEVAL bool operator==(const Vector4D &b)
 	{
 		Vector4D a = *this;
 		return ((a[0] == b.at(0)) && (a[1] == b.at(1)) && (a[2] == b.at(2)) && (a[3] == b.at(3)));
 	}
 
-	constexpr bool operator!=(const Vector4D &b)
+	COMPILETIMEEVAL bool operator!=(const Vector4D &b)
 	{
 		Vector4D a = *this;
 		return ((a[0] != b.at(0)) || (a[1] != b.at(1)) || (a[2] != b.at(2)) || (a[3] != b.at(3)));
 	}
 
-	constexpr  bool IsValid() const { return *this != (Vector4D<T>::Empty); }
+	COMPILETIMEEVAL  bool IsValid() const { return *this != (Vector4D<T>::Empty); }
 
-	//inline Vector4D& operator=(const Vector4D &v)
+	//OPTIONALINLINE Vector4D& operator=(const Vector4D &v)
 	//{
 	//	X = v.X;
 	//	Y = v.Y;
@@ -336,7 +336,7 @@ public:
 	//	return *this;
 	//}
 
-	constexpr Vector4D &operator+=(const Vector4D &v)
+	COMPILETIMEEVAL Vector4D &operator+=(const Vector4D &v)
 	{
 		X += v.X;
 		Y += v.Y;
@@ -344,7 +344,7 @@ public:
 		W += v.W;
 		return *this;
 	}
-	constexpr Vector4D &operator-=(const Vector4D &v)
+	COMPILETIMEEVAL Vector4D &operator-=(const Vector4D &v)
 	{
 		X -= v.X;
 		Y -= v.Y;
@@ -352,7 +352,7 @@ public:
 		W += v.W;
 		return *this;
 	}
-	constexpr Vector4D &operator*=(float k)
+	COMPILETIMEEVAL Vector4D &operator*=(float k)
 	{
 		X = X * k;
 		Y = Y * k;
@@ -360,7 +360,7 @@ public:
 		W = W * k;
 		return *this;
 	}
-	constexpr   Vector4D &operator/=(float k)
+	COMPILETIMEEVAL   Vector4D &operator/=(float k)
 	{
 		k = 1.0f / k;
 		X = X * k;
@@ -370,12 +370,12 @@ public:
 		return *this;
 	}
 
-	constexpr Vector4D operator*(float k)
+	COMPILETIMEEVAL Vector4D operator*(float k)
 	{
 		return Vector4D{ (X * k), (Y * k), (Z * k), (W * k) };
 	}
 
-	constexpr Vector4D operator/(float k)
+	COMPILETIMEEVAL Vector4D operator/(float k)
 	{
 		float ook = 1.0f / k;
 		Vector4D nThis = *this;
@@ -383,48 +383,48 @@ public:
 	}
 
 
-	constexpr Vector4D operator+(const Vector4D &b)
+	COMPILETIMEEVAL Vector4D operator+(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return Vector4D{ nThis.at(0) + b.at(0),nThis.at(1) + b.at(1),nThis.at(2) + b.at(2),nThis.at(3) + b.at(3) };
 	}
 
 
-	constexpr Vector4D operator-(const Vector4D &b)
+	COMPILETIMEEVAL Vector4D operator-(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return Vector4D{ nThis.at(0) - b.at(0), nThis.at(1) - b.at(1), nThis.at(2) - b.at(2), nThis.at(3) - b.at(3) };
 	}
 
-	constexpr double operator*(const Vector4D &b)
+	COMPILETIMEEVAL double operator*(const Vector4D &b)
 	{
 		Vector4D nThis = *this;
 		return nThis.at(0) * b.at(0) + nThis.at(1) * b.at(1) + nThis.at(2) * b.at(2) + nThis.at(3) * b.at(3);
 	}
 
-	constexpr T& operator[](int i) { return (&X)[i]; }
-	constexpr const T& operator[](int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL T& operator[](int i) { return (&X)[i]; }
+	COMPILETIMEEVAL const T& operator[](int i) const { return (&X)[i]; }
 
-	constexpr  T& at(int i) { return (&X)[i]; }
-	constexpr  const T& at(int i) const { return (&X)[i]; }
+	COMPILETIMEEVAL  T& at(int i) { return (&X)[i]; }
+	COMPILETIMEEVAL  const T& at(int i) const { return (&X)[i]; }
 
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
-	constexpr   double pow() const {
+	COMPILETIMEEVAL   double pow() const {
 		return double(X * X) + double(Y * Y) + double(Z * Z) + double(W * W);
 	}
 
-	inline double Length() const {
+	OPTIONALINLINE double Length() const {
 		return std::sqrt(this->pow());
 	}
 
-	inline double DistanceFrom(const Vector4D<T>& that) const{
+	OPTIONALINLINE double DistanceFrom(const Vector4D<T>& that) const{
 		return (that - *this).Length();
 	}
 
-	constexpr   double DistanceFromSquared(const Vector4D<T>& that) const {
+	COMPILETIMEEVAL   double DistanceFromSquared(const Vector4D<T>& that) const {
 		return (that - *this).pow();
 	}
 

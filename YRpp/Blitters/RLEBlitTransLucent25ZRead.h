@@ -5,7 +5,7 @@
 DEFINE_RLE_BLITTER(RLEBlitTransLucent25ZRead)
 {
 public:
-	inline explicit RLEBlitTransLucent25ZRead(T* data, WORD mask) noexcept
+	OPTIONALINLINE explicit RLEBlitTransLucent25ZRead(T* data, WORD mask) noexcept
 	{
 		PaletteData = data;
 		Mask = mask;

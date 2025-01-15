@@ -6,7 +6,7 @@
 struct Theater	//US English spelling to keep it consistent with the game
 {
 public:
-	static constexpr reference<Theater, 0x7E1B78u, 6u> const Array{};
+	static COMPILETIMEEVAL reference<Theater, 0x7E1B78u, 6u> const Array{};
 
 	static Theater& GetTheater(const TheaterType& theater) {
 		return Array[static_cast<int>(theater)];

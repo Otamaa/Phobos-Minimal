@@ -146,7 +146,7 @@ static void RecalculateCells(BuildingClass* pThis)
 		{
 			pCell->RecalcAttributes(DWORD(-1));
 
-			if constexpr (remove)
+			if COMPILETIMEEVAL (remove)
 				map->ResetZones(cell);
 			else
 				map->RecalculateZones(cell);

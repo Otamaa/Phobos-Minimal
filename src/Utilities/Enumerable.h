@@ -21,7 +21,7 @@ template <typename T> class Enumerable
 	typedef std::vector<std::unique_ptr<T>> container_t;
 public:
 
-	inline static container_t Array;
+	OPTIONALINLINE static container_t Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
@@ -59,7 +59,7 @@ public:
 		return Array[nResult].get();
 	}
 
-	static inline constexpr int FindIndexFromType(T* pType)
+	static OPTIONALINLINE COMPILETIMEEVAL int FindIndexFromType(T* pType)
 	{
 		if (pType) {
 			for (size_t i = 0; i < Array.size(); ++i) {
@@ -71,7 +71,7 @@ public:
 		return -1;
 	}
 
-	static inline constexpr T* TryFindFromIndex(int Idx) {
+	static OPTIONALINLINE COMPILETIMEEVAL T* TryFindFromIndex(int Idx) {
 
 		if (size_t(Idx) > Array.size())
 			return nullptr;
@@ -80,13 +80,13 @@ public:
 	}
 
 	// Warning : no Idx validation !
-	static inline constexpr T* FindFromIndex(int Idx)
+	static OPTIONALINLINE COMPILETIMEEVAL T* FindFromIndex(int Idx)
 	{
 		return Array[static_cast<size_t>(Idx)].get();
 	}
 
 	// With Idx validation ,return to the first item if Idx is invalid
-	static inline constexpr T* FindFromIndexFix(int Idx)
+	static OPTIONALINLINE COMPILETIMEEVAL T* FindFromIndexFix(int Idx)
 	{
 		if (Array.empty())
 			return nullptr;
@@ -94,17 +94,17 @@ public:
 		return Array[size_t(Idx) > Array.size() ? 0 : Idx].get();
 	}
 
-	static inline constexpr T* Allocate(const char* Title)
+	static OPTIONALINLINE COMPILETIMEEVAL T* Allocate(const char* Title)
 	{
 		AllocateNoCheck(Title);
 		return Array.back().get();
 	}
 
-	static inline constexpr void AllocateNoCheck(const char* Title) {
+	static OPTIONALINLINE COMPILETIMEEVAL void AllocateNoCheck(const char* Title) {
 		Array.emplace_back(std::move(std::make_unique<T>(Title)));
 	}
 
-	static inline constexpr T* FindOrAllocate(const char* Title)
+	static OPTIONALINLINE COMPILETIMEEVAL T* FindOrAllocate(const char* Title)
 	{
 		if (T* find = Find(Title))
 			return find;
@@ -112,7 +112,7 @@ public:
 		return Allocate(Title);
 	}
 
-	static inline constexpr void Clear()
+	static OPTIONALINLINE COMPILETIMEEVAL void Clear()
 	{
 		Array.clear();
 	}
@@ -243,7 +243,7 @@ public:
 
 	std::string Name {};
 
-	constexpr Enumerable(const char* name) : Name {}
+	COMPILETIMEEVAL Enumerable(const char* name) : Name {}
 	{
 		Name = name;
 	}

@@ -7,7 +7,7 @@
 class TerrainTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0xBEE78007;
+	static COMPILETIMEEVAL size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
 
 	base_type* AttachedToObject {};
@@ -55,15 +55,15 @@ public:
 	int GetCellsPerAnim();
 	void PlayDestroyEffects(CoordStruct coords);
 
-	constexpr int GetLightIntensity() const
+	COMPILETIMEEVAL int GetLightIntensity() const
 	{
 		auto const Intense = this->LightIntensity.Get(0.0);
 		return (int)(Intense * 1000.0);
 	}
 
-	constexpr TintStruct GetLightTint() const
+	COMPILETIMEEVAL TintStruct GetLightTint() const
 	{
-		constexpr auto ToInt = [](double nInput)
+		COMPILETIMEEVAL auto ToInt = [](double nInput)
 			{ return std::clamp(((int)(nInput * 1000.0)), -2000, 2000); };
 
 		return TintStruct
@@ -74,7 +74,7 @@ public:
 		};
 	}
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TerrainTypeExtData) -
 			(4u //AttachedToObject

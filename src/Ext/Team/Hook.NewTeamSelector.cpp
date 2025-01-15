@@ -29,49 +29,49 @@ struct TriggerElementWeight
 	TeamCategory Category { TeamCategory::None };
 
 	//need to define a == operator so it can be used in array classes
-	constexpr bool operator==(const TriggerElementWeight& other) const
+	COMPILETIMEEVAL bool operator==(const TriggerElementWeight& other) const
 	{
 		return (Trigger == other.Trigger && Weight == other.Weight && Category == other.Category);
 	}
 
 	//unequality
-	constexpr bool operator!=(const TriggerElementWeight& other) const
+	COMPILETIMEEVAL bool operator!=(const TriggerElementWeight& other) const
 	{
 		return (Trigger != other.Trigger || Weight != other.Weight || Category == other.Category);
 	}
 
-	constexpr bool operator<(const TriggerElementWeight& other) const
+	COMPILETIMEEVAL bool operator<(const TriggerElementWeight& other) const
 	{
 		return (Weight < other.Weight);
 	}
 
-	constexpr bool operator<(const double other) const
+	COMPILETIMEEVAL bool operator<(const double other) const
 	{
 		return (Weight < other);
 	}
 
-	constexpr bool operator>(const TriggerElementWeight& other) const
+	COMPILETIMEEVAL bool operator>(const TriggerElementWeight& other) const
 	{
 		return (Weight > other.Weight);
 	}
 
-	constexpr bool operator>(const double other) const
+	COMPILETIMEEVAL bool operator>(const double other) const
 	{
 		return (Weight > other);
 	}
 
-	constexpr bool operator==(const double other) const
+	COMPILETIMEEVAL bool operator==(const double other) const
 	{
 		return (Weight == other);
 	}
 
-	constexpr bool operator!=(const double other) const
+	COMPILETIMEEVAL bool operator!=(const double other) const
 	{
 		return (Weight != other);
 	}
 };
 
-constexpr bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno)
 		return false;
@@ -85,7 +85,7 @@ constexpr bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAb
 
 }
 
-constexpr bool IsValidTechno(TechnoClass* pTechno)
+COMPILETIMEEVAL bool IsValidTechno(TechnoClass* pTechno)
 {
 	if (!pTechno)
 		return false;
@@ -106,7 +106,7 @@ enum class ComparatorOperandTypes
 	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
 };
 
-constexpr void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
+COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
 {
 	switch ((ComparatorOperandTypes)cond.ComparatorOperand)
 	{

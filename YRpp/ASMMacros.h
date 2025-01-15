@@ -193,7 +193,7 @@ MSVC++
 	}
 
 #define DEFINE_IMPLEMENTATION_INLINE(prototype, address, ...) \
-	inline __declspec(naked) \
+	OPTIONALINLINE __declspec(naked) \
 	prototype \
 	{ \
 		_asm { mov eax, address } \

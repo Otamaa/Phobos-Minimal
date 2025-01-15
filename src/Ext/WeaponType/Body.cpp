@@ -132,7 +132,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
 	if (this->RockerPitch > 0.0f) {
-		constexpr auto halfpi = (Math::PI / 2);
+		COMPILETIMEEVAL auto halfpi = (Math::PI / 2);
 		this->RockerPitch = 1.0f * halfpi;
 	}
 
@@ -153,7 +153,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Wave_Intent.Read(exINI, pSection, "Wave.Intensity");
 	}
 
-	static constexpr std::array<const char* const, sizeof(this->Wave_Reverse)> WaveReverseAgainst
+	static COMPILETIMEEVAL std::array<const char* const, sizeof(this->Wave_Reverse)> WaveReverseAgainst
 	{
 		{   { "Wave.ReverseAgainstVehicles" }, { "Wave.ReverseAgainstAircraft" },
 			{ "Wave.ReverseAgainstBuildings" }, { "Wave.ReverseAgainstInfantry" },

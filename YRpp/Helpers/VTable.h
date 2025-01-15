@@ -1,5 +1,6 @@
 #pragma once
 #include <type_traits>
+#include <Base/Always.h>
 
 // IMO under no circumstances should we set the vtable address for a class from vanilla game in general,
 // we do this only for pointers
@@ -7,18 +8,18 @@
 namespace VTable
 {
 	template<typename T>
-	constexpr inline void Set(const T ptr, uintptr_t addr, size_t offset = 0)
+	COMPILETIMEEVAL OPTIONALINLINE void Set(const T ptr, uintptr_t addr, size_t offset = 0)
 	{
 		static_assert(std::is_pointer<T>::value, "T must be a pointer");
 		reinterpret_cast<uintptr_t*>(ptr)[offset] = addr;
 	}
 
 	template<typename T>
-	constexpr inline uintptr_t Get(const T ptr, size_t offset = 0)
+	COMPILETIMEEVAL OPTIONALINLINE uintptr_t Get(const T ptr, size_t offset = 0)
 	{
 		static_assert(std::is_pointer<T>::value, "T must be a pointer");
 
-		if constexpr (std::is_volatile_v<std::remove_pointer_t<T>> || std::is_const_v<std::remove_pointer_t<T>>)
+		if COMPILETIMEEVAL (std::is_volatile_v<std::remove_pointer_t<T>> || std::is_const_v<std::remove_pointer_t<T>>)
 			return reinterpret_cast<const volatile uintptr_t*>(ptr)[offset];
 		else
 			return reinterpret_cast<uintptr_t*>(ptr)[offset];

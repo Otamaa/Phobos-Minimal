@@ -67,17 +67,17 @@ class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Cell;
-	static constexpr inline DWORD vtable = 0x7E4EEC;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E4EEC;
 
 	// the height of a bridge in leptons
-	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
-	static constexpr reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
-	static constexpr reference<const char* const, 0x81DA28u , 12u> const LandTypeToStrings {};
-	static constexpr reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
-	static constexpr reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};
-	static constexpr reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
-	static constexpr reference<int, 0xAA0E28> const BridgeSetIdx {};
-	static constexpr reference<int, 0xABAD30> const BridgeMiddle1Idx {};
+	static COMPILETIMEEVAL constant_ptr<CellClass,0xABDC50u> const Instance{};
+	static COMPILETIMEEVAL reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
+	static COMPILETIMEEVAL reference<const char* const, 0x81DA28u , 12u> const LandTypeToStrings {};
+	static COMPILETIMEEVAL reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
+	static COMPILETIMEEVAL reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};
+	static COMPILETIMEEVAL reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
+	static COMPILETIMEEVAL reference<int, 0xAA0E28> const BridgeSetIdx {};
+	static COMPILETIMEEVAL reference<int, 0xABAD30> const BridgeMiddle1Idx {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x485200);
@@ -99,7 +99,7 @@ public:
 	static std::array<const DWORD, 21> TileArray;
 
 	//Using typedef resulting on dll address wtf , so this weird code
-	//Don't inline this , it will messup the stacks
+	//Don't OPTIONALINLINE this , it will messup the stacks
 
 	bool NOINLINE TileIs(TileType tileType) const
 	{
@@ -211,7 +211,7 @@ public:
 	RectangleStruct* OverlayShapeRect(RectangleStruct* pRet)
 		{ JMP_THIS(0x47FDE0); }
 
-	FORCEINLINE RectangleStruct GetOverlayShapeRect()
+	FORCEDINLINE RectangleStruct GetOverlayShapeRect()
 	{
 		RectangleStruct nBuffer;
 		this->OverlayShapeRect(&nBuffer);
@@ -253,7 +253,7 @@ public:
 	bool IsClearToMove(SpeedType loco, bool ignoreinfantry, bool ignorevehicles, ZoneType zone, MovementZone check, int level, bool alt) const
 		{ JMP_THIS(0x4834A0); }
 
-	FORCEINLINE bool IsClearToMove(SpeedType speedType, MovementZone movementZone, bool ignoreInfantry = false, bool ignoreVehicles = false, int level = -1) {
+	FORCEDINLINE bool IsClearToMove(SpeedType speedType, MovementZone movementZone, bool ignoreInfantry = false, bool ignoreVehicles = false, int level = -1) {
 		return IsClearToMove(speedType, ignoreInfantry, ignoreInfantry, ZoneType::None, movementZone, level, (bool)(this->Flags & CellFlags::CenterRevealed));
 	}
 	// those unks are passed to TechnoClass::Scatter in that same order
@@ -368,13 +368,13 @@ public:
 		{ JMP_THIS(0x485460); }
 	//
 	// cloak generators
-	constexpr FORCEINLINE bool CloakGen_InclHouse(unsigned int idx) const
+	COMPILETIMEEVAL FORCEDINLINE bool CloakGen_InclHouse(unsigned int idx) const
 		{ return ((1 << idx) & this->CloakedByHouses) != 0; }
 
-	constexpr FORCEINLINE void CloakGen_AddHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void CloakGen_AddHouse(unsigned int idx)
 		{ this->CloakedByHouses |= 1 << idx; }
 
-	constexpr FORCEINLINE void CloakGen_RemHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void CloakGen_RemHouse(unsigned int idx)
 		{ this->CloakedByHouses &= ~(1 << idx); }
 
 	// unused, returns 0 if that house doesn't have cloakgens covering this cell or Player has sensors over this cell
@@ -386,27 +386,27 @@ public:
 		{ JMP_THIS(0x4870D0); }
 		//{ return this->SensorsOfHouses[idx] > 0; }
 
-	constexpr FORCEINLINE void Sensors_AddOfHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void Sensors_AddOfHouse(unsigned int idx)
 		{ ++this->SensorsOfHouses[idx]; }
 
-	constexpr FORCEINLINE void Sensors_RemOfHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void Sensors_RemOfHouse(unsigned int idx)
 		{ --this->SensorsOfHouses[idx]; }
 
 	// disguise sensors
-	constexpr FORCEINLINE bool DisguiseSensors_InclHouse(unsigned int idx) const
+	COMPILETIMEEVAL FORCEDINLINE bool DisguiseSensors_InclHouse(unsigned int idx) const
 		{ return this->DisguiseSensorsOfHouses[idx] > 0; }
 
-	constexpr FORCEINLINE void DisguiseSensors_AddOfHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void DisguiseSensors_AddOfHouse(unsigned int idx)
 		{ ++this->DisguiseSensorsOfHouses[idx]; }
 
-	constexpr FORCEINLINE void DisguiseSensors_RemOfHouse(unsigned int idx)
+	COMPILETIMEEVAL FORCEDINLINE void DisguiseSensors_RemOfHouse(unsigned int idx)
 		{ --this->DisguiseSensorsOfHouses[idx]; }
 
 	// Rad Sites
-	constexpr FORCEINLINE void SetRadSite(RadSiteClass* pRad)
+	COMPILETIMEEVAL FORCEDINLINE void SetRadSite(RadSiteClass* pRad)
 		{ this->RadSite = pRad; }
 
-	constexpr FORCEINLINE RadSiteClass* GetRadSite() const
+	COMPILETIMEEVAL FORCEDINLINE RadSiteClass* GetRadSite() const
 		{ return this->RadSite; }
 
 	bool IsRadiated() const
@@ -422,43 +422,43 @@ public:
 		{ JMP_THIS(0x487D00); }
 
 	// helper
-	constexpr FORCEINLINE bool ContainsBridge() const
+	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
-	constexpr FORCEINLINE bool ContainsBridgeEx() const
+	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridgeEx() const
 		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
-	FORCEINLINE bool ContainsBridgeBody() const
+	FORCEDINLINE bool ContainsBridgeBody() const
 		{ return (this->Flags & CellFlags::BridgeBody) != CellFlags::Empty; }
 
 	// helper mimicking game's behaviour
-	FORCEINLINE ObjectClass* GetContent() const
+	FORCEDINLINE ObjectClass* GetContent() const
 		{ return this->ContainsBridge() ? this->AltObject : this->FirstObject; }
 
-	FORCEINLINE ObjectClass* GetContentB() const
+	FORCEDINLINE ObjectClass* GetContentB() const
 	{ return (this->ContainsBridgeEx()) ? this->AltObject : this->FirstObject; }
 
-	FORCEINLINE ObjectClass* GetContent(int z) const
+	FORCEDINLINE ObjectClass* GetContent(int z) const
 	{ return this->ContainsBridge() || z >= (Unsorted::LevelHeight * (this->Level + 4)) ? this->AltObject : this->FirstObject; }
 
-	constexpr FORCEINLINE int GetLevelFrom(CellClass const* const	pSource) const
+	COMPILETIMEEVAL FORCEDINLINE int GetLevelFrom(CellClass const* const	pSource) const
 	{ return (this->Level + (((unsigned int)this->Flags >> 6) & 4) - (((unsigned int)pSource->Flags >> 6) & 4) - pSource->Level); }
 
-	constexpr FORCEINLINE int GetLevel() const
+	COMPILETIMEEVAL FORCEDINLINE int GetLevel() const
 	{ return this->Level + (this->ContainsBridge() ? Unsorted::BridgeLevels : 0); }
 
-	static constexpr FORCEINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0 , bool snap = true) {
+	static COMPILETIMEEVAL FORCEDINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0 , bool snap = true) {
 		if(snap)
 			return { (cell.X * 256) + 128  , (cell.Y * 256) + 128 ,z };
 		else
 			return { (cell.X * 256)  , (cell.Y * 256) ,z };
 	}
 
-	static constexpr FORCEINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
+	static COMPILETIMEEVAL FORCEDINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 
-    constexpr CoordStruct FixHeight(CoordStruct crd) const
+    COMPILETIMEEVAL CoordStruct FixHeight(CoordStruct crd) const
 	{
 		if(this->ContainsBridge()) {
 			crd.Z += Unsorted::BridgeHeight;
@@ -466,7 +466,7 @@ public:
 		return crd;
 	}
 
-	constexpr void FixHeight(CoordStruct* pCrd) const {
+	COMPILETIMEEVAL void FixHeight(CoordStruct* pCrd) const {
 		if (this->ContainsBridge()) {
 			pCrd->Z += Unsorted::BridgeHeight;
 		}
@@ -497,7 +497,7 @@ public:
 	CoordStruct* FindInfantrySubposition(CoordStruct* pOutBuffer, const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords)
 		{ JMP_THIS(0x481180); }
 
-	CoordStruct FORCEINLINE FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
+	CoordStruct FORCEDINLINE FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
 		CoordStruct outBuffer;
 		this->FindInfantrySubposition(&outBuffer, coords, ignoreContents, alt, useCellCoords);
 		outBuffer.Z = Zcoords;
@@ -554,7 +554,7 @@ public:
 	unsigned int MinimapCellColor(void* a1, bool a2 = false) const
 		{ JMP_THIS(0x47BDB0); }
 
-	constexpr FORCEINLINE ObjectClass* Cell_Occupier(bool alt = false) const
+	COMPILETIMEEVAL FORCEDINLINE ObjectClass* Cell_Occupier(bool alt = false) const
 		{ return alt ? AltObject : FirstObject; }
 
 	unsigned int ReduceWall(int nDamage = -1) const { JMP_THIS(0x480CB0); }
@@ -575,12 +575,12 @@ public:
 	bool HasTiberium() const
 		{ JMP_THIS(0x487DF0); }
 
-	constexpr FORCEINLINE bool HasWeed() const
+	COMPILETIMEEVAL FORCEDINLINE bool HasWeed() const
 		{ return LandType == LandType::Weeds; }
 
-	constexpr FORCEINLINE bool operator != (const CellClass & cell) const { return cell.MapCoords.DifferTo(MapCoords); }
-	constexpr FORCEINLINE bool operator == (const CellClass & cell) const { return cell.MapCoords.SimilarTo(MapCoords); }
-	constexpr FORCEINLINE bool IsValidMapCoords() const  { return MapCoords.IsValid(); }
+	COMPILETIMEEVAL FORCEDINLINE bool operator != (const CellClass & cell) const { return cell.MapCoords.DifferTo(MapCoords); }
+	COMPILETIMEEVAL FORCEDINLINE bool operator == (const CellClass & cell) const { return cell.MapCoords.SimilarTo(MapCoords); }
+	COMPILETIMEEVAL FORCEDINLINE bool IsValidMapCoords() const  { return MapCoords.IsValid(); }
 	int GetCliffIndex_() const { JMP_THIS(0x487D50); }
 	CellClass* GetBulletObstacleCell(CellClass* cell, CoordStruct coord, BulletTypeClass* bullet, HouseClass* house) const { JMP_THIS(0x4CC360); }
 
@@ -592,7 +592,7 @@ public:
 		JMP_THIS(0x486E30);
 	}
 
-	constexpr CellClass* GetBridgeOwner() const {
+	COMPILETIMEEVAL CellClass* GetBridgeOwner() const {
 		if (this->ContainsBridge()) {
 			return this->ContainsBridgeBody() ? const_cast<CellClass*>(this) : this->BridgeOwnerCell;
 		}
@@ -600,7 +600,7 @@ public:
 		return nullptr;
 	}
 
-	constexpr bool Is_Overlay_Bridge() const { return this->OverlayTypeIndex == 24 || this->OverlayTypeIndex == 25; }
+	COMPILETIMEEVAL bool Is_Overlay_Bridge() const { return this->OverlayTypeIndex == 24 || this->OverlayTypeIndex == 25; }
 
 protected:
 	//Constructor

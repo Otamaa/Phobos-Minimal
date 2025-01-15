@@ -89,7 +89,7 @@ enum class FileErrorType : int
 class NOVTABLE FileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7F08BC;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F08BC;
 	static const char* const FileErrorToString[];
 
 	//Destructor
@@ -157,7 +157,7 @@ static_assert(sizeof(FileClass) == 0x8, "Invalid size.");
 class NOVTABLE RawFileClass : public FileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7F0904;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F0904;
 
 	//Destructor
 	virtual ~RawFileClass() {JMP_THIS(0x65CA00);}
@@ -232,8 +232,8 @@ static_assert(sizeof(RawFileClass) == 0x24, "Invalid size.");
 class NOVTABLE BufferIOFileClass : public RawFileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7E3A2C;
-	static constexpr int MinimumBufferSize = 1024;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3A2C;
+	static COMPILETIMEEVAL int MinimumBufferSize = 1024;
 	//Destructor
 	virtual ~BufferIOFileClass() { JMP_THIS(0x431B80); }
 
@@ -305,7 +305,7 @@ static_assert(sizeof(BufferIOFileClass) == 0x54, "Invalid size.");
 class NOVTABLE CDFileClass : public BufferIOFileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7E1668;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E1668;
 
 	//Destructor
 	virtual ~CDFileClass() { JMP_THIS(0x535A60); }
@@ -375,7 +375,7 @@ static_assert(sizeof(CDFileClass) == 0x58, "Invalid size.");
 class NOVTABLE CCFileClass : public CDFileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7E16B0;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E16B0;
 
 	//Destructor
 	virtual ~CCFileClass() { JMP_THIS(0x535A70); }
@@ -454,7 +454,7 @@ static_assert(sizeof(CCFileClass) == 0x6C, "Invalid size.");
 class NOVTABLE RAMFileClass : public FileClass
 {
 public:
-	static constexpr inline DWORD vtable = 0x7F0874;
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F0874;
 
 	virtual ~RAMFileClass() { JMP_THIS(0x65C2A0); }
 

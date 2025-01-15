@@ -91,7 +91,7 @@ public:
 		IsKeyed = true;
 	}
 
-	inline int Encrypt(void const* plaintext, int length, void* cyphertext)
+	OPTIONALINLINE int Encrypt(void const* plaintext, int length, void* cyphertext)
 	{
 		if (plaintext == 0 || length == 0)
 		{
@@ -133,7 +133,7 @@ public:
 		return this->Encrypt(plaintext, length, cyphertext);
 	}
 
-	inline int Decrypt(void const* cyphertext, int length, void* plaintext)
+	OPTIONALINLINE int Decrypt(void const* cyphertext, int length, void* plaintext)
 	{
 		if (cyphertext == 0 || length == 0)
 		{
@@ -192,7 +192,7 @@ private:
 		BYTES_PER_BLOCK = 8
 	};
 
-	constexpr void Sub_Key_Encrypt(unsigned long& left, unsigned long& right)
+	COMPILETIMEEVAL void Sub_Key_Encrypt(unsigned long& left, unsigned long& right)
 	{
 		Int l;
 		l.Long = left;
@@ -211,7 +211,7 @@ private:
 		right = l.Long ^ P_Encrypt[(int)Defines::ROUNDS];
 	}
 
-	constexpr void Process_Block(void const* plaintext, void* cyphertext, unsigned long const* ptable)
+	COMPILETIMEEVAL void Process_Block(void const* plaintext, void* cyphertext, unsigned long const* ptable)
 	{
 		unsigned char const* source = (unsigned char const*)plaintext;
 		Int left;
@@ -250,13 +250,13 @@ private:
 	}
 
 private:
-	static constexpr unsigned long const P_Init[(int)Defines::ROUNDS + 2] {
+	static COMPILETIMEEVAL unsigned long const P_Init[(int)Defines::ROUNDS + 2] {
 		0x243F6A88U,0x85A308D3U,0x13198A2EU,0x03707344U,0xA4093822U,0x299F31D0U,0x082EFA98U,0xEC4E6C89U,
 		0x452821E6U,0x38D01377U,0xBE5466CFU,0x34E90C6CU,0xC0AC29B7U,0xC97C50DDU,0x3F84D5B5U,0xB5470917U,
 		0x9216D5D9U,0x8979FB1BU
 	};
 
-	static constexpr unsigned long const S_Init[4][UCHAR_MAX + 1] {
+	static COMPILETIMEEVAL unsigned long const S_Init[4][UCHAR_MAX + 1] {
 	{
 		0xD1310BA6U,0x98DFB5ACU,0x2FFD72DBU,0xD01ADFB7U,0xB8E1AFEDU,0x6A267E96U,0xBA7C9045U,0xF12C7F99U,
 		0x24A19947U,0xB3916CF7U,0x0801F2E2U,0x858EFC16U,0x636920D8U,0x71574E69U,0xA458FEA3U,0xF4933D7EU,

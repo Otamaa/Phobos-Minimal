@@ -5,10 +5,10 @@ class  //DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 	JumpjetLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7ECE34;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7ECD68;
-	static constexpr inline uintptr_t IPiggy_vtable = 0x7ECD44;
-	static constexpr reference<CLSID const, 0x7E9AC0u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7ECE34;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7ECD68;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t IPiggy_vtable = 0x7ECD44;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9AC0u> const ClassGUID {};
 
 	enum State
 	{

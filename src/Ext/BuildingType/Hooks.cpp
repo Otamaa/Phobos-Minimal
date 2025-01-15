@@ -79,7 +79,7 @@ DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 	return 0;
 }
 
-bool FORCEINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, int nHouse, CellStruct* pPlace, CellStruct* pTry)
+bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, int nHouse, CellStruct* pPlace, CellStruct* pTry)
 {
 	if (nHouse != HouseClass::CurrentPlayer->ArrayIndex
 	  || Unsorted::ArmageddonMode

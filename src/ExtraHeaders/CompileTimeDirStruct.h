@@ -4,12 +4,12 @@
 
 struct CTimeDirStruct
 {
-	constexpr CTimeDirStruct() noexcept = default;
-	constexpr CTimeDirStruct(int Raw) noexcept :
+	COMPILETIMEEVAL CTimeDirStruct() noexcept = default;
+	COMPILETIMEEVAL CTimeDirStruct(int Raw) noexcept :
 		Raw { (unsigned short)Raw }
 	{ }
 
-	constexpr CTimeDirStruct(const size_t bits, const DirType value) noexcept :
+	COMPILETIMEEVAL CTimeDirStruct(const size_t bits, const DirType value) noexcept :
 		Raw { 0 }
 	{ 
 		Raw = (unsigned short)(TranslateFixedPoint::CompileTime(bits, 16u, (size_t)value));

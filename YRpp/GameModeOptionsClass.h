@@ -20,7 +20,7 @@ class GameModeOptionsClass
 {
 public:
 	// this is the same as SessionClass::Instance->Config
-	static constexpr reference<GameModeOptionsClass, 0xA8B250u> const Instance{};
+	static COMPILETIMEEVAL reference<GameModeOptionsClass, 0xA8B250u> const Instance{};
 
 	int MPModeIndex;
 	int ScenarioIndex;

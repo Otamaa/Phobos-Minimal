@@ -22,7 +22,7 @@ public:
 		T type { args... };
 		memcpy(&event.Data.nothing, &type, T::size());
 
-		if constexpr (timestamp)
+		if COMPILETIMEEVAL (timestamp)
 			return EventClass::AddEventWithTimeStamp(&event);
 		else
 			return EventClass::AddEvent(&event);
@@ -32,12 +32,12 @@ public:
 	{
 		TrenchRedirectClick(CellStruct* target, BuildingClass* source);
 
-		static inline constexpr size_t size() { return sizeof(TrenchRedirectClick); }
-		static inline constexpr EventType AsEventType() {
+		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(TrenchRedirectClick); }
+		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() {
 			return (EventType)Events::TrenchRedirectClick;
 		}
 
-		static inline constexpr const char* name() { return "TrenchRedirectClick"; }
+		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "TrenchRedirectClick"; }
 
 		static void Raise(BuildingClass* Source, CellStruct* Target);
 		static void Respond(EventClass* Event);
@@ -50,18 +50,18 @@ public:
 	{
 		ProtocolZero(char maxahead, uint8_t latencylevel);
 
-		static inline constexpr size_t size() { return sizeof(ProtocolZero); }
-		static inline constexpr EventType AsEventType()
+		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(ProtocolZero); }
+		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType()
 		{
 			return (EventType)Events::ProtocolZero;
 		}
 
-		static inline constexpr const char* name() { return "ProtocolZero"; }
+		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "ProtocolZero"; }
 
 		static void Raise();
 		static void Respond(EventClass* Event);
 
-		static constexpr int SendResponseTimeInterval = 30;
+		static COMPILETIMEEVAL int SendResponseTimeInterval = 30;
 
 		static bool Enable;
 		static unsigned char MaxLatencyLevel;
@@ -75,12 +75,12 @@ public:
 
 	struct FirewallToggle
 	{
-		static inline constexpr size_t size() { return sizeof(FirewallToggle); }
-		static inline constexpr EventType AsEventType() {
+		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(FirewallToggle); }
+		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() {
 			return (EventType)Events::FirewallToggle;
 		}
 
-		static inline constexpr const char* name() { return "FirewallToggle"; }
+		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "FirewallToggle"; }
 
 		static void Raise(HouseClass* Source);
 		static void Respond(EventClass* Event);
@@ -88,7 +88,7 @@ public:
 		TargetClass dummy; //not really used actually
 	};
 
-	static constexpr size_t GetDataSize(EventType type)
+	static COMPILETIMEEVAL size_t GetDataSize(EventType type)
 	{
 		if (type <= EventType::ABANDON_ALL) // default event
 			return EventClass::EventLength[(uint8_t)type];
@@ -106,7 +106,7 @@ public:
 		}
 	}
 
-	static constexpr const char* GetEventNames(Events type)
+	static COMPILETIMEEVAL const char* GetEventNames(Events type)
 	{
 		switch (type)
 		{
@@ -141,7 +141,7 @@ public:
 		}
 	}
 
-	static constexpr bool IsValidType(Events type)
+	static COMPILETIMEEVAL bool IsValidType(Events type)
 	{
 		return (type >= Events::First && type <= Events::Last);
 	}

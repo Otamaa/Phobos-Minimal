@@ -9,7 +9,7 @@
 // provides storage for a csf label with automatic lookup.
 class CSFText
 {
-	static constexpr const size_t Capacity = 0x20;
+	static COMPILETIMEEVAL const size_t Capacity = 0x20;
 public:
 	CSFText() noexcept { }
 	explicit CSFText(nullptr_t) noexcept { }
@@ -42,10 +42,10 @@ public:
 	}
 
 	template<bool check = true>
-	void FORCEINLINE PrintAsMessage(int colorScheme) const
+	void FORCEDINLINE PrintAsMessage(int colorScheme) const
 	{
 
-		if constexpr (check)
+		if COMPILETIMEEVAL (check)
 		{
 			if (this->empty())
 				return;
@@ -54,12 +54,12 @@ public:
 		MessageListClass::Instance->PrintMessage(this->Text, RulesClass::Instance->MessageDelay, colorScheme);
 	}
 
-	constexpr operator const wchar_t* () const
+	COMPILETIMEEVAL operator const wchar_t* () const
 	{
 		return this->Text;
 	}
 
-	constexpr bool empty() const
+	COMPILETIMEEVAL bool empty() const
 	{
 		return !this->Text || !*this->Text;
 	}

@@ -68,7 +68,7 @@ public:
 	class ExtData final : public Extension<TActionClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x87154321;
+		static COMPILETIMEEVAL size_t Canary = 0x87154321;
 		using base_type = TActionClass;
 
 	public:

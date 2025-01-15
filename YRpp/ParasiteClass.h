@@ -12,7 +12,7 @@ class DECLSPEC_UUID("1D016B81-B24B-11D3-BE16-00104B62A16C")
 public:
 	static const AbstractType AbsID = AbstractType::Parasite;
 
-	static constexpr constant_ptr<DynamicVectorClass<ParasiteClass*>, 0xAC4910u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ParasiteClass*>, 0xAC4910u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6296D0);

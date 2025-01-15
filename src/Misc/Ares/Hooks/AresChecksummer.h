@@ -6,7 +6,7 @@ class Checksummer
 {
 	static const size_t Size = 4;
 public:
-	static constexpr reference<unsigned int, 0x81F7B4, 256> const Table {};
+	static COMPILETIMEEVAL reference<unsigned int, 0x81F7B4, 256> const Table {};
 
 	Checksummer() : Value(0), ByteIndex(0)
 	{
@@ -138,7 +138,7 @@ protected:
 		}
 	}
 
-	FORCEINLINE void AddInline(BYTE value)
+	FORCEDINLINE void AddInline(BYTE value)
 	{
 		// clear old data
 		if (this->ByteIndex == 0)
@@ -157,7 +157,7 @@ protected:
 		}
 	}
 
-	FORCEINLINE DWORD GetValueInline() const
+	FORCEDINLINE DWORD GetValueInline() const
 	{
 		// nothing to check
 		if (!this->ByteIndex)
@@ -172,7 +172,7 @@ protected:
 		return Process(this->Bytes, Size, this->Value);
 	}
 
-	FORCEINLINE void CommitInline()
+	FORCEDINLINE void CommitInline()
 	{
 		this->Value = this->GetValueInline();
 		this->ByteIndex = 0;

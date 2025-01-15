@@ -36,8 +36,8 @@ public:
 	static const AbstractType AbsID = AbstractType::ParticleType;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<ParticleTypeClass*>, 0xA83D98u> const Array {};
-	static constexpr reference<const char*, 0x8370BC, 5u> const BehavesString {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ParticleTypeClass*>, 0xA83D98u> const Array {};
+	static COMPILETIMEEVAL reference<const char*, 0x8370BC, 5u> const BehavesString {};
 
 	IMPL_Find(ParticleTypeClass)
 

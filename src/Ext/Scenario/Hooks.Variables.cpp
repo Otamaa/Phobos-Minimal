@@ -168,7 +168,7 @@ DEFINE_HOOK(0x6876CE, ReadScenarioINI_Inlined_ReadGlobalVariables, 0x9)
 
 	ScenarioExtData::Instance()->ReadVariables(true, pINI);
 
-	// Stupid inline
+	// Stupid OPTIONALINLINE
 	R->ESI(GameMode::Campaign);
 
 	return 0x68773F;

@@ -19,7 +19,7 @@ struct MessageArrayStruct
 class MessageListClass
 {
 public:
-	static constexpr reference<MessageListClass, 0xA8BC60u> const Instance{};
+	static COMPILETIMEEVAL reference<MessageListClass, 0xA8BC60u> const Instance{};
 
 	// if pLabel is given, the message will be {$pLabel}:{$pMessage}
 	// else it will be just {$pMessage}

@@ -14,7 +14,7 @@ public:
 	static const AbstractType AbsID = AbstractType::TagType;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<TagTypeClass*>, 0xB0E780u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TagTypeClass*>, 0xB0E780u> const Array {};
 
 	IMPL_Find(TagTypeClass)
 

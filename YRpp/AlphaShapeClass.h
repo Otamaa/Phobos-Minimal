@@ -15,10 +15,10 @@ class DECLSPEC_UUID("623C7584-74E7-11D2-B8F5-006008C809ED")
 {
 public:
 	static const AbstractType AbsID = AbstractType::AlphaShape;
-	static constexpr reference2D<char, 0x88A118u, 256, 256> const ShapeArray{};
+	static COMPILETIMEEVAL reference2D<char, 0x88A118u, 256, 256> const ShapeArray{};
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<AlphaShapeClass*>, 0x88A0F0u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AlphaShapeClass*>, 0x88A0F0u> const Array{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

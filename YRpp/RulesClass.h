@@ -49,8 +49,8 @@ class RulesClass
 {
 public:
 	//Static
-	static constexpr reference<RulesClass*, 0x8871E0u> Instance{};
-	static constexpr reference<RulesClass*, 0x8871E0u> Global{}; //compatibility
+	static COMPILETIMEEVAL reference<RulesClass*, 0x8871E0u> Instance{};
+	static COMPILETIMEEVAL reference<RulesClass*, 0x8871E0u> Global{}; //compatibility
 
 	// call this for the first INI file only
 	void Init(CCINIClass *pINI)

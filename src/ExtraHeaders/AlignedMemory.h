@@ -16,14 +16,14 @@ struct AlignedMemory { };
     class AlignedMemory<Size, byte_alignment> { \
      public: \
       ALIGNAS(byte_alignment) uint8_t data_[Size]; \
-      constexpr void* void_data() { return static_cast<void*>(data_); } \
-      constexpr const void* void_data() const { \
+      COMPILETIMEEVAL void* void_data() { return static_cast<void*>(data_); } \
+      COMPILETIMEEVAL const void* void_data() const { \
         return static_cast<const void*>(data_); \
       } \
       template<typename Type> \
-     constexpr  Type* data_as() { return static_cast<Type*>(void_data()); } \
+     COMPILETIMEEVAL  Type* data_as() { return static_cast<Type*>(void_data()); } \
       template<typename Type> \
-      constexpr const Type* data_as() const { \
+      COMPILETIMEEVAL const Type* data_as() const { \
         return static_cast<const Type*>(void_data()); \
       } \
      private: \

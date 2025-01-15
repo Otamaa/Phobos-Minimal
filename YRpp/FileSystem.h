@@ -46,40 +46,40 @@ class FileSystem
 public:
 
 	//These is same with belows , just for confinient
-	static constexpr reference<SHPStruct*, 0xAC1478u , 4u> ShapesAllocated{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1478u , 4u> ShapesAllocated{};
 
-	static constexpr reference<SHPStruct*, 0xAC1478u> PIPBRD_SHP{};
-	static constexpr reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
-	static constexpr reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
-	static constexpr reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
-	static constexpr reference<int, 0xB0EB3C> TALKBUBL_Frame{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1478u> PIPBRD_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
+	static COMPILETIMEEVAL reference<int, 0xB0EB3C> TALKBUBL_Frame{};
 
-	static constexpr reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
-	static constexpr reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};
-	static constexpr reference<SHPStruct*, 0xA8F794u> GRFXTXT_SHP{};
-	static constexpr reference<SHPStruct*, 0xB1CF98u> OREGATH_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xA8F794u> GRFXTXT_SHP{};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xB1CF98u> OREGATH_SHP{};
 
-	static constexpr reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
-	static constexpr reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
 
-	static constexpr reference<SHPStruct*, 0xB0B484u> GCLOCK2_SHP {};
-	static constexpr reference<SHPStruct*, 0xB07BC0u> DARKEN_SHP {};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B484u> GCLOCK2_SHP {};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xB07BC0u> DARKEN_SHP {};
 
-	static constexpr reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
-	static constexpr reference<BytePalette, 0xABBED0u> ISOx_PAL {};
-	static constexpr reference<BytePalette*, 0xA8F790u> GRFXTXT_PAL{};
+	static COMPILETIMEEVAL reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
+	static COMPILETIMEEVAL reference<BytePalette, 0xABBED0u> ISOx_PAL {};
+	static COMPILETIMEEVAL reference<BytePalette*, 0xA8F790u> GRFXTXT_PAL{};
 
-	static constexpr reference<ConvertClass*, 0x87F6B0u> CAMEO_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6B4u> UNITx_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6B8u> x_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6BCu> GRFTXT_TIBERIUM_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6C0u> ANIM_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6C4u> PALETTE_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6C4u> THEATER_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6C8u> MOUSE_PAL{};
-	static constexpr reference<ConvertClass*, 0x87F6CCu> SIDEBAR_PAL{};
-	static constexpr reference<ConvertClass*, 0xA8F798u> GRFXTXT_Convert{};
-	static constexpr reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6B0u> CAMEO_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6B4u> UNITx_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6B8u> x_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6BCu> GRFTXT_TIBERIUM_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6C0u> ANIM_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6C4u> PALETTE_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6C4u> THEATER_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6C8u> MOUSE_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6CCu> SIDEBAR_PAL{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0xA8F798u> GRFXTXT_Convert{};
+	static COMPILETIMEEVAL reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
 
 	static void* __fastcall LoadFile(const char* pFileName, bool bLoadAsSHP)
 		{ JMP_STD(0x5B40B0); }

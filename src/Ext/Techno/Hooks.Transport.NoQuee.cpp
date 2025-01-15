@@ -7,7 +7,7 @@
 #include <UnitClass.h>
 #include <CaptureManagerClass.h>
 
-static FORCEINLINE void PlayUnitLeaveTransportSound(UnitClass* pThis) {
+static FORCEDINLINE void PlayUnitLeaveTransportSound(UnitClass* pThis) {
 	if (pThis->Type->LeaveTransportSound != -1)
 		VoxClass::PlayAtPos(pThis->Type->LeaveTransportSound, &pThis->Location);
 }

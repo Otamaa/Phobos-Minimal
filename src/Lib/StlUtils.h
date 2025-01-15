@@ -97,7 +97,7 @@ namespace stl
 	//! Searches the given entry in the map by key, and if there is none, returns the default value
 	//////////////////////////////////////////////////////////////////////////
 	template <typename Map>
-	inline typename Map::mapped_type find_in_map(const Map& mapKeyToValue, const typename Map::key_type& key, typename Map::mapped_type valueDefault)
+	OPTIONALINLINE typename Map::mapped_type find_in_map(const Map& mapKeyToValue, const typename Map::key_type& key, typename Map::mapped_type valueDefault)
 	{
 		typename Map::const_iterator it = mapKeyToValue.find(key);
 		if (it == mapKeyToValue.end())
@@ -114,7 +114,7 @@ namespace stl
 	//! Fills vector with contents of map.
 	//////////////////////////////////////////////////////////////////////////
 	template <class Map, class Vector>
-	inline void map_to_vector(const Map& theMap, Vector& aarray)
+	OPTIONALINLINE void map_to_vector(const Map& theMap, Vector& aarray)
 	{
 		aarray.resize(0);
 		aarray.reserve(theMap.size());
@@ -129,7 +129,7 @@ namespace stl
 	// @return true if item was find and erased, false if item not found.
 	//////////////////////////////////////////////////////////////////////////
 	template <class Container, class Value>
-	inline bool find_and_erase(Container& container, const Value& value)
+	OPTIONALINLINE bool find_and_erase(Container& container, const Value& value)
 	{
 		typename Container::iterator it = std::find(container.begin(), container.end(), value);
 		if (it != container.end())
@@ -141,7 +141,7 @@ namespace stl
 	}
 
 	template <typename K, typename P, typename A>
-	inline bool find_and_erase(std::set<K, P, A>& container, const K& value)
+	OPTIONALINLINE bool find_and_erase(std::set<K, P, A>& container, const K& value)
 	{
 		return container.erase(value) > 0;
 	}
@@ -151,7 +151,7 @@ namespace stl
 	// @return true if item was find and erased, false if item not found.
 	//////////////////////////////////////////////////////////////////////////
 	template <class CONTAINER, class PREDICATE>
-	inline bool find_and_erase_if(CONTAINER& container, const PREDICATE& predicate)
+	OPTIONALINLINE bool find_and_erase_if(CONTAINER& container, const PREDICATE& predicate)
 	{
 		typename CONTAINER::iterator end = container.end(), i = std::find_if(container.begin(), end, predicate);
 
@@ -171,7 +171,7 @@ namespace stl
 	// Commonly used for removing NULL pointers from collections.
 	//////////////////////////////////////////////////////////////////////////
 	template <class Container>
-	inline void find_and_erase_all(Container& container, const typename Container::value_type& value)
+	OPTIONALINLINE void find_and_erase_all(Container& container, const typename Container::value_type& value)
 	{
 		// Shuffles all elements != value to the front and returns the start of the removed elements.
 		typename Container::iterator endIter(container.end());
@@ -186,7 +186,7 @@ namespace stl
 	// @return true if item was find and erased, false if item not found.
 	//////////////////////////////////////////////////////////////////////////
 	template <class Container, class Key>
-	inline bool member_find_and_erase(Container& container, const Key& key)
+	OPTIONALINLINE bool member_find_and_erase(Container& container, const Key& key)
 	{
 		typename Container::iterator it = container.find(key);
 		if (it != container.end())
@@ -202,7 +202,7 @@ namespace stl
 	//! Push back to container unique element.
 	// @return true if item added, false overwise.
 	template <class Container, class Value>
-	inline bool push_back_unique(Container& container, const Value& value)
+	OPTIONALINLINE bool push_back_unique(Container& container, const Value& value)
 	{
 		if (std::find(container.begin(), container.end(), value) == container.end())
 		{
@@ -216,7 +216,7 @@ namespace stl
 	//! Find element in container.
 	// @return true if item found.
 	template <class Container, class Value>
-	inline bool find(Container& container, const Value& value)
+	OPTIONALINLINE bool find(Container& container, const Value& value)
 	{
 		return std::find(container.begin(), container.end(), value) != container.end();
 	}
@@ -225,7 +225,7 @@ namespace stl
 	//! Find element in a sorted container using binary search with logarithmic efficiency.
 	//
 	template <class Iterator, class T>
-	inline Iterator binary_find(Iterator first, Iterator last, const T& value)
+	OPTIONALINLINE Iterator binary_find(Iterator first, Iterator last, const T& value)
 	{
 		Iterator it = std::lower_bound(first, last, value);
 		return (it == last || value != *it) ? last : it;
@@ -244,14 +244,14 @@ namespace stl
 	//! Convert arbitary class to const char*
 	//////////////////////////////////////////////////////////////////////////
 	template <class Type>
-	inline const char* constchar_cast(const Type& type)
+	OPTIONALINLINE const char* constchar_cast(const Type& type)
 	{
 		return type;
 	}
 
 	//! Specialization of string to const char cast.
 	template <>
-	inline const char* constchar_cast(const std::string& type)
+	OPTIONALINLINE const char* constchar_cast(const std::string& type)
 	{
 		return type.c_str();
 	}
@@ -349,73 +349,73 @@ namespace stl
 	};
 
 	template <class T>
-	inline void reconstruct(T& t)
+	OPTIONALINLINE void reconstruct(T& t)
 	{
 		t.~T();
 		new(&t)T;
 	}
 
 	template <class T, class D>
-	inline void reconstruct(StaticInstance<T, D>& instance)
+	OPTIONALINLINE void reconstruct(StaticInstance<T, D>& instance)
 	{
 		reconstruct(*instance);
 	}
 
 	template <typename T, typename A1>
-	inline void reconstruct(T& t, const A1& a1)
+	OPTIONALINLINE void reconstruct(T& t, const A1& a1)
 	{
 		t.~T();
 		new (&t)T(a1);
 	}
 
 	template <typename T, typename A1, typename A2>
-	inline void reconstruct(T& t, const A1& a1, const A2& a2)
+	OPTIONALINLINE void reconstruct(T& t, const A1& a1, const A2& a2)
 	{
 		t.~T();
 		new (&t)T(a1, a2);
 	}
 
 	template <typename T, typename A1, typename A2, typename A3>
-	inline void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3)
+	OPTIONALINLINE void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3)
 	{
 		t.~T();
 		new (&t)T(a1, a2, a3);
 	}
 
 	template <typename T, typename A1, typename A2, typename A3, typename A4>
-	inline void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3, const A4& a4)
+	OPTIONALINLINE void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3, const A4& a4)
 	{
 		t.~T();
 		new (&t)T(a1, a2, a3, a4);
 	}
 
 	template <typename T, typename A1, typename A2, typename A3, typename A4, typename A5>
-	inline void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
+	OPTIONALINLINE void reconstruct(T& t, const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
 	{
 		t.~T();
 		new (&t)T(a1, a2, a3, a4, a5);
 	}
 
 	template <class T>
-	inline void free_container(T& t)
+	OPTIONALINLINE void free_container(T& t)
 	{
 		reconstruct(t);
 	}
 
 	template <class T, class A>
-	inline void free_container(std::deque<T, A>& t)
+	OPTIONALINLINE void free_container(std::deque<T, A>& t)
 	{
 		reconstruct(t);
 	}
 
 	template <class K, class D, class H, class A>
-	inline void free_container(std__hash_map<K, D, H, A>& t)
+	OPTIONALINLINE void free_container(std__hash_map<K, D, H, A>& t)
 	{
 		reconstruct(t);
 	}
 
 	template <class T, class D>
-	inline void free_container(StaticInstance<T, D>& instance)
+	OPTIONALINLINE void free_container(StaticInstance<T, D>& instance)
 	{
 		reconstruct(*instance);
 	}

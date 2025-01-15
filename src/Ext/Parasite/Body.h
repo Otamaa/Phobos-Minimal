@@ -12,7 +12,7 @@ public:
 	class ExtData final : public Extension<ParasiteClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x99954321;
+		static COMPILETIMEEVAL size_t Canary = 0x99954321;
 		using base_type = ParasiteClass;
 
 	public:

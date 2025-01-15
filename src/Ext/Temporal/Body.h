@@ -13,7 +13,7 @@ public:
 	class ExtData final : public Extension<TemporalClass>
 	{
 	public:
-		static constexpr size_t Canary = 0x82229781;
+		static COMPILETIMEEVAL size_t Canary = 0x82229781;
 		using base_type = TemporalClass;
 
 	public:

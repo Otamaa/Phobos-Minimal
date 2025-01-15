@@ -35,8 +35,8 @@ public:
 	static const AbstractType AbsID = AbstractType::Building;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
-	static constexpr inline DWORD vtable = 0x7E3EBC;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
+	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3EBC;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x459E80);
@@ -236,7 +236,7 @@ public:
 		return false;
 	}
 
-	constexpr TechnoTypeClass* GetSecretProduction() const {
+	COMPILETIMEEVAL TechnoTypeClass* GetSecretProduction() const {
 		auto const pType = this->Type;
 
 		if (pType->SecretInfantry) {
@@ -341,7 +341,7 @@ public:
 	int DrawInfoTipAndSpiedSelection(Point2D* pLocation, RectangleStruct* pRect) const
 		{ JMP_THIS(0x43E7B0); }
 
-	inline std::array<BuildingTypeClass* ,4u> GetTypes() const {
+	OPTIONALINLINE std::array<BuildingTypeClass* ,4u> GetTypes() const {
 		return { this->Type , this->Upgrades[0] , this->Upgrades[1] , this->Upgrades[2] };
 	};
 

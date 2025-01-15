@@ -18,12 +18,12 @@ public:
 
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
-	constexpr inline int ToInt() const {
+	COMPILETIMEEVAL OPTIONALINLINE int ToInt() const {
 		auto const& nColors = Colors.Get();
 		return nColors.X | nColors.Y << 8 | nColors.Z << 16;
 	}
 
-	constexpr inline ColorStruct ToColor() const {
+	COMPILETIMEEVAL OPTIONALINLINE ColorStruct ToColor() const {
 		auto const& nColors = Colors.Get();
 		return { nColors.X  , nColors.Y, nColors.Z };
 	}

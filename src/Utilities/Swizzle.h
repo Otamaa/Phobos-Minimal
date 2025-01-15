@@ -29,7 +29,7 @@ public:
 	* pass in the *address* of the pointer you want to have changed
 	* caution, after the call *p will be NULL
 	*/
-	FORCEINLINE constexpr HRESULT RegisterForChange_Hook(void** p)
+	FORCEDINLINE COMPILETIMEEVAL HRESULT RegisterForChange_Hook(void** p)
 	{
 		if (p) {
 			if (auto deref = *p) {
@@ -42,12 +42,12 @@ public:
 		return E_POINTER;
 	}
 
-	FORCEINLINE HRESULT RegisterForChange(void** p)
+	FORCEDINLINE HRESULT RegisterForChange(void** p)
 	{
 		return SwizzleManagerClass::Instance().Swizzle(p);
 	}
 
-	FORCEINLINE constexpr auto FindChanges(void* ptr) const {
+	FORCEDINLINE COMPILETIMEEVAL auto FindChanges(void* ptr) const {
 
 		for (auto begin = this->Changes.begin(); begin != this->Changes.end(); ++begin) {
 			if (begin->first == ptr)
@@ -61,12 +61,12 @@ public:
 	* the original game objects all save their `this` pointer to the save stream
 	* that way they know what ptr they used and call this function with that old ptr and `this` as the new ptr
 	*/
-	FORCEINLINE HRESULT RegisterChange(void* was, void* is)
+	FORCEDINLINE HRESULT RegisterChange(void* was, void* is)
 	{
 		return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
 	}
 
-	FORCEINLINE HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
+	FORCEDINLINE HRESULT RegisterChange_Hook(DWORD caller , void* was, void* is)
 	{
 		auto exist = this->FindChanges(was);
 
@@ -108,14 +108,14 @@ public:
 		}
 	}
 
-	constexpr FORCEINLINE void Clear()
+	COMPILETIMEEVAL FORCEDINLINE void Clear()
 	{
 		this->Nodes.clear();
 		this->Changes.clear();
 	}
 
 	template<typename T>
-	FORCEINLINE void RegisterPointerForChange(T*& ptr) {
+	FORCEDINLINE void RegisterPointerForChange(T*& ptr) {
 		this->RegisterForChange(reinterpret_cast<void**>(const_cast<std::remove_cv_t<T>**>(&ptr)));
 	}
 };
@@ -126,7 +126,7 @@ struct is_swizzlable : public std::is_pointer<T>::type { };
 struct Swizzle {
 	template <typename T>
 	Swizzle(T& object) {
-		if constexpr (std::is_pointer_v<T>) {
+		if COMPILETIMEEVAL (std::is_pointer_v<T>) {
 			PhobosSwizzle::Instance.RegisterPointerForChange(object);
 		}
 #ifdef _DEBUG

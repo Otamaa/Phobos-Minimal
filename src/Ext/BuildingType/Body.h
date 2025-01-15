@@ -30,11 +30,11 @@ class SuperClass;
 class BuildingTypeExtData final
 {
 public:
-	static constexpr size_t Canary = 0x23266666;
+	static COMPILETIMEEVAL size_t Canary = 0x23266666;
 	using base_type = BuildingTypeClass;
 
-	static constexpr size_t ExtOffset = 0xE24; //ares
-	//static constexpr size_t ExtOffset = 0x1794;
+	static COMPILETIMEEVAL size_t ExtOffset = 0xE24; //ares
+	//static COMPILETIMEEVAL size_t ExtOffset = 0x1794;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -337,7 +337,7 @@ public:
 	void CompleteInitialization() const;
 
 	// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
-	constexpr int FORCEINLINE GetSuperWeaponCount() const
+	COMPILETIMEEVAL int FORCEDINLINE GetSuperWeaponCount() const
 	{
 		// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
 		return 2 + this->SuperWeapons.size();
@@ -353,7 +353,7 @@ public:
 
 	void UpdateFoundationRadarShape();
 
-	constexpr FORCEINLINE static size_t size_Of()
+	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(BuildingTypeExtData) -
 			(4u //AttachedToObject
@@ -374,10 +374,10 @@ public:
 	template<BunkerSoundMode UpSound>
 	struct BunkerSound
 	{
-		constexpr void operator ()(BuildingClass* pThis)
+		COMPILETIMEEVAL void operator ()(BuildingClass* pThis)
 		{
 
-			if constexpr (UpSound == BunkerSoundMode::Up)
+			if COMPILETIMEEVAL (UpSound == BunkerSoundMode::Up)
 			{
 				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
 				VocClass::PlayIndexAtPos(nSound, pThis->Location);

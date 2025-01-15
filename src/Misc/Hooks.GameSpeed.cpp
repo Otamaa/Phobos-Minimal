@@ -52,7 +52,7 @@ DEFINE_HOOK(0x55E33B, SyncDelay_End, 0x5)
 /*
 void SetNetworkFrameRate()
 {
-	static constexpr reference<int, 0xA8B550u> const PrecalcDesiredFrameRate {};
+	static COMPILETIMEEVAL reference<int, 0xA8B550u> const PrecalcDesiredFrameRate {};
 	switch (GameOptionsClass::Instance->GameSpeed)
 	{
 	case 0:

@@ -74,7 +74,7 @@ MapRevealer::MapRevealer(const CellStruct* pCell) :
 {
 }
 
-static constexpr reference<int ,0xABDE88> SightFrom {};
+static COMPILETIMEEVAL reference<int ,0xABDE88> SightFrom {};
 
 template <typename T>
 void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseClass* const pHouse, bool const onlyOutline, bool const allowRevealByHeight, T func) const

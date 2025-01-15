@@ -16,7 +16,7 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void FORCEINLINE HandleRemoveAsExt(BuildingExtData* pExt) {
+	void FORCEDINLINE HandleRemoveAsExt(BuildingExtData* pExt) {
 		for (auto& nFires : pExt->DamageFireAnims) {
 			if (nFires && nFires->Type) {
  				//GameDelete<true,false>(nFires);
@@ -27,11 +27,11 @@ namespace DamageFireAnims
 		}
 	}
 
-	void FORCEINLINE HandleRemove(FakeBuildingClass* pThis) {
+	void FORCEDINLINE HandleRemove(FakeBuildingClass* pThis) {
 		HandleRemoveAsExt(pThis->_GetExtData());
 	}
 
-	void FORCEINLINE HandleInvalidPtr(FakeBuildingClass* pThis, void* ptr) {
+	void FORCEDINLINE HandleInvalidPtr(FakeBuildingClass* pThis, void* ptr) {
 		for (auto& nFires : pThis->_GetExtData()->DamageFireAnims) {
 			if (nFires == ptr) {
 				nFires = nullptr;

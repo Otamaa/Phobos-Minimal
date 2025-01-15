@@ -16,7 +16,7 @@ class ObjectClass;
 class LineTrail
 {
 public:
-	static constexpr constant_ptr<DynamicVectorClass<LineTrail*>, 0xABCB78u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LineTrail*>, 0xABCB78u> const Array{};
 
 	//Constructor, Destructor
 	LineTrail()

@@ -54,14 +54,14 @@ public:
 			bool Unused : 1;
 		};
 	};
-	inline static ConsoleTextAttribute TextAttribute;
-	inline static HANDLE ConsoleHandle;
+	OPTIONALINLINE static ConsoleTextAttribute TextAttribute;
+	OPTIONALINLINE static HANDLE ConsoleHandle;
 
 	static bool Create();
 	static void Release();
 
 	template<size_t Length>
-	constexpr static void Write(const char(&str)[Length]) {
+	COMPILETIMEEVAL static void Write(const char(&str)[Length]) {
 		Write(str, Length - 1); // -1 because there is a '\0' here
 	}
 
@@ -91,19 +91,19 @@ public:
 		Fatal = 5
 	};
 
-	inline static FILE* LogFile;
-	inline static bool LogEnabled;
+	OPTIONALINLINE static FILE* LogFile;
+	OPTIONALINLINE static bool LogEnabled;
 
-	inline static std::wstring ApplicationFilePath {};
-	inline static std::wstring LogFilePathName {};
-	inline static std::wstring LogFileMainName { L"\\debug" };
-	inline static std::wstring LogFileTempName {};
-	inline static std::wstring LogFileMainFormattedName {};
-	inline static std::wstring LogFileExt { L".log" };
+	OPTIONALINLINE static std::wstring ApplicationFilePath {};
+	OPTIONALINLINE static std::wstring LogFilePathName {};
+	OPTIONALINLINE static std::wstring LogFileMainName { L"\\debug" };
+	OPTIONALINLINE static std::wstring LogFileTempName {};
+	OPTIONALINLINE static std::wstring LogFileMainFormattedName {};
+	OPTIONALINLINE static std::wstring LogFileExt { L".log" };
 
-	inline static char DeferredStringBuffer[0x1000];
-	inline static char LogMessageBuffer[0x1000];
-	inline static std::vector<std::string> DeferredLogData;
+	OPTIONALINLINE static char DeferredStringBuffer[0x1000];
+	OPTIONALINLINE static char LogMessageBuffer[0x1000];
+	OPTIONALINLINE static std::vector<std::string> DeferredLogData;
 
 	enum class ExitCode : size_t
 	{
@@ -113,13 +113,13 @@ public:
 		Undefined = 65535u // -1
 	};
 
-	static FORCEINLINE void TakeMouse()
+	static FORCEDINLINE void TakeMouse()
 	{
 		WWMouseClass::Instance->ReleaseMouse();
 		Imports::ShowCursor.get()(1);
 	}
 
-	static FORCEINLINE void ReturnMouse()
+	static FORCEDINLINE void ReturnMouse()
 	{
 		Imports::ShowCursor.get()(0);
 		WWMouseClass::Instance->CaptureMouse();
@@ -150,30 +150,30 @@ public:
 	}
 
 	template <typename... TArgs>
-	static FORCEINLINE void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+	static FORCEDINLINE void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
 		if (enabled) {
 			Debug::Log(severity, pFormat, std::forward<TArgs>(args)...);
 		}
 	}
 
 	template <typename... TArgs>
-	static FORCEINLINE void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
+	static FORCEDINLINE void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
 		if (enabled) {
 			Debug::Log(pFormat, std::forward<TArgs>(args)...);
 		}
 	}
 
 	template <typename... TArgs>
-	static FORCEINLINE void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
+	static FORCEDINLINE void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
 		Debug::LogFlushed(severity, pFormat, std::forward<TArgs>(args)...);
 	}
 
 	template <typename... TArgs>
-	static FORCEINLINE void Log(const char* const pFormat, TArgs&&... args) {
+	static FORCEDINLINE void Log(const char* const pFormat, TArgs&&... args) {
 		Debug::LogFlushed(pFormat, std::forward<TArgs>(args)...);
 	}
 
-	static FORCEINLINE void LogWithVArgs(const char* const pFormat, va_list args)
+	static FORCEDINLINE void LogWithVArgs(const char* const pFormat, va_list args)
 	{
 		if (Debug::LogFileActive())
 		{
@@ -182,7 +182,7 @@ public:
 		}
 	}
 
-	static constexpr FORCEINLINE bool LogFileActive() {
+	static COMPILETIMEEVAL FORCEDINLINE bool LogFileActive() {
 		return Debug::LogEnabled && Debug::LogFile;
 	}
 
@@ -274,7 +274,7 @@ public:
 			localTime->tm_sec);
 	}
 
-	static inline bool made;
+	static OPTIONALINLINE bool made;
 
 	static NOINLINE void PrepareLogFile() {
 
@@ -293,7 +293,7 @@ public:
 		return buffer;
 	}
 
-	static FORCEINLINE std::wstring FullDump(PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
+	static FORCEDINLINE std::wstring FullDump(PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
 	{
 		return FullDump(Debug::PrepareSnapshotDirectory(), pException);
 	}
@@ -421,7 +421,7 @@ public:
 		ExitProcess(code);
 	}
 
-	static constexpr std::wstring GenerateDefaultMessage (){
+	static COMPILETIMEEVAL std::wstring GenerateDefaultMessage (){
 		std::wstring first { L"An internal error has been encountered and the game is unable to continue normally. \n" };
 		std::wstring second { L"Please notify the mod's creators about this issue, or Contact Otamaa at \n" };
 		std::wstring third { L"Discord for updates and support.\n" };
@@ -466,7 +466,7 @@ public:
 	}
 
 	template <typename... TArgs>
-	[[noreturn]] static FORCEINLINE void FatalErrorAndExit(const char* pFormat, TArgs&&... args)
+	[[noreturn]] static FORCEDINLINE void FatalErrorAndExit(const char* pFormat, TArgs&&... args)
 	{
 		FatalErrorAndExit(ExitCode::Normal, pFormat, std::forward<TArgs>(args)...);
 	}
@@ -521,7 +521,7 @@ public:
 	}
 
 	template <typename T>
-	static FORCEINLINE void DumpObj(const T& object) {
+	static FORCEDINLINE void DumpObj(const T& object) {
 		DumpObj(&object, sizeof(object));
 	}
 
@@ -539,7 +539,7 @@ public:
 		}
 	}
 
-	static constexpr const char* SeverityString(Debug::Severity const severity)
+	static COMPILETIMEEVAL const char* SeverityString(Debug::Severity const severity)
 	{
 		switch (severity)
 		{
@@ -590,7 +590,7 @@ public:
 	template<bool check = true>
 	static NOINLINE void LogUnflushed(const char* pFormat, ...)
 	{
-		if constexpr (check){
+		if COMPILETIMEEVAL (check){
 			if (Debug::LogFileActive()) {
 				va_list args;
 				va_start(args, pFormat);
@@ -614,7 +614,7 @@ public:
 	}
 
 	// flush unchecked
-	static FORCEINLINE void Flush()
+	static FORCEDINLINE void Flush()
 	{
 		fflush(Debug::LogFile);
 	}

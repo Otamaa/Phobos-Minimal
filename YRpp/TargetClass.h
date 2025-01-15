@@ -39,7 +39,7 @@ public:
 	//template<bool UseJump = false >
 	explicit TargetClass(AbstractClass* pItem) noexcept
 	{
-		//if constexpr (!UseJump)
+		//if COMPILETIMEEVAL (!UseJump)
 			JMP_THIS(0x6E6AB0);
 		//else
 		//{
@@ -69,7 +69,7 @@ public:
 	//template<bool UseJump = false >
 	explicit TargetClass(const CellStruct& cell)
 	{
-	//	if constexpr (!UseJump)
+	//	if COMPILETIMEEVAL (!UseJump)
 			JMP_THIS(0x6E6B20);
 	//	else
 	//	{
@@ -85,7 +85,7 @@ public:
 
 	explicit TargetClass(const CellStruct* cell)
 	{
-		//	if constexpr (!UseJump)
+		//	if COMPILETIMEEVAL (!UseJump)
 		JMP_THIS(0x6E6B20);
 		//	else
 		//	{
@@ -102,7 +102,7 @@ public:
 	//template<bool UseJump = false >
 	explicit TargetClass(const CoordStruct& coord)
 	{
-	//	if constexpr (!UseJump)
+	//	if COMPILETIMEEVAL (!UseJump)
 			JMP_THIS(0x6E6B70);
 	//	else
 	//	{
@@ -117,7 +117,7 @@ public:
 	// template<typename T>
 	// T* As()
 	// {
-	// 	if constexpr (T::AbsID == AbstractType::Abstract)
+	// 	if COMPILETIMEEVAL (T::AbsID == AbstractType::Abstract)
 	// 	{
 	// 		if (m_RTTI != static_cast<int>(AbstractType::Abstract))
 	// 			return nullptr;
@@ -125,7 +125,7 @@ public:
 	// 		if (AbstractClass::TargetIndex->IsPresent(m_ID))
 	// 			return dynamic_cast<T*>(this);
 	// 	}
-	// 	else if constexpr (T::AbsID == AbstractType::Cell)
+	// 	else if COMPILETIMEEVAL (T::AbsID == AbstractType::Cell)
 	// 	{
 	// 		if (m_RTTI != static_cast<int>(AbstractType::Cell))
 	// 			return nullptr;

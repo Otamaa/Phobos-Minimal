@@ -29,43 +29,43 @@ public:
 		, HoverBoost()
 	{ }
 
-	constexpr inline AnimTypeClass* GetAboveWaterAnim() const {
+	COMPILETIMEEVAL OPTIONALINLINE AnimTypeClass* GetAboveWaterAnim() const {
 		return this->AboveWaterAnim.Get(RulesClass::Instance->Wake);
 	}
 
-	constexpr inline int GetScoldSound() const {
+	COMPILETIMEEVAL OPTIONALINLINE int GetScoldSound() const {
 		return this->ScoldSound.Get(RulesClass::Instance->ScoldSound);
 	}
 
-	constexpr inline 	int GetHeight() const {
+	COMPILETIMEEVAL OPTIONALINLINE 	int GetHeight() const {
 		return this->HoverHeight.Get(RulesClass::Instance->HoverHeight);
 	}
 
-	constexpr inline double GetBob() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetBob() const {
 		return this->HoverBob.Get(RulesClass::Instance->HoverBob);
 	}
 
-	constexpr inline double GetDampen() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetDampen() const {
 		return this->HoverDampen.Get(RulesClass::Instance->HoverDampen);
 	}
 
-	constexpr inline double GetAccel() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetAccel() const {
 		return this->HoverAcceleration.Get(RulesClass::Instance->HoverAcceleration);
 	}
 
-	constexpr inline double GetBrake() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetBrake() const {
 		return this->HoverBrake.Get(RulesClass::Instance->HoverBrake);
 	}
 
-	constexpr inline double GetBoost() const {
+	COMPILETIMEEVAL OPTIONALINLINE double GetBoost() const {
 		return this->HoverBoost.Get(RulesClass::Instance->HoverBoost);
 	}
 
-	static void constexpr inline AddDefaults() {
+	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults() {
 		FindOrAllocate(DEFAULT_STR2);
 	}
 
-	constexpr static const HoverTypeClass* GetMyHover(int nIdx)
+	COMPILETIMEEVAL static const HoverTypeClass* GetMyHover(int nIdx)
 	{ return HoverTypeClass::FindFromIndex(nIdx); }
 
 	void LoadFromINI(CCINIClass *pINI);

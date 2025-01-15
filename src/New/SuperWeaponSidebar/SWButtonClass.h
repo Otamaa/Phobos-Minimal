@@ -15,7 +15,7 @@ public:
 	virtual void OnMouseLeave() override;
 	virtual bool Action(GadgetFlag fags, DWORD* pKey, KeyModifier modifier) override;
 
-	constexpr void SetColumn(int column)
+	COMPILETIMEEVAL void SetColumn(int column)
 	{
 		this->ColumnIndex = column;
 	}
@@ -23,8 +23,8 @@ public:
 	bool LaunchSuper() const;
 
 public:
-	static constexpr int StartID = 2200;
-	static constexpr int ToolTip_Align_Y = 27;
+	static COMPILETIMEEVAL int StartID = 2200;
+	static COMPILETIMEEVAL int ToolTip_Align_Y = 27;
 
 	bool IsHovering { false };
 	int ColumnIndex { -1 };

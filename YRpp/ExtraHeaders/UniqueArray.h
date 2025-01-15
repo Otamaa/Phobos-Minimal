@@ -3,7 +3,7 @@
 #include <memory>
 #include <assert.h>
 
-inline void nodeleter(void*) { }
+OPTIONALINLINE void nodeleter(void*) { }
 
 /// Array of T with ownership. Like \see std::unique_ptr<T[]> but with size tracking.
 /// @tparam T Element type.
@@ -17,7 +17,7 @@ protected:
 	unique_array(T* ptr, size_t size, void (*deleter)(void*)) noexcept : base(ptr, deleter), Size(size) { }
 	void reset(T* ptr, size_t size) noexcept { base::reset(ptr); Size = size; }
 public:
-	constexpr unique_array() noexcept : base(nullptr, operator delete[]), Size(0) { }
+	COMPILETIMEEVAL unique_array() noexcept : base(nullptr, operator delete[]), Size(0) { }
 	explicit unique_array(size_t size) : base(new T[size], operator delete[]), Size(size) { }
 	template <size_t N> unique_array(T(&arr)[N]) : base(arr, &nodeleter), Size(N) { }
 	unique_array(unique_array<T>&& r) : base(move(r)), Size(r.Size) { r.Size = 0; }

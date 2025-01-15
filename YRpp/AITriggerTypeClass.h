@@ -26,7 +26,7 @@ public:
 	static const AbstractType AbsID = AbstractType::AITriggerType;
 
 	//Array
-	static constexpr constant_ptr<DynamicVectorClass<AITriggerTypeClass*>, 0xA8B200u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AITriggerTypeClass*>, 0xA8B200u> const Array {};
 
 	IMPL_Find(AITriggerTypeClass)
 

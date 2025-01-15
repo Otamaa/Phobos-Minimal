@@ -108,7 +108,7 @@ private:
 	}
 };
 
-inline void TechnoClass_ReceiveDamage2_DamageText(TechnoClass* pTechno, int* pRealDamage,DamageTextTypeData& nData)
+OPTIONALINLINE void TechnoClass_ReceiveDamage2_DamageText(TechnoClass* pTechno, int* pRealDamage,DamageTextTypeData& nData)
 {
 	if (!Phobos::Otamaa::ShowHealthPercentEnabled || !pTechno)
 		return;

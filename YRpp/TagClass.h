@@ -13,7 +13,7 @@ public:
 	static const AbstractType AbsID = AbstractType::Tag;
 
 	//Static
-	static constexpr constant_ptr<DynamicVectorClass<TagClass*>, 0xB0E720u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TagClass*>, 0xB0E720u> const Array{};
 
 	// finds an instance using the type, or creates one
 	static TagClass* __fastcall GetInstance(TagTypeClass* pType)

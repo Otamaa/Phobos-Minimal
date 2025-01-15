@@ -446,7 +446,7 @@ struct TargetingFuncs
 {
 #pragma region Helpers
 	template<typename It, typename Valuator>
-	static constexpr ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
+	static COMPILETIMEEVAL ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
 	{
 		ObjectClass* pTarget = nullptr;
 		int maxValue = 0;
@@ -502,7 +502,7 @@ struct TargetingFuncs
 		return targets.Select(ScenarioClass::Instance->Random);
 	}
 
-	static constexpr bool IsTargetAllowed(TechnoClass* pTechno)
+	static COMPILETIMEEVAL bool IsTargetAllowed(TechnoClass* pTechno)
 	{
 		return !pTechno->InLimbo && pTechno->IsAlive;
 	}
@@ -517,7 +517,7 @@ struct TargetingFuncs
 		return false;
 	}
 
-	static constexpr TargetResult NoTarget()
+	static COMPILETIMEEVAL TargetResult NoTarget()
 	{
 		return { CellStruct::Empty , SWTargetFlags::AllowEmpty };
 	}

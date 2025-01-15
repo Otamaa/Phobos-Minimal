@@ -5,9 +5,9 @@ class //DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE DriveLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline uintptr_t vtable = 0x7E7F7C;
-	static constexpr inline uintptr_t ILoco_vtable = 0x7E7EB0;
-	static constexpr reference<CLSID const, 0x7E9A30u> const ClassGUID {};
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7E7F7C;
+	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7E7EB0;
+	static COMPILETIMEEVAL reference<CLSID const, 0x7E9A30u> const ClassGUID {};
 
 	// TODO stub virtuals implementations
 	//IUnknown
