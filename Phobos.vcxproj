@@ -492,6 +492,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectoryVarianC.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />

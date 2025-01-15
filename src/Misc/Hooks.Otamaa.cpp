@@ -884,19 +884,32 @@ DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 {
 	GET(BuildingClass*, pBld, EDI);
 
-	return (!pBld->DiscoveredByCurrentPlayer && BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) ?
-		0x508CEE : 0x0;
+	if(BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+		return 0x508CEE; // add the power
+
+	return 0x0;
 }
 
 DEFINE_HOOK(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
 {
 	GET(FakeBuildingClass*, pBld, EAX);
+	enum {
+		ContinueLoop = 0x508F08 ,
+		ContinueCheck = 0x0,
+		EligibleRadar = 0x508F2A
+	};
 
 	if(TechnoExtContainer::Instance.Find(pBld)->AE.DisableRadar)
-		return 0x508F08; // continue
+		return ContinueLoop;
 
-	return (!pBld->DiscoveredByCurrentPlayer && pBld->_GetExtData()->LimboID != -1) ?
-		0x508EEF : 0x0;
+	if(!pBld->_GetExtData()->RegisteredJammers.empty())
+		return ContinueLoop;
+
+	if(pBld->EMPLockRemaining > 0)
+		return ContinueLoop;
+
+	// if the `Limboed` Building has radar , just accept it
+	return (pBld->_GetExtData()->LimboID != -1) ? ContinueCheck : EligibleRadar;
 }
 
 //DEFINE_HOOK(0x508FCE, HouseClass_SpySat_LimboDeliver, 0x6)

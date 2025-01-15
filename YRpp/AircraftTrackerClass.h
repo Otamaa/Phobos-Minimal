@@ -29,6 +29,9 @@ public:
 	void Detach(FootClass* entry) { JMP_THIS(0x413490); }
 	void AircraftTrackerClass_logics_412B40(CellClass* cell, int range) { JMP_THIS(0x412B40); }
 
+	// Fills CurrentVector with items from TrackerVectors matching given range around cell.
+	void FillCurrentVector(CellClass* pCell, int range) { JMP_THIS(0x412B40) }
+
 	//HRESULT LoadFromStream(IStream* pStm) { JMP_THIS(0x4136C0); }
 	//HRESULT SaveFromStream(IStream* pStm) { JMP_THIS(0x413850); }
 	// TODO write other entries

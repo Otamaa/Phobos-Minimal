@@ -9,6 +9,7 @@
 
 #include "BombardTrajectory.h"
 #include "StraightTrajectory.h"
+#include "StraightTrajectoryVarianC.h"
 #include "ArtilleryTrajectory.h"
 #include "BounceTrajectory.h"
 #include "MeteorTrajectory.h"
@@ -36,6 +37,9 @@ bool PhobosTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 	INI_EX exINI { pINI };
 	this->DetonationDistance.Read(exINI, pSection, "Trajectory.DetonationDistance");
 
+	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
+	this->Trajectory_Speed = MaxImpl(0.001, this->Trajectory_Speed);
+
 	return true;
 }
 
@@ -43,6 +47,7 @@ bool PhobosTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return 	Stm
 		.Process(this->DetonationDistance)
+		.Process(this->Trajectory_Speed)
 		.Success()
 		;
 }
@@ -51,6 +56,7 @@ bool PhobosTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
 	return 	Stm
 		.Process(this->DetonationDistance)
+		.Process(this->Trajectory_Speed)
 		.Success()
 		;
 }
@@ -295,7 +301,7 @@ double PhobosTrajectory::GetTrajectorySpeed() const
 			return result;
 	}
 
-	return 100.0;
+	return this->GetTrajectoryType()->Trajectory_Speed;
 }
 
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)

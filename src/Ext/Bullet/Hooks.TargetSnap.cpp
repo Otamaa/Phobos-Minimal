@@ -18,9 +18,7 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 	{
 		auto const pExt = pThis->_GetExtData();
 
-		if (pExt->Trajectory
-			&& PhobosTrajectory::CanSnap(pExt->Trajectory)
-			&& !pExt->SnappedToTarget)
+		if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory))
 		{
 			return nRet();
 		}
@@ -98,7 +96,7 @@ DEFINE_HOOK(0x468D3F, BulletClass_ShouldExplode_AirTarget, 0x8)
 	GET(FakeBulletClass*, pThis, ESI);
 	auto const pExt = pThis->_GetExtData();
 
-	if (pExt->Trajectory && (pExt->Trajectory->Flag == TrajectoryFlag::Straight || pExt->Trajectory->Flag == TrajectoryFlag::StraightVariantB)) {
+	if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory)) {
 		// Straight trajectory has its own proximity checks.
 		return DontExplode;
 	}

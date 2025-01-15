@@ -5,6 +5,8 @@
 
 #include <Ext/WeaponType/Body.h>
 
+#pragma region BaseStraight
+
 bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
@@ -215,6 +217,9 @@ TrajectoryCheckReturnType StraightTrajectory::OnAITechnoCheck(TechnoClass* pTech
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }
 
+#pragma endregion BaseStraight
+
+#pragma region StraightVariantB
 
 int StraightTrajectoryVarianB::GetVelocityZ(CoordStruct& source) const
 {
@@ -331,3 +336,5 @@ TrajectoryCheckReturnType StraightTrajectoryVarianB::OnAITargetCoordCheck(CoordS
 
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }
+
+#pragma endregion StraightVariantB

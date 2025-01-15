@@ -183,6 +183,13 @@ public:
 			X * a.Y - Y * a.X };
 	}
 
+	constexpr double Multiply(const CoordStruct& a) const
+	{
+		return static_cast<double>(X) * a.X
+			+ static_cast<double>(Y) * a.Y
+			+ static_cast<double>(Z) * a.Z;
+	}
+
 //=============================Special cases=========================================
 	constexpr FORCEINLINE double powXY() const {
 		return double(X * X) + double(Y * Y);

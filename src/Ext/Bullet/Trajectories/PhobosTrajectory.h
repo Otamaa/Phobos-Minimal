@@ -31,6 +31,7 @@ class PhobosTrajectoryType
 public:
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
 	Nullable<Leptons> DetonationDistance { };
+	Valueable<double> Trajectory_Speed { 100.0 };
 
 	PhobosTrajectoryType(noinit_t){ }
 	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag }

@@ -107,8 +107,28 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
 	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
-	if (auto& pTraj = pThis->_GetExtData()->Trajectory)
+	auto pExt =  pThis->_GetExtData();
+
+	if (auto& pTraj = pExt->Trajectory)
 		pTraj->OnAIVelocity(pSpeed, pPosition);
+
+	
+	// Trajectory can use Velocity only for turning Image's direction
+	// The true position in the next frame will be calculate after here
+	if (pExt->Trajectory && pExt->LaserTrails.size()) {
+		CoordStruct futureCoords
+		{
+			static_cast<int>(pSpeed->X + pPosition->X),
+			static_cast<int>(pSpeed->Y + pPosition->Y),
+			static_cast<int>(pSpeed->Z + pPosition->Z)
+		};
+		for (auto& trail : pExt->LaserTrails)
+		{
+			if (!trail.LastLocation.isset())
+				trail.LastLocation = pThis->Location;
+			trail.Update(futureCoords);
+		}
+	}
 
 	return 0;
 }

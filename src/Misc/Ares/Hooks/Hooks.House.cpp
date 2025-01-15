@@ -321,7 +321,7 @@ DEFINE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 
 			// use the sign to select min or max.
 			// 0 means no change (maximum of 0 and a positive value)
-			auto limit = [](int value, int limit)
+			constexpr auto limit = [](int value, int limit)
 				{
 					if (limit <= 0)
 					{
@@ -492,20 +492,6 @@ DEFINE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 
 	// recreate the replaced instructions
 	return pThis->IsCurrentPlayer() ? 0x4F8B14u : 0x4F8DB1u;
-}
-
-DEFINE_HOOK(0x508EBC, HouseClass_Radar_Update_CheckEligible, 6)
-{
-	enum { Eligible = 0, Jammed = 0x508F08 };
-
-	GET(BuildingClass*, Radar, EAX);
-
-	if(BuildingExtContainer::Instance.Find(Radar)->RegisteredJammers.empty() &&
-			Radar->EMPLockRemaining <= 0) {
-		return Eligible;
-	}
-
-	return Jammed;
 }
 
 static std::vector<BuildingTypeClass*> Eligible;
