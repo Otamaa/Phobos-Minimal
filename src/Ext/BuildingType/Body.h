@@ -325,7 +325,9 @@ public:
 	// NextBuilding feature linked list
 	Valueable<BuildingTypeClass*> NextBuilding_Prev { nullptr };
 	Valueable<BuildingTypeClass*> NextBuilding_Next { nullptr };
-	int NextBuilding_CurrentHeapId;
+	int NextBuilding_CurrentHeapId { -1 };
+
+	Nullable<Point2D> BarracksExitCell {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

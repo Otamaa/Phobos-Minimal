@@ -5,8 +5,8 @@ Is an fork of a community engine extension [project](https://github.com/Phobos-d
 This Phobos version also include edited version of [yrpp-spawner](https://github.com/CnCNet/yrpp-spawner/) 
 
 # Compatibility 
-Compatibility is not guaranteed ouside Ares 3.0p1 because it is take time and effort to fill the gap for other version of Ares and or other dll outside of Ares.
-this version of Phobos is not require Ares to function.
+- Compatibility is not guaranteed ouside common dll(s) that not interecting direcly with the game executable , it is take time and effort to make this dll compatible with other dll(s).
+- This version of Phobos is not require Ares to function.
 
 Currently Missing Feature(s) from Ares 3.0p1: 
  - Fixed game image screenshoot
@@ -20,14 +20,14 @@ As the main developer is still in learning phase and constanly changing the code
 Building manually
 -----------------
 
-0. Install **Visual Studio** (2022 is recommended, 2019 is minimum) with the dependencies listed in `.vsconfig` (it will prompt you to install missing dependences when you open the project, or you can run VS installer and import the config). If you prefer to use **Visual Studio Code** you may install **VS Build Tools** with the dependencies from `.vsconfig` instead. You can also don't use any code editor or IDE and build via **command line scripts** included with the project.
+0. Install **Visual Studio** (2022 is recommended, 2019 is minimum).
 1. Clone this repo recursively via your favorite git client (that will also clone YRpp).
 2. To build the extension:
-   - in Visual Studio: open the solution file in VS and build it (`Build` build config is recommended);
-   - in VSCode: open the project folder and hit `Run Build Task...` (`Ctrl + Shift + B`);
-   - barebones: run `scripts/build_debug.bat`.
-3. Upon build completion the resulting `Phobos.dll` and `Phobos.pdb` would be placed in the subfolder identical to the name of the buildconfig executed.
-4. Copy `Syringe.exe` onto Game folder along with the builded dll
+   - Open `Phobos.sln`;
+   - **Visual Studio** will prompt you to install needed components if not installed yet , just follow it until is done;
+   - in **Visual Studio**: make sure it is on `Build` and `x86` arcitecture and press `F7` to build the project;
+3. Upon build completion the resulting `Phobos.dll` and `Phobos.pdb` would be placed in the `Build/` folder.
+4. Copy `Syringe.exe` included or use any `Syringe.exe` that compatible with the dll onto Game folder along with the builded dll
 
 Credits
 -------
@@ -36,7 +36,13 @@ Credits
 - **Otamaa (Fahroni, BoredEXE)** - Main developer of this fork version ([PayPal](https://paypal.me/GeneralOtama))
 
 ## Special Thanks 
-- **TODO**
+- **deathreaperz** - feature ideas , extensive and thorough testing
+- **pharell23** -  feature ideas , help with extensive and thorough testing
+- **metalleger_2412** - help with , extensive and thorough testing
+- **mirceaofrivia** -  feature ideas , extensive and thorough testing
+- **ayylmao** - help with small docs ,  feature ideas , extensive and thorough testing
+- **solacex** - extensive and thorough testing
+- **Rise of the East community** - extensive playtesting of in-dev features
 
 Legal and License
 -----

@@ -19,8 +19,13 @@ This page lists all the individual contributions to the project by their author.
   - Semantic locomotor aliases
   - Shield logic
   - Non-ASCII input fix
+  - Building Placement Preview Adjustment
+  - Check for Changelog/Documentation/Credits in Pull Requests
+  - Docs dark theme switcher
+  - Fix position and layer of info tip and reveal production cameo on selected building
+  - Fix a glitch related to incorrect target setting for missiles
+  - Ability to disable shadow for debris & meteor animations
 - **Kerbiter (Metadorius)**:
-  - SHP debris respect `Shadow` fix
   - Building upgrades enhancement
   - Extended tooltips
   - Selection priority filtering
@@ -31,11 +36,18 @@ This page lists all the individual contributions to the project by their author.
   - Zero size map previews fix
   - LaserTrails port and rework
   - Laser graphics fixes
+  - Recursive transport killer fix
+  - Custom locomotors example implementation and piggybacking test warheads
+  - Jumpjet initial facing fix
+  - Migration utility
   - GitHub Actions setup
-  - Overhauled Unicode font
   - Official docs
   - VSCode configs
   - Code style
+  - Customizable ElectricBolt Arcs
+  - Ability to disable shadow for debris & meteor animations
+  - Voxel light source position customization
+  - Voxel light source position and tilting fix
 - **Uranusian (Thrifinesma)**:
   - Mind Control enhancement
   - Custom warhead splash list
@@ -55,7 +67,7 @@ This page lists all the individual contributions to the project by their author.
   - `AITrigger` Building Upgrades support
   - Wall-Gate links
   - Ability for deployed infantry to use both weapons
-  - Font icon additions
+  - Observer PCX loading screen
   - Official CN docs
 - **secsome (SEC-SOME)**:
   - Debug info dump hotkey
@@ -81,11 +93,14 @@ This page lists all the individual contributions to the project by their author.
   - Retint map actions bugfix
   - Sharpnel enhancement
   - Vanilla map preview reading bugfix
+  - Customizable tooltip background
+  - Parts of Ares calling code
 - **Otamaa (Fahroni, BoredEXE)**:
   - Help with CellSpread
   - Ported and fixed custom RadType code
   - Togglable ElectricBolt bolts
   - Customizable Chrono Locomotor properties per TechnoClass
+  - Building Placement Preview
   - `DebrisMaximums` fixes
   - Anim-to-Unit
   - `NotHuman` anim sequences improvements
@@ -96,21 +111,33 @@ This page lists all the individual contributions to the project by their author.
   - `EnemyUIName=` for other TechnoTypes
   - TerrainType `DestroyAnim` & `DestroySound`
   - Laser trails for VoxelAnims
+  - MakeInfantry logic on BombClass bugfix
+  - Debris & meteor impact behaviour settings
+  - Upgrade logic to allow altering of SpySat status
+  - Ares detection and integration
+  - Help with custom locomotors
+  - Extension class optimization
 - **FS-21**:
   - Dump Object Info enhancements
   - `Powered.KillSpawns`
   - `Spawner.LimitRange`
-  - ScriptType Actions 71 to 113
+  - Majority of ScriptType actions
   - MC deployer fixes
   - Help with docs
   - Automatic Passenger Deletion logic
   - `Fire SW At Location/Waypoint` Trigger Action
-  - Kill Object Automatically logic
+  - Kill Object Automatically logic prototype
   - Customizable resource storage
-  - Override Uncloaked Underwater attack behavior
+  - Override uncloaked underwater attack behavior
   - AI Aircraft docks fix
-  - Shared Ammo logic
+  - Shared ammo logic
+  - Customizable FLH when infantry is prone or deployed
+  - Initial strength for cloned infantry
+  - Map Events 604 & 605 for checking if a specific Techno enters in a cell
 - **Starkku**:
+  - Misc. minor bugfixes & improvements
+  - AI script actions:
+    - Chronoshift to Enemy Base
   - Warhead shield penetration & breaking
   - Strafing aircraft weapon customization
   - Vehicle `DeployFire` fixes/improvements
@@ -132,40 +159,267 @@ This page lists all the individual contributions to the project by their author.
   - Aircraft & jumpjet speed modifiers fix
   - Local warhead screen shaking
   - Vehicle custom palette fix
-  - Weapon owner detachment
   - Feedback weapon
   - TerrainType & ore minimap color customization
   - Laser fixes & improvements
   - Mind control indicator animation cloak fix
   - Warhead / Play animation trigger animation owner fix
   - Nuke carrier & payload Bright fix
+  - Display damage numbers hotkey command
+  - TransactMoney.Display
+  - Building-provided self-heal customization
+  - AI deploy script DeploysInto fix
+  - Passable & buildable-upon TerrainTypes
+  - Automatic passenger owner change toggle
+  - Interceptor improvements
+  - OpenTopped transport behaviour customizations
+  - Animation damage / weapon improvements
+  - Warhead self-damaging toggle
+  - Trailer animation owner inheritance
+  - Warhead detonation on all objects on map
+  - Animated TerrainTypes extension
+  - TerrainType damage & crumbling frames
+  - Exploding unit passenger killing customization
+  - Railgun particle target coordinate fix
+  - Building target coordinate offset fix
+  - Warhead / weapon detonation at superweapon target cell
+  - Cloaked & disguised objects displaying to observers
+  - Building airstrike target eligibility customization
+  - IvanBomb detonation & image display centered on buildings
+  - Customizable ROF random delay
+  - BibShape drawing during buildup fix
+  - Spawner spawn delay customization
+  - Cluster scatter distance customization
+  - FlakScatter distance customization
+  - Debris & meteor impact behaviour settings
+  - Custom warhead debris animations
+  - Attached particle system for animations
+  - Removal of hardcoded AA & Gattling weapon selection restrictions
+  - Projectile obstacle logic additions
+  - `AnimList` on zero damage Warheads toggle
+  - Additions to automatic passenger deletion
+  - Buildings considered as vehicles
+  - TechnoType target evaluation map zone check behaviour customization
+  - CanC4 damage rounding fix & toggle
+  - Option to center pause menu background
+  - Disguise logic improvements
+  - Custom insignias
+  - `ZShapePointMove` buildup toggle
+  - `UndeploysInto` building selling buildup sequence length customization
+  - AI naval vehicle production fix
+  - Crushing tilt and slowdown customization
+  - Extra warhead detonations on weapons
+  - Chrono sparkle animation display customization and improvements
+  - PipScale pip size & ammo pip frame customization
+  - Extension class optimization
+  - Additional sync logging
+  - `Arcing` elevation inaccuracy fix
+  - `EMPulseCannon` projectile gravity fix
+  - Custom palette support for wall overlays
+  - Warhead animation improvements
+  - Reloading ammo in transports
+  - Straight projectile trajectory additions
+  - Airstrike & spy plane fixed spawn distance & height
+  - Negative damage `Verses/PercentAtMax` toggle
+  - Misc. singleplayer mission improvements
+  - Weapon effect obstacle interaction fix
+  - Fire particle rotation coordinate adjust toggle
+  - `AmbientDamage` warhead & main target ignore customization
+  - Projectile return weapon
+  - Aircraft landing / docking direction
+  - `DeploysInto` cursor desync fix
+  - Minor crate logic improvements
+  - Custom tint effects
+  - Revenge weapons
+  - AttachEffect
+  - Air unit tracking fix for large range / `CellSpread`
+  - Extra tint intensity for Iron Curtain & Force Shield
+  - Option to enable parsing 8-bit RGB values from `[ColorAdd]` instead of RGB565
+  - Customizing height and speed at which subterranean units travel
+  - AI superweapon delay timer customization
+  - Disabling `MultipleFactory` bonus from specific BuildingType
+  - Customizable ChronoSphere teleport delays for units
+  - Allowed and disallowed types for `FactoryPlant`
+  - Forbidding parallel AI queues for specific TechnoTypes
+  - Nonprovocative Warheads
+  - Customizing effect of level lighting on air units
+  - Reimplemented `Airburst` & `Splits` logic with more customization options
+  - Buildings considered as destroyable pathfinding obstacles
+  - Animation visibility customization settings
+  - Light effect customizations
+  - Building unit repair customizations
+  - Build area customizations
+  - `Scorch` / `Flamer` fire animation customization
+  - EM Pulse cannon logic improvements
+  - `<Player @ X>` as owner for pre-placed objects
+  - Custom exit cell for infantry factory
 - **Morton (MortonPL)**:
-  - `XDrawOffset`
+  - `XDrawOffset` for animations
   - Shield passthrough & absorption
   - Building `LimboDelivery` logic
   - Fix for `Image` in art rules
   - Power delta counter
+  - Super Weapons launching other Super Weapons
+  - SpyEffects expansion, launching Super Weapons on building infiltration
+  - Real time timers
+  - Default campaign game speed override and custom campaign game speed FPS
+  - Including INI files and inheriting INI sections
+  - Ares detection and integration
+  - TechnoType conversion warhead & superweapon
+  - Unlimited skirmish colors
+  - Show designator & inhibitor range
+  - Dump variables to file on scenario end / hotkey
+  - "House owns TechnoType" and "House doesn't own TechnoType" trigger events
   - Help with docs
-- **ChrisLv_CN** (work relicensed under [following permission](images/ChrisLv-relicense.png)):
+  - Voxel light source position customization
+- **ChrisLv_CN** (work relicensed under [following permission](https://github.com/Phobos-developers/Phobos/blob/develop/images/ChrisLv-relicense.png)):
    - General assistance
    - Interceptor logic prototype
    - LaserTrails prototype
    - Laser fixes prototype
+- **Trsdy**
+   - Preserve IronCurtain status upon DeploysInto/UndeploysInto
+   - Several jumpjet fixes:
+      - Facing towards target even if not omni-firing
+      - Turret direction in idle state fix
+      - Sensor fix
+      - Allow to tilt regardless of TiltCrashJumpjet
+      - Forbid firing when crashing
+   - OmniFire.TurnToTarget
+   - Strafing aircraft weapon customization
+   - Object Self-destruction logic
+   - Misc vanilla suicidal behavior fix
+   - Post-type-conversion update
+   - Units retaining orders after changing ownership bugfix
+   - Several fixes and dehardcode related to building selling/undeploying:
+     - Building `EVA_StructureSold` and `SellSound` dehardcode
+     - Restore `EVA_StructureSold` for buildings with `UndeploysInto`
+     - Redeployable MCV in campaigns
+     - Allow buildings with `UndeploysInto` to be sold if `Unsellable=no` even if not conyard
+     - Trigger actions that allow/forbid MCV to redeploy in game
+   - `AlternateFLH` of vehicles in `OpenTopped` transport.
+   - Slaves' house customization when owner is killed
+   - Trigger Action spawned team IFV/Opentopped logic fix
+   - Singleplayer Campaign AI's base node/SW-delivered/trigger action 125-delivered structures' auto-repairability dehardcode
+   - Power delta counter : blackout indication mark
+   - Harvester counter
+   - Income money string indication upon ore dump
+   - Warhead superweapon launch logic
+   - TechnoType conversion placeholder
+   - "Shield is broken" trigger event
+   - RadialIndicator observer visibility
+   - Cloaked objects from allies displaying to player in singleplayer campaigns
+   - Skip `NaturalParticleSystem` displaying from in-map pre-placed structures
+   - Random crate generation limited to land option, optimization for crates' random sampling
+   - `ImmuneToCrit` for shields
+   - Forbidding parallel AI queues by type
+   - The option to allow DieSound/VoiceDie being played when grinding
+   - Allow iron-curtain effects on infantries
+   - Break the mindcontrol link when capturing a mind-controlled building with engineer
+   - Remove sound events when mind-controlled vehicles deploy into buildings or when buildings considered as vehicles get captured
+   - Building LightSource tint S/L fix
+   - Permanent healthbar display on units targeted by temporal weapons fix
+   - Powered anims on buildings cease playing upon capture by different house fix
+   - TechnoType conversion placeholder
+   - TechnoType conversion upon ownership change
+   - EIP 00529A14 crash fix on Linux
+   - Teleport timer reset after load game fix
+   - Teleport, Tunnel and Fly loco visual tilt fix
+   - Turret/Barrel/NoSpawnAlt/Multi-section voxel shadow, dynamic voxel shadow
+   - Skip units' turret rotation and jumpjets' wobbling under EMP
+   - Droppod properties dehardcode
+   - Waypoint entering building together with engineer/agent bug fix
+   - Skippable game save on scenario start
+   - `InfDeath=9` versus jumpjet infantry 0 damage fix
+   - Skip rally point line drawing when undeploying a building
+   - Ares' `SW.Shots` hint on extended tooltips
+   - Ares' Abductor weapon fix
+   - Suppress Ares' swizzle warning when parsing tags and taskforces
+   - Better fix for Ares academy not working on the initial payloads of vehicles built from a war factory
+   - Fix Ares' InitialPayload for teams spawned by trigger actions
+   - Misc code refactor & maintenance, CN doc fixes, bugfixes
+- **FlyStar**
+   - Campaign load screen PCX support
+   - New condition for automatic self-destruction logic when TechnoTypes exist/don't exist
+- **NetsuNegi**
+   - Forbidding parallel AI queues by type
+   - Jumpjet crash speed fix when crashing onto building
+   - Disguised units not using the correct palette if target has custom palette bugfix
+   - Tunnel/Walk/Mech locomotor being stuck when moving too fast bugfix
+   - Assign Super Weapon cameo to any sidebar tab
+- **Apollo** - Translucent SHP drawing patches
+- **ststl**
+   - Customizable ShowTimer priority of superweapons
+   - Iron Curtain effects customization on infantries and organic units
+   - Use `CustomPalette` for animations with `Tiled=yes`
+   - Unlimited `AlternateFLH` entries
+   - Build limit group
+   - Customizing whether passengers are kicked out when an aircraft fires
+- **TwinkleStar**
+  - Custom slaves free sound
+  - Jumpjet crash rotation control
+  - Vehicle voxel turret shadows & body multi-section shadows
+  - `TurretOffset` support for SHP vehicles
+  - Customizable rocker amplitude
+  - Customizable wake anim
+- **Fryone**
+  - Customizable ElectricBolt Arcs
+  - Sound entry on unit's creation
+  - Auto-deploy/Deploy block on ammo change
+  - Flashing Technos on selecting
+  - Promotion animation
+- **ZivDero**
+  - Re-enable the Veinhole Monster and Weeds from TS
+  - Recreate the weed-charging of SWs like the TS Chemical Missile
+  - Allow to change the speed of gas particles
+- **CrimRecya**
+  - Fix `LimboKill` not working reliably
+  - Allow using waypoints, area guard and attack move with aircraft
+  - Fix `Stop` command not working so well in some cases
+  - Fix aircraft `MovementZone` and `SpeedType` inconsistencies
+  - Use 2D distance instead of 3D to check whether in air team members have arrived destination
+- **Ollerus**
+  - Build limit group enhancement
+  - Customizable rocker amplitude
+- **handama** - AI script action to jump back to previous script
+- **TaranDahl (航味麻酱)**
+  - Skirmish AI "sell all buildings and set all technos to hunt" behavior dehardcode
+  - Skirmish AI "gather when MCV deploy" behavior dehardcode
+  - Global value of `RepairBaseNodes`
+- **tyuah8** - Drive/Jumpjet/Ship/Teleport locomotor did not power on when it is un-piggybacked bugfix
+- **Aephiex** - initial fix for Ares academy not working on the initial payloads of vehicles built from a war factory
+- **Ares developers**
+  - YRpp and Syringe which are used, save/load, project foundation and generally useful code from Ares
+  - unfinished RadTypes code
+  - prototype deployer fixes
+  - Superweapon launch site & availability code
+  - AI vehicle production update code
+  - parts of TechnoType conversion placeholder code
+- **ststl, FlyStar, NaotoYuuki, Saigyouji, JunJacobYoung** - Digital Display
 - **SukaHati (Erzoid)** - Minimum interceptor guard range
 - **E1 Elite** - TileSet 255 and above bridge repair fix
 - **AutoGavy** - interceptor logic, Warhead critical hit logic
 - **Chasheen (Chasheenburg)** - CN docs help
-- **Ares developers** - YRpp and Syringe which are used, save/load, project foundation and generally useful code from Ares, unfinished RadTypes code, prototype deployer fixes
 - **tomsons26** - all-around help, assistance and guidance in reverse-engineering, YR binary mappings
-- **CCHyper** - all-around help, current project logo, assistance and guidance in reverse-engineering, YR binary mappings
+- **CCHyper** - all-around help, current project logo, assistance and guidance in reverse-engineering, YR binary mappings, custom locomotors example implementation
+- **AlexB** - Original FlyingStrings implementation
+- **Joshy** - Original FlyingStrings implementation
+- **CnCVK** - Original custom locomotors experiment
 - **ZΞPHYɌUS** - win/lose themes code
+- **Neargye (Daniil Goncharov)** - [nameof library](https://github.com/Neargye/nameof) (MIT)
 - **ayylmao** - help with docs, extensive and thorough testing
 - **SMxReaver** - help with docs, extensive and thorough testing
 - **4SG** - help with docs
-- **wiktorderelf** - overhauled Unicode font
-- **thomassneddon** - general assistance
+- **thomassneddon** - general assistance, knowledge about voxel lighting model
 - **Xkein** - general assistance, YRpp edits
 - **mevitar** - honorary shield tester *triple* award
+- **Phobos CN Tester Group (Reedom, Mantis, Swim Wing, Takitoru, Examon, AKB, Pusheen, ZQ, Claptrap, BunkerGeneral, Big J, Skywalker, ChickEmperor, Shifty, Mikain, Tobiichi Origami, Feiron, W_S502, Ailink, AbrahamMikhail, Tide, Fnfalsc, Yumeri_Rei, Nacho, Zhuzi, Ika_Aru)** - extensive and thorough testing
 - **Damfoos** - extensive and thorough testing
 - **Dmitry Volkov** - extensive and thorough testing
 - **Rise of the East community** - extensive playtesting of in-dev features
+
+- **deathreaperz** - extensive and thorough testing
+- **pharell23** - help with , extensive and thorough testing
+- **metalleger_2412** - help with , extensive and thorough testing
+- **solacex** - extensive and thorough testing
+- **mirceaofrivia** - extensive and thorough testing

@@ -209,3 +209,56 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 //
 // 	return 0x450E3E;
 // }
+
+DEFINE_HOOK(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
+{
+	enum { SkipGameCode = 0x44F13B, ReturnFromFunction = 0x44F037 };
+
+	GET(FakeBuildingClass*, pThis, EBX);
+	GET(TechnoClass*, pTechno, ESI);
+	REF_STACK(CellStruct, resultCell, STACK_OFFSET(0x30, -0x20));
+
+	auto const pTypeExt = pThis->_GetTypeExtData();
+
+	if (pTypeExt->BarracksExitCell.isset()) {
+
+		const auto exitCell = pThis->GetMapCoords() + CellStruct { 
+			(short)pTypeExt->BarracksExitCell->X, (short)pTypeExt->BarracksExitCell->Y 
+		};
+
+		if (MapClass::Instance->CoordinatesLegal(exitCell))
+		{
+			if (pTechno->IsCellOccupied(MapClass::Instance->GetCellAt(exitCell), 
+				FacingType::None,
+				-1, 
+				nullptr,
+				true)
+				== Move::OK) {
+				resultCell = exitCell;
+				return ReturnFromFunction;
+			}
+
+		}
+
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
+{
+	enum { SkipGameCode = 0x444C7C };
+	GET(FakeBuildingClass*, pThis, ESI);
+	GET(int, xCoord, EBP);
+	GET(int, yCoord, EDX);
+	REF_STACK(CoordStruct, resultCoords, STACK_OFFSET(0x140, -0x108));
+
+	if (pThis->_GetTypeExtData()->BarracksExitCell.isset()) {
+		auto const exitCoords = pThis->Type->ExitCoord;
+		resultCoords = CoordStruct { xCoord + exitCoords.X, yCoord + exitCoords.Y, exitCoords.Z };
+		return SkipGameCode;
+	}
+
+	return 0;
+}

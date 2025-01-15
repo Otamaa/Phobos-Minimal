@@ -90,7 +90,7 @@ DEFINE_HOOK(0x777985, Main_Window_Proc_OnMouseWheel, 0x6)
 }
 DEFINE_HOOK(0x4FB8E4, Manual_Place_ResetBuildingTypeCurrentHeapId, 0x6)
 {
-	if (const auto pType = specific_cast<BuildingTypeClass*>(SidebarClass::Instance->CurrentBuildingType))
+	if (const auto pType = cast_to<BuildingTypeClass*>(SidebarClass::Instance->CurrentBuildingType))
 	{
 		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 		pTypeExt->NextBuilding_CurrentHeapId = pType->ArrayIndex;

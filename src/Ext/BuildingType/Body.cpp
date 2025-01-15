@@ -974,6 +974,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Adjacent_Allowed.Read(exINI, pSection, "Adjacent.Allowed");
 		this->Adjacent_Disallowed.Read(exINI, pSection, "Adjacent.Disallowed");
 
+		this->BarracksExitCell.Read(exINI, pSection, "BarracksExitCell");
+
 		this->Units_RepairRate.Read(exINI, pSection, "Units.RepairRate");
 		this->Units_RepairStep.Read(exINI, pSection, "Units.RepairStep");
 		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
@@ -1391,6 +1393,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NoBuildAreaOnBuildup)
 		.Process(this->Adjacent_Allowed)
 		.Process(this->Adjacent_Disallowed)
+
+		.Process(this->BarracksExitCell)
 
 		.Process(this->Units_RepairRate)
 		.Process(this->Units_RepairStep)
