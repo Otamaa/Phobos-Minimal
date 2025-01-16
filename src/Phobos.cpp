@@ -762,45 +762,50 @@ void Phobos::ExeTerminate()
 bool Phobos::DetachFromDebugger()
 {
 	DWORD ret = false;
+	HMODULE ntdll = NULL;
 
 	for (auto& module : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll")){
+			ntdll = module.Handle;
+			break;
+		}
+	}
 
-		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll") && module.Handle != NULL) {
+	if (ntdll != NULL) {
 
-			auto const NtRemoveProcessDebug =
-				(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(module.Handle, "NtRemoveProcessDebug");
-			auto const NtSetInformationDebugObject =
-				(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(module.Handle, "NtSetInformationDebugObject");
-			auto const NtQueryInformationProcess =
-				(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(module.Handle, "NtQueryInformationProcess");
-			auto const NtClose =
-				(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(module.Handle, "NtClose");
+		auto const NtRemoveProcessDebug =
+			(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(ntdll, "NtRemoveProcessDebug");
+		auto const NtSetInformationDebugObject =
+			(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(ntdll, "NtSetInformationDebugObject");
+		auto const NtQueryInformationProcess =
+			(NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG))GetProcAddress(ntdll, "NtQueryInformationProcess");
+		auto const NtClose =
+			(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(ntdll, "NtClose");
 
-			HANDLE hDebug {};
-			NTSTATUS status = NtQueryInformationProcess(Patch::CurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
-			if (0 <= status)
-			{
+		HANDLE hDebug {};
+		NTSTATUS status = NtQueryInformationProcess(Patch::CurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+		if (0 <= status)
+		{
 				ULONG killProcessOnExit = FALSE;
 				status = NtSetInformationDebugObject(
 					hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
 
+			if (0 <= status)
+			{
+				const auto pid = Patch::GetDebuggerProcessId(GetProcessId(Patch::CurrentProcess));
+				status = NtRemoveProcessDebug(Patch::CurrentProcess, hDebug);
 				if (0 <= status)
 				{
-					const auto pid = Patch::GetDebuggerProcessId(GetProcessId(Patch::CurrentProcess));
-					status = NtRemoveProcessDebug(Patch::CurrentProcess, hDebug);
-					if (0 <= status)
-					{
-						HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-						if (hDbgProcess != NULL)
+					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+					if (hDbgProcess != NULL)
 						{
-							ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
-							CloseHandle(hDbgProcess);
-						}
+						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
+						CloseHandle(hDbgProcess);
 					}
 				}
-
-				NtClose(hDebug);
 			}
+
+			NtClose(hDebug);
 		}
 	}
 

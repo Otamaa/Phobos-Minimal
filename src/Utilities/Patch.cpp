@@ -206,7 +206,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 					void* image_base_void = (void*)image_base;
 
 					if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
-						return; // The handle does not point to a valid module
+						continue; // The handle does not point to a valid module
 
 					if (ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0)
 					{
