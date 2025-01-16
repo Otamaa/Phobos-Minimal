@@ -179,15 +179,14 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 			COMPILETIMEEVAL auto const pDelim = "------------------------------------------------------------------------------------\n";
 			fprintf(except, "Internal Error encountered!\n");
 			fprintf(except, pDelim);
-			fprintf(except, "Ares version: 21.352.1218 With Phobos %s", PRODUCT_VERSION); //TODO
-			fprintf(except, "\n");
+			fprintf(except, "Ares version: 21.352.1218 With Phobos %s\n", PRODUCT_VERSION); //TODO
+			fprintf(except, "Running on %s\n", Patch::WindowsVersion.c_str());
 			fprintf(except, pDelim);
 
 			fprintf(except, "\n");
 
 			int i = 0;
-			for (auto const& data : Patch::ModuleDatas)
-			{
+			for (auto const& data : Patch::ModuleDatas) {
 				fprintf(except, "Module [(%d) %s: Base address = %x]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
 			}
 

@@ -168,6 +168,7 @@ struct NOVTABLE
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 public :
 	OPTIONALINLINE static HANDLE CurrentProcess;
+	OPTIONALINLINE static std::string WindowsVersion;
 };
 
 struct NOVTABLE

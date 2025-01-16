@@ -611,6 +611,86 @@ void Phobos::InitConsole()
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
+//https://opengrok.libreoffice.org/xref/core/vcl/win/app/salinst.cxx?r=c35f8114#868
+std::string GetOsVersionQuick()
+{
+	std::string aVer { "Windows " }; // capacity for string like "Windows 6.1 Service Pack 1 build 7601"
+	HMODULE kernel = NULL;
+	HMODULE ntdll = NULL;
+
+	for (auto& module : Patch::ModuleDatas) {
+		if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll"))
+			kernel = module.Handle;
+		else if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll"))
+			ntdll = module.Handle;
+	}
+	// GetVersion(Ex) and VersionHelpers (based on VerifyVersionInfo) API are
+	// subject to manifest-based behavior since Windows 8.1, so give wrong results.
+	// Another approach would be to use NetWkstaGetInfo, but that has some small
+	// reported delays (some milliseconds), and might get slower in domains with
+	// poor network connections.
+	// So go with a solution described at https://web.archive.org/web/20090228100958/http://msdn.microsoft.com/en-us/library/ms724429.aspx
+	bool bHaveVerFromKernel32 = false;
+	if (kernel)
+	{
+		wchar_t szPath[MAX_PATH];
+		DWORD dwCount = GetModuleFileNameW(kernel, szPath, std::size(szPath));
+		if (dwCount != 0 && dwCount < std::size(szPath))
+		{
+			dwCount = GetFileVersionInfoSizeW(szPath, nullptr);
+			if (dwCount != 0)
+			{
+				std::unique_ptr<char[]> ver(new char[dwCount]);
+				if (GetFileVersionInfoW(szPath, 0, dwCount, ver.get()) != FALSE)
+				{
+					void* pBlock = nullptr;
+					UINT dwBlockSz = 0;
+					if (VerQueryValueW(ver.get(), L"\\", &pBlock, &dwBlockSz) != FALSE && dwBlockSz >= sizeof(VS_FIXEDFILEINFO))
+					{
+						VS_FIXEDFILEINFO* vi1 = static_cast<VS_FIXEDFILEINFO*>(pBlock);
+						aVer += (std::to_string(HIWORD(vi1->dwProductVersionMS)) + "."
+									+ std::to_string(LOWORD(vi1->dwProductVersionMS)));
+						bHaveVerFromKernel32 = true;
+					}
+				}
+			}
+		}
+	}
+	// Now use RtlGetVersion (which is not subject to deprecation for GetVersion(Ex) API)
+	// to get build number and SP info
+	bool bHaveVerFromRtlGetVersion = false;
+	if (ntdll)
+	{
+		NTSTATUS(WINAPI * RtlGetVersion_t)(LPOSVERSIONINFOEXW);
+		*(FARPROC*)&RtlGetVersion_t = GetProcAddress(ntdll, "RtlGetVersion");
+
+		if (RtlGetVersion_t != NULL)
+		{
+			OSVERSIONINFOEXW vi2 {}; // initialize with zeroes - a better alternative to memset
+			vi2.dwOSVersionInfoSize = sizeof(vi2);
+
+			if (NULL == RtlGetVersion_t(&vi2))
+			{
+				if (!bHaveVerFromKernel32) // we failed above; let's hope this would be useful
+					aVer += (std::to_string(vi2.dwMajorVersion) + "."
+								+ std::to_string(vi2.dwMinorVersion));
+				aVer += (" ");
+				if (vi2.szCSDVersion[0])
+					aVer += (PhobosCRT::WideStringToString(vi2.szCSDVersion) + " ");
+
+				aVer += ("Build " + std::to_string(vi2.dwBuildNumber));
+
+				bHaveVerFromRtlGetVersion = true;
+			}
+		}
+	}
+	
+	if (!bHaveVerFromKernel32 && !bHaveVerFromRtlGetVersion)
+		aVer += "unknown";
+
+	return aVer;
+}
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -659,6 +739,9 @@ void Phobos::ExeRun()
 	}
 
 	Patches.clear();
+
+	Patch::WindowsVersion = std::move(GetOsVersionQuick());
+	Debug::LogDeferred("Running on %s\n", Patch::WindowsVersion.c_str());
 
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
