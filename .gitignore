@@ -387,3 +387,5 @@ FodyWeavers.xsd
 /Phobos/DisableDPFeatures/Phobos.tlog/Phobos.lastbuildstate
 /Phobos/DisableDPFeatures/Phobos.tlog/unsuccessfulbuild
 *.tlog
+/DebugBuild/IntDir/microsoft/STL
+/DebugBuild/IntDir
