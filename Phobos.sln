@@ -8,13 +8,13 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Build|x86 = Build|x86
-		Debug|x86 = Debug|x86
+		DebugBuild|x86 = DebugBuild|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|x86.ActiveCfg = Build|Win32
 		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Build|x86.Build.0 = Build|Win32
-		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Debug|x86.ActiveCfg = DisableDPFeatures|Win32
-		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.Debug|x86.Build.0 = DisableDPFeatures|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DebugBuild|x86.ActiveCfg = DebugBuild|Win32
+		{3FAF7126-F38C-4D1E-9973-C21A37870F60}.DebugBuild|x86.Build.0 = DebugBuild|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

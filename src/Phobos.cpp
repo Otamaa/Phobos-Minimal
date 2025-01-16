@@ -218,6 +218,7 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::PrintInitializeLog();
 	}
 
+#ifdef _Enable_these
 	SID_IDENTIFIER_AUTHORITY _ID {};
 	HANDLE _Token {};
 	DWORD _RetLength {};
@@ -247,6 +248,7 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 
 	if (_PID)
 		FreeSid(_PID);
+#endif
 
 	Phobos::CheckProcessorFeatures();
 

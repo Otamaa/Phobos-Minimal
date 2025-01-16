@@ -204,7 +204,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AdditionalHeight.Read(exINI, pID, "AdditionalHeight");
 	this->AltReport.Read(exINI, pID, "AltReport");
 
-	this->SpawnsData.Read(exINI, pID);
+	//this->SpawnsData.Read(exINI, pID);
 
 	this->VisibleTo.Read(exINI, pID, "VisibleTo");
 	this->VisibleTo_ConsiderInvokerAsOwner.Read(exINI, pID, "VisibleTo.ConsiderInvokerAsOwner");
@@ -633,7 +633,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AdditionalHeight)
 		.Process(this->AltReport)
-		.Process(this->SpawnsData)
+		//.Process(this->SpawnsData)
 
 		.Process(this->CreateUnit_Scatter)
 		.Process(this->CreateUnit_AI_Scatter)

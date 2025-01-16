@@ -131,7 +131,7 @@ struct Swizzle {
 		}
 #ifdef _DEBUG
 		else {
-			Debug::Log("%s Is Not Swizzeable ! \n", typeid(TSwizzle).name());
+			Debug::Log("%s Is Not Swizzeable ! \n", typeid(T).name());
 		}
 #endif
 	}

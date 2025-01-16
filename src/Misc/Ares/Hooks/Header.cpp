@@ -8259,7 +8259,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 
 		// original color schemes
 		static COMPILETIMEEVAL reference<int, 0x8316A8, 0x9> const DefaultColors {};
-		COMPILETIMEEVAL std::string Slot_tags[] = {
+		COMPILETIMEEVAL const char* Slot_tags[] = {
 			"Slot1", "Slot2", "Slot3", "Slot4",
 			"Slot5", "Slot6", "Slot7", "Slot8",
 			"Slot9", "Slot10", "Slot11", "Slot12",

@@ -140,7 +140,13 @@ typedef union {
 #define SELECTANY __declspec(selectany)
 #define NAKED __declspec(naked)
 #define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
+
+#ifdef _DEBUG
+#define FORCEDINLINE inline
+#else
 #define FORCEDINLINE __forceinline
+#endif
+
 #define OPTIONALINLINE inline
 #define COMPILETIMEEVAL constexpr 
 

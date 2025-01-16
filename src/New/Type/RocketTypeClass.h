@@ -38,11 +38,11 @@ public:
 		Array.reserve(DefaultRockets.size());
 
 		for (auto& rocket:  DefaultRockets) {
-			FindOrAllocate(rocket.c_str());
+			FindOrAllocate(rocket);
 		}
 	}
 
-	static COMPILETIMEEVAL std::array<std::string, 3u> DefaultRockets {
+	static COMPILETIMEEVAL std::array<const char*, 3u> DefaultRockets {
 		{ "CMisl" , "DMisl" , "V3Rocket" }
 	};
 

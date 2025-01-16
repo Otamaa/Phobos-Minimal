@@ -6,7 +6,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
-#include <New/AnonymousType/Spawns.h>
+//#include <New/AnonymousType/Spawns.h>
 //#include "AnimSpawnerDatas.h"
 
 class AnimTypeExtData final
@@ -105,7 +105,7 @@ public:
 	Valueable<int> AdditionalHeight {};
 	NullableIdx<VocClass> AltReport {};
 
-	Spawns SpawnsData {};
+	//Spawns SpawnsData {};
 
 	Valueable<AffectedHouse> VisibleTo { AffectedHouse::All };
 	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner { false };
