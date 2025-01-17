@@ -1185,6 +1185,9 @@ void WarheadTypeExtData::DetonateAt(
 {
 	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
+	if(!pType)
+		Debug::FatalError("Uneable to Fetch %s BulletType ! \n" , DEFAULT_STR2);
+
 	//if (pThis->NukeMaker)
 	//{
 	//	if (!pTarget)

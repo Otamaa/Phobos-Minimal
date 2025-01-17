@@ -1600,6 +1600,8 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 	}
 
 	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+	if(!RulesExtData::Instance()->DefautBulletType)
+		Debug::FatalError("Uneable to Allocate %s BulletType ! \n" , DEFAULT_STR2);
 
 	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
 	{

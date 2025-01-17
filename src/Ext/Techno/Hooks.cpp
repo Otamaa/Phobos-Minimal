@@ -246,10 +246,8 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 
 	int maxSpeed = 0;
 
-	if (pThis)
+	if (auto pType = pThis->GetTechnoType() )
 	{
-		auto pType = pThis->GetTechnoType();
-
 		if (TechnoTypeExtContainer::Instance.Find(pType)->UseDisguiseMovementSpeed)
 			pType = TechnoExtData::GetSimpleDisguiseType(pThis, false, false);
 
