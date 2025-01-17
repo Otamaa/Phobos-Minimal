@@ -1787,20 +1787,20 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 	return 0x437C30;
 }
 
-DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Passengers.NumPassengers < pThis->NonPassengerCount)
-	{
-		pThis->MissionStatus = 4;
-		pThis->QueueMission(Mission::Guard, false);
-		pThis->NextMission();
-		pThis->unknown_bool_B8 = true;
-	}
-
-	return 0x0;
-}
+// DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
+// {
+// 	GET(UnitClass*, pThis, ESI);
+//
+// 	if (pThis->Passengers.NumPassengers < pThis->NonPassengerCount)
+// 	{
+// 		pThis->MissionStatus = 4;
+// 		pThis->QueueMission(Mission::Guard, false);
+// 		pThis->NextMission();
+// 		pThis->unknown_bool_B8 = true;
+// 	}
+//
+// 	return 0x0;
+// }
 
 //TechnoClass_GetWeaponState
 DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)

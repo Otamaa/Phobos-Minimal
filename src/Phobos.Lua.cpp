@@ -14,7 +14,7 @@
 // Otamaa : change this variable if you want to load desired name lua file
 std::string filename = "\\renameinternal.lua";
 std::string LuaData::LuaDir;
-std::unordered_map<uintptr_t, std::string> map_replaceAddrTo;
+HelperedVector<std::pair<uintptr_t, std::string>> map_replaceAddrTo;
 std::string MainWindowStr;
 
 void Phobos::ExecuteLua()
@@ -66,24 +66,42 @@ void Phobos::ExecuteLua()
 					const auto addr = (uintptr_t)lua_tointeger(L, -1);
 					lua_pop(L, 1);
 
-					if (addr > 0)
+					// i dont know if the address is correct 
+					// this is assuming that player not using some kind of weird modded gamemd.exe
+					if (addr > 0 && addr >= 0x401000 && addr <= 0xB79BE4)
 					{
-						auto& result = map_replaceAddrTo[addr];
-						const auto maxlen = strlen((const char*)addr);
+						std::pair<uintptr_t, std::string>* result = nullptr;
+
+						{
+							bool found = false;
+							for (auto begin = map_replaceAddrTo.begin(); begin != map_replaceAddrTo.end(); ++begin)
+							{
+								if (begin->first == addr)
+								{
+									result = begin.operator->();
+									found = true;
+									break;
+								}
+							}
+
+							if (!found)
+								result = &map_replaceAddrTo.emplace_back(addr, "");
+						}
+
+						const auto maxlen = strlen((const char*)result->first);
 						lua_pushstring(L, "To");
 						lua_gettable(L, -2);
-						result = lua_tostring(L, -1);
+						result->second = lua_tostring(L, -1);
 						lua_pop(L, 1);
 
 						DWORD protectFlag;
-						if (Phobos::Otamaa::IsAdmin)
-						{
-							std::string copy = PhobosCRT::trim(result.c_str());
-							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result.size(), maxlen);
+						if (Phobos::Otamaa::IsAdmin) {
+							std::string copy = PhobosCRT::trim(result->second.c_str());
+							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result->second.size(), maxlen);
 						}
 
 						// do not exceed maximum length of the string , otherwise it will broke the .exe file
-						Patch::Apply_withmemcpy(addr, result.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
+						Patch::Apply_withmemcpy(addr, result->second.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
 					}
 
 				}

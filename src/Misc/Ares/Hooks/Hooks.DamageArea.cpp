@@ -283,117 +283,120 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 		for (CellSpreadEnumerator it(short(spread + 0.99), short(0)); it; ++it)
 		{
 			auto cellhere = (cell + (*it));
-			auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
-			auto cur_cellCoord = pCurCell->GetCoords();
+			if(auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere)) { 
 
-			if (pCurCell->OverlayTypeIndex > -1)
-			{
-				auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
-				if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
-				{// hook up the area damage delivery with chain reactions
-					pCurCell->ChainReaction();
-					pCurCell->ReduceTiberium(damage / 10);
-				}
+				auto cur_cellCoord = pCurCell->GetCoords();
 
-				if (pOvelay->Wall)
+				if (pCurCell->OverlayTypeIndex > -1)
 				{
-					if (pWarhead->WallAbsoluteDestroyer)
-					{
-						pCurCell->ReduceWall();
+					auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
+					if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
+					{// hook up the area damage delivery with chain reactions
+						pCurCell->ChainReaction();
+						pCurCell->ReduceTiberium(damage / 10);
 					}
-					else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
-					{
-						pCurCell->ReduceWall(damage);
-					}
-				}
 
-				if (pCurCell->OverlayTypeIndex == -1)
-				{
-					TechnoClass::ClearWhoTargetingThis(pCurCell);
-				}
-
-				if (pOvelay->IsVeinholeMonster)
-				{
-					if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
+					if (pOvelay->Wall)
 					{
-						if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
+						if (pWarhead->WallAbsoluteDestroyer)
 						{
-							int nDamage = damage;
-							if (veinhole->ReceiveDamage(&nDamage,
-								(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
-								pWarhead,
-								pSource,
-								false,
-								false,
-								pSource && !pHouse ? pSource->Owner : pHouse
-							) == DamageState::NowDead)
-							{
-								Debug::Log("Veinhole at [%d %d] Destroyed!\n", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+							pCurCell->ReduceWall();
+						}
+						else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
+						{
+							pCurCell->ReduceWall(damage);
+						}
+					}
 
-								if (pCurCell->OverlayTypeIndex == -1)
+					if (pCurCell->OverlayTypeIndex == -1)
+					{
+						TechnoClass::ClearWhoTargetingThis(pCurCell);
+					}
+
+					if (pOvelay->IsVeinholeMonster)
+					{
+						if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
+						{
+							if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
+							{
+								int nDamage = damage;
+								if (veinhole->ReceiveDamage(&nDamage,
+									(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
+									pWarhead,
+									pSource,
+									false,
+									false,
+									pSource && !pHouse ? pSource->Owner : pHouse
+								) == DamageState::NowDead)
 								{
-									TechnoClass::ClearWhoTargetingThis(pCurCell);
+									Debug::Log("Veinhole at [%d %d] Destroyed!\n", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+
+									if (pCurCell->OverlayTypeIndex == -1)
+									{
+										TechnoClass::ClearWhoTargetingThis(pCurCell);
+									}
 								}
 							}
 						}
 					}
 				}
-			}
 
-			for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
-			{
-				auto pCur = *next;
-
-				if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
-					continue;
-
-				if (!pCur->IsAlive)
-					continue;
-
-				const auto what = pCur->WhatAmI();
-				auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
-
-				if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
+				for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
 				{
-					if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
-					{
+					auto pCur = *next;
+
+					if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
 						continue;
-					}
-				}
 
-				auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
-				groupvec.push_back(cur_Group);
+					if (!pCur->IsAlive)
+						continue;
 
-				if (what == BuildingClass::AbsID)
-				{
-					if (!it.getCurSpread())
+					const auto what = pCur->WhatAmI();
+					auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
+
+					if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
 					{
-						if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight  * 2))
+						if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
 						{
-							cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::LevelHeight;
+							continue;
 						}
+					}
 
-						if (spreadLow)
+					auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
+					groupvec.push_back(cur_Group);
+
+					if (what == BuildingClass::AbsID)
+					{
+						if (!it.getCurSpread())
 						{
-							if (pCur->IsIronCurtained()
-								&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
-								&& cur_Group->Distance < 85
-								)
+							if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight  * 2))
 							{
-								HitICEdTechno = !pWHExt->PenetratesIronCurtain;
+								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::LevelHeight;
 							}
+
+							if (spreadLow)
+							{
+								if (pCur->IsIronCurtained()
+									&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
+									&& cur_Group->Distance < 85
+									)
+								{
+									HitICEdTechno = !pWHExt->PenetratesIronCurtain;
+								}
+							}
+						}
+						else
+						{
+							cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
 						}
 					}
 					else
 					{
+						cur_cellCoord = pCur->GetTargetCoords();
 						cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
 					}
 				}
-				else
-				{
-					cur_cellCoord = pCur->GetTargetCoords();
-					cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-				}
+			
 			}
 		}
 	}
@@ -503,25 +506,28 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 					int xpos = cell.X + x;
 					int ypos = cell.Y + y;
 
-					auto object = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos))->Cell_Occupier(alt);
+					if(auto pCell = MapClass::Instance->TryGetCellAt(CellStruct(xpos, ypos))) {
 
-					while (object)
-					{
-						if (FootClass* techno = flag_cast_to<FootClass*>(object))
+						auto object = pCell->Cell_Occupier(alt);
+
+						while (object)
 						{
-							if (xpos == cell.X && ypos == cell.Y && pSource)
+							if (FootClass* techno = flag_cast_to<FootClass*>(object))
 							{
-								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
-								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
-								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								if (xpos == cell.X && ypos == cell.Y && pSource)
+								{
+									Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
+									Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
+									CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
+									techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								}
+								else if (pWarhead->CellSpread > 0.0f)
+								{
+									techno->RockByValue(pCoord, (float)rockerSpread);
+								}
 							}
-							else if (pWarhead->CellSpread > 0.0f)
-							{
-								techno->RockByValue(pCoord, (float)rockerSpread);
-							}
+							object = object->NextObject;
 						}
-						object = object->NextObject;
 					}
 				}
 			}

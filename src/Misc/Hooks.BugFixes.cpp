@@ -2275,21 +2275,6 @@ DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D));
 
 #pragma endregion
 
-
-DEFINE_HOOK(0x7410BB, UnitClass_GetFireError_CheckFacingError, 0x8)
-{
-	enum { NoNeedToCheck = 0x74132B, ContinueCheck = 0x7410C3 };
-
-	GET(const FireError, fireError, EAX);
-
-	if (fireError == FireError::OK)
-		return ContinueCheck;
-
-	GET(UnitClass* const, pThis, ESI);
-
-	return (fireError == FireError::REARM && !pThis->Type->Turret && !pThis->IsWarpingIn()) ? ContinueCheck : NoNeedToCheck;
-}
-
 void KickOutStuckUnits(BuildingClass* pThis)
 {
 	if (const auto pTechno = pThis->GetNthLink())
