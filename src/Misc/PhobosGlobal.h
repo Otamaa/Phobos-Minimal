@@ -40,6 +40,7 @@ public:
 	std::vector<CellStruct> TempFoundationData1 { };
 	std::vector<CellStruct> TempFoundationData2 { };
 	HelperedVector<CellStruct> TempCoveredCellsData { };
+	std::string LastAnimName {};
 
 	struct CopyArray{
 		std::vector<AircraftClass*> Aircraft {};
@@ -179,6 +180,7 @@ public:
 			.Process(this->CurCopyArray)
 			.Process(this->ColorDatas)
 			.Process(this->LandTypeParseCounter)
+			.Process(this->LastAnimName)
 			.Success();
 	}
 

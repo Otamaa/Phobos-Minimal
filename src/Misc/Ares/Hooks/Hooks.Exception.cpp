@@ -320,6 +320,13 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 				pCtxt->Dr7
 			);
 
+			{
+				auto& last_anim = PhobosGlobal::Instance()->LastAnimName;
+
+				if (!last_anim.empty()) {
+					Debug::Log("LastAnim Calling CTOR (%s)\n", last_anim.c_str());
+				}
+			}
 
 			{
 				auto& pp = PhobosGlobal::Instance()->PathfindTechno;

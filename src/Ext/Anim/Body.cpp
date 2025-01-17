@@ -797,6 +797,8 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (Phobos::Otamaa::DoingLoadGame)
 		return 0x0;
 
+	PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
+
 	// Do this here instead of using a duplicate hook in SyncLogger.cpp
 	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
@@ -817,6 +819,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 			val->CreateAttachedSystem();
 	}
 
+	PhobosGlobal::Instance()->LastAnimName.clear();
 	return 0;
 }
 
