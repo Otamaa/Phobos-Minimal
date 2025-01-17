@@ -671,12 +671,19 @@ std::string GetOsVersionQuick()
 
 			if (NULL == RtlGetVersion_t(&vi2))
 			{
-				if (!bHaveVerFromKernel32) // we failed above; let's hope this would be useful
-					aVer += (std::to_string(vi2.dwMajorVersion) + "."
-								+ std::to_string(vi2.dwMinorVersion));
-				aVer += (" ");
-				if (vi2.szCSDVersion[0])
-					aVer += (PhobosCRT::WideStringToString(vi2.szCSDVersion) + " ");
+				if(vi2.dwBuildNumber < 21996) {
+
+					if (!bHaveVerFromKernel32) // we failed above; let's hope this would be useful
+						aVer += std::to_string(vi2.dwMajorVersion) + "." + std::to_string(vi2.dwMinorVersion);
+
+					aVer += (" ");
+
+					if (vi2.szCSDVersion[0])
+						aVer += (PhobosCRT::WideStringToString(vi2.szCSDVersion) + " ");
+
+				} else {
+					aVer = "Windows 11 ";
+				}
 
 				aVer += ("Build " + std::to_string(vi2.dwBuildNumber));
 
