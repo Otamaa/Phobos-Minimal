@@ -195,18 +195,18 @@ void Patch::PrintAllModuleAndBaseAddr()
 				MODULEINFO info = { 0 };
 				if (GetModuleInformation(Patch::CurrentProcess, hModules[i], &info, sizeof(info)))
 				{
-					_strlwr_s(moduleName);
-					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
-
-					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.lpBaseOfDll, (size_t)info.SizeOfImage);
-
-					DWORD_PTR image_base = (DWORD_PTR)data.Handle;
+					DWORD_PTR image_base = (DWORD_PTR)hModules[i];
 					PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
 					PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(image_base + dosHeaders->e_lfanew);
 					void* image_base_void = (void*)image_base;
 
 					if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
 						continue; // The handle does not point to a valid module
+
+					_strlwr_s(moduleName);
+					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
+
+					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.lpBaseOfDll, (size_t)info.SizeOfImage);
 
 					if (ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0)
 					{

@@ -925,6 +925,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if(Phobos::Config::EnableBuildingPlacementPreview) {
 		this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "ShowBuildingPlacementPreview");
 		this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "PlacementPreview");
+
+		if (this->Building_PlacementPreview != Phobos::Config::EnableBuildingPlacementPreview)
+			this->Building_PlacementPreview = Phobos::Config::EnableBuildingPlacementPreview;
 	}
 
 	this->PlacementGrid_TranslucencyWithPreview.Read(exINI, GameStrings::AudioVisual, "PlacementGrid.TranslucencyWithPreview");

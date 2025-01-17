@@ -680,7 +680,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
 
 		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
-		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview");
+
+		if(!this->PlacementPreview_Show.isset())
+			this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview");
 
 		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
 		{
