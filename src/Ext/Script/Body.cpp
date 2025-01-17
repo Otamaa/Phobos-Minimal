@@ -1332,7 +1332,12 @@ void ScriptExtData::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	TeamExtContainer::Instance.Find(pTeam)->WaitNoTargetAttempts = Math::abs(attempts);
+	auto pExt =TeamExtContainer::Instance.Find(pTeam);
+
+	if (attempts <= 0)
+		pExt->WaitNoTargetAttempts = -1; // Infinite waits if no target
+	else
+		pExt->WaitNoTargetAttempts = attempts;
 
 	// This action finished
 	pTeam->StepCompleted = true;

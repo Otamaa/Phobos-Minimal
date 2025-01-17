@@ -43,28 +43,19 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	bool pacifistTeam = true;
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
-	if (!pTeamData) {
-		pTeam->StepCompleted = true;
-		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",
-			pTeam->Type->ID, pScript->Type->ID,
-			pScript->CurrentMission,
-			curAct,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			nextAct,
-			nextArg);
-
-		return;
-	}
-
 	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
-	if (pTeamData->WaitNoTargetTimer.InProgress())
-		return;
+	if (pTeamData->WaitNoTargetCounter > 0)
+	{
+		if (pTeamData->WaitNoTargetTimer.InProgress())
+			return;
 
-	pTeamData->WaitNoTargetTimer.Stop();
+		pTeamData->WaitNoTargetTimer.Stop();
+		noWaitLoop = true;
+		pTeamData->WaitNoTargetCounter = 0;
 
-	if (pTeamData->WaitNoTargetAttempts > 0)
-		pTeamData->WaitNoTargetAttempts--;
+		if (pTeamData->WaitNoTargetAttempts > 0)
+			pTeamData->WaitNoTargetAttempts--;
+	}
 
 	auto pFocus = flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget);
 
@@ -102,36 +93,26 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 				if (!repeatAction)
 				{
-					if (pFirst->WhatAmI() == AbstractType::Aircraft)
+					// If the previous Team's Target was killed by this Team Member and the script was a 1-time-use then this script action must be finished.
+					for (auto pFootTeam = pTeam->FirstUnit; pFootTeam; pFootTeam = pFootTeam->NextTeamMember)
 					{
-						pFirst->SetTarget(nullptr);
-						pFirst->LastTarget = nullptr;
-						pFirst->QueueMission(Mission::Guard, true);
+						// Let's reset all Team Members objective
+						auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
+						pKillerTeamUnitData->LastKillWasTeamTarget = false;
+
+						if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
+						{
+							pFootTeam->SetTarget(nullptr);
+							pFootTeam->LastTarget = nullptr;
+							pFootTeam->QueueMission(Mission::Guard, true);
+						}
 					}
-				}
-			}
 
-			if (ScriptExtData::IsUnitAvailable(pFirst, true)) {
+					pTeamData->IdxSelectedObjectFromAIList = -1;
 
-				auto const pTechnoType = pFirst->GetTechnoType();
-
-				if (pFirst->WhatAmI() == AbstractType::Aircraft
-					&& !pFirst->IsInAir()
-					&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
-					&& pFirst->Ammo < pTechnoType->Ammo)
-				{
-					bAircraftsWithoutAmmo = true;
-				}
-
-				pacifistTeam &= !ScriptExtData::IsUnitArmed(pFirst);
-
-				if (pFirst->WhatAmI() == AbstractType::Infantry)
-				{
-					auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
-
-					// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
-					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
-						agentMode = true;
+					// This action finished
+					pTeam->StepCompleted = true;
+					return;
 				}
 			}
 
@@ -146,23 +127,31 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		while (pCur);
 	}
 
-	if (!repeatAction)
+	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
-		pTeamData->IdxSelectedObjectFromAIList = -1;
+			if (ScriptExtData::IsUnitAvailable(pFoot, true)) {
 
-		// This action finished
-		pTeam->StepCompleted = true;
-		// ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n",
-		// 	pTeam->Type->ID,
-		// 	pScript->Type->ID,
-		// 	pScript->CurrentMission,
-		// 	curAct,
-		// 	scriptArgument,
-		// 	pScript->CurrentMission + 1,
-		// 	nextAct,
-		// 	nextArg);
+				auto const pTechnoType = pFoot->GetTechnoType();
 
-		return;
+				if (pFoot->WhatAmI() == AbstractType::Aircraft
+					&& !pFoot->IsInAir()
+					&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
+					&& pFoot->Ammo < pTechnoType->Ammo)
+				{
+					bAircraftsWithoutAmmo = true;
+				}
+
+				pacifistTeam &= !ScriptExtData::IsUnitArmed(pFoot);
+
+				if (pFoot->WhatAmI() == AbstractType::Infantry)
+				{
+					auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
+
+					// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
+					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
+						agentMode = true;
+				}
+			}
 	}
 
 	// Find the Leader
@@ -174,8 +163,11 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
 	{
 		pTeamData->IdxSelectedObjectFromAIList = -1;
-		pTeamData->WaitNoTargetTimer.Stop();
-		pTeamData->WaitNoTargetAttempts = 0;
+		if (pTeamData->WaitNoTargetAttempts != 0) {
+			pTeamData->WaitNoTargetTimer.Stop();
+			pTeamData->WaitNoTargetCounter = 0;
+			pTeamData->WaitNoTargetAttempts = 0;
+		}
 
 		// This action finished
 		pTeam->StepCompleted = true;
@@ -308,11 +300,22 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			// No target was found with the specific criteria.
 			if (pTeamData->WaitNoTargetAttempts > 0 && pTeamData->WaitNoTargetTimer.Completed())
 			{
+				pTeamData->WaitNoTargetCounter = 30;
 				pTeamData->WaitNoTargetTimer.Start(30);
 				return;
 			}
 
-			pTeamData->IdxSelectedObjectFromAIList = -1;
+			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
+				pTeamData->IdxSelectedObjectFromAIList = -1;
+
+			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
+			{
+				// No target? let's wait some frames
+				pTeamData->WaitNoTargetCounter = 30;
+				pTeamData->WaitNoTargetTimer.Start(30);
+
+				return;
+			}
 
 			// This action finished
 			pTeam->StepCompleted = true;
@@ -1314,18 +1317,7 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 	if ((size_t)attackAITargetType < targetList.size() && !targetList[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
-		return;
 	}
-
-	pTeam->StepCompleted = true;
-	ScriptExtData::Log("AI Scripts - Mission_Attack_List: [%s] [%s] (line: %d = %d,%d) Failed to get the list index [AITargetTypes][%d]! out of bound: %d\n",
-		pTeam->Type->ID,
-		pTeam->CurrentScript->Type->ID,
-		pTeam->CurrentScript->CurrentMission,
-		curAct,
-		curArg,
-		attackAITargetType,
-		targetList.size());
 }
 
 static std::vector<int> Mission_Attack_List1Random_validIndexes;
