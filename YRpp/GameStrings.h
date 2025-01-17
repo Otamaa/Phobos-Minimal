@@ -383,7 +383,8 @@ struct GameStrings
 	GAMEMD_STR(FailedToLoadUIMDMsg, 0x827DACu);
 	GAMEMD_STR(DominatorActive_msg, 0x8280B8);
 	GAMEMD_STR(LightningStormActive_msg, 0x82809C);
-
+	GAMEMD_STR(Init_Commands, 0x825D08);
+	GAMEMD_STR(Overlay_X_not_really_tiberium, 0x833490);
 	//..
 
 	// Hardcoded Names

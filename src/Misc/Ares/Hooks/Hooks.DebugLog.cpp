@@ -38,7 +38,7 @@ DEFINE_HOOK(0x534f89, Game_ReloadNeutralMIX_NewLine, 5)
 DEFINE_HOOK(0x5FDDA4, IsOverlayIdxTiberium_Log, 6)
 {
 	GET(OverlayTypeClass*, pThis, EAX);
-	Debug::Log(*reinterpret_cast<const char**>(0x833490), pThis->Name);
+	Debug::Log(GameStrings::Overlay_X_not_really_tiberium, pThis->Name);
 	return 0x5FDDC1;
 }
 

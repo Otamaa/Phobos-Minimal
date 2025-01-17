@@ -24,9 +24,6 @@ const wchar_t* SetVeterancyCommandClass::GetUIDescription() const
 
 void SetVeterancyCommandClass::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated())
-		return;
-
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 

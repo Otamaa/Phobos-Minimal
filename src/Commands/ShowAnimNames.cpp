@@ -22,7 +22,7 @@ const wchar_t* ShowAnimNameCommandClass::GetUIName() const
 
 const wchar_t* ShowAnimNameCommandClass::GetUICategory() const
 {
-	return CATEGORY_DEVELOPMENT;
+	return CATEGORY_GUIDEBUG;
 }
 
 const wchar_t* ShowAnimNameCommandClass::GetUIDescription() const

@@ -30,7 +30,7 @@ const wchar_t* DetachFromTeamCommandClass::GetUIDescription() const
 
 void DetachFromTeamCommandClass::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated() || !ObjectClass::CurrentObjects->Count)
+	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
 	ObjectClass::CurrentObjects->for_each([](ObjectClass* const object) {

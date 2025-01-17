@@ -37,6 +37,8 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 
+#include <GameStrings.h>
+
 void RulesExtData::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExtData>();
@@ -1717,10 +1719,8 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
 	Debug::Log("Scenario Map Name [%s] \n", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
 
-	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex))
-	{
-		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape)
-		{
+	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
+		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
 			GameDelete<true, true>(std::exchange(MouseClass::ShapeData(), pSideMouse));
 		}
 	}
@@ -1744,6 +1744,9 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	 it->Available_Money()
 	 );
 	});
+
+	Debug::Log(GameStrings::Init_Commands);
+	CommandClass::InitCommand();
 
 	return 0x0;
 }

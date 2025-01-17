@@ -16,7 +16,7 @@ const wchar_t* ShowTeamLeaderCommandClass::GetUIName() const
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUICategory() const
 {
-	return CATEGORY_DEVELOPMENT;
+	return CATEGORY_GUIDEBUG;
 }
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUIDescription() const

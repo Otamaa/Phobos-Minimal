@@ -33,4 +33,6 @@ public:
 		{ return false; }
 
 	virtual void Execute(WWKey eInput) const = 0;
+
+	static void __fastcall InitCommand() JMP_STD(0x532150);
 };

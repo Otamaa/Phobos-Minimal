@@ -47,10 +47,6 @@ const wchar_t* DumperTypesCommandClass::GetUIDescription() const
 
 void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 {
-	if (this->CheckDebugDeactivated()) {
-		return;
-	}
-
 	Debug::Log("Dumping all Types\n\n");
 
 	Debug::Log("Dumping Rules Types\n\n");

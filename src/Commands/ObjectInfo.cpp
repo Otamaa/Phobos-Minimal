@@ -33,7 +33,7 @@ const wchar_t* ObjectInfoCommandClass::GetUIName() const
 
 const wchar_t* ObjectInfoCommandClass::GetUICategory() const
 {
-	return CATEGORY_DEVELOPMENT;
+	return CATEGORY_GUIDEBUG;
 }
 
 const wchar_t* ObjectInfoCommandClass::GetUIDescription() const

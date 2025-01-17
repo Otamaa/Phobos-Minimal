@@ -65,11 +65,8 @@ void NOINLINE DumpDumped()
 
 void RevealMapCommandClass::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated())
-		return;
-
 	const auto pPlayer = HouseClass::CurrentPlayer();
-	if (!Phobos::Otamaa::IsAdmin || !pPlayer)
+	if (!pPlayer)
 		return;
 
 	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer);

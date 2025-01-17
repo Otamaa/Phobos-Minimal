@@ -32,12 +32,6 @@ const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
 
 void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated())
-		return;
-
-	if (!Phobos::Otamaa::IsAdmin)
-		return;
-
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 

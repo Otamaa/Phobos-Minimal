@@ -29,10 +29,6 @@ const wchar_t* MemoryDumperCommandClass::GetUIDescription() const
 
 void MemoryDumperCommandClass::Execute(WWKey dwUnk) const
 {
-	if (this->CheckDebugDeactivated()) {
-		return;
-	}
-
 	Debug::TakeMouse();
 
 	HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);

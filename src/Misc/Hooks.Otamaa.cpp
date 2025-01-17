@@ -10961,3 +10961,5 @@ DEFINE_HOOK(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 	Debug::Log("[%x - %s][%s][%s] Regular findpath failure: (%d,%d) to (%d, %d)\n", pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
 	return 0x42CC6D;
 }
+
+DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);

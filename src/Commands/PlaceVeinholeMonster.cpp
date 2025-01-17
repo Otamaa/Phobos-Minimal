@@ -29,9 +29,6 @@ bool created = false;
 
 void PlaceVeinholeMonster::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated())
-		return;
-
 	if (!created)
 	{
 		//rename DUMMYOLD -> VEINS from Ts to make veins working

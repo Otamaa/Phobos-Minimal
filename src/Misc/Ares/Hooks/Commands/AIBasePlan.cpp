@@ -29,10 +29,6 @@ const wchar_t* AIBasePlanCommandClass::GetUIDescription() const
 
 void AIBasePlanCommandClass::Execute(WWKey dwUnk) const
 {
-	if (this->CheckDebugDeactivated()) {
-		return;
-	}
-
 	Debug::Log("AI Base Plans:\n");
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{

@@ -15,7 +15,7 @@ const wchar_t* FPSCounterCommandClass::GetUIName() const
 
 const wchar_t* FPSCounterCommandClass::GetUICategory() const
 {
-	return CATEGORY_DEVELOPMENT;
+	return CATEGORY_GUIDEBUG;
 }
 
 const wchar_t* FPSCounterCommandClass::GetUIDescription() const

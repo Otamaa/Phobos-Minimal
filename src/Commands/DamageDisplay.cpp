@@ -14,7 +14,7 @@ const wchar_t* DamageDisplayCommandClass::GetUIName() const
 
 const wchar_t* DamageDisplayCommandClass::GetUICategory() const
 {
-	return CATEGORY_DEVELOPMENT;
+	return CATEGORY_GUIDEBUG;
 }
 
 const wchar_t* DamageDisplayCommandClass::GetUIDescription() const
@@ -24,8 +24,5 @@ const wchar_t* DamageDisplayCommandClass::GetUIDescription() const
 
 void DamageDisplayCommandClass::Execute(WWKey eInput) const
 {
-	if (this->CheckDebugDeactivated())
-		return;
-
 	Phobos::Debug_DisplayDamageNumbers = !Phobos::Debug_DisplayDamageNumbers;
 }

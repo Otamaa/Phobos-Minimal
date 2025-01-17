@@ -28,7 +28,7 @@ const wchar_t* AIControlCommandClass::GetUIDescription() const
 
 void AIControlCommandClass::Execute(WWKey dwUnk) const
 {
-	if (this->CheckDebugDeactivated()) {
+	if (!Phobos::Otamaa::AllowAIControl) {
 		return;
 	}
 
