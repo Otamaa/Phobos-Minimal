@@ -295,7 +295,7 @@ private:
 	}
 };
 
-template<typename Lookuper, EnumCheckMode mode = EnumCheckMode::default >
+template<typename Lookuper, EnumCheckMode mode = EnumCheckMode::ignore>
 class NullableIdx : public Nullable<int>
 {
 public:

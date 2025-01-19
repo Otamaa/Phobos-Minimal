@@ -24,7 +24,6 @@ void BuildingExtData::InitializeConstant()
 		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 	}
 
-	this->StartupCashDelivered.resize(HouseClass::Array->Count);
 }
 
 const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)
@@ -1264,7 +1263,6 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->OwnerBeforeRaid, true)
 		.Process(this->CashUpgradeTimers)
 		.Process(this->SensorArrayActiveCounter)
-		.Process(this->StartupCashDelivered)
 		.Process(this->SecretLab_Placed)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)

@@ -50,7 +50,6 @@ public:
 
 	CDTimerClass CashUpgradeTimers[3] {};
 	int SensorArrayActiveCounter { 0 };
-	std::vector<bool> StartupCashDelivered {};
 	bool SecretLab_Placed { false };
 	bool AboutToChronoshift { false };
 	bool IsFromSW { false };

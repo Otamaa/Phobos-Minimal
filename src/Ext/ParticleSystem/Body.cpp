@@ -1194,7 +1194,10 @@ void ParticleSystemExtData::UpdateInAir()
 
 void ParticleSystemExtData::InitializeConstant()
 {
-	if (auto pType = this->AttachedToObject->Type)
+	if (!this->AttachedToObject->Type)
+		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !\n", this->AttachedToObject);
+
+	auto pType = this->AttachedToObject->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return;

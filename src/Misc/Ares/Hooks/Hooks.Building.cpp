@@ -2254,27 +2254,12 @@ DEFINE_HOOK(0x456768, BuildingClass_DrawRadialIndicator_Always, 0x6)
 		0x456776 : 0x456962;
 }
 
-DEFINE_HOOK(0x4581CD, BuildingClass_UnloadOccupants_AllOccupantsHaveLeft, 6)
+DEFINE_HOOK_AGAIN(0x458729, BuildingClass_HandleOccupants, 6) //KillOccupiers_AllOccupantsKilled
+DEFINE_HOOK_AGAIN(0x4586CA, BuildingClass_HandleOccupants, 6) //KillOccupiers_EachOccupierKilled
+DEFINE_HOOK(0x4581CD, BuildingClass_HandleOccupants, 6) //UnloadOccupants_AllOccupantsHaveLeft
 {
 	GET(BuildingClass*, pBld, ESI);
 	TechnoExt_ExtData::EvalRaidStatus(pBld);
-	return 0;
-}
-
-DEFINE_HOOK(0x458729, BuildingClass_KillOccupiers_AllOccupantsKilled, 6)
-{
-	GET(BuildingClass*, pBld, ESI);
-	TechnoExt_ExtData::EvalRaidStatus(pBld);
-	return 0;
-}
-
-DEFINE_HOOK(0x4586CA, BuildingClass_KillOccupiers_EachOccupierKilled, 6)
-{
-	GET(BuildingClass*, pBld, ESI);
-	//GET(TechnoClass*, pKiller, EBP);
-	//GET(int, idxOccupant, EDI);
-	TechnoExt_ExtData::EvalRaidStatus(pBld);
-	//return 0x4586F0;
 	return 0;
 }
 
@@ -2389,8 +2374,7 @@ DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
 	// change the building's owner and mark it as raided
 	// but only if that's even necessary - no need to raid urban combat buildings.
 	// 27.11.2010 changed to include fix for #1305
-	const bool isHuman = (SessionClass::Instance->GameMode != GameMode::Campaign) || !pBld->Owner->IsHumanPlayer || !pInf->Owner->IsHumanPlayer;
-	const bool differentOwners = (pBld->Owner != pInf->Owner) && isHuman;
+	const bool differentOwners = (pBld->Owner != pInf->Owner) && (SessionClass::Instance->GameMode != GameMode::Campaign) || !pBld->Owner->IsHumanPlayer || !pInf->Owner->IsHumanPlayer;
 	const bool ucBuilding = ((pBld->Type->TechLevel == -1) && pBld->Owner->IsNeutral());
 
 	if (differentOwners && !buildingExtData->OwnerBeforeRaid && !ucBuilding)

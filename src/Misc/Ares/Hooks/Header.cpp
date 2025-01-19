@@ -6061,16 +6061,18 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
 	{
+		pBuilding->Occupants.RemoveAt<true>(idxPoorBastard);
 		pPoorBastard->Destroyed(pThis->Owner);
 		pPoorBastard->UnInit();
-		pBuilding->Occupants.RemoveAt<true>(idxPoorBastard);
 		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
+		pBuilding->NeedsRedraw = true;
 	}
 	else
 	{
-		auto const& multiplier = pBldTypeExt->UCDamageMultiplier.Get();
-		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
-		pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse());
+		auto const& multiplier = pBldTypeExt->UCDamageMultiplier;
+		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier * 100));
+		if(pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse()) == DamageState::NowDead)
+			pBuilding->NeedsRedraw = true;
 	}
 
 	if (pBuilding->FiringOccupantIndex >= pBuilding->GetOccupantCount())

@@ -347,9 +347,9 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
 {
 	//pthis check is just in  case
-	if (pThis
-	   && pThis->IsAlive
+	if (pThis->IsAlive
 	   && (pThis->Occupants.Count > 0)
+	   && pThis->Occupants[0]->IsAlive
 	   && pThis->Occupants[0]->Owner
 	   && pThis->Occupants[0]->Owner->Type
 	   )

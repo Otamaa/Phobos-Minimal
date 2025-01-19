@@ -28,6 +28,7 @@ public:
 
 	COMPILETIMEEVAL ~PrismForwarding() {
 		this->RemoveFromNetwork(true);
+		this->Owner = nullptr;
 		this->Senders.clear();
 	}
 

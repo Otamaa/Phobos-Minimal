@@ -157,6 +157,9 @@ DEFINE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 					if (auto pTarget = pData->PrismForwarding.SupportTarget)
 					{
 						auto const pTargetData = BuildingExtContainer::Instance.Find(pTarget->Owner);
+						if(!pTargetData)
+							Debug::FatalError("Prism target [%s] missing it ExtData\n" , pTarget->Owner->get_ID());
+
 						auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 						//slave firing
 						pTargetData->PrismForwarding.ModifierReserve +=

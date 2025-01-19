@@ -274,19 +274,19 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 	R->Stack(0x10, &crdSrc);
 
-	if (pWeapon->UseFireParticles && !pThis->FireParticleSystem) {
+	if (pWeapon->UseFireParticles && !pThis->FireParticleSystem && pWeapon->AttachedParticleSystem) {
 		pThis->FireParticleSystem = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, crdSrc,
 			FireAtTemp::pObstacleCell  ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
 	}
 
-	if (pWeapon->UseSparkParticles && !pThis->SparkParticleSystem) {
+	if (pWeapon->UseSparkParticles && !pThis->SparkParticleSystem && pWeapon->AttachedParticleSystem) {
 		pThis->SparkParticleSystem = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, crdSrc,
 			FireAtTemp::pObstacleCell ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
 	}
 
-	if (pWeapon->_GetExtData()->IsDetachedRailgun || (pWeapon->IsRailgun &&  !pThis->RailgunParticleSystem)) {
+	if (pWeapon->AttachedParticleSystem && (pWeapon->_GetExtData()->IsDetachedRailgun || (pWeapon->IsRailgun &&  !pThis->RailgunParticleSystem))) {
 		auto coord = pThis->DealthParticleDamage(&railgunCrrd_1, &crdSrc, pOriginalTarget, pWeapon);
 		auto pRailgun = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, &crdSrc,
