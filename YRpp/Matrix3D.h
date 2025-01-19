@@ -664,8 +664,9 @@ public:
 	COMPILETIMEEVAL static Vector3D<float>* //__fastcall
 			MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
 		//JMP_FAST(0x5AFB80);
-   		 vecret->X = mat->row[0][2] * vec->Z + mat->row[0][1] * vec->Y + mat->Row[0][0] * vec->X + mat->row[0][3];
-    	 vecret->Y = mat->row[1][0] * vec->X + mat->row[1][2] * vec->Z + mat->row[1][1] * vec->Y + mat->row[1][3];
+		 vecret->X = (mat->Row[0][0] * vec->X + mat->Row[0][1] * vec->Y + mat->Row[0][2] * vec->Z + mat->Row[0][3]);
+		 vecret->Y = (mat->Row[1][0] * vec->X + mat->Row[1][1] * vec->Y + mat->Row[1][2] * vec->Z + mat->Row[1][3]);
+		 vecret->Z = (mat->Row[2][0] * vec->X + mat->Row[2][1] * vec->Y + mat->Row[2][2] * vec->Z + mat->Row[2][3]);
    		 return vecret;
 	}
 
