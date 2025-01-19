@@ -407,13 +407,43 @@ DEFINE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 	return 0;
 }
 
-// bugfix #187: Westwood idiocy
-DEFINE_HOOK(0x5F6960, ObjectClass_Getcell, 0xA)
+struct FakeObjectClass : public ObjectClass
 {
-	GET(ObjectClass*, pThis, ECX);
-	R->EAX(MapClass::Instance->GetCellAt(pThis->Location));
-	return 0x5F69B6;
-}
+public:
+
+	CellClass* _GetCell() const{
+		return MapClass::Instance->GetCellAt(this->Location);
+	}
+};
+// bugfix #187: Westwood idiocy
+// DEFINE_HOOK(0x5F6960, ObjectClass_Getcell, 0xA)
+// {
+// 	GET(ObjectClass*, pThis, ECX);
+// 	R->EAX(MapClass::Instance->GetCellAt(pThis->Location));
+// 	return 0x5F69B6;
+// }
+
+DEFINE_JUMP(VTABLE,0x7E2460, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7E3510, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7E3C8C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7E4078, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7E48A0, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7E8E50, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EB214, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EC414, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EDE7C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EF21C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EF590, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EFB10, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7EFD58, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F06C4, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F34B8, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F4B1C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F53E8, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F5E2C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F64D4, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F6864, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_JUMP(VTABLE,0x7F6DB0, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
 
 //Handle_Static_Messages_LoopingMovie
 DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);

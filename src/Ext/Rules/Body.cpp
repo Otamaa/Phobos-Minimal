@@ -696,12 +696,12 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	//for (auto pAnim : *AnimTypeClass::Array) {
-	//	if (!pAnim->GetImage()) {
-	//		Debug::Log("Anim[%s] Has no proper Image!\n", pAnim->ID);
-	//		Debug::RegisterParserError();
-	//	}
-	//}
+	for (auto pAnim : *AnimTypeClass::Array) {
+		if (!pAnim->GetImage()) {
+			Debug::Log("Anim[%s] Has no proper Image!\n", pAnim->ID);
+			Debug::RegisterParserError();
+		}
+	}
 
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected)
 	{

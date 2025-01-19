@@ -497,6 +497,8 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	}
 
 	this->PrismForwarding.InvalidatePointer(ptr, bRemoved);
+	AnnounceInvalidPointer(this->DamageFireAnims, ptr, bRemoved);
+
 }
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
@@ -1331,4 +1333,4 @@ void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
 	this->BuildingClass::PointerExpired(target , all);
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3EE4, MiscTools::to_DWORD(&FakeBuildingClass::_Detach))
+//DEFINE_JUMP(VTABLE, 0x7E3EE4, MiscTools::to_DWORD(&FakeBuildingClass::_Detach))

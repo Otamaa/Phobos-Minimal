@@ -9535,6 +9535,8 @@ DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 
 #include <Surface.h>
 
+#ifdef VoxelBufferReplace
+
 #define VoxelBufferSize 256
 static char VoxelPixelBuffer[VoxelBufferSize][VoxelBufferSize];
 //static char VoxelShadowPixelBuffer[256][256];
@@ -9626,30 +9628,31 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFEEB, DWORD(&VoxelPixelBuffer) + 1)//
 DEFINE_PATCH_TYPED(DWORD, 0x7DFFD7, DWORD(&VoxelPixelBuffer))//
 DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 #undef VoxelBufferSize
+#endif
 
 #include <Notifications.h>
 
-DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
-	GET(AbstractClass*, pTarget, ESI);
-	GET(bool, bRemoved, EDI);
-
-	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
-		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
-			if (!pItem) {
-				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
-				return true;
-			} else {
-				pItem->PointerExpired(pTarget, bRemoved);
-			}
-
-			return false;
-	});
-
-	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
-		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
-
-	return 0x725961;
-}
+// DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+// 	GET(AbstractClass*, pTarget, ESI);
+// 	GET(bool, bRemoved, EDI);
+//
+// 	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+// 		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+// 			if (!pItem) {
+// 				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
+// 				return true;
+// 			} else {
+// 				pItem->PointerExpired(pTarget, bRemoved);
+// 			}
+//
+// 			return false;
+// 	});
+//
+// 	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+// 		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+//
+// 	return 0x725961;
+// }
 
 COMPILETIMEEVAL int __fastcall charToID(char* string)
 {

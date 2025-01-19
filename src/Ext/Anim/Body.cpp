@@ -803,8 +803,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
-	if (pItem->UniqueID == -2)
-	{
+	if (pItem->UniqueID == -2) {
 		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
 	}
 
@@ -906,9 +905,6 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET(FakeAnimClass* const, pThis, ESI);
 	GET(AbstractClass*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	if(auto pExt = pThis->_GetExtData())
-		pExt->InvalidatePointer(target, all);
 
 	R->EBX(0);
 

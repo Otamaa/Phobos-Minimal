@@ -1041,6 +1041,11 @@ public:
 	Valueable<CSFText> UIDescription_Unbuildable {};
 	PhobosPCXFile GreyCameoPCX {};
 
+	Valueable<int> RateDown_Ammo { -2 };
+	Valueable<int> RateDown_Delay {};
+	Valueable<int> RateDown_Cover {};
+	Valueable<bool> RateDown_Reset {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

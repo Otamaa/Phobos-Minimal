@@ -720,6 +720,10 @@ public:
 	int LastBeLockedFrame {};
 	int BeControlledThreatFrame {};
 
+	DWORD LastTargetID { 0xFFFFFFFF };
+	int AccumulatedGattlingValue {};
+	bool ShouldUpdateGattlingValue {};
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {

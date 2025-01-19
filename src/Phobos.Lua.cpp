@@ -39,7 +39,7 @@ void Phobos::ExecuteLua()
 				if (IS_SAME_STR_(PCName, adminName.c_str()))
 				{
 					Phobos::EnableConsole = true;
-					//Phobos::Config::MultiThreadSinglePlayer = true;
+					Phobos::Config::MultiThreadSinglePlayer = true;
 					Phobos::Config::DebugFatalerrorGenerateDump = true;
 					Phobos::Otamaa::IsAdmin = true;
 				}

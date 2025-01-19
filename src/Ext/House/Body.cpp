@@ -2252,7 +2252,7 @@ int FakeHouseClass::_Expert_AI()
 		}
 	}
 
-	if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign)
+	if (SessionClass::Instance->GameMode != GameMode::Campaign && !SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes)
 	{
 		using fp_type = bool(__thiscall*)(HouseClass*, int);
 
