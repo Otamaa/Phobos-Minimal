@@ -1857,9 +1857,8 @@ void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char
 	if (detail::read(this->Value, parser, pSection, pKey, Allocate))
 	{
 		const char* val = parser.value();
-		const std::string _val = val;
 
-		if(!_val.empty()) {
+		if(strlen(val) != 0) {
 			if (IS_SAME_STR_(val, DEFAULT_STR2)) {
 				this->Reset();
 			} else {
@@ -1930,6 +1929,7 @@ void NOINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSec
 			{
 				this->Value = idx;
 				this->HasValue = true;
+				return;
 			}
 
 			Debug::INIParseFailed(pSection, pKey, val);

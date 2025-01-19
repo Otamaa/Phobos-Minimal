@@ -1187,7 +1187,15 @@ void ParticleSystemExtData::UpdateInAir()
 
 		for (auto pSys : *ParticleSystemClass::Array)
 		{
-			ParticleSystemExtContainer::Instance.Find(pSys)->UpdateInAir_Main(StopDrawing);
+			if (pSys->TimeToDie)
+				continue; //wee
+
+			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
+
+			if (!pExt)
+				Debug::FatalError("ParticleSystem without Ext[%x]\n", pSys);
+
+			pExt->UpdateInAir_Main(StopDrawing);
 		}
 	}
 }

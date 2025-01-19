@@ -411,13 +411,13 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			if (pItem->SpeedType == SpeedType::None)
 			{
-				Debug::Log("[%s - %s]SpeedType is invalid!\n", pItem->ID, myClassName);
+				Debug::Log("[%s - %s]SpeedType None is invalid!\n", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
 
 			if (pItem->MovementZone == MovementZone::None)
 			{
-				Debug::Log("[%s - %s]MovementZone is invalid!\n", pItem->ID, myClassName);
+				Debug::Log("[%s - %s]MovementZone None is invalid!\n", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
 		}

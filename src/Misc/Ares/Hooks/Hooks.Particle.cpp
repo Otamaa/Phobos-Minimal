@@ -6,6 +6,8 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 
+#include <Utilities/Macro.h>
+
 #include "Header.h"
 
 #include <Notifications.h>
@@ -186,8 +188,7 @@ DEFINE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 	{
 		GET(ParticleClass*, pThis, ESI);
 
-		if (auto pSys = pThis->ParticleSystem)
-		{
+		if (auto pSys = pThis->ParticleSystem) {
 			pSys->Particles.Remove(pThis);
 		}
 
@@ -439,4 +440,14 @@ DEFINE_HOOK(0x62FD60, ParticleSystemClass_Update, 0x9)
 
 	return Handled ? 0x62FE43 : 0;
 }
+
+//DEFINE_HOOK(0x62E15D, ParticleSystemClass_DTOR_NullType, 0x6)
+//{
+//	GET(ParticleSystemClass*, pThis, EDI);
+//	Debug::Log("Detaching ParticleSystemClass [%x] Type of [%s]\n", pThis, pThis->Type->ID);
+//	return 0x0;
+//}
+
+//donot detach the type so we can identify bug
+DEFINE_JUMP(LJMP, 0x62E15D, 0x62E163);
 #endif
