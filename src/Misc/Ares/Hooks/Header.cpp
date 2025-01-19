@@ -6070,7 +6070,7 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 	else
 	{
 		auto const& multiplier = pBldTypeExt->UCDamageMultiplier;
-		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier * 100));
+		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
 		if(pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse()) == DamageState::NowDead)
 			pBuilding->NeedsRedraw = true;
 	}
