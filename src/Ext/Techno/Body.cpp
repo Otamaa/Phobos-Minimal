@@ -41,6 +41,24 @@
 
 #include <memory>
 
+void TechnoExtData::UpdateGattlingRateDownReset()
+{
+	if (this->Type->IsGattling)
+	{
+		const auto pThis = this->AttachedToObject;
+
+		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset 
+				&& (!pThis->Target || this->LastTargetID != pThis->Target->UniqueID))
+		{
+			this->LastTargetID = pThis->Target ? pThis->Target->UniqueID : 0xFFFFFFFF;
+			pThis->GattlingValue = 0;
+			pThis->CurrentGattlingStage = 0;
+			this->AccumulatedGattlingValue = 0;
+			this->ShouldUpdateGattlingValue = false;
+		}
+	}
+}
+
 void TechnoExtData::SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, WeaponTypeClass* pWeapon)
 {
 	pThis->ROF = rearmDelay;

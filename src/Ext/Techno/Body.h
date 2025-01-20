@@ -749,7 +749,7 @@ public:
 
 	bool CheckDeathConditions();
 	bool UpdateKillSelf_Slave();
-
+	void UpdateGattlingRateDownReset();
 	void UpdateEatPassengers();
 	void UpdateMindControlAnim();
 
