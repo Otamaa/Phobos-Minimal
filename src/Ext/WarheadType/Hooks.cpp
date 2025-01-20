@@ -63,7 +63,7 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 
 			if (chance_size > i)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
-			if (chance_size > 0)
+			else if (chance_size > 0)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
 
 			bool isFull = true;
@@ -71,7 +71,7 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 
 			if (size > i)
 				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
-			if (size > 0)
+			else if (size > 0)
 				isFull = pWeaponExt->ExtraWarheads_FullDetonation[size - 1];
 
 			if (detonate) {
