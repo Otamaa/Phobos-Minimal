@@ -225,6 +225,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->FireOnce_ResetSequence.Read(exINI, pSection, "FireOnce.ResetSequence");
 	this->NoRepeatFire.Read(exINI, pSection, "NoRepeatFire");
+	this->MergeBuildingDamage.Read(exINI, pSection, "MergeBuildingDamage");
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -449,6 +450,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffects)
 		.Process(this->AttachEffect_Enable)
 		.Process(this->NoRepeatFire)
+		.Process(this->MergeBuildingDamage)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

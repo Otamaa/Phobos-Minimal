@@ -775,6 +775,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NoRearmInTemporal.Read(exINI, GameStrings::General, "NoRearmInTemporal");
 
 	this->AttackMindControlledDelay.Read(exINI, GameStrings::General, "AttackMindControlledDelay");
+	
+	this->MergeBuildingDamage.Read(exINI, GameStrings::CombatDamage, "MergeBuildingDamage");
 
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
 	this->ShakeScreenUseTSCalculation.Read(exINI, GameStrings::AudioVisual, "ShakeScreenUseTSCalculation");
@@ -1472,6 +1474,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->NoRearmInTemporal)
 
 		.Process(this->AttackMindControlledDelay)
+		.Process(this->MergeBuildingDamage)
 
 		.Process(this->Cameo_AlwaysExist)
 		.Process(this->Cameo_OverlayShapes)

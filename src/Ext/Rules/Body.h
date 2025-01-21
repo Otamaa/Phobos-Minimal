@@ -435,6 +435,7 @@ public:
 	Valueable<SHPStruct*> Cameo_OverlayShapes { FileSystem::PIPS_SHP };
 	Valueable<Vector3D<int>> Cameo_OverlayFrames { { -1, -1, -1 } };
 	Valueable<PaletteManager*> Cameo_OverlayPalette {};
+	Valueable<bool> MergeBuildingDamage { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

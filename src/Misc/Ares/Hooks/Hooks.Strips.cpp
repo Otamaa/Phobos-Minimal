@@ -977,12 +977,13 @@ DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 bool NOINLINE RemoveCameo(BuildType* item)
 {
 	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
-	bool removeCameo = true;
+
 	if (TechnoType)
 	{
 		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
 		{
-			removeCameo = Factory->Owner->CanBuild(TechnoType, false, true) == CanBuildResult::Unbuildable;
+			if (Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable)
+				return false;
 		}
 	}
 	else
@@ -991,7 +992,9 @@ bool NOINLINE RemoveCameo(BuildType* item)
 
 		if (supers.ValidIndex(item->ItemIndex)) {
 			if(!SWSidebarClass::IsEnabled() ){
-				removeCameo = !supers.Items[item->ItemIndex]->Granted;
+				if (supers[item->ItemIndex]->Granted)
+					return false;
+
 			} else {
 				if (supers[item->ItemIndex]->Granted && !SWSidebarClass::Global()->AddButton(item->ItemIndex)) {
 					return false;
@@ -1000,8 +1003,6 @@ bool NOINLINE RemoveCameo(BuildType* item)
 		}
 	}
 
-	if (!removeCameo)
-		return false;
 
 	if (item->CurrentFactory)
 	{

@@ -21,6 +21,7 @@
 
 static HelperedVector<ObjectClass*> Targets {};
 static HelperedVector<DamageGroup*> Handled {};
+static PhobosMap<BuildingClass*, double> MergedDamage {};
 
 void NOINLINE DestroyBridge(CoordStruct* pCoord , FakeWarheadTypeClass* pWarhead , int damage , CellClass* pCell, CellStruct* pCellStruct)
 {
@@ -455,15 +456,30 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 	}
 
 	bool AnythingHit = false;
+	const bool merge_bldngDamage = pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage);
+	MergedDamage.clear();
+
+	if(merge_bldngDamage) {
+		for (auto it = groupvec.begin(); it != groupvec.end(); ++it) {
+			auto pGroup = *it;
+			auto curDistance = pGroup->Distance;
+			auto pObj = pGroup->Target;
+			if (const auto pBuilding = cast_to<BuildingClass*, false>(pObj)) {
+				MergedDamage[pBuilding] += (1.0 - (1.0 - pWarhead->PercentAtMax) * curDistance / (spreadLept));
+				pGroup->Distance = 0;
+			}
+		}
+	}
 
 	for(auto it= groupvec.begin(); it != groupvec.end(); ++it) {
 
 		 auto pGroup = *it;
 		 auto curDistance = pGroup->Distance;
 		 auto pObj = pGroup->Target;
+		 const auto pBuilding = cast_to<BuildingClass*, false>(pObj);
 
 		 if (pObj->IsAlive
-		 && (pObj->WhatAmI() != BuildingClass::AbsID || !((BuildingClass*)pObj)->Type->InvisibleInGame)
+		 && (!pBuilding || !pBuilding->Type->InvisibleInGame)
 		   && (!HitICEdTechno
 			   || (pObj->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None
 			   && ((TechnoClass*)pObj)->IsIronCurtained()))
@@ -477,6 +493,15 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 			 if (pObj->Health > 0 && pObj->IsOnMap && !pObj->InLimbo && curDistance <= spreadLept)
 			 {
 				 int ddd = damage;
+				 if(pBuilding && merge_bldngDamage ){
+					auto bld_damage =  MergedDamage.get_key_iterator(pBuilding);
+
+					if (bld_damage != MergedDamage.end()) {
+						ddd *= bld_damage->second;
+						MergedDamage.erase(bld_damage);
+					}
+				 }
+
 				 pObj->ReceiveDamage(&ddd, curDistance, pWarhead, pSource, false, false, pHouse);
 				 AnythingHit = true; // is this function succeed hit any item ?
 			 }
