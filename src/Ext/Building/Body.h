@@ -27,7 +27,9 @@ public:
 public:
 	BuildingTypeExtData* Type { nullptr };
 	TechnoExtData* TechnoExt { nullptr };
-	std::unique_ptr<PrismForwarding> MyPrismForwarding {};
+
+	std::unique_ptr<PrismForwarding> MyPrismForwarding { nullptr };
+
 	bool DeployedTechno { false };
 	int LimboID { -1 };
 	int GrindingWeapon_LastFiredFrame { 0 };

@@ -378,6 +378,7 @@ DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
 
 	TechnoExtContainer::Instance.Clear();

@@ -519,6 +519,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 
 			auto const pBExt = BuildingTypeExtContainer::Instance.Find(pBType);
+			pBExt->IsPrism = RulesClass::Instance->PrismType == pBType;
 
 			if (pBExt->CloningFacility && pBType->Factory != AbstractType::None)
 			{

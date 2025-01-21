@@ -500,7 +500,7 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		this->SpyEffectAnim.release();
 	}
 
-	if(MyPrismForwarding)
+	if(this->MyPrismForwarding)
 		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
 
 	AnnounceInvalidPointer(this->DamageFireAnims, ptr, bRemoved);

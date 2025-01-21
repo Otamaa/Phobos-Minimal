@@ -148,7 +148,6 @@ void BuildingTypeExtData::CompleteInitialization()
 	}
 
 	BuildingTypeExtData::UpdateBuildupFrames(pThis);
-	this->IsPrism = RulesClass::Instance->PrismType == pThis;
 }
 
 bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)

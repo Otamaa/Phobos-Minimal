@@ -122,24 +122,27 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 
 DEFINE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
 {
-	GET(BuildingClass* const, pThis, ESI);
+	GET(FakeBuildingClass* const, pThis, ESI);
 	enum { BusyCharging = 0x447FB8, NotBusyCharging = 0x447FC3 };
 
 	if (pThis->DelayBeforeFiring > 0)
 	{
 		//if this is a slave prism tower, then it might still be able to become a master tower at this time
 		auto const pType = pThis->Type;
-		auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
-		if (pTypeData->PrismForwarding.CanAttack())
-		{
-			//is a prism tower
-			if (pThis->PrismStage == PrismChargeState::Slave && pTypeData->PrismForwarding.BreakSupport)
-			{
-				return NotBusyCharging;
+		auto const pTypeData = pThis->_GetTypeExtData();
+
+		if (pThis->_GetExtData()->MyPrismForwarding) {
+			if (pTypeData->PrismForwarding.CanAttack()) {
+				//is a prism tower
+				if (pThis->PrismStage == PrismChargeState::Slave && pTypeData->PrismForwarding.BreakSupport) {
+					return NotBusyCharging;
+				}
 			}
 		}
+
 		return BusyCharging;
 	}
+
 	return NotBusyCharging;
 }
 
@@ -519,7 +522,7 @@ DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 			}
 
 			// the tower the new owner strives to support has to be allied, otherwise abort.
-			if (newOwner->IsAlliedWith(FirstTarget->GetOwner()->Owner))
+			if (newOwner->IsAlliedWith(FirstTarget->Owner->Owner))
 			{
 				auto LastTarget = FirstTarget;
 				while (LastTarget->SupportTarget)
@@ -528,7 +531,7 @@ DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 				}
 
 				// LastTarget is now the master (firing) tower
-				if (newOwner->IsAlliedWith(LastTarget->GetOwner()->Owner))
+				if (newOwner->IsAlliedWith(LastTarget->Owner->Owner))
 				{
 					// alliances check out so this slave tower can keep on charging.
 					return LeaveBomb;
