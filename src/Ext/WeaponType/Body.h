@@ -173,7 +173,6 @@ public:
 	Valueable<bool> AttachEffect_Enable { false };
 	Valueable<int> NoRepeatFire {};
 
-	Nullable<bool> MergeBuildingDamage {};
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

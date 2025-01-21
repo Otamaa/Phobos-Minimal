@@ -406,6 +406,8 @@ public:
 	ValueableVector<TechnoTypeClass*> KillWeapon_IgnoreTypes {};
 
 	Nullable<int> MindControl_ThreatDelay {};
+
+	Nullable<bool> MergeBuildingDamage {};
 public:
 
 	void InitializeConstant();
