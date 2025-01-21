@@ -35,7 +35,7 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 	TargetTower->Owner->GetRenderCoords(&MyPosition);
 
 	//first, find eligible towers
-	StackVector<PrismTargetData , 256> EligibleTowers;
+	StackVector<PrismTargetData, 256> EligibleTowers {};
 
 	for (auto const SlaveTower : *BuildingClass::Array)
 	{
