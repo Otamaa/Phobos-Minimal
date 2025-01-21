@@ -588,6 +588,16 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 {
 	GET(IStream*, pStm, ESI);
 
+	int value;
+	ULONG out = 0;
+
+	if (!SUCCEEDED(pStm->Read(&value, sizeof(value), &out))) {
+		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+		return 0x0;
+	}
+
+	VoxClass::EVAIndex = value;
+
 	bool ret =
 		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
@@ -630,7 +640,10 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	// add more variable that need to be reset after loading an saved games
 	if(SessionClass::Instance->GameMode == GameMode::Campaign)
 	{
-		Unsorted::MuteSWLaunches = false; // this will also make radar unusable
+		if(std::exchange(Unsorted::MuteSWLaunches(), false)) {// this will also make radar unusable
+			auto pSide = SideClass::Array->operator[](HouseClass::CurrentPlayer()->Type->SideIndex);
+			VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+		}
 		// this variable need to be reset , especially after you play as an observer on skirmish
 		// then load an save game of campaign mode , it will shutoff the radar and EVA's
 	}
@@ -646,6 +659,16 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 	{
 		GET(IStream*, pStm, ESI);
 
+		ULONG out = 0;
+		const int value = VoxClass::EVAIndex();
+
+		if (!SUCCEEDED(pStm->Write(&value, sizeof(value), &out)))
+		{
+			Debug::Log("[Phobos] Global SaveGame Failed !\n");
+			R->EAX<HRESULT>(E_FAIL);
+			return 0x0;
+		}
+	
 		bool ret =
 			Process_Save<PaletteManager>(pStm) &&
 			Process_Save<CursorTypeClass>(pStm) &&

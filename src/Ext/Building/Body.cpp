@@ -576,6 +576,9 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	{
 		for (auto pBuilding : airFactoryBuilding)
 		{
+			if (!pBuilding->IsAlive)
+				continue;
+
 			if (pBuilding == BuildingExt->CurrentAirFactory)
 			{
 				BuildingExt->CurrentAirFactory->Factory = currFactory;
@@ -598,6 +601,9 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 
 	for (auto pBuilding : airFactoryBuilding)
 	{
+		if (!pBuilding->IsAlive)
+			continue;
+
 		int nDocks = pBuilding->Type->NumberOfDocks;
 		int nOccupiedDocks = BuildingExtData::CountOccupiedDocks(pBuilding);
 
