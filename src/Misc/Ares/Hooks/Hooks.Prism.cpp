@@ -584,8 +584,7 @@ DEFINE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	{ // else we're already being drained, nothing to do
 		if (auto const pBld = cast_to<BuildingClass*, false>(pDrainee))
 		{
-			if (auto& pPrism = BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->MyPrismForwarding)
-			{
+			if (auto& pPrism = BuildingExtContainer::Instance.Find(pBld)->MyPrismForwarding) {
 				pPrism->RemoveFromNetwork(true);
 			}
 		}

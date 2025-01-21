@@ -323,24 +323,6 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 		}
 	}
 
-	for(auto& pBldExt : BuildingExtContainer::Instance.Pool) {
-		if (pBldExt->AttachedToObject) {
-			pBldExt->InvalidatePointer(pInvalid, removed);
-		}
-	}
-
-	for (auto& pTExt : TechnoExtContainer::Instance.Pool) {
-		if (pTExt->AttachedToObject) {
-			pTExt->InvalidatePointer(pInvalid, removed);
-		}
-	}
-
-	for (auto& pAnmExt : FakeAnimClass::Pool) {
-		if (pAnmExt->AttachedToObject) {
-			pAnmExt->InvalidatePointer(pInvalid, removed);
-		}
-	}
-
 	HugeBar::InvalidatePointer(pInvalid, removed);
 	ShieldClass::Array.for_each([pInvalid , removed](ShieldClass* pShield) {
 		if (pShield->IdleAnim.get() == pInvalid) {

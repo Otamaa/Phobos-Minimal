@@ -5549,16 +5549,16 @@ DEFINE_HOOK(0x70C250, TechnoClass_Save_Suffix_Prefix, 0x8)
 	return 0x70C266;
 }
 
-//DEFINE_HOOK(0x7077C0, TechnoClass_Detach, 0x7)
-//{
-//	GET(TechnoClass*, pThis, ECX);
-//	GET_STACK(AbstractClass*, target, 0x4);
-//	GET_STACK(bool, all, 0x8);
-//
-//	TechnoExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x7077C0, TechnoClass_Detach, 0x7)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, target, 0x4);
+	GET_STACK(bool, all, 0x8);
+
+	TechnoExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
+
+	return 0x0;
+}
 
 DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 {

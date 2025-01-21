@@ -184,7 +184,6 @@ public:
 	static DWORD __fastcall GetAIUniqueID() { JMP_STD(0x679ED0); }
 
 	//CTOR / DTOR
-private:
 	ScenarioClass() { THISCALL(0x6832C0); }
 	explicit ScenarioClass(IStream** pStm) JMP_THIS(0x683560);
 	~ScenarioClass() { THISCALL(0x667A30); } //what the hell... same as RulesClass::DTOR?

@@ -908,6 +908,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
 	R->EBX(0);
+	pThis->_GetExtData()->InvalidatePointer(target, all);
 
 	if(pThis->OwnerObject == target && target){
 
