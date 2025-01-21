@@ -972,6 +972,8 @@ DEFINE_HOOK(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 	return 0x6AC71A;
 }
 
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+
 bool NOINLINE RemoveCameo(BuildType* item)
 {
 	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
@@ -985,11 +987,16 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	}
 	else
 	{
+		const auto& supers = HouseClass::CurrentPlayer->Supers;
 
-		auto& Supers = HouseClass::CurrentPlayer->Supers;
-		if (Supers.ValidIndex(item->ItemIndex))
-		{
-			removeCameo = !Supers.Items[item->ItemIndex]->Granted;
+		if (supers.ValidIndex(item->ItemIndex)) {
+			if(!SWSidebarClass::IsEnabled() ){
+				removeCameo = !supers.Items[item->ItemIndex]->Granted;
+			} else {
+				if (supers[item->ItemIndex]->Granted && !SWSidebarClass::Global()->AddButton(item->ItemIndex)) {
+					return false;
+				}
+			}
 		}
 	}
 

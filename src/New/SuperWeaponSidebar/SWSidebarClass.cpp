@@ -257,19 +257,13 @@ DEFINE_HOOK(0x6A6316, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 	GET_STACK(AbstractType, whatAmI, STACK_OFFSET(0x14, 0x4));
 	GET_STACK(int, index, STACK_OFFSET(0x14, 0x8));
 
-	switch (whatAmI)
-	{
-	case AbstractType::Super:
-	case AbstractType::SuperWeaponType:
-	case AbstractType::Special:
-		if (SWSidebarClass::Global()->AddButton(index))
-			return ReturnFalse;
+	if (whatAmI != AbstractType::Special
+			&& whatAmI != AbstractType::SuperWeaponType
+			&& whatAmI != AbstractType::Super)
+		return 0;
 
-		break;
-
-	default:
-		break;
-	}
+	if (SWSidebarClass::Global()->AddButton(index))
+		return ReturnFalse;
 
 	return 0;
 }

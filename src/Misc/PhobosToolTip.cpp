@@ -293,15 +293,12 @@ DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x72426F, ToolTipManager_ProcessMessage_TacticalButton, 0x5)
+DEFINE_HOOK(0x724247, ToolTipManager_ProcessMessage_SetDelayTimer, 0x5)
 {
-	if (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton)
-		R->EDX(0);
-
-	return 0;
+	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x72429E : 0;
 }
 
-DEFINE_HOOK(0x72428C, ToolTipManager_ProcessMessage_TacticalButton2, 0x5)
+DEFINE_HOOK(0x72428C, ToolTipManager_ProcessMessage_Redraw, 0x5)
 {
 	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x724297 : 0;
 }
