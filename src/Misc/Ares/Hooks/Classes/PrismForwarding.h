@@ -9,6 +9,8 @@ class PrismForwarding
 {
 public:
 
+	static inline HelperedVector<PrismForwarding*> Array;
+
 	BuildingClass* Owner;
 	HelperedVector<PrismForwarding*> Senders;		//the prism towers that are forwarding to this one
 	PrismForwarding* SupportTarget;			//what tower am I sending to?
@@ -17,19 +19,28 @@ public:
 	int DamageReserve;					//current flat reservoir
 
 	// constructor
-	COMPILETIMEEVAL PrismForwarding() : Owner(nullptr),
+	PrismForwarding() : Owner(nullptr),
 		Senders(),
 		SupportTarget(nullptr),
 		PrismChargeDelay(0),
 		ModifierReserve(0.0),
 		DamageReserve(0)
 	{
+		Array.push_back(this);
 	}
 
-	COMPILETIMEEVAL ~PrismForwarding() {
+	~PrismForwarding() {
 		this->RemoveFromNetwork(true);
 		this->Owner = nullptr;
 		this->Senders.clear();
+
+		for (auto& pr : Array) {
+			if (pr != this && pr->SupportTarget == this) {
+				pr->SetSupportTarget(nullptr);
+			}
+		}
+
+		Array.remove(this);
 	}
 
 	COMPILETIMEEVAL BuildingClass* GetOwner() const
@@ -260,4 +271,12 @@ public:
 	PrismForwarding(const PrismForwarding&) = delete;
 	PrismForwarding& operator = (const PrismForwarding&) = delete;
 	PrismForwarding& operator = (PrismForwarding&&) = delete;
+};
+
+template <>
+struct Savegame::ObjectFactory<PrismForwarding>
+{
+	std::unique_ptr<PrismForwarding> operator() (PhobosStreamReader& Stm) const {
+		return std::make_unique<PrismForwarding>();
+	}
 };

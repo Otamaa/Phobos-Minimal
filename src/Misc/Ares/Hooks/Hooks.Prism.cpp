@@ -20,9 +20,12 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 		supportRadBeam->SetCoordsSource(source);
 		supportRadBeam->SetCoordsTarget(target);
 
-		if (pExt->Beam_IsHouseColor) {
+		if (pExt->Beam_IsHouseColor)
+		{
 			supportRadBeam->Color = pFirer->Owner->LaserColor;
-		} else {
+		}
+		else
+		{
 			supportRadBeam->Color = pExt->GetBeamColor();
 		}
 
@@ -52,13 +55,17 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 
 	enum { IsPrism = 0x44B310, IsNotPrism = 0x44B630, IsCustomPrism = 0x44B6D6 };
 
+	auto const pMasterData = BuildingExtContainer::Instance.Find(pThis);
 	auto const pMasterType = pThis->Type;
 	auto const pMasterTypeData = BuildingTypeExtContainer::Instance.Find(pMasterType);
 
+	if (!pMasterData->MyPrismForwarding)
+	{
+		return IsNotPrism;
+	}
+
 	if (pMasterTypeData->PrismForwarding.CanAttack())
 	{
-		auto const pMasterData = BuildingExtContainer::Instance.Find(pThis);
-
 		if (pThis->PrismStage == PrismChargeState::Idle)
 		{
 			pThis->PrismStage = PrismChargeState::Master;
@@ -74,8 +81,8 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 			}
 
 			pThis->PrismTargetCoords.Y = pThis->PrismTargetCoords.Z = 0;
-			pMasterData->PrismForwarding.ModifierReserve = 0.0;
-			pMasterData->PrismForwarding.DamageReserve = 0;
+			pMasterData->MyPrismForwarding->ModifierReserve = 0.0;
+			pMasterData->MyPrismForwarding->DamageReserve = 0;
 
 			int LongestChain = 0;
 
@@ -84,10 +91,10 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 			int stage = 0;
 
 			//when it reaches zero we can't acquire any more slaves
-			while (pMasterData->PrismForwarding.AcquireSlaves_MultiStage(&pMasterData->PrismForwarding, stage++, 0, NetworkSize, LongestChain) != 0) { }
+			while (pMasterData->MyPrismForwarding->AcquireSlaves_MultiStage(pMasterData->MyPrismForwarding.get(), stage++, 0, NetworkSize, LongestChain) != 0) { }
 
 			//now we have all the towers we know the longest chain, and can set all the towers' charge delays
-			pMasterData->PrismForwarding.SetChargeDelay(LongestChain);
+			pMasterData->MyPrismForwarding->SetChargeDelay(LongestChain);
 
 		}
 		else if (pThis->PrismStage == PrismChargeState::Slave)
@@ -103,15 +110,14 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 				}
 			}
 			pThis->PrismTargetCoords.Y = pThis->PrismTargetCoords.Z = 0;
-			pMasterData->PrismForwarding.ModifierReserve = 0.0;
-			pMasterData->PrismForwarding.DamageReserve = 0;
-			pMasterData->PrismForwarding.SetSupportTarget(nullptr);
+			pMasterData->MyPrismForwarding->ModifierReserve = 0.0;
+			pMasterData->MyPrismForwarding->DamageReserve = 0;
+			pMasterData->MyPrismForwarding->SetSupportTarget(nullptr);
 		}
 
-		return IsCustomPrism; //always custom, the new code is a complete rewrite of the old code
 	}
 
-	return IsNotPrism;
+	return IsCustomPrism; //always custom, the new code is a complete rewrite of the old code
 }
 
 DEFINE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
@@ -142,30 +148,57 @@ DEFINE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	auto const pType = pThis->Type;
+	auto const pData = BuildingExtContainer::Instance.Find(pThis);
 
 	auto const PrismStage = pThis->PrismStage;
+
 	if (PrismStage != PrismChargeState::Idle)
 	{
-		auto const pData = BuildingExtContainer::Instance.Find(pThis);
-		if (pData->PrismForwarding.PrismChargeDelay <= 0)
+		if (!pData->MyPrismForwarding)
+		{
+			--pThis->DelayBeforeFiring;
+
+			if (pThis->DelayBeforeFiring <= 0) {
+				pThis->DelayBeforeFiring = 0;
+
+				if (PrismStage == PrismChargeState::Master) {
+					if (auto const Target = pThis->Target) {
+						if (pThis->GetFireError(Target, pThis->PrismTargetCoords.X, true) == FireError::OK) {
+							pThis->Fire(Target, pThis->PrismTargetCoords.X);
+						}
+					}
+				}
+
+				pThis->PrismStage = PrismChargeState::Idle;
+			}
+
+			return 0x4504E2;
+		}
+
+		if (pData->MyPrismForwarding->PrismChargeDelay <= 0)
 		{
 			--pThis->DelayBeforeFiring;
 			if (pThis->DelayBeforeFiring <= 0)
 			{
 				if (PrismStage == PrismChargeState::Slave)
 				{
-					if (auto pTarget = pData->PrismForwarding.SupportTarget)
+					if (auto pTarget = pData->MyPrismForwarding->SupportTarget)
 					{
+						if (!pTarget->Owner)
+						{
+							pData->MyPrismForwarding->RemoveFromNetwork(false);
+							return 0x4504E2;
+						}
+
 						auto const pTargetData = BuildingExtContainer::Instance.Find(pTarget->Owner);
-						if(!pTargetData)
-							Debug::FatalError("Prism target [%s] missing it ExtData\n" , pTarget->Owner->get_ID());
+
 
 						auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 						//slave firing
-						pTargetData->PrismForwarding.ModifierReserve +=
-							(pTypeData->PrismForwarding.GetSupportModifier() + pData->PrismForwarding.ModifierReserve);
-						pTargetData->PrismForwarding.DamageReserve +=
-							(pTypeData->PrismForwarding.DamageAdd + pData->PrismForwarding.DamageReserve);
+						pTargetData->MyPrismForwarding->ModifierReserve +=
+							(pTypeData->PrismForwarding.GetSupportModifier() + pData->MyPrismForwarding->ModifierReserve);
+						pTargetData->MyPrismForwarding->DamageReserve +=
+							(pTypeData->PrismForwarding.DamageAdd + pData->MyPrismForwarding->DamageReserve);
 						pThis->FireLaser(pThis->PrismTargetCoords);
 					}
 				}
@@ -180,34 +213,33 @@ DEFINE_HOOK(0x4503F0, BuildingClass_Update_Prism, 9)
 								auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
 								//apparently this is divided by 256 elsewhere
-								LaserBeam->DamageMultiplier = static_cast<int>((pData->PrismForwarding.ModifierReserve + 100) * 256) / 100;
-								LaserBeam->Health += pTypeData->PrismForwarding.DamageAdd + pData->PrismForwarding.DamageReserve;
+								LaserBeam->DamageMultiplier = static_cast<int>((pData->MyPrismForwarding->ModifierReserve + 100) * 256) / 100;
+								LaserBeam->Health += pTypeData->PrismForwarding.DamageAdd + pData->MyPrismForwarding->DamageReserve;
 							}
 						}
 					}
 				}
 				//This tower's job is done. Go idle.
-				pData->PrismForwarding.ModifierReserve = 0.0;
-				pData->PrismForwarding.DamageReserve = 0;
-				pData->PrismForwarding.RemoveAllSenders();
+				pData->MyPrismForwarding->ModifierReserve = 0.0;
+				pData->MyPrismForwarding->DamageReserve = 0;
+				pData->MyPrismForwarding->RemoveAllSenders();
 				pThis->SupportingPrisms = 0; //Ares sets this to the longest backward chain
-				pData->PrismForwarding.SetSupportTarget(nullptr);
+				pData->MyPrismForwarding->SetSupportTarget(nullptr);
 				pThis->PrismStage = PrismChargeState::Idle;
 			}
 		}
 		else
 		{
 			//still in delayed charge so not actually charging yet
-			--pData->PrismForwarding.PrismChargeDelay;
-			if (pData->PrismForwarding.PrismChargeDelay <= 0)
+			--pData->MyPrismForwarding->PrismChargeDelay;
+			if (pData->MyPrismForwarding->PrismChargeDelay <= 0)
 			{
 				//now it's time to start charging
 				if (pType->GetBuildingAnim(BuildingAnimSlot::Special).Anim[0])
 				{ //only if it actually has a special anim
 					pThis->DestroyNthAnim(BuildingAnimSlot::Active);
-					pThis->Game_PlayNthAnim(BuildingAnimSlot::Special ,!pThis->IsGreenHP(),pThis->GetOccupantCount() > 0 ,0);
+					pThis->Game_PlayNthAnim(BuildingAnimSlot::Special, !pThis->IsGreenHP(), pThis->GetOccupantCount() > 0, 0);
 				}
-
 			}
 		}
 	}
@@ -223,10 +255,10 @@ DEFINE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 	auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
 	CoordStruct sourceXYZ;
-	pThis->GetFLH(&sourceXYZ ,0, CoordStruct::Empty);
+	pThis->GetFLH(&sourceXYZ, 0, CoordStruct::Empty);
 
-	const int idxSupport = pThis->Veterancy.IsElite()  ?
-		pTypeData->PrismForwarding.EliteSupportWeaponIndex : pTypeData->PrismForwarding.SupportWeaponIndex ;
+	const int idxSupport = pThis->Veterancy.IsElite() ?
+		pTypeData->PrismForwarding.EliteSupportWeaponIndex : pTypeData->PrismForwarding.SupportWeaponIndex;
 
 	auto const supportWeapon = (idxSupport != -1)
 		? pType->GetWeapon(idxSupport)->WeaponType : nullptr;
@@ -275,7 +307,8 @@ DEFINE_HOOK(0x44ABD0, BuildingClass_FireLaser, 5)
 		}
 
 		//IsRadBeam
-		if (supportWeapon->IsRadBeam) {
+		if (supportWeapon->IsRadBeam)
+		{
 			CoordStruct target = targetXYZ;
 			WeaponTypeExtData::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
 		}
@@ -353,7 +386,8 @@ DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	auto pType = pThis->GetTechnoType();
-	if(pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer()) {
+	if (pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer())
+	{
 
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
@@ -364,7 +398,8 @@ DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 		}
 	}
 
-	if(pFiringWeaponType->IsLaser) {
+	if (pFiringWeaponType->IsLaser)
+	{
 		auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
 		int const Thickness = pData->Laser_Thickness;
 
@@ -434,11 +469,14 @@ DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 }
 
 //these are all for cleaning up when a prism tower becomes unavailable
-
 DEFINE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	GET(FakeBuildingClass* const, pThis, ESI);
+	auto pExt = pThis->_GetExtData();
+
+	if (auto& pPrism = pExt->MyPrismForwarding)
+		pPrism->RemoveFromNetwork(true);
+
 	return 0;
 }
 
@@ -453,7 +491,7 @@ DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 
 	announce = announce && !pThis->Type->IsVehicle();
 
-	if(announce && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
+	if (announce && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
 		pThis->UpdatePowerDown();
 
 	// #754 - evict Hospital/Armory contents
@@ -465,39 +503,43 @@ DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 	// #305: remove all jammers. will be restored with the next update.
 	pData->RegisteredJammers.clear();//
 
-	// the first and the last tower have to be allied to this
-	if (pTypeData->PrismForwarding.ToAllies)
+	if (auto& pPrism = pData->MyPrismForwarding)
 	{
-		auto const FirstTarget = pData->PrismForwarding.SupportTarget;
 
-		if (!FirstTarget)
+		// the first and the last tower have to be allied to this
+		if (pTypeData->PrismForwarding.ToAllies)
 		{
-			// no first target so either this is a master tower, an idle
-			// tower, or not a prism tower at all no need to remove.
-			return LeaveBomb;
-		}
+			auto const FirstTarget = pPrism->SupportTarget;
 
-		// the tower the new owner strives to support has to be allied, otherwise abort.
-		if (newOwner->IsAlliedWith(FirstTarget->GetOwner()->Owner))
-		{
-			auto LastTarget = FirstTarget;
-			while (LastTarget->SupportTarget)
+			if (!FirstTarget)
 			{
-				LastTarget = LastTarget->SupportTarget;
-			}
-
-			// LastTarget is now the master (firing) tower
-			if (newOwner->IsAlliedWith(LastTarget->GetOwner()->Owner))
-			{
-				// alliances check out so this slave tower can keep on charging.
+				// no first target so either this is a master tower, an idle
+				// tower, or not a prism tower at all no need to remove.
 				return LeaveBomb;
 			}
-		}
-	}
 
-	// if we reach this point then the alliance checks have failed. use false
-	// because animation should continue / slave is busy but won't now fire
-	pData->PrismForwarding.RemoveFromNetwork(false);
+			// the tower the new owner strives to support has to be allied, otherwise abort.
+			if (newOwner->IsAlliedWith(FirstTarget->GetOwner()->Owner))
+			{
+				auto LastTarget = FirstTarget;
+				while (LastTarget->SupportTarget)
+				{
+					LastTarget = LastTarget->SupportTarget;
+				}
+
+				// LastTarget is now the master (firing) tower
+				if (newOwner->IsAlliedWith(LastTarget->GetOwner()->Owner))
+				{
+					// alliances check out so this slave tower can keep on charging.
+					return LeaveBomb;
+				}
+			}
+		}
+
+		// if we reach this point then the alliance checks have failed. use false
+		// because animation should continue / slave is busy but won't now fire
+		pPrism->RemoveFromNetwork(false);
+	}
 
 	return LeaveBomb;
 }
@@ -508,17 +550,23 @@ DEFINE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 
 	// bugfix #874 B: Temporal warheads affect Warpable=no units
 	// it has been checked: this is warpable. free captured and destroy spawned units.
-	if (pThis->SpawnManager) {
+	if (pThis->SpawnManager)
+	{
 		pThis->SpawnManager->KillNodes();
 	}
 
-	if (pThis->CaptureManager) {
+	if (pThis->CaptureManager)
+	{
 		pThis->CaptureManager->FreeAll();
 	}
 
 	// prism forward
-	if (pThis->WhatAmI() == BuildingClass::AbsID) {
-		BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->PrismForwarding.RemoveFromNetwork(true);
+	if (pThis->WhatAmI() == BuildingClass::AbsID)
+	{
+		if (auto& pPrism = BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->MyPrismForwarding)
+		{
+			pPrism->RemoveFromNetwork(true);
+		}
 	}
 
 	return 0;
@@ -528,11 +576,15 @@ DEFINE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pDrainee, EDI);
+
 	if (pDrainee->DrainingMe != pThis)
 	{ // else we're already being drained, nothing to do
 		if (auto const pBld = cast_to<BuildingClass*, false>(pDrainee))
 		{
-			BuildingExtContainer::Instance.Find(pBld)->PrismForwarding.RemoveFromNetwork(true);
+			if (auto& pPrism = BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->MyPrismForwarding)
+			{
+				pPrism->RemoveFromNetwork(true);
+			}
 		}
 	}
 	return 0;
@@ -540,16 +592,22 @@ DEFINE_HOOK(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 
 DEFINE_HOOK(0x454B3D, BuildingClass_UpdatePowered_PrismForward, 6)
 {
-	GET(BuildingClass* const, pThis, ESI);
+	GET(FakeBuildingClass* const, pThis, ESI);
 	// this building just realised it needs to go offline
 	// it unregistered itself from powered unit controls but hasn't done anything else yet
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+
+	if (auto& pPrism = pThis->_GetExtData()->MyPrismForwarding)
+		pPrism->RemoveFromNetwork(true);
+
 	return 0;
 }
 
 DEFINE_HOOK(0x44EBF0, BuildingClass_Disappear_PrismForward, 5)
 {
-	GET(BuildingClass* const, pThis, ECX);
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+	GET(FakeBuildingClass* const, pThis, ECX);
+
+	if (auto& pPrism = pThis->_GetExtData()->MyPrismForwarding)
+		pPrism->RemoveFromNetwork(true);
+
 	return 0;
 }

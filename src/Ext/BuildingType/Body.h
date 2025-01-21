@@ -329,12 +329,14 @@ public:
 
 	Nullable<Point2D> BarracksExitCell {};
 
+	Valueable<bool> IsPrism { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	void CompleteInitialization() const;
+	void CompleteInitialization();
 
 	// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
 	COMPILETIMEEVAL int FORCEDINLINE GetSuperWeaponCount() const

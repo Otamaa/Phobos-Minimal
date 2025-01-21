@@ -7135,7 +7135,9 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
-	BuildingExtContainer::Instance.Find(pThis)->PrismForwarding.RemoveFromNetwork(true);
+
+	if(auto& pPrism = BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding)
+		pPrism->RemoveFromNetwork(true);
 
 	if (pThis->HasBuildup)
 	{

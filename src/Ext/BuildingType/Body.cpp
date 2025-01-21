@@ -126,7 +126,7 @@ void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 	}
 }
 
-void BuildingTypeExtData::CompleteInitialization() const
+void BuildingTypeExtData::CompleteInitialization()
 {
 	auto const pThis = this->AttachedToObject;
 
@@ -148,6 +148,7 @@ void BuildingTypeExtData::CompleteInitialization() const
 	}
 
 	BuildingTypeExtData::UpdateBuildupFrames(pThis);
+	this->IsPrism = RulesClass::Instance->PrismType == pThis;
 }
 
 bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
@@ -703,6 +704,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
 #pragma region Otamaa
+		this->IsPrism.Read(exINI, pSection, "IsPrismTower");
+
 		//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
 		auto GetGarrisonAnim = [&exINI, pSection](
@@ -1407,6 +1410,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NextBuilding_Prev)
 		.Process(this->NextBuilding_Next)
 		.Process(this->NextBuilding_CurrentHeapId)
+
+		.Process(this->IsPrism)
 		;
 }
 

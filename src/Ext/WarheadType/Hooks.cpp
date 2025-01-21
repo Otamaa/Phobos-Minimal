@@ -54,14 +54,14 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 			int damage = pThis->WeaponType->Damage;
 
-			if (size > i)
+			if (size > 0 && size > i)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
 			else if (size > 0)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[size - 1];
 
 			bool detonate = true;
 
-			if (chance_size > i)
+			if (chance_size > 0 && chance_size > i)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
 			else if (chance_size > 0)
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
@@ -69,7 +69,7 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 			bool isFull = true;
 			size = pWeaponExt->ExtraWarheads_FullDetonation.size();
 
-			if (size > i)
+			if (size > 0 && size > i)
 				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
 			else if (size > 0)
 				isFull = pWeaponExt->ExtraWarheads_FullDetonation[size - 1];

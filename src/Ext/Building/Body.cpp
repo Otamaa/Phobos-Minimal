@@ -13,15 +13,20 @@
 
 void BuildingExtData::InitializeConstant()
 {
-	this->PrismForwarding.Owner = this->AttachedToObject;
 
 	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);
 	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 	this->Type = pTypeExt;
 
-	if (pTypeExt && !pTypeExt->DamageFire_Offs.empty())
+	if (pTypeExt)
 	{
-		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+		if (pTypeExt->IsPrism) {
+			this->MyPrismForwarding = std::make_unique<PrismForwarding>();
+			this->MyPrismForwarding->Owner = this->AttachedToObject;
+		}
+
+		if(!pTypeExt->DamageFire_Offs.empty())
+			this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 	}
 
 }
@@ -495,7 +500,9 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		this->SpyEffectAnim.release();
 	}
 
-	this->PrismForwarding.InvalidatePointer(ptr, bRemoved);
+	if(MyPrismForwarding)
+		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
+
 	AnnounceInvalidPointer(this->DamageFireAnims, ptr, bRemoved);
 
 }
@@ -1249,7 +1256,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->Type, true)
 		.Process(this->TechnoExt, true)
-		.Process(this->PrismForwarding)
+		.Process(this->MyPrismForwarding)
 		.Process(this->DeployedTechno)
 		.Process(this->LimboID)
 		.Process(this->GrindingWeapon_LastFiredFrame)
