@@ -261,7 +261,7 @@ DEFINE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
+DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -340,7 +340,7 @@ DEFINE_HOOK(0x4DA53E, FootClass_Update_AresAddition, 6)
 		}
 	}
 
-	return 0;
+	return pThis->IsAlive ? 0 : 0x4DAF00;
 }
 
 DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)
