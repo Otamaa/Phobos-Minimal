@@ -712,69 +712,41 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 	GET_STACK(TechnoTypeClass* const, pType, STACK_OFFSET(0x48C, -0x458));
 
 	R->EAX(Unsorted::CurrentFrame());
-	if( (MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex]
+	if((MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex]
 		[CameoIndex].FlashEndFrame > Unsorted::CurrentFrame
 	)) {
 		return 0x6A9B67;
 	}
 
-	//DrawGreyCameoExtraCover
+	if(!pType){
+		//DrawGreyCameoExtraCover
 
-	Point2D position { destX + 30, destY + 24 };
-	const auto pRulesExt = RulesExtData::Instance();
-	const auto frames = pRulesExt->Cameo_OverlayFrames.Get();
+		Point2D position { destX + 30, destY + 24 };
+		const auto pRulesExt = RulesExtData::Instance();
+		const auto frames = pRulesExt->Cameo_OverlayFrames.Get();
 
-	if (greyCameo) // Only draw extras over grey cameos
-	{
-		auto frame = frames.Y;
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (pTypeExt->Cameo_AlwaysExist.Get(pRulesExt->Cameo_AlwaysExist))
+		if (greyCameo) // Only draw extras over grey cameos
 		{
-			auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+			auto frame = frames.Y;
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (vec.contains(pType))
+			if (pTypeExt->Cameo_AlwaysExist.Get(pRulesExt->Cameo_AlwaysExist))
 			{
-				if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface())
+				auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+
+				if (vec.contains(pType))
 				{
-					auto drawRect = RectangleStruct { destX, destY, 60, 48 };
-					PCX::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
+					if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface())
+					{
+						auto drawRect = RectangleStruct { destX, destY, 60, 48 };
+						PCX::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
+					}
+
+					frame = frames.Z;
 				}
-
-				frame = frames.Z;
 			}
-		}
 
-		if (frame >= 0)
-		{
-			ConvertClass* pConvert = FileSystem::PALETTE_PAL;
-			if (pRulesExt->Cameo_OverlayPalette && pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>())
-				pConvert = pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>();
-
-			DSurface::Sidebar->DrawSHP(
-				pConvert,
-				pRulesExt->Cameo_OverlayShapes,
-				frame,
-				&position,
-				&boundingRect,
-				BlitterFlags(0x600),
-				0, 0,
-				ZGradient::Ground,
-				1000, 0, 0, 0, 0, 0);
-		}
-	}
-
-	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType)) // Only count owned buildings
-	{
-		const auto pHouse = HouseClass::CurrentPlayer();
-		auto count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, pHouse);
-
-		if (count == -1)
-			count = pHouse->CountOwnedAndPresent(pBuildingType);
-
-		if (count > 0)
-		{
-			if (frames.X >= 0)
+			if (frame >= 0)
 			{
 				ConvertClass* pConvert = FileSystem::PALETTE_PAL;
 				if (pRulesExt->Cameo_OverlayPalette && pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>())
@@ -783,7 +755,7 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 				DSurface::Sidebar->DrawSHP(
 					pConvert,
 					pRulesExt->Cameo_OverlayShapes,
-					frames.X,
+					frame,
 					&position,
 					&boundingRect,
 					BlitterFlags(0x600),
@@ -791,18 +763,48 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 					ZGradient::Ground,
 					1000, 0, 0, 0, 0, 0);
 			}
+		}
 
-			if (Phobos::Config::ShowBuildingStatistics)
+		if (const auto pBuildingType = cast_to<BuildingTypeClass* , false>(pType)) // Only count owned buildings
+		{
+			const auto pHouse = HouseClass::CurrentPlayer();
+			auto count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, pHouse);
+
+			if (count == -1)
+				count = pHouse->CountOwnedAndPresent(pBuildingType);
+
+			if (count > 0)
 			{
-				GET_STACK(RectangleStruct, surfaceRect, STACK_OFFSET(0x48C, -0x438));
+				if (frames.X >= 0)
+				{
+					ConvertClass* pConvert = FileSystem::PALETTE_PAL;
+					if (pRulesExt->Cameo_OverlayPalette && pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>())
+						pConvert = pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>();
 
-				const COLORREF color = Drawing::RGB_To_Int(Drawing::TooltipColor);
-				const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
-				auto textPosition = Point2D { destX + 60, destY + 1 };
+					DSurface::Sidebar->DrawSHP(
+						pConvert,
+						pRulesExt->Cameo_OverlayShapes,
+						frames.X,
+						&position,
+						&boundingRect,
+						BlitterFlags(0x600),
+						0, 0,
+						ZGradient::Ground,
+						1000, 0, 0, 0, 0, 0);
+				}
 
-				wchar_t text[0x20];
-				swprintf_s(text, L"%d", count);
-				DSurface::Sidebar->DrawText_Old(text, &surfaceRect, &textPosition, color, 0, (DWORD)printType);
+				if (Phobos::Config::ShowBuildingStatistics)
+				{
+					GET_STACK(RectangleStruct, surfaceRect, STACK_OFFSET(0x48C, -0x438));
+
+					const COLORREF color = Drawing::RGB_To_Int(Drawing::TooltipColor);
+					const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
+					auto textPosition = Point2D { destX + 60, destY + 1 };
+
+					wchar_t text[0x20];
+					swprintf_s(text, L"%d", count);
+					DSurface::Sidebar->DrawText_Old(text, &surfaceRect, &textPosition, color, 0, (DWORD)printType);
+				}
 			}
 		}
 	}

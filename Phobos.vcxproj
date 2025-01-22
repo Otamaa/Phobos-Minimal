@@ -929,7 +929,7 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard_C>Default</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
