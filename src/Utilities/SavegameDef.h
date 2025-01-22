@@ -589,8 +589,14 @@ namespace Savegame
 			size_t size = 0;
 
 			if (Stm.Load(size)) {
-				Value.resize(size);
-				if (!size ||Stm.Read(reinterpret_cast<BYTE*>(&Value[0]), size)) {
+				if (!size) {
+					Value.clear();
+					return true;
+				}
+
+				std::vector<char> buffer(size);
+				if (Stm.Read(reinterpret_cast<BYTE*>(buffer.data()), size)) {
+					Value.assign(buffer.begin(), buffer.end());
 					return true;
 				}
 			}
@@ -601,8 +607,11 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
 		{
 			Stm.Save(Value.size());
-			Stm.Write(reinterpret_cast<const BYTE*>(Value.c_str()), Value.size());
 
+			if (Value.empty())
+				return true;
+
+			Stm.Write(reinterpret_cast<const BYTE*>(Value.c_str()), Value.size());
 			return true;
 		}
 	};

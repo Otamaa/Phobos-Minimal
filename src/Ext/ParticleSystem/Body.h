@@ -104,7 +104,7 @@ public:
 				.Process(StateAdvance)
 				.Process(ImageFrame)
 				.Process(RemainingEC)
-				.Process(LinkedParticleType, true)
+				.Process(LinkedParticleType)
 				.Process(Translucency)
 				.Process(DeleteOnStateLimit)
 				.Process(byte30)

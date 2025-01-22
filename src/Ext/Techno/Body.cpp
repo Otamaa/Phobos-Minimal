@@ -5108,7 +5108,7 @@ void TechnoExtData::ManualIdleAction()
 		if (mouseCoords != CoordStruct::Empty) // Mouse in tactical
 		{
 			CoordStruct technoCoords = this->AttachedToObject->GetCoords();
-			const int offset = -static_cast<int>(technoCoords.Z * 1.25);
+			const int offset = -static_cast<int>(technoCoords.Z * ((Unsorted::LeptonsPerCell / 2.0) / Unsorted::LevelHeight));
 			const double nowRadian = Math::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
 			DirStruct unitIdleFacingDirection;
 			unitIdleFacingDirection.SetRadian<32>(nowRadian);

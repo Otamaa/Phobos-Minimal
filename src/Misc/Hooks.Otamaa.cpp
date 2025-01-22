@@ -6404,8 +6404,9 @@ DEFINE_HOOK(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
 
 DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
-	if (RulesExtData::Instance()->CivilianSideIndex == -1)
-		Debug::FatalError("Civilian Index is invalid !\n");
+	if (RulesExtData::Instance()->CivilianSideIndex == -1) {
+		RulesExtData::Instance()->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
+	}
 
 	R->EAX(RulesExtData::Instance()->CivilianSideIndex);
 	return 0x501586;
@@ -10967,4 +10968,24 @@ DEFINE_HOOK(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 	return 0x42CC6D;
 }
 
-DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);
+//DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);
+DEFINE_HOOK(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
+{
+	GET(HouseClass*, pHouyse, ECX);
+	GET_STACK(DWORD, caller, 0x0); 
+
+	if (!pHouyse)
+		Debug::FatalError("Fucking no House %x\n", caller);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6D471A, TechnoClass_Render_NoOwner, 0x6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+
+	if (!pTechno->Owner)
+		DebugBreak();
+
+	return 0x0;
+}

@@ -212,14 +212,17 @@ public:
 		for (size_t i = 0; i < Count; ++i)
 		{
 			void* oldPtr = nullptr;
-			std::string name {};
 
-			if (!Stm.Load(oldPtr) || !Stm.Load(name))
+			if (!Stm.Load(oldPtr))
 				return false;
 
-			auto pNew = Allocate(name.c_str());
-			PhobosSwizzle::Instance.RegisterChange(oldPtr, pNew);
-			pNew->LoadFromStream(Stm);
+			std::string name {};
+			if (!Stm.Load(name))
+				return false;
+
+			auto newPtr = FindOrAllocate(name.c_str());
+			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
+			newPtr->LoadFromStream(Stm);
 		}
 
 		return true;

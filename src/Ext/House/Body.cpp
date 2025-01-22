@@ -966,7 +966,7 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
 	if (RulesExtData::Instance()->CivilianSideIndex == -1)
-		Debug::FatalError("Civilian Index is invalid !\n");
+		RulesExtData::Instance()->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
 
 	if(!HouseExtContainer::Civilian){
 		HouseExtContainer::Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);

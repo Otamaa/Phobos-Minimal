@@ -1754,8 +1754,8 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	 );
 	});
 
-	Debug::Log(GameStrings::Init_Commands);
-	CommandClass::InitCommand();
+	//Debug::Log(GameStrings::Init_Commands);
+	//CommandClass::InitCommand();
 
 	return 0x0;
 }

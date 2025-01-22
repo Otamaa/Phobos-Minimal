@@ -293,7 +293,7 @@ DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x724247, ToolTipManager_ProcessMessage_SetDelayTimer, 0x5)
+DEFINE_HOOK(0x724247, ToolTipManager_ProcessMessage_SetDelayTimer, 0x6)
 {
 	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x72429E : 0;
 }
@@ -303,12 +303,13 @@ DEFINE_HOOK(0x72428C, ToolTipManager_ProcessMessage_Redraw, 0x5)
 	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x724297 : 0;
 }
 
-DEFINE_HOOK(0x724B2E, ToolTipManager_SetX_TacticalButtons, 0x6)
+DEFINE_HOOK(0x724B28, ToolTipManager_SetX_TacticalButtons, 0x6)
 {
 	if (SWSidebarClass::IsEnabled()) {
 		if (const auto button = SWSidebarClass::Global()->CurrentButton) {
 			R->EDX(button->Rect.X + button->Rect.Width);
 			R->EAX(button->Rect.Y + 27);
+			return 0x724B2E;
 		}
 	}
 
