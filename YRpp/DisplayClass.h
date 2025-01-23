@@ -90,14 +90,17 @@ public:
 	bool CanBuildHere(BuildingTypeClass* pBld, int nHouse, CellStruct* cell, CellStruct* tryCell) const
 		{ JMP_THIS(0x4A8EB0); }
 
+	bool ProximityCheck2(BuildingTypeClass *object, int house, CellStruct *list, CellStruct *cell)
+		{ JMP_THIS(0x4A9070) }
+
 	bool FollowAnObject(ObjectClass* pObject) const
-	{ JMP_THIS(0x4AEB30); }
+		{ JMP_THIS(0x4AEB30); }
 
 	ObjectClass* GetFollowObject() const
-	{ JMP_THIS(0x4AEB10); }
+		{ JMP_THIS(0x4AEB10); }
 
 	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
-	{ JMP_STD(0x5353D0); }
+		{ JMP_STD(0x5353D0); }
 
 protected:
 	//Constructor

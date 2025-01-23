@@ -262,3 +262,80 @@ DEFINE_HOOK(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
 
 	return 0;
 }
+
+#pragma region EnableBuildingProductionQueue
+
+DEFINE_HOOK(0x6AB689, SelectClass_Action_SkipBuildingProductionCheck, 0x5)
+{
+	enum { SkipGameCode = 0x6AB6CE };
+	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
+}
+
+DEFINE_HOOK(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
+{
+	enum { SkipGameCode = 0x4FA553 };
+	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
+}
+
+DEFINE_HOOK(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
+{
+	enum { SkipGameCode = 0x4C9C9E };
+	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
+}
+
+DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
+{
+	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
+
+	GET_STACK(const bool, all, STACK_OFFSET(0x18, 0x10));
+	GET(const int, index, EBX);
+	GET(const BuildCat, buildCat, ECX);
+	GET(const AbstractType, absType, EBP);
+	GET(FactoryClass* const, pFactory, ESI);
+
+	if (buildCat == BuildCat::DontCare || all)
+	{
+		const auto pType = TechnoTypeClass::GetByTypeAndIndex(absType, index);
+		const auto firstRemoved = pFactory->RemoveOneFromQueue(pType);
+
+		if (firstRemoved)
+		{
+			SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
+
+			if (all)
+				while (pFactory->RemoveOneFromQueue(pType));
+			else
+				return Return;
+		}
+
+		return CheckSame;
+	}
+
+	if (!pFactory->Object)
+		return SkipCheck;
+
+	return pFactory->RemoveOneFromQueue(TechnoTypeClass::GetByTypeAndIndex(absType, index)) ? Return : CheckSame;
+}
+
+DEFINE_HOOK(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
+{
+	GET(TechnoTypeClass* const, pType, ECX);
+	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x490, -0x490));
+
+	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+		*pBuildCat = pBuildingType->BuildCat;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
+{
+	enum { ContinueCheck = 0x6A9799, SkipGameCode = 0x6A97FB };
+
+	GET(TechnoTypeClass* const, pType, EBX);
+	GET_STACK(bool, clicked, STACK_OFFSET(0x48C, -0x475));
+
+	return (!RulesExtData::Instance()->ExpandBuildingQueue && pType->WhatAmI() == AbstractType::BuildingType && clicked) ? SkipGameCode : ContinueCheck;
+}
+
+#pragma endregion

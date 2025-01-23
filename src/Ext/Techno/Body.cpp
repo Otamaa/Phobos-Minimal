@@ -5489,6 +5489,9 @@ DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 
 	HouseExtData::LimboTechno.remove(pItem);
 	TechnoExtContainer::Instance.Remove(pItem);
+	if (RulesExtData::Instance()->ExpandBuildingPlace && pItem->WhatAmI() == AbstractType::Unit && pItem->GetTechnoType()->DeploysInto) {
+		HouseExtContainer::Instance.Find(pItem->Owner)->OwnedDeployingUnits.remove((UnitClass*)pItem);
+	}
 
 	return 0;
 }

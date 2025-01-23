@@ -331,6 +331,14 @@ public:
 
 	Valueable<bool> IsPrism { false };
 
+	Valueable<bool> AutoBuilding { false };
+	Valueable<int> AutoBuilding_Gap { 1 };
+	Valueable<bool> LimboBuild { false };
+	Valueable<int> LimboBuildID { -1 };
+	Valueable<BuildingTypeClass*> LaserFencePost_Fence {};
+	Valueable<BuildingTypeClass*> PlaceBuilding_OnLand {};
+	Valueable<BuildingTypeClass*> PlaceBuilding_OnWater {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -401,6 +409,12 @@ public:
 
 	static bool ShouldExistGreyCameo(TechnoTypeClass* pType);
 	static CanBuildResult CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild);
+
+	static bool CheckOccupierCanLeave(HouseClass* pBuildingHouse, HouseClass* pOccupierHouse);
+	static bool CleanUpBuildingSpace(BuildingTypeClass* pBuildingType, CellStruct topLeftCell, HouseClass* pHouse, TechnoClass* pExceptTechno = nullptr);
+	static bool AutoPlaceBuilding(BuildingClass* pBuilding);
+	static bool BuildLimboBuilding(BuildingClass* pBuilding);
+	static void CreateLimboBuilding(BuildingClass* pBuilding, BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 
 private:
 	template <typename T>

@@ -506,10 +506,11 @@ static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord,
 				 AnythingHit = true; // is this function succeed hit any item ?
 			 }
 		 }
-
-		 GameDelete<false, false>(std::exchange(pGroup, nullptr));
 	};
 
+	for (auto it = groupvec.begin(); it != groupvec.end(); ++it) { 
+		GameDelete<false, false>(std::exchange(*it, nullptr)); 
+	}
 	groupvec.clear();
 
 	if (HitICEdTechno)

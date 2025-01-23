@@ -1101,6 +1101,9 @@ public:
 		JMP_THIS(0x506B90);
 	}
 
+	bool ai_replace_node_50CAD0(BaseNodeClass* node) const
+		{ JMP_THIS(0x50CAD0); }
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

@@ -437,6 +437,8 @@ public:
 	Valueable<PaletteManager*> Cameo_OverlayPalette {};
 	Valueable<bool> MergeBuildingDamage { false };
 
+	Valueable<bool>ExpandBuildingQueue { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

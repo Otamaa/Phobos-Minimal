@@ -799,7 +799,7 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 
 					const COLORREF color = Drawing::RGB_To_Int(Drawing::TooltipColor);
 					const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
-					auto textPosition = Point2D { destX + 60, destY + 1 };
+					auto textPosition = Point2D { destX , destY + 1 };
 
 					wchar_t text[0x20];
 					swprintf_s(text, L"%d", count);

@@ -165,9 +165,10 @@ public:
 	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
 	CDTimerClass AISellAllDelayTimer {};
 
-	std::vector<UnitClass*> OwnedDeployingUnits {};
+	HelperedVector<UnitClass*> OwnedDeployingUnits {};
 	std::vector<CellStruct> BaseNormalCells {};
 	BuildingTypeClass* CurrentBuildingType { nullptr };
+	BuildingTypeClass* CurrentBuildingDrawType { nullptr };
 	CellStruct CurrentBuildingTopLeft {};
 	CDTimerClass CurrentBuildingTimer {};
 	int CurrentBuildingTimes { 0 };

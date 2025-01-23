@@ -475,8 +475,8 @@ DEFINE_HOOK(0x701BF6, TechnoClass_ReceiveDamage_Abilities, 0x8)
 		RetResultLight = 0x701DBA
 	};
 
-	GET(WarheadTypeClass*, pWH, EBP);
-
+	GET_STACK(WarheadTypeClass* const, pWH, 0xD0);
+	
 	if(!pWH)
 		return RetObjectClassRcvDamage;
 

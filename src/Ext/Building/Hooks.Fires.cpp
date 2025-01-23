@@ -125,14 +125,14 @@ DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 	return 0x43C2C9;
 }
 
-DEFINE_JUMP(LJMP, 0x44EA1C, 0x44EA2F);
-//DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
-//{
-//	GET(FakeBuildingClass*, pThis, ESI);
-//	GET(void*, ptr, EBP);
-//	DamageFireAnims::HandleInvalidPtr(pThis, ptr);
-//	return 0x44EA2F;
-//}
+//DEFINE_JUMP(LJMP, 0x44EA1C, 0x44EA2F);
+DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
+{
+	GET(FakeBuildingClass*, pThis, ESI);
+	GET(void*, ptr, EBP);
+	DamageFireAnims::HandleInvalidPtr(pThis, ptr);
+	return 0x44EA2F;
+}
 
 //remove it from load
 DEFINE_JUMP(LJMP, 0x454154, 0x454170);
