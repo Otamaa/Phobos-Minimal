@@ -300,6 +300,7 @@ DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 
 		if (firstRemoved)
 		{
+			SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true; // Added, force redraw strip
 			SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
 
 			if (all)
@@ -314,7 +315,12 @@ DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 	if (!pFactory->Object)
 		return SkipCheck;
 
-	return pFactory->RemoveOneFromQueue(TechnoTypeClass::GetByTypeAndIndex(absType, index)) ? Return : CheckSame;
+	if (!pFactory->RemoveOneFromQueue(TechnoTypeClass::GetByTypeAndIndex(absType, index)))
+		return CheckSame;
+
+	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true; // Added, force redraw strip
+	SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
+	return Return;
 }
 
 DEFINE_HOOK(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
@@ -338,4 +344,9 @@ DEFINE_HOOK(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
 	return (!RulesExtData::Instance()->ExpandBuildingQueue && pType->WhatAmI() == AbstractType::BuildingType && clicked) ? SkipGameCode : ContinueCheck;
 }
 
+DEFINE_HOOK(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
+{
+	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
+	return 0;
+}
 #pragma endregion
