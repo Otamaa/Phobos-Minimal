@@ -3,11 +3,59 @@
 #include "Header.h"
 
 #include <Ext/Building/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 #include <WWKeyboardClass.h>
 
 #include <Misc/Spawner/ProtocolZero.h>
 #include <IPXManagerClass.h>
+
+EventExt::ManualReload::ManualReload(TechnoClass* pTechno) : Who { pTechno }
+{
+}
+
+void EventExt::ManualReload::Raise(TechnoClass* pTechno)
+{
+	EventClass Event {};
+
+	if (pTechno->Owner->ArrayIndex >= 0)
+	{
+		Event.Type = AsEventType();
+		Event.HouseIndex = byte(pTechno->Owner->ArrayIndex);
+	}
+
+	EventExt::AddToEvent<true, ManualReload>(Event, pTechno);
+	Debug::Log("Adding event MANUAL_RELOAD\n");
+}
+
+void EventExt::ManualReload::Respond(EventClass* Event)
+{
+	ManualReload* ID = Event->Data.nothing.As<ManualReload>();
+
+	if (const auto pTechno = ID->Who.As_Techno())
+	{
+		if (pTechno->Ammo > 0 && pTechno->IsAlive && !pTechno->Berzerk)
+		{
+			const auto pType = pTechno->GetTechnoType();
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if (pTechno->Ammo != pType->Ammo && pTypeExt->CanManualReload)
+			{
+				if (pTypeExt->CanManualReload_DetonateWarhead && pTypeExt->CanManualReload_DetonateConsume <= pTechno->Ammo)
+					WarheadTypeExtData::DetonateAt(pTypeExt->CanManualReload_DetonateWarhead, pTechno->Target , pTechno->GetCoords(), pTechno, 1, pTechno->Owner);
+
+				if (pTypeExt->CanManualReload_ResetROF)
+					pTechno->DiskLaserTimer.Stop();
+
+				pTechno->Ammo = 0;
+
+				if (pTechno->WhatAmI() != AbstractType::Aircraft)
+					pTechno->StartReloading();
+			}
+		}
+	}
+}
 
 EventExt::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)
 	: TargetCell { target }, Source { source }
@@ -20,7 +68,7 @@ void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Tar
 
 	if (Source->Owner->ArrayIndex >= 0)
 	{
-		Event.Type = EventType(EventExt::Events::TrenchRedirectClick);
+		Event.Type = AsEventType();
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
@@ -29,11 +77,10 @@ void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Tar
 
 void EventExt::TrenchRedirectClick::Respond(EventClass* Event)
 {
-	TargetClass* ID = reinterpret_cast<TargetClass*>(Event->Data.nothing.Data);
-	if (CellClass* pTargetCell = ID->As_Cell())
+	TrenchRedirectClick* ID = Event->Data.nothing.As<TrenchRedirectClick>();
+	if (CellClass* pTargetCell = ID->TargetCell.As_Cell())
 	{
-		++ID;
-		if (BuildingClass* pSourceBuilding = ID->As_Building())
+		if (BuildingClass* pSourceBuilding = ID->Source.As_Building())
 		{
 			/*
 				pSourceBuilding == selected building the soldiers are in
@@ -77,7 +124,7 @@ void EventExt::ProtocolZero::Raise()
 	const auto maxAhead = char((int8_t)ipxResponseTime + 1);
 	const auto latencyLevel = (uint8_t)LatencyLevel::FromResponseTime((uint8_t)ipxResponseTime);
 	ProtocolZero type { maxAhead , latencyLevel };
-	memcpy(&event.Data.nothing, &type, ProtocolZero::size());
+	event.Data.nothing.Set<ProtocolZero>(&type);
 
 	if (EventClass::AddEvent(reinterpret_cast<EventClass*>(&event)))
 	{
@@ -100,7 +147,7 @@ void EventExt::ProtocolZero::Respond(EventClass* Event)
 	if (ProtocolZero::Enable == false || SessionClass::IsSingleplayer())
 		return;
 
-	const ProtocolZero* netData = reinterpret_cast<ProtocolZero*>(Event->Data.nothing.Data);
+	const ProtocolZero* netData = Event->Data.nothing.As<ProtocolZero>();
 
 	if (netData->MaxAhead == 0)
 	{
@@ -142,9 +189,9 @@ void EventExt::ProtocolZero::Respond(EventClass* Event)
 
 void EventExt::FirewallToggle::Raise(HouseClass* Source)
 {
-	EventClass Event;
+	EventClass Event {};
 
-	Event.Type = static_cast<EventType>(EventExt::Events::FirewallToggle);
+	Event.Type = AsEventType();
 	Event.HouseIndex = byte(Source->ArrayIndex);
 
 	EventClass::AddEvent(&Event);

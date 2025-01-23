@@ -9,8 +9,6 @@
 #include "Header.h"
 #include "AresNetEvent.h"
 
-#include "Header.h"
-
 #include <EventClass.h>
 
 DEFINE_HOOK(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)

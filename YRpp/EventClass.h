@@ -14,6 +14,22 @@ union EventData
 	struct nothing
 	{
 		char Data[0x68];
+
+		template<typename T>
+		FORCEDINLINE T* As() {
+			return reinterpret_cast<T*>(this->Data);
+		}
+
+		template<typename T>
+		FORCEDINLINE void Set(T* data , size_t size) {
+			memcpy(this->Data, data, size);
+		}
+
+		template<typename T>
+		FORCEDINLINE void Set(T* data) {
+			memcpy(this->Data, data, T::size());
+		}
+
 	} nothing;
 	static_assert(sizeof(nothing) == 0x68);
 

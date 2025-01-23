@@ -12,6 +12,7 @@ public:
 		TrenchRedirectClick = 0x60,
 		ProtocolZero = 0x61,
 		FirewallToggle = 0x62,
+		ManualReload = 0x63,
 
 		First = TrenchRedirectClick,
 		Last = FirewallToggle
@@ -20,13 +21,31 @@ public:
 	template<bool timestamp , class T , typename... ArgTypes>
 	static bool AddToEvent(EventClass& event, ArgTypes... args) {
 		T type { args... };
-		memcpy(&event.Data.nothing, &type, T::size());
+		event.Data.nothing.Set<T>(&type);
 
 		if COMPILETIMEEVAL (timestamp)
 			return EventClass::AddEventWithTimeStamp(&event);
 		else
 			return EventClass::AddEvent(&event);
 	}
+
+	struct ManualReload
+	{
+		ManualReload(TechnoClass* source);
+
+		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(ManualReload); }
+		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType()
+		{
+			return (EventType)Events::ManualReload;
+		}
+
+		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "ManualReload"; }
+
+		static void Raise(TechnoClass* Source);
+		static void Respond(EventClass* Event);
+
+		TargetClass Who;
+	};
 
 	struct TrenchRedirectClick
 	{
@@ -93,52 +112,47 @@ public:
 		if (type <= EventType::ABANDON_ALL) // default event
 			return EventClass::EventLength[(uint8_t)type];
 
+#define GET_SIZE_EV(ev) case Events::##ev##: return ev##::size();
 		switch ((Events)type)
 		{
-		case Events::TrenchRedirectClick:
-			return TrenchRedirectClick::size();
-		case Events::ProtocolZero:
-			return ProtocolZero::size();
-		case Events::FirewallToggle:
-			return FirewallToggle::size();
+		GET_SIZE_EV(TrenchRedirectClick)
+		GET_SIZE_EV(ProtocolZero)
+		GET_SIZE_EV(FirewallToggle)
+		GET_SIZE_EV(ManualReload)
 		default :
 			return 0;
 		}
+#undef GET_SIZE_EV
 	}
 
 	static COMPILETIMEEVAL const char* GetEventNames(Events type)
 	{
+#define GET_NAME_EV(ev) case Events::##ev##: return ev##::name();
+
 		switch (type)
 		{
-		case Events::TrenchRedirectClick:
-			return TrenchRedirectClick::name();
-		case Events::ProtocolZero:
-			return ProtocolZero::name();
-		case Events::FirewallToggle:
-			return FirewallToggle::name();
+		GET_NAME_EV(TrenchRedirectClick)
+		GET_NAME_EV(ProtocolZero)
+		GET_NAME_EV(FirewallToggle)
+		GET_NAME_EV(ManualReload)
 		default:
 			return "Unknown";
 		}
+#undef GET_NAME_EV
 	}
 
 	static void RespondEvent(EventClass* pEvent , Events type) {
+#define RESPOND_TO_EV(ev) case EventExt::Events::##ev## : { EventExt::##ev##::Respond(pEvent); break; }
 		switch (type)
 		{
-		case EventExt::Events::TrenchRedirectClick: {
-			EventExt::TrenchRedirectClick::Respond(pEvent);
-			break;
-		}
-		case EventExt::Events::ProtocolZero: {
-			EventExt::ProtocolZero::Respond(pEvent);
-			break;
-		}
-		case EventExt::Events::FirewallToggle: {
-			EventExt::FirewallToggle::Respond(pEvent);
-			break;
-		}
+		RESPOND_TO_EV(TrenchRedirectClick)
+		RESPOND_TO_EV(ProtocolZero)
+		RESPOND_TO_EV(FirewallToggle)
+		RESPOND_TO_EV(ManualReload)
 		default:
 			break;
 		}
+#undef RESPOND_TO_EV
 	}
 
 	static COMPILETIMEEVAL bool IsValidType(Events type)

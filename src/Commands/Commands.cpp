@@ -21,6 +21,7 @@
 #include "SelectCaptured.h"
 #include "ToggleSWSidebar.h"
 #include "FireTacticalSW.h"
+#include "ManualReloadAmmo.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -42,6 +43,7 @@ FORCEDINLINE T* Make()
 
 DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 {
+	Make<ManualReloadAmmoCommandClass>();
 
 #pragma region Information
 	Make<ShowAnimNameCommandClass>();

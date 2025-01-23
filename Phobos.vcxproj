@@ -20,6 +20,7 @@
   <ItemGroup>
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
     <ClCompile Include="src\Commands\FireTacticalSW.cpp" />
+    <ClCompile Include="src\Commands\ManualReloadAmmo.cpp" />
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
     <ClCompile Include="src\Commands\SaveVariablesToFile.cpp" />
     <ClCompile Include="src\Commands\SelectCaptured.cpp" />
@@ -488,6 +489,7 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
     <ClInclude Include="src\Commands\FireTacticalSW.h" />
+    <ClInclude Include="src\Commands\ManualReloadAmmo.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />

@@ -1400,6 +1400,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RateDown_Delay.Read(exINI, pSection, "RateDown.Delay");
 		this->RateDown_Cover.Read(exINI, pSection, "RateDown.Cover");
 		this->RateDown_Reset.Read(exINI, pSection, "RateDown.Reset");
+
+		this->CanManualReload.Read(exINI, pSection, "CanManualReload");
+		this->CanManualReload_ResetROF.Read(exINI, pSection, "CanManualReload.ResetROF");
+		this->CanManualReload_DetonateWarhead.Read(exINI, pSection, "CanManualReload.DetonateWarhead");
+		this->CanManualReload_DetonateConsume.Read(exINI, pSection, "CanManualReload.DetonateConsume");
 	}
 
 	// Art tags
@@ -2531,6 +2536,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->RateDown_Delay)
 		.Process(this->RateDown_Cover)
 		.Process(this->RateDown_Reset)
+
+		.Process(this->CanManualReload)
+		.Process(this->CanManualReload_ResetROF)
+		.Process(this->CanManualReload_DetonateWarhead)
+		.Process(this->CanManualReload_DetonateConsume)
 
 		.Process(this->Cameo_AlwaysExist)
 		.Process(this->Cameo_AuxTechnos)

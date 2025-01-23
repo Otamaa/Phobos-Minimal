@@ -1046,6 +1046,11 @@ public:
 	Valueable<int> RateDown_Cover {};
 	Valueable<bool> RateDown_Reset {};
 
+	Valueable<bool> CanManualReload { false };
+	Valueable<bool> CanManualReload_ResetROF { true };
+	Valueable<WarheadTypeClass*> CanManualReload_DetonateWarhead {};
+	Valueable<int> CanManualReload_DetonateConsume {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

@@ -1,0 +1,38 @@
+#include "ManualReloadAmmo.h"
+
+#include <HouseClass.h>
+
+#include <Ext/TechnoType/Body.h>
+#include <Misc/Ares/Hooks/AresNetEvent.h>
+
+const char* ManualReloadAmmoCommandClass::GetName() const
+{
+	return "Manual Reload Ammo";
+}
+
+const wchar_t* ManualReloadAmmoCommandClass::GetUIName() const
+{
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MANUAL_RELOAD", L"Manual Reload Ammo");
+}
+
+const wchar_t* ManualReloadAmmoCommandClass::GetUICategory() const
+{
+	return CATEGORY_CONTROL;
+}
+
+const wchar_t* ManualReloadAmmoCommandClass::GetUIDescription() const
+{
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MANUAL_RELOAD_DESC", L"Manual Reload Ammo");
+}
+
+void ManualReloadAmmoCommandClass::Execute(WWKey eInput) const
+{
+	for (const auto& pObj : ObjectClass::CurrentObjects())
+	{
+		if (const auto pTechno = flag_cast_to<TechnoClass*>(pObj))
+		{
+			if (pTechno->Owner->ControlledByCurrentPlayer())
+				EventExt::ManualReload::Raise(pTechno);
+		}
+	}
+}
