@@ -718,7 +718,7 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 		return 0x6A9B67;
 	}
 
-	if(!pType){
+	if(pType){
 		//DrawGreyCameoExtraCover
 
 		Point2D position { destX + 30, destY + 24 };
