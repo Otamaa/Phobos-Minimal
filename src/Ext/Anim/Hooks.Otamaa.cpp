@@ -123,24 +123,38 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		SkipGameCode : 0x0 ;
 }
 
-//crash and corrup ESI pointer around
-DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
+/// replae this entirely since the function using lea for getting int and seems broke everyone else stacks
+void FakeAnimClass::_Middle()
 {
-	GET(AnimClass*, pThis, ESI);
+	auto center = this->GetCoords();
+	auto centercell = MapClass::Instance->GetCellAt(center);
+	int width = 30;
+	int height = 30;
+	if (auto pSHP = this->Type->GetImage())
+	{
+		RectangleStruct bounds {};
+		if (this->Type->MiddleFrameWidth == -1 || this->Type->MiddleFrameHeight == -1)
+			bounds = pSHP->GetFrameBounds(this->Type->MiddleFrameIndex);
 
-	return AnimExtData::OnMiddle(pThis) ? 0x42504D : 0x0;
+		if (this->Type->MiddleFrameWidth == -1) {
+			this->Type->MiddleFrameWidth = bounds.Width;
+		}
+
+		if (this->Type->MiddleFrameHeight == -1) {
+			this->Type->MiddleFrameHeight = bounds.Height;
+		}
+
+		width = this->Type->MiddleFrameWidth;
+		height = this->Type->MiddleFrameHeight;
+	}
+
+	AnimExtData::OnMiddle(this);
+	AnimExtData::OnMiddle_SpawnSmudge(this, centercell, { width ,height });
 }
 
-DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
-{
-	GET(AnimClass*, pThis, ESI);
-	GET_STACK(CellClass*, pCell, STACK_OFFS(0x30, 0x14));
-	GET(int, nX, EBP);
-	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
-
-	return AnimExtData::OnMiddle_SpawnSmudge(pThis, pCell, { nX ,nY }) ?
-		0x42513F : 0x0 ;
-}
+DEFINE_JUMP(CALL, 0x424D5A, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
+DEFINE_JUMP(CALL, 0x424687, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
+DEFINE_JUMP(LJMP, 0x424F00, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
 
 DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 {

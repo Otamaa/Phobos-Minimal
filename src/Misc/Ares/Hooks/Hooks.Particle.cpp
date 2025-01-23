@@ -261,22 +261,24 @@ DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 
 	if (pTypeExt->DamageRange.Get() <= 0.0)
 	{
-		for (auto pOccupy = MapClass::Instance->GetCellAt(pThis->Location)->FirstObject; pOccupy; pOccupy = pOccupy->NextObject)
-		{
-			if (pOccupy && pOccupy->IsAlive && pOccupy->Health > 0)
+		if(auto pCell = MapClass::Instance->TryGetCellAt(pThis->Location)) { 
+			for (auto pOccupy = pCell->FirstObject; pOccupy; pOccupy = pOccupy->NextObject)
 			{
-				 if (auto pTechno = flag_cast_to<TechnoClass*, false>(pOccupy))
-				 {
-				 	if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
-				 		continue;
+				if (pOccupy->IsAlive && pOccupy->Health > 0)
+				{
+					 if (auto pTechno = flag_cast_to<TechnoClass*, false>(pOccupy))
+					 {
+				 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
+				 			continue;
 
-				 	if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
-						continue;
-				 }
+				 		if (pTechno->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+							continue;
+					 }
 
-				 auto nX = Math::abs(pThis->Location.X - pOccupy->Location.X);
-				 auto nY = Math::abs(pThis->Location.Y - pOccupy->Location.Y);
-				 ParticleClass_Gas_Transmography(pOccupy, pAttacker, pOwner, Game::AdjustHeight(nX + nY), pOccupy->Location, pTypeExt, transmoOwner);
+					 auto nX = Math::abs(pThis->Location.X - pOccupy->Location.X);
+					 auto nY = Math::abs(pThis->Location.Y - pOccupy->Location.Y);
+					 ParticleClass_Gas_Transmography(pOccupy, pAttacker, pOwner, Game::AdjustHeight(nX + nY), pOccupy->Location, pTypeExt, transmoOwner);
+				}
 			}
 		}
 
@@ -286,6 +288,12 @@ DEFINE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 
 		for (const auto pItem : pVec)
 		{
+			if (!pItem->IsAlive || pItem->Health <= 0)
+				continue;
+
+			if (pItem->IsSinking || pItem->IsCrashing || pItem->TemporalTargetingMe)
+				continue;
+
 			if (pItem->WhatAmI() != BuildingClass::AbsID && TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
 				continue;
 

@@ -463,7 +463,7 @@ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	return 0x702823;
 }
 
-DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
+DEFINE_HOOK(0x701BF6, TechnoClass_ReceiveDamage_Abilities, 0x8)
 {
 	enum
 	{
@@ -476,6 +476,10 @@ DEFINE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	};
 
 	GET(WarheadTypeClass*, pWH, EBP);
+
+	if(!pWH)
+		return RetObjectClassRcvDamage;
+
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pAttacker, 0xD4);
 	GET_STACK(HouseClass*, pAttacker_House, 0xE0);
@@ -1079,15 +1083,13 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 	GET(FakeInfantryClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage, args, STACK_OFFS(0xD0, -0x4));
 
-	if(!pThis->_GetExtData())
-		Debug::FatalError("Wut [%s - %x] \n" , pThis->Type->ID , pThis);
-
 	enum
 	{
 		RetResult4 = 0x518623,
 		ContinueChecks = 0x518BB2
 	};
 
+	R->Stack(0x12 , false);
 	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	if (!TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn) {
 

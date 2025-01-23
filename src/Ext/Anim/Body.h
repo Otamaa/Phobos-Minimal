@@ -179,6 +179,7 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	void _Middle();
 
 	FORCEDINLINE AnimClass* _AsAnim() const {
 		return (AnimClass*)this;
