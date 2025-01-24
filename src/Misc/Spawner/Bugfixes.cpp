@@ -136,3 +136,13 @@ DEFINE_HOOK(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
 
 	return 0x45417E;
 }
+
+DEFINE_HOOK(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
+{
+	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts) 
+		|| (SessionClass::Instance->GameMode == GameMode::Internet && !Game::WOLTaunts)){
+		return 0x50C910;
+	}
+
+	return 0x0;
+}

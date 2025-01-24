@@ -164,7 +164,10 @@ void SpawnerMain::ApplyStaticOptions()
 		Game::SpeedControl = true;
 	}
 
-	Game::LANTaunts = pMainConfigs->AllowTaunts;
+	if(SessionClass::Instance->GameMode == GameMode::LAN)
+		Game::LANTaunts = pMainConfigs->AllowTaunts;
+	else if(SessionClass::Instance->GameMode == GameMode::Internet)
+		Game::WOLTaunts =  pMainConfigs->AllowTaunts;
 
 	// Set 3rd party ddraw.dll options
 	for (auto& dllData : Patch::ModuleDatas) {

@@ -63,6 +63,7 @@ struct Game
 	static COMPILETIMEEVAL reference<bool, 0xA8F900u> const SendStatistic_Sended {};
 	static COMPILETIMEEVAL reference<bool, 0xB0FBB8u> const ScoreStuffLoad {};
 	static COMPILETIMEEVAL reference<bool, 0xA8D110u> const LANTaunts {};
+	static COMPILETIMEEVAL reference<bool, 0xA8D111> const WOLTaunts {};
 	static COMPILETIMEEVAL reference<byte[8], 0xA8D108u> const ChatMask {};
 
 #define GAMEMD_CLSID(_addrs ,_name) \
