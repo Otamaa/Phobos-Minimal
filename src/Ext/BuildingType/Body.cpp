@@ -1753,6 +1753,8 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 		{
 			if (pHouse->CountOwnedAndPresent(pAuxType))
 				return true;
+			else if (pAuxType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pAuxType), pHouse))
+				return true;
 
 			pAuxTypeExt->CameoCheckMutex = true;
 			const auto exist = BuildingTypeExtData::ShouldExistGreyCameo(pAuxType);
