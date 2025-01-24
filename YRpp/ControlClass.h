@@ -13,12 +13,11 @@ public:
 	virtual unsigned int const GetID() override JMP_THIS(0x48E610);
 	virtual bool Draw(bool forced) override JMP_THIS(0x48E620);
 	virtual bool Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier) override JMP_THIS(0x48E5A0);
-	virtual ControlClass* ExtractGadget(unsigned int nID) R0;
-	virtual void PeerToPeer(unsigned int nFlags, DWORD* pKey, ControlClass* pSendTo) RX;
+	virtual ControlClass* ExtractGadget(unsigned int nID) override R0;
+	virtual void PeerToPeer(unsigned int flags, DWORD* pKey, GadgetClass* pSendTo) override RX;
 
 	//ControlClass
 	virtual void MakePeer(ControlClass const& target) RX;
-	virtual void SetSendTo(GadgetClass* pSendTo) JMP_THIS(0x48E600);
 
 	//Non virtual
 

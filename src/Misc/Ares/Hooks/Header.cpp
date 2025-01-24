@@ -56,7 +56,8 @@
 
 #include <strsafe.h>
 
-#include "AresNetEvent.h"
+#include  <Ext/Event/Body.h>
+
 #include "Classes/AresPoweredUnit.h"
 #include "Classes/AresJammer.h"
 

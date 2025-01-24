@@ -9,7 +9,7 @@ public:
 	//Destructor
 	virtual ~SliderClass() override JMP_THIS(0x558180);
 
-	/ GadgetClass
+	// GadgetClass
 	virtual void PeerToPeer(unsigned int flags, DWORD * pKey, GadgetClass * pSendTo) override JMP_THIS(0x6B2160);
 	virtual bool Draw(bool forced) override JMP_THIS(0x6B20F0);
 	virtual bool Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier) override JMP_THIS(0x6B1F50);
@@ -17,8 +17,8 @@ public:
 	//GaugeClass
 	virtual bool SetMaximum(int value) override JMP_THIS(0x6B1D40);
 	virtual bool SetValue(int value) override JMP_THIS(0x6B1E50);
-	virtual int GetThumbPixel() JMP_THIS(0x4E30C0); // return 4 if not overloaded
-	virtual void DrawThumb() JMP_THIS(0x4E29A0);
+	virtual int GetThumbPixel() override JMP_THIS(0x4E30C0); // return 4 if not overloaded
+	virtual void DrawThumb() override JMP_THIS(0x4E29A0);
 
 	//SliderClass
 	virtual void SetThumb(int value) JMP_THIS(0x6B1DF8);

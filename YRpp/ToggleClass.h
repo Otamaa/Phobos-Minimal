@@ -41,3 +41,5 @@ public:
 	bool IsOn;
 	DWORD ToggleType;
 };
+
+static_assert(sizeof(ToggleClass) == 0x34, "Invalid Size !");

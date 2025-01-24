@@ -67,3 +67,5 @@ public:
 	SHPStruct* ShapeData;
 	bool IsShapeLoaded;
 };
+
+static_assert(sizeof(ShapeButtonClass) == 0x60, "Invalid Size !");
