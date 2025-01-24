@@ -3,7 +3,7 @@
 #include <HouseClass.h>
 
 #include <Ext/TechnoType/Body.h>
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 const char* ManualReloadAmmoCommandClass::GetName() const
 {

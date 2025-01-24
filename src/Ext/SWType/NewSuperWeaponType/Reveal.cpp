@@ -2,7 +2,7 @@
 
 #include <Misc/MapRevealer.h>
 #include <Utilities/Helpers.h>
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 std::vector<const char*> SW_Reveal::GetTypeString() const
 {

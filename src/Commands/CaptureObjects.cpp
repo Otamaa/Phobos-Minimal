@@ -6,7 +6,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 bool CaptureObjectsCommandClass::Given = false;
 

@@ -10,10 +10,12 @@ static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return #c; }
 class HouseClass;
 class BuildingClass;
 class CellStruct;
-class EventExt {
+class EventExt
+{
 public:
 
-	enum class Events : uint8_t {
+	enum class Events : uint8_t
+	{
 		TrenchRedirectClick = 0x60,
 		ProtocolZero = 0x61,
 		FirewallToggle = 0x62,
@@ -23,12 +25,13 @@ public:
 		Last = FirewallToggle
 	};
 
-	template<bool timestamp , class T , typename... ArgTypes>
-	static bool AddToEvent(EventClass& event, ArgTypes... args) {
+	template<bool timestamp, class T, typename... ArgTypes>
+	static bool AddToEvent(EventClass& event, ArgTypes... args)
+	{
 		T type { args... };
 		event.Data.nothing.Set<T>(&type);
 
-		if COMPILETIMEEVAL (timestamp)
+		if COMPILETIMEEVAL(timestamp)
 			return EventClass::AddEventWithTimeStamp(&event);
 		else
 			return EventClass::AddEvent(&event);
@@ -40,7 +43,7 @@ public:
 
 		SET_DEFAULT_PROP(ManualReload)
 
-		static void Raise(TechnoClass* Source);
+			static void Raise(TechnoClass* Source);
 		static void Respond(EventClass* Event);
 
 		TargetClass Who;
@@ -52,7 +55,7 @@ public:
 
 		SET_DEFAULT_PROP(TrenchRedirectClick)
 
-		static void Raise(BuildingClass* Source, CellStruct* Target);
+			static void Raise(BuildingClass* Source, CellStruct* Target);
 		static void Respond(EventClass* Event);
 
 		TargetClass TargetCell;
@@ -65,7 +68,7 @@ public:
 
 		SET_DEFAULT_PROP(ProtocolZero)
 
-		static void Raise();
+			static void Raise();
 		static void Respond(EventClass* Event);
 
 		static COMPILETIMEEVAL int SendResponseTimeInterval = 30;
@@ -84,7 +87,7 @@ public:
 	{
 		SET_DEFAULT_PROP(FirewallToggle)
 
-		static void Raise(HouseClass* Source);
+			static void Raise(HouseClass* Source);
 		static void Respond(EventClass* Event);
 
 		TargetClass dummy; //not really used actually
@@ -98,11 +101,11 @@ public:
 #define GET_SIZE_EV(ev) case Events::##ev##: return ev##::size();
 		switch ((Events)type)
 		{
-		GET_SIZE_EV(TrenchRedirectClick)
-		GET_SIZE_EV(ProtocolZero)
-		GET_SIZE_EV(FirewallToggle)
-		GET_SIZE_EV(ManualReload)
-		default :
+			GET_SIZE_EV(TrenchRedirectClick)
+				GET_SIZE_EV(ProtocolZero)
+				GET_SIZE_EV(FirewallToggle)
+				GET_SIZE_EV(ManualReload)
+		default:
 			return 0;
 		}
 #undef GET_SIZE_EV
@@ -114,24 +117,25 @@ public:
 
 		switch (type)
 		{
-		GET_NAME_EV(TrenchRedirectClick)
-		GET_NAME_EV(ProtocolZero)
-		GET_NAME_EV(FirewallToggle)
-		GET_NAME_EV(ManualReload)
+			GET_NAME_EV(TrenchRedirectClick)
+				GET_NAME_EV(ProtocolZero)
+				GET_NAME_EV(FirewallToggle)
+				GET_NAME_EV(ManualReload)
 		default:
 			return "Unknown";
 		}
 #undef GET_NAME_EV
 	}
 
-	static void RespondEvent(EventClass* pEvent , Events type) {
+	static void RespondEvent(EventClass* pEvent, Events type)
+	{
 #define RESPOND_TO_EV(ev) case EventExt::Events::##ev## : { EventExt::##ev##::Respond(pEvent); break; }
 		switch (type)
 		{
-		RESPOND_TO_EV(TrenchRedirectClick)
-		RESPOND_TO_EV(ProtocolZero)
-		RESPOND_TO_EV(FirewallToggle)
-		RESPOND_TO_EV(ManualReload)
+			RESPOND_TO_EV(TrenchRedirectClick)
+				RESPOND_TO_EV(ProtocolZero)
+				RESPOND_TO_EV(FirewallToggle)
+				RESPOND_TO_EV(ManualReload)
 		default:
 			break;
 		}

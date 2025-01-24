@@ -818,6 +818,41 @@ DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	return 0x4F8361;
 }
 
+// Vanilla and Ares all only hardcoded to find factory with BuildCat::DontCare...
+static inline bool CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTypeClass* pType)
+{
+	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+	{
+		if (pBuildingType->BuildCat == BuildCat::Combat)
+		{
+			auto count = 0;
+
+			if (const auto pFactory = pHouse->Primary_ForDefenses)
+			{
+				count = pFactory->CountTotal(pBuildingType);
+
+				if (pFactory->Object && pFactory->Object->GetType() == pBuildingType && pBuildingType->BuildLimit > 0)
+					--count;
+			}
+
+			auto buildLimitRemaining = [](HouseClass* pHouse, BuildingTypeClass* pBldType)
+			{
+				const auto BuildLimit = pBldType->BuildLimit;
+
+				if (BuildLimit >= 0)
+					return BuildLimit -  BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBldType, pHouse);
+				else
+					return -BuildLimit - pHouse->CountOwnedEver(pBldType);
+			};
+
+			if (buildLimitRemaining(pHouse, pBuildingType) - count <= 0)
+				return true;
+		}
+	}
+
+	return false;
+}
+
 DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
 	GET(HouseClass*, pThis, ECX);
@@ -828,7 +863,7 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 		return 0x50B669;
 	}
 
-	if(HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
+	if(CheckShouldDisableDefensesCameo(pThis, pType) || HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
 		R->EAX(true);
 		return 0x50B669;
 	}

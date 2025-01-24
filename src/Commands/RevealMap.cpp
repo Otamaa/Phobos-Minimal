@@ -28,7 +28,7 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 }
 
 #include <Misc/MapRevealer.h>
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 static std::vector<std::vector<TechnoClass*>> DumpedTechno;
 void NOINLINE ClearDumped()

@@ -88,6 +88,7 @@
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
+    <ClCompile Include="src\Ext\Event\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
@@ -251,7 +252,6 @@
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\AresNetEvent.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
@@ -498,6 +498,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectoryVarianC.h" />
+    <ClInclude Include="src\Ext\Event\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
@@ -647,7 +648,6 @@
     <ClInclude Include="src\Misc\Ares\CSF.h" />
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresChecksummer.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\AresNetEvent.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresJammer.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresPoweredUnit.h" />

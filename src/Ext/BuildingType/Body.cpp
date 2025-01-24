@@ -644,6 +644,15 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 	}
 }
 
+int BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(BuildingTypeClass* pBuilding, HouseClass* pHouse) {
+	const auto upgrades = BuildingTypeExtData::GetUpgradesAmount(pBuilding, pHouse);
+
+	if (upgrades != -1)
+		return upgrades;
+
+	return pHouse->CountOwnedNow(pBuilding) + (pBuilding->UndeploysInto ? pHouse->CountOwnedNow(pBuilding->UndeploysInto) : 0);
+}
+
 bool BuildingTypeExtData::IsAcademy() const
 {
 	if (this->Academy.empty())

@@ -7,7 +7,7 @@
 #include <SessionClass.h>
 #include <IPXManagerClass.h>
 
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 #include <Helpers/Macro.h>
 

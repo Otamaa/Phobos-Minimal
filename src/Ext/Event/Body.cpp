@@ -1,6 +1,6 @@
-#include "AresNetEvent.h"
+#include "Body.h"
 
-#include "Header.h"
+#include <Misc/Ares/Hooks/Header.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -12,8 +12,7 @@
 #include <IPXManagerClass.h>
 
 EventExt::ManualReload::ManualReload(TechnoClass* pTechno) : Who { pTechno }
-{
-}
+{ }
 
 void EventExt::ManualReload::Raise(TechnoClass* pTechno)
 {
@@ -43,7 +42,7 @@ void EventExt::ManualReload::Respond(EventClass* Event)
 			if (pTechno->Ammo != pType->Ammo && pTypeExt->CanManualReload)
 			{
 				if (pTypeExt->CanManualReload_DetonateWarhead && pTypeExt->CanManualReload_DetonateConsume <= pTechno->Ammo)
-					WarheadTypeExtData::DetonateAt(pTypeExt->CanManualReload_DetonateWarhead, pTechno->Target , pTechno->GetCoords(), pTechno, 1, pTechno->Owner);
+					WarheadTypeExtData::DetonateAt(pTypeExt->CanManualReload_DetonateWarhead, pTechno->Target, pTechno->GetCoords(), pTechno, 1, pTechno->Owner);
 
 				if (pTypeExt->CanManualReload_ResetROF)
 					pTechno->DiskLaserTimer.Stop();
@@ -59,8 +58,7 @@ void EventExt::ManualReload::Respond(EventClass* Event)
 
 EventExt::TrenchRedirectClick::TrenchRedirectClick(CellStruct* target, BuildingClass* source)
 	: TargetCell { target }, Source { source }
-{
-}
+{ }
 
 void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Target)
 {
@@ -72,7 +70,7 @@ void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Tar
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
-	EventExt::AddToEvent<true , TrenchRedirectClick>(Event, Target, Source);
+	EventExt::AddToEvent<true, TrenchRedirectClick>(Event, Target, Source);
 }
 
 void EventExt::TrenchRedirectClick::Respond(EventClass* Event)
@@ -98,9 +96,8 @@ int EventExt::ProtocolZero::WorstMaxAhead = 24;
 unsigned char EventExt::ProtocolZero::MaxLatencyLevel = 0xff;
 
 EventExt::ProtocolZero::ProtocolZero(char maxahead, uint8_t latencylevel)
-	: MaxAhead { maxahead } , LatencyLevel { latencylevel }
-{
-}
+	: MaxAhead { maxahead }, LatencyLevel { latencylevel }
+{ }
 
 void EventExt::ProtocolZero::Raise()
 {

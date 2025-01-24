@@ -415,6 +415,7 @@ public:
 	static bool AutoPlaceBuilding(BuildingClass* pBuilding);
 	static bool BuildLimboBuilding(BuildingClass* pBuilding);
 	static void CreateLimboBuilding(BuildingClass* pBuilding, BuildingTypeClass* pType, HouseClass* pOwner, int ID);
+	static int CountOwnedNowWithDeployOrUpgrade(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 
 private:
 	template <typename T>

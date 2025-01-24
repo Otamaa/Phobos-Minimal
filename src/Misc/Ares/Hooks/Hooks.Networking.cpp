@@ -7,7 +7,7 @@
 #include <Base/Always.h>
 
 #include "Header.h"
-#include "AresNetEvent.h"
+#include <Ext/Event/Body.h>
 
 #include <EventClass.h>
 

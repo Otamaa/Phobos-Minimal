@@ -11,7 +11,7 @@
 #include <IPXManagerClass.h>
 
 #include <Misc/Ares/Hooks/Header.h>
-#include <Misc/Ares/Hooks/AresNetEvent.h>
+#include <Ext/Event/Body.h>
 
 #include <Ext/House/Body.h>
 
