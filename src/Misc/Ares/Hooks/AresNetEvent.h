@@ -2,6 +2,11 @@
 #include <EventClass.h>
 #include <TargetClass.h>
 
+#define SET_DEFAULT_PROP(c) \
+static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(##c##); } \
+static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() { return (EventType)Events::##c##; }\
+static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return #c; }
+
 class HouseClass;
 class BuildingClass;
 class CellStruct;
@@ -33,13 +38,7 @@ public:
 	{
 		ManualReload(TechnoClass* source);
 
-		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(ManualReload); }
-		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType()
-		{
-			return (EventType)Events::ManualReload;
-		}
-
-		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "ManualReload"; }
+		SET_DEFAULT_PROP(ManualReload)
 
 		static void Raise(TechnoClass* Source);
 		static void Respond(EventClass* Event);
@@ -51,12 +50,7 @@ public:
 	{
 		TrenchRedirectClick(CellStruct* target, BuildingClass* source);
 
-		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(TrenchRedirectClick); }
-		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() {
-			return (EventType)Events::TrenchRedirectClick;
-		}
-
-		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "TrenchRedirectClick"; }
+		SET_DEFAULT_PROP(TrenchRedirectClick)
 
 		static void Raise(BuildingClass* Source, CellStruct* Target);
 		static void Respond(EventClass* Event);
@@ -69,13 +63,7 @@ public:
 	{
 		ProtocolZero(char maxahead, uint8_t latencylevel);
 
-		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(ProtocolZero); }
-		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType()
-		{
-			return (EventType)Events::ProtocolZero;
-		}
-
-		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "ProtocolZero"; }
+		SET_DEFAULT_PROP(ProtocolZero)
 
 		static void Raise();
 		static void Respond(EventClass* Event);
@@ -94,12 +82,7 @@ public:
 
 	struct FirewallToggle
 	{
-		static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(FirewallToggle); }
-		static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() {
-			return (EventType)Events::FirewallToggle;
-		}
-
-		static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return "FirewallToggle"; }
+		SET_DEFAULT_PROP(FirewallToggle)
 
 		static void Raise(HouseClass* Source);
 		static void Respond(EventClass* Event);
@@ -160,3 +143,5 @@ public:
 		return (type >= Events::First && type <= Events::Last);
 	}
 };
+
+#undef SET_DEFAULT_PROP
