@@ -339,6 +339,8 @@ public:
 	Valueable<BuildingTypeClass*> PlaceBuilding_OnLand {};
 	Valueable<BuildingTypeClass*> PlaceBuilding_OnWater {};
 
+	Nullable<bool> Cameo_ShouldCount {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

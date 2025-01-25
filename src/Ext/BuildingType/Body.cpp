@@ -1350,6 +1350,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->LaserFencePost_Fence.Read(exINI, pSection, "LaserFencePost.Fence");
 		this->PlaceBuilding_OnLand.Read(exINI, pSection, "PlaceBuilding.OnLand");
 		this->PlaceBuilding_OnWater.Read(exINI, pSection, "PlaceBuilding.OnWater");
+
+		this->Cameo_ShouldCount.Read(exINI, pSection, "Cameo.ShouldCount");
 #pragma region Otamaa
 		this->IsPrism.Read(exINI, pSection, "IsPrismTower");
 
@@ -1742,6 +1744,8 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 	for (const auto& pNegType : pNegTypes) {
 		if (pNegType && pHouse->CountOwnedAndPresent(pNegType))
 			return false;
+		else if (pNegType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pNegType), pHouse) > 0)
+				return false;
 	}
 
 	const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -1762,7 +1766,7 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 		{
 			if (pHouse->CountOwnedAndPresent(pAuxType))
 				return true;
-			else if (pAuxType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pAuxType), pHouse))
+			else if (pAuxType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pAuxType), pHouse) > 0)
 				return true;
 
 			pAuxTypeExt->CameoCheckMutex = true;
@@ -2069,6 +2073,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->LaserFencePost_Fence)
 		.Process(this->PlaceBuilding_OnLand)
 		.Process(this->PlaceBuilding_OnWater)
+		.Process(this->Cameo_ShouldCount)
 		;
 }
 

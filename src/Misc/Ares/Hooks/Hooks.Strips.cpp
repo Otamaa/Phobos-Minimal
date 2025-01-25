@@ -793,7 +793,9 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 						1000, 0, 0, 0, 0, 0);
 				}
 
-				if (Phobos::Config::ShowBuildingStatistics)
+				if (Phobos::Config::ShowBuildingStatistics
+					&& BuildingTypeExtContainer::Instance.Find(pBuildingType)->Cameo_ShouldCount.Get(pBuildingType->BuildCat != BuildCat::Combat ||( pBuildingType->BuildLimit != INT_MAX))
+					)
 				{
 					GET_STACK(RectangleStruct, surfaceRect, STACK_OFFSET(0x48C, -0x438));
 
