@@ -10,6 +10,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <Misc/DamageArea.h>
+
 /*
 		to do :
 		- idle anim
@@ -33,7 +35,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 
 		if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance
-		   (abs(pWarheadExt->Flammability.Get())))
+		   (Math::abs(pWarheadExt->Flammability.Get())))
 			pThis->Ignite();
 	}
 
@@ -147,7 +149,7 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 		RetOriginalFunct = 0x0
 	};
 
-	GET(const TerrainClass*, pThis, ESI);
+	GET(TerrainClass*, pThis, ESI);
 
 	const auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 	const auto nDamage = pTerrainTypeExt->Damage.Get(100);
@@ -164,7 +166,8 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 
 	if (pTerrainTypeExt->AreaDamage)
 	{
-		MapClass::DamageArea(pThis->Location, nDamage, nullptr, pWH, true, nullptr);
+		auto pCoord = &pThis->Location;
+		DamageArea::Apply(pCoord, nDamage, nullptr, pWH, true, nullptr);
 		MapClass::FlashbangWarheadAt(nDamage, pWH, pThis->Location);
 	}
 
@@ -249,7 +252,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_RefreshDamageFrame, 0x7)
 		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 
 		if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance
-		   (abs(pWarheadExt->Flammability.Get())))
+		   (Math::abs(pWarheadExt->Flammability.Get())))
 			pThis->Ignite();
 	}
 

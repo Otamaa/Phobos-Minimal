@@ -30,7 +30,7 @@
 #include <Locomotor/Cast.h>
 
 #include <Ext/TerrainType/Body.h>
-#include <Ext/InfantryType/Body.h>
+#include <Misc/DamageArea.h>
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <Surface.h>
@@ -4912,7 +4912,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						int scatterDistance = ScenarioClass::Instance->Random.RandomFromMax(512);
 						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 						auto randomCoords = MapClass::GetRandomCoordsNear(loc, scatterDistance, false);
-						MapClass::DamageArea(randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+						DamageArea::Apply(&randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
 						if (auto pAnim = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, LandType::Clear, randomCoords))
 						{
 							GameCreate<AnimClass>(pAnim, randomCoords, 0, 1, 0x2600, -15, false);
@@ -4931,7 +4931,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], Collector_loc, 0, 1, 0x600, 0, 0);
 					int damage = (int)something;
 					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
-					MapClass::DamageArea(Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
+					DamageArea::Apply(&Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
 
 					PlayAnimAffect(Powerup::Napalm);
 					return MoveResult::can;
@@ -5148,7 +5148,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						bool randomizeCoord = true;
 						auto collector_loc = pCell->GetCoords();
 
-						MapClass::DamageArea(collector_loc, (int)something, nullptr, WH, true, nullptr);
+						DamageArea::Apply(&collector_loc, (int)something, nullptr, WH, true, nullptr);
 
 						for (int i = 0; i < 8;)
 						{
@@ -5160,7 +5160,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								pDestCell = MapClass::Instance->GetCellAt(dest);
 							}
 
-							MapClass::DamageArea(pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
+							DamageArea::Apply(&pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
 							randomizeCoord = ++i < 8;
 						}
 					}
@@ -5645,7 +5645,7 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 			CoordStruct crd = pThis->GetCoords();
 			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
 			{
-				MapClass::DamageArea(crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
+				DamageArea::Apply(&crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
 			}
 
 			if (auto pAnim = RulesExtData::Instance()->Tiberium_ExplosiveAnim)

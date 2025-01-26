@@ -1078,7 +1078,7 @@ DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 //		int damage = 0;
 //
 //		if (ratio < 0.0)
-//			damage = int(pThis->Health * abs(ratio));
+//			damage = int(pThis->Health * Math::abs(ratio));
 //		else if (ratio >= 0.0 && ratio <= 1.0)
 //			damage = int(pThis->GetTechnoType()->Strength * ratio);
 //		else

@@ -372,23 +372,23 @@ public:
 	\param AffectsTiberium If this is false, Tiberium=yes is ignored.
 	\param SourceHouse The house to which SourceObject belongs, the owner/bringer of damage.
 */
-	static DamageAreaResult __fastcall DamageArea(
-		const CoordStruct& Coords,
-		int Damage,
-		TechnoClass* SourceObject,
-		WarheadTypeClass *WH,
-		bool AffectsTiberium,
-		HouseClass* SourceHouse)
-			{ JMP_STD(0x489280); }
+	// static DamageAreaResult __fastcall DamageArea(
+	// 	const CoordStruct& Coords,
+	// 	int Damage,
+	// 	TechnoClass* SourceObject,
+	// 	WarheadTypeClass *WH,
+	// 	bool AffectsTiberium,
+	// 	HouseClass* SourceHouse)
+	// 		{ JMP_STD(0x489280); }
 
-	static DamageAreaResult __fastcall DamageArea(
-		CoordStruct* pCoords,
-		int Damage,
-		TechnoClass* SourceObject,
-		WarheadTypeClass* WH,
-		bool AffectsTiberium,
-		HouseClass* SourceHouse)
-		{ JMP_STD(0x489280); }
+	// static DamageAreaResult __fastcall DamageArea(
+	// 	CoordStruct* pCoords,
+	// 	int Damage,
+	// 	TechnoClass* SourceObject,
+	// 	WarheadTypeClass* WH,
+	// 	bool AffectsTiberium,
+	// 	HouseClass* SourceHouse)
+	// 	{ JMP_STD(0x489280); }
 	/*
 	 * Picks the appropriate anim from WH's AnimList= based on damage dealt and land type (Conventional= )
 	 * so after DamageArea:

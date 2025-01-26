@@ -2,6 +2,8 @@
 
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Misc/DamageArea.h>
+
 #include "TemplateDef.h"
 
 namespace Helper
@@ -19,7 +21,7 @@ namespace Helper
 			return !IsMeteor && nWake.isset()  ? nWake.Get() : RulesClass::Instance->Wake;
 		}
 
-		OPTIONALINLINE std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		OPTIONALINLINE std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			if (pWarhead)
 			{
@@ -31,7 +33,7 @@ namespace Helper
 				}
 				else
 				{
-					MapClass::DamageArea(Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+					DamageArea::Apply(&Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
 					return { true, nDamage };
 				}
@@ -40,7 +42,7 @@ namespace Helper
 			return { false , 0 };
 		}
 
-		OPTIONALINLINE std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		OPTIONALINLINE std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			if (!pWeapon.isset()) {
 				return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
@@ -51,7 +53,7 @@ namespace Helper
 			return { false , 0 };
 		}
 
-		OPTIONALINLINE void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
+		OPTIONALINLINE void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount,CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
 		{
 			if (!nAnims.empty())
 			{
@@ -99,7 +101,7 @@ namespace Helper
 			return { true ,nMinL,nMaxL };
 		}
 
-		OPTIONALINLINE CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, const CoordStruct& nPos, int Increment)
+		OPTIONALINLINE CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, CoordStruct nPos, int Increment)
 		{
 			auto const& [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
 

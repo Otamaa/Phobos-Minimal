@@ -26,11 +26,13 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <Ext/Event/Body.h>
 
-// Wrapper for MapClass::DamageArea() that sets a pointer in WarheadTypeExt::ExtData that is used to figure 'intended' target of the Warhead detonation, if set and there's no CellSpread.
-DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget)
+#include <Misc/DamageArea.h>
+
+// Wrapper for DamageArea::Apply() that sets a pointer in WarheadTypeExt::ExtData that is used to figure 'intended' target of the Warhead detonation, if set and there's no CellSpread.
+DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget)
 {
 	this->IntendedTarget = pTarget;
-	auto result = MapClass::DamageArea(coords, damage, pSource, pWH, true, pSourceHouse);
+	auto result = DamageArea::Apply(&coords, damage, pSource, pWH, true, pSourceHouse);
 	this->IntendedTarget = nullptr;
 	return result;
 }
@@ -99,7 +101,7 @@ void WarheadTypeExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTa
 	//const int tarFacing = pTarget->PrimaryFacing.Current().GetValue<16>();
 	//int bulletFacing = BulletExtContainer::Instance.Find(pBullet)->InitialBulletDir.get().GetValue<16>();
 
-	//const int angle = abs(bulletFacing - tarFacing);
+	//const int angle = Math::abs(bulletFacing - tarFacing);
 	//auto frontField = 64 * this->DirectionalArmor_FrontField;
 	//auto backField = 64 * this->DirectionalArmor_BackField;
 

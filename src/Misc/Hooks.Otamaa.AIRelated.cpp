@@ -145,20 +145,20 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 	return 0x4F9ADE;
 }
 
-DEFINE_HOOK(0x4F9A50, HouseClass_IsAlly_HouseClass, 0x6)
-{
-	GET_STACK(HouseClass*, pTarget, 0x4);
-	GET(HouseClass*, pThis, ECX);
-
-	bool result = false;
-	if (pTarget)
-	{
-		result = pThis->IsAlliedWith(pTarget->ArrayIndex);
-	}
-
-	R->AL(result);
-	return 0x4F9A8C;
-}
+//breaking stack ??
+// DEFINE_HOOK(0x4F9A50, HouseClass_IsAlly_HouseClass, 0x6)
+// {
+// 	GET_STACK(HouseClass*, pTarget, 0x4);
+// 	GET(HouseClass*, pThis, ECX);
+//
+// 	bool result = false;
+// 	if (pTarget) {
+// 		result = pThis->IsAlliedWith(pTarget->ArrayIndex);
+// 	}
+//
+// 	R->EAX(result);
+// 	return 0x4F9A8C;
+// }
 
 DEFINE_HOOK(0x4F9B0A, HouseClass_IsAlly_AbstractClass, 0x6)
 {

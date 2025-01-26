@@ -25,6 +25,8 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <Misc/DamageArea.h>
+
 #include "Header.h"
 
 #include <InfantryClass.h>
@@ -1258,7 +1260,7 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 		if (pExt->WhenCrushed_Warhead_Full)
 			WarheadTypeExtData::DetonateAt(pWarhead, pVictim->GetCoords(), pVictim, damage, pVictim->GetOwningHouse());
 		else
-			MapClass::DamageArea(pVictim->GetCoords(), damage, pVictim, pWarhead, true, pVictim->GetOwningHouse());
+			DamageArea::Apply(&pVictim->GetCoords(), damage, pVictim, pWarhead, true, pVictim->GetOwningHouse());
 	}
 }
 

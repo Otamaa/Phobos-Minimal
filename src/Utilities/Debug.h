@@ -125,29 +125,7 @@ public:
 		WWMouseClass::Instance->CaptureMouse();
 	}
 
-	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0)
-	{
-		if (!Debug::LogFileActive())
-		{
-			return;
-		}
-
-		Debug::LogUnflushed("Dumping %X bytes of stack\n", len);
-		auto const end = len / 4;
-		auto const* const mem = R->lea_Stack<DWORD*>(startAt);
-		for (auto i = 0u; i < end; ++i)
-		{
-
-			const char* suffix = "";
-			const uintptr_t ptr = mem[i];
-			if (ptr >= 0x401000 && ptr <= 0xB79BE4)
-				suffix = "GameMemory!";
-
-			Debug::LogUnflushed("esp+%04X = %08X %s\n", i * 4, mem[i], suffix);
-		}
-
-		Debug::Log("====================Done.\n"); // flushes
-	}
+	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
 
 	template <typename... TArgs>
 	static FORCEDINLINE void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {

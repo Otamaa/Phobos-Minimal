@@ -51,7 +51,7 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <Misc/PhobosGlobal.h>
-
+#include <Misc/DamageArea.h>
 #include <Misc/Ares/EVAVoices.h>
 
 #include <strsafe.h>
@@ -6427,7 +6427,7 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 		}
 
 		MapClass::FlashbangWarheadAt(pWeaponType->Damage, pWeaponType->Warhead, nCoord);
-		MapClass::DamageArea(&nCoord, pWeaponType->Damage, nullptr, pWeaponType->Warhead, true, pHouse);
+		DamageArea::Apply(&nCoord, pWeaponType->Damage, nullptr, pWeaponType->Warhead, true, pHouse);
 	}
 
 	return true;

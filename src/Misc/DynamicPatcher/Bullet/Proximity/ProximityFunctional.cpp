@@ -250,7 +250,7 @@ bool ProximityFunctional::ManualDetonation(BulletClass* pBullet, CoordStruct sou
 		if (auto pPenetrateWH = BulletProx->Data.PenetrationWarhead.Get())
 			pWH = pPenetrateWH;
 
-		MapClass::DamageArea(detonatePos, damage, pBulletOwner, pWH, pWH->Tiberium, pBulletOwner->GetOwningHouse());
+		DamageArea::Apply(detonatePos, damage, pBulletOwner, pWH, pWH->Tiberium, pBulletOwner->GetOwningHouse());
 		LandType landType = BulletProx->pCheckedCell ? LandType::Clear : BulletProx->pCheckedCell->LandType;
 
 		if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, landType, sourcePos))

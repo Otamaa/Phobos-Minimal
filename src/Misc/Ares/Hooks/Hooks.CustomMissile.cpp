@@ -37,7 +37,7 @@
 //)
 //{
 //	HouseClass* pHouseOwner = Source ? Source->Owner : SourceHouse;
-//	return MapClass::DamageArea
+//	return DamageArea::Apply
 //	(pCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
 //}
 

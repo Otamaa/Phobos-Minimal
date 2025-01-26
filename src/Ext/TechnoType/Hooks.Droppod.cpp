@@ -7,6 +7,8 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
+#include <Misc/DamageArea.h>
+
 struct DroppodProperties_
 {
 	static int GetTrailerDelay(TechnoTypeClass* pType, FootClass* pFoot, bool condition)
@@ -159,7 +161,7 @@ struct DroppodProperties_
 						if (int count = dWpn->Report.Count)
 							VocClass::PlayAt(dWpn->Report[Random2Class::Global->RandomFromMax(count - 1)], coords);
 
-						MapClass::DamageArea(locnear, 2 * dWpn->Damage, pLinked, dWpn->Warhead, true, pLinked->Owner);
+						DamageArea::Apply(&locnear, 2 * dWpn->Damage, pLinked, dWpn->Warhead, true, pLinked->Owner);
 						if (auto dmgAnim = MapClass::SelectDamageAnimation(2 * dWpn->Damage, dWpn->Warhead, LandType::Clear, locnear))
 						{
 							AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, locnear, 0, 1, (AnimFlag)0x2600, -15, false),
@@ -213,7 +215,7 @@ struct DroppodProperties_
 			}
 			else
 			{
-				MapClass::DamageArea(coord_place, 100, pLinked, RulesClass::Instance->C4Warhead, true, pLinked->Owner);
+				DamageArea::Apply(&coord_place, 100, pLinked, RulesClass::Instance->C4Warhead, true, pLinked->Owner);
 				if (auto dmgAnim = MapClass::SelectDamageAnimation(100, RulesClass::Instance->C4Warhead, LandType::Clear, coord_place))
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, coord_place, 0, 1, (AnimFlag)0x2600, -15, false),
@@ -355,7 +357,7 @@ DEFINE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 
 				if (pWeapon->Warhead)
 				{
-					MapClass::DamageArea(coordDest, 2 * pWeapon->Damage, pFoot, pWeapon->Warhead, pWeapon->Warhead->Tiberium, pFoot->Owner);
+					DamageArea::Apply(coordDest, 2 * pWeapon->Damage, pFoot, pWeapon->Warhead, pWeapon->Warhead->Tiberium, pFoot->Owner);
 
 					if (auto pWeaponAnimType = MapClass::SelectDamageAnimation(2 * pWeapon->Damage, pWeapon->Warhead, LandType::Clear, coordDest))
 					{

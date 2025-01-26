@@ -22,6 +22,8 @@
 
 #include <Utilities/Macro.h>
 #include <New/Entity/SWFirerClass.h>
+
+#include <Misc/DamageArea.h>
 #pragma endregion
 
 //DEFINE_HOOK_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
@@ -2343,7 +2345,7 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 	// get center of cell coords
 	auto const pCell = MapClass::Instance->GetCellAt(refCoords);
 	const auto pNewSW = pData->GetNewSWType();
-	auto const coords = pCell->GetCoordsWithBridge();
+	auto coords = pCell->GetCoordsWithBridge();
 
 	if (coords.IsValid())
 	{
@@ -2412,8 +2414,8 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 			MapClass::FlashbangWarheadAt(
 				damage, pWarhead, coords, false, SpotlightFlags::None);
 
-			MapClass::DamageArea(
-				coords, damage, nullptr, pWarhead, true, pSuper->Owner);
+			DamageArea::Apply(
+				&coords, damage, nullptr, pWarhead, true, pSuper->Owner);
 
 			// fancy stuff if damage is dealt
 			if(auto const pAnimType = MapClass::SelectDamageAnimation(
@@ -2496,7 +2498,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 		{
 
 			//this update every frame , so getting the firer here , seems degreading the performance ,..
-			MapClass::Instance->DamageArea(coords, damage, pNewData->GetFirer(pSuper, cell, false), pWarhead, true, pFirer);
+			DamageArea::Apply(&coords, damage, pNewData->GetFirer(pSuper, cell, false), pWarhead, true, pFirer);
 		}
 
 		// capture

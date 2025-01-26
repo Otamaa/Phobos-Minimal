@@ -19,6 +19,8 @@
 #include <CoordStruct.h>
 #include <GameOptionsClass.h>
 
+#include <Misc/DamageArea.h>
+
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
@@ -206,7 +208,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	if (appliedDamage <= 0 || pThis->IsPlaying)
 		return  SkipDamage;
 
-	const CoordStruct nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
+	CoordStruct nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
 	if (auto const pWeapon = pTypeExt->Weapon)
@@ -232,7 +234,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 			// Ares keep the `Source` nullptr so it can affect everything
 			// if the `Source` contains `OwnerObject` it will cause problem because the techno need `DamageSelf`
 			// in order to deal damage to itself ,..
-			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+			DamageArea::Apply(&nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 			//PhobosGlobal::Instance()->AnimAttachedto = nullptr;
 			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 		}

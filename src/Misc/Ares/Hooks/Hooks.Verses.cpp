@@ -56,6 +56,7 @@ DEFINE_HOOK(0x489180, MapClass_GetTotalDamage, 0x6)
 	GET(FakeWarheadTypeClass*, pWH, EDX);
 	GET_STACK(Armor, armor, 0x4);
 	GET_STACK(int, distance, 0x8);
+	GET_STACK(DWORD, caller, 0x0);
 
 	int res = 0;
 

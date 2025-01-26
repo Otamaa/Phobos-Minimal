@@ -41,6 +41,7 @@
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Misc/DamageArea.h>
 
 #include <WWKeyboardClass.h>
 #include <MPGameModeClass.h>
@@ -686,7 +687,7 @@ DEFINE_HOOK(0x489270, CellChainReact, 5)
 			}
 
 			// damage the area, without affecting tiberium
-			MapClass::DamageArea(crd, damage, nullptr, pWarhead, false, nullptr);
+			DamageArea::Apply(&crd, damage, nullptr, pWarhead, false, nullptr);
 		}
 
 		// spawn some animation on the neighbour cells

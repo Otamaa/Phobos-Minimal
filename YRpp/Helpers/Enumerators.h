@@ -260,15 +260,15 @@ class CellSpreadEnumerator
 
 public:
 
-	COMPILETIMEEVAL CellSpreadEnumerator(short Spread, short start= 0) noexcept :
+	CellSpreadEnumerator(short Spread, short start= 0) noexcept :
 	current(start ? -1 : 0  , -start),
 	spread(MinImpl(Spread, Max)),
 	curspread(start),
 	hasTwo(true),
 	hadTwo(true) { }
 
-	COMPILETIMEEVAL CellSpreadEnumerator() = default;
-	COMPILETIMEEVAL ~CellSpreadEnumerator() = default;
+	CellSpreadEnumerator() = default;
+	~CellSpreadEnumerator() = default;
 
 	COMPILETIMEEVAL operator bool () const {
 		return curspread <= spread;

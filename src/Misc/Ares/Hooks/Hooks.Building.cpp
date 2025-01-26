@@ -26,6 +26,7 @@
 
 #include <Misc/PhobosGlobal.h>
 #include <Misc/Hooks.Otamaa.h>
+#include <Misc/DamageArea.h>
 
 #include <RadarEventClass.h>
 
@@ -1878,7 +1879,10 @@ void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
 				if ( pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead_Full)
 					WarheadTypeExtData::DetonateAt(pWarhead, pBuilding->GetCoords(), pSpy, damage, pSpy->Owner);
 				else
-					MapClass::DamageArea(pBuilding->GetCoords(), damage, pSpy, pWarhead, true, pSpy->Owner);
+				{
+					auto coord = pBuilding->GetCoords();
+					DamageArea::Apply(&coord, damage, pSpy, pWarhead, true, pSpy->Owner);
+				}
 			}
 		}
 	}

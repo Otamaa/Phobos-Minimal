@@ -349,4 +349,17 @@ DEFINE_HOOK(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
 	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 	return 0;
 }
+
+DEFINE_HOOK(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
+{
+	GET(TechnoTypeClass* const, pType, EBX);
+	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x158, -0x158));
+
+	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+		*pBuildCat = pBuildingType->BuildCat;
+
+	return 0;
+}
+
+
 #pragma endregion

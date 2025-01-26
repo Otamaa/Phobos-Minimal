@@ -31,6 +31,8 @@
 #include <New/Entity/FlyingStrings.h>
 #include <InfantryClass.h>
 
+#include <Misc/DamageArea.h>
+
 //BombListClass_Plant_AttachSound
 DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
@@ -144,14 +146,14 @@ DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
 	pTarget->BombVisible = false;
 	pThis->State = BombState::Removed;
 	// Also adjust detonation coordinate.
-	const CoordStruct coords = pTarget->GetCenterCoords();
+	CoordStruct coords = pTarget->GetCenterCoords();
 	const auto pExt = BombExtContainer::Instance.Find(pThis);
 	const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
 	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 	const auto OwningHouse = pThis->GetOwningHouse();
 
 	/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
-	MapClass::Instance->DamageArea(coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
+	DamageArea::Apply(&coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
 	MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
 	const auto pCell = MapClass::Instance->GetCellAt(coords);
 

@@ -4,6 +4,7 @@
 #include <Ext/WarheadType/Body.h>
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
+#include <Misc/DamageArea.h>
 
 std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 {
@@ -129,7 +130,7 @@ void GenericWarheadStateMachine::SentPayload(TechnoClass* pFirer, SuperClass* pS
 		// as MC now part of bigger `Detonate` function , that also check various state
 		// TODO : make everything work together better , for now this may give an headache for
 		//		  someone that touching the code  , please bear it with me for a while !
-		MapClass::DamageArea(detonationCoords, damage, pFirer, pWarhead, pWarhead->Tiberium, pSuper->Owner);
+		DamageArea::Apply(&detonationCoords, damage, pFirer, pWarhead, pWarhead->Tiberium, pSuper->Owner);
 
 		if (auto const pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pCell->LandType, detonationCoords))
 		{

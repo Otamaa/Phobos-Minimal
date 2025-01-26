@@ -266,6 +266,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.GameScreenshot.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
@@ -287,7 +288,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Colors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
@@ -322,6 +322,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Weapons.cpp" />
+    <ClCompile Include="src\Misc\DamageArea.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
@@ -529,6 +530,7 @@
     <ClInclude Include="src\Lib\Lua\lvm.h" />
     <ClInclude Include="src\Lib\Lua\lzio.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.h" />
+    <ClInclude Include="src\Misc\DamageArea.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />

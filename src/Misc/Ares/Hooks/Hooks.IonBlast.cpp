@@ -16,6 +16,8 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Infantry/Body.h>
 
+#include <Misc/DamageArea.h>
+
 #include <IonBlastClass.h>
 
 DEFINE_HOOK(0x53CB91, IonBlastClass_DTOR, 6)
@@ -80,10 +82,10 @@ DEFINE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)
 				auto BridgeCoord = nLoc;
 				BridgeCoord.Z += Unsorted::BridgeHeight;
 
-				MapClass::DamageArea(BridgeCoord, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
+				DamageArea::Apply(&BridgeCoord, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
 			}
 
-			MapClass::DamageArea(nLoc, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
+			DamageArea::Apply(&nLoc, nDamage, nullptr, pIonWH, pIonWH->Tiberium, nullptr);
 			MapClass::FlashbangWarheadAt(nDamage, pIonWH, nLoc);
 		}
 

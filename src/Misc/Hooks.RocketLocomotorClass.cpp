@@ -547,7 +547,7 @@ public:
 
 			MapClass::FlashbangWarheadAt(damage, pWH, next, false, SpotlightFlags::None);
 			//setting ownership here will cause bug , better not
-			MapClass::DamageArea(next, damage, nullptr, pWH, true, nullptr);
+			DamageArea::Apply(next, damage, nullptr, pWH, true, nullptr);
 		}
 
 		if (pLinked->IsAlive)

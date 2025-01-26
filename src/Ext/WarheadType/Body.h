@@ -526,7 +526,7 @@ public:
 		HouseClass* pFiringHouse = nullptr
 	);
 
-	DamageAreaResult DamageAreaWithTarget(const CoordStruct& coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
+	DamageAreaResult DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
 
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 
@@ -553,7 +553,7 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
-	WarheadTypeExtData* _GetExtData() {
+	WarheadTypeExtData* _GetExtData() const {
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);
 	}
 

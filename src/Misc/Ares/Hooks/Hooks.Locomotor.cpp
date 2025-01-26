@@ -23,6 +23,8 @@
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
 
+#include <Misc/DamageArea.h>
+
 #include "Header.h"
 
 //DEFINE_HOOK(0x7079A1, TechnoClass_Detach_HunterSeeker, 0x6)
@@ -438,10 +440,10 @@ DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 				pObject->ReceiveDamage(&damage, 0, pWeapon->Warhead, nullptr, true, true, nullptr);
 
 				// damage the map
-				auto const crd2 = pObject->GetCoords();
+				auto crd2 = pObject->GetCoords();
 				//WeaponTypeExtData::DetonateAt(pWeapon, crd2, pObject, true, pObject->Owner);
 				MapClass::FlashbangWarheadAt(pWeapon->Damage, RulesClass::Instance->C4Warhead, crd2);
-				MapClass::DamageArea(crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, pObject->Owner);
+				DamageArea::Apply(&crd2, pWeapon->Damage, pObject, pWeapon->Warhead, true, pObject->Owner);
 
 				R->EBX(0);
 				return 0x4CF5F2;
