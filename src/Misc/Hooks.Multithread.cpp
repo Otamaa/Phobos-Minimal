@@ -190,6 +190,9 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 	if (Phobos::Config::MultiThreadSinglePlayer && SessionClass::Instance->IsSingleplayer())
 		return 0;
 
+	if (SessionClass::Instance->IsSingleplayer())
+		Phobos::Config::MultiThreadSinglePlayer = false;
+
 	Multithreading::Disable_MainGame_MainLoop->Apply();
 	Multithreading::Disable_MainLoop_StartLock->Apply();
 	Multithreading::Disable_MainLoop_StartLock_2->Apply();
