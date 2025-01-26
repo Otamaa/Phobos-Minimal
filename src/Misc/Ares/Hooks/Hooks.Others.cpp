@@ -332,7 +332,7 @@ static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject , b
 		pObject->AnnounceExpiredPointer(removed);
 }
 
-//DEFINE_JUMP(CALL , 0x5F6616, MiscTools::to_DWORD(AnnounceInvalidatePointerWrapper))
+DEFINE_JUMP(CALL , 0x5F6616, MiscTools::to_DWORD(&AnnounceInvalidatePointerWrapper))
 // DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 // {
 // 	GET(ObjectClass*, pThis, ESI);

@@ -24,13 +24,6 @@
 
 #include <New/HugeBar.h>
 
-DEFINE_HOOK(0x4F4583, GScreenClass_Render, 0x6)
-{
-	Phobos::DrawVersionWarning();
-	HugeBar::ProcessHugeBar();
-	return 0;
-}
-
 bool IsOnMyView(CoordStruct& coords)
 {
 	auto const Point = TacticalClass::Instance->CoordsToView(coords);
@@ -79,8 +72,8 @@ DEFINE_HOOK(0x6D4684, TacticalClass_Draw_Addition, 6)
 		}
 	}*/
 
+	FlyingStrings::UpdateAll();
 	ShowTechnoNameCommandClass::AI();
 	ShowAnimNameCommandClass::AI();
-	FlyingStrings::UpdateAll();
 	return 0;
 }

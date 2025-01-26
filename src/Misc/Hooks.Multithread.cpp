@@ -15,6 +15,8 @@
 #include <mutex>
 #include <thread>
 
+#include <Ext/Techno/Body.h>
+
 namespace Multithreading
 {
 	static COMPILETIMEEVAL reference<bool, 0xB0B519u> const BlitMouse {};
@@ -45,8 +47,6 @@ namespace Multithreading
 
 	// Our new drawing thread loop.
 	void DrawingLoop();
-	// Faithful reproduction of GScreenClass::Render().
-	void Render(GScreenClass* pThis);
 	// Spawn the drawing thread.
 	void EnterMultithreadMode();
 	// Kill the drawing thread.
@@ -56,8 +56,6 @@ namespace Multithreading
 
 	DEFINE_DYNAMIC_PATCH(Disable_MainGame_MainLoop, 0x48CE8A,
 		0xE8, 0xD1, 0x04, 0x0D, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_GScreenClass_Render_Disable, 0x4F4480,
-		0x83, 0xEC, 0x08, 0xA1, 0x1C, 0x73, 0x88, 0x00);
 	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock, 0x55D878,
 		0x8B, 0x0D, 0xF8, 0xD5, 0xA8, 0x00);
 	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock_2, 0x55DBC3,
@@ -71,6 +69,63 @@ namespace Multithreading
 	DEFINE_DYNAMIC_PATCH(Disable_PauseGame_ResetPause, 0x683FB2,
 		0xB9, 0xE8, 0xF7, 0x87, 0x00);
 }
+
+
+class FakeGScreenClass final : GScreenClass
+{
+public:
+	static COMPILETIMEEVAL constant_ptr<FakeGScreenClass, 0x87F7E8u> const Instance {};
+	static FORCEDINLINE void _RenderRaw(GScreenClass* pThis)
+	{ 
+		auto pTempSurface = DSurface::Temp.get();
+		DSurface::Temp = DSurface::Composite;
+		WWMouseClass::Instance->func_40(DSurface::Composite, false);
+
+		bool shouldDraw = pThis->Bitfield != 0;
+		bool complete = pThis->Bitfield == 2;
+		pThis->Bitfield = 0;
+
+		if (!Multithreading::IonStormClass_ChronoScreenEffect_Status)
+		{
+			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 0);
+			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 1);
+			pThis->Draw(complete);
+			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 2);
+		}
+
+		if (Multithreading::BlitMouse.get() && !Unsorted::ArmageddonMode)
+		{
+			WWMouseClass::Instance->func_40(DSurface::Sidebar, true);
+			Multithreading::BlitMouse = false;
+		}
+
+		if (Multithreading::Buttons.get())
+			Multithreading::Buttons->DrawAll(false);
+
+		MessageListClass::Instance->Draw();
+
+		if (CCToolTip::Instance.get())
+			CCToolTip::Instance->Draw(false);
+
+		if (Multithreading::EnableMultiplayerDebug.get())
+			Multithreading::MultiplayerDebugPrint();
+
+		Phobos::DrawVersionWarning();
+		HugeBar::ProcessHugeBar();
+		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
+		pThis->vt_entry_44();
+
+		DSurface::Temp = pTempSurface;
+	}
+
+	void _Render()
+	{
+		if (Multithreading::IsInMultithreadMode)
+			return;
+
+		FakeGScreenClass::_RenderRaw(this);
+	}
+};
 
 void Multithreading::EnterMultithreadMode()
 {
@@ -99,48 +154,6 @@ void Multithreading::LockOrDemandMutex(std::timed_mutex& mutex, bool& demands, s
 	mutex.lock();
 }
 
-void Multithreading::Render(GScreenClass* pThis)
-{
-	auto pTempSurface = DSurface::Temp.get();
-	DSurface::Temp = DSurface::Composite;
-	WWMouseClass::Instance->func_40(DSurface::Composite, false);
-
-	bool shouldDraw = pThis->Bitfield != 0;
-	bool complete = pThis->Bitfield == 2;
-	pThis->Bitfield = 0;
-
-	if (!IonStormClass_ChronoScreenEffect_Status)
-	{
-		TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 0);
-		TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 1);
-		pThis->Draw(complete);
-		TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 2);
-	}
-
-	if (BlitMouse.get() && !Unsorted::ArmageddonMode)
-	{
-		WWMouseClass::Instance->func_40(DSurface::Sidebar, true);
-		BlitMouse = false;
-	}
-
-	if (Buttons.get())
-		Buttons->DrawAll(false);
-
-	MessageListClass::Instance->Draw();
-
-	if (CCToolTip::Instance.get())
-		CCToolTip::Instance->Draw(false);
-
-	if (EnableMultiplayerDebug.get())
-		MultiplayerDebugPrint();
-
-	Phobos::DrawVersionWarning();
-	WWMouseClass::Instance->func_3C(DSurface::Composite, false);
-	pThis->vt_entry_44();
-
-	DSurface::Temp = pTempSurface;
-}
-
 void Multithreading::DrawingLoop()
 {
 	while (IsInMultithreadMode)
@@ -161,7 +174,7 @@ void Multithreading::DrawingLoop()
 		LockOrDemandMutex(DrawingMutex, DrawingThreadDemandsDrawingMutex, DrawingPatienceDuration);
 
 		// Do the thing.
-		Render(MouseClass::Instance);
+		FakeGScreenClass::_RenderRaw(GScreenClass::Instance());
 
 		// We're done. Unlock all mutexes.
 		DrawingThreadDemandsDrawingMutex = false;
@@ -178,7 +191,6 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 		return 0;
 
 	Multithreading::Disable_MainGame_MainLoop->Apply();
-	Multithreading::Disable_GScreenClass_Render_Disable->Apply();
 	Multithreading::Disable_MainLoop_StartLock->Apply();
 	Multithreading::Disable_MainLoop_StartLock_2->Apply();
 	Multithreading::Disable_MainLoop_StopLock->Apply();
@@ -205,15 +217,8 @@ DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 5)
 
 // Completely skip vanilla GScreenClass::Render code in the main thread
 // if we run in multithread mode.
-DEFINE_HOOK(0x4F4480, GScreenClass_Render_Disable, 8)
-{
-	if (!Multithreading::IsInMultithreadMode) {
-		//Phobos::DrawVersionWarning();
-		return 0x0;
-	}
 
-	return 0x4F45A8;
-}
+DEFINE_JUMP(LJMP, 0x4F4480 , MiscTools::to_DWORD(&FakeGScreenClass::_Render));
 
 // We want to lock access to game resources when we're doing game logic potientially related to graphics.
 // The main thread should let the drawing thread run if it complains that it's too hungry and vice versa.
