@@ -22,21 +22,26 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
         return 0x467FEE;
     }
 
-	if (pTraj && pExt->LaserTrails.size()) {
-		CoordStruct futureCoords
-		{
-			pThis->Location.X + static_cast<int>(pThis->Velocity.X),
-			pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
-			pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
-		};
+	if (pTraj) {
 
-		for (auto& trail : pExt->LaserTrails)
-		{
-			if (!trail.LastLocation.isset())
-				trail.LastLocation = pThis->Location;
+		if(pExt->LaserTrails.size()) {
+			CoordStruct futureCoords
+			{
+				pThis->Location.X + static_cast<int>(pThis->Velocity.X),
+				pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
+				pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
+			};
 
-			trail.Update(futureCoords);
+			for (auto& trail : pExt->LaserTrails)
+			{
+				if (!trail.LastLocation.isset())
+					trail.LastLocation = pThis->Location;
+
+				trail.Update(futureCoords);
+			}
 		}
+
+		TrailsManager::AI(pThis->_AsBullet());
 	}
 
 	return 0;
@@ -115,19 +120,24 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 	
 	// Trajectory can use Velocity only for turning Image's direction
 	// The true position in the next frame will be calculate after here
-	if (pExt->Trajectory && pExt->LaserTrails.size()) {
-		CoordStruct futureCoords
-		{
-			static_cast<int>(pSpeed->X + pPosition->X),
-			static_cast<int>(pSpeed->Y + pPosition->Y),
-			static_cast<int>(pSpeed->Z + pPosition->Z)
-		};
-		for (auto& trail : pExt->LaserTrails)
-		{
-			if (!trail.LastLocation.isset())
-				trail.LastLocation = pThis->Location;
-			trail.Update(futureCoords);
+	if (pExt->Trajectory) {
+
+		if(!pExt->LaserTrails.empty()){
+			CoordStruct futureCoords
+			{
+				static_cast<int>(pSpeed->X + pPosition->X),
+				static_cast<int>(pSpeed->Y + pPosition->Y),
+				static_cast<int>(pSpeed->Z + pPosition->Z)
+			};
+			for (auto& trail : pExt->LaserTrails)
+			{
+				if (!trail.LastLocation.isset())
+					trail.LastLocation = pThis->Location;
+				trail.Update(futureCoords);
+			}
 		}
+
+		TrailsManager::AI(pThis->_AsBullet());
 	}
 
 	return 0;
