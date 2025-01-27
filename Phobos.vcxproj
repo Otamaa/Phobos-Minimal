@@ -20,6 +20,7 @@
   <ItemGroup>
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
+    <ClCompile Include="src\Commands\DistributionMode.cpp" />
     <ClCompile Include="src\Commands\FireTacticalSW.cpp" />
     <ClCompile Include="src\Commands\ManualReloadAmmo.cpp" />
     <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
@@ -491,6 +492,7 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\AutoBuilding.h" />
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
+    <ClInclude Include="src\Commands\DistributionMode.h" />
     <ClInclude Include="src\Commands\FireTacticalSW.h" />
     <ClInclude Include="src\Commands\ManualReloadAmmo.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />

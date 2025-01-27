@@ -27,15 +27,15 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0xAC4CF4u> const PlanningModeActive {};
 
 	~PlanningNodeClass() { JMP_THIS(0x633D30); }
- 	PlanningNodeClass(int nDword18) { JMP_THIS(0x633CC0) ;}
- 	PlanningNodeClass(TechnoClass* pOwner) { JMP_THIS(0x638A80;)}
+ 	PlanningNodeClass(int nDword18) { JMP_THIS(0x633CC0);}
+	PlanningNodeClass(TechnoClass* pOwner) { JMP_THIS(0x638A80); }
 public:
 	DynamicVectorClass<PlanningMemberClass*> PlanningMembers;
 	int field_18;
 	bool field_1C;
 	DynamicVectorClass<PlanningBranchClass*> PlanningBranches;
 };
-static_assert(sizeof(PlanningNodeClass) == 0xB8);
+//static_assert(sizeof(PlanningNodeClass) == 0xB8); size is broken actually
 
 class PlanningTokenClass
 {

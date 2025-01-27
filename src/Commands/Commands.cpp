@@ -23,6 +23,7 @@
 #include "FireTacticalSW.h"
 #include "ManualReloadAmmo.h"
 #include "AutoBuilding.h"
+#include "DistributionMode.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -90,7 +91,8 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make<ToggleRadialIndicatorDrawModeClass>();
 	Make<ToggleDigitalDisplayCommandClass>();
 	Make<ToggleDesignatorRangeCommandClass>();
-
+	Make<DistributionMode1CommandClass>();
+	Make<DistributionMode2CommandClass>();
 	Make<TogglePowerCommandClass>();
 
 #pragma region SWSidebar
