@@ -1,5 +1,6 @@
+#include "Multithread.h"
+
 #include <Helpers/Macro.h>
-#include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 #include <Phobos.h>
 
@@ -12,64 +13,22 @@
 #include <MouseClass.h>
 #include <SessionClass.h>
 
-#include <mutex>
-#include <thread>
-
 #include <Ext/Techno/Body.h>
 
-namespace Multithreading
-{
-	static COMPILETIMEEVAL reference<bool, 0xB0B519u> const BlitMouse {};
-	static COMPILETIMEEVAL reference<bool, 0xA9FAB0u> const IonStormClass_ChronoScreenEffect_Status {};
-	static COMPILETIMEEVAL reference<GadgetClass*, 0xA8EF54u> const Buttons {};
-	static COMPILETIMEEVAL reference<bool, 0xA8B8B4u> const EnableMultiplayerDebug {};
+// Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
+const std::chrono::duration MainPatienceDuration = std::chrono::milliseconds(5);
+// Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
+const std::chrono::duration DrawingPatienceDuration = std::chrono::milliseconds(5);
+// Check this often if the demanded mutex lock has been released by the other thread.
+const std::chrono::duration ChillingDuration = std::chrono::milliseconds(1);
 
-	void MultiplayerDebugPrint()
-	{ JMP_STD(0x55F1E0); }
-
-	bool MainLoop()
-	{ JMP_STD(0x55D360); }
-
-	// Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
-	static const std::chrono::duration MainPatienceDuration = std::chrono::milliseconds(5);
-	// Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
-	static const std::chrono::duration DrawingPatienceDuration = std::chrono::milliseconds(5);
-	// Check this often if the demanded mutex lock has been released by the other thread.
-	static const std::chrono::duration ChillingDuration = std::chrono::milliseconds(1);
-
-	std::unique_ptr<std::thread> DrawingThread = nullptr;
-	std::timed_mutex DrawingMutex;
-	std::mutex PauseMutex;
-	bool MainThreadDemandsDrawingMutex = false;
-	bool DrawingThreadDemandsDrawingMutex = false;
-	bool MainThreadDemandsPauseMutex = false;
-	bool IsInMultithreadMode = false;
-
-	// Our new drawing thread loop.
-	void DrawingLoop();
-	// Spawn the drawing thread.
-	void EnterMultithreadMode();
-	// Kill the drawing thread.
-	void ExitMultithreadMode();
-	// Wait for mutex lock respectfuly or, if too much time has passed, demand it.
-	void LockOrDemandMutex(std::timed_mutex& mutex, bool& demands, std::chrono::duration<long long, std::milli> patienceDuration);
-
-	DEFINE_DYNAMIC_PATCH(Disable_MainGame_MainLoop, 0x48CE8A,
-		0xE8, 0xD1, 0x04, 0x0D, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock, 0x55D878,
-		0x8B, 0x0D, 0xF8, 0xD5, 0xA8, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock_2, 0x55DBC3,
-		0xB9, 0x90, 0x03, 0x8A, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock, 0x55DDAA,
-		0xA1, 0x38, 0xB2, 0xAB, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock_2, 0x55D903,
-		0xC6, 0x05, 0x9D, 0xED, 0xA8, 0x00, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_PauseGame_SetPause, 0x683EB6,
-		0x8B, 0x0D, 0x58, 0xE7, 0x87, 0x00);
-	DEFINE_DYNAMIC_PATCH(Disable_PauseGame_ResetPause, 0x683FB2,
-		0xB9, 0xE8, 0xF7, 0x87, 0x00);
-}
-
+std::unique_ptr<std::thread> Multithreading::DrawingThread = nullptr;
+std::timed_mutex Multithreading::DrawingMutex;
+std::mutex Multithreading::PauseMutex;
+bool Multithreading::MainThreadDemandsDrawingMutex = false;
+bool Multithreading::DrawingThreadDemandsDrawingMutex = false;
+bool Multithreading::MainThreadDemandsPauseMutex = false;
+bool Multithreading::IsInMultithreadMode = false;
 
 class FakeGScreenClass final : GScreenClass
 {
@@ -146,6 +105,16 @@ void Multithreading::ExitMultithreadMode()
 	DrawingThread.release();
 }
 
+void Multithreading::ShutdownMultitheadMode()
+{
+	if (!IsInMultithreadMode)
+		return;
+
+	IsInMultithreadMode = false;
+	DrawingThread.get()->detach();
+	DrawingThread.release();
+}
+
 void Multithreading::LockOrDemandMutex(std::timed_mutex& mutex, bool& demands, std::chrono::duration<long long, std::milli> patienceDuration)
 {
 	if (mutex.try_lock_for(patienceDuration))
@@ -156,33 +125,48 @@ void Multithreading::LockOrDemandMutex(std::timed_mutex& mutex, bool& demands, s
 
 void Multithreading::DrawingLoop()
 {
-	while (IsInMultithreadMode)
+	while (Multithreading::IsInMultithreadMode)
 	{
 		// Main thread wants to pause the game. Let it lock the mutex by not doing anything yourself.
-		while (MainThreadDemandsPauseMutex)
+		while (Multithreading::MainThreadDemandsPauseMutex)
 			std::this_thread::sleep_for(ChillingDuration);
 
 		// If the game is paused, wait until it's unpaused (aka until the mutex is free to be locked).
 		PauseMutex.lock();
 
 		// We must avoid starving out the main thread...
-		while (MainThreadDemandsDrawingMutex)
+		while (Multithreading::MainThreadDemandsDrawingMutex)
 			std::this_thread::sleep_for(ChillingDuration);
 
 		// ...but we also don't want to run 1200 TPS with 10 FPS.
 		// Let's try waiting for the lock until we get impatient and *demand* priority.
-		LockOrDemandMutex(DrawingMutex, DrawingThreadDemandsDrawingMutex, DrawingPatienceDuration);
+		LockOrDemandMutex(Multithreading::DrawingMutex, Multithreading::DrawingThreadDemandsDrawingMutex, DrawingPatienceDuration);
 
 		// Do the thing.
 		FakeGScreenClass::_RenderRaw(GScreenClass::Instance());
 
 		// We're done. Unlock all mutexes.
-		DrawingThreadDemandsDrawingMutex = false;
-		DrawingMutex.unlock();
-		PauseMutex.unlock();
+		Multithreading::DrawingThreadDemandsDrawingMutex = false;
+		Multithreading::DrawingMutex.unlock();
+		Multithreading::PauseMutex.unlock();
 	}
 	Debug::Log("Exiting the drawing thread.\n");
 }
+
+DEFINE_DYNAMIC_PATCH(Disable_MainGame_MainLoop, 0x48CE8A,
+0xE8, 0xD1, 0x04, 0x0D, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock, 0x55D878,
+	0x8B, 0x0D, 0xF8, 0xD5, 0xA8, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock_2, 0x55DBC3,
+	0xB9, 0x90, 0x03, 0x8A, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock, 0x55DDAA,
+	0xA1, 0x38, 0xB2, 0xAB, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StopLock_2, 0x55D903,
+	0xC6, 0x05, 0x9D, 0xED, 0xA8, 0x00, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_PauseGame_SetPause, 0x683EB6,
+	0x8B, 0x0D, 0x58, 0xE7, 0x87, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_PauseGame_ResetPause, 0x683FB2,
+	0xB9, 0xE8, 0xF7, 0x87, 0x00);
 
 // Disable the hooks if we're in multiplayer modes or if multithreading was disabled in rules.
 DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
@@ -192,13 +176,13 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 
 	Phobos::Config::MultiThreadSinglePlayer = false;
 
-	Multithreading::Disable_MainGame_MainLoop->Apply();
-	Multithreading::Disable_MainLoop_StartLock->Apply();
-	Multithreading::Disable_MainLoop_StartLock_2->Apply();
-	Multithreading::Disable_MainLoop_StopLock->Apply();
-	Multithreading::Disable_MainLoop_StopLock_2->Apply();
-	Multithreading::Disable_PauseGame_SetPause->Apply();
-	Multithreading::Disable_PauseGame_ResetPause->Apply();
+	Disable_MainGame_MainLoop->Apply();
+	Disable_MainLoop_StartLock->Apply();
+	Disable_MainLoop_StartLock_2->Apply();
+	Disable_MainLoop_StopLock->Apply();
+	Disable_MainLoop_StopLock_2->Apply();
+	Disable_PauseGame_SetPause->Apply();
+	Disable_PauseGame_ResetPause->Apply();
 
 	return 0;
 }
@@ -234,12 +218,12 @@ DEFINE_HOOK(0x55D878, MainLoop_StartLock, 6)
 		return 0;
 
 	while (Multithreading::DrawingThreadDemandsDrawingMutex)
-		std::this_thread::sleep_for(Multithreading::ChillingDuration);
+		std::this_thread::sleep_for(ChillingDuration);
 
 	Multithreading::LockOrDemandMutex(
 		Multithreading::DrawingMutex,
 		Multithreading::MainThreadDemandsDrawingMutex,
-		Multithreading::MainPatienceDuration);
+		MainPatienceDuration);
 
 	Multithreading::MainThreadDemandsDrawingMutex = false;
 

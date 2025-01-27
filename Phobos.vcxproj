@@ -336,7 +336,7 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Multithread.cpp" />
+    <ClCompile Include="src\Misc\Multithread.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
@@ -537,6 +537,7 @@
     <ClInclude Include="src\Misc\DamageArea.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
+    <ClInclude Include="src\Misc\Multithread.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\Spawner\AutoSave.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />

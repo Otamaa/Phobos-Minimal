@@ -851,6 +851,8 @@ DECLARE_PATCH(_set_fp_mode)
 	JMP(0x6BBFCE);
 }
 
+#include <Misc/Multithread.h>
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -909,9 +911,15 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
 		}
 
+		char buf[1024];
+
+		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
+			Debug::LogDeferred("Compatibility modes detected : %s.\n", buf);
+		}
 	}
 	break;
 	case DLL_PROCESS_DETACH:
+		Multithreading::ShutdownMultitheadMode();
 		break;
 	}
 
