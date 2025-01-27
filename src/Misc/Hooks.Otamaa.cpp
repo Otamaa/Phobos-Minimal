@@ -11405,3 +11405,39 @@ DEFINE_HOOK(0x6D07E4, TabClass_AI_AdditionalAffect, 0x6)
 	return 0x0;
 }
 #endif
+
+DEFINE_HOOK(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
+{
+	GET(CoordStruct*, pCoord, EDI);
+	GET(ObjectClass*, pThis, ESI);
+
+	AnimClass* pParach = nullptr;
+
+	if (auto pBullet = cast_to<BulletClass* ,false>(pThis))
+	{
+		auto pParach_type = ((FakeBulletClass*)pBullet)->_GetTypeExtData()->Parachute.Get(RulesClass::Instance->BombParachute);
+
+		pParach = GameCreate<AnimClass>(pParach_type, pCoord , 0 , 1 , AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , false);
+
+	} else {
+
+		auto coord = *pCoord;
+		coord.Z += 75;
+		auto pParach_type = RulesClass::Instance->Parachute;
+
+		if(const auto pTechno = flag_cast_to<TechnoClass*,false>(pThis)) {
+			auto pType = pTechno->GetTechnoType();
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if (pTypeExt->IsBomb)
+				pThis->IsABomb = true;
+
+			pParach_type = pTypeExt->ParachuteAnim ? pTypeExt->ParachuteAnim : HouseExtData::GetParachuteAnim(pTechno->Owner);
+		}
+
+		pParach = GameCreate<AnimClass>(pParach_type, coord);
+	}
+
+	R->EDI(pParach);
+	return 0x5F5AF1;
+}

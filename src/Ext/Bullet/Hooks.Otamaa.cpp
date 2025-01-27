@@ -34,15 +34,6 @@ DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 	return 0x46B1F2;
 }
 
-DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
-{
-	GET(RulesClass*, pRules, ECX);
-	GET(FakeBulletClass*, pBullet, ESI);
-
-	R->EDX(pBullet->_GetTypeExtData()->Parachute.Get(pRules->BombParachute));
-	return 0x5F5A8C;
-}
-
 #pragma region Otamaa
 
 //DEFINE_HOOK(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)

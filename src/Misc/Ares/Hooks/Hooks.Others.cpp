@@ -1173,25 +1173,6 @@ DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
-DEFINE_HOOK(0x5f5add, ObjectClass_SpawnParachuted_Animation, 6)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	if (const auto pTechno = flag_cast_to<TechnoClass*>(pThis))
-	{
-		auto pType = pTechno->GetTechnoType();
-		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (pTypeExt->IsBomb)
-			pThis->IsABomb = true;
-
-		R->EDX(pTypeExt->ParachuteAnim ? pTypeExt->ParachuteAnim : HouseExtData::GetParachuteAnim(pTechno->Owner));
-		return 0x5F5AE3;
-	}
-
-	return 0x0;
-}
-
 DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
 	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
