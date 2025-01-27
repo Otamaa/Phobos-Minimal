@@ -2158,8 +2158,11 @@ int FakeHouseClass::_Expert_AI()
 				for (int i = 0; i < HouseClass::Array->Count; i++)
 				{
 					HouseClass* house = HouseClass::Array->Items[i];
-					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsAlliedWith(house) && !this->IsObserver())
+					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsObserver())
 					{
+						if(!RulesExtData::Instance()->AIAngerOnAlly && this->IsAlliedWith(house))
+							continue;
+
 						/**
 						 *  Determine a priority value based on distance to the center of the
 						 *  candidate base. The higher the value, the better the candidate house

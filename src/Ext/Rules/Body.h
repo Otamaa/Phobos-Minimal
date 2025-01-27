@@ -440,6 +440,7 @@ public:
 	Valueable<bool>ExpandBuildingQueue { false };
 
 	Valueable<bool> AutoBuilding { false };
+	Valueable<bool> AIAngerOnAlly { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
