@@ -178,9 +178,3 @@ DEFINE_HOOK(0x4AE818, DisplayClass_sub_4AE750_AutoDistribution, 0xA)
 	DistributionMode::Draw(pTarget, mouseAction);
 	return 0x4AE85C;
 }
-
-DEFINE_HOOK(0x6DBE74, TacticalClass_DrawAllRadialIndicators_DrawDistributionRange, 0x5)
-{
-	DistributionMode::DrawRadialIndicator();
-	return 0;
-}
