@@ -313,16 +313,26 @@ DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
 
 DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
 	GET(BuildingClass* , pThis ,ESI);
+	GET(TechnoClass* , pSource , EBP);
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
 
 	if(WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
 		return 0x4422C1;
 
-	if(!R->EBP<AbstractClass*>())
+	if(!pSource || pThis->IsStrange())
 		return 0x4422C1;
 
-	R->AL(pThis->IsStrange());
-	return 0x44228C;
+	auto pSourceHouse = pSource->Owner;
+
+	if (!pSourceHouse) {
+		Debug::Log("Building [%s - %s] Attacked by dead [%x - %s] with null owner!\n", pThis, pThis->Type->ID, pSource, pSource->GetThisClassName());
+		return 0x4422C1;
+	}
+
+	pThis->Owner->LATime = Unsorted::CurrentFrame;
+	pThis->Owner->LAEnemy = pSourceHouse->ArrayIndex;
+	pThis->BaseIsAttacked(pSource);
+	return 0x4422C1;
 }
 
 // replaces the UnitReload handling and makes each docker independent of all

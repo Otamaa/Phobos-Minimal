@@ -754,6 +754,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->AutoBuilding.Read(exINI, GameStrings::General, "AutoBuilding");
+
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
 	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
@@ -783,7 +785,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
 
 	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General, "CheckUnitBaseNormal");
-	this->ExpandBuildingPlace.Read(exINI, GameStrings::General, "ExpandBuildingPlace");
+	this->ExtendedBuildingPlacing.Read(exINI, GameStrings::General, "ExtendedBuildingPlacing");
 	this->CheckExpandPlaceGrid.Read(exINI, GameStrings::AudioVisual, "CheckExpandPlaceGrid");
 	this->ExpandLandGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandLandGridFrames");
 	this->ExpandWaterGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandWaterGridFrames");
@@ -1445,7 +1447,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DistributeTargetingFrame)
 		.Process(this->DistributeTargetingFrame_AIOnly)
 		.Process(this->CheckUnitBaseNormal)
-		.Process(this->ExpandBuildingPlace)
+		.Process(this->ExtendedBuildingPlacing)
 		.Process(this->DefaultExplodeFireAnim)
 		.Process(this->CheckExpandPlaceGrid)
 		.Process(this->ExpandLandGridFrames)
@@ -1480,6 +1482,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Cameo_OverlayShapes)
 		.Process(this->Cameo_OverlayFrames)
 		.Process(this->Cameo_OverlayPalette)
+
+		.Process(this->ExtendedBuildingPlacing)
+		.Process(this->AutoBuilding)
 		;
 
 	MyPutData.Serialize(Stm);

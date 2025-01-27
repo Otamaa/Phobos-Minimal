@@ -331,8 +331,9 @@ public:
 
 	Valueable<bool> IsPrism { false };
 
-	Valueable<bool> AutoBuilding { false };
+	Nullable<bool> AutoBuilding { };
 	Valueable<int> AutoBuilding_Gap { 1 };
+
 	Valueable<bool> LimboBuild { false };
 	Valueable<int> LimboBuildID { -1 };
 	Valueable<BuildingTypeClass*> LaserFencePost_Fence {};

@@ -814,6 +814,9 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 
 			if (pObj->Health > 0 && pObj->IsOnMap && !pObj->InLimbo && curDistance <= distance)
 			{
+				if (pSource && (!pSource->Health || !pSource->IsAlive) && !pSource->Owner)
+					pSource = nullptr;
+
 				int Damage = idamage;
 				pObj->ReceiveDamage(&Damage, curDistance, pWarhead, pSource, false, false, pHouse);
 				R->Stack(0x1F, 1);

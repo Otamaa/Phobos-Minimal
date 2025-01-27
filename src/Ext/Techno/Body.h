@@ -724,6 +724,8 @@ public:
 	int AccumulatedGattlingValue {};
 	bool ShouldUpdateGattlingValue {};
 
+	bool KeepTargetOnMove { false };
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {

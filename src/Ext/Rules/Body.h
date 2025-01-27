@@ -380,7 +380,7 @@ public:
 	Valueable<bool> DistributeTargetingFrame_AIOnly { true };
 
 	Valueable<bool> CheckUnitBaseNormal { false };
-	Valueable<bool> ExpandBuildingPlace { true };
+	Valueable<bool> ExtendedBuildingPlacing { true };
 	Valueable<bool> CheckExpandPlaceGrid { false };
 	Valueable<CoordStruct> ExpandLandGridFrames { { 1, 0, 0 } };
 	Valueable<CoordStruct> ExpandWaterGridFrames { { 1, 0, 0 } };
@@ -438,6 +438,8 @@ public:
 	Valueable<bool> MergeBuildingDamage { false };
 
 	Valueable<bool>ExpandBuildingQueue { false };
+
+	Valueable<bool> AutoBuilding { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

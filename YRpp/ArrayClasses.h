@@ -515,6 +515,8 @@ public:
 		return count <= 0 || this->Find(item) == this->end() ? this->AddItem(item) : false;
 	}
 
+	bool FORCEDINLINE COMPILETIMEEVAL Empty() { return this->Count <= 0;}
+
 	template<bool avoidmemcpy = false>
 	bool RemoveAt(int index)
 	{

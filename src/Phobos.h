@@ -228,6 +228,8 @@ struct Phobos final
 		static OPTIONALINLINE bool UseNewIncludes { false };
 		static OPTIONALINLINE bool ApplyShadeCountFix { true };
 		static OPTIONALINLINE bool ShowFlashOnSelecting { true };
+		
+		static OPTIONALINLINE bool AutoBuilding_Enable { false };
 	};
 
 	struct Misc

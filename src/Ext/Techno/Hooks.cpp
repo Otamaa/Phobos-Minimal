@@ -779,15 +779,20 @@ DEFINE_HOOK(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 		return 0;
 
 	auto const mission = static_cast<Mission>(pThis->Data.MegaMission.Mission);
+	auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
 
-	if ((mission == Mission::Move)
-		&& TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->KeepTargetOnMove
-		&& pTechno->Target && !pTarget)
+	if ((mission == Mission::Move) && pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget)
 	{
-		pTechno->SetDestination(pThis->Data.MegaMission.Destination.As_Abstract(), true);
-		return SkipGameCode;
+		if (pTechno->IsCloseEnoughToAttack(pTechno->Target))
+		{
+			auto const pDestination = pThis->Data.MegaMission.Destination.As_Abstract();
+			pTechno->SetDestination(pDestination, true);
+			pExt->KeepTargetOnMove = true;
+			return SkipGameCode;
+		}
 	}
-
+	pExt->KeepTargetOnMove = false;
 	return 0;
 }
 
@@ -799,8 +804,9 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
+	if (pExt->KeepTargetOnMove && pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
 	{
 		if (pTypeExt->KeepTargetOnMove_ExtraDistance.isset())
 		{

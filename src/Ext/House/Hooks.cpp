@@ -333,7 +333,7 @@ DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 				TechnoExt_ExtData::ConvertToType(pMe, pConvertTo,true , false);
 		}
 
-		if (RulesExtData::Instance()->ExpandBuildingPlace 
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing 
 			&& pThis->WhatAmI() == AbstractType::Unit 
 			&& pThis->GetTechnoType()->DeploysInto)
 		{

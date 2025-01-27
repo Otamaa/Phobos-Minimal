@@ -22,6 +22,7 @@
 #include "ToggleSWSidebar.h"
 #include "FireTacticalSW.h"
 #include "ManualReloadAmmo.h"
+#include "AutoBuilding.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -85,7 +86,7 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 	Make<NextIdleHarvesterCommandClass>();
 	Make<QuickSaveCommandClass>();
 	Make<SaveVariablesToFileCommandClass>();
-
+	Make<AutoBuildingCommandClass>();
 	Make<ToggleRadialIndicatorDrawModeClass>();
 	Make<ToggleDigitalDisplayCommandClass>();
 	Make<ToggleDesignatorRangeCommandClass>();
