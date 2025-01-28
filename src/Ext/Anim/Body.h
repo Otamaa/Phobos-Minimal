@@ -5,7 +5,7 @@
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
 
-#include <New/AnonymousType/SpawnsStatus.h>
+//#include <New/AnonymousType/SpawnsStatus.h>
 
 #include <ParticleSystemClass.h>
 
@@ -34,7 +34,9 @@ public:
 
 	ParticleSystemClass* AttachedSystem { nullptr };
 	CoordStruct CreateUnitLocation {};
-	SpawnsStatus SpawnsStatusData {};
+	//SpawnsStatus SpawnsStatusData {};
+
+	bool DelayedFireRemoveOnNoDelay { false };
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

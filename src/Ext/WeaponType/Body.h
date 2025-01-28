@@ -173,6 +173,17 @@ public:
 	Valueable<bool> AttachEffect_Enable { false };
 	Valueable<int> NoRepeatFire {};
 
+	Nullable<PartialVector2D<int>> DelayedFire_Duration {};
+	Valueable<bool> DelayedFire_SkipInTransport {};
+	Valueable<AnimTypeClass*> DelayedFire_Animation {};
+	Nullable<AnimTypeClass*> DelayedFire_OpenToppedAnimation {};
+	Valueable<bool> DelayedFire_AnimIsAttached { true };
+	Valueable<bool> DelayedFire_CenterAnimOnFirer {};
+	Valueable<bool> DelayedFire_RemoveAnimOnNoDelay {};
+	Valueable<bool> DelayedFire_PauseFiringSequence {};
+	Valueable<bool> DelayedFire_OnlyOnInitialBurst {};
+	Nullable<CoordStruct> DelayedFire_AnimOffset {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

@@ -41,6 +41,49 @@
 
 #include <memory>
 
+void TechnoExtData::ResetDelayedFireTimer()
+{
+	this->DelayedFireTimer.Stop();
+	this->DelayedFireWeaponIndex = -1;
+
+	if (this->CurrentDelayedFireAnim) {
+		if (FakeAnimClass::GetExtAttribute(this->CurrentDelayedFireAnim)->DelayedFireRemoveOnNoDelay)
+			this->CurrentDelayedFireAnim.reset(nullptr);
+	}
+}
+
+void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool useOffsetOverride, CoordStruct offsetOverride)
+{
+	if (pAnimType)
+	{
+		auto coords = this->AttachedToObject->GetCenterCoords();
+
+		if (useOffsetOverride)
+			this->CustomFiringOffset = offsetOverride;
+
+		if (!center)
+			this->AttachedToObject->GetFLH(&coords, weaponIndex, coords);
+
+		if (useOffsetOverride)
+			this->CustomFiringOffset.reset();
+
+		auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+
+		if (attach)
+			pAnim->SetOwnerObject(this->AttachedToObject);
+
+		auto const pAnimExt = FakeAnimClass::GetExtAttribute(pAnim);
+		pAnim->Owner = this->AttachedToObject->Owner;
+		pAnimExt->Invoker = this->AttachedToObject;
+
+		if (attach)
+		{
+			pAnimExt->DelayedFireRemoveOnNoDelay = removeOnNoDelay;
+			this->CurrentDelayedFireAnim.reset(pAnim);
+		}
+	}
+}
+
 void TechnoExtData::UpdateGattlingRateDownReset()
 {
 	if (this->Type->IsGattling)
@@ -5256,6 +5299,12 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AccumulatedGattlingValue)
 		.Process(this->ShouldUpdateGattlingValue)
 		.Process(this->KeepTargetOnMove)
+
+		.Process(this->FiringSequencePaused)
+		.Process(this->DelayedFireTimer)
+		.Process(this->DelayedFireWeaponIndex)
+		.Process(this->CurrentDelayedFireAnim)
+		.Process(this->CustomFiringOffset)
 		;
 }
 
@@ -5579,6 +5628,9 @@ DEFINE_HOOK(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 
 		if (pExt->WebbedAnim.get() == pAnim)
 			pExt->WebbedAnim.release();
+
+		if (pExt->CurrentDelayedFireAnim.get() == pAnim)
+			pExt->CurrentDelayedFireAnim.release();
 
 		pExt->AeData.InvalidatePointer(pAnim, pThis);
 

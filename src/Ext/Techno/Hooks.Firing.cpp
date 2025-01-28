@@ -525,6 +525,7 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, EDI);
 	GET(FakeWeaponTypeClass*, pWeapon, EBX);
+	GET_BASE(int, weaponIndex, 0xC);
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -559,7 +560,80 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
 			}
 		}
+
+		auto& timer = pExt->DelayedFireTimer;
+
+		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
+			pExt->ResetDelayedFireTimer();
+
+		if (pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
+		{
+			if (pThis->WhatAmI() == AbstractType::Infantry && pWeaponExt->DelayedFire_PauseFiringSequence)
+				return 0;
+
+			if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
+			{
+				if (timer.InProgress())
+					return 0x6FDE03 ;
+
+				if (!timer.HasStarted())
+				{
+					pExt->DelayedFireWeaponIndex = weaponIndex;
+					timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration), 0));
+					auto pAnimType = pWeaponExt->DelayedFire_Animation;
+
+					if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
+						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
+
+					pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOffset.isset(), pWeaponExt->DelayedFire_AnimOffset.Get());
+
+					return 0x6FDE03 ;
+				}
+				else
+				{
+					pExt->ResetDelayedFireTimer();
+				}
+			}
+		}
+	}
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
+{
+	GET(InfantryClass*, pThis, EBP);
+
+	if (!pThis->Target || !pThis->IsFiring)
+		TechnoExtContainer::Instance.Find(pThis)->FiringSequencePaused = false;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
+{
+	enum { SkipGameCode = 0x6FAC31 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->FiringSequencePaused)
+		return SkipGameCode;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(AbstractClass*, pNewTarget, EDI);
+
+	if (!pNewTarget)
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		pExt->ResetDelayedFireTimer();
 	}
 
-	return 0x0;
+	return 0;
 }

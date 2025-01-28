@@ -4032,7 +4032,7 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 
 DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
 {
-	GET_STACK(ObjectClass*, pTarget, 0x98 + 0x8);
+	GET_STACK(ObjectClass*, pTarget, 0x98 + 0xC);
 	GET(TechnoClass*, pThis, ESI);
 
 	if (pThis->WhatAmI() == InfantryClass::AbsID && pTarget && pTarget->WhatAmI() == BuildingClass::AbsID)
@@ -11441,3 +11441,15 @@ DEFINE_HOOK(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 	R->EDI(pParach);
 	return 0x5F5AF1;
 }
+
+//DEFINE_HOOK(0x4D3920, FootClass_FindPath_Speed_Zero, 0x5)
+//{
+//	GET(FootClass* , pThis , ECX);
+//
+//	if(pThis->GetTechnoType()->Speed == 0){
+//		R->EAX(false);
+//		return 0x4D399C;
+//	}
+//
+//	return 0x0;
+//}

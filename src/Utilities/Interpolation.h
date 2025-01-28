@@ -1,26 +1,18 @@
 #pragma once
 
-#include <ColorStruct.h>
-
-enum class InterpolationMode : BYTE
-{
-	None = 0,
-	Linear = 1
-};
+#include "Enum.h"
+#include "TranslucencyLevel.h"
 
 namespace detail
 {
-#define FROM_DOUBLE(type, first, second, percentage, mode) \
-		 (type)(interpolate((double)first, (double)(second), percentage, mode));
-
 	template <typename T>
-	COMPILETIMEEVAL FORCEDINLINE T interpolate(T first, T second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL OPTIONALINLINE T interpolate(T& first, T& second, double percentage, InterpolationMode mode)
 	{
 		return first;
 	}
 
 	template <>
-	COMPILETIMEEVAL FORCEDINLINE double interpolate<double>(double first, double second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL OPTIONALINLINE double interpolate<double>(double& first, double& second, double percentage, InterpolationMode mode)
 	{
 		double result = first;
 
@@ -37,17 +29,36 @@ namespace detail
 	}
 
 	template <>
-	COMPILETIMEEVAL FORCEDINLINE int interpolate<int>(int first, int second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL OPTIONALINLINE int interpolate<int>(int& first, int& second, double percentage, InterpolationMode mode)
 	{
-		return FROM_DOUBLE(int, first, second, percentage, mode);
+		double firstValue = first;
+		double secondValue = second;
+		return (int)interpolate(firstValue, secondValue, percentage, mode);
 	}
 
 	template <>
-	COMPILETIMEEVAL FORCEDINLINE ColorStruct interpolate<ColorStruct>(ColorStruct first, ColorStruct second, double percentage, InterpolationMode mode)
+	COMPILETIMEEVAL OPTIONALINLINE BYTE interpolate<BYTE>(BYTE& first, BYTE& second, double percentage, InterpolationMode mode)
 	{
-		BYTE r = FROM_DOUBLE(BYTE, first.R, second.R, percentage, mode);
-		BYTE g = FROM_DOUBLE(BYTE, first.G, second.G, percentage, mode);
-		BYTE b = FROM_DOUBLE(BYTE, first.B, second.B, percentage, mode);
+		double firstValue = first;
+		double secondValue = second;
+		return (BYTE)interpolate(firstValue, secondValue, percentage, mode);
+	}
+
+	template <>
+	COMPILETIMEEVAL OPTIONALINLINE ColorStruct interpolate<ColorStruct>(ColorStruct& first, ColorStruct& second, double percentage, InterpolationMode mode)
+	{
+		BYTE r = interpolate(first.R, second.R, percentage, mode);
+		BYTE g = interpolate(first.G, second.G, percentage, mode);
+		BYTE b = interpolate(first.B, second.B, percentage, mode);
 		return { r, g, b };
+	}
+
+	template <>
+	COMPILETIMEEVAL OPTIONALINLINE TranslucencyLevel interpolate<TranslucencyLevel>(TranslucencyLevel& first, TranslucencyLevel& second, double percentage, InterpolationMode mode)
+	{
+		double firstValue = first.GetIntValue();
+		double secondValue = second.GetIntValue();
+		int value = (int)interpolate(firstValue, secondValue, percentage, mode);
+		return { value, true };
 	}
 }

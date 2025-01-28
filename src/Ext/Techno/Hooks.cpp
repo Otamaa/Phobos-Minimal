@@ -448,21 +448,65 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	}
 
 	//IsFiring
-	if (R->AL() && pThis->Animation.Value == firingFrame + cumulativeDelay)
+	if (R->AL())
 	{
-		if (pWeaponExt->Burst_FireWithinSequence)
-		{
-			int frameCount = pThis->Type->Sequence->GetSequence(pThis->SequenceAnim).CountFrames;
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		auto& timer = pExt->DelayedFireTimer;
 
-			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
-			if (firingFrame + projectedDelay > frameCount)
-			{
-				InfantryExtContainer::Instance.Find(pThis)->ForceFullRearmDelay = true;
-			}
+		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != FiringAITemp::weaponIndex)
+		{
+			pExt->ResetDelayedFireTimer();
+			pExt->FiringSequencePaused = false;
 		}
 
-		R->EAX(FiringAITemp::weaponIndex); // Reuse the weapon index to save some time.
-		return Continue;
+		if (pWeaponExt->DelayedFire_PauseFiringSequence && pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
+		{
+			if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
+			{
+				if (pThis->Animation.Value == firingFrame + cumulativeDelay)
+					pExt->FiringSequencePaused = true;
+
+				if (!timer.HasStarted())
+				{
+					pExt->DelayedFireWeaponIndex = FiringAITemp::weaponIndex;
+					timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration), 0));
+					auto pAnimType = pWeaponExt->DelayedFire_Animation;
+
+					if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
+						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
+
+					pExt->CreateDelayedFireAnim(pAnimType, FiringAITemp::weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOffset.isset(), pWeaponExt->DelayedFire_AnimOffset.Get());
+
+					return ReturnFromFunction;
+				}
+				else if (timer.InProgress())
+				{
+					return ReturnFromFunction;
+				}
+
+				if (timer.Completed())
+					pExt->ResetDelayedFireTimer();
+			}
+
+			pExt->FiringSequencePaused = false;
+		}
+
+		if(pThis->Animation.Value == firingFrame + cumulativeDelay) {
+			if (pWeaponExt->Burst_FireWithinSequence)
+			{
+				int frameCount = pThis->Type->Sequence->GetSequence(pThis->SequenceAnim).CountFrames;
+
+				// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
+				if (firingFrame + projectedDelay > frameCount)
+				{
+					InfantryExtContainer::Instance.Find(pThis)->ForceFullRearmDelay = true;
+				}
+			}
+
+			R->EAX(FiringAITemp::weaponIndex); // Reuse the weapon index to save some time.
+			return Continue;
+		}
 	}
 
 	return ReturnFromFunction;

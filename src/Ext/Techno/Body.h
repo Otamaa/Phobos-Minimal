@@ -726,6 +726,12 @@ public:
 
 	bool KeepTargetOnMove { false };
 
+	bool FiringSequencePaused { false };
+	int DelayedFireWeaponIndex { -1 };
+	CDTimerClass DelayedFireTimer {};
+	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };
+	std::optional<CoordStruct> CustomFiringOffset  {}; // If set any calls to GetFLH() will use this coordinate as
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -782,6 +788,10 @@ public:
 	void ApplyIdleAction();
 	void ManualIdleAction();
 	void StopRotateWithNewROT(int ROT = -1);
+
+	void ResetDelayedFireTimer();
+
+	void CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool useOffsetOverride, CoordStruct offsetOverride);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
@@ -1084,4 +1094,8 @@ public:
 	}
 
 	//CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
+};
+
+class FakeTechnoClass final: TechnoClass{
+public:
 };

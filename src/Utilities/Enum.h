@@ -34,9 +34,15 @@
 
 #include <GeneralDefinitions.h>
 
+enum class InterpolationMode : BYTE
+{
+	None = 0,
+	Linear = 1
+};
+
 // use to put check on `NullableIdx`
 // TODO : put this on other `Idx` based stuffs ,..
-enum class EnumCheckMode
+enum class EnumCheckMode : BYTE
 {
 	default, ignore, disable
 };

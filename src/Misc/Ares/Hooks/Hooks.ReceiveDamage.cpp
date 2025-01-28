@@ -132,18 +132,6 @@ DEFINE_HOOK(0x701A3B, TechnoClass_ReceiveDamage_Flash, 0xA)
 	return ContinueChecks;
 }
 
-// DEFINE_HOOK(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
-// {
-// 	enum { BypassInvulnerability = 0x48996D };
-//
-// 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-//
-// 	if (WarheadTypeExtContainer::Instance.Find(pWarhead)->PenetratesIronCurtain)
-// 		return BypassInvulnerability;
-//
-// 	return 0;
-// }
-
 DEFINE_HOOK(0x702117, TechnoClass_ReceiveDamage_OverrideSounds, 0xA)
 {
 	GET_STACK(WarheadTypeClass*, pWh, 0xD0);

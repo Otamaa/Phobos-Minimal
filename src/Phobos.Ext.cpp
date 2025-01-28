@@ -347,7 +347,7 @@ DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 	LogPool(TechnoExtContainer)
 	LogPool(BuildingExtContainer)
 	LogPool(InfantryExtContainer)
-	Debug::Log("%s MemoryPool size %d\n", _STR_(s), FakeAnimClass::Pool.size());
+	Debug::Log("FakeAnimClass MemoryPool size %d\n", FakeAnimClass::Pool.size());
 	LogPool(BulletExtContainer)
 	LogPool(ParticleExtContainer)
 	LogPool(ParticleSystemExtContainer)

@@ -69,7 +69,6 @@
 
 #include "Enumparser.h"
 
-
 template<typename T>
 struct IndexFinder
 {
@@ -875,7 +874,6 @@ namespace detail
 #pragma endregion
 
 #pragma region Enumstuffs
-
 	template <>
 	OPTIONALINLINE bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -2528,9 +2526,17 @@ void __declspec(noinline) MultiflagValueableVector<T, TExtraArgs...>::Read(INI_E
 		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, i, "%s");
 
 		if (!dataEntry.Read(parser, pSection, flagName, extraArgs...))
-			break;
+		{
+			if (i < this->size())
+				continue;
+			else
+				break;
+		}
 
-		this->push_back(dataEntry);
+		if (this->size() > i)
+			this->operator[](i) = dataEntry;
+		else
+			this->push_back(dataEntry);
 	}
 }
 
@@ -2549,9 +2555,18 @@ void __declspec(noinline) MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX
 		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, i, "%s");
 
 		if (!dataEntry.Read(parser, pSection, flagName, extraArgs...))
-			break;
+		{
+			if (i < this->size())
+				continue;
+			else
+				break;
+		}
 
-		this->push_back(dataEntry);
+		if (this->size() > i)
+			this->operator[](i) = dataEntry;
+		else
+			this->push_back(dataEntry);
+
 		this->hasValue = true;
 	}
 }
@@ -2652,6 +2667,43 @@ void __declspec(noinline) Animatable<TValue>::Read(INI_EX& parser, const char* c
 	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Interpolation");
 	detail::read(this->InterpolationMode, parser, pSection, flagName);
 
+	// Error handling
+	bool foundError = false;
+	double lastPercentage = -DBL_MAX;
+	std::unordered_set<double> percentages {};
+
+	for (size_t i = 0; i < this->KeyframeData.size(); i++)
+	{
+		auto const& value = this->KeyframeData[i];
+		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Keyframe%d");
+		_snprintf_s(flagName, sizeof(flagName), flagName, i);
+
+		if (percentages.contains(value.Percentage))
+		{
+			Debug::Log("[Developer warning] [%s] %s has duplicated keyframe %.3f.\n", pSection, flagName, value.Percentage);
+			foundError = true;
+		}
+
+		if (lastPercentage > value.Percentage)
+		{
+			Debug::Log("[Developer warning] [%s] %s has keyframe out of order (%.3f after previous keyframe of %.3f).\n", pSection, flagName, value.Percentage, lastPercentage);
+			foundError = true;
+		}
+
+		percentages.insert(value.Percentage);
+		lastPercentage = value.Percentage;
+	}
+
+	if (foundError)
+	{
+		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "%s");
+		int len = strlen(pBaseFlag);
+
+		if (len >= 4)
+			flagName[len - 3] = '\0';
+
+		Debug::FatalErrorAndExit("[%s] %s has invalid keyframe data defined. Check debug log for more details.\n", pSection, flagName);
+	}
 };
 
 template <typename TValue>

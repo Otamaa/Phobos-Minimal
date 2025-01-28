@@ -212,10 +212,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DetachOnCloak.Read(exINI, pID, "DetachOnCloak");
 	this->Translucency_Cloaked.Read(exINI, pID, "Translucency.Cloaked");
 
-	if (this->AttachedToObject->Translucent)
-	{
+	if (this->AttachedToObject->Translucent) {
 		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", this->AttachedToObject->End);
-		this->Translucent_Keyframes.InterpolationMode = InterpolationMode::None;
 	}
 
 	this->CreateUnit_SpawnHeight.Read(exINI, pID, "CreateUnit.SpawnHeight");

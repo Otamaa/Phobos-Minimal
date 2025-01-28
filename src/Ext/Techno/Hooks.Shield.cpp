@@ -182,6 +182,14 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 
 	TechnoExtData::ApplyKillWeapon(pThis, args.Attacker, args.WH);
 
+	if(args.Attacker && (!args.Attacker->IsAlive || args.Attacker->Health <= 0))
+		args.Attacker = nullptr; //clean up;
+
+	if (!pThis || !pThis->IsAlive || pThis->Health <= 0) {
+		R->EAX(DamageState::NowDead);
+		return 0x702D1F;
+	}
+
 	if (!args.IgnoreDefenses) {
 
 		applyCombatAlert(pThis, &args);

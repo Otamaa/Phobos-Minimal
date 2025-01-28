@@ -506,6 +506,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 	//remove ammo rounds depending on weapon
 	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 #ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
@@ -521,10 +522,7 @@ DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 #endif
 
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
-	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser)
-	{
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
+	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser) {
 		if (pExt->CurrentLaserWeaponIndex.empty())
 			pExt->CurrentLaserWeaponIndex = weaponIndex;
 		else

@@ -36,7 +36,12 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	std::pair<bool, CoordStruct> nResult = TechnoExtData::GetBurstFLH(pThis, weaponIndex);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	std::pair<bool, CoordStruct> nResult =
+	!pExt->CustomFiringOffset.has_value() ?
+	 TechnoExtData::GetBurstFLH(pThis, weaponIndex) :
+	 std::make_pair(true , pExt->CustomFiringOffset.value());
 
 	if (!nResult.first && pThis->WhatAmI() == InfantryClass::AbsID) {
 		nResult = TechnoExtData::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
@@ -47,7 +52,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 		R->ECX(nResult.second.X);
 		R->EBP(nResult.second.Y);
 		R->EAX(nResult.second.Z);
-		TechnoExtContainer::Instance.Find(pThis)->FlhChanged = true;
+		pExt->FlhChanged = true;
 	}
 
 	return 0;

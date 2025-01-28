@@ -45,7 +45,8 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 	if (pThis->WeaponType)
 	{
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		size_t size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
+		const size_t damageoverride_size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
+		const size_t fulldetonation_size = pWeaponExt->ExtraWarheads_FullDetonation.size();
 		const size_t chance_size = pWeaponExt->ExtraWarheads_DetonationChances.size();
 
 		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
@@ -54,10 +55,10 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 			int damage = pThis->WeaponType->Damage;
 
-			if (size > 0 && size > i)
+			if (damageoverride_size > 0 && damageoverride_size > i)
 				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
-			else if (size > 0)
-				damage = pWeaponExt->ExtraWarheads_DamageOverrides[size - 1];
+			else if (damageoverride_size > 0)
+				damage = pWeaponExt->ExtraWarheads_DamageOverrides[damageoverride_size - 1];
 
 			bool detonate = true;
 
@@ -67,12 +68,11 @@ void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
 				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
 
 			bool isFull = true;
-			size = pWeaponExt->ExtraWarheads_FullDetonation.size();
 
-			if (size > 0 && size > i)
+			if (fulldetonation_size > 0 && fulldetonation_size > i)
 				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
-			else if (size > 0)
-				isFull = pWeaponExt->ExtraWarheads_FullDetonation[size - 1];
+			else if (fulldetonation_size > 0)
+				isFull = pWeaponExt->ExtraWarheads_FullDetonation[fulldetonation_size - 1];
 
 			if (detonate) {
 
