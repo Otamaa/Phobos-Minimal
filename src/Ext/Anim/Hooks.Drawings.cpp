@@ -450,24 +450,24 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 	return SkipGameCode;
 }
 
-#include <InfantryClass.h>
-
-#pragma optimize("", off )
-DEFINE_HOOK(0x425174, AnimClass_Detach_Cloak, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, EDI);
-
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pTypeExt && !pTypeExt->DetachOnCloak) {
-		if (auto const pTechno = flag_cast_to<TechnoClass* , false>(pTarget)) {
-			auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-			if (pExt && pExt->IsDetachingForCloak)
-				return 0x4251A3;
-		}
-	}
-
-	return 0x0;
-}
-#pragma optimize("", on )
+//#include <InfantryClass.h>
+//
+//#pragma optimize("", off )
+//DEFINE_HOOK(0x425174, AnimClass_Detach_Cloak, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EDI);
+//
+//	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	if (pTypeExt && !pTypeExt->DetachOnCloak) {
+//		if (auto const pTechno = flag_cast_to<TechnoClass* , false>(pTarget)) {
+//			auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+//			if (pExt && pExt->IsDetachingForCloak)
+//				return 0x4251A3;
+//		}
+//	}
+//
+//	return 0x0;
+//}
+//#pragma optimize("", on )
