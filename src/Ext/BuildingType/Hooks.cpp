@@ -178,6 +178,70 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
  	return 0x4A9063;
  }
 
+ COMPILETIMEEVAL FORCEDINLINE void CountPower(HouseClass* pHouse)
+ {
+	 if(pHouse->ActiveAircraftTypes.IsAllocated) {
+		 for (int a = 0; a < pHouse->ActiveAircraftTypes.Capacity; ++a)
+		 {
+			 if (pHouse->ActiveAircraftTypes.Items[a] > 0) {
+				 const auto pExt = TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items[a]);
+
+				 if (pExt->Power > 0)
+					 pHouse->PowerOutput += pExt->Power * pHouse->ActiveAircraftTypes.Items[a];
+				 else
+					 pHouse->PowerDrain -= pExt->Power * pHouse->ActiveAircraftTypes.Items[a];
+			 }
+		 }
+	 }
+
+	 if (pHouse->ActiveInfantryTypes.IsAllocated) {
+		 for (int i = 0; i < pHouse->ActiveInfantryTypes.Capacity; ++i)
+		 {
+			 if (pHouse->ActiveInfantryTypes.Items[i] > 0)
+			 {
+				 const auto pExt = TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items[i]);
+
+				 if (pExt->Power > 0)
+					 pHouse->PowerOutput += pExt->Power * pHouse->ActiveInfantryTypes.Items[i];
+				 else
+					 pHouse->PowerDrain -= pExt->Power * pHouse->ActiveInfantryTypes.Items[i];
+			 }
+		 }
+	 }
+
+	 if (pHouse->ActiveUnitTypes.IsAllocated) {
+		 for (int u = 0; u < pHouse->ActiveUnitTypes.Capacity; ++u)
+		 {
+			 if (pHouse->ActiveUnitTypes.Items[u] > 0)
+			 {
+				 const auto pExt = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items[u]);
+
+				 if (pExt->Power > 0)
+					 pHouse->PowerOutput += pExt->Power * pHouse->ActiveUnitTypes.Items[u];
+				 else
+					 pHouse->PowerDrain -= pExt->Power * pHouse->ActiveUnitTypes.Items[u];
+			 }
+		 }
+	 }
+ }
+
+ // Trigger power recalculation on gain / loss of any techno, not just buildings.
+DEFINE_HOOK_AGAIN(0x5025F0, HouseClass_RegisterGain, 0x5) // RegisterLoss
+DEFINE_HOOK(0x502A80, HouseClass_RegisterGain, 0x8)
+{
+	 GET(HouseClass*, pThis, ECX);
+
+	 pThis->RecheckPower = true;
+
+	 return 0;
+ }
+
+DEFINE_HOOK(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
+{
+	GET(HouseClass*, pThis, ESI);
+	CountPower(pThis);
+	return 0x0;
+}
 #else
 DEFINE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {

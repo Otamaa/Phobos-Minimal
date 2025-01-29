@@ -1204,6 +1204,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->EVA_Combat.Read(exINI, pSection, "EVA.Combat");
 		this->CombatAlert.Read(exINI, pSection, "CombatAlert");
+		this->CombatAlert_UseFeedbackVoice.Read(exINI, pSection, "CombatAlert.UseFeedbackVoice");
+		this->CombatAlert_UseAttackVoice.Read(exINI, pSection, "CombatAlert.UseAttackVoice");
+		this->CombatAlert_UseEVA.Read(exINI, pSection, "CombatAlert.UseEVA");
 		this->CombatAlert_NotBuilding.Read(exINI, pSection, "CombatAlert.NotBuilding");
 		this->SubterraneanHeight.Read(exINI, pSection, "SubterraneanHeight");
 
@@ -1405,6 +1408,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CanManualReload_ResetROF.Read(exINI, pSection, "CanManualReload.ResetROF");
 		this->CanManualReload_DetonateWarhead.Read(exINI, pSection, "CanManualReload.DetonateWarhead");
 		this->CanManualReload_DetonateConsume.Read(exINI, pSection, "CanManualReload.DetonateConsume");
+		this->Power.Read(exINI, pSection, "Power");
 	}
 
 	// Art tags
@@ -2475,6 +2479,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->EVA_Combat)
 		.Process(this->CombatAlert)
+		.Process(this->CombatAlert_UseFeedbackVoice)
+		.Process(this->CombatAlert_UseAttackVoice)
+		.Process(this->CombatAlert_UseEVA)
 		.Process(this->CombatAlert_NotBuilding)
 		.Process(this->SubterraneanHeight)
 
@@ -2548,6 +2555,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->CameoCheckMutex)
 		.Process(this->UIDescription_Unbuildable)
 		.Process(this->GreyCameoPCX)
+
+		.Process(this->Power)
 		;
 }
 

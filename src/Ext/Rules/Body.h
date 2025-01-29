@@ -346,11 +346,15 @@ public:
 	Valueable<bool> MainSWProgressDisplay { false };
 
 	Valueable<bool> CombatAlert { false };
+	Valueable<bool> CombatAlert_MakeAVoice { false };
 	Valueable<bool> CombatAlert_IgnoreBuilding { true };
 	Valueable<bool> CombatAlert_EVA { true };
+	Valueable<bool> CombatAlert_UseFeedbackVoice { false };
+	Valueable<bool> CombatAlert_UseAttackVoice { false };
 	Valueable<bool> CombatAlert_SuppressIfInScreen { true };
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
+
 	Valueable<int> SubterraneanHeight { -256 };
 
 	Nullable<Vector3D<float>> VoxelLightSource {};

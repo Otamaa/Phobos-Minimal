@@ -20,6 +20,7 @@ enum class TrajectoryFlag : int
 	Disperse = 11 ,
 	Engrave = 12,
 	Parabola = 13,
+	Tracing = 14,
 	Count
 };
 

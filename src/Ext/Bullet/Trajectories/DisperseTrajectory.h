@@ -6,30 +6,42 @@ class DisperseTrajectoryType : public PhobosTrajectoryType
 public:
 
 	Valueable<bool> UniqueCurve { false };
-	Valueable<CoordStruct> PreAimCoord { { 0, 0, 0 } };
-	Valueable<double> LaunchSpeed { 0.0 };
+	Valueable<CoordStruct> PreAimCoord {};
+	Valueable<double> RotateCoord {};
+	Valueable<bool> MirrorCoord { true };
+	Valueable<bool> FacingCoord {};
+	Valueable<bool> ReduceCoord { true };
+	Valueable<bool> UseDisperseBurst {};
+	Valueable<CoordStruct> AxisOfRotation { { 0, 0, 1 } };
+	Valueable<double> LaunchSpeed {};
 	Valueable<double> Acceleration { 10.0 };
-	Valueable<double> ROT { 10.0 };
-	Valueable<bool> LockDirection { false };
-	Valueable<bool> CruiseEnable { false };
-	Valueable<Leptons> CruiseUnableRange { Leptons(128) };
-	Valueable<bool> LeadTimeCalculate { false };
+	Valueable<double> ROT { 30.0 };
+	Valueable<bool> LockDirection {};
+	Valueable<bool> CruiseEnable {};
+	Valueable<Leptons> CruiseUnableRange { Leptons(1280) };
+	Valueable<int> CruiseAltitude { 800 };
+	Valueable<bool> CruiseAlongLevel {};
+	Valueable<bool> LeadTimeCalculate { true };
 	Valueable<Leptons> TargetSnapDistance { Leptons(128) };
-	Valueable<bool> RetargetAllies { false };
-	Valueable<double> RetargetRadius { 0.0 };
-	Valueable<double> SuicideAboveRange { 0.0 };
-	Valueable<bool> SuicideIfNoWeapon { false };
-	ValueableVector<WeaponTypeClass*> Weapon {};
+	Valueable<bool> RetargetAllies {};
+	Valueable<double> RetargetRadius {};
+	Valueable<bool> SuicideShortOfROT { true };
+	Valueable<double> SuicideAboveRange {};
+	Valueable<bool> SuicideIfNoWeapon { true };
+	ValueableVector<WeaponTypeClass*> Weapons {};
 	ValueableVector<int> WeaponBurst {};
-	Valueable<int> WeaponCount { 0 };
+	Valueable<int> WeaponCount {};
 	Valueable<int> WeaponDelay { 1 };
-	Valueable<int> WeaponTimer { 0 };
-	Valueable<Leptons> WeaponScope {};
-	Valueable<bool> WeaponRetarget { false };
-	Valueable<bool> WeaponLocation { false };
-	Valueable<bool> WeaponTendency { false };
-	Valueable<bool> WeaponToAllies { false };
-	Valueable<bool> FacingCoord { false };
+	Valueable<int> WeaponInitialDelay {};
+	Valueable<Leptons> WeaponEffectiveRange {};
+	Valueable<bool> WeaponSeparate {};
+	Valueable<bool> WeaponRetarget {};
+	Valueable<bool> WeaponLocation {};
+	Valueable<bool> WeaponTendency {};
+	Valueable<bool> WeaponHolistic {};
+	Valueable<bool> WeaponMarginal {};
+	Valueable<bool> WeaponToAllies {};
+	Valueable<bool> WeaponDoRepeat {};
 
 	DisperseTrajectoryType(TrajectoryFlag variant) : PhobosTrajectoryType { variant }
 	{ }
@@ -46,34 +58,47 @@ public:
 
 private:
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
-			.Process(UniqueCurve)
-			.Process(PreAimCoord)
-			.Process(LaunchSpeed)
-			.Process(Acceleration)
-			.Process(ROT)
-			.Process(LockDirection)
-			.Process(CruiseEnable)
-			.Process(CruiseUnableRange)
-			.Process(LeadTimeCalculate)
-			.Process(TargetSnapDistance)
-			.Process(RetargetAllies)
-			.Process(RetargetRadius)
-			.Process(SuicideAboveRange)
-			.Process(SuicideIfNoWeapon)
-			.Process(Weapon, true)
-			.Process(WeaponBurst)
-			.Process(WeaponCount)
-			.Process(WeaponDelay)
-			.Process(WeaponTimer)
-			.Process(WeaponScope)
-			.Process(WeaponRetarget)
-			.Process(WeaponLocation)
-			.Process(WeaponTendency)
-			.Process(WeaponToAllies)
-			.Process(FacingCoord)
+		return Stm
+			.Process(this->UniqueCurve)
+			.Process(this->PreAimCoord)
+			.Process(this->RotateCoord)
+			.Process(this->MirrorCoord)
+			.Process(this->FacingCoord)
+			.Process(this->ReduceCoord)
+			.Process(this->UseDisperseBurst)
+			.Process(this->AxisOfRotation)
+			.Process(this->LaunchSpeed)
+			.Process(this->Acceleration)
+			.Process(this->ROT)
+			.Process(this->LockDirection)
+			.Process(this->CruiseEnable)
+			.Process(this->CruiseUnableRange)
+			.Process(this->CruiseAltitude)
+			.Process(this->CruiseAlongLevel)
+			.Process(this->LeadTimeCalculate)
+			.Process(this->TargetSnapDistance)
+			.Process(this->RetargetRadius)
+			.Process(this->RetargetAllies)
+			.Process(this->SuicideShortOfROT)
+			.Process(this->SuicideAboveRange)
+			.Process(this->SuicideIfNoWeapon)
+			.Process(this->Weapons)
+			.Process(this->WeaponBurst)
+			.Process(this->WeaponCount)
+			.Process(this->WeaponDelay)
+			.Process(this->WeaponInitialDelay)
+			.Process(this->WeaponEffectiveRange)
+			.Process(this->WeaponSeparate)
+			.Process(this->WeaponRetarget)
+			.Process(this->WeaponLocation)
+			.Process(this->WeaponTendency)
+			.Process(this->WeaponHolistic)
+			.Process(this->WeaponMarginal)
+			.Process(this->WeaponToAllies)
+			.Process(this->WeaponDoRepeat)
+			.Success()
 			;
 	};
 };
@@ -82,20 +107,24 @@ class DisperseTrajectory : public PhobosTrajectory
 {
 public:
 
-	double LaunchSpeed { 0.0 };
-	double FirepowerMult { 1.0 };
-	double SuicideAboveRange { 0.0 };
-	double LastReviseMult { 0.0 };
-
-	bool TargetInAir { false };
+	double Speed {};
+	CoordStruct PreAimCoord {};
+	bool UseDisperseBurst {};
+	bool CruiseEnable {};
+	double SuicideAboveRange {};
+	int WeaponCount {};
+	CDTimerClass WeaponTimer {};
+	bool InStraight {};
 	bool Accelerate { true };
-	bool InStraight { false };
-
-	int WeaponCount { 0 };
-	int WeaponTimer { 0 };
-	int FinalHeight { 0 };
-
-	CoordStruct LastTargetCoord { };
+	bool TargetInTheAir {};
+	bool TargetIsTechno {};
+	int OriginalDistance {};
+	int CurrentBurst {};
+	int ThisWeaponIndex {};
+	CoordStruct LastTargetCoord {};
+	double PreAimDistance {};
+	double LastReviseMult {};
+	double FirepowerMult { 1.0 };
 
 	DisperseTrajectory(TrajectoryFlag varian) : PhobosTrajectory { varian }
 	{ }
@@ -128,31 +157,43 @@ public:
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
 private:
-	bool CalculateBulletVelocity(double StraightSpeed) const;
-	bool BulletDetonatePreCheck();
-	bool BulletRetargetTechno(HouseClass* pOwner);
+	void InitializeBulletNotCurve(bool facing);
+	inline VelocityClass RotateAboutTheAxis(VelocityClass theSpeed, VelocityClass theAxis, double theRadian);
+	bool CalculateBulletVelocity(double trajectorySpeed);
+	bool BulletRetargetTechno();
+	inline bool CheckTechnoIsInvalid(TechnoClass* pTechno);
+	inline bool CheckWeaponCanTarget(WeaponTypeClass* pWeapon, TechnoClass* pFirer, TechnoClass* pTarget);
 	bool CurveVelocityChange();
+	bool NotCurveVelocityChange();
 	bool StandardVelocityChange();
-	bool ChangeBulletVelocity(CoordStruct TargetLocation, double TurningRadius, bool Curve);
-	bool PrepareDisperseWeapon(HouseClass* pOwner);
-	std::vector<TechnoClass*> GetValidTechnosInSame(std::vector<TechnoClass*>& Technos, HouseClass* pOwner, WarheadTypeClass* pWH, bool Mode) const;
-	void CreateDisperseBullets(WeaponTypeClass* pWeapon, AbstractClass* BulletTarget, HouseClass* pOwner) const;
-
+	bool ChangeBulletVelocity(CoordStruct targetLocation, double turningRadius, bool curve);
+	bool PrepareDisperseWeapon();
+	void CreateDisperseBullets(WeaponTypeClass* pWeapon, AbstractClass* pTarget, HouseClass* pOwner, int curBurst, int maxBurst);
+	void DisperseBurstSubstitution(CoordStruct axis, double rotateCoord, int curBurst, int maxBurst, bool mirror);
+	
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
-			.Process(LaunchSpeed)
-			.Process(FirepowerMult)
-			.Process(SuicideAboveRange)
-			.Process(LastReviseMult)
-			.Process(TargetInAir)
-			.Process(Accelerate)
-			.Process(InStraight)
-			.Process(WeaponCount)
-			.Process(WeaponTimer)
-			.Process(FinalHeight)
-			.Process(LastTargetCoord)
+		return Stm
+			.Process(this->Speed)
+			.Process(this->PreAimCoord)
+			.Process(this->UseDisperseBurst)
+			.Process(this->CruiseEnable)
+			.Process(this->SuicideAboveRange)
+			.Process(this->WeaponCount)
+			.Process(this->WeaponTimer)
+			.Process(this->InStraight)
+			.Process(this->Accelerate)
+			.Process(this->TargetInTheAir)
+			.Process(this->TargetIsTechno)
+			.Process(this->OriginalDistance)
+			.Process(this->CurrentBurst)
+			.Process(this->ThisWeaponIndex)
+			.Process(this->LastTargetCoord)
+			.Process(this->PreAimDistance)
+			.Process(this->LastReviseMult)
+			.Process(this->FirepowerMult)
+			.Success()
 			;
 	};
 };

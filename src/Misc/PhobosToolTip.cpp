@@ -97,9 +97,22 @@ OPTIONALINLINE int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 
 OPTIONALINLINE int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 {
-	if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))
+	switch (pType->WhatAmI())
+	{
+	case AbstractType::AircraftType:
+	case AbstractType::InfantryType:
+	case AbstractType::UnitType:
+	{
+		return TechnoTypeExtContainer::Instance.Find(pType)->Power;
+	}
+	case AbstractType::BuildingType:
+	{
+		auto pBldType = (BuildingTypeClass*)pType;
 		return pBldType->PowerBonus - pBldType->PowerDrain;
-
+	}
+	default:
+		break;
+	}
 	return 0;
 }
 

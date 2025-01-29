@@ -19,6 +19,7 @@
 #include "ArcingTrajectory.h"
 #include "EngraveTrajectory.h"
 #include "DisperseTrajectory.h"
+#include "TracingTrajectory.h"
 
 #define Make_traj(enum_type , type) \
 case TrajectoryFlag::##enum_type##: \
@@ -78,7 +79,7 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	Make_DefaultTrajType(Spiral)
 	Make_DefaultTrajType(Wave)
 	Make_DefaultTrajType(Arcing)
-
+	Make_DefaultTrajType(Tracing)
 	default:
 		pType.release();
 		return false;
@@ -103,6 +104,7 @@ std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::Tra
 	{"Disperse" },
 	{"Engrave" },
 	{"Parabola" },
+	{"Tracing" },
  }
 };
 
@@ -115,7 +117,8 @@ bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Disperse,
 		TrajectoryFlag::Engrave,
-		TrajectoryFlag::Parabola
+		TrajectoryFlag::Parabola,
+		TrajectoryFlag::Tracing
 	};
 
 	for (auto flag : flags) {
@@ -153,6 +156,7 @@ bool PhobosTrajectory::IgnoreAircraftROT0(std::unique_ptr<PhobosTrajectory>& tra
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Parabola,
 		TrajectoryFlag::Disperse,
+		TrajectoryFlag::Tracing,
 	};
 
 	for (auto flag : flags) {
@@ -341,6 +345,7 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 	Make_traj(Vertical, VerticalTrajectory)
 	Make_traj(Wave, WaveTrajectory)
 	Make_traj(Arcing, ArcingTrajectory)
+	Make_traj(Tracing, TracingTrajectory)
 	default:
 		pTraj.release();
 		return false;
@@ -389,6 +394,7 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 		Make_DefaultTraj(Vertical, VerticalTrajectory)
 		Make_DefaultTraj(Wave, WaveTrajectory)
 		Make_DefaultTraj(Arcing, ArcingTrajectory)
+		Make_DefaultTraj(Tracing, TracingTrajectory)
 		default:
 			pTraj.release();
 			return;

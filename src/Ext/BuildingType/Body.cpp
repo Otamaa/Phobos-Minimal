@@ -1343,6 +1343,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PlaceBuilding_OnWater.Read(exINI, pSection, "PlaceBuilding.OnWater");
 
 		this->Cameo_ShouldCount.Read(exINI, pSection, "Cameo.ShouldCount");
+
 #pragma region Otamaa
 		this->IsPrism.Read(exINI, pSection, "IsPrismTower");
 
@@ -2065,6 +2066,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->PlaceBuilding_OnLand)
 		.Process(this->PlaceBuilding_OnWater)
 		.Process(this->Cameo_ShouldCount)
+
 		;
 }
 

@@ -124,44 +124,74 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 //TODO : update , add the new tags problaby
 //the newer implementation is seems weird
 //https://github.com/Phobos-developers/Phobos/pull/1313
-static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args) {
-	const auto pHouse = pThis->Owner;
+static bool OPTIONALINLINE AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
+{
 	const auto pWH = args->WH;
+	if(!pWH)
+		return false;
+
+	const auto pHouse = pThis->Owner;
 	const auto pSourceHouse = args->SourceHouse;
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-	if (!pType->Insignificant)
+	if(pHouseExt->CombatAlertTimer.HasTimeLeft())
+		return false;
+
+	if(pType->Insignificant || pType->Spawned || !pThis->IsInPlayfield)
+		return false;
+
+	if(!pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert))
+		return false;
+
+	if(!pThis->IsOwnedByCurrentPlayer || !pHouse->IsControlledByHuman())
+		return false;
+
+	if(*args->Damage <= 1 || pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious || pWHExt->Nonprovocative))
+		return false;
+
+	if(pSourceHouse && RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage && pHouse->IsAlliedWith(pSourceHouse))
+		return false;
+
+	const auto pBuilding = cast_to<BuildingClass* , false>(pThis);
+	if(pBuilding && RulesExtData::Instance()->CombatAlert_IgnoreBuilding && !pTypeExt->CombatAlert_NotBuilding.Get(((BuildingClass*)pThis)->Type->IsVehicle()))
+		return false;
+
+	if(RulesExtData::Instance()->CombatAlert_SuppressIfInScreen && pThis->IsOnMyView())
+		return false;
+
+	return true;
+}
+
+static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args) {
+
+	if (AllowedToCombatAlert(pThis, args))
 	{
+		const auto pHouse = pThis->Owner;
+		const auto pType = pThis->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		const auto pRules = RulesExtData::Instance();
 		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
-
-		if (pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert) && pThis->IsOwnedByCurrentPlayer &&
-			*args->Damage > 1 && pThis->IsInPlayfield && !pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious || pWHExt->Nonprovocative))
-		{
-			if (const auto pHouseExt = HouseExtContainer::Instance.TryFind(pHouse))
+		const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+		pHouseExt->CombatAlertTimer.Start(pRules->CombatAlert_Interval);
+		RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
+		if(pRules->CombatAlert_MakeAVoice){
+			 if (pTypeExt->CombatAlert_UseFeedbackVoice.Get(pRules->CombatAlert_UseFeedbackVoice) && pType->VoiceFeedback.Count > 0) // Use VoiceFeedback first
 			{
-				if (pHouse->IsControlledByHuman() && !pHouseExt->CombatAlertTimer.HasTimeLeft())
-				{
-					if (!RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage || !pHouse->IsAlliedWith(pSourceHouse))
-					{
-						if (((pThis->WhatAmI() != AbstractType::Building ||
-							pTypeExt->CombatAlert_NotBuilding) ||
-							!RulesExtData::Instance()->CombatAlert_IgnoreBuilding)
-						)
-						{
-							if (!RulesExtData::Instance()->CombatAlert_SuppressIfInScreen || pThis->IsOnMyView())
-							{
-								pHouseExt->CombatAlertTimer.Start(RulesExtData::Instance()->CombatAlert_Interval);
-								RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
-								if (RulesExtData::Instance()->CombatAlert_EVA)
-								{
-									VoxClass::PlayIndex(pTypeExt->EVA_Combat);
-								}
-							}
-						}
-					}
-				}
+				int idxvoice = pType->VoiceFeedback.Count > 1 ? ScenarioClass::Instance->Random.RandomFromMax(pType->VoiceFeedback.Count - 1) : 0;
+				VocClass::PlayGlobal(idxvoice, Panning::Center, 1.0);
 			}
+			else if (pTypeExt->CombatAlert_UseAttackVoice.Get(pRules->CombatAlert_UseAttackVoice) && pType->VoiceAttack.Count > 0) // Use VoiceAttack then
+			{
+				int idxvoice = pType->VoiceAttack.Count > 1 ? ScenarioClass::Instance->Random.RandomFromMax(pType->VoiceAttack.Count - 1) : 0;
+				VocClass::PlayGlobal(idxvoice, Panning::Center, 1.0);
+			}
+		}
+
+		if  (pTypeExt->CombatAlert_UseEVA.Get(pRules->CombatAlert_EVA)) {
+			VoxClass::PlayIndex(pTypeExt->EVA_Combat);
 		}
 	}
 }
@@ -190,10 +220,9 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 		return 0x702D1F;
 	}
 
+	applyCombatAlert(pThis, &args);
+
 	if (!args.IgnoreDefenses) {
-
-		applyCombatAlert(pThis, &args);
-
 		if (auto pShieldData = pExt->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);
 		}

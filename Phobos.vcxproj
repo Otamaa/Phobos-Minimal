@@ -82,6 +82,7 @@
     <ClCompile Include="src\Ext\Bullet\Trajectories\SpiralTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectoryVarianC.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\TracingTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\WaveTrajectory.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
@@ -503,6 +504,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectoryVarianC.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\TracingTrajectory.h" />
     <ClInclude Include="src\Ext\Event\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />

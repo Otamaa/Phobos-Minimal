@@ -970,6 +970,9 @@ public:
 
 	ValueableIdx<VoxClass> EVA_Combat { -1 };
 	Nullable<bool> CombatAlert {};
+	Nullable<bool> CombatAlert_UseFeedbackVoice {};
+	Nullable<bool> CombatAlert_UseAttackVoice {};
+	Nullable<bool> CombatAlert_UseEVA {};
 	Nullable<bool> CombatAlert_NotBuilding {};
 	Nullable<int> SubterraneanHeight {};
 
@@ -1050,6 +1053,8 @@ public:
 	Valueable<bool> CanManualReload_ResetROF { true };
 	Valueable<WarheadTypeClass*> CanManualReload_DetonateWarhead {};
 	Valueable<int> CanManualReload_DetonateConsume {};
+
+	Valueable<int> Power {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
