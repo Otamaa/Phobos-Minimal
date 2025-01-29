@@ -200,7 +200,7 @@ DEFINE_HOOK(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 			}
 			else if (absType == AbstractType::Terrain)
 			{
-				auto pTerrain = static_cast<TerrainClass*>(pObject);
+				auto pTerrain = static_cast<TerrainClass*>(pCellObject);
 
 				if (pTerrain->Type && TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
 				{
