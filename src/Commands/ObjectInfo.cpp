@@ -46,7 +46,7 @@ void Append(T& buffer, const char* pFormat, ...)
 {
 	va_list args;
 	va_start(args, pFormat);
-	vsprintf(Phobos::readBuffer, pFormat, args);
+	vsprintf_s(Phobos::readBuffer, pFormat, args);
 	va_end(args);
 	strcat_s(buffer, Phobos::readBuffer);
 }

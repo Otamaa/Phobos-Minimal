@@ -168,7 +168,7 @@ public:
 	template <typename... TArgs>
 	static NOINLINE void LogDeferred(const char* const pFormat, TArgs&&... args)
 	{
-		_snprintf(DeferredStringBuffer, sizeof(DeferredStringBuffer) , pFormat, std::forward<TArgs>(args)...);
+		IMPL_SNPRNINTF(DeferredStringBuffer, sizeof(DeferredStringBuffer) , pFormat, std::forward<TArgs>(args)...);
 		DeferredLogData.emplace_back(DeferredStringBuffer);
 	}
 
@@ -195,7 +195,7 @@ public:
 	template <typename... TArgs>
 	static NOINLINE void LogAndMessage(const char* pFormat, TArgs&&... args)
 	{
-		_snprintf(Debug::LogMessageBuffer, sizeof(DeferredStringBuffer), pFormat, std::forward<TArgs>(args)...);
+		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(DeferredStringBuffer), pFormat, std::forward<TArgs>(args)...);
 		if (Debug::LogFileActive()) {
 			if (Console::ConsoleHandle == NULL)
 				return;
@@ -431,14 +431,14 @@ public:
 	static NOINLINE void FatalError(const char* Message, TArgs&&... args)
 	{
 		Debug::FreeMouse();
-		_snprintf(Debug::LogMessageBuffer , sizeof(Debug::LogMessageBuffer) , Message , std::forward<TArgs>(args)...);
+		IMPL_SNPRNINTF(Debug::LogMessageBuffer , sizeof(Debug::LogMessageBuffer) , Message , std::forward<TArgs>(args)...);
 		Debug::FatalErrorCore(false, Debug::LogMessageBuffer);
 	}
 
 	template <typename... TArgs>
 	[[noreturn]] static NOINLINE void FatalErrorAndExit(ExitCode nExitCode, const char* Message, TArgs&&... args)
 	{
-		_snprintf(Debug::LogMessageBuffer, sizeof(Debug::LogMessageBuffer), Message, std::forward<TArgs>(args)...);
+		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(Debug::LogMessageBuffer), Message, std::forward<TArgs>(args)...);
 		Debug::FatalErrorCore(Phobos::Config::DebugFatalerrorGenerateDump , Debug::LogMessageBuffer);
 		Debug::ExitGame((size_t)nExitCode);
 	}
