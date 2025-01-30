@@ -160,12 +160,12 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	if (Data->HugeBar_Config.empty())
 	{
-		Data->HugeBar_Config.emplace_back(DisplayInfoType::Health);
-		Data->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
+		Data->HugeBar_Config.push_back(std::move(std::make_unique<HugeBar>(DisplayInfoType::Health)));
+		Data->HugeBar_Config.push_back(std::move(std::make_unique<HugeBar>(DisplayInfoType::Shield)));
 	}
 
 	for (auto& huge_bar : Data->HugeBar_Config) {
-		huge_bar.LoadFromINI(pINI);
+		huge_bar->LoadFromINI(pINI);
 	}
 
 	Data->LoadBeforeTypeData(pThis, pINI);
@@ -1514,7 +1514,8 @@ DEFINE_HOOK(0x667A30, RulesClass_DTOR, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
 
-	RulesExtData::Remove(pItem);
+	if(!Phobos::Otamaa::ExeTerminated)
+		RulesExtData::Remove(pItem);
 
 	return 0;
 }

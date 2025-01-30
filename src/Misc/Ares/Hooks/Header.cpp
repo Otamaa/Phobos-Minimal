@@ -3353,7 +3353,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (AdjustHealth)
 	{
 		// Readjust health according to percentage
-		pThis->SetHealthPercentage((double)(oldHealth) / (double)pOldType->Strength);
+		pThis->SetHealthPercentage((double)(oldHealth) / (double)pToType->Strength);
 		pThis->EstimatedHealth = pThis->Health;
 	}
 	else
@@ -3529,10 +3529,8 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		pThis->CurrentWeaponNumber = 0;
 
 	const int TurretCount = (pToType->TurretCount > 0 ? pToType->TurretCount : 2);
-
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
-
 
 	// Update movement sound if still moving while type changed.
 	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))

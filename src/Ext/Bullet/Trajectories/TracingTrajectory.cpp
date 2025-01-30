@@ -256,17 +256,16 @@ void TracingTrajectory::SetSourceLocation()
 {
 	auto const pType = this->GetTrajectoryType();
 	auto pBullet = this->AttachedTo;
-	const auto theCoords = pType->CreateCoord.Get();
-	auto theOffset = theCoords;
+	CoordStruct theOffset = pType->CreateCoord;
 
-	if (theCoords.X != 0 || theCoords.Y != 0)
+	if (pType->CreateCoord->X != 0 || pType->CreateCoord->Y != 0)
 	{
 		const auto& theSource = pBullet->SourceCoords;
 		const auto& theTarget = pBullet->TargetCoords;
 		const auto rotateAngle = Math::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
-		theOffset.X = static_cast<int>(theCoords.X * Math::cos(rotateAngle) + theCoords.Y * Math::sin(rotateAngle));
-		theOffset.Y = static_cast<int>(theCoords.X * Math::sin(rotateAngle) - theCoords.Y * Math::cos(rotateAngle));
+		theOffset.X = static_cast<int>(pType->CreateCoord->X * Math::cos(rotateAngle) + pType->CreateCoord->Y * Math::sin(rotateAngle));
+		theOffset.Y = static_cast<int>(pType->CreateCoord->X * Math::sin(rotateAngle) - pType->CreateCoord->Y * Math::cos(rotateAngle));
 	}
 
 	if (pType->CreateAtTarget)
@@ -305,7 +304,7 @@ inline void TracingTrajectory::InitializeDuration(int duration)
 	this->ExistTimer.Start(duration);
 }
 
-inline bool TracingTrajectory::InvalidFireCondition(TechnoClass* pTechno)
+inline bool TracingTrajectory::InvalidFireCondition(TechnoClass* pTechno) const
 {
 	return (!pTechno
 		|| !pTechno->IsAlive
@@ -456,10 +455,9 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 	const auto pFirer = pBullet->Owner;
 
 	const auto destination = (pType->TraceTheTarget || !pFirer) ? pBullet->TargetCoords : (pFirer->Transporter ? pFirer->Transporter->GetCoords() : pFirer->GetCoords());
-	const auto theCoords = pType->OffsetCoord.Get();
-	auto theOffset = theCoords;
+	CoordStruct theOffset = pType->OffsetCoord;
 
-	if (theCoords.X != 0 || theCoords.Y != 0)
+	if (pType->OffsetCoord->X != 0 || pType->OffsetCoord->Y != 0)
 	{
 		switch (pType->TraceMode)
 		{
@@ -473,8 +471,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 			{
 				const auto rotateAngle = -(pTechno->PrimaryFacing.Current().GetRadian<32>());
 
-				theOffset.X = static_cast<int>(theCoords.X * Math::cos(rotateAngle) + theCoords.Y * Math::sin(rotateAngle));
-				theOffset.Y = static_cast<int>(theCoords.X * Math::sin(rotateAngle) - theCoords.Y * Math::cos(rotateAngle));
+				theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			}
 			else
 			{
@@ -490,8 +488,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 			{
 				const auto rotateAngle = (pTechno->HasTurret() ? -(pTechno->TurretFacing().GetRadian<32>()) : -(pTechno->PrimaryFacing.Current().GetRadian<32>()));
 
-				theOffset.X = static_cast<int>(theCoords.X * Math::cos(rotateAngle) + theCoords.Y * Math::sin(rotateAngle));
-				theOffset.Y = static_cast<int>(theCoords.X * Math::sin(rotateAngle) - theCoords.Y * Math::cos(rotateAngle));
+				theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			}
 			else
 			{
@@ -504,7 +502,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 		case TraceTargetMode::RotateCW:
 		{
 			const auto distanceCoords = pBullet->Location - destination;
-			const auto radius = Point2D { theCoords.X,theCoords.Y }.Length();
+			const auto radius = Point2D { pType->OffsetCoord->X,pType->OffsetCoord->Y }.Length();
 
 			if ((radius * 1.2) > Point2D { distanceCoords.X,distanceCoords.Y }.Length())
 			{
@@ -527,7 +525,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 		case TraceTargetMode::RotateCCW:
 		{
 			const auto distanceCoords = pBullet->Location - destination;
-			const auto radius = Point2D { theCoords.X,theCoords.Y }.Length();
+			const auto radius = Point2D { pType->OffsetCoord->X,pType->OffsetCoord->Y }.Length();
 
 			if ((radius * 1.2) > Point2D { distanceCoords.X,distanceCoords.Y }.Length())
 			{
@@ -554,8 +552,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 
 			const auto rotateAngle = Math::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
-			theOffset.X = static_cast<int>(theCoords.X * Math::cos(rotateAngle) + theCoords.Y * Math::sin(rotateAngle));
-			theOffset.Y = static_cast<int>(theCoords.X * Math::sin(rotateAngle) - theCoords.Y * Math::cos(rotateAngle));
+			theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+			theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			break;
 		}
 		}

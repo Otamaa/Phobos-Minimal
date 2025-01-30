@@ -361,7 +361,7 @@ public:
 	Nullable<Vector3D<float>> VoxelShadowLightSource {};
 	Valueable<bool> UseFixedVoxelLighting { false };
 
-	std::vector<HugeBar> HugeBar_Config {};
+	std::vector<std::unique_ptr<HugeBar>> HugeBar_Config {};
 
 	Valueable<bool> RegroupWhenMCVDeploy { true };
 	Valueable<bool> AISellAllOnLastLegs { true };
@@ -409,7 +409,7 @@ public:
 	Valueable<bool> ExpandAircraftMission {};
 
 	struct LandTypeExt {
-		Valueable<double> Bounce_Elasticity;
+		Valueable<double> Bounce_Elasticity {};
 
 		void LoadFromStream(PhobosStreamReader& Stm)
 		{

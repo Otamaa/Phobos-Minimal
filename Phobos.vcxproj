@@ -220,6 +220,8 @@
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
+    <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
+    <ClCompile Include="src\Lib\lodepng\lodepng_util.cpp" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
     <ClCompile Include="src\Lib\Lua\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua\lbaselib.c" />
@@ -346,6 +348,7 @@
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
+    <ClCompile Include="src\Misc\PNGFile.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Misc\Spawner\AutoSave.cpp" />
@@ -507,6 +510,8 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\TracingTrajectory.h" />
     <ClInclude Include="src\Ext\Event\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
+    <ClInclude Include="src\Lib\lodepng\lodepng.h" />
+    <ClInclude Include="src\Lib\lodepng\lodepng_util.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
     <ClInclude Include="src\Lib\Lua\lcode.h" />
@@ -541,6 +546,7 @@
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\Multithread.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
+    <ClInclude Include="src\Misc\PNGFile.h" />
     <ClInclude Include="src\Misc\Spawner\AutoSave.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\Vinifera\BlowfishEngine.h" />
