@@ -1223,7 +1223,7 @@ DEFINE_HOOK(0x51813C, InfantryClass_ReceiverDamage_ResultDestroyed_HandleAnim, 0
 
 						} else {
 							pThis->UnInit();
-							return 0x518623;
+							return RetResult4;
 						}
 
 						return Crashable(pThis, pThis->Type, args.Attacker);

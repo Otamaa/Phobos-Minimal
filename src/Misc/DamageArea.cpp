@@ -743,10 +743,12 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				Handled.Reset();
 
 				// collect all slots containing damage groups for this target
-				std::for_each(g_begin, g_end, [group](DamageGroup* item) {
-					 if (item && item->Target == group->Target) {
-						 Handled.AddItem(item);
-					 }
+				std::for_each(g_begin, g_end, [group](DamageGroup* item)
+ {
+	 if (item && item->Target == group->Target)
+	 {
+		 Handled.AddItem(item);
+	 }
 				});
 
 				// if more than allowed, sort them and remove the ones further away
@@ -754,25 +756,29 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				{
 					Helpers::Alex::selectionsort(
 						Handled.begin(), Handled.begin() + MaxAffect, Handled.end(),
-						[](DamageGroup* a, DamageGroup* b) {
-							return a->Distance < b->Distance;
+						[](DamageGroup* a, DamageGroup* b)
+ {
+	 return a->Distance < b->Distance;
 						});
 
-					std::for_each(Handled.begin() + MaxAffect, Handled.end(), [](DamageGroup* ppItem) {
-						ppItem->Target = nullptr;
+					std::for_each(Handled.begin() + MaxAffect, Handled.end(), [](DamageGroup* ppItem)
+ {
+	 ppItem->Target = nullptr;
 					});
 				}
 			}
 		}
 
 		// move all the empty ones to the back, then remove them
-		auto const end = std::remove_if(groupvec.Items, &groupvec.Items[groupvec.Count], [](DamageGroup* pGroup) {
-			  if (!pGroup->Target) {
-				  GameDelete<false, false>(pGroup);
-				  return true;
-			  }
+		auto const end = std::remove_if(groupvec.Items, &groupvec.Items[groupvec.Count], [](DamageGroup* pGroup)
+ {
+	 if (!pGroup->Target)
+	 {
+		 GameDelete<false, false>(pGroup);
+		 return true;
+	 }
 
-			 return false;
+	 return false;
 		});
 
 		groupvec.Count = int(std::distance(groupvec.Items, end));
@@ -780,16 +786,22 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		Handled.Count = 0;
 	}
 
-	//return 0;
-
+	return 0;
+}
+DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
+{
+	REF_STACK(DynamicVectorClass<DamageGroup*>, groupvec, 0xE0 - 0xA8);
+	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 	GET_STACK(bool, Something, 0x17);
 	GET_STACK(int, idamage, 0x24);
 	GET_STACK(int, distance, 0x68);
 	GET_BASE(TechnoClass*, pSource, 0x8);
 	GET_BASE(HouseClass*, pHouse, 0x14);
 
+	auto pWHExt = pWarhead->_GetExtData();
+
 	for (int i = 0; i < groupvec.Count; ++i)
-	{
+	{/*
 		auto pTarget = groupvec.Items[i];
 		auto curDistance = pTarget->Distance;
 		auto pObj = pTarget->Target;
@@ -817,9 +829,10 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				R->Stack(0x1F, 1);
 			}
 		}
-
+		*/
 		GameDelete(std::exchange(groupvec.Items[i], nullptr));
 	}
+
 
 	groupvec.Count = 0;
 	if(groupvec.IsAllocated) {

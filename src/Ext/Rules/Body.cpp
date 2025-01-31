@@ -1489,7 +1489,6 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Cameo_OverlayFrames)
 		.Process(this->Cameo_OverlayPalette)
 
-		.Process(this->ExtendedBuildingPlacing)
 		.Process(this->AutoBuilding)
 		.Process(this->AIAngerOnAlly)
 		;

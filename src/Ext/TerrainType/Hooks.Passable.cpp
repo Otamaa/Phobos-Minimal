@@ -904,10 +904,10 @@ DEFINE_HOOK(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
 {
 	enum { CanBuild = 0x4452F0, TemporarilyCanNotBuild = 0x445237, CanNotBuild = 0x4454E6, BuildSucceeded = 0x4454D4 };
 
-	GET(BaseNodeClass* const, pBaseNode, EBX);
-	GET(BuildingClass* const, pBuilding, EDI);
-	GET(BuildingClass* const, pFactory, ESI);
-	GET(const CellStruct, topLeftCell, EDX);
+	GET(BaseNodeClass*, pBaseNode, EBX);
+	GET(BuildingClass*, pBuilding, EDI);
+	GET(BuildingClass*, pFactory, ESI);
+	GET(CellStruct, topLeftCell, EDX);
 
 	const auto pBuildingType = pBuilding->Type;
 	const auto pHouse = pFactory->Owner;
@@ -1034,12 +1034,14 @@ DEFINE_HOOK(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
 		{
 			const auto pCellBuilding = pCell->GetBuilding();
 
-			if (!pCellBuilding || !reinterpret_cast<bool(__thiscall*)(BuildingClass*, BuildingTypeClass*, HouseClass*)>(0x452670)(pCellBuilding, pBuildingType, pHouse)) // CanUpgradeBuilding
+			if (!pCellBuilding || !pCellBuilding->CanUpgrade(pBuildingType, pHouse)) // CanUpgradeBuilding
 				return CanNotBuild;
 		}
 	}
 
-	if (pBuilding->Unlimbo(CoordStruct { (topLeftCell.X << 8) + 128, (topLeftCell.Y << 8) + 128, 0 }, DirType::North))
+	//Debug::Log("Factory[%s - %s] Kickout [%s] \n", pFactory->Type->ID, pFactory->Owner->Type->ID, pBuilding->Type->ID);
+
+	if (pBuilding->Unlimbo(CellClass::Cell2Coord(topLeftCell), DirType::North))
 	{
 		const auto pFactoryType = pFactory->Type;
 

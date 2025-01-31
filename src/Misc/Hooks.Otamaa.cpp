@@ -3869,36 +3869,21 @@ DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis)
-	{
-		const auto vtable = VTable::Get(pThis);
-		if (vtable != UnitClass::vtable
-			&& vtable != InfantryClass::vtable
-			&& vtable != AircraftClass::vtable)
-		{
-			return 0x6D4793;
-		}
 
-		if (!pThis->IsAlive
-		|| pThis->InLimbo
-		|| pThis->IsCrashing
-		|| pThis->IsSinking
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking
 		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
-		{
-			return 0x6D4793;
-		}
+	{
+		return 0x6D4793;
+	}
 
-		auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-		if (pExt->AE.Untrackable || TechnoExtData::IsUntrackable(pThis))
-		{
-			return 0x6D4793;
-		}
+	if (pExt->AE.Untrackable || TechnoExtData::IsUntrackable(pThis)) {
+		return 0x6D4793;
+	}
 
-		if (pThis->CurrentlyOnSensor())
-		{
-			return 0x6D478C; //draw dashed line
-		}
+	if (pThis->CurrentlyOnSensor()) {
+		return 0x6D478C; //draw dashed line
 	}
 
 	return 0x6D4793;
@@ -10980,14 +10965,9 @@ DEFINE_HOOK(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6D471A, TechnoClass_Render_NoOwner, 0x6)
-{
+DEFINE_HOOK(0x6D471A, TechnoClass_Render_Dead, 0x6) {
 	GET(TechnoClass*, pTechno, ESI);
-
-	if (!pTechno->Owner)
-		DebugBreak();
-
-	return 0x0;
+	return pTechno->IsAlive ? 0x0 : 0x6D48FA;
 }
 
 #ifndef EXPANDCOMMANDBAR
