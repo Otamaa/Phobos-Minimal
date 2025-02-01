@@ -120,6 +120,17 @@ public:
 class FakeTiberiumClass : public TiberiumClass
 {
 public:
+#pragma region Spread
+	void __RecalcSpreadData();
+	void __QueueSpreadAt(CellStruct* pCell);
+	void __Spread();
+#pragma endregion
+
+#pragma region Growth
+	void __RecalcGrowthData();
+	void __QueueGrowthAt(CellStruct* pCell);
+	void __Growth();
+#pragma endregion
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);

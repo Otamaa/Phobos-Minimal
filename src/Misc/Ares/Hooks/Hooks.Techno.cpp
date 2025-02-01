@@ -1350,6 +1350,9 @@ DEFINE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 	return 0x7162BC;
 }
 
+
+#include <Ext/Cell/Body.h>
+
 // issue #895788: cells' high occupation flags are marked only if they
 // actually contains a bridge while unmarking depends solely on object
 // height above ground. this mismatch causes the cell to become blocked.
@@ -1374,6 +1377,9 @@ DEFINE_HOOK(0x7441B0, UnitClass_MarkOccupationBits, 0x6)
 	{
 		pCell->OccupationFlags |= 0x20;
 	}
+
+	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+		pExt->IncomingUnit = pThis;
 
 	return 0x74420B;
 }
@@ -1407,6 +1413,9 @@ DEFINE_HOOK(0x744210, UnitClass_UnmarkOccupationBits, 0x5)
 	{
 		pCell->OccupationFlags &= ~0x20;
 	}
+
+	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+		pExt->IncomingUnit = nullptr;
 
 	return 0x744260;
 }

@@ -354,6 +354,7 @@ DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 	LogPool(TeamExtContainer)
 	LogPool(VoxelAnimExtContainer)
 	LogPool(WaveExtContainer)
+	LogPool(TemporalExtContainer)
 	return 0x0;
 }
 
@@ -362,7 +363,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
-
+	TemporalExtContainer::Instance.Clear();
 	TechnoExtContainer::Instance.Clear();
 	FakeAnimClass::Clear();
 	BulletExtContainer::Instance.Clear();
@@ -430,6 +431,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
 		WaveExtContainer::Instance.Pool.reserve(1000);
 		SWFirerClass::Array.reserve(1000);
+		TemporalExtContainer::Instance.Pool.reserve(100);
 	}
 
 	return 0;

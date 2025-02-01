@@ -31,6 +31,7 @@ public:
 	virtual AbstractType WhatAmI() const override { return AbstractType::Temporal; }
 	virtual int Size() const override { return 0x50; }
 
+
 	//non-virtual
 	void Fire(TechnoClass* pTarget)
 		{ JMP_THIS(0x71AF20); }

@@ -14,7 +14,7 @@ public:
 	static COMPILETIMEEVAL reference<IPXManagerClass*, 0xA8E9C0u> const Instance {};
 
 	ConnectionClass* SetTiming(int retrydelta, int maxretries, int timeout, bool a5)
-	{ JMP_THIS(0x7B30B0) }
+	{ JMP_THIS(0x540C60) }
 
 	int ResponseTime()
 		{ JMP_THIS(0x542450) }

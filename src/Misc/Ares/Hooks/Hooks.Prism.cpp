@@ -53,15 +53,15 @@ DEFINE_HOOK(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 	//GET(int, idxWeapon, EBP); //which weapon was chosen to attack the target with
 	R->EAX(pThis->Type);
 
-	enum { IsPrism = 0x44B310, IsNotPrism = 0x44B630, IsCustomPrism = 0x44B6D6 };
+	enum { IsPrism = 0x44B310, IsNotPrism = 0x44B630, IsCustomPrism = 0x44B6D6 , JustFire = 0x44B6C4};
 
 	auto const pMasterData = BuildingExtContainer::Instance.Find(pThis);
 	auto const pMasterType = pThis->Type;
 	auto const pMasterTypeData = BuildingTypeExtContainer::Instance.Find(pMasterType);
 
-	if (!pMasterData->MyPrismForwarding)
-	{
-		return IsNotPrism;
+	if (!pMasterData->MyPrismForwarding) {
+		return !pMasterTypeData->IsAnimDelayedBurst && pThis->CurrentBurstIndex != 0
+			?  JustFire : IsNotPrism;
 	}
 
 	if (pMasterTypeData->PrismForwarding.CanAttack())

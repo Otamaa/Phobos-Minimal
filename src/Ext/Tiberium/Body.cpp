@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/Cell/Body.h>
+
 #include <InfantryClass.h>
 
 void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -147,6 +149,288 @@ int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 
 	return look->Get(pType->GetRepairStep());
 }
+
+
+static reference<RectangleStruct, 0x87F8D4> const MapSize {};
+
+COMPILETIMEEVAL int GetMapSizeTotals()
+{
+	return (2 * MapSize->Width * (MapSize->Height + 4));
+}
+
+COMPILETIMEEVAL int CellStruct_totibarray_42B1C0(CellStruct* pCell)
+{
+	return (((pCell->X - pCell->Y + MapSize->Width - 1) >> 1) + MapSize->Width * (pCell->X - MapSize->Width + pCell->Y - 1));
+}
+
+COMPILETIMEEVAL void Heapify(TPriorityQueueClass<MapSurfaceData>* pHeap, int index)
+{
+	int left = 2 * index;
+	int right = 2 * index + 1;
+	if (2 * index > pHeap->Count || pHeap->Nodes[index]->Score <= (double)pHeap->Nodes[2 * index]->Score)
+	{
+		left = index;
+	}
+	if (right <= pHeap->Count && pHeap->Nodes[left]->Score > (double)pHeap->Nodes[right]->Score)
+	{
+		left = 2 * index + 1;
+	}
+	while (left != index)
+	{
+		auto left_of_left = 2 * left + 1;
+		auto entry = pHeap->Nodes[index];
+		pHeap->Nodes[index] = pHeap->Nodes[left];
+		index = left;
+		pHeap->Nodes[left] = entry;
+		if (2 * left <= pHeap->Count && pHeap->Nodes[left]->Score > (double)pHeap->Nodes[2 * left]->Score)
+		{
+			left *= 2;
+		}
+		if (left_of_left <= pHeap->Count && pHeap->Nodes[left]->Score > (double)pHeap->Nodes[left_of_left]->Score)
+		{
+			left = left_of_left;
+		}
+	}
+}
+
+#pragma region Spread
+
+void FakeTiberiumClass::__RecalcSpreadData()
+{
+	this->Spread = 0;
+	this->SpreadLogic.Heap->Clear();
+
+	const int MapTotal = GetMapSizeTotals();
+	for (int i = MapTotal - 1; i >= 0; this->SpreadLogic.States[i + 1] = 0)
+	{
+		--i;
+	}
+
+	MapClass::Instance->CellIteratorReset();
+	for (auto j = MapClass::Instance->CellIteratorNext(); j; j = MapClass::Instance->CellIteratorNext())
+	{
+		if (j->GetContainedTiberiumIndex() == this->ArrayIndex && j->CanTiberiumSpread())
+		{
+			this->SpreadLogic.Datas[this->Spread].MapCoord = j->MapCoords;
+			this->SpreadLogic.Datas[this->Spread].Score = 0.0;
+			this->SpreadLogic.Heap->WWPush(&this->SpreadLogic.Datas[this->Spread]);
+			++this->Spread;
+			this->SpreadLogic.States[CellStruct_totibarray_42B1C0(&j->MapCoords)] = true;
+		}
+	}
+}
+
+void FakeTiberiumClass::__QueueSpreadAt(CellStruct* pCell)
+{
+	int tib_arr = CellStruct_totibarray_42B1C0(pCell);
+	auto pCellClass = MapClass::Instance->GetCellAt(pCell);
+
+	if (pCellClass->CanTiberiumSpread() && !this->SpreadLogic.States[tib_arr])
+	{
+		if (this->Spread >= GetMapSizeTotals() - 20)
+			__RecalcSpreadData();
+
+		this->SpreadLogic.Datas[this->Spread].MapCoord = *pCell;
+		this->SpreadLogic.Datas[this->Spread].Score = (float)(Unsorted::CurrentFrame + (int)abs(abs(ScenarioClass::Instance->Random.Random() % 50)));
+		this->SpreadLogic.Heap->WWPush(&this->SpreadLogic.Datas[this->Spread]);
+		++this->Spread;
+		this->SpreadLogic.States[tib_arr] = true;
+	}
+}
+
+void FakeTiberiumClass::__Spread()
+{
+	auto spreadHeaps = this->SpreadLogic.Heap;
+
+	if (spreadHeaps && spreadHeaps->Count && this->SpreadPercentage > 0.00001)
+	{
+		int get_percent = int(spreadHeaps->Count * this->SpreadPercentage);
+
+		if (get_percent < 5)
+			get_percent = 5;
+		else if (get_percent > 25)
+			get_percent = 25;
+
+		if (spreadHeaps->Count > GetMapSizeTotals() - 20)
+			this->__RecalcSpreadData();
+
+		MapSurfaceData* pSurface = nullptr;
+		if (auto poped = spreadHeaps->Top())
+		{
+			pSurface = poped;
+			Heapify(spreadHeaps, 1);
+		}
+
+		int size_after = abs(ScenarioClass::Instance->Random.Random()) % get_percent + 1;
+
+		int increment = 0;
+		if (size_after > 0)
+		{
+			while (true)
+			{
+				while (true)
+				{
+					if (!pSurface)
+						return;
+
+					int getminateIdx = 0;
+					auto pNewCell = MapClass::Instance->GetCellAt(pSurface->MapCoord);
+					for (int c = 0; c < 8; ++c)
+					{
+						auto pAdjencent = pNewCell->GetAdjacentCell((FacingType)c);
+						if (pAdjencent->CanTiberiumGerminate(nullptr))
+							++getminateIdx;
+					}
+
+					if (getminateIdx)
+					{
+						((FakeCellClass*)(pNewCell))->_SpreadTiberium(false);
+						++increment;
+						if (getminateIdx > 1)
+						{
+							this->SpreadLogic.Datas[this->Spread].MapCoord = pNewCell->MapCoords;
+							this->SpreadLogic.Datas[this->Spread].Score = 0.0f;
+							this->SpreadLogic.Heap->WWPush(&this->SpreadLogic.Datas[this->Spread]);
+							++this->Spread;
+							this->SpreadLogic.States[CellStruct_totibarray_42B1C0(&pNewCell->MapCoords)] = true;
+						}
+					}
+					else
+					{
+						this->SpreadLogic.States[CellStruct_totibarray_42B1C0(&pNewCell->MapCoords)] = false;
+					}
+
+					if (++increment >= size_after)
+						return;
+
+					if (this->SpreadLogic.Heap->Count)
+						break;
+				}
+
+				Heapify(this->SpreadLogic.Heap, 1);
+			}
+		}
+	}
+}
+
+#pragma endregion
+
+#pragma region Growth
+
+void FakeTiberiumClass::__RecalcGrowthData()
+{
+	this->Growth = 0;
+	this->GrowthLogic.Heap->Clear();
+	for (int i = GetMapSizeTotals() - 1; i >= 0; this->GrowthLogic.States[i + 1] = 0)
+	{
+		--i;
+	}
+
+	MapClass::Instance->CellIteratorReset();
+	for (auto j = MapClass::Instance->CellIteratorNext(); j; j = MapClass::Instance->CellIteratorNext())
+	{
+		if (j->GetContainedTiberiumIndex() == this->ArrayIndex && j->CanTiberiumGrowth())
+		{
+			auto p_Position = &j->MapCoords;
+			auto v16 = p_Position;
+			this->GrowthLogic.Datas[this->Growth].MapCoord = j->MapCoords;
+			this->GrowthLogic.Datas[this->Growth].Score = 0.0;
+			this->GrowthLogic.Heap->WWPush(&this->GrowthLogic.Datas[this->Growth]);
+			++this->Growth;
+			this->GrowthLogic.States[CellStruct_totibarray_42B1C0(&j->MapCoords)] = true;
+		}
+	}
+}
+
+void FakeTiberiumClass::__QueueGrowthAt(CellStruct* pCell)
+{
+	int tib_arr = CellStruct_totibarray_42B1C0(pCell);
+	auto pCellClass = MapClass::Instance->GetCellAt(pCell);
+
+	if (pCellClass->OverlayData < 11u)
+	{
+		if (this->Growth >= GetMapSizeTotals() - 10)
+			__RecalcGrowthData();
+
+		this->GrowthLogic.Datas[this->Growth].MapCoord = *pCell;
+		this->GrowthLogic.Datas[this->Growth].Score = (float)(Unsorted::CurrentFrame + (int)abs(abs(ScenarioClass::Instance->Random.Random() % 50)));
+		this->GrowthLogic.Heap->WWPush(&this->GrowthLogic.Datas[this->Growth]);
+		++this->Growth;
+		this->GrowthLogic.States[tib_arr] = true;
+	}
+}
+
+void FakeTiberiumClass::__Growth()
+{
+	auto growthHeaps = this->GrowthLogic.Heap;
+
+	if (growthHeaps && growthHeaps->Count && this->GrowthPercentage > 0.00001)
+	{
+		int get_percent = int(growthHeaps->Count * this->GrowthPercentage);
+
+		if (get_percent < 5)
+			get_percent = 5;
+		else if (get_percent > 50)
+			get_percent = 50;
+
+		int copy_heapSize = growthHeaps->Count;
+		int size_after = abs(ScenarioClass::Instance->Random.Random()) % get_percent + 1;
+
+		if (copy_heapSize > GetMapSizeTotals() - 2 * size_after)
+		{
+			this->__RecalcGrowthData();
+		}
+
+		MapSurfaceData* pSurface = nullptr;
+		if (auto poped = growthHeaps->Top())
+		{
+			pSurface = poped;
+			Heapify(growthHeaps, 1);
+		}
+
+		int increment = 0;
+		if (size_after > 0)
+		{
+
+			while (true)
+			{
+				while (true)
+				{
+					if (!pSurface)
+						return;
+
+					auto pNewCell = MapClass::Instance->GetCellAt(pSurface->MapCoord);
+
+					if (pNewCell->GetContainedTiberiumIndex() == this->ArrayIndex)
+					{
+						pNewCell->GrowTiberium();
+						if (pNewCell->OverlayData >= 11u)
+						{
+							this->GrowthLogic.States[CellStruct_totibarray_42B1C0(&pNewCell->MapCoords)] = false;
+						}
+						else
+						{
+							this->GrowthLogic.Datas[this->Growth].MapCoord = pNewCell->MapCoords;
+							this->GrowthLogic.Datas[this->Growth].Score = (float)(int)(Unsorted::CurrentFrame() + abs(ScenarioClass::Instance->Random.Random() % 50));
+							this->GrowthLogic.Heap->WWPush(&this->GrowthLogic.Datas[this->Growth]);
+							++this->Growth;
+							__QueueSpreadAt(&pNewCell->MapCoords);
+						}
+					}
+					if (++increment >= size_after)
+						return;
+
+					if (this->GrowthLogic.Heap->Count)
+						break;
+				}
+
+				Heapify(growthHeaps, 1);
+			}
+		}
+	}
+}
+
+#pragma endregion
 
 // =============================
 // container

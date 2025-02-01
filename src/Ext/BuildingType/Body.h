@@ -342,6 +342,8 @@ public:
 
 	Nullable<bool> Cameo_ShouldCount {};
 
+	Valueable<bool> IsAnimDelayedBurst { true };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

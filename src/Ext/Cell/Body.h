@@ -17,6 +17,8 @@ public:
 public:
 
 	int NewPowerups { -1 };
+	UnitClass* IncomingUnit { nullptr };
+	UnitClass* IncomingUnitAlt { nullptr };
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
@@ -48,3 +50,26 @@ public:
 
 	//CONSTEXPR_NOCOPY_CLASSB(CellExtContainer, CellExtData, "CellClass");
 };
+
+class FakeCellClass : public CellClass
+{
+public:
+	bool _SpreadTiberium(bool force);
+	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force);
+	void _Invalidate(AbstractClass* ptr, bool removed);
+	
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	FORCEDINLINE CellClass* _AsCell() const
+	{
+		return (CellClass*)this;
+	}
+
+	FORCEDINLINE CellExtData* _GetExtData()
+	{
+		return *reinterpret_cast<CellExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+}; 
+static_assert(sizeof(FakeCellClass) == sizeof(CellClass), "Missmathc size !");

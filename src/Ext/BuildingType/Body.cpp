@@ -1615,7 +1615,6 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->ExcludeFromMultipleFactoryBonus.Read(exINI, pSection, "ExcludeFromMultipleFactoryBonus");
 
-
 		this->NoBuildAreaOnBuildup.Read(exINI, pSection, "NoBuildAreaOnBuildup");
 		this->Adjacent_Allowed.Read(exINI, pSection, "Adjacent.Allowed");
 		this->Adjacent_Disallowed.Read(exINI, pSection, "Adjacent.Disallowed");
@@ -1634,6 +1633,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->NextBuilding_Next.Read(exINI, pSection, "NextBuilding.Next");
 			this->NextBuilding_Prev.Read(exINI, pSection, "NextBuilding.Prev");
 		}
+		
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -1700,6 +1700,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DockUnload_Cell.Read(exArtINI, pArtSection, "DockUnloadCell");
 		this->DockUnload_Facing.Read(exArtINI, pArtSection, "DockUnloadFacing");
+		this->IsAnimDelayedBurst.Read(exArtINI, pSection, "IsAnimDelayedBurst");
+
 	}
 
 	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType)
@@ -2067,6 +2069,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->PlaceBuilding_OnWater)
 		.Process(this->Cameo_ShouldCount)
 
+		.Process(this->IsAnimDelayedBurst)
 		;
 }
 

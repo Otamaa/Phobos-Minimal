@@ -146,3 +146,91 @@ DEFINE_HOOK(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 
 	return 0x0;
 }
+
+
+#include <DisplayClass.h>
+#include <TacticalClass.h>
+
+
+// Fixes glitches if the map size is smaller than the screen resolution
+// Author: Belonit
+bool __fastcall Tactical_ClampTacticalPos(TacticalClass* pThis, void*, Point2D* tacticalPos)
+{
+	bool isUpdated = false;
+	auto pMapRect = &MapClass::Instance->MapRect;
+	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
+	auto pSurfaceViewBounds = &DSurface::ViewBounds;
+
+	{
+		const int xMin = Unsorted::CellWidthInPixels * (pMapVisibleRect->X - (pMapRect->Width >> 1)) + (pSurfaceViewBounds->Width >> 1);
+		if (tacticalPos->X < xMin)
+		{
+			tacticalPos->X = xMin;
+			isUpdated = true;
+		}
+		else
+		{
+			const int xMax = MaxImpl(Unsorted::CellWidthInPixels * pMapVisibleRect->Width - pSurfaceViewBounds->Width + xMin, xMin);
+			if (tacticalPos->X > xMax)
+			{
+				tacticalPos->X = xMax;
+				isUpdated = true;
+			}
+		}
+	}
+
+	{
+		const int yMin = Unsorted::CellHeightInPixels * (pMapVisibleRect->Y + (pMapRect->Width >> 1)) + (pSurfaceViewBounds->Height >> 1) - int(2.5 * Unsorted::CellHeightInPixels);
+		if (tacticalPos->Y < yMin)
+		{
+			tacticalPos->Y = yMin;
+			isUpdated = true;
+		}
+		else
+		{
+			const int yMax = MaxImpl(Unsorted::CellHeightInPixels * pMapVisibleRect->Height - pSurfaceViewBounds->Height + int(4.5 * Unsorted::CellHeightInPixels) + yMin, yMin);
+			if (tacticalPos->Y > yMax)
+			{
+				tacticalPos->Y = yMax;
+				isUpdated = true;
+			}
+		}
+	}
+	return isUpdated;
+}
+DEFINE_JUMP(LJMP, 0x6D8640, MiscTools::to_DWORD(&Tactical_ClampTacticalPos))
+
+DEFINE_HOOK(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
+{
+	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
+	auto pSurfaceViewBounds = &DSurface::ViewBounds;
+
+	{
+		const int maxWidth =
+			pSurfaceViewBounds->Width - pMapVisibleRect->Width * Unsorted::CellWidthInPixels;
+		if (maxWidth > 0)
+		{
+			RectangleStruct rect = {
+				pSurfaceViewBounds->Width - maxWidth,
+				0,
+				maxWidth,
+				pSurfaceViewBounds->Height };
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
+	}
+
+	{
+		const int maxHeight = pSurfaceViewBounds->Height - pMapVisibleRect->Height * Unsorted::CellHeightInPixels - int(4.5 * Unsorted::CellHeightInPixels);
+		if (maxHeight > 0)
+		{
+			RectangleStruct rect = {
+				0,
+				pSurfaceViewBounds->Height - maxHeight,
+				pSurfaceViewBounds->Width,
+				maxHeight };
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
+	}
+
+	return 0;
+}
