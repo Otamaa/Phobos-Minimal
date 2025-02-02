@@ -26,7 +26,7 @@ struct LooseAudioFile
 class LooseAudioCache
 {
 public:
-	static std::vector<LooseAudioCache> Array;
+	static OPTIONALINLINE std::vector<LooseAudioCache> Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
@@ -67,7 +67,7 @@ public:
 		return &Array[idx];
 	}
 
-	static 	FileStruct GetFileStructFromIndex(int idx)
+	static FileStruct GetFileStructFromIndex(int idx)
 	{
 		auto iter = Find(idx);
 
@@ -114,23 +114,17 @@ public:
 		WavName += ".wav";
 	}
 
-	COMPILETIMEEVAL ~LooseAudioCache() = default;
+	~LooseAudioCache() = default;
+
 private:
 	std::string Name;
 	std::string WavName;
 	LooseAudioFile Data;
-
-	//LooseAudioCache(const LooseAudioCache&) = default;
-	//LooseAudioCache(LooseAudioCache&&) = default;
-	//LooseAudioCache& operator=(const LooseAudioCache& other) = default;
 };
-
-std::vector<LooseAudioCache> LooseAudioCache::Array;
 
 class AudioLuggage
 {
 public:
-	static AudioLuggage Instance;
 
 	class AudioBag
 	{
@@ -314,6 +308,10 @@ private:
 
 	//contains linked real index of bags with files within
 	std::vector<std::pair<int , CCFileClass*>> Files;
+
+public:
+	static AudioLuggage Instance;
+
 };
 
 AudioLuggage AudioLuggage::Instance;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <Base/Always.h>
 
 // because every project needs an own string implementation...
 

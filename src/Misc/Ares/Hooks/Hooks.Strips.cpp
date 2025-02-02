@@ -702,6 +702,12 @@ DEFINE_HOOK(0x6A99BE, StripClass_Draw_BreakDrawLoop, 5)
 #include <Ext/Scenario/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+DEFINE_HOOK(0x4F92DD, HouseClass_Update_RedrawSidebarWhenRecheckTechTree, 0x5)
+{
+	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
+	return 0;
+}
+
 DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 {
 	GET(int, CameoIndex, EAX);

@@ -17,29 +17,29 @@ void RocketTypeClass::LoadFromINI_B(CCINIClass* pINI, size_t idx){
 
 	if (idx == 0 || idx == 1 || idx == 2) {
 
-		const char* pSection = this->Name.c_str();
+		std::string pSection = this->Name.c_str();
 
 		INI_EX exINI(pINI);
 
-		detail::read(this->RocketData.PauseFrames, exINI, GameStrings::General, (this->Name + "PauseFrames").c_str());
-		detail::read(this->RocketData.TiltFrames, exINI, GameStrings::General, (this->Name + "TiltFrames").c_str());
-		detail::read(this->RocketData.PitchInitial, exINI, GameStrings::General, (this->Name + "PitchInitial").c_str());
-		detail::read(this->RocketData.PitchFinal, exINI, GameStrings::General, (this->Name + "PitchFinal").c_str());
-		detail::read(this->RocketData.TurnRate, exINI, GameStrings::General, (this->Name + "TurnRate").c_str());
+		detail::read(this->RocketData.PauseFrames, exINI, GameStrings::General, (pSection + "PauseFrames").c_str());
+		detail::read(this->RocketData.TiltFrames, exINI, GameStrings::General, (pSection + "TiltFrames").c_str());
+		detail::read(this->RocketData.PitchInitial, exINI, GameStrings::General, (pSection + "PitchInitial").c_str());
+		detail::read(this->RocketData.PitchFinal, exINI, GameStrings::General, (pSection + "PitchFinal").c_str());
+		detail::read(this->RocketData.TurnRate, exINI, GameStrings::General, (pSection + "TurnRate").c_str());
 
 		// sic! integer read like a float.
 		float buffer = 0.0f;
-		if (detail::read(buffer, exINI, GameStrings::General, (this->Name + "RaiseRate").c_str())) {
+		if (detail::read(buffer, exINI, GameStrings::General, (pSection + "RaiseRate").c_str())) {
 			this->RocketData.RaiseRate = int(buffer);
 		}
 
-		detail::read(this->RocketData.Acceleration, exINI, GameStrings::General, (this->Name + "Acceleration").c_str());
-		detail::read(this->RocketData.Altitude, exINI, GameStrings::General, (this->Name + "Altitude").c_str());
-		detail::read(this->RocketData.Damage, exINI, GameStrings::General, (this->Name + "Damage").c_str());
-		detail::read(this->RocketData.EliteDamage, exINI, GameStrings::General, (this->Name + "EliteDamage").c_str());
-		detail::read(this->RocketData.BodyLength, exINI, GameStrings::General, (this->Name + "BodyLength").c_str());
-		detail::read(this->RocketData.LazyCurve, exINI, GameStrings::General, (this->Name + "LazyCurve").c_str());
-		detail::read(this->RocketData.Type, exINI, GameStrings::General, (this->Name + "Type").c_str());
+		detail::read(this->RocketData.Acceleration, exINI, GameStrings::General, (pSection + "Acceleration").c_str());
+		detail::read(this->RocketData.Altitude, exINI, GameStrings::General, (pSection + "Altitude").c_str());
+		detail::read(this->RocketData.Damage, exINI, GameStrings::General, (pSection + "Damage").c_str());
+		detail::read(this->RocketData.EliteDamage, exINI, GameStrings::General, (pSection + "EliteDamage").c_str());
+		detail::read(this->RocketData.BodyLength, exINI, GameStrings::General, (pSection + "BodyLength").c_str());
+		detail::read(this->RocketData.LazyCurve, exINI, GameStrings::General, (pSection + "LazyCurve").c_str());
+		detail::read(this->RocketData.Type, exINI, GameStrings::General, (pSection + "Type").c_str());
 
 		this->TrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 		this->TakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());

@@ -339,6 +339,7 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
+    <ClCompile Include="src\Misc\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
     <ClCompile Include="src\Misc\Multithread.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
@@ -477,6 +478,7 @@
     <ClCompile Include="src\Utilities\Handle.cpp" />
     <ClCompile Include="src\Utilities\Helpers.cpp" />
     <ClCompile Include="src\Utilities\OptionalStruct.cpp" />
+    <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
     <ClCompile Include="src\Utilities\PhobosPCXFile.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
     <ClCompile Include="src\Utilities\Stream.cpp" />

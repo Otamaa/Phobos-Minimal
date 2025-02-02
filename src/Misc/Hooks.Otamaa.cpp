@@ -1520,16 +1520,18 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 
 	if (alt)
 	{
+		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+			pExt->IncomingUnitAlt = this;
+
 		pCell->AltOccupationFlags |= 0x20;
 	}
 	else
 	{
+		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+			pExt->IncomingUnit = this;
+
 		pCell->OccupationFlags |= 0x20;
 	}
-
-	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-		pExt->IncomingUnit = this;
-
 }
 
 void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
@@ -1551,16 +1553,19 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 
 	if (alt & obAlt)
 	{
+		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+			pExt->IncomingUnitAlt = this;
+
 		pCell->AltOccupationFlags &= ~0x20;
 	}
 
 	if (alt & obNormal)
 	{
+		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+			pExt->IncomingUnit = this;
+
 		pCell->OccupationFlags &= ~0x20;
 	}
-
-	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-		pExt->IncomingUnit = nullptr;
 
 }
 

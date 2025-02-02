@@ -1,17 +1,14 @@
 #pragma once
 
 #include <Phobos.CRT.h>
+
 #include "Savegame.h"
-#include "Constructs.h"
 #include "Swizzle.h"
 
 #include <algorithm>
-#include <memory>
-#include <vector>
-
-#include <ArrayClasses.h>
 #include <CCINIClass.h>
 
+#include <Utilities/PhobosFixedString.h>
 
 // an wrapper class to make `Type` like in the game
 // remember to not modify the array ouside allocation new item(s) from the back
@@ -216,11 +213,11 @@ public:
 			if (!Stm.Load(oldPtr))
 				return false;
 
-			std::string name {};
+			decltype(Name) name;
 			if (!Stm.Load(name))
 				return false;
 
-			auto newPtr = FindOrAllocate(name.c_str());
+			auto newPtr = FindOrAllocate(name);
 			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
 			newPtr->LoadFromStream(Stm);
 		}
@@ -244,12 +241,9 @@ public:
 
 	static const char* GetMainSection();
 
-	std::string Name {};
+	PhobosFixedString<0x18> Name {};
 
-	COMPILETIMEEVAL Enumerable(const char* name) : Name {}
-	{
-		Name = name;
-	}
+	COMPILETIMEEVAL Enumerable(const char* name) : Name { name } {}
 
 	virtual ~Enumerable() = default;
 };

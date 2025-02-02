@@ -416,8 +416,8 @@ DEFINE_STRONG_HOOK(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 
 #ifndef INCLUDES
 static int LastReadIndex = -1;
-static std::vector<CCINIClass*> LoadedINIs;
-static std::vector<std::string> LoadedINIFiles;
+static OPTIONALINLINE std::vector<CCINIClass*> LoadedINIs;
+static OPTIONALINLINE std::vector<std::string> LoadedINIFiles;
 
 DEFINE_STRONG_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 {

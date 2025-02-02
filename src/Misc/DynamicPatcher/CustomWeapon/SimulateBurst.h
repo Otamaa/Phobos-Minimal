@@ -108,11 +108,11 @@ private:
 	}
 };
 
-//template <>
-//struct Savegame::ObjectFactory<SimulateBurst>
-//{
-//	std::unique_ptr<SimulateBurst> operator() (PhobosStreamReader& Stm) const
-//	{
-//		return std::make_unique<SimulateBurst>();
-//	}
-//};
+template <>
+struct Savegame::ObjectFactory<SimulateBurst>
+{
+	std::unique_ptr<SimulateBurst> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<SimulateBurst>();
+	}
+};

@@ -198,7 +198,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 				break;
 			case EXCEPTION_ACCESS_VIOLATION:
 			{
-				std::string VioType;
+				std::string VioType {};
 				switch (pExs->ExceptionRecord->ExceptionInformation[0])
 				{
 				case 0: // Read violation

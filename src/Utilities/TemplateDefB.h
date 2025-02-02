@@ -585,6 +585,41 @@ namespace detail
 		}
 	}
 
+	template<size_t count>
+	OPTIONALINLINE void ParseVector(INI_EX& IniEx, std::vector<std::vector<PhobosFixedString<count>>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
+	{
+		if (!IniEx->GetSection(pSection))
+			return;
+
+		nVecDest.clear();
+
+		const auto nKeyCount = IniEx->GetKeyCount(pSection);
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			char* context = nullptr;
+			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
+				continue;
+
+			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
+				cur;
+				cur = strtok_s(nullptr, Delims, &context))
+			{
+				auto res = PhobosCRT::trim(cur);
+
+				if (!res.empty())
+					nVecDest[i].emplace_back(res.c_str());
+
+				if (bVerbose)
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
+			}
+		}
+	}
+
 	template<typename T, bool Allocate = false, bool Unique = false>
 	OPTIONALINLINE void ParseVector(DynamicVectorClass<T>& List, INI_EX& IniEx , const char* section, const char* key , const char* message = nullptr)
 	{

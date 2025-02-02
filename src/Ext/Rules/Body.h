@@ -47,7 +47,7 @@ public:
 	std::vector<std::vector<TechnoTypeClass*>> AITargetTypesLists { };
 	std::vector<std::vector<ScriptTypeClass*>> AIScriptsLists { };
 	std::vector<std::vector<HouseTypeClass*>> AIHateHousesLists { };
-	std::vector<std::vector<std::string>> AIConditionsLists { };
+	std::vector<std::vector<PhobosFixedString<0x18>>> AIConditionsLists { };
 	std::vector<std::vector<AITriggerTypeClass*>> AITriggersLists { };
 	std::vector<std::vector<HouseTypeClass*>> AIHousesLists { };
 
