@@ -1340,35 +1340,35 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 // Only reasonable way to solve this is to perform the cell clear check on every client per frame
 // and use that result in cursor display which is client-specific. This is now implemented in multiplayer games only.
 #pragma region DeploysIntoDesyncFix
+//bugged
+// DEFINE_HOOK(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
+// {
+// 	if (!SessionClass::Instance->IsMultiplayer())
+// 		return 0;
+//
+// 	GET(UnitClass*, pThis, ESI);
+//
+// 	if (pThis->Type->DeploysInto)
+// 		TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding = TechnoExtData::CanDeployIntoBuilding(pThis);
+//
+// 	return 0;
+// }
 
-DEFINE_HOOK(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
-{
-	if (!SessionClass::Instance->IsMultiplayer())
-		return 0;
-
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->DeploysInto)
-		TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding = TechnoExtData::CanDeployIntoBuilding(pThis);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
-{
-	if (!SessionClass::Instance->IsMultiplayer())
-		return 0;
-
-	enum { SkipGameCode = 0x73FFDF };
-
-	GET(UnitClass*, pThis, ESI);
-	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
-
-	if (!TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding)
-		*pAction = Action::NoDeploy;
-
-	return SkipGameCode;
-}
+// DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
+// {
+// 	if (!SessionClass::Instance->IsMultiplayer())
+// 		return 0;
+//
+// 	enum { SkipGameCode = 0x73FFDF };
+//
+// 	GET(UnitClass*, pThis, ESI);
+// 	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
+//
+// 	if (!TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding)
+// 		*pAction = Action::NoDeploy;
+//
+// 	return SkipGameCode;
+// }
 
 #pragma endregion
 

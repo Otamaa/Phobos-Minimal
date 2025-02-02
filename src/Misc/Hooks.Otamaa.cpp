@@ -1477,6 +1477,7 @@ DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 //
 //	return 0x6F875F;
 //}
+#include <Ext/Cell/Body.h>
 
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
@@ -1503,6 +1504,68 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* buffer, int wepon, CoordStruct 
 }
 
 DEFINE_JUMP(VTABLE, 0x7F5D20, MiscTools::to_DWORD(&FakeUnitClass::_GetFLH));
+
+// issue #895788: cells' high occupation flags are marked only if they
+// actually contains a bridge while unmarking depends solely on object
+// height above ground. this mismatch causes the cell to become blocked.
+void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
+{
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
+	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
+
+	// remember which occupation bit we set
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+	pExt->AltOccupation = alt;
+
+	if (alt)
+	{
+		pCell->AltOccupationFlags |= 0x20;
+	}
+	else
+	{
+		pCell->OccupationFlags |= 0x20;
+	}
+
+	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+		pExt->IncomingUnit = this;
+
+}
+
+void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
+{
+	enum { obNormal = 1, obAlt = 2 };
+
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
+	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
+
+	// also clear the last occupation bit, if set
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+	if (!pExt->AltOccupation.empty())
+	{
+		int lastAlt = pExt->AltOccupation ? obAlt : obNormal;
+		alt |= lastAlt;
+		pExt->AltOccupation.clear();
+	}
+
+	if (alt & obAlt)
+	{
+		pCell->AltOccupationFlags &= ~0x20;
+	}
+
+	if (alt & obNormal)
+	{
+		pCell->OccupationFlags &= ~0x20;
+	}
+
+	if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
+		pExt->IncomingUnit = nullptr;
+
+}
+
+DEFINE_JUMP(VTABLE, 0x7F5D64, MiscTools::to_DWORD(&FakeUnitClass::_ClearOccupyBit));
+DEFINE_JUMP(VTABLE, 0x7F5D60, MiscTools::to_DWORD(&FakeUnitClass::_SetOccupyBit));
 
 DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
