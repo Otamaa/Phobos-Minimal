@@ -10,7 +10,6 @@
 #include <YRPPCore.h>
 #include <AbstractClass.h>
 #include <vector>
-#include <Phobos.h>
 
 #include <AnimClass.h>
 #include <BuildingClass.h>

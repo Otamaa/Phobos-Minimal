@@ -136,13 +136,14 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse const& displayToHouses,
 	ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix)
 {
+
 	if (displayToHouses == AffectedHouse::All ||
 		owner && EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer))
 	{
 		const bool isPositive = amount > 0;
 		const wchar_t* sign_symbol = (sign && amount != 0) ? (isPositive ? L"+" : L"-") : L"";
 		wchar_t displayStr[0x20];
-		swprintf_s(displayStr, L"%ls%ls%d", sign_symbol, prefix, Math::abs(amount));
+		swprintf_s(displayStr, L"%ls%ls%d", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(displayStr, &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);

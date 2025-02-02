@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Phobos.h>
 
 #include <string>
 
@@ -26,9 +25,7 @@ private:
 	OPTIONALINLINE const wchar_t* GetUIDescription(SWTypeExtData* pData) const;
 
 public:
-	COMPILETIMEEVAL FORCEDINLINE bool IsEnabled() const {
-		return Phobos::UI::ExtendedToolTips;
-	}
+	 bool IsEnabled() const;
 
 	COMPILETIMEEVAL FORCEDINLINE const wchar_t* GetBuffer() const
 	{

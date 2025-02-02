@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Phobos.h>
+#include <Phobos.Defines.h>
 
 #include "Enum.h"
 #include "Interpolation.h"

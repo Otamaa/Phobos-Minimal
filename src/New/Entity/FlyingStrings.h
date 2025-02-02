@@ -5,12 +5,12 @@ By AlexB and Joshy
 */
 
 #pragma once
-#include <Phobos.h>
 
 #include <ColorScheme.h>
 #include <CoordStruct.h>
 #include <Utilities/Enum.h>
 #include <Utilities/VectorHelper.h>
+#include <string>
 
 class TechnoClass;
 class HouseClass;
@@ -40,8 +40,7 @@ public:
 	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , const ColorStruct& nOverrideColor = ColorStruct::Empty);
 	static void AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, const ColorStruct& nOverrideColor = ColorStruct::Empty);
 	static void AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor);
-	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color,
-		CoordStruct const& coords, Point2D pixelOffset = Point2D::Empty, bool sign = true, const wchar_t* prefix = Phobos::UI::CostLabel);
+	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix);
 	static void UpdateAll();
 
 	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset);

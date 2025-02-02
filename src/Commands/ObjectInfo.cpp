@@ -138,7 +138,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		const auto pFirst = pFoot->Passengers.FirstPassenger;
 		if (pFoot->Passengers.NumPassengers == 1)
 		{
-			const char* pTargetStr = NONE_STR;
+			const char* pTargetStr = GameStrings::NoneStr();
 
 			if (pFirst->Target)
 			{

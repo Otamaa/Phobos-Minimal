@@ -364,7 +364,7 @@ void ShieldClass::ResponseAttack() const
 				RadarEventType::HarvesterAttacked,
 				CellClass::Coord2Cell(pUnit->GetDestination(pUnit))))
 			{
-				VoxClass::Play(Eva_OreMinerUnderAttack);
+				VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
 			}
 		}
 	}

@@ -10,69 +10,8 @@
 #include <random>
 #include <ColorStruct.h>
 
-#ifndef NANOPRINTF_IMPLEMENTATION
-#define IMPL_SNPRNINTF _snprintf_s
-#else
-#include <ExtraHeaders/nanoprintf.h>
-#define IMPL_SNPRNINTF npf_snprintf
-#endif
-
-#define IMPL_STRCMPI(a ,b) _strcmpi(a,b)
-#define IMPL_STRCMP(a ,b) strcmp(a,b)
-#define IMPL_WSTRCMPI(a , b) _wcsicmp(a , b)
-
-#define IS_SAME_STR_(a ,b) (IMPL_STRCMPI(a,b) == 0)
-#define IS_SAME_STR_N(a ,b) (IMPL_STRCMP(a,b) == 0)
-#define IS_SAME_STR_I(a,b) ( _stricmp(a,b) == 0)
-#define IS_SAME_WSTR(a,b) (IMPL_WSTRCMPI(a,b) == 0)
-
 class CCINIClass;
 class AbstractClass;
-
-#define NONE_STR2 GameStrings::NoneStrb()
-COMPILETIMEEVAL const char* NULL_STR = "null";
-COMPILETIMEEVAL const char* NULL_STR2 = "<null>";
-COMPILETIMEEVAL const char* DEFAULT_STR = "default";
-COMPILETIMEEVAL const char* DEFAULT_STR2 = "<default>";
-COMPILETIMEEVAL const char* PHOBOS_STR = "Phobos";
-COMPILETIMEEVAL const char* ADMIN_STR = "WIN-56N2RLUDAST";
-
-COMPILETIMEEVAL const char* GLOBALCONTROLS_SECTION = "GlobalControls";
-COMPILETIMEEVAL const char* SIDEBAR_SECTION_T = "Sidebar";
-COMPILETIMEEVAL auto UISETTINGS_SECTION = "UISettings";
-
-COMPILETIMEEVAL const wchar_t* ARES_DLL =  L"Ares.dll";
-COMPILETIMEEVAL const char* ARES_DLL_S = "Ares.dll";
-COMPILETIMEEVAL const wchar_t* PHOBOS_DLL = L"Phobos.dll";
-COMPILETIMEEVAL const char* PHOBOS_DLL_S = "Phobos.dll";
-COMPILETIMEEVAL const wchar_t* GAMEMD_EXE = L"gamemd.exe";
-COMPILETIMEEVAL const char* UIMD_ = "uimd.ini";
-
-#define TOOLTIPS_SECTION GameStrings::ToolTips()
-#define SIDEBAR_SECTION GameStrings::SideBar()
-#define GENERAL_SECTION GameStrings::General()
-#define RADIATION_SECTION GameStrings::Radiation()
-#define AUDIOVISUAL_SECTION GameStrings::AudioVisual()
-#define SPECIALWEAPON_SECTION GameStrings::SpecialWeapons()
-#define JUMPJET_SECTION GameStrings::JumpjetControls()
-#define COMBATDAMAGE_SECTION GameStrings::CombatDamage()
-
-#define FAILEDTOLOADUIMD_MSG GameStrings::FailedToLoadUIMDMsg()
-
-#define UIMD_FILENAME GameStrings::UIMD_INI()
-#define RA2MD_FILENAME GameStrings::RA2MD_INI()
-
-#define RING1_NAME GameStrings::Anim_RING1()
-#define INVISO_NAME GameStrings::Anim_INVISO()
-
-//= "<all>";
-#define ALL_STR GameStrings::AllStr()
-// "<none>";
-#define NONE_STR GameStrings::NoneStr()
-
-#define Eva_structureSold GameStrings::EVA_StructureSold()
-#define Eva_UnitSold GameStrings::EVA_UnitSold()
-#define Eva_OreMinerUnderAttack GameStrings::EVA_OreMinerUnderAttack()
 
 enum class ExceptionHandlerMode {
 	Default = 0,

@@ -1002,7 +1002,7 @@ DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 // 	GET(TeamTypeClass* const, pThis, ESI);
 // 	GET(HouseClass* const, pHouse, EDI);
 // 	const void* ptr = Allocate(sizeof(TeamClass));
-// 	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : NONE_STR2 ,pHouse, pThis->ID, ptr);
+// 	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : GameStrings::NoneStrb() ,pHouse, pThis->ID, ptr);
 // 	R->EAX(ptr);
 // 	return 0x6F0A5A;
 // }
@@ -1014,7 +1014,7 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 //{
 //	GET(FactoryClass* const, pThis, ESI);
 //	GET(TechnoTypeClass* const, pType, EAX);
-//	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
+//	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStrb(), pType->ID);
 //	R->ECX(pThis->Object);
 //	return 0x4CA021;
 //}
@@ -1032,7 +1032,7 @@ DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET_STACK(short const, nCellY, 0x12);
 	GET(TeamClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
-	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
+	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
@@ -3776,7 +3776,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 		result = BuildingTypeClass::Find(pBuffer);
 
 	if (Phobos::Otamaa::IsAdmin)
-		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer, result ? result->GetThisClassName() : NONE_STR2, pThis->ID);
+		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;

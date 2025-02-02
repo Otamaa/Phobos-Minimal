@@ -582,15 +582,15 @@ bool PhobosWindowClass::TeamList()
 
 		if (DrawColored())
 		{
-			if(ImGui::TreeNode((void*)(intptr_t)1,"Taskforces [%s[0x%x]", team->Type->TaskForce ? team->Type->TaskForce->ID : NONE_STR, team->Type->TaskForce)){
+			if(ImGui::TreeNode((void*)(intptr_t)1,"Taskforces [%s[0x%x]", team->Type->TaskForce ? team->Type->TaskForce->ID : GameStrings::NoneStr(), team->Type->TaskForce)){
 				if (team->Type->TaskForce) {
 					ImGui::Text("CountEntries %d", team->Type->TaskForce->CountEntries);
 
 					for (int i = 0; i < std::size(team->Type->TaskForce->Entries); ++i) {
 						ImGui::Text("Entry[%d] 0x%x(%s - %s) - %d", i ,
 							team->Type->TaskForce->Entries[i].Type ,
-							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->ID : NONE_STR,
-							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->GetThisClassName() : NONE_STR,
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->ID : GameStrings::NoneStr(),
+							team->Type->TaskForce->Entries[i].Type ? team->Type->TaskForce->Entries[i].Type->GetThisClassName() : GameStrings::NoneStr(),
 							team->Type->TaskForce->Entries[i].Amount
 						);
 					}
@@ -638,9 +638,9 @@ bool PhobosWindowClass::TeamList()
 				ImGui::TreePop();
 			}
 
-			ImGui::Text("Tag : %s(0x%x)", team->Tag ? team->Tag->Type->ID : NONE_STR, team->Tag);
-			ImGui::Text("Owner [%s(0x%x)]", team->Owner ? team->Owner->Type->ID : NONE_STR, team->Owner);
-			ImGui::Text("Target [%s(0x%x)]", team->Target ? team->Target->Type->ID : NONE_STR, team->Target);
+			ImGui::Text("Tag : %s(0x%x)", team->Tag ? team->Tag->Type->ID : GameStrings::NoneStr(), team->Tag);
+			ImGui::Text("Owner [%s(0x%x)]", team->Owner ? team->Owner->Type->ID : GameStrings::NoneStr(), team->Owner);
+			ImGui::Text("Target [%s(0x%x)]", team->Target ? team->Target->Type->ID : GameStrings::NoneStr(), team->Target);
 			ImGui::Text("TotalObjects %d", team->TotalObjects);
 			ImGui::Text("TotalThreatValue %d", team->TotalThreatValue);
 			ImGui::Text("CreationFrame %d", team->CreationFrame);
@@ -661,8 +661,8 @@ bool PhobosWindowClass::TeamList()
 			ImGui::Text("IsLeavingMap %d", team->IsLeavingMap);
 			ImGui::Text("IsSuspended %d", team->IsSuspended);
 			ImGui::Text("AchievedGreatSuccess %d", team->AchievedGreatSuccess);
-			ImGui::Text("QueuedFocus [0x%x(%s)]", team->QueuedFocus , team->QueuedFocus ? team->QueuedFocus->GetThisClassName() : NONE_STR);
-			ImGui::Text("ArchiveTarget [0x%x(%s)]", team->ArchiveTarget, team->ArchiveTarget ? team->ArchiveTarget->GetThisClassName() : NONE_STR);
+			ImGui::Text("QueuedFocus [0x%x(%s)]", team->QueuedFocus , team->QueuedFocus ? team->QueuedFocus->GetThisClassName() : GameStrings::NoneStr());
+			ImGui::Text("ArchiveTarget [0x%x(%s)]", team->ArchiveTarget, team->ArchiveTarget ? team->ArchiveTarget->GetThisClassName() : GameStrings::NoneStr());
 			ImGui::Text("SpawnCell [0x%x(%d , %d)]", team->SpawnCell, team->SpawnCell ? team->SpawnCell->MapCoords.X : 0 , team->SpawnCell ? team->SpawnCell->MapCoords.Y : 0);
 
 			ImGui::TreePop();

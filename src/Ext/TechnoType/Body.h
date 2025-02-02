@@ -112,7 +112,7 @@ public:
 	Valueable<bool> HealthBar_Hide { false };
 	Valueable<CSFText> UIDescription {};
 	Valueable<bool> LowSelectionPriority { false };
-	PhobosFixedString<0x20> GroupAs { NONE_STR2 };
+	PhobosFixedString<0x20> GroupAs { GameStrings::NoneStrb() };
 	Valueable<int> RadarJamRadius { 0 };
 	Nullable<int> InhibitorRange {};
 	Nullable<int> DesignatorRange {};

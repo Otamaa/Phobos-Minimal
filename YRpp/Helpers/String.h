@@ -7,7 +7,7 @@
 namespace detail
 {
 	template <typename T, typename Traits = std::char_traits<T>>
-	OPTIONALINLINE __declspec(noinline) void __fastcall string_copy_n(
+	OPTIONALINLINE NOINLINE void __fastcall string_copy_n(
 		T* const pDest, T const* const pSrc, size_t const cchMax) noexcept
 	{
 		auto const len = Traits::length(pSrc);

@@ -6382,8 +6382,8 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += Unsorted::BridgeHeight;
 		//Debug::Log("Trigger %s - Tag %s PlayAnimAt at(%d %d %d) Anim[%s - %d]\n",
-		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : NONE_STR,
-		//	pAction->TagType ? pAction->TagType->get_ID() : NONE_STR,
+		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr(),
+		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
 		//	nCoord.X, nCoord.Y, nCoord.Z,
 		//	pAnimType->ID,
 		//	pAction->Value
@@ -6410,8 +6410,8 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 			nCoord.Z += Unsorted::BridgeHeight;
 
 		//Debug::Log("Trigger %s - Tag %s DoExplosion at(%d %d %d) Weapon[%s] Warhead[%s]\n",
-		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : NONE_STR ,
-		//	pAction->TagType ? pAction->TagType->get_ID() : NONE_STR,
+		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr() ,
+		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
 		//	nCoord.X, nCoord.Y , nCoord.Z,
 		//	pWeaponType->ID,
 		//	pWeaponType->Warhead->ID

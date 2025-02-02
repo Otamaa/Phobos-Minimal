@@ -19,7 +19,7 @@ class FireTacticalSWCommandClass : public PhobosCommandClass
 template<size_t Index>
 OPTIONALINLINE const char* FireTacticalSWCommandClass<Index>::GetName() const
 {
-	_snprintf_s(Phobos::readBuffer, Phobos::readLength, "FireTacticalSW%d", Index);
+	IMPL_SNPRNINTF(Phobos::readBuffer, Phobos::readLength, "FireTacticalSW%d", Index);
 	return Phobos::readBuffer;
 }
 

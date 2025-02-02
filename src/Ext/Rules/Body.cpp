@@ -90,10 +90,10 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	Nullable<double> Shield_ConditionRed_d;
 	Nullable<double> ConditionYellow_Terrain_d;
 
-	Shield_ConditionGreen_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionGreen");// somewhat never used , man
-	Shield_ConditionYellow_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionYellow");
-	Shield_ConditionRed_d.Read(iniEX, AUDIOVISUAL_SECTION, "Shield.ConditionRed");
-	ConditionYellow_Terrain_d.Read(iniEX, AUDIOVISUAL_SECTION, "ConditionYellow.Terrain");
+	Shield_ConditionGreen_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionGreen");// somewhat never used , man
+	Shield_ConditionYellow_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionYellow");
+	Shield_ConditionRed_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionRed");
+	ConditionYellow_Terrain_d.Read(iniEX, GameStrings::AudioVisual(), "ConditionYellow.Terrain");
 
 	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
 	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
@@ -222,42 +222,42 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
 	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
 
-	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "ForceShield.KillOrganicsWarhead");
+	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "ForceShield.KillOrganicsWarhead");
 
 	if (!pData->ForceShield_KillOrganicsWarhead)
 		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
 
-	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "IronCurtain.KillOrganicsWarhead");
+	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "IronCurtain.KillOrganicsWarhead");
 
 	if (!pData->IronCurtain_KillOrganicsWarhead)
 		pData->IronCurtain_KillOrganicsWarhead = pThis->C4Warhead;
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
-	pData->FirestormActiveAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormActiveAnim");
-	pData->FirestormIdleAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormIdleAnim");
-	pData->FirestormGroundAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormGroundAnim");
-	pData->FirestormAirAnim.Read(iniEX, AUDIOVISUAL_SECTION, "FirestormAirAnim");
-	pData->FirestormWarhead.Read(iniEX, COMBATDAMAGE_SECTION, "FirestormWarhead");
-	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GENERAL_SECTION, "DamageToFirestormDamageCoefficient");
+	pData->FirestormActiveAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormActiveAnim");
+	pData->FirestormIdleAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormIdleAnim");
+	pData->FirestormGroundAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormGroundAnim");
+	pData->FirestormAirAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormAirAnim");
+	pData->FirestormWarhead.Read(iniEX, GameStrings::CombatDamage(), "FirestormWarhead");
+	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GameStrings::General(), "DamageToFirestormDamageCoefficient");
 
-	pData->Bounty_Enablers.Read(iniEX, GENERAL_SECTION, "BountyEnablers");
-	pData->Bounty_Display.Read(iniEX, AUDIOVISUAL_SECTION, "BountyDisplay");
-	pData->CloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "CloakAnim");
-	pData->DecloakAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DecloakAnim");
+	pData->Bounty_Enablers.Read(iniEX, GameStrings::General(), "BountyEnablers");
+	pData->Bounty_Display.Read(iniEX, GameStrings::AudioVisual(), "BountyDisplay");
+	pData->CloakAnim.Read(iniEX, GameStrings::AudioVisual(), "CloakAnim");
+	pData->DecloakAnim.Read(iniEX, GameStrings::AudioVisual(), "DecloakAnim");
 	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
 
-	pData->Veinhole_Warhead.Read(iniEX, COMBATDAMAGE_SECTION, "VeinholeWarhead");
+	pData->Veinhole_Warhead.Read(iniEX, GameStrings::CombatDamage(), "VeinholeWarhead");
 
-	pData->WallTowers.Read(iniEX, GENERAL_SECTION, "WallTowers");
+	pData->WallTowers.Read(iniEX, GameStrings::General(), "WallTowers");
 	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
 		pData->WallTowers.push_back(pThis->WallTower);
 
-	pData->Promote_Vet_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.VeteranAnim");
-	pData->Promote_Elite_Anim.Read(iniEX, AUDIOVISUAL_SECTION, "Promote.EliteAnim");
-	pData->PrimaryFactoryIndicator.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator");
-	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, AUDIOVISUAL_SECTION, "PrimaryFactoryIndicator.Palette");
+	pData->Promote_Vet_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranAnim");
+	pData->Promote_Elite_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.EliteAnim");
+	pData->PrimaryFactoryIndicator.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator");
+	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator.Palette");
 
-	pData->DefaultExplodeFireAnim.Read(iniEX, AUDIOVISUAL_SECTION, "DefaultExplodeOverlayFireAnim");
+	pData->DefaultExplodeFireAnim.Read(iniEX, GameStrings::AudioVisual(), "DefaultExplodeOverlayFireAnim");
 
 	if (!pData->DefaultExplodeFireAnim)
 		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
@@ -823,7 +823,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->HeightShadowScaling_MinScale.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling.MinScale");
 
-	this->StartInMultiplayerUnitCost.Read(exINI, GENERAL_SECTION, "StartInMultiplayerUnitCost");
+	this->StartInMultiplayerUnitCost.Read(exINI, GameStrings::General(), "StartInMultiplayerUnitCost");
 	this->Buildings_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultDigitalDisplayTypes");
 	this->Infantry_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
 	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
@@ -850,20 +850,20 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DrawInsignia_AdjustPos_Units.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Units");
 
 #pragma region Otamaa
-	this->DisplayCreditsDelay.Read(exINI, AUDIOVISUAL_SECTION, "DisplayCreditsDelay");
-	this->TypeSelectUseDeploy.Read(exINI, GENERAL_SECTION, "TypeSelectUseDeploy");
-	this->AIDetectDisguise_Percent.Read(exINI, GENERAL_SECTION, "AIDisguiseDetectionPercent");
-	this->CanDrive.Read(exINI, GENERAL_SECTION, "EveryoneCanDrive");
-	this->TogglePowerAllowed.Read(exINI, GENERAL_SECTION, "TogglePowerAllowed");
-	this->TogglePowerDelay.Read(exINI, GENERAL_SECTION, "TogglePowerDelay");
+	this->DisplayCreditsDelay.Read(exINI, GameStrings::AudioVisual(), "DisplayCreditsDelay");
+	this->TypeSelectUseDeploy.Read(exINI, GameStrings::General(), "TypeSelectUseDeploy");
+	this->AIDetectDisguise_Percent.Read(exINI, GameStrings::General(), "AIDisguiseDetectionPercent");
+	this->CanDrive.Read(exINI, GameStrings::General(), "EveryoneCanDrive");
+	this->TogglePowerAllowed.Read(exINI, GameStrings::General(), "TogglePowerAllowed");
+	this->TogglePowerDelay.Read(exINI, GameStrings::General(), "TogglePowerDelay");
 	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
-	this->GainSelfHealAllowMultiplayPassive.Read(exINI, GENERAL_SECTION, "GainSelfHealAllowMultiplayPassive");
-	this->VeinsDamagingWeightTreshold.Read(exINI, GENERAL_SECTION, "VeinsDamagingWeightTreshold");
-	this->VeinholePal.Read(exINI, GENERAL_SECTION, "VeinholePalette");
-	this->DegradeEnabled.Read(exINI, GENERAL_SECTION, "Degrade.Enabled");
-	this->DegradePercentage.Read(exINI, GENERAL_SECTION, "Degrade.Percentage");
-	this->DegradeAmountNormal.Read(exINI, GENERAL_SECTION, "Degrade.AmountNormal");
-	this->DegradeAmountConsumer.Read(exINI, GENERAL_SECTION, "Degrade.AmountConsumer");
+	this->GainSelfHealAllowMultiplayPassive.Read(exINI, GameStrings::General(), "GainSelfHealAllowMultiplayPassive");
+	this->VeinsDamagingWeightTreshold.Read(exINI, GameStrings::General(), "VeinsDamagingWeightTreshold");
+	this->VeinholePal.Read(exINI, GameStrings::General(), "VeinholePalette");
+	this->DegradeEnabled.Read(exINI, GameStrings::General(), "Degrade.Enabled");
+	this->DegradePercentage.Read(exINI, GameStrings::General(), "Degrade.Percentage");
+	this->DegradeAmountNormal.Read(exINI, GameStrings::General(), "Degrade.AmountNormal");
+	this->DegradeAmountConsumer.Read(exINI, GameStrings::General(), "Degrade.AmountConsumer");
 
 	this->AllowParallelAIQueues.Read(exINI, GLOBALCONTROLS_SECTION, "AllowParallelAIQueues");
 	this->ForbidParallelAIQueues_Infantry.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry");
@@ -872,95 +872,95 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ForbidParallelAIQueues_Aircraft.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft");
 	this->ForbidParallelAIQueues_Building.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building");
 
-	this->EngineerDamage.Read(exINI, GENERAL_SECTION, "EngineerDamage");
-	this->EngineerAlwaysCaptureTech.Read(exINI, GENERAL_SECTION, "EngineerAlwaysCaptureTech");
-	this->EngineerDamageCursor.Read(exINI, GENERAL_SECTION, "EngineerDamageCursor");
+	this->EngineerDamage.Read(exINI, GameStrings::General(), "EngineerDamage");
+	this->EngineerAlwaysCaptureTech.Read(exINI, GameStrings::General(), "EngineerAlwaysCaptureTech");
+	this->EngineerDamageCursor.Read(exINI, GameStrings::General(), "EngineerDamageCursor");
 
-	this->DefaultParaPlane.Read(exINI, GENERAL_SECTION, "ParadropPlane", true);
-	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
-	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall", true);
-	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship", true);
-	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft", true);
-	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft", true);
+	this->DefaultParaPlane.Read(exINI, GameStrings::General(), "ParadropPlane", true);
+	this->VeinholeParticle.Read(exINI, GameStrings::AudioVisual(), "VeinholeSpawnParticleType", true);
+	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Carryall", true);
+	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Dropship", true);
+	this->Aircraft_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Aircraft", true);
+	this->Aircraft_TakeOffAnim.Read(exINI, GameStrings::AudioVisual(), "TakeOffAnim.Aircraft", true);
 
-	this->DropPodTrailer.Read(exINI, GENERAL_SECTION, "DropPodTrailer", true);
-	this->ElectricDeath.Read(exINI, AUDIOVISUAL_SECTION, "InfantryElectrocuted");
-	this->DroppodTrailerSpawnDelay.Read(exINI, GENERAL_SECTION, "DropPodTrailerSpawnDelay");
+	this->DropPodTrailer.Read(exINI, GameStrings::General(), "DropPodTrailer", true);
+	this->ElectricDeath.Read(exINI, GameStrings::AudioVisual(), "InfantryElectrocuted");
+	this->DroppodTrailerSpawnDelay.Read(exINI, GameStrings::General(), "DropPodTrailerSpawnDelay");
 
-	this->DropPodTypes.Read(exINI, GENERAL_SECTION, "DropPodTypes");
-	this->DropPodMinimum.Read(exINI, GENERAL_SECTION, "DropPodMinimum");
-	this->DropPodMaximum.Read(exINI, GENERAL_SECTION, "DropPodMaximum");
-	this->ReturnStructures.Read(exINI, GENERAL_SECTION, "ReturnStructures");
+	this->DropPodTypes.Read(exINI, GameStrings::General(), "DropPodTypes");
+	this->DropPodMinimum.Read(exINI, GameStrings::General(), "DropPodMinimum");
+	this->DropPodMaximum.Read(exINI, GameStrings::General(), "DropPodMaximum");
+	this->ReturnStructures.Read(exINI, GameStrings::General(), "ReturnStructures");
 
-	this->MessageSilosNeeded.Read(exINI, GENERAL_SECTION, "Message.SilosNeeded");
+	this->MessageSilosNeeded.Read(exINI, GameStrings::General(), "Message.SilosNeeded");
 
-	this->HunterSeekerBuildings.Read(exINI, SPECIALWEAPON_SECTION, "HSBuilding");
-	this->HunterSeekerDetonateProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDetonateProximity");
-	this->HunterSeekerDescendProximity.Read(exINI, GENERAL_SECTION, "HunterSeekerDescendProximity");
-	this->HunterSeekerAscentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerAscentSpeed");
-	this->HunterSeekerDescentSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerDescentSpeed");
-	this->HunterSeekerEmergeSpeed.Read(exINI, GENERAL_SECTION, "HunterSeekerEmergeSpeed");
-	this->Units_UnSellable.Read(exINI, GENERAL_SECTION, "UnitsUnsellable");
-	this->DrawTurretShadow.Read(exINI, AUDIOVISUAL_SECTION, "DrawTurretShadow");
-	this->AnimRemapDefaultColorScheme.Read(exINI, AUDIOVISUAL_SECTION, "AnimRemapDefaultColorScheme");
+	this->HunterSeekerBuildings.Read(exINI, GameStrings::SpecialWeapons(), "HSBuilding");
+	this->HunterSeekerDetonateProximity.Read(exINI, GameStrings::General(), "HunterSeekerDetonateProximity");
+	this->HunterSeekerDescendProximity.Read(exINI, GameStrings::General(), "HunterSeekerDescendProximity");
+	this->HunterSeekerAscentSpeed.Read(exINI, GameStrings::General(), "HunterSeekerAscentSpeed");
+	this->HunterSeekerDescentSpeed.Read(exINI, GameStrings::General(), "HunterSeekerDescentSpeed");
+	this->HunterSeekerEmergeSpeed.Read(exINI, GameStrings::General(), "HunterSeekerEmergeSpeed");
+	this->Units_UnSellable.Read(exINI, GameStrings::General(), "UnitsUnsellable");
+	this->DrawTurretShadow.Read(exINI, GameStrings::AudioVisual(), "DrawTurretShadow");
+	this->AnimRemapDefaultColorScheme.Read(exINI, GameStrings::AudioVisual(), "AnimRemapDefaultColorScheme");
 
-	this->Veins_PerCellAmount.Read(exINI, GENERAL_SECTION, "VeinsPerCellStorageAmount");
-	this->MultipleFactoryCap.Read(exINI, GENERAL_SECTION);
+	this->Veins_PerCellAmount.Read(exINI, GameStrings::General(), "VeinsPerCellStorageAmount");
+	this->MultipleFactoryCap.Read(exINI, GameStrings::General());
 
 #pragma endregion
 
-	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
-	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
+	this->StealthSpeakDelay.Read(exINI, GameStrings::AudioVisual(), "StealthSpeakDelay");
+	this->SubterraneanSpeakDelay.Read(exINI, GameStrings::AudioVisual(), "SubterraneanSpeakDelay");
 	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
-	this->ChronoSparkleDisplayDelay.Read(exINI, GENERAL_SECTION, "ChronoSparkleDisplayDelay");
-	this->ChronoSparkleBuildingDisplayPositions.Read(exINI, GENERAL_SECTION, "ChronoSparkleBuildingDisplayPositions");
-	this->RepairStopOnInsufficientFunds.Read(exINI, GENERAL_SECTION, "RepairStopOnInsufficientFunds");
+	this->ChronoSparkleDisplayDelay.Read(exINI, GameStrings::General(), "ChronoSparkleDisplayDelay");
+	this->ChronoSparkleBuildingDisplayPositions.Read(exINI, GameStrings::General(), "ChronoSparkleBuildingDisplayPositions");
+	this->RepairStopOnInsufficientFunds.Read(exINI, GameStrings::General(), "RepairStopOnInsufficientFunds");
 
-	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
-	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
-	this->AI_CostMult.Read(exINI, GENERAL_SECTION, "AICostMult");
+	this->BerserkROFMultiplier.Read(exINI, GameStrings::CombatDamage(), "BerserkROFMultiplier");
+	this->TeamRetaliate.Read(exINI, GameStrings::General(), "TeamRetaliate");
+	this->AI_CostMult.Read(exINI, GameStrings::General(), "AICostMult");
 
-	this->DeactivateDim_Powered.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimPowered");
-	this->DeactivateDim_EMP.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimEMP");
-	this->DeactivateDim_Operator.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimOperator");
+	this->DeactivateDim_Powered.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimPowered");
+	this->DeactivateDim_EMP.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimEMP");
+	this->DeactivateDim_Operator.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimOperator");
 
 #pragma region Otamaa
-	this->AI_SpyMoneyStealPercent.Read(exINI, GENERAL_SECTION, "AI.SpyMoneyStealPercent");
-	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
+	this->AI_SpyMoneyStealPercent.Read(exINI, GameStrings::General(), "AI.SpyMoneyStealPercent");
+	this->AutoAttackICedTarget.Read(exINI, GameStrings::CombatDamage(), "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
-	this->AI_AutoSellHealthRatio.Read(exINI, GENERAL_SECTION, "AI.AutoSellHealthRatio");
+	this->AI_AutoSellHealthRatio.Read(exINI, GameStrings::General(), "AI.AutoSellHealthRatio");
 
 	if(Phobos::Config::EnableBuildingPlacementPreview) {
-		this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "ShowBuildingPlacementPreview");
-		this->Building_PlacementPreview.Read(exINI, AUDIOVISUAL_SECTION, "PlacementPreview");
+		this->Building_PlacementPreview.Read(exINI, GameStrings::AudioVisual(), "ShowBuildingPlacementPreview");
+		this->Building_PlacementPreview.Read(exINI, GameStrings::AudioVisual(), "PlacementPreview");
 
 		if (this->Building_PlacementPreview != Phobos::Config::EnableBuildingPlacementPreview)
 			this->Building_PlacementPreview = Phobos::Config::EnableBuildingPlacementPreview;
 	}
 
 	this->PlacementGrid_TranslucencyWithPreview.Read(exINI, GameStrings::AudioVisual, "PlacementGrid.TranslucencyWithPreview");
-	this->DisablePathfindFailureLog.Read(exINI, GENERAL_SECTION, "DisablePathfindFailureLog");
-	this->CreateSound_PlayerOnly.Read(exINI, AUDIOVISUAL_SECTION, "CreateSound.AffectOwner");
-	this->DoggiePanicMax.Read(exINI, COMBATDAMAGE_SECTION, "DoggiePanicMax");
-	this->HunterSeeker_Damage.Read(exINI, COMBATDAMAGE_SECTION, "HunterSeekerDamage");
-	this->AutoRepelAI.Read(exINI, COMBATDAMAGE_SECTION, "AutoRepel");
-	this->AutoRepelPlayer.Read(exINI, COMBATDAMAGE_SECTION, "PlayerAutoRepel");
-	this->AIFriendlyDistance.Read(exINI, GENERAL_SECTION, "AIFriendlyDistance");
+	this->DisablePathfindFailureLog.Read(exINI, GameStrings::General(), "DisablePathfindFailureLog");
+	this->CreateSound_PlayerOnly.Read(exINI, GameStrings::AudioVisual(), "CreateSound.AffectOwner");
+	this->DoggiePanicMax.Read(exINI, GameStrings::CombatDamage(), "DoggiePanicMax");
+	this->HunterSeeker_Damage.Read(exINI, GameStrings::CombatDamage(), "HunterSeekerDamage");
+	this->AutoRepelAI.Read(exINI, GameStrings::CombatDamage(), "AutoRepel");
+	this->AutoRepelPlayer.Read(exINI, GameStrings::CombatDamage(), "PlayerAutoRepel");
+	this->AIFriendlyDistance.Read(exINI, GameStrings::General(), "AIFriendlyDistance");
 
-	this->MyPutData.Read(exINI, GENERAL_SECTION);
+	this->MyPutData.Read(exINI, GameStrings::General());
 
 #pragma endregion
-	this->Storage_TiberiumIndex.Read(exINI, GENERAL_SECTION, "Storage.TiberiumIndex");
+	this->Storage_TiberiumIndex.Read(exINI, GameStrings::General(), "Storage.TiberiumIndex");
 
-	this->RadApplicationDelay_Building.Read(exINI, RADIATION_SECTION, "RadApplicationDelay.Building");
+	this->RadApplicationDelay_Building.Read(exINI, GameStrings::Radiation(), "RadApplicationDelay.Building");
 	this->RadBuildingDamageMaxCount.Read(exINI, GameStrings::Radiation, "RadBuildingDamageMaxCount");
-	this->RadWarhead_Detonate.Read(exINI, RADIATION_SECTION, "RadSiteWarhead.Detonate");
-	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
-	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
+	this->RadWarhead_Detonate.Read(exINI, GameStrings::Radiation(), "RadSiteWarhead.Detonate");
+	this->RadHasOwner.Read(exINI, GameStrings::Radiation(), "RadHasOwner");
+	this->RadHasInvoker.Read(exINI, GameStrings::Radiation(), "RadHasInvoker");
 	this->UseGlobalRadApplicationDelay.Read(exINI, GameStrings::Radiation, "UseGlobalRadApplicationDelay");
 
-	this->IronCurtain_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
-	this->ForceShield_KeptOnDeploy.Read(exINI, COMBATDAMAGE_SECTION, "ForceShield.KeptOnDeploy");
+	this->IronCurtain_KeptOnDeploy.Read(exINI, GameStrings::CombatDamage(), "IronCurtain.KeptOnDeploy");
+	this->ForceShield_KeptOnDeploy.Read(exINI, GameStrings::CombatDamage(), "ForceShield.KeptOnDeploy");
 
 	this->ForceShield_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "ForceShield.EffectOnOrganics");
 
@@ -968,29 +968,29 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
-	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
-	this->Pips_Shield_Buildings.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
-	this->MissingCameo.Read(pINI, AUDIOVISUAL_SECTION, "MissingCameo");
-	this->JumpjetAllowLayerDeviation.Read(exINI, JUMPJET_SECTION, "AllowLayerDeviation");
-	this->JumpjetTurnToTarget.Read(exINI, JUMPJET_SECTION, "TurnToTarget");
-	this->JumpjetCrash_Rotate.Read(exINI, JUMPJET_SECTION, "CrashRotate");
+	this->Pips_Shield.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield");
+	this->Pips_Shield_Buildings.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building");
+	this->MissingCameo.Read(pINI, GameStrings::AudioVisual(), "MissingCameo");
+	this->JumpjetAllowLayerDeviation.Read(exINI, GameStrings::JumpjetControls(), "AllowLayerDeviation");
+	this->JumpjetTurnToTarget.Read(exINI, GameStrings::JumpjetControls(), "TurnToTarget");
+	this->JumpjetCrash_Rotate.Read(exINI, GameStrings::JumpjetControls(), "CrashRotate");
 
 	this->JumpjetClimbPredictHeight.Read(exINI, GameStrings::General, "JumpjetClimbPredictHeight");
 	this->JumpjetClimbWithoutCutOut.Read(exINI, GameStrings::General, "JumpjetClimbWithoutCutOut");
 
-	this->PlacementGrid_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
-	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
-	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
-	this->Pips_Shield_Background_SHP.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Background");
-	this->Pips_Shield_Building.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
-	this->Pips_Shield_Building_Empty.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building.Empty");
+	this->PlacementGrid_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
+	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
+	this->Pips_Shield.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield");
+	this->Pips_Shield_Background_SHP.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Background");
+	this->Pips_Shield_Building.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building");
+	this->Pips_Shield_Building_Empty.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building.Empty");
 
-	this->Pips_SelfHeal_Infantry.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Infantry");
-	this->Pips_SelfHeal_Units.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Units");
-	this->Pips_SelfHeal_Buildings.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Buildings");
-	this->Pips_SelfHeal_Infantry_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Infantry.Offset");
-	this->Pips_SelfHeal_Units_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Units.Offset");
-	this->Pips_SelfHeal_Buildings_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Buildings.Offset");
+	this->Pips_SelfHeal_Infantry.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Infantry");
+	this->Pips_SelfHeal_Units.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Units");
+	this->Pips_SelfHeal_Buildings.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Buildings");
+	this->Pips_SelfHeal_Infantry_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Infantry.Offset");
+	this->Pips_SelfHeal_Units_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Units.Offset");
+	this->Pips_SelfHeal_Buildings_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Buildings.Offset");
 
 	this->Pips_Generic_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Generic.Size");
 	this->Pips_Generic_Buildings_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Generic.Buildings.Size");
@@ -1000,53 +1000,53 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Pips_Tiberiums_Frames.Read(exINI, GameStrings::AudioVisual, "Pips.Tiberiums.Frames");
 	this->Pips_Tiberiums_DisplayOrder.Read(exINI, GameStrings::AudioVisual, "Pips.Tiberiums.DisplayOrder");
 
-	this->ToolTip_Background_Color.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Color");
-	this->ToolTip_Background_Opacity.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Opacity");
-	this->ToolTip_Background_BlurSize.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.BlurSize");
-	this->ToolTip_ExcludeSidebar.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.ExcludeSidebar");
+	this->ToolTip_Background_Color.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.Color");
+	this->ToolTip_Background_Opacity.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.Opacity");
+	this->ToolTip_Background_BlurSize.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.BlurSize");
+	this->ToolTip_ExcludeSidebar.Read(exINI, GameStrings::AudioVisual(), "ToolTip.ExcludeSidebar");
 
 	this->Crate_LandOnly.Read(exINI, GameStrings::CrateRules(), "Crate.LandOnly");
 	this->UnitCrateVehicleCap.Read(exINI, GameStrings::CrateRules, "UnitCrateVehicleCap");
 	this->FreeMCV_CreditsThreshold.Read(exINI, GameStrings::CrateRules, "FreeMCV.CreditsThreshold");
 
-	this->InfantryGainSelfHealCap.Read(exINI, GENERAL_SECTION, "InfantryGainSelfHealCap");
-	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
+	this->InfantryGainSelfHealCap.Read(exINI, GameStrings::General(), "InfantryGainSelfHealCap");
+	this->UnitsGainSelfHealCap.Read(exINI, GameStrings::General(), "UnitsGainSelfHealCap");
 
-	this->EnemyInsignia.Read(exINI, GENERAL_SECTION, "EnemyInsignia");
-	this->DisguiseBlinkingVisibility.Read(exINI, GENERAL_SECTION, "DisguiseBlinkingVisibility");
+	this->EnemyInsignia.Read(exINI, GameStrings::General(), "EnemyInsignia");
+	this->DisguiseBlinkingVisibility.Read(exINI, GameStrings::General(), "DisguiseBlinkingVisibility");
 
-	this->UseSelectBrd.Read(exINI, AUDIOVISUAL_SECTION, "UseSelectBrd");
-	this->SHP_SelectBrdSHP_INF.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.SHP.Infantry");
-	this->SHP_SelectBrdPAL_INF.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Infantry");
-	this->SelectBrd_Frame_Infantry.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.Frame.Infantry");
-	this->SelectBrd_DrawOffset_Infantry.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DrawOffset.Infantry");
-	this->SHP_SelectBrdSHP_UNIT.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.SHP.Unit");
-	this->SHP_SelectBrdPAL_UNIT.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Unit");
-	this->SelectBrd_Frame_Unit.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.Frame.Unit");
-	this->SelectBrd_DrawOffset_Unit.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DrawOffset.Unit");
-	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");
-	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
+	this->UseSelectBrd.Read(exINI, GameStrings::AudioVisual(), "UseSelectBrd");
+	this->SHP_SelectBrdSHP_INF.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.SHP.Infantry");
+	this->SHP_SelectBrdPAL_INF.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.PAL.Infantry");
+	this->SelectBrd_Frame_Infantry.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.Frame.Infantry");
+	this->SelectBrd_DrawOffset_Infantry.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DrawOffset.Infantry");
+	this->SHP_SelectBrdSHP_UNIT.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.SHP.Unit");
+	this->SHP_SelectBrdPAL_UNIT.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.PAL.Unit");
+	this->SelectBrd_Frame_Unit.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.Frame.Unit");
+	this->SelectBrd_DrawOffset_Unit.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DrawOffset.Unit");
+	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DefaultTranslucentLevel");
+	this->SelectBrd_DefaultShowEnemy.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DefaultShowEnemy");
 
-	this->VeteranFlashTimer.Read(exINI, AUDIOVISUAL_SECTION, "VeteranFlashTimer");
+	this->VeteranFlashTimer.Read(exINI, GameStrings::AudioVisual(), "VeteranFlashTimer");
 
-	this->Tiberium_DamageEnabled.Read(exINI, GENERAL_SECTION, "TiberiumDamageEnabled");
-	this->Tiberium_HealEnabled.Read(exINI, GENERAL_SECTION, "TiberiumHealEnabled");
-	this->Tiberium_ExplosiveWarhead.Read(exINI, COMBATDAMAGE_SECTION, "TiberiumExplosiveWarhead");
-	this->Tiberium_ExplosiveAnim.Read(exINI, AUDIOVISUAL_SECTION, "TiberiumExplosiveAnim");
-	this->OverlayExplodeThreshold.Read(exINI, GENERAL_SECTION, "OverlayExplodeThreshold");
-	this->AlliedSolidTransparency.Read(exINI, COMBATDAMAGE_SECTION, "AlliedSolidTransparency");
-	this->DecloakSound.Read(exINI, AUDIOVISUAL_SECTION, "DecloakSound");
-	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
+	this->Tiberium_DamageEnabled.Read(exINI, GameStrings::General(), "TiberiumDamageEnabled");
+	this->Tiberium_HealEnabled.Read(exINI, GameStrings::General(), "TiberiumHealEnabled");
+	this->Tiberium_ExplosiveWarhead.Read(exINI, GameStrings::CombatDamage(), "TiberiumExplosiveWarhead");
+	this->Tiberium_ExplosiveAnim.Read(exINI, GameStrings::AudioVisual(), "TiberiumExplosiveAnim");
+	this->OverlayExplodeThreshold.Read(exINI, GameStrings::General(), "OverlayExplodeThreshold");
+	this->AlliedSolidTransparency.Read(exINI, GameStrings::CombatDamage(), "AlliedSolidTransparency");
+	this->DecloakSound.Read(exINI, GameStrings::AudioVisual(), "DecloakSound");
+	this->IC_Flash.Read(exINI, GameStrings::AudioVisual(), "IronCurtainFlash");
 
-	this->ChainReact_Multiplier.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.Multiplier");
-	this->ChainReact_SpreadChance.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.SpreadChance");
-	this->ChainReact_MinDelay.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.MinDelay");
-	this->ChainReact_MaxDelay.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.MaxDelay");
+	this->ChainReact_Multiplier.Read(exINI, GameStrings::CombatDamage(), "ChainReact.Multiplier");
+	this->ChainReact_SpreadChance.Read(exINI, GameStrings::CombatDamage(), "ChainReact.SpreadChance");
+	this->ChainReact_MinDelay.Read(exINI, GameStrings::CombatDamage(), "ChainReact.MinDelay");
+	this->ChainReact_MaxDelay.Read(exINI, GameStrings::CombatDamage(), "ChainReact.MaxDelay");
 
-	this->ChronoInfantryCrush.Read(exINI, GENERAL_SECTION, "ChronoInfantryCrush");
+	this->ChronoInfantryCrush.Read(exINI, GameStrings::General(), "ChronoInfantryCrush");
 
-	this->DamageAirConsiderBridges.Read(exINI, COMBATDAMAGE_SECTION, "DamageAirConsiderBridges");
-	this->DiskLaserAnimEnabled.Read(exINI, AUDIOVISUAL_SECTION, "DiskLaserAnimEnabled");
+	this->DamageAirConsiderBridges.Read(exINI, GameStrings::CombatDamage(), "DamageAirConsiderBridges");
+	this->DiskLaserAnimEnabled.Read(exINI, GameStrings::AudioVisual(), "DiskLaserAnimEnabled");
 
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
@@ -1059,12 +1059,12 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
-	this->EnemyWrench.Read(exINI, GENERAL_SECTION, "EnemyWrench");
-	this->Bounty_Value_Option.Read(exINI, GENERAL_SECTION, "BountyRewardOption");
-	this->EMPAIRecoverMission.Read(exINI, COMBATDAMAGE_SECTION, "EMPAIRecoverMission");
+	this->EnemyWrench.Read(exINI, GameStrings::General(), "EnemyWrench");
+	this->Bounty_Value_Option.Read(exINI, GameStrings::General(), "BountyRewardOption");
+	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
 	this->TimerBlinkColorScheme.Read(exINI, GameStrings::AudioVisual, "TimerBlinkColorScheme");
 
-	this->CloakHeight.Read(exINI, GENERAL_SECTION, "CloakHeight");
+	this->CloakHeight.Read(exINI, GameStrings::General(), "CloakHeight");
 
 	if(Phobos::Config::ShowFlashOnSelecting){
 		this->SelectFlashTimer.Read(exINI, GameStrings::AudioVisual, "SelectFlashTimer");
@@ -1750,12 +1750,12 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
  {
 	 const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
 	 Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
-	 it->PlainName ? it->PlainName : NONE_STR,
+	 it->PlainName ? it->PlainName : GameStrings::NoneStr(),
 	 it->IsHumanPlayer,
 	 ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
 	 it->ColorSchemeIndex,
 	 it->ArrayIndex,
-	 pType ? pType->Name : NONE_STR,
+	 pType ? pType->Name : GameStrings::NoneStr(),
 	 it->Edge,
 	 (int)it->StartingAllies.data,
 	 it->StartingCell.X,

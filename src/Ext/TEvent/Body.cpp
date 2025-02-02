@@ -64,7 +64,7 @@ TechnoTypeClass* TEventExtData::GetTechnoType()
 
 		if (!pType)
 		{
-			Debug::Log("Event[%x] with Team[%s - %x] references non-existing techno type \"%s\".", this->AttachedToObject, this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : NONE_STR, this->AttachedToObject ,  eventTechno);
+			Debug::Log("Event[%x] with Team[%s - %x] references non-existing techno type \"%s\".", this->AttachedToObject, this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : GameStrings::NoneStr(), this->AttachedToObject ,  eventTechno);
 		}
 
 		this->TechnoType = pType;

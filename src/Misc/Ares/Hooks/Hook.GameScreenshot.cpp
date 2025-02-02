@@ -1,7 +1,11 @@
 #include "Header.h"
 
+#include <CommandClass.h>
+
+#include <Utilities/Macro.h>
+
 //this is still 0.A code , need check the new one ,..
-DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
+void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis , DWORD)
 {
 	RECT Viewport = {};
 	if (Imports::GetWindowRect.get()(Game::hWnd, &Viewport))
@@ -105,6 +109,5 @@ DEFINE_HOOK(0x537BC0, Game_MakeScreenshot, 6)
 			WWMouseClass::Instance->ShowCursor();
 		}
 	}
-
-	return 0x537DC9;
 }
+DEFINE_JUMP(VTABLE, 0x7EBF24 , MiscTools::to_DWORD(&ScreenCaptureCommandClass_Process));

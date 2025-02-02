@@ -32,7 +32,7 @@ class FrameStepCommandClass : public PhobosCommandClass
 template<size_t Frame>
 OPTIONALINLINE const char* FrameStepCommandClass<Frame>::GetName() const
 {
-	_snprintf_s(Phobos::readBuffer, Phobos::readLength, "Step%dFrames", Frame);
+	IMPL_SNPRNINTF(Phobos::readBuffer, Phobos::readLength, "Step%dFrames", Frame);
 	return Phobos::readBuffer;
 }
 

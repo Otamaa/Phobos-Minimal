@@ -339,6 +339,7 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
+    <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
     <ClCompile Include="src\Misc\Multithread.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
@@ -572,6 +573,7 @@
     <ClInclude Include="src\New\Type\RocketTypeClass.h" />
     <ClInclude Include="src\New\Type\TechTreeTypeClass.h" />
     <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
+    <ClInclude Include="src\Phobos.Defines.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
     <ClInclude Include="src\Commands\SaveVariablesToFile.h" />

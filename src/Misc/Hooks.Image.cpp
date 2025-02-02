@@ -1,6 +1,7 @@
 #include "ImageSwapModules.h"
 
 #include <Helpers/Macro.h>
+#include <Phobos.h>
 
 DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
 {

@@ -49,7 +49,7 @@ public:
 
 	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults()
 	{
-		FindOrAllocate(RADIATION_SECTION);
+		FindOrAllocate(GameStrings::Radiation());
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE WarheadTypeClass* GetWarhead() const

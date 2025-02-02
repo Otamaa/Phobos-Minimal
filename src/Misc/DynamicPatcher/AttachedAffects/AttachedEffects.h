@@ -354,7 +354,7 @@ public:
 	}
 
 	AttachedAffects() :
-		Name { NONE_STR }
+		Name { GameStrings::NoneStr() }
 		, Type { nullptr }
 		, House { nullptr }
 		, Attacker { nullptr }

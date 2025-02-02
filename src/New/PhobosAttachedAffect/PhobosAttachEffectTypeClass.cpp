@@ -27,7 +27,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.c_str();
 
-	if (IS_SAME_STR_N(pSection, NONE_STR))
+	if (IS_SAME_STR_N(pSection, GameStrings::NoneStr()))
 		return;
 
 	INI_EX exINI(pINI);

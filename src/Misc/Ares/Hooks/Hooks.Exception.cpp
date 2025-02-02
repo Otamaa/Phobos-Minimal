@@ -567,7 +567,7 @@ void WriteLog(const HouseClass* it, int idx, DWORD checksum, FILE* F)
 	WriteLog<void>(it, idx, checksum, F);
 
 	fprintf(F, "; Player Name : %s (%d - %s); IsHumanPlayer: %u; ColorScheme: %s (%d); Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d",
-		it->PlainName ? it->PlainName : NONE_STR,
+		it->PlainName ? it->PlainName : GameStrings::NoneStr(),
 		it->ArrayIndex, HouseTypeClass::Array->Items[it->Type->ArrayIndex]->Name,
 		it->IsHumanPlayer, ColorScheme::Array->Items[it->ColorSchemeIndex]->ID, it->ColorSchemeIndex,
 		(int)it->Edge, it->StartingAllies.data, it->StartingCell.X, it->StartingCell.Y, it->Visionary,

@@ -2,6 +2,7 @@
 
 #include <Phobos.h>
 #include <Phobos.CRT.h>
+#include <Phobos.Defines.h>
 
 #include <Dbghelp.h>
 #include <Unsorted.h>

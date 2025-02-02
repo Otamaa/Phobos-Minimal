@@ -34,8 +34,13 @@
 #include <New/SuperWeaponSidebar/SWButtonClass.h>
 
 #include <YRMath.h>
+#include <Phobos.h>
 
 PhobosToolTip PhobosToolTip::Instance;
+bool PhobosToolTip::IsEnabled() const
+{
+	return Phobos::UI::ExtendedToolTips;
+}
 
 OPTIONALINLINE const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExtData* pData) const
 {

@@ -2515,7 +2515,7 @@ bool TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
 
 template<typename T, typename... TExtraArgs>
 	requires MultiflagReadable<T, TExtraArgs...>
-void __declspec(noinline) MultiflagValueableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
+void NOINLINE MultiflagValueableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
 {
 	char flagName[0x40];
 	for (size_t i = 0; ; ++i)
@@ -2523,7 +2523,7 @@ void __declspec(noinline) MultiflagValueableVector<T, TExtraArgs...>::Read(INI_E
 		T dataEntry {};
 
 		// we expect %d for array number then %s for the subflag name, so we replace %s with itself (but escaped)
-		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, i, "%s");
+		IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, i, "%s");
 
 		if (!dataEntry.Read(parser, pSection, flagName, extraArgs...))
 		{
@@ -2544,7 +2544,7 @@ void __declspec(noinline) MultiflagValueableVector<T, TExtraArgs...>::Read(INI_E
 
 template<typename T, typename... TExtraArgs>
 	requires MultiflagReadable<T, TExtraArgs...>
-void __declspec(noinline) MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
+void NOINLINE MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
 {
 	char flagName[0x40];
 	for (size_t i = 0; ; ++i)
@@ -2552,7 +2552,7 @@ void __declspec(noinline) MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX
 		T dataEntry {};
 
 		// we expect %d for array number then %s for the subflag name, so we replace %s with itself (but escaped)
-		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, i, "%s");
+		IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, i, "%s");
 
 		if (!dataEntry.Read(parser, pSection, flagName, extraArgs...))
 		{
@@ -2576,17 +2576,17 @@ void __declspec(noinline) MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX
 // Animatable::KeyframeDataEntry
 
 template <typename TValue>
-bool __declspec(noinline) Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
+bool NOINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
 {
 	char flagName[0x40];
 
 	Nullable<double> percentageTemp {};
 	Nullable<absolute_length_t> absoluteTemp {};
 
-	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Percentage");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Percentage");
 	percentageTemp.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Absolute");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Absolute");
 	absoluteTemp.Read(parser, pSection, flagName);
 
 	if (!percentageTemp.isset() && !absoluteTemp.isset())
@@ -2597,7 +2597,7 @@ bool __declspec(noinline) Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& pa
 	else
 		this->Percentage = percentageTemp;
 
-	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Value");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Value");
 	this->Value.Read(parser, pSection, flagName);
 
 	return true;
@@ -2656,15 +2656,15 @@ COMPILETIMEEVAL TValue Animatable<TValue>::Get(double const percentage) const no
 }
 
 template <typename TValue>
-void __declspec(noinline) Animatable<TValue>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
+void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
 {
 	char flagName[0x40];
 
 	// we expect "BaseFlagName.%s" here
-	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Keyframe%d.%s");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Keyframe%d.%s");
 	this->KeyframeData.Read(parser, pSection, flagName, absoluteLength);
 
-	_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Interpolation");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Interpolation");
 	detail::read(this->InterpolationMode, parser, pSection, flagName);
 
 	// Error handling
@@ -2675,8 +2675,8 @@ void __declspec(noinline) Animatable<TValue>::Read(INI_EX& parser, const char* c
 	for (size_t i = 0; i < this->KeyframeData.size(); i++)
 	{
 		auto const& value = this->KeyframeData[i];
-		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "Keyframe%d");
-		_snprintf_s(flagName, sizeof(flagName), flagName, i);
+		IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Keyframe%d");
+		IMPL_SNPRNINTF(flagName, sizeof(flagName), flagName, i);
 
 		if (percentages.contains(value.Percentage))
 		{
@@ -2696,7 +2696,7 @@ void __declspec(noinline) Animatable<TValue>::Read(INI_EX& parser, const char* c
 
 	if (foundError)
 	{
-		_snprintf_s(flagName, sizeof(flagName), pBaseFlag, "%s");
+		IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "%s");
 		int len = strlen(pBaseFlag);
 
 		if (len >= 4)

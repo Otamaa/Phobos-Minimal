@@ -19,8 +19,8 @@ void AnimTypeExtData::Initialize()
 {
 	const char* pID = this->AttachedToObject->ID;
 
-	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
-	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
+	SpecialDraw = IS_SAME_STR_(pID, GameStrings::Anim_RING1());
+	IsInviso = IS_SAME_STR_(pID, GameStrings::Anim_INVISO());
 }
 
 // AnimType Class is readed before Unit and weapon

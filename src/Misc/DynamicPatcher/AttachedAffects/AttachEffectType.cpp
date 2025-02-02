@@ -118,7 +118,7 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region Stand
-	StandTypeData.Type.Read(exINI.GetINI(), pSection, "Stand.Type",NONE_STR);
+	StandTypeData.Type.Read(exINI.GetINI(), pSection, "Stand.Type",GameStrings::NoneStr());
 	StandTypeData.Offset.Read(exINI, pSection, "Stand.Offset");
 	StandTypeData.Direction.Read(exINI, pSection, "Stand.Direction");
 	StandTypeData.Direction = StandTypeData.Direction.Get() * 2;

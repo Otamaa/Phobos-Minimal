@@ -206,13 +206,13 @@ DEFINE_HOOK(0x66BC71, Buf_CombatDamage, 9)
 	pRules->TiberiumStrength = R->EAX<int>();
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches1, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches1, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches2, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches2, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches3, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches3, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches4, exINI, COMBATDAMAGE_SECTION, GameStrings::Scorches4, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches, exINI, GameStrings::CombatDamage(), GameStrings::Scorches, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches1, exINI, GameStrings::CombatDamage(), GameStrings::Scorches1, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches2, exINI, GameStrings::CombatDamage(), GameStrings::Scorches2, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches3, exINI, GameStrings::CombatDamage(), GameStrings::Scorches3, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches4, exINI, GameStrings::CombatDamage(), GameStrings::Scorches4, "Expect valid SmudgeType");
 
-	detail::ParseVector<AnimTypeClass*>(pRules->SplashList, exINI, COMBATDAMAGE_SECTION, GameStrings::SplashList, "Expect valid AnimType");
+	detail::ParseVector<AnimTypeClass*>(pRules->SplashList, exINI, GameStrings::CombatDamage(), GameStrings::SplashList, "Expect valid AnimType");
 	return 0x66C287;
 }
 
@@ -269,7 +269,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	GET(CCINIClass*, pINI, EDI);
 
 	INI_EX exINI(pINI);
-	const char* section = GENERAL_SECTION;
+	const char* section = GameStrings::General();
 	detail::ParseVector<InfantryTypeClass*>(pRules->AmerParaDropInf, exINI, section, GameStrings::AmerParaDropInf, "Expect valid InfantryType");
 	detail::ParseVector<InfantryTypeClass*>(pRules->AllyParaDropInf, exINI, section, GameStrings::AllyParaDropInf, "Expect valid InfantryType");
 	detail::ParseVector<InfantryTypeClass*>(pRules->SovParaDropInf, exINI, section, GameStrings::SovParaDropInf, "Expect valid InfantryType");
