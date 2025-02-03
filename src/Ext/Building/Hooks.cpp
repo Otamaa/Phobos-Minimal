@@ -341,7 +341,23 @@ DEFINE_HOOK(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
 	GET(TechnoTypeClass* const, pType, EBX);
 	GET_STACK(bool, clicked, STACK_OFFSET(0x48C, -0x475));
 
-	return (!RulesExtData::Instance()->ExpandBuildingQueue && pType->WhatAmI() == AbstractType::BuildingType && clicked) ? SkipGameCode : ContinueCheck;
+	if (!RulesExtData::Instance()->ExpandBuildingQueue) {
+		if (pType->WhatAmI() == AbstractType::BuildingType && clicked)
+			return SkipGameCode;
+	}
+	else if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+	{
+		if (const auto pFactory = HouseClass::CurrentPlayer->GetPrimaryFactory(AbstractType::BuildingType, pType->Naval, pBuildingType->BuildCat))
+		{
+			if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object))
+			{
+				if (pFactory->IsDone() && pProduct->Type != pType && ((pProduct->Type->BuildCat != BuildCat::Combat) ^ (pBuildingType->BuildCat == BuildCat::Combat)))
+					return SkipGameCode;
+			}
+		}
+	}
+
+	return ContinueCheck;
 }
 
 DEFINE_HOOK(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
