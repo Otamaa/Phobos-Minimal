@@ -106,13 +106,17 @@ DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)
 	{
 		scenario_saved = true;
 		if (Phobos::ShouldQuickSave)
-			{
-				Phobos::PassiveSaveGame();
-				Phobos::ShouldQuickSave = false;
-				Phobos::CustomGameSaveDescription.clear();
+		{
+			Phobos::PassiveSaveGame();
+			Phobos::ShouldQuickSave = false;
+			Phobos::CustomGameSaveDescription.clear();
 		}
 		else if (Phobos::Config::SaveGameOnScenarioStart && SessionClass::IsCampaign())
+		{
+			Debug::Log("Saving Game [Filename : %s , UI : %s , LoadedUI : %ls]\n", ScenarioClass::Instance->FileName,
+			ScenarioClass::Instance->UIName, ScenarioClass::Instance->UINameLoaded);
 			return InitialSave;
+		}
 	}
 
 	return SkipSave;

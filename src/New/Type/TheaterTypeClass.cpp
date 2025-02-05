@@ -580,7 +580,7 @@ DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 	const int color = 14;//default;
 	if ((int)pScen->Theater == -1)
 	{
-		Debug::Log("Scenario is negative idx , default to Temperate");
+		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		R->EAX(color);
 		return 0;
 	}
@@ -616,7 +616,7 @@ DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 	GET(ScenarioClass*, pScen, EAX);
 
 	if ((int)pScen->Theater == -1) {
-		Debug::Log("Scenario is negative idx , default to Temperate");
+		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		return setTemperatOccupy;
 	}
 
@@ -631,7 +631,7 @@ DEFINE_HOOK(0x71C116, TerrainClass_SetOccupyBit_Theater, 0x7)
 	GET(ScenarioClass*, pScen, EAX);
 
 	if ((int)pScen->Theater == -1) {
-		Debug::Log("Scenario is negative idx , default to Temperate");
+		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		return setTemperatOccupy;
 	}
 

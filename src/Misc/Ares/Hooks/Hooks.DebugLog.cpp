@@ -66,6 +66,8 @@ static void __cdecl Debug_Print(const char* fmt, ...) {
 	}
 }
 
+//TODO : fixed up some call
+
 DEFINE_JUMP(CALL, 0x403F60, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x406508, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x40765F, MiscTools::to_DWORD(&Debug_Print));
@@ -1127,13 +1129,31 @@ DEFINE_JUMP(CALL, 0x664789, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x672461, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x6724D0, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x6725B1, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x67CF05, MiscTools::to_DWORD(&Debug_Print));
+
+
+void __cdecl Debug_Print_Singular(const char* fmt, const char* str) {
+	if (Debug::LogFileActive()) {
+
+		if (Console::ConsoleHandle != NULL){
+		  sprintf_s(Debug::LogMessageBuffer, fmt, str);
+		  WriteConsole(Console::ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
+		}
+
+		fprintf(Debug::LogFile, fmt, str);
+		Debug::Flush();
+	}
+}
+
+DEFINE_JUMP(CALL, 0x67E452, MiscTools::to_DWORD(&Debug_Print_Singular));
+DEFINE_JUMP(CALL, 0x67E6E0, MiscTools::to_DWORD(&Debug_Print_Singular));
+
+DEFINE_JUMP(CALL, 0x67D2B1, MiscTools::to_DWORD(&Debug_Print_Singular));
+DEFINE_JUMP(CALL, 0x67CF05, MiscTools::to_DWORD(&Debug_Print_Singular));
+
+
 DEFINE_JUMP(CALL, 0x67D13D, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x67D2B1, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x67E3CB, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x67E3E7, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x67E452, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x67E6E0, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x67F73C, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x67F758, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x683B10, MiscTools::to_DWORD(&Debug_Print));

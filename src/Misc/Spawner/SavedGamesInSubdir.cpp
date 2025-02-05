@@ -26,7 +26,10 @@
 #include <LoadOptionsClass.h>
 #include <optional>
 
+static inline std::string save_gamePath;
+
 #define SET_SAVENAME(name) static COMPILETIMEEVAL wchar_t* SaveName = L ##name
+
 namespace SavedGames
 {
 	int HowManyTimesISavedForThisScenario = 0;
@@ -138,9 +141,11 @@ namespace SavedGames
 		return true;
 	}
 
-	OPTIONALINLINE void FormatPath(char buffer[sizeof(Phobos::readBuffer)], const char* pFileName)
-	{
-		sprintf_s(buffer, sizeof(Phobos::readBuffer), "%s\\%s", SpawnerMain::GetGameConfigs()->SavedGameDir, pFileName);
+	OPTIONALINLINE char* FormatPath(const char* pFileName) {
+		save_gamePath = SpawnerMain::GetGameConfigs()->SavedGameDir;
+		save_gamePath += "\\";
+		save_gamePath += pFileName;
+		return save_gamePath.data();
 	}
 }
 
@@ -250,11 +255,9 @@ DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 
 DEFINE_HOOK(0x67E475, LoadGame_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ESI);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		R->ESI(Phobos::readBuffer);
+		R->ESI(SavedGames::FormatPath(pFileName));
 	}
 
 	return 0;
@@ -262,11 +265,9 @@ DEFINE_HOOK(0x67E475, LoadGame_SGInSubdir, 0x5)
 
 DEFINE_HOOK(0x559EB0, DeleteSave_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		REF_STACK(char*, pFileName, 0x4);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		pFileName = Phobos::readBuffer;
+		pFileName = SavedGames::FormatPath(pFileName);
 	}
 
 	return 0;
@@ -274,14 +275,12 @@ DEFINE_HOOK(0x559EB0, DeleteSave_SGInSubdir, 0x5)
 
 DEFINE_HOOK(0x67CF11, SaveGame_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		if (!SavedGames::CreateSubdir())
 			return 0;
 
 		GET(char*, pFileName, EDI);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		R->EDI(Phobos::readBuffer);
+		R->EDI(SavedGames::FormatPath(pFileName));
 	}
 
 	return 0;
@@ -292,11 +291,9 @@ DEFINE_HOOK(0x67CF11, SaveGame_SGInSubdir, 0x5)
 // WW compiler made OPTIONALINLINE in LoadOptionsClass_Dialog
 DEFINE_HOOK(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ESI);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		R->ESI(Phobos::readBuffer);
+		R->ESI(SavedGames::FormatPath(pFileName));
 	}
 
 	return 0;
@@ -305,11 +302,9 @@ DEFINE_HOOK(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
 // Finds free file name
 DEFINE_HOOK(0x5592D2, LoadOptionsClass_Dialog_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, EDX);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		R->EDX(Phobos::readBuffer);
+		R->EDX(SavedGames::FormatPath(pFileName));
 	}
 
 	return 0;
@@ -321,10 +316,8 @@ DEFINE_HOOK(0x559C98, LoadOptionsClass_HasSaves_SGInSubdir, 0xB)
 	LEA_STACK(void*, pFindFileData, STACK_OFFSET(0x348, -0x140));
 	LEA_STACK(char*, pFileName, STACK_OFFSET(0x348, -0x33C));
 
-	if (SpawnerMain::Configs::Enabled)
-	{
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		pFileName = Phobos::readBuffer; // Always "Saved Games\*.SAV"
+	if (SpawnerMain::Configs::Enabled) {
+		pFileName = SavedGames::FormatPath(pFileName); // Always "Saved Games\*.SAV"
 	}
 
 	R->EAX(pFileName);
@@ -339,10 +332,8 @@ DEFINE_HOOK(0x559886, LoadOptionsClass_FillList_SGInSubdir, 0x8)
 	GET(struct _WIN32_FIND_DATAA*, pFind, EDX);
 	GET(char*, pFileName, EAX);
 
-	if (SpawnerMain::Configs::Enabled)
-	{
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		pFileName = Phobos::readBuffer; // Always "Saved Games\*.SAV"
+	if (SpawnerMain::Configs::Enabled) {
+		pFileName = SavedGames::FormatPath(pFileName); // Always "Saved Games\*.SAV"
 	}
 
 	HANDLE result = FindFirstFileA(pFileName, pFind);
@@ -353,11 +344,9 @@ DEFINE_HOOK(0x559886, LoadOptionsClass_FillList_SGInSubdir, 0x8)
 
 DEFINE_HOOK(0x67FD26, LoadOptionsClass_ReadSaveInfo_SGInSubdir, 0x5)
 {
-	if (SpawnerMain::Configs::Enabled)
-	{
+	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ECX);
-		SavedGames::FormatPath(Phobos::readBuffer, pFileName);
-		R->ECX(Phobos::readBuffer);
+		R->ECX(SavedGames::FormatPath(pFileName));
 	}
 
 	return 0;

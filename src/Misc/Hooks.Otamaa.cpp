@@ -10632,7 +10632,8 @@ DEFINE_HOOK(0x6D471A, TechnoClass_Render_Dead, 0x6) {
 	return pTechno->IsAlive ? 0x0 : 0x6D48FA;
 }
 
-#ifndef EXPANDCOMMANDBAR
+#ifdef EXPANDCOMMANDBAR
+
 #include <CCToolTip.h>
 
 enum class CommandBarTypes
@@ -11095,3 +11096,14 @@ DEFINE_HOOK(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 //
 //	return 0x0;
 //}
+
+DEFINE_HOOK(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
+{
+	if (!strlen(ScenarioClass::Instance->UIName)) {
+		sprintf_s(ScenarioClass::Instance->UIName, "MISSINGMAPUINAME");
+		const auto name = PhobosCRT::StringToWideString(ScenarioClass::Instance->FileName);
+		swprintf_s(ScenarioClass::Instance->UINameLoaded, L"%ls Missing UI Name" , name.c_str());
+	}
+
+	return 0x0;
+}
