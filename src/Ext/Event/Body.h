@@ -26,11 +26,13 @@ public:
 		Last = FirewallToggle
 	};
 
-	template<bool timestamp, class T, typename... ArgTypes>
+	template<bool timestamp, bool setData, class T, typename... ArgTypes>
 	static bool AddToEvent(EventClass& event, ArgTypes... args)
 	{
-		T type { args... };
-		event.Data.nothing.Set<T>(&type);
+		if COMPILETIMEEVAL(setData) {
+			T type { args... };
+			event.Data.nothing.Set<T>(&type);
+		}
 
 		if COMPILETIMEEVAL(timestamp)
 			return EventClass::AddEventWithTimeStamp(&event);

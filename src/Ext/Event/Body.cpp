@@ -18,14 +18,12 @@ void EventExt::ManualReload::Raise(TechnoClass* pTechno)
 {
 	EventClass Event {};
 
-	if (pTechno->Owner->ArrayIndex >= 0)
-	{
+	if (pTechno->Owner->ArrayIndex >= 0) {
 		Event.Type = AsEventType();
 		Event.HouseIndex = byte(pTechno->Owner->ArrayIndex);
 	}
 
-	EventExt::AddToEvent<true, ManualReload>(Event, pTechno);
-	Debug::Log("Adding event MANUAL_RELOAD\n");
+	EventExt::AddToEvent<true, true, ManualReload>(Event, pTechno);
 }
 
 void EventExt::ManualReload::Respond(EventClass* Event)
@@ -70,7 +68,7 @@ void EventExt::TrenchRedirectClick::Raise(BuildingClass* Source, CellStruct* Tar
 		Event.HouseIndex = byte(Source->Owner->ArrayIndex);
 	}
 
-	EventExt::AddToEvent<true, TrenchRedirectClick>(Event, Target, Source);
+	EventExt::AddToEvent<true, true, TrenchRedirectClick>(Event, Target, Source);
 }
 
 void EventExt::TrenchRedirectClick::Respond(EventClass* Event)
@@ -120,10 +118,8 @@ void EventExt::ProtocolZero::Raise()
 	event.Frame = currentFrame + Game::Network::MaxAhead;
 	const auto maxAhead = char((int8_t)ipxResponseTime + 1);
 	const auto latencyLevel = (uint8_t)LatencyLevel::FromResponseTime((uint8_t)ipxResponseTime);
-	ProtocolZero type { maxAhead , latencyLevel };
-	event.Data.nothing.Set<ProtocolZero>(&type);
 
-	if (EventClass::AddEvent(reinterpret_cast<EventClass*>(&event)))
+	if (EventExt::AddToEvent<false , true , ProtocolZero>(event , maxAhead, latencyLevel))
 	{
 		NextSendFrame = currentFrame + SendResponseTimeInterval;
 		Debug::Log("[Spawner] Player %d sending response time of %d, LatencyMode = %d, Frame = %d\n"
@@ -191,7 +187,7 @@ void EventExt::FirewallToggle::Raise(HouseClass* Source)
 	Event.Type = AsEventType();
 	Event.HouseIndex = byte(Source->ArrayIndex);
 
-	EventClass::AddEvent(&Event);
+	EventExt::AddToEvent<false , false, FirewallToggle>(Event);
 }
 
 void EventExt::FirewallToggle::Respond(EventClass* Event)
