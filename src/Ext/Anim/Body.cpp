@@ -221,7 +221,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		const auto nDamageResult = static_cast<int>(appliedDamage * TechnoExtData::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+		const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, appliedDamage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
@@ -333,7 +333,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		if (auto pWeapon = pTypeExt->WeaponToCarry) {
 			AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
 			TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
-			const auto nDamageResult = static_cast<int>(pWeapon->Damage * TechnoExtData::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+			const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, pWeapon->Damage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 			const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
 			WeaponTypeExtData::DetonateAt(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);

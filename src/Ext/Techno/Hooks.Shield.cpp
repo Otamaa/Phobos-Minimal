@@ -12,35 +12,6 @@
 
 #include <RadarEventClass.h>
 
-static int CalculateArmorMultipliers(TechnoClass* pThis, int damage, WarheadTypeClass* pWarhead)
-{
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (!pExt->AE.ArmorMultData.Enabled()) {
-		return static_cast<int>(damage / pExt->AE.ArmorMultData.Get(1.0, pWarhead));
-	}
-
-	return damage;
-}
-
-DEFINE_HOOK(0x6FDC87, TechnoClass_AdjustDamage_ArmorMultiplier, 0x6)
-{
-	GET(TechnoClass*, pTarget, EDI);
-	GET(int, damage, EAX);
-	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x18, 0x8));
-
-	R->EAX(CalculateArmorMultipliers(pTarget, damage, pWeapon->Warhead));
-	return 0;
-}
-DEFINE_HOOK(0x701966, TechnoClass_ReceiveDamage_ArmorMultiplier, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, damage, EAX);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFSET(0xC4, 0xC));
-	R->EAX(CalculateArmorMultipliers(pThis, damage, pWarhead));
-
-	return 0;
-}
 
 // namespace EvaluateObjectTemp
 // {
@@ -229,29 +200,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 	}
 
 	return 0;
-}
-
-DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
-{
-	enum { Continue = 0x0, SkipLowDamageCheck = 0x7019E3 };
-	GET(TechnoClass*, pThis, ESI);
-	GET(int*, pDamage, EBX);
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->SkipLowDamageCheck)
-	{
-		pExt->SkipLowDamageCheck = false;
-	}
-	else
-	{
-
-		// Restore overridden instructions
-		if (*pDamage < 1)
-			*pDamage = 1;
-	}
-
-	return SkipLowDamageCheck;
 }
 
 #undef REPLACE_ARMOR

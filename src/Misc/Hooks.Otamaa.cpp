@@ -2381,7 +2381,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
-	GET(CellClass*, pCell, EBP);
+	GET(FakeCellClass*, pCell, EBP);
 
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 	double amount = 1.0;
@@ -2393,7 +2393,7 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 		return 0x73D502;
 	}
 
-	int tibType = pCell->GetContainedTiberiumIndex();
+	int tibType = pCell->_GetTiberiumType();
 	double cur = storage->GetAmounts();
 
 	if (((double)pThis->Type->Storage - cur) <= 1.0)
@@ -3737,13 +3737,51 @@ DEFINE_HOOK(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6
 	return pThisType->LargeVisceroid ? 0x737C38 : 0x737C0B;
 }
 
-DEFINE_HOOK(0x6FDD0A, TechnoClass_AdjustDamage_Armor, 0x6)
+DEFINE_HOOK(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
 {
-	GET(ObjectClass*, pThis, EDI);
-	GET_STACK(WeaponTypeClass*, pWeapon, 0x18 + 0x8);
-	GET(int, damage, EBX);
-	R->EAX(MapClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
-	return 0x6FDD2E;
+	GET(TechnoClass*, pThis, EDI);
+	GET_STACK(WeaponTypeClass*, pWeapon, 0x10 + 0x8);
+	GET(int, damage, EAX);
+
+	double _damage = TechnoExtData::GetDamageMult(pThis , (double)damage);
+	int _damage_int =(int)TechnoExtData::GetArmorMult(pThis , _damage , pWeapon->Warhead);
+	if(_damage_int < 1 )
+		_damage_int = 1;
+
+	R->EAX(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
+	return 0x6FDD30;
+}
+
+DEFINE_HOOK(0x701939 , TechnoClass_TakeDamage_ArmorMult, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
+	*args.Damage = (int)TechnoExtData::GetDamageMult(pThis , (double)(*args.Damage));
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->SkipLowDamageCheck) {
+		pExt->SkipLowDamageCheck = false;
+	} else {
+
+		// Restore overridden instructions
+		if (*args.Damage < 1)
+			*args.Damage = 1;
+	}
+
+	return 0x7019E3;
+}
+
+DEFINE_HOOK(0x6FE354 , TechnoClass_FireAt_DamageMult, 0x6)
+{
+	GET(int, damage, EDI);
+	GET(TechnoClass*, pThis, ESI);
+
+	int _damage = (int)TechnoExtData::GetDamageMult(pThis , (double)damage);
+	R->Stack(0x28, pThis->GetTechnoType());
+	R->EDI(_damage);
+	R->EAX(_damage);
+	return 0x6FE3DF;
 }
 
 DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
@@ -3923,18 +3961,16 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 {
 	GET(FootClass*, pThis, EDI);
+	auto pCell = pThis->GetCell();
 
-	if (pThis->GetTechnoType()->JumpJet)
-	{
-		const auto pCell = pThis->GetCell();
-		if (pCell->Jumpjet == pThis)
-		{
+	if (pThis->GetTechnoType()->JumpJet) {
+		if (pCell->Jumpjet == pThis) {
 			pCell->TryAssignJumpjet(nullptr);
 		}
 	}
 
 	//FootClass_Remove_Airspace_ares
-	return 0x4DB3A4;
+	return pCell->MapCoords.IsValid() ? 0x4DB3A4 : 0x4DB3AF;
 }
 
 DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
@@ -4613,7 +4649,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -4644,7 +4680,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -4676,7 +4712,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius
 									&& TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier *= something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -5319,7 +5355,7 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 
 	if (pThis->Type->Storage)
 	{
-		const auto v4 = pThis->GetCell();
+		const auto v4 = (FakeCellClass*)pThis->GetCell();
 		const auto val = pThis->GetStoragePercentage();
 
 		if (v4->HasTiberium() && val < 1.0)
@@ -5329,7 +5365,7 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 				pThis->PlayAnim(DoType::Shovel);
 			}
 
-			auto tibType = v4->GetContainedTiberiumIndex();
+			auto tibType = v4->_GetTiberiumType();
 			auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 			const auto amount = storage->GetAmount(tibType);
 			double result = 1.0;

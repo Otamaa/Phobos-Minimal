@@ -261,6 +261,8 @@ DEFINE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
+#include <Ext/Cell/Body.h>
+
 DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 {
 	GET(FootClass* const, pThis, ESI);
@@ -298,14 +300,14 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 			if (pThis->Health > 0 && pThis->Health < pType->Strength)
 			{
 				bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-				auto const pCell = pThis->GetCell();
+				auto const pCell = (FakeCellClass*)pThis->GetCell();
 
 				if (pCell->LandType == LandType::Tiberium)
 				{
 					auto delay = RulesClass::Instance->TiberiumHeal;
 					auto health = pType->GetRepairStep();
 
-					int idxTib = pCell->GetContainedTiberiumIndex();
+					int idxTib = pCell->_GetTiberiumType();
 					if (auto const pTib = TiberiumClass::Array->GetItemOrDefault(idxTib))
 					{
 						auto pExt = TiberiumExtContainer::Instance.Find(pTib);

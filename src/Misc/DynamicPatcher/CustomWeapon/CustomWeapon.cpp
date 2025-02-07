@@ -210,7 +210,7 @@ void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		return queue.Target == ptr && bRemoved;
 	});
 
-	CWeaponManager.InvalidatePointer(ptr, bRemoved);
+ 	CWeaponManager.InvalidatePointer(ptr, bRemoved);
 }
 
 void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)

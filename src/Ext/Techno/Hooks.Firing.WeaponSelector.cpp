@@ -478,6 +478,10 @@ DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
+	GET_STACK(DWORD , caller , 0x0);
+
+	if(!pThis)
+		Debug::FatalError("Caller %u \n" , caller);
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{

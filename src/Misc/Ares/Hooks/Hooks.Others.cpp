@@ -626,13 +626,6 @@ DEFINE_HOOK(0x7BB445, XSurface_20, 0x6)
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-// DEFINE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
-// {
-// 	GET(OverlayTypeClass*, pThis, EAX);
-// 	Debug::Log("Overlay %s not really tiberium\n", pThis->ID);
-// 	return 0x5FDDC1;
-// }
-
 DEFINE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EDI);
@@ -641,18 +634,16 @@ DEFINE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 	return pThis->PaletteFile[0] == 0 ? 0x716DAA : 0x716D9D;
 }
 
+#include <Ext/Cell/Body.h>
+
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
 DEFINE_HOOK(0x489270, CellChainReact, 5)
 {
 	GET(CellStruct*, cell, ECX);
 
-	const auto pCell = MapClass::Instance->GetCellAt(cell);
-
-	if (pCell->OverlayTypeIndex <= 0)
-		return 0x0;
-
-	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(pCell->GetContainedTiberiumIndex());
+	const auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(cell);
+	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(pCell->_GetTiberiumType());
 
 	if (!pTib)
 		return 0x0;
@@ -695,9 +686,9 @@ DEFINE_HOOK(0x489270, CellChainReact, 5)
 		{
 			for (int i = 0; i < 8; ++i)
 			{
-				auto pNeighbour = pCell->GetNeighbourCell((FacingType)i);
+				auto pNeighbour = (FakeCellClass*)pCell->GetNeighbourCell((FacingType)i);
 
-				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2u)
+				if (pNeighbour->_GetTiberiumType() != -1 && pNeighbour->OverlayData > 2u)
 				{
 					if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesExtData::Instance()->ChainReact_SpreadChance)
 					{

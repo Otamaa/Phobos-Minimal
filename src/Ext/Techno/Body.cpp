@@ -2251,21 +2251,51 @@ void TechnoExtData::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 	}
 }
 
-double TechnoExtData::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
+double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, WarheadTypeClass* pWarhead)
 {
-	if (!pSouce || !pSouce->IsAlive || ForceDisable)
-		return 1.0;
+	const auto pType = pSource->GetTechnoType();
+	double _result = damageIn;
 
-	const auto pType = pSouce->GetTechnoType();
+	auto const pExt = TechnoExtContainer::Instance.Find(pSource);
+
+	if (pWarhead && pExt->AE.ArmorMultData.Enabled()) {
+		_result /= pExt->AE.ArmorMultData.Get(pExt->AE.ArmorMultiplier, pWarhead);
+	}
+
+	if (auto pOwner = pSource->Owner)
+		_result /= (pOwner->GetTypeArmorMult(pType) * pSource->ArmorMultiplier);
+
+	if (pSource->HasAbility(AbilityType::Stronger)) {
+		_result /= RulesClass::Instance->VeteranArmor;
+	}
+
+	return _result;
+}
+
+double TechnoExtData::GetDamageMult(TechnoClass* pSource, double damageIn , bool ForceDisable)
+{
+	if (ForceDisable || !pSource || !pSource->IsAlive)
+		return damageIn;
+
+	const auto pType = pSource->GetTechnoType();
 
 	if (!pType)
-		return 1.0;
+		return damageIn;
 
-	const bool firepower = pSouce->HasAbility(AbilityType::Firepower);
+	double _result = damageIn;
 
-	const auto nFirstMult = !firepower ? 1.0 : RulesClass::Instance->VeteranCombat;
-	const auto nSecondMult = (!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : pSouce->Owner->Type->FirepowerMult;
-	return nFirstMult * pSouce->FirepowerMultiplier * nSecondMult; ;
+	if(pSource->Owner) {
+		_result *= pSource->Owner->FirepowerMultiplier;
+	}
+
+	_result *= pSource->FirepowerMultiplier;
+
+	if(pSource->HasAbility(AbilityType::Firepower)){
+		_result *= RulesClass::Instance->VeteranCombat;
+	}
+	const bool firepower = pSource->HasAbility(AbilityType::Firepower);
+
+	return _result;
 }
 
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
@@ -4435,6 +4465,8 @@ void TechnoExtData::UpdateShield()
 		pShieldData->OnUpdate();
 }
 
+#include <Ext/Cell/Body.h>
+
 // https://github.com/Phobos-developers/Phobos/pull/1111
 // TODO : Upate to this , seems new
 void TechnoExtData::UpdateMobileRefinery()
@@ -4461,16 +4493,17 @@ void TechnoExtData::UpdateMobileRefinery()
 		flh.X = (size_t)idx < pTypeExt->MobileRefinery_FrontOffset.size() ? pTypeExt->MobileRefinery_FrontOffset[idx] * Unsorted::LeptonsPerCell : 0;
 		flh.Y = (size_t)idx < pTypeExt->MobileRefinery_LeftOffset.size() ? pTypeExt->MobileRefinery_LeftOffset[idx] * Unsorted::LeptonsPerCell : 0;
 		auto nPos = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, false);
-		const CellClass* pCell = MapClass::Instance->GetCellAt(nPos);
+		auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(nPos);
 
 		if (!pCell)
 			continue;
 
 		nPos.Z += pThis->Location.Z;
+		const int tValue = pCell->GetContainedTiberiumValue();
 
-		if (const int tValue = pCell->GetContainedTiberiumValue()) {
+		if (tValue != -1) {
 			active = true;
-			const int tibValue = TiberiumClass::Array->Items[pCell->GetContainedTiberiumIndex()]->Value;
+			const int tibValue = TiberiumClass::Array->Items[tValue]->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
 			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? MinImpl(tAmount, pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
 			pCell->ReduceTiberium(amount);
@@ -5459,7 +5492,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 				ranges_.disallow.insert(disallow);
 		}
 
-		if ((type->ArmorMultiplier != 1.0 && (type->ArmorMultiplier_AllowWarheads.size() > 0 || type->ArmorMultiplier_DisallowWarheads.size() > 0))) {
+		if (type->ArmorMultiplier != 1.0) {
 			auto& mults_ = armormultData->mults.emplace_back();
 			mults_.Mult = type->ArmorMultiplier;
 

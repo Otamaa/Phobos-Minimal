@@ -16,6 +16,7 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
@@ -359,7 +360,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		}
 		else
 		{
-			if (auto pCell = MapClass::Instance->GetCellAt(WWMouseClass::Instance->GetCellUnderCursor()))
+			if (auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(WWMouseClass::Instance->GetCellUnderCursor()))
 			{
 				const auto nCoord = pCell->GetCoordsWithBridge();
 				Append(buffer, "Cell At [%d - %d - %d]/[%d - %d] OverlayData [%d]\n", nCoord.Y, nCoord.Y, nCoord.Z, pCell->MapCoords.X, pCell->MapCoords.Y, pCell->OverlayData);
@@ -375,7 +376,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 				{
 					Append(buffer, "[%d]OverlayType is %s\n", nOverlay, pOverlay->ID);
 
-					const auto tibIdx = pCell->GetContainedTiberiumIndex();
+					const auto tibIdx = pCell->_GetTiberiumType();
 					if(tibIdx != -1)
 						Append(buffer, "[%d]TiberiumType is %s\n", tibIdx, TiberiumClass::Array->Items[tibIdx]->ID);
 					else if(pOverlay->Wall){

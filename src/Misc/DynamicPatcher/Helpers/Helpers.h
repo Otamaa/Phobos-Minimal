@@ -46,7 +46,7 @@ public:
 	static int Dir2FrameIndex(DirStruct& dir, int facing);
 
 	static double GetROFMult(TechnoClass const* pTech);
-	static double GetDamageMult(TechnoClass* pTechno);
+	static double GetDamageMult(TechnoClass* pTechno , double damageIn);
 
 	static DirStruct DirNormalized(int index, int facing);
 

@@ -5581,8 +5581,7 @@ void AresJammer::Jam(BuildingClass* TargetBuilding)
 
 	jammMap.push_back_unique(this->AttachedToObject);
 
-	if (jammMap.size() == 1)
-	{
+	if (jammMap.size() >= 1) {
 		TargetBuilding->Owner->RecheckRadar = true;
 	}
 

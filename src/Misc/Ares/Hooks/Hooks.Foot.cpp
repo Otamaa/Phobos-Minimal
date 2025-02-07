@@ -304,6 +304,8 @@ DEFINE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
 // 	return 0x51874D;
 // }
 
+#include <Ext/Cell/Body.h>
+
 DEFINE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 {
 	GET(FootClass*, pThis, ESI);
@@ -327,7 +329,8 @@ DEFINE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 		{
 			if (pThis->Health > 0)
 			{
-				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pThis->GetCell()->GetContainedTiberiumIndex()))
+				auto pCell = (FakeCellClass*)pThis->GetCell();
+				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pCell->_GetTiberiumType()))
 				{
 					auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 

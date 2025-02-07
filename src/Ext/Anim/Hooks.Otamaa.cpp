@@ -87,11 +87,13 @@ DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
 		ContinueDrawTiberium : ContinueNotTiberium;
 }
 
+#include <Ext/Cell/Body.h>
+
 DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
-	GET(CellClass* const, location, ESI);
+	GET(FakeCellClass* const, location, ESI);
 
-	const int tib_idx = location->GetContainedTiberiumIndex();
+	const int tib_idx = location->_GetTiberiumType();
 	const int value = tib_idx == -1 ? 0 : TiberiumClass::Array->Items[tib_idx]->Value;
 
 	if (value > 0)

@@ -229,6 +229,8 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 	return 0;
 }
 
+#include <Ext/Cell/Body.h>
+
 DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -242,7 +244,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
-	auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
+	auto idxTiberium = ((FakeCellClass*)pThis->GetCell())->_GetTiberiumType();
 
 	if (idxTiberium != -1)
 	{

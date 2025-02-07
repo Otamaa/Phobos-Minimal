@@ -399,9 +399,9 @@ void FakeTiberiumClass::__Growth()
 					if (!pSurface)
 						return;
 
-					auto pNewCell = MapClass::Instance->GetCellAt(pSurface->MapCoord);
+					auto pNewCell = (FakeCellClass*)MapClass::Instance->GetCellAt(pSurface->MapCoord);
 
-					if (pNewCell->GetContainedTiberiumIndex() == this->ArrayIndex)
+					if (pNewCell->_GetTiberiumType() == this->ArrayIndex)
 					{
 						pNewCell->GrowTiberium();
 						if (pNewCell->OverlayData >= 11u)

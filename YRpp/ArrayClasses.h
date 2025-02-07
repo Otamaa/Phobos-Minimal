@@ -598,28 +598,24 @@ public:
 #pragma region WrappedSTD
 	template <typename Func>
 	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) const {
-		auto i = this->begin();
-
-	    for (; i != this->end(); ++i) {
+	    for (auto i = this->begin(); i != this->end(); ++i) {
 			if (act(*i)) {
-				break;
+				return i;
 			}
    		}
 
-		return i;
+		return this->end();
 	}
 
 	template <typename Func>
 	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) {
-		auto i = this->begin();
-
-		for (; i != this->end(); ++i) {
+		for (auto i = this->begin(); i != this->end(); ++i) {
 			if (act(*i)) {
-				break;
+				return i;
 			}
    		}
 
-		return i;
+		return this->end();
 	}
 
 	template <typename Func>

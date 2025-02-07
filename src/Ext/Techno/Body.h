@@ -861,7 +861,8 @@ public:
 	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 
 	static void TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo);
-	static double GetDamageMult(TechnoClass* pSouce, bool ForceDisable = false);
+	static double GetDamageMult(TechnoClass* pSouce, double damageIn, bool ForceDisable = false);
+	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead);
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);

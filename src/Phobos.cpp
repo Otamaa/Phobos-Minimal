@@ -221,6 +221,23 @@ void NOINLINE Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			Phobos::EnableConsole = true;
 
 		SpawnerMain::PrintInitializeLog();
+
+
+		//std::wstring _log_dev = Debug::LogFilePathName;
+		//_log_dev += L"\\";
+		//_log_dev += L"debug_dev.log";
+		//const auto log_full = PhobosCRT::WideStringToString(_log_dev);
+
+		//spdlog::init_thread_pool(8192, 10);
+		//Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
+		//Debug::file_sink->set_level(spdlog::level::trace);
+		//Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", Debug::file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+		//Debug::g_MainLogger->set_level(spdlog::level::trace);
+		//Debug::g_ScriptLogger = std::make_shared<spdlog::async_logger>("script", Debug::file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+		//Debug::g_ScriptLogger->set_level(spdlog::level::info);
+		//spdlog::register_logger(Debug::g_MainLogger);
+		//spdlog::register_logger(Debug::g_ScriptLogger);
+		//spdlog::set_default_logger(Debug::g_MainLogger);
 	}
 
 #ifdef _Enable_these
@@ -719,6 +736,7 @@ void Phobos::ExeRun()
 
 	Patch::PrintAllModuleAndBaseAddr();
 	Phobos::InitAdminDebugMode();
+
 
 	int i = 0;
 

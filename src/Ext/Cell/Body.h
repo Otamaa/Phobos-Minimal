@@ -57,7 +57,8 @@ public:
 	bool _SpreadTiberium(bool force);
 	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force);
 	void _Invalidate(AbstractClass* ptr, bool removed);
-	
+	int _GetTiberiumType();
+
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 

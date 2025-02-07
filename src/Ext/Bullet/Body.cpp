@@ -767,7 +767,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 		if (((Math::abs(versus) >= 0.001)))
 		{
 			canAffect = true;
-			const int damage = static_cast<int>(pWeapon->Damage * versus * TechnoExtData::GetDamageMult(pSource));
+			const int damage = static_cast<int>(versus * TechnoExtData::GetDamageMult(pSource , pWeapon->Damage));
 			pExt->CurrentStrength -= damage;
 
 			FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset);

@@ -596,7 +596,6 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *AircraftClass::Array)
 			{
-				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}
@@ -1261,53 +1260,61 @@ DEFINE_HOOK(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 	GET_STACK(HouseClass*, pThis, STACK_OFFS(0x18, 0x8));
 	GET(TechnoClass*, pTechno, ESI);
 
-	// do not return structures in campaigns
-	if (SessionClass::Instance->IsCampaign()) {
-		return 0;
-	}
+	if(!pTechno->IsAlive || pTechno->Health <= 0)
+		return 0x4FC770;
 
 	// check whether this is a building
-	if (auto pBld = cast_to<BuildingClass*>(pTechno))
-	{
-		auto pInitialOwner = pBld->InitialOwner;
+	if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
 
-		// was the building owned by a neutral country?
-		if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
-		{
-			auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
-			auto occupants = pBld->GetOccupantCount();
-			auto canReturn = (pInitialOwner != pThis) || occupants > 0;
+		if(pBldExt->LimboID != -1) {
+			BuildingExtData::LimboKill(pBld);
+			return 0x4FC770;
+		}
 
-			if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
+		// do not return structures in campaigns
+		if(!SessionClass::Instance->IsCampaign()) {
+			// was the building owned by a neutral country?
+			auto pInitialOwner = pBld->InitialOwner;
+
+			if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
 			{
-				// this may change owner
-				if (occupants) {
-					pBld->KillOccupants(nullptr);
-				}
+				auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-				// don't do this when killing occupants already changed owner
-				if (pBld->GetOwningHouse() == pThis)
+				auto occupants = pBld->GetOccupantCount();
+				auto canReturn = (pInitialOwner != pThis) || occupants > 0;
+
+				if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
 				{
-
-					// fallback to first civilian side house, same logic SlaveManager uses
-					if (!pInitialOwner)
-					{
-						pInitialOwner = HouseClass::FindCivilianSide();
+					// this may change owner
+					if (occupants) {
+						pBld->KillOccupants(nullptr);
 					}
 
-					// give to other house and disable
-					if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+					// don't do this when killing occupants already changed owner
+					if (pBld->GetOwningHouse() == pThis)
 					{
-						pBld->Guard();
 
-						if (pBld->Type->NeedsEngineer)
+						// fallback to first civilian side house, same logic SlaveManager uses
+						if (!pInitialOwner)
 						{
-							pBld->HasEngineer = false;
-							pBld->DisableStuff();
+							pInitialOwner = HouseClass::FindCivilianSide();
 						}
 
-						return 0x4FC770;
+						// give to other house and disable
+						if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+						{
+							pBld->Guard();
+
+							if (pBld->Type->NeedsEngineer)
+							{
+								pBld->HasEngineer = false;
+								pBld->DisableStuff();
+							}
+
+							return 0x4FC770;
+						}
 					}
 				}
 			}

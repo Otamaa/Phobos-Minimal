@@ -11,6 +11,12 @@
 
 #include <chrono>
 
+#include <spdlog/async.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/null_sink.h>
+
 class Console
 {
 public:
@@ -105,6 +111,10 @@ public:
 	OPTIONALINLINE static char DeferredStringBuffer[0x1000];
 	OPTIONALINLINE static char LogMessageBuffer[0x1000];
 	OPTIONALINLINE static std::vector<std::string> DeferredLogData;
+
+	OPTIONALINLINE static spdlog::sink_ptr file_sink;
+	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_MainLogger;
+	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_ScriptLogger;
 
 	enum class ExitCode : size_t
 	{
