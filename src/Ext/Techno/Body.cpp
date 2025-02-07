@@ -2293,7 +2293,6 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSource, double damageIn , bool
 	if(pSource->HasAbility(AbilityType::Firepower)){
 		_result *= RulesClass::Instance->VeteranCombat;
 	}
-	const bool firepower = pSource->HasAbility(AbilityType::Firepower);
 
 	return _result;
 }
