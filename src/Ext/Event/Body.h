@@ -5,7 +5,8 @@
 #define SET_DEFAULT_PROP(c) \
 static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(##c##); } \
 static OPTIONALINLINE COMPILETIMEEVAL EventType AsEventType() { return (EventType)Events::##c##; }\
-static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return #c; }
+static OPTIONALINLINE COMPILETIMEEVAL const char* name() { return #c; }\
+static void Respond(EventClass* Event);
 
 class HouseClass;
 class BuildingClass;
@@ -43,8 +44,7 @@ public:
 
 		SET_DEFAULT_PROP(ManualReload)
 
-			static void Raise(TechnoClass* Source);
-		static void Respond(EventClass* Event);
+		static void Raise(TechnoClass* Source);
 
 		TargetClass Who;
 	};
@@ -55,8 +55,7 @@ public:
 
 		SET_DEFAULT_PROP(TrenchRedirectClick)
 
-			static void Raise(BuildingClass* Source, CellStruct* Target);
-		static void Respond(EventClass* Event);
+		static void Raise(BuildingClass* Source, CellStruct* Target);
 
 		TargetClass TargetCell;
 		TargetClass Source;
@@ -68,8 +67,7 @@ public:
 
 		SET_DEFAULT_PROP(ProtocolZero)
 
-			static void Raise();
-		static void Respond(EventClass* Event);
+		static void Raise();
 
 		static COMPILETIMEEVAL int SendResponseTimeInterval = 30;
 
@@ -87,8 +85,7 @@ public:
 	{
 		SET_DEFAULT_PROP(FirewallToggle)
 
-			static void Raise(HouseClass* Source);
-		static void Respond(EventClass* Event);
+		static void Raise(HouseClass* Source);
 
 		TargetClass dummy; //not really used actually
 	};
@@ -102,9 +99,9 @@ public:
 		switch ((Events)type)
 		{
 			GET_SIZE_EV(TrenchRedirectClick)
-				GET_SIZE_EV(ProtocolZero)
-				GET_SIZE_EV(FirewallToggle)
-				GET_SIZE_EV(ManualReload)
+			GET_SIZE_EV(ProtocolZero)
+			GET_SIZE_EV(FirewallToggle)
+			GET_SIZE_EV(ManualReload)
 		default:
 			return 0;
 		}
@@ -118,9 +115,9 @@ public:
 		switch (type)
 		{
 			GET_NAME_EV(TrenchRedirectClick)
-				GET_NAME_EV(ProtocolZero)
-				GET_NAME_EV(FirewallToggle)
-				GET_NAME_EV(ManualReload)
+			GET_NAME_EV(ProtocolZero)
+			GET_NAME_EV(FirewallToggle)
+			GET_NAME_EV(ManualReload)
 		default:
 			return "Unknown";
 		}
@@ -133,9 +130,9 @@ public:
 		switch (type)
 		{
 			RESPOND_TO_EV(TrenchRedirectClick)
-				RESPOND_TO_EV(ProtocolZero)
-				RESPOND_TO_EV(FirewallToggle)
-				RESPOND_TO_EV(ManualReload)
+			RESPOND_TO_EV(ProtocolZero)
+			RESPOND_TO_EV(FirewallToggle)
+			RESPOND_TO_EV(ManualReload)
 		default:
 			break;
 		}
