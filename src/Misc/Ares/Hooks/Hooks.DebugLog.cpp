@@ -1147,8 +1147,8 @@ void __cdecl Debug_Print_Singular(const char* fmt, const char* str) {
 DEFINE_JUMP(CALL, 0x67E452, MiscTools::to_DWORD(&Debug_Print_Singular));
 DEFINE_JUMP(CALL, 0x67E6E0, MiscTools::to_DWORD(&Debug_Print_Singular));
 
-DEFINE_JUMP(CALL, 0x67D2B1, MiscTools::to_DWORD(&Debug_Print_Singular));
-DEFINE_JUMP(CALL, 0x67CF05, MiscTools::to_DWORD(&Debug_Print_Singular));
+DEFINE_JUMP(CALL, 0x67D2B1, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x67CF05, MiscTools::to_DWORD(&Debug_Print));
 
 
 DEFINE_JUMP(CALL, 0x67D13D, MiscTools::to_DWORD(&Debug_Print));
