@@ -224,8 +224,6 @@ public:
 	Valueable<bool> PermaMC { false };
 	ValueableIdx<VocClass> Sound { -1 };
 
-	Valueable<bool> Converts { false };
-
 	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 

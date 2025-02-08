@@ -1497,7 +1497,6 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	//
-	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_UseSWRange.Read(exINI, pSection, "Converts.UseSWRange");
 	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
@@ -1817,7 +1816,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	if (this->SW_GrantOneTime.size() > 0)
 		this->GrantOneTimeFromList(pSW);
 
-	if (this->Converts)
+	if (!this->ConvertsPair.empty())
 	{
 		if(!this->Converts_UseSWRange){
 			for (const auto pTargetFoot : *FootClass::Array) {
@@ -2193,7 +2192,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_ChargeToDrainRatio)
 		.Process(this->HandledType)
 		.Process(this->LastAction)
-		.Process(this->Converts)
 		.Process(this->Converts_UseSWRange)
 		.Process(this->ConvertsPair)
 		.Process(this->Convert_SucceededAnim)

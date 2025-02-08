@@ -302,11 +302,6 @@ void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget) const
 	}
 }
 
-void WarheadTypeExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget) const
-{
-	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
-}
-
 bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target) const
 {
 	if (!Owner || !this->PermaMC)
@@ -540,7 +535,7 @@ static bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		//pData->RemoveMindControl ||
 		//pData->Crit_Chance ||
 		pData->Shield_Break ||
-		(pData->Converts && !pData->ConvertsPair.empty()) ||
+		!pData->ConvertsPair.empty() ||
 		pData->Shield_Respawn_Duration > 0 ||
 		pData->Shield_SelfHealing_Duration > 0 ||
 		!pData->Shield_AttachTypes.empty() ||
@@ -791,8 +786,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
 	}
 
-	if (this->Converts)
-		this->ApplyUpgrade(pHouse, pTarget);
+	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
 
 	if (this->AttachTag)
 		this->ApplyAttachTag(pTarget);

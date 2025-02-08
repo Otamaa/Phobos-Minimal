@@ -296,7 +296,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
-	this->Converts.Read(exINI, pSection, "Converts");
+
 	TechnoTypeConvertData::Parse(Phobos::Otamaa::CompatibilityMode, this->ConvertsPair, exINI, pSection, "ConvertsPair");
 	this->Convert_SucceededAnim.Read(exINI, pSection, "ConvertsAnim");
 
@@ -1403,7 +1403,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Launchs)
 		.Process(this->PermaMC)
 		.Process(this->Sound)
-		.Process(this->Converts)
 		.Process(this->ConvertsPair)
 		.Process(this->Convert_SucceededAnim)
 		.Process(this->StealMoney)

@@ -3353,7 +3353,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (AdjustHealth)
 	{
 		// Readjust health according to percentage
-		pThis->SetHealthPercentage((double)(oldHealth) / (double)pToType->Strength);
+		pThis->SetHealthPercentage((double)(oldHealth) / (double)pOldType->Strength);
 		pThis->EstimatedHealth = pThis->Health;
 	}
 	else

@@ -230,7 +230,6 @@ public:
 	Valueable<bool> SW_Unstoppable { false };
 
 #pragma region converts
-	Valueable<bool> Converts { false };
 	Valueable<bool> Converts_UseSWRange { false };
 	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
