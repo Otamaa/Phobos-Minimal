@@ -46,10 +46,11 @@ void Patch::Apply()
 {
 	void* pAddress = (void*)this->offset;
 
-	DWORD protect_flag;
+	DWORD protect_flag {};
+	DWORD protect_flagb {};
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
 	std::memcpy(pAddress, this->pData, this->size);
-	VirtualProtect(pAddress, this->size, protect_flag, nullptr);
+	VirtualProtect(pAddress, this->size, protect_flag, &protect_flagb);
 }
 
 void Patch::Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data)

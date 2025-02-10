@@ -65,20 +65,20 @@ struct NOVTABLE
 	template<typename TFrom, typename To>
 	static OPTIONALINLINE void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
 	{
-		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE)
-		{
+		DWORD protect_flagb {};
+		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
-			VirtualProtect((LPVOID)addrFrom, size, protect_flag, NULL);
+			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
 		}
 	}
 
 	template<typename To>
 	static OPTIONALINLINE void Apply_withmemcpy(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
 	{
-		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE)
-		{
+		DWORD protect_flagb {};
+		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			std::memcpy((void*)addrFrom, toImpl, size);
-			VirtualProtect((LPVOID)addrFrom, size, protect_flag, NULL);
+			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
 		}
 	}
 

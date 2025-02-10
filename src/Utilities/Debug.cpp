@@ -160,27 +160,3 @@ void Console::WriteFormat(const char* pFormat, ...)
 	WriteWithVArgs(pFormat, args);
 	va_end(args);
 }
-
-void Console::PatchLog(DWORD dwAddr, void* fakeFunc, DWORD* pdwRealFunc)
-{
-#pragma pack(push, 1)
-	struct JMP_STRUCT
-	{
-		byte opcode;
-		DWORD offset;
-	} *pInst;
-#pragma pack(pop)
-
-	DWORD dwOldFlag {};
-	VirtualProtect((LPVOID)dwAddr, 5, PAGE_EXECUTE_READWRITE, &dwOldFlag);
-
-	pInst = (JMP_STRUCT*)dwAddr;
-
-	if (pdwRealFunc && pInst->opcode == 0xE9) // If this function is hooked by Ares
-		*pdwRealFunc = pInst->offset + dwAddr + 5;
-
-	pInst->offset = reinterpret_cast<DWORD>(fakeFunc) - dwAddr - 5;
-
-	DWORD nwOldFlag {};
-	VirtualProtect((LPVOID)dwAddr, 5, dwOldFlag, &nwOldFlag);
-}

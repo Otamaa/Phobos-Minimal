@@ -228,9 +228,10 @@ public:
 	FORCEDINLINE bool operator=(T2 rhs) const {
 
 		DWORD protection = PAGE_EXECUTE_READWRITE;
+		DWORD protectionb {}; 
 		if(VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE) {
 			*reinterpret_cast<LPVOID*>(Address) = rhs;
-			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection);
+			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protectionb);
 			return true;
 		}
 
