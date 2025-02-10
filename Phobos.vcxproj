@@ -271,7 +271,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Header.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.Init.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hook.GameScreenshot.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DamageArea.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
@@ -292,7 +291,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Colors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
@@ -339,11 +337,11 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
     <ClCompile Include="src\Misc\Multithread.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
@@ -1031,18 +1029,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <StructMemberAlignment>8Bytes</StructMemberAlignment>
+      <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -1057,15 +1055,15 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <Link>

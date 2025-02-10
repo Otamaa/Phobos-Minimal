@@ -439,11 +439,3 @@ void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, Warh
 	.Process(this->CanRemoveParasites_KickOut_Anim)
 
 */
-
-DEFINE_HOOK(0x4D73DE, FootClass_ReceiveDamage_RemoveParasites, 0x5)
-{
-	enum { Continue = 0x4D73E3, Skip = 0x4D7413 };
-	GET(FakeWarheadTypeClass*, pWarhead, EBP);
-	GET(int*, damage, EDI);
-	return pWarhead->_GetExtData()->RemoveParasites.Get(*damage < 0) ? Continue : Skip;
-}

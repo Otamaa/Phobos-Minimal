@@ -1511,12 +1511,6 @@ DEFINE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 		? 0x700DCE : 0x700E59;
 }
 
-DEFINE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
-{
-	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
-	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
-}
-
 DEFINE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
 {
 	GET(UnitClass*, pThis, ESI);

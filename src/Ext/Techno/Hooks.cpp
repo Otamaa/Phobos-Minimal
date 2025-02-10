@@ -512,59 +512,6 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	return ReturnFromFunction;
 }
 
-DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0xC4, 0x10));
-	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0xC4, 0xC));
-
-	if (pSource)
-	{
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-		auto SourCoords = pSource->GetCoords();
-
-		if (!pWHExt->SuppressRevengeWeapons)
-		{
-			if (pTypeExt->RevengeWeapon &&
-				EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner) &&
-				!pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
-			{
-				WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true, nullptr);
-			}
-
-			for (const auto& weapon : pExt->RevengeWeapons)
-			{
-				if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner) && !pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
-					WeaponTypeExtData::DetonateAt(weapon.Value, pSource, pThis, true, nullptr);
-			}
-		}
-
-		PhobosAEFunctions::ApplyRevengeWeapon(pThis, pSource, pWH);
-	}
-
-	if (pThis->AttachedBomb)
-		pThis->AttachedBomb->Detonate();
-
-	return 0x702684;
-}
-
-DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
-{
-	enum { SkipExploding = 0x702672, SkipKillingPassengers = 0x702669 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis->WhatAmI() == AbstractType::Building)
-	{
-		if (!BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup && (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling))
-			return SkipExploding;
-	}
-
-	return !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers ? SkipKillingPassengers : 0x0;
-}
-
 // TODO :
 // yeah , fuckers !!
   //struct VampireState {
@@ -634,32 +581,6 @@ DEFINE_HOOK(0x702603, TechnoClass_ReceiveDamage_Explodes, 0x6)
 // 		pAttacker->TakeDamage(damage, pAttacker->GetTechnoType()->Crewed, true, pAttacker, pAttackingHouse);
 // 	}
 // }
-
-DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(int* const, pDamage, EBX);
-	GET(WarheadTypeClass*, pWH, EBP);
-	//GET_STACK(TechnoClass*, pAttacker, 0xD4);
-	//GET_STACK(HouseClass*, pAttackingHouse, 0xE0);
-
-	const bool Show = Phobos::Otamaa::IsAdmin || *pDamage;
-
-	if (Phobos::Debug_DisplayDamageNumbers && Show)
-		FlyingStrings::DisplayDamageNumberString(*pDamage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset);
-
-	GET(DamageState, damageState, EDI);
-
-	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pWH, damageState);
-
-	if (damageState != DamageState::PostMortem && !pThis->IsAlive)
-	{
-		R->EAX(DamageState::NowDead);
-		return 0x702688;
-	}
-
-	return 0;
-}
 
 DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 {

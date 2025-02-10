@@ -18,6 +18,11 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <EventClass.h>
 
+
+bool FakeBuildingTypeClass::_CanUseWaypoint() {
+	return RulesExtData::Instance()->BuildingWaypoint;
+}
+
 // Check whether can call the occupiers leave
 bool BuildingTypeExtData::CheckOccupierCanLeave(HouseClass* pBuildingHouse, HouseClass* pOccupierHouse)
 {
@@ -2184,3 +2189,5 @@ DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x464A56);
 	return 0;
 }
+
+DEFINE_JUMP(VTABLE, 0x7E4610, MiscTools::to_DWORD(&FakeBuildingTypeClass::_CanUseWaypoint))

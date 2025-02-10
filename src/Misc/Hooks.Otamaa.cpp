@@ -509,45 +509,6 @@ DEFINE_HOOK(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 	return 0x0;
 }
 
-// DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
-// {
-// 	GET(TechnoClass* const, pThis, ESI);
-// 	GET(AnimClass*, pAnim, EDI);
-// 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
-// 	GET(int, nIdx, EAX);
-// 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-//
-// 	//well , the owner dies , so taking Invoker is not nessesary here ,..
-// 	pAnim->AnimClass::AnimClass(RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-// 	AnimExtData::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-// 	pThis->GetOwningHouse(), false);
-//
-// 	return 0x70256B;
-// }
-//
-// DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
-// {
-// 	GET(TechnoClass* const, pThis, ESI);
-// 	GET(TechnoTypeClass* const, pType, EAX);
-// 	GET(AnimClass*, pAnim, EBX);
-// 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
-// 	GET(int, nIdx, EDI);
-// 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-//
-// 	//well , the owner dies , so taking Invoker is not nessesary here ,..
-// 	pAnim->AnimClass::AnimClass(pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-// 	AnimExtData::SetAnimOwnerHouseKind(pAnim,
-// 		args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-// 		pThis->GetOwningHouse(),
-// 		false
-// 	);
-//
-// 	return 0x7024AF;
-// }
-
-//ObjectClass TakeDamage , 5F559C
-//UnitClass TakeDamage , 737F0E
-
 // DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 // {
 // 	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
@@ -735,19 +696,6 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 //
 //	return 0x6FE4E7;
 //}
-
-DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
-{
-	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(bool, bIgnore, 0xD8);
-
-	const bool IsCurrentlyDamageImmune = pThis->IsBeingWarpedOut()
-		|| TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pThis));
-
-	return (IsCurrentlyDamageImmune && !bIgnore) ? NullifyDamage : ContinueCheck;
-}
 
 DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 {
@@ -1034,18 +982,6 @@ DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET(TechnoClass* const, pTechno, EDI);
 	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
 	return 0x6EF9D0;
-}
-
-DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
-{
-	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
-
-	GET(int const, nCurStr, EDX);
-	GET(int const, nMaxStr, EBP);
-	GET(int const, nDamage, ECX);
-
-	const auto curstr = int(nMaxStr * RulesClass::Instance->ConditionYellow);
-	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
 }
 
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
@@ -1623,13 +1559,6 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 		? SkipGainExperience : GainExperience;
 }
 
-DEFINE_HOOK(0x702721, TechnoClass_ReceiveDamage_DamagedSound, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pThisType, EAX);
-	VoxClass::PlayAtPos(pThisType->DamageSound, &pThis->Location);
-	return 0x7027AE;
-}
 
 // this just an duplicate
 //DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
@@ -2065,8 +1994,6 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 	R->AL(result);
 	return 0x4DBF0F;
 }
-
-#include <Ext/Cell/Body.h>
 
 DEFINE_JUMP(LJMP, 0x722440, MiscTools::to_DWORD(&FakeTiberiumClass::__Spread));
 DEFINE_JUMP(LJMP, 0x7228B0, MiscTools::to_DWORD(&FakeTiberiumClass::__RecalcSpreadData));
@@ -3068,28 +2995,6 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	return 0x40A56C;
 }
 
-DEFINE_HOOK(0x442991, BuildingClass_ReceiveDamage_ReturnFire_EMPulseCannon, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	return pThis->Type->EMPulseCannon || pThis->Type->NukeSilo ? 0x442A95 : 0x0;
-}
-
-DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
-{
-	enum { SetTarget = 0x442A34, RandomFacing = 0x442A41 };
-
-	GET(TechnoClass*, pAttacker, EBP);
-	GET(BuildingClass*, pThis, ESI);
-
-	//Was pThis->Owner->ControlledByCurrentPlayer(), got desync ed with that
-	const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
-		pAttacker->WhatAmI() == AircraftClass::AbsID ||
-		(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
-	);
-
-	return !def ? SetTarget : RandomFacing;
-}
-
 DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
 	ObjectClass** items = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Items : (ObjectClass**)TechnoClass::Array->Items;
@@ -3750,26 +3655,6 @@ DEFINE_HOOK(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
 
 	R->EAX(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
 	return 0x6FDD30;
-}
-
-DEFINE_HOOK(0x701939 , TechnoClass_TakeDamage_ArmorMult, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-	*args.Damage = (int)TechnoExtData::GetDamageMult(pThis , (double)(*args.Damage));
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->SkipLowDamageCheck) {
-		pExt->SkipLowDamageCheck = false;
-	} else {
-
-		// Restore overridden instructions
-		if (*args.Damage < 1)
-			*args.Damage = 1;
-	}
-
-	return 0x7019E3;
 }
 
 DEFINE_HOOK(0x6FE354 , TechnoClass_FireAt_DamageMult, 0x6)
@@ -8313,8 +8198,6 @@ DEFINE_HOOK(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 	return 0x0;
 }
 
-#include <ExtraHeaders/AStarClass.h>
-
 class FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
@@ -9218,8 +9101,6 @@ DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 
 	return 0x444971;
 }
-
-#include <Surface.h>
 
 #ifdef VoxelBufferReplace
 

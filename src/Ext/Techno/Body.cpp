@@ -3270,7 +3270,10 @@ void TechnoExtData::UpdateEatPassengers()
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto const pDelType = &pTypeExt->PassengerDeletionType;
 
-	if (!pDelType->Enabled || !TechnoExtData::IsActive(pThis))
+	if (!pDelType->Enabled || !TechnoExtData::IsActive(pThis, false))
+		return;
+
+	if (!pDelType->UnderEMP && (pThis->Deactivated || pThis->IsUnderEMP()))
 		return;
 
 		if (pThis->Passengers.NumPassengers > 0)

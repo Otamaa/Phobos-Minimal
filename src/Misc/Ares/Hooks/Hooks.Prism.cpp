@@ -471,18 +471,6 @@ DEFINE_HOOK(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 	return 0x6FF57D;
 }
 
-//these are all for cleaning up when a prism tower becomes unavailable
-DEFINE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
-{
-	GET(FakeBuildingClass* const, pThis, ESI);
-	auto pExt = pThis->_GetExtData();
-
-	if (auto& pPrism = pExt->MyPrismForwarding)
-		pPrism->RemoveFromNetwork(true);
-
-	return 0;
-}
-
 DEFINE_HOOK(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 {
 	GET(BuildingClass* const, pThis, ESI);

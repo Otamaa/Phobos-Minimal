@@ -23,12 +23,14 @@ public:
 
 	Handle<LightSourceClass*, UninitLightSource> LighSource { nullptr };
 	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
+	Handle<AnimClass*, UninitAnim> AttachedFireAnim { nullptr };
 	std::vector<CellStruct> Adjencentcells{};
 
 	~TerrainExtData() noexcept
 	{
 		LighSource.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		AttachedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		AttachedFireAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);

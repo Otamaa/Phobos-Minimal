@@ -85,14 +85,12 @@ void ParticleSystemExtData::UpdateLocations()
 
 void ParticleSystemExtData::UpdateState()
 {
-	this->OtherParticleData.remove_all_if([](const auto& data)
- {
-	 return data.Empty;
+	this->OtherParticleData.remove_all_if([](const auto& data) {
+	 	return data.Empty;
 	});
 
-	this->SmokeData.remove_all_if([](const auto& data)
- {
-	 return data.DeleteOnStateLimit;
+	this->SmokeData.remove_all_if([](const auto& data) {
+	 	return data.DeleteOnStateLimit;
 	});
 
 }

@@ -105,34 +105,6 @@ DEFINE_HOOK(0x483D94, CellClass_UpdatePassability, 6)
 	return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Firestorm_Wall ? 0x483D9E : 0x483DB0;
 }
 
-DEFINE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET_STACK(int* const, pDamage, 0xA0);
-
-	if (FirewallFunctions::IsActiveFirestormWall(pThis , nullptr))
-	{
-		auto const pExt = RulesExtData::Instance();
-		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
-		auto const amount = static_cast<int>(*pDamage * coefficient);
-
-		if (amount > 0)
-		{
-			auto const index = SW_Firewall::FirewallType;
-
-			if (auto const pSuper = pThis->Owner->FindSuperWeapon(index))
-			{
-				auto const left = pSuper->RechargeTimer.GetTimeLeft();
-				int const reduced = MaxImpl(0, left - amount);
-				pSuper->RechargeTimer.Start(reduced);
-			}
-		}
-		return 0x4423B7;
-	}
-
-	return 0x4423F2;
-}
-
 template <bool remove = false>
 static void RecalculateCells(BuildingClass* pThis)
 {

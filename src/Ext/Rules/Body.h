@@ -446,6 +446,9 @@ public:
 	Valueable<bool> AutoBuilding { false };
 	Valueable<bool> AIAngerOnAlly { true };
 
+	Valueable<bool> BuildingTypeSelectable {};
+	Valueable<bool> BuildingWaypoint {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

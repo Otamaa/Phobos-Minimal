@@ -29,6 +29,40 @@
 #include <SpawnManagerClass.h>
 #include <AirstrikeClass.h>
 
+
+DEFINE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pAttacker, EDI);
+
+	if (pThis && pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			// 85
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(HouseClass*, pAttacker, EDI);
+
+	if (pThis && pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
+		}
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -294,7 +328,7 @@ DEFINE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 			}
 
 			// buildings are exempt if they can't undeploy
-			if (what == BuildingClass::AbsID && pType->UndeploysInto)
+			if (what == BuildingClass::AbsID && (pType->UndeploysInto || RulesExtData::Instance()->BuildingTypeSelectable))
 			{
 				match = true;
 				break;

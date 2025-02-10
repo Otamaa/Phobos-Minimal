@@ -297,44 +297,6 @@ DEFINE_HOOK(0x445A72, BuildingClass_Remove_AIBaseNormal, 6)
 	return 0x445A94;
 }
 
-DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWH, 0xA8);
-
-	if(WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
-		return 0x442980;
-
-	BuildingExtContainer::Instance.Find(pThis)->ReceiveDamageWarhead = pWH;
-	pThis->BuildingUnderAttack();
-
-	return 0x442980;
-}
-
-DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6){
-	GET(BuildingClass* , pThis ,ESI);
-	GET(TechnoClass* , pSource , EBP);
-	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
-
-	if(WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
-		return 0x4422C1;
-
-	if(!pSource || pThis->IsStrange())
-		return 0x4422C1;
-
-	auto pSourceHouse = pSource->Owner;
-
-	if (!pSourceHouse) {
-		Debug::Log("Building [%s - %s] Attacked by dead [%x - %s] with null owner!\n", pThis, pThis->Type->ID, pSource, pSource->GetThisClassName());
-		return 0x4422C1;
-	}
-
-	pThis->Owner->LATime = Unsorted::CurrentFrame;
-	pThis->Owner->LAEnemy = pSourceHouse->ArrayIndex;
-	pThis->BaseIsAttacked(pSource);
-	return 0x4422C1;
-}
-
 // replaces the UnitReload handling and makes each docker independent of all
 // others. this means planes don't have to wait one more ReloadDelay because
 // the first docker triggered repair mission while the other dockers arrive
@@ -1318,14 +1280,6 @@ DEFINE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 
 // BuildingClass_KickOutUnit_PreventClone
 DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
-
-DEFINE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pKiller, EBP);
-	pThis->Destroyed(pKiller);
-	return 0x0;
-}
 
 DEFINE_HOOK(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 {

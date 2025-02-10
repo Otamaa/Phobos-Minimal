@@ -15,6 +15,10 @@ void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	if (this->AttachedAnim == ptr) {
 		this->AttachedAnim.release();
 	}
+
+	if (this->AttachedFireAnim == ptr) {
+		this->AttachedFireAnim.release();
+	}
 }
 
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
@@ -117,6 +121,7 @@ void TerrainExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->LighSource, true)
 		.Process(this->AttachedAnim, true)
+		.Process(this->AttachedFireAnim, true)
 		.Process(this->Adjencentcells)
 		;
 }

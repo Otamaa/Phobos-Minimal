@@ -1903,20 +1903,32 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 		if (!Prereqs::HouseOwnsAll(pHouse, this->SW_Require.data(), (int)this->SW_Require.size()))
 			return false;
 	}
+	// check that any aux building exist and no neg building
+	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
+		if (pType){
+
+			if(pHouse->CountOwnedAndPresent(pType) <= 0){
+				auto pAuxExt = BuildingTypeExtContainer::Instance.Find(pType);
+
+				if(!pAuxExt->PowersUp_Buildings.empty() || BuildingTypeClass::Find(pType->PowersUpBuilding))
+				   return BuildingTypeExtData::GetUpgradesAmount(pType, pHouse) > 0;
+			}
+
+			return true;
+		}
+
+		return false;
+	};
 
 	// check whether the optional aux building exists
-	if (pThis->AuxBuilding && pHouse->CountOwnedAndPresent(pThis->AuxBuilding) <= 0)
+	if (!IsBuildingPresent(pThis->AuxBuilding)){
 		return false;
+	}
 
 	// allow only certain houses, disallow forbidden houses
 	if (!((this->SW_RequiredHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u)
 			|| ((this->SW_ForbiddenHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u))
 		return false;
-
-	// check that any aux building exist and no neg building
-	auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
-		return pType && pHouse->CountOwnedAndPresent(pType) > 0;
-	};
 
 	const auto& Aux = this->SW_AuxBuildings;
 	// If building Not Exist

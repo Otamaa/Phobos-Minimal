@@ -759,6 +759,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->AutoBuilding.Read(exINI, GameStrings::General, "AutoBuilding");
 	this->AIAngerOnAlly.Read(exINI, GameStrings::General, "AIAngerOnAlly");
+	this->BuildingTypeSelectable.Read(exINI, GameStrings::General, "BuildingTypeSelectable");
+	this->BuildingWaypoint.Read(exINI, GameStrings::General, "BuildingWaypoint");
+
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
 	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
@@ -1491,6 +1494,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->AutoBuilding)
 		.Process(this->AIAngerOnAlly)
+		.Process(this->BuildingTypeSelectable)
+		.Process(this->BuildingWaypoint)
 		;
 
 	MyPutData.Serialize(Stm);

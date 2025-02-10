@@ -52,81 +52,6 @@
 DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
 DEFINE_JUMP(LJMP, 0x546C23, 0x546CBF) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
-// WWP's shit code! Wrong check.
-// To avoid units dying when they are already dead.
-DEFINE_HOOK(0x5F53AA, ObjectClass_ReceiveDamage_DyingFix, 0x6)
-{
-	enum { PostMortem = 0x5F583E, ContinueCheck = 0x5F53B0 };
-
-	GET(int const, health, EAX);
-	GET(ObjectClass* const, pThis, ESI);
-
-	if (health <= 0 || !pThis->IsAlive)
-		return PostMortem;
-
-	return ContinueCheck;
-}
-
-DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_DyingFix, 0x5)
-{
-	GET(FootClass* const, pThis, ESI);
-	GET(DamageState const, result, EAX);
-
-	if (result != DamageState::PostMortem)
-	{
-		if ((pThis->IsSinking || (!pThis->IsAttackedByLocomotor && pThis->IsCrashing)))
-		{
-			R->EAX(DamageState::PostMortem);
-		}
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
-{
-	GET(UnitClass* const, pThis, ESI);
-	GET(DamageState const, result, EAX);
-
-	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
-	if (result == DamageState::NowDead)
-	{
-
-		if (pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
-			pThis->IsAttackedByLocomotor = false;
-
-		//this cause desync ?
-		if (!pThis->Type->Voxel && pThis->Type->Strength > 0)
-		{
-			if (pThis->Type->MaxDeathCounter > 0
-				&& !pThis->InLimbo
-				&& !pThis->IsCrashing
-				&& !pThis->IsSinking
-				&& !pThis->TemporalTargetingMe
-				&& !pThis->IsInAir()
-				&& pThis->DeathFrameCounter <= 0
-				)
-			{
-
-				pThis->Stun();
-				const auto loco = pThis->Locomotor.GetInterfacePtr();
-
-				if (loco->Is_Moving_Now())
-					loco->Stop_Moving();
-
-				pThis->DeathFrameCounter = 1;
-			}
-		}
-	}
-
-	if (result != DamageState::PostMortem && pThis->DeathFrameCounter > 0)
-	{
-		R->EAX(DamageState::PostMortem);
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -140,95 +65,6 @@ DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 	}
 
 	return 0x0;
-}
-
-DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->DeathFrameCounter > 0)
-	{
-		return 0x737D26;
-	}
-
-	return 0x0;
-}
-
-#include <Ext/Anim/Body.h>
-
-static COMPILETIMEEVAL TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* pType) {
-
-	if (pType->DebrisAnims.Count <= 0) {
-		if (!pType->DebrisTypes.Count &&  !RulesClass::Instance->MetallicDebris.Count)
-			return nullptr;
-
-		return &RulesClass::Instance->MetallicDebris;
-	}
-
-	return &pType->DebrisAnims;
-}
-
-// Restore DebrisMaximums logic (issue #109)
-// Author: Otamaa
-DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
-
-	const auto pType = pThis->GetTechnoType();
-	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris);
-	auto nCoords = pThis->GetCoords();
-
-	if (totalSpawnAmount && pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
-	{
-		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
-		{
-			if (currentIndex >= pType->DebrisMaximums.Count)
-				break;
-
-			if (!pType->DebrisMaximums[currentIndex] || !pType->DebrisTypes.Items[currentIndex])
-				continue;
-
-			//this never goes to 0
-			int amountToSpawn = (abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex]) + 1;
-			amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
-			totalSpawnAmount -= amountToSpawn;
-
-			for (; amountToSpawn > 0; --amountToSpawn)
-			{
-
-				auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.Items[currentIndex],
-				&nCoords, pThis->Owner);
-
-				VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis;
-			}
-
-			if (totalSpawnAmount <= 0)
-			{
-				totalSpawnAmount = 0;
-				break;
-			}
-		}
-	}
-
-	if (totalSpawnAmount > 0)
-	{
-		if(const auto pArray = GetDebrisAnim(pType)) {
-			auto debrisAnim_Coord = nCoords;
-			debrisAnim_Coord.Z += 20;
-
-			for (int b = 0; b < totalSpawnAmount; ++b)
-			{
-				if (auto pDebrisAnimType = pArray->Items[ScenarioClass::Instance->Random.RandomFromMax(pArray->Count - 1)])
-				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDebrisAnimType, debrisAnim_Coord, 0, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400, 0, 0), args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-					pThis->GetOwningHouse(), false);
-				}
-			}
-		}
-	}
-
-	return 0x702572;
 }
 
 // issue #250: Building placement hotkey not responding
@@ -804,13 +640,6 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 	return SkipKilling;
 }
 
-DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
-{
-	GET(FootClass* const, pLinked, ECX);
-	R->ECX(pLinked->GetType()->Strength);
-	return R->Origin() + 0x6;
-}
-
 // DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
@@ -828,16 +657,6 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 
 	return 0x70BCA4;
 }
-
-// DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
-// {
-// 	GET(TechnoClass* const, pRadio, EDI);
-//
-// 	pRadio->ReceiveDamage(&pRadio->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-// 		nullptr, true, true, nullptr);
-//
-// 	return 0x4425F4;
-// }
 
 // DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
 // {
@@ -1640,7 +1459,7 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
-	if (pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
+	if (pThis->Deactivated || pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
 	{
 		pThis->ClearDisguise();
 		R->EAX(pThis->MindControlRingAnim);
@@ -2357,4 +2176,16 @@ DEFINE_HOOK(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
 	const auto mission = pThis->GetCurrentMission();
 
 	return (mission == Mission::Unload || mission == Mission::Construction) ? ThisIsNotOK : ThisIsOK;
+}
+
+DEFINE_HOOK(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+
+	if (Phobos::Otamaa::ExeTerminated)
+		return 0x6B7CCF;
+
+	pThis->KillNodes();
+	pThis->ResetTarget();
+	return 0x6B7CCF;
 }

@@ -592,9 +592,6 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //https://github.com/Phobos-developers/Phobos/issues/629
 void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const
 {
-	if (!pVictim)
-		return;
-
 	auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
 
 	if (pExt->ReceiveDamageMultiplier.isset())

@@ -232,21 +232,6 @@ DEFINE_JUMP(VTABLE, 0x7ECD8C, MiscTools::to_DWORD(&JumpjetLocomotionClass_Draw_M
 //	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 //}
 
-//DEFINE_HOOK(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
-//{
-//	enum { NonJumpJet = 0x518362 ,  ContinueChecks = 0x51831D , SkipPlayExplode = 0x5185F1 };
-//	GET(InfantryClass*, pThis, ESI);
-//	GET(InfantryTypeClass*, pThisType, EAX);
-//
-//	if (pThisType->JumpJet) {
-//		return pThisType->Explodes || pThis->HasAbility(AbilityType::Explodes)
-//			? ContinueChecks : SkipPlayExplode;
-//		return ContinueChecks;
-//	}
-//
-//	return NonJumpJet;
-//}
-
 DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 {
 	enum
@@ -258,7 +243,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	GET(JumpjetLocomotionClass* const, pThis, ESI);
 
 	//prevent float zero division error
-	if (pThis->LinkedTo->IsUnderEMP() || Math::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
+	if (pThis->LinkedTo->Deactivated || pThis->LinkedTo->IsUnderEMP() || Math::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
 		return NoWobble;
 	}
 

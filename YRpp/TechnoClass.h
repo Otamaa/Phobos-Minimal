@@ -771,6 +771,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	{ JMP_THIS(0x708080); }
 
 	bool planing_6385C0() const { JMP_THIS(0x6385C0); }
+	bool AllowToRetaliate(TechnoClass* source, WarheadTypeClass* warhead) const { JMP_THIS(0x7087C0); }
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

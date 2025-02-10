@@ -31,21 +31,6 @@ DEFINE_HOOK(0x4523D4, BuildingClass_TurnOff_EVA, 0x5)
 	return 0x4523E3;
 }
 
-/*
-DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
-{
-	R->Stack(STACK_OFFS(0x9C, 0x6C), DamageState::Unaffected);
-
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pSource, EBP);
-
-	if (pThis == pSource && !pSource->GetTechnoType()->DamageSelf) {
-		return 0x442C06;
-	}
-
-	return 0x442268;
-}*/
-
 DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 {
 	GET(FakeBuildingClass*, pThis, ESI);

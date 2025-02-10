@@ -70,13 +70,7 @@ struct HelperedVector : public std::vector<T , A>
 
 	auto FORCEDINLINE find(const T& item) const {
 		if COMPILETIMEEVAL (direct_comparable<T>) {
-			for (auto i = this->begin(); i != this->end(); ++i) {
-				if (*i == item) {
-					return i;
-				}
-			}
-
-			return this->end();
+			return std::find_if(this->begin(), this->end(), [item](auto& i) { return i == item; });
 		} else {
 			return std::find(this->begin(), this->end(), item);
 		}
@@ -84,13 +78,7 @@ struct HelperedVector : public std::vector<T , A>
 
 	auto FORCEDINLINE find(const T& item) {
 		if COMPILETIMEEVAL (direct_comparable<T>) {
-			for (auto i = this->begin(); i != this->end(); ++i) {
-				if (*i == item) {
-					return i;
-				}
-			}
-
-			return this->end();
+			return std::find_if(this->begin(), this->end(), [item](auto& i) { return i == item; });
 		} else {
 			return std::find(this->begin(), this->end(), item);
 		}

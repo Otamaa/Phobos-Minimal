@@ -114,14 +114,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
-{
-	enum { SkipCheck = 0x442268 , Continue = 0x0 };
 
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
-
-	return  WarheadTypeExtContainer::Instance.Find(args.WH)->AllowDamageOnSelf ? SkipCheck : Continue;
-}
 
 DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {

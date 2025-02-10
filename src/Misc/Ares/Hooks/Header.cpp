@@ -3287,7 +3287,7 @@ std::pair<TechnoTypeClass*, AbstractType> NOINLINE GetOriginalType(TechnoClass* 
 	case AbstractType::Aircraft:
 		return { (TechnoTypeClass*)(((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
 	default:
-		Debug::FatalErrorAndExit("%s is not FootClass, conversion not allowed\n", pToType->ID);
+		Debug::Log ("[%x] %s is not FootClass, conversion to [%s] not allowed\n", pThis , pToType->ID , pThis->get_ID());
 		return { nullptr, AbstractType::None };
 	}
 }

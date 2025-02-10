@@ -823,6 +823,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 		static_cast<int>(pBullet->Velocity.Z)
 	};
 
+	const auto velocitySq = velocityCrd.Length();
 	std::vector<TechnoClass*> validTechnos;
 	validTechnos.reserve(vectSize);
 	const auto pTarget = pBullet->Target;
@@ -839,6 +840,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 			if (!pTechno || !pTechno->IsAlive || !pTechno->IsOnMap || pTechno->Health <= 0 || pTechno->InLimbo || pTechno->IsSinking)
 				continue;
 
+			const auto targetCrd = pTechno->GetCoords();
 			const auto technoType = pTechno->WhatAmI();
 
 			if (technoType == AbstractType::Building && static_cast<BuildingClass*>(pTechno)->Type->InvisibleInGame)
@@ -847,15 +849,13 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 			if (!pType->ProximityAllies && pOwner && pOwner->IsAlliedWith(pTechno->Owner) && pTechno != pTarget)
 				continue;
 
-			const auto distanceCrd = pTechno->GetCoords() - pBullet->SourceCoords;
-			const auto locationCrd = (velocityCrd + (pBullet->Location - pBullet->SourceCoords));
-			const auto terminalCrd = distanceCrd - locationCrd;
-			auto distance = locationCrd.pow(); // Not true distance yet.
+			const auto distanceCrd = targetCrd - pBullet->SourceCoords;
+			const auto terminalCrd = distanceCrd - velocityCrd;
 
 			if (distanceCrd.Multiply(velocityCrd) < 0 || terminalCrd.Multiply(velocityCrd) > 0)
 				continue;
 
-			distance = (distance > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / distance) : distanceCrd.Length();
+			const auto distance = (velocitySq > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
 
 			if (technoType != AbstractType::Building && distance > pType->ProximityRadius.Get())
 				continue;
@@ -889,12 +889,11 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 
 			const auto distanceCrd = pTechno->GetCoords() - pBullet->Location;
 			const auto terminalCrd = distanceCrd - velocityCrd;
-			auto distance = velocityCrd.pow(); // Not true distance yet.
 
 			if (distanceCrd.Multiply(velocityCrd) < 0 || terminalCrd.Multiply(velocityCrd) > 0)
 				continue;
 
-			distance = (distance > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / distance) : distanceCrd.Length();
+			const auto distance = (velocitySq > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
 
 			if (distance > pType->ProximityRadius.Get())
 				continue;
@@ -1330,11 +1329,13 @@ bool StraightTrajectoryVarianC::PassAndConfineAtHeight()
 	if (const auto pCell = MapClass::Instance->TryGetCellAt(futureCoords))
 	{
 		auto checkDifference = MapClass::Instance->GetCellFloorHeight(futureCoords) - futureCoords.Z;
-		const auto cellCoords = pCell->GetCoordsWithBridge();
-		const auto differenceOnBridge = cellCoords.Z - futureCoords.Z;
 
-		if (Math::abs(differenceOnBridge) < Math::abs(checkDifference))
-			checkDifference = differenceOnBridge;
+		if (pCell->ContainsBridge()) {
+
+			const auto differenceOnBridge = checkDifference + Unsorted::BridgeHeight;
+			if (Math::abs(differenceOnBridge) < Math::abs(checkDifference))
+				checkDifference = differenceOnBridge;
+		}
 
 		if (Math::abs(checkDifference) < 384 || !pBullet->Type->SubjectToCliffs)
 		{
