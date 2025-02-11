@@ -1709,6 +1709,11 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis)) {
 
 		const auto pType = pFoot->GetTechnoType();
+		if(!pType->Bunkerable) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
+
 		const auto nSpeedType = pType->SpeedType;
 		if (nSpeedType == SpeedType::Hover
 			|| nSpeedType == SpeedType::Winged
@@ -1742,12 +1747,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 			return 0x70FBCA;
 		}
 
-		if (!pType->Bunkerable || !pType->Turret) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
-
-		if (!pFoot->IsArmed()) {
+		if (!pType->Turret || !pFoot->IsArmed()) {
 			R->EAX(false);
 			return 0x70FBCA;
 		}
