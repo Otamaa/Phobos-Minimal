@@ -3316,6 +3316,10 @@ void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti, TechnoTypeClass* pT
 bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth, bool IsChangeOwnership)
 {
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
+	
+	if (!prevType)
+		return false;
+
 	const auto pOldType = prevType;
 	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", pOldType->ID, pToType->ID);
 
@@ -3451,18 +3455,18 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		// since it not using the type data spawner
 		// it using the custom made
 		// make sure it wont cause any problem here ,..
-		if (pOldType->Spawns)
-		{
-			if (pSpawnManager->SpawnType != pToType->Spawns)
+		if (pOldType->Spawns) {
+
+			if (pToType->Spawns && pSpawnManager->SpawnType != pToType->Spawns)
 				pSpawnManager->SpawnType = pToType->Spawns;
 
-			if (pToType->SpawnsNumber > 0)
+			if (pToType->SpawnsNumber > 0 && pSpawnManager->SpawnCount != pToType->SpawnsNumber)
 				pSpawnManager->SpawnCount = pToType->SpawnsNumber;
 
-			if (pToType->SpawnRegenRate > 0)
+			if (pToType->SpawnRegenRate > 0 && pSpawnManager->RegenRate != pToType->SpawnRegenRate)
 				pSpawnManager->RegenRate = pToType->SpawnRegenRate;
 
-			if (pToType->SpawnReloadRate > 0)
+			if (pToType->SpawnReloadRate > 0 && pSpawnManager->ReloadRate != pToType->SpawnReloadRate)
 				pSpawnManager->ReloadRate = pToType->SpawnReloadRate;
 		}
 	}
