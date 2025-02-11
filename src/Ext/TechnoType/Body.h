@@ -1055,6 +1055,7 @@ public:
 	Valueable<int> CanManualReload_DetonateConsume {};
 
 	Valueable<int> Power {};
+	Valueable<bool> BunkerableAnyway {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

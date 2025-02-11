@@ -1706,44 +1706,52 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
-	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
-	{
+	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis)) {
 
 		const auto pType = pFoot->GetTechnoType();
-		if (!pType->Bunkerable || !pType->Turret)
-		{
-			R->EAX(false);
-			return 0x70FBCA;
-		}
-
-		if (!pFoot->IsArmed())
-		{
-			R->EAX(false);
-			return 0x70FBCA;
-		}
-
 		const auto nSpeedType = pType->SpeedType;
 		if (nSpeedType == SpeedType::Hover
 			|| nSpeedType == SpeedType::Winged
-			|| nSpeedType == SpeedType::None)
-		{
+			|| nSpeedType == SpeedType::None) {
 			R->EAX(false);
 			return 0x70FBCA;
 		}
 
-		if (pFoot->ParasiteEatingMe)
-		{
+		if (pFoot->ParasiteEatingMe) {
 			R->EAX(false);
 			return 0x70FBCA;
 		}
 
 		//crash the game , dont allow it
 		//maybe because of force_track stuffs,..
-		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor))
-		{
+		const auto loco = VTable::Get(pFoot->Locomotor.GetInterfacePtr());
+		if(loco != HoverLocomotionClass::vtable
+			&& loco != MechLocomotionClass::vtable
+			&& loco != FlyLocomotionClass::vtable
+			&& loco != DropPodLocomotionClass::vtable
+			&& loco != RocketLocomotionClass::vtable
+			&& loco != ShipLocomotionClass::vtable) {
 			R->EAX(false);
 			return 0x70FBCA;
 		}
+
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if(pTypeExt->BunkerableAnyway) {
+			R->EAX(true);
+			return 0x70FBCA;
+		}
+
+		if (!pType->Bunkerable || !pType->Turret) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
+
+		if (!pFoot->IsArmed()) {
+			R->EAX(false);
+			return 0x70FBCA;
+		}
+
 
 		R->EAX(true);
 		return 0x70FBCA;

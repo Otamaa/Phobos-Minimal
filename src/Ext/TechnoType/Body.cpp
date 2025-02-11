@@ -1409,6 +1409,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CanManualReload_DetonateWarhead.Read(exINI, pSection, "CanManualReload.DetonateWarhead");
 		this->CanManualReload_DetonateConsume.Read(exINI, pSection, "CanManualReload.DetonateConsume");
 		this->Power.Read(exINI, pSection, "Power");
+
+		// please dont @ me if you got some weird bug with this tag turn on
+		// @ the original author
+		// - Otamaa
+		this->BunkerableAnyway.Read(exINI, pSection, "BunkerableAnyway");
 	}
 
 	// Art tags
@@ -1808,7 +1813,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DestroyAnimSpecific)
 		.Process(this->NotHuman_RandomDeathSequence)
 		.Process(this->DefaultDisguise)
-		;
+		//;
 
 	//Debug::Log("%s AboutToLoad WeaponFLhA\n" , this->AttachedToObject->ID);
 	//Stm
@@ -1816,7 +1821,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 	//	;
 	//Debug::Log("Done WeaponFLhA\n");
 
-	Stm
+	//Stm
 		.Process(this->PassengerDeletionType)
 
 		.Process(this->OpenTopped_RangeBonus)
@@ -1911,21 +1916,24 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceShield_Effect)
 		.Process(this->ForceShield_KillWarhead)
 		.Process(this->SellSound)
-		.Process(this->EVA_Sold);
+		.Process(this->EVA_Sold)
+		//;
 		//Debug::Log("AboutToLoad WeaponFLhB\n");
 		//Stm.Process(this->CrouchedWeaponBurstFLHs);
 		//Debug::Log("Done WeaponFLhB\n");
 		//Debug::Log("AboutToLoad WeaponFLhC\n");
 		//Stm.Process(this->DeployedWeaponBurstFLHs);
 		//Debug::Log("Done WeaponFLhC\n");
-		Stm.Process(this->AlternateFLHs)
+		//Stm
+		.Process(this->AlternateFLHs)
 			.Process(this->Spawner_SpawnOffsets)
 
-			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH);
+			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
+			//;
 
 		//Debug::Log("AboutToLoad Otammaa\n");
 #pragma region Otamaa
-		Stm
+		//Stm
 		.Process(this->FacingRotation_Disable)
 		.Process(this->FacingRotation_DisalbeOnEMP)
 		.Process(this->FacingRotation_DisalbeOnDeactivated)
@@ -2557,6 +2565,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->GreyCameoPCX)
 
 		.Process(this->Power)
+		.Process(this->BunkerableAnyway)
 		;
 }
 
