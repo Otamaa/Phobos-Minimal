@@ -594,6 +594,11 @@ namespace Savegame
 					return true;
 				}
 
+				if ((int)size == -1){
+					Debug::FatalError("Loading std::string with -1 length ? , something not right !\n");
+					return true;
+				}
+
 				std::vector<char> buffer(size);
 				if (Stm.Read(reinterpret_cast<BYTE*>(buffer.data()), size)) {
 					Value.assign(buffer.begin(), buffer.end());
@@ -675,14 +680,14 @@ namespace Savegame
 		bool ReadFromStream(PhobosStreamReader& Stm, SHPStruct*& Value, bool RegisterForChange) const
 		{
 			if (Value && !Value->IsReference())
-				Debug::Log("Value contains SHP file data. Possible leak.\n");
+				Debug::FatalError("Value contains SHP file data. Possible leak.\n");
 
 			Value = nullptr;
 
-			bool hasValue = true;
+			bool hasValue = false;
 			if (Savegame::ReadPhobosStream(Stm, hasValue) && hasValue)
 			{
-				std::string name;
+				std::string name {};
 				if (Savegame::ReadPhobosStream(Stm, name))
 				{
 					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
@@ -699,18 +704,17 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, SHPStruct* const& Value) const
 		{
 			const char* filename = nullptr;
-			if (Value)
-			{
+			if (Value) {
 				if (auto pRef = Value->AsReference())
 					filename = pRef->Filename;
 				else
-					Debug::Log("Cannot save SHPStruct, because it isn't a reference.\n");
+					Debug::FatalError("Cannot save SHPStruct, because it isn't a reference.\n");
 			}
 
+			//write it as bool to make sure 
 			if (Savegame::WritePhobosStream(Stm, filename != nullptr))
 			{
-				if (filename)
-				{
+				if (filename) {
 					std::string file(filename);
 					return Savegame::WritePhobosStream(Stm, file);
 				}
