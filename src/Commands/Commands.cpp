@@ -133,3 +133,29 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 }
 
 #undef Make
+
+#include <Helpers/Macro.h>
+#include <WWKeyboardClass.h>
+
+DEFINE_HOOK(0x533F50, Game_ScrollSidebar_Skip, 0x5)
+{
+	enum { SkipScrollSidebar = 0x533FC3 };
+
+	if (!Phobos::Config::ScrollSidebarStripWhenHoldKey)
+	{
+		const auto pInput = InputManagerClass::Instance();
+
+		if (pInput->IsForceFireKeyPressed() || pInput->IsForceMoveKeyPressed() || pInput->IsForceSelectKeyPressed())
+			return SkipScrollSidebar;
+	}
+
+	if (!Phobos::Config::ScrollSidebarStripInTactical)
+	{
+		const auto pMouse = WWMouseClass::Instance();
+
+		if (pMouse->XY1.X < Make_Global<int>(0xB0CE30)) // TacticalClass::view_bound.Width
+			return SkipScrollSidebar;
+	}
+
+	return 0;
+}

@@ -169,6 +169,9 @@ struct Phobos final
 		static OPTIONALINLINE bool ShowFlashOnSelecting { true };
 		
 		static OPTIONALINLINE bool AutoBuilding_Enable { false };
+
+		static bool ScrollSidebarStripInTactical { true };
+		static bool ScrollSidebarStripWhenHoldKey { true };
 	};
 
 	struct Misc
