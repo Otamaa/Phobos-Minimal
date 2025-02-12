@@ -167,24 +167,25 @@ DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 // Just rewrite this completely to avoid headache
 Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matrix3D* ret, int* pIndex)
 {
-	__assume(iloco != nullptr);
 	auto const pThis = static_cast<JumpjetLocomotionClass*>(iloco);
 	auto linked = pThis->LinkedTo;
 	// no more TiltCrashJumpjet, do that above svp
-	bool&& onGround = pThis->NextState == JumpjetLocomotionClass::State::Grounded;
+	bool const onGround = pThis->NextState == JumpjetLocomotionClass::State::Grounded;
 	// Man, what can I say, you don't want to stick your rotor into the ground
 	auto slope_idx = MapClass::Instance->GetCellAt(linked->Location)->SlopeIndex;
+	// Only use LocomotionFacing for general Jumpjet to avoid the problem that ground units being lifted will turn to attacker weirdly.
+	auto curf = linked->IsAttackedByLocomotor ? &linked->PrimaryFacing : &pThis->Facing;
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(linked->GetTechnoType());
 
 	*ret = Game::VoxelRampMatrix[onGround ? slope_idx : 0];
-	auto curf = pThis->Facing.Current();
-	ret->RotateZ((float)curf.GetRadian<32>());
+	ret->RotateZ((float)curf->Current().GetRadian<32>());
 
 	float arf = linked->AngleRotatedForwards;
 	float ars = linked->AngleRotatedSideways;
 
 	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
-	if (pIndex) *pIndex = -1;
+		if (pIndex) *pIndex = -1;
 
 		if (onGround)
 		{
@@ -205,11 +206,39 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			ret->RotateY(arf);
 		}
 	}
+#ifdef __TODO_1522
+	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTiltWhenMoving)
+		&& !onGround && linked->IsAlive && linked->Health > 0 && !linked->IsAttackedByLocomotor)
+	{
+		if (pThis->__currentSpeed > 0.0)
+		{
+			constexpr auto factor = (Math::HalfPi / 4) / 32;
+			arf += static_cast<float>(MinImpl(32.0, pThis->__currentSpeed) * factor);
+		}
+
+		const auto& locoFace = pThis->Facing;
+
+		if (locoFace.Is_Rotating()) {
+			constexpr auto factor = (Math::HalfPi / 4) / 32768 / 65536;
+			const auto leftRaw = locoFace.RotationTimer.GetTimeLeft() * locoFace.ROT.Raw;
+			const auto dirMult = (static_cast<short>(locoFace.Difference().Raw) * leftRaw);
+			ars += static_cast<float>(dirMult * factor);
+		}
+
+		if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005) {
+			if (pIndex) *pIndex = -1;
+
+			ret->RotateX(ars);
+			ret->RotateY(arf);
+		}
+	}
+#endif
+
 
 	if (pIndex && *pIndex != -1) {
 		if (onGround) *pIndex = slope_idx + (*pIndex << 6);
 		*pIndex *= 32;
-		*pIndex |= curf.GetFacing<32>();
+		*pIndex |= curf->Current().GetFacing<32>();
 	}
 
 	return ret;
