@@ -170,8 +170,8 @@ struct Phobos final
 		
 		static OPTIONALINLINE bool AutoBuilding_Enable { false };
 
-		static bool ScrollSidebarStripInTactical { true };
-		static bool ScrollSidebarStripWhenHoldKey { true };
+		static OPTIONALINLINE bool ScrollSidebarStripInTactical { true };
+		static OPTIONALINLINE bool ScrollSidebarStripWhenHoldKey { true };
 	};
 
 	struct Misc
