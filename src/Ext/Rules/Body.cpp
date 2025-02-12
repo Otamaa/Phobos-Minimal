@@ -686,6 +686,18 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
 			}
 
+			if (!pSuperExt->SW_AuxBuildings.empty()) {
+				pSuperExt->SW_AuxBuildings.erase(std::remove_if(pSuperExt->SW_AuxBuildings.begin(), pSuperExt->SW_AuxBuildings.end(), [](BuildingTypeClass* pItem) -> bool
+					{ return !pItem; }), pSuperExt->SW_AuxBuildings.end());
+			}
+		
+
+			if (!pSuperExt->SW_NegBuildings.empty()) {
+				pSuperExt->SW_NegBuildings.erase(std::remove_if(pSuperExt->SW_NegBuildings.begin(), pSuperExt->SW_NegBuildings.end(), [](BuildingTypeClass* pItem) -> bool 
+					{ return !pItem; }), pSuperExt->SW_NegBuildings.end());
+
+			}
+
 			if (!pSuperExt->DropPod_Types.empty())
 				Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 

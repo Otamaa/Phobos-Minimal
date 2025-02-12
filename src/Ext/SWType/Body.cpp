@@ -1905,23 +1905,22 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 	}
 	// check that any aux building exist and no neg building
 	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
-		if (pType){
 
-			if(pHouse->CountOwnedAndPresent(pType) <= 0){
-				auto pAuxExt = BuildingTypeExtContainer::Instance.Find(pType);
+		if(pHouse->CountOwnedAndPresent(pType) <= 0){
+			auto pAuxExt = BuildingTypeExtContainer::Instance.Find(pType);
 
-				if(!pAuxExt->PowersUp_Buildings.empty() || BuildingTypeClass::Find(pType->PowersUpBuilding))
-				   return BuildingTypeExtData::GetUpgradesAmount(pType, pHouse) > 0;
-			}
+			if(!pAuxExt->PowersUp_Buildings.empty() || BuildingTypeClass::Find(pType->PowersUpBuilding))
+				 return BuildingTypeExtData::GetUpgradesAmount(pType, pHouse) > 0;
 
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
+
 	};
 
 	// check whether the optional aux building exists
-	if (!IsBuildingPresent(pThis->AuxBuilding)){
+	if (pThis->AuxBuilding && !IsBuildingPresent(pThis->AuxBuilding)){
 		return false;
 	}
 
