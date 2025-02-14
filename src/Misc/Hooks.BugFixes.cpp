@@ -1173,21 +1173,21 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 // 	return 0;
 // }
 
-// DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
-// {
-// 	if (!SessionClass::Instance->IsMultiplayer())
-// 		return 0;
-//
-// 	enum { SkipGameCode = 0x73FFDF };
-//
-// 	GET(UnitClass*, pThis, ESI);
-// 	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
-//
-// 	if (!TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding)
-// 		*pAction = Action::NoDeploy;
-//
-// 	return SkipGameCode;
-// }
+DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
+{
+	if (!SessionClass::Instance->IsMultiplayer())
+		return 0;
+
+	enum { SkipGameCode = 0x73FFDF };
+
+	GET(UnitClass*, pThis, ESI);
+	LEA_STACK(Action*, pAction, STACK_OFFSET(0x20, 0x8));
+
+	if (!TechnoExtData::CanDeployIntoBuilding(pThis))
+		*pAction = Action::NoDeploy;
+
+	return SkipGameCode;
+}
 
 #pragma endregion
 
@@ -2188,4 +2188,15 @@ DEFINE_HOOK(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
 	pThis->KillNodes();
 	pThis->ResetTarget();
 	return 0x6B7CCF;
+}
+
+DEFINE_HOOK(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
+{
+	enum { SkipMarkOccupation = 0x71878F };
+
+	GET(const LocomotionClass* const, pLoco, EBP);
+
+	const auto pFoot = pLoco->LinkedTo;
+
+	return (pFoot && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
 }

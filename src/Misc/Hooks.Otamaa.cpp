@@ -2633,19 +2633,6 @@ DEFINE_HOOK(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 	return !pContact ? 0x73B124 : 0x0;
 }
 
-// DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
-// {
-// 	GET(TechnoClass*, pTrackerTechno, EBP);
-//
-// 	if (!pTrackerTechno->IsAlive)
-// 	{
-// 		Debug::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
-// 		return 0x6F9377; // next
-// 	}
-//
-// 	return 0x0;//contunye
-// }
-
 /**
  *  Draw a radial to the screen.
  *
@@ -11032,3 +11019,64 @@ DEFINE_HOOK(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 
 	return 0x0;
 }
+
+DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
+	
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
+
+	if (!pTechno->IsAlive) {
+		Debug::Log("TechnoClass::GreatestThread Found DeadTechno[%x - %s] on TechnoArray!\n", pTechno, pTechno->get_ID());
+		return  0x6F9D93 ; // next
+	}
+
+	R->ECX(pThis->Owner);
+	R->EDI(pTechno);
+	return 0x6F9C89;//contunye
+}
+
+ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
+ {
+ 	GET(TechnoClass*, pTrackerTechno, EBP);
+
+ 	if (!pTrackerTechno->IsAlive) {
+ 		Debug::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
+ 		return 0x6F9377; // next
+ 	}
+
+ 	return 0x0;//contunye
+ }
+
+ DEFINE_HOOK(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6) {
+	 GET(ObjectClass*, pCellObj, EDI);
+
+	 if (pCellObj && !pCellObj->IsAlive)
+		 pCellObj = nullptr;
+
+	 R->EDI(pCellObj);
+
+	 return 0x0;
+ }
+
+ DEFINE_HOOK(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
+ {
+	 GET(ObjectClass*, pCellObj, ESI);
+
+	 if (!pCellObj->IsAlive) {
+		 return 0x51C78F;
+	 }
+
+	 return R->ESI() == R->EBP() ? 0x51C70F : 0x51C259;
+ }
+
+ DEFINE_HOOK(0x7BB350, XSurface_DrawElipSe_check, 0x6) {
+	 GET(XSurface*, pThis, ECX);
+	 GET_STACK(DWORD, caller, 0x0);
+
+	 if (!pThis || VTable::Get(pThis) != XSurface::vtable){
+		 Debug::Log("XSurface Invalid caller [0x%x]!!\n", caller);
+	 }
+
+	 return 0x0;
+ }

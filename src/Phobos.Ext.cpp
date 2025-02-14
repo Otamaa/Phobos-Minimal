@@ -102,7 +102,6 @@
 #include <utility>
 #include <LoadOptionsClass.h>
 
-
 #pragma region Implementation details
 
 #pragma region Concepts

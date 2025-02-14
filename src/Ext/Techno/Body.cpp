@@ -176,6 +176,27 @@ bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDe
 	return canDeploy;
 }
 
+bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis)
+{
+	auto const pDeployType = pThis->Type->DeploysInto;
+
+	if (!pDeployType)
+		return true;
+
+	auto mapCoords = CellClass::Coord2Cell(pThis->GetCoords());
+
+	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
+		mapCoords += CellStruct { -1, -1 };
+
+	// The vanilla game used an inappropriate approach here, resulting in potential risk of desync.
+	// Now, through additional checks, we can directly exclude the unit who want to deploy.
+	TechnoExtData::Deployer = pThis;
+	const bool canDeploy = pDeployType->CanCreateHere(mapCoords, pThis->Owner);
+	TechnoExtData::Deployer = nullptr;
+
+	return canDeploy;
+}
+
 void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
 {
 	if (!pTechnoTo || TechnoExtData::IsPsionicsImmune(pTechnoTo))

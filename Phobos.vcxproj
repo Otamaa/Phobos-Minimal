@@ -305,7 +305,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Particle.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SaveGame.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Selection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />
@@ -337,7 +336,6 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
     <ClCompile Include="src\Misc\Multithread.cpp" />
@@ -463,6 +461,7 @@
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Phobos.COM.cpp" />
+    <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />

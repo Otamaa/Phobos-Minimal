@@ -259,6 +259,7 @@ namespace ProximityTemp
 // Buildable-upon TerrainTypes Hook #1 -> sub_47C620 - Allow placing buildings on top of them
 // Buildable-upon TechnoTypes Hook #1 -> sub_47C620 - Rewrite and check whether allow placing buildings on top of them
 // Customized Laser Fence Hook #1 -> sub_47C620 - Forbid placing laser fence post on inappropriate laser fence
+// TODO : fixing the mess , this is not really way to implement these , need to wait for original PR to update
 DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 {
 	enum { CanNotExistHere = 0x47C6D1, CanExistHere = 0x47C6A0 };
@@ -306,13 +307,17 @@ DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 	else if (pBuildingType->LaserFencePost || pBuildingType->Gate)
 	{
 		bool builtOnTechno = false;
+		bool skipFlag = TechnoExtData::Deployer ? TechnoExtData::Deployer->CurrentMapCoords == pCell->MapCoords : false;;
+
 		auto pObject = pCell->FirstObject;
 
 		while (pObject)
 		{
 			const auto absType = pObject->WhatAmI();
-
-			if (absType == AbstractType::Aircraft)
+			if (pObject == TechnoExtData::Deployer) {
+				skipFlag = true;
+			}
+			else if (absType == AbstractType::Aircraft)
 			{
 				const auto pAircraft = static_cast<AircraftClass*>(pObject);
 
@@ -383,6 +388,9 @@ DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 					return CanNotExistHere;
 			}
 
+			if (TechnoExtData::Deployer && pCell->OccupationFlags & (skipFlag ? 0x1F : 0x3F))
+				return CanNotExistHere;
+
 			pObject = pObject->NextObject;
 		}
 
@@ -423,19 +431,22 @@ DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 	else
 	{
 		bool builtOnTechno = false;
+		bool skipFlag = TechnoExtData::Deployer ? TechnoExtData::Deployer->CurrentMapCoords == pCell->MapCoords : false;;
 		auto pObject = pCell->FirstObject;
 
 		while (pObject)
 		{
 			const auto absType = pObject->WhatAmI();
-
+			if (pObject == TechnoExtData::Deployer)
+				skipFlag = true;
+			else
 			if (absType == AbstractType::Aircraft || absType == AbstractType::Building)
 			{
 				const auto pTechno = static_cast<TechnoClass*>(pObject);
 				const auto pTechnoType = pTechno->GetTechnoType();
 				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-				if (pTypeExt && pTypeExt->CanBeBuiltOn)
+				if (pTypeExt && !pTypeExt->CanBeBuiltOn)
 					builtOnTechno = true;
 				else
 					return CanNotExistHere;
@@ -462,6 +473,9 @@ DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 				else
 					return CanNotExistHere;
 			}
+
+			if (TechnoExtData::Deployer && pCell->OccupationFlags & (skipFlag ? 0x1F : 0x3F))
+				return CanNotExistHere;
 
 			pObject = pObject->NextObject;
 		}
@@ -808,7 +822,7 @@ DEFINE_HOOK(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 	return SkipGameCode;
 }
 
-static inline bool IsSameBuildingType(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
+bool BuildingTypeExtData::IsSameBuildingType(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
 {
 	if (pType1 == pType2)
 		return true;
@@ -844,7 +858,7 @@ DEFINE_HOOK(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
 		{
 			if (const auto pCurrentType = cast_to<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
 			{
-				if (!IsSameBuildingType(pBuilding->Type, pCurrentType))
+				if (!BuildingTypeExtData::IsSameBuildingType(pBuilding->Type, pCurrentType))
 					return SkipGameCode;
 			}
 		}
@@ -864,7 +878,7 @@ DEFINE_HOOK(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 	{
 		if (const auto pCurrentBuildingType = cast_to<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
 		{
-			if (!IsSameBuildingType(BuildingTypeClass::Array->Items[index], pCurrentBuildingType))
+			if (!BuildingTypeExtData::IsSameBuildingType(BuildingTypeClass::Array->Items[index], pCurrentBuildingType))
 				return SkipGameCode;
 		}
 	}

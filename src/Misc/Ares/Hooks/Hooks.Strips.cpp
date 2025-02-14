@@ -1029,10 +1029,18 @@ bool NOINLINE RemoveCameo(BuildType* item)
 
 	if (item->ItemType == BuildingTypeClass::AbsID || item->ItemType == BuildingClass::AbsID)
 	{
-		MouseClass::Instance->CurrentBuilding = nullptr;
-		MouseClass::Instance->CurrentBuildingType = nullptr;
-		MouseClass::Instance->CurrentBuildingOwnerArrayIndex = 0xFFFFFFFF;
-		MouseClass::Instance->SetActiveFoundation(nullptr);
+		const auto pBldType = static_cast<BuildingTypeClass*>(TechnoType);
+		const auto pDisplay = DisplayClass::Instance();
+		const auto pCurType = cast_to<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
+
+		if (!RulesExtData::Instance()->ExtendedBuildingPlacing || !pCurType
+			|| BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))
+		{
+			pDisplay->SetActiveFoundation(nullptr);
+			pDisplay->CurrentBuilding = nullptr;
+			pDisplay->CurrentBuildingType = nullptr;
+			pDisplay->CurrentBuildingOwnerArrayIndex = -1;
+		}
 	}
 
 	if (TechnoType)

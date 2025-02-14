@@ -165,8 +165,7 @@ WaveExtContainer WaveExtContainer::Instance;
 // container hooks
 //
 
-DEFINE_HOOK_AGAIN(0x75ED27, WaveClass_CTOR, 0x5)
-DEFINE_HOOK(0x75EA59, WaveClass_CTOR, 0x5)
+DEFINE_HOOK(0x75EA66, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);
 	WaveExtContainer::Instance.FindOrAllocate(pItem);

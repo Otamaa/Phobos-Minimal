@@ -372,3 +372,23 @@ DEFINE_HOOK(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 
 
 #pragma endregion
+#include <PlanningTokenClass.h>
+
+DEFINE_HOOK(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
+{
+	enum { Ret = 0x4AE982 };
+
+	GET(ObjectClass*, pObject, ECX);
+	GET(int, address, ESP);
+	LEA_STACK(CellStruct*, pCell, 0x28);
+
+	auto action = pObject->MouseOverCell(*pCell);
+
+	bool shouldSkip = PlanningNodeClass::PlanningModeActive && pObject->WhatAmI() == AbstractType::Building && action != Action::Attack;
+
+	if (!shouldSkip)
+		pObject->CellClickedAction(action, pCell, pCell, false);
+
+	return Ret;
+}
+

@@ -76,8 +76,25 @@ static void __cdecl Debug_Print_noArgs(const char* fmt) {
 		Debug::Flush();
 	}
 }
+
+void __cdecl Debug_Print_Singular(const char* fmt, const char* str)
+{
+	if (Debug::LogFileActive())
+	{
+
+		if (Console::ConsoleHandle != NULL)
+		{
+			sprintf_s(Debug::LogMessageBuffer, fmt, str);
+			WriteConsole(Console::ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
+		}
+
+		fprintf(Debug::LogFile, fmt, str);
+		Debug::Flush();
+	}
+}
+
 //TODO : fixed up some call
-/*
+
 DEFINE_JUMP(CALL, 0x403F60, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x406508, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x40765F, MiscTools::to_DWORD(&Debug_Print));
@@ -1140,20 +1157,6 @@ DEFINE_JUMP(CALL, 0x672461, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x6724D0, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x6725B1, MiscTools::to_DWORD(&Debug_Print));
 
-
-void __cdecl Debug_Print_Singular(const char* fmt, const char* str) {
-	if (Debug::LogFileActive()) {
-
-		if (Console::ConsoleHandle != NULL){
-		  sprintf_s(Debug::LogMessageBuffer, fmt, str);
-		  WriteConsole(Console::ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
-		}
-
-		fprintf(Debug::LogFile, fmt, str);
-		Debug::Flush();
-	}
-}
-
 DEFINE_JUMP(CALL, 0x67E452, MiscTools::to_DWORD(&Debug_Print_Singular));
 DEFINE_JUMP(CALL, 0x67E6E0, MiscTools::to_DWORD(&Debug_Print_Singular));
 
@@ -1670,36 +1673,36 @@ DEFINE_JUMP(CALL, 0x7B0EFC, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B1103, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B1136, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B1163, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1185, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B11A9, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B1185, MiscTools::to_DWORD(&Debug_Print));//
+DEFINE_JUMP(CALL, 0x7B11A9, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B1236, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1255, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B1255, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B1280, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B12A2, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B12BC, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B12A2, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B12BC, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B12EE, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B12FD, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B130A, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B12FD, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B130A, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B133F, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B134E, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B135B, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1390, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B139F, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B13B5, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1671, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1A9B, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B134E, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B135B, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1390, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B139F, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B13B5, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1671, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1A9B, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B1BF0, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B1C34, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1DF3, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1E0A, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1E7E, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B1DF3, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1E0A, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1E7E, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B1E9B, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1EB9, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B1EB9, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B1EFA, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B1F46, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1F9E, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B1FAD, MiscTools::to_DWORD(&Debug_Print));
-DEFINE_JUMP(CALL, 0x7B20D2, MiscTools::to_DWORD(&Debug_Print));
+DEFINE_JUMP(CALL, 0x7B1F9E, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B1FAD, MiscTools::to_DWORD(&Debug_Print_noArgs));
+DEFINE_JUMP(CALL, 0x7B20D2, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B2667, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x7B2676, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x7B26A6, MiscTools::to_DWORD(&Debug_Print));
@@ -1801,4 +1804,3 @@ DEFINE_JUMP(CALL, 0x531E47, MiscTools::to_DWORD(&Debug_Print));
 DEFINE_JUMP(CALL, 0x534F4E, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x534F8E, MiscTools::to_DWORD(&Debug_Print_noArgs));
 DEFINE_JUMP(CALL, 0x552CCF, MiscTools::to_DWORD(&Debug_Print));
-*/

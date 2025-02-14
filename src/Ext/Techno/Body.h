@@ -682,8 +682,6 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	bool CanCurrentlyDeployIntoBuilding { false }; // Only set on UnitClass technos with DeploysInto set in multiplayer games, recalculated once per frame.
-
 	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
 
 	int ShootCount { 0 };
@@ -798,7 +796,6 @@ public:
 		return sizeof(TechnoExtData) -
 			(4u //AttachedToObject
 			+ 4u //DamageNumberOffset
-			+ sizeof(bool) //CanCurrentlyDeployIntoBuilding
 			 );
 	}
 
@@ -1018,13 +1015,18 @@ public:
 	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
 
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
-	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue = false);
+	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue);
+	static bool CanDeployIntoBuilding(UnitClass* pThis);
 
 	static void SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, WeaponTypeClass* pWeapon);
 
 	static bool TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup = PowerupEffects::Money, int maxCellRange = 10);
 
 	static void ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, WarheadTypeClass* pWH);
+
+public:
+	static OPTIONALINLINE UnitClass* Deployer { nullptr };
+
 };
 
 class TechnoExtContainer final : public Container<TechnoExtData>

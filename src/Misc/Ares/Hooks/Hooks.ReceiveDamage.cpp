@@ -770,8 +770,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		return 0x702D1F;
 	}
 
-	if (args.Attacker)
-	{
+	if (args.Attacker && !pWHExt->Nonprovocative) {
 		pThis->Owner->UpdateAngerNodes(pType->GetCost() * ((double)*args.Damage / pType->Strength), args.SourceHouse);
 	}
 
@@ -1353,20 +1352,22 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	R->EAX(DamageState::PostMortem);
 	return 0x702D1F;
 }
+
 #pragma endregion
 
 #pragma region Building
 
-#ifdef _TODO
 DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
 	DamageState _res = DamageState::Unaffected;
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
 
-	if (pThis == args.Attacker && !pThis->Type->DamageSelf)
-	{
+	if (pThis == args.Attacker && (!pWHExt->AllowDamageOnSelf && !pThis->Type->DamageSelf)) {
 		R->EAX(_res);
 		return 0x442C14;
 	}
@@ -1374,7 +1375,7 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 	auto pShape = pThis->GetShapeNumber();
 	auto foundation = pThis->GetFoundationData();
 
-	if (args.Attacker && !pThis->IsStrange())
+	if (pThis->Owner && !pWHExt->Nonprovocative && args.Attacker && !pThis->IsStrange())
 	{
 		pThis->Owner->LAEnemy = args.Attacker->Owner->ArrayIndex;
 		pThis->Owner->LATime = Unsorted::CurrentFrame;
@@ -1403,9 +1404,29 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		return 0x442C14;
 	}
 
-	if (pThis->Health)
+	if (FirewallFunctions::IsActiveFirestormWall(pThis, nullptr))
 	{
+		auto const pExt = RulesExtData::Instance();
+		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
+		auto const amount = static_cast<int>(*args.Damage * coefficient);
 
+		if (amount > 0)
+		{
+			auto const index = SW_Firewall::FirewallType;
+
+			if (auto const pSuper = pThis->Owner->FindSuperWeapon(index))
+			{
+				auto const left = pSuper->RechargeTimer.GetTimeLeft();
+				int const reduced = MaxImpl(0, left - amount);
+				pSuper->RechargeTimer.Start(reduced);
+			}
+		}
+
+		R->EAX(DamageState::Unaffected);
+		return 0x442C14;
+	}
+	else
+	{
 		_res = pThis->TechnoClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
 
 		if (!pThis->IsAlive)
@@ -1418,89 +1439,63 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		{
 		case DamageState::NowYellow:
 		{
-			v31 = (float*)this->t.ParticleSystems[2];
-			if (v31)
-			{
-				v31[58] = v31[58] * 1.5;
+			if (auto pParticle = pThis->NaturalParticleSystem) {
+				pParticle->SpawnFrames *= 1.5;
 			}
 
-			if (this->t.r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(&this->t)->DamageSound == -1)
-			{
-				coord = this->t.r.m.o.Coord;
-				VocClass::Add(Rule->BlowupSound, &coord, 0);
+			if (!pTypeExt->DisableDamageSound && pThis->Type->DamageSound == -1) {
+				VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
 			}
 
-			while (a2->X != REFRESH_EOL || a2->Y != REFRESH_EOL)
+			if (args.WH->Sparky)
 			{
-				v32 = *a2;
-				vftable = this->t.r.m.o.a.vftable;
-				++a2;
-				v64 = (int)v32;
-				nCoord = ((CellStruct * (__thiscall*)(ObjectClass*, CellStruct*))vftable->t.r.m.o.Coord_Cell)(&this->t.r.m.o, &v69);
-				v32.X += nCoord->X;
-				LOWORD(nCoord) = HIWORD(v64) + nCoord->Y;
-				v66.Z = 0;
-				v66.X = (v32.X << 8) + 128;
-				v66.Y = ((__int16)nCoord << 8) + 128;
-				v66.Z = MapClass::Get_Z_Pos(&Map.sc.t.sb.p.r.d.m, &v66);
-				// /*
-				// **   Show pieces of fire to indicate that a significant change in
-				// **   damage level has occurred.
-				// */
-				if (warhead->Sparky)
+				const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
+				auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
+
+				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame > pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
 				{
-					v35 = BuildingTypeClass::Height(this->Class, 0);
-					v36 = BuildingTypeClass::Width(this->Class);
-					switch (Random2Class::operator()(&Scen->RandomNumber, 0, v35 + v36 + 5))
+					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
+
+					for (; (foundation->X != 0x7FFF || foundation->Y != 0x7FFF); ++foundation)
 					{
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-						v37 = (AnimClass*)operator new(0x1C8u);
-						if (v37)
-						{
-							v38 = Random2Class::operator()(&Scen->RandomNumber, 1, 3);
-							Vector_Item = (int*)Rule->OnFire.dvc.Vector_Item;
-							v60 = v38;
-							v57 = Coord_Scatter(&retval, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v37, *Vector_Item, v57, 0, v60, AnimFlag_200 | AnimFlag_400, 0, 0);
-							goto LABEL_75;
-						}
-						break;
-					case 6:
-					case 7:
-					case 8:
-						v41 = (AnimClass*)operator new(0x1C8u);
-						if (v41)
-						{
-							v61 = Random2Class::operator()(&Scen->RandomNumber, 1, 3);
-							v42 = (int*)(Rule->OnFire.dvc.Vector_Item + 1);
-							v58 = Coord_Scatter(&v71, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v41, *v42, v58, 0, v61, AnimFlag_200 | AnimFlag_400, 0, 0);
-							goto LABEL_75;
-						}
-						break;
-					case 9:
-						v43 = (AnimClass*)operator new(0x1C8u);
-						if (v43)
-						{
-							v44 = (int*)(Rule->OnFire.dvc.Vector_Item + 2);
-							v59 = Coord_Scatter(&v73, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v43, *v44, v59, 0, 1, AnimFlag_200 | AnimFlag_400, 0, 0);
-						LABEL_75:
-							// /*
-							// **   If the animation was created, then attach it to the building.
-							// */
-							if (v40)
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *foundation;
+						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
+						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
+
+						auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)
 							{
-								AnimClass::Attach_To(v40, &this->t.r.m.o);
-							}
+								if (auto pAnimType = pFireType[nFireTypeAt])
+								{
+									nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
+									auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop);
+									pAnim->SetOwnerObject(pThis);
+									const auto pKiller = args.Attacker;
+									const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
+								}
+							};
+
+						switch (ScenarioClass::Instance->Random.RandomFromMax(rand_))
+						{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+						case 5:
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
+							break;
+						case 6:
+						case 7:
+						case 8:
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
+							break;
+						case 9:
+							PlayFireAnim();
+							break;
+						default:
+							break;
 						}
-						break;
-					default:
-						continue;
 					}
 				}
 			}
@@ -1509,83 +1504,60 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		}
 		case DamageState::NowRed:
 		{
-			if (this->t.r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(&this->t)->DamageSound == -1)
-			{
-				coord = this->t.r.m.o.Coord;
-				VocClass::Add(Rule->BlowupSound, &coord, 0);
+			if (!pTypeExt->DisableDamageSound && pThis->Type->DamageSound == -1) {
+				VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
 			}
 
-			while (a2->X != REFRESH_EOL || a2->Y != REFRESH_EOL)
+			if (args.WH->Sparky)
 			{
-				v32 = *a2;
-				vftable = this->t.r.m.o.a.vftable;
-				++a2;
-				v64 = (int)v32;
-				nCoord = ((CellStruct * (__thiscall*)(ObjectClass*, CellStruct*))vftable->t.r.m.o.Coord_Cell)(&this->t.r.m.o, &v69);
-				v32.X += nCoord->X;
-				LOWORD(nCoord) = HIWORD(v64) + nCoord->Y;
-				v66.Z = 0;
-				v66.X = (v32.X << 8) + 128;
-				v66.Y = ((__int16)nCoord << 8) + 128;
-				v66.Z = MapClass::Get_Z_Pos(&Map.sc.t.sb.p.r.d.m, &v66);
-				// /*
-				// **   Show pieces of fire to indicate that a significant change in
-				// **   damage level has occurred.
-				// */
-				if (warhead->Sparky)
+
+				const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
+				auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
+
+				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame > pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
 				{
-					v35 = BuildingTypeClass::Height(this->Class, 0);
-					v36 = BuildingTypeClass::Width(this->Class);
-					switch (Random2Class::operator()(&Scen->RandomNumber, 0, v35 + v36 + 5))
+					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
+
+					for (; (foundation->X != 0x7FFF || foundation->Y != 0x7FFF); ++foundation)
 					{
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-						v37 = (AnimClass*)operator new(0x1C8u);
-						if (v37)
-						{
-							v38 = Random2Class::operator()(&Scen->RandomNumber, 1, 3);
-							Vector_Item = (int*)Rule->OnFire.dvc.Vector_Item;
-							v60 = v38;
-							v57 = Coord_Scatter(&retval, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v37, *Vector_Item, v57, 0, v60, AnimFlag_200 | AnimFlag_400, 0, 0);
-							goto LABEL_75;
-						}
-						break;
-					case 6:
-					case 7:
-					case 8:
-						v41 = (AnimClass*)operator new(0x1C8u);
-						if (v41)
-						{
-							v61 = Random2Class::operator()(&Scen->RandomNumber, 1, 3);
-							v42 = (int*)(Rule->OnFire.dvc.Vector_Item + 1);
-							v58 = Coord_Scatter(&v71, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v41, *v42, v58, 0, v61, AnimFlag_200 | AnimFlag_400, 0, 0);
-							goto LABEL_75;
-						}
-						break;
-					case 9:
-						v43 = (AnimClass*)operator new(0x1C8u);
-						if (v43)
-						{
-							v44 = (int*)(Rule->OnFire.dvc.Vector_Item + 2);
-							v59 = Coord_Scatter(&v73, &v66, 96, 0);
-							v40 = AnimClass::AnimClass(v43, *v44, v59, 0, 1, AnimFlag_200 | AnimFlag_400, 0, 0);
-						LABEL_75:
-							// /*
-							// **   If the animation was created, then attach it to the building.
-							// */
-							if (v40)
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *foundation;
+						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
+						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
+
+						auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)
 							{
-								AnimClass::Attach_To(v40, &this->t.r.m.o);
-							}
+								if (auto pAnimType = pFireType[nFireTypeAt])
+								{
+									nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
+									auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop);
+									pAnim->SetOwnerObject(pThis);
+									const auto pKiller = args.Attacker;
+									const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
+								}
+							};
+
+						switch (ScenarioClass::Instance->Random.RandomFromMax(rand_))
+						{
+						case 1:
+						case 2:
+						case 3:
+						case 4:
+						case 5:
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
+							break;
+						case 6:
+						case 7:
+						case 8:
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
+							break;
+						case 9:
+							PlayFireAnim();
+							break;
+						default:
+							break;
 						}
-						break;
-					default:
-						continue;
 					}
 				}
 			}
@@ -1595,92 +1567,72 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		case DamageState::NowDead:
 		{
 
-			if (this->t.__BunkerLinkedItem)
+			if (auto pLinked = pThis->BunkerLinkedItem)
 			{
-				v19 = v63.vftble->ID1((int)&v63, &this->t.__BunkerLinkedItem);
-				if (v19 != -1 && v19 < v63.ActiveCount)
-				{
-					--v63.ActiveCount;
-					for (; v19 < v63.ActiveCount; v63.Vector_Item[v19 - 1] = v63.Vector_Item[v19])
-					{
-						++v19;
+				for (int i = 0; i < (int)CachedRadio->size(); ++i) {
+					if (CachedRadio[i] == pLinked) {
+						CachedRadio->erase(CachedRadio->begin() + i, CachedRadio->end());
 					}
 				}
-				BuildingClass_bunker_code(this);
+
+				pThis->UnloadBunker();
 			}
 
-			CaptureManager = this->t.__CaptureManager;
-			if (CaptureManager)
-			{
-				CaptureManagerClass::Free_All(CaptureManager);
+			if (auto& pPrism = pBldExt->MyPrismForwarding)
+				pPrism->RemoveFromNetwork(true);
+
+			if (auto pManager = pThis->CaptureManager) {
+				pManager->FreeAll();
 			}
 
-			if (this->t.__LocomotorTarget)
-			{
-				TechnoClass_70FEE0(&this->t, 1);
+			if (auto pLocoTarget = pThis->LocomotorTarget) {
+				pLocoTarget->LocomotorImblued(true);
 			}
 
-			for (i = 0; i < v63.ActiveCount; ++i)
+			for (int i = 0; i < (int)CachedRadio->size(); ++i)
 			{
-				v22 = (TechnoClass*)v63.Vector_Item[i];
-				v23 = v22->r.m.o.a.vftable->t.r.m.o.a.Center_Coord(v22, &v74);
-				v24 = this->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(this, &v75);
-				v66 = *Operator_Negate(&a1, v24->X - v23->X, v24->Y - v23->Y, v24->Z - v23->Z);
-				// /*
-				// ** If we were in contact with a landed plane, blow the plane up too.
-				// */
-				if (CoordStruct::Length(&v66) < 0x100 || this->Class->Helipad)
+				auto v22 = CachedRadio[i];
+				auto v23 = v22->GetCoords();
+				auto v24 = pThis->GetCoords();
+
+				if ((v24 - v23).Length() < 0x100 || pThis->Type->Helipad)
 				{
-					v25 = v22->r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(v22);
-					v26 = v22->r.m.o.a.vftable;
-					v64 = 10 * v25->ot.MaxStrength;
-					v26->t.r.m.o.Take_Damage((ObjectClass*)v22, (int)&v64, 0, Rule->C4Warhead, 0, 1, 1, 0);
-				}
-				else
-				{
-					this->t.r.m.o.a.vftable->t.r.Transmit_Message__MSG__PTR((RadioClass*)this, RADIO_RUN_AWAY, (FootClass*)v22);
-					v22->__LinkedBuilding = 0;
+					int _damage = v22->GetTechnoType()->Strength;
+					v22->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+
+				} else {
+					pThis->SendCommand(RadioCommand::NotifyLeave, v22);
+					v22->QueueUpToEnter = nullptr;
 				}
 			}
 
-			v27 = v63.VectorMax;
-			v63.vftble->Clear((VectorClass*)&v63);
-			((void(__stdcall*)(int, _DWORD))v63.vftble->Resize)(v27, 0);
+			CachedRadio->clear();
 
-			if (this->Class->CanBeOccupied)
-			{
-				BuildingClass_UnloadOccupants_AllOccupantsHaveLeft(this, 0, 0);
+			if (pThis->Type->CanBeOccupied) {
+				pThis->KickAllOccupants(false , false);
 			}
 
-			LightSource = (LightSourceClass*)this->__LightSource;
-			if (LightSource)
-			{
-				LightSourceClass::Deactivate(LightSource, 0);
+			if (auto pSource = pThis->LightSource) {
+				pSource->Deactivate();
 			}
 
-			((void(__thiscall*)(BuildingClass*, int, TechnoClass*, char, CellStruct*))this->t.r.m.o.a.vftable->sensors_capture_4EC)(
-				this,
-				0,
-				source,
-				forced,
-				a2);
-
-			Started = this->CountDown.Started;
-			DelayTime = this->CountDown.DelayTime;
+			pThis->Destroyed(args.Attacker);
+			
+			auto Started = pThis->GoingToBlowTimer.StartTime;
+			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
 
 			if (Started == -1)
 			{
 				goto LABEL_59;
 			}
 
-			if (Frame - Started < DelayTime)
+			if (Unsorted::CurrentFrame - Started < DelayTime)
 			{
-				DelayTime -= Frame - Started;
+				DelayTime -= Unsorted::CurrentFrame - Started;
 			LABEL_59:
-				if (DelayTime > 0)
-				{
-					this->t.r.m.o.a.vftable->t.r.m.o.Remove_This_deletethis((AbstractClass*)&this->t.r.m.o);
-					BuildingClass::Leave_Rubble(this);
+				if (DelayTime > 0) {
+					pThis->UnInit();
+					pThis->AfterDestruction();
 				}
 			}
 			break;
@@ -1695,320 +1647,59 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	if (this->t.r.m.o.IsActive)
+	if (pThis->IsAlive)
 	{
-		if (source && res != RESULT_NONE)
-		{
-
-			/*
-			// **   If any damage occurred, then inform the house of this fact. If it is the player's
-			// **   house, it might announce this fact.
-			// */
-			if (!this->Class->tt.ot.IsInsignificant && !this->t.r.m.o.a.vftable->t.r.m.o.Is_Vehicle_Can_Undeploy(this))
-			{
-				HouseClass::Attacked(this->t.House, this);
-			}
-
-			// /*
-			// ** Save the type of the house that's doing the damage, so if the building burn
-			// ** to death credit can still be given for the kill
-			// */
-			this->WhoLastHurtMe = source->r.m.o.a.vftable->t.r.m.o.a.Owner__Owning_House(source)->ID;
-
-			// /*
-			// **   When certain buildings are hit, they "snap out of it" and
-			// **   return fire if they are able and allowed.
-			// */
-			if (this->t.r.m.Mission != MISSION_DECONSTRUCTION && !HouseClass::Is_Ally(this->t.House, source))
-			{
-				this->t.r.m.o.a.vftable->t.Get_Weapon((TechnoClass*)this, 0);
-				if (*v45)
+		if ( _res != DamageState::Unaffected) {
+			if(!pWHExt->Nonprovocative && args.Attacker) {
+				if (!pThis->Type->Insignificant && !pThis->IsStrange()) {
+					pBldExt->ReceiveDamageWarhead = args.WH;
+					pThis->BuildingUnderAttack();
+				}
+			
+				pThis->OwnerCountryIndex = args.Attacker->Owner->ArrayIndex;
+			
+				if (!pThis->Type->EMPulseCannon 
+					&& !pThis->Type->NukeSilo
+					&& pThis->CurrentMission != Mission::Selling 
+					&& !pThis->Owner->IsAlliedWith(args.Attacker))
 				{
-					if (!this->t.r.m.o.a.vftable->t.Get_Weapon(&this->t, 0)->WeaponType->Bullet->IsAntiAircraft
-					  && (!this->t.TarCom || !this->t.r.m.o.a.vftable->t.In_Range((TechnoClass*)this, (TechnoClass*)this->t.TarCom)))
+					auto pWPS = pThis->GetWeapon(0);
+					if (pWPS && pWPS->WeaponType)
 					{
-						if (source->r.m.o.a.vftable->t.r.m.o.a.Kind_Of((AbstractClass*)source) == RTTI_AIRCRAFT
-						  || HouseClass::Is_Player_Control(this->t.House) && !Rule->IsSmartDefense)
+						if (!pWPS->WeaponType->Projectile->AA
+							&& (!pThis->Target|| !pThis->IsCloseEnoughToAttack(args.Attacker)))
 						{
-							// /*
-							// **   Generate a random rotation effect since there is nothing else that this
-							// **   building can do.
-							// */
-							if (!FacingClass::Is_Rotating(&this->t.PrimaryFacing) && this->t.r.m.o.a.vftable->t.mTechnoClass_activestate_701190(this))
-							{
-								LOWORD(v64) = 0;
-								LOBYTE(v46) = 0;
-								HIBYTE(v46) = Random2Class::operator()(&Scen->RandomNumber);
-								v47 = v64;
-								BYTE1(v47) = 0;
-								a2 = (CellStruct*)(v47 | v46);
-								FacingClass::Set_Desired(&this->t.PrimaryFacing, (DirStruct*)&a2);
+							const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
+											args.Attacker->WhatAmI() == AircraftClass::AbsID ||
+											(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
+							);
+
+							if (def) {
+								auto& pri = pThis->PrimaryFacing;
+
+								if (!pri.Is_Rotating() && pThis->IsPowerOnline()) {
+									DirStruct _rand { ScenarioClass::Instance->Random.Random() };
+									pri.Set_Desired(_rand);
+								}
+							} else {
+								pThis->SetTarget(args.Attacker);
 							}
 						}
-						else
-						{
-							this->t.r.m.o.a.vftable->t.Assign_Target((ObjectClass*)this, (int)source);
-						}
 					}
 				}
 			}
+
+			pThis->ToggleDamagedAnims(pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow);
 		}
 
-		if (res != RESULT_NONE)
-		{
-			v48 = ObjectClass::Health_Ratio(&this->t.r.m.o) <= Rule->ConditionYellow;
-			if (this->IsDamaged != v48)
-			{
-				v49 = BANIM_UPGRADE_ONE;
-				this->IsDamaged = v48;
-				v50 = 0;
-				a2 = (CellStruct*)this->Anims;
-				do
-				{
-					if (*a2)
-					{
-						v51 = v48 ? this->Class->BuildingAnim[v50].Damaged : (char*)&this->Class->BuildingAnim[v50];
-						if (v51 && *v51)
-						{
-							BuildingClass::Anim_Logic_0(this, v51, v49, v48, 0, 0);
-						}
-					}
-					++v50;
-					++v49;
-					++a2;
-				}
-				while (v50 < BANIM_COUNT);
-			}
+		if (pShape != pThis->GetShapeNumber()) {
+			pThis->NeedsRedraw = true;
+			pThis->ToggleDamagedAnims(pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow);
 		}
-
-		if (_ShapeNum != BuildingClass::Shape_Number(this))
-		{
-			this->t.r.m.o.IsToDisplay = 1;
-			v53 = ObjectClass::Health_Ratio(&this->t.r.m.o) <= Rule->ConditionYellow;
-			if (this->IsDamaged != v53)
-			{
-				v54 = BANIM_UPGRADE_ONE;
-				this->IsDamaged = v53;
-				v55 = 0;
-				a2 = (CellStruct*)this->Anims;
-				do
-				{
-					if (*a2)
-					{
-						v56 = v53 ? this->Class->BuildingAnim[v55].Damaged : (char*)&this->Class->BuildingAnim[v55];
-						if (v56 && *v56)
-						{
-							BuildingClass::Anim_Logic_0(this, v56, v54, v53, 0, 0);
-						}
-					}
-					++v55;
-					++v54;
-					++a2;
-				}
-				while (v55 < 21);
-			}
-		}
-
-		return res;
 	}
 
-
-	R->EAX(DamageState::NowDead);
+	R->EAX(_res);
 	return 0x442C14;
-}
-#endif
-
-//these are all for cleaning up when a prism tower becomes unavailable
-DEFINE_HOOK(0x4424EF, BuildingClass_ReceiveDamage_PrismForward, 6)
-{
-	GET(FakeBuildingClass* const, pThis, ESI);
-	auto pExt = pThis->_GetExtData();
-
-	if (auto& pPrism = pExt->MyPrismForwarding)
-		pPrism->RemoveFromNetwork(true);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
-{
-	enum { SkipCheck = 0x442268, Continue = 0x0 };
-
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
-
-	return  WarheadTypeExtContainer::Instance.Find(args.WH)->AllowDamageOnSelf ? SkipCheck : Continue;
-}
-
-DEFINE_HOOK(0x4426C8, BuildingClass_ReceiveDamage_Handle, 0xA)
-{
-	GET(FakeBuildingClass* const, pThis, ESI);
-	GET_STACK(CellStruct*, pFoundationArray, 0x10);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
-
-	if (!pThis->_GetTypeExtData()->DisableDamageSound && pThis->Type->DamageSound == -1)
-	{
-		VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, pThis->Location, nullptr);
-	}
-
-	if (args.WH->Sparky)
-	{
-
-		auto const pTypeExt = pThis->_GetTypeExtData();
-		auto const pBldExt = pThis->_GetExtData();
-		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
-		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
-
-		if (Onfire && pFireType.size() >= 3)
-		{
-
-			if (Unsorted::CurrentFrame < pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
-				return 0x4428FE;
-
-			pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
-			const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
-
-			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
-			{
-				auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *pFoundationArray;
-				CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
-				nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
-
-				auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)
-					{
-						if (auto pAnimType = pFireType[nFireTypeAt])
-						{
-							nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
-							auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop);
-							pAnim->SetOwnerObject(pThis);
-							const auto pKiller = args.Attacker;
-							const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
-							AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
-						}
-					};
-
-				switch (ScenarioClass::Instance->Random.RandomFromMax(rand_))
-				{
-				case 1:
-				case 2:
-				case 3:
-				case 4:
-				case 5:
-					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
-					break;
-				case 6:
-				case 7:
-				case 8:
-					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
-					break;
-				case 9:
-					PlayFireAnim();
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-
-	return 0x4428FE;
-}
-
-DEFINE_HOOK(0x442974, BuildingClass_ReceiveDamage_Malicious, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWH, 0xA8);
-
-	if (WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
-		return 0x442980;
-
-	BuildingExtContainer::Instance.Find(pThis)->ReceiveDamageWarhead = pWH;
-	pThis->BuildingUnderAttack();
-
-	return 0x442980;
-}
-
-DEFINE_HOOK(0x44227E, BuildingClass_ReceiveDamage_Nonprovocative_DonotSetLAT, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pSource, EBP);
-	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFSET(0x9C, 0xC));
-
-	if (WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative)
-		return 0x4422C1;
-
-	if (!pSource || pThis->IsStrange())
-		return 0x4422C1;
-
-	auto pSourceHouse = pSource->Owner;
-
-	if (!pSourceHouse)
-	{
-		Debug::Log("Building [%s - %s] Attacked by dead [%x - %s] with null owner!\n", pThis, pThis->Type->ID, pSource, pSource->GetThisClassName());
-		return 0x4422C1;
-	}
-
-	pThis->Owner->LATime = Unsorted::CurrentFrame;
-	pThis->Owner->LAEnemy = pSourceHouse->ArrayIndex;
-	pThis->BaseIsAttacked(pSource);
-	return 0x4422C1;
-}
-
-DEFINE_HOOK(0x4423E7, BuildingClass_ReceiveDamage_FSW, 5)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET_STACK(int* const, pDamage, 0xA0);
-
-	if (FirewallFunctions::IsActiveFirestormWall(pThis, nullptr))
-	{
-		auto const pExt = RulesExtData::Instance();
-		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
-		auto const amount = static_cast<int>(*pDamage * coefficient);
-
-		if (amount > 0)
-		{
-			auto const index = SW_Firewall::FirewallType;
-
-			if (auto const pSuper = pThis->Owner->FindSuperWeapon(index))
-			{
-				auto const left = pSuper->RechargeTimer.GetTimeLeft();
-				int const reduced = MaxImpl(0, left - amount);
-				pSuper->RechargeTimer.Start(reduced);
-			}
-		}
-		return 0x4423B7;
-	}
-
-	return 0x4423F2;
-}
-
-DEFINE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pKiller, EBP);
-	pThis->Destroyed(pKiller);
-	return 0x0;
-}
-
-DEFINE_HOOK(0x442991, BuildingClass_ReceiveDamage_ReturnFire_EMPulseCannon, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	return pThis->Type->EMPulseCannon || pThis->Type->NukeSilo ? 0x442A95 : 0x0;
-}
-
-DEFINE_HOOK(0x442A08, BuildingClass_ReceiveDamage_ReturnFire, 0x5)
-{
-	enum { SetTarget = 0x442A34, RandomFacing = 0x442A41 };
-
-	GET(TechnoClass*, pAttacker, EBP);
-	GET(BuildingClass*, pThis, ESI);
-
-	//Was pThis->Owner->ControlledByCurrentPlayer(), got desync ed with that
-	const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
-		pAttacker->WhatAmI() == AircraftClass::AbsID ||
-		(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
-	);
-
-	return !def ? SetTarget : RandomFacing;
 }
 
 #pragma endregion
