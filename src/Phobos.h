@@ -160,7 +160,7 @@ struct Phobos final
 		static OPTIONALINLINE bool SaveGameOnScenarioStart { true };
 
 		static OPTIONALINLINE bool ShowPowerDelta { true };
-		static OPTIONALINLINE bool ShowHarvesterCounter { false };
+		static OPTIONALINLINE bool ShowHarvesterCounter { true };
 		static OPTIONALINLINE bool ShowWeedsCounter { false };
 
 		static OPTIONALINLINE bool UseNewInheritance { false };
