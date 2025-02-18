@@ -232,7 +232,7 @@ DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 
 					if (slot->colorSchemeIndex == -1)
 					{
-						Debug::Log("Color scheme \"%s\" not found.\n", slot->colorScheme);
+						Debug::LogInfo("Color scheme \"{}\" not found.", slot->colorScheme);
 						slot->colorSchemeIndex = 4;
 					}
 				}
@@ -246,7 +246,7 @@ DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	const int ColorShemeArrayCount = ColorScheme::Array->Count;
 
 	if ((size_t)ret >= (size_t)ColorShemeArrayCount)
-		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!\n", caller, idx, ret, ret - 1, ColorShemeArrayCount);
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!", caller, idx, ret, ret - 1, ColorShemeArrayCount);
 
 	R->EAX(ret);
 	return 0x69A334;

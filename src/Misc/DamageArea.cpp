@@ -184,7 +184,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	}
 
 	if (VTable::Get(pWarhead) != WarheadTypeClass::vtable)
-		Debug::FatalErrorAndExit("!\n");
+		Debug::FatalErrorAndExit("!");
 
 	const auto pWHExt = ((FakeWarheadTypeClass*)pWarhead)->_GetExtData();
 	CellStruct cell = CellClass::Coord2Cell(*pCoord);
@@ -343,7 +343,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 									pSource && !pHouse ? pSource->Owner : pHouse
 								) == DamageState::NowDead)
 								{
-									Debug::Log("Veinhole at [%d %d] Destroyed!\n", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+									Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
 
 									if (pCurCell->OverlayTypeIndex == -1)
 									{
@@ -980,7 +980,7 @@ DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 //	GET_BASE(WarheadTypeClass*, pWH, 0xC);
 //
 //	if (!pType->DamageSelf ) {
-//		Debug::Log("Techno[%x - %s] Trying to damage itself with Warhead [%s] , but DamageSelf is off , is this intended ?\n", pObj, pType->ID, pWH->ID);
+//		Debug::LogInfo("Techno[%x - %s] Trying to damage itself with Warhead [%s] , but DamageSelf is off , is this intended ?", pObj, pType->ID, pWH->ID);
 //		return 0x4896F6;
 //	}
 //

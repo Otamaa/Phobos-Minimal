@@ -10,7 +10,7 @@ DEFINE_HOOK(0x6FC32B, TechnoClass_CanFire_NoWeapon, 0x8)
 	if (!pWeaponstruct || !pWeaponstruct->WeaponType) {
 		R->EDI<WeaponTypeClass*>(nullptr);
 		//const auto pType = pThis->GetTechnoType();
-		//Debug::Log("TechnoClass[%s] CanFire NoWeapon at idx [%d] \n", pType->get_ID() , nWeaponIdx);
+		//Debug::LogInfo("TechnoClass[%s] CanFire NoWeapon at idx [%d] ", pType->get_ID() , nWeaponIdx);
 		return 0x6FCD29;
 	}
 
@@ -29,9 +29,9 @@ DEFINE_HOOK(0x709992, TechnoClass_TargetSomethingNearby_NoWeapon, 0x6)
 	if (!pTarget || !pWeaponstruct || !pWeaponstruct->WeaponType){
 
 		//if(!pTarget)
-		//	Debug::Log("TechnoClass[%s] TargetSomethingNearby Notarget\n", pThis->get_ID());
+		//	Debug::LogInfo("TechnoClass[%s] TargetSomethingNearby Notarget", pThis->get_ID());
 		//else
-			//Debug::Log("TechnoClass[%s] TargetSomethingNearby NoWeapon Target[%s]\n", pThis->get_ID() , pTarget->get_ID());
+			//Debug::LogInfo("TechnoClass[%s] TargetSomethingNearby NoWeapon Target[%s]", pThis->get_ID() , pTarget->get_ID());
 
 		return 0x7099B8;
 	}
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x6F7CD5, TechnoClass_EvalueateObj_NoWeapon, 0x6)
 	GET(WeaponStruct*, pWeaponstruct, EAX);
 
 	if (!pWeaponstruct || !pWeaponstruct->WeaponType) {
-		//Debug::Log("TechnoClass[%s] EvalueateObj NoWeapon Target[%s]\n", pThis->get_ID(), pTarget->get_ID());
+		//Debug::LogInfo("TechnoClass[%s] EvalueateObj NoWeapon Target[%s]", pThis->get_ID(), pTarget->get_ID());
 		return 0x6F894F;
 	}
 
@@ -63,7 +63,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 	GET(WeaponStruct*, pWeaponstruct, EAX);
 
 	if (!pWeaponstruct || !pWeaponstruct->WeaponType) {
-		//Debug::Log("TechnoClass[%s] Coef No NoWeapon Target[%s]\n", pThis->get_ID() , pTarget->get_ID());
+		//Debug::LogInfo("TechnoClass[%s] Coef No NoWeapon Target[%s]", pThis->get_ID() , pTarget->get_ID());
 		return 0x70CED2;
 	}
 
@@ -79,7 +79,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //	const auto pWps = pThis->GetWeapon(pWpi);
 //
 //	if (!pWps || !pWps->WeaponType)
-//		Debug::Log("WTF Techno[%s] Trying to find weaponIdx [%d] but it nullptr ?\n" , pThis->Type->ID, pWpi);
+//		Debug::LogInfo("WTF Techno[%s] Trying to find weaponIdx [%d] but it nullptr ?" , pThis->Type->ID, pWpi);
 //
 //	R->EAX(pWps);
 //	return 0x7431F7;
@@ -96,7 +96,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 // 	if (pThis->Owner) {
 // 		R->EAX<void*>(Allocate(sizeof(BuildingClass)));
 // 	} else {
-// 		Debug::Log("Unit[%s] Trying to undeploy but missing Ownership!\n", pThis->Type->ID);
+// 		Debug::LogInfo("Unit[%s] Trying to undeploy but missing Ownership!", pThis->Type->ID);
 // 		R->EAX<void*>(nullptr);
 // 	}
 //
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x70CE90, TechnoClass_Coef_checkForTechno, 0x6)
 //	GET_STACK(CoordStruct*, pCoord, 0x4);
 //
 //	if (!pCoord)
-//		Debug::FatalError("%s , Function Called with nullptr biffer from[%x]\n", __FUNCTION__, R->Stack<DWORD>(0x0));
+//		Debug::FatalError("%s , Function Called with nullptr biffer from[%x]", __FUNCTION__, R->Stack<DWORD>(0x0));
 //
 //	return 0x0;
 //}
@@ -169,13 +169,13 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 				if (pHouse->StartingPoint < (int)pScenStruct->CellVector.size())
 				{
 					const auto& Cell = pScenStruct->CellVector.Items[pHouse->StartingPoint];
-					Debug::Log("SetBaseSpawnCellFor[%s at %d with [%d - %d]\n", HouseID, pHouse->StartingPoint, Cell.X, Cell.Y);
+					Debug::LogInfo("SetBaseSpawnCellFor[{} at {} with [{} - {}]", HouseID, pHouse->StartingPoint, Cell.X, Cell.Y);
 					pHouse->SetBaseSpawnCell(Cell);
 					ScenarioClass::Instance->HouseIndices[pHouse->StartingPoint] = i;
 				}
 				else
 				{
-					Debug::Log("Failed SetBaseSpawnCellFor[%s at %d]\n", HouseID, pHouse->StartingPoint);
+					Debug::LogInfo("Failed SetBaseSpawnCellFor[{} at {}]", HouseID, pHouse->StartingPoint);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ DEFINE_HOOK(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 	//		IsAssigned = true;
 	//		if (!IsCurrentCellAssigned[i]) {
 	//			const auto& Cell = pScenStruct->CellVector.Items[i];
-	//			Debug::Log("SetBaseSpawnCellFor[%s at %d with [%d - %d]\n", who->get_ID(), i, Cell.X, Cell.Y);
+	//			Debug::LogInfo("SetBaseSpawnCellFor[%s at %d with [%d - %d]", who->get_ID(), i, Cell.X, Cell.Y);
 	//			who->SetBaseSpawnCell(Cell);
 	//			IsCurrentCellAssigned[i] = true;
 	//		}
@@ -240,7 +240,7 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 //DEFINE_HOOK(0x6A8420, SortsBefore_whocaall, 0x5)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[%x]!\n",caller);
+//	Debug::LogInfo(__FUNCTION__" Caller[%x]!",caller);
 //	return 0x0;
 //}
 //
@@ -251,7 +251,7 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 //	GET(AbstractType, type1, ESI);
 //
 //	if (!pResultFirst)
-//		Debug::Log("Trying to getType from RTTI[%s - %d] idx[%d] failed!\n", AbstractClass::GetAbstractClassName(type1) , (int)type1, indexq);
+//		Debug::LogInfo("Trying to getType from RTTI[%s - %d] idx[%d] failed!", AbstractClass::GetAbstractClassName(type1) , (int)type1, indexq);
 //
 //	return 0;
 //}
@@ -302,7 +302,7 @@ DEFINE_HOOK(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 //	GET(AnimClass*, pThis, EBP);
 //
 //	if (IS_SAME_STR_("IONDEBRI", pThis->Type->ID)) {
-//		Debug::Log("Updating Bounce for [0x%x(%s)]\n", pThis, pThis->Type->ID);
+//		Debug::LogInfo("Updating Bounce for [0x%x(%s)]", pThis, pThis->Type->ID);
 //		ptr = &pThis->Bounce;
 //	}
 //	return 0x0;
@@ -315,7 +315,7 @@ DEFINE_HOOK(0x43A002, Bounclass_Update_FixCrash, 0x9)
 
 	//the fuck this ramp result is wrong ,..
 	if(ramp > 11){
-		//Debug::Log("Updating Bounce with rampIdx %d\n", ramp);
+		//Debug::LogInfo("Updating Bounce with rampIdx %d", ramp);
 		return 0x43A05D;
 	}
 

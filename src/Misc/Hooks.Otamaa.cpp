@@ -933,7 +933,7 @@ DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 	}
 
 	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
-	Debug::Log("[%s - %x] Creating a new team named [%s - %x] caller [%x].\n", pHouse->get_ID(), pHouse, pThis->ID, pTeam, caller);
+	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].", pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
 	R->EAX(pTeam);
 	return 0x6F0A2C;
 }
@@ -950,7 +950,7 @@ DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 // 	GET(TeamTypeClass* const, pThis, ESI);
 // 	GET(HouseClass* const, pHouse, EDI);
 // 	const void* ptr = Allocate(sizeof(TeamClass));
-// 	Debug::Log("[%s - %x] Creating a new team named [%s - %x].\n", pHouse ? pHouse->get_ID() : GameStrings::NoneStrb() ,pHouse, pThis->ID, ptr);
+// 	Debug::LogInfo("[%s - %x] Creating a new team named [%s - %x].", pHouse ? pHouse->get_ID() : GameStrings::NoneStrb() ,pHouse, pThis->ID, ptr);
 // 	R->EAX(ptr);
 // 	return 0x6F0A5A;
 // }
@@ -962,7 +962,7 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 //{
 //	GET(FactoryClass* const, pThis, ESI);
 //	GET(TechnoTypeClass* const, pType, EAX);
-//	//Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStrb(), pType->ID);
+//	//Debug::LogInfo("[%x] Factory with Owner '%s' Abandoning production of '%s' ", pThis, pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStrb(), pType->ID);
 //	R->ECX(pThis->Object);
 //	return 0x4CA021;
 //}
@@ -970,7 +970,7 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
 	GET(FootClass* const, pThis, EDI);
-	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
+	Debug::LogInfo("[{}][{}] Transport just recieved orders to go home after unloading ", (void*)pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
@@ -980,7 +980,7 @@ DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET_STACK(short const, nCellY, 0x12);
 	GET(TeamClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
-	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
+	Debug::LogInfo("[{}][{}] Team with Owner '{}' has chosen ({} , {}) for its GatherAtEnemy cell.", (void*)pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
@@ -1536,13 +1536,10 @@ DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
 
 DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 {
-	enum { SkipGameCode = 0x5F6D90 };
-
 	GET(ObjectClass* const, pThis, ECX);
-	GET_STACK(TechnoClass* const, pTechno, STACK_OFFSET(0x8, -0x4));
+	GET_STACK(TechnoClass* const, pTechno, 0x4);
 	R->AL(TechnoExtData::IsCrushable(pThis, pTechno));
-
-	return SkipGameCode;
+	return 0x5F6D90;
 }
 
 DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
@@ -1955,7 +1952,7 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 	GET_STACK(HouseClass* const, pNewOwner, 0xC + 0x4);
 	GET_STACK(bool const, bAnnounce, 0xC + 0x8);
 
-	//Debug::Log("SetOwningHouse for [%s] announce [%s - %d]\n", pNewOwner->get_ID(), bAnnounce ? "True" : "False" , bAnnounce);
+	//Debug::LogInfo("SetOwningHouse for [%s] announce [%s - %d]", pNewOwner->get_ID(), bAnnounce ? "True" : "False" , bAnnounce);
 	bool result = false;
 	if (pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce))
 	{
@@ -2037,7 +2034,7 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					}
 				}
 			}
-			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->ID); }
+			else { Debug::LogInfo("Terrain [%s] With Corrupted Image !", pThis->Type->ID); }
 		}
 	}
 
@@ -2251,7 +2248,7 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 
 	if (!pThis)
 	{
-		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] \n", caller);
+		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] ", caller);
 	}
 
 	return retContinue;
@@ -2457,7 +2454,7 @@ DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 // 					false,
 // 					pSource && !pHouse ? pSource->Owner : pHouse
 // 				) == DamageState::NowDead)
-// 					Debug::Log("Veinhole at [%d %d] Destroyed!\n", pMonster->MonsterCell.X, pMonster->MonsterCell.Y);
+// 					Debug::LogInfo("Veinhole at [%d %d] Destroyed!", pMonster->MonsterCell.X, pMonster->MonsterCell.Y);
 //
 // 		}
 //
@@ -2498,7 +2495,7 @@ DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 
 //DEFINE_HOOK(0x6E9832, TeamClass_AI_IsThisExecuted, 0x8)
 //{
-//	Debug::Log(__FUNCTION__" Called \n");
+//	Debug::LogInfo(__FUNCTION__" Called ");
 //
 //	return 0x0;
 //}
@@ -2513,7 +2510,7 @@ DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 	if (!pHouse)
 	{
 		const auto nonestr = GameStrings::NoneStr();
-		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]\n",
+		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]",
 			pThis->Owner ? pThis->Owner->get_ID() : nonestr, pThis->Owner,
 			pThis->get_ID(), pThis, args);
 	}
@@ -2530,7 +2527,7 @@ DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 //
 // 	if (!pThis->Target)
 // 	{
-// 		Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+// 		Debug::LogInfo("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash",
 // 			pThis->get_ID(), pThis);
 //
 // 		pThis->Target = MapClass::Instance->GetCellAt(pUnlimboCoords);
@@ -2549,7 +2546,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 	const auto pHouse = pType->GetHouse();
 	if (!pHouse)
 	{
-		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !\n", pType->ID);
+		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", pType->ID);
 	}
 
 	R->EAX(pHouse);
@@ -2971,7 +2968,7 @@ DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
 
 	if (Phobos::Otamaa::OutputAudioLogs)
-		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->dwBufferBytes);
+		Debug::LogInfo("Sound frame size = {} bytes", pAudioChannelTag->dwBufferBytes);
 
 	return 0x40A5C4;
 }
@@ -2983,7 +2980,7 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	pAudioChannelTag->soundframesize1 = R->EAX();
 
 	if (Phobos::Otamaa::OutputAudioLogs)
-		Debug::Log("Sound frame size = %d bytes\n", pAudioChannelTag->soundframesize1);
+		Debug::LogInfo("Sound frame size = {} bytes", pAudioChannelTag->soundframesize1);
 
 	R->EDX(R->EAX());
 	R->EAX(ptr);
@@ -3233,7 +3230,7 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 	while (!placed && currentRange < maxCellRange);
 
 	if (!placed)
-		Debug::Log(__FUNCTION__": Failed to place a crate in the cell (%d,%d) and around that location.\n", centerCell.X, centerCell.Y, maxCellRange);
+		Debug::LogInfo(__FUNCTION__": Failed to place a crate in the cell ({},{}) and around that location.", centerCell.X, centerCell.Y, maxCellRange);
 
 	return placed;
 }
@@ -3250,7 +3247,7 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 
 	//prevent unit in warfactory stuck
 	// if (thisMult < 0.0001 && TechnoExtData::IsInWarfactory(pThis, false)) {
-	// 	Debug::Log("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult\n", pType->ID);
+	// 	Debug::LogInfo("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult", pType->ID);
 	// 	thisMult = 1.0;
 	// }
 
@@ -3287,7 +3284,7 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	}
 
 	R->EAX((int)speedResult);
-	return 0x4DB23D;
+	return 0x4DB245;
 }
 
 DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
@@ -3484,11 +3481,11 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 		;
 
 	//if (Phobos::Otamaa::IsAdmin)
-	//	Debug::Log("%s , With House Index [%d]\n", pHouseName, idx);
+	//	Debug::LogInfo("%s , With House Index [%d]", pHouseName, idx);
 
 	if (idx == -1)
 	{
-		Debug::Log("Failed To fetch house index by name of [%s]\n", pHouseName);
+		Debug::LogInfo("Failed To fetch house index by name of [{}]", pHouseName);
 		Debug::RegisterParserError();
 	}
 
@@ -3534,7 +3531,7 @@ DEFINE_HOOK(0x7375B6, UnitClass_ReceiveRadio_Parasited_CanLoad, 0xA)
 DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 {
 	if (!HouseClass::CurrentPlayer())
-		Debug::FatalError("CurrentPlayer ptr is Missing!\n");
+		Debug::FatalError("CurrentPlayer ptr is Missing!");
 
 	return 0x0;
 }
@@ -3546,7 +3543,7 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 
 	if (idx > 64)
 	{
-		Debug::Log("[0x%x]SpotlightClass with OutOfBoundSurfaceArrayIndex[%d] Fixing!\n", pThis, idx);
+		Debug::LogInfo("[0x{}]SpotlightClass with OutOfBoundSurfaceArrayIndex[{}] Fixing!", (void*)pThis, idx);
 		idx = 64;
 	}
 
@@ -3616,7 +3613,7 @@ DEFINE_STRONG_HOOK(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 
 	if (!pThis || VTable::Get(pThis) != HouseClass::vtable)
 	{
-		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !\n", R->Origin(), called);
+		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !", R->Origin(), called);
 	}
 
 	return 0;
@@ -3667,7 +3664,7 @@ DEFINE_HOOK(0x6FE354 , TechnoClass_FireAt_DamageMult, 0x6)
 DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
 {
 	GET(CCFileClass*, pFile, EAX);
-	Debug::Log("Init %s file\n", pFile->GetFileName());
+	Debug::LogInfo("Init {} file", pFile->GetFileName());
 	return 0x0;
 }
 
@@ -3699,7 +3696,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 		result = BuildingTypeClass::Find(pBuffer);
 
 	if (Phobos::Otamaa::IsAdmin)
-		Debug::Log("Condition Object[%s - %s] for [%s]\n", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
+		Debug::LogInfo("Condition Object[{} - {}] for [{}]", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
 
 	R->ESI(result);
 	return 0x41F7DE;
@@ -3739,10 +3736,10 @@ DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
 	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
-	Debug::Log("[%x]Factory with owner [%s - %x] abandoning production of [%s(%s) - %x]\n",
-		pThis,
-		pThis->Owner->get_ID(), pThis->Owner,
-		pType->Name, pType->ID, pObject);
+	Debug::LogInfo("[{}]Factory with owner [{} - {}] abandoning production of [{}({}) - {}]",
+		(void*)pThis,
+		pThis->Owner->get_ID(), (void*)pThis->Owner,
+		pType->Name, pType->ID, (void*)pObject);
 
 	R->EAX(pType);
 	return 0x4CA029;
@@ -3765,7 +3762,7 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 //	GET(BuildingClass*, pThis, EBP);
 //
 //	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM")) {
-//		Debug::FatalError("DBEHIM has Undeploys to but still endup here , WTF! HasNoFocuse %s \n", pThis->ArchiveTarget ? "Yes" : "No");
+//		Debug::FatalError("DBEHIM has Undeploys to but still endup here , WTF! HasNoFocuse %s ", pThis->ArchiveTarget ? "Yes" : "No");
 //	}
 //
 //	return 0x0;
@@ -3775,7 +3772,7 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 //	GET(BuildingClass*, pThis, ECX);
 //
 //	if (pThis && IS_SAME_STR_(pThis->get_ID(), "DBEHIM"))
-//		Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+//		Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
 //
 //	return 0x0;
 //}
@@ -3784,13 +3781,13 @@ DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 
 DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
-	Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 
 DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 {
-	Debug::Log(__FUNCTION__"Caller [%x]\n", R->Stack<DWORD>(0x0));
+	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 #endif
@@ -3815,7 +3812,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID() , caller);
+//	Debug::LogInfo("%s ChangeOwnership For[%s] Caller[%x]", __FUNCTION__, pThis->get_ID() , caller);
 //	return 0x0;
 //}
 //
@@ -3823,7 +3820,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID(), caller);
+//	Debug::LogInfo("%s ChangeOwnership For[%s] Caller[%x]", __FUNCTION__, pThis->get_ID(), caller);
 //	return 0x0;
 //}
 //
@@ -3831,7 +3828,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log("%s ChangeOwnership For[%s] Caller[%x]\n", __FUNCTION__, pThis->get_ID(), caller);
+//	Debug::LogInfo("%s ChangeOwnership For[%s] Caller[%x]", __FUNCTION__, pThis->get_ID(), caller);
 //	return 0x0;
 //}
 
@@ -3871,7 +3868,7 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 // 	GET_STACK(DWORD, callr, 0x0);
 //
 // 	if (!pCell) {
-// 		Debug::FatalErrorAndExit("addr [0x%x] calling MapClass_OpBracket_CellStruct with nullptr cell!\n", callr);
+// 		Debug::FatalErrorAndExit("addr [0x%x] calling MapClass_OpBracket_CellStruct with nullptr cell!", callr);
 // 	}
 //
 // 	return 0x0;
@@ -3887,7 +3884,7 @@ DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 	if (!pThis)
 	{
 		// Fuck off
-		//Debug::Log("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]\n", caller);
+		//Debug::LogInfo("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]", caller);
 		return 0x62E4B4;
 	}
 
@@ -3901,7 +3898,7 @@ DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 //	GET_STACK(DWORD, caller, 0x0);
 //
 //	if (!pThis || !pThat)
-//		Debug::FatalErrorAndExit(__FUNCTION__" Called from(0x%x) with Invalid args ptr!\n", caller);
+//		Debug::FatalErrorAndExit(__FUNCTION__" Called from(0x%x) with Invalid args ptr!", caller);
 //
 //	return 0x0;
 //}
@@ -3930,7 +3927,7 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 	GET_BASE(MovementZone, movementZone, 0x10);
 	GET_BASE(FootClass*, pFoot, 0x14);
 
-	Debug::Log("FindingPath for [%s(0x%x) - Owner[%s(0x%x)] from[%d , %d] to [%d , %d] MovementZone [%s(%d)] DriverKilled[%s] \n",
+	Debug::LogInfo("FindingPath for [%s(0x%x) - Owner[%s(0x%x)] from[%d , %d] to [%d , %d] MovementZone [%s(%d)] DriverKilled[%s] ",
 		pFoot->get_ID(), pFoot,
 		pFoot->Owner->get_ID(), pFoot->Owner,
 		pFrom->X, pFrom->Y,
@@ -3945,7 +3942,7 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 	const auto SubZobneConnectionPtr = SubZoneTrackingArray->Items + SubZoneTracking_Idx;
 	const auto SubZobneConnectionPtr_offsetted = SubZobneConnectionPtr + SubZoneConnection_Idx;
 	if (SubZoneTrackingArray->Count <= SubZoneConnection_Idx)
-		Debug::FatalErrorAndExit("AstarClass_FindPath trying to offset SubzoneConnection array pointer to [%d] but the array only has[%d]!\n" , SubZoneConnection_Idx, SubZoneTrackingArray->Count);
+		Debug::FatalErrorAndExit("AstarClass_FindPath trying to offset SubzoneConnection array pointer to [%d] but the array only has[%d]!" , SubZoneConnection_Idx, SubZoneTrackingArray->Count);
 
 	const auto ptr = SubZobneConnectionPtr_offsetted->SubzoneConnections.Items;
 	const auto array_count = SubZobneConnectionPtr_offsetted->SubzoneConnections.Count;
@@ -3958,7 +3955,7 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 	if (array_count > 0 && ptr)
 	{
 		//if(!SubZobneConnectionPtr)
-			//Debug::FatalErrorAndExit("AStarClass will crash because SubZone is nullptr , last access is from [%s(0x%x) - Owner : (%s) \n", LastAccessThisFunc->get_ID(), LastAccessThisFunc, LastAccessThisFunc->Owner->get_ID());
+			//Debug::FatalErrorAndExit("AStarClass will crash because SubZone is nullptr , last access is from [%s(0x%x) - Owner : (%s) ", LastAccessThisFunc->get_ID(), LastAccessThisFunc, LastAccessThisFunc->Owner->get_ID());
 
 		return 0x42C519;
 	}
@@ -4101,7 +4098,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 			{
 				if (pOverlay->CrateTrigger && pCollector->AttachedTag)
 				{
-					Debug::Log("Springing trigger on crate at %d,%d\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Springing trigger on crate at {},{}", pCell->MapCoords.X, pCell->MapCoords.Y);
 					pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
 					if (!pCollector->IsAlive)
 						return MoveResult::cannot;
@@ -4313,7 +4310,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				auto GeiveMoney = [&]()
 					{
 
-						Debug::Log("Crate at %d,%d contains money\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+						Debug::LogInfo("Crate at {},{} contains money", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 						if (!soloCrateMoney)
 						{
@@ -4350,7 +4347,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				// this thing confusing !
 				case Powerup::Unit:
 				{
-					Debug::Log("Crate at %d,%d contains a unit\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains a unit", pCell->MapCoords.X, pCell->MapCoords.Y);
 					UnitTypeClass* Given = nullptr;
 					if (force_mcv)
 					{
@@ -4449,7 +4446,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::HealBase:
 				{
-					Debug::Log("Crate at %d,%d contains base healing\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains base healing", pCell->MapCoords.X, pCell->MapCoords.Y);
 					PlaySoundAffect(Powerup::HealBase);
 					for (int i = 0; i < LogicClass::Instance->Count; ++i)
 					{
@@ -4467,7 +4464,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Explosion:
 				{
-					Debug::Log("Crate at %d,%d contains explosives\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains explosives", pCell->MapCoords.X, pCell->MapCoords.Y);
 					int damage = (int)something;
 					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
 					for (int i = 5; i > 0; --i)
@@ -4487,7 +4484,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Napalm:
 				{
-					Debug::Log("Crate at %d,%d contains napalm\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains napalm", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 					auto Collector_loc = (pCollector->GetCoords() + loc) / 2;
 
@@ -4501,14 +4498,14 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Darkness:
 				{
-					Debug::Log("Crate at %d,%d contains 'shroud'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains 'shroud'", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reshroud(pCollectorOwner);
 					PlayAnimAffect(Powerup::Darkness);
 					break;
 				}
 				case Powerup::Reveal:
 				{
-					Debug::Log("Crate at %d,%d contains 'reveal'\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains 'reveal'", pCell->MapCoords.X, pCell->MapCoords.Y);
 					MapClass::Instance->Reveal(pCollectorOwner);
 					PlaySoundAffect(Powerup::Reveal);
 					PlayAnimAffect(Powerup::Reveal);
@@ -4516,7 +4513,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Armor:
 				{
-					Debug::Log("Crate at %d,%d contains armor\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains armor", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -4547,7 +4544,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Speed:
 				{
-					Debug::Log("Crate at %d,%d contains speed\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains speed", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -4578,7 +4575,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Firepower:
 				{
-					Debug::Log("Crate at %d,%d contains firepower\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains firepower", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -4610,7 +4607,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Cloak:
 				{
-					Debug::Log("Crate at %d,%d contains cloaking device\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains cloaking device", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -4636,7 +4633,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::ICBM:
 				{
-					Debug::Log("Crate at %d,%d contains ICBM\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains ICBM", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
@@ -4656,7 +4653,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Veteran:
 				{
-					Debug::Log("Crate at %d,%d contains veterancy(TM)\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains veterancy(TM)", pCell->MapCoords.X, pCell->MapCoords.Y);
 					const int MaxPromotedCount = (int)something;
 
 					if (MaxPromotedCount > 0)
@@ -4703,7 +4700,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Gas:
 				{
-					Debug::Log("Crate at %d,%d contains poison gas\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains poison gas", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					if (auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS")))
 					{
@@ -4734,7 +4731,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Tiberium:
 				{
-					Debug::Log("Crate at %d,%d contains tiberium\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains tiberium", pCell->MapCoords.X, pCell->MapCoords.Y);
 					int tibToSpawn = ScenarioClass::Instance->Random.RandomFromMax(TiberiumClass::Array->Count - 1);
 					if (tibToSpawn == 1)
 						tibToSpawn = 0;
@@ -4754,7 +4751,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Squad:
 				{
-					Debug::Log("Crate at %d,%d contains Squad\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Squad", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
@@ -4779,7 +4776,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Invulnerability:
 				{
-					Debug::Log("Crate at %d,%d contains Invulnerability\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Invulnerability", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::IronCurtain && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -4798,7 +4795,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::IonStorm:
 				{
-					Debug::Log("Crate at %d,%d contains IonStorm\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains IonStorm", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::LightningStorm && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -4817,7 +4814,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Pod:
 				{
-					Debug::Log("Crate at %d,%d contains Pod\n", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Pod", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
 	 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -4836,7 +4833,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				default:
 					//TODO :: the affects
-					Debug::Log("Crate at %d,%d contains %s\n", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
+					Debug::LogInfo("Crate at {},{} contains {}", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
 					PlaySoundAffect(data);
 					PlayAnimAffect(data);
 					break;
@@ -4870,7 +4867,7 @@ DEFINE_HOOK(0x475A44, CCINIClass_Put_CrateType, 0x7)
 	const auto pCrate = CrateTypeClass::FindFromIndexFix(crateType);
 	if (!pCrate)
 	{
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!\n", crateType);
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!", crateType);
 	}
 
 	R->EDX(pCrate->Name.data());
@@ -4883,7 +4880,7 @@ DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
 	const int idx = CrateTypeClass::FindIndexById(crate);
 	if (idx <= -1)
 	{
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%s]!\n", crate);
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%s]!", crate);
 	}
 	R->EAX(idx);
 	return 0x475A24;
@@ -4934,7 +4931,7 @@ DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 //	GET_STACK(CellStruct, from, 0x30 - 0x1C);
 //	GET_STACK(CellStruct, to, 0x30 - 0x20);
 //
-//	Debug::Log("Regular findpath failure: (%d,%d) -> (%d, %d)\n", from.X, from.Y, to.X, to.Y);
+//	Debug::LogInfo("Regular findpath failure: (%d,%d) -> (%d, %d)", from.X, from.Y, to.X, to.Y);
 //	return 0x42CC6D;
 //}
 
@@ -5501,41 +5498,41 @@ DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 //DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
 //DEFINE_HOOK(0x6C9680, StorageClass_GetAmount_caller, 0x7)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
 //DEFINE_HOOK(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
 //DEFINE_HOOK(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //DEFINE_HOOK(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
 //DEFINE_HOOK(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
-//	Debug::Log(__FUNCTION__" Caller[0x%x]\n");
+//	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 
@@ -5814,12 +5811,12 @@ OPTIONALINLINE void LoadMixFile(TMixBundle& bb)
 	{
 		bb.MIXptr = GameCreate<MixFileClass>(bb.MIXName());
 	}
-	Debug::Log(" Loading %s ... %s !!!\n", bb.MIXName(), !bb.MIXptr ? "FAILED" : "OK");
+	Debug::LogInfo(" Loading {} ... {} !!!", bb.MIXName(), !bb.MIXptr ? "FAILED" : "OK");
 }
 
 //DEFINE_HOOK(0x53046A, Game_InitSecondaryMix_handle, 0x5)
 //{
-//	Debug::Log(" \n");
+//	Debug::LogInfo(" ");
 //	LoadMixFile(CONQMD);
 //	LoadMixFile(GENERMD);
 //	LoadMixFile(GENERIC);
@@ -5901,7 +5898,7 @@ OPTIONALINLINE void LoadMixFile(TMixBundle& bb)
 DEFINE_HOOK(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 {
 	const bool result = R->AL();
-	Debug::Log(" ...%s!!!\n", !result ? "FAILED" : "OK");
+	Debug::LogInfo(" ...{} !!!", !result ? "FAILED" : "OK");
 	return 0x52C5D3;
 }
 
@@ -6294,7 +6291,7 @@ DEFINE_HOOK(0x50126A, HouseClass_WritetoIni0, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini TechLevel for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini TechLevel for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6304,7 +6301,7 @@ DEFINE_HOOK(0x501284, HouseClass_WritetoIni2, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini InitialCredit for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini InitialCredit for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6314,7 +6311,7 @@ DEFINE_HOOK(0x5012AF, HouseClass_WritetoIni3, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 Control_IQ for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 Control_IQ for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6324,7 +6321,7 @@ DEFINE_HOOK(0x5012C9, HouseClass_WritetoIni4, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 Control_Edge for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 Control_Edge for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6334,7 +6331,7 @@ DEFINE_HOOK(0x5012E1, HouseClass_WritetoIni5, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 PlayerControl for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 PlayerControl for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6344,7 +6341,7 @@ DEFINE_HOOK(0x5012F9, HouseClass_WritetoIni6, 0x6)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 Color for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 Color for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6354,7 +6351,7 @@ DEFINE_HOOK(0x50134C, HouseClass_WritetoIni7, 0x5)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 Allies for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 Allies for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6364,7 +6361,7 @@ DEFINE_HOOK(0x50136E, HouseClass_WritetoIni8, 0x5)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 UINAME for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 UINAME for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6374,7 +6371,7 @@ DEFINE_HOOK(0x501380, HouseClass_WritetoIni9, 0xA)
 	GET(HouseClass*, pThis, EBX);
 
 	if (IS_SAME_STR_("USSR", pThis->Type->ID))
-		Debug::Log("Writing to ini0 Base for[%s]\n", pThis->Type->ID);
+		Debug::LogInfo("Writing to ini0 Base for[%s]", pThis->Type->ID);
 
 	return 0x0;
 }
@@ -6385,7 +6382,7 @@ DEFINE_HOOK(0x42ED72, BaseClass_WriteToINI1, 0x7)
 	HouseClass* ptr = reinterpret_cast<HouseClass*>((DWORD)pThis - offsetof(HouseClass, Base));
 
 	if (IS_SAME_STR_("USSR", ptr->Type->ID))
-		Debug::Log("Writing to ini0 Base PercentBuilt for[%s]\n", ptr->Type->ID);
+		Debug::LogInfo("Writing to ini0 Base PercentBuilt for[%s]", ptr->Type->ID);
 
 	return 0x0;
 }
@@ -6396,7 +6393,7 @@ DEFINE_HOOK(0x42ED8C, BaseClass_WriteToINI2, 0x5)
 	HouseClass* ptr = reinterpret_cast<HouseClass*>((DWORD)pThis - offsetof(HouseClass, Base));
 
 	if (IS_SAME_STR_("USSR", ptr->Type->ID))
-		Debug::Log("Writing to ini0 Base NodeCount(%d) for[%s]\n", pThis->BaseNodes.Count, ptr->Type->ID);
+		Debug::LogInfo("Writing to ini0 Base NodeCount(%d) for[%s]", pThis->BaseNodes.Count, ptr->Type->ID);
 
 	return 0x0;
 }
@@ -6535,7 +6532,7 @@ DEFINE_HOOK(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 
 	if (!pThis->Owner)
 	{
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !\n",
+		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !",
 			pThis,
 			pThis->get_ID(),
 			pOccupier,
@@ -6667,7 +6664,7 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 		if (pBldext->CustomData.begin() == pBldext->CustomData.end())
 		{
-			Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+			Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 		}
 		else
 		{
@@ -6675,7 +6672,7 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 			while (iter->X || iter->Y)
 			{
 				if (++iter == pBldext->CustomData.end())
-					Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. This breaks AI base building.\n", pSection);
+					Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 
 			}
 		}
@@ -6965,7 +6962,7 @@ DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 
 	if (!pType->MainVoxel.HVA)
 	{
-		Debug::Log("Aircraft[%s] Has No HVA ! \n", pType->ID);
+		Debug::LogInfo("Aircraft[{}] Has No HVA ! ", pType->ID);
 		return 0x4149F6;
 	}
 
@@ -7097,7 +7094,7 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 //	auto pArr = TemporalClass::Array->Items;
 //
 //	if (!pTemp || VTable::Get(pTemp) != TemporalClass::vtable) {
-//		Debug::FatalError("nullptr !\n");
+//		Debug::FatalError("nullptr !");
 //	}
 //
 //	return 0x0;
@@ -9037,7 +9034,7 @@ struct _SpawnManager
 //	GET(TeamTypeClass*, pTeam, ESI);
 //
 //	if (!pTeam->TaskForce)
-//		Debug::FatalError("Team[%s] missing TaskForce Pointer !\n", pTeam->ID);
+//		Debug::FatalError("Team[%s] missing TaskForce Pointer !", pTeam->ID);
 //
 //	return 0x0;
 //}
@@ -9194,27 +9191,27 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 
 #include <Notifications.h>
 
-// DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
-// 	GET(AbstractClass*, pTarget, ESI);
-// 	GET(bool, bRemoved, EDI);
-//
-// 	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
-// 		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
-// 			if (!pItem) {
-// 				Debug::Log("NotifyInvalidObject Attempt to PointerExpired nullptr pointer\n");
-// 				return true;
-// 			} else {
-// 				pItem->PointerExpired(pTarget, bRemoved);
-// 			}
-//
-// 			return false;
-// 	});
-//
-// 	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
-// 		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
-//
-// 	return 0x725961;
-// }
+ DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+ 	GET(AbstractClass*, pTarget, ESI);
+ 	GET(bool, bRemoved, EDI);
+
+ 	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+ 		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+ 			if (!pItem) {
+ 				Debug::LogInfo("NotifyInvalidObject Attempt to PointerExpired nullptr pointer");
+ 				return true;
+ 			} else {
+ 				pItem->PointerExpired(pTarget, bRemoved);
+ 			}
+
+ 			return false;
+ 	});
+
+ 	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+ 		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+
+ 	return 0x725961;
+ }
 
 COMPILETIMEEVAL int __fastcall charToID(char* string)
 {
@@ -9247,7 +9244,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 //	GET(char*, ID, EDI);
 //	GET(TagTypeClass*, pCreated, ESI);
 //
-//	Debug::Log("TagType[%s] Allocated as [%p]!\n", ID, pCreated);
+//	Debug::LogInfo("TagType[%s] Allocated as [%p]!", ID, pCreated);
 //
 //	return 0x6E5FB6;
 //}
@@ -9257,21 +9254,26 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 //	LEA_STACK(char*, ID, 0x2C - 0x18);
 //	GET(TaskForceClass*, pCreated, ESI);
 //
-//	Debug::Log("TaskForce[%s] Allocated as [%p]\n", ID, pCreated);
+//	Debug::LogInfo("TaskForce[%s] Allocated as [%p]", ID, pCreated);
 //
 //	return 0x6E8315;
 //}
 
-DEFINE_HOOK(0x4DA87A, FootClass_Update_UpdateLayer, 0x6) {
+DEFINE_HOOK(0x4DA886, FootClass_Update_UpdateLayer, 0x6) {
 	GET(TechnoClass*, pTechno, ESI);
 
-	if (pTechno->IsAlive && !pTechno->InLimbo) {
+	if (!pTechno->InLimbo) {
 		if (pTechno->InWhichLayer() != pTechno->LastLayer) {
 			DisplayClass::Instance->SubmitObject(pTechno);
 		}
 	}
 
-	return 0;
+	//this hook breaking cmp
+	const auto what = pTechno->WhatAmI();
+	R->EDI(what == AbstractType::Unit ? pTechno : nullptr);
+	R->ECX(pTechno);
+	R->EAX(what);
+	return 0x4DA895;
 }
 
 DEFINE_HOOK(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
@@ -9435,7 +9437,7 @@ DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 	GET(const char**, pSection_iter, ESI);
 	INI_EX ex_INI(pINI);
 	RulesExtData::Instance()->LandTypeConfigExts[PhobosGlobal::Instance()->LandTypeParseCounter].Bounce_Elasticity.Read(ex_INI,*pSection_iter,"Bounce.Elasticity");
-	Debug::Log("Reading LandTypeData of [%s - %d]\n" , *pSection_iter, PhobosGlobal::Instance()->LandTypeParseCounter);
+	Debug::LogInfo("Reading LandTypeData of [{} - {}]" , *pSection_iter, PhobosGlobal::Instance()->LandTypeParseCounter);
 	++PhobosGlobal::Instance()->LandTypeParseCounter;
 	return 0;
 }
@@ -9446,7 +9448,7 @@ DEFINE_HOOK(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 	GET_STACK(DWORD, caller, 0x0);
 
 	if (!pConvert)
-		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]\n", caller);
+		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]", caller);
 
 	return 0x0;
 }
@@ -9844,7 +9846,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
 		{
 			Cell waycell = Scen->Get_Waypoint_Location(waycount);
 			waypts.Add(waycell);
-			DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
+			DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.", waycell.X, waycell.Y);
 		}
 	}
 
@@ -9855,7 +9857,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
 	int deficiency = look_for - waypts.Count();
 	if (deficiency > 0)
 	{
-		DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
+		DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.");
 		for (int index = 0; index < deficiency; ++index)
 		{
 
@@ -9866,7 +9868,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
 			if (trycell)
 			{
 				waypts.Add(trycell);
-				DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
+				DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.", trycell.X, trycell.Y);
 			}
 		}
 	}
@@ -9893,10 +9895,10 @@ void ScenarioClassExtension::Create_Units(bool official)
 		--tot_units;
 	}
 
-	DEBUG_INFO("NumPlayers = %d\n", Session.NumPlayers);
-	DEBUG_INFO("AIPlayers = %d\n", Session.Options.AIPlayers);
-	DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", tot_units, Scen->RandomNumber);
-	DEBUG_INFO("UniqueID is %08x\n", Scen->UniqueID);
+	DEBUG_INFO("NumPlayers = %d", Session.NumPlayers);
+	DEBUG_INFO("AIPlayers = %d", Session.Options.AIPlayers);
+	DEBUG_INFO("Creating %d starting units per house - Random seed is %08x", tot_units, Scen->RandomNumber);
+	DEBUG_INFO("UniqueID is %08x", Scen->UniqueID);
 
 	Cell centroid;          // centroid of this house's stuff.
 	TechnoClass* obj;       // newly-created object.
@@ -9961,7 +9963,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 		HouseClass* hptr = Houses[house];
 		if (hptr == nullptr)
 		{
-			DEV_DEBUG_INFO("Invalid house %d!\n", house);
+			DEV_DEBUG_INFO("Invalid house %d!", house);
 			continue;
 		}
 
@@ -9973,19 +9975,19 @@ void ScenarioClassExtension::Create_Units(bool official)
 		 */
 		if (hptr->Class->IsMultiplayPassive)
 		{
-			DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
+			DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.", house, hptr->Class->Name(), hptr->IniName);
 			continue;
 		}
 
 		int owner_id = 1 << hptr->Class->ID;
 
-		DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
+		DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...",
 			house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->RemapColor]->Name);
 
 		/**
 		 *  Generate list of starting units for this house.
 		 */
-		DEBUG_INFO("  Creating list of available UnitTypes...\n");
+		DEBUG_INFO("  Creating list of available UnitTypes...");
 		for (int i = 0; i < UnitTypes.Count(); ++i)
 		{
 			UnitTypeClass* unittype = UnitTypes[i];
@@ -10008,7 +10010,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
 					if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID())
 					{
-						DEBUG_INFO("    Added %s\n", unittype->Name());
+						DEBUG_INFO("    Added %s", unittype->Name());
 						available_units.Add(unittype);
 					}
 				}
@@ -10018,7 +10020,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 		/**
 		 *  Generate list of starting infantry for this house.
 		 */
-		DEBUG_INFO("  Creating list of available InfantryTypes...\n");
+		DEBUG_INFO("  Creating list of available InfantryTypes...");
 		for (int i = 0; i < InfantryTypes.Count(); ++i)
 		{
 			InfantryTypeClass* infantrytype = InfantryTypes[i];
@@ -10039,7 +10041,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 				if (infantrytype->TechLevel <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0)
 				{
 					available_infantry.Add(infantrytype);
-					DEBUG_INFO("    Added %s\n", infantrytype->Name());
+					DEBUG_INFO("    Added %s", infantrytype->Name());
 				}
 			}
 		}
@@ -10119,7 +10121,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 		 *  Assign the center of this house to the waypoint location.
 		 */
 		hptr->Center = Cell_Coord(centroid, true);
-		DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
+		DEBUG_INFO("  Setting house center to %d,%d", centroid.X, centroid.Y);
 
 		/**
 		 *  If Bases are ON, place a base unit (MCV).
@@ -10146,7 +10148,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 				{
 					if (obj != nullptr)
 					{
-						DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
+						DEBUG_INFO("  Construction yard %s placed at %d,%d.",
 							obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
 						BuildingClass* building = reinterpret_cast<BuildingClass*>(obj);
@@ -10208,7 +10210,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 				{
 					if (obj != nullptr)
 					{
-						DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
+						DEBUG_INFO("  Base unit %s placed at %d,%d.",
 							obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 						hptr->FlagHome = Cell(0, 0);
 						hptr->FlagLocation = nullptr;
@@ -10289,7 +10291,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 					technotype = available_units[Random_Pick(0, available_units.Count() - 1)];
 					if (!technotype)
 					{
-						DEBUG_WARNING("  Invalid unit pointer!\n");
+						DEBUG_WARNING("  Invalid unit pointer!");
 						continue;
 					}
 
@@ -10303,7 +10305,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 						if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true))
 						{
 
-							DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+							DEBUG_INFO("  House %s deployed object %s at %d,%d",
 								hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
 							if (Scen->SpecialFlags.IsInitialVeteran)
@@ -10353,7 +10355,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 					technotype = available_infantry[Random_Pick(0, available_infantry.Count() - 1)];
 					if (!technotype)
 					{
-						DEBUG_WARNING("  Invalid infantry pointer!\n");
+						DEBUG_WARNING("  Invalid infantry pointer!");
 						continue;
 					}
 
@@ -10367,7 +10369,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 						if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true))
 						{
 
-							DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+							DEBUG_INFO("  House %s deployed object %s at %d,%d",
 								hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
 							if (Scen->SpecialFlags.IsInitialVeteran)
@@ -10462,7 +10464,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 						{
 							if (Place_Object(obj, centroid, facing, PLACEMENT_DISTANCE))
 							{
-								DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d\n",
+								DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d",
 									hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
 								if (Scen->SpecialFlags.InitialVeteran)
@@ -10493,7 +10495,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 		}
 	}
 
-	DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber);
+	DEBUG_INFO("Finished unit generation. Random number is %d", Scen->RandomNumber);
 }
 
 #endif
@@ -10505,7 +10507,7 @@ DEFINE_HOOK(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::Log("[%x - %s][%s][%s] Hierarchical findpath failure: (%d,%d) to (%d, %d)\n", pFoot, pFoot->get_ID(), pFoot->GetThisClassName() , pFoot->Owner->get_ID() , cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	Debug::LogInfo("[{} - {}][{}][{}] Hierarchical findpath failure: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName() , pFoot->Owner->get_ID() , cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
 	return 0x42CB86;
 }
 
@@ -10514,7 +10516,7 @@ DEFINE_HOOK(0x42CBC9, AstarClass_Find_Path_FailLog_WithoutHierarchical, 0x6)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::Log("[%x - %s][%s][%s] Warning.  A* without HS: (%d,%d) to (%d, %d)\n", pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	Debug::LogInfo("[{} - {}][{}][{}] Warning.  A* without HS: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
 	return 0x42CBE6;
 }
 
@@ -10523,7 +10525,7 @@ DEFINE_HOOK(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::Log("[%x - %s][%s][%s] Regular findpath failure: (%d,%d) to (%d, %d)\n", pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	Debug::LogInfo("[{} - {}][{}][{}] Regular findpath failure: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
 	return 0x42CC6D;
 }
 
@@ -10534,7 +10536,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
 	GET_STACK(DWORD, caller, 0x0); 
 
 	if (!pHouyse)
-		Debug::FatalError("Fucking no House %x\n", caller);
+		Debug::FatalError("Fucking no House %x", caller);
 
 	return 0x0;
 }
@@ -10666,7 +10668,7 @@ public:
 				cur;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				Debug::Log("Parsing Command List : %s\n" , cur);
+				Debug::LogInfo("Parsing Command List : {}" , cur);
 				CommandBarTypes idx = _GetCommandBarIndexByName(cur);
 				if (idx != CommandBarTypes::none) {
 					CommandBarLinks[(int)idx] = nCount;
@@ -11027,7 +11029,7 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
 
 	if (!pTechno->IsAlive) {
-		Debug::Log("TechnoClass::GreatestThread Found DeadTechno[%x - %s] on TechnoArray!\n", pTechno, pTechno->get_ID());
+		Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
 		return  0x6F9D93 ; // next
 	}
 
@@ -11041,7 +11043,7 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
  	GET(TechnoClass*, pTrackerTechno, EBP);
 
  	if (!pTrackerTechno->IsAlive) {
- 		Debug::Log("Found DeadTechno[%x - %s] on AircraftTracker!\n", pTrackerTechno, pTrackerTechno->get_ID());
+ 		Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
  		return 0x6F9377; // next
  	}
 
@@ -11072,10 +11074,10 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
  DEFINE_HOOK(0x7BB350, XSurface_DrawElipSe_check, 0x6) {
 	 GET(XSurface*, pThis, ECX);
-	 GET_STACK(DWORD, caller, 0x0);
+	 GET_STACK(uintptr_t, caller, 0x0);
 
 	 if (!pThis || VTable::Get(pThis) != XSurface::vtable){
-		 Debug::Log("XSurface Invalid caller [0x%x]!!\n", caller);
+		 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
 	 }
 
 	 return 0x0;

@@ -102,7 +102,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		if (thisAICondition.size() < 2)
 		{
 			pAITriggerType->IsEnabled = false;
-			Debug::Log("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [%d].\n", condition);
+			Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [{}].", condition);
 			return;
 		}
 
@@ -120,12 +120,12 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		if (cur[0])
 			essentialRequirementsCount = atoi(cur[0]);
 		else
-			Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Essential Requirements Count [0] !.\n");
+			Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Essential Requirements Count [0] !.");
 
 		if (cur[1])
 			leastOptionalRequirementsCount = atoi(cur[1]);
 		else
-			Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Least Optional Requirements Count [1] !.\n");
+			Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Least Optional Requirements Count [1] !.");
 
 		//parse other strings
 		for (int i = 1; i < (int)thisAICondition.size(); i++)
@@ -149,24 +149,24 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 				if (cur2[0])
 					pickMode = atoi(cur2[0]);
 				else
-					Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Pick [0] !.\n");
+					Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Pick [0] !.");
 
 				if (cur2[1])
 					compareMode = atoi(cur2[1]);
 				else
-					Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Compare [1] !.\n");
+					Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Compare [1] !.");
 
 				if (cur2[2])
 					Number = atoi(cur2[2]);
 				else
-					Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Number [2] !.\n");
+					Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Number [2] !.");
 
 				TechnoType = buffer;
 			}
 			else
 			{
-				Debug::Log("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList][%d]: Error parsing [%s]\n", condition, cur2[3]);
-				Debug::Log("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [%d].\n", condition);
+				Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList][{}]: Error parsing [{}]", condition, cur2[3]);
+				Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [{}].", condition);
 				pAITriggerType->IsEnabled = false;
 				return;
 			}
@@ -193,7 +193,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 			}
 			else
 			{
-				Debug::Log("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [%d].\n", condition);
+				Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Error parsing line [{}].", condition);
 				pAITriggerType->IsEnabled = false;
 				return;
 			}
@@ -203,7 +203,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 	{
 		//thoroughly disable it
 		pAITriggerType->IsEnabled = false;
-		Debug::Log("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Condition number overflew!.\n");
+		Debug::LogInfo("AITriggerTypeExt - CustomizableAICondition: [AIConditionsList]: Condition number overflew!.");
 		return;
 	}
 	if (essentialRequirementsCount == essentialRequirementsMetCount && leastOptionalRequirementsCount <= optionalRequirementsMetCount)

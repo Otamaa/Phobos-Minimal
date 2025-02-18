@@ -22,7 +22,7 @@ DEFINE_HOOK(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 
 	if (!v7)
 	{
-		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BuildConst=.\n", pHouse->Type->ID);
+		Debug::LogInfo(__FUNCTION__" House of country [{}] cannot build anything from [General]BuildConst=.", pHouse->Type->ID);
 		return 0x5D70DB;
 	}
 
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x5D705E, MPGameMode_SpawnBaseUnit_BaseUnit, 6)
 	if (pBaseUnit)
 		return hasBaseUnit;
 
-	Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	Debug::LogInfo(__FUNCTION__" House of country [{}] cannot build anything from [General]BaseUnit=.", pHouse->Type->ID);
 	return hasNoBaseUnit;
 }
 

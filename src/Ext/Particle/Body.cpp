@@ -42,7 +42,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass
 template <typename T>
 void ParticleExtData::Serialize(T& Stm)
 {
-	//Debug::Log("Processing Element From ParticleExt ! \n");
+	//Debug::LogInfo("Processing Element From ParticleExt ! ");
 
 	Stm
 		.Process(this->Initialized)

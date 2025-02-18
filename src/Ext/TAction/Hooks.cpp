@@ -35,10 +35,10 @@ int lastAction;
 		else
 			StaticVars::TriggerCounts[pThis] = 0;
 
-	 	//Debug::Log("TAction[%x] triggering [%d] caller[%x]\n" , pThis , (int)pThis->ActionKind , caller);
+	 	//Debug::LogInfo("TAction[%x] triggering [%d] caller[%x]" , pThis , (int)pThis->ActionKind , caller);
 
 		if (StaticVars::TriggerCounts[pThis] > 1000)
-			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !\n", pThis, (int)pThis->ActionKind);
+			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !", pThis, (int)pThis->ActionKind);
 	}
 
 	lastAction = (int)pThis->ActionKind;
@@ -46,12 +46,12 @@ int lastAction;
  	bool handled;
  	if (TActionExt::Occured(pThis, args, handled))
  	{
- 		//Debug::Log("TAction[%x] triggering Phobos [%d]\n" , pThis , (int)pThis->ActionKind);
+ 		//Debug::LogInfo("TAction[%x] triggering Phobos [%d]" , pThis , (int)pThis->ActionKind);
  		R->AL(handled);
  		return return_value;
  	}
 
- 	//Debug::Log("TAction[%x] triggering vanilla [%d]\n" , pThis , (int)pThis->ActionKind);
+ 	//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pThis , (int)pThis->ActionKind);
 
  	return continue_func;
  }
@@ -160,7 +160,7 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 				if (!pItem)
 					continue;
 
-//				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
+//				Debug::LogInfo("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
 
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
 					continue;
@@ -212,7 +212,7 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != args.pHouse)
 					continue;
 
-				//Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
+				//Debug::LogInfo("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
 
 				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr)
 				{

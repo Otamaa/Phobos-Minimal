@@ -40,7 +40,7 @@ struct AttackBeaconData
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From AttackBeaconData ! \n");
+		//Debug::LogInfo("Loading Element From AttackBeaconData ! ");
 
 		Stm
 			.Process(Types)

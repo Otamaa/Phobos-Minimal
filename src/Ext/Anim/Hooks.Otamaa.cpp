@@ -74,18 +74,18 @@ DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
-{
-	enum {
-		ContinueDrawTiberium = 0x4243CC,
-		ContinueNotTiberium = 0x42442E
-	};
+ DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
+ {
+ 	enum {
+ 		ContinueDrawTiberium = 0x4243CC,
+ 		ContinueNotTiberium = 0x42442E
+ 	};
 
-	GET(AnimClass*, pThis, ESI);
-	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExtData::Instance()->Veinhole_Warhead);
-	return pThis->Type->IsAnimatedTiberium  ?
-		ContinueDrawTiberium : ContinueNotTiberium;
-}
+ 	GET(AnimClass*, pThis, ESI);
+ 	ApplyVeinsDamage(pThis, RulesClass::Instance->VeinDamage, RulesExtData::Instance()->Veinhole_Warhead);
+ 	return pThis->Type->IsAnimatedTiberium  ?
+ 		ContinueDrawTiberium : ContinueNotTiberium;
+ }
 
 #include <Ext/Cell/Body.h>
 

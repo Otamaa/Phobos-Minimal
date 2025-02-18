@@ -68,7 +68,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From GiftBox ! \n");
+		//Debug::LogInfo("Processing Element From GiftBox ! ");
 
 		return Stm
 			.Process(this->IsOpen)

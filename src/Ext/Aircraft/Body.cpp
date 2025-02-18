@@ -90,7 +90,6 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 }
 
 #include <Ext/TerrainType/Body.h>
-#include "Body.h"
 
 bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 {

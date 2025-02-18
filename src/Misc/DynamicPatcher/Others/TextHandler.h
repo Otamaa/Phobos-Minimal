@@ -38,7 +38,7 @@ struct PrintTextData
 	void Read(INI_EX& reader, const char* section, const char* title);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From PrintTextData ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From PrintTextData ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }
@@ -106,7 +106,7 @@ struct PrintText
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From PrintText ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From PrintText ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }
@@ -147,7 +147,7 @@ struct RollingText : public PrintText
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From RollingText ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From RollingText ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

@@ -22,7 +22,7 @@ bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* 
 		}
 		else
 		{
-			Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
+			Debug::LogInfo("Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, pValue);
 		}
 	}
 

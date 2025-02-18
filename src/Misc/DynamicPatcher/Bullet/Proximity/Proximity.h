@@ -79,7 +79,7 @@ struct Proximity
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From Proximity ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From Proximity ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

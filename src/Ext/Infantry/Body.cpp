@@ -108,11 +108,11 @@ HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, bool clearDirty)
 		// save the block
 		if (!saver.WriteBlockToStream(pStm))
 		{
-			//Debug::Log("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream\n", saver.Size());
+			//Debug::LogInfo("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream", saver.Size());
 			return -1;
 		}
 
-		//Debug::Log("[SaveGame] FakeAnimClass used up 0x%X bytes\n", saver.Size());
+		//Debug::LogInfo("[SaveGame] FakeAnimClass used up 0x%X bytes", saver.Size());
 	}
 
 	return res;

@@ -122,7 +122,7 @@ public:
 
 #ifdef CHECK_
 		if (ret > 0 && (!*Phobos::readBuffer || !strlen(Phobos::readBuffer))) {
-			Debug::Log("ReadString returning empty strings![%s][%s]\n ,", pSection, pKey);
+			Debug::LogInfo("ReadString returning empty strings![{}][{}] ,", pSection, pKey);
 			DebugBreak();
 		}
 #endif

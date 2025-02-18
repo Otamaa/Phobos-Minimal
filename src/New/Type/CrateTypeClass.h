@@ -34,7 +34,7 @@ public:
 			Array.reserve(Powerups::Effects.size());
 
 			for (auto crate : Powerups::Effects){
-				Debug::Log("Creating default Crate of [%s]\n" , crate);
+				Debug::LogInfo("Creating default Crate of [{}]" , crate);
 				Allocate(crate);
 			}
 		}

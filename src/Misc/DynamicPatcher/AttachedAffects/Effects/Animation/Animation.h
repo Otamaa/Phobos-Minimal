@@ -95,7 +95,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From Animation ! \n");
+		//Debug::LogInfo("Processing Element From Animation ! ");
 		return Stm
 			.Process(Type)
 			.Process(TypeData)

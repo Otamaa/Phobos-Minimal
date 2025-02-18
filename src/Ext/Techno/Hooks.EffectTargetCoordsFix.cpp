@@ -31,7 +31,7 @@ DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 
 	if (const auto pBuilding = cast_to<const BuildingClass*, false>(pTarget)) {
 		//auto const& nTargetCoord = pBuilding->Type->TargetCoordOffset;
-		//Debug::Log("__FUNCTION__ Building  Target [%s] with TargetCoord %d , %d , %d \n", pBuilding->get_ID(), nTargetCoord.X , nTargetCoord.Y , nTargetCoord.Z);
+		//Debug::LogInfo("__FUNCTION__ Building  Target [%s] with TargetCoord %d , %d , %d ", pBuilding->get_ID(), nTargetCoord.X , nTargetCoord.Y , nTargetCoord.Z);
 		pBuilding->GetTargetCoords(nCoord);
 
 		R->EAX(nCoord);

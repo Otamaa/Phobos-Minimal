@@ -59,7 +59,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	const auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 
 	if (!pTibExt) {
-		Debug::Log("CellClass_DrawOverlay_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
+		Debug::LogInfo("CellClass_DrawOverlay_Tiberium TiberiumExt for [{}] is missing ! ", pTiberium->ID);
 		R->EBX(pTiberium);
 		return 0x47F882;
 	}

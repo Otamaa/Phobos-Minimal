@@ -64,7 +64,12 @@ TechnoTypeClass* TEventExtData::GetTechnoType()
 
 		if (!pType)
 		{
-			Debug::Log("Event[%x] with Team[%s - %x] references non-existing techno type \"%s\".", this->AttachedToObject, this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : GameStrings::NoneStr(), this->AttachedToObject ,  eventTechno);
+			Debug::LogInfo("Event{}] with Team[{} - {}] references non-existing techno type \"%s\".", 
+				(void*)this->AttachedToObject,
+				this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : GameStrings::NoneStr(),
+				(void*)this->AttachedToObject->TeamType,
+				eventTechno
+			);
 		}
 
 		this->TechnoType = pType;
@@ -249,7 +254,11 @@ bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, Objec
 
 	int desiredListIdx = -1;
 	if (sscanf_s(pThis->String, "%d", &desiredListIdx) <= 0 || desiredListIdx < 0) {
-		Debug::Log("Error in event %d. The parameter 2 '%s' isn't a valid index value for [AITargetTypes]\n", static_cast<PhobosTriggerEvent>(pThis->EventKind), pThis->String);
+		Debug::LogInfo("Error in event {}. The parameter 2 '{}' isn't a valid index value for [AITargetTypes]",
+			static_cast<int>(pThis->EventKind),
+			pThis->String
+		);
+
 		return false;
 	}
 
@@ -286,7 +295,10 @@ bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pOb
 		const auto pDesiredType = TechnoTypeClass::Find(pThis->String);
 
 		if (!pDesiredType) {
-			Debug::Log("Error in event %d. The parameter 2 '%s' isn't a valid Techno ID\n", static_cast<PhobosTriggerEvent>(pThis->EventKind), pThis->String);
+			Debug::LogInfo("Error in event {}. The parameter 2 '{}' isn't a valid Techno ID", 
+				static_cast<int>(pThis->EventKind),
+				pThis->String
+			);
 			return false;
 		}
 
@@ -361,7 +373,7 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	if ((size_t)nIdxVariable >= nHouseList.size())
 	{
-		Debug::Log("Map event %d: [AIHousesList] is empty. This event can't continue.\n", (int)pThis->EventKind);
+		Debug::LogInfo("Map event {}: [AIHousesList] is empty. This event can't continue.", (int)pThis->EventKind);
 		return false;
 	}
 
@@ -369,7 +381,7 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 
 	if (housesList.empty())
 	{
-		Debug::Log("Map event %d: [AIHousesList](%d) is empty. This event can't continue.\n", (int)pThis->EventKind, nIdxVariable);
+		Debug::LogInfo("Map event {}: [AIHousesList]({}) is empty. This event can't continue.", (int)pThis->EventKind, nIdxVariable);
 		return false;
 	}
 

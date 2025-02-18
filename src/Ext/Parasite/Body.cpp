@@ -49,7 +49,7 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 // load / save
 //template <typename T>
 //void ParasiteExt::ExtData::Serialize(T& Stm) {
-//	//Debug::Log("Processing Element From ParasiteExt ! \n");
+//	//Debug::LogInfo("Processing Element From ParasiteExt ! ");
 //	Stm
 //		.Process(this->Initialized)
 //		.Process(this->LastVictimLocation)

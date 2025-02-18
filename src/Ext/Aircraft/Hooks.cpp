@@ -15,24 +15,6 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
-//bool SecondFiringMethod = true;
-//
-//DEFINE_HOOK(0x6FF031, TechnoClass_Fire_CountAmmo, 0xA)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//
-//	if (SecondFiringMethod && Is_Aircraft(pThis))
-//	{
-//		auto v2 = pThis->Ammo - 1;
-//		if (v2 < 0)
-//			v2 = 0;
-//		pThis->Ammo = v2;
-//	}
-//
-//	return 0x0;
-//}
-#include <Ext/Techno/Body.h>
-
 #include <Locomotor/FlyLocomotionClass.h>
 
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
@@ -63,23 +45,23 @@ DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 	return 0;
 }
 
-WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
-{
-	auto const pExt = TechnoExtContainer::Instance.Find(this);
-
-	if (pExt->CurrentAircraftWeaponIndex >= 0)
-		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
-	else
-		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
-}
-
-DEFINE_JUMP(CALL6, 0x4180F9, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x4184E3, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x41852B, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x418893, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x4189A2, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x418AB1, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-DEFINE_JUMP(CALL6, 0x418B9A, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
+//{
+//	auto const pExt = TechnoExtContainer::Instance.Find(this);
+//
+//	if (pExt->CurrentAircraftWeaponIndex >= 0)
+//		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
+//	else
+//		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
+//}
+//
+//DEFINE_JUMP(CALL6, 0x4180F9, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x4184E3, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x41852B, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x418893, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x4189A2, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x418AB1, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_JUMP(CALL6, 0x418B9A, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
 
 void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 {
@@ -113,43 +95,14 @@ DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 	auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pThis->Is_Strafe() && pWeaponExt->Strafing_UseAmmoPerShot && pExt->StrafeFireCunt)
-	{
-		pThis->Ammo--;
-		pThis->loseammo_6c8 = false;
-
-		if (!pThis->Ammo)
-		{
-			pThis->IsLocked = false;
-			pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
-
-			return 0;
-		}
-	}
-
-	int fireCount = pThis->MissionStatus - 4;
 	int count = pWeaponExt->Strafing_Shots.Get(5);
 
-	if (count > 5)
-	{
-
-		if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe)
-		{
-			if ((count - 3 - pExt->ShootCount) > 0)
-			{
+	if (count > 5) {
+		if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe) {
+			if ((count - 3 - pExt->ShootCount) > 0) {
 				pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
 			}
 		}
-	}
-	else if (fireCount > 1 && count < fireCount)
-	{
-
-		if (!pThis->Ammo)
-		{
-			pThis->IsLocked = false;
-		}
-
-		pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
 	}
 
 	return 0;
@@ -161,7 +114,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* p
 		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
 }
 
-bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
+bool FireBurst(AircraftClass* pAir, AbstractClass* pTarget)
 {
 	auto WeaponIdx = TechnoExtContainer::Instance.Find(pAir)->CurrentAircraftWeaponIndex;
 	if (WeaponIdx < 0)
@@ -176,11 +129,37 @@ bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 
 		if (weaponType)
 		{
-			Scatter = !WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->PreventScatter;
-			AircraftExt::FireBurst(pAir, pAir->Target, firing, WeaponIdx, weaponType);
+			auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
+			bool isStrafe = pAir->Is_Strafe();
 
-			if (pAir->Is_Strafe())
-				TechnoExtContainer::Instance.Find(pAir)->StrafeFireCunt++;
+			if (weaponType->Burst > 0)
+			{
+				for (int i = 0; i < weaponType->Burst; i++)
+				{
+					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst)
+						pAir->CurrentBurstIndex = TechnoExtContainer::Instance.Find(pAir)->ShootCount % 2 == 0;
+
+					pAir->Fire(pTarget, WeaponIdx);
+				}
+
+				if (isStrafe)
+				{
+					TechnoExtContainer::Instance.Find(pAir)->StrafeFireCunt++;
+					
+					if (pWeaponExt->Strafing_UseAmmoPerShot)
+					{
+						pAir->Ammo--;
+						pAir->loseammo_6c8 = false;
+
+						if (!pAir->Ammo)
+						{
+							pAir->SetTarget(nullptr);
+							pAir->SetDestination(nullptr, true);
+						}
+					}
+				}
+			}
+
 		}
 	}
 
@@ -204,32 +183,32 @@ bool FireBurst(AircraftClass* pAir, AircraftFireMode firing)
 DEFINE_HOOK(0x4186B6, AircraftClass_Mission_Attack_FireAt_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
-	FireBurst(pThis, AircraftFireMode::FireAt);
+	FireBurst(pThis, pThis->Target);
 	return 0x418720;
 }
 
 DEFINE_HOOK(0x418805, AircraftClass_Mission_Attack_Strafe2_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
-	return !FireBurst(pThis, AircraftFireMode::Strafe2) ? 0x418883 : 0x418870;
+	return !FireBurst(pThis, pThis->Target) ? 0x418883 : 0x418870;
 }
 
 DEFINE_HOOK(0x418914, AircraftClass_Mission_Attack_Strafe3_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
-	return !FireBurst(pThis, AircraftFireMode::Strafe3) ? 0x418992 : 0x41897F;
+	return !FireBurst(pThis, pThis->Target) ? 0x418992 : 0x41897F;
 }
 
 DEFINE_HOOK(0x418A23, AircraftClass_Mission_Attack_Strafe4_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
-	return !FireBurst(pThis, AircraftFireMode::Strafe4) ? 0x418AA1 : 0x418A8E;
+	return !FireBurst(pThis, pThis->Target) ? 0x418AA1 : 0x418A8E;
 }
 
 DEFINE_HOOK(0x418B1F, AircraftClass_Mission_Attack_Strafe5_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
-	FireBurst(pThis, AircraftFireMode::Strafe5);
+	FireBurst(pThis, pThis->Target);
 	return 0x418B8A;
 }
 
@@ -239,13 +218,91 @@ DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) /
 
 	pThis->loseammo_6c8 = true;
 
-	FireBurst(pThis, AircraftFireMode::FireAt);
+	FireBurst(pThis, pThis->Target);
 
 	return 0x4184C2;
 }
 
 #undef Hook_AircraftBurstFix
 #endif
+
+static int GetDelay(AircraftClass* pThis, bool isLastShot)
+{
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	int weaponIndex = pExt->CurrentAircraftWeaponIndex >= 0 ? pExt->CurrentAircraftWeaponIndex : pThis->SelectWeapon(pThis->Target);
+	auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	int delay = pWeapon->ROF;
+
+	if (isLastShot || pExt->ShootCount == pWeaponExt->Strafing_Shots || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
+	{
+		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
+		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
+	}
+
+	return delay;
+}
+
+DEFINE_HOOK(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	pThis->IsLocked = true;
+	pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
+	R->EAX(GetDelay(pThis, false));
+
+	return 0x4184F1;
+}
+
+DEFINE_HOOK(0x418525, AircraftClass_Mission_Attack_Delay1B, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(int, status, EDX);
+
+	pThis->MissionStatus = status;
+	R->EAX(GetDelay(pThis, false));
+
+	return 0x418539;
+}
+
+DEFINE_HOOK(0x418883, AircraftClass_Mission_Attack_Delay2, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget3_Strafe;
+	R->EAX(GetDelay(pThis, false));
+
+	return 0x4188A1;
+}
+
+DEFINE_HOOK(0x418992, AircraftClass_Mission_Attack_Delay3, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget4_Strafe;
+	R->EAX(GetDelay(pThis, false));
+
+	return 0x4189B0;
+}
+
+DEFINE_HOOK(0x418AA1, AircraftClass_Mission_Attack_Delay4, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget5_Strafe;
+	R->EAX(GetDelay(pThis, false));
+
+	return 0x418ABF;
+}
+
+DEFINE_HOOK(0x418B8A, AircraftClass_Mission_Attack_Delay5, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	R->EAX(GetDelay(pThis, true));
+
+	return 0x418BBA;
+}
 
 DEFINE_HOOK(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 {
@@ -421,15 +478,6 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 
 DEFINE_JUMP(VTABLE, 0x7E290C,  MiscTools::to_DWORD(&FakeAircraftTypeClass::_CanAttackMove))
 
-DEFINE_HOOK(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircrafts not search for targets while resting at the airport, this is designed to adapt to loop waypoint
-{
-	enum { SkipGameCode = 0x6FA6F5 };
-
-	GET(TechnoClass* const, pThis, ESI);
-
-	return (!RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight)) ? SkipGameCode : 0;
-}
-
 DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
 {
 	enum { LoseCurrentTarget = 0x4DF3D3, HoldCurrentTarget = 0x4DF4AB };
@@ -541,6 +589,39 @@ AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordSt
 	}
 
 	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
+}
+
+#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
+#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
+
+void FakeAircraftClass::_FootClass_Update_Wrapper() { 
+
+
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+
+	pExt->UpdateAircraftOpentopped();
+	AircraftPutDataFunctional::AI(pExt, pTypeExt);
+	AircraftDiveFunctional::AI(pExt, pTypeExt);
+	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+	//{
+	//
+	//	/**
+	//	 *  If we are close enough to our owner, delete us and return true
+	//	 *  to signal to the challer that we were deleted.
+	//	 */
+	//	if (Spawned_Check_Destruction(pThis))
+	//	{
+	//		pThis->UnInit();
+	//		return 0x414F99;
+	//	}
+	//}
+
+	this->FootClass::Update();
 }
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target

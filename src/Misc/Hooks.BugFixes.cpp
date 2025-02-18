@@ -159,7 +159,7 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 		{
 			pThis->TemporalTargetingMe = nullptr;
 			pThis->Limbo();
-			Debug::Log(__FUNCTION__" Called \n");
+			Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 		}
 	}
@@ -574,7 +574,7 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
 	if(VTable::Get(pBuilding) != BuildingClass::vtable)
-		Debug::FatalError("%x invalid building ptr !\n", pBuilding);
+		Debug::FatalError("%x invalid building ptr !", pBuilding);
 
 	return 0;
 }
@@ -802,7 +802,7 @@ DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
-			Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
+			Debug::LogInfo("Techno[{} - {}] Not Allowed to exist at cell [{} . {}] !", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
 
 		return 0x688FB9;
 	}
@@ -823,7 +823,7 @@ DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
-			Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
+			Debug::LogInfo("Techno[{} - {}] Not Allowed to exist at cell [{} . {}] !", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
 
 		return 0x689295;
 	}
@@ -929,7 +929,7 @@ DEFINE_HOOK(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 	if (paletteCount > 0)
 	{
 		int schemeCount = ColorScheme::GetNumberOfSchemes();
-		Debug::Log("Recalculated %d extra palettes across %d color schemes (total: %d).\n", paletteCount, schemeCount, schemeCount * paletteCount);
+		Debug::LogInfo("Recalculated {} extra palettes across {} color schemes (total: {}).", paletteCount, schemeCount, schemeCount * paletteCount);
 	}
 
 	return SkipGameCode;
@@ -1043,7 +1043,7 @@ DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 
 	if (SessionClass::IsCampaign())
 	{
-		Debug::Log("Skipping [Header] Section for Campaign Mode!\n");
+		Debug::LogInfo("Skipping [Header] Section for Campaign Mode!");
 		return 0x689FC0;
 	}
 
@@ -1113,7 +1113,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 		strncpy_s(pHouse->PlainName, GameStrings::PlayerAt[7u - spawn_position], 12u);
 	}
 
-	Debug::Log("%s, %ls, position %d\n", pHouse->PlainName, pHouse->UIName, spawn_position);
+	Debug::LogInfo("{}, {}, position {}", pHouse->PlainName, PhobosCRT::WideStringToString(pHouse->UIName), spawn_position);
 }
 
 //DEFINE_HOOK(0x68804A, AssignHouses_PlayerHouses, 0x5)
@@ -1462,11 +1462,10 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	if (pThis->Deactivated || pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
 	{
 		pThis->ClearDisguise();
-		R->EAX(pThis->MindControlRingAnim);
-		return 0x746AA5;
+		R->Stack(0x7 , false);
 	}
 
-	return 0x746931;
+	return 0x0;
 }
 
 #include <Misc/Hooks.Otamaa.h>

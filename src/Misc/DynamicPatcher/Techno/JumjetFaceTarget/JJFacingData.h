@@ -20,7 +20,7 @@ public:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From JJFacingData ! \n");
+		//Debug::LogInfo("Loading Element From JJFacingData ! ");
 		Stm
 			.Process(Enable)
 			.Process(Facing)

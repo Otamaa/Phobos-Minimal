@@ -77,7 +77,7 @@ void ArmorTypeClass::EvaluateDefault()
 
 			if ((int)i < nDefault)
 			{
-				Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] with higher array index from itself !\n",
+				Debug::LogInfo("[Phobos] Armor[{} - {}] Trying to reference Armor[{} - {}] with higher array index from itself !",
 				i, pArmor->Name.data(),
 				nDefault, pDefault->Name.data());
 			}
@@ -179,7 +179,7 @@ void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 
 			if (i < nDefault)
 			{
-				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
+				Debug::LogInfo("Warhead - ret NoSection - [{}] - Armor [{} - {}] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! ",
 					section, i, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
 
 				pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;

@@ -22,13 +22,72 @@
 #include <HouseClass.h>
 #include <HouseTypeClass.h>
 
+#include <filesystem>
+
+void Debug::InitLogger() {
+
+	if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
+		const auto logDir = PhobosCRT::WideStringToString(Debug::LogFilePathName);
+		Debug::FatalError("Uneable to find %s path !", logDir.c_str());
+		return;
+	}
+
+	const auto log_full = PhobosCRT::WideStringToString(Debug::LogFileFullPath);
+	spdlog::init_thread_pool(8192, 10);
+	Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
+	Debug::file_sink->set_level(spdlog::level::trace);
+	Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	Debug::g_MainLogger->set_level(spdlog::level::trace);
+	spdlog::register_logger(g_MainLogger);
+	spdlog::set_default_logger(g_MainLogger);
+	Debug::g_MainLogger->info("Log File [{}]", log_full);
+
+}
+
+void Debug::DeactivateLogger()
+{
+	Debug::g_MainLogger->flush();
+	spdlog::shutdown();
+}
+
+void Debug::DetachLogger()
+{
+	if (Debug::LogFileActive() && Debug::made) {
+
+		//Debug::g_MainLogger->info("Closing log file on program termination");
+
+		Debug::DeactivateLogger();
+
+		if (std::filesystem::exists(Debug::LogFileFullPath.c_str())) {
+			CopyFileW(Debug::LogFileFullPath.c_str(), Debug::LogFileMainFormattedName.c_str(), FALSE);
+		}
+	}
+}
+
+void Debug::PrepareLogFile()
+{ 
+	if (!made) {
+		wchar_t path[MAX_PATH];
+		GetCurrentDirectoryW(MAX_PATH, path);
+		Debug::ApplicationFilePath = path;
+		Debug::LogFilePathName = path;
+		Debug::LogFilePathName += L"\\debug";
+		std::filesystem::path logDir = std::filesystem::path(Debug::LogFilePathName);
+		std::filesystem::create_directories(logDir);
+		Debug::LogFileFullPath = logDir.wstring() + (Debug::LogFileMainName + Debug::LogFileExt);
+		Debug::LogFileMainFormattedName = Debug::LogFilePathName + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
+
+		made = 1;
+	}
+}
+
 void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 {
 	if (!Debug::LogFileActive()) {
 		return;
 	}
 
-	Debug::LogUnflushed("Dumping %X bytes of stack\n", len);
+	Debug::g_MainLogger->info("Dumping {} bytes of stack", len);
 	auto const end = len / 4;
 	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
 	for (auto i = 0u; i < end; ++i)
@@ -72,91 +131,117 @@ void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 				break;
 			}
 		}
-		Debug::LogUnflushed("esp+%04X = %08X %s %s\n", i * 4, mem[i], suffix , Object);
+		Debug::g_MainLogger->info("esp+{{0:x}} = {{1:x}} {} {}", i * 4, mem[i], suffix , Object);
 	}
 
-	Debug::Log("====================Done.\n"); // flushes
+	Debug::g_MainLogger->info("====================Done."); // flushes
 }
-bool Console::Create()
+
+std::wstring Debug::PrepareSnapshotDirectory()
 {
-	if (FALSE == AllocConsole())
-		return false;
+	const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + Debug::GetCurTime();
+	if (!std::filesystem::create_directories(buffer)) {
+		std::wstring msg = std::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
+		MessageBoxW(Game::hWnd.get(), Debug::LogFileFullPath.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
+		Phobos::Otamaa::ExeTerminated = true;
+		ExitProcess(1);
+	}
 
-	ConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (NULL == ConsoleHandle)
-		return false;
-
-	SetConsoleTitle("Phobos Debug Console");
-
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(ConsoleHandle, &csbi);
-	TextAttribute.AsWord = csbi.wAttributes;
-
-	return true;
+	return buffer;
 }
 
-void Console::SetForeColor(ConsoleColor color)
+void Debug::LogFileRemove() {
+	if (std::filesystem::exists(Debug::LogFileFullPath.c_str())) {
+		DeleteFileW(Debug::LogFileFullPath.c_str());
+	}
+}
+
+void Debug::FreeMouse()
 {
-	if (NULL == ConsoleHandle || TextAttribute.Foreground == color)
-		return;
+	Game::StreamerThreadFlush();
+	const auto pMouse = MouseClass::Instance();
 
-	TextAttribute.Foreground = color;
-	SetConsoleTextAttribute(ConsoleHandle, TextAttribute.AsWord);
+	if (pMouse)
+	{
+		const auto pMouseVtable = VTable::Get(pMouse);
+
+		if (pMouseVtable == 0x7E1964)
+		{
+			pMouse->UpdateCursor(MouseCursorType::Default, false);
+		}
+	}
+
+	const auto pWWMouse = WWMouseClass::Instance();
+
+	if (pWWMouse)
+	{
+		const auto pWWMouseVtable = VTable::Get(pWWMouse);
+
+		if (pWWMouseVtable == 0x7F7B2C)
+		{
+			pWWMouse->ReleaseMouse();
+		}
+	}
+
+	ShowCursor(TRUE);
+
+	auto const BlackSurface = [](DSurface* pSurface)
+		{
+			if (pSurface && VTable::Get(pSurface) == DSurface::vtable && pSurface->BufferPtr)
+			{
+				pSurface->Fill(0);
+			}
+		};
+
+	BlackSurface(DSurface::Alternate);
+	BlackSurface(DSurface::Composite);
+	BlackSurface(DSurface::Hidden);
+	BlackSurface(DSurface::Temp);
+	BlackSurface(DSurface::Primary);
+	BlackSurface(DSurface::Sidebar);
+	BlackSurface(DSurface::Tile);
+
+	ShowCursor(TRUE);
 }
 
-void Console::SetBackColor(ConsoleColor color)
+void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 {
-	if (NULL == ConsoleHandle || TextAttribute.Background == color)
-		return;
+	const bool log = Debug::LogFileActive();
 
-	TextAttribute.Background = color;
-	SetConsoleTextAttribute(ConsoleHandle, TextAttribute.AsWord);
+	if (msg.empty()) {
+
+		if (log)
+			Debug::g_MainLogger->error("Fatal Error: {}", PhobosCRT::WideStringToString(DefaultFEMessage));
+
+		Debug::FreeMouse();
+		MessageBoxW(Game::hWnd, DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+	} else {
+
+		if (log)
+			Debug::g_MainLogger->error("Fatal Error: {}", msg);
+
+		Debug::FreeMouse();
+		MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+	}
+
+	if (Dump) {
+		Debug::FullDump();
+	}
+
+	Debug::ExitGame();
 }
 
-void Console::EnableUnderscore(bool enable)
+void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
 {
-	if (NULL == ConsoleHandle || TextAttribute.Underscore == enable)
-		return;
+	if (Phobos::Otamaa::TrackParserErrors && Debug::LogEnabled) {
 
-	TextAttribute.Underscore = enable;
-	SetConsoleTextAttribute(ConsoleHandle, TextAttribute.AsWord);
+		if (!Message) {
+			Debug::g_MainLogger->error("[Phobos] Failed to parse INI file content: [{}]{}={}", section, flag, value);
+		} else {
+			Debug::g_MainLogger->error("[Phobos] Failed to parse INI file content: [{}]{}={} ({})", section, flag, value, Message);
+		}
+
+		Debug::RegisterParserError();
+	}
 }
 
-void Console::Release()
-{
-	if (NULL == ConsoleHandle)
-		return;
-
-	FreeConsole();
-}
-
-void Console::Write(const char* str, int len)
-{
-	if (NULL == ConsoleHandle)
-		return;
-
-	WriteConsole(ConsoleHandle, str, len, nullptr, nullptr);
-}
-
-void Console::WriteLine(const char* str, int len)
-{
-	Write(str, len);
-	Write("\n");
-}
-
-void Console::WriteWithVArgs(const char* pFormat, va_list args)
-{
-	if (ConsoleHandle == NULL)
-		return;
-
-	vsprintf_s(Debug::LogMessageBuffer, pFormat, args);
-	WriteConsole(ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
-}
-
-void Console::WriteFormat(const char* pFormat, ...)
-{
-	va_list args;
-	va_start(args, pFormat);
-	WriteWithVArgs(pFormat, args);
-	va_end(args);
-}

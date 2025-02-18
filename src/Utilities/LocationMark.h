@@ -48,7 +48,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Processing Element From LocationMark ! \n");
+		Debug::LogInfo("Processing Element From LocationMark ! ");
 		return Stm
 			.Process(Location)
 			.Process(Direction)

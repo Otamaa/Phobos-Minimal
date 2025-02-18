@@ -90,7 +90,7 @@ void SpawnerMain::CmdLineParse(char* pArg)
 }
 
 void SpawnerMain::PrintInitializeLog() {
-	Debug::Log("Initialized " SPAWNER_PRODUCT_NAME "\n");
+	Debug::LogInfo("Initialized " SPAWNER_PRODUCT_NAME "");
 }
 
 void SpawnerMain::LoadConfigurations()
@@ -386,7 +386,7 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->Difficulty = pINI->ReadInteger("HouseHandicaps", pMultiTag, this->Difficulty);
 	}
 
-	Debug::Log("Reading Config for[%s  - %s] Color [%d]\n", pSection, pMultiTag, this->Color);
+	Debug::LogInfo("Reading Config for[{}  - {}] Color [{}]", pSection, pMultiTag, this->Color);
 }
 
 void SpawnerMain::GameConfigs::HouseConfig::LoadFromINIFile(CCINIClass* pINI, int index)
@@ -416,7 +416,7 @@ void SpawnerMain::GameConfigs::Init() {
 
 	GameConfig file { "SPAWN.INI" };
 	file.OpenINIAction([&file](CCINIClass* pFile) {
-		Debug::Log("SpawnerMain::GameConfigs::Init Reading file %s\n", file.filename());
+		Debug::LogInfo("SpawnerMain::GameConfigs::Init Reading file {}", file.filename());
 		SpawnerMain::GameConfigs::m_Ptr.LoadFromINIFile(pFile);
 	});
 
@@ -592,7 +592,7 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 	if (pScenarioName[0] == 0)
 	{
-		Debug::Log("[Spawner] Failed Read Scenario [%s]\n", pScenarioName);
+		Debug::LogInfo("[Spawner] Failed Read Scenario [{}]", pScenarioName);
 
 		MessageBox::Show(
 			StringTable::LoadString(GameStrings::TXT_UNABLE_READ_SCENARIO),
@@ -743,7 +743,7 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
   //      }
   //     ScenarioClass::Instance->UINameLoaded[44] = 0;
 
-		//Debug::Log("Loading Scenario Name [%s]\n" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
+		//Debug::LogInfo("Loading Scenario Name [%s]" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
 		return result;
 #endif
 	}
@@ -783,7 +783,7 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 
 	if (!saveGameName[0] || !StaticLoadOptionsClass::LoadMission(saveGameName))
 	{
-		Debug::Log("[Spawner] Failed Load Game [%s]\n", saveGameName);
+		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 
 		MessageBox::Show(
 			StringTable::LoadString(GameStrings::TXT_ERROR_LOADING_GAME),
@@ -936,7 +936,7 @@ DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 		if ((pHouse->IsHumanPlayer || SpawnerMain::GameConfigs::m_Ptr.ContinueWithoutHumans)
 			&& HouseExtData::IsMutualAllies(pHouse , MPlayerDefeated::pThis))
 		{
-			Debug::Log("[Spawner] MPlayer_Defeated() - Defeated player has a living ally");
+			Debug::LogInfo("[Spawner] MPlayer_Defeated() - Defeated player has a living ally");
 			if (SpawnerMain::GameConfigs::m_Ptr.DefeatedBecomesObserver)
 				MPlayerDefeated::pThis->MakeObserver();
 

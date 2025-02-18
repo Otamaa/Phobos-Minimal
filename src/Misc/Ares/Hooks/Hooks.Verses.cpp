@@ -37,7 +37,7 @@ void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass
 {
 	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
 
-	Debug::Log("[%s] WH[%d][%s] against [%d - %s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
+	Debug::LogInfo("[{}] WH[{}][{}] against [{} - {}] Flag :  FF {} , PA {} , RR {} [{}] ",
 			pAdd,
 			arrSize,
 			pWH->get_ID(),
@@ -228,7 +228,7 @@ DEFINE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB
 //
 //	const int nArmor = (int)TechnoExtData::GetArmor(pTarget);
 //	if ((size_t)nArmor > ArmorTypeClass::Array.size())
-//		Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+//		Debug::LogInfo(__FUNCTION__" Armor is more that avaible ArmorTypeClass ");
 //
 //	const auto vsData_Secondary = &WarheadTypeExtContainer::Instance.Find(pSecondary->Warhead)->Verses[nArmor];
 //

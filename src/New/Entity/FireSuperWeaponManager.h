@@ -118,7 +118,7 @@ private:
 
 				if (!pHouse)
 				{
-					//Debug::Log("Want to fire a super weapon %s, but house is null.", data.LaunchWhat->get_ID());
+					//Debug::LogInfo("Want to fire a super weapon %s, but house is null.", data.LaunchWhat->get_ID());
 					return;
 				}
 			}

@@ -1057,6 +1057,12 @@ public:
 	Valueable<int> Power {};
 	Valueable<bool> BunkerableAnyway {};
 
+	Nullable<bool> JumpjetTilt {};
+	Valueable<double> JumpjetTilt_ForwardAccelFactor { 1.0 };
+	Valueable<double> JumpjetTilt_ForwardSpeedFactor { 1.0 };
+	Valueable<double> JumpjetTilt_SidewaysRotationFactor { 1.0 };
+	Valueable<double> JumpjetTilt_SidewaysSpeedFactor { 1.0 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

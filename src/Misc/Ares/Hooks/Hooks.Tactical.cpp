@@ -141,7 +141,7 @@ DEFINE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw, 5)
 				!((TechnoClass*)pAlpha->AttachedTo)->Disguised;
 		}
 		//else if (table == AnimClass::vtable || table == ParticleClass::vtable || table == VoxelAnimClass::vtable) {
-		//	Debug::Log("Alpha[%x - %d] Attached to [%s - %s] with state [%s]\n", pAlpha, AlphaLightIndex,
+		//	Debug::LogInfo("Alpha[%x - %d] Attached to [%s - %s] with state [%s]", pAlpha, AlphaLightIndex,
 		//		pAlpha->AttachedTo->GetType()->ID,
 		//		pAlpha->AttachedTo->GetThisClassName()
 		//	, !pAlpha->AttachedTo->IsAlive ? "Dead" : "Alive"

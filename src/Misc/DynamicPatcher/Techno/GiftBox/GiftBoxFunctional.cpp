@@ -78,7 +78,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
 			pExt->AttachedToObject->Limbo();
-			Debug::Log(__FUNCTION__" Called \n");
+			Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pExt->AttachedToObject,nullptr , false , false);
 			return;
 		}
@@ -314,12 +314,12 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 
 				if (pTech->WhatAmI() == BuildingTypeClass::AbsID)
 				{
-					Debug::Log("[%s] Gift box release BuildingType as an gift ,pType [%s] \n", pOwner->get_ID(), pTech->get_ID());
+					Debug::LogInfo("[{}] Gift box release BuildingType as an gift ,pType [{}] ", pOwner->get_ID(), pTech->get_ID());
 				}
 			}
 			else
 			{
-				Debug::Log("Gift box release gift failed ,pType [%s] \ns", pTech->get_ID());
+				Debug::LogInfo("Gift box release gift failed ,pType [{}] \ns", pTech->get_ID());
 			}
 		}
 	}

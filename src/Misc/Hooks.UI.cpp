@@ -21,7 +21,7 @@ DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 	GET(HINSTANCE , instance , ESI);
 
 	if (!Phobos::AppIconPath.empty()) {
-		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());
+		Debug::LogInfo("Applying AppIcon from \"{}\"", Phobos::AppIconPath.c_str());
 		R->EAX(LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
 	}else{
 		R->EAX(LoadIconA(instance, (LPCSTR)93));

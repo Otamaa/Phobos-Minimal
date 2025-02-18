@@ -82,7 +82,7 @@ HRESULT AIMeade::Link_House(IHouse* house)
 
 HRESULT AIMeade::AI(long* framedelay)
 {
-	Debug::Log("AIMeade::AI(enter)\n");
+	Debug::LogInfo("AIMeade::AI(enter)");
 
 	if (House == nullptr)
 	{
@@ -94,13 +94,13 @@ HRESULT AIMeade::AI(long* framedelay)
 		"Name: %S, ID: %d\n"
 		"framedelay: %d\n"
 		"AvilMoney: %d, AvilStorage: %d\n"
-		"PowerOutput: %d, PowerDrain: %d\n",
+		"PowerOutput: %d, PowerDrain: %d",
 		House->Name(), House->ID_Number(),
 		*framedelay,
 		House->Available_Money(), House->Available_Storage(),
 		House->Power_Output(), House->Power_Drain()
 	);
-	Debug::Log(buffer);
+	Debug::LogInfo(buffer);
 
 	return S_OK;
 }
@@ -116,7 +116,7 @@ HRESULT AIJackson::Link_House(IHouse* house)
 
 HRESULT AIJackson::AI(long* framedelay)
 {
-	Debug::Log("AIJackson::AI(enter)\n");
+	Debug::LogInfo("AIJackson::AI(enter)");
 
 	if (House == nullptr)
 	{
@@ -128,13 +128,13 @@ HRESULT AIJackson::AI(long* framedelay)
 		"Name: %S, ID: %d\n"
 		"framedelay: %d\n"
 		"AvilMoney: %d, AvilStorage: %d\n"
-		"PowerOutput: %d, PowerDrain: %d\n",
+		"PowerOutput: %d, PowerDrain: %d",
 		House->Name(), House->ID_Number(),
 		*framedelay,
 		House->Available_Money(), House->Available_Storage(),
 		House->Power_Output(), House->Power_Drain()
 	);
-	Debug::Log(buffer);
+	Debug::LogInfo(buffer);
 
 	return S_OK;
 }
@@ -150,7 +150,7 @@ HRESULT AIGrant::Link_House(IHouse* house)
 
 HRESULT AIGrant::AI(long* framedelay)
 {
-	Debug::Log("AIGrant::AI(enter)\n");
+	Debug::LogInfo("AIGrant::AI(enter)");
 
 	if (House == nullptr)
 	{
@@ -162,13 +162,13 @@ HRESULT AIGrant::AI(long* framedelay)
 		"Name: %S, ID: %d\n"
 		"framedelay: %d\n"
 		"AvilMoney: %d, AvilStorage: %d\n"
-		"PowerOutput: %d, PowerDrain: %d\n",
+		"PowerOutput: %d, PowerDrain: %d",
 		House->Name(), House->ID_Number(),
 		*framedelay,
 		House->Available_Money(), House->Available_Storage(),
 		House->Power_Output(), House->Power_Drain()
 	);
-	Debug::Log(buffer);
+	Debug::LogInfo(buffer);
 
 	return S_OK;
 }
@@ -184,7 +184,7 @@ HRESULT AIHooker::Link_House(IHouse* house)
 
 LONG AIHooker::AI(long* framedelay)
 {
-	Debug::Log("AIHooker::AI(enter)\n");
+	Debug::LogInfo("AIHooker::AI(enter)");
 
 	if (House == nullptr)
 	{
@@ -196,13 +196,13 @@ LONG AIHooker::AI(long* framedelay)
 		"Name: %S, ID: %d\n"
 		"framedelay: %d\n"
 		"AvilMoney: %d, AvilStorage: %d\n"
-		"PowerOutput: %d, PowerDrain: %d\n",
+		"PowerOutput: %d, PowerDrain: %d",
 		House->Name(), House->ID_Number(),
 		*framedelay,
 		House->Available_Money(), House->Available_Storage(),
 		House->Power_Output(), House->Power_Drain()
 	);
-	Debug::Log(buffer);
+	Debug::LogInfo(buffer);
 
 	return S_OK;
 }

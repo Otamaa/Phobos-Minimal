@@ -86,7 +86,7 @@ bool PhobosStreamReader::RegisterChange(void* newPtr)
 		if (SUCCEEDED(SwizzleManagerClass::Instance().Here_I_Am(oldPtr, newPtr)))
 			return true;
 
-		//GameDebugLog::Log("[PhobosStreamReader] Failed To RegisterChange for [%p] to [%p]\n", oldPtr, newPtr);
+		//GameDebugLog::Log("[PhobosStreamReader] Failed To RegisterChange for [%p] to [%p]", oldPtr, newPtr);
 	}
 
 	return false;

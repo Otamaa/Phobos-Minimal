@@ -305,7 +305,7 @@ public:
 
 		// make the game happy
 		if (!pSuper->Owner) {
-			Debug::Log("Psydom[%s] Firing Without Ownership!\n", pSuper->Type->ID);
+			Debug::LogInfo("Psydom[{}] Firing Without Ownership!", pSuper->Type->ID);
 			PsyDom::Owner = HouseExtData::FindSpecial();
 		}else{
 			PsyDom::Owner = pSuper->Owner;

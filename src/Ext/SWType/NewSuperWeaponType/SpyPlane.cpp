@@ -32,7 +32,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 		}
 		else
 		{
-			Debug::Log("SpyPlane [%s] SW Invalid Target ! \n", pThis->get_ID());
+			Debug::LogInfo("SpyPlane [{}] SW Invalid Target ! ", pThis->get_ID());
 		}
 	}
 

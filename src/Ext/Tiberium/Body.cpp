@@ -99,10 +99,10 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			OverlayTypeClass* pOverlay = OverlayTypeClass::Find(Find.c_str());
 
 			if (!pOverlay)
-				Debug::FatalErrorAndExit("CannotFind %s OverlayType for Tiberium[%s]\n", Find.c_str(), pSection);
+				Debug::FatalErrorAndExit("CannotFind %s OverlayType for Tiberium[%s]", Find.c_str(), pSection);
 
 			if(!pOverlay->Tiberium)
-				Debug::FatalErrorAndExit("OverlayType[%s] for Tiberium[%s] is not Tiberium\n", Find.c_str(), pSection);
+				Debug::FatalErrorAndExit("OverlayType[%s] for Tiberium[%s] is not Tiberium", Find.c_str(), pSection);
 
 			if (i == 0) {
 				first = pOverlay;
@@ -111,17 +111,17 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 				if (iter != TiberiumExtContainer::LinkedType.end()) {
 					if (iter->second != this->AttachedToObject)
-						Debug::FatalErrorAndExit("OverlayType[%s] already assigned to [%s] Tiberium! \n", pOverlay->ID, iter->second->ID);
+						Debug::FatalErrorAndExit("OverlayType[%s] already assigned to [%s] Tiberium! ", pOverlay->ID, iter->second->ID);
 				} else {
 					TiberiumExtContainer::LinkedType.emplace_unchecked(pOverlay, this->AttachedToObject);
 				}
 			}
 			else if (first && pOverlay->ArrayIndex != (first->ArrayIndex + i)) {
-				Debug::FatalErrorAndExit("OverlayType index of [%s - %d] is invalid compared to the first[%s - %d] (+ %d) \n", Find.c_str(), pOverlay->ArrayIndex, i ,first->ID, first->ArrayIndex);
+				Debug::FatalErrorAndExit("OverlayType index of [%s - %d] is invalid compared to the first[%s - %d] (+ %d) ", Find.c_str(), pOverlay->ArrayIndex, i ,first->ID, first->ArrayIndex);
 			}
 
 			//if (Phobos::Otamaa::IsAdmin)
-			//	Debug::Log("Reading[%s] With CurOverlay[%s] \n", pSection, Find.c_str());
+			//	Debug::LogInfo("Reading[%s] With CurOverlay[%s] ", pSection, Find.c_str());
 		}
 
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");

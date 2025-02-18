@@ -233,7 +233,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 			{
 #ifdef DEBUG_AIRBURSTSPLITS_TARGETING
 				if (const auto pTechno = generic_cast<TechnoClass*>(pTarget))
-					Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID(), pTechno->get_ID());
+					Debug::LogInfo("Airburst [{}] targeting Target [{}] ", pWeapon->get_ID(), pTechno->get_ID());
 #endif
 				if (const auto pBullet = BulletTypeExtContainer::Instance
 					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon, pExt->AirburstWeapon_ApplyFirepowerMult, true))
@@ -807,7 +807,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, We
 
 					if (!pNewProjTypeExt)
 					{
-						//Debug::Log("Failed to find BulletTypeExt For [%s] ! \n", pWeaponOverride->Projectile->get_ID());
+						//Debug::LogInfo("Failed to find BulletTypeExt For [%s] ! ", pWeaponOverride->Projectile->get_ID());
 						return;
 					}
 

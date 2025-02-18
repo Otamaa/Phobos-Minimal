@@ -50,7 +50,7 @@ bool SW_GenericWarhead::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 	const auto pWarhead = this->GetWarhead(pData);
 
 	if (!pWarhead) {
-		Debug::Log("launch GenericWarhead SW ([%s]) Without Warhead\n", pThis->Type->ID);
+		Debug::LogInfo("launch GenericWarhead SW ([{}]) Without Warhead", pThis->Type->ID);
 		return true;
 	}
 

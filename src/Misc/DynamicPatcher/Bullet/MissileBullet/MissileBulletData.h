@@ -23,7 +23,7 @@ struct MissileBulletData
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		Debug::Log("Loading Element From MissileBulletData ! \n");
+		Debug::LogInfo("Loading Element From MissileBulletData ! ");
 		return Serialize(Stm);
 	}
 

@@ -151,7 +151,7 @@ private:
 //
 //				CursorTypeClass::AllocateWithDefault(pSection , value);
 //				this->Value = CursorTypeClass::Array.size() - 1;
-//				Debug::Log("[Phobos]Parsing CusorTypeClass from raw Cursor value of [%s]%s=%s\n", pSection, pKey, copyed.c_str());
+//				Debug::LogInfo("[Phobos]Parsing CusorTypeClass from raw Cursor value of [%s]%s=%s", pSection, pKey, copyed.c_str());
 //				return;
 //			}
 //			else

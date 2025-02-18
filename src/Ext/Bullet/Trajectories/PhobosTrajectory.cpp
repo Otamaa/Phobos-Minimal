@@ -193,11 +193,11 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 		if (PhobosTrajectoryType::UpdateType(pType,nFlag))
 		{
 			if (!pType->Read(pINI, pSection))
-				Debug::Log("Failed When Reading Projectile[%s] With TrajectoryType %s ! \n", pSection, Phobos::readBuffer);
+				Debug::LogInfo("Failed When Reading Projectile[{}] With TrajectoryType {} ! ", pSection, Phobos::readBuffer);
 
 			if (pType->Flag == TrajectoryFlag::Bounce)
 			{
-				Debug::Log("BounceTrajectory is Unfinished ! \n");
+				Debug::LogInfo("BounceTrajectory is Unfinished ! ");
 				//const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pType.get());
 				//if (!(pBounceType->BounceAmount > 0))
 				//{
@@ -260,25 +260,25 @@ bool PhobosTrajectoryType::TrajectoryValidation(BulletTypeClass* pAttached) {
 		const char* pTrjType = PhobosTrajectoryType::TrajectoryTypeToSrings[(int)pTraj->Flag];
 
 		if (pAttached->Arcing) {
-			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Arcing. Arcing has been set to false.\n", pSection , pTrjType);
+			Debug::LogInfo("Bullet[{}] has Trajectory[{}] set together with Arcing. Arcing has been set to false.", pSection , pTrjType);
 			pAttached->Arcing = false;
 			ret = true;
 		}
 
 		if (pAttached->Inviso) {
-			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Inviso. Inviso has been set to false.\n", pSection, pTrjType);
+			Debug::LogInfo("Bullet[{}] has Trajectory[{}] set together with Inviso. Inviso has been set to false.", pSection, pTrjType);
 			pAttached->Inviso = false;
 			ret = true;
 		}
 
 		if (pAttached->ROT) {
-			Debug::Log("Bullet[%s] has Trajectory[%s] set together with ROT value other than 0. ROT has been set to 0.\n", pSection, pTrjType);
+			Debug::LogInfo("Bullet[{}] has Trajectory[{}] set together with ROT value other than 0. ROT has been set to 0.", pSection, pTrjType);
 			pAttached->ROT = 0;
 			ret = true;
 		}
 
 		if (pAttached->Vertical) {
-			Debug::Log("Bullet[%s] has Trajectory[%s] set together with Vertical. Vertical has been set to false.\n", pSection, pTrjType);
+			Debug::LogInfo("Bullet[{}] has Trajectory[{}] set together with Vertical. Vertical has been set to false.", pSection, pTrjType);
 			pAttached->Vertical = false;
 			ret = true;
 		}
@@ -425,7 +425,7 @@ DWORD PhobosTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& 
 		switch (pTraj->OnAITargetCoordCheck(coords))
 #else
 		const auto result = pTraj->OnAITargetCoordCheck(coords);
-		Debug::Log(__FUNCTION__" Bullet[%s - %p] with Trajectory[%d] result [%s]\n", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
+		Debug::LogInfo(__FUNCTION__" Bullet[{} - {}] with Trajectory[{}] result [{}]", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
 		switch(result)
 #endif
 		{
@@ -454,7 +454,7 @@ DWORD PhobosTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTech
 		switch (pTraj->OnAITechnoCheck(pTechno))
 #else
 		const auto result = pTraj->OnAITechnoCheck(pTechno);
-		Debug::Log(__FUNCTION__" Bullet[%s - %p] with Trajectory[%d] result [%s]\n", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
+		Debug::LogInfo(__FUNCTION__" Bullet[{} - {}] with Trajectory[{}] result [{}]", pBullet->get_ID(), pBullet, TrajectoryTypeToSrings[(int)pTraj->Flag], EnumFunctions::TrajectoryCheckReturnType_to_strings[(int)result]);
 		switch (result)
 #endif
 		{

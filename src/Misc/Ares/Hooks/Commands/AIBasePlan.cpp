@@ -29,13 +29,13 @@ const wchar_t* AIBasePlanCommandClass::GetUIDescription() const
 
 void AIBasePlanCommandClass::Execute(WWKey dwUnk) const
 {
-	Debug::Log("AI Base Plans:\n");
+	Debug::LogInfo("AI Base Plans:");
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{
 		auto H = HouseClass::Array->Items[i];
 		if (!H->IsControlledByHuman())
 		{
-			Debug::Log("#%02d: country %25s:\n", i, H->Type->ID);
+			Debug::LogInfo("#{}: country {}:", i, H->Type->ID);
 			const auto& b = H->Base.BaseNodes;
 			for (int j = 0; j < b.Count; ++j)
 			{
@@ -44,16 +44,16 @@ void AIBasePlanCommandClass::Execute(WWKey dwUnk) const
 				if (idx >= 0)
 				{
 					auto lbl = BuildingTypeClass::Array->Items[idx]->ID;
-					Debug::Log("\tNode #%03d: %s @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
+					Debug::LogInfo("\tNode #{}: {} @ ({}, {}), Attempts so far: {}, Placed: {}"
 						, j, lbl, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 				}
 				else
 				{
-					Debug::Log("\tNode #%03d: Special %d @ (%05d, %05d), Attempts so far: %d, Placed: %d\n"
+					Debug::LogInfo("\tNode #{}: Special {} @ ({}, {}), Attempts so far: {}, Placed: {}"
 						, j, idx, n.MapCoords.X, n.MapCoords.Y, n.Attempts, n.Placed);
 				}
 			}
-			Debug::Log("\n");
+			Debug::LogInfo("");
 		}
 	}
 

@@ -26,7 +26,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Processing Element From AttachEffectData ! \n");
+		Debug::LogInfo("Processing Element From AttachEffectData ! ");
 		return Stm
 			.Process(Types)
 			.Process(CabinLength)

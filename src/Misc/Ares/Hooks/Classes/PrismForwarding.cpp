@@ -27,12 +27,11 @@ void PrismForwarding::RemoveAllSenders()
 	// log if not all senders could be removed
 	if (!this->Senders.empty())
 	{
-		Debug::Log("PrismForwarding::RemoveAllSenders: Tower (%p) still has %d senders after removal completed.\n",
-			this->Owner, this->Owner);
+		Debug::LogInfo("PrismForwarding::RemoveAllSenders: Tower ({}) still has {} senders after removal completed.",
+			(void*)this->Owner, (void*)this->Owner);
 
-		for (size_t i = 0; i < this->Senders.size(); ++i)
-		{
-			Debug::Log("Sender %03d: %p\n", i, this->Senders[i]->Owner);
+		for (size_t i = 0; i < this->Senders.size(); ++i) {
+			Debug::LogInfo("Sender {} : {}", i, (void*)this->Senders[i]->Owner);
 		}
 
 		this->Senders.clear();

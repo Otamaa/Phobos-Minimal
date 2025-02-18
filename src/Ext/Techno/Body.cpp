@@ -812,7 +812,7 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		}
 	}
 
-	//Debug::Log("%s Armor [%d = %s]\n", pType->ID, res, ArmorTypeClass::Array[(int)res]->Name.data());
+	//Debug::LogInfo("{} Armor [{} = {}]", pType->ID, res, ArmorTypeClass::Array[(int)res]->Name.data());
 
 	return res;
 }
@@ -855,7 +855,7 @@ NOINLINE WeaponTypeClass* TechnoExtData::GetCurrentWeapon(TechnoClass* pThis, in
 		weaponIndex = pThis->CurrentGattlingStage * 2 + weaponIndex;
 	}
 
-	//Debug::Log("%s Getting WeaponIndex %d for %s\n", __FUNCTION__, weaponIndex, pThis->get_ID());
+	//Debug::LogInfo("{} Getting WeaponIndex {} for {}", __FUNCTION__, weaponIndex, pThis->get_ID());
 	if(const auto pWpStr = pThis->GetWeapon(weaponIndex))
 		return pWpStr->WeaponType;
 
@@ -2940,14 +2940,14 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 				const auto&[curAction , curArgs] = pTeam->CurrentScript->GetCurrentAction();
 				const auto&[nextAction , nextArgs] = pTeam->CurrentScript->GetNextAction();
 
-				Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
+				Debug::LogInfo("DEBUG: [{}] [{}] {} = {},{} - Force next script action after successful kill: {} = {},{}"
 					, pTeam->Type->ID
 					, pTeam->CurrentScript->Type->ID
 					, pTeam->CurrentScript->CurrentMission
-					, curAction
+					, (int)curAction
 					, curArgs
 					, pTeam->CurrentScript->CurrentMission + 1
-					, nextAction
+					, (int)nextAction
 					, nextArgs
 				);
 
@@ -3433,7 +3433,7 @@ void TechnoExtData::UpdateEatPassengers()
 
 
 					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
-					Debug::Log(__FUNCTION__" Called \n");
+					Debug::LogInfo(__FUNCTION__" Called ");
 					TechnoExtData::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis, false, false);
 				}
 
@@ -3463,12 +3463,12 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 
 	const auto pThisType = pThis->GetTechnoType();
 	const auto nWhat = pThis->WhatAmI();
-	Debug::Log(__FUNCTION__" Called For[(%s)%s - %x][%s - %x](Method :%s)\n",
+	Debug::LogInfo(__FUNCTION__" Called For[({}){} - {}][{} - {}](Method :{})",
 		AbstractClass::GetAbstractClassName(nWhat),
 		pThisType->ID,
-		pThis,
+		(void*)pThis,
 		pThis->Owner ? pThis->Owner->get_ID() : GameStrings::NoneStr(),
-		pThis->Owner,
+		(void*)pThis->Owner,
 		Delete ? "Delete" :  "UnInit"
 	);
 
@@ -3518,7 +3518,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 			pThis->Limbo();
 		}
 
-		Debug::Log(__FUNCTION__" (2args) Called \n");
+		Debug::LogInfo(__FUNCTION__" (2args) Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
 	}
 	else
@@ -3581,7 +3581,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		Debug::Log(__FUNCTION__" Called \n");
+		Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 
 	}break;
@@ -4469,7 +4469,7 @@ void TechnoExtData::UpdateShield()
 	auto const pThis = this->AttachedToObject;
 
 	if (!this->CurrentShieldType)
-		Debug::FatalErrorAndExit("Techno[%s] Missing CurrentShieldType ! \n", pThis->get_ID());
+		Debug::FatalErrorAndExit("Techno[{}] Missing CurrentShieldType ! ", pThis->get_ID());
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
@@ -5044,7 +5044,7 @@ void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadType
 {
 	if(const auto& pShieldData = TechnoExtContainer::Instance.Find(pTarget)->Shield){
 		//if (IS_SAME_STR_("CAOILD", pTarget->get_ID())) {
-		//	Debug::Log("CAOILD Armor Replaced with Shield[%s]\n", pShieldData->GetType()->Name.data());
+		//	Debug::LogInfo("CAOILD Armor Replaced with Shield[{}]", pShieldData->GetType()->Name.data());
 		//}
 
 		if(pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
@@ -5385,7 +5385,7 @@ TechnoExtContainer TechnoExtContainer::Instance;
 
 void TechnoExtData::InitializeConstant()
 {
-	//Debug::Log("Initilizing Tiberium storage for [%x] with [%d] count !\n", this->AttachedToObject, TiberiumClass::Array->Count);
+	//Debug::LogInfo("Initilizing Tiberium storage for [{}] with [{}] count !", this->AttachedToObject, TiberiumClass::Array->Count);
 	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 }
 
@@ -5631,7 +5631,7 @@ DEFINE_HOOK(0x70BF6C, TechnoClass_Load_Suffix, 0x6)
 	//			return 0;
 	//		else
 	//		{
-	//			Debug::FatalErrorAndExit("[LoadStatic] Loading object %p with buffer %p as '%s failed!\n",
+	//			Debug::FatalErrorAndExit("[LoadStatic] Loading object %p with buffer %p as '{} failed!",
 	//			key,
 	//			buffer,
 	//			TechnoExtContainer::Instance.GetName());

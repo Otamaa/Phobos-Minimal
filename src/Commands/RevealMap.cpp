@@ -55,10 +55,10 @@ void NOINLINE DumpDumped()
 {
 	for (size_t i = 0; i < DumpedTechno.size(); ++i)
 	{
-		Debug::Log("Dumping Techno  For[%s]\n", HouseClass::Array->Items[i]->Type->ID);
+		Debug::LogInfo("Dumping Techno  For[{}]", HouseClass::Array->Items[i]->Type->ID);
 		for (auto const& data : DumpedTechno[i])
 		{
-			Debug::Log("Techno [%s]\n", data->get_ID());
+			Debug::LogInfo("Techno [{}]", data->get_ID());
 		}
 	}
 }

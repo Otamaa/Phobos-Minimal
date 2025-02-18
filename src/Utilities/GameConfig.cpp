@@ -6,7 +6,7 @@ bool GameConfig::OpenINI(FileAccessMode mode) noexcept
 {
 	if (!File->Exists() || !File->Open(mode))
 	{
-		Debug::Log("Failed to Open file %s \n", this->File->FileName);
+		Debug::LogInfo("Failed to Open file {} ", this->File->FileName);
 		return false;
 	}
 
@@ -22,7 +22,7 @@ bool GameConfig::OpenOrCreate(FileAccessMode mode) noexcept
 {
 	if (!File->Exists() || !File->CreateFileA() || !File->Open(mode))
 	{
-		Debug::Log("Failed to Open file %s \n", this->File->FileName);
+		Debug::LogInfo("Failed to Open file {} ", this->File->FileName);
 		return false;
 	}
 

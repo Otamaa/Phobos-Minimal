@@ -50,7 +50,7 @@ DEFINE_HOOK(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 			&& (vtable != AircraftClass::vtable)
 			&& (vtable != UnitClass::vtable))
 		{
-			Debug::Log("TechnoClass_InRange Techno[%s] bunker linked item is broken pointer[%0x] !\n", pThisTypeExt->AttachedToObject->ID , pThis->BunkerLinkedItem);
+			Debug::LogInfo("TechnoClass_InRange Techno[{}] bunker linked item is broken pointer[{}] !", pThisTypeExt->AttachedToObject->ID , (void*)pThis->BunkerLinkedItem);
 			clear = true;
 			pThis->BunkerLinkedItem = nullptr;
 		}

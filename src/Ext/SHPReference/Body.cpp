@@ -22,7 +22,7 @@ void SHPRefExt::ExtData::Initialize()
 
 	//		if (pAlpha->Data->Width != pThis->Data->Width || pAlpha->Data->Height != pThis->Data->Height || pAlpha->Data->Frames != pThis->Data->Frames)
 	//		{
-	//			Debug::Log("Mismatched alpha file. %s.\n", nFileName.c_str());
+	//			Debug::LogInfo("Mismatched alpha file. %s.", nFileName.c_str());
 	//			GameDelete<true>(pAlpha);
 	//			return;
 	//		}
@@ -31,7 +31,7 @@ void SHPRefExt::ExtData::Initialize()
 
 	//		if (this->Data.X != this->Data.Y && this->Data.Width != this->Data.Height)
 	//		{
-	//			Debug::Log("File %s alpha has been loaded successfully.\n", pThis->Filename);
+	//			Debug::LogInfo("File %s alpha has been loaded successfully.", pThis->Filename);
 	//		}
 	//	}
 	//} else {
@@ -41,7 +41,7 @@ void SHPRefExt::ExtData::Initialize()
 	//		}
 
 	//		if (this->Alpha->Loaded && pThis->Loaded) {
-	//			Debug::Log("File %s alpha has been loaded successfully.\n", pThis->Filename);
+	//			Debug::LogInfo("File %s alpha has been loaded successfully.", pThis->Filename);
 	//		}
 	//	}
 	//}

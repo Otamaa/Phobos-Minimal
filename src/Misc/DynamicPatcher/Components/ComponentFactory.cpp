@@ -23,9 +23,9 @@ void ComponentFactory::PrintCreaterInfo()
 {
 	if (!_creatorMap.empty())
 	{
-		Debug::Log("Component List:\n");
+		Debug::LogInfo("Component List:");
 		for (auto& it : _creatorMap) {
-			Debug::Log(" -- %s\n", it.first.c_str());
+			Debug::LogInfo(" -- {}", it.first.c_str());
 		}
 	}
 }

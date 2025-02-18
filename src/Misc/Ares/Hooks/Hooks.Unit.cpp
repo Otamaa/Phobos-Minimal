@@ -1562,7 +1562,7 @@ DEFINE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 			pThis->Limbo();
 			CellClass* pCell = MapClass::Instance->GetCellAt(pDest->LastMapCoords);
 			pDest->UpdateThreatInCell(pCell);
-			Debug::Log(__FUNCTION__" Executed!\n");
+			Debug::LogInfo(__FUNCTION__" Executed!");
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return 0x73B0A5;
 		}

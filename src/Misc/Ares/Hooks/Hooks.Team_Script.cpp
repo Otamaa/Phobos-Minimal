@@ -69,11 +69,11 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 			pThis->ArchiveTarget = nullptr;
 			pThis->QueuedFocus = nullptr;
 			const auto nextAction = pScript->GetNextAction();
-			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to the same line -> (Reason: Timed Jump loop)\n",
+			Debug::LogInfo("DEBUG: [{}] {}](line: {} = {},{}): Jump to the same line -> (Reason: Timed Jump loop)",
 				pThis->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission + 1,
-				nextAction.Action,
+				(int)nextAction.Action,
 				nextAction.Argument
 			);
 
@@ -90,11 +90,11 @@ DEFINE_HOOK(0x6E9443, TeamClass_AI_HandleAres, 8)
 
 			pTeamData->ForceJump_InitialCountdown = -1;
 			pTeamData->ForceJump_Countdown.Stop();
-			Debug::Log("DEBUG: [%s] [%s](line: %d = %d,%d): Jump to line: %d = %d,%d -> (Reason: Timed Jump)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}](line: {} = {},{}): Jump to line: {} = {},{} -> (Reason: Timed Jump)",
 				pThis->Type->ID,
 				pScript->Type->ID,
-				pScript->CurrentMission, curAct, curArgs,
-				pScript->CurrentMission + 1, nextAct, nextArgs
+				pScript->CurrentMission, (int)curAct, curArgs,
+				pScript->CurrentMission + 1, (int)nextAct, nextArgs
 			);
 		}
 
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
-	//Debug::Log(std::format(__FUNCTION__ " Function With Type {} ! \n",pTeam->Type->ID));
+	//Debug::LogInfo(std::format(__FUNCTION__ " Function With Type {} ! ",pTeam->Type->ID));
 	//R->EDX(pTeamExt->AI_SafeDIstance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
 	R->EDX(pRules->AISafeDistance + pTeamM->Argument);
 
@@ -132,10 +132,10 @@ DEFINE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);
 	//if (IS_SAME_STR_(pTeam->Type->ID, "0100003I-G")) {
-	//	Debug::Log("Team %s with script %s, GatherAt friendlyBase.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
+	//	Debug::LogInfo("Team %s with script %s, GatherAt friendlyBase.", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
 	//	int i = 0;
 	//	for (auto pCur = pTeam->FirstUnit; pCur; pCur = pCur->NextTeamMember) {
-	//		Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n",
+	//		Debug::LogInfo("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].",
 	//			pTeam->Type->ID,
 	//			pTeam->CurrentScript->Type->ID,
 	//		i++,
@@ -158,11 +158,11 @@ DEFINE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 //
 //	if (IS_SAME_STR_(pTeam->Type->ID, "0100003I-G"))
 //	{
-//		Debug::Log("Team %s with script %s, GatherAt friendlyBase.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
+//		Debug::LogInfo("Team %s with script %s, GatherAt friendlyBase.", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
 //		int i = 0;
 //		for (auto pCur = pTeam->FirstUnit; pCur; pCur = pCur->NextTeamMember)
 //		{
-//			Debug::Log("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].\n",
+//			Debug::LogInfo("	Team %s with script %s, GatherAt friendlyBase CurMember[%d - %s].",
 //				pTeam->Type->ID,
 //				pTeam->CurrentScript->Type->ID,
 //			i++,
@@ -171,7 +171,7 @@ DEFINE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 //		}
 //
 //		const auto coord = pTarget->GetCoords();
-//		Debug::Log("Team %s with script %s, GatherAt { %d , %d , %d }.\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, coord.X, coord.Y, coord.Z);
+//		Debug::LogInfo("Team %s with script %s, GatherAt { %d , %d , %d }.", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, coord.X, coord.Y, coord.Z);
 //	}
 //
 //	return 0x0;

@@ -48,7 +48,7 @@ DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno NoSpawnAlt Image[%s] cannot be loaded ,returning load failed ! \n", pThis->ID, _buffer.c_str());
+			Debug::LogInfo("{} Techno NoSpawnAlt Image[{}] cannot be loaded ,returning load failed ! ", pThis->ID, _buffer.c_str());
 			bLoadFailed = true;
 		}
 	}
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 		_buffer += !i ? "BARL" : (std::string("BARL") + std::to_string(i));
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
-		//	Debug::Log("Reading Barrel [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);
+		//	Debug::LogInfo("Reading Barrel [%d] for [%s] Which is More than array size ! ", i, pThis->ImageFile);
 		//	return 0x5F8844;
 		//}
 
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno Barrel [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, _buffer.c_str(), i);
+			Debug::LogInfo("{} Techno Barrel [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
 	}
@@ -126,7 +126,7 @@ DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 		_buffer += !i ? "TUR" : (std::string("TUR") + std::to_string(i));
 
 		//if (i > (pTypeExt->TurretImageData.size() + TechnoTypeClass::MaxWeapons)) {
-		//	Debug::Log("Reading Turrent [%d] for [%s] Which is More than array size ! \n", i, pThis->ImageFile);
+		//	Debug::LogInfo("Reading Turrent [%d] for [%s] Which is More than array size ! ", i, pThis->ImageFile);
 		//	return 0x5F8844;
 		//}
 
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 
 		if (!nPairStatus.Loaded)
 		{
-			Debug::Log("%s Techno Turret [%s] at[%d] cannot be loaded , breaking the loop ! \n", pThis->ID, _buffer.c_str(), i);
+			Debug::LogInfo("{} Techno Turret [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
 
@@ -265,7 +265,7 @@ DEFINE_JUMP(CALL, 0x749CAC, MiscTools::to_DWORD(&BounceClass_ShadowMatrix));
 //the deeper part
 DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 {
-	//Debug::Log(__FUNCTION__" Exec\n");
+	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(FootClass*, pThis, EBX);//Maybe Techno later
 	GET(VoxelStruct*, pVXL, EBP);
 	GET_STACK(Matrix3D*, pMat, STACK_OFFSET(0xE8, 0xC));
@@ -295,7 +295,7 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 //aircraft only
 DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {
-	//Debug::Log(__FUNCTION__" Exec\n");
+	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(AircraftClass*, pThis, EBP);
 	GET(const int, height, EBX);
 	REF_STACK(VoxelIndexKey, key, STACK_OFFSET(0xCC, -0xBC));
@@ -457,7 +457,7 @@ DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
 DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
-	//Debug::Log(__FUNCTION__" Exec\n");
+	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(UnitClass*, pThis, EBP);
 	enum { SkipDrawing = 0x73C5C9 };
 

@@ -205,7 +205,7 @@ DEFINE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 //	const auto radius = pType->Radius >> 3;
 //
 //	if (radius == 0)
-//		Debug::FatalError("[%s] Particle with 0 raius , please fix !\n", pType->ID);
+//		Debug::FatalError("[%s] Particle with 0 raius , please fix !", pType->ID);
 //
 //	R->EAX(radius);
 //	return 0x62EE48;
@@ -452,7 +452,7 @@ DEFINE_HOOK(0x62FD60, ParticleSystemClass_Update, 0x9)
 //DEFINE_HOOK(0x62E15D, ParticleSystemClass_DTOR_NullType, 0x6)
 //{
 //	GET(ParticleSystemClass*, pThis, EDI);
-//	Debug::Log("Detaching ParticleSystemClass [%x] Type of [%s]\n", pThis, pThis->Type->ID);
+//	Debug::LogInfo("Detaching ParticleSystemClass [%x] Type of [%s]", pThis, pThis->Type->ID);
 //	return 0x0;
 //}
 

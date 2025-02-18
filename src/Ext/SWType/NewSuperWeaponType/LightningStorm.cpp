@@ -147,12 +147,12 @@ SWRange SW_LightningStorm::GetRange(const SWTypeExtData* pData) const
 
 void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 {
-	Debug::Log("%s - %s SW Validating Data ---------------------------:\n", pData->AttachedToObject->ID, this->GetTypeString()[0]);
+	Debug::LogInfo("{} - {} SW Validating Data ---------------------------:", pData->AttachedToObject->ID, this->GetTypeString()[0]);
 
 	if (pData->Weather_BoltExplosion.isset()) {
 		if (pData->Weather_BoltExplosion) {
 			if (!pData->Weather_BoltExplosion->GetImage()) {
-				Debug::Log("Anim[%s] Has no proper Image!\n", pData->Weather_BoltExplosion->ID);
+				Debug::LogInfo("Anim[{}] Has no proper Image!", pData->Weather_BoltExplosion->ID);
 				Debug::RegisterParserError();
 			}
 		}
@@ -161,7 +161,7 @@ void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 	if (pData->Weather_Clouds.HasValue()) {
 		for (auto& explo : pData->Weather_Clouds) {
 			if (explo && !explo->GetImage()) {
-				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::LogInfo("Anim[{}] Has no proper Image!", explo->ID);
 				Debug::RegisterParserError();
 			}
 		}
@@ -170,7 +170,7 @@ void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 	if (pData->Weather_Bolts.HasValue()) {
 		for (auto& explo : pData->Weather_Bolts) {
 			if (explo && !explo->GetImage()) {
-				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::LogInfo("Anim[{}] Has no proper Image!", explo->ID);
 				Debug::RegisterParserError();
 			}
 		}
@@ -179,13 +179,13 @@ void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 	if (pData->Weather_Debris.HasValue()) {
 		for (auto& explo : pData->Weather_Debris) {
 			if (explo && !explo->GetImage()) {
-				Debug::Log("Anim[%s] Has no proper Image!\n", explo->ID);
+				Debug::LogInfo("Anim[{}] Has no proper Image!", explo->ID);
 				Debug::RegisterParserError();
 			}
 		}
 	}
 
-	Debug::Log("-----------------------------------------------------\n");
+	Debug::LogInfo("-----------------------------------------------------");
 }
 
 bool CloneableLighningStormStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -486,7 +486,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			auto pWarhead = Type->GetWarhead(pData);
 
 			if (!Invoker)
-				Debug::Log("LS[%d - %s] Invoked is nullptr, dealing damage without ownership !! \n", Super, Super->Type->ID);
+				Debug::LogInfo("LS[{} - {}] Invoked is nullptr, dealing damage without ownership !! ", (void*)Super, Super->Type->ID);
 
 			WarheadTypeExtData::DetonateAt(pWarhead, MapClass::Instance->GetCellAt(coords), coords, Invoker, damage ,Super->Owner);
 

@@ -261,7 +261,7 @@ private:
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	Debug::Log("[Phobos] Finished saving the game\n");
+	Debug::LogInfo("[Phobos] Finished saving the game");
 	return S_OK;
 }
 
@@ -276,7 +276,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 		}
 	}
 
-	Debug::Log("[Phobos] Finished loading the game\n");
+	Debug::LogInfo("[Phobos] Finished loading the game");
 }
 
 #pragma region Hooks
@@ -345,14 +345,14 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	return 0;
 }
 
-#define LogPool(s) Debug::Log("%s MemoryPool size %d\n", _STR_(s) , ##s::Instance.Pool.size());
+#define LogPool(s) Debug::LogInfo("{} MemoryPool size {}", _STR_(s) , ##s::Instance.Pool.size());
 
 DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 {
 	LogPool(TechnoExtContainer)
 	LogPool(BuildingExtContainer)
 	LogPool(InfantryExtContainer)
-	Debug::Log("FakeAnimClass MemoryPool size %d\n", FakeAnimClass::Pool.size());
+	Debug::LogInfo("FakeAnimClass MemoryPool size {}", FakeAnimClass::Pool.size());
 	LogPool(BulletExtContainer)
 	LogPool(ParticleExtContainer)
 	LogPool(ParticleSystemExtContainer)
@@ -475,7 +475,7 @@ FORCEDINLINE bool Process_Save(IStream* pStm)
 
 //DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 //{
-//	Debug::Log("Saving global Phobos data\n");
+//	Debug::LogInfo("Saving global Phobos data");
 //	GET(IStream*, pStm, ESI);
 //
 //	bool ret =
@@ -504,14 +504,14 @@ FORCEDINLINE bool Process_Save(IStream* pStm)
 //		;
 //
 //	if (!ret)
-//		Debug::Log("[Phobos] Global SaveGame Failed !\n");
+//		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
 //
 //	return 0;
 //}
 //
 DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 {
-//	Debug::Log("Loading global Phobos data\n");
+//	Debug::LogInfo("Loading global Phobos data");
 //	GET(IStream*, pStm, ESI);
 	Phobos::Otamaa::DoingLoadGame = true;
 //
@@ -541,7 +541,7 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 //		;
 //
 //	if (!ret)
-//		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+//		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
 //
 	return 0;
 }
@@ -564,13 +564,13 @@ DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
 
 DEFINE_HOOK(0x67D300, SaveGame_Start, 5)
 {
-	Debug::Log("About to save the game\n");
+	Debug::LogInfo("About to save the game");
 	return 0;
 }
 
 DEFINE_HOOK(0x67E730, LoadGame_Start, 5)
 {
-	Debug::Log("About to load the game\n");
+	Debug::LogInfo("About to load the game");
 	return 0;
 }
 
@@ -582,7 +582,7 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	ULONG out = 0;
 
 	if (!SUCCEEDED(pStm->Read(&value, sizeof(value), &out))) {
-		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
 		return 0x0;
 	}
 
@@ -625,7 +625,7 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		;
 
 	if (!ret)
-		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
 
 	// add more variable that need to be reset after loading an saved games
 	if(SessionClass::Instance->GameMode == GameMode::Campaign)
@@ -654,7 +654,7 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 
 		if (!SUCCEEDED(pStm->Write(&value, sizeof(value), &out)))
 		{
-			Debug::Log("[Phobos] Global SaveGame Failed !\n");
+			Debug::LogInfo("[Phobos] Global SaveGame Failed !");
 			R->EAX<HRESULT>(E_FAIL);
 			return 0x0;
 		}
@@ -696,7 +696,7 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			;
 
 		if (!ret)
-			Debug::Log("[Phobos] Global SaveGame Failed !\n");
+			Debug::LogInfo("[Phobos] Global SaveGame Failed !");
 
 		R->EAX<HRESULT>(ret ? S_OK : E_FAIL);
 	}

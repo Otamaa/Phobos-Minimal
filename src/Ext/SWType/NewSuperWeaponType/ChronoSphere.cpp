@@ -58,7 +58,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 			}
 
 			if (idxWarp == -1) {
-				Debug::Log("[ChronoSphere::Activate] There is no SuperWeaponType with Type=ChronoWarp. Aborted.\n");
+				Debug::LogInfo("[ChronoSphere::Activate] There is no SuperWeaponType with Type=ChronoWarp. Aborted.");
 			}
 
 			Unsorted::CurrentSWType = idxWarp;

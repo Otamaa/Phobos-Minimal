@@ -212,7 +212,7 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted)
 template<typename T>
 void TrailsManager::AI(T* pOwner)
 {
-	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
+	Debug::LogInfo(__FUNCTION__" {} Not have specified Function to use ! ", typeid(T).name());
 }
 
 template<>
@@ -298,7 +298,7 @@ void TrailsManager::AI(ParticleClass* pOwner)
 template<typename T>
 void TrailsManager::Hide(T* pOwner)
 {
-	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
+	Debug::LogInfo(__FUNCTION__" {} Not have specified Function to use ! ", typeid(T).name());
 }
 template<>
 void TrailsManager::Hide(TechnoClass* pOwner)
@@ -363,7 +363,7 @@ void TrailsManager::Hide(ParticleClass* pOwner)
 template<typename T>
 void TrailsManager::CleanUp(T* pOwner)
 {
-	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
+	Debug::LogInfo(__FUNCTION__" {} Not have specified Function to use ! ", typeid(T).name());
 }
 
 template<>

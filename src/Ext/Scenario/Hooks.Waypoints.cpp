@@ -51,7 +51,7 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 		const auto pName = pINI->GetKeyName(GameStrings::Waypoints(), i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
-			Debug::Log("[Phobos Developer Warning] Failed to parse waypoint %s.\n", pName);
+			Debug::LogInfo("[Phobos Developer Warning] Failed to parse waypoint {}.", pName);
 
 		int nCoord = pINI->ReadInteger(GameStrings::Waypoints(), pName, 0);
 
@@ -65,13 +65,13 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 			if (auto const pCell = MapClass::Instance->GetCellAt(buffer))
 				pCell->Flags |= CellFlags::IsWaypoint;
 			else if (ScenarioExtData::CellParsed)
-				Debug::Log("[Phobos Developer Warning] Can not get waypoint %d : [%d, %d]!\n", id, buffer.X, buffer.Y);
+				Debug::LogInfo("[Phobos Developer Warning] Can not get waypoint {} : [{}, {}]!", id, buffer.X, buffer.Y);
 		}
 		else
-			Debug::Log("[Phobos Developer Warning] Invalid waypoint %d!\n", id);
+			Debug::LogInfo("[Phobos Developer Warning] Invalid waypoint {}!", id);
 
 
-		//Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
+		//Debug::LogInfo("Parse waypoint Result [%d][%d, %d] ! ", id, buffer.X, buffer.Y);
 		ScenarioExtData::Instance()->Waypoints[id] = buffer;
 	}
 
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 
 //DEFINE_HOOK(0x68BF30, ScenarioClass_Set_Default_Waypoint, 0xA)
 //{
-//	Debug::Log(__FUNCTION__" called! Caller = %p\n", R->Stack32(0x0));
+//	Debug::LogInfo(__FUNCTION__" called! Caller = %p", R->Stack32(0x0));
 //	return 0;
 //}
 
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
 		buffer = ScenarioExtData::Instance()->Waypoints[i];
 		if(waypoints.AddItem(buffer))
-			Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.size());
+			Debug::LogInfo("Multiplayer start waypoint found at cell [{}][{},{}] , With waypoints Size {} ",i, buffer.X, buffer.Y , waypoints.size());
 	}
 
 
@@ -210,7 +210,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 //	GET_STACK(CoordStruct*, pCoord, 0x4);
 //
 //	CellStruct cell = CellClass::Coord2Cell(*pCoord);
-//	Debug::Log(__FUNCTION__ "Caller = %p Cell = (%d,%d)\n", dwCaller, cell.X, cell.Y);
+//	Debug::LogInfo(__FUNCTION__ "Caller = %p Cell = (%d,%d)", dwCaller, cell.X, cell.Y);
 //
 //	return 0;
 //}

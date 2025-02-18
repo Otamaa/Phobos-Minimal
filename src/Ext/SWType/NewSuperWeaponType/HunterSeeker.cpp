@@ -21,8 +21,8 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 	// no type found
 	if (!pType)
 	{
-		Debug::Log("HunterSeeker super weapon \"%s\" could not be launched. "
-			"No HunterSeeker unit type set for house \"%ls\".\n", pThis->Type->ID, pOwner->UIName);
+		Debug::LogInfo("HunterSeeker super weapon \"{}\" could not be launched. "
+			"No HunterSeeker unit type set for house \"{}\".", pThis->Type->ID, pOwner->Type->ID);
 		return false;
 	}
 
@@ -74,8 +74,8 @@ bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 	// no launch building found
 	if (!Success) {
-		Debug::Log("HunterSeeker super weapon \"%s\" could not be launched. House \"%ls\" "
-			"does not own any HSBuilding or No Buildings attached with this HSType Superweapon.\n", pThis->Type->ID, pOwner->UIName);
+		Debug::LogInfo("HunterSeeker super weapon \"{}\" could not be launched. House \"{}\" "
+			"does not own any HSBuilding or No Buildings attached with this HSType Superweapon.", pThis->Type->ID, pOwner->Type->ID);
 	}
 
 	return Success != 0;

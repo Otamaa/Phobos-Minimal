@@ -35,7 +35,7 @@ Blowfish_Loader(
 	if (!SUCCEEDED(result)) {
 
 		if(hDll) Imports::FreeLibrary.get()(hDll);
-		Debug::FatalErrorAndExit("File Blowfish.dll was not found\n");
+		Debug::FatalErrorAndExit("File Blowfish.dll was not found");
 	}
 
 	return result;

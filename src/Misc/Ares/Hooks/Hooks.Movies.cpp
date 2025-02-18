@@ -74,7 +74,7 @@ void MoviesList::Unlock(char const* const pFilename)
 
 void MoviesList::LoadListFromINI()
 {
-	Debug::Log("Reading %s\n" , StaticVars::MovieMDINI.c_str());
+	Debug::LogInfo("Reading {}" , StaticVars::MovieMDINI.c_str());
 
 	CCFileClass file { StaticVars::MovieMDINI.c_str() };
 

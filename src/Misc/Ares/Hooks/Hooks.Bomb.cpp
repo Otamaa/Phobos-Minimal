@@ -222,7 +222,7 @@ DEFINE_HOOK(0x46934D, IvanBombs_Spread, 6)
 	}
 	else
 	{
-		Debug::Log("IvanBomb bullet without attached WeaponType.\n");
+		Debug::LogInfo("IvanBomb bullet without attached WeaponType.");
 	}
 
 	return 0x469AA4;

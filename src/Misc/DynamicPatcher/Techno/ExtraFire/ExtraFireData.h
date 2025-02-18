@@ -71,7 +71,7 @@ struct ExtraFireData
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From ExtraFireData ! \n");
+		//Debug::LogInfo("Loading Element From ExtraFireData ! ");
 		AttachedFLH.Serialize(Stm);
 		AttachedWeapon.Serialize(Stm);
 

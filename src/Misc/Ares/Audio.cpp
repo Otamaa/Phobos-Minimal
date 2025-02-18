@@ -63,7 +63,7 @@ public:
 	static OPTIONALINLINE LooseAudioCache* Find(int idx)
 	{
 		if ((size_t)idx > Array.size())
-			Debug::FatalErrorAndExit("Trying To Get LoseAudioCache with Index [%d] but the array size is only [%d]\n", idx , Array.size());
+			Debug::FatalErrorAndExit("Trying To Get LoseAudioCache with Index [%d] but the array size is only [%d]", idx , Array.size());
 		return &Array[idx];
 	}
 
@@ -167,7 +167,7 @@ public:
 					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
 					{
 						if (Phobos::Otamaa::OutputAudioLogs) {
-							Debug::Log("Reading [%s from %s] file with [%d] samples!.\n", filename.c_str(), pIndex.GetFileName(), headerIndex.numSamples);
+							Debug::LogInfo("Reading [{} from {}] file with [{}] samples!.", filename.c_str(), pIndex.GetFileName(), headerIndex.numSamples);
 						}
 
 						if (headerIndex.numSamples > 0)
@@ -233,7 +233,7 @@ public:
 						auto& [idx, file , bagFileName] = node.mapped();
 
 						if(Phobos::Otamaa::OutputAudioLogs) {
-							Debug::Log("Replacing audio `%s` from : [%d - (%s - %s)] to : [%d - (%s - %s)].\n",
+							Debug::LogInfo("Replacing audio `{}` from : [{} - ({} - {})] to : [{} - ({} - {})].",
 								ent.Name,
 								idx,
 								file->FileName ,
@@ -260,7 +260,7 @@ public:
 
 		int i = 0;
 		for (auto const& [entry, data] : map) {
-			//Debug::Log("Samples[%d] Name [%s][%d , %d , %d ,  %d , %d]\n",
+			//Debug::LogInfo("Samples[%d] Name [%s][%d , %d , %d ,  %d , %d]",
 			//	i,
 			//	entry.Name,
 			//	entry.Offset,
@@ -348,7 +348,7 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 	const auto& vec = pExt->TauntFile;
 
 	if (vec.empty() || vec[SampleIdx - 1].empty()) {
-		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]\n",
+		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]",
 		pExt->AttachedToObject->ID, vec[SampleIdx - 1].c_str());
 	}
 
@@ -465,7 +465,7 @@ DEFINE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass
 	GET(const char*, pSampleName, EDX);
 
 	if (!AudioIDXData::Instance())
-		Debug::FatalError("AudioIDXData is missing!\n");
+		Debug::FatalError("AudioIDXData is missing!");
 
 	if(pVoc->NumSamples == 0x20) {
 		// return false
@@ -485,7 +485,7 @@ DEFINE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass
 			}
 
 			if (Phobos::Otamaa::OutputAudioLogs && idxSample == -1) {
-				Debug::Log("Cannot Find [%s] sample!.\n", pSampleName);
+				Debug::LogInfo("Cannot Find [{}] sample!.", pSampleName);
 			}
 
 			// Set sample index or string pointer
@@ -508,7 +508,7 @@ DEFINE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
 	if ((size_t)idxSample < AudioLuggage::Instance.TotalSampleSizes())
 	{
 		//const auto& pIdx = AudioIDXData::Instance()->Samples[idxSample];
-		//Debug::Log("SampleInfo [%s]\n", pIdx.Name.data());
+		//Debug::LogInfo("SampleInfo [%s]", pIdx.Name.data());
 		return 0x0;
 	}
 

@@ -1101,8 +1101,9 @@ public:
 		JMP_THIS(0x506B90);
 	}
 
-	bool ai_replace_node_50CAD0(BaseNodeClass* node) const
-		{ JMP_THIS(0x50CAD0); }
+	bool ai_replace_node_50CAD0(BaseNodeClass* node) const { JMP_THIS(0x50CAD0); }
+	
+	bool ShouldDisableCameo(TechnoTypeClass* pType) { JMP_THIS(0x50B370); } 
 
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept

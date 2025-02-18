@@ -38,6 +38,14 @@ struct Multithreading
 	// Wait for mutex lock respectfuly or, if too much time has passed, demand it.
 	static void LockOrDemandMutex(std::timed_mutex& mutex, bool& demands, std::chrono::duration<long long, std::milli> patienceDuration);
 	
-	static void ShutdownMultitheadMode();
+	static void ShutdownMultitheadMode()
+	{
+		if (!IsInMultithreadMode)
+			return;
+
+		IsInMultithreadMode = false;
+		DrawingThread.get()->detach();
+		DrawingThread.release();
+	}
 };
 

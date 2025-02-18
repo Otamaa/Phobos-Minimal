@@ -26,15 +26,15 @@ void ScriptExtData::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = 
 
 		const auto&[prevAct , prevArgs] = ScriptExtData::GetSpecificAction(pScript, scriptArgument - 1 );
 
-		Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] {} = {},{} - Conditional Jump was a success! - New Line: {} = {},{}",
 		pTeam->Type->ID,
 		pScript->Type->ID,
 		pScript->CurrentMission,
-		curAct,
-		curArgs,
+		(int)curAct,
+		(int)curArgs,
 		scriptArgument - 1,
-		prevAct,
-		prevArgs
+		(int)prevAct,
+		(int)prevArgs
 		);
 
 		// Start conditional jump!
@@ -69,14 +69,14 @@ void ScriptExtData::ConditionalJumpIfFalse(TeamClass* pTeam, int newScriptLine =
 	{
 		const auto&[prevAct , prevArgs] = ScriptExtData::GetSpecificAction(pScript, scriptArgument - 1 );
 
-		Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] {} = {},{} - Conditional Jump was a success! - New Line: {} = {},{}",
 		pTeam->Type->ID,
 		pScript->Type->ID,
 		pScript->CurrentMission,
-		curAct,
+		(int)curAct,
 		curArgs,
 		scriptArgument - 1,
-		prevAct,
+		(int)prevAct,
 		prevArgs
 		);
 

@@ -52,7 +52,7 @@ void RadSiteExtData::CreateLight()
 	const auto nRadcolor = this->Type->GetColor();
 
 	//if(Phobos::Otamaa::IsAdmin)
-	//	Debug::Log("RadSite [%s] CreateLight With Color [%d , %d , %d] \n", Type->Name.data(), nRadcolor.R, nRadcolor.G, nRadcolor.B);
+	//	Debug::LogInfo("RadSite [%s] CreateLight With Color [%d , %d , %d] ", Type->Name.data(), nRadcolor.R, nRadcolor.G, nRadcolor.B);
 
 	const auto nTintFactor = this->Type->GetTintFactor();
 	const auto nRadLevelFactor = pThis->RadLevel * this->Type->GetLightFactor();

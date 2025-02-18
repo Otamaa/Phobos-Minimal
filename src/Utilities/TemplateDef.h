@@ -193,7 +193,7 @@ namespace detail
 				Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &value.To);
 				detail::getresult<AffectedHouse>(value.Eligible, nSecondPair_2, pSection, pKey, allocate);
 
-				//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
+				//Debug::LogInfo("parsing[%s]%s with 3 values [%s - %s - %s]", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
 			} else {
 				value.From.clear();
 				char* context = nullptr;
@@ -420,7 +420,7 @@ namespace detail
 				return true;
 			}
 
-			Debug::Log("[Phobos] Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, parser.value());
+			Debug::LogInfo("[Phobos] Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, parser.value());
 		}
 		return false;
 	}
@@ -2680,13 +2680,13 @@ void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSectio
 
 		if (percentages.contains(value.Percentage))
 		{
-			Debug::Log("[Developer warning] [%s] %s has duplicated keyframe %.3f.\n", pSection, flagName, value.Percentage);
+			Debug::LogInfo("[Developer warning] [{}] {} has duplicated keyframe {}.", pSection, flagName, value.Percentage);
 			foundError = true;
 		}
 
 		if (lastPercentage > value.Percentage)
 		{
-			Debug::Log("[Developer warning] [%s] %s has keyframe out of order (%.3f after previous keyframe of %.3f).\n", pSection, flagName, value.Percentage, lastPercentage);
+			Debug::LogInfo("[Developer warning] [{}] {} has keyframe out of order ({} after previous keyframe of {}).", pSection, flagName, value.Percentage, lastPercentage);
 			foundError = true;
 		}
 
@@ -2702,7 +2702,7 @@ void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSectio
 		if (len >= 4)
 			flagName[len - 3] = '\0';
 
-		Debug::FatalErrorAndExit("[%s] %s has invalid keyframe data defined. Check debug log for more details.\n", pSection, flagName);
+		Debug::FatalErrorAndExit("[%s] %s has invalid keyframe data defined. Check debug log for more details.", pSection, flagName);
 	}
 };
 

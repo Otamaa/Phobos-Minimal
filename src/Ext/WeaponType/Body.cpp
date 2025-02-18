@@ -75,6 +75,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Strafing_Shots.Read(exINI, pSection, "Strafing.Shots");
 	this->Strafing_SimulateBurst.Read(exINI, pSection, "Strafing.SimulateBurst");
 	this->Strafing_UseAmmoPerShot.Read(exINI, pSection, "Strafing.UseAmmoPerShot");
+	this->Strafing_EndDelay.Read(exINI, pSection, "Strafing.EndDelay");
 
 	this->CanTarget.Read(exINI, pSection, "CanTarget");
 	this->CanTargetHouses.Read(exINI, pSection, "CanTargetHouses");
@@ -346,6 +347,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Strafing_Shots)
 		.Process(this->Strafing_SimulateBurst)
 		.Process(this->Strafing_UseAmmoPerShot)
+		.Process(this->Strafing_EndDelay)
 		.Process(this->CanTarget)
 		.Process(this->CanTargetHouses)
 		.Process(this->RadType)
@@ -507,7 +509,7 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	// {
 	// 	if (!pTarget)
 	// 	{
-	// 		Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	// 		Debug::LogInfo("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! ");
 	// 		return;
 	// 	}
 	// }
@@ -532,7 +534,7 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 {
 	if (!coords.IsValid())
 	{
-		Debug::Log("WeaponTypeExtData::DetonateAt Coords empty ! ");
+		Debug::LogInfo("WeaponTypeExtData::DetonateAt Coords empty ! ");
 		return;
 	}
 
@@ -545,7 +547,7 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	// {
 	// 	if (!pTarget)
 	// 	{
-	// 		Debug::Log("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	// 		Debug::LogInfo("WeaponTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! ");
 	// 		return;
 	// 	}
 	// }

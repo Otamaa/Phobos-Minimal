@@ -37,7 +37,7 @@ HRESULT __stdcall TestLocomotionClass::Load(IStream* pStm)
 	//{
 	//	const auto pLoco = static_cast<LocomotionClass*>(this->Piggybacker.GetInterfacePtr());
 	//	const auto Who = EnumFunctions::locomotion_toSring(pLoco);
-	//	Debug::Log("Attahed To [%s - {%s}] ref[%d]\n", Who->first , Who->second, pLoco->RefCount);
+	//	Debug::LogInfo("Attahed To [%s - {%s}] ref[%d]", Who->first , Who->second, pLoco->RefCount);
 	//}
 
 	return hr;

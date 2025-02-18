@@ -294,7 +294,7 @@ static COMPILETIMEEVAL void FillSecrets(DynamicVectorClass<T>& secrets) {
 
 	for(auto Option : secrets){
 		RulesExtData::Instance()->Secrets.emplace_back(Option);
-		Debug::Log("Adding [%s - %s] onto Global Secrets pool\n" , Option->ID, Option->GetThisClassName());
+		Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
 	}
 }
 
@@ -332,9 +332,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			if ((!IsVanillaDummy(pItem->ID) || !pExt->IsDummy) && !IsUpgradeBld)
 			{
-				Debug::Log("TechnoType[%s - %s] , registered with 0 strength"
+				Debug::LogInfo("TechnoType[{} - {}] , registered with 0 strength"
 					", this most likely because this technotype has no rules entry"
-					" or it is suppose to be an dummy\n", pItem->ID, myClassName);
+					" or it is suppose to be an dummy", pItem->ID, myClassName);
 
 				Debug::RegisterParserError();
 
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pItem->Sight < 0)
 		{
-			Debug::Log("TechnoType[%s - %s] , registered with less than 0 Sight , Fixing.\n",
+			Debug::LogInfo("TechnoType[{} - {}] , registered with less than 0 Sight , Fixing.",
 			pItem->ID, myClassName);
 			Debug::RegisterParserError();
 			pItem->Sight = 0;
@@ -357,7 +357,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Promote_Vet_Type && pExt->Promote_Vet_Type->Strength <= 0)
 		{
-			Debug::Log("TechnoType[%s - %s] , registered PromoteVet[%s] with 0 strength , Fixing.\n",
+			Debug::LogInfo("TechnoType[{} - {}] , registered PromoteVet[{}] with 0 strength , Fixing.",
 				pItem->ID, myClassName, pExt->Promote_Vet_Type->ID);
 
 			pExt->Promote_Vet_Type = nullptr;
@@ -366,7 +366,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Promote_Elite_Type && pExt->Promote_Elite_Type->Strength <= 0)
 		{
-			Debug::Log("TechnoType[%s - %s] , registered PromoteElite[%s] with 0 strength , Fixing.\n",
+			Debug::LogInfo("TechnoType[{} - {}] , registered PromoteElite[{}] with 0 strength , Fixing.",
 				pItem->ID, myClassName, pExt->Promote_Elite_Type->ID);
 
 			pExt->Promote_Elite_Type = nullptr;
@@ -375,8 +375,8 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pItem->DebrisTypes.Count > 0 && pItem->DebrisMaximums.Count < pItem->DebrisTypes.Count)
 		{
-			Debug::Log("TechnoType[%s - %s] DebrisMaximums items count is less than"
-			" DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count\n"
+			Debug::LogInfo("TechnoType[{} - {}] DebrisMaximums items count is less than"
+			" DebrisTypes items count it will fail when the index counter reached DebrisMaximus items count"
 			, pItem->ID, myClassName
 			);
 			Debug::RegisterParserError();
@@ -384,28 +384,28 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Fake_Of && pExt->Fake_Of->WhatAmI() != what)
 		{
-			Debug::Log("[%s - %s] has fake of but it different ClassType from it!\n", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has fake of but it different ClassType from it!", pItem->ID, myClassName);
 			pExt->Fake_Of = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
 		{
-			Debug::Log("[%s - %s] has ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has ClonedAs but it different ClassType from it!", pItem->ID, myClassName);
 			pExt->ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what)
 		{
-			Debug::Log("[%s - %s] has AI.ClonedAs but it different ClassType from it!\n", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has AI.ClonedAs but it different ClassType from it!", pItem->ID, myClassName);
 			pExt->AI_ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what)
 		{
-			Debug::Log("[%s - %s] has ReversedAs but it different ClassType from it!\n", pItem->ID, pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has ReversedAs but it different ClassType from it!", pItem->ID, pItem->ID, myClassName);
 			pExt->ReversedAs.Reset();
 			Debug::RegisterParserError();
 		}
@@ -414,20 +414,20 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			if (pItem->SpeedType == SpeedType::None)
 			{
-				Debug::Log("[%s - %s]SpeedType None is invalid!\n", pItem->ID, myClassName);
+				Debug::LogInfo("[{} - {}]SpeedType None is invalid!", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
 
 			if (pItem->MovementZone == MovementZone::None)
 			{
-				Debug::Log("[%s - %s]MovementZone None is invalid!\n", pItem->ID, myClassName);
+				Debug::LogInfo("[{} - {}]MovementZone None is invalid!", pItem->ID, myClassName);
 				Debug::RegisterParserError();
 			}
 		}
 
 		if (pItem->Passengers > 0 && pItem->SizeLimit < 1)
 		{
-			Debug::Log("[%s - %s]Passengers=%d and SizeLimit=%d!\n",
+			Debug::LogInfo("[{} - {}]Passengers={} and SizeLimit={}!",
 				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
@@ -441,20 +441,20 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 				if (shadowIdx >= layerCount)
 				{
-					Debug::Log("ShadowIndex on [%s]'s image is %d, but the HVA only has %d sections.\n",
+					Debug::LogInfo("ShadowIndex on [{}]'s image is {}, but the HVA only has {} sections.",
 						pItem->ID, shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
 			}
 			else
 			{
-				Debug::FatalError("Techno[%s - %s] Has VXL but has no HVA wtf ?\n", myClassName, pItem->ID);
+				Debug::FatalError("Techno[{} - {}] Has VXL but has no HVA wtf ?", myClassName, pItem->ID);
 			}
 		}
 
 		if (pItem->PoweredUnit && !pExt->PoweredBy.empty())
 		{
-			Debug::Log("[%s - %s] uses both PoweredUnit=yes and PoweredBy=!\n", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] uses both PoweredUnit=yes and PoweredBy=!", pItem->ID, myClassName);
 			pItem->PoweredUnit = false;
 			Debug::RegisterParserError();
 		}
@@ -463,7 +463,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			if (!TechnoTypeExtContainer::Instance.Find(pPowersUnit)->PoweredBy.empty())
 			{
-				Debug::Log("[%s]PowersUnit=%s, but [%s] uses PoweredBy=!\n",
+				Debug::LogInfo("[{}]PowersUnit={}, but [{}] uses PoweredBy=!",
 					pItem->ID, pPowersUnit->ID, pPowersUnit->ID);
 				pItem->PowersUnit = nullptr;
 				Debug::RegisterParserError();
@@ -489,10 +489,10 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if (pCloner->Factory != AbstractType::None)
 			{
 				pExt->ClonedAt.erase(pExt->ClonedAt.begin() + k);
-				Debug::Log("[%s]ClonedAt includes %s, but %s has Factory= settings. "
-					"This combination is not supported.\n(Protip: Factory= is "
+				Debug::LogInfo("[{}]ClonedAt includes {}, but {} has Factory= settings. "
+					"This combination is not supported.(Protip: Factory= is "
 					"not what controls unit exit behaviour, WeaponsFactory= "
-					"and GDI/Nod/YuriBarracks= is.)\n", pItem->ID, pCloner->ID,
+					"and GDI/Nod/YuriBarracks= is.)", pItem->ID, pCloner->ID,
 					pCloner->ID);
 				Debug::RegisterParserError();
 			}
@@ -527,7 +527,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if (pBExt->CloningFacility && pBType->Factory != AbstractType::None)
 			{
 				pBExt->CloningFacility = false;
-				Debug::Log("[%s] cannot have both CloningFacility= and Factory=.\n",
+				Debug::LogInfo("[{}] cannot have both CloningFacility= and Factory=.",
 				pItem->ID);
 			}
 
@@ -543,9 +543,9 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 					auto const catName = (pBType->BuildCat == BuildCat::Combat)
 						? "Combat" : "Infrastructure";
 
-					Debug::Log("Building Type [%s] does not have a valid BuildCat set!\n"
-							   "It was reset to %s, but you should really specify it "
-							   "explicitly.\n", pBType->ID, catName);
+					Debug::LogInfo("Building Type [{}] does not have a valid BuildCat set!"
+							   "It was reset to {}, but you should really specify it "
+							   "explicitly.", pBType->ID, catName);
 					Debug::RegisterParserError();
 				}
 			}
@@ -553,27 +553,22 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (WeederAndHarvesterWarning)
 		{
-			Debug::Log("Please choose between Weeder or (Refinery / Harvester) for [%s - %s] both cant be used at same time\n", pItem->ID, myClassName);
+			Debug::LogInfo("Please choose between Weeder or (Refinery / Harvester) for [{} - {}] both cant be used at same time", pItem->ID, myClassName);
 			Debug::RegisterParserError();
 		}
 	}
-
-	COMPILETIMEEVAL auto const Msg =
-		"Weapon[%s] has no %s! This usually indicates one of two things:\n"
-		"- The weapon was created too late and its rules weren't read "
-		"(see WEEDGUY hack);\n- The weapon's name was misspelled.\n";
 
 	for (auto pItem : *WeaponTypeClass::Array)
 	{
 		if (!pItem->Warhead)
 		{
-			Debug::Log(Msg, pItem->ID, "Warhead");
+			Debug::LogInfo("Weapon[{}] has no Warhead", pItem->ID);
 			Debug::RegisterParserError();
 		}
 
 		if (!pItem->Projectile)
 		{
-			Debug::Log(Msg, pItem->ID, "Projectile");
+			Debug::LogInfo("Weapon[{}] has no Projectile", pItem->ID);
 			Debug::RegisterParserError();
 		}
 
@@ -583,7 +578,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				&& !pItem->AttachedParticleSystem)
 		{
 
-			Debug::Log("Weapon[%s] is an Railgun/Detached Railgun/UseSparkParticles/UseFireParticles but it missing AttachedParticleSystem", pItem->ID);
+			Debug::LogInfo("Weapon[{}] is an Railgun/Detached Railgun/UseSparkParticles/UseFireParticles but it missing AttachedParticleSystem", pItem->ID);
 			Debug::RegisterParserError();
 
 			pItem->IsRailgun = false;
@@ -597,13 +592,13 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	{
 		if (!pConst->AIBuildThis)
 		{
-			Debug::Log("[AI]BuildConst= includes [%s], which doesn't have "
-				"AIBuildThis=yes!\n", pConst->ID);
+			Debug::LogInfo("[AI]BuildConst= includes [{}], which doesn't have "
+				"AIBuildThis=yes!", pConst->ID);
 		}
 	}
 
 	//if (OverlayTypeClass::Array->Count > 255) {
-	//	Debug::Log("Reaching over 255 OverlayTypes!.\n");
+	//	Debug::LogInfo("Reaching over 255 OverlayTypes!.");
 	//	Debug::RegisterParserError();
 	//}
 
@@ -615,7 +610,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			if (versesSize < ArmorTypeClass::Array.size())
 			{
-				Debug::Log("Inconsistent verses size of [%s - %d] Warhead with ArmorType Array[%d]\n", pWH->ID, versesSize, ArmorTypeClass::Array.size());
+				Debug::LogInfo("Inconsistent verses size of [{} - {}] Warhead with ArmorType Array[{}]", pWH->ID, versesSize, ArmorTypeClass::Array.size());
 				Debug::RegisterParserError();
 			}
 		}
@@ -627,7 +622,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			if (pShield->Strength <= 0)
 			{
-				Debug::Log("[%s]ShieldType is not valid because Strength is 0.\n", pShield->Name.data());
+				Debug::LogInfo("[{}]ShieldType is not valid because Strength is 0.", pShield->Name.data());
 				Debug::RegisterParserError();
 			}
 		}
@@ -643,7 +638,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		{
 			if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke)
 			{
-				Debug::Log("Bullet[%s] With AttachedSystem[%s] is not BehavesLike=Smoke!\n", pBullet->ID, pExt->AttachedSystem->ID);
+				Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
 				Debug::RegisterParserError();
 			}
 		}
@@ -714,7 +709,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for (auto pAnim : *AnimTypeClass::Array) {
 		if (!pAnim->GetImage()) {
-			Debug::Log("Anim[%s] Has no proper Image!\n", pAnim->ID);
+			Debug::LogInfo("Anim[{}] Has no proper Image!", pAnim->ID);
 			Debug::RegisterParserError();
 		}
 	}
@@ -722,7 +717,7 @@ DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	if (Phobos::Otamaa::StrictParser && Phobos::Otamaa::ParserErrorDetected)
 	{
 		Debug::FatalErrorAndExit(
-			"One or more errors were detected while parsing the INI files.\r\n"
+			"One or more errors were detected while parsing the INI files.\r"
 			"Please review the contents of the debug log and correct them.");
 	}
 
@@ -773,6 +768,13 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIAngerOnAlly.Read(exINI, GameStrings::General, "AIAngerOnAlly");
 	this->BuildingTypeSelectable.Read(exINI, GameStrings::General, "BuildingTypeSelectable");
 	this->BuildingWaypoint.Read(exINI, GameStrings::General, "BuildingWaypoint");
+
+	this->AIAutoDeployMCV.Read(exINI, GameStrings::AI, "AIAutoDeployMCV");
+	this->AISetBaseCenter.Read(exINI, GameStrings::AI, "AISetBaseCenter");
+	this->AIBiasSpawnCell.Read(exINI, GameStrings::AI, "AIBiasSpawnCell");
+	this->AIForbidConYard.Read(exINI, GameStrings::AI, "AIForbidConYard");
+
+	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt");
 
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
@@ -1124,7 +1126,7 @@ bool RulesExtData::DetailsCurrentlyEnabled(int const minDetailLevel)
 
 void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Debug::Log(__FUNCTION__" Called ! \n");
+	//Debug::LogInfo(__FUNCTION__" Called ! ");
 }
 
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
@@ -1137,7 +1139,7 @@ void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
 template <typename T>
 void RulesExtData::Serialize(T& Stm)
 {
-	//Debug::Log("Processing RulesExt ! \n");
+	//Debug::LogInfo("Processing RulesExt ! ");
 
 	Stm
 		.Process(this->Initialized)
@@ -1508,6 +1510,13 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIAngerOnAlly)
 		.Process(this->BuildingTypeSelectable)
 		.Process(this->BuildingWaypoint)
+
+		.Process(this->AIAutoDeployMCV)
+		.Process(this->AISetBaseCenter)
+		.Process(this->AIBiasSpawnCell)
+		.Process(this->AIForbidConYard)
+
+		.Process(this->JumpjetTilt)
 		;
 
 	MyPutData.Serialize(Stm);
@@ -1634,7 +1643,7 @@ DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 
 	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
 	if(!RulesExtData::Instance()->DefautBulletType)
-		Debug::FatalError("Uneable to Allocate %s BulletType ! \n" , DEFAULT_STR2);
+		Debug::FatalError("Uneable to Allocate {} BulletType ! " , DEFAULT_STR2);
 
 	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
 	{
@@ -1712,7 +1721,7 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	RulesExtData::LoadAfterAllLogicData(this, pINI);
 
 	for (auto pTib : *TiberiumClass::Array) {
-		//Debug::Log("Reading Tiberium[%s] Configurations!\n", pTib->ID);
+		//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
 		pTib->LoadFromINI(pINI);
 	}
 }
@@ -1742,11 +1751,11 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 		if (const auto pRulesGlobal = RulesExtData::Instance())
 		{
 			pRulesGlobal->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
-			//Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
+			//Debug::LogInfo("Finding Civilian Side Index[{}] ! " , pRulesGlobal->CivilianSideIndex);
 			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral());
-			//Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
+			//Debug::LogInfo("Finding Neutral Country Index[{}] ! ", pRulesGlobal->NeutralCountryIndex);
 			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special());
-			//Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
+			//Debug::LogInfo("Finding Special Country Index[{}] ! ", pRulesGlobal->SpecialCountryIndex);
 		}
 	}
 
@@ -1755,7 +1764,7 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
-	Debug::Log("Scenario Map Name [%s] \n", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
+	Debug::LogInfo("Scenario Map Name [{}] ", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
 
 	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
 		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
@@ -1766,24 +1775,24 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	HouseClass::Array->for_each([](HouseClass* it)
  {
 	 const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
-	 Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s(%d); ID: %d; HouseType: %s; Edge: %d; StartingAllies: %d; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+	 Debug::LogInfo("Player Name: {} IsCurrentPlayer: {}; ColorScheme: {}({}); ID: {}; HouseType: {}; Edge: {}; StartingAllies: {}; Startspot: {},{}; Visionary: {}; MapIsClear: {}; Money: {}",
 	 it->PlainName ? it->PlainName : GameStrings::NoneStr(),
 	 it->IsHumanPlayer,
 	 ColorScheme::Array->Items[it->ColorSchemeIndex]->ID,
 	 it->ColorSchemeIndex,
 	 it->ArrayIndex,
 	 pType ? pType->Name : GameStrings::NoneStr(),
-	 it->Edge,
+	 (int)it->Edge,
 	 (int)it->StartingAllies.data,
 	 it->StartingCell.X,
 	 it->StartingCell.Y,
-	 it->Visionary,
+	 (bool)it->Visionary,
 	 it->MapIsClear,
 	 it->Available_Money()
 	 );
 	});
 
-	//Debug::Log(GameStrings::Init_Commands);
+	//Debug::LogInfo(GameStrings::Init_Commands);
 	//CommandClass::InitCommand();
 
 	return 0x0;
@@ -1806,10 +1815,10 @@ DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 	const auto pGlobalType = RulesExtData::Instance()->DefaultGlobalParticleInstance;
 
 	if (!pGlobalType)
-		Debug::FatalErrorAndExit("Cannot Find DefaultGlobalParticleInstance it will crash the game !\n");
+		Debug::FatalErrorAndExit("Cannot Find DefaultGlobalParticleInstance it will crash the game !");
 
 	if (pGlobalType->Lifetime != -1)
-		Debug::FatalErrorAndExit("DefaultGlobalParticleInstance[%s] Lifetime must be -1 , otherwise it will crash the game !\n", pGlobalType->ID);
+		Debug::FatalErrorAndExit("DefaultGlobalParticleInstance[{}] Lifetime must be -1 , otherwise it will crash the game !", pGlobalType->ID);
 
 	COMPILETIMEEVAL CoordStruct dummycoord { 2688  , 2688  , 0 };
 	pMem->ParticleSystemClass::ParticleSystemClass(pGlobalType.Get(), dummycoord, nullptr, nullptr, CoordStruct::Empty, nullptr);

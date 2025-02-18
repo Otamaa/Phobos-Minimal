@@ -64,7 +64,7 @@ OPTIONALINLINE void FrameStepCommandClass<Frame>::Execute(WWKey eInput) const
 	if (!FrameByFrameCommandClass::FrameStep)
 		return;
 
-	Debug::LogAndMessage("Stepping %d frames...\n", Frame);
+	Debug::LogAndMessage("Stepping {} frames...", Frame);
 
 	FrameByFrameCommandClass::FrameStepCount = Frame;
 }

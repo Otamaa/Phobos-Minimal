@@ -85,7 +85,24 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 			int current = 1;
 
 			for (const auto& pItem : pItems)
-				record[pItem] = 0;
+					{
+				if ((pItem->CloakState != CloakState::Cloaked || pItem->GetCell()->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex))
+					&& !pItem->IsDisguisedAs(HouseClass::CurrentPlayer))
+				{
+					auto coords = pItem->GetCoords();
+
+					if (!MapClass::Instance->IsWithinUsableArea(coords))
+						continue;
+
+					coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
+
+					if (MapClass::Instance->GetCellAt(coords)->ContainsBridge())
+						coords.Z += Unsorted::BridgeHeight;
+
+					if (!MapClass::Instance->IsLocationShrouded(coords))
+						record[pItem] = 0;
+				}
+			}
 
 			for (const auto& pSelect : ObjectClass::CurrentObjects())
 			{

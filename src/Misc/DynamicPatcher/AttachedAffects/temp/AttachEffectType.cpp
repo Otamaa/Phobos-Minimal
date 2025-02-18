@@ -225,7 +225,7 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				if (Phobos::Config::MoreDetailSLDebugLog)
-					Debug::Log("Parsing %d Size of [%s]%s=%s idx[%d] \n", nBaseSize, pSection, pNumKey, cur, nCount);
+					Debug::LogInfo("Parsing {} Size of [{}]{}={} idx[{}] ", nBaseSize, pSection, pNumKey, cur, nCount);
 
 				int buffer = 1;
 				if (Parser<int>::TryParse(cur, &buffer))
@@ -267,5 +267,5 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 
 }
 
-void AttachEffectType::LoadFromStream(PhobosStreamReader& Stm) { Debug::Log("Loading Element From AttachEffectType ! \n"); this->Serialize(Stm); }
+void AttachEffectType::LoadFromStream(PhobosStreamReader& Stm) { Debug::LogInfo("Loading Element From AttachEffectType ! "); this->Serialize(Stm); }
 void AttachEffectType::SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

@@ -23,7 +23,7 @@ void AttackBeaconData::Read(INI_EX& parserRules, const char* pSection_rules)
 			for (char* cur = strtok_s(parserRules.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				//if (Phobos::Config::MoreDetailSLDebugLog)
-					//Debug::Log("Parsing %d Size of [%s]%s=%s idx[%d] \n", nBaseSize, pSection_rules, pNumKey, cur, nCount);
+					//Debug::LogInfo("Parsing %d Size of [%s]%s=%s idx[%d] ", nBaseSize, pSection_rules, pNumKey, cur, nCount);
 
 				int buffer;
 				if (Parser<int>::TryParse(cur, &buffer))

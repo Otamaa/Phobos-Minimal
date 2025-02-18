@@ -148,7 +148,7 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 //		LEA_STACK(CoordStruct* , pFrom, 0xB4 - 0x1C);
 //		LEA_STACK(CoordStruct* , pBuffer, 0xB4 - 0x80);
 //
-//		Debug::Log("Railgun[%s]  From [%d %d %d] To [%d %d %d]\n", pWeapon->ID,
+//		Debug::LogInfo("Railgun[%s]  From [%d %d %d] To [%d %d %d]", pWeapon->ID,
 //			pFrom->X,
 //			pFrom->Y,
 //			pFrom->Z,
@@ -179,7 +179,7 @@ DEFINE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 //
 // 	//if (IsRailgun && Is_Aircraft(pThis))
 // 	//{
-// 		//Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
+// 		//Debug::LogInfo("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !", pThis->get_ID());
 // 		//return 0x6FF274;
 // /	//}
 //
@@ -209,31 +209,6 @@ DEFINE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	return 0x70BF46;
 }
 
-// spark particle systems created at random intervals
-DEFINE_HOOK(0x6FAD49, TechnoClass_Update_SparkParticles, 8) // breaks the loop
-{
-	GET(TechnoClass*, pThis, ESI);
-	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x60);
-
-	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems))
-	{
-		auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
-
-		for (auto pSystem : it)
-		{
-			if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Spark)
-			{
-				Systems.AddItem(pSystem);
-			}
-		}
-	}
-
-	return 0x6FADB3;
-}
-
 // customizable cloaking stages
 DEFINE_HOOK(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
 {
@@ -251,21 +226,52 @@ DEFINE_HOOK(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 	return 0x703A94;
 }
 
+#include <ExtraHeaders/StackVector.h>
+
 // make damage sparks customizable, using game setting as default.
-DEFINE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
+DEFINE_HOOK(0x6FACD9 , TechnoClass_AI_DamageSparks , 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (!pThis->SparkParticleSystem)
-		return 0x6FAF01;
+    if (!pThis->SparkParticleSystem) {
+        auto _HPRatio = pThis->GetHealthPercentage();
 
-	GET(TechnoTypeClass*, pType, EBX);
+        if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)) {
 
-	if (pThis->GetHealthPercentage() >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)
-		return 0x6FAF01;
+            auto pType = pThis->GetTechnoType();
+			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	return TechnoTypeExtContainer::Instance.Find(pType)->DamageSparks.Get(pType->DamageSparks) ?
-		0x6FAD17 : 0x6FAF01;
+            if(pExt->DamageSparks.Get(pType->DamageSparks)) {
+
+                StackVector<ParticleSystemTypeClass*, 0x25> Systems {};
+
+                if (auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems)) {
+                    auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
+
+                    for (auto pSystem : it) {
+                        if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Spark) {
+                            Systems->push_back(pSystem);
+                        }
+                    }
+                }
+
+                if(!Systems->empty()) {
+
+                    const double _probability = _HPRatio >= RulesClass::Instance->ConditionRed ?
+                        RulesClass::Instance->ConditionYellowSparkingProbability : RulesClass::Instance->ConditionRedSparkingProbability;
+                    const auto _rand = ScenarioClass::Instance->Random.RandomDouble();
+
+                    if (_rand < _probability ) {
+                        CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
+                        pThis->SparkParticleSystem =
+                        GameCreate<ParticleSystemClass>(Systems[ScenarioClass::Instance->Random.RandomFromMax(Systems->size() - 1)], _offs, nullptr, pThis);
+                    }
+                }
+            }
+        }
+    }
+
+   return 0x6FAF01;
 }
 
 DEFINE_HOOK(0x70380A, TechnoClass_Cloak_CloakSound, 6)
@@ -966,7 +972,7 @@ DEFINE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 DEFINE_HOOK(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
-	//Debug::Log("ChangeOwnershipFor [%s]\n" , pThis->get_ID());
+	//Debug::LogInfo("ChangeOwnershipFor [%s]" , pThis->get_ID());
 
 	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
 	{
@@ -1101,7 +1107,7 @@ DEFINE_HOOK(0x6F3F88, TechnoClass_Init_1, 5)
 		TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
 	}
 	else {
-		Debug::Log("Techno[%s] Init Without any ownership!\n", pType->ID);
+		Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
 	}
 
 	// if override is in effect, do not create initial payload.

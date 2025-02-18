@@ -32,7 +32,7 @@ void HouseExtData::InitializeConstant()
 	//CapturedBuildings.PopulateCounts(10000);
 	//CollectedCrates.PopulateCounts(10000);
 
-	//Debug::Log("Initilizing Tiberium storage for [%s] with [%d] count !\n", this->AttachedToObject->Type->ID, TiberiumClass::Array->Count);
+	//Debug::LogInfo("Initilizing Tiberium storage for [%s] with [%d] count !", this->AttachedToObject->Type->ID, TiberiumClass::Array->Count);
 	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 }
 
@@ -818,8 +818,8 @@ AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 		if (auto pAnim = SideExtContainer::Instance.Find(pSide)->ParachuteAnim.Get(RulesClass::Instance->Parachute))
 			return pAnim;
 
-		Debug::Log(
-			"[GetParachuteAnim] House %s and its side have no valid parachute defined. Rules fallback failed.\n",
+		Debug::LogInfo(
+			"[GetParachuteAnim] House {} and its side have no valid parachute defined. Rules fallback failed.",
 			pHouse->get_ID());
 	}
 
@@ -865,7 +865,7 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 		}
 
 		if(!ret){
-			Debug::Log("TechTreeTypeClass::GetForSide: Could not find tech tree for side %d, returning tech tree 0: %s",
+			Debug::LogInfo("TechTreeTypeClass::GetForSide: Could not find tech tree for side {}, returning tech tree 0: {}",
 				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
 			ret = TechTreeTypeClass::Array.begin()->get();
 		}
@@ -979,7 +979,7 @@ HouseClass* HouseExtData::FindFirstCivilianHouse()
 HouseClass* HouseExtData::FindSpecial()
 {
 	if (RulesExtData::Instance()->SpecialCountryIndex == -1)
-		Debug::FatalError("Special Index is invalid !\n");
+		Debug::FatalError("Special Index is invalid !");
 
 	if(!HouseExtContainer::Special){
 		HouseExtContainer::Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
@@ -991,7 +991,7 @@ HouseClass* HouseExtData::FindSpecial()
 HouseClass* HouseExtData::FindNeutral()
 {
 	if (RulesExtData::Instance()->NeutralCountryIndex == -1)
-		Debug::FatalError("Neutral Index is invalid !\n");
+		Debug::FatalError("Neutral Index is invalid !");
 
 	if(!HouseExtContainer::Neutral){
 		HouseExtContainer::Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
@@ -1731,7 +1731,7 @@ signed int HouseExtData::BuildLimitRemaining(
 		const auto cur = HouseExtData::CountOwnedNowTotal(pHouse, pItem);
 
 		if (cur < 0)
-			Debug::FatalError("%s for [%s - %x] CountOwned return less than 0 when counted\n", pItem->ID, pHouse->Type->ID, pHouse);
+			Debug::FatalError("%s for [%s - %x] CountOwned return less than 0 when counted", pItem->ID, pHouse->Type->ID, pHouse);
 
 		return BuildLimit - cur;
 	}
@@ -2053,12 +2053,9 @@ void HouseExtData::Serialize(T& Stm)
 		//.Process(this->CollectedCrates)
 
 		.Process(this->OwnedDeployingUnits, true)
-		.Process(this->BaseNormalCells)
-		.Process(this->CurrentBuildingType, true)
-		.Process(this->CurrentBuildingDrawType, true)
-		.Process(this->CurrentBuildingTopLeft, true)
-		.Process(this->CurrentBuildingTimer)
-		.Process(this->CurrentBuildingTimes)
+
+		.Process(this->Common)
+		.Process(this->Combat)
 
 		.Process(this->AISuperWeaponDelayTimer)
 

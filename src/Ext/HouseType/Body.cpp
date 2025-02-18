@@ -382,7 +382,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				this->TauntFile[i][nPos + 1] = digits[i + 1];
 
 				//if (Phobos::Otamaa::IsAdmin)
-				//	Debug::Log("Reading taunt File[%d] for[%s] = %s\n", i, pSection, this->TauntFile[i].c_str());
+				//	Debug::LogInfo("Reading taunt File[%d] for[%s] = %s", i, pSection, this->TauntFile[i].c_str());
 			}
 		}
 	}

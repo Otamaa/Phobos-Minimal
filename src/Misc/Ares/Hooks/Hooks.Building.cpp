@@ -572,7 +572,7 @@ DEFINE_HOOK(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 			TargetTypeExtData->RubbleIntactAnim
 		);
 
-		Debug::Log(__FUNCTION__" Called \n");
+		Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)
@@ -1080,7 +1080,7 @@ DEFINE_HOOK(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)
 	const auto pInfID = pInf ? pInf->Type->Name : GameStrings::NoneStr();
 	const auto pOwnedID = pThis && pThis->Owner && pThis->Owner->Type ? pThis->Owner->Type->ID : GameStrings::NoneStr();
 
-	Debug::Log("[%x][%s - %s] Creating survivor type '%s' \n", pThis, pBldID, pOwnedID, pInfID);
+	Debug::LogInfo("[{}][{} - {}] Creating survivor type '{}' ", (void*)pThis, pBldID, pOwnedID, pInfID);
 	return 0x443109;
 }
 

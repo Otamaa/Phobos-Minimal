@@ -23,6 +23,11 @@ bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
 }
 
+bool BuildingTypeExtData::IsSameBuildingType(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
+{
+	return ((pType1->BuildCat != BuildCat::Combat) == (pType2->BuildCat != BuildCat::Combat));
+}
+
 // Check whether can call the occupiers leave
 bool BuildingTypeExtData::CheckOccupierCanLeave(HouseClass* pBuildingHouse, HouseClass* pOccupierHouse)
 {
@@ -347,8 +352,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 			if (pInfantry->IsDeployed())
 				pInfantry->PlayAnim(DoType::Undeploy, true);
 
-			pInfantry->SetDestination(pDestinationCell, false);
-			pInfantry->QueueMission(Mission::QMove, false); // To force every three infantries gather together, it should be QMove
+			pInfantry->SetDestination(pDestinationCell, true);
 		}
 		else if (absType == AbstractType::Unit)
 		{
@@ -357,7 +361,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 			if (pUnit->Deployed)
 				pUnit->Undeploy();
 
-			pUnit->SetDestination(pDestinationCell, false);
+			pUnit->SetDestination(pDestinationCell, true);
 		}
 	}
 
@@ -1329,7 +1333,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				if (IMPL_STRCMPI(Phobos::readBuffer, pSection) || IMPL_STRCMPI(Phobos::readBuffer, pArtSection))
 					this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
 				else
-					Debug::Log("Cannot Load PlacementPreview.Shape for [%s]Art[%s] ! \n", pSection, pArtSection);
+					Debug::LogInfo("Cannot Load PlacementPreview.Shape for [{}] Art [{}] ! ", pSection, pArtSection);
 			}
 		}
 
@@ -1443,7 +1447,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				}
 				else if ((*pos) != -1)
 				{
-					Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, (*pos));
+					Debug::LogInfo("BuildingType {} has a SpyEffect.StolenTechIndex of {}. The value has to be less than 32.", pSection, (*pos));
 					Debug::RegisterParserError();
 				}
 
@@ -1712,7 +1716,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType)
 	{
 		Debug::FatalErrorAndExit(
-			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType.\n"
+			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType."
 			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
 }

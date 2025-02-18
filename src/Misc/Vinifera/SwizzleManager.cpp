@@ -252,7 +252,7 @@ public:
 		SwizzlePointerStruct pair(id, pointer, file, line, func, var);
 		bool added = RequestTable.AddItem(pair);
 
-		Debug::Log("SwizzleManager::Swizzle() - Requested remap for \"%s\" (0x%08X) in %s.\n", var, id, func);
+		Debug::LogInfo("SwizzleManager::Swizzle() - Requested remap for \"{}\" (0x{}) in {}.", var, id, func);
 
 		*pointer = nullptr;
 		return (added == true ? S_OK : S_FALSE);
@@ -267,19 +267,19 @@ public:
 
 		*id = reinterpret_cast<uintptr_t>(pointer);
 
-		Debug::Log("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x%08X.\n", *id);
-		Debug::Log("SwizzleManager::Fetch_Swizzle_ID() - File: %s.\n", file);
+		Debug::LogInfo("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x{}.", *id);
+		Debug::LogInfo("SwizzleManager::Fetch_Swizzle_ID() - File: {}.", file);
 
 		if (line != -1) {
-			Debug::Log("SwizzleManager::Fetch_Swizzle_ID() - Line: %d.\n", line);
+			Debug::LogInfo("SwizzleManager::Fetch_Swizzle_ID() - Line: {}.", line);
 		}
 
 		if (func) {
-			Debug::Log("SwizzleManager::Fetch_Swizzle_ID() - Func: %s.\n", func);
+			Debug::LogInfo("SwizzleManager::Fetch_Swizzle_ID() - Func: {}.", func);
 		}
 
 		if (var) {
-			Debug::Log("SwizzleManager::Fetch_Swizzle_ID() - Var: %s.\n", var);
+			Debug::LogInfo("SwizzleManager::Fetch_Swizzle_ID() - Var: {}.", var);
 		}
 
 		return S_OK;
@@ -293,8 +293,8 @@ public:
 
 		bool added = PointerTable.AddItem(pair);
 
-		Debug::Log("SwizzleManager::Here_I_Am() - PointerTable.Count = %d.\n", PointerTable.Count);
-		Debug::Log("SwizzleManager::Here_I_Am() - Informed swizzler of \"%s\" (0x%08X) in %s.\n", var, id, func);
+		Debug::LogInfo("SwizzleManager::Here_I_Am() - PointerTable.Count = {}.", PointerTable.Count);
+		Debug::LogInfo("SwizzleManager::Here_I_Am() - Informed swizzler of \"{}\" (0x{}) in {}.", var, id, func);
 
 		return (added == true ? S_OK : S_FALSE);
 	}
@@ -339,8 +339,8 @@ private:
 			int pointer_index = 0;
 			int pointer_count = PointerTable.Count;
 
-			Debug::Log("SwizzleManager::Process_Tables() - RequestTable.Count %d.\n", request_count);
-			Debug::Log("SwizzleManager::Process_Tables() - PointerTable.Count %d.\n", pointer_count);
+			Debug::LogInfo("SwizzleManager::Process_Tables() - RequestTable.Count {}.", request_count);
+			Debug::LogInfo("SwizzleManager::Process_Tables() - PointerTable.Count {}.", pointer_count);
 
 			while (request_count > 0)
 			{
@@ -348,7 +348,7 @@ private:
 				int pre_search_id = RequestTable[request_index].ID;
 				int ptr_id = PointerTable[pointer_index].ID;
 
-				Debug::Log("SwizzleManager::Process_Tables() - Processing request \"%s\" from %s.\n", RequestTable[request_index].Variable, RequestTable[request_index].Function);
+				Debug::LogInfo("SwizzleManager::Process_Tables() - Processing request \"{}\" from {}.", RequestTable[request_index].Variable, RequestTable[request_index].Function);
 
 				if (pre_search_id == ptr_id)
 				{
@@ -359,7 +359,7 @@ private:
 					uintptr_t* ptr = (uintptr_t*)RequestTable[request_index].Pointer;
 					*ptr = (uintptr_t)PointerTable[pointer_index].Pointer;
 
-					Debug::Log("SwizzleManager::Process_Tables() - Remapped \"%s\" (ID: %08X) to 0x%08X.\n",
+					Debug::LogInfo("SwizzleManager::Process_Tables() - Remapped \"{}\" (ID: {}) to 0x{}.",
 							RequestTable[request_index].Variable, RequestTable[request_index].ID, (uintptr_t)PointerTable[pointer_index].Pointer);
 
 					++request_index;
@@ -393,7 +393,7 @@ private:
 				if (failed)
 				{
 
-					Debug::Log("SwizzleManager::Process_Tables() - Failed to remap a pointer from the save file!\n");
+					Debug::LogInfo("SwizzleManager::Process_Tables() - Failed to remap a pointer from the save file!");
 
 					/**
 					 *  If there is additional debug information attached to this
@@ -411,7 +411,7 @@ private:
 						 */
 						static char buffer[1024];
 
-						Debug::Log("SwizzleManager::Process_Tables() - Request info:\n  File: %s\n  Line: %d\n  Function: %s\n  Variable: %s\n",
+						Debug::LogInfo("SwizzleManager::Process_Tables() - Request info:\n  File: {}\n  Line: {}\n  Function: {}\n  Variable: {}",
 											req.File ? req.File : "<no-filename-info>",
 											req.Line,
 											req.Function ? req.Function : "<no-function-info>",
@@ -528,10 +528,10 @@ public:
 		switch (retaddr)
 		{
 		case 0x0067E4F7:
-			Debug::Log("Reset() - From Load_Game\n");
+			Debug::LogInfo("Reset() - From Load_Game");
 			break;
 		case 0x00687C00:
-			Debug::Log("Reset() - From Read_Scenario_INI\n");
+			Debug::LogInfo("Reset() - From Read_Scenario_INI");
 			break;
 		};
 
@@ -554,7 +554,7 @@ public:
 		SwizzleInfoDatabaseEntry* info = Swizzle_Find_Database_Entry(retaddr);
 
 		if (!info) {
-			Debug::Log("Swizzle() - Failed to find debug information for 0x%p!\n", retaddr);
+			Debug::LogInfo("Swizzle() - Failed to find debug information for 0x{}!", retaddr);
 
 
 			/**
@@ -563,7 +563,7 @@ public:
 			return E_UNEXPECTED;
 
 		} else {
-			Debug::Log("Swizzle() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+			Debug::LogInfo("Swizzle() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}", info->File, info->Line, info->Function, info->Variable);
 		}
 
 		return Swizzle_Dbg(pointer, info->File, info->Line, info->Function, info->Variable);
@@ -584,7 +584,7 @@ public:
 		SwizzleInfoDatabaseEntry* info = Swizzle_Find_Database_Entry(retaddr);
 		if (!info)
 		{
-			Debug::Log("Fetch_Swizzle_ID() - Failed to find debug information for 0x%p!\n", retaddr);
+			Debug::LogInfo("Fetch_Swizzle_ID() - Failed to find debug information for 0x{}!", retaddr);
 
 			/**
 			 *  Return failure!
@@ -592,7 +592,7 @@ public:
 			return E_UNEXPECTED;
 
 		} else {
-			Debug::Log("Fetch_Swizzle_ID() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+			Debug::LogInfo("Fetch_Swizzle_ID() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}", info->File, info->Line, info->Function, info->Variable);
 		}
 
 		return Fetch_Swizzle_ID_Dbg(pointer, id, info->File, info->Line, info->Function, info->Variable);
@@ -615,7 +615,7 @@ public:
 
 		if (!info)
 		{
-			Debug::Log("Here_I_Am() - Failed to find debug information for 0x%p!\n", retaddr);
+			Debug::LogInfo("Here_I_Am() - Failed to find debug information for 0x{}!", retaddr);
 
 			/**
 			 *  Return failure!
@@ -623,7 +623,7 @@ public:
 			return E_UNEXPECTED;
 
 		} else {
-			Debug::Log("Here_I_Am() - Debug info found:\n  File: %s\n  Line: %d\n  Function: %s\n  Var: %s\n", info->File, info->Line, info->Function, info->Variable);
+			Debug::LogInfo("Here_I_Am() - Debug info found:\n  File: {}\n  Line: {}\n  Function: {}\n  Var: {}", info->File, info->Line, info->Function, info->Variable);
 		}
 
 		return Here_I_Am_Dbg(id, pointer, info->File, info->Line, info->Function, info->Variable);

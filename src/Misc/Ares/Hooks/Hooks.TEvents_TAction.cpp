@@ -109,19 +109,19 @@ DEFINE_HOOK(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 
 	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
 
-	//Debug::Log("TAction[%x] triggering [%d]\n" , pAction , (int)pAction->ActionKind);
+	//Debug::LogInfo("TAction[%x] triggering [%d]" , pAction , (int)pAction->ActionKind);
 
 	// check for actions handled in Ares.
 	auto ret = false;
 	if (AresTActionExt::Execute(
 		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
 	{
-		//Debug::Log("TAction[%x] triggering Ares [%d]\n" , pAction , (int)pAction->ActionKind);
+		//Debug::LogInfo("TAction[%x] triggering Ares [%d]" , pAction , (int)pAction->ActionKind);
 		// returns true or false
 		R->AL(ret);
 		return Handled;
 	}
-		//Debug::Log("TAction[%x] triggering vanilla [%d]\n" , pAction , (int)pAction->ActionKind);
+		//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pAction , (int)pAction->ActionKind);
 	// replicate the original instructions, using underflow
 	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
 	R->EDX(value);
@@ -286,12 +286,12 @@ static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
  	//	name =TriggerEventsName[(int)args.EventType];
 
  	bool result = false;
- 	//Debug::Log("Event [%d - %s] IsOccured \n" , (int)args.EventType , name);
+ 	//Debug::LogInfo("Event [%d - %s] IsOccured " , (int)args.EventType , name);
  	if (AresTEventExt::HasOccured(pThis, args, result)) {
- 		//Debug::Log("Event [%d - %s] AresEventHas Occured \n" , (int)args.EventType , name);
+ 		//Debug::LogInfo("Event [%d - %s] AresEventHas Occured " , (int)args.EventType , name);
  		return result ? return_true : return_false;
  	}
- 	//Debug::Log("Event [%d - %s] AresEventNot Occured \n" , (int)args.EventType , name);
+ 	//Debug::LogInfo("Event [%d - %s] AresEventNot Occured " , (int)args.EventType , name);
 
  	return 0;
  }

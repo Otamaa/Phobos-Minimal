@@ -449,6 +449,13 @@ public:
 	Valueable<bool> BuildingTypeSelectable {};
 	Valueable<bool> BuildingWaypoint {};
 
+	Valueable<bool> AIAutoDeployMCV { true };
+	Valueable<bool> AISetBaseCenter { true };
+	Valueable<bool> AIBiasSpawnCell { false };
+	Valueable<bool> AIForbidConYard { false };
+
+	Valueable<bool> JumpjetTilt {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

@@ -444,7 +444,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Processing Element From AttachEffectManager ! \n");
+		Debug::LogInfo("Processing Element From AttachEffectManager ! ");
 		return Stm
 			.Process(AttachEffects)
 			.Process(DisableDelayTimers)

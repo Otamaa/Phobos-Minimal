@@ -377,7 +377,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 
 			const auto pNewType = pExt->GetNewSWType();
 			if (!pNewType) {
-				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]\n", pThis->Type->ID, (int)pThis->Type->Type);
+				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]", pThis->Type->ID, (int)pThis->Type->Type);
 			}
 			const auto& pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
 			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
@@ -925,7 +925,7 @@ struct TargetingFuncs
 				}
 			}
 		} else {
-			Debug::Log("Uneable to fire SW [%s - %s] , AuxTechno is empty!\n", pTargeting->TypeExt->AttachedToObject->ID, pTargeting->Owner->Type->ID);
+			Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->AttachedToObject->ID, pTargeting->Owner->Type->ID);
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
@@ -1278,7 +1278,7 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	auto const pOwner = pSuper->Owner;
 	if (!pOwner) // the game will crash later anyway , just put some log to give an hint
 	{
-		Debug::Log("Trying To Activate Super[%s] Without House Owner ! \n", pSuper->Type->ID);
+		Debug::LogInfo("Trying To Activate Super[{}] Without House Owner ! ", pSuper->Type->ID);
 		return false;
 	}
 
@@ -1288,7 +1288,7 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	if (!pNewType || !pExt->Launch(pNewType, pSuper, cell, isPlayer))
 		return false;
 
-	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch \n", pExt->get_ID(), pOwner->get_ID());
+	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch ", pExt->get_ID(), pOwner->get_ID());
 	std::pair<SuperClass*, CellStruct> nPass { pSuper, cell };
 
 	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
@@ -1299,14 +1299,14 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 		}
 	}
 
-	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  \n", pExt->get_ID(), pOwner->get_ID());
+	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  ", pExt->get_ID(), pOwner->get_ID());
 	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
 	{
 		if (auto pTag = pOwner->RelatedTags.Items[a])
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
 	}
 
-	//Debug::Log(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  \n", pExt->get_ID(), pOwner->get_ID());
+	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  ", pExt->get_ID(), pOwner->get_ID());
 
 	return true;
 }
@@ -1762,10 +1762,10 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 	}
 
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
-		Debug::Log("SW[%s] Lauch Outside Usable Map Area [%d . %d]! \n", this->AttachedToObject->ID , nDest.X , nDest.Y);
+		Debug::LogInfo("SW[{}] Lauch Outside Usable Map Area [{} . {}]! ", this->AttachedToObject->ID , nDest.X , nDest.Y);
 
 	if (!pFirer)
-		Debug::Log("SW[%s] ApplyDetonate without Firer!\n", this->AttachedToObject->ID);
+		Debug::LogInfo("SW[{}] ApplyDetonate without Firer!", this->AttachedToObject->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
 		WeaponTypeExtData::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
@@ -1799,7 +1799,7 @@ void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool Is
 
 void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
-	//Debug::Log("Applying additional functionalities for sw[%s]\n", pSW->get_ID());
+	//Debug::LogInfo("Applying additional functionalities for sw[%s]", pSW->get_ID());
 
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);

@@ -16,7 +16,7 @@ DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x5)
 		return 0x0;
 
 	const auto conpy_weaponIdx_B = Math::abs(5 + weaponIdx);
-	Debug::Log("[%s] Trying to get Additional AlternateFLH at [original %d vs changed %d] !\n", pTypeExt->AttachedToObject->ID, conpy_weaponIdx , conpy_weaponIdx_B);
+	Debug::LogInfo("[{}] Trying to get Additional AlternateFLH at [original {} vs changed {}] !", pTypeExt->AttachedToObject->ID, conpy_weaponIdx , conpy_weaponIdx_B);
 
 	if((size_t)conpy_weaponIdx_B < pTypeExt->AlternateFLHs.size()) {
 		const CoordStruct& flh = pTypeExt->AlternateFLHs[conpy_weaponIdx_B] ;

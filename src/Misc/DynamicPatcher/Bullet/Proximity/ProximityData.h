@@ -39,7 +39,7 @@ struct ProximityData
 	~ProximityData() = default;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From ProximityData ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From ProximityData ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

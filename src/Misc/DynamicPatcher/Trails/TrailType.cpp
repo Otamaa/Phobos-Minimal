@@ -82,5 +82,5 @@ void TrailType::LoadFromINI(CCINIClass* pINI)
 	HideWhenCloak.Read(exINI, pSection, "HideWhenCloak");
 }
 
-void TrailType::LoadFromStream(PhobosStreamReader& Stm) { Debug::Log("Loading Element From TrailType ! \n"); this->Serialize(Stm); }
+void TrailType::LoadFromStream(PhobosStreamReader& Stm) { Debug::LogInfo("Loading Element From TrailType ! "); this->Serialize(Stm); }
 void TrailType::SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

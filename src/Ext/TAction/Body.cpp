@@ -961,7 +961,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 
 			if (++retry >= 10)
 			{
-				Debug::Log("Failed to `RunSuperWeaponAt` after 10 retries bailout!\n");
+				Debug::LogInfo("Failed to `RunSuperWeaponAt` after 10 retries bailout!");
 				return true;
 			}
 		}
@@ -1238,7 +1238,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 	}
 	else if (pThis->Param3 > 8997)
 	{
-		Debug::Log("Map action %d: Invalid house index '%d'. This action will be skipped.\n", (int)pThis->ActionKind, pThis->Param3);
+		Debug::LogInfo("Map action {}: Invalid house index '{}'. This action will be skipped.", (int)pThis->ActionKind, pThis->Param3);
 		return true;
 	}
 
@@ -1252,14 +1252,14 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		// Any house of the same type of the listed at [AIHousesList] will be included here
 
 		if (RulesExtData::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 < RulesExtData::Instance()->AIHousesLists.size()) {
-			Debug::Log("Map action %d: [AIHousesList] is empty. This action will be skipped.\n", (int)pThis->ActionKind);
+			Debug::LogInfo("Map action {}: [AIHousesList] is empty. This action will be skipped.", (int)pThis->ActionKind);
 			return true;
 		}
 
 		std::vector<HouseTypeClass*>* housesList = &RulesExtData::Instance()->AIHousesLists[pThis->Param4];
 
 		if (housesList->empty()) {
-			Debug::Log("Map action %d: List [AIHousesList](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, pThis->Param4);
+			Debug::LogInfo("Map action {}: List [AIHousesList]({}) is empty. This action will be skipped.", (int)pThis->ActionKind, pThis->Param4);
 			return true;
 		}
 
@@ -1280,7 +1280,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 
 	if ((size_t)listIdx < RulesExtData::Instance()->AIHousesLists.size()
 		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {
-		Debug::Log("Map action %d: List [AITargetTypes](%d) is empty. This action will be skipped.\n", (int)pThis->ActionKind, listIdx);
+		Debug::LogInfo("Map action {}: List [AITargetTypes]({}) is empty. This action will be skipped.", (int)pThis->ActionKind, listIdx);
 		return true;
 	}
 
@@ -1320,7 +1320,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 	}
 	else
 	{
-		_message += L"\n";
+		_message += L"";
 
 		for (size_t i = 0; i < technosRemaining.size(); i++) {
 
@@ -1328,7 +1328,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 				continue;
 
 			textToShow = true;
-			_message += std::format(L"{}: {}\n", (*technosList)[i]->UIName, technosRemaining[i]);
+			_message += std::format(L"{}: {}", (*technosList)[i]->UIName, technosRemaining[i]);
 		}
 	}
 
@@ -1350,7 +1350,7 @@ bool TActionExt::DumpVariables(TActionClass* pThis, HouseClass* pHouse, ObjectCl
 	}
 
 	if (!file.Open(FileAccessMode::ReadWrite)) {
-		Debug::Log(" %s Failed to Open file %s for\n", __FUNCTION__, fileName);
+		Debug::LogInfo(__FUNCTION__" Failed to Open file {} for", fileName);
 		return false;
 	}
 

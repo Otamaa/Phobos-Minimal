@@ -377,11 +377,11 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 
 						if (auto section = pThis->GetSection(copy_2_2))
 						{
-							//Debug::Log("Inheritance Result [%s].\n" , copy_2_2);
+							//Debug::LogInfo("Inheritance Result [%s]." , copy_2_2);
 							return section;
 						}
 
-						Debug::Log(Debug::Severity::Warning, "An INI section inherits from section '%s', which doesn't exist or has not been parsed yet.\n", copy_2_2);
+						Debug::LogError("An INI section inherits from section '{}', which doesn't exist or has not been parsed yet.", copy_2_2);
 					}
 				}
 			}
@@ -524,7 +524,7 @@ DEFINE_STRONG_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 			{
 				if (data == Phobos::readBuffer)
 				{
-					//Debug::Log("[%s]%s=%s ([%d] from [%s]) \n", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
+					//Debug::LogInfo("[%s]%s=%s ([%d] from [%s]) ", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
 					R->EAX(data.Value);
 					return 0x474907;
 				}

@@ -16,12 +16,12 @@
 template <typename T>
 void DumperTypesCommandClass::LogType(const char* pSection) const
 {
-	Debug::Log("[%s]\n", pSection);
+	Debug::LogInfo("[{}]", pSection);
 
 	int i = 0;
 	for (auto pItem : *T::Array)
 	{
-		Debug::Log("%d = %s\n", i++, pItem->get_ID());
+		Debug::LogInfo("{} ={}", i++, pItem->get_ID());
 	}
 }
 
@@ -47,9 +47,9 @@ const wchar_t* DumperTypesCommandClass::GetUIDescription() const
 
 void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 {
-	Debug::Log("Dumping all Types\n\n");
+	Debug::LogInfo("Dumping all Types");
 
-	Debug::Log("Dumping Rules Types\n\n");
+	Debug::LogInfo("Dumping Rules Types");
 
 	LogType<AnimTypeClass>("Animations");
 	LogType<WeaponTypeClass>("WeaponTypes");
@@ -70,30 +70,30 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 	LogType<ParticleTypeClass>("Particles");
 	LogType<ParticleSystemTypeClass>("ParticleSystems");
 
-	Debug::Log("Dumping Art Types\n\n");
-	Debug::Log("[Movies]\n");
+	Debug::LogInfo("Dumping Art Types");
+	Debug::LogInfo("[Movies]");
 
 	for (int i = 0; i < MovieInfo<GameDeleter>::Array->Count; ++i) {
-		Debug::Log("%d = %s\n", i, MovieInfo<GameDeleter>::Array->Items[i].Name);
+		Debug::LogInfo("{} = {}", i, MovieInfo<GameDeleter>::Array->Items[i].Name);
 	}
 
-	Debug::Log("Dumping AI Types\n\n");
+	Debug::LogInfo("Dumping AI Types");
 	LogType<ScriptTypeClass>("ScriptTypes");
 	LogType<TeamTypeClass>("TeamTypes");
 	LogType<TaskForceClass>("TaskForces");
 
-	Debug::Log("[AITriggerTypes]\n");
+	Debug::LogInfo("[AITriggerTypes]");
 	for (auto const pItem : *AITriggerTypeClass::Array)
 	{
 		char Buffer[1024];
 		pItem->FormatForSaving(Buffer, sizeof(Buffer));
-		Debug::Log("%s\n", Buffer);
+		Debug::LogInfo("{}", Buffer);
 	}
 
-	Debug::Log("[AITriggerTypesEnable]\n");
+	Debug::LogInfo("[AITriggerTypesEnable]");
 	for (auto const pItem : *AITriggerTypeClass::Array)
 	{
-		Debug::Log("%X = %s\n", pItem->get_ID(), pItem->IsEnabled ? "yes" : "no");
+		Debug::LogInfo("{} = {}", pItem->get_ID(), pItem->IsEnabled ? "yes" : "no");
 	}
 
 	// yes , iam sorry
@@ -106,7 +106,7 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 			if (*((unsigned int*)sectionNode) == 0x7EB73C)
 			{
 				INIClass::INISection* section = (INIClass::INISection*)sectionNode;
-				Debug::Log("[%s]\n", section->Name);
+				Debug::LogInfo("[{}]", section->Name);
 
 				GenericNode* entryNode = section->Entries.GenericList::First();
 				while (entryNode)
@@ -125,7 +125,7 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 								break;
 							}
 						}
-						Debug::Log("\t%s = %s (Checksum: %08X)\n", entry->Key, entry->Value, checksum);
+						Debug::LogInfo("\t{} = {} (Checksum: {})", entry->Key, entry->Value, checksum);
 					}
 					entryNode = entryNode->Next();
 				}

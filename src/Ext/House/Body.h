@@ -77,6 +77,15 @@ struct TunnelData
 	}
 };
 
+struct PlacingBuildingStruct
+{
+	BuildingTypeClass* Type;
+	BuildingTypeClass* DrawType;
+	int Times;
+	CDTimerClass Timer;
+	CellStruct TopLeft;
+};
+
 //TODO : validate check
 enum class BuildLimitStatus
 {
@@ -166,12 +175,8 @@ public:
 	CDTimerClass AISellAllDelayTimer {};
 
 	HelperedVector<UnitClass*> OwnedDeployingUnits {};
-	std::vector<CellStruct> BaseNormalCells {};
-	BuildingTypeClass* CurrentBuildingType { nullptr };
-	BuildingTypeClass* CurrentBuildingDrawType { nullptr };
-	CellStruct CurrentBuildingTopLeft {};
-	CDTimerClass CurrentBuildingTimer {};
-	int CurrentBuildingTimes { 0 };
+	PlacingBuildingStruct Common {};
+	PlacingBuildingStruct Combat {};
 
 	CDTimerClass AISuperWeaponDelayTimer {};
 

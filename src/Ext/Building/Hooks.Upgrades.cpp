@@ -56,7 +56,7 @@ DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 
 		if (upgrade->IsThreatRatingNode)
 		{
-			Debug::Log("Removing Upgrade [%d][%s] With IsTreatRatingNode = true ! \n", i, upgrade->get_ID());
+			Debug::LogInfo("Removing Upgrade [{}][{}] With IsTreatRatingNode = true ! ", i, upgrade->get_ID());
 		}
 	}
 

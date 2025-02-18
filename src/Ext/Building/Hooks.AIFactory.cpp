@@ -144,7 +144,7 @@ void HouseExtData::UpdateVehicleProduction()
 			continue;
 
 //		if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
-//			Debug::Log("HereIam\n");
+//			Debug::LogInfo("HereIam");
 
 //		Teams.push_back(currentTeam);
 		int teamCreationFrame = currentTeam->CreationFrame;
@@ -171,7 +171,7 @@ void HouseExtData::UpdateVehicleProduction()
 			++values[index];
 
 //			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
-//				Debug::Log("0100003I Unit %s  idx %d AddedValueResult %d\n", currentMember->ID, index, values[index]);
+//				Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
 //			}
 
 			if (teamCreationFrame < creationFrames[index])
@@ -180,7 +180,7 @@ void HouseExtData::UpdateVehicleProduction()
 	}
 
 //	for (int i = 0; i < (int)Teams.size(); ++i) {
-//		Debug::Log("House [%s] Have [%d] Teams %s.\n", pThis->get_ID(), i, Teams[i]->get_ID());
+//		Debug::LogInfo("House [%s] Have [%d] Teams %s.", pThis->get_ID(), i, Teams[i]->get_ID());
 //	}
 
 	//std::vector<int> Toremove {};
@@ -195,7 +195,7 @@ void HouseExtData::UpdateVehicleProduction()
 		//		Caller = MappedCaller[pUnit].c_str();
 		//	}
 
-		//	Debug::Log("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???\n", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
+		//	Debug::LogInfo("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
 		//	Toremove.push_back(i);
 		//	continue;
 		//}
@@ -606,7 +606,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 	Values.assign(count, 0);
 	BestChoices.clear();
 
-	//Debug::Log(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] \n", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
+	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	for (auto CurrentTeam : *TeamClass::Array)
 	{
 		if (!CurrentTeam || CurrentTeam->Owner != pHouse)
@@ -662,7 +662,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 
 		// Aircraft has it own handling
 		if COMPILETIMEEVAL (Ttype::AbsID == AbstractType::AircraftType) {
-			//Debug::Log("Aircraft [%s][%s] return result [%d] for can build");
+			//Debug::LogInfo("Aircraft [%s][%s] return result [%d] for can build");
 
 			if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(pHouse) > pHouse->Available_Money()) {
 				continue;

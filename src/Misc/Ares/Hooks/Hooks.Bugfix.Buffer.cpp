@@ -225,7 +225,7 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 		char* context = nullptr;
 
 		using BaseType = std::remove_pointer_t<T>;
-		Debug::Log("Parsing [%s] form [%s] result\n %s\n", key ,  section , IniEx.value());
+		Debug::LogInfo("Parsing [{}] form [{}] result {}", key ,  section , IniEx.value());
 
 		for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
 			 cur = strtok_s(nullptr, Phobos::readDelims, &context))
@@ -256,7 +256,7 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 				Debug::INIParseFailed(section, key, cur, message);
 			}
 		}
-		Debug::Log("count : %d\n", List.Count);
+		Debug::LogInfo("count : {}", List.Count);
 
 	}
 };
@@ -285,7 +285,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 	//if (!ATOI_Count.has_value() || !ATOI_Count.value())
 	//	ATOI_Count = pRules->AnimToInfantry.Count;
 	//else if(pRules->AnimToInfantry.Count != ATOI_Count.value()) {
-	//	Debug::FatalError("ATOI Array missmatch was %d cur %d\n", ATOI_Count.value(), pRules->AnimToInfantry.Count);
+	//	Debug::FatalError("ATOI Array missmatch was %d cur %d", ATOI_Count.value(), pRules->AnimToInfantry.Count);
 	//}
 
 	detail::ParseVector<InfantryTypeClass*>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
@@ -313,7 +313,7 @@ DEFINE_HOOK(0x66D55E, Buf_General, 6)
 		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer)) {
 			pRules->WallTower = pBuilding;
 		} else {
-			Debug::Log("WallTower Building readed as [%s] but it is nullptr ! \n" , Phobos::readBuffer);
+			Debug::LogInfo("WallTower Building readed as [{}] but it is nullptr ! " , Phobos::readBuffer);
 		}
 	}
 

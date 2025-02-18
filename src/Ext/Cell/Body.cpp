@@ -64,7 +64,7 @@ static int __fastcall GetTiberiumType(int Overlay) {
          }
 	}
 
-	//Debug::Log("Overlay [%s - %s] not really tiberium[%d]\n", pOverlay->ID , pOverlay->Name , 0);
+	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
 	return 0;
 }
 
@@ -116,7 +116,7 @@ int FakeCellClass::_GetTiberiumType()
          }
 	}
 
-	//Debug::Log("Overlay [%s - %s] not really tiberium[%d]\n", pOverlay->ID , pOverlay->Name , 0);
+	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
 	return 0;
 }
 
@@ -193,7 +193,7 @@ bool FakeCellClass::_SpreadTiberium(bool force)
 bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 {
 	if (!pTerrain)
-		Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !\n");
+		Debug::FatalErrorAndExit(__FUNCTION__" Need `TerrainClass` !");
 
 	auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
@@ -249,16 +249,25 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 void FakeCellClass::_Invalidate(AbstractClass* ptr, bool removed)
 {
 	auto pExt = this->_GetExtData();
+	
+	if (removed)
+	{
+		if (ptr == static_cast<void*>(this->AltObject)) {
+			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
+		}
 
-	if (ptr == static_cast<void*>(pExt->IncomingUnit))
-	{
-		this->OccupationFlags &= ~0x20;
-		pExt->IncomingUnit = nullptr;
-	}
-	if (ptr == static_cast<void*>(pExt->IncomingUnitAlt))
-	{
-		this->AltOccupationFlags &= ~0x20;
-		pExt->IncomingUnitAlt = nullptr;
+		if (ptr == static_cast<void*>(this->FirstObject)) {
+			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+		}
+
+		if (ptr == static_cast<void*>(pExt->IncomingUnit)) {
+			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud IncomingObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+
+		}
+
+		if (ptr == static_cast<void*>(pExt->IncomingUnitAlt)) {
+			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud IncomingAltObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+		}
 	}
 }
 

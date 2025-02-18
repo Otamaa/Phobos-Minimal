@@ -540,12 +540,12 @@ namespace detail
 					buffer = baseType::FindOrAllocate(res.c_str());
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Verose parsing [{}]", pSection, i, res.c_str());
 
 				if (buffer) {
 					nVecDest[i].push_back(buffer);
 				}else if (bDebug && !GameStrings::IsBlank(cur)) {
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, i, res.c_str());
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Error parsing [{}]", pSection, i, res.c_str());
 				}
 			}
 		}
@@ -580,7 +580,7 @@ namespace detail
 					nVecDest[i].emplace_back(res);
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Verose parsing [{}]", pSection, i, res.c_str());
 			}
 		}
 	}
@@ -615,7 +615,7 @@ namespace detail
 					nVecDest[i].emplace_back(res.c_str());
 
 				if (bVerbose)
-					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, i, res.c_str());
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Verose parsing [{}]", pSection, i, res.c_str());
 			}
 		}
 	}

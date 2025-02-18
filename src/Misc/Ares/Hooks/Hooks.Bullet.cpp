@@ -214,7 +214,7 @@ DEFINE_HOOK(0x46867F , BulletClass_SetMovement_Parachute, 5)
 
 	R->EBX<BulletClass*>(Bullet);
 	// if (!Bullet->Target) {
-	// 	Debug::Log("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash\n",
+	// 	Debug::LogInfo("Bullet [%s - %x] Missing Target Pointer when Unlimbo! , Fallback To CreationCoord to Prevent Crash",
 	// 		Bullet->get_ID(), Bullet);
 	//
 	// 	Bullet->Target = MapClass::Instance->GetCellAt(XYZ);

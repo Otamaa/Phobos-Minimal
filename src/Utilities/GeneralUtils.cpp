@@ -34,7 +34,7 @@ void GeneralUtils::IntValidCheck(int* source, const char* section, const char* t
 {
 	if (*source < min || *source>max)
 	{
-		//Debug::Log("[Developer warning][%s]%s=%d is invalid! Reset to %d.\n", section, tag, *source, defaultValue);
+		//Debug::LogInfo("[Developer warning][%s]%s=%d is invalid! Reset to %d.", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}
 }
@@ -43,7 +43,7 @@ void GeneralUtils::DoubleValidCheck(double* source, const char* section, const c
 {
 	if (*source < min || *source>max)
 	{
-		//Debug::Log("[Developer warning][%s]%s=%f is invalid! Reset to %f.\n", section, tag, *source, defaultValue);
+		//Debug::LogInfo("[Developer warning][%s]%s=%f is invalid! Reset to %f.", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}
 }
@@ -179,7 +179,7 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 		pSuffix[0] = pTheater[0];
 		pSuffix[1] = pTheater[1];
 		pSuffix[2] = pTheater[2];
-		//Debug::Log("Found designated string, Replacing [%s] to [%s] \n", str, pSuffix);
+		//Debug::LogInfo("Found designated string, Replacing [%s] to [%s] ", str, pSuffix);
 		return true;
 	}
 
@@ -219,7 +219,7 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 		//only set the 3 characters without the terminator string
 		buffer.replace(nPos, 3, pTheater);
 
-		//Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
+		//Debug::LogInfo("Found designated string at [%d] Replacing [%s] to [%s] ",
 		//	nPos, str.c_str(), buffer.c_str());
 
 	}

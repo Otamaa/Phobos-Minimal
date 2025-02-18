@@ -43,7 +43,7 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 
 		if (this->ChargeDelay < 1)
 		{
-			Debug::Log("[Developer Error] %s has an invalid PrismForwarding.ChargeDelay (%d), overriding to 1.\n", pThis->ID, this->ChargeDelay.Get());
+			Debug::LogInfo("[Developer Error] {} has an invalid PrismForwarding.ChargeDelay ({}), overriding to 1.", pThis->ID, this->ChargeDelay.Get());
 			this->ChargeDelay = 1;
 			Debug::RegisterParserError();
 		}

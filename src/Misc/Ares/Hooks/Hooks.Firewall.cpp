@@ -8,6 +8,7 @@
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/RadSite/Body.h>
 
 #include "Header.h"
 #include "AresTrajectoryHelper.h"
@@ -234,11 +235,21 @@ DEFINE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 }
 
 #include <Ext/Cell/Body.h>
+#include <SpawnManagerClass.h>
 
 DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 {
-	GET(FootClass* const, pThis, ESI);
+		enum
+	{
+		CheckOtherState = 0x4DA63B,
+		SkipEverything = 0x4DAF00,
+		//Continue = 0x0,
+		ProcessRadSiteCheckVanilla = 0x4DA59F,
+	};
 
+	GET(FootClass* , pThis, ESI);
+
+	pThis->isidle_6B3 = false;
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -314,7 +325,107 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 		}
 	}
 
-	return pThis->IsAlive ? 0 : 0x4DAF00;
+	 if(!pThis->IsAlive)
+	 	return SkipEverything;
+
+	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
+	 pExt->Type  == RulesClass::Instance->DMisl.Type || pExt->Type  == RulesClass::Instance->CMisl.Type
+	 || TechnoTypeExtContainer::Instance.Find(pExt->Type)->IsCustomMissile);
+
+	if (pThis->SpawnOwner && !IsMissisleSpawn
+		)
+	{
+		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
+		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
+
+		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
+		{
+			//Spawnee trying to chase Aircraft that go out of map until it reset
+			//fix this , so reset immedietely if target is not on map
+			if (!MapClass::Instance->IsValid(pTargetTech->Location)
+				|| pTargetTech->TemporalTargetingMe
+				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+				)
+			{
+				if (pThis->SpawnOwner->Target == pThis->Target)
+					pThis->SpawnOwner->SetTarget(nullptr);
+
+				pThis->SpawnOwner->SpawnManager->ResetTarget();
+			}
+
+		}
+		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+		{
+			if (pThis->SpawnOwner->Target == pThis->Target)
+				pThis->SpawnOwner->SetTarget(nullptr);
+
+			pThis->SpawnOwner->SpawnManager->ResetTarget();
+		}
+	}
+
+	const auto nLoc = pThis->InlineMapCoords();
+	auto const pUnit = cast_to<UnitClass*, false>(pThis);
+
+	if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
+		return (CheckOtherState);
+
+	if (pThis->TemporalTargetingMe ||pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
+		return (CheckOtherState);
+
+	if (pThis->IsInAir())
+		return (CheckOtherState);
+
+	if (pThis->GetTechnoType()->Immune)
+		return (CheckOtherState);
+
+	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pThis))
+		return (CheckOtherState);
+
+	if (TechnoExtData::IsRadImmune(pThis))
+		return (CheckOtherState);
+
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		// Loop for each different radiation stored in the RadSites container
+		for (auto pRadSite : *RadSiteClass::Array())
+		{
+			const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
+			// Check the distance, if not in range, just skip this one
+			const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
+			if (static_cast<int>(orDistance) > pRadSite->Spread)
+				continue;
+
+			const RadTypeClass* pType = pRadExt->Type;
+			const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+			if ((RadApplicationDelay <= 0)
+				|| (Unsorted::CurrentFrame % RadApplicationDelay))
+				continue;
+
+			// for more precise dmg calculation
+			const double nRadLevel = pRadExt->GetRadLevelAt(orDistance);
+			if (nRadLevel <= 0.0 || !pType->GetWarhead())
+				continue;
+
+			const int damage = static_cast<int>(nRadLevel * pType->GetLevelFactor());
+
+			if (damage == 0)
+				continue;
+
+			switch (pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
+			{
+			case RadSiteExtData::DamagingState::Dead:
+				return SkipEverything;
+			case RadSiteExtData::DamagingState::Ignore:
+				return (CheckOtherState);
+			default:
+				break;
+			}
+		}
+
+		return (CheckOtherState);
+	}
+
+	return (ProcessRadSiteCheckVanilla);
 }
 
 DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)

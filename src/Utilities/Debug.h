@@ -17,112 +17,45 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/null_sink.h>
 
-class Console
-{
-public:
-
-	enum class ConsoleColor
-	{
-		Black = 0,
-		DarkBlue = 1,
-		DarkGreen = 2,
-		DarkRed = 4,
-		Intensity = 8,
-
-		DarkCyan = DarkBlue | DarkGreen,
-		DarkMagenta = DarkBlue | DarkRed,
-		DarkYellow = DarkGreen | DarkRed,
-		Gray = DarkBlue | DarkGreen | DarkRed,
-		DarkGray = Black | Intensity,
-
-		Blue = DarkBlue | Intensity,
-		Green = DarkGreen | Intensity,
-		Red = DarkRed | Intensity,
-		Cyan = Blue | Green,
-		Magenta = Blue | Red,
-		Yellow = Green | Red,
-		White = Red | Green | Blue,
-	};
-
-	union ConsoleTextAttribute
-	{
-		WORD AsWord;
-		struct
-		{
-			ConsoleColor Foreground : 4;
-			ConsoleColor Background : 4;
-			bool LeadingByte : 1;
-			bool TrailingByte : 1;
-			bool GridTopHorizontal : 1;
-			bool GridLeftVertical : 1;
-			bool GridRightVerticle : 1;
-			bool ReverseVideo : 1; // Reverse fore/back ground attribute
-			bool Underscore : 1;
-			bool Unused : 1;
-		};
-	};
-	OPTIONALINLINE static ConsoleTextAttribute TextAttribute;
-	OPTIONALINLINE static HANDLE ConsoleHandle;
-
-	static bool Create();
-	static void Release();
-
-	template<size_t Length>
-	COMPILETIMEEVAL static void Write(const char(&str)[Length]) {
-		Write(str, Length - 1); // -1 because there is a '\0' here
-	}
-
-	static void SetForeColor(ConsoleColor color);
-	static void SetBackColor(ConsoleColor color);
-	static void EnableUnderscore(bool enable);
-	static void Write(const char* str, int len);
-	static void WriteLine(const char* str, int len);
-	static void WriteWithVArgs(const char* pFormat, va_list args);
-	static void WriteFormat(const char* pFormat, ...);
-
-private:
-	static void PatchLog(DWORD dwAddr, void* realFunc, DWORD* pdwRealFunc);
-};
-
 class AbstractClass;
 class REGISTERS;
 class Debug final
 {
 public:
-	enum class Severity : int {
-		None = 0,
-		Verbose = 1,
-		Notice = 2,
-		Warning = 3,
-		Error = 4,
-		Fatal = 5
-	};
-
-	OPTIONALINLINE static FILE* LogFile;
-	OPTIONALINLINE static bool LogEnabled;
-
+	OPTIONALINLINE static bool LogEnabled {};
 	OPTIONALINLINE static std::wstring ApplicationFilePath {};
+	OPTIONALINLINE static std::wstring DefaultFEMessage {};
 	OPTIONALINLINE static std::wstring LogFilePathName {};
 	OPTIONALINLINE static std::wstring LogFileMainName { L"\\debug" };
-	OPTIONALINLINE static std::wstring LogFileTempName {};
 	OPTIONALINLINE static std::wstring LogFileMainFormattedName {};
 	OPTIONALINLINE static std::wstring LogFileExt { L".log" };
+	OPTIONALINLINE static std::wstring LogFileFullPath {};
+	OPTIONALINLINE static char LogMessageBuffer[0x1000] {};
+	OPTIONALINLINE static spdlog::sink_ptr file_sink {};
+	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_MainLogger {};
+	OPTIONALINLINE static bool made {};
 
-	OPTIONALINLINE static char DeferredStringBuffer[0x1000];
-	OPTIONALINLINE static char LogMessageBuffer[0x1000];
-	OPTIONALINLINE static std::vector<std::string> DeferredLogData;
+	static void InitLogger();
+	static void DeactivateLogger();
+	static void DetachLogger();
+	static void PrepareLogFile();
+	static std::wstring PrepareSnapshotDirectory();
+	static void LogFileRemove();
+	static void FreeMouse();
 
-	OPTIONALINLINE static spdlog::sink_ptr file_sink;
-	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_MainLogger;
-	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_ScriptLogger;
+	template <typename... TArgs>
+	static void LogInfo(spdlog::format_string_t<TArgs...> fmt, TArgs&&... args) {
+		if (LogFileActive()) {
+			Debug::g_MainLogger->info(fmt, std::forward<TArgs>(args)...);
+		}
+	}
 
-	enum class ExitCode : size_t
-	{
-		Normal = 0u,
-		SLFail = 1u,
-
-		Undefined = 65535u // -1
-	};
+	template <typename... TArgs>
+	static void LogError(spdlog::format_string_t<TArgs...> fmt, TArgs&&... args) {
+		if (LogFileActive()) {
+			Debug::g_MainLogger->error(fmt, std::forward<TArgs>(args)...);
+		}
+	}
 
 	static FORCEDINLINE void TakeMouse()
 	{
@@ -138,99 +71,20 @@ public:
 
 	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
 
-	template <typename... TArgs>
-	static FORCEDINLINE void Log(bool enabled, Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
-		if (enabled) {
-			Debug::Log(severity, pFormat, std::forward<TArgs>(args)...);
-		}
-	}
-
-	template <typename... TArgs>
-	static FORCEDINLINE void Log(bool enabled, const char* const pFormat, TArgs&&... args) {
-		if (enabled) {
-			Debug::Log(pFormat, std::forward<TArgs>(args)...);
-		}
-	}
-
-	template <typename... TArgs>
-	static FORCEDINLINE void Log(Debug::Severity severity, const char* const pFormat, TArgs&&... args) {
-		Debug::LogFlushed(severity, pFormat, std::forward<TArgs>(args)...);
-	}
-
-	template <typename... TArgs>
-	static FORCEDINLINE void Log(const char* const pFormat, TArgs&&... args) {
-		Debug::LogFlushed(pFormat, std::forward<TArgs>(args)...);
-	}
-
-	static FORCEDINLINE void LogWithVArgs(const char* const pFormat, va_list args)
-	{
-		if (Debug::LogFileActive())
-		{
-			Debug::LogWithVArgsUnflushed(pFormat, args);
-			Debug::Flush();
-		}
-	}
-
 	static COMPILETIMEEVAL FORCEDINLINE bool LogFileActive() {
-		return Debug::LogEnabled && Debug::LogFile;
-	}
-
-	//This log is not immedietely printed , but buffered until time it need to be finalize(printed)
-	template <typename... TArgs>
-	static NOINLINE void LogDeferred(const char* const pFormat, TArgs&&... args)
-	{
-		IMPL_SNPRNINTF(DeferredStringBuffer, sizeof(DeferredStringBuffer) , pFormat, std::forward<TArgs>(args)...);
-		DeferredLogData.emplace_back(DeferredStringBuffer);
-	}
-
-	static NOINLINE void LogDeferredFinalize()
-	{
-		if (!Debug::LogFileActive())
-			return;
-
-		for (auto const& Logs : DeferredLogData) {
-
-			if (Logs.empty())
-				continue;
-
-			if(Console::ConsoleHandle != NULL)
-				WriteConsole(Console::ConsoleHandle, Logs.c_str(), Logs.size(), nullptr, nullptr);
-
-			fprintf(Debug::LogFile, "%s" , Logs.c_str());
-		}
-
-		Debug::Flush();
-		DeferredLogData.clear();
+		return Debug::LogEnabled;
 	}
 
 	template <typename... TArgs>
 	static NOINLINE void LogAndMessage(const char* pFormat, TArgs&&... args)
 	{
-		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(DeferredStringBuffer), pFormat, std::forward<TArgs>(args)...);
-		if (Debug::LogFileActive()) {
-			if (Console::ConsoleHandle == NULL)
-				return;
+		if (!Debug::LogFileActive())
+			return;
 
-			WriteConsole(Console::ConsoleHandle, Debug::LogMessageBuffer, strlen(Debug::LogMessageBuffer), nullptr, nullptr);
-
-			fprintf(Debug::LogFile, Debug::LogMessageBuffer);
-			Debug::Flush();
-		}
-
+		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(LogMessageBuffer), pFormat, std::forward<TArgs>(args)...);
 		static wchar_t buffer[0x1000];
 		mbstowcs(buffer, Debug::LogMessageBuffer, 0x1000);
 		MessageListClass::Instance->PrintMessage(buffer);
-	}
-
-	static NOINLINE void InitLogFile()
-	{
-		wchar_t path[MAX_PATH];
-		GetCurrentDirectoryW(MAX_PATH, path);
-		Debug::ApplicationFilePath = path;
-		Debug::LogFilePathName = path;
-		Debug::LogFilePathName += L"\\debug";
-		CreateDirectoryW(Debug::LogFilePathName.c_str(), nullptr);
-
 	}
 
 	static NOINLINE std::wstring GetCurTime()
@@ -263,25 +117,6 @@ public:
 			localTime->tm_sec);
 	}
 
-	static OPTIONALINLINE bool made;
-
-	static NOINLINE void PrepareLogFile() {
-
-		if (!made) {
-			Debug::LogFileTempName = Debug::LogFilePathName + Debug::LogFileMainName + Debug::LogFileExt;
-			Debug::LogFileMainFormattedName = Debug::LogFilePathName + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
-
-			made = 1;
-		}
-	}
-
-	static NOINLINE std::wstring PrepareSnapshotDirectory()
-	{
-		const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + GetCurTime();
-		CreateDirectoryW(buffer.c_str(), nullptr);
-		return buffer;
-	}
-
 	static FORCEDINLINE std::wstring FullDump(PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
 	{
 		return FullDump(Debug::PrepareSnapshotDirectory(), pException);
@@ -309,134 +144,22 @@ public:
 		return filename;
 	}
 
-	static NOINLINE void LogFileOpen()
-	{
-		Debug::PrepareLogFile();
-		Debug::LogFileClose(999);
-
-		Debug::LogFile = _wfsopen(Debug::LogFileTempName.c_str(), L"w", SH_DENYNO);
-
-		if (!Debug::LogFile)
-		{
-			std::wstring msg = std::format(L"Log file failed to open. Error code = {}", errno);
-			MessageBoxW(Game::hWnd.get(), Debug::LogFileTempName.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
-			Phobos::Otamaa::ExeTerminated = true;
-			ExitProcess(1);
-		}
-	}
-
-	static NOINLINE void LogFileClose(int tag)
-	{
-		if (Debug::LogFile)
-		{
-			fprintf(Debug::LogFile, "Closing log file on request %d", tag);
-			fclose(Debug::LogFile);
-			CopyFileW(Debug::LogFileTempName.c_str(), Debug::LogFileMainFormattedName.c_str(), FALSE);
-			Debug::LogFile = nullptr;
-		}
-	}
-
-	static NOINLINE void LogFileRemove()
-	{
-		Debug::LogFileClose(555);
-		DeleteFileW(Debug::LogFileTempName.c_str());
-	}
-
-	static NOINLINE void FreeMouse()
-	{
-		Game::StreamerThreadFlush();
-		const auto pMouse = MouseClass::Instance();
-
-		if (pMouse)
-		{
-			const auto pMouseVtable = VTable::Get(pMouse);
-
-			if (pMouseVtable == 0x7E1964)
-			{
-				pMouse->UpdateCursor(MouseCursorType::Default, false);
-			}
-		}
-
-		const auto pWWMouse = WWMouseClass::Instance();
-
-		if (pWWMouse)
-		{
-			const auto pWWMouseVtable = VTable::Get(pWWMouse);
-
-			if (pWWMouseVtable == 0x7F7B2C)
-			{
-				pWWMouse->ReleaseMouse();
-			}
-		}
-
-		ShowCursor(TRUE);
-
-		auto const BlackSurface = [](DSurface* pSurface)
-			{
-				if (pSurface && VTable::Get(pSurface) == DSurface::vtable && pSurface->BufferPtr)
-				{
-					pSurface->Fill(0);
-				}
-			};
-
-		BlackSurface(DSurface::Alternate);
-		BlackSurface(DSurface::Composite);
-		BlackSurface(DSurface::Hidden);
-		BlackSurface(DSurface::Temp);
-		BlackSurface(DSurface::Primary);
-		BlackSurface(DSurface::Sidebar);
-		BlackSurface(DSurface::Tile);
-
-		ShowCursor(TRUE);
-	}
-
-	static NOINLINE void WriteTimestamp()
-	{
-		if (LogFile)
-		{
-			time_t raw;
-			time(&raw);
-
-			tm t;
-			localtime_s(&t, &raw);
-
-			fprintf(LogFile, "[%02d:%02d:%02d] ", t.tm_hour, t.tm_min, t.tm_sec);
-		}
-	}
-
 	[[noreturn]] static NOINLINE void ExitGame(unsigned int code = 1u)
 	{
 		Phobos::ExeTerminate();
-		ExitProcess(code);
+		CRT::exit_returnsomething(code, 0, 0);
 	}
 
-	static COMPILETIMEEVAL std::wstring GenerateDefaultMessage (){
-		std::wstring first { L"An internal error has been encountered and the game is unable to continue normally. \n" };
-		std::wstring second { L"Please notify the mod's creators about this issue, or Contact Otamaa at \n" };
-		std::wstring third { L"Discord for updates and support.\n" };
-		return first + second + third;
-	}
-
-	static NOINLINE void FatalErrorCore(bool Dump, const std::string& msg) /* takes formatted message from Ares::readBuffer */
-	{
-		if(msg.empty()) {
-			static auto def_ = GenerateDefaultMessage();
-			static auto def_str = PhobosCRT::WideStringToString(def_);
-			Debug::Log("\nFatal Error: \n%s\n", def_str.c_str());
-			Debug::FreeMouse();
-			MessageBoxW(Game::hWnd, def_.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
-		} else {
-			Debug::Log("\nFatal Error: \n%s\n", msg.c_str());
-			Debug::FreeMouse();
-			MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+	static COMPILETIMEEVAL void GenerateDefaultMessage (){
+		if(DefaultFEMessage.empty()){
+			std::wstring first { L"An internal error has been encountered and the game is unable to continue normally. \n" };
+			std::wstring second { L"Please notify the mod's creators about this issue, or Contact Otamaa at \n" };
+			std::wstring third { L"Discord for updates and support.\n" };
+			DefaultFEMessage = first + second + third;
 		}
-
-		if (Dump) {
-			Debug::FullDump();
-		}
-
-		Debug::ExitGame();
 	}
+
+	static NOINLINE void FatalErrorCore(bool Dump, const std::string& msg);
 
 	template <typename... TArgs>
 	static NOINLINE void FatalError(const char* Message, TArgs&&... args)
@@ -447,17 +170,17 @@ public:
 	}
 
 	template <typename... TArgs>
-	[[noreturn]] static NOINLINE void FatalErrorAndExit(ExitCode nExitCode, const char* Message, TArgs&&... args)
+	[[noreturn]] static NOINLINE void FatalErrorAndExit(size_t nExitCode, const char* Message, TArgs&&... args)
 	{
 		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(Debug::LogMessageBuffer), Message, std::forward<TArgs>(args)...);
 		Debug::FatalErrorCore(Phobos::Config::DebugFatalerrorGenerateDump , Debug::LogMessageBuffer);
-		Debug::ExitGame((size_t)nExitCode);
+		Debug::ExitGame(nExitCode);
 	}
 
 	template <typename... TArgs>
 	[[noreturn]] static FORCEDINLINE void FatalErrorAndExit(const char* pFormat, TArgs&&... args)
 	{
-		FatalErrorAndExit(ExitCode::Normal, pFormat, std::forward<TArgs>(args)...);
+		FatalErrorAndExit(0u, pFormat, std::forward<TArgs>(args)...);
 	}
 
 	static void RegisterParserError() {
@@ -466,145 +189,5 @@ public:
 		}
 	}
 
-	static NOINLINE void DumpObj(void const* data, size_t len)
-	{
-		if (!Debug::LogFileActive()) {
-			return;
-		}
-
-		Debug::LogUnflushed<false>("Dumping %u bytes of object at %p\n", len, data);
-		auto const bytes = static_cast<byte const*>(data);
-
-		Debug::LogUnflushed<false>("       |");
-		for (auto i = 0u; i < 0x10u; ++i)
-		{
-			Debug::LogUnflushed<false>(" %02X |", i);
-		}
-		Debug::LogUnflushed<false>("\n");
-		Debug::LogUnflushed<false>("-------|");
-		for (auto i = 0u; i < 0x10u; ++i)
-		{
-			Debug::LogUnflushed<false>("----|", i);
-		}
-		auto const bytesToPrint = (len + 0x10 - 1) / 0x10 * 0x10;
-		for (auto startRow = 0u; startRow < bytesToPrint; startRow += 0x10)
-		{
-			Debug::LogUnflushed<false>("\n");
-			Debug::LogUnflushed<false>(" %05X |", startRow);
-			auto const bytesInRow = std::min(len - startRow, 0x10u);
-			for (auto i = 0u; i < bytesInRow; ++i)
-			{
-				Debug::LogUnflushed<false>(" %02X |", bytes[startRow + i]);
-			}
-			for (auto i = bytesInRow; i < 0x10u; ++i)
-			{
-				Debug::LogUnflushed<false>(" -- |");
-			}
-			for (auto i = 0u; i < bytesInRow; ++i)
-			{
-				auto const& sym = bytes[startRow + i];
-				Debug::LogUnflushed<false>("%c", isprint(sym) ? sym : '?');
-			}
-		}
-		Debug::Log("\nEnd of dump.\n"); // flushes
-	}
-
-	template <typename T>
-	static FORCEDINLINE void DumpObj(const T& object) {
-		DumpObj(&object, sizeof(object));
-	}
-
-	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr)
-	{
-		if (Phobos::Otamaa::TrackParserErrors)
-		{
-			const char* LogMessage = (Message == nullptr)
-				? "[Phobos] Failed to parse INI file content: [%s]%s=%s\n"
-				: "[Phobos] Failed to parse INI file content: [%s]%s=%s (%s)\n"
-				;
-
-			Debug::Log(LogMessage, section, flag, value, Message);
-			Debug::RegisterParserError();
-		}
-	}
-
-	static COMPILETIMEEVAL const char* SeverityString(Debug::Severity const severity)
-	{
-		switch (severity)
-		{
-		case Severity::Verbose:
-			return "verbose";
-		case Severity::Notice:
-			return "notice";
-		case Severity::Warning:
-			return "warning";
-		case Severity::Error:
-			return "error";
-		case Severity::Fatal:
-			return "fatal";
-		default:
-			return "wtf";
-		}
-	}
-
-	static NOINLINE void LogFlushed(const char* pFormat, ...)
-	{
-		if (Debug::LogFileActive()) {
-			va_list args;
-			va_start(args, pFormat);
-			Debug::LogWithVArgsUnflushed(pFormat, args);
-			Debug::Flush();
-			va_end(args);
-		}
-	}
-
-	static NOINLINE void LogFlushed(Debug::Severity severity, const char* pFormat, ...)
-	{
-		if (Debug::LogFileActive())
-		{
-			if (severity != Severity::None) {
-				Debug::LogUnflushed<false>(
-					"[Developer %s]", SeverityString(severity));
-			}
-
-			va_list args;
-			va_start(args, pFormat);
-			Debug::LogWithVArgsUnflushed(pFormat, args);
-			Debug::Flush();
-			va_end(args);
-		}
-	}
-
-	// no flushing, and unchecked
-	template<bool check = true>
-	static NOINLINE void LogUnflushed(const char* pFormat, ...)
-	{
-		if COMPILETIMEEVAL (check){
-			if (Debug::LogFileActive()) {
-				va_list args;
-				va_start(args, pFormat);
-				Debug::LogWithVArgsUnflushed(pFormat, args);
-				va_end(args);
-			}
-		}
-		else
-		{
-			va_list args;
-			va_start(args, pFormat);
-			Debug::LogWithVArgsUnflushed(pFormat, args);
-			va_end(args);
-		}
-	}
-
-	static NOINLINE void LogWithVArgsUnflushed(const char* pFormat, va_list args)
-	{
-		Console::WriteWithVArgs(pFormat, args);
-		vfprintf(Debug::LogFile, pFormat, args);
-	}
-
-	// flush unchecked
-	static FORCEDINLINE void Flush()
-	{
-		fflush(Debug::LogFile);
-	}
+	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
 };

@@ -7,7 +7,7 @@
 DEFINE_HOOK_AGAIN(0x6857EA, PhobosSaveVariables, 0x5)//Win
 DEFINE_HOOK(0x685EB1, PhobosSaveVariables, 0x5)//Lose
 {
-	//Debug::Log("%s , Executed [%x]!\n", __FUNCTION__ , R->Origin());
+	//Debug::LogInfo("%s , Executed [%x]!", __FUNCTION__ , R->Origin());
 
 	if (Phobos::Config::SaveVariablesOnScenarioEnd)
 	{
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x689910, ScenarioClass_SetLocalToByID, 0x5)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(const char, bState, 0x8);
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
+	//Debug::LogInfo("%s , Executed !", __FUNCTION__);
 
 	ScenarioExtData::Instance()->SetVariableToByID(false, nIndex, bState);
 
@@ -112,7 +112,7 @@ DEFINE_HOOK(0x689A00, ScenarioClass_GetLocalStateByID, 0x6)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(char*, pOut, 0x8);
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
+	//Debug::LogInfo("%s , Executed !", __FUNCTION__);
 
 	ScenarioExtData::Instance()->GetVariableStateByID(false, nIndex, pOut);
 
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x689A00, ScenarioClass_GetLocalStateByID, 0x6)
 DEFINE_HOOK(0x689B20, ScenarioClass_ReadLocalVariables, 0x6)
 {
 	GET_STACK(CCINIClass*, pINI, 0x4);
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
+	//Debug::LogInfo("%s , Executed !", __FUNCTION__);
 
 	ScenarioExtData::Instance()->ReadVariables(false, pINI);
 
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x689670, ScenarioClass_SetGlobalToByID, 0x5)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(const char, bState, 0x8);
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
+	//Debug::LogInfo("%s , Executed !", __FUNCTION__);
 
 	ScenarioExtData::Instance()->SetVariableToByID(true, nIndex, bState);
 
@@ -144,7 +144,7 @@ DEFINE_HOOK(0x689760, ScenarioClass_GetGlobalStateByID, 0x6)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(char*, pOut, 0x8);
-	//Debug::Log("%s , Executed !\n", __FUNCTION__);
+	//Debug::LogInfo("%s , Executed !", __FUNCTION__);
 
 	ScenarioExtData::Instance()->GetVariableStateByID(true, nIndex, pOut);
 

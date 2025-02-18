@@ -40,7 +40,7 @@ struct DamageTextData : public PrintTextData
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		//Debug::Log("Loading Element From DamageTextData ! \n"); 
+		//Debug::LogInfo("Loading Element From DamageTextData ! "); 
 		return Serialize(Stm); 
 	}
 
@@ -88,7 +88,7 @@ struct DamageTextTypeData
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ 
-		//Debug::Log("Loading Element From DamageTextTypeData ! \n"); 
+		//Debug::LogInfo("Loading Element From DamageTextTypeData ! "); 
 		return Serialize(Stm);
 	}
 

@@ -205,7 +205,7 @@ DEFINE_HOOK(0x647AE8, QueueAIMultiplayer_SendStatistics_1, 0x7)
 
 DEFINE_HOOK(0x64823C, QueueAIMultiplayer_SendStatistics_2, 0x5)
 {
-	Debug::Log(reinterpret_cast<char*>(0x8373BC) /* "Failure executing DoList\n" */);
+	Debug::LogInfo("Failure executing DoList");
 
 	enum { Send = 0x648257, DontSend = 0x64825C };
 

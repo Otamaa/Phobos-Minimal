@@ -26,7 +26,7 @@ struct StraightBullet
 	{ }
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From StraightBullet ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From StraightBullet ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

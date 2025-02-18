@@ -293,7 +293,7 @@ bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
 	// this really shouldn't happen
 	if (!key)
 	{
-		//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+		//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
 		return false;
 	}
 

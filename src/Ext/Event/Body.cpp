@@ -122,7 +122,7 @@ void EventExt::ProtocolZero::Raise()
 	if (EventExt::AddToEvent<false , true , ProtocolZero>(event , maxAhead, latencyLevel))
 	{
 		NextSendFrame = currentFrame + SendResponseTimeInterval;
-		Debug::Log("[Spawner] Player %d sending response time of %d, LatencyMode = %d, Frame = %d\n"
+		Debug::LogInfo("[Spawner] Player {} sending response time of {}, LatencyMode = {}, Frame = {}"
 			, event.HouseIndex
 			, maxAhead
 			, latencyLevel
@@ -144,7 +144,7 @@ void EventExt::ProtocolZero::Respond(EventClass* Event)
 
 	if (netData->MaxAhead == 0)
 	{
-		Debug::Log("[Spawner] Returning because event->MaxAhead == 0\n");
+		Debug::LogInfo("[Spawner] Returning because event->MaxAhead == 0");
 		return;
 	}
 

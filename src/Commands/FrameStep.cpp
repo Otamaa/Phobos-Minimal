@@ -35,9 +35,9 @@ void FrameByFrameCommandClass::Execute(WWKey eInput) const
 		return;
 
 	if (!FrameStep)
-		Debug::LogAndMessage("Entering Stepping Mode...\n");
+		Debug::LogAndMessage("Entering Stepping Mode...");
 	else
-		Debug::LogAndMessage("Exiting Stepping Mode...\n");
+		Debug::LogAndMessage("Exiting Stepping Mode...");
 
 	FrameStep = !FrameStep;
 	FrameStepCount = 0;

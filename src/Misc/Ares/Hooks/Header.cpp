@@ -375,7 +375,7 @@ void TechnoTypeExt_ExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI
 
 		if (*result < 0 || (pType->TurretCount > 0 && *result >= pType->TurretCount))
 		{
-			Debug::Log("Weapon %d on [%s] has an invalid turret index of %d.\n", i + 1, pSection, *result);
+			Debug::LogInfo("Weapon {} on [{}] has an invalid turret index of {}.", i + 1, pSection, *result);
 			//*result = 0; //avoid crash
 		}
 
@@ -400,7 +400,7 @@ int* TechnoTypeExt_ExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t 
 	if ((size_t)resultidx < vec->size())
 		return vec->data() + resultidx;
 
-	Debug::Log("Techno[%s] Trying to get AdditionalTurretWeaponIndex with out of bound index[%d]\n", pType->ID, idx);
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalTurretWeaponIndex with out of bound index[{}]", pType->ID, idx);
 	return nullptr;
 }
 
@@ -412,7 +412,7 @@ WeaponStruct* TechnoTypeExt_ExtData::GetWeapon(TechnoTypeClass* pType, int const
 	if ((size_t)idx < Vectors->size())
 		return Vectors->data() + idx;
 
-	Debug::Log("Techno[%s] Trying to get AdditionalWeapon with out of bound index[%d]\n", pType->ID, idx);
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalWeapon with out of bound index[{}]", pType->ID, idx);
 	return nullptr;
 }
 
@@ -426,7 +426,7 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 	const int additionalamount = pType->WeaponCount - TechnoTypeClass::MaxWeapons < 0 ? 0 : pType->WeaponCount - TechnoTypeClass::MaxWeapons;
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	//Debug::Log("Resize Additional Weapon [%s] [%d]\n", pSection, additionalamount);
+	//Debug::LogInfo("Resize Additional Weapon [%s] [%d]", pSection, additionalamount);
 
 	pExt->AdditionalWeaponDatas.resize(additionalamount);
 	pExt->AdditionalEliteWeaponDatas.resize(additionalamount);
@@ -434,12 +434,12 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 	pExt->AdditionalTurrentWeapon.resize(additionalamount);
 	pExt->Insignia_Weapon.resize(pType->WeaponCount);
 
-	//Debug::Log("After Resize Additional Weapon [%s] [%d- E %d]\n", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
+	//Debug::LogInfo("After Resize Additional Weapon [%s] [%d- E %d]", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
 
 	for (int i = 0; i < pType->WeaponCount; ++i)
 	{
 		const int NextIdx = i < TechnoTypeClass::MaxWeapons ? i : i - TechnoTypeClass::MaxWeapons;
-		//Debug::Log("Next Weapon Idx for [%s] [%d]\n", pSection, NextIdx);
+		//Debug::LogInfo("Next Weapon Idx for [%s] [%d]", pSection, NextIdx);
 
 		//char buffer[0x40];
 		//char bufferWeapon[0x40];
@@ -1389,7 +1389,7 @@ void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* 
 
 	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded)
 	{
-		Debug::Log(__FUNCTION__" Called \n");
+		Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(Clone, nullptr, false, false);
 	}
 }
@@ -1483,7 +1483,7 @@ void TechnoExt_ExtData::InitWeapon(
 	bool IsFoot
 )
 {
-	COMPILETIMEEVAL auto const Note = "Constructing an instance of [%s]:\r\n"
+	COMPILETIMEEVAL auto const Note = "Constructing an instance of [%s]:\r"
 		"%s %s (slot %d) has no %s!";
 
 	if (!pWeapon->Projectile)
@@ -1577,7 +1577,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 			if (!TechnoExtData::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
-				Debug::Log(__FUNCTION__" Hijacker Called \n");
+				Debug::LogInfo(__FUNCTION__" Hijacker Called ");
 				TechnoExtData::HandleRemove(pHijacker, pKiller, false, true);
 			}
 			else
@@ -1623,7 +1623,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 							if (!TechnoExtData::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
 								pPilot->RegisterDestruction(pKiller);
-								Debug::Log(__FUNCTION__" Pilot Called \n");
+								Debug::LogInfo(__FUNCTION__" Pilot Called ");
 								TechnoExtData::HandleRemove(pPilot, pKiller, false, false);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
@@ -1673,7 +1673,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			Debug::Log(__FUNCTION__" Passengers Called \n");
+			Debug::LogInfo(__FUNCTION__" Passengers Called ");
 			TechnoExtData::HandleRemove(pPassenger, pKiller, false, false);
 		}
 	}
@@ -2558,7 +2558,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 		if (pTypeExt->SpyEffect_UnReverseEngineer)
 		{
-			Debug::Log("Undoing all Reverse Engineering achieved by house %ls\n", Owner->UIName);
+			Debug::LogInfo("Undoing all Reverse Engineering achieved by house {}", Owner->Type->ID);
 			HouseExtContainer::Instance.Find(Owner)->Reversed.clear();
 			Owner->RecheckTechTree = true;
 
@@ -3066,7 +3066,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 
 		if (!res)
 		{
-			Debug::Log(__FUNCTION__" Called \n");
+			Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pRet, nullptr, true, false);
 			pRet = nullptr;
 		}
@@ -3287,7 +3287,7 @@ std::pair<TechnoTypeClass*, AbstractType> NOINLINE GetOriginalType(TechnoClass* 
 	case AbstractType::Aircraft:
 		return { (TechnoTypeClass*)(((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
 	default:
-		Debug::Log ("[%x] %s is not FootClass, conversion to [%s] not allowed\n", pThis , pToType->ID , pThis->get_ID());
+		Debug::LogInfo ("[{}] {} is not FootClass, conversion to [{}] not allowed", (void*)pThis , pToType->ID , pThis->get_ID());
 		return { nullptr, AbstractType::None };
 	}
 }
@@ -3321,11 +3321,11 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		return false;
 
 	const auto pOldType = prevType;
-	Debug::Log("Attempt to convert TechnoType[%s] to [%s]\n", pOldType->ID, pToType->ID);
+	Debug::LogInfo("Attempt to convert TechnoType[{}] to [{}]", pOldType->ID, pToType->ID);
 
 	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
 	{
-		Debug::Log("Incompatible types between %s and %s\n", pOldType->ID, pToType->ID);
+		Debug::LogInfo("Incompatible types between {} and {}", pOldType->ID, pToType->ID);
 		return false;
 	}
 
@@ -3566,7 +3566,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	}
 
 	//if (pThis->LocomotorSource) {
-	//	Debug::Log("Attempt to convert TechnoType[%s] to [%s] when the locomotor is currently manipulated , return\n", pOldType->ID, pToType->ID);
+	//	Debug::LogInfo("Attempt to convert TechnoType[%s] to [%s] when the locomotor is currently manipulated , return", pOldType->ID, pToType->ID);
 	//	return true;
 	//}
 	bool move = true;
@@ -3695,7 +3695,7 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 
 				if (!created)
 				{
-					Debug::Log(__FUNCTION__" Called \n");
+					Debug::LogInfo(__FUNCTION__" Called ");
 					TechnoExtData::HandleRemove(pVisc, nullptr, true, true);
 				}
 			}
@@ -4560,7 +4560,7 @@ void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct select
 					}
 					else
 					{
-						Debug::Log(__FUNCTION__"Called!\n");
+						Debug::LogInfo(__FUNCTION__"Called!");
 						TechnoExtData::HandleRemove(tempBuilding, nullptr, true, true);
 					}
 				}
@@ -5633,11 +5633,11 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 	//	if(hi < Move_to_own_building_SearchType.size())
 	//		FindType = Move_to_own_building_SearchType[hi];
 	//
-	//	Debug::Log("Team[%x - %s] Executing MoveToOwnBuilding (%d)[hi %d(%s) , Lo %d(BldTypeMax %d)] \n" ,
+	//	Debug::LogInfo("Team[%x - %s] Executing MoveToOwnBuilding (%d)[hi %d(%s) , Lo %d(BldTypeMax %d)] " ,
 	//		pTeam , pTeam->get_ID() ,pTeamMission->Argument, hi , FindType , lo , BuildingTypeClass::Array->Count );
 	//
 	//}else
-	//	Debug::Log("Team[%x - %s] Executing [(Action)%d - (Argument)%d] \n" , pTeam , pTeam->get_ID() , pTeamMission->Action , pTeamMission->Argument);
+	//	Debug::LogInfo("Team[%x - %s] Executing [(Action)%d - (Argument)%d] " , pTeam , pTeam->get_ID() , pTeamMission->Action , pTeamMission->Argument);
 
 	switch (pTeamMission->Action)
 	{
@@ -5677,7 +5677,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 
 		if (lo > BuildingTypeClass::Array->Count)
 		{
-			Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !\n",
+			Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
 				pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
 		}
 	}break;
@@ -5967,7 +5967,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	if (!Target->Limbo())
 	{
-		Debug::FatalError("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
+		Debug::FatalError("Abduction: Target unit %p (%s) could not be removed.", Target, Target->get_ID());
 		return false;
 	}
 
@@ -6384,7 +6384,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 
 		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
 			nCoord.Z += Unsorted::BridgeHeight;
-		//Debug::Log("Trigger %s - Tag %s PlayAnimAt at(%d %d %d) Anim[%s - %d]\n",
+		//Debug::LogInfo("Trigger %s - Tag %s PlayAnimAt at(%d %d %d) Anim[%s - %d]",
 		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr(),
 		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
 		//	nCoord.X, nCoord.Y, nCoord.Z,
@@ -6412,7 +6412,7 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 		if (pCell->ContainsBridge())
 			nCoord.Z += Unsorted::BridgeHeight;
 
-		//Debug::Log("Trigger %s - Tag %s DoExplosion at(%d %d %d) Weapon[%s] Warhead[%s]\n",
+		//Debug::LogInfo("Trigger %s - Tag %s DoExplosion at(%d %d %d) Weapon[%s] Warhead[%s]",
 		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr() ,
 		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
 		//	nCoord.X, nCoord.Y , nCoord.Z,
@@ -7100,7 +7100,7 @@ void TunnelFuncs::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 		return;
 
 	pFoot->RegisterDestruction(pKiller);
-	Debug::Log(__FUNCTION__" Called \n");
+	Debug::LogInfo(__FUNCTION__" Called ");
 	TechnoExtData::HandleRemove(pFoot, pKiller, false, false);
 }
 
@@ -7135,7 +7135,7 @@ void TunnelFuncs::EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClas
 
 	if (!pFoot->Limbo())
 	{
-		Debug::Log("Techno[%s] Trying to enter Tunnel[%s] but failed ! \n", pFoot->get_ID(), pTunnel->get_ID());
+		Debug::LogInfo("Techno[{}] Trying to enter Tunnel[{}] but failed ! ", pFoot->get_ID(), pTunnel->get_ID());
 		return;
 	}
 
@@ -7408,7 +7408,7 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 	auto const pType = pThis->Type;
 
 	auto const errorMsg = "AI House[%x] of country [%s] cannot build any object in "
-		"%s. The AI ain't smart enough for that.\n";
+		"%s. The AI ain't smart enough for that.";
 
 	// if you don't have a base unit buildable, how did you get to base
 	// planning? only through crates or map actions, so have to validate base
@@ -7722,7 +7722,7 @@ int AresHouseExt::GetTotalCost(const Nullable<int>& fixed)
 
 		const int what = !types.size() ? 1 : types.size();
 		totalCost = (total_ + (what >> 1)) / what;
-		Debug::Log("Unit cost of %d derived from %u units totalling %d credits.\n", totalCost, what, total_);
+		Debug::LogInfo("Unit cost of {} derived from {} units totalling {} credits.", totalCost, what, total_);
 	}
 
 	return totalCost * GameModeOptionsClass::Instance->UnitCount;
@@ -8220,7 +8220,7 @@ Action MouseClassExt::ValidateShroudedAction(Action nAction)
 
 void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 {
-	Debug::Log("--------- Loading Ares global settings -----------\n");
+	Debug::LogInfo("--------- Loading Ares global settings -----------");
 
 	if (Ini)
 	{
@@ -8334,16 +8334,16 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		crc.Commit();
 		crc.Add(ModVersion, strlen(ModVersion));
 		ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
-
-		Debug::Log("Color count is %d\n", colorCount);
-		Debug::Log("Mod is %s (%s) with %X\n",
+		
+		Debug::LogInfo("Color count is {}", colorCount);
+		Debug::LogInfo("Mod is {0} ({1}) with {2:x}",
 			ModName,
 			ModVersion,
 			ModIdentifier
 		);
 	}
 
-	Debug::Log("-------------------Complete ----------------------\n");
+	Debug::LogInfo("-------------------Complete ----------------------");
 }
 
 void AresGlobalData::ReadAresRA2MD()

@@ -750,7 +750,7 @@ original_code:
 
 	if (this_ptr->UniqueID == -2)
 	{
-		Debug::Log("Anim[%s - %x] with some weird ID\n", this_ptr->Type->ID, this_ptr);
+		Debug::LogInfo("Anim[{} - {}] with some weird ID", this_ptr->Type->ID, this_ptr);
 	}
 
 	FakeAnimClass::ClearExtAttribute(this_ptr);
@@ -808,7 +808,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
 	if (pItem->UniqueID == -2) {
-		Debug::Log("Anim[%s - %x] with some weird ID\n", pItem->Type->ID, pItem);
+		Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, fmt::ptr(pItem));
 	}
 
 	FakeAnimClass::ClearExtAttribute(pItem);
@@ -891,11 +891,11 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty)
 		// save the block
 		if (!saver.WriteBlockToStream(pStm))
 		{
-			//Debug::Log("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream\n", saver.Size());
+			//Debug::LogInfo("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream", saver.Size());
 			return -1;
 		}
 
-		//Debug::Log("[SaveGame] FakeAnimClass used up 0x%X bytes\n", saver.Size());
+		//Debug::LogInfo("[SaveGame] FakeAnimClass used up 0x%X bytes", saver.Size());
 	}
 
 	return res;
@@ -914,7 +914,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	pThis->_GetExtData()->InvalidatePointer(target, all);
 
 	if (pThis->Type == target) {
-		Debug::Log("Anim[0x%x] detaching Type[%s] Pointer ! \n", pThis, pThis->Type->ID);
+		Debug::LogInfo("Anim[0x{}] detaching Type[{}] Pointer ! ", (void*)pThis, pThis->Type->ID);
 		pThis->Type = nullptr;
 	}
 

@@ -102,7 +102,7 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis , DWORD)
 
 				ScreenShot.WriteBytes(_pixelData.data(), arrayLen * 2);
 				ScreenShot.Close();
-				Debug::Log("Wrote screenshot to file %s\n", fName);
+				Debug::LogInfo("Wrote screenshot to file {}", fName);
 				Surface->Unlock();
 			}
 

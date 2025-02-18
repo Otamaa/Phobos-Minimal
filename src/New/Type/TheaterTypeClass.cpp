@@ -91,7 +91,7 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 					if (auto pTheater = FindOrAllocate(Phobos::readBuffer))
 						pTheater->LoadFromINI(pINI);
 					else
-						Debug::Log("Error Reading %s \"%s\".\n", pSection, Phobos::readBuffer);
+						Debug::LogInfo("Error Reading {} \"{}\".", pSection, Phobos::readBuffer);
 				}
 			}
 		}
@@ -119,7 +119,7 @@ void TheaterTypeClass::AddDefaults()
 
 void TheaterTypeClass::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Debug::Log("Loading TheaterTypeClass ! \n");
+	//Debug::LogInfo("Loading TheaterTypeClass ! ");
 	//this->Swizzle(Stm);
 }
 
@@ -163,10 +163,10 @@ DEFINE_STRONG_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 	const bool Exist = file_c->Exists();
 
 	if(!Exist)
-		GameDebugLog::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]\n", outBuffs,pTheater->Name.data());
+		GameDebugLog::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]", outBuffs,pTheater->Name.data());
 	else{
 		if(file_c->Read(FileSystem::ISOx_PAL(), sizeof(BytePalette))){
-			GameDebugLog::Log("Loaded IsometricTileTypeClass Palette %s For [%s]\n", outBuffs, pTheater->Name.data());
+			GameDebugLog::Log("Loaded IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
 
 			for (size_t i = 0; i < BytePalette::EntriesCount; ++i) {
 				auto& data = FileSystem::ISOx_PAL->at(i);
@@ -258,7 +258,7 @@ DEFINE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 
 	auto const scenarioTheater = ScenarioClass::Instance->Theater;
 	if (scenarioTheater == TheaterType::None)
-		Debug::FatalError(__FUNCTION__" for [(%s) %s] Cannot Proceed With Negative theater Index! \n" , pType->ID ,pType->GetThisClassName());
+		Debug::FatalError(__FUNCTION__" for [(%s) %s] Cannot Proceed With Negative theater Index! " , pType->ID ,pType->GetThisClassName());
 
 	auto const TheaterData = TheaterTypeClass::FindFromTheaterType_NoCheck(scenarioTheater);
 	const auto what = pType->WhatAmI();
@@ -393,7 +393,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
 
-	Debug::Log("Init For Theater [%d]\n", nType);
+	Debug::LogInfo("Init For Theater [{}]", (void*)nType);
 	ScenarioClass::Instance->Theater = nType;
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);
@@ -401,7 +401,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	if (nType == TheaterType::None) {
 		//for some stupid reason this return to invalid
 		//that mean it not parsed properly ?
-		Debug::Log("TheaterType is invalid ! , fallback to Temperate!");
+		Debug::LogInfo("TheaterType is invalid ! , fallback to Temperate!");
 		ScenarioClass::Instance->Theater = TheaterType::Temperate;
 		nType = TheaterType::Temperate;
 	}
@@ -448,7 +448,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	else
 		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
 
-	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n", pTheater->Name.data(),
+	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]", pTheater->Name.data(),
 	pRootMix, pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix);
 
 	// any errors triggered before this line are irrelevant
@@ -580,7 +580,7 @@ DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 	const int color = 14;//default;
 	if ((int)pScen->Theater == -1)
 	{
-		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
+		Debug::LogInfo(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		R->EAX(color);
 		return 0;
 	}
@@ -616,7 +616,7 @@ DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 	GET(ScenarioClass*, pScen, EAX);
 
 	if ((int)pScen->Theater == -1) {
-		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
+		Debug::LogInfo(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		return setTemperatOccupy;
 	}
 
@@ -631,7 +631,7 @@ DEFINE_HOOK(0x71C116, TerrainClass_SetOccupyBit_Theater, 0x7)
 	GET(ScenarioClass*, pScen, EAX);
 
 	if ((int)pScen->Theater == -1) {
-		Debug::Log(__FUNCTION__" Scenario is negative idx , default to Temperate");
+		Debug::LogInfo(__FUNCTION__" Scenario is negative idx , default to Temperate");
 		return setTemperatOccupy;
 	}
 
@@ -687,7 +687,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	//const auto nRest = !pFile ? "Failed to" : "Successfully";
 
 	if (!pFile && Phobos::Otamaa::IsAdmin)
-		Debug::Log("Failed to load [%s] as [%s] !\n", pOriginalName, pNameProcessed);
+		Debug::LogInfo("Failed to load [{}] as [{}] !", pOriginalName, pNameProcessed);
 
 	// cant use PaletteManager atm , because this will be modified after load done
 	// so if PaletteManager used , that mean the color entries will get modified

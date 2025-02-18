@@ -34,7 +34,7 @@ DEFINE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 // 	GET(const char*, pFilename, EDI);
 // 	GET(const wchar_t*, pSaveName, ESI);
 //
-// 	Debug::Log("\nSAVING GAME [%s - %ls]\n", pFilename, pSaveName);
+// 	Debug::LogInfo("\nSAVING GAME [%s - %ls]", pFilename, pSaveName);
 //
 // 	return 0x67CF0D;
 // }

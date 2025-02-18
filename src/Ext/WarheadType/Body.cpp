@@ -518,19 +518,19 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	//if (this->InflictLocomotor && pThis->Locomotor == _GUID())
 	//{
-	//	Debug::Log("[Developer warning][%s] InflictLocomotor is specified but Locomotor is not set!", pSection);
+	//	Debug::LogInfo("[Developer warning][%s] InflictLocomotor is specified but Locomotor is not set!", pSection);
 	//	this->InflictLocomotor = false;
 	//}
 	//
 	//if ((this->InflictLocomotor || this->RemoveInflictedLocomotor) && pThis->IsLocomotor)
 	//{
-	//	Debug::Log("[Developer warning][%s] InflictLocomotor=yes/RemoveInflictedLocomotor=yes can't be specified while IsLocomotor is set!", pSection);
+	//	Debug::LogInfo("[Developer warning][%s] InflictLocomotor=yes/RemoveInflictedLocomotor=yes can't be specified while IsLocomotor is set!", pSection);
 	//	this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
 	//}
 	//
 	//if (this->InflictLocomotor && this->RemoveInflictedLocomotor)
 	//{
-	//	Debug::Log("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
+	//	Debug::LogInfo("[Developer warning][%s] InflictLocomotor=yes and RemoveInflictedLocomotor=yes can't be set simultaneously!", pSection);
 	//	this->InflictLocomotor = this->RemoveInflictedLocomotor = false;
 	//}
 
@@ -1145,7 +1145,7 @@ void WarheadTypeExtData::DetonateAt(
 {
 	if (targetCell && !pTarget)
 	{
-		Debug::Log("WarheadTypeExtData::Detonate asking for targetCell but pTarget is nullptr ! \n");
+		Debug::LogInfo("WarheadTypeExtData::Detonate asking for targetCell but pTarget is nullptr ! ");
 		return;
 	}
 
@@ -1164,7 +1164,7 @@ void WarheadTypeExtData::DetonateAt(
 {
 	if (targetCell && !coords.IsValid())
 	{
-		Debug::Log("WarheadTypeExtData::Detonate asking for targetCell but coords is invalid ! \n");
+		Debug::LogInfo("WarheadTypeExtData::Detonate asking for targetCell but coords is invalid ! ");
 		return;
 	}
 
@@ -1184,19 +1184,19 @@ void WarheadTypeExtData::DetonateAt(
 	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
 	if(!pType)
-		Debug::FatalError("Uneable to Fetch %s BulletType ! \n" , DEFAULT_STR2);
+		Debug::FatalError("Uneable to Fetch %s BulletType ! " , DEFAULT_STR2);
 
 	//if (pThis->NukeMaker)
 	//{
 	//	if (!pTarget)
 	//	{
-	//		Debug::Log("WarheadTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+	//		Debug::LogInfo("WarheadTypeExtData::DetonateAt , cannot execute when invalid Target is present , need to be avail ! ");
 	//		return;
 	//	}
 	//}
 	//
 	//if (!pOwner && Phobos::Otamaa::IsAdmin) {
-	//	Debug::Log("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !\n", pThis->get_ID(), pOwner);
+	//	Debug::LogInfo("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
 	//}
 
 	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,

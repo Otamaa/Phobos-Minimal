@@ -7,6 +7,8 @@
 #include <UnitClass.h>
 #include <CaptureManagerClass.h>
 
+#include <Locomotor/HoverLocomotionClass.h>
+
 static FORCEDINLINE void PlayUnitLeaveTransportSound(UnitClass* pThis) {
 	if (pThis->Type->LeaveTransportSound != -1)
 		VoxClass::PlayAtPos(pThis->Type->LeaveTransportSound, &pThis->Location);
@@ -106,6 +108,11 @@ static bool Entered(FootClass* pThis)
 
 					pThis->QueueUpToEnter = nullptr; // Added, to prevent passengers from wanting to get on after getting off
 					pThis->SetSpeedPercentage(0.0); // Added, to stop the passengers and let OpenTopped work normally
+
+					// Added, to stop hover unit's meaningless behavior
+					//if (VTable::Get(pThis->Locomotor.GetInterfacePtr()) == HoverLocomotionClass::vtable) // Hover
+					//		((HoverLocomotionClass*)pThis->Locomotor.GetInterfacePtr())->Curr
+					//	*reinterpret_cast<double*>(reinterpret_cast<int*>(pThis->Locomotor.GetInterfacePtr()) + 0x11) = 0; // CurrentSpeed
 
 					return true;
 				}

@@ -90,7 +90,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;
 	const size_t facingsize = pData->SW_Deliverables_Facing.size();
 
-	//Debug::Log("PlaceUnits for [%s] - Owner[%s] \n", pData->get_ID(), pOwner->get_ID());
+	//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] ", pData->get_ID(), pOwner->get_ID());
 	// create an instance of each type and place it
 	for (size_t i = 0; i < pData->SW_Deliverables.size(); ++i)
 	{
@@ -111,7 +111,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			if (!Item)
 				continue;
 
-			//Debug::Log("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] \n", pData->get_ID(), pOwner->get_ID() , pType->ID);
+			//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] After CreateObj[%s] ", pData->get_ID(), pOwner->get_ID() , pType->ID);
 
 			const auto ItemBuilding = cast_to<BuildingClass*, false>(Item);
 
@@ -177,7 +177,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				else
 				{
 					const auto mission = IsHumanControlled ? Mission::Area_Guard : Mission::Hunt;
-					//Debug::Log("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
+					//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] SwtMission[%s - %s] ", pData->get_ID(), pOwner->get_ID(), pType->ID , MissionClass::MissionToString(mission));
 
 					// only computer units can hunt
 					Item->QueueMission(mission, false);
@@ -193,7 +193,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				*/
 				if (Item->Unlimbo(XYZ, DirType((dir << 5))))
 				{
-					//Debug::Log("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
+					//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] ", pData->get_ID(), pOwner->get_ID(), pType->ID);
 
 					if (ItemBuilding)
 					{
@@ -202,7 +202,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 							ItemBuilding->DiscoveredBy(pOwner);
 							ItemBuilding->IsReadyToCommence = 1;
 
-							//Debug::Log("PlaceUnits for [%s] - Owner[%s] After DiscoverBld[%s] \n", pData->get_ID(), pOwner->get_ID(), pType->ID);
+							//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] After DiscoverBld[%s] ", pData->get_ID(), pOwner->get_ID(), pType->ID);
 						}
 					}
 					else
@@ -225,7 +225,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				}
 				else
 				{
-					Debug::Log(__FUNCTION__"\n");
+					Debug::LogInfo(__FUNCTION__);
 					TechnoExtData::HandleRemove(Item, nullptr, true, true);
 					//Item->UnInit();
 				}
@@ -233,5 +233,5 @@ void UnitDeliveryStateMachine::PlaceUnits()
 		}
 	}
 
-	//Debug::Log("PlaceUnits for [%s] - Owner[%s] Done \n", pData->get_ID(), pOwner->get_ID());
+	//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] Done ", pData->get_ID(), pOwner->get_ID());
 }

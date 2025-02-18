@@ -78,12 +78,12 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 	if (changeFailed)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Failed to modify hate values against other houses",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
-		curAct,
-		curArgs
+		(int)curAct,
+		(int)curArgs
 		);
 
 		return;
@@ -132,12 +132,12 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 	if (changes == 0)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Failed to modify hate values against other houses",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
-		curAct,
-		curArgs
+		(int)curAct,
+		(int)curArgs
 		);
 
 		return;
@@ -224,11 +224,11 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 			if (angerNode.House == selectedHouse)
 			{
 				angerNode.AngerLevel = newHateLevel;
-				Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Picked a new house as enemy [%s]\n",
+				Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Picked a new house as enemy [{}]",
 				pTeam->Type->ID,
 				pTeam->CurrentScript->Type->ID,
 				pTeam->CurrentScript->CurrentMission,
-				curAct,
+				(int)curAct,
 				curArgs,
 				angerNode.House->Type->ID);
 			}
@@ -238,11 +238,11 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 	}
 	else
 	{
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Failed to pick a new hated house",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
-		curAct,
+		(int)curAct,
 		curArgs
 		);
 	}
@@ -328,11 +328,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -381,11 +381,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -440,11 +440,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -488,11 +488,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -549,11 +549,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex);
@@ -596,11 +596,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -645,11 +645,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -740,11 +740,11 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 		}
 
 		if (enemyHouse)
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n",
+			Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): selected House [{}] (index: {})",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			curArgs,
 			enemyHouse->Type->ID,
 			enemyHouse->ArrayIndex
@@ -798,11 +798,11 @@ void ScriptExtData::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1
 		break;
 	}
 
-	Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): New Team -> OnlyTargetHouseEnemy value: %d\n",
+	Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): New Team -> OnlyTargetHouseEnemy value: {}",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pTeam->CurrentScript->CurrentMission,
-		curAct,
+		(int)curAct,
 		curArgs,
 		pTeamData->OnlyTargetHouseEnemy
 	);
@@ -835,12 +835,12 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 				&& !angerNode.House->IsObserver())
 			{
 				angerNode.AngerLevel += pTeamData->AngerNodeModifier;
-				Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Modified anger level against [%s](index: %d) with value: %d\n",
+				Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Modified anger level against [{}](index: {}) with value: {}",
 					pTeam->Type->ID,
 					pTeam->CurrentScript->Type->ID,
 					pTeam->CurrentScript->CurrentMission,
-		curAct,
-		curArgs,
+					(int)curAct,
+					curArgs,
 					angerNode.House->Type->ID,
 					angerNode.House->ArrayIndex,
 					angerNode.AngerLevel
@@ -951,11 +951,11 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 	}
 	else
 	{
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house with index: %d\n",
+		Debug::LogInfo("DEBUG: [{}] [{}] (line: {} = {},{}): Failed to pick a new hated house with index: {}",
 			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID,
 			pTeam->CurrentScript->CurrentMission,
-			pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Action,
+			(int)pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Action,
 			pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument,
 			index
 		);
@@ -990,32 +990,32 @@ void ScriptExtData::UpdateEnemyHouseIndex(HouseClass* pHouse)
 void ScriptExtData::DebugAngerNodesData()
 {
 #ifdef DebugThese
-	Debug::Log("DEBUG: Updated AngerNodes lists of every playable House:\n");
+	Debug::LogInfo("DEBUG: Updated AngerNodes lists of every playable House:");
 
 	for (auto pHouse : *HouseClass::Array)
 	{
 		if (pHouse->IsObserver())
-			Debug::Log("Player %d [Observer] ", pHouse->ArrayIndex);
+			Debug::LogInfo("Player {} [Observer] ", pHouse->ArrayIndex);
 		else
-			Debug::Log("Player %d [%s]: ", pHouse->ArrayIndex, pHouse->Type->ID);
+			Debug::LogInfo("Player {} [{}]: ", pHouse->ArrayIndex, pHouse->Type->ID);
 
 		int i = 0;
 
 		for (const auto& angerNode : pHouse->AngerNodes)
 		{
 			if (!pHouse->IsObserver())
-				Debug::Log("%d:%d", angerNode.House->ArrayIndex, angerNode.AngerLevel);
+				Debug::LogInfo("{}:{}", angerNode.House->ArrayIndex, angerNode.AngerLevel);
 
 			if (i < HouseClass::Array->Count - 2 && !pHouse->IsObserver())
-				Debug::Log(", ");
+				Debug::LogInfo(", ");
 
 			i++;
 		}
 
 		if (!pHouse->IsObserver())
-			Debug::Log(" -> Main Enemy House: %d\n", pHouse->EnemyHouseIndex);
+			Debug::LogInfo(" -> Main Enemy House: {}", pHouse->EnemyHouseIndex);
 		else
-			Debug::Log("\n");
+			Debug::LogInfo("");
 	}
 #endif
 }

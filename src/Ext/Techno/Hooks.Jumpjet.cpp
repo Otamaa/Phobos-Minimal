@@ -206,23 +206,31 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			ret->RotateY(arf);
 		}
 	}
-#ifdef __TODO_1522
-	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTiltWhenMoving)
+
+	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTilt)
 		&& !onGround && linked->IsAlive && linked->Health > 0 && !linked->IsAttackedByLocomotor)
 	{
+		constexpr auto maxTilt = static_cast<float>(Math::HalfPi / 2);
+		constexpr auto baseSpeed = 32;
+		constexpr auto baseTilt = Math::HalfPi / 4;
+
 		if (pThis->__currentSpeed > 0.0)
 		{
-			constexpr auto factor = (Math::HalfPi / 4) / 32;
-			arf += static_cast<float>(MinImpl(32.0, pThis->__currentSpeed) * factor);
-		}
 
-		const auto& locoFace = pThis->Facing;
+			constexpr auto forwardBaseTilt = baseTilt / baseSpeed;
+			const auto forwardSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_ForwardSpeedFactor;
+			const auto forwardAccelFactor = pThis->Acceleration * pTypeExt->JumpjetTilt_ForwardAccelFactor;
+			arf += static_cast<float>(MinImpl(32.0, forwardAccelFactor + forwardSpeedFactor) * forwardBaseTilt);
 
-		if (locoFace.Is_Rotating()) {
-			constexpr auto factor = (Math::HalfPi / 4) / 32768 / 65536;
-			const auto leftRaw = locoFace.RotationTimer.GetTimeLeft() * locoFace.ROT.Raw;
-			const auto dirMult = (static_cast<short>(locoFace.Difference().Raw) * leftRaw);
-			ars += static_cast<float>(dirMult * factor);
+			const auto& locoFace = pThis->Facing;
+
+			if (locoFace.Is_Rotating()) {
+				constexpr auto baseTurnRaw = 32768;
+				constexpr auto sidewaysBaseTilt = baseTilt / (baseTurnRaw * baseSpeed);
+				const auto sidewaysSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_SidewaysSpeedFactor;
+				const auto sidewaysRotationFactor = static_cast<short>(locoFace.Difference().Raw) * pTypeExt->JumpjetTilt_SidewaysRotationFactor;
+				ars += std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor * sidewaysBaseTilt), -maxTilt, maxTilt);
+			}
 		}
 
 		if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005) {
@@ -232,8 +240,6 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			ret->RotateY(arf);
 		}
 	}
-#endif
-
 
 	if (pIndex && *pIndex != -1) {
 		if (onGround) *pIndex = slope_idx + (*pIndex << 6);

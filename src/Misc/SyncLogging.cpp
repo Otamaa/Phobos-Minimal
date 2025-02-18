@@ -101,7 +101,7 @@ void SyncLogger::WriteSyncLog(const char* logFilename)
 
 	if (pLogFile)
 	{
-		Debug::Log("Writing to sync log file '%s'.\n", logFilename);
+		Debug::LogInfo("Writing to sync log file '{}'.", logFilename);
 
 		fprintf(pLogFile, "\nPhobos synchronization log:\n\n");
 
@@ -117,7 +117,7 @@ void SyncLogger::WriteSyncLog(const char* logFilename)
 	}
 	else
 	{
-		Debug::Log("Failed to open sync log file '%s'.\n", logFilename);
+		Debug::LogInfo("Failed to open sync log file '{}'.", logFilename);
 	}
 }
 

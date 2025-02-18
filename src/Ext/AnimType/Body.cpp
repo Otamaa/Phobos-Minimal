@@ -476,7 +476,7 @@ void AnimTypeExtData::ValidateData()
 
 	if (this->CreateUnit && this->CreateUnit->Strength == 0)
 	{
-		Debug::Log("AnimType[%s] With[%s] CreateUnit strength 0 !\n", this->AttachedToObject->ID, this->CreateUnit->ID);
+		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", this->AttachedToObject->ID, this->CreateUnit->ID);
 		this->CreateUnit = nullptr;
 		Debug::RegisterParserError();
 	}

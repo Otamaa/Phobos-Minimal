@@ -312,7 +312,7 @@ void PhobosAEFunctions::ApplyExpireWeapon(std::vector<WeaponTypeClass*>& expireW
 
 void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , TechnoClass* pAttacker , HouseClass* pAttacker_House, WarheadTypeClass* pWH)
 {
-	//Debug::Log(__FUNCTION__" Executed [%s - %s]\n", pThis->GetThisClassName(), pThis->get_ID());
+	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pThis->GetThisClassName(), pThis->get_ID());
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 

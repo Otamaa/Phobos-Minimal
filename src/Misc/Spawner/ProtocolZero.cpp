@@ -24,11 +24,11 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 	if (newLatencyLevel <= CurentLatencyLevel)
 		return;
 
-	Debug::Log("[Spawner] Player %ls, Loss mode (%d, %d) Frame = %d\n"
-		, HouseClass::CurrentPlayer->UIName
-		, newLatencyLevel
-		, CurentLatencyLevel
-		, (int)Unsorted::CurrentFrame
+	Debug::LogInfo("[Spawner] Player {}, Loss mode ({}, {}) Frame = {}"
+		, PhobosCRT::WideStringToString(HouseClass::CurrentPlayer->UIName)
+		, (int)newLatencyLevel
+		, (int)CurentLatencyLevel
+		, (int)Unsorted::CurrentFrame()
 	);
 
 	CurentLatencyLevel = newLatencyLevel;
@@ -112,10 +112,10 @@ DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 		GET(int, NewRetryDelta, EBP);
 		GET(int, NewRetryTimeout, EAX);
 
-		Debug::Log("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n"
+		Debug::LogInfo("[Spawner] NewRetryDelta = {}, NewRetryTimeout = {}, FrameSendRate = {}, CurentLatencyLevel = {}"
 			, NewRetryDelta
 			, NewRetryTimeout
-			, (int)Game::Network::FrameSendRate
+			, (int)Game::Network::FrameSendRate()
 			, (int)LatencyLevel::CurentLatencyLevel
 		);
 	}

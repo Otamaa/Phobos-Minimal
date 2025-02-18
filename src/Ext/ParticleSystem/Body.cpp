@@ -1191,7 +1191,7 @@ void ParticleSystemExtData::UpdateInAir()
 			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
 
 			if (!pExt)
-				Debug::FatalError("ParticleSystem without Ext[%x]\n", pSys);
+				Debug::FatalError("ParticleSystem without Ext[%x]", pSys);
 
 			pExt->UpdateInAir_Main(StopDrawing);
 		}
@@ -1201,7 +1201,7 @@ void ParticleSystemExtData::UpdateInAir()
 void ParticleSystemExtData::InitializeConstant()
 {
 	if (!this->AttachedToObject->Type)
-		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !\n", this->AttachedToObject);
+		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", this->AttachedToObject);
 
 	auto pType = this->AttachedToObject->Type;
 	{

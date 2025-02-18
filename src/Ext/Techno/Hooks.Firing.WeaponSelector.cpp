@@ -257,7 +257,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	GET_STACK(uintptr_t, callerAddress, 0x0);
 //
 //	if(pTarget && Is_Techno(pTarget) && !static_cast<TechnoClass*>(pTarget)->IsAlive)
-//		Debug::Log("Caller[%x] InfantryClass_SelectWeapon[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]\n", callerAddress, pThis->get_ID(), static_cast<TechnoClass*>(pTarget), static_cast<TechnoClass*>(pTarget)->align_154->OriginalHouseType->ID);
+//		Debug::LogInfo("Caller[%x] InfantryClass_SelectWeapon[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]", callerAddress, pThis->get_ID(), static_cast<TechnoClass*>(pTarget), static_cast<TechnoClass*>(pTarget)->align_154->OriginalHouseType->ID);
 //
 //	return 0x0;
 //}
@@ -307,7 +307,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 
 	//if (!pTargetExt) {
-	//	Debug::Log("Caller[%x] Techno[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]\n", calleraddr ,  pThis->get_ID(), pTargetTechno , pTargetTechno->align_154->OriginalHouseType->ID);
+	//	Debug::LogInfo("Caller[%x] Techno[%s] Trying to target possibly dead Techno[%x] FromOwner [%s]", calleraddr ,  pThis->get_ID(), pTargetTechno , pTargetTechno->align_154->OriginalHouseType->ID);
 	//	calleraddr = -1;
 	//	return OriginalCheck;
 	//}
@@ -332,7 +332,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 
 	const int nArmor = (int)TechnoExtData::GetArmor(pTargetTechno);
 	//if ((size_t)nArmor > ArmorTypeClass::Array.size())
-	//	Debug::Log(__FUNCTION__" Armor is more that avaible ArmorTypeClass \n");
+	//	Debug::LogInfo(__FUNCTION__" Armor is more that avaible ArmorTypeClass ");
 
 	const auto vsData_Secondary = &WarheadTypeExtContainer::Instance.Find(pSecondary->Warhead)->Verses[nArmor];
 
@@ -481,7 +481,7 @@ DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 	GET_STACK(DWORD , caller , 0x0);
 
 	if(!pThis)
-		Debug::FatalError("Caller %u \n" , caller);
+		Debug::FatalError("Caller %u " , caller);
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{

@@ -18,7 +18,7 @@ struct StraightBulletData
 	~StraightBulletData() = default;
 
 	bool Load(PhobosStreamReader & Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From StraightBulletData ! \n"); return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From StraightBulletData ! "); return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter & Stm)
 	{ return Serialize(Stm); }

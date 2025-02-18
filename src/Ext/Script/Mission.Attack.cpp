@@ -18,7 +18,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	// This is the target type
 	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
 	const auto& [nextAct, nextArg] = pScript->GetNextAction();
-	//ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Executing)\n",
+	//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Executing)",
 	//	pTeam->Type->ID, pScript->Type->ID,
 	//	pScript->CurrentMission,
 	//	curAct,
@@ -171,14 +171,14 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n",
+		Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)",
 			pTeam->Type->ID,
 			pScript->Type->ID,
 			pScript->CurrentMission,
-			curAct,
+			(int)curAct,
 			scriptArgument,
 			pScript->CurrentMission + 1,
-			nextAct,
+			(int)nextAct,
 			nextArg);
 
 		return;
@@ -222,7 +222,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		if (selectedTarget)
 		{
-	/*		ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n",
+	/*		Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Leader [{}] (UID: %lu) selected [{}] (UID: %lu) as target.",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
@@ -319,14 +319,14 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n",
+			Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} (Leader [{}] (UID: %lu) can't find a new target)",
 				pTeam->Type->ID,
 				pScript->Type->ID,
 				pScript->CurrentMission,
-				curAct,
+				(int)curAct,
 				scriptArgument,
 				pScript->CurrentMission + 1,
-				nextAct,
+				(int)nextAct,
 				nextArg,
 				pTeamData->TeamLeader->get_ID(),
 				pTeamData->TeamLeader->UniqueID);
@@ -435,14 +435,14 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			{
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 				pTeam->StepCompleted = true;
-				ScriptExtData::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Jump to NEXT line: %d = %d,%d (Naval is unable to target ground)\n",
+				Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to NEXT line: {} = {},{} (Naval is unable to target ground)",
 					pTeam->Type->ID,
 					pScript->Type->ID,
 					pScript->CurrentMission,
-					curAct,
+					(int)curAct,
 					scriptArgument,
 					pScript->CurrentMission + 1,
-					nextAct,
+					(int)nextAct,
 					nextArg);
 
 				return;
@@ -1374,11 +1374,11 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				const int idxSelectedObject = Mission_Attack_List1Random_validIndexes[ScenarioClass::Instance->Random.RandomFromMax(Mission_Attack_List1Random_validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxSelectedObject;
 
-				ScriptExtData::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
+				Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Picked a random Techno from the list index [AITargetTypes][{}][{}] = {}",
 					pTeam->Type->ID,
 					pTeam->CurrentScript->Type->ID,
 					pScript->CurrentMission,
-					curAct,
+					(int)curAct,
 					curArgs,
 					attackAITargetType,
 					idxSelectedObject,
@@ -1392,11 +1392,11 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 
 	// This action finished
 	pTeam->StepCompleted = true;
-	ScriptExtData::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n",
+	Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Failed to pick a random Techno from the list index [AITargetTypes][{}]! Valid Technos in the list: {}",
 		pTeam->Type->ID,
 		pTeam->CurrentScript->Type->ID,
 		pScript->CurrentMission,
-		curAct,
+		(int)curAct,
 		curArgs,
 		attackAITargetType,
 		Mission_Attack_List1Random_validIndexes.size()

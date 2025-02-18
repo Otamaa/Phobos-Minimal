@@ -27,6 +27,8 @@ public:
 	void _SetTarget(AbstractClass* pTarget);
 	void _Destroyed(int mult);
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
+
+	void _FootClass_Update_Wrapper();
 };
 
 static_assert(sizeof(FakeAircraftClass) == sizeof(AircraftClass), "Invalid Size !");

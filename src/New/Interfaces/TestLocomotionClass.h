@@ -65,7 +65,7 @@ public:
 	// 	HRESULT hr = LocomotionClass::Link_To_Object(pointer);
 
 	// 	if (SUCCEEDED(hr))
-	// 		Debug::Log("TestLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
+	// 		Debug::LogInfo("TestLocomotionClass - Sucessfully linked to \"%s\"", Owner->get_ID());
 
 	// 	return hr;
 	// }

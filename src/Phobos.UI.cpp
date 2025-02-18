@@ -191,7 +191,7 @@ bool PhobosWindowClass::Create()
 {
 	SetLastError(0);
 
-	Debug::Log("Developer - Creating window.\n");
+	Debug::LogInfo("Developer - Creating window.");
 
 	ImGui_ImplWin32_EnableDpiAwareness();
 
@@ -213,7 +213,7 @@ bool PhobosWindowClass::Create()
 	BOOL rc = RegisterClassEx(&wc);
 	if (!rc)
 	{
-		Debug::Log("Developer - Failed to register window class!\n");
+		Debug::LogInfo("Developer - Failed to register window class!");
 		return false;
 	}
 
@@ -233,11 +233,11 @@ bool PhobosWindowClass::Create()
 
 	if (!hwnd)
 	{
-		Debug::Log("Developer - Failed to create window!\n");
+		Debug::LogInfo("Developer - Failed to create window!");
 		return false;
 	}
 
-	Debug::Log("Developer - Setting window size.\n");
+	Debug::LogInfo("Developer - Setting window size.");
 
 	// Resposition and resize the window based on the monitor scale.
 	float scale = 100.0f;
@@ -250,12 +250,12 @@ bool PhobosWindowClass::Create()
 		int(GameOptionsClass::Instance->ScreenHeight * scale),
 		SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 
-	Debug::Log("Developer - Creating Direct3D device.\n");
+	Debug::LogInfo("Developer - Creating Direct3D device.");
 
 	// Initialize Direct3D
 	if (!ImGui_CreateDeviceD3D(hwnd))
 	{
-		Debug::Log("Developer - Failed to create Direct3D device!\n");
+		Debug::LogInfo("Developer - Failed to create Direct3D device!");
 		ImGui_CleanupDeviceD3D();
 		UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return false;
@@ -281,13 +281,13 @@ bool PhobosWindowClass::Create()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	Debug::Log("Developer - Setting up platform and renderer.\n");
+	Debug::LogInfo("Developer - Setting up platform and renderer.");
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplWin32_Init(ImGuiMainWindow);
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
-	Debug::Log("Developer: Window created.\n");
+	Debug::LogInfo("Developer: Window created.");
 
 	return true;
 }

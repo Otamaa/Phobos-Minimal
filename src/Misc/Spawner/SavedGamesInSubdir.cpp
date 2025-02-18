@@ -130,13 +130,13 @@ namespace SavedGames
 	{
 		if (!std::filesystem::exists(SpawnerMain::GetGameConfigs()->SavedGameDir))
 		{
-			Debug::Log("\n[Spawner] Folder Saved Games does not exist, creating...\n");
+			Debug::LogInfo("[Spawner] Folder Saved Games does not exist, creating...");
 			if (!std::filesystem::create_directories(SpawnerMain::GetGameConfigs()->SavedGameDir))
 			{
-				Debug::Log("\tCannot create folder Saved Games!\n");
+				Debug::LogInfo("\tCannot create folder Saved Games!");
 				return false;
 			}
-			Debug::Log("\tDone.\n");
+			Debug::LogInfo("\tDone.");
 		}
 		return true;
 	}
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x67D2E3, SaveGame_AdditionalInfoForClient, 0x6)
 		if (SessionClass::IsCampaign() && SpawnerMain::GetGameConfigs()->CustomMissionID)
 			SavedGames::AppendToStorage<SavedGames::CustomMissionID>(pStorage);
 		if (SavedGames::AppendToStorage<SavedGames::ExtraMetaInfo>(pStorage))
-			Debug::Log("[Spawner] Extra meta info appended on sav file\n");
+			Debug::LogInfo("[Spawner] Extra meta info appended on sav file");
 	}
 
 	return 0;
@@ -226,7 +226,7 @@ DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 		if (auto id = SavedGames::ReadFromStorage<SavedGames::CustomMissionID>(pStorage))
 		{
 			int num = id->Number;
-			Debug::Log("[Spawner] sav file CustomMissionID = %d\n", num);
+			Debug::LogInfo("[Spawner] sav file CustomMissionID = {}", num);
 			SpawnerMain::GetGameConfigs()->CustomMissionID = num;
 			ScenarioClass::Instance->EndOfGame = true;
 		}
@@ -237,7 +237,7 @@ DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 
 		if (auto info = SavedGames::ReadFromStorage<SavedGames::ExtraMetaInfo>(pStorage))
 		{
-			Debug::Log("[Spawner] CurrentFrame = %d, TechnoCount = %d, HowManyTimesSaved = %d \n"
+			Debug::LogInfo("[Spawner] CurrentFrame = {}, TechnoCount = {}, HowManyTimesSaved = {} "
 				, info->CurrentFrame
 				, info->TechnoCount
 				, info->SavedCount

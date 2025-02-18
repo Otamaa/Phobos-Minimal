@@ -32,7 +32,7 @@ DEFINE_HOOK(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 //DEFINE_HOOK(0x44FBE9, BuildingClass_ReadINI_UnlimboSomething, 0x8)
 //{
 //	GET(BuildingClass*, pBld, ESI);
-//	Debug::Log("Currently Unlimbo For building [%x - %s]\n", pBld, pBld->Type->ID);
+//	Debug::LogInfo("Currently Unlimbo For building [%x - %s]", pBld, pBld->Type->ID);
 //	return 0x0;
 //}
 

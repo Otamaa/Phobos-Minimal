@@ -80,7 +80,7 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 	for (size_t i = 0; i < size; ++i) {
 		auto Option = *(Data + i);
 
-		//Debug::Log("Checking [%s - %s] option for [%s] \n" ,
+		//Debug::LogInfo("Checking [%s - %s] option for [%s] " ,
 		//	Option->ID,
 		//	Option->GetThisClassName() ,
 		//	pOwner->Type->ID
@@ -98,7 +98,7 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 			case RequirementStatus::Forbidden:
 			case RequirementStatus::Incomplete:
 
-				//Debug::Log("[%s - %s] Is Avaible for [%s] \n",
+				//Debug::LogInfo("[%s - %s] Is Avaible for [%s] ",
 				//	Option->ID,
 				//	Option->GetThisClassName(),
 				//	pOwner->Type->ID
@@ -107,7 +107,7 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 				break;
 			default:
 
-			//	Debug::Log("[%s - %s] Is Unavaible[%d] for [%s] \n",
+			//	Debug::LogInfo("[%s - %s] Is Unavaible[%d] for [%s] ",
 			//		Option->ID,
 			//		Option->GetThisClassName(),
 			//		result,
@@ -134,7 +134,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	// fixed item, no need to randomize
 	if (pType->SecretInfantry || pType->SecretUnit || pType->SecretBuilding)
 	{
-		Debug::Log("[Secret Lab] %s has a fixed boon.\n", pType->ID);
+		Debug::LogInfo("[Secret Lab] {} has a fixed boon.", pType->ID);
 		return;
 	}
 
@@ -160,11 +160,11 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	if (!Options->empty())
 	{
 		const auto Result = Options[ScenarioClass::Instance->Random.RandomFromMax(Options->size() - 1)];
-		Debug::Log("[Secret Lab] rolled %s for %s\n", Result->ID, pType->ID);
+		Debug::LogInfo("[Secret Lab] rolled {} for {}", Result->ID, pType->ID);
 		pThis->SecretProduction = Result;
 		pExt->SecretLab_Placed = true;
 	} else {
-		Debug::Log("[Secret Lab] %s has no boons applicable to country [%s]!\n",
+		Debug::LogInfo("[Secret Lab] {} has no boons applicable to country [{}]!",
 			pType->ID, pOwner->Type->ID);
 	}
 }
@@ -384,9 +384,9 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 	{
 		if (!pNewType && !remove)
 		{
-			Debug::Log("Warning! Advanced Rubble was supposed to be reconstructed but"
-				" Ares could not obtain its new BuildingType. Check if [%s]Rubble.%s is"
-				" set (correctly).\n", pBuilding->Type->ID, pTagName);
+			Debug::LogInfo("Warning! Advanced Rubble was supposed to be reconstructed but"
+				" Ares could not obtain its new BuildingType. Check if [{}]Rubble.{} is"
+				" set (correctly).", pBuilding->Type->ID, pTagName);
 			return true;
 		}
 
@@ -412,7 +412,7 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 			// The building is created?
 			if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().GetDir()))
 			{
-				Debug::Log("Advanced Rubble: Failed to place normal state on map!\n");
+				Debug::LogInfo("Advanced Rubble: Failed to place normal state on map!");
 				GameDelete<true, false>(pNew);
 				return false;
 			}
@@ -734,18 +734,18 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		// BuildLimit check goes before creation
 		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true , false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
-			Debug::Log("Fail to Create Limbo Object[%s] because of BuildLimit ! \n", pType->get_ID());
+			Debug::LogInfo("Fail to Create Limbo Object[{}] because of BuildLimit ! ", pType->get_ID());
 			return;
 		}
 
 		BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
 		if (!pBuilding)
 		{
-			Debug::Log("Fail to Create Limbo Object[%s] ! \n", pType->get_ID());
+			Debug::LogInfo("Fail to Create Limbo Object[{}] ! ", pType->get_ID());
 			return;
 		}
 
-		//Debug::Log("[0x%x - %s] Sending [%s] As Limbo Delivered ID [%d]\n", pOwner , pOwner->get_ID(), pType->ID, ID);
+		//Debug::LogInfo("[0x%x - %s] Sending [%s] As Limbo Delivered ID [%d]", pOwner , pOwner->get_ID(), pType->ID, ID);
 		// All of these are mandatory
 		pBuilding->InLimbo = false;
 		pBuilding->IsAlive = true;
@@ -825,7 +825,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	if (!pBuilding->IsAlive)
 		return;
 
-	Debug::Log("BuildingExtData::LimboKill -  Killing Building[%x - %s] ! \n", pBuilding, pBuilding->get_ID());
+	Debug::LogInfo("BuildingExtData::LimboKill -  Killing Building[{} - {}] ! ", (void*)pBuilding, pBuilding->get_ID());
 
 #ifdef SIMPLIFY_CAUSECRASH
 	pBuilding->Stun();
@@ -899,7 +899,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 #endif
 
 	// Remove completely
-	Debug::Log(__FUNCTION__" Called \n");
+	Debug::LogInfo(__FUNCTION__" Called ");
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
 }
 

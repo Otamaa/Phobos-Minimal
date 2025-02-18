@@ -52,7 +52,6 @@ struct Phobos final
 	static void CheckProcessorFeatures();
 	static void InitAdminDebugMode();
 	static void ThrowUsageWarning(CCINIClass* pINI);
-	static void InitConsole();
 
 	static bool DetachFromDebugger();
 	static HRESULT SaveGameDataAfter(IStream* pStm);
@@ -69,7 +68,6 @@ struct Phobos final
 	static OPTIONALINLINE std::string AppIconPath {};
 	static OPTIONALINLINE bool Debug_DisplayDamageNumbers { false };
 	static OPTIONALINLINE const wchar_t* VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
-	static OPTIONALINLINE bool EnableConsole { false };
 	static OPTIONALINLINE bool ShouldQuickSave { false };
 	static OPTIONALINLINE std::wstring CustomGameSaveDescription {};
 	static OPTIONALINLINE PVOID pExceptionHandler { nullptr };

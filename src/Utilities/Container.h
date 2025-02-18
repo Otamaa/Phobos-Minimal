@@ -207,7 +207,7 @@ public:
 			if (extension_type_ptr ptr = this->TryFind(key))
 			{
 				if (!pINI) {
-					//Debug::Log("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! \n", typeid(T).name());
+					//Debug::LogInfo("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! ", typeid(T).name());
 					return;
 				}
 
@@ -263,7 +263,7 @@ public:
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
 		static_assert(T::Canary < std::numeric_limits<size_t>::max(), "Canary Too Big !");
-		//Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		//Debug::LogInfo("[PrepareStream] Next is %p of type '%s'", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
@@ -271,32 +271,32 @@ public:
 	void SaveStatic()
 	{
 		auto obj = this->SavingObject;
-		//Debug::Log("[SaveStatic] For object %p as '%s Start\n", obj, this->Name.data());
+		//Debug::LogInfo("[SaveStatic] For object %p as '%s Start", obj, this->Name.data());
 		if (obj && this->SavingStream) {
 			if (!this->Save(obj, this->SavingStream))
-				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
+				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!");
 		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
-		//Debug::Log("[SaveStatic] For object %p as '%s Done\n", obj, this->Name.data());
+		//Debug::LogInfo("[SaveStatic] For object %p as '%s Done", obj, this->Name.data());
 	}
 
 	bool LoadStatic()
 	{
 		auto obj = this->SavingObject;
-		//Debug::Log("[LoadStatic] For object %p as '%s Start\n", obj, this->Name.data());
+		//Debug::LogInfo("[LoadStatic] For object %p as '%s Start", obj, this->Name.data());
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(obj, this->SavingStream)){
-				//Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", obj, this->Name.data());
+				//Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!", obj, this->Name.data());
 				return false;
 			}
 		}
 
 		this->SavingObject = nullptr;
 		this->SavingStream = nullptr;
-		//Debug::Log("[LoadStatic] For object %p as '%s Done\n", obj, this->Name.data());
+		//Debug::LogInfo("[LoadStatic] For object %p as '%s Done", obj, this->Name.data());
 		return true;
 	}
 
@@ -310,7 +310,7 @@ protected:
 			// this really shouldn't happen
 			if (!key)
 			{
-				//Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
+				//Debug::LogInfo("[SaveKey] Attempted for a null pointer! WTF!");
 				return false;
 			}
 
@@ -319,7 +319,7 @@ protected:
 
 			if (!buffer)
 			{
-				//Debug::Log("[SaveKey] Could not find value.\n");
+				//Debug::LogInfo("[SaveKey] Could not find value.");
 				return false;
 			}
 
@@ -336,12 +336,12 @@ protected:
 			// save the block
 			if (saver.WriteBlockToStream(pStm))
 			{
-				//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+				//Debug::LogInfo("[SaveKey] Save used up 0x%X bytes", saver.Size());
 				return true;
 			}
 		}
 
-		//Debug::Log("[SaveKey] Failed to save data.\n");
+		//Debug::LogInfo("[SaveKey] Failed to save data.");
 		return false;
 	}
 
@@ -353,7 +353,7 @@ protected:
 			// this really shouldn't happen
 			if (!key)
 			{
-				//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+				//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
 				return false;
 			}
 
@@ -364,7 +364,7 @@ protected:
 			PhobosByteStream loader { 0 };
 			if (!loader.ReadBlockFromStream(pStm))
 			{
-				//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+				//Debug::LogInfo("[LoadKey] Failed to read data from save stream?!");
 				return false;
 			}
 

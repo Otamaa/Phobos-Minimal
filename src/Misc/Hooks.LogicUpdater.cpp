@@ -1,5 +1,6 @@
 
 #include <Ext/Anim/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Building/Body.h>
@@ -152,7 +153,7 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 #ifdef ENABLE_THESE
 	if (pThis->IsAlive && pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
 		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
-			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+			Debug::LogInfo("Techno[{} : {}] With Invalid Location ! , Removing ! ", (void*)pThis, pThis->get_ID());
 			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
 			return retDead;
 		}
@@ -332,40 +333,9 @@ bool Spawned_Check_Destruction(AircraftClass* aircraft)
 	return false;
 }
 
-DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
-{
-	GET(AircraftClass*, pThis, ESI);
+DEFINE_JUMP(CALL , 0x414DA3  , MiscTools::to_DWORD(&FakeAircraftClass::_FootClass_Update_Wrapper));
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-#ifdef ENABLE_THESE
-	pExt->UpdateAircraftOpentopped();
-	AircraftPutDataFunctional::AI(pExt, pTypeExt);
-	AircraftDiveFunctional::AI(pExt, pTypeExt);
-	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-
-	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
-	//{
-	//
-	//	/**
-	//	 *  If we are close enough to our owner, delete us and return true
-	//	 *  to signal to the challer that we were deleted.
-	//	 */
-	//	if (Spawned_Check_Destruction(pThis))
-	//	{
-	//		pThis->UnInit();
-	//		return 0x414F99;
-	//	}
-	//}
-
-#endif
-	pThis->FootClass::Update();
-	return 0x414DA8;
-}
-
-DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
+DEFINE_HOOK(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
@@ -385,7 +355,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	DriveDataFunctional::AI(pExt);
 	 //UpdateWebbed(pThis);
 #endif
-	if (IsMovingNow)
+	if (pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 	{
 #ifdef ENABLE_THESE
 		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw

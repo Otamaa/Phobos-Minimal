@@ -49,7 +49,7 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 		if (!this->Surface)
 		{
-			Debug::Log("PCX file[%s] not found.\n", this->filename.data());
+			Debug::LogInfo("PCX file[{}] not found.", this->filename.data());
 		}
 
 		SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface);

@@ -58,7 +58,7 @@ public:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From PaintballType ! \n");
+		//Debug::LogInfo("Processing Element From PaintballType ! ");
 
 		return Stm
 			.Process(Color, false)
@@ -100,7 +100,7 @@ public:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From PaintBall ! \n");
+		//Debug::LogInfo("Processing Element From PaintBall ! ");
 		return Stm
 			.Process(timer,true)
 			.Process(Data, true)

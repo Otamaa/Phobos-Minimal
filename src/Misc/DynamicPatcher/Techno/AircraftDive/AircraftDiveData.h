@@ -17,7 +17,7 @@ public:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Loading Element From AircraftDiveData ! \n");
+		//Debug::LogInfo("Loading Element From AircraftDiveData ! ");
 		Stm
 			.Process(Enable)
 			.Process(Distance)

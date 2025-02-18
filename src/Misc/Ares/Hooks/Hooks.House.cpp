@@ -107,7 +107,7 @@ DEFINE_HOOK(0x4E3560, Game_GetFlagSurface, 5)
 	//GET_STACK(DWORD, caller, 0x0);
 
 	//if (Phobos::Otamaa::IsAdmin)
-	//	Debug::Log(__FUNCTION__" Called From [0x%x] with idx [%d]\n", caller, n);
+	//	Debug::LogInfo(__FUNCTION__" Called From [0x%x] with idx [%d]", caller, n);
 
 	if (n == -2)
 	{
@@ -373,7 +373,7 @@ DEFINE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 		return hasBaseUnit;
 	}
 
-	Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	Debug::LogInfo(__FUNCTION__" House of country [{}] cannot build anything from [General]BaseUnit=.", pHouse->Type->ID);
 	return hasNoBaseUnit;
 }
 
@@ -383,7 +383,7 @@ DEFINE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 // 	GET_STACK(HouseClass*, pHouse, 0x4C);
 //
 // 	if(!UnitCount) {
-// 		Debug::Log(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+// 		Debug::LogInfo(__FUNCTION__" House of country [%s] cannot build anything from [General]BaseUnit=.", pHouse->Type->ID);
 // 	}
 //
 // 	return 0;
@@ -524,13 +524,13 @@ DEFINE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 	else if (!it.empty())
 	{
 		pResult = it.at(0);
-		Debug::Log("Country [%s] does not meet prerequisites for any possible power plant."
-					"Fall back to the first one (%s).\n", pThis->Type->ID, pResult->ID);
+		Debug::LogInfo("Country [{}] does not meet prerequisites for any possible power plant."
+					"Fall back to the first one ({}).", pThis->Type->ID, pResult->ID);
 	}
 	else
 	{
 		Debug::FatalErrorAndExit(
-			"Country [%s] did not find any powerplants it could construct!\n", pThis->Type->ID);
+			"Country [%s] did not find any powerplants it could construct!", pThis->Type->ID);
 	}
 
 	R->EDI(pResult);
@@ -717,7 +717,7 @@ DEFINE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 			R->EAX(it[idxDifficulty]);
 			return 0x505CE9;
 		} else {
-			Debug::Log("WTF! vector has %u items, requested item #%u\n",
+			Debug::LogInfo("WTF! vector has {}u items, requested item #{}",
 				it.size(), idxDifficulty);
 		}
 	}
@@ -961,7 +961,7 @@ DEFINE_HOOK(0x4F65BF, HouseClass_CanAffordBase, 0x6)
 		return 0;
 	}
 	//GET(HouseClass *, pHouse, ESI);
-	//Debug::Log("AI House of country [%s] cannot build anything from [General]BaseUnit=.\n", pHouse->Type->ID);
+	//Debug::LogInfo("AI House of country [%s] cannot build anything from [General]BaseUnit=.", pHouse->Type->ID);
 	return 0x4F65DA;
 }
 

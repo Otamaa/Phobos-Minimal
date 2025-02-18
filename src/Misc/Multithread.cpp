@@ -85,12 +85,13 @@ public:
 		FakeGScreenClass::_RenderRaw(this);
 	}
 };
+static_assert(sizeof(FakeGScreenClass) == sizeof(GScreenClass), " Invalid Size !");
 
 void Multithreading::EnterMultithreadMode()
 {
 	if (IsInMultithreadMode)
 		return;
-	Debug::Log("Entering the multithread mode - just before MainLoop gameplay loop.\n");
+	Debug::LogInfo("Entering the multithread mode - just before MainLoop gameplay loop.");
 	IsInMultithreadMode = true;
 	DrawingThread = std::make_unique<std::thread>(std::thread(DrawingLoop));
 }
@@ -99,17 +100,7 @@ void Multithreading::ExitMultithreadMode()
 {
 	if (!IsInMultithreadMode)
 		return;
-	Debug::Log("Exiting the multithread mode - MainLoop reported end of gameplay.\n");
-	IsInMultithreadMode = false;
-	DrawingThread.get()->detach();
-	DrawingThread.release();
-}
-
-void Multithreading::ShutdownMultitheadMode()
-{
-	if (!IsInMultithreadMode)
-		return;
-
+	Debug::LogInfo("Exiting the multithread mode - MainLoop reported end of gameplay.");
 	IsInMultithreadMode = false;
 	DrawingThread.get()->detach();
 	DrawingThread.release();
@@ -150,7 +141,7 @@ void Multithreading::DrawingLoop()
 		Multithreading::DrawingMutex.unlock();
 		Multithreading::PauseMutex.unlock();
 	}
-	Debug::Log("Exiting the drawing thread.\n");
+	Debug::LogInfo("Exiting the drawing thread.");
 }
 
 DEFINE_DYNAMIC_PATCH(Disable_MainGame_MainLoop, 0x48CE8A,
@@ -167,6 +158,8 @@ DEFINE_DYNAMIC_PATCH(Disable_PauseGame_SetPause, 0x683EB6,
 	0x8B, 0x0D, 0x58, 0xE7, 0x87, 0x00);
 DEFINE_DYNAMIC_PATCH(Disable_PauseGame_ResetPause, 0x683FB2,
 	0xB9, 0xE8, 0xF7, 0x87, 0x00);
+DEFINE_DYNAMIC_PATCH(Disable_MainGame_BeforeMainLoop, 0x48CE7E,
+	0xC6, 0x05, 0xFC, 0x2C, 0x82, 0x00, 0x01);
 
 // Disable the hooks if we're in multiplayer modes or if multithreading was disabled in rules.
 DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
@@ -183,6 +176,7 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 	Disable_MainLoop_StopLock_2->Apply();
 	Disable_PauseGame_SetPause->Apply();
 	Disable_PauseGame_ResetPause->Apply();
+	Disable_MainGame_BeforeMainLoop->Apply();
 
 	return 0;
 }

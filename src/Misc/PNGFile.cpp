@@ -88,7 +88,7 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 	 */
 	if (error)
 	{
-		Debug::Log("lodepng_encode error %u: %s\n", error, lodepng_error_text(error));
+		Debug::LogInfo("lodepng_encode error {}: {}", error, lodepng_error_text(error));
 		return false;
 	}
 
@@ -100,7 +100,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 {
 	if (name == nullptr)
 	{
-		Debug::Log("Invalid FileClass ptr ! \n");
+		Debug::LogInfo("Invalid FileClass ptr ! ");
 		return nullptr;
 	}
 
@@ -108,17 +108,17 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 
 	if (!PhobosCRT::stristr(pName, ".png"))
 	{
-		//Debug::Log("Read_PNG_File() - Invalid file[%s] !\n", pName);
+		//Debug::LogInfo("Read_PNG_File() - Invalid file[%s] !", pName);
 		return nullptr;
 	}
 	else
 	{
-		Debug::Log("Read_PNG_File() - Reading file[%s] !\n", pName);
+		Debug::LogInfo("Read_PNG_File() - Reading file[{}] !", pName);
 	}
 
 	if (!name->Exists())
 	{
-		Debug::Log("Read_PNG_File() - Reading file[%s]!, Doesnt Exist !\n", pName);
+		Debug::LogInfo("Read_PNG_File() - Reading file[{}]!, Doesnt Exist !", pName);
 		return nullptr;
 	}
 
@@ -136,13 +136,13 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 
 	if (!png_buffer)
 	{
-		Debug::Log("Read_PNG_File() - Failed to allocate PNG buffer!\n");
+		Debug::LogInfo("Read_PNG_File() - Failed to allocate PNG buffer!");
 		return nullptr;
 	}
 	size_t nReadedBytes = name->ReadBytes(png_buffer, png_buffersize);
 	if (nReadedBytes != png_buffersize)
 	{
-		Debug::Log("Read_PNG_File() - Failed to read PNG file!\n");
+		Debug::LogInfo("Read_PNG_File() - Failed to read PNG file!");
 		CRT::free(png_buffer);
 		return nullptr;
 	}
@@ -163,7 +163,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	if (!png_image || error)
 	{
 
-		Debug::Log("Read_PNG_File() - Error [%u] %s\n", error, lodepng_error_text(error));
+		Debug::LogInfo("Read_PNG_File() - Error [{}] {}", error, lodepng_error_text(error));
 		lodepng_state_cleanup(&state);
 		CRT::free(png_buffer);
 		CRT::free(png_image);
@@ -181,7 +181,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	 || state.info_raw.colortype == LCT_RGBA)
 	{
 
-		Debug::Log("Read_PNG_File() - Unsupported PNG format type!\n");
+		Debug::LogInfo("Read_PNG_File() - Unsupported PNG format type!");
 		lodepng_state_cleanup(&state);
 		CRT::free(png_buffer);
 		CRT::free(png_image);
@@ -189,8 +189,8 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 		return nullptr;
 	}
 
-	Debug::Log("Read_PNG_File() - bitdepth: %d, colortype: %d.\n",
-		state.info_raw.bitdepth, state.info_raw.colortype);
+	Debug::LogInfo("Read_PNG_File() - bitdepth: {}, colortype: {}.",
+		state.info_raw.bitdepth, (int)state.info_raw.colortype);
 
 	if (buff)
 	{
@@ -204,7 +204,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 
 	if (!pic)
 	{
-		Debug::Log("Failed To Create PNG File ! \n");
+		Debug::LogInfo("Failed To Create PNG File ! ");
 		CRT::free(png_buffer);
 		CRT::free(png_image);
 		lodepng_state_cleanup(&state);

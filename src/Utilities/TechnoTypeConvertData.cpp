@@ -29,7 +29,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 				const auto bConvertStatus = TechnoExt_ExtData::ConvertToType(pTarget, pTo);
 
 				if (!bConvertStatus)
-					Debug::Log("Failed to ConvertType From[%x] To [%s]!\n", pFrm->ID, pTo->ID);
+					Debug::LogInfo("Failed to ConvertType From[{}] To [{}]!", pFrm->ID, pTo->ID);
 				else
 				{
 					if (SucceededAnim)
@@ -51,7 +51,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 			const auto bConvertStatus = TechnoExt_ExtData::ConvertToType(pTarget, pTo);
 
 			if (!bConvertStatus)
-				Debug::Log("Failed to ConvertType From[%x] To [%s]!\n", pCurType->ID, pTo->ID);
+				Debug::LogInfo("Failed to ConvertType From[{}] To [{}]!", pCurType->ID, pTo->ID);
 			else
 			{
 				if (SucceededAnim)
@@ -121,7 +121,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 					Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &list_value->To);
 					detail::getresult<AffectedHouse>(list_value->Eligible, nSecondPair_2, pSection, pKey, false);
 
-					//Debug::Log("parsing[%s]%s with 3 values [%s - %s - %s]\n", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
+					//Debug::LogInfo("parsing[%s]%s with 3 values [%s - %s - %s]", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
 				}
 				else
 				{

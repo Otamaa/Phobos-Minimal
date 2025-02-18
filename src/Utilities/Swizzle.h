@@ -72,12 +72,12 @@ public:
 
 		//the requested `was` not found
 		if (exist == this->Changes.end()) {
-			Debug::LogFlushed("PhobosSwizze[0x%x] :: Pointer [0x%x] request change to [0x%x]!\n", caller, was, is);
+			Debug::LogInfo("PhobosSwizze[0x{}] :: Pointer [{}] request change to [{}]!", caller, was, is);
 			this->Changes.emplace_back(was, is);
 		}
 		//the requested `was` found
 		else if (exist->second != is) {
-			Debug::Log("PhobosSwizze[0x%x] :: Pointer [0x%x] are declared change to both [0x%x] AND [0x%x]!\n", caller, was, exist->second, is);
+			Debug::LogInfo("PhobosSwizze[0x{}] :: Pointer [{}] are declared change to both [{}] AND [{}]!", caller, was, exist->second, is);
 		}
 
 		return S_OK;
@@ -85,7 +85,7 @@ public:
 
 	void ConvertNodes() const
 	{
-		Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
+		Debug::LogInfo("PhobosSwizze :: Converting {} nodes.", this->Nodes.size());
 		void* lastFind(nullptr);
 		void* lastRes(nullptr);
 
@@ -94,7 +94,7 @@ public:
 				const auto change = this->FindChanges(it->first);
 
 				if (change == this->Changes.end()) {
-					Debug::Log("PhobosSwizze :: Pointer [%p] could not be remapped from [%p] !\n", it->second, it->first);
+					Debug::LogInfo("PhobosSwizze :: Pointer [{}] could not be remapped from [{}] !", fmt::ptr(it->second), fmt::ptr(it->first));
 				} else {
 					lastFind = it->first;
 					lastRes = change->second;
@@ -131,7 +131,7 @@ struct Swizzle {
 		}
 #ifdef _DEBUG
 		else {
-			Debug::Log("%s Is Not Swizzeable ! \n", typeid(T).name());
+			Debug::LogInfo("{} Is Not Swizzeable ! ", typeid(T).name());
 		}
 #endif
 	}

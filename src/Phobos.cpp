@@ -57,7 +57,7 @@ void Phobos::CheckProcessorFeatures()
 {
 	BOOL supported = FALSE;
 #if _M_IX86_FP == 0 // IA32
-	Debug::Log("Phobos is not using enhanced instruction set.\n");
+	Debug::LogInfo("Phobos is not using enhanced instruction set.");
 #elif _M_IX86_FP == 1 // SSE
 #define INSTRUCTION_SET_NAME "SSE"
 	supported = IsProcessorFeaturePresent(PF_XMMI_INSTRUCTIONS_AVAILABLE);
@@ -68,7 +68,7 @@ void Phobos::CheckProcessorFeatures()
 	static_assert(false, "Phobos compiled using unsupported architecture.");
 #endif
 
-	Debug::Log("Phobos requires a CPU with " INSTRUCTION_SET_NAME " support. %s.\n",
+	Debug::LogInfo("Phobos requires a CPU with " INSTRUCTION_SET_NAME " support. {}.",
 		supported ? "Available" : "Not available");
 
 	if (!supported)
@@ -80,7 +80,7 @@ void Phobos::CheckProcessorFeatures()
 			"Game will now exit.",
 			"Phobos - CPU Requirements", MB_ICONERROR);
 
-		Debug::Log("Game will now exit.\n");
+		Debug::LogInfo("Game will now exit.");
 		Debug::ExitGame(533u);
 	}
 }
@@ -99,7 +99,6 @@ void Phobos::PassiveSaveGame()
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
-	bool consoleEnabled = false;
 	bool dontSetExceptionHandler = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
@@ -117,10 +116,6 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (IS_SAME_STR_I(pArg, "-LOG"))
 		{
 			Debug::LogEnabled = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-CONSOLE"))
-		{
-			consoleEnabled = true;
 		}
 		else if (IS_SAME_STR_I(pArg, "-AI-CONTROL"))
 		{
@@ -187,31 +182,14 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	}
 
 	if (Debug::LogEnabled) {
-		Debug::LogFileOpen();
-		Debug::Log("Initialized Phobos %s .\n" , PRODUCT_VERSION);
-		Debug::Log("args %s\n", args.c_str());
-
-		if (consoleEnabled)
-			Phobos::EnableConsole = true;
+		Debug::LogInfo("Initialized Phobos {} ." , PRODUCT_VERSION);
+		Debug::LogInfo("args {} ", args.c_str());
 
 		SpawnerMain::PrintInitializeLog();
-
-
-		//std::wstring _log_dev = Debug::LogFilePathName;
-		//_log_dev += L"\\";
-		//_log_dev += L"debug_dev.log";
-		//const auto log_full = PhobosCRT::WideStringToString(_log_dev);
-
-		//spdlog::init_thread_pool(8192, 10);
-		//Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
-		//Debug::file_sink->set_level(spdlog::level::trace);
-		//Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", Debug::file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-		//Debug::g_MainLogger->set_level(spdlog::level::trace);
-		//Debug::g_ScriptLogger = std::make_shared<spdlog::async_logger>("script", Debug::file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-		//Debug::g_ScriptLogger->set_level(spdlog::level::info);
-		//spdlog::register_logger(Debug::g_MainLogger);
-		//spdlog::register_logger(Debug::g_ScriptLogger);
-		//spdlog::set_default_logger(Debug::g_MainLogger);
+	} else {
+		Debug::DeactivateLogger();
+		Debug::LogFileRemove();
+		Debug::made = false;// reset
 	}
 
 #ifdef _Enable_these
@@ -249,23 +227,23 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	Phobos::CheckProcessorFeatures();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
-	Debug::Log("ExceptionHandler is %s\n", dontSetExceptionHandler ? "not present" : "present");
+	Debug::LogInfo("ExceptionHandler is {}", dontSetExceptionHandler ? "not present" : "present");
 
 	if (processAffinityMask)
 	{
-		Debug::Log("Set Process Affinity: %lu (%x)\n", processAffinityMask, processAffinityMask);
+		Debug::LogInfo("Set Process Affinity: {} ({})", processAffinityMask, processAffinityMask);
 		SetProcessAffinityMask(Patch::CurrentProcess, processAffinityMask);
 	}
 
 	if (!CDDriveManagerClass::Instance->NumCDDrives)
 	{
-		Debug::Log("No CD drives detected. Switching to NoCD mode.\n");
+		Debug::LogInfo("No CD drives detected. Switching to NoCD mode.");
 		Phobos::Otamaa::NoCD = true;
 	}
 
 	if (Phobos::Otamaa::NoCD)
 	{
-		Debug::Log("Optimizing list of CD drives for NoCD mode.\n");
+		Debug::LogInfo("Optimizing list of CD drives for NoCD mode.");
 		std::memset(CDDriveManagerClass::Instance->CDDriveNames, -1, 26);
 
 		char drv[] = "a:\\";
@@ -373,20 +351,6 @@ void Phobos::InitAdminDebugMode()
 	}
 
 }
-
-void Phobos::InitConsole()
-{
-	if (Phobos::EnableConsole)
-	{
-		if (!Console::Create())
-		{
-			MessageBoxW(NULL,
-			L"Failed to allocate the debug console!",
-			L"Debug Console Notice", MB_OK);
-		}
-	}
-}
-
 
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
@@ -499,13 +463,13 @@ void Phobos::ExeRun()
 	int i = 0;
 
 	for (auto&dlls : Patch::ModuleDatas) {
-		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
+		Debug::LogInfo("Module [({}) {}: Base address = {}]", i++, dlls.ModuleName, dlls.BaseAddr);
 
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
-			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first\n");
+			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first");
 		}
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
-			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first \n");
+			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first");
 		}
 		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S)) {
 			Phobos::Otamaa::PhobosBaseAddress = dlls.BaseAddr;
@@ -520,7 +484,7 @@ void Phobos::ExeRun()
 	}
 
 	const auto size_ = Patches.size();
-	Debug::LogDeferred("Applying %d Static Patches\n", size_);
+	Debug::LogInfo("Applying {} Static Patches", size_);
 
 	for (auto& patch : Patches) {
 		patch.Apply();
@@ -529,7 +493,7 @@ void Phobos::ExeRun()
 	Patches.clear();
 
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
-	Debug::LogDeferred("Running on %s\n", Patch::WindowsVersion.c_str());
+	Debug::LogInfo("Running on {}", Patch::WindowsVersion);
 
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
@@ -539,8 +503,6 @@ void Phobos::ExeTerminate()
 {
 	if(!Phobos::Otamaa::ExeTerminated){
 		Phobos::Otamaa::ExeTerminated = true;
-		Debug::LogFileClose(111);
-		Console::Release();
 	}
 }
 
@@ -611,6 +573,7 @@ void __cdecl PatchExit(int uExitCode) {
 	PhobosWindowClass::Destroy();
 #endif
 	CRT::exit_returnsomething(uExitCode, 0, 0);
+	//		Debug::DetachLogger();
 }
 
 DECLARE_PATCH(_set_fp_mode)
@@ -657,11 +620,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		const char* loadMode = lpReserved ? "statically" : "dynamicly";
 
-		Debug::LogDeferred("Phobos is being loaded (%s) %s.\n", time.c_str() , loadMode);
-		Debug::InitLogFile();
-		Debug::PrepareLogFile();
-		Debug::LogFileRemove();
+		Debug::GenerateDefaultMessage();
+		Debug::PrepareLogFile(); //prepare directory
+		Debug::LogFileRemove(); //remove previous debug log file if presents
+		Debug::InitLogger(); //init the real logger
 
+		Debug::g_MainLogger->info("Phobos is being loaded ({}) {}", time , loadMode);
 		LuaData::LuaDir = std::move(PhobosCRT::WideStringToString(Debug::ApplicationFilePath));
 		LuaData::LuaDir += "\\Resources";
 
@@ -695,108 +659,17 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		char buf[1024];
 
 		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
-			Debug::LogDeferred("Compatibility modes detected : %s.\n", buf);
+			Debug::g_MainLogger->info("Compatibility modes detected : {}.", buf);
 		}
 	}
 	break;
-	case DLL_PROCESS_DETACH:
+	case DLL_PROCESS_DETACH :
 		Multithreading::ShutdownMultitheadMode();
 		break;
 	}
 
 	return TRUE;
 }
-
-// =============================
-//#pragma region SyringeHandshake
-//SYRINGE_HANDSHAKE(pInfo)
-//{
-//	const DWORD YR_SIZE_1000 = 0x496110;
-//	const DWORD YR_SIZE_1001 = 0x497110;
-//	const DWORD YR_SIZE_1001_UC = 0x497FE0;
-//	const DWORD YR_SIZE_NPATCH = 0x5AB000;
-//
-//	const DWORD YR_TIME_1000 = 0x3B846665;
-//	const DWORD YR_TIME_1001 = 0x3BDF544E;
-//
-//	const DWORD YR_CRC_1000 = 0xB701D792;
-//	const DWORD YR_CRC_1001_CD = 0x098465B3;
-//	const DWORD YR_CRC_1001_TFD = 0xEB903080;
-//	const DWORD YR_CRC_1001_UC = 0x1B499086;
-//
-//	if (pInfo)
-//	{
-//		COMPILETIMEEVAL const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " FILE_VERSION_STR ".";
-//		COMPILETIMEEVAL const char* PatchDetectedMessage = "Found %s. Phobos " FILE_VERSION_STR" is not compatible with Exe patched Gamemd.";
-//
-//		const char* desc = nullptr;
-//		const char* msg = nullptr;
-//		bool allowed = false;
-//
-//		 accept tfd and cd version 1.001
-//		if (pInfo->exeTimestamp == YR_TIME_1001)
-//		{
-//			 don't accept expanded exes
-//			switch (pInfo->exeFilesize)
-//			{
-//			case YR_SIZE_1001:
-//			case YR_SIZE_1001_UC:
-//
-//				 all versions allowed
-//				switch (pInfo->exeCRC)
-//				{
-//				case YR_CRC_1001_CD:
-//					desc = "1.001 (CD)";
-//					break;
-//				case YR_CRC_1001_TFD:
-//					desc = "1.001 (TFD)";
-//					break;
-//				case YR_CRC_1001_UC:
-//					desc = "1.001 (UC)";
-//					break;
-//				default:
-//					 no-cd, network port or other changes
-//					desc = "1.001 (modified)";
-//				}
-//				msg = AcceptMsg;
-//				allowed = true;
-//				break;
-//
-//			case YR_SIZE_NPATCH:
-//				 known patch size
-//				desc = "RockPatch or an NPatch-derived patch";
-//				msg = PatchDetectedMessage;
-//				break;
-//			default:
-//				 expanded exe, unknown make
-//				desc = "an unknown game patch";
-//				msg = PatchDetectedMessage;
-//			}
-//		}
-//		else if (pInfo->exeTimestamp == YR_TIME_1000)
-//		{
-//			 upgrade advice for version 1.000
-//			desc = "1.000";
-//			msg = "Found Yuri's Revenge 1.000 but Phobos " FILE_VERSION_STR " requires version 1.001. Please update your copy of Yuri's Revenge first.";
-//		}
-//		else
-//		{
-//			 does not even compute...
-//			msg = "Unknown executable. Phobos " FILE_VERSION_STR " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
-//		}
-//
-//		 generate the output message
-//		if (pInfo->Message)
-//		{
-//			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
-//		}
-//
-//		return allowed ? S_OK : S_FALSE;
-//	}
-//
-//	return E_POINTER;
-//}
-//#pragma endregion
 
 #pragma region hooks
 
@@ -817,8 +690,11 @@ DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)
 		}
 		else if (Phobos::Config::SaveGameOnScenarioStart && SessionClass::IsCampaign())
 		{
-			Debug::Log("Saving Game [Filename : %s , UI : %s , LoadedUI : %ls]\n", ScenarioClass::Instance->FileName,
-			ScenarioClass::Instance->UIName, ScenarioClass::Instance->UINameLoaded);
+			Debug::LogInfo("Saving Game [Filename : {} , UI : {} , LoadedUI : {}]", 
+			ScenarioClass::Instance->FileName,
+			ScenarioClass::Instance->UIName, 
+			PhobosCRT::WideStringToString(ScenarioClass::Instance->UINameLoaded)
+			);
 			return InitialSave;
 		}
 	}
@@ -833,19 +709,11 @@ DEFINE_HOOK(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
 DEFINE_HOOK_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
 {
-	Debug::Log("Init Phobos Randomizer seed %x\n", Game::Seed());
+	auto _seed = (DWORD)Game::Seed();
+	Debug::LogInfo("Init Phobos Randomizer seed {0:x}", _seed);
 	Phobos::Random::SetRandomSeed(Game::Seed());
 	return 0;
 }
-
-//DEFINE_HOOK(0x7C8B3D, Game_freeMem, 0x9)
-//{
-//	GET_STACK(void*, ptr, 0x4);
-//
-//	Debug::Log(__FUNCTION__ " CalledFrom 0x%08x ptr [0x%08x]\n", R->Stack<uintptr_t>(0x0) , ptr);
-//	CRT::free(ptr);
-//	return 0x7C8B47;
-//}
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
@@ -859,11 +727,11 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Phobos::InitConsole();
-	Debug::LogDeferredFinalize();
+
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();
 #endif
+
 	return 0;
 }
 #pragma endregion

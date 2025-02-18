@@ -7,7 +7,7 @@
 // load / save
 //template <typename T>
 //void SpawnManagerExt::ExtData::Serialize(T& Stm) {
-//	//Debug::Log("Processing Element From SpawnManagerExt ! \n");
+//	//Debug::LogInfo("Processing Element From SpawnManagerExt ! ");
 //	Stm
 //		.Process(this->Initialized)
 //		;

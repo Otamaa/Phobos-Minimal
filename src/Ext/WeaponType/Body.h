@@ -35,6 +35,7 @@ public:
 	Valueable<bool> Strafing_SimulateBurst { false };
 	Nullable<bool> Strafing { };
 	Valueable<bool> Strafing_UseAmmoPerShot { false };
+	Nullable<int> Strafing_EndDelay {};
 
 	Valueable<AffectedTarget> CanTarget { AffectedTarget::All };
 	Valueable<AffectedHouse> CanTargetHouses { AffectedHouse::All };

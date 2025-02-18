@@ -61,7 +61,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 		if (sourcePos.DistanceFrom(pBullet->TargetCoords) <= BulletProxRange->Range)
 		{
 			if (!ProximityFunctional::ManualDetonation(pBullet, sourcePos, true, pBullet->Owner))
-				Debug::Log("Proximity Range Failed to Detonate ! \n");
+				Debug::LogInfo("Proximity Range Failed to Detonate ! ");
 		}
 	}
 
@@ -190,7 +190,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 							}
 							else
 							{
-								Debug::Log("Proximity Failed to Detonate ! \n");
+								Debug::LogInfo("Proximity Failed to Detonate ! ");
 							}
 						}
 					}

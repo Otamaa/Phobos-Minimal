@@ -67,7 +67,7 @@ public:
 		HRESULT hr = LocomotionClass::Internal_Save(this, pStm , fClearDirty);
 		if (SUCCEEDED(hr))
 		{
-			GameDebugLog::Log("LevitateLoco Save !\n");
+			GameDebugLog::Log("LevitateLoco Save !");
 			// Insert any data to be loaded here.
 		}
 

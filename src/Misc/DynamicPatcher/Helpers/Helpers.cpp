@@ -980,11 +980,11 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 			}
 			else
 			{
-				Debug::Log("Gifbox - Failed To Place Techno [%s] ! \n", pType->ID);
+				Debug::LogInfo("Gifbox - Failed To Place Techno [{}] ! ", pType->ID);
 
 				if (pTechno)
 				{
-					Debug::Log(__FUNCTION__" Called \n");
+					Debug::LogInfo(__FUNCTION__" Called ");
 					TechnoExtData::HandleRemove(pTechno);
 				}
 			}

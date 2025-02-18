@@ -1244,17 +1244,17 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 						}
 					}
 
-					if (!pThis->NaturalParticleSystem && !_Particles->empty() && pThis->GetHeight() > -10)
+					if (!pThis->DamageParticleSystem && !_Particles->empty() && pThis->GetHeight() > -10)
 					{
 						CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
-						pThis->NaturalParticleSystem =
+						pThis->DamageParticleSystem =
 							GameCreate<ParticleSystemClass>(_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)], _offs, nullptr, pThis);
 					}
 				}
 			}
 			else
 			{
-				if (auto& pPart = pThis->NaturalParticleSystem)
+				if (auto& pPart = pThis->DamageParticleSystem)
 				{
 					pPart->UnInit();
 					pPart = nullptr;
@@ -1934,7 +1934,6 @@ DEFINE_HOOK(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 			if (pThis->Type->Cyborg && pThis->Crawling)
 			{
 				GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
-				
 				R->EAX(DamageState::NowDead);
 				return Crashable(pThis, pThis->Type, args.Attacker);
 			}
@@ -2783,7 +2782,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 //	const auto pWhat = pTarget->WhatAmI();
 //
 //	if(pWhat == BulletClass::AbsID)
-//		Debug::Log("Bullet[%x - %s] Getting hit by [%s] Warhead [%s] !\n" , pTarget,pTarget->get_ID() ,dummy , pWarhead->ID);
+//		Debug::LogInfo("Bullet[%x - %s] Getting hit by [%s] Warhead [%s] !" , pTarget,pTarget->get_ID() ,dummy , pWarhead->ID);
 //
 //	{
 //
@@ -2814,7 +2813,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 //	GET(FootClass*, pThis, ESI);
 //
 //	if (IS_SAME_STR_("EradiationWH", pWH->ID) && IS_SAME_STR_("PENTGENX", pThis->get_ID())) {
-//		Debug::Log("Affected [%d] by[%s]\n", (int)result, pWH->ID);
+//		Debug::LogInfo("Affected [%d] by[%s]", (int)result, pWH->ID);
 //	}
 //
 //	return 0x0;
@@ -2892,7 +2891,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 //
 //	auto id = pThis->get_ID();
 //	if (IS_SAME_STR_("MDUMMY7", id))
-//		Debug::Log(__FUNCTION__" Executed\n");
+//		Debug::LogInfo(__FUNCTION__" Executed");
 //
 //	return 0;
 //}
@@ -2904,7 +2903,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 //	GET_STACK(DWORD, caller, 0x0);
 //
 //	if (IS_SAME_STR_(pThis->Type->ID, "MDUMMY7"))
-//		Debug::Log("%s [%s]DamageResult %d , HP %d/%d Called %x.\n", pThis->Type->ID, args.WH->ID, *args.Damage, pThis->Health, pThis->Type->Strength , caller);
+//		Debug::LogInfo("%s [%s]DamageResult %d , HP %d/%d Called %x.", pThis->Type->ID, args.WH->ID, *args.Damage, pThis->Health, pThis->Type->Strength , caller);
 //
 //	return 0x0;
 //}

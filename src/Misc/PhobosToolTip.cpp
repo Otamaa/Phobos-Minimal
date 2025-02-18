@@ -159,13 +159,13 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		auto data = &Timers[pType];
 
 		if (data->m_buildtimeresult != nBuildTime)
-			Debug::FatalError("[%s] change BuildTime result from [%d] to [%d]!\n", pType->ID, data->m_buildtimeresult, nBuildTime);
+			Debug::FatalError("[%s] change BuildTime result from [%d] to [%d]!", pType->ID, data->m_buildtimeresult, nBuildTime);
 
 		if (data->m_second != nSec)
-			Debug::FatalError("[%s] change Second result from [%d] to [%d] [BuildTime %s]!\n", pType->ID, data->m_second, nSec , data->m_buildtimeresult);
+			Debug::FatalError("[%s] change Second result from [%d] to [%d] [BuildTime %s]!", pType->ID, data->m_second, nSec , data->m_buildtimeresult);
 
 		if (data->m_min != nMin)
-			Debug::FatalError("[%s] change Min result from [%d] to [%d]!\n", pType->ID, data->m_min, nMin);
+			Debug::FatalError("[%s] change Min result from [%d] to [%d]!", pType->ID, data->m_min, nMin);
 	}
 #endif
 	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);

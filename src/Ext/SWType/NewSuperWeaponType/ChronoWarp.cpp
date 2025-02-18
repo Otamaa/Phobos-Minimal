@@ -49,11 +49,11 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	if (!pSource || pSource->Type->Type != SuperWeaponType::ChronoSphere)
 	{
 		// idiots at work.
-		Debug::Log("ChronoWarp typed super weapon triggered as standalone. Use ChronoSphere instead.\n");
+		Debug::LogInfo("ChronoWarp typed super weapon triggered as standalone. Use ChronoSphere instead.");
 		return false;
 	}
 
-	Debug::Log("[ChronoWarp::Activate] Launching %s with %s as source.\n", pThis->Type->ID, pSource->Type->ID);
+	Debug::LogInfo("[ChronoWarp::Activate] Launching {} with {} as source.", pThis->Type->ID, pSource->Type->ID);
 	auto const pSourceSWExt = SWTypeExtContainer::Instance.Find(pSource->Type);
 
 	// add radar events for source and target

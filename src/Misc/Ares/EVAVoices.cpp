@@ -11,7 +11,7 @@
 
 int EVAVoices::FindIndexById(const char* type)
 {
-	//Debug::Log("[Phobos] Find EVAVoices Index by ID [%s]\n", type);
+	//Debug::LogInfo("[Phobos] Find EVAVoices Index by ID [%s]", type);
 	// the default values
 	if (IS_SAME_STR_(type, GameStrings::Allied()))
 	{

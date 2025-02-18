@@ -66,7 +66,7 @@ void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 template <typename T>
 void VoxelAnimExtData::Serialize(T& Stm)
 {
-	//Debug::Log("Processing Element From VoxelAnimExt ! \n");
+	//Debug::LogInfo("Processing Element From VoxelAnimExt ! ");
 
 	 Stm
 		.Process(this->Initialized)

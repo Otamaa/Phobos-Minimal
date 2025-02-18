@@ -82,7 +82,7 @@ VoxelStruct* TechnoTypeExtData::GetBarrelsVoxel(TechnoTypeClass* const pThis, in
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 
 	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! \n", pThis->ID, nAdditional);
+		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
 		return nullptr;
 	}
 
@@ -100,7 +100,7 @@ VoxelStruct* TechnoTypeExtData::GetTurretsVoxel(TechnoTypeClass* const pThis, in
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! \n", pThis->ID, nAdditional);
+		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
 		return nullptr;
 	}
 	return TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.data() + nAdditional;
@@ -771,7 +771,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			back->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
 			back->Animation.Read(exINI, pSection, "AttachEffect.Animation", true);
 			if (!back->Animation)
-				Debug::Log("Failed to find [%s] AE Anim[%s]\n", pSection, exINI.c_str());
+				Debug::LogInfo("Failed to find [{}] AE Anim[{}]", pSection, exINI.c_str());
 
 			back->Animation_ResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
 
@@ -1414,6 +1414,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		// @ the original author
 		// - Otamaa
 		this->BunkerableAnyway.Read(exINI, pSection, "BunkerableAnyway");
+
+		this->JumpjetTilt.Read(exINI, pSection, "JumpjetTilt");
+		this->JumpjetTilt_ForwardAccelFactor.Read(exINI, pSection, "JumpjetTilt.ForwardAccelFactor");
+		this->JumpjetTilt_ForwardSpeedFactor.Read(exINI, pSection, "JumpjetTilt.ForwardSpeedFactor");
+		this->JumpjetTilt_SidewaysRotationFactor.Read(exINI, pSection, "JumpjetTilt.SidewaysRotationFactor");
+		this->JumpjetTilt_SidewaysSpeedFactor.Read(exINI, pSection, "JumpjetTilt.SidewaysSpeedFactor");
 	}
 
 	// Art tags
@@ -1491,7 +1497,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (shadow_indices_frame.size() != shadow_indices.size())
 		{
 			if (!shadow_indices_frame.empty())
-				Debug::Log("[Developer warning] %s ShadowIndices.Frame size (%d) does not match ShadowIndices size (%d) \n"
+				Debug::LogInfo("[Developer warning] {} ShadowIndices.Frame size ({}) does not match ShadowIndices size ({}) "
 					, pSection, shadow_indices_frame.size(), shadow_indices.size());
 
 			shadow_indices_frame.resize(shadow_indices.size(), -1);
@@ -1815,11 +1821,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DefaultDisguise)
 		//;
 
-	//Debug::Log("%s AboutToLoad WeaponFLhA\n" , this->AttachedToObject->ID);
+	//Debug::LogInfo("%s AboutToLoad WeaponFLhA" , this->AttachedToObject->ID);
 	//Stm
 	//	.Process(this->WeaponBurstFLHs)
 	//	;
-	//Debug::Log("Done WeaponFLhA\n");
+	//Debug::LogInfo("Done WeaponFLhA");
 
 	//Stm
 		.Process(this->PassengerDeletionType)
@@ -1918,12 +1924,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->SellSound)
 		.Process(this->EVA_Sold)
 		//;
-		//Debug::Log("AboutToLoad WeaponFLhB\n");
+		//Debug::LogInfo("AboutToLoad WeaponFLhB");
 		//Stm.Process(this->CrouchedWeaponBurstFLHs);
-		//Debug::Log("Done WeaponFLhB\n");
-		//Debug::Log("AboutToLoad WeaponFLhC\n");
+		//Debug::LogInfo("Done WeaponFLhB");
+		//Debug::LogInfo("AboutToLoad WeaponFLhC");
 		//Stm.Process(this->DeployedWeaponBurstFLHs);
-		//Debug::Log("Done WeaponFLhC\n");
+		//Debug::LogInfo("Done WeaponFLhC");
 		//Stm
 		.Process(this->AlternateFLHs)
 			.Process(this->Spawner_SpawnOffsets)
@@ -1931,7 +1937,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
 			//;
 
-		//Debug::Log("AboutToLoad Otammaa\n");
+		//Debug::LogInfo("AboutToLoad Otammaa");
 #pragma region Otamaa
 		//Stm
 		.Process(this->FacingRotation_Disable)
@@ -2566,6 +2572,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Power)
 		.Process(this->BunkerableAnyway)
+
+		.Process(this->JumpjetTilt)
+		.Process(this->JumpjetTilt_ForwardAccelFactor)
+		.Process(this->JumpjetTilt_ForwardSpeedFactor)
+		.Process(this->JumpjetTilt_SidewaysRotationFactor)
+		.Process(this->JumpjetTilt_SidewaysSpeedFactor)
 		;
 }
 
@@ -2578,7 +2590,7 @@ bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
 	// this really shouldn't happen
 	if (!key)
 	{
-		//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+		//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
 		return false;
 	}
 

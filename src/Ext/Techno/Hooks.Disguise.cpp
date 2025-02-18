@@ -118,7 +118,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //
 //	int nColorIdx = 0;
 //	if (!pThis->Owner)
-//		Debug::Log("TechnoClass[%s] GetRemapColor with nullptr Owner ! \n ", pThis->get_ID());
+//		Debug::LogInfo("TechnoClass[%s] GetRemapColor with nullptr Owner !  ", pThis->get_ID());
 //	else
 //		nColorIdx = pThis->Owner->ColorSchemeIndex;
 //
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //	GET(LightConvertClass*, pResult, EAX);
 //
 //	if (!pResult)
-//		Debug::Log("Building[%s] , trying to get remap palette but failed ! \n", pThis->get_ID());
+//		Debug::LogInfo("Building[%s] , trying to get remap palette but failed ! ", pThis->get_ID());
 //
 //	return 0x0;
 //}

@@ -66,7 +66,7 @@ DEFINE_HOOK(0x749088, FixedWidthCounter_ResetWithGivenCount, 6)
 	if (Width > 512) {
 
 		if(CounterLog)
-			Debug::Log("Counter attempted to overflow (given width of %d exceeds maximum allowed width of 512).\n", Width);
+			Debug::LogInfo("Counter attempted to overflow (given width of {} exceeds maximum allowed width of 512).", Width);
 
 		R->EAX(512);
 	}

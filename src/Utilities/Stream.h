@@ -232,7 +232,7 @@ public:
 	{
 		if (!this->Success() || this->stream->Size() != this->stream->Offset())
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Read %x bytes instead of %x!\n",
+			//GameDebugLog::Log("[PhobosStreamReader] Read %x bytes instead of %x!",
 			//	this->stream->Offset(), this->stream->Size());
 
 			return false;
@@ -246,7 +246,7 @@ public:
 	{
 		if (!this->stream->Load(buffer))
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.\n",
+			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.",
 			//	sizeof(T), this->stream->Offset() - sizeof(T), this->stream->Size());
 
 			this->success = false;
@@ -259,7 +259,7 @@ public:
 	{
 		if (!this->stream->Read(Value, Size))
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.\n",
+			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.",
 			//	Size, this->stream->Offset() - Size, this->stream->Size());
 
 			this->success = false;
@@ -276,7 +276,7 @@ public:
 			if (buffer == value)
 				return true;
 
-			//GameDebugLog::Log("[PhobosStreamReader] Value Expected [%x] != Value Get [%x] \n", value, buffer);
+			//GameDebugLog::Log("[PhobosStreamReader] Value Expected [%x] != Value Get [%x] ", value, buffer);
 		}
 		return false;
 	}

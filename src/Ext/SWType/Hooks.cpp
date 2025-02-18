@@ -78,12 +78,12 @@ DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	//Debug::Log("[%s - %x] Lauch [%s - %x] \n", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
+	//Debug::LogInfo("[%s - %x] Lauch [%s - %x] ", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
 	if ( SWTypeExtData::Activate(pSuper, *pCell, isPlayer) ) {
 		pSuper->_GetTypeExtData()->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 	}
 
-	//Debug::Log("Lauch [%x][%s] %s failed \n", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
+	//Debug::LogInfo("Lauch [%x][%s] %s failed ", pSuper, pSuper->Owner->get_ID(), pSuper->Type->ID);
 	return 0x6CDE40;
 }
 
@@ -371,7 +371,7 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 		return 0x41F1BA;
 	}
 
-	//Debug::Log("AITrigger[%s] With Owner[%s] Enemy[%s].\n", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
+	//Debug::LogInfo("AITrigger[%s] With Owner[%s] Enemy[%s].", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
 	auto iter = pOwner->Supers.find_if([pOwner](SuperClass* pItem) {
 		return (pItem->Type->Type == SuperWeaponType::ChronoSphere
 			&& SWTypeExtContainer::Instance.Find(pItem->Type)->IsAvailable(pOwner)) && pItem->Granted;
@@ -566,7 +566,7 @@ DEFINE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	else
 	{
 		const auto pHouseID = HouseClass::CurrentPlayer->get_ID();
-		Debug::Log("[%s - %x] SW [%s - %x] CannotFire\n", pHouseID, HouseClass::CurrentPlayer(), pSuper->Type->ID, pSuper);
+		Debug::LogInfo("[{} - {}] SW [{} - {}] CannotFire", pHouseID, (void*)HouseClass::CurrentPlayer(), pSuper->Type->ID, (void*)pSuper);
 		pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
 	}
 
@@ -907,7 +907,7 @@ DEFINE_HOOK(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 
 	GET(HouseClass*, pThis, ESI);
 
-	//Debug::Log("House[%s - %x , calling %s\n" , pThis->get_ID() , pThis ,__FUNCTION__);
+	//Debug::LogInfo("House[%s - %x , calling %s" , pThis->get_ID() , pThis ,__FUNCTION__);
 	if(R->AL()) { // HumanControlled
 		pThis->AI_TryFireSW();
 		return Continue;
@@ -1333,7 +1333,7 @@ DEFINE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 	const bool humanControlled = pThis->IsControlledByHuman();
 
 	for (const auto& pSuper : pThis->Supers) {
-		//Debug::Log("House[%s - %x] Trying To Fire SW[%s - %x]\n" , pThis->get_ID() , pThis, pSuper->Type->ID , pSuper);
+		//Debug::LogInfo("House[%s - %x] Trying To Fire SW[%s - %x]" , pThis->get_ID() , pThis, pSuper->Type->ID , pSuper);
 		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
 			if (!humanControlled || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
 				SWTypeExtData::TryFire(pSuper, false);
@@ -1364,10 +1364,10 @@ DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 			const auto pHouseID = pHouse->get_ID();
 
 			if(pHouse == HouseClass::CurrentPlayer){
-				Debug::Log("[%s - %x] SW [%s - %x] CannotFire\n", pHouseID, pHouse, pSuper->Type->ID, pSuper);
+				Debug::LogInfo("[{} - {}] SW [{} - {}] CannotFire", pHouseID, (void*)pHouse, pSuper->Type->ID, (void*)pSuper);
 				pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
 			} else {
-				Debug::Log("[%s - %x] SW [%s - %x] AI CannotFire\n", pHouseID, pHouse,  pSuper->Type->ID, pSuper);
+				Debug::LogInfo("[{} - {}] SW [{} - {}] AI CannotFire", pHouseID, (void*)pHouse,  pSuper->Type->ID, (void*)pSuper);
 			}
 		}
 	}
@@ -1533,8 +1533,8 @@ DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
 		}
 		else
 		{
-			Debug::Log(
-				"[%s] has no payload weapon type, or it is invalid.\n",
+			Debug::LogInfo(
+				"[%s] has no payload weapon type, or it is invalid.",
 				pNukeSW->ID);
 		}
 	}
@@ -1634,7 +1634,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //	const auto pTarget = pThis->Target;
 //	if (!pTarget)
 //	{
-//		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid target !\n", pThis->Type->ID);
+//		Debug::LogInfo("Bullet[%s] Trying to Apply NukeMaker but has invalid target !", pThis->Type->ID);
 //		return ret;
 //	}
 //
@@ -1659,7 +1659,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 //
 //	if (!pPaylod || !pPaylod->Projectile)
 //	{
-//		Debug::Log("Bullet[%s] Trying to Apply NukeMaker but has invalid Payload Weapon or Payload Weapon Projectile !\n",
+//		Debug::LogInfo("Bullet[%s] Trying to Apply NukeMaker but has invalid Payload Weapon or Payload Weapon Projectile !",
 //			pThis->Type->ID);
 //		return ret;
 //	}
@@ -2829,7 +2829,7 @@ DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
 int FakeBuildingClass::_Mission_Missile() {
 
 	if (!TechnoExtContainer::Instance.Find(this)->LinkedSW && this->MissionStatus < 3) {
-		Debug::Log("Building[%s] with Mission::Missile Missing Important Linked SW data !\n", this->get_ID());
+		Debug::LogInfo("Building[{}] with Mission::Missile Missing Important Linked SW data !", this->get_ID());
 	} else if (TechnoExtContainer::Instance.Find(this)->LinkedSW && this->MissionStatus >= 3) {
 		TechnoExtContainer::Instance.Find(this)->LinkedSW = nullptr;
 	}

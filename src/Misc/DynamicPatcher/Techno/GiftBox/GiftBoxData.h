@@ -31,7 +31,7 @@ public:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From GiftBoxData ! \n");
+		//Debug::LogInfo("Processing Element From GiftBoxData ! ");
 
 		Stm
 			.Process(Enable)

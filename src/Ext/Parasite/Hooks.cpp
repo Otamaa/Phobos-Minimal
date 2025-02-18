@@ -274,7 +274,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //{
 //	GET(BulletClass*, pBullet, ESI);
 //
-//	Debug::Log("WH[%s]\n", pBullet->WH->ID);
+//	Debug::LogInfo("WH[%s]", pBullet->WH->ID);
 //	R->EAX(pBullet->WH);
 //	return 0x4693D3;
 //}

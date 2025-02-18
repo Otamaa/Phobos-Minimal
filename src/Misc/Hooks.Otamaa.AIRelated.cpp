@@ -160,14 +160,14 @@ DEFINE_HOOK(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 // 	return 0x4F9A8C;
 // }
 
-DEFINE_HOOK(0x4F9B0A, HouseClass_IsAlly_AbstractClass, 0x6)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(HouseClass*, pThat, EAX);
+ DEFINE_HOOK(0x4F9B0A, HouseClass_IsAlly_AbstractClass, 0x6)
+ {
+ 	GET(HouseClass*, pThis, ESI);
+ 	GET(HouseClass*, pThat, EAX);
 
-	R->AL(pThis->IsAlliedWith(pThat));
-	return 0x4F9B43;
-}
+ 	R->AL(pThis->IsAlliedWith(pThat));
+ 	return 0x4F9B43;
+ }
 
 DEFINE_HOOK(0x501548, HouseClass_IsAllowedToAlly_1, 0x6)
 {

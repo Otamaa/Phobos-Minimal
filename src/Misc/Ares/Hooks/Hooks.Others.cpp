@@ -321,7 +321,7 @@ DEFINE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 //	GET(ObjectClass*, pThis, ECX);
 //
 //	if (!pThis)
-//		Debug::FatalError("ObjectClass UnInit called from %x\n",R->Stack<DWORD>(0x0));
+//		Debug::FatalError("ObjectClass UnInit called from %x",R->Stack<DWORD>(0x0));
 //
 //	return 0x0;
 //}
@@ -399,7 +399,7 @@ DEFINE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 
 	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty)
 	{
-		Debug::Log("Parasite[%x : %s] With Invalid Location ! , Removing ! \n", Parasite, Parasite->Owner->get_ID());
+		Debug::LogInfo("Parasite[{} : {}] With Invalid Location ! , Removing ! ", (void*)Parasite, Parasite->Owner->get_ID());
 		TechnoExtData::HandleRemove(Parasite->Owner, nullptr, false, false);
 		Parasite->Victim = nullptr;
 		return 0x62A47B; //pop the registers
@@ -1183,7 +1183,7 @@ DEFINE_HOOK(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
 			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str()));
-			Debug::Log("Loading Preloaded Mix Name : %s \n", preloadMix.c_str());
+			Debug::LogInfo("Loading Preloaded Mix Name : {} ", preloadMix.c_str());
 		}
 	}
 
@@ -1195,7 +1195,7 @@ DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
 			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));
-			Debug::Log("Loading Postload Mix Name : %s \n", postloadMix.c_str());
+			Debug::LogInfo("Loading Postload Mix Name : {} ", postloadMix.c_str());
 		}
 	}
 
@@ -1259,7 +1259,6 @@ DEFINE_HOOK(0x5facdf, Options_LoadFromINI, 5)
 	Phobos::Config::Read();
 	return 0x0;
 }
-
 DEFINE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
 {
 	StaticVars::LoadGlobalsConfig();

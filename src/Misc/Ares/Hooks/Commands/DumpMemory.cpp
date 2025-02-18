@@ -39,7 +39,7 @@ void MemoryDumperCommandClass::Execute(WWKey dwUnk) const
 
 	std::wstring filename = Debug::FullDump();
 
-	Debug::Log("Process memory dumped to %ls\n", filename.c_str());
+	Debug::LogInfo("Process memory dumped to {}", PhobosCRT::WideStringToString(filename));
 
 	filename = L"Process memory dumped to " + filename;
 

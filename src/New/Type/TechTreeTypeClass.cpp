@@ -40,7 +40,7 @@ void TechTreeTypeClass::LoadFromINI(CCINIClass* pINI)
 		}
 		else
 		{
-			Debug::Log("TechTreeTypeClass::LoadFromINI: BuildOtherCounts is missing count for %s, setting to 0.", BuildOther[i]->Name);
+			Debug::LogInfo("TechTreeTypeClass::LoadFromINI: BuildOtherCounts is missing count for {}, setting to 0.", BuildOther[i]->Name);
 			BuildOtherCountMap[BuildOther[i]] = 0;
 		}
 	}

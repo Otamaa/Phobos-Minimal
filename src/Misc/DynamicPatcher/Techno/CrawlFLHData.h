@@ -18,7 +18,7 @@ struct CrawlingFLHData
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		//Debug::Log("Processing Element From CrawlingFLHData ! \n");
+		//Debug::LogInfo("Processing Element From CrawlingFLHData ! ");
 		Stm
 			.Process(PrimaryCrawlFLH)
 			.Process(Elite_PrimaryCrawlFLH)

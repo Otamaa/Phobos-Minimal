@@ -21,7 +21,7 @@ struct ProximityRange
 	~ProximityRange() = default;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From ProximityRange ! \n");  return Serialize(Stm); }
+	{ Debug::LogInfo("Loading Element From ProximityRange ! ");  return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

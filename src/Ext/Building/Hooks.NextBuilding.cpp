@@ -146,7 +146,7 @@ DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 		if (const auto pNextBldType = pExt->NextBuilding_Next) {
 			const auto pNextExt = BuildingTypeExtContainer::Instance.Find(pNextBldType);
 			if (pNextExt->NextBuilding_Prev != pBldType)
-				Debug::FatalErrorAndExit("Invalid NextBuilding.Prev for %s and %s", pBldType->ID, pNextBldType->ID);
+				Debug::FatalErrorAndExit("Invalid NextBuilding.Prev for {} and {}", pBldType->ID, pNextBldType->ID);
 		}
 	}
 
