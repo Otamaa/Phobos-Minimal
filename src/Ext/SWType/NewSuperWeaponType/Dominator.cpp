@@ -206,7 +206,7 @@ void PsychicDominatorStateMachine::Update()
 	{
 		// wait for the last frame... WTF?
 		AnimClass* pAnim = PsyDom::Anim;
-		if (pAnim)
+		if (pAnim && pAnim->Type)
 		{
 			int currentFrame = pAnim->Animation.Value;
 			short frameCount = pAnim->Type->GetImage()->Frames;
