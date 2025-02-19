@@ -160,7 +160,7 @@ CellStruct SW_HunterSeeker::GetLaunchCell(SWTypeExtData* pSWType, BuildingClass*
 		auto position = CellClass::Coord2Cell(pBuilding->GetCoords());
 
 		cell = MapClass::Instance->NearByLocation(position, SpeedType::Foot,
-			-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+			ZoneType::None, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
 	}
 
 	return MapClass::Instance->IsWithinUsableArea(cell, true) ? cell : CellStruct::Empty;

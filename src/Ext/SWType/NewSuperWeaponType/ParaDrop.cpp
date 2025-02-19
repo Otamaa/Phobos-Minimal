@@ -317,7 +317,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 				MapClass::Instance->NearByLocation(
 					pDest->MapCoords,
 					pType->SpeedType,
-					-1,
+					ZoneType::None,
 					pType->MovementZone, isBridge, 1, 1, true, false, false, isBridge, CellStruct::Empty, false, false));
 
 			isBridge = allowBridges && pDest->ContainsBridge();

@@ -155,7 +155,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 			// find a place to put this
 			if (!anywhere)
 			{
-				int a5 = -1; // usually MapClass::CanLocationBeReached call. see how far we can get without it
+				ZoneType a5 = ZoneType::None; // usually MapClass::CanLocationBeReached call. see how far we can get without it
 				PlaceCoords = MapClass::Instance->NearByLocation(PlaceCoords,
 					SpeedType, a5, MovementZone, false, extentX, extentY, true,
 					false, false, false, CellStruct::Empty, false, buildable);

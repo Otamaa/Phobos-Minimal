@@ -7364,7 +7364,7 @@ bool TunnelFuncs::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sile
 	}
 	else
 	{
-		const auto nNearby = MapClass::Instance->NearByLocation(nResult, pFootType->SpeedType, -1, MovementZone::None, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+		const auto nNearby = MapClass::Instance->NearByLocation(nResult, pFootType->SpeedType, ZoneType::None , MovementZone::None, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
 		nResultC = CellClass::Cell2Coord(nNearby);
 	}
 

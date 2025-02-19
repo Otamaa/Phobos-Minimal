@@ -3857,7 +3857,8 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
 	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
 
-	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, -1, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
+	auto zone = MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), pThis->Type->MovementZone, pThis->OnBridge);
+	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, zone, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
 
 	return 0x73ED7A;
 }
@@ -4422,7 +4423,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								return MoveResult::cannot;
 							}
 
-							auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, -1, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
+							auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, ZoneType::None, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
 
 							if (alternative_loc.IsValid())
 							{
@@ -8530,7 +8531,7 @@ static KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, C
 			MapClass::Instance->NearByLocation(
 				pDest->MapCoords,
 				pType->SpeedType,
-				-1,
+				ZoneType::None,
 				pType->MovementZone, isBridge, 1, 1, true, false, false, isBridge, CellStruct::Empty, false, false));
 
 		isBridge = allowBridges && pDest->ContainsBridge();

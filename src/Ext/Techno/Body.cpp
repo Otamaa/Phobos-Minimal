@@ -2109,7 +2109,7 @@ bool TechnoExtData::AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget
 
 			auto const speedType = pThisType->SpeedType;
 			const auto cellStruct = MapClass::Instance->NearByLocation(pTarget->InlineMapCoords(),
-				speedType, -1, mZone, false, 1, 1, true,
+				speedType, ZoneType::None, mZone, false, 1, 1, true,
 				false, false, speedType != SpeedType::Float, CellStruct::Empty, false, false);
 
 			auto const pCell = MapClass::Instance->GetCellAt(cellStruct);
@@ -2468,7 +2468,7 @@ CoordStruct TechnoExtData::PassengerKickOutLocation(TechnoClass* pThis, FootClas
 	{
 
 		placeCoords = pCell->MapCoords - CellStruct { (short)(ExtDistance.X / 2), (short)(ExtDistance.Y / 2) };
-		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
+		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, ZoneType::None, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
 
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 

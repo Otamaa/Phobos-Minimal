@@ -151,12 +151,14 @@ void IonCannonStateMachine::Update()
 		// wait for the last frame... WTF?
 		if (AnimClass* pAnim = this->Anim)
 		{
-			int currentFrame = pAnim->Animation.Value;
-			short frameCount = pAnim->Type->GetImage()->Frames;
+			if(pAnim->Type) {
+				int currentFrame = pAnim->Animation.Value;
+				short frameCount = pAnim->Type->GetImage()->Frames;
 
-			if (frameCount - currentFrame > 1)
-			{
-				return;
+				if (frameCount - currentFrame > 1)
+				{
+					return;
+				}
 			}
 		}
 

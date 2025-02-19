@@ -1451,7 +1451,7 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 			// weeee
 			for(int i = 0 ; i < 2; ++i) {
 				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBuilding->Location);
-				int zone = MapClass::Instance->GetMapZone(pBldLoc_Cell, pUnit->Type->MovementZone, false);
+				auto zone = MapClass::Instance->GetMovementZoneType(pBldLoc_Cell, pUnit->Type->MovementZone, false);
 				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell ,
 				pUnit->Type->SpeedType,
 				zone ,

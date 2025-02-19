@@ -260,7 +260,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge)))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
-				pUnit->SpeedType, -1, pUnit->MovementZone, isBridge, 1, 1, true,
+				pUnit->SpeedType, ZoneType::None, pUnit->MovementZone, isBridge, 1, 1, true,
 				false, false, isBridge, CellStruct::Empty, false, false);
 
 			pCell = MapClass::Instance->TryGetCellAt(nCell);

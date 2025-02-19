@@ -653,7 +653,7 @@ struct TargetingFuncs
 			const auto pTargetPlayer = HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex, pTargeting->Owner);
 
 			target = MapClass::Instance->NearByLocation(
-				pTargetPlayer->GetBaseCenter(), SpeedType::Foot, -1,
+				pTargetPlayer->GetBaseCenter(), SpeedType::Foot, ZoneType::None,
 				MovementZone::Normal, false, SpaceSize, SpaceSize, false,
 				false, false, true, CellStruct::Empty, false, false);
 
@@ -767,7 +767,7 @@ struct TargetingFuncs
 		const auto nRandom = ScenarioClass::Instance->Random.RandomRangedSpecific(ZoneType::North, ZoneType::West);
 		const auto nCell = pTargeting->Owner->RandomCellInZone(nRandom);
 		const auto nNearby = MapClass::Instance->NearByLocation(nCell,
-			SpeedType::Foot, -1, MovementZone::Normal, false, 1, 1, false,
+			SpeedType::Foot, ZoneType::None, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
 		return  (nNearby.IsValid() && pNewType->CanFireAt(pTargeting, nNearby, false)) ?

@@ -527,7 +527,7 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 			// TODO The construction area does not actually need to be so large, the surrounding space should be able to be occupied by other things
 			// TODO It would be better if the Buildable check could be fit with ExtendedBuildingPlacing within this function.
 			// TODO Similarly, it would be better if the following Adjacent & NoShroud check could be made within this function.
-			auto cell = pType->PlaceAnywhere ? baseCell : MapClass::Instance->NearByLocation(baseCell, speedType, -1, MovementZone::Normal, false,
+			auto cell = pType->PlaceAnywhere ? baseCell : MapClass::Instance->NearByLocation(baseCell, speedType, ZoneType::None, MovementZone::Normal, false,
 				width, height, false, false, false, false, CellStruct::Empty, false, buildable);
 
 			if (cell == CellStruct::Empty)

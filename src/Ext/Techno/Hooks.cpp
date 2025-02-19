@@ -771,22 +771,45 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->KeepTargetOnMove && pTypeExt->KeepTargetOnMove && pThis->Target && pThis->CurrentMission == Mission::Move)
+	if (pExt->KeepTargetOnMove)
 	{
-		if (pTypeExt->KeepTargetOnMove_ExtraDistance.isset())
+		if (!pThis->Target)
 		{
-			int weaponIndex = pThis->SelectWeapon(pThis->Target);
+			pExt->KeepTargetOnMove = false;
+			return 0;
+		}
 
-			if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+		if (!pTypeExt->KeepTargetOnMove)
+		{
+			pThis->SetTarget(nullptr);
+			pExt->KeepTargetOnMove = false;
+			return 0;
+		}
+
+		if (pThis->CurrentMission == Mission::Move)
+		{
+			if (pTypeExt->KeepTargetOnMove_ExtraDistance.isset())
 			{
-				auto pExt = TechnoExtContainer::Instance.Find(pThis);
-				pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
+				int weaponIndex = pThis->SelectWeapon(pThis->Target);
 
-				if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
-					pThis->SetTarget(nullptr);
+				if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+				{
+					auto pExt = TechnoExtContainer::Instance.Find(pThis);
+					pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
 
-				pExt->AdditionalRange.clear();
+					if (!pThis->IsCloseEnough(pThis->Target, weaponIndex)){
+						pThis->SetTarget(nullptr);
+						pExt->KeepTargetOnMove = false;
+					}
+
+					pExt->AdditionalRange.clear();
+				}
 			}
+		}
+		else if (pThis->CurrentMission == Mission::Guard)
+		{
+			pThis->QueueMission(Mission::Attack, false);
+			pExt->KeepTargetOnMove = false;
 		}
 	}
 

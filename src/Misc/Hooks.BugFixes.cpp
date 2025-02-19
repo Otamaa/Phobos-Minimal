@@ -555,7 +555,7 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 
 	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
 		isWater ? SpeedType::Float : SpeedType::Track,
-		-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+		ZoneType::None, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
 
 	R->EAX(&cell);
 
@@ -1639,7 +1639,7 @@ DEFINE_HOOK(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
 	}
 	auto pType = pParasiteTechno->GetTechnoType();
 	auto cell = MapClass::Instance->NearByLocation(pParasiteTechno->LastMapCoords,
-				pType->SpeedType, -1, pType->MovementZone, false, 1, 1, false,
+				pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, false,
 				false, false, true, CellStruct::Empty, false, false);
 	auto crd = MapClass::Instance->GetCellAt(cell)->GetCoords();
 	bIsReturnSuccess = pParasiteTechno->Unlimbo(crd, DirType::North);
