@@ -31,30 +31,21 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
 
-//seems causing large FPS drop
-//DEFINE_STRONG_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
-//{
-//	GET(CellClass*, pCell, ESI);
-//
-//	bool bDraw = false;
-//
-//	if (const auto pTiberium = CellExtData::GetTiberium(pCell)) {
-//		if (TiberiumExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
-//			bDraw = pTiberium->Value;
-//	}
-//
-//	R->EAX(bDraw);
-//	return 0x6D7A4D;
-//}
-
-DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
+DEFINE_HOOK(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 {
 	GET(FakeCellClass*, pThis, ESI);
+	GET(OverlayTypeClass*, pOverlay, EBX);
+
+	if (!pOverlay->Tiberium)
+	{
+		return 0x47F96A;
+	}
 
 	const auto pTiberium = CellExtData::GetTiberium(pThis);
 
-	if (!pTiberium)
+	if (!pTiberium) {
 		return 0x47FB86;
+	}
 
 	const auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 
@@ -69,8 +60,9 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	auto nIndex = CellExtData::GetOverlayIndex(pThis, pTiberium);
 	const auto pShape = OverlayTypeClass::Array->Items[nIndex]->GetImage();
 
-	if (!pShape)
+	if (!pShape) {
 		return 0x47FB86;
+	}
 
 	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
 	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Intensity_Terrain);
@@ -100,21 +92,19 @@ DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 	GET_STACK(int, nOffset, STACK_OFFS(0x28, 0x18));
 	GET(RectangleStruct*, pRect, EBX);
 
-	if (!R->AL())
-		return 0x47F637;
+	if (R->AL()) {
+		auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pCell->Rubble);
 
-	auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pCell->Rubble);
+		ConvertClass* pDecided = pCell->LightConvert;
+		if (const auto pCustom = pBTypeExt->RubblePalette) {
+			pDecided = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecided);
+		}
 
-	ConvertClass* pDecided = pCell->LightConvert;
-	if (const auto pCustom = pBTypeExt->RubblePalette) {
-		pDecided = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecided);
+		auto const zAdjust = - 2 - nOffset;
+
+		DSurface::Temp()->DrawSHP(pDecided, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
+		0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
-
-	auto const zAdjust = - 2 - nOffset;
-
-	DSurface::Temp()->DrawSHP(pDecided, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
-	0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
-
 	return 0x47F637;
 }
 
@@ -122,38 +112,49 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 {
 	GET(OverlayTypeClass*, pOvl, ECX);
 	GET(CellClass*, pCell, ESI);
-
-	auto const pRubble = pCell->Rubble;
-	if(!pRubble)
-		return 0x47FB86;
-
 	LEA_STACK(SHPStruct**, pImage, STACK_OFFS(0x24, 0x14));
 	LEA_STACK(int*, pFrame, STACK_OFFSET(0x24, 0x8));
-
-	if (!pRubble->CanLeaveRubble(pImage,pFrame))
-		return 0x47FB86;
-
 	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
 	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));
 	GET(RectangleStruct*, pRect, EBP);
 	GET(int, nVal, EDI);
 
-	//if (!R->AL())
-	//	return 0x47FB86;
+	if (auto const pRubble = pCell->Rubble) {
+		if (pRubble->CanLeaveRubble(pImage, pFrame)) {
+			auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pRubble);
+			ConvertClass* pDecided = pCell->LightConvert;
+			if (const auto pCustom = pBTypeExt->RubblePalette) {
+				pDecided = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecided);
+			}
 
-	auto const pBTypeExt = BuildingTypeExtContainer::Instance.Find(pRubble);
-	ConvertClass* pDecided = pCell->LightConvert;
-	if (const auto pCustom = pBTypeExt->RubblePalette) {
-		pDecided = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecided);
+			const auto zAdjust = nVal - nOffset - 2;
+
+			DSurface::Temp()->DrawSHP(pDecided, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
+			0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
+
+		}
 	}
-
-	const auto zAdjust = nVal - nOffset - 2;
-
-	DSurface::Temp()->DrawSHP(pDecided, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
-	0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
 
 	return 0x47FB86;
 }
+
+
+//seems causing large FPS drop
+//DEFINE_STRONG_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+//{
+//	GET(CellClass*, pCell, ESI);
+//
+//	bool bDraw = false;
+//
+//	if (const auto pTiberium = CellExtData::GetTiberium(pCell)) {
+//		if (TiberiumExtContainer::Instance.Find(pTiberium)->EnablePixelFXAnim)
+//			bDraw = pTiberium->Value;
+//	}
+//
+//	R->EAX(bDraw);
+//	return 0x6D7A4D;
+//}
+
 
 /*
 *    v3 = this->TileType;

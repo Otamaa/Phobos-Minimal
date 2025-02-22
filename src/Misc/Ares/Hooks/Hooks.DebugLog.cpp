@@ -67,7 +67,7 @@ static void __cdecl Debug_Print(const char* fmt, ...) {
 		std::string _buff = buff;
 
 		if (_buff[_buff.size() - 1] == 0xA)
-			_buff[_buff.size() - 1] = 0;
+			_buff[_buff.size() - 1] = ' ';
 
 		va_end(args);
 		Debug::g_MainLogger->info(_buff);
@@ -80,7 +80,7 @@ static void __cdecl Debug_Print_noArgs(const char* fmt) {
 		std::string cpy = fmt;
 
 		if (cpy[cpy.size() - 1] == 0xA)
-			cpy[cpy.size() - 1] = 0;
+			cpy[cpy.size() - 1] = ' ';
 
 		Debug::g_MainLogger->info(cpy);
 	}
@@ -96,7 +96,7 @@ void __cdecl Debug_Print_Singular(const char* fmt, const char* str)
 		auto buffLen = strlen(buff);
 
 		if (buff[buffLen - 1] == 0xA)
-			buff[buffLen - 1] = 0;
+			buff[buffLen - 1] = ' ';
 
 		Debug::g_MainLogger->info(buff);
 	}

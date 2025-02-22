@@ -11094,3 +11094,15 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
 	 return 0x0;
  }*/
+
+ //DEFINE_HOOK(0x6D32DB, TacticalClass_RenderOverlay_missingPointer, 0x6)
+ //{
+	// GET(TacticalClass*, pThis, EDI);
+
+	// if (!pThis){
+	//	 Debug::LogError("EDI register is nullptr ??");
+	//	 R->EDI(TacticalClass::Instance());
+	// }
+
+	// return 0x0;
+ //}
