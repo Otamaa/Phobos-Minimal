@@ -675,6 +675,8 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 //DEFINE_JUMP(CALL, 0x6E250B, MiscTools::to_DWORD(DamageArea::Apply));
 //DEFINE_JUMP(CALL, 0x71BABF, MiscTools::to_DWORD(DamageArea::Apply));
 //DEFINE_JUMP(CALL, 0x74A1E1, MiscTools::to_DWORD(DamageArea::Apply));
+
+#ifndef _ENABLE
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
 static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
 
@@ -1061,3 +1063,4 @@ DEFINE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
 
 	return 0;
 }
+#endif

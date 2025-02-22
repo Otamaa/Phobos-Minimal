@@ -161,6 +161,7 @@ DEFINE_DYNAMIC_PATCH(Disable_PauseGame_ResetPause, 0x683FB2,
 DEFINE_DYNAMIC_PATCH(Disable_MainGame_BeforeMainLoop, 0x48CE7E,
 	0xC6, 0x05, 0xFC, 0x2C, 0x82, 0x00, 0x01);
 
+#ifndef _ENABLETHESE
 // Disable the hooks if we're in multiplayer modes or if multithreading was disabled in rules.
 DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 {
@@ -258,3 +259,4 @@ DEFINE_HOOK(0x683FB2, ResumeGame_ResetPause, 5)
 	Multithreading::PauseMutex.unlock();
 	return 0;
 }
+#endif

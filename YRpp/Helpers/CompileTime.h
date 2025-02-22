@@ -232,6 +232,7 @@ public:
 		if(VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE) {
 			*reinterpret_cast<LPVOID*>(Address) = rhs;
 			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protectionb);
+			FlushInstructionCache(Game::hInstance, (LPVOID)Address, sizeof(LPVOID));
 			return true;
 		}
 

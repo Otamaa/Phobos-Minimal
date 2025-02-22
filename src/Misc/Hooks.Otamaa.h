@@ -36,8 +36,7 @@
 
 #include <MapClass.h>
 
-class FakeObjectClass : public ObjectClass
-{
+class FakeObjectClass : public ObjectClass {
 public:
 	void _DrawRadialIndicator(int val);
 
@@ -57,4 +56,10 @@ public:
 };
 static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");
 
+//===================================================================================
+
+class FakeFootClass : public FootClass {
+public:
+};
+static_assert(sizeof(FakeFootClass) == sizeof(FootClass), "Invalid Size !");
 //===================================================================================

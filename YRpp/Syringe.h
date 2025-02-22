@@ -399,7 +399,7 @@ hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 //	namespace patch##funcname													 \
 //	{																		 \
 //		const BYTE data[] = {__VA_ARGS__};									 \
-//	   __declspec(allocate(".syhks02"))										 \
+//	   __declspec(allocate(".syhks02"))										 \ 
 //		patchdecl patch = { ##hook, (BYTE*)##data , sizeof(##data), #funcname};	 \
 //	}
 //

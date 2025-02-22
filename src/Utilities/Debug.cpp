@@ -33,7 +33,7 @@ void Debug::InitLogger() {
 	}
 
 	const auto log_full = PhobosCRT::WideStringToString(Debug::LogFileFullPath);
-	spdlog::init_thread_pool(8192, 4);
+	spdlog::init_thread_pool(8192, 20);
 	Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
 	Debug::file_sink->set_level(spdlog::level::trace);
 	Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);

@@ -4469,7 +4469,7 @@ void TechnoExtData::UpdateShield()
 	auto const pThis = this->AttachedToObject;
 
 	if (!this->CurrentShieldType)
-		Debug::FatalErrorAndExit("Techno[{}] Missing CurrentShieldType ! ", pThis->get_ID());
+		Debug::FatalErrorAndExit("Techno[%s] Missing CurrentShieldType ! ", pThis->get_ID());
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 

@@ -203,14 +203,15 @@ DEFINE_HOOK(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 }
 
 // aim for the cell for flying carriers
-DEFINE_HOOK(0x6B783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
+DEFINE_HOOK(0x6B7838, SpawnManagerClass_Update_SpawnHigh, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
+	GET(TechnoClass*, pSpawnee , EDI);
 
-	R->EAX(pThis->Owner->GetHeight() > 0
-		? (AbstractClass*)pThis->Owner->GetCell() : (AbstractClass*)pThis->Owner);
+	pSpawnee->SetDestination(pThis->Owner->GetHeight() > 0
+		? (AbstractClass*)pThis->Owner->GetCell() : (AbstractClass*)pThis->Owner , true);
 
-	return 0;
+	return 0x6B7848;
 }
 
 /* #1354 - Aircraft and empty SovParaDropInf list */

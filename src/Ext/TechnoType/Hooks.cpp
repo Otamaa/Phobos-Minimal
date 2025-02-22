@@ -217,12 +217,12 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->Promote_IncludeSpawns)
-	{
-		for (const auto& i : pThis->SpawnedNodes)
-		{
-			if (i->Unit && i->Unit->Veterancy.Veterancy < pThis->Owner->Veterancy.Veterancy)
-				i->Unit->Veterancy.Add(pThis->Owner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
+	if(auto pOwner = pThis->Owner) {
+		if (TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Promote_IncludeSpawns) {
+			for (const auto& i : pThis->SpawnedNodes) {
+				if (i->Unit && i->Unit->Veterancy.Veterancy < pThis->Owner->Veterancy.Veterancy)
+					i->Unit->Veterancy.Add(pThis->Owner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
+			}
 		}
 	}
 

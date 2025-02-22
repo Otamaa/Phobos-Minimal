@@ -30,6 +30,8 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+	static int __fastcall GetTiberiumType(int Overlay);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);

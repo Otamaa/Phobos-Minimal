@@ -478,7 +478,7 @@ DEFINE_HOOK(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 
 	pLinked->PrimaryFacing.Set_ROT(pType->ROT);
 
-	if (pType->SensorsSight)
+	if (pType->Sensors && pType->SensorsSight > 0)
 	{
 		pLinked->RemoveSensorsAt(pLinked->LastFlightMapCoords);
 		pLinked->RemoveSensorsAt(pLinked->GetMapCoords());

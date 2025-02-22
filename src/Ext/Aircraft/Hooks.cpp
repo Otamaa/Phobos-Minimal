@@ -254,12 +254,15 @@ DEFINE_HOOK(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
 	return 0x4184F1;
 }
 
-DEFINE_HOOK(0x418525, AircraftClass_Mission_Attack_Delay1B, 0x6)
+DEFINE_HOOK(0x418506, AircraftClass_Mission_Attack_Delay1B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(int, status, EDX);
 
-	pThis->MissionStatus = status;
+	bool IsEmptyAmmo = pThis->Ammo == 0;
+	bool IsNegativeAmmo = pThis->Ammo < 0;
+	pThis->IsLocked = true;
+	pThis->MissionStatus =  !IsNegativeAmmo && !IsEmptyAmmo ? 1 : 10;
 	R->EAX(GetDelay(pThis, false));
 
 	return 0x418539;

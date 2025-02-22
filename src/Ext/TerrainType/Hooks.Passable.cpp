@@ -1409,7 +1409,7 @@ DEFINE_HOOK(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 	GET(BaseClass* const, pBase, ESI);
 	GET(BaseNodeClass* const, pBaseNode, EAX);
 
-	if (pBaseNode->Placed)
+	if (RulesExtData::Instance()->AIForbidConYard && pBaseNode->Placed)
 	{
 		const auto index = pBaseNode->BuildingTypeIndex;
 

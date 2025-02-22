@@ -2197,11 +2197,25 @@ DEFINE_HOOK(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 
 	const auto pFoot = pLoco->LinkedTo;
 
-	return (pFoot && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
+	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
 }
 
 DEFINE_HOOK(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
 	return BuildingTypeExtContainer::Instance.Find(pType)->BarracksExitCell.isset() ? 0x54BCA3 : 0;
+}
+
+DEFINE_HOOK(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
+{
+	GET(FootClass*, pThis, EDI);
+	pThis->RemoveSensorsAt(pThis->LastMapCoords);
+	return 0x4DB37C;
+}
+
+DEFINE_HOOK(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	pThis->RemoveSensorsAt(pThis->LastMapCoords);
+	return 0x4DBF01;
 }

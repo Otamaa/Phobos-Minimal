@@ -57,7 +57,7 @@ DEFINE_HOOK(0x739C70, UnitClass_ToggleDeployState_ChangeAmmo, 0xA) // deploying
 	GET(UnitClass*, pThis, ESI);
 	auto const pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (pThis->Deployed && !pThis->BunkerLinkedItem && !pThis->Deploying && pThisExt->Ammo_AddOnDeploy)
+	if (pThis->Deployed && !pThis->BunkerLinkedItem && !pThis->BunkerLinkedItem && !pThis->Deploying && pThisExt->Ammo_AddOnDeploy)
 	{
 		const int ammoCalc = MaxImpl(pThis->Ammo + pThisExt->Ammo_AddOnDeploy, 0);
 		pThis->Ammo = MinImpl(pThis->Type->Ammo, ammoCalc);

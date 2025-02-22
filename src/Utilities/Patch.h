@@ -69,6 +69,7 @@ struct NOVTABLE
 		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
 			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
+			FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
 		}
 	}
 
@@ -79,6 +80,7 @@ struct NOVTABLE
 		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			std::memcpy((void*)addrFrom, toImpl, size);
 			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
+			FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
 		}
 	}
 
