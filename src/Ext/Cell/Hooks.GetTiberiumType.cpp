@@ -25,8 +25,27 @@ DEFINE_JUMP(CALL, 0x48376B, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_JUMP(CALL, 0x48379E, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_JUMP(CALL, 0x4837EE, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_JUMP(CALL, 0x484FF3, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
-DEFINE_JUMP(CALL, 0x485013, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
-DEFINE_JUMP(CALL, 0x485026, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
+//DEFINE_JUMP(CALL, 0x485013, MiscTools::to_DWORD(&CellExtData::GetTiberiumType)); JMP
+
+//DEFINE_JUMP(CALL, 0x485026, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
+DEFINE_HOOK(0x485020, CellClass_GetTibValue, 0x6) {
+	GET(FakeCellClass*, pThis, ECX);
+	GET_STACK(DWORD, caller , 0x0);
+
+	//if (((int)*((DWORD*)pThis)) == -1) {
+	//	Debug::FatalError(__FUNCTION__" called with invalid cell , caller %x", caller);
+	//	R->EAX(0);
+	//	return 0x485052;
+	//}
+
+	int type = pThis->_GetTiberiumType();
+	R->EAX(type == -1 ? 0 : TiberiumClass::Array->Items[type]->Value);
+	return 0x485052;
+}
+
+
+DEFINE_JUMP(LJMP, 0x485010, MiscTools::to_DWORD(&FakeCellClass::_GetTiberiumType));
+
 DEFINE_JUMP(CALL, 0x487393, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_JUMP(CALL, 0x4873E9, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_JUMP(CALL, 0x5FDA77, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));

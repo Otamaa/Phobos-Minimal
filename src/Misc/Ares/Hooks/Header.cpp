@@ -7422,7 +7422,7 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 	if (!canBuild)
 	{
 		AllIsWell = false;
-		Debug::FatalError(errorMsg, pType->ID, "BaseUnit");
+		Debug::FatalError(errorMsg, pType->ID, GameStrings::BaseUnit());
 	}
 
 	auto CheckList = [pThis, pType, idxParent, errorMsg, &AllIsWell](
@@ -7438,9 +7438,9 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 
 	// commented out lists that do not cause a crash, according to testers
 	//CheckList(make_iterator(pRules->Shipyard), "Shipyard");
-	CheckList(make_iterator(pRules->BuildPower), "BuildPower");
-	CheckList(make_iterator(pRules->BuildRefinery), "BuildRefinery");
-	CheckList(make_iterator(pRules->BuildWeapons), "BuildWeapons");
+	CheckList(make_iterator(pRules->BuildPower), GameStrings::BuildPower());
+	CheckList(make_iterator(pRules->BuildRefinery), GameStrings::BuildRefinery());
+	CheckList(make_iterator(pRules->BuildWeapons), GameStrings::BuildWeapons());
 	//CheckList(make_iterator(pRules->BuildConst), "BuildConst");
 	//CheckList(make_iterator(pRules->BuildBarracks), "BuildBarracks");
 	//CheckList(make_iterator(pRules->BuildTech), "BuildTech");

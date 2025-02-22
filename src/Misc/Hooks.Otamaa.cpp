@@ -11083,3 +11083,14 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
 	 return 0x0;
  }
+
+ /*DEFINE_HOOK(0x4F671D, HouseClass_CanAffordBase_GetBuildingEmpty, 0x5) {
+	 GET(HouseClass*, pThis, ESI);
+	 GET(BuildingTypeClass*, pBldType, EAX);
+
+	 if (!pBldType) {
+		 Debug::FatalErrorAndExit("Cannot Find Any suitable building from BuildWeapons [Count %d] for House[%x - %s]", RulesClass::Instance->BuildWeapons.Count, pThis, pThis->get_ID());
+	 }
+
+	 return 0x0;
+ }*/
