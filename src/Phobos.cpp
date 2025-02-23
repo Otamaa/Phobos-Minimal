@@ -377,7 +377,7 @@ std::string GetOsVersionQuick()
 	bool bHaveVerFromKernel32 = false;
 	if (kernel)
 	{
-		wchar_t szPath[MAX_PATH];
+		wchar_t szPath[MAX_PATH] {};
 		DWORD dwCount = GetModuleFileNameW(kernel, szPath, std::size(szPath));
 		if (dwCount != 0 && dwCount < std::size(szPath))
 		{
@@ -573,7 +573,7 @@ void __cdecl PatchExit(int uExitCode) {
 	PhobosWindowClass::Destroy();
 #endif
 	CRT::exit_returnsomething(uExitCode, 0, 0);
-	//		Debug::DetachLogger();
+	Debug::DetachLogger();
 }
 
 DECLARE_PATCH(_set_fp_mode)
@@ -656,7 +656,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
 		}
 
-		char buf[1024];
+		char buf[1024] {};
 
 		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
 			Debug::g_MainLogger->info("Compatibility modes detected : {}.", buf);
