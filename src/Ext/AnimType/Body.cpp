@@ -281,7 +281,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		const int zCoord = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : baseHeight;
 		Location.Z = MaxImpl(MapClass::Instance->GetCellFloorHeight(Location) + bridgeZ, zCoord);
 
-		const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
+		//const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
 
 		if (!MapClass::Instance->IsWithinUsableArea(Location))
 			return;
@@ -323,7 +323,7 @@ static TechnoClass* CreateFoot(
 
 	const auto pCell = MapClass::Instance->GetCellAt(location);
 	const auto speedType = rtti != AbstractType::AircraftType ? pType->SpeedType : SpeedType::Wheel;
-	auto const mZone = rtti != AbstractType::AircraftType ? pType->MovementZone : MovementZone::Normal;
+	//auto const mZone = rtti != AbstractType::AircraftType ? pType->MovementZone : MovementZone::Normal;
 	const bool allowBridges = GroundType::Array[static_cast<int>(LandType::Clear)].Cost[static_cast<int>(speedType)] > 0.0;
 	const bool isBridge = allowBridges && pCell->ContainsBridge();
 	const bool inAir = location.Z >= Unsorted::CellHeight * 2;

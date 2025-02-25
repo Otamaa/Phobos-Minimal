@@ -3,8 +3,10 @@
 #include <DisplayClass.h>
 #include <RectangleStruct.h>
 #include <Audio.h>
+#include <HashTable.h>
 
 class Surface;
+struct RadarTrackingStruct;
 class NOVTABLE RadarClass : public DisplayClass
 {
 public:
@@ -89,7 +91,7 @@ public:
 	DWORD unknown_124C;
 	DWORD unknown_1250;
 	DWORD unknown_1254;
-	DWORD unknown_1258;
+	HashTable<RadarTrackingStruct, TechnoClass*>* unknown_1258;
 	DynamicVectorClass<Point2D> unknown_points_125C;
 	DWORD unknown_1274;
 	DynamicVectorClass<Point2D> FoundationTypePixels[22];

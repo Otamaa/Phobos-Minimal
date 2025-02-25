@@ -486,7 +486,7 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, TechnoClass*
 		nPass;
 		nPass = (FootClass*)nPass->NextObject)
 	{
-		const auto pType = nPass->GetTechnoType();
+		//const auto pType = nPass->GetTechnoType();
 
 		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
 		{
@@ -1137,7 +1137,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 	if (const auto pThis = cast_to<InfantryClass*, false>(pFrom))
 	{
 		const auto pType = pThis->Type;
-		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+		//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		const auto action = TechnoExt_ExtData::GetActionHijack(pThis, pTarget);
@@ -1285,7 +1285,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	if (!pInf->Type->VehicleThief && !pExt->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 		return false;
 
-	const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
+	//const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
 
 	//this one iam not really sure how to implement it
 	//it seems Ares one do multiple item comparison before doing hijack ?
@@ -1451,7 +1451,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 			if (!CloneBuildingEligible(CloningVat, BuildingTypeExtContainer::Instance.Find(CloningVat->Type)->Cloning_RequirePower))
 				continue;
 
-			auto const BType = CloningVat->Type;
+			//auto const BType = CloningVat->Type;
 
 			auto ShouldClone = false;
 			if (!CloningSources.empty())
@@ -1951,8 +1951,8 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 	if (!pThis->Target)
 	{
-		StackVector<TechnoClass* , 256> preferredTargets;
-		StackVector<TechnoClass* , 256> randomTargets;
+		StackVector<TechnoClass* , 256> preferredTargets {};
+		StackVector<TechnoClass* , 256> randomTargets {};
 
 		// defaults if SW isn't set
 		auto pOwner = pThis->GetOwningHouse();
@@ -3904,8 +3904,6 @@ void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 	}
 }
 
-#include <New/Entity/FlyingStrings.h>
-
 void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -4472,8 +4470,8 @@ bool FirewallFunctions::canLinkTo(BuildingClass* currentBuilding, BuildingClass*
 		return false;
 	}
 
-	BuildingTypeExtData* currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
-	BuildingTypeExtData* targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
+	//BuildingTypeExtData* currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
+	//BuildingTypeExtData* targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
 
 	// Firewalls
 	if (BuildingTypeExtContainer::Instance.Find(currentBuilding->Type)->Firestorm_Wall
@@ -7529,7 +7527,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 		// create a list of all buildings that can be powered down
 		// and give each building an expendability value
-		StackVector<ExpendabilityStruct, 4096> Buildings;
+		StackVector<ExpendabilityStruct, 4096> Buildings {};
 		//Buildings.reserve(pThis->Buildings.Count);
 
 		const auto HasLowPower = pThis->HasLowPower();

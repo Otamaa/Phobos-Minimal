@@ -48,8 +48,8 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 {
 	// Step 1: Find the technos inside of the building place grid.
 	auto infantryCount = CellStruct::Empty;
-	StackVector<TechnoClass* , 24> checkedTechnos;
-	StackVector<CellClass*, 24> checkedCells;
+	StackVector<TechnoClass* , 24> checkedTechnos {};
+	StackVector<CellClass*, 24> checkedCells {};
 
 	for (auto pFoundation = pBuildingType->GetFoundationData(false); *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 	{
@@ -93,7 +93,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 		return false;
 
 	// Step 2: Find the cells around the building.
-	StackVector<CellClass*, 24> optionalCells;
+	StackVector<CellClass*, 24> optionalCells {};
 
 	for (auto pFoundation = pBuildingType->FoundationOutside; *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 	{
@@ -142,21 +142,21 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 	});
 
 	// Step 4: Core, successively find the farthest techno and its closest valid destination.
-	StackVector<TechnoClass* , 50> reCheckedTechnos;
+	StackVector<TechnoClass* , 50> reCheckedTechnos {};
 
 	struct InfantryCountInCell // Temporary struct
 	{
 		CellClass* position;
 		int count;
 	};
-	StackVector<InfantryCountInCell , 25> infantryCells;
+	StackVector<InfantryCountInCell , 25> infantryCells {};
 
 	struct TechnoWithDestination // Also temporary struct
 	{
 		TechnoClass* techno;
 		CellClass* destination;
 	};
-	StackVector<TechnoWithDestination , 25> finalOrder;
+	StackVector<TechnoWithDestination , 25> finalOrder {};
 
 	do
 	{
@@ -235,12 +235,12 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 
 				if (!pDestinationCell)
 				{
-					StackVector<CellClass*, 10> deleteCells;
+					StackVector<CellClass*, 10> deleteCells {};
 
 					for (const auto& pOptionalCell : optionalCells.container())
 					{
 						auto pCurObject = pOptionalCell->FirstObject;
-						StackVector<TechnoClass*,4> optionalTechnos;
+						StackVector<TechnoClass*,4> optionalTechnos {};
 						bool valid = true;
 
 						while (pCurObject)
@@ -887,7 +887,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	const auto& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
 	const auto nHeight = pCell->GetFloorHeight({ 0,0 });
 
-	auto& [nPoint, _result] = TacticalClass::Instance->GetCoordsToClientSituation(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ));
+	auto[nPoint, _result] = TacticalClass::Instance->GetCoordsToClientSituation(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ));
 
 	if (!_result)
 		return;
@@ -1751,7 +1751,6 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 				return false;
 	}
 
-	const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto& pAuxTypes = pTypeExt->Cameo_AuxTechnos;
 
 	if (pAuxTypes.begin() == pAuxTypes.end())

@@ -171,7 +171,7 @@ void PhobosAttachEffectClass::AnimCheck()
 
 	if (!this->Type->Animation_HideIfAttachedWith.empty())
 	{
-		auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
 
 		if (PhobosAEFunctions::HasAttachedEffects(this->Techno, this->Type->Animation_HideIfAttachedWith, false, false, nullptr, nullptr, nullptr, nullptr))
 		{
@@ -603,7 +603,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 
 int PhobosAttachEffectClass::DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types)
 {
-	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	//auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 	int detachedCount = 0;
 	bool markForRedraw = false;
 	auto const& minCounts = attachEffectInfo->CumulativeRemoveMinCounts;
@@ -652,7 +652,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 	if (pTargetExt->PhobosAE.begin() == pTargetExt->PhobosAE.end())
 		return 0;
 
-	StackVector<WeaponTypeClass*, 256> expireWeapons;
+	StackVector<WeaponTypeClass*, 256> expireWeapons {};
 
 	pTargetExt->PhobosAE.remove_all_if([&](auto& it) {
 

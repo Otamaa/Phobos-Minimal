@@ -63,6 +63,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Bolt_Disable2.Read(exINI, pSection, "Bolt.Disable2");
 		this->Bolt_Disable3.Read(exINI, pSection, "Bolt.Disable3");
 		this->Bolt_Arcs.Read(exINI, pSection, "Bolt.Arcs");
+		this->Bolt_Duration.Read(exINI, pSection, "Bolt.Duration");
 	}
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
@@ -343,6 +344,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Bolt_Disable2)
 		.Process(this->Bolt_Disable3)
 		.Process(this->Bolt_Arcs)
+		.Process(this->Bolt_Duration)
 		.Process(this->Strafing)
 		.Process(this->Strafing_Shots)
 		.Process(this->Strafing_SimulateBurst)
@@ -572,9 +574,10 @@ EBolt* WeaponTypeExtData::CreateBolt(WeaponTypeExtData* pWeapon)
 {
 	auto ret = GameCreate<EBolt>();
 
-	if (ret && pWeapon)
+	if (pWeapon)
 	{
 		WeaponTypeExtData::boltWeaponTypeExt[ret] = pWeapon;
+		ret->Lifetime = 1 << (std::clamp(pWeapon->Bolt_Duration.Get(), 1, 31) - 1);
 	}
 
 	return ret;

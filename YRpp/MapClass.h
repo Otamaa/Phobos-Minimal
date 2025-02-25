@@ -7,6 +7,7 @@
 #include <Interface/IGameMap.h>
 #include <SpecificStructures.h>
 #include <Powerups.h>
+#include <HashTable.h>
 
 class BulletTypeClass;
 class ObjectClass;
@@ -738,7 +739,7 @@ protected:
 
 public:
 	DWORD unknown_10;
-	void* unknown_pointer_14;
+	HashTable<DWORD,DWORD>* unknown_pointer_14;
 	void* MovementZones [13];
 	DWORD somecount_4C;
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
@@ -748,7 +749,7 @@ public:
 	DWORD unknown_74;
 	DWORD unknown_78;
 	DWORD unknown_7C;
-	DWORD unknown_80[3]; // somehow connected to the 3 vectors below
+	HashTable<DWORD, SubzoneConnectionStruct>* unknown_80[3]; // somehow connected to the 3 vectors below
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking1;
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking2;
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking3;

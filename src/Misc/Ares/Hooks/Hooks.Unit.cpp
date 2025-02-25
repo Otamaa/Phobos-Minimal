@@ -774,7 +774,6 @@ DEFINE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 		&& !pThis->IsIronCurtained() && !pThis->IsInAir())
 	{
 
-		const auto TechnoExt = TechnoExtContainer::Instance.Find(pThis);
 		if (!TechnoExtData::IsPsionicsImmune(pThis) && !pThis->GetTechnoType()->BalloonHover)
 		{
 			// KillDriver check

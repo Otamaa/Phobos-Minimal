@@ -15,7 +15,7 @@
 
 void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon)
 {
-	const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	//const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 #ifdef _Enable
 	if (pTypeExt->WeaponBolt_Data.isset())
 		ElectricBoltClass::Create(sourcePos, targetPos,
@@ -592,7 +592,8 @@ Vector3D<float> Helpers_DP::ToVector3D(DirStruct& dir)
 Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurret)
 {
 	const auto facing = getTurret ? &pTechno->SecondaryFacing : &pTechno->PrimaryFacing;
-	return ToVector3D(facing->Current());
+	auto dir = facing->Current();
+	return ToVector3D(dir);
 }
 
 CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip)

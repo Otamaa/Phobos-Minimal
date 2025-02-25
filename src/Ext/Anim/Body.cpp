@@ -406,10 +406,12 @@ void AnimExtData::CreateAttachedSystem()
 		pData->AttachedSystem.Get(),
 		nLoc,
 		pThis->GetCell(),
-		nullptr,
+		this->AttachedToObject,
 		CoordStruct::Empty,
 		pThis->GetOwningHouse()
 	));
+
+	FakeAnimClass::AnimsWithAttachedParticles.emplace_back((FakeAnimClass*)pThis);
 }
 
 //Modified from Ares
@@ -828,7 +830,12 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 
 DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 {
-	GET(AnimClass* const, pItem, ESI);
+	GET(AnimClass*, pItem, ESI);
+
+	FakeAnimClass::AnimsWithAttachedParticles.remove_all_if([pItem](FakeAnimClass* pAnim) {
+		return (FakeAnimClass*)pItem == pAnim;
+	});
+
 	FakeAnimClass::Remove(pItem);
 	return 0;
 }

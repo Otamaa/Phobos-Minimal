@@ -988,7 +988,7 @@ void NOINLINE ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 
 void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 {
-	StackVector<FootClass*, 256> transports;
+	StackVector<FootClass*, 10> transports {};
 
 	// Collect available transports
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
@@ -2171,8 +2171,8 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	TechnoClass* selectedTarget = pTeam->ArchiveTarget ? static_cast<TechnoClass*>(pTeam->ArchiveTarget) : nullptr;
 	bool isEngineerAmphibious = false;
-	StackVector<FootClass* , 1250> engineers;
-	StackVector<FootClass*, 1250> otherTeamMembers;
+	StackVector<FootClass* , 512> engineers {};
+	StackVector<FootClass*, 512> otherTeamMembers {};
 
 	// Check if there are no engineers
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
@@ -2226,7 +2226,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		return;
 	}
 
-	StackVector<BuildingClass* , 500> validHuts;
+	StackVector<BuildingClass* , 10> validHuts {};
 
 	if (!selectedTarget)
 	{

@@ -35,7 +35,6 @@ void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeClass* con
 	{
 		const bool v98 = pWarhead->_GetExtData()->BridgeAbsoluteDestroyer.Get(pWarhead == RulesClass::Instance->IonCannonWarhead);
 
-		auto v63 = pCell->UINTFlags;
 		int v64 = pCell->IsoTileTypeIndex - BridgeSet + 1;
 		CellClass* v104 = pCell->GetBridgeOwner();
 		int v67 = 0;
@@ -796,10 +795,10 @@ DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 	GET_STACK(bool, Something, 0x17);
 	GET_STACK(int, idamage, 0x24);
-	GET_STACK(int, distance, 0x68);
+	//GET_STACK(int, distance, 0x68);
 	GET_BASE(TechnoClass*, pSource, 0x8);
-	GET_BASE(HouseClass*, pHouse, 0x14);
-
+	//GET_BASE(HouseClass*, pHouse, 0x14);
+ 
 	auto pWHExt = pWarhead->_GetExtData();
 
 	for (int i = 0; i < groupvec.Count; ++i)
@@ -924,7 +923,6 @@ DEFINE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 	return ContinueFunction;
 }
 
-#include <Helpers/Enumerators.h>
 
 // create enumerator
 DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)

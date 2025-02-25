@@ -501,6 +501,8 @@ void Phobos::ExeRun()
 
 void Phobos::ExeTerminate()
 {
+	Debug::DeactivateLogger();
+
 	if(!Phobos::Otamaa::ExeTerminated){
 		Phobos::Otamaa::ExeTerminated = true;
 	}
@@ -665,6 +667,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	break;
 	case DLL_PROCESS_DETACH :
 		Multithreading::ShutdownMultitheadMode();
+		Debug::DeactivateLogger();
 		break;
 	}
 

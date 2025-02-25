@@ -91,7 +91,7 @@ DEFINE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 		return DoNotDealDamage;
 
 	const auto nCoord = pThis->Bounce.GetCoords();
-	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pType);
+	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pType);
 	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
 	const auto nLoc = pObj->Location;
 	const auto nDist = Math::abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);

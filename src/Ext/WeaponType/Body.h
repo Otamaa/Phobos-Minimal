@@ -134,6 +134,8 @@ public:
 	Valueable<bool> Bolt_Disable3 { false };
 	Valueable<int> Bolt_Arcs { 8 };
 
+	Valueable<int> Bolt_Duration { 17 };
+
 	Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys {};
 	Valueable<int> Laser_Thickness { -1 };
 

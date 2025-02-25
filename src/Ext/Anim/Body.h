@@ -77,6 +77,8 @@ public:
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
 
 	static void SpawnFireAnims(AnimClass* pThis);
+
+	
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -87,6 +89,7 @@ class FakeAnimClass : public AnimClass
 {
 public:
 	OPTIONALINLINE static std::vector<AnimExtData*> Pool;
+	OPTIONALINLINE static HelperedVector<FakeAnimClass*> AnimsWithAttachedParticles {};
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{
@@ -173,6 +176,8 @@ public:
 				delete ptr;
 			}
 		}
+
+		AnimsWithAttachedParticles.clear();
 	}
 
 	FORCEDINLINE HouseClass* _GetOwningHouse() {
@@ -193,6 +198,19 @@ public:
 
 	FORCEDINLINE AnimTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
+
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		Stm.Process(AnimsWithAttachedParticles);
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		Stm.Process(AnimsWithAttachedParticles);
+		return true;
 	}
 };
 static_assert(sizeof(FakeAnimClass) == sizeof(AnimClass), "Invalid Size !");

@@ -166,7 +166,7 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 		return;
 	}
 
-	StackVector<HouseClass* , 256> objectsList;
+	StackVector<HouseClass* , 20> objectsList {};
 	int IdxSelectedObject = -1;
 	HouseClass* selectedHouse = nullptr;
 	int highestHateLevel = 0;
@@ -860,7 +860,7 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 {
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
-	StackVector<HouseClass*, 256> objectsList;
+	StackVector<HouseClass*, 20> objectsList {};
 	HouseClass* selectedHouse = nullptr;
 	int newHateLevel = 5000;
 

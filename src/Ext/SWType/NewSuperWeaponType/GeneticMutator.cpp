@@ -122,7 +122,8 @@ void GeneticMutatorStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		ApplyGeneticMutator(this->Firer, this->Super, pData, this->Type, this->CoordsWithBridge, this->Coords, this->Type->GetWarhead(pData), this->Type->GetRange(pData), this->Type->GetDamage(pData));
+		auto range = this->Type->GetRange(pData);
+		ApplyGeneticMutator(this->Firer, this->Super, pData, this->Type, this->CoordsWithBridge, this->Coords, this->Type->GetWarhead(pData), range, this->Type->GetDamage(pData));
 	}
 }
 

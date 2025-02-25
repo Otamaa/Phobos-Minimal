@@ -16,7 +16,6 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
-#include <Ext/BuildingType/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -143,7 +142,7 @@ DEFINE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
 			if (pFactory && pFactory->Object)
 			{
 				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
-				const int nTotal = pFactory->CountTotal(pProdType);
+				//const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
 				RectangleStruct cameoRect {};
@@ -472,7 +471,7 @@ DEFINE_HOOK(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
 	GET(TechnoClass*, pTarget, ESI);
 	REF_STACK(Action, action, STACK_OFFS(0x20, 0x10));
 
-	bool allowed = false;
+	//bool allowed = false;
 	action = Action::NoTogglePower;
 
 	if (auto pBld = cast_to<BuildingClass*>(pTarget))
@@ -1434,7 +1433,8 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 	if(!count)
 		return;
 
-	std::vector<bool> placements(count);
+	std::vector<bool> placements {};
+	placements.reserve(count);
 
 	const auto pBldLoc = pBuilding->GetCoords();
 	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
@@ -2303,7 +2303,7 @@ DEFINE_HOOK(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 	BuildingTypeExtData* pBuildTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-	bool can_occupy = false;
+	//bool can_occupy = false;
 
 	if (!pBuildTypeExt->CanBeOccupiedBy(pInf))
 		return DisallowOccupy;

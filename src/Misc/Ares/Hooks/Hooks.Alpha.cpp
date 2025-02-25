@@ -39,7 +39,7 @@ DEFINE_HOOK(0x420E70, AlphaLightClass_Detach_ClearPointer, 0x7)
 {
 	GET(AlphaShapeClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pObject, 0x4);
-	GET_STACK(bool, removed, 0x8);
+	//GET_STACK(bool, removed, 0x8);
 
 	if(pThis->AttachedTo == pObject){
 		pThis->IsObjectGone = true;

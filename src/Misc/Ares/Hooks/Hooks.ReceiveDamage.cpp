@@ -78,7 +78,7 @@ static COMPILETIMEEVAL TypeList<AnimTypeClass*>* GetDebrisAnim(TechnoTypeClass* 
 //https://github.com/Phobos-developers/Phobos/pull/1313
 static bool AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 {
-	const auto pWH = args->WH;
+	//const auto pWH = args->WH;
 	const auto pHouse = pThis->Owner;
 	const auto pSourceHouse = args->SourceHouse;
 	const auto pType = pThis->GetTechnoType();
@@ -123,7 +123,7 @@ static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 		const auto pType = pThis->GetTechnoType();
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pRules = RulesExtData::Instance();
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
+		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 		const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 		pHouseExt->CombatAlertTimer.Start(pRules->CombatAlert_Interval);
 		RadarEventClass::Create(RadarEventType::Combat, CellClass::Coord2Cell(pThis->GetCoords()));
@@ -587,7 +587,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
 	DamageState _res = DamageState::Unaffected;
-	int damage_ = *args.Damage;
+	//int damage_ = *args.Damage;
 	bool _isNegativeDamage = *args.Damage < 0;
 	auto pType = pThis->GetTechnoType();
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
@@ -1303,7 +1303,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 			if (!pWHExt->PreventScatter)
 			{
-				if (auto pFoot = flag_cast_to<FootClass*, false>(pThis))
+				if (pFoot)
 				{
 					if (!pFoot->Target && !pFoot->Destination)
 					{

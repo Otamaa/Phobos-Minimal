@@ -198,7 +198,7 @@ DEFINE_HOOK(0x5203F7, InfantryClass_UpdateVehicleThief_Hijack, 5)
 
 	GET(InfantryClass*, pThis, ESI);
 	GET(FootClass*, pTarget, EDI);
-	TechnoExtData* pExt = TechnoExtContainer::Instance.Find(pThis);
+	//TechnoExtData* pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	bool finalize = TechnoExt_ExtData::PerformActionHijack(pThis, pTarget);
 	if (finalize)

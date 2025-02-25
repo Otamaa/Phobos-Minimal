@@ -125,3 +125,9 @@ public:
 	int   MainShadeIndex;
 	PROTECTED_PROPERTY(BYTE,     unknown_334[0x8]);
 };
+
+struct SchemeNode
+{
+	char Name[256];
+	DynamicVectorClass<ColorScheme*>* Schemes;
+};

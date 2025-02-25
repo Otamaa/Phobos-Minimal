@@ -718,8 +718,8 @@ DEFINE_HOOK(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
 
 	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
 		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-			if(auto pType = pTaskForce->Entries[a].Type) {
-				pVec->AddItem(pType);
+			if(auto pTaskType = pTaskForce->Entries[a].Type) {
+				pVec->AddItem(pTaskType);
 			}
 		}
 	}

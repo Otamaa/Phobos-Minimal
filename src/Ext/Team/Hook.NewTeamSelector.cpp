@@ -1257,7 +1257,7 @@ DEFINE_HOOK(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 	// For each house save a list with only AI Triggers that can be used
 	for (HouseClass* pHouse : *HouseClass::Array)
 	{
-		StackVector<int , 4096> list;
+		StackVector<int , 256> list {};
 		const int houseIdx = pHouse->ArrayIndex;
 		const int sideIdx = pHouse->SideIndex + 1;
 

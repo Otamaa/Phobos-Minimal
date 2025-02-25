@@ -392,18 +392,30 @@ DEFINE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 	return 0x7327B2;
 }
 
-// #912875: respect the remove flag for invalidating SpawnManager owners
-DEFINE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
+#include <CaptureManagerClass.h>
+
+DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, ptr, EBP);
 	GET_STACK(bool, remove, 0x28);
 
-	if(!pThis->SpawnManager || !remove &&  pThis->Owner == ptr)
-		return 0x707B29;
+	// issues 1002020, 896263, 895954: clear stale mind control pointer to prevent
+	// crashes when accessing properties of the destroyed controllers.
+	if (pThis->MindControlledBy == ptr) {
+		pThis->MindControlledBy = nullptr;
+	}
 
-	R->ECX(pThis->SpawnManager);
-	return 0x707B23;
+	if(pThis->CaptureManager) {
+		pThis->CaptureManager->DetachTarget(ptr);
+	}
+
+	// #912875: respect the remove flag for invalidating SpawnManager owners
+	if(pThis->SpawnManager && (pThis->Owner != ptr || !(!remove && pThis->Owner == ptr))){
+		pThis->SpawnManager->UnlinkPointer(ptr);
+	}
+
+	return 0x707B29;
 }
 
 void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate) {
@@ -537,7 +549,7 @@ DEFINE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if(R->Origin() == 0x6F6F20)
@@ -1273,21 +1285,6 @@ DEFINE_HOOK(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
 {
 	GET(BuildingClass*, pBld, ESI);
 	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
-}
-
-// issues 1002020, 896263, 895954: clear stale mind control pointer to prevent
-// crashes when accessing properties of the destroyed controllers.
-DEFINE_HOOK(0x707B09, TechnoClass_PointerGotInvalid_ResetMindControl, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(void*, ptr, EBP);
-
-	if (pThis->MindControlledBy == ptr)
-	{
-		pThis->MindControlledBy = nullptr;
-	}
-
-	return 0;
 }
 
 //TechnoClass_GetActionOnObject_IvanBombsB

@@ -177,7 +177,7 @@ struct HSVClass
 	COMPILETIMEEVAL ColorStruct ToColorStruct()
 	{
 		//JMP_THIS(0x517440);
-		__int8 values[7];
+		__int8 values[7] {};
 		auto val = (unsigned __int8)this->Val;
 		auto sat = (unsigned __int8)this->Sat;
 		auto hue = ((unsigned __int8)this->Hue) * 2;

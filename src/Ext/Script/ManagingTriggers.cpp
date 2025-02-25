@@ -158,7 +158,7 @@ void ScriptExtData::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetT
 
 	for (auto pTrigger : *AITriggerTypeClass::Array)
 	{
-		StackVector<TechnoTypeClass* , 4096> entriesList;
+		StackVector<TechnoTypeClass* , 512> entriesList {};
 
 		if (pTrigger->Team1)
 		{

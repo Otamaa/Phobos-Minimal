@@ -164,7 +164,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 	if (pThis->Param3 == -3)
 	{
 		// Random Human Player
-		StackVector<int , 256> housesListIdx;
+		StackVector<int , 10> housesListIdx {};
 		for (auto ptmpHouse : *HouseClass::Array)
 		{
 			if (ptmpHouse->IsControlledByHuman()
@@ -873,7 +873,7 @@ NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = null
 
 	if (param < 0)
 	{
-		StackVector<HouseClass* , 256> housesListIdx;
+		StackVector<HouseClass* , 10> housesListIdx {};
 
 		switch (param)
 		{
@@ -1221,7 +1221,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		return true;
 	// Example:
 	// ID=ActionCount,[Action1],507,4,[CSFKey],[HouseIndex],[AIHousesLists Index],[AITargetTypes Index],[MesageDelay],A,[ActionX]
-	StackVector<HouseClass* , 256> pHousesList;
+	StackVector<HouseClass* , 10> pHousesList {};
 
 	// Obtain houses
 	int param3 = pThis->Param3;
@@ -1264,9 +1264,9 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 		}
 
 		for (const auto& pHouseType : *housesList) {
-			for (auto pHouse : *HouseClass::Array) {
-				if (pHouse->Type == pHouseType && !pHouse->Defeated && !pHouse->IsObserver())
-					pHousesList->push_back(pHouse);
+			for (auto pCont : *HouseClass::Array) {
+				if (pCont->Type == pHouseType && !pCont->Defeated && !pCont->IsObserver())
+					pHousesList->push_back(pCont);
 			}
 		}
 
@@ -1297,8 +1297,8 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 			if (!IsUnitAvailable(pTechno, false) || pTechno->GetTechnoType() != pType)
 				continue;
 
-			for (const auto& pHouse : pHousesList.container()) {
-				if (pTechno->Owner == pHouse) {
+			for (const auto& pCont : pHousesList.container()) {
+				if (pTechno->Owner == pCont) {
 					globalRemaining++;
 					nRemaining++;
 				}

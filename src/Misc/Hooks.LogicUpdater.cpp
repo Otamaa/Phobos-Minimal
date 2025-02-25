@@ -338,7 +338,7 @@ DEFINE_JUMP(CALL , 0x414DA3  , MiscTools::to_DWORD(&FakeAircraftClass::_FootClas
 DEFINE_HOOK(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
-	GET8(bool, IsMovingNow, AL);
+	//GET8(bool, IsMovingNow, AL);
 
 	//if (auto pTeam = pThis->Team) {
 	//	if (pTeam->CurrentScript->CurrentMission == -1) {

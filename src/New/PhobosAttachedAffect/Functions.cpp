@@ -90,7 +90,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	auto const pThis = pTechno;
 	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool markForRedraw = false;
-	StackVector<WeaponTypeClass* , 256> expireWeapons;
+	StackVector<WeaponTypeClass* , 256> expireWeapons {};
 
 	pExt->PhobosAE.remove_all_if([&](std::unique_ptr<PhobosAttachEffectClass>& attachEffect) {
 		if(!attachEffect.get()) {
@@ -210,7 +210,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 	if (!pExt->PhobosAE.empty()){
 
-		StackVector<WeaponTypeClass* , 256> expireWeapons;
+		StackVector<WeaponTypeClass* , 256> expireWeapons {};
 
 		// Delete ones on old type and not on current.
 		pExt->PhobosAE.remove_all_if([&](std::unique_ptr<PhobosAttachEffectClass>& it) {

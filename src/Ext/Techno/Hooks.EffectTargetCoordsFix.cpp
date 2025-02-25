@@ -338,26 +338,26 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 				nIdx = 0;
 			else {
 
-				auto& facing = pThis->GetRealFacing();
+				auto facing = &pThis->GetRealFacing();
 
 				if (pWeapon->Anim.Count == 8) {
-					nIdx = (facing.GetFacing<8>() + 8 / 8) % 8;
+					nIdx = (facing->GetFacing<8>() + 8 / 8) % 8;
 				}
 				else if (pWeapon->Anim.Count == 16) {
-					nIdx = (facing.GetFacing<16>() + 16 / 8) % 16;
+					nIdx = (facing->GetFacing<16>() + 16 / 8) % 16;
 				}
 				else if (pWeapon->Anim.Count == 32) {
-					nIdx = (facing.GetFacing<32>() + 32 / 8) % 32;
+					nIdx = (facing->GetFacing<32>() + 32 / 8) % 32;
 				}
 				else if (pWeapon->Anim.Count == 64) {
-					nIdx = (facing.GetFacing<64>() + 64 / 8) % 64;
+					nIdx = (facing->GetFacing<64>() + 64 / 8) % 64;
 				} else {
 					//only execute if the anim count is more than 1
 					const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
 
 					// 2^highest is the frame count, 3 means 8 frames
 					if (highest >= 3) {
-						nIdx = facing.GetValue(highest, 1u << (highest - 3));
+						nIdx = facing->GetValue(highest, 1u << (highest - 3));
 					}
 
 					nIdx %= pWeapon->Anim.Count;

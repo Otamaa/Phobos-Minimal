@@ -3,7 +3,7 @@
 
 // this douchebag blows your base up when it thinks you're cheating
 // this already handled below , the validation will aways return true , this prevent  this to even happen
-DEFINE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0x7, 55D059);
+//DEFINE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp,0x7, 55D059);
 //DEFINE_PATCH(0x55CFD8 , 0x90, 0x90, 0x90, 0x90, 0x90);
 
 //void NAKED CopyProtection_DontBlowMeUp_Ret_()

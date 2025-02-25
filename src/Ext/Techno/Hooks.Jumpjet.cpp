@@ -382,7 +382,6 @@ int JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(Point2D location)
 		return -1;
 
 	int height = pCell->GetFloorHeight({ location.X & 0xFF, location.Y & 0xFF });
-	ObjectClass* pObject = pCell->FirstObject;
 
 	for(auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
       if(auto pBld = cast_to<BuildingClass*, false>(pObject))  {

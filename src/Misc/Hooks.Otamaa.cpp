@@ -1,6 +1,7 @@
 #pragma region Includes
 #include "Hooks.Otamaa.h"
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Bullet/Body.h>
@@ -51,6 +52,8 @@
 
 #include <SpotlightClass.h>
 #include <New/Entity/FlyingStrings.h>
+
+#include <ExtraHeaders/StackVector.h>
 #pragma endregion
 
 DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
@@ -577,7 +580,7 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	};
 
 	GET(TechnoClass* const, pThis, EDI);
-	GET(TechnoClass* const, pTarget, ESI);
+	//GET(TechnoClass* const, pTarget, ESI);
 	GET(TechnoTypeClass* const, pTargetType, EBP);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
@@ -1623,7 +1626,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 
 	auto nCoord = pThis->GetCoords();
 	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis);
 	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
@@ -2243,7 +2246,7 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 {
 	enum { retEmpty = 0x4812EC, retContinue = 0x0, retResult = 0x481313 };
 	GET(CellClass*, pThis, ECX);
-	GET_STACK(CoordStruct*, pResult, 0x4);
+	//GET_STACK(CoordStruct*, pResult, 0x4);
 	GET_STACK(DWORD, caller, 0x0);
 
 	if (!pThis)
@@ -2474,7 +2477,7 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	//only update the SW once the techno is really not present
@@ -2540,7 +2543,7 @@ DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 
 DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 {
-	GET(TeamClass*, pCreated, ESI);
+	//GET(TeamClass*, pCreated, ESI);
 	GET(TeamTypeClass*, pType, EBX);
 
 	const auto pHouse = pType->GetHouse();
@@ -3179,7 +3182,9 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 		for (short i = -currentRange; i <= currentRange; i++)
 		{
 			checkedCell.X = centerCell.X + i;
-			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+			placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup);
+
+			if (placed)
 				break;
 		}
 
@@ -3192,8 +3197,9 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 		for (short i = -currentRange; i <= currentRange; i++)
 		{
 			checkedCell.X = centerCell.X + i;
+			placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup);
 
-			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+			if (placed)
 				break;
 		}
 
@@ -3206,8 +3212,9 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 		for (short j = -currentRange + 1; j < currentRange; j++)
 		{
 			checkedCell.Y = centerCell.Y + j;
+			placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup);
 
-			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+			if (placed)
 				break;
 		}
 
@@ -3220,8 +3227,9 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 		for (short j = -currentRange + 1; j < currentRange; j++)
 		{
 			checkedCell.Y = centerCell.Y + j;
+			placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup);
 
-			if (placed = MapClass::Instance->Place_Crate(checkedCell, selectedPowerup))
+			if (placed)
 				break;
 		}
 
@@ -3729,20 +3737,20 @@ DEFINE_HOOK(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 	return R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4CA007, FactoryClass_AbandonProduction_GetObjectType, 0x6)
+DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
 {
-	GET(FactoryClass*, pThis, ESI);
+	//lGET(FactoryClass*, pThis, ESI);
 	GET(TechnoClass*, pObject, ECX);
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
 	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
-	Debug::LogInfo("[{}]Factory with owner [{} - {}] abandoning production of [{}({}) - {}]",
-		(void*)pThis,
-		pThis->Owner->get_ID(), (void*)pThis->Owner,
-		pType->Name, pType->ID, (void*)pObject);
+	//Debug::LogInfo("[{}]Factory with owner [{} - {}] abandoning production of [{}({}) - {}]",
+	//	(void*)pThis,
+	//	pThis->Owner->get_ID(), (void*)pThis->Owner,
+	//	pType->Name, pType->ID, (void*)pObject);
 
-	R->EAX(pType);
-	return 0x4CA029;
+	R->EAX(pType->GetActualCost(pObject->Owner));
+	return 0x4CA03D;
 }
 
 #include <Ext/Bomb/Body.h>
@@ -3879,7 +3887,7 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 //
 DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 {
-	GET_STACK(DWORD, caller, 0x0);
+	//GET_STACK(DWORD, caller, 0x0);
 	GET(ParticleSystemClass*, pThis, ECX);
 
 	if (!pThis)
@@ -4080,8 +4088,6 @@ enum class MoveResult : char
 	cannot, can
 };
 
-#include <ExtraHeaders/StackVector.h>
-
 // what is the boolean return for , heh
 static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 {
@@ -4116,7 +4122,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					int total_shares = 0;
 
-					StackVector<Powerup, 256> crates;
+					StackVector<Powerup, 256> crates {};
 
 					for (size_t i = 0; i < CrateTypeClass::Array.size(); i++) {
 						auto crate = CrateTypeClass::Array[i].get();
@@ -5775,8 +5781,6 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 //DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
 //DEFINE_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
 
-#include <CD.h>
-
 template<DWORD addr, DWORD addr_ptr>
 struct MixBundle
 {
@@ -6889,7 +6893,7 @@ DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 
 DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
-	GET(BuildingClass* const, pBuilding, EDI);
+	//GET(BuildingClass* const, pBuilding, EDI);
 	GET(InfantryClass* const, pThis, ESI);
 	LEA_STACK(CoordStruct*, pBuffer, 0x44);
 
@@ -6971,8 +6975,6 @@ DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 }
 
 
-#include <BulletClass.h>
-
 // TODO :
 class BulletClass_patch : public BulletClass
 {
@@ -6989,10 +6991,10 @@ class BulletClass_patch : public BulletClass
 	DirStruct _Motion(CoordStruct& intialCoord, VelocityClass& InitialVelocity, Coordinate& targetCoord, int InitialDir)
 	{
  		DirStruct inital { this->CourseLock ? InitialDir : 0 };
-		const bool IsTargetFlying = this->Target && this->Target->WhatAmI() == AbstractType::Aircraft;
-		const bool IsAirburst = this->Type->Airburst;
-		const bool IsVeryHeigh = this->Type->VeryHigh;
-		const bool IsLevel = this->Type->Level;
+		//const bool IsTargetFlying = this->Target && this->Target->WhatAmI() == AbstractType::Aircraft;
+		//const bool IsAirburst = this->Type->Airburst;
+		//const bool IsVeryHeigh = this->Type->VeryHigh;
+		//const bool IsLevel = this->Type->Level;
 
 		if (targetCoord.IsEmpty())
 		{
@@ -7017,7 +7019,7 @@ class BulletClass_patch : public BulletClass
 			InitialVelocity.GetDirectionFromXY(&_dummy);
 
 			double angle = double(((int16_t)_dummy.Raw - 0x3FFF) * -0.00009587672516830327);
-			double length_XYZ = InitialVelocity.Length();
+		//	double length_XYZ = InitialVelocity.Length();
 
 			if (angle != 0.0)
 			{
@@ -7050,7 +7052,7 @@ class BulletClass_patch : public BulletClass
 		Point2D targetCoord_XY { targetCoord.X , targetCoord.Y };
 		Point2D initialCoord_XY { intialCoord.X , intialCoord.Y };
 		Point2D distance_XY = targetCoord_XY - initialCoord_XY;
-		double length_Xt = distance_XY.Length();
+		//double length_Xt = distance_XY.Length();
 		VelocityClass distance_vel { double(distance_.X), double(distance_.Y), double(distance_.Z) };
 		// the variable around here is messed up , idk
 		double angle = Math::atan2((double)-inital.Raw, (double)inital.Raw);
@@ -8145,7 +8147,6 @@ DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
 
 // ENTRY  , 42C954 , stack 3C TECHNO , size 7 , return 0
 // END 42CB3F 5 , 42CCCB
-
 #include <Misc/PhobosGlobal.h>
 
 DEFINE_HOOK(0x42D197, AStarClass_Attempt_Entry, 0x5)
@@ -8480,8 +8481,6 @@ DEFINE_JUMP(VTABLE, 0x7E4324, MiscTools::to_DWORD(&FakeBuildingClass::_Spawn_Ref
 *	NPExt TODO :
 *	IsNormalPlane -> DescendProximity , AscentSpeed
 */
-
-#include <Ext/Aircraft/Body.h>
 
 static KickOutResult SendParaProduction(BuildingClass* pBld, FootClass* pFoot, CoordStruct* pCoord)
 {
@@ -11073,7 +11072,19 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 return R->ESI() == R->EBP() ? 0x51C70F : 0x51C259;
  }
 
- DEFINE_HOOK(0x7BB350, XSurface_DrawElipSe_check, 0x6) {
+ DEFINE_HOOK(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
+ {
+	 GET(AircraftClass*, pThis, ECX);
+	 GET_STACK(DWORD, caller, 0);
+
+	 if(!pThis->IsAlive)
+		 Debug::LogInfo(__FUNCTION__" DeadTechno[{}] is used , called from [{}]", (void*)pThis, caller);
+
+	 return 0x0;
+ }
+
+ DEFINE_HOOK_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+ DEFINE_HOOK(0x7BB350, XSurface_Func_check, 0x6) {
 	 GET(XSurface*, pThis, ECX);
 	 GET_STACK(uintptr_t, caller, 0x0);
 
@@ -11082,6 +11093,34 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 }
 
 	 return 0x0;
+ }
+
+ DEFINE_HOOK(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
+	 GET(int, pIndex, EBX);
+	 GET(SpawnManagerClass*, pThis, ESI);
+
+	 auto& con = pThis->SpawnedNodes;
+
+	 con[pIndex]->Unit->SetTarget(pThis->Target);
+	 con[pIndex]->Unit->QueueMission(Mission::Attack, 0);
+
+	 return 0x6B795A;
+ }
+
+ DEFINE_HOOK(0x6B7793, SpawnManagerClass_AI_doSomething_crashAtRandomAddrB, 0x7)
+ {
+	 GET(SpawnManagerClass*, pThis, ESI);
+	 GET(TechnoClass*, pSpawnee, EDI);
+	 LEA_STACK(CellStruct*, OwnerCellBuffer, 0x24);
+	 LEA_STACK(CellStruct*, SpawnerCellBuffer, 0x28);
+
+	 pThis->Owner->GetMapCoords(OwnerCellBuffer);
+	 pSpawnee->GetMapCoords(SpawnerCellBuffer);
+
+	 R->EAX(OwnerCellBuffer);
+	 R->EBP(SpawnerCellBuffer);
+	 return 0x6B77B4;
+
  }
 
  /*DEFINE_HOOK(0x4F671D, HouseClass_CanAffordBase_GetBuildingEmpty, 0x5) {

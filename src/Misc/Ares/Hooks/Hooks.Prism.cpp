@@ -38,7 +38,7 @@ void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon,
 {
 	if (auto const supportEBolt = WeaponTypeExtData::CreateBolt(pWeapon))
 	{
-		const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+		//const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		supportEBolt->Owner = pFirer;
 		supportEBolt->WeaponSlot = idx;
 		supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)
 	if (pThis->DelayBeforeFiring > 0)
 	{
 		//if this is a slave prism tower, then it might still be able to become a master tower at this time
-		auto const pType = pThis->Type;
+		//auto const pType = pThis->Type;
 		auto const pTypeData = pThis->_GetTypeExtData();
 
 		if (pThis->_GetExtData()->MyPrismForwarding) {

@@ -272,7 +272,7 @@ template<>
 void TrailsManager::AI(VoxelAnimClass* pOwner)
 {
 	const auto pExt = VoxelAnimExtContainer::Instance.Find(pOwner);
-	const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pOwner->Type);
+	//const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pOwner->Type);
 	auto const pTechnoOwner = VoxelAnimExtData::GetTechnoOwner(pOwner);
 
 	for (auto& pTrails : pExt->Trails) {

@@ -596,6 +596,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		{
 			for (auto pTechno : *AircraftClass::Array)
 			{
+				if (IsEligible(pTechno))
 				{
 					return 0x4F8F87;
 				}

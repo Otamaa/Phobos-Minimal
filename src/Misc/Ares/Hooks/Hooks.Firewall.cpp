@@ -167,7 +167,7 @@ DEFINE_HOOK(0x440378, BuildingClass_Update_FirestormWall, 6)
 
 DEFINE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 {
-	GET(InfantryClass*, pThis, EDI);
+	//GET(InfantryClass*, pThis, EDI);
 	GET(BuildingClass*, pBld, EDI);
 	enum {
 		canPass = 0x51BD7D,
@@ -188,7 +188,7 @@ DEFINE_HOOK(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 
 DEFINE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
-	GET(InfantryClass* const, pThis , EBP);
+	//GET(InfantryClass* const, pThis , EBP);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum {
@@ -212,7 +212,7 @@ DEFINE_HOOK(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 
 DEFINE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
-	GET(UnitClass* const , pThis , EBX);
+	//GET(UnitClass* const , pThis , EBX);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum
@@ -395,18 +395,18 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 			if (static_cast<int>(orDistance) > pRadSite->Spread)
 				continue;
 
-			const RadTypeClass* pType = pRadExt->Type;
-			const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+			const RadTypeClass* pRadType = pRadExt->Type;
+			const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
 			if ((RadApplicationDelay <= 0)
 				|| (Unsorted::CurrentFrame % RadApplicationDelay))
 				continue;
 
 			// for more precise dmg calculation
 			const double nRadLevel = pRadExt->GetRadLevelAt(orDistance);
-			if (nRadLevel <= 0.0 || !pType->GetWarhead())
+			if (nRadLevel <= 0.0 || !pRadType->GetWarhead())
 				continue;
 
-			const int damage = static_cast<int>(nRadLevel * pType->GetLevelFactor());
+			const int damage = static_cast<int>(nRadLevel * pRadType->GetLevelFactor());
 
 			if (damage == 0)
 				continue;

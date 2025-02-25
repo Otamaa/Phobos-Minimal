@@ -73,12 +73,10 @@ public:
 		}
 
 		this->Table[this->Index1] ^= this->Table[this->Index2];
-		int Index1 = this->Index1;
-		int result = this->Table[Index1++];
+		int result = this->Table[this->Index1++];
 		int v3 = this->Index2 + 1;
-		this->Index1 = Index1;
 		this->Index2 = v3;
-		if ( Index1 >= 250 ) {
+		if (this->Index1 >= 250 ) {
 			this->Index1 = 0;
 		}
 
@@ -120,12 +118,12 @@ public:
 
 					if(!this->unknownBool_00) {
 						this->Table[this->Index1] ^= this->Table[this->Index2];
-						int Index1 = this->Index1;
-						int v14 = this->Table[Index1++];
+						int idx1 = this->Index1;
+						int v14 = this->Table[idx1++];
 						int v15 = this->Index2 + 1;
-						this->Index1 = Index1;
+						this->Index1 = idx1;
 						this->Index2 = v15;
-						if ( Index1 >= 250 ) {
+						if (idx1 >= 250 ) {
 							this->Index1 = 0;
 						}
 

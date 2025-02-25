@@ -1280,6 +1280,8 @@ ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
 // =============================
 // container hooks
 
+#include <Ext/Anim/Body.h>
+
 DEFINE_HOOK(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 {
 	GET(ParticleSystemClass*, pItem, ESI);
@@ -1290,6 +1292,15 @@ DEFINE_HOOK(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 DEFINE_HOOK(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 {
 	GET(ParticleSystemClass* const, pItem, ESI);
+	
+	if(pItem->Owner && pItem->Owner->WhatAmI() == AnimClass::AbsID) {
+		for (FakeAnimClass* anim : FakeAnimClass::AnimsWithAttachedParticles) {
+			if (anim->_GetExtData()->AttachedSystem == pItem) {
+				anim->_GetExtData()->AttachedSystem = nullptr;
+			}
+		}
+	}
+
 	ParticleSystemExtContainer::Instance.Remove(pItem);
 	return 0;
 }

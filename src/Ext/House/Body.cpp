@@ -1124,7 +1124,7 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 
 	if (param < 0)
 	{
-		StackVector<HouseClass* , 256> housesListIdx {};
+		StackVector<HouseClass* , 20> housesListIdx {};
 
 		switch (param)
 		{

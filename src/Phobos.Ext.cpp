@@ -589,6 +589,7 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	VoxClass::EVAIndex = value;
 
 	bool ret =
+		Process_Load<FakeAnimClass>(pStm) &&
 		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
 		Process_Load<MouseClassExt>(pStm) &&
@@ -660,6 +661,7 @@ DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 		}
 	
 		bool ret =
+			Process_Save<FakeAnimClass>(pStm) &&
 			Process_Save<PaletteManager>(pStm) &&
 			Process_Save<CursorTypeClass>(pStm) &&
 			Process_Save<MouseClassExt>(pStm) &&

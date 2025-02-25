@@ -10,29 +10,27 @@ public:
 	char Name[256];
 };
 
+template<typename key_type, typename value_type>
 class HashObject
 {
 public:
-	HashString Key;
-	DWORD Value;
+	key_type Key;
+	value_type Value;
 };
 
-class HashTable
+template<typename key_type, typename value_type>
+struct HashTable
 {
 public:
-	DynamicVectorClass<HashObject>* Buckets;
-	DWORD BucketHashFunction;
+	DynamicVectorClass<HashObject<key_type,value_type>>* Buckets;
+	DWORD (*BucketHashFunction)(const key_type&);
 	int BucketCount;
 	int BucketGrowthStep;
 };
 
-class HashIterator
+struct HashIterator
 {
-public:
 	int BucketIndex;
 	int InBucketIndex;
 	bool OutOfBuckets;
-	bool Unused1;
-	bool Unused2;
-	bool Unused3;
 };

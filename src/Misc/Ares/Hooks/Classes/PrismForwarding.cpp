@@ -257,7 +257,7 @@ bool PrismForwarding::ValidateSupportTower(PrismForwarding* pTargetTower, PrismF
 		{
 			//building is a prism tower
 			//get all the data we need
-			auto const pTechnoData = TechnoExtContainer::Instance.Find(SlaveTower);
+			//auto const pTechnoData = TechnoExtContainer::Instance.Find(SlaveTower);
 			//BuildingExt::ExtData *pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
 			auto const SlaveMission = SlaveTower->GetCurrentMission();
 			//now check all the rules

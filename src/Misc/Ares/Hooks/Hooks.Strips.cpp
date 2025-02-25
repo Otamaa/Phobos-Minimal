@@ -12,7 +12,7 @@
 
 DEFINE_HOOK(0x6A9304, StripClass_GetTip_Handle, 9)
 {
-	GET(StripClass*, pThis, ECX);
+	//GET(StripClass*, pThis, ECX);
 	GET(int, buildableCount, EAX);
 
 	auto& cameo = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][buildableCount];
@@ -294,11 +294,11 @@ DEFINE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 	{
 		for (size_t a = 0; a < nCurIdx; ++a)
 		{
-
-			CCToolTip::Instance->Add(ToolTip { a + Offset ,
+			ToolTip _temp { a + Offset ,
 				SidebarClass::SelectButtonCombined[a].Rect,
 					nullptr,
-				true });
+				true };
+			CCToolTip::Instance->Add(_temp);
 
 		}
 	}
@@ -436,7 +436,7 @@ DEFINE_HOOK(0x6A4EA5, SidebarClass_CameosList, 6)
 
 DEFINE_HOOK(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
 {
-	GET(SidebarClass*, pThis, ECX);
+	//GET(SidebarClass*, pThis, ECX);
 	GET_STACK(FactoryClass*, pFactory, 0x4);
 	GET_STACK(AbstractType, rtti, 0x8);
 	GET_STACK(int, typeIdx, 0xC);

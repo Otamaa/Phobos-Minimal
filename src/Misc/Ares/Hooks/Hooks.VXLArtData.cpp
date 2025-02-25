@@ -341,8 +341,8 @@ DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 		shadow_mtx.RotateX((float)(arf));
 
 	} else if (height > 0) {
-		if(const auto flyloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
-			shadow_mtx.ScaleX((float)Math::cos(flyloco->CurrentPitch));
+		if(const auto rocketloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
+			shadow_mtx.ScaleX((float)Math::cos(rocketloco->CurrentPitch));
 			key.Invalidate();
 		}
 	}
