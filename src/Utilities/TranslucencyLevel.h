@@ -37,24 +37,24 @@ public:
 
 	COMPILETIMEEVAL int GetIntValue() const
 	{
-		int value = 0;
+		int _result = 0;
 
 		switch (this->value)
 		{
 		case BlitterFlags::TransLucent75:
-			value = 75;
+			_result = 75;
 			break;
 		case BlitterFlags::TransLucent50:
-			value = 50;
+			_result = 50;
 			break;
 		case BlitterFlags::TransLucent25:
-			value = 25;
+			_result = 25;
 			break;
 		default:
 			break;
 		}
 
-		return value;
+		return _result;
 	}
 
 	COMPILETIMEEVAL TranslucencyLevel& operator = (int nInt)
