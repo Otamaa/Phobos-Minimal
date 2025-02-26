@@ -20,7 +20,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	}
 
 	auto const& [act, scriptArgument] = pScript->GetCurrentAction();// This is the target type
-	auto const& [nextAct, nextArg] = pScript->GetNextAction();
+	//auto const& [nextAct, nextArg] = pScript->GetNextAction();
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	bool noWaitLoop = false;
 
@@ -126,7 +126,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 		return;
 	}
 
-	TechnoTypeClass * pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
+	//TechnoTypeClass * pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
 	TechnoClass* pFocus = flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget);
 
 	if (!pFocus && !bAircraftsWithoutAmmo)

@@ -170,7 +170,7 @@ DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 {
 	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
 
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	GET(WarheadTypeClass*, pWarhead, EAX);
 	GET(TechnoClass*, pTarget, EBP);
 

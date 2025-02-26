@@ -508,7 +508,7 @@ inline bool DisperseTrajectory::CheckWeaponCanTarget(WeaponTypeClass* pWeapon, T
 bool DisperseTrajectory::CurveVelocityChange()
 {
 	auto pBullet = this->AttachedTo;
-	auto pType = this->GetTrajectoryType();
+	//auto pType = this->GetTrajectoryType();
 	const auto pTarget = pBullet->Target;
 	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
 	const bool checkValid = (pTarget && pTarget->WhatAmI() == AbstractType::Bullet) || (pTargetTechno && !CheckTechnoIsInvalid(pTargetTechno));
@@ -583,7 +583,7 @@ bool DisperseTrajectory::CurveVelocityChange()
 
 bool DisperseTrajectory::NotCurveVelocityChange()
 {
-	auto pBullet = this->AttachedTo;
+	//auto pBullet = this->AttachedTo;
 	auto pType = this->GetTrajectoryType();
 
 	if (this->SuicideAboveRange > 0)
@@ -1157,7 +1157,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 
 void DisperseTrajectory::CreateDisperseBullets(WeaponTypeClass* pWeapon, AbstractClass* pTarget, HouseClass* pOwner, int curBurst, int maxBurst)
 {
-	auto pBullet = this->AttachedTo;
+	//auto pBullet = this->AttachedTo;
 
 #ifdef FUCK_THIS
 	const auto finalDamage = static_cast<int>(pWeapon->Damage * this->FirepowerMult);

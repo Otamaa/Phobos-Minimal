@@ -685,7 +685,7 @@ CoordStruct TracingTrajectory::GetWeaponFireCoord(TechnoClass* pTechno)
 bool TracingTrajectory::PrepareTracingWeapon()
 {
 	auto const pType = this->GetTrajectoryType();
-	auto pBullet = this->AttachedTo;
+	//auto pBullet = this->AttachedTo;
 
 	if (const auto pWeapon = pType->Weapons[this->WeaponIndex])
 		this->CreateTracingBullets(pWeapon);

@@ -155,7 +155,7 @@ bool BombardTrajectory::OnAI()
 void BombardTrajectory::OnAIPreDetonate()
 {
 	auto const pBullet = this->AttachedTo;
-	auto const pType = this->GetTrajectoryType();
+	//auto const pType = this->GetTrajectoryType();
 
 	auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
 	auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;

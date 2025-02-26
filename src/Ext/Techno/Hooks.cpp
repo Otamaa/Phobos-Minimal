@@ -61,7 +61,7 @@ DEFINE_HOOK(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
 	GET_STACK(AbstractClass*, pDest, 0x4);
 	GET_STACK(unsigned int, callerAddress, 0x0);
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (!SyncLogger::HooksDisabled)
 		SyncLogger::AddDestinationChangeSyncLogEvent(pThis, pDest, callerAddress);
@@ -189,7 +189,7 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (!pExt->LaserTrails.empty())
 	{
@@ -794,7 +794,7 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 
 				if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
 				{
-					auto pExt = TechnoExtContainer::Instance.Find(pThis);
+					//auto pExt = TechnoExtContainer::Instance.Find(pThis);
 					pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
 
 					if (!pThis->IsCloseEnough(pThis->Target, weaponIndex)){
@@ -859,7 +859,7 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if(pBuilding->Type->InvisibleInGame || pBuilding->Type->Invisible )
 		return;
 
-	CellClass* pCell = pBuilding->GetCell();
+	//CellClass* pCell = pBuilding->GetCell();
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 	HouseClass* const pHouse = pBuilding->Owner;
 	FactoryClass* pPrimaryFactory = nullptr;
@@ -947,7 +947,7 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	if(pBuilding->Type->InvisibleInGame || pBuilding->Type->Invisible )
 		return;
 
-	CellClass* pCell = pBuilding->GetCell();
+	//CellClass* pCell = pBuilding->GetCell();
 	BuildingTypeClass* const pBuildingType = pBuilding->Type;
 
 	if (pBuildingType->SuperWeapon == -1)

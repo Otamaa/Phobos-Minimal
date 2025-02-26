@@ -1420,6 +1420,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->JumpjetTilt_ForwardSpeedFactor.Read(exINI, pSection, "JumpjetTilt.ForwardSpeedFactor");
 		this->JumpjetTilt_SidewaysRotationFactor.Read(exINI, pSection, "JumpjetTilt.SidewaysRotationFactor");
 		this->JumpjetTilt_SidewaysSpeedFactor.Read(exINI, pSection, "JumpjetTilt.SidewaysSpeedFactor");
+
+		this->NoTurret_TrackTarget.Read(exINI, pSection, "NoTurret.TrackTarget");
 	}
 
 	// Art tags
@@ -2578,6 +2580,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->JumpjetTilt_ForwardSpeedFactor)
 		.Process(this->JumpjetTilt_SidewaysRotationFactor)
 		.Process(this->JumpjetTilt_SidewaysSpeedFactor)
+
+		.Process(this->NoTurret_TrackTarget)
 		;
 }
 

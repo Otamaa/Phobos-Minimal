@@ -1318,7 +1318,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
 
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
-		const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
+		//const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
 
 		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
 

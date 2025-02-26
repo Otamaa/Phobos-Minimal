@@ -485,7 +485,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		int parentCountrySideTypeIdx = pHouse->Type->FindParentCountry()->SideIndex;
 		int sideTypeIdx = parentCountrySideTypeIdx >= 0 ? parentCountrySideTypeIdx + 1 : pHouse->Type->SideIndex + 1; // Side indexes in AITriggers section are 1-based
-		int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based
+		//int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based
 
 		auto houseDifficulty = pHouse->AIDifficulty;
 		int minBaseDefenseTeams = RulesClass::Instance->MinimumAIDefensiveTeams[(int)houseDifficulty];

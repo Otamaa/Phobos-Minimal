@@ -1332,7 +1332,7 @@ void ScriptExtData::WaitIfNoTarget(TeamClass* pTeam, int attempts = 0)
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	auto pExt =TeamExtContainer::Instance.Find(pTeam);
+	auto pExt = TeamExtContainer::Instance.Find(pTeam);
 
 	if (attempts <= 0)
 		pExt->WaitNoTargetAttempts = -1; // Infinite waits if no target
@@ -1911,10 +1911,10 @@ void ScriptExtData::Stop_ForceJump_Countdown(TeamClass* pTeam)
 
 void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 {
-	auto pScript = pTeam->CurrentScript;
+	//auto pScript = pTeam->CurrentScript;
 	auto const pLeader = ScriptExtData::FindTheTeamLeader(pTeam);
-	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
-	const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
+	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
+	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
 
 	if (!pLeader)
 	{
@@ -1949,7 +1949,7 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 	if (!pTeam || !pTeamLeader || !pTarget)
 		return;
 
-	auto pScript = pTeam->CurrentScript;
+	//auto pScript = pTeam->CurrentScript;
 	HouseClass* pOwner = pTeamLeader->Owner;
 	SuperClass* pSuperChronosphere = nullptr;
 	SuperClass* pSuperChronowarp = nullptr;
@@ -1969,8 +1969,8 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 			break;
 	}
 
-	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
-	const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
+	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
+	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
 
 
 	if (!pSuperChronosphere || !pSuperChronowarp)
@@ -2019,7 +2019,7 @@ void ScriptExtData::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode =
 		return;
 	}
 
-	auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
+	//auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
 	if (mode < 0 || mode > 2)
@@ -2171,7 +2171,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	TechnoClass* selectedTarget = pTeam->ArchiveTarget ? static_cast<TechnoClass*>(pTeam->ArchiveTarget) : nullptr;
 	bool isEngineerAmphibious = false;
-	StackVector<FootClass* , 512> engineers {};
+	StackVector<FootClass*, 512> engineers {};
 	StackVector<FootClass*, 512> otherTeamMembers {};
 
 	// Check if there are no engineers
@@ -2226,7 +2226,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		return;
 	}
 
-	StackVector<BuildingClass* , 10> validHuts {};
+	StackVector<BuildingClass*, 10> validHuts {};
 
 	if (!selectedTarget)
 	{
@@ -2255,44 +2255,37 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		// Find the best repair hut
 		int bestVal = -1;
 
-		for (auto& pTechno : validHuts.container())
+
+		//auto hut = pTechno;
+
+		if (mode < 0)
+			mode = curArgument;
+
+		if (mode < 0)
 		{
-			//auto hut = pTechno;
-
-			if (mode < 0)
-				mode = curArgument;
-
-			if (mode < 0)
+			// Pick a random bridge
+			selectedTarget = validHuts[ScenarioClass::Instance->Random.RandomFromMax(validHuts->size() - 1)];
+		}
+		else
+		{
+			for (auto& pHut : validHuts.container())
 			{
-				// Pick a random bridge
-				selectedTarget = validHuts[ScenarioClass::Instance->Random.RandomFromMax(validHuts->size() - 1)];
-				break;
-			}
-			else
-			{
-				for (auto& pHut : validHuts.container())
-				{
-					if (mode > 0)
-					{
-						// Pick the farthest target
-						int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
+				int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
 
-						if (value >= bestVal || bestVal < 0)
-						{
-							bestVal = value;
-							selectedTarget = pHut;
-						}
+				if (mode > 0) {
+					// Pick the farthest target
+					if (value >= bestVal || bestVal < 0) {
+						bestVal = value;
+						selectedTarget = pHut;
 					}
-					else
+				}
+				else
+				{
+					// Pick the closest target				
+					if (value < bestVal || bestVal < 0)
 					{
-						// Pick the closest target
-						int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
-
-						if (value < bestVal || bestVal < 0)
-						{
-							bestVal = value;
-							selectedTarget = pHut;
-						}
+						bestVal = value;
+						selectedTarget = pHut;
 					}
 				}
 			}

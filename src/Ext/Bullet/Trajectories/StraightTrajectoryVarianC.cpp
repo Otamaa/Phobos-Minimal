@@ -1275,7 +1275,7 @@ int StraightTrajectoryVarianC::GetTheTrueDamage(int damage, TechnoClass* pTechno
 	if (damage == 0)
 		return 0;
 
-	BulletClass* pBullet = this->AttachedTo;
+	//BulletClass* pBullet = this->AttachedTo;
 	auto pType = this->GetTrajectoryType();
 
 	if (pType->EdgeAttenuation != 1.0)

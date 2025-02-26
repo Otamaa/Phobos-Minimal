@@ -972,7 +972,7 @@ DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 
 DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 {
-	enum { SkipGameCode = 0x7410B7,  MustDeploy = 0x7410A8 };
+	enum { NoNeedToCheck = 0x74132B , SkipGameCode = 0x7410B7,  MustDeploy = 0x7410A8 };
 
 	GET(UnitClass*, pThis, ESI);
 
@@ -983,6 +983,11 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 	{
 		return MustDeploy;
 	}
+
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (!pTypeExt->NoTurret_TrackTarget.Get(RulesExtData::Instance()->NoTurret_TrackTarget))
+		return NoNeedToCheck;
 
 	return SkipGameCode;
 }

@@ -469,7 +469,7 @@ DEFINE_JUMP(VTABLE, 0x7F4748, MiscTools::to_DWORD(&FakeTeamClass::_Save))
  	GET_STACK(AbstractClass*, target, 0x4);
  	GET_STACK(bool, all, 0x8);
 
- 	TeamExtContainer::Instance.InvalidatePointerFor(pThis, target, true);
+ 	TeamExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
 
  	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
  	return 0x0;

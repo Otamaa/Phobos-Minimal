@@ -97,7 +97,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 	{
 		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
-		auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
+		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
 			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
@@ -126,7 +126,7 @@ DEFINE_HOOK(0x4DE722, FootClass_LeaveTransport, 0x6)
 	{
 		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
-		auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
+		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit &&
 			pPassExt->OriginalPassengerOwner)

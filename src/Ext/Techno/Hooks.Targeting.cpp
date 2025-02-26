@@ -49,11 +49,10 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 	R->EDI(threat & 3);
 
 	if (pTypeExt->AutoFire) {
-		auto pCell = pThis->GetCell();
 		const auto pTarget = pTypeExt->AutoFire_TargetSelf ? pThis :
 		static_cast<AbstractClass*>(pThis->GetCell());
 
-		pThis->SetTarget(pCell);
+		pThis->SetTarget(pTarget);
 		return 0x7099B8;
 	}
 

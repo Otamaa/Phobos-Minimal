@@ -119,8 +119,8 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	if (pBullet->Owner)
 	{
-		bool FLHFound = false;
 		int WeaponIndex = 0;
+		bool flh_found = false;
 
 		if (!this->TechnoInLimbo)
 		{
@@ -129,13 +129,14 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 			if (pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, false) || pBullet->WeaponType == TechnoExtData::GetCurrentWeapon(pBullet->Owner, WeaponIndex, true)){
 				auto[FLHFound, FLH] = TechnoExtData::GetBurstFLH(pBullet->Owner, WeaponIndex);
+				flh_found = FLHFound;
 
 				if (!FLHFound)
 				{
 					if (auto pInfantry = cast_to<InfantryClass*>(pBullet->Owner))
 					{
-						auto& [FLHFound_b, FLH_b] = TechnoExtData::GetInfantryFLH(pInfantry, WeaponIndex);
-						FLHFound = FLHFound_b;
+						auto[FLHFound_b, FLH_b] = TechnoExtData::GetInfantryFLH(pInfantry, WeaponIndex);
+						flh_found = FLHFound_b;
 						FLH = FLH_b;
 					}
 				}
@@ -177,7 +178,7 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 		int BurstIndex = pBullet->Owner->CurrentBurstIndex;
 		if (BurstIndex % 2 == 1)
 		{
-			if (!this->TechnoInLimbo && !FLHFound)
+			if (!this->TechnoInLimbo && !flh_found)
 				this->FLHCoord.Y = -(this->FLHCoord.Y);
 
 			if (pType->MirrorCoord)

@@ -456,6 +456,8 @@ public:
 
 	Valueable<bool> JumpjetTilt {};
 
+	Valueable<bool> NoTurret_TrackTarget { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

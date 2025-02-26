@@ -191,7 +191,7 @@ DEFINE_HOOK(0x75F704, WaveClass_Load_Suffix, 0x7)
 //write it before DVC<CellStruct>
 DEFINE_HOOK(0x75F7E7, WaveClass_Save_Suffix, 0x6)
 {
-	GET(HRESULT, nRes, EAX);
+	//GET(HRESULT, nRes, EAX);
 
 	WaveExtContainer::Instance.SaveStatic();
 

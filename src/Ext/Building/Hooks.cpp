@@ -379,7 +379,7 @@ DEFINE_HOOK(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
 	enum { Ret = 0x4AE982 };
 
 	GET(ObjectClass*, pObject, ECX);
-	GET(int, address, ESP);
+	//GET(int, address, ESP);
 	LEA_STACK(CellStruct*, pCell, 0x28);
 
 	auto action = pObject->MouseOverCell(*pCell);

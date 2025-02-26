@@ -331,8 +331,8 @@ void FakeTiberiumClass::__RecalcGrowthData()
 	{
 		if (j->GetContainedTiberiumIndex() == this->ArrayIndex && j->CanTiberiumGrowth())
 		{
-			auto p_Position = &j->MapCoords;
-			auto v16 = p_Position;
+			//auto p_Position = &j->MapCoords;
+			//auto v16 = p_Position;
 			this->GrowthLogic.Datas[this->Growth].MapCoord = j->MapCoords;
 			this->GrowthLogic.Datas[this->Growth].Score = 0.0;
 			this->GrowthLogic.Heap->WWPush(&this->GrowthLogic.Datas[this->Growth]);

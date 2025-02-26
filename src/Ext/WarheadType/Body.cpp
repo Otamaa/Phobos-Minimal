@@ -693,7 +693,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesClass::Instance->MaxDamage)
 		return;
 
-	const auto pThisType = pVictimTechno->GetTechnoType();
+	//const auto pThisType = pVictimTechno->GetTechnoType();
 	const auto range = pArgs->Attacker->DistanceFrom(pVictim);
 	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
 	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);

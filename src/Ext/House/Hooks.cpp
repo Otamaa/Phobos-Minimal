@@ -353,9 +353,9 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	GET(HouseClass* const, pNewOwner, EBP);
 
 	auto const pType = pThis->GetTechnoType();
-	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
-	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	// pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (!pNewOwner->Type->MultiplayPassive &&  pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{

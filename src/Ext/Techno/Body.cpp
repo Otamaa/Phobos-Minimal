@@ -875,7 +875,7 @@ bool TechnoExtData::IsCullingImmune(TechnoClass* pThis)
 
 bool TechnoExtData::IsEMPImmune(TechnoClass* pThis)
 {
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	if (AresEMPulse::IsTypeEMPProne(pThis))
 		return true;
 
@@ -1248,7 +1248,7 @@ bool TechnoExtData::IsCullingImmune(Rank vet, TechnoClass* pThis)
 
 bool TechnoExtData::IsEMPImmune(Rank vet, TechnoClass* pThis)
 {
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	if (AresEMPulse::IsTypeEMPProne(pThis))
 		return true;
 
@@ -2689,7 +2689,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 		|| RulesExtData::Instance()->DrawInsigniaOnlyOnSelected.Get() && !pThis->IsSelected && !pThis->IsMouseHovering)
 		return;
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const bool IsObserverPlayer = HouseExtData::IsObserverPlayer();
 	Point2D offset = *pLocation;
 	TechnoTypeClass* pTechnoType = nullptr;

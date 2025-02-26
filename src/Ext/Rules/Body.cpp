@@ -775,6 +775,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIForbidConYard.Read(exINI, GameStrings::AI, "AIForbidConYard");
 
 	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt");
+	this->NoTurret_TrackTarget.Read(exINI, GameStrings::General, "NoTurret.TrackTarget");
 
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
@@ -1517,6 +1518,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIForbidConYard)
 
 		.Process(this->JumpjetTilt)
+		.Process(this->NoTurret_TrackTarget)
 		;
 
 	MyPutData.Serialize(Stm);

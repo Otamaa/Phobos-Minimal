@@ -107,7 +107,7 @@ RequirementStatus HouseExtData::RequirementsMet(
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const bool IsHuman = pHouse->IsControlledByHuman();
-	const bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
+	// bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
 
 	if (pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable))
 		return RequirementStatus::Forbidden;
@@ -182,7 +182,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 	auto const nWhat = pType->WhatAmI();
 	auto const bitsOwners = pType->GetOwners();
 	auto const isNaval = pType->Naval;
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	BuildingClass* pNonPrimaryBuilding = nullptr;
 	BuildingClass* pOfflineBuilding = nullptr;
 
@@ -287,7 +287,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 	if (!buildLimitOnly)
 	{
 		const RequirementStatus ReqsMet = HouseExtData::RequirementsMet(pHouse, pItem);
-		const auto pItemExt = TechnoTypeExtContainer::Instance.Find(pItem);
+		//const auto pItemExt = TechnoTypeExtContainer::Instance.Find(pItem);
 
 		if (ReqsMet <= RequirementStatus::Incomplete)
 		{
@@ -949,8 +949,8 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 	if (currentCoords == CoordStruct::Empty)
 		currentCoords = defaultCurrentCoords;
 
-	const int deltaX = currentCoords.X - targetBaseCoords.X;
-	const int deltaY = targetBaseCoords.Y - currentCoords.Y;
+	//const int deltaX = currentCoords.X - targetBaseCoords.X;
+	//const int deltaY = targetBaseCoords.Y - currentCoords.Y;
 	const int distance = (RulesClass::Instance->AISafeDistance + extraDistance) * Unsorted::LeptonsPerCell;
 	auto newCoords = GeneralUtils::CalculateCoordsFromDistance(currentCoords, targetBaseCoords, distance);
 	auto cellStruct = CellClass::Coord2Cell(newCoords);
@@ -1529,7 +1529,7 @@ bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType)
 	auto ret = false;
 	if (pType)
 	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// there is some another stupid bug
 		// where if the building already queueed and paused
@@ -1624,7 +1624,7 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 		for (size_t i = 0; i < MinImpl(pItemExt->BuildLimitGroup_Types.size(), pItemExt->BuildLimitGroup_Nums.size()); i++) {
 			TechnoTypeClass* pType = pItemExt->BuildLimitGroup_Types[i];
 			const auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+			//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			int ownedNow = 0;
 
 			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
@@ -1834,7 +1834,7 @@ void HouseExtData::UpdateTransportReloaders()
 			&& pTech->WhatAmI() != BuildingClass::AbsID
 			&& pTech->Transporter && pTech->Transporter->IsInLogic)
 		{
-			const auto pType = pTech->GetTechnoType();
+			//const auto pType = pTech->GetTechnoType();
 			if (TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
 				pTech->Reload();
 			}

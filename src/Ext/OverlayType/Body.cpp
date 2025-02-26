@@ -11,7 +11,7 @@ void OverlayTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = this->AttachedToObject;
 	INI_EX exINI(pINI);
 
-	auto const pArtINI = &CCINIClass::INI_Art();
+	//auto const pArtINI = &CCINIClass::INI_Art();
 	auto pArtSection = pThis->ImageFile;
 
 	this->Palette.Read(exINI , pArtSection, "Palette");

@@ -7,7 +7,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	GET(FakeAnimTypeClass*, pBounceAnim, ECX);
 	GET(AnimClass*, pThis, EBP);
 
-	const auto pTypeExt = pBounceAnim->_GetExtData();
+	//const auto pTypeExt = pBounceAnim->_GetExtData();
 	TechnoClass* pObject = AnimExtData::GetTechnoInvoker(pThis);
 	HouseClass* pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
 

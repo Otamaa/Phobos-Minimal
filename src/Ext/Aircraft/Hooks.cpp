@@ -257,7 +257,6 @@ DEFINE_HOOK(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
 DEFINE_HOOK(0x418506, AircraftClass_Mission_Attack_Delay1B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	GET(int, status, EDX);
 
 	bool IsEmptyAmmo = pThis->Ammo == 0;
 	bool IsNegativeAmmo = pThis->Ammo < 0;

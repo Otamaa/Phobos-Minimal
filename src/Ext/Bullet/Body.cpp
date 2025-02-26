@@ -602,7 +602,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 	if(!pTarget || !pTarget->IsAlive)
 		return false;
 
-	const auto pTargetType = pTarget->GetTechnoType();
+	//const auto pTargetType = pTarget->GetTechnoType();
 	const double currentHealthPerc = pTarget->GetHealthPercentage();
 	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 	double nTreshold = pWarheadExt->MindControl_Threshold;

@@ -445,7 +445,7 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	if (!pOwner || !pOwner->Production)
 		return 0x0;
 
-	auto pRules = RulesExtData::Instance();
+//	auto pRules = RulesExtData::Instance();
 	HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
 	const auto&[curFactory , block , type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 

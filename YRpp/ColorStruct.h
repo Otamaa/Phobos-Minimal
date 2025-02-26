@@ -137,9 +137,9 @@ struct ColorStruct
 
 	FORCEDINLINE COMPILETIMEEVAL void Adjust(int adjust, const ColorStruct* that)
 	{
-		this->R += (unsigned __int8)adjust * ((unsigned __int8)that->R - (unsigned __int8)this->R) / 256;
-		this->G += (unsigned __int8)adjust * ((unsigned __int8)that->G - (unsigned __int8)this->G) / 256;
-		this->B += (unsigned __int8)adjust * ((unsigned __int8)that->B - (unsigned __int8)this->B) / 256;
+		this->R += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->R - (unsigned __int8)this->R) / 256);
+		this->G += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->G - (unsigned __int8)this->G) / 256);
+		this->B += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->B - (unsigned __int8)this->B) / 256);
 	}
 
 	FORCEDINLINE COMPILETIMEEVAL int Difference(const ColorStruct* that) const

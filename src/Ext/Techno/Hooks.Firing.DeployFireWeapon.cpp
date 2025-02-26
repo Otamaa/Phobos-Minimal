@@ -102,7 +102,7 @@ DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pThis->Type->DeployFire
 		&& !pThis->Type->IsSimpleDeployer

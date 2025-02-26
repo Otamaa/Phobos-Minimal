@@ -35,7 +35,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	HouseExtData::UpdateTransportReloaders();
 
 	for (auto pHouse : *HouseClass::Array) {
-		auto pExt = HouseExtContainer::Instance.Find(pHouse);
+		//auto pExt = HouseExtContainer::Instance.Find(pHouse);
 		AresHouseExt::UpdateTogglePower(pHouse);
 	}
 
@@ -362,9 +362,9 @@ DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 
 DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 {
-	GET(AITriggerTypeClass*, pThis, ECX);
+	//GET(AITriggerTypeClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pOwner, 0x4);
-	GET_STACK(HouseClass*, pEnemy, 0x8);
+	//GET_STACK(HouseClass*, pEnemy, 0x8);
 
 	if (!pOwner || pOwner->Supers.Count <= 0) {
 		R->EAX(false);
@@ -414,7 +414,7 @@ DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
 	//GET_STACK(bool, barg3, 0x8);
 
-	auto pTeamExt = TeamExtContainer::Instance.Find(pThis);
+	//auto pTeamExt = TeamExtContainer::Instance.Find(pThis);
 	const auto pLeader = pThis->FetchLeader();
 
 	if (!pLeader)
@@ -1570,7 +1570,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467ED0 };
 
 	auto allowFlash = true;
-	auto flashDuration = 0;
+	// flashDuration = 0;
 
 	// this is a bullet launched by a super weapon
 	if (pExt->NukeSW && !pThis->WH->NukeMaker)

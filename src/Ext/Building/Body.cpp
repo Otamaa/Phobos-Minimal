@@ -730,7 +730,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 	// LimboKill init
 	if (ID != -1)
 	{
-		auto const pOwnerExt = HouseExtContainer::Instance.Find(pOwner);
+		//auto const pOwnerExt = HouseExtContainer::Instance.Find(pOwner);
 
 		// BuildLimit check goes before creation
 		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true , false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {

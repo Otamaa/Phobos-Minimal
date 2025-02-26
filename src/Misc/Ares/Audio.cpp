@@ -190,7 +190,7 @@ public:
 							else
 							{
 								auto const headerSize = headerIndex.numSamples * IdxEntrysize;
-								if (pIndex.ReadBytes(&this->Entries[0], static_cast<int>(headerSize)) != headerSize)
+								if (pIndex.ReadBytes(&this->Entries[0], static_cast<int>(headerSize)) != (int)headerSize)
 								{
 									return;
 								}

@@ -30,7 +30,7 @@ DEFINE_JUMP(CALL, 0x484FF3, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 //DEFINE_JUMP(CALL, 0x485026, MiscTools::to_DWORD(&CellExtData::GetTiberiumType));
 DEFINE_HOOK(0x485020, CellClass_GetTibValue, 0x6) {
 	GET(FakeCellClass*, pThis, ECX);
-	GET_STACK(DWORD, caller , 0x0);
+//	GET_STACK(DWORD, caller , 0x0);
 
 	//if (((int)*((DWORD*)pThis)) == -1) {
 	//	Debug::FatalError(__FUNCTION__" called with invalid cell , caller %x", caller);

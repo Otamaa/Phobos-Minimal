@@ -162,7 +162,7 @@ void ParticleSystemExtData::UpdateSpark()
 		if (!pOwner->SparkSpawnFrames || pType->SpawnSparkPercentage > random->RandomDouble())
 		{
 			int cap = 0;
-			auto pHeld = this->HeldType;
+			//auto pHeld = this->HeldType;
 			if (pType->ParticleCap >= 0)
 				cap = pType->ParticleCap;
 
