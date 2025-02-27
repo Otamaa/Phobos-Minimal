@@ -24,6 +24,7 @@ public:
 	HouseClass* HouseOwner { nullptr };
 	bool NoOwner { true };
 	int CreationFrame { 0 };
+	PhobosMap<BuildingClass*, int> damageCounts {};
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

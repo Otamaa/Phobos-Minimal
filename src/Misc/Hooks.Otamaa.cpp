@@ -9191,27 +9191,27 @@ DEFINE_PATCH_TYPED(DWORD, 0x7DFFDD, DWORD(&VoxelPixelBuffer) + 1)//
 
 #include <Notifications.h>
 
- DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
- 	GET(AbstractClass*, pTarget, ESI);
- 	GET(bool, bRemoved, EDI);
+ //DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+ //	GET(AbstractClass*, pTarget, ESI);
+ //	GET(bool, bRemoved, EDI);
 
- 	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
- 		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
- 			if (!pItem) {
- 				Debug::LogInfo("NotifyInvalidObject Attempt to PointerExpired nullptr pointer");
- 				return true;
- 			} else {
- 				pItem->PointerExpired(pTarget, bRemoved);
- 			}
+ //	auto it = std::remove_if(PointerExpiredNotification::NotifyInvalidObject->Array.begin(),
+ //		PointerExpiredNotification::NotifyInvalidObject->Array.end(), [pTarget , bRemoved](AbstractClass* pItem) {
+ //			if (!pItem) {
+ //				Debug::LogInfo("NotifyInvalidObject Attempt to PointerExpired nullptr pointer");
+ //				return true;
+ //			} else {
+ //				pItem->PointerExpired(pTarget, bRemoved);
+ //			}
 
- 			return false;
- 	});
+ //			return false;
+ //	});
 
- 	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
- 		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
+ //	PointerExpiredNotification::NotifyInvalidObject->Array.Reset(
+ //		std::distance(PointerExpiredNotification::NotifyInvalidObject->Array.begin(), it));
 
- 	return 0x725961;
- }
+ //	return 0x725961;
+ //}
 
 COMPILETIMEEVAL int __fastcall charToID(char* string)
 {
@@ -11115,6 +11115,10 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 LEA_STACK(CellStruct*, SpawnerCellBuffer, 0x28);
 
 	 pThis->Owner->GetMapCoords(OwnerCellBuffer);
+
+	 if (!pSpawnee->IsAlive)
+		 Debug::LogError("SpawManager[{}] Trying to use dead techno !", (void*)pThis);
+
 	 pSpawnee->GetMapCoords(SpawnerCellBuffer);
 
 	 R->EAX(OwnerCellBuffer);
@@ -11145,3 +11149,141 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
 	// return 0x0;
  //}
+#include <Ext/RadSite/Body.h>
+
+ void ApplyRadDamage(RadSiteClass* pRad ,TechnoClass* pObj, CellClass* pCell) {
+	 if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
+	 {
+		 const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
+
+		 RadTypeClass* pRadType =// pRadExt ? pRadExt->Type : 
+			 RadTypeClass::Array[0].get();
+
+		 switch (pObj->WhatAmI())
+
+		 {
+		 case AbstractType::Unit:
+		 case AbstractType::Aircraft:
+		 case AbstractType::Infantry:
+		 {
+
+			 FootClass* pFoot = static_cast<FootClass*>(pObj);
+			 UnitClass* pUnit = cast_to<UnitClass* , false>(pObj);
+
+			 if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
+				 return;
+
+			 if (pObj->IsSinking || pObj->IsCrashing)
+				 return;
+
+			 if (pObj->IsInAir())
+				 return;
+
+			 if (pObj->GetTechnoType()->Immune)
+				 return;
+
+			 if (pObj->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pFoot))
+				 return;
+
+			 const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+			 if ((RadApplicationDelay <= 0)
+				 || (Unsorted::CurrentFrame % RadApplicationDelay))
+				 return;
+
+			 const double orDistance = pRad->BaseCell.DistanceFrom(pCell->MapCoords);
+
+			 // for more precise dmg calculation
+			 const double nRadLevel = pRadExt->GetRadLevelAt(orDistance);
+			 if (nRadLevel <= 0.0 || !pRadType->GetWarhead())
+				 return;
+
+			 const int damage = static_cast<int>(nRadLevel * pRadType->GetLevelFactor());
+
+			 if (damage == 0)
+				 return;
+
+			 pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(orDistance));
+
+		 }
+
+		 break;
+		 case AbstractType::Building:
+		 {
+
+			 BuildingClass* pBld = static_cast<BuildingClass*>(pObj);
+
+			 if (!pObj->BeingWarpedOut && !pBld->Type->Immune)  {
+
+				 auto nCurCoord = pObj->InlineMapCoords();
+				 int maxDamageCount = pRadType->GetBuildingDamageMaxCount();
+				 
+				 for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)  {
+					 const auto nLoc = nCurCoord + (*pFoundation);
+
+					 if (maxDamageCount <= 0 || pRadExt->damageCounts[pBld] < maxDamageCount)
+					 {
+						 const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
+
+						 if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
+							 continue;
+
+						 const double orDistance = pRad->BaseCell.DistanceFrom(nLoc);
+						 const auto nRadLevel = pRadExt->GetRadLevelAt(orDistance);
+
+						 if (nRadLevel == 0.0 || !pRadType->GetWarhead())
+							 continue;
+
+						 const auto damage = static_cast<int>((nRadLevel)*pRadType->GetLevelFactor());
+
+						 if (maxDamageCount > 0)
+							 pRadExt->damageCounts[pBld]++;
+
+
+						 if (damage == 0)
+							 continue;
+
+
+						 if (pRadExt->ApplyRadiationDamage(pBld, damage, static_cast<int>(orDistance)) == RadSiteExtData::DamagingState::Dead)
+							 return;
+
+					 }
+				 }
+			 }
+		 }
+
+		 break;
+		 default:
+			 break;
+
+		 }
+	 }
+}
+
+ DEFINE_HOOK(0x65B8DC, RadSiteClass_AI_DealDamageOnArea, 0x6)
+ {
+	 GET(RadSiteClass*, pThis, ESI);
+
+	 if (!Phobos::Otamaa::DisableCustomRadSite && pThis->RadTimeLeft){
+		 CellSpreadIterator<CellClass>{}(pThis->BaseCell, pThis->Spread, [pThis](CellClass* pCell) {
+
+			 if (auto pBld = pCell->GetBuilding()) {
+				 ApplyRadDamage(pThis, pBld , pCell);
+			 }
+			 else if (auto pObj = pCell->Cell_Occupier()) {
+				 if (auto pTech = flag_cast_to<TechnoClass*, false>(pObj))
+					 ApplyRadDamage(pThis, pTech, pCell);
+			 }
+
+			 return true;
+		});
+	 }
+
+	 return 0x0;
+ }
+
+ DEFINE_HOOK(0x6B7888, SpawnManagerClass_AI_MoveTo7ifDies, 0x7)
+ {
+	 GET(TechnoClass*, pSpawnee, EDI);
+
+	 return !pSpawnee ? 0x6B78D3 : 0x0;
+ }

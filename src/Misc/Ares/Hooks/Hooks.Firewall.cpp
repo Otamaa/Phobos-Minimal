@@ -384,48 +384,10 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 	if (TechnoExtData::IsRadImmune(pThis))
 		return (CheckOtherState);
 
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		// Loop for each different radiation stored in the RadSites container
-		for (auto pRadSite : *RadSiteClass::Array())
-		{
-			const auto pRadExt = RadSiteExtContainer::Instance.Find(pRadSite);
-			// Check the distance, if not in range, just skip this one
-			const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
-			if (static_cast<int>(orDistance) > pRadSite->Spread)
-				continue;
+	if(!Phobos::Otamaa::DisableCustomRadSite)
+		return CheckOtherState;
 
-			const RadTypeClass* pRadType = pRadExt->Type;
-			const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
-			if ((RadApplicationDelay <= 0)
-				|| (Unsorted::CurrentFrame % RadApplicationDelay))
-				continue;
-
-			// for more precise dmg calculation
-			const double nRadLevel = pRadExt->GetRadLevelAt(orDistance);
-			if (nRadLevel <= 0.0 || !pRadType->GetWarhead())
-				continue;
-
-			const int damage = static_cast<int>(nRadLevel * pRadType->GetLevelFactor());
-
-			if (damage == 0)
-				continue;
-
-			switch (pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
-			{
-			case RadSiteExtData::DamagingState::Dead:
-				return SkipEverything;
-			case RadSiteExtData::DamagingState::Ignore:
-				return (CheckOtherState);
-			default:
-				break;
-			}
-		}
-
-		return (CheckOtherState);
-	}
-
-	return (ProcessRadSiteCheckVanilla);
+	return ProcessRadSiteCheckVanilla;
 }
 
 DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)

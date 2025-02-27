@@ -11,6 +11,8 @@ void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
 	AnnounceInvalidPointer(HouseOwner, ptr);
+	
+	damageCounts.erase((BuildingClass*)ptr);
 }
 
 void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
@@ -207,6 +209,7 @@ void RadSiteExtData::Serialize(T& Stm)
 		.Process(this->HouseOwner, true)
 		.Process(this->NoOwner)
 		.Process(this->CreationFrame)
+		.Process(this->damageCounts)
 		;
 }
 

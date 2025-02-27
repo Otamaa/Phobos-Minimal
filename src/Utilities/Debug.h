@@ -16,6 +16,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/null_sink.h>
+#include <spdlog/sinks/dist_sink.h>
 
 class AbstractClass;
 class REGISTERS;
@@ -32,8 +33,15 @@ public:
 	OPTIONALINLINE static std::wstring LogFileFullPath {};
 	OPTIONALINLINE static char LogMessageBuffer[0x1000] {};
 	OPTIONALINLINE static spdlog::sink_ptr file_sink {};
+	OPTIONALINLINE static spdlog::sink_ptr second_file_sink {};
+	OPTIONALINLINE static std::vector<spdlog::sink_ptr> sink2_vector {};
+	OPTIONALINLINE static std::vector<spdlog::sink_ptr> sink_vector {};
+	OPTIONALINLINE static std::shared_ptr<spdlog::sinks::dist_sink_mt> dist_file_sink {};
 	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_MainLogger {};
 	OPTIONALINLINE static bool made {};
+
+	OPTIONALINLINE static bool ExitWithException {};
+	OPTIONALINLINE static std::wstring ExitWithExceptionCopyto {};
 
 	static void InitLogger();
 	static void DeactivateLogger();

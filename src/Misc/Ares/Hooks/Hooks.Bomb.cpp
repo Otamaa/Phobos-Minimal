@@ -294,13 +294,19 @@ DEFINE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
+DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 {
-	GET(TechnoClass* const, pThis, ECX);
+	GET(TechnoClass* , pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
+	//GET_STACK(DWORD , caller , 0x0);
 
 	if (TechnoExt_ExtData::CanDetonate(pThis, pObject)) {
 		R->EAX(Action::Detonate);
+		return 0x7005EF;
+	}
+
+	if (!pThis->IsAlive) {
+		R->EAX(Action::None);
 		return 0x7005EF;
 	}
 

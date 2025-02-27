@@ -336,6 +336,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 				if (pThis->SpawnedNodes[i]->Unit == pInvalid) {
 					pThis->SpawnedNodes[i]->Unit = nullptr;
 					pThis->SpawnedNodes[i]->Status = SpawnNodeStatus::Dead;
+					pThis->SpawnedNodes[i]->NodeSpawnTimer.Stop();
 				}
 			}
 		}

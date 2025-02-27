@@ -40,14 +40,10 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		SetCursor(loadCursor);
 
 		std::wstring path = Debug::PrepareSnapshotDirectory();
-
-		if (Debug::LogEnabled)
-		{
-			Debug::g_MainLogger->flush();
-			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
-			CopyFileW(Debug::LogFileFullPath.c_str(), logCopy.c_str(), FALSE);
+		if(Debug::LogEnabled){
+			Debug::ExitWithException = true;
+			Debug::ExitWithExceptionCopyto = path + Debug::LogFileMainName + Debug::LogFileExt;
 		}
-
 		Debug::LogInfo("Making a memory snapshot");
 		Debug::FullDump(std::move(path));
 
@@ -60,6 +56,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			"Please submit that to the developers along with SYNC*.txt, debug.txt and syringe.log."
 				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r" : ""
 		);
+
 	}
 
 	return 0x64CD11;
@@ -143,6 +140,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 	//so using these oogly
 	SetWindowTextW(*reinterpret_cast<HWND*>(0xB73550), L"Fatal Error - Yuri's Revenge");
+	std::wstring path = Debug::PrepareSnapshotDirectory();
 
 	switch (pExs->ExceptionRecord->ExceptionCode)
 	{
@@ -168,15 +166,6 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	case EXCEPTION_STACK_OVERFLOW:
 	case 0xE06D7363: // exception thrown and not caught
 	{
-		std::wstring path = Debug::PrepareSnapshotDirectory();
-
-		if (Debug::LogEnabled)
-		{
-			Debug::g_MainLogger->flush();
-			const std::wstring logCopy = path + Debug::LogFileMainName + Debug::LogFileExt;
-			CopyFileW(Debug::LogFileFullPath.c_str(), logCopy.c_str(), FALSE);	
-		}
-
 		const std::wstring except_file = path + L"\\except.txt";
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
@@ -423,7 +412,13 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		break;
 	}
 
+	if (Debug::LogEnabled) {
+		Debug::g_MainLogger->flush();
+		CopyFileW(Debug::LogFileFullPath.c_str(), Debug::ExitWithExceptionCopyto.c_str(), FALSE);
+	}
+
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
+
 	return 0u;
 };
 

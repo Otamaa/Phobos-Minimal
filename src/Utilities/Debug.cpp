@@ -33,10 +33,12 @@ void Debug::InitLogger() {
 	}
 
 	const auto log_full = PhobosCRT::WideStringToString(Debug::LogFileFullPath);
-	spdlog::init_thread_pool(8192, 20);
+	spdlog::init_thread_pool(8192, 120);
 	Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
+	Debug::sink2_vector.push_back(Debug::file_sink);
+	Debug::dist_file_sink = std::make_shared<spdlog::sinks::dist_sink_mt>(Debug::sink2_vector);
 	Debug::file_sink->set_level(spdlog::level::trace);
-	Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", Debug::dist_file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 	Debug::g_MainLogger->set_level(spdlog::level::trace);
 	spdlog::register_logger(g_MainLogger);
 	spdlog::set_default_logger(g_MainLogger);
@@ -226,6 +228,11 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 
 	if (Dump) {
 		Debug::FullDump();
+	}
+
+	if (Debug::ExitWithException) {
+		CopyFileW(Debug::LogFileFullPath.c_str(), Debug::ExitWithExceptionCopyto.c_str(), FALSE);
+		Debug::ExitWithException = false;
 	}
 
 	Debug::ExitGame();
