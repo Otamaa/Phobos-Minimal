@@ -93,7 +93,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 }
 */
 
- DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x8)
+ DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x6)
  {
  	GET(SpawnManagerClass*, pSpawn, ESI);
  	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
@@ -224,7 +224,7 @@ DEFINE_JUMP(CALL6, 0x6FDD69, MiscTools::to_DWORD(GetWeapon_));
  {
  	GET(TechnoClass*, pThis, ECX);
  	GET_STACK(CoordStruct*, pCoord, (0x4));
- 	GET_STACK(DirType, faceDir, (0x8));
+ 	//GET_STACK(DirType, faceDir, (0x8));
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis); {
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()); {

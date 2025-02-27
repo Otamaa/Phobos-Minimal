@@ -330,6 +330,16 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 	 });
 
+	SpawnManagerClass::Array->for_each([&](SpawnManagerClass* pThis) {
+		if (pThis->Owner && removed) {
+			for (int i = 0; i < pThis->SpawnedNodes.Count; ++i) {
+				if (pThis->SpawnedNodes[i]->Unit == pInvalid) {
+					pThis->SpawnedNodes[i]->Unit = nullptr;
+					pThis->SpawnedNodes[i]->Status = SpawnNodeStatus::Dead;
+				}
+			}
+		}
+	});
 	//EBolt::Array->for_each([&](EBolt* pThis) {
 	//	if (removed && pThis && pThis->Owner == pInvalid) {
 	//		pThis->Owner = nullptr;

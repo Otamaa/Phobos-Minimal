@@ -1836,13 +1836,16 @@ DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
-DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9) {
+DEFINE_HOOK(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x8) {
 	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
 
 	//this fix reqire change of `pType->Speed`
 	//which is ridicculus really - Otamaa
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
-	GET(int const, distance, EAX);
+
+	auto& currLoc = pLoco->LinkedTo->Location;
+	int distance = (int) CoordStruct{currLoc.X - pLoco->_CoordsNow.X, currLoc.Y - pLoco->_CoordsNow.Y,0}.Length() ;
+
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType());
 	int currentSpeed = pTypeExt->SubterraneanSpeed >= 0 ?
 			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
@@ -1854,9 +1857,14 @@ DEFINE_HOOK(0x7295C5, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x9
 	currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
 	pTypeExt->AttachedToObject->Speed = maxSpeed;
 
-	TunnelLocomotionClass::TunnelMovementSpeed = currentSpeed;
-
-	return distance >= currentSpeed + 1 ? KeepMoving : CloseEnough;
+	if (distance > currentSpeed)
+	{
+		REF_STACK(CoordStruct, newLoc, STACK_OFFSET(0x40, -0xC));
+		double angle = -Math::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
+		newLoc = currLoc + CoordStruct { int((double)currentSpeed * Math::cos(angle)), int((double)currentSpeed * Math::sin(angle)), 0 };
+		return 0x7298D3;
+	}
+	return 0x7295CE;
 }
 
 DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {

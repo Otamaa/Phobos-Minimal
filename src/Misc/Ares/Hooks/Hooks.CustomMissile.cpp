@@ -35,11 +35,12 @@ DEFINE_HOOK(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 	return TechnoTypeExtContainer::Instance.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
 }
 
-DEFINE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
+DEFINE_HOOK(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
 {
 	GET(SpawnManagerClass*, pSpawnManager, ESI);
 	GET(int, idxSpawn, EDI);
-	GET(TechnoTypeClass* const, pSpawnType, EDX);
+
+	auto pSpawnType = pSpawnManager->SpawnType;
 
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pSpawnType);
 

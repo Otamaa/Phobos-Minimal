@@ -819,7 +819,7 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 DEFINE_HOOK_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
 DEFINE_HOOK(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 {
-	enum { SkipGameCode1 = 0x6B760E, SkipGameCode2 = 0x6B76DE };
+	enum { SkipGameCode1 = 0x6B795A, SkipGameCode2 = 0x6B795A };
 
 	GET(SpawnManagerClass* const, pThis, ESI);
 	GET(AircraftClass* const, pSpawnee, EDI);

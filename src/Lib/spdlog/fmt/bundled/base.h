@@ -21,7 +21,7 @@
 #endif
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 110103
+#define FMT_VERSION 110104
 
 // Detect compiler versions.
 #if defined(__clang__) && !defined(__ibmxl__)
@@ -294,7 +294,7 @@
 #endif
 
 #define FMT_APPLY_VARIADIC(expr) \
- using unused = int[];          \
+  using unused = int[];          \
   (void)unused { 0, (expr, 0)... }
 
 // Enable minimal optimizations for more compact code in debug mode.
@@ -2263,15 +2263,15 @@ template <> struct is_output_iterator<appender, char> : std::true_type {};
 template <typename It, typename T>
 struct is_output_iterator<
     It, T,
-    void_t<decltype(*std::declval<decay_t<It>&>()++ = std::declval<T>())>>
-    : std::true_type {};
+    enable_if_t<std::is_assignable<decltype(*std::declval<decay_t<It>&>()++),
+                                   T>::value>> : std::true_type {};
 
 #ifndef FMT_USE_LOCALE
 #  define FMT_USE_LOCALE (FMT_OPTIMIZE_SIZE <= 1)
 #endif
 
 // A type-erased reference to an std::locale to avoid a heavy <locale> include.
-struct locale_ref {
+class locale_ref {
 #if FMT_USE_LOCALE
  private:
   const void* locale_;  // A type-erased pointer to std::locale.
@@ -2283,6 +2283,7 @@ struct locale_ref {
   inline explicit operator bool() const noexcept { return locale_ != nullptr; }
 #endif  // FMT_USE_LOCALE
 
+ public:
   template <typename Locale> auto get() const -> Locale;
 };
 
