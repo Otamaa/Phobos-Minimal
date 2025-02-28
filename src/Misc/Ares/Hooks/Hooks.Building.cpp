@@ -1430,7 +1430,7 @@ void SetFreeUnitMission(UnitClass* pUnit)
 
 void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 
-	if(!count)
+	if(count <= 0)
 		return;
 
 	std::vector<bool> placements {};

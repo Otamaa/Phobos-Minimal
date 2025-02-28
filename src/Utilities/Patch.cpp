@@ -200,7 +200,7 @@ void Patch::PrintAllModuleAndBaseAddr()
 					DWORD_PTR image_base = (DWORD_PTR)hModules[i];
 					PIMAGE_DOS_HEADER dosHeaders = (PIMAGE_DOS_HEADER)image_base;
 					PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)(image_base + dosHeaders->e_lfanew);
-					void* image_base_void = (void*)image_base;
+					//void* image_base_void = (void*)image_base;
 
 					if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
 						continue; // The handle does not point to a valid module
@@ -347,7 +347,7 @@ uintptr_t Patch::GetEATAddress(const char* moduleName, const char* funcName)
 		}
 	}
 
-	return -1;
+	return 0xffffffff;
 }
 
 uintptr_t Patch::GetIATAddress(const char* moduleName, const char* funcName)
@@ -362,5 +362,5 @@ uintptr_t Patch::GetIATAddress(const char* moduleName, const char* funcName)
 		}
 	}
 
-	return -1;
+	return 0xffffffff;
 }

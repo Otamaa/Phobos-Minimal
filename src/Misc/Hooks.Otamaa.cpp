@@ -11281,9 +11281,18 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 return 0x0;
  }
 
- DEFINE_HOOK(0x6B7888, SpawnManagerClass_AI_MoveTo7ifDies, 0x7)
+ DEFINE_HOOK(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
  {
+	 GET(SpawnManagerClass*, pThis, ESI);
 	 GET(TechnoClass*, pSpawnee, EDI);
+	 GET(int, idx, EBX);
 
-	 return !pSpawnee ? 0x6B78D3 : 0x0;
+	 if (!pSpawnee) {
+		 pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		 return 0x6B727F;
+	 }
+
+	 return 0x0;
  }
+
+ //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );

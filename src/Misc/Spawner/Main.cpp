@@ -801,7 +801,7 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Tunnel::Ip = inet_addr(SpawnerMain::GameConfigs::m_Ptr.TunnelIp);
 	Tunnel::Port = htons((u_short)SpawnerMain::GameConfigs::m_Ptr.TunnelPort);
 
-	Game::PlanetWestwoodPortNumber = Tunnel::Port ? 0 : (u_short)SpawnerMain::GameConfigs::m_Ptr.ListenPort;
+	Game::PlanetWestwoodPortNumber = Tunnel::Port ? 0u : (u_short)SpawnerMain::GameConfigs::m_Ptr.ListenPort;
 
 	UDPInterfaceClass::Instance = GameCreate<UDPInterfaceClass>();
 	UDPInterfaceClass::Instance->Init();
