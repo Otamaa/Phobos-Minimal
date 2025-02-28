@@ -1457,18 +1457,9 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	auto pExt = TechnoExtContainer::Instance.Find(this);
 	pExt->AltOccupation = alt;
 
-	if (alt)
-	{
-		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-			pExt->IncomingUnitAlt = this;
-
+	if (alt) {
 		pCell->AltOccupationFlags |= 0x20;
-	}
-	else
-	{
-		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-			pExt->IncomingUnit = this;
-
+	} else {
 		pCell->OccupationFlags |= 0x20;
 	}
 }
@@ -1490,19 +1481,11 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 		pExt->AltOccupation.clear();
 	}
 
-	if (alt & obAlt)
-	{
-		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-			pExt->IncomingUnitAlt = this;
-
+	if (alt & obAlt) {
 		pCell->AltOccupationFlags &= ~0x20;
 	}
 
-	if (alt & obNormal)
-	{
-		if (auto pExt = CellExtContainer::Instance.TryFind(pCell))
-			pExt->IncomingUnit = this;
-
+	if (alt & obNormal) {
 		pCell->OccupationFlags &= ~0x20;
 	}
 
@@ -11264,7 +11247,7 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 GET(RadSiteClass*, pThis, ESI);
 
 	 if (!Phobos::Otamaa::DisableCustomRadSite && pThis->RadTimeLeft){
-		 CellSpreadIterator<CellClass>{}(pThis->BaseCell, pThis->Spread, [pThis](CellClass* pCell) {
+		 CellSpreadIterator<CellClass>{}(pThis->BaseCell, (short)pThis->Spread, [pThis](CellClass* pCell) {
 
 			 if (auto pBld = pCell->GetBuilding()) {
 				 ApplyRadDamage(pThis, pBld , pCell);
@@ -11293,6 +11276,12 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 }
 
 	 return 0x0;
+ }
+
+ DEFINE_HOOK(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull , 0xA)
+ {
+	 GET(SpawnNode*, pNode, ESI);
+	 return !pNode->Unit || !pNode->Unit->IsAlive ? 0x6B71F1 :0x0;
  }
 
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );

@@ -23,7 +23,7 @@ DEFINE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 
 	// compare equal if same mod and same Ares version (or compatible)
 	auto same = (Info.Version == (AresGlobalData::version)
-		&& (Info.InternalVersion - PHOBOSSAVEGAME_ID) == AresGlobalData::InternalVersion);
+		&& DWORD(Info.InternalVersion - PHOBOSSAVEGAME_ID) == AresGlobalData::InternalVersion);
 
 	R->ECX(&Info);
 	return same ? 0x559F60u : 0x559F48u;

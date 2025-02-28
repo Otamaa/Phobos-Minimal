@@ -157,7 +157,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 		}
 
 		if(pItem->Type){
-			GeneralUtils::AdjacentCellsInRange(pExt->Adjencentcells, TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
+			GeneralUtils::AdjacentCellsInRange(pExt->Adjencentcells, (short)TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
 		}
 	}
 

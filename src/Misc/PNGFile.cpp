@@ -53,13 +53,10 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 
 	for (int i = 0; i < (pic_width * pic_height); ++i)
 	{
-		unsigned short value = *(bufferptr++);
-		unsigned char r = (value & 0xF800) >> 11; // Extract the 5 R bits
-		unsigned char g = (value & 0x07E0) >> 5;  // Extract the 6 G bits
-		unsigned char b = (value & 0x001F);       // Extract the 5 B bits
-		imageptr[i].r = (r * 255) / 31;
-		imageptr[i].g = (g * 255) / 63;
-		imageptr[i].b = (b * 255) / 31;
+		unsigned short value = *(bufferptr++);  
+		imageptr[i].r = (unsigned char((value & 0xF800) >> 11) * 255) / 31;// Extract the 5 R bits
+		imageptr[i].g = (unsigned char((value & 0x07E0) >> 5) * 255) / 63;// Extract the 6 G bits
+		imageptr[i].b = (unsigned char((value & 0x001F)) * 255) / 31;// Extract the 5 B bits
 	}
 
 	/**

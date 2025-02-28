@@ -92,7 +92,7 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 
 		auto const checkLevel = allowRevealByHeight && RulesClass::Instance->RevealByHeight;
 
-		for (CellSpreadEnumerator it(spread, start); it; ++it) {
+		for (CellSpreadEnumerator it((short)spread, (short)start); it; ++it) {
 			auto const cell = base + *it;
 
 			if (this->IsCellAvailable(cell)) {
@@ -128,7 +128,7 @@ void MapRevealer::UpdateShroud(short start, size_t radius, bool fog) const
 		radius = MinImpl(radius, 255);
 		start = MinImpl(start, 255 - 3);
 
-		for (CellSpreadEnumerator it(radius, start); it; ++it)
+		for (CellSpreadEnumerator it((short)radius, start); it; ++it)
 		{
 			auto const cell = base + *it;
 			auto  pCell = MapClass::Instance->GetCellAt(cell);

@@ -860,13 +860,13 @@ DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 
 		if (rockerSpread > 0.3)
 		{
-			const int cell_radius = 3;
-			for (int x = -cell_radius; x <= cell_radius; x++)
+			const short cell_radius = 3;
+			for (short x = -cell_radius; x <= cell_radius; x++)
 			{
-				for (int y = -cell_radius; y <= cell_radius; y++)
+				for (short y = -cell_radius; y <= cell_radius; y++)
 				{
-					int xpos = pCell->X + x;
-					int ypos = pCell->Y + y;
+					short xpos = pCell->X + x;
+					short ypos = pCell->Y + y;
 
 					auto object = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos))->Cell_Occupier(alt);
 
@@ -938,7 +938,7 @@ DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 	//to avoid unnessesary allocation check
 	//simplify the assembly result
 	pIter = DLLCreate<CellSpreadEnumerator<std::numeric_limits<short>::max()>>((short)spread);
-	pIter->setSpread(spread);
+	pIter->setSpread((short)spread);
 
 	return *pIter ? 0x4895C3 : 0x4899DA;
 }

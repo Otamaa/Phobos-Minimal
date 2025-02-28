@@ -153,7 +153,7 @@ namespace Math
 	OPTIONALINLINE COMPILETIMEEVAL double deg2rad_Alternate(double deg) { return deg * C_Sharp_Pi / 180.0; }
 
 	template <typename T>
-	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL int signum(T x)noexcept
+	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL auto signum(T x)noexcept
 			requires std::is_arithmetic_v<T> {
 		if COMPILETIMEEVAL (std::is_signed<T>()){
 			return (T{ 0 } < x) - (x < T{ 0 });
@@ -165,7 +165,7 @@ namespace Math
 	//https://github.com/rhalbersma/xstd/blob/master/include/xstd/cstdlib.hpp
 
 	template<class T>
-	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL auto abs(T const& x) noexcept
+	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL T abs(T const& x) noexcept
 		requires std::is_arithmetic_v<T> {
 		return( // deal with signed-zeros
 		x == T(0) ? \

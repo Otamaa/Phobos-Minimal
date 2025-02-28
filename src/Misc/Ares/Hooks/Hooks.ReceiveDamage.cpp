@@ -778,7 +778,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	if (args.Attacker && !pWHExt->Nonprovocative)
 	{
-		pThis->Owner->UpdateAngerNodes(pType->GetCost() * ((double)*args.Damage / pType->Strength), args.SourceHouse);
+		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*args.Damage / pType->Strength)), args.SourceHouse);
 	}
 
 	if (_res == DamageState::PostMortem)
@@ -1892,7 +1892,7 @@ DEFINE_HOOK(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 	{
 		if (*args.Damage > 0 && !args.IgnoreDefenses)
 		{
-			*args.Damage = MaxImpl(((double)*args.Damage * args.WH->ProneDamage), 1);
+			*args.Damage = (int)MaxImpl(((double)*args.Damage * args.WH->ProneDamage), 1);
 		}
 	}
 

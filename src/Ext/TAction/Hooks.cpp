@@ -24,7 +24,7 @@ int lastAction;
  {
  	GET(TActionClass*, pThis, ECX);
  	REF_STACK(ActionArgs const, args, 0x4);
-	GET_STACK(DWORD , caller , 0x0);
+	//GET_STACK(DWORD , caller , 0x0);
 
  	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
