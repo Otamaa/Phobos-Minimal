@@ -1605,6 +1605,9 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				pLocoTarget->LocomotorImblued(true);
 			}
 
+			//if ((int)CachedRadio->size() != pThis->RadioLinks.Capacity && pThis->Type->Helipad)
+			//	Debug::LogInfo("Building {} - {} has inconsistent cache size of RadioLinks [O : {} ,  C : {}" , pThis->Type->ID, pThis->Owner->Type->ID , pThis->RadioLinks.Capacity , (int)CachedRadio->size());
+
 			for (int i = 0; i < (int)CachedRadio->size(); ++i)
 			{
 				auto v22 = CachedRadio[i];

@@ -11279,8 +11279,13 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
  DEFINE_HOOK(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull , 0xA)
  {
-	 GET(SpawnNode*, pNode, ESI);
-	 return !pNode->Unit || !pNode->Unit->IsAlive ? 0x6B71F1 :0x0;
+	 GET(SpawnNode*, pNode, EDX);
+
+	 if(pNode->Unit && pNode->Unit->IsAlive ){
+		 pNode->Unit->UnInit();
+	 }
+
+	 return 0x6B71F1;
  }
 
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );
