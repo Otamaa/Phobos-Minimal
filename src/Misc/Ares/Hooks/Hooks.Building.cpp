@@ -1434,7 +1434,7 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 		return;
 
 	std::vector<bool> placements {};
-	placements.reserve(count);
+	placements.resize(count);
 
 	const auto pBldLoc = pBuilding->GetCoords();
 	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);

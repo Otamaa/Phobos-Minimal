@@ -1692,52 +1692,50 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis)) {
 
 		const auto pType = pFoot->GetTechnoType();
-		if(!pType->Bunkerable) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
+		if(pType->Bunkerable) {
 
-		const auto nSpeedType = pType->SpeedType;
-		if (nSpeedType == SpeedType::Hover
-			|| nSpeedType == SpeedType::Winged
-			|| nSpeedType == SpeedType::None) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
+			const auto nSpeedType = pType->SpeedType;
+			if (nSpeedType == SpeedType::Hover
+				|| nSpeedType == SpeedType::Winged
+				|| nSpeedType == SpeedType::None) {
+				R->EAX(false);
+				return 0x70FBCA;
+			}
 
-		if (pFoot->ParasiteEatingMe) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
+			if (pFoot->ParasiteEatingMe) {
+				R->EAX(false);
+				return 0x70FBCA;
+			}
 
-		//crash the game , dont allow it
-		//maybe because of force_track stuffs,..
-		const auto loco = VTable::Get(pFoot->Locomotor.GetInterfacePtr());
-		if(loco != HoverLocomotionClass::vtable
-			&& loco != MechLocomotionClass::vtable
-			&& loco != FlyLocomotionClass::vtable
-			&& loco != DropPodLocomotionClass::vtable
-			&& loco != RocketLocomotionClass::vtable
-			&& loco != ShipLocomotionClass::vtable) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
+			//crash the game , dont allow it
+			//maybe because of force_track stuffs,..
+			const auto loco = VTable::Get(pFoot->Locomotor.GetInterfacePtr());
+			if(loco == HoverLocomotionClass::vtable
+				|| loco == MechLocomotionClass::vtable
+				|| loco == FlyLocomotionClass::vtable
+				|| loco == DropPodLocomotionClass::vtable
+				|| loco == RocketLocomotionClass::vtable
+				|| loco == ShipLocomotionClass::vtable) {
 
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+				R->EAX(false);
+				return 0x70FBCA;
+			}
 
-		if(pTypeExt->BunkerableAnyway) {
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if(pTypeExt->BunkerableAnyway) {
+				R->EAX(true);
+				return 0x70FBCA;
+			}
+
+			if (!pType->Turret || !pFoot->IsArmed()) {
+				R->EAX(false);
+				return 0x70FBCA;
+			}
+
 			R->EAX(true);
 			return 0x70FBCA;
 		}
-
-		if (!pType->Turret || !pFoot->IsArmed()) {
-			R->EAX(false);
-			return 0x70FBCA;
-		}
-
-
-		R->EAX(true);
-		return 0x70FBCA;
 	}
 
 	R->EAX(false);
@@ -6535,8 +6533,9 @@ DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
 	LEA_STACK(CellStruct*, pDest, 0x4);
+	const auto pUndeploysInto = pType->UndeploysInto;
 	R->AL(MapClass::Instance->GetCellAt(pDest)
-		->IsClearToMove(pType->UndeploysInto->SpeedType, 0, 0, ZoneType::None, MovementZone::Normal, -1, 1)
+		->IsClearToMove(pUndeploysInto->SpeedType, 0, 0, ZoneType::None, pUndeploysInto->MovementZone, -1, 1)
 	);
 	return 0x449487;
 }

@@ -932,7 +932,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 		if(!pTechno)
 			return 0x425174;
 	
-		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 		if(pExt && !pExt->IsDetachingForCloak) {
 			return 0x425174;
