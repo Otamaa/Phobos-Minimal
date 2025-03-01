@@ -918,7 +918,8 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
 	R->EBX(0);
-	pThis->_GetExtData()->InvalidatePointer(target, all);
+	if(auto pExt = pThis->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 
 	if (pThis->Type == target) {
 		Debug::LogInfo("Anim[0x{}] detaching Type[{}] Pointer ! ", (void*)pThis, pThis->Type->ID);
@@ -928,8 +929,12 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	if(pThis->OwnerObject == target && target){
 
 		auto const pTechno = flag_cast_to<TechnoClass* , false>(target);
+		if(!pTechno)
+			return 0x425174;
+	
+		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if (!pTechno || !TechnoExtContainer::Instance.Find(pTechno)->IsDetachingForCloak) {
+		if(pExt && !pExt->IsDetachingForCloak) {
 			return 0x425174;
 		}
 	}
