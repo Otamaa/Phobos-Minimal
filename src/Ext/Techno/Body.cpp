@@ -41,6 +41,28 @@
 
 #include <memory>
 
+void TechnoExtData::UpdateRecountBurst() {
+	const auto pThis = this->AttachedToObject;
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pThis->CurrentBurstIndex && !pThis->Target && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {
+		const auto pWeapon = this->LastWeaponType;
+		if (pWeapon && pWeapon->Burst && pThis->LastFireBulletFrame + std::max(pWeapon->ROF, 30) <= Unsorted::CurrentFrame) {
+
+
+			const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pWeapon->Burst;
+			const auto rof = static_cast<int>(ratio * pWeapon->ROF * this->AE.ROFMultiplier) - std::max(pWeapon->ROF, 30);
+
+			if (rof > 0) {
+				pThis->ROF = rof;
+				pThis->DiskLaserTimer.Start(rof);
+			}
+
+			pThis->CurrentBurstIndex = 0;
+		}
+	}
+}
+
 void TechnoExtData::UpdateRearmInEMPState()
 {
 	const auto pThis = this->AttachedToObject;
@@ -5389,6 +5411,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->DelayedFireWeaponIndex)
 		.Process(this->CurrentDelayedFireAnim)
 		.Process(this->CustomFiringOffset)
+		.Process(this->LastWeaponType)
 		;
 }
 

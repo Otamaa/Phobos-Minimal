@@ -730,6 +730,8 @@ public:
 	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };
 	std::optional<CoordStruct> CustomFiringOffset  {}; // If set any calls to GetFLH() will use this coordinate as
 
+	WeaponTypeClass* LastWeaponType { nullptr };
+
 	~TechnoExtData() noexcept
 	{
 		if (!Phobos::Otamaa::ExeTerminated) {
@@ -773,6 +775,7 @@ public:
 	void UpdateRevengeWeapons();
 	void UpdateRearmInEMPState();
 	void UpdateRearmInTemporal();
+	void UpdateRecountBurst();
 	void UpdateLaserTrails();
 	//
 	void UpdateAircraftOpentopped();

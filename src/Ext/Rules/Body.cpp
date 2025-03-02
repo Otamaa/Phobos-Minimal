@@ -777,6 +777,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt");
 	this->NoTurret_TrackTarget.Read(exINI, GameStrings::General, "NoTurret.TrackTarget");
 
+	this->RecountBurst.Read(exINI, GameStrings::General, "RecountBurst");
+
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
 	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
@@ -1523,6 +1525,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->JumpjetTilt)
 		.Process(this->NoTurret_TrackTarget)
+
+		.Process(this->RecountBurst)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -1425,6 +1425,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->JumpjetTilt_SidewaysSpeedFactor.Read(exINI, pSection, "JumpjetTilt.SidewaysSpeedFactor");
 
 		this->NoTurret_TrackTarget.Read(exINI, pSection, "NoTurret.TrackTarget");
+		this->RecountBurst.Read(exINI, pSection, "RecountBurst");
 	}
 
 	// Art tags
@@ -2588,6 +2589,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->JumpjetTilt_SidewaysSpeedFactor)
 
 		.Process(this->NoTurret_TrackTarget)
+		.Process(this->RecountBurst)
 		;
 }
 

@@ -637,3 +637,40 @@ DEFINE_HOOK(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
+
+	enum { CanNotFire = 0x6FDE03 };
+
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	{
+		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {
+			if (pExt->LastWeaponType && pExt->LastWeaponType->Burst) {
+
+				const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pExt->LastWeaponType->Burst;
+				const auto rof = static_cast<int>(ratio * pExt->LastWeaponType->ROF * pExt->AE.ROFMultiplier) - (Unsorted::CurrentFrame - pThis->LastFireBulletFrame);
+
+				if (rof > 0){
+					pThis->ROF = rof;
+					pThis->DiskLaserTimer.Start(rof);
+					pThis->CurrentBurstIndex = 0;
+					pExt->LastWeaponType = pWeapon;
+
+					return CanNotFire;
+				}
+			}
+
+			pThis->CurrentBurstIndex = 0;
+
+		}
+
+		pExt->LastWeaponType = pWeapon;
+	}
+
+	return 0;
+}

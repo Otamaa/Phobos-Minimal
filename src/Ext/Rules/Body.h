@@ -460,6 +460,8 @@ public:
 
 	Valueable<bool> NoTurret_TrackTarget { false };
 
+	Valueable<bool> RecountBurst { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
