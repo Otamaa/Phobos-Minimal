@@ -82,5 +82,7 @@ public:
 	TerrainTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<TerrainTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
+
+	void _AnimPointerExpired(AnimClass* pAnim);
 };
 static_assert(sizeof(FakeTerrainClass) == sizeof(TerrainClass), "Invalid Size !");

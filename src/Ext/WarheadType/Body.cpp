@@ -587,6 +587,11 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->MindControl_ThreatDelay.Read(exINI, pSection, "MindControl.ThreatDelay");
 	this->MergeBuildingDamage.Read(exINI, pSection, "MergeBuildingDamage");
+
+	this->BuildingSell.Read(exINI, pSection, "BuildingSell");
+	this->BuildingSell_IgnoreUnsellable.Read(exINI, pSection, "BuildingSell.IgnoreUnsellable");
+	this->BuildingUndeploy.Read(exINI, pSection, "BuildingUndeploy");
+	this->BuildingUndeploy_Leave.Read(exINI, pSection, "BuildingUndeploy.Leave");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1571,6 +1576,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->KillWeapon_IgnoreTypes)
 		.Process(this->MindControl_ThreatDelay)
 		.Process(this->MergeBuildingDamage)
+
+		.Process(this->BuildingSell)
+		.Process(this->BuildingSell_IgnoreUnsellable)
+		.Process(this->BuildingUndeploy)
+		.Process(this->BuildingUndeploy_Leave)
 		;
 
 	PaintBallData.Serialize(Stm);
@@ -1635,6 +1645,133 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 	}
 
 	return false;
+}
+
+void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
+	const auto pBuilding = cast_to<BuildingClass*>(pTarget);
+
+	if (!pBuilding || !pBuilding->IsAlive || pBuilding->Health <= 0 || !pBuilding->IsOnMap || pBuilding->InLimbo)
+		return;
+
+	// Higher priority for selling
+
+	if (this->BuildingSell)
+	{
+
+		if ((pBuilding->CanBeSold() && !pBuilding->IsStrange()) || this->BuildingSell_IgnoreUnsellable)
+			pBuilding->Sell(1);
+
+		return;
+	}
+
+	// CanBeSold() will also check this
+	const auto mission = pBuilding->CurrentMission;
+
+	if (mission == Mission::Construction || mission == Mission::Selling)
+		return;
+
+	const auto pType = pBuilding->Type;
+	if (!pType->UndeploysInto || (pType->ConstructionYard && !GameModeOptionsClass::Instance->MCVRedeploy))
+		return;
+
+	auto cell = pBuilding->GetMapCoords();
+	const auto width = pType->GetFoundationWidth();
+	const auto height = pType->GetFoundationHeight(false);
+
+	// Offset of undeployment on large-scale buildings
+	if (width > 2 || height > 2)
+		cell += CellStruct{ 1, 1 };
+
+	if (this->BuildingUndeploy_Leave)
+	{
+
+		const auto pHouse = pBuilding->Owner;
+		const auto pItems = Helpers::Alex::getCellSpreadItems(pBuilding->GetCoords(), 20);
+
+
+		// Divide the surrounding units into 16 directions and record their costs
+
+		int record[16] = { 0 };
+
+		for (const auto& pItem : pItems)
+		{
+			// Only armed units that are not considered allies will be recorded
+
+			if ((!pHouse || !pHouse->IsAlliedWith(pItem)) && pItem->IsArmed())
+				record[pBuilding->GetDirectionOverObject(pItem).GetValue<4>()] += pItem->GetTechnoType()->Cost;
+
+		}
+
+
+		int costs = 0;
+		int dir = 0;
+
+
+		// Starting from 16, prevent negative numbers
+
+		for (int i = 16; i < 32; ++i)
+		{
+
+			int newCosts = 0;
+
+			// Assign weights to values in the direction
+
+			// The highest value being 8 times in the positive direction
+
+			// And the lowest value being 0 times in the opposite direction
+
+			// The greater difference between positive direction to both sides, the lower value it is
+
+			for (int j = -7; j < 8; ++j)
+				newCosts += ((8 - Math::abs(j)) * record[(i + j) & 15]);
+
+
+
+			// Record the direction with the highest weight
+
+			if (newCosts > costs)
+			{
+
+				dir = (i - 16);
+				costs = newCosts;
+			}
+		}
+
+
+		// If there is no threat in the surrounding area, randomly select one side
+
+		if (!costs)
+			dir = ScenarioClass::Instance->Random.RandomRanged(0, 15);
+
+
+		// Reverse the direction and convert it into radians
+
+		const double radian = -(((dir - 4) / 16.0) * Math::TwoPi);
+
+
+		// Base on a location about 14 grids away
+
+		cell.X -= static_cast<short>(14 * Math::cos(radian));
+		cell.Y += static_cast<short>(14 * Math::sin(radian));
+
+
+		// Find a location where the conyard can be deployed
+		const auto newCell = MapClass::Instance->NearByLocation(cell, pType->UndeploysInto->SpeedType, ZoneType::None, pType->UndeploysInto->MovementZone, false, (width + 2), (height + 2), false, false, false, false, CellStruct::Empty, false, false);
+
+
+		// If it can find a more suitable location, go to the new one
+		if (newCell != CellStruct::Empty)
+
+			cell = newCell;
+
+	}
+
+
+
+	if (const auto pCell = MapClass::Instance->TryGetCellAt(cell))
+		pBuilding->SetArchiveTarget(pCell);
+
+	pBuilding->Sell(1);
 }
 
 // =============================

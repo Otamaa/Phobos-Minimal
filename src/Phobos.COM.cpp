@@ -87,9 +87,9 @@ void RegisterFactoryForClass(IClassFactory* pFactory)
 	HRESULT hr = CoRegisterClassObject(__uuidof(T), pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
 
 	if (FAILED(hr))
-		Debug::LogInfo("CoRegisterClassObject for {} class factory failed with error code {}.", typeid(T).name(), GetLastError());
+		Debug::Log("CoRegisterClassObject for %s class factory failed with error code %s.\n", typeid(T).name(), GetLastError());
 	else
-		Debug::LogInfo("Class factory for {} registered.", typeid(T).name());
+		Debug::Log("Class factory for %s registered.\n", typeid(T).name());
 
 	Game::ClassFactories->AddItem((ULONG)dwRegister);
 }
@@ -103,12 +103,12 @@ void RegisterFactoryForClass()
 
 DEFINE_HOOK(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
-	Debug::LogInfo("Starting COM registration...");
+	Debug::Log("Starting COM registration...");
 
 	// Add new classes to be COM-registered below
 	RegisterFactoryForClass<LevitateLocomotionClass>();
 
-	Debug::LogInfo("COM registration done!");
+	Debug::Log("COM registration done!");
 
 	return 0;
 }

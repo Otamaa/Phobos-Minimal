@@ -406,6 +406,12 @@ public:
 	Nullable<int> MindControl_ThreatDelay {};
 
 	Nullable<bool> MergeBuildingDamage {};
+
+	Valueable<bool> BuildingSell { false };
+	Valueable<bool> BuildingSell_IgnoreUnsellable { false };
+	Valueable<bool> BuildingUndeploy { false };
+	Valueable<bool> BuildingUndeploy_Leave { false };
+
 public:
 
 	void InitializeConstant();
@@ -436,11 +442,10 @@ private:
 	void ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget) const;
 
 	void applyWebby(TechnoClass* pTarget, HouseClass* pKillerHouse, TechnoClass* pKillerTech) const;
+
 	//Otamaa
 	void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords) const;
 	void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target) const;
-
-	void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget) const;
 
 	//void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 	void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);
@@ -465,7 +470,7 @@ public:
 	void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 	bool GoBerzerkFor(FootClass* pVictim, int* damage) const;
 	bool ApplySuppressDeathWeapon(TechnoClass* pVictim) const;
-
+	void ApplyBuildingUndeploy(TechnoClass* pTarget);
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
 	void GetCritChance(TechnoClass* pFirer , std::vector<double>& chances) const;
 

@@ -40,10 +40,7 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		SetCursor(loadCursor);
 
 		std::wstring path = Debug::PrepareSnapshotDirectory();
-		if(Debug::LogEnabled){
-			Debug::ExitWithException = true;
-			Debug::ExitWithExceptionCopyto = path + Debug::LogFileMainName + Debug::LogFileExt;
-		}
+
 		Debug::LogInfo("Making a memory snapshot");
 		Debug::FullDump(std::move(path));
 
@@ -57,6 +54,10 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r" : ""
 		);
 
+		if (Debug::LogEnabled) {
+			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+		}
 	}
 
 	return 0x64CD11;
@@ -130,11 +131,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 	Debug::FreeMouse();
 	Debug::LogInfo("Exception handler fired!");
-	char __buffer[256] {};
-	_snprintf_s(__buffer, sizeof(__buffer), "Exception 0x%x at 0x%x", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
-	if (Debug::LogFileActive()) {
-		Debug::g_MainLogger->info(__buffer);
-	}
+	Debug::Log("Exception 0x%x at 0x%x", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	Game::StreamerThreadFlush();
 
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
@@ -413,8 +410,8 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	}
 
 	if (Debug::LogEnabled) {
-		Debug::g_MainLogger->flush();
-		CopyFileW(Debug::LogFileFullPath.c_str(), Debug::ExitWithExceptionCopyto.c_str(), FALSE);
+		MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+		CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 	}
 
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
@@ -669,7 +666,7 @@ void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label 
 #include <Phobos.version.h>
 static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics {};
 
-bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
+static bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
 {
 	FILE* LogFile = nullptr;
 	if (!fopen_s(&LogFile, LogFilename, "wt") && LogFile)

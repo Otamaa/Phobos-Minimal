@@ -46,7 +46,9 @@ public:
 	ValueableIdx<VocClass> CrumblingSound { -1 };
 	Nullable<int> AnimationLength {};
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	NullableVector<AnimTypeClass*> TreeFires {};
+
+ 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

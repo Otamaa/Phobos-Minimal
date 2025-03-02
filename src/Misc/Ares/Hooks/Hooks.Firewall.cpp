@@ -293,9 +293,9 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 					int idxTib = pCell->_GetTiberiumType();
 					if (auto const pTib = TiberiumClass::Array->GetItemOrDefault(idxTib))
 					{
-						auto pExt = TiberiumExtContainer::Instance.Find(pTib);
-						delay = pExt->GetHealDelay();
-						health = pExt->GetHealStep(pThis);
+						auto pTibExt = TiberiumExtContainer::Instance.Find(pTib);
+						delay = pTibExt->GetHealDelay();
+						health = pTibExt->GetHealStep(pThis);
 					}
 
 					if (health != 0)

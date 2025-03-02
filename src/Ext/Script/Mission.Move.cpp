@@ -46,16 +46,16 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No team members alive)",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			(int)pScript->Type->ScriptActions[pScript->CurrentMission].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
-			pScript->CurrentMission + 1, 
-			(int)pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
-			pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument
-		);
+		//Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No team members alive)",
+		//	pTeam->Type->ID,
+		//	pScript->Type->ID,
+		//	pScript->CurrentMission,
+		//	(int)pScript->Type->ScriptActions[pScript->CurrentMission].Action,
+		//	pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
+		//	pScript->CurrentMission + 1, 
+		//	(int)pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
+		//	pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument
+		//);
 
 		return;
 	}
@@ -112,16 +112,16 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		auto const& [nextAct, nextArg] = pScript->GetNextAction();
-		Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reasons: No Leader | Aircrafts without ammo)",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			(int)act,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			(int)nextAct,
-			nextArg);
+		//auto const& [nextAct, nextArg] = pScript->GetNextAction();
+		//Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reasons: No Leader | Aircrafts without ammo)",
+		//	pTeam->Type->ID,
+		//	pScript->Type->ID,
+		//	pScript->CurrentMission,
+		//	(int)act,
+		//	scriptArgument,
+		//	pScript->CurrentMission + 1,
+		//	(int)nextAct,
+		//	nextArg);
 
 		return;
 	}
@@ -221,16 +221,16 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			auto const& [nextAct, nextArg] = pScript->GetNextAction();
-			Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} (new target NOT FOUND)",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				(int)act,
-				scriptArgument,
-				pScript->CurrentMission + 1,
-				(int)nextAct,
-				nextArg);
+			//auto const& [nextAct, nextArg] = pScript->GetNextAction();
+			//Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} (new target NOT FOUND)",
+			//	pTeam->Type->ID,
+			//	pScript->Type->ID,
+			//	pScript->CurrentMission,
+			//	(int)act,
+			//	scriptArgument,
+			//	pScript->CurrentMission + 1,
+			//	(int)nextAct,
+			//	nextArg);
 
 			return;
 		}
@@ -249,17 +249,17 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			auto const& [nextAct, nextArg] = pScript->GetNextAction();
-			Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} (Reason: Reached destination)",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				(int)act,
-				scriptArgument,
-				pScript->CurrentMission + 1,
-				(int)nextAct,
-				nextArg
-			);
+			//auto const& [nextAct, nextArg] = pScript->GetNextAction();
+			//Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Jump to next line: {} = {},{} (Reason: Reached destination)",
+			//	pTeam->Type->ID,
+			//	pScript->Type->ID,
+			//	pScript->CurrentMission,
+			//	(int)act,
+			//	scriptArgument,
+			//	pScript->CurrentMission + 1,
+			//	(int)nextAct,
+			//	nextArg
+			//);
 			return;
 		}
 	}
@@ -486,15 +486,15 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 			{
 				const int idxsel = Mission_Move_List1Random_validIndexes[ScenarioClass::Instance->Random.RandomFromMax(Mission_Move_List1Random_validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxsel;
-				Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Picked a random Techno from the list index [AITargetTypes][{}][{}] = %s",
-					pTeam->Type->ID,
-					pTeam->CurrentScript->Type->ID,
-					pScript->CurrentMission,
-					(int)curAct,
-					curArg,
-					attackAITargetType,
-					idxsel,
-					RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
+				//Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Picked a random Techno from the list index [AITargetTypes][{}][{}] = %s",
+				//	pTeam->Type->ID,
+				//	pTeam->CurrentScript->Type->ID,
+				//	pScript->CurrentMission,
+				//	(int)curAct,
+				//	curArg,
+				//	attackAITargetType,
+				//	idxsel,
+				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
 
 				ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
 

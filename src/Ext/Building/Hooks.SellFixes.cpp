@@ -19,7 +19,7 @@ bool BuildingCanUnload(BuildingClass* pThis)
 			return false;
 
 		// or MindControlledBy YURIX (why? for balance?)
-		if (pThis->MindControlledBy || !pThis->Owner->IsControlledByHuman())
+		if (pThis->MindControlledBy)
 			return false;
 	}
 
@@ -41,33 +41,33 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pThis->Type)->EVA_Sold.Get());
 	}
 
-	//return BuildingCanUnload(pThis) ? CreateUnit : SkipTheEntireShit;
-	return 0x449CEA;
+	return BuildingCanUnload(pThis) ? CreateUnit : SkipTheEntireShit;
+	//return 0x449CEA;
 }
 
 DEFINE_HOOK(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	//if (!BuildingCanUnload(pThis)) {
+	if (!BuildingCanUnload(pThis)) {
 		VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SellSound.Get(), pThis->Location);
-	//}
+	}
 
 	return 0x44A85B;
 }
 
-//DEFINE_HOOK(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
-//{
-//	GET(BuildingClass*, pThis, EBP);
-//	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
-//	return BuildingCanUnload(pThis) ? ResetTarget : SkipShit;
-//}
+DEFINE_HOOK(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
+	return BuildingCanUnload(pThis) ? ResetTarget : SkipShit;
+}
 
-//DEFINE_HOOK(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
-//{
-//	GET(BuildingClass*, pThis, EBP);
-//	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
-//	return BuildingCanUnload(pThis) ? CanDeploySound : SkipShit;
-//}
+DEFINE_HOOK(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
+	return BuildingCanUnload(pThis) ? CanDeploySound : SkipShit;
+}
 
 DEFINE_JUMP(LJMP, 0x44AB22 ,0x44AB3B) // Structure Sold EVA played twice

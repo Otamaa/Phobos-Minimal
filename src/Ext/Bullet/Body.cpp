@@ -481,7 +481,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 		{
 			int nTotal = 0;
 
-			for (CellSpreadEnumerator it(nRange); it; ++it)
+			for (CellSpreadEnumerator it((short)nRange); it; ++it)
 			{
 				auto cellhere = (pBulletCell->MapCoords + *it);
 				auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
@@ -755,87 +755,89 @@ void BulletExtData::InitializeLaserTrails()
 
 void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon)
 {
-	auto const pExt = BulletExtContainer::Instance.Find(pThis);
-	auto const pThisTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-	bool canAffect = false;
-	bool isIntercepted = false;
-
-	if (pThisTypeExt->Armor.isset())
-	{
-		auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor.Get()).Verses;
-		if (((Math::abs(versus) >= 0.001)))
-		{
-			canAffect = true;
-			const int damage = static_cast<int>(versus * TechnoExtData::GetDamageMult(pSource , pWeapon->Damage));
-			pExt->CurrentStrength -= damage;
-
-			FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset);
-
-			if (pExt->CurrentStrength <= 0)
-				isIntercepted = true;
-			else
-				pExt->InterceptedStatus = InterceptedStatus::None;
-		}
-	}
-	else
-	{
-		canAffect = true;
-		isIntercepted = true;
-	}
-
-	if (canAffect) {
+	if (pSource && pWeapon){
+		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 		auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSource->GetTechnoType());
+		auto const pThisTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+		bool canAffect = false;
+		bool isIntercepted = false;
 
-		if (pSource) {
+		if (pThisTypeExt->Armor.isset())
+		{
+			auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+			auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor.Get()).Verses;
+			if (((Math::abs(versus) >= 0.001)))
+			{
+				canAffect = true;
+				const int damage = static_cast<int>(versus * TechnoExtData::GetDamageMult(pSource , pWeapon->Damage , !pTechnoTypeExt->Interceptor_ApplyFirepowerMult));
+				pExt->CurrentStrength -= damage;
 
-			pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
+				FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset);
 
-			if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride)) {
-
-				pThis->WeaponType = pWeaponOverride;
-				pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?
-					pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
-
-				pThis->WH = pWeaponOverride->Warhead;
-				pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
-				pThis->Speed = pWeaponOverride->Speed;
-
-				if (pTechnoTypeExt->Interceptor_WeaponReplaceProjectile && pWeaponOverride->Projectile != pThis->Type)
-				{
-					const auto pNewProjTypeExt = BulletTypeExtContainer::Instance.Find(pWeaponOverride->Projectile);
-
-					if (!pNewProjTypeExt)
-					{
-						//Debug::LogInfo("Failed to find BulletTypeExt For [%s] ! ", pWeaponOverride->Projectile->get_ID());
-						return;
-					}
-
-					pThis->Type = pWeaponOverride->Projectile;
-
-					pExt->LaserTrails.clear();
-					pExt->InitializeLaserTrails();
-
-					TrailsManager::CleanUp(pExt->AttachedToObject);
-					TrailsManager::Construct(pExt->AttachedToObject);
-
-					//LineTrailExt::DeallocateLineTrail(pThis);
-					//LineTrailExt::ConstructLineTrails(pThis);
-
-				   // Lose target if the current bullet is no longer interceptable.
-					if (!pNewProjTypeExt->Interceptable || (pNewProjTypeExt->Armor.isset() && GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pNewProjTypeExt->Armor.Get()) == 0.0))
-						pSource->SetTarget(nullptr);
-				}
+				if (pExt->CurrentStrength <= 0)
+					isIntercepted = true;
+				else
+					pExt->InterceptedStatus = InterceptedStatus::None;
 			}
 		}
+		else
+		{
+			canAffect = true;
+			isIntercepted = true;
+		}
 
-		if (isIntercepted && !pTechnoTypeExt->Interceptor_KeepIntact.Get()) {
-			pExt->InterceptedStatus = InterceptedStatus::Intercepted;
+		if (canAffect) {
+
+			{
+
+				pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
+
+				if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride)) {
+
+					pThis->WeaponType = pWeaponOverride;
+					pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?
+						pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
+
+					pThis->WH = pWeaponOverride->Warhead;
+					pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
+					pThis->Speed = pWeaponOverride->Speed;
+
+					if (pTechnoTypeExt->Interceptor_WeaponReplaceProjectile && pWeaponOverride->Projectile != pThis->Type)
+					{
+						const auto pNewProjTypeExt = BulletTypeExtContainer::Instance.Find(pWeaponOverride->Projectile);
+
+						if (!pNewProjTypeExt)
+						{
+							//Debug::LogInfo("Failed to find BulletTypeExt For [%s] ! ", pWeaponOverride->Projectile->get_ID());
+							return;
+						}
+
+						pThis->Type = pWeaponOverride->Projectile;
+
+						pExt->LaserTrails.clear();
+						pExt->InitializeLaserTrails();
+
+						TrailsManager::CleanUp(pExt->AttachedToObject);
+						TrailsManager::Construct(pExt->AttachedToObject);
+
+						//LineTrailExt::DeallocateLineTrail(pThis);
+						//LineTrailExt::ConstructLineTrails(pThis);
+
+					   // Lose target if the current bullet is no longer interceptable.
+						if (!pNewProjTypeExt->Interceptable || (pNewProjTypeExt->Armor.isset() && GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pNewProjTypeExt->Armor.Get()) == 0.0))
+							pSource->SetTarget(nullptr);
+					}
+				}
+			}
+
+			if (isIntercepted && !pTechnoTypeExt->Interceptor_KeepIntact.Get()) {
+				pExt->InterceptedStatus = InterceptedStatus::Intercepted;
+			}
 		}
 	}
 }
 
-COMPILETIMEEVAL bool TimerIsRunning(CDTimerClass& nTimer)
+static COMPILETIMEEVAL bool TimerIsRunning(CDTimerClass& nTimer)
 {
 	const auto nStart = nTimer.StartTime;
 

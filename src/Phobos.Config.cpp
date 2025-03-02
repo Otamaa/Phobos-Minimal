@@ -50,7 +50,7 @@ void Phobos::Config::Read()
 
 	UIMD.OpenINIAction([](CCINIClass* pINI)
  {
-	 Debug::LogInfo("Loading early {} file", GameStrings::UIMD_INI());
+	 Debug::Log("Loading early %s file.\n", GameStrings::UIMD_INI());
 	 AresGlobalData::ReadAresRA2MD(pINI);
 
 	 // LoadingScreen
@@ -180,7 +180,7 @@ void Phobos::Config::Read()
 
 	RULESMD.OpenINIAction([](CCINIClass* pINI)
  {
-	 Debug::LogInfo("Loading early {} file", GameStrings::RULESMD_INI());
+	 Debug::Log("Loading early %s file.\n", GameStrings::RULESMD_INI());
 
 	 // uncomment this to enable dll usage warning
 	 //Phobos::ThrowUsageWarning(&INI_RulesMD);

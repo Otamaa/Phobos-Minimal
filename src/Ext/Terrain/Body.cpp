@@ -12,13 +12,10 @@ void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 		this->LighSource.release();
 	}
 
-	if (this->AttachedAnim == ptr) {
+	if (this->AttachedAnim.get() == ptr) {
 		this->AttachedAnim.release();
 	}
 
-	if (this->AttachedFireAnim == ptr) {
-		this->AttachedFireAnim.release();
-	}
 }
 
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
@@ -237,3 +234,14 @@ void FakeTerrainClass::_Detach(AbstractClass* target, bool all)
 	this->TerrainClass::PointerExpired(target, all);
 }
 DEFINE_JUMP(VTABLE, 0x7F5254, MiscTools::to_DWORD(&FakeTerrainClass::_Detach));
+
+
+void FakeTerrainClass::_AnimPointerExpired(AnimClass* pAnim) {
+
+	auto pExt = this->_GetExtData();
+
+	if (pExt->AttachedFireAnim.get() == pAnim) {
+		pExt->AttachedFireAnim.release();
+	}
+}
+DEFINE_JUMP(VTABLE ,0x7F528C, MiscTools::to_DWORD(&FakeTerrainClass::_AnimPointerExpired))

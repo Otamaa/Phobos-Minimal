@@ -225,7 +225,7 @@ DEFINE_HOOK(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 				if (auto& pFire = pExt->AttachedFireAnim)
 				{
 					pFire->RemainingIterations = 0;
-					pFire.reset(nullptr);
+					pFire.release();
 				}
 			}
 			else if (!pThis->TimeToDie)

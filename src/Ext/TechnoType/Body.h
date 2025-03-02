@@ -144,6 +144,7 @@ public:
 	Valueable<bool> Interceptor_KeepIntact { false };
 	Valueable<bool> Interceptor_ConsiderWeaponRange { false };
 	Valueable<bool> Interceptor_OnlyTargetBullet { false };
+	Valueable<bool> Interceptor_ApplyFirepowerMult { true };
 
 	Nullable<PartialVector3D<int>> TurretOffset {};
 	Valueable<bool> Powered_KillSpawns { false };
@@ -1034,8 +1035,10 @@ public:
 	Nullable<bool> NoQueueUpToEnter {};
 	Nullable<bool> NoQueueUpToUnload {};
 
-	Nullable<bool> NoRearmInEMPState {};
-	Nullable<bool> NoRearmInTemporal {};
+	Nullable<bool> NoRearm_UnderEMP {};
+	Nullable<bool> NoRearm_Temporal {};
+	Nullable<bool> NoReload_UnderEMP {};
+	Nullable<bool> NoReload_Temporal {};
 
 	Nullable<bool> Cameo_AlwaysExist {};
 	ValueableVector<TechnoTypeClass*> Cameo_AuxTechnos {};

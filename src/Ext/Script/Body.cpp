@@ -46,7 +46,7 @@ ScriptExtContainer ScriptExtContainer::Instance;
 
 #define stringify( name ) #name
 
-NOINLINE const char* ToStrings(PhobosScripts from)
+static NOINLINE const char* ToStrings(PhobosScripts from)
 {
 	switch (from)
 	{
@@ -2296,15 +2296,15 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 	{
 		pTeam->StepCompleted = true;
 
-		Debug::LogInfo("AI Scripts - [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: Can not select a bridge repair hut)",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			(int)curAction,
-			curArgument,
-			pScript->CurrentMission + 1,
-			(int)nextAction,
-			nextArgument);
+		//Debug::LogInfo("AI Scripts - [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: Can not select a bridge repair hut)",
+		//	pTeam->Type->ID,
+		//	pScript->Type->ID,
+		//	pScript->CurrentMission,
+		//	(int)curAction,
+		//	curArgument,
+		//	pScript->CurrentMission + 1,
+		//	(int)nextAction,
+		//	nextArgument);
 
 		return;
 	}

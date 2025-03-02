@@ -729,17 +729,6 @@ DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 	return 0x424ECB;
 }
 
-DEFINE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
-{
-	GET(TerrainClass*, pThis, EDI);
-
-	enum { Ignite = 0x71C5F3, CantBurn = 0x71C69D };
-
-	// prevent objects from burning that aren't flammable also
-	return (pThis->Type->SpawnsTiberium || !pThis->Type->IsFlammable)
-		? CantBurn : Ignite;
-}
-
 DEFINE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {
 	GET(BuildingTypeClass* const, pBuildingProduct, ESI);

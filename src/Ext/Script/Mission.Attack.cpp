@@ -17,7 +17,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	auto pScript = pTeam->CurrentScript;
 	// This is the target type
 	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
-	const auto& [nextAct, nextArg] = pScript->GetNextAction();
+	//const auto& [nextAct, nextArg] = pScript->GetNextAction();
 	//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Executing)",
 	//	pTeam->Type->ID, pScript->Type->ID,
 	//	pScript->CurrentMission,
@@ -171,15 +171,15 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)",
-			pTeam->Type->ID,
-			pScript->Type->ID,
-			pScript->CurrentMission,
-			(int)curAct,
-			scriptArgument,
-			pScript->CurrentMission + 1,
-			(int)nextAct,
-			nextArg);
+		//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)",
+		//	pTeam->Type->ID,
+		//	pScript->Type->ID,
+		//	pScript->CurrentMission,
+		//	(int)curAct,
+		//	scriptArgument,
+		//	pScript->CurrentMission + 1,
+		//	(int)nextAct,
+		//	nextArg);
 
 		return;
 	}
@@ -319,17 +319,17 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} (Leader [{}] (UID: %lu) can't find a new target)",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				(int)curAct,
-				scriptArgument,
-				pScript->CurrentMission + 1,
-				(int)nextAct,
-				nextArg,
-				pTeamData->TeamLeader->get_ID(),
-				pTeamData->TeamLeader->UniqueID);
+			//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} (Leader [{}] (UID: %lu) can't find a new target)",
+			//	pTeam->Type->ID,
+			//	pScript->Type->ID,
+			//	pScript->CurrentMission,
+			//	(int)curAct,
+			//	scriptArgument,
+			//	pScript->CurrentMission + 1,
+			//	(int)nextAct,
+			//	nextArg,
+			//	pTeamData->TeamLeader->get_ID(),
+			//	pTeamData->TeamLeader->UniqueID);
 
 			return;
 		}
@@ -435,15 +435,15 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			{
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 				pTeam->StepCompleted = true;
-				Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to NEXT line: {} = {},{} (Naval is unable to target ground)",
-					pTeam->Type->ID,
-					pScript->Type->ID,
-					pScript->CurrentMission,
-					(int)curAct,
-					scriptArgument,
-					pScript->CurrentMission + 1,
-					(int)nextAct,
-					nextArg);
+				//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to NEXT line: {} = {},{} (Naval is unable to target ground)",
+				//	pTeam->Type->ID,
+				//	pScript->Type->ID,
+				//	pScript->CurrentMission,
+				//	(int)curAct,
+				//	scriptArgument,
+				//	pScript->CurrentMission + 1,
+				//	(int)nextAct,
+				//	nextArg);
 
 				return;
 			}
@@ -1325,7 +1325,7 @@ static std::vector<int> Mission_Attack_List1Random_validIndexes;
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
-	auto pScript = pTeam->CurrentScript;
+	//auto pScript = pTeam->CurrentScript;
 	Mission_Attack_List1Random_validIndexes.clear();
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
@@ -1374,15 +1374,15 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				const int idxSelectedObject = Mission_Attack_List1Random_validIndexes[ScenarioClass::Instance->Random.RandomFromMax(Mission_Attack_List1Random_validIndexes.size() - 1)];
 				pTeamData->IdxSelectedObjectFromAIList = idxSelectedObject;
 
-				Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Picked a random Techno from the list index [AITargetTypes][{}][{}] = {}",
-					pTeam->Type->ID,
-					pTeam->CurrentScript->Type->ID,
-					pScript->CurrentMission,
-					(int)curAct,
-					curArgs,
-					attackAITargetType,
-					idxSelectedObject,
-					RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
+				//Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Picked a random Techno from the list index [AITargetTypes][{}][{}] = {}",
+				//	pTeam->Type->ID,
+				//	pTeam->CurrentScript->Type->ID,
+				//	pScript->CurrentMission,
+				//	(int)curAct,
+				//	curArgs,
+				//	attackAITargetType,
+				//	idxSelectedObject,
+				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
 
 				ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, idxSelectedObject);
 				return;
@@ -1392,15 +1392,15 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 
 	// This action finished
 	pTeam->StepCompleted = true;
-	Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Failed to pick a random Techno from the list index [AITargetTypes][{}]! Valid Technos in the list: {}",
-		pTeam->Type->ID,
-		pTeam->CurrentScript->Type->ID,
-		pScript->CurrentMission,
-		(int)curAct,
-		curArgs,
-		attackAITargetType,
-		Mission_Attack_List1Random_validIndexes.size()
-	);
+	//Debug::LogInfo("AI Scripts - AttackListRandom: [{}] [{}] (line: {} = {},{}) Failed to pick a random Techno from the list index [AITargetTypes][{}]! Valid Technos in the list: {}",
+	//	pTeam->Type->ID,
+	//	pTeam->CurrentScript->Type->ID,
+	//	pScript->CurrentMission,
+	//	(int)curAct,
+	//	curArgs,
+	//	attackAITargetType,
+	//	Mission_Attack_List1Random_validIndexes.size()
+	//);
 }
 
 void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAntiGround, bool& hasAntiAir, bool agentMode)

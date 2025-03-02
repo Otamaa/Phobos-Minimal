@@ -10,15 +10,37 @@
 
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x71C672, TerrainClass_CathFire_AttachedAnim, 0x8) {
-	GET(TerrainClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EDI);
+#pragma optimize("", off )
+DEFINE_HOOK(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
+{
+	GET(FakeTerrainClass*, pThis, EDI);
+	
+	if(pThis->Type->SpawnsTiberium || !pThis->Type->IsFlammable)
+		return 0x71C69D;
 
-	pAnim->SetOwnerObject(pThis);
-	TerrainExtContainer::Instance.Find(pThis)->AttachedAnim.reset(pAnim);
+	if (auto fire = pThis->_GetTypeExtData()->TreeFires.GetElements(RulesClass::Instance->TreeFire)) {
+		AnimTypeClass* pAnimType = nullptr;
 
-	return 0x71C67A;
+		auto Loc = pThis->Location + CoordStruct { 0 , 0, 80 };
+
+		if (fire.size() == 1) {
+			pAnimType = fire[0];
+		} else {
+			pAnimType = fire[ScenarioClass::Instance->Random.RandomRanged(0, fire.size() - 1)];
+		}
+
+		if (pAnimType) {
+			auto pAnim = GameCreate<AnimClass>(pAnimType, Loc, 0, 255, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			pAnim->SetOwnerObject(pThis);
+			pThis->_GetExtData()->AttachedFireAnim.reset(pAnim);
+			pAnim->ZAdjust -= 20;
+		}
+	}
+
+	pThis->IsBurning = true;
+	return 0x71C69D;
 }
+#pragma optimize("", on )
 
 DEFINE_HOOK(0x71D09D, TerrainClass_UnLImbo_Light, 0x6)
 {

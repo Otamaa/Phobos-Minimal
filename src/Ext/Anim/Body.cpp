@@ -810,7 +810,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
 	if (pItem->UniqueID == -2) {
-		Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, fmt::ptr(pItem));
+		Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
 	}
 
 	FakeAnimClass::ClearExtAttribute(pItem);

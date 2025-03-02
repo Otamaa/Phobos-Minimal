@@ -11,18 +11,13 @@
 
 #include <chrono>
 
-#include <spdlog/async.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/null_sink.h>
-#include <spdlog/sinks/dist_sink.h>
-
 class AbstractClass;
 class REGISTERS;
 class Debug final
 {
 public:
+	static OPTIONALINLINE FILE* LogFile {};
+
 	OPTIONALINLINE static bool LogEnabled {};
 	OPTIONALINLINE static std::wstring ApplicationFilePath {};
 	OPTIONALINLINE static std::wstring DefaultFEMessage {};
@@ -32,16 +27,9 @@ public:
 	OPTIONALINLINE static std::wstring LogFileExt { L".log" };
 	OPTIONALINLINE static std::wstring LogFileFullPath {};
 	OPTIONALINLINE static char LogMessageBuffer[0x1000] {};
-	OPTIONALINLINE static spdlog::sink_ptr file_sink {};
-	OPTIONALINLINE static spdlog::sink_ptr second_file_sink {};
-	OPTIONALINLINE static std::vector<spdlog::sink_ptr> sink2_vector {};
-	OPTIONALINLINE static std::vector<spdlog::sink_ptr> sink_vector {};
-	OPTIONALINLINE static std::shared_ptr<spdlog::sinks::dist_sink_mt> dist_file_sink {};
-	OPTIONALINLINE static std::shared_ptr<spdlog::logger> g_MainLogger {};
+	OPTIONALINLINE static char DefferedVectorBuffer[0x1000] {};
+	OPTIONALINLINE static std::vector<std::string> DefferedVector {};
 	OPTIONALINLINE static bool made {};
-
-	OPTIONALINLINE static bool ExitWithException {};
-	OPTIONALINLINE static std::wstring ExitWithExceptionCopyto {};
 
 	static void InitLogger();
 	static void DeactivateLogger();
@@ -52,17 +40,86 @@ public:
 	static void FreeMouse();
 
 	template <typename... TArgs>
-	static void LogInfo(spdlog::format_string_t<TArgs...> fmt, TArgs&&... args) {
-		if (LogFileActive()) {
-			Debug::g_MainLogger->info(fmt, std::forward<TArgs>(args)...);
+	static void LogInfo(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
+		if (LogFileActive()){
+			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
+			fmted += "\n";
+			fprintf_s(Debug::LogFile, fmted.c_str());
 		}
 	}
 
 	template <typename... TArgs>
-	static void LogError(spdlog::format_string_t<TArgs...> fmt, TArgs&&... args) {
+	static void LogError(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()) {
-			Debug::g_MainLogger->error(fmt, std::forward<TArgs>(args)...);
+			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
+			fmted += "\n";
+			fprintf_s(Debug::LogFile, fmted.c_str());
 		}
+	}
+
+	static void Log(const char* pFormat, ...)
+	{
+		if (Debug::LogFileActive()) {
+			va_list args;
+			va_start(args, pFormat);
+			vfprintf(Debug::LogFile, pFormat, args);
+			va_end(args);
+		}
+	}
+
+	//this will be used to replace game debug prints
+	static void __cdecl CLog(const char* pFormat, ...)
+	{
+		if (Debug::LogFileActive())
+		{
+			va_list args;
+			va_start(args, pFormat);
+			vfprintf(Debug::LogFile, pFormat, args);
+			va_end(args);
+		}
+	}
+
+	// Log file not checked
+	static void LogUnflushed(const char* pFormat, ...)
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vfprintf(Debug::LogFile, pFormat, args);
+		va_end(args);
+	}
+
+	void Debug::LogFlushed(const char* const pFormat, ...)
+	{
+		if (Debug::LogFileActive()) {
+			va_list args;
+			va_start(args, pFormat);
+			vfprintf(Debug::LogFile, pFormat, args);
+			Debug::Flush();
+			va_end(args);
+		}
+	}
+
+	static FORCEINLINE void Flush() {
+		fflush(Debug::LogFile);
+	}
+
+	static void LogDeferred(const char* pFormat, ...) {
+		va_list args;
+		va_start(args, pFormat);
+		vsprintf_s(DefferedVectorBuffer, sizeof(DefferedVectorBuffer), pFormat, args);
+		Debug::DefferedVector.emplace_back(DefferedVectorBuffer);
+		va_end(args);
+	}
+
+	static void LogDeferredFinalize()
+	{
+		if (Debug::LogFileActive()) { 
+			for (auto& __log : Debug::DefferedVector) {
+				fprintf_s(Debug::LogFile, __log.c_str());		
+			}
+		}
+
+		Debug::DefferedVector.clear();
 	}
 
 	static FORCEDINLINE void TakeMouse()

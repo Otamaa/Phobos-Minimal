@@ -312,6 +312,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Interceptor_KeepIntact.Read(exINI, pSection, "Interceptor.KeepIntact");
 		this->Interceptor_ConsiderWeaponRange.Read(exINI, pSection, "Interceptor.ConsiderWaponRange");
 		this->Interceptor_OnlyTargetBullet.Read(exINI, pSection, "Interceptor.OnlyTargetBullet");
+		this->Interceptor_ApplyFirepowerMult.Read(exINI, pSection, "Interceptor.ApplyFirepowerMult");
 
 		this->Powered_KillSpawns.Read(exINI, pSection, "Powered.KillSpawns");
 		this->Spawn_LimitedRange.Read(exINI, pSection, "Spawner.LimitRange");
@@ -1396,8 +1397,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->NoQueueUpToEnter.Read(exINI, pSection, "NoQueueUpToEnter");
 		this->NoQueueUpToUnload.Read(exINI, pSection, "NoQueueUpToUnload");
 
-		this->NoRearmInEMPState.Read(exINI, pSection, "NoRearmInEMPState");
-		this->NoRearmInTemporal.Read(exINI, pSection, "NoRearmInTemporal");
+		this->NoRearm_UnderEMP.Read(exINI, pSection, "NoRearm.UnderEMP");
+		this->NoRearm_Temporal.Read(exINI, pSection, "NoRearm.Temporal");
+		this->NoReload_UnderEMP.Read(exINI, pSection, "NoReload.UnderEMP");
+		this->NoReload_Temporal.Read(exINI, pSection, "NoReload.Temporal");
 
 		this->RateDown_Ammo.Read(exINI, pSection, "RateDown.Ammo");
 		this->RateDown_Delay.Read(exINI, pSection, "RateDown.Delay");
@@ -1752,6 +1755,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Interceptor_KeepIntact)
 		.Process(this->Interceptor_ConsiderWeaponRange)
 		.Process(this->Interceptor_OnlyTargetBullet)
+		.Process(this->Interceptor_ApplyFirepowerMult)
 		.Process(this->GroupAs)
 		.Process(this->RadarJamRadius)
 		.Process(this->InhibitorRange)
@@ -2552,8 +2556,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->NoQueueUpToEnter)
 		.Process(this->NoQueueUpToUnload)
  
-		.Process(this->NoRearmInEMPState)
-		.Process(this->NoRearmInTemporal)
+		.Process(this->NoRearm_UnderEMP)
+		.Process(this->NoRearm_Temporal)
+		.Process(this->NoReload_UnderEMP)
+		.Process(this->NoReload_Temporal)
 
 		.Process(this->RateDown_Ammo)
 		.Process(this->RateDown_Delay)

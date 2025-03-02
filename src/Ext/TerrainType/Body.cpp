@@ -69,6 +69,7 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->HasCrumblingFrames.Read(exINI, pSection, "HasCrumblingFrames");
 	this->CrumblingSound.Read(exINI, pSection, "CrumblingSound");
 	this->AnimationLength.Read(exINI, pSection, "AnimationLength");
+	this->TreeFires.Read(exINI, pSection, "TreeFire");
 }
 
 void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
@@ -116,6 +117,8 @@ void TerrainTypeExtData::Serialize(T& Stm)
 		.Process(this->HasCrumblingFrames)
 		.Process(this->CrumblingSound)
 		.Process(this->AnimationLength)
+
+		.Process(this->TreeFires)
 		;
 
 }

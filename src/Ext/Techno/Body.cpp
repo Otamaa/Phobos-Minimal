@@ -41,6 +41,34 @@
 
 #include <memory>
 
+void TechnoExtData::UpdateRearmInEMPState()
+{
+	const auto pThis = this->AttachedToObject;
+
+	if (!pThis->IsUnderEMP() && !pThis->Deactivated)
+		return;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+	if (pThis->DiskLaserTimer.InProgress() && pTypeExt->NoRearm_UnderEMP.Get(RulesExtData::Instance()->NoRearm_UnderEMP))
+		pThis->DiskLaserTimer.StartTime++;
+
+	if (pThis->ReloadTimer.InProgress() && pTypeExt->NoReload_UnderEMP.Get(RulesExtData::Instance()->NoReload_UnderEMP))
+		pThis->ReloadTimer.StartTime++;
+}
+
+void TechnoExtData::UpdateRearmInTemporal()
+{
+	const auto pThis = this->AttachedToObject;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+	if (pThis->DiskLaserTimer.InProgress() && pTypeExt->NoRearm_Temporal.Get(RulesExtData::Instance()->NoRearm_Temporal))
+		pThis->DiskLaserTimer.StartTime++;
+
+	if (pThis->ReloadTimer.InProgress() && pTypeExt->NoReload_Temporal.Get(RulesExtData::Instance()->NoReload_Temporal))
+		pThis->ReloadTimer.StartTime++;
+}
+
 void TechnoExtData::ResetDelayedFireTimer()
 {
 	this->DelayedFireTimer.Stop();

@@ -771,7 +771,8 @@ public:
 	void UpdateMCRangeLimit();
 	void UpdateSpawnLimitRange();
 	void UpdateRevengeWeapons();
-
+	void UpdateRearmInEMPState();
+	void UpdateRearmInTemporal();
 	void UpdateLaserTrails();
 	//
 	void UpdateAircraftOpentopped();

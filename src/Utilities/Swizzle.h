@@ -94,7 +94,7 @@ public:
 				const auto change = this->FindChanges(it->first);
 
 				if (change == this->Changes.end()) {
-					Debug::LogInfo("PhobosSwizze :: Pointer [{}] could not be remapped from [{}] !", fmt::ptr(it->second), fmt::ptr(it->first));
+					Debug::LogInfo("PhobosSwizze :: Pointer [{}] could not be remapped from [{}] !", (void*)(it->second), (void*)(it->first));
 				} else {
 					lastFind = it->first;
 					lastRes = change->second;

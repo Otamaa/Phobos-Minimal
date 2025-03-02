@@ -27,29 +27,27 @@
 void Debug::InitLogger() {
 
 	if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
-		const auto logDir = PhobosCRT::WideStringToString(Debug::LogFilePathName);
-		Debug::FatalError("Uneable to find %s path !", logDir.c_str());
+		Debug::FatalError("Uneable to find %ls path !", Debug::LogFilePathName.c_str());
+		Debug::LogEnabled = false;
 		return;
 	}
 
-	const auto log_full = PhobosCRT::WideStringToString(Debug::LogFileFullPath);
-	spdlog::init_thread_pool(8192, 120);
-	Debug::file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_full.c_str());
-	Debug::sink2_vector.push_back(Debug::file_sink);
-	Debug::dist_file_sink = std::make_shared<spdlog::sinks::dist_sink_mt>(Debug::sink2_vector);
-	Debug::file_sink->set_level(spdlog::level::trace);
-	Debug::g_MainLogger = std::make_shared<spdlog::async_logger>("main", Debug::dist_file_sink, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	Debug::g_MainLogger->set_level(spdlog::level::trace);
-	spdlog::register_logger(g_MainLogger);
-	spdlog::set_default_logger(g_MainLogger);
-	Debug::g_MainLogger->info("Log File [{}]", log_full);
+	Debug::LogFile = _wfsopen(Debug::LogFileFullPath.c_str(), L"w", _SH_DENYWR);
 
+	if (!LogFile) {
+		Debug::LogEnabled = false;
+		return;
+	}
+
+	Debug::Log("Log File [%ls].\n", Debug::LogFileFullPath.c_str());
 }
 
 void Debug::DeactivateLogger()
 {
-	Debug::g_MainLogger->flush();
-	spdlog::shutdown();
+	if (Debug::LogFile) {
+		fclose(Debug::LogFile);
+		Debug::LogFile = nullptr;
+	}
 }
 
 void Debug::DetachLogger()
@@ -89,7 +87,7 @@ void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 		return;
 	}
 
-	Debug::g_MainLogger->info("Dumping {} bytes of stack", len);
+	fprintf_s(Debug::LogFile, "Dumping %d bytes of stack\n" , len);
 	auto const end = len / 4;
 	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
 	for (auto i = 0u; i < end; ++i)
@@ -133,10 +131,11 @@ void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 				break;
 			}
 		}
-		Debug::g_MainLogger->info("esp+{{0:x}} = {{1:x}} {} {}", i * 4, mem[i], suffix , Object);
+		fprintf_s(Debug::LogFile, "esp+%04X = %08X %s %s\n", i * 4, mem[i], suffix , Object);
 	}
 
-	Debug::g_MainLogger->info("====================Done."); // flushes
+	fprintf_s(Debug::LogFile, "====================Done.\n");
+	Debug::Flush();
 }
 
 std::wstring Debug::PrepareSnapshotDirectory()
@@ -146,7 +145,7 @@ std::wstring Debug::PrepareSnapshotDirectory()
 		std::wstring msg = std::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
 		MessageBoxW(Game::hWnd.get(), Debug::LogFileFullPath.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
 		Phobos::Otamaa::ExeTerminated = true;
-		ExitProcess(1);
+		Debug::ExitGame(1);
 	}
 
 	return buffer;
@@ -213,14 +212,14 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 	if (msg.empty()) {
 
 		if (log)
-			Debug::g_MainLogger->error("Fatal Error: {}", PhobosCRT::WideStringToString(DefaultFEMessage));
+			fprintf_s(Debug::LogFile, "Fatal Error: %ls\n", DefaultFEMessage.c_str());
 
 		Debug::FreeMouse();
 		MessageBoxW(Game::hWnd, DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 	} else {
 
 		if (log)
-			Debug::g_MainLogger->error("Fatal Error: {}", msg);
+			fprintf_s(Debug::LogFile, "Fatal Error: %s\n", msg.c_str());
 
 		Debug::FreeMouse();
 		MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
@@ -229,13 +228,6 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 	if (Dump) {
 		Debug::FullDump();
 	}
-
-	if (Debug::ExitWithException) {
-		CopyFileW(Debug::LogFileFullPath.c_str(), Debug::ExitWithExceptionCopyto.c_str(), FALSE);
-		Debug::ExitWithException = false;
-	}
-
-	Debug::ExitGame();
 }
 
 void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
@@ -243,9 +235,9 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	if (Phobos::Otamaa::TrackParserErrors && Debug::LogEnabled) {
 
 		if (!Message) {
-			Debug::g_MainLogger->error("[Phobos] Failed to parse INI file content: [{}]{}={}", section, flag, value);
+			fprintf_s(Debug::LogFile, "[Phobos] Failed to parse INI file content: [%s]%s=%s.\n", section, flag, value);
 		} else {
-			Debug::g_MainLogger->error("[Phobos] Failed to parse INI file content: [{}]{}={} ({})", section, flag, value, Message);
+			fprintf_s(Debug::LogFile, "[Phobos] Failed to parse INI file content: [%s]%s=%s (%s).\n", section, flag, value, Message);
 		}
 
 		Debug::RegisterParserError();

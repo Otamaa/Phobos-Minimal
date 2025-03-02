@@ -96,7 +96,7 @@ void Phobos::ExecuteLua()
 						DWORD protectFlag;
 						if (Phobos::Otamaa::IsAdmin) {
 							std::string copy = PhobosCRT::trim(result->second.c_str());
-							Debug::g_MainLogger->info("Patching string [{}] [0x{} - {} ({}) - max {}]", i, addr, copy, result->second.size(), maxlen);
+							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]", i, addr, copy.c_str(), result->second.size(), maxlen);
 						}
 
 						// do not exceed maximum length of the string , otherwise it will broke the .exe file

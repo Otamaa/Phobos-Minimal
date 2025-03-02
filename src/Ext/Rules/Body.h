@@ -430,8 +430,10 @@ public:
 	Valueable<bool> NoQueueUpToEnter {};
 	Valueable<bool> NoQueueUpToUnload {};
 
-	Valueable<bool> NoRearmInEMPState {};
-	Valueable<bool> NoRearmInTemporal {};
+	Valueable<bool> NoRearm_UnderEMP { false };
+	Valueable<bool> NoRearm_Temporal { false };
+	Valueable<bool> NoReload_UnderEMP { false };
+	Valueable<bool> NoReload_Temporal { false };
 
 	Valueable<int> AttackMindControlledDelay {};
 

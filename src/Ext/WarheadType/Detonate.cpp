@@ -558,7 +558,8 @@ static bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 		|| !pData->PhobosAttachEffects.AttachTypes.empty()
 		|| !pData->PhobosAttachEffects.RemoveTypes.empty()
 		|| !pData->PhobosAttachEffects.RemoveGroups.empty()
-
+		|| pData->BuildingSell
+		|| pData->BuildingUndeploy
 		;
 }
 
@@ -687,7 +688,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		}
 		else if (auto pIntended = this->IntendedTarget)
 		{
-			if (coords.DistanceFrom(pIntended->GetCoords()) < Unsorted::LeptonsPerCell / 4) {
+			if (coords.DistanceFrom(pIntended->GetCoords()) < double(Unsorted::LeptonsPerCell / 4)) {
 				this->DetonateOnOneUnit(pHouse, pIntended, damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
 				if (this->Transact) {
