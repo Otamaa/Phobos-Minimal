@@ -655,7 +655,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		char buf[1024] {};
 
 		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
-			Debug::LogDeferred("Compatibility modes detected : %s .", buf);
+			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
 	}
 	break;

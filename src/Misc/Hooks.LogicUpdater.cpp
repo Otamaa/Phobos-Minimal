@@ -129,7 +129,7 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 	bool IsInLimboDelivered = false;
@@ -369,7 +369,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 			pTarget->IsMouseHovering = false;
 
 		auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
-		auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
+		//auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
 
 		if (const auto pShieldData = pTargetExt->GetShield())
 		{

@@ -44,7 +44,8 @@ public:
 		if (LogFileActive()){
 			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
 			fmted += "\n";
-			fprintf_s(Debug::LogFile, fmted.c_str());
+			fprintf_s(Debug::LogFile, "%s" ,fmted.c_str());
+			Debug::Flush();
 		}
 	}
 
@@ -53,7 +54,8 @@ public:
 		if (LogFileActive()) {
 			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
 			fmted += "\n";
-			fprintf_s(Debug::LogFile, fmted.c_str());
+			fprintf_s(Debug::LogFile, "%s", fmted.c_str());
+			Debug::Flush();
 		}
 	}
 
@@ -64,6 +66,8 @@ public:
 			va_start(args, pFormat);
 			vfprintf(Debug::LogFile, pFormat, args);
 			va_end(args);
+
+			Debug::Flush();
 		}
 	}
 
@@ -76,6 +80,8 @@ public:
 			va_start(args, pFormat);
 			vfprintf(Debug::LogFile, pFormat, args);
 			va_end(args);
+
+			Debug::Flush();
 		}
 	}
 
@@ -115,7 +121,7 @@ public:
 	{
 		if (Debug::LogFileActive()) { 
 			for (auto& __log : Debug::DefferedVector) {
-				fprintf_s(Debug::LogFile, __log.c_str());		
+				fprintf_s(Debug::LogFile, "%s", __log.c_str());
 			}
 		}
 

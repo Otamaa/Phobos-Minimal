@@ -926,7 +926,7 @@ DEFINE_HOOK(0x4FA2E0, HouseClass_SetThreat_Bounds, 0x7)
 	return index < 0 ? 0x4FA347u : 0;
 }
 
-#pragma optimize("", off )
+//#pragma optimize("", off )
 DEFINE_HOOK(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
 {
 	GET_STACK(HouseClass*, pOtherHouse, 0x10);
@@ -940,7 +940,7 @@ DEFINE_HOOK(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
 
 	return 0x50479C;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 DEFINE_HOOK(0x509303, HouseClass_AllyWith_unused, 0x6)
 {

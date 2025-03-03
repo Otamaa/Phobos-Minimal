@@ -3906,7 +3906,7 @@ DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 //#include <ExtraHeaders/AStarClass.h>
 
 #ifdef _PATHFIND
-#pragma optimize("", off )
+//#pragma optimize("", off )
 DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 {
 	GET(int, SubZoneTracking_Idx, EDX);
@@ -3954,7 +3954,7 @@ DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 	*/
 
 }
-#pragma optimize("", on )
+//#pragma optimize("", on )
 #endif
 
 #include <VoxClass.h>

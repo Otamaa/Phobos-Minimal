@@ -226,7 +226,6 @@ DEFINE_JUMP(VTABLE, 0x7F5244, MiscTools::to_DWORD(&FakeTerrainClass::_Save))
 //
 //	return 0x71CFF7;
 //}
-#include <Misc/Hooks.Otamaa.h>
 
 void FakeTerrainClass::_Detach(AbstractClass* target, bool all)
 {

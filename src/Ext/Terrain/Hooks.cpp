@@ -10,7 +10,7 @@
 
 #include <Utilities/Macro.h>
 
-#pragma optimize("", off )
+//#pragma optimize("", off )
 DEFINE_HOOK(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
 {
 	GET(FakeTerrainClass*, pThis, EDI);
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
 	pThis->IsBurning = true;
 	return 0x71C69D;
 }
-#pragma optimize("", on )
+//#pragma optimize("", on )
 
 DEFINE_HOOK(0x71D09D, TerrainClass_UnLImbo_Light, 0x6)
 {
