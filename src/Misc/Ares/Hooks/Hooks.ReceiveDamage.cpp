@@ -1382,7 +1382,7 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 	}
 
 	auto pShape = pThis->GetShapeNumber();
-	CellStruct foundation = *pThis->GetFoundationData();
+	auto foundation = pThis->GetFoundationData();
 
 	if (pThis->Owner && !pWHExt->Nonprovocative && args.Attacker && !pThis->IsStrange())
 	{
@@ -1468,9 +1468,9 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
-					for (; (foundation.X != 0x7FFF || foundation.Y != 0x7FFF); ++foundation)
+					for (auto fnd= foundation; (fnd->X != 0x7FFF || fnd->Y != 0x7FFF); ++fnd)
 					{
-						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + foundation;
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *fnd;
 						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
 						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
@@ -1531,9 +1531,9 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
-					for (; (foundation.X != 0x7FFF || foundation.Y != 0x7FFF); ++foundation)
+					for (auto fnd = foundation; (fnd->X != 0x7FFF || fnd->Y != 0x7FFF); ++fnd)
 					{
-						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + foundation;
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *fnd;
 						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
 						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
