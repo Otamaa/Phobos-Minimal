@@ -1382,7 +1382,7 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 	}
 
 	auto pShape = pThis->GetShapeNumber();
-	auto foundation = pThis->GetFoundationData();
+	CellStruct foundation = *pThis->GetFoundationData();
 
 	if (pThis->Owner && !pWHExt->Nonprovocative && args.Attacker && !pThis->IsStrange())
 	{
@@ -1468,9 +1468,9 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
-					for (; (foundation->X != 0x7FFF || foundation->Y != 0x7FFF); ++foundation)
+					for (; (foundation.X != 0x7FFF || foundation.Y != 0x7FFF); ++foundation)
 					{
-						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *foundation;
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + foundation;
 						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
 						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
@@ -1531,9 +1531,9 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
-					for (; (foundation->X != 0x7FFF || foundation->Y != 0x7FFF); ++foundation)
+					for (; (foundation.X != 0x7FFF || foundation.Y != 0x7FFF); ++foundation)
 					{
-						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *foundation;
+						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + foundation;
 						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
 						nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
@@ -1639,7 +1639,7 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				pSource->Deactivate();
 			}
 
-			pThis->Destroyed(args.Attacker);
+			pThis->Destroy(0u,args.Attacker,args.IgnoreDefenses, foundation);
 
 			auto Started = pThis->GoingToBlowTimer.StartTime;
 			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
