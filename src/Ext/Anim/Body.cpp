@@ -386,7 +386,10 @@ void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
 
 	if (this->AttachedSystem == ptr)
+	{
+		FakeAnimClass::AnimsWithAttachedParticles.remove((FakeAnimClass*)this->AttachedToObject);
 		this->AttachedSystem = nullptr;
+	}
 }
 
 void AnimExtData::CreateAttachedSystem()
