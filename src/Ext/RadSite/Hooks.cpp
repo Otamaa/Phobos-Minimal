@@ -69,6 +69,9 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		if (!pThis) {
 			const auto pDefault = RadTypeClass::Array.begin()->get();
 			auto const it = RadSiteClass::Array->find_if([=](auto const pSite) {
+				if (pSite->RadTimeLeft <= 0)
+					return false;
+
 				 auto const pRadExt = RadSiteExtContainer::Instance.Find(pSite);
 				 if (pRadExt->Type != pDefault)
 					 return false;
@@ -134,6 +137,9 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 
 				auto const it = RadSiteClass::Array->find_if([=](auto const pPair)
 				{
+					if (pPair->RadTimeLeft <= 0)
+						return false;
+
 					auto const pRadExt = RadSiteExtContainer::Instance.Find(pPair);
 
 					if (pRadExt->Type != pWeaponExt->RadType)

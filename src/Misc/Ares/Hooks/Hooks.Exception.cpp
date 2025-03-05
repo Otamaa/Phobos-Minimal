@@ -44,6 +44,14 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 		Debug::LogInfo("Making a memory snapshot");
 		Debug::FullDump(std::move(path));
 
+		if (Debug::LogEnabled) {
+			std::wstring _bar = Debug::LogFileMainName + Debug::LogFileExt;
+			_bar += L" Copied. - Yuri's Revenge";
+
+			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+		}
+
 		loadCursor = LoadCursor(nullptr, IDC_ARROW);
 		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 		SetCursor(loadCursor);
@@ -53,11 +61,6 @@ DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			"Please submit that to the developers along with SYNC*.txt, debug.txt and syringe.log."
 				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r" : ""
 		);
-
-		if (Debug::LogEnabled) {
-			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
-			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
-		}
 	}
 
 	return 0x64CD11;
@@ -164,6 +167,15 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	case 0xE06D7363: // exception thrown and not caught
 	{
 		const std::wstring except_file = path + L"\\except.txt";
+
+		if (Debug::LogEnabled)
+		{
+			std::wstring _bar = Debug::LogFileMainName + Debug::LogFileExt;
+			_bar += L" Copied. - Yuri's Revenge";
+
+			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+		}
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
 		{
@@ -407,11 +419,6 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		//Debug::DumpObj(reinterpret_cast<byte*>(pExs->ExceptionRecord), sizeof(*(pExs->ExceptionRecord)));
 		//return EXCEPTION_CONTINUE_SEARCH;
 		break;
-	}
-
-	if (Debug::LogEnabled) {
-		MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
-		CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 	}
 
 	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
