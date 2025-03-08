@@ -39,60 +39,13 @@ namespace DamageFireAnims
 		}
 	}
 
-	void Construct(BuildingClass* pThis)
-	{
-		const auto pType = pThis->Type;
-		const auto pExt = BuildingExtContainer::Instance.Find(pThis);
-		const auto pTypeext = pExt->Type;
-
-		HandleRemoveAsExt(pExt);
-
-		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
-
-		if (!pFire.empty() &&
-			!pTypeext->DamageFire_Offs.empty())
-		{
-			pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
-			const auto render_coords = pThis->GetRenderCoords();
-			const auto nBuildingHeight = pType->GetFoundationHeight(false);
-			const auto nWidth = pType->GetFoundationWidth();
-
-			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
-			{
-				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
-				const auto&[nPiX ,nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
-
-				CoordStruct nPixCoord { nPiX, nPiY, 0 };
-				nPixCoord += render_coords;
-
-				if (const auto pFireType = pFire[pFire.size() == 1 ?
-					 0 : ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
-				{
-					auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord);
-					const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
-					pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
-					if (pAnim->Type->End > 0)
-						pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
-
-					pAnim->Owner = pThis->Owner;
-					pExt->DamageFireAnims[i] = pAnim;
-				}
-			}
-		}
-	}
 };
 
-DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
-{
-	GET(BuildingClass*, pThis, ESI);
-	DamageFireAnims::Construct(pThis);
-	return 0x43FC97;
-}
+DEFINE_FUNCTION_JUMP(CALL, 0x43FC92, FakeBuildingClass::_OnFireAI);
+DEFINE_FUNCTION_JUMP(LJMP, 0x43C0D0, FakeBuildingClass::_OnFireAI);
 
-//DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
 //DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6) { return 0x46048E; }
 DEFINE_JUMP(LJMP, 0x46038A, 0x46048E);
-DEFINE_JUMP(LJMP, 0x43C0D0, 0x43C29B);
 //DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \

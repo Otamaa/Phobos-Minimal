@@ -95,11 +95,11 @@ DEFINE_HOOK(0x437FC0, BlowfishEngine_DTOR, 0x6)
 	return 0x437FCC;
 }
 
-//DEFINE_JUMP(LJMP, 0x438300, MiscTools::to_DWORD(&BlowStraw::Key));
-//DEFINE_JUMP(LJMP, 0x438210, MiscTools::to_DWORD(&BlowStraw::Get));
-//DEFINE_JUMP(LJMP, 0x438060, MiscTools::to_DWORD(&BlowPipe::Flush));
-//DEFINE_JUMP(LJMP, 0x4380A0, MiscTools::to_DWORD(&BlowPipe::Put));
-//DEFINE_JUMP(LJMP, 0x4381D0, MiscTools::to_DWORD(&BlowPipe::Key));
-DEFINE_JUMP(LJMP, 0x437FD0, MiscTools::to_DWORD(&BlowfishEngine::Submit_Key));
-DEFINE_JUMP(LJMP, 0x438000, MiscTools::to_DWORD(&BlowfishEngine::Encrypt_Wrapper));
-DEFINE_JUMP(LJMP, 0x438030, MiscTools::to_DWORD(&BlowfishEngine::Decrypt_Wrapper));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x438300, BlowStraw::Key));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x438210, BlowStraw::Get));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x438060, BlowPipe::Flush));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x4380A0, BlowPipe::Put));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x4381D0, BlowPipe::Key));
+DEFINE_FUNCTION_JUMP(LJMP, 0x437FD0, BlowfishEngine::Submit_Key);
+DEFINE_FUNCTION_JUMP(LJMP, 0x438000, BlowfishEngine::Encrypt_Wrapper);
+DEFINE_FUNCTION_JUMP(LJMP, 0x438030, BlowfishEngine::Decrypt_Wrapper);

@@ -729,7 +729,7 @@ DEFINE_HOOK(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 
 		Point2D position { destX + 30, destY + 24 };
 		const auto pRulesExt = RulesExtData::Instance();
-		const auto frames = pRulesExt->Cameo_OverlayFrames.Get();
+		const Vector3D<int> frames = pRulesExt->Cameo_OverlayFrames.Get();
 
 		if (greyCameo) // Only draw extras over grey cameos
 		{
@@ -1077,22 +1077,18 @@ DEFINE_HOOK(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	auto removeIter = std::remove_if(tabs.begin(), tabs.end(), [=](BuildType& item)
- {
+	tabs.remove_if([=](BuildType& item) {
 	 return RemoveCameo(&item);
 	});
 
-	const auto count_after = std::distance(tabs.begin(), removeIter);
-	tabs.Reset(count_after);
-
-	if (count_after >= pThis->BuildableCount)
+	if (tabs.Count >= pThis->BuildableCount)
 	{
 		R->EAX(0);
 		return 0x6AACAE;
 	}
 
-	pThis->BuildableCount = count_after;
-	if (count_after <= 0)
+	pThis->BuildableCount = tabs.Count;
+	if (tabs.Count <= 0)
 	{
 		SidebarClass::ShapeButtons[pThis->TabIndex].Disable();
 

@@ -186,8 +186,6 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		Debug::made = false;// reset
 	}
 
-	Debug::LogDeferredFinalize();
-
 #ifdef _Enable_these
 	SID_IDENTIFIER_AUTHORITY _ID {};
 	HANDLE _Token {};
@@ -478,15 +476,6 @@ void Phobos::ExeRun()
 		//}
 	}
 
-	const auto size_ = Patches.size();
-	Debug::Log("Applying %d Static Patches.\n", size_);
-
-	for (auto& patch : Patches) {
-		patch->Apply();
-	}
-
-	Patches.clear();
-
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
 	Debug::Log("Running on %s .\n", Patch::WindowsVersion.c_str());
 
@@ -626,15 +615,24 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		LuaData::LuaDir += "\\Resources";
 
 		void* buffer {};
-		const int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
+		int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
 
-		for (int offset = 0; offset < len; offset += sizeof(Patch)) {
-			const auto pPatch = (Patch*)((DWORD)buffer + offset);
-			if (pPatch->offset == 0)
-				continue;
+		//msvc add padding between them so dont forget !
+		struct _patch : public Patch {
+			BYTE _paddings[3];
+		};
 
-			Phobos::Patches.emplace_back(pPatch);
+		_patch* end = (_patch*)((DWORD)buffer + len);
+
+		for (_patch* begin = (_patch*)buffer; begin < end; begin++) {
+			begin->Apply();
 		}
+
+		Debug::LogDeferred("Applying %d Static Patches.\n", std::distance((_patch*)buffer,end));
+		len = Patch::GetSection(hInstance, ".syhks00", &buffer);
+
+		//hookdecl
+		Debug::LogDeferred("Total %d hooks applied.\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
 
 		Phobos::ExecuteLua();
 
@@ -724,6 +722,7 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
+	Debug::LogDeferredFinalize();
 
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();

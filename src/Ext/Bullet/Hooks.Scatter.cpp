@@ -4,45 +4,44 @@
 #include <InfantryClass.h>
 #include <BuildingClass.h>
 
-DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
+#pragma optimize("", off )
+//optimizing this will cause game to crash
+void DetonateTheBullet(BulletClass* pThis,  CoordStruct coords , CoordStruct original)
 {
-	GET(FakeBulletClass*, pThis, ESI);
-	GET_STACK(CoordStruct, origCoords, (0x3C - 0x30));
-
-	if (pThis->Type->Cluster > 0)
-	{
-		const auto pTypeExt = pThis->_GetTypeExtData();
-		const int min = pTypeExt->Cluster_Scatter_Min.Get();
-		const int max = pTypeExt->Cluster_Scatter_Max.Get();
-		CoordStruct coord = origCoords;
-
-		for (int i = 0; i < pThis->Type->Cluster; i++) {
-
-			//if (pThis->Owner) {
-			//	const auto vt = VTable::Get(pThis->Owner);
-			//	if (vt != AircraftClass::vtable &&
-			//		vt != InfantryClass::vtable &&
-			//		vt != UnitClass::vtable &&
-			//		vt != BuildingClass::vtable
-			//		) {
-			//		pThis->Owner = nullptr;
-			//	}
-			//}
-			pThis->Location = coord;
-			pThis->Detonate(coord);
-			pThis->Location = origCoords;
-
-			if (!BulletExtData::IsReallyAlive(pThis))
-				break;
-
-			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
-			const bool center = ScenarioClass::Instance->Random.RandomBool();
-			coord = MapClass::GetRandomCoordsNear(coord, distance, center);
-		}
-	}
-
-	return 0x469091;
+	pThis->Location = coords;
+	pThis->Detonate(coords);
+	pThis->Location = original;
 }
+#pragma optimize("", on )
+
+//DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
+//{
+//	GET(FakeBulletClass*, pThis, ESI);
+//	LEA_STACK(CoordStruct* , origCoords, (0x3C - 0x30));
+//
+//	if (pThis->Type->Cluster > 0)
+//	{
+//		const auto pTypeExt = pThis->_GetTypeExtData();
+//		const int min = pTypeExt->Cluster_Scatter_Min.Get();
+//		const int max = pTypeExt->Cluster_Scatter_Max.Get();
+//		CoordStruct coord = *origCoords;
+//
+//		for (int i = 0; i < pThis->Type->Cluster; i++) {
+//
+//			DetonateTheBullet(pThis, coord, *origCoords);
+//
+//			if (!BulletExtData::IsReallyAlive(pThis))
+//				break;
+//
+//			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
+//			const bool center = ScenarioClass::Instance->Random.RandomBool();
+//			coord = MapClass::GetRandomCoordsNear(coord, distance, center);
+//		}
+//	}
+//
+//	return 0x469091;
+//}
+
 
 int GetScatterResult(BulletClass* pThis
 	, int SecondaryScatter_Proportion

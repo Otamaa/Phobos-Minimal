@@ -705,8 +705,8 @@ HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E361C, MiscTools::to_DWORD(&FakeAnimTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E3620, MiscTools::to_DWORD(&FakeAnimTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)

@@ -199,7 +199,7 @@ DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 5)
 // Completely skip vanilla GScreenClass::Render code in the main thread
 // if we run in multithread mode.
 
-DEFINE_JUMP(LJMP, 0x4F4480 , MiscTools::to_DWORD(&FakeGScreenClass::_Render));
+DEFINE_FUNCTION_JUMP(LJMP, 0x4F4480 , FakeGScreenClass::_Render);
 
 // We want to lock access to game resources when we're doing game logic potientially related to graphics.
 // The main thread should let the drawing thread run if it complains that it's too hungry and vice versa.

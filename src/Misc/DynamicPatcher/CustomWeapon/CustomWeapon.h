@@ -9,7 +9,7 @@ class WeaponTypeClass;
 class TechnoClass;
 struct CustomWeaponManager
 {
-	HelperedVector<SimulateBurst> simulateBurstQueue {};
+	HelperedVector<std::unique_ptr<SimulateBurst>> simulateBurstQueue {};
 
 	void Clear()
 	{
@@ -22,8 +22,8 @@ struct CustomWeaponManager
 
 	void Update(TechnoClass* pAttacker);
 	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult);
-	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
-	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
+	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst* burst);
+	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst* burst);
 	TechnoClass* WhoIsShooter(TechnoClass* pAttacker) const;
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
@@ -49,7 +49,7 @@ private:
 
 struct FireWeaponManager
 {
-	HelperedVector<DelayFireWeapon> DelayFires {};
+	HelperedVector<std::unique_ptr<DelayFireWeapon>> DelayFires {};
 	CustomWeaponManager CWeaponManager {};
 
 public:

@@ -385,49 +385,49 @@ DEFINE_HOOK(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
 void __fastcall increment_tracker_inf(UnitTrackerClass* pTracker, DWORD, int idx) {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0xB30>(pTracker))->BuiltInfantryTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL, 0x4FF854, MiscTools::to_DWORD(&increment_tracker_inf));
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF854, increment_tracker_inf));
 void __fastcall increment_tracker_destroyedinf(UnitTrackerClass* pTracker, DWORD, int idx) {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x2B50>(pTracker))->KilledInfantryTypes.Increment(idx);
 }
 //Destroyed
-DEFINE_JUMP(CALL, 0x703152, MiscTools::to_DWORD(&increment_tracker_destroyedinf));
-DEFINE_JUMP(CALL, 0x7034B4, MiscTools::to_DWORD(&increment_tracker_destroyedinf));
+DEFINE_FUNCTION_JUMP(CALL, 0x703152, increment_tracker_destroyedinf));
+DEFINE_FUNCTION_JUMP(CALL, 0x7034B4, increment_tracker_destroyedinf));
 
 void __fastcall increment_tracker_Unit(UnitTrackerClass* pTracker, DWORD, int idx) {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x1338>(pTracker))->BuiltInfantryTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL,0x4FF893, MiscTools::to_DWORD(&increment_tracker_Unit));
+DEFINE_FUNCTION_JUMP(CALL,0x4FF893, increment_tracker_Unit));
 void __fastcall increment_tracker_destroyedunit(UnitTrackerClass* pTracker, DWORD, int idx)
 {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x3358>(pTracker))->KilledUnitTypes.Increment(idx);
 }
 //Destroyed
-DEFINE_JUMP(CALL, 0x703198, MiscTools::to_DWORD(&increment_tracker_destroyedunit));
-DEFINE_JUMP(CALL, 0x7034F4, MiscTools::to_DWORD(&increment_tracker_destroyedunit));
+DEFINE_FUNCTION_JUMP(CALL, 0x703198, increment_tracker_destroyedunit));
+DEFINE_FUNCTION_JUMP(CALL, 0x7034F4, increment_tracker_destroyedunit));
 
 void __fastcall increment_tracker_Aircraft(UnitTrackerClass* pTracker, DWORD, int idx) {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x328>(pTracker))->BuiltAircraftTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL,0x4FF7FB, MiscTools::to_DWORD(&increment_tracker_Aircraft));
+DEFINE_FUNCTION_JUMP(CALL,0x4FF7FB, increment_tracker_Aircraft));
 //destroyed
 void __fastcall increment_tracker_destroyedaircraft(UnitTrackerClass* pTracker, DWORD, int idx)
 {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x2348>(pTracker))->KilledAircraftTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL, 0x703108, MiscTools::to_DWORD(&increment_tracker_destroyedaircraft));
-DEFINE_JUMP(CALL, 0x703474, MiscTools::to_DWORD(&increment_tracker_destroyedaircraft));
+DEFINE_FUNCTION_JUMP(CALL, 0x703108, increment_tracker_destroyedaircraft));
+DEFINE_FUNCTION_JUMP(CALL, 0x703474, increment_tracker_destroyedaircraft));
 
 void __fastcall increment_tracker_Building(UnitTrackerClass* pTracker, DWORD, int idx) {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x1B40>(pTracker))->BuiltBuildingTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL,0x4FF7BD, MiscTools::to_DWORD(&increment_tracker_Building));
+DEFINE_FUNCTION_JUMP(CALL,0x4FF7BD, increment_tracker_Building));
 //destroyed
 void __fastcall increment_tracker_destroyedbuilding (UnitTrackerClass* pTracker, DWORD, int idx)
 {
 	HouseExtContainer::Instance.Find(GetHouseClassptr<0x3B60>(pTracker))->KilledBuildingTypes.Increment(idx);
 }
-DEFINE_JUMP(CALL, 0x703093, MiscTools::to_DWORD(&increment_tracker_destroyedbuilding));
-DEFINE_JUMP(CALL, 0x703403, MiscTools::to_DWORD(&increment_tracker_destroyedbuilding));
+DEFINE_FUNCTION_JUMP(CALL, 0x703093, increment_tracker_destroyedbuilding));
+DEFINE_FUNCTION_JUMP(CALL, 0x703403, increment_tracker_destroyedbuilding));
 #else
 
 DEFINE_HOOK(0x448524, BuildingClass_Captured_SendStatistics, 0x7)

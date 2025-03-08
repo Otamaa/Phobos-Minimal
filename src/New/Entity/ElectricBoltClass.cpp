@@ -292,6 +292,7 @@ void ElectricBoltManager::Draw_All()
 	if (ElectricBoltArray.empty())
 		return;
 
+	//TODO : fast_remove_if
 	auto iter = std::remove_if(ElectricBoltArray.begin(), ElectricBoltArray.end(), [](ElectricBoltClass& bolt) {
 
 		if (bolt.Lifetime > 0)

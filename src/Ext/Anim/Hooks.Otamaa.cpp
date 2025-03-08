@@ -154,9 +154,9 @@ void FakeAnimClass::_Middle()
 	AnimExtData::OnMiddle_SpawnSmudge(this, centercell, { width ,height });
 }
 
-DEFINE_JUMP(CALL, 0x424D5A, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
-DEFINE_JUMP(CALL, 0x424687, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
-DEFINE_JUMP(LJMP, 0x424F00, MiscTools::to_DWORD(&FakeAnimClass::_Middle));
+DEFINE_FUNCTION_JUMP(CALL, 0x424D5A, FakeAnimClass::_Middle);
+DEFINE_FUNCTION_JUMP(CALL, 0x424687, FakeAnimClass::_Middle);
+DEFINE_FUNCTION_JUMP(LJMP, 0x424F00, FakeAnimClass::_Middle);
 
 DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 {

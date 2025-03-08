@@ -74,8 +74,8 @@ HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F353C, MiscTools::to_DWORD(&FakeSmudgeTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F3540, MiscTools::to_DWORD(&FakeSmudgeTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F353C, FakeSmudgeTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3540, FakeSmudgeTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x6B57DA , SmudgeTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)

@@ -29,6 +29,6 @@ public:
 
 	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper , TechnoClass* pFirer)
 	{
-		SWStateMachine::Register(std::make_unique<TStateMachine>(Duration, Deferment, XY, pSuper, pFirer, this));
+		SWStateMachine::Register<TStateMachine>(Duration, Deferment, XY, pSuper, pFirer, this);
 	}
 };

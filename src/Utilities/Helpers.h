@@ -686,8 +686,7 @@ namespace Helpers {
 
 		OPTIONALINLINE void remove_non_paradroppables(std::vector<TechnoTypeClass*>& types, const char* section, const char* key) {
 			// remove all types that aren't either infantry or unit types
-
-			types.erase(std::remove_if(types.begin(), types.end(), [section, key](TechnoTypeClass* pItem) -> bool {
+			fast_remove_if(types , [section, key](TechnoTypeClass* pItem) -> bool {
 
 				if(!pItem) {
 					Debug::INIParseFailed(section, key, pItem->ID, "Invalid types are removed.");
@@ -705,7 +704,7 @@ namespace Helpers {
 				}
 
 				return false;
-				}), types.end());
+				});
 		}
 
 		//! Invokes an action for every element that suffices a predicate.

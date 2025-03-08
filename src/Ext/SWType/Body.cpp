@@ -2607,8 +2607,8 @@ HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, bool clearDirty
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F40A4, MiscTools::to_DWORD(&FakeSuperWeaponTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F40A8, MiscTools::to_DWORD(&FakeSuperWeaponTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)

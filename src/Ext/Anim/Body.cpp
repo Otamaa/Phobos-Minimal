@@ -788,8 +788,8 @@ original_code:
 }
 
 #undef GET_REGISTER_STATIC_2
-DEFINE_JUMP(LJMP, 0x4220AA, MiscTools::to_DWORD(&AnimClass_CTOR_Ext));
-DEFINE_JUMP(LJMP, 0x42290B, MiscTools::to_DWORD(&AnimClass_DTOR_Ext));
+DEFINE_FUNCTION_JUMP(LJMP, 0x4220AA, AnimClass_CTOR_Ext));
+DEFINE_FUNCTION_JUMP(LJMP, 0x42290B, AnimClass_DTOR_Ext));
 
 //DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 //{
@@ -911,8 +911,8 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3368, MiscTools::to_DWORD(&FakeAnimClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E336C, MiscTools::to_DWORD(&FakeAnimClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)
 
 DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 {
@@ -945,4 +945,4 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	return 0x4251B1;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3390, MiscTools::to_DWORD(&FakeAnimClass::_GetOwningHouse));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3390, FakeAnimClass::_GetOwningHouse);

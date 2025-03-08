@@ -39,10 +39,10 @@ void Phobos::Config::Read()
 		{
 			BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 			// We overwrite the instructions that force GameSpeed to 2 (GS4)
-			Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), &defaultspeed);
+			Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), PatchType::PATCH_ , &defaultspeed);
 
 			// when speed control is off. Doesn't need a hook.
-			Patch::Apply_RAW(0x55D78D, sizeof(defaultspeed), &defaultspeed);
+			Patch::Apply_RAW(0x55D78D, sizeof(defaultspeed), PatchType::PATCH_, &defaultspeed);
 		}
 	}
 
@@ -190,6 +190,7 @@ void Phobos::Config::Read()
 
 	 Phobos::Otamaa::DisableCustomRadSite = pINI->ReadBool(PHOBOS_STR, "DisableCustomRadSite", Phobos::Otamaa::DisableCustomRadSite);
 	 Phobos::Config::ArtImageSwap = pINI->ReadBool(GameStrings::General(), "ArtImageSwap", Phobos::Config::ArtImageSwap);
+	 Phobos::Config::UnitPowerDrain = pINI->ReadBool(GameStrings::General(), "UnitPowerDrain", Phobos::Config::UnitPowerDrain);
 	 Phobos::UI::UnlimitedColor = pINI->ReadBool(GameStrings::General(), "SkirmishUnlimitedColors", Phobos::UI::UnlimitedColor);
 
 	 if (pINI->ReadBool(GameStrings::General(), "CustomGS", Phobos::Misc::CustomGS))

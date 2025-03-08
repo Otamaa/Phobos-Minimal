@@ -447,5 +447,5 @@ HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F558C, MiscTools::to_DWORD(&FakeTEventClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F5590, MiscTools::to_DWORD(&FakeTEventClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F558C, FakeTEventClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5590, FakeTEventClass::_Save)

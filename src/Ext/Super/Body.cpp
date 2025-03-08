@@ -186,8 +186,8 @@ HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F3FFC, MiscTools::to_DWORD(&FakeSuperClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F4000, MiscTools::to_DWORD(&FakeSuperClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
 
 // DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
 // {
@@ -205,4 +205,4 @@ DEFINE_JUMP(VTABLE, 0x7F4000, MiscTools::to_DWORD(&FakeSuperClass::_Save))
 //	SuperExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 //	pThis->SuperClass::PointerExpired(target , all);
 //}
-//DEFINE_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))

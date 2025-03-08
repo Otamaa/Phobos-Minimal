@@ -176,8 +176,7 @@ void WarheadTypeExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, Hou
 		return !CanTargetHouse(pHouse, pTech);
 	};
 
-	const auto& [rFirst , rEnd] = std::ranges::remove_if(nVec, NotEligible);
-	nVec.erase(rFirst, rEnd);
+	fast_remove_if(nVec, NotEligible);
 
 	if (!nVec.empty()) {
 

@@ -150,6 +150,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 		// some quick exclusion criteria
 		if (pTechno->IsImmobilized
+			|| pTechno->TemporalTargetingMe
 			|| pTechno->IsInAir()
 			|| pTechno->IsBeingWarpedOut()
 			|| pTechno->IsWarpingIn())

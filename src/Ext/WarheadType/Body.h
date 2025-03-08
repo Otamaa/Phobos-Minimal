@@ -79,6 +79,7 @@ public:
 	ValueableVector<double> Crit_Chance { };
 	Valueable<bool> Crit_ApplyChancePerTarget { false };
 	ValueableVector<int> Crit_ExtraDamage { };
+	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult { false };
 	Valueable<WarheadTypeClass*> Crit_Warhead { nullptr };
 	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };

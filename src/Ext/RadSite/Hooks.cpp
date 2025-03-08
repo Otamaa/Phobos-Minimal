@@ -9,6 +9,8 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Cell/Body.h>
+
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
 
@@ -38,11 +40,21 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(BulletClass* const, pThis, ESI);
-		GET_BASE(CoordStruct const*, pCoords, 0x8);
+		GET_BASE(CoordStruct*, pCoords, 0x8);
 		GET(WeaponTypeClass*, pWeapon, ECX);
 		GET(int, nAmount, EDI);
 
-		BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(*pCoords, static_cast<int>(pWeapon->Warhead->CellSpread), nAmount);
+		if (!MapClass::Instance->IsWithinUsableArea(*pCoords))
+			return Handled;
+
+		const auto pCell = MapClass::Instance->TryGetCellAt(*pCoords);
+
+		if (!pCell) {
+			return Handled;
+		}
+
+
+		BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(pCell, static_cast<int>(pWeapon->Warhead->CellSpread), nAmount);
 
 		return Handled;
 	}
@@ -66,51 +78,10 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		if (!pCell)
 			return Handled;
 
-		if (!pThis) {
-			const auto pDefault = RadTypeClass::Array.begin()->get();
-			auto const it = RadSiteClass::Array->find_if([=](auto const pSite) {
-				if (pSite->RadTimeLeft <= 0)
-					return false;
+		if (!pThis)
+			Debug::FatalError(__FUNCTION__" require BulletClass !\n");
 
-				 auto const pRadExt = RadSiteExtContainer::Instance.Find(pSite);
-				 if (pRadExt->Type != pDefault)
-					 return false;
-
-				 if (pSite->BaseCell != location)
-					 return false;
-
-				 if (spread != pSite->Spread)
-					 return false;
-
-				 if (pThis->WeaponType != pRadExt->Weapon)
-					 return false;
-
-				 return true;
-			});
-
-			if (it != RadSiteClass::Array->end())
-			{
-				auto nAmount = amount;
-				const auto nMax = pDefault->GetLevelMax();
-				const auto nCurrent = (*it)->GetCurrentRadLevel();
-
-				if (nCurrent + amount > nMax)
-				{
-					nAmount = nMax - nCurrent;
-				}
-
-				RadSiteExtContainer::Instance.Find((*it))->Add(nAmount);
-				return Handled;
-			}
-
-			RadSiteExtData::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr, nullptr);
-
-		}
-		else
-		{
-			BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(pCell->GetCoordsWithBridge(), spread, amount);
-		}
-
+		BulletExtContainer::Instance.Find(pThis)->ApplyRadiationToCell(pCell, spread , amount);
 		return Handled;
 	}
 
@@ -134,36 +105,33 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 			{
 				const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 				const auto currentCoord = pThis->InlineMapCoords();
-
-				auto const it = RadSiteClass::Array->find_if([=](auto const pPair)
+				if (const auto pCell = MapClass::Instance->TryGetCellAt(currentCoord))
 				{
-					if (pPair->RadTimeLeft <= 0)
-						return false;
+					auto pCellExt = CellExtContainer::Instance.Find(pCell);
 
-					auto const pRadExt = RadSiteExtContainer::Instance.Find(pPair);
+					auto const it = pCellExt->RadSites.find_if([=](auto const pPair) {
 
-					if (pRadExt->Type != pWeaponExt->RadType)
-						return false;
+						auto const pRadExt = RadSiteExtContainer::Instance.Find(pPair);
 
-					if (pPair->BaseCell != currentCoord)
-						return false;
+						if (pRadExt->Type != pWeaponExt->RadType)
+							return false;
 
-					if (static_cast<int>(pWeapon->Warhead->CellSpread) != pPair->Spread)
-						return false;
+						if (static_cast<int>(pWeapon->Warhead->CellSpread) != pPair->Spread)
+							return false;
 
-					if (pWeapon != pRadExt->Weapon)
-						return false;
+						if (pWeapon != pRadExt->Weapon)
+							return false;
 
-					if (pRadExt->TechOwner)
-						return pRadExt->TechOwner == pThis;
+						if (pRadExt->TechOwner)
+							return pRadExt->TechOwner == pThis;
 
-					return true;
+						return true;
 
-				});
+					});
 
-				if (it != RadSiteClass::Array->end())
-				{
-					radLevel = static_cast<int>(RadSiteExtContainer::Instance.Find((*it))->GetRadLevelAt(currentCoord));
+					if (it != pCellExt->RadSites.end()) {
+						radLevel = static_cast<int>(RadSiteExtContainer::Instance.Find((*it))->GetRadLevelAt(currentCoord));
+					}
 				}
 
 				weaponRadLevel = pWeapon->RadLevel;
@@ -360,5 +328,5 @@ DEFINE_HOOK(0x65BB67, RadSite_Deactivate, 0x6)
 	return Continue;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0858,  MiscTools::to_DWORD(&FakeRadSiteClass::__GetAltCoords));
-DEFINE_JUMP(VTABLE, 0x7F0868,  MiscTools::to_DWORD(&FakeRadSiteClass::__GetAltCoords));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0858,  FakeRadSiteClass::__GetAltCoords);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0868,  FakeRadSiteClass::__GetAltCoords);

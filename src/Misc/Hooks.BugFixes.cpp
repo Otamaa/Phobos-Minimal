@@ -720,7 +720,7 @@ static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 	return FireError::OK;
 }
 
-DEFINE_JUMP(VTABLE, 0x7ECDF4, MiscTools::to_DWORD(&JumpjetLocomotionClass_Can_Fire))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDF4, JumpjetLocomotionClass_Can_Fire)
 
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 //DEFINE_SKIP_HOOK(0x447380, BuildingClass_What_Action_RemoveAGCheckA, 0x6, 44739E);
@@ -786,8 +786,8 @@ static void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _,
 	UpdateAttachedAnimLayers((TechnoClass*)pObject);
 }
 
-DEFINE_JUMP(CALL, 0x54B18E, MiscTools::to_DWORD(&DisplayClass_Submit_Wrapper));  // JumpjetLocomotionClass_Process
-DEFINE_JUMP(CALL, 0x4CD4E7, MiscTools::to_DWORD(&DisplayClass_Submit_Wrapper)); // FlyLocomotionClass_Update
+DEFINE_FUNCTION_JUMP(CALL, 0x54B18E, DisplayClass_Submit_Wrapper);  // JumpjetLocomotionClass_Process
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD4E7, DisplayClass_Submit_Wrapper); // FlyLocomotionClass_Update
 
 DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
@@ -871,7 +871,7 @@ static void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
 	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
 }
 
-DEFINE_JUMP(VTABLE, 0x7ECDB8, MiscTools::to_DWORD(&JumpjetLocomotionClass_Unlimbo))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB8, JumpjetLocomotionClass_Unlimbo)
 
 // This fixes the issue when locomotor is crashing in grounded or
 // hovering state and the crash processing code won't be reached.
@@ -1464,7 +1464,7 @@ DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
-	if (pThis->Deactivated || pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
+	if (pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
 	{
 		pThis->ClearDisguise();
 		R->Stack(0x7 , false);
@@ -1482,11 +1482,11 @@ bool FakeHouseClass::_IsAlliedWith(HouseClass* pOther)
 		|| this->IsAlliedWith(pOther);
 }
 
-DEFINE_JUMP(CALL, 0x63B136, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B100, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B17F, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B1BA, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
-DEFINE_JUMP(CALL, 0x63B2CE, MiscTools::to_DWORD(&FakeHouseClass::_IsAlliedWith));
+DEFINE_FUNCTION_JUMP(CALL, 0x63B136, FakeHouseClass::_IsAlliedWith);
+DEFINE_FUNCTION_JUMP(CALL, 0x63B100, FakeHouseClass::_IsAlliedWith);
+DEFINE_FUNCTION_JUMP(CALL, 0x63B17F, FakeHouseClass::_IsAlliedWith);
+DEFINE_FUNCTION_JUMP(CALL, 0x63B1BA, FakeHouseClass::_IsAlliedWith);
+DEFINE_FUNCTION_JUMP(CALL, 0x63B2CE, FakeHouseClass::_IsAlliedWith);
 
 // An attempt to fix an issue where the ATC->CurrentVector does not contain every air Techno in given range that increases in frequency as the range goes up.
 // Real talk: I have absolutely no clue how the original function works besides doing vector looping and manipulation, as far as I can tell it never even explicitly
@@ -1795,8 +1795,8 @@ static void __fastcall ComputeGameCRC()
 	Game::LogFrameCRC(Unsorted::CurrentFrame % 256);
 }
 
-DEFINE_JUMP(CALL, 0x64731C, MiscTools::to_DWORD(&ComputeGameCRC));
-DEFINE_JUMP(CALL, 0x647684, MiscTools::to_DWORD(&ComputeGameCRC));
+DEFINE_FUNCTION_JUMP(CALL, 0x64731C, ComputeGameCRC);
+DEFINE_FUNCTION_JUMP(CALL, 0x647684, ComputeGameCRC);
 
 #pragma endregion
 
@@ -2086,8 +2086,8 @@ size_t __fastcall HexStr2Int_replacement(const char* str)
 	// Fake a pointer to trick Ares
 	return std::hash<std::string_view>{}(str) & 0xFFFFFF;
 }
-DEFINE_JUMP(CALL, 0x6E8305, MiscTools::to_DWORD(&HexStr2Int_replacement)); // TaskForce
-DEFINE_JUMP(CALL, 0x6E5FA6, MiscTools::to_DWORD(&HexStr2Int_replacement)); // TagType
+DEFINE_FUNCTION_JUMP(CALL, 0x6E8305, HexStr2Int_replacement); // TaskForce
+DEFINE_FUNCTION_JUMP(CALL, 0x6E5FA6, HexStr2Int_replacement); // TagType
 
 // Save GameModeOptions in campaign modes
 DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
@@ -2101,7 +2101,7 @@ int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, Abstrac
 		? pSource->DistanceFrom(pTarget) // 2D distance
 		: pSource->DistanceFromSquared(pTarget); // 3D distance (vanilla)
 }
-DEFINE_JUMP(CALL, 0x6EBCC9, MiscTools::to_DWORD(Check2DDistanceInsteadOf3D));
+DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
 
 #pragma endregion
 

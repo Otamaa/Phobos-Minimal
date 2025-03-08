@@ -22,7 +22,8 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 			auto range = GetRange(pData);
 			CellClass* Cell = MapClass::Instance->GetCellAt(Coords);
 			auto const pWarhead = GetWarhead(pData);
-			GeneticMutatorStateMachine::ApplyGeneticMutator(pFirer, pThis, pData, this, Cell->GetCoordsWithBridge(), Coords, pWarhead, range, damage);
+			auto cell_str = Cell->GetCoordsWithBridge();
+			GeneticMutatorStateMachine::ApplyGeneticMutator(pFirer, pThis, pData, this, cell_str, Coords, pWarhead, range, damage);
 		} else {
 			this->newStateMachine(nDeferement, Coords, pThis, pFirer);
 		}

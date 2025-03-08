@@ -118,8 +118,8 @@ HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7EB06C, MiscTools::to_DWORD(&FakeInfantryClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7EB070, MiscTools::to_DWORD(&FakeInfantryClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)
 
 // DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
 // {

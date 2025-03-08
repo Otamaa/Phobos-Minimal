@@ -332,7 +332,7 @@ static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject , b
 		pObject->AnnounceExpiredPointer(removed);
 }
 
-DEFINE_JUMP(CALL , 0x5F6616, MiscTools::to_DWORD(&AnnounceInvalidatePointerWrapper))
+DEFINE_FUNCTION_JUMP(CALL , 0x5F6616, AnnounceInvalidatePointerWrapper)
 // DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 // {
 // 	GET(ObjectClass*, pThis, ESI);
@@ -424,27 +424,27 @@ public:
 // 	return 0x5F69B6;
 // }
 
-DEFINE_JUMP(VTABLE,0x7E2460, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7E3510, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7E3C8C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7E4078, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7E48A0, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7E8E50, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EB214, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EC414, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EDE7C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EF21C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EF590, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EFB10, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7EFD58, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F06C4, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F34B8, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F4B1C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F53E8, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F5E2C, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F64D4, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F6864, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
-DEFINE_JUMP(VTABLE,0x7F6DB0, MiscTools::to_DWORD(&FakeObjectClass::_GetCell));
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E2460, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E3510, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E3C8C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E4078, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E48A0, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7E8E50, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EB214, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EC414, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EDE7C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EF21C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EF590, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EFB10, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7EFD58, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F06C4, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F34B8, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F4B1C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F53E8, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F5E2C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F64D4, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F6864, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE,0x7F6DB0, FakeObjectClass::_GetCell);
 
 //Handle_Static_Messages_LoopingMovie
 DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);

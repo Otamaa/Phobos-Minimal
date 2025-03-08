@@ -340,11 +340,19 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 			}
 		}
 	});
-	//EBolt::Array->for_each([&](EBolt* pThis) {
-	//	if (removed && pThis && pThis->Owner == pInvalid) {
-	//		pThis->Owner = nullptr;
+
+	//for (int i = 0; i < MapClass::Instance->Cells.Capacity; i++) {
+	//	if (auto pCell = MapClass::Instance->Cells.Items[i]) {
+	//		fast_remove_if(CellExtContainer::Instance.Find(pCell)->RadSites,
+	//		[pInvalid](auto _el) { return pInvalid == _el; });
 	//	}
-	//});
+	//}
+
+	EBolt::Array->for_each([&](EBolt* pThis) {
+		if (removed && pThis->Owner == pInvalid) {
+			pThis->Owner = nullptr;
+		}
+	});
 
 	//PrismForwarding::Array.for_each([&](auto& pThis) {
 	//	if (pThis) {
@@ -432,7 +440,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	SWFirerClass::Clear();
 	ShieldClass::Array.clear();
 	InsigniaTypeClass::Clear();
-
+	
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
 		TechnoExtContainer::Instance.Pool.reserve(2000);

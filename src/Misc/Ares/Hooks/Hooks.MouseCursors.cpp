@@ -46,20 +46,20 @@ void MouseHooker::Exec()
 	//Patch_Jump(0x5BE990, &MouseClassExt::_Get_Mouse_Frame_Count);
 }
 
-DEFINE_JUMP(LJMP, 0x5BDDC0, MiscTools::to_DWORD(&MouseClassExt::_Update));
-DEFINE_JUMP(VTABLE, 0x7E198C, MiscTools::to_DWORD(&MouseClassExt::_Update));
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDDC0, MouseClassExt::_Update);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E198C, MouseClassExt::_Update);
 
-DEFINE_JUMP(VTABLE, 0x7E19B0, MiscTools::to_DWORD(&MouseClassExt::_Override_Mouse_Shape));
-DEFINE_JUMP(LJMP, 0x5BDC80, MiscTools::to_DWORD(&MouseClassExt::_Override_Mouse_Shape));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E19B0, MouseClassExt::_Override_Mouse_Shape);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDC80, MouseClassExt::_Override_Mouse_Shape);
 
-DEFINE_JUMP(VTABLE, 0x7E19B8, MiscTools::to_DWORD(&MouseClassExt::_Mouse_Small));
-DEFINE_JUMP(LJMP, 0x5BDAB0, MiscTools::to_DWORD(&MouseClassExt::_Mouse_Small));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E19B8, MouseClassExt::_Mouse_Small);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDAB0, MouseClassExt::_Mouse_Small);
 
-DEFINE_JUMP(LJMP, 0x5BDBC0, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Current_Frame));
-DEFINE_JUMP(LJMP, 0x5BDB90, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Frame));
-DEFINE_JUMP(LJMP, 0x5BDC00, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Hotspot));
-DEFINE_JUMP(LJMP, 0x5BE970, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Start_Frame));
-DEFINE_JUMP(LJMP, 0x5BE990, MiscTools::to_DWORD(&MouseClassExt::_Get_Mouse_Frame_Count));
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDBC0, MouseClassExt::_Get_Mouse_Current_Frame);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDB90, MouseClassExt::_Get_Mouse_Frame);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BDC00, MouseClassExt::_Get_Mouse_Hotspot);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BE970, MouseClassExt::_Get_Mouse_Start_Frame);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5BE990, MouseClassExt::_Get_Mouse_Frame_Count);
 
 DEFINE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 {

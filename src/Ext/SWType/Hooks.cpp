@@ -1811,7 +1811,7 @@ CoordStruct* FakeBuildingClass::_GetFLH(CoordStruct* pCrd, int weaponIndex)
 	pCrd = this->GetFLH(&coords, EMPulseCannonTemp::weaponIndex, *pCrd);
 	return pCrd;
 }
-DEFINE_JUMP(CALL6, 0x44D1F9, MiscTools::to_DWORD(&FakeBuildingClass::_GetFLH));
+DEFINE_FUNCTION_JUMP(CALL6, 0x44D1F9, FakeBuildingClass::_GetFLH);
 
 DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 {
@@ -2836,4 +2836,4 @@ int FakeBuildingClass::_Mission_Missile() {
 
 	return this->BuildingClass::Mission_Missile();
 }
-DEFINE_JUMP(VTABLE, 0x7E410C, MiscTools::to_DWORD(&FakeBuildingClass::_Mission_Missile));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E410C, FakeBuildingClass::_Mission_Missile);

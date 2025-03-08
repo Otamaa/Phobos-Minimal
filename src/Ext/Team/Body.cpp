@@ -460,8 +460,8 @@ HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F4744, MiscTools::to_DWORD(&FakeTeamClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F4748, MiscTools::to_DWORD(&FakeTeamClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
 
  DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
  {
@@ -480,4 +480,4 @@ DEFINE_JUMP(VTABLE, 0x7F4748, MiscTools::to_DWORD(&FakeTeamClass::_Save))
 //	TeamExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 //	pThis->TeamClass::PointerExpired(target , all);
 //}
-//DEFINE_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))

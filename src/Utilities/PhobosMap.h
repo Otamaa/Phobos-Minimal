@@ -12,6 +12,10 @@ class PhobosMap
 	using container_t = std::vector<pair_t, customMem>;
 public:
 
+	constexpr FORCEINLINE std::vector<pair_t, customMem>* AsPair(){
+		return &container_t;
+	}
+
 	TValue& operator[] (const TKey& key)
 	{
 		if (auto pValue = this->tryfind(key))
@@ -20,11 +24,6 @@ public:
 		}
 		return this->insert_unchecked(key, TValue());
 	}
-
-	//TValue* find__(const TKey& key) {
-	//	auto pValue = static_cast<const PhobosMap*>(this)->tryfind(key);
-	//	return const_cast<TValue*>(pValue);
-	//}
 
 	COMPILETIMEEVAL TValue* tryfind(const TKey& key)
 	{
@@ -73,6 +72,11 @@ public:
 	COMPILETIMEEVAL void erase(container_t::iterator iter)
 	{
 		this->values.erase(iter, this->values.end());
+	}
+
+	template <typename Func>
+	COMPILETIMEEVAL void erase_all_if(Func&& act) {
+		fast_remove_if(this->values, std::forward<Func>(act));
 	}
 
 	COMPILETIMEEVAL bool erase(const TKey& key)

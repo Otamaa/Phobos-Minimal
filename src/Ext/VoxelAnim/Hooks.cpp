@@ -134,6 +134,6 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 
 #include <Misc/Hooks.Otamaa.h>
 
-DEFINE_JUMP(VTABLE, 0x7F6410, MiscTools::to_DWORD(&FakeVoxelAnimClass::_RemoveThis));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6410, FakeVoxelAnimClass::_RemoveThis);
 
 #pragma endregion

@@ -134,8 +134,8 @@ HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F632C, MiscTools::to_DWORD(&FakeVoxelAnimClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F6330, MiscTools::to_DWORD(&FakeVoxelAnimClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)
 
 void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
@@ -143,4 +143,4 @@ void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 	VoxelAnimExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemoved);
 }
 
-DEFINE_JUMP(VTABLE ,0x7F6340 , MiscTools::to_DWORD(&FakeVoxelAnimClass::_Detach))
+DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)

@@ -55,13 +55,13 @@ DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 //		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
 //}
 //
-//DEFINE_JUMP(CALL6, 0x4180F9, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x4184E3, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x41852B, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x418893, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x4189A2, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x418AB1, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
-//DEFINE_JUMP(CALL6, 0x418B9A, MiscTools::to_DWORD(&FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x4180F9, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x4184E3, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x41852B, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x418893, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x4189A2, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x418AB1, FakeAircraftClass::_GetWeapon));
+//DEFINE_FUNCTION_JUMP(CALL6, 0x418B9A, FakeAircraftClass::_GetWeapon));
 
 void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 {
@@ -69,7 +69,7 @@ void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 	TechnoExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E266C, MiscTools::to_DWORD(&FakeAircraftClass::_SetTarget));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E266C, FakeAircraftClass::_SetTarget);
 
 #ifndef SecondMode
 DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
@@ -378,7 +378,7 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 	return false;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E2268, MiscTools::to_DWORD(&AircraftClass_IFlyControl_IsStrafe));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2268, AircraftClass_IFlyControl_IsStrafe);
 
 static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
@@ -478,7 +478,7 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 // AttackMove: return when no ammo or arrived destination
 #include <Ext/AircraftTypeClass/Body.h>
 
-DEFINE_JUMP(VTABLE, 0x7E290C,  MiscTools::to_DWORD(&FakeAircraftTypeClass::_CanAttackMove))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E290C,  FakeAircraftTypeClass::_CanAttackMove)
 
 DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
 {
@@ -627,4 +627,4 @@ void FakeAircraftClass::_FootClass_Update_Wrapper() {
 }
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
-DEFINE_JUMP(VTABLE, 0x7E2668, MiscTools::to_DWORD(&FakeAircraftClass::_GreatestThreat))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat)

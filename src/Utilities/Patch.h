@@ -49,10 +49,14 @@ struct dllData
 #pragma pack(push, 1)
 #pragma warning(push)
 #pragma warning( disable : 4324)
+enum class PatchType : BYTE{
+	CALL_, CALL6_ , LJMP_ , VTABLE_ , PATCH_
+};
 
 struct NOVTABLE
 	Patch
 {
+	PatchType type;
 	uintptr_t offset;
 	size_t size;
 	BYTE* pData;
@@ -62,16 +66,16 @@ struct NOVTABLE
 
 	OPTIONALINLINE static std::vector<dllData> ModuleDatas {};
 
-	template<typename TFrom, typename To>
-	static OPTIONALINLINE void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
-	{
-		DWORD protect_flagb {};
-		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
-			*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
-			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
-			FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
-		}
-	}
+	//template<typename TFrom, typename To>
+	//static OPTIONALINLINE void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
+	//{
+	//	DWORD protect_flagb {};
+	//	if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
+	//		*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
+	//		VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
+	//		FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
+	//	}
+	//}
 
 	template<typename To>
 	static OPTIONALINLINE void Apply_withmemcpy(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -110,18 +114,18 @@ struct NOVTABLE
 	}
 
 	static void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data);
-	static void Apply_RAW(uintptr_t offset, size_t sz, BYTE* data);
+	static void Apply_RAW(uintptr_t offset, size_t sz, PatchType type, BYTE* data);
 
 	template <size_t Size>
 	static FORCEDINLINE void Apply_RAW(uintptr_t offset, const char(&str)[Size])
 	{
-		PatchWrapper dummy { offset, Size, reinterpret_cast<BYTE*>(const_cast<char*>(str)) };
+		PatchWrapper dummy { PatchType::PATCH_ , offset, Size, reinterpret_cast<BYTE*>(const_cast<char*>(str)) };
 	};
 
 	template <typename T>
 	static FORCEDINLINE void Apply_TYPED(uintptr_t offset, std::initializer_list<T> data)
 	{
-		Patch::Apply_RAW(offset, data.size() * sizeof(T), const_cast<byte*>(reinterpret_cast<const byte*>(data.begin())));
+		Patch::Apply_RAW(offset, data.size() * sizeof(T), PatchType::PATCH_, const_cast<byte*>(reinterpret_cast<const byte*>(data.begin())));
 	};
 
 
@@ -178,7 +182,7 @@ struct NOVTABLE
 {
 	Patch Data;
 
-	PatchWrapper(size_t offs, size_t size, BYTE* pData) : Data { offs , size , pData }
+	PatchWrapper(size_t offs, size_t size, PatchType type, BYTE* pData) : Data { type , offs , size , pData }
 	{ Data.Apply(); }
 };
 

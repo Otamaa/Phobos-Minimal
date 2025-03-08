@@ -670,7 +670,7 @@ DEFINE_HOOK(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 	return 0x0;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4290, MiscTools::to_DWORD(&FakeBuildingClass::_SetOwningHouse));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4290, FakeBuildingClass::_SetOwningHouse);
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {
@@ -1433,42 +1433,41 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 	if(count <= 0)
 		return;
 
-	std::vector<bool> placements {};
-	placements.resize(count);
+	std::vector<bool> placements (count , false);
 
 	const auto pBldLoc = pBuilding->GetCoords();
 	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
 	const auto placement_first = pBldCell + CellSpread::AdjacentCell[(size_t)FacingType::South];
 
-	for(auto& place : placements) {
-		if(auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner)) {
-			if(pUnit->Unlimbo(CellClass::Cell2Coord(placement_first) , DirType::West)) {
+	for (size_t i = 0; i < placements.size(); ++i) {
+		if (auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner)) {
+			if (pUnit->Unlimbo(CellClass::Cell2Coord(placement_first), DirType::West)) {
 				SetFreeUnitMission(pUnit);
-				place = true;
+				placements[i] = true;
 				continue;
 			}
 
 			// weeee
-			for(int i = 0 ; i < 2; ++i) {
+			for (int a = 0; a < 2; ++a) {
 				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBuilding->Location);
 				auto zone = MapClass::Instance->GetMovementZoneType(pBldLoc_Cell, pUnit->Type->MovementZone, false);
-				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell ,
+				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell,
 				pUnit->Type->SpeedType,
-				zone ,
+				zone,
 				pUnit->Type->MovementZone,
-				false,1 , 1 , !i , true ,false ,false ,CellStruct::Empty,	false , false );
+				false, 1, 1, !a, true, false, false, CellStruct::Empty, false, false);
 
-				if(nearbyLoc.IsValid()) {
-					if(pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc) , DirType::SouthWest)) {
+				if (nearbyLoc.IsValid()) {
+					if (pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc), DirType::SouthWest)) {
 						SetFreeUnitMission(pUnit);
-						place = true;
+						placements[i] = true;
 						break; // berak from 2nd loop
 					}
 				}
 			}
 
-			if(!place){
-				GameDelete<true , false>(pUnit);
+			if (!placements[i]) {
+				GameDelete<true, false>(pUnit);
 				pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
 			}
 		}

@@ -47,13 +47,9 @@ public:
 	}
 
 	~BannerClass() {
-
-		auto it = std::remove_if(BannerClass::Array.begin() , BannerClass::Array.end(),[this](BannerClass* pBanner){
+		fast_remove_if(BannerClass::Array,[this](BannerClass* pBanner){
 			return pBanner == this;
 		});
-
-		if(it != BannerClass::Array.end());
-			BannerClass::Array.erase(it , BannerClass::Array.end());
 	}
 
 	void Render();

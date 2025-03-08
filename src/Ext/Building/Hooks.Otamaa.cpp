@@ -101,7 +101,7 @@ bool FakeBuildingClass::_IsFactory() {
 	return this->Type->Factory == AbstractType::AircraftType || this->IsFactory();
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4140, MiscTools::to_DWORD(&FakeBuildingClass::_IsFactory));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4140, FakeBuildingClass::_IsFactory);
 
 /*
 #ifdef ENABLE_NEWHOOKS

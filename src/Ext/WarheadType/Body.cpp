@@ -113,6 +113,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	// Crits
 	this->Crit_Chance.Read(exINI, pSection, "Crit.Chance");
 	this->Crit_ApplyChancePerTarget.Read(exINI, pSection, "Crit.ApplyChancePerTarget");
+	this->Crit_ExtraDamage_ApplyFirepowerMult.Read(exINI, pSection, "Crit.ExtraDamage.ApplyFirepowerMult");
 	this->Crit_ExtraDamage.Read(exINI, pSection, "Crit.ExtraDamage");
 	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead");
 	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
@@ -1283,6 +1284,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_Chance)
 		.Process(this->Crit_ApplyChancePerTarget)
 		.Process(this->Crit_ExtraDamage)
+		.Process(this->Crit_ExtraDamage_ApplyFirepowerMult)
 		.Process(this->Crit_Warhead)
 		.Process(this->Crit_Affects)
 		.Process(this->Crit_AffectsHouses)
@@ -1841,8 +1843,8 @@ HRESULT __stdcall FakeWarheadTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F6B44, MiscTools::to_DWORD(&FakeWarheadTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F6B48, MiscTools::to_DWORD(&FakeWarheadTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B44, FakeWarheadTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B48, FakeWarheadTypeClass::_Save)
 
 // is return not valid
 DEFINE_HOOK_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)

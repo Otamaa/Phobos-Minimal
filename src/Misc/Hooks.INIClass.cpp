@@ -350,7 +350,7 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 	return defaultValue;
 }
 
-DEFINE_JUMP(CALL, 0x545FD4, MiscTools::to_DWORD(&IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper));
+DEFINE_FUNCTION_JUMP(CALL, 0x545FD4, IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper);
 
 //DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 //{

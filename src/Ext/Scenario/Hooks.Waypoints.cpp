@@ -9,7 +9,7 @@ CellStruct FakeScenarioClass::_Get_Waypoint_Location(int idx) {
 	return ScenarioExtData::Instance()->Waypoints[idx];
 }
 
-DEFINE_JUMP(LJMP, 0x68BCC0, MiscTools::to_DWORD(&FakeScenarioClass::_Get_Waypoint_Location));
+DEFINE_FUNCTION_JUMP(LJMP, 0x68BCC0, FakeScenarioClass::_Get_Waypoint_Location);
 
 DEFINE_HOOK(0x68BCE4, ScenarioClass_Get_Waypoint_Cell_0, 0x7)
 {

@@ -218,7 +218,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx) {
 	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
 }
-DEFINE_JUMP(CALL6, 0x6FDD69, MiscTools::to_DWORD(GetWeapon_));
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
 
  DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
  {

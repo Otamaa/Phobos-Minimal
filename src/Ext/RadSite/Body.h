@@ -43,7 +43,8 @@ public:
 
 	const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
-	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
+	static void CreateInstance(CellClass* pCell, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
+
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(RadSiteExtData) -

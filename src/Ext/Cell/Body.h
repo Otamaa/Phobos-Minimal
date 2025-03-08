@@ -19,6 +19,7 @@ public:
 	int NewPowerups { -1 };
 	UnitClass* IncomingUnit { nullptr };
 	UnitClass* IncomingUnitAlt { nullptr };
+	HelperedVector<RadSiteClass*> RadSites {};
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

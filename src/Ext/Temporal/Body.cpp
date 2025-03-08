@@ -71,5 +71,5 @@ HRESULT __stdcall FakeTemporalClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5194, MiscTools::to_DWORD(&FakeTemporalClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F5198, MiscTools::to_DWORD(&FakeTemporalClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5194, FakeTemporalClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5198, FakeTemporalClass::_Save)

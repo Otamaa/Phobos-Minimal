@@ -5,9 +5,9 @@
 class TechnoClass;
 class AresPoweredUnit
 {
-	TechnoClass* Techno;
-	int LastScan;
-	bool Powered;
+	TechnoClass* Techno {};
+	int LastScan {};
+	bool Powered {};
 public:
 
 	static COMPILETIMEEVAL int ScanInterval = 15;

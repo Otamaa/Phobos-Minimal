@@ -94,8 +94,8 @@ HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F655C, MiscTools::to_DWORD(&FakeVoxelAnimTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F6560, MiscTools::to_DWORD(&FakeVoxelAnimTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F655C, FakeVoxelAnimTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6560, FakeVoxelAnimTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)

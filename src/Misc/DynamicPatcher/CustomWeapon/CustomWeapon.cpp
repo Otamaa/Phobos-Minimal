@@ -28,27 +28,27 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 		for (; !simulateBurstQueue.empty();)
 		{
 
-			SimulateBurst burst = *simulateBurstQueue.begin();
+			std::unique_ptr<SimulateBurst> burst = std::move(*simulateBurstQueue.begin());
 			simulateBurstQueue.erase(simulateBurstQueue.begin());
 
-			if (burst.Index < burst.Burst)
+			if (burst->Index < burst->Burst)
 			{
-				if (burst.CanFire())
+				if (burst->CanFire())
 				{
-					TechnoClass* pShooter = burst.Shooter;
-					AbstractClass* pTarget = burst.Target;
-					WeaponTypeClass* pWeaponType = burst.WeaponType;
+					TechnoClass* pShooter = burst->Shooter;
+					AbstractClass* pTarget = burst->Target;
+					WeaponTypeClass* pWeaponType = burst->WeaponType;
 
 					auto const pTargetTech = flag_cast_to<TechnoClass*>(pTarget);
 
 					if (pWeaponType
 						&& pShooter && pShooter->IsAlive
 						&& pTargetTech && !Helpers_DP::IsDeadOrInvisible(pTargetTech)
-						&& (!burst.FireData.CheckRange || InRange(pShooter, pTarget, burst.WeaponType)) &&
-						(!pAttacker->Transporter || (pWeaponType->FireInTransport || burst.FireData.OnlyFireInTransport))
+						&& (!burst->FireData.CheckRange || InRange(pShooter, pTarget, burst->WeaponType)) &&
+						(!pAttacker->Transporter || (pWeaponType->FireInTransport || burst->FireData.OnlyFireInTransport))
 					)
 					{
-						SimulateBurstFire(pShooter, pAttacker, pTarget, pWeaponType, burst);
+						SimulateBurstFire(pShooter, pAttacker, pTarget, pWeaponType, burst.get());
 					}
 				}
 
@@ -111,8 +111,8 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 
 			//}
 
-			SimulateBurst newBurst = SimulateBurst(pWeapon, pShooter, pTarget, fireFLH, burst, minRange, range, fireData, flipY);
-			SimulateBurstFire(pShooter, pAttacker, pTarget, pWeapon, newBurst);
+			std::unique_ptr<SimulateBurst> newBurst = std::make_unique<SimulateBurst>(pWeapon, pShooter, pTarget, fireFLH, burst, minRange, range, fireData, flipY);
+			SimulateBurstFire(pShooter, pAttacker, pTarget, pWeapon, newBurst.get());
 			simulateBurstQueue.push_back(std::move(newBurst));
 			isFire = true;
 		}
@@ -128,12 +128,12 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 	return isFire;
 }
 
-void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst)
+void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst* burst)
 {
-	if (burst.FireData.SimulateBurstMode == 3)
+	if (burst->FireData.SimulateBurstMode == 3)
 	{
-		SimulateBurst b2 = burst;
-		b2.FlipY *= -1;
+		SimulateBurst* b2 = burst;
+		b2->FlipY *= -1;
 		SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, b2);
 	}
 
@@ -154,15 +154,15 @@ void GetBulletVelocity(VelocityClass& nVel, CoordStruct& sourcePos, CoordStruct&
 	}
 }
 
-void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst)
+void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst* burst)
 {
 	// Pointer<TechnoClass> pShooter = WhoIsShooter(pShooter);
-	CoordStruct sourcePos = Helpers_DP::GetFLHAbsoluteCoords(pShooter, burst.FLH, true, burst.FlipY);
+	CoordStruct sourcePos = Helpers_DP::GetFLHAbsoluteCoords(pShooter, burst->FLH, true, burst->FlipY);
 	CoordStruct targetPos = pTarget->GetCoords();
 	VelocityClass bulletVelocity {};
-	GetBulletVelocity(bulletVelocity, sourcePos, targetPos, pShooter, burst.Burst, burst.FireData.RadialAngle, burst.FireData.RadialFire, burst.Index);
+	GetBulletVelocity(bulletVelocity, sourcePos, targetPos, pShooter, burst->Burst, burst->FireData.RadialAngle, burst->FireData.RadialFire, burst->Index);
 	Helpers_DP::FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
-	burst.CountOne();
+	burst->CountOne();
 }
 
 TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
@@ -173,7 +173,7 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	this->simulateBurstQueue.remove_all_if([ptr, bRemoved](const auto& queue) {
-		return (queue.Target == ptr || queue.Shooter == ptr) && bRemoved;
+		return bRemoved && (queue->Target == ptr || queue->Shooter == ptr) ;
 	});
 }
 
@@ -191,12 +191,12 @@ void FireWeaponManager::FireWeaponManager_Clear()
 
 void FireWeaponManager::Insert(int weaponIndex, AbstractClass* pTarget, int delay, int count)
 {
-	DelayFires.emplace_back(weaponIndex, pTarget, delay, count);
+	DelayFires.push_back(std::move(std::make_unique<DelayFireWeapon>(weaponIndex, pTarget, delay, count)));
 }
 
 void FireWeaponManager::Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay, int count)
 {
-	DelayFires.emplace_back(pWeapon, pTarget, delay, count);
+	DelayFires.push_back(std::move(std::make_unique<DelayFireWeapon>(pWeapon, pTarget, delay, count)));
 }
 
 bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult)
@@ -207,7 +207,7 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	this->DelayFires.remove_all_if([ptr, bRemoved](const auto& queue) {
-		return queue.Target == ptr && bRemoved;
+		return bRemoved && queue->Target == ptr ;
 	});
 
  	CWeaponManager.InvalidatePointer(ptr, bRemoved);
@@ -217,23 +217,23 @@ void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 {
 	for (; !DelayFires.empty();)
 	{
-		DelayFireWeapon delayFire = *DelayFires.begin();
+		std::unique_ptr<DelayFireWeapon> delayFire = std::move(*DelayFires.begin());
 		DelayFires.erase(DelayFires.begin());
 
-		if (delayFire.TimesUp())
+		if (delayFire->TimesUp())
 		{
-			if (delayFire.FireOwnWeapon)
+			if (delayFire->FireOwnWeapon)
 			{
-				pAttacker->Fire(delayFire.Target, delayFire.WeaponIndex);
+				pAttacker->Fire(delayFire->Target, delayFire->WeaponIndex);
 			}
 			else
 			{
-				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire.Target, delayFire.Weapon, CoordStruct::Empty);
+				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire->Target, delayFire->Weapon, CoordStruct::Empty);
 			}
-			delayFire.ReduceOnce();
+			delayFire->ReduceOnce();
 		}
 
-		if (delayFire.NotDone())
+		if (delayFire->NotDone())
 		{
 			DelayFires.push_back(std::move(delayFire));
 		}

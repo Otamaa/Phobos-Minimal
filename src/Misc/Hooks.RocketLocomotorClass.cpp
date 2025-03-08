@@ -66,7 +66,7 @@ struct _KamikazetrackerClass
 		if (!pThis->Nodes.Count)
 			return;
 
-		auto removeIter = std::remove_if(pThis->Nodes.begin(), pThis->Nodes.end(), [=](auto& item)
+		auto removeIter = pThis->Nodes.remove_if([=](auto& item)
 		{
 			if (item->Item == pTarget)
 			{
@@ -99,10 +99,10 @@ struct _KamikazetrackerClass
 	}
 };
 
-//DEFINE_JUMP(LJMP, 0x54E3B0, MiscTools::to_DWORD(&_KamikazetrackerClass::Add));
-//DEFINE_JUMP(LJMP, 0x54E4D0, MiscTools::to_DWORD(&_KamikazetrackerClass::AI));
-//DEFINE_JUMP(LJMP, 0x54E590, MiscTools::to_DWORD(&_KamikazetrackerClass::Detach));
-//DEFINE_JUMP(LJMP, 0x54E6F0, MiscTools::to_DWORD(&_KamikazetrackerClass::Clear));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E3B0, _KamikazetrackerClass::Add));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E4D0, _KamikazetrackerClass::AI));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E590, _KamikazetrackerClass::Detach));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E6F0, _KamikazetrackerClass::Clear));
 
 
 /*
@@ -602,10 +602,10 @@ public:
 	}
 };
 
-DEFINE_JUMP(VTABLE, 0x7F0B60, MiscTools::to_DWORD(&_RocketLocomotionClass::_Move_To));
-DEFINE_JUMP(VTABLE, 0x7F0B40, MiscTools::to_DWORD(&_RocketLocomotionClass::_Draw_Matrix));
-DEFINE_JUMP(VTABLE, 0x7F0B9C, MiscTools::to_DWORD(&_RocketLocomotionClass::_Is_Moving_Now));
-DEFINE_JUMP(VTABLE, 0x7F0B5C, MiscTools::to_DWORD(&_RocketLocomotionClass::_Process));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B60, _RocketLocomotionClass::_Move_To));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B40, _RocketLocomotionClass::_Draw_Matrix));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B9C, _RocketLocomotionClass::_Is_Moving_Now));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B5C, _RocketLocomotionClass::_Process));
 #else
 
 
@@ -629,7 +629,7 @@ DEFINE_JUMP(VTABLE, 0x7F0B5C, MiscTools::to_DWORD(&_RocketLocomotionClass::_Proc
 //	(pCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
 //}
 
-//DEFINE_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
 
 #pragma region RocketLocoHooks
 

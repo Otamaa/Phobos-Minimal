@@ -110,4 +110,4 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis , DWORD)
 		}
 	}
 }
-DEFINE_JUMP(VTABLE, 0x7EBF24 , MiscTools::to_DWORD(&ScreenCaptureCommandClass_Process));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EBF24 , ScreenCaptureCommandClass_Process);

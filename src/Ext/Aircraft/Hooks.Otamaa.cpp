@@ -15,7 +15,7 @@ void FakeAircraftClass::_Destroyed(int mult){
 	AircraftExt::TriggerCrashWeapon(this, mult);
 }
 
-DEFINE_JUMP(CALL, 0x4CD809, MiscTools::to_DWORD(&FakeAircraftClass::_Destroyed));
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 
 //DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 //{

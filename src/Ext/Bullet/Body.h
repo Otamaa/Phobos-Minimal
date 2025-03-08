@@ -49,7 +49,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
+	void ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLevel);
 	void InitializeLaserTrails();
 
 	void CreateAttachedSystem();

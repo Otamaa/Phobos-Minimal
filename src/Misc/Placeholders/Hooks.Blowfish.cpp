@@ -41,5 +41,5 @@ Blowfish_Loader(
 	return result;
 }
 
-DEFINE_JUMP(CALL6,0x6BEDDD, MiscTools::to_DWORD(&Blowfish_Loader));
-DEFINE_JUMP(CALL6,0x437F6E, MiscTools::to_DWORD(&Blowfish_Loader));
+DEFINE_FUNCTION_JUMP(CALL6,0x6BEDDD, Blowfish_Loader));
+DEFINE_FUNCTION_JUMP(CALL6,0x437F6E, Blowfish_Loader));

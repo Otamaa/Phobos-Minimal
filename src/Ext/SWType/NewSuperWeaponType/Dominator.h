@@ -25,6 +25,6 @@ public:
 
 protected:
 	void newStateMachine(CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Register(std::make_unique<PsychicDominatorStateMachine>(XY, pSuper, this));
+		SWStateMachine::Register<PsychicDominatorStateMachine>(XY, pSuper, this);
 	}
 };

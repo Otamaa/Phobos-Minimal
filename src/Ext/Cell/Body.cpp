@@ -255,6 +255,7 @@ void CellExtData::Serialize(T& Stm) {
 		.Process(this->NewPowerups)
 		.Process(this->IncomingUnit)
 		.Process(this->IncomingUnitAlt)
+		.Process(this->RadSites)
 		;
 }
 
@@ -302,7 +303,7 @@ HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4F00, MiscTools::to_DWORD(&FakeCellClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E4F04, MiscTools::to_DWORD(&FakeCellClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)
 
-DEFINE_JUMP(VTABLE, 0x7E4F14, MiscTools::to_DWORD(&FakeCellClass::_Invalidate));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);

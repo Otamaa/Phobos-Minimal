@@ -519,6 +519,7 @@
     <ClInclude Include="src\Ext\Event\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Ext\VoxelAnimType\Body.h" />
+    <ClInclude Include="src\Lib\fast_remove_if.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng_util.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />

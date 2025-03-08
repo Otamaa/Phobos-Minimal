@@ -1331,5 +1331,5 @@ HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7EFBB0, MiscTools::to_DWORD(&FakeParticleSystemClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7EFBB4, MiscTools::to_DWORD(&FakeParticleSystemClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)

@@ -377,8 +377,8 @@ HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E495C, MiscTools::to_DWORD(&FakeBulletTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E4960, MiscTools::to_DWORD(&FakeBulletTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)

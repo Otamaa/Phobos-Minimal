@@ -6,9 +6,9 @@ class TechnoClass;
 class BuildingClass;
 class AresJammer
 {
-	int LastScan;							//!< Frame number when the last scan was performed.
-	TechnoClass* AttachedToObject;			//!< Pointer to game object this jammer is on
-	bool Registered;
+	int LastScan {};							//!< Frame number when the last scan was performed.
+	TechnoClass* AttachedToObject {};			//!< Pointer to game object this jammer is on
+	bool Registered {};
 
 public:
 
@@ -33,6 +33,8 @@ public:
 		Registered(false)
 	{
 	}
+
+	AresJammer() = default;
 
 	void UnjamAll();						//!< Unregisters this Jammer on all structures.
 	void Update();							//!< Updates this Jammer's status on all eligible structures.
@@ -63,8 +65,7 @@ private:
 template <>
 struct Savegame::ObjectFactory<AresJammer>
 {
-	std::unique_ptr<AresJammer> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<AresJammer>(nullptr);
+	std::unique_ptr<AresJammer> operator() (PhobosStreamReader& Stm) const {
+		return std::make_unique<AresJammer>();
 	}
 };

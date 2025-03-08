@@ -74,7 +74,7 @@ struct Phobos final
 	static OPTIONALINLINE ExceptionHandlerMode ExceptionMode { ExceptionHandlerMode::Default };
 
 	static OPTIONALINLINE bool HasCNCnet { false };
-	static OPTIONALINLINE std::vector<Patch*> Patches {};
+	//static OPTIONALINLINE std::vector<Patch*> Patches {};
 
 	struct UI
 	{
@@ -170,6 +170,8 @@ struct Phobos final
 
 		static OPTIONALINLINE bool ScrollSidebarStripInTactical { true };
 		static OPTIONALINLINE bool ScrollSidebarStripWhenHoldKey { true };
+
+		static OPTIONALINLINE bool UnitPowerDrain { false };
 	};
 
 	struct Misc

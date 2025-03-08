@@ -641,39 +641,39 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	*/
 }
 
-//DEFINE_JUMP(CALL, 0x423EAB, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x424647, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x424ED1, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x425237, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x4387A3, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x469A83, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x481E33, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x481E89, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x48266D, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x482836, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x48A371, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x48A88B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x4A76AF, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x4B5D28, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x4B5FC7, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x4CD9BB, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x51A6C1, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x51A79E, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x51A7D3, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x53A5D0, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x53B16B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x53CDB5, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x53CDD4, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6632C7, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6CD90C, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E04DD, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E0545, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E05AD, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E062F, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E0697, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x6E250B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x71BABF, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_JUMP(CALL, 0x74A1E1, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x424647, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x425237, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x469A83, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x481E33, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x481E89, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x48266D, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x482836, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x48A371, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, MiscTools::to_DWORD(DamageArea::Apply));
+//DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, MiscTools::to_DWORD(DamageArea::Apply));
 
 #ifndef _ENABLE
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
@@ -771,18 +771,15 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		}
 
 		// move all the empty ones to the back, then remove them
-		auto const end = std::remove_if(groupvec.Items, &groupvec.Items[groupvec.Count], [](DamageGroup* pGroup)
- {
-	 if (!pGroup->Target)
-	 {
-		 GameDelete<false, false>(pGroup);
-		 return true;
-	 }
+		groupvec.remove_if([](DamageGroup* pGroup) {
+			if (!pGroup->Target) {
+				GameDelete<false, false>(pGroup);
+				return true;
+			}
 
-	 return false;
+			return false;
 		});
 
-		groupvec.Count = int(std::distance(groupvec.Items, end));
 		Targets.Count = 0;
 		Handled.Count = 0;
 	}

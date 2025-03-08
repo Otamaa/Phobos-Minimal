@@ -260,7 +260,7 @@ static Matrix3D* __fastcall BounceClass_ShadowMatrix(BounceClass* self, void*, M
 	*ret = Matrix3D { 1, 0, 0 , 0,	0, 0.25f, -0.4330127f , 0, 0, -0.4330127f, 0.75f , 0 } * (*ret)*  Matrix3D { 1,0,0,0,0,1,0,0,0,0,0,0 };
 	return ret;
 }
-DEFINE_JUMP(CALL, 0x749CAC, MiscTools::to_DWORD(&BounceClass_ShadowMatrix));
+DEFINE_FUNCTION_JUMP(CALL, 0x749CAC, BounceClass_ShadowMatrix);
 
 //the deeper part
 DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)

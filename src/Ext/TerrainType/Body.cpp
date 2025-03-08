@@ -185,8 +185,8 @@ HRESULT __stdcall FakeTerrainTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F546C, MiscTools::to_DWORD(&FakeTerrainTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F5470, MiscTools::to_DWORD(&FakeTerrainTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F546C, FakeTerrainTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5470, FakeTerrainTypeClass::_Save)
 
 DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 {

@@ -596,8 +596,8 @@ HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7EAB6C, MiscTools::to_DWORD(&FakeHouseTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7EAB70, MiscTools::to_DWORD(&FakeHouseTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB6C, FakeHouseTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB70, FakeHouseTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)

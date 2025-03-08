@@ -48,9 +48,9 @@ public:
 	int AcquireSlaves_MultiStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain);
 	int AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int stage, int chain, int& NetworkSize, int& LongestChain);
 	bool ValidateSupportTower(PrismForwarding* pTargetTower, PrismForwarding* pSlaveTower);
-	void SetChargeDelay_Get(int chain, int endChain, int LongestChain, DWORD* LongestCDelay, DWORD* LongestFDelay);
+	void SetChargeDelay_Get(int chain, int endChain, int LongestChain, std::vector<DWORD>& LongestCDelay, std::vector<DWORD>& LongestFDelay);
 	void SetChargeDelay(int LongestChain);
-	void SetChargeDelay_Set(int chain, DWORD const* LongestCDelay, DWORD const* LongestFDelay, int LongestChain);
+	void SetChargeDelay_Set(int chain, std::vector<DWORD>& LongestCDelay, std::vector<DWORD>& LongestFDelay, int LongestChain);
 	void RemoveAllSenders();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemove);
 

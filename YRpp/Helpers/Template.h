@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Syringe.h>
-#include <vector>
 #include <set>
 #include <ArrayClasses.h>
 #include <type_traits>
+#include <Lib/fast_remove_if.h>
 
 // here be dragons(plenty)
 
@@ -95,7 +95,7 @@ template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed) {
-		elem.erase(std::remove_if(elem.begin(), elem.end(), [ptr](auto _el) { return  ptr == _el; }), elem.end());
+		fast_remove_if(elem, [ptr](auto _el) { return  ptr == _el; });
 	}
 }
 
@@ -110,7 +110,7 @@ void AnnounceInvalidPointer(std::set<T>& elem, void* ptr, bool removed) {
 template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
-	elem.erase(std::remove_if(elem.begin(), elem.end(), [ptr](auto _el) { return  ptr == _el; }), elem.end());
+	fast_remove_if(elem, [ptr](auto _el) { return  ptr == _el; });
 }
 
 template<typename T>

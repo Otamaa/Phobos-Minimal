@@ -8,7 +8,7 @@
 //	return pThis->DeathFrameCounter != -1 || pThis->IsDeactivated();
 //}
 
-//DEFINE_JUMP(CALL,0x7360C9, GET_OFFSET(CanUpdate));
+//DEFINE_FUNCTION_JUMP(CALL,0x7360C9, GET_OFFSET(CanUpdate));
 
 // DEFINE_HOOK(0x73E474, UnitClass_Unload_Storage, 0x6)
 // {

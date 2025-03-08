@@ -145,4 +145,4 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_JUMP(VTABLE, 0x7EB1AC, MiscTools::to_DWORD(&FakeInfantryClass::_IronCurtain));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB1AC, FakeInfantryClass::_IronCurtain);

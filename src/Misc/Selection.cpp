@@ -144,8 +144,8 @@ static_assert(sizeof(ExtSelection) == sizeof(TacticalClass), "MustBe Same!");
 
 
 // Replace single call
-DEFINE_JUMP(CALL,0x4ABCEB, MiscTools::to_DWORD(&ExtSelection::Tactical_MakeFilteredSelection));
+DEFINE_FUNCTION_JUMP(CALL,0x4ABCEB, ExtSelection::Tactical_MakeFilteredSelection);
 
 // Replace vanilla function. For in case another module tries to call the vanilla function at offset
-DEFINE_JUMP(LJMP, 0x6D9FF0, MiscTools::to_DWORD(&ExtSelection::Tactical_MakeFilteredSelection));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D9FF0, ExtSelection::Tactical_MakeFilteredSelection);
 

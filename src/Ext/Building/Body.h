@@ -209,6 +209,8 @@ public:
 		return res;
 	}
 
+	void _OnFireAI();
+
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 

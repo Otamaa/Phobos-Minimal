@@ -109,8 +109,8 @@ void __fastcall EBolt_SetOwnerAndWeapon_FixCrash(EBolt* pThis, void*, TechnoClas
 	}
 }
 
-DEFINE_JUMP(CALL, 0x6FD606, MiscTools::to_DWORD(&EBolt_SetOwnerAndWeapon_FixCrash)); // Replace single call
-DEFINE_JUMP(LJMP, 0x4C2BD0, MiscTools::to_DWORD(&EBolt_SetOwnerAndWeapon_FixCrash)); // For in case another module tries to call function
+DEFINE_FUNCTION_JUMP(CALL, 0x6FD606, EBolt_SetOwnerAndWeapon_FixCrash); // Replace single call
+DEFINE_FUNCTION_JUMP(LJMP, 0x4C2BD0, EBolt_SetOwnerAndWeapon_FixCrash); // For in case another module tries to call function
 
 // Extend IsoMapPack5 decoding size limit
 // (Large map support)
@@ -198,7 +198,7 @@ bool __fastcall Tactical_ClampTacticalPos(TacticalClass* pThis, void*, Point2D* 
 	}
 	return isUpdated;
 }
-DEFINE_JUMP(LJMP, 0x6D8640, MiscTools::to_DWORD(&Tactical_ClampTacticalPos))
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, Tactical_ClampTacticalPos)
 
 DEFINE_HOOK(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
 {

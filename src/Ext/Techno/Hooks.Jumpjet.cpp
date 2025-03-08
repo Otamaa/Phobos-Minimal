@@ -250,7 +250,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	return ret;
 }
 
-DEFINE_JUMP(VTABLE, 0x7ECD8C, MiscTools::to_DWORD(&JumpjetLocomotionClass_Draw_Matrix));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD8C, JumpjetLocomotionClass_Draw_Matrix);
 //TODO : Issue #690 #655
 
 // Otamaa

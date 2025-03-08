@@ -22,6 +22,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Register(std::make_unique<TStateMachine>(Deferment, XY, pSuper, this));
+		SWStateMachine::Register<TStateMachine>(Deferment, XY, pSuper, this);
 	}
 };

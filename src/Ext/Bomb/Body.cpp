@@ -71,5 +71,5 @@ HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3D24, MiscTools::to_DWORD(&FakeBombClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E3D28, MiscTools::to_DWORD(&FakeBombClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)

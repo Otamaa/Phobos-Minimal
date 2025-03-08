@@ -60,9 +60,9 @@ int FakeTechnoTypeClass::GetWeaponTurretIndex(int which) {
 	return 0;
 }
 
-DEFINE_JUMP(LJMP, 0x7177C0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetWeapon));
-DEFINE_JUMP(LJMP, 0x7177E0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetEliteWeapon));
-DEFINE_JUMP(LJMP, 0x7178B0, MiscTools::to_DWORD(&FakeTechnoTypeClass::GetWeaponTurretIndex));
+DEFINE_FUNCTION_JUMP(LJMP, 0x7177C0, FakeTechnoTypeClass::GetWeapon);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7177E0, FakeTechnoTypeClass::GetEliteWeapon);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7178B0, FakeTechnoTypeClass::GetWeaponTurretIndex);
 
 DEFINE_HOOK(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
 {

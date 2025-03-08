@@ -108,7 +108,7 @@ static	void __fastcall DrawShape_VeinHole
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_JUMP(CALL, 0x74D5BC, MiscTools::to_DWORD(&DrawShape_VeinHole));
+DEFINE_FUNCTION_JUMP(CALL, 0x74D5BC, DrawShape_VeinHole);
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
@@ -377,7 +377,7 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 	return !pThis->Spawned;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E2908, MiscTools::to_DWORD(&AircraftTypeClass_CanUseWaypoint));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2908, AircraftTypeClass_CanUseWaypoint);
 
 DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
@@ -1442,7 +1442,7 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* buffer, int wepon, CoordStruct 
 	return this->TechnoClass::GetFLH(buffer, wepon, base);
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5D20, MiscTools::to_DWORD(&FakeUnitClass::_GetFLH));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D20, FakeUnitClass::_GetFLH);
 
 // issue #895788: cells' high occupation flags are marked only if they
 // actually contains a bridge while unmarking depends solely on object
@@ -1491,8 +1491,8 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5D64, MiscTools::to_DWORD(&FakeUnitClass::_ClearOccupyBit));
-DEFINE_JUMP(VTABLE, 0x7F5D60, MiscTools::to_DWORD(&FakeUnitClass::_SetOccupyBit));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
 
 DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
@@ -1984,14 +1984,14 @@ DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 	return 0x4DBF0F;
 }
 
-DEFINE_JUMP(LJMP, 0x722440, MiscTools::to_DWORD(&FakeTiberiumClass::__Spread));
-DEFINE_JUMP(LJMP, 0x7228B0, MiscTools::to_DWORD(&FakeTiberiumClass::__RecalcSpreadData));
-DEFINE_JUMP(LJMP, 0x722AF0, MiscTools::to_DWORD(&FakeTiberiumClass::__QueueSpreadAt));
-DEFINE_JUMP(LJMP, 0x722F00, MiscTools::to_DWORD(&FakeTiberiumClass::__Growth));
-DEFINE_JUMP(LJMP, 0x7233A0, MiscTools::to_DWORD(&FakeTiberiumClass::__RecalcGrowthData));
-DEFINE_JUMP(LJMP, 0x7235A0, MiscTools::to_DWORD(&FakeTiberiumClass::__QueueGrowthAt));
+DEFINE_FUNCTION_JUMP(LJMP, 0x722440, FakeTiberiumClass::__Spread);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7228B0, FakeTiberiumClass::__RecalcSpreadData);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722AF0, FakeTiberiumClass::__QueueSpreadAt);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722F00, FakeTiberiumClass::__Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7233A0, FakeTiberiumClass::__RecalcGrowthData);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7235A0, FakeTiberiumClass::__QueueGrowthAt);
 
-DEFINE_JUMP(LJMP, 0x483780, MiscTools::to_DWORD(&FakeCellClass::_SpreadTiberium));
+DEFINE_FUNCTION_JUMP(LJMP, 0x483780, FakeCellClass::_SpreadTiberium);
 
 DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 {
@@ -2834,8 +2834,8 @@ DEFINE_HOOK(0x456724, BuildingClass_GetRangeOfRadial_WeaponRange, 0x6)
 	return 0x45672A;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5DA0, MiscTools::to_DWORD(&FakeObjectClass::_DrawRadialIndicator))
-DEFINE_JUMP(VTABLE, 0x7EB188, MiscTools::to_DWORD(&FakeObjectClass::_DrawRadialIndicator))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5DA0, FakeObjectClass::_DrawRadialIndicator)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB188, FakeObjectClass::_DrawRadialIndicator)
 
 //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 //Fixes recursive passenger kills not being accredited
@@ -3101,7 +3101,7 @@ static void __fastcall IonBlastDrawAll() {
 	VeinholeMonsterClass::DrawAll();
 	IonBlastClass::DrawAll();
 }
-DEFINE_JUMP(CALL , 0x6D4656 , MiscTools::to_DWORD(&IonBlastDrawAll))
+DEFINE_FUNCTION_JUMP(CALL , 0x6D4656 , IonBlastDrawAll)
 
 #ifdef _Enable
 static void __fastcall LaserDrawclassDrawAll()
@@ -3110,7 +3110,7 @@ static void __fastcall LaserDrawclassDrawAll()
 	EBolt::DrawAll();
 	ElectricBoltManager::Draw_All();
 }
-DEFINE_JUMP(CALL, 0x6D4669, MiscTools::to_DWORD(&LaserDrawclassDrawAll))
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 #endif
 
 //DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
@@ -5760,7 +5760,7 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 //}
 //
 //DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
-//DEFINE_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
+//DEFINE_FUNCTION_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
 
 template<DWORD addr, DWORD addr_ptr>
 struct MixBundle
@@ -8192,7 +8192,7 @@ public:
 	}
 };
 
-DEFINE_JUMP(CALL, 0x4CBC31, MiscTools::to_DWORD(&FakeAStarPathFinderClass::__AStarClass__Find_Path))
+DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Find_Path)
 
 DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
@@ -8457,7 +8457,7 @@ void FakeBuildingClass::_Spawn_Refinery_Smoke_Particles()
 	}
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4324, MiscTools::to_DWORD(&FakeBuildingClass::_Spawn_Refinery_Smoke_Particles));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4324, FakeBuildingClass::_Spawn_Refinery_Smoke_Particles);
 
 /*
 *	NPExt TODO :
@@ -9052,7 +9052,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	return true;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F5D58, MiscTools::to_DWORD(&FakeUnitClass::_Paradrop));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
 
 DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 {
@@ -10841,14 +10841,14 @@ public:
 	}
 };
 
-DEFINE_JUMP(LJMP, 0x6CFD40, MiscTools::to_DWORD(&FakeTabClass::_GetShapeButton2));
-DEFINE_JUMP(LJMP, 0x6D1200, MiscTools::to_DWORD(&FakeTabClass::_ShowAdvCommand));
-DEFINE_JUMP(LJMP, 0x6D14F0, MiscTools::to_DWORD(&FakeTabClass::_HideAdvCommand));
-DEFINE_JUMP(LJMP, 0x6D0F70, MiscTools::to_DWORD(&FakeTabClass::_DestroyCommandBarShapes));
-DEFINE_JUMP(LJMP, 0x6D0F10, MiscTools::to_DWORD(&FakeTabClass::_InitCommandBarShapes));
-DEFINE_JUMP(LJMP, 0x6D04A0, MiscTools::to_DWORD(&FakeTabClass::_AddButtons));
-DEFINE_JUMP(LJMP, 0x6D04D0, MiscTools::to_DWORD(&FakeTabClass::_RemoveButtons));
-DEFINE_JUMP(LJMP, 0x6D0FD0, MiscTools::to_DWORD(&FakeTabClass::InitAdvCommand));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6CFD40, FakeTabClass::_GetShapeButton2));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D1200, FakeTabClass::_ShowAdvCommand));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D14F0, FakeTabClass::_HideAdvCommand));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F70, FakeTabClass::_DestroyCommandBarShapes));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F10, FakeTabClass::_InitCommandBarShapes));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D04A0, FakeTabClass::_AddButtons));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D04D0, FakeTabClass::_RemoveButtons));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0FD0, FakeTabClass::InitAdvCommand));
 
 DEFINE_HOOK(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 {
@@ -11065,49 +11065,49 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 return 0x0;
  }
 
- DEFINE_HOOK_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
- DEFINE_HOOK(0x7BB350, XSurface_Func_check, 0x6) {
-	 GET(XSurface*, pThis, ECX);
-	 GET_STACK(uintptr_t, caller, 0x0);
+ //DEFINE_HOOK_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+ //DEFINE_HOOK(0x7BB350, XSurface_Func_check, 0x6) {
+	// GET(XSurface*, pThis, ECX);
+	// GET_STACK(uintptr_t, caller, 0x0);
 
-	 if (!pThis || VTable::Get(pThis) != XSurface::vtable){
-		 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
-	 }
+	// if (!pThis || VTable::Get(pThis) != XSurface::vtable){
+	//	 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
+	// }
 
-	 return 0x0;
- }
+	// return 0x0;
+ //}
 
- DEFINE_HOOK(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
-	 GET(int, pIndex, EBX);
-	 GET(SpawnManagerClass*, pThis, ESI);
+ //DEFINE_HOOK(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
+	// GET(int, pIndex, EBX);
+	// GET(SpawnManagerClass*, pThis, ESI);
 
-	 auto& con = pThis->SpawnedNodes;
+	// auto& con = pThis->SpawnedNodes;
 
-	 con[pIndex]->Unit->SetTarget(pThis->Target);
-	 con[pIndex]->Unit->QueueMission(Mission::Attack, 0);
+	// con[pIndex]->Unit->SetTarget(pThis->Target);
+	// con[pIndex]->Unit->QueueMission(Mission::Attack, 0);
 
-	 return 0x6B795A;
- }
+	// return 0x6B795A;
+ //}
 
- DEFINE_HOOK(0x6B7793, SpawnManagerClass_AI_doSomething_crashAtRandomAddrB, 0x7)
- {
-	 GET(SpawnManagerClass*, pThis, ESI);
-	 GET(TechnoClass*, pSpawnee, EDI);
-	 LEA_STACK(CellStruct*, OwnerCellBuffer, 0x24);
-	 LEA_STACK(CellStruct*, SpawnerCellBuffer, 0x28);
+ //DEFINE_HOOK(0x6B7793, SpawnManagerClass_AI_doSomething_crashAtRandomAddrB, 0x7)
+ //{
+	// GET(SpawnManagerClass*, pThis, ESI);
+	// GET(TechnoClass*, pSpawnee, EDI);
+	// LEA_STACK(CellStruct*, OwnerCellBuffer, 0x24);
+	// LEA_STACK(CellStruct*, SpawnerCellBuffer, 0x28);
 
-	 pThis->Owner->GetMapCoords(OwnerCellBuffer);
+	// pThis->Owner->GetMapCoords(OwnerCellBuffer);
 
-	 if (!pSpawnee->IsAlive)
-		 Debug::LogError("SpawManager[{}] Trying to use dead techno !", (void*)pThis);
+	// if (!pSpawnee->IsAlive)
+	//	 Debug::LogError("SpawManager[{}] Trying to use dead techno !", (void*)pThis);
 
-	 pSpawnee->GetMapCoords(SpawnerCellBuffer);
+	// pSpawnee->GetMapCoords(SpawnerCellBuffer);
 
-	 R->EAX(OwnerCellBuffer);
-	 R->EBP(SpawnerCellBuffer);
-	 return 0x6B77B4;
+	// R->EAX(OwnerCellBuffer);
+	// R->EBP(SpawnerCellBuffer);
+	// return 0x6B77B4;
 
- }
+ //}
 
  /*DEFINE_HOOK(0x4F671D, HouseClass_CanAffordBase_GetBuildingEmpty, 0x5) {
 	 GET(HouseClass*, pThis, ESI);
@@ -11241,27 +11241,32 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 }
 }
 
- DEFINE_HOOK(0x65B8DC, RadSiteClass_AI_DealDamageOnArea, 0x6)
- {
-	 GET(RadSiteClass*, pThis, ESI);
+DEFINE_HOOK(0x65B8C8, RadSiteClass_AI_cond, 0x5)
+{
+	GET(RadSiteClass*, pThis, ESI);
 
-	 if (!Phobos::Otamaa::DisableCustomRadSite && pThis->RadTimeLeft){
-		 CellSpreadIterator<CellClass>{}(pThis->BaseCell, (short)pThis->Spread, [pThis](CellClass* pCell) {
+	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0) {
+		if (auto pCell = MapClass::Instance->TryGetCellAt(pThis->BaseCell)) {
+			CellExtContainer::Instance.Find(pCell)->RadSites.remove(pThis);
+		}
+		return 0x65B8D3;
+	}
 
-			 if (auto pBld = pCell->GetBuilding()) {
-				 ApplyRadDamage(pThis, pBld , pCell);
-			 }
-			 else if (auto pObj = pCell->Cell_Occupier()) {
-				 if (auto pTech = flag_cast_to<TechnoClass*, false>(pObj))
-					 ApplyRadDamage(pThis, pTech, pCell);
-			 }
 
-			 return true;
-		});
-	 }
+	if (!Phobos::Otamaa::DisableCustomRadSite) {
+		CellSpreadIterator<CellClass>{}(pThis->BaseCell, (short)pThis->Spread, [pThis](CellClass* pCell) {
 
-	 return 0x0;
- }
+			 if (auto pObj = pCell->Cell_Occupier()) {
+				if (auto pTech = flag_cast_to<TechnoClass*, false>(pObj))
+					ApplyRadDamage(pThis, pTech, pCell);
+			}
+
+			return true;
+	   });
+	}
+
+	return 0x65B8DC;
+}
 
  DEFINE_HOOK(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
  {
@@ -11288,4 +11293,17 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	 return 0x6B71F1;
  }
 
+ // Fix 0x007BAEA1 crash
+
+
+ DEFINE_HOOK(0x7BAE60, BSurface_GetPixel, 0x5)
+ {
+	 GET(BSurface*, pSurface, ECX);
+	 GET_STACK(Point2D*, pPoint, 0x4);
+
+	 if (pPoint->X > pSurface->Width || pPoint->Y > pSurface->Height)
+		 *pPoint = Point2D::Empty;
+
+	 return 0;
+ }
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );

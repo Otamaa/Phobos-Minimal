@@ -29,15 +29,16 @@ int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtual
 
 void Patch::ApplyStatic()
 {
-	void* buffer;
+	void* buffer {};
 	const int len = GetSection(Phobos::hInstance , PATCH_SECTION_NAME, &buffer);
 
-	for (int offset = 0; offset < len; offset += sizeof(Patch))
-	{
-		const auto pPatch = (Patch*)((DWORD)buffer + offset);
-		if (pPatch->offset == 0)
-			return;
+	struct _patch : public Patch {
+		BYTE _paddings[3];
+	};
+	_patch* end = (_patch*)((DWORD)buffer + len);
 
+	for (_patch* begin = (_patch*)buffer; begin != end; begin++) {
+		const auto pPatch = begin;
 		pPatch->Apply();
 	}
 }
@@ -49,43 +50,47 @@ void Patch::Apply()
 	DWORD protect_flag {};
 	DWORD protect_flagb {};
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
-	std::memcpy(pAddress, this->pData, this->size);
+	if(this->type == PatchType::VTABLE_) {
+		*reinterpret_cast<LPVOID*>(this->offset) = LPVOID(reinterpret_cast<_VTABLE*>(this->pData)->pointer);
+	} else {
+		std::memcpy(pAddress, this->pData, this->size);
+	}
 	VirtualProtect(pAddress, this->size, protect_flag, &protect_flagb);
 	FlushInstructionCache(Game::hInstance, (LPVOID)pAddress, size);
 }
 
 void Patch::Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data)
 {
-	Patch::Apply_RAW(offset, data.size(), const_cast<byte*>(data.begin()));
+	Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<byte*>(data.begin()));
 }
 
-void Patch::Apply_RAW(uintptr_t offset, size_t sz , BYTE* data)
+void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, BYTE* data)
 {
-	PatchWrapper dummy { offset, sz, data };
+	PatchWrapper dummy { offset, sz, type, data };
 }
 
 void Patch::Apply_LJMP(uintptr_t offset, uintptr_t pointer)
 {
 	const _LJMP data(offset, pointer);
-	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
+	Patch::Apply_RAW(offset, data.size(), PatchType::LJMP_ , (BYTE*)&data);
 }
 
 void Patch::Apply_CALL(uintptr_t offset, uintptr_t pointer)
 {
 	const _CALL data(offset, pointer);
-	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
+	Patch::Apply_RAW(offset, data.size(), PatchType::CALL_, (BYTE*)&data);
 }
 
 void Patch::Apply_CALL6(uintptr_t offset, uintptr_t pointer)
 {
 	const _CALL6 data(offset, pointer);
-	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
+	Patch::Apply_RAW(offset, data.size(), PatchType::CALL6_ , (BYTE*)&data);
 }
 
 void Patch::Apply_VTABLE(uintptr_t offset, uintptr_t pointer)
 {
 	const _VTABLE data(offset, pointer);
-	Patch::Apply_RAW(offset, data.size(), (BYTE*)&data);
+	Patch::Apply_RAW(offset, data.size(), PatchType::VTABLE_, (BYTE*)&data);
 }
 
 std::vector<module_export> Patch::enumerate_module_exports(HMODULE handle)

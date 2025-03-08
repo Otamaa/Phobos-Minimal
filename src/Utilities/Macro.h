@@ -45,11 +45,8 @@ void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
 
-	SIZE_T bytes_written;
-
-	_LJMP cmd { 0u, 0u };
-	cmd.command = LJMP_LETTER;
-	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_LJMP);
+	SIZE_T bytes_written { 0u };
+	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
 	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
 }
 
@@ -58,25 +55,19 @@ void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
 {
 	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
 
-	SIZE_T bytes_written;
-
-	_CALL cmd { 0u, 0u };
-	cmd.command = CALL_LETTER;
-	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_CALL);
+	SIZE_T bytes_written { 0u };
+	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
 	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
 }
 
 template<typename T>
 void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
 {
-	static_assert(sizeof(_CALL6) == 6, "Jump struct not expected size!");
+	static_assert(sizeof(_CALL6) == 6, "Call6 struct not expected size!");
 
-	SIZE_T bytes_written;
-
-	_CALL6 cmd { 0u, 0u };
+	SIZE_T bytes_written { 0u };
+	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
 	cmd.command = LJMP_LETTER;
-	cmd.pointer = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(_LJMP);
-	cmd.nop = NOP_LETTER;
 
 	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
 }
@@ -84,9 +75,9 @@ void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
 template<typename T>
 void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
 {
-	static_assert(sizeof(_VTABLE) == 4, "Jump struct not expected size!");
+	static_assert(sizeof(_VTABLE) == 4, "Vtable struct not expected size!");
 
-	SIZE_T bytes_written;
+	SIZE_T bytes_written { 0u };
 
 	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
 	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
@@ -120,6 +111,14 @@ struct _LJMP
 		pointer(pointer - offset - 5)
 	{
 	};
+
+
+	COMPILETIMEEVAL
+		_LJMP(DWORD ptr) :
+		command(LJMP_LETTER),
+		pointer(ptr)
+	{ };
+
 
 	COMPILETIMEEVAL FORCEDINLINE size_t size() const{
 		return sizeof(*this);
@@ -187,11 +186,11 @@ struct _VTABLE
 #pragma region Macros
 
 #pragma region Static Patch
-#define _ALLOCATE_STATIC_PATCH(offset, size, data)                \
+#define _ALLOCATE_STATIC_PATCH(offset, size, type, data)                \
 	namespace STATIC_PATCH##offset                                \
 	{                                                             \
 		__declspec(allocate(PATCH_SECTION_NAME))                  \
-		Patch patch = {offset, size, (BYTE*)data};                \
+		Patch patch = {type ,offset, size, (BYTE*)data};                \
 	}
 
 #define DEFINE_PATCH_TYPED(type, offset, ...)                     \
@@ -199,7 +198,7 @@ struct _VTABLE
 	{                                                             \
 		const type data[] = {__VA_ARGS__};                        \
 	}                                                             \
-	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), data);
+	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), PatchType::PATCH_, data);
 
 #define DEFINE_PATCH(offset, ...)                                 \
 	DEFINE_PATCH_TYPED(byte, offset, __VA_ARGS__);
@@ -213,20 +212,24 @@ struct _VTABLE
 	{                                                             \
 		const _##jumpType data (offset, pointer);                 \
 	}                                                             \
-	_ALLOCATE_STATIC_PATCH(offset, sizeof(data), &data);
+	_ALLOCATE_STATIC_PATCH(offset, sizeof(data),PatchType::##jumpType##_ , &data);
 
 #define DEFINE_NAKED_HOOK(hook, funcname)                         \
 	void funcname();                                              \
-	DEFINE_JUMP(LJMP, hook, GET_OFFSET(funcname))                 \
+	DEFINE_FUNCTION_JUMP(LJMP, hook, GET_OFFSET(funcname))                 \
 	void NAKED funcname()
 
 #pragma endregion Static Patch
 
+#define DEFINE_FUNCTION_JUMP(jumpType, offset, function)		  \
+	DEFINE_JUMP(jumpType, offset, MiscTools::to_DWORD(&function)) 
+#pragma endregion
+
 #pragma region Dynamic Patch
-#define _ALLOCATE_DYNAMIC_PATCH(name, offset, size, data)         \
+#define _ALLOCATE_DYNAMIC_PATCH(name, offset, size, type, data)         \
 	namespace DYNAMIC_PATCH_##name                                \
 	{                                                             \
-		Patch patch = {offset, size, (BYTE*)data};                \
+		Patch patch = {type , offset, size, (BYTE*)data};                \
 	}                                                             \
 	Patch* const name = &DYNAMIC_PATCH_##name::patch;
 
@@ -235,38 +238,38 @@ struct _VTABLE
 	{                                                             \
 		const BYTE data[] = {__VA_ARGS__};                        \
 	}                                                             \
-	_ALLOCATE_DYNAMIC_PATCH(name, offset, sizeof(data), data);
+	_ALLOCATE_DYNAMIC_PATCH(name, offset, sizeof(data), PatchType::PATCH_, data);
 
 #define ALLOCATE_LOCAL_PATCH(name , offset , ...)                 \
 	BYTE name##_data[] = {__VA_ARGS__};                           \
-	PatchWrapper name { offset , sizeof(##name##_data) , name##_data };
+	PatchWrapper name { offset , sizeof(##name##_data) , PatchType::PATCH_, name##_data };
 
 #define DEFINE_DYNAMIC_JUMP(jumpType, name, offset, pointer)      \
 	namespace DYNAMIC_PATCH_##name                                \
 	{                                                             \
 		const _##jumpType data (offset, pointer);                 \
 	}                                                             \
-	_ALLOCATE_DYNAMIC_PATCH(name, offset, sizeof(data), &data);
+	_ALLOCATE_DYNAMIC_PATCH(name, offset, sizeof(data), PatchType::##jumpType##_ ,&data);
 #pragma endregion Dynamic Patch
 
 #define DEFINE_VARIABLE_PATCH(offset, name, ...)                     \
 namespace VARIABLE_PATCH##offset                                     \
 {                                                                    \
 	const byte data[] = {__VA_ARGS__};                               \
-	const patch_decl patch = { offset, sizeof(data), (byte*)data };  \
+	const Patch patch = { PatchType::PATCH_, offset, sizeof(data), (byte*)data };  \
 };                                                                   \
 namespace VARIABLE_PATCH                                             \
 {                                                                    \
-	const patch_decl* name = &VARIABLE_PATCH##offset::patch;         \
+	const Patch* name = &VARIABLE_PATCH##offset::patch;         \
 };
 
 #define DEFINE_VARIABLE_LJMP(from, to ,name)						\
 namespace VARIABLE_PATCH##from  {									\
-	const ljmp_decl data = {LJMP_LETTER, to-from-5};				\
-	const patch_decl patch = { from, 5, (byte*)&data };				\
+	const _LJMP data = { to-from-5 };				\
+	const Patch patch = { PatchType::LJMP_, from, 5, (byte*)&data };				\
 };																	\
 namespace VARIABLE_PATCH {											\
-	const patch_decl* name = &VARIABLE_PATCH##from::patch;			\
+	const Patch* name = &VARIABLE_PATCH##from::patch;			\
 };
 
 #pragma endregion Macros

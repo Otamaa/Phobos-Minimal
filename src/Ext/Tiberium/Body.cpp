@@ -526,8 +526,8 @@ HRESULT __stdcall FakeTiberiumClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F573C, MiscTools::to_DWORD(&FakeTiberiumClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F5740, MiscTools::to_DWORD(&FakeTiberiumClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F573C, FakeTiberiumClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5740, FakeTiberiumClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
 DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)

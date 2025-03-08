@@ -235,4 +235,4 @@ void FakeWaveClass::_Detach(AbstractClass* target , bool all)\
 	this->WaveClass::PointerExpired(target , all);
 }
 
-DEFINE_JUMP(VTABLE, 0x7F6C1C, MiscTools::to_DWORD(&FakeWaveClass::_Detach))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C1C, FakeWaveClass::_Detach)

@@ -174,7 +174,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	return result;
 //}
 //
-//DEFINE_JUMP(CALL, 0x6F7F51, GET_OFFSET(HealthRatio_Wrapper));
+//DEFINE_FUNCTION_JUMP(CALL, 0x6F7F51, GET_OFFSET(HealthRatio_Wrapper));
 //
 //#include <Ext/BuildingType/Body.h>
 //#pragma endregion TechnoClass__Evaluate_Object
@@ -281,7 +281,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	AresScheme::Suffix();
 //	return result;
 //}
-//DEFINE_JUMP(VTABLE, 0x7F6030, GET_OFFSET(UnitClass__GetFireError_Wrapper));
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6030, GET_OFFSET(UnitClass__GetFireError_Wrapper));
 //#pragma endregion UnitClass_GetFireError_Heal
 //
 //#pragma region InfantryClass_GetFireError_Heal
@@ -294,7 +294,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	return result;
 //}
 //
-//DEFINE_JUMP(VTABLE, 0x7EB418, GET_OFFSET(InfantryClass__GetFireError_Wrapper));
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB418, GET_OFFSET(InfantryClass__GetFireError_Wrapper));
 //#pragma endregion InfantryClass_GetFireError_Heal
 //
 //#pragma region UnitClass__WhatAction
@@ -306,7 +306,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	AresScheme::Suffix();
 //	return result;
 //}
-//DEFINE_JUMP(VTABLE, 0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
 //#pragma endregion UnitClass__WhatAction
 //
 //#pragma region InfantryClass__WhatAction
@@ -317,6 +317,6 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	AresScheme::Suffix();
 //	return result;
 //}
-//DEFINE_JUMP(VTABLE, 0x7EB0CC, GET_OFFSET(InfantryClass__WhatAction_Wrapper));
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB0CC, GET_OFFSET(InfantryClass__WhatAction_Wrapper));
 //#pragma endregion InfantryClass__WhatAction
 //#pragma endregion HealingWeapons

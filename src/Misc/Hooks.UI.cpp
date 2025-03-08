@@ -399,7 +399,7 @@ static void FC StripClass_Draw_GClockSHP(
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
+DEFINE_FUNCTION_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
 */
 //DEFINE_HOOK(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
 //{

@@ -88,7 +88,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 } //was 8
 
-//DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
 
 //DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 //{
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 //this make it unnessesary
 //replace the vtable call
 
-DEFINE_JUMP(CALL6, 0x424B04, MiscTools::to_DWORD(&FakeInfantryClass::_Dummy));
+DEFINE_FUNCTION_JUMP(CALL6, 0x424B04, FakeInfantryClass::_Dummy);
 
 DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {

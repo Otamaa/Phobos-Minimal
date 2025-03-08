@@ -52,7 +52,6 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 	while ((*pCellIterator).DifferTo(CellStruct::EOL))
 	{
 		auto actualCell = baseCoords + *pCellIterator;
-
 		for (auto i = occupyHeight; i > 0; --i)
 		{
 			foundationCells.push_back(actualCell);
@@ -903,6 +902,54 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
 }
 
+void FakeBuildingClass::_OnFireAI()
+{
+	const auto pType = this->Type;
+	const auto pExt = this->_GetExtData();
+	const auto pTypeext = pExt->Type;
+
+	for (auto& nFires : pExt->DamageFireAnims) {
+		if (nFires && nFires->Type) {
+			nFires->TimeToDie = true;
+			nFires->UnInit();
+			nFires = nullptr;
+		}
+	}
+
+	auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
+
+	if (!pFire.empty() &&
+		!pTypeext->DamageFire_Offs.empty())
+	{
+		pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
+		const auto render_coords = this->GetRenderCoords();
+		const auto nBuildingHeight = pType->GetFoundationHeight(false);
+		const auto nWidth = pType->GetFoundationWidth();
+
+		for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
+		{
+			const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
+			const auto& [nPiX, nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
+
+			CoordStruct nPixCoord { nPiX, nPiY, 0 };
+			nPixCoord += render_coords;
+
+			if (const auto pFireType = pFire[pFire.size() == 1 ?
+				 0 : ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
+			{
+				auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord);
+				const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
+				pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
+				if (pAnim->Type->End > 0)
+					pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
+
+				pAnim->Owner = this->Owner;
+				pExt->DamageFireAnims[i] = pAnim;
+			}
+		}
+	}
+}
+
 // =============================
 // load / save
 
@@ -993,12 +1040,12 @@ HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3ED0, MiscTools::to_DWORD(&FakeBuildingClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7E3ED4, MiscTools::to_DWORD(&FakeBuildingClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)
 
 void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
 	BuildingExtContainer::Instance.InvalidatePointerFor(this, target, all);
 	this->BuildingClass::PointerExpired(target , all);
 }
 
-DEFINE_JUMP(VTABLE, 0x7E3EE4, MiscTools::to_DWORD(&FakeBuildingClass::_Detach))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3EE4, FakeBuildingClass::_Detach)

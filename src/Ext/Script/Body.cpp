@@ -2247,7 +2247,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 				auto coords = pTechno->GetCenterCoords();
 
 				// Only huts reachable by the (first) engineer are valid
-				if (engineers[0]->IsInSameZone(&pTechno->GetCenterCoords()))
+				if (engineers[0]->IsInSameZone(&coords))
 					validHuts->push_back(pTechno);
 			}
 		}

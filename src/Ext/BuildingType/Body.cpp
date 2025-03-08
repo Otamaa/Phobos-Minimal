@@ -1278,7 +1278,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->IsTrench = std::distance(trenchKinds.begin(), it);
 		if (it == trenchKinds.end())
 		{
-			trenchKinds.push_back(Phobos::readBuffer);
+			trenchKinds.emplace_back(Phobos::readBuffer);
 		}
 	}
 
@@ -1683,7 +1683,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			if (!detail::read(nFire_offs, exArtINI, pArtSection, (std::string(GameStrings::DamageFireOffset()) + std::to_string(i)).c_str()))
 				break;
 
-			this->DamageFire_Offs.push_back(nFire_offs);
+			this->DamageFire_Offs.emplace_back(nFire_offs);
 		}
 
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
@@ -2193,4 +2193,4 @@ DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E4610, MiscTools::to_DWORD(&FakeBuildingTypeClass::_CanUseWaypoint))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4610, FakeBuildingTypeClass::_CanUseWaypoint)

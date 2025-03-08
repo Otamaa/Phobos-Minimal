@@ -574,6 +574,14 @@ public:
 		}
 	}
 
+	template<typename Func>
+	COMPILETIMEEVAL bool FORCEINLINE remove_if(Func&& act)
+	{
+		if (!this->IsAllocated) return false;
+		this->Reset(std::distance(this->begin() ,std::remove_if(this->begin(), this->end(), act)));
+		return true;
+	}
+
 	bool FORCEDINLINE FindAndRemove(const T& item) {
 		return this->RemoveAt(this->FindItemIndex(item));
 	}

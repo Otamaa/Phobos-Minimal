@@ -4,33 +4,23 @@
 #include <algorithm>
 #include <Helpers/Concepts.h>
 
+#include <Lib/fast_remove_if.h>
+
 template<typename T, typename A = std::allocator<T>>
 struct HelperedVector : public std::vector<T , A>
 {
 
-	//bool FORCEDINLINE remove_at(size_t index) {
-	//	if (this->valid_index(index)) {
-	//		this->erase(this->begin() + index);
-	//		return true;
-	//	}
-
-	//	return false;
-	//}
-
-	bool FORCEDINLINE remove(const T& item) {
-		const auto iter = std::remove(this->begin() , this->end() , item);
-
-		if (iter != this->end()) {
-			this->erase(iter);
+	bool FORCEDINLINE remove_at(size_t index) {
+		if (this->valid_index(index)) {
+			this->erase(this->begin() + index);
 			return true;
 		}
 
 		return false;
 	}
 
-	template <typename Func>
-	bool FORCEDINLINE remove_if(Func&& act) {
-		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
+	bool FORCEDINLINE remove(const T& item) {
+		const auto iter = this->find(item);
 
 		if (iter != this->end()) {
 			this->erase(iter);
@@ -53,18 +43,11 @@ struct HelperedVector : public std::vector<T , A>
 	template <typename Func>
 	bool FORCEDINLINE remove_all_if(Func&& act)
 	{
-		const auto iter = std::remove_if(this->begin(), this->end(), std::forward<Func>(act));
-
-		if (iter != this->end()) {
-			this->erase(iter, this->end());
-			return true;
-		}
-
-		return false;
+		return fast_remove_if(this, std::forward<Func>(act));
 	}
 
 	template <typename Func>
-	auto FORCEDINLINE find_if(Func&& act) {
+	auto FORCEDINLINE find_if(Func&& act) const {
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 

@@ -1302,11 +1302,7 @@ bool HouseExtData::IsDisabledFromShell(
 
 void HouseExtData::UpdateAutoDeathObjects()
 {
-	if (HouseExtData::AutoDeathObjects.empty())
-		return;
-
-	const auto iter = std::remove_if(HouseExtData::AutoDeathObjects.begin(), HouseExtData::AutoDeathObjects.end(), [](auto& item)
-	{
+	 HouseExtData::AutoDeathObjects.erase_all_if([](auto& item) {
 		if (!item.first || item.second == KillMethod::None || !item.first->IsAlive) {
 			return true;
 		}
@@ -1326,10 +1322,6 @@ void HouseExtData::UpdateAutoDeathObjects()
 		}
 		return false;
 	});
-
-	if (iter != HouseExtData::AutoDeathObjects.end()) {
-		HouseExtData::AutoDeathObjects.erase(iter);
-	}
 }
 
 int HouseExtData::CountOwnedIncludeDeploy(const HouseClass* pThis, const TechnoTypeClass* pItem)
@@ -2278,7 +2270,7 @@ int FakeHouseClass::_Expert_AI()
 	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + 105;
 }
 
-DEFINE_JUMP(CALL ,0x4F9017, MiscTools::to_DWORD(&FakeHouseClass::_Expert_AI))
+DEFINE_FUNCTION_JUMP(CALL ,0x4F9017, FakeHouseClass::_Expert_AI)
 
 // =============================
 // container hooks
@@ -2354,4 +2346,4 @@ void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	this->HouseClass::PointerExpired(target, all);
 }
 
-DEFINE_JUMP(VTABLE, 0x7EA8C8,  MiscTools::to_DWORD(&FakeHouseClass::_Detach))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8C8,  FakeHouseClass::_Detach)

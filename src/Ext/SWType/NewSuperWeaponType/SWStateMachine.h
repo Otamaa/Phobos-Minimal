@@ -57,17 +57,10 @@ public:
 	}
 
 	// static methods
-	static OPTIONALINLINE
-#if _HAS_CXX23 == 1
-		COMPILETIMEEVAL
-#endif
-	SWStateMachine* Register(std::unique_ptr<SWStateMachine> Machine) {
-		if (Machine) {
-			Array.push_back(std::move(Machine));
-			return Array.back().get();
-		}
-
-		return nullptr;
+	template <typename TMachine , typename... TArgs>
+	static COMPILETIMEEVAL FORCEINLINE TMachine* Register(TArgs&&... _Args) {
+		Array.push_back(std::move(std::make_unique<TMachine>(std::forward<TArgs>(_Args)...)));
+		return (TMachine*)Array.back().get();
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE SWTypeExtData * GetTypeExtData() const {

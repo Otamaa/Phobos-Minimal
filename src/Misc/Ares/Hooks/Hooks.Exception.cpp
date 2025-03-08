@@ -134,7 +134,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 	Debug::FreeMouse();
 	Debug::LogInfo("Exception handler fired!");
-	Debug::Log("Exception 0x%x at 0x%x", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+	Debug::Log("Exception 0x%x at 0x%x\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	Game::StreamerThreadFlush();
 
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
@@ -426,7 +426,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	return 0u;
 };
 
-DEFINE_JUMP(LJMP, 0x4C8FE0, MiscTools::to_DWORD(&ExceptionHandler))
+DEFINE_FUNCTION_JUMP(LJMP, 0x4C8FE0, ExceptionHandler)
 
 //DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
 //{

@@ -174,8 +174,8 @@ HRESULT __stdcall FakeParticleTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F019C, MiscTools::to_DWORD(&FakeParticleTypeClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F01A0, MiscTools::to_DWORD(&FakeParticleTypeClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F019C, FakeParticleTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01A0, FakeParticleTypeClass::_Save)
 
 DEFINE_HOOK_AGAIN(0x645414 , ParticleTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)

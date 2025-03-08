@@ -43,7 +43,7 @@ DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 	return 0x615226;
 }
 
-//DEFINE_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));
+//DEFINE_FUNCTION_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));
 
 // It is required to add Imm32.lib to AdditionalDependencies
 //DEFINE_HOOK(0x777F15, IMEUpdateCompositionString, 0x7)

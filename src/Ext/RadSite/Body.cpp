@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
@@ -15,7 +16,7 @@ void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	damageCounts.erase((BuildingClass*)ptr);
 }
 
-void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
+void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
 	const auto pRadExt = RadSiteExtContainer::Instance.Find(GameCreate<RadSiteClass>());
@@ -39,7 +40,8 @@ void RadSiteExtData::CreateInstance(CoordStruct const& nCoord, int spread, int a
 	}
 
 	pRadExt->CreationFrame = Unsorted::CurrentFrame;
-	pRadExt->AttachedToObject->BaseCell = CellClass::Coord2Cell(nCoord);
+	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->AttachedToObject);
+	pRadExt->AttachedToObject->BaseCell = pCell->MapCoords;
 	pRadExt->AttachedToObject->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
@@ -226,7 +228,6 @@ DEFINE_HOOK(0x65B243, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 		RadSiteExtContainer::Instance.Allocate(pThis);
-		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 
 	return 0;
@@ -237,7 +238,6 @@ DEFINE_HOOK(0x65B344, RadSiteClass_DTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		PointerExpiredNotification::NotifyInvalidObject->Remove(pThis);
 		RadSiteExtContainer::Instance.Remove(pThis);
 	}
 
@@ -270,8 +270,8 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0824, MiscTools::to_DWORD(&FakeRadSiteClass::_Load))
-DEFINE_JUMP(VTABLE, 0x7F0828, MiscTools::to_DWORD(&FakeRadSiteClass::_Save))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 
 //#ifdef AAENABLE_NEWHOOKS
 //DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
@@ -321,7 +321,7 @@ void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 	}
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0838, MiscTools::to_DWORD(&FakeRadSiteClass::_Detach));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0838, FakeRadSiteClass::_Detach);
 
 HouseClass* FakeRadSiteClass::_GetOwningHouse()
 {
@@ -332,4 +332,4 @@ HouseClass* FakeRadSiteClass::_GetOwningHouse()
 	return nullptr;
 }
 
-DEFINE_JUMP(VTABLE, 0x7F084C, MiscTools::to_DWORD(&FakeRadSiteClass::_GetOwningHouse));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);
