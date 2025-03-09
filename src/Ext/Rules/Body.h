@@ -461,6 +461,7 @@ public:
 	Valueable<bool> NoTurret_TrackTarget { false };
 
 	Valueable<bool> RecountBurst { false };
+	Valueable<ColorStruct> AirstrikeLineColor { { 255, 0, 0 } };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

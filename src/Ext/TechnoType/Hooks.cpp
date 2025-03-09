@@ -288,6 +288,19 @@ DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoManualMove.Get() ? 0x700C62 : 0;
 }
 
+DEFINE_HOOK(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EDX);
+	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0x44384E : 0;
+}
+
+DEFINE_HOOK(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EDX);
+	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0 : pType->UndeploysInto);
+	return 0x44F631;
+}
+
 DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);

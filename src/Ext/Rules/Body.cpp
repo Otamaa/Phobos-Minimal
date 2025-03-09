@@ -756,6 +756,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NoTurret_TrackTarget.Read(exINI, GameStrings::General, "NoTurret.TrackTarget");
 
 	this->RecountBurst.Read(exINI, GameStrings::General, "RecountBurst");
+	this->AirstrikeLineColor.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineColor");
 
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
@@ -1501,6 +1502,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->NoTurret_TrackTarget)
 
 		.Process(this->RecountBurst)
+		.Process(this->AirstrikeLineColor)
 		;
 
 	MyPutData.Serialize(Stm);

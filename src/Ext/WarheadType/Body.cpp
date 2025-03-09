@@ -594,7 +594,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->BuildingUndeploy.Read(exINI, pSection, "BuildingUndeploy");
 	this->BuildingUndeploy_Leave.Read(exINI, pSection, "BuildingUndeploy.Leave");
 
-	this->ScorcScorchChance.Read(exINI, pSection, "ScorcScorchChance");
+	this->ScorcScorchChance.Read(exINI, pSection, "ScorchChance");
 	this->CraterChance.Read(exINI, pSection, "CraterChance");
 	this->CellAnimChance.Read(exINI, pSection, "CellAnimChance");
 	this->CellAnim.Read(exINI, pSection, "CellAnim");

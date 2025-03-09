@@ -1070,6 +1070,8 @@ public:
 
 	Nullable<bool> RecountBurst {};
 
+	Nullable<ColorStruct> AirstrikeLineColor {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

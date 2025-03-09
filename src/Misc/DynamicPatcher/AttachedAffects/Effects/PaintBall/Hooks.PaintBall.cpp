@@ -31,8 +31,14 @@ int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, boo
 
 	if (invulnerability && pThis->IsIronCurtained())
 		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ?  g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
-	if (airstrike && pThis->Airstrike && pThis->Airstrike->Target == pThis)
-		tintColor |= g_instance->ColorDatas.LaserTarget_Color;
+	if (airstrike && pThis->Airstrike && pThis->Airstrike->Target == pThis){
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+			if(pTypeExt->LaserTargetColor.isset())
+				tintColor |= GeneralUtils::GetColorFromColorAdd(pTypeExt->LaserTargetColor);
+			else
+				tintColor |= g_instance->ColorDatas.LaserTarget_Color;
+	}
+
 	if (berserk && pThis->Berzerk)
 		tintColor |=  g_instance->ColorDatas.Berserk_Color;
 
