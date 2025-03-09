@@ -14,33 +14,33 @@ void DetonateTheBullet(BulletClass* pThis,  CoordStruct coords , CoordStruct ori
 }
 #pragma optimize("", on )
 
-//DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
-//{
-//	GET(FakeBulletClass*, pThis, ESI);
-//	LEA_STACK(CoordStruct* , origCoords, (0x3C - 0x30));
-//
-//	if (pThis->Type->Cluster > 0)
-//	{
-//		const auto pTypeExt = pThis->_GetTypeExtData();
-//		const int min = pTypeExt->Cluster_Scatter_Min.Get();
-//		const int max = pTypeExt->Cluster_Scatter_Max.Get();
-//		CoordStruct coord = *origCoords;
-//
-//		for (int i = 0; i < pThis->Type->Cluster; i++) {
-//
-//			DetonateTheBullet(pThis, coord, *origCoords);
-//
-//			if (!BulletExtData::IsReallyAlive(pThis))
-//				break;
-//
-//			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
-//			const bool center = ScenarioClass::Instance->Random.RandomBool();
-//			coord = MapClass::GetRandomCoordsNear(coord, distance, center);
-//		}
-//	}
-//
-//	return 0x469091;
-//}
+DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
+{
+	GET(FakeBulletClass*, pThis, ESI);
+	LEA_STACK(CoordStruct* , origCoords, (0x3C - 0x30));
+
+	if (pThis->Type->Cluster > 0)
+	{
+		const auto pTypeExt = pThis->_GetTypeExtData();
+		const int min = pTypeExt->Cluster_Scatter_Min.Get();
+		const int max = pTypeExt->Cluster_Scatter_Max.Get();
+		CoordStruct coord = *origCoords;
+
+		for (int i = 0; i < pThis->Type->Cluster; i++) {
+
+			DetonateTheBullet(pThis, coord, *origCoords);
+
+			if (!BulletExtData::IsReallyAlive(pThis))
+				break;
+
+			const int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);
+			const bool center = ScenarioClass::Instance->Random.RandomBool();
+			coord = MapClass::GetRandomCoordsNear(coord, distance, center);
+		}
+	}
+
+	return 0x469091;
+}
 
 
 int GetScatterResult(BulletClass* pThis

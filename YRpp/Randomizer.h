@@ -188,6 +188,14 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble_Closest()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME() - 0.5; }
 
+	COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf(double probability) {
+		return ((Math::abs(this->Random()) % 1000000) / 1000000.0) < probability;
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf2(double probability) {
+		return (((RandomRanged(0, INT_MAX - 1) / (double)(INT_MAX - 1))) < probability);
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }
 

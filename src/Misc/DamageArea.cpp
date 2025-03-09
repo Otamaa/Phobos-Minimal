@@ -1,6 +1,7 @@
 #include "DamageArea.h"
 
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Rules/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -20,11 +21,12 @@
 #include <VoxelAnimClass.h>
 #include <TacticalClass.h>
 #include <AnimClass.h>
+#include <SmudgeTypeClass.h>
 
 #include <YRAllocator.h>
 #include <CellSpread.h>
 
-void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeClass* const  pWarhead, int damage, CellClass* pCell, CellStruct* pCellStruct)
+static void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeClass* const  pWarhead, int damage, CellClass* pCell, CellStruct* pCellStruct)
 {
 	static COMPILETIMEEVAL reference<int, 0xAA0E28> BridgeSet {};
 	static COMPILETIMEEVAL reference<int, 0xABAD30> BridgeMiddle1 {};
@@ -163,8 +165,35 @@ void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeClass* con
 	}
 }
 
-static PhobosMap<BuildingClass*, double> MergedDamage {};
+static void NOINLINE Spawn_Flames_And_Smudges(const CellStruct& cell, double scorchChance, double craterChance, double cellAnimChance, NullableVector<AnimTypeClass*>& cellAnims)
+{
+	CoordStruct cell_coord = CellClass::Cell2Coord(cell);
+	cell_coord.Z = MapClass::Instance->GetCellFloorHeight(cell_coord);
 
+	if (ScenarioClass::Instance->Random.ProbabilityOf(scorchChance))
+	{
+		SmudgeTypeClass::CreateRandomSmudgeFromTypeList(cell_coord, 100, 100, false);
+	}
+	else if (ScenarioClass::Instance->Random.ProbabilityOf(craterChance))
+	{
+		SmudgeTypeClass::CreateRandomSmudge(cell_coord, 100, 100, false);
+	}
+
+	if (ScenarioClass::Instance->Random.ProbabilityOf(cellAnimChance))
+	{
+		if (auto pAnims = cellAnims.GetElements(RulesClass::Instance->OnFire))
+		{
+			if (AnimTypeClass* pType = pAnims.size() == 1 ? pAnims[0] : pAnims[ScenarioClass::Instance->Random.RandomRanged(0, pAnims.size() - 1)])
+			{
+				GameCreate<AnimClass>(pType, cell_coord);
+			}
+		}
+	}
+}
+
+static PhobosMap<BuildingClass*, double> MergedDamage {};
+static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
+static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
 
 // this function is landmines , hooking it breaking other
 
@@ -175,8 +204,8 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		bool affectTiberium,
 		HouseClass* pHouse)
 {
-	JMP_STD(0x489280);
-	/*
+	//JMP_STD(0x489280);
+
 	if (!pWarhead)
 	{
 		return DamageAreaResult::Missed;
@@ -295,129 +324,134 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		for (CellSpreadEnumerator it(short(spread + 0.99), short(0)); it; ++it)
 		{
 			auto cellhere = (cell + (*it));
+
 			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere))
 			{
-
-				auto cur_cellCoord = pCurCell->GetCoords();
-
-				if (pCurCell->OverlayTypeIndex > -1)
+				if (MapClass::Instance->CoordinatesLegal(cellhere))
 				{
-					auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
-					if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
-					{// hook up the area damage delivery with chain reactions
-						pCurCell->ChainReaction();
-						pCurCell->ReduceTiberium(damage / 10);
-					}
+					auto cur_cellCoord = pCurCell->GetCoords();
 
-					if (pOvelay->Wall)
+					if (pCurCell->OverlayTypeIndex > -1)
 					{
-						if (pWarhead->WallAbsoluteDestroyer)
-						{
-							pCurCell->ReduceWall();
+						auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
+						if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
+						{// hook up the area damage delivery with chain reactions
+							pCurCell->ChainReaction();
+							pCurCell->ReduceTiberium(damage / 10);
 						}
-						else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
-						{
-							pCurCell->ReduceWall(damage);
-						}
-					}
 
-					if (pCurCell->OverlayTypeIndex == -1)
-					{
-						TechnoClass::ClearWhoTargetingThis(pCurCell);
-					}
-
-					if (pOvelay->IsVeinholeMonster)
-					{
-						if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
+						if (pOvelay->Wall)
 						{
-							if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
+							if (pWarhead->WallAbsoluteDestroyer)
 							{
-								int nDamage = damage;
-								if (veinhole->ReceiveDamage(&nDamage,
-									(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
-									const_cast<WarheadTypeClass*>(pWarhead),
-									pSource,
-									false,
-									false,
-									pSource && !pHouse ? pSource->Owner : pHouse
-								) == DamageState::NowDead)
-								{
-									Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+								pCurCell->ReduceWall();
+							}
+							else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
+							{
+								pCurCell->ReduceWall(damage);
+							}
+						}
 
-									if (pCurCell->OverlayTypeIndex == -1)
+						if (pCurCell->OverlayTypeIndex == -1)
+						{
+							TechnoClass::ClearWhoTargetingThis(pCurCell);
+						}
+
+						if (pOvelay->IsVeinholeMonster)
+						{
+							if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
+							{
+								if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
+								{
+									int nDamage = damage;
+									if (veinhole->ReceiveDamage(&nDamage,
+										(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
+										const_cast<WarheadTypeClass*>(pWarhead),
+										pSource,
+										false,
+										false,
+										pSource && !pHouse ? pSource->Owner : pHouse
+									) == DamageState::NowDead)
 									{
-										TechnoClass::ClearWhoTargetingThis(pCurCell);
+										Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+
+										if (pCurCell->OverlayTypeIndex == -1)
+										{
+											TechnoClass::ClearWhoTargetingThis(pCurCell);
+										}
 									}
 								}
 							}
 						}
 					}
-				}
 
-				for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
-				{
-					auto pCur = *next;
+					Spawn_Flames_And_Smudges(cellhere, pWHExt->ScorcScorchChance, pWHExt->CraterChance, pWHExt->CellAnimChance, pWHExt->CellAnim);
 
-					if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
-						continue;
-
-					if (!pCur->IsAlive)
-						continue;
-
-					const auto what = pCur->WhatAmI();
-					auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
-
-					if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
+					for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
 					{
-						if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
-						{
+						auto pCur = *next;
+
+						if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
 							continue;
-						}
-					}
 
-					auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
-					groupvec.push_back(cur_Group);
+						if (!pCur->IsAlive)
+							continue;
 
-					if (what == BuildingClass::AbsID)
-					{
-						if (!it.getCurSpread())
+						const auto what = pCur->WhatAmI();
+						//auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
+
+						if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
 						{
-							if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight * 2))
+							if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
 							{
-								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::LevelHeight;
+								continue;
 							}
+						}
 
-							if (spreadLow)
+						auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
+						groupvec.push_back(cur_Group);
+
+						if (what == BuildingClass::AbsID)
+						{
+							if (!it.getCurSpread())
 							{
-								if (pCur->IsIronCurtained()
-									&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
-									&& cur_Group->Distance < 85
-									)
+								if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight * 2))
 								{
-									HitICEdTechno = !pWHExt->PenetratesIronCurtain;
+									cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::LevelHeight;
 								}
+
+								if (spreadLow)
+								{
+									if (pCur->IsIronCurtained()
+										&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
+										&& cur_Group->Distance < 85
+										)
+									{
+										HitICEdTechno = !pWHExt->PenetratesIronCurtain;
+									}
+								}
+							}
+							else
+							{
+								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
 							}
 						}
 						else
 						{
+							cur_cellCoord = pCur->GetTargetCoords();
 							cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
 						}
 					}
-					else
-					{
-						cur_cellCoord = pCur->GetTargetCoords();
-						cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-					}
-				}
 
+				}
 			}
 		}
 	}
 
 	if (pWHExt->CellSpread_MaxAffect > 0)
 	{
-		Targets.clear();
-		Handled.clear();
+		Targets.Clear();
+		Handled.Clear();
 
 		const auto g_end = groupvec.begin() + groupvec.size();
 
@@ -427,17 +461,17 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.push_back_unique(group->Target))
+			if (group && Targets.AddUnique(group->Target))
 			{
 
-				Handled.clear();
+				Handled.Clear();
 
 				// collect all slots containing damage groups for this target
 				std::for_each(g_begin, g_end, [group](DamageGroup* item)
  {
 	 if (item && item->Target == group->Target)
 	 {
-		 Handled.push_back(item);
+		 Handled.AddItem(item);
 	 }
 				});
 
@@ -502,7 +536,6 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		auto curDistance = pGroup->Distance;
 		auto pObj = pGroup->Target;
 		const auto pBuilding = cast_to<BuildingClass*, false>(pObj);
-		const auto pWH = pWarhead;
 
 		if (pObj->IsAlive
 		&& (!pBuilding || !pBuilding->Type->InvisibleInGame)
@@ -525,7 +558,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 					if (bld_damage != MergedDamage.end())
 					{
-						ddd *= bld_damage->second;
+						ddd = int(ddd * bld_damage->second);
 						MergedDamage.erase(bld_damage);
 					}
 				}
@@ -554,18 +587,21 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 		if (rockerSpread > 0.3)
 		{
-			const int cell_radius = 3;
-			for (int x = -cell_radius; x <= cell_radius; x++)
+			const short cell_radius = 3;
+			for (short x = -cell_radius; x <= cell_radius; x++)
 			{
-				for (int y = -cell_radius; y <= cell_radius; y++)
+				for (short y = -cell_radius; y <= cell_radius; y++)
 				{
-					int xpos = cell.X + x;
-					int ypos = cell.Y + y;
+					short xpos = cell.X + x;
+					short ypos = cell.Y + y;
+					CellStruct cellhere { xpos, ypos };
 
-					if (auto pCell = MapClass::Instance->TryGetCellAt(CellStruct(xpos, ypos)))
+					if (auto pCellHere = MapClass::Instance->TryGetCellAt(cellhere))
 					{
+						if(!MapClass::Instance->CoordinatesLegal(cellhere))
+							continue;
 
-						auto object = pCell->Cell_Occupier(alt);
+						auto object = pCellHere->Cell_Occupier(alt);
 
 						while (object)
 						{
@@ -576,7 +612,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 									Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 									Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 									CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-									techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+									CoordStruct _result_rock = pCoord->operator+(rock_);
+
+									techno->RockByValue(&_result_rock, (float)rockerSpread);
 								}
 								else if (pWarhead->CellSpread > 0.0f)
 								{
@@ -635,50 +673,47 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		GameCreate<ParticleSystemClass>(pParticle, *pCoord)
 			->SpawnHeldParticle(pCoord, pCoord);
 	}
-	
+
 
 	return DamageAreaResult(AnythingHit == 0);
-	*/
+
 }
 
-//DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x424647, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x425237, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x469A83, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x481E33, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x481E89, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x48266D, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x482836, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x48A371, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, MiscTools::to_DWORD(DamageArea::Apply));
-//DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, MiscTools::to_DWORD(DamageArea::Apply));
+DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x424647, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x425237, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x469A83, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x481E33, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x481E89, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48266D, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x482836, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48A371, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
 
-#ifndef _ENABLE
-static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
-static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
-
+#ifdef _ENABLE
 
 DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
@@ -771,13 +806,15 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		}
 
 		// move all the empty ones to the back, then remove them
-		groupvec.remove_if([](DamageGroup* pGroup) {
-			if (!pGroup->Target) {
-				GameDelete<false, false>(pGroup);
-				return true;
-			}
+		groupvec.remove_if([](DamageGroup* pGroup)
+ {
+	 if (!pGroup->Target)
+	 {
+		 GameDelete<false, false>(pGroup);
+		 return true;
+	 }
 
-			return false;
+	 return false;
 		});
 
 		Targets.Count = 0;
@@ -795,7 +832,7 @@ DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 	//GET_STACK(int, distance, 0x68);
 	GET_BASE(TechnoClass*, pSource, 0x8);
 	//GET_BASE(HouseClass*, pHouse, 0x14);
- 
+
 	auto pWHExt = pWarhead->_GetExtData();
 
 	for (int i = 0; i < groupvec.Count; ++i)
@@ -833,7 +870,8 @@ DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 
 
 	groupvec.Count = 0;
-	if(groupvec.IsAllocated) {
+	if (groupvec.IsAllocated)
+	{
 		GameDeleteArray(groupvec.Items, groupvec.Capacity);
 		groupvec.IsAllocated = false;
 	}

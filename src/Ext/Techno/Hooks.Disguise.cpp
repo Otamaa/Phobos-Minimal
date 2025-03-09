@@ -2,6 +2,7 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <Utilities/Cast.h>
+#include <Utilities/Macro.h>
 
 DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {
@@ -40,6 +41,32 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 
 	return 0x746712;
 }
+
+bool __fastcall IsAlly_Wrapper(HouseClass* pThis, void* _, HouseClass* pOther)
+{
+	return pOther->IsObserver() || pOther->IsAlliedWith(pThis) || (RulesExtData::Instance()->DisguiseBlinkingVisibility & AffectedHouse::Enemies) != AffectedHouse::None;
+}
+
+bool __fastcall IsControlledByCurrentPlayer_Wrapper(HouseClass* pThis)
+{
+	HouseClass* pCurrent = HouseClass::CurrentPlayer;
+	AffectedHouse visibilityFlags = RulesExtData::Instance()->DisguiseBlinkingVisibility;
+
+	if (SessionClass::IsCampaign() && (pThis->IsHumanPlayer || pThis->IsInPlayerControl))
+	{
+		if ((visibilityFlags & AffectedHouse::Allies) != AffectedHouse::None && pCurrent->IsAlliedWith(pThis))
+			return true;
+
+		return (visibilityFlags & AffectedHouse::Owner) != AffectedHouse::None;
+	}
+
+	return pCurrent->IsObserver() || EnumFunctions::CanTargetHouse(visibilityFlags, pCurrent, pThis);
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4DEDD2, IsAlly_Wrapper);                      // FootClass_GetImage
+DEFINE_FUNCTION_JUMP(CALL, 0x70EE5D, IsControlledByCurrentPlayer_Wrapper); // TechnoClass_ClearlyVisibleTo
+DEFINE_FUNCTION_JUMP(CALL, 0x70EE70, IsControlledByCurrentPlayer_Wrapper); // TechnoClass_ClearlyVisibleTo
+DEFINE_FUNCTION_JUMP(CALL, 0x7062FB, IsControlledByCurrentPlayer_Wrapper); // TechnoClass_DrawObject
 
 #ifdef ENABLE_OBESERVER_THRUDISGUISE
 DEFINE_HOOK(0x746750, UnitClass_CantTarget_Disguise, 0x5)

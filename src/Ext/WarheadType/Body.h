@@ -413,6 +413,10 @@ public:
 	Valueable<bool> BuildingUndeploy { false };
 	Valueable<bool> BuildingUndeploy_Leave { false };
 
+	Nullable<double> ScorcScorchChance {};
+	Nullable<double> CraterChance {};
+	Nullable<double> CellAnimChance {};
+	NullableVector<AnimTypeClass*> CellAnim {};
 public:
 
 	void InitializeConstant();

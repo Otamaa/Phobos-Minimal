@@ -2081,7 +2081,7 @@ DEFINE_HOOK(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 }
 
 // Suppress Ares' swizzle warning
-size_t __fastcall HexStr2Int_replacement(const char* str)
+static size_t __fastcall HexStr2Int_replacement(const char* str)
 {
 	// Fake a pointer to trick Ares
 	return std::hash<std::string_view>{}(str) & 0xFFFFFF;
@@ -2095,7 +2095,7 @@ DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
 
 #pragma region TeamCloseRangeFix
 
-int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
+static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
 {
 	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
 		? pSource->DistanceFrom(pTarget) // 2D distance
@@ -2105,7 +2105,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
 
 #pragma endregion
 
-void KickOutStuckUnits(BuildingClass* pThis)
+static void KickOutStuckUnits(BuildingClass* pThis)
 {
 	if (const auto pTechno = pThis->GetNthLink())
 	{
@@ -2231,4 +2231,15 @@ DEFINE_HOOK(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
 	GET(FootClass*, pThis, ESI);
 	pThis->RemoveSensorsAt(pThis->LastMapCoords);
 	return 0x4DBF01;
+}
+
+DEFINE_HOOK(0x7BAE60, BSurface_GetPixel, 0x5)
+{
+	GET(BSurface*, pSurface, ECX);
+	GET_STACK(Point2D*, pPoint, 0x4);
+
+	if (pPoint->X > pSurface->Width || pPoint->Y > pSurface->Height)
+		*pPoint = Point2D::Empty;
+
+	return 0;
 }

@@ -464,6 +464,10 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 		if (!pAnim->Owner || pAnim->Owner != newOwner)
 		{
 			pAnim->SetHouse(newOwner);
+			if (pAnim->Type->MakeInfantry > -1 || pTypeExt->CreateUnit) {
+				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+			}
+
 			return { false , Owner };
 		}
 	}

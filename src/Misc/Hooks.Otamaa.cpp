@@ -4708,7 +4708,8 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								pDestCell = MapClass::Instance->GetCellAt(dest);
 							}
 
-							DamageArea::Apply(&pDestCell->GetCoords(), (int)something, nullptr, WH, true, nullptr);
+							auto damagearea = pDestCell->GetCoords();
+							DamageArea::Apply(&damagearea, (int)something, nullptr, WH, true, nullptr);
 							randomizeCoord = ++i < 8;
 						}
 					}
@@ -5583,20 +5584,18 @@ DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 template<class T, class U>
 COMPILETIMEEVAL int8 __CFADD__(T x, U y)
 {
-	COMPILETIMEEVAL int size = sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U);
-
-	if (size == 1)
+	if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 1)
 		return uint8(x) > uint8(x + y);
-	if (size == 2)
+	else if COMPILETIMEEVAL ((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 2)
 		return uint16(x) > uint16(x + y);
-	if (size == 4)
+	else if COMPILETIMEEVAL ((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 4)
 		return uint32(x) > uint32(x + y);
-
-	return unsigned __int64(x) > unsigned __int64(x + y);
+	else
+		return unsigned __int64(x) > unsigned __int64(x + y);
 }
 
 // TODO : percent timer draawing , the game dont like it when i do that without adjusting the posisition :S
-void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+static void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -6786,11 +6785,12 @@ DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
 
 DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass*, pSurvivor, ESI);
 	GET_STACK(int, nData, 0x8C - 0x70);
+	Debug::Log("Survivor[(%x - %s) - %s] unlimbo OK\n", pSurvivor , pSurvivor->Type->ID , pSurvivor->Owner->Type->ID);
 
 	R->EBP(--nData);
-	R->EDX(pThis->Type);
+	R->EDX(pSurvivor->Type);
 	return 0x4431EB;
 }
 
@@ -11133,7 +11133,7 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
  //}
 #include <Ext/RadSite/Body.h>
 
- void ApplyRadDamage(RadSiteClass* pRad ,TechnoClass* pObj, CellClass* pCell) {
+ static void ApplyRadDamage(RadSiteClass* pRad ,TechnoClass* pObj, CellClass* pCell) {
 	 if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
 	 {
 		 const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
@@ -11294,16 +11294,4 @@ DEFINE_HOOK(0x65B8C8, RadSiteClass_AI_cond, 0x5)
  }
 
  // Fix 0x007BAEA1 crash
-
-
- DEFINE_HOOK(0x7BAE60, BSurface_GetPixel, 0x5)
- {
-	 GET(BSurface*, pSurface, ECX);
-	 GET_STACK(Point2D*, pPoint, 0x4);
-
-	 if (pPoint->X > pSurface->Width || pPoint->Y > pSurface->Height)
-		 *pPoint = Point2D::Empty;
-
-	 return 0;
- }
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );

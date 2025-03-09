@@ -47,9 +47,11 @@ public:
 	//SmudgeTypeClass
 	virtual void DrawIt(const Point2D& Point, const RectangleStruct& Rect, int SmudgeData, int nHeight, const CellStruct& MapCoords) RX;
 
+	//craters
 	static void __fastcall CreateRandomSmudgeFromTypeList(CoordStruct& nWhere, int nVal1, int nVal2, bool bIgnoreBuildings)
 		{ JMP_STD(0x6B5C90); }
 
+	//scorches
 	static void __fastcall CreateRandomSmudge(CoordStruct& nWhere, int nVal1, int nVal2, bool bIgnoreBuildings)
 		{ JMP_STD(0x6B59A0); }
 

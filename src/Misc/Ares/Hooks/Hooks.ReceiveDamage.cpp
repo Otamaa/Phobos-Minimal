@@ -44,7 +44,7 @@
 
 #include <ExtraHeaders/StackVector.h>
 
-DWORD Crashable(FootClass* pThis, TechnoTypeClass* pType, ObjectClass* pKiller)
+static DWORD Crashable(FootClass* pThis, TechnoTypeClass* pType, ObjectClass* pKiller)
 {
 
 	if (pType->Crashable)
@@ -304,7 +304,7 @@ DEFINE_HOOK(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 	auto pObjType = pThis->GetType();
 
-	if (!*args.Damage || !args.IgnoreDefenses && pObjType->Immune)
+	if (!*args.Damage || (!args.IgnoreDefenses && pObjType->Immune))
 	{
 		R->EAX(_res);
 		return 0x5F584A;
@@ -415,7 +415,6 @@ DEFINE_HOOK(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 			if (pThis->AttachedTag)
 			{
 				pThis->AttachedTag->SpringEvent(TriggerEvent::HalfHealth_anysource, pThis, CellStruct::Empty, false, nullptr);
-
 			}
 		}
 
@@ -632,16 +631,13 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				*args.Damage = 1;
 		}
 
-		if (args.Attacker)
+		if (args.Attacker && pType->TypeImmune)
 		{
-			if (pType->TypeImmune)
+			auto pAttackerType = args.Attacker->GetTechnoType();
+			if (pType == pAttackerType && pThis->Owner == args.Attacker->Owner)
 			{
-				auto pAttackerType = args.Attacker->GetTechnoType();
-				if (pType == pAttackerType && pThis->Owner == args.Attacker->Owner)
-				{
 					R->EAX(DamageState::Unaffected);
 					return 0x702D1F;
-				}
 			}
 		}
 	}
@@ -661,7 +657,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pThis)) && !args.IgnoreDefenses)
+	if ((pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pThis))) && !args.IgnoreDefenses)
 	{
 		*args.Damage = 0;
 		R->EAX(DamageState::Unaffected);
@@ -770,25 +766,25 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), args.WH, _res);
 
+	if (args.Attacker && !pWHExt->Nonprovocative)
+	{
+		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*args.Damage / pType->Strength)), args.SourceHouse);
+	}
+
 	if (_res != DamageState::PostMortem && !pThis->IsAlive)
 	{
 		R->EAX(DamageState::NowDead);
 		return 0x702D1F;
 	}
 
-	if (args.Attacker && !pWHExt->Nonprovocative)
-	{
-		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*args.Damage / pType->Strength)), args.SourceHouse);
-	}
-
-	if (_res == DamageState::PostMortem)
-	{
-		R->EAX(DamageState::PostMortem);
-		return 0x702D1F;
-	}
-
 	if (_res != DamageState::NowDead)
 	{
+		if (_res == DamageState::PostMortem)
+		{
+			R->EAX(DamageState::PostMortem);
+			return 0x702D1F;
+		}
+
 		if (_res == DamageState::Unaffected)
 		{
 			goto LABEL_101;
@@ -797,7 +793,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		goto LABEL_94;
 	}
 
-
 	if (pThis->WhatAmI() != AbstractType::Building || !args.WH->CausesDelayKill)
 	{
 
@@ -805,11 +800,13 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		pThis->RadarFlashTimer.Start(RulesClass::Instance->RadarCombatFlashTime);
 
-		if (_res != DamageState::Unaffected && _res != DamageState::NowDead
-			 && pType->CanDisguise && !pType->PermaDisguise)
-		{
-			if (pThis->IsDisguised())
-			{
+		if (_res != DamageState::Unaffected
+			&& _res != DamageState::NowDead
+			&& pType->CanDisguise 
+			&& !pType->PermaDisguise
+			) {
+
+			if (pThis->IsDisguised()) {
 				pThis->ClearDisguise();
 			}
 
@@ -833,8 +830,8 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			if (pType->VoiceFeedback.Count > 0
 				&& Random2Class::NonCriticalRandomNumber->RandomRanged(0, 99) < 30
 					  && pThis->Owner->ControlledByCurrentPlayer())
-			{
-				VocClass::PlayIndexAtPos(Random2Class::NonCriticalRandomNumber->Random() % pType->VoiceFeedback.Count, pThis->Location, 0);
+			{			
+				VocClass::PlayIndexAtPos(pType->VoiceFeedback.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceFeedback.Count - 1), pThis->Location, 0);
 			}
 			goto LABEL_191;
 		case DamageState::NowDead:
@@ -860,6 +857,9 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 					WeaponTypeExtData::DetonateAt(pWeapon, pThis->Location, pTarget, false, pThis->Owner);
 				}
 			}
+
+			if(!pThis->IsAlive)
+				goto LABEL_191;
 
 			if (auto pManager = pThis->SlaveManager)
 			{
@@ -914,21 +914,10 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				auto const& nSound = pWHExt->DieSound_Override;
 
-				if (nSound.isset())
-				{
+				if (nSound.isset()) {
 					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				}
-				else
-				{
-					if (pType->VoiceDie.Count == 1)
-					{
-						VocClass::PlayIndexAtPos(pType->VoiceDie[0], pThis->Location);
-					}
-					else
-					{
-						int rand = Random2Class::NonCriticalRandomNumber->Random();
-						VocClass::PlayIndexAtPos(pType->VoiceDie[rand % pType->VoiceDie.Count], pThis->Location);
-					}
+				} else {
+					VocClass::PlayIndexAtPos(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], pThis->Location);
 				}
 			}
 
@@ -936,22 +925,10 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				auto const& nSound = pWHExt->VoiceSound_Override;
 
-				if (nSound.isset())
-				{
+				if (nSound.isset()) {
 					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				}
-				else
-				{
-					if (pType->DieSound.Count == 1)
-					{
-						VocClass::PlayIndexAtPos(pType->DieSound[0], pThis->Location);
-					}
-					else
-					{
-						int rand = Random2Class::NonCriticalRandomNumber->Random();
-						VocClass::PlayIndexAtPos(pType->DieSound[rand % pType->DieSound.Count], pThis->Location);
-
-					}
+				} else {
+					VocClass::PlayIndexAtPos(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], pThis->Location);
 				}
 			}
 
@@ -1148,7 +1125,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				pThis->BaseIsAttacked(args.Attacker);
 			}
 
-
 			if (_res == DamageState::NowDead)
 			{
 				R->EAX(_res);
@@ -1288,7 +1264,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				if (retalitate)
 				{
-
 					if (pThis->IsCloseEnough(args.Attacker, pThis->SelectWeapon(args.Attacker))
 						|| !pThis->Owner->IsControlledByHuman()
 						|| (((pType->Sight + 0.5) * 256.0) >= (retalitate->Location - pThis->Location).Length()))
@@ -1334,24 +1309,24 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			return 0x702D1F;
 		}
 
-		if (auto pBld = cast_to<BuildingClass*, false>(pThis))
-		{
-			if (!pBld->Type->EligibleForDelayKill)
+			if (auto pBld = cast_to<BuildingClass*, false>(pThis))
 			{
-				goto LABEL_94;
-			}
+				if (!pBld->Type->EligibleForDelayKill)
+				{
+					goto LABEL_94;
+				}
 
-			const int v22 = (int)(((double)args.WH->DelayKillAtMax * (double)args.WH->DelayKillFrames - (double)args.WH->DelayKillFrames)
-			  / (double)((int)args.WH->CellSpread << 8)
-			  * (double)args.DistanceToEpicenter
-			  + (double)args.WH->DelayKillFrames);
+				const int v22 = (int)(((double)args.WH->DelayKillAtMax * (double)args.WH->DelayKillFrames - (double)args.WH->DelayKillFrames)
+				  / (double)((int)args.WH->CellSpread << 8)
+				  * (double)args.DistanceToEpicenter
+				  + (double)args.WH->DelayKillFrames);
 
-			if (!pBld->IsGoingToBlow || pBld->GoingToBlowTimer.Expired())
-			{
-				pBld->GoingToBlowTimer.Start(v22);
-				pBld->IsGoingToBlow = true;
+				if (!pBld->IsGoingToBlow || pBld->GoingToBlowTimer.Expired())
+				{
+					pBld->GoingToBlowTimer.Start(v22);
+					pBld->IsGoingToBlow = true;
+				}
 			}
-		}
 		}
 	}
 
@@ -1579,13 +1554,10 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		case DamageState::NowDead:
 		{
 
-			if (auto pLinked = pThis->BunkerLinkedItem)
-			{
-				for (int i = 0; i < (int)CachedRadio->size(); ++i)
-				{
-					if (CachedRadio[i] == pLinked)
-					{
-						CachedRadio->erase(CachedRadio->begin() + i, CachedRadio->end());
+			if (auto pLinked = pThis->BunkerLinkedItem) {
+				for (int i = 0; i < (int)CachedRadio->size(); ++i) {
+					if (CachedRadio[i] == pLinked) {
+						CachedRadio->erase(CachedRadio->begin() + i);
 					}
 				}
 
@@ -1608,22 +1580,13 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 			//if ((int)CachedRadio->size() != pThis->RadioLinks.Capacity && pThis->Type->Helipad)
 			//	Debug::LogInfo("Building {} - {} has inconsistent cache size of RadioLinks [O : {} ,  C : {}" , pThis->Type->ID, pThis->Owner->Type->ID , pThis->RadioLinks.Capacity , (int)CachedRadio->size());
 
-			for (int i = 0; i < (int)CachedRadio->size(); ++i)
-			{
-				auto v22 = CachedRadio[i];
-				auto v23 = v22->GetCoords();
-				auto v24 = pThis->GetCoords();
-
-				if ((v24 - v23).Length() < 0x100 || pThis->Type->Helipad)
-				{
-					int _damage = v22->GetTechnoType()->Strength;
-					v22->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-
-				}
-				else
-				{
-					pThis->SendCommand(RadioCommand::NotifyLeave, v22);
-					v22->QueueUpToEnter = nullptr;
+			for (int i = 0; i < (int)CachedRadio->size(); ++i) {
+				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 || pThis->Type->Helipad) {
+					int _damage = CachedRadio[i]->GetTechnoType()->Strength;
+					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+				} else {
+					pThis->SendCommand(RadioCommand::NotifyLeave, CachedRadio[i]);
+					CachedRadio[i]->QueueUpToEnter = nullptr;
 				}
 			}
 
@@ -1796,8 +1759,6 @@ DEFINE_HOOK(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 				return 0x4D74D6;
 			}
 		}
-
-
 
 		if (auto pTeam = pThis->Team)
 		{

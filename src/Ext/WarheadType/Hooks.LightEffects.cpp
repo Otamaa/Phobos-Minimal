@@ -3,6 +3,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Helpers/Macro.h>
 
+#include <Ext/Rules/Body.h>
+
 // DEFINE_HOOK(0x48A444 , AreaDamage_Particle_Handle , 0x5){
 // 	GET(WarheadTypeClass*, pWH, EDI);
 // 	GET_BASE(HouseClass* , pHouse , 0x14);

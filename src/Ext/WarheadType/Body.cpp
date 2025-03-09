@@ -593,6 +593,12 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->BuildingSell_IgnoreUnsellable.Read(exINI, pSection, "BuildingSell.IgnoreUnsellable");
 	this->BuildingUndeploy.Read(exINI, pSection, "BuildingUndeploy");
 	this->BuildingUndeploy_Leave.Read(exINI, pSection, "BuildingUndeploy.Leave");
+
+	this->ScorcScorchChance.Read(exINI, pSection, "ScorcScorchChance");
+	this->CraterChance.Read(exINI, pSection, "CraterChance");
+	this->CellAnimChance.Read(exINI, pSection, "CellAnimChance");
+	this->CellAnim.Read(exINI, pSection, "CellAnim");
+
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1583,6 +1589,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildingSell_IgnoreUnsellable)
 		.Process(this->BuildingUndeploy)
 		.Process(this->BuildingUndeploy_Leave)
+
+		.Process(this->ScorcScorchChance)
+		.Process(this->CraterChance)
+		.Process(this->CellAnimChance)
+		.Process(this->CellAnim)
 		;
 
 	PaintBallData.Serialize(Stm);
