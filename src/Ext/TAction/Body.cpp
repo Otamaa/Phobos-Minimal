@@ -47,6 +47,27 @@ TActionExt::ExtContainer TActionExt::ExtMap;
 */
 //==============================
 
+bool TActionExt::ResetHateValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (pThis->Value >= 0) {
+		HouseClass* pTargetHouse = HouseClass::Index_IsMP(pThis->Value) ?
+			HouseClass::FindByIndex(pThis->Value) :
+			HouseClass::FindByCountryIndex(pThis->Value);
+
+		if (pTargetHouse && pTargetHouse->AngerNodes.Count > 0) {
+			for (auto& pAngerNode : pTargetHouse->AngerNodes)
+				pAngerNode.AngerLevel = 0;
+		}
+	} else {
+		for (auto pTargetHouse : *HouseClass::Array()) {
+			for (auto& pAngerNode : pTargetHouse->AngerNodes)
+				pAngerNode.AngerLevel = 0;
+		}
+	}
+
+	return true;
+}
+
 bool TActionExt::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(ScenarioExtData::Instance()->Waypoints[pThis->Param5]);

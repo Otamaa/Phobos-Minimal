@@ -42,6 +42,9 @@ enum class PhobosTriggerAction : unsigned int
 	GameDeleteTechno = 717,
 	LightningStormStrikeAtObject = 720,
 
+	//#1549
+	ResetHateValue = 606,
+
 	//#620
 	MessageForSpecifiedHouse = 9931,
 
@@ -160,5 +163,7 @@ public:
 	ACTION_FUNC(PrintMessageRemainingTechnos);
 
 	ACTION_FUNC(SetDropCrate);
+
+	ACTION_FUNC(ResetHateValue);
 #undef ACTION_FUNC
 };

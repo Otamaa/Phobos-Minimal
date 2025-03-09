@@ -265,6 +265,43 @@ DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
 	return 0;
 }
 
+// add/subtract extra values to prevent the AI from attacking the wrong target during the campaign.
+DEFINE_HOOK(0x6DE189, TActionClass_MakeEnemy, 0x6)
+{
+	GET(TActionClass*, pThis, ESI);
+	GET_STACK(HouseClass*, pHouse, STACK_OFFSET(0x250, 0x4));
+	GET_STACK(TriggerClass*, pTrigger, STACK_OFFSET(0x250, 0xC));
+
+	enum { OK = 0x6DE1CD, Cancel = 0x6DE1A5 };
+
+	HouseClass* pTargetHouse = pThis->FindHouseByIndex(pTrigger, pThis->Value);
+
+	if (!pHouse || !pTargetHouse || pHouse == pTargetHouse)
+		return Cancel;
+
+	pHouse->MakeEnemy(pTargetHouse, false);
+	pTargetHouse->MakeEnemy(pHouse, false);
+
+	// Maybe there's a better way, but I want to make it simple.
+	if (SessionClass::Instance->IsCampaign() || (!pHouse->Type->MultiplayPassive && !pTargetHouse->Type->MultiplayPassive)) {
+
+		if (pThis->Param3 != 0)
+			pHouse->UpdateAngerNodes(pThis->Param3, pTargetHouse);
+
+		if (pThis->Param3 < 0 && pHouse->AngerNodes.Count > 0) {
+			for (auto& pAngerNode : pHouse->AngerNodes) {
+
+				if (pAngerNode.House != pTargetHouse)
+					continue;
+
+				pAngerNode.AngerLevel = MaxImpl(0, pAngerNode.AngerLevel);
+				break;
+			}
+		}
+	}
+
+	return OK;
+}
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
 //DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue

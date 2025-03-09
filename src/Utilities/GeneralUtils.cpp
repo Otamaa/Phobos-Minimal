@@ -66,10 +66,11 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wcha
 
 void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
 {
-	nCells.clear();
+	//duuno
+	nCells.reserve(20);
 
 	for (CellSpreadEnumerator it(range); it; ++it)
-		nCells.push_back(*it);
+		nCells.emplace_back(*it);
 }
 
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
@@ -108,7 +109,7 @@ AnimTypeClass* GeneralUtils::SelectRandomAnimFromVector(std::vector<AnimTypeClas
 	if (vec.empty())
 		return fallback;
 
-	if (vec.size() < 2)
+	if (vec.size() == 1)
 		return vec[0];
 
 	return vec[ScenarioClass::Instance->Random.RandomFromMax(vec.size() - 1)];
