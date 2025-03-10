@@ -699,11 +699,11 @@ DEFINE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	pExt->WaterImage.Read(exINI, pType->ID, "WaterImage");
-	pExt->WaterImage_Yellow.Read(exINI, pType->ID, "WaterDamagedImage.ConditionYellow");
-	pExt->WaterImage_Red.Read(exINI, pType->ID, "WaterDamagedImage.ConditionRed");
+	pExt->WaterImage_Yellow.Read(exINI, pType->ID, "WaterImage.ConditionYellow");
+	pExt->WaterImage_Red.Read(exINI, pType->ID, "WaterImage.ConditionRed");
 
-	pExt->Image_Yellow.Read(exINI, pType->ID, "DamagedImage.ConditionYellow");
-	pExt->Image_Red.Read(exINI, pType->ID, "DamagedImage.ConditionRed");
+	pExt->Image_Yellow.Read(exINI, pType->ID, "Image.ConditionYellow");
+	pExt->Image_Red.Read(exINI, pType->ID, "Image.ConditionRed");
 
 	return 0;
 }

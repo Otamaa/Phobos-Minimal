@@ -132,6 +132,7 @@
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
     <ClCompile Include="src\Ext\SpawnManager\Body.cpp" />
+    <ClCompile Include="src\Ext\SpawnManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />

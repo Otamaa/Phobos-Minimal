@@ -1428,6 +1428,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RecountBurst.Read(exINI, pSection, "RecountBurst");
 
 		this->AirstrikeLineColor.Read(exINI, pSection, "AirstrikeLineColor");
+
+		this->InitialSpawnsNumber.Read(exINI, pSection, "InitialSpawnsNumber");
+		this->Spawns_Queue.Read(exINI, pSection, "Spawns.Queue");
 	}
 
 	// Art tags
@@ -2594,6 +2597,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->LaserTargetColor)
 		.Process(this->AirstrikeLineColor)
+			
+		.Process(this->InitialSpawnsNumber)
+		.Process(this->Spawns_Queue)
 		;
 }
 
