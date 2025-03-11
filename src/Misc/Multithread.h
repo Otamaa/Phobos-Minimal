@@ -18,9 +18,6 @@ struct Multithreading
 	static void MultiplayerDebugPrint()
 		{ JMP_STD(0x55F1E0); }
 
-	static bool MainLoop()
-		{ JMP_STD(0x55D360); }
-
 	static std::unique_ptr<std::thread> DrawingThread;
 	static std::timed_mutex DrawingMutex;
 	static std::mutex PauseMutex;

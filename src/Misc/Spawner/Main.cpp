@@ -11,6 +11,8 @@
 #include <IPXManagerClass.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Misc/Multithread.h>
+
 #include <Ext/Event/Body.h>
 
 #include <Ext/House/Body.h>
@@ -296,6 +298,10 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	/* SaveGameName */
 	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
+	AutoSaveCount = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveCount", AutoSaveCount);
+	AutoSaveInterval = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveInterval", AutoSaveInterval);
+	NextAutoSaveNumber = pINI->ReadInteger(GameStrings::Settings(), "NextAutoSaveNumber", NextAutoSaveNumber);
+
 	CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
 
 	{ // Scenario Options
@@ -485,9 +491,7 @@ bool SpawnerMain::GameConfigs::StartGame() {
 
 	SpawnerMain::GameConfigs::LoadSidesStuff();
 
-	bool result = m_Ptr.LoadSaveGame
-		? LoadSavedGame(m_Ptr.SaveGameName)
-		: StartNewScenario(pScenarioName);
+	bool result = StartScenario(pScenarioName);
 
 	if (SpawnerMain::GetMainConfigs()->DumpTypes)
 		DumpTypeDataArrayToFile::Dump();
@@ -573,24 +577,146 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 	}
 }
 
-//#include <codecvt>
-//#include <locale>
-//#include <string>
-//#include <type_traits>
-//
-//std::string wstring_to_utf8(std::wstring const& str)
-//{
-//  std::wstring_convert<std::conditional<
-//        sizeof(wchar_t) == 4,
-//        std::codecvt_utf8<wchar_t>,
-//        std::codecvt_utf8_utf16<wchar_t>>::type> converter;
-//  return converter.to_bytes(str);
-//}
-//
-//#pragma optimize("", off )
+bool SpawnerMain::GameConfigs::Reconcile_Players() {
+	int i;
+	bool found;
+	int house;
+	HouseClass* pHouse;
 
-bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
-	if (pScenarioName[0] == 0)
+	// Just use this as Playernodes.
+	auto& players = SessionClass::Instance->StartSpots;
+
+	if (players.Count == 0)
+		return true;
+
+	for (i = 0; i < players.Count; i++)
+	{
+		found = false;
+
+		for (house = 0; house < players.Count; house++)
+		{
+			pHouse = HouseClass::Array->Items[house];
+			if (!pHouse)
+				continue;
+
+			//for (wchar_t c : players.Items[i]->Name)
+			//	Debug::LogAndMessage("%c", (char)c);
+
+			//Debug::LogAndMessage("\n");
+
+			//for (wchar_t c : pHouse->UIName)
+			//	Debug::LogAndMessage("%c", (char)c);
+
+			//Debug::LogAndMessage("\n");
+
+			if (!wcscmp(players.Items[i]->Name, pHouse->UIName))
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
+			return false;
+	}
+
+	for (house = 0; house < players.Count; house++)
+	{
+		pHouse = HouseClass::Array->Items[house];
+
+		if (!pHouse)
+			continue;
+
+		if (!pHouse->IsHumanPlayer)
+			continue;
+
+		found = false;
+		for (i = 0; i < players.Count; i++)
+		{
+			if (!wcscmp(players.Items[i]->Name, pHouse->UIName))
+			{
+				found = true;
+				players.Items[i]->HouseIndex = house;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			/**
+			 *  Turn the player's house over to the computer's AI
+			 */
+			pHouse->IsHumanPlayer = false;
+			pHouse->Production = true;
+			pHouse->StaticData.IQLevel = RulesClass::Instance->MaxIQLevels;
+
+			static wchar_t buffer[21];
+			std::swprintf(buffer, sizeof(buffer), L"%s (AI)", pHouse->UIName);
+			std::wcscpy(pHouse->UIName, buffer);
+			SessionClass::Instance->MPlayerCount--;
+		}
+	}
+
+	return SessionClass::Instance->MPlayerCount == players.Count;
+}
+
+void SpawnerMain::GameConfigs::RespondToSaveGame(EventClass* event) {
+	SpawnerMain::Configs::DoSave = true;
+}
+
+void Print_Saving_Game_Message2() {
+	const int message_delay = (int)(RulesClass::Instance->MessageDelay * 900);
+	MessageListClass::Instance->AddMessage(nullptr, 0, L"Saving game...", 4, TextPrintType::Point6Grad | TextPrintType::UseGradPal | TextPrintType::FullShadow, message_delay, false);
+	MapClass::Instance->MarkNeedsRedraw(2);
+	MapClass::Instance->Render();
+}
+
+void SpawnerMain::GameConfigs::After_Main_Loop() {
+	auto pConfig = &GameConfigs::m_Ptr;
+
+	const bool doSaveCampaign = SessionClass::Instance->GameMode == GameMode::Campaign && pConfig->AutoSaveCount > 0 && pConfig->AutoSaveInterval > 0;
+	const bool doSaveMP = SpawnerMain::Configs::Active && SessionClass::Instance->GameMode == GameMode::LAN && pConfig->AutoSaveInterval > 0;
+
+	if (doSaveCampaign || doSaveMP)
+	{
+		if (Unsorted::CurrentFrame == SpawnerMain::Configs::NextAutoSaveFrame)
+		{
+			SpawnerMain::Configs::DoSave = true;
+		}
+	}
+
+	if (SpawnerMain::Configs::DoSave)
+	{
+
+		Print_Saving_Game_Message2();
+
+		if (SessionClass::Instance->GameMode == GameMode::Campaign)
+		{
+			const std::string saveFileName = std::format("AUTOSAVE{}.SAV" , SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			const std::wstring saveDescription = std::format(L"Mission Auto-Save (Slot {})", SpawnerMain::Configs::NextAutoSaveNumber + 1);
+
+			ScenarioClass::PauseGame();
+			Game::CallBack();
+
+			ScenarioClass::Instance->SaveGame(saveFileName.c_str(), saveDescription.c_str());
+			ScenarioClass::ResumeGame();
+			SpawnerMain::Configs::NextAutoSaveNumber = (SpawnerMain::Configs::NextAutoSaveNumber + 1) % pConfig->AutoSaveCount;
+
+			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
+		}
+		else if (SessionClass::Instance->GameMode == GameMode::LAN)
+		{
+
+			ScenarioClass::Instance->SaveGame("SAVEGAME.NET", L"Multiplayer Game");
+			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
+		}
+
+		SpawnerMain::Configs::DoSave = false;
+	}
+}
+
+bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
+	if (pScenarioName[0] == 0 && !SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame)
 	{
 		Debug::LogInfo("[Spawner] Failed Read Scenario [{}]", pScenarioName);
 
@@ -641,6 +767,7 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 		Game::TechLevel = SpawnerMain::GameConfigs::m_Ptr.TechLevel;
 		Game::PlayerColor = SpawnerMain::GameConfigs::m_Ptr.Players[0].Color;
 		GameOptionsClass::Instance->GameSpeed = SpawnerMain::GameConfigs::m_Ptr.GameSpeed;
+		SpawnerMain::Configs::NextAutoSaveNumber = SpawnerMain::GameConfigs::m_Ptr.NextAutoSaveNumber;
 	}
 
 	{ // Added AI Players
@@ -734,7 +861,6 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
 
 		return result;
 #else
-		bool result =  ScenarioClass::StartScenario(pScenarioName, 1, 0);
 		//char keee_[46];
 		//sprintf(keee_, "%sSav", ScenarioClass::Instance->UIName);
 		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::LoadString(keee_), 0x2Du);
@@ -744,22 +870,30 @@ bool SpawnerMain::GameConfigs::StartNewScenario(const char* pScenarioName) {
   //     ScenarioClass::Instance->UINameLoaded[44] = 0;
 
 		//Debug::LogInfo("Loading Scenario Name [%s]" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
-		return result;
+		return SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame ? SpawnerMain::GameConfigs::LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName)
+			: ScenarioClass::StartScenario(pScenarioName, 1, 0);
 #endif
 	}
 	else if (SessionClass::IsSkirmish())
 	{
-		return ScenarioClass::StartScenario(pScenarioName, 0, -1);
+		return SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame ? SpawnerMain::GameConfigs::LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName)
+			: ScenarioClass::StartScenario(pScenarioName, 0, -1);
 	}
 	else
 	{
 		SpawnerMain::GameConfigs::InitNetwork();
+		const bool result = SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame ? SpawnerMain::GameConfigs::LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName)
+			: ScenarioClass::StartScenario(pScenarioName, 0, -1);
 
-		if (!ScenarioClass::StartScenario(pScenarioName, 0, -1))
+		if (!result)
 			return false;
 
 		pSession->GameMode = GameMode::LAN;
-		pSession->CreateConnections();
+		if (SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame && !SpawnerMain::GameConfigs::Reconcile_Players())
+			return false;
+
+		if (!pSession->CreateConnections())
+			return false;
 
 		if (!SpawnerMain::GetMainConfigs()->AllowChat)
 		{
@@ -971,3 +1105,63 @@ DEFINE_HOOK(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 }
 
 #pragma endregion MPlayerDefeated
+
+static bool MainLoop_replaceA()
+{
+	// Main loop.
+	bool result = Game::MainLoop();
+	if (!result){
+		SpawnerMain::GameConfigs::After_Main_Loop();
+	}
+	return result;
+}
+
+static bool MainLoop_replaceB()
+{
+	// Main loop.
+	bool result = Game::MainLoop();
+
+	if (result)
+	{
+		// Run the MainLoop (sadly not enough space to hook after it),
+		// then decide if we should exit multithread mode.
+		if (Phobos::Config::MultiThreadSinglePlayer)
+			Multithreading::ExitMultithreadMode();
+	}
+	else
+	{
+		SpawnerMain::GameConfigs::After_Main_Loop();
+	}
+	return result;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x624271, MainLoop_replaceA);
+DEFINE_FUNCTION_JUMP(CALL, 0x623D72, MainLoop_replaceA);
+DEFINE_FUNCTION_JUMP(CALL, 0x62314E, MainLoop_replaceA);
+DEFINE_FUNCTION_JUMP(CALL, 0x60D407, MainLoop_replaceA);
+DEFINE_FUNCTION_JUMP(CALL, 0x608206, MainLoop_replaceA);
+DEFINE_FUNCTION_JUMP(CALL, 0x48CE8A, MainLoop_replaceB);
+
+DEFINE_HOOK(0x52DAED, Game_Start_ResetGlobal, 0x7)
+{
+	SpawnerMain::Configs::DoSave = false;
+	SpawnerMain::Configs::NextAutoSaveFrame = -1;
+	SpawnerMain::Configs::NextAutoSaveNumber = 0;
+	return 0;
+}
+
+DEFINE_HOOK(0x686B20, INIClass_ReadScenario_AutoSave, 0x6)
+{
+	/**
+	 *  Schedule the next autosave.
+	 */
+	SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame;
+	SpawnerMain::Configs::NextAutoSaveFrame += SpawnerMain::GameConfigs::m_Ptr.AutoSaveInterval;
+	return 0;
+}
+
+DEFINE_HOOK(0x4C7A14, EventClass_RespondToEvent_SaveGame, 0x5)
+{
+	SpawnerMain::Configs::DoSave = true;
+	return 0x4C7B42;
+}

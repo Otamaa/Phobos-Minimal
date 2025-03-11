@@ -220,9 +220,27 @@ struct _VTABLE
 	void NAKED funcname()
 
 #pragma endregion Static Patch
+#define _GET_FUNCTION_ADDRESS(function, getterName)               \
+	static constexpr FORCEDINLINE uintptr_t getterName()         \
+	{                                                             \
+		uintptr_t addr;                                           \
+		{ _asm mov eax, function }                                \
+		{ _asm mov addr, eax }                                    \
+		return addr;                                              \
+	}
 
+
+//this doesnt work with CTOR and DTOR
 #define DEFINE_FUNCTION_JUMP(jumpType, offset, function)		  \
 	DEFINE_JUMP(jumpType, offset, MiscTools::to_DWORD(&function)) 
+#pragma endregion
+
+#define DEFINE_FUNCTION_JUMPB(jumpType, offset, function)		  \
+	namespace NAMESPACE_THISCALL_JUMP##offset                     \
+	{                                                             \
+		_GET_FUNCTION_ADDRESS(function, GetAddr)                  \
+		DEFINE_JUMP(jumpType, offset, GetAddr())                  \
+	}
 #pragma endregion
 
 #pragma region Dynamic Patch

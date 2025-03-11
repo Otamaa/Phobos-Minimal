@@ -28,11 +28,15 @@
 #include <string>
 
 class CCINIClass;
+class EventClass;
 struct SpawnerMain
 {
 	struct Configs {
 		static OPTIONALINLINE bool Enabled; // false
 		static OPTIONALINLINE bool Active; //false
+		static OPTIONALINLINE bool DoSave;
+		static OPTIONALINLINE int NextAutoSaveFrame { -1 };
+		static OPTIONALINLINE int NextAutoSaveNumber;
 
 	public:
 
@@ -61,14 +65,16 @@ struct SpawnerMain
 		static void Init();
 		static bool StartGame();
 		static void AssignHouses();
+		static void After_Main_Loop();
+		static void RespondToSaveGame(EventClass* event);
 
 	public:
 		static  GameConfigs m_Ptr;
 
 	private:
-		static bool StartNewScenario(const char* scenarioName);
+		static bool StartScenario(const char* scenarioName);
 		static bool LoadSavedGame(const char* scenarioName);
-
+		static bool Reconcile_Players();
 		static void InitNetwork();
 		static void LoadSidesStuff();
 
@@ -150,6 +156,10 @@ struct SpawnerMain
 		char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
 		char SaveGameName[60];
 
+		int AutoSaveCount;
+		int AutoSaveInterval;
+		int NextAutoSaveNumber;
+
 		int CustomMissionID;
 
 		// Scenario Options
@@ -225,6 +235,10 @@ struct SpawnerMain
 			, LoadSaveGame { false }
 			, SavedGameDir { "Saved Games" }
 			, SaveGameName { "" }
+
+			, AutoSaveCount { 5 }
+			, AutoSaveInterval { 7200 }
+			, NextAutoSaveNumber { 0 }
 
 			, CustomMissionID { 0 }
 			// Scenario Options

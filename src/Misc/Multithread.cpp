@@ -144,8 +144,6 @@ void Multithreading::DrawingLoop()
 	Debug::LogInfo("Exiting the drawing thread.");
 }
 
-DEFINE_DYNAMIC_PATCH(Disable_MainGame_MainLoop, 0x48CE8A,
-0xE8, 0xD1, 0x04, 0x0D, 0x00);
 DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock, 0x55D878,
 	0x8B, 0x0D, 0xF8, 0xD5, 0xA8, 0x00);
 DEFINE_DYNAMIC_PATCH(Disable_MainLoop_StartLock_2, 0x55DBC3,
@@ -170,7 +168,6 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 
 	Phobos::Config::MultiThreadSinglePlayer = false;
 
-	Disable_MainGame_MainLoop->Apply();
 	Disable_MainLoop_StartLock->Apply();
 	Disable_MainLoop_StartLock_2->Apply();
 	Disable_MainLoop_StopLock->Apply();
@@ -182,19 +179,6 @@ DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
 	return 0;
 }
 
-// Run the MainLoop (sadly not enough space to hook after it),
-// then decide if we should exit multithread mode.
-DEFINE_HOOK(0x48CE8A, MainGame_MainLoop, 5)
-{
-	Multithreading::EnterMultithreadMode();
-
-	bool gameEnded = Multithreading::MainLoop();
-	R->EAX(gameEnded);
-	if (gameEnded)
-		Multithreading::ExitMultithreadMode();
-
-	return 0x48CE8F;
-}
 
 // Completely skip vanilla GScreenClass::Render code in the main thread
 // if we run in multithread mode.

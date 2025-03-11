@@ -83,15 +83,14 @@ DEFINE_HOOK(0x4381D0, BlowPipe_Key_replace, 0x6)
 DEFINE_HOOK(0x437F50, BlowfishEngine_CTOR, 0x6)
 {
 	GET(BlowfishEngine*, pThis, ECX);
-	pThis->BlowfishEngine::BlowfishEngine();
-	R->EAX(pThis);
+	R->EAX(new BlowfishEngine());
 	return 0x437FBD;
 }
 
 DEFINE_HOOK(0x437FC0, BlowfishEngine_DTOR, 0x6)
 {
 	GET(BlowfishEngine*, pThis, ECX);
-	pThis->BlowfishEngine::~BlowfishEngine();
+	//pThis->BlowfishEngine::~BlowfishEngine();
 	return 0x437FCC;
 }
 

@@ -17,6 +17,8 @@
 
 #include <Locomotor/FlyLocomotionClass.h>
 
+#include <EventClass.h>
+
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
 DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 {
@@ -627,4 +629,41 @@ void FakeAircraftClass::_FootClass_Update_Wrapper() {
 }
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
+
+// Handle assigning area guard mission to aircraft.
+DEFINE_HOOK(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
+{
+	enum { SkipGameCode = 0x4C7435 };
+
+	GET(TechnoClass* const, pTechno, EDI);
+
+	if (RulesExtData::Instance()->ExpandAircraftMission && pTechno->WhatAmI() == AbstractType::Aircraft)
+	{
+		// If we're on dock reloading but have ammo, untether from dock and try to scan for targets.
+		if (pTechno->CurrentMission == Mission::Sleep && pTechno->Ammo)
+			pTechno->SendToEachLink(RadioCommand::NotifyUnlink);
+
+		// Skip assigning destination / target here.
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+// Do not untether aircraft when assigning area guard mission by default.
+DEFINE_HOOK(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
+{
+	enum { SkipGameCode = 0x4C7349 };
+
+	GET(EventClass* const, pThis, ESI);
+	GET(TechnoClass* const, pTechno, EDI);
+
+	if (RulesExtData::Instance()->ExpandAircraftMission && pTechno->WhatAmI() == AbstractType::Aircraft
+		&& pThis->Data.MegaMission.Mission == (char)Mission::Area_Guard)
+	{
+		return SkipGameCode;
+	}
+
+	return 0;
+}

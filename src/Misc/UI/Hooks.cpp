@@ -73,7 +73,7 @@ DEFINE_HOOK(0x4A3B4B, FetchResource, 0x9)
 	return 0; //Nothing was found, try the game's own resources.
 }
 
-DEFINE_HOOK(0x609299, SomeClass_SomeFunc_MPSaveButton, 0x5)
+DEFINE_HOOK(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
 {
 	enum { RetFalse = 0x609664, RetTrue = 0x609693 };
 

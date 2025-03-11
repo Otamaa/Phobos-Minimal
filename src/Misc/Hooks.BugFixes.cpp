@@ -2233,13 +2233,43 @@ DEFINE_HOOK(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
 	return 0x4DBF01;
 }
 
-DEFINE_HOOK(0x7BAE60, BSurface_GetPixel, 0x5)
-{
-	GET(BSurface*, pSurface, ECX);
-	GET_STACK(Point2D*, pPoint, 0x4);
+// Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
+class FakeXSurface final : public XSurface {
+public:
 
-	if (pPoint->X > pSurface->Width || pPoint->Y > pSurface->Height)
-		*pPoint = Point2D::Empty;
+	int _GetPixel(Point2D const& point) const {
+		int color = 0;
 
-	return 0;
-}
+		Point2D finalPoint = point;
+
+		if (finalPoint.X > Width || finalPoint.Y > Height)
+			finalPoint = Point2D::Empty;
+
+		void* pointer = ((Surface*)this)->Lock(finalPoint.X, finalPoint.Y);
+
+		if (pointer != nullptr)
+		{
+
+			if (BytesPerPixel == 2)
+				color = *static_cast<unsigned short*>(pointer);
+			else
+				color = *static_cast<unsigned char*>(pointer);
+
+			((Surface*)this)->Unlock();
+
+		}
+
+		return color;
+	}
+};
+static_assert(sizeof(XSurface) == sizeof(FakeXSurface), "Invalid Size !");
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4A3E8A, FakeXSurface::_GetPixel)
+DEFINE_FUNCTION_JUMP(CALL, 0x4A3EB7, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A3F7C, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(CALL, 0x642213, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(CALL, 0x6423D6, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2098, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E212C, FakeXSurface::_GetPixel);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E85FC, FakeXSurface::_GetPixel);
+

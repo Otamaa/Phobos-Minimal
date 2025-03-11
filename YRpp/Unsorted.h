@@ -183,6 +183,9 @@ struct Game
 		JMP_STD(0x47B130);
 	}
 
+	static bool MainLoop()
+		{ JMP_STD(0x55D360); }
+
 	static int __fastcall Get_Volume_Index(int timeout) {
 		JMP_STD(0x4790A0);
 	}

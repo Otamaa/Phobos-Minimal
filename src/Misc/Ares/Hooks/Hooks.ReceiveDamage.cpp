@@ -44,6 +44,8 @@
 
 #include <ExtraHeaders/StackVector.h>
 
+#include <Misc/PhobosGlobal.h>
+
 static DWORD Crashable(FootClass* pThis, TechnoTypeClass* pType, ObjectClass* pKiller)
 {
 
@@ -116,7 +118,6 @@ static bool AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 
 static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 {
-
 	if (AllowedToCombatAlert(pThis, args))
 	{
 		const auto pHouse = pThis->Owner;
@@ -484,6 +485,7 @@ DEFINE_HOOK(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 							pThis->RegisterKill(args.SourceHouse);
 						}
 
+						PhobosGlobal::Instance()->Disappear_removed = true;
 						pThis->Disappear(true);
 						_res = DamageState::NowDead;
 					}
