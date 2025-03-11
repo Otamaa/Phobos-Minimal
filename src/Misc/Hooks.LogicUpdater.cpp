@@ -125,7 +125,6 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	if (!pThis->IsAlive)
 		return retDead;
 
-
 	//type may already change ,..
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -188,7 +187,7 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	}
 
 	pExt->DepletedAmmoActions();
-	pExt->UpdateGattlingRateDownReset();
+
 #endif
 
 	return Continue;

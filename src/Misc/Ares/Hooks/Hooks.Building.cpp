@@ -2408,11 +2408,16 @@ DEFINE_HOOK(0x4524A3, BuildingClass_DisableThings, 6)
 // check every frame
 DEFINE_HOOK(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
-	const auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+	const auto pTechnoExt = pThis->_GetTechnoExtData();
+	const auto pExt = pThis->_GetExtData();
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
+
+	pTechnoExt->UpdateGattlingRateDownReset();
+
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
 

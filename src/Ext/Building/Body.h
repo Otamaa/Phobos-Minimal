@@ -222,6 +222,10 @@ public:
 		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
 	}
 
+	FORCEDINLINE TechnoExtData* _GetTechnoExtData() {
+		return *reinterpret_cast<TechnoExtData**>(((DWORD)this) + TechnoExtData::ExtOffset);
+	}
+
 	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {
 		return ((FakeBuildingTypeClass*)this->Type)->_GetExtData();
 	}

@@ -203,7 +203,7 @@ DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 	// Original Author : Morton
 
 	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor && idx != -2) {
-		ret = abs(idx) << 1;
+		ret = Math::abs(idx) << 1;
 	} else {
 
 		{
