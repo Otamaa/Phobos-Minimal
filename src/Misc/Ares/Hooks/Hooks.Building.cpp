@@ -674,10 +674,16 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4290, FakeBuildingClass::_SetOwningHouse);
 
 DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {
-	GET(FootClass* const, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EDI);
 	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
 	//discarded
+	for(auto& anim : pThis->Anims){
+		if(anim) {
+			anim->SetHouse(pNewOwner);
+		}
+	}
+
 	pThis->TechnoClass::SetOwningHouse(pNewOwner, Bld_ChangeOwnerAnnounce);
 	return 0x448BED;
 }

@@ -11295,3 +11295,26 @@ DEFINE_HOOK(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 
  // Fix 0x007BAEA1 crash
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );
+
+ DEFINE_HOOK(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
+ {
+	 GET(BuildingClass*, pThis, ESI);
+	 GET(int, _X, ECX);
+	 GET(int, _Y, EDX);
+	 GET(int, _Z, EAX);
+	 GET(int, animIdx, EBP);
+	 GET_STACK(int, delay, 0x48);
+
+	 CoordStruct coord { _X , _Y , _Z };
+	 auto const pTypeExt = AnimTypeExtContainer::Instance.Find(AnimTypeClass::Array->Items[animIdx]);
+
+	 auto pAnim =  GameCreate<AnimClass>(AnimTypeClass::Array->Items[animIdx],coord ,delay ,1 , AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_1000, 0, 0);
+	 if(!pTypeExt->NoOwner) {
+		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
+		pAnim->SetHouse(pThis->Owner);
+	 }
+
+	 ((FakeAnimClass*)pAnim)->_GetExtData()->ParentBuilding = pThis;
+	 R->EBP(pAnim);
+	return 0x45197B;
+ }

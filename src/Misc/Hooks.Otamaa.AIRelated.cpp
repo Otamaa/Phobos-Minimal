@@ -66,11 +66,28 @@ DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 //	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
 //	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
 //);
+#include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
+
+DEFINE_HOOK(0x509E00, HouseClass_LS_RemoveTargetLimitIfAvaible, 0x6)
+{
+	//GET(HouseClass*, pThis, ESI);
+	GET_STACK(FakeSuperClass*, pSuper , 0x4); // we know that this is LS ?
+
+	if (pSuper->Type->Type == SuperWeaponType::LightningStorm && pSuper->_GetTypeExtData()->Weather_UseSeparateState) {
+		return 0x509E13;
+	}
+
+	return 0x0;
+}
 
 DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
 {
 	GET(HouseClass*, pThis, EDI);
-	GET(BuildingClass*, pThat, ESI);
+	GET(FakeBuildingClass*, pThat, ESI);
+
+	if (!pThat->IsAlive || pThat->_GetExtData()->LimboID != -1)
+		return 0x4FADD9;
 
 	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
 }
@@ -202,10 +219,103 @@ DEFINE_HOOK(0x4F9E56, HouseClass_MakeAlly_5, 0x9)
 
 #pragma endregion
 
+//these are different depend on the thing
+BuildingClass* __fastcall Find_Enemy_Building_AllowLimbo(
+		BuildingTypeClass* type,
+		HouseClass* house,
+		TechnoClass* attacker,
+		int find_type,
+		bool OnlyTargetHouseEnemy,
+		bool allowLimbo,
+		bool allowLimboID)
+{
+	if (BuildingClass::Array->Count <= 0) {
+		return nullptr;
+	}
+
+	int v10 = -1;
+	int v29 = -1;
+	int v30 = -1;
+	BuildingClass* last = nullptr;
+	BuildingClass* last2 = nullptr;
+
+	for (auto pBld : *BuildingClass::Array) {
+		if (pBld->Type != type)
+			continue;
+
+		bool IsSameHouse = pBld->Owner == house;
+		if (pBld->Owner != house && !pBld->Owner->Type->MultiplayPassive && attacker->Owner->IsAlliedWith(pBld)) {
+			continue;
+		}
+
+		if (!allowLimbo && pBld->InLimbo)
+			continue;
+
+		if (!allowLimboID && BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+			continue;
+
+		switch (find_type)
+		{
+		case 0:
+		{
+			auto coord = pBld->GetCoords();
+			auto cell = CellClass::Coord2Cell(coord);
+			v10 = -1 - MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+
+			break;
+		}
+		case 1:
+		{
+			auto coord = pBld->GetCoords();
+			auto cell = CellClass::Coord2Cell(coord);
+			v10 = MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+
+			break;
+		}
+		case 2:
+		{
+			v10 = -1 - (int)(attacker->Location - pBld->Location).pow();
+			break;
+		}
+		case 3:
+		{
+			v10 = (int)(attacker->Location - pBld->Location).pow();
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (v10 > v29 && IsSameHouse) {
+			last = pBld;
+			v29 = v10;
+		}
+
+		if (v10 > v30) {
+			last2 = pBld;
+			v30 = v10;
+		}
+	}
+
+	if (!last || v29 <= v30) {
+		if (!OnlyTargetHouseEnemy) {
+			return last2;
+		}
+	}
+
+	return last;
+}
+
+//DEFINE_FUNCTION_JUMP(CALL ,0x6EFFAF, Find_Enemy_Building_AllowLimbo);
+
 DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
 {
 	enum { advance = 0x6EA38C, ret = 0x0 };
 	GET(BuildingClass*, pBuilding, ESI);
+
+	if(!pBuilding->IsAlive)
+		return advance;
+
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
 		advance : ret;
 }
@@ -214,6 +324,10 @@ DEFINE_HOOK(0x6EEC6D, TeamClass_FindTargetBuilding_LimboDelivered, 0x6)
 {
 	enum { advance = 0x6EEE45, ret = 0x0 };
 	GET(BuildingClass*, pBuilding, ESI);
+
+	if (pBuilding->InLimbo || !pBuilding->IsAlive)
+		return advance;
+
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
 		advance : ret;
 }
@@ -222,6 +336,10 @@ DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 {
 	enum { advance = 0x6EE928, ret = 0x0 };
 	GET(BuildingClass**, pBuilding, ESI);
+
+	if ((*pBuilding)->InLimbo || !(*pBuilding)->IsAlive)
+		return advance;
+
 	return BuildingExtContainer::Instance.Find(*pBuilding)->LimboID != -1 ?
 		advance : ret;
 }
@@ -230,6 +348,10 @@ DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
 {
 	enum { advance = 0x6EF0D7, ret = 0x0 };
 	GET(BuildingClass*, pBuilding, ESI);
+
+	if (pBuilding->InLimbo || !pBuilding->IsAlive)
+		return advance;
+
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
 		advance : ret;
 }

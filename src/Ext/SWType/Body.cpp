@@ -535,7 +535,7 @@ struct TargetingFuncs
 
 				if (passedFilter && pTargeting->Owner->IsIonCannonEligibleTarget(pTechno))
 				{
-					if (TargetingFuncs::IgnoreThis(pTechno))
+					if (!pTechno->IsAlive || TargetingFuncs::IgnoreThis(pTechno))
 						return -1;
 
 					auto const cell = CellClass::Coord2Cell(pTechno->GetCoords());
@@ -598,9 +598,8 @@ struct TargetingFuncs
 	static TargetResult PickByHouseType(HouseClass* pThis, QuarryType type)
 	{
 		const auto nTarget = pThis->PickTargetByType(type);
-		return nTarget.IsValid() ?
-		TargetResult{ nTarget , SWTargetFlags::AllowEmpty } :
-		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+		const SWTargetFlags flag = nTarget.IsValid() ? SWTargetFlags::AllowEmpty : SWTargetFlags::DisallowEmpty;
+		return { nTarget , flag };
 	}
 
 	static TargetResult GetDominatorTarget(NewSWType* pNewType, const TargetingData* pTargeting)
@@ -777,7 +776,7 @@ struct TargetingFuncs
 
 	static TargetResult GetLighningRandomTarget(NewSWType* pNewType, const TargetingData* pTargeting)
 	{
-		CellStruct nBuffer;
+		CellStruct nBuffer {};
 		for (int i = 0; i < 5; ++i)
 		{
 			auto& nRand = ScenarioClass::Instance->Random;
@@ -909,7 +908,7 @@ struct TargetingFuncs
 			//	return { CellStruct::Empty ,SWTargetFlags::DisallowEmpty };
 
 			for (auto pTech : pTargeting->TypeExt->GetPotentialAITargets(nullptr)) {
-				if (TechnoExtData::IsAlive(pTech, false, false, false)) {
+				if (TechnoExtData::IsAlive(pTech, false, false, false) && !TargetingFuncs::IgnoreThis(pTech)) {
 
 					auto nLoc = pTech->GetCoords();
 					auto nLocCell = CellClass::Coord2Cell(nLoc);
