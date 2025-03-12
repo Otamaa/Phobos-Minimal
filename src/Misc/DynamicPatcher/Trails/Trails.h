@@ -76,7 +76,7 @@ public:
 		}
 	}
 
-	void RealDrawTrail(CoordStruct& sourcePos, CoordStruct& targetPos, HouseClass* pHouse)
+	void RealDrawTrail(CoordStruct& sourcePos, CoordStruct& targetPos, HouseClass* pHouse, TechnoClass* pAnimInvoker , HouseClass* pHouseVictim)
 	{
 		switch (Type->Mode)
 		{
@@ -98,32 +98,14 @@ public:
 			EffectHelpers::DrawParticle(pHouse,sourcePos, targetPos, Type->ParticleTrailType.ParticleSystem.Get());
 			break;
 		case TrailMode::ANIM:
-			DrawAnimTrail(sourcePos, pHouse);
+			DrawAnimTrail(sourcePos, pHouse , pAnimInvoker , pHouseVictim);
 			break;
 		}
 	}
 
-	void DrawAnimTrail(CoordStruct& sourcePos, HouseClass* pHouse)
-	{
-		auto animType = Type->AnimTrailType.WhileDrivingAnim;
+	void DrawAnimTrail(CoordStruct& sourcePos, HouseClass* pAnimHouse, TechnoClass* pAnimInvoker, HouseClass* pHouseVictim);
 
-		switch (drivingState)
-		{
-		case DrivingState::Start:
-			animType = Type->AnimTrailType.StartDrivingAnim;
-			break;
-		case DrivingState::Stop:
-			animType = Type->AnimTrailType.StopDrivingAnim;
-			break;
-		}
-
-		if (animType){
-			auto pAnim = GameCreate<AnimClass>(animType, sourcePos);
-			pAnim->Owner = pHouse;
-		}
-	}
-
-	void DrawTrail(HouseClass* pHouse, CoordStruct& sourcePos, const CoordStruct& createOffset)
+	void DrawTrail(HouseClass* pHouse, CoordStruct& sourcePos, const CoordStruct& createOffset , TechnoClass* pAnimInvoker = nullptr, HouseClass* pHouseVictim = nullptr)
 	{
 		if (!pHouse)
 			pHouse = HouseExtData::FindFirstCivilianHouse();
@@ -142,7 +124,7 @@ public:
 						forceDraw = false;
 						if (IsOnLand(sourcePos))
 						{
-							RealDrawTrail(sourcePos, targetPos, pHouse);
+							RealDrawTrail(sourcePos, targetPos, pHouse , pAnimInvoker , pHouseVictim);
 						}
 						drivingState = DrivingState::Moving;
 					}

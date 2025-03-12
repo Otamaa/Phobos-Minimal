@@ -50,11 +50,7 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 	{
 		if (auto pTechno = flag_cast_to<TechnoClass*>(pCurrentObject))
 		{
-			TacticalClass* const pTactical = TacticalClass::Instance;
-			const Point2D coordInScreen = pTactical->CoordsToScreen(pTechno->GetCoords()) - pTactical->TacticalPos;
-			RectangleStruct screenArea = DSurface::Composite->Get_Rect();
-
-			if (screenArea.Width >= coordInScreen.X && screenArea.Height >= coordInScreen.Y && coordInScreen.X >= 0 && coordInScreen.Y >= 0 && // the unit is in the current screen
+			if (pTechno->IsOnMyView() && // the unit is in the current screen
 				pTechno->IsMindControlled() && pTechno->IsSelectable() && !pTechno->MindControlledByAUnit) // the unit is mc by non-perma mc, and selectable.
 			{
 				if (!capturedPresent)

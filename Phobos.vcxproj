@@ -338,6 +338,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Trails\Trails.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />

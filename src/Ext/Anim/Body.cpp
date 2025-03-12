@@ -456,7 +456,7 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 
 		const auto Owner = pTypeExt->GetAnimOwnerHouseKind();
 
-		if (Owner == OwnerHouseKind::Invoker && !pInvoker || Owner == OwnerHouseKind::Victim && !pVictim)
+		if ((Owner == OwnerHouseKind::Invoker && !pInvoker )|| (Owner == OwnerHouseKind::Victim && !pVictim))
 			return { false , OwnerHouseKind::Default };
 
 		const auto newOwner = HouseExtData::GetHouseKind(Owner, true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim);
@@ -468,7 +468,7 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 				pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 			}
 
-			return { false , Owner };
+			return { true , Owner };
 		}
 	}
 

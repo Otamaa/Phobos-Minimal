@@ -249,6 +249,9 @@ template<>
 void TrailsManager::AI(BulletClass* pOwner)
 {
 	const auto pExt = BulletExtContainer::Instance.Find(pOwner);
+	HouseClass* Invoker = pOwner->Owner ? pOwner->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr;
+	HouseClass* victim = pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr;
+	auto pTechnoInvoker = pOwner->Owner;
 
 	for (auto& pTrails : pExt->Trails)
 	{
@@ -264,7 +267,8 @@ void TrailsManager::AI(BulletClass* pOwner)
 			(int)(location.Z + velocity.Z)
 		};
 
-		pTrails.DrawTrail((pOwner)->GetOwningHouse(), location, pTrails.FLH);
+		auto nSource = TechnoExtData::GetFLHAbsoluteCoords((TechnoClass*)pOwner, pTrails.FLH, pTrails.IsOnTurret);
+		pTrails.DrawTrail(Invoker, location, pTrails.FLH ,pTechnoInvoker,victim);
 	}
 }
 
