@@ -224,22 +224,29 @@ RadSiteExtContainer RadSiteExtContainer::Instance;
 
 DEFINE_HOOK(0x65B243, RadSiteClass_CTOR, 0x6)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		GET(RadSiteClass*, pThis, ESI);
-		RadSiteExtContainer::Instance.Allocate(pThis);
-	}
+
+	GET(RadSiteClass*, pThis, ESI);
+	RadSiteExtContainer::Instance.Allocate(pThis);
 
 	return 0;
 }
 
 DEFINE_HOOK(0x65B344, RadSiteClass_DTOR, 0x6)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		GET(RadSiteClass*, pThis, ESI);
-		RadSiteExtContainer::Instance.Remove(pThis);
+	GET(RadSiteClass*, pThis, ESI);
+	const auto pBaseCell = MapClass::Instance->TryGetCellAt(pThis->BaseCell);
+
+	if (pBaseCell) {
+		CellExtContainer::Instance.Find(pBaseCell)->RadSites.remove(pThis);
 	}
+
+	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++) {
+		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it)) {
+			CellExtContainer::Instance.Find(pCell)->RadLevels.remove_all_if([pThis](auto& level) { return level.Rad == pThis; });
+		}
+	}
+
+	RadSiteExtContainer::Instance.Remove(pThis);
 
 	return 0;
 }
@@ -252,7 +259,7 @@ HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
 	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->RadSiteClass::Load(pStm);
 
-	if (SUCCEEDED(res) && Phobos::Otamaa::DisableCustomRadSite)
+	if (SUCCEEDED(res))
 		RadSiteExtContainer::Instance.LoadStatic();
 
 	return res;
@@ -264,7 +271,7 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
 	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->RadSiteClass::Save(pStm, clearDirty);
 
-	if (SUCCEEDED(res) && Phobos::Otamaa::DisableCustomRadSite)
+	if (SUCCEEDED(res))
 		RadSiteExtContainer::Instance.SaveStatic();
 
 	return res;
@@ -316,20 +323,14 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite){
-		RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
-	}
+	RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0838, FakeRadSiteClass::_Detach);
 
 HouseClass* FakeRadSiteClass::_GetOwningHouse()
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite){
-		return RadSiteExtContainer::Instance.Find(this)->HouseOwner;
-	}
-
-	return nullptr;
+	return RadSiteExtContainer::Instance.Find(this)->HouseOwner;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);

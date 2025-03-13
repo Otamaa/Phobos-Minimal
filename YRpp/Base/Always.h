@@ -171,3 +171,33 @@ SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
+
+/*
+ *	This set of macros is necessary because a type argument can contain commas, which would split it into multiple arguments.
+ *	To circumvent this, we can enclose the argument in parentheses.
+ *	However, parentheses are significant, so we then need a macro to remove them so as
+ *	to not affect our final result.
+ *	Source: https://groups.google.com/a/isocpp.org/g/std-proposals/c/Ngl_vTAdddA
+ */
+#define UNPAREN( ... ) UNPAREN __VA_ARGS__
+#define DONE_UNPAREN
+
+#define CAT_LIT(A, ...) A ## __VA_ARGS__
+#define CAT(A, ...) CAT_LIT(A, __VA_ARGS__)
+#define UIP(...) CAT( DONE_, UNPAREN __VA_ARGS__  )
+
+ /*
+  *	Use these macros to define a reference to an address in the game's memory.
+  */
+#define DEFINE_NONSTATIC_REFERENCE(type, name, address) UIP(type) (&name) = *reinterpret_cast<UIP(type)*>(address);
+#define DEFINE_REFERENCE(type, name, address) static inline DEFINE_NONSTATIC_REFERENCE(type, name, address);
+#define DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address) UIP(type) (&name)dimensions = *reinterpret_cast<UIP(type) (*)dimensions>(address);
+#define DEFINE_ARRAY_REFERENCE(type, dimensions, name, address) static inline DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address);
+
+  /*
+   *	Use these macros to define a pointer to an address in the game's memory.
+   *	Pretty much only useful for strings that exist in the executable,
+   *	for everything else, prefer references.
+   */
+#define DEFINE_NONSTATIC_POINTER(type, name, address) UIP(type)* const (name) = reinterpret_cast<UIP(type)*>(address);
+#define DEFINE_POINTER(type, name, address) static inline DEFINE_NONSTATIC_POINTER(type, name, address);

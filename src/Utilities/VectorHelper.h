@@ -51,6 +51,11 @@ struct HelperedVector : public std::vector<T , A>
 		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
 	}
 
+	template <typename Func>
+	auto FORCEDINLINE find_if(Func&& act) {
+		return std::find_if(this->begin(), this->end(), std::forward<Func>(act));
+	}
+
 	auto FORCEDINLINE find(const T& item) const {
 		if COMPILETIMEEVAL (direct_comparable<T>) {
 			return std::find_if(this->begin(), this->end(), [item](auto& i) { return i == item; });

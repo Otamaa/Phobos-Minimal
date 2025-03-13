@@ -5,12 +5,38 @@
 #include <Utilities/Container.h>
 #include <Utilities/SavegameDef.h>
 
+struct RadLevel
+{
+	RadSiteClass* Rad { nullptr };
+	int Level { 0 };
+
+	bool Load(PhobosStreamReader& stm, bool registerForChange) {
+		return this->Serialize(stm);
+	}
+
+	bool Save(PhobosStreamWriter& stm) const {
+		return const_cast<RadLevel*>(this)->Serialize(stm);
+	}
+
+private:
+
+	template <typename T>
+	bool Serialize(T& stm) {
+		return stm
+			.Process(this->Rad)
+			.Process(this->Level)
+			.Success();
+	}
+};
+
 class CellExtData final
 {
 public:
 
 	static COMPILETIMEEVAL size_t Canary = 0x87688621;
 	using base_type = CellClass;
+
+	static COMPILETIMEEVAL size_t ExtOffset = 0x144;
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
@@ -20,6 +46,7 @@ public:
 	UnitClass* IncomingUnit { nullptr };
 	UnitClass* IncomingUnitAlt { nullptr };
 	HelperedVector<RadSiteClass*> RadSites {};
+	HelperedVector<RadLevel> RadLevels {};
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

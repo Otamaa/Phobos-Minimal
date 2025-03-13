@@ -256,6 +256,7 @@ void CellExtData::Serialize(T& Stm) {
 		.Process(this->IncomingUnit)
 		.Process(this->IncomingUnitAlt)
 		.Process(this->RadSites)
+		.Process(this->RadLevels)
 		;
 }
 

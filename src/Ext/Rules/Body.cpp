@@ -144,10 +144,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		RadTypeClass::LoadFromINIOnlyTheList(pINI);
-	}
+	RadTypeClass::LoadFromINIOnlyTheList(pINI);
 
 	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 	HoverTypeClass::LoadFromINIOnlyTheList(pINI);
@@ -708,10 +705,7 @@ void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	CursorTypeClass::AddDefaults();
 	CrateTypeClass::AddDefaults();
 	ArmorTypeClass::AddDefaults();
-
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadTypeClass::AddDefaults();
-
+	RadTypeClass::AddDefaults();
 	GenericPrerequisite::AddDefaults();
 	HoverTypeClass::AddDefaults();
 	ShieldTypeClass::AddDefaults();
@@ -1124,7 +1118,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 
 		.Process(Phobos::Config::ArtImageSwap)
-		.Process(Phobos::Otamaa::DisableCustomRadSite)
+
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
 		.Process(Phobos::Config::ApplyShadeCountFix)
@@ -1575,7 +1569,6 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	auto buffer = RulesExtData::Instance();
 	/* 7 extra boolean that added to the save
 		.Process(Phobos::Config::ArtImageSwap)
-		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 		.Process(Phobos::Misc::CustomGS)
 		.Process(Phobos::Config::ApplyShadeCountFix)
@@ -1583,7 +1576,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 		.Process(Phobos::Config::UnitPoweDrain)
 	*/
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (7 * (sizeof(bool))));
+	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (6 * (sizeof(bool))));
 	PhobosStreamWriter writer(saver);
 
 	writer.Save(RulesExtData::Canary);

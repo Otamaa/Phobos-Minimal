@@ -219,15 +219,14 @@ DEFINE_HOOK(0x4F9E56, HouseClass_MakeAlly_5, 0x9)
 
 #pragma endregion
 
+#ifdef _FUllBackport
 //these are different depend on the thing
-BuildingClass* __fastcall Find_Enemy_Building_AllowLimbo(
+BuildingClass* __fastcall Find_Enemy_Building(
 		BuildingTypeClass* type,
 		HouseClass* house,
 		TechnoClass* attacker,
 		int find_type,
-		bool OnlyTargetHouseEnemy,
-		bool allowLimbo,
-		bool allowLimboID)
+		bool OnlyTargetHouseEnemy)
 {
 	if (BuildingClass::Array->Count <= 0) {
 		return nullptr;
@@ -248,10 +247,7 @@ BuildingClass* __fastcall Find_Enemy_Building_AllowLimbo(
 			continue;
 		}
 
-		if (!allowLimbo && pBld->InLimbo)
-			continue;
-
-		if (!allowLimboID && BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+		if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
 			continue;
 
 		switch (find_type)
@@ -274,12 +270,12 @@ BuildingClass* __fastcall Find_Enemy_Building_AllowLimbo(
 		}
 		case 2:
 		{
-			v10 = -1 - (int)(attacker->Location - pBld->Location).pow();
+			v10 = -1 - (int)(attacker->Location - pBld->Location).Length();
 			break;
 		}
 		case 3:
 		{
-			v10 = (int)(attacker->Location - pBld->Location).pow();
+			v10 = (int)(attacker->Location - pBld->Location).Length();
 			break;
 		}
 		default:
@@ -306,7 +302,104 @@ BuildingClass* __fastcall Find_Enemy_Building_AllowLimbo(
 	return last;
 }
 
-//DEFINE_FUNCTION_JUMP(CALL ,0x6EFFAF, Find_Enemy_Building_AllowLimbo);
+BuildingClass* __fastcall Find_Own_Building(
+		BuildingTypeClass* type,
+		HouseClass* house,
+		TechnoClass* attacker,
+		int find_type)
+{
+	if (house->Buildings.Count <= 0 || !attacker)
+	{
+		return nullptr;
+	}
+
+	int v30 = -1;
+	BuildingClass* last = nullptr;
+
+	for (auto& pBld : house->Buildings)
+	{
+		if (pBld->Type != type)
+			continue;
+
+		if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+			continue;
+
+		int v10 = -1;
+
+		switch (find_type)
+		{
+		case 0:
+		{
+			auto coord = pBld->GetCoords();
+			auto cell = CellClass::Coord2Cell(coord);
+			v10 = -1 - MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+
+			break;
+		}
+		case 1:
+		{
+			auto coord = pBld->GetCoords();
+			auto cell = CellClass::Coord2Cell(coord);
+			v10 = MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+
+			break;
+		}
+		case 2:
+		{
+			v10 = -1 - (int)(attacker->Location - pBld->Location).Length();
+			break;
+		}
+		case 3:
+		{
+			v10 = (int)(attacker->Location - pBld->Location).Length();
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (v10 > v30) {
+			v30 = v10;
+		}
+
+		last = pBld;
+	}
+
+	return last;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE376, Find_Enemy_Building)
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE45D, Find_Enemy_Building)
+DEFINE_FUNCTION_JUMP(CALL, 0x6EFFAF, Find_Enemy_Building)
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE693, Find_Own_Building)
+#else 
+
+DEFINE_HOOK(0x6EEC6D, FindTargetBuilding_LimboDelivered, 0x6)
+{
+	enum { advance = 0x6EA38C, ret = 0x0 };
+	GET(BuildingClass*, pBuilding, ESI);
+
+	if (!pBuilding->IsAlive)
+		return advance;
+
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+
+DEFINE_HOOK(0x6EEEF2, FindOwnBuilding_LimboDelivered, 0xA)
+{
+	enum { advance = 0x6EF0D7, ret = 0x0 };
+	GET(BuildingClass*, pBuilding, ESI);
+
+	if (pBuilding->InLimbo || !pBuilding->IsAlive)
+		return advance;
+
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
+		advance : ret;
+}
+
+#endif
 
 DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
 {
@@ -320,17 +413,6 @@ DEFINE_HOOK(0x6EA192, TeamClass_Regroup_LimboDelivered, 0x6)
 		advance : ret;
 }
 
-DEFINE_HOOK(0x6EEC6D, TeamClass_FindTargetBuilding_LimboDelivered, 0x6)
-{
-	enum { advance = 0x6EEE45, ret = 0x0 };
-	GET(BuildingClass*, pBuilding, ESI);
-
-	if (pBuilding->InLimbo || !pBuilding->IsAlive)
-		return advance;
-
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
 
 DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 {
@@ -341,18 +423,6 @@ DEFINE_HOOK(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 		return advance;
 
 	return BuildingExtContainer::Instance.Find(*pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
-DEFINE_HOOK(0x6EEEF2, TeamClass_6EEEA0_LimboDelivered, 0xA)
-{
-	enum { advance = 0x6EF0D7, ret = 0x0 };
-	GET(BuildingClass*, pBuilding, ESI);
-
-	if (pBuilding->InLimbo || !pBuilding->IsAlive)
-		return advance;
-
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
 		advance : ret;
 }
 

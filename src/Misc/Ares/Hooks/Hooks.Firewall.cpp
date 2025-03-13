@@ -384,10 +384,7 @@ DEFINE_HOOK(0x4DA54E, FootClass_Update_AresAddition, 6)
 	if (TechnoExtData::IsRadImmune(pThis))
 		return (CheckOtherState);
 
-	if(!Phobos::Otamaa::DisableCustomRadSite)
-		return CheckOtherState;
-
-	return ProcessRadSiteCheckVanilla;
+	return CheckOtherState;
 }
 
 DEFINE_HOOK(0x467B94, BulletClass_Update_Ranged, 7)

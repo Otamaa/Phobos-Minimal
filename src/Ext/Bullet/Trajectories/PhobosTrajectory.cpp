@@ -132,6 +132,9 @@ bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 
 bool PhobosTrajectory::BlockDrawTrail(std::unique_ptr<PhobosTrajectory>& traj)
 {
+	if (!traj)
+		return false;
+
 	COMPILETIMEEVAL TrajectoryFlag flags[] = {
 		TrajectoryFlag::StraightVariantC,
 		TrajectoryFlag::Disperse,
