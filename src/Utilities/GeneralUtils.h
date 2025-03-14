@@ -67,7 +67,7 @@ public:
 		{
 			if (count >= 8)
 			{
-				Idx = count % 2 == 0 ? Idx *= static_cast<int>(facing / 256.0) : count;
+				Idx = count % 2 == 0 ? Idx *= static_cast<int>(facing / 256.0) : count - 1;
 			}
 		}
 	}
