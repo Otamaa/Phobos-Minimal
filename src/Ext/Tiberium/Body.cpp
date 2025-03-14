@@ -88,10 +88,17 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	detail::read<bool>(slopes, exINI, pSection, "UseSlopes");
+	Nullable<int> Variety { };
+
+	Variety.Read(exINI, pSection, "Variety");
+	int MaxCount = !slopes ? 12 : 20;
+
+	if(Variety.isset()) {
+		MaxCount = MaxImpl(MaxCount, Variety.Get());
+	}
 
 	if(!this->LinkedOverlayType->empty()) {
 
-		const int MaxCount = !slopes ? 12 : 20;
 		OverlayTypeClass* first = nullptr;
 
 		for (int i = 0; i < MaxCount; ++i) {

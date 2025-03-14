@@ -413,9 +413,13 @@ public:
 	Valueable<bool> BuildingUndeploy { false };
 	Valueable<bool> BuildingUndeploy_Leave { false };
 
-	Nullable<double> ScorcScorchChance {};
-	Nullable<double> CraterChance {};
-	Nullable<double> CellAnimChance {};
+	Valueable<double> ScorchChance {};
+	Valueable<double> ScorchPercentAtMax { 1.0 };
+	Valueable<double> CraterChance {};
+	Valueable<double> CraterPercentAtMax { 1.0 };
+	Valueable<double> CellAnimChance {};
+	Valueable<double> CellAnimPercentAtMax { 1.0 };
+
 	NullableVector<AnimTypeClass*> CellAnim {};
 public:
 

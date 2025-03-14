@@ -313,6 +313,12 @@ public:
 		return TryGetCellAt(MapCoords) != nullptr;
 	}
 
+	int GetThreatPosed(const CoordStruct& coord, HouseClass* pHouse) const { 
+		auto cell = CellClass::Coord2Cell(coord);
+		return GetThreatPosed(cell , pHouse);
+	
+	}
+
 	int GetThreatPosed(const CellStruct& cell, HouseClass* pHouse) const
 		{ JMP_THIS(0x56BCD0); }
 

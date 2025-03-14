@@ -191,6 +191,70 @@ static void NOINLINE Spawn_Flames_And_Smudges(const CellStruct& cell, double sco
 	}
 }
 
+static void NOINLINE Damage_Overlay(CellClass* pCurCell, 
+	CellStruct center,
+	WarheadTypeClass* pWarhead,
+	int distance, 
+	int damage, 
+	TechnoClass* pSource,
+	HouseClass* pHouse,
+	bool do_chain_reaction
+)
+{
+	if (pCurCell->OverlayTypeIndex > -1)
+	{
+		auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
+		if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && do_chain_reaction)
+		{// hook up the area damage delivery with chain reactions
+			pCurCell->ChainReaction();
+			pCurCell->ReduceTiberium(damage / 10);
+		}
+
+		if (pOvelay->Wall)
+		{
+			if (pWarhead->WallAbsoluteDestroyer)
+			{
+				pCurCell->ReduceWall();
+			}
+			else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
+			{
+				pCurCell->ReduceWall(damage);
+			}
+		}
+
+		if (pCurCell->OverlayTypeIndex == -1)
+		{
+			TechnoClass::ClearWhoTargetingThis(pCurCell);
+		}
+
+		if (pOvelay->IsVeinholeMonster)
+		{
+			if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&pCurCell->MapCoords))
+			{
+				if (!veinhole->InLimbo && veinhole->IsAlive && ((int)distance <= 0))
+				{
+					int nDamage = damage;
+					if (veinhole->ReceiveDamage(&nDamage,
+						(int)center.DistanceFrom(veinhole->MonsterCell),
+						const_cast<WarheadTypeClass*>(pWarhead),
+						pSource,
+						false,
+						false,
+						pSource && !pHouse ? pSource->Owner : pHouse
+					) == DamageState::NowDead)
+					{
+						Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
+
+						if (pCurCell->OverlayTypeIndex == -1) {
+							TechnoClass::ClearWhoTargetingThis(pCurCell);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 static PhobosMap<BuildingClass*, double> MergedDamage {};
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
 static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
@@ -200,7 +264,7 @@ static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
 DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		int damage,
 		TechnoClass* pSource,
-		const WarheadTypeClass* const pWarhead,
+		WarheadTypeClass* pWarhead,
 		bool affectTiberium,
 		HouseClass* pHouse)
 {
@@ -330,62 +394,14 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 				if (MapClass::Instance->CoordinatesLegal(cellhere))
 				{
 					auto cur_cellCoord = pCurCell->GetCoords();
+					auto spawn_distance = cellhere.DistanceFrom(cell);
+					Damage_Overlay(pCurCell, cell, pWarhead, spawn_distance, damage, pSource, pHouse, affectTiberium);
+			
+					auto scorch_chance = std::clamp(Math::PercentAtMax(pWHExt->ScorchChance.Get(), spreadLept, spawn_distance, pWHExt->ScorchPercentAtMax.Get()), 0.0, 1.0);
+					auto crater_chance = std::clamp(Math::PercentAtMax(pWHExt->CraterChance.Get(), spreadLept, spawn_distance, pWHExt->CraterPercentAtMax.Get()), 0.0, 1.0);
+					auto cellanim_chance = std::clamp(Math::PercentAtMax(pWHExt->CellAnimChance.Get(), spreadLept, spawn_distance, pWHExt->CellAnimPercentAtMax.Get()), 0.0, 1.0);
 
-					if (pCurCell->OverlayTypeIndex > -1)
-					{
-						auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
-						if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && affectTiberium)
-						{// hook up the area damage delivery with chain reactions
-							pCurCell->ChainReaction();
-							pCurCell->ReduceTiberium(damage / 10);
-						}
-
-						if (pOvelay->Wall)
-						{
-							if (pWarhead->WallAbsoluteDestroyer)
-							{
-								pCurCell->ReduceWall();
-							}
-							else if (pWarhead->Wall || (pWarhead->Wood && pOvelay->Armor == Armor::Wood))
-							{
-								pCurCell->ReduceWall(damage);
-							}
-						}
-
-						if (pCurCell->OverlayTypeIndex == -1)
-						{
-							TechnoClass::ClearWhoTargetingThis(pCurCell);
-						}
-
-						if (pOvelay->IsVeinholeMonster)
-						{
-							if (VeinholeMonsterClass* veinhole = VeinholeMonsterClass::GetVeinholeMonsterAt(&cellhere))
-							{
-								if (!veinhole->InLimbo && veinhole->IsAlive && ((int)veinhole->MonsterCell.DistanceFrom(pCell->MapCoords) <= 0))
-								{
-									int nDamage = damage;
-									if (veinhole->ReceiveDamage(&nDamage,
-										(int)cur_cellCoord.DistanceFrom(CellClass::Cell2Coord(veinhole->MonsterCell)),
-										const_cast<WarheadTypeClass*>(pWarhead),
-										pSource,
-										false,
-										false,
-										pSource && !pHouse ? pSource->Owner : pHouse
-									) == DamageState::NowDead)
-									{
-										Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
-
-										if (pCurCell->OverlayTypeIndex == -1)
-										{
-											TechnoClass::ClearWhoTargetingThis(pCurCell);
-										}
-									}
-								}
-							}
-						}
-					}
-
-					Spawn_Flames_And_Smudges(cellhere, pWHExt->ScorcScorchChance, pWHExt->CraterChance, pWHExt->CellAnimChance, pWHExt->CellAnim);
+					Spawn_Flames_And_Smudges(cellhere, scorch_chance, crater_chance, cellanim_chance, pWHExt->CellAnim);
 
 					for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
 					{

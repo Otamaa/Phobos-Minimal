@@ -12,7 +12,7 @@ struct DamageArea
 	static DamageAreaResult __fastcall Apply(CoordStruct* pCoord,
 		int damage,
 		TechnoClass* pSource,
-		const WarheadTypeClass* const pWarhead,
+		WarheadTypeClass* pWarhead,
 		bool affectTiberium,
 		HouseClass* pHouse);
 };

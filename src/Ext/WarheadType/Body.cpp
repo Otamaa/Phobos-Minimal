@@ -594,9 +594,14 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->BuildingUndeploy.Read(exINI, pSection, "BuildingUndeploy");
 	this->BuildingUndeploy_Leave.Read(exINI, pSection, "BuildingUndeploy.Leave");
 
-	this->ScorcScorchChance.Read(exINI, pSection, "ScorchChance");
+	this->ScorchChance.Read(exINI, pSection, "ScorchChance");
 	this->CraterChance.Read(exINI, pSection, "CraterChance");
 	this->CellAnimChance.Read(exINI, pSection, "CellAnimChance");
+
+	this->ScorchPercentAtMax.Read(exINI, pSection, "ScorchPercentAtMax");
+	this->CraterPercentAtMax.Read(exINI, pSection, "CraterPercentAtMax");
+	this->CellAnimPercentAtMax.Read(exINI, pSection, "CellAnimPercentAtMax");
+
 	this->CellAnim.Read(exINI, pSection, "CellAnim");
 
 }
@@ -1590,9 +1595,12 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildingUndeploy)
 		.Process(this->BuildingUndeploy_Leave)
 
-		.Process(this->ScorcScorchChance)
+		.Process(this->ScorchChance)
+		.Process(this->ScorchPercentAtMax)
 		.Process(this->CraterChance)
+		.Process(this->CraterPercentAtMax)
 		.Process(this->CellAnimChance)
+		.Process(this->CellAnimPercentAtMax)
 		.Process(this->CellAnim)
 		;
 

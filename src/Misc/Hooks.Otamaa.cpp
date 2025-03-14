@@ -6324,6 +6324,18 @@ DEFINE_HOOK(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 	return 0x4668BD;
 }
 
+#include <OverlayClass.h>
+
+DEFINE_HOOK(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
+	GET(CellClass*, pThis, ESI);
+	GET(TiberiumClass*, pTib, EDI);
+	GET(OverlayClass*, pMemory, EBP);
+	const int random = ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1);
+	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords , -1);
+	R->Stack(0x10, pThis->MapCoords);
+	return 0x487291;
+}
+
 /* AnimTypeClass::FromName patch
 58164B XGRYMED1
 581664 XGRYMED2

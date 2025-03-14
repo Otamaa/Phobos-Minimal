@@ -187,4 +187,29 @@ namespace Math
 			return MinImpl(value, limit);
 		}
 	}
+
+	template <typename T> requires std::is_arithmetic_v<T> && std::is_floating_point_v<T>
+	OPTIONALINLINE COMPILETIMEEVAL T PercentAtMax(T value, int range, int distance, T percent_at_max)
+	{
+		if (range != 0 && percent_at_max != 1.0f)
+		{
+
+			/**
+			 *  Calculate the damage at the furthest point.
+			 */
+			float at_max = static_cast<T>(value) * percent_at_max;
+
+			/**
+			 *  Reduce the damage based on the distance and the damage % at max distance.
+			 */
+			value = static_cast<T>((static_cast<T>(value) - at_max) * static_cast<T>(range - distance) / static_cast<T>(range) + at_max);
+
+			/**
+			 *  Our damage was originally positive, don't allow it to go negative.
+			 */
+			value = MaxImpl(static_cast<T>(0), value);
+		}
+
+		return value;
+	}
 };

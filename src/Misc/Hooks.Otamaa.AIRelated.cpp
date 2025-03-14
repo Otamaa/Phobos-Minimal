@@ -304,11 +304,11 @@ BuildingClass* __fastcall Find_Enemy_Building(
 
 BuildingClass* __fastcall Find_Own_Building(
 		BuildingTypeClass* type,
-		HouseClass* house,
+		HouseClass* unused,
 		TechnoClass* attacker,
 		int find_type)
 {
-	if (house->Buildings.Count <= 0 || !attacker)
+	if (!attacker || attacker->Owner->Buildings.Count <= 0 )
 	{
 		return nullptr;
 	}
@@ -316,53 +316,48 @@ BuildingClass* __fastcall Find_Own_Building(
 	int v30 = -1;
 	BuildingClass* last = nullptr;
 
-	for (auto& pBld : house->Buildings)
+	for (auto& pBld : attacker->Owner->Buildings)
 	{
-		if (pBld->Type != type)
-			continue;
-
-		if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-			continue;
-
 		int v10 = -1;
 
-		switch (find_type)
-		{
-		case 0:
-		{
-			auto coord = pBld->GetCoords();
-			auto cell = CellClass::Coord2Cell(coord);
-			v10 = -1 - MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+		if (pBld->Type == type){
+			if (!pBld->InLimbo && BuildingExtContainer::Instance.Find(pBld)->LimboID <= -1) { 
+				switch (find_type)
+				{
+				case 0:
+				{
+					auto coord = pBld->GetCoords();
+					v10 = -1 - MapClass::Instance->GetThreatPosed(coord, attacker->Owner);
 
-			break;
-		}
-		case 1:
-		{
-			auto coord = pBld->GetCoords();
-			auto cell = CellClass::Coord2Cell(coord);
-			v10 = MapClass::Instance->GetThreatPosed(cell, attacker->Owner);
+					break;
+				}
+				case 1:
+				{
+					auto coord = pBld->GetCoords();
+					v10 = MapClass::Instance->GetThreatPosed(coord, attacker->Owner);
 
-			break;
-		}
-		case 2:
-		{
-			v10 = -1 - (int)(attacker->Location - pBld->Location).Length();
-			break;
-		}
-		case 3:
-		{
-			v10 = (int)(attacker->Location - pBld->Location).Length();
-			break;
-		}
-		default:
-			break;
+					break;
+				}
+				case 2:
+				{
+					v10 = -1 - (int)(pBld->Location - attacker->Location).Length();
+					break;
+				}
+				case 3:
+				{
+					v10 = (int)(pBld->Location - attacker->Location).Length();
+					break;
+				}
+				default:
+					break;
+				}
+			}
 		}
 
 		if (v10 > v30) {
 			v30 = v10;
+			last = pBld;
 		}
-
-		last = pBld;
 	}
 
 	return last;
