@@ -66,10 +66,10 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
-		if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 && !pTypeExt->FactoryPlant_AllowTypes.Contains(pTechnoType))
+		if (!pTypeExt->FactoryPlant_AllowTypes.empty() && !pTypeExt->FactoryPlant_AllowTypes.Contains(pTechnoType))
 			continue;
 
-		if (pTypeExt->FactoryPlant_DisallowTypes.size() > 0 && pTypeExt->FactoryPlant_DisallowTypes.Contains(pTechnoType))
+		if (!pTypeExt->FactoryPlant_DisallowTypes.empty()&& pTypeExt->FactoryPlant_DisallowTypes.Contains(pTechnoType))
 			continue;
 
 		float currentMult = 1.0f;

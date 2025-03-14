@@ -169,7 +169,7 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 				if (const auto pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
 				{
-					if (WeaponIndex < static_cast<int>(pTransporterTypeExt->AlternateFLHs.size()))
+					if ((size_t)WeaponIndex < pTransporterTypeExt->AlternateFLHs.size())
 						this->FLHCoord = pTransporterTypeExt->AlternateFLHs[WeaponIndex];
 				}
 			}

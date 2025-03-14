@@ -57,7 +57,8 @@ OPTIONALINLINE void FireTacticalSWCommandClass<Index>::Execute(WWKey eInput) con
 		return;
 
 	const auto& buttons = columns.front()->Buttons;
+	size_t idx = size_t(Index - 1);
 
-	if (buttons.size() > (Index - 1))
-		buttons[Index -1]->LaunchSuper();
+	if (idx < buttons.size())
+		buttons[idx]->LaunchSuper();
 }

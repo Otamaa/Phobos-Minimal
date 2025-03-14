@@ -1471,12 +1471,12 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 						case 3:
 						case 4:
 						case 5:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 0);
 							break;
 						case 6:
 						case 7:
 						case 8:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 1);
 							break;
 						case 9:
 							PlayFireAnim();
@@ -1534,12 +1534,12 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 						case 3:
 						case 4:
 						case 5:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 0);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 0);
 							break;
 						case 6:
 						case 7:
 						case 8:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size()), 1);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 1);
 							break;
 						case 9:
 							PlayFireAnim();

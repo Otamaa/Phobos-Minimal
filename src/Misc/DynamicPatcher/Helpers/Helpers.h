@@ -213,7 +213,7 @@ public:
 
 	static std::map<Point2D, int> MakeTargetPad(const std::vector<int>& weights, int count, int& maxValue)
 	{
-		int weightCount = weights.empty() ? (int)weights.size() : 0;
+		int weightCount = (int)weights.size();
 		std::map<Point2D, int> targetPad {};
 		maxValue = 0;
 		// 将所有的概率加起来，获得上游指标

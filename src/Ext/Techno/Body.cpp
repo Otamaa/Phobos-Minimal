@@ -157,7 +157,7 @@ void TechnoExtData::SetChargeTurretDelay(TechnoClass* pThis, int rearmDelay, Wea
 	pThis->ROF = rearmDelay;
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pWeaponExt->ChargeTurret_Delays.size() > 0)
+	if (!pWeaponExt->ChargeTurret_Delays.empty())
 	{
 		size_t burstIndex = pWeapon->Burst > 1 ? pThis->CurrentBurstIndex - 1 : 0;
 		size_t index = burstIndex < pWeaponExt->ChargeTurret_Delays.size() ? burstIndex : pWeaponExt->ChargeTurret_Delays.size() - 1;
@@ -180,13 +180,13 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 	if (!pWHExt->KillWeapon || pTypeExt->SuppressKillWeapons || !EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectHouses, pSource->Owner, pThis->Owner))
 		return;
 
-	if (pWHExt->KillWeapon_AffectTypes.size() > 0 && !pWHExt->KillWeapon_AffectTypes.Contains(pType))
+	if (!pWHExt->KillWeapon_AffectTypes.empty() && !pWHExt->KillWeapon_AffectTypes.Contains(pType))
 		return;
 
-	if (pWHExt->KillWeapon_IgnoreTypes.size() > 0 && pWHExt->KillWeapon_IgnoreTypes.Contains(pType))
+	if (!pWHExt->KillWeapon_IgnoreTypes.empty() && pWHExt->KillWeapon_IgnoreTypes.Contains(pType))
 		return;
 
-	if (pTypeExt->SuppressKillWeapons_Types.size() > 0 && pTypeExt->SuppressKillWeapons_Types.Contains(pWHExt->KillWeapon))
+	if (!pTypeExt->SuppressKillWeapons_Types.empty()&& pTypeExt->SuppressKillWeapons_Types.Contains(pWHExt->KillWeapon))
 		return;
 
 	if (pType->WhatAmI() == AbstractType::AircraftType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)

@@ -101,7 +101,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 					while (count < cluster)
 					{
-						int index = ScenarioClass::Instance->Random.RandomRanged(0, targetCount);
+						int index = ScenarioClass::Instance->Random.RandomFromMax(targetCount - 1);
 						auto const pTarget = targets[index];
 
 						if (count > targetCount || newTargets.find(pTarget)  == newTargets.end()) {
