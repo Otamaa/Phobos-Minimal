@@ -3018,19 +3018,25 @@ ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x
 	return pThisType->LargeVisceroid ? 0x737C38 : 0x737C0B;
 }
 
-ASMJIT_PATCH(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
+ASMJIT_PATCH(0x6FDB80, TechnoClass_AdjustDamage_Handle, 0x6)
 {
-	GET(TechnoClass*, pThis, EDI);
-	GET_STACK(WeaponTypeClass*, pWeapon, 0x10 + 0x8);
-	GET(int, damage, EAX);
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(TechnoClass*, pVictim , 0x4);
+	GET_STACK(WeaponTypeClass*, pWeapon, 0x8);
 
-	double _damage = TechnoExtData::GetDamageMult(pThis, (double)damage);
-	int _damage_int = (int)TechnoExtData::GetArmorMult(pThis, _damage, pWeapon->Warhead);
-	if (_damage_int < 1)
+	int damage = 0;
+	if(pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0) {
+
+		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
+		int _damage_int = (int)TechnoExtData::GetArmorMult(pVictim, _damage, pWeapon->Warhead);
+		if (_damage_int < 1)
 		_damage_int = 1;
 
-	R->EAX(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
-	return 0x6FDD30;
+		damage =(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pThis, pWeapon->Warhead), 0));
+	}
+
+	R->EAX(damage);
+	return 0x6FDD35;
 }
 
 ASMJIT_PATCH(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
