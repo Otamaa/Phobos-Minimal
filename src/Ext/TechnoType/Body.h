@@ -977,7 +977,7 @@ public:
 	Nullable<bool> CombatAlert_NotBuilding {};
 	Nullable<int> SubterraneanHeight {};
 
-	Valueable<int> Spawner_RecycleRange { -1 };
+	Valueable<Leptons> Spawner_RecycleRange { Leptons{ -1 } };
 	Valueable<CoordStruct> Spawner_RecycleFLH { {0,0,0} };
 	Valueable<bool> Spawner_RecycleOnTurret { false };
 	Valueable<AnimTypeClass*> Spawner_RecycleAnim { nullptr };

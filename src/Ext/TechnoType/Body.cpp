@@ -1212,7 +1212,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SubterraneanHeight.Read(exINI, pSection, "SubterraneanHeight");
 
 		this->Spawner_RecycleRange.Read(exINI, pSection, "Spawner.RecycleRange");
-		this->Spawner_RecycleFLH.Read(exINI, pSection, "Spawner.FLH");
+		this->Spawner_RecycleFLH.Read(exINI, pSection, "Spawner.RecycleCoord");
 		this->Spawner_RecycleOnTurret.Read(exINI, pSection, "Spawner.RecycleOnTurret");
 		this->Spawner_RecycleAnim.Read(exINI, pSection, "Spawner.RecycleAnim");
 

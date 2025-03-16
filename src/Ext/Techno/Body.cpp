@@ -3238,14 +3238,17 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 {
 	auto const pType = pThis->GetTechnoType();
 	Matrix3D mtx = TechnoExtData::GetTransform(pThis);
-
+	auto pFoot = flag_cast_to<FootClass*>(pThis);
+	
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, 1.0);
 		double turretRad = pThis->TurretFacing().GetRadian<32>();
 		double bodyRad = pThis->PrimaryFacing.Current().GetRadian<32>();
-		float angle = static_cast<float>(turretRad - bodyRad);
+		// For BuildingClass turret facing is equal to primary facing
+
+		float angle = pFoot ? (float)(turretRad - bodyRad) : (float)(turretRad);
 		mtx.RotateZ(angle);
 	}
 
