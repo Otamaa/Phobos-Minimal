@@ -339,10 +339,21 @@ __declspec(align(16)) struct hostdecl
 	unsigned int hostChecksum;
 	const char* hostName;
 };
+
+__declspec(align(16)) struct hookdeclb{
+	unsigned int hookAddr;
+	unsigned int hookSize;
+	const void* hookFunc;
+};
+
 #pragma warning(pop)
 #pragma pack(pop)
 
 #pragma section(".syhks00", read, write)
+
+#define ASMJIT_PATCH_SECTION_NAME ".syhks02"
+#pragma section(ASMJIT_PATCH_SECTION_NAME, read, write)
+
 //#pragma section(".syhks01", read, write)
 //#pragma section(".syhks02", read, write)
 //#pragma section(".syexe00", read, write)
@@ -421,6 +432,22 @@ EXPORT_FUNC(funcname)
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
+
+#define decl_patch_data(hook, funcname, size) \
+namespace AsmjitPatchData { \
+namespace Patchs { \
+    __declspec(allocate(ASMJIT_PATCH_SECTION_NAME)) \
+    hookdeclb _hk__ ## hook ## funcname { hook, size, &funcname }; \
+}; };
+
+#define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
+decl_patch_data(hook, funcname, size)
+
+#define ASMJIT_PATCH(hook, funcname, size) \
+EXPORT_FUNC(funcname); \
+decl_patch_data(hook, funcname, size) \
+EXPORT_FUNC(funcname)\
+
 
 #else
 #include <chrono>

@@ -59,7 +59,7 @@
 
 #pragma endregion
 
-DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
+ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(Point2D*, pPoint, ECX);
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 	return 0x6FA30C;
 }
 
-DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
+ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
 	GET(VeinholeMonsterClass*, pThis, ESI);
 	GET(TerrainTypeClass* const, pThisTree, EDX);
@@ -113,7 +113,7 @@ static	void __fastcall DrawShape_VeinHole
 
 DEFINE_FUNCTION_JUMP(CALL, 0x74D5BC, DrawShape_VeinHole);
 
-DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
+ASMJIT_PATCH(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
 	const auto nTheater = ScenarioClass::Instance->Theater;
 	SmudgeTypeClass::TheaterInit(nTheater);
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 	return 0x4AD0A8;
 }
 
-DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
+ASMJIT_PATCH(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 {
 	//overriden instructions
 	R->Stack(0x2C, R->EDX());
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 	return 0x74D100;
 }
 
-DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
+ASMJIT_PATCH(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 {
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
 
@@ -144,13 +144,13 @@ DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
+ASMJIT_PATCH(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 {
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
 }
 
 #pragma region WallTower
-DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
+ASMJIT_PATCH(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	R->ECX(pThis->Type);
@@ -158,7 +158,7 @@ DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x4405CF : 0x440606;
 }
 
-DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
+ASMJIT_PATCH(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	R->EDX(pThis->Type);
@@ -166,7 +166,7 @@ DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
 }
 
-DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
+ASMJIT_PATCH(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
 {
 	GET(BuildingClass* const, pThis, EDI);
 	R->EDX(pThis->Type);
@@ -174,7 +174,7 @@ DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
 	return Nvec.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
 }
 
-DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
+ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	R->ECX(pThis->Type);
@@ -182,7 +182,7 @@ DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 	return Nvec.Contains(pThis->Type) ? 0x445AED : 0x445B81;
 }
 
-DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
+ASMJIT_PATCH(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 {
 	GET(BuildingClass* const, pThis, EBP);
 	R->ECX(pThis->Type);
@@ -190,7 +190,7 @@ DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
 }
 
-DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
+ASMJIT_PATCH(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, EBX);
 	R->EDX(RulesClass::Instance());
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 	return Nvec.Contains(pThis) ? 0x45EF23 : 0x45F00B;
 }
 
-DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
+ASMJIT_PATCH(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 {
 	GET(int const, nHouseIDx, EAX);
 	GET(CellClass* const, pCell, EDI);
@@ -266,14 +266,14 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 	return Status;
 }
 
-DEFINE_HOOK(0x4FE546, HouseClass_BuildingClass_AI_WallTowers, 0x6)
+ASMJIT_PATCH(0x4FE546, HouseClass_BuildingClass_AI_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, EAX);
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
 }
 
-DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
+ASMJIT_PATCH(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 {
 	GET(int const, nNodeBuilding, EAX);
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
@@ -288,21 +288,21 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 		? 0x4FE656 : 0x4FE696;
 }
 
-DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
+ASMJIT_PATCH(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, EAX);
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50735C : 0x507306;
 }
 
-DEFINE_HOOK(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
+ASMJIT_PATCH(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50A980 : 0x50AB90;
 }
 
-DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
+ASMJIT_PATCH(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 {
 	GET(BuildingClass* const, pThis, EBX);
 	R->EAX(pThis->Type);
@@ -318,7 +318,7 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2908, AircraftTypeClass_CanUseWaypoint);
 
-DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
+ASMJIT_PATCH(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
 	GET(ILocomotion* const, pILoco, ESI);
 
@@ -336,7 +336,7 @@ DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
+ASMJIT_PATCH(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pDrive = static_cast<DriveLocomotionClass* const>(pLoco);
@@ -345,7 +345,7 @@ DEFINE_HOOK(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 	return 0x4B0828;
 }
 
-DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
+ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pShip = static_cast<ShipLocomotionClass* const>(pLoco);
@@ -354,7 +354,7 @@ DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 	return 0x69FEF0;
 }
 
-DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
+ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(AircraftClass* const, pThis, ESI);
@@ -366,7 +366,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	return 0x414ED0;
 }
 
-DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
+ASMJIT_PATCH(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(UnitClass* const, pThis, ESI);
@@ -378,7 +378,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	return 0x7365BB;
 }
 
-DEFINE_HOOK(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
+ASMJIT_PATCH(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 {
 	GET(AnimTypeClass*, pExplType, EDI);
 	GET(UnitClass*, pThis, ESI);
@@ -396,7 +396,7 @@ DEFINE_HOOK(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 	return 0x738748;
 }
 
-DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
+ASMJIT_PATCH(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(int, X, ECX);
@@ -424,7 +424,7 @@ DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	return 0x441A24;
 }
 
-DEFINE_HOOK(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
+ASMJIT_PATCH(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	LEA_STACK(CoordStruct*, pCoord, 0x64 - 0x54);
@@ -442,7 +442,7 @@ DEFINE_HOOK(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	return 0x441B1F;
 }
 
-DEFINE_HOOK(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
+ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
@@ -451,7 +451,7 @@ DEFINE_HOOK(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
+ASMJIT_PATCH(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
 	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
 	GET(TechnoClass* const, pThis, ESI);
@@ -466,7 +466,7 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 static_assert(offsetof(HouseClass, IsHumanPlayer) == 0x1EC, "ClassMember Shifted !");
 static_assert(offsetof(HouseClass, IsInPlayerControl) == 0x1ED, "ClassMember Shifted !");
 
-DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 {
 	enum
 	{
@@ -500,7 +500,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	return 0x709202;
 }
 
-DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
+ASMJIT_PATCH(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 {
 	enum
 	{
@@ -528,7 +528,7 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
+ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 {
 	enum { Skip = 0x4DC1A0, Continue = 0x0 };
 
@@ -554,7 +554,7 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 	return Continue;
 }
 
-DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
+ASMJIT_PATCH(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 {
 	enum { Skip = 0x4DC328, Continue = 0x0 };
 
@@ -582,13 +582,12 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
+ASMJIT_PATCH(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 {
 	return R->ESI<InfantryClass* const>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5)
-DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
+ASMJIT_PATCH(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
@@ -602,9 +601,9 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 		TechnoExtData::KillSelf(pThis, KillMethod::Explode);
 
 	return 0;
-}
+} ASMJIT_PATCH_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5);
 
-DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
+ASMJIT_PATCH(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 {
 	GET(TechnoTypeClass* const, pType, EAX);
 	GET(FootClass* const, pThis, ESI);
@@ -612,7 +611,7 @@ DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
 }
 
-DEFINE_HOOK(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
+ASMJIT_PATCH(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -629,7 +628,7 @@ DEFINE_HOOK(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 
 // Also fix :
 // https://bugs.launchpad.net/ares/+bug/1901825
-DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
+ASMJIT_PATCH(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 {
 	GET(TemporalClass*, pThis, ECX);
 
@@ -668,7 +667,7 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 }
 
-DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
+ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 {
 	if (Phobos::Otamaa::IsAdmin)
 		R->EAX(14);
@@ -676,7 +675,7 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
+ASMJIT_PATCH(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 {
 	enum { continuecheck = 0x62A929, returnfalse = 0x62A976, continuecheckB = 0x62A933 };
 	GET(ParasiteClass*, pThis, EDI);
@@ -701,7 +700,7 @@ DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 }
 
 // replace the repair button fucntion to toggle power
-DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
+ASMJIT_PATCH(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 {
 	GET(SidebarClass* const, pThis, ESI);
 
@@ -714,7 +713,7 @@ DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 }
 
 // replace the repair button fucntion to toggle power
-DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
+ASMJIT_PATCH(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 {
 	GET(SidebarClass* const, pThis, ESI);
 
@@ -722,7 +721,7 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 		0x6A7AFE : 0x6A7AE7;
 }
 
-DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
+ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 {
 	GET(BuildingClass*, pBld, EDI);
 
@@ -732,7 +731,7 @@ DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
+ASMJIT_PATCH(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
 {
 	GET(FakeBuildingClass*, pBld, EAX);
 	enum
@@ -755,7 +754,7 @@ DEFINE_HOOK(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
 	return (pBld->_GetExtData()->LimboID != -1) ? ContinueCheck : EligibleRadar;
 }
 
-DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
+ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
 
@@ -775,7 +774,7 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 		Continue;
 }
 
-DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
+ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 {
 	GET(TeamTypeClass*, pThis, ECX);
 	GET_STACK(DWORD, caller, 0x0);
@@ -827,14 +826,14 @@ DEFINE_HOOK(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 
 DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 
-DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
+ASMJIT_PATCH(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
 	GET(FootClass* const, pThis, EDI);
 	Debug::LogInfo("[{}][{}] Transport just recieved orders to go home after unloading ", (void*)pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
-DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
+ASMJIT_PATCH(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 {
 	GET_STACK(short const, nCellX, 0x10);
 	GET_STACK(short const, nCellY, 0x12);
@@ -844,7 +843,7 @@ DEFINE_HOOK(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	return 0x6EF9D0;
 }
 
-DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
+ASMJIT_PATCH(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
 
@@ -861,7 +860,7 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 	return Draw;
 }
 
-DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
+ASMJIT_PATCH(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D978F };
 
@@ -878,7 +877,7 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 	return Draw;
 }
 
-DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
+ASMJIT_PATCH(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x7)
 {
 	GET(UnitClass* const, pThis, EBP);
 	GET(AnimClass*, pAllocatedMem, ESI);
@@ -1102,7 +1101,7 @@ static void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStru
 	}
 }
 
-DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
+ASMJIT_PATCH(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 {
 	struct __declspec(align(4)) PipDataStruct
 	{
@@ -1150,7 +1149,7 @@ COMPILETIMEEVAL std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToS
 	//,{ "Non_Infantry" }
 	} };
 
-DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
+ASMJIT_PATCH(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 {
 	GET(CCINIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -1181,7 +1180,7 @@ DEFINE_HOOK(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 
 #include <Ext/Cell/Body.h>
 
-DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
+ASMJIT_PATCH(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
 	GET(InfantryClass* const, pThis, ECX);
 
@@ -1262,7 +1261,7 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
 
-DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
+ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
 	GET(FootClass* const, pFoot, EAX);
 
@@ -1281,14 +1280,14 @@ DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 	return 0x4725B0;
 }
 
-DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
+ASMJIT_PATCH(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExtData::ApplyDrainMoney(pThis);
 	return 0x6FA1C5;
 }
 
-DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
+ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 {
 	GET(ObjectClass* const, pThis, ECX);
 	GET_STACK(TechnoClass* const, pTechno, 0x4);
@@ -1296,7 +1295,7 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	return 0x5F6D90;
 }
 
-DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
+ASMJIT_PATCH(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 {
 	GET(ParasiteClass* const, pThis, ESI);
 	GET(WarheadTypeClass* const, pWH, EDI);
@@ -1310,14 +1309,14 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 		? SkipGainExperience : GainExperience;
 }
 
-DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
+ASMJIT_PATCH(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass* const, pProduct, ESI);
 	VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pProduct->GetTechnoType())->Eva_Complete.Get());
 	return 0x4FB649;
 }
 
-DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
+ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
 {
 	enum { ReturnNoVoiceCreate = 0x4FB804, Continue = 0x0 };
 
@@ -1353,7 +1352,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 	return Continue;
 }
 
-DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComplete, 0x5)
+ASMJIT_PATCH(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComplete, 0x5)
 {
 	GET(TechnoClass* const, pTech, ESI);
 
@@ -1366,7 +1365,7 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
+ASMJIT_PATCH(0x4242F4, AnimClass_Trail_Override, 0x6)
 {
 	GET(AnimClass*, pAnim, EDI);
 	GET(AnimClass*, pThis, ESI);
@@ -1381,7 +1380,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 	return 0x424322;
 }
 
-DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
+ASMJIT_PATCH(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 	const auto pType = pThis->Type;
@@ -1398,7 +1397,7 @@ DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+ASMJIT_PATCH(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {
 	GET(UnitClass* const, pThis, EBP);
 	const auto deploysInto = pThis->Type->DeploysInto;
@@ -1421,14 +1420,14 @@ DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 // Skip log spam "Unable to locate scenario %s - No digest info"
 DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
 
-DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
+ASMJIT_PATCH(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExtData::SetMissionAfterBerzerk(pThis);
 	return 0x6F9F6E;
 }
 
-DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
+ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -1492,7 +1491,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	return 0x70FBCA;
 }
 
-DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
+ASMJIT_PATCH(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -1500,13 +1499,13 @@ DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 		0x708FAD : 0x0;
 }
 
-DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
+ASMJIT_PATCH(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 {
 	DisplayClass::Instance->FollowAnObject(nullptr);
 	return 0x0;
 }
 
-DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
+ASMJIT_PATCH(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 {
 	GET_STACK(int const, nX_comp, 0x30);
 	GET_STACK(int const, nY_comp, 0x58);
@@ -1524,7 +1523,7 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 }
 
 //TechnoClass_GetWeaponState
-DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
+ASMJIT_PATCH(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
@@ -1544,7 +1543,7 @@ DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 	//return 0x0;
 }
 
-DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
+ASMJIT_PATCH(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 {
 	enum { Crush = 0x741599, ContinueCheck = 0x741562 };
 	GET(UnitClass* const, pThis, ESI);
@@ -1556,7 +1555,7 @@ DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 		Crush : ContinueCheck;
 }
 
-DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
+ASMJIT_PATCH(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 {
 	enum { DoNotCrush = 0x743A39, ContinueCheck = 0x7439B9 };
 	GET(UnitClass* const, pThis, ESI);
@@ -1570,13 +1569,13 @@ DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 }
 
 // make unit able to deploy fire without ejecting it passengers
-DEFINE_HOOK(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
+ASMJIT_PATCH(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, EAX);
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x73DCD3 : 0x0;
 }
 
-DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
+ASMJIT_PATCH(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, EAX);
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
@@ -1584,7 +1583,7 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 
 DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);
 
-DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
+ASMJIT_PATCH(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
 	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8, RetPrimary = 0x6F37AD };
 
@@ -1596,13 +1595,13 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 		CheckAlly : ContinueCheck;
 }
 
-DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
+ASMJIT_PATCH(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 {
 	GET(BuildingClass* const, pBld, EAX);
 	return pBld ? 0x0 : 0x71AA1A;
 }
 
-DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
+ASMJIT_PATCH(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
 {
 	enum { retTrue = 0x51F8A6, retFalse = 0x51F8A8 };
 	GET(CellClass* const, pCell, EAX);
@@ -1611,7 +1610,7 @@ DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice,
 		retTrue : retFalse;
 }
 
-DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
+ASMJIT_PATCH(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
 {
 	enum { retFalse = 0x51F953 };
 	GET(CellClass* const, pCell, EAX);
@@ -1624,7 +1623,7 @@ DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_
 	return 0x51F9D5;
 }
 
-DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
+ASMJIT_PATCH(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 {
 	GET(CellClass* const, pCell, EAX);
 	GET(TechnoClass* const, pThis, ESI);
@@ -1635,7 +1634,7 @@ DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
 
-DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
+ASMJIT_PATCH(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(UnitClass* const, pThis, EDI);
 	GET(HouseClass* const, pNewOwner, EBX);
@@ -1645,7 +1644,7 @@ DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 	return 0x7463E6;
 }
 
-DEFINE_HOOK(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
+ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 	GET_STACK(HouseClass* const, pNewOwner, 0xC + 0x4);
@@ -1708,7 +1707,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x7235A0, FakeTiberiumClass::__QueueGrowthAt);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x483780, FakeCellClass::_SpreadTiberium);
 
-DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
+ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 {
 	enum { SkipGameCode = 0x71C8D5 };
 
@@ -1834,7 +1833,7 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 	return Spysat;
 }
 
-DEFINE_HOOK(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
+ASMJIT_PATCH(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
 {
 	enum
 	{
@@ -1846,7 +1845,7 @@ DEFINE_HOOK(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
 	return IsAnySpysatActive(pThis) ? ActivateSpySat : DeactivateSpySat;
 }
 
-DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 {
 	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
 
@@ -1881,7 +1880,7 @@ DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 	return retzero;
 }
 
-DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
+ASMJIT_PATCH(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 {
 	enum { SkipGameDrawing = 0x709C27 };
 
@@ -1938,7 +1937,7 @@ DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
+ASMJIT_PATCH(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 {
 	enum { retEmpty = 0x4812EC, retContinue = 0x0, retResult = 0x481313 };
 	GET(CellClass*, pThis, ECX);
@@ -1953,19 +1952,19 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 	return retContinue;
 }
 
-DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
+ASMJIT_PATCH(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
 {
 	GET(InfantryClass*, pThis, EBP);
 	return pThis->Type->NoShadow ? 0x51958A : 0x0;
 }
 
-DEFINE_HOOK(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
+ASMJIT_PATCH(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 	return pThis->Disguise && pThis->Disguise->WhatAmI() == UnitClass::AbsID ? 0x746A9C : 0;
 }
 
-DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
+ASMJIT_PATCH(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -1982,7 +1981,7 @@ DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 }
 
 //// 7384C3 ,7385BB UnitClass take damage func
-DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
+ASMJIT_PATCH(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(FakeCellClass*, pCell, EBP);
@@ -2015,28 +2014,28 @@ DEFINE_HOOK(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	return 0x73D623;
 }
 
-DEFINE_HOOK(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pType, ECX);
 	R->AL(pType->Harvester || pType->Weeder);
 	return 0x730E3F;
 }
 
-DEFINE_HOOK(0x736823, UnitClass_AI_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x736823, UnitClass_AI_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pType, EAX);
 	R->CL(pType->Harvester || pType->Weeder);
 	return 0x736829;
 }
 
-DEFINE_HOOK(0x7368C6, UnitClass_Update_WeederMissionMove2, 0x6)
+ASMJIT_PATCH(0x7368C6, UnitClass_Update_WeederMissionMove2, 0x6)
 {
 	GET(BuildingTypeClass*, pBuildingType, EDX);
 	R->CL(pBuildingType->Refinery || pBuildingType->Weeder);
 	return 0x7368CC;
 }
 
-DEFINE_HOOK(0x7043E7, TechnoClass_Get_ZAdjustment_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x7043E7, TechnoClass_Get_ZAdjustment_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pUnitType, ECX);
 
@@ -2045,21 +2044,21 @@ DEFINE_HOOK(0x7043E7, TechnoClass_Get_ZAdjustment_IncludeWeeder, 0x6)
 }
 
 //real adjusment place , maybe make this customizable ?
-DEFINE_HOOK(0x70440C, TechnoClass_Get_ZAdjustment_IncludeWeederBuilding, 0x6)
+ASMJIT_PATCH(0x70440C, TechnoClass_Get_ZAdjustment_IncludeWeederBuilding, 0x6)
 {
 	GET(BuildingTypeClass*, pBuildingType, EAX);
 	R->CL(pBuildingType->Refinery || pBuildingType->Weeder);
 	return 0x704412;
 }
 
-DEFINE_HOOK(0x74097E, UnitClass_MI_Guard_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x74097E, UnitClass_MI_Guard_IncludeWeeder, 0x6)
 {
 	GET(BuildingTypeClass*, pBuilding, ECX);
 	R->DL(pBuilding->Refinery || pBuilding->Weeder);
 	return 0x740984;
 }
 
-DEFINE_HOOK(0x73D0DB, UnitClass_DrawAt_Oregath_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x73D0DB, UnitClass_DrawAt_Oregath_IncludeWeeder, 0x6)
 {
 	enum { Draw = 0x73D0E9, Skip = 0x73D298 };
 
@@ -2069,7 +2068,7 @@ DEFINE_HOOK(0x73D0DB, UnitClass_DrawAt_Oregath_IncludeWeeder, 0x6)
 		Skip : Draw;
 }
 
-DEFINE_HOOK(0x73D2A6, UnitClass_DrawAt_UnloadingClass_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x73D2A6, UnitClass_DrawAt_UnloadingClass_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pUnitType, EAX);
 
@@ -2078,14 +2077,14 @@ DEFINE_HOOK(0x73D2A6, UnitClass_DrawAt_UnloadingClass_IncludeWeeder, 0x6)
 }
 
 //this one dextroy special anim : 741C32
-DEFINE_HOOK(0x73E005, UnitClass_Mi_Unload_PlayBuildingProductionAnim_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x73E005, UnitClass_Mi_Unload_PlayBuildingProductionAnim_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pType, ECX);
 	R->AL(pType->Harvester || (pType->Weeder && TechnoTypeExtContainer::Instance.Find(pType)->Weeder_TriggerPreProductionBuildingAnim));
 	return 0x73E00B;
 }
 
-DEFINE_HOOK(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_IncludeWeeder, 0x6)
 {
 	GET(UnitTypeClass*, pType, ECX);
 	R->DL(pType->Harvester || (pType->Weeder && TechnoTypeExtContainer::Instance.Find(pType)->Weeder_TriggerPreProductionBuildingAnim));
@@ -2095,13 +2094,13 @@ DEFINE_HOOK(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim_
 //allow `VeinholeMonster` to be placed anywhere flat
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
-DEFINE_HOOK(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
+ASMJIT_PATCH(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
 }
 
-DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
+ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -2115,7 +2114,7 @@ DEFINE_HOOK(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
+ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 {
 	enum { forbidden = 0x6E0907, allow = 0x0 };
 
@@ -2124,7 +2123,7 @@ DEFINE_HOOK(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 		forbidden : allow;
 }
 
-DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
+ASMJIT_PATCH(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 {
 	GET(TeamClass*, pThis, ESI);
 	GET(int, args, ECX);
@@ -2144,7 +2143,7 @@ DEFINE_HOOK(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
 	return 0x6E96A8;
 }
 
-DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
+ASMJIT_PATCH(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 {
 	//GET(TeamClass*, pCreated, ESI);
 	GET(TeamTypeClass*, pType, EBX);
@@ -2159,7 +2158,7 @@ DEFINE_HOOK(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 	return 0x65DD55;
 }
 
-DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
+ASMJIT_PATCH(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -2204,14 +2203,14 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
 	return 0x41530C;
 }
 
-DEFINE_HOOK(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
+ASMJIT_PATCH(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 	R->CL(pThis->InfantryAbsorb || pThis->UnitAbsorb);
 	return 0x450B4E;
 }
 
-DEFINE_HOOK(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
+ASMJIT_PATCH(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 {
 	GET(TechnoClass*, pContact, EAX);
 	return !pContact ? 0x73B124 : 0x0;
@@ -2429,7 +2428,7 @@ void FakeObjectClass::_DrawRadialIndicator(int val)
 	}
 }
 
-DEFINE_HOOK(0x456724, BuildingClass_GetRangeOfRadial_WeaponRange, 0x6)
+ASMJIT_PATCH(0x456724, BuildingClass_GetRangeOfRadial_WeaponRange, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EAX);
 	GET(BuildingClass*, pThis, ESI);
@@ -2442,7 +2441,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB188, FakeObjectClass::_DrawRadialIndicator)
 
 DEFINE_PATCH(0x707CF2, 0x55);
 
-DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
+ASMJIT_PATCH(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -2493,7 +2492,7 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
+ASMJIT_PATCH(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(Point2D*, pLocation, 0x4);
@@ -2537,7 +2536,7 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
+ASMJIT_PATCH(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 {
 	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
 	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
@@ -2548,7 +2547,7 @@ DEFINE_HOOK(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 	return 0x40A5C4;
 }
 
-DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
+ASMJIT_PATCH(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 {
 	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
 	LEA_STACK(DWORD*, ptr, STACK_OFFS(0x40, 0x28));
@@ -2562,7 +2561,7 @@ DEFINE_HOOK(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
 	return 0x40A56C;
 }
 
-DEFINE_HOOK(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
+ASMJIT_PATCH(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
 	ObjectClass** items = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Items : (ObjectClass**)TechnoClass::Array->Items;
 	const int count = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Count : TechnoClass::Array->Count;
@@ -2598,13 +2597,13 @@ static void __fastcall IonBlastDrawAll()
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
 
-DEFINE_HOOK(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
+ASMJIT_PATCH(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 {
 	UpdateAllVeinholes();
 	return 0;
 }
 
-DEFINE_HOOK(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
+ASMJIT_PATCH(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
@@ -2698,7 +2697,7 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 	return placed;
 }
 
-DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
+ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 
@@ -2756,7 +2755,7 @@ DEFINE_HOOK(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	return 0x4DB245;
 }
 
-DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
+ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 {
 	GET(HouseClass*, pHouse, ESI);
 
@@ -2772,7 +2771,7 @@ DEFINE_HOOK(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	return 0x71F1B1;
 }
 
-DEFINE_HOOK(0x6DEA37, TAction_Execute_Win, 6)
+ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 6)
 {
 	GET(TActionClass*, pThis, ESI);
 
@@ -2811,7 +2810,7 @@ DEFINE_HOOK(0x6DEA37, TAction_Execute_Win, 6)
 	}
 }
 
-DEFINE_HOOK(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
+ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -2849,7 +2848,7 @@ DEFINE_HOOK(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
+ASMJIT_PATCH(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(UnitTypeClass*, pType, EAX);
@@ -2857,7 +2856,7 @@ DEFINE_HOOK(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 }
 
 //this thing checking shit backwards ,..
-DEFINE_HOOK(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
+ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -2899,10 +2898,7 @@ static int GetPlayerPosByName(const char* pName)
 	return -1;
 }
 
-DEFINE_HOOK_AGAIN(0x74330D, TechnoClass_FromINI_CreateForHouse, 0x7)
-DEFINE_HOOK_AGAIN(0x41B17B, TechnoClass_FromINI_CreateForHouse, 0x7)
-DEFINE_HOOK_AGAIN(0x51FB6B, TechnoClass_FromINI_CreateForHouse, 0x7)
-DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
+ASMJIT_PATCH(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 {
 	GET(const char*, pHouseName, EAX);
 
@@ -2927,11 +2923,14 @@ DEFINE_HOOK(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
 	R->EAX(idx);
 	return R->Origin() + 0x7;
 }
+ASMJIT_PATCH_AGAIN(0x74330D, TechnoClass_FromINI_CreateForHouse, 0x7)
+ASMJIT_PATCH_AGAIN(0x41B17B, TechnoClass_FromINI_CreateForHouse, 0x7)
+ASMJIT_PATCH_AGAIN(0x51FB6B, TechnoClass_FromINI_CreateForHouse, 0x7)
 
 // Skips checking the gamemode or who the player is when assigning houses
 DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)
 
-DEFINE_HOOK(0x73745C, UnitClass_ReceiveRadio_Parasited_WantRide, 0xA)
+ASMJIT_PATCH(0x73745C, UnitClass_ReceiveRadio_Parasited_WantRide, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 	enum { negativemessage = 0x73746A, continueChecks = 0x737476 };
@@ -2943,7 +2942,7 @@ DEFINE_HOOK(0x73745C, UnitClass_ReceiveRadio_Parasited_WantRide, 0xA)
 	return continueChecks;
 }
 
-DEFINE_HOOK(0x7375B6, UnitClass_ReceiveRadio_Parasited_CanLoad, 0xA)
+ASMJIT_PATCH(0x7375B6, UnitClass_ReceiveRadio_Parasited_CanLoad, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 	enum { staticmessage = 0x7375C4, continueChecks = 0x7375D0 };
@@ -2963,7 +2962,7 @@ DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
+ASMJIT_PATCH(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 {
 	GET(SpotlightClass*, pThis, EBP);
 	GET(int, idx, ECX);
@@ -2977,7 +2976,7 @@ DEFINE_HOOK(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
+ASMJIT_PATCH(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
 {
 	GET_STACK(ObjectClass*, pTarget, 0x98 + 0xC);
 	GET(TechnoClass*, pThis, ESI);
@@ -3005,7 +3004,7 @@ DEFINE_HOOK(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA
 
 static_assert(offsetof(TechnoClass, Airstrike) == 0x294, "ClassMember Shifted !");
 
-DEFINE_HOOK(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6)
+ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(UnitTypeClass*, pThisType, EAX);
@@ -3019,7 +3018,7 @@ DEFINE_HOOK(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x6
 	return pThisType->LargeVisceroid ? 0x737C38 : 0x737C0B;
 }
 
-DEFINE_HOOK(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
+ASMJIT_PATCH(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
 {
 	GET(TechnoClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x10 + 0x8);
@@ -3034,7 +3033,7 @@ DEFINE_HOOK(0x6FDBC5, TechnoClass_AdjustDamage_Armor, 0x6)
 	return 0x6FDD30;
 }
 
-DEFINE_HOOK(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
+ASMJIT_PATCH(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
 {
 	GET(int, damage, EDI);
 	GET(TechnoClass*, pThis, ESI);
@@ -3046,14 +3045,14 @@ DEFINE_HOOK(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
 	return 0x6FE3DF;
 }
 
-DEFINE_HOOK(0x52D36F, RulesClass_init_AIMD, 0x5)
+ASMJIT_PATCH(0x52D36F, RulesClass_init_AIMD, 0x5)
 {
 	GET(CCFileClass*, pFile, EAX);
 	Debug::LogInfo("Init {} file", pFile->GetFileName());
 	return 0x0;
 }
 
-DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
+ASMJIT_PATCH(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 {
 	GET(const char*, pBuffer, ECX);
 	GET(AITriggerTypeClass*, pThis, EBP);
@@ -3073,7 +3072,7 @@ DEFINE_HOOK(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 	return 0x41F7DE;
 }
 
-DEFINE_HOOK(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
+ASMJIT_PATCH(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);
 	GET(TechnoTypeClass*, pTypeCompare, EBX);
@@ -3082,7 +3081,7 @@ DEFINE_HOOK(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
 		0x4CA68E : 0x4CA693;
 }
 
-DEFINE_HOOK(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
+ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);
 	GET(TechnoTypeClass*, pTypeCompare, EBP);
@@ -3091,7 +3090,7 @@ DEFINE_HOOK(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
 		0x4FA5C4 : 0x4FA5C8;
 }
 
-DEFINE_HOOK(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
+ASMJIT_PATCH(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);
 
@@ -3100,7 +3099,7 @@ DEFINE_HOOK(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 	return R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
+ASMJIT_PATCH(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
 {
 	//lGET(FactoryClass*, pThis, ESI);
 	GET(TechnoClass*, pObject, ECX);
@@ -3118,14 +3117,14 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
 
 #include <Ext/Bomb/Body.h>
 
-DEFINE_HOOK(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
+ASMJIT_PATCH(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 {
 	GET(ObjectTypeClass*, pThis, EBX);
 	R->CL(pThis->AlphaImageFile[0] && strlen(pThis->AlphaImageFile));
 	return 0x5F9658;
 }
 
-DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
+ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 {
 	GET(TechnoClass*, pTarget, ESI);
 
@@ -3142,7 +3141,7 @@ DEFINE_HOOK(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
 }
 
 // https://bugs.launchpad.net/ares/+bug/895893
-DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
+ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 {
 	GET(FootClass*, pThis, EDI);
 	auto pCell = pThis->GetCell();
@@ -3159,7 +3158,7 @@ DEFINE_HOOK(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 	return pCell->MapCoords.IsValid() ? 0x4DB3A4 : 0x4DB3AF;
 }
 
-DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
+ASMJIT_PATCH(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 {
 	GET(UnitClass*, pThis, EBP);
 	LEA_STACK(CellStruct*, closeTo, STACK_OFFSET(0x64, -0x4C));
@@ -3172,7 +3171,7 @@ DEFINE_HOOK(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 	return 0x73ED7A;
 }
 
-DEFINE_HOOK(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
+ASMJIT_PATCH(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 {
 	//GET_STACK(DWORD, caller, 0x0);
 	GET(ParticleSystemClass*, pThis, ECX);
@@ -3966,7 +3965,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 	return MoveResult::can;
 }
 
-DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
+ASMJIT_PATCH(0x481A00, CellClass_CollectCrate_Handle, 0x6)
 {
 	GET(CellClass*, pThis, ECX);
 	GET_STACK(FootClass*, pCollector, 0x4);
@@ -3974,13 +3973,13 @@ DEFINE_HOOK(0x481A00, CellClass_CollectCrate_Handle, 0x6)
 	return 0x483391;
 }
 
-DEFINE_HOOK(0x56BFC2, MapClass_PlaceCrate_MaxVal, 0x5)
+ASMJIT_PATCH(0x56BFC2, MapClass_PlaceCrate_MaxVal, 0x5)
 {
 	return R->EDX<int>() != (int)CrateTypeClass::Array.size()
 		? 0x56BFC7 : 0x56BFFF;
 }
 
-DEFINE_HOOK(0x475A44, CCINIClass_Put_CrateType, 0x7)
+ASMJIT_PATCH(0x475A44, CCINIClass_Put_CrateType, 0x7)
 {
 	GET_STACK(int, crateType, 0x8);
 
@@ -3993,7 +3992,7 @@ DEFINE_HOOK(0x475A44, CCINIClass_Put_CrateType, 0x7)
 	R->EDX(pCrate->Name.data());
 	return 0x475A4B;
 }
-DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
+ASMJIT_PATCH(0x475A1F, RulesClass_Put_CrateType, 0x5)
 {
 	GET(const char*, crate, ECX);
 
@@ -4006,7 +4005,7 @@ DEFINE_HOOK(0x475A1F, RulesClass_Put_CrateType, 0x5)
 	return 0x475A24;
 }
 
-DEFINE_HOOK(0x48DE79, CrateTypeFromName, 0x7)
+ASMJIT_PATCH(0x48DE79, CrateTypeFromName, 0x7)
 {
 	GET(const char*, readedName, EBX);
 
@@ -4021,7 +4020,7 @@ DEFINE_HOOK(0x48DE79, CrateTypeFromName, 0x7)
 	return 0x48DE9C;
 }
 
-DEFINE_HOOK(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
+ASMJIT_PATCH(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(CellStruct, cell, EAX);
@@ -4032,7 +4031,7 @@ DEFINE_HOOK(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 	return 0x738457;
 }
 
-DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
+ASMJIT_PATCH(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 {
 	//GET(BuildingClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pThisType, EDX);
@@ -4051,7 +4050,7 @@ DEFINE_HOOK(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 #ifndef BUILDING_STORAGE_HOOK
 // spread tiberium on building destruction. replaces the
 // original code, made faster and spilling is now optional.
-DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
+ASMJIT_PATCH(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -4098,7 +4097,7 @@ DEFINE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 	return 0x441C39;
 }
 
-DEFINE_HOOK(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
+ASMJIT_PATCH(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -4110,7 +4109,7 @@ DEFINE_HOOK(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
 	return 0x446016;
 }
 
-DEFINE_HOOK(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
+ASMJIT_PATCH(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -4123,7 +4122,7 @@ DEFINE_HOOK(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
 	return 0x450D09;
 }
 
-DEFINE_HOOK(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
+ASMJIT_PATCH(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -4135,7 +4134,7 @@ DEFINE_HOOK(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
 	return 0x450DDC;
 }
 
-DEFINE_HOOK(0x450E12, BuildingClass_AnimAI_GetStorageTotalAmount_C, 0x7)
+ASMJIT_PATCH(0x450E12, BuildingClass_AnimAI_GetStorageTotalAmount_C, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -4147,7 +4146,7 @@ DEFINE_HOOK(0x450E12, BuildingClass_AnimAI_GetStorageTotalAmount_C, 0x7)
 	return 0x450E3E;
 }
 
-DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0, 0xA)
+ASMJIT_PATCH(0x4589C0, BuildingClass_storage_4589C0, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -4159,7 +4158,7 @@ DEFINE_HOOK(0x4589C0, BuildingClass_storage_4589C0, 0xA)
 	return 0x4589DC;
 }
 
-DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
+ASMJIT_PATCH(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
@@ -4175,7 +4174,7 @@ DEFINE_HOOK(0x44A232, BuildingClass_BuildingClass_Destruct_Storage, 0x6)
 
 //TechnoClass
 #ifndef TECHNO_STORAGE_HOOK
-DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
+ASMJIT_PATCH(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	const auto storange = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
@@ -4187,7 +4186,7 @@ DEFINE_HOOK(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
 //UnitClass
 #ifndef UNIT_STORAGE_HOOK
 //UnitClass_CreditLoad
-DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
+ASMJIT_PATCH(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
 {
 	GET(UnitClass*, pThis, ECX);
 	int result = int(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetTotalTiberiumValue() * pThis->Owner->Type->IncomeMult);
@@ -4195,7 +4194,7 @@ DEFINE_HOOK(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
 	return 0x7438E1;
 }
 
-DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
+ASMJIT_PATCH(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
 {
 	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
 	GET(UnitTypeClass*, pType, EDX);
@@ -4208,7 +4207,7 @@ DEFINE_HOOK(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
 	return canharvest && canStoreHarvest ? retTrue : retFalse;
 }
 
-DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
+ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 {
 	GET(BuildingClass* const, pBld, EDI);
 	GET(UnitClass*, pThis, ESI);
@@ -4260,7 +4259,7 @@ DEFINE_HOOK(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	return 0x73E539;
 }
 
-DEFINE_HOOK(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
+ASMJIT_PATCH(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
@@ -4275,7 +4274,7 @@ DEFINE_HOOK(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
 	return 0x708C0A;
 }
 
-DEFINE_HOOK(0x7414A0, UnitClass_GetStoragePercentage_GetTotalAmounts, 0x9)
+ASMJIT_PATCH(0x7414A0, UnitClass_GetStoragePercentage_GetTotalAmounts, 0x9)
 {
 	GET(UnitClass*, pThis, ECX);
 	double result = pThis->Type->Harvester || pThis->Type->Weeder ?
@@ -4286,7 +4285,7 @@ DEFINE_HOOK(0x7414A0, UnitClass_GetStoragePercentage_GetTotalAmounts, 0x9)
 	return 0x7414DD;
 }
 
-DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
+ASMJIT_PATCH(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -4332,7 +4331,7 @@ DEFINE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 //IfantryClass
 #ifndef INFANTRY_STROAGE_HOOK
 
-DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
+ASMJIT_PATCH(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
 
@@ -4377,7 +4376,7 @@ DEFINE_HOOK(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
 	return 0x522EAB;
 }
 
-DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
+ASMJIT_PATCH(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
 	GET_STACK(TechnoClass* const, pDest, 0x4);
@@ -4447,7 +4446,7 @@ DEFINE_HOOK(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 //HouseClass
 #ifndef HOUSE_STORAGE_HOOK
-DEFINE_HOOK(0x4F69D0, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x5)
+ASMJIT_PATCH(0x4F69D0, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x5)
 {
 	GET(IHouse*, pThis, ESI);
 	const int value = *reinterpret_cast<int*>(((DWORD)pThis) + 0x2EC);
@@ -4458,7 +4457,7 @@ DEFINE_HOOK(0x4F69D0, HouseClass_AvaibleStorage_GetStorageTotalAmounts, 0x5)
 	return 0x4F69F0;
 }
 
-DEFINE_HOOK(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)
+ASMJIT_PATCH(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)
 {
 	GET(IHouse*, pThis, ESI);
 	const auto pHouse = static_cast<HouseClass*>(pThis);
@@ -4468,7 +4467,7 @@ DEFINE_HOOK(0x4F69A3, HouseClass_AvaibleMoney_GetStorageTotalAmounts, 0x6)
 	return 0x4F69AE;
 }
 
-DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
+ASMJIT_PATCH(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
 {
 	GET(HouseClass*, pThis, ESI);
 	auto pExt = HouseExtContainer::Instance.Find(pThis);
@@ -4485,21 +4484,21 @@ DEFINE_HOOK(0x4F6E70, HouseClass_GetTiberiumStorageAmounts, 0xA)
 	return 0x4F6EA2;
 }
 
-DEFINE_HOOK(0x4F8C05, HouseeClass_AI_StorageSpeak_GetTiberiumStorageAmounts, 0x6)
+ASMJIT_PATCH(0x4F8C05, HouseeClass_AI_StorageSpeak_GetTiberiumStorageAmounts, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 	R->EAX((int)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 	return 0x4F8C15;
 }
 
-DEFINE_HOOK(0x4F96BF, HouseClass_FindBestStorage_GetStorageTotalAmounts, 0x5)
+ASMJIT_PATCH(0x4F96BF, HouseClass_FindBestStorage_GetStorageTotalAmounts, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
 	R->EAX((float)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 	return 0x4F96C4;
 }
 
-DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
+ASMJIT_PATCH(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(int, money, 0x4);
@@ -4569,14 +4568,14 @@ DEFINE_HOOK(0x4F9790, HouseClass_SpendMoney_Handle, 0x6)
 	return 0x4F9941;
 }
 
-DEFINE_HOOK(0x4F99A6, HouseClass_UpdateAllSilos_GetStorageTotalAmounts, 0x6)
+ASMJIT_PATCH(0x4F99A6, HouseClass_UpdateAllSilos_GetStorageTotalAmounts, 0x6)
 {
 	GET(HouseClass*, pThis, EDI);
 	R->EAX((float)HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
 	return 0x4F99B1;
 }
 
-DEFINE_HOOK(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
+ASMJIT_PATCH(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 	auto storage = &HouseExtContainer::Instance.Find(pThis)->TiberiumStorage;
@@ -4593,7 +4592,7 @@ DEFINE_HOOK(0x502821, HouseClass_RegisterLoss_TiberiumStorage, 0x6)
 
 #endif
 
-DEFINE_HOOK(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
+ASMJIT_PATCH(0x65DE6B, TeamTypeClass_CreateGroup_IncreaseStorage, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
 	GET(TechnoTypeClass*, pFootType, EDI);
@@ -4609,14 +4608,14 @@ DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
 // AttackMove Only for Foot
 DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);
 
-DEFINE_HOOK(0x70FF65, TechnoClass_ApplyLocomotorToTarget_CleaupFirst_Crash, 0x6)
+ASMJIT_PATCH(0x70FF65, TechnoClass_ApplyLocomotorToTarget_CleaupFirst_Crash, 0x6)
 {
 	GET(TechnoClass*, pFirer, ESI);
 
 	return pFirer->LocomotorTarget ? 0x0 : 0x70FF77;
 }
 
-DEFINE_HOOK(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
+ASMJIT_PATCH(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 {
 	GET(TechnoClass*, pThis, EBP);
 
@@ -4634,7 +4633,7 @@ DEFINE_HOOK(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 	return  0x0;
 }
 
-DEFINE_HOOK(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
+ASMJIT_PATCH(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 {
 	GET(TechnoClass*, pNthLink, EAX);
 	return pNthLink ? 0 : 0x7043E1;
@@ -4734,7 +4733,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 	);
 }
 
-DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
+ASMJIT_PATCH(0x6D4B50, PrintOnTactical, 0x6)
 {
 	GET(int, val, ECX);
 	GET(ColorScheme*, pScheme, EDX);
@@ -4746,14 +4745,14 @@ DEFINE_HOOK(0x6D4B50, PrintOnTactical, 0x6)
 	return 0x6D4DAC;
 }
 
-DEFINE_HOOK(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
+ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 {
 	const bool result = R->AL();
 	Debug::LogInfo(" ...{} !!!", !result ? "FAILED" : "OK");
 	return 0x52C5D3;
 }
 
-DEFINE_HOOK(0x60B865, AdjustWindow_Child, 5)
+ASMJIT_PATCH(0x60B865, AdjustWindow_Child, 5)
 {
 	RECT Rect {};
 	GetWindowRect(Game::hWnd(), &Rect);
@@ -4766,7 +4765,7 @@ int aval;
 int bval;
 int cval;
 
-DEFINE_HOOK(0x61E00C, TrackBarWndProc_AdjustLength, 7)
+ASMJIT_PATCH(0x61E00C, TrackBarWndProc_AdjustLength, 7)
 {
 	int v2 = bval * cval / aval;
 	R->Stack(0x84, v2);
@@ -4774,7 +4773,7 @@ DEFINE_HOOK(0x61E00C, TrackBarWndProc_AdjustLength, 7)
 	return 0;
 }
 
-DEFINE_HOOK(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
+ASMJIT_PATCH(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
 {
 	if (R->Stack<int>(0x158) == 15)
 	{
@@ -4784,7 +4783,7 @@ DEFINE_HOOK(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
+ASMJIT_PATCH(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
 {
 	if (R->Stack<int>(0x158) == 15)
 	{
@@ -4793,25 +4792,25 @@ DEFINE_HOOK(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
+ASMJIT_PATCH(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
 {
 	R->EAX(HouseExtData::FindFirstCivilianHouse());
 	return 0x4249D8;
 }
 
-DEFINE_HOOK(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
+ASMJIT_PATCH(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
 {
 	R->EBX(HouseExtData::FindFirstCivilianHouse());
 	return 0x45826E;
 }
 
-DEFINE_HOOK(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
+ASMJIT_PATCH(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
 {
 	R->EBX(HouseExtData::FindFirstCivilianHouse());
 	return 0x41ECE8;
 }
 
-DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
+ASMJIT_PATCH(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
 	if (RulesExtData::Instance()->CivilianSideIndex == -1)
 	{
@@ -4822,25 +4821,25 @@ DEFINE_HOOK(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 	return 0x501586;
 }
 
-DEFINE_HOOK(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5)
+ASMJIT_PATCH(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5)
 {
 	R->ECX(HouseExtData::FindFirstCivilianHouse());
 	return 0x472382;
 }
 
-DEFINE_HOOK(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
+ASMJIT_PATCH(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
 {
 	R->Stack(0x10, HouseExtData::FindFirstCivilianHouse());
 	return 0x6B0B3C;
 }
 
-DEFINE_HOOK(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
+ASMJIT_PATCH(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
 {
 	R->EAX(HouseExtData::FindSpecial());
 	return 0x5A921E;
 }
 
-DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+ASMJIT_PATCH(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 {
 	GET(BuildingClass*, pThis, EBP);
 	CellStruct mapCoords = pThis->InlineMapCoords();
@@ -4865,7 +4864,7 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 #pragma region Assaulter
 //https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
 //522A09
-DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
+ASMJIT_PATCH(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 {
 	enum { retTrue = 0x522A11, retFalse = 0x522A45 };
 
@@ -4875,7 +4874,7 @@ DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 }
 
 //51F580
-DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
+ASMJIT_PATCH(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
 
@@ -4885,7 +4884,7 @@ DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 }
 
 //51F493
-DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
+ASMJIT_PATCH(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
 
@@ -4895,7 +4894,7 @@ DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 }
 
 //51968E
-DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
+ASMJIT_PATCH(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
 {
 	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
 
@@ -4905,7 +4904,7 @@ DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
 }
 
 //4D4BA0
-DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
+ASMJIT_PATCH(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
 {
 	enum { retTrue = 0x4D4BB4, retFalse = 0x4D4BAA };
 
@@ -4914,7 +4913,7 @@ DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
 	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
-DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
+ASMJIT_PATCH(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 {
 	enum { retTrue = 0x457DD5, retFalse = 0x457DA3 };
 
@@ -4943,7 +4942,7 @@ DEFINE_HOOK(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 }
 #pragma endregion
 
-DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
+ASMJIT_PATCH(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(TechnoClass*, pObj, EDI);
@@ -4965,7 +4964,7 @@ DEFINE_HOOK(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 	return 0x444167; //continue check
 }
 
-DEFINE_HOOK(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
+ASMJIT_PATCH(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(FootClass*, pOccupier, EDI);
@@ -4983,7 +4982,7 @@ DEFINE_HOOK(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
+ASMJIT_PATCH(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
 	LEA_STACK(CellStruct*, pDest, 0x4);
@@ -4994,7 +4993,7 @@ DEFINE_HOOK(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 	return 0x449487;
 }
 
-DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
+ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
 
@@ -5130,7 +5129,7 @@ DEFINE_HOOK(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 	return 0x46125D;
 }
 
-DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
+ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(int, control, 0x4);
@@ -5209,13 +5208,13 @@ DEFINE_HOOK(0x447110, BuildingClass_Sell_Handled, 0x9)
 	return 0x04471C2;
 }
 
-DEFINE_HOOK(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
+ASMJIT_PATCH(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
 {
 	GET(BuildingClass* const, pBuilding, ECX);
 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
 }
 
-DEFINE_HOOK(0x442CCF, BuildingClass_Init_Sellable, 0x7)
+ASMJIT_PATCH(0x442CCF, BuildingClass_Init_Sellable, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
 	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
@@ -5224,7 +5223,7 @@ DEFINE_HOOK(0x442CCF, BuildingClass_Init_Sellable, 0x7)
 
 //building abandon sound 458291
 //AbandonedSound
-DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
+ASMJIT_PATCH(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -5238,7 +5237,7 @@ DEFINE_HOOK(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
 	return 0x4582AE;
 }
 
-DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+ASMJIT_PATCH(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
 {
 	GET(InfantryClass*, pSurvivor, ESI);
 	GET_STACK(int, nData, 0x8C - 0x70);
@@ -5251,21 +5250,21 @@ DEFINE_HOOK(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
 
 //443292
 //44177E
-DEFINE_HOOK(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
+ASMJIT_PATCH(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
 {
 	GET(BuildingClass*, pThis, EDI);
 	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
 		? 0x0 : 0x4433F9;
 }
 
-DEFINE_HOOK(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
+ASMJIT_PATCH(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
 		? 0x0 : 0x4418EC;
 }
 
-DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
+ASMJIT_PATCH(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(int, powertotal, 0x8);
@@ -5285,7 +5284,7 @@ DEFINE_HOOK(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 
 DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
 
-DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+ASMJIT_PATCH(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoTypeClass* const, pType, EAX);
@@ -5309,7 +5308,7 @@ DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 //EvalObject
-DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+ASMJIT_PATCH(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
 	GET_STACK(int const, nWeapon, 0x14);
@@ -5327,7 +5326,7 @@ DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 		? AllowAttack : ContinueCheck;
 }
 
-DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
+ASMJIT_PATCH(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	//GET(BuildingClass* const, pBuilding, EDI);
 	GET(InfantryClass* const, pThis, ESI);
@@ -5343,7 +5342,7 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 	return 0x51A30F;
 }
 
-DEFINE_HOOK(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
+ASMJIT_PATCH(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
 {
 	GET(BuildingClass* const, pThis, EBP);
 	GET(FootClass* const, pPassenger, ESI);
@@ -5358,7 +5357,7 @@ DEFINE_HOOK(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
 	return 0x44DBDA;
 }
 
-DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
+ASMJIT_PATCH(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 {
 	GET(BuildingClass* const, pThis, ECX);
 	GET_STACK(CoordStruct*, pCoord, 0x4);
@@ -5386,18 +5385,18 @@ DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
 DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 
-DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
+ASMJIT_PATCH(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 {
 	GET(UnitTypeClass* const, pType, EAX);
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
-DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
+ASMJIT_PATCH(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 {
 	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
-DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
+ASMJIT_PATCH(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 {
 	GET(AircraftTypeClass*, pType, ESI);
 
@@ -5410,7 +5409,7 @@ DEFINE_HOOK(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
+ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 {
 	GET(BulletClass*, pThis, EBP);
 	GET(CoordStruct*, pCoord, ECX);
@@ -5422,7 +5421,7 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 
 #include <SlaveManagerClass.h>
 
-DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
+ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 {
 	GET(Mission, setTo, EBX);
 	GET(FootClass*, pMember, ESI);
@@ -5440,7 +5439,7 @@ DEFINE_HOOK(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // END 42CB3F 5 , 42CCCB
 #include <Misc/PhobosGlobal.h>
 
-DEFINE_HOOK(0x42D197, AStarClass_Attempt_Entry, 0x5)
+ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
 	GET_STACK(TechnoClass*, pTech, 0x24);
 	GET_STACK(CellStruct*, from, 0x1C);
@@ -5450,19 +5449,17 @@ DEFINE_HOOK(0x42D197, AStarClass_Attempt_Entry, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x42D44C, AStarClass_Attempt_Exit, 0x6)
-DEFINE_HOOK(0x42D45B, AStarClass_Attempt_Exit, 0x6)
+ASMJIT_PATCH(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x42D44C, AStarClass_Attempt_Exit, 0x6)
 
-DEFINE_HOOK_AGAIN(0x42C8E2, AStarClass_FindHierarcial_Exit, 0x5)
-DEFINE_HOOK(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
+ASMJIT_PATCH(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x42C8E2, AStarClass_FindHierarcial_Exit, 0x5)
 
 class FakeAStarPathFinderClass : public AStarPathFinderClass
 {
@@ -5484,7 +5481,7 @@ public:
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Find_Path)
 
-DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
+ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
 	GET(TechnoClass*, pTech, ESI);
 	GET_BASE(CellStruct*, from, 0x8);
@@ -5496,7 +5493,7 @@ DEFINE_HOOK(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7)
+ASMJIT_PATCH(0x42C954, AStarClass_FindPath_Entry, 0x7)
 {
 	GET_STACK(TechnoClass*, pTech, 0x3C);
 	GET_STACK(CellStruct*, from, 0x34);
@@ -5508,20 +5505,19 @@ DEFINE_HOOK(0x42C954, AStarClass_FindPath_Entry, 0x7)
 	return R->EDI<int>() == -1 ? 0x42C963 : 0x42C95F;
 }
 
-DEFINE_HOOK_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
-DEFINE_HOOK(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
+ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
 
-DEFINE_HOOK(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
+ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 {
 	GET(TechnoClass*, pLink, EAX);
 	return !pLink ? 0x7410DD : 0x0;
 }
 
-DEFINE_HOOK(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
+ASMJIT_PATCH(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 	LEA_STACK(CoordStruct*, pBuffer_2, 0x38);
@@ -5567,7 +5563,7 @@ static COMPILETIMEEVAL void ShakeScreen(GScreenClass* pScreen)
 	}
 }
 
-DEFINE_HOOK(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
+ASMJIT_PATCH(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 {
 
 	GET(GScreenClass*, pThis, ECX);
@@ -5654,7 +5650,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
 
-DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
+ASMJIT_PATCH(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(FootClass*, pProduct, EDI);
@@ -5678,7 +5674,7 @@ DEFINE_HOOK(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 
 #include <Notifications.h>
 
-DEFINE_HOOK(0x4DA886, FootClass_Update_UpdateLayer, 0x6)
+ASMJIT_PATCH(0x4DA886, FootClass_Update_UpdateLayer, 0x6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 
@@ -5698,7 +5694,7 @@ DEFINE_HOOK(0x4DA886, FootClass_Update_UpdateLayer, 0x6)
 	return 0x4DA895;
 }
 
-DEFINE_HOOK(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
+ASMJIT_PATCH(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	GET(CellClass*, pCell, EAX);
@@ -5728,7 +5724,7 @@ DEFINE_HOOK(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
+ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
 {
 	GET(AircraftClass*, pAir, ESI);
 
@@ -5789,7 +5785,7 @@ DEFINE_HOOK(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
+ASMJIT_PATCH(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
 {
 	GET(AircraftClass*, pAir, ESI);
 	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter)
@@ -5802,11 +5798,11 @@ DEFINE_HOOK(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
 }
 
 DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
-// DEFINE_HOOK(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
+// ASMJIT_PATCH(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
 // 	return 0x418506;
 // }
 
-DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
+ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 {
 	GET(FlyLocomotionClass*, pFly, ESI);
 
@@ -5838,14 +5834,13 @@ DEFINE_HOOK(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 
 #include <WeaponTypeClass.h>
 
-DEFINE_HOOK(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
+ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {
 	GET(BuildingClass*, pBld, EAX);
 	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ? 0x4FD983 : 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x4C2C19, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
-DEFINE_HOOK(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
+ASMJIT_PATCH(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
 {
 	GET(TechnoClass*, pTr, ECX);
 	const auto vtable = VTable::Get(pTr);
@@ -5860,9 +5855,9 @@ DEFINE_HOOK(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
 	}
 
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x4C2C19, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
 
-DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
+ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 {
 	GET(CCINIClass*, pINI, EDI);
 	GET(const char**, pSection_iter, ESI);
@@ -5873,7 +5868,7 @@ DEFINE_HOOK(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
+ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
 	GET_STACK(DWORD, caller, 0x0);
@@ -5884,7 +5879,7 @@ DEFINE_HOOK(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
+ASMJIT_PATCH(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 {
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
@@ -5893,7 +5888,7 @@ DEFINE_HOOK(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 	return 0x42CB86;
 }
 
-DEFINE_HOOK(0x42CBC9, AstarClass_Find_Path_FailLog_WithoutHierarchical, 0x6)
+ASMJIT_PATCH(0x42CBC9, AstarClass_Find_Path_FailLog_WithoutHierarchical, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
@@ -5902,7 +5897,7 @@ DEFINE_HOOK(0x42CBC9, AstarClass_Find_Path_FailLog_WithoutHierarchical, 0x6)
 	return 0x42CBE6;
 }
 
-DEFINE_HOOK(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
+ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 {
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
@@ -5912,7 +5907,7 @@ DEFINE_HOOK(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 }
 
 //DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);
-DEFINE_HOOK(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
+ASMJIT_PATCH(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
 {
 	GET(HouseClass*, pHouyse, ECX);
 	GET_STACK(DWORD, caller, 0x0);
@@ -5923,14 +5918,14 @@ DEFINE_HOOK(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6D471A, TechnoClass_Render_Dead, 0x6)
+ASMJIT_PATCH(0x6D471A, TechnoClass_Render_Dead, 0x6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	return pTechno->IsAlive ? 0x0 : 0x6D48FA;
 }
 
 
-DEFINE_HOOK(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
+ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 {
 	GET(CoordStruct*, pCoord, EDI);
 	GET(ObjectClass*, pThis, ESI);
@@ -5969,7 +5964,7 @@ DEFINE_HOOK(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 	return 0x5F5AF1;
 }
 
-DEFINE_HOOK(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
+ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 {
 	if (!strlen(ScenarioClass::Instance->UIName))
 	{
@@ -5981,7 +5976,7 @@ DEFINE_HOOK(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
+ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
 {
 
 	GET(TechnoClass*, pThis, ESI);
@@ -5999,7 +5994,7 @@ DEFINE_HOOK(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
 	return 0x6F9C89;//contunye
 }
 
-DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
+ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 {
 	GET(TechnoClass*, pTrackerTechno, EBP);
 
@@ -6012,7 +6007,7 @@ DEFINE_HOOK(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	return 0x0;//contunye
 }
 
-DEFINE_HOOK(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
+ASMJIT_PATCH(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
 {
 	GET(ObjectClass*, pCellObj, EDI);
 
@@ -6024,7 +6019,7 @@ DEFINE_HOOK(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
+ASMJIT_PATCH(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
 {
 	GET(ObjectClass*, pCellObj, ESI);
 
@@ -6036,7 +6031,7 @@ DEFINE_HOOK(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
 	return R->ESI() == R->EBP() ? 0x51C70F : 0x51C259;
 }
 
-DEFINE_HOOK(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
+ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 {
 	GET(AircraftClass*, pThis, ECX);
 	GET_STACK(DWORD, caller, 0);
@@ -6143,7 +6138,7 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 	}
 }
 
-DEFINE_HOOK(0x65B8C8, RadSiteClass_AI_cond, 0x5)
+ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 {
 	GET(RadSiteClass*, pThis, ESI);
 
@@ -6163,7 +6158,7 @@ DEFINE_HOOK(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 	return 0x65B8DC;
 }
 
-DEFINE_HOOK(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
+ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 {
 	enum { SkipGameCode = 0x65BB11 };
 
@@ -6192,7 +6187,7 @@ DEFINE_HOOK(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
+ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 {
 	enum { SkipGameCode = 0x65BCBD };
 
@@ -6221,7 +6216,7 @@ DEFINE_HOOK(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
+ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 {
 	enum { SkipGameCode = 0x65BE4C };
 
@@ -6250,7 +6245,7 @@ DEFINE_HOOK(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
+ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	GET(TechnoClass*, pSpawnee, EDI);
@@ -6265,7 +6260,7 @@ DEFINE_HOOK(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
+ASMJIT_PATCH(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
 {
 	GET(SpawnNode*, pNode, EDX);
 
@@ -6277,7 +6272,7 @@ DEFINE_HOOK(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
 	return 0x6B71F1;
 }
 
-DEFINE_HOOK(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
+ASMJIT_PATCH(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(int, _X, ECX);
@@ -6301,7 +6296,7 @@ DEFINE_HOOK(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
 	return 0x45197B;
 }
 
-DEFINE_HOOK(0x466834, BulletClass_AI_TrailerAnim, 0x6)
+ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 {
 	GET(BulletClass* const, pThis, EBP);
 	const int delay = pThis->Type->ScaledSpawnDelay ? pThis->Type->ScaledSpawnDelay : pThis->Type->SpawnDelay;
@@ -6326,7 +6321,7 @@ DEFINE_HOOK(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 
 #include <OverlayClass.h>
 
-DEFINE_HOOK(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
+ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 	GET(CellClass*, pThis, ESI);
 	GET(TiberiumClass*, pTib, EDI);
 	GET(OverlayClass*, pMemory, EBP);
@@ -6335,6 +6330,7 @@ DEFINE_HOOK(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 	R->Stack(0x10, pThis->MapCoords);
 	return 0x487291;
 }
+
 
 /* AnimTypeClass::FromName patch
 58164B XGRYMED1

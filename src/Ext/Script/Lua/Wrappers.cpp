@@ -154,7 +154,128 @@ struct PairOfNumbers {
 	int Original;
 	int Alternate;
 };
-static std::vector<PairOfNumbers> SriptNumbers {};
+//static std::vector<PairOfNumbers> SriptNumbers {};
+PairOfNumbers SriptNumbers[] = {
+	{ 71 , 10100},
+	{ 72 , 10103},
+	{ 73 , 10101},
+	{ 74 , 10010},
+	{ 75 , 10014},
+	{ 76 , 10000},
+	{ 77 , 10005},
+	{ 78 , 10011},
+	{ 79 , 10015},
+	{ 80 , 10001},
+	{ 81 , 10006},
+	{ 82 , 14002},
+	{ 83 , 14001},
+	{ 84 , 10012},
+	{ 85 , 10016},
+	{ 86 , 10002},
+	{ 87 , 10007},
+	{ 88 , 10013},
+	{ 89 , 10017},
+	{ 90 , 10003},
+	{ 91 , 10008},
+	{ 92 , 12000},
+	{ 93 , 14000},
+	{ 94 , 16004},
+	{ 95 , 10050},
+	{ 96 , 10056},
+	{ 97 , 10053},
+	{ 98 , 10059},
+	{ 99 , 10051},
+	{ 100 , 10057},
+	{ 101 , 10054},
+	{ 102 , 10060},
+	{ 103 , 12001},
+	{ 104 , 10004},
+	{ 105 , 10009},
+	{ 106 , 10052},
+	{ 107 , 10058},
+	{ 108 , 10055},
+	{ 109 , 10061},
+	{ 110 , 12002},
+	{ 111 , 14003},
+	{ 112 , 10102},
+	{ 113 , 16003},
+	{ 124 , 16002},
+	{ 125 , 16001},
+	{ 126 , 16000},
+	{ 150 , 14004},
+	{ 500 , 18000},
+	{ 501 , 18001},
+	{ 502 , 18002},
+	{ 503 , 18003},
+	{ 504 , 18004},
+	{ 505 , 18005},
+	{ 506 , 18006},
+	{ 507 , 18007},
+	{ 508 , 18008},
+	{ 509 , 18009},
+	{ 510 , 18010},
+	{ 511 , 18011},
+	{ 512 , 18012},
+	{ 513 , 18013},
+	{ 514 , 18014},
+	{ 515 , 18015},
+	{ 516 , 18016},
+	{ 517 , 18017},
+	{ 518 , 18018},
+	{ 519 , 18019},
+	{ 520 , 18020},
+	{ 521 , 18021},
+	{ 522 , 18022},
+	{ 523 , 18023},
+	{ 524 , 18024},
+	{ 525 , 18025},
+	{ 526 , 18026},
+	{ 527 , 18027},
+	{ 528 , 18028},
+	{ 529 , 18029},
+	{ 530 , 18030},
+	{ 531 , 18031},
+	{ 532 , 18032},
+	{ 533 , 18033},
+	{ 534 , 18034},
+	{ 535 , 18035},
+	{ 536 , 18036},
+	{ 537 , 18037},
+	{ 538 , 18038},
+	{ 539 , 18039},
+	{ 540 , 18040},
+	{ 541 , 18041},
+	{ 542 , 18042},
+	{ 543 , 18043},
+	{ 544 , 18044},
+	{ 545 , 18045},
+	{ 546 , 18046},
+	{ 547 , 18047},
+	{ 548 , 18048},
+	{ 549 , 18049},
+	{ 550 , 18050},
+	{ 551 , 18051},
+	{ 552 , 18052},
+	{ 553 , 18053},
+	{ 554 , 18054},
+	{ 555 , 18055},
+	{ 556 , 18056},
+	{ 557 , 18057},
+	{ 558 , 18058},
+	{ 559 , 18059},
+	{ 560 , 18060},
+	{ 561 , 18061},
+	{ 562 , 18062},
+	{ 563 , 18063},
+	{ 564 , 18064},
+	{ 565 , 18065},
+	{ 566 , 18066},
+	{ 567 , 18067},
+	{ 568 , 18068},
+	{ 569 , 18069},
+	{ 570 , 18070},
+	{ 571 , 18071}
+};
 
 bool LuaBridge::OnCalled(TeamClass* pTeam)
 {
@@ -190,39 +311,39 @@ bool LuaBridge::OnCalled(TeamClass* pTeam)
 
 void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 {
-	const std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
+	//const std::string filename = LuaData::LuaDir + "\\ScriptAlternativeNumbering.lua";
 
-	auto L = sol_state.get();
+	//auto L = sol_state.get();
 
-	if (luaL_dofile(L, filename.c_str()) == LUA_OK)
-	{
-		lua_getglobal(L, "Scripts");
-		if (lua_istable(L, -1)) {
-			const size_t scriptSize = (size_t)lua_rawlen(L, -1);
-			SriptNumbers.resize(scriptSize);
-			for (size_t i = 0; i < scriptSize; i++)
-			{
-				lua_pushinteger(L, lua_Integer(i + 1));
-				lua_gettable(L, -2);
-				if (lua_istable(L, -2))
-				{
-					lua_pushstring(L, "Original");
-					lua_gettable(L, -2);
-					const auto Originalnumber = (int)lua_tointeger(L, -1);
-					lua_pop(L, 1);
+	//if (luaL_dofile(L, filename.c_str()) == LUA_OK)
+	//{
+	//	lua_getglobal(L, "Scripts");
+	//	if (lua_istable(L, -1)) {
+	//		const size_t scriptSize = (size_t)lua_rawlen(L, -1);
+	//		SriptNumbers.resize(scriptSize);
+	//		for (size_t i = 0; i < scriptSize; i++)
+	//		{
+	//			lua_pushinteger(L, lua_Integer(i + 1));
+	//			lua_gettable(L, -2);
+	//			if (lua_istable(L, -2))
+	//			{
+	//				lua_pushstring(L, "Original");
+	//				lua_gettable(L, -2);
+	//				const auto Originalnumber = (int)lua_tointeger(L, -1);
+	//				lua_pop(L, 1);
 
-					lua_pushstring(L, "Alternative");
-					lua_gettable(L, -2);
-					const auto AlternativeNumber = (int)lua_tointeger(L, -1);
-					lua_pop(L, 1);
+	//				lua_pushstring(L, "Alternative");
+	//				lua_gettable(L, -2);
+	//				const auto AlternativeNumber = (int)lua_tointeger(L, -1);
+	//				lua_pop(L, 1);
 
-					SriptNumbers[i].Original = Originalnumber;
-					SriptNumbers[i].Alternate = AlternativeNumber;
-				}
-				lua_pop(L, 1);
-			}
-		}
-	}
+	//				SriptNumbers[i]. Originalnumber;
+	//				SriptNumbers[i].Alternate = AlternativeNumber;
+	//			}
+	//			lua_pop(L, 1);
+	//		}
+	//	}
+	//}
 
 }
 
