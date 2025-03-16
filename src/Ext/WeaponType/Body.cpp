@@ -614,14 +614,14 @@ void WeaponTypeExtContainer::Clear()
 // container hooks
 //
 
-DEFINE_HOOK(0x771EE0, WeaponTypeClass_CTOR, 0x6)
+ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 	WeaponTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 	WeaponTypeExtContainer::Instance.Remove(pItem);
@@ -657,9 +657,8 @@ HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
+
+ASMJIT_PATCH(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xE4);
@@ -667,4 +666,5 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	WeaponTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)

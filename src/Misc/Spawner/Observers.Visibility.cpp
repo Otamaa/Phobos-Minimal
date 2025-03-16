@@ -22,7 +22,7 @@
 #include <Ext/House/Body.h>
 
 // Allow showing the select cursor on the object
-DEFINE_HOOK(0x700594, TechnoClass_WhatAction_AllowAllies, 0x5)
+ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAllies, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
@@ -30,7 +30,7 @@ DEFINE_HOOK(0x700594, TechnoClass_WhatAction_AllowAllies, 0x5)
 	return pThis->Owner->IsAlliedWith(pObject->GetOwningHouse()) ? 0x70059D : 0x7005E6;
 }
 
-DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
+ASMJIT_PATCH(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
 {
 	enum { UseShadowyVisual = 0x703A5A, CheckMutualAlliance = 0x703A16 };
 
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
 		: CheckMutualAlliance;
 }
 
-DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
+ASMJIT_PATCH(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
 {
 	enum { UseShadowyVisual = 0x45452D, CheckMutualAlliance = 0x454564 };
 
@@ -49,7 +49,7 @@ DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
 }
 
 // Allow observers and mutual allies coordthing cloaked Technos
-DEFINE_HOOK(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak, 0x5)
+ASMJIT_PATCH(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak, 0x5)
 {
 	enum { AllowCoordthing = 0x69256B, CheckSensedByHouses = 0 };
 
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak, 0x5)
 }
 
 // Allow observers and mutual allies coordthing cloaked Buildings
-DEFINE_HOOK(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak, 0x6)
+ASMJIT_PATCH(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak, 0x6)
 {
 	enum { AllowCoordthing = 0x6925F0, CheckSensedByHouses = 0 };
 
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak, 0x6)
 	return CheckSensedByHouses;
 }
 
-DEFINE_HOOK(0x6DA412, Tactical_SelectAt_Cloak, 0x6)
+ASMJIT_PATCH(0x6DA412, Tactical_SelectAt_Cloak, 0x6)
 {
 	enum { AllowSelect = 0x6DA43E, CheckSensedByHouses = 0 };
 
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x6DA412, Tactical_SelectAt_Cloak, 0x6)
 }
 
 // Allow observers and mutual allies selected cloaked Technos
-DEFINE_HOOK(0x6F4F19, TechnoClass_6F4EB0_Cloak, 0x6)
+ASMJIT_PATCH(0x6F4F19, TechnoClass_6F4EB0_Cloak, 0x6)
 {
 	enum { DontUnselect = 0x6F4F3A, CheckSensedByHouses = 0x6F4F21 };
 
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x6F4F19, TechnoClass_6F4EB0_Cloak, 0x6)
 }
 
 // Allow observers and mutual allies selected cloaked Technos
-DEFINE_HOOK(0x4ABE3C, DisplayClass_MouseLeftRelease_Cloak, 0xA)
+ASMJIT_PATCH(0x4ABE3C, DisplayClass_MouseLeftRelease_Cloak, 0xA)
 {
 	enum { AllowSelect = 0x4ABE4A, Unselect = 0x4ABE88 };
 
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x4ABE3C, DisplayClass_MouseLeftRelease_Cloak, 0xA)
 }
 
 // Show cloaked Technos on radar for observers and mutual allies
-DEFINE_HOOK(0x70D386, TechnoClass_Radar_Cloak, 0xA)
+ASMJIT_PATCH(0x70D386, TechnoClass_Radar_Cloak, 0xA)
 {
 	enum { Show = 0x70D3CD, DontShow = 0x70D407 };
 
@@ -156,7 +156,7 @@ DEFINE_HOOK(0x70D386, TechnoClass_Radar_Cloak, 0xA)
 }
 
 // Show tooltips for observers and mutual allies
-DEFINE_HOOK(0x4AE62B, DisplayClass_HelpText_Cloak, 0x5)
+ASMJIT_PATCH(0x4AE62B, DisplayClass_HelpText_Cloak, 0x5)
 {
 	enum { CheckIsInvisible = 0x4AE654, CheckSensedByHouses = 0 };
 
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x4AE62B, DisplayClass_HelpText_Cloak, 0x5)
 // Show disguised units (Spy and Mirage) for observer
 #pragma region
 // Show spy for observer
-DEFINE_HOOK(0x4DEDC3, FootClass_GetImageData_Disguise, 0x6)
+ASMJIT_PATCH(0x4DEDC3, FootClass_GetImageData_Disguise, 0x6)
 {
 	return HouseClass::IsCurrentPlayerObserver()
 		? 0x4DEE15
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x4DEDC3, FootClass_GetImageData_Disguise, 0x6)
 }
 
 // Show real name of spy for observer
-DEFINE_HOOK(0x51F2F3, InfantryClass_FullName_Disguise, 0x6)
+ASMJIT_PATCH(0x51F2F3, InfantryClass_FullName_Disguise, 0x6)
 {
 	return HouseClass::IsCurrentPlayerObserver()
 		? 0x51F31A
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x51F2F3, InfantryClass_FullName_Disguise, 0x6)
 }
 
 // Flash disguise for Observer
-DEFINE_HOOK(0x70EE6A, TechnoClass_DisguiseBeenSeen, 0x6)
+ASMJIT_PATCH(0x70EE6A, TechnoClass_DisguiseBeenSeen, 0x6)
 {
 	return HouseClass::IsCurrentPlayerObserver()
 		? 0x70EE79
@@ -202,7 +202,7 @@ DEFINE_HOOK(0x70EE6A, TechnoClass_DisguiseBeenSeen, 0x6)
 }
 
 // Allow observers selected disguise
-DEFINE_HOOK(0x7467CA, UnitClass_CantTargetDisguise, 0x5)
+ASMJIT_PATCH(0x7467CA, UnitClass_CantTargetDisguise, 0x5)
 {
 	GET(HouseClass*, pHouse, EDI);
 	return pHouse->IsObserver()
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x7467CA, UnitClass_CantTargetDisguise, 0x5)
 
 // Allow Observer to see Pips
 #pragma region
-DEFINE_HOOK(0x6F677D, TechnoClass_DrawSelection_Observer1, 0x5)
+ASMJIT_PATCH(0x6F677D, TechnoClass_DrawSelection_Observer1, 0x5)
 {
 	return HouseClass::IsCurrentPlayerObserver()
 		? 0x6F67B2
@@ -222,15 +222,15 @@ DEFINE_HOOK(0x6F677D, TechnoClass_DrawSelection_Observer1, 0x5)
 #pragma endregion
 
 
-DEFINE_HOOK(0x70DA7D, TechnoClass_RadarTrackingUpdate_Detected_ObserverSkip, 0x6) {
+ASMJIT_PATCH(0x70DA7D, TechnoClass_RadarTrackingUpdate_Detected_ObserverSkip, 0x6) {
 	return HouseClass::IsCurrentPlayerObserver() ? 0x70DADC : 0;
 }
 
-DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect_IsCurrentPlayerOberver, 0x6)  {
+ASMJIT_PATCH(0x703819, TechnoClass_Cloak_Deselect_IsCurrentPlayerOberver, 0x6)  {
 	return HouseClass::IsCurrentPlayerObserver() ? 0x70383C : 0x0;
 }
 
-DEFINE_HOOK(0x65FA70, RadarEventClass_Create_ObserverSkipSensed, 0x6) {
+ASMJIT_PATCH(0x65FA70, RadarEventClass_Create_ObserverSkipSensed, 0x6) {
 	GET(RadarEventType, nType, ECX);
 	return nType == RadarEventType::EnemySensed && HouseClass::IsCurrentPlayerObserver() ? 0x65FB52 : 0;
 }

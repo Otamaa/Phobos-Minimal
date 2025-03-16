@@ -19,7 +19,7 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
-DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
+ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 {
 	GET_STACK(BulletClass*, pThis, STACK_OFFS(0xF8, 0xE4));
 	GET(BulletTypeClass*, pThisType, EDX);
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 
 #pragma region Otamaa
 
-//DEFINE_HOOK(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
+//ASMJIT_PATCH(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
 //{
 //	GET(BulletClass*, pThis, ESI);
 //	GET(int, nMaxCount, EAX);
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 //	return (nMaxCount > 0) ? 0x469D1A : 0x0;
 //}
 
-DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
+ASMJIT_PATCH(0x469D3C, BulletClass_Logics_Debris, 0xA)
 {
 	GET(FakeBulletClass*, pThis, ESI);
 	GET(int, nTotalSpawn, EBX);
@@ -172,7 +172,7 @@ static void  ManipulateLoco(FootClass* pFirer, AbstractClass* pTarget, BulletCla
 	}
 }
 
-DEFINE_HOOK(0x4694CB, BulletClass_Logics_Locomotor, 0x6)
+ASMJIT_PATCH(0x4694CB, BulletClass_Logics_Locomotor, 0x6)
 {
 	enum
 	{
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x4694CB, BulletClass_Logics_Locomotor, 0x6)
 	return Return;
 }
 
-DEFINE_HOOK(0x707B95, TechnoClass_PointerExpired_LocoSource, 0x7)
+ASMJIT_PATCH(0x707B95, TechnoClass_PointerExpired_LocoSource, 0x7)
 {
 	GET(TechnoClass*, pAttacker, ECX);
 	GET(TechnoClass*, pVictim, ESI);
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x707B95, TechnoClass_PointerExpired_LocoSource, 0x7)
 	return 0x707BB2;
 }
 
-DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
+ASMJIT_PATCH(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 {
 	GET(TechnoClass*, pThis, EBX);
 	GET(FootClass*, pThat, ESI);
@@ -269,19 +269,19 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 }
 #endif
 
-//DEFINE_HOOK(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
+//ASMJIT_PATCH(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
 //{
 //	R->ECX(R->EBP());
 //	return 0;
 //}
 
-//DEFINE_HOOK(0x5B271A, BulletClass_ProjectileMotion_Fix2, 0x5)
+//ASMJIT_PATCH(0x5B271A, BulletClass_ProjectileMotion_Fix2, 0x5)
 //{
 //	GET_BASE(BulletClass*, pBullet, 0x18);
 //	return pBullet->Type->VeryHigh ? 0x5B272D : 0x5B2721;
 //}
 //
-//DEFINE_HOOK(0x5B260B, BulletClass_ProjectileMotion_DescentAngle, 0x7)
+//ASMJIT_PATCH(0x5B260B, BulletClass_ProjectileMotion_DescentAngle, 0x7)
 //{
 //	GET_BASE(BulletClass*, pBullet, 0x18);
 //	GET_STACK(int, nData, 0x38);
@@ -290,7 +290,7 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //		? 0x5B289C : 0x5B2627;
 //}
 //
-//DEFINE_HOOK(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
+//ASMJIT_PATCH(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
 //{
 //	//GET_BASE(BulletClass*, pBullet, 0x18);
 //	//R->Stack(0x18, (std::clamp((0x4000 - 0x2000), 0, 0x4000)));
@@ -298,7 +298,7 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //	return 0x5B277F;
 //}
 //
-//DEFINE_HOOK(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
+//ASMJIT_PATCH(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
 //{
 //	//(BulletClass*, pBullet, 0x18);
 //	GET(int, nLepton, EAX);
@@ -312,7 +312,7 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //	return 0x5B2732;
 //}
 
-DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
+ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 {
 	GET(FakeBulletClass*, pThis, EBP);
 
@@ -329,7 +329,7 @@ DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	return 0x466C14;
 }
 
-DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
+ASMJIT_PATCH(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 {
 	GET(FakeBulletClass*, pThis, EBP);
 	GET(int, comparator, EAX);

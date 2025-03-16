@@ -24,7 +24,7 @@
 #include <InfantryClass.h>
 #include <RadarEventClass.h>
 
-DEFINE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
+ASMJIT_PATCH(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);
 
@@ -35,7 +35,7 @@ DEFINE_HOOK(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 	return 0x4DFF3E;
 }
 
-DEFINE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
+ASMJIT_PATCH(0x4D718C, FootClass_Put_InitialPayload, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x4D718C, FootClass_Put_InitialPayload, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
+ASMJIT_PATCH(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 {
 	enum { Skip = 0x4D9918 };
 	GET(FootClass*, pThis, ECX);
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	return Skip;
 }
 
-DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
+ASMJIT_PATCH(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 {
 	GET(FootClass* const, pThis, EBX);
 	GET_STACK(bool, bSomething, 0x12);
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 		? 0x4D5796 : 0x4D57EA;
 }
 
-DEFINE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
+ASMJIT_PATCH(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 {
 	GET(BuildingClass* const, pBld, EAX);
 	GET(CoordStruct*, pBuffer, ECX);
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 
 // replace Is_Moving_Now, because it doesn't check the
 // current speed in case the unit is turning.
-DEFINE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
+ASMJIT_PATCH(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving());
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 
 // support Occupier and VehicleThief on one type. if this is not done
 // the Occupier handling will leave a dangling Destination pointer.
-DEFINE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
+ASMJIT_PATCH(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
 {
 	GET(InfantryClass* const, pInfantry, ESI);
 	GET(InfantryTypeClass* const, pType, EAX);
@@ -123,7 +123,7 @@ DEFINE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
 }
 
 // update parasite coords along with the host
-DEFINE_HOOK(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
+ASMJIT_PATCH(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
 {
 	GET(FootClass* const, F, ESI);
 
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
+ASMJIT_PATCH(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -161,14 +161,14 @@ DEFINE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 }
 
 // stops movement sound from being played while unit is being pulled by a magnetron (see terror drone)
-DEFINE_HOOK(0x7101CF, FootClass_ImbueLocomotor, 0x7)
+ASMJIT_PATCH(0x7101CF, FootClass_ImbueLocomotor, 0x7)
 {
 	GET(FootClass* const, pThis, ESI);
 	pThis->Audio7.AudioEventHandleEndLooping();
 	return 0;
 }
 
-DEFINE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
+ASMJIT_PATCH(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -193,7 +193,7 @@ DEFINE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 	return 0x4DAA70;
 }
 
-DEFINE_HOOK(0x4D7524, FootClass_ActionOnObject_Allow, 9)
+ASMJIT_PATCH(0x4D7524, FootClass_ActionOnObject_Allow, 9)
 {
 	//overwrote the ja, need to replicate it
 	GET(Action, CursorIndex, EBP);
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x4D7524, FootClass_ActionOnObject_Allow, 9)
 	return 0x4D752D;
 }
 
-DEFINE_HOOK(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
+ASMJIT_PATCH(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
 {
 	GET(FootClass* const, pThis, ECX);
 
@@ -241,7 +241,7 @@ DEFINE_HOOK(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
+ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 {
 	GET(BuildingClass*, pBld, EAX);
 	GET(TechnoClass*, pDocker, ESI);
@@ -262,7 +262,7 @@ DEFINE_HOOK(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 }
 
 // move to the next hva frame, even if this unit isn't moving
-DEFINE_HOOK(0x4DA8B2, FootClass_Update_AnimRate, 6)
+ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 {
 	GET(FootClass*, pThis, ESI);
 	auto pType = pThis->GetTechnoType();
@@ -286,7 +286,7 @@ DEFINE_HOOK(0x4DA8B2, FootClass_Update_AnimRate, 6)
 }
 
  //rotation when crashing made optional
-DEFINE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
+ASMJIT_PATCH(0x4DECAE, FootClass_Crash_Spin, 5)
 {
 	GET(FootClass*, pThis, ESI);
 	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
@@ -294,7 +294,7 @@ DEFINE_HOOK(0x4DECAE, FootClass_Crash_Spin, 5)
 
 #include <Ext/Cell/Body.h>
 
-DEFINE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
+ASMJIT_PATCH(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 {
 	GET(FootClass*, pThis, ESI);
 

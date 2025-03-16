@@ -2,7 +2,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
+ASMJIT_PATCH(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 {
 	GET(FakeAnimTypeClass*, pBounceAnim, ECX);
 	GET(AnimClass*, pThis, EBP);
@@ -22,7 +22,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	return 0x4239D3;
 }
 
-DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
+ASMJIT_PATCH(0x423F31, AnimClass_Spawns_Override, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 	GET_STACK(int, X, 0x88 - 0x4C);

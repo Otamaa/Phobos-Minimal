@@ -20,7 +20,7 @@
 #include <EventClass.h>
 
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
-DEFINE_HOOK(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
+ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 {
 	GET(AircraftClass*, pThis, EDI);
 	GET(AbstractClass*, pTarget, EAX);
@@ -74,7 +74,7 @@ void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E266C, FakeAircraftClass::_SetTarget);
 
 #ifndef SecondMode
-DEFINE_HOOK(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
+ASMJIT_PATCH(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 
@@ -182,39 +182,39 @@ bool FireBurst(AircraftClass* pAir, AbstractClass* pTarget)
 	return false;
 }
 
-DEFINE_HOOK(0x4186B6, AircraftClass_Mission_Attack_FireAt_Strafe_BurstFix, 0x6)
+ASMJIT_PATCH(0x4186B6, AircraftClass_Mission_Attack_FireAt_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	FireBurst(pThis, pThis->Target);
 	return 0x418720;
 }
 
-DEFINE_HOOK(0x418805, AircraftClass_Mission_Attack_Strafe2_Strafe_BurstFix, 0x6)
+ASMJIT_PATCH(0x418805, AircraftClass_Mission_Attack_Strafe2_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	return !FireBurst(pThis, pThis->Target) ? 0x418883 : 0x418870;
 }
 
-DEFINE_HOOK(0x418914, AircraftClass_Mission_Attack_Strafe3_Strafe_BurstFix, 0x6)
+ASMJIT_PATCH(0x418914, AircraftClass_Mission_Attack_Strafe3_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	return !FireBurst(pThis, pThis->Target) ? 0x418992 : 0x41897F;
 }
 
-DEFINE_HOOK(0x418A23, AircraftClass_Mission_Attack_Strafe4_Strafe_BurstFix, 0x6)
+ASMJIT_PATCH(0x418A23, AircraftClass_Mission_Attack_Strafe4_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	return !FireBurst(pThis, pThis->Target) ? 0x418AA1 : 0x418A8E;
 }
 
-DEFINE_HOOK(0x418B1F, AircraftClass_Mission_Attack_Strafe5_Strafe_BurstFix, 0x6)
+ASMJIT_PATCH(0x418B1F, AircraftClass_Mission_Attack_Strafe5_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	FireBurst(pThis, pThis->Target);
 	return 0x418B8A;
 }
 
-DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
+ASMJIT_PATCH(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -245,7 +245,7 @@ static int GetDelay(AircraftClass* pThis, bool isLastShot)
 	return delay;
 }
 
-DEFINE_HOOK(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
+ASMJIT_PATCH(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -256,7 +256,7 @@ DEFINE_HOOK(0x4184CC, AircraftClass_Mission_Attack_Delay1A, 0x6)
 	return 0x4184F1;
 }
 
-DEFINE_HOOK(0x418506, AircraftClass_Mission_Attack_Delay1B, 0x6)
+ASMJIT_PATCH(0x418506, AircraftClass_Mission_Attack_Delay1B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -269,7 +269,7 @@ DEFINE_HOOK(0x418506, AircraftClass_Mission_Attack_Delay1B, 0x6)
 	return 0x418539;
 }
 
-DEFINE_HOOK(0x418883, AircraftClass_Mission_Attack_Delay2, 0x6)
+ASMJIT_PATCH(0x418883, AircraftClass_Mission_Attack_Delay2, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -279,7 +279,7 @@ DEFINE_HOOK(0x418883, AircraftClass_Mission_Attack_Delay2, 0x6)
 	return 0x4188A1;
 }
 
-DEFINE_HOOK(0x418992, AircraftClass_Mission_Attack_Delay3, 0x6)
+ASMJIT_PATCH(0x418992, AircraftClass_Mission_Attack_Delay3, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x418992, AircraftClass_Mission_Attack_Delay3, 0x6)
 	return 0x4189B0;
 }
 
-DEFINE_HOOK(0x418AA1, AircraftClass_Mission_Attack_Delay4, 0x6)
+ASMJIT_PATCH(0x418AA1, AircraftClass_Mission_Attack_Delay4, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -299,7 +299,7 @@ DEFINE_HOOK(0x418AA1, AircraftClass_Mission_Attack_Delay4, 0x6)
 	return 0x418ABF;
 }
 
-DEFINE_HOOK(0x418B8A, AircraftClass_Mission_Attack_Delay5, 0x6)
+ASMJIT_PATCH(0x418B8A, AircraftClass_Mission_Attack_Delay5, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -308,7 +308,7 @@ DEFINE_HOOK(0x418B8A, AircraftClass_Mission_Attack_Delay5, 0x6)
 	return 0x418BBA;
 }
 
-DEFINE_HOOK(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
+ASMJIT_PATCH(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
@@ -335,7 +335,7 @@ enum class AirAttackStatusP : int
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
 
-DEFINE_HOOK(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
+ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 {
 	GET(ILocomotion*, iloco, ESI);
 	auto loco = static_cast<FlyLocomotionClass*>(iloco);
@@ -398,7 +398,7 @@ static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTy
 	return true;
 }
 
-DEFINE_HOOK(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
+ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
 	GET(AircraftClass*, pThis, ESI);
 	GET(int, range, EBX);
 
@@ -424,7 +424,7 @@ DEFINE_HOOK(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
 	return 0x415700;
 }
 
-DEFINE_HOOK(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
+ASMJIT_PATCH(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(int, range, EAX);
@@ -449,8 +449,8 @@ DEFINE_HOOK(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 }
 
 // AreaGuard: return when no ammo or first target died
-DEFINE_HOOK_AGAIN(0x41A982, AircraftClass_Mission_AreaGuard, 0x6)
-DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
+
+ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 {
 	enum { SkipGameCode = 0x41A97A };
 
@@ -475,14 +475,14 @@ DEFINE_HOOK(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x41A982, AircraftClass_Mission_AreaGuard, 0x6)
 
 // AttackMove: return when no ammo or arrived destination
 #include <Ext/AircraftTypeClass/Body.h>
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E290C,  FakeAircraftTypeClass::_CanAttackMove)
 
-DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
+ASMJIT_PATCH(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)
 {
 	enum { LoseCurrentTarget = 0x4DF3D3, HoldCurrentTarget = 0x4DF4AB };
 
@@ -492,8 +492,7 @@ DEFINE_HOOK(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0
 		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
 }
 
-DEFINE_HOOK_AGAIN(0x4168C7, AircraftClass_Mission_Move_SmoothMoving, 0x5)
-DEFINE_HOOK(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
+ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 {
 	enum { EnterIdleAndReturn = 0x416AC0, ContinueMoving1 = 0x416908, ContinueMoving2 = 0x416A47 };
 
@@ -517,9 +516,9 @@ DEFINE_HOOK(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 		pThis->EnterIdleMode(false, true);
 
 	return EnterIdleAndReturn;
-}
+}ASMJIT_PATCH_AGAIN(0x4168C7, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 
-DEFINE_HOOK(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
+ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
 {
 	enum { SkipGameCode = 0x4DDD8A };
 
@@ -534,7 +533,7 @@ DEFINE_HOOK(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6)
+ASMJIT_PATCH(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6)
 {
 	enum { Continue = 0x418C43, Return = 0x418CE8 };
 
@@ -562,7 +561,7 @@ DEFINE_HOOK(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x6
 }
 
 // Idle: clear the target if no ammo
-DEFINE_HOOK(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
+ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 {
 	enum { ClearTarget = 0x414D3F };
 
@@ -632,7 +631,7 @@ void FakeAircraftClass::_FootClass_Update_Wrapper() {
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
 
 // Handle assigning area guard mission to aircraft.
-DEFINE_HOOK(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
+ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 {
 	enum { SkipGameCode = 0x4C7435 };
 
@@ -652,7 +651,7 @@ DEFINE_HOOK(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 }
 
 // Do not untether aircraft when assigning area guard mission by default.
-DEFINE_HOOK(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
+ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 {
 	enum { SkipGameCode = 0x4C7349 };
 

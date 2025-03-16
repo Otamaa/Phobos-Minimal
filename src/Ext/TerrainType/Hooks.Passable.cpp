@@ -111,7 +111,7 @@ static inline bool CheckCanNotExistHere(FootClass* pTechno, HouseClass* const pO
 }
 
 // Passable TerrainTypes Hook #1 - Do not set occupy bits.
-DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
+ASMJIT_PATCH(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 {
 	enum { Skip = 0x71C1A0 };
 
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 }
 
 // Passable TerrainTypes Hook #2 - Do not display attack cursor unless force-firing.
-DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
+ASMJIT_PATCH(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 {
 	enum { ReturnAction = 0x70020E };
 
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 }
 
 // Passable TerrainTypes Hook #3 - Count passable TerrainTypes as completely passable.
-DEFINE_HOOK(0x483DDF, CellClass_CheckPassability_PassableTerrain, 0x6)
+ASMJIT_PATCH(0x483DDF, CellClass_CheckPassability_PassableTerrain, 0x6)
 {
 	enum { SkipToNextObject = 0x483DCD, ReturnFromFunction = 0x483E25, BreakFromLoop = 0x483DDF };
 
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x483DDF, CellClass_CheckPassability_PassableTerrain, 0x6)
 }
 
 // Passable TerrainTypes Hook #4 - Make passable for vehicles.
-DEFINE_HOOK(0x73FBA7, UnitClass_CanEnterCell_PassableTerrain, 0x5)
+ASMJIT_PATCH(0x73FBA7, UnitClass_CanEnterCell_PassableTerrain, 0x5)
 {
 	enum { ReturnPassable = 0x73FD37, SkipTerrainChecks = 0x73FA7C };
 
@@ -182,8 +182,7 @@ DEFINE_HOOK(0x73FBA7, UnitClass_CanEnterCell_PassableTerrain, 0x5)
 }
 
 // Buildable-upon TerrainTypes Hook #1 - Allow placing buildings on top of them.
-DEFINE_HOOK_AGAIN(0x47C80E, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
-DEFINE_HOOK(0x47C745, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
+ASMJIT_PATCH(0x47C745, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
 {
 	enum { Skip = 0x47C85F, SkipFlags = 0x47C6A0 };
 
@@ -201,10 +200,11 @@ DEFINE_HOOK(0x47C745, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x47C80E, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
+
 
 // Buildable-upon TerrainTypes Hook #2 - Allow placing laser fences on top of them.
-DEFINE_HOOK(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
+ASMJIT_PATCH(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
 {
 	enum { Skip = 0x47C6A0, Return = 0x47C6D1 };
 
@@ -244,7 +244,7 @@ DEFINE_HOOK(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
 }
 
 // Buildable-upon TerrainTypes Hook #3 - Draw laser fence placement even if they are on the way.
-DEFINE_HOOK(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0x9)
+ASMJIT_PATCH(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0x9)
 {
 	enum { ContinueChecks = 0x6D57D2, DontDraw = 0x6D59A6 };
 
@@ -259,7 +259,7 @@ DEFINE_HOOK(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0x
 }
 
 // Buildable-upon TerrainTypes Hook #4 - Remove them when buildings are placed on them.
-DEFINE_HOOK(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
+ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 {
 	GET(ObjectClass*, pObject, EDI);
 	GET(CellClass*, pCell, EAX);
@@ -303,7 +303,7 @@ DEFINE_HOOK(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 }
 
 // Buildable-upon TerrainTypes Hook #4 -> sub_5FD270 - Allow placing buildings on top of them
-DEFINE_HOOK(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
+ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 {
 	enum { Unlimbo = 0x5FD2CA, NoUnlimbo = 0x5FD2C3 };
 
@@ -345,7 +345,7 @@ namespace ProximityTemp
 // Buildable-upon TerrainTypes Hook #1 -> sub_47C620 - Allow placing buildings on top of them
 // Buildable-upon TechnoTypes Hook #1 -> sub_47C620 - Rewrite and check whether allow placing buildings on top of them
 // Customized Laser Fence Hook #1 -> sub_47C620 - Forbid placing laser fence post on inappropriate laser fence
-DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
+ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 {
 	enum { CanNotExistHere = 0x47C6D1, CanExistHere = 0x47C6A0 };
 
@@ -538,7 +538,7 @@ DEFINE_HOOK(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #2-1 -> sub_47EC90 - Record cell before draw it then skip vanilla AltFlags check
-DEFINE_HOOK(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
+ASMJIT_PATCH(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
 {
 	enum { DontDrawAlt = 0x47EF1A, DrawVanillaAlt = 0x47EED6 };
 
@@ -631,7 +631,7 @@ static inline bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingTyp
 }
 
 // Buildable-upon TechnoTypes Hook #3 -> sub_4FB0E0 - Hang up place event if there is only infantries and units on the cell
-DEFINE_HOOK(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
+ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 {
 	enum { CanBuild = 0x4FB23C, TemporarilyCanNotBuild = 0x4FB5BA, CanNotBuild = 0x4FB35F, BuildSucceeded = 0x4FB649 };
 
@@ -838,7 +838,7 @@ DEFINE_HOOK(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 }
 
 // Buildable-upon TechnoTypes Hook #4-1 -> sub_4FB0E0 - Check whether need to skip the replace command
-DEFINE_HOOK(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
+ASMJIT_PATCH(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 {
 	enum { SkipGameCode = 0x4FB489 };
 
@@ -856,7 +856,7 @@ DEFINE_HOOK(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #4-2 -> sub_4FB0E0 - Check whether need to skip the clear command
-DEFINE_HOOK(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
+ASMJIT_PATCH(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
 {
 	enum { SkipGameCode = 0x4FB4A0 };
 
@@ -878,7 +878,7 @@ DEFINE_HOOK(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #4-3 -> sub_4FB0E0 - Check whether need to skip the clear command
-DEFINE_HOOK(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
+ASMJIT_PATCH(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 {
 	enum { SkipGameCode = 0x4FABA4 };
 
@@ -897,7 +897,7 @@ DEFINE_HOOK(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 }
 
 // Buildable-upon TechnoTypes Hook #5 -> sub_4C9FF0 - Restart timer and clear buffer when abandon building production
-DEFINE_HOOK(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x5)
+ASMJIT_PATCH(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x5)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
@@ -917,7 +917,7 @@ DEFINE_HOOK(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x5
 }
 
 // Buildable-upon TechnoTypes Hook #6 -> sub_443C60 - Try to clean up the building space when AI is building
-DEFINE_HOOK(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
+ASMJIT_PATCH(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
 {
 	enum {
 		CanBuild = 0x4452F0,
@@ -1041,7 +1041,7 @@ static inline bool CanDrawGrid(bool draw)
 
 // Laser fence use GetBuilding to check whether can build and draw, so no need to change
 // Buildable-upon TechnoTypes Hook #8-1 -> sub_6D5C50 - Don't draw overlay wall grid when have occupiers
-DEFINE_HOOK(0x6D5D38, TacticalClass_DrawOverlayWallGrid_DisableWhenHaveTechnos, 0x8)
+ASMJIT_PATCH(0x6D5D38, TacticalClass_DrawOverlayWallGrid_DisableWhenHaveTechnos, 0x8)
 {
 	enum { Valid = 0x6D5D40, Invalid = 0x6D5F0F };
 
@@ -1051,7 +1051,7 @@ DEFINE_HOOK(0x6D5D38, TacticalClass_DrawOverlayWallGrid_DisableWhenHaveTechnos, 
 }
 
 // Buildable-upon TechnoTypes Hook #8-2 -> sub_6D59D0 - Don't draw firestorm wall grid when have occupiers
-DEFINE_HOOK(0x6D5A9D, TacticalClass_DrawFirestormWallGrid_DisableWhenHaveTechnos, 0x8)
+ASMJIT_PATCH(0x6D5A9D, TacticalClass_DrawFirestormWallGrid_DisableWhenHaveTechnos, 0x8)
 {
 	enum { Valid = 0x6D5AA5, Invalid = 0x6D5C2F };
 
@@ -1061,7 +1061,7 @@ DEFINE_HOOK(0x6D5A9D, TacticalClass_DrawFirestormWallGrid_DisableWhenHaveTechnos
 }
 
 // Buildable-upon TechnoTypes Hook #8-3 -> sub_588750 - Don't place overlay wall when have occupiers
-DEFINE_HOOK(0x588873, MapClass_BuildingToWall_DisableWhenHaveTechnos, 0x8)
+ASMJIT_PATCH(0x588873, MapClass_BuildingToWall_DisableWhenHaveTechnos, 0x8)
 {
 	enum { Valid = 0x58887B, Invalid = 0x588935 };
 
@@ -1071,7 +1071,7 @@ DEFINE_HOOK(0x588873, MapClass_BuildingToWall_DisableWhenHaveTechnos, 0x8)
 }
 
 // Buildable-upon TechnoTypes Hook #8-4 -> sub_588570 - Don't place firestorm wall when have occupiers
-DEFINE_HOOK(0x588664, MapClass_BuildingToFirestormWall_DisableWhenHaveTechnos, 0x8)
+ASMJIT_PATCH(0x588664, MapClass_BuildingToFirestormWall_DisableWhenHaveTechnos, 0x8)
 {
 	enum { Valid = 0x58866C, Invalid = 0x588730 };
 
@@ -1081,7 +1081,7 @@ DEFINE_HOOK(0x588664, MapClass_BuildingToFirestormWall_DisableWhenHaveTechnos, 0
 }
 
 // Buildable-upon TechnoTypes Hook #9-1 -> sub_7393C0 - Try to clean up the building space when is deploying
-DEFINE_HOOK(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
+ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 {
 	enum { CanDeploy = 0x73958A, TemporarilyCanNotDeploy = 0x73953B, CanNotDeploy = 0x7394E0 };
 
@@ -1152,7 +1152,7 @@ DEFINE_HOOK(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #9-2 -> sub_73FD50 - Push the owner house into deploy check
-DEFINE_HOOK(0x73FF8F, UnitClass_MouseOverObject_ShowDeployCursor, 0x6)
+ASMJIT_PATCH(0x73FF8F, UnitClass_MouseOverObject_ShowDeployCursor, 0x6)
 {
 	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
 	{
@@ -1165,7 +1165,7 @@ DEFINE_HOOK(0x73FF8F, UnitClass_MouseOverObject_ShowDeployCursor, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #10 -> sub_4C6CB0 - Stop deploy when get stop command
-DEFINE_HOOK(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
+ASMJIT_PATCH(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
 {
 	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
 	{
@@ -1192,7 +1192,7 @@ DEFINE_HOOK(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
 }
 
 // Buildable-upon TechnoTypes Hook #11 -> sub_4F8440 - Check whether can place again in each house
-DEFINE_HOOK(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
+ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);
 
@@ -1286,8 +1286,7 @@ DEFINE_HOOK(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x4ABA47, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingType, 0x6)
-DEFINE_HOOK(0x4A946E, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingType, 0x6)
+ASMJIT_PATCH(0x4A946E, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingType, 0x6)
 {
 	const auto pDisplay = DisplayClass::Instance();
 
@@ -1309,10 +1308,10 @@ DEFINE_HOOK(0x4A946E, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingTy
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4ABA47, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingType, 0x6)
 
 // Buildable-upon TechnoTypes Hook #12 -> sub_6D5030 - Draw the placing building preview
-DEFINE_HOOK(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
+ASMJIT_PATCH(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 {
 	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
 		return 0;
@@ -1390,7 +1389,7 @@ DEFINE_HOOK(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 }
 
 // Auto Build Hook -> sub_6A8B30 - Auto Build Buildings
-DEFINE_HOOK(0x6A8E34, StripClass_Update_AutoBuildBuildings, 0x7)
+ASMJIT_PATCH(0x6A8E34, StripClass_Update_AutoBuildBuildings, 0x7)
 {
 	enum { SkipSetStripShortCut = 0x6A8E4D };
 
@@ -1402,7 +1401,7 @@ DEFINE_HOOK(0x6A8E34, StripClass_Update_AutoBuildBuildings, 0x7)
 }
 
 // Limbo Build Hook -> sub_42EB50 - Check Base Node
-DEFINE_HOOK(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
+ASMJIT_PATCH(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 {
 	enum { Valid = 0x42EBC3, Invalid = 0x42EBAE };
 
@@ -1426,7 +1425,7 @@ DEFINE_HOOK(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 }
 
 // Customized Laser Fence Hook #2 -> sub_453060 - Select the specific laser fence type
-DEFINE_HOOK(0x452E2C, BuildingClass_CreateLaserFence_FindSpecificIndex, 0x5)
+ASMJIT_PATCH(0x452E2C, BuildingClass_CreateLaserFence_FindSpecificIndex, 0x5)
 {
 	enum { SkipGameCode = 0x452E50 };
 
@@ -1448,7 +1447,7 @@ DEFINE_HOOK(0x452E2C, BuildingClass_CreateLaserFence_FindSpecificIndex, 0x5)
 }
 
 // Customized Laser Fence Hook #3 -> sub_440580 - Skip uninit inappropriate laser fence
-DEFINE_HOOK(0x440AE9, BuildingClass_Unlimbo_SkipUninitFence, 0x7)
+ASMJIT_PATCH(0x440AE9, BuildingClass_Unlimbo_SkipUninitFence, 0x7)
 {
 	enum { SkipGameCode = 0x440B07 };
 
@@ -1474,7 +1473,7 @@ static inline bool IsMatchedPostType(BuildingTypeClass* pThisType, BuildingTypeC
 }
 
 // Customized Laser Fence Hook #4 -> sub_452BB0 - Only accept specific fence post
-DEFINE_HOOK(0x452CB4, BuildingClass_FindLaserFencePost_CheckLaserFencePost, 0x7)
+ASMJIT_PATCH(0x452CB4, BuildingClass_FindLaserFencePost_CheckLaserFencePost, 0x7)
 {
 	enum { SkipGameCode = 0x452D2C };
 
@@ -1485,7 +1484,7 @@ DEFINE_HOOK(0x452CB4, BuildingClass_FindLaserFencePost_CheckLaserFencePost, 0x7)
 }
 
 // Customized Laser Fence Hook #5 -> sub_6D5730 - Break draw inappropriate laser fence grids
-DEFINE_HOOK(0x6D5815, TacticalClass_DrawLaserFenceGrid_SkipDrawLaserFence, 0x6)
+ASMJIT_PATCH(0x6D5815, TacticalClass_DrawLaserFenceGrid_SkipDrawLaserFence, 0x6)
 {
 	enum { SkipGameCode = 0x6D59A6 };
 

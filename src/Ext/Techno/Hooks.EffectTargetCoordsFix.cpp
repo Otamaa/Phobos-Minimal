@@ -24,7 +24,7 @@
 
 // Fix techno target coordinates (used for fire angle calculations, target lines etc) to take building target coordinate offsets into accord.
 // This, for an example, fixes a vanilla bug where Destroyer has trouble targeting Naval Yards with its cannon weapon from certain angles.
-DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
+ASMJIT_PATCH(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 {
 	GET(const AbstractClass* const, pTarget, ECX);
 	LEA_STACK(CoordStruct*, nCoord, 0x40 - 0x18);
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 }
 
 // Fix railgun target coordinates potentially differing from actual target coords.
-DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
+ASMJIT_PATCH(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 {
 	GET(AbstractClass*, pTarget, EBX);
 	GET(CoordStruct*, pBuffer, ECX);
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 }
 
 // Do not adjust map coordinates for railgun particles that are below cell coordinates.
-DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
+ASMJIT_PATCH(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 {
 	enum { SkipCoordAdjust = 0x62B8CB  ,Continue = 0x0};
 
@@ -117,7 +117,7 @@ DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 }
 
 // Fix fire particle target coordinates potentially differing from actual target coords.
-DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
+ASMJIT_PATCH(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
 {
 	enum { SkipGameCode = 0x62FA51, Continue = 0x62FBAF };
 
@@ -137,7 +137,7 @@ DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
 }
 
 // Fix fire particles being disallowed from going upwards.
-DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
+ASMJIT_PATCH(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 {
 	enum { SkipGameCode = 0x62D6B7 };
 
@@ -182,7 +182,7 @@ namespace FireAtTemp
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
 // Adjust target coordinates for laser drawing.
-DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
+ASMJIT_PATCH(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 {
 	GET(CoordStruct*, pTargetCoords, EAX);
 
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 }
 
 // Cut railgun logic off at obstacle coordinates.
-DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+ASMJIT_PATCH(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
 {
 	enum { Continue = 0x70CA79, Stop = 0x70CAD8 };
 
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
 }
 
 // WaveClass requires the firer's target and wave's target to match so it needs bit of extra handling here for obstacle cell targets.
-DEFINE_HOOK(0x762AFF, WaveClass_AI_TargetSet, 0x6)
+ASMJIT_PATCH(0x762AFF, WaveClass_AI_TargetSet, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
 
@@ -225,7 +225,7 @@ DEFINE_HOOK(0x762AFF, WaveClass_AI_TargetSet, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x762D57, WaveClass_AI_TargetUnset, 0x6)
+ASMJIT_PATCH(0x762D57, WaveClass_AI_TargetUnset, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
 
@@ -250,7 +250,7 @@ DEFINE_HOOK(0x762D57, WaveClass_AI_TargetUnset, 0x6)
 // Adjust target for bolt / beam / wave drawing.
 // same hook with TechnoClass_FireAt_FeedbackWeapon
 #ifndef _disable
-DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
+ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FakeWeaponTypeClass*, pWeapon, EBX);
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 #ifndef ENABLE_THESE_THINGS
 #include <Ext/WeaponType/Body.h>
 
-DEFINE_HOOK(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
+ASMJIT_PATCH(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
 {
 	enum { IgnoreTarget = 0x70CA59, Continue = 0x0 };
 
@@ -469,7 +469,7 @@ DEFINE_HOOK(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
 		IgnoreTarget : Continue;
 }
 
-DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
+ASMJIT_PATCH(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 {
 	enum { IgnoreTarget = 0x70CBB0 };
 
@@ -485,7 +485,7 @@ DEFINE_HOOK(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
+ASMJIT_PATCH(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET(TechnoClass*, pSource, EDX);
@@ -496,7 +496,7 @@ DEFINE_HOOK(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 }
 #endif
 
-DEFINE_HOOK(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
+ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_BASE(AbstractClass*, pTarget, 0x8);

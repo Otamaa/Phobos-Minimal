@@ -18,7 +18,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 	return !result ? pOwnerHouse : result;
 }
 //
-//DEFINE_HOOK(0x7265E7, TriggerClass_FireActions, 7)
+//ASMJIT_PATCH(0x7265E7, TriggerClass_FireActions, 7)
 //{
 //	GET(TriggerClass*, pThis, EDI);
 //
@@ -39,7 +39,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 //		0x72660E : 0x726610;
 //}
 //
-//DEFINE_HOOK(0x72652D, TriggerClass_RegisterEvent_PlayerX, 6)
+//ASMJIT_PATCH(0x72652D, TriggerClass_RegisterEvent_PlayerX, 6)
 //{
 //	GET(TriggerClass*, pThis, ESI);
 //
@@ -59,7 +59,7 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 //	return 0x726538;
 //}
 //
-//DEFINE_HOOK(0x684E44 , GameInitialize_AddTagsForHouse, 5)
+//ASMJIT_PATCH(0x684E44 , GameInitialize_AddTagsForHouse, 5)
 //{
 //	GET(TagClass*, pTag, EAX);
 //
@@ -83,22 +83,22 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 /*
 TriggerTypeExt::ExtContainer TriggerTypeExt::ExtMap;
 
-DEFINE_HOOK(0x726DE6, TriggerTypeClass_CTOR, 6)
+ASMJIT_PATCH(0x726DE6, TriggerTypeClass_CTOR, 6)
 {
 	GET(TriggerTypeClass*, pThis, ESI);
 	TriggerTypeExt::ExtMap.Allocate(pThis);
 	return 0x0;
 }
 
-DEFINE_HOOK(0x726EAC, TriggerTypeClass_DTOR, 6)
+ASMJIT_PATCH(0x726EAC, TriggerTypeClass_DTOR, 6)
 {
 	GET(TriggerTypeClass*, pThis, EDI);
 	TriggerTypeExt::ExtMap.Remove(pThis);
 	return 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x727C80, TriggerTypeClass_SaveLoad_Prefix, 8)
-DEFINE_HOOK(0x727BF0, TriggerTypeClass_SaveLoad_Prefix, 5)
+ASMJIT_PATCH_AGAIN(0x727C80, TriggerTypeClass_SaveLoad_Prefix, 8)
+ASMJIT_PATCH(0x727BF0, TriggerTypeClass_SaveLoad_Prefix, 5)
 {
 	GET_STACK(TriggerTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x727BF0, TriggerTypeClass_SaveLoad_Prefix, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x727C73, TriggerTypeClass_Load_Suffix, 6)
+ASMJIT_PATCH(0x727C73, TriggerTypeClass_Load_Suffix, 6)
 {
 	GET(HRESULT, res, EAX);
 
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x727C73, TriggerTypeClass_Load_Suffix, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x727C94, TriggerTypeClass_Save_Suffix, 6)
+ASMJIT_PATCH(0x727C94, TriggerTypeClass_Save_Suffix, 6)
 {
 	GET(HRESULT, res, EAX);
 

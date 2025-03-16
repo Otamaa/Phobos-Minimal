@@ -9,7 +9,7 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
- DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
+ ASMJIT_PATCH(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(FakeAnimClass*, pAnim, EBP);
@@ -17,7 +17,7 @@
 	return 0;
 }
 
-DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
+ASMJIT_PATCH(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 
@@ -30,14 +30,14 @@ DEFINE_HOOK(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
 }
 
 // Deferred creation of attached particle systems for debris anims.
-DEFINE_HOOK(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
+ASMJIT_PATCH(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
 {
 	GET(FakeAnimClass*, pThis, EBP);
 	pThis->_GetExtData()->CreateAttachedSystem();
 	return 0;
 }
 
-DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
+ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
 	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };
 
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
+ASMJIT_PATCH(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
 	GET(FakeAnimClass* const, pThis, ECX);
 	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
+ASMJIT_PATCH(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 	GET(FakeAnimTypeClass* const, pType, EDX);
@@ -90,7 +90,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
 
-//DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
+//ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 //{
 //	GET(AnimClass*, pThis, ECX);
 //
@@ -143,7 +143,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 //	return RetLayerAir;
 //}
 
-DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
+ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 {
 	enum { ReturnValue = 0x424CBF };
 
@@ -169,7 +169,7 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
+ASMJIT_PATCH(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
@@ -192,7 +192,7 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
+ASMJIT_PATCH(0x424807, AnimClass_AI_Next, 0x6) //was 8
 {
 	GET(FakeAnimClass*, pThis, ESI);
 
@@ -211,7 +211,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 	return 0x0;
 }
 
-DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
+ASMJIT_PATCH(0x424AEC, AnimClass_AI_SetMission, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
@@ -233,7 +233,7 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 
 DEFINE_FUNCTION_JUMP(CALL6, 0x424B04, FakeInfantryClass::_Dummy);
 
-DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
+ASMJIT_PATCH(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {
 	enum { DrawShadow = 0x42336D, SkipDrawShadow = 0x4233EE };
 
@@ -248,7 +248,7 @@ DEFINE_HOOK(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 		DrawShadow : SkipDrawShadow;
 }
 
-DEFINE_HOOK(0x425060, AnimClass_Expire_ScorchFlamer, 0x6)
+ASMJIT_PATCH(0x425060, AnimClass_Expire_ScorchFlamer, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 

@@ -719,7 +719,7 @@ namespace CTORTemp
 	unsigned int callerAddress;
 }
 
-DEFINE_HOOK(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
+ASMJIT_PATCH(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 {
 	GET_STACK(CoordStruct*, coords, 0x8);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -795,7 +795,7 @@ original_code:
 DEFINE_FUNCTION_JUMP(LJMP, 0x4220AA, AnimClass_CTOR_Ext));
 DEFINE_FUNCTION_JUMP(LJMP, 0x42290B, AnimClass_DTOR_Ext));
 
-//DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
+//ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 //{
 //	GET(AnimClass* const, pItem, ESI);
 //	FakeAnimClass::Remove(pItem);
@@ -803,7 +803,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x42290B, AnimClass_DTOR_Ext));
 //}
 
 #else
-DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
+ASMJIT_PATCH(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 
@@ -835,7 +835,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
+ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 
@@ -918,7 +918,7 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)
 
-DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
+ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 {
 	GET(FakeAnimClass* const, pThis, ESI);
 	GET(AbstractClass*, target, EDI);

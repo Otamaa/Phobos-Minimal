@@ -112,7 +112,7 @@ NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const cha
 
 #pragma endregion
 
-DEFINE_STRONG_HOOK(0x528A10, INIClass_GetString, 5)
+ASMJIT_PATCH(0x528A10, INIClass_GetString, 5)
 {
 	if (Phobos::Config::UseNewInheritance)
 		return 0x0;
@@ -157,7 +157,7 @@ DEFINE_STRONG_HOOK(0x528A10, INIClass_GetString, 5)
 	return 0x528BFA;
 }
 
-DEFINE_STRONG_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
+ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 {
 	if (Phobos::Config::UseNewInheritance)
 		return 0x0;
@@ -202,7 +202,7 @@ DEFINE_STRONG_HOOK(0x526CC0, INIClass_Section_GetKeyName, 7)
 }
 
 
-DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
+ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override, 7)
 {
 	struct INIClass_ {
 		BYTE gap[44];
@@ -241,7 +241,7 @@ DEFINE_STRONG_HOOK(0x5260d9, INIClass_Parse_Override, 7)
 
 #ifndef IteratorChar
 // Increment `+=` thingy
-DEFINE_STRONG_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
+ASMJIT_PATCH(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {
 	GET(CCINIClass::INIEntry*, entry, ESI);
 
@@ -257,7 +257,7 @@ DEFINE_STRONG_HOOK(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x525D23, INIClass_Parse_IteratorChar2, 5)
+ASMJIT_PATCH(0x525D23, INIClass_Parse_IteratorChar2, 5)
 {
 	GET(char*, value, ESI);
 	LEA_STACK(char*, key, 0x78)
@@ -301,7 +301,7 @@ void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* sour
 }
 
 #ifndef INHERITANCE
-DEFINE_STRONG_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
+ASMJIT_PATCH(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 {
 	if (IniSectionIncludes::includedSection)
 	{
@@ -314,7 +314,7 @@ DEFINE_STRONG_HOOK(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
+ASMJIT_PATCH(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
 {
 	LEA_STACK(char*, sectionName, 0x79);
 	GET_STACK(CCINIClass*, ini, 0x28);
@@ -391,7 +391,7 @@ NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 	return nullptr;
 }
 
-DEFINE_STRONG_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
+ASMJIT_PATCH(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 {
 	GET(char*, ptr, EAX);
 	GET_STACK(INIClass*, pThis, 0x28);
@@ -403,7 +403,7 @@ DEFINE_STRONG_HOOK(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 	return 0x525D4D;
 }
 
-DEFINE_STRONG_HOOK(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
+ASMJIT_PATCH(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 {
 	GET(char*, ptr, EAX);
 	GET_STACK(INIClass*, pThis, 0x28);
@@ -419,7 +419,7 @@ static int LastReadIndex = -1;
 static OPTIONALINLINE std::vector<CCINIClass*> LoadedINIs;
 static OPTIONALINLINE std::vector<std::string> LoadedINIFiles;
 
-DEFINE_STRONG_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
+ASMJIT_PATCH(0x474200, CCINIClass_ReadCCFile1, 6)
 {
 	if (Phobos::Config::UseNewIncludes)
 		return 0x0;
@@ -444,7 +444,7 @@ DEFINE_STRONG_HOOK(0x474200, CCINIClass_ReadCCFile1, 6)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
+ASMJIT_PATCH(0x474314, CCINIClass_ReadCCFile2, 6)
 {
 	if (Phobos::Config::UseNewIncludes)
 		return 0x0;
@@ -502,7 +502,7 @@ DEFINE_STRONG_HOOK(0x474314, CCINIClass_ReadCCFile2, 6)
 #endif
 
 // replaces entire function (without the pip distortion bug)
-DEFINE_STRONG_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
+ASMJIT_PATCH(0x4748A0, INIClass_GetPipIdx, 0x7)
 {
 	GET(INIClass*, pINI, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -539,7 +539,7 @@ DEFINE_STRONG_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 }
 
 // invalid or not set edge reads array out of bounds
-DEFINE_STRONG_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
+ASMJIT_PATCH(0x4759D4, INIClass_WriteEdge, 0x7)
 {
 	GET(int const, index, EAX);
 
@@ -552,7 +552,7 @@ DEFINE_STRONG_HOOK(0x4759D4, INIClass_WriteEdge, 0x7)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
+ASMJIT_PATCH(0x687C56, INIClass_ReadScenario_ResetLogStatus, 5)
 {
 	// reset this so next scenario startup log is cleaner
 	Phobos::Otamaa::TrackParserErrors = false;

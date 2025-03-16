@@ -1282,14 +1282,14 @@ ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
 
 #include <Ext/Anim/Body.h>
 
-DEFINE_HOOK(0x62DF05, ParticleSystemClass_CTOR, 0x5)
+ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 {
 	GET(ParticleSystemClass*, pItem, ESI);
 	ParticleSystemExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x62E26B, ParticleSystemClass_DTOR, 0x6)
+ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 {
 	GET(ParticleSystemClass* const, pItem, ESI);
 	

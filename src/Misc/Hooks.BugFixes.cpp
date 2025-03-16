@@ -29,7 +29,7 @@
 #include <Locomotor/Cast.h>
 
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
-// DEFINE_HOOK(0x423365, AnimClass_SHPShadowCheck, 0x8)
+// ASMJIT_PATCH(0x423365, AnimClass_SHPShadowCheck, 0x8)
 // {
 // 	GET(AnimClass* const, pAnim, ESI);
 // 	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
@@ -52,7 +52,7 @@
 DEFINE_JUMP(LJMP, 0x545CE2, 0x545CE9) //Phobos_BugFixes_Tileset255_RemoveNonMMArrayFill
 DEFINE_JUMP(LJMP, 0x546C23, 0x546CBF) //Phobos_BugFixes_Tileset255_RefNonMMArray
 
-DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
+ASMJIT_PATCH(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 //DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_HotkeyFix
 DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBDC);
 
-DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
+ASMJIT_PATCH(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 {
 	GET(TechnoClass* const, pObject, ESI);
 
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 
 // Issue #46: Laser is mirrored relative to FireFLH
 // Author: Starkku
-// DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
+// ASMJIT_PATCH(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
 // {
 // 	GET(TechnoClass*, pThis, ESI);
 //
@@ -96,7 +96,7 @@ bool IsUndeploy = false;
 
 // issue #290: Undeploy building into a unit plays EVA_NewRallyPointEstablished
 // Author: secsome
-DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
+ASMJIT_PATCH(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pCell, STACK_OFFS(0x84, -0x8));
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 	return 0x4437AD;
 }
 
-DEFINE_HOOK(0x443892, BuildingClass_SetRallyPoint_Naval_UndeploysInto, 0x6)
+ASMJIT_PATCH(0x443892, BuildingClass_SetRallyPoint_Naval_UndeploysInto, 0x6)
 {
 	if (!IsUndeploy)
 		return 0;
@@ -132,7 +132,7 @@ DEFINE_JUMP(LJMP, 0x47CA05, 0x47CA33);
 
 // bugfix: DeathWeapon not properly detonates
 // Author: Uranusian
-// DEFINE_HOOK(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
+// ASMJIT_PATCH(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
 // {
 // 	GET(BulletClass*, pBullet, EBX);
 // 	GET(CoordStruct*, pCoord, EAX);
@@ -167,25 +167,25 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 
 // Fix the crash of TemporalTargetingMe related "stack dump starts with 0051BB7D"
 // Author: secsome
-DEFINE_HOOK(0x43FCF9, BuildingClass_AI_TemporalTargetingMe, 0x6) // BuildingClass
+ASMJIT_PATCH(0x43FCF9, BuildingClass_AI_TemporalTargetingMe, 0x6) // BuildingClass
 {
 	IsTechnoShouldBeAliveAfterTemporal(R->ESI<BuildingClass*>());
 	return 0x43FD08;
 }
 
-DEFINE_HOOK(0x414BDB, AircraftClass_AI_TemporalTargetingMe, 0x6) //
+ASMJIT_PATCH(0x414BDB, AircraftClass_AI_TemporalTargetingMe, 0x6) //
 {
 	IsTechnoShouldBeAliveAfterTemporal(R->ESI<AircraftClass*>());
 	return 0x414BEA;
 }
 
-DEFINE_HOOK(0x736204, UnitClass_AI_TemporalTargetingMe, 0x6) //
+ASMJIT_PATCH(0x736204, UnitClass_AI_TemporalTargetingMe, 0x6) //
 {
 	IsTechnoShouldBeAliveAfterTemporal(R->ESI<UnitClass*>());
 	return 0x736213;
 }
 
-DEFINE_HOOK(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
+ASMJIT_PATCH(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
 {
 	IsTechnoShouldBeAliveAfterTemporal(R->ESI<InfantryClass*>());
 	return 0x51BB7D;
@@ -193,8 +193,7 @@ DEFINE_HOOK(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
 
 // Fix the issue that AITriggerTypes do not recognize building upgrades
 // Author: Uranusian
-DEFINE_HOOK_AGAIN(0x41EEE3, AITriggerTypeClass_Condition_SupportPowersup, 0x7)	//AITriggerTypeClass_OwnerHouseOwns_SupportPowersup
-DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITriggerTypeClass_EnemyHouseOwns_SupportPowersup
+ASMJIT_PATCH(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITriggerTypeClass_EnemyHouseOwns_SupportPowersup
 {
 	GET(HouseClass* const, pHouse, EDX);
 	GET(int const, idxBld, EBP);
@@ -208,25 +207,26 @@ DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITr
 	R->EAX(count);
 
 	return R->Origin() + 0xC;
-}
+}ASMJIT_PATCH_AGAIN(0x41EEE3, AITriggerTypeClass_Condition_SupportPowersup, 0x7)	//AITriggerTypeClass_OwnerHouseOwns_SupportPowersup
+
 
 // Dehardcode the stupid Wall-Gate relationships
 // Author: Uranusian
-DEFINE_HOOK(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)
+ASMJIT_PATCH(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
 	return !RulesClass::Instance->EWGates.Contains(pThis) ? 0 : 0x441065;
 }
 
-DEFINE_HOOK(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
+ASMJIT_PATCH(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
 	return !RulesClass::Instance->NSGates.Contains(pThis) ? 0 : 0x4410F3;
 }
 
-DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
+ASMJIT_PATCH(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 {
 	GET(int, idxOverlay, EAX);
 	GET(CellClass* const, pThis, EBP);
@@ -258,7 +258,7 @@ DEFINE_HOOK(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 
 // WW take 1 second as 960 milliseconds, this will fix that back to the actual time.
 // Author: secsome
-DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
+ASMJIT_PATCH(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 {
 	R->ECX(static_cast<int>(std::round(R->ECX() * 0.96)));
 	return 0;
@@ -266,7 +266,7 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 
 // Fixed the bug that units' lighting get corrupted after loading a save with a different lighting being set
 // Author: secsome
-DEFINE_HOOK(0x67E6E5, LoadGame_RecalcLighting, 0x7)
+ASMJIT_PATCH(0x67E6E5, LoadGame_RecalcLighting, 0x7)
 {
 	ScenarioClass::Instance->RecalcLighting(
 		ScenarioClass::Instance->NormalLighting.Tint.Red * 10,
@@ -278,7 +278,7 @@ DEFINE_HOOK(0x67E6E5, LoadGame_RecalcLighting, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
+ASMJIT_PATCH(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 
@@ -294,7 +294,7 @@ DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
+ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 {
 	GET(FlyLocomotionClass* const, pThis, ECX);
 
@@ -310,7 +310,7 @@ DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73B2A2, UnitClass_DrawObject_DrawerBlitterFix, 0x6)
+ASMJIT_PATCH(0x73B2A2, UnitClass_DrawObject_DrawerBlitterFix, 0x6)
 {
 	enum { SkipGameCode = 0x73B2C3 };
 
@@ -322,7 +322,7 @@ DEFINE_HOOK(0x73B2A2, UnitClass_DrawObject_DrawerBlitterFix, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
+ASMJIT_PATCH(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
 {
 	GET(SpawnManagerClass*, pManager, ECX);
 
@@ -337,7 +337,7 @@ DEFINE_HOOK(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
 }
 
 // Mitigate DeploysInto vehicles getting stuck trying to deploy while using deploy AI script action
-DEFINE_HOOK(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
+ASMJIT_PATCH(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -348,7 +348,7 @@ DEFINE_HOOK(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
+ASMJIT_PATCH(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 {
 	enum { SkipToDeploy = 0x73F015 };
 
@@ -392,7 +392,7 @@ DEFINE_JUMP(LJMP, 0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wt
 
 // Fix unit will play crash voice when crashing after attacked by locomotor warhead
 // Author : NetsuNegi
-DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
+ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
@@ -427,7 +427,7 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 	return 0x4DADC8;
 }
 
-DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
+ASMJIT_PATCH(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 {
 	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
 	GET(BuildingClass* const, pThis, ESI);
@@ -460,7 +460,7 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 }
 
 // Bugfix: TAction 7,80,107.
-DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
+ASMJIT_PATCH(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 {
 	GET(FootClass* const, pPayload, EAX);
 	GET(FootClass* const, pTransport, ESI);
@@ -497,7 +497,7 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 // BibShape checks for BuildingClass::BState which needs to not be 0 (constructing) for bib to draw.
 // It is possible for BState to be 1 early during construction for frame or two which can result in BibShape being drawn during buildup, which somehow depends on length of buildup.
 // Trying to fix this issue at its root is problematic and most of the time causes buildup to play twice, it is simpler to simply fix the BibShape to not draw until the buildup is done - Starkku
-DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
+ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 {
 	enum { DontDrawBib = 0x43D8EE };
 
@@ -505,7 +505,7 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
 }
 
-DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
+ASMJIT_PATCH(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
 	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
 	GET(FootClass* const, pThis, ESI);
@@ -513,7 +513,7 @@ DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
 }
 
-DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x5)
+ASMJIT_PATCH(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x5)
 {
 	enum { DoNotCreateParticle = 0x440F61 };
 	GET(BuildingClass* const, pThis, ESI);
@@ -521,7 +521,7 @@ DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 
 }
 
 // Ares didn't have something like 0x7397E4 in its UnitDelivery code
-DEFINE_HOOK(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
+ASMJIT_PATCH(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 {
 	GET(BuildingClass* const, pBld, ESI);
 
@@ -531,7 +531,7 @@ DEFINE_HOOK(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 }
 
 //https://github.com/Phobos-developers/Phobos/pull/818
-DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
+ASMJIT_PATCH(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 {
 	enum { SpawnCrate = 0x56BE7B, SkipSpawn = 0x56BE91 };
 	REF_STACK(CellStruct, cell, STACK_OFFSET(0x28, -0x18));
@@ -562,8 +562,7 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 	return SpawnCrate;
 }
 
-DEFINE_HOOK_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
-DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
+ASMJIT_PATCH(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 {
 	enum { SkipBuilding1 = 0x4FD23B, SkipBuilding2 = 0x4FD4D5 };
 
@@ -577,9 +576,10 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 		Debug::FatalError("%x invalid building ptr !", pBuilding);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
-DEFINE_HOOK(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
+
+ASMJIT_PATCH(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 {
 	enum { SkipTechno = 0x4AC55B };
 
@@ -592,7 +592,7 @@ DEFINE_HOOK(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
+ASMJIT_PATCH(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 {
 	GET(TechnoClass*, pBld, EDI);
 
@@ -613,7 +613,7 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 }
 
 // Enable sorted add for Air/Top layers to fix issues with attached anims etc.
-// DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
+// ASMJIT_PATCH(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
 // {
 // 	GET(Layer const, layer, EDI);
 // 	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
@@ -621,7 +621,7 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 // }
 
 // Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
-DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
+ASMJIT_PATCH(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 {
 	enum { ContinueChecks = 0x51A9A0, SkipKilling = 0x51A9EB };
 
@@ -640,14 +640,14 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 	return SkipKilling;
 }
 
-// DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
+// ASMJIT_PATCH(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
 // 	R->ECX(pThis->GetType()->Strength);
 // 	return 0x6FDDDA;
 // }
 
-DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
+ASMJIT_PATCH(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -658,7 +658,7 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 	return 0x70BCA4;
 }
 
-// DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+// ASMJIT_PATCH(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
 // {
 // 	GET(TechnoClass* const, pItem, ESI);
 //
@@ -668,7 +668,7 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 // 	return 0x50150E;
 // }
 
-// DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+// ASMJIT_PATCH(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
 // {
 // 	GET(FootClass* const, pOwner, ECX);
 //
@@ -679,7 +679,7 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 // }
 
 // Check WaterBound when setting rally points / undeploying instead of just Naval.
-DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
+ASMJIT_PATCH(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 {
 	enum { IsNaval = 0x4438BC, NotNaval = 0x4438C9 };
 
@@ -703,7 +703,7 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 	return NotNaval;
 }
 
-DEFINE_HOOK(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
+ASMJIT_PATCH(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
 {
 	GET(BuildingClass*, pBld, EDI);
 	if (pBld->ArchiveTarget && pBld->CurrentMission != Mission::Selling)
@@ -729,7 +729,7 @@ DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
 DEFINE_JUMP(LJMP, 0x447709, 0x447727);
 
 //// AG=no projectiles shouldn't fire at land.
-//DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
+//ASMJIT_PATCH(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
 //{
 //	enum { RetFireIllegal = 0x6FC86A , Continue = 0x0 };
 //
@@ -759,7 +759,7 @@ static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 }
 
 //causing desyncs , need to be retest
-// DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+// ASMJIT_PATCH(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
 // {
 // 	GET(TechnoClass*, pLinkedTo, EAX);
 //
@@ -768,7 +768,7 @@ static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 // 	return 0;
 // }
 //
-// DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+// ASMJIT_PATCH(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
 // {
 // 	GET(TechnoClass*, pLinkedTo, ECX);
 //
@@ -789,7 +789,7 @@ static void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _,
 DEFINE_FUNCTION_JUMP(CALL, 0x54B18E, DisplayClass_Submit_Wrapper);  // JumpjetLocomotionClass_Process
 DEFINE_FUNCTION_JUMP(CALL, 0x4CD4E7, DisplayClass_Submit_Wrapper); // FlyLocomotionClass_Update
 
-DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
+ASMJIT_PATCH(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 {
 	GET(TechnoClass*, pTechno, EBX);
 	LEA_STACK(CoordStruct*, pHomeCoords, STACK_OFFSET(0x6C, -0x30));
@@ -810,7 +810,7 @@ DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
+ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 {
 	GET(TechnoClass*, pTechno, EDI);
 	LEA_STACK(CoordStruct*, pCellCoords, STACK_OFFSET(0x6C, -0xC));
@@ -837,8 +837,7 @@ DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 // This notably causes an issue with Grinder that restores ActiveAnim if the building is sold/destroyed while SpecialAnim is playing even if the building is gone or in limbo.
 // Now it does not do this if the building is in limbo, which covers all cases from being destroyed, sold, to erased by Temporal weapons.
 // There is another potential case for this with ProductionAnim & IdleAnim which is also patched here just in case.
-DEFINE_HOOK_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
-DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
+ASMJIT_PATCH(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 {
 	enum { SkipAnimOne = 0x44E9A4, SkipAnimTwo = 0x44EA07 };
 
@@ -848,11 +847,12 @@ DEFINE_HOOK(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
 		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
+
 
 // Fix initial facing when jumpjet locomotor is being attached
 // there is bug with preplaced units , wait for fix
-//DEFINE_HOOK(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
+//ASMJIT_PATCH(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
 //{
 //	GET(ILocomotion*, iLoco, EBP);
 //	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
@@ -877,7 +877,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB8, JumpjetLocomotionClass_Unlimbo)
 // hovering state and the crash processing code won't be reached.
 // Can be observed easily when Crashable=yes jumpjet is attached to
 // a unit and then destroyed.
-DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
+ASMJIT_PATCH(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
 {
 	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
 
@@ -891,7 +891,7 @@ DEFINE_HOOK(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
 }
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
-DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
+ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
 {
 	enum { Continue = 0x73866E, ForceKill = 0x73847B };
 
@@ -904,7 +904,7 @@ DEFINE_HOOK(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
 }
 
 // Fixes second half of Colors list not getting retinted correctly by map triggers, superweapons etc.
-DEFINE_HOOK(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
+ASMJIT_PATCH(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 {
 	enum { SkipGameCode = 0x53ADD6 };
 
@@ -937,7 +937,7 @@ DEFINE_HOOK(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 
 
 //// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
-DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
+ASMJIT_PATCH(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
 {
 	// some mod dont like the result of this fix
 	// so toggle is added
@@ -951,7 +951,7 @@ DEFINE_HOOK(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
+ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	pThis->VoiceDeploy();
@@ -959,7 +959,7 @@ DEFINE_HOOK(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 }
 
 // Fix DeployToFire not working properly for WaterBound DeploysInto buildings and not recalculating position on land if can't deploy.
-DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
+ASMJIT_PATCH(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 {
 	enum { SkipGameCode = 0x4D583F };
 
@@ -970,7 +970,7 @@ DEFINE_HOOK(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
+ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 {
 	enum { NoNeedToCheck = 0x74132B , SkipGameCode = 0x7410B7,  MustDeploy = 0x7410A8 };
 
@@ -994,7 +994,7 @@ DEFINE_HOOK(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 
 #include <VeinholeMonsterClass.h>
 
-DEFINE_HOOK(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
+ASMJIT_PATCH(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
 {
 	VeinholeMonsterClass::DeleteAll();
 	VeinholeMonsterClass::DeleteVeinholeGrowthData();
@@ -1003,7 +1003,7 @@ DEFINE_HOOK(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
 
 // Fixes a literal edge-case in passability checks to cover cells with bridges that are not accessible when moving on the bridge and
 // normally not even attempted to enter but things like MapClass::NearByLocation() can still end up trying to pick.
-DEFINE_HOOK(0x4834E5, CellClass_IsClearToMove_BridgeEdges, 0x5)
+ASMJIT_PATCH(0x4834E5, CellClass_IsClearToMove_BridgeEdges, 0x5)
 {
 	enum { IsNotClear = 0x48351E, Continue = 0x0 };
 
@@ -1023,7 +1023,7 @@ DEFINE_HOOK(0x4834E5, CellClass_IsClearToMove_BridgeEdges, 0x5)
 
 // Fix a glitch related to incorrect target setting for missiles
 // Author: Belonit
-DEFINE_HOOK(0x6B75AC, SpawnManagerClass_AI_SetDestinationForMissiles, 0x5)
+ASMJIT_PATCH(0x6B75AC, SpawnManagerClass_AI_SetDestinationForMissiles, 0x5)
 {
 	GET(SpawnManagerClass*, pSpawnManager, ESI);
 	GET(TechnoClass*, pSpawnTechno, EDI);
@@ -1039,7 +1039,7 @@ DEFINE_JUMP(LJMP, 0x6E0C1D, 0x6E0C8B);//Simplify TAction 36
 
 #include <Ext/Scenario/Body.h>
 
-DEFINE_HOOK(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
+ASMJIT_PATCH(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 {
 	GET(ScenarioClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -1061,7 +1061,7 @@ DEFINE_JUMP(LJMP, 0x72A16A, 0x72A186);//Tunnel, not a big deal
 DEFINE_JUMP(LJMP, 0x663428, 0x663445);//Rocket, not a big deal
 DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
 
-DEFINE_HOOK(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
+ASMJIT_PATCH(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 {
 	GET(InfantryClass*, pThis, EDI);
 	enum { LosesDestination = 0x4D4BD1 };
@@ -1121,7 +1121,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 	Debug::LogInfo("{}, {}, position {}", pHouse->PlainName, PhobosCRT::WideStringToString(pHouse->UIName), spawn_position);
 }
 
-//DEFINE_HOOK(0x68804A, AssignHouses_PlayerHouses, 0x5)
+//ASMJIT_PATCH(0x68804A, AssignHouses_PlayerHouses, 0x5)
 //{
 //	GET(HouseClass*, pPlayerHouse, EBP);
 //
@@ -1130,7 +1130,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 //	return 0x68808E;
 //}
 
-//DEFINE_HOOK(0x688210, AssignHouses_ComputerHouses, 0x5)
+//ASMJIT_PATCH(0x688210, AssignHouses_ComputerHouses, 0x5)
 //{
 //	GET(HouseClass*, pAiHouse, EBP);
 //
@@ -1141,7 +1141,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 
 // Reverted on Develop #7ad3506
 // // Allow infantry to use all amphibious/water movement zones and still display sequence correctly.
-// DEFINE_HOOK(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
+// ASMJIT_PATCH(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
 // {
 // 	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
 //
@@ -1165,7 +1165,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 // and use that result in cursor display which is client-specific. This is now implemented in multiplayer games only.
 #pragma region DeploysIntoDesyncFix
 //bugged
-// DEFINE_HOOK(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
+// ASMJIT_PATCH(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
 // {
 // 	if (!SessionClass::Instance->IsMultiplayer())
 // 		return 0;
@@ -1178,7 +1178,7 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
+ASMJIT_PATCH(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
 {
 	if (!SessionClass::Instance->IsMultiplayer())
 		return 0;
@@ -1268,7 +1268,7 @@ private:
 	OverlayByteReader ByteReaders[4];
 };
 
-DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
+ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 {
 	GET(CCINIClass*, pINI, ECX);
 
@@ -1422,7 +1422,7 @@ private:
 	OverlayByteWriter ByteWriters[4];
 };
 
-DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
+ASMJIT_PATCH(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 {
 	GET(CCINIClass*, pINI, ECX);
 
@@ -1452,7 +1452,7 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 
 // Ares InitialPayload fix: Man, what can I say
 // Otamaa : this can cause deadlock , or crashes , better write proper fix
-// DEFINE_HOOK(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
+// ASMJIT_PATCH(0x65DE21, TeamTypeClass_CreateMembers_MutexOut, 0x6)
 // {
 // 	GET(TeamClass*, pTeam, EBP);
 // 	GET(TechnoTypeClass*, pType, EDI);
@@ -1460,7 +1460,7 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 // 	return 0x65DE53;
 // }
 
-DEFINE_HOOK(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
+ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
@@ -1492,7 +1492,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x63B2CE, FakeHouseClass::_IsAlliedWith);
 // Real talk: I have absolutely no clue how the original function works besides doing vector looping and manipulation, as far as I can tell it never even explicitly
 // clears CurrentVector but somehow it only contains applicable items afterwards anyway. It is possible this one does not achieve everything the original does functionality and/or
 // performance-wise but it does work and produces results with greater accuracy than the original for large ranges. - Starkku
-DEFINE_HOOK(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
+ASMJIT_PATCH(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
 {
 	enum { SkipGameCode = 0x413482 };
 
@@ -1562,7 +1562,7 @@ static OPTIONALINLINE uint16_t  Blit25TranslucencyFix(uint16_t  dst, uint16_t  s
 // =============================
 // container hooks
 
-DEFINE_HOOK(492866, BlitTransLucent50_Fix, 0)
+ASMJIT_PATCH(492866, BlitTransLucent50_Fix, 0)
 {
 	GET(uint16_t, color, EAX);
 	GET(uint16_t*, dest, EDI);
@@ -1572,7 +1572,7 @@ DEFINE_HOOK(492866, BlitTransLucent50_Fix, 0)
 	return 0x492878;
 }
 
-DEFINE_HOOK(492956, BlitTransLucent25_Fix, 0)
+ASMJIT_PATCH(492956, BlitTransLucent25_Fix, 0)
 {
 	GET(uint16_t, color, EAX);
 	GET(uint16_t*, dest, ESI);
@@ -1582,7 +1582,7 @@ DEFINE_HOOK(492956, BlitTransLucent25_Fix, 0)
 	return 0x49296D;
 }
 
-DEFINE_HOOK(492776, BlitTransLucent75_Fix, 0)
+ASMJIT_PATCH(492776, BlitTransLucent75_Fix, 0)
 {
 	GET(uint16_t, color, EBP);
 	GET(uint16_t*, dest, ESI);
@@ -1594,7 +1594,7 @@ DEFINE_HOOK(492776, BlitTransLucent75_Fix, 0)
 #pragma endregion
 #endif
 
-//DEFINE_HOOK(0x51C9B8, InfantryClass_CanFire_HitAndRun1, 0x17)
+//ASMJIT_PATCH(0x51C9B8, InfantryClass_CanFire_HitAndRun1, 0x17)
 //{
 //	enum { CheckPass = 0x51C9CF, CheckNotPass = 0x51CAFA };
 //
@@ -1612,7 +1612,7 @@ DEFINE_HOOK(492776, BlitTransLucent75_Fix, 0)
 //	}
 //}
 //
-//DEFINE_HOOK(0x51CAAC, InfantryClass_CanFire_HitAndRun2, 0x13)
+//ASMJIT_PATCH(0x51CAAC, InfantryClass_CanFire_HitAndRun2, 0x13)
 //{
 //	enum { CheckPass = 0x51CACD, CheckNotPass = 0x51CABF };
 //
@@ -1631,7 +1631,7 @@ DEFINE_HOOK(492776, BlitTransLucent75_Fix, 0)
 //}
 
 //Fix the bug that parasite will vanish if it missed its target when its previous cell is occupied.
-DEFINE_HOOK(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
+ASMJIT_PATCH(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
 {
 	GET(DWORD, dwdIsReturnSuccess, EAX);
 	bool bIsReturnSuccess = (BYTE)((WORD)(dwdIsReturnSuccess));
@@ -1654,7 +1654,7 @@ DEFINE_HOOK(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
 }
 
 // this fella was { 0, 0, 1 } before and somehow it also breaks both the light position a bit and how the lighting is applied when voxels rotate - Kerbiter
-DEFINE_HOOK(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
+ASMJIT_PATCH(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 {
 	REF_STACK(Vector3D<float>, secondaryLightVector, STACK_OFFSET(0xD8, -0xC0))
 
@@ -1670,7 +1670,7 @@ DEFINE_HOOK(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 
 #include <Misc/Ares/Hooks/Header.h>
 
-DEFINE_HOOK(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
+ASMJIT_PATCH(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
 {
 	enum { SkipGameCode = 0x705D7C };
 
@@ -1681,13 +1681,13 @@ DEFINE_HOOK(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
+ASMJIT_PATCH(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
 {
 	GET(BulletTypeClass*, projectile, EAX);
 	return projectile->Inviso ? 0x467C2A : 0;
 }
 
-DEFINE_HOOK(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
+ASMJIT_PATCH(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
 {
 	enum { SkipDamageArea = 0x51A7F8 };
 
@@ -1805,7 +1805,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x647684, ComputeGameCRC);
 //DEFINE_PATCH(0x711229, 0xC6, 0x86, 0x24, 0x07, 0x00, 0x00, 0x00) // TechnoTypeClass::CTOR
 //DEFINE_PATCH(0x6FA2AA, 0x75, 0x2E) // TechnoClass::AI
 //
-//DEFINE_HOOK(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
+//ASMJIT_PATCH(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
 //{
 //	enum { SkipGameCode = 0x712208 };
 //
@@ -1815,7 +1815,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x647684, ComputeGameCRC);
 //	return SkipGameCode;
 //}
 
-DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
+ASMJIT_PATCH(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 {
 	enum { SkipGameCode = 0x71469F };
 
@@ -1836,7 +1836,7 @@ DEFINE_HOOK(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
-DEFINE_HOOK(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x8) {
+ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x8) {
 	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
 
 	//this fix reqire change of `pType->Speed`
@@ -1867,7 +1867,7 @@ DEFINE_HOOK(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x8
 	return 0x7295CE;
 }
 
-DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+ASMJIT_PATCH(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
 
 	GET(FootClass* const, pLinkedTo, ECX);
@@ -1875,7 +1875,7 @@ DEFINE_HOOK(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
 }
 
-DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
+ASMJIT_PATCH(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 	enum { KeepMoving = 0x5B14AA, CloseEnough = 0x5B11E6 };
 
 	GET(FootClass* const, pLinkedTo, ECX);
@@ -1884,7 +1884,7 @@ DEFINE_HOOK(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 }
 
 // Apply cell lighting on UseNormalLight=no MakeInfantry anims.
-DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
+ASMJIT_PATCH(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -1899,7 +1899,7 @@ DEFINE_HOOK(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 // Map <Player @ X> as object owner name to correct HouseClass index.
-DEFINE_HOOK(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
+ASMJIT_PATCH(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
 {
 	enum { ReturnFromFunction = 0x50C203 };
 	GET(const char*, name, ECX);
@@ -1933,7 +1933,7 @@ namespace UnitParseTemp
 }
 
 // Add vehicles successfully created to list of parsed vehicles.
-DEFINE_HOOK(0x7435DE, UnitClass_ReadFromINI_Follower1, 0x6)
+ASMJIT_PATCH(0x7435DE, UnitClass_ReadFromINI_Follower1, 0x6)
 {
 	GET(UnitClass*, pUnit, ESI);
 	UnitParseTemp::ParsedUnits.push_back(pUnit);
@@ -1942,7 +1942,7 @@ DEFINE_HOOK(0x7435DE, UnitClass_ReadFromINI_Follower1, 0x6)
 }
 
 // Add vehicles that were not successfully created to list of parsed vehicles as well as to followers list.
-DEFINE_HOOK(0x74364C, UnitClass_ReadFromINI_Follower2, 0x8)
+ASMJIT_PATCH(0x74364C, UnitClass_ReadFromINI_Follower2, 0x8)
 {
 	REF_STACK(TypeList<int>, followers, STACK_OFFSET(0xD0, -0xC0));
 	if (!UnitParseTemp::WasCreated)
@@ -1955,7 +1955,7 @@ DEFINE_HOOK(0x74364C, UnitClass_ReadFromINI_Follower2, 0x8)
 }
 
 // Set followers based on parsed vehicles.
-DEFINE_HOOK(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
+ASMJIT_PATCH(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
 {
 	enum { SkipGameCode = 0x7436AC };
 	REF_STACK(TypeList<int>, followers, STACK_OFFSET(0xCC, -0xC0));
@@ -1985,10 +1985,7 @@ DEFINE_HOOK(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
 #pragma region End_Piggyback PowerOn
 // Author: tyuah8
 
-DEFINE_HOOK_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
-DEFINE_HOOK_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
-DEFINE_HOOK_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
-DEFINE_HOOK(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
+ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
 {
 	ILocomotion* loco = R->Origin() == 0x719F17 ? R->ECX<ILocomotion*>() : R->EAX<ILocomotion*>();
 	auto pLoco = static_cast<LocomotionClass*>(loco);
@@ -2000,11 +1997,14 @@ DEFINE_HOOK(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
 		pLoco->Power_Off();
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
+ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
+ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
+
 
 #pragma endregion
 
-DEFINE_HOOK(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
+ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 {
 	enum { SkipGameCode = 0x4C762A };
 
@@ -2158,7 +2158,7 @@ static void KickOutStuckUnits(BuildingClass* pThis)
 }
 
 // Kick out stuck units when the factory building is not busy
-DEFINE_HOOK(0x450248, BuildingClass_UpdateFactory_KickOutStuckUnits, 0x6)
+ASMJIT_PATCH(0x450248, BuildingClass_UpdateFactory_KickOutStuckUnits, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -2179,7 +2179,7 @@ DEFINE_HOOK(0x450248, BuildingClass_UpdateFactory_KickOutStuckUnits, 0x6)
 }
 
 // Should not kick out units if the factory building is in construction process
-DEFINE_HOOK(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
+ASMJIT_PATCH(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
 {
 	enum { ThisIsOK = 0x444565, ThisIsNotOK = 0x4444B3};
 
@@ -2190,7 +2190,7 @@ DEFINE_HOOK(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
 	return (mission == Mission::Unload || mission == Mission::Construction) ? ThisIsNotOK : ThisIsOK;
 }
 
-DEFINE_HOOK(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
+ASMJIT_PATCH(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
@@ -2202,7 +2202,7 @@ DEFINE_HOOK(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
 	return 0x6B7CCF;
 }
 
-DEFINE_HOOK(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
+ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 {
 	enum { SkipMarkOccupation = 0x71878F };
 
@@ -2213,20 +2213,20 @@ DEFINE_HOOK(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
 }
 
-DEFINE_HOOK(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
+ASMJIT_PATCH(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
 	return BuildingTypeExtContainer::Instance.Find(pType)->BarracksExitCell.isset() ? 0x54BCA3 : 0;
 }
 
-DEFINE_HOOK(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
+ASMJIT_PATCH(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
 {
 	GET(FootClass*, pThis, EDI);
 	pThis->RemoveSensorsAt(pThis->LastMapCoords);
 	return 0x4DB37C;
 }
 
-DEFINE_HOOK(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
+ASMJIT_PATCH(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	pThis->RemoveSensorsAt(pThis->LastMapCoords);
@@ -2278,7 +2278,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E85FC, FakeXSurface::_GetPixel);
 // Easiest solution to this is simply clamping the final color index so that no memory beyond the size 14 color data buffer in WaveClass
 // is being accessed with it. Last index of color data is uninitialized, changing that or trying to access it just results in glitchy behaviour
 // so the cutoff is at 12 here instead of 13.
-DEFINE_HOOK(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
+ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 {
 	GET(int, colorIndex, EAX);
 

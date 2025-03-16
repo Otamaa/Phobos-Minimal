@@ -18,7 +18,7 @@
 // 	WeaponTypeClass* PickedWeapon = nullptr;
 // }
 //
-// DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
+// ASMJIT_PATCH(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
 // {
 // 	GET(WeaponTypeClass*, pWeapon, EBP);
 //
@@ -96,7 +96,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 #include <Ext/Super/Body.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-DEFINE_HOOK(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
+ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 

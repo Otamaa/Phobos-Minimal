@@ -290,7 +290,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 }
 
 // Hooks
-DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
+ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 {
 	if (SWSidebarClass::IsEnabled()) {
 		if (auto button = SWSidebarClass::Global()->CurrentButton) {
@@ -311,17 +311,17 @@ DEFINE_HOOK(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x724247, ToolTipManager_ProcessMessage_SetDelayTimer, 0x6)
+ASMJIT_PATCH(0x724247, ToolTipManager_ProcessMessage_SetDelayTimer, 0x6)
 {
 	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x72429E : 0;
 }
 
-DEFINE_HOOK(0x72428C, ToolTipManager_ProcessMessage_Redraw, 0x5)
+ASMJIT_PATCH(0x72428C, ToolTipManager_ProcessMessage_Redraw, 0x5)
 {
 	return SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentButton ? 0x724297 : 0;
 }
 
-DEFINE_HOOK(0x724B28, ToolTipManager_SetX_TacticalButtons, 0x6)
+ASMJIT_PATCH(0x724B28, ToolTipManager_SetX_TacticalButtons, 0x6)
 {
 	if (SWSidebarClass::IsEnabled()) {
 		if (const auto button = SWSidebarClass::Global()->CurrentButton) {
@@ -336,7 +336,7 @@ DEFINE_HOOK(0x724B28, ToolTipManager_SetX_TacticalButtons, 0x6)
 
 
 // TODO: reimplement CCToolTip::Draw2 completely
-DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
+ASMJIT_PATCH(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 {
 	if (PhobosToolTip::Instance.IsEnabled() && PhobosToolTip::Instance.IsCameo)
 		R->EDI(PhobosToolTip::Instance.GetBuffer());
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x478E10, CCToolTip_Draw1, 0x6) //0
+ASMJIT_PATCH(0x478E10, CCToolTip_Draw1, 0x6) //0
 {
 	GET(CCToolTip*, pThis, ECX);
 	GET_STACK(bool, bFullRedraw, 0x4);
@@ -369,7 +369,7 @@ DEFINE_HOOK(0x478E10, CCToolTip_Draw1, 0x6) //0
 	return 0x478E25;
 }
 
-DEFINE_HOOK(0x478E4A, CCToolTip_Draw2_SetSurface, 0x6)
+ASMJIT_PATCH(0x478E4A, CCToolTip_Draw2_SetSurface, 0x6)
 {
 	if (PhobosToolTip::Instance.SlaveDraw || RulesExtData::Instance()->ToolTip_ExcludeSidebar)
 	{
@@ -379,7 +379,7 @@ DEFINE_HOOK(0x478E4A, CCToolTip_Draw2_SetSurface, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x478EF8, CCToolTip_Draw2_SetMaxWidth, 0x5)
+ASMJIT_PATCH(0x478EF8, CCToolTip_Draw2_SetMaxWidth, 0x5)
 {
 	if (PhobosToolTip::Instance.IsCameo)
 	{
@@ -392,7 +392,7 @@ DEFINE_HOOK(0x478EF8, CCToolTip_Draw2_SetMaxWidth, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x478F52, CCToolTip_Draw2_SetX, 0x8)
+ASMJIT_PATCH(0x478F52, CCToolTip_Draw2_SetX, 0x8)
 {
 	if (PhobosToolTip::Instance.SlaveDraw && !RulesExtData::Instance()->ToolTip_ExcludeSidebar)
 		R->EAX(R->EAX() + DSurface::Sidebar->Get_Width());
@@ -400,7 +400,7 @@ DEFINE_HOOK(0x478F52, CCToolTip_Draw2_SetX, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
+ASMJIT_PATCH(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 {
 	if (PhobosToolTip::Instance.IsCameo)
 	{
@@ -419,7 +419,7 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 
 // TODO in the future
 //
-//DEFINE_HOOK(0x478E30, CCToolTip_Draw2, 0x7)
+//ASMJIT_PATCH(0x478E30, CCToolTip_Draw2, 0x7)
 //{
 //	GET(CCToolTip*, pThis, ECX);
 //	GET_STACK(ToolTipManagerData*, pManagerData, 0x4);
@@ -484,7 +484,7 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 
 // If tooltip rectangle width is constrained, make sure
 // there is a padding zone so text isn't drawn into border
-DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
+ASMJIT_PATCH(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
 {
 	if (PhobosToolTip::Instance.IsCameo) {
 		if (Phobos::UI::MaxToolTipWidth > 0)
@@ -500,7 +500,7 @@ void NAKED _CCToolTip_Draw2_FillRect_RET()
 	JMP(0x478FE1);
 }
 
-DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
+ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 {
 	GET(SurfaceExt*, pThis, ESI);
 		//GET(int, color, EDI);

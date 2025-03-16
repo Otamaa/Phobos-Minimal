@@ -61,7 +61,7 @@
 
 #include <Misc/Spawner/Main.h>
 
-DEFINE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
+ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 {
 	if(SpawnerMain::Configs::Enabled)
 		return 0x52C5F8; //skip showing looading screen
@@ -69,21 +69,21 @@ DEFINE_HOOK(0x52C5E0, Ares_NOLOGO, 0x7)
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
 
-DEFINE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
+ASMJIT_PATCH(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
 	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
-DEFINE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
+ASMJIT_PATCH(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
 	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
-DEFINE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
+ASMJIT_PATCH(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
 
@@ -115,7 +115,7 @@ FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& th
 }
 
 
-DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
+ASMJIT_PATCH(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 {
 	GET(AbstractClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pThat, 0x4);
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
 	return 0x5F655D;
 }
 
-DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
 	GET(AbstractClass*, pThis, ECX);
 	auto nThisCoord = pThis->GetCoords();
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	return 0x5F659B;
 }
 
-//DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
+//ASMJIT_PATCH(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 //{
 //	GET(TActionClass*, pThis, ECX);
 //	GET_STACK(HouseClass*, pOwner, 0x4);
@@ -175,7 +175,7 @@ DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
 
-DEFINE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
+ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
 	REF_STACK(RectangleStruct const, bounds, STACK_OFFS(0x7C, 0x10));
 	//0x89C568
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	return 0x437CD4;
 }
 
-DEFINE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
+ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 // replaced entire function. error was using delete[] instead of delete.
 // it potentially crashed when any of the files were present in the
 // game directory.
-DEFINE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
+ASMJIT_PATCH(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 {
 	for (int i = 0; i < (int)TechnoTypeClass::ShapesIsAllocated.size(); ++i)
 	{
@@ -234,7 +234,7 @@ DEFINE_HOOK(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 // the entire function, and the function consuming the indexes. it is not yet known
 // whether the out of bounds read causes desync errors. this function appears to
 // have been inlined prominently in 585F40
-DEFINE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
+ASMJIT_PATCH(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 {
 	GET(const CellStruct*, pCell, ECX);
 
@@ -249,7 +249,7 @@ DEFINE_HOOK(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 }
 
 // don't set the focus when selling (true selling, thus no focus set atm)
-DEFINE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
+ASMJIT_PATCH(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 {
 	GET(TechnoClass* const, pTechno, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 // #895374: skip the code that removes the crates (size 7)
 DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
 
-DEFINE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
+ASMJIT_PATCH(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
 {
 	LEA_STACK(CCINIClass*, pINI, 0x24);
 	pINI->Clear(nullptr, nullptr);
@@ -273,7 +273,7 @@ DEFINE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
 }
 
 // Guard command failure
-DEFINE_HOOK(0x730DB0, GuardCommandClass_Execute, 0xA)
+ASMJIT_PATCH(0x730DB0, GuardCommandClass_Execute, 0xA)
 {
 	GET(TechnoClass*, T, ESI);
 	return (T->Owner != HouseClass::CurrentPlayer() || !T->IsControllable())
@@ -283,7 +283,7 @@ DEFINE_HOOK(0x730DB0, GuardCommandClass_Execute, 0xA)
 }
 
 /* #367 - do we need to draw a link to this victim */
-DEFINE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
+ASMJIT_PATCH(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 {
 	enum { Draw_Maybe = 0, Draw_Yes = 0x4721E6, Draw_No = 0x472287 };
 
@@ -301,7 +301,7 @@ DEFINE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	return Draw_Maybe;
 }
 
-DEFINE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
+ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 {
 	GET(LayerClass*, pThis, ECX);
 
@@ -316,7 +316,7 @@ DEFINE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 	return 0x551A84;
 }
 
-//DEFINE_HOOK(0x5F65F0, ObjectClass_UnUnit_nullptr, 0x6)
+//ASMJIT_PATCH(0x5F65F0, ObjectClass_UnUnit_nullptr, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ECX);
 //
@@ -333,7 +333,7 @@ static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject , b
 }
 
 DEFINE_FUNCTION_JUMP(CALL , 0x5F6616, AnnounceInvalidatePointerWrapper)
-// DEFINE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
+// ASMJIT_PATCH(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 // {
 // 	GET(ObjectClass*, pThis, ESI);
 //
@@ -344,7 +344,7 @@ DEFINE_FUNCTION_JUMP(CALL , 0x5F6616, AnnounceInvalidatePointerWrapper)
 // }
 
 //speeds up preview drawing by insane amounts
-DEFINE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
+ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 {
 	GET(OverlayTypeClass*, ovType, ECX);
 	GET_STACK(ColorStruct*, color, 0x04);
@@ -355,7 +355,7 @@ DEFINE_HOOK(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 
 // only eject the parasite if the unit leaves the battlefield,
 // not just when it goes out of sight.
-DEFINE_HOOK(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
+ASMJIT_PATCH(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
 {
 	GET(ParasiteClass*, pThis, ESI);
 	GET(void*, ptr, EAX);
@@ -366,7 +366,7 @@ DEFINE_HOOK(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
 }
 
 /* #746 - don't set parasite eject point to cell center, but set it to fall and explode like a bomb */
-DEFINE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
+ASMJIT_PATCH(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 {
 	GET(ParasiteClass*, Parasite, ESI);
 	GET(CoordStruct*, XYZ, EAX);
@@ -417,7 +417,7 @@ public:
 	}
 };
 // bugfix #187: Westwood idiocy
-// DEFINE_HOOK(0x5F6960, ObjectClass_Getcell, 0xA)
+// ASMJIT_PATCH(0x5F6960, ObjectClass_Getcell, 0xA)
 // {
 // 	GET(ObjectClass*, pThis, ECX);
 // 	R->EAX(MapClass::Instance->GetCellAt(pThis->Location));
@@ -453,7 +453,7 @@ DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
 //DSurface_CTOR_SkipVRAM
 DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
 
-DEFINE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
+ASMJIT_PATCH(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
 	GET(VoxelAnimClass*, pThis, EBX);
 
@@ -486,7 +486,7 @@ DEFINE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 	return 0x74A934;
 }
 
-DEFINE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
+ASMJIT_PATCH(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 {
 	if (R->EAX() == -1)
 	{
@@ -501,7 +501,7 @@ DEFINE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 // PsyDom_Update
 DEFINE_JUMP(LJMP, 0x53AF40, 0x53B060);
 
-DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
+ASMJIT_PATCH(0x65EA43, SendReinforcement_Opentopped, 0x6)
 {
 	GET(AircraftClass*, pPlane, ESI);
 	GET(FootClass*, pPassenger, EDI);
@@ -516,7 +516,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 
 // TODO : remove this
 // issue #1282: remap wall using its owner's colors
-//DEFINE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
+//ASMJIT_PATCH(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
 //{
 //	GET(CellClass*, pCell, ESI);
 //
@@ -532,7 +532,7 @@ DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 //}
 
 // issue 1520: logging stupid shit crashes the game
-DEFINE_STRONG_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
+ASMJIT_PATCH(0x4CA437, FactoryClass_GetCRC, 0x8)
 {
 	GET(FactoryClass*, pThis, ECX);
 	GET_STACK(DWORD, pCRC, 0xC);
@@ -543,7 +543,7 @@ DEFINE_STRONG_HOOK(0x4CA437, FactoryClass_GetCRC, 0x8)
 	return 0x4CA501;
 }
 
-DEFINE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
+ASMJIT_PATCH(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
 {
 	GET(TechnoClass*, pVictim, EBX);
 
@@ -564,7 +564,7 @@ DEFINE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
 }
 
 // PrismSupportModifier repair
-DEFINE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
+ASMJIT_PATCH(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
 {
 	GET(RulesClass*, pThis, ESI);
 	REF_STACK(double, param, 0x0);
@@ -572,7 +572,7 @@ DEFINE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
 	return 0x67115B;
 }
 
-DEFINE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
+ASMJIT_PATCH(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	GET(SpawnNode, nNode, EAX);
@@ -584,7 +584,7 @@ DEFINE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 		? 0x6B735C : 0x6B72FE;
 }
 
-DEFINE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
+ASMJIT_PATCH(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
 {
 	GET(AnimClass*, pAnim, ESI);
 	return pAnim->Type == RulesClass::Instance->Behind ?
@@ -592,7 +592,7 @@ DEFINE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
 }
 
 //sub_731D90_FakeOf
-DEFINE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
+ASMJIT_PATCH(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 {
 	int nCost = 0;
 
@@ -614,19 +614,19 @@ DEFINE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 	return 0x731E4D;
 }
 
-DEFINE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
+ASMJIT_PATCH(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 {
 	GET(ObjectClass*, pThis, ESI);
 	R->EAX(TechnoTypeExtData::GetSelectionGroupID(pThis->GetType()));
 	return R->Origin() + 13;
 }
 
-DEFINE_HOOK(0x7BB445, XSurface_20, 0x6)
+ASMJIT_PATCH(0x7BB445, XSurface_20, 0x6)
 {
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-DEFINE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
+ASMJIT_PATCH(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EDI);
 
@@ -638,7 +638,7 @@ DEFINE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
-DEFINE_HOOK(0x489270, CellChainReact, 5)
+ASMJIT_PATCH(0x489270, CellChainReact, 5)
 {
 	GET(CellStruct*, cell, ECX);
 
@@ -710,7 +710,7 @@ DEFINE_HOOK(0x489270, CellChainReact, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
+ASMJIT_PATCH(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 
@@ -718,7 +718,7 @@ DEFINE_HOOK(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
 		? 0x424DF9 : 0x424E9B;
 }
 
-DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
+ASMJIT_PATCH(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 {
 	GET(TiberiumClass*, pTib, EDI);
 	auto pExt = TiberiumExtContainer::Instance.Find(pTib);
@@ -729,7 +729,7 @@ DEFINE_HOOK(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
 	return 0x424ECB;
 }
 
-DEFINE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
+ASMJIT_PATCH(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {
 	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
@@ -745,7 +745,7 @@ DEFINE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 //DEFINE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
 DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 
-DEFINE_HOOK(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
+ASMJIT_PATCH(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
@@ -770,7 +770,7 @@ DEFINE_JUMP(LJMP, 0x531726, 0x53173A);
 DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 
 //this hook taking a lot of time , i guess because of UnitTypeClass::InitOneTimeData thing
-// DEFINE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
+// ASMJIT_PATCH(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
 // {
 // 	BuildingTypeClass::InitOneTimeData();
 // 	UnitTypeClass::InitOneTimeData();
@@ -779,7 +779,7 @@ DEFINE_JUMP(LJMP, 0x53173F, 0x531749);
 
 DEFINE_PATCH(0x535DB9, 0x01);
 
-//DEFINE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
+//ASMJIT_PATCH(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
 //{
 //	GET(BuildingClass*, pBuild, EAX);
 //	R->EAX(pBuild->FindFactory(false, true));
@@ -788,14 +788,14 @@ DEFINE_PATCH(0x535DB9, 0x01);
 
 DEFINE_PATCH(0x535E79, 0x01);
 
-//DEFINE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
+//ASMJIT_PATCH(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
 //{
 //	GET(BuildingClass*, pBuild, EAX);
 //	R->EAX(pBuild->FindFactory(false, true));
 //	return 0x535E82;
 //}
 
-DEFINE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
+ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
 	GET_STACK(SHPStruct*, pBackground, 0xAC);
 
@@ -814,7 +814,7 @@ DEFINE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 	return 0x4B9445;
 }
 
-DEFINE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
+ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
 {
 	GET(LPSTREAM, pStm, ESI);
 
@@ -839,7 +839,7 @@ DEFINE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
 DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
 
 // fix for ultra-fast processors overrunning the performance evaluator function
-DEFINE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
+ASMJIT_PATCH(0x5CB0B1, Game_QueryPerformance, 5)
 {
 	if (!R->EAX())
 	{
@@ -850,30 +850,30 @@ DEFINE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 }
 
 // TiberiumTransmogrify is never initialized explitly, thus do that here
-DEFINE_HOOK(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
+ASMJIT_PATCH(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
 {
 	GET(RulesClass*, pThis, ESI);
 	pThis->TiberiumTransmogrify = 0;
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x657CF2, MapClass_MinimapChanged_Lock, 6)
-DEFINE_HOOK(0x657D3D, MapClass_MinimapChanged_Lock, 6)
+
+ASMJIT_PATCH(0x657D3D, MapClass_MinimapChanged_Lock, 6)
 {
 	RadarClass::RadarEvenSurface->Lock();
 	RadarClass::RadarEvenSurface_B->Lock();
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x657CF2, MapClass_MinimapChanged_Lock, 6)
 
-DEFINE_HOOK_AGAIN(0x657D35, MapClass_MinimapChanged_Unlock, 7)
-DEFINE_HOOK(0x657D8A, MapClass_MinimapChanged_Unlock, 7)
+
+ASMJIT_PATCH(0x657D8A, MapClass_MinimapChanged_Unlock, 7)
 {
 	RadarClass::RadarEvenSurface->Unlock();
 	RadarClass::RadarEvenSurface_B->Unlock();
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x657D35, MapClass_MinimapChanged_Unlock, 7)
 
-DEFINE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
+ASMJIT_PATCH(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
 {
 	GET(RadarClass*, pRadar, ESI);
 	pRadar->unknown_121C->Lock();
@@ -881,7 +881,7 @@ DEFINE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
+ASMJIT_PATCH(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
 {
 	GET(RadarClass*, pRadar, ESI);
 	pRadar->unknown_1220->Unlock();
@@ -890,14 +890,14 @@ DEFINE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
 	return R->EAX() ? 0x657584 : 0x6576A5;
 }
 
-DEFINE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
+ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 {
 	WWKeyboardClass::Instance->Clear();
 	WWMouseClass::Instance->ShowCursor();
 	return 0x4B76A0;
 }
 
-DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
+ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
 	GET(Layer , curLayer , EBP);
@@ -994,7 +994,7 @@ DEFINE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 }
 
 // temporal per-slot
-DEFINE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+ASMJIT_PATCH(0x71A84E, TemporalClass_UpdateA, 5)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -1011,7 +1011,7 @@ DEFINE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
 	return 0x71A88D;
 }
 
-DEFINE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
+ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -1027,7 +1027,7 @@ DEFINE_HOOK(0x413FD2, AircraftClass_Init_Academy, 6)
 }
 
 // issue #279: per unit AirstrikeAttackVoice and AirstrikeAbortSound
-DEFINE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
+ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 {
 	GET(AirstrikeClass*, pAirstrike, EDI);
 
@@ -1052,7 +1052,7 @@ DEFINE_HOOK(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	return 0x41D970;
 }
 
-DEFINE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
+ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 {
 	GET(AirstrikeClass*, pAirstrike, ESI);
 
@@ -1079,13 +1079,13 @@ DEFINE_HOOK(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 //DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
 DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
-DEFINE_HOOK(0x6BED08, Game_Terminate_Mouse, 7)
+ASMJIT_PATCH(0x6BED08, Game_Terminate_Mouse, 7)
 {
 	GameDelete<true, false>(R->ECX<SHPStruct*>());
 	return 0x6BED34;
 }
 
-DEFINE_HOOK(0x621B80, DSurface_FillRecWithColor, 5)
+ASMJIT_PATCH(0x621B80, DSurface_FillRecWithColor, 5)
 {
 	GET(RectangleStruct*, rect, ECX);
 	GET(Surface*, surface, EDX);
@@ -1105,7 +1105,7 @@ DEFINE_HOOK(0x621B80, DSurface_FillRecWithColor, 5)
 		return 0;
 }
 
-DEFINE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
+ASMJIT_PATCH(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 {
 	GET(TechnoClass*, Target, ESI);
 	return (Target && Target->Owner->IsControlledByHuman() && Target->WhatAmI() == AbstractType::Building)
@@ -1114,7 +1114,7 @@ DEFINE_HOOK(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 		;
 }
 
-DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
+ASMJIT_PATCH(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 {
 	GET(DiskLaserClass* const, pThis, ESI);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
@@ -1142,7 +1142,7 @@ DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 	return 0;
 }
 
-// DEFINE_HOOK(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
+// ASMJIT_PATCH(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 // {
 // 	GET(int, Damage, EDI);
 // 	Damage = abs(Damage);
@@ -1153,7 +1153,7 @@ DEFINE_HOOK(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
-DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
+ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
 	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
 	if(SpawnerMain::Configs::Enabled) {
@@ -1167,7 +1167,7 @@ DEFINE_STRONG_HOOK(0x6BD7D5, Expand_MIX_Reorg, 7)
 
 DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
 
-DEFINE_HOOK(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
+ASMJIT_PATCH(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 {
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
@@ -1179,7 +1179,7 @@ DEFINE_HOOK(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
+ASMJIT_PATCH(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 {
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
@@ -1191,7 +1191,7 @@ DEFINE_HOOK(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
+ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
 	StaticVars::aresMIX.reset(nullptr);
 	if(SpawnerMain::Configs::Enabled) {
@@ -1201,7 +1201,7 @@ DEFINE_HOOK(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x531413, Game_Start, 5)
+ASMJIT_PATCH(0x531413, Game_Start, 5)
 {
 	int topActive = 500;
 
@@ -1212,7 +1212,7 @@ DEFINE_HOOK(0x531413, Game_Start, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
+ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 {
 	GET(HWND, hWnd, ESI);
 
@@ -1243,12 +1243,12 @@ DEFINE_HOOK(0x532017, DlgProc_MainMenu_Version, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x5facdf, Options_LoadFromINI, 5)
+ASMJIT_PATCH(0x5facdf, Options_LoadFromINI, 5)
 {
 	Phobos::Config::Read();
 	return 0x0;
 }
-DEFINE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
+ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 {
 	StaticVars::LoadGlobalsConfig();
 	SpawnerMain::LoadConfigurations();
@@ -1257,7 +1257,7 @@ DEFINE_HOOK(0x6BC0CD, _LoadRA2MD, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {
 	const int AdvCommBarHeight = 32;
 
@@ -1295,7 +1295,7 @@ DEFINE_HOOK(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x7C89D4, DDRAW_Create, 6)
+ASMJIT_PATCH(0x7C89D4, DDRAW_Create, 6)
 {
 	R->Stack<DWORD>(0x4, AresGlobalData::GFX_DX_Force);
 	return 0;

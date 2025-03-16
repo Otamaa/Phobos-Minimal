@@ -82,7 +82,7 @@ void JJFacingFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 /*
 #include <JumpjetLocomotionClass.h>
 
-DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
+ASMJIT_PATCH(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 {
 	GET_STACK(JumpjetLocomotionClass*, pLoco, 0x4);
 	GET_STACK(DirStruct, nDir, 0x8);
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 	return 0x54B6FF;
 }
 
-DEFINE_HOOK(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
+ASMJIT_PATCH(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
 {
 	GET(FireError, nFireError, EAX);
 	GET(UnitClass*, pThis, ESI);

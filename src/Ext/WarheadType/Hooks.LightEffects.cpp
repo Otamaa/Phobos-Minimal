@@ -5,7 +5,7 @@
 
 #include <Ext/Rules/Body.h>
 
-// DEFINE_HOOK(0x48A444 , AreaDamage_Particle_Handle , 0x5){
+// ASMJIT_PATCH(0x48A444 , AreaDamage_Particle_Handle , 0x5){
 // 	GET(WarheadTypeClass*, pWH, EDI);
 // 	GET_BASE(HouseClass* , pHouse , 0x14);
 // 	GET(CoordStruct* , pCoord , ESI);
@@ -19,7 +19,7 @@ namespace LightEffectsTemp
 	bool AlphaIsLightFlash = false;
 }
 
-DEFINE_HOOK(0x48A444, AreaDamage_Particle_LightFlashSet, 0x5)
+ASMJIT_PATCH(0x48A444, AreaDamage_Particle_LightFlashSet, 0x5)
 {
 	GET(WarheadTypeClass*, pWH, EDI);
 
@@ -31,14 +31,14 @@ DEFINE_HOOK(0x48A444, AreaDamage_Particle_LightFlashSet, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x48A47E, AreaDamage_Particle_LightFlashUnset, 0x6)
+ASMJIT_PATCH(0x48A47E, AreaDamage_Particle_LightFlashUnset, 0x6)
 {
 	LightEffectsTemp::AlphaIsLightFlash = false;
 
 	return 0;
 }
 
-DEFINE_HOOK(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
+ASMJIT_PATCH(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 {
 	enum { SkipAlphaImage = 0x5F514B };
 
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x48A62E, DoFlash_CombatLightOptions, 0x6)
+ASMJIT_PATCH(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 {
 	enum { Continue = 0x48A668, SkipFlash = 0x48A6FA };
 

@@ -245,7 +245,7 @@ void SyncLogger::WriteAnimCreations(FILE* const pLogFile, int frameDigits)
 
 // RNG call logging
 
-DEFINE_HOOK(0x65C7D0, Random2Class_Random_SyncLog, 0x6)
+ASMJIT_PATCH(0x65C7D0, Random2Class_Random_SyncLog, 0x6)
 {
 	GET(Random2Class*, pThis, ECX);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -255,7 +255,7 @@ DEFINE_HOOK(0x65C7D0, Random2Class_Random_SyncLog, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x6)
+ASMJIT_PATCH(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x6)
 {
 	GET(Random2Class*, pThis, EDX);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -269,7 +269,7 @@ DEFINE_HOOK(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x6)
 
 // Facing change logging
 
-DEFINE_HOOK(0x4C9300, FacingClass_Set_SyncLog, 0x5)
+ASMJIT_PATCH(0x4C9300, FacingClass_Set_SyncLog, 0x5)
 {
 	GET_STACK(DirStruct*, facing, 0x4);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -281,7 +281,7 @@ DEFINE_HOOK(0x4C9300, FacingClass_Set_SyncLog, 0x5)
 
 // Target change logging
 
-DEFINE_HOOK(0x51B1F0, InfantryClass_AssignTarget_SyncLog, 0x5)
+ASMJIT_PATCH(0x51B1F0, InfantryClass_AssignTarget_SyncLog, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -292,7 +292,7 @@ DEFINE_HOOK(0x51B1F0, InfantryClass_AssignTarget_SyncLog, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x443B90, BuildingClass_AssignTarget_SyncLog, 0xB)
+ASMJIT_PATCH(0x443B90, BuildingClass_AssignTarget_SyncLog, 0xB)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -303,7 +303,7 @@ DEFINE_HOOK(0x443B90, BuildingClass_AssignTarget_SyncLog, 0xB)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FCDB0, TechnoClass_AssignTarget_SyncLog, 0x5)
+ASMJIT_PATCH(0x6FCDB0, TechnoClass_AssignTarget_SyncLog, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -319,7 +319,7 @@ DEFINE_HOOK(0x6FCDB0, TechnoClass_AssignTarget_SyncLog, 0x5)
 
 // Destination change logging
 
-DEFINE_HOOK(0x41AA80, AircraftClass_AssignDestination_SyncLog, 0x7)
+ASMJIT_PATCH(0x41AA80, AircraftClass_AssignDestination_SyncLog, 0x7)
 {
 	GET(AircraftClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pDest, 0x4);
@@ -330,7 +330,7 @@ DEFINE_HOOK(0x41AA80, AircraftClass_AssignDestination_SyncLog, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x455D50, BuildingClass_AssignDestination_SyncLog, 0xA)
+ASMJIT_PATCH(0x455D50, BuildingClass_AssignDestination_SyncLog, 0xA)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pDest, 0x4);
@@ -342,7 +342,7 @@ DEFINE_HOOK(0x455D50, BuildingClass_AssignDestination_SyncLog, 0xA)
 }
 
 
-DEFINE_HOOK(0x741970, UnitClass_AssignDestination_SyncLog, 0x6)
+ASMJIT_PATCH(0x741970, UnitClass_AssignDestination_SyncLog, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pDest, 0x4);
@@ -355,7 +355,7 @@ DEFINE_HOOK(0x741970, UnitClass_AssignDestination_SyncLog, 0x6)
 
 // Mission override logging
 
-DEFINE_HOOK(0x41BB30, AircraftClass_OverrideMission_SyncLog, 0x6)
+ASMJIT_PATCH(0x41BB30, AircraftClass_OverrideMission_SyncLog, 0x6)
 {
 	GET(AircraftClass*, pThis, ECX);
 	GET_STACK(int, mission, 0x4);
@@ -366,7 +366,7 @@ DEFINE_HOOK(0x41BB30, AircraftClass_OverrideMission_SyncLog, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D8F40, FootClass_OverrideMission_SyncLog, 0x5)
+ASMJIT_PATCH(0x4D8F40, FootClass_OverrideMission_SyncLog, 0x5)
 {
 	GET(FootClass*, pThis, ECX);
 	GET_STACK(int, mission, 0x4);
@@ -377,7 +377,7 @@ DEFINE_HOOK(0x4D8F40, FootClass_OverrideMission_SyncLog, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
+ASMJIT_PATCH(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, mission, 0x4);
@@ -390,7 +390,7 @@ DEFINE_HOOK(0x7013A0, TechnoClass_OverrideMission_SyncLog, 0x5)
 }
 
 // Disable sync logging hooks in non-MP games
-DEFINE_HOOK(0x683AB0, ScenarioClass_Start_DisableSyncLog, 0x6)
+ASMJIT_PATCH(0x683AB0, ScenarioClass_Start_DisableSyncLog, 0x6)
 {
 	if (SessionClass::IsMultiplayer() || SyncLogger::HooksDisabled) {
 		return 0;

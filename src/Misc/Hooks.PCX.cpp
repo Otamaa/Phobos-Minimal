@@ -3,13 +3,13 @@
 #include <FileFormats/SHP.h>
 #include <Ext/Rules/Body.h>
 
-DEFINE_HOOK(0x6B9D9C, RGB_PCX_Loader, 0x7)
+ASMJIT_PATCH(0x6B9D9C, RGB_PCX_Loader, 0x7)
 {
 	GET(BSurface* const, pSurf, EDI);
 	return (pSurf->BytesPerPixel == 2) ? 0x6B9EE7: 0x0;
 }
 
-DEFINE_HOOK(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
+ASMJIT_PATCH(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 {
 	LEA_STACK(char*, name, 0x84);
 
@@ -55,7 +55,7 @@ DEFINE_HOOK(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x552FCB, LoadProgressMgr_Draw_PCXLoadingScreen_Campaign, 0x6)
+ASMJIT_PATCH(0x552FCB, LoadProgressMgr_Draw_PCXLoadingScreen_Campaign, 0x6)
 {
 	char filename[0x40];
 	strcpy_s(filename, ScenarioClass::Instance->LS800BkgdName);

@@ -20,7 +20,7 @@
 // ares hooking at the beggining of switch call
 int lastAction;
 
- DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
+ ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute, 0x6)
  {
  	GET(TActionClass*, pThis, ECX);
  	REF_STACK(ActionArgs const, args, 0x4);
@@ -58,7 +58,7 @@ int lastAction;
 
 // Bugfix: TAction 125 Build At do not display the buildups
 // Author: secsome
-DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
+ASMJIT_PATCH(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 {
 	GET(TActionClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pBldType, ECX);
@@ -122,7 +122,7 @@ namespace RetintTemp
 }
 
 // Update light sources if they have been flagged to be updated.
-DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
+ASMJIT_PATCH(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 {
 	if (ScenarioExtData::UpdateLightSources)
 	{
@@ -143,7 +143,7 @@ DEFINE_HOOK(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 #include <Misc/Ares/Hooks/Header.h>
 #include <TriggerTypeClass.h>
 
-DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
+ASMJIT_PATCH(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 {
 	GET(TActionClass*, pThis, ECX);
 	REF_STACK(ActionArgs const, args, 0x4);
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x6E0AA0, TActionClass_ChangeHouse_IncludePassengers, 0x7)
 	return 0x6E0B50;
 }
 
-DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
+ASMJIT_PATCH(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 {
 	GET(TActionClass*, pThis, ECX);
 	REF_STACK(ActionArgs const, args, 0x4);
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x6E0B60, TActionClass_SwitchAllObjectsToHouse, 0x9)
 	return 0x6E0C91;
 }
 
-DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
+ASMJIT_PATCH(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
 {
 	GET(TActionClass*, pThis, EBP);
 
@@ -266,7 +266,7 @@ DEFINE_HOOK(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
 }
 
 // add/subtract extra values to prevent the AI from attacking the wrong target during the campaign.
-DEFINE_HOOK(0x6DE189, TActionClass_MakeEnemy, 0x6)
+ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 {
 	GET(TActionClass*, pThis, ESI);
 	GET_STACK(HouseClass*, pHouse, STACK_OFFSET(0x250, 0x4));
@@ -304,9 +304,9 @@ DEFINE_HOOK(0x6DE189, TActionClass_MakeEnemy, 0x6)
 }
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
-//DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
-//DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
-//DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
+//ASMJIT_PATCH_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
+//ASMJIT_PATCH_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
+//ASMJIT_PATCH(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 //{
 //	if (ScenarioExtData::Instance()->AdjustLightingFix)
 //		TActionExt::RecreateLightSources();
@@ -320,7 +320,7 @@ DEFINE_HOOK(0x6DE189, TActionClass_MakeEnemy, 0x6)
 //}
 
 //
-//DEFINE_HOOK(0x6E0D60, TActionClass_Text_Trigger, 0x6)
+//ASMJIT_PATCH(0x6E0D60, TActionClass_Text_Trigger, 0x6)
 //{
 //	GET(TActionClass*, pThis, ECX);
 //	GET_STACK(HouseClass*, pHouse, 0x4);

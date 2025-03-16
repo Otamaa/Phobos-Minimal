@@ -12,7 +12,7 @@ bool IsSamebefore(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 	return false;
 }
 
-DEFINE_HOOK(0x509697, HouseClass_CanInstansiateTeam_CompareType_Convert, 0xA)
+ASMJIT_PATCH(0x509697, HouseClass_CanInstansiateTeam_CompareType_Convert, 0xA)
 {
 	enum
 	{
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x509697, HouseClass_CanInstansiateTeam_CompareType_Convert, 0xA)
 		ContinueCheck : ContinueLoop;
 }
 
-DEFINE_HOOK(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
+ASMJIT_PATCH(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
 {
 	enum
 	{
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
 		? jz_ : advance;
 }
 
-DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
+ASMJIT_PATCH(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 {
 	enum
 	{
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 		ContinueCheck : ContinueLoop;
 }
 
-DEFINE_HOOK(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
+ASMJIT_PATCH(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 {
 	GET(TechnoClass*, pGoingToBeRecuited, ESI);
 	GET(TaskForceClass*, pForce, EDX);

@@ -4,7 +4,7 @@
 #include <BuildingLightClass.h>
 #include <SpotlightClass.h>
 
-DEFINE_HOOK(0x436459, BuildingLightClass_Update, 6)
+ASMJIT_PATCH(0x436459, BuildingLightClass_Update, 6)
 {
 	GET(BuildingLightClass*, pThis, EDI);
 
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x436459, BuildingLightClass_Update, 6)
 	return R->AL() ? 0x436461u : 0x4364C8u;
 }
 
-DEFINE_HOOK(0x4370c0, BuildingLightClass_SDDTOR, 0xA)
+ASMJIT_PATCH(0x4370c0, BuildingLightClass_SDDTOR, 0xA)
 {
 	GET(BuildingLightClass*, pThis, ECX);
 
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x4370c0, BuildingLightClass_SDDTOR, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x435820, BuildingLightClass_CTOR, 6)
+ASMJIT_PATCH(0x435820, BuildingLightClass_CTOR, 6)
 {
 	GET_STACK(TechnoClass*, pTech , 0x4);
 	GET(BuildingLightClass*, pThis, ECX);
@@ -134,7 +134,7 @@ public:
 };
 #endif
 
-DEFINE_HOOK(0x436072, BuildingLightClass_Draw_430, 6)
+ASMJIT_PATCH(0x436072, BuildingLightClass_Draw_430, 6)
 {
 	int lightamount = 0;
 	if (Height >= 0)
@@ -144,7 +144,7 @@ DEFINE_HOOK(0x436072, BuildingLightClass_Draw_430, 6)
 	return 0x436078;
 }
 
-DEFINE_HOOK(0x4360D8, BuildingLightClass_Draw_400, 6)
+ASMJIT_PATCH(0x4360D8, BuildingLightClass_Draw_400, 6)
 {
 	int lightamount = Height - 30;
 	if (lightamount < 400)
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x4360D8, BuildingLightClass_Draw_400, 6)
 	return 0x4360DE;
 }
 
-DEFINE_HOOK(0x4360FF, BuildingLightClass_Draw_250, 6)
+ASMJIT_PATCH(0x4360FF, BuildingLightClass_Draw_250, 6)
 {
 	int lightamount = Height - 180;
 	if (lightamount < 250)
@@ -164,7 +164,7 @@ DEFINE_HOOK(0x4360FF, BuildingLightClass_Draw_250, 6)
 	return 0x436105;
 }
 
-DEFINE_HOOK(0x435bfa, BuildingLightClass_Draw_Start, 6)
+ASMJIT_PATCH(0x435bfa, BuildingLightClass_Draw_Start, 6)
 {
 	GET(BuildingLightClass*, pThis, ESI);
 
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x435bfa, BuildingLightClass_Draw_Start, 6)
 	return 0x435C52;
 }
 
-DEFINE_HOOK(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
+ASMJIT_PATCH(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
 {
 	GET_STACK(SpotlightClass*, Spot, 0x14);
 	GET(BuildingLightClass*, BL, ESI);
@@ -217,13 +217,13 @@ DEFINE_HOOK(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x436A2D, BuildingLightClass_PointerGotInvalid_OwnerCloak, 6)
+ASMJIT_PATCH(0x436A2D, BuildingLightClass_PointerGotInvalid_OwnerCloak, 6)
 {
 	GET_STACK(bool, bRemoved, 0x10);
 	return bRemoved ? 0x0 : 0x436A33;
 }
 
-DEFINE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
+ASMJIT_PATCH(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 {
 	GET(TechnoClass*, pTechno, EAX);
 

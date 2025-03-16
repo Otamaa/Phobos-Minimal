@@ -1,4 +1,4 @@
-DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
+ASMJIT_PATCH(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 {
 	GET(TechnoClass* const, pThis, EDI);
 	GET(ObjectClass* const, pTarget, ESI);

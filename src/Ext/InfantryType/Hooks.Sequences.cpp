@@ -147,7 +147,7 @@ struct NewDoType
 	DoInfoStruct Data[std::size(Sequences_ident)];
 };
 
-DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
+ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
 
@@ -188,7 +188,7 @@ DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 	return 0x523970;
 }
 
-DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
+ASMJIT_PATCH(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
 	GET_STACK(int, weaponIdx, 0x34 - 0x24);
@@ -207,7 +207,7 @@ DEFINE_HOOK(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 // Ideally there would be WetAttackSecondary but adding new sequences would be a big undertaking.
 // Also adds a toggle for not using water sequences at all - Starkku
 // Also add new sequence - Otamaa
-DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
+ASMJIT_PATCH(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 {
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(DoType, type, EDI);
@@ -255,16 +255,15 @@ DEFINE_HOOK(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 
 #pragma region ReplaceMasterControl
 
-DEFINE_HOOK_AGAIN(0x51D1BA, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//Scatter
-DEFINE_HOOK_AGAIN(0x51D925, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//DoType
-DEFINE_HOOK(0x51C9E4, InfantryClass_ReplaceMasterControl_Interrupt, 0x7) //FireError
+ASMJIT_PATCH(0x51C9E4, InfantryClass_ReplaceMasterControl_Interrupt, 0x7) //FireError
 {
 	GET(DoType, type, EAX);
 	R->CL(NewDoType::GetSequenceData(type)->Interrupt);
 	return R->Origin() + 0x7;
-}
+}ASMJIT_PATCH_AGAIN(0x51D1BA, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//Scatter
+ASMJIT_PATCH_AGAIN(0x51D925, InfantryClass_ReplaceMasterControl_Interrupt, 0x7)//DoType
 
-DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
+ASMJIT_PATCH(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
 {
 	GET(DoType, type, ESI);
 	R->AL(NewDoType::GetSequenceData(type)->Interrupt);
@@ -273,7 +272,7 @@ DEFINE_HOOK(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
 
 #include <GameOptionsClass.h>
 
-DEFINE_HOOK(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
+ASMJIT_PATCH(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 {
 	GET(DoType, todo, EDI);
 	GET(FakeInfantryClass*, pThis, ESI);
@@ -298,8 +297,8 @@ DEFINE_HOOK(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 	return 0x51DA4A;
 }
 
-//DEFINE_HOOK_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
-//DEFINE_HOOK(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
+//ASMJIT_PATCH_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
+//ASMJIT_PATCH(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
 //{
 //	GET(FakeInfantryClass*, pThis, ESI);
 //	GET(int, _doType, EDI);
@@ -311,7 +310,7 @@ DEFINE_HOOK(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 #pragma endregion
 
 #pragma region S/L
-DEFINE_HOOK(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
+ASMJIT_PATCH(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
 {
 	GET(InfantryTypeClass*, pThis, EDI);
 	GET(IStream*, pStream, ESI);
@@ -321,7 +320,7 @@ DEFINE_HOOK(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
 	return 0x524B31;
 }
 
-DEFINE_HOOK(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
+ASMJIT_PATCH(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
 {
 	GET(InfantryTypeClass*, pThis, EDI);
 	GET(IStream*, pStream, ESI);
@@ -401,7 +400,7 @@ static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINI
 	}
 }
 
-DEFINE_HOOK(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
+ASMJIT_PATCH(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
 {
 	GET(FakeInfantryTypeClass*, pThis, ECX);
 	ReadSequence(pThis->Sequence, pThis, &CCINIClass::INI_Art());
@@ -410,7 +409,7 @@ DEFINE_HOOK(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
 #pragma endregion
 
 #else
-DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
+ASMJIT_PATCH(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 {
 	GET(InfantryTypeClass*, pItem, ESI)
 		pItem->Sequence->Initialize();
@@ -418,7 +417,7 @@ DEFINE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
 }
 #endif
 
-DEFINE_HOOK(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
+ASMJIT_PATCH(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
 {
 	enum { SkipGameCode = 0x520CA9 };
 
@@ -446,7 +445,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
+ASMJIT_PATCH(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 

@@ -1235,7 +1235,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	return true;
 }
 
-DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
+ASMJIT_PATCH(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 {
 	enum { UseOriginalSelector = 0x4F8A63, SkipCode = 0x4F8B08 };
 	GET(HouseClass*, pHouse, ESI);
@@ -1252,7 +1252,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 #include <ExtraHeaders/StackVector.h>
 
-DEFINE_HOOK(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
+ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 {
 	// For each house save a list with only AI Triggers that can be used
 	for (HouseClass* pHouse : *HouseClass::Array)

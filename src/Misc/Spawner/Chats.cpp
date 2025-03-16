@@ -4,7 +4,7 @@
 #include <MessageListClass.h>
 #include <HouseClass.h>
 
-DEFINE_HOOK(0x55EF38, MassageClass_DisableChat_1, 0x6)
+ASMJIT_PATCH(0x55EF38, MassageClass_DisableChat_1, 0x6)
 {
 	if (!SpawnerMain::GetMainConfigs()->AllowChat)
 		return 0x55F056;
@@ -13,7 +13,7 @@ DEFINE_HOOK(0x55EF38, MassageClass_DisableChat_1, 0x6)
 	return R->EDI<int>() > 0 ? 0x55EF48 : 0x55F056;
 }
 
-DEFINE_HOOK(0x48D97E, MassageClass_DisableChat_2, 0x5) {
+ASMJIT_PATCH(0x48D97E, MassageClass_DisableChat_2, 0x5) {
 	return !SpawnerMain::GetMainConfigs()->AllowChat ? 0x48D99A : 0x0;
 }
 

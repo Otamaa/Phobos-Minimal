@@ -10,7 +10,7 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
-DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
+ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, ECX);
@@ -21,7 +21,7 @@ DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
+ASMJIT_PATCH(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, EAX);
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
+ASMJIT_PATCH(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape02, EBX);
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 }
 
 //6F6759 , EDX ,6F675F
-DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
+ASMJIT_PATCH(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 	return 0x6F6728;
 }
 
-DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
+ASMJIT_PATCH(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 	return 0x6F675F;
 }
 
-DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
+ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(SHPReference*, pDefaultPip, EAX);
@@ -406,7 +406,7 @@ namespace DrawHeathData
 
 }
 
-DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
+ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(int, iLength, EBX);
@@ -425,7 +425,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
+ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));

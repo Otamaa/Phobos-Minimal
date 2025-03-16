@@ -9,7 +9,7 @@
 
 ColorStruct maxColor;
 
-DEFINE_HOOK(0x550D1F, LaserDrawClass_DrawInHouseColor_Context_Set, 0x6)
+ASMJIT_PATCH(0x550D1F, LaserDrawClass_DrawInHouseColor_Context_Set, 0x6)
 {
 	LEA_STACK(ColorStruct*, pColor, 0x14);
 	maxColor = *pColor;
@@ -17,7 +17,7 @@ DEFINE_HOOK(0x550D1F, LaserDrawClass_DrawInHouseColor_Context_Set, 0x6)
 }
 
 //Enables proper laser thickness and falloff of it
-DEFINE_HOOK(0x550F47, LaserDrawClass_DrawInHouseColor_BetterDrawing, 0x5) //0
+ASMJIT_PATCH(0x550F47, LaserDrawClass_DrawInHouseColor_BetterDrawing, 0x5) //0
 {
 	// Restore overridden code that's needed - Kerbiter
 	GET_STACK(bool, noQuickDraw, 0x13);

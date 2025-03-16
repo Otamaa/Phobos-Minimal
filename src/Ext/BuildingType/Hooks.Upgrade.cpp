@@ -8,7 +8,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <FactoryClass.h>
 
-DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
+ASMJIT_PATCH(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 {
 	enum { Continue = 0x4526A7, ForbidUpgrade = 0x4526B5 };
 
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 }
 
 // Parse Powered(Light|Effect|Special) keys for upgrade anims.
-DEFINE_HOOK(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
+ASMJIT_PATCH(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
 
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 
 #include <Ext/Building/Body.h>
 
-DEFINE_HOOK(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
+ASMJIT_PATCH(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
 {
 	enum { SkipGameCode = 0x4409C7 };
 
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
+ASMJIT_PATCH(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
 {
 	enum { SkipGameCode = 0x451638 };
 
@@ -123,7 +123,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, Bui
 	return true;
 }
 
-DEFINE_HOOK(0x45189D, BuildingClass_AnimUpdate_Upgrades, 0x6)
+ASMJIT_PATCH(0x45189D, BuildingClass_AnimUpdate_Upgrades, 0x6)
 {
 	enum { SkipAnim = 0x451B2C };
 
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x45189D, BuildingClass_AnimUpdate_Upgrades, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
+ASMJIT_PATCH(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 {
 	enum { Continue = 0x440912, ForbidUpgrade = 0x440926 };
 

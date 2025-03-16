@@ -525,7 +525,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 //	//CRCRecords[pThis] = std::move(record);
 //}
 
-//DEFINE_HOOK(0x454260, BuildingClass_CalculateCRC_Handle, 0x6)
+//ASMJIT_PATCH(0x454260, BuildingClass_CalculateCRC_Handle, 0x6)
 //{
 //	GET(const BuildingClass*, pThis, ECX);
 //	GET_STACK(CRCEngine*, pCRCEngine, 0x4);
@@ -542,7 +542,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 
 
 //#ifdef SellFunctionHandled
-//DEFINE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
+//ASMJIT_PATCH(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 //{
 //	GET(BuildingClass* const, pStructure, ESI);
 //

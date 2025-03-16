@@ -3,7 +3,7 @@
 
 #include <Locomotor/Cast.h>
 
-DEFINE_HOOK(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
+ASMJIT_PATCH(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 {
 	enum { SkipGameCode = 0x41493E };
 
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x51933B, InfantryClass_DrawIt_LevelIntensity, 0x6)
+ASMJIT_PATCH(0x51933B, InfantryClass_DrawIt_LevelIntensity, 0x6)
 {
 	enum { SkipGameCode = 0x51944D };
 
@@ -49,7 +49,7 @@ DEFINE_HOOK(0x51933B, InfantryClass_DrawIt_LevelIntensity, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73CFA7, UnitClass_DrawIt_LevelIntensity, 0x6)
+ASMJIT_PATCH(0x73CFA7, UnitClass_DrawIt_LevelIntensity, 0x6)
 {
 	enum { SkipGameCode = 0x73D0C3 };
 

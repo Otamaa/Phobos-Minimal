@@ -2122,7 +2122,7 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
+ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
 
@@ -2138,7 +2138,7 @@ DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
+ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
 
@@ -2151,7 +2151,7 @@ DEFINE_HOOK(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x465300, BuildingTypeClass_Save, 0x5)
+ASMJIT_PATCH(0x465300, BuildingTypeClass_Save, 0x5)
 {
 	GET_STACK(BuildingTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -2161,7 +2161,7 @@ DEFINE_HOOK(0x465300, BuildingTypeClass_Save, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x465010, BuildingTypeClass_Load, 0x5)
+ASMJIT_PATCH(0x465010, BuildingTypeClass_Load, 0x5)
 {
 	GET_STACK(BuildingTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -2171,26 +2171,25 @@ DEFINE_HOOK(0x465010, BuildingTypeClass_Load, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
+ASMJIT_PATCH(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
 {
 	BuildingTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
+ASMJIT_PATCH(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
 {
 	BuildingTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 {
 	GET(BuildingTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x364);
 
 	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x464A56);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4610, FakeBuildingTypeClass::_CanUseWaypoint)

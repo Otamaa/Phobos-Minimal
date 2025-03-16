@@ -1,4 +1,4 @@
-DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
+ASMJIT_PATCH(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 {
 	enum { SkipDrawCode = 0x5192B5 };
 
@@ -11,7 +11,7 @@ DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 }
 
 //broke spawner building ?
-//DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8) //7
+//ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8) //7
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //	GET(TechnoClass*, pTargetTechno, EBP);
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 
 //#pragma optimize("", off )
 //static uintptr_t calleraddr = -1;
-//DEFINE_HOOK(0x5218E0, InfantryClass_SelectWeapon_IsTargetTechnoAlive, 0x9)
+//ASMJIT_PATCH(0x5218E0, InfantryClass_SelectWeapon_IsTargetTechnoAlive, 0x9)
 //{
 //	GET(InfantryClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
+//ASMJIT_PATCH(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);

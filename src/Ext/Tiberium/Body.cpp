@@ -493,14 +493,14 @@ void TiberiumExtContainer::Clear()
 // container hooks
 
 // was 7217CC
-DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
+ASMJIT_PATCH(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
 	TiberiumExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
+ASMJIT_PATCH(0x721888, TiberiumClass_DTOR, 0x6)
 {
 	GET(TiberiumClass*, pItem, ECX);
 	TiberiumExtContainer::Instance.Remove(pItem);
@@ -536,9 +536,7 @@ HRESULT __stdcall FakeTiberiumClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F573C, FakeTiberiumClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5740, FakeTiberiumClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
-DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 {
 	GET(TiberiumClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
@@ -551,4 +549,5 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 		}
 	}
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
+ASMJIT_PATCH_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)

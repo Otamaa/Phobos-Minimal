@@ -405,7 +405,7 @@ TEventExtContainer TEventExtContainer::Instance;
 // container hooks
 //
 
-DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
+ASMJIT_PATCH(0x71E7F8, TEventClass_CTOR, 5)
 {
 	GET(TEventClass*, pItem, ESI);
 
@@ -413,13 +413,12 @@ DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
-DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 
 #include <Misc/Hooks.Otamaa.h>
 

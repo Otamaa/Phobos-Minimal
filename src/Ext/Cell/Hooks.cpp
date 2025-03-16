@@ -10,7 +10,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/IsometricTileType/Body.h>
 
-DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
+ASMJIT_PATCH(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 {
 	GET(CellClass*, pThis, EDI);
 	GET(OverlayTypeClass*, pOverlay, ESI);
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 	return 0x47FE05;
 }
 
-DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
+ASMJIT_PATCH(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 {
 	enum { SkipDrawing = 0x47F637, ContinueDrawing = 0x0 };
 	GET(CellClass*, pThis, ESI);
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
 
-DEFINE_HOOK(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
+ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 {
 	GET(FakeCellClass*, pThis, ESI);
 	GET(OverlayTypeClass*, pOverlay, EBX);
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 	return 0x47FB86;
 }
 
-DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
+ASMJIT_PATCH(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 {
 	GET(CellClass*, pCell, ESI);
 	GET_STACK(SHPStruct*, pImage, STACK_OFFSET(0x28, 0x8));
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 	return 0x47F637;
 }
 
-DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
+ASMJIT_PATCH(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 {
 	GET(OverlayTypeClass*, pOvl, ECX);
 	GET(CellClass*, pCell, ESI);
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 
 
 //seems causing large FPS drop
-//DEFINE_STRONG_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+//ASMJIT_PATCH(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 //{
 //	GET(CellClass*, pCell, ESI);
 //
@@ -160,7 +160,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 *    v3 = this->TileType;
 	if ( v3 >= 0 && v3 < (int)*(&IsometricTileTypes + 4) && !(*(&IsometricTileTypes + 1))[v3]->AllowBurrowing
 */
-//DEFINE_HOOK(0x487022, CellClass_CanEnterCell_Add, 0x6)
+//ASMJIT_PATCH(0x487022, CellClass_CanEnterCell_Add, 0x6)
 //{
 //	enum
 //	{
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //		return continue_check;
 //}
 
-//DEFINE_HOOK(0x4D9C41, FootClass_CanEnterCell_Restricted, 0x6)
+//ASMJIT_PATCH(0x4D9C41, FootClass_CanEnterCell_Restricted, 0x6)
 //{
 //	GET(FootClass*, pFoot, ESI);
 //
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //}
 
 // Aircraft pathfinding is shit
-//DEFINE_HOOK(0x4196B0, AircraftClass_CanEnterCell_Restricted, 0x5)
+//ASMJIT_PATCH(0x4196B0, AircraftClass_CanEnterCell_Restricted, 0x5)
 //{
 //	GET(AircraftClass*, pThis, ECX);
 //
@@ -230,7 +230,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 
 //UniqueGamePtrB<LightConvertClass> SpawnTiberiumTreeConvert {};
 //
-//DEFINE_HOOK(0x52C046, InitGame_CreateTiberiumDrawer, 0x5)
+//ASMJIT_PATCH(0x52C046, InitGame_CreateTiberiumDrawer, 0x5)
 //{
 //	LEA_STACK(BytePalette*, pUnitSnoPal, 0x2F40 - 0x2BC8);
 //
@@ -241,7 +241,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x53AD00, ScenarioClass_RecalcLighting_TintTiberiumDrawer, 5)
+//ASMJIT_PATCH(0x53AD00, ScenarioClass_RecalcLighting_TintTiberiumDrawer, 5)
 //{
 //	GET(int, red, ECX);
 //	GET(int, green, EDX);
@@ -251,7 +251,7 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x71C294, TerrainClass_DrawIt_TiberiumSpawn_Palette, 0x6)
+//ASMJIT_PATCH(0x71C294, TerrainClass_DrawIt_TiberiumSpawn_Palette, 0x6)
 //{
 //	R->EDX(SpawnTiberiumTreeConvert.get());
 //	return 0x71C29A;

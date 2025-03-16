@@ -4,7 +4,7 @@
 
 static OPTIONALINLINE TechnoTypeExtData* TechnoClass_DrawAirstrikeFlare_pType {};
 
-DEFINE_HOOK(0x705860, TechnoClass_DrawAirstrikeFlare_SetContext, 0x8)
+ASMJIT_PATCH(0x705860, TechnoClass_DrawAirstrikeFlare_SetContext, 0x8)
 {
 	GET(TechnoClass*, pThis, ECX);
 
@@ -14,7 +14,7 @@ DEFINE_HOOK(0x705860, TechnoClass_DrawAirstrikeFlare_SetContext, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x7058F6, TechnoClass_DrawAirstrikeFlare, 0x5)
+ASMJIT_PATCH(0x7058F6, TechnoClass_DrawAirstrikeFlare, 0x5)
 {
 	enum { SkipGameCode = 0x705976 };
 

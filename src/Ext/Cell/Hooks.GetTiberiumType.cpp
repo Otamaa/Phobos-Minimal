@@ -28,7 +28,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x484FF3, CellExtData::GetTiberiumType);
 //DEFINE_FUNCTION_JUMP(CALL, 0x485013, CellExtData::GetTiberiumType)); JMP
 
 //DEFINE_FUNCTION_JUMP(CALL, 0x485026, CellExtData::GetTiberiumType));
-DEFINE_HOOK(0x485020, CellClass_GetTibValue, 0x6) {
+ASMJIT_PATCH(0x485020, CellClass_GetTibValue, 0x6) {
 	GET(FakeCellClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller , 0x0);
 

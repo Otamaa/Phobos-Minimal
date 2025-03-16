@@ -12,7 +12,7 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
 
-DEFINE_HOOK(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
+ASMJIT_PATCH(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 {
 	enum { Skip = 0x460388, Read = 0x460299 };
 
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 		? Skip : Read;
 }
 
-//DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
+//ASMJIT_PATCH(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
+ASMJIT_PATCH(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 	return 0;
 }
 
-DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
+ASMJIT_PATCH(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
@@ -62,13 +62,13 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
+ASMJIT_PATCH(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 {
 	BuildingTypeExtData::DisplayPlacementPreview();
 	return 0x0;
 }
 
-DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
+ASMJIT_PATCH(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 {
 	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
 
@@ -168,7 +168,7 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
 }
 #ifndef Original
 
- DEFINE_HOOK(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
+ ASMJIT_PATCH(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
  	GET(DisplayClass*, pThis, ECX);
  	GET_STACK(BuildingTypeClass*, pObj, 0x4);
  	GET_STACK(int , house, 0x8);
@@ -199,17 +199,17 @@ void CountPowerOf(HouseClass*pHouse ,CounterClass<GameAllocator<int>>& counter){
 }
 
  // Trigger power recalculation on gain / loss of any techno, not just buildings.
-DEFINE_HOOK_AGAIN(0x5025F0, HouseClass_RegisterGain, 0x5) // RegisterLoss
-DEFINE_HOOK(0x502A80, HouseClass_RegisterGain, 0x8)
+
+ASMJIT_PATCH(0x502A80, HouseClass_RegisterGain, 0x8)
 {
 	 GET(HouseClass*, pThis, ECX);
 
 	 pThis->RecheckPower = true;
 
 	 return 0;
- }
+ }ASMJIT_PATCH_AGAIN(0x5025F0, HouseClass_RegisterGain, 0x5) // RegisterLoss
 
-DEFINE_HOOK(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
+ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -222,13 +222,13 @@ DEFINE_HOOK(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
 	return 0x0;
 }
 #else
-DEFINE_HOOK(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
+ASMJIT_PATCH(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
 }
 
-//DEFINE_HOOK(0x4A8FD7, DisplayClass_BuildingProximityCheck_BuildArea, 0x6)
+//ASMJIT_PATCH(0x4A8FD7, DisplayClass_BuildingProximityCheck_BuildArea, 0x6)
 //{
 //	enum { SkipBuilding = 0x4A902C , Continue = 0x0 };
 //

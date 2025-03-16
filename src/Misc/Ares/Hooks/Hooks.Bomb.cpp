@@ -38,13 +38,13 @@ DEFINE_JUMP(LJMP, 0x438FD7, 0x439022);
 
 // #896027: do not announce pointers as expired to bombs
 // if the pointed to object is staying in-game.
-DEFINE_HOOK(0x725961, AnnounceInvalidPointer_BombCloak, 0x6)
+ASMJIT_PATCH(0x725961, AnnounceInvalidPointer_BombCloak, 0x6)
 {
 	GET(bool, remove, EDI);
 	return remove ? 0 : 0x72596C;
 }
 
-DEFINE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
+ASMJIT_PATCH(0x438A00, BombClass_GetCurrentFrame, 6)
 {
 	GET(BombClass*, pThis, ECX);
 
@@ -91,7 +91,7 @@ DEFINE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 
 // 6F523C, 5
 // custom ivan bomb drawing
-DEFINE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
+ASMJIT_PATCH(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 {
 	GET(TechnoClass*, pThis, EBP);
 
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 
 // 6FCBAD, 6
 // custom ivan bomb disarm 1
-//DEFINE_HOOK(0x6FCB8D , TechnoClass_GetObjectActivityState_IvanBomb, 6)
+//ASMJIT_PATCH(0x6FCB8D , TechnoClass_GetObjectActivityState_IvanBomb, 6)
 //{
 //	enum { ContinueCheck = 0x6FCBCD , ReturnFireIllegal = 0x6FCBBE };
 //
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 //}
 
 // 51E488, 5
-DEFINE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)
+ASMJIT_PATCH(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 {
 	GET(TechnoClass* const, Target, ESI);
 	return !BombExtContainer::Instance.Find(Target->AttachedBomb)
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 		? 0x51E49E : 0x0;
 }
 
-DEFINE_HOOK(0x438761, BombClass_Detonate_Handle, 0x7)
+ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
 {
 	GET(BombClass*, pThis, ESI);
 	GET(ObjectClass*, pTarget, ECX);
@@ -175,7 +175,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D4C, FakeBombClass::_GetOwningHouse);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D38, FakeBombClass::_Detach);
 
 //new
-//DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
+//ASMJIT_PATCH(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
 //{
 //	GET(TechnoClass* const , pThis, EBP);
 //	GET(CoordStruct*, pCoordBuffA, ECX);
@@ -186,14 +186,14 @@ DEFINE_PATCH(0x6F51FD, 0x58);
 
 // 438879, 6
 // custom ivan bomb detonation 3
-DEFINE_HOOK(0x438879, BombClass_Detonate_CanKillBridge, 6)
+ASMJIT_PATCH(0x438879, BombClass_Detonate_CanKillBridge, 6)
 {
 	GET(BombClass* const, Bomb, ESI);
 	return BombExtContainer::Instance.Find(Bomb)->Weapon->Ivan_KillsBridges
 		? 0 : 0x438989;
 }
 
-DEFINE_HOOK(0x46934D, IvanBombs_Spread, 6)
+ASMJIT_PATCH(0x46934D, IvanBombs_Spread, 6)
 {
 	GET(BulletClass* const, pBullet, ESI);
 
@@ -229,7 +229,7 @@ DEFINE_HOOK(0x46934D, IvanBombs_Spread, 6)
 }
 
 // deglobalized manual detonation settings
-DEFINE_HOOK(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
+ASMJIT_PATCH(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
 {
 	GET(TechnoClass* const, pThis, EDI);
 
@@ -242,7 +242,7 @@ DEFINE_HOOK(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
 	return canDetonate ? 0x6FFFCC : 0x700006;
 }
 
-DEFINE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
+ASMJIT_PATCH(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(ObjectClass*, pThat, 0x1C);
@@ -255,7 +255,7 @@ DEFINE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
+ASMJIT_PATCH(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 {
 	GET(UnitClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
@@ -268,7 +268,7 @@ DEFINE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
+ASMJIT_PATCH(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 {
 	GET(InfantryClass* const, pThis, EDI);
 	GET_STACK(ObjectClass*, pThat, 0x3C);
@@ -281,7 +281,7 @@ DEFINE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 	return 0;
 }
 
-DEFINE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
+ASMJIT_PATCH(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 {
 	GET(AircraftClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
@@ -294,7 +294,7 @@ DEFINE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
+ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 {
 	GET(TechnoClass* , pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
@@ -338,7 +338,7 @@ DEFINE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
+ASMJIT_PATCH(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 {
 	GET(BuildingClass* const, pStructure, EBP);
 
@@ -352,7 +352,7 @@ DEFINE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 }
 
 
-DEFINE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
+ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -383,7 +383,7 @@ DEFINE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 // custom ivan bomb attachment
 // bugfix #385: Only InfantryTypes can use Ivan Bombs
-DEFINE_HOOK(0x438E86, BombListClass_Plant_AllTechnos, 5)
+ASMJIT_PATCH(0x438E86, BombListClass_Plant_AllTechnos, 5)
 {
 	GET(TechnoClass*, Source, EBP);
 	switch (Source->WhatAmI())

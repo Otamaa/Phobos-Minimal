@@ -38,7 +38,7 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 // container hooks
 //ToDo : Check Size !
 
-//DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
+//ASMJIT_PATCH(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //
@@ -47,16 +47,16 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6F2106 , TeamTypeClass_DTOR, 0x7)
-//DEFINE_HOOK(0x6F0926, TeamTypeClass_DTOR, 0x7)
+//ASMJIT_PATCH_AGAIN(0x6F2106 , TeamTypeClass_DTOR, 0x7)
+//ASMJIT_PATCH(0x6F0926, TeamTypeClass_DTOR, 0x7)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //	TeamTypeExt::ExtMap.Remove(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6F1BB0, TeamTypeClass_SaveLoad_Prefix, 0x5)
-//DEFINE_HOOK(0x6F1B90, TeamTypeClass_SaveLoad_Prefix, 0x8)
+//ASMJIT_PATCH_AGAIN(0x6F1BB0, TeamTypeClass_SaveLoad_Prefix, 0x5)
+//ASMJIT_PATCH(0x6F1B90, TeamTypeClass_SaveLoad_Prefix, 0x8)
 //{
 //	GET_STACK(TeamTypeClass*, pItem, 0x4);
 //	GET_STACK(IStream*, pStm, 0x8);
@@ -64,7 +64,7 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6F1C22, TeamTypeClass_Load_Suffix, 0x6)
+//ASMJIT_PATCH(0x6F1C22, TeamTypeClass_Load_Suffix, 0x6)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //
@@ -73,14 +73,14 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //	return 0x6F1C33;
 //}
 //
-//DEFINE_HOOK(0x6F1BA8, TeamTypeClass_Save_Suffix, 0x5)
+//ASMJIT_PATCH(0x6F1BA8, TeamTypeClass_Save_Suffix, 0x5)
 //{
 //	TeamTypeExt::ExtMap.SaveStatic();
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
-//DEFINE_HOOK(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
+//ASMJIT_PATCH_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
+//ASMJIT_PATCH(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //	GET(CCINIClass*, pINI, EBX);
@@ -88,7 +88,7 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6F1836, TeamTypeClass_WriteToINI, 0x6)
+//ASMJIT_PATCH(0x6F1836, TeamTypeClass_WriteToINI, 0x6)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //	GET_STACK(CCINIClass*, pINI,STACK_OFFSET(0x10 , 0x4));

@@ -4,7 +4,7 @@
 #include <InfantryClass.h>
 
 //Author : Otamaa
-DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
+ASMJIT_PATCH(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	return 0x5223B9;
 }
 
-DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) //7
+ASMJIT_PATCH(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) //7
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET(InfantryTypeClass*, pThisType, ECX);
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) 
 }
 
 #ifndef DISABLEFORTESTINGS
-DEFINE_HOOK(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
+ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
 	return 0x6FF92F;
 }
 
-DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
+ASMJIT_PATCH(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 {
 	enum { SkipGameCode = 0x73DD3C, SetMissionGuard = 0x73DEBA };
 
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
+ASMJIT_PATCH(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
+ASMJIT_PATCH(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 {
 	enum { DoNotExecute = 0x4C8109 };
 
@@ -137,7 +137,7 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 // issue #112 Make FireOnce=yes work on other TechnoTypes
 // Author: Starkku
-DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
+ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -156,7 +156,7 @@ DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
 }
 
-DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
+ASMJIT_PATCH(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);

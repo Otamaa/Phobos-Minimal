@@ -6,25 +6,25 @@ static char VoxelPixelBuffer[VoxelBufferSize][VoxelBufferSize];
 //static BSurface NewVoxelBuffer { 256 , 256 , 1 , VoxelPixelBuffer };
 //static BSurface NewVoxelShadowBuffer { 256 , 256 , 1 , VoxelPixelBuffer };
 
-DEFINE_HOOK(0x754720, Voxel_Clear_Voxel_Surface_Buffer, 0x6)
+ASMJIT_PATCH(0x754720, Voxel_Clear_Voxel_Surface_Buffer, 0x6)
 {
 	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
 	return 0x754730;
 }
 
-DEFINE_HOOK(0x7547A0, Voxel_Init_Surface_Stuff_Memset3, 0x5)
+ASMJIT_PATCH(0x7547A0, Voxel_Init_Surface_Stuff_Memset3, 0x5)
 {
 	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
 	return 0x7547AE;
 }
 
-DEFINE_HOOK(0x753EB7, Voxel_Init_Surface_Stuff_Memset2, 0x5)
+ASMJIT_PATCH(0x753EB7, Voxel_Init_Surface_Stuff_Memset2, 0x5)
 {
 	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
 	return 0x753EC5;
 }
 
-DEFINE_HOOK(0x753E1E, Voxel_Init_Surface_Stuff_Memset1, 0x5)
+ASMJIT_PATCH(0x753E1E, Voxel_Init_Surface_Stuff_Memset1, 0x5)
 {
 	std::memset(VoxelPixelBuffer, 0, sizeof(VoxelPixelBuffer));
 	*reinterpret_cast<bool*>(0x8467E0) = R->EBX();

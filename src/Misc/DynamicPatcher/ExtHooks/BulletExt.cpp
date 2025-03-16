@@ -4,7 +4,7 @@
 
 #include  <Ext/Bullet/Body.h>
 
-DEFINE_HOOK(0x468B5D, BulletClass_Unlimbo_DP, 0x6)
+ASMJIT_PATCH(0x468B5D, BulletClass_Unlimbo_DP, 0x6)
 {
 	GET(BulletClass* , pThis , EBX);
 	//GET_STACK(CoordStruct*, pCoord, 0x20);

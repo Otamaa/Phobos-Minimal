@@ -151,7 +151,7 @@ static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 
 #pragma region Terrain
 
-DEFINE_HOOK(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
+ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 {
 	GET(TerrainClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -286,7 +286,7 @@ DEFINE_HOOK(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 
 #pragma region Object
 
-DEFINE_HOOK(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
+ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 {
 	GET(ObjectClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -582,7 +582,7 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 	return false;
 }
 
-DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
+ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -1342,7 +1342,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 #pragma region Building
 
-DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
+ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -1704,7 +1704,7 @@ DEFINE_HOOK(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 #pragma region Foot
 #include <TeamTypeClass.h>
 
-DEFINE_HOOK(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
+ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 {
 	GET(FootClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -1794,7 +1794,7 @@ DEFINE_HOOK(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 
 #pragma region Aircraft
 
-DEFINE_HOOK(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
+ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 {
 	GET(AircraftClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -1843,7 +1843,7 @@ DEFINE_HOOK(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 
 #pragma region Infantry
 
-DEFINE_HOOK(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
+ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 {
 	GET(FakeInfantryClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -2320,13 +2320,13 @@ DEFINE_HOOK(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 #pragma region Unit
 
-DEFINE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
+ASMJIT_PATCH(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 {
 	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
 	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
 }
 
-DEFINE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
+ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(TechnoClass*, pAttacker, EDI);
@@ -2342,7 +2342,7 @@ DEFINE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
+ASMJIT_PATCH(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
 {
 	GET(UnitClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x44, -0x4));
@@ -2355,7 +2355,7 @@ DEFINE_HOOK(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
 	return 0x737F74;
 }
 
-DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
+ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -2372,14 +2372,14 @@ DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 // #895584: ships not taking damage when repaired in a shipyard. bug
 // was that the logic that prevented units from being damaged when
 // exiting a war factory applied here, too. added the Naval check.
-DEFINE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
+ASMJIT_PATCH(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
 {
 	GET(BuildingTypeClass*, pType, ECX);
 	return (pType->WeaponsFactory && !pType->Naval)
 		? 0x737CEE : 0x737D31;
 }
 
-DEFINE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+ASMJIT_PATCH(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 {
 	//GET(UnitTypeClass*, pType, EAX);
 	GET(UnitClass*, pThis, ESI);
@@ -2417,7 +2417,7 @@ DEFINE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
 	return 0x73838A;
 }
 
-DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
+ASMJIT_PATCH(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 {
 	GET(UnitClass* const, pThis, ESI);
 	GET(DamageState const, result, EAX);
@@ -2461,7 +2461,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
+ASMJIT_PATCH(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -2523,7 +2523,7 @@ DamageResultType __thiscall VeinholeMonsterClass::Take_Damage(
 
 #pragma endregion
 
-DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
+ASMJIT_PATCH(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
 {
 	GET(FootClass* const, pLinked, ECX);
 	R->ECX(pLinked->GetType()->Strength);
@@ -2532,7 +2532,7 @@ DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP,
 
 #pragma region placeholder
 
-//DEFINE_HOOK(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
+//ASMJIT_PATCH(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
 //{
 //	enum { NonJumpJet = 0x518362 ,  ContinueChecks = 0x51831D , SkipPlayExplode = 0x5185F1 };
 //	GET(InfantryClass*, pThis, ESI);
@@ -2547,7 +2547,7 @@ DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP,
 //	return NonJumpJet;
 //}
 
-// DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
+// ASMJIT_PATCH(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 // {
 // 	enum
 // 	{
@@ -2641,7 +2641,7 @@ DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP,
 
 
 /*
-DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
+ASMJIT_PATCH(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 {
 	R->Stack(STACK_OFFS(0x9C, 0x6C), DamageState::Unaffected);
 
@@ -2654,7 +2654,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 
 	return 0x442268;
 }*/
-// DEFINE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
+// ASMJIT_PATCH(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
 // {
 // 	GET(InfantryClass*, I, ESI);
 // 	LEA_STACK(args_ReceiveDamage*, Arguments, 0xD4);
@@ -2676,8 +2676,8 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 // 	return 0x5184F2;
 // }
 
-// DEFINE_HOOK_AGAIN(0x518575, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
-// DEFINE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+// ASMJIT_PATCH_AGAIN(0x518575, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+// ASMJIT_PATCH(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EDI);
@@ -2701,12 +2701,12 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 // 	return (R->Origin() == 0x5183DE) ? 0x518422 : 0x5185B9;
 // }
 
-// DEFINE_HOOK_AGAIN(0x518B93, InfantryClass_ReceiveDamage_Anims, 5) // InfantryBrute
-// DEFINE_HOOK_AGAIN(0x518821, InfantryClass_ReceiveDamage_Anims, 5) // InfantryNuked
-// DEFINE_HOOK_AGAIN(0x5187BB, InfantryClass_ReceiveDamage_Anims, 5) // InfantryHeadPop
-// DEFINE_HOOK_AGAIN(0x518755, InfantryClass_ReceiveDamage_Anims, 5) // InfantryElectrocuted
-// DEFINE_HOOK_AGAIN(0x5186F2, InfantryClass_ReceiveDamage_Anims, 5) // FlamingInfantry
-// DEFINE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
+// ASMJIT_PATCH_AGAIN(0x518B93, InfantryClass_ReceiveDamage_Anims, 5) // InfantryBrute
+// ASMJIT_PATCH_AGAIN(0x518821, InfantryClass_ReceiveDamage_Anims, 5) // InfantryNuked
+// ASMJIT_PATCH_AGAIN(0x5187BB, InfantryClass_ReceiveDamage_Anims, 5) // InfantryHeadPop
+// ASMJIT_PATCH_AGAIN(0x518755, InfantryClass_ReceiveDamage_Anims, 5) // InfantryElectrocuted
+// ASMJIT_PATCH_AGAIN(0x5186F2, InfantryClass_ReceiveDamage_Anims, 5) // FlamingInfantry
+// ASMJIT_PATCH(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EAX);
@@ -2722,7 +2722,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 // 	return 0x5185F1;
 // }
 
-// DEFINE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
+// ASMJIT_PATCH(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EAX);
@@ -2745,7 +2745,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 // 	return 0x5185F1;
 // }
 //
-// DEFINE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
+// ASMJIT_PATCH(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EDI);
@@ -2761,7 +2761,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 // 	return 0x518AFF;
 // }
 
-//DEFINE_HOOK(0x489A01, MapClass_DamageArea_LoopDamageGroups, 0x6)
+//ASMJIT_PATCH(0x489A01, MapClass_DamageArea_LoopDamageGroups, 0x6)
 //{
 //	enum { AdvanceLoop = 0x489AC1 , SetStack1FTrue = 0x489ABC , Continue = 0x0};
 //
@@ -2812,7 +2812,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 //	//return Continue;
 //}
 
-//DEFINE_HOOK(0x4D7431, FootClass_TakeDamage_ProbeResult, 0x5)
+//ASMJIT_PATCH(0x4D7431, FootClass_TakeDamage_ProbeResult, 0x5)
 //{
 //	GET(DamageState, result, EAX);
 //	GET(WarheadTypeClass*, pWH, EBP);
@@ -2826,7 +2826,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 //}
 
 // Has to be done here, before Ares survivor hook to take effect.
-//DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
+//ASMJIT_PATCH(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //
@@ -2861,7 +2861,7 @@ DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 		- idle anim
 		- Re-Draw function , to show damaged part
 
-DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
+ASMJIT_PATCH(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 {
 	enum { PostMortemReturn = 0x71B994, CheckNowDead = 0x71B9A7, SetReturn = 0x71BB79 };
 
@@ -2892,7 +2892,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 	return SetReturn;
 }*/
 
-//DEFINE_HOOK(0x4D7330, FootClass_ReceiveDamage_probe, 0x8) {
+//ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_probe, 0x8) {
 //	GET(FootClass*, pThis, ECX);
 //
 //	auto id = pThis->get_ID();
@@ -2902,7 +2902,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 //	return 0;
 //}
 
-//DEFINE_HOOK(0x737C90 , UnitClass_TakeDamage_probe ,0x5)
+//ASMJIT_PATCH(0x737C90 , UnitClass_TakeDamage_probe ,0x5)
 //{
 //	GET(UnitClass*, pThis, ECX);
 //	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -2915,7 +2915,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 //}
 
 
-// DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+// ASMJIT_PATCH(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
 // {
 // 	GET(TechnoClass* const, pRadio, EDI);
 //
@@ -2925,7 +2925,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 // 	return 0x4425F4;
 // }
 
-// DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
+// ASMJIT_PATCH(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
 // 	GET(AnimClass*, pAnim, EDI);
@@ -2941,7 +2941,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 // 	return 0x70256B;
 // }
 //
-// DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
+// ASMJIT_PATCH(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
 // 	GET(TechnoTypeClass* const, pType, EAX);
@@ -2964,7 +2964,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 //ObjectClass TakeDamage , 5F559C
 //UnitClass TakeDamage , 737F0E
 
-// DEFINE_HOOK(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
+// ASMJIT_PATCH(0x518744, InfantryClass_ReceiveDamage_ElectricDeath, 6)
 // {
 // 	AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
 //
@@ -2977,7 +2977,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 // }
 
 
-// DEFINE_HOOK(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
+// ASMJIT_PATCH(0x518434, InfantryClass_ReceiveDamage_SkipDeathAnim, 7)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	//GET_STACK(ObjectClass *, pAttacker, 0xE0);

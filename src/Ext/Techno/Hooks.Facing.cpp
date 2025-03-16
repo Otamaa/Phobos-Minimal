@@ -6,7 +6,7 @@
 #pragma region UnitsFacing
 
 // Would it be better to rewrite the entire UpdateRotation() ?
-DEFINE_HOOK(0x7369A5, UnitClass_UpdateRotation_CheckTurnToTarget, 0x6)
+ASMJIT_PATCH(0x7369A5, UnitClass_UpdateRotation_CheckTurnToTarget, 0x6)
 {
 	enum { SkipGameCode = 0x736A8E, ContinueGameCode = 0x7369B3 };
 
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x7369A5, UnitClass_UpdateRotation_CheckTurnToTarget, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x7369D6, UnitClass_UpdateRotation_StopUnitIdleAction, 0xA)
+ASMJIT_PATCH(0x7369D6, UnitClass_UpdateRotation_StopUnitIdleAction, 0xA)
 {
 	enum { SkipGameCode = 0x736A8E };
 
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x7369D6, UnitClass_UpdateRotation_StopUnitIdleAction, 0xA)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x736AFB, UnitClass_UpdateRotation_CheckTurnToForward, 0x6)
+ASMJIT_PATCH(0x736AFB, UnitClass_UpdateRotation_CheckTurnToForward, 0x6)
 {
 	enum { SkipGameCode = 0x736BE2, ContinueGameCode = 0x736B21 };
 
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x736AFB, UnitClass_UpdateRotation_CheckTurnToForward, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x736B7E, UnitClass_UpdateRotation_ApplyUnitIdleAction, 0xA)
+ASMJIT_PATCH(0x736B7E, UnitClass_UpdateRotation_ApplyUnitIdleAction, 0xA)
 {
 	enum { SkipGameCode = 0x736BE2 };
 

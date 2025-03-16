@@ -276,7 +276,7 @@ struct DroppodProperties_
 };
 
 /*
-DEFINE_HOOK(0x4B5BCD, DroppodLoco_Process_Speed, 0x6)
+ASMJIT_PATCH(0x4B5BCD, DroppodLoco_Process_Speed, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EDX);
@@ -286,7 +286,7 @@ DEFINE_HOOK(0x4B5BCD, DroppodLoco_Process_Speed, 0x6)
 	return 0x4B5BD3;
 }
 
-DEFINE_HOOK(0x4B5BEC, DroppodLoco_Process_Angle1, 0x6)
+ASMJIT_PATCH(0x4B5BEC, DroppodLoco_Process_Angle1, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EDX);
@@ -296,7 +296,7 @@ DEFINE_HOOK(0x4B5BEC, DroppodLoco_Process_Angle1, 0x6)
 	return 0x4B5BF2;
 }
 
-DEFINE_HOOK(0x4B5C14, DroppodLoco_Process_Angle2, 0x6)
+ASMJIT_PATCH(0x4B5C14, DroppodLoco_Process_Angle2, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EDX);
@@ -306,7 +306,7 @@ DEFINE_HOOK(0x4B5C14, DroppodLoco_Process_Angle2, 0x6)
 	return 0x4B5C1A;
 }
 
-DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
+ASMJIT_PATCH(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 {
 	GET(DropPodLocomotionClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EAX);
@@ -316,7 +316,7 @@ DEFINE_HOOK(0x4B5C50, DroppodLoco_Process_Angle3, 0x6)
 	return 0x4B5C56;
 }
 
-DEFINE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
+ASMJIT_PATCH(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 {
 	GET(DropPodLocomotionClass*, pDroppod, EDI);
 	GET(FootClass*, pFoot, ESI);
@@ -379,7 +379,7 @@ DEFINE_HOOK(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 }
 
 //TODO : DropPod WH explosion 4B5D8F ,4B6028
-DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
+ASMJIT_PATCH(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 {
 	GET(DropPodLocomotionClass*, pLoco, EDI);
 	GET(FootClass*, pFoot, ESI);
@@ -419,7 +419,7 @@ DEFINE_HOOK(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 
 // function below originated from PR #1196 by : chaserli
 // i just do some adjustment so my own code can go in
-DEFINE_HOOK(0x4B5B70, DroppodLoco_ILoco_Process, 0x5)
+ASMJIT_PATCH(0x4B5B70, DroppodLoco_ILoco_Process, 0x5)
 {
 	GET_STACK(ILocomotion*, iloco, 0x4);
 	R->AL(DroppodProperties_::Process_(static_cast<DropPodLocomotionClass*>(iloco)));
@@ -428,7 +428,7 @@ DEFINE_HOOK(0x4B5B70, DroppodLoco_ILoco_Process, 0x5)
 
 // function below originated from PR #1196 by : chaserli
 // i just do some adjustment so my own code can go in
-DEFINE_HOOK(0x4B6040, DroppodLoco_ILoco_MoveTo, 0x9)
+ASMJIT_PATCH(0x4B6040, DroppodLoco_ILoco_MoveTo, 0x9)
 {
 	GET_STACK(ILocomotion*, iloco, 0x4);
 	REF_STACK(CoordStruct, to, 0x8);
@@ -436,7 +436,7 @@ DEFINE_HOOK(0x4B6040, DroppodLoco_ILoco_MoveTo, 0x9)
 	return 0x4B61F5;
 }
 
-DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
+ASMJIT_PATCH(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
 
@@ -449,7 +449,7 @@ DEFINE_HOOK(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
+ASMJIT_PATCH(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
 {
 	GET(ILocomotion*, pIloco, EAX);
 	const auto pLoco = static_cast<LocomotionClass*>(pIloco);
@@ -463,7 +463,7 @@ DEFINE_HOOK(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
+//ASMJIT_PATCH(0x4B619F, DropPodLocomotionClass_MoveTo_AtmosphereEntry, 0x5)
 //{
 //	GET(DropPodLocomotionClass*, pLoco, EDI);
 //	LEA_STACK(CoordStruct*, pCoord, 0x1C - 0xC);

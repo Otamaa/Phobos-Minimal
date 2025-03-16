@@ -23,7 +23,7 @@
 #include <GameModeOptionsClass.h>
 #include <GameOptionsClass.h>
 
-DEFINE_STRONG_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
@@ -428,7 +428,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4C8FE0, ExceptionHandler)
 
-//DEFINE_STRONG_HOOK(0x4C8FE0, Exception_Handler, 9)
+//ASMJIT_PATCH(0x4C8FE0, Exception_Handler, 9)
 //{
 //	//GET(int, code, ECX);
 //	GET(LPEXCEPTION_POINTERS, pExs, EDX);
@@ -769,7 +769,7 @@ static bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullp
 	}
 }
 
-DEFINE_STRONG_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
+ASMJIT_PATCH(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 
@@ -782,7 +782,7 @@ DEFINE_STRONG_HOOK(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 	return 0x64DF3D;
 }
 
-DEFINE_STRONG_HOOK(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
+ASMJIT_PATCH(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 {
 	GET(int, SlotNumber, ECX);
 	GET(EventClass*, OffendingEvent, EDX);

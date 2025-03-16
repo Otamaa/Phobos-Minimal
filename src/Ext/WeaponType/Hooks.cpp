@@ -9,7 +9,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-DEFINE_HOOK(0x7729F0, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
+ASMJIT_PATCH(0x7729F0, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, ECX);
 
@@ -22,7 +22,7 @@ DEFINE_HOOK(0x7729F0, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)
 	return 0x772A4C;
 }
 
-DEFINE_HOOK(0x773070, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
+ASMJIT_PATCH(0x773070, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, ECX);
 

@@ -74,7 +74,7 @@ bool FrameByFrameCommandClass::FrameStepMainLoop()
 	return Game::IsActive == false;
 }
 
-DEFINE_HOOK(0x55D360, MainLoop_FrameStep_Begin, 0x5)
+ASMJIT_PATCH(0x55D360, MainLoop_FrameStep_Begin, 0x5)
 {
 	// FrameStep mode enabled but no frames to process
 	if (FrameByFrameCommandClass::FrameStep && FrameByFrameCommandClass::FrameStepCount == 0)
@@ -87,13 +87,12 @@ DEFINE_HOOK(0x55D360, MainLoop_FrameStep_Begin, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x55D871, MainLoop_FrameStep_End, 0x6)
-DEFINE_HOOK_AGAIN(0x55DEC1, MainLoop_FrameStep_End, 0x6)
-DEFINE_HOOK(0x55DED5, MainLoop_FrameStep_End, 0x6)
+ASMJIT_PATCH(0x55DED5, MainLoop_FrameStep_End, 0x6)
 {
 	// This frame is processed, decrease the counter
 	if (FrameByFrameCommandClass::FrameStep && FrameByFrameCommandClass::FrameStepCount > 0)
 		--FrameByFrameCommandClass::FrameStepCount;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x55D871, MainLoop_FrameStep_End, 0x6)
+ASMJIT_PATCH_AGAIN(0x55DEC1, MainLoop_FrameStep_End, 0x6)

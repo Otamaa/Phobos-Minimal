@@ -56,7 +56,7 @@ public:
 #include <Utilities/Macro.h>
 
 //4A3B4B, 9 - NOTE: This overrides a call, but it's absolute, so don't worry.
-DEFINE_HOOK(0x4A3B4B, FetchResource, 0x9)
+ASMJIT_PATCH(0x4A3B4B, FetchResource, 0x9)
 {
 	HMODULE hModule = static_cast<HMODULE>(Phobos::hInstance); //hModule and hInstance are technically the same...
 	GET(LPCTSTR, lpName, ECX);
@@ -73,7 +73,7 @@ DEFINE_HOOK(0x4A3B4B, FetchResource, 0x9)
 	return 0; //Nothing was found, try the game's own resources.
 }
 
-DEFINE_HOOK(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
+ASMJIT_PATCH(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
 {
 	enum { RetFalse = 0x609664, RetTrue = 0x609693 };
 

@@ -5,7 +5,7 @@
 #include <Utilities/Macro.h>
 #include <SlaveManagerClass.h>
 
-DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
+ASMJIT_PATCH(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 {
 	GET(CaptureManagerClass*, pThis, EDI);
 	GET(TechnoClass*, pVictim, ECX);
@@ -25,7 +25,7 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 	return 0x472287;
 }
 
-DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
+ASMJIT_PATCH(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
 {
 	GET(CaptureManagerClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTechno, 0x4);
@@ -35,7 +35,7 @@ DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
 	return 0x471D5A;
 }
 
-DEFINE_HOOK(0x471FF0, CaptureManagerClass_FreeUnit, 0x8)
+ASMJIT_PATCH(0x471FF0, CaptureManagerClass_FreeUnit, 0x8)
 {
 	GET(CaptureManagerClass*, pThis, ECX);
 	GET_STACK(TechnoClass*, pTechno, 0x4);
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x471FF0, CaptureManagerClass_FreeUnit, 0x8)
 	return 0x472006;
 }
 
-// DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
+// ASMJIT_PATCH(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
 // {
 // 	GET(TechnoClass*, pThis, ESI);
 // 	GET(TechnoClass*, pTarget, EBP);

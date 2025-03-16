@@ -9,7 +9,7 @@
 
 // #include <windowsx.h> // for mouse related macros
 // vvv FactoryBuildingMe vvv
-DEFINE_HOOK(0x4C9DA2, FactoryClass_Set_BuildingSetFactoryBuildingMe, 0x5)
+ASMJIT_PATCH(0x4C9DA2, FactoryClass_Set_BuildingSetFactoryBuildingMe, 0x5)
 {
 	GET(FactoryClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EAX);
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x4C9DA2, FactoryClass_Set_BuildingSetFactoryBuildingMe, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CA004, FactoryClass_Abandon_BuildingUnsetFactoryBuildingMe, 0x9)
+ASMJIT_PATCH(0x4CA004, FactoryClass_Abandon_BuildingUnsetFactoryBuildingMe, 0x9)
 {
 	GET(ObjectClass*, pObject, ECX);
 	if (pObject->WhatAmI() == AbstractType::Building)
@@ -70,7 +70,7 @@ static bool HandleBuildingLink(bool bUp)
 	pBldTypeExt->NextBuilding_CurrentHeapId = pNextBldType->ArrayIndex;
 	return true;
 }
-DEFINE_HOOK(0x777985, Main_Window_Proc_OnMouseWheel, 0x6)
+ASMJIT_PATCH(0x777985, Main_Window_Proc_OnMouseWheel, 0x6)
 {
 	// Singlethread, no need to worry about it, westwood!
 	// GET_STACK(HWND, hWnd, STACK_OFFSET(0x10, 0x4));
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x777985, Main_Window_Proc_OnMouseWheel, 0x6)
 		SidebarClass::Instance->Scroll(bUp, -1);
 	return 0x7779B5;
 }
-DEFINE_HOOK(0x4FB8E4, Manual_Place_ResetBuildingTypeCurrentHeapId, 0x6)
+ASMJIT_PATCH(0x4FB8E4, Manual_Place_ResetBuildingTypeCurrentHeapId, 0x6)
 {
 	if (const auto pType = cast_to<BuildingTypeClass*>(SidebarClass::Instance->CurrentBuildingType))
 	{
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x4FB8E4, Manual_Place_ResetBuildingTypeCurrentHeapId, 0x6)
 	return 0;
 }
 static std::vector<bool> aBuildingConnected;
-DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
+ASMJIT_PATCH(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 {
 	// use a dynamic bitset(vector<bool>) to record the processed building types
 	aBuildingConnected.resize(BuildingTypeClass::Array->Count, false);
@@ -187,7 +187,7 @@ DEFINE_HOOK(0x679B9B, RulesClass_Objects_BuildingTypesAfterReadFromINI, 0x0)
 	aBuildingConnected.clear();
 	return 0x679BBE;
 }
-DEFINE_HOOK(0x6AAFD0, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextBuilding_E_ABANDON, 0x5)
+ASMJIT_PATCH(0x6AAFD0, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextBuilding_E_ABANDON, 0x5)
 {
 	GET(unsigned int, heapid, ECX);
 	GET(AbstractType, rttiid, EBP);
@@ -200,7 +200,7 @@ DEFINE_HOOK(0x6AAFD0, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextB
 	return 0;
 }
 
-DEFINE_HOOK(0x6AAE5C, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextBuilding_E_ABANDONALL, 0x5)
+ASMJIT_PATCH(0x6AAE5C, SidebarClass_StripClass_SelectClass_Action_Cancelled_NextBuilding_E_ABANDONALL, 0x5)
 {
 	GET(unsigned int, heapid, EDX);
 	GET(AbstractType, rttiid, EBP);

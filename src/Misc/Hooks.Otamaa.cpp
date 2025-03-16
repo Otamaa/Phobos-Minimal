@@ -2954,7 +2954,7 @@ ASMJIT_PATCH(0x7375B6, UnitClass_ReceiveRadio_Parasited_CanLoad, 0xA)
 	return continueChecks;
 }
 
-DEFINE_STRONG_HOOK(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
+ASMJIT_PATCH(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 {
 	if (!HouseClass::CurrentPlayer())
 		Debug::FatalError("CurrentPlayer ptr is Missing!");

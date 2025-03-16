@@ -15,7 +15,7 @@
 
 #include <SlaveManagerClass.h>
 
-DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
+ASMJIT_PATCH(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 {
 	GET(TechnoClass*, pSlave, EDI);
 
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 	return 0x6B0C65;
 }
 
-DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
+ASMJIT_PATCH(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 
@@ -43,21 +43,21 @@ DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 	return 0x443BB3;
 }
 
-DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
+ASMJIT_PATCH(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 	return (pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut || pThis->Artillary)
 		? 0x44A951 : 0x44A95E;
 }
 
-DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x6) //8
+ASMJIT_PATCH(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 	R->CL(pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut);
 	return 0x739807;
 }
 
-DEFINE_HOOK(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
+ASMJIT_PATCH(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -74,7 +74,7 @@ DEFINE_HOOK(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x449AF8, BuildingClass_MI_Construct_Facing_Jugger, 0x6)
+ASMJIT_PATCH(0x449AF8, BuildingClass_MI_Construct_Facing_Jugger, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pBldType, EAX);
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x449AF8, BuildingClass_MI_Construct_Facing_Jugger, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7)
+ASMJIT_PATCH(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 

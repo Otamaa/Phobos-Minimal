@@ -26,7 +26,7 @@
 #include <Unsorted.h>
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x6849C9, ReadScenario_RandomMap, 0x5)
+ASMJIT_PATCH(0x6849C9, ReadScenario_RandomMap, 0x5)
 {
 	// Vanilla Instructions
 	GET(CCINIClass*, pINI, ECX);
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x6849C9, ReadScenario_RandomMap, 0x5)
 	return 0x6849C9 + 0x5;
 }
 
-DEFINE_HOOK(0x686C48, ReadScenarioINI_RandomMap, 0x8)
+ASMJIT_PATCH(0x686C48, ReadScenarioINI_RandomMap, 0x8)
 {
 	if (SpawnerMain::Configs::Enabled && !ScenarioClass::Instance->IsRandom)
 	{
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x686C48, ReadScenarioINI_RandomMap, 0x8)
 
 // Hack Get_Starting_locations, it seems to be broken in random maps
 // This can be skipped because the starting location in random maps is stored somewhere else
-DEFINE_HOOK(0x688564, ScenStruct_ScenStruct_RandomMap, 0x6)
+ASMJIT_PATCH(0x688564, ScenStruct_ScenStruct_RandomMap, 0x6)
 {
 	if (SpawnerMain::Configs::Enabled && ScenarioClass::Instance->IsRandom)
 		return 0x6885D7;
@@ -63,7 +63,7 @@ DEFINE_HOOK(0x688564, ScenStruct_ScenStruct_RandomMap, 0x6)
 }
 
 // Hack rmp to read the scenario for unit mods and stuff
-DEFINE_HOOK(0x5997AB, MapGeneratorClass_Init_RandomMap, 0x9)
+ASMJIT_PATCH(0x5997AB, MapGeneratorClass_Init_RandomMap, 0x9)
 {
 	if (SpawnerMain::Configs::Enabled)
 	{
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x5997AB, MapGeneratorClass_Init_RandomMap, 0x9)
 }
 
 // Use Seed from spawn.ini rather than from the map.
-DEFINE_HOOK(0x597B76, MapSeedClass_LoadMap_RandomMap, 0x6)
+ASMJIT_PATCH(0x597B76, MapSeedClass_LoadMap_RandomMap, 0x6)
 {
 	if (SpawnerMain::Configs::Enabled)
 		R->EAX(SpawnerMain::GetGameConfigs()->Seed);

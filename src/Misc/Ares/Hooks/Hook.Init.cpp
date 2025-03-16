@@ -3,7 +3,7 @@
 
 #include <ParticleClass.h>
 
-DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5) {
+ASMJIT_PATCH(0x52BA78, _YR_GameInit_Pre, 5) {
 	TheaterTypeClass::LoadAllTheatersToArray();
 	return 0;
 }

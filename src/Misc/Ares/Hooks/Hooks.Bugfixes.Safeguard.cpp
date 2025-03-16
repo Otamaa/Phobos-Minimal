@@ -11,7 +11,7 @@
 #include <Utilities/Debug.h>
 
 
-DEFINE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
+ASMJIT_PATCH(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 {
 	GET(int, FileSize, EBX);
 	GET(IsometricTileTypeClass*, pTileType, ESI);
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
+ASMJIT_PATCH(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
 {
 	GET(const char*, ID, EAX);
 
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
+ASMJIT_PATCH(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 {
 	GET(int const, index, EAX);
 	GET(TriggerTypeClass* const, pTrig, EBP);
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 }
 
 static bool CounterLog = false;
-DEFINE_HOOK(0x749088, FixedWidthCounter_ResetWithGivenCount, 6)
+ASMJIT_PATCH(0x749088, FixedWidthCounter_ResetWithGivenCount, 6)
 {
 	GET(unsigned int, Width, EAX);
 

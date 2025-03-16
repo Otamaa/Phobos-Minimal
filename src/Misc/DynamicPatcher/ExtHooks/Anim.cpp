@@ -1,6 +1,6 @@
 #include <Misc/Otamaa/Hooks.Otamaa.h>
 
-DEFINE_HOOK(0x423136, AnimClass_Draw_Remap2, 0x6)
+ASMJIT_PATCH(0x423136, AnimClass_Draw_Remap2, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -16,7 +16,7 @@ DEFINE_HOOK(0x423136, AnimClass_Draw_Remap2, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x42312A, AnimClass_Draw_Remap, 0x6)
+ASMJIT_PATCH(0x42312A, AnimClass_Draw_Remap, 0x6)
 {
 	HouseClass* pOwner = nullptr;
 	GET(AnimClass*, pThis, ESI);

@@ -22,20 +22,20 @@
 #include <SpawnManagerClass.h>
 
 #pragma region SpawnManagerHooks
-DEFINE_HOOK(0x6B6D60, SpawnManagerClass_CTOR_CustomMissile, 6)
+ASMJIT_PATCH(0x6B6D60, SpawnManagerClass_CTOR_CustomMissile, 6)
 {
 	GET(SpawnManagerClass* const, pSpawnManager, ESI);
 	return TechnoTypeExtContainer::Instance.Find(pSpawnManager->SpawnType)->IsCustomMissile ? 0x6B6D86 : 0x0;
 }
 
 #pragma region Update
-DEFINE_HOOK(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
+ASMJIT_PATCH(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 {
 	GET(TechnoTypeClass* const, pSpawnType, EAX);
 	return TechnoTypeExtContainer::Instance.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
 }
 
-DEFINE_HOOK(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
+ASMJIT_PATCH(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
 {
 	GET(SpawnManagerClass*, pSpawnManager, ESI);
 	GET(int, idxSpawn, EDI);
@@ -55,7 +55,7 @@ DEFINE_HOOK(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
 }
 
 //new
-DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
+ASMJIT_PATCH(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 {
 	GET(AircraftClass*, pSpawned, EDI);
 
@@ -78,7 +78,7 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 }
 
 // new
-DEFINE_HOOK(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
+ASMJIT_PATCH(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 {
 	enum
 	{
@@ -105,7 +105,7 @@ DEFINE_HOOK(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 
 #pragma endregion
 
-DEFINE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
+ASMJIT_PATCH(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ECX);
 

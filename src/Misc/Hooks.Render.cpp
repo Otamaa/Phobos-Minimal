@@ -33,7 +33,7 @@ bool IsOnMyView(CoordStruct& coords)
 		&& Point.Y < Drawing::SurfaceDimensions_Hidden().Y + Drawing::SurfaceDimensions_Hidden().Height;
 }
 
-DEFINE_HOOK(0x6D4684, TacticalClass_Draw_Addition, 6)
+ASMJIT_PATCH(0x6D4684, TacticalClass_Draw_Addition, 6)
 {
 	/*auto const pOWner = HouseExtData::FindFirstCivilianHouse();
 

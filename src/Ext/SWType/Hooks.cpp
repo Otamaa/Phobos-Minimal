@@ -26,8 +26,8 @@
 #include <Misc/DamageArea.h>
 #pragma endregion
 
-//DEFINE_HOOK_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
-DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) //_Early
+//ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
+ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
+ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)
 {
 	GET(FakeSuperClass* const, pSuper, ECX);
 	GET_STACK(CellStruct* const, pCell, 0x4);
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	return 0x6CDE40;
 }
 
-DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
+ASMJIT_PATCH(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 {
 	GET(FakeSuperWeaponTypeClass*, pThis, EBP);
 	GET(CCINIClass*, pINI, EBX);
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 #include <Commands/ToggleDesignatorRange.h>
 
 //TODO : integrate this better inside ares SW ecosystems
-DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
+ASMJIT_PATCH(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 {
 	enum
 	{
@@ -174,7 +174,7 @@ DEFINE_HOOK(0x6CBEF4, SuperClass_AnimStage_UseWeeds, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
+ASMJIT_PATCH(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 {
 	enum
 	{
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 }
 
 // This is pointless for SWs using weeds because their charge is tied to weed storage.
-DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
+ASMJIT_PATCH(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
 {
 	enum { Skip = 0x6CC251 };
 
@@ -226,7 +226,7 @@ DEFINE_HOOK(0x6CC1E6, SuperClass_SetSWCharge_UseWeeds, 0x5)
 	return pSuper->_GetTypeExtData()->UseWeeds ? Skip : 0;
 }
 
-DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
+ASMJIT_PATCH(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 {
 	GET(FakeSuperWeaponTypeClass*, pThis, EBP);
 	GET(CCINIClass*, pINI, EBX);
@@ -280,7 +280,7 @@ DEFINE_HOOK(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 #include <Commands/DistributionMode.h>
 
-DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
+ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 {
 	DistributionMode::DrawRadialIndicator();
 
@@ -328,7 +328,7 @@ DEFINE_HOOK(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
+ASMJIT_PATCH(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 {
 	enum { advance = 0x41F0FD, breakloop = 0x41F10D };
 	GET(FakeSuperClass*, pSuper, EDI);
@@ -340,7 +340,7 @@ DEFINE_HOOK(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 
 // these thing picking first SW type with Chronosphere breaking the AI , bruh
 // should check if the SW itself avaible before deciding it!
-DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
+ASMJIT_PATCH(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 {
 	GET(FakeSuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EBP);
@@ -350,7 +350,7 @@ DEFINE_HOOK(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
 		: 0x6EFF1C;//advance
 }
 
-DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
+ASMJIT_PATCH(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 {
 	GET(FakeSuperClass*, pSuper, EAX);
 	GET(HouseClass*, pOwner, EDI);
@@ -360,7 +360,7 @@ DEFINE_HOOK(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 		: 0x6F01D3;//advance
 }
 
-DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
+ASMJIT_PATCH(0x41F180, AITriggerClass_Chrono, 0x5)
 {
 	//GET(AITriggerTypeClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pOwner, 0x4);
@@ -408,7 +408,7 @@ DEFINE_HOOK(0x41F180, AITriggerClass_Chrono, 0x5)
 
 #include <Ext/Team/Body.h>
 
-DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
+ASMJIT_PATCH(0x6EFC70, TeamClass_IronCurtain, 5)
 {
 	GET(TeamClass*, pThis, ECX);
 	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
@@ -480,7 +480,7 @@ DEFINE_HOOK(0x6EFC70, TeamClass_IronCurtain, 5)
 	return 0x6EFE4F;
 }
 
-DEFINE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
+ASMJIT_PATCH(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
 	GET_STACK(CellStruct*, pMapCoords, 0x0C);
 	GET(SuperWeaponTypeClass*, pType, ECX);
@@ -498,7 +498,7 @@ DEFINE_HOOK(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 }
 
 // 6CEE96, 5
-DEFINE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
+ASMJIT_PATCH(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 {
 	GET(const char*, TypeStr, EDI);
 	auto customType = NewSWType::FindFromTypeID(TypeStr);
@@ -510,7 +510,7 @@ DEFINE_HOOK(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
+ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 {
 	enum
 	{
@@ -574,7 +574,7 @@ DEFINE_HOOK(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 }
 
 // play a customizable target selection EVA message
-DEFINE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
+ASMJIT_PATCH(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 {
 	GET(int, index, ESI);
 	VoxClass::PlayIndex(SWTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Supers.Items[index]->Type)->EVA_SelectTarget);
@@ -583,7 +583,7 @@ DEFINE_HOOK(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
 
 // 4AC20C, 7
 // translates SW click to type
-DEFINE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
+ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 {
 	GET_STACK(Action, nAction, 0x9C);
 
@@ -614,7 +614,7 @@ DEFINE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 	return 0x4AC21C;
 }
 
-DEFINE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
+ASMJIT_PATCH(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 {
 	GET_STACK(CellStruct, MapCoords, STACK_OFFS(0x54, 0x3C));
 	REF_STACK(MouseEvent, flag, 0x58);
@@ -643,7 +643,7 @@ DEFINE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 }
 
 // decoupling sw anims from types
-DEFINE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
+ASMJIT_PATCH(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -674,7 +674,7 @@ DEFINE_HOOK(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 	return 0x446580;
 }
 
-DEFINE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
+ASMJIT_PATCH(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
@@ -698,7 +698,7 @@ DEFINE_HOOK(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 }
 
 // EVA_Detected
-DEFINE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
+ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -725,7 +725,7 @@ DEFINE_HOOK(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 
 // EVA_Ready
 // 6CBDD7, 6
-DEFINE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
+ASMJIT_PATCH(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 {
 	GET(FakeSuperWeaponTypeClass*, pThis, EAX);
 	const auto pData = pThis->_GetExtData();
@@ -742,7 +742,7 @@ DEFINE_HOOK(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 }
 
 // 6CC0EA, 9
-DEFINE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
+ASMJIT_PATCH(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 {
 	GET(FakeSuperClass*, pThis, ESI);
 	const auto pData = pThis->_GetTypeExtData();
@@ -758,7 +758,7 @@ DEFINE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 	return 0;
 }
 
-//DEFINE_HOOK(0x6CBDB7  , SuperClass_Upadate_ChargeDrainSWReady , 0x6)
+//ASMJIT_PATCH(0x6CBDB7  , SuperClass_Upadate_ChargeDrainSWReady , 0x6)
 //{
 //	GET(SuperClass* , pThis , ESI);
 //	const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -773,7 +773,7 @@ DEFINE_HOOK(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
 //}
 
 // AI SW targeting submarines
-DEFINE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
+ASMJIT_PATCH(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 {
 	// reset weight
 	R->ESI(0);
@@ -784,7 +784,7 @@ DEFINE_HOOK(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 	return 0x50CFC9;
 }
 
-DEFINE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
+ASMJIT_PATCH(0x457630, BuildingClass_SWAvailable, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
 
@@ -796,7 +796,7 @@ DEFINE_HOOK(0x457630, BuildingClass_SWAvailable, 9)
 	return 0x457688;
 }
 
-DEFINE_HOOK(0x457690, BuildingClass_SW2Available, 9)
+ASMJIT_PATCH(0x457690, BuildingClass_SW2Available, 9)
 {
 	GET(BuildingClass*, pThis, ECX);
 
@@ -808,7 +808,7 @@ DEFINE_HOOK(0x457690, BuildingClass_SW2Available, 9)
 	return 0x4576E8;
 }
 
-DEFINE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
+ASMJIT_PATCH(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -816,13 +816,13 @@ DEFINE_HOOK(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 		? 0x43BEEAu : 0x43BEF5u;
 }
 
-DEFINE_HOOK(0x449716, BuildingClass_Mi_Guard_HasFirstSW, 6)
+ASMJIT_PATCH(0x449716, BuildingClass_Mi_Guard_HasFirstSW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return pThis->FirstActiveSWIdx() != -1 ? 0x4497AFu : 0x449762u;
 }
 
-DEFINE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
+ASMJIT_PATCH(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 {
 	GET(HouseClass*, pThis, EBX);
 
@@ -833,7 +833,7 @@ DEFINE_HOOK(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 	return 0x4FAE7B;
 }
 
-DEFINE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
+ASMJIT_PATCH(0x6CC2B0, SuperClass_NameReadiness, 5)
 {
 	GET(FakeSuperClass*, pThis, ECX);
 
@@ -883,7 +883,7 @@ DEFINE_HOOK(0x6CC2B0, SuperClass_NameReadiness, 5)
 }
 
 // #896002: darken SW cameo if player can't afford it
-DEFINE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
+ASMJIT_PATCH(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 {
 	GET(int, idxSW, EDI);
 
@@ -901,7 +901,7 @@ DEFINE_HOOK(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
+ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 {
 	enum { UpdateAIExpert = 0x4F9015 , Continue = 0x4F9038};
 
@@ -916,7 +916,7 @@ DEFINE_HOOK(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 	return pThis->Type->MultiplayPassive ? Continue : UpdateAIExpert;
 }
 
-DEFINE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
+ASMJIT_PATCH(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 {
 	GET_STACK(int, rechargeTime1, 0x10);
 	GET_STACK(int, rechargeTime2, 0x14);
@@ -933,14 +933,14 @@ DEFINE_HOOK(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 	return 0x6CC053;
 }
 
-DEFINE_HOOK(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5)
+ASMJIT_PATCH(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5)
 {
 	R->EAX<int>(R->EAX<int>() > 54 ? 54 : R->EAX<int>());
 	return 0x6CC066;
 }
 
 // a ChargeDrain SW expired - fire it to trigger status update
-DEFINE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
+ASMJIT_PATCH(0x6CBD86, SuperClass_Progress_Charged, 7)
 {
 	GET(SuperClass* const, pThis, ESI);
 	SWTypeExtData::Deactivate(pThis, CellStruct::Empty, true);
@@ -948,7 +948,7 @@ DEFINE_HOOK(0x6CBD86, SuperClass_Progress_Charged, 7)
 }
 
 // SW was lost (source went away)
-DEFINE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
+ASMJIT_PATCH(0x6CB7B0, SuperClass_Lose, 6)
 {
 	GET(SuperClass* const, pThis, ECX);
 	auto ret = false;
@@ -984,7 +984,7 @@ DEFINE_HOOK(0x6CB7B0, SuperClass_Lose, 6)
 
 // activate or deactivate the SW
 // ForceCharged on IDB
-DEFINE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
+ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 {
 	GET(SuperClass* const, pThis, ECX);
 	GET_STACK(bool const, isPlayer, 0x4);
@@ -1090,7 +1090,7 @@ DEFINE_HOOK(0x6CB920, SuperClass_ClickFire, 5)
 }
 
 // rewriting OnHold to support ChargeDrain
-DEFINE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
+ASMJIT_PATCH(0x6CB4D0, SuperClass_SetOnHold, 6)
 {
 	GET(SuperClass*, pThis, ECX);
 	GET_STACK(bool const, onHold, 0x4);
@@ -1156,7 +1156,7 @@ DEFINE_HOOK(0x6CB4D0, SuperClass_SetOnHold, 6)
 	return 0x6CB555;
 }
 
-DEFINE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
+ASMJIT_PATCH(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 {
 	// draining weapon active. take or give money. stop,
 	// if player has insufficient funds.
@@ -1196,7 +1196,7 @@ DEFINE_HOOK(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 }
 
 // clear the chrono placement animation if not ChronoWarp
-DEFINE_STRONG_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
+ASMJIT_PATCH(0x6CBCDE, SuperClass_Update_Animation, 5)
 {
 	enum { HideAnim = 0x6CBCE3 , Continue = 0x6CBCFE };
 
@@ -1211,7 +1211,7 @@ DEFINE_STRONG_HOOK(0x6CBCDE, SuperClass_Update_Animation, 5)
 }
 
 // used only to find the nuke for ICBM crates. only supports nukes fully.
-DEFINE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
+ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 {
 	GET(Action, action, ECX);
 
@@ -1251,7 +1251,7 @@ DEFINE_HOOK(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	return 0x6CEEE5;
 }
 
-DEFINE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
+ASMJIT_PATCH(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
 {
 	enum
 	{
@@ -1270,7 +1270,7 @@ DEFINE_HOOK(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
 	return pThis->IsOnHold ? DrawSuspended : DrawNormal;
 }
 
-DEFINE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
+ASMJIT_PATCH(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 {
 	GET(SuperClass*, pSuper, ESI);
 
@@ -1320,7 +1320,7 @@ DEFINE_HOOK(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 	return 0x6CB750;
 }
 
-DEFINE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
+ASMJIT_PATCH(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1346,7 +1346,7 @@ DEFINE_HOOK(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
 
 #include <EventClass.h>
 
-DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
+ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 {
 	//GET(CellStruct*, pCell, EDX);
 	//GET(int, Checksum, EAX);
@@ -1379,7 +1379,7 @@ DEFINE_HOOK(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	return 0x4C78F8;
 }
 
-DEFINE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
+ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1447,7 +1447,7 @@ DEFINE_HOOK(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 	return 0x50B1CA;
 }
 
-DEFINE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
+ASMJIT_PATCH(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -1490,7 +1490,7 @@ DEFINE_HOOK(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 }
 
 // create a downward pointing missile if the launched one leaves the map.
-DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
+ASMJIT_PATCH(0x46B371, BulletClass_NukeMaker, 5)
 {
 	GET(BulletClass* const, pThis, EBP);
 
@@ -1543,7 +1543,7 @@ DEFINE_HOOK(0x46B371, BulletClass_NukeMaker, 5)
 }
 
 // just puts the launched SW pointer on the downward aiming missile.
-DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
+ASMJIT_PATCH(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 {
 	GET(BulletClass* const, pThis, EBP);
 	GET(BulletClass* const, pNuke, EDI);
@@ -1558,7 +1558,7 @@ DEFINE_HOOK(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 }
 
 // deferred explosion. create a nuke ball anim and, when that is over, go boom.
-DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
+ASMJIT_PATCH(0x467E59, BulletClass_Update_NukeBall, 5)
 {
 	// changed the hardcoded way to just do this if the warhead is called NUKE
 		// to a more universal approach. every warhead can get this behavior.
@@ -1625,7 +1625,7 @@ DEFINE_HOOK(0x467E59, BulletClass_Update_NukeBall, 5)
 }
 
 //create nuke pointing down to the target
-//DEFINE_HOOK(0x46B310, BulletClass_NukeMaker_Handle, 6)
+//ASMJIT_PATCH(0x46B310, BulletClass_NukeMaker_Handle, 6)
 //{
 //	GET(BulletClass*, pThis, ECX);
 //
@@ -1674,7 +1674,7 @@ namespace EMPulseCannonTemp
 	int weaponIndex = 0;
 }
 
-DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
+ASMJIT_PATCH(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBP);
@@ -1705,7 +1705,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 
 #include <Ext/Anim/Body.h>
 
-DEFINE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
+ASMJIT_PATCH(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -1728,7 +1728,7 @@ DEFINE_HOOK(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 
 // this one setting the building target
 // either it is non EMPulse or EMPulse
-DEFINE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
+ASMJIT_PATCH(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 {
 	enum { ProcessEMPulse = 0x44CD18, ReturnFromFunc = 0x44D599 };
 	GET(BuildingClass* const, pThis, ESI);
@@ -1756,7 +1756,7 @@ DEFINE_HOOK(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	return ProcessEMPulse;
 }
 
-DEFINE_HOOK(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
+ASMJIT_PATCH(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 {
 	enum { SkipGameCode = 0x44CEF8 };
 
@@ -1813,7 +1813,7 @@ CoordStruct* FakeBuildingClass::_GetFLH(CoordStruct* pCrd, int weaponIndex)
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x44D1F9, FakeBuildingClass::_GetFLH);
 
-DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
+ASMJIT_PATCH(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(HouseClass*, pOwner, EBP);
@@ -1833,7 +1833,7 @@ DEFINE_HOOK(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 }
 
 // Create bullet pointing up to the sky
-DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
+ASMJIT_PATCH(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 {
 	enum
 	{
@@ -1902,7 +1902,7 @@ DEFINE_HOOK(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 }
 
 // this is a complete rewrite of LightningStorm::Start.
-DEFINE_HOOK(0x539EB0, LightningStorm_Start, 5)
+ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 {
 	const auto pSuper = SW_LightningStorm::CurrentLightningStorm;
 
@@ -2014,7 +2014,7 @@ DEFINE_HOOK(0x539EB0, LightningStorm_Start, 5)
 }
 
 // this is a complete rewrite of LightningStorm::Update.
-DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
+ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 {
 	enum { Legacy = 0x53A8FFu, Handled = 0x53AB45u };
 
@@ -2280,7 +2280,7 @@ DEFINE_HOOK(0x53A6CF, LightningStorm_Update, 7)
 }
 
 // create a cloud.
-DEFINE_HOOK(0x53A140, LightningStorm_Strike, 7)
+ASMJIT_PATCH(0x53A140, LightningStorm_Strike, 7)
 {
 	if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm)
 	{
@@ -2331,7 +2331,7 @@ DEFINE_HOOK(0x53A140, LightningStorm_Strike, 7)
 }
 
 // create bolt and damage area.
-DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
+ASMJIT_PATCH(0x53A300, LightningStorm_Strike2, 5)
 {
 	auto const pSuper = SW_LightningStorm::CurrentLightningStorm;
 
@@ -2459,7 +2459,7 @@ DEFINE_HOOK(0x53A300, LightningStorm_Strike2, 5)
 }
 
 // completely replace the PsyDom::Fire() method.
-DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
+ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 {
 	if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 	{
@@ -2624,7 +2624,7 @@ DEFINE_HOOK(0x53B080, PsyDom_Fire, 5)
 }
 
 // replace entire function
-DEFINE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
+ASMJIT_PATCH(0x53C280, ScenarioClass_UpdateLighting, 5)
 {
 	const auto lighting = SWTypeExtData::GetLightingColor();
 
@@ -2644,7 +2644,7 @@ DEFINE_HOOK(0x53C280, ScenarioClass_UpdateLighting, 5)
 	return 0x53C441;
 }
 
-DEFINE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
+ASMJIT_PATCH(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 {
 	GET(LightConvertClass*, pThis, ESI);
 
@@ -2671,7 +2671,7 @@ DEFINE_HOOK(0x555E50, LightConvertClass_CTOR_Lighting, 5)
 	return 0x55606C;
 }
 
-DEFINE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
+ASMJIT_PATCH(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	bool Contains = false;
@@ -2692,14 +2692,14 @@ DEFINE_HOOK(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	return  Contains ? 0x4555DA : 0x0;
 }
 
-DEFINE_HOOK(0x508E66, HouseClass_UpdateRadar_Battery, 8)
+ASMJIT_PATCH(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
 	return !HouseExtContainer::Instance.Find(pThis)->Batteries.empty()
 		? 0x508E87 : 0x508F2F;
 }
 
-DEFINE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
+ASMJIT_PATCH(0x44019D, BuildingClass_Update_Battery, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -2721,7 +2721,7 @@ DEFINE_HOOK(0x44019D, BuildingClass_Update_Battery, 6)
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;
 
-DEFINE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
+ASMJIT_PATCH(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 
@@ -2731,7 +2731,7 @@ DEFINE_HOOK(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
+ASMJIT_PATCH(0x6A9A2A, StripClass_Draw_Main, 6)
 {
 	GET_STACK(TechnoTypeClass*, pTechno, 0x6C);
 
@@ -2748,14 +2748,14 @@ DEFINE_HOOK(0x6A9A2A, StripClass_Draw_Main, 6)
 	return 0x6A9A30;
 }
 
-DEFINE_HOOK(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
+ASMJIT_PATCH(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 	CameoPCXSurface = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPCX.GetSurface();
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
+ASMJIT_PATCH(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 {
 	GET(TechnoTypeClass*, pType, EBX);
 
@@ -2764,7 +2764,7 @@ DEFINE_HOOK(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
+ASMJIT_PATCH(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 {
 	if(CameoPCXSurface)
 		return 0x6A9A43;
@@ -2802,7 +2802,7 @@ DEFINE_HOOK(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
+ASMJIT_PATCH(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 {
 	if (CameoPCXSurface)
 	{
@@ -2817,7 +2817,7 @@ DEFINE_HOOK(0x6A9A43, StripClass_Draw_DrawPCX, 6)
 }
 
 // bugfix #277 revisited: VeteranInfantry and friends don't show promoted cameos
-DEFINE_HOOK(0x712045, TechnoTypeClass_GetCameo, 5)
+ASMJIT_PATCH(0x712045, TechnoTypeClass_GetCameo, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 

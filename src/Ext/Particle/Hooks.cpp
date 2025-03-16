@@ -16,7 +16,7 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 */
 
 
-DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the beginning: 0x62CE49 0x6
+ASMJIT_PATCH(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the beginning: 0x62CE49 0x6
 {
 	GET(FakeParticleClass*, pThis, ESI);
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 }
 //#endif
 
-DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
+ASMJIT_PATCH(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
 	GET(FakeParticleClass*, pThis, ESI);
@@ -53,7 +53,7 @@ DEFINE_HOOK(0x62D301, ParticleClass_SmokeDirection_AI_WinDirMult, 0x6)
 	return 0x62D30D;
 }
 
-DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
+ASMJIT_PATCH(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 {
 	GET(int, facing, EAX);
 	GET(FakeParticleClass*, pThis, ESI);
@@ -63,7 +63,7 @@ DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 	return 0x62D456;
 }
 
-//DEFINE_HOOK(0x62BD69, ParticleClass_ProcessGasBehaviour_NoWind, 6)
+//ASMJIT_PATCH(0x62BD69, ParticleClass_ProcessGasBehaviour_NoWind, 6)
 //{
 //	GET(ParticleClass* const, pThis, EBP);
 //
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 //		? 0x62C200 : 0x0;
 //}
 //
-//DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
+//ASMJIT_PATCH(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 //{
 //	GET(ParticleClass*, pThis, EBP);
 //	GET(ParticleTypeClass* const, pType, EDI);
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x62D44A, ParticleClass_GasDirection_AI_WinDirMult, 0x6)
 //	return 0x62C394;
 //}
 //
-DEFINE_HOOK(0x62BE2B, ParticleClass_Gas_AI_DriftSpeed, 0x5)
+ASMJIT_PATCH(0x62BE2B, ParticleClass_Gas_AI_DriftSpeed, 0x5)
 {
 
 	GET(FakeParticleClass*, pParticle, EBP);
@@ -131,7 +131,7 @@ DEFINE_HOOK(0x62BE2B, ParticleClass_Gas_AI_DriftSpeed, 0x5)
 	return 0x62BE60;
 }
 
-//DEFINE_HOOK(0x62CD2F, ParticleClass_Update_Fire, 8)
+//ASMJIT_PATCH(0x62CD2F, ParticleClass_Update_Fire, 8)
 //{
 //
 //}

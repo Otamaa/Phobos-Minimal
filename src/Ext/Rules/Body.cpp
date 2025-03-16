@@ -101,7 +101,7 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionRed);
 }
 
-DEFINE_HOOK(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)
+ASMJIT_PATCH(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)
 {
 	GET(DWORD, ptr, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -295,7 +295,7 @@ static COMPILETIMEEVAL void FillSecrets(DynamicVectorClass<T>& secrets) {
 	}
 }
 
-DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
@@ -1506,7 +1506,7 @@ void RulesExtData::Serialize(T& Stm)
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x667A1D, RulesClass_CTOR, 0x5)
+ASMJIT_PATCH(0x667A1D, RulesClass_CTOR, 0x5)
 {
 	GET(RulesClass*, pItem, ESI);
 
@@ -1515,7 +1515,7 @@ DEFINE_HOOK(0x667A1D, RulesClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x667A30, RulesClass_DTOR, 0x5)
+ASMJIT_PATCH(0x667A30, RulesClass_DTOR, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
 
@@ -1525,8 +1525,7 @@ DEFINE_HOOK(0x667A30, RulesClass_DTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x674730, RulesClass_SaveLoad_Prefix, 0x6)
-DEFINE_HOOK(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
+ASMJIT_PATCH(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(IStream*, pStm, 0x4);
@@ -1546,9 +1545,10 @@ DEFINE_HOOK(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 	RulesExtData::g_pStm = pStm;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x674730, RulesClass_SaveLoad_Prefix, 0x6)
 
-DEFINE_HOOK(0x678841, RulesClass_Load_Suffix, 0x7)
+
+ASMJIT_PATCH(0x678841, RulesClass_Load_Suffix, 0x7)
 {
 	auto buffer = RulesExtData::Instance();
 
@@ -1564,7 +1564,7 @@ DEFINE_HOOK(0x678841, RulesClass_Load_Suffix, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
+ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 {
 	auto buffer = RulesExtData::Instance();
 	/* 7 extra boolean that added to the save
@@ -1591,7 +1591,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 DEFINE_JUMP(LJMP, 0x52C9C4, 0x52CA37);
 
 // Read on very first RulesClass::Process function
-DEFINE_HOOK(0x668BF0, RulesClass_Process_Addition, 0x5)
+ASMJIT_PATCH(0x668BF0, RulesClass_Process_Addition, 0x5)
 {
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x4);
@@ -1601,7 +1601,7 @@ DEFINE_HOOK(0x668BF0, RulesClass_Process_Addition, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
+ASMJIT_PATCH(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 {
 	GET(CCINIClass*, pINI, ESI);
 
@@ -1710,7 +1710,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x668BFE, FakeRulesClass::_ReadColors);
 DEFINE_FUNCTION_JUMP(CALL, 0x668EE8, FakeRulesClass::_ReadGeneral);
 DEFINE_JUMP(LJMP, 0x668EED, 0x668F6A);
 
-DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
+ASMJIT_PATCH(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 {
 	GET(CCINIClass*, pINI, EDI);
 	INI_EX exINI(pINI);
@@ -1721,7 +1721,7 @@ DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
+ASMJIT_PATCH(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
 	if (R->AL()) //ScenarioLoadSucceed
 	{
@@ -1742,7 +1742,7 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 	return 0x0;
 }
 
-DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
+ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
 	Debug::LogInfo("Scenario Map Name [{}] ", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
 
@@ -1787,7 +1787,7 @@ DEFINE_PATCH_TYPED(BYTE, 0x669193
 	, 0x90, 0x90, 0x90, 0x90, 0x90
 );
 
-DEFINE_HOOK(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
+ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 {
 
 	GET(ParticleSystemClass*, pMem, ESI);

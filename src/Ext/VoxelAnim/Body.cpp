@@ -80,7 +80,7 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
 
-DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
+ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x749B02, VoxelAnimClass_DTOR, 0xA)
+ASMJIT_PATCH(0x749B02, VoxelAnimClass_DTOR, 0xA)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
 

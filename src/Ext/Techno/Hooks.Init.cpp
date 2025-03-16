@@ -8,10 +8,7 @@
 
 #include <InfantryClass.h>
 
-DEFINE_HOOK_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
-DEFINE_HOOK_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
-DEFINE_HOOK_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType, 0x6)
-DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
+ASMJIT_PATCH(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, ECX);
@@ -20,10 +17,11 @@ DEFINE_HOOK(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
 		TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
 
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
+ASMJIT_PATCH_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
+ASMJIT_PATCH_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType, 0x6)
 
-
-DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
+ASMJIT_PATCH(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -34,7 +32,7 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
+ASMJIT_PATCH(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(UnitTypeClass*, pType, EAX);
@@ -46,7 +44,7 @@ DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 	return 0x7355C0;
 }
 
-DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
+ASMJIT_PATCH(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pType, EAX);
@@ -58,7 +56,7 @@ DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 	return 0x414057;
 }
 
-DEFINE_HOOK(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
+ASMJIT_PATCH(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
 	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));

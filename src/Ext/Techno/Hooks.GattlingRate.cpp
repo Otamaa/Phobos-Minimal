@@ -1,7 +1,7 @@
 #include "Body.h"
 #include <Ext/TechnoType/Body.h>
 
-DEFINE_HOOK(0x70DE40, BuildingClass_sub_70DE40_GattlingRateDownDelay, 0xA)
+ASMJIT_PATCH(0x70DE40, BuildingClass_sub_70DE40_GattlingRateDownDelay, 0xA)
 {
 	enum { Return = 0x70DE62 };
 
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x70DE40, BuildingClass_sub_70DE40_GattlingRateDownDelay, 0xA)
 	return Return;
 }
 
-DEFINE_HOOK(0x70DE70, TechnoClass_sub_70DE70_GattlingRateDownReset, 0x5)
+ASMJIT_PATCH(0x70DE70, TechnoClass_sub_70DE70_GattlingRateDownReset, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x70DE70, TechnoClass_sub_70DE70_GattlingRateDownReset, 0x5)
 
 }
 
-DEFINE_HOOK(0x70E01E, TechnoClass_sub_70E000_GattlingRateDownDelay, 0x6)
+ASMJIT_PATCH(0x70E01E, TechnoClass_sub_70E000_GattlingRateDownDelay, 0x6)
 {
 	enum { SkipGameCode = 0x70E04D };
 

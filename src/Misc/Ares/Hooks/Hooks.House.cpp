@@ -36,7 +36,7 @@ static COMPILETIMEEVAL int ObserverFlagPCXY = 70;
 static COMPILETIMEEVAL int ObserverFlagPCXWidth = 45;
 static COMPILETIMEEVAL int ObserverFlagPCXHeight = 21;
 
-DEFINE_HOOK(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
+ASMJIT_PATCH(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
 {
 	enum { DrawSHP = 0x6AA0ED, DontDraw = 0x6AA159 };
 
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
 	return DontDraw;
 }
 
-DEFINE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
+ASMJIT_PATCH(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 {
 	enum { IDontKnowYou = 0x6AA16D, DrawSHP = 0x6AA1DB, DontDraw = 0x6AA2CE };
 
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 	return DontDraw;
 }
 
-DEFINE_HOOK(0x4E3560, Game_GetFlagSurface, 5)
+ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 {
 	GET(int, n, ECX);
 	//GET_STACK(DWORD, caller, 0x0);
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x4E3560, Game_GetFlagSurface, 5)
 	return 0x0; // handle check
 }
 
-DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)
+ASMJIT_PATCH(0x4E38A0, LoadPlayerCountryString, 5)
 {
 	GET(int, n, ECX);
 
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x4E38A0, LoadPlayerCountryString, 5)
 	return n == -2 ? Neg2Result : NextCompare; /// overriden
 }
 
-DEFINE_HOOK(0x553412, LoadProgressMgr_Draw_LSFile, 9)
+ASMJIT_PATCH(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 {
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x553421, DefaultResult = 0x553416, RetResult = 0x55342C };
@@ -164,7 +164,7 @@ DEFINE_HOOK(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 	return SwitchStatement; //switch
 }
 
-DEFINE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 9)
+ASMJIT_PATCH(0x5536da, LoadProgressMgr_Draw_LSName, 9)
 {
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
@@ -181,7 +181,7 @@ DEFINE_HOOK(0x5536da, LoadProgressMgr_Draw_LSName, 9)
 	return SwitchStatement;//switch
 }
 
-DEFINE_HOOK(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
+ASMJIT_PATCH(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
 {
 	GET_STACK(int, n, 0x38);
 	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B };
@@ -199,7 +199,7 @@ DEFINE_HOOK(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
 	return SwitchStatement; //the default for switch statement is `null`
 }
 
-DEFINE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
+ASMJIT_PATCH(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 {
 	GET_STACK(int, n, 0x38);
 	enum { SwitchStatement = 0x553D2B, DefaultResult = 0x553D0E, RetResult = 0x553E54 };
@@ -217,13 +217,13 @@ DEFINE_HOOK(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 	return SwitchStatement; //the default for switch statement is `null`
 }
 
-DEFINE_HOOK(0x69B774, HTExt_PickRandom_Human, 5)
+ASMJIT_PATCH(0x69B774, HTExt_PickRandom_Human, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B788;
 }
 
-DEFINE_HOOK(0x69B670, HTExt_PickRandom_AI, 5)
+ASMJIT_PATCH(0x69B670, HTExt_PickRandom_AI, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B684;
@@ -256,7 +256,7 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, ui
 }
 
 // break short game ?
-DEFINE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
+ASMJIT_PATCH(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
 {
 	GET(TechnoClass*, pTech, ESI);
 	GET(HouseClass*, pThis, EDI);
@@ -266,7 +266,7 @@ DEFINE_HOOK(0x4ff563, HouseClass_RegisterTechnoLoss_StatCounters_KeepAlive, 6)
 	return Keep ? 0x4FF596 : 0x4FF6CE;
 }
 
-DEFINE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
+ASMJIT_PATCH(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
 {
 	GET(TechnoClass*, pTech, ESI);
 	GET(HouseClass*, pThis, EDI);
@@ -276,7 +276,7 @@ DEFINE_HOOK(0x4ff71b, HouseClass_RegisterTechnoGain_StatCounters_KeepAlive, 6)
 	return Keep ? 0x4FF748 : 0x4FF8C6;
 }
 
-DEFINE_HOOK(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
+ASMJIT_PATCH(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 {
 	GET(BuildingTypeClass*, pBuilding, EDX);
 	auto pEXt = BuildingTypeExtContainer::Instance.Find(pBuilding);
@@ -284,7 +284,7 @@ DEFINE_HOOK(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 	return 0x50630C;
 }
 
-DEFINE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
+ASMJIT_PATCH(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 {
 	GET(BuildingClass*, pSource, ESI);
 
@@ -300,7 +300,7 @@ DEFINE_HOOK(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
 }
 
 // drain affecting only the drained power plant
-DEFINE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
+ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
@@ -349,7 +349,7 @@ DEFINE_HOOK(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 }
 
 // replaced the entire function, to have one centralized implementation
-DEFINE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
+ASMJIT_PATCH(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
@@ -357,7 +357,7 @@ DEFINE_HOOK(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
 	return 0x505300;
 }
 
-DEFINE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
+ASMJIT_PATCH(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 {
 	enum { hasBaseUnit = 0x688B75, hasNoBaseUnit = 0x688C09 };
 
@@ -377,7 +377,7 @@ DEFINE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 	return hasNoBaseUnit;
 }
 
-// DEFINE_HOOK(0x5D721A, MPGameMode_CreateStartingUnits, 5)
+// ASMJIT_PATCH(0x5D721A, MPGameMode_CreateStartingUnits, 5)
 // {
 // 	GET_STACK(int, UnitCount, 0x40);
 // 	GET_STACK(HouseClass*, pHouse, 0x4C);
@@ -389,14 +389,14 @@ DEFINE_HOOK(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 // 	return 0;
 // }
 
-// DEFINE_HOOK(0x4F8440, HouseClass_Update_TogglePower, 5)
+// ASMJIT_PATCH(0x4F8440, HouseClass_Update_TogglePower, 5)
 // {
 // 	GET(HouseClass* const, pThis, ECX);
 // 	AresHouseExt::UpdateTogglePower(pThis);
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
+ASMJIT_PATCH(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 {
 	GET(HouseClass*, pHouse, EAX);
 
@@ -411,8 +411,8 @@ DEFINE_HOOK(0x52267D, InfantryClass_GetDisguise_Disguise, 6)
 	}
 }
 
-DEFINE_HOOK_AGAIN(0x6F422F, Sides_Disguise, 6) // TechnoClass_Init
-DEFINE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
+
+ASMJIT_PATCH(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 {
 	GET(HouseClass*, pHouse, EAX);
 	InfantryClass* pThis = nullptr;
@@ -446,9 +446,9 @@ DEFINE_HOOK(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 		}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6F422F, Sides_Disguise, 6) // TechnoClass_Init
 
-DEFINE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
+ASMJIT_PATCH(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 {
 	GET(HouseClass* const, pThis, ESI);
 
@@ -496,7 +496,7 @@ DEFINE_HOOK(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 
 static std::vector<BuildingTypeClass*> Eligible;
 
-DEFINE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
+ASMJIT_PATCH(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 {
 	GET(HouseClass* const, pThis, EBP);
 	auto const pExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
@@ -537,7 +537,7 @@ DEFINE_HOOK(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 	return 0x4FE893;
 }
 
-DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
+ASMJIT_PATCH(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -612,7 +612,7 @@ DEFINE_HOOK(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 
 // this is checked right before the TeamClass is instantiated -
 // it does not mean the AI will abandon this team if another team wants BuildLimit'ed units at the same time
-DEFINE_HOOK(0x50965E, HouseClass_CanInstantiateTeam, 5)
+ASMJIT_PATCH(0x50965E, HouseClass_CanInstantiateTeam, 5)
 {
 	GET(DWORD, ptrTask, EAX);
 	GET(DWORD, ptrOffset, ECX);
@@ -644,9 +644,7 @@ DEFINE_HOOK(0x50965E, HouseClass_CanInstantiateTeam, 5)
 	return CanBuild;
 }
 
-DEFINE_HOOK_AGAIN(0x507DBA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiArmorDefense
-DEFINE_HOOK_AGAIN(0x507FAA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiInfantryDefense
-DEFINE_HOOK(0x507BCA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiAirDefense
+ASMJIT_PATCH(0x507BCA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiAirDefense
 {
 	GET(HouseTypeClass*, pCountry, EAX);
 	static DynamicVectorClass<BuildingTypeClass*> dummy;
@@ -662,9 +660,10 @@ DEFINE_HOOK(0x507BCA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiAirDefen
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x507DBA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiArmorDefense
+ASMJIT_PATCH_AGAIN(0x507FAA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiInfantryDefense
 
-DEFINE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
+ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 {
 	GET(HouseClass* const, pThis, EBX);
 	GET_STACK(int const, idxSide, 0x80);
@@ -727,7 +726,7 @@ DEFINE_HOOK(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 }
 
 // #917 - validate build list before it needs to be generated
-DEFINE_HOOK(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
+ASMJIT_PATCH(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
 {
 	GET(HouseClass* const, pThis, ECX);
 
@@ -738,7 +737,7 @@ DEFINE_HOOK(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
+ASMJIT_PATCH(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
 {
 	//GET(HouseClass *, pHouse, ECX);
 
@@ -751,7 +750,7 @@ DEFINE_HOOK(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
 	return 0x505486;
 }
 
-DEFINE_HOOK(0x5F7900, ObjectTypeClass_FindFactory, 5)
+ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pHouse, 0x10);
@@ -773,7 +772,7 @@ DEFINE_HOOK(0x5F7900, ObjectTypeClass_FindFactory, 5)
 	return 0x5F7A89;
 }
 
-DEFINE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
+ASMJIT_PATCH(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 {
 	GET(TechnoClass*, pFactoryObject, ESI);
 
@@ -787,7 +786,7 @@ DEFINE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 	return 0x6AB320;
 }
 
-DEFINE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
+ASMJIT_PATCH(0x4F7870, HouseClass_CanBuild, 7)
 {
 	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
 /* return
@@ -853,7 +852,7 @@ static inline bool CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTyp
 	return false;
 }
 
-DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
+ASMJIT_PATCH(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
@@ -895,7 +894,7 @@ DEFINE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
 
 
 // All technos have Cameo_AlwaysExist=true need to change the EVA_NewConstructionOptions playing time
-DEFINE_HOOK(0x6A640B, SideBarClass_AddCameo_DoNotPlayEVA, 0x5)
+ASMJIT_PATCH(0x6A640B, SideBarClass_AddCameo_DoNotPlayEVA, 0x5)
 {
 	enum { SkipPlaying = 0x6A641A };
 
@@ -917,7 +916,7 @@ DEFINE_JUMP(LJMP, 0x50928C, 0x5092A3);
 // catches all invalid cells. otherwise, the game can write of of bounds, which can
 // set a field that is supposed to be a pointer, and crash when calling a virtual
 // method on it. in worst case, this goes unnoticed.
-DEFINE_HOOK(0x4FA2E0, HouseClass_SetThreat_Bounds, 0x7)
+ASMJIT_PATCH(0x4FA2E0, HouseClass_SetThreat_Bounds, 0x7)
 {
 	//GET(HouseClass*, pThis, ESI);
 	GET_STACK(int, index, 0x4);
@@ -927,7 +926,7 @@ DEFINE_HOOK(0x4FA2E0, HouseClass_SetThreat_Bounds, 0x7)
 }
 
 //#pragma optimize("", off )
-DEFINE_HOOK(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
+ASMJIT_PATCH(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
 {
 	GET_STACK(HouseClass*, pOtherHouse, 0x10);
 	GET(HouseClass*, pThis, ECX);
@@ -942,7 +941,7 @@ DEFINE_HOOK(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
 }
 //#pragma optimize("", on)
 
-DEFINE_HOOK(0x509303, HouseClass_AllyWith_unused, 0x6)
+ASMJIT_PATCH(0x509303, HouseClass_AllyWith_unused, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(HouseClass*, pThat, EAX);
@@ -953,7 +952,7 @@ DEFINE_HOOK(0x509303, HouseClass_AllyWith_unused, 0x6)
 
 // don't crash if you can't find a base unit
 // I imagine we'll have a pile of hooks like this sooner or later
-DEFINE_HOOK(0x4F65BF, HouseClass_CanAffordBase, 0x6)
+ASMJIT_PATCH(0x4F65BF, HouseClass_CanAffordBase, 0x6)
 {
 	GET(UnitTypeClass*, pBaseUnit, ECX);
 
@@ -966,28 +965,28 @@ DEFINE_HOOK(0x4F65BF, HouseClass_CanAffordBase, 0x6)
 	return 0x4F65DA;
 }
 
-DEFINE_HOOK(0x50067C, HouseClass_ClearFactoryCreatedManually, 0x6)
+ASMJIT_PATCH(0x50067C, HouseClass_ClearFactoryCreatedManually, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
 	pThis->InfantryType_53D1 = false;
 	return 0x5006C0;
 }
 
-DEFINE_HOOK(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
+ASMJIT_PATCH(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
 	pThis->InfantryType_53D1 = true;
 	return 0x500612;
 }
 
-DEFINE_HOOK(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
+ASMJIT_PATCH(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
 	pThis->InfantryType_53D1 = R->EDX<bool>();
 	return 0x50080D;
 }
 
-DEFINE_HOOK(0x455E4C, HouseClass_FindRepairBay, 0x9)
+ASMJIT_PATCH(0x455E4C, HouseClass_FindRepairBay, 0x9)
 {
 	GET(UnitClass* const, pUnit, ECX);
 	GET(BuildingClass* const, pBay, ESI);
@@ -1015,7 +1014,7 @@ DEFINE_HOOK(0x455E4C, HouseClass_FindRepairBay, 0x9)
 
 // fixes SWs not being available in campaigns if they have been turned off in a
 // multiplayer mode
-DEFINE_HOOK(0x5055D8, HouseClass_GenerateAIBuildList_SWAllowed, 0x5)
+ASMJIT_PATCH(0x5055D8, HouseClass_GenerateAIBuildList_SWAllowed, 0x5)
 {
 	auto const allowed = SessionClass::Instance->GameMode == GameMode::Campaign
 		|| GameModeOptionsClass::Instance->SWAllowed;
@@ -1037,7 +1036,7 @@ DEFINE_HOOK(0x5055D8, HouseClass_GenerateAIBuildList_SWAllowed, 0x5)
  * fixed old fix, which was quite broken itself...
  */
 
-DEFINE_HOOK(0x505B58, HouseClass_GenerateAIBuildList_SkipManualCopy, 0x6)
+ASMJIT_PATCH(0x505B58, HouseClass_GenerateAIBuildList_SkipManualCopy, 0x6)
 {
 	REF_STACK(DynamicVectorClass<BuildingTypeClass*>, PlannedBase1, STACK_OFFS(0xA4, 0x90));
 	REF_STACK(DynamicVectorClass<BuildingTypeClass*>, PlannedBase2, STACK_OFFS(0xA4, 0x78));
@@ -1045,14 +1044,14 @@ DEFINE_HOOK(0x505B58, HouseClass_GenerateAIBuildList_SkipManualCopy, 0x6)
 	return 0x505C2C;
 }
 
-DEFINE_HOOK(0x505C34, HouseClass_GenerateAIBuildList_FullAutoCopy, 0x5)
+ASMJIT_PATCH(0x505C34, HouseClass_GenerateAIBuildList_FullAutoCopy, 0x5)
 {
 	R->EDI(0);
 	return 0x505C39;
 }
 
 // I am crying all inside
-DEFINE_HOOK(0x505CF1, HouseClass_GenerateAIBuildList_PadWithN1, 0x5)
+ASMJIT_PATCH(0x505CF1, HouseClass_GenerateAIBuildList_PadWithN1, 0x5)
 {
 	REF_STACK(DynamicVectorClass<BuildingTypeClass*>, PlannedBase2, STACK_OFFS(0xA4, 0x78));
 	GET(int, DefenseCount, EAX);
@@ -1068,14 +1067,14 @@ DEFINE_HOOK(0x505CF1, HouseClass_GenerateAIBuildList_PadWithN1, 0x5)
 
 // #1369308: if still charged it hasn't fired.
 // more efficient place would be 4FAEC9, but this is global
-DEFINE_HOOK(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
+ASMJIT_PATCH(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 {
 	GET(SuperClass*, pSW, EAX);
 	return (pSW && !pSW->IsCharged) ? 0x4FAF32 : 0x4FB0CF;
 }
 
 // restored from TS
-DEFINE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
+ASMJIT_PATCH(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 {
 	GET(HouseClass* const, pThis, ECX);
 	GET_STACK(float, amount, 0x4);
@@ -1143,7 +1142,7 @@ DEFINE_HOOK(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 	return 0x4F9664;
 }
 
-DEFINE_HOOK(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
+ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 {
 	GET(HouseClass*, H, EBP);
 	GET_STACK(HouseTypeClass*, Country, 0x48);
@@ -1153,7 +1152,7 @@ DEFINE_HOOK(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 	return 0x4F6312;
 }
 
-DEFINE_HOOK(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
+ASMJIT_PATCH(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
 {
 	GET(HouseClass*, pHouse, EBP);
 	if (HouseTypeClass* pCountry = pHouse->Type)
@@ -1167,7 +1166,7 @@ DEFINE_HOOK(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
 	return 0x4F6490;
 }
 
-DEFINE_HOOK(0x50BEB0, HouseClass_GetCostMult, 6)
+ASMJIT_PATCH(0x50BEB0, HouseClass_GetCostMult, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
@@ -1208,7 +1207,7 @@ DEFINE_HOOK(0x50BEB0, HouseClass_GetCostMult, 6)
 
 #include <CCToolTip.h>
 
-DEFINE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
+ASMJIT_PATCH(0x509140, HouseClass_Update_Factories_Queues, 5)
 {
 	GET(HouseClass*, H, ECX);
 	GET_STACK(AbstractType, nWhat, 0x4);
@@ -1222,7 +1221,7 @@ DEFINE_HOOK(0x509140, HouseClass_Update_Factories_Queues, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
+ASMJIT_PATCH(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -1242,7 +1241,7 @@ DEFINE_HOOK(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 }
 
 // #917 - handle the case of no shipyard gracefully
-DEFINE_HOOK(0x50610E, HouseClass_FindPositionForBuilding_FixShipyard, 7)
+ASMJIT_PATCH(0x50610E, HouseClass_FindPositionForBuilding_FixShipyard, 7)
 {
 	GET(BuildingTypeClass*, pShipyard, EAX);
 
@@ -1256,7 +1255,7 @@ DEFINE_HOOK(0x50610E, HouseClass_FindPositionForBuilding_FixShipyard, 7)
 	return 0x5060CE;
 }
 
-DEFINE_HOOK(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
+ASMJIT_PATCH(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 {
 	GET_STACK(HouseClass*, pThis, STACK_OFFS(0x18, 0x8));
 	GET(TechnoClass*, pTechno, ESI);
@@ -1325,7 +1324,7 @@ DEFINE_HOOK(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
+ASMJIT_PATCH(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -1336,7 +1335,7 @@ DEFINE_HOOK(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
 }
 
 //0x4F8F54
-DEFINE_HOOK(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
+ASMJIT_PATCH(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(int, n, EDI);
@@ -1352,7 +1351,7 @@ DEFINE_HOOK(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
 }
 
 //0x4F8C97
-DEFINE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
+ASMJIT_PATCH(0x4F8C97, HouseClass_Update_BuildConst, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -1373,7 +1372,7 @@ DEFINE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 
 // there is actually an SpeakDelay
 // dunno atm
-//DEFINE_HOOK(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
+//ASMJIT_PATCH(0x4F8B3C, HouseClass_Update_Annouces, 0x6) {
 //	GET(HouseClass* const, pThis, ESI);
 //
 //		pThis->Buildings.for_each([pThis](BuildingClass* pBld) {
@@ -1391,7 +1390,7 @@ DEFINE_HOOK(0x4F8C97, HouseClass_Update_BuildConst, 6)
 //}
 
 // play this annoying message every now and then
-DEFINE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
+ASMJIT_PATCH(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
 {
 	GET(HouseClass* const, pThis, ESI);
 
@@ -1404,7 +1403,7 @@ DEFINE_HOOK(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
+ASMJIT_PATCH(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 {
 	GET(HouseClass*, H, EBX);
 

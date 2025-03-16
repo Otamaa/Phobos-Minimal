@@ -12,7 +12,7 @@
 //	PUSH_REG(esi);
 //	JMP(0x55D059);
 //}
-//DEFINE_HOOK(0x55CFD8, CopyProtection_DontBlowMeUp, 0x5) {
+//ASMJIT_PATCH(0x55CFD8, CopyProtection_DontBlowMeUp, 0x5) {
 //	return (DWORD)CopyProtection_DontBlowMeUp_Ret_;
 //}
 
@@ -29,7 +29,7 @@ DEFINE_PATCH(0x49F7A0,    // CopyProtect_Validate
 	0xB0, 0x01,           // mov    al, 1
 	0xC3);                // retn
 
-DEFINE_STRONG_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
+ASMJIT_PATCH(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 {
 	GET(void*, CDControl, EAX);
 
@@ -40,7 +40,7 @@ DEFINE_STRONG_HOOK(0x47AE36, _YR_CDFileClass_SetFileName, 8)
 	return 0x47AE3E;
 }
 
-DEFINE_STRONG_HOOK(0x47B026, _YR_FileFindOpen, 8)
+ASMJIT_PATCH(0x47B026, _YR_FileFindOpen, 8)
 {
 	GET(void*, CDControl, EBX);
 
@@ -51,7 +51,7 @@ DEFINE_STRONG_HOOK(0x47B026, _YR_FileFindOpen, 8)
 	return 0x47B02E;
 }
 
-DEFINE_STRONG_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
+ASMJIT_PATCH(0x4A80D0, CD_AlwaysFindYR, 6)
 {
 	if (Phobos::Otamaa::NoCD)
 	{
@@ -61,7 +61,7 @@ DEFINE_STRONG_HOOK(0x4A80D0, CD_AlwaysFindYR, 6)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
+ASMJIT_PATCH(0x4790E0, CD_AlwaysAvailable, 7)
 {
 	if (Phobos::Otamaa::NoCD)
 	{
@@ -71,7 +71,7 @@ DEFINE_STRONG_HOOK(0x4790E0, CD_AlwaysAvailable, 7)
 	return 0;
 }
 
-DEFINE_STRONG_HOOK(0x479110, CD_NeverAsk, 5)
+ASMJIT_PATCH(0x479110, CD_NeverAsk, 5)
 {
 	if (Phobos::Otamaa::NoCD)
 	{

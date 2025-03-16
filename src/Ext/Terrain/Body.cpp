@@ -132,7 +132,7 @@ TerrainExtContainer TerrainExtContainer::Instance;
 
 DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 
-DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
+ASMJIT_PATCH(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 	TerrainExtContainer::Instance.Allocate(pItem);
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
+ASMJIT_PATCH(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 	GET_STACK(CellStruct*, pCoord, 0x24);
@@ -162,7 +162,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 }
 
 //Remove Ext later , dont do it to early otherwise some stuffs broke
-DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
+ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 
@@ -212,7 +212,7 @@ HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)
 
-//DEFINE_HOOK(0x71CFD0, TerrainClass_Detach, 0x5)
+//ASMJIT_PATCH(0x71CFD0, TerrainClass_Detach, 0x5)
 //{
 //	GET(TerrainClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pObj, 0x4);

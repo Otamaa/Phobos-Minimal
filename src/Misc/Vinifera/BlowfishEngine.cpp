@@ -37,7 +37,7 @@
 DEFINE_JUMP(LJMP, 0x6BC33A, 0x6BC425);
 DEFINE_JUMP(LJMP, 0x6BD6CA, 0x6BD71D);
 
-DEFINE_HOOK(0x438300, BlowStraw_Key_replace, 0x6)
+ASMJIT_PATCH(0x438300, BlowStraw_Key_replace, 0x6)
 {
 	GET(BlowStraw*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x438300, BlowStraw_Key_replace, 0x6)
 	return 0x43833D;
 }
 
-DEFINE_HOOK(0x438210, BlowStraw_Get_replace, 0x5)
+ASMJIT_PATCH(0x438210, BlowStraw_Get_replace, 0x5)
 {
 	GET(BlowStraw*, pThis, ECX);
 	GET_STACK(void*, pDest, 0x4);
@@ -55,14 +55,14 @@ DEFINE_HOOK(0x438210, BlowStraw_Get_replace, 0x5)
 	return 0x4382F0;
 }
 
-DEFINE_HOOK(0x438060, BlowPipe_Flush_replace, 0x6)
+ASMJIT_PATCH(0x438060, BlowPipe_Flush_replace, 0x6)
 {
 	GET(BlowPipe*, pThis, ECX);
 	R->EAX(pThis->BlowPipe::Flush());
 	return 0x438094;
 }
 
-DEFINE_HOOK(0x4380A0, BlowPipe_Put_replace, 0x5)
+ASMJIT_PATCH(0x4380A0, BlowPipe_Put_replace, 0x5)
 {
 	GET(BlowPipe*, pThis, ECX);
 	GET_STACK(void*, pSource, 0x4);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x4380A0, BlowPipe_Put_replace, 0x5)
 	return 0x4381B1;
 }
 
-DEFINE_HOOK(0x4381D0, BlowPipe_Key_replace, 0x6)
+ASMJIT_PATCH(0x4381D0, BlowPipe_Key_replace, 0x6)
 {
 	GET(BlowPipe*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
@@ -80,14 +80,14 @@ DEFINE_HOOK(0x4381D0, BlowPipe_Key_replace, 0x6)
 	return 0x43820D;
 }
 
-DEFINE_HOOK(0x437F50, BlowfishEngine_CTOR, 0x6)
+ASMJIT_PATCH(0x437F50, BlowfishEngine_CTOR, 0x6)
 {
 	//GET(BlowfishEngine*, pThis, ECX);
 	R->EAX(new BlowfishEngine());
 	return 0x437FBD;
 }
 
-DEFINE_HOOK(0x437FC0, BlowfishEngine_DTOR, 0x6)
+ASMJIT_PATCH(0x437FC0, BlowfishEngine_DTOR, 0x6)
 {
 	//GET(BlowfishEngine*, pThis, ECX);
 	//pThis->BlowfishEngine::~BlowfishEngine();

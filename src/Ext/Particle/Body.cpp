@@ -59,7 +59,7 @@ ParticleExtContainer ParticleExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
+ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 
@@ -87,13 +87,13 @@ DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x62BCED, ParticleClass_DTOR, 0xA)
-DEFINE_HOOK(0x62D9CD, ParticleClass_DTOR, 0xA)
+
+ASMJIT_PATCH(0x62D9CD, ParticleClass_DTOR, 0xA)
 {
 	GET(ParticleClass* const, pItem, ESI);
 	ParticleExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x62BCED, ParticleClass_DTOR, 0xA)
 
 #include <Misc/Hooks.Otamaa.h>
 

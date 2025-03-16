@@ -349,7 +349,7 @@ void LuaBridge::InitScriptLuaList(unique_luastate& sol_state)
 
 #include <Ext/Script/Body.h>
 
-DEFINE_HOOK(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
+ASMJIT_PATCH(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
 	GET(ScriptTypeClass* , pThis, ESI);
 	GET(int, team, ECX);
 

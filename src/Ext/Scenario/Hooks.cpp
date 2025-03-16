@@ -4,7 +4,7 @@
 
 #include <Ext/Side/Body.h>
 
-DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
+ASMJIT_PATCH(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 {
 	LEA_STACK(CCINIClass*, pINI, STACK_OFFSET(0x174, -0x158));
 
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
+ASMJIT_PATCH(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
 {
 
 	if (SessionClass::Instance->GameMode == GameMode::Campaign) {

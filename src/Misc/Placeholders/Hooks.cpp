@@ -1,5 +1,5 @@
 
-// DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
+// ASMJIT_PATCH(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 // {
 // 	enum { CreateMuzzleAnim = 0x6FF39C, SkipCreateMuzzleAnim = 0x6FF43F };
 //
@@ -24,7 +24,7 @@
 // 	return pMuzzleAnimType ? CreateMuzzleAnim : SkipCreateMuzzleAnim;
 // }
 //
-// DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
+// ASMJIT_PATCH(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 // {
 // 	enum
 // 	{
@@ -44,7 +44,7 @@
 //
 // 	return pThis->WhatAmI() == BuildingClass::AbsID ? AdjustCoordsForBuilding : Goto2NdCheck;
 // }
-// DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
+// ASMJIT_PATCH(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 // {
 // 	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
 //
@@ -52,7 +52,7 @@
 // 		? CheckIsSelected : Skip;
 // }
 
-//DEFINE_HOOK(0x6FE46E, TechnoClass_FireAt_DiskLaser, 0x7) {
+//ASMJIT_PATCH(0x6FE46E, TechnoClass_FireAt_DiskLaser, 0x7) {
 //	GET(TechnoClass* const, pThis, ESI);
 //	GET(WeaponTypeClass* const, pWeapon, EBX);
 //	GET(int, damage, EDI);
@@ -78,7 +78,7 @@
 //
 //	return 0x6FE4E7;
 //}
-//DEFINE_HOOK(0x51D43F, InfantryClass_Scatter_Process, 0x6)
+//ASMJIT_PATCH(0x51D43F, InfantryClass_Scatter_Process, 0x6)
 //{
 //	GET(InfantryClass* const, pThis, ESI);
 //
@@ -90,21 +90,21 @@
 //
 //	return 0x0;
 //}
-//DEFINE_HOOK(0x508FCE, HouseClass_SpySat_LimboDeliver, 0x6)
+//ASMJIT_PATCH(0x508FCE, HouseClass_SpySat_LimboDeliver, 0x6)
 //{
 //	GET(BuildingClass*, pBld, ECX);
 //
 //	return (!pBld->DiscoveredByCurrentPlayer && BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) ?
 //		0x508FE1 : 0x0;
 //}
-// DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
+// ASMJIT_PATCH(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
 // {
 // 	GET_STACK(HouseClass* const, pHouse, STACK_OFFS(0x8, -0x4));
 // 	R->EDI(pHouse);
 // 	return 0x6F09D5;
 // }
 //
-// DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x9)
+// ASMJIT_PATCH(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x9)
 // {
 // 	GET(TeamTypeClass* const, pThis, ESI);
 // 	GET(HouseClass* const, pHouse, EDI);
@@ -113,9 +113,9 @@
 // 	R->EAX(ptr);
 // 	return 0x6F0A5A;
 // }
-//DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) { return 0x44DE3C; }
+//ASMJIT_PATCH(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) { return 0x44DE3C; }
 
-//DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
+//ASMJIT_PATCH(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 //{
 //	GET(FactoryClass* const, pThis, ESI);
 //	GET(TechnoTypeClass* const, pType, EAX);
@@ -126,7 +126,7 @@
 // this just an duplicate
 //DEFINE_JUMP(LJMP, 0x702765, 0x7027AE);
 
-// DEFINE_HOOK(0x6FF48D , TechnoClass_FireAt_TargetLaser, 0x5)
+// ASMJIT_PATCH(0x6FF48D , TechnoClass_FireAt_TargetLaser, 0x5)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
 // 	//GET(WeaponTypeClass* const, pWeapon, EBX);
@@ -146,7 +146,7 @@
 //
 // 	return 0x6FF4CC;
 // }
-// DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
+// ASMJIT_PATCH(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 // {
 // 	GET(UnitClass*, pThis, ESI);
 //
@@ -161,7 +161,7 @@
 // 	return 0x0;
 // }
 
-// DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
+// ASMJIT_PATCH(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 // {
 // 	GET(HouseClass* const, pHouse, EDI);
 // 	GET(TechnoTypeClass* const, pType, ESI);
@@ -174,19 +174,19 @@
 // 	R->EAX(result);
 // 	return 0x711F46;
 // }
-// DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
+// ASMJIT_PATCH(0x447195, BuildingClass_SellBack_Silent, 0x6)
 // {
 // 	GET(BuildingClass* const, pThis, ESI);
 // 	return BuildingExtContainer::Instance.Find(pThis)->Silent ? 0x447203 : 0x0;
 // }
 // do some pre-validation evenbefore function going to be executed
 // save some cpu cycle
-//DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
+//ASMJIT_PATCH(0x486920, CellClass_TriggerVein_Precheck, 0x6)
 //{
 //	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
 //}
 //
-//DEFINE_HOOK(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
+//ASMJIT_PATCH(0x4869AB, CellClass_TriggerVein_Weight, 0x6)
 //{
 //	GET(TechnoTypeClass*, pTechnoType, EAX);
 //	GET(TechnoClass*, pTechno, ESI);
@@ -204,14 +204,14 @@
 #ifdef debug_veinstest
 DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 #endif
-// DEFINE_HOOK(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
+// ASMJIT_PATCH(0x73E9A0, UnitClass_Mi_Harvest_IncludeWeeder_1, 6)
 // {
 // 	GET(UnitTypeClass*, pType, EDX);
 // 	R->AL(pType->Harvester || pType->Weeder);
 // 	return 0x73E9A6;
 // }
 // 
-// DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
+// ASMJIT_PATCH(0x489671, MapClass_DamageArea_Veinhole, 0x6)
 // {
 // 	GET(CellClass*, pCell, EBX);
 // 	GET(OverlayTypeClass*, pOverlay, EAX);
@@ -244,14 +244,14 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //
 // 	return 0x0;
 // }
-//DEFINE_HOOK(0x6E9832, TeamClass_AI_IsThisExecuted, 0x8)
+//ASMJIT_PATCH(0x6E9832, TeamClass_AI_IsThisExecuted, 0x8)
 //{
 //	Debug::LogInfo(__FUNCTION__" Called ");
 //
 //	return 0x0;
 //}
 
-// DEFINE_HOOK(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
+// ASMJIT_PATCH(0x4686FA, BulletClass_Unlimbo_MissingTargetPointer, 0x6)
 // {
 // 	GET(BulletClass*, pThis, EBX);
 // 	GET_BASE(CoordStruct*, pUnlimboCoords, 0x8);
@@ -268,7 +268,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //
 // 	return 0x0;
 // }
-//DEFINE_HOOK(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
+//ASMJIT_PATCH(0x456376 , BuildingClass_RemoveSpacingAroundArea, 0x6)
 //{
 //	GET(BuildingTypeClass*, pThisType, EAX);
    //GET(BuildingClass*, pThis, ESI);
@@ -279,7 +279,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
  //	return pThisType->Adjacent == 0 ? 0x4563A1 : 0x45638A;
  //}
 
-// DEFINE_HOOK(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
+// ASMJIT_PATCH(0x518607, InfantryClass_TakeDamage_FixOnDestroyedSource, 0xA)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	GET_STACK(TechnoClass*, pSource, 0xD0 + 0x10);
@@ -289,7 +289,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 //Fixes recursive passenger kills not being accredited
 //to proper techno but to their transports
-//DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
+//ASMJIT_PATCH(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 //{
 //	GET(TechnoClass*, pKiller, EBP);
 //	GET(TechnoClass*, pCargo, ESI);
@@ -404,7 +404,7 @@ static void __fastcall LaserDrawclassDrawAll()
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 #endif
 
-//DEFINE_HOOK(0x6D4669, TacticalClass_Render_Addition, 0x5)
+//ASMJIT_PATCH(0x6D4669, TacticalClass_Render_Addition, 0x5)
 //{
 //	LaserDrawClass::DrawAll();
 //
@@ -414,7 +414,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 //	ElectricBoltManager::Draw_All();
 //	return 0x6D4673;
 //}
-// DEFINE_HOOK(0x4D54DD, FootClass_Mi_Hunt_NoPath, 6)
+// ASMJIT_PATCH(0x4D54DD, FootClass_Mi_Hunt_NoPath, 6)
 // {
 // 	GET(FootClass*, pThis, ESI);
 //
@@ -433,7 +433,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 // 	return 0x0;
 // }
 
-//DEFINE_HOOK(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
+//ASMJIT_PATCH(0x4CD747, FlyLocomotionClass_UpdateMoving_OutOfMap, 6)
 //{
 //	GET(DisplayClass*, pDisplay, ECX);
 //	GET(FlyLocomotionClass*, pLoco, ESI);
@@ -449,14 +449,14 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 //
 //	return 0x4CD797;
 //}
-// DEFINE_HOOK(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
+// ASMJIT_PATCH(0x6E23AD, TActionClass_DoExplosionAt_InvalidCell, 0x8)
 // {
 // 	GET(CellStruct*, pLoc, EAX);
 //
 // 	//prevent crash
 // 	return !pLoc->IsValid() ? 0x6E2510 : 0x0;
 // }
-// DEFINE_HOOK(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
+// ASMJIT_PATCH(0x73B0B0, UnitClass_DrawIfVisible, 0xA)
 // {
 // 	GET(UnitClass*, pThis, ECX);
 // 	GET_STACK(RectangleStruct*, pBounds, 0x4);
@@ -480,7 +480,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 // 	return 0x73B139;
 // }
 
-//DEFINE_HOOK(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
+//ASMJIT_PATCH(0x4824EF, CellClass_CollecCreate_FlyingStrings, 0x8)
 //{
 //	GET(CellClass*, pThis, ESI);
 //	GET(int, amount, EDI);
@@ -497,7 +497,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 //#ifndef REMOVE_SOURCE_REUqUIREMENT_FROM_FEAR_CHECK
 //DEFINE_JUMP(LJMP, 0x518C45, 0x518C49);
 //#endif
-//DEFINE_HOOK(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)
+//ASMJIT_PATCH(0x44A332, BuildingClass_MI_Deconstruct_ReasonToSpawnCrews, 0x7)
 //{
 //	GET(BuildingClass*, pThis, EBP);
 //
@@ -507,7 +507,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 //
 //	return 0x0;
 //}
-//DEFINE_HOOK(0x449C30, BuildingClass_MI_Deconstruct_FatalIt, 0x6)
+//ASMJIT_PATCH(0x449C30, BuildingClass_MI_Deconstruct_FatalIt, 0x6)
 //{
 //	GET(BuildingClass*, pThis, ECX);
 //
@@ -519,20 +519,20 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 // Enable This when needed
 #ifdef DEBUG_STUPID_HUMAN_CHECKS
 
-DEFINE_HOOK(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
+ASMJIT_PATCH(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
 	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 
-DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
+ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 {
 	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
 	return 0x0;
 }
 #endif
 
-//DEFINE_HOOK(0x448260, Debug_ChangeOwnership_Building, 0x8)
+//ASMJIT_PATCH(0x448260, Debug_ChangeOwnership_Building, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -540,7 +540,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x4DBED0 , Debug_ChangeOwnership_Foot , 0x5)
+//ASMJIT_PATCH(0x4DBED0 , Debug_ChangeOwnership_Foot , 0x5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -548,14 +548,14 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x7463A0, Debug_ChangeOwnership_Unit, 0x5)
+//ASMJIT_PATCH(0x7463A0, Debug_ChangeOwnership_Unit, 0x5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo("%s ChangeOwnership For[%s] Caller[%x]", __FUNCTION__, pThis->get_ID(), caller);
 //	return 0x0;
 //}
-// DEFINE_HOOK(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
+// ASMJIT_PATCH(0x5657A0, MapClass_OpBracket_CellStructPtr, 0x5)
 // {
 // 	GET_STACK(CellStruct*, pCell, 0x4);
 // 	GET_STACK(DWORD, callr, 0x0);
@@ -568,7 +568,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 // }
 //DEFINE_PATCH(0x6443E2, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x90);
 //
-//DEFINE_HOOK(0x5AE610, Matrix_OPMultiply, 0x5)
+//ASMJIT_PATCH(0x5AE610, Matrix_OPMultiply, 0x5)
 //{
 //	GET(Matrix3D*, pThis, ECX);
 //	GET_STACK(Matrix3D*, pThat, 0x4);
@@ -582,7 +582,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 
 //static FootClass* LastAccessThisFunc;
 //
-//DEFINE_HOOK(0x42C2BF, AstarClass_FindPath_SaveArgs, 0x6)
+//ASMJIT_PATCH(0x42C2BF, AstarClass_FindPath_SaveArgs, 0x6)
 //{
 //	GET(FootClass*, pFoot, ESI);
 //	LastAccessThisFunc = pFoot;
@@ -590,7 +590,7 @@ DEFINE_HOOK(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 //}
 
 #ifdef OLD_
-DEFINE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
+ASMJIT_PATCH(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 {
 	GET(int, nCur, EAX);
 
@@ -603,25 +603,25 @@ DEFINE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
 	return 0x4824A7;
 }
 
-DEFINE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
+ASMJIT_PATCH(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE_ArmorMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
-DEFINE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
+ASMJIT_PATCH(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 {
 	GET(FootClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE_SpeedMult == 1.0) ? 0x481D52 : 0x481C86;
 }
 
-DEFINE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
+ASMJIT_PATCH(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 	return (TechnoExtContainer::Instance.Find(Unit)->AE.FirepowerMultiplier52 : 0x481C86;
 }
 
-DEFINE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
+ASMJIT_PATCH(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
@@ -636,7 +636,7 @@ DEFINE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 }
 
 //overrides on actual crate effect applications
-DEFINE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
+ASMJIT_PATCH(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
 	TechnoExtContainer::Instance.Find(Unit)->AE.Cloakable = true;
@@ -644,7 +644,7 @@ DEFINE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 	return 0x482956;
 }
 
-DEFINE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
+ASMJIT_PATCH(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 {
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
@@ -659,7 +659,7 @@ DEFINE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	return 0x482E92;
 }
 
-DEFINE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
+ASMJIT_PATCH(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 {
 	GET(FootClass*, Unit, EDI);
 	GET_STACK(double, Pow_SpeedMultiplier, 0x20);
@@ -677,7 +677,7 @@ DEFINE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
 	return 0x483081;
 }
 
-DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
+ASMJIT_PATCH(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 {
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
@@ -693,7 +693,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 }
 #endif
 
-//DEFINE_HOOK(0x42CC48, AStarClass_RegularFindpathError, 0x5)
+//ASMJIT_PATCH(0x42CC48, AStarClass_RegularFindpathError, 0x5)
 //{
 //	GET_STACK(CellStruct, from, 0x30 - 0x1C);
 //	GET_STACK(CellStruct, to, 0x30 - 0x20);
@@ -706,41 +706,41 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //DEFINE_JUMP(LJMP, 0x6F2ECE , 0x6F2ED3)
 //HouseClass_CTOR_TiberiumStorages
 //DEFINE_JUMP(LJMP, 0x4F58CD , 0x4F58D2)
-//DEFINE_HOOK(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
+//ASMJIT_PATCH(0x6C96B0, StorageClass_DecreaseAmount_caller, 0x7)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6C9680, StorageClass_GetAmount_caller, 0x7)
+//ASMJIT_PATCH(0x6C9680, StorageClass_GetAmount_caller, 0x7)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
+//ASMJIT_PATCH(0x6C9650, StorageClass_GetTotalAmount_caller, 0xB)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
+//ASMJIT_PATCH(0x6C9690, StorageClass_IncreaseAmount_caller, 0x9)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
-//DEFINE_HOOK(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
+//ASMJIT_PATCH(0x6C9820, StorageClass_FirstUsedSlot_caller, 0xA)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
+//ASMJIT_PATCH(0x6C9600, StorageClass_GetTotalValue_caller, 0xA)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::LogInfo(__FUNCTION__" Caller[0x%x]");
@@ -749,7 +749,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //WW skip shadow for visceroids
 //DEFINE_JUMP(LJMP, 0x705FED, 0x70600C);
 
-//DEFINE_HOOK(0x6D4A35, TacticalClass_Render_HandleSWTextPrint, 0x6)
+//ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_HandleSWTextPrint, 0x6)
 //{
 //	GET(SuperClass*, pSuper, ECX);
 //	GET(int, value, EBX);
@@ -767,7 +767,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return 0x6D4A71;
 //}
 
-//DEFINE_HOOK(0x4FD500, HouseClass_ExpertAI_Add, 0x6)
+//ASMJIT_PATCH(0x4FD500, HouseClass_ExpertAI_Add, 0x6)
 //{
 //	GET(HouseClass*, pThis, ECX);
 //
@@ -788,7 +788,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	JMP(0x4440D4);
 //}
 
-//DEFINE_HOOK(0x444F39, BuildingClass_ExitObject_Add, 0x6)
+//ASMJIT_PATCH(0x444F39, BuildingClass_ExitObject_Add, 0x6)
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
@@ -800,7 +800,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return (int)_BuildingClass_ExitObject_Add_RET;
 //}
 
-//DEFINE_HOOK(0x530792, Game_InitSecondaryMixes_Maps, 0x5)
+//ASMJIT_PATCH(0x530792, Game_InitSecondaryMixes_Maps, 0x5)
 //{
 //	if (Phobos::Otamaa::NoCD) {
 //		return  0x530B76;
@@ -822,17 +822,17 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //
 //DEFINE_JUMP(LJMP, 0x530B61, 0x530B76);
 //DEFINE_FUNCTION_JUMP(LJMP, 0x530D05, GET_OFFSET(ret___));
-//DEFINE_HOOK(0x6E5380  ,TagClass_IsTags_Trigger_Validate , 0x)
+//ASMJIT_PATCH(0x6E5380  ,TagClass_IsTags_Trigger_Validate , 0x)
 
 // the rules data not yet instansiated
-//DEFINE_HOOK(0x688338, AssignHouse_SpecialHouse, 0x5)
+//ASMJIT_PATCH(0x688338, AssignHouse_SpecialHouse, 0x5)
 //{
 //	R->EAX(RulesExtData::Instance()->SpecialCountryIndex);
 //	return 0x688342;
 //}
 
 // the rules data not yet instansiated
-//DEFINE_HOOK(0x6869AB, split_from_Read_Scenario_INI_Special, 0x5)
+//ASMJIT_PATCH(0x6869AB, split_from_Read_Scenario_INI_Special, 0x5)
 //{
 //	R->EAX(HouseExtData::FindSpecial());
 //	return 0x6869BC;
@@ -841,7 +841,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //#pragma optimize("", off )
 //PhobosMap<TemporalClass*, DWORD> __iDent {};
 //
-//DEFINE_HOOK(0x680CB0, TemporalClass_Save_WhyCrashes, 0x6) {
+//ASMJIT_PATCH(0x680CB0, TemporalClass_Save_WhyCrashes, 0x6) {
 //	GET(TemporalClass*, pTemp, EAX);
 //	GET_STACK(int, _ArrayCount, 0x10);
 //	GET(int, _CurLoop, ESI);
@@ -854,7 +854,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x71A4E0, TemporalClass_CTOR_Source, 0x5)
+//ASMJIT_PATCH(0x71A4E0, TemporalClass_CTOR_Source, 0x5)
 //{
 //	GET(TemporalClass*, pItem, ESI);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -863,8 +863,8 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x71B1B0, TemporalClass_SDDTOR, 0x8)
-//DEFINE_HOOK(0x71A5D0, TemporalClass_SDDTOR, 0x8)
+//ASMJIT_PATCH_AGAIN(0x71B1B0, TemporalClass_SDDTOR, 0x8)
+//ASMJIT_PATCH(0x71A5D0, TemporalClass_SDDTOR, 0x8)
 //{
 //	GET(TemporalClass*, pItem, ESI);
 //	__iDent.erase(pItem);
@@ -872,14 +872,14 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //}
 //#pragma optimize("", on )
 
-//DEFINE_HOOK_AGAIN(0x42A432, AStarClass_FindPathRegular_Exit, 0x5)
-//DEFINE_HOOK(0x42A451, AStarClass_FindPathRegular_Exit, 0x5)
+//ASMJIT_PATCH_AGAIN(0x42A432, AStarClass_FindPathRegular_Exit, 0x5)
+//ASMJIT_PATCH(0x42A451, AStarClass_FindPathRegular_Exit, 0x5)
 //{
 //	PhobosGlobal::Instance()->PathfindTechno.Clear();
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x429A90, AStarClass_FindPathRegular_Entry, 0x5)
+//ASMJIT_PATCH(0x429A90, AStarClass_FindPathRegular_Entry, 0x5)
 //{
 //	GET_STACK(TechnoClass*, pTech, 0x6A);
 //	GET_STACK(CellStruct*, from, 0x62);
@@ -890,7 +890,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //
 //	return 0x0;
 //}
-//DEFINE_HOOK(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
+//ASMJIT_PATCH(0x468992, BulletClass_Unlimbo_Obstacle_ZeroVel, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBX);
 //	pThis->Velocity = {};
@@ -1019,7 +1019,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //}
 
 //static std::vector<bool> ShakeScreenTibsunStyle {};
-//DEFINE_HOOK(0x6F1FAF, TeamTypeClass_6F1FA0_CheckTaskforce, 0x7)
+//ASMJIT_PATCH(0x6F1FAF, TeamTypeClass_6F1FA0_CheckTaskforce, 0x7)
 //{
 //	GET(TeamTypeClass*, pTeam, ESI);
 //
@@ -1029,7 +1029,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6E5FA3, TagTypeClass_SwizzleTheID, 0x8)
+//ASMJIT_PATCH(0x6E5FA3, TagTypeClass_SwizzleTheID, 0x8)
 //{
 //	GET(char*, ID, EDI);
 //	GET(TagTypeClass*, pCreated, ESI);
@@ -1039,7 +1039,7 @@ DEFINE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 //	return 0x6E5FB6;
 //}
 //
-//DEFINE_HOOK(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
+//ASMJIT_PATCH(0x6E8300, TaskForceClass_SwizzleTheID, 0x5)
 //{
 //	LEA_STACK(char*, ID, 0x2C - 0x18);
 //	GET(TaskForceClass*, pCreated, ESI);
@@ -1074,7 +1074,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 	return v2;
 }
 
-//DEFINE_HOOK(0x72593E, DetachFromAll_FixCrash, 0x5) {
+//ASMJIT_PATCH(0x72593E, DetachFromAll_FixCrash, 0x5) {
 //	GET(AbstractClass*, pTarget, ESI);
 //	GET(bool, bRemoved, EDI);
 
@@ -1096,7 +1096,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 //	return 0x725961;
 //}
 // 
-//DEFINE_HOOK(0x43FE27, BuildingClass_AfterAnimAI_Check, 0xA)
+//ASMJIT_PATCH(0x43FE27, BuildingClass_AfterAnimAI_Check, 0xA)
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //
@@ -1106,7 +1106,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 //	return 0x0;
 //}
 
-//DEFINE_HOOK(0x4D3920, FootClass_FindPath_Speed_Zero, 0x5)
+//ASMJIT_PATCH(0x4D3920, FootClass_FindPath_Speed_Zero, 0x5)
 //{
 //	GET(FootClass* , pThis , ECX);
 //
@@ -1122,8 +1122,8 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );
 
 
-//DEFINE_HOOK_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
-//DEFINE_HOOK(0x7BB350, XSurface_Func_check, 0x6) {
+//ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+//ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
    // GET(XSurface*, pThis, ECX);
    // GET_STACK(uintptr_t, caller, 0x0);
 
@@ -1134,7 +1134,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
    // return 0x0;
 //}
 
-//DEFINE_HOOK(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
+//ASMJIT_PATCH(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
    // GET(int, pIndex, EBX);
    // GET(SpawnManagerClass*, pThis, ESI);
 
@@ -1146,7 +1146,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
    // return 0x6B795A;
 //}
 
-//DEFINE_HOOK(0x6B7793, SpawnManagerClass_AI_doSomething_crashAtRandomAddrB, 0x7)
+//ASMJIT_PATCH(0x6B7793, SpawnManagerClass_AI_doSomething_crashAtRandomAddrB, 0x7)
 //{
    // GET(SpawnManagerClass*, pThis, ESI);
    // GET(TechnoClass*, pSpawnee, EDI);
@@ -1166,7 +1166,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 
 //}
 
-/*DEFINE_HOOK(0x4F671D, HouseClass_CanAffordBase_GetBuildingEmpty, 0x5) {
+/*ASMJIT_PATCH(0x4F671D, HouseClass_CanAffordBase_GetBuildingEmpty, 0x5) {
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pBldType, EAX);
 
@@ -1177,7 +1177,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
 	return 0x0;
 }*/
 
-//DEFINE_HOOK(0x6D32DB, TacticalClass_RenderOverlay_missingPointer, 0x6)
+//ASMJIT_PATCH(0x6D32DB, TacticalClass_RenderOverlay_missingPointer, 0x6)
 //{
    // GET(TacticalClass*, pThis, EDI);
 

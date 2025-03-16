@@ -60,7 +60,7 @@ FORCEDINLINE T* Make()
 	return command;
 };
 
-DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
+ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 {
 	Make<ManualReloadAmmoCommandClass>();
 
@@ -137,7 +137,7 @@ DEFINE_HOOK(0x532150, CommandClassCallback_Register, 5)
 #include <Helpers/Macro.h>
 #include <WWKeyboardClass.h>
 
-DEFINE_HOOK(0x533F50, Game_ScrollSidebar_Skip, 0x5)
+ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 {
 	enum { SkipScrollSidebar = 0x533FC3 };
 

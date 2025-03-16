@@ -14,7 +14,7 @@ void DetonateTheBullet(BulletClass* pThis,  CoordStruct coords , CoordStruct ori
 }
 #pragma optimize("", on )
 
-DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
+ASMJIT_PATCH(0x469008, BulletClass_Explode_Cluster, 0x8)
 {
 	GET(FakeBulletClass*, pThis, ESI);
 	LEA_STACK(CoordStruct* , origCoords, (0x3C - 0x30));
@@ -64,12 +64,12 @@ int GetScatterResult(BulletClass* pThis
 	return ScenarioClass::Instance->Random.RandomRanged(min , max);
 }
 
-// DEFINE_HOOK(0x4687C2 , BulletClass_MoveTo_BallisticScatter_Inviso, 6)
+// ASMJIT_PATCH(0x4687C2 , BulletClass_MoveTo_BallisticScatter_Inviso, 6)
 // {
 // 	GET(BulletClass*, pThis, EBX);
 // }
 
-DEFINE_HOOK(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
+ASMJIT_PATCH(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 {
 	GET(FakeBulletClass*, pThis, EBX);
 	GET_BASE(CoordStruct*, pDest, 0x8);

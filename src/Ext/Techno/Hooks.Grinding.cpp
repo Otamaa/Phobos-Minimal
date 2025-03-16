@@ -9,7 +9,7 @@
 
 #include <New/Entity/FlyingStrings.h>
 
-DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
+ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 {
 	enum { Continue = 0x0 , ReturnStatic = 0x43C31A, ReturnNegative = 0x43CB68, ReturnRoger = 0x43CCF2 };
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
+ASMJIT_PATCH(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 {
 	enum { Continue = 0x0,  LoseDestination = 0x4D4D43 };
 
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
+ASMJIT_PATCH(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 {
 	enum { Skip = 0x51F05E, ReturnValue = 0x51F17E };
 
@@ -96,7 +96,7 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
  return Skip;
 }
 
-DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
+ASMJIT_PATCH(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 {
 	enum { Continue = 0x0, ReturnValue = 0x51F17E };
 
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
+ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 {
 	enum { Continue = 0x7401C1 };
 
@@ -161,7 +161,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 
 #pragma region PosGrind
 
-DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
+ASMJIT_PATCH(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 {
 	enum { Continue = 0x0 , Skip = 0x4DFB30 };
 	GET(FootClass*, pThis, ESI);
@@ -170,14 +170,14 @@ DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 		? Continue : Skip;
 }
 
-DEFINE_HOOK(0x51986A, InfantryClass_PerCellProcess_GrindingSetBalance, 0xA)
+ASMJIT_PATCH(0x51986A, InfantryClass_PerCellProcess_GrindingSetBalance, 0xA)
 {
 	GET(BuildingClass*, pBuilding, EBX);
 	HouseExtData::LastGrindingBlanceInf = pBuilding->Owner->Available_Money();
 	return 0x0;
 }
 
-DEFINE_HOOK(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
+ASMJIT_PATCH(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
 {
 	enum { Continue = 0x0, PlayAnims = 0x5198CE };
 
@@ -196,14 +196,14 @@ DEFINE_HOOK(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;
 }
 
-DEFINE_HOOK(0x73A0A5, UnitClass_PerCellProcess_GrindingSetBalance, 0x5)
+ASMJIT_PATCH(0x73A0A5, UnitClass_PerCellProcess_GrindingSetBalance, 0x5)
 {
 	GET(BuildingClass*, pBuilding, EBX);
 	HouseExtData::LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
 	return 0;
 }
 
-DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
+ASMJIT_PATCH(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 {
 	enum { Continue = 0x0 , PlayAnim = 0x73A1DE };
 
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
 }
 
-DEFINE_HOOK(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)
+ASMJIT_PATCH(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)
 {
 	enum { Play = 0x0 , DoNotPlay = 0x51986A };
 	GET(BuildingClass*, pBuilding, EBX);
@@ -224,7 +224,7 @@ DEFINE_HOOK(0x519790, InfantryClass_UpdatePosition_Grinding_SkipDiesound, 0xA)
 		Play : DoNotPlay;
 }
 
-DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
+ASMJIT_PATCH(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 {
 	enum { Play = 0x0, DoNotPlay = 0x073A0A5 };
 	GET(BuildingClass*, pBuilding, EBX);
@@ -233,7 +233,7 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 }
 
 // Unload more than once per ore dump if the harvester contains more than 1 tiberium type
-// DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
+// ASMJIT_PATCH(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
 // {
 // 	GET(HouseClass* const, pHouse, EBX); // this is the house of the refinery, not the harvester
 // 	// GET(BuildingClass* const, pDock, EDI);
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 
 
 //moved to the dumping hook
-//DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
+//ASMJIT_PATCH(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
 //{
 //	GET(HouseClass* const, pHouse, EBX);
 //	GET(BuildingClass* const, pDock, EDI);
@@ -258,14 +258,14 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 //	return 0;
 //}
 
-//DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
+//ASMJIT_PATCH(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
 //{
 //	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
 //	HouseExtData::LastSlaveBalance = slaveMiner->Owner->Available_Money();
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
+//ASMJIT_PATCH(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
 //{
 //	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
 //

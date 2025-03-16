@@ -4,8 +4,8 @@
 #include <Ext/TechnoType/Body.h>
 
 // TODO : revisit
-// DEFINE_HOOK_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
-// DEFINE_HOOK(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)
+// ASMJIT_PATCH_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
+// ASMJIT_PATCH(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)
 // {
 // 	GET(SpawnManagerClass* const, pThis, ESI);
 //
@@ -21,7 +21,7 @@
 // }
 
 // TODO : revisit
-// DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
+// ASMJIT_PATCH(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 // {
 // 	GET(SpawnManagerClass* const, pThis, ESI);
 //
@@ -35,7 +35,7 @@
 // 	return 0;
 // }
 
-//DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
+//ASMJIT_PATCH(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 //{
 //	GET(TechnoClass*, pOwner, ECX);
 //	//yes , i include the buffer just in case it used somewhere !
@@ -81,7 +81,7 @@
 //}
 
 
-DEFINE_HOOK(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
+ASMJIT_PATCH(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 {
 	enum { Jump = 0x6B6DF0, Change = 0x6B6D53, Continue = 0 };
 
@@ -111,7 +111,7 @@ DEFINE_HOOK(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 
 }
 
-DEFINE_HOOK(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
+ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());

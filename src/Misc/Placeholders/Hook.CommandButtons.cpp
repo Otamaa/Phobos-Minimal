@@ -339,13 +339,13 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D04A0, FakeTabClass::_AddButtons));
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D04D0, FakeTabClass::_RemoveButtons));
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D0FD0, FakeTabClass::InitAdvCommand));
 
-DEFINE_HOOK(0x6D02C0, InitForHouse_RemoveInline, 0x5)
+ASMJIT_PATCH(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 {
 	FakeTabClass::_InitCommandBarShapes();
 	return 0x6D0304;
 }
 
-DEFINE_HOOK(0x6D1780, TabClass_noticeSink_Planning_TurnOn, 0x7)
+ASMJIT_PATCH(0x6D1780, TabClass_noticeSink_Planning_TurnOn, 0x7)
 {
 	GET(int, index, EAX);
 	if (auto pShape = FakeTabClass::_GetShapeButton(index))
@@ -354,7 +354,7 @@ DEFINE_HOOK(0x6D1780, TabClass_noticeSink_Planning_TurnOn, 0x7)
 	return 0x6D17AC;
 }
 
-DEFINE_HOOK(0x6D17BE, TabClass_noticeSink_Planning_TurnOff, 0x7)
+ASMJIT_PATCH(0x6D17BE, TabClass_noticeSink_Planning_TurnOff, 0x7)
 {
 	GET(int, index, ECX);
 	if (auto pShape = FakeTabClass::_GetShapeButton(index))
@@ -363,14 +363,14 @@ DEFINE_HOOK(0x6D17BE, TabClass_noticeSink_Planning_TurnOff, 0x7)
 	return 0x6D17EA;
 }
 
-DEFINE_HOOK(0x6D078C, TabClass_AI_Planning, 0x7)
+ASMJIT_PATCH(0x6D078C, TabClass_AI_Planning, 0x7)
 {
 	GET(int, index, ECX);
 	R->EAX(FakeTabClass::_GetShapeButton(index));
 	return 0x6D07AB;
 }
 
-DEFINE_HOOK(0x67468B, RulesClass_AdcancedCommandBar_Parse, 0x6)
+ASMJIT_PATCH(0x67468B, RulesClass_AdcancedCommandBar_Parse, 0x6)
 {
 	GET(CCINIClass*, pINI, EBX);
 	GET(const char*, pSection, EDI);
@@ -378,28 +378,28 @@ DEFINE_HOOK(0x67468B, RulesClass_AdcancedCommandBar_Parse, 0x6)
 	return 0x674710;
 }
 
-DEFINE_HOOK(0x6D05CB, TabClass_Activate_RemoveInline, 0x6)
+ASMJIT_PATCH(0x6D05CB, TabClass_Activate_RemoveInline, 0x6)
 {
 	GET(FakeTabClass*, pThis, EDI);
 	pThis->_HideAdvCommand();
 	return 0x6D0639;
 }
 
-DEFINE_HOOK(0x6D1674, TabClass_ToggleThumb_RemoveInline, 0x6)
+ASMJIT_PATCH(0x6D1674, TabClass_ToggleThumb_RemoveInline, 0x6)
 {
 	GET(FakeTabClass*, pThis, EDI);
 	pThis->_HideAdvCommand();
 	return 0x6D16E2;
 }
 
-DEFINE_HOOK(0x6D0D5A, TabClass_DrawIt_DrawCommandBar2, 0x5)
+ASMJIT_PATCH(0x6D0D5A, TabClass_DrawIt_DrawCommandBar2, 0x5)
 {
 	GET(int, index, EAX);
 	R->ESI(FakeTabClass::_GetShapeButton(index));
 	return 0x6D0D6B;
 }
 
-DEFINE_HOOK(0x6D0A87, TabClass_DrawIt_DrawCommandBar1, 0x5)
+ASMJIT_PATCH(0x6D0A87, TabClass_DrawIt_DrawCommandBar1, 0x5)
 {
 	GET(int, index, EAX);
 	R->EAX(FakeTabClass::_GetShapeButton(index));
@@ -409,7 +409,7 @@ DEFINE_HOOK(0x6D0A87, TabClass_DrawIt_DrawCommandBar1, 0x5)
 bool WhiteColorSearchedG = false;
 int ColorIdxG = 5;
 
-DEFINE_HOOK(0x6D07E4, TabClass_AI_AdditionalAffect, 0x6)
+ASMJIT_PATCH(0x6D07E4, TabClass_AI_AdditionalAffect, 0x6)
 {
 	GET(int, index, EAX);
 	if (index == 11)

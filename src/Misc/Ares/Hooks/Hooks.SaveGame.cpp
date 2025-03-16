@@ -5,7 +5,7 @@
 
 #include <Helpers/Macro.h>
 
-DEFINE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
+ASMJIT_PATCH(0x67D04E, Game_Save_SavegameInformation, 7)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x4A4, 0x3F4));
 
@@ -17,7 +17,7 @@ DEFINE_HOOK(0x67D04E, Game_Save_SavegameInformation, 7)
 	return 0;
 }
 
-DEFINE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
+ASMJIT_PATCH(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
 
@@ -29,7 +29,7 @@ DEFINE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 	return same ? 0x559F60u : 0x559F48u;
 }
 
-// DEFINE_HOOK(0x67CEFE, Game_Save_FixLog, 7)
+// ASMJIT_PATCH(0x67CEFE, Game_Save_FixLog, 7)
 // {
 // 	GET(const char*, pFilename, EDI);
 // 	GET(const wchar_t*, pSaveName, ESI);
@@ -39,20 +39,20 @@ DEFINE_HOOK(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 // 	return 0x67CF0D;
 // }
 
-DEFINE_HOOK(0x74fdc0, GetModuleVersion, 5)
+ASMJIT_PATCH(0x74fdc0, GetModuleVersion, 5)
 {
 	R->EAX("Ares r21.352.1218");
 	return 0x74FEEF;
 }
 
-DEFINE_HOOK(0x74fae0, GetModuleInternalVersion, 5)
+ASMJIT_PATCH(0x74fae0, GetModuleInternalVersion, 5)
 {
 	R->EAX("1.001/Ares 3.0p1");
 	return 0x74FC7B;
 }
 
 /* fixes to reorder the savegame */
-DEFINE_HOOK(0x67D315, SaveGame_EarlySaveSides, 5)
+ASMJIT_PATCH(0x67D315, SaveGame_EarlySaveSides, 5)
 {
 	GET(LPSTREAM, pStm, ESI);
 	return (Game::Save_Sides(pStm, SideClass::Array) >= 0)
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x67D315, SaveGame_EarlySaveSides, 5)
 		;
 }
 
-DEFINE_HOOK(0x67E09A, SaveGame_LateSkipSides, 5)
+ASMJIT_PATCH(0x67E09A, SaveGame_LateSkipSides, 5)
 {
 	GET(int, success, EAX);
 	return success >= 0

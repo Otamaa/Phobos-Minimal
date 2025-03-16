@@ -185,7 +185,7 @@ InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 
 
 //merged with the new sequence hooks
-//DEFINE_HOOK(0x523876, InfantryTypeClass_CTOR, 0x6)
+//ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 0x6)
 //{
 //	GET(InfantryTypeClass*, pItem, ESI);
 //	if(auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
@@ -193,26 +193,25 @@ InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 //	return 0;
 //}
 
-DEFINE_HOOK(0x5239D0, InfantryTypeClass_DTOR, 0x5)
+ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 {
 	GET(InfantryTypeClass* const, pItem, ESI);
 	InfantryTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x524960, InfantryTypeClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x524B60, InfantryTypeClass_SaveLoad_Prefix, 0x5)
+ASMJIT_PATCH(0x524B60, InfantryTypeClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(InfantryTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	InfantryTypeExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x524960, InfantryTypeClass_SaveLoad_Prefix, 0x8)
 
 #include <Misc/ImageSwapModules.h>
 
-DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
+ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 {
 	if (Phobos::Config::ArtImageSwap) {
 		GET(BYTE*, poisonedVal, EDI);
@@ -224,17 +223,16 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
+ASMJIT_PATCH(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
 {
 	InfantryTypeExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x52474E , InfantryTypeClass_LoadFromINI , 0x5)
-DEFINE_HOOK(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xD0);
 	InfantryTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x52474E, InfantryTypeClass_LoadFromINI, 0x5)

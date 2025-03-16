@@ -6,7 +6,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/TEvent/Body.h>
 
-DEFINE_HOOK(0x727064, TriggerTypeClass_HasLocalSetOrClearedEvent, 0x5)
+ASMJIT_PATCH(0x727064, TriggerTypeClass_HasLocalSetOrClearedEvent, 0x5)
 {
 	GET(const int, nIndex, EDX);
 
@@ -19,7 +19,7 @@ DEFINE_HOOK(0x727064, TriggerTypeClass_HasLocalSetOrClearedEvent, 0x5)
 		0x727069;
 }
 
-DEFINE_HOOK(0x727024, TriggerTypeClass_HasGlobalSetOrClearedEvent, 0x5)
+ASMJIT_PATCH(0x727024, TriggerTypeClass_HasGlobalSetOrClearedEvent, 0x5)
 {
 	GET(const int, nIndex, EDX);
 

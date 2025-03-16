@@ -26,7 +26,7 @@
 #include <TerrainClass.h>
 #include <InfantryClass.h>
 
-DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
+ASMJIT_PATCH(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
 {
 	enum { SkipGameCode = 0x62ABA5, ReturnZero = 0x62ABA0 };
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x62AB88, ParasiteClass_PassableTerrain, 0x5)
 	return pTerrain ? ReturnZero : SkipGameCode;
 }
 
-DEFINE_HOOK(0x62ABB6, ParasiteClass_LandCost, 0x5)
+ASMJIT_PATCH(0x62ABB6, ParasiteClass_LandCost, 0x5)
 {
 	enum { ContinueIn = 0x62ABC5, Skip = 0x62AC0F };
 
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x62ABB6, ParasiteClass_LandCost, 0x5)
 		? Skip : ContinueIn;
 }
 
-DEFINE_HOOK(0x629FE4, ParasiteClass_IsGrapplingAttack, 0x5)
+ASMJIT_PATCH(0x629FE4, ParasiteClass_IsGrapplingAttack, 0x5)
 {
 	enum { DoGrapple = 0x62A00E , DoParasite = 0x62A01D };
 	GET(ParasiteClass*, pThis, ESI);
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x629FE4, ParasiteClass_IsGrapplingAttack, 0x5)
 
 //#ifdef ENABLE_NEWHOOKS
 //TODO : retest for desync
-DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
+ASMJIT_PATCH(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 {
 	GET(ParasiteClass* const, pThis, ESI);
 	LEA_STACK(CoordStruct* const, pCoord, STACK_OFFS(0x4C, 0x18));
@@ -90,7 +90,7 @@ DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 	return 0x62A108;
 }
 
-DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
+ASMJIT_PATCH(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 {
 	GET(ParasiteClass* const, pThis, ESI);
 	GET(AnimTypeClass* const, pAnimType, EBP);
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	return 0x62A16A;
 }
 
-DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
+ASMJIT_PATCH(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 {
 	enum {
 		SkippAll = 0x62A24D,
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	return ReceiveDamage_LikeVehicle;
 }
 
-//DEFINE_HOOK(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
+//ASMJIT_PATCH(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
 //{
 //	enum
 //	{
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 //	return ReceiveDamage;
 //}
 
-DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
+ASMJIT_PATCH(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 {
 	enum { DealDamage = 0x62A222 , Continue = 0x0 };
 	GET(ParasiteClass* const, pThis, ESI);
@@ -164,7 +164,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 		? DealDamage : Continue;
 }
 
- DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
+ ASMJIT_PATCH(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
  {
  	enum { SkipDamaging = 0x62A24D , VictimTakeDamage = 0x0 };
 
@@ -188,8 +188,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
  	return VictimTakeDamage;
  }
 
-DEFINE_HOOK_AGAIN(0x62A399, ParasiteClass_ExitUnit_ExitSound, 0x9) //ParasiteClass_Detach
-DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uninfect
+ASMJIT_PATCH(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uninfect
 {
 	GET(ParasiteClass* const, pParasite, ESI);
 
@@ -200,9 +199,9 @@ DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uni
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x62A399, ParasiteClass_ExitUnit_ExitSound, 0x9) //ParasiteClass_Detach
 
-DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
+ASMJIT_PATCH(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 {
 	enum { Handled = 0x629B9C, Continue = 0x0 };
 
@@ -230,7 +229,7 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 	return Continue;
 }
 
-DEFINE_HOOK(0x62991C, ParasiteClass_GrappleAI_GrappleAnimCreated, 0x8)
+ASMJIT_PATCH(0x62991C, ParasiteClass_GrappleAI_GrappleAnimCreated, 0x8)
 {
 	GET(ParasiteClass*, pThis, ESI);
 	GET(AnimClass*, pGrapple, EAX);
@@ -239,7 +238,7 @@ DEFINE_HOOK(0x62991C, ParasiteClass_GrappleAI_GrappleAnimCreated, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6298CC, ParasiteClass_GrappleAI_AnimType, 0x5)
+ASMJIT_PATCH(0x6298CC, ParasiteClass_GrappleAI_AnimType, 0x5)
 {
 	enum{ NoAnim = 0x629972 , CreateAnim = 0x6298F0 };
 
@@ -259,7 +258,7 @@ DEFINE_HOOK(0x6298CC, ParasiteClass_GrappleAI_AnimType, 0x5)
 //DEFINE_SKIP_HOOK(0x629852 , ParasiteClass_GrappleAI_RemoveHarcodedWaterTilesetCheck , 7 , 629890);
 DEFINE_JUMP(LJMP, 0x629852, 0x629890);
 
-DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
+ASMJIT_PATCH(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 
@@ -270,7 +269,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //but this will crash other code atm
 //the better approach is using `flag` instead of booloeans
 //with this can be better to include or exclude affect
-//DEFINE_HOOK(0x46933E, BulletClass_Detnotane_SecondAffect_Parasite, 0x6)
+//ASMJIT_PATCH(0x46933E, BulletClass_Detnotane_SecondAffect_Parasite, 0x6)
 //{
 //	GET(BulletClass*, pBullet, ESI);
 //
@@ -282,7 +281,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //#include <DriveLocomotionClass.h>
 //
 //#pragma optimize("", off )
-//DEFINE_HOOK(0x62A2EC, ParasiteClass_PointerGotInvalid, 0x6)
+//ASMJIT_PATCH(0x62A2EC, ParasiteClass_PointerGotInvalid, 0x6)
 //{
 //	GET(ParasiteClass*, pThis, ESI);
 //	LEA_STACK(CoordStruct*, pCoordBuffer, STACK_OFFS(0x24, 0xC));

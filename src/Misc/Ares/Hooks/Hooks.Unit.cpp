@@ -31,7 +31,7 @@
 
 #include <InfantryClass.h>
 
-DEFINE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
+ASMJIT_PATCH(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 {
 	GET(TechnoClass*, pTechno, ECX);
 
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 		0x73D28E : 0x73D223;
 }
 
-DEFINE_HOOK(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
+ASMJIT_PATCH(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 {
 	GET(UnitClass*, pThis, EDI);
 	GET(UnitTypeClass*, pType, EAX);
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 
 #include <TeamClass.h>
 
-DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
+ASMJIT_PATCH(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 	GET(UnitClass*, pThis, EBX);
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 // when it has multiple turrets. gattling and charge turret is no
 // longer affected by this.
 
-DEFINE_HOOK(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
+ASMJIT_PATCH(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 	R->EAX(pThis->GetTechnoType()->Gunner);
@@ -97,7 +97,7 @@ DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
 //UnitClass_DrawSHP_SkipTurretedShadow
 DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
 
-DEFINE_HOOK(0x741206, UnitClass_CanFire, 0x6)
+ASMJIT_PATCH(0x741206, UnitClass_CanFire, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto Type = pThis->Type;
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x741206, UnitClass_CanFire, 0x6)
 		;
 }
 
-DEFINE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
+ASMJIT_PATCH(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 {
 	GET(UnitClass*, pThis, EBP);
 
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 	return 0x73C64B;
 }
 
-DEFINE_HOOK(0x73CD01, UnitClass_DrawSHP_FacingsB, 0x5)
+ASMJIT_PATCH(0x73CD01, UnitClass_DrawSHP_FacingsB, 0x5)
 {
 	GET(UnitClass*, pThis, EBP);
 	GET(UnitTypeClass*, pType, ECX);
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x73CD01, UnitClass_DrawSHP_FacingsB, 0x5)
 	return 0x73CD06;
 }
 
-DEFINE_HOOK(0x739ADA, UnitClass_SimpleDeploy_Height, 0xA)
+ASMJIT_PATCH(0x739ADA, UnitClass_SimpleDeploy_Height, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -161,7 +161,7 @@ DEFINE_HOOK(0x739ADA, UnitClass_SimpleDeploy_Height, 0xA)
 	return 0x739B14;
 }
 
-DEFINE_HOOK(0x736E8E, UnitClass_UpdateFiringState_Heal, 0x6)
+ASMJIT_PATCH(0x736E8E, UnitClass_UpdateFiringState_Heal, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -173,7 +173,7 @@ DEFINE_HOOK(0x736E8E, UnitClass_UpdateFiringState_Heal, 0x6)
 	return 0x737063;
 }
 
-DEFINE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
+ASMJIT_PATCH(0x7440BD, UnitClass_Remove, 0x6)
 {
 	GET(UnitClass*, U, ESI);
 
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
+ASMJIT_PATCH(0x74642C, UnitClass_ReceiveGunner, 6)
 {
 	GET(UnitClass*, Unit, ESI);
 
@@ -198,14 +198,14 @@ DEFINE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
+ASMJIT_PATCH(0x74653C, UnitClass_RemoveGunner, 0xA)
 {
 	GET(UnitClass*, Unit, EDI);
 	Unit->TemporalImUsing = std::exchange(TechnoExtContainer::Instance.Find(Unit)->MyOriginalTemporal, nullptr);
 	return 0x746546;
 }
 
-//DEFINE_HOOK(0x746420, UnitClass_ReceiveGunner, 5)
+//ASMJIT_PATCH(0x746420, UnitClass_ReceiveGunner, 5)
 //{
 //	GET(UnitClass*, pThis, ECX);
 //	GET_STACK(FootClass*, Gunner, 0x4);
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 //
 //}
 //
-//DEFINE_HOOK(0x7464E0 , UnitClass_RemoveGunner, 5)
+//ASMJIT_PATCH(0x7464E0 , UnitClass_RemoveGunner, 5)
 //{
 //	GET(UnitClass*, pThis, ECX);
 //	GET_STACK(FootClass* , Gunner , 0x4);
@@ -265,7 +265,7 @@ DEFINE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
 //	 return 0x7465A1;
 //}
 
-DEFINE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
+ASMJIT_PATCH(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 {
 	GET(UnitClass* const, pThis, ESI);
 	GET(TechnoClass const* const, pSender, EDI);
@@ -275,7 +275,7 @@ DEFINE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 	return TechnoTypeExtData::PassangersAllowed(pThis->Type, pSenderType) ? 0u : 0x73780Fu;
 }
 
-DEFINE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
+ASMJIT_PATCH(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
 		0x737677 : 0x73780F;
 }
 
-DEFINE_HOOK(0x73778F, UnitClass_ReceivedRadioCommand_BySize2, 6)
+ASMJIT_PATCH(0x73778F, UnitClass_ReceivedRadioCommand_BySize2, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -303,7 +303,7 @@ DEFINE_HOOK(0x73778F, UnitClass_ReceivedRadioCommand_BySize2, 6)
 		0x7377AA : 0x7377C9;
 }
 
-DEFINE_HOOK(0x73782F, UnitClass_ReceivedRadioCommand_BySize3, 6)
+ASMJIT_PATCH(0x73782F, UnitClass_ReceivedRadioCommand_BySize3, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -317,7 +317,7 @@ DEFINE_HOOK(0x73782F, UnitClass_ReceivedRadioCommand_BySize3, 6)
 		0x737877 : 0x73780F;
 }
 
-DEFINE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
+ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -331,7 +331,7 @@ DEFINE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 		0x7379E8 : 0x737AFC;
 }
 
-DEFINE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
+ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
@@ -348,34 +348,34 @@ DEFINE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 }
 
 // stop command would still affect units going berzerk
-DEFINE_HOOK(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
+ASMJIT_PATCH(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
-DEFINE_HOOK(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
+ASMJIT_PATCH(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
 {
 	// prevent units with killed drivers from scattering when attacked.
 	GET(TechnoClass*, pThis, ESI);
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F32C5u : 0u);
 }
 
-DEFINE_HOOK(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
+ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 {
 	// prevent units with killed drivers from looking for victims.
 	GET(TechnoClass*, pThis, ESI);
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
-DEFINE_HOOK(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
+ASMJIT_PATCH(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
 {
 	// prevent units with killed drivers from retaliating.
 	GET(TechnoClass*, pThis, ESI);
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
 }
 
-DEFINE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
+ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
 {
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
@@ -383,7 +383,7 @@ DEFINE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillD
 	return TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x73761Fu : 0u;
 }
 
-DEFINE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
+ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, lastStageValue, EAX);
@@ -416,7 +416,7 @@ DEFINE_HOOK(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 
 // do not let deactivated teleporter units move, otherwise
 // they could block a cell forever
-DEFINE_HOOK(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
+ASMJIT_PATCH(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 {
 	GET(FootClass*, pFoot, ECX);
 	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled)
@@ -424,7 +424,7 @@ DEFINE_HOOK(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 }
 
 // sink stuff that simply cannot exist on water
-DEFINE_HOOK(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
+ASMJIT_PATCH(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 {
 	GET(CellClass*, pCell, EAX);
 	GET(TechnoClass**, pTechno, ESI);
@@ -451,7 +451,7 @@ DEFINE_HOOK(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 }
 
 // iron curtained units would crush themselves
-DEFINE_HOOK(0x7187DA, TeleportLocomotionClass_Unwarp_PreventSelfCrush, 6)
+ASMJIT_PATCH(0x7187DA, TeleportLocomotionClass_Unwarp_PreventSelfCrush, 6)
 {
 	GET(TechnoClass*, pTeleporter, EDI);
 	GET(TechnoClass*, pContent, ECX);
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x7187DA, TeleportLocomotionClass_Unwarp_PreventSelfCrush, 6)
 }
 
 // bug 897
-DEFINE_HOOK(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
+ASMJIT_PATCH(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
 {
 	GET(TechnoTypeClass*, Type, EAX);
 
@@ -483,7 +483,7 @@ DEFINE_HOOK(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
 #include <Ext/Building/Body.h>
 
 // sanitize the power output
-DEFINE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
+ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 	if (pThis->PowerOutput < 0)
@@ -493,7 +493,7 @@ DEFINE_HOOK(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
+ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -522,7 +522,7 @@ DEFINE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 #include <Ext/CaptureManager/Body.h>
 
 // do not order deactivated units to move
-DEFINE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
+ASMJIT_PATCH(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 {
 	GET(UnitClass*, pUnloadee, EDI);
 	LEA_STACK(CellStruct**, ppCell, 0x0);
@@ -567,7 +567,7 @@ DEFINE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 //UnitClass_Mi_Harvest_SkipDock
 DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
-DEFINE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
+ASMJIT_PATCH(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 {
 	GET(InfantryClass*, pSlave, ESI);
 	//GET(SlaveManagerClass*, pThis, EDI);
@@ -577,8 +577,7 @@ DEFINE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 	return 0x6AF74E;
 }
 
-DEFINE_HOOK_AGAIN(0x6B026C, SlaveManagerClass_UpdateMiner_ShortScan, 6)
-DEFINE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
+ASMJIT_PATCH(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
 
@@ -586,9 +585,10 @@ DEFINE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x6B026C, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 
-DEFINE_HOOK(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
+
+ASMJIT_PATCH(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
@@ -597,18 +597,18 @@ DEFINE_HOOK(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 	return 0x6B01A9;
 }
 
-DEFINE_HOOK_AGAIN(0x6B02CC, SlaveManagerClass_UpdateMiner_LongScan, 6)
-DEFINE_HOOK_AGAIN(0x6B00BD, SlaveManagerClass_UpdateMiner_LongScan, 6)
-DEFINE_HOOK(0x6AFDFC, SlaveManagerClass_UpdateMiner_LongScan, 6)
+
+ASMJIT_PATCH(0x6AFDFC, SlaveManagerClass_UpdateMiner_LongScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlaveOwner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->SlaveMinerLongScan));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x6B02CC, SlaveManagerClass_UpdateMiner_LongScan, 6)
+ASMJIT_PATCH_AGAIN(0x6B00BD, SlaveManagerClass_UpdateMiner_LongScan, 6)
 
-DEFINE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
+ASMJIT_PATCH(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
 
@@ -622,7 +622,7 @@ DEFINE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 	return 0x6B1085;
 }
 
-DEFINE_HOOK(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
+ASMJIT_PATCH(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -630,7 +630,7 @@ DEFINE_HOOK(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
 	return 0x73EC14;
 }
 
-DEFINE_HOOK(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
+ASMJIT_PATCH(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
@@ -640,27 +640,27 @@ DEFINE_HOOK(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
 	return 0x73EE46;
 }
 
-DEFINE_HOOK_AGAIN(0x73EAC6, UnitClass_Mi_Harvest_ShortScan, 6)
-DEFINE_HOOK_AGAIN(0x73EAA6, UnitClass_Mi_Harvest_ShortScan, 6)
-DEFINE_HOOK_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
-DEFINE_HOOK(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
+ASMJIT_PATCH(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumShortScan));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x73EAC6, UnitClass_Mi_Harvest_ShortScan, 6)
+ASMJIT_PATCH_AGAIN(0x73EAA6, UnitClass_Mi_Harvest_ShortScan, 6)
+ASMJIT_PATCH_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
 
-DEFINE_HOOK_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
-DEFINE_HOOK(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
+
+ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 
-DEFINE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
+
+ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -670,7 +670,7 @@ DEFINE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 		0x740854 : 0x74083B;
 }
 
-DEFINE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
+ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -681,8 +681,7 @@ DEFINE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 }
 
 
-DEFINE_HOOK_AGAIN(0x735678, UnitClass_Init_Academy, 6) // inlined in CTOR
-DEFINE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
+ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -706,12 +705,13 @@ DEFINE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 	HouseExtData::ApplyAcademy(pThis->Owner, pThis, type);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x735678, UnitClass_Init_Academy, 6) // inlined in CTOR
+
 
 // make the space between gunner name segment and ifv
 // name smart. it disappears if one of them is empty,
 // eliminating leading and trailing spaces.
-DEFINE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
+ASMJIT_PATCH(0x746C55, UnitClass_GetUIName_Space, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(wchar_t*, pGunnerName, EAX);
@@ -724,7 +724,7 @@ DEFINE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
 	return 0x746C76;
 }
 
-DEFINE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
+ASMJIT_PATCH(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 {
 	GET(UnitClass const* const, pThis, ESI);
 
@@ -747,7 +747,7 @@ DEFINE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 
-DEFINE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
+ASMJIT_PATCH(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
 {
 	enum { RetDefault = 0, NoUnload = 0x417DF4 };
 
@@ -755,7 +755,7 @@ DEFINE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
 }
 
-DEFINE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
+ASMJIT_PATCH(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 {
 	// this techno is known to be a unit
 	GET(UnitClass const* const, pThis, ESI);
@@ -764,7 +764,7 @@ DEFINE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 		? 0u : 0x700DCEu;
 }
 
-DEFINE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
+ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)
 {
 	// complete rewrite. used by psychic dominator, ai targeting, etc.
 	GET(TechnoClass*, pThis, ECX);
@@ -788,21 +788,21 @@ DEFINE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 	return 0x53C4BA;
 }
 
-DEFINE_HOOK(0x700536, TechnoClass_GetActionOnObject_NoManualFire, 6)
+ASMJIT_PATCH(0x700536, TechnoClass_GetActionOnObject_NoManualFire, 6)
 {
 	GET(TechnoClass const* const, pThis, ESI);
 	auto const pType = pThis->GetTechnoType();
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x70056Cu : 0u;
 }
 
-DEFINE_HOOK(0x7008D4, TechnoClass_GetCursorOverCell_NoManualFire, 6)
+ASMJIT_PATCH(0x7008D4, TechnoClass_GetCursorOverCell_NoManualFire, 6)
 {
 	GET(TechnoClass const* const, pThis, ESI);
 	auto const pType = pThis->GetTechnoType();
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x700AB7u : 0u;
 }
 
-DEFINE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
+ASMJIT_PATCH(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 {
 	//GET(UnitClass const* const, pThis, ESI);
 	GET(TechnoTypeClass*, pTargetType, EAX);
@@ -814,8 +814,8 @@ DEFINE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 //TechnoClass_CanAutoTargetObject_Heal
 DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
-//DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
-//DEFINE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
+//ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
+//ASMJIT_PATCH(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
 //{
 //	GET(unsigned int, nVal, EBX);
 //
@@ -828,7 +828,7 @@ DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 DEFINE_PATCH(0x6F8F21, 0x3C);
 DEFINE_PATCH(0x6F8EE5, 0x3C);
 
-DEFINE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
+ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
 	enum { retFireIllegal = 0x51C939, retContinue = 0x51C947 };
 	GET(InfantryClass*, pThis, EBX);
@@ -847,7 +847,7 @@ DEFINE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 
 }
 
-DEFINE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
+ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
 {
 	enum { retFireIllegal = 0x74113A, retContinue = 0x741149 };
 	GET(UnitClass*, pThis, ESI);
@@ -858,7 +858,7 @@ DEFINE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
 		retContinue : retFireIllegal;
 }
 
-DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
+ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
 {
 	enum { SetHealthRatio = 0x6F7F56, ContinueCheck = 0x6F7F6D, retFalse = 0x6F894F };
 	GET(TechnoClass*, pThis, EDI);
@@ -932,7 +932,7 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 	return { pTarget->IsFullHP() , -1 };
 }
 
-DEFINE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
+ASMJIT_PATCH(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 {
 	enum
 	{
@@ -976,7 +976,7 @@ DEFINE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	return DoActionHeal;
 }
 
-DEFINE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
+ASMJIT_PATCH(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 {
 	enum { ContinueCheck = 0x73FE48, CheckIfTargetIsBuilding = 0x73FE2F, DoActionSelect = 0x73FE3B, DoActionGRepair = 0x73FE22, CheckObjectHP = 0x73FE08 };
 	GET(UnitClass*, pThis, ESI);
@@ -1017,9 +1017,7 @@ DEFINE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	return DoActionGRepair;//0x73FE08;
 }
 
-DEFINE_HOOK_AGAIN(0x73C69D, UnitClass_DrawSHP_ChangeType1, 6)
-DEFINE_HOOK_AGAIN(0x73C702, UnitClass_DrawSHP_ChangeType1, 6)
-DEFINE_HOOK(0x73C655, UnitClass_DrawSHP_ChangeType1, 6)
+ASMJIT_PATCH(0x73C655, UnitClass_DrawSHP_ChangeType1, 6)
 {
 	GET(UnitClass*, U, EBP);
 
@@ -1030,9 +1028,11 @@ DEFINE_HOOK(0x73C655, UnitClass_DrawSHP_ChangeType1, 6)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x73C69D, UnitClass_DrawSHP_ChangeType1, 6)
+ASMJIT_PATCH_AGAIN(0x73C702, UnitClass_DrawSHP_ChangeType1, 6)
 
-DEFINE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
+
+ASMJIT_PATCH(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 {
 	GET(UnitClass*, U, EBP);
 
@@ -1054,7 +1054,7 @@ DEFINE_HOOK(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 
 static bool ShadowAlreadyDrawn;
 
-DEFINE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
+ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 {
 	GET(UnitClass*, U, EBP);
 
@@ -1110,7 +1110,7 @@ DEFINE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 	return retAddr;
 }
 
-DEFINE_HOOK(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
+ASMJIT_PATCH(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
 {
 	if (ShadowAlreadyDrawn)
 	{
@@ -1121,8 +1121,8 @@ DEFINE_HOOK(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mi_Selling_SyncShieldStatus
-DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_Deploy_SyncShieldStatus
+
+ASMJIT_PATCH(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_Deploy_SyncShieldStatus
 {
 	GET(TechnoClass*, pFrom, EBP);
 	GET(TechnoClass*, pTo, EBX);
@@ -1141,9 +1141,9 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_D
 		pTo->QueueMission(Mission::Hunt, true);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mi_Selling_SyncShieldStatus
 
-DEFINE_HOOK(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
+ASMJIT_PATCH(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, EDI);
 
@@ -1155,7 +1155,7 @@ DEFINE_HOOK(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
+ASMJIT_PATCH(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 
@@ -1167,7 +1167,7 @@ DEFINE_HOOK(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7357F6, UnitClass_DTOR_Prereqs, 6)
+ASMJIT_PATCH(0x7357F6, UnitClass_DTOR_Prereqs, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -1179,7 +1179,7 @@ DEFINE_HOOK(0x7357F6, UnitClass_DTOR_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D7221, FootClass_Put_Prereqs, 6)
+ASMJIT_PATCH(0x4D7221, FootClass_Put_Prereqs, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -1193,8 +1193,7 @@ DEFINE_HOOK(0x4D7221, FootClass_Put_Prereqs, 6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6F4A37, TechnoClass_DiscoveredBy_Prereqs, 5)
-DEFINE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
+ASMJIT_PATCH(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -1206,16 +1205,17 @@ DEFINE_HOOK(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6F4A37, TechnoClass_DiscoveredBy_Prereqs, 5)
 
-DEFINE_HOOK(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
+
+ASMJIT_PATCH(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->OmniCrusher_Aggressive
 		? 0u : 0x741685u;
 }
 
-DEFINE_HOOK(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
+ASMJIT_PATCH(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
 {
 	GET(ObjectClass* const, pVictim, ESI);
 
@@ -1235,7 +1235,7 @@ DEFINE_HOOK(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
+ASMJIT_PATCH(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 {
 	enum { Decloak = 0x0, DoNotDecloak = 0x741939 };
 	GET(UnitClass* const, pThis, EDI);
@@ -1255,11 +1255,12 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 	else if (auto pWarhead = pExt->WhenCrushed_Warhead.Get(pVictim))
 	{
 		int damage = pExt->WhenCrushed_Damage.GetOrDefault(pVictim, 0u);
+		auto vic_coords = pVictim->GetCoords();
 
 		if (pExt->WhenCrushed_Warhead_Full)
-			WarheadTypeExtData::DetonateAt(pWarhead, pVictim->GetCoords(), pVictim, damage, pVictim->GetOwningHouse());
+			WarheadTypeExtData::DetonateAt(pWarhead, vic_coords, pVictim, damage, pVictim->GetOwningHouse());
 		else
-			DamageArea::Apply(&pVictim->GetCoords(), damage, pVictim, pWarhead, true, pVictim->GetOwningHouse());
+			DamageArea::Apply(&vic_coords, damage, pVictim, pWarhead, true, pVictim->GetOwningHouse());
 	}
 }
 
@@ -1302,7 +1303,7 @@ static void CrushAffect(UnitClass* pThis, ObjectClass* pVictim, bool victimIsTec
 
 }
 
-DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
+ASMJIT_PATCH(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
 {
 	enum { DoNotTilt = 0x7418AA, Tilt = 0x7418A6 };
 	GET(ObjectClass* const, pVictim, ESI);
@@ -1344,21 +1345,21 @@ DEFINE_HOOK(0x7418A1, UnitClass_CrusCell_TiltWhenCrushSomething, 0x5)
 	return ret_;
 }
 
-DEFINE_HOOK(0x735584, UnitClass_CTOR_TurretROT, 6)
+ASMJIT_PATCH(0x735584, UnitClass_CTOR_TurretROT, 6)
 {
 	GET(UnitTypeClass*, pType, ECX);
 	R->EDX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x73558A;
 }
 
-DEFINE_HOOK(0x413ffa, AircraftClass_Init_TurretROT, 6)
+ASMJIT_PATCH(0x413ffa, AircraftClass_Init_TurretROT, 6)
 {
 	GET(AircraftTypeClass*, pType, EDX);
 	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x414000;
 }
 
-DEFINE_HOOK(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
+ASMJIT_PATCH(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
 {
 	GET(FootClass*, pFoot, EAX);
 
@@ -1366,7 +1367,7 @@ DEFINE_HOOK(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
 	return 0x728F74;
 }
 
-DEFINE_HOOK(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
+ASMJIT_PATCH(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
@@ -1381,7 +1382,7 @@ DEFINE_HOOK(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
 	return 0x729365;
 }
 
-DEFINE_HOOK(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)
+ASMJIT_PATCH(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)
 {
 	GET(FootClass*, pFoot, ECX);
 
@@ -1389,7 +1390,7 @@ DEFINE_HOOK(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)
 	return 0x72945E;
 }
 
-DEFINE_HOOK(0x7297C4, TunnelLocomotionClass_sub_729580_Dig, 6)
+ASMJIT_PATCH(0x7297C4, TunnelLocomotionClass_sub_729580_Dig, 6)
 {
 	GET(FootClass*, pFoot, EAX);
 
@@ -1397,7 +1398,7 @@ DEFINE_HOOK(0x7297C4, TunnelLocomotionClass_sub_729580_Dig, 6)
 	return 0x7297F3;
 }
 
-DEFINE_HOOK(0x7299A9, TunnelLocomotionClass_sub_7298F0_Dig, 5)
+ASMJIT_PATCH(0x7299A9, TunnelLocomotionClass_sub_7298F0_Dig, 5)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
@@ -1405,7 +1406,7 @@ DEFINE_HOOK(0x7299A9, TunnelLocomotionClass_sub_7298F0_Dig, 5)
 	return 0x729A34;
 }
 
-DEFINE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
+ASMJIT_PATCH(0x72920C, TunnelLocomotionClass_Turning, 9)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
@@ -1419,7 +1420,7 @@ DEFINE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
 // select the most appropriate firing voice and also account
 // for undefined flags, so you actually won't lose functionality
 // when a unit becomes elite.
-DEFINE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
+ASMJIT_PATCH(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTarget, ECX);
@@ -1494,7 +1495,7 @@ DEFINE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 }
 
 // #908369, #1100953: units are still deployable when warping or falling
-DEFINE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
+ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -1510,7 +1511,7 @@ DEFINE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 		? 0x700DCE : 0x700E59;
 }
 
-DEFINE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
+ASMJIT_PATCH(0x736135, UnitClass_Update_Deactivated, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -1520,7 +1521,7 @@ DEFINE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
 }
 
 // merge two small visceroids into one large visceroid
-DEFINE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
+ASMJIT_PATCH(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
@@ -1570,7 +1571,7 @@ DEFINE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
+ASMJIT_PATCH(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 {
 	GET(UnitClass*, pThis, EBP);
 	REF_STACK(int, Value, 0x1E0);

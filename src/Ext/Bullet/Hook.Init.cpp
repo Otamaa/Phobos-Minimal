@@ -3,7 +3,7 @@
 #include <Ext/BulletType/Body.h>
 
 // has everything inited except SpawnNextAnim at this point
-DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
+ASMJIT_PATCH(0x466556, BulletClass_Init_Phobos, 0x6)
 {
 	GET(FakeBulletClass*, pThis, ECX);
 

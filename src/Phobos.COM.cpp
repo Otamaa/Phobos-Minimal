@@ -101,7 +101,7 @@ void RegisterFactoryForClass()
 	RegisterFactoryForClass<T>(GameCreate<TClassFactory<T>>());
 }
 
-DEFINE_HOOK(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
+ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
 	Debug::Log("Starting COM registration...");
 

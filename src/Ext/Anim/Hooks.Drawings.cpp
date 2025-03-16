@@ -6,14 +6,14 @@
 // Draw Tiled !
 #ifndef UsePhobosOne
 //ConvertClass* Convert = nullptr;
-//DEFINE_HOOK(0x42366D, AnimClass_DrawIt_Tiled_FetchBeforeChange, 0x6) {
+//ASMJIT_PATCH(0x42366D, AnimClass_DrawIt_Tiled_FetchBeforeChange, 0x6) {
 //	GET_STACK(ConvertClass*, pConvert, 0x110 - 0xE0);
 //	Convert = pConvert;
 //	return 0x0;
 //
 //}
 
-DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
+ASMJIT_PATCH(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(FakeAnimClass* const, pThis, ESI);
 
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 	return 0x4236F6;
 }
 #else
-DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
+ASMJIT_PATCH(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 {
 	GET(AnimClass* const, pThis, ESI);
 	GET(int, nY_Loc, EDI);
@@ -285,7 +285,7 @@ struct DummyStructForDrawing
 	}
 };
 
-DEFINE_HOOK(0x4AED70, Game_DrawSHP, 0x0)
+ASMJIT_PATCH(0x4AED70, Game_DrawSHP, 0x0)
 {
 	GET(Surface*, dest_surface, ECX);
 	GET(ConvertClass*, drawer, EDX);
@@ -313,7 +313,7 @@ DEFINE_HOOK(0x4AED70, Game_DrawSHP, 0x0)
 
 #include <Ext/AnimType/Body.h>
 
-DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
+ASMJIT_PATCH(0x423061, AnimClass_Draw_Visibility, 0x6)
 {
 	enum { SkipDrawing = 0x4238A3 };
 
@@ -358,7 +358,7 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 	return 0;
 }
 
-//DEFINE_HOOK(0x423183, AnimClass_DrawIt_CloakTranslucency, 0x6)
+//ASMJIT_PATCH(0x423183, AnimClass_DrawIt_CloakTranslucency, 0x6)
 //{
 //	enum { SkipGameCode = 0x423189 };
 //
@@ -380,7 +380,7 @@ DEFINE_HOOK(0x423061, AnimClass_Draw_Visibility, 0x6)
 
 //these should be calculated when anim created
 //but `Type` change is the one fucked up those
-DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
+ASMJIT_PATCH(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 {
 	enum { SkipGameCode = 0x4230FE, ReturnFromFunction = 0x4238A3 };
 
@@ -453,7 +453,7 @@ DEFINE_HOOK(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 //#include <InfantryClass.h>
 //
 //#pragma optimize("", off )
-//DEFINE_HOOK(0x425174, AnimClass_Detach_Cloak, 0x6)
+//ASMJIT_PATCH(0x425174, AnimClass_Detach_Cloak, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
 //	GET(AbstractClass*, pTarget, EDI);

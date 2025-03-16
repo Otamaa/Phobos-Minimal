@@ -4,14 +4,14 @@
 
 #include <Misc/PhobosToolTip.h>
 
-DEFINE_HOOK(0x6A5030, SidebarClass_Init_Clear_InitializedTacticalButton, 0x6)
+ASMJIT_PATCH(0x6A5030, SidebarClass_Init_Clear_InitializedTacticalButton, 0x6)
 {
 	SWButtonClass::Initialized = false;
 	SWButtonClass::ClearButtons();
 	return 0;
 }
 
-DEFINE_HOOK(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
+ASMJIT_PATCH(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
 {
 	if (!SWButtonClass::Initialized) {
 		SWButtonClass::Initialized = true;

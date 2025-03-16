@@ -1000,7 +1000,7 @@ BuildingExtContainer BuildingExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
+ASMJIT_PATCH(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
 
@@ -1008,7 +1008,7 @@ DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x43C022, BuildingClass_DTOR, 0x6)
+ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
 

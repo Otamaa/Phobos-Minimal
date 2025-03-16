@@ -124,7 +124,7 @@ TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(TechnoClass* pTechno
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-//DEFINE_HOOK(0x467609, BulletClass_AI_CheckBounce, 0x6)
+//ASMJIT_PATCH(0x467609, BulletClass_AI_CheckBounce, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBP);
 //
@@ -139,7 +139,7 @@ TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(TechnoClass* pTechno
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x46786C, BulletClass_AI_Before_TechnoCheck, 0x6)
+//ASMJIT_PATCH(0x46786C, BulletClass_AI_Before_TechnoCheck, 0x6)
 //{
 //	GET(BulletClass*, pThis, EBP);
 //	GET(int, nHeight, EAX);
@@ -155,7 +155,7 @@ TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(TechnoClass* pTechno
 //}
 
 /*
-DEFINE_HOOK(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)
+ASMJIT_PATCH(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x164));
@@ -272,7 +272,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x46779B, BulletClass_AI_DetonateNow, 0x8)
+ASMJIT_PATCH(0x46779B, BulletClass_AI_DetonateNow, 0x8)
 {
 	GET(BulletClass*, pThis, EBP);
 	const auto pExt = BulletExtContainer::Instance.Find(pThis);

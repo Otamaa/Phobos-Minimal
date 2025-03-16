@@ -11,7 +11,7 @@
 
 #include <GameOptionsClass.h>
 
-DEFINE_HOOK(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
+ASMJIT_PATCH(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 {
 	enum { IsBlockage = 0x483CD4 };
 
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
+ASMJIT_PATCH(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
 {
 	enum { Apply = 0x43D6EF, Skip = 0x43D712 };
 
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
 	return Skip;
 }
 
-DEFINE_HOOK(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
+ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 {
 	enum { Skip = 0x4511E6, Continue = 0x4511DF };
 
@@ -49,7 +49,7 @@ DEFINE_HOOK(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 		? Continue : Skip;
 }
 
-DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
+ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 {
 	GET(UnitClass*, pUnit, EBP);
 	GET(FakeBuildingClass*, pStructure, EBX);
@@ -67,7 +67,7 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 	return 0x739A6E;
 }
 
-//DEFINE_HOOK(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
+//ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 //{
 //	GET(UnitClass*, pUnit, EBP);
 //	GET(BuildingClass*, pStructure, EBX);
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
+ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 	return 0x449AE8;
 }
 
-// DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
+// ASMJIT_PATCH(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 // {
 // 	GET(BuildingClass*, pThis, ESI);
 //
@@ -116,7 +116,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 
 
 
-DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
+ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {
     enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
 	GET(FakeBuildingClass* const, pThis, ESI);
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 	return ContinueCheck;
 }
 
-DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
+ASMJIT_PATCH(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 {
 	enum { ReturnFromFunction = 0x465D6A , Continue = 0x0 };
 
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 	return ReturnFromFunction;
 }
 
-DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x6)
+ASMJIT_PATCH(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x6)
 {
 	GET(FakeBuildingClass*, pBuilding, EBP);
 
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0x
 	return 0x446183;
 }
 
-DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
+ASMJIT_PATCH(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 {
 	GET(FakeBuildingClass*, pBuilding, ESI);
 
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 	return 0x450F9E;
 }
 
-// DEFINE_HOOK(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
+// ASMJIT_PATCH(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
 // {
 // 	GET(BuildingClass*, pBuilding, ESI);
 //
@@ -203,7 +203,7 @@ DEFINE_HOOK(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
 // 	return 0x450E3E;
 // }
 
-DEFINE_HOOK(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
+ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 {
 	enum { SkipGameCode = 0x44F13B, ReturnFromFunction = 0x44F037 };
 
@@ -239,7 +239,7 @@ DEFINE_HOOK(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
+ASMJIT_PATCH(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
 {
 	enum { SkipGameCode = 0x444C7C };
 	GET(FakeBuildingClass*, pThis, ESI);
@@ -258,25 +258,25 @@ DEFINE_HOOK(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
 
 #pragma region EnableBuildingProductionQueue
 
-DEFINE_HOOK(0x6AB689, SelectClass_Action_SkipBuildingProductionCheck, 0x5)
+ASMJIT_PATCH(0x6AB689, SelectClass_Action_SkipBuildingProductionCheck, 0x5)
 {
 	enum { SkipGameCode = 0x6AB6CE };
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
-DEFINE_HOOK(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
+ASMJIT_PATCH(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
 {
 	enum { SkipGameCode = 0x4FA553 };
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
-DEFINE_HOOK(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
+ASMJIT_PATCH(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
 {
 	enum { SkipGameCode = 0x4C9C9E };
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
-DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
+ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 {
 	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
 
@@ -316,7 +316,7 @@ DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 	return Return;
 }
 
-DEFINE_HOOK(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
+ASMJIT_PATCH(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, ECX);
 	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x490, -0x490));
@@ -327,7 +327,7 @@ DEFINE_HOOK(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
+ASMJIT_PATCH(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
 {
 	enum { ContinueCheck = 0x6A9799, SkipGameCode = 0x6A97FB };
 
@@ -353,13 +353,13 @@ DEFINE_HOOK(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
 	return ContinueCheck;
 }
 
-DEFINE_HOOK(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
+ASMJIT_PATCH(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
 {
 	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 	return 0;
 }
 
-DEFINE_HOOK(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
+ASMJIT_PATCH(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, EBX);
 	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x158, -0x158));
@@ -374,7 +374,7 @@ DEFINE_HOOK(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 #pragma endregion
 #include <PlanningTokenClass.h>
 
-DEFINE_HOOK(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
+ASMJIT_PATCH(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
 {
 	enum { Ret = 0x4AE982 };
 

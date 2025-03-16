@@ -3,7 +3,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
-DEFINE_HOOK(0x6F7481, TechnoClass_Targeting_ApplyGravity, 0x6)
+ASMJIT_PATCH(0x6F7481, TechnoClass_Targeting_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EDX);
 
@@ -13,10 +13,7 @@ DEFINE_HOOK(0x6F7481, TechnoClass_Targeting_ApplyGravity, 0x6)
 	return 0x6F74A4;
 }
 
-
-DEFINE_HOOK_AGAIN(0x44D2AE, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
-DEFINE_HOOK_AGAIN(0x44D264, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
-DEFINE_HOOK(0x44D074, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
+ASMJIT_PATCH(0x44D074, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EBP);
 
@@ -35,9 +32,10 @@ DEFINE_HOOK(0x44D074, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
 		return 0x44D2B4;
 		break;
 	}
-}
+} ASMJIT_PATCH_AGAIN(0x44D2AE, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
+ASMJIT_PATCH_AGAIN(0x44D264, BuildingClass_Mission_Missile_ApplyGravity, 0x6)
 
-DEFINE_HOOK(0x6FDAA6, TechnoClass_FireAngle_6FDA00_ApplyGravity, 0x5)
+ASMJIT_PATCH(0x6FDAA6, TechnoClass_FireAngle_6FDA00_ApplyGravity, 0x5)
 {
 	GET(WeaponTypeClass* const, pWeaponType, EDI);
 
@@ -47,7 +45,7 @@ DEFINE_HOOK(0x6FDAA6, TechnoClass_FireAngle_6FDA00_ApplyGravity, 0x5)
 	return 0x6FDACE;
 }
 
-DEFINE_HOOK(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
+ASMJIT_PATCH(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
 {
 	GET(BulletTypeClass* const, pType, EAX);
 
@@ -57,7 +55,7 @@ DEFINE_HOOK(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
 	return 0x6FECD1;
 }
 
-DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
+ASMJIT_PATCH(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 {
 	GET(BulletClass*, pBullet, EBX);
 	//GET(TechnoClass*, pThis, ESI);

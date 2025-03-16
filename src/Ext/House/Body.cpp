@@ -2275,7 +2275,7 @@ DEFINE_FUNCTION_JUMP(CALL ,0x4F9017, FakeHouseClass::_Expert_AI)
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
+ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
 
@@ -2286,36 +2286,35 @@ DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F7186, HouseClass_DTOR, 0x8)
+ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
 {
 	GET(HouseClass*, pItem, ESI);
 	HouseExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x504080, HouseClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
+ASMJIT_PATCH(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(HouseClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 
 	HouseExtContainer::Instance.PrepareStream(pItem, pStm);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x504080, HouseClass_SaveLoad_Prefix, 0x5)
 
-DEFINE_HOOK(0x5031E6, HouseClass_Load_Suffix, 0x6)
+ASMJIT_PATCH(0x5031E6, HouseClass_Load_Suffix, 0x6)
 {
 	HouseExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x5040A2, HouseClass_Save_Suffix, 0x6)
+ASMJIT_PATCH(0x5040A2, HouseClass_Save_Suffix, 0x6)
 {
 	HouseExtContainer::Instance.SaveStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
+ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
 {
 	GET(HouseClass* const, pThis, EBX);
 	GET(CCINIClass* const, pINI, ESI);
@@ -2325,7 +2324,7 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
+//ASMJIT_PATCH(0x4FB9B7, HouseClass_Detach, 0xA)
 //{
 //	GET(HouseClass*, pThis, ECX);
 //	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));

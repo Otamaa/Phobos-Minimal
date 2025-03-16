@@ -420,14 +420,14 @@ TeamExtContainer TeamExtContainer::Instance;
 // container hooks
 
 //Everything InitEd
-DEFINE_HOOK(0x6E8D05, TeamClass_CTOR, 0x5)
+ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 {
 	GET(TeamClass*, pThis, ESI);
 	TeamExtContainer::Instance.Allocate(pThis);
 	return 0;
 }
 
-DEFINE_HOOK(0x6E8ECB, TeamClass_DTOR, 0x7)
+ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 	TeamExtContainer::Instance.Remove(pThis);
@@ -463,7 +463,7 @@ HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
 
- DEFINE_HOOK(0x6EAE60, TeamClass_Detach, 0x7)
+ ASMJIT_PATCH(0x6EAE60, TeamClass_Detach, 0x7)
  {
  	GET(TeamClass*, pThis, ECX);
  	GET_STACK(AbstractClass*, target, 0x4);

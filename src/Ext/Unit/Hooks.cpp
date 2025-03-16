@@ -10,7 +10,7 @@
 
 //DEFINE_FUNCTION_JUMP(CALL,0x7360C9, GET_OFFSET(CanUpdate));
 
-// DEFINE_HOOK(0x73E474, UnitClass_Unload_Storage, 0x6)
+// ASMJIT_PATCH(0x73E474, UnitClass_Unload_Storage, 0x6)
 // {
 // 	GET(BuildingClass* const, pBuilding, EDI);
 // 	GET(int const, idxTiberium, EBP);
@@ -30,7 +30,7 @@
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
+ASMJIT_PATCH(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 {
 	GET(UnitClass* const, pThis, EBP);
 

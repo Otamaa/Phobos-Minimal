@@ -52,7 +52,7 @@ void EVAVoices::RegisterType(const char* type)
 }
 
 // replace the complete ini loading function
-DEFINE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
+ASMJIT_PATCH(0x753000, VoxClass_CreateFromINIList, 6)
 {
 	GET(CCINIClass* const, pINI, ECX);
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x753000, VoxClass_CreateFromINIList, 6)
 }
 
 // need to destroy manually because of non-virtual destructor
-DEFINE_HOOK(0x7531CF, VoxClass_DeleteAll, 5)
+ASMJIT_PATCH(0x7531CF, VoxClass_DeleteAll, 5)
 {
 	for(int i = VoxClass::Array->Count - 1; i >= 0; --i) {
 		if (auto pItem = static_cast<VoxClass2*>(VoxClass::Array->Items[i])) {
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x7531CF, VoxClass_DeleteAll, 5)
 }
 
 // also load all additional filenames
-DEFINE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
+ASMJIT_PATCH(0x752FDC, VoxClass_LoadFromINI, 5)
 {
 	GET(VoxClass2* const, pThis, ESI);
 	GET(CCINIClass* const, pINI, EBP);
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x752FDC, VoxClass_LoadFromINI, 5)
 }
 
 // undo the inlining. call the function we hook
-DEFINE_HOOK(0x7528E8, VoxClass_PlayEVASideSpecific, 5)
+ASMJIT_PATCH(0x7528E8, VoxClass_PlayEVASideSpecific, 5)
 {
 	GET(VoxClass* const, pVox, EBP);
 	R->EDI(pVox->GetFilename());
@@ -142,7 +142,7 @@ DEFINE_HOOK(0x7528E8, VoxClass_PlayEVASideSpecific, 5)
 }
 
 // resolve EVA index to filename
-DEFINE_HOOK(0x753380, VoxClass_GetFilename, 5)
+ASMJIT_PATCH(0x753380, VoxClass_GetFilename, 5)
 {
 	GET(VoxClass2* const, pThis, ECX);
 	auto const index = VoxClass::EVAIndex();
@@ -173,7 +173,7 @@ DEFINE_HOOK(0x753380, VoxClass_GetFilename, 5)
 	return 0x753398;
 }
 
-DEFINE_HOOK(0x7534e0 , VoxClass_SetEVAIndex , 5)
+ASMJIT_PATCH(0x7534e0 , VoxClass_SetEVAIndex , 5)
 {	GET(int ,side , ECX);
 
 	if (auto pSide = SideClass::Array->GetItemOrDefault(side)) {

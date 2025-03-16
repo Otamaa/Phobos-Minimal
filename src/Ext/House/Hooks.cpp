@@ -11,8 +11,7 @@
 
 #include <Utilities/Cast.h>
 
-DEFINE_HOOK_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
-DEFINE_HOOK(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
+ASMJIT_PATCH(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 {
 	GET(FakeBuildingClass*, pBuilding, ESI);
 	GET(FakeHouseClass*, pThis, EDI);
@@ -24,9 +23,9 @@ DEFINE_HOOK(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 
-DEFINE_HOOK(0x500910, HouseClass_GetFactoryCount, 0x5)
+ASMJIT_PATCH(0x500910, HouseClass_GetFactoryCount, 0x5)
 {
 	enum { SkipGameCode = 0x50095D };
 
@@ -41,13 +40,13 @@ DEFINE_HOOK(0x500910, HouseClass_GetFactoryCount, 0x5)
 }
 
 //remove the SW processing from the original place
-// DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
+// ASMJIT_PATCH(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5) {
 // 	return RulesExtData::Instance()->AISuperWeaponDelay.isset() ?
 // 		0x4FD7A0 : 0;
 // }
 //
 //update it separately
-DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
+ASMJIT_PATCH(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 
 	GET(FakeHouseClass*, pThis, ESI);
 
@@ -71,7 +70,7 @@ DEFINE_HOOK(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 	return 0;
 }
 
-// DEFINE_HOOK(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5)
+// ASMJIT_PATCH(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5)
 // {
 // 	enum { SkipSWProcess = 0x4FD7A0 , RetTryFireSW = 0x4FD799};
 // 	GET(HouseClass*, pThis, ESI);
@@ -130,7 +129,7 @@ void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, Super
 	}
 }
 
-DEFINE_HOOK(0x6EFEFB, TMission_ChronoShiftToBuilding_SuperWeapons, 0x6)
+ASMJIT_PATCH(0x6EFEFB, TMission_ChronoShiftToBuilding_SuperWeapons, 0x6)
 {
 	enum { SkipGameCode = 0x6EFF22 };
 
@@ -145,7 +144,7 @@ DEFINE_HOOK(0x6EFEFB, TMission_ChronoShiftToBuilding_SuperWeapons, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
+ASMJIT_PATCH(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
 {
 	enum { SkipGameCode = 0x6F01D9 };
 
@@ -159,7 +158,7 @@ DEFINE_HOOK(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
+ASMJIT_PATCH(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
 {
 	enum { SkipGameCode = 0x65EBE5, SkipGameCodeNoSuccess = 0x65EC12 };
 
@@ -171,7 +170,7 @@ DEFINE_HOOK(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }
 
-DEFINE_HOOK(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
+ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 {
 	enum { SkipGameCode = 0x65E9EE, SkipGameCodeNoSuccess = 0x65EA8B };
 
@@ -183,7 +182,7 @@ DEFINE_HOOK(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }
 
-DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
+ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 {
 	GET(FakeHouseClass*, pThis, ECX);
 
@@ -239,7 +238,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 }
 
 // Power Plant Enhancer #131
-DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
+ASMJIT_PATCH(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
@@ -249,7 +248,7 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 	return 0x508D07;
 }
 
-//DEFINE_HOOK(0x4F844B, HouseClass_Update, 0x6)
+//ASMJIT_PATCH(0x4F844B, HouseClass_Update, 0x6)
 //{
 //	GET(HouseClass* const, pThis, ESI);
 //
@@ -281,7 +280,7 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 //DEFINE_FUNCTION_JUMP(CALL, 0x4DE60B, GET_OFFSET(TechnoClass_UnInit_Wrapper));   // FootClass
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FB4, GET_OFFSET(TechnoClass_UnInit_Wrapper)); // BuildingClass
 
-DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
+ASMJIT_PATCH(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -292,7 +291,7 @@ DEFINE_HOOK(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
+ASMJIT_PATCH(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	HouseExtData::LimboTechno.remove(pThis);
@@ -303,7 +302,7 @@ DEFINE_HOOK(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 
 HouseClass* OldOwner = nullptr;
 
-DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
+ASMJIT_PATCH(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	auto pNewOwner= pThis->Owner;
@@ -347,7 +346,7 @@ DEFINE_HOOK(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 }
 
 
-DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
+ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EBP);
@@ -373,7 +372,7 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	return 0;
 }
 
-//DEFINE_HOOK(0x687B18, ScenarioClass_ReadINI_StartTracking, 0x7)
+//ASMJIT_PATCH(0x687B18, ScenarioClass_ReadINI_StartTracking, 0x7)
 //{
 //	for (auto const pTechno : *TechnoClass::Array)
 //	{
@@ -395,7 +394,7 @@ DEFINE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 //}
 #pragma endregion
 
-DEFINE_HOOK(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
+ASMJIT_PATCH(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(UrgencyType, urg , 0x4);
 
@@ -428,7 +427,7 @@ DEFINE_HOOK(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
 }
 
 // Sell all and all in.
-// DEFINE_HOOK(0x4FD8F7, HouseClass_UpdateAI_OnLastLegs, 0x6)
+// ASMJIT_PATCH(0x4FD8F7, HouseClass_UpdateAI_OnLastLegs, 0x6)
 // {
 // 	enum { ret = 0x4FD907 };
 //
@@ -457,7 +456,7 @@ DEFINE_HOOK(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
 // }
 
 // I must not regroup my forces.
-DEFINE_HOOK(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)
+ASMJIT_PATCH(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)
 {
 	enum { SkipRegroup = 0x73992B, DoNotSkipRegroup = 0 };
 

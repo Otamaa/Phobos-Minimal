@@ -8,7 +8,7 @@
 #include <Misc/Hooks.Otamaa.h>
 
 #pragma region Otamaa
-DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
+ASMJIT_PATCH(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(const char*, pDecidedName, STACK_OFFS(0x34, -0x4));
@@ -17,21 +17,21 @@ DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 	return 0x4518D8;
 }
 
-DEFINE_HOOK(0x45234B, BuildingClass_TurnOn_EVA, 0x5)
+ASMJIT_PATCH(0x45234B, BuildingClass_TurnOn_EVA, 0x5)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	VoxClass::PlayIndex(pThis->_GetTypeExtData()->EVA_Online);
 	return 0x45235A;
 }
 
-DEFINE_HOOK(0x4523D4, BuildingClass_TurnOff_EVA, 0x5)
+ASMJIT_PATCH(0x4523D4, BuildingClass_TurnOff_EVA, 0x5)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	VoxClass::PlayIndex(pThis->_GetTypeExtData()->EVA_Offline);
 	return 0x4523E3;
 }
 
-DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
+ASMJIT_PATCH(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	GET_STACK(int, nPowMult, 0x8);
@@ -50,7 +50,7 @@ namespace Temp_BuildingClass_GetStaticImage_Sell
 	Valueable<SHPStruct*> SellImage;
 }
 
-DEFINE_HOOK(0x43F000, BuildingClass_GetStaticImage_Sell, 0x6)
+ASMJIT_PATCH(0x43F000, BuildingClass_GetStaticImage_Sell, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -67,8 +67,7 @@ DEFINE_HOOK(0x43F000, BuildingClass_GetStaticImage_Sell, 0x6)
 }
 */
 
-DEFINE_HOOK_AGAIN(0x6D5EB1, BuildingClass_PlaceCementGrid_Shape, 0x6)
-DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
+ASMJIT_PATCH(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 {
 	if (auto const pBuilding = cast_to<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)) {
 		R->EDX(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
@@ -76,9 +75,9 @@ DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 	}
 
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x6D5EB1, BuildingClass_PlaceCementGrid_Shape, 0x6)
 
-// DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
+// ASMJIT_PATCH(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 // {
 // 	GET(BuildingClass*, pThis, ESI);
 // 	//GET_STACK(TechnoClass*, pKiller, STACK_OFFS(0x64, -0x8));
@@ -105,7 +104,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4140, FakeBuildingClass::_IsFactory);
 
 /*
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0xA)
+ASMJIT_PATCH(0x443FF9,BuildingClass_ExitObject_Aircraft,0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pProduct, EBP);

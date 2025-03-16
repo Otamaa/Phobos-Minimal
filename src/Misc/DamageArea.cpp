@@ -731,7 +731,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
 
 #ifdef _ENABLE
 
-DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
+ASMJIT_PATCH(0x489286, MapClass_DamageArea, 0x6)
 {
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
@@ -762,7 +762,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
+ASMJIT_PATCH(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
 {
 	enum { BypassInvulnerability = 0x48996D };
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
@@ -771,7 +771,7 @@ DEFINE_HOOK(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
+ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 {
 	REF_STACK(DynamicVectorClass<DamageGroup*>, groupvec, 0xE0 - 0xA8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
@@ -839,7 +839,7 @@ DEFINE_HOOK(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 
 	return 0;
 }
-DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
+ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 {
 	REF_STACK(DynamicVectorClass<DamageGroup*>, groupvec, 0xE0 - 0xA8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
@@ -947,14 +947,14 @@ DEFINE_HOOK(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 	return 0x489E87;
 }
 // hook up the area damage delivery with chain reactions
-DEFINE_HOOK(0x48964F, DamageArea_CellChainReaction, 5)
+ASMJIT_PATCH(0x48964F, DamageArea_CellChainReaction, 5)
 {
 	GET(CellClass*, pCell, EBX);
 	pCell->ChainReaction();
 	return 0;
 }
 
-DEFINE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
+ASMJIT_PATCH(0x4892BE, DamageArea_NullDamage, 0x6)
 {
 	enum
 	{
@@ -976,7 +976,7 @@ DEFINE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 
 
 // create enumerator
-DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
+ASMJIT_PATCH(0x4895B8, DamageArea_CellSpread1, 0x6)
 {
 	REF_STACK(CellSpreadEnumerator<std::numeric_limits<short>::max()>*, pIter, 0xE0 - 0xB4);
 	GET(int, spread, EAX);
@@ -995,7 +995,7 @@ DEFINE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 }
 
 // apply the current value
-DEFINE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
+ASMJIT_PATCH(0x4895C7, DamageArea_CellSpread2, 0x8)
 {
 	GET_STACK(CellSpreadEnumerator<std::numeric_limits<short>::max()>*, pIter, STACK_OFFS(0xE0, 0xB4));
 
@@ -1006,7 +1006,7 @@ DEFINE_HOOK(0x4895C7, DamageArea_CellSpread2, 0x8)
 }
 
 // advance and delete if done
-DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
+ASMJIT_PATCH(0x4899BE, DamageArea_CellSpread3, 0x8)
 {
 	REF_STACK(CellSpreadEnumerator<std::numeric_limits<short>::max()>*, pIter, STACK_OFFS(0xE0, 0xB4));
 	REF_STACK(int, index, STACK_OFFS(0xE0, 0xD0));
@@ -1025,7 +1025,7 @@ DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	return 0x4899DA;
 }
 
-//DEFINE_HOOK(0x4896EC, MapClass_DamageArea_DamageSelf, 0x6) {
+//ASMJIT_PATCH(0x4896EC, MapClass_DamageArea_DamageSelf, 0x6) {
 //	GET(ObjectClass*, pObj, ECX);
 //	GET(TechnoTypeClass*, pType, EAX);
 //	GET_BASE(WarheadTypeClass*, pWH, 0xC);
@@ -1038,7 +1038,7 @@ DEFINE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 //	return 0x489702;
 //}
 
-DEFINE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
+ASMJIT_PATCH(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 {
 	GET(OverlayTypeClass*, pOverlay, EAX);
 	GET_STACK(int, damage, 0x24);
@@ -1047,7 +1047,7 @@ DEFINE_HOOK(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 		? 0x48A2E7 : 0x48A433;
 }
 
-DEFINE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
+ASMJIT_PATCH(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
 {
 	GET(WarheadTypeClass*, pWH, EBX);
 	GET(WarheadTypeClass*, pIonCannonWH, EDI);
@@ -1055,27 +1055,27 @@ DEFINE_HOOK(0x489E9F, DamageArea_BridgeAbsoluteDestroyer, 5)
 	return 0x489EA4;
 }
 
-DEFINE_HOOK(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
+ASMJIT_PATCH(0x489FD8, DamageArea_BridgeAbsoluteDestroyer2, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A004 : 0x489FE0;
 }
 
-DEFINE_HOOK(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
+ASMJIT_PATCH(0x48A15D, DamageArea_BridgeAbsoluteDestroyer3, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A188 : 0x48A165;
 }
 
-DEFINE_HOOK(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
+ASMJIT_PATCH(0x48A229, DamageArea_BridgeAbsoluteDestroyer4, 6)
 {
 	return  R->Stack<bool>(0xF) ? 0x48A250 : 0x48A231;
 }
 
-DEFINE_HOOK(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
+ASMJIT_PATCH(0x48A283, DamageArea_BridgeAbsoluteDestroyer5, 6)
 {
 	return R->Stack<bool>(0xF) ? 0x48A2AA : 0x48A28B;
 }
 
-DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 0x9)
+ASMJIT_PATCH(0x4893BA, DamageArea_DamageAir, 0x9)
 {
 	GET(const CoordStruct* const, pCoords, EDI);
 	GET(WarheadTypeClass*, pWarhead, ESI);
@@ -1098,7 +1098,7 @@ DEFINE_HOOK(0x4893BA, DamageArea_DamageAir, 0x9)
 	return heightAboveGround > pExt->DamageAirThreshold ? 0x4893C3u : 0x48955Eu;
 }
 
-DEFINE_HOOK(0x489562, DamageArea_DestroyCliff, 9)
+ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 9)
 {
 	GET(CellClass* const, pCell, EAX);
 

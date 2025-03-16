@@ -4,7 +4,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-DEFINE_HOOK(0x6B7A18, SpawnManagerClass_AI_Add_Missile_Target, 0x6)
+ASMJIT_PATCH(0x6B7A18, SpawnManagerClass_AI_Add_Missile_Target, 0x6)
 {
 	GET(SpawnManagerClass*, pManager, ESI);
 	GET(AircraftClass*, pRocket, ECX);
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x6B7A18, SpawnManagerClass_AI_Add_Missile_Target, 0x6)
 	return 0x6B7AD4;
 }
 
-DEFINE_HOOK(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
+ASMJIT_PATCH(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
 {
 	GET(TechnoClass*, pRocket, ESI);
 	//GET(AbstractClass*, pTarget, ECX);
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6622C0, RocketLocomotionClass_Process, 0x6)
+ASMJIT_PATCH(0x6622C0, RocketLocomotionClass_Process, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
 
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x6622C0, RocketLocomotionClass_Process, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x662CAC, RocketLocomotionClass_Process_Step5_To_Lazy_4, 0x6)
+ASMJIT_PATCH(0x662CAC, RocketLocomotionClass_Process_Step5_To_Lazy_4, 0x6)
 {
 	GET(ILocomotion*, pILoco, ESI);
 

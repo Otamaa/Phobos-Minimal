@@ -30,7 +30,7 @@
 // =============================
 // container hooks
 
-//DEFINE_HOOK(0x6D1E24, TacticalClass_CTOR, 0x5)
+//ASMJIT_PATCH(0x6D1E24, TacticalClass_CTOR, 0x5)
 //{
 //	GET(TacticalClass*, pItem, ESI);
 //
@@ -39,22 +39,22 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6DC48E, TacticalClass_DTOR_A, 0xA)
+//ASMJIT_PATCH(0x6DC48E, TacticalClass_DTOR_A, 0xA)
 //{
 //	GET(TacticalClass*, pItem, ESI);
 //	TacticalExt::Remove(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6D1E9B, TacticalClass_DTOR_B, 0xA)
+//ASMJIT_PATCH(0x6D1E9B, TacticalClass_DTOR_B, 0xA)
 //{
 //	GET(TacticalClass*, pItem, ECX);
 //	TacticalExt::Remove(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6DBD20, TacticalClass_SaveLoad_Prefix, 0x7)
-//DEFINE_HOOK(0x6DBE00, TacticalClass_SaveLoad_Prefix, 0x8)
+//ASMJIT_PATCH_AGAIN(0x6DBD20, TacticalClass_SaveLoad_Prefix, 0x7)
+//ASMJIT_PATCH(0x6DBE00, TacticalClass_SaveLoad_Prefix, 0x8)
 //{
 //	GET_STACK(IStream*, pStm, 0x8);
 //
@@ -63,7 +63,7 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
+//ASMJIT_PATCH(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
 //{
 //	auto buffer = TacticalExt::Global();
 //	if (!buffer)
@@ -81,7 +81,7 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
+//ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
 //{
 //	auto buffer = TacticalExt::Global();
 //

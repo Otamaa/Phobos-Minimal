@@ -663,14 +663,14 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
 
-DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 	AnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
+ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, ECX);
 
@@ -708,12 +708,11 @@ HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 {
 	GET(AnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xBC);
 
 	AnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x4287E9);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)

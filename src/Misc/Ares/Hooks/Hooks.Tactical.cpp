@@ -29,7 +29,7 @@
 #include <AlphaShapeClass.h>
 #include <InfantryClass.h>
 
-DEFINE_HOOK(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
+ASMJIT_PATCH(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
 {
 	GET(AlphaShapeClass*, pAlpha, ECX);
 
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
 
 }
 
-DEFINE_HOOK(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
+ASMJIT_PATCH(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
 {
 	GET(AlphaShapeClass*, pAlpha, EDX);
 	GET(SHPStruct *, pImage, ECX);
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
+ASMJIT_PATCH(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
 {
 	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xDC, 0xB4));
 	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0xDC, 0x6C));
@@ -89,7 +89,7 @@ DEFINE_HOOK(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
 	return 0;
 }
 
-DEFINE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
+ASMJIT_PATCH(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 {
 	GET(int, AlphaLightIndex, EBX);
 	GET(RectangleStruct*, buffer, EDX);
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 	return 0x421478;
 }
 
-DEFINE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
+ASMJIT_PATCH(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 {
 	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xA4, 0x78));
 	GET(SHPStruct*, pImage, ECX);
@@ -127,7 +127,7 @@ DEFINE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 	return 0;
 }
 
-DEFINE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw, 5)
+ASMJIT_PATCH(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw, 5)
 {
 	GET(int, AlphaLightIndex, EBX);
 	auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];

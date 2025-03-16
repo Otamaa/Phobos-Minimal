@@ -29,7 +29,7 @@
 #include <InfantryClass.h>
 #include <CaptureManagerClass.h>
 
-DEFINE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
+ASMJIT_PATCH(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 {
 	GET(TechnoClass* const, pThis, EBP);
 	GET(TechnoTypeClass*, pType, EAX);
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 	return 0x70A4EC;
 }
 
-DEFINE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
+ASMJIT_PATCH(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 {
 	GET_STACK(AbstractClass*, pKiller, 0x90);
 	GET(BuildingClass*, pTarget, EDI);
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
+ASMJIT_PATCH(0x71A995, TemporalClass_Update_Tunnel, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pTarget, EBP);
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
+ASMJIT_PATCH(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 {
 	enum { Entered = 0x73A315, FailedToEnter = 0x73A796, Nothing = 0x0 };
 
@@ -131,7 +131,7 @@ DEFINE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 		Entered : FailedToEnter;
 }
 
-DEFINE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
+ASMJIT_PATCH(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -144,7 +144,7 @@ DEFINE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 	return canbeDestination ? 0x73F616 : 0x73F628;
 }
 
-DEFINE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
+ASMJIT_PATCH(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -157,7 +157,7 @@ DEFINE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 	return canbeDestination ? 0x741CF5 : 0x741D12;
 }
 
-DEFINE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestCompleteEnter_Tunnel, 6)
+ASMJIT_PATCH(0x43C716, BuildingClass_ReceivedRadioCommand_RequestCompleteEnter_Tunnel, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	enum
@@ -170,7 +170,7 @@ DEFINE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestCompleteEnter_Tu
 		? ProcessTechnoClassRadio : DoNothing;
 }
 
-DEFINE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
+ASMJIT_PATCH(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 {
 	enum { RetActionSelf = 0x4472E7, Nothing = 0x0 };
 	GET(BuildingClass*, pThis, ESI);
@@ -182,7 +182,7 @@ DEFINE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 	return FindSameTunnel ? RetActionSelf : Nothing;
 }
 
-DEFINE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
+ASMJIT_PATCH(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(CellStruct*, CellArr, EDI);
@@ -212,7 +212,7 @@ DEFINE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
+ASMJIT_PATCH(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
 	auto pThisType = pThis->Type;
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 }
 
 // Phobos hook on higher part of this for grinding
-DEFINE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
+ASMJIT_PATCH(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
 {
 	enum
 	{
@@ -332,7 +332,7 @@ DEFINE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0
 	return ContineCheck;
 }
 
-DEFINE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
+ASMJIT_PATCH(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {
 	enum
 	{
@@ -357,7 +357,7 @@ DEFINE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		CannotEnter;
 }
 
-DEFINE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
+ASMJIT_PATCH(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 {
 	enum { CanEnter = 0x51A396, CannotEnter = 0x51A488, Nothing = 0x0 };
 
@@ -372,7 +372,7 @@ DEFINE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	return Nothing;
 }
 
-DEFINE_HOOK(0x44351A, BuildingClass_ActionOnObject_Tunnel, 6)
+ASMJIT_PATCH(0x44351A, BuildingClass_ActionOnObject_Tunnel, 6)
 {
 	enum
 	{

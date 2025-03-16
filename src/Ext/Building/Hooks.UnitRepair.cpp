@@ -1,7 +1,7 @@
 #include "Body.h"
 
 
-DEFINE_HOOK(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
+ASMJIT_PATCH(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
 {
 	enum { SkipGameCode = 0x44B8F7 };
 
@@ -12,7 +12,7 @@ DEFINE_HOOK(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
 }
 
 
-DEFINE_HOOK(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
+ASMJIT_PATCH(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 {
 	enum { SkipGameCode = 0x44BD3E };
 
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 
 bool SeparateRepair = false;
 
-DEFINE_HOOK(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
+ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, EBP);
 
@@ -64,7 +64,7 @@ DEFINE_HOOK(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
+ASMJIT_PATCH(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 {
 	enum { AnswerNegative = 0x6F4CB4 , Continue = 0x0 };
 
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 
 // Fixes docks not repairing docked aircraft unless they enter the dock first e.g just built ones.
 // Also potential edge cases with unusual docking offsets, original had a distance check for 64 leptons which is replaced with IsInAir here.
-DEFINE_HOOK(0x44985B, BuildingClass_Mission_Guard_UnitReload, 0x6)
+ASMJIT_PATCH(0x44985B, BuildingClass_Mission_Guard_UnitReload, 0x6)
 {
 	enum { AssignRepairMission = 0x449942 };
 

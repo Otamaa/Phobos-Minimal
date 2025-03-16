@@ -21,22 +21,22 @@
 // container hooks
 //
 
-//DEFINE_HOOK(0x6B6E7F, SpawnManagerClass_CTOR,0x6 )
+//ASMJIT_PATCH(0x6B6E7F, SpawnManagerClass_CTOR,0x6 )
 //{
 //	GET(SpawnManagerClass*, pItem, ESI);
 //	SpawnManagerExt::ExtMap.Allocate(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6B703E, SpawnManagerClass_DTOR, 0x6)
+//ASMJIT_PATCH(0x6B703E, SpawnManagerClass_DTOR, 0x6)
 //{
 //	GET(SpawnManagerClass*, pItem, EDI);
 //	SpawnManagerExt::ExtMap.Remove(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6B7F10, SpawnManagerClass_SaveLoad_Prefix, 0x6)
-//DEFINE_HOOK(0x6B80B0, SpawnManagerClass_SaveLoad_Prefix, 0x5)
+//ASMJIT_PATCH_AGAIN(0x6B7F10, SpawnManagerClass_SaveLoad_Prefix, 0x6)
+//ASMJIT_PATCH(0x6B80B0, SpawnManagerClass_SaveLoad_Prefix, 0x5)
 //{
 //
 //	GET_STACK(SpawnManagerClass*, pItem, 0x4);
@@ -46,7 +46,7 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6B80A3, SpawnManagerClass_Load_Suffix, 0x5)
+//ASMJIT_PATCH(0x6B80A3, SpawnManagerClass_Load_Suffix, 0x5)
 //{
 //	GET(HRESULT, nRes, EBP);
 //
@@ -56,7 +56,7 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6B810D, SpawnManagerClass_Save_Suffix, 0x6)
+//ASMJIT_PATCH(0x6B810D, SpawnManagerClass_Save_Suffix, 0x6)
 //{
 //	GET(HRESULT, nRes, EAX);
 //

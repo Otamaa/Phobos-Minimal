@@ -5,7 +5,7 @@
 
 #include <ParticleSystemClass.h>
 
-DEFINE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
+ASMJIT_PATCH(0x6FD469, TechnoClass_FireEBolt, 9)
 {
 	//GET(TechnoClass*, pThis, EDI);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
@@ -16,7 +16,7 @@ DEFINE_HOOK(0x6FD469, TechnoClass_FireEBolt, 9)
 	return 0x6FD480;
 }
 
-DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
+ASMJIT_PATCH(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(int, nWeaponIdx, EBX);
@@ -50,7 +50,7 @@ int boltColor1;
 int boltColor2;
 int boltColor3;
 
-DEFINE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
+ASMJIT_PATCH(0x4C1F33, EBolt_Draw_Colors, 7)
 {
 	GET(EBolt*, pThis, ECX);
 	GET_BASE(int, nColorIdx, 0x20);
@@ -84,13 +84,13 @@ DEFINE_HOOK(0x4C1F33, EBolt_Draw_Colors, 7)
 	return 0x4C1F66;
 }
 
-DEFINE_HOOK(0x4C2C10, EboltClass_Cleanup, 0x5) {
+ASMJIT_PATCH(0x4C2C10, EboltClass_Cleanup, 0x5) {
 	GET(EBolt* const, pBolt, ECX);
 	Debug::LogInfo("CleaningUp Ebot[{}]", (void*)pBolt);
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
+ASMJIT_PATCH(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);
 
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
+ASMJIT_PATCH(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
 	//GET_STACK(EBolt* const, pBolt, 0x40);
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C20BC, EBolt_DrawArcs, 0x5)
+ASMJIT_PATCH(0x4C20BC, EBolt_DrawArcs, 0x5)
 {
 	enum { DoLoop = 0x4C20C7, Break = 0x4C2400 };
 
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x4C20BC, EBolt_DrawArcs, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
+ASMJIT_PATCH(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
 {
 	if (BoltTemp::pType && BoltTemp::pType->Bolt_Disable2) {
 		return 0x4C262A;
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
+ASMJIT_PATCH(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 {
 	if (BoltTemp::pType && BoltTemp::pType->Bolt_Disable3) {
 		return 0x4C2710;
@@ -143,19 +143,19 @@ DEFINE_HOOK(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 	return  0;
 }
 
-DEFINE_HOOK(0x4C24BE, EBolt_Draw_Color1, 5)
+ASMJIT_PATCH(0x4C24BE, EBolt_Draw_Color1, 5)
 {
 	R->EAX(boltColor1);
 	return 0x4C24E4;
 }
 
-DEFINE_HOOK(0x4C25CB, EBolt_Draw_Color2, 5)
+ASMJIT_PATCH(0x4C25CB, EBolt_Draw_Color2, 5)
 {
 	R->Stack<int>(0x18, boltColor2);
 	return 0x4C25FD;
 }
 
-DEFINE_HOOK(0x4C26CF, EBolt_Draw_Color3, 5)
+ASMJIT_PATCH(0x4C26CF, EBolt_Draw_Color3, 5)
 {
 	R->EAX(boltColor3);
 	return 0x4C26EE;
@@ -167,7 +167,7 @@ void NAKED _EBolt_Fire_Particles_RET()
 	JMP(0x4C2B35);
 }
 
-DEFINE_HOOK(0x4C2AFF, EBolt_Fire_Particles, 5)
+ASMJIT_PATCH(0x4C2AFF, EBolt_Fire_Particles, 5)
 {
 	GET(EBolt*, pThis, ESI);
 

@@ -19,7 +19,7 @@
 
 #include <SpawnManagerClass.h>
 
-DEFINE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
+ASMJIT_PATCH(0x415085, AircraftClass_Update_DamageSmoke, 7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x415085, AircraftClass_Update_DamageSmoke, 7)
 	return 0x41512C;
 }
 
-DEFINE_HOOK(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
+ASMJIT_PATCH(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
 {
 	GET(AircraftClass*, pCarryall, ESI);
 	GET(UnitClass*, pTarget, EDI);
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
 		;
 }
 
-DEFINE_HOOK(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
+ASMJIT_PATCH(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
 {
 	GET(AircraftClass*, pCarryall, ESI);
 	GET(UnitClass*, pTarget, EDI);
@@ -67,7 +67,7 @@ DEFINE_HOOK(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
 		;
 }
 
-DEFINE_HOOK(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
+ASMJIT_PATCH(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 {
 	GET(AircraftClass* const, pThis, ESI);
 	GET_STACK(TechnoClass const* const, pSender, 0x14);
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? Allowed : Disallowed;
 }
 
-DEFINE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
+ASMJIT_PATCH(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
 {
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_K
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 
-DEFINE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
+ASMJIT_PATCH(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 {
 	GET(FootClass*, pCargo, ESI);
 
@@ -107,7 +107,7 @@ DEFINE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
+ASMJIT_PATCH(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 {
 	GET(UnitClass*, pCargo, ESI);
 
@@ -124,7 +124,7 @@ DEFINE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 // skip the check for UnitRepair, as it does not play well with UnitReload and
 // Factory=AircraftType at all. in fact, it's prohibited, and thus docking to
 // other structures was never allowed.
-DEFINE_HOOK(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
+ASMJIT_PATCH(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
 {
 	// target is known to be a building
 	GET(AircraftClass* const, pThis, ESI);
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
 	return pThis->Type->Dock.Contains(pBuilding->Type) ? 0x417E4B : 0x417E7D;
 }
 
-DEFINE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
+ASMJIT_PATCH(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 {
 	GET(AircraftClass*, Item, ESI);
 
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x415533, AircraftClass_Mi_Unload_Blocked, 0x5)
+ASMJIT_PATCH(0x415533, AircraftClass_Mi_Unload_Blocked, 0x5)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(FootClass*, pCargo, EDI);
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x415533, AircraftClass_Mi_Unload_Blocked, 0x5)
 }
 
 // #1232: fix for dropping units out of flying Carryalls
-DEFINE_HOOK(0x415DF6, AircraftClass_Paradrop_Carryall, 0x6)
+ASMJIT_PATCH(0x415DF6, AircraftClass_Paradrop_Carryall, 0x6)
 {
 	GET(FootClass*, pTechno, ESI);
 	pTechno->Transporter = nullptr;
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x415DF6, AircraftClass_Paradrop_Carryall, 0x6)
 }
 
 // fix for vehicle paradrop alignment
-DEFINE_HOOK(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
+ASMJIT_PATCH(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
 {
 	GET(AircraftClass*, A, EDI);
 	GET(FootClass*, P, ESI);
@@ -193,7 +193,7 @@ DEFINE_HOOK(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
 
 // flying aircraft carriers
 // allow spawned units to spawn above ground
-DEFINE_HOOK(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
+ASMJIT_PATCH(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pType, ECX);
@@ -203,7 +203,7 @@ DEFINE_HOOK(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 }
 
 // aim for the cell for flying carriers
-DEFINE_HOOK(0x6B7838, SpawnManagerClass_Update_SpawnHigh, 0x5)
+ASMJIT_PATCH(0x6B7838, SpawnManagerClass_Update_SpawnHigh, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	GET(TechnoClass*, pSpawnee , EDI);
@@ -215,7 +215,7 @@ DEFINE_HOOK(0x6B7838, SpawnManagerClass_Update_SpawnHigh, 0x5)
 }
 
 /* #1354 - Aircraft and empty SovParaDropInf list */
-DEFINE_HOOK(0x41D887, AirstrikeClass_Fire, 0x6)
+ASMJIT_PATCH(0x41D887, AirstrikeClass_Fire, 0x6)
 {
 	if (!RulesClass::Instance->SovParaDropInf.Count) {
 		R->ECX(-1);
@@ -225,7 +225,7 @@ DEFINE_HOOK(0x41D887, AirstrikeClass_Fire, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
+ASMJIT_PATCH(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
 {
 	GET(AircraftClass*, pCarryall, EDI);
 	GET(UnitClass*, pCargo, ESI);
@@ -239,7 +239,7 @@ DEFINE_HOOK(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
 	return 0x416C53;
 }
 
-DEFINE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
+ASMJIT_PATCH(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
 {
 	enum
 	{

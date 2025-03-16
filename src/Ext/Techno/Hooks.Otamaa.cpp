@@ -25,7 +25,7 @@
 
 #pragma region Otamaa
 
-// DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
+// ASMJIT_PATCH(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 // {
 // 	GET(WeaponTypeClass*, pWeapon, EBX);
 //
@@ -41,7 +41,7 @@
 // }
 
 // this hook already inside loop function !
-DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
+ASMJIT_PATCH(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 {
 	struct DrawPipDataStruct
 	{
@@ -133,7 +133,7 @@ void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeC
 	}
 }
 
-DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
+ASMJIT_PATCH(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 {
 	GET(TechnoClass*, pThis, ECX);
 
@@ -175,8 +175,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	return 0x70D796;
 }
 
-DEFINE_HOOK_AGAIN(0x4DABAB, ObjectClass_WasFallingDown, 0x6)
-DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
+ASMJIT_PATCH(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -218,9 +217,9 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 	}
 
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x4DABAB, ObjectClass_WasFallingDown, 0x6)
 
-DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
+ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
@@ -248,7 +247,7 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
+ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 {
 	GET(AircraftClass*, pLinked, ECX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
@@ -287,7 +286,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	//return 0x0;
 }
 
-DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
+ASMJIT_PATCH(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -304,7 +303,7 @@ DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 	return 0x4DED4B;
 }
 
-DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
+ASMJIT_PATCH(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 {
 	enum { Skip = 0x4D42D2, SetMissionRate = 0x4D4569, Continue = 0x0 };
 
@@ -320,7 +319,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 	return Continue;
 }
 
-// DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
+// ASMJIT_PATCH(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 //
@@ -329,7 +328,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 // 	return 0x51CEAA;
 // }
 
-DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
+ASMJIT_PATCH(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 {
 	GET(DiskLaserClass* const, pThis, ESI);
 
@@ -342,7 +341,7 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 	return 0x0;
 }
 
-DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
+ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 {
 	GET(TechnoClass*, Drainer, ESI);
 	GET(TechnoClass*, pVictim, EDI);

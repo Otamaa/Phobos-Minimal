@@ -5,13 +5,13 @@
 TechnoClass* Sub_705860_Aitrstrike_pThis;
 int Sub_705860_Aitrstrike_Color;
 
-DEFINE_HOOK(0x705860, Sub_705860_AitrstrikeTargetLaser_FetchECX, 0x8)
+ASMJIT_PATCH(0x705860, Sub_705860_AitrstrikeTargetLaser_FetchECX, 0x8)
 {
 	Sub_705860_Aitrstrike_pThis = R->ECX<TechnoClass*>();
 	return 0;
 }
 
-DEFINE_HOOK(0x7058F6, Sub_705860_AitrstrikeTargetLaser, 0x5)
+ASMJIT_PATCH(0x7058F6, Sub_705860_AitrstrikeTargetLaser, 0x5)
 {
 	enum { SkipGameCode = 0x70597A };
 
@@ -24,7 +24,7 @@ DEFINE_HOOK(0x7058F6, Sub_705860_AitrstrikeTargetLaser, 0x5)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x705986, Sub_705860_AitrstrikeTargetPoint, 0x6)
+ASMJIT_PATCH(0x705986, Sub_705860_AitrstrikeTargetPoint, 0x6)
 {
 	enum { SkipGameCode = 0x7059C7 };
 
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x705986, Sub_705860_AitrstrikeTargetPoint, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x43D39C, BuildingClass_Draw_LaserTargetColor, 0x6)
+ASMJIT_PATCH(0x43D39C, BuildingClass_Draw_LaserTargetColor, 0x6)
 {
 	enum { SkipGameCode = 0x43D3A2 };
 
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x43D39C, BuildingClass_Draw_LaserTargetColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x43DC36, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
+ASMJIT_PATCH(0x43DC36, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
 {
 	enum { SkipGameCode = 0x43DC3C };
 
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x43DC36, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x42343C, AnimClass_Draw_LaserTargetColor, 0x6)
+ASMJIT_PATCH(0x42343C, AnimClass_Draw_LaserTargetColor, 0x6)
 {
 	enum { SkipGameCode = 0x423448 };
 

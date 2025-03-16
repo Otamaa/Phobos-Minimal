@@ -20,7 +20,7 @@ static COMPILETIMEEVAL double SinLUT[DiskLaserClass::DrawCoords.c_size()]
 	0, -0.374606593415912, -0.7071067811865475, -0.9205048534524403
 };
 
-DEFINE_HOOK(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
+ASMJIT_PATCH(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
 {
 	GET(FakeWeaponTypeClass*, pWeapon, EDX);
 

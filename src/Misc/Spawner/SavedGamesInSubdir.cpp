@@ -151,7 +151,7 @@ namespace SavedGames
 
 #ifdef incomplete_ExtraSavedGamesData
 
-DEFINE_HOOK(0x559921, LoadOptionsClass_FillList_FilterFiles, 0x6)
+ASMJIT_PATCH(0x559921, LoadOptionsClass_FillList_FilterFiles, 0x6)
 {
 	GET(FileEntryClass*, pEntry, EBP);
 	enum { NullThisEntry = 0x559959 };
@@ -191,13 +191,13 @@ DEFINE_HOOK(0x559921, LoadOptionsClass_FillList_FilterFiles, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x683AFE, StartNewScenario_ClearCounter, 0x6)
+ASMJIT_PATCH(0x683AFE, StartNewScenario_ClearCounter, 0x6)
 {
 	SavedGames::HowManyTimesISavedForThisScenario = 0;
 	return 0;
 }
 
-DEFINE_HOOK(0x67D2E3, SaveGame_AdditionalInfoForClient, 0x6)
+ASMJIT_PATCH(0x67D2E3, SaveGame_AdditionalInfoForClient, 0x6)
 {
 	GET_STACK(IStorage*, pStorage, STACK_OFFSET(0x4A0, -0x490));
 	SavedGames::HowManyTimesISavedForThisScenario++;
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x67D2E3, SaveGame_AdditionalInfoForClient, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
+ASMJIT_PATCH(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 {
 	LEA_STACK(const wchar_t*, filename, STACK_OFFSET(0x518, -0x4F4));
 	IStorage* pStorage = nullptr;
@@ -253,7 +253,7 @@ DEFINE_HOOK(0x67E4DC, LoadGame_AdditionalInfoForClient, 0x7)
 }
 #endif
 
-DEFINE_HOOK(0x67E475, LoadGame_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x67E475, LoadGame_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ESI);
@@ -263,7 +263,7 @@ DEFINE_HOOK(0x67E475, LoadGame_SGInSubdir, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x559EB0, DeleteSave_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x559EB0, DeleteSave_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		REF_STACK(char*, pFileName, 0x4);
@@ -273,7 +273,7 @@ DEFINE_HOOK(0x559EB0, DeleteSave_SGInSubdir, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x67CF11, SaveGame_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x67CF11, SaveGame_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		if (!SavedGames::CreateSubdir())
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x67CF11, SaveGame_SGInSubdir, 0x5)
 // Create random filename for save
 // Not used. But it does not hurt in case of using a third-party library
 // WW compiler made OPTIONALINLINE in LoadOptionsClass_Dialog
-DEFINE_HOOK(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ESI);
@@ -300,7 +300,7 @@ DEFINE_HOOK(0x55961C, LoadOptionsClass_RandomFilename_SGInSubdir, 0x5)
 }
 
 // Finds free file name
-DEFINE_HOOK(0x5592D2, LoadOptionsClass_Dialog_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x5592D2, LoadOptionsClass_Dialog_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, EDX);
@@ -311,7 +311,7 @@ DEFINE_HOOK(0x5592D2, LoadOptionsClass_Dialog_SGInSubdir, 0x5)
 }
 
 // Used for disable buttons in a dialogs
-DEFINE_HOOK(0x559C98, LoadOptionsClass_HasSaves_SGInSubdir, 0xB)
+ASMJIT_PATCH(0x559C98, LoadOptionsClass_HasSaves_SGInSubdir, 0xB)
 {
 	LEA_STACK(void*, pFindFileData, STACK_OFFSET(0x348, -0x140));
 	LEA_STACK(char*, pFileName, STACK_OFFSET(0x348, -0x33C));
@@ -327,7 +327,7 @@ DEFINE_HOOK(0x559C98, LoadOptionsClass_HasSaves_SGInSubdir, 0xB)
 }
 
 // Fill a list of files
-DEFINE_HOOK(0x559886, LoadOptionsClass_FillList_SGInSubdir, 0x8)
+ASMJIT_PATCH(0x559886, LoadOptionsClass_FillList_SGInSubdir, 0x8)
 {
 	GET(struct _WIN32_FIND_DATAA*, pFind, EDX);
 	GET(char*, pFileName, EAX);
@@ -342,7 +342,7 @@ DEFINE_HOOK(0x559886, LoadOptionsClass_FillList_SGInSubdir, 0x8)
 	return 0x559886 + 0x8;
 }
 
-DEFINE_HOOK(0x67FD26, LoadOptionsClass_ReadSaveInfo_SGInSubdir, 0x5)
+ASMJIT_PATCH(0x67FD26, LoadOptionsClass_ReadSaveInfo_SGInSubdir, 0x5)
 {
 	if (SpawnerMain::Configs::Enabled) {
 		GET(char*, pFileName, ECX);

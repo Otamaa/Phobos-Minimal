@@ -2,7 +2,7 @@
 
 #include <Helpers/Macro.h>
 
-DEFINE_HOOK(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
+ASMJIT_PATCH(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
 {
 	GET(NodeNameType* const, pStartingSpot, ESI);
 
@@ -12,31 +12,31 @@ DEFINE_HOOK(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
 	return 0x69B984;
 }
 
-DEFINE_HOOK(0x69B949, Game_ProcessRandomPlayers_ColorsA, 6)
+ASMJIT_PATCH(0x69B949, Game_ProcessRandomPlayers_ColorsA, 6)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B95E;
 }
 
-DEFINE_HOOK(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
+ASMJIT_PATCH(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69BA28;
 }
 
-DEFINE_HOOK(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
+ASMJIT_PATCH(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B6AF;
 }
 
-DEFINE_HOOK(0x69B7FF, Session_SetColor_Unlimited, 6)
+ASMJIT_PATCH(0x69B7FF, Session_SetColor_Unlimited, 6)
 {
 	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, AresGlobalData::colorCount - 1));
 	return 0x69B813;
 }
 
-DEFINE_HOOK(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
+ASMJIT_PATCH(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
 {
 	// copy original instruction
 	*reinterpret_cast<int*>(0xAC1B90) = 0x443716;
@@ -58,128 +58,128 @@ DEFINE_HOOK(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
 	return inited ? 0x60FB5D : 0x60FAE3;
 }
 
-DEFINE_HOOK(0x612DA9, Handle_Button_Messages_Color, 6)
+ASMJIT_PATCH(0x612DA9, Handle_Button_Messages_Color, 6)
 {
 	R->EDI(AresGlobalData::uiColorTextButton);
 	return 0x612DAF;
 }
 
-DEFINE_HOOK(0x613072, Handle_Button_Messages_DisabledColor, 7)
+ASMJIT_PATCH(0x613072, Handle_Button_Messages_DisabledColor, 7)
 {
 	R->EDI(AresGlobalData::uiColorDisabledButton);
 	return 0x613138;
 }
 
-DEFINE_HOOK(0x61664C, Handle_Checkbox_Messages_Color, 5)
+ASMJIT_PATCH(0x61664C, Handle_Checkbox_Messages_Color, 5)
 {
 	R->EAX(AresGlobalData::uiColorTextCheckbox);
 	return 0x616651;
 }
 
-DEFINE_HOOK(0x616655, Handle_Checkbox_Messages_Disabled, 5)
+ASMJIT_PATCH(0x616655, Handle_Checkbox_Messages_Disabled, 5)
 {
 	R->EAX(AresGlobalData::uiColorDisabledCheckbox);
 	return 0x61665A;
 }
 
-DEFINE_HOOK(0x616AF0, Handle_RadioButton_Messages_Color, 6)
+ASMJIT_PATCH(0x616AF0, Handle_RadioButton_Messages_Color, 6)
 {
 	R->ECX(AresGlobalData::uiColorTextRadio);
 	return 0x616AF6;
 }
 
-DEFINE_HOOK(0x615DF7, Handle_Static_Messages_Color, 6)
+ASMJIT_PATCH(0x615DF7, Handle_Static_Messages_Color, 6)
 {
 	R->ECX(AresGlobalData::uiColorTextLabel);
 	return 0x615DFD;
 }
 
-DEFINE_HOOK(0x615AB7, Handle_Static_Messages_Disabled, 6)
+ASMJIT_PATCH(0x615AB7, Handle_Static_Messages_Disabled, 6)
 {
 	R->ECX(AresGlobalData::uiColorDisabledLabel);
 	return 0x615ABD;
 }
 
-DEFINE_HOOK(0x619A4F, Handle_Listbox_Messages_Color, 6)
+ASMJIT_PATCH(0x619A4F, Handle_Listbox_Messages_Color, 6)
 {
 	R->ESI(AresGlobalData::uiColorTextList);
 	return 0x619A55;
 }
 
-DEFINE_HOOK(0x6198D3, Handle_Listbox_Messages_DisabledA, 6)
+ASMJIT_PATCH(0x6198D3, Handle_Listbox_Messages_DisabledA, 6)
 {
 	R->EBX(AresGlobalData::uiColorDisabledList);
 	return 0x6198D9;
 }
 
-DEFINE_HOOK(0x619A5F, Handle_Listbox_Messages_DisabledB, 6)
+ASMJIT_PATCH(0x619A5F, Handle_Listbox_Messages_DisabledB, 6)
 {
 	R->ESI(AresGlobalData::uiColorDisabledList);
 	return 0x619A65;
 }
 
-DEFINE_HOOK(0x619270, Handle_Listbox_Messages_SelectionA, 5)
+ASMJIT_PATCH(0x619270, Handle_Listbox_Messages_SelectionA, 5)
 {
 	R->EAX(AresGlobalData::uiColorSelectionList);
 	return 0x619275;
 }
 
-DEFINE_HOOK(0x619288, Handle_Listbox_Messages_SelectionB, 6)
+ASMJIT_PATCH(0x619288, Handle_Listbox_Messages_SelectionB, 6)
 {
 	R->DL(BYTE(AresGlobalData::uiColorSelectionList >> 16));
 	return 0x61928E;
 }
 
-DEFINE_HOOK(0x617A2B, Handle_Combobox_Messages_Color, 6)
+ASMJIT_PATCH(0x617A2B, Handle_Combobox_Messages_Color, 6)
 {
 	R->EBX(AresGlobalData::uiColorTextCombobox);
 	return 0x617A31;
 }
 
-DEFINE_HOOK(0x617A57, Handle_Combobox_Messages_Disabled, 6)
+ASMJIT_PATCH(0x617A57, Handle_Combobox_Messages_Disabled, 6)
 {
 	R->EBX(AresGlobalData::uiColorDisabledCombobox);
 	return 0x617A5D;
 }
 
-DEFINE_HOOK(0x60DDA6, Handle_Combobox_Dropdown_Messages_SelectionA, 5)
+ASMJIT_PATCH(0x60DDA6, Handle_Combobox_Dropdown_Messages_SelectionA, 5)
 {
 	R->EAX(AresGlobalData::uiColorSelectionCombobox);
 	return 0x60DDAB;
 }
 
-DEFINE_HOOK(0x60DDB6, Handle_Combobox_Dropdown_Messages_SelectionB, 6)
+ASMJIT_PATCH(0x60DDB6, Handle_Combobox_Dropdown_Messages_SelectionB, 6)
 {
 	R->DL(BYTE(AresGlobalData::uiColorSelectionCombobox >> 16));
 	return 0x60DDBC;
 }
 
-DEFINE_HOOK(0x61E2A5, Handle_Slider_Messages_Color, 5)
+ASMJIT_PATCH(0x61E2A5, Handle_Slider_Messages_Color, 5)
 {
 	R->EAX(AresGlobalData::uiColorTextSlider);
 	return 0x61E2AA;
 }
 
-DEFINE_HOOK(0x61E2B1, Handle_Slider_Messages_Disabled, 5)
+ASMJIT_PATCH(0x61E2B1, Handle_Slider_Messages_Disabled, 5)
 {
 	R->EAX(AresGlobalData::uiColorDisabledSlider);
 	return 0x61E2B6;
 }
 
-DEFINE_HOOK(0x61E8A0, Handle_GroupBox_Messages_Color, 6)
+ASMJIT_PATCH(0x61E8A0, Handle_GroupBox_Messages_Color, 6)
 {
 	R->ECX(AresGlobalData::uiColorTextGroupbox);
 	return 0x61E8A6;
 }
 
-DEFINE_HOOK(0x614FF2, Handle_NewEdit_Messages_Color, 6)
+ASMJIT_PATCH(0x614FF2, Handle_NewEdit_Messages_Color, 6)
 {
 	R->EDX(AresGlobalData::uiColorTextEdit);
 	return 0x614FF8;
 }
 
 // reset the colors
-DEFINE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
+ASMJIT_PATCH(0x4E43C0, Game_InitDropdownColors, 5)
 {
 	// mark all colors as unused (+1 for the  observer)
 	for (auto i = 0; i < AresGlobalData::colorCount + 1; ++i)
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x4E43C0, Game_InitDropdownColors, 5)
 }
 #include <Misc/Spawner/Main.h>
 
-DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
+ASMJIT_PATCH(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 {
 	GET_STACK(int const, idx, 0x4);
 	GET_STACK(DWORD, caller, 0x0);
@@ -253,7 +253,7 @@ DEFINE_HOOK(0x69A310, SessionClass_GetPlayerColorScheme, 7)
 }
 
 // return the tool tip describing this color
-DEFINE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
+ASMJIT_PATCH(0x4E42A0, GameSetup_GetColorTooltip, 5)
 {
 	GET(int const, idxColor, ECX);
 
@@ -271,7 +271,7 @@ DEFINE_HOOK(0x4E42A0, GameSetup_GetColorTooltip, 5)
 }
 
 // handle adding colors to combo box
-DEFINE_HOOK(0x4E46BB, hWnd_PopulateWithColors, 7)
+ASMJIT_PATCH(0x4E46BB, hWnd_PopulateWithColors, 7)
 {
 	GET(HWND const, hWnd, ESI);
 	GET_STACK(int const, idxPlayer, 0x14);
@@ -303,7 +303,7 @@ DEFINE_HOOK(0x4E46BB, hWnd_PopulateWithColors, 7)
 }
 
 // update the color in the combo drop-down lists
-DEFINE_HOOK(0x4E4A41, hWnd_SetPlayerColor_A, 7)
+ASMJIT_PATCH(0x4E4A41, hWnd_SetPlayerColor_A, 7)
 {
 	GET(int const, idxPlayer, EAX);
 
@@ -320,7 +320,7 @@ DEFINE_HOOK(0x4E4A41, hWnd_SetPlayerColor_A, 7)
 	return 0x4E4A6D;
 }
 
-DEFINE_HOOK(0x4E4B47, hWnd_SetPlayerColor_B, 7)
+ASMJIT_PATCH(0x4E4B47, hWnd_SetPlayerColor_B, 7)
 {
 	GET(int const, idxColor, EBP);
 	GET(int const, idxPlayer, ESI);
@@ -330,7 +330,7 @@ DEFINE_HOOK(0x4E4B47, hWnd_SetPlayerColor_B, 7)
 	return 0x4E4B4E;
 }
 
-DEFINE_HOOK(0x4E4556, hWnd_GetSlotColorIndex, 7)
+ASMJIT_PATCH(0x4E4556, hWnd_GetSlotColorIndex, 7)
 {
 	GET(int const, idxPlayer, ECX);
 
@@ -349,14 +349,14 @@ DEFINE_HOOK(0x4E4556, hWnd_GetSlotColorIndex, 7)
 	return 0x4E4570;
 }
 
-DEFINE_HOOK(0x4E4580, hWnd_IsAvailableColor, 5)
+ASMJIT_PATCH(0x4E4580, hWnd_IsAvailableColor, 5)
 {
 	GET(int const, idxColor, ECX);
 	R->AL(AresGlobalData::Colors[idxColor + 1].selectedIndex == -1);
 	return 0x4E4592;
 }
 
-DEFINE_HOOK(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
+ASMJIT_PATCH(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
 {
 	GET(int const, idxPlayer, EAX);
 
@@ -374,7 +374,7 @@ DEFINE_HOOK(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
 	return 0x4E4CC9;
 }
 
-DEFINE_HOOK(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
+ASMJIT_PATCH(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
 {
 	GET(int const, idxColor, EAX);
 	GET(int const, idxPlayer, ESI);

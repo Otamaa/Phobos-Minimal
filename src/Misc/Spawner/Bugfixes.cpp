@@ -24,7 +24,7 @@
 #include <EBolt.h>
 
 // Open campaign briefing when pressing Tab
-DEFINE_HOOK(0x55E08F, KeyboardProcess_PressTab, 0x5)
+ASMJIT_PATCH(0x55E08F, KeyboardProcess_PressTab, 0x5)
 {
 	Game::SpecialDialog = SessionClass::IsCampaign() ? 9 : 8;
 	return 0x55E099;
@@ -35,7 +35,7 @@ DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2); // WinMain
 
 // Prevents accidental exit when pressing the spacebar while waiting
 // Remove focus from the Leave Game button in the player waiting window
-DEFINE_HOOK(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
+ASMJIT_PATCH(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
 {
 	Imports::SetArchiveTarget.get()(0);
 	return 0;
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
 // Skip call GScreenClass::FlagToRedraw(1)
 DEFINE_JUMP(LJMP, 0x732CED, 0x732CF9); // End_Type_Select_Command
 
-DEFINE_HOOK(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
+ASMJIT_PATCH(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
 {
 	Sleep(3); // Sleep yields the remaining CPU cycle time to any other processes
 	return 0x6488B0;
@@ -67,26 +67,26 @@ DEFINE_HOOK(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
  //	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
  //);
 
- DEFINE_HOOK(0x5F5893, ObjectClass_Mark_Unessesarycalls, 0x5) {
+ ASMJIT_PATCH(0x5F5893, ObjectClass_Mark_Unessesarycalls, 0x5) {
  	return R->EBX<int>() == 1 ? 0x5F58EC : 0x5F58E7;
  }
 
 // Fix crash at 727B48
-DEFINE_HOOK(0x727B44, TriggerTypeClass_ComputeCRC_FixCrash, 0x6)
+ASMJIT_PATCH(0x727B44, TriggerTypeClass_ComputeCRC_FixCrash, 0x6)
 {
 	GET(HouseTypeClass*, pHouseType, EAX);
 	return pHouseType ? 0 : 0x727B55;
 }
 
 // Fix crash at 6F49DE
-DEFINE_HOOK(0x6F49D8, TechnoClass_Revealed_FixCrash, 0x6)
+ASMJIT_PATCH(0x6F49D8, TechnoClass_Revealed_FixCrash, 0x6)
 {
 	GET(HouseClass*, pHouse, EAX);
 	return pHouse ? 0 : 0x6F4A31;
 }
 
 // Fix crash at 70AF6C
-DEFINE_HOOK(0x70AF6C, TechnoClass_70AF50_FixCrash, 0x9)
+ASMJIT_PATCH(0x70AF6C, TechnoClass_70AF50_FixCrash, 0x9)
 {
 	GET(TechnoClass*, pTechno, EAX);
 	return pTechno ? 0 : 0x70B1C7;
@@ -128,7 +128,7 @@ DEFINE_PATCH_TYPED(DWORD, 0x4AD344, 0x300); // 0x190
 DEFINE_PATCH_TYPED(DWORD, 0x4AD349, 0x400); // 0x280
 DEFINE_PATCH_TYPED(DWORD, 0x4AD357, (0x300 * 0x400 * 2));
 
-DEFINE_HOOK(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
+ASMJIT_PATCH(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
 {
 	GET(BuildingClass*, pThis, EDI);
 
@@ -137,7 +137,7 @@ DEFINE_HOOK(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
 	return 0x45417E;
 }
 
-DEFINE_HOOK(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
+ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 {
 	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts) 
 		|| (SessionClass::Instance->GameMode == GameMode::Internet && !Game::WOLTaunts)){
@@ -200,7 +200,7 @@ bool __fastcall Tactical_ClampTacticalPos(TacticalClass* pThis, void*, Point2D* 
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, Tactical_ClampTacticalPos)
 
-DEFINE_HOOK(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
+ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
 {
 	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
 	auto pSurfaceViewBounds = &DSurface::ViewBounds;

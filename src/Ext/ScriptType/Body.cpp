@@ -19,9 +19,9 @@
 // =============================
 // container hooks
 //
-//DEFINE_HOOK_AGAIN(0x691D05, ScriptTypeClass_CTOR, 0x6)
-//DEFINE_HOOK_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
-//DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
+//ASMJIT_PATCH_AGAIN(0x691D05, ScriptTypeClass_CTOR, 0x6)
+//ASMJIT_PATCH_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
+//ASMJIT_PATCH(0x691769, ScriptTypeClass_CTOR, 0x6)
 //{
 //	GET(ScriptTypeClass*, pThis, ESI);
 //	ScriptTypeExt::ExtMap.Allocate(pThis);
@@ -29,7 +29,7 @@
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x691796, ScriptTypeClass_DTOR, 0x6)
+//ASMJIT_PATCH(0x691796, ScriptTypeClass_DTOR, 0x6)
 //{
 //	GET(ScriptTypeClass*, pThis, ESI);
 //
@@ -38,8 +38,8 @@
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x691D90, ScriptTypeClass_SaveLoad_Prefix, 0x5)
-//DEFINE_HOOK(0x691DE0, ScriptTypeClass_SaveLoad_Prefix, 0x8)
+//ASMJIT_PATCH_AGAIN(0x691D90, ScriptTypeClass_SaveLoad_Prefix, 0x5)
+//ASMJIT_PATCH(0x691DE0, ScriptTypeClass_SaveLoad_Prefix, 0x8)
 //{
 //	GET_STACK(ScriptTypeClass*, pItem, 0x4);
 //	GET_STACK(IStream*, pStm, 0x8);
@@ -51,7 +51,7 @@
 //
 //// Before : 691DD1 , 0xA
 //// After : 691DCF, 0x6
-//DEFINE_HOOK(0x691DCF, ScriptTypeClass_Load_Suffix, 0x6)
+//ASMJIT_PATCH(0x691DCF, ScriptTypeClass_Load_Suffix, 0x6)
 //{
 //	ScriptTypeExt::ExtMap.LoadStatic();
 //	return 0;
@@ -59,7 +59,7 @@
 //
 //// Before : 691DFA , 5
 //// After : 0x691DF4
-//DEFINE_HOOK(0x691DF4, ScriptTypeClass_Save_Suffix, 0x6)
+//ASMJIT_PATCH(0x691DF4, ScriptTypeClass_Save_Suffix, 0x6)
 //{
 //	GET(HRESULT, nRes, EAX);
 //

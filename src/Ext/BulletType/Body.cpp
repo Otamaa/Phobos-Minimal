@@ -324,7 +324,7 @@ bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
 	//BulletTypeExtContainer::Instance.Allocate(pItem);
@@ -340,7 +340,7 @@ DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
 	auto extData = BulletTypeExtContainer::Instance.GetExtAttribute(pItem);
@@ -380,12 +380,12 @@ HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 {
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
 	BulletTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
+

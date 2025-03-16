@@ -10,7 +10,7 @@ namespace ExitObjectTemp
 	int ProducingUnitIndex = -1;
 }
 
-DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
+ASMJIT_PATCH(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 {
 	enum { SkipGameCode = 0x4FB702 };
 
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
+ASMJIT_PATCH(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 {
 	enum { Occured = 0x71F014, Skip = 0x71F163 };
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 	return Occured;
 }
 
-DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
+ASMJIT_PATCH(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(UnitClass* const, pObject, EDI);
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 	return 0x44411F;
 }
 
-//DEFINE_HOOK(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
+//ASMJIT_PATCH(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
 //{
 //	GET(BuildingClass* const, pThis, ESI);
 //	GET(FootClass* const, pObject, EDI);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
 //}
 
 //skipping call of 0x4FBD80
-DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
+ASMJIT_PATCH(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 {
 	enum { SkipGameCode = 0x450332 };
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
+ASMJIT_PATCH(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
 {
 	enum { SkipUnitTypeCheck = 0x4CA0B7 };
 
@@ -148,7 +148,7 @@ DEFINE_HOOK(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
 	return 0x4CA0B7;
 }
 
-DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
+ASMJIT_PATCH(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 {
 	enum { SkipGameCode = 0x4F9265, CheckBuildingProduction = 0x4F9240 };
 
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 	return cantBuild ?  CheckBuildingProduction : SkipGameCode;
 }
 
-DEFINE_HOOK(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
+ASMJIT_PATCH(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
 {
 	GET(FakeHouseClass* const, pThis, ESI);
 	pThis->_GetExtData()->ProducingNavalUnitTypeIndex = -1;

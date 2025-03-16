@@ -123,7 +123,7 @@ static bool Entered(FootClass* pThis)
 	return false;
 }
 
-DEFINE_HOOK(0x73A5EA, UnitClass_UpdatePosition_NoQueueUpToEnter, 0x5)
+ASMJIT_PATCH(0x73A5EA, UnitClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 {
 	enum { EnteredThenReturn = 0x73A78C };
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x73A5EA, UnitClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 	return Entered(pThis) ? 0x73A78C : 0x0;
 }
 
-DEFINE_HOOK(0x51A0D4, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x6)
+ASMJIT_PATCH(0x51A0D4, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x6)
 {
 	enum { EnteredThenReturn = 0x51A47E };
 
@@ -141,7 +141,7 @@ DEFINE_HOOK(0x51A0D4, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x6)
 	return Entered(pThis) ? 0x51A47E : 0x0;
 }
 
-DEFINE_HOOK(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
+ASMJIT_PATCH(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
 {
 	enum { UnloadLoop = 0x73D8CB, UnloadReturn = 0x73E289 };
 

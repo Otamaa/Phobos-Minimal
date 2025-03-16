@@ -998,14 +998,14 @@ void SpawnerMain::GameConfigs::LoadSidesStuff()
 		pItem->LoadFromINI(pINI);
 }
 
-DEFINE_HOOK(0x6BD7CB, WinMain_SpawnerInit, 0x5) {
+ASMJIT_PATCH(0x6BD7CB, WinMain_SpawnerInit, 0x5) {
 	SpawnerMain::GameConfigs::Init();
 	return 0x0;
 }
 
 // Display UIGameMode if is set
 // Otherwise use mode name from MPModesMD.ini
-DEFINE_HOOK(0x65812E, RadarClass_DiplomacyDialog_UIGameMode, 0x6) {
+ASMJIT_PATCH(0x65812E, RadarClass_DiplomacyDialog_UIGameMode, 0x6) {
 	enum { Show = 0x65813E, DontShow = 0x65814D };
 
 	if (SpawnerMain::Configs::Enabled && SpawnerMain::GameConfigs::m_Ptr.UIGameMode[0])
@@ -1022,7 +1022,7 @@ DEFINE_HOOK(0x65812E, RadarClass_DiplomacyDialog_UIGameMode, 0x6) {
 }
 
 
-// DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix_Spawner, 0x6) {
+// ASMJIT_PATCH(0x689669, ScenarioClass_Load_Suffix_Spawner, 0x6) {
 // 	if (SpawnerMain::Configs::Enabled)
 // 		SpawnerMain::GameConfigs::m_Ptr.UIGameMode[0] = 0;
 //
@@ -1035,7 +1035,7 @@ namespace MPlayerDefeated
 	HouseClass* pThis = nullptr;
 }
 
-DEFINE_HOOK(0x4FC0B6, HouseClass_MPlayerDefeated_SaveArgument, 0x5) {
+ASMJIT_PATCH(0x4FC0B6, HouseClass_MPlayerDefeated_SaveArgument, 0x5) {
 	MPlayerDefeated::pThis = (SpawnerMain::Configs::Enabled && !SessionClass::IsCampaign())
 		? R->ECX<HouseClass*>()
 		: nullptr;
@@ -1044,8 +1044,7 @@ DEFINE_HOOK(0x4FC0B6, HouseClass_MPlayerDefeated_SaveArgument, 0x5) {
 }
 
 // Skip match-end logic if MPlayerDefeated called for observer
-DEFINE_HOOK_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
-DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
+ASMJIT_PATCH(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
 	enum { ProcEpilogue = 0x4FC6BC };
 
 	if (!MPlayerDefeated::pThis)
@@ -1054,9 +1053,10 @@ DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
 	return MPlayerDefeated::pThis->IsObserver()
 		? ProcEpilogue
 		: 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
 
-DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
+
+ASMJIT_PATCH(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 	enum { ProcEpilogue = 0x4FC6BC };
 
 	if (!MPlayerDefeated::pThis)
@@ -1081,7 +1081,7 @@ DEFINE_HOOK(0x4FC551, HouseClass_MPlayerDefeated_NoEnemies, 0x5) {
 	return 0;
 }
 
-DEFINE_HOOK(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
+ASMJIT_PATCH(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 	enum { ProcEpilogue = 0x4FC6BC, FinishMatch = 0x4FC591 };
 
 	if (!MPlayerDefeated::pThis)
@@ -1142,7 +1142,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x60D407, MainLoop_replaceA);
 DEFINE_FUNCTION_JUMP(CALL, 0x608206, MainLoop_replaceA);
 DEFINE_FUNCTION_JUMP(CALL, 0x48CE8A, MainLoop_replaceB);
 
-DEFINE_HOOK(0x52DAED, Game_Start_ResetGlobal, 0x7)
+ASMJIT_PATCH(0x52DAED, Game_Start_ResetGlobal, 0x7)
 {
 	SpawnerMain::Configs::DoSave = false;
 	SpawnerMain::Configs::NextAutoSaveFrame = -1;
@@ -1150,7 +1150,7 @@ DEFINE_HOOK(0x52DAED, Game_Start_ResetGlobal, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x686B20, INIClass_ReadScenario_AutoSave, 0x6)
+ASMJIT_PATCH(0x686B20, INIClass_ReadScenario_AutoSave, 0x6)
 {
 	/**
 	 *  Schedule the next autosave.
@@ -1160,7 +1160,7 @@ DEFINE_HOOK(0x686B20, INIClass_ReadScenario_AutoSave, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C7A14, EventClass_RespondToEvent_SaveGame, 0x5)
+ASMJIT_PATCH(0x4C7A14, EventClass_RespondToEvent_SaveGame, 0x5)
 {
 	SpawnerMain::Configs::DoSave = true;
 	return 0x4C7B42;

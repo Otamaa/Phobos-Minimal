@@ -3,7 +3,7 @@
 #include "Body.h"
 #include <InfantryClass.h>
 
-DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
+ASMJIT_PATCH(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 {
 	enum { AllowedObject = 0x6F7EA2, DisallowedObject = 0x6F894F };
 
@@ -20,7 +20,7 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 	return AllowedObject;
 }
 
-DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
+ASMJIT_PATCH(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, threat, 0x1C);
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 	return 0x7098B9;
 }
 
-DEFINE_HOOK(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
+ASMJIT_PATCH(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
 {
 	enum { Targeting = 0x6FA687, SkipTargeting = 0x6FA6F5 };
 	GET(TechnoClass* const, pThis, ESI);

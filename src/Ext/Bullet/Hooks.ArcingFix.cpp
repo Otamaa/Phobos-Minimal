@@ -3,7 +3,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-DEFINE_HOOK(0x6FE657, TechnoClass_FireAt_ArcingFix, 0x6)
+ASMJIT_PATCH(0x6FE657, TechnoClass_FireAt_ArcingFix, 0x6)
 {
 	GET_STACK(FakeBulletTypeClass*, pBulletType, STACK_OFFSET(0xB0, -0x48));
 	GET(int, targetHeight, EDI);
@@ -16,7 +16,7 @@ DEFINE_HOOK(0x6FE657, TechnoClass_FireAt_ArcingFix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x44D23C, BuildingClass_Mission_Missile_ArcingFix, 0x7)
+ASMJIT_PATCH(0x44D23C, BuildingClass_Mission_Missile_ArcingFix, 0x7)
 {
 	GET(FakeWeaponTypeClass*, pWeapon, EBP);
 	GET(int, targetHeight, EBX);

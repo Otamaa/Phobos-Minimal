@@ -6,7 +6,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/TemplateDef.h>
 
-DEFINE_HOOK(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
+ASMJIT_PATCH(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 {
 	enum { SkipGameCode = 0x73B074 };
 
@@ -25,7 +25,7 @@ DEFINE_HOOK(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
+ASMJIT_PATCH(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 {
 	enum { SkipGameCode = 0x74195E };
 
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4B1150, DriveLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
+ASMJIT_PATCH(0x4B1150, DriveLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 {
 	enum { SkipGameCode = 0x4B116B };
 
@@ -63,8 +63,7 @@ DEFINE_HOOK(0x4B1150, DriveLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 
 }
 
-DEFINE_HOOK_AGAIN(0x4B1A4B, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
-DEFINE_HOOK(0x4B19F7, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
+ASMJIT_PATCH(0x4B19F7, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
 {
 	enum { SkipGameCode1 = 0x4B1A04, SkipGameCode2 = 0x4B1A58 };
 
@@ -80,8 +79,9 @@ DEFINE_HOOK(0x4B19F7, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
 
 	return 0x0;
 }
+ASMJIT_PATCH_AGAIN(0x4B1A4B, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
 
-DEFINE_HOOK(0x6A0813, ShipLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
+ASMJIT_PATCH(0x6A0813, ShipLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 {
 	enum { SkipGameCode = 0x6A082E };
 
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x6A0813, ShipLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
+ASMJIT_PATCH(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 {
 	enum { SkipGameCode = 0x6A109A };
 

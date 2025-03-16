@@ -4,7 +4,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Misc/Ares/Hooks/Header.h>
 
-DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
+ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 {
 	enum {
 		SelfHeal = 0x6FA743, //continue ares check here

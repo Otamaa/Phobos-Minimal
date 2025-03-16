@@ -30,17 +30,17 @@ BombExtContainer BombExtContainer::Instance;
 // target
 // state
 // ticksound
-DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
-DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6)
+
+ASMJIT_PATCH(0x4385FC, BombClass_CTOR, 0x6)
 {
 	GET(BombClass*, pItem, ESI);
 
 	BombExtContainer::Instance.Allocate(pItem);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x438EE9, BombClass_CTOR, 0x6)
 
-DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
+ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 {
 	GET(BombClass *, pItem, ECX);
 	BombExtContainer::Instance.Remove(pItem);

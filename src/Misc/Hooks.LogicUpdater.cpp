@@ -35,7 +35,7 @@
 
 #define ENABLE_THESE
 
-DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
+ASMJIT_PATCH(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 {
 	GET(ILocomotion*, pThis, ESI);
 
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
+ASMJIT_PATCH(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 {
 	GET(ILocomotion*, pThis, ESI);
 
@@ -104,7 +104,7 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
+ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 {
 	enum { retDead = 0x6FAFFD, Continue = 0x6F9E6C };
 
@@ -193,8 +193,7 @@ DEFINE_HOOK(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK_AGAIN(0x6FBBC3, TechnoClass_Cloak_BeforeDetach, 0x5)  // TechnoClass_Cloaking_AI
-DEFINE_HOOK(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak
+ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -203,17 +202,18 @@ DEFINE_HOOK(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass
 	pExt->IsDetachingForCloak = true;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6FBBC3, TechnoClass_Cloak_BeforeDetach, 0x5)  // TechnoClass_Cloaking_AI
 
-DEFINE_HOOK_AGAIN(0x6FBBCE, TechnoClass_Cloak_AfterDetach, 0x7)  // TechnoClass_Cloaking_AI
-DEFINE_HOOK(0x703799, TechnoClass_Cloak_AfterDetach, 0xA)        // TechnoClass_Do_Cloak
+
+ASMJIT_PATCH(0x703799, TechnoClass_Cloak_AfterDetach, 0xA)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExtContainer::Instance.Find(pThis)->IsDetachingForCloak = false;
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6FBBCE, TechnoClass_Cloak_AfterDetach, 0x7)  // TechnoClass_Cloaking_AI
 
-DEFINE_HOOK(0x6FB9D7, TechnoClass_Cloak_RestoreMCAnim, 0x6)
+
+ASMJIT_PATCH(0x6FB9D7, TechnoClass_Cloak_RestoreMCAnim, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -223,15 +223,15 @@ DEFINE_HOOK(0x6FB9D7, TechnoClass_Cloak_RestoreMCAnim, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x7363B5, TechnoClass_AI_Tunnel, 0x6) // Unit
-DEFINE_HOOK(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
+ASMJIT_PATCH(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExtContainer::Instance.Find(pThis)->UpdateOnTunnelEnter();
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x7363B5, TechnoClass_AI_Tunnel, 0x6) // Unit
 
-DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
+
+ASMJIT_PATCH(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -319,7 +319,7 @@ bool Spawned_Check_Destruction(AircraftClass* aircraft)
 
 DEFINE_FUNCTION_JUMP(CALL , 0x414DA3  , FakeAircraftClass::_FootClass_Update_Wrapper);
 
-DEFINE_HOOK(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
+ASMJIT_PATCH(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	//GET8(bool, IsMovingNow, AL);
@@ -355,7 +355,7 @@ DEFINE_HOOK(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
 }
 
 // Ares-hook jmp to this offset
-DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
+ASMJIT_PATCH(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -400,18 +400,18 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
 }
 
-//DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
-//DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
+//ASMJIT_PATCH_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
+//ASMJIT_PATCH(0x6FAF7A, TechnoClass_LateUpdate, 7)
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //
 //	return 0;
 //}
 
-//DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
-//DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
-//DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
-//DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
+//ASMJIT_PATCH_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
+//ASMJIT_PATCH_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
+//ASMJIT_PATCH_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
+//ASMJIT_PATCH(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
 //// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
 //{
 //	GET(TechnoClass*, pThis, ESI);
@@ -419,7 +419,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 //}
 
 
-//DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
+//ASMJIT_PATCH(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 //{
 //	GET(UnitClass*, pThis, ESI);
 //
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 //	return 0x736480;
 //}
 
-//DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
+//ASMJIT_PATCH(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 //{
 //	GET(FootClass*, pThis, ESI);
 //
@@ -474,7 +474,7 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
 //}
 
 //
-//DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
+//ASMJIT_PATCH(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
 //{
 //
 //	return 0x0;

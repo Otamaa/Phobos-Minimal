@@ -5,7 +5,7 @@
 #include <Ext/Building/Body.h>
 
 
-DEFINE_HOOK(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
+ASMJIT_PATCH(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 {
 	GET(TemporalClass* const, pThis, ESI);
 	GET(BuildingClass*, pTarget, EDI);

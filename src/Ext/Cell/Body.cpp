@@ -267,14 +267,14 @@ CellExtContainer CellExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
+ASMJIT_PATCH(0x47BDA1, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, ESI);
 	CellExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
+ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
 {
 	GET(CellClass*, pItem, ECX);
 	CellExtContainer::Instance.Remove(pItem);

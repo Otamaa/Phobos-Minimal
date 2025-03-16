@@ -36,7 +36,7 @@ OPTIONALINLINE void LoadMixFile(TMixBundle& bb)
 	Debug::LogInfo(" Loading {} ... {} !!!", bb.MIXName(), !bb.MIXptr ? "FAILED" : "OK");
 }
 
-DEFINE_HOOK(0x53046A, Game_InitSecondaryMix_handle, 0x5)
+ASMJIT_PATCH(0x53046A, Game_InitSecondaryMix_handle, 0x5)
 {
 	Debug::LogInfo(" ");
 	LoadMixFile(CONQMD);

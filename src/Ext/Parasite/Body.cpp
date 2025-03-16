@@ -63,24 +63,24 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 // =============================
 // container hooks
 
-//DEFINE_HOOK_AGAIN(0x62924C , ParasiteClass_CTOR,0x5 )
-//DEFINE_HOOK(0x62932E, ParasiteClass_CTOR, 0x6)
+//ASMJIT_PATCH_AGAIN(0x62924C , ParasiteClass_CTOR,0x5 )
+//ASMJIT_PATCH(0x62932E, ParasiteClass_CTOR, 0x6)
 //{
 //	GET(ParasiteClass*, pItem, ESI);
 //	ParasiteExt::ExtMap.Allocate(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x62AFFE , ParasiteClass_DTOR, 0x6)
-//DEFINE_HOOK(0x62946E, ParasiteClass_DTOR, 0x6)
+//ASMJIT_PATCH_AGAIN(0x62AFFE , ParasiteClass_DTOR, 0x6)
+//ASMJIT_PATCH(0x62946E, ParasiteClass_DTOR, 0x6)
 //{
 //	GET(ParasiteClass*, pItem, ESI);
 //	ParasiteExt::ExtMap.Remove(pItem);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x6296B0, ParasiteClass_SaveLoad_Prefix, 0x8)
-//DEFINE_HOOK(0x6295B0, ParasiteClass_SaveLoad_Prefix, 0x5)
+//ASMJIT_PATCH_AGAIN(0x6296B0, ParasiteClass_SaveLoad_Prefix, 0x8)
+//ASMJIT_PATCH(0x6295B0, ParasiteClass_SaveLoad_Prefix, 0x5)
 //{
 //
 //	GET_STACK(ParasiteClass*, pItem, 0x4);
@@ -90,13 +90,13 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x62969D, ParasiteClass_Load_Suffix, 0x5)
+//ASMJIT_PATCH(0x62969D, ParasiteClass_Load_Suffix, 0x5)
 //{
 //	ParasiteExt::ExtMap.LoadStatic();
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x6296BC, ParasiteClass_Save_Suffix, 0x8)
+//ASMJIT_PATCH(0x6296BC, ParasiteClass_Save_Suffix, 0x8)
 //{
 //	GET(ParasiteClass*, pThis, ECX);
 //	GET(IStream*, pStream, EAX);

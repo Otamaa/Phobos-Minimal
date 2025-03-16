@@ -28,7 +28,7 @@
 
 bool RageQuit = false;
 
-DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
+ASMJIT_PATCH(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
 	if (SpawnerMain::GetMainConfigs()->QuickExit) {
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x623125, OwnerDrawLoop_HandleRageQuit, 0x5)
+ASMJIT_PATCH(0x623125, OwnerDrawLoop_HandleRageQuit, 0x5)
 {
 	return RageQuit
 		? 0x623157

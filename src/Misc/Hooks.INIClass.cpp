@@ -239,44 +239,44 @@ PhobosMap<int, std::string>  INIInheritance::Inherits {};
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
 
-DEFINE_HOOK(0x5276D0, INIClass_ReadInt_Overwrite, 0x5)
+ASMJIT_PATCH(0x5276D0, INIClass_ReadInt_Overwrite, 0x5)
 {
 	R->EAX(INIInheritance::ReadTemplate<int>(R));
 	return 0x527838;
 }
 
-DEFINE_HOOK(0x5295F0, INIClass_ReadBool_Overwrite, 0x5)
+ASMJIT_PATCH(0x5295F0, INIClass_ReadBool_Overwrite, 0x5)
 {
 	R->EAX(INIInheritance::ReadTemplate<bool>(R));
 	return 0x5297A3;
 }
 
-DEFINE_HOOK(0x5283D0, INIClass_ReadDouble_Overwrite, 0x5)
+ASMJIT_PATCH(0x5283D0, INIClass_ReadDouble_Overwrite, 0x5)
 {
 	double value = INIInheritance::ReadTemplate<double>(R);
 	_asm { fld value }
 	return 0x52859F;
 }
 
-DEFINE_HOOK(0x529880, INIClass_ReadPoint2D_Overwrite, 0x7)
+ASMJIT_PATCH(0x529880, INIClass_ReadPoint2D_Overwrite, 0x7)
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<Point2D>(R));
 	return 0x52859F;
 }
 
-DEFINE_HOOK(0x529CA0, INIClass_ReadPoint3D_Overwrite, 0x8)
+ASMJIT_PATCH(0x529CA0, INIClass_ReadPoint3D_Overwrite, 0x8)
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<CoordStruct>(R));
 	return 0x529E63;
 }
 
-DEFINE_HOOK(0x527920, INIClass_ReadGUID_Overwrite, 0x6) // locomotor
+ASMJIT_PATCH(0x527920, INIClass_ReadGUID_Overwrite, 0x6) // locomotor
 {
 	R->EAX(INIInheritance::ReadTemplatePtr<CLSID>(R));
 	return 0x527B43;
 }
 
-DEFINE_HOOK(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
+ASMJIT_PATCH(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 {
 	if (!Phobos::Config::UseNewInheritance)
 		return 0x0;
@@ -305,7 +305,7 @@ DEFINE_HOOK(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 	return 0x528BB6;
 }
 
-DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)
+ASMJIT_PATCH(0x474230, CCINIClass_Load_Inheritance, 0x5)
 {
 	if (!Phobos::Config::UseNewIncludes)
 		return 0x0;
@@ -352,7 +352,7 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 
 DEFINE_FUNCTION_JUMP(CALL, 0x545FD4, IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper);
 
-//DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
+//ASMJIT_PATCH(0x527B0A, INIClass_Get_UUID, 0x8)
 //{
 //	GET(wchar_t*, buffer, ECX);
 //	COMPILETIMEEVAL size_t BufferSize = 0x80;

@@ -135,7 +135,7 @@ void ReceiveDamage_AttachEffect(ObjectClass* pVictim, int* pDamage, int distance
 	pManager->ReceiveDamage(pVictim, pDamage, distanceFromEpicenter, pWH, pAttacker, ignoreDefenses, preventPassengerEscape, pAttackingHouse);
 }
 
-DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage, 0x7)
+ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage, 0x7)
 {
 	GET(TechnoClass*, pTechno, ECX);
 	GET_STACK(int* , pDamage ,(0x4));

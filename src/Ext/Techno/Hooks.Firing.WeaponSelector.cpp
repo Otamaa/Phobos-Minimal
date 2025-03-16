@@ -9,7 +9,7 @@
 
 // Weapon Selection
 // TODO : check
-DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
+ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 {
 	enum { ReturnGameCode = 0x6F3341, ReturnHandled = 0x6F3406 };
 
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	return ReturnGameCode;
 }
 
-DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
+ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 {
 	enum { Secondary = 0x6F3745, UseWeaponIndex = 0x6F37AF };
 
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 }
 
 //this hook disregard everything and return weapon index
-DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
+ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 {
 	enum
 	{
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 }
 
 //broke spawner building ?
-//DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8) //7
+//ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8) //7
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //	GET(TechnoClass*, pTargetTechno, EBP);
@@ -250,7 +250,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 
 //#pragma optimize("", off )
 //static uintptr_t calleraddr = -1;
-//DEFINE_HOOK(0x5218E0, InfantryClass_SelectWeapon_IsTargetTechnoAlive, 0x9)
+//ASMJIT_PATCH(0x5218E0, InfantryClass_SelectWeapon_IsTargetTechnoAlive, 0x9)
 //{
 //	GET(InfantryClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -262,7 +262,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
+//ASMJIT_PATCH(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -274,7 +274,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //}
 //#pragma optimize("", on )
 
-DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
+ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	return vsData_Primary->Verses != 0.0 ? FurtherCheck : Secondary;
 }
 
-// DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+// ASMJIT_PATCH(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 // {
 // 	GET(TechnoClass* const, pThis, ESI);
 // 	GET(WeaponTypeClass* const, pWeapon, EBX);
@@ -363,7 +363,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
+ASMJIT_PATCH(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 {
 	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
 
@@ -378,7 +378,7 @@ DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 	return Primary;
 }
 
-DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
+ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 {
 	enum { ReturnValue = 0x6F37AF };
 
@@ -446,7 +446,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	return ReturnValue;
 }
 
-DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
+ASMJIT_PATCH(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
 {
 	enum { SkipGameCode = 0x6F34BD };
 	GET(BuildingTypeClass*, pThis, ECX);
@@ -460,7 +460,7 @@ DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
+ASMJIT_PATCH(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 {
 	enum { SkipGameCode = 0x51EAF8 };
 	GET(BuildingTypeClass*, pThis, ESI);
@@ -475,7 +475,7 @@ DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 }
 
 // Basically a hack to make game and Ares pick laser properties from non-Primary weapons.
-DEFINE_HOOK(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
+ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(DWORD , caller , 0x0);

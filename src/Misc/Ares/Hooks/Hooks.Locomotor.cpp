@@ -27,7 +27,7 @@
 
 #include "Header.h"
 
-//DEFINE_HOOK(0x7079A1, TechnoClass_Detach_HunterSeeker, 0x6)
+//ASMJIT_PATCH(0x7079A1, TechnoClass_Detach_HunterSeeker, 0x6)
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //	GET(void*, comparator, EBP);
@@ -41,7 +41,7 @@
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
+ASMJIT_PATCH(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
 	GET(TeleportLocomotionClass*, pLoco, EBP);
@@ -96,8 +96,8 @@ DEFINE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 	return 0x7184CE;
 }
 
-DEFINE_HOOK_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
-DEFINE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
+
+ASMJIT_PATCH(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
 
@@ -107,9 +107,9 @@ DEFINE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 		pFoot->SetSpeedPercentage(0.0);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 
-DEFINE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
+ASMJIT_PATCH(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
 
@@ -123,7 +123,7 @@ DEFINE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 	return 0x51630E;
 }
 
-DEFINE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
+ASMJIT_PATCH(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
 {
 	GET(HoverLocomotionClass const* const, pLoco, ESI);
 	const auto pFoot = !pLoco->Owner ? pLoco->LinkedTo : pLoco->Owner;
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
+ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
@@ -179,7 +179,7 @@ DEFINE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0
 	return 0;
 }
 
-DEFINE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
+ASMJIT_PATCH(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
+ASMJIT_PATCH(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
+ASMJIT_PATCH(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
 
@@ -247,7 +247,7 @@ DEFINE_HOOK(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 
 	return 0x4D016F;
 }
 
-DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
+ASMJIT_PATCH(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 {
 	GET(TechnoTypeClass*, pType, ESI);
 
@@ -314,13 +314,13 @@ DEFINE_HOOK(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 	return 0x4B9BBF;
 }
 
-DEFINE_HOOK(0x4B9A4A, DropshipLoadout_PrintArmor, 7)
+ASMJIT_PATCH(0x4B9A4A, DropshipLoadout_PrintArmor, 7)
 {
 	R->EAX(ArmorTypeClass::Array[R->EDX()]->Name.data());
 	return 0x4B9A51;
 }
 
-DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
+ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 {
 	GET_STACK(FlyLocomotionClass* const, pThis, 0x20);
 	auto const pObject = pThis->LinkedTo;
@@ -454,7 +454,7 @@ DEFINE_HOOK(0x4CF3D0, FlyLocomotionClass_sub_4CEFB0_HunterSeeker, 7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
+ASMJIT_PATCH(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, unk, EDI);
@@ -496,7 +496,7 @@ DEFINE_HOOK(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 	return 0x4CDE8F;
 }
 
-DEFINE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
+ASMJIT_PATCH(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, max, EDI);
@@ -517,7 +517,7 @@ DEFINE_HOOK(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
+ASMJIT_PATCH(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
 {
 	GET(ILocomotion*, ILoco, ESI);
 
@@ -566,7 +566,7 @@ DEFINE_HOOK(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
 	return 0x514A2A;
 }
 
-DEFINE_HOOK(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
+ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
 {
 	GET(JumpjetLocomotionClass*, pLoco, ESI);
 	auto const pOwner = pLoco->LinkedTo;

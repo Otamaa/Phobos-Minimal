@@ -32,13 +32,13 @@
 #include <TEventClass.h>
 #include <TActionClass.h>
 
-DEFINE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
+ASMJIT_PATCH(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 {
 	GET(int, nLoopVal, EAX);
 	return nLoopVal < 4 ? 0x6E20E0 : 0x0;
 }
 
-DEFINE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
+ASMJIT_PATCH(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
 {
 	int idxColor = 0;
 	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
 	return 0x6DE0DE;
 }
 
-DEFINE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
+ASMJIT_PATCH(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {
 	GET(HouseClass*, House, EDI);
 	GET(int, triggerSide, EAX);
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 		;
 }
 
-DEFINE_HOOK(0x6E3EE0, TActionClass_GetFlags, 5)
+ASMJIT_PATCH(0x6E3EE0, TActionClass_GetFlags, 5)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x6E3EE0, TActionClass_GetFlags, 5)
 	return 0x6E3EFE;
 }
 
-DEFINE_HOOK(0x6E3B60, TActionClass_GetMode, 8)
+ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x6E3B60, TActionClass_GetMode, 8)
 	}
 }
 
-DEFINE_HOOK(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
+ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 {
 	GET(TActionClass* const, pAction, ESI);
 	GET(ObjectClass* const, pObject, ECX);
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 	return (value > 144u) ? Handled : Default;
 }
 
-DEFINE_HOOK(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
+ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
 {
 	GET(TEventClass*, pThis, ECX);
 	auto const& [Flag, Handled] =
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
 	return 0x71F9DF;
 }
 
-DEFINE_HOOK(0x71F39B, TEventClass_SaveToINI, 5)
+ASMJIT_PATCH(0x71F39B, TEventClass_SaveToINI, 5)
 {
 	GET(AresTriggerEvents, nAction, EDX);
 	const auto& [Logic, handled] = AresTEventExt::GetLogicNeed(nAction);
@@ -152,7 +152,7 @@ DEFINE_HOOK(0x71F39B, TEventClass_SaveToINI, 5)
 	return 0x71F3FE;
 }
 
-DEFINE_HOOK(0x71f683, TEventClass_GetFlags_Ares, 5)
+ASMJIT_PATCH(0x71f683, TEventClass_GetFlags_Ares, 5)
 {
 	GET(AresTriggerEvents, nAction, ECX);
 
@@ -167,7 +167,7 @@ DEFINE_HOOK(0x71f683, TEventClass_GetFlags_Ares, 5)
 }
 
 // the general events requiring a house
- DEFINE_HOOK(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
+ ASMJIT_PATCH(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
  {
  	GET(int const, param, ECX);
 
@@ -181,18 +181,18 @@ DEFINE_HOOK(0x71f683, TEventClass_GetFlags_Ares, 5)
  }
 
 // validation for Spy as House, the Entered/Overflown Bys and the Crossed V/H Lines
-DEFINE_HOOK_AGAIN(0x71ED33, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_HOOK_AGAIN(0x71F1C9, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_HOOK_AGAIN(0x71F1ED, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_HOOK(0x71ED01, EventClass_HasOccured_PlayerAtX2, 5)
+
+ASMJIT_PATCH(0x71ED01, EventClass_HasOccured_PlayerAtX2, 5)
 {
 	GET(int const, param, ECX);
 	R->EAX(AresTEventExt::ResolveHouseParam(param));
 	return R->Origin() + 5;
-}
+}ASMJIT_PATCH_AGAIN(0x71ED33, EventClass_HasOccured_PlayerAtX2, 5)
+ASMJIT_PATCH_AGAIN(0x71F1C9, EventClass_HasOccured_PlayerAtX2, 5)
+ASMJIT_PATCH_AGAIN(0x71F1ED, EventClass_HasOccured_PlayerAtX2, 5)
 
 // param for Attacked by House is the array index
-DEFINE_HOOK(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
+ASMJIT_PATCH(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
 {
 	GET(int, param, EAX);
 	GET(HouseClass* const, pHouse, EDX);
@@ -274,7 +274,7 @@ static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
 }
 };
 
- DEFINE_HOOK(0x71E949, TEventClass_HasOccured_Ares, 7)
+ ASMJIT_PATCH(0x71E949, TEventClass_HasOccured_Ares, 7)
  {
 
  	GET(TEventClass*, pThis, EBP);

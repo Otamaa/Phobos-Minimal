@@ -11,21 +11,21 @@ CellStruct FakeScenarioClass::_Get_Waypoint_Location(int idx) {
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x68BCC0, FakeScenarioClass::_Get_Waypoint_Location);
 
-DEFINE_HOOK(0x68BCE4, ScenarioClass_Get_Waypoint_Cell_0, 0x7)
+ASMJIT_PATCH(0x68BCE4, ScenarioClass_Get_Waypoint_Cell_0, 0x7)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BCEB;
 }
 
-DEFINE_HOOK(0x68BD08, ScenarioClass_Get_Waypoint, 0x7)
+ASMJIT_PATCH(0x68BD08, ScenarioClass_Get_Waypoint, 0x7)
 {
 	GET_STACK(int, nWaypoint, STACK_OFFS(0x10, -0x8));
 	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BD0F;
 }
 
-DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
+ASMJIT_PATCH(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 {
 	if (auto const pScen = ScenarioExtData::Instance())
 			pScen->Waypoints.clear();
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 	return 0x68BD79;
 }
 
-DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
+ASMJIT_PATCH(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	const auto waypoints = &ScenarioExtData::Instance()->Waypoints;
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 	return 0x68BDB3;
 }
 
-DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
+ASMJIT_PATCH(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 {
 	GET_STACK(INIClass* const, pINI, 0x4);
 
@@ -78,13 +78,13 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 	return 0x68BE8C;
 }
 
-DEFINE_HOOK(0x6874E7, ScenarioClass_ReadINI_CellParsed, 0x6)
+ASMJIT_PATCH(0x6874E7, ScenarioClass_ReadINI_CellParsed, 0x6)
 {
 	ScenarioExtData::CellParsed = true;
 	return 0;
 }
 
-DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
+ASMJIT_PATCH(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 {
 	GET_STACK(INIClass*, pINI, 0x4);
 	pINI->Clear(GameStrings::Waypoints(), nullptr);
@@ -99,13 +99,13 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 	return 0x68BF1F;
 }
 
-//DEFINE_HOOK(0x68BF30, ScenarioClass_Set_Default_Waypoint, 0xA)
+//ASMJIT_PATCH(0x68BF30, ScenarioClass_Set_Default_Waypoint, 0xA)
 //{
 //	Debug::LogInfo(__FUNCTION__" called! Caller = %p", R->Stack32(0x0));
 //	return 0;
 //}
 
-DEFINE_HOOK(0x68BF50, ScenarioClass_Set_Waypoint, 0x8)
+ASMJIT_PATCH(0x68BF50, ScenarioClass_Set_Waypoint, 0x8)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	GET_STACK(CellStruct, cell, 0x8);
@@ -113,14 +113,14 @@ DEFINE_HOOK(0x68BF50, ScenarioClass_Set_Waypoint, 0x8)
 	return 0x68BF5F;
 }
 
-DEFINE_HOOK(0x68BF74, ScenarioClass_Get_Waypoint_Cell, 0x7)
+ASMJIT_PATCH(0x68BF74, ScenarioClass_Get_Waypoint_Cell, 0x7)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	R->ECX(&ScenarioExtData::Instance()->Waypoints[nWaypoint]);
 	return 0x68BF7B;
 }
 
-DEFINE_HOOK(0x763610, Waypoint_To_String, 0x5)
+ASMJIT_PATCH(0x763610, Waypoint_To_String, 0x5)
 {
 	char buffer[8] { '\0' };
 	GET(int, nWaypoint, ECX);
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x763610, Waypoint_To_String, 0x5)
 	return 0x763621;
 }
 
-DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
+ASMJIT_PATCH(0x763690, String_To_Waypoint, 0x7)
 {
 	GET(char*, pString, ECX);
 
@@ -164,13 +164,13 @@ DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
 }
 
 // This function is really strange, it returns empty string if a wp is valid, but why? - secsome
-DEFINE_HOOK(0x68BF90, ScenarioClass_Get_Waypoint_As_String, 0x6)
+ASMJIT_PATCH(0x68BF90, ScenarioClass_Get_Waypoint_As_String, 0x6)
 {
 	R->EAX(0x889F64);
 	return 0x68BFD7;
 }
 
-DEFINE_HOOK(0x6883B7, ScenStruct_ScenStruct_1, 0x6)
+ASMJIT_PATCH(0x6883B7, ScenStruct_ScenStruct_1, 0x6)
 {
 	GET(int, nCount, ESI);
 
@@ -188,7 +188,7 @@ DEFINE_HOOK(0x6883B7, ScenStruct_ScenStruct_1, 0x6)
 	return 0x6883EB;
 }
 
-DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
+ASMJIT_PATCH(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 {
 	REF_STACK(DynamicVectorClass<CellStruct>, waypoints, STACK_OFFS(0x40, 0x18));
 	REF_STACK(CellStruct, buffer, STACK_OFFS(0x40, 0x20));
@@ -204,7 +204,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	return 0x6884EF;
 }
 
-//DEFINE_HOOK(0x6D6070, Tactical_SetTacticalPosition, 0x5)
+//ASMJIT_PATCH(0x6D6070, Tactical_SetTacticalPosition, 0x5)
 //{
 //	GET_STACK(DWORD, dwCaller, 0x0);
 //	GET_STACK(CoordStruct*, pCoord, 0x4);
@@ -215,27 +215,27 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x684CB7, Scen_Waypoint_Call_1, 0x7)
+ASMJIT_PATCH(0x684CB7, Scen_Waypoint_Call_1, 0x7)
 {
 	GET(int, nWaypoint, EAX);
 	R->EAX(ScenarioExtData::Instance()->Waypoints[nWaypoint].Pack());
 	return 0x684CBE;
 }
 
-DEFINE_HOOK(0x6855E4, Scen_Waypoint_Call_2, 0x5)
+ASMJIT_PATCH(0x6855E4, Scen_Waypoint_Call_2, 0x5)
 {
 	ScenarioExtData::Instance()->Waypoints.clear();
 	return 0x6855FC;
 }
 
-DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
+ASMJIT_PATCH(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
 {
 	GET(int, nWaypoint, EDI);
 	R->EAX(ScenarioExtData::Instance()->Waypoints[nWaypoint].Pack());
 	return 0x68AFEE;
 }
 
-DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
+ASMJIT_PATCH(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 {
 	int nStartingPoints = 0;
 	for (int i = 0; i < 8; ++i)
@@ -250,7 +250,7 @@ DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 	return 0x68AF86;
 }
 
-//DEFINE_HOOK(0x5D6C1D, Scen_Multiplay_BaseSpawnCell_replace, 0x5)
+//ASMJIT_PATCH(0x5D6C1D, Scen_Multiplay_BaseSpawnCell_replace, 0x5)
 //{
 //	GET(CellStruct, nCell, ESI);
 //

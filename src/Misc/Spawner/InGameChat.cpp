@@ -39,7 +39,7 @@ struct GlobalPacket_NetMessage
 };
 #pragma pack(pop)
 
-DEFINE_HOOK(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
+ASMJIT_PATCH(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 	return SkipMessage;
 }
 
-DEFINE_HOOK(0x48D95B, NetworkCallBack_NetMessage_SetColor, 0x6)
+ASMJIT_PATCH(0x48D95B, NetworkCallBack_NetMessage_SetColor, 0x6)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x48D95B, NetworkCallBack_NetMessage_SetColor, 0x6)
 	return 0x48D966;
 }
 
-DEFINE_HOOK(0x55EDD2, MessageInput_Write, 0x5)
+ASMJIT_PATCH(0x55EDD2, MessageInput_Write, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x55EDD2, MessageInput_Write, 0x5)
 	return 0x55EE00;
 }
 
-DEFINE_HOOK(0x55F0A8, MessageInput_Print, 0x5)
+ASMJIT_PATCH(0x55F0A8, MessageInput_Print, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;

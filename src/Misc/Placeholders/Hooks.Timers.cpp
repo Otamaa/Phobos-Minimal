@@ -9,7 +9,7 @@ namespace TimerValueTemp
 	static int oldValue;
 };
 
-DEFINE_HOOK(0x6D4B50, PrintTimerOnTactical_Start, 0x6)
+ASMJIT_PATCH(0x6D4B50, PrintTimerOnTactical_Start, 0x6)
 {
 	if (!Phobos::Config::RealTimeTimers)
 		return 0;
@@ -52,7 +52,7 @@ DEFINE_HOOK(0x6D4B50, PrintTimerOnTactical_Start, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6D4C68, PrintTimerOnTactical_End, 0x8)
+ASMJIT_PATCH(0x6D4C68, PrintTimerOnTactical_End, 0x8)
 {
 	if (!Phobos::Config::RealTimeTimers)
 		return 0;

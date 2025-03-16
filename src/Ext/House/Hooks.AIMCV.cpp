@@ -2,7 +2,7 @@
 
 #include <Ext/Rules/Body.h>
 
-DEFINE_HOOK(0x740A11, UnitClass_Mission_Guard_AIAutoDeployMCV, 0x6)
+ASMJIT_PATCH(0x740A11, UnitClass_Mission_Guard_AIAutoDeployMCV, 0x6)
 {
 	enum { SkipGameCode = 0x740A50 };
 
@@ -11,7 +11,7 @@ DEFINE_HOOK(0x740A11, UnitClass_Mission_Guard_AIAutoDeployMCV, 0x6)
 	return (!RulesExtData::Instance()->AIAutoDeployMCV && pMCV->Owner->NumConYards > 0) ? SkipGameCode : 0;
 }
 
-DEFINE_HOOK(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
+ASMJIT_PATCH(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
 {
 	enum { SkipGameCode = 0x73992B };
 
@@ -20,7 +20,7 @@ DEFINE_HOOK(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
 	return (!RulesExtData::Instance()->AISetBaseCenter && pMCV->Owner->NumConYards > 1) ? SkipGameCode : 0;
 }
 
-DEFINE_HOOK(0x4FD538, HouseClass_AIHouseUpdate_CheckAIBaseCenter, 0x7)
+ASMJIT_PATCH(0x4FD538, HouseClass_AIHouseUpdate_CheckAIBaseCenter, 0x7)
 {
 	if (RulesExtData::Instance()->AIBiasSpawnCell && !SessionClass::IsCampaign())
 	{

@@ -101,7 +101,7 @@ static KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot
 	return KickOutResult::Succeeded;
 }
 
-//DEFINE_HOOK(0x444565 , BuildingClass_ExitObject_NonNavalUnit_Test, 0x6)
+//ASMJIT_PATCH(0x444565 , BuildingClass_ExitObject_NonNavalUnit_Test, 0x6)
 //{
 //	GET(BuildingClass* , pThis , ESI);
 //	GET(FootClass* , pProduct , EDI);
@@ -119,7 +119,7 @@ static KickOutResult SendDroppodProduction(BuildingClass* pBld, FootClass* pFoot
 //	return 0x444EDE;
 //}
 
-//DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 6)
+//ASMJIT_PATCH(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 6)
 //{
 //	GET(AircraftTypeClass* const, pType, ECX);
 //	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);

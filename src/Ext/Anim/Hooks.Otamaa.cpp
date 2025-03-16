@@ -58,7 +58,7 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 	}
 }
 
-DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
+ASMJIT_PATCH(0x424cfb, AnimClass_Init_Additionals, 6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 
@@ -74,7 +74,7 @@ DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
 	return 0;
 }
 
- DEFINE_HOOK(0x4243BC, AnimClass_AI_Veins, 0x6)
+ ASMJIT_PATCH(0x4243BC, AnimClass_AI_Veins, 0x6)
  {
  	enum {
  		ContinueDrawTiberium = 0x4243CC,
@@ -89,7 +89,7 @@ DEFINE_HOOK(0x424cfb, AnimClass_Init_Additionals, 6)
 
 #include <Ext/Cell/Body.h>
 
-DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
+ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
 	GET(FakeCellClass* const, location, ESI);
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 	return 0x6850E5;
 }
 
-DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
+ASMJIT_PATCH(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 {
 	enum { SkipGameCode = 0x423EFD };
 
@@ -158,7 +158,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x424D5A, FakeAnimClass::_Middle);
 DEFINE_FUNCTION_JUMP(CALL, 0x424687, FakeAnimClass::_Middle);
 DEFINE_FUNCTION_JUMP(LJMP, 0x424F00, FakeAnimClass::_Middle);
 
-DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
+ASMJIT_PATCH(0x42264D, AnimClass_Init, 0x5)
 {
 	GET(AnimClass*, pThis, ESI);
 	GET_BASE(CoordStruct*, pCoord, 0xC);
@@ -169,38 +169,38 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 }
 
 #ifdef PerformanceHoggers
-//DEFINE_HOOK_AGAIN(0x42429E, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x42437E, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x4243A6, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x424567, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x4246DC, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x424B42, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x4247EB, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x42492A, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK_AGAIN(0x424B29, AnimClass_UpdateEnd, 0x6)
-//DEFINE_HOOK(0x424B1B, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x42429E, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x42437E, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x4243A6, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x424567, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x4246DC, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x424B42, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x4247EB, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x42492A, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH_AGAIN(0x424B29, AnimClass_UpdateEnd, 0x6)
+//ASMJIT_PATCH(0x424B1B, AnimClass_UpdateEnd, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
 //	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnUpdate(pThis);
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x424785, AnimClass_Loop, 0x6)
+//ASMJIT_PATCH(0x424785, AnimClass_Loop, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
 //	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnLoop(pThis);
 //	return 0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x4247F3, AnimClass_Done, 0x6)
-//DEFINE_HOOK(0x424298, AnimClass_Done, 0x6)
+//ASMJIT_PATCH_AGAIN(0x4247F3, AnimClass_Done, 0x6)
+//ASMJIT_PATCH(0x424298, AnimClass_Done, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
 //	AnimExtContainer::Instance.Find(pThis)->SpawnsStatusData.OnDone(pThis);
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x424801, AnimClass_Next, 0x6)
+//ASMJIT_PATCH(0x424801, AnimClass_Next, 0x6)
 //{
 //	GET(AnimClass*, pThis, ESI);
 //	GET(AnimTypeClass*, pNextAnimType, ECX);
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 TODO : retest for desync
 
 
-DEFINE_HOOK(0x4242BA, AnimClass_AI_SetCoord, 0x6)
+ASMJIT_PATCH(0x4242BA, AnimClass_AI_SetCoord, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -228,7 +228,7 @@ DEFINE_HOOK(0x4242BA, AnimClass_AI_SetCoord, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x422CC6, AnimClass_DrawIT_SpecialDraw, 0xA)
+ASMJIT_PATCH(0x422CC6, AnimClass_DrawIT_SpecialDraw, 0xA)
 {
 	GET(AnimClass* const, pThis, ESI);
 

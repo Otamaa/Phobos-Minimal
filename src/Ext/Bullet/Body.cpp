@@ -938,14 +938,14 @@ BulletExtContainer BulletExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
+ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
 	BulletExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
+ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
 	BulletExtContainer::Instance.Remove(pItem);

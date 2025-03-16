@@ -17,7 +17,7 @@
 #include <SpawnManagerClass.h>
 
 /*
-DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
+ASMJIT_PATCH(0x4149EE, AircraftClass_Render2, 0x5)
 {
 	GET(AircraftClass*, pThis, EBP);
 	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 	return 0x4149F5;
 }
 
-DEFINE_HOOK(0x519616, InfantryClass_Render2, 0x5)
+ASMJIT_PATCH(0x519616, InfantryClass_Render2, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
 	if (auto const pExt = TechnoExtContainer::Instance.Find(pThis))
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x519616, InfantryClass_Render2, 0x5)
 	return 0x51961F;
 }
 
-DEFINE_HOOK(0x73D40C, UnitClass_Render2, 0x7)
+ASMJIT_PATCH(0x73D40C, UnitClass_Render2, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x73D40C, UnitClass_Render2, 0x7)
 	return 0x73D415;
 }
 
-DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
+ASMJIT_PATCH(0x730F1C, ObjectClass_StopCommand, 0x5)
 {
 	GET(ObjectClass*, pObject, ESI);
 
@@ -64,7 +64,7 @@ DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 }
 
 
-DEFINE_HOOK(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
+ASMJIT_PATCH(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -82,7 +82,7 @@ static bool CeaseFire(TechnoClass* pThis)
 	return bCeaseFire;
 }
 
-DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
+ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EDI);
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 }
 */
 
- DEFINE_HOOK(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x6)
+ ASMJIT_PATCH(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x6)
  {
  	GET(SpawnManagerClass*, pSpawn, ESI);
  	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
@@ -168,7 +168,7 @@ namespace CalculatePinch
 	}
 }
 
-// DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_Early , 0x7)
+// ASMJIT_PATCH(0x5F45A0, TechnoClass_Selectable_Early , 0x7)
 // {
 // 	GET(TechnoClass*, pThis, EDI);
 
@@ -190,7 +190,7 @@ namespace CalculatePinch
 // 	return 0x0;
 // }
 
-DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
+ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -220,7 +220,7 @@ static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx) {
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
 
- DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
+ ASMJIT_PATCH(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
  {
  	GET(TechnoClass*, pThis, ECX);
  	GET_STACK(CoordStruct*, pCoord, (0x4));
@@ -237,7 +237,7 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
  	return 0;
  }
 
-DEFINE_HOOK(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
+ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E :0x0;
@@ -275,7 +275,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
     return  pBuffer;
 }
 //9
- DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+ ASMJIT_PATCH(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
  {
  	GET(TechnoClass*, pTechno, ESI);
  	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
@@ -295,7 +295,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
  	return 0x6F903E;
  }
 
-// DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
+// ASMJIT_PATCH(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
 // {
 // 	GET(TechnoClass*, pTechno, ESI);
 //
@@ -310,7 +310,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 // 	return 0;
 // }
 
-//DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
+//ASMJIT_PATCH(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
 //{
 //	GET(ILocomotion*, Iloco, ESI);
 //
@@ -330,8 +330,8 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 //	return 0;
 //}
 
-//DEFINE_HOOK_AGAIN(0x730DEB, ObjectClass_GuardCommand ,6 ) //Building
-//DEFINE_HOOK(0x730E56, ObjectClass_GuardCommand , 6)
+//ASMJIT_PATCH_AGAIN(0x730DEB, ObjectClass_GuardCommand ,6 ) //Building
+//ASMJIT_PATCH(0x730E56, ObjectClass_GuardCommand , 6)
 //{
 //	GET(ObjectClass*, pObj, ESI);
 //
@@ -342,7 +342,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 //   return 0;
 //}
 
-//DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
+//ASMJIT_PATCH(0x730EEB, ObjectClass_StopCommand, 6)
 //{
 //	GET(ObjectClass*, pObj, ESI);
 //

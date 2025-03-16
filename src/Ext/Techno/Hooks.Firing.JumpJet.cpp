@@ -9,7 +9,7 @@
 #pragma region JJFixes
 // Bugfix: Jumpjet turn to target when attacking
 // Jumpjets stuck at FireError::FACING because WW didn't use a correct facing
-DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
+ASMJIT_PATCH(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -45,7 +45,7 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 }
 
 // For compatibility with previous builds
-DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
+ASMJIT_PATCH(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	GET(int const, wpIdx, EDI);
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 }
 
 // Bugfix: Align jumpjet turret's facing with body's
-// DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
+// ASMJIT_PATCH(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
 // {
 // 	GET(UnitClass* const, pThis, ESI);
 // 	enum { SkipCheckDestination = 0x736BCA, GetDirectionTowardsDestination = 0x736BBB };
@@ -103,10 +103,10 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 // }
 
 // Bugfix: Align jumpjet turret's facing with body's
-// DEFINE_HOOK_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
-// DEFINE_HOOK_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-// DEFINE_HOOK_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-// DEFINE_HOOK(0x54C64B, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Descending
+// ASMJIT_PATCH_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
+// ASMJIT_PATCH_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
+// ASMJIT_PATCH_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
+// ASMJIT_PATCH(0x54C64B, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Descending
 // {
 // 	GET(FootClass* const, pThis, ECX);
 //
@@ -118,7 +118,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 // }
 
 //
-//DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
+//ASMJIT_PATCH(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 //{
 //	GET(UnitClass*, pThis, ESI);
 //
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 //}
 
 // Man, what can I say
-//DEFINE_HOOK(0x54D67B, JumpjetLocomotionClass_ProcessMove_NotJumpjetTurn, 0x5)
+//ASMJIT_PATCH(0x54D67B, JumpjetLocomotionClass_ProcessMove_NotJumpjetTurn, 0x5)
 //{
 //	GET(JumpjetLocomotionClass*, pThis, ESI);
 //

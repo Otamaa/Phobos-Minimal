@@ -3,7 +3,7 @@
 #include <Helpers/Macro.h>
 #include <Phobos.h>
 
-DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
+ASMJIT_PATCH(0x524734, InfantryTypeClass_ReadINI, 0x6)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
@@ -14,7 +14,7 @@ DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x747B49, UnitTypeClass_ReadINI, 0x6)
+ASMJIT_PATCH(0x747B49, UnitTypeClass_ReadINI, 0x6)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
@@ -25,7 +25,7 @@ DEFINE_HOOK(0x747B49, UnitTypeClass_ReadINI, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x74809E, UnitTypeClass_Load, 0x9)
+ASMJIT_PATCH(0x74809E, UnitTypeClass_Load, 0x9)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x74809E, UnitTypeClass_Load, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x41CD54, AircraftTypeClass_ReadINI, 0x6)
+ASMJIT_PATCH(0x41CD54, AircraftTypeClass_ReadINI, 0x6)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x41CD54, AircraftTypeClass_ReadINI, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x41CE7E, AircraftTypeClass_Load, 0x6)
+ASMJIT_PATCH(0x41CE7E, AircraftTypeClass_Load, 0x6)
 {
 	if (Phobos::Config::ArtImageSwap)
 	{

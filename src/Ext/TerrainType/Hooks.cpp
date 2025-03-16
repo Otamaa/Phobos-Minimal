@@ -15,7 +15,7 @@
 #include <Ext/Rules/Body.h>
 
 
-DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
+ASMJIT_PATCH(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 {
 	enum { SkipTerrainColor = 0x47C0AE, ReturnFromFunction = 0x47C0A3 };
 
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x71C812, TerrainClass_AI_Crumbling, 0x6)
+ASMJIT_PATCH(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 {
 	enum { ReturnFromFunction = 0x71C839, SkipCheck = 0x71C7C2 };
 
@@ -111,7 +111,7 @@ DEFINE_HOOK(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 	return ReturnFromFunction;
 }
 
-DEFINE_HOOK(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
+ASMJIT_PATCH(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
 {
 	enum { SkipGameCode = 0x71C234 };
 

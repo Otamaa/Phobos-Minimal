@@ -222,7 +222,7 @@ RadSiteExtContainer RadSiteExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x65B243, RadSiteClass_CTOR, 0x6)
+ASMJIT_PATCH(0x65B243, RadSiteClass_CTOR, 0x6)
 {
 
 	GET(RadSiteClass*, pThis, ESI);
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x65B243, RadSiteClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x65B344, RadSiteClass_DTOR, 0x6)
+ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 {
 	GET(RadSiteClass*, pThis, ESI);
 	const auto pBaseCell = MapClass::Instance->TryGetCellAt(pThis->BaseCell);
@@ -281,7 +281,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 
 //#ifdef AAENABLE_NEWHOOKS
-//DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
+//ASMJIT_PATCH(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 //{
 //	GET(RadSiteClass*, pThis, ECX);
 //	if (!Phobos::Otamaa::DisableCustomRadSite)
@@ -292,8 +292,8 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
-//DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
+//ASMJIT_PATCH_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
+//ASMJIT_PATCH(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
 //{
 //	GET(RadSiteClass*, pThis, ECX);
 //	if (!Phobos::Otamaa::DisableCustomRadSite)
@@ -306,7 +306,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
+//ASMJIT_PATCH(0x65B4D4, RadSiteClass_SetSpread, 0x7)
 //{
 //	GET(RadSiteClass*, pThis, ECX);
 //	GET_STACK(int, spread, 0x4);

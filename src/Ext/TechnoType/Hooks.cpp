@@ -17,7 +17,7 @@
 
 #include <TacticalClass.h>
 
-// DEFINE_HOOK(0x711F39, TechnoTypeClass_CostOf_FactoryPlant, 0x8)
+// ASMJIT_PATCH(0x711F39, TechnoTypeClass_CostOf_FactoryPlant, 0x8)
 // {
 // 	GET(TechnoTypeClass*, pThis, ESI);
 // 	GET(HouseClass*, pHouse, EDI);
@@ -31,7 +31,7 @@
 // 	return 0;
 // }
 
-// DEFINE_HOOK(0x711FDF, TechnoTypeClass_RefundAmount_FactoryPlant, 0x8)
+// ASMJIT_PATCH(0x711FDF, TechnoTypeClass_RefundAmount_FactoryPlant, 0x8)
 // {
 // 	GET(TechnoTypeClass*, pThis, ESI);
 // 	GET(HouseClass*, pHouse, EDI);
@@ -45,7 +45,7 @@
 // 	return 0;
 // }
 
-DEFINE_HOOK(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
+ASMJIT_PATCH(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
 
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
+ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
 	enum
 	{
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 	return Draw;
 }
 
-DEFINE_HOOK(0x6F3C56, TechnoClass_GetFLH_TurretMultiOffset, 0x5) //0
+ASMJIT_PATCH(0x6F3C56, TechnoClass_GetFLH_TurretMultiOffset, 0x5) //0
 {
 	GET(TechnoTypeClass*, pType, EDX);
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
@@ -111,7 +111,7 @@ DEFINE_HOOK(0x6F3C56, TechnoClass_GetFLH_TurretMultiOffset, 0x5) //0
 	return 0x6F3C6D;
 }
 
-DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
+ASMJIT_PATCH(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 {
 
 	GET(TechnoTypeClass*, pType, EBP);
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 	return 0x6F3E85;
 }
 
-DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
+ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 {
 	GET(TechnoTypeClass*, technoType, EAX);
 
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
-DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
+ASMJIT_PATCH(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 {
 	GET(TechnoTypeClass*, pType, EBX);
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 	return 0x73BA68;
 }
 
-DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
+ASMJIT_PATCH(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 {
 	GET(TechnoTypeClass*, pType, EAX);
 	LEA_STACK(Matrix3D*, mtx, 0x80);
@@ -170,7 +170,7 @@ DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 	return 0x73C8B7;
 }
 
-DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
+ASMJIT_PATCH(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 {
 	GET(TechnoTypeClass*, pType, EDX);
 	LEA_STACK(Matrix3D*, mtx, 0x60);
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 	return 0x43E0E8;
 }
 
-DEFINE_HOOK(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
+ASMJIT_PATCH(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
 	REF_STACK(Point2D, pos, STACK_OFFSET(0x15C, -0xE8));
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
+ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 
 #include <Ext/Cell/Body.h>
 
-DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
+ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(int, nFacing, EDI);
@@ -282,26 +282,26 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	return 0x73D28C;
 }
 
-DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
+ASMJIT_PATCH(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoManualMove.Get() ? 0x700C62 : 0;
 }
 
-DEFINE_HOOK(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
+ASMJIT_PATCH(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EDX);
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0x44384E : 0;
 }
 
-DEFINE_HOOK(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
+ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EDX);
 	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0 : pType->UndeploysInto);
 	return 0x44F631;
 }
 
-DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
+ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
@@ -310,7 +310,7 @@ DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
-// DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
+// ASMJIT_PATCH(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 // {
 // 	enum { SkipAnim = 0x739C70, PlayAnim = 0x739B9E };
 //
@@ -370,7 +370,7 @@ AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 // 	return false;
 // }
 
-DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
+ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto const pType = pThis->Type;
@@ -426,7 +426,7 @@ DEFINE_HOOK(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 	return PlayDeploySound;
 }
 
-DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
+ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -454,7 +454,7 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 	return 0x739E04;
 }
 
-//DEFINE_HOOK(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
+//ASMJIT_PATCH(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
 //{
 //	GET(TechnoTypeClass*, pThis, EBP);
 //	pThis->UnloadingClass = R->EAX<UnitTypeClass*>();
@@ -462,8 +462,8 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 //	return 0x71473F;
 //}
 
-// DEFINE_HOOK_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
-// DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// ASMJIT_PATCH_AGAIN(0x739D8B, UnitClass_DeployUndeploy_DeployAnim, 0x5)
+// ASMJIT_PATCH(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
 // {
 // 	enum { Deploy = 0x739C20, DeployUseUnitDrawer = 0x739C0A, Undeploy = 0x739E04, UndeployUseUnitDrawer = 0x739DEE };
 //
@@ -489,8 +489,7 @@ DEFINE_HOOK(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 // 	return isDeploying ? Deploy : Undeploy;
 // }
 
-DEFINE_HOOK_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
-DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
+ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
 {
 	enum { DeployReturn = 0x739CBF, UndeployReturn = 0x739EB8 };
 
@@ -503,7 +502,7 @@ DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
 		return 0; // Only play sound when done with deploying or undeploying.
 
 	return isDeploying ? DeployReturn : UndeployReturn;
-}
+}ASMJIT_PATCH_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 
 #include <Locomotor/HoverLocomotionClass.h>
 
@@ -511,7 +510,7 @@ namespace SimpleDeployerTemp {
 	bool HoverDeployedToLand = false;
 }
 
-DEFINE_HOOK(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
+ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -521,8 +520,7 @@ DEFINE_HOOK(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
-DEFINE_HOOK(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
+ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
 {
 	if (SimpleDeployerTemp::HoverDeployedToLand)
 	{
@@ -537,10 +535,10 @@ DEFINE_HOOK(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
 
 	SimpleDeployerTemp::HoverDeployedToLand = false;
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
 
 // Do not display hover bobbing when landed during deploying.
-DEFINE_HOOK(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
+ASMJIT_PATCH(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
 {
 	enum { SkipBobbing = 0x513F2A };
 
@@ -556,7 +554,7 @@ DEFINE_HOOK(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
 
 // Issue #503
 // Author : Otamaa
-DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
+ASMJIT_PATCH(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 {
 	enum { SetUIName = 0x4AE678 };
 
@@ -590,7 +588,7 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 	return SetUIName;
 }
 
-DEFINE_HOOK(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
+ASMJIT_PATCH(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);

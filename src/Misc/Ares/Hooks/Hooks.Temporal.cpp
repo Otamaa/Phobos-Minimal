@@ -37,7 +37,7 @@
 
 #include <RadarEventClass.h>
 
-DEFINE_HOOK(0x46920B, BulletClass_Detonate, 6)
+ASMJIT_PATCH(0x46920B, BulletClass_Detonate, 6)
 {
 	enum { CheckIvanBomb = 0x469343, ConituneMindControlCheck = 0x46921F, SkipEverything = 0x469AA4, Continue = 0x0 };
 
@@ -103,7 +103,7 @@ DEFINE_HOOK(0x46920B, BulletClass_Detonate, 6)
 	return BulletExtData::ApplyMCAlternative(pThis) ? 0x469AA4u  : 0u;
 }
 
-DEFINE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
+ASMJIT_PATCH(0x71AAAC, TemporalClass_Update_Abductor, 6)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -117,7 +117,7 @@ DEFINE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 }
 
 // issue #1437: crash when warping out buildings infantry wants to garrison
-DEFINE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
+ASMJIT_PATCH(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 {
 	GET(TechnoClass*, pVictim, ECX);
 	pVictim->IsAlive = false;
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 }
 
 // issue 472: deglob WarpAway
-DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
+ASMJIT_PATCH(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 // bugfix #379: Temporal friendly kills give veterancy
 // bugfix #1266: Temporal kills gain double experience
 // TODO :add DP stuffs here
-DEFINE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
+ASMJIT_PATCH(0x71A917, TemporalClass_Update_Erase, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	return 0x71A97D;
 }
 
-DEFINE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
+ASMJIT_PATCH(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 {
 	GET_STACK(int, nStep, 0x4);
 	GET(TemporalClass*, pThis, ECX);
@@ -182,7 +182,7 @@ DEFINE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 //TemporalClass_Fire_UnwarpableA
 DEFINE_JUMP(LJMP, 0x71AF2B, 0x71AF4D);
 
-DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
+ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -232,7 +232,7 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 	return 0x71AC5D;
 }
 
-DEFINE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
+ASMJIT_PATCH(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 {
 	GET(TechnoClass*, pTarget, ECX);
 	GET(TemporalClass*, pThis, ESI);
@@ -248,14 +248,14 @@ DEFINE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	return 0x71AFB7;
 }
 
-DEFINE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
+ASMJIT_PATCH(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
 	GET_STACK(TechnoClass*, pTarget, 0x4);
 	R->EAX(TechnoExt_ExtData::Warpable(pTarget));
 	return 0x71AF19;
 }
 
-DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
+ASMJIT_PATCH(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 {
 	GET(TemporalClass* , pThis ,ESI);
 
@@ -277,7 +277,7 @@ DEFINE_HOOK(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 	return 0x071B064;
 }
 
-DEFINE_HOOK(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
+ASMJIT_PATCH(0x71B0AE, TemporalClass_Logic_Building_UnderAttack, 0x7)
 {
 	GET(TemporalClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);

@@ -32,7 +32,7 @@
 #include <BombClass.h>
 #include <SpawnManagerClass.h>
 
-// DEFINE_HOOK(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
+// ASMJIT_PATCH(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
 // {
 // 	GET(BuildingClass* const, pThis, ESI);
 // 	REF_STACK(bool, announce, STACK_OFFSET(0x58, 0x8));
@@ -47,7 +47,7 @@
 // 	return 0x0;
 // }
 
-//DEFINE_HOOK(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
+//ASMJIT_PATCH(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
 //{
 //	GET(BuildingClass* const, pThis, ESI);
 //	REF_STACK(bool, announce, STACK_OFFSET(0x60, 0x8));
@@ -55,7 +55,7 @@
 //	return announce ? 0 : 0x44848F; //early bailout
 //}
 
-DEFINE_HOOK(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
+ASMJIT_PATCH(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pDest, 0x4);
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
+ASMJIT_PATCH(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {
 	GET(TechnoClass*, pKiller, EDI);
 	GET(TechnoClass*, pVictim, ECX);
@@ -140,7 +140,7 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5A4C, TunnelLocomotionClass_ShadowMatrix);
 
-DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
+ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 {
 	enum { SkipResponse = 0x709015 };
 
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
+ASMJIT_PATCH(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -184,7 +184,7 @@ DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 
 #include <Ext/Super/Body.h>
 
-DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
+ASMJIT_PATCH(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
+ASMJIT_PATCH(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -214,7 +214,7 @@ DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
+ASMJIT_PATCH(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 {
 	enum { SkipGameDrawing = 0x70A6C0 };
 
@@ -238,7 +238,7 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
+ASMJIT_PATCH(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 {
 	enum { SkipGameCode = 0x70EFF2 };
 
@@ -258,7 +258,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
+ASMJIT_PATCH(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 {
 	//Kill slave is buged because it doesnt do IgnoreDamage -Otamaa
 	enum { KillTheSlave = 0x6B0BDF, SkipSetEax = 0x6B0BB4, LoopCheck = 0x6B0C0B };
@@ -287,7 +287,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 
 #include <Misc/Ares/Hooks/Header.h>
 
-DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
+ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
@@ -393,7 +393,7 @@ namespace FiringAITemp
 	int weaponIndex;
 }
 
-DEFINE_HOOK(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6)
+ASMJIT_PATCH(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6)
 {
 	GET(int, weaponIndex, EDI);
 
@@ -402,7 +402,7 @@ DEFINE_HOOK(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
+ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 {
 	enum { Continue = 0x5209CD, ReturnFromFunction = 0x520AD9 };
 
@@ -582,7 +582,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 // 	}
 // }
 
-DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
+ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 {
 	enum { SkipGameCode = 0x4D99D3 };
 
@@ -612,7 +612,7 @@ DEFINE_HOOK(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
+ASMJIT_PATCH(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(int, pipWidth, STACK_OFFSET(0x74, -0x1C));
@@ -638,7 +638,7 @@ DEFINE_HOOK(0x709B2E, TechnoClass_DrawPips_Sizes, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
+ASMJIT_PATCH(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 {
 	enum { SkipGameDrawing = 0x70A4EC };
 
@@ -718,8 +718,7 @@ DEFINE_HOOK(0x70A36E, TechnoClass_DrawPips_Ammo, 0x6)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK_AGAIN(0x5F4718, ObjectClass_Select, 0x7)
-DEFINE_HOOK(0x5F46AE, ObjectClass_Select, 0x7)
+ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
@@ -728,11 +727,12 @@ DEFINE_HOOK(0x5F46AE, ObjectClass_Select, 0x7)
 
 	return 0x0;
 }
+ASMJIT_PATCH_AGAIN(0x5F4718, ObjectClass_Select, 0x7)
 
 #include <EventClass.h>
 
 // Do not explicitly reset target for KeepTargetOnMove vehicles when issued move command.
-DEFINE_HOOK(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
+ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 {
 	enum { SkipGameCode = 0x4C74C0 };
 
@@ -764,7 +764,7 @@ DEFINE_HOOK(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 // Reset the target if beyond weapon range.
 // This was originally in UnitClass::Mission_Move() but because that
 // is only checked every ~15 frames, it can cause responsiveness issues.
-DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
+ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -818,8 +818,7 @@ DEFINE_HOOK(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
-DEFINE_HOOK(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
+ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 {
 	enum { SkipGameCode1 = 0x6B795A, SkipGameCode2 = 0x6B795A };
 
@@ -843,7 +842,7 @@ DEFINE_HOOK(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 	}
 
 	return R->Origin() == 0x6B7600 ? SkipGameCode1 : SkipGameCode2;
-}
+}ASMJIT_PATCH_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
 
 void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 {
@@ -971,7 +970,7 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 }
 
-DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
+ASMJIT_PATCH(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 {
 	GET(TechnoClass*, pThis, EBP);
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFSET(0x98, 0x8));
@@ -982,7 +981,7 @@ DEFINE_HOOK(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
+ASMJIT_PATCH(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 {
 	enum { Recycle = 0x6B77FF, NoRecycle = 0x6B7838 };
 
@@ -1029,7 +1028,7 @@ DEFINE_HOOK(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 }
 
 // Change destination to RecycleFLH.
-DEFINE_HOOK(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
+ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 {
 	GET(FootClass* const, pThis, EBP);
 	GET(CoordStruct*, pDestCrd, EAX);
@@ -1048,7 +1047,7 @@ DEFINE_HOOK(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
    return 0;
 }
 
-DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
+ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 {
 	enum { SkipGameCode = 0x6FA5BE };
 
@@ -1079,7 +1078,7 @@ DEFINE_HOOK(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 	return SkipGameCode;
 }
 
-//DEFINE_HOOK(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
+//ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ESI);
 //

@@ -25,7 +25,7 @@
 
 #include "Main.h"
 
-DEFINE_HOOK(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
+ASMJIT_PATCH(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x640CE2, PreviewClass_DrawMap, 0x5)
+ASMJIT_PATCH(0x640CE2, PreviewClass_DrawMap, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x640CE2, PreviewClass_DrawMap, 0x5)
 	return 0x640D36;
 }
 
-DEFINE_HOOK(0x60C43B, EnumChildProc_60C0C0, 0x5)
+ASMJIT_PATCH(0x60C43B, EnumChildProc_60C0C0, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x60C43B, EnumChildProc_60C0C0, 0x5)
 DEFINE_PATCH_TYPED(WORD, 0x72ECA6, 600 /*original = 768*/);
 
 // Cap the sidebar height to 1376 pixels
-DEFINE_HOOK(0x6A518E, SidebarClass_InitGUI_capheight, 0x5)
+ASMJIT_PATCH(0x6A518E, SidebarClass_InitGUI_capheight, 0x5)
 {
 	GET(int, heightOfSidebar, EAX);
 	if (heightOfSidebar > 1376)
@@ -98,14 +98,14 @@ DEFINE_PATCH(0x4BB1FE, 00);    // DSurface::Blit_Clip
 
 // Disables drawing the menu bg which pops up on loading
 #pragma region SkipsMenuBackground
-DEFINE_HOOK(0x7782B7, Load_Title_Screen, 0x6)
+ASMJIT_PATCH(0x7782B7, Load_Title_Screen, 0x6)
 {
 	return SpawnerMain::Configs::Enabled
 		? 0x7782C4
 		: 0;
 }
 
-DEFINE_HOOK(0x52FF4A, Redraw_Surface, 0x6)
+ASMJIT_PATCH(0x52FF4A, Redraw_Surface, 0x6)
 {
 	return SpawnerMain::Configs::Enabled
 		? 0x52FF57

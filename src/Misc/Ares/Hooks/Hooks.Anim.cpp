@@ -27,7 +27,7 @@
 
 #include "Header.h"
 
-DEFINE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
+ASMJIT_PATCH(0x424538, AnimClass_AI_DamageDelay, 0x6)
 {
 	enum { SkipDamageDelay = 0x42465D, CheckIsAlive = 0x42464C };
 
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 	return AnimExtData::DealDamageDelay(pThis);
 }
 
-DEFINE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
+ASMJIT_PATCH(0x4232CE, AnimClass_Draw_SetPalette, 6)
 {
 	GET(AnimClass*, pThis, ESI);
 	//GET(AnimTypeClass*, AnimType, EAX);
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 
 
 // MakeInfantry that fails to place will just end the source animation and cleanup instead of memleaking to game end
-DEFINE_HOOK(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
+ASMJIT_PATCH(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
 	return 0x424B29;
 }
 
-DEFINE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
+ASMJIT_PATCH(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 {
 	enum
 	{
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 	return GoToNext;
 }
 
-DEFINE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
+ASMJIT_PATCH(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
 {
 	enum
 	{
@@ -126,9 +126,9 @@ DEFINE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
 }
 
 /*
-DEFINE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
-DEFINE_HOOK_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
-DEFINE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
+ASMJIT_PATCH_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
+ASMJIT_PATCH_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
+ASMJIT_PATCH(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 {
 	GET(AnimClass*, pThis, ESI);
 	auto pType = pThis->Type;

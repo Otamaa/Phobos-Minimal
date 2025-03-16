@@ -4,7 +4,7 @@
 
 // Take NewINIFormat into account just like the other classes does
 // Author: secsome
-DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
+ASMJIT_PATCH(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 {
 	if (!R->BL())
 		return 0x6E95A4;
@@ -23,7 +23,7 @@ DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 }
 
 //6EF57F
-//DEFINE_HOOK(0x6EF577, TeamClass_GetMissionMemberTypes, 0x6)
+//ASMJIT_PATCH(0x6EF577, TeamClass_GetMissionMemberTypes, 0x6)
 //{
 //	GET(TechnoTypeClass*, pCurMember, EAX);
 //	GET(DynamicVectorClass<TechnoTypeClass*>*, OutVector , ESI);
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 //}
 
 //this completely replaced by ares
-//DEFINE_HOOK(0x50968F, HouseClass_CreateTeam_recuitType, 0x6)
+//ASMJIT_PATCH(0x50968F, HouseClass_CreateTeam_recuitType, 0x6)
 //{
 //	GET(TechnoTypeClass*, pThis, EBX);
 //	GET(FootClass* , pFoot ,ESI);

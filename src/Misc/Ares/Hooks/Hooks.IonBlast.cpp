@@ -20,21 +20,21 @@
 
 #include <IonBlastClass.h>
 
-DEFINE_HOOK(0x53CB91, IonBlastClass_DTOR, 6)
+ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 {
 	GET(IonBlastClass*, IB, ECX);
 	WarheadTypeExtData::IonBlastExt.erase(IB);
 	return 0;
 }
 
-DEFINE_HOOK(0x53CC0D, IonBlastClass_Update_DTOR, 5)
+ASMJIT_PATCH(0x53CC0D, IonBlastClass_Update_DTOR, 5)
 {
 	GET(IonBlastClass*, IB, EBX);
 	WarheadTypeExtData::IonBlastExt.erase(IB);
 	return 0;
 }
 
-DEFINE_HOOK(0x53CBF5, IonBlastClass_Update_Duration, 5)
+ASMJIT_PATCH(0x53CBF5, IonBlastClass_Update_Duration, 5)
 {
 	GET(IonBlastClass*, IB, EBX);
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x53CBF5, IonBlastClass_Update_Duration, 5)
 		0x53CC3A : 0x53CBFA;
 }
 
-DEFINE_HOOK(0x53CC63, IonBlastClass_Update_Beam, 6)
+ASMJIT_PATCH(0x53CC63, IonBlastClass_Update_Beam, 6)
 {
 	GET(IonBlastClass*, IB, EBX);
 

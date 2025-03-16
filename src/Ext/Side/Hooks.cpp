@@ -5,8 +5,8 @@
 #include "Body.h"
 
 // ingame music switch when defeated
-DEFINE_HOOK_AGAIN(0x4FCB7D, HouseClass_WinLose_Theme, 0x5)
-DEFINE_HOOK(0x4FCD66, HouseClass_WinLose_Theme, 0x5)
+
+ASMJIT_PATCH(0x4FCD66, HouseClass_WinLose_Theme, 0x5)
 {
 	const HouseClass* pThis = HouseClass::CurrentPlayer;
 
@@ -20,4 +20,4 @@ DEFINE_HOOK(0x4FCD66, HouseClass_WinLose_Theme, 0x5)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4FCB7D, HouseClass_WinLose_Theme, 0x5)

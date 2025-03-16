@@ -20,7 +20,7 @@
 #include "Main.h"
 #include <Helpers/Macro.h>
 
-DEFINE_HOOK(0x5C9720, MPScore_Present_SkipScoreScreen, 0x8)
+ASMJIT_PATCH(0x5C9720, MPScore_Present_SkipScoreScreen, 0x8)
 {
 	const auto pSpawnerConfig = SpawnerMain::Configs::Enabled
 		? SpawnerMain::GetGameConfigs()

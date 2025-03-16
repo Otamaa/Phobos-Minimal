@@ -4,13 +4,13 @@
 #ifndef DEBUG_CODE
 
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
-DEFINE_HOOK(addr, name, size) {\
+ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	if (auto const  pTransport = pThis->Transporter) {\
 		if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
 
 #define SET_THREATEVALSB(addr , techreg , name ,size , ret)\
-DEFINE_HOOK(addr, name, size) {\
+ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	if (auto const  pTransport = pThis->Transporter) {\
 	  if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
@@ -23,10 +23,10 @@ SET_THREATEVALS(0x6F7EC2,EDI,TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOw
 #undef SET_THREATEVALS
 #undef SET_THREATEVALSB
 #else
-DEFINE_HOOK_AGAIN(0x6FA33C, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::AI
-DEFINE_HOOK_AGAIN(0x6F89F4, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateCell
-DEFINE_HOOK_AGAIN(0x6F7EC2, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateObject
-DEFINE_HOOK(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // TechnoClass::Greatest_Threat
+ASMJIT_PATCH_AGAIN(0x6FA33C, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::AI
+ASMJIT_PATCH_AGAIN(0x6F89F4, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateCell
+ASMJIT_PATCH_AGAIN(0x6F7EC2, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateObject
+ASMJIT_PATCH(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // TechnoClass::Greatest_Threat
 {
 	enum { SkipCheckOne = 0x6F8FDC, SkipCheckTwo = 0x6F7EDA, SkipCheckThree = 0x6F8A0F, SkipCheckFour = 0x6FA37A };
 
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // Tec
 }
 #endif
 
-DEFINE_HOOK(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
+ASMJIT_PATCH(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -88,7 +88,7 @@ DEFINE_HOOK(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
+ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EDI);
@@ -117,7 +117,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4DE722, FootClass_LeaveTransport, 0x6)
+ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EAX);
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x4DE722, FootClass_LeaveTransport, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
+ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 {
 	enum { ReturnFromFunction = 0x71057F , Continue = 0x0 };
 

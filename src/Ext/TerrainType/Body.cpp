@@ -142,7 +142,7 @@ TerrainTypeExtContainer TerrainTypeExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
+ASMJIT_PATCH(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
 	TerrainTypeExtContainer::Instance.Allocate(pItem);
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
 
@@ -188,7 +188,7 @@ HRESULT __stdcall FakeTerrainTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F546C, FakeTerrainTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5470, FakeTerrainTypeClass::_Save)
 
-DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
+ASMJIT_PATCH(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x20C, -0x4));
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x210, -0x4));

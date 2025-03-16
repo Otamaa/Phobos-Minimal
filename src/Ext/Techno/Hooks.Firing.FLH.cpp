@@ -4,7 +4,7 @@
 
 #include <InfantryClass.h>
 
-DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x5)
+ASMJIT_PATCH(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x5)
 {
 	GET(TechnoClass*, pThis, EBX);
 	GET(int, weaponIdx, ESI);
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x5)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
+ASMJIT_PATCH(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 {
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
+ASMJIT_PATCH(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 {
 	GET(TechnoClass*, pThis, EBX);
 	//GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));

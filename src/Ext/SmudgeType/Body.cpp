@@ -34,14 +34,14 @@ SmudgeTypeExtContainer SmudgeTypeExtContainer::Instance;
 // =============================
 // container hooks
 //
-DEFINE_HOOK(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
 	SmudgeTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
+ASMJIT_PATCH(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
 	SmudgeTypeExtContainer::Instance.Remove(pItem);
@@ -77,11 +77,11 @@ HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F353C, FakeSmudgeTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3540, FakeSmudgeTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x6B57DA , SmudgeTypeClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)
+
+ASMJIT_PATCH(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x208, -0x4));
 	SmudgeTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x6B57DA);
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x6B57DA, SmudgeTypeClass_LoadFromINI, 0xA)

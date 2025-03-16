@@ -5,7 +5,7 @@
 
 #include <Utilities/GeneralUtils.h>
 
-DEFINE_HOOK(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
+ASMJIT_PATCH(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
 {
 	GET(int, nTibIDx, EAX);
 	GET_STACK(ColorStruct*, arg0, STACK_OFFS(0x14, -0x4));
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
 }
 
 //
-//DEFINE_HOOK(0x47C210, CellClass_CellColor_TiberiumRadarColor, 0x6)
+//ASMJIT_PATCH(0x47C210, CellClass_CellColor_TiberiumRadarColor, 0x6)
 //{
 //	enum { ReturnFromFunction = 0x47C23F };
 //

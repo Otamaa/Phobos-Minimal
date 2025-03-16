@@ -3,7 +3,7 @@
 
 #ifdef _PATHFIND
 //#pragma optimize("", off )
-DEFINE_HOOK(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
+ASMJIT_PATCH(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 {
 	GET(int, SubZoneTracking_Idx, EDX);
 	GET(int, SubZoneConnection_Idx, ECX);

@@ -22,19 +22,19 @@ void ThemeTypeClass::LoadFromINI(CCINIClass* pINI)
 }
 
 /* these hooks detaching the theme from the game timer
-DEFINE_HOOK(0x406FC6, sub_406F70_ThemeClass_AI_RemoveFromGameTimer, 0x5)
+ASMJIT_PATCH(0x406FC6, sub_406F70_ThemeClass_AI_RemoveFromGameTimer, 0x5)
 {
 	return 0x406FD0;
 }
 
-DEFINE_HOOK(0x406FE2, sub_406F70_ThemeClass_AI_AfterTimer, 0xA)
+ASMJIT_PATCH(0x406FE2, sub_406F70_ThemeClass_AI_AfterTimer, 0xA)
 {
 	ThemeClass::Instance->AI();
 	return 0;
 }
 */
 
-DEFINE_HOOK(0x7206FB, ThemeClass_AllocateType, 0x8)
+ASMJIT_PATCH(0x7206FB, ThemeClass_AllocateType, 0x8)
 {
 	GET_STACK(CCINIClass*, pINI, STACK_OFFSET(0x38, 0x4));
 	GET(char*, pSection, EBP);
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x7206FB, ThemeClass_AllocateType, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x721171, ThemeClass_IsAvailable_Handle, 0x6)
+ASMJIT_PATCH(0x721171, ThemeClass_IsAvailable_Handle, 0x6)
 {
 	GET_STACK(int, index, 0x4);
 	enum { ReturnFalse = 0x72117B, ReturnTrue = 0x7211CE };
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x721171, ThemeClass_IsAvailable_Handle, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7209B0, ThemeClass_GetUIName, 0x7)
+ASMJIT_PATCH(0x7209B0, ThemeClass_GetUIName, 0x7)
 {
 	GET_STACK(int, index, 0x4);
 
@@ -98,7 +98,7 @@ DEFINE_HOOK(0x7209B0, ThemeClass_GetUIName, 0x7)
 	return 0x7209C6;
 }
 
-DEFINE_HOOK(0x720A69, ThemeClass_AI_Play, 0x6)
+ASMJIT_PATCH(0x720A69, ThemeClass_AI_Play, 0x6)
 {
 	GET(ThemeClass*, pThis, ESI);
 

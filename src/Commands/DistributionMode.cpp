@@ -187,7 +187,7 @@ void DistributionMode::DrawRadialIndicator()
 	}
 }
 
-DEFINE_HOOK(0x4AE818, DisplayClass_sub_4AE750_AutoDistribution, 0xA)
+ASMJIT_PATCH(0x4AE818, DisplayClass_sub_4AE750_AutoDistribution, 0xA)
 {
 
 	GET(ObjectClass* const, pTarget, EBP);

@@ -5,7 +5,7 @@
 // Hooks that allow harvesters / weeders to work correctly with MovementZone=Subterannean (sic).
 
 // Author : Otamaa
-DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
+ASMJIT_PATCH(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
@@ -21,7 +21,7 @@ DEFINE_HOOK(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 
 /*==================================================================== Author : Starkku
 // Allow scanning for docks in all map zones.
-DEFINE_HOOK(0x4DEFC6, FootClass_FindDock_SubterraneanHarvester, 0x5)
+ASMJIT_PATCH(0x4DEFC6, FootClass_FindDock_SubterraneanHarvester, 0x5)
 {
 	GET(TechnoTypeClass*, pTechnoType, EAX);
 
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x4DEFC6, FootClass_FindDock_SubterraneanHarvester, 0x5)
 }
 
 // Allow scanning for ore in all map zones.
-DEFINE_HOOK(0x4DCF86, FootClass_FindTiberium_SubterraneanHarvester, 0x5)
+ASMJIT_PATCH(0x4DCF86, FootClass_FindTiberium_SubterraneanHarvester, 0x5)
 {
 	enum { SkipGameCode = 0x4DCF9B };
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x4DCF86, FootClass_FindTiberium_SubterraneanHarvester, 0x5)
 }
 
 // Allow scanning for weeds in all map zones.
-DEFINE_HOOK(0x4DDB23, FootClass_FindWeeds_SubterraneanHarvester, 0x5)
+ASMJIT_PATCH(0x4DDB23, FootClass_FindWeeds_SubterraneanHarvester, 0x5)
 {
 	enum { SkipGameCode = 0x4DCF9B };
 
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x4DDB23, FootClass_FindWeeds_SubterraneanHarvester, 0x5)
 }
 
 // Force harvest mission and clear all destination info etc. upon reaching the rally point.
-DEFINE_HOOK(0x738A3E, UnitClass_EnterIdleMode_SubterraneanHarvester, 0x5)
+ASMJIT_PATCH(0x738A3E, UnitClass_EnterIdleMode_SubterraneanHarvester, 0x5)
 {
 	enum { ReturnFromFunction = 0x738D21 };
 
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x738A3E, UnitClass_EnterIdleMode_SubterraneanHarvester, 0x5)
 }
 
 // Set rally point.
-DEFINE_HOOK(0x44459A, BuildingClass_ExitObject_SubterraneanHarvester, 0x5)
+ASMJIT_PATCH(0x44459A, BuildingClass_ExitObject_SubterraneanHarvester, 0x5)
 {
 	GET(TechnoClass*, pThis, EDI);
 
@@ -104,7 +104,7 @@ DEFINE_HOOK(0x44459A, BuildingClass_ExitObject_SubterraneanHarvester, 0x5)
 }
 
 // Reset the rally point when it is not needed anymore.
-DEFINE_HOOK(0x73EDA1, UnitClass_Mission_Harvest_SubterraneanHarvester, 0x6)
+ASMJIT_PATCH(0x73EDA1, UnitClass_Mission_Harvest_SubterraneanHarvester, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
 

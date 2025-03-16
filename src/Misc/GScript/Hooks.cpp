@@ -362,7 +362,7 @@ struct DummyTechnoExt
 };
 std::unordered_map<const TechnoClass*, DummyTechnoExt::Data*> DummyTechnoExt::Container {};
 
-DEFINE_HOOK(0x4179f7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
+ASMJIT_PATCH(0x4179f7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -374,8 +374,8 @@ DEFINE_HOOK(0x4179f7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
 }
 
 static std::vector<BuildingClass*> some_bldType_Arr_ {};
-DEFINE_HOOK_AGAIN(0x417b72, AircraftClass_AssumeTaskComplete_SkipAutoDocking2, 6)
-DEFINE_HOOK(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1, 9)
+ASMJIT_PATCH_AGAIN(0x417b72, AircraftClass_AssumeTaskComplete_SkipAutoDocking2, 6)
+ASMJIT_PATCH(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1, 9)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x417996, AircraftClass_AssumeTaskComplete_SkipAutoDocking1, 9)
 	return 0x417B69;
 }
 
-DEFINE_HOOK(0x417ad4, AircraftClass_AssumeTaskComplete_SkipAutoDocking3, 6)
+ASMJIT_PATCH(0x417ad4, AircraftClass_AssumeTaskComplete_SkipAutoDocking3, 6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -449,7 +449,7 @@ DEFINE_HOOK(0x417ad4, AircraftClass_AssumeTaskComplete_SkipAutoDocking3, 6)
 	return 0x417B69;
 }
 
-DEFINE_HOOK(0x41cb62, AircraftClass_CanAttackMove, 14)
+ASMJIT_PATCH(0x41cb62, AircraftClass_CanAttackMove, 14)
 {
 	R->AL(true);
 	return 0;
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x41cb62, AircraftClass_CanAttackMove, 14)
 
 static HelperedVector<HouseClass*> Detectors {};
 
-DEFINE_HOOK(0x4149b6, AircraftClass_Draw_BuzzerHelper, 5)
+ASMJIT_PATCH(0x4149b6, AircraftClass_Draw_BuzzerHelper, 5)
 {
 	GET(AircraftClass*, pThis, EBP);
 

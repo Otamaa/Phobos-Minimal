@@ -53,14 +53,14 @@ void VoxelAnimTypeExtData::Serialize(T& Stm)
 // container
 VoxelAnimTypeExtContainer VoxelAnimTypeExtContainer::Instance;
 
-DEFINE_HOOK(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
+ASMJIT_PATCH(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 	VoxelAnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
+ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 
@@ -97,12 +97,7 @@ HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F655C, FakeVoxelAnimTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6560, FakeVoxelAnimTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x74B561, VoxelAnimTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x74B54A, VoxelAnimTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x74B51B, VoxelAnimTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x4);
@@ -110,4 +105,8 @@ DEFINE_HOOK(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 	VoxelAnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH_AGAIN(0x74B561, VoxelAnimTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH_AGAIN(0x74B54A, VoxelAnimTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH_AGAIN(0x74B51B, VoxelAnimTypeClass_LoadFromINI, 0x5)

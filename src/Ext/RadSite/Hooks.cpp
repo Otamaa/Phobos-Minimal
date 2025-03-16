@@ -33,7 +33,7 @@
 
 */
 
-DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
+ASMJIT_PATCH(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 {
 	enum { Handled = 0x46920B, Continue = 0x0 };
 
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 }
 
 //unused function , safeguard
-DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
+ASMJIT_PATCH(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 {
 	enum { Handled = 0x46AE5E, Continue = 0x0 };
 
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 }
 
 // Fix for desolator
-DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
+ASMJIT_PATCH(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 {
 	enum { FireCheck = 0x5213F4, SetMissionRate = 0x521484, Continue = 0x0 };
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 }
 
 // Fix for desolator unable to fire his deploy weapon when cloaked
-DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
+ASMJIT_PATCH(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 {
 	GET(InfantryClass* const, pThis, ESI);
 
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 	return 0x521484;
 }
 
-// DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
+// ASMJIT_PATCH(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 // {
 // 	enum { Dead = 0x440573, Continue = 0x0 };
 
@@ -257,7 +257,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 
 // skip Frame % RadApplicationDelay
 //DEFINE_JUMP(LJMP,0x4DA554, 0x4DA56E);
-//DEFINE_HOOK(0x4DA554, FootClass_AI_SkipForCustomRad, 0x5)
+//ASMJIT_PATCH(0x4DA554, FootClass_AI_SkipForCustomRad, 0x5)
 //{
 //	return !Phobos::Otamaa::DisableCustomRadSite ? 0x4DA56E : 0x0;
 //}
@@ -266,7 +266,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 	GET(RadSiteClass* const, pThis, reg);\
 	auto output = RadSiteExtContainer::Instance.Find(pThis)->Type->## value ##;
 
-DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)
+ASMJIT_PATCH(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)
 {
 	enum { SetTimer = 0x65B849, Continue = 0x0 };
 
@@ -275,7 +275,7 @@ DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)
 	return SetTimer;
 }
 
-DEFINE_HOOK(0x65B8B9, RadSiteClass_AI_LightDelay, 0x6)
+ASMJIT_PATCH(0x65B8B9, RadSiteClass_AI_LightDelay, 0x6)
 {
 	enum { SetTimer = 0x65B8BF, Continue = 0x0 };
 
@@ -284,7 +284,7 @@ DEFINE_HOOK(0x65B8B9, RadSiteClass_AI_LightDelay, 0x6)
 	return SetTimer;
 }
 
-DEFINE_HOOK(0x65BB67, RadSite_Deactivate, 0x6)
+ASMJIT_PATCH(0x65BB67, RadSite_Deactivate, 0x6)
 {
 	enum { DevideValue = 0x65BB6D, Continue = 0x0 };
 

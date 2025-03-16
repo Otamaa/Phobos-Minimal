@@ -4,7 +4,7 @@
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
+ASMJIT_PATCH(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
@@ -22,7 +22,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
+ASMJIT_PATCH(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 {
 	GET(AbstractClass*, pTarget, ESI);
 	GET(UnitClass*, pThis, EDI);
@@ -69,7 +69,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x70EE70, IsControlledByCurrentPlayer_Wrapper); // Te
 DEFINE_FUNCTION_JUMP(CALL, 0x7062FB, IsControlledByCurrentPlayer_Wrapper); // TechnoClass_DrawObject
 
 #ifdef ENABLE_OBESERVER_THRUDISGUISE
-DEFINE_HOOK(0x746750, UnitClass_CantTarget_Disguise, 0x5)
+ASMJIT_PATCH(0x746750, UnitClass_CantTarget_Disguise, 0x5)
 {
 	if (HouseClass::IsCurrentPlayerObserver()) {
 		R->AL(true);
@@ -89,7 +89,7 @@ bool CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 	return true;
 }
 
-DEFINE_HOOK(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
+ASMJIT_PATCH(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(HouseClass* , pCurPlayer , ECX);
@@ -99,14 +99,14 @@ DEFINE_HOOK(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
 	return 0x4DEDD7;
 }
 
-DEFINE_HOOK(0x70EE6A, TechnoClass_IsClearlyVisibleTo_DisguiseBlinking, 0x6)
+ASMJIT_PATCH(0x70EE6A, TechnoClass_IsClearlyVisibleTo_DisguiseBlinking, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->EAX(CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()));
 	return 0x70EE75;
 }
 
-DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
+ASMJIT_PATCH(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->EAX(CanBlinkDisguise(pThis, HouseClass::CurrentPlayer()));
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
 
 #undef CAN_BLINK_DISGUISE
 
-DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
+ASMJIT_PATCH(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 {
 	enum { SkipGameCode = 0x7060CA };
 
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 // somewhat crash the game when called
 // maybe already hooked by something else ?
-//DEFINE_HOOK(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
+//ASMJIT_PATCH(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
 //{
 //	GET(DynamicVectorClass<ConvertClass*>*, pPal, EAX);
 //	GET(TechnoClass*, pThis, ESI);
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //}
 
 //this check not event get tripped
-//DEFINE_HOOK(0x451A8A, BuildingClass_AnimLogic_TerrainRemap, 0x6)
+//ASMJIT_PATCH(0x451A8A, BuildingClass_AnimLogic_TerrainRemap, 0x6)
 //{
 //	GET(BuildingClass*, pThis, ESI);
 //	GET(LightConvertClass*, pResult, EAX);
@@ -173,7 +173,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 #include <TerrainTypeClass.h>
 
-//DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
+//ASMJIT_PATCH(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 //{
 //	GET(UnitClass*, pThis, ESI);
 //
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //	return 0x7364A1;
 //}
 
-// DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
+// ASMJIT_PATCH(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
 // {
 // 	GET(UnitClass*, pThis, ESI);
 
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 // }
 
 #ifdef sss
-DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
+ASMJIT_PATCH(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pTarget, 0x4);
@@ -281,7 +281,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	return 0x746714;
 }
 
-DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
+ASMJIT_PATCH(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
 {
 	GET(InfantryClass*, pThis, EDI);
 	GET(InfantryClass*, pThat, ESI);

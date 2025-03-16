@@ -1,7 +1,7 @@
 #include "Body.h"
 #include <Locomotor/Cast.h>
 
-DEFINE_HOOK(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
+ASMJIT_PATCH(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	GET(TunnelLocomotionClass* const, pLoco, ECX);
 
 	const auto pLinkedTo = pLoco->LinkedTo;
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	return 0x729564;
 }
 
-DEFINE_HOOK(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
+ASMJIT_PATCH(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<TunnelLocomotionClass*>(pThis);
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
 
 #pragma region SubterraneanHeight
 
-DEFINE_HOOK(0x728F89, TunnelLocomotionClass_Process_SubterraneanHeight1, 0x5)
+ASMJIT_PATCH(0x728F89, TunnelLocomotionClass_Process_SubterraneanHeight1, 0x5)
 {
 	enum { Skip = 0x728FA6, Continue = 0x728F90 };
 
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x728F89, TunnelLocomotionClass_Process_SubterraneanHeight1, 0x5)
 	return Skip;
 }
 
-DEFINE_HOOK(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
+ASMJIT_PATCH(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
 {
 	enum { Skip = 0x728FCD, Continue = 0x729021 };
 
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
 	return Skip;
 }
 
-DEFINE_HOOK(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
+ASMJIT_PATCH(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
 {
 	enum { SkipGameCode = 0x72900C };
 
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x7295E2, TunnelLocomotionClass_ProcessStateDigging_SubterraneanHeight, 0xC)
+ASMJIT_PATCH(0x7295E2, TunnelLocomotionClass_ProcessStateDigging_SubterraneanHeight, 0xC)
 {
 	enum { SkipGameCode = 0x7295EE };
 

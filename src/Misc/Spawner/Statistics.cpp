@@ -39,7 +39,7 @@ bool FORCEDINLINE IsStatisticsEnabled()
 }
 
 // Write stats.dmp
-DEFINE_HOOK(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
+ASMJIT_PATCH(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
 {
 	if (IsStatisticsEnabled())
 	{
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
 
 // Send AI player
 // Dont send observer
-DEFINE_HOOK(0x6C73F8, SendStatisticsPacket_HouseFilter, 0x6)
+ASMJIT_PATCH(0x6C73F8, SendStatisticsPacket_HouseFilter, 0x6)
 {
 	enum { Send = 0x6C7406, DontSend = 0x6C7414 };
 
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x6C73F8, SendStatisticsPacket_HouseFilter, 0x6)
 }
 
 // Use GameStockKeepingUnit instead IsWordDominationTour for GSKU Field
-DEFINE_HOOK(0x6C7053, SendStatisticsPacket_SaveGameStockKeepingUnit, 0x6)
+ASMJIT_PATCH(0x6C7053, SendStatisticsPacket_SaveGameStockKeepingUnit, 0x6)
 {
 	if (IsStatisticsEnabled())
 		return 0x6C7030;
@@ -92,7 +92,7 @@ DEFINE_HOOK(0x6C7053, SendStatisticsPacket_SaveGameStockKeepingUnit, 0x6)
 
 // Add Field HASH
 // And use UIMapName instead ScenarioName for SCEN Field
-DEFINE_HOOK(0x6C735E, SendStatisticsPacket_AddField_HASH, 0x5)
+ASMJIT_PATCH(0x6C735E, SendStatisticsPacket_AddField_HASH, 0x5)
 {
 	if (IsStatisticsEnabled())
 	{
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x6C735E, SendStatisticsPacket_AddField_HASH, 0x5)
 }
 
 // Add Field MYID
-DEFINE_HOOK(0x6C7921, SendStatisticsPacket_AddField_MyId, 0x6)
+ASMJIT_PATCH(0x6C7921, SendStatisticsPacket_AddField_MyId, 0x6)
 {
 	if (IsStatisticsEnabled())
 	{
@@ -126,7 +126,7 @@ DEFINE_HOOK(0x6C7921, SendStatisticsPacket_AddField_MyId, 0x6)
 }
 
 // Add Player Fields
-DEFINE_HOOK(0x6C7989, SendStatisticsPacket_AddField_ALY, 0x6)
+ASMJIT_PATCH(0x6C7989, SendStatisticsPacket_AddField_ALY, 0x6)
 {
 	if (IsStatisticsEnabled())
 	{
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x6C7989, SendStatisticsPacket_AddField_ALY, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6C882A, RegisterGameEndTime_CorrectDuration, 0x6)
+ASMJIT_PATCH(0x6C882A, RegisterGameEndTime_CorrectDuration, 0x6)
 {
 	if (IsStatisticsEnabled())
 	{
@@ -158,7 +158,7 @@ DEFINE_HOOK(0x6C882A, RegisterGameEndTime_CorrectDuration, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x55D0FB, AuxLoop_SendStatistics_1, 0x5)
+ASMJIT_PATCH(0x55D0FB, AuxLoop_SendStatistics_1, 0x5)
 {
 	enum { Send = 0x55D100, DontSend = 0x55D123 };
 
@@ -167,7 +167,7 @@ DEFINE_HOOK(0x55D0FB, AuxLoop_SendStatistics_1, 0x5)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x55D189, AuxLoop_SendStatistics_2, 0x5)
+ASMJIT_PATCH(0x55D189, AuxLoop_SendStatistics_2, 0x5)
 {
 	enum { Send = 0x55D18E, DontSend = 0x55D1B1 };
 
@@ -176,7 +176,7 @@ DEFINE_HOOK(0x55D189, AuxLoop_SendStatistics_2, 0x5)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x64C7FA, ExecuteDoList_SendStatistics_1, 0x6)
+ASMJIT_PATCH(0x64C7FA, ExecuteDoList_SendStatistics_1, 0x6)
 {
 	enum { Send = 0x64C802, DontSend = 0x64C850 };
 
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x64C7FA, ExecuteDoList_SendStatistics_1, 0x6)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x64C81E, ExecuteDoList_SendStatistics_2, 0x6)
+ASMJIT_PATCH(0x64C81E, ExecuteDoList_SendStatistics_2, 0x6)
 {
 	enum { Send = 0x64C826, DontSend = 0x64C850 };
 
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x64C81E, ExecuteDoList_SendStatistics_2, 0x6)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x647AE8, QueueAIMultiplayer_SendStatistics_1, 0x7)
+ASMJIT_PATCH(0x647AE8, QueueAIMultiplayer_SendStatistics_1, 0x7)
 {
 	enum { Send = 0x647AF5, DontSend = 0x6482A6 };
 
@@ -203,7 +203,7 @@ DEFINE_HOOK(0x647AE8, QueueAIMultiplayer_SendStatistics_1, 0x7)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x64823C, QueueAIMultiplayer_SendStatistics_2, 0x5)
+ASMJIT_PATCH(0x64823C, QueueAIMultiplayer_SendStatistics_2, 0x5)
 {
 	Debug::LogInfo("Failure executing DoList");
 
@@ -214,7 +214,7 @@ DEFINE_HOOK(0x64823C, QueueAIMultiplayer_SendStatistics_2, 0x5)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x64827D, QueueAIMultiplayer_SendStatistics_3, 0x6)
+ASMJIT_PATCH(0x64827D, QueueAIMultiplayer_SendStatistics_3, 0x6)
 {
 	enum { Send = 0x648285, DontSend = 0x6482A6 };
 
@@ -223,7 +223,7 @@ DEFINE_HOOK(0x64827D, QueueAIMultiplayer_SendStatistics_3, 0x6)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x648089, QueueAIMultiplayer_SendStatistics_4, 0x5)
+ASMJIT_PATCH(0x648089, QueueAIMultiplayer_SendStatistics_4, 0x5)
 {
 	enum { Send = 0x64808E, DontSend = 0x648093 };
 
@@ -232,7 +232,7 @@ DEFINE_HOOK(0x648089, QueueAIMultiplayer_SendStatistics_4, 0x5)
 		: DontSend;
 }
 
-DEFINE_HOOK(0x64B2E4, KickPlayerNow_SendStatistics, 0x7)
+ASMJIT_PATCH(0x64B2E4, KickPlayerNow_SendStatistics, 0x7)
 {
 	enum { Send = 0x64B2ED, DontSend = 0x64B352 };
 
@@ -246,7 +246,7 @@ DEFINE_HOOK(0x64B2E4, KickPlayerNow_SendStatistics, 0x7)
 
 DEFINE_JUMP(LJMP, 0x4F638F, 0x4F643B)
 
-DEFINE_HOOK(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
+ASMJIT_PATCH(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
 {
 	GET(HouseClass*, pHouse, EDI);
 	int sum = 0;
@@ -269,7 +269,7 @@ void FillTracker(HouseClass* pHouse, TrackerClass& tracker) {
 	}
 }
 
-DEFINE_HOOK(0x6C7B68, SendStatistic_Trackers, 0x6)
+ASMJIT_PATCH(0x6C7B68, SendStatistic_Trackers, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);
 	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
@@ -368,7 +368,7 @@ void HouseExtData::IncremetCrateTracking(HouseClass* pHouse, Powerup type) {
 	}
 }
 
-DEFINE_HOOK(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
+ASMJIT_PATCH(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
 {
 	enum { Send = 0x44852D, DontSend = 0x448559 };
 	GET(HouseClass*, pNewOwner, EBX);
@@ -430,7 +430,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x703093, increment_tracker_destroyedbuilding));
 DEFINE_FUNCTION_JUMP(CALL, 0x703403, increment_tracker_destroyedbuilding));
 #else
 
-DEFINE_HOOK(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
+ASMJIT_PATCH(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
 {
 	enum { Send = 0x44852D, DontSend = 0x448559 };
 

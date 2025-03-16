@@ -189,7 +189,7 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 }
 
 #ifdef aaa
-DEFINE_HOOK(0x5673A0, MapClass_RevealArea0, 5)
+ASMJIT_PATCH(0x5673A0, MapClass_RevealArea0, 5)
 {
 	//GET(MapClass*, pThis, ECX);
 	GET_STACK(CoordStruct const*, pCoords, 0x4);
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x5673A0, MapClass_RevealArea0, 5)
 	return 0x5678D6;
 }
 
-DEFINE_HOOK(0x5678E0, MapClass_RevealArea1, 5)
+ASMJIT_PATCH(0x5678E0, MapClass_RevealArea1, 5)
 {
 	//GET(MapClass*, pThis, ECX);
 	GET_STACK(CoordStruct const*, pCoords, 0x4);
@@ -226,7 +226,7 @@ DEFINE_HOOK(0x5678E0, MapClass_RevealArea1, 5)
 	return 0x567D8F;
 }
 
-DEFINE_HOOK(0x567DA0, MapClass_RevealArea2, 5)
+ASMJIT_PATCH(0x567DA0, MapClass_RevealArea2, 5)
 {
 	//GET(MapClass*, pThis, ECX);
 	GET_STACK(CoordStruct const*, pCoords, 0x4);

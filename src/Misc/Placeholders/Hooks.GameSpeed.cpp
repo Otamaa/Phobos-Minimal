@@ -9,13 +9,13 @@ namespace GameSpeedTemp
 	static int counter = 0;
 }
 
-DEFINE_HOOK(0x69BAE7, SessionClass_Resume_CampaignGameSpeed, 0xA)
+ASMJIT_PATCH(0x69BAE7, SessionClass_Resume_CampaignGameSpeed, 0xA)
 {
 	GameOptionsClass::Instance->GameSpeed = Phobos::Config::CampaignDefaultGameSpeed;
 	return 0x69BAF1;
 }
 
-DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
+ASMJIT_PATCH(0x55E160, SyncDelay_Start, 0x6)
 {
 	if (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()) {
 		auto& FrameTimer = Game::FrameTimer();
@@ -39,7 +39,7 @@ DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x55E33B, SyncDelay_End, 0x5)
+ASMJIT_PATCH(0x55E33B, SyncDelay_End, 0x5)
 {
 	if (Phobos::Misc::CustomGS && SessionClass::IsSingleplayer()) {
 		Game::FrameTimer->TimeLeft = GameOptionsClass::Instance->GameSpeed;
@@ -87,12 +87,12 @@ void SetNetworkFrameRate()
 		break;
 	}
 }
-DEFINE_HOOK(0x5C49A7, MPCooperative_5C46E0_FPS, 0x9)
+ASMJIT_PATCH(0x5C49A7, MPCooperative_5C46E0_FPS, 0x9)
 {
 	SetNetworkFrameRate();
 	return 0x5C4A40;
 }
-DEFINE_HOOK(0x794F7E, Start_Game_Now_FPS, 0x8)
+ASMJIT_PATCH(0x794F7E, Start_Game_Now_FPS, 0x8)
 {
 	SetNetworkFrameRate();
 	return 0x79501F;

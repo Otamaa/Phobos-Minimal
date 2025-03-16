@@ -270,7 +270,7 @@ void ScenarioExtData::Serialize(T& Stm)
 // =============================
 // container hooks
 //
-DEFINE_HOOK(0x683549, ScenarioClass_CTOR, 0x9)
+ASMJIT_PATCH(0x683549, ScenarioClass_CTOR, 0x9)
 {
 	GET(ScenarioClass*, pItem, EAX);
 
@@ -282,7 +282,7 @@ DEFINE_HOOK(0x683549, ScenarioClass_CTOR, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x6BEB7D, ScenarioClass_DTOR, 0x6)
+ASMJIT_PATCH(0x6BEB7D, ScenarioClass_DTOR, 0x6)
 {
 	GET(ScenarioClass*, pItem, ESI);
 
@@ -290,19 +290,19 @@ DEFINE_HOOK(0x6BEB7D, ScenarioClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x689470, ScenarioClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x689310, ScenarioClass_SaveLoad_Prefix, 0x5)
+
+ASMJIT_PATCH(0x689310, ScenarioClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(IStream*, pStm, 0x4);
 
 	ScenarioExtData::g_pStm = pStm;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x689470, ScenarioClass_SaveLoad_Prefix, 0x5)
 
 #include <Misc/Spawner/Main.h>
 
-DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
+ASMJIT_PATCH(0x689669, ScenarioClass_Load_Suffix, 0x6)
 {
 	// Clear UIGameMode on game load
 	if (SpawnerMain::Configs::Enabled)
@@ -322,7 +322,7 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
+ASMJIT_PATCH(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
 	auto buffer = ScenarioExtData::Instance();
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
@@ -341,7 +341,7 @@ DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x689FC0, ScenarioClass_LoadFromINI_ReadBasic, 0x8)
+ASMJIT_PATCH(0x689FC0, ScenarioClass_LoadFromINI_ReadBasic, 0x8)
 {
 	GET(CCINIClass*, pINI, EDI);
 
@@ -350,7 +350,7 @@ DEFINE_HOOK(0x689FC0, ScenarioClass_LoadFromINI_ReadBasic, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
+ASMJIT_PATCH(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 {
 	//GET(ScenarioClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -364,7 +364,7 @@ DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x689EA8, ScenarioClass_LoadFromINI_Early, 0x8)
+//ASMJIT_PATCH(0x689EA8, ScenarioClass_LoadFromINI_Early, 0x8)
 //{
 //	GET(ScenarioClass*, pItem, ECX);
 //	GET(CCINIClass*, pINI, EDI);
@@ -374,7 +374,7 @@ DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x68AD62, ScenarioClass_LoadFromINI, 0x6)
+ASMJIT_PATCH(0x68AD62, ScenarioClass_LoadFromINI, 0x6)
 {
 	ScenarioExtData::Instance()->FetchVariables(ScenarioClass::Instance());
 	return 0;

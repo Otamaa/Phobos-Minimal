@@ -16,7 +16,7 @@ namespace RetryDialogFlag
 	bool IsCalledFromRetryDialog = false;
 }
 
-DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
+ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 {
 	enum { OK = 0x6860F6, Cancel = 0x6860EE, LoadGame = 0x686231 };
 
@@ -74,7 +74,7 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 	return LoadGame;
 }
 
-DEFINE_HOOK(0x558F4E, LoadOptionClass_Dialog_CenterListBox, 0x5)
+ASMJIT_PATCH(0x558F4E, LoadOptionClass_Dialog_CenterListBox, 0x5)
 {
 	if (RetryDialogFlag::IsCalledFromRetryDialog)
 	{

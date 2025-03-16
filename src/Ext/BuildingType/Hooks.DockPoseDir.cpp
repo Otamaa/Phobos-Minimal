@@ -44,7 +44,7 @@ FacingType GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 }
 
 // replace the entire function
-DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
+ASMJIT_PATCH(0x41B760, IFlyControl_LandDirection, 0x6)
 {
 	GET_STACK(IFlyControl*, pThis, 0x4);
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 }
 
 // request radio contact then get land dir
-DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
+ASMJIT_PATCH(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 }
 
 // request radio contact then get land dir
-DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
+ASMJIT_PATCH(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pAir, ECX);
@@ -90,7 +90,7 @@ DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
 
 // there no radio contact happening here
 // so the result mostlikely building facing
-DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
+ASMJIT_PATCH(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
 {
 	enum { RetCreationFail = 0x444EDE, RetCreationSucceeded = 0x443FE0 };
 
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
 
 #include <AircraftTrackerClass.h>
 
-DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
+ASMJIT_PATCH(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 {
 	AircraftClass::Array->for_each([](AircraftClass* const pThis) {
 		if (pThis && pThis->Type->AirportBound) {

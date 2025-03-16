@@ -1,6 +1,6 @@
 #include "Body.h"
 
-DEFINE_HOOK(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
+ASMJIT_PATCH(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
 {
 	GET(BuildingTypeClass*, pUpgrades, ECX);
 	GET(BuildingClass*, pThis, EBP);
@@ -22,11 +22,11 @@ DEFINE_HOOK(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
 	return 0;
 }
 
-// DEFINE_HOOK(0x44590B, BuildingClass_Limbo_OrePurifier, 0x6) {
+// ASMJIT_PATCH(0x44590B, BuildingClass_Limbo_OrePurifier, 0x6) {
 // 	return 0x44594;
 // }
 
-DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
+ASMJIT_PATCH(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -64,7 +64,7 @@ DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 	return 0x445AC6;
 }
 
-DEFINE_HOOK(0x4516B1, BuildingClass_RemoveUpgrades_Add, 0x7)
+ASMJIT_PATCH(0x4516B1, BuildingClass_RemoveUpgrades_Add, 0x7)
 {
 	GET(BuildingTypeClass*, pUpgrades, EAX);
 	GET(BuildingClass*, pThis, ESI);
@@ -89,7 +89,7 @@ DEFINE_HOOK(0x4516B1, BuildingClass_RemoveUpgrades_Add, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
+ASMJIT_PATCH(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	GET(HouseClass*, pOld, EBX);

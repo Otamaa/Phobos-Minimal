@@ -13,7 +13,7 @@
 #include <TEventClass.h>
 #include <TActionClass.h>
 
-DEFINE_HOOK(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
+ASMJIT_PATCH(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
 {
 	GET(TriggerTypeClass*, pThis, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x248);
@@ -58,7 +58,7 @@ DEFINE_HOOK(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
 	return 0x7275A5;
 }
 
-DEFINE_HOOK(0x4750D0, CCINIClass_ReadHouseTypeList_Buffers, 0xA)
+ASMJIT_PATCH(0x4750D0, CCINIClass_ReadHouseTypeList_Buffers, 0xA)
 {
 	GET(CCINIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x4750D0, CCINIClass_ReadHouseTypeList_Buffers, 0xA)
 	return 0x475140;
 }
 
-DEFINE_HOOK(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
+ASMJIT_PATCH(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 {
 	GET(CCINIClass*, pThis, ECX);
 	GET_STACK(const char*, pSection, 0x4);
@@ -95,7 +95,7 @@ DEFINE_HOOK(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 }
 
 // == WeaponType ==
-DEFINE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
+ASMJIT_PATCH(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 {
 	GET(WeaponTypeClass*, pThis, ESI);
 	GET(const char*, pSection, EBX);
@@ -108,7 +108,7 @@ DEFINE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 }
 
 // == WarheadType ==
-DEFINE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
+ASMJIT_PATCH(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 {
 	GET(WarheadTypeClass*, pThis, ESI);
 	GET(const char*, pSection, EBP);
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 //WarheadTypeClass_LoadFromINI_SkipLists
 DEFINE_JUMP(LJMP, 0x75DAE6, 0x75DDCC);
 
-DEFINE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
+ASMJIT_PATCH(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(Category, category, EAX);
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
 	return 0x713264;
 }
 
-DEFINE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
+ASMJIT_PATCH(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(const CoordStruct*, pResult, EAX);
@@ -142,7 +142,7 @@ DEFINE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
 }
 
 // == TechnoType ==
-DEFINE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
+ASMJIT_PATCH(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(const char*, pSection, EBX);
@@ -164,7 +164,7 @@ DEFINE_HOOK(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 
 // ============= [AI] =============
 
-DEFINE_HOOK(0x672B0E, Buf_AI, 6)
+ASMJIT_PATCH(0x672B0E, Buf_AI, 6)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x672B0E, Buf_AI, 6)
 }
 
 // ============= [CombatDamage] =============
-DEFINE_HOOK(0x66BC71, Buf_CombatDamage, 9)
+ASMJIT_PATCH(0x66BC71, Buf_CombatDamage, 9)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -263,7 +263,7 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 // ============= [General] =============
 std::optional<int> ATOI_Count;
 
-DEFINE_HOOK(0x66D55E, Buf_General, 6)
+ASMJIT_PATCH(0x66D55E, Buf_General, 6)
 {
 	GET(RulesClass*, pRules, ESI);
 	GET(CCINIClass*, pINI, EDI);
@@ -327,7 +327,7 @@ DEFINE_JUMP(LJMP, 0x66f589, 0x66F68C);
 //Buf_AnimToInf_Paradrop
 DEFINE_JUMP(LJMP, 0x67062F, 0x6707FE);
 
-DEFINE_HOOK(0x66F7C0, Buf_PPA, 9)
+ASMJIT_PATCH(0x66F7C0, Buf_PPA, 9)
 {
 	GET(RulesClass*, Rules, ESI);
 	GET(UnitTypeClass*, Pt, EAX); // recreating overwritten bits
@@ -335,7 +335,7 @@ DEFINE_HOOK(0x66F7C0, Buf_PPA, 9)
 	return 0x66F9FA;
 }
 
-DEFINE_HOOK(0x66F34B, Buf_RepairBay, 5)
+ASMJIT_PATCH(0x66F34B, Buf_RepairBay, 5)
 {
 	GET(RulesClass*, Rules, ESI);
 	Rules->NoParachuteMaxFallRate = R->EAX<int>();
@@ -347,7 +347,7 @@ DEFINE_JUMP(LJMP, 0x66DD13, 0x66DF19);
 //Buf_BridgeExplosions
 DEFINE_JUMP(LJMP, 0x66DB93, 0x66DC96);
 
-DEFINE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
+ASMJIT_PATCH(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 {
 	GET(HouseTypeClass*, pHouseType, EBX);
 	GET(CCINIClass*, pINI, ESI);

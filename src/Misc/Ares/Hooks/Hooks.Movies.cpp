@@ -150,26 +150,26 @@ MoviesList::Item* MoviesList::FindMovie(const char* const pFilename)
 	return (it == this->Array.end()) ? nullptr : &*it;
 }
 
-DEFINE_HOOK(0x52C939, InitGame_MoviesList, 5)
+ASMJIT_PATCH(0x52C939, InitGame_MoviesList, 5)
 {
 	MoviesList::Instance.LoadListFromINI();
 	return 0;
 }
 
-DEFINE_HOOK(0x5FBF80, GameOptionsClass_UnlockMovieIfNeeded_MoviesList, 5)
+ASMJIT_PATCH(0x5FBF80, GameOptionsClass_UnlockMovieIfNeeded_MoviesList, 5)
 {
 	GET_STACK(char const* const, pMovieName, STACK_OFFS(0x0, -0x4));
 	MoviesList::Instance.Unlock(pMovieName);
 	return 0;
 }
 
-DEFINE_HOOK(0x5FAFFB, Options_SaveToINI_MoviesList, 6)
+ASMJIT_PATCH(0x5FAFFB, Options_SaveToINI_MoviesList, 6)
 {
 	MoviesList::Instance.WriteToINI();
 	return 0;
 }
 
-DEFINE_HOOK(0x5FC000, GameOptionsClass_PopulateMovieList, 6)
+ASMJIT_PATCH(0x5FC000, GameOptionsClass_PopulateMovieList, 6)
 {
 	//GET(GameOptionsClass* const, pThis, ECX);
 	GET_STACK(HWND const, hWnd, STACK_OFFS(0x0, -0x4));

@@ -44,12 +44,12 @@ namespace DamageFireAnims
 DEFINE_FUNCTION_JUMP(CALL, 0x43FC92, FakeBuildingClass::_OnFireAI);
 DEFINE_FUNCTION_JUMP(LJMP, 0x43C0D0, FakeBuildingClass::_OnFireAI);
 
-//DEFINE_HOOK(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6) { return 0x46048E; }
+//ASMJIT_PATCH(0x46038A , BuildingTypeClass_ReadINI_SkipDamageFireAnims, 0x6) { return 0x46048E; }
 DEFINE_JUMP(LJMP, 0x46038A, 0x46048E);
 //DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
-DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
+ASMJIT_PATCH(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
 	GET(FakeBuildingClass*, pThis, reg);\
 	DamageFireAnims::HandleRemove(pThis);\
 	return ret;\
@@ -63,7 +63,7 @@ HANDLEREMOVE_HOOKS(0x4458E4,ESI, Fire4, 0x6, 0x445905)
 
 #undef HANDLEREMOVE_HOOKS
 
-DEFINE_HOOK(0x4415F9, BuildingClass_handleRemoveFire5, 0x5)
+ASMJIT_PATCH(0x4415F9, BuildingClass_handleRemoveFire5, 0x5)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	DamageFireAnims::HandleRemove(pThis);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x4415F9, BuildingClass_handleRemoveFire5, 0x5)
 	return 0x44161C;
 }
 
-DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
+ASMJIT_PATCH(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 {
 	GET(FakeBuildingClass*, pThis, ECX);
 	DamageFireAnims::HandleRemove(pThis);
@@ -79,7 +79,7 @@ DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 }
 
 //DEFINE_JUMP(LJMP, 0x44EA1C, 0x44EA2F);
-DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
+ASMJIT_PATCH(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	GET(void*, ptr, EBP);
@@ -89,7 +89,7 @@ DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 
 //remove it from load
 DEFINE_JUMP(LJMP, 0x454154, 0x454170);
-//DEFINE_HOOK(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
+//ASMJIT_PATCH(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
 //	return 0x454170;
 //}
 #endif

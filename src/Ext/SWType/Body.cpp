@@ -2563,7 +2563,7 @@ void SWTypeExtContainer::Clear()
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EBP);
 
@@ -2573,7 +2573,7 @@ DEFINE_HOOK(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
+ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 {
 	GET(SuperWeaponTypeClass*, pItem, ECX);
 	SWTypeExtContainer::Instance.Remove(pItem);
@@ -2609,12 +2609,11 @@ HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, bool clearDirty
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)
-DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 {
 	GET(SuperWeaponTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x3FC);
 
 	SWTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x6CEE50);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)

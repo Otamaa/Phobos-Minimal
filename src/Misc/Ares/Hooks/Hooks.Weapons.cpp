@@ -7,7 +7,7 @@
 //TechnoTypeClass_LoadFromINI_Weapons2
 DEFINE_JUMP(LJMP, 0x715B1F, 0x715F9E);
 
-DEFINE_HOOK(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
+ASMJIT_PATCH(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
 	GET(CCINIClass*, pINI, ESI);
@@ -64,7 +64,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x7177C0, FakeTechnoTypeClass::GetWeapon);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7177E0, FakeTechnoTypeClass::GetEliteWeapon);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7178B0, FakeTechnoTypeClass::GetWeaponTurretIndex);
 
-DEFINE_HOOK(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
+ASMJIT_PATCH(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
 {
 	GET(UnitTypeClass*, pThis, ESI);
 	GET(CCINIClass*, pINI, EBX);
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
 	return 0x747E90;
 }
 
-DEFINE_HOOK(0x70DC70, TechnoClass_SwitchGunner, 6)
+ASMJIT_PATCH(0x70DC70, TechnoClass_SwitchGunner, 6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, nWeaponIdx, 0x4);
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x70DC70, TechnoClass_SwitchGunner, 6)
 	return 0x70DCDB;
 }
 
-DEFINE_HOOK(0x746B89, UnitClass_GetUIName, 8)
+ASMJIT_PATCH(0x746B89, UnitClass_GetUIName, 8)
 {
 	GET(UnitClass*, pThis, ESI);
 	const auto pType = pThis->Type;
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x746B89, UnitClass_GetUIName, 8)
 	return Text != nullptr ? 0x746C78 : 0;
 }
 
-DEFINE_HOOK(0x717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
+ASMJIT_PATCH(0x717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 	GET_STACK(int, nTurIdx, 0x4);

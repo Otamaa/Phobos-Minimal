@@ -27,7 +27,7 @@ bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 }
 
 // An example for quick tilting test
-DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
+ASMJIT_PATCH(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -56,7 +56,7 @@ DEFINE_HOOK(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 
 #include <Ext/Infantry/Body.h>
 
-DEFINE_HOOK(0x6FF905, TechnoClass_FireAt_FireOnce, 0x6) {
+ASMJIT_PATCH(0x6FF905, TechnoClass_FireAt_FireOnce, 0x6) {
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const pInf = cast_to<InfantryClass*, false>(pThis))
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x6FF905, TechnoClass_FireAt_FireOnce, 0x6) {
 	return 0;
 }
 
-DEFINE_HOOK(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
+ASMJIT_PATCH(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
 {
 	enum { SkipGameCode = 0x51B255 };
 
@@ -90,7 +90,7 @@ DEFINE_HOOK(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
 }
 
 //https://github.com/Phobos-developers/Phobos/pull/1073/
-// DEFINE_HOOK(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
+// ASMJIT_PATCH(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
 // {
 // 	GET(TechnoClass*, pThis, ESI);
 // 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
 // }
 
 // Skips bridge-related coord checks to allow AA to target air units on bridges over water.
-DEFINE_HOOK(0x6FCBE6, TechnoClass_CanFire_BridgeAAFix, 0x6)
+ASMJIT_PATCH(0x6FCBE6, TechnoClass_CanFire_BridgeAAFix, 0x6)
 {
 	enum { SkipChecks = 0x6FCCBD };
 
@@ -166,7 +166,7 @@ DEFINE_HOOK(0x6FCBE6, TechnoClass_CanFire_BridgeAAFix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
+ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 {
 	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
 
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 }
 
 // Pre-Firing Checks
-DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
+ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(FakeWeaponTypeClass*, pWeapon, EDI);
@@ -274,7 +274,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	return Continue;
 }
 
-DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
+ASMJIT_PATCH(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 {
 	enum { Continue = 0x0, DoNotFire = 0x6FE4E7, SkipSetTarget = 0x6FE1D5 };
 
@@ -304,7 +304,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	}
 }
 
-DEFINE_HOOK(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
+ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 {
 	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
 
@@ -323,7 +323,7 @@ DEFINE_HOOK(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 }
 
 // Reimplements the game function with few changes / optimizations
-DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
+ASMJIT_PATCH(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, weaponIndex, 0x4);
@@ -382,7 +382,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	return 0x701393;
 }
 
-DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
+ASMJIT_PATCH(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 {
 	enum { DisallowFiring = 0x6FC86A };
 
@@ -416,7 +416,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
+ASMJIT_PATCH(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 {
 	enum
 	{
@@ -461,7 +461,7 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 // }
 
 
-DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
+ASMJIT_PATCH(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
 {
 	enum { SkipGameCode = 0x51C1FE };
 
@@ -473,7 +473,7 @@ DEFINE_HOOK(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
+ASMJIT_PATCH(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
 {
 	enum { SkipGameCode = 0x73F4A1 };
 
@@ -485,7 +485,7 @@ DEFINE_HOOK(0x73F495, UnitClass_CanEnterCell_WallWeapon, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x70095A, TechnoClass_WhatAction_WallWeapon, 0x6) {
+ASMJIT_PATCH(0x70095A, TechnoClass_WhatAction_WallWeapon, 0x6) {
 	GET_STACK(OverlayTypeClass*, pOverlayTypeClass, STACK_OFFSET(0x2C, -0x18));
 	GET(TechnoClass*, pThis, ESI);
 	R->EAX(pThis->GetWeapon(TechnoExtData::GetWeaponIndexAgainstWall(pThis, pOverlayTypeClass)));
@@ -496,7 +496,7 @@ namespace CellEvalTemp {
 	int weaponIndex;
 }
 
-DEFINE_HOOK(0x6F8C9D, TechnoClass_EvaluateCell_SetContext, 0x7) {
+ASMJIT_PATCH(0x6F8C9D, TechnoClass_EvaluateCell_SetContext, 0x7) {
 	GET(int, weaponIndex, EAX);
 
 	CellEvalTemp::weaponIndex = weaponIndex;
@@ -504,14 +504,14 @@ DEFINE_HOOK(0x6F8C9D, TechnoClass_EvaluateCell_SetContext, 0x7) {
 	return 0;
 }
 
-DEFINE_HOOK(0x6F8CDF, TechnoClass_EvaluateCell_GetWeapon, 0xA)
+ASMJIT_PATCH(0x6F8CDF, TechnoClass_EvaluateCell_GetWeapon, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->EAX(pThis->GetWeapon(CellEvalTemp::weaponIndex));
 	return 0x6F8CE9;
 }
 
-DEFINE_HOOK(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
+ASMJIT_PATCH(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->EAX(pThis->GetWeaponRange(CellEvalTemp::weaponIndex));
@@ -520,7 +520,7 @@ DEFINE_HOOK(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
 
 #pragma endregion
 
-DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
+ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, EDI);
@@ -600,7 +600,7 @@ DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
+ASMJIT_PATCH(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
 {
 	GET(InfantryClass*, pThis, EBP);
 
@@ -610,7 +610,7 @@ DEFINE_HOOK(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
+ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 {
 	enum { SkipGameCode = 0x6FAC31 };
 
@@ -624,7 +624,7 @@ DEFINE_HOOK(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
+ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pNewTarget, EDI);
@@ -638,7 +638,7 @@ DEFINE_HOOK(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
+ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 
 	enum { CanNotFire = 0x6FDE03 };
 

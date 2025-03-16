@@ -146,7 +146,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 	}
 }
 
-DEFINE_HOOK(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
+ASMJIT_PATCH(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, intensity, EBP);
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
+ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 {
 	enum { SkipTint = 0x7067E4 };
 
@@ -193,7 +193,7 @@ DEFINE_HOOK(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x43D442, BuildingClass_Draw_ForceShieldICColor, 0x7)
+ASMJIT_PATCH(0x43D442, BuildingClass_Draw_ForceShieldICColor, 0x7)
 {
 	enum { SkipGameCode = 0x43D45B };
 
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x43D442, BuildingClass_Draw_ForceShieldICColor, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x43DCE1, BuildingClass_Draw2_ForceShieldICColor, 0x7)
+ASMJIT_PATCH(0x43DCE1, BuildingClass_Draw2_ForceShieldICColor, 0x7)
 {
 	enum { SkipGameCode = 0x43DCFA };
 
@@ -223,7 +223,7 @@ DEFINE_HOOK(0x43DCE1, BuildingClass_Draw2_ForceShieldICColor, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x43D4EB, BuildingClass_Draw_TintColor, 0x6)
+ASMJIT_PATCH(0x43D4EB, BuildingClass_Draw_TintColor, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(int, color, EDI);
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x43D4EB, BuildingClass_Draw_TintColor, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x43DD8E, BuildingClass_Draw2_TintColor, 0xA)
+ASMJIT_PATCH(0x43DD8E, BuildingClass_Draw2_TintColor, 0xA)
 {
 	GET(BuildingClass*, pThis, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x12C, -0x110));
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x43DD8E, BuildingClass_Draw2_TintColor, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
+ASMJIT_PATCH(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
 {
 	GET(BuildingClass*, pThis, EDI);
 	GET(int, intensity, ESI);
@@ -256,7 +256,7 @@ DEFINE_HOOK(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x519082, InfantryClass_Draw_TintColor, 0x7)
+ASMJIT_PATCH(0x519082, InfantryClass_Draw_TintColor, 0x7)
 {
 	GET(InfantryClass*, pThis, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x54, -0x40));
@@ -267,7 +267,7 @@ DEFINE_HOOK(0x519082, InfantryClass_Draw_TintColor, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
+ASMJIT_PATCH(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
 {
 	GET(InfantryClass*, pThis, EBP);
 	GET(int, intensity, ESI);
@@ -279,7 +279,7 @@ DEFINE_HOOK(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73BFBF, UnitClass_DrawAsVoxel_ForceShieldICColor, 0x6)
+ASMJIT_PATCH(0x73BFBF, UnitClass_DrawAsVoxel_ForceShieldICColor, 0x6)
 {
 	enum { SkipGameCode = 0x73BFC5 };
 
@@ -293,7 +293,7 @@ DEFINE_HOOK(0x73BFBF, UnitClass_DrawAsVoxel_ForceShieldICColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x73C083, UnitClass_DrawAsVoxel_TintColor, 0x6)
+ASMJIT_PATCH(0x73C083, UnitClass_DrawAsVoxel_TintColor, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
 	GET(int, color, ESI);
@@ -306,7 +306,7 @@ DEFINE_HOOK(0x73C083, UnitClass_DrawAsVoxel_TintColor, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x42350C, AnimClass_Draw_ForceShieldICColor, 0x7)
+ASMJIT_PATCH(0x42350C, AnimClass_Draw_ForceShieldICColor, 0x7)
 {
 	enum { SkipGameCode = 0x423525 };
 
@@ -321,7 +321,7 @@ DEFINE_HOOK(0x42350C, AnimClass_Draw_ForceShieldICColor, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
+ASMJIT_PATCH(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EAX);
@@ -332,7 +332,7 @@ DEFINE_HOOK(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
+ASMJIT_PATCH(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 {
 	GET(FakeAnimClass*, pThis, ESI);
 	GET(int, color, EBP);
@@ -351,7 +351,7 @@ DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 }
 /*
 *
-* DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
+* ASMJIT_PATCH(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 {
 	GET(UnitClass* const, pOwnerObject, EBP);
 
@@ -361,7 +361,7 @@ DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
 	return 0;
 }
 //case VISUAL_NORMAL
-DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
+ASMJIT_PATCH(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 {
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
@@ -371,7 +371,7 @@ DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
+ASMJIT_PATCH(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 {
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
@@ -384,7 +384,7 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
+ASMJIT_PATCH(0x423630, AnimClass_Draw_It, 0x6)
 {
 	GET(AnimClass*, pAnim, ESI);
 	GET(CellClass*, pCell, EAX);

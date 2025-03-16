@@ -539,8 +539,7 @@ bool HouseTypeExtContainer::Load(HouseTypeClass* key, IStream* pStm)
 // container hooks
 
 
-DEFINE_HOOK_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
-DEFINE_HOOK(0x511643, HouseTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x511643, HouseTypeClass_CTOR, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
@@ -555,9 +554,9 @@ DEFINE_HOOK(0x511643, HouseTypeClass_CTOR, 0x5)
 	HouseTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
 
-DEFINE_HOOK(0x5127CF, HouseTypeClass_DTOR, 0x6)
+ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
 
@@ -599,8 +598,7 @@ HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB6C, FakeHouseTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB70, FakeHouseTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
+ASMJIT_PATCH(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EBX);
 	GET_BASE(CCINIClass*, pINI, 0x8);
@@ -608,4 +606,4 @@ DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
 	HouseTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)

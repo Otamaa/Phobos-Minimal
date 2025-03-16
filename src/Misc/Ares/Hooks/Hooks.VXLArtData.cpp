@@ -27,7 +27,7 @@
 #include <Locomotor/Cast.h>
 #include <SpawnManagerClass.h>
 
-DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
+ASMJIT_PATCH(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 {
 	REF_STACK(bool, bLoadFailed, 0x13);
 	GET(ObjectTypeClass*, pThis, ESI);
@@ -59,7 +59,7 @@ DEFINE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 //ObjectTypeClass_Load3DArt_NoSpawnAlt2
 DEFINE_JUMP(LJMP, 0x5F848C, 0x5F8844);
 
-DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
+ASMJIT_PATCH(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -103,7 +103,7 @@ DEFINE_HOOK(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 	return 0x5F8A6A;
 }
 
-DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
+ASMJIT_PATCH(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
@@ -149,7 +149,7 @@ DEFINE_HOOK(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 	return 0x5F868C;
 }
 
-DEFINE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
+ASMJIT_PATCH(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, EAX);
@@ -159,7 +159,7 @@ DEFINE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 	return (!pData->VXL || !pData->HVA) ? 0x73B94A : 0x73B928;
 }
 
-DEFINE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
+ASMJIT_PATCH(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ECX);
@@ -167,7 +167,7 @@ DEFINE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
 	return 0x73BCD4;
 }
 
-DEFINE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
+ASMJIT_PATCH(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
@@ -175,7 +175,7 @@ DEFINE_HOOK(0x73BD6A, UnitClass_DrawVXL_Barrels3, 7)
 	return 0x73BD71;
 }
 
-DEFINE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
+ASMJIT_PATCH(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
 {
 	GET(UnitTypeClass*, pUnit, EBX);
 	GET(int, nIdx, ESI);
@@ -183,7 +183,7 @@ DEFINE_HOOK(0x73BD15, UnitClass_DrawVXL_Turrets, 7)
 	return 0x73BD1C;
 }
 
-DEFINE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
+ASMJIT_PATCH(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 {
 	GET(ObjectTypeClass*, pThis, ECX);
 
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
+ASMJIT_PATCH(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 {
 	GET(UnitTypeClass*, pType, EBX);
 	R->EDX(&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData);
@@ -263,7 +263,7 @@ static Matrix3D* __fastcall BounceClass_ShadowMatrix(BounceClass* self, void*, M
 DEFINE_FUNCTION_JUMP(CALL, 0x749CAC, BounceClass_ShadowMatrix);
 
 //the deeper part
-DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
+ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 {
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(FootClass*, pThis, EBX);//Maybe Techno later
@@ -293,7 +293,7 @@ DEFINE_HOOK(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 }
 
 //aircraft only
-DEFINE_HOOK(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
+ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(AircraftClass*, pThis, EBP);
@@ -455,7 +455,7 @@ static void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeCla
 DEFINE_JUMP(VTABLE, 0x7F0B4C, 0x4CF940);
 DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
-DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
+ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(UnitClass*, pThis, EBP);
@@ -597,7 +597,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 }
 
 #else
-DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+ASMJIT_PATCH(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 {
 	using VoxelShadowIdx = IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>;
 	GET(FootClass*, pThis, ESI);
@@ -664,7 +664,7 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 }
 #endif
 
-DEFINE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
+ASMJIT_PATCH(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 {
 	R->ESI(0);
 	GET(UnitClass*, U, EBP);
@@ -690,7 +690,7 @@ DEFINE_HOOK(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 	return 0x73B4DA;
 }
 
-DEFINE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
+ASMJIT_PATCH(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 {
 	GET(CCINIClass*, pINI, EDI);
 	GET(TechnoTypeClass*, pType, EBP);
@@ -708,7 +708,7 @@ DEFINE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	return 0;
 }
 
-DEFINE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
+ASMJIT_PATCH(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
 {
 	enum { DoNotDrawShadow = 0x73C5C9, ShadowAlreadyDrawn = 0x0 };
 

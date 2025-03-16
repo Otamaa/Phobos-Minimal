@@ -63,7 +63,7 @@ public:
 
 // Hooks
 
-DEFINE_HOOK(0x51C52D, InfantryClass_CanEnterCell_BlockageGate, 0x5)
+ASMJIT_PATCH(0x51C52D, InfantryClass_CanEnterCell_BlockageGate, 0x5)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C549, SkipToNext = 0x51C70F };
 
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x51C52D, InfantryClass_CanEnterCell_BlockageGate, 0x5)
 	return SkipToNext;
 }
 
-DEFINE_HOOK(0x51C5C8, InfantryClass_CanEnterCell_BlockageGeneral1, 0x6)
+ASMJIT_PATCH(0x51C5C8, InfantryClass_CanEnterCell_BlockageGeneral1, 0x6)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C5E0 };
 
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x51C5C8, InfantryClass_CanEnterCell_BlockageGeneral1, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
+ASMJIT_PATCH(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
 {
 	enum { IsBlockage = 0x51C7D0, Continue = 0x51C853, Skip = 0x51C864 };
 
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x51C841, InfantryClass_CanEnterCell_BlockageGeneral2, 0x9)
 	return Skip;
 }
 
-DEFINE_HOOK(0x73F734, UnitClass_CanEnterCell_BlockageGate, 0x9)
+ASMJIT_PATCH(0x73F734, UnitClass_CanEnterCell_BlockageGate, 0x9)
 {
 	enum { IsBlockage = 0x73FCD0, Continue = 0x73F73D, SkipToNext = 0x73FA87 };
 
@@ -152,7 +152,7 @@ DEFINE_HOOK(0x73F734, UnitClass_CanEnterCell_BlockageGate, 0x9)
 }
 #include <Ext/Terrain/Body.h>
 
-DEFINE_HOOK(0x73FB71, UnitClass_CanEnterCell_BlockageGeneral1, 0x6)
+ASMJIT_PATCH(0x73FB71, UnitClass_CanEnterCell_BlockageGeneral1, 0x6)
 {
 	enum { IsBlockage = 0x73FCD0, Continue = 0x73FB96 };
 
@@ -178,7 +178,7 @@ DEFINE_HOOK(0x73FB71, UnitClass_CanEnterCell_BlockageGeneral1, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x73FCA1, UnitClass_CanEnterCell_BlockageGeneral2, 0x6)
+ASMJIT_PATCH(0x73FCA1, UnitClass_CanEnterCell_BlockageGeneral2, 0x6)
 {
 	enum { IsBlockage = 0x73FCD0, Continue = 0x73FCE2 };
 

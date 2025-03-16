@@ -25,7 +25,7 @@ InfantryExtContainer InfantryExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
+ASMJIT_PATCH(0x517ACC, InfantryClass_CTOR, 0x6)
 {
 	GET(InfantryClass*, pItem, ESI);
 
@@ -35,22 +35,21 @@ DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x517D90, InfantryClass_DTOR, 0x5)
+ASMJIT_PATCH(0x517D90, InfantryClass_DTOR, 0x5)
 {
 	GET(InfantryClass* const, pItem, ECX);
 	InfantryExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x521B00, InfantryClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
+ASMJIT_PATCH(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 {
 	GET_STACK(InfantryClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	InfantryExtContainer::Instance.PrepareStream(pItem, pStm);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x521B00, InfantryClass_SaveLoad_Prefix, 0x8)
 
 HRESULT __stdcall FakeInfantryClass::_Load(IStream* pStm)
 {
@@ -121,7 +120,7 @@ HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)
 
-// DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
+// ASMJIT_PATCH(0x51AA23, InfantryClass_Detach, 0x6)
 // {
 // 	GET(InfantryClass* const, pThis, ESI);
 // 	GET(void*, target, EDI);

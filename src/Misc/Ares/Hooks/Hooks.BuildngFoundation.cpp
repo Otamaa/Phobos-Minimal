@@ -8,8 +8,7 @@
 
 #include "Header.h"
 
-DEFINE_HOOK_AGAIN(0x6D5573 , TacticalClass_DrawPlacement_CustomFoundation, 0x6)
-DEFINE_HOOK(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
+ASMJIT_PATCH(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 {
 	RectangleStruct nDispRect {};
 	const bool bOnFB = R->Origin() == 0x6D50FB;
@@ -33,4 +32,5 @@ DEFINE_HOOK(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 	R->ESI(nDispRect.Y);
 
 	return (!bOnFB) ? 0x6D558F : 0x6D5116 ;
-}
+}ASMJIT_PATCH_AGAIN(0x6D5573, TacticalClass_DrawPlacement_CustomFoundation, 0x6)
+

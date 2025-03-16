@@ -16,7 +16,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
 
-DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
+ASMJIT_PATCH(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	GET(HINSTANCE , instance , ESI);
 
@@ -30,14 +30,14 @@ DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 	return 0x777C4A;
 }
 
-DEFINE_HOOK(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
+ASMJIT_PATCH(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
 {
 	GET(bool const, esi, ESI);
 	return(Phobos::UI::DisableEmptySpawnPositions || !esi) ? 0x640CE2: 0x640B93;
 }
 
  //Allow size = 0 for map previews
-DEFINE_HOOK(0x641B41, LoadingScreen_SkipPreview, 0x8)
+ASMJIT_PATCH(0x641B41, LoadingScreen_SkipPreview, 0x8)
 {
 	enum { Continue = 0x0 , return_true = 0x641D59 };
 
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x641B41, LoadingScreen_SkipPreview, 0x8)
 		? Continue : return_true;
 }
 
-DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
+ASMJIT_PATCH(0x641EE0, PreviewClass_ReadPreview, 0x6)
 {
 	GET(PreviewClass*, pThis, ECX);
 	GET_STACK(const char*, lpMapFile, 0x4);
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	return 0x64203D;
 }
 
-DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
+ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 {
 	const auto pPlayer = HouseClass::CurrentPlayer();
 	if (HouseExtData::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
@@ -167,10 +167,7 @@ DEFINE_HOOK(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x6CE8AA, Replace_XXICON_With_New, 0x7)   //SWTypeClass::Load
-DEFINE_HOOK_AGAIN(0x6CEE31, Replace_XXICON_With_New, 0x7)   //SWTypeClass::ReadINI
-DEFINE_HOOK_AGAIN(0x716D13, Replace_XXICON_With_New, 0x7)   //TechnoTypeClass::Load
-DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::ReadINI
+ASMJIT_PATCH(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::ReadINI
 {
 	char pFilename[0x20];
 	strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
@@ -187,9 +184,12 @@ DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::R
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6CE8AA, Replace_XXICON_With_New, 0x7)   //SWTypeClass::Load
+ASMJIT_PATCH_AGAIN(0x6CEE31, Replace_XXICON_With_New, 0x7)   //SWTypeClass::ReadINI
+ASMJIT_PATCH_AGAIN(0x716D13, Replace_XXICON_With_New, 0x7)   //TechnoTypeClass::Load
 
-DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
+
+ASMJIT_PATCH(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
 {
 	enum {
 		rTrue = 0x6A8692,
@@ -253,7 +253,7 @@ FORCEDINLINE void ShowBriefing()
 }
 
 // Check if briefing dialog should be played before starting scenario.
-DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
+ASMJIT_PATCH(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 {
 	GET_STACK(bool, showBriefing, STACK_OFFSET(0xFC, -0xE9));
 
@@ -281,12 +281,12 @@ DEFINE_HOOK(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 }
 
 // Skip redrawing the screen if we're gonna show the briefing screen immediately after loading screen finishes on initially launched mission.
-DEFINE_HOOK(0x683F66, PauseGame_ShowBriefing, 0x5) {
+ASMJIT_PATCH(0x683F66, PauseGame_ShowBriefing, 0x5) {
 	return BriefingTemp::ShowBriefing ? 0x683FAA : 0;
 }
 
 // Show the briefing dialog on starting a new scenario after clearing another.
-DEFINE_HOOK(0x55D14F, AuxLoop_ShowBriefing, 0x5)
+ASMJIT_PATCH(0x55D14F, AuxLoop_ShowBriefing, 0x5)
 {
 	// Restore overridden instructions.
 	SessionClass::Instance->Resume();
@@ -295,12 +295,12 @@ DEFINE_HOOK(0x55D14F, AuxLoop_ShowBriefing, 0x5)
 }
 
 // Skip redrawing the screen if we're gonna show the briefing screen immediately after loading screen finishes on succeeding missions.
-DEFINE_HOOK(0x685D95, DoWin_ShowBriefing, 0x5) {
+ASMJIT_PATCH(0x685D95, DoWin_ShowBriefing, 0x5) {
 	return BriefingTemp::ShowBriefing ? 0x685D9F : 0;
 }
 
 // Set briefing dialog resume button text.
-DEFINE_HOOK(0x65F764, BriefingDialog_ShowBriefing, 0x5)
+ASMJIT_PATCH(0x65F764, BriefingDialog_ShowBriefing, 0x5)
 {
 	if (BriefingTemp::ShowBriefing) {
 		SendMessageA(GetDlgItem(R->ESI<HWND>(), 1059), 1202, 0, reinterpret_cast<LPARAM>(Phobos::UI::ShowBriefingResumeButtonLabel));
@@ -310,7 +310,7 @@ DEFINE_HOOK(0x65F764, BriefingDialog_ShowBriefing, 0x5)
 }
 
 // Set briefing dialog resume button status bar label.
-DEFINE_HOOK(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
+ASMJIT_PATCH(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 {
 	if (BriefingTemp::ShowBriefing) {
 		R->EAX(Phobos::UI::ShowBriefingResumeButtonStatusLabel);
@@ -328,14 +328,14 @@ namespace GClockTemp
 	TechnoTypeClass* Techno;
 }
 
-DEFINE_HOOK(0x6A9941, StripClass_DrawIt_GetSWData, 0x7)
+ASMJIT_PATCH(0x6A9941, StripClass_DrawIt_GetSWData, 0x7)
 {
 	GET(SuperWeaponTypeClass*, pThis, EAX);
 	GClockTemp::Super = pThis;
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
+ASMJIT_PATCH(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EAX);
 	GClockTemp::Techno = pThis;
@@ -401,7 +401,7 @@ static void FC StripClass_Draw_GClockSHP(
 
 DEFINE_FUNCTION_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
 */
-//DEFINE_HOOK(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
+//ASMJIT_PATCH(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
 //{
 //	GClockTemp::Techno = nullptr;
 //	GClockTemp::Super = nullptr;

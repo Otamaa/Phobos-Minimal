@@ -30,14 +30,14 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false);
 }
 
-DEFINE_HOOK(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
+ASMJIT_PATCH(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x7362A7;
 }
 
-DEFINE_HOOK(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
+ASMJIT_PATCH(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
@@ -45,14 +45,14 @@ DEFINE_HOOK(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 
 }
 
-DEFINE_HOOK(0x414C06, AircraftClass_AI_ChronoSparkle, 0x5)
+ASMJIT_PATCH(0x414C06, AircraftClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	PlayChronoSparkleAnim(pThis, &pThis->Location, 0, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x414C78;
 }
 
-DEFINE_HOOK(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
+ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 {
 	enum { SkipGameCode = 0x44055D };
 

@@ -23,8 +23,8 @@ static bool CheckBridgeCondition(AITriggerTypeClass* pThis, HouseClass* pHouse, 
 	return false;
 }
 
-DEFINE_HOOK_AGAIN(0x41E8DD, Phobos_AITrigger_Handler, 0x8)
-DEFINE_HOOK(0x41E8F0, Phobos_AITrigger_Handler, 0x8)
+ASMJIT_PATCH_AGAIN(0x41E8DD, Phobos_AITrigger_Handler, 0x8)
+ASMJIT_PATCH(0x41E8F0, Phobos_AITrigger_Handler, 0x8)
 {
 	GET(AITriggerTypeClass*, pAITriggerType, ESI);
 	GET(HouseClass*, pHouse, EDI);

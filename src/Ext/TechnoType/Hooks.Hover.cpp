@@ -41,7 +41,7 @@ static TechnoClass* GetOwner(HoverLocomotionClass* pThis)
 	return pThis->Owner ? pThis->Owner : pThis->LinkedTo;
 }
 
-DEFINE_HOOK(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)
+ASMJIT_PATCH(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	GET_STACK(int, heightGet, STACK_OFFS(0x2C, 0x18));
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)
 	return 0x513DDC;
 }
 
-DEFINE_HOOK(0x513E8F, HoverLocomotionClass_513D20_HoverHeight2, 0x6)
+ASMJIT_PATCH(0x513E8F, HoverLocomotionClass_513D20_HoverHeight2, 0x6)
 {
 	enum { ContinueCheck = 0x513E9D, SetHoverDampen = 0x513F0E };
 
@@ -60,7 +60,7 @@ DEFINE_HOOK(0x513E8F, HoverLocomotionClass_513D20_HoverHeight2, 0x6)
 	return comparator < height ? ContinueCheck : SetHoverDampen;
 }
 
-DEFINE_HOOK(0x513EAA, HoverLocomotionClass_513D20_HoverHeight3, 0x5)
+ASMJIT_PATCH(0x513EAA, HoverLocomotionClass_513D20_HoverHeight3, 0x5)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 
@@ -74,7 +74,7 @@ DEFINE_HOOK(0x513EAA, HoverLocomotionClass_513D20_HoverHeight3, 0x5)
 	return 0x513ECD;
 }
 
-DEFINE_HOOK(0x513ECD, HoverLocomotionClass_513D20_HoverHeight4, 0x6)
+ASMJIT_PATCH(0x513ECD, HoverLocomotionClass_513D20_HoverHeight4, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto height = GetHover(GetOwner(pLoco))->GetHeight();
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x513ECD, HoverLocomotionClass_513D20_HoverHeight4, 0x6)
 	return 0x513ED9;
 }
 
-DEFINE_HOOK(0x513F1B, HoverLocomotionClass_513D20_HoverDampen, 0x6)
+ASMJIT_PATCH(0x513F1B, HoverLocomotionClass_513D20_HoverDampen, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto dampen = GetHover(GetOwner(pLoco))->GetDampen();
@@ -91,7 +91,7 @@ DEFINE_HOOK(0x513F1B, HoverLocomotionClass_513D20_HoverDampen, 0x6)
 	return 0x513F27;
 }
 
-DEFINE_HOOK(0x513E14, HoverLocomotionClass_513D20_HoverBob, 0x6)
+ASMJIT_PATCH(0x513E14, HoverLocomotionClass_513D20_HoverBob, 0x6)
 {
 	R->ECX(Unsorted::CurrentFrame()); //Uhh ...
 	GET(HoverLocomotionClass* const, pLoco, ESI);
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x513E14, HoverLocomotionClass_513D20_HoverBob, 0x6)
 	return 0x513E20;
 }
 
-DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
+ASMJIT_PATCH(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 
@@ -127,7 +127,7 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 	return 0x514AC8;
 }
 
-DEFINE_HOOK(0x516179, HoverLocomotionClass_515ED0_HoverAccel, 0x6)
+ASMJIT_PATCH(0x516179, HoverLocomotionClass_515ED0_HoverAccel, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto accel = GetHover(GetOwner(pLoco))->GetAccel();
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x516179, HoverLocomotionClass_515ED0_HoverAccel, 0x6)
 	return 0x516185;
 }
 
-DEFINE_HOOK(0x5161B1, HoverLocomotionClass_515ED0_HoverBrake, 0x6)
+ASMJIT_PATCH(0x5161B1, HoverLocomotionClass_515ED0_HoverBrake, 0x6)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	const auto brake = GetHover(GetOwner(pLoco))->GetBrake();
@@ -143,7 +143,7 @@ DEFINE_HOOK(0x5161B1, HoverLocomotionClass_515ED0_HoverBrake, 0x6)
 	return 0x5161BD;
 }
 
-DEFINE_HOOK(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
+ASMJIT_PATCH(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 
@@ -153,7 +153,7 @@ DEFINE_HOOK(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
 	return 0x516818;
 }
 
-DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
+ASMJIT_PATCH(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
 {
 	GET(HoverLocomotionClass* , pLoco, ESI);
 	const auto pThis = GetOwner(pLoco);

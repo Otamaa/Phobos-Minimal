@@ -10,7 +10,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Scenario/Body.h>
 
-DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
+ASMJIT_PATCH(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {
 		if(!SidebarExtData::TabProducingProgress[i]) {
@@ -21,7 +21,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
+ASMJIT_PATCH(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
 	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++)
 	{
@@ -38,13 +38,13 @@ DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A6EB1, SidebarClass_DrawIt_ProducingProgress, 0x6)
+ASMJIT_PATCH(0x6A6EB1, SidebarClass_DrawIt_ProducingProgress, 0x6)
 {
 	SidebarExtData::DrawProducingProgress();
 	return 0;
 }
 
-DEFINE_HOOK(0x72FCB5, InitSideRectangles_CenterBackground, 0x5)
+ASMJIT_PATCH(0x72FCB5, InitSideRectangles_CenterBackground, 0x5)
 {
 	if (Phobos::UI::CenterPauseMenuBackground)
 	{

@@ -7,7 +7,7 @@ namespace QuickMatch
 	const wchar_t* PlayerString = L"Player";
 }
 
-DEFINE_HOOK(0x643AA5, ProgressScreenClass_643720_HideName, 0x8)
+ASMJIT_PATCH(0x643AA5, ProgressScreenClass_643720_HideName, 0x8)
 {
 	if ((SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->QuickMatch) == false)
 		return 0;
@@ -18,7 +18,7 @@ DEFINE_HOOK(0x643AA5, ProgressScreenClass_643720_HideName, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x65837A, RadarClass_658330_HideName, 0x6)
+ASMJIT_PATCH(0x65837A, RadarClass_658330_HideName, 0x6)
 {
 	if ((SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->QuickMatch) == false)
 		return 0;
@@ -27,7 +27,7 @@ DEFINE_HOOK(0x65837A, RadarClass_658330_HideName, 0x6)
 	return 0x65837A + 0x6;
 }
 
-DEFINE_HOOK(0x64B156, ModeLessDialog_64AE50_HideName, 0x9)
+ASMJIT_PATCH(0x64B156, ModeLessDialog_64AE50_HideName, 0x9)
 {
 	if ((SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->QuickMatch) == false)
 		return 0;
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x64B156, ModeLessDialog_64AE50_HideName, 0x9)
 	return 0x64B156 + 0x9;
 }
 
-DEFINE_HOOK(0x648EA8, WaitForPlayers_HideName, 0x6)
+ASMJIT_PATCH(0x648EA8, WaitForPlayers_HideName, 0x6)
 {
 	if ((SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->QuickMatch) == false)
 		return 0;

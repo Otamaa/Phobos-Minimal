@@ -39,7 +39,7 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 	MessageListClass::Instance->PrintMessage(GetLatencyMessage(newLatencyLevel), 270, ColorScheme::White, true);
 }
 
-DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
+ASMJIT_PATCH(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
 {
 	if (EventExt::ProtocolZero::Enable)
 		EventExt::ProtocolZero::Raise();
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
+ASMJIT_PATCH(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 {
 	if (EventExt::ProtocolZero::Enable)
 		return 0x647BF4;
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 		: 0x647F36;
 }
 
-DEFINE_HOOK(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
+ASMJIT_PATCH(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 {
 	if (EventExt::ProtocolZero::Enable)
 	{
@@ -70,7 +70,7 @@ DEFINE_HOOK(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
+ASMJIT_PATCH(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 {
 	if (EventExt::ProtocolZero::Enable)
 	{
@@ -82,12 +82,12 @@ DEFINE_HOOK(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
+ASMJIT_PATCH(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
 {
 	return EventExt::ProtocolZero::Enable ? 0x4C8024 : 0;
 }
 
-DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
+ASMJIT_PATCH(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 {
 	enum { break_ = 0x64C63D };
 
@@ -104,8 +104,7 @@ DEFINE_HOOK(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x64771D, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
-DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
+ASMJIT_PATCH(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 {
 	if (EventExt::ProtocolZero::Enable)
 	{
@@ -121,10 +120,10 @@ DEFINE_HOOK(0x647E6B, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x64771D, QueueAIMultiplayer_ProtocolZero_SetTiming, 0x5)
 
-DEFINE_HOOK_AGAIN(0x6476CB, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
-DEFINE_HOOK(0x647CC5, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
+
+ASMJIT_PATCH(0x647CC5, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
 {
 	if (EventExt::ProtocolZero::Enable)
 	{
@@ -133,4 +132,4 @@ DEFINE_HOOK(0x647CC5, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6476CB, QueueAIMultiplayer_ProtocolZero_ResponseTime, 0x5)

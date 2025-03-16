@@ -161,7 +161,7 @@ DEFINE_DYNAMIC_PATCH(Disable_MainGame_BeforeMainLoop, 0x48CE7E,
 
 #ifndef _ENABLETHESE
 // Disable the hooks if we're in multiplayer modes or if multithreading was disabled in rules.
-DEFINE_HOOK(0x48CE7E, MainGame_BeforeMainLoop, 7)
+ASMJIT_PATCH(0x48CE7E, MainGame_BeforeMainLoop, 7)
 {
 	if (Phobos::Config::MultiThreadSinglePlayer && SessionClass::Instance->IsSingleplayer())
 		return 0;
@@ -187,8 +187,8 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4F4480 , FakeGScreenClass::_Render);
 
 // We want to lock access to game resources when we're doing game logic potientially related to graphics.
 // The main thread should let the drawing thread run if it complains that it's too hungry and vice versa.
-DEFINE_HOOK_AGAIN(0x55DBC3, MainLoop_StartLock, 5)
-DEFINE_HOOK(0x55D878, MainLoop_StartLock, 6)
+
+ASMJIT_PATCH(0x55D878, MainLoop_StartLock, 6)
 {
 	if(R->Origin() == 0x55DBC3)
 		DisplayClass::GetLayer(Layer::Air)->Sort();
@@ -207,23 +207,23 @@ DEFINE_HOOK(0x55D878, MainLoop_StartLock, 6)
 	Multithreading::MainThreadDemandsDrawingMutex = false;
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x55DBC3, MainLoop_StartLock, 5)
 
 // See above.
-DEFINE_HOOK_AGAIN(0x55D903, MainLoop_StopLock, 7)
-DEFINE_HOOK(0x55DDAA, MainLoop_StopLock, 5)
+ASMJIT_PATCH(0x55DDAA, MainLoop_StopLock, 5)
 {
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;
 
 	Multithreading::DrawingMutex.unlock(); // TODO: shut up the warning
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x55D903, MainLoop_StopLock, 7)
+
 
 // We don't want to draw the tactical view when the player has paused the game.
 // Technically it can be done with a busy wait loop, but mutexes are better for performance.
 // The main thread should always have priority for the mutex access.
-DEFINE_HOOK(0x683EB6, PauseGame_SetPause, 6)
+ASMJIT_PATCH(0x683EB6, PauseGame_SetPause, 6)
 {
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x683EB6, PauseGame_SetPause, 6)
 }
 
 // Resume operation after pausing the game.
-DEFINE_HOOK(0x683FB2, ResumeGame_ResetPause, 5)
+ASMJIT_PATCH(0x683FB2, ResumeGame_ResetPause, 5)
 {
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;

@@ -9,7 +9,7 @@
 
 // Fix [JumpjetControls] obsolete in RA2/YR
 // Author: Uranusian
-DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
+ASMJIT_PATCH(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 	const auto pRulesExt = RulesExtData::Instance();
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 //DEFINE_SKIP_HOOK(0x668EB5 , RulesClass_Process_SkipJumpjetControls ,0x8 , 668EBD);
 //DEFINE_JUMP(LJMP, 0x668EB5, 0x668EBD); // RulesClass_Process_SkipJumpjetControls
 
-// DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
+// ASMJIT_PATCH(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
 // {
 // 	GET(RulesClass*, pThis, ECX);
 // 	GET(CCINIClass*, pINI, EAX);
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 // 	return 0;
 // }
 
-//DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
+//ASMJIT_PATCH(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 //{
 //	if (const auto pRulesExt = RulesExtData::Instance())
 //	{
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
+ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 {
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 
 #include <AircraftTrackerClass.h>
 
-DEFINE_HOOK(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
+ASMJIT_PATCH(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(CellStruct, currentCell, EDI);
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 	return 0x4CD664;
 }
 
-//DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
+//ASMJIT_PATCH(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
 //{
 //	GET(TechnoClass*, pThis, EAX);
 //
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
+ASMJIT_PATCH(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
+ASMJIT_PATCH(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 {
 	GET(JumpjetLocomotionClass*, pLoco, EDI);
 
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 //DEFINE_JUMP(LJMP, 0x54DCCF, 0x54DCE8);//JumpjetLocomotionClass_DrawMatrix_NoTiltCrashJumpjetHereBlyat
 
 // We no longer explicitly check TiltCrashJumpjet when drawing, do it when crashing
-DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
+ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -155,7 +155,7 @@ DEFINE_HOOK(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 	return 0;
 }
 
-// DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
+// ASMJIT_PATCH(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 // {
 // 	GET(ILocomotion*, iloco, ESI);
 // 	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
@@ -254,7 +254,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD8C, JumpjetLocomotionClass_Draw_Matrix);
 //TODO : Issue #690 #655
 
 // Otamaa
-//DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
+//ASMJIT_PATCH(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
 //{
 //	GET(ILocomotion*, pILoco, ESI);
 //	auto pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
@@ -267,7 +267,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD8C, JumpjetLocomotionClass_Draw_Matrix);
 //	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 //}
 
-DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
+ASMJIT_PATCH(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 {
 	enum
 	{
@@ -294,13 +294,13 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 	return SetWobble;
 }
 
-DEFINE_HOOK(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
+ASMJIT_PATCH(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
 }
 
-DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
+ASMJIT_PATCH(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 {
 	GET_STACK(ILocomotion*, iloco, 0x4);
 	GET_STACK(DirStruct, dir, 0x8);
@@ -314,7 +314,7 @@ DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 
 // Bugfix: Jumpjet turn to target when attacking
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
-//DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
+//ASMJIT_PATCH(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
 //{
 //	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE, ContinueFunc = 0x54BDA1 };
 //
@@ -344,7 +344,7 @@ DEFINE_HOOK(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
 //	return ContinueFunc;
 //}
 
-//DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
+//ASMJIT_PATCH(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
 //{
 	//GET_STACK(ILocomotion*, iLoco, 0x4);
 //	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
@@ -447,7 +447,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 	return maxHeight >= 0 ? maxHeight : curHeight;
 }
 
-DEFINE_HOOK(0x54D827, JumpjetLocomotionClass_sub_54D820_PredictHeight, 0x8)
+ASMJIT_PATCH(0x54D827, JumpjetLocomotionClass_sub_54D820_PredictHeight, 0x8)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x54D827, JumpjetLocomotionClass_sub_54D820_PredictHeight, 0x8)
 	return 0x54D928; // Completely skip the original calculate
 }
 
-DEFINE_HOOK(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
+ASMJIT_PATCH(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
 {
 	if (RulesExtData::Instance()->JumpjetClimbWithoutCutOut || JumpjetRushHelpers::Skip)
 	{
@@ -470,7 +470,7 @@ DEFINE_HOOK(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
+ASMJIT_PATCH(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 {
 	GET(FootClass*, pLinked, EAX);
 	auto const* pType = pLinked->GetTechnoType();

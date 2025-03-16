@@ -165,31 +165,31 @@ WaveExtContainer WaveExtContainer::Instance;
 // container hooks
 //
 
-DEFINE_HOOK(0x75EA66, WaveClass_CTOR, 0x5)
+ASMJIT_PATCH(0x75EA66, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);
 	WaveExtContainer::Instance.FindOrAllocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
+
+ASMJIT_PATCH(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
 {
 	GET_STACK(WaveClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	WaveExtContainer::Instance.PrepareStream(pItem, pStm);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
 
 //we load it before DVC<CellStruct> get loaded
-DEFINE_HOOK(0x75F704, WaveClass_Load_Suffix, 0x7)
+ASMJIT_PATCH(0x75F704, WaveClass_Load_Suffix, 0x7)
 {
 	WaveExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
 //write it before DVC<CellStruct>
-DEFINE_HOOK(0x75F7E7, WaveClass_Save_Suffix, 0x6)
+ASMJIT_PATCH(0x75F7E7, WaveClass_Save_Suffix, 0x6)
 {
 	//GET(HRESULT, nRes, EAX);
 
@@ -198,17 +198,17 @@ DEFINE_HOOK(0x75F7E7, WaveClass_Save_Suffix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x75ED57 , WaveClass_DTOR, 0x6)
-DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
+
+ASMJIT_PATCH(0x763226, WaveClass_DTOR, 0x6)
 {
 	GET(WaveClass*, pItem, EDI);
 	WaveExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x75ED57, WaveClass_DTOR, 0x6)
 
 // broke atm , it keep shooting even the owner aleady gone
 // not sure what causing it atm
-//DEFINE_HOOK(0x75F610, WaveClass_Detach, 0x5)
+//ASMJIT_PATCH(0x75F610, WaveClass_Detach, 0x5)
 //{
 //	GET(WaveClass*, pItem, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);

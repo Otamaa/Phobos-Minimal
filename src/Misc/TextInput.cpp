@@ -4,7 +4,7 @@
 #include <CRT.h>
 #include <Unsorted.h>
 
-//DEFINE_HOOK(0x55E484, MessageInput_AllowSkirmish, 0x9)
+//ASMJIT_PATCH(0x55E484, MessageInput_AllowSkirmish, 0x9)
 //{
 //	return Phobos::Otamaa::IsAdmin ? 0x55E48D : 0x0;
 //}
@@ -29,7 +29,7 @@ wchar_t LocalizeCaracter(char character)
 	return result;
 }
 
-DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
+ASMJIT_PATCH(0x5D46C7, MessageListClass_Input, 0x5)
 {
 	if (!Game::IMEBuffer[0])
 		R->EBX<wchar_t>(LocalizeCaracter(R->EBX<char>()));
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
+ASMJIT_PATCH(0x61510E, WWUI_NewEditCtrl, 0x7)
 {
 	R->EDI<wchar_t>(LocalizeCaracter(R->EBX<char>()));
 	return 0x615226;
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 //DEFINE_FUNCTION_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));
 
 // It is required to add Imm32.lib to AdditionalDependencies
-//DEFINE_HOOK(0x777F15, IMEUpdateCompositionString, 0x7)
+//ASMJIT_PATCH(0x777F15, IMEUpdateCompositionString, 0x7)
 //{
 //	Game::IMECompositionString[0] = 0;
 //	ImmGetCompositionStringW(Game::IMEContext, GCS_COMPSTR, Game::IMECompositionString, 256);

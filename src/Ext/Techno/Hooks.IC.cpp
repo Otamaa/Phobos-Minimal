@@ -9,7 +9,7 @@
 
 #ifdef IC_AFFECT
 //https://github.com/Phobos-developers/Phobos/pull/674
-DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
+ASMJIT_PATCH(0x457C90, BuildingClass_IronCuratin, 0x6)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, 0x8);
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
+ASMJIT_PATCH(0x4DEAEE, FootClass_IronCurtain, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 }
 #endif
 
-DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
+ASMJIT_PATCH(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);

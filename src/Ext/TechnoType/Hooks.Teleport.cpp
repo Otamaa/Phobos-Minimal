@@ -17,7 +17,7 @@
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-DEFINE_HOOK(0x7197E4, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
+ASMJIT_PATCH(0x7197E4, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
 {
 	GET(TeleportLocomotionClass*, pThis, ESI);
 
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x7197E4, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
+ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 {
 	GET(TeleportLocomotionClass*, pThis, ESI);
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
+ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
 {
 	GET_LOCO(ESI);
 
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 	return 0x7195BC;
 }
 
-DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)
+ASMJIT_PATCH(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)
 {
 	GET_LOCO(ESI);
 
@@ -124,7 +124,7 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 	return 0x719796;
 }
 
-DEFINE_HOOK(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
+ASMJIT_PATCH(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
 {
 	GET_LOCO(ESI);
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
 	return 0x719878;
 }
 
-DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0x6)
+ASMJIT_PATCH(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0x6)
 {
 	GET_LOCO(ESI);
 	GET(RulesClass*, pRules, EAX);
@@ -203,7 +203,7 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5024, LocomotionClass_Draw_Matrix)
 
-DEFINE_HOOK(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
+ASMJIT_PATCH(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 {
 	GET(ILocomotion*, iloco, ESI);
 	GET_BASE(VoxelIndexKey*, pIndex, 0x10);

@@ -24,7 +24,7 @@
 #pragma region HouseClass is Observer
 
 // Skip set spawn point for all observers
-DEFINE_HOOK(0x5D69BF, MPGameMode_AssignStartingPositions_SetObserverSpawn, 0x5)
+ASMJIT_PATCH(0x5D69BF, MPGameMode_AssignStartingPositions_SetObserverSpawn, 0x5)
 {
 	return SpawnerMain::Configs::Enabled
 		? 0x5D69D1
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x5D69BF, MPGameMode_AssignStartingPositions_SetObserverSpawn, 0x5)
 }
 
 // Skip score field for all observers
-DEFINE_HOOK(0x5C98E5, MultiplayerScore_5C98A0_SkipObserverScore, 0x6)
+ASMJIT_PATCH(0x5C98E5, MultiplayerScore_5C98A0_SkipObserverScore, 0x6)
 {
 	enum { Skip = 0x5C9A7E, Show = 0x5C98F1 };
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x5C98E5, MultiplayerScore_5C98A0_SkipObserverScore, 0x6)
 }
 
 // Use correct colors in diplomacy menu for all observers
-DEFINE_HOOK(0x65838B, RadarClass__658330_SetObserverColorScheme, 0x5)
+ASMJIT_PATCH(0x65838B, RadarClass__658330_SetObserverColorScheme, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x65838B, RadarClass__658330_SetObserverColorScheme, 0x5)
 }
 
 // Use correct flag icon in diplomacy menu for all observers
-DEFINE_HOOK(0x65846D, RadarClass_658330_SetObserverFlag, 0x6)
+ASMJIT_PATCH(0x65846D, RadarClass_658330_SetObserverFlag, 0x6)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
@@ -68,7 +68,7 @@ DEFINE_HOOK(0x65846D, RadarClass_658330_SetObserverFlag, 0x6)
 
 // Allow skirmish observer to control gamespeed
 // TODO: Allow control speed in skirmish if all human players is Observer
-DEFINE_HOOK(0x4E20BA, GameControlsClass_SomeDialog, 0x5)
+ASMJIT_PATCH(0x4E20BA, GameControlsClass_SomeDialog, 0x5)
 {
 	enum { AllowControlSpeed = 0x4E211A, ForbidControlSpeed = 0x4E20C3 };
 
@@ -79,21 +79,21 @@ DEFINE_HOOK(0x4E20BA, GameControlsClass_SomeDialog, 0x5)
 
 #pragma region Curent player is Observer
 
-DEFINE_HOOK(0x5533E0, LoadProgressMgr_Draw_SetBackground, 0x5)
+ASMJIT_PATCH(0x5533E0, LoadProgressMgr_Draw_SetBackground, 0x5)
 {
 	return Game::ObserverMode
 		? 0x5533EF
 		: 0;
 }
 
-DEFINE_HOOK(0x5539E4, LoadProgressMgr_Draw_LoadBriefing, 0x5)
+ASMJIT_PATCH(0x5539E4, LoadProgressMgr_Draw_LoadBriefing, 0x5)
 {
 	return Game::ObserverMode
 		? 0x5539F3
 		: 0;
 }
 
-DEFINE_HOOK(0x5536A0, LoadProgressMgr_Draw_CountryName, 0x5)
+ASMJIT_PATCH(0x5536A0, LoadProgressMgr_Draw_CountryName, 0x5)
 {
 	return Game::ObserverMode
 		? 0x5536AF
@@ -105,7 +105,7 @@ DEFINE_HOOK(0x5536A0, LoadProgressMgr_Draw_CountryName, 0x5)
 #pragma region Observer in Skirmish
 
 // Use correct flag icon for observer on loading screen in skirmish
-DEFINE_HOOK(0x6439F4, ProgressScreenClass_643720, 0x6)
+ASMJIT_PATCH(0x6439F4, ProgressScreenClass_643720, 0x6)
 {
 	enum { AllowObserver = 0x643A04, NotAllowObserver = 0x643A18 };
 
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x6439F4, ProgressScreenClass_643720, 0x6)
 }
 
 // Use correct loading screen colors for observer in skirmish
-DEFINE_HOOK(0x642B60, ProgressScreenClass_LoadTextColor3, 0x5)
+ASMJIT_PATCH(0x642B60, ProgressScreenClass_LoadTextColor3, 0x5)
 {
 	enum { AllowObserver = 0x642B6F, NotAllowObserver = 0x642B8B };
 
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x642B60, ProgressScreenClass_LoadTextColor3, 0x5)
 }
 
 // Use correct observer player color on loading screen in skirmish
-DEFINE_HOOK(0x642BC3, ProgressScreenClass_GetPlayerColorSchemes, 0x5)
+ASMJIT_PATCH(0x642BC3, ProgressScreenClass_GetPlayerColorSchemes, 0x5)
 {
 	enum { AllowObserver = 0x642BCD, NotAllowObserver = 0x642BF3 };
 
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x642BC3, ProgressScreenClass_GetPlayerColorSchemes, 0x5)
 }
 
 // Enable observer sidebar in skirmish
-DEFINE_HOOK(0x6A557A, SidebarClass_InitIO, 0x5)
+ASMJIT_PATCH(0x6A557A, SidebarClass_InitIO, 0x5)
 {
 	enum { AllowObserver = 0x6A558D, NotAllowObserver = 0x6A5830 };
 
@@ -164,7 +164,7 @@ bool OPTIONALINLINE ShowHouseOnObserverSidebar(HouseClass* pHouse)
 	return true;
 }
 
-DEFINE_HOOK(0x6A55AB, SidebarClass_InitIO_ShowHouseOnObserverSidebar1, 0xA)
+ASMJIT_PATCH(0x6A55AB, SidebarClass_InitIO_ShowHouseOnObserverSidebar1, 0xA)
 {
 	enum { Draw = 0x6A55C8, DontDraw = 0x6A55CF };
 	GET(HouseClass*, pHouse, EAX);
@@ -174,7 +174,7 @@ DEFINE_HOOK(0x6A55AB, SidebarClass_InitIO_ShowHouseOnObserverSidebar1, 0xA)
 		: DontDraw;
 }
 
-DEFINE_HOOK(0x6A57E2, SidebarClass_InitIO_ShowHouseOnObserverSidebar2, 0xA)
+ASMJIT_PATCH(0x6A57E2, SidebarClass_InitIO_ShowHouseOnObserverSidebar2, 0xA)
 {
 	enum { Draw = 0x6A57FF, DontDraw = 0x6A580E };
 	GET(HouseClass*, pHouse, EAX);
@@ -190,7 +190,7 @@ DEFINE_JUMP(LJMP, 0x6A91F7, 0x6A9212); // SidebarClass_StripClass_AI
 #pragma endregion Show house on Observer sidebar
 
 // Set observer mode after game load
-DEFINE_HOOK(0x67E720, LoadGame_After, 0x5)
+ASMJIT_PATCH(0x67E720, LoadGame_After, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled || SessionClass::IsCampaign())
 		return 0;

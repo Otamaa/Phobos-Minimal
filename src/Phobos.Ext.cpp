@@ -302,7 +302,7 @@ FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remo
 	}
 }
 
-DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
+ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
@@ -365,7 +365,7 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 #define LogPool(s) Debug::LogInfo("{} MemoryPool size {}", _STR_(s) , ##s::Instance.Pool.size());
 
-DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
+ASMJIT_PATCH(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 {
 	LogPool(TechnoExtContainer)
 	LogPool(BuildingExtContainer)
@@ -382,7 +382,7 @@ DEFINE_HOOK(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 }
 
 // Clear static data from respective classes
-DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
+ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
@@ -491,7 +491,7 @@ FORCEDINLINE bool Process_Save(IStream* pStm)
 		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
 }
 
-//DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
+//ASMJIT_PATCH(0x67D32C, SaveGame_Phobos_Global, 0x5)
 //{
 //	Debug::LogInfo("Saving global Phobos data");
 //	GET(IStream*, pStm, ESI);
@@ -527,7 +527,7 @@ FORCEDINLINE bool Process_Save(IStream* pStm)
 //	return 0;
 //}
 //
-DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
+ASMJIT_PATCH(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 {
 //	Debug::LogInfo("Loading global Phobos data");
 //	GET(IStream*, pStm, ESI);
@@ -566,33 +566,33 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 
 //there some classes that need to be re-init after load game done
 //maybe worth taking a look at it at some point -Otamaa
-DEFINE_HOOK(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
+ASMJIT_PATCH(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
 {
 	GET_STACK(IStream*, pStm, 0x10);
 	Phobos::LoadGameDataAfter(pStm);
 	return 0;
 }
 
-DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
+ASMJIT_PATCH(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
 {
 	GET_STACK(IStream*, pStm, 0x1C);
 	Phobos::SaveGameDataAfter(pStm);
 	return 0;
 }
 
-DEFINE_HOOK(0x67D300, SaveGame_Start, 5)
+ASMJIT_PATCH(0x67D300, SaveGame_Start, 5)
 {
 	Debug::LogInfo("About to save the game");
 	return 0;
 }
 
-DEFINE_HOOK(0x67E730, LoadGame_Start, 5)
+ASMJIT_PATCH(0x67E730, LoadGame_Start, 5)
 {
 	Debug::LogInfo("About to load the game");
 	return 0;
 }
 
-DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
+ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 {
 	GET(IStream*, pStm, ESI);
 
@@ -660,7 +660,7 @@ DEFINE_HOOK(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 	return 0;
 }
 
-DEFINE_HOOK(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
+ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 {
 	GET(HRESULT, Status, EAX);
 

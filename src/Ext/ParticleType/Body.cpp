@@ -133,14 +133,14 @@ ParticleTypeExtContainer ParticleTypeExtContainer::Instance;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
 	ParticleTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
+ASMJIT_PATCH(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
 	ParticleTypeExtContainer::Instance.Remove(pItem);
@@ -177,12 +177,12 @@ HRESULT __stdcall FakeParticleTypeClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F019C, FakeParticleTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01A0, FakeParticleTypeClass::_Save)
 
-DEFINE_HOOK_AGAIN(0x645414 , ParticleTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
+
+ASMJIT_PATCH(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
 
 	ParticleTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x645414, ParticleTypeClass_LoadFromINI, 0x5)

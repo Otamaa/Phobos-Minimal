@@ -1823,14 +1823,14 @@ void WarheadTypeExtContainer::Clear()
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
+ASMJIT_PATCH(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
 	WarheadTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-DEFINE_HOOK(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
 	WarheadTypeExtContainer::Instance.Remove(pItem);
@@ -1866,8 +1866,8 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B44, FakeWarheadTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B48, FakeWarheadTypeClass::_Save)
 
 // is return not valid
-DEFINE_HOOK_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
+
+ASMJIT_PATCH(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x150);
@@ -1877,4 +1877,4 @@ DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
 	return// R->Origin() == 0x75DE9A ? 0x75DEA0 :
 		0;
-}
+}ASMJIT_PATCH_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)

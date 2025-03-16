@@ -355,14 +355,14 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 	return pAudioStream->PlayWAV(vec[SampleIdx - 1].c_str(), false);
 }
 
-DEFINE_HOOK(0x752b70 , PlayTaunt , 5)
+ASMJIT_PATCH(0x752b70 , PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
 	R->EAX(PlayWavWrapper(data.countryIdx, data.tauntIdx));
 	return 0x752C68;
 }
 
-DEFINE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
+ASMJIT_PATCH(0x536438 , TauntCommandClass_Execute , 5)
 {
    GET(TauntDataStruct, data , ECX);
   const auto house =  NodeNameType::Array->Items[0]->Country;
@@ -371,7 +371,7 @@ DEFINE_HOOK(0x536438 , TauntCommandClass_Execute , 5)
   return 0x53643D;
 }
 
-DEFINE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
+ASMJIT_PATCH(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 {
 	GET(TauntDataStruct, data , ECX);
 	PlayWavWrapper(GlobalPacketType::Instance->Command, data.tauntIdx);
@@ -380,35 +380,35 @@ DEFINE_HOOK(0x48da3b , sub_48D1E0_PlayTaunt , 5)
 
 #include <ThemeClass.h>
 
-//DEFINE_HOOK(0x406B10, Audio_InitPhobosAudio, 0x6) {
+//ASMJIT_PATCH(0x406B10, Audio_InitPhobosAudio, 0x6) {
 //	LooseAudioCache::Allocate();
 //	//AudioLuggage::Allocate();
 //	return 0x0;
 //}
 
 // skip theme log lines
-DEFINE_HOOK(0x720C3C, Theme_PlaySong_DisableStopLog, 0x6) // skip Theme::PlaySong
+ASMJIT_PATCH(0x720C3C, Theme_PlaySong_DisableStopLog, 0x6) // skip Theme::PlaySong
 {
 	GET(ThemeClass*, pThis, ESI);
 	R->ECX(pThis->Stream);
 	return 0x720C4D;
 }
 
-DEFINE_HOOK(0x720DBF, ThemeClass_PlaySong_DisablePlaySongLog, 0x5)
+ASMJIT_PATCH(0x720DBF, ThemeClass_PlaySong_DisablePlaySongLog, 0x5)
 {
 	GET(ThemeClass*, pThis, ESI);
 	R->AL(pThis->IsScoreRepeat);
 	return 0x720DF3;
 }
 
-DEFINE_HOOK(0x720F2E, ThemeClass_Stop_DisableStopLog, 0x9)
+ASMJIT_PATCH(0x720F2E, ThemeClass_Stop_DisableStopLog, 0x9)
 {
 	GET(ThemeClass*, pThis, ESI);
 	R->ECX(pThis->Stream);
 	return 0x720F42;
 }
 
-DEFINE_HOOK(0x720A58, ThemeClass_AI_DisableLog, 0x6)
+ASMJIT_PATCH(0x720A58, ThemeClass_AI_DisableLog, 0x6)
 {
 	GET(ThemeClass*, pThis, ESI);
 	pThis->QueuedTheme = R->EAX<int>();
@@ -417,7 +417,7 @@ DEFINE_HOOK(0x720A58, ThemeClass_AI_DisableLog, 0x6)
 
 // load more than one audio bag and index.
 // this replaces the entire old parser.
-DEFINE_HOOK(0x4011C0, Audio_Load, 6)
+ASMJIT_PATCH(0x4011C0, Audio_Load, 6)
 {
 	auto& instance = AudioLuggage::Instance;
 	// audio.bag and ares.bag
@@ -435,7 +435,7 @@ DEFINE_HOOK(0x4011C0, Audio_Load, 6)
 	return 0x401578;
 }
 
-DEFINE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
+ASMJIT_PATCH(0x4016F0, IDXContainer_LoadSample, 6)
 {
 	GET(AudioIDXData*, pThis, ECX);
 	GET(int const, index, EDX);
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x4016F0, IDXContainer_LoadSample, 6)
 }
 
 // add saple is assemble an idex then put it onto some list
-DEFINE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
+ASMJIT_PATCH(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
 {
 	GET(AudioEventClassTag*, pVoc, ECX);
 	GET(const char*, pSampleName, EDX);
@@ -500,7 +500,7 @@ DEFINE_HOOK(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass
 }
 
 
-DEFINE_HOOK(0x401640, AudioIndex_GetSampleInformation, 5)
+ASMJIT_PATCH(0x401640, AudioIndex_GetSampleInformation, 5)
 {
 	GET(const int, idxSample, EDX);
 	GET_STACK(AudioSampleData*, pAudioSample, 0x4);
