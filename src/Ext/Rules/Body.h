@@ -463,6 +463,11 @@ public:
 	Valueable<bool> RecountBurst { false };
 	Valueable<ColorStruct> AirstrikeLineColor { { 255, 0, 0 } };
 
+
+	AnimTypeClass* XGRYMED1_ {};
+	AnimTypeClass* XGRYMED2_ {};
+	AnimTypeClass* XGRYSML1_ {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

@@ -27,9 +27,7 @@ ASMJIT_PATCH(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 	{
 		//the shape is already invalid if the name not event there ,..
 		if(SidebarExtData::TabProducingProgress[i]){
-			if(!Phobos::Otamaa::ExeTerminated && SidebarExtData::TabProducingProgress[i]->Filename) {
-				GameDelete<false, false>(SidebarExtData::TabProducingProgress[i]);
-			}
+			GameDelete<true, false>(SidebarExtData::TabProducingProgress[i]);
 			//
 			SidebarExtData::TabProducingProgress[i] = nullptr;
 		}

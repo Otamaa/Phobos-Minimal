@@ -365,7 +365,7 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 
 #define LogPool(s) Debug::LogInfo("{} MemoryPool size {}", _STR_(s) , ##s::Instance.Pool.size());
 
-ASMJIT_PATCH(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
+ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
 {
 	LogPool(TechnoExtContainer)
 	LogPool(BuildingExtContainer)
@@ -384,6 +384,7 @@ ASMJIT_PATCH(0x48CFC6, Game_Exit_RecordPoolSize, 0x6)
 // Clear static data from respective classes
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	CellExtContainer::Instance.Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
 	TemporalExtContainer::Instance.Clear();
@@ -455,6 +456,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		WaveExtContainer::Instance.Pool.reserve(1000);
 		SWFirerClass::Array.reserve(1000);
 		TemporalExtContainer::Instance.Pool.reserve(100);
+		CellExtContainer::Array.reserve(2000);
 	}
 
 	return 0;

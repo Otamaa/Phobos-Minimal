@@ -9,7 +9,7 @@ struct MissingCameoData
 
 	SHPStruct* m_SHP;
 	PhobosPCXFile m_PCX;
-	UniqueGamePtrB<BSurface> m_SHPToPcxSurface;
+	UniqueGamePtrC<BSurface> m_SHPToPcxSurface;
 
 	~MissingCameoData()
 	{

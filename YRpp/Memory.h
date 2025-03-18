@@ -347,6 +347,7 @@ enum class DeleterType : int
 	DllDeleter = 0,
 	DllDTorCaller,
 	GameDeleter,
+	GameDleterWithDTOR,
 	GameDTORCaller
 };
 
@@ -356,6 +357,18 @@ struct GameDeleter {
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		GameDelete(ptr);
+		ptr = nullptr;
+	}
+};
+
+struct GameDeleterWithDTOR {
+	static COMPILETIMEEVAL DeleterType DeleterType = DeleterType::GameDleterWithDTOR;
+
+	template <typename T>
+	void operator ()(T* ptr) noexcept
+	{
+		GameDelete<true,true>(ptr);
+		ptr = nullptr;
 	}
 };
 
@@ -365,6 +378,7 @@ struct GameDTORCaller {
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		CallDTOR(ptr);
+		ptr = nullptr;
 	}
 };
 
@@ -376,6 +390,7 @@ struct DLLDeleter
 	void operator ()(T* ptr) noexcept {
 		if (ptr) {
 			DLLDelete(ptr);
+			ptr = nullptr;
 		}
 	}
 };
@@ -387,6 +402,7 @@ struct DLLDTORCaller
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		DLLCallDTOR(ptr);
+		ptr = nullptr;
 	}
 };
 

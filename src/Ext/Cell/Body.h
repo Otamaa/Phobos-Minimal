@@ -77,8 +77,48 @@ class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static CellExtContainer Instance;
+	static inline HelperedVector<CellExtData*> Array;
 
-	//CONSTEXPR_NOCOPY_CLASSB(CellExtContainer, CellExtData, "CellClass");
+	CellExtData* AllocateUnchecked(CellClass* key)
+	{
+		auto val = Array.emplace_back(new CellExtData());
+		val->AttachedToObject = key;
+		return val;
+
+	}
+
+	CellExtData* Allocate(CellClass* key)
+	{
+		if (!key || Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
+			return nullptr;
+
+		this->ClearExtAttribute(key);
+		CellExtData* val = AllocateUnchecked(key);
+		this->SetExtAttribute(key, val);
+		return val;
+	}
+
+	void Remove(CellClass* key)
+	{
+		if (Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
+			return;
+
+		if (CellExtData* Item = TryFind(key)) {
+			Array.remove(Item);
+			this->ClearExtAttribute(key);
+			delete Item;
+		}
+	}
+
+	void Clear()
+	{
+		for (auto& item : Array) {
+			if (item)
+				delete item;
+		}
+
+		Array.clear();
+	}
 };
 
 class FakeCellClass : public CellClass

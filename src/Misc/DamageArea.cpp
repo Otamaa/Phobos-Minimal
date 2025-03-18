@@ -278,6 +278,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	if (VTable::Get(pWarhead) != WarheadTypeClass::vtable)
 		Debug::FatalErrorAndExit("!");
 
+	//if (IS_SAME_STR_("SA", pWarhead->ID))
+	//	DebugBreak();
+
 	const auto pWHExt = ((FakeWarheadTypeClass*)pWarhead)->_GetExtData();
 	CellStruct cell = CellClass::Coord2Cell(*pCoord);
 
@@ -426,6 +429,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 						auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
 						groupvec.push_back(cur_Group);
+						auto pVictimCoord = pCell->GetCoords();
 
 						if (what == BuildingClass::AbsID)
 						{
@@ -433,29 +437,28 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 							{
 								if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight * 2))
 								{
-									cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::LevelHeight;
+									cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
 								}
 
-								if (spreadLow)
-								{
-									if (pCur->IsIronCurtained()
-										&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
-										&& cur_Group->Distance < 85
-										)
-									{
-										HitICEdTechno = !pWHExt->PenetratesIronCurtain;
-									}
-								}
 							}
 							else
 							{
-								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
+								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length());
 							}
 						}
 						else
 						{
-							cur_cellCoord = pCur->GetTargetCoords();
-							cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
+							pVictimCoord = pCur->GetTargetCoords();
+							cur_Group->Distance = (int)(((*pCoord) - pVictimCoord).Length());
+						}
+
+						if (spreadLow && !it.getCurSpread()) {
+							if (pCur->IsIronCurtained()
+								&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
+								&& cur_Group->Distance < 85
+								) {
+								HitICEdTechno = !pWHExt->PenetratesIronCurtain;
+							}
 						}
 					}
 

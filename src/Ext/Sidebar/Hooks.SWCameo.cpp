@@ -19,14 +19,12 @@ ASMJIT_PATCH(0x6ABC9D, SidebarClass_GetObjectTabIndex_Super, 0x5)
 
 	GET(int const, typeIdx, EDX);
 
-	if (typeIdx < 0 || typeIdx >= SuperWeaponTypeClass::Array->Count)
-		return 0;
+	if ((size_t)typeIdx < (size_t)SuperWeaponTypeClass::Array->Count) { 
+		R->EAX(SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[typeIdx])->TabIndex);
+		return ApplyTabIndex;
+	}
 
-	const auto pSWType = SuperWeaponTypeClass::Array->Items[typeIdx];
-	const auto pSWTypExt = SWTypeExtContainer::Instance.Find(pSWType);
-
-	R->EAX(pSWTypExt->TabIndex);
-	return ApplyTabIndex;
+	return 0;
 }
 
 ASMJIT_PATCH(0x6CE1A0, SuperClass_AI_FlashingBar, 0x5) {

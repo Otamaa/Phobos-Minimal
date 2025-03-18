@@ -158,7 +158,7 @@ public:
 				filename[filebase_len + 1] = 'b';
 				filename[filebase_len + 2] = 'a';
 				filename[filebase_len + 3] = 'g';
-				auto pBag = UniqueGamePtrB<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
+				auto pBag = UniqueGamePtrC<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
 
 				if (pBag->Exists()
 					&& pBag->Open(FileAccessMode::Read))
@@ -208,7 +208,7 @@ public:
 
 	public:
 		std::string BagFile;
-		UniqueGamePtrB<CCFileClass> Bag; //big file that contains the audios
+		UniqueGamePtrC<CCFileClass> Bag; //big file that contains the audios
 		std::vector<AudioIDXEntry> Entries; //every audio data that sit inside the file above
 	};
 

@@ -2758,17 +2758,28 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 {
 	GET(HouseClass*, pHouse, ESI);
+	enum { AllDestroyed = 0x71F1B1, HasAlive = 0x71F163 };
 
-	if (pHouse->ActiveInfantryTypes.GetTotal() <= 0)
-	{
-		for (auto& bld : pHouse->Buildings)
-		{
+	if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
+		for (auto& bld : pHouse->Buildings) {
 			if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
-				return 0x71F163;
+				return HasAlive;
 		}
 	}
 
-	return 0x71F1B1;
+	if (pHouse->ActiveAircraftTypes.GetTotal() > 0)
+		return HasAlive;
+
+	if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
+		return HasAlive;
+
+	for (auto pItem : *InfantryClass::Array) {
+		if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
+			return HasAlive;
+	}
+
+
+	return AllDestroyed;
 }
 
 ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 6)
@@ -6337,12 +6348,76 @@ ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 	return 0x487291;
 }
 
+//DEFINE_HOOK(0x7C8B3D, game_Dele_whoCall, 0x9)
+//{
+//	GET_STACK(void* , ptr , 0x4);
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("Caller 0x%x \n" , caller);
+//	CRT::free(ptr);
+//	return 0x007C8B47;
+//}
+//
+//DEFINE_HOOK(0x7C93E8, game_freeMem_caller, 0x5) {
+//	GET_STACK(DWORD, caller, 0x0);
+//	Debug::Log("CRT::free Caller 0x%x \n", caller);
+//	return 0x0;
+//}
+//ASMJIT_PATCH(0x5C5070, DVC_NoneNameType_clear_, 0x6)
+//{
+//	GET(DynamicVectorClass<NodeNameType*>*, pThis, ECX);
+//
+//	pThis->Count = 0;
+//	if (pThis->Items && pThis->IsAllocated)
+//	{
+//		Debug::Log("Caller DVC_NoneNameType_clear_ \n");
+//		CRT::free(pThis->Items);
+//
+//		pThis->Items = nullptr;
+//	}
+//	pThis->IsAllocated = 0;
+//	pThis->Capacity = 0;
+//	return 0x5C5099;
+//}
 
-/* AnimTypeClass::FromName patch
-58164B XGRYMED1
-581664 XGRYMED2
-58167E XGRYSML1
-581D53 XGRYMED1
-581D6C XGRYMED2
-581D86 XGRYSML1
-*/
+//#pragma optimize("", off )
+//std::string _tempName = GameStrings::NoneStr();
+//ASMJIT_PATCH(0x69E149, SHPStruct_deleteptr_check_getName, 0x5)
+//{
+//	GET(SHPStruct*, ptr, ESI);
+//	_tempName = ptr->AsReference()->Filename;
+//	return 0x0;
+//}
+//int count_ = 0;
+//ASMJIT_PATCH(0x69E1EC, SHPStruct_deleteptr_check, 0x6)
+//{
+//	GET(SHPStruct*, ptr, ESI);
+//	Debug::Log("Caller SHPStruct_deleteptr_check deleting [%d][0x%x][%s]\n", count_++,ptr , _tempName.c_str());
+//	
+//	if (count_ == 251)
+//	{
+//		auto as_ = ptr->AsReference();
+//		DebugBreak();
+//	}
+//
+//
+//	_tempName = GameStrings::NoneStr();
+//	CRT::free(ptr);
+//	return 0x69E1F5;
+//}
+//#pragma optimize("", on )
+
+ASMJIT_PATCH(0x581646, MapClass_CollapseCliffs_DefaultAnim, 0x5)
+{
+	R->Stack(0x1C, RulesExtData::Instance()->XGRYMED1_);//med1
+	R->Stack(0x28, RulesExtData::Instance()->XGRYMED2_);//med2
+	R->EDX(RulesExtData::Instance()->XGRYSML1_);//0x2C sml
+	return 0x58168F;
+}
+
+ASMJIT_PATCH(0x581D4E, MapClass_CollapseCliffs_DefaultAnimB, 0x5)
+{
+	R->Stack(0x20, RulesExtData::Instance()->XGRYMED1_);//med1
+	R->Stack(0x24, RulesExtData::Instance()->XGRYMED2_);//med2
+	R->EDX(RulesExtData::Instance()->XGRYSML1_);//0x2C sml
+	return 0x581D97;
+}

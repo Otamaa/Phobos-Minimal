@@ -141,10 +141,10 @@ public:
 
 	static int CurrentLoadTextColor;
 
-	static UniqueGamePtrB<SHPStruct> s_GraphicalTextImage;
+	static UniqueGamePtrC<SHPStruct> s_GraphicalTextImage;
 	static ConvertClass* s_GraphicalTextConvert;
 
-	static UniqueGamePtrB<SHPStruct> s_DialogBackgroundImage;
+	static UniqueGamePtrC<SHPStruct> s_DialogBackgroundImage;
 	static ConvertClass* s_DialogBackgroundConvert;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

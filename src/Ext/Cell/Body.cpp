@@ -270,14 +270,18 @@ CellExtContainer CellExtContainer::Instance;
 ASMJIT_PATCH(0x47BDA1, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, ESI);
+
 	CellExtContainer::Instance.Allocate(pItem);
+
 	return 0;
 }
 
 ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
 {
 	GET(CellClass*, pItem, ECX);
+
 	CellExtContainer::Instance.Remove(pItem);
+
 	return 0;
 }
 
@@ -287,7 +291,7 @@ HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
 	CellExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->CellClass::Load(pStm);
 
-	if (SUCCEEDED(res))
+	if (SUCCEEDED(res) && this != CellClass::Instance())
 		CellExtContainer::Instance.LoadStatic();
 
 	return res;
@@ -298,7 +302,7 @@ HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, bool clearDirty)
 	CellExtContainer::Instance.PrepareStream(this, pStm);
 	HRESULT res = this->CellClass::Save(pStm, clearDirty);
 
-	if (SUCCEEDED(res))
+	if (SUCCEEDED(res) && this != CellClass::Instance())
 		CellExtContainer::Instance.SaveStatic();
 
 	return res;

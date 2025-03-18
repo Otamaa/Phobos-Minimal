@@ -54,7 +54,9 @@ void SidebarExtData::DrawProducingProgress()
 
 				if(pFactory) {
 
-					const int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1)) ;
+					int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1)) ;
+					idxFrame = idxFrame > pSHP->Frames  ? pSHP->Frames: idxFrame;
+
 					Point2D vPos = { XBase + i * XOffset, YBase };
 					RectangleStruct sidebarRect = DSurface::Sidebar()->Get_Rect();
 

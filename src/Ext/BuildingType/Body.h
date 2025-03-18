@@ -343,6 +343,8 @@ public:
 	Nullable<bool> Cameo_ShouldCount {};
 
 	Valueable<bool> IsAnimDelayedBurst { true };
+	Valueable<bool> AllowAlliesRepair { false };
+	Valueable<bool> AllowRepairFlyMZone { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

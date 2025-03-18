@@ -14,6 +14,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Anim/Body.h>
 
 #include "Header.h"
 
@@ -37,7 +38,12 @@ ASMJIT_PATCH(0x415085, AircraftClass_Update_DamageSmoke, 7)
 	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed) {
 		if (pThis->GetHeight() > 0) {
 			if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
-				GameCreate<AnimClass>(pType, pThis->Location)->Owner = pThis->GetOwningHouse();
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pThis->Location),
+					pThis->Owner,
+					nullptr,
+					nullptr,
+					false
+				);
 			}
 		}
 	}

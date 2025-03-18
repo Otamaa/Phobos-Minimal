@@ -36,10 +36,10 @@ void Phobos::ExecuteLua()
 				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 				GetComputerName(PCName, &dwSize);
 
-				if (IS_SAME_STR_(PCName, adminName.c_str()))
-				{
+				if (IS_SAME_STR_(PCName, adminName.c_str())) {
 					Phobos::Config::MultiThreadSinglePlayer = false;
 					Phobos::Config::DebugFatalerrorGenerateDump = true;
+					//Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
 					Phobos::Otamaa::IsAdmin = true;
 				}
 			}
@@ -147,5 +147,4 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	LuaBridge::InitScriptLuaList(unique_lua);
 }

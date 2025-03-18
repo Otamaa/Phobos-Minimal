@@ -1643,6 +1643,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->NextBuilding_Prev.Read(exINI, pSection, "NextBuilding.Prev");
 		}
 		
+		this->AllowAlliesRepair.Read(exINI, pSection, "AllowAlliesRepair");
+		this->AllowRepairFlyMZone.Read(exINI, pSection, "AllowRepairFlyMZone");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2078,6 +2080,9 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Cameo_ShouldCount)
 
 		.Process(this->IsAnimDelayedBurst)
+
+		.Process(this->AllowAlliesRepair)
+		.Process(this->AllowRepairFlyMZone)
 		;
 }
 

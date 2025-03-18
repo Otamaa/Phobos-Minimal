@@ -38,7 +38,24 @@
 #include <Lib/asmjit/x86.h>
 
 std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
-asmjit::ErrorHandler gJitErrorHandler;
+class asmjitErrHandler : public asmjit::ErrorHandler
+{
+public:
+	void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+		Debug::LogDeferred("AsmJit ERROR: %s\n", message);
+	}
+};
+
+class asmjitLoggerHandler : public asmjit::Logger
+{
+public:
+	asmjit::Error _log(const char* data, size_t size) noexcept override
+	{
+		Debug::LogDeferred("AsmJit : %s\n", data);
+		return asmjit::kErrorOk;
+	}
+};
+asmjitErrHandler gJitErrorHandler;
 
 namespace Assembly
 {
@@ -63,7 +80,7 @@ void ApplyasmjitPatch() {
 			continue;
 
 		if (hook.second.size() > 1) {
-			Debug::LogDeferred("hook at 0x%x , has %d hooks registered !\n", hook.first, hook.second.size());
+			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", hook.first, hook.second.size());
 		}
 		size_t hook_size = hook.second[0].size;
 		asmjit::CodeHolder code;
@@ -117,7 +134,7 @@ void ApplyasmjitPatch() {
 		}
 		assembly.embed(originalCode.data(), originalCode.size());
 		assembly.jmp(hook.first + hookSize);
-		const void* fn;
+		const void* fn {};
 		gJitRuntime->add(&fn, &code);
 		code.reset();
 		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
@@ -684,6 +701,16 @@ static void __cdecl PatchExit(int uExitCode) {
 	Debug::DetachLogger();
 }
 
+static void __cdecl PatchExitB(int uExitCode)
+{
+	Phobos::ExeTerminate();
+#ifdef EXPERIMENTAL_IMGUI
+	PhobosWindowClass::Destroy();
+#endif
+	CRT::exit_returnsomething(uExitCode, 1, 0);
+	Debug::DetachLogger();
+}
+
 DECLARE_PATCH(_set_fp_mode)
 {
 	// Call to "store_fpu_codeword"
@@ -704,10 +731,6 @@ DECLARE_PATCH(_set_fp_mode)
 }
 
 #include <Misc/Multithread.h>
-
-//DEFINE_HOOK(0x7CD810, OnGameEntryPoint, 0x9) {
-//	return 0;
-//}
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -730,6 +753,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Patch::Apply_CALL(0x6BE1B0, &PatchExit);
 		Patch::Apply_CALL(0x6BEC51, &PatchExit);
 		Patch::Apply_CALL(0x7CD8F3, &PatchExit);
+
+		Patch::Apply_CALL(0x7CD912, &PatchExitB);
+		Patch::Apply_CALL(0x7CD933, &PatchExitB);
+		Patch::Apply_CALL(0x7D4AD8, &PatchExitB);
+		Patch::Apply_CALL(0x7DC70C, &PatchExitB);
+		Patch::Apply_CALL(0x87C2A0, &PatchExitB);
 
 		const char* loadMode = lpReserved ? "statically" : "dynamicly";
 
@@ -797,8 +826,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 }
 
 #pragma region hooks
-
-DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)
+ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 {
 	// This happens right before LogicClass::Update()
 	enum { SkipSave = 0x55DC99, InitialSave = 0x55DBE6 };
@@ -827,18 +855,17 @@ DEFINE_HOOK(0x55DBCD, MainLoop_SaveGame, 0x6)
 	return SkipSave;
 }
 
-DEFINE_HOOK(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
+ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
 	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x52FEB7, Scenario_Start, 0x6)
-DEFINE_HOOK(0x52FE55, Scenario_Start, 0x6)
+ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 {
 	auto _seed = (DWORD)Game::Seed();
 	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
 	Phobos::Random::SetRandomSeed(Game::Seed());
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
@@ -846,7 +873,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
+ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
 {
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);

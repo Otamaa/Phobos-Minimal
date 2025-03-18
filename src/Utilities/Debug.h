@@ -143,7 +143,7 @@ public:
 	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
 
 	static COMPILETIMEEVAL FORCEDINLINE bool LogFileActive() {
-		return Debug::LogEnabled;
+		return Debug::LogEnabled && Debug::LogFile;
 	}
 
 	template <typename... TArgs>

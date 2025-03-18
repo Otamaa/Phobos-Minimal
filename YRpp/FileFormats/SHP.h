@@ -90,6 +90,9 @@ struct SHPReference : public SHPStruct
 	SHPReference(const char* filename)
 		{ JMP_THIS(0x69E430); }
 
+	~SHPReference()
+		{ JMP_THIS(0x69E500); }
+
 	SHPFile* GetData()
 		{ JMP_THIS(0x69E580); }
 

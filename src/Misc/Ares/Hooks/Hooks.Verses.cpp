@@ -77,14 +77,15 @@ ASMJIT_PATCH(0x489180, MapClass_GetTotalDamage, 0x6)
 			damage = MaxImpl(pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage, damage);
 
 		const double dDamage = (double)damage;
+		const float fDamage = (float)damage;
 		const double dCellSpreadRadius = pWH->CellSpread * Unsorted::d_LeptonsPerCell;
 		const int cellSpreadRadius = int(dCellSpreadRadius);
 
-		const double Atmax = double(dDamage * pWH->PercentAtMax);
+		const float Atmax = float(dDamage * pWH->PercentAtMax);
 		const auto vsData = pWH->GetVersesData(armor);
 
 		if (Atmax != dDamage && cellSpreadRadius) {
-			res = int((double)(dDamage - Atmax) * (double)(cellSpreadRadius - distance) / dCellSpreadRadius + Atmax);
+			res = int((fDamage - Atmax) * (double)(cellSpreadRadius - distance) / (double)cellSpreadRadius + Atmax);
 		} else {
 			res = damage;
 		}

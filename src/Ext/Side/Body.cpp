@@ -3,10 +3,10 @@
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
 
-UniqueGamePtrB<SHPStruct> SideExtData::s_GraphicalTextImage = nullptr;
+UniqueGamePtrC<SHPStruct> SideExtData::s_GraphicalTextImage = nullptr;
 ConvertClass* SideExtData::s_GraphicalTextConvert = nullptr;
 
-UniqueGamePtrB<SHPStruct> SideExtData::s_DialogBackgroundImage = nullptr;
+UniqueGamePtrC<SHPStruct> SideExtData::s_DialogBackgroundImage = nullptr;
 ConvertClass* SideExtData::s_DialogBackgroundConvert = nullptr;
 
 

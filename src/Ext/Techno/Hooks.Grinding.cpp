@@ -136,7 +136,7 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	if (WWKeyboardClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
+	if (auto pBuilding = cast_to<FakeBuildingClass*>(pTarget))
 	{
 		if (action == Action::Select
 			&& pThis->Owner->IsControlledByHuman()
@@ -146,7 +146,11 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 			{
 				const bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
 				const bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
-				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter : !isFlying ? Action::Enter : Action::NoEnter;
+				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter :
+					
+					((pBuilding->_GetTypeExtData()->AllowRepairFlyMZone && isFlying) || !isFlying) ? Action::Enter : Action::NoEnter;
+
+
 				R->EBX(action);
 			}
 			else if (pBuilding->Type->Grinding)

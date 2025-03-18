@@ -2,6 +2,7 @@
 
 #include <Memory.h>
 
+//call gamedelete functuion without the DTOR
 template<typename T>
 struct UniqueGamePtr : public std::unique_ptr<T, GameDeleter> {
 
@@ -13,19 +14,27 @@ struct UniqueGamePtr : public std::unique_ptr<T, GameDeleter> {
 	}
 };
 
-template<typename T>
-struct UniqueGamePtrB : public std::unique_ptr<T, GameDTORCaller>{
+// //call only the DTOR
+// template<typename T>
+// struct UniqueGamePtrB : public std::unique_ptr<T, GameDTORCaller>{
+//
+// 	COMPILETIMEEVAL UniqueGamePtrB<T>() noexcept : std::unique_ptr<T, GameDTORCaller>()
+// 	{ }
+//
+// 	COMPILETIMEEVAL UniqueGamePtrB<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDTORCaller>() {
+// 		this->reset(_ptr);
+// 	}
+// };
 
-	COMPILETIMEEVAL UniqueGamePtrB<T>() noexcept : std::unique_ptr<T, GameDTORCaller>()
+//call gamedelete functuion with the DTOR
+template<typename T>
+struct UniqueGamePtrC : public std::unique_ptr<T, GameDeleterWithDTOR>{
+
+	COMPILETIMEEVAL UniqueGamePtrC<T>() noexcept : std::unique_ptr<T, GameDeleterWithDTOR>()
 	{ }
 
-	COMPILETIMEEVAL UniqueGamePtrB<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDTORCaller>() {
+	COMPILETIMEEVAL UniqueGamePtrC<T>(T* _ptr) noexcept : std::unique_ptr<T, GameDeleterWithDTOR>() {
 		this->reset(_ptr);
 	}
 };
 
-//template <typename T>
-//using UniqueGamePtrB = std::unique_ptr<T, GameDTORCaller>;
-
-//template <typename T>
-//using UniqueGamePtr = std::unique_ptr<T, GameDeleter>;

@@ -715,7 +715,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (pINI == CCINIClass::INI_Rules())
 	{
-
 		//Load All the default value here
 		this->ElectricDeath = AnimTypeClass::FindOrAllocate("ELECTRO");
 		this->DefaultParaPlane = AircraftTypeClass::FindOrAllocate(GameStrings::PDPLANE());
@@ -730,6 +729,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->FirestormIdleAnim = AnimTypeClass::FindOrAllocate("FSIDLE");
 		this->FirestormGroundAnim = AnimTypeClass::FindOrAllocate("FSGRND");
 		this->FirestormAirAnim = AnimTypeClass::FindOrAllocate("FSAIR");
+		this->XGRYMED1_ = AnimTypeClass::FindOrAllocate("XGRYMED1");
+		this->XGRYMED2_ = AnimTypeClass::FindOrAllocate("XGRYMED2");
+		this->XGRYSML1_ = AnimTypeClass::FindOrAllocate("XGRYSML1");
 	}
 
 	GenericPrerequisite::LoadFromINIList_New(pINI);
@@ -1497,6 +1499,10 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->RecountBurst)
 		.Process(this->AirstrikeLineColor)
+
+		.Process(this->XGRYMED1_)
+		.Process(this->XGRYMED2_)
+		.Process(this->XGRYSML1_)
 		;
 
 	MyPutData.Serialize(Stm);

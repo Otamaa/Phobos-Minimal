@@ -1165,3 +1165,42 @@ ASMJIT_PATCH(0x4C7A14, EventClass_RespondToEvent_SaveGame, 0x5)
 	SpawnerMain::Configs::DoSave = true;
 	return 0x4C7B42;
 }
+
+#include <Ext/BuildingType/Body.h>
+#include <Ext/Building/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
+
+// Allow allies to repair on service depot
+ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
+{
+	enum { Allow = 0x70059D, DisAllow = 0x7005E6 };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(ObjectClass*, pObject, EDI);
+
+	if(auto const pBuilding = cast_to<FakeBuildingClass* const>(pObject)){
+		if (pBuilding->_GetTypeExtData()->AllowAlliesRepair) { 
+			return (pBuilding->Owner->IsAlliedWith(pThis))
+				? Allow
+				: DisAllow;
+		}
+	}
+
+	return pThis->Owner != pObject->GetOwningHouse() ? DisAllow : Allow;
+}
+
+// Allow Dogs & Flak Troopers to get a speed boost
+// Skip Crawls check on InfantryType
+// https://github.com/CnCNet/yr-patches/issues/15
+ASMJIT_PATCH(0x51D77A, InfantryClass_DoAction_AllowReceiveSpeedBoost, 5) {
+	enum { Allow = 0x51D793, DisAllow = 0x51D77F };
+
+	GET(FakeInfantryClass*, pThis, ESI);
+	GET(DoType, sequence, EDI);
+
+	if (pThis->_GetTypeExtData()->AllowReceiveSpeedBoost)
+		return Allow;
+
+	return sequence == DoType::Crawl && !pThis->Crawling ? DisAllow : Allow;
+}

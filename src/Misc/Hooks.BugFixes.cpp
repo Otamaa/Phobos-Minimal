@@ -2288,3 +2288,26 @@ ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 	return 0;
 
 }
+
+// Radio: do not untether techno who have other tether link
+ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_NotifyUnlink, 0x7)
+{
+	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
+	GET(TechnoClass* const, pThis, ESI);
+	// The radio link capacity of some technos can be greater than 1 (like airport)
+	// Here is a specific example, there may be other situations as well:
+	// - Untether without check may result in `AirportBound=no` aircraft being unable to release from `IsTether` status.
+	// - Specifically, all four aircraft are connected to the airport and have `RadioLink` settings, but when the first aircraft
+	//   is `Unlink` from the airport, all subsequent aircraft will be stuck in `IsTether` status.
+	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
+	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
+	//   which may lead to some unexpected situations.
+	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
+		if (const auto pLink = pThis->RadioLinks.Items[i]) {
+			if (pLink->IsTethered) // If there's another tether link, reset flag to true
+				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
+		}
+	}
+
+	return 0;
+}
