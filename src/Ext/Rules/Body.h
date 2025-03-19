@@ -458,7 +458,7 @@ public:
 
 	Valueable<bool> JumpjetTilt {};
 
-	Valueable<bool> NoTurret_TrackTarget { false };
+	Valueable<bool> NoTurret_TrackTarget { true };
 
 	Valueable<bool> RecountBurst { false };
 	Valueable<ColorStruct> AirstrikeLineColor { { 255, 0, 0 } };
