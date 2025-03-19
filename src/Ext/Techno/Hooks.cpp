@@ -295,18 +295,18 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = false;
 
-	bool rearm = currentBurstIdx >= pWeapon->Burst;
+	bool rearm = false;
 
 	// Currently only used with infantry, so a performance saving measure.
-	if (const auto pInf = cast_to<InfantryClass*, false>(pThis))
-	{
-		const auto pInfExt = InfantryExtContainer::Instance.Find(pInf);
-		if (pInfExt->ForceFullRearmDelay)
-		{
-			pInfExt->ForceFullRearmDelay = false;
+	if (const auto pInf = cast_to<FakeInfantryClass*, false>(pThis)) {
+		if (pInf->_GetExtData()->ForceFullRearmDelay) {
+			pInf->_GetExtData()->ForceFullRearmDelay = false;
 			pThis->CurrentBurstIndex = 0;
 			rearm = true;
 		}
+
+	} else {
+		rearm = currentBurstIdx >= pWeapon->Burst;
 	}
 
 	if (!rearm)
@@ -422,6 +422,7 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	int cumulativeDelay = 0;
 	int projectedDelay = 0;
+	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	// Calculate cumulative burst delay as well cumulative SellSounddelay after next shot (projected delay).
 	if (pWeaponExt->Burst_FireWithinSequence)
