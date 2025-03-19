@@ -76,8 +76,11 @@ void ApplyasmjitPatch() {
 
 	for (auto& hook : Hooks) {
 
-		if (hook.second.empty())
+		if (hook.second.empty()) {
+			Debug::LogDeferred("hook at 0x%x is empty !\n", hook.first);
 			continue;
+		}
+			
 
 		if (hook.second.size() > 1) {
 			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", hook.first, hook.second.size());
