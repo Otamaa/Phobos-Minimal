@@ -108,9 +108,10 @@ void ApplyasmjitPatch() {
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
-			assembly.bind(l_origin);
+		
 		}
 
+		assembly.bind(l_origin);
 		void* hookAddress = (void*)hook.first;
 
 		std::vector<byte> originalCode(hookSize);

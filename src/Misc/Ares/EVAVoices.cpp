@@ -4,7 +4,8 @@
 
 #include <Phobos.CRT.h>
 
-#include <Helpers\Macro.h>
+#include <Utilities/Macro.h>
+
 #include <CCINIClass.h>
 
 #include <Ext/Side/Body.h>
@@ -173,14 +174,25 @@ ASMJIT_PATCH(0x753380, VoxClass_GetFilename, 5)
 	return 0x753398;
 }
 
-ASMJIT_PATCH(0x7534e0 , VoxClass_SetEVAIndex , 5)
-{	GET(int ,side , ECX);
-
-	if (auto pSide = SideClass::Array->GetItemOrDefault(side)) {
+void __fastcall VoxClass_SetEvaIndex(int house) {
+	if (auto pSide = SideClass::Array->GetItemOrDefault(house)) {
 		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
-	} else {
-		VoxClass::EVAIndex = -1;
+	} else if(house == -1) {
+		VoxClass::EVAIndex = 0;
 	}
-
-	return 0x7534F3;
 }
+
+DEFINE_FUNCTION_JUMP(CALL,0x534FAC, VoxClass_SetEvaIndex);
+DEFINE_FUNCTION_JUMP(LJMP,0x7534E0, VoxClass_SetEvaIndex);
+
+//ASMJIT_PATCH(0x7534e0 , VoxClass_SetEVAIndex , 5)
+//{	GET(int ,side , ECX);
+//
+//	if (auto pSide = SideClass::Array->GetItemOrDefault(side)) {
+//		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+//	} else {
+//		VoxClass::EVAIndex = -1;
+//	}
+//
+//	return 0x7534F3;
+//}

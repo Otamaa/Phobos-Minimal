@@ -92,6 +92,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 			if (pExt->Airburst_UseCluster) {
 				HelperedVector<AbstractClass*> newTargets;
+				newTargets.reserve(cluster + 1);
 
 				if (pExt->Airburst_RandomClusters)
 				{
