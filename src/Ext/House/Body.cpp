@@ -1896,6 +1896,19 @@ int HouseExtData::GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval)
 	return std::max(count, 0);
 }
 
+int HouseExtData::GetForceEnemyIndex()
+{
+	return this->ForceEnemyIndex;
+}
+
+void HouseExtData::SetForceEnemy(int EnemyIndex)
+{
+	if (EnemyIndex < 0 && EnemyIndex != -2)
+		this->ForceEnemyIndex = -1;
+	else
+		this->ForceEnemyIndex = EnemyIndex;
+}
+
 //void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
 //{
 //	if (pTechnoType)
@@ -2058,6 +2071,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->NumShipyards_NonMFB)
 
 		.Process(this->SuspendedEMPulseSWs)
+		.Process(this->ForceEnemyIndex)
 		;
 }
 

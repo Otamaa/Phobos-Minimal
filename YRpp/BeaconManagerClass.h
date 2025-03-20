@@ -16,7 +16,7 @@ public:
 	static COMPILETIMEEVAL reference<SHPStruct*, 0x89C474> const BeaconArt {};
 	static COMPILETIMEEVAL reference<SHPStruct*, 0x89C478> const RadarBeaconArt {};
 
-	BeaconManagerClass() JMP_THIS(0x430912);
+	BeaconManagerClass() JMP_THIS(0x430910);
 	~BeaconManagerClass() JMP_THIS(0x430930); // just an inlined Reset
 
 	void Reset() JMP_THIS(0x430980);

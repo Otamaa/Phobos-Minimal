@@ -295,7 +295,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = false;
 
-	bool rearm = false;
+	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
 	// Currently only used with infantry, so a performance saving measure.
 	if (const auto pInf = cast_to<FakeInfantryClass*, false>(pThis)) {
@@ -304,9 +304,6 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 			pThis->CurrentBurstIndex = 0;
 			rearm = true;
 		}
-
-	} else {
-		rearm = currentBurstIdx >= pWeapon->Burst;
 	}
 
 	if (!rearm)

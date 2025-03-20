@@ -854,7 +854,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->TogglePowerAllowed.Read(exINI, GameStrings::General(), "TogglePowerAllowed");
 	this->TogglePowerDelay.Read(exINI, GameStrings::General(), "TogglePowerDelay");
 	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
+
 	this->GainSelfHealAllowMultiplayPassive.Read(exINI, GameStrings::General(), "GainSelfHealAllowMultiplayPassive");
+	this->GainSelfHealFromPlayerControl.Read(exINI, GameStrings::General, "GainSelfHealFromPlayerControl");
+	this->GainSelfHealFromAllies.Read(exINI, GameStrings::General, "GainSelfHealFromAllies");
+
 	this->VeinsDamagingWeightTreshold.Read(exINI, GameStrings::General(), "VeinsDamagingWeightTreshold");
 	this->VeinholePal.Read(exINI, GameStrings::General(), "VeinholePalette");
 	this->DegradeEnabled.Read(exINI, GameStrings::General(), "Degrade.Enabled");
@@ -1340,7 +1344,11 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->TogglePowerAllowed)
 		.Process(this->TogglePowerDelay)
 		.Process(this->TogglePowerIQ)
+
 		.Process(this->GainSelfHealAllowMultiplayPassive)
+		.Process(this->GainSelfHealFromPlayerControl)
+		.Process(this->GainSelfHealFromAllies)
+
 		.Process(this->VeinsDamagingWeightTreshold)
 		.Process(this->VeinholePal)
 		.Process(this->Veinhole_Warhead)

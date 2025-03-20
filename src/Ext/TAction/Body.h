@@ -45,6 +45,11 @@ enum class PhobosTriggerAction : unsigned int
 	//#1549
 	ResetHateValue = 606,
 
+	//
+	EditAngerNode = 607,
+	ClearAngerNode = 608,
+	SetForceEnemy = 609,
+
 	//#620
 	MessageForSpecifiedHouse = 9931,
 
@@ -165,5 +170,10 @@ public:
 	ACTION_FUNC(SetDropCrate);
 
 	ACTION_FUNC(ResetHateValue);
+
+	ACTION_FUNC(EditAngerNode);
+	ACTION_FUNC(ClearAngerNode);
+	ACTION_FUNC(SetForceEnemy);
+
 #undef ACTION_FUNC
 };

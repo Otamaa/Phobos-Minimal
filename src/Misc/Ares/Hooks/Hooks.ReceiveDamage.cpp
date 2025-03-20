@@ -2349,7 +2349,7 @@ ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	bool isPlayerControlled = pThis->Owner->ControlledByCurrentPlayer();
-	bool selected = pThis->IsSelected || isPlayerControlled;
+	bool selected = pThis->IsSelected && isPlayerControlled;
 
 	if (!args.IgnoreDefenses)
 	{
@@ -2491,7 +2491,6 @@ ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 		{
 			bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
 
-
 			if (!pTypeExt->Sinkable.Get(ShouldSink)
 			   || pThis->GetCell()->LandType != LandType::Water
 			   || pThis->WarpingOut)
@@ -2505,7 +2504,7 @@ ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 					GameCreate<AnimClass>(RulesClass::Instance->Wake, pThis->Location, 0, 1, AnimFlag(0x600), 0, 0);
 					auto coord_splash = pThis->Location;
 					coord_splash += CoordStruct(0, 0, 5);
-					GameCreate<AnimClass>(RulesClass::Instance->SplashList.Items[0], pThis->Location, 0, 1, AnimFlag(0x600), 0, 0);
+					GameCreate<AnimClass>(RulesClass::Instance->SplashList.Items[RulesClass::Instance->SplashList.Count - 1], pThis->Location, 0, 1, AnimFlag(0x600), 0, 0);
 				}
 				else
 				{

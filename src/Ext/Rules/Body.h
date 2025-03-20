@@ -266,6 +266,8 @@ public:
 	Valueable<int> TogglePowerIQ { -1 };
 
 	Valueable<bool> GainSelfHealAllowMultiplayPassive { false };
+	Valueable<bool> GainSelfHealFromPlayerControl { false };
+	Valueable<bool> GainSelfHealFromAllies { false };
 
 	Nullable<double> VeinsDamagingWeightTreshold {};
 	Valueable<PaletteManager*> VeinholePal {};

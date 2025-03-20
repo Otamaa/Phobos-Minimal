@@ -189,6 +189,7 @@ public:
 
 	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
 
+	int ForceEnemyIndex { -1 };
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
@@ -226,6 +227,9 @@ public:
 
 	void UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, bool isNaval);
 	int GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval);
+
+	int GetForceEnemyIndex();
+	void SetForceEnemy(int EnemyIndex);
 
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 

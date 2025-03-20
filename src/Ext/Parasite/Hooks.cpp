@@ -130,6 +130,45 @@ ASMJIT_PATCH(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	return ReceiveDamage_LikeVehicle;
 }
 
+ASMJIT_PATCH(0x629C67, ParasiteClass_AI_AllowSink, 0xA)
+{
+	GET(ParasiteClass* const, pThis, ESI);
+	GET(TechnoClass*, pVictim, EDI);
+
+	if (auto pUnit = cast_to<UnitClass*, false>(pVictim)) {
+	
+		bool ShouldSink = pUnit->Type->Weight > RulesClass::Instance->ShipSinkingWeight
+			&& pUnit->Type->Naval 
+			&& !pUnit->Type->Underwater
+			&& !pUnit->Type->Organic;
+
+		
+		if (TechnoTypeExtContainer::Instance.Find(pUnit->Type)->Sinkable.Get(ShouldSink))
+			return 0x0;
+
+		pUnit->Health = 0;
+		pUnit->IsAlive = false;
+		pUnit->Destroyed(pThis->Owner);
+
+		if (pUnit->GetHeight() <= 10
+		  && pUnit->IsABomb
+		  && (pUnit->GetCell()->LandType == LandType::Water))
+		{
+			GameCreate<AnimClass>(RulesClass::Instance->Wake, pUnit->Location, 0, 1, AnimFlag(0x600), 0, 0);
+			GameCreate<AnimClass>(RulesClass::Instance->SplashList.Items[RulesClass::Instance->SplashList.Count - 1], pUnit->Location, 0, 1, AnimFlag(0x600), 0, 0);
+		} else {
+			TechnoExtContainer::Instance.Find(pUnit)->ReceiveDamage = true;
+			auto pWP = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite);
+			AnimTypeExtData::ProcessDestroyAnims(pUnit, pThis->Owner, pWP->WeaponType->Warhead);
+			pUnit->Explode();
+		}
+
+		pUnit->UnInit();
+		return 0x629C86;
+	}
+
+	return 0x0;
+}
 //ASMJIT_PATCH(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
 //{
 //	enum

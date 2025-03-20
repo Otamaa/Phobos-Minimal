@@ -590,6 +590,12 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	case PhobosTriggerAction::SetDropCrate:
 		ret = TActionExt::SetDropCrate(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
+	case PhobosTriggerAction::EditAngerNode:
+		return TActionExt::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+	case PhobosTriggerAction::ClearAngerNode:
+		return TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+	case PhobosTriggerAction::SetForceEnemy:
+		return TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
 	default:
 	{
 
@@ -607,6 +613,124 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 
 		return false;
 	}
+	}
+
+	return true;
+}
+
+bool TActionExt::EditAngerNode(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	auto setValue = [pThis, pHouse](HouseClass* pTargetHouse)
+		{
+			if (!pTargetHouse || pHouse == pTargetHouse ||
+				pHouse->IsAlliedWith(pTargetHouse))
+				return;
+
+			for (auto& pAngerNode : pHouse->AngerNodes)
+			{
+				if (pAngerNode.House != pTargetHouse)
+					continue;
+
+				switch (pThis->Param3)
+				{
+				case 0: { pAngerNode.AngerLevel = pThis->Param4; break; }
+				case 1: { pAngerNode.AngerLevel += pThis->Param4; break; }
+				case 2: { pAngerNode.AngerLevel -= pThis->Param4; break; }
+				case 3: { pAngerNode.AngerLevel *= pThis->Param4; break; }
+				case 4: { pAngerNode.AngerLevel /= pThis->Param4; break; }
+				case 5: { pAngerNode.AngerLevel %= pThis->Param4; break; }
+				case 6: { pAngerNode.AngerLevel <<= pThis->Param4; break; }
+				case 7: { pAngerNode.AngerLevel >>= pThis->Param4; break; }
+				case 8: { pAngerNode.AngerLevel = ~pAngerNode.AngerLevel; break; }
+				case 9: { pAngerNode.AngerLevel ^= pThis->Param4; break; }
+				case 10: { pAngerNode.AngerLevel |= pThis->Param4; break; }
+				case 11: { pAngerNode.AngerLevel &= pThis->Param4; break; }
+				default:break;
+				}
+
+				break;
+			}
+		};
+
+	if (pHouse->AngerNodes.Count > 0)
+	{
+		if (pThis->Value >= 0)
+		{
+			HouseClass* pTargetHouse = HouseClass::Index_IsMP(pThis->Value) ?
+				HouseClass::FindByIndex(pThis->Value) :
+				HouseClass::FindByCountryIndex(pThis->Value);
+
+			setValue(pTargetHouse);
+		}
+		else
+		{
+			for (auto pTargetHouse : *HouseClass::Array)
+			{
+				setValue(pTargetHouse);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExt::ClearAngerNode(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (pThis->Value >= 0)
+	{
+		HouseClass* pTargetHouse = HouseClass::Index_IsMP(pThis->Value) ?
+			HouseClass::FindByIndex(pThis->Value) :
+			HouseClass::FindByCountryIndex(pThis->Value);
+
+		if (pTargetHouse && pTargetHouse->AngerNodes.Count > 0)
+		{
+			for (auto& pAngerNode : pTargetHouse->AngerNodes)
+				pAngerNode.AngerLevel = 0;
+		}
+	}
+	else
+	{
+		for (auto pTargetHouse :*HouseClass::Array)
+		{
+			if (pTargetHouse->AngerNodes.Count <= 0)
+				continue;
+
+			for (auto& pAngerNode : pTargetHouse->AngerNodes)
+				pAngerNode.AngerLevel = 0;
+		}
+	}
+
+	return true;
+}
+
+bool TActionExt::SetForceEnemy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (pThis->Param3 >= 0 || pThis->Param3 == -2)
+	{
+		if (pThis->Param3 != -2)
+		{
+			HouseClass* pTargetHouse = HouseClass::Index_IsMP(pThis->Param3) ?
+				HouseClass::FindByIndex(pThis->Param3) :
+				HouseClass::FindByCountryIndex(pThis->Param3);
+
+			if (pTargetHouse && !pHouse->IsAlliedWith(pTargetHouse))
+			{
+				pHouseExt->SetForceEnemy(pTargetHouse->GetArrayIndex());
+				pHouse->EnemyHouseIndex = pTargetHouse->GetArrayIndex();
+			}
+		}
+		else
+		{
+			pHouseExt->SetForceEnemy(-2);
+			pHouse->EnemyHouseIndex = -1;
+		}
+	}
+	else
+	{
+		pHouseExt->SetForceEnemy(-1);
+		pHouse->UpdateAngerNodes(0, nullptr);
 	}
 
 	return true;
