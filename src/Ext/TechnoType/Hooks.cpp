@@ -614,3 +614,33 @@ ASMJIT_PATCH(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 
 	return 0x6FE140;
 }
+
+ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(TechnoClass*, pAttacker, EDI);
+
+	if (pThis && pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+		}
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
+{
+	GET(UnitClass* const, pThis, ESI);
+
+	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
+
+	if (!Extension->ReceiveDamage)
+	{
+		AnimTypeExtData::ProcessDestroyAnims(pThis);
+	}
+
+	return 0x73887E;
+}

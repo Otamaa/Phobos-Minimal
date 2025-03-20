@@ -92,7 +92,7 @@ public:
 	static void __fastcall ReadINI(CCINIClass* pINI) JMP_STD(0x743270);
 	static void __fastcall WriteINI(CCINIClass* pINI) JMP_STD(0x7436E0);
 
-	bool ShouldCrashIt(TechnoClass* pTarget) JMP_THIS(0x7438F0);
+	bool ShouldCrushIt(TechnoClass* pTarget) JMP_THIS(0x7438F0);
 
 	AbstractClass* AssignDestination_7447B0(AbstractClass* pTarget) JMP_THIS(0x7447B0);
 	bool AStarAttempt(const CellStruct& cell1, const CellStruct& cell2) JMP_THIS(0x746000);

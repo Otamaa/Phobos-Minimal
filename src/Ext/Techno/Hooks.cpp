@@ -1079,6 +1079,16 @@ ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 	return SkipGameCode;
 }
 
+ASMJIT_PATCH(0x7364DC, UnitClass_Update_SinkSpeed, 0x7)
+{
+	GET(UnitClass* const, pThis, ESI);
+	GET(int, CoordZ, EDX);
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	R->EDX(CoordZ - (pTypeExt->SinkSpeed - 5));
+	return 0;
+}
+
 //ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ESI);

@@ -337,7 +337,7 @@ public:
 	}
 
 	DamageState TakeDamage(int damage, WarheadTypeClass* pWH, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr) {
-		return ReceiveDamage(&damage, 0, pWH, pAttacker, ignoreDefenses, !crewed, pAttackingHouse);
+		return ReceiveDamage(&damage, 0, pWH, pAttacker, ignoreDefenses, crewed, pAttackingHouse);
 	}
 
 	DamageState TakeDamage(int damage, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr);

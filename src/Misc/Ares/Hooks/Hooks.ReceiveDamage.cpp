@@ -638,8 +638,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			auto pAttackerType = args.Attacker->GetTechnoType();
 			if (pType == pAttackerType && pThis->Owner == args.Attacker->Owner)
 			{
-					R->EAX(DamageState::Unaffected);
-					return 0x702D1F;
+				R->EAX(DamageState::Unaffected);
+				return 0x702D1F;
 			}
 		}
 	}
@@ -804,11 +804,13 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		if (_res != DamageState::Unaffected
 			&& _res != DamageState::NowDead
-			&& pType->CanDisguise 
+			&& pType->CanDisguise
 			&& !pType->PermaDisguise
-			) {
+			)
+		{
 
-			if (pThis->IsDisguised()) {
+			if (pThis->IsDisguised())
+			{
 				pThis->ClearDisguise();
 			}
 
@@ -832,7 +834,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			if (pType->VoiceFeedback.Count > 0
 				&& Random2Class::NonCriticalRandomNumber->RandomRanged(0, 99) < 30
 					  && pThis->Owner->ControlledByCurrentPlayer())
-			{			
+			{
 				VocClass::PlayIndexAtPos(pType->VoiceFeedback.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceFeedback.Count - 1), pThis->Location, 0);
 			}
 			goto LABEL_191;
@@ -860,7 +862,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				}
 			}
 
-			if(!pThis->IsAlive)
+			if (!pThis->IsAlive)
 				goto LABEL_191;
 
 			if (auto pManager = pThis->SlaveManager)
@@ -916,9 +918,12 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				auto const& nSound = pWHExt->DieSound_Override;
 
-				if (nSound.isset()) {
+				if (nSound.isset())
+				{
 					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				} else {
+				}
+				else
+				{
 					VocClass::PlayIndexAtPos(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], pThis->Location);
 				}
 			}
@@ -927,9 +932,12 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				auto const& nSound = pWHExt->VoiceSound_Override;
 
-				if (nSound.isset()) {
+				if (nSound.isset())
+				{
 					VocClass::PlayIndexAtPos(nSound, pThis->Location);
-				} else {
+				}
+				else
+				{
 					VocClass::PlayIndexAtPos(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], pThis->Location);
 				}
 			}
@@ -1311,24 +1319,24 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			return 0x702D1F;
 		}
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pThis))
+		if (auto pBld = cast_to<BuildingClass*, false>(pThis))
+		{
+			if (!pBld->Type->EligibleForDelayKill)
 			{
-				if (!pBld->Type->EligibleForDelayKill)
-				{
-					goto LABEL_94;
-				}
-
-				const int v22 = (int)(((double)args.WH->DelayKillAtMax * (double)args.WH->DelayKillFrames - (double)args.WH->DelayKillFrames)
-				  / (double)((int)args.WH->CellSpread << 8)
-				  * (double)args.DistanceToEpicenter
-				  + (double)args.WH->DelayKillFrames);
-
-				if (!pBld->IsGoingToBlow || pBld->GoingToBlowTimer.Expired())
-				{
-					pBld->GoingToBlowTimer.Start(v22);
-					pBld->IsGoingToBlow = true;
-				}
+				goto LABEL_94;
 			}
+
+			const int v22 = (int)(((double)args.WH->DelayKillAtMax * (double)args.WH->DelayKillFrames - (double)args.WH->DelayKillFrames)
+			  / (double)((int)args.WH->CellSpread << 8)
+			  * (double)args.DistanceToEpicenter
+			  + (double)args.WH->DelayKillFrames);
+
+			if (!pBld->IsGoingToBlow || pBld->GoingToBlowTimer.Expired())
+			{
+				pBld->GoingToBlowTimer.Start(v22);
+				pBld->IsGoingToBlow = true;
+			}
+		}
 		}
 	}
 
@@ -1445,7 +1453,7 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
-					for (auto fnd= foundation; (fnd->X != 0x7FFF || fnd->Y != 0x7FFF); ++fnd)
+					for (auto fnd = foundation; (fnd->X != 0x7FFF || fnd->Y != 0x7FFF); ++fnd)
 					{
 						auto const& [nCellX, nCellY] = pThis->InlineMapCoords() + *fnd;
 						CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
@@ -1471,12 +1479,12 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 						case 3:
 						case 4:
 						case 5:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 0);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1, pFireType.size()), 0);
 							break;
 						case 6:
 						case 7:
 						case 8:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 1);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1, pFireType.size()), 1);
 							break;
 						case 9:
 							PlayFireAnim();
@@ -1534,12 +1542,12 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 						case 3:
 						case 4:
 						case 5:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 0);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1, pFireType.size()), 0);
 							break;
 						case 6:
 						case 7:
 						case 8:
-							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1 , pFireType.size()), 1);
+							PlayFireAnim(ScenarioClass::Instance->Random.RandomRanged(1, pFireType.size()), 1);
 							break;
 						case 9:
 							PlayFireAnim();
@@ -1556,9 +1564,12 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		case DamageState::NowDead:
 		{
 
-			if (auto pLinked = pThis->BunkerLinkedItem) {
-				for (int i = 0; i < (int)CachedRadio->size(); ++i) {
-					if (CachedRadio[i] == pLinked) {
+			if (auto pLinked = pThis->BunkerLinkedItem)
+			{
+				for (int i = 0; i < (int)CachedRadio->size(); ++i)
+				{
+					if (CachedRadio[i] == pLinked)
+					{
 						CachedRadio->erase(CachedRadio->begin() + i);
 					}
 				}
@@ -1582,11 +1593,15 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 			//if ((int)CachedRadio->size() != pThis->RadioLinks.Capacity && pThis->Type->Helipad)
 			//	Debug::LogInfo("Building {} - {} has inconsistent cache size of RadioLinks [O : {} ,  C : {}" , pThis->Type->ID, pThis->Owner->Type->ID , pThis->RadioLinks.Capacity , (int)CachedRadio->size());
 
-			for (int i = 0; i < (int)CachedRadio->size(); ++i) {
-				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 || pThis->Type->Helipad) {
+			for (int i = 0; i < (int)CachedRadio->size(); ++i)
+			{
+				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 || pThis->Type->Helipad)
+				{
 					int _damage = CachedRadio[i]->GetTechnoType()->Strength;
 					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-				} else {
+				}
+				else
+				{
 					pThis->SendCommand(RadioCommand::NotifyLeave, CachedRadio[i]);
 					CachedRadio[i]->QueueUpToEnter = nullptr;
 				}
@@ -1604,7 +1619,7 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				pSource->Deactivate();
 			}
 
-			pThis->Destroy(0u,args.Attacker,args.IgnoreDefenses, foundation);
+			pThis->Destroy(0u, args.Attacker, args.IgnoreDefenses, foundation);
 
 			auto Started = pThis->GoingToBlowTimer.StartTime;
 			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
@@ -2320,113 +2335,48 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 #pragma region Unit
 
-ASMJIT_PATCH(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
+ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 {
-	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
-	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
-}
+	GET(UnitClass*, pThis, ECX);
+	REF_STACK(args_ReceiveDamage, args, 0x4);
 
-ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pAttacker, EDI);
-
-	if (pThis && pThis->IsAlive && pAttacker)
+	DamageState _res = DamageState::Unaffected;
+	if (pThis->DeathFrameCounter > 0)
 	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
-		}
+		R->EAX(_res);
+		return 0x738679;
 	}
 
-	return 0x0;
-}
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+	bool isPlayerControlled = pThis->Owner->ControlledByCurrentPlayer();
+	bool selected = pThis->IsSelected || isPlayerControlled;
 
-ASMJIT_PATCH(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
-{
-	GET(UnitClass* const, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x44, -0x4));
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	R->ECX(R->ESI());
-	pExt->ReceiveDamage = true;
-	AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker, args.WH);
-	pThis->Destroy();
-	return 0x737F74;
-}
-
-ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
-
-	if (!Extension->ReceiveDamage)
+	if (!args.IgnoreDefenses)
 	{
-		AnimTypeExtData::ProcessDestroyAnims(pThis);
-	}
-
-	return 0x73887E;
-}
-
-// #895584: ships not taking damage when repaired in a shipyard. bug
-// was that the logic that prevented units from being damaged when
-// exiting a war factory applied here, too. added the Naval check.
-ASMJIT_PATCH(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
-{
-	GET(BuildingTypeClass*, pType, ECX);
-	return (pType->WeaponsFactory && !pType->Naval)
-		? 0x737CEE : 0x737D31;
-}
-
-ASMJIT_PATCH(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
-{
-	//GET(UnitTypeClass*, pType, EAX);
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x54);
-	GET_STACK(bool, select, 0x13);
-	GET_STACK(bool, ignoreDefenses, 0x58);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
-
-	if (pThis && pThis->Passengers.NumPassengers > 0)
-	{
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
+		if (auto pRadio = pThis->GetRadioContact())
 		{
-			auto pPassenger = pThis->Passengers.GetFirstPassenger();
-			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
-
-			if (pExt->OriginalPassengerOwner)
-				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
-
-			while (pPassenger->NextObject)
+			if (auto pBld = cast_to<BuildingClass*, false>(pRadio))
 			{
-				pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
-				pExt = TechnoExtContainer::Instance.Find(pPassenger);
-
-				if (pExt->OriginalPassengerOwner)
-					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+				// #895584: ships not taking damage when repaired in a shipyard. bug
+				// was that the logic that prevented units from being damaged when
+				// exiting a war factory applied here, too. added the Naval check.
+				if (pBld->Type->WeaponsFactory
+					&& !pBld->Type->Naval
+					&& MapClass::Instance->TryGetCellAt(pThis->Location)->GetBuilding() == pBld)
+				{
+					R->EAX(_res);
+					return 0x738679;
+				}
 			}
 		}
 	}
 
-	TechnoExt_ExtData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
-
-	R->EBX(-1);
-	return 0x73838A;
-}
-
-ASMJIT_PATCH(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
-{
-	GET(UnitClass* const, pThis, ESI);
-	GET(DamageState const, result, EAX);
+	_res = pThis->FootClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
 
 	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
-	if (result == DamageState::NowDead)
+	if (_res == DamageState::NowDead)
 	{
-
-		if (pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
+		if (pThis->IsAttackedByLocomotor && pThis->Type->Crashable)
 			pThis->IsAttackedByLocomotor = false;
 
 		//this cause desync ?
@@ -2453,25 +2403,191 @@ ASMJIT_PATCH(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 		}
 	}
 
-	if (result != DamageState::PostMortem && pThis->DeathFrameCounter > 0)
+	if (_res != DamageState::PostMortem && pThis->DeathFrameCounter > 0)
 	{
 		R->EAX(DamageState::PostMortem);
+		return 0x738679;
 	}
 
-	return 0;
-}
+	auto _CurCoord = pThis->GetCoords();
+	auto _CurCell = CellClass::Coord2Cell(_CurCoord);
+	auto pType = pThis->Type;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-ASMJIT_PATCH(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->DeathFrameCounter > 0)
+	if (_res != DamageState::PostMortem)
 	{
-		return 0x737D26;
+		if (_res != DamageState::NowDead)
+		{
+			if (_res != DamageState::Unaffected)
+			{
+
+				if (pThis->Type->Harvester
+					&& pWHExt->Malicious
+					&& !pWHExt->Nonprovocative
+					&& pThis->Owner == HouseClass::CurrentPlayer()
+					&& !pThis->Owner->IsObserver()) {
+					if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, _CurCell)) {
+						VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
+					}
+				}
+
+				if (!pThis->HaveAttackMoveTarget 
+					&& args.Attacker 
+					&& args.Attacker->IsAlive
+					&& !args.Attacker->IsSinking
+					&& !args.Attacker->IsCrashing
+					&& !args.Attacker->TemporalTargetingMe
+					&& !pThis->IsTethered
+					&& pThis->Owner->IsAlliedWith(args.Attacker)
+					&& isPlayerControlled)
+				{
+
+					if (pThis->ShouldCrushIt(args.Attacker))
+					{
+						pThis->SetDestination(args.Attacker, true);
+						pThis->QueueMission(Mission::Move, false);
+						R->EAX(_res);
+						return 0x738679;
+					}
+
+					if ((pType->Harvester || pType->Weeder)
+						&& pThis->GetPipFillLevel() > 0
+						&& pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+					{
+						TechnoClass* pDock = nullptr;
+						for (int i = 0; i < pType->Dock.Count; ++i)
+						{
+
+							pDock = pThis->FindDockingBay(pType->Dock.Items[i], 0, false);
+							if (pDock)
+								break;
+						}
+
+						if (pType->Dock.Count > 0 && !pDock)
+						{
+							R->EAX(_res);
+							return 0x738679;
+						}
+
+						if (!pThis->ContainsLink(pDock)&& pThis->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive)
+						{
+							pThis->QueueMission(Mission::Enter, false);
+						}
+					}
+				}
+			}
+			
+			R->EAX(_res);
+			return 0x738679;
+		}
+
+		if (auto pBunker = cast_to<BuildingClass*>(pThis->BunkerLinkedItem))
+		{
+			pBunker->ClearBunker();
+		}
+
+		if (pType->DeathFrames <= 0)
+		{
+			bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
+
+
+			if (!pTypeExt->Sinkable.Get(ShouldSink)
+			   || pThis->GetCell()->LandType != LandType::Water
+			   || pThis->WarpingOut)
+			{
+				pThis->Destroyed(args.Attacker);
+
+				if (pThis->GetHeight() <= 10
+				  && pThis->IsABomb
+				  && (pThis->GetCell()->LandType == LandType::Water))
+				{
+					GameCreate<AnimClass>(RulesClass::Instance->Wake, pThis->Location, 0, 1, AnimFlag(0x600), 0, 0);
+					auto coord_splash = pThis->Location;
+					coord_splash += CoordStruct(0, 0, 5);
+					GameCreate<AnimClass>(RulesClass::Instance->SplashList.Items[0], pThis->Location, 0, 1, AnimFlag(0x600), 0, 0);
+				}
+				else
+				{
+
+					pExt->ReceiveDamage = true;
+					AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker, args.WH);
+					pThis->Explode();
+				}
+			}
+			else
+			{
+				pThis->Destroyed(args.Attacker);
+				pThis->Health = 1;
+				pThis->IsAlive = 1;
+				pThis->IsSinking = 1;
+				pThis->Stun();
+			}
+		}
+		else
+		{
+			if (pThis->DeathFrameCounter == -1)
+			{
+				pThis->DeathFrameCounter = 0;
+				pThis->Destroyed(args.Attacker);
+			}
+
+			pThis->Health = 1;
+			pThis->IsAlive = 1;
+		}
+
+		pThis->UpdatePlacement(PlacementType::Remove);
+
+		if (pType->OpenTopped)
+			pThis->MarkPassengersAsExited();
+
+		if (pThis->Passengers.NumPassengers > 0)
+		{
+			if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
+			{
+				auto pPassenger = pThis->Passengers.GetFirstPassenger();
+				auto pPassengerExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+				if (pPassengerExt->OriginalPassengerOwner)
+					pPassenger->SetOwningHouse(pPassengerExt->OriginalPassengerOwner, false);
+
+				while (pPassenger->NextObject)
+				{
+					pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
+					pPassengerExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+					if (pExt->OriginalPassengerOwner)
+						pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+				}
+			}
+		}
+
+		TechnoExt_ExtData::SpawnSurvivors(pThis, args.Attacker, selected, args.IgnoreDefenses, args.PreventsPassengerEscape);
+
+		if (GameModeOptionsClass::Instance->Crates)
+		{
+			if (pType->CrateGoodie
+			  && (ScenarioClass::Instance->TruckCrate && !pType->IsTrain
+				  || ScenarioClass::Instance->TrainCrate && pType->IsTrain))
+			{
+
+				const auto crate_cell = MapClass::Instance->NearByLocation(pThis->GetMapCoords(), SpeedType::Track, ZoneType::None, MovementZone::Normal, 0, 1, 1, true, false, false, true, CellStruct::Empty, false, false);
+				if (crate_cell.IsValid())
+				{
+					MapClass::Instance->Place_Crate(crate_cell, PowerupEffects(0x14));
+				}
+			}
+		}
+
+		if ((pType->Crashable && !pThis->Crash(args.Attacker)) || !pThis->IsSinking)
+			pThis->UnInit();
+
 	}
 
-	return 0x0;
+	R->EAX(_res);
+	return 0x738679;
 }
+
 
 #pragma endregion
 
@@ -2531,6 +2647,140 @@ ASMJIT_PATCH(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP
 }
 
 #pragma region placeholder
+//ASMJIT_PATCH(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+//{
+//	//GET(UnitTypeClass*, pType, EAX);
+//	GET(UnitClass*, pThis, ESI);
+//	GET_STACK(TechnoClass*, pKiller, 0x54);
+//	GET_STACK(bool, select, 0x13);
+//	GET_STACK(bool, ignoreDefenses, 0x58);
+//	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
+//
+//	if (pThis && pThis->Passengers.NumPassengers > 0)
+//	{
+//		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//		if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
+//		{
+//			auto pPassenger = pThis->Passengers.GetFirstPassenger();
+//			auto pExt = TechnoExtContainer::Instance.Find(pPassenger);
+//
+//			if (pExt->OriginalPassengerOwner)
+//				pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+//
+//			while (pPassenger->NextObject)
+//			{
+//				pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
+//				pExt = TechnoExtContainer::Instance.Find(pPassenger);
+//
+//				if (pExt->OriginalPassengerOwner)
+//					pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+//			}
+//		}
+//	}
+//
+//	TechnoExt_ExtData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
+//
+//	R->EBX(-1);
+//	return 0x73838A;
+//}
+//
+//ASMJIT_PATCH(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
+//{
+//	GET(UnitClass* const, pThis, ESI);
+//	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x44, -0x4));
+//
+//	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+//	R->ECX(R->ESI());
+//	pExt->ReceiveDamage = true;
+//	AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker, args.WH);
+//	pThis->Destroy();
+//	return 0x737F74;
+//}
+//
+//ASMJIT_PATCH(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
+//{
+//	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x44, -0xC));
+//	return !WarheadTypeExtContainer::Instance.Find(pWH)->Malicious || WarheadTypeExtContainer::Instance.Find(pWH)->Nonprovocative ? 0x738535u : 0u;
+//}
+//
+//ASMJIT_PATCH(0x737DE2, UnitClass_ReceiveDamage_Sinkable, 0x6)
+//{
+//	enum { GoOtherChecks = 0x737E18, NoSink = 0x737E63 };
+//
+//	GET(UnitTypeClass*, pType, EAX);
+//
+//	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//	bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
+//
+//	return pTypeExt->Sinkable.Get(ShouldSink) ? GoOtherChecks : NoSink;
+//}
+//
+//ASMJIT_PATCH(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
+//{
+//	GET(UnitClass* const, pThis, ESI);
+//	GET(DamageState const, result, EAX);
+//
+//	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
+//	if (result == DamageState::NowDead)
+//	{
+//
+//		if (pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
+//			pThis->IsAttackedByLocomotor = false;
+//
+//		//this cause desync ?
+//		if (!pThis->Type->Voxel && pThis->Type->Strength > 0)
+//		{
+//			if (pThis->Type->MaxDeathCounter > 0
+//				&& !pThis->InLimbo
+//				&& !pThis->IsCrashing
+//				&& !pThis->IsSinking
+//				&& !pThis->TemporalTargetingMe
+//				&& !pThis->IsInAir()
+//				&& pThis->DeathFrameCounter <= 0
+//				)
+//			{
+//
+//				pThis->Stun();
+//				const auto loco = pThis->Locomotor.GetInterfacePtr();
+//
+//				if (loco->Is_Moving_Now())
+//					loco->Stop_Moving();
+//
+//				pThis->DeathFrameCounter = 1;
+//			}
+//		}
+//	}
+//
+//	if (result != DamageState::PostMortem && pThis->DeathFrameCounter > 0)
+//	{
+//		R->EAX(DamageState::PostMortem);
+//	}
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	if (pThis->DeathFrameCounter > 0)
+//	{
+//		return 0x737D26;
+//	}
+//
+//	return 0x0;
+//}
+//
+//// #895584: ships not taking damage when repaired in a shipyard. bug
+//// was that the logic that prevented units from being damaged when
+//// exiting a war factory applied here, too. added the Naval check.
+//ASMJIT_PATCH(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
+//{
+//	GET(BuildingTypeClass*, pType, ECX);
+//	return (pType->WeaponsFactory && !pType->Naval)
+//		? 0x737CEE : 0x737D31;
+//}
 
 //ASMJIT_PATCH(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
 //{

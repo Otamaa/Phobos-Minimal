@@ -1075,6 +1075,9 @@ public:
 	Nullable<int> InitialSpawnsNumber {};
 	ValueableVector<AircraftTypeClass*> Spawns_Queue {};
 
+	Nullable<bool> Sinkable {};
+	Valueable<int> SinkSpeed { 5 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

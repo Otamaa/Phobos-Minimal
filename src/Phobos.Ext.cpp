@@ -265,6 +265,8 @@ HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 	return S_OK;
 }
 
+#include <BeaconManagerClass.h>
+
 void Phobos::LoadGameDataAfter(IStream* pStm)
 {
 	//clear the loadgame flag
@@ -276,6 +278,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 		}
 	}
 
+	BeaconManagerClass::Instance->LoadArt();
 	Debug::LogInfo("[Phobos] Finished loading the game");
 }
 

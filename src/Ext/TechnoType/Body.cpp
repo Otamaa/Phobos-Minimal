@@ -1431,6 +1431,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->InitialSpawnsNumber.Read(exINI, pSection, "InitialSpawnsNumber");
 		this->Spawns_Queue.Read(exINI, pSection, "Spawns.Queue");
+
+		this->Sinkable.Read(exINI, pSection, "Sinkable");
+		this->SinkSpeed.Read(exINI, pSection, "SinkSpeed");
 	}
 
 	// Art tags
@@ -2600,6 +2603,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 			
 		.Process(this->InitialSpawnsNumber)
 		.Process(this->Spawns_Queue)
+
+		.Process(this->Sinkable)
+		.Process(this->SinkSpeed)
 		;
 }
 

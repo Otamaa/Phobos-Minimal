@@ -1,6 +1,6 @@
 #pragma once
 
-#include <YRPPCore.h>
+#include <ASMMacros.h>
 #include <Helpers/CompileTime.h>
 
 class BitFont;
