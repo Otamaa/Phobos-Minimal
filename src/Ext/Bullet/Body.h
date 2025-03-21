@@ -56,10 +56,13 @@ public:
 
 	~BulletExtData() {
 		// mimicking how this thing does , since the detach seems not properly handle these
-		if (auto pAttach = AttachedSystem) {
-			pAttach->Owner = nullptr;
-			pAttach->UnInit();
-			pAttach->TimeToDie = true;
+
+		if(!Phobos::Otamaa::DoingLoadGame){
+			if (auto pAttach = AttachedSystem) {
+				pAttach->Owner = nullptr;
+				pAttach->UnInit();
+				pAttach->TimeToDie = true;
+			}
 		}
 	}
 

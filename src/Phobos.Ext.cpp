@@ -385,6 +385,7 @@ ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
 }
 
 // Clear static data from respective classes
+// this function is executed after all game classes already cleared
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	CellExtContainer::Instance.Clear();

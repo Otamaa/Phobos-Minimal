@@ -1202,5 +1202,5 @@ ASMJIT_PATCH(0x51D77A, InfantryClass_DoAction_AllowReceiveSpeedBoost, 5) {
 	if (pThis->_GetTypeExtData()->AllowReceiveSpeedBoost)
 		return Allow;
 
-	return sequence == DoType::Down && !pThis->Crawling ? 0x51DADA : Allow;
+	return sequence == DoType::Down && !pThis->Crawling ? DisAllow : Allow;
 }

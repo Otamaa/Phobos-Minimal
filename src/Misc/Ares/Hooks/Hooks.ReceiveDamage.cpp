@@ -2537,9 +2537,6 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 
 		if (pThis->Passengers.NumPassengers > 0 && pThis->Passengers.GetFirstPassenger())
 		{
-			if (IS_SAME_STR_("REPAIRDUDE", pThis->Passengers.GetFirstPassenger()->get_ID()))
-				Debug::Log("Spawning Rapairdude !\n");
-
 			if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
 			{
 				auto pPassenger = pThis->Passengers.GetFirstPassenger();
