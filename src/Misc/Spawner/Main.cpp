@@ -1194,7 +1194,7 @@ ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
 // Skip Crawls check on InfantryType
 // https://github.com/CnCNet/yr-patches/issues/15
 ASMJIT_PATCH(0x51D77A, InfantryClass_DoAction_AllowReceiveSpeedBoost, 5) {
-	enum { Allow = 0x51D793, DisAllow = 0x51D77F };
+	enum { Allow = 0x51D793, DisAllow = 0x51DADA };
 
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(DoType, sequence, EDI);
@@ -1202,5 +1202,5 @@ ASMJIT_PATCH(0x51D77A, InfantryClass_DoAction_AllowReceiveSpeedBoost, 5) {
 	if (pThis->_GetTypeExtData()->AllowReceiveSpeedBoost)
 		return Allow;
 
-	return sequence == DoType::Crawl && !pThis->Crawling ? DisAllow : Allow;
+	return sequence == DoType::Down && !pThis->Crawling ? 0x51DADA : Allow;
 }
