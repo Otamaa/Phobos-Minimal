@@ -10,10 +10,7 @@ ASMJIT_PATCH(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 	GET(BulletClass* const, pThis, ESI);
 	GET(CoordStruct* const, pOutCoords, EDI);
 
-	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-	const bool isSUbjecttoObs = AresTrajectoryHelper::SubjectToObstacles(const_cast<BulletTypeClass*>(pThis->Type));
-
-	if (AresTrajectoryHelper::SubjectToAnything(pThis->Type, pTypeExt) || isSUbjecttoObs)
+	if (AresBulletObstacleHelper::SubjectToAnything(pThis->Type))
 	{
 		auto const Map = MapClass::Instance();
 		auto const pCellSource = Map->GetCellAt(pThis->SourceCoords);
@@ -22,17 +19,27 @@ ASMJIT_PATCH(0x468BE2, BulletClass_ShouldDetonate_Obstacle, 6)
 
 		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
-		if (AresTrajectoryHelper::GetObstacle(
+		if (AresBulletObstacleHelper::GetObstacle(
 			pCellSource,
 			pCellTarget,
 			pThis->Owner,
 			pThis->Target,
 			pCellLast,
 			*pOutCoords,
-			pThis->Type, pOwner, isSUbjecttoObs))
+			pThis->Type, pOwner))
 		{
 			return 0x468C76;
 		}
+	}
+
+	if (PhobosBulletObstacleHelper::SubjectToObstacles(pThis->Type))
+	{
+		auto const pCellSource = MapClass::Instance->GetCellAt(pThis->SourceCoords);
+		auto const pCellTarget = MapClass::Instance->GetCellAt(pThis->TargetCoords);
+		auto const pCellCurrent = MapClass::Instance->GetCellAt(pThis->LastMapCoords);
+		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
+		if (PhobosBulletObstacleHelper::GetObstacle(pCellSource, pCellTarget, pCellCurrent, pThis->Location, pThis->Owner, pThis->Target, pOwner, pThis->Type, false))
+			return 0x468C9F;
 	}
 
 	return 0x468C86;
@@ -49,8 +56,14 @@ ASMJIT_PATCH(0x6F7511, TechnoClass_InRange_Obstacle, 6)
 		? R->EDI<TechnoClass*>()
 		: R->EAX<TechnoClass*>();
 
-	R->EAX(AresTrajectoryHelper::FindFirstImpenetrableObstacle(
-		*pSource, dest, pThis, pTarget, pWeapon, pThis->Owner));
+	auto pResult = AresBulletObstacleHelper::FindFirstImpenetrableObstacle(
+		*pSource, dest, pThis, pTarget, pWeapon, pThis->Owner);
+	if(!pResult){
+		auto subjectToGround = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->SubjectToGround.Get();
+		const auto newSourceCoords = subjectToGround ? PhobosBulletObstacleHelper::AddFLHToSourceCoords(*pSource, dest, pThis, pTarget, pWeapon, subjectToGround) : *pSource;
+		pResult = PhobosBulletObstacleHelper::FindFirstImpenetrableObstacle(newSourceCoords, dest, pThis, pTarget, pThis->Owner, pWeapon, true, subjectToGround);
+	}
+	R->EAX(pResult);
 
 	return 0x6F7647;
 }ASMJIT_PATCH_AGAIN(0x6F7631, TechnoClass_InRange_Obstacle, 6)
@@ -62,14 +75,12 @@ ASMJIT_PATCH(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 	GET(CellClass* const, pCellTarget, EDX);
 	GET_STACK(CellClass* const, pCellBullet, 0x4);
 	REF_STACK(CoordStruct const, crdCur, 0x8);
-	GET_STACK(BulletTypeClass* const, pType, 0x14);
-	GET_STACK(HouseClass const* const, pOwner, 0x18);
+	GET_STACK(BulletTypeClass*, pType, 0x14);
+	GET_STACK(HouseClass*, pOwner, 0x18);
 
-	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
-	const bool isSUbjecttoObs = AresTrajectoryHelper::SubjectToObstacles(const_cast<BulletTypeClass*>(pType));
-	const auto ret = AresTrajectoryHelper::GetObstacle(
+	auto const ret = AresBulletObstacleHelper::GetObstacle(
 		pCellSource, pCellTarget, nullptr, nullptr, pCellBullet, crdCur, pType,
-		pTypeExt, pOwner, isSUbjecttoObs);
+		pOwner);
 
 	R->EAX(ret);
 	return 0x4CC671;
@@ -79,13 +90,11 @@ ASMJIT_PATCH(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
 {
 	GET(CoordStruct const* const, pSource, ECX);
 	GET(CoordStruct const* const, pTarget, EDX);
-	GET_STACK(BulletTypeClass* const, pType, 0x4);
-	GET_STACK(HouseClass* const, pOwner, 0x8);
+	GET_STACK(BulletTypeClass*, pType, 0x4);
+	GET_STACK(HouseClass*, pOwner, 0x8);
 
-	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
-
-	const auto ret = AresTrajectoryHelper::FindFirstObstacle(
-		*pSource, *pTarget, nullptr, nullptr, pType, pTypeExt, pOwner);
+	auto const ret = AresBulletObstacleHelper::FindFirstObstacle(
+		*pSource, *pTarget, nullptr, nullptr, pType, pOwner);
 
 	R->EAX(ret);
 	return 0x4CC30B;
@@ -95,10 +104,10 @@ ASMJIT_PATCH(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5)
 {
 	GET(CoordStruct const* const, pSource, ECX);
 	GET(CoordStruct const* const, pTarget, EDX);
-	GET_STACK(WeaponTypeClass const* const, pWeapon, 0x4);
-	GET_STACK(HouseClass* const, pOwner, 0x8);
+	GET_STACK(WeaponTypeClass*, pWeapon, 0x4);
+	GET_STACK(HouseClass*, pOwner, 0x8);
 
-	const auto ret = AresTrajectoryHelper::FindFirstImpenetrableObstacle(
+	auto const ret = AresBulletObstacleHelper::FindFirstImpenetrableObstacle(
 		*pSource, *pTarget, nullptr, nullptr, pWeapon, pOwner);
 
 	R->EAX(ret);

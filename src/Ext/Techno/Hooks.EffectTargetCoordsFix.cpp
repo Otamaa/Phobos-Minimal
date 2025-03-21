@@ -269,7 +269,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 		coords = pBuilding->GetTargetCoords();
 
 	// This is set to a temp variable as well, as accessing it everywhere needed from TechnoExt would be more complicated.
-	FireAtTemp::pObstacleCell = AresTrajectoryHelper::FindFirstObstacle(crdSrc, coords, pWeapon->Projectile, pThis->Owner);
+	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(crdSrc, coords, pWeapon->Projectile, pThis->Owner);
 	TechnoExtContainer::Instance.Find(pThis)->FiringObstacleCell = FireAtTemp::pObstacleCell;
 
 	R->Stack(0x10, &crdSrc);

@@ -1057,33 +1057,31 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 					}
 				}
 
-				if (!(pThis->WhatAmI() == AbstractType::Building && !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup && (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling)))
+				auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
+				if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))
 				{
-					auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
+					const bool refuseToExplode = pThis->WhatAmI() == AbstractType::Building
+						&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup
+						&& (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling);
 
-					if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))
-					{
-						if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers)
-						{
-							while (pThis->Passengers.FirstPassenger)
+					if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers) {
+
+						while (pThis->Passengers.FirstPassenger) {
+							auto pPassenger = pThis->Passengers.GetFirstPassenger();
+							if (auto pTeam = pPassenger->Team)
 							{
-								auto pPassenger = pThis->Passengers.GetFirstPassenger();
-								if (auto pTeam = pPassenger->Team)
-								{
-									pTeam->RemoveMember(pPassenger);
-								}
+								pTeam->RemoveMember(pPassenger);
+							}
 
-								if (auto pPassengerremoved = pThis->Passengers.RemoveFirstPassenger())
-								{
-									pPassengerremoved->KillCargo(args.Attacker);
-									pPassengerremoved->RegisterDestruction(args.Attacker);
-								}
+							if (auto pPassengerremoved = pThis->Passengers.RemoveFirstPassenger()) {
+								pPassengerremoved->RegisterDestruction(args.Attacker);
+								TechnoExtData::HandleRemove(pPassengerremoved, args.Attacker, false, false);
 							}
 						}
-
-						if (!pWHExt->ApplySuppressDeathWeapon(pThis))
-							pThis->FireDeathWeapon(0);
 					}
+
+					if(!refuseToExplode && !pWHExt->ApplySuppressDeathWeapon(pThis))
+						pThis->FireDeathWeapon(0);
 				}
 			}
 
@@ -2335,7 +2333,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 #pragma region Unit
 
-ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
+ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 {
 	GET(UnitClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -2537,11 +2535,11 @@ ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 
 		pThis->UpdatePlacement(PlacementType::Remove);
 
-		if (pType->OpenTopped)
-			pThis->MarkPassengersAsExited();
-
-		if (pThis->Passengers.NumPassengers > 0)
+		if (pThis->Passengers.NumPassengers > 0 && pThis->Passengers.GetFirstPassenger())
 		{
+			if (IS_SAME_STR_("REPAIRDUDE", pThis->Passengers.GetFirstPassenger()->get_ID()))
+				Debug::Log("Spawning Rapairdude !\n");
+
 			if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
 			{
 				auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -2560,6 +2558,9 @@ ASMJIT_PATCH(0x737C90, UnitClassClass_ReceiveDamage_Handled, 5)
 				}
 			}
 		}
+
+		if (pType->OpenTopped)
+			pThis->MarkPassengersAsExited();
 
 		TechnoExt_ExtData::SpawnSurvivors(pThis, args.Attacker, selected, args.IgnoreDefenses, args.PreventsPassengerEscape);
 

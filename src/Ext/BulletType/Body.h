@@ -112,6 +112,7 @@ public:
 	TrailsReader Trails { };
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
+	Valueable<bool> SubjectToGround { };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 

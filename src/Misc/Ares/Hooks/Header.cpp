@@ -1655,6 +1655,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 		while (pThis->Passengers.GetFirstPassenger())
 		{
 			auto const pPassenger = pThis->RemoveFirstPassenger();
+
 			bool trySpawn = false;
 			if (passengerChance > 0)
 			{

@@ -431,7 +431,7 @@ ASMJIT_PATCH(0x467B94, BulletClass_Update_Ranged, 7)
 	return 0x467BA4;
 }
 
-ASMJIT_PATCH(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
+ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 {
 	GET(BulletClass* const, pThis, EBX);
 	GET(CoordStruct const* const, pLocation, EDI);
@@ -439,31 +439,44 @@ ASMJIT_PATCH(0x4688BD, BulletClass_SetMovement_Obstacle, 6)
 
 	auto const pBulletOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
 
-	// code must use pLocation because it has FlakScatter applied
-	auto crdFirestorm = MapClass::Instance->FindFirstFirestorm(
-		*pLocation, dest, pBulletOwner);
-
-	if (crdFirestorm != CoordStruct::Empty)
+	if (pThis->Type->Inviso)
 	{
-		crdFirestorm.Z = MapClass::Instance->GetCellFloorHeight(crdFirestorm);
-		pThis->SetLocation(crdFirestorm);
+		const auto pObstacleCell = 
+		PhobosBulletObstacleHelper::FindFirstObstacle(*pLocation, dest, pThis->Owner, pThis->Target, pBulletOwner, pThis->Type, false, false);
 
-		auto const pCell = MapClass::Instance->GetCellAt(crdFirestorm);
-		auto const pBld = pCell->GetBuilding();
-		FirewallFunctions::ImmolateVictim(pBld, pThis, false);
-		BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
+		if (pObstacleCell)
+		{
+			pThis->SetLocation(pObstacleCell->GetCoords());
+			pThis->Speed = 0;
+			pThis->Velocity = {};
 
-	}
-	else
-	{
-		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-		auto const pCell = AresTrajectoryHelper::FindFirstObstacle(
-			*pLocation, dest, pThis->Owner, pThis->Target, pThis->Type,
-			pTypeExt, pBulletOwner);
+			return 0x468A3F;
+		}
 
-		pThis->SetLocation(pCell ? pCell->GetCoords() : dest);
-		pThis->Speed = 0;
-		pThis->Velocity = {};
+		// code must use pLocation because it has FlakScatter applied
+		auto crdFirestorm = MapClass::Instance->FindFirstFirestorm(
+			*pLocation, dest, pBulletOwner);
+
+		if (crdFirestorm != CoordStruct::Empty)
+		{
+			crdFirestorm.Z = MapClass::Instance->GetCellFloorHeight(crdFirestorm);
+			pThis->SetLocation(crdFirestorm);
+
+			auto const pCell = MapClass::Instance->GetCellAt(crdFirestorm);
+			auto const pBld = pCell->GetBuilding();
+			FirewallFunctions::ImmolateVictim(pBld, pThis, false);
+			BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
+
+		}
+		else
+		{
+			auto const pCell = AresBulletObstacleHelper::FindFirstObstacle(
+				*pLocation, dest, pThis->Owner, pThis->Target, pThis->Type, pBulletOwner);
+
+			pThis->SetLocation(pCell ? pCell->GetCoords() : dest);
+			pThis->Speed = 0;
+			pThis->Velocity = {};
+		}
 	}
 
 	return 0x468A3F;
