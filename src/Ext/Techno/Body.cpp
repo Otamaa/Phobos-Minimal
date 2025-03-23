@@ -1603,7 +1603,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || (tgtCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-			if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true , allowBridges))
+			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true , allowBridges))
 			{
 				pTargetCell = tgtCell;
 				return AreaFireReturnFlag::Continue;
@@ -1614,6 +1614,9 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	}
 	case AreaFireTarget::Self:
 	{
+		if(pExt->SkipWeaponPicking)
+			return AreaFireReturnFlag::SkipSetTarget;
+
 		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, pThis->OnBridge))
 			return AreaFireReturnFlag::DoNotFire;
 
@@ -1624,7 +1627,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		auto pCell = pTargetCell;
 		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || (pCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-		if (!EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false , allowBridges))
+		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false , allowBridges))
 			return AreaFireReturnFlag::DoNotFire;
 	}
 	}
@@ -1682,14 +1685,16 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		return 0;
 
 	auto pWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pWeapon);
-	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
+	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer 
+	&& !pWeaponExt->SkipWeaponPicking && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) || aeForbidsPrimary)
 	{
 		int weaponIndexSec = -1;
 		auto pSecondaryWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
 		auto pSecondaryWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pSecondaryWeapon);
-		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
+		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer 
+		&& !pSecondaryWeaponExt->SkipWeaponPicking && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 		if (pSecondaryWeapon && (pSecondaryWeapon->Warhead->Wall || (pSecondaryWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
 			&& (!TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback || aeForbidsPrimary)) && !aeForbidsSecondary)
@@ -1760,12 +1765,12 @@ bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeC
 }
 
 bool TechnoExtData::CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon)
-{
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+{	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pCell && !EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true))
-	{
-		return false;
+	if(!pWeaponExt->SkipWeaponPicking) {
+		if (pCell && !EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true)) {
+			return false;
+		}
 	}
 
 	return true;
@@ -3116,31 +3121,7 @@ void TechnoExtData::UpdateSpawnLimitRange()
 	if (!pExt->Spawn_LimitedRange || !pManager)
 		return;
 
-	int weaponRange = 0;
-	const int weaponRangeExtra = pExt->Spawn_LimitedExtraRange.Get() * 256;
-
-	auto setWeaponRange = [&weaponRange](WeaponTypeClass* pWeaponType)
-	{
-		if (pWeaponType && pWeaponType->Spawner && pWeaponType->Range > weaponRange)
-			weaponRange = pWeaponType->Range;
-	};
-
-	if (pExt->AttachedToObject->IsGattling || pThis->CurrentWeaponNumber > 0)
-	{
-		if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber))
-			setWeaponRange(pCurWeapon->WeaponType);
-	}
-	else
-	{
-		if (auto const pPriWeapon = pThis->GetWeapon(0))
-			setWeaponRange(pPriWeapon->WeaponType);
-
-		if (auto const pSecWeapon = pThis->GetWeapon(1))
-			setWeaponRange(pSecWeapon->WeaponType);
-	}
-
-	weaponRange += weaponRangeExtra;
-
+	int weaponRange = pThis->Veterancy.IsElite() ? pExt->EliteSpawnerRange : pExt->SpawnerRange;
 	if (pManager->Target && (pThis->DistanceFrom(pManager->Target) > weaponRange))
 		pManager->ResetTarget();
 }
@@ -3917,9 +3898,10 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 		if (pHouse->Defeated ||
 			(pHouse->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive))
 			continue;
-
-		if (allowPlayerControl && !pHouse->ControlledByCurrentPlayer())
-			continue;
+		
+		//TODO : causing desync , disable it
+		//if (allowPlayerControl && !pHouse->ControlledByCurrentPlayer())
+		//	continue;
 
 		if (pHouse != pOwner && (allowAllies && !pHouse->IsAlliedWith(pOwner)))
 			continue;
@@ -4247,6 +4229,7 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 			yOffset = offset.Y + yAdjust * fHeight + pType->Height * yAdjust;
 		}
 		break;
+		default:break;
 		}
 
 		int pipFrame = isInfantryHeal ? pipFrames.X : pipFrames.Y;
@@ -4325,7 +4308,6 @@ void TechnoExtData::UpdateSharedAmmo(TechnoClass* pThis)
 
 	do
 	{
-
 		TechnoTypeClass* passengerType = passenger->GetTechnoType();
 
 		if (TechnoTypeExtContainer::Instance.Find(passengerType)->Ammo_Shared.Get())
@@ -4362,6 +4344,7 @@ double TechnoExtData::GetCurrentSpeedMultiplier(FootClass* pThis)
 	case UnitClass::AbsID:
 		houseMultiplier = pThis->Owner->Type->SpeedUnitsMult;
 		break;
+	default:break;
 	}
 
 	return pThis->SpeedMultiplier * houseMultiplier *

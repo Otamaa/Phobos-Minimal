@@ -12,9 +12,9 @@ size_t ShapeTextPrinter::GetSignIndex(const char sign)
 	return iter != end ? std::distance(SignSequence, iter) : -1;
 }
 
-std::vector<int> ShapeTextPrinter::BuildFrames(const std::string& text, const int baseNumberFrame , const int baseSignFrame)
+void ShapeTextPrinter::BuildFrames(std::vector<int>& result, const std::string& text, const int baseNumberFrame , const int baseSignFrame)
 {
-	std::vector<int> vFrames;
+	result.reserve(text.size());
 
 	for (const auto& item : text) {
 
@@ -31,10 +31,8 @@ std::vector<int> ShapeTextPrinter::BuildFrames(const std::string& text, const in
 				break;
 		}
 
-		vFrames.emplace_back(frame);
+		result.emplace_back(frame);
 	}
-
-	return vFrames;
 }
 
 void ShapeTextPrinter::PrintShape
@@ -53,9 +51,10 @@ void ShapeTextPrinter::PrintShape
 	if (text.empty())
 		return;
 
-	std::vector<int> frames = ShapeTextPrinter::BuildFrames(text, data.BaseNumberFrame, data.BaseExtraFrame);
+	std::vector<int> frames {};
+	ShapeTextPrinter::BuildFrames(frames , text, data.BaseNumberFrame, data.BaseExtraFrame);
 
-	for (int frame : frames)
+	for (int& frame : frames)
 	{
 		pSurface->DrawSHP
 		(

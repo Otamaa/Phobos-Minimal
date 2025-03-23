@@ -66,9 +66,7 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wcha
 
 void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
 {
-	//duuno
-	nCells.reserve(20);
-
+	nCells.reserve((2 * range + 1) * (2 * range + 1));
 	for (CellSpreadEnumerator it(range); it; ++it)
 		nCells.emplace_back(*it);
 }

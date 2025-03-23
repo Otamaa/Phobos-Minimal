@@ -39,7 +39,7 @@ class ShapeTextPrinter
 {
 private:
 	static size_t GetSignIndex(const char sign);
-	static std::vector<int> BuildFrames(const std::string& text, const int baseNumberFrame, const int baseSignFrame);
+	static void BuildFrames(std::vector<int>& result ,const std::string& text, const int baseNumberFrame, const int baseSignFrame);
 
 public:
 

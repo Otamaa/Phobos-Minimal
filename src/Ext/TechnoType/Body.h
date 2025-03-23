@@ -1078,6 +1078,9 @@ public:
 	Nullable<bool> Sinkable {};
 	Valueable<int> SinkSpeed { 5 };
 
+	int SpawnerRange {};
+	int EliteSpawnerRange {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
@@ -1088,6 +1091,13 @@ public:
 	bool IsCountedAsHarvester();
 
 	void AdjustCrushProperties();
+
+	void CalculateSpawnerRange();
+	void ResetSpawnerRange() {
+		this->SpawnerRange = 0;
+		this->EliteSpawnerRange = 0;
+	}
+
 
 	// Ares 0.A
 	const char* GetSelectionGroupID() const;

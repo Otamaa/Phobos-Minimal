@@ -24,7 +24,7 @@ public:
 	void SetAnimationTunnelState(bool visible);
 
 	void CreateAnim();
-	void UpdateCumulativeAnim();
+	void UpdateCumulativeAnim(int count);
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
 	bool CanShowAnim() const;
 

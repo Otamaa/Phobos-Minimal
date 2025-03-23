@@ -48,6 +48,37 @@ void TechnoTypeExtData::Initialize()
 	this->EVA_Combat = VoxClass::FindIndexById("EVA_UnitsInCombat");
 }
 
+void TechnoTypeExtData::CalculateSpawnerRange()
+{
+	auto pTechnoType = this->AttachedToObject;
+	int weaponRangeExtra = this->Spawn_LimitedExtraRange * Unsorted::LeptonsPerCell;
+
+	auto setWeaponRange = [](int& weaponRange, WeaponTypeClass* pWeaponType)
+		{
+			if (pWeaponType && pWeaponType->Spawner && pWeaponType->Range > weaponRange)
+				weaponRange = pWeaponType->Range;
+		};
+
+	if (pTechnoType->IsGattling)
+	{
+		for (int i = 0; i < pTechnoType->WeaponCount; i++)
+		{
+			setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[i].WeaponType);
+			setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[i].WeaponType);
+		}
+	}
+	else
+	{
+		setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[0].WeaponType);
+		setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[1].WeaponType);
+		setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[0].WeaponType);
+		setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[1].WeaponType);
+	}
+
+	this->SpawnerRange += weaponRangeExtra;
+	this->EliteSpawnerRange += weaponRangeExtra;
+}
+
 bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType)
 {
 	const auto pProductTypeExt = TechnoTypeExtContainer::Instance.Find(pProduct);
@@ -1434,6 +1465,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Sinkable.Read(exINI, pSection, "Sinkable");
 		this->SinkSpeed.Read(exINI, pSection, "SinkSpeed");
+
+		// Spawner range
+		if (this->Spawn_LimitedExtraRange)
+			this->CalculateSpawnerRange();
+		else
+			this->ResetSpawnerRange();
 	}
 
 	// Art tags
@@ -2606,6 +2643,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Sinkable)
 		.Process(this->SinkSpeed)
+
+		.Process(this->SpawnerRange)
+		.Process(this->EliteSpawnerRange)
 		;
 }
 

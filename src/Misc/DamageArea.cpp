@@ -259,6 +259,18 @@ static PhobosMap<BuildingClass*, double> MergedDamage {};
 static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
 static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
 
+
+inline int Distance_Level_Snap(const Coordinate& coord1, const Coordinate& coord2)
+{
+	int z1 = coord1.Z;
+	int z2 = coord2.Z;
+	if (Math::abs(z2 - z1) < 104)
+	{
+		z2 = coord1.Z;
+	}
+	return CoordStruct(coord1.X - coord2.X, coord1.Y - coord2.Y, z1 - z2).Length();
+}
+
 // this function is landmines , hooking it breaking other
 
 DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
@@ -388,14 +400,15 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	if (int(spread + 0.99) >= 0)
 	{
 		//obtain Object within the spread distance
+		int i = 0;
 		for (CellSpreadEnumerator it(short(spread + 0.99), short(0)); it; ++it)
 		{
 			auto cellhere = (cell + (*it));
+			const bool IsCenter = i++ == 0;
 
-			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere))
-			{
-				if (MapClass::Instance->CoordinatesLegal(cellhere))
-				{
+			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere)) {
+				if (MapClass::Instance->CoordinatesLegal(cellhere)) {
+
 					auto cur_cellCoord = pCurCell->GetCoords();
 					auto spawn_distance = cellhere.DistanceFrom(cell);
 					Damage_Overlay(pCurCell, cell, pWarhead, spawn_distance, damage, pSource, pHouse, affectTiberium);
@@ -429,30 +442,20 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 						auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
 						groupvec.push_back(cur_Group);
-						auto pVictimCoord = pCell->GetCoords();
 
-						if (what == BuildingClass::AbsID)
-						{
-							if (!it.getCurSpread())
-							{
-								if (!(pCoord->Z - cur_cellCoord.Z <= Unsorted::LevelHeight * 2))
-								{
-									cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length()) - Unsorted::CellHeight;
-								}
-
-							}
-							else
-							{
-								cur_Group->Distance = (int)((cur_cellCoord - (*pCoord)).Length());
+						if (what == BuildingClass::AbsID) {
+					
+							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight)) {
+									cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
+							} else {
+								cur_Group->Distance = pCoord->operator-(cur_cellCoord).Length();
 							}
 						}
-						else
-						{
-							pVictimCoord = pCur->GetTargetCoords();
-							cur_Group->Distance = (int)(((*pCoord) - pVictimCoord).Length());
+						else {		
+							cur_Group->Distance = pCoord->operator-(pCur->GetTargetCoords()).Length();
 						}
 
-						if (spreadLow && !it.getCurSpread()) {
+						if (spreadLow && IsCenter) {
 							if (pCur->IsIronCurtained()
 								&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
 								&& cur_Group->Distance < 85

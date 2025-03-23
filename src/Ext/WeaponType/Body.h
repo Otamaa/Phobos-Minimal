@@ -187,6 +187,8 @@ public:
 	Valueable<bool> DelayedFire_OnlyOnInitialBurst {};
 	Nullable<CoordStruct> DelayedFire_AnimOffset {};
 
+	bool SkipWeaponPicking { true };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

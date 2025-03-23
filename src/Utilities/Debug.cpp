@@ -145,8 +145,8 @@ std::wstring Debug::PrepareSnapshotDirectory()
 	if (!std::filesystem::create_directories(buffer)) {
 		std::wstring msg = std::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
 		MessageBoxW(Game::hWnd.get(), Debug::LogFileFullPath.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
-		Phobos::Otamaa::ExeTerminated = true;
-		Debug::ExitGame(1);
+		Phobos::ExeTerminate();
+		exit(errno);
 	}
 
 	return buffer;

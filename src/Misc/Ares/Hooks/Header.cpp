@@ -3420,32 +3420,39 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
-	// Update open topped state of potential passengers if transport's OpenTopped value changes.
-	bool toOpenTopped = pToType->OpenTopped && !pOldType->OpenTopped;
+	if (pThis->Passengers.NumPassengers > 0) {
+		const bool toOpenTopped = pToType->OpenTopped && !pOldType->OpenTopped;
+		const bool fromOpenTopped = !pToType->OpenTopped && pOldType->OpenTopped;
+		const bool addGunner = pToType->Gunner && !pOldType->Gunner;
+		const bool removeGunner = !pToType->Gunner && pOldType->Gunner;
 
-	if ((toOpenTopped || (!pToType->OpenTopped && pOldType->OpenTopped)) && pThis->Passengers.NumPassengers > 0)
-	{
-		auto pPassenger = pThis->Passengers.FirstPassenger;
+		if (toOpenTopped || fromOpenTopped || addGunner || removeGunner) {
+			auto pPassenger = pThis->Passengers.FirstPassenger;
+			FootClass* pLastPassenger = nullptr;
+			// Update open topped state of potential passengers if transport's OpenTopped value changes.
+			while (pPassenger){
+				if (toOpenTopped) {
+					pThis->EnteredOpenTopped(pPassenger);
+				} else if (fromOpenTopped) {
+					pThis->ExitedOpenTopped(pPassenger);
+					// Lose target & destination
+					pPassenger->Stun();
+					// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
+					// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
+					LogicClass::Instance->RemoveObject(pPassenger);
+				}
 
-		while (pPassenger)
-		{
-			if (toOpenTopped)
-			{
-				pThis->EnteredOpenTopped(pPassenger);
+				pLastPassenger = pPassenger;
+				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
 			}
-			else
-			{
-				pThis->ExitedOpenTopped(pPassenger);
 
-				// Lose target & destination
-				pPassenger->Guard();
-
-				// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
-				// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
-				MapClass::Logics.get().RemoveObject(pPassenger);
+			// Update Gunner
+			if (auto const pFoot = flag_cast_to<FootClass*>(pThis)) {
+				if (addGunner)
+					pFoot->ReceiveGunner(pLastPassenger);
+				else if (removeGunner)
+					pFoot->RemoveGunner(pLastPassenger);
 			}
-
-			pPassenger = flag_cast_to <FootClass*>(pPassenger->NextObject);
 		}
 	}
 
