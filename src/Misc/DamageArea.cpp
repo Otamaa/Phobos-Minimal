@@ -413,9 +413,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 					auto spawn_distance = cellhere.DistanceFrom(cell);
 					Damage_Overlay(pCurCell, cell, pWarhead, spawn_distance, damage, pSource, pHouse, affectTiberium);
 			
-					auto scorch_chance = std::clamp(Math::PercentAtMax(pWHExt->ScorchChance.Get(), spreadLept, spawn_distance, pWHExt->ScorchPercentAtMax.Get()), 0.0, 1.0);
-					auto crater_chance = std::clamp(Math::PercentAtMax(pWHExt->CraterChance.Get(), spreadLept, spawn_distance, pWHExt->CraterPercentAtMax.Get()), 0.0, 1.0);
-					auto cellanim_chance = std::clamp(Math::PercentAtMax(pWHExt->CellAnimChance.Get(), spreadLept, spawn_distance, pWHExt->CellAnimPercentAtMax.Get()), 0.0, 1.0);
+					auto scorch_chance = std::clamp(Math::PercentAtMax(pWHExt->ScorchChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->ScorchPercentAtMax.Get()), 0.0, 1.0);
+					auto crater_chance = std::clamp(Math::PercentAtMax(pWHExt->CraterChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CraterPercentAtMax.Get()), 0.0, 1.0);
+					auto cellanim_chance = std::clamp(Math::PercentAtMax(pWHExt->CellAnimChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CellAnimPercentAtMax.Get()), 0.0, 1.0);
 
 					Spawn_Flames_And_Smudges(cellhere, scorch_chance, crater_chance, cellanim_chance, pWHExt->CellAnim);
 
@@ -423,14 +423,10 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 					{
 						auto pCur = *next;
 
-						if (pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
-							continue;
-
-						if (!pCur->IsAlive)
+						if (!pCur->IsAlive || pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
 							continue;
 
 						const auto what = pCur->WhatAmI();
-						//auto pTechno = flag_cast_to<TechnoClass*, false>(pCur);
 
 						if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
 						{
@@ -448,11 +444,11 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight)) {
 									cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
 							} else {
-								cur_Group->Distance = pCoord->operator-(cur_cellCoord).Length();
+								cur_Group->Distance = (int)pCoord->operator-(cur_cellCoord).Length();
 							}
 						}
 						else {		
-							cur_Group->Distance = pCoord->operator-(pCur->GetTargetCoords()).Length();
+							cur_Group->Distance = (int)pCoord->operator-(pCur->GetTargetCoords()).Length();
 						}
 
 						if (spreadLow && IsCenter) {

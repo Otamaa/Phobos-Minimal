@@ -3891,8 +3891,39 @@ bool TechnoExtData::CheckDeathConditions()
 	return result;
 }
 
+//TODO : finish this if merged i suppose
 constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap, bool allowPlayerControl, bool allowAllies, SelfHealGainType type)
 {
+	if (pOwner->Defeated ||
+		(pOwner->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive))
+		return;
+
+		switch (type)
+		{
+		case SelfHealGainType::Infantry:
+		{
+			if (pOwner->InfantrySelfHeal <= 0)
+				return;
+
+			count = pOwner->InfantrySelfHeal;
+			break;
+		}
+		case SelfHealGainType::Units:
+		{
+			if (pOwner->UnitsSelfHeal <= 0)
+				return;
+
+				count = pOwner->UnitsSelfHeal;
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (cap.isset() && count >= cap) {
+			count = cap;
+		}
+/*
 	for (auto pHouse : *HouseClass::Array)
 	{
 		if (pHouse->Defeated ||
@@ -3934,6 +3965,7 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 			break;//dont need to loop further , end it there
 		}
 	}
+*/
 }
 
 constexpr bool CanDoSelfHeal(SelfHealGainType type , int& amount , HouseClass* pOwner , bool allowPlayerControl, bool allowAllies)
@@ -4149,41 +4181,45 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 	}
 }
 
+constexpr int GetFrames(SelfHealGainType type , HouseClass* Owner){
+	switch (type)
+	{
+	case SelfHealGainType::Infantry:
+		if(Owner->InfantrySelfHeal > 0){
+			return RulesClass::Instance->SelfHealInfantryFrames;
+		}
+		break;
+	case SelfHealGainType::Units:
+		if(Owner->UnitsSelfHeal > 0){
+			return RulesClass::Instance->SelfHealUnitFrames;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return -1;
+}
+
 void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->Owner->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive)
 		return;
 
-	bool drawPip = false;
-	bool isInfantryHeal = false;
-	int selfHealFrames = 0;
-
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	auto const& nSelfHealType = pExt->SelfHealGainType;
-
-	if (nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::None)
+	auto const pType = pThis->GetTechnoType();
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pWhat = pThis->WhatAmI();
+	const bool isOrganic = pWhat == InfantryClass::AbsID
+		|| (pType->Organic && (pWhat == UnitClass::AbsID));
+	auto const selfHealType = GetSelfHealGainType(pWhat , isOrganic, pExt->SelfHealGainType) ;
+	if (selfHealType == SelfHealGainType::None)
 		return;
 
-	auto const pWhat = pThis->WhatAmI();
-	const bool hasInfantrySelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Infantry;
-	const bool hasUnitSelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Units;
-	const bool isOrganic = pWhat == InfantryClass::AbsID
-		|| (pThis->GetTechnoType()->Organic && (pWhat == UnitClass::AbsID));
+	int selfHealFrames = GetFrames(selfHealType, pThis->Owner);
 
-	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || (isOrganic && !hasUnitSelfHeal)))
-	{
-		drawPip = true;
-		selfHealFrames = RulesClass::Instance->SelfHealInfantryFrames;
-		isInfantryHeal = true;
-	}
-	else if (pThis->Owner->UnitsSelfHeal > 0
-		&& (hasUnitSelfHeal || (pWhat == UnitClass::AbsID && !isOrganic)))
-	{
-		drawPip = true;
-		selfHealFrames = RulesClass::Instance->SelfHealUnitFrames;
-	}
+	if(selfHealFrames <= 0 )
+		return;
 
-	if (drawPip)
 	{
 		Point2D pipFrames { 0,0 };
 		bool isSelfHealFrame = false;
@@ -4219,20 +4255,21 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 		break;
 		case BuildingClass::AbsID:
 		{
-			const auto pType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
-			int fHeight = pType->GetFoundationHeight(false);
+			const auto pBldType = static_cast<BuildingTypeClass*>(pType);
+			int fHeight = pBldType->GetFoundationHeight(false);
 			int yAdjust = -Unsorted::CellHeightInPixels / 2;
 
 			const auto& offset = RulesExtData::Instance()->Pips_SelfHeal_Buildings_Offset.Get();
 			pipFrames = RulesExtData::Instance()->Pips_SelfHeal_Buildings.Get();
 			xOffset = offset.X + Unsorted::CellWidthInPixels / 2 * fHeight;
-			yOffset = offset.Y + yAdjust * fHeight + pType->Height * yAdjust;
+			yOffset = offset.Y + yAdjust * fHeight + pBldType->Height * yAdjust;
 		}
 		break;
-		default:break;
+		default:
+			break;
 		}
 
-		int pipFrame = isInfantryHeal ? pipFrames.X : pipFrames.Y;
+		int pipFrame = selfHealType == SelfHealGainType::Infantry ? pipFrames.X : pipFrames.Y;
 
 		Point2D position { pLocation->X + xOffset, pLocation->Y + yOffset };
 
