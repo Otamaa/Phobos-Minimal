@@ -517,7 +517,7 @@ void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxT
 			{
 				// Store Tiberium in structures
 				depositableTiberiumAmount = (amount * pTiberium->Value) / pDepositableTiberium->Value;
-				pThis->Owner->GiveTiberium(depositableTiberiumAmount, idxStorageTiberiumType);
+				((FakeHouseClass*)(pThis->Owner))->_GiveTiberium(depositableTiberiumAmount, idxStorageTiberiumType);
 			}
 		}
 	}

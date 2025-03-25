@@ -1767,7 +1767,7 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, 
 				decidedAmount = (amount * pTiberium->Value) / pTiberium->Value;
 			}
 
-			pHouse->GiveTiberium(decidedAmount, decidedIndex);
+			((FakeHouseClass*)(pHouse))->_GiveTiberium(decidedAmount, decidedIndex);
 		}
 	}
 

@@ -1074,19 +1074,14 @@ ASMJIT_PATCH(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 }
 
 // restored from TS
-ASMJIT_PATCH(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
-{
-	GET(HouseClass* const, pThis, ECX);
-	GET_STACK(float, amount, 0x4);
-	GET_STACK(int const, idxType, 0x8);
+void FakeHouseClass::_GiveTiberium(float amount, int type){
+	this->SiloMoney += int(amount * 5.0);
 
-	pThis->SiloMoney += int(amount * 5.0);
-
-	if (SessionClass::Instance->GameMode == GameMode::Campaign || pThis->IsHumanPlayer)
+	if (SessionClass::Instance->GameMode == GameMode::Campaign || this->IsHumanPlayer)
 	{
 		// don't change, old values are needed for silo update
-		const double lastStorage = (HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
-		const auto lastTotalStorage = pThis->TotalStorage;
+		const double lastStorage = (this->_GetExtData()->TiberiumStorage.GetAmounts());
+		const auto lastTotalStorage = this->TotalStorage;
 		const auto curStorage = (double)lastTotalStorage - lastStorage;
 		double rest = 0.0;
 
@@ -1097,7 +1092,7 @@ ASMJIT_PATCH(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 		}
 
 		// go through all buildings and fill them up until all is in there
-		for (auto const& pBuilding : pThis->Buildings)
+		for (auto const& pBuilding : this->Buildings)
 		{
 			if (amount <= 0.0) {
 				break;
@@ -1115,32 +1110,42 @@ ASMJIT_PATCH(0x4F9610, HouseClass_GiveTiberium_Storage, 0xA)
 						freeSpace = amount;
 					}
 
-					storage_->IncreaseAmount((float)freeSpace, idxType);
-					HouseExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount((float)freeSpace, idxType);
+					storage_->IncreaseAmount((float)freeSpace, type);
+					this->_GetExtData()->TiberiumStorage.IncreaseAmount((float)freeSpace, type);
 					amount -= (float)freeSpace;
 				}
 			}
 		}
 
-		amount += (float)rest;
+		if(RulesExtData::Instance()->GiveMoneyIfStorageFull){
+			amount += (float)rest;
 
-		//no free space , just give the money ,..
-		if(amount > 0.0) {
-			auto const pTib = TiberiumClass::Array->Items[idxType];
-			pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
+			//no free space , just give the money ,..
+			if(amount > 0.0) {
+				auto const pTib = TiberiumClass::Array->Items[type];
+				this->Balance += int(amount * pTib->Value * this->Type->IncomeMult);
+			}
 		}
+
 		// redraw silos
-		pThis->UpdateAllSilos((int)lastStorage, lastTotalStorage);
+		this->UpdateAllSilos((int)lastStorage, lastTotalStorage);
 	}
 	else
 	{
 		// just add the money. this is the only original YR logic
-		auto const pTib = TiberiumClass::Array->Items[idxType];
-		pThis->Balance += int(amount * pTib->Value * pThis->Type->IncomeMult);
+		auto const pTib = TiberiumClass::Array->Items[type];
+		this->Balance += int(amount * pTib->Value * this->Type->IncomeMult);
 	}
-
-	return 0x4F9664;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610,  FakeHouseClass::_GiveTiberium); 
+DEFINE_FUNCTION_JUMP(CALL ,0x44A272, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL ,0x522E11, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL ,0x522E31, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL ,0x684F58, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL ,0x73E4A9, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL ,0x73E4C9, FakeHouseClass::_GiveTiberium)
+
 
 ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 {

@@ -926,7 +926,7 @@ namespace Tiberiumpip
 		for (size_t i = 0; i < (size_t)TiberiumClass::Array->Count; i++)
 		{
 			size_t index = i;
-			if (i < orders.size())
+			if (i < orders.size() && orders[i] >= 0)
 				index = orders[i];
 
 			if (Amounts[index].value > 0)

@@ -46,7 +46,7 @@ class MemoryManager
 {
 private:
 	//static inline std::unordered_map<void*, size_t> allocations;
-	static inline std::mutex mem_mutex;
+	//static inline std::mutex mem_mutex;
 	static inline char* strtok_last = nullptr; // State for custom strtok
 
 public:

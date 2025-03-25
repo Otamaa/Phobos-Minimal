@@ -737,7 +737,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
-
+	
+	this->GiveMoneyIfStorageFull.Read(exINI, GameStrings::General, "Storage.GiveMoneyIfFull");
 	this->AutoBuilding.Read(exINI, GameStrings::General, "AutoBuilding");
 	this->AIAngerOnAlly.Read(exINI, GameStrings::General, "AIAngerOnAlly");
 	this->BuildingTypeSelectable.Read(exINI, GameStrings::General, "BuildingTypeSelectable");
@@ -1511,6 +1512,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->XGRYMED1_)
 		.Process(this->XGRYMED2_)
 		.Process(this->XGRYSML1_)
+
+		.Process(this->GiveMoneyIfStorageFull)
 		;
 
 	MyPutData.Serialize(Stm);

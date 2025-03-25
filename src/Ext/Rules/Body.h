@@ -470,6 +470,7 @@ public:
 	AnimTypeClass* XGRYMED2_ {};
 	AnimTypeClass* XGRYSML1_ {};
 
+	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
