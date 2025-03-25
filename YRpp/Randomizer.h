@@ -4,6 +4,9 @@
 
 #include <Point2D.h>
 
+#include <bit>
+#include <array>
+
 class RandomClass
 {
 protected:
@@ -40,120 +43,71 @@ public:
 	static COMPILETIMEEVAL reference<DWORD, 0x839644u, 19u> FirstTable {};
 	static COMPILETIMEEVAL reference<DWORD, 0x839690u, 22u> SecondTable {};
 
-protected:
-	COMPILETIMEEVAL explicit Random2Class(DWORD seed) noexcept
-	//{ JMP_THIS(0x65C6D0); }
-	{
-		this->Index1 = 0;
-		this->Index2 = 103;
+public:
 
-		for (size_t i = 0; i < 250u; ++i) {
+	COMPILETIMEEVAL explicit Random2Class(std::uint32_t seed) noexcept {
+		Index1 = 0;
+		Index2 = 103;
+
+		for (size_t i = 0; i < Table.size(); ++i) {
 			int v8 = 0;
-			for (int a = 0; a < 4; a++) {
-				const int v7 = i ^ FirstTable[a];
+			for (int a = 0; a < 4; ++a) {
+				const int v7 = static_cast<int>(i) ^ FirstTable[a];
 
-				v8 = seed ^ ((unsigned __int16)v7 * (v7 >> 16)
-				 + (SecondTable[a] ^ ((((unsigned __int16)v7 * (unsigned __int16)v7 + ~((v7 >> 16) * (v7 >> 16))) << 16) | (((unsigned __int16)v7
-				 * (unsigned __int16)v7
-				 + ~((v7 >> 16) * (v7 >> 16))) >> 16))));
+				v8 = seed ^ ((static_cast<std::uint16_t>(v7) * (v7 >> 16))
+				+ (SecondTable[a] ^ ((((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7) 
+				+ ~(v7 >> 16) * (v7 >> 16)) << 16) |
+				((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7)
+				+ ~(v7 >> 16) * (v7 >> 16)) >> 16)))));
 			}
-
 			this->Table[i] = v8;
 		}
-
-		this->unknownBool_00 = 0;
 	}
 
-public:
-	COMPILETIMEEVAL int Random()
-	//{ JMP_THIS(0x65C780); }
-	{
-		if (this->unknownBool_00) {
-			return 0;
-		}
+	[[nodiscard]] COMPILETIMEEVAL int Random() noexcept {
+		if (unknownBool_00) return 0;
 
-		this->Table[this->Index1] ^= this->Table[this->Index2];
-		int result = this->Table[this->Index1++];
-		int v3 = this->Index2 + 1;
-		this->Index2 = v3;
-		if (this->Index1 >= 250 ) {
-			this->Index1 = 0;
-		}
+		Table[Index1] ^= Table[Index2];
+		int result = Table[Index1++];
 
-		if ( v3 >= 250 ) {
-			this->Index2 = 0;
-		}
-		return result;
-	}
-
-	COMPILETIMEEVAL int RandomRanged(int nMin, int nMax)
-	//{ JMP_THIS(0x65C7E0); }
-	{
-		int result = nMin;
-		int v5 = nMax;
-		int v6 = nMin;
-		if ( nMin != nMax ) {
-			if ( nMin > nMax ) {
-				v6 = nMax;
-				v5 = nMin;
-			}
-
-			int v7 = v5 - v6;
-			int v9 = 31;
-			if (v5 - v6 >= 0 ) {
-				do {
-					if ( v9 <= 0 ) {
-						break;
-					}
-					--v9;
-				}
-				while ( ((1 << v9) & v7) == 0 );
-			}
-
-			int v10 = v7 + 1;
-			int v11 = ~(-1 << (v9 + 1));
-			if ( v7 + 1 > v7 && v7 + 1 != v7 ) {
-				do {
-					int v12 = 0;
-
-					if(!this->unknownBool_00) {
-						this->Table[this->Index1] ^= this->Table[this->Index2];
-						int idx1 = this->Index1;
-						int v14 = this->Table[idx1++];
-						int v15 = this->Index2 + 1;
-						this->Index1 = idx1;
-						this->Index2 = v15;
-						if (idx1 >= 250 ) {
-							this->Index1 = 0;
-						}
-
-						if ( v15 >= 250 ) {
-							this->Index2 = 0;
-						}
-
-						v12 = v14;
-					}
-					v10 = v11 & v12;
-				}
-				while ( v10 > v7 );
-			}
-
-			return v6 + v10;
-		}
+		if (++Index2 >= (int)Table.size()) Index2 = 0;
+		if (Index1 >= (int)Table.size()) Index1 = 0;
 
 		return result;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE int RandomRanged(const Point2D& nMinMax)
+	[[nodiscard]] COMPILETIMEEVAL int RandomRanged(int min, int max) noexcept {
+        if (min == max) return min;
+
+        if (min > max) std::swap(min, max);
+		const int range = max - min;
+		const unsigned int unsignedRange = static_cast<unsigned int>(range);
+
+        int bitmask = (1 << (std::bit_width(unsignedRange) - 1)) - 1;
+        int randomValue;
+
+        do {
+            randomValue = Table[Index1] ^= Table[Index2];
+
+			if (++Index2 >= (int)Table.size()) Index2 = 0;
+            if (++Index1 >= (int)Table.size()) Index1 = 0;
+
+            randomValue &= bitmask;
+        } while (randomValue > range);
+
+        return min + randomValue;
+    }
+
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE int RandomRanged(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax.X, nMinMax.Y); }
 
-	COMPILETIMEEVAL FORCEDINLINE int operator()(const Point2D& nMinMax)
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE int operator()(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax); }
 
-	COMPILETIMEEVAL FORCEDINLINE int operator()()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE int operator()()
 	{ return Random(); }
 
-	COMPILETIMEEVAL FORCEDINLINE int operator()(int nMin, int nMax)
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE int operator()(int nMin, int nMax)
 	{ return RandomRanged(nMin, nMax); }
 
 	/*
@@ -163,7 +117,7 @@ public:
 	*	True = if percent less than random 0 - 99
 	*	False = if percent more than random 0 - 99
 	*/
-	COMPILETIMEEVAL FORCEDINLINE bool PercentChance(int percent)
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE bool PercentChance(int percent)
 	{ return RandomRanged(0,99) < percent; }
 
 	/*
@@ -173,42 +127,42 @@ public:
 	*	True = if chanche less than RandomDouble() result
 	*	False = if chance more than RandomDouble() result
 	*/
-	COMPILETIMEEVAL FORCEDINLINE bool PercentChance(double dChance)
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE bool PercentChance(double dChance)
 	{ return RandomDouble() < dChance; }
 
-	COMPILETIMEEVAL FORCEDINLINE double RandomDouble()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE double RandomDouble()
 	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10; }
 
-	COMPILETIMEEVAL FORCEDINLINE double RandomDouble_Closest()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE double RandomDouble_Closest()
 	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10 - 0.5; }
 
-	COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }
 
-	COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble_Closest()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE double GameRandomDouble_Closest()
 	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME() - 0.5; }
 
-	COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf(double probability) {
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf(double probability) {
 		return ((Math::abs(this->Random()) % 1000000) / 1000000.0) < probability;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf2(double probability) {
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE bool ProbabilityOf2(double probability) {
 		return (((RandomRanged(0, INT_MAX - 1) / (double)(INT_MAX - 1))) < probability);
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool RandomBool()
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }
 
 	template<typename T> requires std::is_integral<std::underlying_type_t<T>>::value
-	COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
 
 	template<typename T> requires std::is_integral<T>::value
-	COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
-	COMPILETIMEEVAL FORCEDINLINE int RandomFromMax(int nMax) {
+	[[nodiscard]] COMPILETIMEEVAL FORCEDINLINE int RandomFromMax(int nMax) {
 		return RandomRanged(0, nMax);
 	}
 
@@ -216,8 +170,7 @@ public:
 	bool unknownBool_00;
 	int Index1;
 	int Index2;
-	DWORD Table [0xFA];
-
+	std::array<int, 250> Table;
 };
 
 static_assert(sizeof(Random2Class) == 0x3F4);

@@ -729,7 +729,7 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 
 		Point2D position { destX + 30, destY + 24 };
 		const auto pRulesExt = RulesExtData::Instance();
-		const Vector3D<int> frames = pRulesExt->Cameo_OverlayFrames.Get();
+		const Vector3D<int>& frames = pRulesExt->Cameo_OverlayFrames.Get();
 
 		if (greyCameo) // Only draw extras over grey cameos
 		{

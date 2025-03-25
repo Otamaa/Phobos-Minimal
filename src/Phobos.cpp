@@ -35,7 +35,150 @@
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
 
+#include <mutex>
+#include <unordered_map>
+
 #include <Lib/asmjit/x86.h>
+
+
+// Memory Manager Class
+class MemoryManager
+{
+private:
+	//static inline std::unordered_map<void*, size_t> allocations;
+	static inline std::mutex mem_mutex;
+	static inline char* strtok_last = nullptr; // State for custom strtok
+
+public:
+	
+	static void* __cdecl allocate(size_t size)
+	{
+		//std::lock_guard<std::mutex> lock(mem_mutex);
+		void* ptr = _aligned_malloc(size, alignof(std::max_align_t));
+		if (!ptr) throw std::bad_alloc();
+		//allocations[ptr] = size;
+		return ptr;
+	}
+
+	static void* __cdecl calloc(size_t num, size_t size)
+	{
+		size_t totalSize = num * size;
+		void* ptr = allocate(totalSize);
+		memset(ptr, 0, totalSize); // Zero initialize
+		return ptr;
+	}
+
+	static void* __cdecl reallocate(void* ptr, size_t newSize)
+	{
+		//std::lock_guard<std::mutex> lock(mem_mutex);
+		//if (allocations.find(ptr) == allocations.end())
+		//{
+		//	return nullptr;
+		//}
+		void* newPtr = _aligned_realloc(ptr, newSize, alignof(std::max_align_t));
+		if (!newPtr) throw std::bad_alloc();
+
+		//allocations.erase(ptr);
+		//allocations[newPtr] = newSize;
+		return newPtr;
+	}
+
+	static void __cdecl deallocate(void* ptr)
+	{
+		//std::lock_guard<std::mutex> lock(mem_mutex);
+		//if (allocations.find(ptr) != allocations.end())
+		{
+		//	allocations.erase(ptr);
+			_aligned_free(ptr);
+		}
+	}
+
+	// Custom strdup using MemoryManager
+	static char* __cdecl strdup(const char* str)
+	{
+		if (!str) return nullptr;
+		size_t len = strlen(str) + 1;  // +1 for null terminator
+		char* newStr = static_cast<char*>(allocate(len));
+		strcpy_s(newStr, len, str);  // Copy string safely
+		return newStr;
+	}
+
+	// Custom _msize implementation
+	static size_t __cdecl msize(void* ptr)
+	{
+		return _msize(ptr);
+		//std::lock_guard<std::mutex> lock(mem_mutex);
+		//auto it = allocations.find(ptr);
+		//return (it != allocations.end()) ? it->second : 0;
+	}
+
+	// Custom strtok implementation
+	static char* __cdecl strtok(char* str, const char* delim)
+	{
+		if (!delim) return nullptr;
+
+		char* tokenStart;
+		if (str)
+		{
+			strtok_last = str;
+		}
+		else if (!strtok_last)
+		{
+			return nullptr;
+		}
+
+		// Skip leading delimiters
+		strtok_last += strspn(strtok_last, delim);
+		if (*strtok_last == '\0')
+		{
+			strtok_last = nullptr;
+			return nullptr;
+		}
+
+		// Find the end of the token
+		tokenStart = strtok_last;
+		strtok_last += strcspn(strtok_last, delim);
+
+		if (*strtok_last != '\0')
+		{
+			*strtok_last = '\0';
+			strtok_last++;
+		}
+		else
+		{
+			strtok_last = nullptr;
+		}
+
+		return tokenStart;
+	}
+
+	//static void renderImGui()
+	//{
+	//	if (ImGui::Begin("Memory Allocations"))
+	//	{
+	//		ImGui::Text("Tracking %zu allocations", allocations.size());
+	//		if (ImGui::BeginTable("Allocations", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+	//		{
+	//			ImGui::TableSetupColumn("Pointer");
+	//			ImGui::TableSetupColumn("Size (bytes)");
+	//			ImGui::TableHeadersRow();
+
+	//			std::lock_guard<std::mutex> lock(mem_mutex);
+	//			for (const auto& [ptr, size] : allocations)
+	//			{
+	//				ImGui::TableNextRow();
+	//				ImGui::TableSetColumnIndex(0);
+	//				ImGui::Text("%p", ptr);
+	//				ImGui::TableSetColumnIndex(1);
+	//				ImGui::Text("%zu", size);
+	//			}
+
+	//			ImGui::EndTable();
+	//		}
+	//		ImGui::End();
+	//	}
+	//}
+};
 
 std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 class asmjitErrHandler : public asmjit::ErrorHandler
@@ -798,18 +941,19 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::ExecuteLua();
 
-		if(Phobos::Otamaa::ReplaceGameMemoryAllocator) {
+		if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
+		{
 			/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
 			  not really sure what is the real cause atm . */
-			Patch::Apply_LJMP(0x7D107D, &_msize);
-			Patch::Apply_LJMP(0x7D5408, &_strdup);
-			Patch::Apply_LJMP(0x7C8E17, &malloc);
-			Patch::Apply_LJMP(0x7C9430, &malloc);
-			Patch::Apply_LJMP(0x7D3374, &calloc);
-			Patch::Apply_LJMP(0x7D0F45, &realloc);
-			Patch::Apply_LJMP(0x7C8B3D, &free);
-			Patch::Apply_LJMP(0x7C93E8, &free);
-			Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
+			Patch::Apply_LJMP(0x7D107D, &MemoryManager::msize);
+			Patch::Apply_LJMP(0x7D5408, &MemoryManager::strdup);
+			Patch::Apply_LJMP(0x7C8E17, &MemoryManager::allocate);
+			Patch::Apply_LJMP(0x7C9430, &MemoryManager::allocate);
+			Patch::Apply_LJMP(0x7D3374, &MemoryManager::calloc);
+			Patch::Apply_LJMP(0x7D0F45, &MemoryManager::reallocate);
+			Patch::Apply_LJMP(0x7C8B3D, &MemoryManager::deallocate);
+			Patch::Apply_LJMP(0x7C93E8, &MemoryManager::deallocate);
+			Patch::Apply_LJMP(0x7C9CC2, &MemoryManager::strtok);
 		}
 
 		char buf[1024] {};

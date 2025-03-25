@@ -42,42 +42,50 @@
 
 // provides access to the game's operator new and operator delete.
 namespace YRMemory {
-	// both functions are naked, which means neither prolog nor epilog are
-	// generated for them. thus, a simple jump suffices to redirect to the
-	// original methods, and no more book keeping or cleanup has to be
-	// performed the calling convention has to match for this trick to work.
 
-	// naked does not support inlining. the OPTIONALINLINE modifier here means that
-	// multiple definitions are allowed.
-	OPTIONALINLINE NAKED void* __cdecl __mh_malloc(size_t size, int flag) {
-		JMP(0x7C9442);
-	}
+    using MallocFunc = void* (__cdecl*)(size_t, int);
+    using FreeFunc = void (__cdecl*)(void*);
+    using AllocFunc = void* (__cdecl*)(size_t);
+    using DeallocFunc = void (__cdecl*)(const void*);
 
-	OPTIONALINLINE NAKED void __cdecl __free(void* mem) {
-		JMP(0x7C93E8);
-	}
+    // Define function pointers for redirection
+    constexpr uintptr_t mh_malloc_addr = 0x7C9442;
+    constexpr uintptr_t free_addr = 0x7C93E8;
+    constexpr uintptr_t allocate_addr = 0x7C8E17;
+    constexpr uintptr_t mallocate_addr = 0x7C9430;
+    constexpr uintptr_t deallocate_addr = 0x7C8B3D;
 
-	// the game's operator new
-	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz) {
-		JMP(0x7C8E17);
-	}
+    OPTIONALINLINE void* __cdecl __mh_malloc(size_t size, int flag) {
+        auto func = reinterpret_cast<MallocFunc>(mh_malloc_addr);
+        return func(size, flag);
+    }
 
-	// C Alloc
-	OPTIONALINLINE NAKED void* __cdecl MAllocate(size_t sz) {
-		JMP(0x7C9430);
-	}
+    OPTIONALINLINE void __cdecl __free(void* mem) {
+        auto func = reinterpret_cast<FreeFunc>(free_addr);
+        func(mem);
+    }
 
-	// the game's operator delete
-	OPTIONALINLINE NAKED void __cdecl Deallocate(const void* mem) {
-		JMP(0x7C8B3D);
-	}
+    OPTIONALINLINE void* __cdecl Allocate(size_t sz) {
+        auto func = reinterpret_cast<AllocFunc>(allocate_addr);
+        return func(sz);
+    }
 
-	OPTIONALINLINE NOINLINE void* AllocateChecked(size_t sz) {
-		if(auto const ptr = YRMemory::Allocate(sz)) {
-			return ptr;
-		}
-		exit(static_cast<int>(0x30000000u | sz));
-	}
+    OPTIONALINLINE void* __cdecl MAllocate(size_t sz) {
+        auto func = reinterpret_cast<AllocFunc>(mallocate_addr);
+        return func(sz);
+    }
+
+    OPTIONALINLINE void __cdecl Deallocate(const void* mem) {
+        auto func = reinterpret_cast<DeallocFunc>(deallocate_addr);
+        func(mem);
+    }
+
+    OPTIONALINLINE void* AllocateChecked(size_t sz) {
+        if (auto const ptr = YRMemory::Allocate(sz)) {
+            return ptr;
+        }
+        std::exit(static_cast<int>(0x30000000u | sz));
+    }
 }
 
 template<typename T>

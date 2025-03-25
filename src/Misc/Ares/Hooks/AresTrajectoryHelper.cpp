@@ -222,9 +222,9 @@ CellClass* PhobosBulletObstacleHelper::FindFirstObstacle(
 {
 	if (PhobosBulletObstacleHelper::SubjectToObstacles(pBulletType) || subjectToGround) {
 		auto sourceCell = CellClass::Coord2Cell(pSourceCoords);
-		auto const pSourceCell = MapClass::Instance->TryGetCellAt(sourceCell);
+		auto const pSourceCell = MapClass::Instance->GetCellAt(sourceCell);
 		auto targetCell = CellClass::Coord2Cell(pTargetCoords);
-		auto const pTargetCell = MapClass::Instance->TryGetCellAt(targetCell);
+		auto const pTargetCell = MapClass::Instance->GetCellAt(targetCell);
 
 		auto const sub = sourceCell - targetCell;
 		auto const delta = CellStruct { (short)Math::abs(sub.X), (short)Math::abs(sub.Y) };
@@ -241,8 +241,8 @@ CellClass* PhobosBulletObstacleHelper::FindFirstObstacle(
 			if (subjectToGround && crdCur.Z < MapClass::Instance->GetCellFloorHeight(crdCur))
 				return pCellCur;
 
+				pCellCur = MapClass::Instance->GetCellAt(crdCur);
 				crdCur += step;
-				pCellCur = MapClass::Instance->TryGetCellAt(crdCur);
 			}
 		}
 

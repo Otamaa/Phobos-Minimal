@@ -280,8 +280,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		bool affectTiberium,
 		HouseClass* pHouse)
 {
-	//JMP_STD(0x489280);
 
+	JMP_STD(0x489280);
+#ifdef _aaa
 	if (!pWarhead)
 	{
 		return DamageAreaResult::Missed;
@@ -694,7 +695,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 
 	return DamageAreaResult(AnythingHit == 0);
-
+#endif
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
@@ -731,7 +732,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
 DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
 DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
 
-#ifdef _ENABLE
+#ifndef _ENABLE
 
 ASMJIT_PATCH(0x489286, MapClass_DamageArea, 0x6)
 {
@@ -771,6 +772,30 @@ ASMJIT_PATCH(0x489968, Explosion_Damage_PenetratesIronCurtain, 0x5)
 	if (WarheadTypeExtContainer::Instance.Find(pWarhead)->PenetratesIronCurtain)
 		return BypassInvulnerability;
 	return 0;
+}
+
+ASMJIT_PATCH(0x4896BF, DamageAread_AfterOverlay, 0x6)
+{
+	GET(CellClass*, pCellHere, EBX);
+	GET_STACK(CellClass*, pCellDetonation, 0x20);
+	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
+
+	auto pWHExt = pWarhead->_GetExtData();
+	auto spawn_distance = pCellHere->MapCoords.DistanceFrom(pCellDetonation->MapCoords);
+	double spreadLept = pWarhead->CellSpread * 256.0;
+	auto scorch_chance = std::clamp(Math::PercentAtMax(pWHExt->ScorchChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->ScorchPercentAtMax.Get()), 0.0, 1.0);
+	auto crater_chance = std::clamp(Math::PercentAtMax(pWHExt->CraterChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CraterPercentAtMax.Get()), 0.0, 1.0);
+	auto cellanim_chance = std::clamp(Math::PercentAtMax(pWHExt->CellAnimChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CellAnimPercentAtMax.Get()), 0.0, 1.0);
+
+	Spawn_Flames_And_Smudges(pCellHere->MapCoords, scorch_chance, crater_chance, cellanim_chance, pWHExt->CellAnim);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
+{
+	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
+	return pWarhead->_GetExtData()->AllowDamageOnSelf ? 0x489702 : 0;
 }
 
 ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
@@ -1012,6 +1037,7 @@ ASMJIT_PATCH(0x4899BE, DamageArea_CellSpread3, 0x8)
 {
 	REF_STACK(CellSpreadEnumerator<std::numeric_limits<short>::max()>*, pIter, STACK_OFFS(0xE0, 0xB4));
 	REF_STACK(int, index, STACK_OFFS(0xE0, 0xD0));
+
 
 	// reproduce skipped instruction
 	index++;
