@@ -283,6 +283,7 @@ public:
 	UrgencyType Check_Fire_Sale() const JMP_THIS(0x4FD940);
 	UrgencyType Check_Raise_Money() const JMP_THIS(0x4FD9A0);
 
+	bool CanAffordBase() const JMP_THIS(0x4F6540);
 	bool AI_Fire_Sale(UrgencyType ur) const JMP_THIS(0x4FDCE0);
 	bool AI_Raise_Money(UrgencyType ur) const JMP_THIS(0x4FDD10);
 

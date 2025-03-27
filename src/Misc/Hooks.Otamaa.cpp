@@ -6421,3 +6421,14 @@ ASMJIT_PATCH(0x581D4E, MapClass_CollapseCliffs_DefaultAnimB, 0x5)
 	R->EDX(RulesExtData::Instance()->XGRYSML1_);//0x2C sml
 	return 0x581D97;
 }
+
+ASMJIT_PATCH(0x7B4940, WString_OperatorSet_empty, 0x5)
+{
+	GET_STACK(Wstring*, pString, 0x4);
+	GET_STACK(DWORD, caller , 0x0);
+
+	if (!pString)
+		Debug::FatalError("Empty String set for wstring caller  %x\n", caller);
+
+	return 0x0;
+}

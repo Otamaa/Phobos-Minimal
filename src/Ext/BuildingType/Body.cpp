@@ -1223,10 +1223,13 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 	auto pPowersUp = pBuilding->PowersUpBuilding;
 
 	if (!pHouse)
-		return 0;
+		return -1;
 
 	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
 		{
+			if(!pTPowersUp)
+				return;
+
 			isUpgrade = true;
 			for (auto const& pBld : pHouse->Buildings)
 			{
@@ -1246,7 +1249,6 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 		if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
 			checkUpgrade(pTPowersUp);
 	}
-
 
 	for (auto pTPowersUp : BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings)
 		checkUpgrade(pTPowersUp);
