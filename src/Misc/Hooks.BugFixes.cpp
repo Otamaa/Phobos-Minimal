@@ -837,17 +837,17 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 // This notably causes an issue with Grinder that restores ActiveAnim if the building is sold/destroyed while SpecialAnim is playing even if the building is gone or in limbo.
 // Now it does not do this if the building is in limbo, which covers all cases from being destroyed, sold, to erased by Temporal weapons.
 // There is another potential case for this with ProductionAnim & IdleAnim which is also patched here just in case.
-ASMJIT_PATCH(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
-{
-	enum { SkipAnimOne = 0x44E9A4, SkipAnimTwo = 0x44EA07 };
-
-	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->InLimbo || !pThis->IsAlive)
-		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
+//ASMJIT_PATCH(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
+//{
+//	enum { SkipAnimOne = 0x44E9A4, SkipAnimTwo = 0x44EA07 };
+//
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (pThis->InLimbo || !pThis->IsAlive)
+//		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
+//
+//	return 0;
+//}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
 
 
 // Fix initial facing when jumpjet locomotor is being attached

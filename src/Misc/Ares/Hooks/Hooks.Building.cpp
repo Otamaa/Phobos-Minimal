@@ -1213,6 +1213,7 @@ ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	{
 		for (int i = 0; i < 21; ++i) {
 			if (auto pAnim = std::exchange(pThis->Anims[i], nullptr)) {
+				pAnim->RemainingIterations = 0;
 				pAnim->UnInit();
 			}
 		}
@@ -1220,6 +1221,7 @@ ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	else
 	{
 		if (auto pAnim = std::exchange(pThis->Anims[AnimState] , nullptr)) {
+			pAnim->RemainingIterations = 0;
 			pAnim->UnInit();
 		}
 	}
