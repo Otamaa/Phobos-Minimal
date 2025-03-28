@@ -580,3 +580,26 @@ ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
 
 	return 0x54C7A3;
 }
+
+Point2D *__stdcall JumpjetLoco_ILoco_Shadow_Point(ILocomotion * iloco, Point2D *pPoint)
+{
+	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iloco);
+	const auto pThis = pLoco->LinkedTo;
+	const auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
+
+	auto height = pThis->Location.Z - MapClass::Instance->GetCellFloorHeight(pThis->Location);
+
+	// Vanilla GetHeight check OnBridge flag, which can not work on jumpjet
+	// Here, we simulate the drawing of an airplane for altitude calculation
+	if (pCell->ContainsBridge()
+		&& ((pCell->Flags & CellFlags::BridgeDir) && pCell->GetNeighbourCell(FacingType::North)->ContainsBridge()
+			|| !(pCell->Flags & CellFlags::BridgeDir) && pCell->GetNeighbourCell(FacingType::West)->ContainsBridge()))
+	{
+		height -= Unsorted::BridgeHeight;
+	}
+
+	pPoint->X = 0;
+	pPoint->Y = Game::AdjustHeight(height) ;
+	return pPoint;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD98, JumpjetLoco_ILoco_Shadow_Point);

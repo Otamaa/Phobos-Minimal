@@ -157,12 +157,6 @@ ASMJIT_PATCH(0x4C1F33, EBolt_Draw_Colors, 7)
 	return 0x4C1F66;
 }
 
-ASMJIT_PATCH(0x4C2C10, EboltClass_Cleanup, 0x5) {
-	GET(EBolt* const, pBolt, ECX);
-	Debug::LogInfo("CleaningUp Ebot[{}]", (void*)pBolt);
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);

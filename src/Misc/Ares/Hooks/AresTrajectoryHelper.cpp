@@ -306,7 +306,7 @@ CoordStruct PhobosBulletObstacleHelper::AddFLHToSourceCoords(
 	// Unable to predict the degree of inclination of the techno yet
 	Matrix3D mtx = Matrix3D::GetIdentity();
 	// Position on the ground or bridge
-	const auto pCell = MapClass::Instance->TryGetCellAt(sourceCoords);
+	const auto pCell = MapClass::Instance->GetCellAt(sourceCoords);
 	const auto source = pTechno->OnBridge ? pCell->GetCoordsWithBridge() : pCell->GetCoords();
 	// Predicted orientation
 	float radian = (float)(-Math::atan2(float(targetCoords.Y - source.Y), float(targetCoords.X - source.X)));
