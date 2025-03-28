@@ -340,7 +340,7 @@ bool NewSWType::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 
 bool NewSWType::IsSWTypeAttachedToThis(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
-	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->AttachedToObject->ArrayIndex, true);;
+	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->AttachedToObject->ArrayIndex, true);
 }
 
 bool NewSWType::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const

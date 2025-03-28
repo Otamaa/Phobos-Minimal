@@ -1562,7 +1562,19 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
 		this->LandingDir.Read(exINI, pSection, "LandingDir");
 
-		this->Secret_Boons.Read(exINI, pSection, "SecretLab.PossibleBoons");
+		std::string _boons = "SecretLab.PossibleBoons";
+
+		this->Secret_Boons.Read(exINI, pSection, _boons.c_str());
+		for (size_t i = 0;; ++i) {
+			NullableVector<TechnoTypeClass*> _read {};
+			_read.Read(exINI, pSection, (_boons + std::to_string(i)).c_str());
+
+			if (!_read.HasValue() || _read.empty())
+				break;
+
+			this->Secret_Boons.insert(this->Secret_Boons.end() , _read.begin(), _read.end());
+		}
+
 		this->Secret_RecalcOnCapture.Read(exINI, pSection, "SecretLab.GenerateOnCapture");
 
 		this->Academy.clear();
