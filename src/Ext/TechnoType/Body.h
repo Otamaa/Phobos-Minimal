@@ -666,7 +666,7 @@ public:
 
 	Valueable<AnimTypeClass*> NoAmmoEffectAnim { nullptr };
 	Valueable<int> AttackFriendlies_WeaponIdx { -1 };
-	Valueable<bool> AttackFriendlies_AutoAttack { false };
+	Valueable<bool> AttackFriendlies_AutoAttack { true };
 
 	Nullable<WORD> PipScaleIndex { };
 

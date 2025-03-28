@@ -1472,6 +1472,10 @@ ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 		return ForceAttack;
 	}
 
+	//if(pThis->Berzerk && IsAlly) {
+	//	return ForceAttack; // dont clear target
+	//}
+
 	const bool IsNegDamage = (pThis->CombatDamage() < 0);
 
 	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;

@@ -363,6 +363,8 @@ static TechnoClass* CreateFoot(
 							pTechno->EnterIdleMode(false, true);
 						else
 							pFlyLoco->Move_To(pCell->GetCoordsWithBridge());
+
+						AircraftTrackerClass::Instance->Add(pTechno);
 					}
 					else if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pTechno->Locomotor))
 					{
@@ -373,15 +375,15 @@ static TechnoClass* CreateFoot(
 							pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 							pJJLoco->IsMoving = true;
 							pJJLoco->HeadToCoord = location;
-							pJJLoco->Height = pType->JumpjetData.Height;
-							if (!inAir)
-								AircraftTrackerClass::Instance->Add(pTechno);
+							pJJLoco->Height = pType->JumpjetData.Height; 								
 						}
 						else if (inAir)
 						{
 							// Order non-BalloonHover jumpjets to land.
 							pJJLoco->Move_To(location);
 						}
+
+						AircraftTrackerClass::Instance->Add(pTechno);
 					}
 					else if (inAir && !parachuted)
 					{
