@@ -14,6 +14,23 @@
 #include <InfantryClass.h>
 #include <AircraftClass.h>
 
+namespace InRangeTemp
+{
+	TechnoClass* Techno = nullptr;
+}
+
+ASMJIT_PATCH(0x6F737F, TechnoClass_InRange_WeaponMinimumRange, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EDX);
+
+	auto pTechno = InRangeTemp::Techno;
+
+	if (const auto keepRange = WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pTechno, true))
+		R->ECX(keepRange);
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
 	enum { ContinueCheck = 0x6F72E3, RetTrue = 0x6F7256, RetFalse = 0x6F7655 };
@@ -22,7 +39,13 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	GET(AbstractClass*, pTarget, ECX);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+	InRangeTemp::Techno = pThis;
+
+	int range = 0;
+	if (const auto keepRange = WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pThis, false))
+	range = keepRange;
+	else
+	range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
 
 	if (range == -512)
 		return RetTrue;

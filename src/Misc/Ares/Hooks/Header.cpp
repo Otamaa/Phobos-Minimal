@@ -3525,10 +3525,10 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	TechnoExt_ExtData::SetSpotlight(pThis, pSpot);
 	const int value = MinImpl(pToType->ROT, 127);
-	(&pThis->PrimaryFacing)->ROT.Raw = value << 8;
+	(&pThis->PrimaryFacing)->ROT.Raw = (unsigned short)(value << 8);
 
 	const int valuesec = MinImpl(pToTypeExt->TurretRot.Get(pToType->ROT), 127);
-	(&pThis->SecondaryFacing)->ROT.Raw = valuesec << 8;
+	(&pThis->SecondaryFacing)->ROT.Raw = (unsigned short)(valuesec << 8);
 
 	// // because we are throwing away the locomotor in a split second, piggybacking
 	// // has to be stopped. otherwise the object might remain in a weird state.

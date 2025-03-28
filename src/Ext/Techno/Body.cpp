@@ -5502,6 +5502,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CurrentDelayedFireAnim)
 		.Process(this->CustomFiringOffset)
 		.Process(this->LastWeaponType)
+
+		.Process(this->ElectricBolts)
 		;
 }
 

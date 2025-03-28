@@ -109,7 +109,13 @@ public:
 	static void SaveVariablesToFile(bool isGlobal);
 	static void LoadVariablesToFile(bool isGlobal);
 
-	static PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal);
+	static COMPILETIMEEVAL PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal) {
+		if (IsGlobal)
+			return &ScenarioExtData::Instance()->Global_Variables;
+	
+		return &ScenarioExtData::Instance()->Local_Variables;
+	}
+
 	OPTIONALINLINE static bool UpdateLightSources;
 };
 

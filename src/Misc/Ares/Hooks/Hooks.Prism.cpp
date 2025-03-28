@@ -36,15 +36,11 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 
 void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
-	if (auto const supportEBolt = WeaponTypeExtData::CreateBolt(pWeapon))
-	{
-		//const auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-		supportEBolt->Owner = pFirer;
-		supportEBolt->WeaponSlot = idx;
-		supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
-		supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
-	}
-
+	auto const supportEBolt = WeaponTypeExtData::CreateBolt(pWeapon, pFirer);
+	supportEBolt->Owner = pFirer;
+	supportEBolt->WeaponSlot = idx;
+	supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
+	supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
 }
 
 ASMJIT_PATCH(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)

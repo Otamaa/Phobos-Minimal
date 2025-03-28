@@ -63,13 +63,13 @@ void ScenarioExtData::LoadVariablesToFile(bool isGlobal)
 	});
 }
 
-PhobosMap<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)
-{
-	if (IsGlobal)
-		return &ScenarioExtData::Instance()->Global_Variables;
-
-	return &ScenarioExtData::Instance()->Local_Variables;
-}
+// PhobosMap<int, ExtendedVariable>* ScenarioExtData::GetVariables(bool IsGlobal)
+// {
+// 	if (IsGlobal)
+// 		return &ScenarioExtData::Instance()->Global_Variables;
+//
+// 	return &ScenarioExtData::Instance()->Local_Variables;
+// }
 
 void ScenarioExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bState)
 {

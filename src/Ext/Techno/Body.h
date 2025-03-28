@@ -36,6 +36,7 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 
 #include <TemporalClass.h>
+#include <EBolt.h>
 
 class BulletClass;
 class TechnoTypeClass;
@@ -731,6 +732,7 @@ public:
 	std::optional<CoordStruct> CustomFiringOffset  {}; // If set any calls to GetFLH() will use this coordinate as
 
 	WeaponTypeClass* LastWeaponType { nullptr };
+	HelperedVector<EBolt*> ElectricBolts {};
 
 	~TechnoExtData() noexcept
 	{
@@ -742,6 +744,7 @@ public:
 
 		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		this->ClearElectricBolts();
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
@@ -750,8 +753,20 @@ public:
 		return this->Shield.get();
 	}
 
+	void ClearElectricBolts()
+	{
+		for (auto const pBolt : this->ElectricBolts) {
+			pBolt->Owner = nullptr;
+		}
+
+		this->ElectricBolts.clear();
+	}
+
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { 
+		this->Serialize(Stm); 
+		this->ClearElectricBolts();
+	}
 
 	void InitializeConstant();
 

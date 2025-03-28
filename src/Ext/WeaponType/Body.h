@@ -137,6 +137,8 @@ public:
 	Valueable<int> Bolt_Duration { 17 };
 
 	Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys {};
+	Nullable<bool> Bolt_FollowFLH {};
+
 	Valueable<int> Laser_Thickness { -1 };
 
 	ValueableVector<WarheadTypeClass*> ExtraWarheads {};
@@ -189,6 +191,10 @@ public:
 
 	bool SkipWeaponPicking { true };
 
+	Valueable<Leptons> KeepRange {};
+	Valueable<bool> KeepRange_AllowAI {};
+	Valueable<bool> KeepRange_AllowPlayer {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -219,9 +225,14 @@ private:
 	void Serialize(T& Stm);
 
 public:
+	struct EBoltWeaponStruct
+	{
+		WeaponTypeExtData* Weapon;
+		int BurstIndex;
+	};
 
 	OPTIONALINLINE static int nOldCircumference { DiskLaserClass::Radius };
-	OPTIONALINLINE static PhobosMap<EBolt*, const WeaponTypeExtData*> boltWeaponTypeExt;
+	OPTIONALINLINE static PhobosMap<EBolt*, EBoltWeaponStruct> boltWeaponTypeExt;
 
 	static int GetBurstDelay(WeaponTypeClass* pThis, int burstIndex);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);
@@ -230,15 +241,14 @@ public:
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker);
 
-	static EBolt* CreateBolt(WeaponTypeClass* pWeapon);
-	static EBolt* CreateBolt(WeaponTypeExtData* pWeapon = nullptr);
+	static EBolt* CreateBolt(WeaponTypeClass* pWeapon, TechnoClass* pFirer);
 
 	static void FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target);
 	static void FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx);
 
 	//return lepton
 	static int GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback = std::nullopt);
-
+	static int GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* pFirer, bool isMinimum);
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>

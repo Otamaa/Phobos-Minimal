@@ -351,11 +351,11 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	//	}
 	//}
 
-	EBolt::Array->for_each([&](EBolt* pThis) {
-		if (removed && pThis->Owner == pInvalid) {
-			pThis->Owner = nullptr;
-		}
-	});
+	// EBolt::Array->for_each([&](EBolt* pThis) {
+	// 	if (removed && pThis->Owner == pInvalid) {
+	// 		pThis->Owner = nullptr;
+	// 	}
+	// });
 
 	//PrismForwarding::Array.for_each([&](auto& pThis) {
 	//	if (pThis) {

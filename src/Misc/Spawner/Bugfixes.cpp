@@ -109,8 +109,8 @@ void __fastcall EBolt_SetOwnerAndWeapon_FixCrash(EBolt* pThis, void*, TechnoClas
 	}
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x6FD606, EBolt_SetOwnerAndWeapon_FixCrash); // Replace single call
-DEFINE_FUNCTION_JUMP(LJMP, 0x4C2BD0, EBolt_SetOwnerAndWeapon_FixCrash); // For in case another module tries to call function
+//DEFINE_FUNCTION_JUMP(CALL, 0x6FD606, EBolt_SetOwnerAndWeapon_FixCrash); // Replace single call
+//DEFINE_FUNCTION_JUMP(LJMP, 0x4C2BD0, EBolt_SetOwnerAndWeapon_FixCrash); // For in case another module tries to call function
 
 // Extend IsoMapPack5 decoding size limit
 // (Large map support)
