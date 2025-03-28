@@ -63,6 +63,19 @@ ASMJIT_PATCH(0x6F7511, TechnoClass_InRange_Obstacle, 6)
 		const auto newSourceCoords = subjectToGround ? PhobosBulletObstacleHelper::AddFLHToSourceCoords(*pSource, dest, pThis, pTarget, pWeapon, subjectToGround) : *pSource;
 		pResult = PhobosBulletObstacleHelper::FindFirstImpenetrableObstacle(newSourceCoords, dest, pThis, pTarget, pThis->Owner, pWeapon, true, subjectToGround);
 	}
+
+	// Enable aircraft carriers to search for suitable attack positions on their own
+	if (!pResult && pThis->SpawnManager && (pThis->AbstractFlags & AbstractFlags::Foot) && !pThis->IsInAir())
+	{
+		const auto coords = pThis->Location;
+		pThis->Location = *pSource; // Temporarily adjust the coordinates based on the path finding.
+
+		if (pThis->sub_703B10()) // Near by elevated bridge
+		pResult = MapClass::Instance->GetCellAt(*pSource);
+
+		pThis->Location = coords;
+	}
+
 	R->EAX(pResult);
 
 	return 0x6F7647;

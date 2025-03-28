@@ -104,7 +104,7 @@ public:
 	//Constructor
 	TagTypeClass(char const* pName) noexcept
 		: TagTypeClass(noinit_t())
-	{ JMP_THIS(0x5447C0); }
+	{ JMP_THIS(0x6E5B60); }
 
 protected:
 	explicit __forceinline TagTypeClass(noinit_t) noexcept

@@ -292,37 +292,41 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 		if (!ScriptExtData::IsUnitAvailable(pObj, true))
 			return;
 
-		//if (pTechno->Spawned)
-		//	return;
-
 		if (enemyHouse && enemyHouse != pObj->Owner)
 			return;
 
 		// Don't pick underground units
 		if (pObj->InWhichLayer() == Layer::Underground)
 			return;
+		auto objectType = pObj->GetTechnoType();
 
-		if (auto objectType = pObj->GetTechnoType())
 		{
-			// Stealth ground unit check
-			if (pObj->CloakState == CloakState::Cloaked && !objectType->Naval)
-				return;
-
-			// Submarines aren't a valid target
-			if (pObj->CloakState == CloakState::Cloaked
-				&& objectType->Underwater
-				&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
-					|| pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+			if (objectType->Naval)
 			{
-				return;
-			}
+				{
+					// Submarines aren't a valid target
+					if (pObj->CloakState == CloakState::Cloaked
+						&& objectType->Underwater
+						&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
+							|| pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+					{
+						return;
+					}
 
-			// Land not OK for the Naval unit
-			if (objectType->Naval
-				&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-				&& pObj->GetCell()->LandType != LandType::Water)
-			{
-				return;
+					// Land not OK for the Naval unit
+					if (pTechnoType->LandTargeting == LandTargetingType::Land_okay
+						&& (pObj->GetCell()->LandType != LandType::Water))
+					{
+						return;
+					}
+
+				}
+
+				// Stealth check.
+				if (pObj->CloakState == CloakState::Cloaked && !pObj->GetCell()->Sensors_InclHouse(pTechno->Owner->ArrayIndex))
+				{
+					return;
+				}
 			}
 
 			if (pObj != pTechno && ((pickAllies && pTechno->Owner->IsAlliedWith(pObj)) || (!pickAllies && !pTechno->Owner->IsAlliedWith(pObj))))

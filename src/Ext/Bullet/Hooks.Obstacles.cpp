@@ -28,6 +28,7 @@ ASMJIT_PATCH(0x6F737F, TechnoClass_InRange_WeaponMinimumRange, 0x6)
 	if (const auto keepRange = WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pTechno, true))
 		R->ECX(keepRange);
 
+	InRangeTemp::Techno = nullptr;
 	return 0;
 }
 

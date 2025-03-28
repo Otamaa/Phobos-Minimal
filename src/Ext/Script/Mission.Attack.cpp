@@ -476,13 +476,22 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
 	{
 		auto object = TechnoClass::Array->Items[i];
-		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno)
+		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno || object->EstimatedHealth <= 0 && pTechnoType->VHPScan == 2)
 			continue;
 
 		if (object->Spawned)
 			continue;
 
 		auto objectType = object->GetTechnoType();
+		auto pObjectTypeExt = TechnoTypeExtContainer::Instance.Find(objectType);
+
+		if (pTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get()) {
+			continue;
+		}else if(!objectType->LegalTarget)
+			continue;
+
+		if (object->GetCurrentMissionControl()->NoThreat)
+			continue;
 
 		// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
 		int weaponIndex = pTechno->SelectWeapon(object);
@@ -513,29 +522,34 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 		}
 
 		// Stealth ground unit check
-		if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
-			continue;
+		if (objectType->Naval)
+		{
+			// Submarines aren't a valid target
+			if (object->CloakState == CloakState::Cloaked
+				&& objectType->Underwater
+				&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
+					|| pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+			{
+				continue;
+			}
+
+			// Land not OK for the Naval unit
+			if (pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+				&& (object->GetCell()->LandType != LandType::Water))
+			{
+				continue;
+			}
+		}
+
+		// Stealth check.
+		if (object->CloakState == CloakState::Cloaked) {
+			if (!object->GetCell()->Sensors_InclHouse(pTechno->Owner->ArrayIndex))
+				continue;
+		}
 
 		if (pTechnoType->DetectDisguise && object->IsDisguised() && detectionValue > 0) {
 			if (ScenarioClass::Instance->Random.PercentChance(detectionValue))
 				continue;
-		}
-
-		// Submarines aren't a valid target
-		if (object->CloakState == CloakState::Cloaked
-			&& objectType->Underwater
-			&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
-				|| pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
-		{
-			continue;
-		}
-
-		// Land not OK for the Naval unit
-		if (objectType->Naval
-			&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-			&& (object->GetCell()->LandType != LandType::Water))
-		{
-			continue;
 		}
 
 		// OnlyTargetHouseEnemy forces targets of a specific (hated) house
@@ -584,6 +598,13 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 					// Extra threat based on current health. More damaged == More threat (almost destroyed objects gets more priority)
 					objectThreatValue += object->Health * (1 - object->GetHealthPercentage());
 					value = (objectThreatValue * threatMultiplier) / ((pTechno->DistanceFrom(object) / 256.0) + 1.0);
+
+					if (pTechnoType->VHPScan == 1) {
+						if (object->EstimatedHealth <= 0)
+							value /= 2;
+						else if (object->EstimatedHealth <= objectType->Strength / 2)
+							value *= 2;
+					}
 
 					if (calcThreatMode == DistanceMode::idkZero)
 					{

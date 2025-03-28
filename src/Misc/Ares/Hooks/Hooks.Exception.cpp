@@ -421,7 +421,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		break;
 	}
 
-	Debug::ExitGame(pExs->ExceptionRecord->ExceptionCode);
+	Debug::ExitGame<true>(pExs->ExceptionRecord->ExceptionCode);
 
 	return 0u;
 };
