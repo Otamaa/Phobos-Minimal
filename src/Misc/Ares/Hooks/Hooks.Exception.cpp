@@ -352,6 +352,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 						pp.To.X , pp.To.Y
 					);
 				}
+				pp.Clear();
 			}
 
 			fprintf(except, "\nStack dump (depth : %d):\n", EXCEPTION_STACK_DEPTH_MAX);

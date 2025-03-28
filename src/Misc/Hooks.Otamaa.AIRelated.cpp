@@ -371,7 +371,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6EE693, Find_Own_Building)
 
 ASMJIT_PATCH(0x6EEC6D, FindTargetBuilding_LimboDelivered, 0x6)
 {
-	enum { advance = 0x6EA38C, ret = 0x0 };
+	enum { advance = 0x6EEE21, ret = 0x0 };
 	GET(BuildingClass*, pBuilding, ESI);
 
 	if (!pBuilding->IsAlive)
