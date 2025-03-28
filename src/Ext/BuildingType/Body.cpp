@@ -1316,8 +1316,20 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		// Ares SuperWeapons tag
 		auto const& pArray = SuperWeaponTypeClass::Array;
-		if (pArray->IsAllocated && pArray->Count > 0)
-			this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
+		std::string str_Supers = GameStrings::SuperWeapons();
+		if (pArray->IsAllocated && pArray->Count > 0) {
+			this->SuperWeapons.Read(exINI, pSection, str_Supers.c_str());
+
+			for (size_t i = 0;; ++i) {
+				NullableIdxVector<SuperWeaponTypeClass*> _readsupers {};
+				_readsupers.Read(exINI, pSection, (str_Supers + std::to_string(i)).c_str());
+
+				if (!_readsupers.HasValue() || _readsupers.empty())
+					break;
+
+				this->SuperWeapons.insert(this->SuperWeapons.end() , _readsupers.begin(), _readsupers.end());
+			}
+		}
 
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		//const auto IscompatibilityMode = Phobos::Otamaa::CompatibilityMode;
@@ -1799,7 +1811,6 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 	return false;
 }
 
-#include <EventClass.h>
 #include <Ext/Scenario/Body.h>
 
 // Check the cameo change

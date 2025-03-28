@@ -3591,7 +3591,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	{
 	case KillMethod::Explode:
 	{
-		if (pThis && pThis->IsAlive)
+		if (pThis->IsAlive)
 		{
 			auto nHealth = pThis->GetType()->Strength;
 			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
