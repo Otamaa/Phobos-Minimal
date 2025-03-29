@@ -1507,7 +1507,7 @@ bool TechnoExtData::HasImmunity(Rank vet, TechnoClass* pThis, int nType)
 
 bool TechnoExtData::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 {
-	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
+	if (!pVictim || !pVictim->IsAlive || !pAttacker || pVictim->IsBeingWarpedOut())
 		return false;
 
 	if (pVictim->IsIronCurtained())
