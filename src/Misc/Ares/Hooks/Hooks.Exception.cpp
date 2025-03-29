@@ -78,6 +78,7 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
+	std::string reason = "Unknown";
 
 	switch (*eip_pointer)
 	{
@@ -111,11 +112,11 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
 
 		//AstarClass , broken ptr
-		Debug::LogInfo("PathfindingCrash");
+		reason = ("PathfindingCrash");
 		break;
 	}
 	case 0x584DF7:
-			Debug::LogInfo("SubzoneTrackingCrash");
+		reason = ("SubzoneTrackingCrash");
 	break;
 	//case 0x755C7F:
 	//{
@@ -135,7 +136,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	}
 
 	Debug::FreeMouse();
-	Debug::LogInfo("Exception handler fired!");
+	Debug::LogInfo("Exception handler fired reason %s !" , reason);
 	Debug::Log("Exception 0x%x at 0x%x\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	Game::StreamerThreadFlush();
 

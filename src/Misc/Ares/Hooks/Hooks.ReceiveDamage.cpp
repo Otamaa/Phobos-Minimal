@@ -1026,10 +1026,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			}
 		}
 
-		if (auto& pParticleZero = pThis->FireParticleSystem)
-		{
+		if (auto& pParticleZero = pThis->FireParticleSystem) {
 			pParticleZero->UnInit();
-			pParticleZero = nullptr;
 		}
 
 		if (pThis->GetHeight() > 0 || !pThis->IsABomb || pThis->GetCell()->LandType != LandType::Water)
@@ -1282,7 +1280,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		if (auto& pPart = pThis->DamageParticleSystem)
 		{
 			pPart->UnInit();
-			pPart = nullptr;
 		}
 	}
 
