@@ -366,7 +366,7 @@ static TechnoClass* CreateFoot(
 								pFlyLoco->Move_To(pCell->GetCoordsWithBridge());
 
 						
-						} else if (pType->Speed == 0 && inAir) {
+						} else if (inAir) {
 							AircraftTrackerClass::Instance->Add(pTechno);
 						}
 					}
@@ -391,7 +391,7 @@ static TechnoClass* CreateFoot(
 								// Order non-BalloonHover jumpjets to land.
 								pJJLoco->Move_To(location);
 							}
-						} else if (pType->Speed == 0 && inAir) {
+						} else if (inAir) {
 							AircraftTrackerClass::Instance->Add(pTechno);
 						}
 					}
