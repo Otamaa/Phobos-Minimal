@@ -6432,3 +6432,15 @@ ASMJIT_PATCH(0x7B4940, WString_OperatorSet_empty, 0x5)
 
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(BuildingClass*, pBld, EAX);
+
+	if (!pBld) {
+		Debug::FatalErrorAndExit("Cannot Find BuildWeapons For [%s - %ls] , BuildWeapons Count %d\n", pThis->Type->ID, pThis->Type->UIName, RulesClass::Instance->BuildWeapons.Count);
+	}
+
+	return 0x0;
+}
