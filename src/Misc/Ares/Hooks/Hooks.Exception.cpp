@@ -136,7 +136,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	}
 
 	Debug::FreeMouse();
-	Debug::LogInfo("Exception handler fired reason %s !" , reason);
+	Debug::LogInfo("Exception handler fired reason {} !" , reason);
 	Debug::Log("Exception 0x%x at 0x%x\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	Game::StreamerThreadFlush();
 

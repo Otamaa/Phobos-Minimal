@@ -6,6 +6,8 @@
 #include "GiftBox.h"
 #include "GiftBoxData.h"
 
+#include <Locomotor/JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
 const bool OpenDisallowed(TechnoClass* const pTechno)
 {
@@ -270,11 +272,48 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					}
 				}
 
-				if (auto pAir = cast_to<AircraftClass* , false>(pGift))
+				auto pFoot = flag_cast_to<FootClass*, false>(pGift);
+
+				if (pFoot)
 				{
-					if (pAir->GetHeight() > 0)
+					const bool inAir = pCell->GetCoords().Z >= Unsorted::CellHeight * 2;
+					const bool isNotMoving = pTech->Speed == 0;
+
 					{
-						AircraftTrackerClass::Instance->Add(pAir);
+						if (auto const pFlyLoco = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor)){
+							bool airportBound = pFoot->WhatAmI() == AbstractType::AircraftType && static_cast<AircraftTypeClass*>(pTech)->AirportBound;
+
+							if(!isNotMoving){
+								if (pCell->GetContent() || airportBound)
+									pGift->EnterIdleMode(false, true);
+								else
+									pFlyLoco->Move_To(pCell->GetCoordsWithBridge());
+
+							} else if (inAir) {
+								AircraftTrackerClass::Instance->Add(pFoot);
+							}
+						}
+						else if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor))
+						{
+							if (!isNotMoving) {
+								if (pTech->BalloonHover) {
+									// Makes the jumpjet think it is hovering without actually moving.
+									pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
+									pJJLoco->IsMoving = true;
+									pJJLoco->HeadToCoord = location;
+									pJJLoco->Height = pTech->JumpjetData.Height;
+
+									if (!inAir)
+										AircraftTrackerClass::Instance->Add(pFoot);
+
+								} else if (inAir) {
+									// Order non-BalloonHover jumpjets to land.
+									pJJLoco->Move_To(location);
+								}
+							} else if (inAir) {
+								AircraftTrackerClass::Instance->Add(pFoot);
+							}
+						}
 					}
 				}
 
@@ -285,13 +324,13 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					Unsorted::MoveFeedback() = feedback;
 				}
 
-				if (!pDest && !pFocus)
+				if (!pDest && !pFocus && pTech->Speed != 0)
 				{
 					pGift->Scatter(CoordStruct::Empty, true, false);
 				}
 				else
 				{
-					if (pGift->WhatAmI() != BuildingClass::AbsID)
+					if (pFoot && pTech->Speed != 0)
 					{
 						CoordStruct des = pDest ? pDest->GetCoords() : location;
 
