@@ -617,14 +617,24 @@ void ParticleSystemExtData::UpdateWindDirection()
 		}
 
 		auto WindDir = RulesClass::Instance->WindDirection;
-
+		//auto x_ = ParticleClass::SmokeWind_X.begin() + WindDir;
+		//auto y_ = ParticleClass::SmokeWind_Y.begin() + WindDir;
 		for (auto& smoke : this->SmokeData)
 		{
-			const auto& [dirX, dirY] = ParticleTypeExtContainer::Instance.Find(smoke.LinkedParticleType)->WindMult[WindDir];
 			CoordStruct velCpy = smoke.vel;
-			smoke.vel.X += int(smoke.velB.X + smoke.LinkedParticleType->WindEffect * dirX);
-			smoke.vel.Y += int(smoke.velB.Y + smoke.LinkedParticleType->WindEffect * dirY);
-			smoke.vel.Z += int(smoke.velB.Z);
+
+			if (smoke.LinkedParticleType->WindEffect > 0) {
+				const auto& [dirX, dirY] = ParticleTypeExtContainer::Instance.Find(smoke.LinkedParticleType)->WindMult[WindDir];
+				smoke.vel.X += int(smoke.velB.X + smoke.LinkedParticleType->WindEffect * dirX);
+				smoke.vel.Y += int(smoke.velB.Y + smoke.LinkedParticleType->WindEffect * dirY);
+				smoke.vel.Z += int(smoke.velB.Z);
+			}
+			else
+			{ // if no wind effect
+				smoke.vel.X += int(smoke.velB.X);
+				smoke.vel.Y += int(smoke.velB.Y);
+				smoke.vel.Z += int(smoke.velB.Z);
+			}
 
 			const auto pCell = MapClass::Instance->GetCellAt(velCpy);
 
@@ -1185,9 +1195,6 @@ void ParticleSystemExtData::UpdateInAir()
 
 		for (auto pSys : *ParticleSystemClass::Array)
 		{
-			if (pSys->TimeToDie)
-				continue; //wee
-
 			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
 
 			if (!pExt)

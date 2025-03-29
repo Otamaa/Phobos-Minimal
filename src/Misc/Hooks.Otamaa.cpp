@@ -6445,19 +6445,21 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x7BB350, XSurface_DrawSurface_InvalidSurface, 0x5)
-{
-	GET(XSurface*, pThis, ESI);
-	GET_STACK(DWORD, caller, 0x0);
-
-	if (!pThis ||
-		(
-			VTable::Get(pThis) != XSurface::vtable &&
-			VTable::Get(pThis) != DSurface::vtable &&
-			VTable::Get(pThis) != BSurface::vtable
-		))
-		Debug::FatalError("Invalid XSurface Caller %x\n", caller);
-
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x7BB350, XSurface_DrawSurface_InvalidSurface, 0x5)
+//{
+//	GET(XSurface*, pThis, ESI);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (!pThis ||
+//		(
+//			VTable::Get(pThis) != XSurface::vtable &&
+//			VTable::Get(pThis) != DSurface::vtable &&
+//			VTable::Get(pThis) != BSurface::vtable &&
+//			VTable::Get(pThis) != Surface::vtable
+//
+//		))
+//		Debug::FatalError("Invalid XSurface Caller %x\n", caller);
+//
+//
+//	return 0x0;
+//}

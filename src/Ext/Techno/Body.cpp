@@ -4148,7 +4148,6 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			if(!Rubbled) {
 				if (auto& dmgParticle = pThis->DamageParticleSystem) {
 					dmgParticle->UnInit();
-					dmgParticle = nullptr;
 				}
 			}
 		}

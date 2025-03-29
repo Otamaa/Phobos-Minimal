@@ -202,7 +202,7 @@ public:
 		return defVal;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE CoordStruct GetRandomOffset(int min, int max)
+	static OPTIONALINLINE CoordStruct GetRandomOffset(int min, int max)
 	{
 		double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 		if (r > 0)
@@ -214,14 +214,14 @@ public:
 		return CoordStruct::Empty;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE CoordStruct GetRandomOffset(double maxSpread, double minSpread)
+	static OPTIONALINLINE CoordStruct GetRandomOffset(double maxSpread, double minSpread)
 	{
 		int min = static_cast<int>((minSpread <= 0 ? 0 : minSpread) * 256);
 		int max = static_cast<int>((maxSpread > 0 ? maxSpread : 1) * 256);
 		return GetRandomOffset(min, max);
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
+	static OPTIONALINLINE double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
 	{
 		int min = static_cast<int>(range.X * 100);
 		int max = static_cast<int>(range.Y * 100);
@@ -229,7 +229,7 @@ public:
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : (ScenarioClass::Instance->Random.RandomRanged(min, max) / 100.0);
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
+	static OPTIONALINLINE int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
 	{
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
@@ -282,7 +282,7 @@ public:
 		return targetPad;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE int Hit(PhobosMap<Point2D, int>& targetPad, int maxValue)
+	static OPTIONALINLINE int Hit(PhobosMap<Point2D, int>& targetPad, int maxValue)
 	{
 		int index = 0;
 		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
@@ -298,7 +298,7 @@ public:
 		return index;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE bool Bingo(double chance)
+	static OPTIONALINLINE bool Bingo(double chance)
 	{
 		if (chance > 0)
 		{
@@ -307,7 +307,7 @@ public:
 		return false;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE bool Bingo(std::vector<double>& chances, int index)
+	static OPTIONALINLINE bool Bingo(std::vector<double>& chances, int index)
 	{
 		int size = chances.size();
 		if (size < index + 1)

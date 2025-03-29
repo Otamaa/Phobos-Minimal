@@ -1271,7 +1271,11 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
 				pThis->DamageParticleSystem =
-					GameCreate<ParticleSystemClass>(_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)], _offs, nullptr, pThis);
+					GameCreate<ParticleSystemClass>(
+						_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)],
+						_offs,
+						nullptr,
+						pThis);
 			}
 		}
 	}
