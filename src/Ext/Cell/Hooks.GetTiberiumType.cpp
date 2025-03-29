@@ -51,7 +51,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4873E9, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x5FDA77, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x74A3A2, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x74A602, CellExtData::GetTiberiumType);
-//DEFINE_FUNCTION_JUMP(LJMP, 0x5FDD20, CellExtData::GetTiberiumType));
+DEFINE_FUNCTION_JUMP(LJMP, 0x5FDD20, CellExtData::GetTiberiumType);
 
 DEFINE_FUNCTION_JUMP(CALL, 0x424D9C, FakeCellClass::_GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x452FEC, FakeCellClass::_GetTiberiumType);

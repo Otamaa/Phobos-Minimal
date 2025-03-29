@@ -2975,12 +2975,12 @@ ASMJIT_PATCH(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
 
 ASMJIT_PATCH(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 {
-	GET(SpotlightClass*, pThis, EBP);
+	//GET(SpotlightClass*, pThis, EBP);
 	GET(int, idx, ECX);
 
 	if (idx > 64)
 	{
-		Debug::LogInfo("[0x{}]SpotlightClass with OutOfBoundSurfaceArrayIndex[{}] Fixing!", (void*)pThis, idx);
+		//Debug::LogInfo("[0x{}]SpotlightClass with OutOfBoundSurfaceArrayIndex[{}] Fixing!", (void*)pThis, idx);
 		idx = 64;
 	}
 
@@ -6441,6 +6441,23 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 	if (!pBld) {
 		Debug::FatalErrorAndExit("Cannot Find BuildWeapons For [%s - %ls] , BuildWeapons Count %d\n", pThis->Type->ID, pThis->Type->UIName, RulesClass::Instance->BuildWeapons.Count);
 	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x7BB350, XSurface_DrawSurface_InvalidSurface, 0x5)
+{
+	GET(XSurface*, pThis, ESI);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (!pThis ||
+		(
+			VTable::Get(pThis) != XSurface::vtable &&
+			VTable::Get(pThis) != DSurface::vtable &&
+			VTable::Get(pThis) != BSurface::vtable
+		))
+		Debug::FatalError("Invalid XSurface Caller %x\n", caller);
+
 
 	return 0x0;
 }
