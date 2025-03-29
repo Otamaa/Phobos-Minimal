@@ -219,7 +219,7 @@ public:
 	[[noreturn]] static NOINLINE void ExitGame(unsigned int code = 1u)
 	{
 		Phobos::ExeTerminate();
-		if constexpr (ImmedietelyExit)
+		if constexpr (!ImmedietelyExit)
 			CRT::exit_returnsomething(code, 0, 0);
 		else
 			exit(code);

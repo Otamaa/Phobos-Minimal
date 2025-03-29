@@ -61,6 +61,8 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			"Please submit that to the developers along with SYNC*.txt, debug.txt and syringe.log."
 				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r" : ""
 		);
+
+		Debug::ExitGame<true>(0);
 	}
 
 	return 0x64CD11;

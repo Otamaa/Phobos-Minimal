@@ -5857,22 +5857,22 @@ ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ? 0x4FD983 : 0x0;
 }
 
-ASMJIT_PATCH(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
-{
-	GET(TechnoClass*, pTr, ECX);
-	const auto vtable = VTable::Get(pTr);
+// ASMJIT_PATCH(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
+// {
+// 	GET(TechnoClass*, pTr, ECX);
+// 	const auto vtable = VTable::Get(pTr);
 
-	if (vtable != AircraftClass::vtable
-		&& vtable != UnitClass::vtable
-		&& vtable != BuildingClass::vtable
-		&& vtable != InfantryClass::vtable
-		)
-	{
-		return R->Origin() + 0x6; //skip setting ebolt for the techno because it corrupted pointer
-	}
+// 	if (vtable != AircraftClass::vtable
+// 		&& vtable != UnitClass::vtable
+// 		&& vtable != BuildingClass::vtable
+// 		&& vtable != InfantryClass::vtable
+// 		)
+// 	{
+// 		return R->Origin() + 0x6; //skip setting ebolt for the techno because it corrupted pointer
+// 	}
 
-	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x4C2C19, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
+// 	return 0x0;
+// }ASMJIT_PATCH_AGAIN(0x4C2C19, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
 
 ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 {
