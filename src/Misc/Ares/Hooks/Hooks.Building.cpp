@@ -702,26 +702,35 @@ ASMJIT_PATCH(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 	return 0x448BED;
 }
 
-ASMJIT_PATCH(0x44840B, BuildingClass_ChangeOwnership_Tech, 6)
+ASMJIT_PATCH(0x4483FB, BuildingClass_ChangeOwnership_Tech, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
 
-	if (pThis->Owner != pNewOwner && Bld_ChangeOwnerAnnounce)
-	{
-		const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-		const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
+	if (Bld_ChangeOwnerAnnounce && !pNewOwner->Type->MultiplayPassive) {
+		if(pThis->Type->NeedsEngineer) {
+			if(pThis->Owner != pNewOwner) {
+				const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+				const auto color = HouseClass::CurrentPlayer->ColorSchemeIndex;
 
-		if (pThis->Owner->ControlledByCurrentPlayer())
-		{
-			VoxClass::PlayIndex(pExt->LostEvaEvent);
-			pExt->MessageLost->PrintAsMessage(color);
-		}
+				if (pThis->Owner->ControlledByCurrentPlayer())
+				{
+					VoxClass::PlayIndex(pExt->LostEvaEvent);
+					pExt->MessageLost->PrintAsMessage(color);
+				}
 
-		if (pNewOwner->ControlledByCurrentPlayer())
-		{
-			VoxClass::PlayIndex(pThis->Type->CaptureEvaEvent);
-			pExt->MessageCapture->PrintAsMessage(color);
+				if (pNewOwner->ControlledByCurrentPlayer())
+				{
+					VoxClass::PlayIndex(pThis->Type->CaptureEvaEvent);
+					pExt->MessageCapture->PrintAsMessage(color);
+				}
+			}
+		} else {
+			auto coord = pThis->GetMapCoords();
+			if(RadarEventClass::Create(RadarEventType::BuildingCaptured,coord)){
+				if(pNewOwner->ControlledByCurrentPlayer())
+					VoxClass::Play(GameStrings::EVA_BuildingCaptured);
+			}
 		}
 	}
 
