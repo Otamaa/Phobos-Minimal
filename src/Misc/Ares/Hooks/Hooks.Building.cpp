@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x451330, BuildingClass_GetCrewCount, 0xA)
 
 			// value divided by "cost per survivor"
 			// clamp between 1 and 5
-			count = std::clamp(pThis->Type->GetRefund(pHouse, 0) / divisor, 1 , 5);
+			count = std::clamp(pThis->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
 		}
 	}
 
@@ -162,6 +162,7 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						cameoRect = destRect;
 						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
 						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+
 					}
 				}
 				else
@@ -179,29 +180,34 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 					}
 				}
 
-				//auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
-				//DSurface::Temp->Draw_Rect(cameoRect, (COLORREF)nColorInt);
-				//Point2D DrawTextLoc = { DrawCameoLoc.X - 20 , DrawCameoLoc.Y - 20 };
-				//std::wstring pFormat = std::to_wstring(nTotal);
-				//pFormat += L"X";
-				//RectangleStruct nTextDimension;
-				//Drawing::GetTextDimensions(&nTextDimension, pFormat.c_str(), DrawTextLoc, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-				//auto nIntersect = Drawing::Intersect(nTextDimension, cameoRect);
+				int prog = pFactory->GetProgress();
+				{
+					Point2D textLoc = { cameoRect.X + cameoRect.Width / 2, cameoRect.Y };
+					const auto percent = int(((double)prog / 54.0) * 100.0);
+					const auto text_ = std::to_wstring(percent);
+					RectangleStruct nTextDimension {};
+					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+					Drawing::GetTextDimensions(&nTextDimension, text_.c_str(), textLoc, printType, 4, 2);
+					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
+					const COLORREF foreColor = pThis->Owner->Color.ToInit();
+					DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+					DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)foreColor);
+					DSurface::Temp->DrawText_Old(text_.c_str(), pBounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
+				}
 
-				//DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
-				//DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
-
-				//Point2D nRet;
-				//Simple_Text_Print_Wide(&nRet, pFormat.c_str(), DSurface::Temp.get(), &cameoRect, &DrawTextLoc, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
-			} else if(pType->SuperWeapon != -1) {
+			}
+			else if (pType->SuperWeapon != -1)
+			{
 				SuperClass* const pSuper = pThis->Owner->Supers.Items[pType->SuperWeapon];
 
-				if (pSuper->RechargeTimer.TimeLeft > 0 && SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_ShowCameo) {
+				if (pSuper->RechargeTimer.TimeLeft > 0 && SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_ShowCameo)
+				{
 					RectangleStruct cameoRect {};
 					Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 
 					// support for pcx cameos
-					if (auto pPCX = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPCX.GetSurface()) {
+					if (auto pPCX = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPCX.GetSurface())
+					{
 						const int cameoWidth = 60;
 						const int cameoHeight = 48;
 
@@ -209,13 +215,16 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
 						RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
 
-						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds)) {
+						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
+						{
 							cameoRect = destRect;
 							AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
 							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
 						}
 
-					} else {
+					}
+					else
+					{
 						// old shp cameos, fixed palette
 						if (auto pCameo = pSuper->Type->SidebarImage)
 						{
@@ -315,9 +324,10 @@ ASMJIT_PATCH(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	{
 		if (auto const pLink = pThis->GetNthLink(i))
 		{
-			auto const SendCommand = [=](RadioCommand command) {
-				return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
-			};
+			auto const SendCommand = [=](RadioCommand command)
+				{
+					return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
+				};
 
 			// check if reloaded and repaired already
 			auto const pLinkType = pLink->GetTechnoType();
@@ -467,7 +477,8 @@ ASMJIT_PATCH(0x44A04C, BuildingClass_Destruction_CopyEMPDuration, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA) {
+ASMJIT_PATCH(0x69281E, DisplayClass_ChooseAction_TogglePower, 0xA)
+{
 	GET(TechnoClass*, pTarget, ESI);
 	REF_STACK(Action, action, STACK_OFFS(0x20, 0x10));
 
@@ -533,7 +544,7 @@ ASMJIT_PATCH(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if(pThis->GetCurrentMission() == Mission::Selling)
+	if (pThis->GetCurrentMission() == Mission::Selling)
 		return 0x0;
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
@@ -580,7 +591,8 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 			pThis->Limbo();
 			CellStruct Cell = pThis->GetMapCoords();
 			Target->KickOutUnit(pThis, Cell);
-			if (wasSelected) {
+			if (wasSelected)
+			{
 				pThis->Select();
 			}
 
@@ -662,7 +674,7 @@ ASMJIT_PATCH(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
 bool Bld_ChangeOwnerAnnounce;
 ASMJIT_PATCH(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 {
-	GET(BuildingClass* ,pThis ,ECX);
+	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(bool, announce, 0x8);
 	// Fix : Suppress capture EVA event if ConsideredVehicle=yes
 	announce = announce && !pThis->IsStrange();
@@ -678,8 +690,10 @@ ASMJIT_PATCH(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 	GET(HouseClass* const, pNewOwner, EDI);
 	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
 	//discarded
-	for(auto& anim : pThis->Anims){
-		if(anim) {
+	for (auto& anim : pThis->Anims)
+	{
+		if (anim)
+		{
 			anim->SetHouse(pNewOwner);
 		}
 	}
@@ -1001,12 +1015,14 @@ ASMJIT_PATCH(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 			if (bld->ProduceCashStartup || bld->ProduceCashAmount)
 			{
 
-				if(!pExt->BeignMCEd) {
+				if (!pExt->BeignMCEd)
+				{
 					pExt->BeignMCEd = false;
 					startup += bld->ProduceCashStartup;
 				}
 
-				if (bld->ProduceCashDelay) {
+				if (bld->ProduceCashDelay)
+				{
 					timer->Start(bld->ProduceCashDelay + 1);
 				}
 			}
@@ -1062,9 +1078,11 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 		}
 	}
 
-	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline()) {
+	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
+	{
 
-		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay) {
+		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
+		{
 			TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += produceAmount;
 		}
 
@@ -1211,8 +1229,10 @@ ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 
 	if (AnimState == -2)
 	{
-		for (int i = 0; i < 21; ++i) {
-			if (auto pAnim = std::exchange(pThis->Anims[i], nullptr)) {
+		for (int i = 0; i < 21; ++i)
+		{
+			if (auto pAnim = std::exchange(pThis->Anims[i], nullptr))
+			{
 				pAnim->RemainingIterations = 0;
 				pAnim->UnInit();
 			}
@@ -1220,7 +1240,8 @@ ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	}
 	else
 	{
-		if (auto pAnim = std::exchange(pThis->Anims[AnimState] , nullptr)) {
+		if (auto pAnim = std::exchange(pThis->Anims[AnimState], nullptr))
+		{
 			pAnim->RemainingIterations = 0;
 			pAnim->UnInit();
 		}
@@ -1316,7 +1337,8 @@ ASMJIT_PATCH(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
 }
 
 // remember that this building ejected its survivors already
-ASMJIT_PATCH(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA) {
+ASMJIT_PATCH(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
+{
 	GET(BuildingClass*, pThis, EBP);
 	pThis->NoCrew = BuildingTypeExtContainer::Instance.Find(pThis->Type)->SpawnCrewOnlyOnce;
 	return 0;
@@ -1382,31 +1404,31 @@ ASMJIT_PATCH(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 // start after free unit checks 0x446B16
 //FreeUnit end 0x446EE2
 
-ASMJIT_PATCH(0x45EE30 , BuildingTypeClass_GetActualCost_FreeUnitCount , 0x6)
+ASMJIT_PATCH(0x45EE30, BuildingTypeClass_GetActualCost_FreeUnitCount, 0x6)
 {
-	GET(BuildingTypeClass* , pThis ,EBX);
-	GET(HouseClass* , pHouse , EBP);
+	GET(BuildingTypeClass*, pThis, EBX);
+	GET(HouseClass*, pHouse, EBP);
 
-	if(!pThis->FreeUnit)
+	if (!pThis->FreeUnit)
 		return 0x45EE58;
 
 	const int FreeUnitamount = BuildingTypeExtContainer::Instance.Find(pThis)->FreeUnit_Count;
-	if(!FreeUnitamount)
+	if (!FreeUnitamount)
 		return 0x45EE58;
 
 	R->EAX(pThis->FreeUnit->GetActualCost(pHouse) * FreeUnitamount);
 	return 0x45EE45;
 }
 
-ASMJIT_PATCH(0x45EDA3 , BuildingClass_GetCost_FreeUnitCount , 0x6)
+ASMJIT_PATCH(0x45EDA3, BuildingClass_GetCost_FreeUnitCount, 0x6)
 {
-	GET(BuildingTypeClass* , pThis ,EBX);
+	GET(BuildingTypeClass*, pThis, EBX);
 
-	if(!pThis->FreeUnit)
+	if (!pThis->FreeUnit)
 		return 0x45EDC8;
 
 	const int FreeUnitamount = BuildingTypeExtContainer::Instance.Find(pThis)->FreeUnit_Count;
-	if(!FreeUnitamount)
+	if (!FreeUnitamount)
 		return 0x45EDC8;
 
 	R->EAX(pThis->FreeUnit->GetCost() * FreeUnitamount);
@@ -1418,15 +1440,21 @@ void SetFreeUnitMission(UnitClass* pUnit)
 	Mission nMissions;
 
 	//Initial DriverKilled
-	if (TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled) {
+	if (TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
+	{
 		nMissions = Mission::Sleep;
-	} else {
+	}
+	else
+	{
 
 		if (pUnit->Type->Harvester ||
 			pUnit->Type->Weeder ||
-			pUnit->Type->ResourceGatherer) {
+			pUnit->Type->ResourceGatherer)
+		{
 			nMissions = Mission::Harvest;
-		} else {
+		}
+		else
+		{
 			nMissions = !pUnit->Owner->IsControlledByHuman()
 				? Mission::Hunt : Mission::Area_Guard;
 		}
@@ -1436,27 +1464,32 @@ void SetFreeUnitMission(UnitClass* pUnit)
 	pUnit->NextMission();
 }
 
-void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
+void SpawnFreeUnits(BuildingClass* pBuilding, int count)
+{
 
-	if(count <= 0)
+	if (count <= 0)
 		return;
 
-	std::vector<bool> placements (count , false);
+	std::vector<bool> placements(count, false);
 
 	const auto pBldLoc = pBuilding->GetCoords();
 	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
 	const auto placement_first = pBldCell + CellSpread::AdjacentCell[(size_t)FacingType::South];
 
-	for (size_t i = 0; i < placements.size(); ++i) {
-		if (auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner)) {
-			if (pUnit->Unlimbo(CellClass::Cell2Coord(placement_first), DirType::West)) {
+	for (size_t i = 0; i < placements.size(); ++i)
+	{
+		if (auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner))
+		{
+			if (pUnit->Unlimbo(CellClass::Cell2Coord(placement_first), DirType::West))
+			{
 				SetFreeUnitMission(pUnit);
 				placements[i] = true;
 				continue;
 			}
 
 			// weeee
-			for (int a = 0; a < 2; ++a) {
+			for (int a = 0; a < 2; ++a)
+			{
 				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBuilding->Location);
 				auto zone = MapClass::Instance->GetMovementZoneType(pBldLoc_Cell, pUnit->Type->MovementZone, false);
 				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell,
@@ -1465,8 +1498,10 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 				pUnit->Type->MovementZone,
 				false, 1, 1, !a, true, false, false, CellStruct::Empty, false, false);
 
-				if (nearbyLoc.IsValid()) {
-					if (pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc), DirType::SouthWest)) {
+				if (nearbyLoc.IsValid())
+				{
+					if (pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc), DirType::SouthWest))
+					{
 						SetFreeUnitMission(pUnit);
 						placements[i] = true;
 						break; // berak from 2nd loop
@@ -1474,7 +1509,8 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 				}
 			}
 
-			if (!placements[i]) {
+			if (!placements[i])
+			{
 				GameDelete<true, false>(pUnit);
 				pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
 			}
@@ -1482,7 +1518,7 @@ void SpawnFreeUnits(BuildingClass* pBuilding , int count) {
 	}
 }
 
-ASMJIT_PATCH(0x446B16 , BuildingClass_Place_FreeUnits , 0x7)
+ASMJIT_PATCH(0x446B16, BuildingClass_Place_FreeUnits, 0x7)
 {
 	GET(BuildingClass* const, pThis, EBP);
 	SpawnFreeUnits(pThis, BuildingTypeExtContainer::Instance.Find(pThis->Type)->FreeUnit_Count);
@@ -1711,8 +1747,9 @@ ASMJIT_PATCH(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 
 ASMJIT_PATCH(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 {
-	enum {
-		infiltratable = 0x51EEEDu , Notinfiltratable = 0x51F04Eu
+	enum
+	{
+		infiltratable = 0x51EEEDu, Notinfiltratable = 0x51F04Eu
 	};
 
 	GET(InfantryClass*, pThis, EDI);
@@ -1788,7 +1825,8 @@ ASMJIT_PATCH(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	GET(ObjectClass* const, pTarget, EDI);
 
-	if (const auto pBldObject = cast_to<BuildingClass*>(pTarget)) {
+	if (const auto pBldObject = cast_to<BuildingClass*>(pTarget))
+	{
 		const auto nResult = TechnoExt_ExtData::GetiInfiltrateActionResult(pThis, pBldObject);
 
 		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
@@ -1833,21 +1871,26 @@ void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
 	// So there is no need to worry if the building or the spy itself will be killed before the infiltration.
 	auto const rank = pSpy->Veterancy.GetRemainingLevel();
 
-	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.GetFromSpecificRank(rank)) {
+	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.GetFromSpecificRank(rank))
+	{
 		WeaponTypeExtData::DetonateAt(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
-	} else {
+	}
+	else
+	{
 
-		const int damage =  pSpy->_GetTypeExtData()->WhenInfiltrate_Damage.GetFromSpecificRank(rank);
+		const int damage = pSpy->_GetTypeExtData()->WhenInfiltrate_Damage.GetFromSpecificRank(rank);
 
-		if( damage != 0){
+		if (damage != 0)
+		{
 
 			auto pWarhead = pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead.GetFromSpecificRank(rank);
 
 			if (!pWarhead)
 				pWarhead = RulesClass::Instance->C4Warhead;
 
-			if (pWarhead) {
-				if ( pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead_Full)
+			if (pWarhead)
+			{
+				if (pSpy->_GetTypeExtData()->WhenInfiltrate_Warhead_Full)
 					WarheadTypeExtData::DetonateAt(pWarhead, pBuilding->GetCoords(), pSpy, damage, pSpy->Owner);
 				else
 				{
@@ -1879,10 +1922,12 @@ ASMJIT_PATCH(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
-		WhenInfiltratesInto(pThis , pBuilding);
+		WhenInfiltratesInto(pThis, pBuilding);
 
-		if(pThis->IsAlive) {
-			if(pBuilding->IsAlive) {
+		if (pThis->IsAlive)
+		{
+			if (pBuilding->IsAlive)
+			{
 				pBuilding->Infiltrate(pHouse);
 				return InfiltrateSucceded;
 			}
@@ -1890,7 +1935,7 @@ ASMJIT_PATCH(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 			return SkipInfiltrate;
 		}
 
-		return 0x51A034 ;
+		return 0x51A034;
 	}
 	else
 		if (nResult == Action::NoMove)
@@ -2050,7 +2095,7 @@ ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 
 	const auto what = pThis->Type->Factory;
 
-	if(what == AircraftTypeClass::AbsID
+	if (what == AircraftTypeClass::AbsID
 		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility)
 		return 0x455DCD;
 
@@ -2328,7 +2373,8 @@ ASMJIT_PATCH(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 	const bool isRaidable = pBuildTypeExt->BunkerRaidable && occupantCount == 0;
 	const bool controlledByCurrentPlayer = SessionClass::Instance->GameMode == GameMode::Campaign && pThis->Owner->ControlledByCurrentPlayer() && pInf->Owner->ControlledByCurrentPlayer();
 
-	if (sameOwner || controlledByCurrentPlayer || isNeutral || isRaidable) {
+	if (sameOwner || controlledByCurrentPlayer || isNeutral || isRaidable)
+	{
 		return AllowOccupy;
 	}
 
@@ -2466,7 +2512,8 @@ ASMJIT_PATCH(0x445F80, BuildingClass_Place, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
 
-	if (pThis->Type->SecretLab) {
+	if (pThis->Type->SecretLab)
+	{
 		BuildingExtData::UpdateSecretLab(pThis);
 	}
 
