@@ -62,21 +62,27 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	const bool IsInfAbsorber = pThis->Type->InfantryAbsorb;
 	const bool IsAbsorber = IsUnitAbsorber || IsInfAbsorber;
 
-	if (!IsAbsorber && !IsTunnel && !pThis->HasFreeLink(pFrom) && !Unsorted::ScenarioInit())
-		return ReturnNegative;
+	if (!IsAbsorber && !IsTunnel)
+	{
+		if (!pThis->HasFreeLink(pFrom) && !Unsorted::ScenarioInit())
+			return ReturnNegative;
+
+		R->EBX(pThis->Type);
+		return ContineCheck;
+	}
 
 	const auto whatRept = pFrom->WhatAmI();
 
 	//tunnel check is taking predicate
-	if (IsTunnel)
-	{
+	if (IsTunnel) {
+
 		if (pThis->IsMindControlled())
 			return ReturnNegative;
 
 		const auto pTunnelData = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
 
 		if (((int)pTunnelData->Vector.size() + 1 > pTunnelData->MaxCap)
-			|| (pThis->Type->SizeLimit <= pFromTechnoType->Size))
+			|| (pThis->Type->SizeLimit < pFromTechnoType->Size))
 		{
 			R->EBX(pThis->Type);
 			return ContineCheck;
@@ -87,9 +93,10 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 
 	//next is for absorbers
 	if(IsAbsorber) {
+
 		if ((IsUnitAbsorber && whatRept == UnitClass::AbsID) || (IsInfAbsorber && whatRept == InfantryClass::AbsID)) {
-			if (pThis->Passengers.NumPassengers + 1 > pThis->Type->Passengers
-				|| pThis->Type->SizeLimit <= pFromTechnoType->Size) {
+			if (pThis->Passengers.NumPassengers >= pThis->Type->Passengers
+				|| pThis->Type->SizeLimit < pFromTechnoType->Size) {
 				R->EBX(pThis->Type);
 				return ContineCheck;
 			}
