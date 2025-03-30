@@ -1077,6 +1077,7 @@ public:
 
 	Nullable<bool> Sinkable {};
 	Valueable<int> SinkSpeed { 5 };
+	Valueable<bool> Sinkable_SquidGrab { true };
 
 	int SpawnerRange {};
 	int EliteSpawnerRange {};

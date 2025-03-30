@@ -1465,6 +1465,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Sinkable.Read(exINI, pSection, "Sinkable");
 		this->SinkSpeed.Read(exINI, pSection, "SinkSpeed");
+		this->Sinkable_SquidGrab.Read(exINI, pSection, "Sinkable.SquidGrab");
 
 		// Spawner range
 		if (this->Spawn_LimitedExtraRange)
@@ -2643,6 +2644,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Sinkable)
 		.Process(this->SinkSpeed)
+		.Process(this->Sinkable_SquidGrab)
 
 		.Process(this->SpawnerRange)
 		.Process(this->EliteSpawnerRange)

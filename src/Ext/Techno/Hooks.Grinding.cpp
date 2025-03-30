@@ -9,49 +9,99 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <CaptureManagerClass.h>
+
 ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 {
-	enum { Continue = 0x0 , ReturnStatic = 0x43C31A, ReturnNegative = 0x43CB68, ReturnRoger = 0x43CCF2 };
+	enum {
+		ReturnStatic = 0x43C31A,
+		ReturnNegative = 0x43CB68,
+		ReturnRoger = 0x43CCF2,
+		ContineCheck = 0x43C506,
+	};
 
 	GET(BuildingClass*, pThis, ESI);
 	GET(TechnoClass*, pFrom, EDI);
 
-	if (pThis->Type->Grinding)
-	{
-		auto const pExt = BuildingExtContainer::Instance.Find(pThis);
+	auto const pFromTechnoType = pFrom->GetTechnoType();
+	const bool isAmphibious = pFromTechnoType->MovementZone == MovementZone::Amphibious
+	|| pFromTechnoType->MovementZone == MovementZone::AmphibiousCrusher
+	|| pFromTechnoType->MovementZone == MovementZone::AmphibiousDestroyer;
 
-		if (pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
-			return ReturnStatic;
-
-		if (!pThis->Owner->IsAlliedWith(pFrom))
-			return ReturnStatic;
-
-		auto const pFromTechnoType = pFrom->GetTechnoType();
-		auto const nMission = pThis->GetCurrentMission();
-
-		if (nMission == Mission::Construction
-			|| nMission == Mission::Selling
-			|| pThis->BState == BStateType::Construction
-			|| !pThis->HasPower
-			|| pFromTechnoType->BalloonHover)
-		{
-			return ReturnNegative;
-		}
-
-		const bool isAmphibious = pFromTechnoType->MovementZone == MovementZone::Amphibious
-			|| pFromTechnoType->MovementZone == MovementZone::AmphibiousCrusher
-			|| pFromTechnoType->MovementZone == MovementZone::AmphibiousDestroyer;
-
-		if (!isAmphibious && (pThis->Type->Naval && !pFromTechnoType->Naval ||
-			!pThis->Type->Naval && pFromTechnoType->Naval))
-		{
-			return ReturnNegative;
-		}
-
-		return BuildingExtData::CanGrindTechno(pThis, pFrom) ? ReturnRoger : ReturnNegative;
+	if (!isAmphibious && pThis->Type->Naval != pFromTechnoType->Naval) {
+		return ReturnNegative;
 	}
 
-	return Continue;
+	auto const nMission = pThis->GetCurrentMission();
+	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
+	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	if (nMission == Mission::Construction
+		|| nMission == Mission::Selling
+		|| pThis->BState == BStateType::Construction
+		|| !pThis->HasPower
+		|| pFromTechnoType->BalloonHover)
+	{
+		return ReturnNegative;
+	}
+
+	if (!pThis->Owner->IsAlliedWith(pFrom) || pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
+		return ReturnStatic;
+
+	if (pThis->Type->Grinding) {
+		return BuildingExtData::CanGrindTechnoSimplified(pThis, pFrom) ? ReturnRoger : ReturnNegative;
+	}
+
+	if (!TechnoTypeExtData::PassangersAllowed(pThis->Type, pFromTechnoType))
+		return ReturnNegative;
+
+	if (pFrom->CaptureManager && pFrom->CaptureManager->IsControllingSomething())
+		return ReturnNegative;
+
+	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
+	const bool IsUnitAbsorber = pThis->Type->UnitAbsorb;
+	const bool IsInfAbsorber = pThis->Type->InfantryAbsorb;
+	const bool IsAbsorber = IsUnitAbsorber || IsInfAbsorber;
+
+	if (!IsAbsorber && !IsTunnel && !pThis->HasFreeLink(pFrom) && !Unsorted::ScenarioInit())
+		return ReturnNegative;
+
+	const auto whatRept = pFrom->WhatAmI();
+
+	//tunnel check is taking predicate
+	if (IsTunnel)
+	{
+		if (pThis->IsMindControlled())
+			return ReturnNegative;
+
+		const auto pTunnelData = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
+
+		if (((int)pTunnelData->Vector.size() + 1 > pTunnelData->MaxCap)
+			|| (pThis->Type->SizeLimit < pFromTechnoType->Size))
+		{
+			R->EBX(pThis->Type);
+			return ContineCheck;
+		}
+
+		return ReturnRoger;
+	}
+
+	//next is for absorbers
+	if(IsAbsorber) {
+		if ((IsUnitAbsorber && whatRept == UnitClass::AbsID) || (IsInfAbsorber && whatRept == InfantryClass::AbsID)) {
+			if (pThis->Passengers.NumPassengers + 1 > pThis->Type->Passengers
+				|| pThis->Type->SizeLimit <= pFromTechnoType->Size) {
+				R->EBX(pThis->Type);
+				return ContineCheck;
+			}
+
+			return ReturnRoger;
+		}
+
+		return ReturnNegative;
+	}
+
+	R->EBX(pThis->Type);
+	return ContineCheck;
 }
 
 ASMJIT_PATCH(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
@@ -96,34 +146,34 @@ ASMJIT_PATCH(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
  return Skip;
 }
 
-ASMJIT_PATCH(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
-{
-	enum { Continue = 0x0, ReturnValue = 0x51F17E };
+// ASMJIT_PATCH(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
+// {
+// 	enum { Continue = 0x0, ReturnValue = 0x51F17E };
 
-	GET(InfantryClass*, pThis, EDI);
-	GET(TechnoClass*, pTarget, ESI);
+// 	GET(InfantryClass*, pThis, EDI);
+// 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
-	{
-		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
-		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
+// 	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
+// 	{
+// 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
+// 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
 
-		if(ret == Action::NoGRepair &&
-			(pBuilding->Type->InfantryAbsorb
-			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
-			|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
-			|| pBuilding->Type->Armory && pThis->Type->Trainable
-		  )){
-			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
-				Action::Enter : Action::NoEnter;
-		}
+// 		if(ret == Action::NoGRepair &&
+// 			(pBuilding->Type->InfantryAbsorb
+// 			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
+// 			|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
+// 			|| pBuilding->Type->Armory && pThis->Type->Trainable
+// 		  )){
+// 			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
+// 				Action::Enter : Action::NoEnter;
+// 		}
 
-		R->EBP(ret);
-		return ReturnValue;
-	}
+// 		R->EBP(ret);
+// 		return ReturnValue;
+// 	}
 
-	return Continue;
-}
+// 	return Continue;
+// }
 
 ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 {

@@ -245,92 +245,92 @@ ASMJIT_PATCH(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
 }
 
 // Phobos hook on higher part of this for grinding
-ASMJIT_PATCH(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
-{
-	enum
-	{
-		RetRadioNegative = 0x43C3F0,
-		ContineCheck = 0x43C4F8,
-		RetRadioRoger = 0x43C535,
-		ReturnStatic = 0x43C31A
-	};
+// ASMJIT_PATCH(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
+// {
+// 	enum
+// 	{
+// 		RetRadioNegative = 0x43C3F0,
+// 		ContineCheck = 0x43C4F8,
+// 		RetRadioRoger = 0x43C535,
+// 		ReturnStatic = 0x43C31A
+// 	};
 
-	GET(BuildingClass*, pThisBld, ESI);
-	GET(TechnoClass*, pRecpt, EDI);
+// 	GET(BuildingClass*, pThisBld, ESI);
+// 	GET(TechnoClass*, pRecpt, EDI);
 
-	const auto  nMission = pThisBld->GetCurrentMission();
+// 	const auto  nMission = pThisBld->GetCurrentMission();
 
-	if (pThisBld->BState == BStateType::Construction ||
-		nMission == Mission::Construction ||
-		nMission == Mission::Selling)
-		return RetRadioNegative;
+// 	if (pThisBld->BState == BStateType::Construction ||
+// 		nMission == Mission::Construction ||
+// 		nMission == Mission::Selling)
+// 		return RetRadioNegative;
 
-	const auto pBldType = pThisBld->Type;
-	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-	const auto pRectpType = pRecpt->GetTechnoType();
+// 	const auto pBldType = pThisBld->Type;
+// 	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
+// 	const auto pRectpType = pRecpt->GetTechnoType();
 
-	const bool isAmphibious = pRectpType->MovementZone == MovementZone::Amphibious
-		|| pRectpType->MovementZone == MovementZone::AmphibiousCrusher
-		|| pRectpType->MovementZone == MovementZone::AmphibiousDestroyer;
+// 	const bool isAmphibious = pRectpType->MovementZone == MovementZone::Amphibious
+// 		|| pRectpType->MovementZone == MovementZone::AmphibiousCrusher
+// 		|| pRectpType->MovementZone == MovementZone::AmphibiousDestroyer;
 
-	if (!isAmphibious && pBldType->Naval != pRectpType->Naval)
-		return RetRadioNegative;
+// 	if (!isAmphibious && pBldType->Naval != pRectpType->Naval)
+// 		return RetRadioNegative;
 
-	if ((pRectpType->BalloonHover || pRectpType->JumpJet)
-		|| !pThisBld->HasPower
-		|| !TechnoTypeExtData::PassangersAllowed(pBldType, pRectpType)
-		)
-		return RetRadioNegative;
+// 	if ((pRectpType->BalloonHover || pRectpType->JumpJet)
+// 		|| !pThisBld->HasPower
+// 		|| !TechnoTypeExtData::PassangersAllowed(pBldType, pRectpType)
+// 		)
+// 		return RetRadioNegative;
 
-	if (pRecpt->CaptureManager && pRecpt->CaptureManager->IsControllingSomething())
-		return RetRadioNegative;
+// 	if (pRecpt->CaptureManager && pRecpt->CaptureManager->IsControllingSomething())
+// 		return RetRadioNegative;
 
-	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
-	const bool IsUnitAbsorber = pBldType->UnitAbsorb;
-	const bool IsInfAbsorber = pBldType->InfantryAbsorb;
-	const bool IsAbsorber = IsUnitAbsorber || IsInfAbsorber;
+// 	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
+// 	const bool IsUnitAbsorber = pBldType->UnitAbsorb;
+// 	const bool IsInfAbsorber = pBldType->InfantryAbsorb;
+// 	const bool IsAbsorber = IsUnitAbsorber || IsInfAbsorber;
 
-	if (!IsAbsorber && !IsTunnel && !pThisBld->HasFreeLink(pRecpt) && !Unsorted::ScenarioInit())
-		return RetRadioNegative;
+// 	if (!IsAbsorber && !IsTunnel && !pThisBld->HasFreeLink(pRecpt) && !Unsorted::ScenarioInit())
+// 		return RetRadioNegative;
 
-	const auto whatRept = pRecpt->WhatAmI();
+// 	const auto whatRept = pRecpt->WhatAmI();
 
-	//tunnel check is taking predicate
-	if (IsTunnel)
-	{
-		if (pThisBld->IsMindControlled())
-			return RetRadioNegative;
+// 	//tunnel check is taking predicate
+// 	if (IsTunnel)
+// 	{
+// 		if (pThisBld->IsMindControlled())
+// 			return RetRadioNegative;
 
-		const auto pTunnelData = HouseExtData::GetTunnelVector(pBldType, pThisBld->Owner);
+// 		const auto pTunnelData = HouseExtData::GetTunnelVector(pBldType, pThisBld->Owner);
 
-		if (((int)pTunnelData->Vector.size() >= pTunnelData->MaxCap)
-			|| (pBldType->SizeLimit < pRectpType->Size))
-		{
-			R->EBX(pBldType);
-			return ContineCheck;
-		}
+// 		if (((int)pTunnelData->Vector.size() >= pTunnelData->MaxCap)
+// 			|| (pBldType->SizeLimit < pRectpType->Size))
+// 		{
+// 			R->EBX(pBldType);
+// 			return ContineCheck;
+// 		}
 
-		return RetRadioRoger;
-	}
+// 		return RetRadioRoger;
+// 	}
 
-	//next is for absorbers
-	if(IsAbsorber) {
-		if ((IsUnitAbsorber && whatRept == UnitClass::AbsID) || (IsInfAbsorber && whatRept == InfantryClass::AbsID)) {
-			if (pThisBld->Passengers.NumPassengers >= pBldType->Passengers
-				|| pBldType->SizeLimit < pRectpType->Size) {
-				R->EBX(pBldType);
-				return ContineCheck;
-			}
+// 	//next is for absorbers
+// 	if(IsAbsorber) {
+// 		if ((IsUnitAbsorber && whatRept == UnitClass::AbsID) || (IsInfAbsorber && whatRept == InfantryClass::AbsID)) {
+// 			if (pThisBld->Passengers.NumPassengers >= pBldType->Passengers
+// 				|| pBldType->SizeLimit < pRectpType->Size) {
+// 				R->EBX(pBldType);
+// 				return ContineCheck;
+// 			}
 
-			return RetRadioRoger;
-		}
+// 			return RetRadioRoger;
+// 		}
 
-		return RetRadioNegative;
-	}
+// 		return RetRadioNegative;
+// 	}
 
-	R->EBX(pBldType);
-	return ContineCheck;
-}
+// 	R->EBX(pBldType);
+// 	return ContineCheck;
+// }
 
 ASMJIT_PATCH(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {

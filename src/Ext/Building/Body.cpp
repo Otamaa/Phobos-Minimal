@@ -693,6 +693,39 @@ bool BuildingExtData::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTec
 	return false;
 }
 
+bool BuildingExtData::CanGrindTechnoSimplified(BuildingClass* pBuilding, TechnoClass* pTechno)
+{
+	const auto what = pTechno->WhatAmI();
+
+	if (what != InfantryClass::AbsID && what != UnitClass::AbsID)
+		return false;
+
+	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb)
+		&& (what == InfantryClass::AbsID && !pBuilding->Type->InfantryAbsorb ||
+			what == UnitClass::AbsID && !pBuilding->Type->UnitAbsorb))
+	{
+		return false;
+	}
+
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	if (pBuilding->Owner == pTechno->Owner && !pExt->Grinding_AllowOwner.Get())
+		return false;
+
+	if (pBuilding->Owner != pTechno->Owner && !pExt->Grinding_AllowAllies.Get())
+		return false;
+
+	auto const pTechnoType = pTechno->GetTechnoType();
+
+	if (!pExt->Grinding_AllowTypes.empty() && !pExt->Grinding_AllowTypes.Contains(pTechnoType))
+		return false;
+
+	if (!pExt->Grinding_DisallowTypes.empty() && pExt->Grinding_DisallowTypes.Contains(pTechnoType))
+		return false;
+
+	return true;
+}
+
 bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts)
 {
 	const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);

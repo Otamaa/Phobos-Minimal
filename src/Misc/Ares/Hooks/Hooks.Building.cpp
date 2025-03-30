@@ -1796,21 +1796,50 @@ ASMJIT_PATCH(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuild
 		DontRepair = 0x51E63A,
 		DoRepair = 0x51E659,
 		SkipAll = 0x51E458,
+		ReturnValue = 0x51F17E
 	};
 
-	GET(BuildingClass* const, pTarget, ESI);
+	GET(TechnoClass* const, pTarget, ESI);
 	GET(InfantryClass* const, pThis, EDI);
 
-	const auto pData = BuildingTypeExtContainer::Instance.Find(pTarget->Type);
+	auto pBuilding = cast_to<BuildingClass*>(pTarget);
 
-	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
-	{
-		MouseCursorFuncs::SetMouseCursorAction(90u, Action::GRepair, false);
-		R->EAX(Action::GRepair);
-		return SkipAll;
+	if(pBuilding){
+		const auto pData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+		if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
+		{
+			MouseCursorFuncs::SetMouseCursorAction(90u, Action::GRepair, false);
+			R->EAX(Action::GRepair);
+			return SkipAll;
+		}
 	}
 
-	return ((R->EAX<DWORD>() & 0x4000) != 0) ? DontRepair : DoRepair;
+	if(((R->EAX<DWORD>() & 0x4000) != 0))
+	{
+		if (pBuilding)
+		{
+			const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
+			Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
+
+			if(ret == Action::NoGRepair &&
+				(pBuilding->Type->InfantryAbsorb
+				|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
+				|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
+				|| pBuilding->Type->Armory && pThis->Type->Trainable
+			  )){
+				ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
+					Action::Enter : Action::NoEnter;
+			}
+
+			R->EBP(ret);
+			return ReturnValue;
+		}
+
+		return DontRepair;
+	}
+
+	return DoRepair;
 }
 
 ASMJIT_PATCH(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
