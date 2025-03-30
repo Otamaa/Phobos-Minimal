@@ -76,7 +76,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		const auto pTunnelData = HouseExtData::GetTunnelVector(pThis->Type, pThis->Owner);
 
 		if (((int)pTunnelData->Vector.size() + 1 > pTunnelData->MaxCap)
-			|| (pThis->Type->SizeLimit < pFromTechnoType->Size))
+			|| (pThis->Type->SizeLimit <= pFromTechnoType->Size))
 		{
 			R->EBX(pThis->Type);
 			return ContineCheck;
