@@ -1437,7 +1437,6 @@ ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 		const auto pType = pFoot->GetTechnoType();
 		if (pType->Bunkerable)
 		{
-
 			const auto nSpeedType = pType->SpeedType;
 			if (nSpeedType == SpeedType::Hover
 				|| nSpeedType == SpeedType::Winged
@@ -6463,3 +6462,51 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 //
 //	return 0x0;
 //}
+
+//ASMJIT_PATCH(0x7086C3, HouseClass_Is_Attacked_Exclude, 0x6)
+//{
+//	GET(UnitClass*, pCandidate, ESI);
+//
+//
+//	return 0x70874C;//increment
+//}
+
+//ASMJIT_PATCH(0x4E0052, FootClass_TryBunkering, 0x5)
+//{
+//	GET(FootClass*, pThis, EDI);
+//	GET(TechnoClass*, pRecipient, ESI);
+//
+//	if (!pThis->__ProtectMe_3CF) {
+//		if (pThis->SendCommand(RadioCommand::RequestLink, pRecipient) == RadioCommand::AnswerPositive)
+//		{
+//			//check it first
+//			return 0x4E005F;
+//		}
+//	}
+//
+//	return 0x4E003B;
+//}
+
+//bunker state AI 458E50
+
+ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
+{
+	GET(UnitClass*, pCandidate, EBX);
+	bool allow = true;
+
+	if (pCandidate->IsTethered){
+		allow = false;
+	}
+	else if (auto pContact = pCandidate->GetRadioContact()) {
+		if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) {
+			if(pBldC->Type->Bunker)
+				allow = false;
+		}
+	}
+	else if (auto pBld = pCandidate->GetCell()->GetBuilding()) {
+		if(pBld->Type->Bunker)
+			allow = false;
+	}
+
+	return allow ? 0x0 : 0x708622;//continue
+}
