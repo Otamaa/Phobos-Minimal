@@ -2319,3 +2319,16 @@ ASMJIT_PATCH(0x6FC617, TechnoClass_GetFireError_AirCarrierSkipCheckNearBridge, 0
 
 	return (nearBridge && !pThis->IsInAir()) ? TemporaryCannotFire : ContinueCheck;
 }
+
+// WW used SetDesired here, causing the barrel drawn incorrectly.
+DEFINE_HOOK(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
+{
+	enum { SkipGameCode = 0x6F6DFA };
+
+	GET(DirStruct*, pDir, ECX);
+	GET(TechnoClass*, pThis, ESI);
+
+	pThis->BarrelFacing.Set_Current(*pDir);
+
+	return SkipGameCode;
+}

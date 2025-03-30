@@ -276,8 +276,10 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 			{
 				const auto pType = pTechno->GetTechnoType();
 
-				if (TechnoTypeExtContainer::Instance.Find(pType)->CanBeBuiltOn)
-				{
+				//TODO: this function can cause bug , since not all stuffs were handled properly
+				if (TechnoTypeExtContainer::Instance.Find(pType)->CanBeBuiltOn) {
+					//int damage = pTechno->Health;
+					//pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 					pTechno->KillPassengers(nullptr);
 					pTechno->Stun();
 					pTechno->Limbo();
@@ -1310,6 +1312,42 @@ ASMJIT_PATCH(0x4A946E, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingT
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x4ABA47, DisplayClass_PreparePassesProximityCheck_ReplaceBuildingType, 0x6)
 
+void drawImage(BuildingTypeClass* const pType, HouseClass* const pHouse, const CellStruct cell)
+{
+	const auto pDisplay = DisplayClass::Instance();
+	const auto pCell = pDisplay->TryGetCellAt(cell);
+
+	if (!pCell || cell == CellStruct::Empty)
+		return;
+
+	auto pImage = pType->LoadBuildup();
+	int imageFrame = 0;
+
+	if (pImage)
+		imageFrame = ((pImage->Frames / 2) - 1);
+	else
+		pImage = pType->GetImage();
+
+	if (!pImage)
+		return;
+
+	constexpr BlitterFlags blitFlags = BlitterFlags::TransLucent25 | BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass;
+	auto rect = DSurface::Temp->Get_Rect();
+	rect.Height -= 32;
+	CoordStruct coord_ = CellClass::Cell2Coord(cell, (1 + pCell->GetFloorHeight(Point2D::Empty)));
+	auto point = TacticalClass::Instance->CoordsToView(coord_);
+	//point.Y -= 15;
+
+	if (point.X < 0 || point.Y < 0 || point.X > rect.Width || point.Y > rect.Height) return;
+
+	const auto ColorSchemeIndex = pHouse->ColorSchemeIndex;
+	const auto Palettes = pType->Palette;
+	const auto pColor = Palettes ? Palettes->Items[ColorSchemeIndex] : ColorScheme::Array->Items[ColorSchemeIndex];
+	const COLORREF foreColor = pHouse->Color.ToInit();
+	DSurface::Temp->DrawText_Old(pType->UIName, &point, foreColor);
+	DSurface::Temp->DrawSHP(pColor->LightConvert, pImage, imageFrame, &point, &rect, blitFlags, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+}
+
 // Buildable-upon TechnoTypes Hook #12 -> sub_6D5030 - Draw the placing building preview
 ASMJIT_PATCH(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 {
@@ -1318,36 +1356,6 @@ ASMJIT_PATCH(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 
 	const auto pPlayer = HouseClass::CurrentPlayer();
 	const auto pDisplay = DisplayClass::Instance();
-
-	auto drawImage = [&pDisplay](BuildingTypeClass* const pType, HouseClass* const pHouse, const CellStruct cell)
-	{
-		const auto pCell = pDisplay->TryGetCellAt(cell);
-
-		if (!pCell || cell == CellStruct::Empty)
-			return;
-
-		auto pImage = pType->LoadBuildup();
-		int imageFrame = 0;
-
-		if (pImage)
-			imageFrame = ((pImage->Frames / 2) - 1);
-		else
-			pImage = pType->GetImage();
-
-		if (!pImage)
-			return;
-
-		BlitterFlags blitFlags = BlitterFlags::TransLucent75 | BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass;
-		auto rect = DSurface::Temp->Get_Rect();
-		rect.Height -= 32;
-		auto point = TacticalClass::Instance->CoordsToScreen(CellClass::Cell2Coord(cell, (1 + pCell->GetFloorHeight(Point2D::Empty))));
-		point.Y -= 15;
-
-		const auto ColorSchemeIndex = pHouse->ColorSchemeIndex;
-		const auto Palettes = pType->Palette;
-		const auto pColor = Palettes ? Palettes->Items[ColorSchemeIndex] : ColorScheme::Array->Items[ColorSchemeIndex];
-		DSurface::Temp->DrawSHP(pColor->LightConvert, pImage, imageFrame, &point, &rect, blitFlags, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
-	};
 
 	for (const auto& pHouse : *HouseClass::Array)
 	{
