@@ -2053,26 +2053,32 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 	}
 	else
 	{
-		// Check Jumpjets
-		const auto pFoot = flag_cast_to<FootClass*>(pTechno);
-		const auto pJumpjetLoco = pFoot ? locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor) : nullptr;
+		const auto pFoot = flag_cast_to<FootClass* , false>(pTechno);
 
 		// Clear archive target for infantries and vehicles like receive a mega mission
 		if (pFoot && !pAircraft)
 			pTechno->SetArchiveTarget(nullptr);
 
-		// To avoid foots stuck in Mission::Area_Guard
-		if (pTechno->CurrentMission == Mission::Area_Guard && !pTechno->GetTechnoType()->DefaultToGuardArea)
-			pTechno->QueueMission(Mission::Guard, true);
+		// Only stop when it is not under the bridge (meeting the original conditions which has been skipped)
+		if (!pTechno->vt_entry_2B0() || pTechno->OnBridge || pTechno->IsInAir() || pTechno->GetCell()->SlopeIndex)
+		{
+			// To avoid foots stuck in Mission::Area_Guard
+			if (pTechno->CurrentMission == Mission::Area_Guard && !pTechno->GetTechnoType()->DefaultToGuardArea)
+				pTechno->QueueMission(Mission::Guard, true);
 
-		// To avoid jumpjets falling into a state of standing idly by
-		if (!pJumpjetLoco) // If is not jumpjet, clear the destination is enough
-			pTechno->SetDestination(nullptr, true);
-		else if (!pFoot->Destination) // When in attack move and have had a target, the destination will be cleaned up, enter the guard mission can prevent the jumpjets stuck in a status of standing idly by
-			pTechno->QueueMission(Mission::Guard, true);
-		else if (static_cast<int>(CellClass::Coord2Cell(pFoot->Destination->GetCoords()).DistanceFromSquared(pTechno->GetMapCoords())) > 2) // If the jumpjet is moving, find the forward cell then stop in it
-			pTechno->SetDestination(pTechno->GetCell()->GetNeighbourCell(static_cast<FacingType>(pJumpjetLoco->Facing.Current().GetValue<3>())), true);
-		// Otherwise landing or idling normally without answering the stop command
+			// Check Jumpjets
+			const auto pJumpjetLoco = pFoot ? locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor) : nullptr;
+
+			// To avoid jumpjets falling into a state of standing idly by
+			if (!pJumpjetLoco) // If is not jumpjet, clear the destination is enough
+				pTechno->SetDestination(nullptr, true);
+			else if (!pFoot->Destination) // When in attack move and have had a target, the destination will be cleaned up, enter the guard mission can prevent the jumpjets stuck in a status of standing idly by
+				pTechno->QueueMission(Mission::Guard, true);
+			else if (static_cast<int>(CellClass::Coord2Cell(pFoot->Destination->GetCoords()).DistanceFromSquared(pTechno->GetMapCoords())) > 2) // If the jumpjet is moving, find the forward cell then stop in it
+				pTechno->SetDestination(pTechno->GetCell()->GetNeighbourCell(static_cast<FacingType>(pJumpjetLoco->Facing.Current().GetValue<3>())), true);
+
+			// Otherwise landing or idling normally without answering the stop command
+		}
 	}
 
 	return SkipGameCode;
