@@ -20,6 +20,8 @@
 
 #include <DiskLaserClass.h>
 
+#include <Ext/Infantry/Body.h>
+
 #pragma region Otamaa
 
 ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
@@ -38,11 +40,11 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 		}
 	}
 
-	if(pThis->WhatAmI() != BuildingClass::AbsID) {
-		if (auto const Building = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
-			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
-		}
-	}
+	//if(pThis->WhatAmI() == InfantryClass::AbsID) {
+		//if (auto const Building = TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn) {
+			//nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
+		//}
+	//}
 
 	if (pThis->InOpenToppedTransport) {
 		if (auto const  pTransport = pThis->Transporter) {
@@ -109,7 +111,7 @@ ASMJIT_PATCH(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 
 	if (pThis->BunkerLinkedItem && !Building) {
 		auto BunkerMult = RulesClass::Instance->BunkerROFMultiplier;
-		if (auto const pBunkerIsBuilding = cast_to<BuildingClass*>(pThis->BunkerLinkedItem)) {
+		if (auto const pBunkerIsBuilding = cast_to<BuildingClass* , false>(pThis->BunkerLinkedItem)) {
 			BunkerMult = BuildingTypeExtContainer::Instance.Find(pBunkerIsBuilding->Type)->BuildingBunkerROFMult.Get(BunkerMult);
 		}
 
