@@ -50,17 +50,17 @@ public:
 	bool OnlyTargetHouseEnemy { false };
 	int OnlyTargetHouseEnemyMode { -1 };
 
-	ScriptClass* PreviousScript { nullptr };
+	ScriptTypeClass* PreviousScript { nullptr };
 	std::vector<BuildingClass*> BridgeRepairHuts {};
 
-	~TeamExtData() noexcept
-	{
-		if(!Phobos::Otamaa::ExeTerminated) {
-			GameDelete<true, true>(PreviousScript);
-		}
-
-		PreviousScript = nullptr;
-	}
+	~TeamExtData() noexcept = default;
+	//{
+	//	//if(!Phobos::Otamaa::ExeTerminated) {
+	//	//	GameDelete<true, true>(PreviousScript);
+	//	//}
+	//
+	//	PreviousScript = nullptr;
+	//}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

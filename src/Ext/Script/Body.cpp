@@ -1037,7 +1037,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 						pUnit->QueueMission(Mission::Enter, false);
 						pUnit->SetTarget(nullptr);
 						pUnit->SetDestination(pTransport, true);
-
+						pUnit->NextMission();
 						return;
 					}
 				}
@@ -1224,7 +1224,8 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 					if (pUnit->Destination != pLeaderUnit)
 					{
 						pUnit->SetDestination(pLeaderUnit, false);
-						pUnit->QueueMission(Mission::Move, false);
+						pUnit->QueueMission(Mission::Move, true);
+
 					}
 				}
 				else
@@ -1377,8 +1378,9 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 			if (pNewScript->ActionsCount > 0)
 			{
-				TeamExtContainer::Instance.Find(pTeam)->PreviousScript =
-					std::exchange(pTeam->CurrentScript, GameCreate<ScriptClass>(pNewScript));
+				TeamExtContainer::Instance.Find(pTeam)->PreviousScript = pTeam->CurrentScript->Type;
+				GameDelete<true , false>(pTeam->CurrentScript);
+				pTeam->CurrentScript = GameCreate<ScriptClass>(pNewScript);
 				// Ready for jumping to the first line of the new script
 				pTeam->CurrentScript->CurrentMission = -1;
 				pTeam->StepCompleted = true;
@@ -1496,7 +1498,7 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 					bForceNextAction = false;
 
 					if (pUnit->WhatAmI() == AbstractType::Aircraft && pUnit->Ammo > 0)
-						pUnit->QueueMission(Mission::Move, false);
+						pUnit->QueueMission(Mission::Move, true);
 
 					continue;
 				}
@@ -1518,7 +1520,7 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 					if ((pUnit->DistanceFrom(pFocus->GetCell()) / 256.0) > closeEnough)
 					{
 						if (pUnit->WhatAmI() == AbstractType::Aircraft && pUnit->Ammo > 0)
-							pUnit->QueueMission(Mission::Move, false);
+							pUnit->QueueMission(Mission::Move, true);
 
 						continue;
 					}
@@ -1542,7 +1544,7 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 						if ((pUnit->DistanceFrom(pFocus->GetCell()) / 256.0) > closeEnough)
 						{
 							if (pUnit->WhatAmI() == AbstractType::Aircraft && pUnit->Ammo > 0)
-								pUnit->QueueMission(Mission::Move, false);
+								pUnit->QueueMission(Mission::Move, true);
 
 							continue;
 						}
@@ -2039,8 +2041,9 @@ void ScriptExtData::JumpBackToPreviousScript(TeamClass* pTeam)
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	if (pTeamData->PreviousScript)
 	{
-		pTeam->CurrentScript->AnnounceExpiredPointer(true);
-		pTeam->CurrentScript = std::exchange(pTeamData->PreviousScript, nullptr);
+		GameDelete<true,false>(pTeam->CurrentScript);
+		pTeam->CurrentScript = GameCreate<ScriptClass>(pTeamData->PreviousScript);
+		pTeam->CurrentScript->CurrentMission = -1;
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -2349,6 +2352,8 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			// Reached destination, stay in guard until next action
 			if (pFoot->DistanceFrom(pFoot->Destination) < closeEnough)
 				pFoot->QueueMission(Mission::Area_Guard, false);
+
+			pFoot->NextMission();
 		}
 	}
 }

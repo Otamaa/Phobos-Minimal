@@ -1185,7 +1185,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	bool IsAffected = _res != DamageState::Unaffected;
 	bool bAffected = false;
 	if (IsAffected || args.IgnoreDefenses || _isNegativeDamage || *args.Damage) {
-		if (IsAffected && _isNegativeDamage) {
+		if (IsAffected && !_isNegativeDamage) {
 			const auto rank = pThis->Veterancy.GetRemainingLevel();
 			const auto fromTechno = pTypeExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank);
 			const int amount = pWHExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank)
