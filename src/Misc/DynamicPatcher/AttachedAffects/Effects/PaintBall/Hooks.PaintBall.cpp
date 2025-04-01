@@ -137,6 +137,9 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 	if (pExt->Shield && pExt->Shield->IsActive())
 	{
 		auto const pShieldType = pExt->Shield->GetType();
+		
+		if (!EnumFunctions::CanTargetHouse(pShieldType->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+		return;
 
 		if (calculateTintColor && pShieldType->Tint_Color.isset())
 			*tintColor |= Drawing::RGB_To_Int(pShieldType->Tint_Color);

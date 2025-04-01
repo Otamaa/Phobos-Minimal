@@ -5641,7 +5641,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (pExt->Is_DriverKilled)
+	if (pExt->Is_DriverKilled ||!RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
 	if (this->Type->ResourceGatherer || this->Type->Harvester)
@@ -6510,3 +6510,14 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 
 	return allow ? 0x0 : 0x708622;//continue
 }
+
+//ASMJIT_PATCH(0x4DEBB0, ObjectClass_Crash_Probe, 0x6)
+//{
+//	GET(ObjectClass*, pThis, ECX);
+//
+//	//return false case
+//	if(pThis->GetHeight() <= 0 || Unsorted::ScenarioInit())
+//		Debug::FatalError("Crash Probe ssomething is wrong\n");
+//
+//	return 0x0;
+//}

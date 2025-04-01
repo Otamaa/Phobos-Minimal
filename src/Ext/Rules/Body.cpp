@@ -768,7 +768,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitIdleActionIntervalMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMax");
 
 	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExtendedAircraftMissions");
-
+	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
 	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
 	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
 
@@ -1473,7 +1473,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionIntervalMin)
 		.Process(this->UnitIdleActionIntervalMax)
 		.Process(this->ExpandAircraftMission)
-
+		.Process(this->AssignUnitMissionAfterParadropped)
 		.Process(this->LandTypeConfigExts)
 		.Process(this->Secrets)
 

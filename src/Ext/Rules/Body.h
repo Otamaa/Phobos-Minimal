@@ -409,6 +409,7 @@ public:
 	Valueable<int> UnitIdleActionIntervalMax { 450 };
 
 	Valueable<bool> ExpandAircraftMission {};
+	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 
 	struct LandTypeExt {
 		Valueable<double> Bounce_Elasticity {};
