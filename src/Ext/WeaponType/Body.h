@@ -195,6 +195,8 @@ public:
 	Valueable<bool> KeepRange_AllowAI {};
 	Valueable<bool> KeepRange_AllowPlayer {};
 
+	Valueable<bool> VisualScatter { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

@@ -241,6 +241,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->KeepRange.Read(exINI, pSection, "KeepRange");
 	this->KeepRange_AllowAI.Read(exINI, pSection, "KeepRange.AllowAI");
 	this->KeepRange_AllowPlayer.Read(exINI, pSection, "KeepRange.AllowPlayer");
+	this->VisualScatter.Read(exINI, pSection, "VisualScatter");
 
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All || this->CanTargetHouses != AffectedHouse::All || this->AttachEffect_RequiredTypes.size()
@@ -555,6 +556,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepRange)
 		.Process(this->KeepRange_AllowAI)
 		.Process(this->KeepRange_AllowPlayer)
+		.Process(this->VisualScatter)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

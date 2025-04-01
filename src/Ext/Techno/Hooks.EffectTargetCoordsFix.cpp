@@ -170,10 +170,18 @@ ASMJIT_PATCH(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 #ifndef PERFORMANCE_HEAVY
 namespace FireAtTemp
 {
+	BulletClass* FireBullet = nullptr;
 	CoordStruct originalTargetCoords;
 	CellClass* pObstacleCell = nullptr;
 	AbstractClass* pOriginalTarget = nullptr;
 	AbstractClass* pWaveOwnerTarget = nullptr;
+}
+
+ASMJIT_PATCH(0x6FF08B, TechnoClass_Fire_RecordBullet, 0x6)
+{
+	GET(BulletClass*, pBullet, EBX);
+	FireAtTemp::FireBullet = pBullet;
+	return 0;
 }
 
 // https://github.com/Phobos-developers/Phobos/pull/825
@@ -182,16 +190,35 @@ namespace FireAtTemp
 // correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
 
 // Adjust target coordinates for laser drawing.
-ASMJIT_PATCH(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
+ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
 {
 	GET(CoordStruct*, pTargetCoords, EAX);
 
-	if (FireAtTemp::pObstacleCell)
+	const auto pBullet = FireAtTemp::FireBullet;
+
+	if (pBullet && pBullet->WeaponType)
+	{
+		// The weapon may not have been set up
+		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
+		// pBullet->Data.Location (0x4E1130) -> pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords
+
+		if (pWeaponExt && pWeaponExt->VisualScatter)
+		{
+			const auto pRulesExt = RulesExtData::Instance();
+			const auto radius = ScenarioClass::Instance->Random.RandomRanged(pRulesExt->VisualScatter_Min.Get(), pRulesExt->VisualScatter_Max.Get());
+			*pTargetCoords = MapClass::GetRandomCoordsNear(pBullet->Data.Location, radius, false);
+		}
+		else
+		{
+			*pTargetCoords = pBullet->Data.Location;
+		}
+	} else if (FireAtTemp::pObstacleCell)
 		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
 
 	R->EAX(pTargetCoords);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6FD70D, TechnoClass_DrawSth_Coords, 0x6) // CreateRBeam
+ASMJIT_PATCH_AGAIN(0x6FD514, TechnoClass_DrawSth_Coords, 0x7) // CreateEBolt
 
 // Cut railgun logic off at obstacle coordinates.
 ASMJIT_PATCH(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
@@ -518,6 +545,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 	// Reset temp values
 	FireAtTemp::originalTargetCoords = CoordStruct::Empty;
+	FireAtTemp::FireBullet = nullptr;
 	FireAtTemp::pObstacleCell = nullptr;
 	FireAtTemp::pOriginalTarget = nullptr;
 #endif

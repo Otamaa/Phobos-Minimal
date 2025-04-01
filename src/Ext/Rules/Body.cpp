@@ -738,6 +738,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 	
+	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
+	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
+
 	this->GiveMoneyIfStorageFull.Read(exINI, GameStrings::General, "Storage.GiveMoneyIfFull");
 	this->AutoBuilding.Read(exINI, GameStrings::General, "AutoBuilding");
 	this->AIAngerOnAlly.Read(exINI, GameStrings::General, "AIAngerOnAlly");
@@ -1514,6 +1517,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->XGRYSML1_)
 
 		.Process(this->GiveMoneyIfStorageFull)
+
+		.Process(this->VisualScatter_Min)
+		.Process(this->VisualScatter_Max)
 		;
 
 	MyPutData.Serialize(Stm);
