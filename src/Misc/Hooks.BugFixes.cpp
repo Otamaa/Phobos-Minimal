@@ -2327,7 +2327,7 @@ ASMJIT_PATCH(0x6FC617, TechnoClass_GetFireError_AirCarrierSkipCheckNearBridge, 0
 }
 
 // WW used SetDesired here, causing the barrel drawn incorrectly.
-DEFINE_HOOK(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
+ASMJIT_PATCH(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
 {
 	enum { SkipGameCode = 0x6F6DFA };
 
@@ -2339,7 +2339,7 @@ DEFINE_HOOK(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
+ASMJIT_PATCH(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EDI);
@@ -2347,7 +2347,7 @@ DEFINE_HOOK(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
 	return pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x6;
 }
 
-DEFINE_HOOK(0x4DFED2, FootClass_FindGarrisonStructure_CheckValid, 0x6)
+ASMJIT_PATCH(0x4DFED2, FootClass_FindGarrisonStructure_CheckValid, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
@@ -2355,7 +2355,7 @@ DEFINE_HOOK(0x4DFED2, FootClass_FindGarrisonStructure_CheckValid, 0x6)
 	return pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x6;
 }
 
-DEFINE_HOOK(0x4E0024, FootClass_FindTankBunker_CheckValid, 0x8)
+ASMJIT_PATCH(0x4E0024, FootClass_FindTankBunker_CheckValid, 0x8)
 {
 	GET(FootClass*, pThis, EDI);
 	GET(BuildingClass*, pBuilding, ESI);
@@ -2363,7 +2363,7 @@ DEFINE_HOOK(0x4E0024, FootClass_FindTankBunker_CheckValid, 0x8)
 	return pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4DFD92, FootClass_FindBattleBunker_CheckValid, 0x8)
+ASMJIT_PATCH(0x4DFD92, FootClass_FindBattleBunker_CheckValid, 0x8)
 {
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
@@ -2371,7 +2371,7 @@ DEFINE_HOOK(0x4DFD92, FootClass_FindBattleBunker_CheckValid, 0x8)
 	return pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4DFB28, FootClass_FindGrinder_CheckValid, 0x8)
+ASMJIT_PATCH(0x4DFB28, FootClass_FindGrinder_CheckValid, 0x8)
 {
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
@@ -2379,7 +2379,7 @@ DEFINE_HOOK(0x4DFB28, FootClass_FindGrinder_CheckValid, 0x8)
 	return pThis->IsInSameZoneAs(pBuilding) ? 0 : R->Origin() + 0x8;
 }
 
-DEFINE_HOOK(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
+ASMJIT_PATCH(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	auto const pTemporal = pTechno->TemporalImUsing;
@@ -2388,4 +2388,10 @@ DEFINE_HOOK(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
 		pTemporal->LetGo();
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
