@@ -2026,6 +2026,9 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 
 	// Clearing the current target should still be necessary for all technos
 	pTechno->SetTarget(nullptr);
+	
+	// Stop any enter action
+	pTechno->QueueUpToEnter = nullptr;
 
 	if (commonAircraft)
 	{
@@ -2293,8 +2296,27 @@ ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 
 }
 
+// Change enter to move when unlink
+ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET_STACK(TechnoClass* const, pCall, STACK_OFFSET(0x18, 0x4));
+	// If the link connection is cancelled and foot A is entering techno B, it may cause A and B to overlap
+	if (!pCall->InLimbo // Has not already entered
+		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
+		&& pCall->CurrentMission == Mission::Enter // Is entering
+		&& static_cast<FootClass*>(pCall)->Destination == pThis) // Is entering techno B
+	{
+		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
+		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
+		pCall->NextMission(); // Immediately respond to the Mission::Move
+	}
+
+	return 0;
+}
+
 // Radio: do not untether techno who have other tether link
-ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_NotifyUnlink, 0x7)
+ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
 {
 	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
 	GET(TechnoClass* const, pThis, ESI);

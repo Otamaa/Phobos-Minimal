@@ -469,6 +469,8 @@ public:
 	Valueable<bool> RecountBurst { false };
 	Valueable<ColorStruct> AirstrikeLineColor { { 255, 0, 0 } };
 
+	Valueable<bool> AmphibiousEnter {};
+	Valueable<bool> AmphibiousUnload {};
 
 	AnimTypeClass* XGRYMED1_ {};
 	AnimTypeClass* XGRYMED2_ {};

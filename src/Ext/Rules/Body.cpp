@@ -758,6 +758,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RecountBurst.Read(exINI, GameStrings::General, "RecountBurst");
 	this->AirstrikeLineColor.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineColor");
 
+	this->AmphibiousEnter.Read(exINI, GameStrings::General, "AmphibiousEnter");
+	this->AmphibiousUnload.Read(exINI, GameStrings::General, "AmphibiousUnload");
+
 	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
 	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
 	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
@@ -1511,7 +1514,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->RecountBurst)
 		.Process(this->AirstrikeLineColor)
-
+		.Process(this->AmphibiousEnter)
+		.Process(this->AmphibiousUnload)
 		.Process(this->XGRYMED1_)
 		.Process(this->XGRYMED2_)
 		.Process(this->XGRYSML1_)

@@ -1467,11 +1467,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SinkSpeed.Read(exINI, pSection, "SinkSpeed");
 		this->Sinkable_SquidGrab.Read(exINI, pSection, "Sinkable.SquidGrab");
 
+		this->AmphibiousEnter.Read(exINI, pSection, "AmphibiousEnter");
+		this->AmphibiousUnload.Read(exINI, pSection, "AmphibiousUnload");
+
 		// Spawner range
+		this->ResetSpawnerRange();
+
 		if (this->Spawn_LimitedExtraRange)
 			this->CalculateSpawnerRange();
-		else
-			this->ResetSpawnerRange();
 	}
 
 	// Art tags
@@ -2648,6 +2651,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SpawnerRange)
 		.Process(this->EliteSpawnerRange)
+		
+		.Process(this->AmphibiousEnter)
+		.Process(this->AmphibiousUnload)
 		;
 }
 

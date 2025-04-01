@@ -1082,6 +1082,9 @@ public:
 	int SpawnerRange {};
 	int EliteSpawnerRange {};
 
+	Nullable<bool> AmphibiousEnter {};
+	Nullable<bool> AmphibiousUnload {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
@@ -1098,7 +1101,6 @@ public:
 		this->SpawnerRange = 0;
 		this->EliteSpawnerRange = 0;
 	}
-
 
 	// Ares 0.A
 	const char* GetSelectionGroupID() const;
