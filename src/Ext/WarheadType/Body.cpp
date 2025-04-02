@@ -1676,11 +1676,12 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 
 	// Higher priority for selling
 
-	if (this->BuildingSell)
-	{
+	if (this->BuildingSell) {
 
-		if ((pBuilding->CanBeSold() && !pBuilding->IsStrange()) || this->BuildingSell_IgnoreUnsellable)
+		if ((pBuilding->CanBeSold() && !pBuilding->IsStrange()) || this->BuildingSell_IgnoreUnsellable) {
+			pBuilding->SetArchiveTarget(nullptr); // Reset to ensure it must to be sold
 			pBuilding->Sell(1);
+		}
 
 		return;
 	}
