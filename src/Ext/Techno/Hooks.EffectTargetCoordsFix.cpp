@@ -201,16 +201,16 @@ ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
 		// The weapon may not have been set up
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
 		// pBullet->Data.Location (0x4E1130) -> pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords
-
+		CoordStruct _targetCoords= pBullet->GetDestinationCoords();
 		if (pWeaponExt && pWeaponExt->VisualScatter)
 		{
 			const auto pRulesExt = RulesExtData::Instance();
 			const auto radius = ScenarioClass::Instance->Random.RandomRanged(pRulesExt->VisualScatter_Min.Get(), pRulesExt->VisualScatter_Max.Get());
-			*pTargetCoords = MapClass::GetRandomCoordsNear(pBullet->Data.Location, radius, false);
+			*pTargetCoords = MapClass::GetRandomCoordsNear(_targetCoords, radius, false);
 		}
 		else
 		{
-			*pTargetCoords = pBullet->Data.Location;
+			*pTargetCoords = _targetCoords;
 		}
 	} else if (FireAtTemp::pObstacleCell)
 		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();

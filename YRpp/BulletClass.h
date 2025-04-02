@@ -140,6 +140,11 @@ public:
 		}
 	}
 
+	CoordStruct GetDestinationCoords() const {
+		//Inviso projectile is snapping onto the target
+		return this->Type->Inviso ? this->Location : this->TargetCoords;
+	}
+
 	static AnimClass* CreateDamagingBulletAnim(HouseClass* pHouse, CellClass* pTarget, BulletClass* pBullet, AnimTypeClass* pAnimType);
 
 	//Constructor
