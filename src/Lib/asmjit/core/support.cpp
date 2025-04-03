@@ -472,7 +472,7 @@ static void testSorting() noexcept {
   {
     constexpr size_t kArraySize = 5;
 
-    float arr1[kArraySize] = { 1.0f, 0.0f, 3.0f, -1.0f, std::numeric_limits<float>::quiet_NaN() };
+    float arr1[kArraySize] = { 1.0f, 0.0f, 3.0f, -1.0f, eastl::numeric_limits<float>::quiet_NaN() };
     float arr2[kArraySize] = { };
 
     memcpy(arr2, arr1, kArraySize * sizeof(float));

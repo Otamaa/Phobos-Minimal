@@ -323,13 +323,13 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 
 			const auto theDistanceSquared = targetSourceCoord.pow();
 			const auto targetSpeedSquared = extraOffsetCoord.pow();
-			const auto targetSpeed = std::sqrt(targetSpeedSquared);
+			const auto targetSpeed = sqrt(targetSpeedSquared);
 
 			const auto crossFactor = lastSourceCoord.CrossProduct(targetSourceCoord).pow();
 			const auto verticalDistanceSquared = crossFactor / targetSpeedSquared;
 
 			const auto horizonDistanceSquared = theDistanceSquared - verticalDistanceSquared;
-			const auto horizonDistance = std::sqrt(horizonDistanceSquared);
+			const auto horizonDistance = sqrt(horizonDistanceSquared);
 
 			const auto straightSpeedSquared = this->TrajectorySpeed * this->TrajectorySpeed;
 			const auto baseFactor = straightSpeedSquared - targetSpeedSquared;
@@ -346,8 +346,8 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 				}
 				else
 				{
-					const auto travelTimeM = static_cast<int>((minusFactor - std::sqrt(squareFactor)) / baseFactor);
-					const auto travelTimeP = static_cast<int>((minusFactor + std::sqrt(squareFactor)) / baseFactor);
+					const auto travelTimeM = static_cast<int>((minusFactor - sqrt(squareFactor)) / baseFactor);
+					const auto travelTimeP = static_cast<int>((minusFactor + sqrt(squareFactor)) / baseFactor);
 
 					if (travelTimeM > 0 && travelTimeP > 0)
 						travelTime = travelTimeM < travelTimeP ? travelTimeM : travelTimeP;
@@ -434,7 +434,7 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 		if (Math::abs(rotationAxisLengthSquared) > 1e-10)
 		{
 			double extraRotate = 0.0;
-			rotationAxis *= 1 / std::sqrt(rotationAxisLengthSquared);
+			rotationAxis *= 1 / sqrt(rotationAxisLengthSquared);
 
 			if (pType->MirrorCoord)
 			{
@@ -855,7 +855,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 			if (distanceCrd.Multiply(velocityCrd) < 0 || terminalCrd.Multiply(velocityCrd) > 0)
 				continue;
 
-			const auto distance = (velocitySq > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
+			const auto distance = (velocitySq > 1e-10) ? sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
 
 			if (technoType != AbstractType::Building && distance > pType->ProximityRadius.Get())
 				continue;
@@ -893,7 +893,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 			if (distanceCrd.Multiply(velocityCrd) < 0 || terminalCrd.Multiply(velocityCrd) > 0)
 				continue;
 
-			const auto distance = (velocitySq > 1e-10) ? std::sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
+			const auto distance = (velocitySq > 1e-10) ? sqrt(distanceCrd.CrossProduct(terminalCrd).pow() / velocitySq) : distanceCrd.Length();
 
 			if (distance > pType->ProximityRadius.Get())
 				continue;

@@ -47,7 +47,7 @@ noexcept
                 (exp_term == T2(1) ? val*base : val) );
 }
 
-template<typename T1, typename T2, typename std::enable_if<std::is_signed<T2>::value>::type* = nullptr>
+template<typename T1, typename T2, typename eastl::enable_if<eastl::is_signed<T2>::value>::type* = nullptr>
 constexpr
 T1
 pow_integral_sgn_check(const T1 base, const T2 exp_term)
@@ -60,7 +60,7 @@ noexcept
                 pow_integral_compute_recur(base,T1(1),exp_term) );
 }
 
-template<typename T1, typename T2, typename std::enable_if<!std::is_signed<T2>::value>::type* = nullptr>
+template<typename T1, typename T2, typename eastl::enable_if<!eastl::is_signed<T2>::value>::type* = nullptr>
 constexpr
 T1
 pow_integral_sgn_check(const T1 base, const T2 exp_term)
@@ -92,7 +92,7 @@ noexcept
             pow_integral_sgn_check(base,exp_term) );
 }
 
-template<typename T1, typename T2, typename std::enable_if<std::is_integral<T2>::value>::type* = nullptr>
+template<typename T1, typename T2, typename eastl::enable_if<eastl::is_integral<T2>::value>::type* = nullptr>
 constexpr
 T1
 pow_integral_type_check(const T1 base, const T2 exp_term)
@@ -101,7 +101,7 @@ noexcept
     return pow_integral_compute(base,exp_term);
 }
 
-template<typename T1, typename T2, typename std::enable_if<!std::is_integral<T2>::value>::type* = nullptr>
+template<typename T1, typename T2, typename eastl::enable_if<!eastl::is_integral<T2>::value>::type* = nullptr>
 constexpr
 T1
 pow_integral_type_check(const T1 base, const T2 exp_term)

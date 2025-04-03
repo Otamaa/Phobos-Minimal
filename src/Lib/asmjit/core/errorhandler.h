@@ -92,10 +92,10 @@ class BaseEmitter;
 //! using namespace asmjit;
 //!
 //! // Error handler that throws a user-defined `AsmJitException`.
-//! class AsmJitException : public std::exception {
+//! class AsmJitException : public eastl::exception {
 //! public:
 //!   Error err;
-//!   std::string message;
+//!   eastl::string message;
 //!
 //!   AsmJitException(Error err, const char* message) noexcept
 //!     : err(err),

@@ -31,8 +31,6 @@ Not part of the stable API of lodepng, more loose separate utils.
 #ifndef LODEPNG_UTIL_H
 #define LODEPNG_UTIL_H
 
-#include <string>
-#include <vector>
 #include "lodepng.h"
 
 namespace lodepng {
@@ -43,14 +41,14 @@ Does NOT check for errors. Returns bogus info if the PNG has an error.
 Does not require cleanup of allocated memory because no palette or text chunk
 info is in the LodePNGInfo object after checking only the header of the PNG.
 */
-LodePNGInfo getPNGHeaderInfo(const std::vector<unsigned char>& png);
+LodePNGInfo getPNGHeaderInfo(const eastl::vector<unsigned char>& png);
 
 /*
 Get the names and sizes of all chunks in the PNG file.
 Returns 0 if ok, non-0 if error happened.
 */
-unsigned getChunkInfo(std::vector<std::string>& names, std::vector<size_t>& sizes,
-                      const std::vector<unsigned char>& png);
+unsigned getChunkInfo(eastl::vector<eastl::string>& names, eastl::vector<size_t>& sizes,
+                      const eastl::vector<unsigned char>& png);
 
 /*
 Returns the names and full chunks (including the name and everything else that
@@ -59,9 +57,9 @@ It separates the chunks into 3 separate lists, representing the chunks between
 certain critical chunks: 0: IHDR-PLTE, 1: PLTE-IDAT, 2: IDAT-IEND
 Returns 0 if ok, non-0 if error happened.
 */
-unsigned getChunks(std::vector<std::string> names[3],
-                   std::vector<std::vector<unsigned char> > chunks[3],
-                   const std::vector<unsigned char>& png);
+unsigned getChunks(eastl::vector<eastl::string> names[3],
+                   eastl::vector<eastl::vector<unsigned char> > chunks[3],
+                   const eastl::vector<unsigned char>& png);
 
 /*
 Inserts chunks into the given png file. The chunks must be fully encoded,
@@ -71,8 +69,8 @@ The array index determines where it goes:
 They're appended at the end of those locations within the PNG.
 Returns 0 if ok, non-0 if error happened.
 */
-unsigned insertChunks(std::vector<unsigned char>& png,
-                      const std::vector<std::vector<unsigned char> > chunks[3]);
+unsigned insertChunks(eastl::vector<unsigned char>& png,
+                      const eastl::vector<eastl::vector<unsigned char> > chunks[3]);
 
 /*
 Get the filtertypes of each scanline in this PNG file.
@@ -85,16 +83,16 @@ one filtertype per scanline, in order. The values match pass 6 and 7 of the
 Adam7 interlacing, alternating between the two, so that the values correspond
 the most to their scanlines.
 */
-unsigned getFilterTypes(std::vector<unsigned char>& filterTypes, const std::vector<unsigned char>& png);
+unsigned getFilterTypes(eastl::vector<unsigned char>& filterTypes, const eastl::vector<unsigned char>& png);
 
 /*
 Get the filtertypes of each scanline in every interlace pass this PNG file.
 Returns 0 if ok, 1 if PNG decoding error happened.
 
 For a non-interlaced PNG, it returns one filtertype per scanline, in order, in
-a single std::vector in filterTypes.
+a single eastl::vector in filterTypes.
 
-For an interlaced PNG, it returns 7 std::vectors in filterTypes, one for each
+For an interlaced PNG, it returns 7 eastl::vectors in filterTypes, one for each
 Adam7 pass. The amount of values per pass can be calculated as follows, where
 w and h are the size of the image and all divisions are integer divisions:
 pass 1: (h + 7) / 8
@@ -105,8 +103,8 @@ pass 5: h <= 2 ? 0 : (h + 3) / 4
 pass 6: w <= 1 ? 0 : (h + 1) / 2
 pass 7: h <= 1 ? 0 : (h + 1) / 2
 */
-unsigned getFilterTypesInterlaced(std::vector<std::vector<unsigned char> >& filterTypes,
-                                  const std::vector<unsigned char>& png);
+unsigned getFilterTypesInterlaced(eastl::vector<eastl::vector<unsigned char> >& filterTypes,
+                                  const eastl::vector<unsigned char>& png);
 
 /*
 Returns the value of the i-th pixel in an image with 1, 2, 4 or 8-bit color.

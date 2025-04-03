@@ -108,14 +108,14 @@ public:
   //! \{
 
   inline void _swap(ZoneHashBase& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_bucketsCount, other._bucketsCount);
-    std::swap(_bucketsGrow, other._bucketsGrow);
-    std::swap(_rcpValue, other._rcpValue);
-    std::swap(_rcpShift, other._rcpShift);
-    std::swap(_primeIndex, other._primeIndex);
-    std::swap(_embedded[0], other._embedded[0]);
+    eastl::swap(_data, other._data);
+    eastl::swap(_size, other._size);
+    eastl::swap(_bucketsCount, other._bucketsCount);
+    eastl::swap(_bucketsGrow, other._bucketsGrow);
+    eastl::swap(_rcpValue, other._rcpValue);
+    eastl::swap(_rcpShift, other._rcpShift);
+    eastl::swap(_primeIndex, other._primeIndex);
+    eastl::swap(_embedded[0], other._embedded[0]);
 
     if (_data == other._embedded) _data = _embedded;
     if (other._data == _embedded) other._data = other._embedded;

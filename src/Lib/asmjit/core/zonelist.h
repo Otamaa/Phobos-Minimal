@@ -110,8 +110,8 @@ public:
   //! \{
 
   ASMJIT_INLINE_NODEBUG void swap(ZoneList& other) noexcept {
-    std::swap(_nodes[0], other._nodes[0]);
-    std::swap(_nodes[1], other._nodes[1]);
+    eastl::swap(_nodes[0], other._nodes[0]);
+    eastl::swap(_nodes[1], other._nodes[1]);
   }
 
   // Can be used to both append and prepend.

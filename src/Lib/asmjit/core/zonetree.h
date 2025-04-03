@@ -141,7 +141,7 @@ public:
   //! \{
 
   ASMJIT_INLINE_NODEBUG void swap(ZoneTree& other) noexcept {
-    std::swap(_root, other._root);
+    eastl::swap(_root, other._root);
   }
 
   template<typename CompareT = Support::Compare<Support::SortOrder::kAscending>>

@@ -49,14 +49,14 @@ public:
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit8(T val) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     _cursor[0] = uint8_t(U(val) & U(0xFF));
     _cursor++;
   }
 
   template<typename T, typename Y>
   ASMJIT_FORCE_INLINE void emit8If(T val, Y cond) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     ASMJIT_ASSERT(size_t(cond) <= 1u);
 
     _cursor[0] = uint8_t(U(val) & U(0xFF));
@@ -65,28 +65,28 @@ public:
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit16uLE(T val) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     Support::writeU16uLE(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit16uBE(T val) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     Support::writeU16uBE(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit32uLE(T val) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     Support::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit32uBE(T val) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     Support::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
@@ -99,7 +99,7 @@ public:
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emitValueLE(const T& value, size_t size) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     ASMJIT_ASSERT(size <= sizeof(T));
 
     U v = U(value);
@@ -112,7 +112,7 @@ public:
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emitValueBE(const T& value, size_t size) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
     ASMJIT_ASSERT(size <= sizeof(T));
 
     U v = U(value);

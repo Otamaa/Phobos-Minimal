@@ -499,7 +499,7 @@ static const char* getTmpDir() noexcept {
 
 #if defined(__linux__) && defined(__NR_memfd_create)
 static uint32_t getMfdExecFlag() noexcept {
-  static std::atomic<uint32_t> cachedMfdExecSupported;
+  static eastl::atomic<uint32_t> cachedMfdExecSupported;
   uint32_t val = cachedMfdExecSupported.load();
 
   if (val == 0u) {
@@ -516,7 +516,7 @@ static uint32_t getMfdExecFlag() noexcept {
 // It's not fully random, just to avoid collisions when opening TMP or SHM file.
 ASMJIT_MAYBE_UNUSED
 static uint64_t generateRandomBits(uintptr_t stackPtr, uint32_t attempt) noexcept {
-  static std::atomic<uint32_t> internalCounter;
+  static eastl::atomic<uint32_t> internalCounter;
 
 #if defined(__GNUC__) && ASMJIT_ARCH_X86
   // Use RDTSC instruction to avoid gettimeofday() as we just need some "random" bits.
@@ -694,7 +694,7 @@ static Error detectAnonymousMemoryStrategy(AnonymousMemoryStrategy* strategyOut)
 static Error getAnonymousMemoryStrategy(AnonymousMemoryStrategy* strategyOut) noexcept {
 #if ASMJIT_VM_SHM_DETECT
   // Initially don't assume anything. It has to be tested whether '/dev/shm' was mounted with 'noexec' flag or not.
-  static std::atomic<uint32_t> cachedStrategy;
+  static eastl::atomic<uint32_t> cachedStrategy;
 
   AnonymousMemoryStrategy strategy = static_cast<AnonymousMemoryStrategy>(cachedStrategy.load());
   if (strategy == AnonymousMemoryStrategy::kUnknown) {
@@ -723,7 +723,7 @@ static bool hasHardenedRuntime() noexcept {
   // OSX on AArch64 has always hardened runtime enabled.
   return true;
 #else
-  static std::atomic<uint32_t> cachedHardenedFlag;
+  static eastl::atomic<uint32_t> cachedHardenedFlag;
 
   enum HardenedFlag : uint32_t {
     kHardenedFlagUnknown  = 0,
@@ -759,7 +759,7 @@ static inline bool hasMapJitSupport() noexcept {
   return true;
 #elif defined(__APPLE__) && TARGET_OS_OSX
   // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
-  static std::atomic<uint32_t> cachedMapJitSupport;
+  static eastl::atomic<uint32_t> cachedMapJitSupport;
   uint32_t val = cachedMapJitSupport.load();
 
   if (val == 0u) {
@@ -1124,7 +1124,7 @@ void flushInstructionCache(void* p, size_t size) noexcept {
 // ============================
 
 Info info() noexcept {
-  static std::atomic<uint32_t> vmInfoInitialized;
+  static eastl::atomic<uint32_t> vmInfoInitialized;
   static Info vmInfo;
 
   if (!vmInfoInitialized.load()) {
@@ -1139,7 +1139,7 @@ Info info() noexcept {
 }
 
 size_t largePageSize() noexcept {
-  static std::atomic<size_t> largePageSize;
+  static eastl::atomic<size_t> largePageSize;
   static constexpr size_t kNotAvailable = 1;
 
   size_t size = largePageSize.load();

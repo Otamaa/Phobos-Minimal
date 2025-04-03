@@ -26,7 +26,7 @@ freely, subject to the following restrictions:
 #ifndef LODEPNG_H
 #define LODEPNG_H
 
-#include <string.h> /*for size_t*/
+#include <EASTL/string.h> /*for size_t*/
 
 extern const char* LODEPNG_VERSION_STRING;
 
@@ -112,8 +112,8 @@ or comment out LODEPNG_COMPILE_CPP below*/
 #endif
 
 #ifdef LODEPNG_COMPILE_CPP
-#include <vector>
-#include <string>
+#include <EASTL/vector.h>
+#include <EASTL/string.h>
 #endif /*LODEPNG_COMPILE_CPP*/
 
 #ifdef LODEPNG_COMPILE_PNG
@@ -250,13 +250,13 @@ unsigned lodepng_encode24_file(const char* filename,
 #ifdef LODEPNG_COMPILE_CPP
 namespace lodepng {
 #ifdef LODEPNG_COMPILE_DECODER
-/*Same as lodepng_decode_memory, but decodes to an std::vector. The colortype
+/*Same as lodepng_decode_memory, but decodes to an eastl::vector. The colortype
 is the format to output the pixels to. Default is RGBA 8-bit per channel.*/
-unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
+unsigned decode(eastl::vector<unsigned char>& out, unsigned& w, unsigned& h,
                 const unsigned char* in, size_t insize,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
-unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
-                const std::vector<unsigned char>& in,
+unsigned decode(eastl::vector<unsigned char>& out, unsigned& w, unsigned& h,
+                const eastl::vector<unsigned char>& in,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
 #ifdef LODEPNG_COMPILE_DISK
 /*
@@ -266,20 +266,20 @@ Same as the other decode functions, but instead takes a filename as input.
 NOTE: Wide-character filenames are not supported, you can use an external method
 to handle such files and decode in-memory.
 */
-unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
-                const std::string& filename,
+unsigned decode(eastl::vector<unsigned char>& out, unsigned& w, unsigned& h,
+                const eastl::string& filename,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
 #endif /* LODEPNG_COMPILE_DISK */
 #endif /* LODEPNG_COMPILE_DECODER */
 
 #ifdef LODEPNG_COMPILE_ENCODER
-/*Same as lodepng_encode_memory, but encodes to an std::vector. colortype
+/*Same as lodepng_encode_memory, but encodes to an eastl::vector. colortype
 is that of the raw input data. The output PNG color type will be auto chosen.*/
-unsigned encode(std::vector<unsigned char>& out,
+unsigned encode(eastl::vector<unsigned char>& out,
                 const unsigned char* in, unsigned w, unsigned h,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
-unsigned encode(std::vector<unsigned char>& out,
-                const std::vector<unsigned char>& in, unsigned w, unsigned h,
+unsigned encode(eastl::vector<unsigned char>& out,
+                const eastl::vector<unsigned char>& in, unsigned w, unsigned h,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
 #ifdef LODEPNG_COMPILE_DISK
 /*
@@ -291,11 +291,11 @@ NOTE: This overwrites existing files without warning!
 NOTE: Wide-character filenames are not supported, you can use an external method
 to handle such files and decode in-memory.
 */
-unsigned encode(const std::string& filename,
+unsigned encode(const eastl::string& filename,
                 const unsigned char* in, unsigned w, unsigned h,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
-unsigned encode(const std::string& filename,
-                const std::vector<unsigned char>& in, unsigned w, unsigned h,
+unsigned encode(const eastl::string& filename,
+                const eastl::vector<unsigned char>& in, unsigned w, unsigned h,
                 LodePNGColorType colortype = LCT_RGBA, unsigned bitdepth = 8);
 #endif /* LODEPNG_COMPILE_DISK */
 #endif /* LODEPNG_COMPILE_ENCODER */
@@ -1180,7 +1180,7 @@ unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const
 #endif /*LODEPNG_COMPILE_DISK*/
 
 #ifdef LODEPNG_COMPILE_CPP
-/* The LodePNG C++ wrapper uses std::vectors instead of manually allocated memory buffers. */
+/* The LodePNG C++ wrapper uses eastl::vectors instead of manually allocated memory buffers. */
 namespace lodepng {
 #ifdef LODEPNG_COMPILE_PNG
 class State : public LodePNGState {
@@ -1193,63 +1193,63 @@ class State : public LodePNGState {
 
 #ifdef LODEPNG_COMPILE_DECODER
 /* Same as other lodepng::decode, but using a State for more settings and information. */
-unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
+unsigned decode(eastl::vector<unsigned char>& out, unsigned& w, unsigned& h,
                 State& state,
                 const unsigned char* in, size_t insize);
-unsigned decode(std::vector<unsigned char>& out, unsigned& w, unsigned& h,
+unsigned decode(eastl::vector<unsigned char>& out, unsigned& w, unsigned& h,
                 State& state,
-                const std::vector<unsigned char>& in);
+                const eastl::vector<unsigned char>& in);
 #endif /*LODEPNG_COMPILE_DECODER*/
 
 #ifdef LODEPNG_COMPILE_ENCODER
 /* Same as other lodepng::encode, but using a State for more settings and information. */
-unsigned encode(std::vector<unsigned char>& out,
+unsigned encode(eastl::vector<unsigned char>& out,
                 const unsigned char* in, unsigned w, unsigned h,
                 State& state);
-unsigned encode(std::vector<unsigned char>& out,
-                const std::vector<unsigned char>& in, unsigned w, unsigned h,
+unsigned encode(eastl::vector<unsigned char>& out,
+                const eastl::vector<unsigned char>& in, unsigned w, unsigned h,
                 State& state);
 #endif /*LODEPNG_COMPILE_ENCODER*/
 
 #ifdef LODEPNG_COMPILE_DISK
 /*
-Load a file from disk into an std::vector.
+Load a file from disk into an eastl::vector.
 return value: error code (0 means ok)
 
 NOTE: Wide-character filenames are not supported, you can use an external method
 to handle such files and decode in-memory
 */
-unsigned load_file(std::vector<unsigned char>& buffer, const std::string& filename);
+unsigned load_file(eastl::vector<unsigned char>& buffer, const eastl::string& filename);
 
 /*
-Save the binary data in an std::vector to a file on disk. The file is overwritten
+Save the binary data in an eastl::vector to a file on disk. The file is overwritten
 without warning.
 
 NOTE: Wide-character filenames are not supported, you can use an external method
 to handle such files and encode in-memory
 */
-unsigned save_file(const std::vector<unsigned char>& buffer, const std::string& filename);
+unsigned save_file(const eastl::vector<unsigned char>& buffer, const eastl::string& filename);
 #endif /* LODEPNG_COMPILE_DISK */
 #endif /* LODEPNG_COMPILE_PNG */
 
 #ifdef LODEPNG_COMPILE_ZLIB
 #ifdef LODEPNG_COMPILE_DECODER
 /* Zlib-decompress an unsigned char buffer */
-unsigned decompress(std::vector<unsigned char>& out, const unsigned char* in, size_t insize,
+unsigned decompress(eastl::vector<unsigned char>& out, const unsigned char* in, size_t insize,
                     const LodePNGDecompressSettings& settings = lodepng_default_decompress_settings);
 
-/* Zlib-decompress an std::vector */
-unsigned decompress(std::vector<unsigned char>& out, const std::vector<unsigned char>& in,
+/* Zlib-decompress an eastl::vector */
+unsigned decompress(eastl::vector<unsigned char>& out, const eastl::vector<unsigned char>& in,
                     const LodePNGDecompressSettings& settings = lodepng_default_decompress_settings);
 #endif /* LODEPNG_COMPILE_DECODER */
 
 #ifdef LODEPNG_COMPILE_ENCODER
 /* Zlib-compress an unsigned char buffer */
-unsigned compress(std::vector<unsigned char>& out, const unsigned char* in, size_t insize,
+unsigned compress(eastl::vector<unsigned char>& out, const unsigned char* in, size_t insize,
                   const LodePNGCompressSettings& settings = lodepng_default_compress_settings);
 
-/* Zlib-compress an std::vector */
-unsigned compress(std::vector<unsigned char>& out, const std::vector<unsigned char>& in,
+/* Zlib-compress an eastl::vector */
+unsigned compress(eastl::vector<unsigned char>& out, const eastl::vector<unsigned char>& in,
                   const LodePNGCompressSettings& settings = lodepng_default_compress_settings);
 #endif /* LODEPNG_COMPILE_ENCODER */
 #endif /* LODEPNG_COMPILE_ZLIB */
@@ -1409,7 +1409,7 @@ The C version uses buffers allocated with alloc that you need to free()
 yourself. You need to use init and cleanup functions for each struct whenever
 using a struct from the C version to avoid exploits and memory leaks.
 
-The C++ version has extra functions with std::vectors in the interface and the
+The C++ version has extra functions with eastl::vectors in the interface and the
 lodepng::State class which is a LodePNGState with constructor and destructor.
 
 These files work without modification for both C and C++ compilers because all
@@ -1851,7 +1851,7 @@ encoder and decoder, this makes a large difference.
 
 Make sure that LodePNG is compiled with the same compiler of the same version
 and with the same settings as the rest of the program, or the interfaces with
-std::vectors and std::strings in C++ can be incompatible.
+eastl::vectors and eastl::strings in C++ can be incompatible.
 
 CHAR_BITS must be 8 or higher, because LodePNG uses unsigned chars for octets.
 
@@ -1916,12 +1916,12 @@ int main(int argc, char *argv[]) {
   const char* filename = argc > 1 ? argv[1] : "test.png";
 
   //load and decode
-  std::vector<unsigned char> image;
+  eastl::vector<unsigned char> image;
   unsigned width, height;
   unsigned error = lodepng::decode(image, width, height, filename);
 
   //if there's an error, display it
-  if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+  if(error) eastl::cout << "decoder error " << error << ": " << lodepng_error_text(error) << eastl::endl;
 
   //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it, ...
 }
@@ -2110,7 +2110,7 @@ https://github.com/lvandeve/lodepng
 *) 21 jul 2007: deflate code placed in new namespace separate from zlib code
 *) 08 jun 2007: fixed bug with 2- and 4-bit color, and small interlaced images
 *) 04 jun 2007: improved support for Visual Studio 2005: crash with accessing
-    invalid std::vector element [0] fixed, and level 3 and 4 warnings removed
+    invalid eastl::vector element [0] fixed, and level 3 and 4 warnings removed
 *) 02 jun 2007: made the encoder add a tag with version by default
 *) 27 may 2007: zlib and png code separated (but still in the same file),
     simple encoder/decoder functions added for more simple usage cases
@@ -2164,6 +2164,6 @@ https://github.com/lvandeve/lodepng
     in LodePNG namespace. Changed the order of the parameters. Rewrote the
     documentation in the header. Renamed files to lodepng.cpp and lodepng.h
 *) 22 apr 2006: Optimized and improved some code
-*) 07 sep 2005: (!) Changed to std::vector interface
+*) 07 sep 2005: (!) Changed to eastl::vector interface
 *) 12 aug 2005: Initial release (C++, decoder only)
 */

@@ -273,14 +273,14 @@ template<typename T>
 struct TypeIdOfT_ByCategory<T, kTypeCategoryIntegral> {
   enum : uint32_t {
     kTypeId = uint32_t(
-      (sizeof(T) == 1 &&  std::is_signed<T>::value) ? TypeId::kInt8 :
-      (sizeof(T) == 1 && !std::is_signed<T>::value) ? TypeId::kUInt8 :
-      (sizeof(T) == 2 &&  std::is_signed<T>::value) ? TypeId::kInt16 :
-      (sizeof(T) == 2 && !std::is_signed<T>::value) ? TypeId::kUInt16 :
-      (sizeof(T) == 4 &&  std::is_signed<T>::value) ? TypeId::kInt32 :
-      (sizeof(T) == 4 && !std::is_signed<T>::value) ? TypeId::kUInt32 :
-      (sizeof(T) == 8 &&  std::is_signed<T>::value) ? TypeId::kInt64 :
-      (sizeof(T) == 8 && !std::is_signed<T>::value) ? TypeId::kUInt64 : TypeId::kVoid)
+      (sizeof(T) == 1 &&  eastl::is_signed<T>::value) ? TypeId::kInt8 :
+      (sizeof(T) == 1 && !eastl::is_signed<T>::value) ? TypeId::kUInt8 :
+      (sizeof(T) == 2 &&  eastl::is_signed<T>::value) ? TypeId::kInt16 :
+      (sizeof(T) == 2 && !eastl::is_signed<T>::value) ? TypeId::kUInt16 :
+      (sizeof(T) == 4 &&  eastl::is_signed<T>::value) ? TypeId::kInt32 :
+      (sizeof(T) == 4 && !eastl::is_signed<T>::value) ? TypeId::kUInt32 :
+      (sizeof(T) == 8 &&  eastl::is_signed<T>::value) ? TypeId::kInt64 :
+      (sizeof(T) == 8 && !eastl::is_signed<T>::value) ? TypeId::kUInt64 : TypeId::kVoid)
   };
 };
 
@@ -296,7 +296,7 @@ struct TypeIdOfT_ByCategory<T, kTypeCategoryFloatingPoint> {
 
 template<typename T>
 struct TypeIdOfT_ByCategory<T, kTypeCategoryEnum>
-  : public TypeIdOfT_ByCategory<typename std::underlying_type<T>::type, kTypeCategoryIntegral> {};
+  : public TypeIdOfT_ByCategory<typename eastl::underlying_type<T>::type, kTypeCategoryIntegral> {};
 
 template<typename T>
 struct TypeIdOfT_ByCategory<T, kTypeCategoryFunction> {
@@ -317,10 +317,10 @@ struct TypeIdOfT {
 template<typename T>
 struct TypeIdOfT
   : public TypeIdOfT_ByCategory<T,
-    std::is_enum<T>::value           ? kTypeCategoryEnum          :
-    std::is_integral<T>::value       ? kTypeCategoryIntegral      :
-    std::is_floating_point<T>::value ? kTypeCategoryFloatingPoint :
-    std::is_function<T>::value       ? kTypeCategoryFunction      : kTypeCategoryUnknown> {};
+    eastl::is_enum<T>::value           ? kTypeCategoryEnum          :
+    eastl::is_integral<T>::value       ? kTypeCategoryIntegral      :
+    eastl::is_floating_point<T>::value ? kTypeCategoryFloatingPoint :
+    eastl::is_function<T>::value       ? kTypeCategoryFunction      : kTypeCategoryUnknown> {};
 #endif
 
 //! \cond

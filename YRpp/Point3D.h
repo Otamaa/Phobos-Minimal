@@ -53,7 +53,7 @@ public:
 	}
 
 	OPTIONALINLINE double LengthXY() const {
-		return std::sqrt(this->powXY());
+		return sqrt(this->powXY());
 	}
 
 	OPTIONALINLINE double DistanceFromXY(const Point3D& that) const{
@@ -73,7 +73,7 @@ public:
 	}
 
 	OPTIONALINLINE double Length() const {
-		return std::sqrt(this->pow());
+		return sqrt(this->pow());
 	}
 
 	OPTIONALINLINE double DistanceFrom(const Point3D& that) const{

@@ -507,7 +507,7 @@ public:
 #else
 # define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                                \
     DebugUtils::unused(FORMAT);                                                      \
-    DebugUtils::unused(std::forward<Args>(args)...);                                 \
+    DebugUtils::unused(eastl::forward<Args>(args)...);                                 \
     _newReg(&OUT, PARAM)
 #endif
 
@@ -521,7 +521,7 @@ public:
     template<typename... Args>                                                       \
     ASMJIT_INLINE_NODEBUG REG FUNC(TypeId typeId, const char* fmt, Args&&... args) { \
       REG reg(Globals::NoInit);                                                      \
-      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...);             \
+      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, eastl::forward<Args>(args)...);             \
       return reg;                                                                    \
     }
 
@@ -535,7 +535,7 @@ public:
     template<typename... Args>                                                       \
     ASMJIT_INLINE_NODEBUG REG FUNC(const char* fmt, Args&&... args) {                \
       REG reg(Globals::NoInit);                                                      \
-      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...);            \
+      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, eastl::forward<Args>(args)...);            \
       return reg;                                                                    \
     }
 
@@ -549,7 +549,7 @@ public:
   template<typename RegT, typename... Args>
   ASMJIT_INLINE_NODEBUG RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
     RegT reg(Globals::NoInit);
-    ASMJIT_NEW_REG_FMT(reg, ref, fmt, std::forward<Args>(args)...);
+    ASMJIT_NEW_REG_FMT(reg, ref, fmt, eastl::forward<Args>(args)...);
     return reg;
   }
 

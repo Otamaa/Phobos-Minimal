@@ -1474,7 +1474,7 @@ namespace asmjit {
 //!   printf("Logger content: %s\n", logger.data());
 //!
 //!   // It can be moved into your own string like this:
-//!   String content = std::move(logger.content());
+//!   String content = eastl::move(logger.content());
 //!   printf("The same content: %s\n", content.data());
 //!
 //!   return 0;
@@ -1541,7 +1541,7 @@ namespace asmjit {
 //!   FormatFlags formatFlags = FormatFlags::kNone;
 //!
 //!   // The formatter expects operands in an array.
-//!   Operand_ operands[] { std::forward<Args>(args)... };
+//!   Operand_ operands[] { eastl::forward<Args>(args)... };
 //!
 //!   StringTmp<128> sb;
 //!   Formatter::formatInstruction(
@@ -1820,7 +1820,7 @@ namespace asmjit {
 //!
 //! ### Using Zone Allocated Containers
 //!
-//! The most common data structure exposed by AsmJit is \ref ZoneVector. It's very similar to `std::vector`, but the
+//! The most common data structure exposed by AsmJit is \ref ZoneVector. It's very similar to `eastl::vector`, but the
 //! implementation doesn't use exceptions and uses the mentioned \ref ZoneAllocator for performance reasons. You don't
 //! have to worry about allocations as you should not need to add items to AsmJit's data structures directly as there
 //! should be API for all required operations.

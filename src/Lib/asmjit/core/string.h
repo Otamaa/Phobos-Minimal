@@ -200,7 +200,7 @@ public:
 
   //! Swaps the content of this string with `other`.
   ASMJIT_INLINE_NODEBUG void swap(String& other) noexcept {
-    std::swap(_raw, other._raw);
+    eastl::swap(_raw, other._raw);
   }
 
   //! Clears the content of the string.
@@ -254,7 +254,7 @@ public:
   //! Replaces the current of the string by a formatted string `fmt`.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Error assignFormat(const char* fmt, Args&&... args) noexcept {
-    return _opFormat(ModifyOp::kAssign, fmt, std::forward<Args>(args)...);
+    return _opFormat(ModifyOp::kAssign, fmt, eastl::forward<Args>(args)...);
   }
 
   //! Replaces the current of the string by a formatted string `fmt` (va_list version).
@@ -302,7 +302,7 @@ public:
   //! Appends a formatted string `fmt` with `args`.
   template<typename... Args>
   ASMJIT_INLINE_NODEBUG Error appendFormat(const char* fmt, Args&&... args) noexcept {
-    return _opFormat(ModifyOp::kAppend, fmt, std::forward<Args>(args)...);
+    return _opFormat(ModifyOp::kAppend, fmt, eastl::forward<Args>(args)...);
   }
 
   //! Appends a formatted string `fmt` (va_list version).

@@ -102,7 +102,7 @@ public:
     //! \note This is a variadic function template that can be used with multiple features.
     template<typename FeatureId, typename... Args>
     ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId, Args&&... otherFeatureIds) const noexcept {
-      return bool(unsigned(has(featureId)) | unsigned(hasAny(std::forward<Args>(otherFeatureIds)...)));
+      return bool(unsigned(has(featureId)) | unsigned(hasAny(eastl::forward<Args>(otherFeatureIds)...)));
     }
 
     //! Tests whether all features as defined by `other` are present.
@@ -135,7 +135,7 @@ public:
     template<typename FeatureId, typename... Args>
     ASMJIT_INLINE_NODEBUG void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       add(featureId);
-      add(std::forward<Args>(otherFeatureIds)...);
+      add(eastl::forward<Args>(otherFeatureIds)...);
     }
 
     template<typename FeatureId>
@@ -151,7 +151,7 @@ public:
     template<typename FeatureId, typename... Args>
     ASMJIT_INLINE_NODEBUG void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       addIf(condition, featureId);
-      addIf(condition, std::forward<Args>(otherFeatureIds)...);
+      addIf(condition, eastl::forward<Args>(otherFeatureIds)...);
     }
 
     //! Removes the given CPU `featureId` from the list of features.
@@ -168,7 +168,7 @@ public:
     template<typename FeatureId, typename... Args>
     ASMJIT_INLINE_NODEBUG void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       remove(featureId);
-      remove(std::forward<Args>(otherFeatureIds)...);
+      remove(eastl::forward<Args>(otherFeatureIds)...);
     }
 
     //! Tests whether this CPU features data matches `other`.
@@ -1004,7 +1004,7 @@ public:
 
   //! Tests whether any of the features is present.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG bool hasAny(Args&&... args) const noexcept { return _data.hasAny(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG bool hasAny(Args&&... args) const noexcept { return _data.hasAny(eastl::forward<Args>(args)...); }
 
   //! Tests whether all features as defined by `other` are present.
   ASMJIT_INLINE_NODEBUG bool hasAll(const CpuFeatures& other) const noexcept { return _data.hasAll(other._data); }
@@ -1019,15 +1019,15 @@ public:
 
   //! Adds the given CPU `featureId` to the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void add(Args&&... args) noexcept { return _data.add(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void add(Args&&... args) noexcept { return _data.add(eastl::forward<Args>(args)...); }
 
   //! Adds the given CPU `featureId` to the list of features if `condition` is true.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void addIf(bool condition, Args&&... args) noexcept { return _data.addIf(condition, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void addIf(bool condition, Args&&... args) noexcept { return _data.addIf(condition, eastl::forward<Args>(args)...); }
 
   //! Removes the given CPU `featureId` from the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void remove(Args&&... args) noexcept { return _data.remove(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void remove(Args&&... args) noexcept { return _data.remove(eastl::forward<Args>(args)...); }
 
   //! Tests whether this CPU features matches `other`.
   ASMJIT_INLINE_NODEBUG bool equals(const CpuFeatures& other) const noexcept { return _data.equals(other._data); }
@@ -1208,11 +1208,11 @@ public:
 
   //! Adds the given CPU `featureId` to the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void addFeature(Args&&... args) noexcept { return _features.add(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void addFeature(Args&&... args) noexcept { return _features.add(eastl::forward<Args>(args)...); }
 
   //! Removes the given CPU `featureId` from the list of features.
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG void removeFeature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void removeFeature(Args&&... args) noexcept { return _features.remove(eastl::forward<Args>(args)...); }
 
   //! \}
 };

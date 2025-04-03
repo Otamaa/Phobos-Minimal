@@ -73,7 +73,7 @@ Error ZoneVectorBase::_grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t
   uint32_t capacity = _capacity;
   uint32_t after = _size;
 
-  if (ASMJIT_UNLIKELY(std::numeric_limits<uint32_t>::max() - n < after))
+  if (ASMJIT_UNLIKELY(eastl::numeric_limits<uint32_t>::max() - n < after))
     return DebugUtils::errored(kErrorOutOfMemory);
 
   after += n;
@@ -294,7 +294,7 @@ Error ZoneBitVector::_append(ZoneAllocator* allocator, bool value) noexcept {
     idealCapacity += kThreshold;
 
   if (ASMJIT_UNLIKELY(idealCapacity < _capacity)) {
-    if (ASMJIT_UNLIKELY(_size == std::numeric_limits<uint32_t>::max()))
+    if (ASMJIT_UNLIKELY(_size == eastl::numeric_limits<uint32_t>::max()))
       return DebugUtils::errored(kErrorOutOfMemory);
     idealCapacity = newSize;
   }

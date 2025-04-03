@@ -306,7 +306,7 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
 Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   // The size of the section must be valid.
   size_t size = cb->size();
-  if (ASMJIT_UNLIKELY(n > std::numeric_limits<uintptr_t>::max() - size))
+  if (ASMJIT_UNLIKELY(n > eastl::numeric_limits<uintptr_t>::max() - size))
     return DebugUtils::errored(kErrorOutOfMemory);
 
   // We can now check if growing the buffer is really necessary. It's unlikely
@@ -387,8 +387,8 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
   section->_order = order;
   memcpy(section->_name.str, name, nameSize);
 
-  Section** insertPosition = std::lower_bound(_sectionsByOrder.begin(), _sectionsByOrder.end(), section, [](const Section* a, const Section* b) {
-    return std::make_tuple(a->order(), a->id()) < std::make_tuple(b->order(), b->id());
+  Section** insertPosition = eastl::lower_bound(_sectionsByOrder.begin(), _sectionsByOrder.end(), section, [](const Section* a, const Section* b) {
+    return eastl::make_tuple(a->order(), a->id()) < eastl::make_tuple(b->order(), b->id());
   });
 
   _sections.appendUnsafe(section);
@@ -423,7 +423,7 @@ Section* CodeHolder::ensureAddressTableSection() noexcept {
              sizeof(CodeHolder_addrTabName) - 1,
              SectionFlags::kNone,
              _environment.registerSize(),
-             std::numeric_limits<int32_t>::max());
+             eastl::numeric_limits<int32_t>::max());
   return _addressTableSection;
 }
 

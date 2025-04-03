@@ -61,10 +61,10 @@ public:
   ASMJIT_INLINE_NODEBUG RegT _newRegInternal(const Type& type, const char* s, Args&&... args) {
 #ifndef ASMJIT_NO_LOGGING
     RegT reg(Globals::NoInit);
-    _newRegFmt(&reg, type, s, std::forward<Args>(args)...);
+    _newRegFmt(&reg, type, s, eastl::forward<Args>(args)...);
     return reg;
 #else
-    DebugUtils::unused(s, std::forward<Args>(args)...);
+    DebugUtils::unused(s, eastl::forward<Args>(args)...);
     return _newRegInternal<RegT>(type);
 #endif
   }
@@ -72,48 +72,48 @@ public:
 
   template<typename RegT, typename... Args>
   ASMJIT_INLINE_NODEBUG RegT newSimilarReg(const RegT& ref, Args&&... args) {
-    return _newRegInternal<RegT>(ref, std::forward<Args>(args)...);
+    return _newRegInternal<RegT>(ref, eastl::forward<Args>(args)...);
   }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Reg newReg(TypeId typeId, Args&&... args) { return _newRegInternal<Reg>(typeId, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Reg newReg(TypeId typeId, Args&&... args) { return _newRegInternal<Reg>(typeId, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newGp(TypeId typeId, Args&&... args) { return _newRegInternal<Gp>(typeId, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newGp(TypeId typeId, Args&&... args) { return _newRegInternal<Gp>(typeId, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec newVec(TypeId typeId, Args&&... args) { return _newRegInternal<Vec>(typeId, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec newVec(TypeId typeId, Args&&... args) { return _newRegInternal<Vec>(typeId, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newInt32(Args&&... args) { return _newRegInternal<Gp>(TypeId::kInt32, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newInt32(Args&&... args) { return _newRegInternal<Gp>(TypeId::kInt32, eastl::forward<Args>(args)...); }
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newUInt32(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newUInt32(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newInt64(Args&&... args) { return _newRegInternal<Gp>(TypeId::kInt64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newInt64(Args&&... args) { return _newRegInternal<Gp>(TypeId::kInt64, eastl::forward<Args>(args)...); }
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newUInt64(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newUInt64(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt64, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kIntPtr, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kIntPtr, eastl::forward<Args>(args)...); }
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newUIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newUIntPtr(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUIntPtr, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newGpw(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newGpw(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt32, eastl::forward<Args>(args)...); }
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newGpx(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newGpx(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUInt64, eastl::forward<Args>(args)...); }
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Gp newGpz(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUIntPtr, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Gp newGpz(Args&&... args) { return _newRegInternal<Gp>(TypeId::kUIntPtr, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec newVecS(Args&&... args) { return _newRegInternal<Vec>(TypeId::kFloat32, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec newVecS(Args&&... args) { return _newRegInternal<Vec>(TypeId::kFloat32, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec newVecD(Args&&... args) { return _newRegInternal<Vec>(TypeId::kFloat64, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec newVecD(Args&&... args) { return _newRegInternal<Vec>(TypeId::kFloat64, eastl::forward<Args>(args)...); }
 
   template<typename... Args>
-  ASMJIT_INLINE_NODEBUG Vec newVecQ(Args&&... args) { return _newRegInternal<Vec>(TypeId::kUInt8x16, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG Vec newVecQ(Args&&... args) { return _newRegInternal<Vec>(TypeId::kUInt8x16, eastl::forward<Args>(args)...); }
 
   //! \}
 

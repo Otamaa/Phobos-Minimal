@@ -37,7 +37,7 @@ noexcept
                 binomial_coef_recur(n-1,k-1) + binomial_coef_recur(n-1,k) );
 }
 
-template<typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+template<typename T, typename eastl::enable_if<eastl::is_integral<T>::value>::type* = nullptr>
 constexpr
 T
 binomial_coef_check(const T n, const T k)
@@ -46,7 +46,7 @@ noexcept
     return binomial_coef_recur(n,k);
 }
 
-template<typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
+template<typename T, typename eastl::enable_if<!eastl::is_integral<T>::value>::type* = nullptr>
 constexpr
 T
 binomial_coef_check(const T n, const T k)

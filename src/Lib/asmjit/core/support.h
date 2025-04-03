@@ -62,13 +62,13 @@ namespace Internal {
   template<> struct StdInt<8, 0> { typedef int64_t  Type; };
   template<> struct StdInt<8, 1> { typedef uint64_t Type; };
 
-  template<typename T, int Unsigned = std::is_unsigned<T>::value>
+  template<typename T, int Unsigned = eastl::is_unsigned<T>::value>
   struct Int32Or64 : public StdInt<sizeof(T) <= 4 ? size_t(4) : sizeof(T), Unsigned> {};
 }
 //! \endcond
 
 template<typename T>
-static ASMJIT_INLINE_NODEBUG constexpr bool isUnsigned() noexcept { return std::is_unsigned<T>::value; }
+static ASMJIT_INLINE_NODEBUG constexpr bool isUnsigned() noexcept { return eastl::is_unsigned<T>::value; }
 
 //! Casts an integer `x` to either `int32_t` or `int64_t` depending on `T`.
 template<typename T>
@@ -97,7 +97,7 @@ static ASMJIT_INLINE_NODEBUG constexpr typename Internal::StdInt<sizeof(T), isUn
 //! A helper class that can be used to iterate over enum values.
 template<typename T, T from = (T)0, T to = T::kMaxValue>
 struct EnumValues {
-  typedef typename std::underlying_type<T>::type ValueType;
+  typedef typename eastl::underlying_type<T>::type ValueType;
 
   struct Iterator {
     ValueType value;
@@ -148,7 +148,7 @@ static constexpr uint32_t kBitWordSizeInBits = bitSizeOf<BitWord>();
 //! Returns `0 - x` in a safe way (no undefined behavior), works for unsigned numbers as well.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr T neg(const T& x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return T(U(0) - U(x));
 }
 
@@ -158,27 +158,27 @@ static ASMJIT_INLINE_NODEBUG constexpr T allOnes() noexcept { return neg<T>(T(1)
 //! Returns `x << y` (shift left logical) by explicitly casting `x` to an unsigned type and back.
 template<typename X, typename Y>
 static ASMJIT_INLINE_NODEBUG constexpr X shl(const X& x, const Y& y) noexcept {
-  typedef typename std::make_unsigned<X>::type U;
+  typedef typename eastl::make_unsigned<X>::type U;
   return X(U(x) << y);
 }
 
 //! Returns `x >> y` (shift right logical) by explicitly casting `x` to an unsigned type and back.
 template<typename X, typename Y>
 static ASMJIT_INLINE_NODEBUG constexpr X shr(const X& x, const Y& y) noexcept {
-  typedef typename std::make_unsigned<X>::type U;
+  typedef typename eastl::make_unsigned<X>::type U;
   return X(U(x) >> y);
 }
 
 //! Returns `x >> y` (shift right arithmetic) by explicitly casting `x` to a signed type and back.
 template<typename X, typename Y>
 static ASMJIT_INLINE_NODEBUG constexpr X sar(const X& x, const Y& y) noexcept {
-  typedef typename std::make_signed<X>::type S;
+  typedef typename eastl::make_signed<X>::type S;
   return X(S(x) >> y);
 }
 
 template<typename X, typename Y>
 static ASMJIT_INLINE_NODEBUG constexpr X ror(const X& x, const Y& y) noexcept {
-  typedef typename std::make_unsigned<X>::type U;
+  typedef typename eastl::make_unsigned<X>::type U;
   return X((U(x) >> y) | (U(x) << (bitSizeOf<U>() - U(y))));
 }
 
@@ -189,14 +189,14 @@ static ASMJIT_INLINE_NODEBUG constexpr X or_shr(const X& x, const Y& y) noexcept
 //! Returns `x & -x` - extracts lowest set isolated bit (like BLSI instruction).
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr T blsi(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return T(U(x) & neg(U(x)));
 }
 
 //! Tests whether the given value `x` has `n`th bit set.
 template<typename T, typename IndexT>
 static ASMJIT_INLINE_NODEBUG constexpr bool bitTest(T x, IndexT n) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return (U(x) & (U(1) << asStdInt(n))) != 0;
 }
 
@@ -204,7 +204,7 @@ static ASMJIT_INLINE_NODEBUG constexpr bool bitTest(T x, IndexT n) noexcept {
 // the least significant bit.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isLsbMask(const T& value) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return value && ((U(value) + 1u) & U(value)) == 0;
 }
 
@@ -215,14 +215,14 @@ static ASMJIT_INLINE_NODEBUG constexpr bool isLsbMask(const T& value) noexcept {
 // start at a least significant bit.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isConsecutiveMask(const T& value) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return value && isLsbMask((U(value) - 1u) | U(value));
 }
 
 //! Generates a trailing bit-mask that has `n` least significant (trailing) bits set.
 template<typename T, typename CountT>
 static ASMJIT_INLINE_NODEBUG constexpr T lsbMask(const CountT& n) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return (sizeof(U) < sizeof(uintptr_t))
     // Prevent undefined behavior by using a larger type than T.
     ? T(U((uintptr_t(1) << n) - uintptr_t(1)))
@@ -233,7 +233,7 @@ static ASMJIT_INLINE_NODEBUG constexpr T lsbMask(const CountT& n) noexcept {
 //! Generates a leading bit-mask that has `n` most significant (leading) bits set.
 template<typename T, typename CountT>
 static ASMJIT_INLINE_NODEBUG constexpr T msbMask(const CountT& n) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return (sizeof(U) < sizeof(uintptr_t))
     // Prevent undefined behavior by using a larger type than T.
     ? T(allOnes<uintptr_t>() >> (bitSizeOf<uintptr_t>() - n))
@@ -252,7 +252,7 @@ static ASMJIT_INLINE_NODEBUG constexpr uint32_t bitMask(const Index& x, Args... 
 //! Converts a boolean value `b` to zero or full mask (all bits set).
 template<typename DstT, typename SrcT>
 static ASMJIT_INLINE_NODEBUG constexpr DstT bitMaskFromBool(SrcT b) noexcept {
-  typedef typename std::make_unsigned<DstT>::type U;
+  typedef typename eastl::make_unsigned<DstT>::type U;
   return DstT(U(0) - U(b));
 }
 
@@ -276,7 +276,7 @@ namespace Internal {
 // Fills all trailing bits right from the first most significant bit set.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr T fillTrailingBits(const T& x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return T(Internal::fillTrailingBitsImpl(U(x)));
 }
 
@@ -497,20 +497,20 @@ static ASMJIT_INLINE_NODEBUG uint32_t constPopcnt(T x) noexcept { return Interna
 // =================
 
 // NOTE: These are constexpr `min()` and `max()` implementations that are not
-// exactly the same as `std::min()` and `std::max()`. The return value is not
+// exactly the same as `eastl::min()` and `eastl::max()`. The return value is not
 // a reference to `a` or `b` but it's a new value instead.
 
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr T min(const T& a, const T& b) noexcept { return b < a ? b : a; }
 
 template<typename T, typename... Args>
-static ASMJIT_INLINE_NODEBUG constexpr T min(const T& a, const T& b, Args&&... args) noexcept { return min(min(a, b), std::forward<Args>(args)...); }
+static ASMJIT_INLINE_NODEBUG constexpr T min(const T& a, const T& b, Args&&... args) noexcept { return min(min(a, b), eastl::forward<Args>(args)...); }
 
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr T max(const T& a, const T& b) noexcept { return a < b ? b : a; }
 
 template<typename T, typename... Args>
-static ASMJIT_INLINE_NODEBUG constexpr T max(const T& a, const T& b, Args&&... args) noexcept { return max(max(a, b), std::forward<Args>(args)...); }
+static ASMJIT_INLINE_NODEBUG constexpr T max(const T& a, const T& b, Args&&... args) noexcept { return max(max(a, b), eastl::forward<Args>(args)...); }
 
 // Support - Immediate Helpers
 // ===========================
@@ -519,7 +519,7 @@ namespace Internal {
   template<typename T, bool IsFloat>
   struct ImmConv {
     static ASMJIT_INLINE_NODEBUG int64_t fromT(const T& x) noexcept { return int64_t(x); }
-    static ASMJIT_INLINE_NODEBUG T toT(int64_t x) noexcept { return T(uint64_t(x) & Support::allOnes<typename std::make_unsigned<T>::type>()); }
+    static ASMJIT_INLINE_NODEBUG T toT(int64_t x) noexcept { return T(uint64_t(x) & Support::allOnes<typename eastl::make_unsigned<T>::type>()); }
   };
 
   template<typename T>
@@ -530,10 +530,10 @@ namespace Internal {
 }
 
 template<typename T>
-static ASMJIT_INLINE_NODEBUG int64_t immediateFromT(const T& x) noexcept { return Internal::ImmConv<T, std::is_floating_point<T>::value>::fromT(x); }
+static ASMJIT_INLINE_NODEBUG int64_t immediateFromT(const T& x) noexcept { return Internal::ImmConv<T, eastl::is_floating_point<T>::value>::fromT(x); }
 
 template<typename T>
-static ASMJIT_INLINE_NODEBUG T immediateToT(int64_t x) noexcept { return Internal::ImmConv<T, std::is_floating_point<T>::value>::toT(x); }
+static ASMJIT_INLINE_NODEBUG T immediateToT(int64_t x) noexcept { return Internal::ImmConv<T, eastl::is_floating_point<T>::value>::toT(x); }
 
 // Support - Overflow Arithmetic
 // =============================
@@ -542,7 +542,7 @@ static ASMJIT_INLINE_NODEBUG T immediateToT(int64_t x) noexcept { return Interna
 namespace Internal {
   template<typename T>
   inline T addOverflowFallback(T x, T y, FastUInt8* of) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
 
     U result = U(U(x) + U(y));
     *of = FastUInt8(*of | FastUInt8(isUnsigned<T>() ? result < U(x) : T((U(x) ^ ~U(y)) & (U(x) ^ result)) < 0));
@@ -551,7 +551,7 @@ namespace Internal {
 
   template<typename T>
   inline T subOverflowFallback(T x, T y, FastUInt8* of) noexcept {
-    typedef typename std::make_unsigned<T>::type U;
+    typedef typename eastl::make_unsigned<T>::type U;
 
     U result = U(x) - U(y);
     *of = FastUInt8(*of | FastUInt8(isUnsigned<T>() ? result > U(x) : T((U(x) ^ U(y)) & (U(x) ^ result)) < 0));
@@ -561,12 +561,12 @@ namespace Internal {
   template<typename T>
   inline T mulOverflowFallback(T x, T y, FastUInt8* of) noexcept {
     typedef typename Internal::StdInt<sizeof(T) * 2, isUnsigned<T>()>::Type I;
-    typedef typename std::make_unsigned<I>::type U;
+    typedef typename eastl::make_unsigned<I>::type U;
 
     U mask = allOnes<U>();
-    if (std::is_signed<T>::value) {
+    if (eastl::is_signed<T>::value) {
       U prod = U(I(x)) * U(I(y));
-      *of = FastUInt8(*of | FastUInt8(I(prod) < I(std::numeric_limits<T>::lowest()) || I(prod) > I(std::numeric_limits<T>::max())));
+      *of = FastUInt8(*of | FastUInt8(I(prod) < I(eastl::numeric_limits<T>::lowest()) || I(prod) > I(eastl::numeric_limits<T>::max())));
       return T(I(prod & mask));
     }
     else {
@@ -661,7 +661,7 @@ static ASMJIT_INLINE_NODEBUG constexpr bool isAligned(X base, Y alignment) noexc
 //! Tests whether the `x` is a power of two (only one bit is set).
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isPowerOf2(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
   return x && !(U(x) & (U(x) - U(1)));
 }
 
@@ -718,112 +718,112 @@ static ASMJIT_INLINE_NODEBUG constexpr bool isBetween(const T& x, const T& a, co
 //! Checks whether the given integer `x` can be casted to a 4-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt4(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? isBetween<S>(S(x), -8, 7) : U(x) <= U(7u);
+  return eastl::is_signed<T>::value ? isBetween<S>(S(x), -8, 7) : U(x) <= U(7u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 7-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt7(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? isBetween<S>(S(x), -64, 63) : U(x) <= U(63u);
+  return eastl::is_signed<T>::value ? isBetween<S>(S(x), -64, 63) : U(x) <= U(63u);
 }
 
 //! Checks whether the given integer `x` can be casted to an 8-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt8(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -128, 127) : U(x) <= U(127u);
+  return eastl::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -128, 127) : U(x) <= U(127u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 9-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt9(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -256, 255)
+  return eastl::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -256, 255)
                                   : sizeof(T) <= 1 || U(x) <= U(255u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 10-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt10(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -512, 511)
+  return eastl::is_signed<T>::value ? sizeof(T) <= 1 || isBetween<S>(S(x), -512, 511)
                                   : sizeof(T) <= 1 || U(x) <= U(511u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 16-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt16(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? sizeof(T) <= 2 || isBetween<S>(S(x), -32768, 32767)
+  return eastl::is_signed<T>::value ? sizeof(T) <= 2 || isBetween<S>(S(x), -32768, 32767)
                                   : sizeof(T) <= 1 || U(x) <= U(32767u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 32-bit signed integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isInt32(T x) noexcept {
-  typedef typename std::make_signed<T>::type S;
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_signed<T>::type S;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? sizeof(T) <= 4 || isBetween<S>(S(x), -2147483647 - 1, 2147483647)
+  return eastl::is_signed<T>::value ? sizeof(T) <= 4 || isBetween<S>(S(x), -2147483647 - 1, 2147483647)
                                   : sizeof(T) <= 2 || U(x) <= U(2147483647u);
 }
 
 //! Checks whether the given integer `x` can be casted to a 4-bit unsigned integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isUInt4(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? x >= T(0) && x <= T(15)
+  return eastl::is_signed<T>::value ? x >= T(0) && x <= T(15)
                                   : U(x) <= U(15u);
 }
 
 //! Checks whether the given integer `x` can be casted to an 8-bit unsigned integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isUInt8(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? (sizeof(T) <= 1 || T(x) <= T(255)) && x >= T(0)
+  return eastl::is_signed<T>::value ? (sizeof(T) <= 1 || T(x) <= T(255)) && x >= T(0)
                                   : (sizeof(T) <= 1 || U(x) <= U(255u));
 }
 
 //! Checks whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isUInt12(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? (sizeof(T) <= 1 || T(x) <= T(4095)) && x >= T(0)
+  return eastl::is_signed<T>::value ? (sizeof(T) <= 1 || T(x) <= T(4095)) && x >= T(0)
                                   : (sizeof(T) <= 1 || U(x) <= U(4095u));
 }
 
 //! Checks whether the given integer `x` can be casted to a 16-bit unsigned integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isUInt16(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? (sizeof(T) <= 2 || T(x) <= T(65535)) && x >= T(0)
+  return eastl::is_signed<T>::value ? (sizeof(T) <= 2 || T(x) <= T(65535)) && x >= T(0)
                                   : (sizeof(T) <= 2 || U(x) <= U(65535u));
 }
 
 //! Checks whether the given integer `x` can be casted to a 32-bit unsigned integer.
 template<typename T>
 static ASMJIT_INLINE_NODEBUG constexpr bool isUInt32(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
+  typedef typename eastl::make_unsigned<T>::type U;
 
-  return std::is_signed<T>::value ? (sizeof(T) <= 4 || T(x) <= T(4294967295u)) && x >= T(0)
+  return eastl::is_signed<T>::value ? (sizeof(T) <= 4 || T(x) <= T(4294967295u)) && x >= T(0)
                                   : (sizeof(T) <= 4 || U(x) <= U(4294967295u));
 }
 
@@ -1211,7 +1211,7 @@ struct Max    { template<typename T> static ASMJIT_INLINE_NODEBUG T op(T x, T y)
 //!
 //! while (it.hasNext()) {
 //!   uint32_t bitIndex = it.next();
-//!   std::printf("Bit at %u is set\n", unsigned(bitIndex));
+//!   eastl::printf("Bit at %u is set\n", unsigned(bitIndex));
 //! }
 //! ```
 template<typename T>
@@ -1484,7 +1484,7 @@ template<typename T, typename CompareT = Compare<SortOrder::kAscending>>
 static inline void iSort(T* base, size_t size, const CompareT& cmp = CompareT()) noexcept {
   for (T* pm = base + 1; pm < base + size; pm++)
     for (T* pl = pm; pl > base && cmp(pl[-1], pl[0]) > 0; pl--)
-      std::swap(pl[-1], pl[0]);
+      eastl::swap(pl[-1], pl[0]);
 }
 
 //! \cond
@@ -1508,11 +1508,11 @@ namespace Internal {
           // We work from second to last - first will be pivot element.
           T* pi = base + 1;
           T* pj = end - 1;
-          std::swap(base[(size_t)(end - base) / 2], base[0]);
+          eastl::swap(base[(size_t)(end - base) / 2], base[0]);
 
-          if (cmp(*pi  , *pj  ) > 0) std::swap(*pi  , *pj  );
-          if (cmp(*base, *pj  ) > 0) std::swap(*base, *pj  );
-          if (cmp(*pi  , *base) > 0) std::swap(*pi  , *base);
+          if (cmp(*pi  , *pj  ) > 0) eastl::swap(*pi  , *pj  );
+          if (cmp(*base, *pj  ) > 0) eastl::swap(*base, *pj  );
+          if (cmp(*pi  , *base) > 0) eastl::swap(*pi  , *base);
 
           // Now we have the median for pivot element, entering main loop.
           for (;;) {
@@ -1520,11 +1520,11 @@ namespace Internal {
             while (pj > base && cmp(*--pj, *base) > 0) continue; // Move `j` left  until `*j <= pivot`.
 
             if (pi > pj) break;
-            std::swap(*pi, *pj);
+            eastl::swap(*pi, *pj);
           }
 
           // Move pivot into correct place.
-          std::swap(*base, *pj);
+          eastl::swap(*base, *pj);
 
           // Larger subfile base / end to stack, sort smaller.
           if (pj - base > end - pi) {
@@ -1639,7 +1639,7 @@ public:
 // Support - Array
 // ===============
 
-//! Array type, similar to std::array<T, N>, with the possibility to use enums in operator[].
+//! Array type, similar to eastl::array<T, N>, with the possibility to use enums in operator[].
 //!
 //! \note The array has C semantics - the elements in the array are not initialized.
 template<typename T, size_t N>
@@ -1729,7 +1729,7 @@ struct Array {
 
   inline void swap(Array& other) noexcept {
     for (size_t i = 0; i < N; i++)
-      std::swap(_data[i], other._data[i]);
+      eastl::swap(_data[i], other._data[i]);
   }
 
   inline void fill(const T& value) noexcept {

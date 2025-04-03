@@ -104,7 +104,7 @@ public:
 	}
 
 	OPTIONALINLINE double Length() const {
-		return std::sqrt(this->pow());
+		return sqrt(this->pow());
 	}
 
 	OPTIONALINLINE double DistanceFrom(const Vector2D<T>& that) const{
@@ -263,7 +263,7 @@ public:
 	}
 
 	OPTIONALINLINE double LengthXY() const {
-		return std::sqrt(this->powXY());
+		return sqrt(this->powXY());
 	}
 
 	OPTIONALINLINE double DistanceFromXY(const Vector3D<T>& that) const{
@@ -283,7 +283,7 @@ public:
 	}
 
 	OPTIONALINLINE double Length() const {
-		return std::sqrt(this->pow());
+		return sqrt(this->pow());
 	}
 
 	OPTIONALINLINE double DistanceFrom(const Vector3D<T>& that) const{
@@ -417,7 +417,7 @@ public:
 	}
 
 	OPTIONALINLINE double Length() const {
-		return std::sqrt(this->pow());
+		return sqrt(this->pow());
 	}
 
 	OPTIONALINLINE double DistanceFrom(const Vector4D<T>& that) const{

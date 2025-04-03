@@ -50,7 +50,7 @@ public:
 	}
 
 	OPTIONALINLINE double Length() const {
-		return std::sqrt(this->pow());
+		return sqrt(this->pow());
 	}
 
 	OPTIONALINLINE double DistanceFrom(const Point2DBYTE& that) const{

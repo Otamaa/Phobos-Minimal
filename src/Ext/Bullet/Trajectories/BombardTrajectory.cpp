@@ -255,7 +255,7 @@ CoordStruct BombardTrajectory::CalculateMiddleCoords()
 	}
 	else
 	{
-		const double vectorModule = std::sqrt(vectorX * vectorX + vectorY * vectorY);
+		const double vectorModule = sqrt(vectorX * vectorX + vectorY * vectorY);
 		scatterX = vectorY / vectorModule * length;
 		scatterY = -(vectorX / vectorModule * length);
 
@@ -337,20 +337,20 @@ CoordStruct BombardTrajectory::CalculateBulletLeadTime()
 
 				if (pType->FreeFallOnTarget)
 				{
-					travelTime += static_cast<int>(std::sqrt(2 * (this->Height - theTargetCoords.Z) / BulletTypeExtData::GetAdjustedGravity(pBullet->Type)));
+					travelTime += static_cast<int>(sqrt(2 * (this->Height - theTargetCoords.Z) / BulletTypeExtData::GetAdjustedGravity(pBullet->Type)));
 					coords += extraOffsetCoord * (travelTime + 1);
 				}
 				else
 				{
 					const double theDistanceSquared = targetSourceCoord.pow();
 					const double targetSpeedSquared = extraOffsetCoord.pow();
-					const double targetSpeed = std::sqrt(targetSpeedSquared);
+					const double targetSpeed = sqrt(targetSpeedSquared);
 
 					const double crossFactor = lastSourceCoord.CrossProduct(targetSourceCoord).pow();
 					const double verticalDistanceSquared = crossFactor / targetSpeedSquared;
 
 					const double horizonDistanceSquared = theDistanceSquared - verticalDistanceSquared;
-					const double horizonDistance = std::sqrt(horizonDistanceSquared);
+					const double horizonDistance = sqrt(horizonDistanceSquared);
 
 					const double straightSpeed = pType->FreeFallOnTarget ? pType->Trajectory_Speed : pType->FallSpeed;
 					const double straightSpeedSquared = straightSpeed * straightSpeed;
@@ -368,8 +368,8 @@ CoordStruct BombardTrajectory::CalculateBulletLeadTime()
 						}
 						else
 						{
-							const int travelTimeM = static_cast<int>((minusFactor - std::sqrt(squareFactor)) / baseFactor);
-							const int travelTimeP = static_cast<int>((minusFactor + std::sqrt(squareFactor)) / baseFactor);
+							const int travelTimeM = static_cast<int>((minusFactor - sqrt(squareFactor)) / baseFactor);
+							const int travelTimeP = static_cast<int>((minusFactor + sqrt(squareFactor)) / baseFactor);
 
 							if (travelTimeM > 0 && travelTimeP > 0)
 								travelTime = travelTimeM < travelTimeP ? travelTimeM : travelTimeP;
@@ -415,7 +415,7 @@ void BombardTrajectory::CalculateDisperseBurst()
 		if (Math::abs(rotationAxisLengthSquared) > 1e-10)
 		{
 			double extraRotate = 0.0;
-			rotationAxis *= 1 / std::sqrt(rotationAxisLengthSquared);
+			rotationAxis *= 1 / sqrt(rotationAxisLengthSquared);
 
 			if (pType->MirrorCoord)
 			{

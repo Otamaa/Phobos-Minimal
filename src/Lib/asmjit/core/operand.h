@@ -1686,15 +1686,15 @@ public:
   //! \cond INTERNAL
   template<typename T>
   struct IsConstexprConstructibleAsImmType
-    : public std::integral_constant<bool, std::is_enum<T>::value ||
-                                          std::is_pointer<T>::value ||
-                                          std::is_integral<T>::value ||
-                                          std::is_function<T>::value> {};
+    : public eastl::integral_constant<bool, eastl::is_enum<T>::value ||
+                                          eastl::is_pointer<T>::value ||
+                                          eastl::is_integral<T>::value ||
+                                          eastl::is_function<T>::value> {};
 
   template<typename T>
   struct IsConvertibleToImmType
-    : public std::integral_constant<bool, IsConstexprConstructibleAsImmType<T>::value ||
-                                          std::is_floating_point<T>::value> {};
+    : public eastl::integral_constant<bool, IsConstexprConstructibleAsImmType<T>::value ||
+                                          eastl::is_floating_point<T>::value> {};
   //! \endcond
 
   //! \name Construction & Destruction
@@ -1720,7 +1720,7 @@ public:
   //! to `predicate`.
   //!
   //! \note Predicate is currently only used by ARM architectures.
-  template<typename T, typename = typename std::enable_if<IsConstexprConstructibleAsImmType<typename std::decay<T>::type>::value>::type>
+  template<typename T, typename = typename eastl::enable_if<IsConstexprConstructibleAsImmType<typename eastl::decay<T>::type>::value>::type>
   ASMJIT_INLINE_NODEBUG constexpr Imm(const T& val, const uint32_t predicate = 0) noexcept
     : Operand(Globals::Init,
               Signature::fromOpType(OperandType::kImm) | Signature::fromPredicate(predicate),
@@ -1822,7 +1822,7 @@ public:
   //! Sets immediate value to `val`, the value is casted to a signed 64-bit integer.
   template<typename T>
   ASMJIT_INLINE_NODEBUG void setValue(const T& val) noexcept {
-    _setValueInternal(Support::immediateFromT(val), std::is_floating_point<T>::value ? ImmType::kDouble : ImmType::kInt);
+    _setValueInternal(Support::immediateFromT(val), eastl::is_floating_point<T>::value ? ImmType::kDouble : ImmType::kInt);
   }
 
   ASMJIT_INLINE_NODEBUG void _setValueInternal(int64_t val, ImmType type) noexcept {
@@ -1879,7 +1879,7 @@ struct ForwardOpImpl<T, true> {
 //! Either forwards operand T or returns a new operand that wraps it if T is a type convertible to operand.
 //! At the moment this is only used to convert integers, floats, and enumarations to \ref Imm operands.
 template<typename T>
-struct ForwardOp : public ForwardOpImpl<T, Imm::IsConvertibleToImmType<typename std::decay<T>::type>::value> {};
+struct ForwardOp : public ForwardOpImpl<T, Imm::IsConvertibleToImmType<typename eastl::decay<T>::type>::value> {};
 
 } // {Support}
 //! \endcond

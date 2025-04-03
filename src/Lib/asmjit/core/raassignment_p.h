@@ -305,8 +305,8 @@ public:
   //! \{
 
   ASMJIT_FORCE_INLINE void swap(RAAssignment& other) noexcept {
-    std::swap(_workToPhysMap, other._workToPhysMap);
-    std::swap(_physToWorkMap, other._physToWorkMap);
+    eastl::swap(_workToPhysMap, other._workToPhysMap);
+    eastl::swap(_physToWorkMap, other._physToWorkMap);
     _physToWorkIds.swap(other._physToWorkIds);
   }
 

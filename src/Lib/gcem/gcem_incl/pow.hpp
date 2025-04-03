@@ -38,7 +38,7 @@ noexcept
 }
 
 template<typename T1, typename T2, typename TC = common_t<T1,T2>, 
-         typename std::enable_if<!std::is_integral<T2>::value>::type* = nullptr>
+         typename eastl::enable_if<!eastl::is_integral<T2>::value>::type* = nullptr>
 constexpr
 TC
 pow_check(const T1 base, const T2 exp_term)
@@ -51,7 +51,7 @@ noexcept
 }
 
 template<typename T1, typename T2, typename TC = common_t<T1,T2>, 
-         typename std::enable_if<std::is_integral<T2>::value>::type* = nullptr>
+         typename eastl::enable_if<eastl::is_integral<T2>::value>::type* = nullptr>
 constexpr
 TC
 pow_check(const T1 base, const T2 exp_term)

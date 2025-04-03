@@ -417,7 +417,7 @@ struct FuncSignature {
       _argCount(uint8_t(sizeof...(args))),
       _vaIndex(uint8_t(vaIndex)),
       _ret(ret),
-      _args{std::forward<Args>(args)...} {}
+      _args{eastl::forward<Args>(args)...} {}
 
   //! Builds a function signature based on `RetValueAndArgs`. The first template argument is a function return type,
   //! and function arguments follow.
@@ -1354,7 +1354,7 @@ public:
   template<typename... Args>
   inline void addDirtyRegs(const BaseReg& reg, Args&&... args) noexcept {
     addDirtyRegs(reg);
-    addDirtyRegs(std::forward<Args>(args)...);
+    addDirtyRegs(eastl::forward<Args>(args)...);
   }
 
   //! A helper function to set all registers from all register groups dirty.
@@ -1563,7 +1563,7 @@ public:
   template<typename... Args>
   inline void _assignAllInternal(size_t argIndex, const BaseReg& reg, Args&&... args) noexcept {
     assignReg(argIndex, reg);
-    _assignAllInternal(argIndex + 1, std::forward<Args>(args)...);
+    _assignAllInternal(argIndex + 1, eastl::forward<Args>(args)...);
   }
 
   //! Assigns all argument at once.
@@ -1571,7 +1571,7 @@ public:
   //! \note This function can be only used if the arguments don't contain value packs (multiple values per argument).
   template<typename... Args>
   inline void assignAll(Args&&... args) noexcept {
-    _assignAllInternal(0, std::forward<Args>(args)...);
+    _assignAllInternal(0, eastl::forward<Args>(args)...);
   }
 
   //! \}

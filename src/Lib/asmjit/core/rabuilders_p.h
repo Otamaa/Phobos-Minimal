@@ -552,7 +552,7 @@ public:
   template<typename... Args>
   inline void log(const char* fmt, Args&&... args) noexcept {
     if (_logger)
-      _logger->logf(fmt, std::forward<Args>(args)...);
+      _logger->logf(fmt, eastl::forward<Args>(args)...);
   }
 
   inline void logBlock(RABlock* block, uint32_t indentation = 0) noexcept {
@@ -588,7 +588,7 @@ public:
   template<typename... Args>
   inline void log(const char* fmt, Args&&... args) noexcept {
     DebugUtils::unused(fmt);
-    DebugUtils::unused(std::forward<Args>(args)...);
+    DebugUtils::unused(eastl::forward<Args>(args)...);
   }
 
   inline void logBlock(RABlock* block, uint32_t indentation = 0) noexcept {

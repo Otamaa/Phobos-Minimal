@@ -61,9 +61,9 @@ protected:
   ASMJIT_API Error _growingReserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
 
   inline void _swap(ZoneVectorBase& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
+    eastl::swap(_data, other._data);
+    eastl::swap(_size, other._size);
+    eastl::swap(_capacity, other._capacity);
   }
 
   //! \}
@@ -110,7 +110,7 @@ public:
 
 //! Template used to store and manage array of Zone allocated data.
 //!
-//! This template has these advantages over other std::vector<>:
+//! This template has these advantages over other eastl::vector<>:
 //! - Always non-copyable (designed to be non-copyable, we want it).
 //! - Optimized for working only with POD types.
 //! - Uses ZoneAllocator, thus small vectors are almost for free.
@@ -539,9 +539,9 @@ public:
   //! \{
 
   ASMJIT_INLINE_NODEBUG void swap(ZoneBitVector& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
+    eastl::swap(_data, other._data);
+    eastl::swap(_size, other._size);
+    eastl::swap(_capacity, other._capacity);
   }
 
   ASMJIT_INLINE_NODEBUG void clear() noexcept {

@@ -155,7 +155,7 @@ return_t<T>
 log_integral_check(const T x)
 noexcept
 {
-    return( std::is_integral<T>::value ? \
+    return( eastl::is_integral<T>::value ? \
                 x == T(0) ? \
                     - GCLIM<return_t<T>>::infinity() :
                 x > T(1) ? \

@@ -347,7 +347,7 @@ void ParabolaTrajectory::PrepareForOpenFire()
 		if (Math::abs(rotationAxisLengthSquared) > 1e-10)
 		{
 			double extraRotate = 0.0;
-			rotationAxis *= 1 / std::sqrt(rotationAxisLengthSquared);
+			rotationAxis *= 1 / sqrt(rotationAxisLengthSquared);
 
 			if (pType->MirrorCoord)
 			{
@@ -401,7 +401,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		case ParabolaFireMode::HeightAndAngle:
 		{
 			// Assuming equal height
-			leadTime = static_cast<int>(std::sqrt((pType->ThrowHeight << 1) / gravity)
+			leadTime = static_cast<int>(sqrt((pType->ThrowHeight << 1) / gravity)
 					* 1.25);
 			break;
 		}
@@ -421,7 +421,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 			if (Math::abs(mult) < 1e-10)
 				break;
 
-			const double velocity = std::sqrt((Unsorted::LeptonsPerCell << 2) * gravity / mult);
+			const double velocity = sqrt((Unsorted::LeptonsPerCell << 2) * gravity / mult);
 
 			// Assuming equal height
 			leadTime = static_cast<int>((Unsorted::LeptonsPerCell << 2) / (velocity * factor));
@@ -473,7 +473,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		const int maxHeight = destinationCoords.Z > 0 ? pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 6: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
 
 		// Step 7: Record whether it requires additional checks during the flight
 		this->CheckIfNeedExtraCheck();
@@ -540,7 +540,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		const int maxHeight = destinationCoords.Z > 0 ? pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 8: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
 
 		// Step 9: Record whether it requires additional checks during the flight
 		this->CheckIfNeedExtraCheck();
@@ -564,7 +564,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		const int maxHeight = destinationCoords.Z > 0 ? pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 5: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
 
 		// Step 6: Read the appropriate fire angle
 		double radian = pType->LaunchAngle * Math::Pi / 180.0;
@@ -685,11 +685,11 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		const int maxHeight = distanceCoords.Z > 0 ? pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 2: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight));
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight));
 
 		// Step 3: Calculate the total time it takes for the projectile to meet the target using the heights of the ascending and descending phases
-		const double meetTime = std::sqrt(2 * (maxHeight - sourceHeight) / gravity)
-						+ std::sqrt(2 * (maxHeight - targetHeight) / gravity);
+		const double meetTime = sqrt(2 * (maxHeight - sourceHeight) / gravity)
+						+ sqrt(2 * (maxHeight - targetHeight) / gravity);
 
 		// Step 4: Calculate the horizontal component of the projectile velocity
 		pBullet->Velocity.X = distanceCoords.X / meetTime;
@@ -722,7 +722,7 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		const int maxHeight = distanceCoords.Z > 0 ? pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 2: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight));
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight));
 
 		// Step 3: Read the appropriate horizontal speed
 		const double horizontalSpeed = this->GetTrajectorySpeed();
@@ -743,7 +743,7 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 				pType->ThrowHeight + targetHeight : pType->ThrowHeight + sourceHeight;
 
 		// Step 2: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight));
+		pBullet->Velocity.Z = sqrt(2 * gravity * (maxHeight - sourceHeight));
 
 		// Step 3: Read the appropriate fire angle
 		double radian = pType->LaunchAngle * Math::Pi / 180.0;
@@ -826,7 +826,7 @@ double ParabolaTrajectory::SearchVelocity(double horizontalDistance, int distanc
 {
 	// Estimate initial velocity
 	const double mult = Math::sin(2 * radian);
-	double velocity = Math::abs(mult) > 1e-10 ? std::sqrt(horizontalDistance * gravity / mult) : 0.0;
+	double velocity = Math::abs(mult) > 1e-10 ? sqrt(horizontalDistance * gravity / mult) : 0.0;
 	velocity += distanceCoordsZ / gravity;
 	velocity = velocity > 10.0 ? velocity : 10.0;
 
@@ -873,7 +873,7 @@ double ParabolaTrajectory::CheckVelocityEquation(double horizontalDistance, int 
 	const double maxHeight = 0.5 * verticalVelocity * upTime;
 
 	// Calculate the time of the descent phase
-	const double downTime = std::sqrt(2 * (maxHeight - distanceCoordsZ) / gravity);
+	const double downTime = sqrt(2 * (maxHeight - distanceCoordsZ) / gravity);
 
 	// Calculate the total time required for horizontal movement
 	const double wholeTime = horizontalDistance / horizontalVelocity;
@@ -898,8 +898,8 @@ double ParabolaTrajectory::SolveFixedSpeedMeetTime(CoordStruct* pSourceCrd, Coor
 
 	if (delta >= 1e-10)
 	{
-		const double timeP = (-factor + std::sqrt(delta)) / divisor;
-		const double timeM = (-factor - std::sqrt(delta)) / divisor;
+		const double timeP = (-factor + sqrt(delta)) / divisor;
+		const double timeM = (-factor - sqrt(delta)) / divisor;
 
 		if (timeM > 1e-10)
 			return timeM;
@@ -948,7 +948,7 @@ double ParabolaTrajectory::CheckFixedHeightEquation(CoordStruct* pSourceCrd, Coo
 		pType->ThrowHeight + meetHeight : pType->ThrowHeight + pSourceCrd->Z;
 
 	// Calculate the difference between these two times
-	return std::sqrt((maxHeight - pSourceCrd->Z) * 2 / gravity) + std::sqrt((maxHeight - meetHeight) * 2 / gravity) - meetTime;
+	return sqrt((maxHeight - pSourceCrd->Z) * 2 / gravity) + sqrt((maxHeight - meetHeight) * 2 / gravity) - meetTime;
 }
 
 double ParabolaTrajectory::SearchFixedAngleMeetTime(CoordStruct* pSourceCrd, CoordStruct* pTargetCrd, CoordStruct* pOffsetCrd, double radian, double gravity)
@@ -998,7 +998,7 @@ double ParabolaTrajectory::CheckFixedAngleEquation(CoordStruct* pSourceCrd, Coor
 	const double maxHeight = 0.5 * verticalVelocity * upTime;
 
 	// Calculate the time of the descent phase
-	const double downTime = std::sqrt(2 * (maxHeight - distanceCoords.Z) / gravity);
+	const double downTime = sqrt(2 * (maxHeight - distanceCoords.Z) / gravity);
 
 	// Calculate the difference between the actual flight time of the projectile obtained and the initially estimated time
 	return upTime + downTime - meetTime;

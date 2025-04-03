@@ -35,17 +35,14 @@
 // Global Dependencies
 // ===================
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h> // We really want std types as globals, not under 'std' namespace.
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <EASTL/atomic.h>
+#include <EASTL/string.h>
 
-#include <initializer_list>
-#include <limits>
-#include <type_traits>
-#include <utility>
+#include <EASTL/tuple.h>
+#include <EASTL/initializer_list.h>
+#include <EASTL/numeric_limits.h>
+#include <EASTL/type_traits.h>
+#include <EASTL/utility.h>
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
   #include <pthread.h>
@@ -607,35 +604,35 @@ namespace asmjit {
 #else
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)                                         \
     static ASMJIT_INLINE_NODEBUG constexpr T operator~(T a) noexcept {        \
-      return T(~(std::underlying_type<T>::type)(a));                          \
+      return T(~(eastl::underlying_type<T>::type)(a));                          \
     }                                                                         \
                                                                               \
     static ASMJIT_INLINE_NODEBUG constexpr T operator|(T a, T b) noexcept {   \
-      return T((std::underlying_type<T>::type)(a) |                           \
-              (std::underlying_type<T>::type)(b));                            \
+      return T((eastl::underlying_type<T>::type)(a) |                           \
+              (eastl::underlying_type<T>::type)(b));                            \
     }                                                                         \
     static ASMJIT_INLINE_NODEBUG constexpr T operator&(T a, T b) noexcept {   \
-      return T((std::underlying_type<T>::type)(a) &                           \
-              (std::underlying_type<T>::type)(b));                            \
+      return T((eastl::underlying_type<T>::type)(a) &                           \
+              (eastl::underlying_type<T>::type)(b));                            \
     }                                                                         \
     static ASMJIT_INLINE_NODEBUG constexpr T operator^(T a, T b) noexcept {   \
-      return T((std::underlying_type<T>::type)(a) ^                           \
-              (std::underlying_type<T>::type)(b));                            \
+      return T((eastl::underlying_type<T>::type)(a) ^                           \
+              (eastl::underlying_type<T>::type)(b));                            \
     }                                                                         \
                                                                               \
     static ASMJIT_INLINE_NODEBUG T& operator|=(T& a, T b) noexcept {          \
-      a = T((std::underlying_type<T>::type)(a) |                              \
-            (std::underlying_type<T>::type)(b));                              \
+      a = T((eastl::underlying_type<T>::type)(a) |                              \
+            (eastl::underlying_type<T>::type)(b));                              \
       return a;                                                               \
     }                                                                         \
     static ASMJIT_INLINE_NODEBUG T& operator&=(T& a, T b) noexcept {          \
-      a = T((std::underlying_type<T>::type)(a) &                              \
-            (std::underlying_type<T>::type)(b));                              \
+      a = T((eastl::underlying_type<T>::type)(a) &                              \
+            (eastl::underlying_type<T>::type)(b));                              \
       return a;                                                               \
     }                                                                         \
     static ASMJIT_INLINE_NODEBUG T& operator^=(T& a, T b) noexcept {          \
-      a = T((std::underlying_type<T>::type)(a) ^                              \
-            (std::underlying_type<T>::type)(b));                              \
+      a = T((eastl::underlying_type<T>::type)(a) ^                              \
+            (eastl::underlying_type<T>::type)(b));                              \
       return a;                                                               \
     }
 #endif
@@ -648,16 +645,16 @@ namespace asmjit {
 #else
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)                                                \
     static ASMJIT_INLINE_NODEBUG bool operator<(T a, T b) noexcept {                   \
-      return (std::underlying_type<T>::type)(a) < (std::underlying_type<T>::type)(b);  \
+      return (eastl::underlying_type<T>::type)(a) < (eastl::underlying_type<T>::type)(b);  \
     }                                                                                  \
     static ASMJIT_INLINE_NODEBUG bool operator<=(T a, T b) noexcept {                  \
-      return (std::underlying_type<T>::type)(a) <= (std::underlying_type<T>::type)(b); \
+      return (eastl::underlying_type<T>::type)(a) <= (eastl::underlying_type<T>::type)(b); \
     }                                                                                  \
     static ASMJIT_INLINE_NODEBUG bool operator>(T a, T b) noexcept {                   \
-      return (std::underlying_type<T>::type)(a) > (std::underlying_type<T>::type)(b);  \
+      return (eastl::underlying_type<T>::type)(a) > (eastl::underlying_type<T>::type)(b);  \
     }                                                                                  \
     static ASMJIT_INLINE_NODEBUG bool operator>=(T a, T b) noexcept {                  \
-      return (std::underlying_type<T>::type)(a) >= (std::underlying_type<T>::type)(b); \
+      return (eastl::underlying_type<T>::type)(a) >= (eastl::underlying_type<T>::type)(b); \
     }
 #endif
 

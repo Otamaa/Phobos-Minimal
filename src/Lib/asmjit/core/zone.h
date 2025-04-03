@@ -188,16 +188,16 @@ public:
     ASMJIT_ASSERT(!this->hasStaticBlock());
     ASMJIT_ASSERT(!other.hasStaticBlock());
 
-    std::swap(_ptr, other._ptr);
-    std::swap(_end, other._end);
-    std::swap(_block, other._block);
+    eastl::swap(_ptr, other._ptr);
+    eastl::swap(_end, other._end);
+    eastl::swap(_block, other._block);
 
-    std::swap(_blockAlignmentShift, other._blockAlignmentShift);
-    std::swap(_minimumBlockSizeShift, other._minimumBlockSizeShift);
-    std::swap(_maximumBlockSizeShift, other._maximumBlockSizeShift);
-    std::swap(_hasStaticBlock, other._hasStaticBlock);
-    std::swap(_reserved, other._reserved);
-    std::swap(_blockCount, other._blockCount);
+    eastl::swap(_blockAlignmentShift, other._blockAlignmentShift);
+    eastl::swap(_minimumBlockSizeShift, other._minimumBlockSizeShift);
+    eastl::swap(_maximumBlockSizeShift, other._maximumBlockSizeShift);
+    eastl::swap(_hasStaticBlock, other._hasStaticBlock);
+    eastl::swap(_reserved, other._reserved);
+    eastl::swap(_blockCount, other._blockCount);
   }
 
   //! Aligns the current pointer to `alignment`.
@@ -318,7 +318,7 @@ public:
     return static_cast<T*>(allocZeroed(size, alignment));
   }
 
-  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
+  //! Like `new(eastl::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T>
   inline T* newT() noexcept {
     void* p = alloc(sizeof(T), alignof(T));
@@ -327,13 +327,13 @@ public:
     return new(Support::PlacementNew{p}) T();
   }
 
-  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
+  //! Like `new(eastl::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T, typename... Args>
   inline T* newT(Args&&... args) noexcept {
     void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(Support::PlacementNew{p}) T(std::forward<Args>(args)...);
+    return new(Support::PlacementNew{p}) T(eastl::forward<Args>(args)...);
   }
 
   //! \cond INTERNAL
@@ -577,7 +577,7 @@ public:
     return static_cast<T*>(allocZeroed(size));
   }
 
-  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
+  //! Like `new(eastl::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T>
   inline T* newT() noexcept {
     void* p = allocT<T>();
@@ -585,13 +585,13 @@ public:
       return nullptr;
     return new(Support::PlacementNew{p}) T();
   }
-  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
+  //! Like `new(eastl::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T, typename... Args>
   inline T* newT(Args&&... args) noexcept {
     void* p = allocT<T>();
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(Support::PlacementNew{p}) T(std::forward<Args>(args)...);
+    return new(Support::PlacementNew{p}) T(eastl::forward<Args>(args)...);
   }
 
   //! Releases the memory previously allocated by `alloc()`. The `size` argument has to be the same as used to call

@@ -33,7 +33,7 @@ noexcept
     return( b == T(0) ? a : gcd_recur(b, a % b) );
 }
 
-template<typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+template<typename T, typename eastl::enable_if<eastl::is_integral<T>::value>::type* = nullptr>
 constexpr
 T
 gcd_int_check(const T a, const T b)
@@ -42,7 +42,7 @@ noexcept
     return gcd_recur(a,b);
 }
 
-template<typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
+template<typename T, typename eastl::enable_if<!eastl::is_integral<T>::value>::type* = nullptr>
 constexpr
 T
 gcd_int_check(const T a, const T b)

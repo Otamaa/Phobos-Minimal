@@ -24,19 +24,20 @@ freely, subject to the following restrictions:
 */
 
 #include "lodepng_util.h"
-#include <stdlib.h> /* allocations */
+//#include <stdlib.h> /* allocations */
+#include <EASTL/allocator.h>
 
 namespace lodepng {
 
-LodePNGInfo getPNGHeaderInfo(const std::vector<unsigned char>& png) {
+LodePNGInfo getPNGHeaderInfo(const eastl::vector<unsigned char>& png) {
   unsigned w, h;
   lodepng::State state;
   lodepng_inspect(&w, &h, &state, png.empty() ? NULL : &png[0], png.size());
   return state.info_png;
 }
 
-unsigned getChunkInfo(std::vector<std::string>& names, std::vector<size_t>& sizes,
-                      const std::vector<unsigned char>& png) {
+unsigned getChunkInfo(eastl::vector<eastl::string>& names, eastl::vector<size_t>& sizes,
+                      const eastl::vector<unsigned char>& png) {
   // Listing chunks is based on the original file, not the decoded png info.
   const unsigned char *chunk, *end;
   end = &png.back() + 1;
@@ -45,7 +46,7 @@ unsigned getChunkInfo(std::vector<std::string>& names, std::vector<size_t>& size
   while(chunk < end && end - chunk >= 8) {
     char type[5];
     lodepng_chunk_type(type, chunk);
-    if(std::string(type).size() != 4) return 1;
+    if(eastl::string(type).size() != 4) return 1;
 
     unsigned length = lodepng_chunk_length(chunk);
     names.push_back(type);
@@ -55,9 +56,9 @@ unsigned getChunkInfo(std::vector<std::string>& names, std::vector<size_t>& size
   return 0;
 }
 
-unsigned getChunks(std::vector<std::string> names[3],
-                   std::vector<std::vector<unsigned char> > chunks[3],
-                   const std::vector<unsigned char>& png) {
+unsigned getChunks(eastl::vector<eastl::string> names[3],
+                   eastl::vector<eastl::vector<unsigned char> > chunks[3],
+                   const eastl::vector<unsigned char>& png) {
   const unsigned char *chunk, *next, *end;
   end = &png.back() + 1;
   chunk = &png.front() + 8;
@@ -67,7 +68,7 @@ unsigned getChunks(std::vector<std::string> names[3],
   while(chunk < end && end - chunk >= 8) {
     char type[5];
     lodepng_chunk_type(type, chunk);
-    std::string name(type);
+    eastl::string name(type);
     if(name.size() != 4) return 1;
 
     next = lodepng_chunk_next_const(chunk, end);
@@ -83,7 +84,7 @@ unsigned getChunks(std::vector<std::string> names[3],
     } else {
       if(next >= end) return 1; // invalid chunk, content too far
       names[location].push_back(name);
-      chunks[location].push_back(std::vector<unsigned char>(chunk, next));
+      chunks[location].push_back(eastl::vector<unsigned char>(chunk, next));
     }
 
     chunk = next;
@@ -92,8 +93,8 @@ unsigned getChunks(std::vector<std::string> names[3],
 }
 
 
-unsigned insertChunks(std::vector<unsigned char>& png,
-                      const std::vector<std::vector<unsigned char> > chunks[3]) {
+unsigned insertChunks(eastl::vector<unsigned char>& png,
+                      const eastl::vector<eastl::vector<unsigned char> > chunks[3]) {
   const unsigned char *chunk, *begin, *end;
   end = &png.back() + 1;
   begin = chunk = &png.front() + 8;
@@ -105,7 +106,7 @@ unsigned insertChunks(std::vector<unsigned char>& png,
   while(chunk < end && end - chunk >= 8) {
     char type[5];
     lodepng_chunk_type(type, chunk);
-    std::string name(type);
+    eastl::string name(type);
     if(name.size() != 4) return 1;
 
     if(name == "PLTE") {
@@ -120,7 +121,7 @@ unsigned insertChunks(std::vector<unsigned char>& png,
     chunk = lodepng_chunk_next_const(chunk, end);
   }
 
-  std::vector<unsigned char> result;
+  eastl::vector<unsigned char> result;
   result.insert(result.end(), png.begin(), png.begin() + l0);
   for(size_t i = 0; i < chunks[0].size(); i++) result.insert(result.end(), chunks[0][i].begin(), chunks[0][i].end());
   result.insert(result.end(), png.begin() + l0, png.begin() + l1);
@@ -133,8 +134,8 @@ unsigned insertChunks(std::vector<unsigned char>& png,
   return 0;
 }
 
-unsigned getFilterTypesInterlaced(std::vector<std::vector<unsigned char> >& filterTypes,
-                                  const std::vector<unsigned char>& png) {
+unsigned getFilterTypesInterlaced(eastl::vector<eastl::vector<unsigned char> >& filterTypes,
+                                  const eastl::vector<unsigned char>& png) {
   //Get color type and interlace type
   lodepng::State state;
   unsigned w, h;
@@ -148,14 +149,14 @@ unsigned getFilterTypesInterlaced(std::vector<std::vector<unsigned char> >& filt
   end = &png.back() + 1;
   begin = chunk = &png.front() + 8;
 
-  std::vector<unsigned char> zdata;
+  eastl::vector<unsigned char> zdata;
 
   while(chunk < end && end - chunk >= 8) {
     char type[5];
     lodepng_chunk_type(type, chunk);
-    if(std::string(type).size() != 4) return 1; //Probably not a PNG file
+    if(eastl::string(type).size() != 4) return 1; //Probably not a PNG file
 
-    if(std::string(type) == "IDAT") {
+    if(eastl::string(type) == "IDAT") {
       const unsigned char* cdata = lodepng_chunk_data_const(chunk);
       unsigned clength = lodepng_chunk_length(chunk);
       if(chunk + clength + 12 > end || clength > png.size() || chunk + clength + 12 < begin) {
@@ -168,7 +169,7 @@ unsigned getFilterTypesInterlaced(std::vector<std::vector<unsigned char> >& filt
   }
 
   //Decompress all IDAT data
-  std::vector<unsigned char> data;
+  eastl::vector<unsigned char> data;
   error = lodepng::decompress(data, zdata.empty() ? NULL : &zdata[0], zdata.size());
 
   if(error) return 1;
@@ -205,8 +206,8 @@ unsigned getFilterTypesInterlaced(std::vector<std::vector<unsigned char> >& filt
 }
 
 
-unsigned getFilterTypes(std::vector<unsigned char>& filterTypes, const std::vector<unsigned char>& png) {
-  std::vector<std::vector<unsigned char> > passes;
+unsigned getFilterTypes(eastl::vector<unsigned char>& filterTypes, const eastl::vector<unsigned char>& png) {
+  eastl::vector<eastl::vector<unsigned char> > passes;
   unsigned error = getFilterTypesInterlaced(passes, png);
   if(error) return error;
 

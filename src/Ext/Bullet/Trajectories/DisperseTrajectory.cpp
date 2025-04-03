@@ -292,7 +292,7 @@ inline VelocityClass DisperseTrajectory::RotateAboutTheAxis(VelocityClass theSpe
 	if (Math::abs(theAxisLengthSquared) < 1e-10)
 		return theSpeed;
 
-	theAxis *= 1 / std::sqrt(theAxisLengthSquared);
+	theAxis *= 1 / sqrt(theAxisLengthSquared);
 	const auto cosRotate = Math::cos(theRadian);
 
 	return ((theSpeed * cosRotate) + (theAxis * ((1 - cosRotate) * (theSpeed * theAxis))) + (theAxis.CrossProduct(theSpeed) * Math::sin(theRadian)));
@@ -534,7 +534,7 @@ bool DisperseTrajectory::CurveVelocityChange()
 			auto horizonMult = Math::abs(pBullet->Velocity.Z / 64.0) / horizonDistance;
 			pBullet->Velocity.X += horizonMult * horizonVelocity.X;
 			pBullet->Velocity.Y += horizonMult * horizonVelocity.Y;
-			const auto horizonLength = std::sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);
+			const auto horizonLength = sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);
 
 			if (horizonLength > 64.0)
 			{
@@ -704,8 +704,8 @@ bool DisperseTrajectory::ChangeBulletVelocity(CoordStruct targetLocation, double
 	const auto bulletSquared = moveToVelocity.Length();
 	const auto futureSquared = futureVelocity.Length();
 
-	const auto targetSide = std::sqrt(targetSquared);
-	const auto bulletSide = std::sqrt(bulletSquared);
+	const auto targetSide = sqrt(targetSquared);
+	const auto bulletSide = sqrt(bulletSquared);
 
 	const auto reviseMult = (targetSquared + bulletSquared - futureSquared);
 	const auto reviseBase = 2 * targetSide * bulletSide;

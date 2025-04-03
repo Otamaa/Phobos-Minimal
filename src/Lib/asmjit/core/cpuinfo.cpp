@@ -2070,12 +2070,12 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 // =======================
 
 const CpuInfo& CpuInfo::host() noexcept {
-  static std::atomic<uint32_t> cpuInfoInitialized;
+  static eastl::atomic<uint32_t> cpuInfoInitialized;
   static CpuInfo cpuInfoGlobal(Globals::NoInit);
 
   // This should never cause a problem as the resulting information should always
   // be the same. In the worst case it would just be overwritten non-atomically.
-  if (!cpuInfoInitialized.load(std::memory_order_relaxed)) {
+  if (!cpuInfoInitialized.load(eastl::memory_order_relaxed)) {
     CpuInfo cpuInfoLocal;
 
     cpuInfoLocal._arch = Arch::kHost;
@@ -2089,7 +2089,7 @@ const CpuInfo& CpuInfo::host() noexcept {
 
     cpuInfoLocal._hwThreadCount = detectHWThreadCount();
     cpuInfoGlobal = cpuInfoLocal;
-    cpuInfoInitialized.store(1, std::memory_order_seq_cst);
+    cpuInfoInitialized.store(1, eastl::memory_order_seq_cst);
   }
 
   return cpuInfoGlobal;

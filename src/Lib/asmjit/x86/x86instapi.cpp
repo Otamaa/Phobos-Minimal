@@ -1683,7 +1683,7 @@ UNIT(x86_inst_api_text) {
 #ifndef ASMJIT_NO_INTROSPECTION
 template<typename... Args>
 static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Args&&... args) {
-  Operand_ opArray[] = { std::forward<Args>(args)... };
+  Operand_ opArray[] = { eastl::forward<Args>(args)... };
   return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
 }
 
@@ -1766,7 +1766,7 @@ UNIT(x86_inst_api_cpu_features) {
 #ifndef ASMJIT_NO_INTROSPECTION
 template<typename... Args>
 static Error queryRWInfoInline(InstRWInfo* out, Arch arch, BaseInst inst, Args&&... args) {
-  Operand_ opArray[] = { std::forward<Args>(args)... };
+  Operand_ opArray[] = { eastl::forward<Args>(args)... };
   return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
 }
 

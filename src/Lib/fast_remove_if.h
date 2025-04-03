@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include  <utility>
+#include <utility>
 
 template<typename T, typename Tmem, typename Func>
 COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T , Tmem>& v, Func&& act)

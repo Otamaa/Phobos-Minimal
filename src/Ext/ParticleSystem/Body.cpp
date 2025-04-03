@@ -396,8 +396,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -480,7 +480,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 			mtx_mult += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
+			const auto sparkVelLength = sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
 
 			if (sparkVelLength != 0.0)
 			{
@@ -751,8 +751,8 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -831,7 +831,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			};
 			partilce->Spark10C += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
+			const auto sparkVelLength = sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
 
 			Vector3D<float> last = partilce->Spark10C;
 			if (sparkVelLength != 0.0)

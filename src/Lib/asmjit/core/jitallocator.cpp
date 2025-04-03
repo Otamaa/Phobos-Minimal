@@ -89,7 +89,7 @@ public:
     _bitWord = bitWord;
   }
 
-  ASMJIT_FORCE_INLINE bool nextRange(size_t* rangeStart, size_t* rangeEnd, size_t rangeHint = std::numeric_limits<size_t>::max()) noexcept {
+  ASMJIT_FORCE_INLINE bool nextRange(size_t* rangeStart, size_t* rangeEnd, size_t rangeHint = eastl::numeric_limits<size_t>::max()) noexcept {
     // Skip all empty BitWords.
     while (_bitWord == 0) {
       _idx += kBitWordSize;
@@ -806,14 +806,14 @@ Error JitAllocator::alloc(Span& out, size_t size) noexcept {
     return DebugUtils::errored(kErrorNotInitialized);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
-  constexpr uint32_t kNoIndex = std::numeric_limits<uint32_t>::max();
+  constexpr uint32_t kNoIndex = eastl::numeric_limits<uint32_t>::max();
 
   // Align to the minimum granularity by default.
   size = Support::alignUp<size_t>(size, impl->granularity);
   if (ASMJIT_UNLIKELY(size == 0))
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  if (ASMJIT_UNLIKELY(size > std::numeric_limits<uint32_t>::max() / 2))
+  if (ASMJIT_UNLIKELY(size > eastl::numeric_limits<uint32_t>::max() / 2))
     return DebugUtils::errored(kErrorTooLarge);
 
   LockGuard guard(impl->lock);
@@ -1096,7 +1096,7 @@ Error JitAllocator::write(Span& span, WriteFunc writeFunc, void* userData, VirtM
   // Check whether span.truncate() has been called.
   if (span.size() != size) {
     // OK, this is a bit awkward... However, shrink wants the original span and newSize, so we have to swap.
-    std::swap(span._size, size);
+    eastl::swap(span._size, size);
     return JitAllocatorImpl_shrink(static_cast<JitAllocatorPrivateImpl*>(_impl), span, size, true);
   }
 
@@ -1349,7 +1349,7 @@ public:
 
 static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, Random& prng) noexcept {
   for (size_t i = 0; i < count; ++i)
-    std::swap(ptrArray[i], ptrArray[size_t(prng.nextUInt32() % count)]);
+    eastl::swap(ptrArray[i], ptrArray[size_t(prng.nextUInt32() % count)]);
 }
 
 static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {

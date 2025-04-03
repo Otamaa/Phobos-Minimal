@@ -247,7 +247,7 @@ public:
   //! is destroyed it destroys all nodes it created so no manual memory management is required.
   template<typename T, typename... Args>
   inline Error _newNodeT(T** ASMJIT_NONNULL(out), Args&&... args) {
-    *out = _allocator.newT<T>(this, std::forward<Args>(args)...);
+    *out = _allocator.newT<T>(this, eastl::forward<Args>(args)...);
     if (ASMJIT_UNLIKELY(!*out))
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
     return kErrorOk;
@@ -388,13 +388,13 @@ public:
 
   //! \overload
   template<typename T, typename... Args>
-  inline T* newPassT(Args&&... args) noexcept { return _codeZone.newT<T>(std::forward<Args>(args)...); }
+  inline T* newPassT(Args&&... args) noexcept { return _codeZone.newT<T>(eastl::forward<Args>(args)...); }
 
   template<typename T>
   inline Error addPassT() { return addPass(newPassT<T>()); }
 
   template<typename T, typename... Args>
-  inline Error addPassT(Args&&... args) { return addPass(newPassT<T, Args...>(std::forward<Args>(args)...)); }
+  inline Error addPassT(Args&&... args) { return addPass(newPassT<T, Args...>(eastl::forward<Args>(args)...)); }
 
   //! Returns `Pass` by name.
   //!

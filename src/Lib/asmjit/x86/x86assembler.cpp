@@ -993,7 +993,7 @@ CaseX86M_GPB_MulDiv:
 
         // MOD/RM: Alternative encoding selected via instruction options.
         opcode += 2u;
-        std::swap(opReg, rbReg);
+        eastl::swap(opReg, rbReg);
         goto EmitX86R;
       }
 
@@ -1554,7 +1554,7 @@ CaseX86M_GPB_MulDiv:
                 goto EmitX86R;
 
               opcode += 2u;
-              std::swap(opReg, rbReg);
+              eastl::swap(opReg, rbReg);
               goto EmitX86R;
             }
             else {
@@ -1565,7 +1565,7 @@ CaseX86M_GPB_MulDiv:
                 goto EmitX86R;
 
               opcode += 2u;
-              std::swap(opReg, rbReg);
+              eastl::swap(opReg, rbReg);
               goto EmitX86R;
             }
           }
@@ -2315,7 +2315,7 @@ CaseX86PushPop_Gp:
 
         // ModMR encoding:
         opcode = x86AltOpcodeOf(instInfo);
-        std::swap(opReg, rbReg);
+        eastl::swap(opReg, rbReg);
         goto EmitX86R;
       }
 
@@ -2536,7 +2536,7 @@ CaseFpuArith_Mem:
           goto EmitX86R;
 
         opcode = x86AltOpcodeOf(instInfo);
-        std::swap(opReg, rbReg);
+        eastl::swap(opReg, rbReg);
         goto EmitX86R;
       }
 
@@ -2636,7 +2636,7 @@ CaseExtMovd:
             goto EmitX86R;
 
           opcode += 0x10u;
-          std::swap(opReg, rbReg);
+          eastl::swap(opReg, rbReg);
           goto EmitX86R;
         }
 
@@ -2648,7 +2648,7 @@ CaseExtMovd:
             goto EmitX86R;
 
           opcode = Opcode::k660F00 | 0xD6;
-          std::swap(opReg, rbReg);
+          eastl::swap(opReg, rbReg);
           goto EmitX86R;
         }
       }
@@ -2942,7 +2942,7 @@ CaseExtRm:
           goto EmitVexEvexR;
 
         opcode.add(1);
-        std::swap(opReg, rbReg);
+        eastl::swap(opReg, rbReg);
         goto EmitVexEvexR;
       }
 
