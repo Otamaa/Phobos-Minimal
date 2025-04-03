@@ -6,7 +6,6 @@
 #include "../core/api-build_p.h"
 #include "../core/codeholder.h"
 #include "../core/codewriter_p.h"
-
 #include "../arm/armutils.h"
 
 ASMJIT_BEGIN_NAMESPACE
