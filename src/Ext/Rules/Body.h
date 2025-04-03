@@ -477,6 +477,30 @@ public:
 	AnimTypeClass* XGRYSML1_ {};
 
 	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
+	struct ProneSpeedData {
+		Nullable<double> Custom {};
+
+		COMPILETIMEEVAL double getSpeed(bool crawls) const
+		{
+			if (Custom.isset())
+				return Custom.Get();
+			return crawls ? 0.67 : 1.5;
+		}
+
+		void Load(PhobosStreamReader& Stm)
+		{
+			Stm.
+				Process(Custom);
+		}
+
+		void Save(PhobosStreamWriter& Stm)
+		{
+			Stm.
+				Process(Custom);
+		}
+
+	} InfantrySpeedData {};
+	
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

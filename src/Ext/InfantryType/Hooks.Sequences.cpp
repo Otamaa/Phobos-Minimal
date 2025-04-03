@@ -297,16 +297,6 @@ ASMJIT_PATCH(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 	return 0x51DA4A;
 }
 
-//ASMJIT_PATCH_AGAIN(0x51DA27, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
-//ASMJIT_PATCH(0x51D9FA, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x7)
-//{
-//	GET(FakeInfantryClass*, pThis, ESI);
-//	GET(int, _doType, EDI);
-//
-//	R->AL(pThis->_GetTypeExtData()->SquenceRates[_doType]);
-//	return R->Origin() + 0x7;
-//}
-
 #pragma endregion
 
 #pragma region S/L

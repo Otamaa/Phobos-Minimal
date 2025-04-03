@@ -1086,6 +1086,19 @@ ASMJIT_PATCH(0x7364DC, UnitClass_Update_SinkSpeed, 0x7)
 	return 0;
 }
 
+#include <Ext/InfantryType/Body.h>
+
+ASMJIT_PATCH(0x521D94, InfantryClass_CurrentSpeed_ProneSpeed, 0x6)
+{
+	GET(FakeInfantryClass*, pThis, ESI);
+	GET(int, currentSpeed, ECX);
+
+	auto multiplier = pThis->_GetTypeExtData()->ProneSpeed.Get(RulesExtData::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
+	currentSpeed *= multiplier;
+	R->ECX(currentSpeed);
+	return 0x521DC5;
+}
+
 //ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ESI);
