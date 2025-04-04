@@ -1671,6 +1671,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		
 		this->AllowAlliesRepair.Read(exINI, pSection, "AllowAlliesRepair");
 		this->AllowRepairFlyMZone.Read(exINI, pSection, "AllowRepairFlyMZone");
+
+		this->Overpower_KeepOnline.Read(exINI, pSection, "Overpower.KeepOnline");
+		this->Overpower_ChargeWeapon.Read(exINI, pSection, "Overpower.ChargeWeapon");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2108,6 +2111,9 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AllowAlliesRepair)
 		.Process(this->AllowRepairFlyMZone)
+
+		.Process(this->Overpower_KeepOnline)
+		.Process(this->Overpower_ChargeWeapon)
 		;
 }
 

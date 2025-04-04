@@ -11,6 +11,48 @@
 
 #include <GameOptionsClass.h>
 
+ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
+{
+	enum { SkipGameCode = 0x44019D };
+
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if (!pThis->Type->Overpowerable)
+		return SkipGameCode;
+
+	int overPower = 0;
+
+	for (int idx = 0; idx < pThis->Overpowerers.Count; idx++)
+	{
+		const auto pTechno = pThis->Overpowerers[idx];
+
+		if (pTechno->Target == pThis)
+			overPower += TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->ElectricAssaultPower;
+		else
+			pThis->Overpowerers.RemoveAt(idx);
+	}
+
+	const int charge = pThis->_GetTypeExtData()->Overpower_ChargeWeapon;
+
+	pThis->IsOverpowered = overPower >= pThis->_GetTypeExtData()->Overpower_KeepOnline + charge
+		|| (pThis->Owner->GetPowerPercentage() == 1.0 && pThis->HasPower && overPower >= charge);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
+{
+	enum { LowPower = 0x4556BE, Continue1 = 0x4555F0, Continue2 = 0x455643 };
+
+	GET(FakeBuildingClass*, pThis, ESI);
+	int overPower = 0;
+
+	for (const auto& pCharger : pThis->Overpowerers) {
+		overPower += TechnoTypeExtContainer::Instance.Find(pCharger->GetTechnoType())->ElectricAssaultPower;
+	}
+
+	return overPower < pThis->_GetTypeExtData()->Overpower_KeepOnline ? LowPower : (R->Origin() == 0x4555E4 ? Continue1 : Continue2);
+}ASMJIT_PATCH_AGAIN(0x45563B, BuildingClass_IsPowerOnline_Overpower, 0x6)
+
 ASMJIT_PATCH(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 {
 	enum { IsBlockage = 0x483CD4 };

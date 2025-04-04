@@ -346,6 +346,9 @@ public:
 	Valueable<bool> AllowAlliesRepair { false };
 	Valueable<bool> AllowRepairFlyMZone { false };
 
+	Valueable<int> Overpower_KeepOnline { 2 };
+	Valueable<int> Overpower_ChargeWeapon { 1 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

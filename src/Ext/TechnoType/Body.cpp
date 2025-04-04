@@ -1470,6 +1470,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AmphibiousEnter.Read(exINI, pSection, "AmphibiousEnter");
 		this->AmphibiousUnload.Read(exINI, pSection, "AmphibiousUnload");
 
+		this->ElectricAssaultPower.Read(exINI, pSection, "ElectricAssaultPower");
 		// Spawner range
 		this->ResetSpawnerRange();
 
@@ -2654,6 +2655,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		
 		.Process(this->AmphibiousEnter)
 		.Process(this->AmphibiousUnload)
+
+		.Process(this->ElectricAssaultPower)
 		;
 }
 
