@@ -9,18 +9,18 @@ struct CompileTimeMatrix3D
 {
 	COMPILETIMEEVAL CompileTimeMatrix3D() noexcept
 	{
-		this->row[0][0] = 1.0;
-		this->row[0][1] = 0.0;
-		this->row[0][2] = 0.0;
-		this->row[0][3] = 0.0;
-		this->row[1][0] = 0.0;
-		this->row[1][1] = 1.0;
-		this->row[1][2] = 0.0;
-		this->row[1][3] = 0.0;
-		this->row[2][0] = 0.0;
-		this->row[2][1] = 0.0;
-		this->row[2][2] = 1.0;
-		this->row[2][3] = 0.0;
+		this->Row[0][0] = 1.0;
+		this->Row[0][1] = 0.0;
+		this->Row[0][2] = 0.0;
+		this->Row[0][3] = 0.0;
+		this->Row[1][0] = 0.0;
+		this->Row[1][1] = 1.0;
+		this->Row[1][2] = 0.0;
+		this->Row[1][3] = 0.0;
+		this->Row[2][0] = 0.0;
+		this->Row[2][1] = 0.0;
+		this->Row[2][2] = 1.0;
+		this->Row[2][3] = 0.0;
 	}
 
 	COMPILETIMEEVAL CompileTimeMatrix3D(
@@ -28,9 +28,9 @@ struct CompileTimeMatrix3D
 	float m10, float m11, float m12, float m13,
 	float m20, float m21, float m22, float m23) noexcept
 	{
-		row[0][0] = m00; row[0][1] = m01; row[0][2] = m02; row[0][3] = m03;
-		row[1][0] = m10; row[1][1] = m11; row[1][2] = m12; row[1][3] = m13;
-		row[2][0] = m20; row[2][1] = m21; row[2][2] = m22; row[2][3] = m23;
+		Row[0][0] = m00; Row[0][1] = m01; Row[0][2] = m02; Row[0][3] = m03;
+		Row[1][0] = m10; Row[1][1] = m11; Row[1][2] = m12; Row[1][3] = m13;
+		Row[2][0] = m20; Row[2][1] = m21; Row[2][2] = m22; Row[2][3] = m23;
 	}
 
 	COMPILETIMEEVAL CompileTimeMatrix3D(
@@ -39,18 +39,13 @@ struct CompileTimeMatrix3D
 	Vector3D<float> const& z,
 	Vector3D<float> const& pos) noexcept
 	{
-		row[0][0] = x.X; row[0][1] = y.X; row[0][2] = z.X; row[0][3] = pos.X;
-		row[1][0] = x.Y; row[1][1] = y.Y; row[1][2] = z.Y; row[1][3] = pos.Y;
-		row[2][0] = x.Z; row[2][1] = y.Z; row[2][2] = z.Z; row[2][3] = pos.Z;
+		Row[0][0] = x.X; Row[0][1] = y.X; Row[0][2] = z.X; Row[0][3] = pos.X;
+		Row[1][0] = x.Y; Row[1][1] = y.Y; Row[1][2] = z.Y; Row[1][3] = pos.Y;
+		Row[2][0] = x.Z; Row[2][1] = y.Z; Row[2][2] = z.Z; Row[2][3] = pos.Z;
 	}
 
 public:
-	union
-	{
-		Vector4D<float> Row[3];
-		float row[3][4];
-		float Data[12];
-	};
+	Vector4D<float> Row[3];
 };
 
 class Matrix3D
@@ -63,18 +58,18 @@ public:
 
 	COMPILETIMEEVAL Matrix3D() noexcept
 	{
-		this->row[0][0] = 0.0;
-		this->row[0][1] = 0.0;
-		this->row[0][2] = 0.0;
-		this->row[0][3] = 0.0;
-		this->row[1][0] = 0.0;
-		this->row[1][1] = 0.0;
-		this->row[1][2] = 0.0;
-		this->row[1][3] = 0.0;
-		this->row[2][0] = 0.0;
-		this->row[2][1] = 0.0;
-		this->row[2][2] = 0.0;
-		this->row[2][3] = 0.0;
+		this->Row[0][0] = 0.0;
+		this->Row[0][1] = 0.0;
+		this->Row[0][2] = 0.0;
+		this->Row[0][3] = 0.0;
+		this->Row[1][0] = 0.0;
+		this->Row[1][1] = 0.0;
+		this->Row[1][2] = 0.0;
+		this->Row[1][3] = 0.0;
+		this->Row[2][0] = 0.0;
+		this->Row[2][1] = 0.0;
+		this->Row[2][2] = 0.0;
+		this->Row[2][3] = 0.0;
 	}
 
 	// plain floats ctor
@@ -83,9 +78,9 @@ public:
 		float m10, float m11, float m12, float m13,
 		float m20, float m21, float m22, float m23) noexcept
 	{
-		row[0][0] = m00; row[0][1] = m01; row[0][2] = m02; row[0][3] = m03;
-		row[1][0] = m10; row[1][1] = m11; row[1][2] = m12; row[1][3] = m13;
-		row[2][0] = m20; row[2][1] = m21; row[2][2] = m22; row[2][3] = m23;
+		Row[0][0] = m00; Row[0][1] = m01; Row[0][2] = m02; Row[0][3] = m03;
+		Row[1][0] = m10; Row[1][1] = m11; Row[1][2] = m12; Row[1][3] = m13;
+		Row[2][0] = m20; Row[2][1] = m21; Row[2][2] = m22; Row[2][3] = m23;
 	}
 
 	// column vector ctor
@@ -95,9 +90,9 @@ public:
 		Vector3D<float> const &z,
 		Vector3D<float> const &pos) noexcept
 	{
-		row[0][0] = x.X; row[0][1] = y.X; row[0][2] = z.X; row[0][3] = pos.X;
-		row[1][0] = x.Y; row[1][1] = y.Y; row[1][2] = z.Y; row[1][3] = pos.Y;
-		row[2][0] = x.Z; row[2][1] = y.Z; row[2][2] = z.Z; row[2][3] = pos.Z;
+		Row[0][0] = x.X; Row[0][1] = y.X; Row[0][2] = z.X; Row[0][3] = pos.X;
+		Row[1][0] = x.Y; Row[1][1] = y.Y; Row[1][2] = z.Y; Row[1][3] = pos.Y;
+		Row[2][0] = x.Z; Row[2][1] = y.Z; Row[2][2] = z.Z; Row[2][3] = pos.Z;
 		//JMP_THIS(0x5AE690);
 	}
 
@@ -105,18 +100,18 @@ public:
 	Matrix3D(float rotate_z, float rotate_x) noexcept
 	{
 		//JMP_THIS(0x5AE6F0);
-		this->row[0][1] = 0.0;
-		this->row[0][2] = 0.0;
-		this->row[0][3] = 0.0;
-		this->row[1][0] = 0.0;
-		this->row[1][2] = 0.0;
-		this->row[1][3] = 0.0;
-		this->row[2][0] = 0.0;
-		this->row[2][1] = 0.0;
-		this->row[2][3] = 0.0;
-		this->row[0][0] = 1.0;
-		this->row[1][1] = 1.0;// inlined ctor
-		this->row[2][2] = 1.0;
+		this->Row[0][1] = 0.0;
+		this->Row[0][2] = 0.0;
+		this->Row[0][3] = 0.0;
+		this->Row[1][0] = 0.0;
+		this->Row[1][2] = 0.0;
+		this->Row[1][3] = 0.0;
+		this->Row[2][0] = 0.0;
+		this->Row[2][1] = 0.0;
+		this->Row[2][3] = 0.0;
+		this->Row[0][0] = 1.0;
+		this->Row[1][1] = 1.0;// inlined ctor
+		this->Row[2][2] = 1.0;
 		this->RotateZ(rotate_z);
 		this->RotateX(rotate_x);
 		float theta = -rotate_z;
@@ -130,25 +125,25 @@ public:
 		float c = Math::cos((double)angle);
 		double s = Math::sin((double)angle);
 		double v7 = axis->X * axis->X;
-		this->row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
+		this->Row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
 		double v8 = 1.0 - c;
-		this->row[0][1] = static_cast<float>(axis->X * axis->Y * v8 - s * axis->Z);
+		this->Row[0][1] = static_cast<float>(axis->X * axis->Y * v8 - s * axis->Z);
 		double v9 = axis->Z * axis->X * v8;
 		double v10 = s * axis->Y;
-		this->row[0][3] = 0.0f;
-		this->row[0][2] = static_cast<float>(v9 + v10);
-		this->row[1][0] = static_cast<float>(axis->X * axis->Y * v8 + s * axis->Z);
+		this->Row[0][3] = 0.0f;
+		this->Row[0][2] = static_cast<float>(v9 + v10);
+		this->Row[1][0] = static_cast<float>(axis->X * axis->Y * v8 + s * axis->Z);
 		double v11 = axis->Y * axis->Y;
-		this->row[1][1] = static_cast<float>((1.0 - v11) * c + v11);
+		this->Row[1][1] = static_cast<float>((1.0 - v11) * c + v11);
 		double v12 = axis->Z * axis->Y * v8;
 		double v13 = s * axis->X;
-		this->row[1][3] = 0.0f;
-		this->row[1][2] = static_cast<float>(v12 - v13);
-		this->row[2][0] = static_cast<float>(axis->Z * axis->X * v8 - s * axis->Y);
-		this->row[2][1] = static_cast<float>(axis->Z * axis->Y * v8 + s * axis->X);
+		this->Row[1][3] = 0.0f;
+		this->Row[1][2] = static_cast<float>(v12 - v13);
+		this->Row[2][0] = static_cast<float>(axis->Z * axis->X * v8 - s * axis->Y);
+		this->Row[2][1] = static_cast<float>(axis->Z * axis->Y * v8 + s * axis->X);
 		double v14 = axis->Z * axis->Z;
-		this->row[2][3] = 0.0f;
-		this->row[2][2] = static_cast<float>((1.0 - v14) * c + v14);
+		this->Row[2][3] = 0.0f;
+		this->Row[2][2] = static_cast<float>((1.0 - v14) * c + v14);
 	}
 
 	static FORCEDINLINE Matrix3D GetIdentity() {
@@ -180,17 +175,17 @@ public:
 
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 3; ++j) {
-				C.row[i][j] =
-				this->row[i][0] * C_another.row[0][j] +
-				this->row[i][1] * C_another.row[1][j] +
-				this->row[i][2] * C_another.row[2][j];
+				C.Row[i][j] =
+				this->Row[i][0] * C_another.Row[0][j] +
+				this->Row[i][1] * C_another.Row[1][j] +
+				this->Row[i][2] * C_another.Row[2][j];
 			}
 
-			C.row[i][3] =
-				this->row[i][0] * C_another.row[0][3] +
-				this->row[i][1] * C_another.row[1][3] +
-				this->row[i][2] * C_another.row[2][3] +
-				this->row[i][3];
+			C.Row[i][3] =
+				this->Row[i][0] * C_another.Row[0][3] +
+				this->Row[i][1] * C_another.Row[1][3] +
+				this->Row[i][2] * C_another.Row[2][3] +
+				this->Row[i][3];
 		}
 
 		return C;
@@ -237,26 +232,26 @@ public:
 		FromQuaternion(&mtx, &q);
 		/*v2 = q.Z * q.Z;
 		v12 = q.Y * q.Y;
-		mtx.row[0][0] = static_cast<float>(1.0 - (v12 + v2 + v12 + v2));
+		mtx.Row[0][0] = static_cast<float>(1.0 - (v12 + v2 + v12 + v2));
 		v4 = q.Y * q.X;
 		v5 = q.W * q.Z;
-		mtx.row[0][1] = static_cast<float>(v4 - v5 + v4 - v5);
+		mtx.Row[0][1] = static_cast<float>(v4 - v5 + v4 - v5);
 		v10 = q.W * q.Y;
 		v6 = q.X * q.Z;
 		v9 = static_cast<float>(v6);
-		mtx.row[0][2] = static_cast<float>(v6 + v10 + v6 + v10);
-		mtx.row[1][0] = static_cast<float>(v5 + v4 + v5 + v4);
+		mtx.Row[0][2] = static_cast<float>(v6 + v10 + v6 + v10);
+		mtx.Row[1][0] = static_cast<float>(v5 + v4 + v5 + v4);
 		v11 = q.X * q.X;
-		mtx.row[1][1] = static_cast<float>(1.0 - (v11 + v2 + v11 + v2));
+		mtx.Row[1][1] = static_cast<float>(1.0 - (v11 + v2 + v11 + v2));
 		v7 = q.Y * q.Z;
 		v8 = q.W * q.X;
-		mtx.row[1][2] = static_cast<float>(v7 - v8 + v7 - v8);
-		mtx.row[2][0] = static_cast<float>(v9 - v10 + v9 - v10);
-		mtx.row[2][3] = 0.0f;
-		mtx.row[1][3] = 0.0f;
-		mtx.row[0][3] = 0.0f;
-		mtx.row[2][1] = static_cast<float>(v8 + v7 + v8 + v7);
-		mtx.row[2][2] = static_cast<float>(1.0 - (v11 + v12 + v11 + v12));*/
+		mtx.Row[1][2] = static_cast<float>(v7 - v8 + v7 - v8);
+		mtx.Row[2][0] = static_cast<float>(v9 - v10 + v9 - v10);
+		mtx.Row[2][3] = 0.0f;
+		mtx.Row[1][3] = 0.0f;
+		mtx.Row[0][3] = 0.0f;
+		mtx.Row[2][1] = static_cast<float>(v8 + v7 + v8 + v7);
+		mtx.Row[2][2] = static_cast<float>(1.0 - (v11 + v12 + v11 + v12));*/
 		return mtx;
 	}
 
@@ -281,7 +276,7 @@ public:
 	COMPILETIMEEVAL void FORCEDINLINE MakeIdentity() {
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 4; j++)
-				row[i][j] = i == j ? 1.f : 0.f;
+				Row[i][j] = i == j ? 1.f : 0.f;
 	} // 1-matrix
 
 	//void Translate(float x, float y, float z) const { JMP_THIS(0x5AE890); }
@@ -301,25 +296,25 @@ public:
 	COMPILETIMEEVAL void TranslateX(float x) //{ JMP_THIS(0x5AE980); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][3] += x * row[i][0];
+			Row[i][3] += x * Row[i][0];
 	}
 
 	COMPILETIMEEVAL void TranslateY(float y) //{ JMP_THIS(0x5AE9B0); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][3] += y * row[i][1];
+			Row[i][3] += y * Row[i][1];
 	}
 
 	COMPILETIMEEVAL void TranslateZ(float z) //{ JMP_THIS(0x5AE9E0); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][3] += z * row[i][2];
+			Row[i][3] += z * Row[i][2];
 	}
 
 	COMPILETIMEEVAL void Scale(float factor) //{ JMP_THIS(0x5AEA10); }
 	{
-		for (float& i : Data)
-			i *= factor;
+		for (int i = 0; i < 3; i++)
+			Row[i] *= factor;
 	}
 
 	COMPILETIMEEVAL void Scale(float x, float y, float z) //{ JMP_THIS(0x5AEA70); }
@@ -332,43 +327,43 @@ public:
 	COMPILETIMEEVAL void ScaleX(float factor) //{ JMP_THIS(0x5AEAD0); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][0] *= factor;
+			Row[i][0] *= factor;
 	}
 
 	COMPILETIMEEVAL void ScaleY(float factor) //{ JMP_THIS(0x5AEAF0); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][1] *= factor;
+			Row[i][1] *= factor;
 	}
 
 	COMPILETIMEEVAL void ScaleZ(float factor) //{ JMP_THIS(0x5AEB20); }
 	{
 		for (int i = 0; i < 3; i++)
-			row[i][2] *= factor;
+			Row[i][2] *= factor;
 	}
 
 	//void ShearYZ(float y, float z) const { JMP_THIS(0x5AEB50); }
 	COMPILETIMEEVAL void ShearYZ(float y, float z)
 	{
-		this->row[0][0] = y * this->row[0][1] + z * this->row[0][2] + this->row[0][0];
-		this->row[1][0] = y * this->row[1][1] + z * this->row[1][2] + this->row[1][0];
-		this->row[2][0] = y * this->row[2][1] + z * this->row[2][2] + this->row[2][0];
+		this->Row[0][0] = y * this->Row[0][1] + z * this->Row[0][2] + this->Row[0][0];
+		this->Row[1][0] = y * this->Row[1][1] + z * this->Row[1][2] + this->Row[1][0];
+		this->Row[2][0] = y * this->Row[2][1] + z * this->Row[2][2] + this->Row[2][0];
 	}
 
 	//void ShearXY(float x, float y) const { JMP_THIS(0x5AEBA0); }
 	COMPILETIMEEVAL void ShearXY(float x, float y)
 	{
-		this->row[0][2] = y * this->row[0][1] + x * this->row[0][0] + this->row[0][2];
-		this->row[1][2] = x * this->row[1][0] + y * this->row[1][1] + this->row[1][2];
-		this->row[2][2] = x * this->row[2][0] + y * this->row[2][1] + this->row[2][2];
+		this->Row[0][2] = y * this->Row[0][1] + x * this->Row[0][0] + this->Row[0][2];
+		this->Row[1][2] = x * this->Row[1][0] + y * this->Row[1][1] + this->Row[1][2];
+		this->Row[2][2] = x * this->Row[2][0] + y * this->Row[2][1] + this->Row[2][2];
 	}
 
 	//void ShearXZ(float x, float z) const { JMP_THIS(0x5AEBF0); }
 	COMPILETIMEEVAL void ShearXZ(float x, float z)
 	{
-		this->row[0][1] = z * this->row[0][2] + x * this->row[0][0] + this->row[0][1];
-		this->row[1][1] = x * this->row[1][0] + z * this->row[1][2] + this->row[1][1];
-		this->row[2][1] = x * this->row[2][0] + z * this->row[2][2] + this->row[2][1];
+		this->Row[0][1] = z * this->Row[0][2] + x * this->Row[0][0] + this->Row[0][1];
+		this->Row[1][1] = x * this->Row[1][0] + z * this->Row[1][2] + this->Row[1][1];
+		this->Row[2][1] = x * this->Row[2][0] + z * this->Row[2][2] + this->Row[2][1];
 	}
 
 	void PreRotateX(float theta) const { JMP_THIS(0x5AEC40); }
@@ -434,9 +429,9 @@ public:
 	Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
 	COMPILETIMEEVAL Vector3D<float> RotateVector(const Vector3D<float>& rotate) const {
 		return {
-				row[0][0] * rotate.X + row[0][1] * rotate.Y + row[0][2] * rotate.Z,
-				row[1][0] * rotate.X + row[1][1] * rotate.Y + row[1][2] * rotate.Z,
-				row[2][0] * rotate.X + row[2][1] * rotate.Y + row[2][2] * rotate.Z,
+				Row[0][0] * rotate.X + Row[0][1] * rotate.Y + Row[0][2] * rotate.Z,
+				Row[1][0] * rotate.X + Row[1][1] * rotate.Y + Row[1][2] * rotate.Z,
+				Row[2][0] * rotate.X + Row[2][1] * rotate.Y + Row[2][2] * rotate.Z,
 		};
 	}
 
@@ -463,24 +458,24 @@ public:
 	COMPILETIMEEVAL static Vector3D<float> InverseRotateVector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
 		return {
-			(tm.row[0][0] * in.X + tm.row[1][0] * in.Y + tm.row[2][0] * in.Z) ,
-			(tm.row[0][1] * in.X + tm.row[1][1] * in.Y + tm.row[2][1] * in.Z) ,
-			(tm.row[0][2] * in.X + tm.row[1][2] * in.Y + tm.row[2][2] * in.Z)
+			(tm.Row[0][0] * in.X + tm.Row[1][0] * in.Y + tm.Row[2][0] * in.Z) ,
+			(tm.Row[0][1] * in.X + tm.Row[1][1] * in.Y + tm.Row[2][1] * in.Z) ,
+			(tm.Row[0][2] * in.X + tm.Row[1][2] * in.Y + tm.Row[2][2] * in.Z)
 		};
 	}
 
 	COMPILETIMEEVAL static Vector3D<float> InverseTransformVector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
-		Vector3D<float> diff{ in.X - tm.row[0][3],  in.Y - tm.row[1][3], in.Z - tm.row[2][3] };
+		Vector3D<float> diff{ in.X - tm.Row[0][3],  in.Y - tm.Row[1][3], in.Z - tm.Row[2][3] };
 		return InverseRotateVector(tm, diff);
 	}
 
 	COMPILETIMEEVAL static Vector3D<float> TransformVector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
 		return {
-			(tm.row[0][0] * in.X + tm.row[0][1] * in.Y + tm.row[0][2] * in.Z + tm.row[0][3]) ,
-			(tm.row[1][0] * in.X + tm.row[1][1] * in.Y + tm.row[1][2] * in.Z + tm.row[1][3]) ,
-			(tm.row[2][0] * in.X + tm.row[2][1] * in.Y + tm.row[2][2] * in.Z + tm.row[2][3])
+			(tm.Row[0][0] * in.X + tm.Row[0][1] * in.Y + tm.Row[0][2] * in.Z + tm.Row[0][3]) ,
+			(tm.Row[1][0] * in.X + tm.Row[1][1] * in.Y + tm.Row[1][2] * in.Z + tm.Row[1][3]) ,
+			(tm.Row[2][0] * in.X + tm.Row[2][1] * in.Y + tm.Row[2][2] * in.Z + tm.Row[2][3])
 		};
 	}
 
@@ -495,12 +490,7 @@ public:
 
 //Properties
 public:
-	union
-	{
-		Vector4D<float> Row[3];
-		float row[3][4];
-		float Data[12] = {};
-	};
+	Vector4D<float> Row[3];
 };
 
 static_assert(sizeof(Matrix3D) == 0x30u);

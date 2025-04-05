@@ -278,7 +278,7 @@ ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 	matRet *= Matrix3D { 1,0,0,0,0,1,0,0,0,0,0,0 };
 
 	double l2 = 0;
-	auto& arr = matRet.row;
+	auto& arr = matRet.Row;
 	for (int i = 0; i < 3; i++)	for (int j = 0; j < 3; j++)	l2 += arr[i][j] * arr[i][j];
 	if (l2 < 0.03) R->Stack(STACK_OFFSET(0xE8, 0x20), true);
 

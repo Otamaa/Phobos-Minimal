@@ -343,65 +343,64 @@ CanBuildResult HouseExtData::PrereqValidate(
 bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
 {
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pItem);
+	
+	if (pExt->FactoryOwners.empty() && pExt->FactoryOwners_Forbidden.empty())
+		return true;// no check needed
+
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	bool isAvaible = false; // assiume it is not available
 
-	if (!pExt->FactoryOwners.empty() || !pExt->FactoryOwners_Forbidden.empty())
-	{
-		for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf)
+	for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf) {
+			
+		for(auto& f_Owner : pExt->FactoryOwners){
+			if (f_Owner == gather) {
+				isAvaible = true; // one check pass
+				break;
+			}
+		}
+
+		for (auto& f_forbiddenOwner : pExt->FactoryOwners_Forbidden) {
+			if (f_forbiddenOwner == gather) {
+				return false; // it is forbidden , dont allow
+			}
+
+		}
+	}
+
+
+	if (!isAvaible)
+	{ //cant found avaible plan
+	
+		const auto whatItem = pItem->WhatAmI();
+		for (auto const& pBld : pHouse->Buildings)
 		{
-			auto FactoryOwners_begin = pExt->FactoryOwners.begin();
-			const auto FactoryOwners_end = pExt->FactoryOwners.end();
+			auto pBldExt = TechnoExtContainer::Instance.Find(pBld);
 
-			if (FactoryOwners_begin != FactoryOwners_end)
-			{
-				while (*FactoryOwners_begin != gather)
-				{
-					if (++FactoryOwners_begin == FactoryOwners_end)
-						continue;
+			for (auto& f_Owner : pExt->FactoryOwners) {
+				if (f_Owner == pBldExt->OriginalHouseType) {
+					isAvaible = true; // one check pass
+					break;
 				}
 			}
 
-			if (pExt->FactoryOwners_Forbidden.empty())
-				return true;//will skip the buildings check
+			for (auto& f_forbiddenOwner : pExt->FactoryOwners_Forbidden) {
+				if (f_forbiddenOwner == pBldExt->OriginalHouseType) {
+					return false;  // it is forbidden , dont allow
+				}
+			}
 
-			auto FactoryForbiddenOwners_begin = pExt->FactoryOwners_Forbidden.begin();
-			const auto FactoryForbidden_end = pExt->FactoryOwners_Forbidden.end();
+			if (isAvaible) { // further check
 
-			while (*FactoryForbiddenOwners_begin != gather)
-			{
-				if (++FactoryForbiddenOwners_begin == FactoryForbidden_end)
-					return true; //will skip the buildings check
+
+				//found one factory that avaible for the item , or the building type HasAllPlans
+				if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->Type->FactoryOwners_HasAllPlans) {
+					return true;
+				}
 			}
 		}
 	}
 
-	const auto whatItem = pItem->WhatAmI();
-	for (auto const& pBld : pHouse->Buildings)
-	{
-		auto pBldExt = TechnoExtContainer::Instance.Find(pBld);
-
-		auto FactoryOwners_begin = pExt->FactoryOwners.begin();
-		const auto FactoryOwners_end = pExt->FactoryOwners.end();
-
-		if (FactoryOwners_begin != FactoryOwners_end)
-		{
-			while (*FactoryOwners_begin != pBldExt->OriginalHouseType)
-			{
-				if (++FactoryOwners_begin == FactoryOwners_end)
-					continue;
-			}
-		}
-
-		if (pExt->FactoryOwners_Forbidden.empty() || !pExt->FactoryOwners_Forbidden.Contains(pBldExt->OriginalHouseType))
-		{
-			if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->Type->FactoryOwners_HasAllPlans)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
+	return isAvaible; //none of the check pass
 }
 
 void HouseExtData::UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added)

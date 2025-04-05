@@ -19,17 +19,13 @@
 int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 {
 	auto const& colorAdd = RulesClass::Instance->ColorAdd;
-	int colorValue = 0;
-
-	if (colorIndex < 0 || colorIndex >= (sizeof(colorAdd) / sizeof(ColorStruct)))
-		return colorValue;
+	const int colorValue = GetColorIndexForColorAdd(colorIndex);
 
 	if (RulesExtData::Instance()->ColorAddUse8BitRGB)
-		return colorAdd[colorIndex].ToInit();
+		return colorAdd[colorValue].ToInit();
 
-	return GetColorFromColorAdd(colorAdd[colorIndex]);
+	return GetColorFromColorAdd(colorAdd[colorValue]);
 }
-
 
 bool GeneralUtils::IsValidString(const char* str)
 {

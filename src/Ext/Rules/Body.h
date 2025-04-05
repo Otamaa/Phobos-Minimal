@@ -479,25 +479,27 @@ public:
 	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
 
 	struct ProneSpeedData {
-		Nullable<double> Custom {};
+		Valueable<double> Crawls { 0.67 };
+		Valueable<double> NoCrawls { 1.5 };
 
-		COMPILETIMEEVAL double getSpeed(bool crawls) const
-		{
-			if (Custom.isset())
-				return Custom.Get();
-			return crawls ? 0.67 : 1.5;
+		COMPILETIMEEVAL OPTIONALINLINE double getSpeed(bool crawls) const {
+			return (crawls ? Crawls : NoCrawls).Get();
 		}
 
 		void Load(PhobosStreamReader& Stm)
 		{
-			Stm.
-				Process(Custom);
+			Stm
+				.Process(Crawls)
+				.Process(NoCrawls)
+				;
 		}
 
 		void Save(PhobosStreamWriter& Stm)
 		{
-			Stm.
-				Process(Custom);
+			Stm
+				.Process(Crawls)
+				.Process(NoCrawls)
+				;
 		}
 
 	} InfantrySpeedData {};

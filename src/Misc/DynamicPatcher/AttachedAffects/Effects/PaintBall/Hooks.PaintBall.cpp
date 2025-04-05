@@ -211,6 +211,34 @@ ASMJIT_PATCH(0x43D442, BuildingClass_Draw_ForceShieldICColor, 0x7)
 	return SkipGameCode;
 }
 
+ASMJIT_PATCH(0x43D396, BuildingClass_Draw_LaserTargetColor, 0x6) {
+	GET(BuildingClass*, pThis, ESI);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+	R->ECX(RulesClass::Instance());
+	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
+	return 0x43D39C;
+}
+
+ASMJIT_PATCH(0x42343C, AnimClass_Draw_Airstrike, 0x6)
+{
+	GET(BuildingClass*, pBld, ECX);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Airstrike->Owner->GetTechnoType());
+	R->ECX(RulesClass::Instance());
+	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
+	return 0x423448;
+}
+
+ASMJIT_PATCH(0x43DC30, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
+{
+	enum { SkipGameCode = 0x43DC3C };
+
+	GET(BuildingClass*, pThis, EBP);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+	R->ECX(RulesClass::Instance());
+	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
+	return 0x43DC3C;
+}
+
 ASMJIT_PATCH(0x43DCE1, BuildingClass_Draw2_ForceShieldICColor, 0x7)
 {
 	enum { SkipGameCode = 0x43DCFA };

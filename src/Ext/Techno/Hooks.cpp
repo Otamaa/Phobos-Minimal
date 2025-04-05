@@ -1093,7 +1093,8 @@ ASMJIT_PATCH(0x521D94, InfantryClass_CurrentSpeed_ProneSpeed, 0x6)
 	GET(FakeInfantryClass*, pThis, ESI);
 	GET(int, currentSpeed, ECX);
 
-	auto multiplier = pThis->_GetTypeExtData()->ProneSpeed.Get(RulesExtData::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
+	auto multiplier = pThis->_GetTypeExtData()->ProneSpeed.Get(
+		RulesExtData::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
 	currentSpeed *= multiplier;
 	R->ECX(currentSpeed);
 	return 0x521DC5;

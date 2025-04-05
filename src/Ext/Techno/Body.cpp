@@ -2405,7 +2405,7 @@ std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int 
 
 	const std::vector<CoordStruct>* selected = (pThis->Veterancy.IsElite() ? &pickedFLHs->EFlh : &pickedFLHs->Flh);
 
-	if (!selected->empty() && (int)selected->size() > pThis->CurrentBurstIndex) {
+	if (!selected->empty() && (size_t)pThis->CurrentBurstIndex < selected->size()) {
 		return { true , (*selected)[pThis->CurrentBurstIndex] };
 	}
 
@@ -3242,7 +3242,7 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	//result.Y *= -1;
 
 	// Step 5: apply as an offset to global object coords
-	CoordStruct location = Overrider.IsValid() ? Overrider : pThis->GetCoords();
+	CoordStruct location = Overrider.IsValid() ? Overrider : pThis->GetRenderCoords();
 	location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
 	// += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
 
