@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StackContainer.h"
+#include <EASTL/vector.h>
 
 // StackVector -----------------------------------------------------------------
 
@@ -10,12 +11,12 @@
 //   foo[0] = 10;         // as well as operator[]
 template<typename T, size_t stack_capacity>
 class StackVector : public StackContainer<
-	std::vector<T, StackAllocator<T, stack_capacity> >,
+	eastl::vector<T, StackAllocator<T, stack_capacity> >,
 	stack_capacity>
 {
 public:
 	COMPILETIMEEVAL StackVector() : StackContainer<
-		std::vector<T, StackAllocator<T, stack_capacity> >,
+		eastl::vector<T, StackAllocator<T, stack_capacity> >,
 		stack_capacity>()
 	{ }
 
@@ -25,7 +26,7 @@ public:
 	// and make a stack buffer of its own.
 	COMPILETIMEEVAL StackVector(const StackVector<T, stack_capacity>& other)
 		: StackContainer<
-		std::vector<T, StackAllocator<T, stack_capacity> >,
+		eastl::vector<T, StackAllocator<T, stack_capacity> >,
 		stack_capacity>()
 	{
 		this->container().assign(other->begin(), other->end());
@@ -48,7 +49,7 @@ public:
 
 	template <typename Func>
 	COMPILETIMEEVAL void FORCEDINLINE remove_all_duplicates(Func&& act) {
-		std::sort(this->begin(), this->end(), std::forward<Func>(act));
-		this->erase(std::unique(this->begin(), this->end()), this->end());
+		eastl::sort(this->begin(), this->end(), eastl::forward<Func>(act));
+		this->erase(eastl::unique(this->begin(), this->end()), this->end());
 	}
 };

@@ -15,7 +15,6 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Locomotor/Cast.h>
 #include <ExtraHeaders/StackVector.h>
-
 #include <EventClass.h>
 
 
@@ -236,11 +235,12 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 				if (!pDestinationCell)
 				{
 					StackVector<CellClass*, 10> deleteCells {};
+					StackVector<TechnoClass*, 25> optionalTechnos {};
 
 					for (const auto& pOptionalCell : optionalCells.container())
 					{
 						auto pCurObject = pOptionalCell->FirstObject;
-						StackVector<TechnoClass*,4> optionalTechnos {};
+						optionalTechnos->clear();
 						bool valid = true;
 
 						while (pCurObject)

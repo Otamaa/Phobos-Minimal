@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Base/Always.h>
-#include <memory>
-#include <type_traits>
-#include <utility>
+#include <EASTL/internal/config.h>
+#include <EASTL/allocator.h>
+#include <EASTL/allocator_malloc.h>
 
 template <size_t Size, size_t ByteAlignment>
 struct AlignedMemory { };
