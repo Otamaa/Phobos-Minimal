@@ -1470,7 +1470,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AmphibiousEnter.Read(exINI, pSection, "AmphibiousEnter");
 		this->AmphibiousUnload.Read(exINI, pSection, "AmphibiousUnload");
 
-		this->ElectricAssaultPower.Read(exINI, pSection, "ElectricAssaultPower");
+		this->DamagedSpeed.Read(exINI, pSection, "DamagedSpeed");
 		// Spawner range
 		this->ResetSpawnerRange();
 
@@ -1484,7 +1484,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		INI_EX exArtINI(pArtIni);
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
-
+		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 
 		if (!this->TurretOffset.isset())
@@ -1587,13 +1587,19 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->AlternateFLHs.clear();
 
-		for (size_t i = 5; ; ++i)
+		for (size_t i = 0; ; ++i)
 		{
 			Nullable<CoordStruct> alternateFLH;
 			alternateFLH.Read(exArtINI, pArtSection, (std::string("AlternateFLH") + std::to_string(i)).c_str());
 
-			if (!alternateFLH.isset())
-				break;
+			if (!alternateFLH.isset()) {
+				if( i < 5){ 
+					this->AlternateFLHs.emplace_back();
+					continue;
+				}
+				else
+					break;
+			}
 
 			this->AlternateFLHs.push_back(alternateFLH.Get());
 		}
@@ -2656,7 +2662,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AmphibiousEnter)
 		.Process(this->AmphibiousUnload)
 
-		.Process(this->ElectricAssaultPower)
+		.Process(this->AlternateFLH_OnTurret)
+		.Process(this->DamagedSpeed)
 		;
 }
 

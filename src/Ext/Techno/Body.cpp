@@ -3236,10 +3236,10 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	// Step 4: apply FLH offset
 	mtx.Translate(static_cast<float>(pCoord.X), static_cast<float>(pCoord.Y), static_cast<float>(pCoord.Z));
 
-	Vector3D<float> result {};
-	Matrix3D::MatrixMultiply(&result , &mtx, &Vector3D<float>::Empty);
+	Vector3D<float> result = mtx.GetTranslation();
+	//Matrix3D::MatrixMultiply(&result , &mtx, &Vector3D<float>::Empty);
 	// Resulting coords are mirrored along X axis, so we mirror it back
-	result.Y *= -1;
+	//result.Y *= -1;
 
 	// Step 5: apply as an offset to global object coords
 	CoordStruct location = Overrider.IsValid() ? Overrider : pThis->GetCoords();

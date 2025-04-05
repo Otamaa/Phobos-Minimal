@@ -207,31 +207,15 @@ public:
 	}
 
 	// Non virtual
-	//static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_STD(0x5AFC20); }
-	COMPILETIMEEVAL static Matrix3D TransposeMatrix(const Matrix3D& A)
+	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_STD(0x5AFC20); }
+	static Matrix3D TransposeMatrix(const Matrix3D& A)
 	{
-		Matrix3D v7 {}; // [esp+8h] [ebp-30h] BYREF
-		//TransposeMatrix(&v7, &A);
-		v7.row[0][0] = A.row[0][0];
-		double v3 = v7.row[0][0] * A.row[0][3];
-		v7.row[0][1] = A.row[1][0];
-		v7.row[0][2] = A.row[2][0];
-		double v4 = v7.row[0][2] * A.row[2][3];
-		v7.row[1][0] = A.row[0][1];
-		v7.row[1][1] = A.row[1][1];
-		double v5 = v3 + v4;
-		double v6 = v7.row[0][1] * A.row[1][3];
-		v7.row[1][2] = A.row[2][1];
-		v7.row[2][0] = A.row[0][2];
-		v7.row[2][1] = A.row[1][2];
-		v7.row[2][2] = A.row[2][2];
-		v7.row[0][3] = static_cast<float>(-(v5 + v6));
-		v7.row[1][3] = static_cast<float>(-(v7.row[1][0] * A.row[0][3] + v7.row[1][2] * A.row[2][3] + v7.row[1][1] * A.row[1][3]));
-		v7.row[2][3] = static_cast<float>(-(v7.row[2][0] * A.row[0][3] + v7.row[2][2] * A.row[2][3] + v7.row[2][1] * A.row[1][3]));
+		Matrix3D v7 {};
+		TransposeMatrix(&v7, &A);
 		return v7;
 	}
 
-	COMPILETIMEEVAL void Transpose()
+	void Transpose()
 	{
 		*this = TransposeMatrix(*this);
 	}
@@ -295,50 +279,23 @@ public:
 	COMPILETIMEEVAL float GetZTranslation() const { return Row[2][3]; }
 
 	COMPILETIMEEVAL void FORCEDINLINE MakeIdentity() {
-		this->row[0][0] = 1.0;
-		this->row[0][1] = 0.0;
-		this->row[0][2] = 0.0;
-		this->row[0][3] = 0.0;
-		this->row[1][0] = 0.0;
-		this->row[1][1] = 1.0;
-		this->row[1][2] = 0.0;
-		this->row[1][3] = 0.0;
-		this->row[2][0] = 0.0;
-		this->row[2][1] = 0.0;
-		this->row[2][2] = 1.0;
-		this->row[2][3] = 0.0;
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 4; j++)
+				row[i][j] = i == j ? 1.f : 0.f;
 	} // 1-matrix
 
 	//void Translate(float x, float y, float z) const { JMP_THIS(0x5AE890); }
 	COMPILETIMEEVAL void Translate(float x, float y, float z)
 	{
-		this->row[0][3] = y * this->row[0][1] + z * this->row[0][2] + x * this->row[0][0] + this->row[0][3];
-		this->row[1][3] = x * this->row[1][0] + y * this->row[1][1] + z * this->row[1][2] + this->row[1][3];
-		this->row[2][3] = x * this->row[2][0] + y * this->row[2][1] + z * this->row[2][2] + this->row[2][3];
+		TranslateX(x);
+		TranslateY(y);
+		TranslateZ(z);
 	}
 
 	//void Translate(Vector3D<float> const& vec) const { JMP_THIS(0x5AE8F0); }
 	COMPILETIMEEVAL void Translate(Vector3D<float> const& t)
 	{
-		double v3 = t.X;
-		double v4 = v3 * this->row[2][0] + this->row[2][3];
-		double v5 = t.Y;
-		double v6 = v4 + v5 * this->row[2][1];
-		double v7 = t.Z;
-		float v8 = static_cast<float>(v3 * this->row[1][0] + this->row[1][3]);
-		float v9 = static_cast<float>(v5 * this->row[1][1] + v8);
-		float a2a = static_cast<float>(v3 * this->row[0][0] + this->row[0][3]);
-		float a2b = static_cast<float>(v5 * this->row[0][1] + a2a);
-
-		this->row[0][3] = a2a;
-		this->row[1][3] = v8;
-		this->row[2][3] = static_cast<float>(v4);
-		this->row[0][3] = a2b;
-		this->row[1][3] = v9;
-		this->row[2][3] = static_cast<float>(v6);
-		this->row[0][3] = static_cast<float>(v7 * this->row[0][2] + a2b);
-		this->row[1][3] = static_cast<float>(v7 * this->row[1][2] + v9);
-		this->row[2][3] = static_cast<float>(v7 * this->row[2][2] + v6);
+		Translate(t.X, t.Y, t.Z);
 	}
 
 	COMPILETIMEEVAL void TranslateX(float x) //{ JMP_THIS(0x5AE980); }
@@ -414,184 +371,17 @@ public:
 		this->row[2][1] = x * this->row[2][0] + z * this->row[2][2] + this->row[2][1];
 	}
 
-	//void PreRotateX(float theta) const { JMP_THIS(0x5AEC40); }
-	void PreRotateX(float theta)
-	{
-		float s = Math::sin((double)theta);
-		double c = (double)Math::cos((double)theta);
-		float row_1_1 = this->row[1][1];
-		double sn = -s;
-		float row_2_0 = this->row[2][0];
-		float row_1_2 = this->row[1][2];
-		double row_1_0 = this->row[1][0];
-		float row_2_1 = this->row[2][1];
-		float row_1_3 = this->row[1][3];
-		float row_2_2 = this->row[2][2];
-		float row_2_3 = this->row[2][3];
-		this->row[1][0] = static_cast<float>(row_2_0 * sn + row_1_0 * c);
-		this->row[1][1] = static_cast<float>(row_2_1 * sn + row_1_1 * c);
-		this->row[1][2] = static_cast<float>(row_2_2 * sn + row_1_2 * c);
-		this->row[1][3] = static_cast<float>(row_2_3 * sn + row_1_3 * c);
-		this->row[2][0] = static_cast<float>(row_2_0 * c + row_1_0 * s);
-		this->row[2][1] = static_cast<float>(row_2_1 * c + row_1_1 * s);
-		this->row[2][2] = static_cast<float>(row_2_2 * c + row_1_2 * s);
-		this->row[2][3] = static_cast<float>(row_2_3 * c + row_1_3 * s);
-	}
+	void PreRotateX(float theta) const { JMP_THIS(0x5AEC40); }
+	void PreRotateY(float theta) const { JMP_THIS(0x5AED50); }
+	void PreRotateZ(float theta) const { JMP_THIS(0x5AEE50); }
 
-	//void PreRotateY(float theta) const { JMP_THIS(0x5AED50); }
-	void PreRotateY(float theta)
-	{
-		float s = Math::sin((double)theta);
-		double c = Math::cos((double)theta);
-		double sn = -s;
-		double row_0_0 = this->row[0][0];
-		double row_2_0 = this->row[2][0];
-		float row_0_1 = this->row[0][1];
-		float row_2_1 = this->row[2][1];
-		float row_0_2 = this->row[0][2];
-		float row_2_2 = this->row[2][2];
-		float row_0_3 = this->row[0][3];
-		this->row[0][0] = static_cast<float>(row_2_0 * s + row_0_0 * c);
-		float row_2_3 = this->row[2][3];
-		this->row[0][1] = static_cast<float>(row_2_1 * s + row_0_1 * c);
-		this->row[0][2] = static_cast<float>(row_2_2 * s + row_0_2 * c);
-		this->row[0][3] = static_cast<float>(row_2_3 * s + row_0_3 * c);
-		this->row[2][0] = static_cast<float>(row_0_0 * sn + row_2_0 * c);
-		this->row[2][1] = static_cast<float>(row_0_1 * sn + row_2_1 * c);
-		this->row[2][2] = static_cast<float>(row_0_2 * sn + row_2_2 * c);
-		this->row[2][3] = static_cast<float>(row_0_3 * sn + row_2_3 * c);
-	}
+	void RotateX(float theta) const { JMP_THIS(0x5AEF60); }
+	void RotateX(float Sin, float Cos) const { JMP_THIS(0x5AF000); }
+	void RotateY(float theta) const { JMP_THIS(0x5AF080); }
 
-	//void PreRotateZ(float theta) const { JMP_THIS(0x5AEE50); }
-	void PreRotateZ(float theta)
-	{
-		double c = (double)Math::cos((double)theta);
-		float s = Math::sin((double)theta);
-		double sn = -s;
-		double row_0_0 = this->Row[0].X;
-		float row_1_0 = this->row[1][0];
-		float row_1_1 = this->row[1][1];
-		float row_0_1 = this->row[0][1];
-		float row_1_2 = this->row[1][2];
-		float row_0_2 = this->row[0][2];
-		float row_1_3 = this->row[1][3];
-		float row_0_3 = this->row[0][3];
-
-		this->row[0][0] = static_cast<float>(row_1_0 * sn + row_0_0 * c);
-		this->row[0][1] = static_cast<float>(row_1_1 * sn + row_0_1 * c);
-		this->row[0][2] = static_cast<float>(row_1_2 * sn + row_0_2 * c);
-		this->row[0][3] = static_cast<float>(row_1_3 * sn + row_0_3 * c);
-		this->row[1][0] = static_cast<float>(row_1_0 * c + row_0_0 * s);
-		this->row[1][1] = static_cast<float>(row_1_1 * c + row_0_1 * s);
-		this->row[1][2] = static_cast<float>(row_1_2 * c + row_0_2 * s);
-		this->row[1][3] = static_cast<float>(row_1_3 * c + row_0_3 * s);
-	}
-
-	//void RotateX(float theta) const { JMP_THIS(0x5AEF60); }
-	void RotateX(float theta) {
-		float s = Math::sin((double)theta);
-		double c = Math::cos((double)theta);
-		double tmp1 = this->row[0][1];
-		double tmp2 = this->row[0][2];
-		this->row[0][1] = static_cast<float>(tmp1 * c + tmp2 * s);
-		this->row[0][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[1][1];
-		tmp2 = this->row[1][2];
-		this->row[1][1] = static_cast<float>(tmp1 * c + tmp2 * s);
-		this->row[1][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[2][1];
-		tmp2 = this->row[2][2];
-		this->row[2][1] = static_cast<float>(tmp1 * c + tmp2 * s);
-		this->row[2][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-	}
-
-	//void RotateX(float Sin, float Cos) const { JMP_THIS(0x5AF000); }
-	void RotateX(float s, float c)
-	{
-		double tmp1 = this->row[0][1];
-		double tmp2 = this->row[0][2];
-		this->row[0][1] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[0][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[1][1];
-		tmp2 = this->row[1][2];
-		this->row[1][1] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[1][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[2][1];
-		tmp2 = this->row[2][2];
-		this->row[2][1] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[2][2] = static_cast<float>(tmp2 * c - tmp1 * s);
-	}
-
-	//void RotateY(float theta) const { JMP_THIS(0x5AF080); }
-	void RotateY(float theta)
-	{
-		double c = (double)Math::cos((double)theta);
-		double tmp1 = this->row[0][0];
-		double tmp2 = this->row[0][2];
-		float s = Math::sin((double)theta);
-		this->row[0][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[0][2] = static_cast<float>(tmp2 * c + tmp1 * s);
-		tmp1 = this->row[1][0];
-		tmp2 = this->row[1][2];
-		this->row[1][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[1][2] = static_cast<float>(tmp2 * c + tmp1 * s);
-		tmp1 = this->row[2][0];
-		tmp2 = this->row[2][2];
-		this->row[2][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[2][2] = static_cast<float>(tmp2 * c + tmp1 * s);
-	}
-
-	//void RotateY(float Sin, float Cos) const { JMP_THIS(0x5AF120); }
-	void RotateY(float s, float c)
-	{
-		double tmp1 = this->row[0][0];
-		double tmp2 = this->row[0][2];
-		this->row[0][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[0][2] = static_cast<float>(tmp1 * s + tmp2 * c);
-		tmp1 = this->row[1][0];
-		tmp2 = this->row[1][2];
-		this->row[1][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[1][2] = static_cast<float>(tmp1 * s + tmp2 * c);
-		tmp1 = this->row[2][0];
-		tmp2 = this->row[2][2];
-		this->row[2][0] = static_cast<float>(tmp1 * c - tmp2 * s);
-		this->row[2][2] = static_cast<float>(tmp1 * s + tmp2 * c);
-	}
-
-	//void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
-	void RotateZ(float theta) {
-		float c = Math::cos((double)theta);
-		double s = (double)Math::sin((double)theta);
-		double tmp1 = this->row[0][0];
-		double tmp2 = this->row[0][1];
-		this->row[0][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[0][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[1][0];
-		tmp2 = this->row[1][1];
-		this->row[1][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[1][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[2][0];
-		tmp2 = this->row[2][1];
-		this->row[2][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[2][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-	}
-
-	//void RotateZ(float Sin, float Cos) const { JMP_THIS(0x5AF240); }
-	void RotateZ(float s, float c)
-	{
-		double tmp1 = this->row[0][0];
-		double tmp2 = this->row[0][1];
-		this->row[0][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[0][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[1][0];
-		tmp2 = this->row[1][1];
-		this->row[1][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[1][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-		tmp1 = this->row[2][0];
-		tmp2 = this->row[2][1];
-		this->row[2][0] = static_cast<float>(tmp2 * s + tmp1 * c);
-		this->row[2][1] = static_cast<float>(tmp2 * c - tmp1 * s);
-	}
+	void RotateY(float Sin, float Cos) const { JMP_THIS(0x5AF120); }
+	void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
+	void RotateZ(float Sin, float Cos) const { JMP_THIS(0x5AF240); }
 
 	COMPILETIMEEVAL float GetXVal() //{ JMP_THIS(0x5AF2C0); }
 	{
@@ -641,7 +431,7 @@ public:
 		return (float)Math::atan2((double)ret_.Y, (double)ret_.X);
 	}
 
-	//Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
+	Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }
 	COMPILETIMEEVAL Vector3D<float> RotateVector(const Vector3D<float>& rotate) const {
 		return {
 				row[0][0] * rotate.X + row[0][1] * rotate.Y + row[0][2] * rotate.Z,
@@ -654,7 +444,7 @@ public:
 	void LookAt2(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF710); }
 
 	//static Matrix3D* __fastcall MatrixMultiply__(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
-	COMPILETIMEEVAL static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
+	COMPILETIMEEVAL FORCEDINLINE static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
 	{
 		//Matrix3D buffer;
 		//MatrixMultiply__(&buffer, &A, &B);
@@ -664,9 +454,9 @@ public:
 	COMPILETIMEEVAL static Vector3D<float>* //__fastcall
 			MatrixMultiply(Vector3D<float>* vecret, const Matrix3D* mat, const Vector3D<float>* vec) {
 		//JMP_FAST(0x5AFB80);
-		 vecret->X = (mat->Row[0][0] * vec->X + mat->Row[0][1] * vec->Y + mat->Row[0][2] * vec->Z + mat->Row[0][3]);
-		 vecret->Y = (mat->Row[1][0] * vec->X + mat->Row[1][1] * vec->Y + mat->Row[1][2] * vec->Z + mat->Row[1][3]);
-		 vecret->Z = (mat->Row[2][0] * vec->X + mat->Row[2][1] * vec->Y + mat->Row[2][2] * vec->Z + mat->Row[2][3]);
+		vecret->X = (mat->Row[0][0] * vec->X + mat->Row[0][1] * vec->Y + mat->Row[0][2] * vec->Z + mat->Row[0][3]);
+		vecret->Y = (mat->Row[1][0] * vec->X + mat->Row[1][1] * vec->Y + mat->Row[1][2] * vec->Z + mat->Row[1][3]);
+		vecret->Z = (mat->Row[2][0] * vec->X + mat->Row[2][1] * vec->Y + mat->Row[2][2] * vec->Z + mat->Row[2][3]);
    		 return vecret;
 	}
 

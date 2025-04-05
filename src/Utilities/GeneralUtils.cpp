@@ -14,6 +14,23 @@
 
 #include "EventClass.h"
 
+#include <Ext/Rules/Body.h>
+
+int GeneralUtils::GetColorFromColorAdd(int colorIndex)
+{
+	auto const& colorAdd = RulesClass::Instance->ColorAdd;
+	int colorValue = 0;
+
+	if (colorIndex < 0 || colorIndex >= (sizeof(colorAdd) / sizeof(ColorStruct)))
+		return colorValue;
+
+	if (RulesExtData::Instance()->ColorAddUse8BitRGB)
+		return colorAdd[colorIndex].ToInit();
+
+	return GetColorFromColorAdd(colorAdd[colorIndex]);
+}
+
+
 bool GeneralUtils::IsValidString(const char* str)
 {
 	if (str == nullptr || strlen(str) == 0 || GameStrings::IsBlank(str))

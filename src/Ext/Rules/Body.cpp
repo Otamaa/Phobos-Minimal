@@ -185,6 +185,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 	TechTreeTypeClass::ReadListFromINI(pINI);
 
+	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
+	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
 	pData->InfantrySpeedData.Custom.Read(iniEX, GameStrings::General, "ProneSpeed");
 	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
 	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
@@ -1436,6 +1438,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CombatAlert_SuppressIfAllyDamage)
 		.Process(this->SubterraneanSpeed)
 		.Process(this->InfantrySpeedData)
+		.Process(this->DamagedSpeed)
+		.Process(this->ColorAddUse8BitRGB)
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)

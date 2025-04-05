@@ -114,6 +114,11 @@ public:
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
 	Valueable<bool> SubjectToGround { };
 
+	Valueable<bool> Airburst_TargetAsSource {};
+	Valueable<bool> Airburst_TargetAsSource_SkipHeight {};
+	Valueable<Leptons> AirburstWeapon_SourceScatterMin {};
+	Valueable<Leptons> AirburstWeapon_SourceScatterMax {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -141,6 +146,7 @@ public:
 		return pRules->MissileSafetyAltitude;
 	}
 
+	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, HouseClass* pHouse , WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const;

@@ -95,22 +95,6 @@ ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 	return Draw;
 }
 
-ASMJIT_PATCH(0x6F3C56, TechnoClass_GetFLH_TurretMultiOffset, 0x5) //0
-{
-	GET(TechnoTypeClass*, pType, EDX);
-	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
-
-	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-
-	float x = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float y = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float z = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-
-	mtx->Translate(x, y, z);
-
-	return 0x6F3C6D;
-}
-
 ASMJIT_PATCH(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 {
 

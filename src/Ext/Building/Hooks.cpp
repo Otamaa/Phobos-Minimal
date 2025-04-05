@@ -22,14 +22,26 @@ ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 
 	int overPower = 0;
 
-	for (int idx = 0; idx < pThis->Overpowerers.Count; idx++)
+	for (int idx = pThis->Overpowerers.Count - 1; idx >= 0; idx--)
 	{
-		const auto pTechno = pThis->Overpowerers[idx];
+		const auto pCharger = pThis->Overpowerers[idx];
 
-		if (pTechno->Target == pThis)
-			overPower += TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->ElectricAssaultPower;
-		else
+		if (pCharger->Target != pThis)
+		{
 			pThis->Overpowerers.RemoveAt(idx);
+			continue;
+		}
+
+		const auto pWeapon = pCharger->GetWeapon(1)->WeaponType;
+
+		if (!pWeapon || !pWeapon->Warhead || !pWeapon->Warhead->ElectricAssault)
+		{
+			pThis->Overpowerers.RemoveAt(idx);
+			continue;
+		}
+
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+		overPower += pWHExt->ElectricAssaultLevel;
 	}
 
 	const int charge = pThis->_GetTypeExtData()->Overpower_ChargeWeapon;
@@ -47,7 +59,12 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	int overPower = 0;
 
 	for (const auto& pCharger : pThis->Overpowerers) {
-		overPower += TechnoTypeExtContainer::Instance.Find(pCharger->GetTechnoType())->ElectricAssaultPower;
+		const auto pWeapon = pCharger->GetWeapon(1)->WeaponType;
+
+		if (pWeapon && pWeapon->Warhead) {
+			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+			overPower += pWHExt->ElectricAssaultLevel;
+		}
 	}
 
 	return overPower < pThis->_GetTypeExtData()->Overpower_KeepOnline ? LowPower : (R->Origin() == 0x4555E4 ? Continue1 : Continue2);

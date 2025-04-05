@@ -1085,7 +1085,8 @@ public:
 	Nullable<bool> AmphibiousEnter {};
 	Nullable<bool> AmphibiousUnload {};
 
-	Valueable<int> ElectricAssaultPower { 1 };
+	Valueable<bool> AlternateFLH_OnTurret { true };
+	Nullable<double> DamagedSpeed {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

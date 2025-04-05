@@ -477,6 +477,7 @@ public:
 	AnimTypeClass* XGRYSML1_ {};
 
 	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
+
 	struct ProneSpeedData {
 		Nullable<double> Custom {};
 
@@ -501,6 +502,9 @@ public:
 
 	} InfantrySpeedData {};
 	
+	Valueable<bool> ColorAddUse8BitRGB { false };
+	Valueable<double> DamagedSpeed { 0.75 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

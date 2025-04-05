@@ -91,6 +91,18 @@ public:
 private:
 	template <typename T>
 	void Serialize(T& Stm);
+
+public: 
+
+	static void SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool randomVelocity);
+	static void SimulatedFiringEffects(BulletClass* pBullet, HouseClass* pHouse, ObjectClass* pAttach, bool firingEffect, bool visualEffect);
+	static void SimulatedFiringAnim(BulletClass* pBullet, HouseClass* pHouse, ObjectClass* pAttach);
+	static void SimulatedFiringReport(BulletClass* pBullet);
+	static void SimulatedFiringLaser(BulletClass* pBullet, HouseClass* pHouse);
+	static void SimulatedFiringElectricBolt(BulletClass* pBullet);
+	static void SimulatedFiringRadBeam(BulletClass* pBullet, HouseClass* pHouse);
+	static void SimulatedFiringParticleSystem(BulletClass* pBullet, HouseClass* pHouse);
+
 };
 
 class BulletExtContainer final : public Container<BulletExtData>

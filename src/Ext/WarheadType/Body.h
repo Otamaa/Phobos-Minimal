@@ -421,6 +421,8 @@ public:
 	Valueable<double> CellAnimPercentAtMax { 1.0 };
 
 	NullableVector<AnimTypeClass*> CellAnim {};
+	Valueable<int> ElectricAssaultLevel { 1 };
+
 public:
 
 	void InitializeConstant();

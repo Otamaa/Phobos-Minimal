@@ -170,8 +170,9 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 	if (pIndex && pIndex->Is_Valid_Key())
 		*(int*)(pIndex) = slope_idx + (*(int*)(pIndex) << 6);
 
-	loco->LocomotionClass::Draw_Matrix(ret,pIndex);
-	*ret = Game::VoxelRampMatrix[slope_idx] * (*ret);
+	Matrix3D _DrawMtx {};
+	loco->LocomotionClass::Draw_Matrix(&_DrawMtx,pIndex);
+	*ret = Game::VoxelRampMatrix[slope_idx] * _DrawMtx;
 
 	float arf = loco->Owner->AngleRotatedForwards;
 	float ars = loco->Owner->AngleRotatedSideways;
