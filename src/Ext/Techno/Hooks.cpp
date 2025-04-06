@@ -1111,6 +1111,41 @@ ASMJIT_PATCH(0x4B3DF0, LocomotionClass_Process_DamagedSpeedMultiplier, 0x6)// Dr
 	return R->Origin() + 0x6;
 }ASMJIT_PATCH_AGAIN(0x6A343F, LocomotionClass_Process_DamagedSpeedMultiplier, 0x6)// Ship
 
+ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
+{
+	enum { Invisible = 0x655E66, GoOtherChecks = 0x655E19 , Continue = 0x0};
+
+	GET_STACK(bool, isInShrouded, STACK_OFFSET(0x40, 0x4));
+	GET(ObjectClass*, pThis, EBP);
+
+	if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)){
+
+		bool hideByShroud = isInShrouded && !pTechno->Owner->IsControlledByHuman();
+		bool hideByType = false;
+
+		auto pTechnoOwner = pTechno->Owner;
+		auto pType = pTechno->GetTechnoType();
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		if (HouseClass::CurrentPlayer == pTechnoOwner)
+		{
+			hideByType = pTypeExt->RadarInvisible_ToSelf;
+		}
+		else if (pTechnoOwner->IsAlliedWith(HouseClass::CurrentPlayer)) // TODO: check asymmetric alliance
+		{
+			hideByType = pTypeExt->RadarInvisible_ToAlly;
+		}
+		else
+		{
+			hideByType = pType->RadarInvisible;
+		}
+
+		return (hideByShroud || hideByType) ? Invisible : GoOtherChecks;
+	}
+
+	return Continue;
+}
+
 //ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ESI);

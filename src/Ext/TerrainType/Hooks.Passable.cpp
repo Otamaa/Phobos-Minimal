@@ -261,19 +261,14 @@ ASMJIT_PATCH(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0
 // Buildable-upon TerrainTypes Hook #4 - Remove them when buildings are placed on them.
 ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 {
-	GET(ObjectClass*, pObject, EDI);
+	GET(ObjectClass*, pPlaceObject, EDI);
 	GET(CellClass*, pCell, EAX);
 
-	if (pObject->WhatAmI() == AbstractType::Building)
-	{
-		auto pCellObject = pCell->FirstObject;
+	if (pPlaceObject->WhatAmI() == AbstractType::Building) {
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
+			const auto absType = pObject->WhatAmI();
 
-		while (pCellObject)
-		{
-			const auto absType = pCellObject->WhatAmI();
-
-			if (const auto pTechno = flag_cast_to<TechnoClass* , false>(pCellObject))
-			{
+			if (const auto pTechno = flag_cast_to<TechnoClass* , false>(pObject)) {
 				const auto pType = pTechno->GetTechnoType();
 
 				//TODO: this function can cause bug , since not all stuffs were handled properly
@@ -285,10 +280,8 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 					pTechno->Limbo();
 					pTechno->UnInit();
 				}
-			}
-			else if (absType == AbstractType::Terrain)
-			{
-				auto pTerrain = static_cast<TerrainClass*>(pCellObject);
+			} else if (absType == AbstractType::Terrain) {
+				auto pTerrain = static_cast<TerrainClass*>(pObject);
 
 				if (pTerrain->Type && TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
 				{
@@ -296,8 +289,6 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 					TerrainTypeExtData::Remove(pTerrain);
 				}
 			}
-
-			pCellObject = pCellObject->NextObject;
 		}
 	}
 
@@ -316,7 +307,7 @@ ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 
 	auto pCellObject = pCell->FirstObject;
 
-	while (pCellObject)
+	for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 	{
 		if (const auto pTerrain = cast_to<TerrainClass*, false>(pCellObject))
 		{
@@ -326,8 +317,6 @@ ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 			pCell->RemoveContent(pTerrain, false);
 			TerrainTypeExtData::Remove(pTerrain);
 		}
-
-		pCellObject = pCellObject->NextObject;
 	}
 
 	return Unlimbo;
@@ -341,7 +330,6 @@ namespace ProximityTemp
 	bool Exist = false;
 	bool Mouse = false;
 	CellClass* CurrentCell = nullptr;
-
 }
 
 // Buildable-upon TerrainTypes Hook #1 -> sub_47C620 - Allow placing buildings on top of them
@@ -365,9 +353,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 
 	if (pBuildingType->LaserFence)
 	{
-		auto pObject = pCell->FirstObject;
-
-		while (pObject)
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
 			const auto absType = pObject->WhatAmI();
 
@@ -390,17 +376,14 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 				if (!pTypeExt->CanBeBuiltOn)
 					return CanNotExistHere;
 			}
-
-			pObject = pObject->NextObject;
 		}
 	}
 	else if (pBuildingType->LaserFencePost || pBuildingType->Gate)
 	{
 		bool builtOnCanBeBuiltOn = false;
 		bool skipFlag = TechnoExtData::Deployer ? TechnoExtData::Deployer->CurrentMapCoords == pCell->MapCoords : false;
-		auto pObject = pCell->FirstObject;
 
-		while (pObject)
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
 			const auto absType = pObject->WhatAmI();
 
@@ -447,8 +430,6 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 				else
 					return CanNotExistHere;
 			}
-
-			pObject = pObject->NextObject;
 		}
 
 		if (!landFootOnly && !builtOnCanBeBuiltOn && (pCell->OccupationFlags & (skipFlag ? 0x1F : 0x3F)))
@@ -466,9 +447,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 		if (isoTileTypeIndex >= 0 && isoTileTypeIndex < IsometricTileTypeClass::Array->Count && !IsometricTileTypeClass::Array->Items[isoTileTypeIndex]->Morphable)
 			return CanNotExistHere;
 
-		auto pObject = pCell->FirstObject;
-
-		while (pObject)
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
 			const auto absType = pObject->WhatAmI();
 
@@ -481,17 +460,14 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 				if (!pTypeExt->CanBeBuiltOn)
 					return CanNotExistHere;
 			}
-
-			pObject = pObject->NextObject;
 		}
 	}
 	else
 	{
 		bool skipFlag = TechnoExtData::Deployer ? TechnoExtData::Deployer->CurrentMapCoords == pCell->MapCoords : false;
 		bool builtOnCanBeBuiltOn = false;
-		auto pObject = pCell->FirstObject;
 
-		while (pObject)
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 		{
 			const auto absType = pObject->WhatAmI();
 
@@ -520,8 +496,6 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 				else
 					return CanNotExistHere;
 			}
-
-			pObject = pObject->NextObject;
 		}
 
 		if (!landFootOnly && !builtOnCanBeBuiltOn && (pCell->OccupationFlags & (skipFlag ? 0x1F : 0x3F)))
@@ -842,7 +816,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 // Buildable-upon TechnoTypes Hook #4-1 -> sub_4FB0E0 - Check whether need to skip the replace command
 ASMJIT_PATCH(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 {
-	enum { SkipGameCode = 0x4FB489 };
+	enum { SkipGameCode = 0x4FB489, CheckMouseCoords = 0x4FB3E3 };
 
 	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
 		return 0;
@@ -854,7 +828,11 @@ ASMJIT_PATCH(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 	}
 
 	R->EBX(0);
-	return SkipGameCode;
+	if (!DisplayClass::Instance->CurrentBuildingTypeCopy)
+		return SkipGameCode;
+
+	R->ECX(DisplayClass::Instance->CurrentBuildingTypeCopy);
+	return CheckMouseCoords;
 }
 
 // Buildable-upon TechnoTypes Hook #4-2 -> sub_4FB0E0 - Check whether need to skip the clear command
@@ -1016,7 +994,7 @@ ASMJIT_PATCH(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
 			const auto pCell = MapClass::Instance->GetCellAt(topLeftCell);
 			const auto pCellBuilding = pCell->GetBuilding();
 
-			if (!pCellBuilding || !reinterpret_cast<bool(__thiscall*)(BuildingClass*, BuildingTypeClass*, HouseClass*)>(0x452670)(pCellBuilding, pBuildingType, pHouse)) // CanUpgradeBuilding
+			if (!pCellBuilding || !pCellBuilding->CanUpgrade(pBuildingType, pHouse)) // CanUpgradeBuilding
 				return CanNotBuild;
 		}
 	}
@@ -1122,7 +1100,7 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 						if (BuildingTypeExtData::CleanUpBuildingSpace(pBuildingType, topLeftCell, pUnit->Owner, pUnit))
 							break; // No place for cleaning
 
-						if (vec.size() == 0 || std::find(vec.begin(), vec.end(), pUnit) == vec.end())
+						if (vec.empty() || !vec.contains(pUnit))
 							vec.push_back(pUnit);
 
 						pTechnoExt->UnitAutoDeployTimer.Start(40);
@@ -1133,8 +1111,8 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 				while (false);
 			}
 
-			if (vec.size() > 0)
-				vec.erase(std::remove(vec.begin(), vec.end(), pUnit), vec.end());
+			if (!vec.empty())
+				vec.remove(pUnit);
 
 			if (pTechnoExt)
 				pTechnoExt->UnitAutoDeployTimer.Stop();
@@ -1144,8 +1122,8 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 		while (false);
 	}
 
-	if (vec.size() > 0)
-		vec.erase(std::remove(vec.begin(), vec.end(), pUnit), vec.end());
+	if (!vec.empty())
+		vec.remove(pUnit);
 
 	if (pTechnoExt)
 		pTechnoExt->UnitAutoDeployTimer.Stop();
@@ -1171,7 +1149,7 @@ ASMJIT_PATCH(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
 {
 	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
 	{
-		GET(const UnitClass* const, pUnit, ESI);
+		GET(UnitClass*, pUnit, ESI);
 
 		if (pUnit->Type->DeploysInto)
 		{
@@ -1184,7 +1162,7 @@ ASMJIT_PATCH(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
 					auto& vec = pHouseExt->OwnedDeployingUnits;
 
 					if (!vec.empty())
-						vec.erase(std::remove(vec.begin(), vec.end(), pUnit), vec.end());
+						vec.remove(pUnit);
 				}
 			}
 		}
@@ -1225,65 +1203,52 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
-	if (pHouse)
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	auto buildCurrent = [&pHouse, &pHouseExt](BuildingTypeClass* pType, CellStruct cell)
 	{
-		const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+		if (!pType)
+			return;
 
-		if (pHouse == HouseClass::CurrentPlayer) // Prevent unexpected wrong event
+		if (pHouse->ShouldDisableCameo(pType)) // ShouldDisableCameo
 		{
-			auto buildCurrent = [&pHouse, &pHouseExt](BuildingTypeClass* pType, CellStruct cell) {
-				if (pType) {
-					if(pHouse->ShouldDisableCameo(pType)) {
-						auto& place = pType->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat;
-						ClearPlacingBuildingData(&place);
-						VoxClass::Play(GameStrings::EVA_CannotDeployHere);
-					} else if (pHouse == HouseClass::CurrentPlayer) // Prevent unexpected wrong event
-					{
-						const EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
-						EventClass::AddEvent(&event);
-					}
-				}
-			};
+			ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
 
-			if (pHouseExt->Common.Timer.Completed()) {
-				pHouseExt->Common.Timer.Stop();
-				buildCurrent(pHouseExt->Common.Type, pHouseExt->Common.TopLeft);
-			}
-
-			if (pHouseExt->Combat.Timer.Completed()) {
-				pHouseExt->Combat.Timer.Stop();
-				buildCurrent(pHouseExt->Common.Type, pHouseExt->Common.TopLeft);
-			}
+			if (pHouse == HouseClass::CurrentPlayer)
+				VoxClass::Play(GameStrings::EVA_CannotDeployHere);
 		}
-
-
-		auto& vec = pHouseExt->OwnedDeployingUnits;
-
-		for (auto it = vec.begin(); it != vec.end(); )
+		else if (pHouse == HouseClass::CurrentPlayer) // Prevent unexpected wrong event
 		{
-			const auto pUnit = *it;
-
-			if (!pUnit->InLimbo && pUnit->IsOnMap && !pUnit->IsSinking && pUnit->Owner == pHouse && !pUnit->Destination && pUnit->CurrentMission == Mission::Guard && !pUnit->ParasiteEatingMe && !pUnit->TemporalTargetingMe)
-			{
-				if (const auto pType = pUnit->Type)
-				{
-					if (pType->DeploysInto)
-					{
-						if (const auto pExt = TechnoExtContainer::Instance.Find(pUnit))
-						{
-							if (!(pExt->UnitAutoDeployTimer.GetTimeLeft() % 8))
-								pUnit->QueueMission(Mission::Unload, true);
-
-							++it;
-							continue;
-						}
-					}
-				}
-			}
-
-			it = vec.erase(it);
+			const EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
+			EventClass::AddEvent(&event);
 		}
+	};
+
+	if (pHouseExt->Common.Timer.Completed()) {
+		pHouseExt->Common.Timer.Stop();
+		buildCurrent(pHouseExt->Common.Type, pHouseExt->Common.TopLeft);
 	}
+
+	if (pHouseExt->Combat.Timer.Completed()) {
+		pHouseExt->Combat.Timer.Stop();
+		buildCurrent(pHouseExt->Common.Type, pHouseExt->Common.TopLeft);
+	}
+
+	pHouseExt->OwnedDeployingUnits.remove_all_if([pHouse](UnitClass* pUnit){
+		if (!pUnit->InLimbo && pUnit->IsOnMap && !pUnit->IsSinking && pUnit->Owner == pHouse && !pUnit->Destination && pUnit->CurrentMission == Mission::Guard && !pUnit->ParasiteEatingMe && !pUnit->TemporalTargetingMe) {
+			if (const auto pType = pUnit->Type) {
+				if (pType->DeploysInto) {
+					if (const auto pExt = TechnoExtContainer::Instance.Find(pUnit)) {
+						if (!(pExt->UnitAutoDeployTimer.GetTimeLeft() % 8))
+							pUnit->QueueMission(Mission::Unload, true);
+
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	});
 
 	return 0;
 }
@@ -1416,7 +1381,7 @@ ASMJIT_PATCH(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 	GET(BaseClass* const, pBase, ESI);
 	GET(BaseNodeClass* const, pBaseNode, EAX);
 
-	if (RulesExtData::Instance()->AIForbidConYard && pBaseNode->Placed)
+	if (pBaseNode->Placed)
 	{
 		const auto index = pBaseNode->BuildingTypeIndex;
 
@@ -1424,7 +1389,7 @@ ASMJIT_PATCH(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 		{
 			const auto pType = BuildingTypeClass::Array->Items[index];
 
-			if (BuildingTypeExtContainer::Instance.Find(pType)->LimboBuild)
+			if (RulesExtData::Instance()->AIForbidConYard || BuildingTypeExtContainer::Instance.Find(pType)->LimboBuild)
 				return Invalid;
 		}
 	}

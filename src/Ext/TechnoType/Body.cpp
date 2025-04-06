@@ -1471,6 +1471,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AmphibiousUnload.Read(exINI, pSection, "AmphibiousUnload");
 
 		this->DamagedSpeed.Read(exINI, pSection, "DamagedSpeed");
+		this->RadarInvisible_ToSelf.Read(exINI, pSection, "RadarInvisible.ToSelf");
+		this->RadarInvisible_ToAlly.Read(exINI, pSection, "RadarInvisible.ToAlly");
+
 		// Spawner range
 		this->ResetSpawnerRange();
 
@@ -2664,6 +2667,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AlternateFLH_OnTurret)
 		.Process(this->DamagedSpeed)
+		.Process(this->RadarInvisible_ToSelf)
+		.Process(this->RadarInvisible_ToAlly)
 		;
 }
 

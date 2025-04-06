@@ -1088,6 +1088,9 @@ public:
 	Valueable<bool> AlternateFLH_OnTurret { true };
 	Nullable<double> DamagedSpeed {};
 
+	Valueable<bool> RadarInvisible_ToSelf {};
+	Valueable<bool> RadarInvisible_ToAlly {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

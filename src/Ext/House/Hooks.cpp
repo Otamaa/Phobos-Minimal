@@ -352,7 +352,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	GET(HouseClass* const, pNewOwner, EBP);
 
 	auto const pType = pThis->GetTechnoType();
-	//auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	// pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
 	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -367,6 +367,10 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	//if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
 	//	TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	//}
+	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pThis->WhatAmI() == AbstractType::Unit && pType->DeploysInto)
+	{
+		pOldOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
+	}
 
 	OldOwner = pThis->Owner;
 	return 0;
