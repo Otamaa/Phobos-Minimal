@@ -134,7 +134,7 @@ struct Phobos final
 		static OPTIONALINLINE bool ArtImageSwap { false };
 
 		static OPTIONALINLINE bool EnableBuildingPlacementPreview { false };
-		static OPTIONALINLINE bool EnableSelectBrd { false };
+		static OPTIONALINLINE bool EnableSelectBox { false };
 
 		static OPTIONALINLINE bool TogglePowerInsteadOfRepair { false };
 		static OPTIONALINLINE bool ShowTechnoNamesIsActive { false };

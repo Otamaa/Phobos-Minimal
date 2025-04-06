@@ -2,6 +2,7 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
+#include <Point3D.h>
 
 class ColorTypeClass final : public Enumerable<ColorTypeClass>
 {

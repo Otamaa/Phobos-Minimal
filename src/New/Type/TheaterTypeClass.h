@@ -5,6 +5,7 @@
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/CSFText.h>
 
 class CCINIClass;
 class TheaterTypeClass final : public Enumerable<TheaterTypeClass>

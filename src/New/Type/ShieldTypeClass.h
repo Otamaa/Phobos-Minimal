@@ -6,6 +6,7 @@
 
 #include <New/Type/CursorTypeClass.h>
 
+#include <Point3D.h>
 
 class ShieldTypeClass final : public Enumerable<ShieldTypeClass>
 {

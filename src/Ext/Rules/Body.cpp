@@ -18,6 +18,7 @@
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
+#include <New/Type/SelectBoxTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -151,6 +152,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
+	SelectBoxTypeClass::LoadFromINIList(pINI);
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
@@ -188,6 +190,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
 	
+	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
+	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");
+
 	pData->InfantrySpeedData.Crawls.Read(iniEX, GameStrings::General, "ProneSpeed.Crawls");
 	pData->InfantrySpeedData.NoCrawls.Read(iniEX, GameStrings::General, "ProneSpeed.NoCrawls");
 
@@ -716,6 +721,7 @@ void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	GenericPrerequisite::AddDefaults();
 	HoverTypeClass::AddDefaults();
 	ShieldTypeClass::AddDefaults();
+	SelectBoxTypeClass::AddDefaults();
 }
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)

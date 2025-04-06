@@ -18,6 +18,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
     <ClCompile Include="src\Commands\DistributionMode.cpp" />
@@ -553,6 +554,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />
     <ClInclude Include="src\Commands\DetachFromTeam.h" />
     <ClInclude Include="src\Commands\DistributionMode.h" />

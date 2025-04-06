@@ -2539,6 +2539,7 @@ CoordStruct TechnoExtData::PassengerKickOutLocation(TechnoClass* pThis, FootClas
 	return CoordStruct::Empty;
 }
 
+/*
 void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool sIsDisguised)
 {
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -2602,6 +2603,73 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 		DSurface::Temp->DrawSHP(SelectBrdPAL, SelectBrdSHP,
 			frame, &vPos, pBound, nFlag, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
+}
+*/
+#include <New/Type/SelectBoxTypeClass.h>
+
+void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,RectangleStruct* pBounds)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if(!Phobos::Config::EnableSelectBox || !pTypeExt->HideSelectBox)
+		return;
+
+	const auto whatAmI = pThis->WhatAmI();
+
+	SelectBoxTypeClass* pSelectBox = nullptr;
+
+	if (pTypeExt->SelectBox.isset())
+		pSelectBox = pTypeExt->SelectBox.Get();
+	else if (whatAmI == InfantryClass::AbsID)
+		pSelectBox = RulesExtData::Instance()->DefaultInfantrySelectBox;
+	else if (whatAmI != BuildingClass::AbsID)
+		pSelectBox = RulesExtData::Instance()->DefaultUnitSelectBox;
+
+	if (!pSelectBox)
+		return;
+
+	const bool canSee = HouseClass::IsCurrentPlayerObserver() ? pSelectBox->ShowObserver :
+			EnumFunctions::CanTargetHouse(pSelectBox->Show, pThis->Owner, HouseClass::CurrentPlayer);
+
+	if (!canSee)
+		return;
+
+	ConvertClass* pPalette = FileSystem::PALETTE_PAL;
+	if(pSelectBox->Palette)
+		pPalette = pSelectBox->Palette->GetConvert<PaletteManager::Mode::Temperate>() ;
+
+	if (!pPalette)
+		return;
+
+	const auto pShape = pSelectBox->Shape.Get();
+
+	if (!pShape)
+		return;
+
+	Vector3D<int> selectboxFrame = pSelectBox->Frame.Get();
+
+	if (selectboxFrame.X == -1)
+		selectboxFrame = whatAmI == InfantryClass::AbsID ? Vector3D<int>::Empty : Vector3D<int> { 3,3,3 };
+
+	const int frame = pThis->IsGreenHP() ? selectboxFrame.X : pThis->IsYellowHP() ? selectboxFrame.Y : selectboxFrame.Z;
+
+	Point2D basePoint = *pLocation;
+
+	if (pSelectBox->Grounded && whatAmI != BuildingClass::AbsID)
+	{
+		CoordStruct coords = pThis->GetCenterCoords();
+		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
+		auto [pp, coo] = TacticalClass::Instance->GetCoordsToClientSituation(coords);
+		basePoint = pp;
+
+		if (!coo)
+			return;
+	}
+
+	Point2D drawPoint = basePoint + pSelectBox->Offset.Get() + Point2D { 2, pTypeExt->AttachedToObject->PixelSelectionBracketDelta + 1 };
+	const auto flags = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | pSelectBox->Translucency;
+
+	DSurface::Composite->DrawSHP(pPalette, pShape, frame, &drawPoint, pBounds, flags, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 }
 
 std::pair<TechnoTypeClass*, HouseClass*> TechnoExtData::GetDisguiseType(TechnoClass* pTarget, bool CheckHouse, bool CheckVisibility, bool bVisibleResult)

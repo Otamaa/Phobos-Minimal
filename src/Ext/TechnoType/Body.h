@@ -90,7 +90,7 @@ struct BurstFLHBundle
 
 class Matrix3D;
 class DigitalDisplayTypeClass;
-
+class SelectBoxTypeClass;
 class TechnoTypeExtData
 {
 public:
@@ -267,13 +267,8 @@ public:
 
 	Nullable<PartialVector2D<double>> InitialStrength_Cloning {};
 
-	Nullable<SHPStruct*> SHP_SelectBrdSHP {};
-	Valueable<PaletteManager*> SHP_SelectBrdPAL {}; //CustomPalette::PaletteMode::Temperate
-	Nullable<bool> UseCustomSelectBrd {};
-	Nullable<Point3D> SelectBrd_Frame {};
-	Nullable<Point2D> SelectBrd_DrawOffset {};
-	Nullable<int> SelectBrd_TranslucentLevel {};
-	Nullable<bool> SelectBrd_ShowEnemy {};
+	Nullable<SelectBoxTypeClass*> SelectBox {};
+	Valueable<bool> HideSelectBox {};
 
 	Nullable<CoordStruct> PronePrimaryFireFLH {};
 	Nullable<CoordStruct> ProneSecondaryFireFLH {};

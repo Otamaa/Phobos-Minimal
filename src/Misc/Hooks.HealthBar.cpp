@@ -256,11 +256,12 @@ namespace DrawHeathData
 
 		if (pThis->IsSelected)
 		{
-			nPoint.X = nLocation.X + (bIsInfantry ? 11 : 1);
-			nPoint.Y = nLocation.Y + nBracketDelta - (bIsInfantry ? 25 : 26);
+			//nPoint.X = nLocation.X + (bIsInfantry ? 11 : 1);
+			//nPoint.Y = nLocation.Y + nBracketDelta - (bIsInfantry ? 25 : 26);
 
-			DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-			TechnoExtData::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
+			//DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			//TechnoExtData::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
+			TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
 		}
 
 		const int nOffsetX = (bIsInfantry ? -5 : -15);

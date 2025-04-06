@@ -12,6 +12,7 @@
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/SelectBoxTypeClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -517,13 +518,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->InsigniaDrawOffset.Read(exINI, pSection, "Insignia.DrawOffset");
 		this->InitialStrength_Cloning.Read(exINI, pSection, "InitialStrength.Cloning");
 
-		this->SHP_SelectBrdSHP.Read(exINI, pSection, "SelectBrd.SHP");
-		this->SHP_SelectBrdPAL.Read(exINI, pSection, "SelectBrd.PAL");
-		this->UseCustomSelectBrd.Read(exINI, pSection, "UseCustomSelectBrd");
-		this->SelectBrd_Frame.Read(exINI, pSection, "SelectBrd.Frame");
-		this->SelectBrd_DrawOffset.Read(exINI, pSection, "SelectBrd.DrawOffset");
-		this->SelectBrd_TranslucentLevel.Read(exINI, pSection, "SelectBrd.TranslucentLevel");
-		this->SelectBrd_ShowEnemy.Read(exINI, pSection, "SelectBrd.ShowEnemy");
+		this->SelectBox.Read(exINI, pSection, "SelectBox");
+		this->HideSelectBox.Read(exINI, pSection, "HideSelectBox");
 
 		this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
 		this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransDelay");
@@ -1938,15 +1934,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->InsigniaFrames)
 		.Process(this->InsigniaDrawOffset)
 		.Process(this->InitialStrength_Cloning)
-		.Process(this->UseCustomSelectBrd)
-
-		.Process(this->SHP_SelectBrdSHP)
-		.Process(this->SHP_SelectBrdPAL)
-		.Process(this->UseCustomSelectBrd)
-		.Process(this->SelectBrd_Frame)
-		.Process(this->SelectBrd_DrawOffset)
-		.Process(this->SelectBrd_TranslucentLevel)
-		.Process(this->SelectBrd_ShowEnemy)
+		.Process(this->SelectBox)
+		.Process(this->HideSelectBox)
 
 		.Process(this->MobileRefinery)
 		.Process(this->MobileRefinery_TransRate)

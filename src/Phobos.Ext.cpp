@@ -56,6 +56,7 @@
 #include <New/Type/ThemeTypeClass.h>
 #include <New/Type/BarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
+#include <New/Type/SelectBoxTypeClass.h>
 
 #include <New/HugeBar.h>
 
@@ -445,7 +446,8 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	SWFirerClass::Clear();
 	ShieldClass::Array.clear();
 	InsigniaTypeClass::Clear();
-	
+	SelectBoxTypeClass::Clear();
+
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
 		TechnoExtContainer::Instance.Pool.reserve(2000);
@@ -646,7 +648,8 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<RocketTypeClass>(pStm) &&
 		Process_Load<BarTypeClass>(pStm) &&
 		Process_Load<SWFirerClass>(pStm) &&
-		Process_Load<InsigniaTypeClass>(pStm)
+		Process_Load<InsigniaTypeClass>(pStm) && 
+		Process_Load<SelectBoxTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -718,7 +721,8 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<RocketTypeClass>(pStm) &&
 			Process_Save<BarTypeClass>(pStm) &&
 			Process_Save<SWFirerClass>(pStm) &&
-			Process_Save<InsigniaTypeClass>(pStm)
+			Process_Save<InsigniaTypeClass>(pStm) && 
+			Process_Save<SelectBoxTypeClass>(pStm)
 			;
 
 		if (!ret)

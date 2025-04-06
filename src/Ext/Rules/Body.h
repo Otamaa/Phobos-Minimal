@@ -24,7 +24,7 @@ class VocClass;
 class WarheadTypeClass;
 class DigitalDisplayTypeClass;
 class CursorTypeClass;
-
+class SelectBoxTypeClass;
 class RulesExtData final
 {
 private:
@@ -506,6 +506,9 @@ public:
 	
 	Valueable<bool> ColorAddUse8BitRGB { false };
 	Valueable<double> DamagedSpeed { 0.75 };
+
+	Valueable<SelectBoxTypeClass*> DefaultInfantrySelectBox {};
+	Valueable<SelectBoxTypeClass*> DefaultUnitSelectBox {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
