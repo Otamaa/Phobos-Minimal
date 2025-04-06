@@ -3,6 +3,7 @@
 #include "Commands.h"
 #include <Utilities/Debug.h>
 #include <Utilities/GeneralUtils.h>
+#include <EASTL/utility.h>
 
 class FrameByFrameCommandClass : public PhobosCommandClass
 {
@@ -40,7 +41,7 @@ template<size_t Frame>
 OPTIONALINLINE const wchar_t* FrameStepCommandClass<Frame>::GetUIName() const
 {
 	const wchar_t* csfString = StringTable::TryFetchString("TXT_STEP_XX_FORWARD", L"Step Forward %d Frames");
-	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Frame);
+	_snwprintf_s(Phobos::wideBuffer, eastl::size(Phobos::wideBuffer), csfString, Frame);
 	return Phobos::wideBuffer;
 }
 
@@ -54,7 +55,7 @@ template<size_t Frame>
 OPTIONALINLINE const wchar_t* FrameStepCommandClass<Frame>::GetUIDescription() const
 {
 	const wchar_t* csfString = StringTable::TryFetchString("TXT_STEP_XX_FORWARD_DESC", L"Frame Step Only: Step forward %d frames.");
-	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Frame);
+	_snwprintf_s(Phobos::wideBuffer, eastl::size(Phobos::wideBuffer), csfString, Frame);
 	return Phobos::wideBuffer;
 }
 

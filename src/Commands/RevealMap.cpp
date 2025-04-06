@@ -6,6 +6,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Reveal.h>
 #include <Utilities/GeneralUtils.h>
+#include <EASTL/vector.h>
 
 const char* RevealMapCommandClass::GetName() const
 {
@@ -30,7 +31,8 @@ const wchar_t* RevealMapCommandClass::GetUIDescription() const
 #include <Misc/MapRevealer.h>
 #include <Ext/Event/Body.h>
 
-static std::vector<std::vector<TechnoClass*>> DumpedTechno;
+static eastl::vector<eastl::vector<TechnoClass*>> DumpedTechno;
+
 void NOINLINE ClearDumped()
 {
 	DumpedTechno.clear();

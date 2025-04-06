@@ -8,7 +8,7 @@
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
 
-#include <format>
+#include <EASTL/string.h>
 
 const char* ShowAnimNameCommandClass::GetName() const
 {
@@ -70,7 +70,7 @@ void ShowAnimNameCommandClass::AI()
 			//		Debug::LogInfo("Anim [%s - %x] Attahed to DeadObject[%s - %x] , WTF ?", pTech->Type->ID , pTech , pTechnoOwnerObject->get_ID() , pTechnoOwnerObject);
 			//}
 
-			std::wstring pText(sizeof(pTech->Type->ID) + 0x1, L'#');
+			eastl::wstring pText(sizeof(pTech->Type->ID) + 0x1, L'#');
 			mbstowcs(&pText[0], pTech->Type->ID, 0x18 );
 			Point2D pixelOffset = Point2D::Empty;
 			int width = 0, height = 0;

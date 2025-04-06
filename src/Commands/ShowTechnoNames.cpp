@@ -8,6 +8,8 @@
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
 
+#include <EASTL/string.h>
+
 const char* ShowTechnoNameCommandClass::GetName() const
 {
 	return "Show Techno Names";
@@ -64,7 +66,7 @@ void ShowTechnoNameCommandClass::AI()
 					continue;
 			}
 
-			std::wstring pText((size_t)(0x18 + 1), L'#');
+			eastl::wstring pText((size_t)(0x18 + 1), L'#');
 			mbstowcs(&pText[0], pTech->get_ID(), 0x18);
 
 			if (pText.empty())

@@ -5,6 +5,7 @@
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/SuperWeaponSidebar/SWColumnClass.h>
 #include <New/SuperWeaponSidebar/SWButtonClass.h>
+#include <EASTL/utility.h>
 
 template<size_t Index>
 class FireTacticalSWCommandClass : public PhobosCommandClass
@@ -27,7 +28,7 @@ template<size_t Index>
 OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUIName() const
 {
 	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX", L"Fire Super Weapon %d");
-	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index);
+	_snwprintf_s(Phobos::wideBuffer, eastl::size(Phobos::wideBuffer), csfString, Index);
 	return Phobos::wideBuffer;
 }
 
@@ -41,7 +42,7 @@ template<size_t Index>
 OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUIDescription() const
 {
 	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX_DESC", L"Fires the Super Weapon at position %d in the Super Weapon sidebar.");
-	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index);
+	_snwprintf_s(Phobos::wideBuffer, eastl::size(Phobos::wideBuffer), csfString, Index);
 	return Phobos::wideBuffer;
 }
 

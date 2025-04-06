@@ -7,6 +7,8 @@
 #include <HouseClass.h>
 #include <PlanningTokenClass.h>
 
+#include <EASTL/map.h>
+
 int DistributionMode1CommandClass::Mode = 0;
 int DistributionMode2CommandClass::Mode = 0;
 
@@ -81,7 +83,7 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 
 			const auto range = (2 << mode1);
 			const auto pItems = Helpers::Alex::getCellSpreadItems(pTarget->Location, range);
-			std::map<TechnoClass*, int> record;
+			eastl::map<TechnoClass*, int> record {};
 			int current = 1;
 
 			for (const auto& pItem : pItems)
@@ -136,8 +138,10 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 
 				if (pNewTarget)
 				{
-					if (record.contains(pNewTarget))
-						++record[pNewTarget];
+					auto it = record.find(pNewTarget);
+
+					if (it != record.end())
+						++it->second;
 
 					pSelect->ObjectClickedAction(mouseAction, pNewTarget, false);
 				}

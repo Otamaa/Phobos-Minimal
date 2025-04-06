@@ -180,6 +180,10 @@ namespace eastl
 		T& at(const Key& key);
 		const T& at(const Key& key) const;
 
+		bool contains(const Key& key) const {
+			return this->find(key) != this->end();
+		}
+
 		template <class... Args> eastl::pair<iterator, bool> try_emplace(const key_type& k, Args&&... args);
 		template <class... Args> eastl::pair<iterator, bool> try_emplace(key_type&& k, Args&&... args);
 		template <class... Args> iterator                    try_emplace(const_iterator position, const key_type& k, Args&&... args);
