@@ -6559,34 +6559,44 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E80, FakeUnitClass::_Mission_Attack);
 static void ProcessColorAdd(CCINIClass* pINI) {
 	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
 
-	if (count > 0)
-	{
-		struct temp_rgb
-		{
+	if (count > 0) {
+		struct temp_rgb {
 			byte r, g, b;
-		};
-		std::vector<temp_rgb> v_buffer ;
-		v_buffer.resize(count);
 
-		for (int i = 0; i < count; ++i)
-		{
+			temp_rgb& operator=(const byte(&arr)[3]) {
+				r = arr[0];
+				g = arr[1];
+				b = arr[2];
+				return *this;
+			}
+
+			operator ColorStruct() {
+				return *reinterpret_cast<ColorStruct*>(this);
+			}
+			
+		};
+
+		//this was for debugging purposes 
+		//the code below can be simplified
+		std::vector<temp_rgb> v_buffer(count);
+
+		for (size_t i = 0; i < v_buffer.size(); ++i) {
 			byte buffer[3] = {};
 			pINI->Read3Bytes(buffer, GameStrings::ColorAdd, pINI->GetKeyName(GameStrings::ColorAdd, i), buffer);
-			v_buffer[i].r = buffer[0];
-			v_buffer[i].g = buffer[1];
-			v_buffer[i].b = buffer[2];
+			v_buffer[i] = buffer;
 		}
 
-		if ((size_t)count >= RulesClass::Instance->ColorAdd.size())
-		{
+		if ((size_t)count >= RulesClass::Instance->ColorAdd.size()) {
 			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
 			Debug::RegisterParserError();
 		}
 
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
-		{
-			RulesClass::Instance->ColorAdd[a] = *reinterpret_cast<ColorStruct*>(&v_buffer[a]);
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
+			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
 		}
+
+	} else {
+		Debug::FatalErrorAndExit("Empty ColorAdd\n");
 	}
 }
 
