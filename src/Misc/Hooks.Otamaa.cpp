@@ -2444,8 +2444,9 @@ ASMJIT_PATCH(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	// if(auto pTargetTech = generic_cast<ObjectClass*>(pThis))
-	// 		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
+	// draw line if the techno has target
+	 //if(auto pTargetTech = flag_cast_to<ObjectClass*>(pThis->Target))
+	 //		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
 
 	if (pThis->InLimbo)
 		return 0x0;
@@ -6531,4 +6532,74 @@ ASMJIT_PATCH(0x41D9A0, AirstrikClass_Setup, 0x6)
 	pTarget->UpdatePlacement(PlacementType::Redraw);
 
 	return 0x41DA0B;
+}
+
+int FakeUnitClass::_Mission_Attack()
+{
+	if (this->BunkerLinkedItem && this->Target){
+		auto err = this->GetFireError(this->Target, this->SelectWeapon(this->Target), false);
+
+		if (err == FireError::CANT || err ==FireError::RANGE) {
+
+			this->SetTarget(nullptr);
+			this->EnterIdleMode(false, 1u);
+
+			auto control = this->GetCurrentMissionControl();
+			double rate = control->Rate * 900.0;
+			return (int)rate + ScenarioClass::Instance->Random.RandomRanged(0, 2);
+		}
+	}
+
+	return FootClass::Mission_Attack();
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x7447A0,  FakeUnitClass::_Mission_Attack);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E80, FakeUnitClass::_Mission_Attack);
+
+static void ProcessColorAdd(CCINIClass* pINI) {
+	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+
+	if (count > 0)
+	{
+		struct temp_rgb
+		{
+			byte r, g, b;
+		};
+		std::vector<temp_rgb> v_buffer ;
+		v_buffer.resize(count);
+
+		for (int i = 0; i < count; ++i)
+		{
+			byte buffer[3] = {};
+			pINI->Read3Bytes(buffer, GameStrings::ColorAdd, pINI->GetKeyName(GameStrings::ColorAdd, i), buffer);
+			v_buffer[i].r = buffer[0];
+			v_buffer[i].g = buffer[1];
+			v_buffer[i].b = buffer[2];
+		}
+
+		if ((size_t)count >= RulesClass::Instance->ColorAdd.size())
+		{
+			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
+			Debug::RegisterParserError();
+		}
+
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
+		{
+			RulesClass::Instance->ColorAdd[a] = *reinterpret_cast<ColorStruct*>(&v_buffer[a]);
+		}
+	}
+}
+
+ASMJIT_PATCH(0x668C24, RulesClass_Process_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, ESI);
+	ProcessColorAdd(pINI);
+	return 0x668C8B;
+}
+
+ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, EDI);
+	ProcessColorAdd(pINI);
+	return 0x668B8E;
 }

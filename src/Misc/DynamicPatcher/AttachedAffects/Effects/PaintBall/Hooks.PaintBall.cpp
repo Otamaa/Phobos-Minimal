@@ -214,18 +214,24 @@ ASMJIT_PATCH(0x43D442, BuildingClass_Draw_ForceShieldICColor, 0x7)
 ASMJIT_PATCH(0x43D396, BuildingClass_Draw_LaserTargetColor, 0x6) {
 	GET(BuildingClass*, pThis, ESI);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
-	R->ECX(RulesClass::Instance());
-	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
-	return 0x43D39C;
+	const ColorStruct clr = GeneralUtils::GetColorStructFromColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor);
+	
+	R->BL(clr.G);
+	R->Stack8(0x11 , clr.R);
+	R->Stack8(0x12, clr.B);
+	return 0x43D3CA;
 }
 
 ASMJIT_PATCH(0x42343C, AnimClass_Draw_Airstrike, 0x6)
 {
 	GET(BuildingClass*, pBld, ECX);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Airstrike->Owner->GetTechnoType());
-	R->ECX(RulesClass::Instance());
-	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
-	return 0x423448;
+	const ColorStruct clr = GeneralUtils::GetColorStructFromColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor);
+
+	R->Stack8(0x1B, clr.R);
+	R->Stack8(0x1A, clr.G);
+	R->Stack8(0x13, clr.B);
+	return 0x42347B;
 }
 
 ASMJIT_PATCH(0x43DC30, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
@@ -234,9 +240,12 @@ ASMJIT_PATCH(0x43DC30, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
 
 	GET(BuildingClass*, pThis, EBP);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
-	R->ECX(RulesClass::Instance());
-	R->EAX(GeneralUtils::GetColorIndexForColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor));
-	return 0x43DC3C;
+	const ColorStruct clr = GeneralUtils::GetColorStructFromColorAdd(pTypeExt->LaserTargetColor.isset() ? pTypeExt->LaserTargetColor : RulesClass::Instance->LaserTargetColor);
+
+	R->BL(clr.G);
+	R->Stack8(0x13, clr.R);
+	R->Stack8(0x12, clr.B);
+	return 0x43DC64;
 }
 
 ASMJIT_PATCH(0x43DCE1, BuildingClass_Draw2_ForceShieldICColor, 0x7)

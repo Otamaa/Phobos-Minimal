@@ -293,16 +293,17 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
 template<typename T>
-static COMPILETIMEEVAL void FillSecrets(DynamicVectorClass<T>& secrets) {
+static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
 
 	for(auto Option : secrets){
 		RulesExtData::Instance()->Secrets.emplace_back(Option);
-		Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
+		//Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
 	}
 }
 
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-{	// create an array of crew for faster lookup
+{	
+	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
 	{
@@ -591,7 +592,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto const& pConst : RulesClass::Instance->BuildConst)
+	for (auto& pConst : RulesClass::Instance->BuildConst)
 	{
 		if (!pConst->AIBuildThis)
 		{

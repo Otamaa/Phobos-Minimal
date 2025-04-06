@@ -1,5 +1,7 @@
 #include <Phobos.h>
 
+#include <Phobos.lib.h>
+
 #ifdef ENABLE_CLR
 #include <Scripting/CLR.h>
 #endif

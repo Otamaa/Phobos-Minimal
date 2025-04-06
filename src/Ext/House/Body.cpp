@@ -400,7 +400,9 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 		}
 	}
 
-	return isAvaible; //none of the check pass
+	//FactoryOwners empty , so it should return true 
+	// otherwise we use isAvaible to check if we found any factory
+	return pExt->FactoryOwners.empty() ? true : isAvaible;
 }
 
 void HouseExtData::UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added)

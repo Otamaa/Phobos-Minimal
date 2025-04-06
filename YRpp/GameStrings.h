@@ -102,6 +102,7 @@ struct GameStrings
 	GAMEMD_STR(OverlayPack, 0x833484u);
 	GAMEMD_STR(OverlayDataPack, 0x833474u);
 	GAMEMD_STR(Colors, 0x839E5Cu);
+	GAMEMD_STR(ColorAdd, 0x839E50u);
 	GAMEMD_STR(Waypoints, 0x82DB0Cu);
 	GAMEMD_STR(VariableNames, 0x83D824u);
 	GAMEMD_STR(Video, 0x833160u);
