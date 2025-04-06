@@ -10,6 +10,11 @@
 #include <Locomotor/HoverLocomotionClass.h>
 #include <Locomotor/Cast.h>
 
+namespace TransportUnloadTemp
+{
+	bool ShouldPlaySound = false;
+}
+
 static OPTIONALINLINE void PlayUnitLeaveTransportSound(UnitClass* pThis) {
 	if (pThis->Type->LeaveTransportSound != -1)
 		VoxClass::PlayAtPos(pThis->Type->LeaveTransportSound, &pThis->Location);
@@ -218,29 +223,31 @@ ASMJIT_PATCH(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
 		{
 			// If unloading is required within one frame, the sound will only be played when the last passenger leaves
 			PlayUnitLeaveTransportSound(pThis);
+			TransportUnloadTemp::ShouldPlaySound = false;
 			pThis->MissionStatus = 4; // Then guard
 			return UnloadReturn;
 		}
 		else if (!CanUnloadNow(pThis, pPassenger))
 		{
 			PlayUnitLeaveTransportSound(pThis);
-			pThis->MissionStatus = 0; // Then retry
+			TransportUnloadTemp::ShouldPlaySound = false;
+			pThis->MissionStatus = 0; // Retry
 			return NoUnloadReturn;
 		}
 
+		TransportUnloadTemp::ShouldPlaySound = false;
 		R->EBX(0); // Reset
 		return UnloadLoop;
-	}
-	else if (pPassenger && !CanUnloadNow(pThis, pPassenger))
-	{
-		PlayUnitLeaveTransportSound(pThis);
-		pThis->MissionStatus = 0; // Then retry
-		return NoUnloadReturn;
 	}
 
 	// PlayAtPos has already handled the situation where Sound is less than 0 internally, so unnecessary checks will be skipped
 	PlayUnitLeaveTransportSound(pThis);
-	return UnloadReturn;
+
+	if (!pPassenger || CanUnloadNow(pThis, pPassenger))
+		return UnloadReturn;
+
+	pThis->MissionStatus = 0; // Retry
+	return NoUnloadReturn;
 }
 
 ASMJIT_PATCH(0x70D965, FootClass_QueueEnter_ForceEnter, 0x7)
@@ -249,7 +256,11 @@ ASMJIT_PATCH(0x70D965, FootClass_QueueEnter_ForceEnter, 0x7)
 
 	const auto pDest = cast_to<UnitClass*>(pThis->QueueUpToEnter);
 
-	if (pDest && !pThis->Deactivated && !pThis->IsUnderEMP() && !pThis->Locomotor->Is_Moving() && TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter))
+	if (pDest
+	&& TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter)
+	&& !pThis->Deactivated 
+	&& !pThis->IsUnderEMP()
+	&& !pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems
 	{
 		const auto absType = pThis->WhatAmI();
 		// When the distance is very close, the passengers may not move, which can cause UpdatePosition to not be called
@@ -279,9 +290,27 @@ ASMJIT_PATCH(0x73DC9C, UnitClass_Mission_Unload_NoQueueUpToUnloadBreak, 0xA)
 	// Restore vanilla function
 	pPassenger->Undiscover();
 
+	// Clean up the unload space
+	const bool alt = pThis->OnBridge;
+	const auto pCell = pThis->GetCell();
+	const auto coord = pCell->GetCoords();
+
+	for (int i = 0; i < 8; ++i)
+	{
+		const auto pAdjCell = pCell->GetNeighbourCell(static_cast<FacingType>(i));
+		const auto pTechno = pAdjCell->FindTechnoNearestTo(Point2D::Empty, alt, pThis);
+
+		if (pTechno && pTechno->Owner->IsAlliedWith(pThis))
+			pAdjCell->ScatterContent(coord, true, true, alt);
+	}
+
 	// Play the sound when interrupted for some reason
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoQueueUpToUnload.Get(RulesExtData::Instance()->NoQueueUpToUnload))
-		PlayUnitLeaveTransportSound(pThis);
+	if (TransportUnloadTemp::ShouldPlaySound)
+	{
+		TransportUnloadTemp::ShouldPlaySound = false;
+		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoQueueUpToUnload.Get(RulesExtData::Instance()->NoQueueUpToUnload))
+			PlayUnitLeaveTransportSound(pThis);
+	}
 
 	return SkipGameCode;
 }
@@ -291,14 +320,13 @@ ASMJIT_PATCH(0x73796B, UnitClass_ReceiveCommand_AmphibiousEnter, 0x7)
 {
 	enum { ContinueCheck = 0x737990, MoveToPassenger = 0x737974 };
 
-	GET(CellClass* const, pCell, EBP);
-
-	if (pCell->LandType != LandType::Water)
-		return ContinueCheck;
-
 	GET(UnitClass* const, pThis, ESI);
 
-	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousEnter.Get(RulesExtData::Instance()->AmphibiousEnter) ? ContinueCheck : MoveToPassenger;
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousEnter.Get(RulesExtData::Instance()->AmphibiousEnter))
+	return ContinueCheck;
+
+	GET(CellClass* const, pCell, EBP);
+	return (pCell->LandType != LandType::Water) ? ContinueCheck : MoveToPassenger;
 }
 
 ASMJIT_PATCH(0x74004B, UnitClass_MouseOverObject_AmphibiousUnload, 0x6)
@@ -319,7 +347,7 @@ ASMJIT_PATCH(0x70106A, TechnoClass_CanDeploySlashUnload_AmphibiousUnload, 0x6)
 	return !pThis->Owner->IsHumanPlayer || CanUnloadLater(pThis) ? ContinueCheck : CannotUnload;
 }
 
-ASMJIT_PATCH(0x73D769, UnitClass_Mission_Unload_ReplaceLandTypeCheck, 0x7)
+ASMJIT_PATCH(0x73D769, UnitClass_Mission_Unload_AmphibiousUnload, 0x7)
 {
 	enum { MoveToLand = 0x73D772, UnloadCheck = 0x73D7E4 };
 
@@ -328,6 +356,27 @@ ASMJIT_PATCH(0x73D769, UnitClass_Mission_Unload_ReplaceLandTypeCheck, 0x7)
 	const auto pPassenger = pThis->Passengers.GetFirstPassenger();
 
 	return (!pPassenger || CanUnloadNow(pThis, pPassenger)) ? UnloadCheck : MoveToLand;
+}
+
+ASMJIT_PATCH(0x73D7AB, UnitClass_Mission_Unload_FindUnloadPosition, 0x5)
+{
+	GET(UnitClass* const, pThis, ESI);
+
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload
+			.Get(RulesExtData::Instance()->AmphibiousUnload))
+	{
+		if (const auto pPassenger = pThis->Passengers.GetFirstPassenger())
+		{
+			REF_STACK(SpeedType, speedType, STACK_OFFSET(0xBC, -0xB4));
+			REF_STACK(MovementZone, movementZone, STACK_OFFSET(0xBC, -0xAC));
+
+			const auto pType = pPassenger->GetTechnoType();
+			speedType = pType->SpeedType; // Replace hard code SpeedType::Wheel
+			movementZone = pType->MovementZone; // Replace hard code MovementZone::Normal
+		}
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x73D7B7, UnitClass_Mission_Unload_CheckInvalidCell, 0x6)
@@ -339,7 +388,7 @@ ASMJIT_PATCH(0x73D7B7, UnitClass_Mission_Unload_CheckInvalidCell, 0x6)
 	return cell != CellStruct::Empty ? 0 : CannotUnload;
 }
 
-ASMJIT_PATCH(0x740C9C, UnitClass_vt_entry_304_ReplaceSpeedType, 0x7)
+ASMJIT_PATCH(0x740C9C, UnitClass_GetUnloadDirection_CheckUnloadPosition, 0x7)
 {
 	GET(UnitClass* const, pThis, EDI);
 
@@ -348,21 +397,23 @@ ASMJIT_PATCH(0x740C9C, UnitClass_vt_entry_304_ReplaceSpeedType, 0x7)
 		if (const auto pPassenger = pThis->Passengers.GetFirstPassenger())
 		{
 			GET(const int, speedType, EDX);
-			R->EDX(speedType + static_cast<int>(pPassenger->GetTechnoType()->SpeedType)); // For GroundType.Cost
+			R->EDX(speedType 
+				+ static_cast<int>(pPassenger->GetTechnoType()->SpeedType)); // Replace hard code SpeedType::Foot
 		}
 	}
 
 	return 0;
 }
 
-ASMJIT_PATCH(0x73DAB9, UnitClass_Mission_Unload_ReplaceMovementZone, 0x5)
+ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 {
 	GET(UnitClass* const, pThis, ESI);
 
 	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
 	{
-		GET(FootClass* const, pFoot, EDI);
-		R->EDX(pFoot->GetTechnoType()->MovementZone); // Replace hard code
+		GET(FootClass* const, pPassenger, EDI);
+		REF_STACK(MovementZone, movementZone, STACK_OFFSET(0xBC, -0xAC));
+		movementZone = pPassenger->GetTechnoType()->MovementZone; // Replace hard code MovementZone::Normal
 	}
 
 	return 0;
@@ -373,13 +424,14 @@ ASMJIT_PATCH(0x70D894, FootClass_UpdateEnter_UpdateEnterPosition, 0x7)
 	GET(FootClass* const, pThis, ESI);
 	GET(UnitClass* const, pDest, EDI); // Is techno not unit, only for convenience
 
-	if (pDest->WhatAmI() == AbstractType::Unit && !pThis->Deactivated && !pThis->IsUnderEMP() && !pDest->Locomotor->Is_Moving())
+	if (pDest->WhatAmI() == AbstractType::Unit 
+	&& TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter)
+	&& !pThis->Deactivated && !pThis->IsUnderEMP() && !pDest->Locomotor->Is_Moving())
 	{
 		if (IsCloseEnoughToEnter(pDest, pThis))
 		{
-			if (TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter))
+			if (!pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems)
 			{
-				if (!pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems
 				{
 					const auto absType = pThis->WhatAmI();
 
@@ -398,7 +450,6 @@ ASMJIT_PATCH(0x70D894, FootClass_UpdateEnter_UpdateEnterPosition, 0x7)
 		}
 		else if (!pThis->Destination) // Move to enter position, prevent other passengers from waiting for call and not moving early
 		{
-			if (TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter))
 			{
 				auto cell = CellStruct::Empty;
 				pThis->NearbyLocation(&cell, pDest);

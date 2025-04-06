@@ -149,3 +149,67 @@ ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget
 		? ReturnFromFunction : Continue;
 }
+
+ASMJIT_PATCH(0x4D92BF, FootClass_Mission_Enter_CheckLink, 0x5)
+{
+	enum { NextAction = 0x4D92ED, NotifyUnlink = 0x4D92CE, DoNothing = 0x4D946C };
+
+	GET(UnitClass* const, pThis, ESI);
+	GET(const RadioCommand, answer, EAX);
+	// Restore vanilla check
+	if (pThis->IsTethered || answer == RadioCommand::AnswerPositive)
+		return NextAction;
+	// The link should not be disconnected while the transporter is in motion (passengers waiting to enter),
+	// as this will result in the first passenger not getting on board
+	return answer == RadioCommand::RequestLoading ? DoNothing : NotifyUnlink;
+}
+
+#include <Locomotor/LocomotionClass.h>
+#include <Locomotor/ShipLocomotionClass.h>
+
+ASMJIT_PATCH(0x4B08EF, DriveLocomotionClass_Process_CheckUnload, 0x5)
+{
+	enum { SkipGameCode = 0x4B078C, ContinueProcess = 0x4B0903 };
+
+	GET(ILocomotion* const, iloco, ESI);
+
+	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
+
+	if (pFoot->GetCurrentMission() != Mission::Unload)
+		return ContinueProcess;
+
+	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
+}
+
+ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
+{
+	enum { SkipGameCode = 0x69FE39, ContinueProcess = 0x69FFCA };
+
+	GET(ILocomotion* const, iloco, ESI);
+
+	__assume(iloco != nullptr);
+
+	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
+
+	if (pFoot->GetCurrentMission() != Mission::Unload)
+		return ContinueProcess;
+
+	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
+}
+
+// Rewrite from 0x718505
+
+ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
+{
+	GET(TechnoTypeClass* const, pType, EAX);
+
+	auto movementZone = pType->MovementZone;
+
+	if (movementZone == MovementZone::Fly || movementZone == MovementZone::Destroyer)
+		movementZone = MovementZone::Normal;
+	else if (movementZone == MovementZone::AmphibiousDestroyer)
+		movementZone = MovementZone::Amphibious;
+
+	R->EBP(movementZone);
+	return R->Origin() + 0x6;
+}ASMJIT_PATCH_AGAIN(0x7190B0, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
