@@ -18,6 +18,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
@@ -554,6 +555,11 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
+    <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
+    <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
+    <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
+    <ClInclude Include="src\ExtraHeaders\StackVector.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />
     <ClInclude Include="src\Commands\DetachFromTeam.h" />

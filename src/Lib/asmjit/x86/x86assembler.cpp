@@ -554,26 +554,26 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(InstId instId, const Operand_& o0, con
     InstOptions::kX86_XAcquire |   // XACQUIRE prefix.
     InstOptions::kX86_XRelease ;   // XRELEASE prefix.
 
-  Error err;
+  Error err {};
 
-  Opcode opcode;                   // Instruction opcode.
-  InstOptions options;             // Instruction options.
-  uint32_t isign3;                 // A combined signature of first 3 operands.
+  Opcode opcode {};                   // Instruction opcode.
+  InstOptions options {};             // Instruction options.
+  uint32_t isign3 {};                 // A combined signature of first 3 operands.
 
-  const Operand_* rmRel;           // Memory operand or operand that holds Label|Imm.
-  uint32_t rmInfo;                 // Memory operand's info based on x86MemInfo.
-  uint32_t rbReg = 0;              // Memory base or modRM register.
-  uint32_t rxReg;                  // Memory index register.
-  uint32_t opReg;                  // ModR/M opcode or register id.
+  const Operand_* rmRel {};           // Memory operand or operand that holds Label|Imm.
+  uint32_t rmInfo {};                 // Memory operand's info based on x86MemInfo.
+  uint32_t rbReg {};              // Memory base or modRM register.
+  uint32_t rxReg {};                  // Memory index register.
+  uint32_t opReg {};                  // ModR/M opcode or register id.
 
-  LabelEntry* label;               // Label entry.
-  RelocEntry* re = nullptr;        // Relocation entry.
-  int32_t relOffset;               // Relative offset
-  FastUInt8 relSize = 0;           // Relative size.
-  uint8_t* memOpAOMark = nullptr;  // Marker that points before 'address-override prefix' is emitted.
+  LabelEntry* label {};               // Label entry.
+  RelocEntry* re {};        // Relocation entry.
+  int32_t relOffset {};               // Relative offset
+  FastUInt8 relSize {};           // Relative size.
+  uint8_t* memOpAOMark {};  // Marker that points before 'address-override prefix' is emitted.
 
-  int64_t immValue = 0;            // Immediate value (must be 64-bit).
-  FastUInt8 immSize = 0;           // Immediate size.
+  int64_t immValue {};            // Immediate value (must be 64-bit).
+  FastUInt8 immSize {};           // Immediate size.
 
   X86BufferWriter writer(this);
 
@@ -4947,7 +4947,7 @@ EmitRel:
 
     // Chain with label.
     size_t offset = size_t(writer.offsetFrom(_bufferData));
-    OffsetFormat of;
+	OffsetFormat of {};
     of.resetToSimpleValue(OffsetType::kSignedOffset, relSize);
 
     LabelLink* link = _code->newLabelLink(label, _section->id(), offset, relOffset, of);

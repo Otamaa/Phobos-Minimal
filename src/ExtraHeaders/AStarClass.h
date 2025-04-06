@@ -2,7 +2,7 @@
 
 #include <Base/Always.h>
 #include <CellClass.h>
-#include "PriorityQueueClass.h"
+#include <PriorityQueueClass.h>
 
 enum AStarPostProcessType : int
 {

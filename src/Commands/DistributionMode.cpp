@@ -81,7 +81,7 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 
 			const auto range = (2 << mode1);
 			const auto pItems = Helpers::Alex::getCellSpreadItems(pTarget->Location, range);
-			std::map<TechnoClass*, int> record;
+			std::map<TechnoClass*, int> record {};
 			int current = 1;
 
 			for (const auto& pItem : pItems)
@@ -136,8 +136,10 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 
 				if (pNewTarget)
 				{
-					if (record.contains(pNewTarget))
-						++record[pNewTarget];
+					auto it = record.find(pNewTarget);
+
+					if (it != record.end())
+						++it->second;
 
 					pSelect->ObjectClickedAction(mouseAction, pNewTarget, false);
 				}
@@ -179,7 +181,7 @@ void DistributionMode::DrawRadialIndicator()
 	if (mode1 || mode2)
 	{
 		const auto pCell = MapClass::Instance->GetCellAt(DisplayClass::Instance->CurrentFoundation_CenterCell);
-		const auto color = ((mode2 > 1)
+		ColorStruct color = ((mode2 > 1)
 			? ((mode2 == 3) ? ColorStruct { 255, 0, 0 } : ColorStruct { 200, 200, 0 })
 			: (mode2 == 1) ? ColorStruct { 0, 100, 255 } : ColorStruct { 0, 255, 50 });
 
