@@ -518,21 +518,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 					if (auto pBullet = pShrapExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
 					{
 						pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
-
-						auto sourcePos = pThis->Location;
-						auto targetPos = pTarget->GetCoords();
-
-						// Draw bullet effect
-						// TODO : Ebolt and Laser Colors
-						Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
-
-						// Draw particle system
-						Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
-						// Play report sound
-						Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos, pThis->Owner);
-						// Draw weapon anim
-						Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
-
+						BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner, pThis->Owner, true, true);
 					}
 
 					//escapes
@@ -561,18 +547,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 						if (const auto pBullet = pShrapExt->CreateBullet(pCellTarget, pThis->Owner, pShrapWeapon))
 						{
 							pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed, true));
-
-							auto sourcePos = pThis->Location;
-							auto targetPos = pCellTarget->GetCoords();
-
-							// Draw bullet effect
-							Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
-							// Draw particle system
-							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pCellTarget, pThis->Owner, targetPos);
-							// Play report sound
-							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos , pThis->Owner);
-							// Draw weapon anim
-							Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
+							BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner, pThis->Owner, true, true);
 						}
 					}
 				}
