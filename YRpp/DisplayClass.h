@@ -99,6 +99,14 @@ public:
 	ObjectClass* GetFollowObject() const
 		{ JMP_THIS(0x4AEB10); }
 
+	void Sub_4ADEE0(char a1, DWORD a2) {
+		JMP_THIS(0x4ADEE0);
+	}
+
+	void Sub_4ADCD0(char a1, DWORD a2) {
+		JMP_THIS(0x4ADCD0);
+	}
+
 	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
 		{ JMP_STD(0x5353D0); }
 

@@ -40,6 +40,7 @@ public:
 
 	Valueable<int> Reveal { 0 };
 	Valueable<bool> BigGap { false };
+	Valueable<int> CreateGap { 0 };
 	Valueable<int> TransactMoney { 0 };
 	Nullable<int> TransactMoney_Ally { };
 	Nullable<int> TransactMoney_Enemy { };

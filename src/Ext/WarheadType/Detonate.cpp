@@ -593,22 +593,52 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	if (pHouse)
 	{
-		if (this->BigGap)
-		{
-			HouseClass::Array->for_each([&](HouseClass* pOtherHouse)
- {
-	 if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
-		 !HouseExtData::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
-		 !pOtherHouse->Defeated &&			  // Not Defeated
-		 pOtherHouse != pHouse &&			  // Not pThisHouse
-		 !pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
-	 {
-		 pOtherHouse->ReshroudMap();
-	 }
+		if (this->BigGap) {
+			HouseClass::Array->for_each([&](HouseClass* pOtherHouse) {
+				 if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
+					 !HouseExtData::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
+					 !pOtherHouse->Defeated &&			  // Not Defeated
+					 pOtherHouse != pHouse &&			  // Not pThisHouse
+					 !pOtherHouse->SpySatActive && // No SpySat
+					 !pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
+				 {
+					 pOtherHouse->ReshroudMap();
+				 }
 			});
+		} else {
+			if (this->CreateGap > 0)
+			{
+				const auto pCurrent = HouseClass::CurrentPlayer();
+
+				if (pCurrent &&
+					!pCurrent->IsObserver() &&		// Not Observer
+					!pCurrent->Defeated &&						// Not Defeated
+					pCurrent != pHouse &&						// Not pThisHouse
+					!pCurrent->SpySatActive &&				// No SpySat
+					!pCurrent->IsAlliedWith(pHouse))			// Not Allied
+				{
+					CellClass::CreateGap(pCurrent, this->CreateGap, coords);
+				}
+			}
+			else if (this->CreateGap < 0)
+			{
+				HouseClass::Array->for_each([&](HouseClass* pOtherHouse)
+				{
+					if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
+						!HouseExtData::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
+						!pOtherHouse->Defeated &&			  // Not Defeated
+						pOtherHouse != pHouse &&			  // Not pThisHouse
+						!pOtherHouse->SpySatActive && // No SpySat
+						!pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
+					{
+						MapClass::Instance->Reshroud(pOtherHouse);
+					}
+				});
+			}
 		}
 
-		if (this->Reveal < 0)
+		if (this->Reveal < 0 //|| this->SpySat
+			)
 		{
 			MapClass::Instance->Reveal(pHouse);
 		}

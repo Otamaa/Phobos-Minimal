@@ -30,6 +30,10 @@
 #include <Surface.h>
 
 #include <WWKeyboardClass.h>
+#include <DisplayClass.h>
+#include <MapClass.h>
+
+#include <Helpers/Iterators.h>
 
 const CoordStruct CoordStruct::Empty = {};
 const ColorStruct ColorStruct::Empty = {};
@@ -1237,6 +1241,22 @@ HouseClass* HouseClass::FindSpecial()
 HouseClass* HouseClass::FindCivilianSide()
 {
 	return FindBySideName(GameStrings::Civilian());
+}
+
+void CellClass::CreateGap(HouseClass* pHouse, int range, CoordStruct& coords)
+{
+	DisplayClass::Instance->Sub_4ADEE0(0, 0);
+	CellRangeIterator<CellClass>{}(CellClass::Coord2Cell(coords), range + 0.5, [](CellClass* pCell) {
+		pCell->Flags &= ~CellFlags::Revealed;
+		pCell->AltFlags &= ~AltCellFlags::Clear;
+		pCell->ShroudCounter = 1;
+		pCell->GapsCoveringThisCell = 0;
+		return true;
+	});
+	DisplayClass::Instance->Sub_4ADCD0(0, 0);
+	pHouse->Visionary = 0;
+	MapClass::Instance->Map_AI();
+	MapClass::Instance->MarkNeedsRedraw(2);
 }
 
 void TechnoClass::SpillTiberium(int& value ,int idx , CellClass* pCenter, Point2D const& nMinMax)

@@ -90,6 +90,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Reveal = -1;
 
 	this->BigGap.Read(exINI, pSection, "BigGap");
+	this->CreateGap.Read(exINI, pSection, "CreateGap");
 	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
 	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
 	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
@@ -1263,6 +1264,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->Reveal)
 		.Process(this->BigGap)
+		.Process(this->CreateGap)
 		.Process(this->TransactMoney)
 		.Process(this->TransactMoney_Ally)
 		.Process(this->TransactMoney_Enemy)

@@ -600,6 +600,8 @@ public:
 		return nullptr;
 	}
 
+	static void CreateGap(HouseClass* pHouse, int range, CoordStruct& coords);
+
 	COMPILETIMEEVAL bool Is_Overlay_Bridge() const { return this->OverlayTypeIndex == 24 || this->OverlayTypeIndex == 25; }
 
 protected:
