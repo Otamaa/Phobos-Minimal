@@ -393,28 +393,28 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Fake_Of && pExt->Fake_Of->WhatAmI() != what)
 		{
-			Debug::LogInfo("[{} - {}] has fake of but it different ClassType from it!", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has FakeOf [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->Fake_Of->ID , pExt->Fake_Of->GetThisClassName());
 			pExt->Fake_Of = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
 		{
-			Debug::LogInfo("[{} - {}] has ClonedAs but it different ClassType from it!", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->ClonedAs->ID , pExt->ClonedAs->GetThisClassName());
 			pExt->ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what)
 		{
-			Debug::LogInfo("[{} - {}] has AI.ClonedAs but it different ClassType from it!", pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has AI.ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->AI_ClonedAs->ID , pExt->AI_ClonedAs->GetThisClassName());
 			pExt->AI_ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->ReversedAs.Get(nullptr) && pExt->ReversedAs->WhatAmI() != what)
 		{
-			Debug::LogInfo("[{} - {}] has ReversedAs but it different ClassType from it!", pItem->ID, pItem->ID, myClassName);
+			Debug::LogInfo("[{} - {}] has ReversedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->ReversedAs->ID , pExt->ReversedAs->GetThisClassName());
 			pExt->ReversedAs.Reset();
 			Debug::RegisterParserError();
 		}
