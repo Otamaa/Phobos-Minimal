@@ -191,15 +191,6 @@ public:
 	}
 };
 
-class asmjitLoggerHandler : public asmjit::Logger
-{
-public:
-	asmjit::Error _log(const char* data, size_t size) noexcept override
-	{
-		Debug::LogDeferred("AsmJit : %s\n", data);
-		return asmjit::kErrorOk;
-	}
-};
 asmjitErrHandler gJitErrorHandler;
 
 namespace Assembly
