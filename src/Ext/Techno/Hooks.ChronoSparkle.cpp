@@ -20,10 +20,21 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 	HouseClass* pOwner = nullptr;
 	HouseClass* pVictim = pTechno->GetOwningHouse();
 	TechnoClass* pTInvoker = nullptr;
+
 	if (const auto pInvoker = pTechno->TemporalTargetingMe) {
-		if (auto pOwnerOfTemp = pInvoker->Owner) {
-			pOwner = pOwnerOfTemp->GetOwningHouse();
-			pTInvoker = pOwnerOfTemp;
+		if (VTable::Get(pInvoker) == TemporalClass::vtable){
+			// we want the owner exist so the temporal will be cleaned up 
+			// if these were nullptr and the warp remaining is less than 0 
+			// the target unit will be stuck in the temporal limbo
+			if (!pInvoker->Target && pInvoker->WarpRemaining <= 0)
+				pInvoker->Target = pTechno;
+
+			if (auto pOwnerOfTemp = pInvoker->Owner) {
+				pOwner = pOwnerOfTemp->GetOwningHouse();
+				pTInvoker = pOwnerOfTemp;
+			}
+		} else {
+			pTechno->TemporalTargetingMe = nullptr;
 		}
 	}
 

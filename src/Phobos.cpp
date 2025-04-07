@@ -934,19 +934,19 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::ExecuteLua();
 
-		if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
+		//if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
 		{
 			/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
 			  not really sure what is the real cause atm . */
-			Patch::Apply_LJMP(0x7D107D, &MemoryManager::msize);
-			Patch::Apply_LJMP(0x7D5408, &MemoryManager::strdup);
-			Patch::Apply_LJMP(0x7C8E17, &MemoryManager::allocate);
-			Patch::Apply_LJMP(0x7C9430, &MemoryManager::allocate);
-			Patch::Apply_LJMP(0x7D3374, &MemoryManager::calloc);
-			Patch::Apply_LJMP(0x7D0F45, &MemoryManager::reallocate);
-			Patch::Apply_LJMP(0x7C8B3D, &MemoryManager::deallocate);
-			Patch::Apply_LJMP(0x7C93E8, &MemoryManager::deallocate);
-			Patch::Apply_LJMP(0x7C9CC2, &MemoryManager::strtok);
+			Patch::Apply_LJMP(0x7D107D, &_msize);
+			Patch::Apply_LJMP(0x7D5408, &_strdup);
+			Patch::Apply_LJMP(0x7C8E17, &malloc);
+			Patch::Apply_LJMP(0x7C9430, &malloc);
+			Patch::Apply_LJMP(0x7D3374, &calloc);
+			Patch::Apply_LJMP(0x7D0F45, &realloc);
+			Patch::Apply_LJMP(0x7C8B3D, &free);
+			Patch::Apply_LJMP(0x7C93E8, &free);
+			Patch::Apply_LJMP(0x7C9CC2, &strtok);
 		}
 
 		char buf[1024] {};
