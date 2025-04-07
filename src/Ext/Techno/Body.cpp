@@ -2666,7 +2666,15 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 			return;
 	}
 
-	Point2D drawPoint = basePoint + pSelectBox->Offset.Get() + Point2D { 2, pTypeExt->AttachedToObject->PixelSelectionBracketDelta + 1 };
+	Point2D drawPoint = basePoint 
+	 + pSelectBox->Offset.Get();
+
+	drawPoint.Y += pTypeExt->AttachedToObject->PixelSelectionBracketDelta;
+	if (whatAmI == AbstractType::Infantry)
+		drawPoint += Point2D{ 8, -3 };
+	else
+		drawPoint += Point2D{ 1, -4 };
+
 	const auto flags = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | pSelectBox->Translucency;
 
 	DSurface::Composite->DrawSHP(pPalette, pShape, frame, &drawPoint, pBounds, flags, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
