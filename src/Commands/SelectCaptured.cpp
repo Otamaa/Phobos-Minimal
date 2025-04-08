@@ -19,7 +19,7 @@ const char* SelectCapturedCommandClass::GetName() const
 
 const wchar_t* SelectCapturedCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SELECT_CAPTURED", L"Select Captured Units");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SELECT_CAPTURED", L"Select Captured Units");
 }
 
 const wchar_t* SelectCapturedCommandClass::GetUICategory() const
@@ -29,7 +29,7 @@ const wchar_t* SelectCapturedCommandClass::GetUICategory() const
 
 const wchar_t* SelectCapturedCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SELECT_CAPTURED_DESC", L"Select the captured units in the current screen.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SELECT_CAPTURED_DESC", L"Select the captured units in the current screen.");
 }
 
 void SelectCapturedCommandClass::Execute(WWKey eInput) const
@@ -68,8 +68,8 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 	while (pCurrentObject != pFirstObject);
 
 	auto pMessage = capturedPresent ?
-		GeneralUtils::LoadStringUnlessMissing("MSG:SelectCaptured", L"Captured units selected.") :
-		StringTable::LoadString("MSG:NothingSelected")
+		GeneralUtils::LoadStringUnlessMissingNoChecks("MSG:SelectCaptured", L"Captured units selected.") :
+		StringTable::FetchString("MSG:NothingSelected")
 		;
 
 	if (capturedPresent) {

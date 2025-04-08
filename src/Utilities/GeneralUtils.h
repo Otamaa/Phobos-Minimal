@@ -35,7 +35,12 @@ public:
 	static void IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min = MIN_VAL(int), int max = MAX_VAL(int));
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
+	
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
+
+	// check were stripped off , make sure to check both strings for validity !
+	static const wchar_t* LoadStringUnlessMissingNoChecks(const char* key, const wchar_t* defaultValue);
+
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);

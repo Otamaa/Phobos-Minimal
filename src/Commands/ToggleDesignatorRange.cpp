@@ -12,7 +12,7 @@ const char* ToggleDesignatorRangeCommandClass::GetName() const
 
 const wchar_t* ToggleDesignatorRangeCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DESIGNATOR_RANGE", L"Toggle Designator Range");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DESIGNATOR_RANGE", L"Toggle Designator Range");
 }
 
 const wchar_t* ToggleDesignatorRangeCommandClass::GetUICategory() const
@@ -22,7 +22,7 @@ const wchar_t* ToggleDesignatorRangeCommandClass::GetUICategory() const
 
 const wchar_t* ToggleDesignatorRangeCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DESIGNATOR_RANGE_DESC", L"Show/hide designator range when targeting superweapons.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DESIGNATOR_RANGE_DESC", L"Show/hide designator range when targeting superweapons.");
 }
 
 void ToggleDesignatorRangeCommandClass::Execute(WWKey eInput) const

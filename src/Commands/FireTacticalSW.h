@@ -26,7 +26,7 @@ OPTIONALINLINE const char* FireTacticalSWCommandClass<Index>::GetName() const
 template<size_t Index>
 OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUIName() const
 {
-	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX", L"Fire Super Weapon %d");
+	const wchar_t* csfString = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FIRE_TACTICAL_SW_XX", L"Fire Super Weapon %d");
 	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index);
 	return Phobos::wideBuffer;
 }
@@ -40,7 +40,7 @@ OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUICategory()
 template<size_t Index>
 OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUIDescription() const
 {
-	const wchar_t* csfString = StringTable::TryFetchString("TXT_FIRE_TACTICAL_SW_XX_DESC", L"Fires the Super Weapon at position %d in the Super Weapon sidebar.");
+	const wchar_t* csfString = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FIRE_TACTICAL_SW_XX_DESC", L"Fires the Super Weapon at position %d in the Super Weapon sidebar.");
 	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Index);
 	return Phobos::wideBuffer;
 }

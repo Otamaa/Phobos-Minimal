@@ -13,7 +13,7 @@ const char* AIControlCommandClass::GetName() const
 
 const wchar_t* AIControlCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_AI_CONTROL", L"AI Control");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_AI_CONTROL", L"AI Control");
 }
 
 const wchar_t* AIControlCommandClass::GetUICategory() const
@@ -23,7 +23,7 @@ const wchar_t* AIControlCommandClass::GetUICategory() const
 
 const wchar_t* AIControlCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_AI_CONTROL_DESC", L"Let the AI assume control.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_AI_CONTROL_DESC", L"Let the AI assume control.");
 }
 
 void AIControlCommandClass::Execute(WWKey dwUnk) const

@@ -15,7 +15,7 @@ const char* DetachFromTeamCommandClass::GetName() const
 
 const wchar_t* DetachFromTeamCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DETACHTEAM", L"Detach team of Selected Object");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DETACHTEAM", L"Detach team of Selected Object");
 }
 
 const wchar_t* DetachFromTeamCommandClass::GetUICategory() const
@@ -25,7 +25,7 @@ const wchar_t* DetachFromTeamCommandClass::GetUICategory() const
 
 const wchar_t* DetachFromTeamCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DETACHTEAM_DESC", L"Detach team of any selected objects.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DETACHTEAM_DESC", L"Detach team of any selected objects.");
 }
 
 void DetachFromTeamCommandClass::Execute(WWKey eInput) const

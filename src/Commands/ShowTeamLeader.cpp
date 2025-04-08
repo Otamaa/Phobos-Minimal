@@ -11,7 +11,7 @@ const char* ShowTeamLeaderCommandClass::GetName() const
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TMLDR", L"Show TeamLeader");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TMLDR", L"Show TeamLeader");
 }
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUICategory() const
@@ -21,7 +21,7 @@ const wchar_t* ShowTeamLeaderCommandClass::GetUICategory() const
 
 const wchar_t* ShowTeamLeaderCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TMLDR_DESC", L"Show TeamLeader.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TMLDR_DESC", L"Show TeamLeader.");
 }
 
 void ShowTeamLeaderCommandClass::Execute(WWKey eInput) const

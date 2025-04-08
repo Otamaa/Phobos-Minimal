@@ -13,7 +13,7 @@ const char* ToggleSWSidebar::GetName() const
 
 const wchar_t* ToggleSWSidebar::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TOGGLE_SW_SIDEBAR", L"Toggle SuperWeapon Sidebar");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TOGGLE_SW_SIDEBAR", L"Toggle SuperWeapon Sidebar");
 }
 
 const wchar_t* ToggleSWSidebar::GetUICategory() const
@@ -23,7 +23,7 @@ const wchar_t* ToggleSWSidebar::GetUICategory() const
 
 const wchar_t* ToggleSWSidebar::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TOGGLE_SW_SIDEBAR_DESC", L"Toggle SuperWeapon Sidebar.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TOGGLE_SW_SIDEBAR_DESC", L"Toggle SuperWeapon Sidebar.");
 }
 
 void ToggleSWSidebar::Execute(WWKey eInput) const
@@ -31,8 +31,8 @@ void ToggleSWSidebar::Execute(WWKey eInput) const
 	ToggleSWButtonClass::SwitchSidebar();
 
 	auto pMessage = SidebarExtData::Instance()->SWSidebar_Enable ?
-		GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_VISIBLE", L"Set exclusive SW sidebar visible.") :
-		GeneralUtils::LoadStringUnlessMissing("TXT_EX_SW_BAR_INVISIBLE", L"Set exclusive SW sidebar invisible.");
+		GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_EX_SW_BAR_VISIBLE", L"Set exclusive SW sidebar visible.") :
+		GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_EX_SW_BAR_INVISIBLE", L"Set exclusive SW sidebar invisible.");
 
 	GeneralUtils::PrintMessage(pMessage);
 

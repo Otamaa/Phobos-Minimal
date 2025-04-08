@@ -129,7 +129,7 @@ void MoviesList::AddMovie(HWND const hWnd, MovieUnlockableInfo const& movie) con
 {
 	if (movie.Filename && movie.Description)
 	{
-		auto const pName = StringTable::LoadString(movie.Description);
+		auto const pName = StringTable::FetchString(movie.Description);
 		auto const lparam = reinterpret_cast<LPARAM>(pName);
 		auto const res = SendMessage(hWnd, WW_LB_ADDITEM, 0, lparam);
 		if (res != -1)

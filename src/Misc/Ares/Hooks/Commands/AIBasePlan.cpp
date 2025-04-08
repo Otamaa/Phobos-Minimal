@@ -14,7 +14,7 @@ const char* AIBasePlanCommandClass::GetName() const
 
 const wchar_t* AIBasePlanCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_AI_BASE_PLAN", L"AI Base Plan Logger");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_AI_BASE_PLAN", L"AI Base Plan Logger");
 }
 
 const wchar_t* AIBasePlanCommandClass::GetUICategory() const
@@ -24,7 +24,7 @@ const wchar_t* AIBasePlanCommandClass::GetUICategory() const
 
 const wchar_t* AIBasePlanCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_AI_BASE_PLAN_DESC", L"Dumps the AI Base Plans to the log");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_AI_BASE_PLAN_DESC", L"Dumps the AI Base Plans to the log");
 }
 
 void AIBasePlanCommandClass::Execute(WWKey dwUnk) const

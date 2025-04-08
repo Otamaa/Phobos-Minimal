@@ -7862,7 +7862,7 @@ const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)
 
 void MouseClassExt::ClearMappedAction()
 {
-	__stosd(reinterpret_cast<unsigned long*>(CursorIdx.data()), 0, sizeof(MappedActions) * CursorIdx.size());
+	__stosb(reinterpret_cast<unsigned char*>(CursorIdx.data()), 0, sizeof(MappedActions) * CursorIdx.size());
 }
 
 void MouseClassExt::InsertMappedAction(MouseCursorType nCursorIdx, Action nAction, bool Shrouded)
@@ -8254,7 +8254,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 				// load the tooltip string
 
 				if (Ini->ReadString(section2, (name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
-					value.sttToolTipSublineText = StringTable::LoadString(Phobos::readBuffer);
+					value.sttToolTipSublineText = StringTable::FetchString(Phobos::readBuffer);
 
 				if (Ini->ReadString(section2, (name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
 					PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);

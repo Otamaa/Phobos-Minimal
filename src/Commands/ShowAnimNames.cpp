@@ -17,7 +17,7 @@ const char* ShowAnimNameCommandClass::GetName() const
 
 const wchar_t* ShowAnimNameCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_ANIMNAME", L"Show Anim Names");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_ANIMNAME", L"Show Anim Names");
 }
 
 const wchar_t* ShowAnimNameCommandClass::GetUICategory() const
@@ -27,7 +27,7 @@ const wchar_t* ShowAnimNameCommandClass::GetUICategory() const
 
 const wchar_t* ShowAnimNameCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_ANIMNAME_DESC", L"Show Anim Names.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_ANIMNAME_DESC", L"Show Anim Names.");
 }
 
 bool ShowAnimNameIsActive;

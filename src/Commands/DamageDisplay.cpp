@@ -9,7 +9,7 @@ const char* DamageDisplayCommandClass::GetName() const
 
 const wchar_t* DamageDisplayCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISPLAY_DAMAGE", L"Display Damage Dealt");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISPLAY_DAMAGE", L"Display Damage Dealt");
 }
 
 const wchar_t* DamageDisplayCommandClass::GetUICategory() const
@@ -19,7 +19,7 @@ const wchar_t* DamageDisplayCommandClass::GetUICategory() const
 
 const wchar_t* DamageDisplayCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISPLAY_DAMAGE_DESC", L"Display exact number of damage dealt to units & buildings on them.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISPLAY_DAMAGE_DESC", L"Display exact number of damage dealt to units & buildings on them.");
 }
 
 void DamageDisplayCommandClass::Execute(WWKey eInput) const

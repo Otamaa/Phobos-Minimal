@@ -28,10 +28,10 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Button2
 		// I prefer to put the loadgame to the center of them - secsome
 		switch (WWMessageBox::Instance().Process(
-			StringTable::LoadString(GameStrings::TXT_TO_REPLAY()),
-			StringTable::LoadString(GameStrings::TXT_OK()),
-			StringTable::LoadString("GUI:LOADGAME"),
-			StringTable::LoadString(GameStrings::TXT_CANCEL())))
+			StringTable::FetchString(GameStrings::TXT_TO_REPLAY()),
+			StringTable::FetchString(GameStrings::TXT_OK()),
+			StringTable::FetchString("GUI:LOADGAME"),
+			StringTable::FetchString(GameStrings::TXT_CANCEL())))
 		{
 		case WWMessageBox::Result::Button1:
 			return OK;

@@ -29,7 +29,7 @@ const char* ObjectInfoCommandClass::GetName() const
 
 const wchar_t* ObjectInfoCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_OBJECT_INFO", L"Dump Object Info");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_OBJECT_INFO", L"Dump Object Info");
 }
 
 const wchar_t* ObjectInfoCommandClass::GetUICategory() const
@@ -39,7 +39,7 @@ const wchar_t* ObjectInfoCommandClass::GetUICategory() const
 
 const wchar_t* ObjectInfoCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_OBJECT_INFO_DESC", L"Dump ObjectInfo to log file and display it.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_OBJECT_INFO_DESC", L"Dump ObjectInfo to log file and display it.");
 }
 
 template<typename T>

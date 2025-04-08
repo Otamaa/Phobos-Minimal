@@ -12,7 +12,7 @@ const char* PlaceVeinholeMonster::GetName() const
 
 const wchar_t* PlaceVeinholeMonster::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_PLACEVEIN", L"Place Veinhole Monster");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_PLACEVEIN", L"Place Veinhole Monster");
 }
 
 const wchar_t* PlaceVeinholeMonster::GetUICategory() const
@@ -22,7 +22,7 @@ const wchar_t* PlaceVeinholeMonster::GetUICategory() const
 
 const wchar_t* PlaceVeinholeMonster::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_PLACEVEIN_DESC", L"Place Veinhole Monster.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_PLACEVEIN_DESC", L"Place Veinhole Monster.");
 }
 
 bool created = false;

@@ -1414,7 +1414,7 @@ ASMJIT_PATCH(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 
 	if (H->UINameString[0])
 	{
-		const wchar_t* str = StringTable::LoadString(H->UINameString);
+		const wchar_t* str = StringTable::FetchString(H->UINameString);
 		PhobosCRT::wstrCopy(H->UIName, str);
 	}
 	else

@@ -9,7 +9,7 @@ const char* SetVeterancyCommandClass::GetName() const
 
 const wchar_t* SetVeterancyCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SETTVET", L"Set Techno Veterancy");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SETTVET", L"Set Techno Veterancy");
 }
 
 const wchar_t* SetVeterancyCommandClass::GetUICategory() const
@@ -19,7 +19,7 @@ const wchar_t* SetVeterancyCommandClass::GetUICategory() const
 
 const wchar_t* SetVeterancyCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SETTVET_DESC", L"Set Techno Veterancy.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SETTVET_DESC", L"Set Techno Veterancy.");
 }
 
 void SetVeterancyCommandClass::Execute(WWKey eInput) const

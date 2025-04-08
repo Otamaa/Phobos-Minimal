@@ -14,7 +14,7 @@ const char* RevealMapCommandClass::GetName() const
 
 const wchar_t* RevealMapCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_REVEALMAP", L"Reveal Map");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_REVEALMAP", L"Reveal Map");
 }
 
 const wchar_t* RevealMapCommandClass::GetUICategory() const
@@ -24,7 +24,7 @@ const wchar_t* RevealMapCommandClass::GetUICategory() const
 
 const wchar_t* RevealMapCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_REVEALMAP_DESC", L"Reveal Map.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_REVEALMAP_DESC", L"Reveal Map.");
 }
 
 #include <Misc/MapRevealer.h>

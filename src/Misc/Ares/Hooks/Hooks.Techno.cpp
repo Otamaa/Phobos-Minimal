@@ -840,7 +840,7 @@ ASMJIT_PATCH(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 				//foundating check ,...
 				//can be optimized using stored bool instead checking them each frames
 				if(pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2) {
-					swprintf_s(pOutDrainFormat, StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
+					swprintf_s(pOutDrainFormat, StringTable::FetchString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
 				} else {
 					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label, pOutput);
 					DrawTheStuff(pOutDrainFormat);
@@ -863,7 +863,7 @@ ASMJIT_PATCH(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 
 				wchar_t pOutMoneyFormat[0x80];
 				auto nMoney = pOwner->Available_Money();
-				swprintf_s(pOutMoneyFormat, StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
+				swprintf_s(pOutMoneyFormat, StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
 				DrawTheStuff(pOutMoneyFormat);
 
 				if (BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage) {
@@ -887,7 +887,7 @@ ASMJIT_PATCH(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 						pPosition.Y += Unsorted::CellHeightInPixels / 2 * cellsToAdjust - 4;
 						DSurface::Temp->DrawSHP(pPalette, pImage, 0, &pPosition, pRect, BlitterFlags(0x600), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 				} else {
-					DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) ?
+					DrawTheStuff(StringTable::FetchString((pType->GetFoundationWidth() != 1) ?
 						GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
 				}
 			}

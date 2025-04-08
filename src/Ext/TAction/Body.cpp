@@ -215,7 +215,7 @@ bool TActionExt::MessageForSpecifiedHouse(TActionClass* pThis, HouseClass* pHous
 		auto pTmpHouse = HouseClass::Array->Items[i];
 		if (pTmpHouse->IsControlledByHuman() && pTmpHouse == pTargetHouse)
 		{
-			MessageListClass::Instance->PrintMessage(StringTable::LoadStringA(pThis->Text), RulesClass::Instance->MessageDelay, pTmpHouse->ColorSchemeIndex);
+			MessageListClass::Instance->PrintMessage(StringTable::FetchString(pThis->Text), RulesClass::Instance->MessageDelay, pTmpHouse->ColorSchemeIndex);
 		}
 	}
 	return true;
@@ -830,7 +830,7 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 {
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
-		auto nMessage = StringTable::LoadString(GameStrings::TXT_SAVING_GAME());
+		auto nMessage = StringTable::FetchString(GameStrings::TXT_SAVING_GAME());
 		auto pUI = UI::ShowMessageWithCancelOnly((LPARAM)nMessage, 0, 0);
 		WWMouseClass::Instance->HideCursor();
 
@@ -842,7 +842,7 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		const std::string fName = "Map." + Debug::GetCurTimeA() + ".sav";
 		std::wstring fDesc = SessionClass::Instance->GameMode == GameMode::Campaign ? ScenarioClass::Instance->UINameLoaded : ScenarioClass::Instance->Name;
 		fDesc += L" - ";
-		fDesc += StringTable::LoadString(pThis->Text);
+		fDesc += StringTable::FetchString(pThis->Text);
 
 		bool Status = ScenarioClass::Instance->SaveGame(fName.c_str(), fDesc.c_str());
 
@@ -854,8 +854,8 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		}
 
 		auto pMessage = Status ?
-			StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED) :
-			StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME);
+			StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED) :
+			StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME);
 
 		GeneralUtils::PrintMessage(pMessage);
 	}
@@ -1455,7 +1455,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 
 	bool textToShow = false;
 	float messageDelay = float(pThis->Param6 <= 0 ? RulesClass::Instance->MessageDelay : pThis->Param6 / 60.0); // seconds / 60 = message delay in minutes
-	std::wstring _message = StringTable::TryFetchString(pThis->Text, L"Remaining: ");
+	std::wstring _message = GeneralUtils::LoadStringUnlessMissingNoChecks(pThis->Text, L"Remaining: ");
 
 	if (pThis->Param5 < 0) {
 		if (globalRemaining > 0) {

@@ -18,7 +18,7 @@ ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
 	auto& cameo = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][buildableCount];
 	PhobosToolTip::Instance.IsCameo = true;
 
-	if (PhobosToolTip::Instance.IsEnabled())
+	if (Phobos::UI::ExtendedToolTips)
 	{
 		PhobosToolTip::Instance.HelpText(&cameo);
 		R->EAX(L"X");
@@ -37,13 +37,13 @@ ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
 			// account for no-name SWs
 			if (CCToolTip::HideName() || !wcslen(pSW->UIName))
 			{
-				const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
+				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, -pData->Money_Amount);
 			}
 			else
 			{
 				// then, this must be brand SWs
-				const wchar_t* pFormat = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
+				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, pSW->UIName, -pData->Money_Amount);
 			}
 
@@ -75,13 +75,13 @@ ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
 
 		if (CCToolTip::HideName || !wcslen(pTechnoType->UIName))
 		{
-			const wchar_t* Format = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_1);
+			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
 			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
 		}
 		else
 		{
 			const wchar_t* UIName = pTechnoType->UIName;
-			const wchar_t* Format = StringTable::LoadStringA(GameStrings::TXT_MONEY_FORMAT_2);
+			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
 			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
 		}
 

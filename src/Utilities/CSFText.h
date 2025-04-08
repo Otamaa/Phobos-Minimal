@@ -34,7 +34,7 @@ public:
 
 			if (this->Label)
 			{
-				this->Text = StringTable::LoadString(this->Label);
+				this->Text = StringTable::FetchString(this->Label);
 			}
 		}
 
@@ -71,7 +71,7 @@ public:
 		{
 			if (this->Label)
 			{
-				this->Text = StringTable::LoadString(this->Label);
+				this->Text = StringTable::FetchString(this->Label);
 			}
 			return true;
 		}

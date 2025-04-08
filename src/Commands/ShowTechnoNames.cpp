@@ -15,7 +15,7 @@ const char* ShowTechnoNameCommandClass::GetName() const
 
 const wchar_t* ShowTechnoNameCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Show Techno Names");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MARKBLD", L"Show Techno Names");
 }
 
 const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
@@ -25,7 +25,7 @@ const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
 
 const wchar_t* ShowTechnoNameCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Show Techno Names.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MARKBLD_DESC", L"Show Techno Names.");
 }
 
 void ShowTechnoNameCommandClass::Execute(WWKey eInput) const

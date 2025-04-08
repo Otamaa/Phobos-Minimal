@@ -37,10 +37,6 @@
 #include <Phobos.h>
 
 PhobosToolTip PhobosToolTip::Instance;
-bool PhobosToolTip::IsEnabled() const
-{
-	return Phobos::UI::ExtendedToolTips;
-}
 
 OPTIONALINLINE const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExtData* pData) const
 {
@@ -297,7 +293,7 @@ ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 
 			const auto pSuper = HouseClass::CurrentPlayer->Supers[button->SuperIndex];
 
-			if (PhobosToolTip::Instance.IsEnabled()) {
+			if (Phobos::UI::ExtendedToolTips) {
 				PhobosToolTip::Instance.HelpText(pSuper);
 				R->EAX(PhobosToolTip::Instance.GetBuffer());
 			} else {
@@ -338,7 +334,7 @@ ASMJIT_PATCH(0x724B28, ToolTipManager_SetX_TacticalButtons, 0x6)
 // TODO: reimplement CCToolTip::Draw2 completely
 ASMJIT_PATCH(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 {
-	if (PhobosToolTip::Instance.IsEnabled() && PhobosToolTip::Instance.IsCameo)
+	if (Phobos::UI::ExtendedToolTips && PhobosToolTip::Instance.IsCameo)
 		R->EDI(PhobosToolTip::Instance.GetBuffer());
 
 	return 0;
@@ -508,7 +504,7 @@ ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 
 	if (PhobosToolTip::Instance.IsCameo &&
 		Phobos::UI::AnchoredToolTips &&
-		PhobosToolTip::Instance.IsEnabled() &&
+		Phobos::UI::ExtendedToolTips &&
 		Phobos::Config::ToolTipDescriptions &&
 		// If inspecting a cameo from the super weapon sidebar, "AnchoredToolTips=true" shouldn't apply.
 		!SWSidebarClass::Global()->CurrentButton

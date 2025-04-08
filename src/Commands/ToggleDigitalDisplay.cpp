@@ -10,7 +10,7 @@ const char* ToggleDigitalDisplayCommandClass::GetName() const
 
 const wchar_t* ToggleDigitalDisplayCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DIGITAL_DISPLAY", L"Toggle Digital Display");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DIGITAL_DISPLAY", L"Toggle Digital Display");
 }
 
 const wchar_t* ToggleDigitalDisplayCommandClass::GetUICategory() const
@@ -20,7 +20,7 @@ const wchar_t* ToggleDigitalDisplayCommandClass::GetUICategory() const
 
 const wchar_t* ToggleDigitalDisplayCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DIGITAL_DISPLAY_DESC", L"Show/hide digital display of unit data.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DIGITAL_DISPLAY_DESC", L"Show/hide digital display of unit data.");
 }
 
 void ToggleDigitalDisplayCommandClass::Execute(WWKey eInput) const

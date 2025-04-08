@@ -25,7 +25,6 @@ private:
 	OPTIONALINLINE const wchar_t* GetUIDescription(SWTypeExtData* pData) const;
 
 public:
-	 bool IsEnabled() const;
 
 	COMPILETIMEEVAL FORCEDINLINE const wchar_t* GetBuffer() const
 	{

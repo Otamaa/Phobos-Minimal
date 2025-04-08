@@ -13,7 +13,7 @@ const char* FrameByFrameCommandClass::GetName() const
 
 const wchar_t* FrameByFrameCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_FRAME_BY_FRAME", L"Toggle Frame By Frame");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FRAME_BY_FRAME", L"Toggle Frame By Frame");
 }
 
 const wchar_t* FrameByFrameCommandClass::GetUICategory() const
@@ -23,7 +23,7 @@ const wchar_t* FrameByFrameCommandClass::GetUICategory() const
 
 const wchar_t* FrameByFrameCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISPLAY_DAMAGE_DESC", L"Enter or exit frame by frame mode.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISPLAY_DAMAGE_DESC", L"Enter or exit frame by frame mode.");
 }
 
 void FrameByFrameCommandClass::Execute(WWKey eInput) const

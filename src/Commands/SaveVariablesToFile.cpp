@@ -11,7 +11,7 @@ const char* SaveVariablesToFileCommandClass::GetName() const
 
 const wchar_t* SaveVariablesToFileCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SAVE_VARIABLES", L"Save Variables to File");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SAVE_VARIABLES", L"Save Variables to File");
 }
 
 const wchar_t* SaveVariablesToFileCommandClass::GetUICategory() const
@@ -21,7 +21,7 @@ const wchar_t* SaveVariablesToFileCommandClass::GetUICategory() const
 
 const wchar_t* SaveVariablesToFileCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SAVE_VARIABLES_DESC", L"Save local & global variables to an INI file.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SAVE_VARIABLES_DESC", L"Save local & global variables to an INI file.");
 }
 
 void SaveVariablesToFileCommandClass::Execute(WWKey eInput) const
@@ -29,7 +29,7 @@ void SaveVariablesToFileCommandClass::Execute(WWKey eInput) const
 	if (this->CheckDebugDeactivated())
 		return;
 
-	auto pMessage = GeneralUtils::LoadStringUnlessMissing("MSG:VariablesSaved", L"Variables saved.");
+	auto pMessage = GeneralUtils::LoadStringUnlessMissingNoChecks("MSG:VariablesSaved", L"Variables saved.");
 	GeneralUtils::PrintMessage(pMessage);
 	ScenarioExtData::SaveVariablesToFile(false);
 	ScenarioExtData::SaveVariablesToFile(true);

@@ -17,7 +17,7 @@ const char* DistributionMode1CommandClass::GetName() const
 
 const wchar_t* DistributionMode1CommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISTR_SPREAD", L"Distribution spread");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISTR_SPREAD", L"Distribution spread");
 }
 
 const wchar_t* DistributionMode1CommandClass::GetUICategory() const
@@ -27,7 +27,7 @@ const wchar_t* DistributionMode1CommandClass::GetUICategory() const
 
 const wchar_t* DistributionMode1CommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISTR_SPREAD_DESC", L"Automatically and averagely select similar targets around the original target. This is for changing the search range");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISTR_SPREAD_DESC", L"Automatically and averagely select similar targets around the original target. This is for changing the search range");
 }
 
 void DistributionMode1CommandClass::Execute(WWKey eInput) const
@@ -42,7 +42,7 @@ const char* DistributionMode2CommandClass::GetName() const
 
 const wchar_t* DistributionMode2CommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISTR_FILTER", L"Distribution filter");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISTR_FILTER", L"Distribution filter");
 }
 
 const wchar_t* DistributionMode2CommandClass::GetUICategory() const
@@ -52,7 +52,7 @@ const wchar_t* DistributionMode2CommandClass::GetUICategory() const
 
 const wchar_t* DistributionMode2CommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DISTR_FILTER_DESC", L"Automatically and averagely select similar targets around the original target. This is for changing the filter criteria");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DISTR_FILTER_DESC", L"Automatically and averagely select similar targets around the original target. This is for changing the filter criteria");
 }
 
 void DistributionMode2CommandClass::Execute(WWKey eInput) const

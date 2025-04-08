@@ -14,7 +14,7 @@ const char* MemoryDumperCommandClass::GetName() const
 
 const wchar_t* MemoryDumperCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_MEMORY", L"Dump Memory");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_MEMORY", L"Dump Memory");
 }
 
 const wchar_t* MemoryDumperCommandClass::GetUICategory() const
@@ -24,7 +24,7 @@ const wchar_t* MemoryDumperCommandClass::GetUICategory() const
 
 const wchar_t* MemoryDumperCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_MEMORY_DESC", L"Dumps the current process's memory");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_MEMORY_DESC", L"Dumps the current process's memory");
 }
 
 void MemoryDumperCommandClass::Execute(WWKey dwUnk) const

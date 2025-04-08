@@ -10,7 +10,7 @@ const char* ShowHealthPercentCommandClass::GetName() const
 
 const wchar_t* ShowHealthPercentCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SHOWHEALTHPERCENT", L"Show Health Percent");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SHOWHEALTHPERCENT", L"Show Health Percent");
 }
 
 const wchar_t* ShowHealthPercentCommandClass::GetUICategory() const
@@ -20,7 +20,7 @@ const wchar_t* ShowHealthPercentCommandClass::GetUICategory() const
 
 const wchar_t* ShowHealthPercentCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_SHOWHEALTHPERCENT_DESC", L"Show health percent of all technos if available.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SHOWHEALTHPERCENT_DESC", L"Show health percent of all technos if available.");
 }
 
 void ShowHealthPercentCommandClass::Execute(WWKey eInput) const

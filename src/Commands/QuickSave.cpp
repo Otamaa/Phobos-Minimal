@@ -13,7 +13,7 @@ const char* QuickSaveCommandClass::GetName() const
 
 const wchar_t* QuickSaveCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE", L"Quicksave");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_QUICKSAVE", L"Quicksave");
 }
 
 const wchar_t* QuickSaveCommandClass::GetUICategory() const
@@ -23,7 +23,7 @@ const wchar_t* QuickSaveCommandClass::GetUICategory() const
 
 const wchar_t* QuickSaveCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_DESC", L"Save the current game (Singleplayer only).");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_QUICKSAVE_DESC", L"Save the current game (Singleplayer only).");
 }
 
 void QuickSaveCommandClass::Execute(WWKey eInput) const
@@ -39,11 +39,11 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 		else
 			Phobos::CustomGameSaveDescription = ScenarioClass::Instance->Name;
 		Phobos::CustomGameSaveDescription += L" - ";
-		Phobos::CustomGameSaveDescription += GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved");
+		Phobos::CustomGameSaveDescription += GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_QUICKSAVE_SUFFIX", L"Quicksaved");
 	}
 	else
 	{
-		auto pMessage = GeneralUtils::LoadStringUnlessMissing("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer");
+		auto pMessage = GeneralUtils::LoadStringUnlessMissingNoChecks("MSG:NotAvailableInMultiplayer", L"QuickSave is not available in multiplayer");
 		GeneralUtils::PrintMessage(pMessage);
 	}
 }

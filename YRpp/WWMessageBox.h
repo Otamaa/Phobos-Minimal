@@ -18,8 +18,8 @@ public:
 
 	Result Process(
 		const wchar_t* pMsg,
-		const wchar_t* pBtn1 = StringTable::LoadString(GameStrings::TXT_OK),
-		const wchar_t* pBtn2 = StringTable::LoadString(GameStrings::TXT_CANCEL),
+		const wchar_t* pBtn1 = StringTable::FetchString(GameStrings::TXT_OK),
+		const wchar_t* pBtn2 = StringTable::FetchString(GameStrings::TXT_CANCEL),
 		const wchar_t* pBtn3 = nullptr,
 		bool bUkn = false
 	)
@@ -30,8 +30,8 @@ public:
 	Result Process(const char* pMsg, const char* pBtn1, const char* pBtn2, const char* pBtn3)
 	{
 		return Process(
-			StringTable::LoadString(pMsg), StringTable::LoadString(pBtn1),
-			StringTable::LoadString(pBtn2), StringTable::LoadString(pBtn3)
+			StringTable::FetchString(pMsg), StringTable::FetchString(pBtn1),
+			StringTable::FetchString(pBtn2), StringTable::FetchString(pBtn3)
 		);
 	}
 

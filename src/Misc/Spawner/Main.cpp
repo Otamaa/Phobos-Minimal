@@ -536,15 +536,15 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 			switch (pAIConfig->Difficulty)
 			{
 			case 0:
-				wcscpy_s(pHouse->UIName, StringTable::LoadString(GameStrings::GUI_AIHard));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIHard));
 				break;
 
 			case 1:
-				wcscpy_s(pHouse->UIName, StringTable::LoadString(GameStrings::GUI_AINormal));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AINormal));
 				break;
 
 			case 2:
-				wcscpy_s(pHouse->UIName, StringTable::LoadString(GameStrings::GUI_AIEasy));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIEasy));
 				break;
 			default:
 				break;
@@ -721,8 +721,8 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 		Debug::LogInfo("[Spawner] Failed Read Scenario [{}]", pScenarioName);
 
 		MessageBox::Show(
-			StringTable::LoadString(GameStrings::TXT_UNABLE_READ_SCENARIO),
-			StringTable::LoadString(GameStrings::TXT_OK),
+			StringTable::FetchString(GameStrings::TXT_UNABLE_READ_SCENARIO),
+			StringTable::FetchString(GameStrings::TXT_OK),
 			0);
 
 		return false;
@@ -863,7 +863,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 #else
 		//char keee_[46];
 		//sprintf(keee_, "%sSav", ScenarioClass::Instance->UIName);
-		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::LoadString(keee_), 0x2Du);
+		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::FetchString(keee_), 0x2Du);
   //      if ( !wcsncmp(ScenarioClass::Instance->UINameLoaded, L"MISSING:", 8u) ) {
   //          wcsncpy(ScenarioClass::Instance->UINameLoaded, ScenarioClass::Instance->Name, 0x2Du);
   //      }
@@ -920,8 +920,8 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 
 		MessageBox::Show(
-			StringTable::LoadString(GameStrings::TXT_ERROR_LOADING_GAME),
-			StringTable::LoadString(GameStrings::TXT_OK),
+			StringTable::FetchString(GameStrings::TXT_ERROR_LOADING_GAME),
+			StringTable::FetchString(GameStrings::TXT_OK),
 			0);
 
 		return false;

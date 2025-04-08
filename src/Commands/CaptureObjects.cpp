@@ -17,7 +17,7 @@ const char* CaptureObjectsCommandClass::GetName() const
 
 const wchar_t* CaptureObjectsCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_CAPTUREOBJECTS", L"Capture Selected Object");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_CAPTUREOBJECTS", L"Capture Selected Object");
 }
 
 const wchar_t* CaptureObjectsCommandClass::GetUICategory() const
@@ -27,7 +27,7 @@ const wchar_t* CaptureObjectsCommandClass::GetUICategory() const
 
 const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_CAPTUREOBJECTS_DESC", L"Take ownership of any selected objects.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_CAPTUREOBJECTS_DESC", L"Take ownership of any selected objects.");
 }
 
 void CaptureObjectsCommandClass::Execute(WWKey eInput) const

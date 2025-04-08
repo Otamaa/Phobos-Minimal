@@ -10,7 +10,7 @@ const char* MapSnapshotCommandClass::GetName() const
 
 const wchar_t* MapSnapshotCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MAP_SNAPSHOT", L"Map Snapshot");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MAP_SNAPSHOT", L"Map Snapshot");
 }
 
 const wchar_t* MapSnapshotCommandClass::GetUICategory() const
@@ -20,7 +20,7 @@ const wchar_t* MapSnapshotCommandClass::GetUICategory() const
 
 const wchar_t* MapSnapshotCommandClass::GetUIDescription() const
 {
-	return  GeneralUtils::LoadStringUnlessMissing("TXT_MAP_SNAPSHOT_DESC", L"Saves the currently played map.");
+	return  GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MAP_SNAPSHOT_DESC", L"Saves the currently played map.");
 }
 
 void MapSnapshotCommandClass::Execute(WWKey dwUnk) const

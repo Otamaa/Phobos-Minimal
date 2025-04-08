@@ -11,7 +11,7 @@ const char* TogglePowerCommandClass::GetName() const
 
 const wchar_t* TogglePowerCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TOGGLE_POWER", L"Toggle Power Mode");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TOGGLE_POWER", L"Toggle Power Mode");
 }
 
 const wchar_t* TogglePowerCommandClass::GetUICategory() const
@@ -21,7 +21,7 @@ const wchar_t* TogglePowerCommandClass::GetUICategory() const
 
 const wchar_t* TogglePowerCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_TOGGLE_POWER_DESC", L"Turn toggle power mode on / off.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TOGGLE_POWER_DESC", L"Turn toggle power mode on / off.");
 }
 
 void TogglePowerCommandClass::Execute(WWKey dwUnk) const

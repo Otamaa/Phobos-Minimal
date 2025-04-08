@@ -11,7 +11,7 @@ const char* AutoBuildingCommandClass::GetName() const
 
 const wchar_t* AutoBuildingCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_AUTO_BUILD", L"Toggle Auto Building");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_AUTO_BUILD", L"Toggle Auto Building");
 }
 
 const wchar_t* AutoBuildingCommandClass::GetUICategory() const
@@ -21,7 +21,7 @@ const wchar_t* AutoBuildingCommandClass::GetUICategory() const
 
 const wchar_t* AutoBuildingCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_AUTO_BUILD_DESC", L"Toggle on/off automatically place building");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_AUTO_BUILD_DESC", L"Toggle on/off automatically place building");
 }
 
 void AutoBuildingCommandClass::Execute(WWKey eInput) const

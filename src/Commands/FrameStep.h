@@ -39,7 +39,7 @@ OPTIONALINLINE const char* FrameStepCommandClass<Frame>::GetName() const
 template<size_t Frame>
 OPTIONALINLINE const wchar_t* FrameStepCommandClass<Frame>::GetUIName() const
 {
-	const wchar_t* csfString = StringTable::TryFetchString("TXT_STEP_XX_FORWARD", L"Step Forward %d Frames");
+	const wchar_t* csfString = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_STEP_XX_FORWARD", L"Step Forward %d Frames");
 	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Frame);
 	return Phobos::wideBuffer;
 }
@@ -53,7 +53,7 @@ OPTIONALINLINE const wchar_t* FrameStepCommandClass<Frame>::GetUICategory() cons
 template<size_t Frame>
 OPTIONALINLINE const wchar_t* FrameStepCommandClass<Frame>::GetUIDescription() const
 {
-	const wchar_t* csfString = StringTable::TryFetchString("TXT_STEP_XX_FORWARD_DESC", L"Frame Step Only: Step forward %d frames.");
+	const wchar_t* csfString = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_STEP_XX_FORWARD_DESC", L"Frame Step Only: Step forward %d frames.");
 	_snwprintf_s(Phobos::wideBuffer, std::size(Phobos::wideBuffer), csfString, Frame);
 	return Phobos::wideBuffer;
 }

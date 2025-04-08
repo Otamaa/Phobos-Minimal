@@ -10,7 +10,7 @@ const char* FPSCounterCommandClass::GetName() const
 
 const wchar_t* FPSCounterCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_FPS_COUNTER", L"FPS Counter");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FPS_COUNTER", L"FPS Counter");
 }
 
 const wchar_t* FPSCounterCommandClass::GetUICategory() const
@@ -20,7 +20,7 @@ const wchar_t* FPSCounterCommandClass::GetUICategory() const
 
 const wchar_t* FPSCounterCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_FPS_COUNTER_DESC", L"Shows the current and an average of frames per second.");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FPS_COUNTER_DESC", L"Shows the current and an average of frames per second.");
 }
 
 void FPSCounterCommandClass::Execute(WWKey dwUnk) const

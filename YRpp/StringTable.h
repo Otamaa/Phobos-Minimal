@@ -83,14 +83,14 @@ public:
 	static COMPILETIMEEVAL reference<char**, 0xB1CF7Cu> const ExtraValues{};
 	static COMPILETIMEEVAL reference<char , 0xB1BF38u, 4096u> const GlobalBuffer {};
 
-	static const wchar_t* __fastcall LoadString(
+	static const wchar_t* __fastcall FetchString(
 		const char* pLabel,
 		char* pOutExtraData = nullptr,
 		const char* pSourceCodeFileName = CSF_SOURCE_NAME,
 		int nSourceCodeFileLine = 0)
 			{ JMP_STD(0x734E60); }
 
-	static const wchar_t* FetchString(
+	static const wchar_t* TryFetchStringOrReturnDefault(
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
@@ -101,12 +101,12 @@ public:
 			CRT::strlen(pLabel) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStr()) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
-			return LoadString(pLabel, pSpeech, pFile, nLine);
+			return FetchString(pLabel, pSpeech, pFile, nLine);
 		else
 			return pDefault;
 	}
 
-	static const wchar_t* TryFetchString(
+	static const wchar_t* TryFetchStringOrReturnDefaultIfMissing(
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
@@ -118,7 +118,7 @@ public:
 			CRT::strcmpi(pLabel, GameStrings::NoneStr()) &&
 			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 		{
-			auto lpValue = LoadString(pLabel, pSpeech, pFile, nLine);
+			auto lpValue = FetchString(pLabel, pSpeech, pFile, nLine);
 			if (CRT::wcsncmp(lpValue, MISSINGS_LABEL, 8u))
 				return lpValue;
 		}

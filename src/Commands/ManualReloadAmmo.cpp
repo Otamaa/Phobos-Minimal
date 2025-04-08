@@ -12,7 +12,7 @@ const char* ManualReloadAmmoCommandClass::GetName() const
 
 const wchar_t* ManualReloadAmmoCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MANUAL_RELOAD", L"Manual Reload Ammo");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MANUAL_RELOAD", L"Manual Reload Ammo");
 }
 
 const wchar_t* ManualReloadAmmoCommandClass::GetUICategory() const
@@ -22,7 +22,7 @@ const wchar_t* ManualReloadAmmoCommandClass::GetUICategory() const
 
 const wchar_t* ManualReloadAmmoCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MANUAL_RELOAD_DESC", L"Manual Reload Ammo");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_MANUAL_RELOAD_DESC", L"Manual Reload Ammo");
 }
 
 void ManualReloadAmmoCommandClass::Execute(WWKey eInput) const

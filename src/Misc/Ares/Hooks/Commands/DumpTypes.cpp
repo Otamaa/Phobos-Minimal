@@ -32,7 +32,7 @@ const char* DumperTypesCommandClass::GetName() const
 
 const wchar_t* DumperTypesCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_TYPES", L"Dump Types");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_TYPES", L"Dump Types");
 }
 
 const wchar_t* DumperTypesCommandClass::GetUICategory() const
@@ -42,7 +42,7 @@ const wchar_t* DumperTypesCommandClass::GetUICategory() const
 
 const wchar_t* DumperTypesCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_TYPES_DESC", L"Dumps the current type list to the log");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DUMP_TYPES_DESC", L"Dumps the current type list to the log");
 }
 
 void DumperTypesCommandClass::Execute(WWKey dwUnk) const

@@ -17,7 +17,7 @@ const char* NextIdleHarvesterCommandClass::GetName() const
 
 const wchar_t* NextIdleHarvesterCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_NEXT_IDLE_HARVESTER", L"Next Idle Harvester");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_NEXT_IDLE_HARVESTER", L"Next Idle Harvester");
 }
 
 const wchar_t* NextIdleHarvesterCommandClass::GetUICategory() const
@@ -27,7 +27,7 @@ const wchar_t* NextIdleHarvesterCommandClass::GetUICategory() const
 
 const wchar_t* NextIdleHarvesterCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_NEXT_IDLE_HARVESTER_DESC", L"Select the next harvester that is idle (not harvesting).");
+	return GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_NEXT_IDLE_HARVESTER_DESC", L"Select the next harvester that is idle (not harvesting).");
 }
 
 void NextIdleHarvesterCommandClass::Execute(WWKey eInput) const
@@ -70,6 +70,6 @@ void NextIdleHarvesterCommandClass::Execute(WWKey eInput) const
 		MapClass::Instance->CenterMap();
 		MapClass::Instance->MarkNeedsRedraw(1);
 	} else {
-		GeneralUtils::PrintMessage(StringTable::LoadString("MSG:NothingSelected"));
+		GeneralUtils::PrintMessage(StringTable::FetchString("MSG:NothingSelected"));
 	}
 }
