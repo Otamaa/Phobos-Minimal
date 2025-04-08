@@ -2417,3 +2417,23 @@ ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
+
+// I don't know how can WW miscalculated
+// In fact, there should be three different degrees of tilt angles
+// But This position is too far ahead, I can't find a good way to solve
+// So I have to do it this way for now
+ASMJIT_PATCH(0x755469, sub_754CB0_InitializeRampMatrix1, 0x5)
+{
+	GET(const float, phi, EBX);
+	R->EBX(R->EBP());
+	R->EBP(phi);
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x75564B, sub_754CB0_InitializeRampMatrix1, 0x7)
+
+ASMJIT_PATCH(0x7554CC, sub_754CB0_InitializeRampMatrix2, 0x5)
+{
+	GET(const float, phi, EBX);
+	R->EBX(R->EBP());
+	R->EBP(phi);
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x7556CF, sub_754CB0_InitializeRampMatrix2, 0x7)

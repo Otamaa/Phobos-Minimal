@@ -43,146 +43,23 @@
 #include <Lib/asmjit/x86.h>
 
 
-// Memory Manager Class
-class MemoryManager
-{
-private:
-	//static inline std::unordered_map<void*, size_t> allocations;
-	//static inline std::mutex mem_mutex;
-	static inline char* strtok_last = nullptr; // State for custom strtok
+const char* GetGAPIRuntime(){
 
-public:
-	
-	static void* __cdecl allocate(size_t size)
-	{
-		//std::lock_guard<std::mutex> lock(mem_mutex);
-		void* ptr = _aligned_malloc(size, alignof(std::max_align_t));
-		if (!ptr) throw std::bad_alloc();
-		//allocations[ptr] = size;
-		return ptr;
+	for (auto& dll : Patch::ModuleDatas) {
+		if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
+			|| _stricmp(dll.ModuleName.c_str(),"dxgi") == 0)
+			return "DirectX";
+		else if (IS_SAME_STR_("opengl32.dll", dll.ModuleName.c_str()))
+			return "OpenGL";
+		else if (IS_SAME_STR_("vulkan.dll", dll.ModuleName.c_str()))
+			return "Vulkan";
+
+		else "Unknown";
 	}
-
-	static void* __cdecl calloc(size_t num, size_t size)
-	{
-		size_t totalSize = num * size;
-		void* ptr = allocate(totalSize);
-		memset(ptr, 0, totalSize); // Zero initialize
-		return ptr;
-	}
-
-	static void* __cdecl reallocate(void* ptr, size_t newSize)
-	{
-		//std::lock_guard<std::mutex> lock(mem_mutex);
-		//if (allocations.find(ptr) == allocations.end())
-		//{
-		//	return nullptr;
-		//}
-		void* newPtr = _aligned_realloc(ptr, newSize, alignof(std::max_align_t));
-		if (!newPtr) throw std::bad_alloc();
-
-		//allocations.erase(ptr);
-		//allocations[newPtr] = newSize;
-		return newPtr;
-	}
-
-	static void __cdecl deallocate(void* ptr)
-	{
-		//std::lock_guard<std::mutex> lock(mem_mutex);
-		//if (allocations.find(ptr) != allocations.end())
-		{
-		//	allocations.erase(ptr);
-			_aligned_free(ptr);
-		}
-	}
-
-	// Custom strdup using MemoryManager
-	static char* __cdecl strdup(const char* str)
-	{
-		if (!str) return nullptr;
-		size_t len = strlen(str) + 1;  // +1 for null terminator
-		char* newStr = static_cast<char*>(allocate(len));
-		strcpy_s(newStr, len, str);  // Copy string safely
-		return newStr;
-	}
-
-	// Custom _msize implementation
-	static size_t __cdecl msize(void* ptr)
-	{
-		return _msize(ptr);
-		//std::lock_guard<std::mutex> lock(mem_mutex);
-		//auto it = allocations.find(ptr);
-		//return (it != allocations.end()) ? it->second : 0;
-	}
-
-	// Custom strtok implementation
-	static char* __cdecl strtok(char* str, const char* delim)
-	{
-		if (!delim) return nullptr;
-
-		char* tokenStart;
-		if (str)
-		{
-			strtok_last = str;
-		}
-		else if (!strtok_last)
-		{
-			return nullptr;
-		}
-
-		// Skip leading delimiters
-		strtok_last += strspn(strtok_last, delim);
-		if (*strtok_last == '\0')
-		{
-			strtok_last = nullptr;
-			return nullptr;
-		}
-
-		// Find the end of the token
-		tokenStart = strtok_last;
-		strtok_last += strcspn(strtok_last, delim);
-
-		if (*strtok_last != '\0')
-		{
-			*strtok_last = '\0';
-			strtok_last++;
-		}
-		else
-		{
-			strtok_last = nullptr;
-		}
-
-		return tokenStart;
-	}
-
-	//static void renderImGui()
-	//{
-	//	if (ImGui::Begin("Memory Allocations"))
-	//	{
-	//		ImGui::Text("Tracking %zu allocations", allocations.size());
-	//		if (ImGui::BeginTable("Allocations", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-	//		{
-	//			ImGui::TableSetupColumn("Pointer");
-	//			ImGui::TableSetupColumn("Size (bytes)");
-	//			ImGui::TableHeadersRow();
-
-	//			std::lock_guard<std::mutex> lock(mem_mutex);
-	//			for (const auto& [ptr, size] : allocations)
-	//			{
-	//				ImGui::TableNextRow();
-	//				ImGui::TableSetColumnIndex(0);
-	//				ImGui::Text("%p", ptr);
-	//				ImGui::TableSetColumnIndex(1);
-	//				ImGui::Text("%zu", size);
-	//			}
-
-	//			ImGui::EndTable();
-	//		}
-	//		ImGui::End();
-	//	}
-	//}
-};
+}
 
 std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
+
 class asmjitErrHandler : public asmjit::ErrorHandler
 {
 public:
@@ -735,7 +612,7 @@ void Phobos::ExeRun()
 	int i = 0;
 
 	for (auto&dlls : Patch::ModuleDatas) {
-		Debug::Log("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
+		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
 
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
 			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first");
@@ -756,8 +633,8 @@ void Phobos::ExeRun()
 	}
 
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
-	Debug::Log("Running on %s .\n", Patch::WindowsVersion.c_str());
-
+	Debug::LogDeferred("Running on %s .\n", Patch::WindowsVersion.c_str());
+	Debug::LogDeferred("Running on %s API.\n", GetGAPIRuntime());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
 }
@@ -878,7 +755,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-
+		DisableThreadLibraryCalls((HMODULE)hInstance);
 		Phobos::hInstance = hInstance;
 		Patch::CurrentProcess = GetCurrentProcess();
 		Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
