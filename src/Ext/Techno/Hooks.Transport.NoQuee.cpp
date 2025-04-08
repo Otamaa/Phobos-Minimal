@@ -84,17 +84,17 @@ static inline void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 	pPassenger->Limbo(); // Don't swap order casually
 	pPassenger->OnBridge = false; // Don't swap order casually, important
 	pPassenger->NextObject = nullptr; // Don't swap order casually, very important
-
+	
 	const auto pPassengerType = pPassenger->GetTechnoType();
 
-	// Reinstalling Locomotor can avoid various issues such as teleportation, ignoring commands, and automatic return
-	while (LocomotionClass::End_Piggyback(pPassenger->Locomotor));
-
-	if (const auto pNewLoco = LocomotionClass::CreateInstance(pPassengerType->Locomotor))
-	{
-		pPassenger->Locomotor = std::move(pNewLoco);
-		pPassenger->Locomotor->Link_To_Object(pPassenger);
+	if (auto const pCapturer = pPassenger->MindControlledBy) {
+		if (const auto pCmanager = pCapturer->CaptureManager) {
+			pCmanager->FreeUnit(pPassenger);
+		}
 	}
+
+	if (pPassenger->GetCurrentMission() == Mission::Hunt)
+		pPassenger->AbortMotion();
 
 	pTransport->AddPassenger(pPassenger); // Don't swap order casually, very very important
 	pPassenger->Transporter = pTransport;
@@ -354,7 +354,7 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4DA8A0, FootClass_Update_FastEnter, 0x6)
+ASMJIT_PATCH(0x4DA8A0, FootClass_Update_FastEnter, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 

@@ -42,21 +42,51 @@
 
 #include <Lib/asmjit/x86.h>
 
+struct GraphicsRuntimeAPI
+{
+	enum class Type {
+		UNK , DX , DXGI, OGL , VK
+	};
 
-const char* GetGAPIRuntime(){
-
-	for (auto& dll : Patch::ModuleDatas) {
-		if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
-			|| _stricmp(dll.ModuleName.c_str(),"dxgi") == 0)
-			return "DirectX";
-		else if (IS_SAME_STR_("opengl32.dll", dll.ModuleName.c_str()))
-			return "OpenGL";
-		else if (IS_SAME_STR_("vulkan.dll", dll.ModuleName.c_str()))
-			return "Vulkan";
-
-		else "Unknown";
+	GraphicsRuntimeAPI(const std::vector<dllData>& dlls) 
+		: name { "Unknown" }, type { Type::UNK }
+	{
+		for (auto& dll : dlls) {
+			if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
+				|| _stricmp(dll.ModuleName.c_str(), "dxgi") == 0)
+			{
+				name = "DirectX";
+				type = Type::DX;
+				break;
+			}
+			else if (IS_SAME_STR_("opengl32.dll", dll.ModuleName.c_str()))
+			{
+				name = "OpenGL";
+				type = Type::OGL;
+				break;
+			}
+			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str())){
+				name = "Vulkan";
+				type = Type::VK;
+				break;
+			}
+		}
 	}
-}
+
+	~GraphicsRuntimeAPI() = default;
+
+	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const {
+		return name.c_str();
+	}
+
+	FORCEDINLINE COMPILETIMEEVAL Type GetType() {
+		return type;
+	}
+
+private:
+	std::string name;
+	Type type;
+};
 
 std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 
@@ -634,7 +664,8 @@ void Phobos::ExeRun()
 
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
 	Debug::LogDeferred("Running on %s .\n", Patch::WindowsVersion.c_str());
-	Debug::LogDeferred("Running on %s API.\n", GetGAPIRuntime());
+	GraphicsRuntimeAPI gRuntimeAPI(Patch::ModuleDatas);
+	Debug::LogDeferred("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
 }

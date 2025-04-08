@@ -24,23 +24,23 @@ struct Phobos final
 	class Random
 	{
 	public:
-		static void SetRandomSeed(int seed)
-		{
+
+		static void SetRandomSeed(int seed) {
 			_engine.seed(seed);
 		}
 
-		static int RandomRanged(int min, int max)
-		{
-			std::uniform_int_distribution<int> dis(min, max);
+		template<typename T>
+		static T RandomRanged(T min, T max) {
+			std::uniform_int_distribution<T> dis(min, max);
 			return dis(_engine);
 		}
 
-		static double RandomDouble()
-		{
+		static double RandomDouble() {
 			return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1);
 		}
+
 	private:
-		OPTIONALINLINE static std::minstd_rand _engine {};
+		OPTIONALINLINE static std::mt19937 _engine {};
 	};
 
 	static void CmdLineParse(char**, int);
