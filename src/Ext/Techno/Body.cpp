@@ -177,26 +177,24 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (!pWHExt->KillWeapon || pTypeExt->SuppressKillWeapons || !EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectHouses, pSource->Owner, pThis->Owner))
+	if ((!pWHExt->KillWeapon  && !pWHExt->KillWeapon_OnFirer) || pTypeExt->SuppressKillWeapons)
 		return;
 
-	if (!pWHExt->KillWeapon_AffectTypes.empty() && !pWHExt->KillWeapon_AffectTypes.Contains(pType))
-		return;
+	const auto& filter = pTypeExt->SuppressKillWeapons_Types;
 
-	if (!pWHExt->KillWeapon_IgnoreTypes.empty() && pWHExt->KillWeapon_IgnoreTypes.Contains(pType))
-		return;
+	// KillWeapon can be triggered without the source
+	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
+		if (filter.empty() || !filter.Contains(pWHExt->KillWeapon)) {
+			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+		}	
+	}
 
-	if (!pTypeExt->SuppressKillWeapons_Types.empty()&& pTypeExt->SuppressKillWeapons_Types.Contains(pWHExt->KillWeapon))
-		return;
-
-	if (pType->WhatAmI() == AbstractType::AircraftType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
-		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-	else if (pType->WhatAmI() == AbstractType::BuildingType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
-		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-	else if (pType->WhatAmI() == AbstractType::InfantryType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
-		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-	else if (pType->WhatAmI() == AbstractType::UnitType && (pWHExt->KillWeapon_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
-		WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+	// KillWeapon.OnFirer must have a source
+	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
+		if (filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)){
+			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+		}		
+	}
 }
 
 // Checks if vehicle can deploy into a building at its current location. If unit has no DeploysInto set returns noDeploysIntoDefaultValue (def = false) instead.

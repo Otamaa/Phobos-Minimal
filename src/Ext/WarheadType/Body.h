@@ -400,10 +400,9 @@ public:
 	TechnoClass* IntendedTarget { nullptr };
 
 	Valueable<WeaponTypeClass*> KillWeapon {};
-	Valueable<AffectedTarget> KillWeapon_AffectTargets { AffectedTarget::All } ;
-	Valueable<AffectedHouse> KillWeapon_AffectHouses { AffectedHouse::All };
-	ValueableVector<TechnoTypeClass*> KillWeapon_AffectTypes {};
-	ValueableVector<TechnoTypeClass*> KillWeapon_IgnoreTypes {};
+	Valueable<WeaponTypeClass*> KillWeapon_OnFirer {};
+	Valueable<AffectedHouse> KillWeapon_AffectsHouses { AffectedHouse::All };
+	Valueable<AffectedHouse> KillWeapon_OnFirer_AffectsHouses { AffectedHouse::All };
 
 	Nullable<int> MindControl_ThreatDelay {};
 
