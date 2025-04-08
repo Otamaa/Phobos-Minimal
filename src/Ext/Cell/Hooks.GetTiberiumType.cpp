@@ -44,14 +44,14 @@ ASMJIT_PATCH(0x485020, CellClass_GetTibValue, 0x6) {
 }
 
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x485010, FakeCellClass::_GetTiberiumType);
+DEFINE_FUNCTION_JUMP(LJMP, 0x485013, CellExtData::GetTiberiumType);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5FDD20, CellExtData::GetTiberiumType);
 
 DEFINE_FUNCTION_JUMP(CALL, 0x487393, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x4873E9, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x5FDA77, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x74A3A2, CellExtData::GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x74A602, CellExtData::GetTiberiumType);
-DEFINE_FUNCTION_JUMP(LJMP, 0x5FDD20, CellExtData::GetTiberiumType);
 
 DEFINE_FUNCTION_JUMP(CALL, 0x424D9C, FakeCellClass::_GetTiberiumType);
 DEFINE_FUNCTION_JUMP(CALL, 0x452FEC, FakeCellClass::_GetTiberiumType);

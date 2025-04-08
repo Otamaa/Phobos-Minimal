@@ -1,6 +1,9 @@
 #include "Body.h"
 
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Infantry/Body.h>
+
+#include <Utilities/Macro.h>
 
 #include <FootClass.h>
 #include <InfantryClass.h>
@@ -33,6 +36,10 @@ static OPTIONALINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassen
 	if (!pOwner || !pOwner->IsAlliedWith(pPassenger) || pTransport->IsBeingWarpedOut())
 		return false;
 
+	// Added to prevent unexpected enter action
+	if (pPassenger->Deactivated || pPassenger->IsUnderEMP())
+		return false;
+
 	if (pPassenger->IsMindControlled() || pPassenger->ParasiteEatingMe)
 		return false;
 
@@ -62,108 +69,58 @@ static OPTIONALINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassen
 	return predictSize < maxSize;
 }
 
-// Rewrite from 0x51A21B
-void OPTIONALINLINE InfantryEnterNow(UnitClass* pTransport, InfantryClass* pPassenger)
+static inline void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 {
+	// Vanilla only for infantry, but why
 	if (const auto pTag = pTransport->AttachedTag)
 		pTag->RaiseEvent(TriggerEvent::EnteredBy, pPassenger, CellStruct::Empty);
 
-	pPassenger->ArchiveTarget = nullptr;
-	pPassenger->OnBridge = false;
+	// Vanilla did not handle SpawnManager and SlaveManager, so I don't care about these here either
+	pPassenger->SetArchiveTarget(nullptr);
 	pPassenger->MissionAccumulateTime = 0;
 	pPassenger->GattlingValue = 0;
 	pPassenger->CurrentGattlingStage = 0;
 
-	/* Have checked in CanEnterNow
-	if (const auto pMind = pPassenger->MindControlledBy)
-	{
-		if (const auto pManager = pMind->CaptureManager)
-			pManager->FreeUnit(pPassenger);
-	}
-	*/
+	pPassenger->Limbo(); // Don't swap order casually
+	pPassenger->OnBridge = false; // Don't swap order casually, important
+	pPassenger->NextObject = nullptr; // Don't swap order casually, very important
 
-	pPassenger->Limbo();
+	const auto pPassengerType = pPassenger->GetTechnoType();
+
+	// Reinstalling Locomotor can avoid various issues such as teleportation, ignoring commands, and automatic return
+	while (LocomotionClass::End_Piggyback(pPassenger->Locomotor));
+
+	if (const auto pNewLoco = LocomotionClass::CreateInstance(pPassengerType->Locomotor))
+	{
+		pPassenger->Locomotor = std::move(pNewLoco);
+		pPassenger->Locomotor->Link_To_Object(pPassenger);
+	}
+
+	pTransport->AddPassenger(pPassenger); // Don't swap order casually, very very important
+	pPassenger->Transporter = pTransport;
 
 	if (pTransport->Type->OpenTopped)
 		pTransport->EnteredOpenTopped(pPassenger);
 
-	pPassenger->Transporter = pTransport;
-	pTransport->AddPassenger(pPassenger);
-	pPassenger->Undiscover();
-
-	// Added, to prevent passengers from wanting to get on after getting off
-	pPassenger->QueueUpToEnter = nullptr;
-
-	// Added, to stop the passengers and let OpenTopped work normally
-	pPassenger->SetSpeedPercentage(0.0);
-
-	// Added, to stop hover unit's meaningless behavior
-	if (const auto pHover = locomotion_cast<HoverLocomotionClass*>(pPassenger->Locomotor))
-		pHover->__Height = 0;
-}
-
-// Rewrite from 0x73A6D1
-void OPTIONALINLINE UnitEnterNow(UnitClass* pTransport, UnitClass* pPassenger)
-{
-	// I don't know why units have no trigger
-
-	pPassenger->ArchiveTarget = nullptr;
-	pPassenger->OnBridge = false;
-	pPassenger->MissionAccumulateTime = 0;
-	pPassenger->GattlingValue = 0;
-	pPassenger->CurrentGattlingStage = 0;
-
-	/* Have checked in CanEnterNow
-	if (const auto pMind = pPassenger->MindControlledBy)
-	{
-		if (const auto pManager = pMind->CaptureManager)
-			pManager->FreeUnit(pPassenger);
-	}
-	*/
-
-	pPassenger->Limbo();
-	pTransport->AddPassenger(pPassenger);
-
-	if (pTransport->Type->OpenTopped)
-		pTransport->EnteredOpenTopped(pPassenger);
-
-	pPassenger->Transporter = pTransport;
-
-	if (pPassenger->Type->OpenTopped)
+	if (pPassengerType->OpenTopped)
 		pPassenger->SetTargetForPassengers(nullptr);
 
 	pPassenger->Undiscover();
 
-	// Added, to prevent passengers from wanting to get on after getting off
-	pPassenger->QueueUpToEnter = nullptr;
-
-	// Added, to stop the passengers and let OpenTopped work normally
-	pPassenger->SetSpeedPercentage(0.0);
-
-	// Added, to stop hover unit's meaningless behavior
-	if (const auto pHover = locomotion_cast<HoverLocomotionClass*>(pPassenger->Locomotor))
-		pHover->__Height = 0;
+	pPassenger->QueueUpToEnter = nullptr; // Added, to prevent passengers from wanting to get on after getting off
+	pPassenger->SetSpeedPercentage(0.0); // Added, to stop the passengers and let OpenTopped work normally
 }
 
-template<typename T>
-bool OPTIONALINLINE Entered(T* pThis)
+bool OPTIONALINLINE Entered(FootClass* pThis)
 {
 	if (const auto pDest = cast_to<UnitClass*>(pThis->CurrentMission == Mission::Enter ? pThis->Destination : pThis->QueueUpToEnter))
 	{
-		if (pDest->Type->Passengers > 0 
+		if (pDest->Type->Passengers > 0
 			&& TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter))
 		{
-			const auto delta = pThis->GetCoords() - pDest->GetCoords();
-
-			if (abs(delta.X) <= 384 && abs(delta.Y) <= 384)
-			{
-				if (CanEnterNow(pDest, pThis))
-				{
-					if constexpr (T::AbsID == AbstractType::Infantry)
-						InfantryEnterNow(pDest, pThis);
-					else
-						UnitEnterNow(pDest, pThis);
-
+			if (IsCloseEnoughToEnter(pDest , pThis)) {
+				if (CanEnterNow(pDest, pThis)) {
+					DoEnterNow(pDest , pThis);
 					return true;
 				}
 			}
@@ -211,7 +168,7 @@ ASMJIT_PATCH(0x51A0D4, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x6)
 
 ASMJIT_PATCH(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
 {
-	enum { UnloadLoop = 0x73D8CB, UnloadReturn = 0x73E289, NoUnloadReturn = 0x73D8AA };
+	enum { UnloadLoop = 0x73D8CB, UnloadReturn = 0x73E289 };
 
 	GET(UnitClass* const, pThis, ESI);
 
@@ -224,30 +181,17 @@ ASMJIT_PATCH(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
 			// If unloading is required within one frame, the sound will only be played when the last passenger leaves
 			PlayUnitLeaveTransportSound(pThis);
 			TransportUnloadTemp::ShouldPlaySound = false;
-			pThis->MissionStatus = 4; // Then guard
 			return UnloadReturn;
 		}
-		else if (!CanUnloadNow(pThis, pPassenger))
-		{
-			PlayUnitLeaveTransportSound(pThis);
-			TransportUnloadTemp::ShouldPlaySound = false;
-			pThis->MissionStatus = 0; // Retry
-			return NoUnloadReturn;
-		}
 
-		TransportUnloadTemp::ShouldPlaySound = false;
+		TransportUnloadTemp::ShouldPlaySound = true;
 		R->EBX(0); // Reset
 		return UnloadLoop;
 	}
 
 	// PlayAtPos has already handled the situation where Sound is less than 0 internally, so unnecessary checks will be skipped
 	PlayUnitLeaveTransportSound(pThis);
-
-	if (!pPassenger || CanUnloadNow(pThis, pPassenger))
-		return UnloadReturn;
-
-	pThis->MissionStatus = 0; // Retry
-	return NoUnloadReturn;
+	return UnloadReturn;
 }
 
 ASMJIT_PATCH(0x70D965, FootClass_QueueEnter_ForceEnter, 0x7)
@@ -262,19 +206,8 @@ ASMJIT_PATCH(0x70D965, FootClass_QueueEnter_ForceEnter, 0x7)
 	&& !pThis->IsUnderEMP()
 	&& !pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems
 	{
-		const auto absType = pThis->WhatAmI();
-		// When the distance is very close, the passengers may not move, which can cause UpdatePosition to not be called
-		// So special handling is needed here, avoid not being able to trigger quick boarding without moving
-		if (absType == AbstractType::Infantry)
-		{
-			if (IsCloseEnoughToEnter(pDest, pThis) && CanEnterNow(pDest, pThis))
-				InfantryEnterNow(pDest, static_cast<InfantryClass*>(pThis));
-		}
-		else if (absType == AbstractType::Unit)
-		{
-			if (IsCloseEnoughToEnter(pDest, pThis) && CanEnterNow(pDest, pThis))
-				UnitEnterNow(pDest, static_cast<UnitClass*>(pThis));
-		}
+		if (IsCloseEnoughToEnter(pDest, pThis) && CanEnterNow(pDest, pThis))
+				DoEnterNow(pDest,pThis);
 	}
 
 	return 0;
@@ -314,6 +247,8 @@ ASMJIT_PATCH(0x73DC9C, UnitClass_Mission_Unload_NoQueueUpToUnloadBreak, 0xA)
 
 	return SkipGameCode;
 }
+
+DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
 
 //Enter unit
 ASMJIT_PATCH(0x73796B, UnitClass_ReceiveCommand_AmphibiousEnter, 0x7)
@@ -419,46 +354,36 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x70D894, FootClass_UpdateEnter_UpdateEnterPosition, 0x7)
+DEFINE_HOOK(0x4DA8A0, FootClass_Update_FastEnter, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
-	GET(UnitClass* const, pDest, EDI); // Is techno not unit, only for convenience
 
-	if (pDest->WhatAmI() == AbstractType::Unit 
-	&& TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter)
-	&& !pThis->Deactivated && !pThis->IsUnderEMP() && !pDest->Locomotor->Is_Moving())
-	{
-		if (IsCloseEnoughToEnter(pDest, pThis))
+	if (const auto pDest = cast_to<UnitClass*>(pThis->CurrentMission == Mission::Enter ? pThis->Destination : pThis->QueueUpToEnter)){
+		if(TechnoTypeExtContainer::Instance.Find(pDest->Type)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter)
+		&& !pThis->Deactivated && !pThis->IsUnderEMP() && !pDest->Locomotor->Is_Moving())
 		{
-			if (!pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems)
+			if (IsCloseEnoughToEnter(pDest, pThis))
 			{
+				if (!pThis->Locomotor->Is_Moving()) // Entering while moving can cause many problems)
 				{
 					const auto absType = pThis->WhatAmI();
 
-					if (absType == AbstractType::Infantry)
-					{
-						if (CanEnterNow(pDest, pThis))
-							InfantryEnterNow(pDest, static_cast<InfantryClass*>(pThis));
-					}
-					else if (absType == AbstractType::Unit)
-					{
-						if (CanEnterNow(pDest, pThis))
-							UnitEnterNow(pDest, static_cast<UnitClass*>(pThis));
-					}
+					if ((absType == AbstractType::Infantry || absType == AbstractType::Unit) && CanEnterNow(pDest, pThis))
+						DoEnterNow(pDest, pThis);
 				}
 			}
-		}
-		else if (!pThis->Destination) // Move to enter position, prevent other passengers from waiting for call and not moving early
-		{
+			else if (!pThis->Destination) // Move to enter position, prevent other passengers from waiting for call and not moving early
 			{
-				auto cell = CellStruct::Empty;
-				pThis->NearbyLocation(&cell, pDest);
-
-				if (cell != CellStruct::Empty)
 				{
-					pThis->SetDestination(MapClass::Instance->GetCellAt(cell), true);
-					pThis->QueueMission(Mission::Move, false);
-					pThis->NextMission();
+					auto cell = CellStruct::Empty;
+					pThis->NearbyLocation(&cell, pDest);
+
+					if (cell != CellStruct::Empty)
+					{
+						pThis->SetDestination(MapClass::Instance->GetCellAt(cell), true);
+						pThis->QueueMission(Mission::Move, false);
+						pThis->NextMission();
+					}
 				}
 			}
 		}

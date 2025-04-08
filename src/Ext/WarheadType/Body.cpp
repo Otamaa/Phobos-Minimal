@@ -582,10 +582,9 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->MinDamage.Read(exINI, pSection, "MinDamage");
 
 	this->KillWeapon.Read(exINI, pSection, "KillWeapon");
-	this->KillWeapon_AffectTargets.Read(exINI, pSection, "KillWeapon.AffectTargets");
-	this->KillWeapon_AffectHouses.Read(exINI, pSection, "KillWeapon.AffectHouses");
-	this->KillWeapon_AffectTypes.Read(exINI, pSection, "KillWeapon.AffectTypes");
-	this->KillWeapon_IgnoreTypes.Read(exINI, pSection, "KillWeapon.IgnoreTypes");
+	this->KillWeapon_OnFirer.Read(exINI, pSection, "KillWeapon.OnFirer");
+	this->KillWeapon_AffectsHouses.Read(exINI, pSection, "KillWeapon.AffectsHouses");
+	this->KillWeapon_OnFirer_AffectsHouses.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsHouses");
 
 	this->MindControl_ThreatDelay.Read(exINI, pSection, "MindControl.ThreatDelay");
 	this->MergeBuildingDamage.Read(exINI, pSection, "MergeBuildingDamage");
@@ -1585,10 +1584,10 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->IntendedTarget)
 
 		.Process(this->KillWeapon)
-		.Process(this->KillWeapon_AffectTargets)
-		.Process(this->KillWeapon_AffectHouses)
-		.Process(this->KillWeapon_AffectTypes)
-		.Process(this->KillWeapon_IgnoreTypes)
+		.Process(this->KillWeapon_OnFirer)
+		.Process(this->KillWeapon_AffectsHouses)
+		.Process(this->KillWeapon_OnFirer_AffectsHouses)
+
 		.Process(this->MindControl_ThreatDelay)
 		.Process(this->MergeBuildingDamage)
 

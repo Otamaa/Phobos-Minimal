@@ -46,29 +46,29 @@ ASMJIT_PATCH(0x500910, HouseClass_GetFactoryCount, 0x5)
 // }
 //
 //update it separately
-ASMJIT_PATCH(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
+// ASMJIT_PATCH(0x4F9038, HouseClass_AI_Superweapons, 0x5) {
 
-	GET(FakeHouseClass*, pThis, ESI);
+// 	GET(FakeHouseClass*, pThis, ESI);
 
-	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset() || pThis->IsControlledByHuman() || pThis->Type->MultiplayPassive)
-		return 0;
+// 	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset() || pThis->IsControlledByHuman() || pThis->Type->MultiplayPassive)
+// 		return 0;
 
-	const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
+// 	const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
 
-	if (delay > 0) {
-		auto const pExt = pThis->_GetExtData();
+// 	if (delay > 0) {
+// 		auto const pExt = pThis->_GetExtData();
 
-		if (pExt->AISuperWeaponDelayTimer.HasTimeLeft())
-			return 0;
+// 		if (pExt->AISuperWeaponDelayTimer.HasTimeLeft())
+// 			return 0;
 
-		pExt->AISuperWeaponDelayTimer.Start(delay);
-	}
+// 		pExt->AISuperWeaponDelayTimer.Start(delay);
+// 	}
 
-	if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
-		pThis->AI_TryFireSW();
+// 	if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
+// 		pThis->AI_TryFireSW();
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // ASMJIT_PATCH(0x4FD77C, HouseClass_ExpertAI_Superweapons, 0x5)
 // {
