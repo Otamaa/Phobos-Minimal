@@ -48,8 +48,8 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t
 
 	auto pData = FindOrAllocateDynamicStrings(pLabelName);
 
-	if((!pData->Text || !pData->Text[0])) {
-		swprintf_s(pData->Text, 101u, pPattern, pDefault);
+	if(!pData->Text[0]) {
+		swprintf_s(pData->Text, std::size(pData->Text), pPattern, pDefault);
 		if(Phobos::Otamaa::OutputMissingStrings) {
 			Debug::LogInfo("[CSFLoader] ***NO_STRING*** label \"{}\" with value \"{}\".", pLabelName, PhobosCRT::WideStringToString(pData->Text));
 		}

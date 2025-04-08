@@ -2437,3 +2437,29 @@ ASMJIT_PATCH(0x7554CC, sub_754CB0_InitializeRampMatrix2, 0x5)
 	R->EBP(phi);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x7556CF, sub_754CB0_InitializeRampMatrix2, 0x7)
+
+
+ASMJIT_PATCH(0x73D7B5, UnitClass_Mission_Unload_CheckInvalidCell, 0x8)
+{
+	enum { CannotUnload = 0x73D87F };
+
+	GET(const CellStruct*, pCell, EAX);
+
+	return *pCell != CellStruct::Empty ? 0 : CannotUnload;
+}
+
+
+ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
+{
+	enum { SkipGameCode = 0x737952 };
+
+	GET(UnitClass* const, pThis, ESI);
+	GET(FootClass* const, pPassenger, EDI);
+
+	// Move to the vicinity of the passenger
+	CellStruct cell = CellStruct::Empty;
+	pThis->NearbyLocation(&cell, pPassenger);
+	pThis->SetDestination((cell != CellStruct::Empty ? static_cast<AbstractClass*>(MapClass::Instance->GetCellAt(cell)) : pPassenger), true);
+
+	return SkipGameCode;
+}

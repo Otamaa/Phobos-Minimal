@@ -187,8 +187,6 @@ ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
 
 	GET(ILocomotion* const, iloco, ESI);
 
-	__assume(iloco != nullptr);
-
 	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
 
 	if (pFoot->GetCurrentMission() != Mission::Unload)
@@ -198,7 +196,6 @@ ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
 }
 
 // Rewrite from 0x718505
-
 ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, EAX);

@@ -130,7 +130,7 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 	if (bAllied || IsObserver || bReveal)
 	{
 		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
-		pThis->DrawExtraInfo(DrawExtraLoc, pLocation, pBounds);
+		pThis->DrawExtraInfo(&DrawExtraLoc, pLocation, pBounds);
 
 		// display production cameo
 		if (IsObserver || bReveal)

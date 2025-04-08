@@ -100,23 +100,23 @@ struct Phobos final
 		static OPTIONALINLINE int SuperWeaponSidebar_Max { 0 };
 		static OPTIONALINLINE int SuperWeaponSidebar_MaxColumns { INT32_MAX};
 
-		static OPTIONALINLINE const wchar_t* CostLabel { nullptr };
-		static OPTIONALINLINE const wchar_t* PowerLabel { nullptr };
-		static OPTIONALINLINE const wchar_t* PowerBlackoutLabel { nullptr };
-		static OPTIONALINLINE const wchar_t* TimeLabel { nullptr };
-		static OPTIONALINLINE const wchar_t* HarvesterLabel { nullptr };
-		static OPTIONALINLINE const wchar_t* PercentLabel { nullptr };
+		static OPTIONALINLINE const wchar_t* CostLabel { L"" };
+		static OPTIONALINLINE const wchar_t* PowerLabel { L"" };
+		static OPTIONALINLINE const wchar_t* PowerBlackoutLabel { L"" };
+		static OPTIONALINLINE const wchar_t* TimeLabel { L"" };
+		static OPTIONALINLINE const wchar_t* HarvesterLabel { L"" };
+		static OPTIONALINLINE const wchar_t* PercentLabel { L"" };
 
-		static OPTIONALINLINE const wchar_t* BuidingRadarJammedLabel{ nullptr };
-		static OPTIONALINLINE const wchar_t* BuidingFakeLabel{ nullptr };
+		static OPTIONALINLINE const wchar_t* BuidingRadarJammedLabel{ L"" };
+		static OPTIONALINLINE const wchar_t* BuidingFakeLabel{ L"" };
 		static OPTIONALINLINE const wchar_t* ShowBriefingResumeButtonLabel { L"" };
-		static OPTIONALINLINE char ShowBriefingResumeButtonStatusLabel[0x20];
+		static OPTIONALINLINE char ShowBriefingResumeButtonStatusLabel[0x20] { "" };
 
-		static OPTIONALINLINE const wchar_t* Power_Label { nullptr };
-		static OPTIONALINLINE const wchar_t* Drain_Label { nullptr };
-		static OPTIONALINLINE const wchar_t* Storage_Label { nullptr };
-		static OPTIONALINLINE const wchar_t* Radar_Label { nullptr };
-		static OPTIONALINLINE const wchar_t* Spysat_Label { nullptr };
+		static OPTIONALINLINE const wchar_t* Power_Label { L"" };
+		static OPTIONALINLINE const wchar_t* Drain_Label { L"" };
+		static OPTIONALINLINE const wchar_t* Storage_Label { L"" };
+		static OPTIONALINLINE const wchar_t* Radar_Label { L"" };
+		static OPTIONALINLINE const wchar_t* Spysat_Label { L"" };
 
 		static OPTIONALINLINE const wchar_t* SWShotsFormat { L"" };
 
@@ -211,60 +211,4 @@ struct Phobos final
 		static OPTIONALINLINE COMPILETIMEEVAL ColorStruct InterceptedPositiveDamageColor = ColorStruct { 255, 128, 128 };
 		static OPTIONALINLINE COMPILETIMEEVAL ColorStruct InterceptedNegativeDamageColor = ColorStruct { 128, 255, 128 };
 	};
-
-	static FORCEDINLINE unsigned Round_Up(unsigned number, int a)
-	{
-		return (number + (a - 1)) & (~(a - 1));
-	}
-
-	static void* __cdecl _allocate(unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4));
-	}
-
-	static unsigned int __cdecl _msize(void* ptr)
-	{
-		return HeapSize(GetProcessHeap(), 0, ptr);
-	}
-
-	static char* __cdecl _strdup(const char* string)
-	{
-		char* str;
-		char* p;
-		int len = 0;
-
-		while (string[len])
-		{
-			len++;
-		}
-		str = (char*)_allocate(len + 1);
-		p = str;
-		while (*string)
-		{
-			*p++ = *string++;
-		}
-		*p = '\0';
-		return str;
-	}
-
-	static void* __cdecl _count_allocate(unsigned int count, unsigned int size)
-	{
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Round_Up(size, 4) * count);
-	}
-
-	static void* __cdecl _reallocate(void* ptr, unsigned int size)
-	{
-		return HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, Round_Up(size, 4));
-	}
-
-	static void __cdecl _free(void* ptr)
-	{
-		HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr);
-	}
-
-	static void __cdecl _dump_memory_leaks()
-	{
-		//need _DEBUG
-		_CrtDumpMemoryLeaks();
-	}
 };

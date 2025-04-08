@@ -15,13 +15,9 @@ public:
 	static size_t COMPILETIMEEVAL MaxEntries = 320000u
 		;
 
-	OPTIONALINLINE static int CSFCount;
-	OPTIONALINLINE static int NextValueIndex;
-	struct Storages {
-		CSFString value {};
-		bool found { true };
-	};
-	OPTIONALINLINE static std::unordered_map<std::string, CSFString> DynamicStrings;
+	OPTIONALINLINE static int CSFCount {};
+	OPTIONALINLINE static int NextValueIndex {};
+	OPTIONALINLINE static std::unordered_map<std::string, CSFString> DynamicStrings {};
 
 	static auto FindOrAllocateDynamicStrings(const char* val) {
 		return &DynamicStrings[val];

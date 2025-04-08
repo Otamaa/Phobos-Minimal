@@ -52,9 +52,11 @@ struct CSFString
 	CSFString *PreviousEntry;
 	wchar_t Text[102];
 
-	COMPILETIMEEVAL CSFString() : PreviousEntry(nullptr) {
-		*Text = 0;
+	CSFString() : PreviousEntry(nullptr) , Text {} {
+		__stosw(reinterpret_cast<unsigned short*>(Text), static_cast<unsigned short>(0), std::size(Text));
 	}
+
+	~CSFString() = default;
 };
 
 struct CSFLanguage

@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Transport.NoQuee.cpp" />
     <ClCompile Include="src\Lib\stb\stb_vorbis.c" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
@@ -203,7 +204,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Targeting.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Transport.NoQuee.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
     <ClCompile Include="src\Ext\Temporal\Hooks.BuildingTarget.cpp" />

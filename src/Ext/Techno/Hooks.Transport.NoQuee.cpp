@@ -314,15 +314,6 @@ ASMJIT_PATCH(0x73D7AB, UnitClass_Mission_Unload_FindUnloadPosition, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x73D7B7, UnitClass_Mission_Unload_CheckInvalidCell, 0x6)
-{
-	enum { CannotUnload = 0x73D87F };
-
-	GET(const CellStruct, cell, EAX);
-
-	return cell != CellStruct::Empty ? 0 : CannotUnload;
-}
-
 ASMJIT_PATCH(0x740C9C, UnitClass_GetUnloadDirection_CheckUnloadPosition, 0x7)
 {
 	GET(UnitClass* const, pThis, EDI);
@@ -390,19 +381,4 @@ ASMJIT_PATCH(0x4DA8A0, FootClass_Update_FastEnter, 0x6)
 	}
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
-{
-	enum { SkipGameCode = 0x737952 };
-
-	GET(UnitClass* const, pThis, ESI);
-	GET(FootClass* const, pPassenger, EDI);
-
-	// Move to the vicinity of the passenger
-	auto cell = CellStruct::Empty;
-	pThis->NearbyLocation(&cell , pPassenger);
-	pThis->SetDestination((cell != CellStruct::Empty ? static_cast<AbstractClass*>(MapClass::Instance->GetCellAt(cell)) : pPassenger), true);
-
-	return SkipGameCode;
 }
