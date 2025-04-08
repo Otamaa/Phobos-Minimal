@@ -905,15 +905,40 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 {
 	enum { UpdateAIExpert = 0x4F9015 , Continue = 0x4F9038};
 
-	GET(HouseClass*, pThis, ESI);
+	GET(FakeHouseClass*, pThis, ESI);
 
-	//Debug::LogInfo("House[%s - %x , calling %s" , pThis->get_ID() , pThis ,__FUNCTION__);
-	if(R->AL()) { // HumanControlled
+	//Debug::Log("House[%s - %x , calling %s\n" , pThis->get_ID() , pThis ,__FUNCTION__);
+	const bool IsHuman = R->AL(); // HumanControlled
+	if(!IsHuman) {
+
+		if(pThis->Type->MultiplayPassive)
+			return Continue;
+
+		if(RulesExtData::Instance()->AISuperWeaponDelay.isset()){
+			const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
+			auto const pExt = pThis->_GetExtData();
+			const bool hasTimeLeft = pExt->AISuperWeaponDelayTimer.HasTimeLeft();
+
+			if (delay > 0) {
+
+				if(hasTimeLeft){
+					return UpdateAIExpert;
+				}
+
+				pExt->AISuperWeaponDelayTimer.Start(delay);
+			}
+
+			if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
+				pThis->AI_TryFireSW();
+		}
+
+		return UpdateAIExpert;
+
+	} else {
 		pThis->AI_TryFireSW();
-		return Continue;
 	}
 
-	return pThis->Type->MultiplayPassive ? Continue : UpdateAIExpert;
+	return Continue;
 }
 
 ASMJIT_PATCH(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
