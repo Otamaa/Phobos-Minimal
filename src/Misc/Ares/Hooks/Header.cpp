@@ -7862,7 +7862,7 @@ const MouseCursor* MouseClassExt::GetCursorDataFromRawAction(Action nAction)
 
 void MouseClassExt::ClearMappedAction()
 {
-	std::memset(CursorIdx.data(), 0, sizeof(MappedActions) * CursorIdx.size());
+	__stosd(reinterpret_cast<unsigned long*>(CursorIdx.data()), 0, sizeof(MappedActions) * CursorIdx.size());
 }
 
 void MouseClassExt::InsertMappedAction(MouseCursorType nCursorIdx, Action nAction, bool Shrouded)

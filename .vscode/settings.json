@@ -104,7 +104,19 @@
         "typeindex": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "expected": "cpp"
+        "expected": "cpp",
+        "barrier": "cpp",
+        "cuchar": "cpp",
+        "generator": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "latch": "cpp",
+        "mdspan": "cpp",
+        "numbers": "cpp",
+        "print": "cpp",
+        "semaphore": "cpp",
+        "spanstream": "cpp",
+        "syncstream": "cpp"
     },
     "task.allowAutomaticTasks": "on",
     "commentTranslate.hover.enabled": false

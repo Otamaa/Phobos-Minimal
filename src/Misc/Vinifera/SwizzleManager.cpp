@@ -16,9 +16,9 @@ static struct SwizzleInfoDatabaseEntry
 		Function(),
 		Variable()
 	{
-		std::memset(File, 0, sizeof(File));
-		std::memset(Function, 0, sizeof(Function));
-		std::memset(Variable, 0, sizeof(Variable));
+		__stosb(reinterpret_cast<unsigned char*>(File), 0, sizeof(File));
+		__stosb(reinterpret_cast<unsigned char*>(Function), 0, sizeof(Function));
+		__stosb(reinterpret_cast<unsigned char*>(Variable), 0, sizeof(Variable));
 	}
 
 	bool operator==(const SwizzleInfoDatabaseEntry& src) const { return false; }

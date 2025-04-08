@@ -208,7 +208,7 @@ public:
 
 	EventClass()
 	{
-		memset(this, 0, sizeof(*this));
+		__stosb(reinterpret_cast<unsigned char*>(this), 0, sizeof(*this));
 	}
 
 	explicit EventClass(int houseIndex, EventType eventType)

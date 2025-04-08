@@ -28,7 +28,7 @@ public:
 
 public:
 
-	int CDDriveNames [26]; //int + 'A' would be the drive's name
+	std::array<int, 26> CDDriveNames; //int + 'A' would be the drive's name
 	int NumCDDrives;
 	DWORD unknown_6C;
 };

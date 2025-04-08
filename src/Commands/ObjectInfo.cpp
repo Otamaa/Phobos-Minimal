@@ -55,10 +55,13 @@ void Append(T& buffer, const char* pFormat, ...)
 static bool WhiteColorSearched = false;
 int ColorIdx = 5;
 
+
 template<typename T>
 void Display(T& buffer)
 {
-	memset(Phobos::wideBuffer, 0, sizeof(Phobos::wideBuffer));
+	__stosw(reinterpret_cast<unsigned short*>(Phobos::wideBuffer), static_cast<unsigned short>(0), std::size(Phobos::wideBuffer));
+	static_assert(sizeof(wchar_t) == 2, "wchar_t size is different!");
+	//memset(Phobos::wideBuffer, 0, sizeof(Phobos::wideBuffer));
 	mbstowcs(Phobos::wideBuffer, buffer, strlen(buffer));
 	if (!WhiteColorSearched) {
 		const auto WhiteIndex = ColorScheme::FindIndex("White",53);

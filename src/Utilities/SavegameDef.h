@@ -1315,7 +1315,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::array<T, size>& Value, bool RegisterForChange) const
 		{
-			std::memset(Value.data(), 0, sizeof(T) * size);
+			__stosb(reinterpret_cast<unsigned char*>(Value.data()), 0, sizeof(T) * size);
 
 			for (auto ix = 0u; ix < size; ++ix) {
 				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange)) {

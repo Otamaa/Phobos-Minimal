@@ -62,10 +62,14 @@ struct MultiBoolFixedArray
 
 	void Reset()
 	{
-		std::memset(Datas, 0, sizeof(bool) * Amount);
+		if constexpr(sizeof(bool) == 1)
+			__stosb(reinterpret_cast<unsigned char*>(Datas), 0, sizeof(bool) * Amount);
+		else
+			std::memset(Datas, 0, sizeof(bool) * Amount);
 	}
 
 protected:
 	bool Datas[Amount] { false };
 
 };
+static_assert(sizeof(bool) == 1, "This code assumes bool is 1 byte!");

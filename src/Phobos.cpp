@@ -424,7 +424,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	if (Phobos::Otamaa::NoCD)
 	{
 		Debug::Log("Optimizing list of CD drives for NoCD mode.\n");
-		std::memset(CDDriveManagerClass::Instance->CDDriveNames, -1, 26);
+		__stosd(reinterpret_cast<unsigned long*>(CDDriveManagerClass::Instance->CDDriveNames.data()), 0xFFFFFFFF, CDDriveManagerClass::Instance->CDDriveNames.size());
 
 		char drv[] = "a:\\";
 		for (int i = 0; i < 26; ++i)

@@ -5,7 +5,11 @@
 class PKey
 {
 public:
-	PKey() : Modulus(), Exponent(), BitPrecision(0) { std::memset(Modulus, 0, 256); std::memset(Exponent, 0, 256); }
+	PKey() : Modulus(), Exponent(), BitPrecision(0) {
+		__stosb(reinterpret_cast<unsigned char*>(Modulus), 0, 256);
+		__stosb(reinterpret_cast<unsigned char*>(Exponent), 0, 256);
+
+	}
 
 private:
 	char Modulus[256];         // BigInt
