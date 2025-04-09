@@ -5350,7 +5350,7 @@ ASMJIT_PATCH(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 	LEA_STACK(CoordStruct*, pBuffer, 0x44);
 
 	int sound = pThis->Type->EnterBioReactorSound;
-	if (sound == -1)
+	if (sound <= -1)
 		sound = RulesClass::Instance->EnterBioReactorSound;
 
 	auto coord = pThis->GetCoords(pBuffer);

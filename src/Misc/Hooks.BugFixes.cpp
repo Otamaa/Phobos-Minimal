@@ -2463,3 +2463,13 @@ ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 
 	return SkipGameCode;
 }
+
+ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetUnloadingHarvester, 0x7)
+{
+	GET(FootClass*, pTarget, ESI);
+
+	if (const auto pUnit = cast_to<UnitClass* , false>(pTarget))
+		pUnit->Unloading = false;
+
+	return 0;
+}
