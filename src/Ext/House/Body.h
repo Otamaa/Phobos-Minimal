@@ -411,6 +411,7 @@ public:
 	void _Detach(AbstractClass* target, bool all);
 	int _Expert_AI();
 	void _GiveTiberium(float amout , int type);
+	bool _IsIonCannonEligibleTarget(TechnoClass* pTechno) const;
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

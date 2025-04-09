@@ -233,25 +233,6 @@ SuperClass* HouseClass::FindSuperWeapon(SuperWeaponTypeClass* pType) const {
 
 	return nullptr;
 }
-bool HouseClass::IsIonCannonEligibleTarget(const TechnoClass* const pTechno) const {
-	if(pTechno->IsAlive && !pTechno->InLimbo && pTechno->InWhichLayer() == Layer::Ground) {
-		return true;
-	}
-
-	// hard difficulty shoots the tank in the factory
-	if(this->AIDifficulty == AIDifficulty::Hard) {
-		for(const auto* pFactory : *FactoryClass::Array) {
-			if(pFactory->Object == pTechno
-				&& pFactory->Production.Timer.Duration
-				&& !pFactory->IsSuspended)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
 
 CellStruct FootClass::GetRandomDirection(FootClass* pFoot)
 {

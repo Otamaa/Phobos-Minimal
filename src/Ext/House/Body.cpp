@@ -2328,6 +2328,53 @@ int FakeHouseClass::_Expert_AI()
 
 DEFINE_FUNCTION_JUMP(CALL ,0x4F9017, FakeHouseClass::_Expert_AI)
 DEFINE_FUNCTION_JUMP(LJMP ,0x4FD500, FakeHouseClass::_Expert_AI)
+
+#include <Ext/Infantry/Body.h>
+
+bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
+{
+
+	if (!pTechno->IsAlive)
+		return false;
+
+	bool allowed = false;
+	if (pTechno->InLimbo)
+	{
+		if (pTechno->Transporter || pTechno->BunkerLinkedItem)
+			allowed =  true;
+
+		if (auto pAir = cast_to<AircraftClass*, false>(pTechno))
+			if (pAir->DockedTo)
+				allowed = true;
+
+		if (TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
+			allowed = true;
+	}
+
+	if (!allowed)
+		return false;
+
+	//the fuck ? 
+	if (pTechno->InWhichLayer() != Layer::Ground) {
+		return false;
+	}
+
+	// hard difficulty shoots the tank in the factory
+	if (this->AIDifficulty == AIDifficulty::Hard)
+	{
+		for (const auto* pFactory : *FactoryClass::Array)
+		{
+			if (pFactory->Object == pTechno
+				&& pFactory->Production.Timer.Duration
+				&& !pFactory->IsSuspended)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 // =============================
 // container hooks
 

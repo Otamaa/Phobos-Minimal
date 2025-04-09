@@ -533,7 +533,7 @@ struct TargetingFuncs
 				// original game code only compares owner and doesn't support nullptr
 				auto const passedFilter = (!pEnemy || pTechno->Owner == pEnemy);
 
-				if (passedFilter && pTargeting->Owner->IsIonCannonEligibleTarget(pTechno))
+				if (passedFilter && ((FakeHouseClass*)pTargeting->Owner)->_IsIonCannonEligibleTarget(pTechno))
 				{
 					if (!pTechno->IsAlive || TargetingFuncs::IgnoreThis(pTechno))
 						return -1;
