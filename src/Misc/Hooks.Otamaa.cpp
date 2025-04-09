@@ -6613,3 +6613,14 @@ ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
 	ProcessColorAdd(pINI);
 	return 0x668B8E;
 }
+
+ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
+{
+	enum{ NextLoop = 0x50CAB4 , ContinueCheck = 0x0};
+	GET(FootClass*, pTechno, ESI);
+
+	if (!pTechno->IsAlive || pTechno->InLimbo || pTechno->BunkerLinkedItem)
+		return NextLoop;
+
+	return ContinueCheck;
+}
