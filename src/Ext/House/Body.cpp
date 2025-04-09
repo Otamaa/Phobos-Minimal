@@ -2355,10 +2355,12 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 		return false;
 
 	//the fuck ? 
-	if (pTechno->InWhichLayer() != Layer::Ground) {
-		return false;
+	//always target ground
+	if (pTechno->InWhichLayer() == Layer::Ground) {
+		return true;
 	}
 
+	//otherwise consider the factory if the techno still in production
 	// hard difficulty shoots the tank in the factory
 	if (this->AIDifficulty == AIDifficulty::Hard)
 	{
