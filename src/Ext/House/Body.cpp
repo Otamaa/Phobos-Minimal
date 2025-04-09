@@ -2333,22 +2333,17 @@ DEFINE_FUNCTION_JUMP(LJMP ,0x4FD500, FakeHouseClass::_Expert_AI)
 
 bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 {
-
 	if (!pTechno->IsAlive)
 		return false;
 
-	bool allowed = false;
-	if (pTechno->InLimbo)
-	{
-		if (pTechno->Transporter || pTechno->BunkerLinkedItem)
-			allowed =  true;
-
-		if (auto pAir = cast_to<AircraftClass*, false>(pTechno))
-			if (pAir->DockedTo)
-				allowed = true;
-
-		if (TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
+	bool allowed = true;
+	if (pTechno->InLimbo) {
+		if (pTechno->Transporter || pTechno->BunkerLinkedItem || TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
 			allowed = true;
+		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo )
+			allowed = true;
+		else
+			allowed = false;
 	}
 
 	if (!allowed)
