@@ -111,12 +111,12 @@ ASMJIT_PATCH(0x734A5F, CSF_AddOrOverrideLabel, 5)
 {
 	if (CSFLoader::CSFCount > 0)
 	{
-		if (CSFLabel* pLabel = static_cast<CSFLabel*>(CRT::bsearch(
+		if (CSFLabel* pLabel = static_cast<CSFLabel*>(bsearch(
 			StringTable::GlobalBuffer(), //label buffer, char[4096]
 			StringTable::Labels(),
 			(size_t)StringTable::LabelCount(),
 			sizeof(CSFLabel),
-			(int(__cdecl*)(const void*, const void*))CRT::strcmpi)))
+			(int(__cdecl*)(const void*, const void*))_strcmpi)))
 		{
 			//Label already exists - override!
 
@@ -204,12 +204,12 @@ const wchar_t* __fastcall FetchStringManager(char* label, char* speech, char* fi
 		return CSFLoader::GetDynamicString(label, L"%hs", &label[6] , true);
 	}
 
-	CSFLabel* pLabel = static_cast<CSFLabel*>(CRT::bsearch(
+	CSFLabel* pLabel = static_cast<CSFLabel*>(bsearch(
 		label,
 		StringTable::Labels(),
 		(size_t)StringTable::LabelCount(),
 		sizeof(CSFLabel),
-		(int(__cdecl*)(const void*, const void*))CRT::strcmpi));
+		(int(__cdecl*)(const void*, const void*))_strcmpi));
 
 	if (pLabel)
 	{

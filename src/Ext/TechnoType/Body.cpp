@@ -876,8 +876,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Promote_Vet_Type.Read(exINI, pSection, "Promote.VeteranType");
 		this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 
+		// these shit readed twices becesue the phobos develop tag is different
 		this->Promote_Vet_Anim.Read(exINI, pSection, "Promote.VeteranAnim");
 		this->Promote_Elite_Anim.Read(exINI, pSection, "Promote.EliteAnim");
+
+		this->Promote_Vet_Anim.Read(exINI, pSection, "Promote.VeteranAnimation");
+		this->Promote_Elite_Anim.Read(exINI, pSection, "Promote.EliteAnimation");
 
 		this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
 		this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
