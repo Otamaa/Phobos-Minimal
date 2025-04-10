@@ -2760,26 +2760,29 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	GET(HouseClass*, pHouse, ESI);
 	enum { AllDestroyed = 0x71F1B1, HasAlive = 0x71F163 };
 
-	if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
-		for (auto& bld : pHouse->Buildings) {
-			if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
+	if(SessionClass::IsCampaign()) {
+		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
+			for (auto& bld : pHouse->Buildings) {
+				if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
+					return HasAlive;
+			}
+		}
+
+		if (pHouse->ActiveAircraftTypes.GetTotal() > 0)
+			return HasAlive;
+
+		if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
+			return HasAlive;
+
+		for (auto pItem : *InfantryClass::Array) {
+			if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
 				return HasAlive;
 		}
+
+		return AllDestroyed;
 	}
 
-	if (pHouse->ActiveAircraftTypes.GetTotal() > 0)
-		return HasAlive;
-
-	if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
-		return HasAlive;
-
-	for (auto pItem : *InfantryClass::Array) {
-		if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
-			return HasAlive;
-	}
-
-
-	return AllDestroyed;
+	return 0;
 }
 
 ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 6)

@@ -54,14 +54,14 @@ static_assert(sizeof(FieldClass) == 0x10);
 class PacketClass
 {
 public:
-	void AddField(FieldClass* pField)
+	void COMPILETIMEEVAL OPTIONALINLINE AddField(FieldClass* pField)
 	{
 		pField->Next = this->Head;
 		this->Head = pField;
 	}
 
 	template<typename T, typename... Args>
-	void AddField(char* id, T data, Args... args)
+	void OPTIONALINLINE AddField(char* id, T data, Args... args)
 	{
 		auto pField = GameCreate<FieldClass>(id, data, args...);
 		this->AddField(pField);

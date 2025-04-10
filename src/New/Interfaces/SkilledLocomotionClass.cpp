@@ -168,15 +168,15 @@ bool SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
 
 bool SkilledLocomotionClass::Will_Jump_Tracks()
 {
-	const auto pathDir = this->LinkedTo->PathDirections[0];
+	const size_t pathDir = this->LinkedTo->PathDirections[0];
 
-	if (pathDir < 0 || pathDir >= 8)
+	if (pathDir >= 8)
 		return false;
 
 	const auto& data = CellClass::TrackData[this->TrackNumber];
 	const auto dir = DirStruct(data.Face << 8).GetValue<3>();
 
-	if (static_cast<int>(dir) == pathDir || !this->TrackIndex)
+	if (dir == pathDir || !this->TrackIndex)
 		return false;
 
 	const auto trackStructIndex = this->IsOnShortTrack ? data.ShortTrackStructIndex : data.NormalTrackStructIndex;
@@ -184,7 +184,7 @@ bool SkilledLocomotionClass::Will_Jump_Tracks()
 	if (CellClass::TrackStruct[trackStructIndex].TrackIndex1 != this->TrackIndex)
 		return false;
 
-	const auto dirIndex = CellClass::TrackData[8 * dir + pathDir].NormalTrackStructIndex;
+	const auto dirIndex = CellClass::TrackData[8u * dir + pathDir].NormalTrackStructIndex;
 
 	return dirIndex && CellClass::TrackStruct[dirIndex].TrackIndex2;
 }

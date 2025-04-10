@@ -19,6 +19,14 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum ProdFailType : byte
+{
+	OK = 0x0,
+	Limit = 0x1,
+	Illegal = 0x2,
+	Cant = 0x3,
+};
+
 enum class MarkType : int
 {
 	Up = 0,
