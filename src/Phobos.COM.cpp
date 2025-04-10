@@ -103,13 +103,13 @@ void RegisterFactoryForClass()
 
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
-	Debug::Log("Starting COM registration...");
+	Debug::Log("Starting COM registration...\n");
 
 	// Add new classes to be COM-registered below
 	RegisterFactoryForClass<LevitateLocomotionClass>();
 	RegisterFactoryForClass<SkilledLocomotionClass>();
 
-	Debug::Log("COM registration done!");
+	Debug::Log("COM registration done!\n");
 
 	return 0;
 }

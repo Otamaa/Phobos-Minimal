@@ -6627,3 +6627,13 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 
 	return ContinueCheck;
 }
+
+//ASMJIT_PATCH(0x42C2B8 , FootClass_Find_Path_Hirarcial_Dies, 0x7){
+//	GET(FootClass* , pFoot , ESI);
+//
+//	if(!pFoot->IsAlive || pFoot->IsCrashing || pFoot->IsSinking)
+//		return 0x42C2CF;
+//
+//	R->EAX(pFoot->GetThreatAvoidance());
+//	return 0x42C2BF;
+//}
