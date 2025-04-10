@@ -34,7 +34,7 @@ public:
 	static std::array<std::pair<const char* const, AttachedAnimFlag>, 5u> AttachedAnimFlag_ToStrings;
 	static std::array<std::pair<const char* const, AffectedHouse>, 11u> AffectedHouse_ToStrings;
 	static std::array<std::pair<const char* const, AffectedTarget>, 15u> AffectedTarget_ToStrings;
-	static std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 23u> SuperWeaponAITargetingMode_ToStrings;
+	static std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 24u> SuperWeaponAITargetingMode_ToStrings;
 	static std::array<const char* const, 8u> OwnerHouseKind_ToStrings;
 	static std::array<std::pair<const char* const, IronCurtainFlag>, 6u> IronCurtainFlag_ToStrings;
 	static std::array<std::pair<const char* const, KillMethod>, 6u> KillMethod_ToStrings;

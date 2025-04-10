@@ -11,6 +11,48 @@
 #include <GameStrings.h>
 #include <GameOptionsClass.h>
 
+class CustomCCINIClass : public CCINIClass
+{
+public:
+	static inline std::string encryptionKey { "ThisIstTheKey" }; // Example key
+
+	// Xor method is easy to implement 
+	// there will be more encryption support in the future 
+	// experimental for now
+	static NOINLINE void xorEncryptDecrypt(std::vector<char>& buffer, const std::string& key)
+	{
+		size_t keyLength = key.length();
+		for (std::size_t i = 0; i < buffer.size(); ++i) {
+			buffer[i] ^=  key[i % keyLength];
+		}
+	}
+
+	// these module will be implemented as separate dll and the key will be different
+	// and the source code for core module gonna be private and holded by each mod owner for security reason
+#pragma optimize("", off )
+	static NOINLINE std::vector<char> LoadINIFile(const char* filename)
+	{
+		CCFileClass* pFile = GameCreate<CCFileClass>(filename);
+
+		if(pFile->Exists()){
+			// Read the file into a buffer.
+			size_t fileSize = pFile->GetFileSize();
+			std::vector<char> buffer(fileSize + 1, 0);
+			if (pFile->ReadBytes(buffer.data(), fileSize) == fileSize) {
+				GameDelete<true, false>(pFile);
+				xorEncryptDecrypt(buffer, encryptionKey); // encrypt the buffer
+				xorEncryptDecrypt(buffer, encryptionKey); // decrypt the buffer
+				return buffer;
+			}
+		}
+
+		GameDelete<true, false>(pFile);
+
+		return {};
+	}
+#pragma optimize("", on )
+};
+
 void Phobos::Config::Read()
 {
 	auto const& pRA2MD = CCINIClass::INI_RA2MD;

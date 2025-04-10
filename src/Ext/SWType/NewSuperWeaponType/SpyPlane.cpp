@@ -19,21 +19,15 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 	if (pThis->IsCharged)
 	{
-		if (CellClass* pTarget = MapClass::Instance->GetCellAt(Coords))
-		{
-			const auto nDeferement = pData->SW_Deferment.Get(-1);
+		CellClass * pTarget = MapClass::Instance->GetCellAt(Coords);
+		const auto nDeferement = pData->SW_Deferment.Get(-1);
 
-			if (nDeferement <= 0)
-				SpyPlaneStateMachine::SendSpyPlane(pThis, pData, this, pTarget);
-			else
-				this->newStateMachine(nDeferement, Coords, pThis, pTarget);
-
-			return true;
-		}
+		if (nDeferement <= 0)
+			SpyPlaneStateMachine::SendSpyPlane(pThis, pData, this, pTarget);
 		else
-		{
-			Debug::LogInfo("SpyPlane [{}] SW Invalid Target ! ", pThis->get_ID());
-		}
+			this->newStateMachine(nDeferement, Coords, pThis, pTarget);
+
+		return true;
 	}
 
 	return false;

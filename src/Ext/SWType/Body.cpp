@@ -451,17 +451,12 @@ struct TargetingFuncs
 		ObjectClass* pTarget = nullptr;
 		int maxValue = 0;
 
-		for (auto it = first; it < last; ++it)
-		{
-			if (auto pItem = *it)
-			{
-				auto curValue = value(pItem, maxValue);
+		for (auto it = first; it < last; ++it) {
+			auto curValue = value(*it, maxValue);
 
-				if (curValue > maxValue)
-				{
-					pTarget = pItem;
-					maxValue = curValue;
-				}
+			if (curValue > maxValue) {
+				pTarget = *it;
+				maxValue = curValue;
 			}
 		}
 
@@ -471,15 +466,13 @@ struct TargetingFuncs
 	template<typename It, typename Valuator>
 	static ObjectClass* GetTargetAnyMax(It first, It last, Valuator value)
 	{
-		DiscreteSelectionClass<ObjectClass* , DllAllocator<ObjectClass*>> targets;
+		if (first == last) { return nullptr; }
 
-		for (auto it = first; it < last; ++it)
-		{
-			if (auto pItem = *it)
-			{
-				auto curValue = value(pItem, targets.GetRating());
-				targets.Add(pItem, curValue);
-			}
+		DiscreteSelectionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets {};
+
+		for (auto it = first; it < last; ++it) {
+			int val = value(*it, targets.GetRating());
+			targets.Add(*it, val);
 		}
 
 		return targets.Select(ScenarioClass::Instance->Random);
@@ -488,15 +481,13 @@ struct TargetingFuncs
 	template<typename It, typename Valuator>
 	static ObjectClass* GetTargetShareAny(It first, It last, Valuator value)
 	{
-		DiscreteDistributionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets;
+		if (first == last) { return nullptr; }
 
-		for (auto it = first; it < last; ++it)
-		{
-			if (auto pItem = *it)
-			{
-				auto curValue = value(pItem);
-				targets.Add(pItem, curValue);
-			}
+		DiscreteDistributionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets {};
+
+		for (auto it = first; it < last; ++it) {
+			int val = value(*it);
+			targets.Add(*it, val);
 		}
 
 		return targets.Select(ScenarioClass::Instance->Random);
@@ -535,7 +526,7 @@ struct TargetingFuncs
 
 				if (passedFilter && ((FakeHouseClass*)pTargeting->Owner)->_IsIonCannonEligibleTarget(pTechno))
 				{
-					if (!pTechno->IsAlive || TargetingFuncs::IgnoreThis(pTechno))
+					if (TargetingFuncs::IgnoreThis(pTechno))
 						return -1;
 
 					auto const cell = CellClass::Coord2Cell(pTechno->GetCoords());
@@ -545,12 +536,7 @@ struct TargetingFuncs
 					const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 					int value = 0;
-
-					if(pTypeExt->AIIonCannonValue.isset()) {
-						value = pTypeExt->AIIonCannonValue->at(pTargeting->Owner->GetAIDifficultyIndex());
-					}else {
-						value = pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
-					}
+					bool RandomiedCloaked = false; // avoid the early AIIonCannnonValue
 
 					// cloak options
 					if (cloak != CloakHandling::AgnosticToCloak)
@@ -560,8 +546,8 @@ struct TargetingFuncs
 						if (cloak == CloakHandling::RandomizeCloaked)
 						{
 							// original behavior
-							if (cloaked)
-							{
+							if (cloaked) {
+								RandomiedCloaked = true;
 								value = ScenarioClass::Instance->Random.RandomFromMax(curMax + 10);
 							}
 						}
@@ -580,6 +566,13 @@ struct TargetingFuncs
 								return -1;
 							}
 						}
+					}
+
+					if(!RandomiedCloaked){
+						value = pTypeExt->AIIonCannonValue.isset() ?
+							pTypeExt->AIIonCannonValue->at(pTargeting->Owner->GetAIDifficultyIndex())
+							:
+							pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
 					}
 
 					// do not do heavy lifting on objects that
@@ -769,7 +762,7 @@ struct TargetingFuncs
 			SpeedType::Foot, ZoneType::None, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		return  (nNearby.IsValid() && pNewType->CanFireAt(pTargeting, nNearby, false)) ?
+		return (nNearby.IsValid() && pNewType->CanFireAt(pTargeting, nNearby, false)) ?
 		TargetResult{ nNearby, SWTargetFlags::AllowEmpty }:
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
@@ -961,6 +954,7 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const Ta
 	}
 	case SuperWeaponAITargetingMode::Nuke:
 	case SuperWeaponAITargetingMode::LightningStorm:
+	case SuperWeaponAITargetingMode::IonCannon:
 	{
 		return TargetingFuncs::GetNukeAndLighningTarget(pNewType, pTargeting);
 	}
@@ -1023,7 +1017,9 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const Ta
 	case SuperWeaponAITargetingMode::LightningRandom:
 	{
 		return TargetingFuncs::GetLighningRandomTarget(pNewType, pTargeting);
-	}
+	}	
+	default:
+		break;
 	}
 
 	return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
@@ -1088,18 +1084,15 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 		return;
 	}
 
-	int color = ColorScheme::FindIndex("Gold");
-	if (this->Message_FirerColor)
-	{
+	int color = -1;
+
+	if (this->Message_FirerColor && pFirer) {
 		// firer color
-		if (pFirer)
-		{
-			color = pFirer->ColorSchemeIndex;
-		}
+		color = pFirer->ColorSchemeIndex;
 	}
 	else
 	{
-		if (this->Message_ColorScheme >= 0 && this->Message_ColorScheme < ColorScheme::Array->Count)
+		if ((size_t)this->Message_ColorScheme < ColorScheme::Array->size())
 		{
 			// user defined color
 			color = this->Message_ColorScheme;
@@ -1111,36 +1104,71 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 		}
 	}
 
+	if (color == -1)
+		color =  ColorScheme::FindIndex("Gold");
+
 	// print the message
 	message.PrintAsMessage<false>(color);
 }
 
+static inline std::vector <TechnoClass*> targetings;
+
 Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget) const
 {
-	const auto require = this->GetAIRequiredTarget() & SuperWeaponTarget::AllTechnos;
+	targetings.clear();
 
-	if (require == SuperWeaponTarget::None || require & SuperWeaponTarget::Building)
-	{
-		// either buildings only or it includes buildings
-		if (require == SuperWeaponTarget::Building)
-		{
-			// only buildings from here, either all or of a particular house
-			if (pTarget) {
-				return make_iterator(pTarget->Buildings);
-			}
+	const auto require = this->GetAIRequiredTarget();
 
-			return make_iterator(*BuildingClass::Array);
-		}
+	if (require == SuperWeaponTarget::None 
+		|| require == SuperWeaponTarget::AllTechnos 
+		|| require == SuperWeaponTarget::All
+		|| require == SuperWeaponTarget::AllContents
+		|| (require & SuperWeaponTarget::Building && require & SuperWeaponTarget::Infantry && require & SuperWeaponTarget::Unit)) {
 
 		return make_iterator(*TechnoClass::Array);
 	}
 
-	if (require == SuperWeaponTarget::Infantry) {
+	if (require == SuperWeaponTarget::Building) {
+		if (pTarget) {
+			return make_iterator(pTarget->Buildings);
+		}
+		else {
+			return make_iterator(*BuildingClass::Array);
+		}
+	}
+	else if (require == SuperWeaponTarget::Infantry) {
 		return make_iterator(*InfantryClass::Array);
+
+		//default behaviours
+	} else if (require == SuperWeaponTarget::Unit 
+		|| require == SuperWeaponTarget::Land 
+		|| require == SuperWeaponTarget::Water 
+		|| require == SuperWeaponTarget::Empty
+		|| require == SuperWeaponTarget::AllCells
+		) {
+		return make_iterator(*FootClass::Array);
 	}
 
-	// it's techno stuff, but not buildings
-	return make_iterator(*FootClass::Array);
+	// part below is more expensive targeting 
+	targetings.reserve(TechnoClass::Array->Count);
+
+	if (require & SuperWeaponTarget::Building) {
+		if (pTarget) {
+			std::copy(pTarget->Buildings.begin(), pTarget->Buildings.end(), std::back_inserter(targetings));
+		}else {
+			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(targetings));
+		}
+	} 
+	
+	if(require & SuperWeaponTarget::Infantry)
+		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(targetings));
+
+	if (require & SuperWeaponTarget::Unit){
+		std::copy(UnitClass::Array->begin(), UnitClass::Array->end(), std::back_inserter(targetings));
+		std::copy(AircraftClass::Array->begin(), AircraftClass::Array->end(), std::back_inserter(targetings));
+	}
+
+	return targetings;
 }
 
 bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)

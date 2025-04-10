@@ -773,6 +773,11 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	bool planing_6385C0() const { JMP_THIS(0x6385C0); }
 	bool AllowToRetaliate(TechnoClass* source, WarheadTypeClass* warhead) const { JMP_THIS(0x7087C0); }
 
+	// returns the house that controls this techno (replaces the ID with player's ID if needed)
+	int GetControllingHouse() const {
+		JMP_THIS(0x6339B0);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

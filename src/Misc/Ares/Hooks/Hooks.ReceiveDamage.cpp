@@ -1605,32 +1605,34 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				if (!pThis->Type->EMPulseCannon
 					&& !pThis->Type->NukeSilo
 					&& pThis->CurrentMission != Mission::Selling
-					&& !pThis->Owner->IsAlliedWith(args.Attacker))
+					&& !pThis->Owner->IsAlliedWith(args.Attacker->Owner))
 				{
-					auto pWPS = pThis->GetWeapon(0);
-					if (pWPS && pWPS->WeaponType)
-					{
-						if (!pWPS->WeaponType->Projectile->AA
-							&& (!pThis->Target || !pThis->IsCloseEnoughToAttack(args.Attacker)))
+					if(args.Attacker->IsAlive) {
+						auto pWPS = pThis->GetWeapon(0);
+						if (pWPS && pWPS->WeaponType)
 						{
-							const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
-											args.Attacker->WhatAmI() == AircraftClass::AbsID ||
-											(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
-							);
-
-							if (def)
+							if (!pWPS->WeaponType->Projectile->AA
+								&& (!pThis->Target || !pThis->IsCloseEnoughToAttack(args.Attacker)))
 							{
-								auto& pri = pThis->PrimaryFacing;
+								const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
+												args.Attacker->WhatAmI() == AircraftClass::AbsID ||
+												(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
+								);
 
-								if (!pri.Is_Rotating() && pThis->IsPowerOnline())
+								if (def)
 								{
-									DirStruct _rand { ScenarioClass::Instance->Random.Random() };
-									pri.Set_Desired(_rand);
+									auto& pri = pThis->PrimaryFacing;
+
+									if (!pri.Is_Rotating() && pThis->IsPowerOnline())
+									{
+										DirStruct _rand { ScenarioClass::Instance->Random.Random() };
+										pri.Set_Desired(_rand);
+									}
 								}
-							}
-							else
-							{
-								pThis->SetTarget(args.Attacker);
+								else
+								{
+									pThis->SetTarget(args.Attacker);
+								}
 							}
 						}
 					}
@@ -2339,7 +2341,7 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 					&& !args.Attacker->IsCrashing
 					&& !args.Attacker->TemporalTargetingMe
 					&& !pThis->IsTethered
-					&& pThis->Owner->IsAlliedWith(args.Attacker)
+					&& pThis->Owner->IsAlliedWith(args.Attacker->Owner)
 					&& isPlayerControlled)
 				{
 

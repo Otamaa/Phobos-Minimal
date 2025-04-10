@@ -443,6 +443,7 @@ enum class SuperWeaponAITargetingMode
 	LightningRandom = 20 ,
 	LauchSite = 21 ,
 	FindAuxTechno = 22 ,
+	IonCannon = 23,
 	count
 };
 

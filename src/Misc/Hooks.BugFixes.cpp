@@ -2437,6 +2437,15 @@ DEFINE_PATCH(0x755698, 0x55) // push ebp
 DEFINE_PATCH(0x7556B9, 0x55) // push ebp
 // Although it is not the perfectest
 // It can still solve the most common situations on slopes - CrimRecya
+ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET_STACK(DWORD, surface, 0x18);
+	UnitTypeClass* pType = pThis->Type;
+	R->Stack(0x1C, surface);
+	R->AL(pType->BalloonHover || pThis->IsAttackedByLocomotor);
+	return 0x73C445;
+}
 
 #ifdef PassengerRelatedFix
 

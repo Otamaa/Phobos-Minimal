@@ -23,7 +23,7 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 void SW_IonCannon::Initialize(SWTypeExtData* pData)
 {
 	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
-	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
+	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IonCannon;
 	pData->IonCannon_BeamHeight = 750;
 	pData->IonCannon_BlastHeight = 0;
 	pData->IonCannon_Beam = RulesClass::Instance->IonBeam;
@@ -72,7 +72,6 @@ bool SW_IonCannon::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuil
 
 void IonCannonStateMachine::Update()
 {
-	// waiting. lurking in the shadows.
 	if (this->Deferment > 0)
 	{
 		if (--this->Deferment)
@@ -87,7 +86,6 @@ void IonCannonStateMachine::Update()
 	{
 	case IonCannonStatus::FirstAnim:
 	{
-		// here are the contents of PsyDom::Start().
 		CellClass* pTarget = MapClass::Instance->GetCellAt(this->Coords);
 		CoordStruct coords = pTarget->GetCoords();
 		coords.Z += pData->IonCannon_BeamHeight;

@@ -317,7 +317,7 @@ std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::Aff
 }
 };
 
-std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 23u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
+std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 24u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
 {
 {
 	{"none" , SuperWeaponAITargetingMode::None} ,
@@ -342,7 +342,8 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 23u> EnumFu
 	{"droppod", SuperWeaponAITargetingMode::DropPod } ,
 	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom } ,
 	{"launchsite", SuperWeaponAITargetingMode::LauchSite },
-	{"findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno }
+	{"findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno },
+	{"ioncannon", SuperWeaponAITargetingMode::IonCannon }
 }
 };
 
