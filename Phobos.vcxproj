@@ -20,6 +20,7 @@
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\Lib\stb\stb_vorbis.c" />
+    <ClCompile Include="src\New\Interfaces\SkilledLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
     <ClCompile Include="src\Commands\DetachFromTeam.cpp" />
@@ -522,6 +523,7 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
+    <ClCompile Include="src\Phobos.COM.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
@@ -591,6 +593,7 @@
     <ClInclude Include="src\Lib\utfcpp\utf8\cpp17.h" />
     <ClInclude Include="src\Lib\utfcpp\utf8\cpp20.h" />
     <ClInclude Include="src\Lib\utfcpp\utf8\unchecked.h" />
+    <ClInclude Include="src\New\Interfaces\SkilledLocomotionClass.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />
     <ClInclude Include="src\Commands\DetachFromTeam.h" />

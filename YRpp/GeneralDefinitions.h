@@ -19,6 +19,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class MarkType : int
+{
+	Up = 0,
+	Down = 1,
+	Change = 2,
+	ChangeRedraw = 3,
+	OverlapDown = 4,
+	OverlapUp = 5
+};
+
 enum class InitState : int
 {
 	Blank = 0x0, // CTOR'd
@@ -275,7 +285,7 @@ enum class RepairState : int
 
 enum class PCPType :int
 {
-	Otation = 0,
+	Rotation = 0,
 	During = 1,
 	End = 2
 };

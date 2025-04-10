@@ -1085,6 +1085,11 @@ public:
 
 	Nullable<AffectedHouse> RadarInvisibleToHouse {};
 
+	Valueable<double> Skilled_ReverseSpeed { 0.85 };
+	Valueable<double> Skilled_FaceTargetRange { 16.0 };
+	Valueable<bool> Skilled_ConfrontEnemies { true };
+	Valueable<int> Skilled_RetreatDuration { 150 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

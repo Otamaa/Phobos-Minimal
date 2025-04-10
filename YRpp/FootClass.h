@@ -123,7 +123,7 @@ public:
 	void AbortMotion()
 	{ JMP_THIS(0x4DF0D0); }
 
-	bool UpdatePathfinding(CellStruct unkCell, CellStruct unkCell2, int unk3)
+	bool UpdatePathfinding(CellStruct unkCell, bool arg, int unk3)
 	{ JMP_THIS(0x4D3920); }
 
 	// Removes the first passenger and updates the Gunner.

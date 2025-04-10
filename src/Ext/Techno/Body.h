@@ -733,6 +733,7 @@ public:
 
 	WeaponTypeClass* LastWeaponType { nullptr };
 	HelperedVector<EBolt*> ElectricBolts {};
+	int LastHurtFrame {};
 
 	~TechnoExtData() noexcept
 	{

@@ -975,7 +975,7 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 					return 0x5F413F;
 
 				} else {
-					pTechno->UpdatePosition((int)PCPType::During);
+					pTechno->UpdatePosition(PCPType::During);
 					return 0x5F413F;
 				}
 

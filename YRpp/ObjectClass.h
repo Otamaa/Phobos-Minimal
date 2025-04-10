@@ -187,7 +187,7 @@ public:
 	virtual DWORD GetPointsValue() const R0;
 	virtual Mission GetCurrentMission() const RT(Mission);
 	virtual void RestoreMission(Mission mission) RX;
-	virtual void UpdatePosition(int dwUnk) RX; // PCP
+	virtual void UpdatePosition(PCPType dwUnk) RX; // PCP
 	virtual BuildingClass* FindFactory(bool allowOccupied, bool requirePower) const R0; //who can build me
 	virtual RadioCommand ReceiveCommand(TechnoClass* pSender, RadioCommand command, AbstractClass* &pInOut) RT(RadioCommand); //receive message
 	virtual bool DiscoveredBy(HouseClass *pHouse) R0;
@@ -334,6 +334,10 @@ public:
 
 	void MarkDownSetZ(int Z) const {
 		JMP_THIS(0x5F6060);
+	}
+
+	bool IsCrushable(TechnoClass* pCrusher) {
+		JMP_THIS(0x5F6CD0); 
 	}
 
 	DamageState TakeDamage(int damage, WarheadTypeClass* pWH, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr) {

@@ -7,6 +7,8 @@ class DECLSPEC_UUID("0B4CA41C-B3A7-11D1-B457-006097C6A979")
 	NOVTABLE TubeClass : public AbstractClass
 {
 public:
+	DEFINE_REFERENCE(DynamicVectorClass<TubeClass*>, Array, 0x8B4138u)
+
 		static const AbstractType AbsID = AbstractType::Tube;
 		void Read_INI(CCINIClass& ini) JMP_THIS(0x7283C0);
 		void Write_INI(CCINIClass& ini) JMP_THIS(0x728280);
@@ -34,11 +36,11 @@ protected:
 	{ }
 
 public:
-	CellStruct Start;
-	CellStruct End;
-	Direction Facing;
-	DWORD DIr[100];
-	int DirCount;
+	CellStruct EnterCell;
+	CellStruct ExitCell;
+	int ExitFace;
+	int unknown_int_30[100];
+	int unknown_int_1C0;
 };
 
 static_assert(sizeof(TubeClass) == 0x1C4, "Invalid size.");

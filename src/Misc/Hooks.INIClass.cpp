@@ -12,7 +12,11 @@
 #include <atlstr.h>
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
+#include <New/Interfaces/SkilledLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
+
+#define PARSE(who) if (IS_SAME_STR_(parser.value(), ## who ##_data.s_name)) { CLSID who##_dummy; \
+if (CLSIDFromString(LPCOLESTR(##who##_data.w_CLSID), &## who ##_dummy) == NOERROR) { value = ## who ##_dummy; return true;  }}
 
 namespace detail
 {
@@ -34,14 +38,8 @@ namespace detail
 				}
 			}
 
-			if (IS_SAME_STR_(parser.value(), Levitate_data.s_name)) {
-				CLSID dummy;
-				if (CLSIDFromString(LPCOLESTR(Levitate_data.w_CLSID), &dummy) == NOERROR)
-				{
-					value = dummy;
-					return true;
-				}
-			}
+			PARSE(Levitate)
+			PARSE(Skilled)
 
 			//AddMore loco here
 			return false;

@@ -62,12 +62,39 @@ class FoggedObjectClass;
 class TagClass;
 class TiberiumClass;
 
+struct TrackNumStruct
+{
+	char NormalTrackStructIndex;
+	char ShortTrackStructIndex;
+	int Face;
+	int Flag;
+};
+
+struct TrackPtStruct
+{
+	Point2D Point;
+	int Face;
+};
+
+struct TrackIdxStruct
+{
+	TrackPtStruct* TrackPoint;
+	int TrackIndex1;
+	int TrackIndex2;
+	int TrackIndex3;
+};
+
 class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 	NOVTABLE CellClass : public AbstractClass
 {
 public:
 	static const AbstractType AbsID = AbstractType::Cell;
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E4EEC;
+
+	// Reference, no write permission
+	DEFINE_ARRAY_REFERENCE(Point2D, [8], CoordDirections, 0x89F6D8)
+	DEFINE_ARRAY_REFERENCE(TrackNumStruct, [72], TrackData, 0x7E7B28)
+	DEFINE_ARRAY_REFERENCE(TrackIdxStruct, [16], TrackStruct, 0x7E7A28)
 
 	// the height of a bridge in leptons
 	static COMPILETIMEEVAL constant_ptr<CellClass,0xABDC50u> const Instance{};
@@ -271,7 +298,7 @@ public:
 	void UpdateThreat(unsigned int SourceHouse, int ThreatLevel) const
 		{ JMP_THIS(0x481870); }
 
-	void CollectCrate(FootClass* pCollector) const
+	bool CollectCrate(FootClass* pCollector) const
 		{ JMP_THIS(0x481A00); }
 
 	void ProcessColourComponents(int* arg0, int* pIntensity, int* pAmbient, int* a5, int* a6, int* tintR, int* tintG, int* tintB) const
@@ -591,6 +618,8 @@ public:
 	void RemoveWeed() const {
 		JMP_THIS(0x486E30);
 	}
+
+	void Shimmer() const { JMP_THIS(0x483480); }
 
 	COMPILETIMEEVAL CellClass* GetBridgeOwner() const {
 		if (this->ContainsBridge()) {

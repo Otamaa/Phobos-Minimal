@@ -597,7 +597,9 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	pWHExt->ApplyDamageMult(pThis, &args);
 	applyCombatAlert(pThis, &args);
-	TechnoExtData::ApplyKillWeapon(pThis, args.Attacker, args.WH);
+
+	if (pWHExt->CanTargetHouse(args.SourceHouse, pThis))
+		pExt->LastHurtFrame = Unsorted::CurrentFrame;
 
 	if (args.Attacker && (!args.Attacker->IsAlive || args.Attacker->Health <= 0) && !args.Attacker->Owner)
 		args.Attacker = nullptr; //clean up;
@@ -1142,9 +1144,10 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				}
 
 				if (pThis->IsAlive)
-				{
+					TechnoExtData::ApplyKillWeapon(pThis, args.Attacker, args.WH);
+
+				if (pThis->IsAlive)
 					PhobosAEFunctions::ApplyRevengeWeapon(pThis, args.Attacker, args.WH);
-				}
 			}
 
 			if (auto pBomb = pThis->AttachedBomb)

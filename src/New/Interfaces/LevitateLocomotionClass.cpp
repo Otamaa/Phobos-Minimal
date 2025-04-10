@@ -579,7 +579,7 @@ void LevitateLocomotionClass::DoPhase7()
 				const auto nTargetCoord = pTargetT->GetCoords();
 				const auto nTargetCoordCell = CellClass::Coord2Cell(nTargetCoord);
 
-				LinkedTo->UpdatePathfinding(nTargetCoordCell, CellStruct::Empty, 0);
+				LinkedTo->UpdatePathfinding(nTargetCoordCell, false  , 0);
 				const auto nSelected = LinkedTo->IsSelected;
 				LinkedTo->IsSelected = false;
 				LinkedTo->SetLocation(nCoordCell);
@@ -620,7 +620,7 @@ void LevitateLocomotionClass::DoPhase7()
 			const auto nTargetCoord = pDestT->GetCenterCoords();
 			const auto nTargetCoordCell = CellClass::Coord2Cell(nTargetCoord);
 
-			LinkedTo->UpdatePathfinding(nTargetCoordCell, CellStruct::Empty, 0);
+			LinkedTo->UpdatePathfinding(nTargetCoordCell, false, 0);
 			const auto nSelected = LinkedTo->IsSelected;
 			LinkedTo->IsSelected = false;
 			LinkedTo->SetLocation(nCoordCell);

@@ -1477,6 +1477,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		if (this->Spawn_LimitedExtraRange)
 			this->CalculateSpawnerRange();
+
+		this->Skilled_ReverseSpeed.Read(exINI, pSection, "Skilled.ReverseSpeed");
+		this->Skilled_FaceTargetRange.Read(exINI, pSection, "Skilled.FaceTargetRange");
+		this->Skilled_ConfrontEnemies.Read(exINI, pSection, "Skilled.ConfrontEnemies");
+		this->Skilled_RetreatDuration.Read(exINI, pSection, "Skilled.RetreatDuration");
 	}
 
 	// Art tags
@@ -1826,6 +1831,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
+
+		.Process(this->Skilled_ReverseSpeed)
+		.Process(this->Skilled_FaceTargetRange)
+		.Process(this->Skilled_ConfrontEnemies)
+		.Process(this->Skilled_RetreatDuration)
+
 		.Process(this->Spawner_DelayFrames)
 		.Process(this->Harvester_Counted)
 		.Process(this->Promote_IncludeSpawns)

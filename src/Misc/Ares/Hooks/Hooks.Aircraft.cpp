@@ -117,7 +117,7 @@ ASMJIT_PATCH(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 {
 	GET(UnitClass*, pCargo, ESI);
 
-	pCargo->UpdatePosition(2);
+	pCargo->UpdatePosition(PCPType::End);
 
 	if (pCargo->Deactivated && pCargo->Locomotor.GetInterfacePtr()->Is_Powered())
 	{
