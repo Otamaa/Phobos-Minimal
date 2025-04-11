@@ -5481,6 +5481,8 @@ ASMJIT_PATCH(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42C8E2, AStarClass_FindHierarcial_Exit, 0x5)
 
+static COMPILETIMEEVAL constant_ptr<float, 0x7E3794> _pathfind_adjusment {};
+
 class FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
@@ -5497,9 +5499,269 @@ public:
 
 		return this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
 	}
+#pragma optimize("", off )
+#ifndef _WIP
+	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot)
+	{
+		const double threat = foot ? foot->GetThreatAvoidance() : 0.0;
+		const bool avaible = !foot || threat <= 0.00001 ? false : true;
+		HouseClass* pHouse = foot ? foot->Owner : nullptr;
+		bool continueOP = true;
+
+		for (int idx_star = 2; idx_star >= 0; --idx_star)
+		{
+			for (int i = 0; i < this->HierarchicalQueue->Count; ++i) {
+				this->HierarchicalQueue->Heap[i] = 0;
+			}
+			this->HierarchicalQueue->Count = 0;
+		
+			auto zone_from = MapClass::Instance->MapClass_zone_56D3F0(from);
+			auto passabilityDataFrom = MapClass::GlobalPassabilityDatas() + zone_from;
+			auto pPassabilityFrom = passabilityDataFrom->data[idx_star];
+			auto zone_to = MapClass::Instance->MapClass_zone_56D3F0(from);
+			auto passabilityDataTo = MapClass::GlobalPassabilityDatas() + zone_to;
+			auto pPassabilityTo = passabilityDataTo->data[idx_star];
+
+			const bool isFirst = idx_star == 2;
+			const auto next_cost_ptr = !isFirst ? nullptr : this->ints_40_costs[idx_star + 1];
+			const auto cur_cost_ptr = this->ints_40_costs[idx_star];
+			const auto cur_const_ptr_b = this->ints_4C_costs[idx_star];
+			const auto cur_cost_hirarcial_ptr = this->HierarchicalCosts[idx_star];
+
+			cur_cost_ptr[pPassabilityFrom] = this->initedcount;
+			cur_cost_ptr[pPassabilityTo] = this->initedcount;
+
+			if (pPassabilityFrom == pPassabilityTo) {
+
+				if (!idx_star) {
+					this->BufferForHierarchicalQueue->Number = 0;
+					this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
+				}
+
+				this->somearray_BC[500 * idx_star] = pPassabilityFrom;
+				this->maxvalues_field_C74[idx_star] = 1;
+
+				if (--idx_star >= 0) {
+					continue;
+				}
+
+				return 1;
+			}
+
+			//reset 
+			this->BufferForHierarchicalQueue->BufferDelta = -1;
+			this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
+			this->BufferForHierarchicalQueue->Score = 0.0f;
+			this->BufferForHierarchicalQueue->Number = 0;
+
+			int ele = this->HierarchicalQueue->Count + 1;
+			int ele_shift = ele >> 1;
+
+			if (ele < this->HierarchicalQueue->Capacity) {
+				for (; ele > 1; ele_shift >>= 1) {
+					auto pEle = this->HierarchicalQueue->Heap;
+					if (pEle[ele_shift]->Score <= 0.0f) {
+						break;
+					}
+
+					this->HierarchicalQueue->Heap[ele] = this->HierarchicalQueue->Heap[ele_shift];
+					ele = ele_shift;
+				}
+
+				this->HierarchicalQueue->Heap[ele] = this->BufferForHierarchicalQueue;
+				++this->HierarchicalQueue->Count;
+				if (this->BufferForHierarchicalQueue > this->HierarchicalQueue->MaxNodePointer)
+					this->HierarchicalQueue->MaxNodePointer = this->BufferForHierarchicalQueue;
+				if (this->BufferForHierarchicalQueue < this->HierarchicalQueue->MinNodePointer)
+					this->HierarchicalQueue->MinNodePointer = this->BufferForHierarchicalQueue;
+			}
+
+			int _idxstart_here = 1;
+			cur_const_ptr_b[pPassabilityFrom] = this->initedcount;
+			cur_cost_hirarcial_ptr[pPassabilityFrom] = 0.0;
+			AStarQueueNodeHierarchical* first = nullptr;
+
+			if (this->HierarchicalQueue->Count)
+			{
+				first = this->HierarchicalQueue->Heap[1];
+				this->HierarchicalQueue->Heap[1] = this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count];
+				this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count--] = 0;
+				this->HierarchicalQueue->Heapify();
+			}
+
+			if (!first)
+				return false;
+
+			int cell_IndexesVecIsEmpty = this->CellIndexesVector[idx_star].Count == 0;
+
+			while (1)
+			{
+				int _first_idx = first->Index;
+				if (_first_idx == pPassabilityTo)
+				{
+					break;
+				}
+			
+				auto sub_zone = SubzoneTrackingStruct::Array[0].Items + (24 * idx_star);
+				auto conn_begin = sub_zone[_first_idx].SubzoneConnections.Items;
+				auto conn_count = sub_zone[_first_idx].SubzoneConnections.Count;
+				if (conn_count > 0)
+				{
+					do
+					{
+						auto _conn_ = SubzoneTrackingStruct::Array[0].Items + idx_star;
+						auto __conn__first = _conn_[conn_begin->unknown_dword_0].unknown_word_18;
+						auto __conn__next = _conn_[conn_begin->unknown_dword_0].unknown_dword_1C;
+						int zone_ = 0;
+						if (avaible)
+						{
+							zone_ = int(MapClass::Instance->subZone_585F40(pHouse, idx_star, _first_idx, conn_begin->unknown_dword_0) * threat);
+						}
+
+						double score = conn_begin->unknown_byte_4 ? 0.001 : 0.0;
+						int _vala = conn_begin->unknown_dword_0;
+						double adj__ = _pathfind_adjusment[__conn__next] + first->Score + zone_ + score;
+						if ((cur_const_ptr_b[conn_begin->unknown_dword_0] != this->initedcount 
+							|| cur_cost_hirarcial_ptr[conn_begin->unknown_dword_0] > adj__)
+							 && (isFirst || next_cost_ptr[__conn__first] == this->initedcount || __conn__next == 1)
+							 && MapClass::MovementAdjustArray[(int)mzone][__conn__next] == 1)
+						{
+							if (cell_IndexesVecIsEmpty)
+							{
+								goto LABEL_49;
+							}
+
+							int ___first_idx = _first_idx;
+
+							if (_vala < _first_idx) {
+								___first_idx = _vala;
+								_vala = _first_idx;
+							}
+
+							int idxx_ = _first_idx | (_vala << 16);
+							int countxx_ = this->CellIndexesVector[idx_star].Count;
+							if (countxx_ < 0)
+							{
+							LABEL_49:
+								auto pBuffer = this->BufferForHierarchicalQueue;
+								pBuffer[_idxstart_here].Index = _vala;
+								pBuffer[_idxstart_here].BufferDelta = first - pBuffer;
+								pBuffer[_idxstart_here].Score = adj__;
+								pBuffer[_idxstart_here].Number = first->Number + 1;
+
+								int ele_B = this->HierarchicalQueue->Count + 1;
+								int ele_shift_B = ele_B >> 1;
+
+								if (ele_B < this->HierarchicalQueue->Capacity)
+								{
+									for (; ele_B > 1; ele_shift_B >>= 1)
+									{
+										auto pEle_B = this->HierarchicalQueue->Heap;
+										if (pEle_B[ele_shift_B]->Score <= adj__)
+										{
+											break;
+										}
+
+										this->HierarchicalQueue->Heap[ele_B] = this->HierarchicalQueue->Heap[ele_shift_B];
+										ele_B = ele_shift_B;
+									}
+
+									this->HierarchicalQueue->Heap[ele_B] = pBuffer;
+									++this->HierarchicalQueue->Count;
+									if (pBuffer > this->HierarchicalQueue->MaxNodePointer)
+										this->HierarchicalQueue->MaxNodePointer = pBuffer;
+									if (pBuffer < this->HierarchicalQueue->MinNodePointer)
+										this->HierarchicalQueue->MinNodePointer = pBuffer;
+
+								}
+
+								cur_const_ptr_b[_vala] = this->initedcount;
+								cur_cost_hirarcial_ptr[_vala] = adj__;
+								++_idxstart_here;
+							}
+							else
+							{
+								auto v36 = &this->CellIndexesVector[idx_star].Items[countxx_];
+								while (*v36 != CellStruct::UnPack(idxx_))
+								{
+									--countxx_;
+									--v36;
+									if (countxx_ < 0)
+									{
+										goto LABEL_49;
+									}
+								}
+							}
+						}
+
+						continueOP = conn_count == 1;
+						++conn_begin;
+						--conn_count;
+					}
+					while (!continueOP);
+				}
+
+				if (this->HierarchicalQueue->Count == 0)
+					return false;
+
+				first = this->HierarchicalQueue->Heap[1];
+				this->HierarchicalQueue->Heap[1] = this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count];
+				this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count] = 0;
+				--this->HierarchicalQueue->Count;
+				this->HierarchicalQueue->Heapify();
+
+				if (!first)
+				{
+					return 0;
+				}
+			}
+
+			if (!first)
+			{
+				return 0;
+			}
+
+			auto _copyFirst = first;
+			if (first->BufferDelta != -1)
+			{
+				do
+				{
+					cur_cost_ptr[first->Index] = this->initedcount;
+					first = &this->BufferForHierarchicalQueue[first->BufferDelta];
+				}
+				while (first->BufferDelta != -1);
+			}
+
+			int num__ = _copyFirst->Number + 1;
+			this->maxvalues_field_C74[idx_star] = num__;
+			int _num__ = num__ - 1;
+			if (_num__ > 0)
+			{
+				auto __ff = &this->somearray_BC[500 * idx_star + num__];
+				do
+				{
+					*__ff-- = _copyFirst->Index;
+					_copyFirst = &this->BufferForHierarchicalQueue[_copyFirst->BufferDelta];
+					--_num__;
+				}
+				while (_num__);
+			}
+
+			this->somearray_BC[500 * idx_star] = _copyFirst->Index;
+		}
+
+		return 1;
+	}
+
+#endif
+#pragma optimize("", on )
 };
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Find_Path)
+
+#ifdef _WIP
+DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
+#endif
 
 ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
@@ -6637,3 +6899,4 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //	R->EAX(pFoot->GetThreatAvoidance());
 //	return 0x42C2BF;
 //}
+

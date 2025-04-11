@@ -60,8 +60,8 @@ struct PathType {
 
 struct PriorityQueueClass_AStarHierarchical
 {
-	DWORD Count;
-	DWORD Capacity;
+	int Count;
+	int Capacity;
 	AStarQueueNodeHierarchical** Heap;
 	void* MaxNodePointer;
 	void* MinNodePointer;
