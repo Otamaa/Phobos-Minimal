@@ -147,7 +147,7 @@ public:
 	}
 
 private:
-	COMPILETIMEEVAL int NumSteps() const
+	int NumSteps() const
 	{
 		return Math::abs(Difference_Raw()) / ROT.Raw;
 	}

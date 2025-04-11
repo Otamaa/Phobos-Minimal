@@ -63,7 +63,7 @@ public:
 		return AdjacentCell[(size_t)direction];
 	}
 
-	static COMPILETIMEEVAL size_t GetDistance(int dx, int dy) {
+	static size_t GetDistance(int dx, int dy) {
 		auto x = static_cast<size_t>(Math::abs(dx));
 		auto y = static_cast<size_t>(Math::abs(dy));
 

@@ -135,12 +135,12 @@ public:
 	//	return *this;
 	//}
 
-	COMPILETIMEEVAL bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return Math::abs(pDirFrom.Raw) >= Math::abs(this->Raw - pBaseDir.Raw); }
+	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return Math::abs(pDirFrom.Raw) >= Math::abs(this->Raw - pBaseDir.Raw); }
 
 	DirStruct* GetDirOver(CoordStruct* coord1, CoordStruct* coord2)
 	{ JMP_THIS(0x4265B0); }
 
-	COMPILETIMEEVAL void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
+	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
 
 		if (Math::abs(pDir3.Raw) < Math::abs(this->Raw - pDir2.Raw))
 		{

@@ -165,14 +165,12 @@ namespace Math
 	//https://github.com/rhalbersma/xstd/blob/master/include/xstd/cstdlib.hpp
 
 	template<class T>
-	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL T abs(T const& x) noexcept
+	OPTIONALINLINE T abs(T const& x) noexcept
 		requires std::is_arithmetic_v<T> {
-		return( // deal with signed-zeros
-		x == T(0) ? \
-			T(0) :
-		// else
-		x < T(0) ? \
-			- x : x);
+		if constexpr (std::is_floating_point_v<T>)
+			return  static_cast<T>(std::fabs(x));
+		else
+			return static_cast<T>(std::abs(x));
 	}
 
 	template <typename T>

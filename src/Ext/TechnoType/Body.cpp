@@ -115,7 +115,6 @@ VoxelStruct* TechnoTypeExtData::GetBarrelsVoxel(TechnoTypeClass* const pThis, in
 
 	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
 		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
-		return nullptr;
 	}
 
 	return TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.data() +
@@ -133,8 +132,8 @@ VoxelStruct* TechnoTypeExtData::GetTurretsVoxel(TechnoTypeClass* const pThis, in
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
 		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
-		return nullptr;
 	}
+
 	return TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.data() + nAdditional;
 }
 

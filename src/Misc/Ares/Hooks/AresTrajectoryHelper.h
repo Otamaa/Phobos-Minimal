@@ -15,12 +15,12 @@ struct BulletObstacleHelper {
 		return pAfter->GetLevelFrom(pBefore) >= Unsorted::BridgeLevels && pAfter->GetLevelFrom(pSource) > 0;
 	}
 
-	static COMPILETIMEEVAL Vector2D<int> AbsoluteDifference(const CoordStruct& coords)
+	static Vector2D<int> AbsoluteDifference(const CoordStruct& coords)
 	{
 		return{ Math::abs(coords.X), Math::abs(coords.Y) };
 	}
 
-	static COMPILETIMEEVAL Vector2D<int> AbsoluteDifference(const CellStruct& cell)
+	static Vector2D<int> AbsoluteDifference(const CellStruct& cell)
 	{
 		return{ Math::abs(cell.X), Math::abs(cell.Y) };
 	}

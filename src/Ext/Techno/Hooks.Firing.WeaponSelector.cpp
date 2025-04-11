@@ -147,7 +147,7 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 	//GET(WeaponTypeClass* , pSecondary , EDI);
 	//GET(WeaponTypeClass* , pSecondary , EBX);
 
-	if (pTarget)
+	if (pTarget && !ForceWeaponInRangeTemp::SelectWeaponByRange)		
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
 		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
@@ -169,8 +169,7 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 		} else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
 		{
 			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
-		} else if (!ForceWeaponInRangeTemp::SelectWeaponByRange 
-			&& (!pTechnoTypeExt->ForceWeapon_InRange.empty() 
+		} else if ((!pTechnoTypeExt->ForceWeapon_InRange.empty() 
 				|| !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
 		{
 			ForceWeaponInRangeTemp::SelectWeaponByRange = true;

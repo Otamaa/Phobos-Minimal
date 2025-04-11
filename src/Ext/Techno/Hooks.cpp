@@ -1115,9 +1115,9 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 	enum { Invisible = 0x655E66, GoOtherChecks = 0x655E19 , Continue = 0x0};
 
 	GET_STACK(bool, isInShrouded, STACK_OFFSET(0x40, 0x4));
-	GET(ObjectClass*, pThis, EBP);
+	GET(ObjectClass*, pObject, EBP);
 	
-	if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)){
+	if (auto pTechno = flag_cast_to<TechnoClass*>(pObject)){
 
 		if (isInShrouded && !pTechno->Owner->IsControlledByHuman())
 			return Invisible;
