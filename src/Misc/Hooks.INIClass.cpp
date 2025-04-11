@@ -14,6 +14,7 @@
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/SkilledLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
+#include <New/Interfaces/CustomRocketLocomotionClass.h>
 
 #define PARSE(who) if (IS_SAME_STR_(parser.value(), ## who ##_data.s_name)) { CLSID who##_dummy; \
 if (CLSIDFromString(LPCOLESTR(##who##_data.w_CLSID), &## who ##_dummy) == NOERROR) { value = ## who ##_dummy; return true;  }}
@@ -40,6 +41,7 @@ namespace detail
 
 			PARSE(Levitate)
 			PARSE(Skilled)
+			PARSE(CustomRocket)
 
 			//AddMore loco here
 			return false;

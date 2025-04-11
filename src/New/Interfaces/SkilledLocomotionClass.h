@@ -254,9 +254,6 @@ public:
 		return this->Piggybacker != nullptr;
 	}
 
-	// Constructors
-	SkilledLocomotionClass(noinit_t) : LocomotionClass { noinit_t() } { }
-
 	SkilledLocomotionClass() : LocomotionClass { }
 		, CurrentRamp { 0 }
 		, PreviousRamp { 0 }
@@ -282,6 +279,10 @@ public:
 	// Destructor
 	virtual ~SkilledLocomotionClass() override = default;
 
+public:
+	SkilledLocomotionClass(const SkilledLocomotionClass&) = delete;
+	SkilledLocomotionClass(noinit_t) : LocomotionClass { noinit_t() } { }
+	SkilledLocomotionClass& operator=(const SkilledLocomotionClass&) = delete;
 public:
 
 	// Properties

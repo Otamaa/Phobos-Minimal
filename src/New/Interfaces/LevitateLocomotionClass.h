@@ -29,7 +29,7 @@ struct LevitateCharacteristics
 	double ProximityDistance { 1.5 }; //How close before special deacceleration & drift logic take over?
 };
 
-DEFINE_LOCO(Levitate, 3DC0B295-6546-11D3-80B0-00902792494C)
+DEFINE_LOCO(Levitate, 501DEF92-C7ED-448E-8FEB-7908DCE73377)
 {
 public:
 
@@ -59,6 +59,13 @@ public:
 	virtual HRESULT __stdcall Load(IStream* pStm) {
 
 		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
+		if (FAILED(hr))
+		{
+			return E_FAIL;
+			// Insert any data to be loaded here.
+		}
+
+		new (this) LevitateLocomotionClass(noinit_t());
 		return hr;
 	}
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty)  {
@@ -146,8 +153,10 @@ public:
 		, field_58 { 0.0 }
 	{ }
 
-	LevitateLocomotionClass(noinit_t) : LocomotionClass {noinit_t()}
-	{ }
+public:
+	LevitateLocomotionClass(const LevitateLocomotionClass&) = delete;
+	LevitateLocomotionClass(noinit_t) : LocomotionClass { noinit_t() } { }
+	LevitateLocomotionClass& operator=(const LevitateLocomotionClass&) = delete;
 
 public:
 	LevitateCharacteristics Characteristic;
