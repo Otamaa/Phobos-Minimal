@@ -10,12 +10,6 @@ PrismForwardingData* PrismForwarding::GetOwnerData() const
 	return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();
 }
 
-void PrismForwarding::InvalidatePointer(AbstractClass* ptr, bool bRemove)
-{
-	if (bRemove && this->SupportTarget && this->SupportTarget->Owner == ptr)
-		this->SupportTarget = nullptr;
-}
-
 void PrismForwarding::RemoveAllSenders()
 {
 	// disconnect all sender towers from their support target, which is me

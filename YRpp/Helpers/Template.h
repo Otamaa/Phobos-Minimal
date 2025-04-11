@@ -62,7 +62,7 @@ public:
 // invalid pointers
 
 template<typename T>
-void AnnounceInvalidPointer(T &elem, void *ptr) {
+void FORCEINLINE AnnounceInvalidPointer(T &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(ptr == static_cast<void*>(elem)) {
 		elem = nullptr;
@@ -70,7 +70,7 @@ void AnnounceInvalidPointer(T &elem, void *ptr) {
 }
 
 template<typename T>
-void AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
+void FORCEINLINE AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed && ptr == static_cast<void*>(elem)) {
 		elem = nullptr;
@@ -78,13 +78,13 @@ void AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
 }
 
 template<typename T>
-void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
+void FORCEINLINE AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	elem.Remove((T)ptr);
 }
 
 template<typename T>
-void AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed) {
+void FORCEINLINE AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(removed){
 		elem.Remove((T)ptr);
@@ -92,7 +92,7 @@ void AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed
 }
 
 template<typename T>
-void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
+void FORCEINLINE AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed) {
 		fast_remove_if(elem, [ptr](auto _el) { return  ptr == _el; });
@@ -100,7 +100,7 @@ void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr, bool removed) {
 }
 
 template<typename T>
-void AnnounceInvalidPointer(std::set<T>& elem, void* ptr, bool removed) {
+void FORCEINLINE AnnounceInvalidPointer(std::set<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if (removed){
 		elem.erase((T)ptr);
@@ -108,13 +108,13 @@ void AnnounceInvalidPointer(std::set<T>& elem, void* ptr, bool removed) {
 }
 
 template<typename T>
-void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
+void FORCEINLINE AnnounceInvalidPointer(std::vector<T>& elem, void* ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	fast_remove_if(elem, [ptr](auto _el) { return  ptr == _el; });
 }
 
 template<typename T>
-void AnnounceInvalidPointer(std::set<T>& elem, void* ptr) {
+void FORCEINLINE AnnounceInvalidPointer(std::set<T>& elem, void* ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	elem.erase((T)ptr);
 }

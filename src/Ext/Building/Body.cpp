@@ -495,9 +495,6 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
-	if (ptr == this->SpyEffectAnim.get()) {
-		this->SpyEffectAnim.release();
-	}
 
 	if(this->MyPrismForwarding)
 		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
@@ -577,7 +574,7 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 
 	if (BuildingExt->CurrentAirFactory)
 	{
-		for (auto pBuilding : airFactoryBuilding)
+		for (auto& pBuilding : airFactoryBuilding)
 		{
 			if (!pBuilding->IsAlive)
 				continue;
@@ -602,7 +599,7 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!currFactory)
 		return;
 
-	for (auto pBuilding : airFactoryBuilding)
+	for (auto& pBuilding : airFactoryBuilding)
 	{
 		if (!pBuilding->IsAlive)
 			continue;
@@ -1082,3 +1079,16 @@ void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3EE4, FakeBuildingClass::_Detach)
+
+void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
+{
+	this->TechnoClass::AnimPointerExpired(pAnim);
+
+	auto pExt = BuildingExtContainer::Instance.Find(this);
+
+	if (pAnim == pExt->SpyEffectAnim.get()) {
+		pExt->SpyEffectAnim.release();
+	}
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
+//

@@ -74,14 +74,73 @@ ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	return 0;
 }
 
+int ApplyForceWeaponInRange(TechnoClass* pThis)
+{
+	int forceWeaponIndex = -1;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTarget = pThis->Target;
+
+	const bool useAASetting = !pTypeExt->ForceAAWeapon_InRange.empty() && pTarget->IsInAir();
+	auto const& weaponIndices = useAASetting ? pTypeExt->ForceAAWeapon_InRange : pTypeExt->ForceWeapon_InRange;
+	auto const& rangeOverrides = useAASetting ? pTypeExt->ForceAAWeapon_InRange_Overrides : pTypeExt->ForceWeapon_InRange_Overrides;
+	const bool applyRangeModifiers = useAASetting ? pTypeExt->ForceAAWeapon_InRange_ApplyRangeModifiers : pTypeExt->ForceWeapon_InRange_ApplyRangeModifiers;
+
+	const int defaultWeaponIndex = pThis->SelectWeapon(pTarget);
+	const int currentDistance = pThis->DistanceFrom(pTarget);
+	auto const pDefaultWeapon = pThis->GetWeapon(defaultWeaponIndex)->WeaponType;
+
+	for (size_t i = 0; i < weaponIndices.size(); i++)
+	{
+		int range = 0;
+
+		// Value below 0 means Range won't be overriden
+		if (i < rangeOverrides.size() && rangeOverrides[i] > 0)
+			range = static_cast<int>(rangeOverrides[i] * Unsorted::LeptonsPerCell);
+
+		if (weaponIndices[i] >= 0)
+		{
+			if (range > 0 || applyRangeModifiers)
+			{
+				auto const pWeapon = weaponIndices[i] == defaultWeaponIndex ? pDefaultWeapon : pThis->GetWeapon(weaponIndices[i])->WeaponType;
+				range = range > 0 ? range : pWeapon->Range;
+
+				if (applyRangeModifiers)
+					range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis, range);
+			}
+
+			if (currentDistance <= range)
+			{
+				forceWeaponIndex = weaponIndices[i];
+				break;
+			}
+		}
+		else
+		{
+			if (range > 0 || applyRangeModifiers)
+			{
+				range = range > 0 ? range : pDefaultWeapon->Range;
+
+				if (applyRangeModifiers)
+					range = WeaponTypeExtData::GetRangeWithModifiers(pDefaultWeapon, pThis, range);
+			}
+
+			// Don't force weapon if range satisfied
+			if (currentDistance <= range)
+				break;
+		}
+	}
+
+	return forceWeaponIndex;
+}
+
+namespace ForceWeaponInRangeTemp
+{
+	bool SelectWeaponByRange = false;
+}
+
 //this hook disregard everything and return weapon index
 ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 {
-	enum
-	{
-		ReturnHandled = 0x6F37AF
-	};
-
 	GET(TechnoTypeClass*, pThisTechnoType, EAX);
 	GET(TechnoClass*, pTarget, EBP);
 	GET(TechnoClass*, pThis, ECX);
@@ -92,70 +151,36 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
 		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
+		int forceWeaponIndex = -1;
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 			&& pTargetType->Cloakable && pTargetType->Naval
 			&& pTarget->CloakState == CloakState::Uncloaked)
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
-			return ReturnHandled;
-		}
-
-		if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0 &&
+			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
+		} else if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0 &&
 				pTarget->CloakState == CloakState::Cloaked)
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_Cloaked.Get());
-			return ReturnHandled;
-		}
-
-		if (pTechnoTypeExt->ForceWeapon_Disguised >= 0 &&
+			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Cloaked.Get());
+		} else if (pTechnoTypeExt->ForceWeapon_Disguised >= 0 &&
 			   pTarget->IsDisguised())
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_Disguised.Get());
-			return ReturnHandled;
+			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Disguised.Get());
+		} else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
+		{
+			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
+		} else if (!ForceWeaponInRangeTemp::SelectWeaponByRange 
+			&& (!pTechnoTypeExt->ForceWeapon_InRange.empty() 
+				|| !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
+		{
+			ForceWeaponInRangeTemp::SelectWeaponByRange = true;
+			forceWeaponIndex = ApplyForceWeaponInRange(pThis);
+			ForceWeaponInRangeTemp::SelectWeaponByRange = false;
 		}
 
-		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
-		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
-			return ReturnHandled;
-		}
-
-		if (!pTechnoTypeExt->ForceWeapon_InRange.empty())
-		{
-			for (size_t i = 0; i < pTechnoTypeExt->ForceWeapon_InRange.size(); i++)
-			{
-				int distance = 0;
-
-				// Value below 0 means Range won't be overriden
-				if (i < pTechnoTypeExt->ForceWeapon_InRange_Overrides.size() && pTechnoTypeExt->ForceWeapon_InRange_Overrides[i] > 0)
-					distance = static_cast<int>(pTechnoTypeExt->ForceWeapon_InRange_Overrides[i] * 256.0);
-
-				if (pTechnoTypeExt->ForceWeapon_InRange[i] >= 0)
-				{
-					auto const pWeapon = pThis->GetWeapon(pTechnoTypeExt->ForceWeapon_InRange[i])->WeaponType;
-					distance = distance > 0 ? distance : pWeapon->Range;
-
-					if (pTechnoTypeExt->ForceWeapon_InRange_ApplyRangeModifiers)
-						distance = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis, distance);
-
-					if (pThis->DistanceFrom(pTarget) <= distance)
-					{
-						R->EAX(pTechnoTypeExt->ForceWeapon_InRange[i]);
-						return ReturnHandled;
-					}
-				}
-				else
-				{
-					// Apply range modifiers regardless of weapon
-					if (pTechnoTypeExt->ForceWeapon_InRange_ApplyRangeModifiers)
-						distance = WeaponTypeExtData::GetRangeWithModifiers(nullptr, pThis, distance);
-
-					// Don't force weapon if range satisfied
-					if (pThis->DistanceFrom(pTarget) <= distance)
-						break;
-				}
-			}
+		if(forceWeaponIndex >= 0){
+			R->EAX(forceWeaponIndex);
+			return 0x6F37AF;
 		}
 	}
 

@@ -38,9 +38,6 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)
 {
-	if (!ptr)
-		return;
-
 	AnnounceInvalidPointer(this->Invoker, ptr, removed);
 	AnnounceInvalidPointer(this->InvokerHouse, ptr);
 }

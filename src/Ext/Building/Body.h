@@ -199,6 +199,8 @@ public:
 	CoordStruct* _GetFLH(CoordStruct* pCrd, int weaponIndex);
 	int _Mission_Missile();
 	void _Spawn_Refinery_Smoke_Particles();
+	void _DetachAnim(AnimClass* pAnim);
+
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{
 		const bool res = this->BuildingClass::SetOwningHouse(pHouse, announce);

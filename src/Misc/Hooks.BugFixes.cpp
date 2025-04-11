@@ -2452,6 +2452,8 @@ ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 #include <Locomotor/LocomotionClass.h>
 #include <Locomotor/ShipLocomotionClass.h>
 
+DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
+
 ASMJIT_PATCH(0x4D92BF, FootClass_Mission_Enter_CheckLink, 0x5)
 {
 	enum { NextAction = 0x4D92ED, NotifyUnlink = 0x4D92CE, DoNothing = 0x4D946C };

@@ -1007,7 +1007,10 @@ public:
 
 	ValueableVector<int> ForceWeapon_InRange {};
 	ValueableVector<double> ForceWeapon_InRange_Overrides {};
-	Valueable<bool> ForceWeapon_InRange_ApplyRangeModifiers { false };
+	Valueable<bool> ForceWeapon_InRange_ApplyRangeModifiers {};
+	ValueableVector<int> ForceAAWeapon_InRange {};
+	ValueableVector<double> ForceAAWeapon_InRange_Overrides {};
+	Valueable<bool> ForceAAWeapon_InRange_ApplyRangeModifiers {};
 
 	Nullable<bool> UnitIdleRotateTurret {};
 	Nullable<bool> UnitIdlePointToMouse {};

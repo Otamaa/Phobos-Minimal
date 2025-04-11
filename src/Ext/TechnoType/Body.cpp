@@ -1378,9 +1378,11 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		exINI.ReadSpeed(pSection, "SubterraneanSpeed", &this->SubterraneanSpeed);
 
-		this->ForceWeapon_InRange.Read(exINI, pSection, "ForceWeapon.InRange");
 		this->ForceWeapon_InRange_Overrides.Read(exINI, pSection, "ForceWeapon.InRange.Overrides");
 		this->ForceWeapon_InRange_ApplyRangeModifiers.Read(exINI, pSection, "ForceWeapon.InRange.ApplyRangeModifiers");
+		this->ForceAAWeapon_InRange.Read(exINI, pSection, "ForceAAWeapon.InRange");
+		this->ForceAAWeapon_InRange_Overrides.Read(exINI, pSection, "ForceAAWeapon.InRange.Overrides");
+		this->ForceAAWeapon_InRange_ApplyRangeModifiers.Read(exINI, pSection, "ForceAAWeapon.InRange.ApplyRangeModifiers");
 
 		if (!RefinerySmokeParticleSystemOne.isset()) {
 			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
@@ -2597,6 +2599,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceWeapon_InRange)
 		.Process(this->ForceWeapon_InRange_Overrides)
 		.Process(this->ForceWeapon_InRange_ApplyRangeModifiers)
+		.Process(this->ForceAAWeapon_InRange)
+		.Process(this->ForceAAWeapon_InRange_Overrides)
+		.Process(this->ForceAAWeapon_InRange_ApplyRangeModifiers)
 
 		.Process(this->UnitIdleRotateTurret)
 		.Process(this->UnitIdlePointToMouse)

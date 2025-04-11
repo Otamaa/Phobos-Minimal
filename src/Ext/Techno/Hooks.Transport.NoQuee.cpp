@@ -84,7 +84,7 @@ static inline void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 	pPassenger->Limbo(); // Don't swap order casually
 	pPassenger->OnBridge = false; // Don't swap order casually, important
 	pPassenger->NextObject = nullptr; // Don't swap order casually, very important
-	
+
 	const auto pPassengerType = pPassenger->GetTechnoType();
 
 	if (auto const pCapturer = pPassenger->MindControlledBy) {
@@ -108,6 +108,7 @@ static inline void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 	pPassenger->Undiscover();
 
 	pPassenger->QueueUpToEnter = nullptr; // Added, to prevent passengers from wanting to get on after getting off
+	pPassenger->FrozenStill = true; // Added, to prevent the vehicles from stacking together when unloading
 	pPassenger->SetSpeedPercentage(0.0); // Added, to stop the passengers and let OpenTopped work normally
 }
 
@@ -248,8 +249,6 @@ ASMJIT_PATCH(0x73DC9C, UnitClass_Mission_Unload_NoQueueUpToUnloadBreak, 0xA)
 	return SkipGameCode;
 }
 
-DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
-
 //Enter unit
 ASMJIT_PATCH(0x73796B, UnitClass_ReceiveCommand_AmphibiousEnter, 0x7)
 {
@@ -259,6 +258,9 @@ ASMJIT_PATCH(0x73796B, UnitClass_ReceiveCommand_AmphibiousEnter, 0x7)
 
 	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousEnter.Get(RulesExtData::Instance()->AmphibiousEnter))
 	return ContinueCheck;
+
+	if (pThis->OnBridge)
+		return MoveToPassenger;
 
 	GET(CellClass* const, pCell, EBP);
 	return (pCell->LandType != LandType::Water) ? ContinueCheck : MoveToPassenger;

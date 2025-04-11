@@ -52,7 +52,11 @@ public:
 	void SetChargeDelay(int LongestChain);
 	void SetChargeDelay_Set(int chain, std::vector<DWORD>& LongestCDelay, std::vector<DWORD>& LongestFDelay, int LongestChain);
 	void RemoveAllSenders();
-	void InvalidatePointer(AbstractClass* ptr, bool bRemove);
+	void OPTIONALINLINE InvalidatePointer(AbstractClass* ptr, bool bRemove)
+	{
+		if (bRemove && this->SupportTarget && (AbstractClass*)this->SupportTarget->Owner == ptr)
+			this->SupportTarget = nullptr;
+	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{

@@ -1116,17 +1116,24 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 
 	GET_STACK(bool, isInShrouded, STACK_OFFSET(0x40, 0x4));
 	GET(ObjectClass*, pThis, EBP);
-
+	
 	if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)){
 
-		bool hideByShroud = isInShrouded && !pTechno->Owner->IsControlledByHuman();
+		if (isInShrouded && !pTechno->Owner->IsControlledByHuman())
+			return Invisible;
+
 		auto pType = pTechno->GetTechnoType();
-		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		bool hideByType = EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse.Get(pType->RadarInvisible ? AffectedHouse::Enemies : AffectedHouse::None), pTechno->Owner, HouseClass::CurrentPlayer);
-		return (hideByShroud || hideByType) ? Invisible : GoOtherChecks;
+
+		if (pType->RadarInvisible)
+		{
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if (!pTypeExt->RadarInvisibleToHouse.isset() || EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse, pTechno->Owner, HouseClass::CurrentPlayer))
+				return Invisible;
+		}
 	}
 
-	return Continue;
+	return GoOtherChecks;
 }
 
 //ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
