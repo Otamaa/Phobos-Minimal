@@ -9,7 +9,75 @@
 #include <Ext/BulletType/Body.h>
 
 #include <AircraftClass.h>
+#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
+#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
 
+AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
+{
+	if (RulesExtData::Instance()->ExpandAircraftMission)
+	{
+		if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
+			threatType |= pPrimaryWeapon->AllowedThreats();
+
+		if (WeaponTypeClass* const pSecondaryWeapon = this->GetWeapon(1)->WeaponType)
+			threatType |= pSecondaryWeapon->AllowedThreats();
+	}
+
+	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
+}
+
+void FakeAircraftClass::_FootClass_Update_Wrapper()
+{
+
+
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+
+	pExt->UpdateAircraftOpentopped();
+	AircraftPutDataFunctional::AI(pExt, pTypeExt);
+	AircraftDiveFunctional::AI(pExt, pTypeExt);
+	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+	//{
+	//
+	//	/**
+	//	 *  If we are close enough to our owner, delete us and return true
+	//	 *  to signal to the challer that we were deleted.
+	//	 */
+	//	if (Spawned_Check_Destruction(pThis))
+	//	{
+	//		pThis->UnInit();
+	//		return 0x414F99;
+	//	}
+	//}
+
+	this->FootClass::Update();
+}
+
+void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
+{
+	this->TechnoClass::SetTarget(pTarget);
+	TechnoExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
+}
+
+void FakeAircraftClass::_Destroyed(int mult)
+{
+	AircraftExt::TriggerCrashWeapon(this, mult);
+}
+
+WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
+{
+	auto const pExt = TechnoExtContainer::Instance.Find(this);
+
+	if (pExt->CurrentAircraftWeaponIndex >= 0)
+		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
+	else
+		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
+}
+ 
 // Spy plane, airstrike etc.
 bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {

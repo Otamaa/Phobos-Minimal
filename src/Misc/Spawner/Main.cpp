@@ -578,10 +578,10 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 }
 
 bool SpawnerMain::GameConfigs::Reconcile_Players() {
-	int i;
-	bool found;
-	int house;
-	HouseClass* pHouse;
+	int i {};
+	bool found {};
+	int house {};
+	HouseClass* pHouse = nullptr;
 
 	// Just use this as Playernodes.
 	auto& players = SessionClass::Instance->StartSpots;

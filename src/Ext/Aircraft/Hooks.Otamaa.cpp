@@ -11,10 +11,6 @@
 
 #pragma region Otamaa
 
-void FakeAircraftClass::_Destroyed(int mult){
-	AircraftExt::TriggerCrashWeapon(this, mult);
-}
-
 DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 
 //ASMJIT_PATCH(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
