@@ -1988,26 +1988,23 @@ NOINLINE LocomotionClass* getILoco(REGISTERS* R) {
 	ILocomotion* pIloco = nullptr;
 
 	if (R->Origin() == 0x719F17)
-		pIloco = R->EAX<ILocomotion*>();
-	else if(R->Origin() == 0x54DADC)
-		pIloco = R->ESI<ILocomotion*>();
-	else 
 		pIloco = R->ECX<ILocomotion*>();
+	else
+		pIloco = R->EAX<ILocomotion*>();
 
 	return static_cast<LocomotionClass*>(pIloco);
 }
 
 ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
 {
-	const auto pLoco = getILoco(R);
-
-	if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
-		if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
-			pLoco->Power_On();
-		else
-			pLoco->Power_Off();
+	if(const auto pLoco = getILoco(R)) {
+		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
+			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
+				pLoco->Power_On();
+			else
+				pLoco->Power_Off();
+		}
 	}
-
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
 ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
