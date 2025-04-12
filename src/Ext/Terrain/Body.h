@@ -10,8 +10,10 @@
 #include <CellClass.h>
 #include <AnimClass.h>
 
-class TerrainExtData final
+class TerrainExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TerrainExtData, "TerrainExtData")
+
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
@@ -26,13 +28,6 @@ public:
 	Handle<AnimClass*, UninitAnim> AttachedFireAnim { nullptr };
 	std::vector<CellStruct> Adjencentcells{};
 
-	~TerrainExtData() noexcept
-	{
-		LighSource.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		AttachedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		AttachedFireAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	}
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
@@ -46,6 +41,7 @@ public:
 	{
 		return sizeof(TerrainExtData) -
 			(4u //AttachedToObject
+			- 4u //inheritance
 			 );
 	}
 private:

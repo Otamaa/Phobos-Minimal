@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
+    <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Lib\stb\stb_vorbis.c" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\Interfaces\SkilledLocomotionClass.cpp" />
@@ -47,8 +48,6 @@
     <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Commands\ToggleSWSidebar.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
@@ -560,6 +559,7 @@
   <ItemGroup>
     <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
     <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
+    <ClInclude Include="src\ExtraHeaders\MemoryPool.h" />
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
     <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
     <ClInclude Include="src\ExtraHeaders\StackVector.h" />

@@ -4,14 +4,15 @@
 #include <Utilities/Container.h>
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
-
 //#include <New/AnonymousType/SpawnsStatus.h>
 
 #include <ParticleSystemClass.h>
 
 class HouseClass;
-class AnimExtData final //: public Extension<AnimClass>
+class AnimExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AnimExtData, "AnimExtData")
+
 public:
 	using base_type = AnimClass;
 	static COMPILETIMEEVAL size_t Canary = 0xAADAAAA;
@@ -45,22 +46,12 @@ public:
 
 	void CreateAttachedSystem();
 
-	~AnimExtData()
-	{
-		// mimicking how this thing does , since the detach seems not properly handle these
-		if (auto pAttach = AttachedSystem)
-		{
-			pAttach->Owner = nullptr;
-			pAttach->UnInit();
-			pAttach->TimeToDie = true;
-		}
-	}
-
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(AnimExtData) -
 			(4u //AttachedToObject
-			 );
+			 -4u //inheritance
+				);
 	}
 
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
@@ -88,7 +79,6 @@ class AnimTypeExtData;
 class FakeAnimClass : public AnimClass
 {
 public:
-	OPTIONALINLINE static std::vector<AnimExtData*> Pool;
 	OPTIONALINLINE static HelperedVector<FakeAnimClass*> AnimsWithAttachedParticles {};
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
@@ -116,21 +106,8 @@ public:
 
 	static AnimExtData* AllocateUnchecked(AnimClass* key)
 	{
-		AnimExtData* val = nullptr;
-		if (!Pool.empty())
+		if (AnimExtData* val = AnimExtData::createInstance())
 		{
-			val = Pool.front();
-			Pool.erase(Pool.begin());
-			//re-init
-		}
-		else
-		{
-			val = DLLAllocWithoutCTOR<AnimExtData>();
-		}
-
-		if (val)
-		{
-			val->AnimExtData::AnimExtData();
 			val->AttachedToObject = key;
 			return val;
 		}
@@ -158,25 +135,13 @@ public:
 	{
 		if (AnimExtData* Item = FakeAnimClass::TryFind(key))
 		{
-			Item->~AnimExtData();
-			Item->AttachedToObject = nullptr;
-			Pool.push_back(Item);
+			Item->deleteInstance();
 			FakeAnimClass::ClearExtAttribute(key);
 		}
 	}
 
 	static void Clear()
 	{
-		if (!Pool.empty())
-		{
-			auto ptr = Pool.front();
-			Pool.erase(Pool.begin());
-			if (ptr)
-			{
-				delete ptr;
-			}
-		}
-
 		AnimsWithAttachedParticles.clear();
 	}
 
@@ -199,7 +164,6 @@ public:
 	FORCEDINLINE AnimTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
-
 
 	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{

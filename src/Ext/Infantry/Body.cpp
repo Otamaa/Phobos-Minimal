@@ -2,6 +2,8 @@
 
 #include <Utilities/Macro.h>
 
+InfantryExtData::~InfantryExtData() { }
+
 // =============================
 // load / save
 

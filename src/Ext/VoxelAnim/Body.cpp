@@ -12,6 +12,8 @@
 #include <UnitClass.h>
 #include <InfantryClass.h>
 
+VoxelAnimExtData::~VoxelAnimExtData() { };
+
 TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);

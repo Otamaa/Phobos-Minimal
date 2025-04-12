@@ -403,6 +403,8 @@ public:
 	Valueable<WeaponTypeClass*> KillWeapon_OnFirer {};
 	Valueable<AffectedHouse> KillWeapon_AffectsHouses { AffectedHouse::All };
 	Valueable<AffectedHouse> KillWeapon_OnFirer_AffectsHouses { AffectedHouse::All };
+	Valueable<AffectedTarget> KillWeapon_Affects { AffectedTarget::All };
+	Valueable<AffectedTarget> KillWeapon_OnFirer_Affects { AffectedTarget::All };
 
 	Nullable<int> MindControl_ThreatDelay {};
 

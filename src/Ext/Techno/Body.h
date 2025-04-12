@@ -554,8 +554,10 @@ protected:
 	}
 };
 
-class TechnoExtData
+class TechnoExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TechnoExtData, "TechnoExtData")
+
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x22365555;
 	using base_type = TechnoClass;
@@ -735,19 +737,6 @@ public:
 	HelperedVector<EBolt*> ElectricBolts {};
 	int LastHurtFrame {};
 
-	~TechnoExtData() noexcept
-	{
-		if (!Phobos::Otamaa::ExeTerminated) {
-			if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr)) {
-				GameDelete<true,false>(pTemp);
-			}
-		}
-
-		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->ClearElectricBolts();
-	}
-
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	FORCEDINLINE ShieldClass* GetShield() const {
@@ -815,6 +804,7 @@ public:
 		return sizeof(TechnoExtData) -
 			(4u //AttachedToObject
 			+ 4u //DamageNumberOffset
+			- 4u //inheritance
 			 );
 	}
 
@@ -1052,69 +1042,7 @@ public:
 class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
-	OPTIONALINLINE static std::vector<TechnoExtData*> Pool;
 	static TechnoExtContainer Instance;
-
-	TechnoExtData* AllocateUnchecked(TechnoClass* key)
-	{
-		TechnoExtData* val = nullptr;
-		if (!Pool.empty()) {
-			val = Pool.front();
-			Pool.erase(Pool.begin());
-			//re-init
-		} else {
-			val = DLLAllocWithoutCTOR<TechnoExtData>();
-		}
-
-		if (val) {
-			val->TechnoExtData::TechnoExtData();
-			val->AttachedToObject = key;
-			val->InitializeConstant();
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	TechnoExtData* Allocate(TechnoClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-
-		if (TechnoExtData* val = AllocateUnchecked(key))
-		{
-			this->SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	void Remove(TechnoClass* key)
-	{
-		if (TechnoExtData* Item = TryFind(key))
-		{
-			Item->~TechnoExtData();
-			Item->AttachedToObject = nullptr;
-			Pool.push_back(Item);
-			this->ClearExtAttribute(key);
-		}
-	}
-
-	void Clear()
-	{
-		if (!Pool.empty())
-		{
-			auto ptr = Pool.front();
-			Pool.erase(Pool.begin());
-			if (ptr)
-			{
-				delete ptr;
-			}
-		}
-	}
 
 	//CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
 };

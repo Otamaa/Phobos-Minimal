@@ -367,21 +367,9 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	return 0;
 }
 
-#define LogPool(s) Debug::LogInfo("{} MemoryPool size {}", _STR_(s) , ##s::Instance.Pool.size());
-
 ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
 {
-	LogPool(TechnoExtContainer)
-	LogPool(BuildingExtContainer)
-	LogPool(InfantryExtContainer)
-	Debug::LogInfo("FakeAnimClass MemoryPool size {}", FakeAnimClass::Pool.size());
-	LogPool(BulletExtContainer)
-	LogPool(ParticleExtContainer)
-	LogPool(ParticleSystemExtContainer)
-	LogPool(TeamExtContainer)
-	LogPool(VoxelAnimExtContainer)
-	LogPool(WaveExtContainer)
-	LogPool(TemporalExtContainer)
+	TheMemoryPoolFactory->reportAllocation();
 	return 0x0;
 }
 
@@ -392,15 +380,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	CellExtContainer::Instance.Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
-	TemporalExtContainer::Instance.Clear();
-	TechnoExtContainer::Instance.Clear();
 	FakeAnimClass::Clear();
-	BulletExtContainer::Instance.Clear();
-	ParticleExtContainer::Instance.Clear();
-	ParticleSystemExtContainer::Instance.Clear();
-	TeamExtContainer::Instance.Clear();
-	VoxelAnimExtContainer::Instance.Clear();
-
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
@@ -450,18 +430,10 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		TechnoExtContainer::Instance.Pool.reserve(2000);
-		BuildingExtContainer::Instance.Pool.reserve(2000);
-		InfantryExtContainer::Instance.Pool.reserve(2000);
-		FakeAnimClass::Pool.reserve(10000);
-		BulletExtContainer::Instance.Pool.reserve(1000);
-		ParticleExtContainer::Instance.Pool.reserve(1000);
-		ParticleSystemExtContainer::Instance.Pool.reserve(2000);
-		TeamExtContainer::Instance.Pool.reserve(1000);
-		VoxelAnimExtContainer::Instance.Pool.reserve(1000);
-		WaveExtContainer::Instance.Pool.reserve(1000);
+		if (TheMemoryPoolFactory)
+			TheMemoryPoolFactory->reset();
+
 		SWFirerClass::Array.reserve(1000);
-		TemporalExtContainer::Instance.Pool.reserve(100);
 		CellExtContainer::Array.reserve(2000);
 	}
 

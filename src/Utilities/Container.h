@@ -9,6 +9,7 @@
 #include "Swizzle.h"
 
 #include <string>
+#include <ExtraHeaders/MemoryPool.h>
 
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
@@ -135,19 +136,33 @@ public:
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
-	// Allocate extensionptr without any checking
+	//// Allocate extensionptr without any checking
 	extension_type_ptr AllocateUnchecked(base_type_ptr key)
 	{
-		// avoiding stupid memset ,......
-		if (extension_type_ptr val = DLLCreate<extension_type>()) {
+		if constexpr (!IsMemoryPoolObject<T>){
+			// avoiding stupid memset ,......
+			if (extension_type_ptr val = DLLCreate<extension_type>()) {
 
-			val->AttachedToObject = key;
-			if COMPILETIMEEVAL (CTORInitable<T>) {
-				if(!Phobos::Otamaa::DoingLoadGame)
-					val->InitializeConstant();
+				val->AttachedToObject = key;
+				if COMPILETIMEEVAL (CTORInitable<T>) {
+					if(!Phobos::Otamaa::DoingLoadGame)
+						val->InitializeConstant();
+				}
+
+				return val;
 			}
-
-			return val;
+		}
+		else
+		{
+			if (extension_type_ptr val = T::createInstance())
+			{
+				val->AttachedToObject = key;				
+				if COMPILETIMEEVAL(CTORInitable<T>){
+					if (!Phobos::Otamaa::DoingLoadGame)
+						val->InitializeConstant();
+				}
+				return val;
+			}
 		}
 
 		return nullptr;
@@ -195,7 +210,15 @@ public:
 	{
 		if (extension_type_ptr Item = TryFind(key))
 		{
-			DLLCallDTOR<false>(Item);
+			if constexpr (!IsMemoryPoolObject<T>)
+			{
+				DLLCallDTOR<false>(Item);
+			}
+			else
+			{
+				Item->deleteInstance();
+			}
+
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -358,7 +381,7 @@ protected:
 			}
 
 			this->ClearExtAttribute(key);
-			auto buffer = this->AllocateUnchecked(key);
+			auto buffer = AllocateUnchecked(key);
 			this->SetExtAttribute(key, buffer);
 
 			PhobosByteStream loader { 0 };

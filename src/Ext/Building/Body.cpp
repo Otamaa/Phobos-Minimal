@@ -11,6 +11,12 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
+
+BuildingExtData::~BuildingExtData()
+{
+	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+}
+
 void BuildingExtData::InitializeConstant()
 {
 

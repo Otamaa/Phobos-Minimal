@@ -10,8 +10,10 @@
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
 class VoxelAnimTypeExtData;
-class VoxelAnimExtData final
+class VoxelAnimExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(VoxelAnimExtData, "VoxelAnimExtData")
+
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
@@ -35,6 +37,7 @@ public:
 	{
 		return sizeof(VoxelAnimExtData) -
 			(4u //AttachedToObject
+				- 4u //inheritance
 			 );
 	}
 private:
@@ -49,69 +52,7 @@ public:
 class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
-	OPTIONALINLINE static std::vector<VoxelAnimExtData*> Pool;
 	static VoxelAnimExtContainer Instance;
-
-	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)
-	{
-		VoxelAnimExtData* val = nullptr;
-		if (!Pool.empty()) {
-			val = Pool.front();
-			Pool.erase(Pool.begin());
-			//re-init
-		} else {
-			val = DLLAllocWithoutCTOR<VoxelAnimExtData>();
-		}
-
-		if (val)
-		{
-			val->VoxelAnimExtData::VoxelAnimExtData();
-			val->AttachedToObject = key;
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	VoxelAnimExtData* Allocate(VoxelAnimClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-
-		if (VoxelAnimExtData* val = AllocateUnchecked(key))
-		{
-			this->SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	void Remove(VoxelAnimClass* key)
-	{
-		if (VoxelAnimExtData* Item = TryFind(key))
-		{
-			Item->~VoxelAnimExtData();
-			Item->AttachedToObject = nullptr;
-			Pool.push_back(Item);
-			this->ClearExtAttribute(key);
-		}
-	}
-
-	void Clear()
-	{
-		if (!Pool.empty())
-		{
-			auto ptr = Pool.front();
-			Pool.erase(Pool.begin());
-			if (ptr)
-			{
-				delete ptr;
-			}
-		}
-	}
 
 	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
 };

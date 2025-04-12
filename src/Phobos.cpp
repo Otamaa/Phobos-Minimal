@@ -779,6 +779,9 @@ DECLARE_PATCH(_set_fp_mode)
 }
 
 #include <Misc/Multithread.h>
+#include <ExtraHeaders/MemoryPool.h>
+
+static CriticalSection critSec3 , critSec4;
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -787,6 +790,11 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		DisableThreadLibraryCalls((HMODULE)hInstance);
+		TheMemoryPoolCriticalSection = &critSec4;
+		TheDmaCriticalSection = &critSec3;
+		
+		Mem::preMainInitMemoryManager();
+
 		Phobos::hInstance = hInstance;
 		Patch::CurrentProcess = GetCurrentProcess();
 		Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
@@ -862,12 +870,14 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
 			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
+
 	}
 	break;
 	case DLL_PROCESS_DETACH :
 		Multithreading::ShutdownMultitheadMode();
 		Debug::DeactivateLogger();
 		gJitRuntime.reset();
+		Mem::shutdownMemoryManager();
 		break;
 	}
 

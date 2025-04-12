@@ -3,6 +3,8 @@
 
 #include <Utilities/Macro.h>
 
+TemporalExtData::~TemporalExtData() { }
+
 // =============================
 // load / save
 

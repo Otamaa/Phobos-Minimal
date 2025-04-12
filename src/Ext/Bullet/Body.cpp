@@ -45,6 +45,21 @@ static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, Weap
 	return true;
 }
 
+BulletExtData::~BulletExtData()
+{
+	// mimicking how this thing does , since the detach seems not properly handle these
+
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		if (auto pAttach = AttachedSystem)
+		{
+			pAttach->Owner = nullptr;
+			pAttach->UnInit();
+			pAttach->TimeToDie = true;
+		}
+	}
+}
+
 void BulletExtData::ApplyAirburst(BulletClass* pThis)
 {
 	const auto pType = pThis->Type;

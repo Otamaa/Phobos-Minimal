@@ -8,6 +8,8 @@
 
 #include <InfantryClass.h>
 
+WaveExtData::~WaveExtData() { };
+
 void WaveExtData::InitWeaponData()
 {
 	if (!this->Weapon)

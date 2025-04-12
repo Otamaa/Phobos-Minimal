@@ -13,8 +13,10 @@
 
 #include <Misc/Ares/Hooks/Classes/PrismForwarding.h>
 
-class BuildingExtData final
+class BuildingExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(BuildingExtData, "BuildingExtData")
+
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
@@ -70,11 +72,6 @@ public:
 
 	FactoryClass* FactoryBuildingMe {};
 
-	~BuildingExtData() noexcept
-	{
-		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	}
-
 	void InitializeConstant();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -92,6 +89,7 @@ public:
 	{
 		return sizeof(BuildingExtData) -
 			(4u //AttachedToObject
+					- 4u //inheritance
 			 );
 	}
 
@@ -123,70 +121,7 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
-	OPTIONALINLINE static std::vector<BuildingExtData*> Pool;
 	static BuildingExtContainer Instance;
-
-	BuildingExtData* AllocateUnchecked(BuildingClass* key)
-	{
-		BuildingExtData* val = nullptr;
-		if (!Pool.empty()) {
-			val = Pool.front();
-			Pool.erase(Pool.begin());
-			//re-init
-		} else {
-			val = DLLAllocWithoutCTOR<BuildingExtData>();
-		}
-
-		if (val)
-		{
-			val->BuildingExtData::BuildingExtData();
-			val->AttachedToObject = key;
-			val->InitializeConstant();
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	BuildingExtData* Allocate(BuildingClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-
-		if (BuildingExtData* val = AllocateUnchecked(key))
-		{
-			this->SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	void Remove(BuildingClass* key)
-	{
-		if (BuildingExtData* Item = TryFind(key))
-		{
-			Item->~BuildingExtData();
-			Item->AttachedToObject = nullptr;
-			Pool.push_back(Item);
-			this->ClearExtAttribute(key);
-		}
-	}
-
-	void Clear()
-	{
-		if (!Pool.empty())
-		{
-			auto ptr = Pool.front();
-			Pool.erase(Pool.begin());
-			if (ptr)
-			{
-				delete ptr;
-			}
-		}
-	}
 
 	//CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };

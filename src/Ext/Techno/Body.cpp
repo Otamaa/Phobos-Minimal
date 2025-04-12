@@ -41,6 +41,21 @@
 
 #include <memory>
 
+TechnoExtData::~TechnoExtData()
+{
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
+		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
+		{
+			GameDelete<true, false>(pTemp);
+		}
+	}
+
+	this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	this->ClearElectricBolts();
+}
+
 void TechnoExtData::UpdateRecountBurst() {
 	const auto pThis = this->AttachedToObject;
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
@@ -184,14 +199,14 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 
 	// KillWeapon can be triggered without the source
 	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
-		if (filter.empty() || !filter.Contains(pWHExt->KillWeapon)) {
+		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)) {
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}	
 	}
 
 	// KillWeapon.OnFirer must have a source
 	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
-		if (filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)){
+		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)){
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}		
 	}

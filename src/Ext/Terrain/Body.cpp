@@ -6,6 +6,13 @@
 
 #include <Utilities/Macro.h>
 
+TerrainExtData::~TerrainExtData()
+{
+	LighSource.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	AttachedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	AttachedFireAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+}
+
 void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	if (this->LighSource.get() == ptr) {
@@ -174,7 +181,7 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 	}
 
 	if(auto pExt = TerrainExtContainer::Instance.TryFind(pItem)) {
-		delete pExt;
+		pExt->deleteInstance();
 		TerrainExtContainer::Instance.ClearExtAttribute(pItem);
 		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
 	}

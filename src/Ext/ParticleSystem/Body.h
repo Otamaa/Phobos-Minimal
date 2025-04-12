@@ -7,8 +7,10 @@
 
 class ParticleClass;
 class ParticleTypeClass;
-class ParticleSystemExtData final
+class ParticleSystemExtData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ParticleSystemExtData, "ParticleSystemExtData")
+
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAAA2BBBB;
 	using base_type = ParticleSystemClass;
@@ -139,7 +141,8 @@ public:
 	{
 		return sizeof(ParticleSystemExtData) -
 			(4u //AttachedToObject
-			 );
+				- 4u //inheritance
+			);
 	}
 
 private:
@@ -150,69 +153,7 @@ private:
 class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
-	OPTIONALINLINE static std::vector<ParticleSystemExtData*> Pool;
 	static ParticleSystemExtContainer Instance;
-
-	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)
-	{
-		ParticleSystemExtData* val = nullptr;
-		if (!Pool.empty()) {
-			val = Pool.front();
-			Pool.erase(Pool.begin());
-			//re-init
-		} else {
-			val = DLLAllocWithoutCTOR<ParticleSystemExtData>();
-		}
-
-		if (val) {
-			val->ParticleSystemExtData::ParticleSystemExtData();
-			val->AttachedToObject = key;
-			val->InitializeConstant();
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	ParticleSystemExtData* Allocate(ParticleSystemClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-
-		if (ParticleSystemExtData* val = AllocateUnchecked(key))
-		{
-			this->SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	void Remove(ParticleSystemClass* key)
-	{
-		if (ParticleSystemExtData* Item = TryFind(key))
-		{
-			Item->~ParticleSystemExtData();
-			Item->AttachedToObject = nullptr;
-			Pool.push_back(Item);
-			this->ClearExtAttribute(key);
-		}
-	}
-
-	void Clear()
-	{
-		if (!Pool.empty())
-		{
-			auto ptr = Pool.front();
-			Pool.erase(Pool.begin());
-			if (ptr)
-			{
-				delete ptr;
-			}
-		}
-	}
 
 	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
 };

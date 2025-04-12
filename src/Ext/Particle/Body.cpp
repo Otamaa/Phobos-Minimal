@@ -35,7 +35,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass
 	return { pAttacker , pOwner };
 }
 
-
+ParticleExtData::~ParticleExtData(){ }
 // =============================
 // load / save
 
