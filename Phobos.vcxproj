@@ -19,7 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
-    <ClCompile Include="src\Lib\stb\stb_vorbis.c" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\Interfaces\SkilledLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
@@ -567,33 +566,6 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
-    <ClInclude Include="src\Lib\stb\stb_connected_components.h" />
-    <ClInclude Include="src\Lib\stb\stb_c_lexer.h" />
-    <ClInclude Include="src\Lib\stb\stb_divide.h" />
-    <ClInclude Include="src\Lib\stb\stb_ds.h" />
-    <ClInclude Include="src\Lib\stb\stb_dxt.h" />
-    <ClInclude Include="src\Lib\stb\stb_easy_font.h" />
-    <ClInclude Include="src\Lib\stb\stb_herringbone_wang_tile.h" />
-    <ClInclude Include="src\Lib\stb\stb_hexwave.h" />
-    <ClInclude Include="src\Lib\stb\stb_image.h" />
-    <ClInclude Include="src\Lib\stb\stb_image_resize2.h" />
-    <ClInclude Include="src\Lib\stb\stb_image_write.h" />
-    <ClInclude Include="src\Lib\stb\stb_include.h" />
-    <ClInclude Include="src\Lib\stb\stb_leakcheck.h" />
-    <ClInclude Include="src\Lib\stb\stb_perlin.h" />
-    <ClInclude Include="src\Lib\stb\stb_rect_pack.h" />
-    <ClInclude Include="src\Lib\stb\stb_sprintf.h" />
-    <ClInclude Include="src\Lib\stb\stb_textedit.h" />
-    <ClInclude Include="src\Lib\stb\stb_tilemap_editor.h" />
-    <ClInclude Include="src\Lib\stb\stb_truetype.h" />
-    <ClInclude Include="src\Lib\stb\stb_voxel_render.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\checked.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\core.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\cpp11.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\cpp17.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\cpp20.h" />
-    <ClInclude Include="src\Lib\utfcpp\utf8\unchecked.h" />
     <ClInclude Include="src\New\Interfaces\SkilledLocomotionClass.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />

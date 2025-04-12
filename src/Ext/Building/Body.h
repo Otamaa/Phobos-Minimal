@@ -200,6 +200,7 @@ public:
 	int _Mission_Missile();
 	void _Spawn_Refinery_Smoke_Particles();
 	void _DetachAnim(AnimClass* pAnim);
+	DamageState _ReceiveDamage(int* Damage, int DistanceToEpicenter , WarheadTypeClass* WH , TechnoClass* Attacker , bool IgnoreDefenses , bool PreventsPassengerEscape , HouseClass* SourceHouse);
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

@@ -1357,30 +1357,27 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 #pragma region Building
 
-ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
+DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicenter, WarheadTypeClass* WH, TechnoClass* Attacker, bool IgnoreDefenses, bool PreventsPassengerEscape, HouseClass* SourceHouse)
 {
-	GET(BuildingClass*, pThis, ECX);
-	REF_STACK(args_ReceiveDamage, args, 0x4);
-
+	BuildingClass* pThis = this;
 	DamageState _res = DamageState::Unaffected;
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(WH);
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
 
-	if (pThis == args.Attacker && (!pWHExt->AllowDamageOnSelf && !pThis->Type->DamageSelf))
+	if (pThis == Attacker && (!pWHExt->AllowDamageOnSelf && !pThis->Type->DamageSelf))
 	{
-		R->EAX(_res);
-		return 0x442C14;
+		return DamageState::Unaffected;
 	}
 
 	auto pShape = pThis->GetShapeNumber();
 	auto foundation = pThis->GetFoundationData();
 
-	if (pThis->Owner && !pWHExt->Nonprovocative && args.Attacker && !pThis->IsStrange())
+	if (pThis->Owner && !pWHExt->Nonprovocative && Attacker && !pThis->IsStrange())
 	{
-		pThis->Owner->LAEnemy = args.Attacker->Owner->ArrayIndex;
+		pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
 		pThis->Owner->LATime = Unsorted::CurrentFrame;
-		pThis->BaseIsAttacked(args.Attacker);
+		pThis->BaseIsAttacked(Attacker);
 	}
 
 	StackVector<TechnoClass*, 0xAu> CachedRadio { };
@@ -1393,23 +1390,21 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	if (pThis->Type->LaserFence && !args.IgnoreDefenses)
+	if (pThis->Type->LaserFence && !IgnoreDefenses)
 	{
-		R->EAX(DamageState::Unaffected);
-		return 0x442C14;
+		return DamageState::Unaffected;
 	}
 
 	if (pThis->Type->BridgeRepairHut && pThis->Type->Immune)
 	{
-		R->EAX(DamageState::Unaffected);
-		return 0x442C14;
+		return DamageState::Unaffected;
 	}
 
 	if (FirewallFunctions::IsActiveFirestormWall(pThis, nullptr))
 	{
 		auto const pExt = RulesExtData::Instance();
 		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
-		auto const amount = static_cast<int>(*args.Damage * coefficient);
+		auto const amount = static_cast<int>(*Damage * coefficient);
 
 		if (amount > 0)
 		{
@@ -1423,24 +1418,23 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 			}
 		}
 
-		R->EAX(DamageState::Unaffected);
-		return 0x442C14;
+		return DamageState::Unaffected;
 	}
 	else
 	{
-		_res = pThis->TechnoClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
+		_res = pThis->TechnoClass::ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
 
 		if (!pThis->IsAlive)
 		{
-			R->EAX(_res);
-			return 0x442C14;
+			return _res;
 		}
 
 		switch (_res)
 		{
-		case DamageState::NowYellow :
+		case DamageState::NowYellow:
 		{
-			if (auto pParticle = pThis->NaturalParticleSystem) {
+			if (auto pParticle = pThis->NaturalParticleSystem)
+			{
 				pParticle->SpawnFrames *= 1.5;
 			}
 			[[fallthrough]];
@@ -1452,7 +1446,7 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
 			}
 
-			if (args.WH->Sparky)
+			if (WH->Sparky)
 			{
 
 				const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
@@ -1476,8 +1470,8 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 									nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
 									auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop);
 									pAnim->SetOwnerObject(pThis);
-									const auto pKiller = args.Attacker;
-									const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
+									const auto pKiller = Attacker;
+									const auto Invoker = (pKiller) ? pKiller->Owner : SourceHouse;
 									AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 								}
 							};
@@ -1566,16 +1560,18 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 				pSource->Deactivate();
 			}
 
-			pThis->Destroy(0u, args.Attacker, args.IgnoreDefenses, foundation);
+			pThis->Destroy(0u, Attacker, IgnoreDefenses, foundation);
 
 			auto Started = pThis->GoingToBlowTimer.StartTime;
 			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
 
-			if (Started != -1 && Unsorted::CurrentFrame - Started < DelayTime) {
+			if (Started != -1 && Unsorted::CurrentFrame - Started < DelayTime)
+			{
 				DelayTime -= Unsorted::CurrentFrame - Started;
 			}
 
-			if (DelayTime > 0) {
+			if (DelayTime > 0)
+			{
 				pThis->UnInit();
 				pThis->AfterDestruction();
 			}
@@ -1583,8 +1579,7 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		}
 		case DamageState::PostMortem:
 		{
-			R->EAX(_res);
-			return 0x442C14;
+			return _res;
 		}
 		default:
 			break;
@@ -1595,30 +1590,31 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 	{
 		if (_res != DamageState::Unaffected)
 		{
-			if (!pWHExt->Nonprovocative && args.Attacker)
+			if (!pWHExt->Nonprovocative && Attacker)
 			{
 				if (!pThis->Type->Insignificant && !pThis->IsStrange())
 				{
-					pBldExt->ReceiveDamageWarhead = args.WH;
+					pBldExt->ReceiveDamageWarhead = WH;
 					pThis->BuildingUnderAttack();
 				}
 
-				pThis->OwnerCountryIndex = args.Attacker->Owner->ArrayIndex;
+				pThis->OwnerCountryIndex = Attacker->Owner->ArrayIndex;
 
 				if (!pThis->Type->EMPulseCannon
 					&& !pThis->Type->NukeSilo
 					&& pThis->CurrentMission != Mission::Selling
-					&& !pThis->Owner->IsAlliedWith(args.Attacker->Owner))
+					&& !pThis->Owner->IsAlliedWith(Attacker->Owner))
 				{
-					if(args.Attacker->IsAlive) {
+					if (Attacker->IsAlive)
+					{
 						auto pWPS = pThis->GetWeapon(0);
 						if (pWPS && pWPS->WeaponType)
 						{
 							if (!pWPS->WeaponType->Projectile->AA
-								&& (!pThis->Target || !pThis->IsCloseEnoughToAttack(args.Attacker)))
+								&& (!pThis->Target || !pThis->IsCloseEnoughToAttack(Attacker)))
 							{
 								const bool def = BuildingTypeExtContainer::Instance.Find(pThis->Type)->PlayerReturnFire.Get(
-												args.Attacker->WhatAmI() == AircraftClass::AbsID ||
+												Attacker->WhatAmI() == AircraftClass::AbsID ||
 												(pThis->Owner->IsControlledByHuman() && !RulesClass::Instance->PlayerReturnFire)
 								);
 
@@ -1634,7 +1630,7 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 								}
 								else
 								{
-									pThis->SetTarget(args.Attacker);
+									pThis->SetTarget(Attacker);
 								}
 							}
 						}
@@ -1652,10 +1648,11 @@ ASMJIT_PATCH(0x442230, BuildingClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	R->EAX(_res);
-	return 0x442C14;
+	return _res;
 }
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x442230, FakeBuildingClass::_ReceiveDamage)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 #pragma endregion
 
 #pragma region Foot
