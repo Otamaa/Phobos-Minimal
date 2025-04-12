@@ -11,6 +11,7 @@
 #include <New/Type/ShieldTypeClass.h>
 
 #include <AnimClass.h>
+#include <Utilities/MemoryPoolUniquePointer.h>
 
 enum class SelfHealingStatus : char {
 	Online = 1, Offline = 2
@@ -24,16 +25,14 @@ class WarheadTypeClass;
 class WeaponTypeClass;
 class TechnoTypeClass;
 class TemporalClass;
-class ShieldClass final
+class ShieldClass final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ShieldClass, "ShieldClass")
+
 public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
-	~ShieldClass() noexcept {
-		this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		Array.remove(this);
-	}
 
 	//void OnInit() { }
 	//void OnUnInit() { }
@@ -263,4 +262,13 @@ public:
 private:
 	ShieldClass(const ShieldClass& other) = delete;
 	ShieldClass& operator=(const ShieldClass& other) = delete;
+};
+
+template <>
+struct Savegame::ObjectFactory<ShieldClass>
+{
+	MemoryPoolUniquePointer<ShieldClass> operator() (PhobosStreamReader& Stm) const
+	{
+		return ShieldClass::createInstance();
+	}
 };

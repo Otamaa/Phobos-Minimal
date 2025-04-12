@@ -941,6 +941,7 @@
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />
+    <ClInclude Include="src\Utilities\MemoryPoolUniquePointer.h" />
     <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
     <ClInclude Include="src\Utilities\OptionalStruct.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />

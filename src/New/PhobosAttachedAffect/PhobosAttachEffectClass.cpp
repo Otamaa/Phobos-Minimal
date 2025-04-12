@@ -10,6 +10,12 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+
+PhobosAttachEffectClass::~PhobosAttachEffectClass()
+{
+	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+}
+
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
@@ -513,7 +519,7 @@ int PhobosAttachEffectClass::DetachByGroups(TechnoClass* pTarget, AEAttachInfoTy
 	return DetachTypes(pTarget, attachEffectInfo, types);
 }
 
-PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs,
+PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<MemoryPoolUniquePointer<PhobosAttachEffectClass>>& targetAEs,
 	HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachParams)
 {
 	if (!pType || !pTarget)
@@ -591,7 +597,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	}
 	else
 	{
-		targetAEs.emplace_back(std::move(std::make_unique<PhobosAttachEffectClass>()));
+		targetAEs.emplace_back(std::move(PhobosAttachEffectClass::createInstance()));
 		auto const pAE = targetAEs.back().get();
 		pAE->Initialize(pType, pTarget, pInvokerHouse, pInvoker, pSource, attachParams.DurationOverride, attachParams.Delay, attachParams.InitialDelay, attachParams.RecreationDelay);
 		if (!currentTypeCount && pType->Cumulative && pType->CumulativeAnimations.size() > 0)

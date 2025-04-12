@@ -4710,7 +4710,7 @@ void TechnoExtData::UpdateShield()
 	// Create shield class instance if it does not exist.
 	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
 	{
-		this->Shield = std::make_unique<ShieldClass>(pThis);
+		this->Shield = new(ShieldClass::ShieldClass_GLUE_NOT_IMPLEMENTED) ShieldClass(pThis);
 		//this->Shield->OnInit();
 	}
 

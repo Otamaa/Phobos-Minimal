@@ -25,6 +25,7 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 
 #include <Utilities/BuildingBrackedPositionData.h>
+#include <Utilities/MemoryPoolUniquePointer.h>
 
 #include <Misc/Ares/Hooks/Classes/AresPoweredUnit.h>
 #include <Misc/Ares/Hooks/Classes/AresJammer.h>
@@ -599,7 +600,7 @@ public:
 	BYTE TakeVehicleMode { 0 };
 	int TechnoValueAmount { 0 };
 	int Pos { };
-	std::unique_ptr<ShieldClass> Shield {};
+	MemoryPoolUniquePointer<ShieldClass> Shield {};
 	HelperedVector<LaserTrailClass> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };
@@ -685,7 +686,7 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
+	HelperedVector<MemoryPoolUniquePointer<PhobosAttachEffectClass>> PhobosAE {};
 
 	int ShootCount { 0 };
 	int CurrentAircraftWeaponIndex { 0 };
