@@ -5,7 +5,6 @@
 
 ASMJIT_PATCH(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 {
-	enum { SkipGameCode = 0x41493E };
 
 	GET(AircraftClass*, pThis, EBP);
 	GET(int, level, EDI);
@@ -22,9 +21,8 @@ ASMJIT_PATCH(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 
 	R->ESI(levelIntensity);
 	R->EBX(cellIntensity);
-	R->EAX(pThis->Locomotor.GetInterfacePtr()); // Restore overridden instruction
 
-	return SkipGameCode;
+	return 0x414925;
 }
 
 ASMJIT_PATCH(0x51933B, InfantryClass_DrawIt_LevelIntensity, 0x6)
