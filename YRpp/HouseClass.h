@@ -1103,6 +1103,7 @@ public:
 	bool ai_replace_node_50CAD0(BaseNodeClass* node) const { JMP_THIS(0x50CAD0); }
 	
 	bool ShouldDisableCameo(TechnoTypeClass* pType) { JMP_THIS(0x50B370); } 
+	void AssignHandicap(int difficulty) { JMP_THIS(0x4F6EC0); }
 
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept

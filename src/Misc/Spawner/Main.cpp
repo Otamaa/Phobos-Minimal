@@ -574,6 +574,14 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 				pHouse->StartingPoint = -1;
 			}
 		}
+
+		// Set Bonus Money
+		if (pHousesConfig->CreditsFactor != 1.0)
+			pHouse->Balance *= pHousesConfig->CreditsFactor;
+
+		// Set Handicap Difficulty
+		if (pHousesConfig->HandicapDifficulty != -1)
+			pHouse->AssignHandicap(pHousesConfig->HandicapDifficulty);
 	}
 }
 
