@@ -963,6 +963,7 @@ public:
 	Nullable<bool> ForbidParallelAIQueues {};
 	Nullable<AnimTypeClass*> Wake {};
 	Valueable<bool> Spawner_AttackImmediately { false };
+	Valueable<bool> Spawner_UseTurretFacing { false };
 
 	ValueableIdx<VoxClass> EVA_Combat { -1 };
 	Nullable<bool> CombatAlert {};

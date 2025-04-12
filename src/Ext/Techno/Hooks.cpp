@@ -1188,3 +1188,18 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 //
 //	return 0;
 //}
+
+
+
+
+DEFINE_HOOK(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
+{
+	GET(SpawnManagerClass* const, pThis, ESI);
+
+	auto const pTechno = pThis->Owner;
+
+	if (pTechno->HasTurret() && TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->Spawner_UseTurretFacing)
+		R->EAX(pTechno->SecondaryFacing.Current().Raw);
+
+	return 0;
+}
