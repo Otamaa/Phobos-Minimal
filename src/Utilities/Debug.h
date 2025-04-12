@@ -258,6 +258,13 @@ public:
 		FatalErrorAndExit(0u, pFormat, std::forward<TArgs>(args)...);
 	}
 
+	template <typename... TArgs>
+	[[noreturn]] static FORCEDINLINE void FatalErrorAndExitIfTrue(bool condition , const char* pFormat, TArgs&&... args)
+	{
+		if(condition)
+			FatalErrorAndExit(0u, pFormat, std::forward<TArgs>(args)...);
+	}
+
 	static void RegisterParserError() {
 		if (Phobos::Otamaa::TrackParserErrors) {
 			Phobos::Otamaa::ParserErrorDetected = true;

@@ -232,3 +232,57 @@ ASMJIT_PATCH(0x41B685, AircraftClass_Detach, 0x6)
 	return 0x0;
 }
 #endif
+
+//ASMJIT_PATCH(0x418478, AircraftClass_Mi_Attack_Untarget1, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x4184C2
+//		;
+//}
+//
+//ASMJIT_PATCH(0x4186D7, AircraftClass_Mi_Attack_Untarget2, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x418720
+//		;
+//}
+//
+//ASMJIT_PATCH(0x418826, AircraftClass_Mi_Attack_Untarget3, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x418883
+//		;
+//}
+//
+//ASMJIT_PATCH(0x418935, AircraftClass_Mi_Attack_Untarget4, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x418992
+//		;
+//}
+//
+//ASMJIT_PATCH(0x418A44, AircraftClass_Mi_Attack_Untarget5, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x418AA1
+//		;
+//}
+//
+//ASMJIT_PATCH(0x418B40, AircraftClass_Mi_Attack_Untarget6, 6)
+//{
+//	GET(AircraftClass*, A, ESI);
+//	return A->Target
+//		? 0
+//		: 0x418B8A
+//		;
+//}

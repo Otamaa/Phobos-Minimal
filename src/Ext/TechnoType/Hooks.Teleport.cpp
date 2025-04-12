@@ -17,15 +17,14 @@
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-ASMJIT_PATCH(0x7197E4, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
+ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
 {
-	GET(TeleportLocomotionClass*, pThis, ESI);
+	//GET(TeleportLocomotionClass*, pThis, ESI);
+	GET(FootClass*, pLinked, ECX);
 
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
-	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
 	R->ECX(pTypeExtData->ChronoSpherePreDelay.Get(RulesExtData::Instance()->ChronoSpherePreDelay));
-
-	return 0;
+	return 0x7197E4;
 }
 
 ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)

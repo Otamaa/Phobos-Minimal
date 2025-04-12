@@ -5500,7 +5500,7 @@ public:
 		return this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
 	}
 #pragma optimize("", off )
-#ifndef _WIP
+#ifdef _WIP
 	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot)
 	{
 		const double threat = foot ? foot->GetThreatAvoidance() : 0.0;
@@ -5955,26 +5955,6 @@ ASMJIT_PATCH(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
 }
 
 #include <Notifications.h>
-
-ASMJIT_PATCH(0x4DA886, FootClass_Update_UpdateLayer, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-
-	if (!pTechno->InLimbo)
-	{
-		if (pTechno->InWhichLayer() != pTechno->LastLayer)
-		{
-			DisplayClass::Instance->SubmitObject(pTechno);
-		}
-	}
-
-	//this hook breaking cmp
-	const auto what = pTechno->WhatAmI();
-	R->EDI(what == AbstractType::Unit ? pTechno : nullptr);
-	R->ECX(pTechno);
-	R->EAX(what);
-	return 0x4DA895;
-}
 
 ASMJIT_PATCH(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
 {
@@ -6899,4 +6879,3 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //	R->EAX(pFoot->GetThreatAvoidance());
 //	return 0x42C2BF;
 //}
-

@@ -14,6 +14,7 @@
 #include <Ext/ParticleType/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>
 #include <Misc/Ares/Hooks/AresTrajectoryHelper.h>
@@ -561,6 +562,15 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	//TechnoClass_FireAt_BurstOffsetFix_2
 	++pThis->CurrentBurstIndex;
 	pThis->CurrentBurstIndex %= pWeaponType->Burst;
+
+	if (pThis->WhatAmI() == AbstractType::Infantry){
+		auto pInf = ((FakeInfantryClass*)(pThis));
+		if (pInf->_GetExtData()->ForceFullRearmDelay)
+		{
+			pInf->_GetExtData()->ForceFullRearmDelay = false;
+			pThis->CurrentBurstIndex = 0;
+		}
+	}
 
 	if (auto const pTargetObject = cast_to<BulletClass* const, false>(pTarget))
 	{

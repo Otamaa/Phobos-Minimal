@@ -1983,16 +1983,30 @@ ASMJIT_PATCH(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
 #pragma region End_Piggyback PowerOn
 // Author: tyuah8
 
+NOINLINE LocomotionClass* getILoco(REGISTERS* R) {
+
+	ILocomotion* pIloco = nullptr;
+
+	if (R->Origin() == 0x719F17)
+		pIloco = R->EAX<ILocomotion*>();
+	else if(R->Origin() == 0x54DADC)
+		pIloco = R->ESI<ILocomotion*>();
+	else 
+		pIloco = R->ECX<ILocomotion*>();
+
+	return static_cast<LocomotionClass*>(pIloco);
+}
+
 ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
 {
-	ILocomotion* loco = R->Origin() == 0x719F17 ? R->ECX<ILocomotion*>() : R->EAX<ILocomotion*>();
-	auto pLoco = static_cast<LocomotionClass*>(loco);
-	auto pLinkedTo = pLoco->LinkedTo;
+	const auto pLoco = getILoco(R);
 
-	if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
-		pLoco->Power_On();
-	else
-		pLoco->Power_Off();
+	if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
+		if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
+			pLoco->Power_On();
+		else
+			pLoco->Power_Off();
+	}
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
