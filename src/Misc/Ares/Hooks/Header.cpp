@@ -8345,7 +8345,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		Debug::LogInfo("Mod is {0} ({1}) with {2:x}",
 			ModName,
 			ModVersion,
-			ModIdentifier
+			(unsigned)ModIdentifier
 		);
 	}
 

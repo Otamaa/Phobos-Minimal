@@ -13,7 +13,7 @@
 
 // Virtual
 
-bool SkilledLocomotionClass::Process()
+bool __stdcall SkilledLocomotionClass::Process()
 {
 	const auto pLinked = this->LinkedTo;
 	const auto slopeIndex = pLinked->GetCell()->SlopeIndex;
@@ -49,7 +49,7 @@ bool SkilledLocomotionClass::Process()
 	return this->Is_Moving();
 }
 
-void SkilledLocomotionClass::Move_To(CoordStruct to)
+void __stdcall SkilledLocomotionClass::Move_To(CoordStruct to)
 {
 	const auto pLinked = this->LinkedTo;
 
@@ -63,7 +63,7 @@ void SkilledLocomotionClass::Move_To(CoordStruct to)
 	}
 }
 
-void SkilledLocomotionClass::Stop_Moving()
+void __stdcall SkilledLocomotionClass::Stop_Moving()
 {
 	if (this->HeadToCoord != CoordStruct::Empty && this->LinkedTo->GetTechnoType()->IsTrain)
 	{
@@ -89,12 +89,12 @@ void SkilledLocomotionClass::Stop_Moving()
 	this->TargetCoord = CoordStruct::Empty;
 }
 
-void SkilledLocomotionClass::Do_Turn(DirStruct dir)
+void __stdcall SkilledLocomotionClass::Do_Turn(DirStruct dir)
 {
 	this->LinkedTo->PrimaryFacing.Set_Desired(dir);
 }
 
-void SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
+void __stdcall SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
 {
 	this->TrackNumber = track;
 	this->TrackIndex = 0;
@@ -122,13 +122,13 @@ void SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
 	}
 }
 
-void SkilledLocomotionClass::Mark_All_Occupation_Bits(int mark)
+void __stdcall SkilledLocomotionClass::Mark_All_Occupation_Bits(int mark)
 {
 	if (this->HeadToCoord != CoordStruct::Empty)
 		this->MarkOccupation(this->HeadToCoord, (MarkType)mark);
 }
 
-bool SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
+bool __stdcall SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
 {
 	const auto headToCoord = this->Head_To_Coord();
 
@@ -166,7 +166,7 @@ bool SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
 		&& Math::abs(headToCoord.Z - to.Z) <= Unsorted::CellHeight);
 }
 
-bool SkilledLocomotionClass::Will_Jump_Tracks()
+bool __stdcall SkilledLocomotionClass::Will_Jump_Tracks()
 {
 	const size_t pathDir = this->LinkedTo->PathDirections[0];
 

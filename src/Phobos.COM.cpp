@@ -43,7 +43,7 @@ public:
 
 	virtual ULONG __stdcall Release() override
 	{
-		int nNewRef = Imports::InterlockedIncrementFunc.get()(&this->nRefCount);
+		int nNewRef = Imports::InterlockedDecrementFunc.get()(&this->nRefCount);
 		if (!nNewRef)
 			GameDelete(this);
 		return nNewRef;
@@ -72,7 +72,10 @@ public:
 
 	virtual HRESULT __stdcall LockServer(BOOL fLock) override
 	{
-		this->nRefCount += fLock ? 1 : -1;
+		if (fLock)
+			Imports::InterlockedIncrementFunc.get()(&this->nRefCount);
+		else
+			Imports::InterlockedDecrementFunc.get()(&this->nRefCount);
 
 		return S_OK;
 	}
@@ -80,19 +83,29 @@ public:
 private:
 	int nRefCount { 0 };
 };
+
 // Registers a manually created factory for a class.
 template<typename T>
 void RegisterFactoryForClass(IClassFactory* pFactory)
 {
 	DWORD dwRegister = 0;
-	HRESULT hr = CoRegisterClassObject(__uuidof(T), pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
+	CLSID clsid = __uuidof(T);
+	HRESULT hr = CoRegisterClassObject(clsid, pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
+
+	const std::string name = typeid(T).name();
 
 	if (FAILED(hr))
-		Debug::Log("CoRegisterClassObject for %s class factory failed with error code %s.\n", typeid(T).name(), GetLastError());
+		Debug::Log("CoRegisterClassObject for %s class factory failed with error code %s.\n", name.c_str(), GetLastError());
 	else
-		Debug::Log("Class factory for %s registered.\n", typeid(T).name());
+		Debug::Log("Class factory for %s registered.\n", name.c_str());
 
 	Game::ClassFactories->AddItem((ULONG)dwRegister);
+
+
+	//LPOLESTR str = nullptr;
+	//StringFromCLSID(clsid, &str);
+	//Debug::LogInfo("Validating {} CLSID: {}", name , PhobosCRT::WideStringToString(str));
+	//CoTaskMemFree(str);
 }
 
 // Registers an automatically created factory for a class.

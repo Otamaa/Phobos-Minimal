@@ -709,7 +709,7 @@ static bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullp
 		fprintf(LogFile, "Latency setting: %d\n", Game::Network::LatencyFudge());
 		fprintf(LogFile, "Game speed setting: %d\n", GameOptionsClass::Instance->GameSpeed);
 		fprintf(LogFile, "FrameSendRate: %d\n", Game::Network::FrameSendRate());
-		fprintf(LogFile, "Mod is %s (%s) with %X\n", AresGlobalData::ModName, AresGlobalData::ModVersion, AresGlobalData::ModIdentifier);
+		fprintf(LogFile, "Mod is %s (%s) with %X\n", AresGlobalData::ModName, AresGlobalData::ModVersion, (unsigned)AresGlobalData::ModIdentifier);
 
 		if (HouseClass::CurrentPlayer())
 			fprintf(LogFile, "Player Name: %s\n", HouseClass::CurrentPlayer->PlainName);

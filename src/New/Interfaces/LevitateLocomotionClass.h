@@ -29,7 +29,7 @@ struct LevitateCharacteristics
 	double ProximityDistance { 1.5 }; //How close before special deacceleration & drift logic take over?
 };
 
-DEFINE_LOCO(Levitate, 501DEF92-C7ED-448E-8FEB-7908DCE73377)
+DEFINE_LOCO(Levitate,501DEF92-C7ED-448E-8FEB-7908DCE73377)
 {
 public:
 
