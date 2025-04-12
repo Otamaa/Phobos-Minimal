@@ -5,7 +5,7 @@
 
 #include <CellClass.h>
 
-DEFINE_PIGGYLOCO(Skilled , 4A582751-9839-11d1-B709-00A024DDAFD1)
+DEFINE_PIGGYLOCO(Skilled ,4A582751-9839-11d1-B709-00A024DDAFD1)
 {
 public:
 	// IUnknown
@@ -43,7 +43,7 @@ public:
 	}
 
 	// IPersistStream
-//	virtual HRESULT __stdcall IsDirty() override { return !this->Dirty; }
+	virtual HRESULT __stdcall IsDirty() { return LocomotionClass::IsDirty(); }
 	virtual HRESULT __stdcall Load(IStream* pStm) override
 	{
 		HRESULT hr = this->LocomotionClass::Internal_Load(this, pStm);
@@ -94,13 +94,10 @@ public:
 	virtual int Size() override { return sizeof(*this); }
 
 	// ILocomotion
-/*	virtual HRESULT __stdcall Link_To_Object(void* pointer) override
+	virtual HRESULT __stdcall Link_To_Object(void* pointer) override
 	{
-		HRESULT hr = this->LocomotionClass::Link_To_Object(pointer);
-		if (SUCCEEDED(hr))
-			Debug::Log("SkilledLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
-		return hr;
-	}*/
+		return LocomotionClass::Link_To_Object(pointer);
+	}
 	virtual bool __stdcall Is_Moving() override
 	{
 		if (this->TargetCoord != CoordStruct::Empty)

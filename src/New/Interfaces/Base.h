@@ -5,9 +5,9 @@
 #include <vector>
 
 #define DEFINE_PIGGYLOCO(name , clsid) \
-static COMPILETIMEEVAL LocoIdent name##_data = {_WSTR_(name) ,_STR(name) , _WSTR_(clsid) , _STR(clsid)}; \
-class DECLSPEC_UUID(_STR(clsid)) ##name##LocomotionClass : public LocomotionClass, public IPiggyback
+	static COMPILETIMEEVAL LocoIdent name##_data = { L#name, #name, L#clsid, #clsid }; \
+    class DECLSPEC_UUID(#clsid) name##LocomotionClass : public LocomotionClass, public IPiggyback
 
-#define DEFINE_LOCO(name , clsid) \
-static COMPILETIMEEVAL LocoIdent name##_data = {_WSTR_(name) ,_STR(name) , _WSTR_(clsid) , _STR(clsid)}; \
-class DECLSPEC_UUID(_STR(clsid)) ##name##LocomotionClass : public LocomotionClass
+#define DEFINE_LOCO(name, clsid) \
+    static COMPILETIMEEVAL LocoIdent name##_data = { L#name, #name, L#clsid, #clsid }; \
+    class DECLSPEC_UUID(#clsid) name##LocomotionClass : public LocomotionClass
