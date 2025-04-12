@@ -344,6 +344,8 @@ ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 			R->ECX(pAir);
 			return 0x4CF6AD;
 		}
+
+		return 0x4CF6A0;
 	}
 
 	return 0;

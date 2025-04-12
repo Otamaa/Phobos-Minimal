@@ -342,13 +342,13 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 
 	} else if (height > 0) {
 		if(const auto rocketloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
-			shadow_mtx.ScaleX((float)Math::cos(rocketloco->CurrentPitch));
+			shadow_mtx.RotateY((float)Math::cos(rocketloco->CurrentPitch));
 			key.Invalidate();
 		}
 	}
 
 	shadow_mtx = Game::VoxelDefaultMatrix() * shadow_mtx;
-	Point2D why = flor + loco->Shadow_Point();
+	//Point2D why = flor + loco->Shadow_Point();
 	auto const main_vxl = &pThis->Type->MainVoxel;
 
 	if (aTypeExt->ShadowIndices.empty())
@@ -360,7 +360,7 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 				key,
 				&pThis->Type->VoxelCaches.Shadow,
 				bound,
-				&why,
+				&flor,
 				&shadow_mtx,
 				true,
 				nullptr,
@@ -375,7 +375,7 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 				key,
 				&pThis->Type->VoxelCaches.Shadow,
 				bound,
-				&why,
+				&flor,
 				&shadow_mtx,
 				true,
 				nullptr,
