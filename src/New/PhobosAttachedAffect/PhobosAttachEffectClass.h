@@ -63,6 +63,7 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE int GetRemainingDuration() const { return this->Duration; }
 
 	void InvalidatePointer(AbstractClass* ptr, bool removed);
+	void InvalidateAnimPointer(AnimClass* ptr);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;

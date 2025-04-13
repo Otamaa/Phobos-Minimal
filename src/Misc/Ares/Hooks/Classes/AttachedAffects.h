@@ -40,8 +40,7 @@ public:
 		Anim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
-	COMPILETIMEEVAL void InvalidatePointer(AnimClass* ptr, bool bDetach)
-	{
+	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr) {
 		if (this->Anim && ptr == this->Anim.get()) {
 			this->Anim.release();
 		}
@@ -94,10 +93,10 @@ struct AresAEData
 	BYTE NeedToRecreateAnim {};
 	BYTE Isset {};
 
-	void InvalidatePointer(AnimClass* ptr, bool bDetach)
+	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr)
 	{
 		for (auto& ae_ : Data)
-			ae_.InvalidatePointer(ptr, bDetach);
+			ae_.InvalidateAnimPointer(ptr);
 	}
 
 	~AresAEData() = default;

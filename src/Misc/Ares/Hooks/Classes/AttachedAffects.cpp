@@ -256,6 +256,7 @@ void AresAE::ClearAnim()
 {
 	this->Anim.clear();
 }
+#include <Ext/Anim/Body.h>
 
 void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 {
@@ -263,6 +264,9 @@ void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 
 	pNewAnim->SetOwnerObject(pTechno);
 	pNewAnim->RemainingIterations = 0xffffffff;
+	auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
+
+	pAnimExt->IsAttachedEffectAnim = true;
 
 	if (auto pInvoker = this->Invoker) {
 		pNewAnim->Owner = pInvoker;

@@ -28,6 +28,8 @@
 
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
+TargetingData::~TargetingData() = default;
+
 bool NewSWType::CanFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const
 {
 	if (!pTargeting->TypeExt->CanFireAt(pTargeting->Owner, cell, manual)) {
@@ -358,9 +360,9 @@ std::pair<double, double> NewSWType::GetLaunchSiteRange(const SWTypeExtData* pDa
 
 static bool NewSWTypeInited = false;
 
-std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const
+MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const
 {
-	auto data = std::make_unique<TargetingData>(pData, pOwner);
+	auto data = new(TargetingData::TargetingData_GLUE_NOT_IMPLEMENTED) TargetingData(pData, pOwner);
 
 	// get launchsite data
 	auto const& [minRange, MaxRange] = this->GetLaunchSiteRange(pData);
@@ -487,7 +489,7 @@ std::unique_ptr<const TargetingData> NewSWType::GetTargetingData(SWTypeExtData* 
 		}
 	}
 
-	return std::unique_ptr<const TargetingData>(std::move(data));
+	return MemoryPoolUniquePointer<TargetingData>(data);
 }
 
 bool NewSWType::CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const

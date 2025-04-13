@@ -13,7 +13,10 @@
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
-	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);	
+
+	if (this->Invoker)
+		TechnoExtContainer::Instance.Find(this->Invoker)->AttachedEffectInvokerCount--;
 }
 
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
@@ -28,6 +31,10 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->RecreationDelay = recreationDelay;
 	this->Type = pType;
 	this->Techno = pTechno;
+
+	if (pInvoker)
+		TechnoExtContainer::Instance.Find(this->Invoker)->AttachedEffectInvokerCount++;
+
 	this->InvokerHouse = pInvokerHouse;
 	this->Invoker = pInvoker;
 	this->Source = pSource;
@@ -48,6 +55,12 @@ void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed
 	AnnounceInvalidPointer(this->InvokerHouse, ptr);
 }
 
+void PhobosAttachEffectClass::InvalidateAnimPointer(AnimClass* ptr)
+{
+	if (this->Animation && (this->Animation.get() == ptr))
+		this->Animation.release();
+}
+
 // =============================
 // actual logic
 
@@ -64,17 +77,24 @@ void PhobosAttachEffectClass::AI()
 		return;
 	}
 
-	if (!this->HasInitialized && this->InitialDelay == 0)
+	if (!this->HasInitialized)
 	{
 		this->HasInitialized = true;
 		auto const pExt = TechnoExtContainer::Instance.Find(this->Techno);
 		auto const pTechno = this->Techno;
 
-		if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
-			pTechno->ROF = static_cast<int>(pTechno->ROF * this->Type->ROFMultiplier);
+		if (this->Type->ROFMultiplier != 1.0 && this->Type->ROFMultiplier > 0.0 && this->Type->ROFMultiplier_ApplyOnCurrentTimer)
+		{
+			double ROFModifier = this->Type->ROFMultiplier;
+	
+			pTechno->DiskLaserTimer.Start(static_cast<int>(pTechno->DiskLaserTimer.GetTimeLeft() * ROFModifier));
+
+			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
+				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
+		}
 
 		if (this->Type->HasTint())
-			this->Techno->MarkForRedraw();
+			pTechno->MarkForRedraw();
 	}
 
 	if (this->CurrentDelay > 0)
@@ -318,8 +338,11 @@ void PhobosAttachEffectClass::CreateAnim()
 		this->Animation->SetOwnerObject(this->Techno);
 		this->Animation->Owner = this->Type->Animation_UseInvokerAsOwner ? InvokerHouse : this->Techno->Owner;
 		this->Animation->RemainingIterations = 0xFFu;
+		auto pAnimExt = ((FakeAnimClass*)this->Animation.get())->_GetExtData();
+
+		pAnimExt->IsAttachedEffectAnim = true;
 		if (this->Type->Animation_UseInvokerAsOwner) {
-			((FakeAnimClass*)this->Animation.get())->_GetExtData()->Invoker = Invoker;
+			pAnimExt->Invoker = Invoker;
 		}
 	}
 }
@@ -394,38 +417,39 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
 			if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
 				return true;
 		}
-	}
 
-	if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
-		return true;
+		if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
+			return true;
 
-	if (this->Techno->Target)
-	{
-		bool inRange = (this->Type->DiscardOn & DiscardCondition::InRange) != DiscardCondition::None;
-		bool outOfRange = (this->Type->DiscardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
-
-		if (inRange || outOfRange)
+		if (this->Techno->Target)
 		{
-			int distance = -1;
+			bool inRange = (this->Type->DiscardOn & DiscardCondition::InRange) != DiscardCondition::None;
+			bool outOfRange = (this->Type->DiscardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
 
-			if (this->Type->DiscardOn_RangeOverride.isset())
+			if (inRange || outOfRange)
 			{
-				distance = this->Type->DiscardOn_RangeOverride.Get();
+				int distance = -1;
+
+				if (this->Type->DiscardOn_RangeOverride.isset())
+				{
+					distance = this->Type->DiscardOn_RangeOverride.Get();
+				}
+				else
+				{
+					int weaponIndex = this->Techno->SelectWeapon(this->Techno->Target);
+					auto const pWeapon = this->Techno->GetWeapon(weaponIndex)->WeaponType;
+
+					if (pWeapon)
+						distance = pWeapon->Range;
+				}
+
+				const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
+
+				if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
+					return true;
 			}
-			else
-			{
-				int weaponIndex = this->Techno->SelectWeapon(this->Techno->Target);
-				auto const pWeapon = this->Techno->GetWeapon(weaponIndex)->WeaponType;
-
-				if (pWeapon)
-					distance = pWeapon->Range;
-			}
-
-			const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
-
-			if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
-				return true;
 		}
+
 	}
 
 	return false;

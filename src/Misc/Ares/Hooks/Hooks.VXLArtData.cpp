@@ -386,9 +386,22 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	return FinishDrawing;
 }
 
-static void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTypeClass* pType) {
+struct JumpjetTiltReference
+{
+	static COMPILETIMEEVAL OPTIONALINLINE int BaseSpeed = 32 ;
+	static COMPILETIMEEVAL OPTIONALINLINE double BaseTilt { Math::HalfPi / 4 };
+	static COMPILETIMEEVAL OPTIONALINLINE int BaseTurnRaw { 32768 };
+	static COMPILETIMEEVAL OPTIONALINLINE float MaxTilt { static_cast<float>(Math::HalfPi) };
+	static COMPILETIMEEVAL OPTIONALINLINE float ForwardBaseTilt { BaseTilt / (float)BaseSpeed };
+	static COMPILETIMEEVAL OPTIONALINLINE float SidewaysBaseTilt { BaseTilt / float(BaseTurnRaw * BaseSpeed) };
+};
+
+static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoTypeClass* pType, Matrix3D& shadow_matrix, VoxelIndexKey& key) {
 	float arf = pThis->AngleRotatedForwards;
 	float ars = pThis->AngleRotatedSideways;
+	const auto jjloco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
+	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
 	// lazy, don't want to hook inside Shadow_Matrix
 	if (std::fabs(ars) >= 0.005 || std::fabs(arf) >= 0.005)
 	{
@@ -399,6 +412,33 @@ static void TranslateAngleRotated(Matrix3D* mtx , TechnoClass* pThis  , TechnoTy
 		mtx->TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - c_ars)));
 		mtx->ScaleX((float)c_arf);
 		mtx->ScaleY((float)c_ars);
+	} else if (jjloco && uTypeExt->JumpjetTilt && jjloco->NextState != JumpjetLocomotionClass::State::Grounded
+		&& jjloco->__currentSpeed > 0.0 && pThis->IsAlive && pThis->Health > 0 && !pThis->IsAttackedByLocomotor)
+	{
+		const auto forwardSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_ForwardSpeedFactor;
+		const auto forwardAccelFactor = jjloco->Acceleration * uTypeExt->JumpjetTilt_ForwardAccelFactor;
+
+		arf += std::min(JumpjetTiltReference::MaxTilt, static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
+			* JumpjetTiltReference::ForwardBaseTilt));
+
+		const auto& locoFace = jjloco->Facing;
+
+		if (locoFace.Is_Rotating())
+		{
+			const auto sidewaysSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_SidewaysSpeedFactor;
+			const auto sidewaysRotationFactor = static_cast<short>(locoFace.Difference().Raw)
+				* uTypeExt->JumpjetTilt_SidewaysRotationFactor;
+
+			ars += std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor
+				* JumpjetTiltReference::SidewaysBaseTilt), -JumpjetTiltReference::MaxTilt, JumpjetTiltReference::MaxTilt);
+		}
+
+		if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
+		{
+			key.Invalidate();
+			shadow_matrix.RotateX(ars);
+			shadow_matrix.RotateY(arf);
+		}
 	}
 }
 
@@ -489,7 +529,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 	auto shadow_point = loco->Shadow_Point();
 	auto why = *floor + shadow_point;
-	TranslateAngleRotated(&shadow_matrix, pThis, pType);
+	TranslateAngleRotated(&shadow_matrix, pThis, pType , shadow_matrix, vxl_index_key);
 
 	auto mtx = Game::VoxelDefaultMatrix() * (shadow_matrix);
 

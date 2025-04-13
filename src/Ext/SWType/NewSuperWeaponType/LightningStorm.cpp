@@ -612,14 +612,20 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 
 			if (outage > 0)
 			{
-				for (auto const pHouse : *HouseClass::Array)
-				{
-					if (pData->IsHouseAffected(
-						Super->GetOwningHouse(), pHouse, pData->Weather_RadarOutageAffects))
+				if(pData->Weather_RadarOutageAffects == AffectedHouse::Owner){
+					if (!Super->Owner->Defeated) {
+						Super->Owner->CreateRadarOutage(outage);
+					}
+				} else if(pData->Weather_RadarOutageAffects != AffectedHouse::None){
+					for (auto const& pHouse : *HouseClass::Array)
 					{
-						if (!pHouse->Defeated)
+						if (pData->IsHouseAffected(
+							Super->Owner, pHouse, pData->Weather_RadarOutageAffects))
 						{
-							pHouse->CreateRadarOutage(outage);
+							if (!pHouse->Defeated)
+							{
+								pHouse->CreateRadarOutage(outage);
+							}
 						}
 					}
 				}

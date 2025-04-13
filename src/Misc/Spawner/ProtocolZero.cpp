@@ -36,7 +36,7 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 	Game::Network::PreCalcFrameRate = 60;
 	Game::Network::PreCalcMaxAhead = GetMaxAhead(newLatencyLevel);
 
-	MessageListClass::Instance->PrintMessage(GetLatencyMessage(newLatencyLevel), 270, ColorScheme::White, true);
+	MessageListClass::Instance->PrintMessage(GetLatencyMessage(newLatencyLevel), (int)(RulesClass::Instance->MessageDelay * 900), ColorScheme::White, true);
 }
 
 ASMJIT_PATCH(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)

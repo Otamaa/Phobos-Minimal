@@ -196,6 +196,7 @@ public:
 	Valueable<bool> KeepRange_AllowPlayer {};
 
 	Valueable<bool> VisualScatter { false };
+	Valueable<bool> TurretRecoil_Suppress { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

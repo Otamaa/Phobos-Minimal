@@ -26,6 +26,15 @@ bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 	return true;
 }
 
+ASMJIT_PATCH(0x6FF0DD, TechnoClass_FireAt_TurretRecoil, 0x6)
+{
+	enum { SkipGameCode = 0x6FF15B };
+
+	GET_STACK(WeaponTypeClass* const, pWeapon, STACK_OFFSET(0xB0, -0x70));
+
+	return WeaponTypeExtContainer::Instance.Find(pWeapon)->TurretRecoil_Suppress ? SkipGameCode : 0;
+}
+
 // An example for quick tilting test
 ASMJIT_PATCH(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 {

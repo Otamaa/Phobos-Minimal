@@ -6,6 +6,7 @@
 
 #include <array>
 #include <Utilities/VectorHelper.h>
+#include <Utilities/MemoryPoolUniquePointer.h>
 
 enum class AresNewActionType :int
 {
@@ -13,8 +14,25 @@ enum class AresNewActionType :int
 	SuperWeaponAllowed = 127,
 };
 
-struct TargetingData
+struct TargetingData final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TargetingData, "TargetingData")
+public:
+
+	TargetingData() : TypeExt { nullptr }
+		, Owner { nullptr }
+		, NeedsLaunchSite { false }
+		, NeedsDesignator { false }
+		, NeedsAttractors { false }
+		, NeedsSupressors { false }
+		, NeedsInhibitors { false }
+		, LaunchSites {}
+		, Designators {}
+		, Inhibitors {}
+		, Attractors {}
+		, Suppressors {}
+	{ }
+
 	TargetingData(SWTypeExtData* pTypeExt, HouseClass* pOwner) noexcept : TypeExt { pTypeExt }
 		, Owner { pOwner }
 		, NeedsLaunchSite { false}
@@ -29,7 +47,6 @@ struct TargetingData
 		, Suppressors {}
 	{ }
 
-	~TargetingData() noexcept = default;
 
 	struct LaunchSite
 	{
@@ -63,10 +80,10 @@ struct TargetingData
 	//Enemy Designator
 	HelperedVector<RangedItem> Suppressors;
 
-private:
-	TargetingData(const TargetingData&) = delete;
-	TargetingData(TargetingData&&) = delete;
-	TargetingData& operator=(const TargetingData& other) = delete;
+//private:
+//	TargetingData(const TargetingData&) = delete;
+//	TargetingData(TargetingData&&) = delete;
+//	TargetingData& operator=(const TargetingData& other) = delete;
 };
 
 class NewSWType
@@ -139,7 +156,7 @@ public:
 	bool IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
 	bool HasLaunchSite(SWTypeExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
 
-	std::unique_ptr<const TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
+	MemoryPoolUniquePointer<TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
 	bool CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
 	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;

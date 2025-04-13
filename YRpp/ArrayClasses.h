@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <Helpers/Concepts.h>
+#include <YRPPCore.h>
 
 struct __declspec(align(4)) DummyDynamicVectorClass
 {
@@ -49,20 +50,21 @@ public:
 
 	static const ArrayType Type = ArrayType::Vector;
 
+	VectorClass(noinit_t const&) { };
 	COMPILETIMEEVAL VectorClass<T, Allocator>() noexcept = default;
 
-	explicit VectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
+	explicit VectorClass<T, Allocator>(int capacity, T* pMem = nullptr) :
+		Items(0),
+		Capacity(capacity),
+		IsInitialized(true),
+		IsAllocated(false)
 	{
 		if (capacity != 0)
 		{
-			this->Capacity = capacity;
-
-			if (pMem)
-			{
+			if (pMem) {
 				this->Items = pMem;
 			}
-			else
-			{
+			else{
 				Allocator alloc {};
 				this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(capacity));
 				this->IsAllocated = true;
@@ -95,11 +97,14 @@ public:
 
 	virtual ~VectorClass<T, Allocator>() noexcept
 	{
-		if (this->IsAllocated)
-		{
+		if (this->IsAllocated) {
 			Allocator alloc {};
 			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
-		}
+		}		
+
+		this->Items = nullptr;
+		this->IsAllocated = false;
+		this->Capacity = 0;
 	}
 
 	VectorClass<T, Allocator>& operator = (const VectorClass<T, Allocator>& other)
@@ -187,7 +192,12 @@ public:
 
 	virtual void Clear()
 	{
-		VectorClass<T, Allocator>(std::move(*this));
+		if (this->IsAllocated) {
+			Allocator alloc {};
+			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
+		}
+
+		this->IsAllocated = false;
 		this->Items = nullptr;
 		this->Capacity = 0;
 	}
@@ -196,15 +206,12 @@ public:
 	{
 		static_assert(direct_comparable<T>, "Missing equality operator !");
 
-		if (!this->IsInitialized)
-		{
+		if (!this->IsInitialized) {
 			return 0;
 		}
 
-		for (auto i = 0; i < this->Capacity; ++i)
-		{
-			if (this->Items[i] == item)
-			{
+		for (auto i = 0; i < this->Capacity; ++i) {
+			if (this->Items[i] == item) {
 				return i;
 			}
 		}
@@ -214,12 +221,11 @@ public:
 
 	virtual int GetItemIndex(const T* pItem) const final
 	{
-		if (!this->IsInitialized)
-		{
+		if (!this->IsInitialized) {
 			return 0;
 		}
 
-		return pItem - this->Items;
+		return(((unsigned long)pItem - (unsigned long)&(*this)[0]) / sizeof(T));
 	}
 
 	virtual T GetItem(int i) const final
@@ -267,6 +273,9 @@ public:
 	int Capacity { 0 };
 	bool IsInitialized { true };
 	bool IsAllocated { false };
+
+protected:
+	bool VectorClassPad[2];
 };
 
 //========================================================================
@@ -284,7 +293,7 @@ public:
 	COMPILETIMEEVAL DynamicVectorClass<T, Allocator>() noexcept = default;
 
 	explicit DynamicVectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
-		: VectorClass<T, Allocator>(capacity, pMem)
+		: VectorClass<T, Allocator>(capacity, pMem) , Count { 0 }, CapacityIncrement { 10 }
 	{ }
 
 	DynamicVectorClass<T, Allocator>(const DynamicVectorClass<T,Allocator>& other)
@@ -329,14 +338,12 @@ public:
 
 	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
 	{
-		bool bRet = VectorClass<T, Allocator>::SetCapacity(capacity, pMem);
-
-		if (this->Capacity < this->Count)
-		{
+		if (VectorClass<T, Allocator>::SetCapacity(capacity, pMem) && this->Capacity < this->Count) {
 			this->Count = this->Capacity;
+			return true;
 		}
 
-		return bRet;
+		return false;
 	}
 
 	virtual void Clear() override

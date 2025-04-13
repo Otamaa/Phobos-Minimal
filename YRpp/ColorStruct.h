@@ -91,6 +91,8 @@ struct ColorStruct
 		return !(*this == ColorStruct::Empty);
 	}
 
+	//operator HSVClass () const JMP_THIS(0x6613A0);
+
 	explicit operator DWORD() const
 	{
 
@@ -104,9 +106,6 @@ struct ColorStruct
 	}
 
 	OPTIONALINLINE explicit operator WORD() const;
-
-	//ColorStruct* Adjust_Brightness(ColorStruct& color, float adjust)
-	//{ JMP_THIS(0x661190); }
 
 	static FORCEDINLINE COMPILETIMEEVAL ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
 	{
@@ -135,11 +134,27 @@ struct ColorStruct
 	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInit() const
 	{ return ((unsigned __int8)this->R >> RedShiftRight << RedShiftLeft) | ((unsigned __int8)this->G >> GreenShiftRight << GreenShiftLeft) | ((unsigned __int8)this->B >> BlueShiftRight << BlueShiftLeft); }
 
-	FORCEDINLINE COMPILETIMEEVAL void Adjust(int adjust, const ColorStruct* that)
+	FORCEDINLINE COMPILETIMEEVAL void Adjust(int adjust, ColorStruct const& rgb)
 	{
-		this->R += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->R - (unsigned __int8)this->R) / 256);
-		this->G += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->G - (unsigned __int8)this->G) / 256);
-		this->B += BYTE((unsigned __int8)adjust * ((unsigned __int8)that->B - (unsigned __int8)this->B) / 256);
+		/*
+		**	Ratio conversion is limited to 0 through 100%. This is
+		**	the range of 0 to 255.
+		*/
+		adjust &= 0x00FF;
+
+
+		/*
+		**	Adjust the color guns by the ratio specified toward the
+		**	destination color.
+		*/
+		int value = (int)rgb.R - (int)R;
+		R = (unsigned char)((int)R + (value * adjust) / 256);
+
+		value = (int)rgb.G - (int)G;
+		G = (unsigned char)((int)G + (value * adjust) / 256);
+
+		value = (int)rgb.B - (int)B;
+		B = (unsigned char)((int)B + (value * adjust) / 256);
 	}
 
 	FORCEDINLINE COMPILETIMEEVAL int Difference(const ColorStruct* that) const
@@ -170,55 +185,116 @@ struct ColorStruct
 
 struct HSVClass
 {
-	char Hue;
-	char Sat;
-	char Val;
+	enum { MAX_VALUE=255 };
+	static const HSVClass BlackColor;
 
-	COMPILETIMEEVAL ColorStruct ToColorStruct()
+	unsigned char Hue;
+	unsigned char Saturation;
+	unsigned char Value;
+
+	operator ColorStruct (void) const
 	{
-		//JMP_THIS(0x517440);
-		__int8 values[7] {};
-		auto val = (unsigned __int8)this->Val;
-		auto sat = (unsigned __int8)this->Sat;
-		auto hue = ((unsigned __int8)this->Hue) * 2;
+		unsigned int i;				// Integer part.
+		unsigned int f;				// Fractional or remainder part.  f/HSV_BASE gives fraction.
+		unsigned int tmp;			// Temporary variable to help with calculations.
+		unsigned int values[7];	// Possible rgb values.  Don't use zero.
 
-		values[1] = val;
-		values[2] = val;
-		values[3] = val * (255 - sat * (hue % 255) / 0xFFu) / 0xFF;
-		values[4] = values[5] = val * (255 - sat) / 255;
-		values[6] = val * (255 - sat * (255 - hue % 255) / 255u) / 255;
+		int hue = Get_Hue();
+		int saturation = Get_Saturation();
+		int value = Get_Value();
+		int red, green, blue;
 
-		unsigned int red_arr = ((unsigned int)(hue / 255) > 4 ? -4 : 2) + hue / 255;
-		unsigned int green_arr = (red_arr > 4 ? 0xFFFFFFFC : 2) + red_arr;
-		unsigned int blue_arr = green_arr + (green_arr > 4 ? -4 : 2);
 
-		return { (BYTE)values[red_arr] , (BYTE)values[green_arr] , (BYTE)values[blue_arr] };
+		hue *= 2;
+		f = hue % 255;
+
+		// Set up possible red, green and blue values.
+		values[1] =
+		values[2] = value;
+
+		//
+		// The following lines of code change
+		//	values[3] = (v * (255 - ( (s * f) / 255) )) / 255;
+		//	values[4] = values[5] = (v * (255 - s)) / 255;
+		// values[6] = (v * (255 - (s * (255 - f)) / 255)) / 255;
+		// so that the are rounded divides.
+		//
+
+		tmp = (saturation * f) / 255;
+		values[3] = (value * (255 - tmp)) / 255;
+
+		values[4] =
+		values[5] = (value * (255 - saturation)) / 255;
+
+		tmp = 255 - (saturation * (255 - f)) / 255;
+		values[6] = (value * tmp) / 255;
+
+
+		// This should not be rounded.
+		i = hue / 255;
+
+		i += (i > 4) ? -4 : 2;
+		red = values[i];
+
+		i += (i > 4) ? -4 : 2;
+		blue = values[i];
+
+		i += (i > 4) ? -4 : 2;
+		green = values[i];
+
+		return ColorStruct{(unsigned char)red, (unsigned char)green, (unsigned char)blue } ;
 	}
 
-	COMPILETIMEEVAL uintptr_t ToColorStructInt()
+
+	uintptr_t ToColorStructInt()
 	{
-		//JMP_THIS(0x517440);
-		uint8_t values[7] {};
-		uint8_t val = (uint8_t)this->Val;
-		uint8_t sat = (uint8_t)this->Sat;
-		uint8_t hue = ((uint8_t)this->Hue) * 2;
-
-		values[1] = val;
-		values[2] = val;
-		values[3] = val * (255 - sat * (hue % 255) / 0xFFu) / 0xFF;
-		values[4] = values[5] = val * (255 - sat) / 255;
-		values[6] = val * (255 - sat * (255 - hue % 255) / 255u) / 255;
-
-		uint32_t red_arr = ((uint32_t)(hue / 255) > 4 ? -4 : 2) + hue / 255;
-		uint32_t green_arr = (red_arr > 4 ? 0xFFFFFFFC : 2) + red_arr;
-		uint32_t blue_arr = green_arr + (green_arr > 4 ? -4 : 2);
-
-		return ColorStruct{ (BYTE)values[red_arr] , (BYTE)values[green_arr] , (BYTE)values[blue_arr] }.ToInit();
+		return this->operator ColorStruct().ToInit();
 	}
 
 	ColorStruct* ToColorStruct(ColorStruct* ret) {
 		JMP_THIS(0x517440);
 	}
+
+	void Adjust(int ratio, HSVClass const & hsv) {
+		/*
+		**	Ratio conversion is limited to 0 through 100%. This is
+		**	the range of 0 to 255.
+		*/
+		ratio &= 0x00FF;
+
+		/*
+		**	Adjust the color guns by the ratio specified toward the
+		**	destination color.
+		*/
+		int value = hsv.Get_Value() - Get_Value();
+		Value = (unsigned char)(Get_Value() + (value * ratio) / 256);
+
+		int saturation = hsv.Get_Saturation() - Get_Saturation();
+		Saturation = (unsigned char)(Get_Saturation() + (saturation * ratio) / 256);
+
+		int hue = hsv.Get_Hue() - Get_Hue();
+		Hue = (unsigned char)(Get_Hue() + (hue * ratio) / 256);
+	}
+
+	int Difference(HSVClass const & hsv) const{
+		int hue = (int)Hue - (int)hsv.Hue;
+		if (hue < 0) hue = -hue;
+
+		int saturation = (int)Saturation - (int)hsv.Saturation;
+		if (saturation < 0) saturation = -saturation;
+
+		int value = (int)Value - (int)hsv.Value;
+		if (value < 0) value = -value;
+
+		return(hue*hue + saturation*saturation + value*value);
+	}
+
+	int Get_Hue(void) const {return(Hue);};
+	int Get_Saturation(void) const {return(Saturation);};
+	int Get_Value(void) const {return(Value);};
+	void Set_Hue(unsigned char value) {Hue = value;}
+	void Set_Saturation(unsigned char value) {Saturation = value;}
+	void Set_Value(unsigned char value) {Value = value;}
 
 };
 
@@ -343,31 +419,64 @@ struct BytePalette
 	COMPILETIMEEVAL FORCEDINLINE ColorStruct const& at(int const idx) const
 	{ return this->Entries[idx]; }
 
-	bool operator==(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) == 0; }
-	bool operator!=(const BytePalette& that) const { return std::memcmp(Entries, that.Entries, sizeof(Entries)) != 0; }
+	bool operator==(const BytePalette& that) const {
+		if (this == &that) return(true);
+		return(memcmp(&Entries[0], &that.Entries[0], sizeof(Entries)) == 0);
+	}
+
+	bool operator!=(const BytePalette& that) const {
+		return !this->operator==(that);
+	}
 
 	BytePalette& operator=(const BytePalette& that) {
-		JMP_THIS(0x6260D0);
+		if (this == &that) return(*this);
+
+		memcpy(&Entries[0], &that.Entries[0], sizeof(Entries));
+		return(*this);
 	}
 
 	void Adjust(int ratio) {
-		JMP_THIS(0x6260F0);
+		for (int index = 0; index < EntriesCount; index++) {
+			Entries[index].Adjust(ratio, ColorStruct::Empty);
+		}
 	}
+	
 
-	void Adjust(int ratio, const BytePalette& palette) {
-		JMP_THIS(0x626120)
+	void Adjust(int ratio, const BytePalette& palette){
+		for (int index = 0; index < EntriesCount; index++) {
+			Entries[index].Adjust(ratio, palette[index]);
+		}
 	}
-
-	void Partial_Adjust(int ratio, char* palette) {
-		JMP_THIS(0x626170);
+	void Partial_Adjust(int ratio, char* palette){
+		for (int index = 0; index < EntriesCount; index++) {
+			if (palette[index]) {
+				Entries[index].Adjust(ratio, ColorStruct::Empty);
+			}
+		}
 	}
+	
 
 	void Partial_Adjust(int ratio, const BytePalette& palette, char* lut) {
-		JMP_THIS(0x6261B0);
+		for (int index = 0; index < EntriesCount; index++) {
+			if (lut[index]) {
+				Entries[index].Adjust(ratio, palette[index]);
+			}
+		}
 	}
 
 	int Closest_Color(ColorStruct& rgb) const {
-		JMP_THIS(0x626200);
+		int closest = 0;
+		int value = -1;
+
+		ColorStruct const * ptr = &Entries[0];
+		for (int index = 0; index < EntriesCount; index++) {
+			int difference = rgb.Difference(ptr++);
+			if (value == -1 || difference < value) {
+				value = difference;
+				closest = index;
+			}
+		}
+		return(closest);
 	}
 
 	COMPILETIMEEVAL auto begin() const { return std::begin(Entries); }

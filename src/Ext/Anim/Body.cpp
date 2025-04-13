@@ -716,6 +716,8 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->CreateUnitLocation)
 		//.Process(this->SpawnsStatusData)
 		.Process(this->DelayedFireRemoveOnNoDelay)
+		.Process(this->IsAttachedEffectAnim)
+		.Process(this->IsShieldIdleAnim)
 		;
 }
 

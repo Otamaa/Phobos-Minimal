@@ -15,10 +15,8 @@ public:
 	virtual void LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI) override;
 	virtual bool IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const override;
 
-	using TStateMachine = SpyPlaneStateMachine;
-
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper ,CellClass* pTarget) {
-		SWStateMachine::Register<TStateMachine>(Deferment, XY, pSuper, this, pTarget);
+		SWStateMachine::Array.push_back(std::move(new(SpyPlaneStateMachine::SpyPlaneStateMachine_GLUE_NOT_IMPLEMENTED) SpyPlaneStateMachine(Deferment, XY, pSuper, this, pTarget)));
 	}
 };

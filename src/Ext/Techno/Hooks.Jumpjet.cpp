@@ -210,7 +210,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTilt)
 		&& !onGround && linked->IsAlive && linked->Health > 0 && !linked->IsAttackedByLocomotor)
 	{
-		constexpr auto maxTilt = static_cast<float>(Math::HalfPi / 2);
+		constexpr auto maxTilt = static_cast<float>(Math::HalfPi);
 		constexpr auto baseSpeed = 32;
 		constexpr auto baseTilt = Math::HalfPi / 4;
 

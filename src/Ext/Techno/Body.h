@@ -737,6 +737,7 @@ public:
 	WeaponTypeClass* LastWeaponType { nullptr };
 	HelperedVector<EBolt*> ElectricBolts {};
 	int LastHurtFrame {};
+	int AttachedEffectInvokerCount {};
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

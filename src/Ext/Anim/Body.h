@@ -38,6 +38,8 @@ public:
 	//SpawnsStatus SpawnsStatusData {};
 
 	bool DelayedFireRemoveOnNoDelay { false };
+	bool IsAttachedEffectAnim { false };
+	bool IsShieldIdleAnim { false };
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

@@ -1989,14 +1989,20 @@ ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 				RulesClass::Instance->LightningStormDuration);
 			if (outage > 0)
 			{
-				for (auto const& pHouse : *HouseClass::Array)
-				{
-					if (pExt->IsHouseAffected(
-						pOwner, pHouse, pExt->Weather_RadarOutageAffects))
+				if(pExt->Weather_RadarOutageAffects == AffectedHouse::Owner){
+					if (!pOwner->Defeated) {
+						pOwner->CreateRadarOutage(outage);
+					}
+				} else if(pExt->Weather_RadarOutageAffects != AffectedHouse::None){
+					for (auto const& pHouse : *HouseClass::Array)
 					{
-						if (!pHouse->Defeated)
+						if (pExt->IsHouseAffected(
+							pOwner, pHouse, pExt->Weather_RadarOutageAffects))
 						{
-							pHouse->CreateRadarOutage(outage);
+							if (!pHouse->Defeated)
+							{
+								pHouse->CreateRadarOutage(outage);
+							}
 						}
 					}
 				}

@@ -379,7 +379,8 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 			if (!pNewType) {
 				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]", pThis->Type->ID, (int)pThis->Type->Type);
 			}
-			const auto& pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
+
+			MemoryPoolUniquePointer<TargetingData> pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
 			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
 
 			if (Flag == SWTargetFlags::AllowEmpty) {
@@ -1754,12 +1755,15 @@ void SWTypeExtData::ApplyLimboKill(HouseClass* pHouse)
 	if (this->LimboKill_IDs.empty())
 		return;
 
-	for (HouseClass* pTargetHouse : *HouseClass::Array())
-	{
-		if (pTargetHouse->Type->MultiplayPassive)
-			continue;
+	if(this->LimboKill_Affected == AffectedHouse::Owner && !pHouse->Type->MultiplayPassive) {
+		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pHouse, pHouse);
+	} else if (this->LimboKill_Affected != AffectedHouse::None){
+		for (HouseClass* pTargetHouse : *HouseClass::Array()) {
+			if (pTargetHouse->Type->MultiplayPassive)
+				continue;
 
-		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTargetHouse, pHouse);
+			BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTargetHouse, pHouse);
+		}
 	}
 }
 

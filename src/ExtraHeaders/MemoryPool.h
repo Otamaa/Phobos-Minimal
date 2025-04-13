@@ -472,3 +472,37 @@ public: static ARGCLASS* createInstance() { return new(ARGCLASS::ARGCLASS##_GLUE
 	MEMORY_POOL_GLUE_WITHOUT_GCMP(ARGCLASS) \
 	GCMP_CREATE(ARGCLASS, ARGPOOLNAME, -1, -1)\
 	NEW_INSTANCE_FUNC(ARGCLASS)
+
+#define allocateBlock()										allocateBlockImplementation()
+#define allocateBlockDoNotZero()							allocateBlockDoNotZeroImplementation()
+#define allocateBytes(ARGCOUNT)								allocateBytesImplementation(ARGCOUNT)
+#define allocateBytesDoNotZero(ARGCOUNT)					allocateBytesDoNotZeroImplementation(ARGCOUNT)
+#define newInstanceDesc(ARGCLASS)							new(ARGCLASS::ARGCLASS##_GLUE_NOT_IMPLEMENTED) ARGCLASS
+#define newInstance(ARGCLASS)								new(ARGCLASS::ARGCLASS##_GLUE_NOT_IMPLEMENTED) ARGCLASS
+
+#ifdef _ReplaceAlloc
+
+extern void* __CRTDECL operator new(size_t size);
+extern void __CRTDECL operator delete(void* p) noexcept;
+extern void* __CRTDECL operator new[](size_t size);
+extern void __CRTDECL operator delete[](void* p) noexcept;
+extern void* __CRTDECL operator new(size_t size, const char*, int) noexcept;
+extern void __CRTDECL operator delete(void* p, const char*, int) noexcept;
+extern void* __CRTDECL operator new(std::size_t size, std::nothrow_t const& tag) noexcept;
+extern void* __CRTDECL operator new[](std::size_t size, std::nothrow_t const& tag) noexcept;
+extern void  __CRTDECL operator delete(void* p, std::nothrow_t const& tag) noexcept;
+extern void  __CRTDECL operator delete[](void* p, std::nothrow_t const& tag) noexcept;
+extern void* __CRTDECL operator new[](size_t size, const char*, int) noexcept;
+extern void __CRTDECL operator delete[](void* p, const char*, int) noexcept;
+
+#pragma warning(push)
+#pragma warning(disable: 4273)
+
+extern "C" __declspec(restrict) void* __cdecl __malloc(std::size_t size);
+extern "C" void __cdecl __free(void* ptr);
+extern "C" __declspec(restrict) void* __cdecl __realloc(void* ptr, std::size_t size);
+extern "C" __declspec(restrict) void* __cdecl __calloc(std::size_t count, std::size_t size);
+
+#pragma warning(pop)
+
+#endif

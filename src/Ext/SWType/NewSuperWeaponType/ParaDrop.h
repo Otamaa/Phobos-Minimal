@@ -21,10 +21,8 @@ public:
 		AircraftTypeClass* pPlaneType, Iterator<TechnoTypeClass*> Types,
 		Iterator<int> Nums);
 
-	using TStateMachine = ParaDropStateMachine;
-
 protected:
-	TStateMachine* newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, CellClass* pTarget) {
-		return SWStateMachine::Register<TStateMachine>(Deferment, XY, pSuper, this, pTarget);
+	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, CellClass* pTarget) {
+		SWStateMachine::Array.push_back(std::move(new(ParaDropStateMachine::ParaDropStateMachine_GLUE_NOT_IMPLEMENTED) ParaDropStateMachine(Deferment, XY, pSuper, this, pTarget)));
 	}
 };

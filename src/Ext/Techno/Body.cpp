@@ -3910,22 +3910,40 @@ bool TechnoExtData::CheckDeathConditions()
 	{
 		const auto existSingleType = [pThis, affectedHouse, allowLimbo](TechnoTypeClass* pType)
 		{
-			for (HouseClass* pHouse : *HouseClass::Array)
+			if(affectedHouse == AffectedHouse::Owner)
 			{
-				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
-				{
-					if(allowLimbo) {
-						for (const auto& limbo : HouseExtData::LimboTechno) {
-							if (!limbo->IsAlive || limbo->Owner != pHouse)
-								continue;
+				if(allowLimbo) {
+					for (const auto& limbo : HouseExtData::LimboTechno) {
+						if (!limbo->IsAlive || limbo->Owner != pThis->Owner)
+							continue;
 
-							const auto limboType = limbo->GetTechnoType();
-							if (!limboType->Insignificant && !limboType->DontScore && limboType== pType)
-								return true;
-						}
+						const auto limboType = limbo->GetTechnoType();
+						if (!limboType->Insignificant && !limboType->DontScore && limboType== pType)
+							return true;
 					}
+				}
 
-					return  pHouse->CountOwnedAndPresent(pType) > 0;
+				return pThis->Owner->CountOwnedAndPresent(pType) > 0;
+
+			} else if(affectedHouse != AffectedHouse::None){
+
+				for (HouseClass* pHouse : *HouseClass::Array)
+				{
+					if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
+					{
+						if(allowLimbo) {
+							for (const auto& limbo : HouseExtData::LimboTechno) {
+								if (!limbo->IsAlive || limbo->Owner != pHouse)
+									continue;
+
+								const auto limboType = limbo->GetTechnoType();
+								if (!limboType->Insignificant && !limboType->DontScore && limboType== pType)
+									return true;
+							}
+						}
+
+						return  pHouse->CountOwnedAndPresent(pType) > 0;
+					}
 				}
 			}
 
@@ -5581,6 +5599,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->BeControlledThreatFrame)
 		.Process(this->LastTargetID)
 		.Process(this->LastHurtFrame)
+		.Process(this->AttachedEffectInvokerCount)
 		.Process(this->AccumulatedGattlingValue)
 		.Process(this->ShouldUpdateGattlingValue)
 		.Process(this->KeepTargetOnMove)
@@ -5910,7 +5929,7 @@ ASMJIT_PATCH(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 			pExt->EMPSparkleAnim.release();
 
 		if (auto& pShield = pExt->Shield)
-			pShield->InvalidatePointer(pAnim, false);
+			pShield->InvalidateAnimPointer(pAnim);
 
 		if (pExt->WebbedAnim.get() == pAnim)
 			pExt->WebbedAnim.release();
@@ -5918,15 +5937,14 @@ ASMJIT_PATCH(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 		if (pExt->CurrentDelayedFireAnim.get() == pAnim)
 			pExt->CurrentDelayedFireAnim.release();
 
-		pExt->AeData.InvalidatePointer(pAnim, pThis);
+		pExt->AeData.InvalidateAnimPointer(pAnim);
 
 		for (auto& _phobos_AE : pExt->PhobosAE) {
 
 			if(!_phobos_AE)
 				continue;
 
-			if (_phobos_AE->Animation.get() == pAnim)
-				_phobos_AE->Animation.release();
+			_phobos_AE->InvalidateAnimPointer(pAnim);
 		}
 	}
 

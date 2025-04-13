@@ -7669,7 +7669,6 @@ std::vector<TechnoTypeClass*> AresHouseExt::GetTypeList()
 	{
 		if (!pHouse->Type->MultiplayPassive)
 		{
-
 			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
 			if (data.HasValue())
 			{

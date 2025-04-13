@@ -19,10 +19,8 @@ public:
 	virtual int GetDamage(const SWTypeExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
 
-	using TStateMachine = GeneticMutatorStateMachine;
-
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer) {
-		SWStateMachine::Register<TStateMachine>(Deferment, XY, pSuper, pfirer, this);
+		SWStateMachine::Array.push_back(std::move(new(GeneticMutatorStateMachine::GeneticMutatorStateMachine_GLUE_NOT_IMPLEMENTED) GeneticMutatorStateMachine(Deferment, XY, pSuper , pfirer, this)));
 	}
 };

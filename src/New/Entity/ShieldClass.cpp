@@ -763,7 +763,7 @@ void ShieldClass::SelfHealing()
 	}
 }
 
-void ShieldClass::InvalidatePointer(AbstractClass* ptr, bool bDetach)
+void ShieldClass::InvalidateAnimPointer(AnimClass* ptr)
 {
 	if (this->IdleAnim && this->IdleAnim.get() == ptr)
 		this->IdleAnim.release();
@@ -880,6 +880,8 @@ void ShieldClass::CreateAnim()
 		pAnim->RemainingIterations = 0xFFu;
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false);
 		pAnim->SetOwnerObject(this->Techno);
+		auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
+		pAnimExt->IsShieldIdleAnim = true;
 		this->IdleAnim.reset(pAnim);
 	}
 }

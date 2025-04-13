@@ -29,7 +29,7 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 	/**
 	 *  Copy graphic data from the surface to the buffer.
 	 */
-	unsigned short* buffer = (unsigned short*)CRT::malloc(pic_height * (pic_width * sizeof(unsigned short)));
+	unsigned short* buffer = (unsigned short*)::malloc(pic_height * (pic_width * sizeof(unsigned short)));
 	if (!buffer)
 	{
 		return false;
@@ -43,7 +43,7 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 	/**
 	 *  Convert the pixel data from 16bit to 24bit.
 	 */
-	unsigned char* image = (unsigned char*)CRT::malloc(pic_height * pic_width * 3);
+	unsigned char* image = (unsigned char*)::malloc(pic_height * pic_width * 3);
 
 	struct rgb
 	{
@@ -76,9 +76,9 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 	/**
 	 *  Cleanup buffers.
 	 */
-	CRT::free(png);
-	CRT::free(image);
-	CRT::free(buffer);
+	::free(png);
+	::free(image);
+	::free(buffer);
 
 	/**
 	 *  Handle any errors.
@@ -129,7 +129,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	size_t png_buffersize = name->GetFileSize();
 
 	// Raw png loaded from file.
-	unsigned char* png_buffer = (unsigned char*)CRT::malloc(sizeof(char) * png_buffersize);
+	unsigned char* png_buffer = (unsigned char*)::malloc(sizeof(char) * png_buffersize);
 
 	if (!png_buffer)
 	{
@@ -140,7 +140,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	if (nReadedBytes != png_buffersize)
 	{
 		Debug::LogInfo("Read_PNG_File() - Failed to read PNG file!");
-		CRT::free(png_buffer);
+		::free(png_buffer);
 		return nullptr;
 	}
 
@@ -162,8 +162,10 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 
 		Debug::LogInfo("Read_PNG_File() - Error [{}] {}", error, lodepng_error_text(error));
 		lodepng_state_cleanup(&state);
-		CRT::free(png_buffer);
-		CRT::free(png_image);
+		::free(png_buffer);
+
+		if(png_image)
+		::free(png_image);
 
 		return nullptr;
 	}
@@ -180,8 +182,8 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 
 		Debug::LogInfo("Read_PNG_File() - Unsupported PNG format type!");
 		lodepng_state_cleanup(&state);
-		CRT::free(png_buffer);
-		CRT::free(png_image);
+		::free(png_buffer);
+		::free(png_image);
 
 		return nullptr;
 	}
@@ -202,8 +204,8 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	if (!pic)
 	{
 		Debug::LogInfo("Failed To Create PNG File ! ");
-		CRT::free(png_buffer);
-		CRT::free(png_image);
+		::free(png_buffer);
+		::free(png_image);
 		lodepng_state_cleanup(&state);
 		return nullptr;
 	}
@@ -225,7 +227,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 		pic->Unlock();
 	}
 
-	CRT::free(png_buffer);
+	::free(png_buffer);
 	lodepng_state_cleanup(&state);
 	if (file_opened)
 	{

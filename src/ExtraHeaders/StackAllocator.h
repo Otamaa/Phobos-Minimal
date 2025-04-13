@@ -75,10 +75,20 @@ public:
 
 	explicit StackAllocator(Source* source) : source_(source)
 	{ }
+
+	//void destroy(T* const ptr) const noexcept {
+	//	std::destroy_at(ptr);
+	//}
+
+	//template<class U, class... Args>
+	//void construct(U* p, Args&&... args)  const noexcept {
+	//	std::construct_at(p, std::forward<Args>(args)...);
+	//}
+
 	// Actually do the allocation. Use the stack buffer if nobody has used it yet
 	// and the size requested fits. Otherwise, fall through to the standard
 	// allocator.
-	COMPILETIMEEVAL pointer allocate(size_type n)
+	pointer allocate(size_type n)
 	{
 		if (source_ != NULL && !source_->used_stack_buffer_
 			&& n <= stack_capacity)
@@ -91,9 +101,10 @@ public:
 			return std::allocator<T>::allocate(n);
 		}
 	}
+
 	// Free: when trying to free the stack buffer, just mark it as free. For
 	// non-stack-buffer pointers, just fall though to the standard allocator.
-	COMPILETIMEEVAL void deallocate(pointer p, size_type n)
+	void deallocate(pointer p, size_type n)
 	{
 		if (source_ != NULL && p == source_->stack_buffer())
 			source_->used_stack_buffer_ = false;

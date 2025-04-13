@@ -148,7 +148,7 @@ public:
 
 	void UpdateTint();
 
-	void InvalidatePointer(AbstractClass* ptr, bool bDetach);
+	void InvalidateAnimPointer(AnimClass *ptr);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;

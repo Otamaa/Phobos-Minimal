@@ -378,6 +378,27 @@ public:
 	void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
 	void RotateZ(float Sin, float Cos) const { JMP_THIS(0x5AF240); }
 
+	static COMPILETIMEEVAL Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B)// { JMP_STD(0x5AF980); }
+	{
+
+		for (int i = 0; i < 3; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+				ret->Row[i][j] =
+				A->Row[i][0] * B->Row[0][j] +
+				A->Row[i][1] * B->Row[1][j] +
+				A->Row[i][2] * B->Row[2][j];
+
+			ret->Row[i][3] =
+				A->Row[i][0] * B->Row[0][3] +
+				A->Row[i][1] * B->Row[1][3] +
+				A->Row[i][2] * B->Row[2][3] +
+				A->Row[i][3];
+		}
+
+		return ret;
+	}
+
 	COMPILETIMEEVAL float GetXVal() //{ JMP_THIS(0x5AF2C0); }
 	{
 		Vector3D<float> ret_ {};

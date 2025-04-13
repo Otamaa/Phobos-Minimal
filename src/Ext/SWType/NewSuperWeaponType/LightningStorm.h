@@ -25,10 +25,9 @@ public:
 
 	static SuperClass* CurrentLightningStorm;
 
-	using TStateMachine = CloneableLighningStormStateMachine;
-
+protected:
 	void newStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper , TechnoClass* pFirer)
 	{
-		SWStateMachine::Register<TStateMachine>(Duration, Deferment, XY, pSuper, pFirer, this);
+		SWStateMachine::Array.push_back(std::move(new(CloneableLighningStormStateMachine::CloneableLighningStormStateMachine_GLUE_NOT_IMPLEMENTED) CloneableLighningStormStateMachine(Duration, Deferment, XY, pSuper, pFirer, this)));
 	}
 };

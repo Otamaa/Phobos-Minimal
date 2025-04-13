@@ -46,6 +46,7 @@ const Point2D Point2D::Empty = {};
 const Point2DBYTE Point2DBYTE::Empty = {};
 const Point3D Point3D::Empty = {};
 const RectangleStruct RectangleStruct::Empty = {};
+const HSVClass BlackColor = { 0, 0, 0 };
 
 std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 {

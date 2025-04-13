@@ -98,6 +98,23 @@ static PoolSizeRec sizes[] =
 	{ "VoxelAnimExtData"		, 1000	, 100	},
 	{ "WaveExtData"				, 100	, 50	},
 
+	//SW StateMachines
+	{ "ChronoWarpStateMachine"				, 100	, 50	},
+	{ "CloneableLighningStormStateMachine"	, 100	, 50	},
+	{ "DroppodStateMachine"					, 100	, 50	},
+	{ "GeneticMutatorStateMachine"			, 100	, 50	},
+	{ "GenericWarheadStateMachine"			, 100	, 50	},
+	{ "ParaDropStateMachine"				, 100	, 50	},
+	{ "PsychicDominatorStateMachine"		, 100	, 50	},
+	{ "RevealStateMachine"					, 100	, 50	},
+	{ "SonarPulseStateMachine"				, 100	, 50	},
+	{ "SpyPlaneStateMachine"				, 100	, 50	},
+	{ "UnitDeliveryStateMachine"			, 100	, 50	},
+	{ "IonCannonStateMachine"				, 100	, 50	},
+	{ "LaserStrikeStateMachine"				, 100	, 50	},
+
+	{ "TargetingData"						, 1000	, 50	},
+
 };
 
 static void userMemoryAdjustPoolSize(const char* poolName, Int& initialAllocationCount, Int& overflowAllocationCount)
@@ -962,3 +979,152 @@ void DynamicMemoryAllocator::reset()
 Int DynamicMemoryAllocator::getDmaMemoryPoolCount() const { return m_numPools; }
 MemoryPool* DynamicMemoryAllocator::getNthDmaMemoryPool(Int i) const { return m_pools[i]; }
 #pragma endregion
+
+#ifdef _ReplaceAlloc
+void* __CRTDECL operator new(size_t size)
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void __CRTDECL operator delete(void* p) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+void* __CRTDECL operator new[](size_t size)
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void __CRTDECL operator delete[](void* p) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+// additional overloads to account for VC/MFC funky versions
+void* __CRTDECL operator new(size_t size, const char*, int) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void __CRTDECL operator delete(void* p, const char*, int) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+void* __CRTDECL operator new(std::size_t size, std::nothrow_t const& tag) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void* __CRTDECL operator new[](std::size_t size, std::nothrow_t const& tag) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void  __CRTDECL operator delete(void* p, std::nothrow_t const& tag) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+void  __CRTDECL operator delete[](void* p, std::nothrow_t const& tag) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+void* __CRTDECL operator new[](size_t size, const char*, int) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesImplementation(size);
+}
+
+void __CRTDECL operator delete[](void* p, const char*, int) noexcept
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(p);
+}
+
+__declspec(restrict)void* __cdecl __malloc(std::size_t size)
+{
+	Mem::preMainInitMemoryManager();
+	return TheDynamicMemoryAllocator->allocateBytesDoNotZero(size);
+}
+
+void __cdecl __free(void* ptr)
+{
+	Mem::preMainInitMemoryManager();
+	TheDynamicMemoryAllocator->freeBytes(ptr);
+}
+
+std::size_t custom_msize(void* ptr)
+{
+	if (!ptr) return 0;
+	return *((std::size_t*)ptr - 1);
+}
+
+__declspec(restrict) void* __cdecl __realloc(void* ptr, std::size_t size)
+{
+	Mem::preMainInitMemoryManager();
+	if (!ptr)
+	{
+		// realloc(NULL, size) is same as malloc(size)
+		return TheDynamicMemoryAllocator->allocateBytesDoNotZero(size);
+	}
+
+	if (size == 0)
+	{
+		// realloc(ptr, 0) is same as free(ptr)
+		TheDynamicMemoryAllocator->freeBytes(ptr);
+		return nullptr;
+	}
+
+	// Get the current size of the memory block
+	std::size_t old_size = custom_msize(ptr);
+
+	// Allocate new memory
+	void* new_ptr = TheDynamicMemoryAllocator->allocateBytesDoNotZero(size);
+	if (!new_ptr) return nullptr; // Allocation failed
+
+	// Copy over the smaller of old/new size
+	std::memcpy(new_ptr, ptr, old_size < size ? old_size : size);
+
+	// Free the old block
+	TheDynamicMemoryAllocator->freeBytes(ptr);
+
+	return new_ptr;
+}
+
+__declspec(restrict) void* __cdecl __calloc(std::size_t count, std::size_t size)
+{
+	Mem::preMainInitMemoryManager();
+	std::size_t total_size = count * size;
+
+	// Optional: check for overflow
+	if (size != 0 && total_size / size != count)
+	{
+		// Overflow detected
+		return nullptr;
+	}
+
+	void* ptr = TheDynamicMemoryAllocator->allocateBytesDoNotZero(size);
+	if (!ptr) return nullptr;
+
+	std::memset(ptr, 0, total_size);
+	return ptr;
+}
+
+#pragma comment(linker, "/alternatename:malloc=__malloc")
+#pragma comment(linker, "/alternatename:free=__free")
+#pragma comment(linker, "/alternatename:realloc=__realloc")
+#pragma comment(linker, "/alternatename:calloc=__calloc")
+#endif

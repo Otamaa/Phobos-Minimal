@@ -782,6 +782,48 @@ DECLARE_PATCH(_set_fp_mode)
 #include <ExtraHeaders/MemoryPool.h>
 
 static CriticalSection critSec3 , critSec4;
+#ifdef _ReplaceAlloc
+struct GameMemoryReplacer
+{
+
+
+	static char* _strtok_r(char* str, const char* delim, char** saveptr)
+	{
+		char* token;
+
+		if (str == nullptr)
+			str = *saveptr;
+
+		// Skip leading delimiters
+		str += std::strspn(str, delim);
+		if (*str == '\0')
+		{
+			*saveptr = str;
+			return nullptr;
+		}
+
+		token = str;
+		// Find end of token
+		str = std::strpbrk(token, delim);
+		if (str == nullptr)
+		{
+			// This token finishes the string
+			*saveptr = token + std::strlen(token);
+		}
+		else
+		{
+			*str = '\0';
+			*saveptr = str + 1;
+		}
+		return token;
+	}
+
+	static char* _strtok(char* str, const char* delim) {
+		static char* saveptr = nullptr;
+		return _strtok_r(str, delim, &saveptr);
+	}
+};
+#endif
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -850,20 +892,33 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::ExecuteLua();
 
-		//if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
+#ifdef _ReplaceAlloc
+		if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
 		{
 			/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
 			  not really sure what is the real cause atm . */
-			Patch::Apply_LJMP(0x7D107D, &_msize);
-			Patch::Apply_LJMP(0x7D5408, &_strdup);
-			Patch::Apply_LJMP(0x7C8E17, &malloc);
-			Patch::Apply_LJMP(0x7C9430, &malloc);
-			Patch::Apply_LJMP(0x7D3374, &calloc);
-			Patch::Apply_LJMP(0x7D0F45, &realloc);
-			Patch::Apply_LJMP(0x7C8B3D, &free);
-			Patch::Apply_LJMP(0x7C93E8, &free);
-			Patch::Apply_LJMP(0x7C9CC2, &strtok);
+			Patch::Apply_LJMP(0x7D107D, &GameMemoryReplacer::_msize);
+			Patch::Apply_LJMP(0x7D5408, &GameMemoryReplacer::_strdup);
+			Patch::Apply_LJMP(0x7C8E17, &__malloc);
+			Patch::Apply_LJMP(0x7C9430, &__malloc);
+			Patch::Apply_LJMP(0x7D3374, &__calloc);
+			Patch::Apply_LJMP(0x7D0F45, &__realloc);
+			Patch::Apply_LJMP(0x7C8B3D, &__free);
+			Patch::Apply_LJMP(0x7C93E8, &__free);
+			Patch::Apply_LJMP(0x7C9CC2, &GameMemoryReplacer::_strtok);
 		}
+#else
+
+		Patch::Apply_LJMP(0x7D107D, &_msize);
+		Patch::Apply_LJMP(0x7D5408, &_strdup);
+		Patch::Apply_LJMP(0x7C8E17, &malloc);
+		Patch::Apply_LJMP(0x7C9430, &malloc);
+		Patch::Apply_LJMP(0x7D3374, &calloc);
+		Patch::Apply_LJMP(0x7D0F45, &realloc);
+		Patch::Apply_LJMP(0x7C8B3D, &free);
+		Patch::Apply_LJMP(0x7C93E8, &free);
+		Patch::Apply_LJMP(0x7C9CC2, &strtok);
+#endif
 
 		char buf[1024] {};
 
