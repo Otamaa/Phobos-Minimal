@@ -33,7 +33,7 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->Techno = pTechno;
 
 	if (pInvoker)
-		TechnoExtContainer::Instance.Find(this->Invoker)->AttachedEffectInvokerCount++;
+		TechnoExtContainer::Instance.Find(pInvoker)->AttachedEffectInvokerCount++;
 
 	this->InvokerHouse = pInvokerHouse;
 	this->Invoker = pInvoker;

@@ -43,7 +43,7 @@ public:
 	}
 
 	void Clear() {
-		this->Items.Clear();
+		this->Items.Reset();
 	}
 
 	COMPILETIMEEVAL int GetRating() const {

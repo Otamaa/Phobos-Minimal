@@ -57,7 +57,7 @@ public:
 
 	void Clear() {
 		this->TotalWeight = 0u;
-		this->Items.Clear();
+		this->Items.Reset();
 	}
 
 	COMPILETIMEEVAL unsigned int GetTotalWeight() const {
