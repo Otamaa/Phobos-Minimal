@@ -204,11 +204,6 @@ COMPILETIMEEVAL Iterator<T> make_iterator(const std::array<T , count>& value){
 	return Iterator<T>(value.begin() , count);
 }
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const std::set<T>& value) {
-	return Iterator<T>(value);
-}
-
 // iterator does not keep temporary alive, thus rvalues are forbidden.
 // use the otherwise wierd const&& to not catch any lvalues
 template <typename T>
