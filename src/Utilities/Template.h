@@ -498,7 +498,7 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	COMPILETIMEEVAL size_t end_idx() {
+	COMPILETIMEEVAL size_t end_idx() const{
 		return this->size() - 1;
 	}
 

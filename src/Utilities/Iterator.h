@@ -57,7 +57,7 @@ public:
 		return this->items[index] ;
 	}
 
-	COMPILETIMEEVAL size_t end_idx() {
+	COMPILETIMEEVAL size_t end_idx() const {
 		return this->count - 1;
 	}
 
