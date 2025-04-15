@@ -26,7 +26,6 @@
 #include <Misc/DamageArea.h>
 #pragma endregion
 
-//ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	SWFirerClass::Update();
@@ -70,7 +69,7 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	//}
 
 	return 0x0;
-}
+} ASMJIT_PATCH_AGAIN(0x55B719, LogicClass_Update, 0x5) //_End
 
 ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)
 {

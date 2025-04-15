@@ -39,6 +39,8 @@
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Phobos.entt.h>
+
 #include <memory>
 
 TechnoExtData::~TechnoExtData()
@@ -5610,6 +5612,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CurrentDelayedFireAnim)
 		.Process(this->CustomFiringOffset)
 		.Process(this->LastWeaponType)
+		.Process(this->myEntt)
 		;
 }
 
@@ -5828,6 +5831,8 @@ ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
 	GET(TechnoClass*, pItem, ESI);
 	HouseExtData::LimboTechno.push_back_unique(pItem);
 	TechnoExtContainer::Instance.Allocate(pItem);
+	YRentt::BindToentt(pItem);
+
 	return 0;
 }
 
@@ -5843,7 +5848,10 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 	}
 
 	HouseExtData::LimboTechno.remove(pItem);
+	YRentt::UnbindFromentt(pItem);
+
 	TechnoExtContainer::Instance.Remove(pItem);
+
 	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pItem->WhatAmI() == AbstractType::Unit && pItem->GetTechnoType()->DeploysInto) {
 		HouseExtContainer::Instance.Find(pItem->Owner)->OwnedDeployingUnits.remove((UnitClass*)pItem);
 	}

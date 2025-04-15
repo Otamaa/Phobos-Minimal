@@ -527,6 +527,7 @@
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Phobos.COM.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
+    <ClCompile Include="src\Phobos.entt.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
@@ -720,6 +721,7 @@
     <ClInclude Include="src\New\Type\TechTreeTypeClass.h" />
     <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
     <ClInclude Include="src\Phobos.Defines.h" />
+    <ClInclude Include="src\Phobos.entt.h" />
     <ClInclude Include="src\Phobos.lib.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />

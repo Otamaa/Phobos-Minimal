@@ -36,6 +36,8 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 
+#include <Lib/entt/src/entt/entt.hpp>
+
 #include <TemporalClass.h>
 #include <EBolt.h>
 
@@ -738,6 +740,7 @@ public:
 	HelperedVector<EBolt*> ElectricBolts {};
 	int LastHurtFrame {};
 	int AttachedEffectInvokerCount {};
+	entt::entity myEntt { entt::null };
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

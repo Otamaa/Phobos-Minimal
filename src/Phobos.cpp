@@ -33,6 +33,7 @@
 #include <aclapi.h>
 #include <GameOptionsClass.h>
 
+#include <Phobos.entt.h>
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
@@ -926,6 +927,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
 
+		YRentt::Create();
 	}
 	break;
 	case DLL_PROCESS_DETACH :
@@ -933,6 +935,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Debug::DeactivateLogger();
 		gJitRuntime.reset();
 		Mem::shutdownMemoryManager();
+		YRentt::Destroy();
 		break;
 	}
 
@@ -982,7 +985,7 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 }ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-{
+{ 
 	Phobos::ExeRun();
 	return 0;
 }
