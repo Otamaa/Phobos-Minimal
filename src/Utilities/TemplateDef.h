@@ -2154,6 +2154,7 @@ OPTIONALINLINE bool ValueableVector<bool>::Save(PhobosStreamWriter& stm) const
 	return false;
 }
 
+
 // NullableVector
 template <typename T>
 void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool allocate)

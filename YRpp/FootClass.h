@@ -65,7 +65,7 @@ public:
 	virtual bool vt_entry_4F8() R0;
 	virtual bool MoveTo(CoordStruct* pCrd) R0;
 	virtual bool StopMoving() R0;
-	virtual bool vt_entry_504() R0;
+	virtual bool TryEnterIdle() R0;
 	virtual bool ChronoWarpTo(CoordStruct pDest) R0; // fsds... only implemented for one new YR map trigger, other chrono events repeat the code...
 	virtual void Draw_A_SHP(
 		SHPStruct* SHP, int idxFacing, Point2D* Coords, RectangleStruct* Rectangle,
@@ -85,7 +85,7 @@ public:
 	virtual TechnoClass* FindDockingBayInVector(DynamicVectorClass<TechnoTypeClass*>* pVec, int unusedarg3, bool bForced) const R0;
 	virtual TechnoClass* FindDockingBayByType(TechnoTypeClass* pDock, int unusedarg3, bool bForced, int* curidx) const R0;
 	virtual TechnoClass* FindDockingBay(TechnoTypeClass* pDock, int unusedarg3, bool bForced) const R0;
-	virtual void vt_entry_534(DWORD dwUnk, DWORD dwUnk2) RX;
+	virtual void TryCrushCell(const CellStruct& cell, bool warn) RX;
 	virtual int GetCurrentSpeed() const R0;
 	virtual bool ApproachTarget(bool bSomething) JMP_THIS(0x4D5690); //0x53C
 	virtual void vt_entry_540(DWORD dwUnk) RX;
@@ -123,7 +123,7 @@ public:
 	void AbortMotion()
 	{ JMP_THIS(0x4DF0D0); }
 
-	bool UpdatePathfinding(CellStruct unkCell, bool arg, int unk3)
+	bool UpdatePathfinding(CellStruct destinationCell, bool restart, int mode)
 	{ JMP_THIS(0x4D3920); }
 
 	// Removes the first passenger and updates the Gunner.
@@ -206,7 +206,7 @@ public:
 	CellStruct      LastMapCoords; // ::UpdatePosition uses this to remove threat from last occupied cell, etc
 	CellStruct      LastFlightMapCoords; // which cell was I occupying previously? only for AircraftTracker-tracked stuff
 	CellStruct      CurrentJumpjetMapCoords; // unconfirmed, which cell am I occupying? only for jumpjets
-	CoordStruct     CurrentMechPos; //unknown_coords_568 5B0832
+	CoordStruct     CurrentTunnelCoords; //unknown_coords_568 5B0832
 	PROTECTED_PROPERTY(DWORD,   unused_574);
 	double          SpeedPercentage;
 	double          SpeedMultiplier;
@@ -233,7 +233,7 @@ public:
 	DECLARE_PROPERTY(ILocomotionPtr, Locomotor);
 	CoordStruct       __HeadTo; //_678
 	signed char       TubeIndex;	//I'm in this tunnel
-	bool              unknown_bool_685;
+	signed char       TubeFaceIndex;
 	signed char       WaypointIndex; // which waypoint in my planning path am I following?
 	bool              IsToScatter; //678
 	bool              IsScanLimited; //688

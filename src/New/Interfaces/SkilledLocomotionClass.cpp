@@ -304,15 +304,15 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 			memmove(&pLinked->PathDirections[0], &pLinked->PathDirections[1], 0x5Cu);
 			pLinked->PathDirections[23] = -1;
 			pLinked->TubeIndex = static_cast<char>(tubeIndex);
-			pLinked->unknown_bool_685 = false;
+			pLinked->TubeFaceIndex = false;
 
 			const auto nextCell = pTube->EnterCell + CellSpread::GetNeighbourOffset(pTube->unknown_int_30[0] & 7);
 			const auto pNextCell = MapClass::Instance->GetCellAt(nextCell);
-			 pNextCell->GetCellCoords(&pLinked->CurrentMechPos);
+			 pNextCell->GetCellCoords(&pLinked->CurrentTunnelCoords);
 
 			const auto currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
 			const auto exitHeight = MapClass::Instance->GetCellFloorHeight(this->HeadToCoord);
-			pLinked->CurrentMechPos.Z = currentHeight + (exitHeight - currentHeight) / pTube->unknown_int_1C0;
+			pLinked->CurrentTunnelCoords.Z = currentHeight + (exitHeight - currentHeight) / pTube->unknown_int_1C0;
 
 			this->IsDriving = true;
 			this->TrackNumber = -1;
@@ -905,7 +905,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	else
 		this->MovementSpeed = speedFactor;
 
-	pLinked->vt_entry_534(reinterpret_cast<DWORD>(&nextCell), true); // TryCrushCell
+	pLinked->TryCrushCell(nextCell, true); // TryCrushCell
 	auto nextDir = pLinked->PathDirections[1];
 
 	do
@@ -1591,7 +1591,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 			return 2;
 	}
 
-	if (pLinked->vt_entry_504())
+	if (pLinked->TryEnterIdle())
 		return 2;
 
 	return pLinked->IsAlive ? 0 : 1;

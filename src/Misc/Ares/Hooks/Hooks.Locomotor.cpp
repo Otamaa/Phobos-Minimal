@@ -151,7 +151,7 @@ ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 
 			if (abs == UnitClass::AbsID || abs == InfantryClass::AbsID) {
 				const auto pFoot = static_cast<FootClass* const>(pObject);
 				if (pFoot->TubeIndex >= 0) {
-					crd = pFoot->CurrentMechPos;
+					crd = pFoot->CurrentTunnelCoords;
 				}
 			}
 

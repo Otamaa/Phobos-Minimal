@@ -32,9 +32,12 @@
 
 #pragma once
 
+/*
+	Iterator is used for bridging implementation between different kind of array classes
+*/
+
 #include <ArrayClasses.h>
 #include <vector>
-#include <set>
 #include <Helpers/Concepts.h>
 
 template<typename T>
@@ -49,10 +52,13 @@ public:
 	COMPILETIMEEVAL Iterator(const VectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Capacity)) {}
 	COMPILETIMEEVAL Iterator(const DynamicVectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Count)) {}
 	COMPILETIMEEVAL Iterator(const TypeList<T>& vec) : items(vec.Items) , count(static_cast<size_t>(vec.Count)) {}
-	COMPILETIMEEVAL Iterator(const std::set<T>& vec) : items(vec.begin()), count(vec.size()) {}
 
 	COMPILETIMEEVAL T at(size_t index) const {
-		return this->items[index];
+		return this->items[index] ;
+	}
+
+	COMPILETIMEEVAL size_t end_idx() {
+		return this->count - 1;
 	}
 
 	COMPILETIMEEVAL size_t size() const {
@@ -89,7 +95,7 @@ public:
 			return T();
 
 		if (!this->ValidIndex(nIdx))
-			nIdx = this->size();
+			nIdx = this->end_idx();
 
 		return *(this->begin() + nIdx);
 	}
