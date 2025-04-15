@@ -10,10 +10,6 @@ template<typename T>
 class TClassFactory : public IClassFactory
 {
 public:
-	TClassFactory()
-	{
-		this->nRefCount = 0;
-	}
 
 	virtual HRESULT __stdcall QueryInterface(const IID& riid, void** ppvObject) override
 	{
@@ -86,8 +82,9 @@ private:
 
 // Registers a manually created factory for a class.
 template<typename T>
-void RegisterFactoryForClass(IClassFactory* pFactory)
+void RegisterFactoryForClass()
 {
+	IClassFactory* pFactory = GameCreate<TClassFactory<T>>();
 	DWORD dwRegister = 0;
 	CLSID clsid = __uuidof(T);
 	HRESULT hr = CoRegisterClassObject(clsid, pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
@@ -106,13 +103,6 @@ void RegisterFactoryForClass(IClassFactory* pFactory)
 	//StringFromCLSID(clsid, &str);
 	//Debug::LogInfo("Validating {} CLSID: {}", name , PhobosCRT::WideStringToString(str));
 	//CoTaskMemFree(str);
-}
-
-// Registers an automatically created factory for a class.
-template<typename T>
-void RegisterFactoryForClass()
-{
-	RegisterFactoryForClass<T>(GameCreate<TClassFactory<T>>());
 }
 
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)

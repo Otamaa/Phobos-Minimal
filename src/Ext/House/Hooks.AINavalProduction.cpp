@@ -175,7 +175,10 @@ ASMJIT_PATCH(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 		&& !AircraftTypeClass::Array->Items[pThis->ProducingAircraftTypeIndex]->FindFactory(true, true, true, pThis))
 		cantBuild = true;
 
-	return cantBuild ?  CheckBuildingProduction : SkipGameCode;
+	if (cantBuild)
+		pThis->AI_BaseConstructionUpdate();
+
+	return SkipGameCode;
 }
 
 ASMJIT_PATCH(0x4FE0A3, HouseClass_AI_RaiseMoney_NavalProductionFix, 0x6)
