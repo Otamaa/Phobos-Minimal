@@ -464,7 +464,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 
 		timer.Start(int(RulesClass::Instance->PathDelay * 900.0));
 
-		if (!pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), false, 0)) // UpdatePathfinding
+		if (!pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), 0, 0))
 		{
 			if (!this->LinkedTo)
 			{
@@ -782,7 +782,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 				{
 					const int findMode = static_cast<int>(pLinked->IsPathBlocked
 						&& !pLinked->BlockagePathTimer.HasTimeLeft()) + 1;
-					const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), false, findMode); // UpdatePathfinding
+					const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), 0, findMode);
 
 					if (!this->LinkedTo)
 					{
@@ -919,7 +919,8 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 			}
 			else
 			{
-				const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), pType->IsTrain, 0); // UpdatePathfinding
+				const int loopCount = pType->IsTrain ? 1 : 0;
+				const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), loopCount, 0);
 
 				if (!pathFound)
 				{

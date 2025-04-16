@@ -88,7 +88,7 @@ public:
 	virtual void TryCrushCell(const CellStruct& cell, bool warn) RX;
 	virtual int GetCurrentSpeed() const R0;
 	virtual bool ApproachTarget(bool bSomething) JMP_THIS(0x4D5690); //0x53C
-	virtual void vt_entry_540(DWORD dwUnk) RX;
+	virtual void FixupPath(DWORD dwUnk) RX;
 	virtual void SetSpeedPercentage(double percentage) RX;
 	virtual void vt_entry_548() RX;
 	virtual void vt_entry_54C() RX;
@@ -123,7 +123,7 @@ public:
 	void AbortMotion()
 	{ JMP_THIS(0x4DF0D0); }
 
-	bool UpdatePathfinding(CellStruct destinationCell, bool restart, int mode)
+	bool UpdatePathfinding(CellStruct destinationCell, int loopcount, int mode)
 	{ JMP_THIS(0x4D3920); }
 
 	// Removes the first passenger and updates the Gunner.

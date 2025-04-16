@@ -2462,6 +2462,20 @@ ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
 
+DEFINE_HOOK(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
+{
+	enum { ContinueCheck = 0x47EAFE, DontUnmark = 0x47EB8F };
+
+	GET(CellClass*, pCell, EDI);
+	GET_STACK(bool, onBridge, STACK_OFFSET(0x14, 0x8));
+
+	if (onBridge ? pCell->AltObject : pCell->FirstObject)
+		return DontUnmark;
+
+	GET(ObjectClass*, pContent, ESI);
+	R->EAX(pContent->WhatAmI());
+	return ContinueCheck;
+}
 #ifdef PassengerRelatedFix
 
 #include <Locomotor/LocomotionClass.h>
