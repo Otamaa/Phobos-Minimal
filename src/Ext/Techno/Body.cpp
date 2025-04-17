@@ -5603,7 +5603,6 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AccumulatedGattlingValue)
 		.Process(this->ShouldUpdateGattlingValue)
 		.Process(this->KeepTargetOnMove)
-
 		.Process(this->FiringSequencePaused)
 		.Process(this->DelayedFireTimer)
 		.Process(this->DelayedFireWeaponIndex)
@@ -5664,6 +5663,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
 
+	_AEProp->ExpireWeaponOnDead.clear();
 	extraRangeData->Clear();
 	extraCritData->Clear();
 	armormultData->Clear();
@@ -5674,7 +5674,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	std::optional<double> cur_timerAE {};
 
-	for (const auto& aeData : _AresAE->Data) {
+	for (const auto& aeData : _AresAE->Data)
+	{
 
 		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
@@ -5710,6 +5711,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		}
 	}
 
+	std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
+
 	for (const auto& attachEffect : pExt->PhobosAE) {
 
 		if (!attachEffect || !attachEffect->IsActive())
@@ -5729,6 +5732,15 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 		disableRadar |= type->DisableRadar;
 		disableSpySat |= type->DisableSpySat;
+
+		if (type->ExpireWeapon && (type->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
+			if (!type->Cumulative || !type->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(type)) {
+				if (type->Cumulative && type->ExpireWeapon_CumulativeOnlyOnce)
+					cumulativeTypes.insert(type);
+
+				_AEProp->ExpireWeaponOnDead.push_back(type->ExpireWeapon);
+			}
+		}
 
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{

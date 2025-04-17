@@ -403,6 +403,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
 	this->Culling_BelowHP.Read(exINI, pSection, "Culling.%sBelowHealth");
 	this->Culling_Chance.Read(exINI, pSection, "Culling.%sChance");
+	this->Culling_Target.Read(exINI, pSection, "Culling.Target");
 
 	this->RelativeDamage.Read(exINI, pSection, "RelativeDamage");
 	this->RelativeDamage_AirCraft.Read(exINI, pSection, "RelativeDamage.Aircraft");
@@ -995,6 +996,9 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 	{
 		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;
+
+		if (this->Culling_Target.isset() && !EnumFunctions::IsTechnoEligible(pTargetTechno, this->Culling_Target.Get()))
+			return false;
 	}
 
 	const auto nCullingHP = Culling_BelowHP.Get(pSource);
@@ -1461,6 +1465,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Culling_BelowHP)
 		.Process(this->Culling_Chance)
+		.Process(this->Culling_Target)
 
 		.Process(this->RelativeDamage)
 		.Process(this->RelativeDamage_AirCraft)

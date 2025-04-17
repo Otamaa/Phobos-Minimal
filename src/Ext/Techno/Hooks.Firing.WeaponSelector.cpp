@@ -74,11 +74,10 @@ ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	return 0;
 }
 
-int ApplyForceWeaponInRange(TechnoClass* pThis)
+int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
 {
 	int forceWeaponIndex = -1;
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	auto const pTarget = pThis->Target;
 
 	const bool useAASetting = !pTypeExt->ForceAAWeapon_InRange.empty() && pTarget->IsInAir();
 	auto const& weaponIndices = useAASetting ? pTypeExt->ForceAAWeapon_InRange : pTypeExt->ForceWeapon_InRange;
@@ -142,12 +141,16 @@ namespace ForceWeaponInRangeTemp
 ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 {
 	GET(TechnoTypeClass*, pThisTechnoType, EAX);
-	GET(TechnoClass*, pTarget, EBP);
+	//GET(TechnoClass*, pTarget, EBP);
 	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pAbsTarget, STACK_OFFSET(0x18, 0x4));
 	//GET(WeaponTypeClass* , pSecondary , EDI);
 	//GET(WeaponTypeClass* , pSecondary , EBX);
 
-	if (pTarget && !ForceWeaponInRangeTemp::SelectWeaponByRange)		
+	if(ForceWeaponInRangeTemp::SelectWeaponByRange)
+		return 0x0;
+
+	if (auto const pTarget = flag_cast_to<TechnoClass*>(pAbsTarget))
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
 		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
@@ -173,7 +176,7 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 				|| !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
 		{
 			ForceWeaponInRangeTemp::SelectWeaponByRange = true;
-			forceWeaponIndex = ApplyForceWeaponInRange(pThis);
+			forceWeaponIndex = ApplyForceWeaponInRange(pThis , pTarget);
 			ForceWeaponInRangeTemp::SelectWeaponByRange = false;
 		}
 

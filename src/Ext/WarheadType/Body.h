@@ -264,6 +264,7 @@ public:
 
 	Promotable<int> Culling_BelowHP { 0, -1, -2 };
 	Promotable<int> Culling_Chance { 100 };
+	Nullable<AffectedTarget> Culling_Target {};
 
 	Valueable<bool> RelativeDamage { false };
 	Valueable<int> RelativeDamage_AirCraft { 0 };

@@ -499,7 +499,7 @@ struct AEProperties
 	bool HasOnFireDiscardables { false };
 
 	bool ReflectDamage { false };
-
+	std::vector<WeaponTypeClass*> ExpireWeaponOnDead { };
 	bool Untrackable { false };
 
 	bool DisableRadar { false };
@@ -546,6 +546,7 @@ protected:
 			.Process(this->HasTint)
 			.Process(this->HasOnFireDiscardables)
 			.Process(this->ReflectDamage)
+			.Process(this->ExpireWeaponOnDead)
 			.Process(this->Untrackable)
 			.Process(this->DisableRadar)
 			.Process(this->DisableSpySat)
