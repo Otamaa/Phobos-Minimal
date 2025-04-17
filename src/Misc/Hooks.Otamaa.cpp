@@ -5493,7 +5493,7 @@ public:
 		int* path,
 		int max_count,
 		MovementZone a7,
-		int cellPath)
+		ZoneType cellPath)
 	{
 		PhobosGlobal::Instance()->PathfindTechno = { a4  ,*a2 , *dest };
 
@@ -6879,3 +6879,97 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //	R->EAX(pFoot->GetThreatAvoidance());
 //	return 0x42C2BF;
 //}
+
+//#include <TubeClass.h>
+//static int idx_pathfind;
+//static DWORD calladdr;
+//
+//CellStruct* __fastcall TubeFacing_429780(CellStruct* pRet, CellStruct* pLoc , int idx, int* path) {
+//	
+//	if (size_t(idx) < 24)
+//	{
+//		for (int count = idx; count > 0; --count)
+//		{
+//			for (auto begin = path; begin < (path + 24); ++begin)
+//			{
+//				if (size_t(*begin) > 7u)
+//				{
+//					const int TubeIndex = MapClass::Instance->GetCellAt(pLoc)->TubeIndex;
+//					if ((size_t)TubeIndex < TubeClass::Array.size())
+//					{
+//						*pRet = TubeClass::Array.Items[TubeIndex]->ExitCell;
+//						return pRet;
+//					}
+//				}
+//				else
+//				{
+//					*pRet = pLoc->operator+(CellSpread::AdjacentCell[*begin]);
+//					return pRet;
+//				}
+//			}
+//		}
+//	}
+//	else {
+//		Debug::Log("%x FindPath with idx %d : in %d\n", calladdr , idx , idx_pathfind);
+//	}
+//	
+//	*pRet = *pLoc;
+//	return pRet;
+//}
+//
+//DEFINE_FUNCTION_JUMP(LJMP, 0x429780, TubeFacing_429780);
+//
+//DEFINE_HOOK(0x4D3920, FootClass_basic_rememberIdx, 0x5)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	GET_STACK(int, idx, 0x8);
+//
+//	if(size_t(idx) > 24 ){
+//		idx_pathfind = idx;
+//		calladdr = caller;
+//	}
+//
+//	return 0x0;
+//}
+//#pragma optimize("", off )
+//DEFINE_HOOK(0x4D3E5A, FootClass_basic_idkCrash, 0x5)
+//{
+//	GET(int, idx, EBX);
+//	GET(FootClass*, pFoot, EBP);
+//	GET(PathType*, pFind, EDI);
+//	LEA_STACK(PathType*, pPath, 0x4C);
+//	std::memcpy(pPath, pFind, sizeof(PathType));
+//
+//	pFoot->FixupPath((DWORD)pPath);
+//
+//	int _idx = 24 - idx;
+//	if (pPath->Length < _idx)
+//		_idx = pPath->Length;
+//
+//	LEA_STACK(int*, _dummy, 0x6C);
+//
+//	if (size_t(_idx) > 24) {
+//		Debug::Log("Pathfind for ([%x]%s - %s) trying to find path with overflow index %d !\n" , pFoot, pFoot->get_ID() , pFoot->GetThisClassName() , _idx);
+//		//_idx = pPath->Length;
+//		//idx = 0; //??
+//	}
+//
+//	std::memcpy(&pFoot->PathDirections[idx],  _dummy, 4 * _idx);
+//	return 0x4D3EA1;
+//}
+//#pragma optimize("", on )
+
+ASMJIT_PATCH(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
+{
+	LEA_STACK(LPMSG, pMsg, 0x10);
+
+	if (pMsg->message == 16 || pMsg->message == 2 || pMsg->message == 0x112 && pMsg->wParam == 0xF060)
+		ExitProcess(1u);
+
+	//const bool altDown = (pMsg->lParam & 0x20000000) != 0;
+	//if ((pMsg->message == 0x104 || pMsg->message == 0x100) && pMsg->wParam == 0xD && altDown) {}
+
+	TranslateMessage(pMsg);
+	DispatchMessageA(pMsg);
+	return 0x5D4E4D;
+}

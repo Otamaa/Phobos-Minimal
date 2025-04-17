@@ -111,7 +111,7 @@ public:
 		int* path,
 		int max_count,
 		MovementZone a7,
-		int cellPath)       JMP_THIS(0x42C900);
+		ZoneType cellPath)       JMP_THIS(0x42C900);
 	/*AStarClass__Init_Cell_Index_Sets        0042CCD0
 	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
 	AStarClass__Register_Cell_Index_Set        0042CF10

@@ -705,14 +705,15 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		return 0x702D1F;
 	}
 
-	if (!args.WH->AffectsAllies && args.Attacker && args.Attacker->Owner->IsAlliedWith(pThis->Owner))
+	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+
+	if (!args.WH->AffectsAllies && pSourceHouse && (pSourceHouse == pThis->Owner || pSourceHouse->IsAlliedWith(pThis->Owner)))
 	{
 		*args.Damage = 0;
 		R->EAX(DamageState::Unaffected);
 		return 0x702D1F;
 	}
 
-	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (args.WH->Psychedelic)
 	{

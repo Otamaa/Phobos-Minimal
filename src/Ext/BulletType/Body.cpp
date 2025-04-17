@@ -59,11 +59,6 @@ const ConvertClass* BulletTypeExtData::GetBulletConvert()
 BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, HouseClass* pHouse, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const
 {
 	auto pBullet = CreateBullet(pTarget, pOwner, pWeapon, addDamage, SetWeaponType);
-
-	if (pBullet) {
-		BulletExtContainer::Instance.Find(pBullet)->Owner = (pHouse);
-	}
-
 	return pBullet;
 }
 
@@ -102,6 +97,7 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 
 	if (pBullet)
 	{
+		BulletExtContainer::Instance.Find(pBullet)->Owner = pOwner ? pOwner->Owner : HouseExtData::FindNeutral();
 		pBullet->Range = range;
 	}
 
