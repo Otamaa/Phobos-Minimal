@@ -758,6 +758,54 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 	return 0;
 }
 
+void UpdateKeepTargetOnMove(TechnoClass* pThis)
+{	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+
+	if (!pExt->KeepTargetOnMove)
+		return;
+
+	if (!pThis->Target)
+	{
+		pExt->KeepTargetOnMove = false;
+		return;
+	}
+
+	if (!pTypeExt->KeepTargetOnMove)
+	{
+		pThis->SetTarget(nullptr);
+		pExt->KeepTargetOnMove = false;
+		return;
+	}
+
+	if (pThis->CurrentMission == Mission::Guard)
+	{
+		if (!pTypeExt->KeepTargetOnMove_NoMorePursuit)
+		{
+			pThis->QueueMission(Mission::Attack, false);
+			pExt->KeepTargetOnMove = false;
+			return;
+		}
+	}
+	else if (pThis->CurrentMission != Mission::Move)
+	{
+		return;
+	}
+
+	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
+
+	if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+	{
+		pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
+
+		if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
+		{
+			pThis->SetTarget(nullptr);
+			pExt->KeepTargetOnMove = false;
+		}
+	}
+}
+
 // Reset the target if beyond weapon range.
 // This was originally in UnitClass::Mission_Move() but because that
 // is only checked every ~15 frames, it can cause responsiveness issues.
@@ -768,48 +816,7 @@ ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->KeepTargetOnMove)
-	{
-		if (!pThis->Target)
-		{
-			pExt->KeepTargetOnMove = false;
-			return 0;
-		}
-
-		if (!pTypeExt->KeepTargetOnMove)
-		{
-			pThis->SetTarget(nullptr);
-			pExt->KeepTargetOnMove = false;
-			return 0;
-		}
-
-		if (pThis->CurrentMission == Mission::Move)
-		{
-			if (pTypeExt->KeepTargetOnMove_ExtraDistance.isset())
-			{
-				int weaponIndex = pThis->SelectWeapon(pThis->Target);
-
-				if (auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
-				{
-					//auto pExt = TechnoExtContainer::Instance.Find(pThis);
-					pExt->AdditionalRange = static_cast<int>(pTypeExt->KeepTargetOnMove_ExtraDistance.Get());
-
-					if (!pThis->IsCloseEnough(pThis->Target, weaponIndex)){
-						pThis->SetTarget(nullptr);
-						pExt->KeepTargetOnMove = false;
-					}
-
-					pExt->AdditionalRange.clear();
-				}
-			}
-		}
-		else if (pThis->CurrentMission == Mission::Guard)
-		{
-			pThis->QueueMission(Mission::Attack, false);
-			pExt->KeepTargetOnMove = false;
-		}
-	}
-
+	UpdateKeepTargetOnMove(pThis);
 	pExt->UpdateGattlingRateDownReset();
 
 	return 0;

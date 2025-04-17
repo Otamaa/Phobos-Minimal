@@ -882,13 +882,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		if (pThis->IsAlive)
 		{
-			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
-			std::vector<WeaponTypeClass*> expireWeapons {};
-			PhobosAEFunctions::ApplyExpireWeapon(expireWeapons, cumulativeTypes, pThis);
-
-			for (auto const& pWeapon : expireWeapons)
-			{
-
+			for (auto const& pWeapon : pExt->AE.ExpireWeaponOnDead) {
 				TechnoClass* pTarget = pThis;
 				if (!pThis->IsAlive)
 					pTarget = nullptr;

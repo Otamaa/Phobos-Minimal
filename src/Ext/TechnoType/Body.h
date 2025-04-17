@@ -959,6 +959,7 @@ public:
 
 	Valueable<bool> KeepTargetOnMove {};
 	Nullable<Leptons> KeepTargetOnMove_ExtraDistance {};
+	Valueable<bool> KeepTargetOnMove_NoMorePursuit { true };
 
 	Nullable<bool> ForbidParallelAIQueues {};
 	Nullable<AnimTypeClass*> Wake {};

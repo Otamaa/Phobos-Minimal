@@ -293,7 +293,6 @@ void PhobosAEFunctions::ApplyRevengeWeapon(TechnoClass* pThis, TechnoClass* pSou
 void PhobosAEFunctions::ApplyExpireWeapon(std::vector<WeaponTypeClass*>& expireWeapons, std::set<PhobosAttachEffectTypeClass*>& cumulativeTypes, TechnoClass* pThis)
 {
 	auto pTechExt = TechnoExtContainer::Instance.Find(pThis);
-
 	for (auto const& attachEffect : pTechExt->PhobosAE) {
 
 		if(!attachEffect)
