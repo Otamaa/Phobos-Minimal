@@ -504,6 +504,7 @@ struct AEProperties
 
 	bool DisableRadar { false };
 	bool DisableSpySat { false };
+	bool Unkillable { false };
 
 public :
 
@@ -551,6 +552,7 @@ protected:
 			.Process(this->DisableRadar)
 			.Process(this->DisableSpySat)
 			.Process(this->ArmorMultData)
+			.Process(this->Unkillable)
 			.Success() && Stm.RegisterChange(this)
 			;
 	}

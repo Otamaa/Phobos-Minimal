@@ -610,6 +610,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		return 0x702D1F;
 	}
 
+	const bool unkillable = !pWHExt->CanKill || pExt->AE.Unkillable;
+
 	if (!args.IgnoreDefenses)
 	{
 		if (auto pShieldData = pExt->GetShield())
@@ -714,7 +716,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		return 0x702D1F;
 	}
 
-
 	if (args.WH->Psychedelic)
 	{
 		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis))
@@ -760,6 +761,16 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	PhobosAEFunctions::ApplyReflectDamage(pThis, args.Damage, args.Attacker, pSourceHouse, args.WH);
 
+	// Check if the warhead can not kill targets
+	//we dont want to kill the thing , dont return
+	bool isActuallyAffected = false;
+	if (!args.IgnoreDefenses && pThis->Health > 0 && unkillable && *args.Damage >= pThis->Health)
+	{
+		*args.Damage = 0;
+		pThis->Health = 1;
+		pThis->EstimatedHealth = 1;
+		isActuallyAffected = true;
+	}
 	_res = pThis->ObjectClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
 
 	const bool Show = Phobos::Otamaa::IsAdmin || *args.Damage;
@@ -1180,7 +1191,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		pThis->IsTickedOff = 1;
 	}
 
-	bool IsAffected = _res != DamageState::Unaffected;
+	bool IsAffected = _res != DamageState::Unaffected || isActuallyAffected;
 	bool bAffected = false;
 	if (IsAffected || args.IgnoreDefenses || _isNegativeDamage || *args.Damage) {
 		if (IsAffected && !_isNegativeDamage) {

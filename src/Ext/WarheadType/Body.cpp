@@ -607,6 +607,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->CellAnim.Read(exINI, pSection, "CellAnim");
 	this->ElectricAssaultLevel.Read(exINI, pSection, "ElectricAssaultLevel");
+	this->CanKill.Read(exINI, pSection, "CanKill");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1613,6 +1614,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->CellAnimPercentAtMax)
 		.Process(this->CellAnim)
 		.Process(this->ElectricAssaultLevel)
+		.Process(this->CanKill)
 		;
 
 	PaintBallData.Serialize(Stm);

@@ -78,6 +78,8 @@ public:
 	Valueable<bool> DisableRadar;
 	Valueable<bool> DisableSpySat;
 
+	Valueable<bool> Unkillable;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Cumulative { false }
@@ -143,6 +145,8 @@ public:
 
 		, DisableRadar {}
 		, DisableSpySat {}
+
+		, Unkillable {}
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {

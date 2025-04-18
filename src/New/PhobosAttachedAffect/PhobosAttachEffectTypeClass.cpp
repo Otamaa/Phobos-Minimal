@@ -115,6 +115,8 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->DisableRadar.Read(exINI, pSection, "DisableRadar");
 	this->DisableSpySat.Read(exINI, pSection, "DisableSpySat");
+
+	this->Unkillable.Read(exINI, pSection, "Unkillable");
 }
 
 template <typename T>
@@ -185,6 +187,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 
 		.Process(this->DisableRadar)
 		.Process(this->DisableSpySat)
+		.Process(this->Unkillable)
 		;
 }
 

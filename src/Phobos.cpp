@@ -113,22 +113,30 @@ struct HookSummary {
 	const void* func;
 	size_t size;
 };
-std::map<unsigned int, std::vector<HookSummary>> Hooks { };
+
+struct HooksData {
+	std::vector<HookSummary> summary {};
+	std::vector<byte> originalOpcode {};
+};
+
+std::map<unsigned int, HooksData> Hooks { };
 
 void ApplyasmjitPatch() {
 
-	for (auto& hook : Hooks) {
+	for (auto&[addr , data] : Hooks)
+	{
+		auto& [sm_vec, org_vec] = data;
 
-		if (hook.second.empty()) {
-			Debug::LogDeferred("hook at 0x%x is empty !\n", hook.first);
+		if (sm_vec.empty()) {
+			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 			
 
-		if (hook.second.size() > 1) {
-			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", hook.first, hook.second.size());
+		if (sm_vec.size() > 1) {
+			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
-		size_t hook_size = hook.second[0].size;
+		size_t hook_size = sm_vec[0].size;
 		asmjit::CodeHolder code;
 		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
 		code.setErrorHandler(&gJitErrorHandler);
@@ -136,10 +144,10 @@ void ApplyasmjitPatch() {
 		asmjit::Label l_origin = assembly.newLabel();
 		DWORD hookSize = MaxImpl(hook_size, 5u);
 
-		for (auto& hook_fn : hook.second) {
+		for (auto& hook_fn : sm_vec) {
 			assembly.pushad();
 			assembly.pushfd();
-			assembly.push(hook.first);
+			assembly.push(addr);
 			assembly.sub(asmjit::x86::esp, 4);
 			assembly.lea(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 4));
 			assembly.push(asmjit::x86::eax);
@@ -155,32 +163,32 @@ void ApplyasmjitPatch() {
 		}
 
 		assembly.bind(l_origin);
-		void* hookAddress = (void*)hook.first;
+		void* hookAddress = (void*)addr;
 
-		std::vector<byte> originalCode(hookSize);
-		memcpy(originalCode.data(), hookAddress, hookSize);
+		org_vec.resize(hookSize);
+		memcpy(org_vec.data(), hookAddress, hookSize);
 
 		// fix relative jump or call
-		if (originalCode[0] == Assembly::CALL || originalCode[0] == Assembly::JMP)
+		if (org_vec[0] == Assembly::CALL || org_vec[0] == Assembly::JMP)
 		{
-			DWORD dest = hook.first + 5 + *(DWORD*)(originalCode.data() + 1);
-			switch (originalCode[0])
+			DWORD dest = addr + 5 + *(DWORD*)(org_vec.data() + 1);
+			switch (org_vec[0])
 			{
 			case Assembly::JMP: // jmp
 				assembly.jmp(dest);
-				originalCode.erase(originalCode.begin(), originalCode.begin() + 5);
-				Debug::LogDeferred("hook at 0x%x is placed at JMP fixing the relative addr !\n", hook.first);
+				org_vec.erase(org_vec.begin(), org_vec.begin() + 5);
+				Debug::LogDeferred("hook at 0x%x is placed at JMP fixing the relative addr !\n", addr);
 				break;
 			case Assembly::CALL: // call
 				assembly.call(dest);
-				originalCode.erase(originalCode.begin(), originalCode.begin() + 5);
-				Debug::LogDeferred("hook at 0x%x is placed at CALL fixing the relative addr !\n", hook.first);
+				org_vec.erase(org_vec.begin(), org_vec.begin() + 5);
+				Debug::LogDeferred("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
 
 				break;
 			}
 		}
-		assembly.embed(originalCode.data(), originalCode.size());
-		assembly.jmp(hook.first + hookSize);
+		assembly.embed(org_vec.data(), org_vec.size());
+		assembly.jmp(addr + hookSize);
 		const void* fn {};
 		gJitRuntime->add(&fn, &code);
 		code.reset();
@@ -190,7 +198,7 @@ void ApplyasmjitPatch() {
 		assembly.jmp(fn);
 		code.flatten();
 		code.resolveUnresolvedLinks();
-		code.relocateToBase(hook.first);
+		code.relocateToBase(addr);
 
 		DWORD protect_flag {};
 		DWORD protect_flagb {};
@@ -199,8 +207,6 @@ void ApplyasmjitPatch() {
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
 	}
-
-	Hooks.clear();
 }
 
 void Initasmjit()
@@ -215,7 +221,7 @@ void Initasmjit()
 
 	for (hookdeclb* begin = (hookdeclb*)buffer; begin < end; begin++) {
 		auto& hook = Hooks[begin->hookAddr];
-		hook.emplace_back(begin->hookFunc, begin->hookSize);
+		hook.summary.emplace_back(begin->hookFunc, begin->hookSize);
 	}
 
 	ApplyasmjitPatch();

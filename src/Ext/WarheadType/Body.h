@@ -426,6 +426,8 @@ public:
 	NullableVector<AnimTypeClass*> CellAnim {};
 	Valueable<int> ElectricAssaultLevel { 1 };
 
+	Valueable<bool> CanKill { true };
+
 public:
 
 	void InitializeConstant();

@@ -5658,7 +5658,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	bool untrackable = false;
 	bool disableRadar = false;
 	bool disableSpySat = false;
-
+	bool unkillable = false;
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
@@ -5697,6 +5697,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		untrackable |= aeData.Type->Untrackable;
 		disableRadar |= aeData.Type->DisableRadar;
 		disableSpySat |= aeData.Type->DisableSpySat;
+		unkillable |= aeData.Type->Unkillable;
 
 		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)) {
 
@@ -5729,7 +5730,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		untrackable |= type->Untrackable;
 		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
 		hasTint |= type->HasTint();
-
+		unkillable |= type->Unkillable;
 		disableRadar |= type->DisableRadar;
 		disableSpySat |= type->DisableSpySat;
 
@@ -5820,7 +5821,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->HasTint = hasTint;
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
-
+	_AEProp->Unkillable = unkillable;
+		
 	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;
 

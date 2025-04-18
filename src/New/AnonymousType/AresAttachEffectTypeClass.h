@@ -46,6 +46,8 @@ public:
 	Valueable<bool> DisableRadar {};
 	Valueable<bool> DisableSpySat {};
 
+	Valueable<bool> Unkillable { false };
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
 	bool Save(PhobosStreamWriter& Stm) const;
@@ -92,6 +94,7 @@ private:
 			.Process(this->ROFMultiplier_ApplyOnCurrentTimer)
 			.Process(this->DisableRadar)
 			.Process(this->DisableSpySat)
+			.Process(this->Unkillable)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}
