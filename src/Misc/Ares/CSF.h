@@ -15,8 +15,8 @@ public:
 	static size_t COMPILETIMEEVAL MaxEntries = 320000u
 		;
 
-	OPTIONALINLINE static int CSFCount {};
-	OPTIONALINLINE static int NextValueIndex {};
+	static int CSFCount;
+	static int NextValueIndex;
 	struct CSFStringStorage
 	{
 		wchar_t Text[0x500];
@@ -33,7 +33,7 @@ public:
 	};
 
 	//separated storage for CSF strings , especially for one that not yet loaded
-	OPTIONALINLINE static std::unordered_map<std::string, CSFStringStorage> DynamicStrings {};
+	static std::unordered_map<std::string, CSFStringStorage> DynamicStrings;
 
 	static FORCEDINLINE CSFStringStorage* FindOrAllocateDynamicStrings(const char* val) {
 		return &DynamicStrings[val];

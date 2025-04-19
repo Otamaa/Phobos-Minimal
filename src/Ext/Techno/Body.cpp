@@ -13,6 +13,7 @@
 #include <BitFont.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Type/HealthBarTypeClass.h>
 
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
@@ -40,6 +41,10 @@
 #include <Misc/Ares/Hooks/Header.h>
 
 #include <memory>
+
+#pragma region defines
+UnitClass* TechnoExtData::Deployer { nullptr };
+#pragma endregion
 
 TechnoExtData::~TechnoExtData()
 {
@@ -155,7 +160,7 @@ void TechnoExtData::UpdateGattlingRateDownReset()
 	{
 		const auto pThis = this->AttachedToObject;
 
-		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset 
+		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset
 				&& (!pThis->Target || this->LastTargetID != pThis->Target->UniqueID))
 		{
 			this->LastTargetID = pThis->Target ? pThis->Target->UniqueID : 0xFFFFFFFF;
@@ -201,14 +206,14 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)) {
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-		}	
+		}
 	}
 
 	// KillWeapon.OnFirer must have a source
 	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)){
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-		}		
+		}
 	}
 }
 
@@ -340,18 +345,12 @@ Point2D TechnoExtData::GetScreenLocation(TechnoClass* pThis)
 	return position;
 }
 
-Point2D TechnoExtData::GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor)
+Point2D TechnoExtData::GetFootSelectBracketPosition(TechnoClass* pThis, int length, Point2D* pLocation, Anchor anchor)
 {
-	int length = 17;
-	Point2D position = GetScreenLocation(pThis);
-
-	if (pThis->WhatAmI() == AbstractType::Infantry)
-		length = 8;
-
 	RectangleStruct bracketRect =
 	{
-		position.X - length + (length == 8) + 1,
-		position.Y - 28 + (length == 8),
+		pLocation->X - length + (length == 8) + 1,
+		pLocation->Y - 28 + (length == 8),
 		length * 2,
 		length * 3
 	};
@@ -359,10 +358,10 @@ Point2D TechnoExtData::GetFootSelectBracketPosition(TechnoClass* pThis, Anchor a
 	return anchor.OffsetPosition(bracketRect);
 }
 
-Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition)
+Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Point2D* pLocation, BuildingSelectBracketPosition bracketPosition)
 {
 	const auto pBuildingType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
-	Point2D position = GetScreenLocation(pThis);
+	Point2D position = *pLocation;
 	CoordStruct dim2 = CoordStruct::Empty;
 	pBuildingType->Dimension2(&dim2);
 	dim2 = { -dim2.X / 2, dim2.Y / 2, dim2.Z };
@@ -489,12 +488,128 @@ static bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , Tech
 	return true;
 }
 
-void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
+int TechnoExtData::HealthBar_GetPip(Point3D const& pips, double percentage, const bool isBuilding)
+{
+	if (percentage > RulesClass::Instance->ConditionYellow && pips.X != -1)
+		return pips.X;
+	else if (percentage <= RulesClass::Instance->ConditionYellow && percentage > RulesClass::Instance->ConditionRed && (pips.Y != -1 || pips.X != -1))
+		return pips.Y == -1 ? pips.X : pips.Y;
+	else if (pips.Z != -1 || pips.X != -1)
+		return pips.Z == -1 ? pips.X : pips.Z;
+
+	return isBuilding ? 5 : 16;
+}
+
+int TechnoExtData::HealthBar_GetPipAmount(double percentage, int pipsLength)
+{
+	return std::clamp(static_cast<int>(percentage * pipsLength), 1, pipsLength);
+}
+
+void TechnoExtData::DrawBuildingBar(ConvertClass* pPalette, SHPStruct* pShape, Point2D* pLocation, RectangleStruct* pBounds, Point2D interval, const int pipsTotal, const int pipsLength, const int emptyFrame, const int frame)
+{
+	if (pipsTotal > 0)
+	{
+		Point2D drawPoint = *pLocation + Point2D { 3 + 4 * pipsLength, 4 - 2 * pipsLength };
+		BlitterFlags blitterFlags = BlitterFlags::Centered | BlitterFlags::bf_400;
+
+		for (int idx = pipsTotal; idx; --idx, drawPoint += interval)
+			DSurface::Composite->DrawSHP(pPalette, pShape, frame, &drawPoint, pBounds, blitterFlags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	if (pipsTotal < pipsLength)
+	{
+		int idx = pipsLength - pipsTotal, deltaX = 4 * pipsTotal, deltaY = -2 * pipsTotal;
+		Point2D drawPoint = *pLocation + Point2D { 3 + 4 * pipsLength - deltaX, 4 - 2 * pipsLength - deltaY };
+		BlitterFlags blitterFlags = BlitterFlags::Centered | BlitterFlags::bf_400;
+
+		for (; idx; --idx, drawPoint += interval)
+			DSurface::Composite->DrawSHP(pPalette, pShape, emptyFrame, &drawPoint, pBounds, blitterFlags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+}
+
+void TechnoExtData::DrawOtherBar(ConvertClass* pBrdPalette, SHPStruct* pBrdShape, ConvertClass* pPipsPalette, SHPStruct* pPipsShape, Point2D* pLocation, RectangleStruct* pBounds, const int brdXOffset, Point2D interval, const int pipsTotal, const int brdFrame, const int frame)
+{
+	if (brdFrame >= 0)
+	{
+		Point2D drawPoint = *pLocation + Point2D { brdXOffset + 16, -1 };
+		BlitterFlags blitterFlags = BlitterFlags::Centered | BlitterFlags::bf_400 | BlitterFlags::Alpha;
+
+		DSurface::Composite->DrawSHP(pBrdPalette, pBrdShape, brdFrame, &drawPoint, pBounds, blitterFlags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	Point2D drawPoint = *pLocation;
+	BlitterFlags blitterFlags = BlitterFlags::Centered | BlitterFlags::bf_400;
+
+	for (int idx = 0; idx < pipsTotal; ++idx, drawPoint += interval)
+		DSurface::Composite->DrawSHP(pPipsPalette, pPipsShape, frame, &drawPoint, pBounds, blitterFlags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+}
+
+void TechnoExtData::DrawHealthBar(BuildingClass* pThis, HealthBarTypeClass* pHealthBar, const int pipsLength, Point2D* pLocation, RectangleStruct* pBounds)
+{
+	auto pPipsPalette = FileSystem::PALETTE_PAL();
+	if(pHealthBar->PipsPalette)
+		pPipsPalette = pHealthBar->PipsPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPipsPalette);
+
+	const auto pPipsShape = pHealthBar->PipsShape.Get();
+
+	auto position = *pLocation;
+
+	const auto interval = pHealthBar->PipsInterval_Building.Get();
+	const int emptyFrame = pHealthBar->PipsEmpty.Get(RulesExtData::Instance()->Pips_Building_Empty);
+
+	const auto& pips = pHealthBar->Pips_Building.Get(RulesExtData::Instance()->Pips_Building);
+
+	const double percentage = pThis->GetHealthPercentage();
+	const int frame = TechnoExtData::HealthBar_GetPip(pips, percentage, true);
+	const int pipsTotal = percentage > 0.0 ? TechnoExtData::HealthBar_GetPipAmount(percentage, pipsLength) : 0;
+	TechnoExtData::DrawBuildingBar(pPipsPalette, pPipsShape, &position, pBounds, interval, pipsTotal, pipsLength, emptyFrame, frame);
+}
+
+void TechnoExtData::DrawHealthBar(TechnoClass* pThis, TechnoTypeClass* pType, HealthBarTypeClass* pHealthBar, int pipsLength, Point2D* pLocation, RectangleStruct* pBounds)
+{
+	auto pBrdPalette = FileSystem::PALETTE_PAL();
+
+	if(pHealthBar->PipBrdPalette){
+		pBrdPalette = pHealthBar->PipBrdPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pBrdPalette);
+	}
+
+	const auto pBrdShape = pHealthBar->PipBrdShape.Get(FileSystem::PIPBRD_SHP);
+
+	auto pPipsPalette = FileSystem::PALETTE_PAL();
+	if(pHealthBar->PipsPalette) {
+		pPipsPalette = pHealthBar->PipsPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPipsPalette);
+	}
+
+	const auto pPipsShape = pHealthBar->PipsShape.Get();
+
+	const auto pipsInterval = pHealthBar->PipsInterval.Get();
+	auto position = *pLocation + Point2D { pHealthBar->XOffset - pipsLength * pipsInterval.X / 2, pType->PixelSelectionBracketDelta - 24 };
+
+	const auto whatAmI = pThis->WhatAmI();
+
+	if (whatAmI != InfantryClass::AbsID)
+		position += { 2, -1 };
+
+	const int xOffset = pHealthBar->PipBrdXOffset.Get();
+
+	const auto& pips = pHealthBar->Pips.Get(RulesExtData::Instance()->Pips);
+
+	const double percentage = pThis->GetHealthPercentage();
+	int brdFrame = -1;
+	if (pThis->IsSelected) {
+		brdFrame = pHealthBar->PipBrd.Get(whatAmI == InfantryClass::AbsID ? 1 : 0);
+		TechnoExtData::DrawSelectBox(pThis, pType , pLocation, pBounds);
+	}
+
+	const int pipsTotal = percentage > 0.0 ? TechnoExtData::HealthBar_GetPipAmount(percentage, pipsLength) : 0;
+	const int frame = TechnoExtData::HealthBar_GetPip(pips, percentage, false);
+	TechnoExtData::DrawOtherBar(pBrdPalette, pBrdShape, pPipsPalette, pPipsShape, &position, pBounds, xOffset, pipsInterval, pipsTotal, brdFrame, frame);
+}
+
+void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis, TechnoTypeClass* pType, Point2D* pLocation)
 {
 	if (!Phobos::Config::DigitalDisplay_Enable)
 		return;
-
-	auto pType = pThis->GetTechnoType();
 
 	if (TechnoTypeExtContainer::Instance.Find(pType)->DigitalDisplay_Disable)
 		return;
@@ -530,8 +645,8 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 			}
 
 			const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
-			Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
-				: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);
+			Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pLocation , pDisplayType->AnchorType_Building)
+				: GetFootSelectBracketPosition(pThis, length, pLocation , pDisplayType->AnchorType);
 
 			position.Y += pType->PixelSelectionBracketDelta;
 
@@ -1698,7 +1813,7 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		return 0;
 
 	auto pWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pWeapon);
-	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer 
+	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer
 	&& !pWeaponExt->SkipWeaponPicking && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) || aeForbidsPrimary)
@@ -1706,7 +1821,7 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		int weaponIndexSec = -1;
 		auto pSecondaryWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
 		auto pSecondaryWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pSecondaryWeapon);
-		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer 
+		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer
 		&& !pSecondaryWeaponExt->SkipWeaponPicking && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 		if (pSecondaryWeapon && (pSecondaryWeapon->Warhead->Wall || (pSecondaryWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
@@ -2620,9 +2735,9 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 */
 #include <New/Type/SelectBoxTypeClass.h>
 
-void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,RectangleStruct* pBounds)
+void TechnoExtData::DrawSelectBox(TechnoClass* pThis, TechnoTypeClass* pType, Point2D* pLocation,RectangleStruct* pBounds)
 {
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if(!Phobos::Config::EnableSelectBox || !pTypeExt->HideSelectBox)
 		return;
@@ -2679,7 +2794,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 			return;
 	}
 
-	Point2D drawPoint = basePoint 
+	Point2D drawPoint = basePoint
 	 + pSelectBox->Offset.Get();
 
 	drawPoint.Y += pTypeExt->AttachedToObject->PixelSelectionBracketDelta;
@@ -2806,7 +2921,7 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
 
-static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
+static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset, Point2D* pLocation , const CoordStruct& a_) {
 
 	Point2D a__ { a_.X , a_.Y};
 	switch (pThis->WhatAmI())
@@ -2816,7 +2931,7 @@ static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D&
 		break;
 	case AbstractType::Building:
 		if (RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor.isset())
-				offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis,
+				offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis, pLocation ,
 						RulesExtData::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor) +
 						RulesExtData::Instance()->DrawInsignia_AdjustPos_Buildings) + a__;
 			else
@@ -2873,7 +2988,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 	if (frameIndex != -1 && pShapeFile)
 	{
-		GetAdjustedInsigniaOffset(pThis, offset , drawOffs);
+		GetAdjustedInsigniaOffset(pThis, offset , pLocation, drawOffs);
 
 		DSurface::Temp->DrawSHP(
 			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00),
@@ -4042,7 +4157,7 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 		if (pHouse->Defeated ||
 			(pHouse->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive))
 			continue;
-		
+
 		//TODO : causing desync , disable it
 		//if (allowPlayerControl && !pHouse->ControlledByCurrentPlayer())
 		//	continue;
@@ -5822,7 +5937,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
 	_AEProp->Unkillable = unkillable;
-		
+
 	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;
 

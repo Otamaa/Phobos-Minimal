@@ -3,6 +3,8 @@
 #include <Utilities/TemplateDef.h>
 #include <Utilities/GeneralUtils.h>
 
+Enumerable<ColorTypeClass>::container_t Enumerable<ColorTypeClass>::Array;
+
 const char* Enumerable<ColorTypeClass>::GetMainSection()
 {
 	return GameStrings::Colors();

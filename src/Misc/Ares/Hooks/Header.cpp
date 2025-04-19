@@ -72,6 +72,56 @@
 
 #include <Utilities/GameConfig.h>
 
+#pragma region defines
+PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas { };
+std::vector<unsigned char>  StaticVars::ShpCompression1Buffer { };
+std::map<const TActionClass*, int>  StaticVars::TriggerCounts { };
+UniqueGamePtrC<MixFileClass>  StaticVars::aresMIX { };
+std::string  StaticVars::MovieMDINI { "MOVIEMD.INI" };
+WaveColorData  StaticVars::TempColor { };
+
+DWORD AresGlobalData::InternalVersion { 0x1414D121 };
+char AresGlobalData::ModName[0x40] { "Yuri's Revenge" };
+char AresGlobalData::ModVersion[0x40] { "1.001" };
+int AresGlobalData::ModIdentifier;
+CSFText AresGlobalData::ModNote;
+byte AresGlobalData::GFX_DX_Force;
+int AresGlobalData::colorCount { 8 };
+int AresGlobalData::version;
+
+int AresGlobalData::uiColorText;
+int AresGlobalData::uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt
+int AresGlobalData::uiColorTextCheckbox;
+int AresGlobalData::uiColorTextRadio;
+int AresGlobalData::uiColorTextLabel { 0xFFFF }; // #1644: needed for CD prompt
+int AresGlobalData::uiColorTextList;
+int AresGlobalData::uiColorTextCombobox;
+int AresGlobalData::uiColorTextGroupbox;
+int AresGlobalData::uiColorTextEdit;
+int AresGlobalData::uiColorTextSlider;
+int AresGlobalData::uiColorTextObserver;
+int AresGlobalData::uiColorCaret;
+int AresGlobalData::uiColorSelection;
+int AresGlobalData::uiColorSelectionCombobox;
+int AresGlobalData::uiColorSelectionList;
+int AresGlobalData::uiColorSelectionObserver;
+int AresGlobalData::uiColorBorder1;
+int AresGlobalData::uiColorBorder2;
+int AresGlobalData::uiColorDisabled;
+int AresGlobalData::uiColorDisabledLabel;
+int AresGlobalData::uiColorDisabledButton;
+int AresGlobalData::uiColorDisabledCombobox;
+int AresGlobalData::uiColorDisabledCheckbox;
+int AresGlobalData::uiColorDisabledList;
+int AresGlobalData::uiColorDisabledSlider;
+int AresGlobalData::uiColorDisabledObserver;
+AresGlobalData::ColorData AresGlobalData::Colors[16 + 1];
+
+std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
+DynamicVectorClass<BuildType, DllAllocator<BuildType>> MouseClassExt::TabCameos[4u];
+
+#pragma endregion
+
 bool StaticVars::SaveGlobals(PhobosStreamWriter& stm)
 {
 	return stm
@@ -3317,7 +3367,7 @@ void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti, TechnoTypeClass* pT
 bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth, bool IsChangeOwnership)
 {
 	const auto& [prevType, rtti] = GetOriginalType(pThis, pToType);
-	
+
 	if (!prevType)
 		return false;
 
@@ -8339,7 +8389,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		crc.Commit();
 		crc.Add(ModVersion, strlen(ModVersion));
 		ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
-		
+
 		Debug::LogInfo("Color count is {}", colorCount);
 		Debug::LogInfo("Mod is {0} ({1}) with {2:x}",
 			ModName,

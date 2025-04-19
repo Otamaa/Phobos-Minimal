@@ -153,7 +153,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	OPTIONALINLINE static HelperedVector<ShieldClass*> Array;
+	static HelperedVector<ShieldClass*> Array;
 
 private:
 	template <typename T>
@@ -191,7 +191,7 @@ private:
 
 	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	int DrawShieldBar_Pip(const bool isBuilding);
+	int DrawShieldBar_Pip(Point3D const& pips, const bool isBuilding);
 
 	int DrawShieldBar_PipAmount(int iLength) const
 	{

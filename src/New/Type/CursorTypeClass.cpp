@@ -1,5 +1,7 @@
 #include "CursorTypeClass.h"
 
+Enumerable<CursorTypeClass>::container_t Enumerable<CursorTypeClass>::Array;
+
 const char* Enumerable<CursorTypeClass>::GetMainSection()
 {
 	return "MouseCursors";

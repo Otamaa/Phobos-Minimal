@@ -15,6 +15,7 @@
 
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 #include <New/HugeBar.h>
+#include <New/Type/HealthBarTypeClass.h>
 
 class AITriggerTypeClass;
 class AnimTypeClass;
@@ -25,10 +26,11 @@ class WarheadTypeClass;
 class DigitalDisplayTypeClass;
 class CursorTypeClass;
 class SelectBoxTypeClass;
+class HealthBarTypeClass;
 class RulesExtData final
 {
 private:
-	OPTIONALINLINE static std::unique_ptr<RulesExtData> Data;
+	static std::unique_ptr<RulesExtData> Data;
 
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x12341234;
@@ -37,10 +39,24 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+
+	Valueable<Point3D> Pips { { 16,17,18 } };
+	Valueable<Point3D> Pips_Building { { 1,2,4 } };
+	Valueable<int> Pips_Building_Empty { 0 };
 	Valueable<Point3D> Pips_Shield { { -1, -1, -1 } };
 	Valueable<Point3D> Pips_Shield_Buildings { { -1, -1, -1 } };
 	Valueable<int> RadApplicationDelay_Building { 0 };
 	Valueable<int> RadBuildingDamageMaxCount { -1 };
+
+	Nullable<SHPStruct*> Pips_Shield_Background_SHP {};
+	Valueable<Point3D> Pips_Shield_Building { { -1, -1, -1 } };
+
+	Nullable<int> Pips_Shield_Building_Empty {};
+
+	Valueable<HealthBarTypeClass*> DefaultHealthBar {};
+	Valueable<HealthBarTypeClass*> Buildings_DefaultHealthBar {};
+	Valueable<HealthBarTypeClass*> DefaultShieldBar {};
+	Valueable<HealthBarTypeClass*> Buildings_DefaultShieldBar {};
 
 	PhobosFixedString<32u> MissingCameo { GameStrings::XXICON_SHP() };
 
@@ -62,10 +78,6 @@ public:
 	Valueable<int> Storage_TiberiumIndex { -1 };
 	Valueable<int> PlacementGrid_TranslucentLevel { 0 };
 	Valueable<int> BuildingPlacementPreview_TranslucentLevel { 3 };
-
-	Nullable<SHPStruct*> Pips_Shield_Background_SHP {};
-	Valueable<Point3D> Pips_Shield_Building { { -1, -1, -1 } };
-	Nullable<int> Pips_Shield_Building_Empty {};
 
 	Valueable<Point2D> Pips_SelfHeal_Infantry { { 13, 20 } };
 	Valueable<Point2D> Pips_SelfHeal_Units { { 13, 20 } };
@@ -531,7 +543,7 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	OPTIONALINLINE static IStream* g_pStm;
+	static IStream* g_pStm;
 
 	static void Allocate(RulesClass* pThis);
 	static void Remove(RulesClass* pThis);

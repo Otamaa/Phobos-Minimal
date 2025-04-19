@@ -60,41 +60,6 @@ ASMJIT_PATCH(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
-{
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6F6ABD
-	};
-
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto what = pThis->WhatAmI();
-
-	if(what == UnitClass::AbsID) {
-		const auto pUnit = (UnitClass*)pThis;
-
-		if (pUnit->DeathFrameCounter > 0)
-			return DoNotDraw;
-	}
-
-	if(what == BuildingClass::AbsID) {
-		const auto pBld = (BuildingClass*)pThis;
-
-		if(BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
-			return DoNotDraw;
-	}
-
-	if ((TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
-		|| pThis->TemporalTargetingMe
-		|| pThis->IsSinking
-	)
-		return DoNotDraw;
-
-	return Draw;
-}
-
 ASMJIT_PATCH(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 {
 

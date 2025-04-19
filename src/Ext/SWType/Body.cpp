@@ -1018,7 +1018,7 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const Ta
 	case SuperWeaponAITargetingMode::LightningRandom:
 	{
 		return TargetingFuncs::GetLighningRandomTarget(pNewType, pTargeting);
-	}	
+	}
 	default:
 		break;
 	}
@@ -1120,8 +1120,8 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget)
 
 	const auto require = this->GetAIRequiredTarget();
 
-	if (require == SuperWeaponTarget::None 
-		|| require == SuperWeaponTarget::AllTechnos 
+	if (require == SuperWeaponTarget::None
+		|| require == SuperWeaponTarget::AllTechnos
 		|| require == SuperWeaponTarget::All
 		|| require == SuperWeaponTarget::AllContents
 		|| (require & SuperWeaponTarget::Building && require & SuperWeaponTarget::Infantry && require & SuperWeaponTarget::Unit)) {
@@ -1141,16 +1141,16 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget)
 		return make_iterator(*InfantryClass::Array);
 
 		//default behaviours
-	} else if (require == SuperWeaponTarget::Unit 
-		|| require == SuperWeaponTarget::Land 
-		|| require == SuperWeaponTarget::Water 
+	} else if (require == SuperWeaponTarget::Unit
+		|| require == SuperWeaponTarget::Land
+		|| require == SuperWeaponTarget::Water
 		|| require == SuperWeaponTarget::Empty
 		|| require == SuperWeaponTarget::AllCells
 		) {
 		return make_iterator(*FootClass::Array);
 	}
 
-	// part below is more expensive targeting 
+	// part below is more expensive targeting
 	targetings.reserve(TechnoClass::Array->Count);
 
 	if (require & SuperWeaponTarget::Building) {
@@ -1159,8 +1159,8 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget)
 		}else {
 			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(targetings));
 		}
-	} 
-	
+	}
+
 	if(require & SuperWeaponTarget::Infantry)
 		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(targetings));
 
@@ -2555,6 +2555,10 @@ void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
 // container
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
+SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
+SuperClass* SWTypeExtData::TempSuper;
+bool SWTypeExtData::Handled;
+SuperClass* SWTypeExtData::LauchData;
 
 void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {

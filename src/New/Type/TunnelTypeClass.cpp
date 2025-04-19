@@ -2,6 +2,8 @@
 
 #include <Utilities/INIParser.h>
 
+Enumerable<TunnelTypeClass>::container_t Enumerable<TunnelTypeClass>::Array;
+
 const char* Enumerable<TunnelTypeClass>::GetMainSection()
 {
 	return "TunnelTypes";

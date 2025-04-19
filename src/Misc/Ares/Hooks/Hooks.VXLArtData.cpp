@@ -392,8 +392,8 @@ struct JumpjetTiltReference
 	static COMPILETIMEEVAL OPTIONALINLINE double BaseTilt { Math::HalfPi / 4 };
 	static COMPILETIMEEVAL OPTIONALINLINE int BaseTurnRaw { 32768 };
 	static COMPILETIMEEVAL OPTIONALINLINE float MaxTilt { static_cast<float>(Math::HalfPi) };
-	static COMPILETIMEEVAL OPTIONALINLINE float ForwardBaseTilt { BaseTilt / (float)BaseSpeed };
-	static COMPILETIMEEVAL OPTIONALINLINE float SidewaysBaseTilt { BaseTilt / float(BaseTurnRaw * BaseSpeed) };
+	static COMPILETIMEEVAL OPTIONALINLINE float ForwardBaseTilt { (float)(BaseTilt / (float)BaseSpeed) };
+	static COMPILETIMEEVAL OPTIONALINLINE float SidewaysBaseTilt { (float)(BaseTilt / float(BaseTurnRaw * BaseSpeed)) };
 };
 
 static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoTypeClass* pType, Matrix3D& shadow_matrix, VoxelIndexKey& key) {

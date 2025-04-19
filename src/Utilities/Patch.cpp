@@ -7,6 +7,10 @@
 #include <tlhelp32.h>
 #include <Psapi.h>
 
+std::vector<dllData> Patch::ModuleDatas {};
+HANDLE Patch::CurrentProcess {};
+std::string Patch::WindowsVersion {};
+
 int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress)
 {
 	char buf[MAX_PATH + 1] = { 0 };
@@ -211,7 +215,6 @@ void Patch::PrintAllModuleAndBaseAddr()
 						continue; // The handle does not point to a valid module
 
 					_strlwr_s(moduleName);
-					moduleName[0] &= ~0x20; // LOL HACK to uppercase a letter
 
 					dllData& data = Patch::ModuleDatas.emplace_back(moduleName, hModules[i], (uintptr_t)info.lpBaseOfDll, (size_t)info.SizeOfImage);
 

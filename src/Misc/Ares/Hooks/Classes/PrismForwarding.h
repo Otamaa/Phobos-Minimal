@@ -8,7 +8,7 @@ class PrismForwarding
 {
 public:
 
-	static OPTIONALINLINE HelperedVector<PrismForwarding*> Array {};
+	static HelperedVector<PrismForwarding*> Array;
 
 	BuildingClass* Owner;
 	HelperedVector<PrismForwarding*> Senders;		//the prism towers that are forwarding to this one

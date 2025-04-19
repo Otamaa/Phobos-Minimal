@@ -18,6 +18,7 @@
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/DroppodProperties.h>
 #include <New/Type/CrateTypeClass.h>
+#include <New/Type/HealthBarTypeClass.h>
 
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
@@ -390,14 +391,6 @@ public:
 	Nullable<Point2D> Healnumber_Offset { };
 	Nullable<SHPStruct*> HealthNumber_SHP { };
 	Nullable<Point2D> Healnumber_Decrement { };
-	Nullable<SHPStruct*> HealthBarSHP { };
-	Nullable<SHPStruct*> HealthBarSHP_Selected { };
-	Valueable<int> HealthBarSHPBracketOffset { 0 };
-	Valueable<Point3D> HealthBarSHP_HealthFrame { { 18, 16, 17 } };
-	Valueable<PaletteManager*> HealthBarSHP_Palette { }; //CustomPalette::PaletteMode::Temperate
-
-	Valueable<Point2D> HealthBarSHP_PointOffset { { 0, 0 } };
-	Valueable<bool> HealthbarRemap { false };
 
 	Nullable<SHPStruct*> GClock_Shape { };
 	Nullable<int> GClock_Transculency { };
@@ -835,11 +828,6 @@ public:
 	Valueable<bool> Drain_Local { false };
 	Valueable<int> Drain_Amount { 0 };
 
-	Nullable<int> HealthBar_Sections { 0 };
-	Nullable<SHPStruct*> HealthBar_Border { };
-	Nullable<int> HealthBar_BorderFrame { };
-	Nullable<int> HealthBar_BorderAdjust { };
-
 	Nullable<bool> Crashable {};
 
 	Valueable<bool> IsBomb { false };
@@ -1094,6 +1082,9 @@ public:
 	Valueable<double> Skilled_FaceTargetRange { 16.0 };
 	Valueable<bool> Skilled_ConfrontEnemies { true };
 	Valueable<int> Skilled_RetreatDuration { 150 };
+
+	Nullable<HealthBarTypeClass*> HealthBar {};
+	Nullable<HealthBarTypeClass*> ShieldBar {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

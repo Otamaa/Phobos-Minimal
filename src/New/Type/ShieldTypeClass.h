@@ -43,9 +43,13 @@ public:
 
 	Nullable<bool> AllowTransfer;
 
-	Valueable<Point3D> Pips;
+	Nullable<HealthBarTypeClass*> ShieldBar;
+	Nullable<Point3D> Pips;
+
 	Nullable<SHPStruct*> Pips_Background_SHP;
-	Valueable<Point3D> Pips_Building;
+
+	Nullable<Point3D> Pips_Building;
+
 	Nullable<int> Pips_Building_Empty;
 	Valueable<bool> Pips_HideIfNoStrength;
 
@@ -103,9 +107,10 @@ public:
 		, ReceivedDamage_Minimum { INT32_MIN }
 		, ReceivedDamage_Maximum { INT32_MAX }
 		, AllowTransfer {}
-		, Pips { { -1,-1,-1 } }
+		, ShieldBar {}
+		, Pips {}
 		, Pips_Background_SHP {}
-		, Pips_Building { { -1,-1,-1 } }
+		, Pips_Building {}
 		, Pips_Building_Empty {}
 		, Pips_HideIfNoStrength { false }
 		, ImmuneToPsychedelic { false }

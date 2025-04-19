@@ -8,7 +8,6 @@ class ThemeTypeClass final : public Enumerable<ThemeTypeClass>
 {
 public:
 
-	int DefaultTo;
 	PhobosFixedString<64U> NextText;
 	PhobosFixedString<100U> HousesText;
 

@@ -30,7 +30,7 @@ private:
 	};
 
 	static COMPILETIMEEVAL int Duration = 75;
-	OPTIONALINLINE static HelperedVector<Item> Data;
+	static HelperedVector<Item> Data;
 
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 

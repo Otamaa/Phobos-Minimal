@@ -36,7 +36,7 @@ struct ExtendedVariable
 class ScenarioExtData final
 {
 private:
-	OPTIONALINLINE static std::unique_ptr<ScenarioExtData> Data;
+	static std::unique_ptr<ScenarioExtData> Data;
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xABCD1595;
 	using base_type = ScenarioClass;
@@ -88,8 +88,9 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	OPTIONALINLINE static IStream* g_pStm;
-	OPTIONALINLINE static bool CellParsed;
+	static IStream* g_pStm;
+	static bool CellParsed;
+	static bool UpdateLightSources;
 
 	static void Allocate(ScenarioClass* pThis);
 	static void Remove(ScenarioClass* pThis);
@@ -112,11 +113,10 @@ public:
 	static COMPILETIMEEVAL PhobosMap<int, ExtendedVariable>* GetVariables(bool IsGlobal) {
 		if (IsGlobal)
 			return &ScenarioExtData::Instance()->Global_Variables;
-	
+
 		return &ScenarioExtData::Instance()->Local_Variables;
 	}
 
-	OPTIONALINLINE static bool UpdateLightSources;
 };
 
 class FakeScenarioClass : public ScenarioClass

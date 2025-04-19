@@ -19,6 +19,7 @@
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+#include <New/Type/HealthBarTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -40,9 +41,12 @@
 
 #include <GameStrings.h>
 
+std::unique_ptr<RulesExtData> RulesExtData::Data {};
+IStream* RulesExtData::g_pStm;
+
 void RulesExtData::Allocate(RulesClass* pThis)
 {
-	Data = std::make_unique<RulesExtData>();
+	Data = std::move(std::make_unique<RulesExtData>());
 	Data->AttachedToObject = pThis;
 }
 
@@ -152,6 +156,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
+	HealthBarTypeClass::LoadFromINIList(pINI);
 	SelectBoxTypeClass::LoadFromINIList(pINI);
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
@@ -189,7 +194,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
-	
+
 	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
 	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");
 
@@ -307,7 +312,7 @@ static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secr
 }
 
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-{	
+{
 	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
@@ -683,7 +688,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			fast_remove_if(pSuperExt->SW_AuxBuildings ,[](BuildingTypeClass* pItem)	{ return !pItem; } );
 			fast_remove_if(pSuperExt->SW_NegBuildings ,[](BuildingTypeClass* pItem)	{ return !pItem; } );
-		
+
 			Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 
 			for (auto& para : pSuperExt->ParaDropDatas) {
@@ -722,6 +727,12 @@ void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	HoverTypeClass::AddDefaults();
 	ShieldTypeClass::AddDefaults();
 	SelectBoxTypeClass::AddDefaults();
+
+	auto pDefault = HealthBarTypeClass::FindOrAllocate(GameStrings::NoneStr());
+	this->DefaultHealthBar = pDefault;
+	this->Buildings_DefaultHealthBar = pDefault;
+	this->DefaultShieldBar = pDefault;
+	this->Buildings_DefaultShieldBar = pDefault;
 }
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
@@ -750,7 +761,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
-	
+
 	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
 	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
 
@@ -797,7 +808,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NoReload_Temporal.Read(exINI, GameStrings::General, "NoReload.Temporal");
 
 	this->AttackMindControlledDelay.Read(exINI, GameStrings::General, "AttackMindControlledDelay");
-	
+
 	this->MergeBuildingDamage.Read(exINI, GameStrings::CombatDamage, "MergeBuildingDamage");
 	this->ExpandBuildingQueue.Read(exINI, GameStrings::General, "ExpandBuildingQueue");
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
@@ -996,11 +1007,17 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->PlacementGrid_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
 	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
+
+	this->DefaultHealthBar.Read(exINI, GameStrings::AudioVisual, "DefaultHealthBar");
+	this->Buildings_DefaultHealthBar.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultHealthBar");
+	this->DefaultShieldBar.Read(exINI, GameStrings::AudioVisual, "DefaultShieldBar");
+	this->Buildings_DefaultShieldBar.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultShieldBar");
 	this->Pips_Shield.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield");
 	this->Pips_Shield_Background_SHP.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Background");
 	this->Pips_Shield_Building.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building");
 	this->Pips_Shield_Building_Empty.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building.Empty");
-
+	this->Pips_Building.Read(exINI, GameStrings::AudioVisual, "Pips.Building");
+	this->Pips_Building_Empty.Read(exINI, GameStrings::AudioVisual, "Pips.Building.Empty");
 	this->Pips_SelfHeal_Infantry.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Infantry");
 	this->Pips_SelfHeal_Units.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Units");
 	this->Pips_SelfHeal_Buildings.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Buildings");
@@ -1150,10 +1167,15 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(Phobos::Config::ApplyShadeCountFix)
 		.Process(Phobos::Otamaa::CompatibilityMode)
 		.Process(Phobos::Config::UnitPowerDrain)
-
+		.Process(this->Pips)
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
-
+		.Process(this->Pips_Building)
+		.Process(this->Pips_Building_Empty)
+		.Process(this->DefaultHealthBar)
+		.Process(this->Buildings_DefaultHealthBar)
+		.Process(this->DefaultShieldBar)
+		.Process(this->Buildings_DefaultShieldBar)
 		.Process(this->RadApplicationDelay_Building)
 		.Process(this->RadBuildingDamageMaxCount)
 		.Process(this->MissingCameo)

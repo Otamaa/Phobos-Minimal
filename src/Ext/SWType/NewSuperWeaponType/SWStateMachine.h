@@ -31,9 +31,9 @@ enum class SWStateMachineIdentifier : int
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
 class SWStateMachine : public MemoryPoolObject
-{ 
+{
 public:
-	OPTIONALINLINE static HelperedVector<MemoryPoolUniquePointer<SWStateMachine>> Array;
+	static HelperedVector<MemoryPoolUniquePointer<SWStateMachine>> Array;
 
 	SWStateMachine() = default;
 	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)

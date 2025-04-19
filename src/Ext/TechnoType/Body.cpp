@@ -13,6 +13,7 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+#include <New/Type/HealthBarTypeClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -559,17 +560,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
 
 		this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
-
-		//pipshape
-		this->HealthBarSHP.Read(exINI, pSection, "HealthBarSHP");
-
-		//pipbar
-		this->HealthBarSHP_Selected.Read(exINI, pSection, "HealthBarSHP.Selected");
-		this->HealthBarSHPBracketOffset.Read(exINI, pSection, "HealthBarSHP.BracketOffset");
-		this->HealthBarSHP_HealthFrame.Read(exINI, pSection, "HealthBarSHP.HealthFrame");
-		this->HealthBarSHP_Palette.Read(exINI, pSection, "HealthBarSHP.Palette");
-		this->HealthBarSHP_PointOffset.Read(exINI, pSection, "HealthBarSHP.Point2DOffset");
-		this->HealthbarRemap.Read(exINI, pSection, "HealthBarSHP.Remap");
 
 		this->PipShapes02.Read(exINI, pSection, "PipShapes.Foot");
 		this->PipGarrison.Read(exINI, pSection, "PipShapes.Garrison");
@@ -1151,11 +1141,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryOwners_HaveAllPlans.Read(exINI, pSection, "FactoryOwners.Permanent");
 		this->FactoryOwners_HasAllPlans.Read(exINI, pSection, "FactoryOwners.HasAllPlans");
 
-		this->HealthBar_Sections.Read(exINI, pSection, "HealthBar.Sections");
-		this->HealthBar_Border.Read(exINI, pSection, "HealthBar.Border");
-		this->HealthBar_BorderFrame.Read(exINI, pSection, "HealthBar.BorderFrame");
-		this->HealthBar_BorderAdjust.Read(exINI, pSection, "HealthBar.BorderAdjust");
-
 		this->IsBomb.Read(exINI, pSection, "IsBomb");
 		this->ParachuteAnim.Read(exINI, pSection, "Parachute.Anim", true);
 
@@ -1486,6 +1471,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Skilled_FaceTargetRange.Read(exINI, pSection, "Skilled.FaceTargetRange");
 		this->Skilled_ConfrontEnemies.Read(exINI, pSection, "Skilled.ConfrontEnemies");
 		this->Skilled_RetreatDuration.Read(exINI, pSection, "Skilled.RetreatDuration");
+
+		this->HealthBar.Read(exINI, pSection, "HealthBar");
+		this->ShieldBar.Read(exINI, pSection, "ShieldBar");
 	}
 
 	// Art tags
@@ -1801,7 +1789,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->AttachtoType)
-		.Process(this->HealthBar_Hide)
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
 		.Process(this->MindControlRangeLimit)
@@ -2094,14 +2081,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Healnumber_Offset)
 		.Process(this->HealthNumber_SHP)
 		.Process(this->Healnumber_Decrement)
-
-		.Process(this->HealthBarSHP)
-		.Process(this->HealthBarSHP_Selected)
-		.Process(this->HealthBarSHPBracketOffset)
-		.Process(this->HealthBarSHP_HealthFrame)
-		.Process(this->HealthBarSHP_Palette)
-		.Process(this->HealthBarSHP_PointOffset)
-		.Process(this->HealthbarRemap)
 
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
@@ -2444,11 +2423,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Drain_Local)
 		.Process(this->Drain_Amount)
 
-		.Process(this->HealthBar_Sections)
-		.Process(this->HealthBar_Border)
-		.Process(this->HealthBar_BorderFrame)
-		.Process(this->HealthBar_BorderAdjust)
-
 		.Process(this->Crashable)
 		.Process(this->IsBomb)
 		.Process(this->ParachuteAnim)
@@ -2680,6 +2654,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AlternateFLH_OnTurret)
 		.Process(this->DamagedSpeed)
 		.Process(this->RadarInvisibleToHouse)
+
+
+		.Process(this->HealthBar)
+		.Process(this->ShieldBar)
 		;
 }
 

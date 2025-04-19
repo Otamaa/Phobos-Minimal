@@ -23,6 +23,23 @@
 #include <HouseTypeClass.h>
 
 #include <filesystem>
+#pragma region declarations
+
+FILE* Debug::LogFile {};
+bool Debug::LogEnabled {};
+std::wstring Debug::ApplicationFilePath {};
+std::wstring Debug::DefaultFEMessage {};
+std::wstring Debug::LogFilePathName {};
+std::wstring Debug::LogFileMainName { L"\\debug" };
+std::wstring Debug::LogFileMainFormattedName {};
+std::wstring Debug::LogFileExt { L".log" };
+std::wstring Debug::LogFileFullPath {};
+char Debug::LogMessageBuffer[0x1000] {};
+char Debug::DefferedVectorBuffer[0x1000] {};
+std::vector<std::string> Debug::DefferedVector {};
+bool Debug::made {};
+
+#pragma endregion
 
 void Debug::InitLogger() {
 

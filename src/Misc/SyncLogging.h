@@ -147,12 +147,12 @@ struct AnimCreationSyncLogEvent : SyncLogEvent
 class SyncLogger
 {
 private:
-	OPTIONALINLINE static SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> RNGCalls;
-	OPTIONALINLINE static SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> FacingChanges;
-	OPTIONALINLINE static SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> TargetChanges;
-	OPTIONALINLINE static SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> DestinationChanges;
-	OPTIONALINLINE static SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> MissionOverrides;
-	OPTIONALINLINE static SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> AnimCreations;
+	static SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> RNGCalls;
+	static SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> FacingChanges;
+	static SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> TargetChanges;
+	static SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> DestinationChanges;
+	static SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> MissionOverrides;
+	static SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> AnimCreations;
 
 	static void WriteRNGCalls(FILE* const pLogFile, int frameDigits);
 	static void WriteFacingChanges(FILE* const pLogFile, int frameDigits);
@@ -161,10 +161,10 @@ private:
 	static void WriteMissionOverrides(FILE* const pLogFile, int frameDigits);
 	static void WriteAnimCreations(FILE* const pLogFile, int frameDigits);
 public:
-	OPTIONALINLINE static bool HooksDisabled;
-	OPTIONALINLINE static int AnimCreations_HighestX;
-	OPTIONALINLINE static int AnimCreations_HighestY;
-	OPTIONALINLINE static int AnimCreations_HighestZ;
+	static bool HooksDisabled;
+	static int AnimCreations_HighestX;
+	static int AnimCreations_HighestY;
+	static int AnimCreations_HighestZ;
 
 	static void AddRNGCallSyncLogEvent(Random2Class* pRandomizer, int type, unsigned int callerAddress, int min = 0, int max = 0);
 	static void AddFacingChangeSyncLogEvent(unsigned short facing, unsigned int callerAddress);

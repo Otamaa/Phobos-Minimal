@@ -16,20 +16,20 @@ class REGISTERS;
 class Debug final
 {
 public:
-	static OPTIONALINLINE FILE* LogFile {};
+	static FILE* LogFile;
 
-	OPTIONALINLINE static bool LogEnabled {};
-	OPTIONALINLINE static std::wstring ApplicationFilePath {};
-	OPTIONALINLINE static std::wstring DefaultFEMessage {};
-	OPTIONALINLINE static std::wstring LogFilePathName {};
-	OPTIONALINLINE static std::wstring LogFileMainName { L"\\debug" };
-	OPTIONALINLINE static std::wstring LogFileMainFormattedName {};
-	OPTIONALINLINE static std::wstring LogFileExt { L".log" };
-	OPTIONALINLINE static std::wstring LogFileFullPath {};
-	OPTIONALINLINE static char LogMessageBuffer[0x1000] {};
-	OPTIONALINLINE static char DefferedVectorBuffer[0x1000] {};
-	OPTIONALINLINE static std::vector<std::string> DefferedVector {};
-	OPTIONALINLINE static bool made {};
+	static bool LogEnabled;
+	static std::wstring ApplicationFilePath;
+	static std::wstring DefaultFEMessage;
+	static std::wstring LogFilePathName;
+	static std::wstring LogFileMainName;
+	static std::wstring LogFileMainFormattedName;
+	static std::wstring LogFileExt;
+	static std::wstring LogFileFullPath;
+	static char LogMessageBuffer[0x1000];
+	static char DefferedVectorBuffer[0x1000];
+	static std::vector<std::string> DefferedVector;
+	static bool made;
 
 	static void InitLogger();
 	static void DeactivateLogger();

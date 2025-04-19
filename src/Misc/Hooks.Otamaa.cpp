@@ -6593,7 +6593,7 @@ ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 	return 0x487291;
 }
 
-//DEFINE_HOOK(0x7C8B3D, game_Dele_whoCall, 0x9)
+//ASMJIT_PATCH(0x7C8B3D, game_Dele_whoCall, 0x9)
 //{
 //	GET_STACK(void* , ptr , 0x4);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -6602,7 +6602,7 @@ ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 //	return 0x007C8B47;
 //}
 //
-//DEFINE_HOOK(0x7C93E8, game_freeMem_caller, 0x5) {
+//ASMJIT_PATCH(0x7C93E8, game_freeMem_caller, 0x5) {
 //	GET_STACK(DWORD, caller, 0x0);
 //	Debug::Log("CRT::free Caller 0x%x \n", caller);
 //	return 0x0;
@@ -6808,17 +6808,13 @@ static void ProcessColorAdd(CCINIClass* pINI) {
 		struct temp_rgb {
 			byte r, g, b;
 
-			temp_rgb& operator=(const byte(&arr)[3]) {
-				r = arr[0];
-				g = arr[1];
-				b = arr[2];
-				return *this;
-			}
-
 			operator ColorStruct() {
 				return *reinterpret_cast<ColorStruct*>(this);
 			}
-			
+
+			operator byte*() {
+				return reinterpret_cast<byte*>(this);
+			}
 		};
 
 		//this was for debugging purposes 
@@ -6826,12 +6822,13 @@ static void ProcessColorAdd(CCINIClass* pINI) {
 		std::vector<temp_rgb> v_buffer(count);
 
 		for (size_t i = 0; i < v_buffer.size(); ++i) {
-			byte buffer[3] = {};
-			pINI->Read3Bytes(buffer, GameStrings::ColorAdd, pINI->GetKeyName(GameStrings::ColorAdd, i), buffer);
-			v_buffer[i] = buffer;
+			pINI->Read3Bytes((v_buffer[i]).operator unsigned char *()
+				, GameStrings::ColorAdd
+				, pINI->GetKeyName(GameStrings::ColorAdd, i)
+				, (v_buffer[i]).operator unsigned char* ());
 		}
 
-		if ((size_t)count >= RulesClass::Instance->ColorAdd.size()) {
+		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size()) {
 			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
 			Debug::RegisterParserError();
 		}
@@ -6919,7 +6916,7 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //
 //DEFINE_FUNCTION_JUMP(LJMP, 0x429780, TubeFacing_429780);
 //
-//DEFINE_HOOK(0x4D3920, FootClass_basic_rememberIdx, 0x5)
+//ASMJIT_PATCH(0x4D3920, FootClass_basic_rememberIdx, 0x5)
 //{
 //	GET_STACK(DWORD, caller, 0x0);
 //	GET_STACK(int, idx, 0x8);
@@ -6932,7 +6929,7 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //	return 0x0;
 //}
 //#pragma optimize("", off )
-//DEFINE_HOOK(0x4D3E5A, FootClass_basic_idkCrash, 0x5)
+//ASMJIT_PATCH(0x4D3E5A, FootClass_basic_idkCrash, 0x5)
 //{
 //	GET(int, idx, EBX);
 //	GET(FootClass*, pFoot, EBP);

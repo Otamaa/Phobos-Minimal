@@ -2,7 +2,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
-static OPTIONALINLINE TechnoTypeExtData* TechnoClass_DrawAirstrikeFlare_pType {};
+static TechnoTypeExtData* TechnoClass_DrawAirstrikeFlare_pType {};
 
 ASMJIT_PATCH(0x705860, TechnoClass_DrawAirstrikeFlare_SetContext, 0x8)
 {

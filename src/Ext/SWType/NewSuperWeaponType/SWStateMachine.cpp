@@ -9,6 +9,12 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
+#pragma region defines
+
+HelperedVector<MemoryPoolUniquePointer<SWStateMachine>> SWStateMachine::Array;
+
+#pragma endregion
+
 ChronoWarpStateMachine::~ChronoWarpStateMachine() { }
 CloneableLighningStormStateMachine::~CloneableLighningStormStateMachine()
 {

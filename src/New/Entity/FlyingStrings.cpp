@@ -13,6 +13,7 @@
 #include <CellClass.h>
 
 #include <Utilities/EnumFunctions.h>
+HelperedVector<FlyingStrings::Item> FlyingStrings::Data;
 
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {

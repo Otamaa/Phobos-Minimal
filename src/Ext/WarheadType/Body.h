@@ -37,6 +37,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+#pragma region classmembers
 
 	Valueable<int> Reveal { 0 };
 	Valueable<bool> BigGap { false };
@@ -427,6 +428,7 @@ public:
 	Valueable<int> ElectricAssaultLevel { 1 };
 
 	Valueable<bool> CanKill { true };
+#pragma endregion
 
 public:
 
@@ -516,7 +518,7 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 public:
-	OPTIONALINLINE static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
+	static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
 
 	static void DetonateAt(
 		WarheadTypeClass* pThis,

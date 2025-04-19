@@ -10,6 +10,8 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
+#include <New/Type/HealthBarTypeClass.h>
+
 ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
@@ -43,34 +45,130 @@ ASMJIT_PATCH(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 	return 0;
 }
 
-//6F6759 , EDX ,6F675F
-ASMJIT_PATCH(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
+bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 {
-	GET(BuildingClass* const, pThis, ESI);
 
-	const auto pThisExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	R->EDX(pThisExt->PipShapes01.Get(FileSystem::PIPS_SHP()));
+	const auto what = pTechno->WhatAmI();
 
-	return 0x6F6728;
-}
+	if (auto pFoot = flag_cast_to<FootClass*, false>(pTechno))
+	{
+		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-ASMJIT_PATCH(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-	ConvertClass* nPal = FileSystem::THEATER_PAL();
-
-	if (pBuildingTypeExt->PipShapes01Remap) {
-		nPal = pThis->GetRemapColour();
-	}
-	else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
-		nPal = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(nPal);
+		if (pExt->Is_DriverKilled)
+			return true;
 	}
 
-	R->EDX(nPal);
-	return 0x6F675F;
+	if (what == UnitClass::AbsID)
+	{
+		const auto pUnit = (UnitClass*)pTechno;
+
+		if (pUnit->DeathFrameCounter > 0)
+			return true;
+	}
+
+	if (what == BuildingClass::AbsID)
+	{
+		const auto pBld = (BuildingClass*)pTechno;
+
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+			return true;
+	}
+
+	if ((TechnoTypeExtContainer::Instance.Find(pType)->HealthBar_Hide.Get())
+		|| pTechno->TemporalTargetingMe
+		|| pTechno->IsSinking
+	)
+		return true;
+
+	if (!RulesClass::Instance->EnemyHealth && !HouseClass::IsCurrentPlayerObserver() && !isAllied)
+		return true;
+
+	return false;
 }
 
+ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar, 0x5)
+{
+	enum { SkipDrawCode = 0x6F6ABD };
+
+	GET(TechnoClass*, pThis, ECX);
+
+	auto const& [pType, pOwner] = TechnoExtData::GetDisguiseType(pThis, false, true);
+	const bool isAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+
+	if (HideBar(pThis, pType , isAllied))
+		return SkipDrawCode;
+
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBounds, 0x8);
+	//GET_STACK(bool, drawFullyHealthBar, 0xC);
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto whatAmI = pThis->WhatAmI();
+	auto pBuilding = whatAmI == BuildingClass::AbsID ? static_cast<BuildingClass*>(pThis) : nullptr;
+
+	Point2D position = *pLocation;
+	Point2D pipsAdjust = Point2D::Empty;
+	int pipsLength = 0;
+
+	HealthBarTypeClass* pHealthBar = nullptr;
+
+	if (pBuilding)
+	{
+		CoordStruct dimension {};
+		pBuilding->Type->Dimension2(&dimension);
+		dimension.X /= -2;
+		dimension.Y /= 2;
+
+		const auto drawAdjust = TacticalClass::CoordsToScreen(dimension);
+		position += drawAdjust;
+
+		dimension.Y = -dimension.Y;
+		const auto drawStart = TacticalClass::CoordsToScreen(dimension);
+
+		dimension.Z = 0;
+		dimension.Y = -dimension.Y;
+		pipsAdjust = TacticalClass::CoordsToScreen(dimension);
+
+		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->Buildings_DefaultHealthBar);
+		pipsLength = (drawAdjust.Y - drawStart.Y) >> 1;
+	}
+	else
+	{
+		pipsAdjust = Point2D { -10, 10 };
+
+		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->DefaultHealthBar);
+
+		constexpr int defaultInfantryPipsLength = 8;
+		constexpr int defaultUnitPipsLength = 17;
+		pipsLength = pHealthBar->PipsLength.Get(whatAmI == InfantryClass::AbsID ? defaultInfantryPipsLength : defaultUnitPipsLength);
+	}
+
+	const auto pShield = pExt->Shield.get();
+
+	if (pShield && pShield->IsAvailable() && !pShield->IsBrokenAndNonRespawning()) {
+		pShield->DrawShieldBar(pipsLength, &position, pBounds);
+	}
+
+	if (pBuilding)
+		TechnoExtData::DrawHealthBar(pBuilding, pHealthBar, pipsLength, &position, pBounds);
+	else
+		TechnoExtData::DrawHealthBar(pThis, pType, pHealthBar, pipsLength, &position, pBounds);
+
+	TechnoExtData::ProcessDigitalDisplays(pThis, pType ,&position);
+
+	const bool canShowPips = isAllied || pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer) || HouseClass::IsCurrentPlayerObserver();
+
+	if (canShowPips || (pBuilding && pBuilding->Type->CanBeOccupied) || pType->PipsDrawForAll)
+	{
+		Point2D pipsLocation = *pLocation + pipsAdjust;
+		pThis->DrawPipScalePips(&pipsLocation, pLocation, pBounds);
+	}
+
+	return SkipDrawCode;
+}
+
+#ifdef _OLD
 ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -79,10 +177,12 @@ ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuildingTypeExt->PipShapes01Remap) {
+	if (pBuildingTypeExt->PipShapes01Remap)
+	{
 		nPal = pThis->GetRemapColour();
 	}
-	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
+	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	{
 		nPal = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(nPal);
 	}
 
@@ -114,57 +214,57 @@ namespace DrawHeathData
 		int	YOffset = 0;
 
 		auto GetFrame = [pThis, pShpGreen](char nInput)
-		{
-			int nFrameResult = -1;
-			int nInputToFrame = -1;
-
-			switch (nInput)
 			{
-			case (*" "):
-				nInputToFrame = 12;//blank frame
-				break;
-			case (*"%"):
-				nInputToFrame = 10;
-				break;
-			case (*"/"):
-				nInputToFrame = 11;
-				break;
-			default:
-				nInputToFrame = nInput - 48;
-				break;
-			}
+				int nFrameResult = -1;
+				int nInputToFrame = -1;
 
-			int const nFrame_Total = std::clamp((int)pShpGreen->Frames, 12 + 1, 36 + 1);
-			nFrameResult = nInputToFrame;
-
-			// blank frames on the end (+1) !
-			// 0  1  2  3  4  5  6  7  8  9 10 11
-
-			// 12 13 14 15 16 17 18 19 20 21 22	23
-			if (nFrame_Total == 25 && (pThis->IsYellowHP() || pThis->IsRedHP()))
-			{
-				nFrameResult = nInputToFrame + 12;
-			}
-			// 24 25 26 27 28 29 30 31 32 33 34 35
-			else if (nFrame_Total == 37)
-			{
-				if (!pThis->IsGreenHP())
+				switch (nInput)
 				{
-					if (!(nInputToFrame == 12) && pThis->IsYellowHP())
-						nFrameResult = nInputToFrame + 12;
-
-					nFrameResult = nInputToFrame + 24;
+				case (*" "):
+					nInputToFrame = 12;//blank frame
+					break;
+				case (*"%"):
+					nInputToFrame = 10;
+					break;
+				case (*"/"):
+					nInputToFrame = 11;
+					break;
+				default:
+					nInputToFrame = nInput - 48;
+					break;
 				}
-			}
 
-			return nFrameResult;
-		};
+				int const nFrame_Total = std::clamp((int)pShpGreen->Frames, 12 + 1, 36 + 1);
+				nFrameResult = nInputToFrame;
+
+				// blank frames on the end (+1) !
+				// 0  1  2  3  4  5  6  7  8  9 10 11
+
+				// 12 13 14 15 16 17 18 19 20 21 22	23
+				if (nFrame_Total == 25 && (pThis->IsYellowHP() || pThis->IsRedHP()))
+				{
+					nFrameResult = nInputToFrame + 12;
+				}
+				// 24 25 26 27 28 29 30 31 32 33 34 35
+				else if (nFrame_Total == 37)
+				{
+					if (!pThis->IsGreenHP())
+					{
+						if (!(nInputToFrame == 12) && pThis->IsYellowHP())
+							nFrameResult = nInputToFrame + 12;
+
+						nFrameResult = nInputToFrame + 24;
+					}
+				}
+
+				return nFrameResult;
+			};
 
 		//char nBuffer[0x100];
 		std::string _buffer = !pTypeExt->HealthNumber_Percent.Get() ?
-			std::format("{}/{}",pThis->Health, pThis->GetTechnoType()->Strength )
-		:
-			std::format("{}%" , (int)(pThis->GetHealthPercentage() * 100.0));
+			std::format("{}/{}", pThis->Health, pThis->GetTechnoType()->Strength)
+			:
+			std::format("{}%", (int)(pThis->GetHealthPercentage() * 100.0));
 
 		auto const bIsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
@@ -230,12 +330,13 @@ namespace DrawHeathData
 
 	void DrawBar(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		auto const&[pType , pOwner]= TechnoExtData::GetDisguiseType(pThis, false, true);
+		auto const& [pType, pOwner] = TechnoExtData::GetDisguiseType(pThis, false, true);
 		LightConvertClass* pTechConvert = pThis->GetRemapColour();
 		const bool bIsInfantry = pThis->WhatAmI() == InfantryClass::AbsID;
 		bool IsDisguised = false;
 
-		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
+		{
 			IsDisguised = true;
 		}
 
@@ -415,8 +516,9 @@ ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	if (const auto pShieldData = pExt->Shield.get()) {
-		if (pShieldData->IsAvailable()&& !pShieldData->IsBrokenAndNonRespawning())
+	if (const auto pShieldData = pExt->Shield.get())
+	{
+		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 	}
 
@@ -432,14 +534,16 @@ ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
-	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 		return 0x6F6AB6u;
 
 	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	if (const auto pShieldData = pExt->Shield.get()) {
-		if (pShieldData->IsAvailable()&& !pShieldData->IsBrokenAndNonRespawning()) {
+	if (const auto pShieldData = pExt->Shield.get())
+	{
+		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
+		{
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 		}
 	}
@@ -449,7 +553,7 @@ ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 	TechnoExtData::ProcessDigitalDisplays(pThis);
 
-	if(HouseClass::IsCurrentPlayerObserver())
+	if (HouseClass::IsCurrentPlayerObserver())
 		return 0x6F6A8E;
 
 	return 0x6F6A58u;
@@ -482,7 +586,7 @@ void DrawHealthbar(TechnoClass* pTechno, Point2D* pLocation, RectangleStruct* pB
 		Point2D screen3 = TacticalClass::Instance->CoordsToScreen(difference);
 		difference.Y = -difference.Y;
 
-		int length =(screen.Y - screen2.Y) / 2;
+		int length = (screen.Y - screen2.Y) / 2;
 		int ratio_length = int(pTechno->GetHealthPercentage_() * length);
 		int drawLength = std::clamp(ratio_length, 1, length);
 		int frame = 1;
@@ -536,4 +640,50 @@ void DrawHealthbar(TechnoClass* pTechno, Point2D* pLocation, RectangleStruct* pB
 	}
 }
 
+#endif
+
+// destroying a building (no health left) resulted in a single green pip shown
+// in the health bar for a split second. this makes the last pip red.
+ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
+{
+	GET(BuildingClass*, pBld, ESI);
+	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
+}
+
+ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
+{
+	enum
+	{
+		Draw = 0x0,
+		DoNotDraw = 0x6F6ABD
+	};
+
+	GET(TechnoClass*, pThis, ECX);
+
+	const auto what = pThis->WhatAmI();
+
+	if (what == UnitClass::AbsID)
+	{
+		const auto pUnit = (UnitClass*)pThis;
+
+		if (pUnit->DeathFrameCounter > 0)
+			return DoNotDraw;
+	}
+
+	if (what == BuildingClass::AbsID)
+	{
+		const auto pBld = (BuildingClass*)pThis;
+
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+			return DoNotDraw;
+	}
+
+	if ((TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
+		|| pThis->TemporalTargetingMe
+		|| pThis->IsSinking
+	)
+		return DoNotDraw;
+
+	return Draw;
+}
 #endif

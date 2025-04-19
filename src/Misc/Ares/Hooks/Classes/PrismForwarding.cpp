@@ -5,6 +5,8 @@
 #include <Ext/BuildingType/Body.h>
 #include <ExtraHeaders/StackVector.h>
 
+HelperedVector<PrismForwarding*> PrismForwarding::Array;
+
 PrismForwardingData* PrismForwarding::GetOwnerData() const
 {
 	return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();

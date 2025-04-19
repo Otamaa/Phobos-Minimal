@@ -11,7 +11,7 @@
 class SidebarExtData final
 {
 private:
-	static OPTIONALINLINE std::unique_ptr<SidebarExtData> Data;
+	static std::unique_ptr<SidebarExtData> Data;
 
 public:
 
@@ -34,8 +34,8 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	OPTIONALINLINE static IStream* g_pStm;
-	OPTIONALINLINE static std::array<SHPReference*, 4u> TabProducingProgress;
+	static IStream* g_pStm;
+	static std::array<SHPReference*, 4u> TabProducingProgress;
 
 	static void Allocate(SidebarClass* pThis);
 	static void Remove(SidebarClass* pThis);

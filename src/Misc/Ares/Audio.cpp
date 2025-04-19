@@ -26,7 +26,7 @@ struct LooseAudioFile
 class LooseAudioCache
 {
 public:
-	static OPTIONALINLINE std::vector<LooseAudioCache> Array;
+	static std::vector<LooseAudioCache> Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
@@ -121,6 +121,7 @@ private:
 	std::string WavName;
 	LooseAudioFile Data;
 };
+std::vector<LooseAudioCache> LooseAudioCache::Array;
 
 class AudioLuggage
 {

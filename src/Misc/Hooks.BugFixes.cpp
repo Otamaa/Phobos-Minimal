@@ -2462,7 +2462,7 @@ ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
 
-DEFINE_HOOK(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
+ASMJIT_PATCH(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
 {
 	enum { ContinueCheck = 0x47EAFE, DontUnmark = 0x47EB8F };
 

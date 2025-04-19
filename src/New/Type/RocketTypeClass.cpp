@@ -1,5 +1,7 @@
 #include "RocketTypeClass.h"
 
+Enumerable<RocketTypeClass>::container_t Enumerable<RocketTypeClass>::Array;
+
 // pretty nice, eh
 const char* Enumerable<RocketTypeClass>::GetMainSection()
 {

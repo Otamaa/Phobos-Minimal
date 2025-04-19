@@ -32,8 +32,20 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->Type = pType;
 	this->Techno = pTechno;
 
-	if (pInvoker)
-		TechnoExtContainer::Instance.Find(pInvoker)->AttachedEffectInvokerCount++;
+	if (pInvoker) {
+		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
+
+		pInvokerExt->AttachedEffectInvokerCount++;
+
+		if(this->Type->Duration_ApplyFirepowerMult)
+			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+	}
+
+	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
+	{
+		const auto _value = this->Duration / pTechno->ArmorMultiplier / TechnoExtContainer::Instance.Find(pTechno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
+		this->Duration = std::max(static_cast<int>(_value), 0);
+	}
 
 	this->InvokerHouse = pInvokerHouse;
 	this->Invoker = pInvoker;
@@ -371,6 +383,20 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 		this->Duration = durationOverride;
 	else
 		this->Duration = this->DurationOverride ? this->DurationOverride : this->Type->Duration;
+
+
+	if (this->Invoker)
+	{
+		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
+
+		pInvokerExt->AttachedEffectInvokerCount++;
+
+		if (this->Type->Duration_ApplyFirepowerMult)
+			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+	}
+
+	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
+		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier), 0);
 
 	if (this->Type->Animation_ResetOnReapply)
 	{

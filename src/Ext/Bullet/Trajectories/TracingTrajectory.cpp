@@ -509,7 +509,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 				auto rotateAngle = Math::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
 
 				if (Math::abs(radius) > 1e-10)
-					rotateAngle += (pType->Trajectory_Speed / radius);
+					rotateAngle += float(pType->Trajectory_Speed / radius);
 
 				theOffset.X = static_cast<int>(radius * Math::cos(rotateAngle));
 				theOffset.Y = static_cast<int>(radius * Math::sin(rotateAngle));
@@ -532,7 +532,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 				auto rotateAngle = Math::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
 
 				if (Math::abs(radius) > 1e-10)
-					rotateAngle -= (pType->Trajectory_Speed / radius);
+					rotateAngle -= float(pType->Trajectory_Speed / radius);
 
 				theOffset.X = static_cast<int>(radius * Math::cos(rotateAngle));
 				theOffset.Y = static_cast<int>(radius * Math::sin(rotateAngle));
