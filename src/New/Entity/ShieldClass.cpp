@@ -698,16 +698,17 @@ bool ShieldClass::ConvertCheck()
 
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
-	if (!this->Type->SelfHealing_EnabledBy.empty()) {
-		for (auto const pBuilding : this->Techno->Owner->Buildings) {
-			bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
-		for (auto& pBuilding : this->Techno->Owner->Buildings) {
+	if (!this->Type->SelfHealing_EnabledBy.empty())
+	{
+		for (auto& pBuilding : this->Techno->Owner->Buildings)
+		{
 			if (!this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type))
 				continue;
 
 			const bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
 
-			if (isActive) {
+			if (isActive)
+			{
 				return SelfHealingStatus::Online;
 			}
 		}

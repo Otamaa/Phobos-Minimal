@@ -10,8 +10,6 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
-#include <New/Type/HealthBarTypeClass.h>
-
 ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
@@ -86,89 +84,8 @@ bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 	return false;
 }
 
-ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar, 0x5)
-{
-	enum { SkipDrawCode = 0x6F6ABD };
+#ifndef _OLD
 
-	GET(TechnoClass*, pThis, ECX);
-
-	auto const& [pType, pOwner] = TechnoExtData::GetDisguiseType(pThis, false, true);
-	const bool isAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
-
-	if (HideBar(pThis, pType , isAllied))
-		return SkipDrawCode;
-
-	GET_STACK(Point2D*, pLocation, 0x4);
-	GET_STACK(RectangleStruct*, pBounds, 0x8);
-	//GET_STACK(bool, drawFullyHealthBar, 0xC);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto whatAmI = pThis->WhatAmI();
-	auto pBuilding = whatAmI == BuildingClass::AbsID ? static_cast<BuildingClass*>(pThis) : nullptr;
-
-	Point2D position = *pLocation;
-	Point2D pipsAdjust = Point2D::Empty;
-	int pipsLength = 0;
-
-	HealthBarTypeClass* pHealthBar = nullptr;
-
-	if (pBuilding)
-	{
-		CoordStruct dimension {};
-		pBuilding->Type->Dimension2(&dimension);
-		dimension.X /= -2;
-		dimension.Y /= 2;
-
-		const auto drawAdjust = TacticalClass::CoordsToScreen(dimension);
-		position += drawAdjust;
-
-		dimension.Y = -dimension.Y;
-		const auto drawStart = TacticalClass::CoordsToScreen(dimension);
-
-		dimension.Z = 0;
-		dimension.Y = -dimension.Y;
-		pipsAdjust = TacticalClass::CoordsToScreen(dimension);
-
-		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->Buildings_DefaultHealthBar);
-		pipsLength = (drawAdjust.Y - drawStart.Y) >> 1;
-	}
-	else
-	{
-		pipsAdjust = Point2D { -10, 10 };
-
-		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->DefaultHealthBar);
-
-		constexpr int defaultInfantryPipsLength = 8;
-		constexpr int defaultUnitPipsLength = 17;
-		pipsLength = pHealthBar->PipsLength.Get(whatAmI == InfantryClass::AbsID ? defaultInfantryPipsLength : defaultUnitPipsLength);
-	}
-
-	const auto pShield = pExt->Shield.get();
-
-	if (pShield && pShield->IsAvailable() && !pShield->IsBrokenAndNonRespawning()) {
-		pShield->DrawShieldBar(pipsLength, &position, pBounds);
-	}
-
-	if (pBuilding)
-		TechnoExtData::DrawHealthBar(pBuilding, pHealthBar, pipsLength, &position, pBounds);
-	else
-		TechnoExtData::DrawHealthBar(pThis, pType, pHealthBar, pipsLength, &position, pBounds);
-
-	TechnoExtData::ProcessDigitalDisplays(pThis, pType ,&position);
-
-	const bool canShowPips = isAllied || pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer) || HouseClass::IsCurrentPlayerObserver();
-
-	if (canShowPips || (pBuilding && pBuilding->Type->CanBeOccupied) || pType->PipsDrawForAll)
-	{
-		Point2D pipsLocation = *pLocation + pipsAdjust;
-		pThis->DrawPipScalePips(&pipsLocation, pLocation, pBounds);
-	}
-
-	return SkipDrawCode;
-}
-
-#ifdef _OLD
 ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -731,4 +648,89 @@ ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 
 	return Draw;
 }
+#else
+
+ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar, 0x5)
+{
+	enum { SkipDrawCode = 0x6F6ABD };
+
+	GET(TechnoClass*, pThis, ECX);
+
+	auto const& [pType, pOwner] = TechnoExtData::GetDisguiseType(pThis, false, true);
+	const bool isAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+
+	if (HideBar(pThis, pType, isAllied))
+		return SkipDrawCode;
+
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBounds, 0x8);
+	//GET_STACK(bool, drawFullyHealthBar, 0xC);
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto whatAmI = pThis->WhatAmI();
+	auto pBuilding = whatAmI == BuildingClass::AbsID ? static_cast<BuildingClass*>(pThis) : nullptr;
+
+	Point2D position = *pLocation;
+	Point2D pipsAdjust = Point2D::Empty;
+	int pipsLength = 0;
+
+	HealthBarTypeClass* pHealthBar = nullptr;
+
+	if (pBuilding)
+	{
+		CoordStruct dimension {};
+		pBuilding->Type->Dimension2(&dimension);
+		dimension.X /= -2;
+		dimension.Y /= 2;
+
+		const auto drawAdjust = TacticalClass::CoordsToScreen(dimension);
+		position += drawAdjust;
+
+		dimension.Y = -dimension.Y;
+		const auto drawStart = TacticalClass::CoordsToScreen(dimension);
+
+		dimension.Z = 0;
+		dimension.Y = -dimension.Y;
+		pipsAdjust = TacticalClass::CoordsToScreen(dimension);
+
+		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->Buildings_DefaultHealthBar);
+		pipsLength = (drawAdjust.Y - drawStart.Y) >> 1;
+	}
+	else
+	{
+		pipsAdjust = Point2D { -10, 10 };
+
+		pHealthBar = pTypeExt->HealthBar.Get(RulesExtData::Instance()->DefaultHealthBar);
+
+		constexpr int defaultInfantryPipsLength = 8;
+		constexpr int defaultUnitPipsLength = 17;
+		pipsLength = pHealthBar->PipsLength.Get(whatAmI == InfantryClass::AbsID ? defaultInfantryPipsLength : defaultUnitPipsLength);
+	}
+
+	const auto pShield = pExt->Shield.get();
+
+	if (pShield && pShield->IsAvailable() && !pShield->IsBrokenAndNonRespawning())
+	{
+		pShield->DrawShieldBar(pipsLength, &position, pBounds);
+	}
+
+	if (pBuilding)
+		TechnoExtData::DrawHealthBar(pBuilding, pHealthBar, pipsLength, &position, pBounds);
+	else
+		TechnoExtData::DrawHealthBar(pThis, pType, pHealthBar, pipsLength, &position, pBounds);
+
+	TechnoExtData::ProcessDigitalDisplays(pThis, pType, &position);
+
+	const bool canShowPips = isAllied || pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer) || HouseClass::IsCurrentPlayerObserver();
+
+	if (canShowPips || (pBuilding && pBuilding->Type->CanBeOccupied) || pType->PipsDrawForAll)
+	{
+		Point2D pipsLocation = *pLocation + pipsAdjust;
+		pThis->DrawPipScalePips(&pipsLocation, pLocation, pBounds);
+	}
+
+	return SkipDrawCode;
+}
+
 #endif

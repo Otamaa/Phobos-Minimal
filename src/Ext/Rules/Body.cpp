@@ -753,8 +753,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
-	
-	this->HarvesterDumpAmount.Read(iniEX, GameStrings::General, "HarvesterDumpAmount");
+
+	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
 	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
 	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
 
