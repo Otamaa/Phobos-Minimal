@@ -10,6 +10,8 @@
 
 #include <Ext/Side/Body.h>
 
+std::vector<std::string> EVAVoices::Types;
+
 int EVAVoices::FindIndexById(const char* type)
 {
 	//Debug::LogInfo("[Phobos] Find EVAVoices Index by ID [%s]", type);

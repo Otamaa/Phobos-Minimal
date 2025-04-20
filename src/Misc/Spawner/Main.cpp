@@ -24,7 +24,18 @@
 #include <GameOptionsClass.h>
 #include <MessageBox.h>
 
+#pragma region defines
+std::list<MixFileClass*> SpawnerMain::LoadedMixFiles;
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
+SpawnerMain::Configs SpawnerMain::Configs::m_Ptr {};
+
+bool SpawnerMain::Configs::Enabled; // false
+bool SpawnerMain::Configs::Active; //false
+bool SpawnerMain::Configs::DoSave;
+int SpawnerMain::Configs::NextAutoSaveFrame { -1 };
+int SpawnerMain::Configs::NextAutoSaveNumber;
+
+#pragma endregion
 
 FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
 {
@@ -41,7 +52,6 @@ FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, st
 	}
 }
 
-SpawnerMain::Configs SpawnerMain::Configs::m_Ptr {};
 
 class NOVTABLE StaticLoadOptionsClass {
 public:
@@ -173,7 +183,7 @@ void SpawnerMain::ApplyStaticOptions()
 
 	// Set 3rd party ddraw.dll options
 	for (auto& dllData : Patch::ModuleDatas) {
-		if (IS_SAME_STR_(dllData.ModuleName.c_str(), "ddraw.dll")) {
+		if (IS_SAME_STR_I(dllData.ModuleName.c_str(), "ddraw.dll")) {
 			if (bool* gameHandlesClose = (bool*)GetProcAddress(dllData.Handle, "GameHandlesClose"))
 				*gameHandlesClose = !pMainConfigs->DDrawHandlesClose;
 
@@ -184,18 +194,7 @@ void SpawnerMain::ApplyStaticOptions()
 			break;
 		}
 	}
-
-	//if (HMODULE hDDraw = LoadLibraryA("ddraw.dll")) {
-	//
-	//	if (bool* gameHandlesClose = (bool*)GetProcAddress(hDDraw, "GameHandlesClose"))
-	//		*gameHandlesClose = !SpawnerMain::Configs::DDrawHandlesClose;
-	//
-	//	LPDWORD TargetFPS = (LPDWORD)GetProcAddress(hDDraw, "TargetFPS");
-	//	if (TargetFPS && SpawnerMain::Configs::DDrawTargetFPS != -1)
-	//		*TargetFPS = SpawnerMain::Configs::DDrawTargetFPS;
-	//}
 }
-
 
 COMPILETIMEEVAL char* PlayerSectionArray[8] = {
 	"Settings",
@@ -1188,7 +1187,7 @@ ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
 	GET(ObjectClass*, pObject, EDI);
 
 	if(auto const pBuilding = cast_to<FakeBuildingClass* const>(pObject)){
-		if (pBuilding->_GetTypeExtData()->AllowAlliesRepair) { 
+		if (pBuilding->_GetTypeExtData()->AllowAlliesRepair) {
 			return (pBuilding->Owner->IsAlliedWith(pThis))
 				? Allow
 				: DisAllow;

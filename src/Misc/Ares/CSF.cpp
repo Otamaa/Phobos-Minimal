@@ -8,6 +8,12 @@
 
 #include <Helpers/Macro.h>
 
+#pragma region defines
+int CSFLoader::CSFCount {};
+int CSFLoader::NextValueIndex {};
+std::unordered_map<std::string, CSFLoader::CSFStringStorage> CSFLoader::DynamicStrings {};
+#pragma endregion
+
 void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 {
 	//The main stringtable must have been loaded (memory allocation)

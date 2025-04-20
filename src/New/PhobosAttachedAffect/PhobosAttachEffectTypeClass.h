@@ -10,6 +10,8 @@ class PhobosAttachEffectTypeClass final : public Enumerable<PhobosAttachEffectTy
 {
 public:
 	Valueable<int> Duration;
+	Valueable<bool> Duration_ApplyFirepowerMult;
+	Valueable<bool> Duration_ApplyArmorMultOnTarget;
 	Valueable<bool> Cumulative;
 	Valueable<int> Cumulative_MaxCount;
 	Valueable<bool> Powered;
@@ -82,6 +84,8 @@ public:
 
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
+		, Duration_ApplyFirepowerMult { false }
+		, Duration_ApplyArmorMultOnTarget { false }
 		, Cumulative { false }
 		, Cumulative_MaxCount { -1 }
 		, Powered { false }
@@ -196,7 +200,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm);
 
 	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
-	OPTIONALINLINE static PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
+	static PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

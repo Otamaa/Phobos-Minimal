@@ -536,4 +536,49 @@ void DrawHealthbar(TechnoClass* pTechno, Point2D* pLocation, RectangleStruct* pB
 	}
 }
 
+
+// destroying a building (no health left) resulted in a single green pip shown
+// in the health bar for a split second. this makes the last pip red.
+ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
+{
+	GET(BuildingClass*, pBld, ESI);
+	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
+}
+
+ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
+{
+	enum
+	{
+		Draw = 0x0,
+		DoNotDraw = 0x6F6ABD
+	};
+
+	GET(TechnoClass*, pThis, ECX);
+
+	const auto what = pThis->WhatAmI();
+
+	if (what == UnitClass::AbsID)
+	{
+		const auto pUnit = (UnitClass*)pThis;
+
+		if (pUnit->DeathFrameCounter > 0)
+			return DoNotDraw;
+	}
+
+	if (what == BuildingClass::AbsID)
+	{
+		const auto pBld = (BuildingClass*)pThis;
+
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+			return DoNotDraw;
+	}
+
+	if ((TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
+		|| pThis->TemporalTargetingMe
+		|| pThis->IsSinking
+	)
+		return DoNotDraw;
+
+	return Draw;
+}
 #endif

@@ -42,18 +42,140 @@
 
 #include <Lib/asmjit/x86.h>
 
+#pragma region defines
+HANDLE Phobos::hInstance;
+char Phobos::readBuffer[readLength] {};
+wchar_t Phobos::wideBuffer[readLength] {};
+const char Phobos::readDelims[4] { "," };
+const char Phobos::readDefval[4] { "" };
+std::string Phobos::AppIconPath {};
+bool Phobos::Debug_DisplayDamageNumbers { false };
+const wchar_t* Phobos::VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
+bool Phobos::ShouldQuickSave { false };
+std::wstring Phobos::CustomGameSaveDescription {};
+PVOID Phobos::pExceptionHandler { nullptr };
+ExceptionHandlerMode Phobos::ExceptionMode { ExceptionHandlerMode::Default };
+
+bool Phobos::HasCNCnet { false };
+
+std::mt19937 Phobos::Random::_engine;
+
+bool Phobos::UI::DisableEmptySpawnPositions { false };
+bool Phobos::UI::ExtendedToolTips { false };
+int Phobos::UI::MaxToolTipWidth { 0 };
+bool Phobos::UI::ShowHarvesterCounter { false };
+double Phobos::UI::HarvesterCounter_ConditionYellow { 0.99 };
+double Phobos::UI::HarvesterCounter_ConditionRed { 0.5 };
+bool Phobos::UI::ShowProducingProgress { false };
+bool Phobos::UI::ShowPowerDelta { false };
+double Phobos::UI::PowerDelta_ConditionYellow { 0.75 };
+double Phobos::UI::PowerDelta_ConditionRed { 1.0 };
+bool Phobos::UI::CenterPauseMenuBackground { false };
+bool Phobos::UI::WeedsCounter_Show { false };
+bool Phobos::UI::UnlimitedColor { false };
+bool Phobos::UI::AnchoredToolTips { false };
+
+bool Phobos::UI::SuperWeaponSidebar { false };
+int Phobos::UI::SuperWeaponSidebar_Interval { 0 };
+int Phobos::UI::SuperWeaponSidebar_LeftOffset { 0 };
+int Phobos::UI::SuperWeaponSidebar_CameoHeight { 48 };
+int Phobos::UI::SuperWeaponSidebar_Max { 0 };
+int Phobos::UI::SuperWeaponSidebar_MaxColumns { INT32_MAX };
+
+const wchar_t* Phobos::UI::CostLabel { L"" };
+const wchar_t* Phobos::UI::PowerLabel { L"" };
+const wchar_t* Phobos::UI::PowerBlackoutLabel { L"" };
+const wchar_t* Phobos::UI::TimeLabel { L"" };
+const wchar_t* Phobos::UI::HarvesterLabel { L"" };
+const wchar_t* Phobos::UI::PercentLabel { L"" };
+
+const wchar_t* Phobos::UI::BuidingRadarJammedLabel { L"" };
+const wchar_t* Phobos::UI::BuidingFakeLabel { L"" };
+const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel { L"" };
+char Phobos::UI::ShowBriefingResumeButtonStatusLabel[0x20] { "" };
+
+const wchar_t* Phobos::UI::Power_Label { L"" };
+const wchar_t* Phobos::UI::Drain_Label { L"" };
+const wchar_t* Phobos::UI::Storage_Label { L"" };
+const wchar_t* Phobos::UI::Radar_Label { L"" };
+const wchar_t* Phobos::UI::Spysat_Label { L"" };
+
+const wchar_t* Phobos::UI::SWShotsFormat { L"" };
+
+bool Phobos::Config::HideWarning { false };
+bool Phobos::Config::ToolTipDescriptions { true };
+bool Phobos::Config::ToolTipBlur { false };
+bool Phobos::Config::PrioritySelectionFiltering { true };
+bool Phobos::Config::DevelopmentCommands { true };
+bool Phobos::Config::ArtImageSwap { false };
+bool Phobos::Config::EnableBuildingPlacementPreview { false };
+bool Phobos::Config::EnableSelectBox { false };
+bool Phobos::Config::TogglePowerInsteadOfRepair { false };
+bool Phobos::Config::ShowTechnoNamesIsActive { false };
+bool Phobos::Config::RealTimeTimers { false };
+bool Phobos::Config::RealTimeTimers_Adaptive { false };
+int Phobos::Config::CampaignDefaultGameSpeed { 2 };
+bool Phobos::Config::DigitalDisplay_Enable { false };
+bool Phobos::Config::ShowBuildingStatistics { false };
+bool Phobos::Config::ApplyShadeCountFi { true };
+bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
+bool Phobos::Config::MultiThreadSinglePlayer { false };
+bool Phobos::Config::UseImprovedPathfindingBlockageHandling { false };
+bool Phobos::Config::HideLightFlashEffects { false };
+bool Phobos::Config::DebugFatalerrorGenerateDump { false };
+bool Phobos::Config::SaveGameOnScenarioStart { true };
+bool Phobos::Config::ShowPowerDelta { true };
+bool Phobos::Config::ShowHarvesterCounter { true };
+bool Phobos::Config::ShowWeedsCounter { false };
+bool Phobos::Config::UseNewInheritance { false };
+bool Phobos::Config::UseNewIncludes { false };
+bool Phobos::Config::ApplyShadeCountFix { true };
+bool Phobos::Config::ShowFlashOnSelecting { true };
+bool Phobos::Config::AutoBuilding_Enable { false };
+bool Phobos::Config::ScrollSidebarStripInTactical { true };
+bool Phobos::Config::ScrollSidebarStripWhenHoldKey { true };
+
+bool Phobos::Config::UnitPowerDrain { false };
+
+bool Phobos::Misc::CustomGS { false };
+int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
+int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+int Phobos::Misc::CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+
+bool Phobos::Otamaa::DisableCustomRadSite { false };
+bool Phobos::Otamaa::IsAdmin { false };
+bool Phobos::Otamaa::ShowHealthPercentEnabled { false };
+bool Phobos::Otamaa::ExeTerminated { false };
+bool Phobos::Otamaa::DoingLoadGame { false };
+bool Phobos::Otamaa::AllowAIControl { false };
+bool Phobos::Otamaa::OutputMissingStrings { false };
+bool Phobos::Otamaa::OutputAudioLogs { false };
+bool Phobos::Otamaa::StrictParser { false };
+bool Phobos::Otamaa::ParserErrorDetected { false };
+bool Phobos::Otamaa::TrackParserErrors { false };
+bool Phobos::Otamaa::NoLogo { false };
+bool Phobos::Otamaa::NoCD { false };
+bool Phobos::Otamaa::CompatibilityMode { false };
+bool Phobos::Otamaa::ReplaceGameMemoryAllocator { false };
+bool Phobos::Otamaa::AllowMultipleInstance { false };
+DWORD Phobos::Otamaa::PhobosBaseAddress { false };
+
+#pragma endregion
+
 struct GraphicsRuntimeAPI
 {
 	enum class Type {
 		UNK , DX , DXGI, OGL , VK
 	};
 
-	GraphicsRuntimeAPI(const std::vector<dllData>& dlls) 
+	GraphicsRuntimeAPI(const std::vector<dllData>& dlls)
 		: name { "Unknown" }, type { Type::UNK }
 	{
 		for (auto& dll : dlls) {
 			if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
-				|| _stricmp(dll.ModuleName.c_str(), "dxgi") == 0)
+				|| IS_SAME_STR_(dll.ModuleName.c_str(), "dxgi.dll")
+				|| IS_SAME_STR_(dll.ModuleName.c_str(), "ddraw.dll")
+				)
 			{
 				name = "DirectX";
 				type = Type::DX;
@@ -131,11 +253,11 @@ void ApplyasmjitPatch() {
 			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
-			
 
 		if (sm_vec.size() > 1) {
 			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
+
 		size_t hook_size = sm_vec[0].size;
 		asmjit::CodeHolder code;
 		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
@@ -144,14 +266,15 @@ void ApplyasmjitPatch() {
 		asmjit::Label l_origin = assembly.newLabel();
 		DWORD hookSize = MaxImpl(hook_size, 5u);
 
-		for (auto& hook_fn : sm_vec) {
+		if (sm_vec.size() == 1)
+		{
 			assembly.pushad();
 			assembly.pushfd();
 			assembly.push(addr);
 			assembly.sub(asmjit::x86::esp, 4);
 			assembly.lea(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 4));
 			assembly.push(asmjit::x86::eax);
-			assembly.call(hook_fn.func);
+			assembly.call(sm_vec[0].func);
 			assembly.add(asmjit::x86::esp, 0xC);
 			assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, -8), asmjit::x86::eax);
 			assembly.popfd();
@@ -159,7 +282,8 @@ void ApplyasmjitPatch() {
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
-		
+		} else {
+			Debug::LogDeferred("remaining hook at 0x%x is ignored !\n", addr);
 		}
 
 		assembly.bind(l_origin);
@@ -228,7 +352,7 @@ void Initasmjit()
 }
 
 #ifdef EXPERIMENTAL_IMGUI
-DEFINE_HOOK(0x5D4E66, Windows_Message_Handler_Add, 0x7)
+ASMJIT_PATCH(0x5D4E66, Windows_Message_Handler_Add, 0x7)
 {
 	PhobosWindowClass::Callback();
 	return 0x0;
@@ -621,7 +745,7 @@ static std::string GetOsVersionQuick()
 			}
 		}
 	}
-	
+
 	if (!bHaveVerFromKernel32 && !bHaveVerFromRtlGetVersion)
 		aVer += "unknown";
 
@@ -840,7 +964,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		DisableThreadLibraryCalls((HMODULE)hInstance);
 		TheMemoryPoolCriticalSection = &critSec4;
 		TheDmaCriticalSection = &critSec3;
-		
+
 		Mem::preMainInitMemoryManager();
 
 		Phobos::hInstance = hInstance;
@@ -888,13 +1012,13 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			begin->Apply();
 		}
 
-		Debug::LogDeferred("Applying %d Static Patches.\n", std::distance((_patch*)buffer,end));
+		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer,end));
 		len = Patch::GetSection(hInstance, ".syhks00", &buffer);
 
 		Initasmjit();
 
 		//hookdecl
-		Debug::LogDeferred("Total %d hooks applied.\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
+		Debug::LogDeferred("Applying %d Syringe hook(s).\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
 
 		Phobos::ExecuteLua();
 
@@ -965,7 +1089,7 @@ ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 		{
 			Debug::Log("Saving Game [Filename : %s , UI : %s , LoadedUI : %ls]",
 			ScenarioClass::Instance->FileName,
-			ScenarioClass::Instance->UIName, 
+			ScenarioClass::Instance->UIName,
 			ScenarioClass::Instance->UINameLoaded
 			);
 			return InitialSave;
@@ -987,6 +1111,8 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 
+//syringe wont inject the dll unless it got atleast one hook
+//so i keep this
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 	Phobos::ExeRun();

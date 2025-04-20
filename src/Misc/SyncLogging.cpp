@@ -9,6 +9,21 @@
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
+#pragma region defines
+SyncLogEventBuffer<RNGCallSyncLogEvent, RNGCalls_Size> SyncLogger::RNGCalls;
+SyncLogEventBuffer<FacingChangeSyncLogEvent, FacingChanges_Size> SyncLogger::FacingChanges;
+SyncLogEventBuffer<TargetChangeSyncLogEvent, TargetChanges_Size> SyncLogger::TargetChanges;
+SyncLogEventBuffer<TargetChangeSyncLogEvent, DestinationChanges_Size> SyncLogger::DestinationChanges;
+SyncLogEventBuffer<MissionOverrideSyncLogEvent, MissionOverrides_Size> SyncLogger::MissionOverrides;
+SyncLogEventBuffer<AnimCreationSyncLogEvent, AnimCreations_Size> SyncLogger::AnimCreations;
+
+bool SyncLogger::HooksDisabled;
+int SyncLogger::AnimCreations_HighestX;
+int SyncLogger::AnimCreations_HighestY;
+int SyncLogger::AnimCreations_HighestZ;
+
+#pragma endregion
+
 static COMPILETIMEEVAL void FORCEDINLINE MakeCallerRelative(unsigned int& caller)
 {
 	// B for Bobos

@@ -58,8 +58,8 @@ static Component* CreateComponent(const std::string name) {
 		return c; \
 	} \
 	\
-	OPTIONALINLINE static std::string ScriptName = #CLASS_NAME; \
+	static std::string ScriptName = #CLASS_NAME; \
 	\
-	OPTIONALINLINE static bool g_temp_##CLASS_NAME = ComponentFactory::Instance.Register(#CLASS_NAME, CLASS_NAME::Create); \
+	static bool g_temp_##CLASS_NAME = ComponentFactory::Instance.Register(#CLASS_NAME, CLASS_NAME::Create); \
 	\
-	OPTIONALINLINE static std::vector<CLASS_NAME*> Pool{}; \
+	static std::vector<CLASS_NAME*> Pool{}; \

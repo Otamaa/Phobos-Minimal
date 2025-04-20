@@ -16,8 +16,8 @@ class CustomCCINIClass : public CCINIClass
 public:
 	static inline std::string encryptionKey { "ThisIstTheKey" }; // Example key
 
-	// Xor method is easy to implement 
-	// there will be more encryption support in the future 
+	// Xor method is easy to implement
+	// there will be more encryption support in the future
 	// experimental for now
 	static NOINLINE void xorEncryptDecrypt(std::vector<char>& buffer, const std::string& key)
 	{
@@ -38,7 +38,7 @@ public:
 			// Read the file into a buffer.
 			size_t fileSize = pFile->GetFileSize();
 			std::vector<char> buffer(fileSize + 1, 0);
-			if (pFile->ReadBytes(buffer.data(), fileSize) == fileSize) {
+			if ((size_t)pFile->ReadBytes(buffer.data(), fileSize) == fileSize) {
 				GameDelete<true, false>(pFile);
 				xorEncryptDecrypt(buffer, encryptionKey); // encrypt the buffer
 				xorEncryptDecrypt(buffer, encryptionKey); // decrypt the buffer

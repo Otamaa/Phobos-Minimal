@@ -11,6 +11,10 @@
 
 #include <Helpers/Macro.h>
 
+#pragma region defines
+LatencyLevelEnum LatencyLevel::CurentLatencyLevel { LatencyLevelEnum::LATENCY_LEVEL_INITIAL };
+uint8_t LatencyLevel::NewFrameSendRate { 3 };
+#pragma endregion
 
 void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 {

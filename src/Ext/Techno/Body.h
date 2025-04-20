@@ -758,8 +758,8 @@ public:
 	}
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { 
-		this->Serialize(Stm); 
+	void SaveToStream(PhobosStreamWriter& Stm) {
+		this->Serialize(Stm);
 	}
 
 	void InitializeConstant();
@@ -1040,7 +1040,7 @@ public:
 	static void ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, WarheadTypeClass* pWH);
 
 public:
-	static OPTIONALINLINE UnitClass* Deployer { nullptr };
+	static UnitClass* Deployer;
 
 };
 

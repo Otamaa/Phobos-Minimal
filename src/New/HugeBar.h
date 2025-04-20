@@ -7,7 +7,7 @@ class HugeBar
 {
 private:
 
-	OPTIONALINLINE static std::vector<TechnoClass*> Technos;
+	static std::vector<TechnoClass*> Technos;
 
 public:
 

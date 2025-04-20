@@ -64,7 +64,7 @@ struct NOVTABLE
 	static void ApplyStatic();
 	void Apply();
 
-	OPTIONALINLINE static std::vector<dllData> ModuleDatas {};
+	static std::vector<dllData> ModuleDatas;
 
 	//template<typename TFrom, typename To>
 	//static OPTIONALINLINE void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -173,8 +173,8 @@ struct NOVTABLE
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
 public :
-	OPTIONALINLINE static HANDLE CurrentProcess;
-	OPTIONALINLINE static std::string WindowsVersion;
+	static HANDLE CurrentProcess;
+	static std::string WindowsVersion;
 };
 
 struct NOVTABLE

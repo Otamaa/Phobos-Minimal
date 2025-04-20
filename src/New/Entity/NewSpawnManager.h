@@ -8,7 +8,7 @@ class DECLSPEC_UUID("5230C9A8-846A-47EC-BDA2-7E99445E1D49")
 	NewSpawnManagerClass : public AbstractClass
 {
 public:
-	OPTIONALINLINE static DynamicVectorClass<NewSpawnManagerClass*> Array;
+	static DynamicVectorClass<NewSpawnManagerClass*> Array;
 
 	struct SpawnControl
 	{

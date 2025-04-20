@@ -32,11 +32,11 @@ class EventClass;
 struct SpawnerMain
 {
 	struct Configs {
-		static OPTIONALINLINE bool Enabled; // false
-		static OPTIONALINLINE bool Active; //false
-		static OPTIONALINLINE bool DoSave;
-		static OPTIONALINLINE int NextAutoSaveFrame { -1 };
-		static OPTIONALINLINE int NextAutoSaveNumber;
+		static bool Enabled; // false
+		static bool Active; //false
+		static bool DoSave;
+		static int NextAutoSaveFrame;
+		static int NextAutoSaveNumber;
 
 	public:
 
@@ -315,7 +315,7 @@ struct SpawnerMain
 		void LoadFromINIFile(CCINIClass* pINI);
 	};
 
-	OPTIONALINLINE static std::list<MixFileClass*> LoadedMixFiles;
+	static std::list<MixFileClass*> LoadedMixFiles;
 
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();

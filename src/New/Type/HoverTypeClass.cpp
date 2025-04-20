@@ -1,5 +1,6 @@
 #include "HoverTypeClass.h"
 
+Enumerable<HoverTypeClass>::container_t Enumerable<HoverTypeClass>::Array;
 
 const char* Enumerable<HoverTypeClass>::GetMainSection()
 {

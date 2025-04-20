@@ -28,7 +28,7 @@ class SelectBoxTypeClass;
 class RulesExtData final
 {
 private:
-	OPTIONALINLINE static std::unique_ptr<RulesExtData> Data;
+	static std::unique_ptr<RulesExtData> Data;
 
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x12341234;
@@ -531,7 +531,7 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	OPTIONALINLINE static IStream* g_pStm;
+	static IStream* g_pStm;
 
 	static void Allocate(RulesClass* pThis);
 	static void Remove(RulesClass* pThis);

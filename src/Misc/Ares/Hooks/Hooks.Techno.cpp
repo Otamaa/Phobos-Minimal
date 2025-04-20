@@ -1279,14 +1279,6 @@ ASMJIT_PATCH(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
 	return 0x711A00;
 }
 
-// destroying a building (no health left) resulted in a single green pip shown
-// in the health bar for a split second. this makes the last pip red.
-ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
-{
-	GET(BuildingClass*, pBld, ESI);
-	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
-}
-
 //TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 

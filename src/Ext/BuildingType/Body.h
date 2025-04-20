@@ -217,11 +217,6 @@ public:
 
 	Valueable<bool> Destroyed_CreateSmudge { true };
 
-	//Valueable<BuildingTypeClass*> LaserFenceType { nullptr };
-	//Nullable<BuildingTypeClass*> LaserFenceWEType { };
-	//ValueableVector<BuildingTypeClass*> LaserFencePostLinks { };
-	//Valueable<short> LaserFenceDirection {};
-
 	// #218 Specific Occupiers
 	ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
 	ValueableVector<InfantryTypeClass*> DisallowedOccupiers {};

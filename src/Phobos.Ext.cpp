@@ -54,7 +54,7 @@
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
-#include <New/Type/BarTypeClass.h>
+#include <New/Type/HealthBarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 

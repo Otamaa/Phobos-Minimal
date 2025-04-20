@@ -40,7 +40,7 @@ struct Phobos final
 		}
 
 	private:
-		OPTIONALINLINE static std::mt19937 _engine {};
+		static std::mt19937 _engine;
 	};
 
 	static void CmdLineParse(char**, int);
@@ -59,149 +59,147 @@ struct Phobos final
 	static void PassiveSaveGame();
 
 	//variables
-	static OPTIONALINLINE HANDLE hInstance;
-	static OPTIONALINLINE COMPILETIMEEVAL size_t readLength = 2048;
-	static OPTIONALINLINE char readBuffer[readLength] {};
-	static OPTIONALINLINE wchar_t wideBuffer[readLength]  {};
-	static OPTIONALINLINE const char readDelims[4] { "," };
-	static OPTIONALINLINE const char readDefval[4] { "" };
-	static OPTIONALINLINE std::string AppIconPath {};
-	static OPTIONALINLINE bool Debug_DisplayDamageNumbers { false };
-	static OPTIONALINLINE const wchar_t* VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
-	static OPTIONALINLINE bool ShouldQuickSave { false };
-	static OPTIONALINLINE std::wstring CustomGameSaveDescription {};
-	static OPTIONALINLINE PVOID pExceptionHandler { nullptr };
-	static OPTIONALINLINE ExceptionHandlerMode ExceptionMode { ExceptionHandlerMode::Default };
+	static HANDLE hInstance;
+	static OPTIONALINLINE COMPILETIMEEVAL size_t readLength { 2048 }; // this variable can be used anywhere , keep the inline
+	static char readBuffer[readLength];
+	static wchar_t wideBuffer[readLength] ;
+	static const char readDelims[4];
+	static const char readDefval[4];
+	static std::string AppIconPath;
+	static bool Debug_DisplayDamageNumbers;
+	static const wchar_t* VersionDescription;
+	static bool ShouldQuickSave;
+	static std::wstring CustomGameSaveDescription;
+	static PVOID pExceptionHandler;
+	static ExceptionHandlerMode ExceptionMode;
 
-	static OPTIONALINLINE bool HasCNCnet { false };
-	//static OPTIONALINLINE std::vector<Patch*> Patches {};
+	static bool HasCNCnet;
 
 	struct UI
 	{
-		static OPTIONALINLINE bool DisableEmptySpawnPositions { false };
-		static OPTIONALINLINE bool ExtendedToolTips { false };
-		static OPTIONALINLINE int MaxToolTipWidth { 0 };
-		static OPTIONALINLINE bool ShowHarvesterCounter { false };
-		static OPTIONALINLINE double HarvesterCounter_ConditionYellow { 0.99 };
-		static OPTIONALINLINE double HarvesterCounter_ConditionRed { 0.5 };
-		static OPTIONALINLINE bool ShowProducingProgress { false };
-		static OPTIONALINLINE bool ShowPowerDelta { false };
-		static OPTIONALINLINE double PowerDelta_ConditionYellow { 0.75 };
-		static OPTIONALINLINE double PowerDelta_ConditionRed { 1.0 };
-		static OPTIONALINLINE bool CenterPauseMenuBackground { false };
-		static OPTIONALINLINE bool WeedsCounter_Show { false };
-		static OPTIONALINLINE bool UnlimitedColor { false };
-		static OPTIONALINLINE bool AnchoredToolTips { false };
+		static bool DisableEmptySpawnPositions;
+		static bool ExtendedToolTips;
+		static int MaxToolTipWidth;
+		static bool ShowHarvesterCounter;
+		static double HarvesterCounter_ConditionYellow;
+		static double HarvesterCounter_ConditionRed;
+		static bool ShowProducingProgress;
+		static bool ShowPowerDelta;
+		static double PowerDelta_ConditionYellow;
+		static double PowerDelta_ConditionRed;
+		static bool CenterPauseMenuBackground;
+		static bool WeedsCounter_Show;
+		static bool UnlimitedColor;
+		static bool AnchoredToolTips;
 
-		static OPTIONALINLINE bool SuperWeaponSidebar { false };
-		static OPTIONALINLINE int SuperWeaponSidebar_Interval { 0 };
-		static OPTIONALINLINE int SuperWeaponSidebar_LeftOffset { 0 };
-		static OPTIONALINLINE int SuperWeaponSidebar_CameoHeight { 48 };
-		static OPTIONALINLINE int SuperWeaponSidebar_Max { 0 };
-		static OPTIONALINLINE int SuperWeaponSidebar_MaxColumns { INT32_MAX};
+		static bool SuperWeaponSidebar;
+		static int SuperWeaponSidebar_Interval;
+		static int SuperWeaponSidebar_LeftOffset;
+		static int SuperWeaponSidebar_CameoHeight;
+		static int SuperWeaponSidebar_Max;
+		static int SuperWeaponSidebar_MaxColumns;
 
-		static OPTIONALINLINE const wchar_t* CostLabel { L"" };
-		static OPTIONALINLINE const wchar_t* PowerLabel { L"" };
-		static OPTIONALINLINE const wchar_t* PowerBlackoutLabel { L"" };
-		static OPTIONALINLINE const wchar_t* TimeLabel { L"" };
-		static OPTIONALINLINE const wchar_t* HarvesterLabel { L"" };
-		static OPTIONALINLINE const wchar_t* PercentLabel { L"" };
+		static const wchar_t* CostLabel;
+		static const wchar_t* PowerLabel;
+		static const wchar_t* PowerBlackoutLabel;
+		static const wchar_t* TimeLabel;
+		static const wchar_t* HarvesterLabel;
+		static const wchar_t* PercentLabel;
 
-		static OPTIONALINLINE const wchar_t* BuidingRadarJammedLabel{ L"" };
-		static OPTIONALINLINE const wchar_t* BuidingFakeLabel{ L"" };
-		static OPTIONALINLINE const wchar_t* ShowBriefingResumeButtonLabel { L"" };
-		static OPTIONALINLINE char ShowBriefingResumeButtonStatusLabel[0x20] { "" };
+		static const wchar_t* BuidingRadarJammedLabel;
+		static const wchar_t* BuidingFakeLabel;
+		static const wchar_t* ShowBriefingResumeButtonLabel;
+		static char ShowBriefingResumeButtonStatusLabel[0x20];
 
-		static OPTIONALINLINE const wchar_t* Power_Label { L"" };
-		static OPTIONALINLINE const wchar_t* Drain_Label { L"" };
-		static OPTIONALINLINE const wchar_t* Storage_Label { L"" };
-		static OPTIONALINLINE const wchar_t* Radar_Label { L"" };
-		static OPTIONALINLINE const wchar_t* Spysat_Label { L"" };
+		static const wchar_t* Power_Label;
+		static const wchar_t* Drain_Label;
+		static const wchar_t* Storage_Label;
+		static const wchar_t* Radar_Label;
+		static const wchar_t* Spysat_Label;
 
-		static OPTIONALINLINE const wchar_t* SWShotsFormat { L"" };
-
+		static const wchar_t* SWShotsFormat;
 	};
 
 	struct Config
 	{
 		static void Read();
 
-		static OPTIONALINLINE bool HideWarning { false };
-		static OPTIONALINLINE bool ToolTipDescriptions { true };
-		static OPTIONALINLINE bool ToolTipBlur { false };
-		static OPTIONALINLINE bool PrioritySelectionFiltering { true };
-		static OPTIONALINLINE bool DevelopmentCommands { true };
-		static OPTIONALINLINE bool ArtImageSwap { false };
+		static bool HideWarning;
+		static bool ToolTipDescriptions;
+		static bool ToolTipBlur;
+		static bool PrioritySelectionFiltering;
+		static bool DevelopmentCommands;
+		static bool ArtImageSwap;
 
-		static OPTIONALINLINE bool EnableBuildingPlacementPreview { false };
-		static OPTIONALINLINE bool EnableSelectBox { false };
+		static bool EnableBuildingPlacementPreview;
+		static bool EnableSelectBox;
 
-		static OPTIONALINLINE bool TogglePowerInsteadOfRepair { false };
-		static OPTIONALINLINE bool ShowTechnoNamesIsActive { false };
+		static bool TogglePowerInsteadOfRepair;
+		static bool ShowTechnoNamesIsActive;
 
-		static OPTIONALINLINE bool RealTimeTimers { false };
-		static OPTIONALINLINE bool RealTimeTimers_Adaptive { false };
-		static OPTIONALINLINE int CampaignDefaultGameSpeed { 2 };
+		static bool RealTimeTimers;
+		static bool RealTimeTimers_Adaptive;
+		static int CampaignDefaultGameSpeed;
 
-		static OPTIONALINLINE bool DigitalDisplay_Enable { false };
-		static OPTIONALINLINE bool ShowBuildingStatistics { false };
+		static bool DigitalDisplay_Enable;
+		static bool ShowBuildingStatistics;
 
-		static OPTIONALINLINE bool ApplyShadeCountFi { true };
+		static bool ApplyShadeCountFi;
 
-		static OPTIONALINLINE bool SaveVariablesOnScenarioEnd { false };
+		static bool SaveVariablesOnScenarioEnd;
 
-		static OPTIONALINLINE bool MultiThreadSinglePlayer { false };
-		static OPTIONALINLINE bool UseImprovedPathfindingBlockageHandling { false };
-		static OPTIONALINLINE bool HideLightFlashEffects { false };
+		static bool MultiThreadSinglePlayer;
+		static bool UseImprovedPathfindingBlockageHandling;
+		static bool HideLightFlashEffects;
 
-		static OPTIONALINLINE bool DebugFatalerrorGenerateDump { false };
-		static OPTIONALINLINE bool SaveGameOnScenarioStart { true };
+		static bool DebugFatalerrorGenerateDump;
+		static bool SaveGameOnScenarioStart;
 
-		static OPTIONALINLINE bool ShowPowerDelta { true };
-		static OPTIONALINLINE bool ShowHarvesterCounter { true };
-		static OPTIONALINLINE bool ShowWeedsCounter { false };
+		static bool ShowPowerDelta;
+		static bool ShowHarvesterCounter;
+		static bool ShowWeedsCounter;
 
-		static OPTIONALINLINE bool UseNewInheritance { false };
-		static OPTIONALINLINE bool UseNewIncludes { false };
-		static OPTIONALINLINE bool ApplyShadeCountFix { true };
-		static OPTIONALINLINE bool ShowFlashOnSelecting { true };
-		
-		static OPTIONALINLINE bool AutoBuilding_Enable { false };
+		static bool UseNewInheritance;
+		static bool UseNewIncludes;
+		static bool ApplyShadeCountFix;
+		static bool ShowFlashOnSelecting;
 
-		static OPTIONALINLINE bool ScrollSidebarStripInTactical { true };
-		static OPTIONALINLINE bool ScrollSidebarStripWhenHoldKey { true };
+		static bool AutoBuilding_Enable;
 
-		static OPTIONALINLINE bool UnitPowerDrain { false };
+		static bool ScrollSidebarStripInTactical;
+		static bool ScrollSidebarStripWhenHoldKey;
+
+		static bool UnitPowerDrain;
 	};
 
 	struct Misc
 	{
-		static OPTIONALINLINE bool CustomGS { false };
-		static OPTIONALINLINE int CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
-		static OPTIONALINLINE int CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
-		static OPTIONALINLINE int CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+		static bool CustomGS;
+		static int CustomGS_ChangeInterval[7];
+		static int CustomGS_ChangeDelay[7];
+		static int CustomGS_DefaultDelay[7];
 	};
 
 	struct Otamaa
 	{
-		static OPTIONALINLINE bool DisableCustomRadSite { false };
-		static OPTIONALINLINE bool IsAdmin { false };
-		static OPTIONALINLINE bool ShowHealthPercentEnabled { false };
-		static OPTIONALINLINE bool ExeTerminated { false };
-		static OPTIONALINLINE bool DoingLoadGame { false };
-		static OPTIONALINLINE bool AllowAIControl { false };
-		static OPTIONALINLINE bool OutputMissingStrings { false };
-		static OPTIONALINLINE bool OutputAudioLogs { false };
-		static OPTIONALINLINE bool StrictParser { false };
-		static OPTIONALINLINE bool ParserErrorDetected { false };
-		static OPTIONALINLINE bool TrackParserErrors { false };
-		static OPTIONALINLINE bool NoLogo { false };
-		static OPTIONALINLINE bool NoCD { false };
-		static OPTIONALINLINE bool CompatibilityMode { false };
-		static OPTIONALINLINE bool ReplaceGameMemoryAllocator { false };
-		static OPTIONALINLINE bool AllowMultipleInstance { false };
-
-		static OPTIONALINLINE DWORD PhobosBaseAddress { false };
+		static bool DisableCustomRadSite;
+		static bool IsAdmin;
+		static bool ShowHealthPercentEnabled;
+		static bool ExeTerminated;
+		static bool DoingLoadGame;
+		static bool AllowAIContro;
+		static bool OutputMissingStrings;
+		static bool OutputAudioLogs;
+		static bool StrictParser;
+		static bool ParserErrorDetected;
+		static bool TrackParserErrors;
+		static bool NoLogo;
+		static bool NoCD;
+		static bool CompatibilityMode;
+		static bool ReplaceGameMemoryAllocator;
+		static bool AllowMultipleInstance;
+		static bool AllowAIControl;
+		static DWORD PhobosBaseAddress;
 	};
 
 	struct Defines

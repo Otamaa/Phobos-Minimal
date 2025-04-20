@@ -5,6 +5,8 @@
 #include <Utilities/TemplateDef.h>
 #include "Utilities/Debug.h"
 
+Enumerable<TechTreeTypeClass>::container_t Enumerable<TechTreeTypeClass>::Array;
+
 template<>
 const char* Enumerable<TechTreeTypeClass>::GetMainSection()
 {

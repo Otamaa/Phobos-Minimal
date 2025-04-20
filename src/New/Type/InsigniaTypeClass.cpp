@@ -1,5 +1,7 @@
 #include "InsigniaTypeClass.h"
 
+Enumerable<InsigniaTypeClass>::container_t Enumerable<InsigniaTypeClass>::Array;
+
 template<>
 const char* Enumerable<InsigniaTypeClass>::GetMainSection() { return "InsigniaTypes"; }
 

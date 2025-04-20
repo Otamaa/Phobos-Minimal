@@ -19,6 +19,31 @@
 
 #include <Utilities/Cast.h>
 
+#pragma region defines
+std::vector<int> HouseExtData::AIProduction_CreationFrames;
+std::vector<int> HouseExtData::AIProduction_Values;
+std::vector<int> HouseExtData::AIProduction_BestChoices;
+std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
+PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
+HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
+
+int HouseExtData::LastGrindingBlanceUnit;
+int HouseExtData::LastGrindingBlanceInf;
+int HouseExtData::LastHarvesterBalance;
+int HouseExtData::LastSlaveBalance;
+
+CDTimerClass HouseExtData::CloakEVASpeak;
+CDTimerClass HouseExtData::SubTerraneanEVASpeak;
+
+bool HouseExtData::IsAnyFirestormActive;
+
+
+HouseClass* HouseExtContainer::Civilian = nullptr;
+HouseClass* HouseExtContainer::Special = nullptr;
+HouseClass* HouseExtContainer::Neutral = nullptr;
+
+#pragma endregion
+
 void HouseExtData::InitializeConstant()
 {
 	//BuiltAircraftTypes.PopulateCounts(10000);
@@ -343,7 +368,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem)
 {
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pItem);
-	
+
 	if (pExt->FactoryOwners.empty() && pExt->FactoryOwners_Forbidden.empty())
 		return true;// no check needed
 
@@ -351,7 +376,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 	bool isAvaible = false; // assiume it is not available
 
 	for (auto& gather : pHouseExt->FactoryOwners_GatheredPlansOf) {
-			
+
 		for(auto& f_Owner : pExt->FactoryOwners){
 			if (f_Owner == gather) {
 				isAvaible = true; // one check pass
@@ -370,7 +395,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 
 	if (!isAvaible)
 	{ //cant found avaible plan
-	
+
 		const auto whatItem = pItem->WhatAmI();
 		for (auto const& pBld : pHouse->Buildings)
 		{
@@ -400,7 +425,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 		}
 	}
 
-	//FactoryOwners empty , so it should return true 
+	//FactoryOwners empty , so it should return true
 	// otherwise we use isAvaible to check if we found any factory
 	return pExt->FactoryOwners.empty() ? true : isAvaible;
 }
@@ -960,9 +985,6 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 	return MapClass::Instance->TryGetCellAt(cellStruct);
 }
 
-HouseClass* HouseExtContainer::Civilian = nullptr;
-HouseClass* HouseExtContainer::Special = nullptr;
-HouseClass* HouseExtContainer::Neutral = nullptr;
 
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
@@ -2349,7 +2371,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 	if (!allowed)
 		return false;
 
-	//the fuck ? 
+	//the fuck ?
 	//always target ground
 	if (pTechno->InWhichLayer() == Layer::Ground) {
 		return true;

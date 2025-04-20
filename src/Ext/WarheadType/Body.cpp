@@ -22,6 +22,11 @@
 #include <InfantryClass.h>
 #include <TerrainClass.h>
 
+#pragma region defines
+PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
+
+#pragma endregion
+
 void WarheadTypeExtData::InitializeConstant()
 {
 	this->AttachedEffect.Owner = this->AttachedToObject;

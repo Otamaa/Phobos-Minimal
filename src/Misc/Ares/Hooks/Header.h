@@ -84,41 +84,41 @@ struct ShakeScreenHandle
 
 struct AresGlobalData {
 
-	static OPTIONALINLINE DWORD InternalVersion { 0x1414D121 };
-	static OPTIONALINLINE char ModName[0x40] { "Yuri's Revenge" };
-	static OPTIONALINLINE char ModVersion[0x40] { "1.001" };
-	static OPTIONALINLINE int ModIdentifier;
-	static OPTIONALINLINE CSFText ModNote;
-	static OPTIONALINLINE byte GFX_DX_Force ;
-	static OPTIONALINLINE int colorCount { 8 };
-	static OPTIONALINLINE int version;
+	static DWORD InternalVersion;
+	static char ModName[0x40];
+	static char ModVersion[0x40];
+	static int ModIdentifier;
+	static CSFText ModNote;
+	static byte GFX_DX_Force ;
+	static int colorCount;
+	static int version;
 
-	static OPTIONALINLINE int uiColorText;
-	static OPTIONALINLINE int uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt
-	static OPTIONALINLINE int uiColorTextCheckbox;
-	static OPTIONALINLINE int uiColorTextRadio;
-	static OPTIONALINLINE int uiColorTextLabel { 0xFFFF }; // #1644: needed for CD prompt
-	static OPTIONALINLINE int uiColorTextList;
-	static OPTIONALINLINE int uiColorTextCombobox;
-	static OPTIONALINLINE int uiColorTextGroupbox;
-	static OPTIONALINLINE int uiColorTextEdit;
-	static OPTIONALINLINE int uiColorTextSlider;
-	static OPTIONALINLINE int uiColorTextObserver;
-	static OPTIONALINLINE int uiColorCaret;
-	static OPTIONALINLINE int uiColorSelection;
-	static OPTIONALINLINE int uiColorSelectionCombobox;
-	static OPTIONALINLINE int uiColorSelectionList;
-	static OPTIONALINLINE int uiColorSelectionObserver;
-	static OPTIONALINLINE int uiColorBorder1;
-	static OPTIONALINLINE int uiColorBorder2;
-	static OPTIONALINLINE int uiColorDisabled;
-	static OPTIONALINLINE int uiColorDisabledLabel;
-	static OPTIONALINLINE int uiColorDisabledButton;
-	static OPTIONALINLINE int uiColorDisabledCombobox;
-	static OPTIONALINLINE int uiColorDisabledCheckbox;
-	static OPTIONALINLINE int uiColorDisabledList;
-	static OPTIONALINLINE int uiColorDisabledSlider;
-	static OPTIONALINLINE int uiColorDisabledObserver;
+	static int uiColorText;
+	static int uiColorTextButton; // #1644: needed for CD prompt
+	static int uiColorTextCheckbox;
+	static int uiColorTextRadio;
+	static int uiColorTextLabel; // #1644: needed for CD prompt
+	static int uiColorTextList;
+	static int uiColorTextCombobox;
+	static int uiColorTextGroupbox;
+	static int uiColorTextEdit;
+	static int uiColorTextSlider;
+	static int uiColorTextObserver;
+	static int uiColorCaret;
+	static int uiColorSelection;
+	static int uiColorSelectionCombobox;
+	static int uiColorSelectionList;
+	static int uiColorSelectionObserver;
+	static int uiColorBorder1;
+	static int uiColorBorder2;
+	static int uiColorDisabled;
+	static int uiColorDisabledLabel;
+	static int uiColorDisabledButton;
+	static int uiColorDisabledCombobox;
+	static int uiColorDisabledCheckbox;
+	static int uiColorDisabledList;
+	static int uiColorDisabledSlider;
+	static int uiColorDisabledObserver;
 
 	struct ColorData
 	{
@@ -129,19 +129,19 @@ struct AresGlobalData {
 		const wchar_t* sttToolTipSublineText;
 	};
 
-	static OPTIONALINLINE ColorData Colors[16 + 1];
+	static ColorData Colors[16 + 1];
 
 	static void ReadAresRA2MD(CCINIClass* Ini);
 	static void ReadAresRA2MD();
 };
 
 struct StaticVars {
-	static OPTIONALINLINE PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
-	static OPTIONALINLINE std::vector<unsigned char> ShpCompression1Buffer;
-	static OPTIONALINLINE std::map<const TActionClass*, int> TriggerCounts;
-	static OPTIONALINLINE UniqueGamePtrC<MixFileClass> aresMIX;
-	static OPTIONALINLINE std::string MovieMDINI { "MOVIEMD.INI" };
-	static OPTIONALINLINE WaveColorData TempColor;
+	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static std::vector<unsigned char> ShpCompression1Buffer;
+	static std::map<const TActionClass*, int> TriggerCounts;
+	static UniqueGamePtrC<MixFileClass> aresMIX;
+	static std::string MovieMDINI;
+	static WaveColorData TempColor;
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -528,8 +528,8 @@ public:
 		bool AllowShourd;
 	};
 
-	OPTIONALINLINE static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
-	OPTIONALINLINE static DynamicVectorClass<BuildType,DllAllocator<BuildType>> TabCameos[4u];
+	static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
+	static DynamicVectorClass<BuildType,DllAllocator<BuildType>> TabCameos[4u];
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{

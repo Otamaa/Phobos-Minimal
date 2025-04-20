@@ -157,7 +157,6 @@ int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 	return look->Get(pType->GetRepairStep());
 }
 
-
 static reference<RectangleStruct, 0x87F8D4> const MapSize {};
 
 COMPILETIMEEVAL int GetMapSizeTotals()
@@ -469,6 +468,7 @@ void TiberiumExtData::Serialize(T& Stm)
 }
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
+PhobosMap<OverlayTypeClass*, TiberiumClass*> TiberiumExtContainer::LinkedType;
 
 bool TiberiumExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {

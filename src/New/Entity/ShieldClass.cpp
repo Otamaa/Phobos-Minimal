@@ -19,6 +19,8 @@
 #include <RadarEventClass.h>
 #include <TacticalClass.h>
 
+HelperedVector<ShieldClass*> ShieldClass::Array;
+
 ShieldClass::~ShieldClass()
 {
 	this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);

@@ -41,6 +41,10 @@
 
 #include <memory>
 
+#pragma region defines
+UnitClass* TechnoExtData::Deployer { nullptr };
+#pragma endregion
+
 TechnoExtData::~TechnoExtData()
 {
 	if (!Phobos::Otamaa::ExeTerminated)
@@ -155,7 +159,7 @@ void TechnoExtData::UpdateGattlingRateDownReset()
 	{
 		const auto pThis = this->AttachedToObject;
 
-		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset 
+		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset
 				&& (!pThis->Target || this->LastTargetID != pThis->Target->UniqueID))
 		{
 			this->LastTargetID = pThis->Target ? pThis->Target->UniqueID : 0xFFFFFFFF;
@@ -201,14 +205,14 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)) {
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-		}	
+		}
 	}
 
 	// KillWeapon.OnFirer must have a source
 	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)){
 			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
-		}		
+		}
 	}
 }
 

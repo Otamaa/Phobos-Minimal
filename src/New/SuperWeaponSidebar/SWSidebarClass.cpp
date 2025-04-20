@@ -13,6 +13,8 @@
 
 // =============================
 // functions
+std::unique_ptr<SWSidebarClass> SWSidebarClass::Instance;
+CommandClass* SWSidebarClass::Commands[10];
 
 bool SWSidebarClass::AddColumn()
 {
@@ -83,7 +85,7 @@ bool SWSidebarClass::AddButton(int superIdx)
 			return button->SuperIndex == superIdx;
 		});
 	})
-	) { 
+	) {
 		return true;
 	}
 
@@ -208,7 +210,7 @@ ASMJIT_PATCH(0x4F92FB, HouseClass_UpdateTechTree_SWSidebar, 0x7)
 
 	pHouse->UpdateSuperWeaponsUnavailable();
 
-	if (Phobos::UI::SuperWeaponSidebar && 
+	if (Phobos::UI::SuperWeaponSidebar &&
 		pHouse->IsCurrentPlayer())
 	{
 		for (const auto& column : SWSidebarClass::Global()->Columns)

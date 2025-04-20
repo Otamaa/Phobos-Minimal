@@ -10,6 +10,11 @@
 
 #include <EBolt.h>
 
+#pragma region defines 
+int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
+PhobosMap<EBolt*, WeaponTypeExtData::EBoltWeaponStruct> WeaponTypeExtData::boltWeaponTypeExt;
+#pragma endregion
+
 void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);

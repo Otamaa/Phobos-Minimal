@@ -7,6 +7,7 @@
 
 #include <Conversions.h>
 
+Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
 ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeClass>(pTitle)
 , DefaultTo { -1 }

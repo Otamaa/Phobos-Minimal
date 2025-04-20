@@ -223,7 +223,7 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 void FakeCellClass::_Invalidate(AbstractClass* ptr, bool removed)
 {
 	auto pExt = this->_GetExtData();
-	
+
 	if (removed)
 	{
 		if (ptr == static_cast<void*>(this->AltObject)) {
@@ -263,6 +263,7 @@ void CellExtData::Serialize(T& Stm) {
 // =============================
 // container
 CellExtContainer CellExtContainer::Instance;
+HelperedVector<CellExtData*> CellExtContainer::Array;
 
 // =============================
 // container hooks

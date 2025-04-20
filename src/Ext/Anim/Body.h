@@ -71,7 +71,7 @@ public:
 
 	static void SpawnFireAnims(AnimClass* pThis);
 
-	
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -81,7 +81,7 @@ class AnimTypeExtData;
 class FakeAnimClass : public AnimClass
 {
 public:
-	OPTIONALINLINE static HelperedVector<FakeAnimClass*> AnimsWithAttachedParticles {};
+	static HelperedVector<FakeAnimClass*> AnimsWithAttachedParticles;
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{

@@ -77,7 +77,7 @@ class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static CellExtContainer Instance;
-	static inline HelperedVector<CellExtData*> Array;
+	static HelperedVector<CellExtData*> Array;
 
 	CellExtData* AllocateUnchecked(CellClass* key)
 	{
@@ -142,5 +142,5 @@ public:
 		return *reinterpret_cast<CellExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
-}; 
+};
 static_assert(sizeof(FakeCellClass) == sizeof(CellClass), "Missmathc size !");

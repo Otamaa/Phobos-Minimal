@@ -21,6 +21,10 @@
 
 #include <Misc/DamageArea.h>
 
+#pragma region defines
+HelperedVector<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
+#pragma endregion
+
 AnimExtData::~AnimExtData()
 {
 	// mimicking how this thing does , since the detach seems not properly handle these
@@ -951,7 +955,7 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 		auto const pTechno = flag_cast_to<TechnoClass* , false>(target);
 		if(!pTechno)
 			return 0x425174;
-	
+
 		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
 		if(pExt && !pExt->IsDetachingForCloak) {

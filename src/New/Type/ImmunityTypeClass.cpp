@@ -1,5 +1,7 @@
 #include "ImmunityTypeClass.h"
 
+Enumerable<ImmunityTypeClass>::container_t Enumerable<ImmunityTypeClass>::Array;
+
 const char* Enumerable<ImmunityTypeClass>::GetMainSection()
 {
 	return "ImmunityTypes";

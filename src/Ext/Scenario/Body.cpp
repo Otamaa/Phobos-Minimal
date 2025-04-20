@@ -2,6 +2,11 @@
 
 #include <Ext/Rules/Body.h>
 
+std::unique_ptr<ScenarioExtData> ScenarioExtData::Data;
+IStream* ScenarioExtData::g_pStm;
+bool ScenarioExtData::CellParsed;
+bool ScenarioExtData::UpdateLightSources;
+
 void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 {
 	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";

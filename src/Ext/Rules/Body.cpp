@@ -40,6 +40,9 @@
 
 #include <GameStrings.h>
 
+std::unique_ptr<RulesExtData> RulesExtData::Data {};
+IStream* RulesExtData::g_pStm;
+
 void RulesExtData::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExtData>();
@@ -189,7 +192,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
-	
+
 	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
 	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");
 
@@ -307,7 +310,7 @@ static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secr
 }
 
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
-{	
+{
 	// create an array of crew for faster lookup
 	std::vector<InfantryTypeClass*> Crews(SideClass::Array->Count, nullptr);
 	for (int i = 0; i < SideClass::Array->Count; ++i)
@@ -683,7 +686,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			fast_remove_if(pSuperExt->SW_AuxBuildings ,[](BuildingTypeClass* pItem)	{ return !pItem; } );
 			fast_remove_if(pSuperExt->SW_NegBuildings ,[](BuildingTypeClass* pItem)	{ return !pItem; } );
-		
+
 			Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 
 			for (auto& para : pSuperExt->ParaDropDatas) {
@@ -750,7 +753,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
-	
+
 	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
 	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
 
@@ -797,7 +800,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NoReload_Temporal.Read(exINI, GameStrings::General, "NoReload.Temporal");
 
 	this->AttackMindControlledDelay.Read(exINI, GameStrings::General, "AttackMindControlledDelay");
-	
+
 	this->MergeBuildingDamage.Read(exINI, GameStrings::CombatDamage, "MergeBuildingDamage");
 	this->ExpandBuildingQueue.Read(exINI, GameStrings::General, "ExpandBuildingQueue");
 	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");

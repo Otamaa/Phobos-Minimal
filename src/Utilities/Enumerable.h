@@ -18,7 +18,7 @@ template <typename T> class Enumerable
 	typedef std::vector<std::unique_ptr<T>> container_t;
 public:
 
-	OPTIONALINLINE static container_t Array;
+	static container_t Array;
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
