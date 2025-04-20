@@ -709,7 +709,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (!args.WH->AffectsAllies && pSourceHouse && (pSourceHouse == pThis->Owner || pSourceHouse->IsAlliedWith(pThis->Owner)))
+	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
 	{
 		*args.Damage = 0;
 		R->EAX(DamageState::Unaffected);
@@ -847,7 +847,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			}
 
 			pThis->InfantryBlinkTimer.Start(2 * *args.Damage);
-		}	
+		}
 	}
 
 	if (!pThis->Health) {
@@ -864,11 +864,11 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		if (pType->DamageSound != -1) {
 			VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
 		}
-		
+
 		if (!pWHExt->Malicious && !pWHExt->Nonprovocative) {
 			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman() && args.Attacker) {
 				pThis->BaseIsAttacked(args.Attacker);
-			} 
+			}
 		}
 
 		break;
@@ -881,8 +881,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		{
 			const int feedbackIndex = pType->VoiceFeedback.Count > 1 ? Random2Class::NonCriticalRandomNumber->RandomRanged(0, pType->VoiceFeedback.Count - 1) : 0;
 			VocClass::PlayIndexAtPos(pType->VoiceFeedback.Items[feedbackIndex], pThis->Location, 0);
-		}		
-		
+		}
+
 		break;
 	}
 	case DamageState::NowDead:
@@ -2120,7 +2120,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 											return 0x518D52;
 										}
 										else break;
-												
+
 									}
 
 									pThis->MarkAllOccupationBits(curLoc);
@@ -2340,8 +2340,8 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 					}
 				}
 
-				if (!pThis->HaveAttackMoveTarget 
-					&& args.Attacker 
+				if (!pThis->HaveAttackMoveTarget
+					&& args.Attacker
 					&& args.Attacker->IsAlive
 					&& !args.Attacker->IsSinking
 					&& !args.Attacker->IsCrashing
@@ -2385,7 +2385,7 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 					}
 				}
 			}
-			
+
 			R->EAX(_res);
 			return 0x738679;
 		}

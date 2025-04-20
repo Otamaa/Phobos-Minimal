@@ -13,10 +13,10 @@ ASMJIT_PATCH(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 
 	const auto pAttacker = pThis->Owner;
 	const auto pAttackerType = pAttacker->GetTechnoType();
-	if (CaptureExt::AllowDrawLink(pAttackerType)) {
-		auto nVictimCoord = pVictim->Location;
+	if (CaptureExt::AllowDrawLink(pAttacker, pAttackerType)) {
+		CoordStruct nVictimCoord = pVictim->Location;
 		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;
-		CoordStruct nFLH ;
+		CoordStruct nFLH {};
 		pAttacker->GetFLH(&nFLH ,-1 - nNodeCount % 5, CoordStruct::Empty);
 		Drawing::DrawLinesTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
 	}

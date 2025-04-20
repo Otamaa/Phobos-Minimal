@@ -557,20 +557,25 @@ std::array<std::pair<const char* const, InterpolationMode>, 2u> EnumFunctions::I
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
-	if (flags == AffectedHouse::All)
-		return true;
+	if(flags != AffectedHouse::None) {
 
-	if (ownerHouse && targetHouse) {
-
-		if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
+		if (flags == AffectedHouse::All)
 			return true;
 
-		const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
-		return (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && IsAlly ||
-			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !IsAlly;
+		if (ownerHouse && targetHouse) {
+
+			if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
+				return true;
+
+			const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
+			return (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && IsAlly ||
+				(flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !IsAlly;
+		}
+
+		return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
 	}
 
-	return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
+	return false;
 }
 
 bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const& allowed, bool explicitEmptyCells, bool considerBridgesLand)

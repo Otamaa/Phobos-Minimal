@@ -162,6 +162,14 @@ namespace Math
 		}
 	}
 
+	OPTIONALINLINE COMPILETIMEEVAL int StepSnapClamped(int value, int min, int max, int step)
+	{
+		if (value < min) return min;
+
+		int snapped = min + ((value - min) / step) * step;
+		return (snapped > max) ? max : snapped;
+	}
+
 	//https://github.com/rhalbersma/xstd/blob/master/include/xstd/cstdlib.hpp
 
 	template<class T>

@@ -848,7 +848,7 @@ ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 	return R->Origin() == 0x6B7600 ? SkipGameCode1 : SkipGameCode2;
 }ASMJIT_PATCH_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
 
-void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
+void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
@@ -936,7 +936,7 @@ void DrawFactoryProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 	}
 }
 
-void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
+void DrawSuperProgress(TechnoClass* pThis, Point2D* pLocation ,  RectangleStruct* pBounds)
 {
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
@@ -965,7 +965,7 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 
 	const int maxLength = pBuildingType->GetFoundationHeight(false) * 15 >> 1;
 	const int curLength = std::clamp(static_cast<int>((static_cast<double>(pSuper->RechargeTimer.TimeLeft - pSuper->RechargeTimer.GetTimeLeft()) / pSuper->RechargeTimer.TimeLeft) * maxLength), 0, maxLength);
-	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
+	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, pLocation , BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
 
 	for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 5, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
@@ -977,10 +977,11 @@ void DrawSuperProgress(TechnoClass* pThis, RectangleStruct* pBounds)
 ASMJIT_PATCH(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 {
 	GET(TechnoClass*, pThis, EBP);
+	GET(Point2D*, pLoc, EDI);
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFSET(0x98, 0x8));
 
-	DrawFactoryProgress(pThis, pBounds);
-	DrawSuperProgress(pThis, pBounds);
+	DrawFactoryProgress(pThis, pLoc , pBounds);
+	DrawSuperProgress(pThis, pLoc, pBounds);
 
 	return 0;
 }

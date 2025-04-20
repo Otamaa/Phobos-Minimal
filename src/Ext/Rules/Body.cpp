@@ -753,7 +753,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	GenericPrerequisite::LoadFromINIList_New(pINI);
 
 	INI_EX exINI(pINI);
-
+	
+	this->HarvesterDumpAmount.Read(iniEX, GameStrings::General, "HarvesterDumpAmount");
 	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
 	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
 
@@ -1542,6 +1543,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->VisualScatter_Min)
 		.Process(this->VisualScatter_Max)
+		.Process(this->HarvesterDumpAmount)
 		;
 
 	MyPutData.Serialize(Stm);

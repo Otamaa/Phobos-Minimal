@@ -354,7 +354,7 @@ public:
 	Promotable<bool> CustomMissileRaise { true };
 	Nullable<Point2D> CustomMissileOffset { };
 
-	Valueable<bool> Draw_MindControlLink { true };
+	Valueable<AffectedHouse> Draw_MindControlLink { AffectedHouse::All };
 
 	NullableVector<int> Overload_Count { };
 	NullableVector<int> Overload_Damage { };

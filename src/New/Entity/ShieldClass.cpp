@@ -701,8 +701,13 @@ SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 	if (!this->Type->SelfHealing_EnabledBy.empty()) {
 		for (auto const pBuilding : this->Techno->Owner->Buildings) {
 			bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
+		for (auto& pBuilding : this->Techno->Owner->Buildings) {
+			if (!this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type))
+				continue;
 
-			if (this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type) && isActive) {
+			const bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
+
+			if (isActive) {
 				return SelfHealingStatus::Online;
 			}
 		}
@@ -916,6 +921,9 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 {
 	if (this->HP > 0 || this->Type->Respawn)
 	{
+		if (this->HP <= 0 && this->Type->Pips_HideIfNoStrength)
+			return;
+
 		if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 			this->DrawShieldBar_Building(iLength, pLocation, pBound);
 		else

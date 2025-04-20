@@ -100,7 +100,7 @@ public:
 		if (this->IsAllocated) {
 			Allocator alloc {};
 			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
-		}		
+		}
 
 		this->Items = nullptr;
 		this->IsAllocated = false;
@@ -527,34 +527,31 @@ public:
 	template<bool avoidmemcpy = false>
 	bool RemoveAt(int index)
 	{
-		if (!this->ValidIndex(index)) {
-			return false;
-		}
+		if (this->ValidIndex(index)) {
+			if COMPILETIMEEVAL (!avoidmemcpy) {
+				T* find = this->Items + index;
+				T* end = this->Items + this->Count;
 
-		if COMPILETIMEEVAL (!avoidmemcpy) {
-			T* find = this->Items + index;
-			T* end = this->Items + this->Count;
+				if (find != end)
+				{
 
-			if (find != end)
-			{
+					T* next = std::next(find);
+					// move all the items from next to current pos
+					std::memmove(find, next, (end - next) * sizeof(T));
+					--this->Count;//decrease the count
+					return true;
+				}
+			} else {
 
-				T* next = std::next(find);
-				// move all the items from next to current pos
-				std::memmove(find, next, (end - next) * sizeof(T));
-				--this->Count;//decrease the count
+				--this->Count;
+				for (int i = index; i < this->Count; ++i) {
+					this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
+				}
+
 				return true;
 			}
-
-			return false;
-		} else {
-
-			--this->Count;
-			for (int i = index; i < this->Count; ++i) {
-				this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
-			}
 		}
-
-		return true;
+		return false;
 	}
 
 	template<bool avoidmemcpy = false>
