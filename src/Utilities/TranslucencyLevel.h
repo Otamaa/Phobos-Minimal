@@ -11,25 +11,11 @@ public:
 
 	COMPILETIMEEVAL TranslucencyLevel(int nInt)
 	{
-		*this = nInt;
+		*this = Math::StepSnapClamped(nInt, 25, 75, 25);
 	}
 
-	COMPILETIMEEVAL TranslucencyLevel(int nInt, bool clamp)
-	{
-		if (clamp)
-		{
-			if (nInt >= 75)
-				nInt = 75;
-			else if (nInt >= 50)
-				nInt = 50;
-			else if (nInt >= 25)
-				nInt = 25;
-			else
-				nInt = 0;
-		}
-
-		*this = nInt;
-	}
+	COMPILETIMEEVAL TranslucencyLevel(BlitterFlags nInt) : value { nInt }
+	{ *this = Math::StepSnapClamped((int)nInt, 25, 75, 25); }
 
 	COMPILETIMEEVAL TranslucencyLevel(const TranslucencyLevel& other) = default;
 	COMPILETIMEEVAL TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;

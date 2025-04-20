@@ -59,6 +59,6 @@ namespace detail
 		double firstValue = first.GetIntValue();
 		double secondValue = second.GetIntValue();
 		int value = (int)interpolate(firstValue, secondValue, percentage, mode);
-		return { value, true };
+		return { value };
 	}
 }

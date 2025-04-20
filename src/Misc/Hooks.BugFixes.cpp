@@ -2037,7 +2037,7 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 
 	// Clearing the current target should still be necessary for all technos
 	pTechno->SetTarget(nullptr);
-	
+
 	// Stop any enter action
 	pTechno->QueueUpToEnter = nullptr;
 
@@ -2475,6 +2475,13 @@ ASMJIT_PATCH(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
 	GET(ObjectClass*, pContent, ESI);
 	R->EAX(pContent->WhatAmI());
 	return ContinueCheck;
+}
+
+// I think no one wants to see wild pointers caused by WW's negligence
+ASMJIT_PATCH(0x4D9A62, FootClass_PointerExpired_RemoveDestination, 0xA)
+{
+	GET_STACK(bool, removed, STACK_OFFSET(0x8, 0x4));
+	return removed ? 0x4D9ABD : 0;
 }
 #ifdef PassengerRelatedFix
 
