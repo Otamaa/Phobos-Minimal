@@ -20,12 +20,10 @@ AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, Tec
 	return pFallback;
 }
 
-bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
+bool CaptureExt::AllowDrawLink(TechnoClass* pTechno , TechnoTypeClass* pType)
 {
-	if (const auto pExt = TechnoTypeExtContainer::Instance.Find(pType))
-		return pExt->Draw_MindControlLink.Get();
-
-	return true;
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	return EnumFunctions::CanTargetHouse(pExt->Draw_MindControlLink, pTechno->Owner, HouseClass::CurrentPlayer);
 }
 
 bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)

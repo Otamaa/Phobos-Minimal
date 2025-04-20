@@ -77,6 +77,7 @@ public:
 	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed;
 	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed;
 	Valueable<bool> InheritArmorFromTechno;
+
 public:
 
 	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }

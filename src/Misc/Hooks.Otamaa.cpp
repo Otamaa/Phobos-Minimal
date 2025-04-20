@@ -4238,10 +4238,16 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 
 	const  auto pType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
-	//const double totalAmount = ;
-	const float amountRemoved = idxTiberium != -1 ? std::fabs(pType->HarvesterDumpAmount.Get((float)unit_storage->GetAmount(idxTiberium))) : 0.0f;//after decreased
+	float dumpAmount = pType->HarvesterDumpAmount.Get(RulesExtData::Instance()->HarvesterDumpAmount.Get());
+	const float amountCanBeRemoved = idxTiberium != -1 ?
+		Math::abs((float)unit_storage->GetAmount(idxTiberium)) : 0.0f;//after decreased
 
-	if (idxTiberium == -1 || unit_storage->DecreaseLevel((float)amountRemoved, idxTiberium) <= 0.0)
+	if(dumpAmount > 0.0f)
+		dumpAmount = std::min(dumpAmount, amountCanBeRemoved);
+	else
+		dumpAmount = amountCanBeRemoved;
+
+	if (idxTiberium == -1 || unit_storage->DecreaseLevel((float)dumpAmount, idxTiberium) <= 0.0)
 	{
 		if (pBld->Type->Refinery)
 		{ //weed ???
@@ -4259,14 +4265,14 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	else
 		if (pBld->Type->Weeder)
 		{
-			pBld->Owner->GiveWeed((int)amountRemoved, idxTiberium);
+			pBld->Owner->GiveWeed((int)dumpAmount, idxTiberium);
 			pThis->Animation.Value = 0;
 		}
 		else
 		{
 			TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner,
-			(float)amountRemoved,
-			(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * amountRemoved),
+			(float)dumpAmount,
+			(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * dumpAmount),
 			idxTiberium
 			);
 			pThis->Animation.Value = 0;

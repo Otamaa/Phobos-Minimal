@@ -192,6 +192,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 	TechTreeTypeClass::ReadListFromINI(pINI);
 
+	pData->HarvesterDumpAmount.Read(iniEX, GameStrings::General, "HarvesterDumpAmount");
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
 
@@ -1561,6 +1562,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->VisualScatter_Min)
 		.Process(this->VisualScatter_Max)
+
+		.Process(this->HarvesterDumpAmount)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -515,12 +515,13 @@ public:
 		}
 
 	} InfantrySpeedData {};
-	
+
 	Valueable<bool> ColorAddUse8BitRGB { false };
 	Valueable<double> DamagedSpeed { 0.75 };
 
 	Valueable<SelectBoxTypeClass*> DefaultInfantrySelectBox {};
 	Valueable<SelectBoxTypeClass*> DefaultUnitSelectBox {};
+	Valueable<float> HarvesterDumpAmount { 0.0f };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

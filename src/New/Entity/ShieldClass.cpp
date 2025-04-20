@@ -37,6 +37,7 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , Available { true }
 , Attached { false }
 , AreAnimsHidden { false }
+, IsSelfHealingEnabled { true }
 , SelfHealing_Warhead { 0.0 }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
@@ -58,6 +59,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Available { true }
 , Attached { isAttached }
 , AreAnimsHidden { false }
+, IsSelfHealingEnabled { true }
 , SelfHealing_Warhead { 0.0 }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
@@ -92,6 +94,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Available)
 		.Process(this->Attached)
 		.Process(this->AreAnimsHidden)
+		.Process(this->IsSelfHealingEnabled)
 		.Process(this->SelfHealing_Warhead)
 		.Process(this->SelfHealing_Rate_Warhead)
 		.Process(this->SelfHealing_RestartInCombat_Warhead)
@@ -699,10 +702,17 @@ bool ShieldClass::ConvertCheck()
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
 	if (!this->Type->SelfHealing_EnabledBy.empty()) {
-		for (auto const pBuilding : this->Techno->Owner->Buildings) {
-			bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
+		this->IsSelfHealingEnabled = false;
 
-			if (this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type) && isActive) {
+		for (auto& pBuilding : this->Techno->Owner->Buildings) {
+
+			if (!this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type))
+				continue;
+
+			const bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
+
+			if (isActive) {
+				this->IsSelfHealingEnabled = true;
 				return SelfHealingStatus::Online;
 			}
 		}
@@ -916,6 +926,9 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 {
 	if (this->HP > 0 || this->Type->Respawn)
 	{
+		if (this->HP <= 0 && this->Type->Pips_HideIfNoStrength)
+			return;
+
 		if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 			this->DrawShieldBar_Building(iLength, pLocation, pBound);
 		else
@@ -925,9 +938,6 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 
 void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
-	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
-		return;
-
 	const auto pTechnoType = Techno->GetTechnoType();
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	const auto pShieldBar = pTechnoTypeExt->ShieldBar.Get(this->Type->ShieldBar.Get(RulesExtData::Instance()->Buildings_DefaultShieldBar));
@@ -953,9 +963,6 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 
 void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
-	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
-		return;
-
 	const auto pipBoard = this->Type->Pips_Background_SHP
 		.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 

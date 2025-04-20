@@ -246,6 +246,7 @@ public:
 	bool Available;
 	bool Attached;
 	bool AreAnimsHidden;
+	bool IsSelfHealingEnabled;
 
 	double SelfHealing_Warhead;
 	int SelfHealing_Rate_Warhead;

@@ -591,7 +591,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FacingRotation_DisalbeOnDeactivated.Read(exINI, pSection, "FacingRotation.DisabledOnDeactivated");
 		this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled"); // condition disabled , require Ares 3.0 ++
 
-		this->Draw_MindControlLink.Read(exINI, pSection, "MindControl.DrawLink");
+		this->Draw_MindControlLink.Read(exINI, pSection, "MindControlLink.VisibleToHouse");
 
 		this->DeathWeapon.Read(exINI, pSection, "%s.DeathWeapon");
 		this->Disable_C4WarheadExp.Read(exINI, pSection, "Crash.DisableC4WarheadExplosion");

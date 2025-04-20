@@ -46,5 +46,5 @@ public:
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent, int threatDelay);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured);
 	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
-	static bool AllowDrawLink(TechnoTypeClass* pType);
+	static bool AllowDrawLink(TechnoClass* pTechno , TechnoTypeClass* pType);
 };

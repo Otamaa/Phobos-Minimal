@@ -753,16 +753,14 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 {
 	if (pOwnerHouse && pTargetHouse)
 	{
-		if (pTargetHouse == pOwnerHouse)
-		{
-			return this->AffectsOwner.Get(this->AttachedToObject->AffectsAllies);
-		}
-		else if (pTargetHouse != pOwnerHouse && pOwnerHouse->IsAlliedWith(pTargetHouse))
-		{
-			return this->AttachedToObject->AffectsAllies;
+		const bool affect_ally = this->AttachedToObject->AffectsAllies;
+
+		if (pTargetHouse == pOwnerHouse) {
+			return this->AffectsOwner.Get(affect_ally);
 		}
 
-		return AffectsEnemies.Get();
+		const bool isAlly = pOwnerHouse->IsAlliedWith(pTargetHouse);
+		return isAlly ? affect_ally : this->AffectsEnemies.Get();
 	}
 
 	return true;
