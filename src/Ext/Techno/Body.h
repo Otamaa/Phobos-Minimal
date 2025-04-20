@@ -43,7 +43,7 @@ class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
-class HealthBarTypeClass;
+
 struct AEProperties
 {
 	struct ExtraRange
@@ -904,7 +904,7 @@ public:
 	static void ApplyDrainMoney(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBox(TechnoClass* pThis, TechnoTypeClass* pType , Point2D* pLocation, RectangleStruct* pBounds);
+	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	//static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool IsDisguised);
 	static void SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
@@ -1020,15 +1020,9 @@ public:
 	static WeaponTypeClass* GetCurrentWeapon(TechnoClass* pThis, bool getSecondary = false);
 
 	static Point2D GetScreenLocation(TechnoClass* pThis);
-	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, int length, Point2D* pLocation, Anchor anchor);
-	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, Point2D* pLocation, BuildingSelectBracketPosition bracketPosition);
-	static int HealthBar_GetPip(Point3D const& pips, double percentage, const bool isBuilding);
-	static int HealthBar_GetPipAmount(double percentage, int pipsLength);
-	static void DrawBuildingBar(ConvertClass* pPalette, SHPStruct* pShape, Point2D* pLocation, RectangleStruct* pBounds, Point2D interval, const int pipsTotal, const int pipsLength, const int emptyFrame, const int frame);
-	static void DrawOtherBar(ConvertClass* pBrdPalette, SHPStruct* pBrdShape, ConvertClass* pPipsPalette, SHPStruct* pPipsShape, Point2D* pLocation, RectangleStruct* pBounds, const int brdXOffset, Point2D interval, const int pipsTotal, const int brdFrame, const int frame);
-	static void DrawHealthBar(BuildingClass* pThis, HealthBarTypeClass* pHealthBar, const int pipsLength, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawHealthBar(TechnoClass* pThis, TechnoTypeClass* pType , HealthBarTypeClass* pHealthBar, const int pipsLength, Point2D* pLocation, RectangleStruct* pBounds);
-	static void ProcessDigitalDisplays(TechnoClass* pThis, TechnoTypeClass* pType, Point2D* pLocation);
+	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
+	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition);
+	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue);
 	static Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
 

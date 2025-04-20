@@ -37,7 +37,6 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , Available { true }
 , Attached { false }
 , AreAnimsHidden { false }
-, IsSelfHealingEnabled { true }
 , SelfHealing_Warhead { 0.0 }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
@@ -59,7 +58,6 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Available { true }
 , Attached { isAttached }
 , AreAnimsHidden { false }
-, IsSelfHealingEnabled { true }
 , SelfHealing_Warhead { 0.0 }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
@@ -94,7 +92,6 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Available)
 		.Process(this->Attached)
 		.Process(this->AreAnimsHidden)
-		.Process(this->IsSelfHealingEnabled)
 		.Process(this->SelfHealing_Warhead)
 		.Process(this->SelfHealing_Rate_Warhead)
 		.Process(this->SelfHealing_RestartInCombat_Warhead)
@@ -701,18 +698,17 @@ bool ShieldClass::ConvertCheck()
 
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
 {
-	if (!this->Type->SelfHealing_EnabledBy.empty()) {
-		this->IsSelfHealingEnabled = false;
-
-		for (auto& pBuilding : this->Techno->Owner->Buildings) {
-
+	if (!this->Type->SelfHealing_EnabledBy.empty())
+	{
+		for (auto& pBuilding : this->Techno->Owner->Buildings)
+		{
 			if (!this->Type->SelfHealing_EnabledBy.Contains(pBuilding->Type))
 				continue;
 
 			const bool isActive = !(pBuilding->Deactivated || pBuilding->IsUnderEMP()) && pBuilding->IsPowerOnline();
 
-			if (isActive) {
-				this->IsSelfHealingEnabled = true;
+			if (isActive)
+			{
 				return SelfHealingStatus::Online;
 			}
 		}
@@ -938,80 +934,106 @@ void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct
 
 void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
-	const auto pTechnoType = Techno->GetTechnoType();
-	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-	const auto pShieldBar = pTechnoTypeExt->ShieldBar.Get(this->Type->ShieldBar.Get(RulesExtData::Instance()->Buildings_DefaultShieldBar));
+	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
+		return;
 
-	auto pPipsPalette = FileSystem::PALETTE_PAL();
-	if(pShieldBar->PipsPalette)
-		pPipsPalette = pShieldBar->PipsPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPipsPalette);
+	Point2D vLoc = *pLocation;
+	vLoc.X -= 5;
+	vLoc.Y -= 3;
 
-	const auto pPipsShape = pShieldBar->PipsShape.Get();
+	Point2D position = { 0, 0 };
 
-	auto position = *pLocation;
-	position += { 3, -1 };
+	const int iTotal = DrawShieldBar_PipAmount(iLength);
+	int frame = this->DrawShieldBar_Pip(true);
 
-	const auto interval = pShieldBar->PipsInterval_Building.Get();
-	const int emptyFrame = pShieldBar->PipsEmpty.Get(RulesExtData::Instance()->Pips_Shield_Building_Empty);
+	if (iTotal > 0)
+	{
+		int frameIdx, deltaX, deltaY;
+		for (frameIdx = iTotal, deltaX = 0, deltaY = 0;
+			frameIdx;
+			frameIdx--, deltaX += 4, deltaY -= 2)
+		{
+			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position.X -= deltaX + 6;
+			position.Y -= deltaY + 3;
 
-	const auto& pips = pShieldBar->Pips_Building.Get(this->Type->Pips_Building.Get(RulesExtData::Instance()->Pips_Shield_Building));
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+				frame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+	}
 
-	const int frame = this->DrawShieldBar_Pip(pips, true);
-	const int pipsTotal = DrawShieldBar_PipAmount(iLength);
-	TechnoExtData::DrawBuildingBar(pPipsPalette, pPipsShape, &position, pBound, interval, pipsTotal, iLength, emptyFrame, frame);
+	if (iTotal < iLength)
+	{
+		int emptyFrame = this->Type->Pips_Building_Empty.Get(RulesExtData::Instance()->Pips_Shield_Building_Empty.Get(0));
+
+		int frameIdx, deltaX, deltaY;
+		for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
+			frameIdx;
+			frameIdx--, deltaX += 4, deltaY -= 2)
+		{
+			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position.X -= deltaX + 6;
+			position.Y -= deltaY + 3;
+
+
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+				emptyFrame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+	}
 }
 
 void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
+	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
+		return;
+
 	const auto pipBoard = this->Type->Pips_Background_SHP
 		.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 
 	if (!pipBoard)
 		return;
 
-	const auto pTechnoType = Techno->GetTechnoType();
-	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-	const auto pShieldBar = pTechnoTypeExt->ShieldBar.Get(this->Type->ShieldBar.Get(RulesExtData::Instance()->DefaultShieldBar));
+	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
+	position.X -= 1;
+	position.Y += this->Techno->GetTechnoType()->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
+	int	frame = (iLength == 8) ? (pipBoard->Frames > 2 ? 3 : 1) : pipBoard->Frames > 2 ? 2 : 0;
 
-	auto pBrdPalette = FileSystem::PALETTE_PAL();
-	if(pShieldBar->PipBrdPalette)
-		pBrdPalette = pShieldBar->PipBrdPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(FileSystem::PALETTE_PAL);
+	if (this->Techno->IsSelected)
+	{
+		position.X += iLength + 1 + (iLength == 8 ? iLength + 1 : 0);
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pipBoard,
+			frame, &position, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		position.X -= iLength + 1 + (iLength == 8 ? iLength + 1 : 0);
+	}
 
-	const auto pBrdShape = pShieldBar->PipBrdShape.Get(this->Type->Pips_Background_SHP.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP)));
-	auto pPipsPalette = FileSystem::PALETTE_PAL();
+	const int iTotal = DrawShieldBar_PipAmount(iLength);
 
-	if(pShieldBar->PipsPalette)
-		pPipsPalette = pShieldBar->PipsPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(FileSystem::PALETTE_PAL);
+	frame = this->DrawShieldBar_Pip(false);
 
-	const auto pPipsShape = pShieldBar->PipsShape.Get();
-
-	const auto pipsInterval = pShieldBar->PipsInterval.Get();
-	auto position = *pLocation + Point2D { pShieldBar->XOffset - iLength * pipsInterval.X / 2, pTechnoType->PixelSelectionBracketDelta + this->Type->BracketDelta - 27 };
-
-	const auto whatAmI = Techno->WhatAmI();
-
-	if (whatAmI != AbstractType::Infantry)
-		position += { 2, -1 };
-
-	const int xOffset = pShieldBar->PipBrdXOffset.Get();
-
-	const auto& pips = pShieldBar->Pips.Get(RulesExtData::Instance()->Pips);
-
-	const int brdFrame = Techno->IsSelected ? pShieldBar->PipBrd.Get(whatAmI == AbstractType::Infantry ? (pBrdShape->Frames > 1 ? 3 : 1) : (pBrdShape->Frames > 2 ? 2 : 0)) : -1;
-
-	const int pipsTotal = DrawShieldBar_PipAmount(iLength);
-	const int frame = this->DrawShieldBar_Pip(pips, false);
-	TechnoExtData::DrawOtherBar(pBrdPalette, pBrdShape, pPipsPalette, pPipsShape, &position, pBound, xOffset, pipsInterval, pipsTotal, brdFrame, frame);
+	for (int i = 0; i < iTotal; ++i)
+	{
+		position.X += 2;
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+			frame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
 }
 
-int ShieldClass::DrawShieldBar_Pip(Point3D const& pips, const bool isBuilding)
+int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 {
-	if (this->HP > this->Type->GetConditionYellow() * this->Type->Strength && pips.X != -1)
-		return pips.X;
-	else if (this->HP > this->Type->GetConditionRed() * this->Type->Strength && (pips.Y != -1 || pips.X != -1))
-		return pips.Y == -1 ? pips.X : pips.Y;
-	else if (pips.Z != -1 || pips.X != -1)
-		return pips.Z == -1 ? pips.X : pips.Z;
+	const auto strength = this->Type->Strength;
+	const double condYellow = this->Type->GetConditionYellow();
+	const double condRed = this->Type->GetConditionRed();
+
+	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
+	const auto& pips_Global = isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield;
+	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
+
+	if (this->HP > condYellow * strength && shieldPip->X != -1)
+		return shieldPip->X;
+	else if (this->HP > condRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
+		return shieldPip->Y == -1 ? shieldPip->X : shieldPip->Y;
+	else if (shieldPip->Z != -1 || shieldPip->X != -1)
+		return shieldPip->Z == -1 ? shieldPip->X : shieldPip->Z;
 
 	return isBuilding ? 5 : 16;
 }

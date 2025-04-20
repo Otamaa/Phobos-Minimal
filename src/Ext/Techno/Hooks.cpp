@@ -813,6 +813,7 @@ ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	UpdateKeepTargetOnMove(pThis);
@@ -908,7 +909,7 @@ void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct
 		return;
 
 	const int maxLength = pBuildingType->GetFoundationHeight(false) * 15 >> 1;
-	const Point2D location = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, pLocation , BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
+	const Point2D location = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
 
 	if (havePrimary)
 	{
@@ -964,7 +965,7 @@ void DrawSuperProgress(TechnoClass* pThis, Point2D* pLocation ,  RectangleStruct
 
 	const int maxLength = pBuildingType->GetFoundationHeight(false) * 15 >> 1;
 	const int curLength = std::clamp(static_cast<int>((static_cast<double>(pSuper->RechargeTimer.TimeLeft - pSuper->RechargeTimer.GetTimeLeft()) / pSuper->RechargeTimer.TimeLeft) * maxLength), 0, maxLength);
-	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, pLocation , BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
+	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding , BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
 
 	for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 5, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);

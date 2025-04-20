@@ -191,7 +191,7 @@ private:
 
 	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	int DrawShieldBar_Pip(Point3D const& pips, const bool isBuilding);
+	int DrawShieldBar_Pip(const bool isBuilding);
 
 	int DrawShieldBar_PipAmount(int iLength) const
 	{
@@ -246,7 +246,6 @@ public:
 	bool Available;
 	bool Attached;
 	bool AreAnimsHidden;
-	bool IsSelfHealingEnabled;
 
 	double SelfHealing_Warhead;
 	int SelfHealing_Rate_Warhead;

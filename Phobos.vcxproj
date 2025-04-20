@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ShowAllFiles>true</ShowAllFiles>
@@ -451,6 +451,7 @@
     <ClCompile Include="src\New\SuperWeaponSidebar\SWColumnClass.cpp" />
     <ClCompile Include="src\New\SuperWeaponSidebar\SWSidebarClass.cpp" />
     <ClCompile Include="src\New\SuperWeaponSidebar\ToggleSWButtonClass.cpp" />
+    <ClCompile Include="src\New\Type\BarTypeClass.cpp" />
     <ClCompile Include="src\New\Type\CrateTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DigitalDisplayTypeClass.cpp" />
     <ClCompile Include="src\New\Type\DroppodProperties.cpp" />
@@ -715,6 +716,7 @@
     <ClInclude Include="src\New\SuperWeaponSidebar\SWColumnClass.h" />
     <ClInclude Include="src\New\SuperWeaponSidebar\SWSidebarClass.h" />
     <ClInclude Include="src\New\SuperWeaponSidebar\ToggleSWButtonClass.h" />
+    <ClInclude Include="src\New\Type\BarTypeClass.h" />
     <ClInclude Include="src\New\Type\InsigniaTypeClass.h" />
     <ClInclude Include="src\New\Type\RocketTypeClass.h" />
     <ClInclude Include="src\New\Type\TechTreeTypeClass.h" />

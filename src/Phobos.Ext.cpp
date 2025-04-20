@@ -55,6 +55,7 @@
 #include <New/Type/TechTreeTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
 #include <New/Type/HealthBarTypeClass.h>
+#include <New/Type/BarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 
@@ -422,7 +423,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TechTreeTypeClass::Clear();
 	HugeBar::Clear();
 	RocketTypeClass::Clear();
-	HealthBarTypeClass::Clear();
+	BarTypeClass::Clear();
 	SWFirerClass::Clear();
 	ShieldClass::Array.clear();
 	InsigniaTypeClass::Clear();
@@ -618,9 +619,9 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<StaticVars>(pStm) &&
 		Process_Load<HugeBar>(pStm) &&
 		Process_Load<RocketTypeClass>(pStm) &&
-		Process_Load<HealthBarTypeClass>(pStm) &&
+		Process_Load<BarTypeClass>(pStm) &&
 		Process_Load<SWFirerClass>(pStm) &&
-		Process_Load<InsigniaTypeClass>(pStm) && 
+		Process_Load<InsigniaTypeClass>(pStm) &&
 		Process_Load<SelectBoxTypeClass>(pStm)
 		;
 
@@ -658,7 +659,7 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			R->EAX<HRESULT>(E_FAIL);
 			return 0x0;
 		}
-	
+
 		bool ret =
 			Process_Save<FakeAnimClass>(pStm) &&
 			Process_Save<PaletteManager>(pStm) &&
@@ -691,9 +692,9 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<StaticVars>(pStm) &&
 			Process_Save<HugeBar>(pStm) &&
 			Process_Save<RocketTypeClass>(pStm) &&
-			Process_Save<HealthBarTypeClass>(pStm) &&
+			Process_Save<BarTypeClass>(pStm) &&
 			Process_Save<SWFirerClass>(pStm) &&
-			Process_Save<InsigniaTypeClass>(pStm) && 
+			Process_Save<InsigniaTypeClass>(pStm) &&
 			Process_Save<SelectBoxTypeClass>(pStm)
 			;
 

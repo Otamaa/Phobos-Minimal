@@ -43,13 +43,9 @@ public:
 
 	Nullable<bool> AllowTransfer;
 
-	Nullable<HealthBarTypeClass*> ShieldBar;
-	Nullable<Point3D> Pips;
-
+	Valueable<Point3D> Pips;
 	Nullable<SHPStruct*> Pips_Background_SHP;
-
-	Nullable<Point3D> Pips_Building;
-
+	Valueable<Point3D> Pips_Building;
 	Nullable<int> Pips_Building_Empty;
 	Valueable<bool> Pips_HideIfNoStrength;
 
@@ -77,7 +73,6 @@ public:
 	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed;
 	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed;
 	Valueable<bool> InheritArmorFromTechno;
-
 public:
 
 	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
@@ -108,10 +103,9 @@ public:
 		, ReceivedDamage_Minimum { INT32_MIN }
 		, ReceivedDamage_Maximum { INT32_MAX }
 		, AllowTransfer {}
-		, ShieldBar {}
-		, Pips {}
+		, Pips { { -1,-1,-1 } }
 		, Pips_Background_SHP {}
-		, Pips_Building {}
+		, Pips_Building { { -1,-1,-1 } }
 		, Pips_Building_Empty {}
 		, Pips_HideIfNoStrength { false }
 		, ImmuneToPsychedelic { false }
