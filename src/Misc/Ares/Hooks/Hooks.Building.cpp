@@ -1060,6 +1060,7 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 
 	int produceAmount = 0;
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+	auto pTExt = TechnoExtContainer::Instance.Find(pThis);
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{ {
@@ -1092,13 +1093,16 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 
 		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
 		{
-			TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += produceAmount;
+			pTExt->TechnoValueAmount += produceAmount;
 		}
 
 		pThis->Owner->TransactMoney(produceAmount);
 	}
 
-	return 0x43FDD6;
+	if (pTExt->AirstrikeTargetingMe)
+		pThis->UpdatePlacement(PlacementType::Redraw);
+
+	return 0x43FDF1;
 }
 
 // #1156943: they check for type, and for the instance, yet

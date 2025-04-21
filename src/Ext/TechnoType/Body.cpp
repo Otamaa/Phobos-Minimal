@@ -1233,7 +1233,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->KeepTargetOnMove.Read(exINI, pSection, "KeepTargetOnMove");
 		this->KeepTargetOnMove_ExtraDistance.Read(exINI, pSection, "KeepTargetOnMove.ExtraDistance");
 		this->KeepTargetOnMove_NoMorePursuit.Read(exINI, pSection, "KeepTargetOnMove.NoMorePursuit");
-
+		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
 		this->ForbidParallelAIQueues.Read(exINI, pSection, "ForbidParallelAIQueues");
 
 		this->EVA_Combat.Read(exINI, pSection, "EVA.Combat");
@@ -2562,7 +2562,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepTargetOnMove)
 		.Process(this->KeepTargetOnMove_ExtraDistance)
 		.Process(this->KeepTargetOnMove_NoMorePursuit)
-
+		.Process(this->AllowAirstrike)
 		.Process(this->ForbidParallelAIQueues)
 
 		.Process(this->EVA_Combat)

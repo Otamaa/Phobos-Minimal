@@ -10,6 +10,22 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
+ASMJIT_PATCH(0x6D9076, TacticalClass_RenderLayers_DrawBefore, 0x5)// FootClass
+{
+	GET(TechnoClass*, pTechno, ESI);
+	GET(Point2D*, pLocation, EAX);
+
+	if (pTechno->IsSelected && Phobos::Config::EnableSelectBox)
+	{
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+
+		if (!pTypeExt->HealthBar_Hide && !pTypeExt->HideSelectBox)
+			TechnoExtData::DrawSelectBox(pTechno, pLocation, &DSurface::ViewBounds, true);
+	}
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x6D9134, TacticalClass_RenderLayers_DrawBefore, 0x5)// BuildingClass
+
 ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
 	GET(TechnoClass* const, pThis, EBP);
@@ -279,7 +295,7 @@ namespace DrawHeathData
 
 			DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 			//TechnoExtData::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
-			TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
+			//TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
 		}
 
 		const int nOffsetX = (bIsInfantry ? -5 : -15);
@@ -433,6 +449,11 @@ ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
+		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
+
 	if (const auto pShieldData = pExt->Shield.get())
 	{
 		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
@@ -453,6 +474,11 @@ ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 
 	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 		return 0x6F6AB6u;
+
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
+		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
 
 	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 

@@ -612,6 +612,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->CellAnim.Read(exINI, pSection, "CellAnim");
 	this->ElectricAssaultLevel.Read(exINI, pSection, "ElectricAssaultLevel");
+	this->AirstrikeTargets.Read(exINI, pSection, "AirstrikeTargets");
 	this->CanKill.Read(exINI, pSection, "CanKill");
 }
 
@@ -1617,6 +1618,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->CellAnimPercentAtMax)
 		.Process(this->CellAnim)
 		.Process(this->ElectricAssaultLevel)
+		.Process(this->AirstrikeTargets)
 		.Process(this->CanKill)
 		;
 

@@ -247,3 +247,5 @@ public:
 
 	virtual ~Enumerable() = default;
 };
+
+#define CREATEENUMTYPECLASS(x) class x##TypeClass final : public Enumerable<x##TypeClass>

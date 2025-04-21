@@ -6774,16 +6774,16 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 //	return 0x0;
 //}
 
-ASMJIT_PATCH(0x41D9A0, AirstrikClass_Setup, 0x6)
-{
-	//GET(AirstrikeClass*, pThis, EDI);
-	GET(BuildingClass*, pTarget, ESI);
+// ASMJIT_PATCH(0x41D9A0, AirstrikClass_Setup, 0x6)
+// {
+// 	//GET(AirstrikeClass*, pThis, EDI);
+// 	GET(BuildingClass*, pTarget, ESI);
 
-	pTarget->IsAirstrikeTargetingMe = true;
-	pTarget->UpdatePlacement(PlacementType::Redraw);
+// 	pTarget->IsAirstrikeTargetingMe = true;
+// 	pTarget->UpdatePlacement(PlacementType::Redraw);
 
-	return 0x41DA0B;
-}
+// 	return 0x41DA0B;
+// }
 
 int FakeUnitClass::_Mission_Attack()
 {

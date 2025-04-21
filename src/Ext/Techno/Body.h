@@ -742,6 +742,8 @@ public:
 	int LastHurtFrame {};
 	int AttachedEffectInvokerCount {};
 
+	AirstrikeClass* AirstrikeTargetingMe {};
+
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	FORCEDINLINE ShieldClass* GetShield() const {
@@ -904,7 +906,7 @@ public:
 	static void ApplyDrainMoney(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
+	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , bool drawBefore = false);
 	//static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool IsDisguised);
 	static void SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);

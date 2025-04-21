@@ -473,33 +473,33 @@ ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	return ReturnValue;
 }
 
-ASMJIT_PATCH(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
-{
-	enum { SkipGameCode = 0x6F34BD };
-	GET(BuildingTypeClass*, pThis, ECX);
+// ASMJIT_PATCH(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
+// {
+// 	enum { SkipGameCode = 0x6F34BD };
+// 	GET(BuildingTypeClass*, pThis, ECX);
+//
+// 	if (pThis)
+// 	{
+// 		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+// 		return SkipGameCode;
+// 	}
 
-	if (pThis)
-	{
-		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
-		return SkipGameCode;
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
-{
-	enum { SkipGameCode = 0x51EAF8 };
-	GET(BuildingTypeClass*, pThis, ESI);
-
-	if (pThis)
-	{
-		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
-		return SkipGameCode;
-	}
-
-	return 0x0;
-}
+// 	return 0x0;
+// }
+//
+// ASMJIT_PATCH(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
+// {
+// 	enum { SkipGameCode = 0x51EAF8 };
+// 	GET(BuildingTypeClass*, pThis, ESI);
+//
+// 	if (pThis)
+// 	{
+// 		R->AL(BuildingTypeExtContainer::Instance.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+// 		return SkipGameCode;
+// 	}
+//
+// 	return 0x0;
+// }
 
 // Basically a hack to make game and Ares pick laser properties from non-Primary weapons.
 ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)

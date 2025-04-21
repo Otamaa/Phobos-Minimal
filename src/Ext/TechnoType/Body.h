@@ -961,6 +961,8 @@ public:
 	Nullable<Leptons> KeepTargetOnMove_ExtraDistance {};
 	Valueable<bool> KeepTargetOnMove_NoMorePursuit { true };
 
+	Nullable<bool> AllowAirstrike {};
+
 	Nullable<bool> ForbidParallelAIQueues {};
 	Nullable<AnimTypeClass*> Wake {};
 	Valueable<bool> Spawner_AttackImmediately { false };

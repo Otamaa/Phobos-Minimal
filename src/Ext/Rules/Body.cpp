@@ -192,6 +192,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
+	pData->IronCurtain_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "IronCurtain.ExtraTintIntensity");
+	pData->ForceShield_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "ForceShield.ExtraTintIntensity");
 
 	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
 	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");

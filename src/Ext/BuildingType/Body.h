@@ -56,7 +56,7 @@ public:
 
 	Valueable<bool> Refinery_UseStorage { false };
 
-	Nullable<bool> AllowAirstrike {};
+	//Nullable<bool> AllowAirstrike {};
 
 	Valueable<bool> Grinding_AllowAllies { false };
 	Valueable<bool> Grinding_AllowOwner { true };

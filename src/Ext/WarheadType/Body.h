@@ -426,6 +426,7 @@ public:
 
 	NullableVector<AnimTypeClass*> CellAnim {};
 	Valueable<int> ElectricAssaultLevel { 1 };
+	Valueable<AffectedTarget> AirstrikeTargets { AffectedTarget::Building };
 
 	Valueable<bool> CanKill { true };
 #pragma endregion

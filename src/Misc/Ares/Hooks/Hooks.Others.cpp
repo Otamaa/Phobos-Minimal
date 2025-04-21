@@ -1030,6 +1030,7 @@ ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
 ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 {
 	GET(AirstrikeClass*, pAirstrike, EDI);
+	GET(TechnoClass*, pTarget, ESI);
 
 	// get default from rules
 	int index = RulesClass::Instance->AirstrikeAttackVoice;
@@ -1049,7 +1050,21 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	}
 
 	VocClass::PlayAt(index, pAirstrike->FirstObject->Location, nullptr);
-	return 0x41D970;
+	pAirstrike->Target = pTarget;
+
+	if(pTarget){
+		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+		pTargetExt->AirstrikeTargetingMe = pAirstrike;
+		pTarget->StartAirstrikeTimer(100000);
+
+		if(auto pBld = cast_to<BuildingClass* , false>(pTarget)){
+			pBld->IsAirstrikeTargetingMe = true;
+			pBld->UpdatePlacement(PlacementType::Redraw);
+		}
+	}
+
+	//return 0x41D970;
+	return 0x41DA0B;
 }
 
 ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)

@@ -3,6 +3,36 @@
 
 #include <Locomotor/Cast.h>
 
+namespace ICTintTemp
+{
+	bool IsForceShield = false;
+}
+
+ASMJIT_PATCH(0x70E380, TechnoClass_InvulnerabilityIntensity_SetContext, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	ICTintTemp::IsForceShield = pThis->ProtectType == ProtectTypes::ForceShield;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x70E475, TechnoClass_InvulnerabilityIntensity_Adjust, 0x5)
+{
+	enum { SkipGameCode = 0x70E488 };
+
+	GET(int, intensity, EAX);
+
+	if (intensity > 2000)
+		intensity = 2000;
+
+	auto const rules = RulesExtData::Instance();
+	int max = static_cast<int>((ICTintTemp::IsForceShield ? rules->ForceShield_ExtraTintIntensity : rules->IronCurtain_ExtraTintIntensity) * 1000);
+
+	R->EAX(intensity + max);
+	return SkipGameCode;
+}
+
 ASMJIT_PATCH(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 {
 

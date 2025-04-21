@@ -94,6 +94,10 @@ public:
 		return this->HP <= 0 && !this->Type->Respawn;
 	}
 
+	COMPILETIMEEVAL FORCEDINLINE bool HasTint() const {
+		return this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0;
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE ShieldTypeClass* GetType() const
 	{
 		return this->Type;

@@ -1702,7 +1702,7 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		return 0;
 
 	auto pWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pWeapon);
-	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer 
+	bool aeForbidsPrimary = pWeaponExt && pWeaponExt->AttachEffect_CheckOnFirer
 	&& !pWeaponExt->SkipWeaponPicking && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 	if (!pWeapon || (!pWeapon->Warhead->Wall && (!pWeapon->Warhead->Wood || pWallOverlayType->Armor != Armor::Wood)) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) || aeForbidsPrimary)
@@ -1710,7 +1710,7 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		int weaponIndexSec = -1;
 		auto pSecondaryWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndexSec, true);
 		auto pSecondaryWeaponExt = WeaponTypeExtContainer::Instance.TryFind(pSecondaryWeapon);
-		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer 
+		bool aeForbidsSecondary = pSecondaryWeaponExt && pSecondaryWeaponExt->AttachEffect_CheckOnFirer
 		&& !pSecondaryWeaponExt->SkipWeaponPicking && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 		if (pSecondaryWeapon && (pSecondaryWeapon->Warhead->Wall || (pSecondaryWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
@@ -2624,38 +2624,21 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 */
 #include <New/Type/SelectBoxTypeClass.h>
 
-void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,RectangleStruct* pBounds)
+void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,RectangleStruct* pBounds, bool drawBefore)
 {
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if(!Phobos::Config::EnableSelectBox || !pTypeExt->HideSelectBox)
-		return;
-
 	const auto whatAmI = pThis->WhatAmI();
-
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	SelectBoxTypeClass* pSelectBox = nullptr;
 
 	if (pTypeExt->SelectBox.isset())
 		pSelectBox = pTypeExt->SelectBox.Get();
 	else if (whatAmI == InfantryClass::AbsID)
-		pSelectBox = RulesExtData::Instance()->DefaultInfantrySelectBox;
+		pSelectBox = RulesExtData::Instance()->DefaultInfantrySelectBox.Get();
 	else if (whatAmI != BuildingClass::AbsID)
-		pSelectBox = RulesExtData::Instance()->DefaultUnitSelectBox;
+		pSelectBox = RulesExtData::Instance()->DefaultUnitSelectBox.Get();
 
-	if (!pSelectBox)
-		return;
-
-	const bool canSee = HouseClass::IsCurrentPlayerObserver() ? pSelectBox->ShowObserver :
-			EnumFunctions::CanTargetHouse(pSelectBox->Show, pThis->Owner, HouseClass::CurrentPlayer);
-
-	if (!canSee)
-		return;
-
-	ConvertClass* pPalette = FileSystem::PALETTE_PAL;
-	if(pSelectBox->Palette)
-		pPalette = pSelectBox->Palette->GetConvert<PaletteManager::Mode::Temperate>() ;
-
-	if (!pPalette)
+	if (!pSelectBox || pSelectBox->DrawAboveTechno == drawBefore)
 		return;
 
 	const auto pShape = pSelectBox->Shape.Get();
@@ -2663,34 +2646,43 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	if (!pShape)
 		return;
 
-	Vector3D<int> selectboxFrame = pSelectBox->Frame.Get();
+	const bool canSee = HouseClass::IsCurrentPlayerObserver() ? pSelectBox->VisibleToHouses_Observer : EnumFunctions::CanTargetHouse(pSelectBox->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer);
 
-	if (selectboxFrame.X == -1)
-		selectboxFrame = whatAmI == InfantryClass::AbsID ? Vector3D<int>::Empty : Vector3D<int> { 3,3,3 };
+	if (!canSee)
+		return;
 
-	const int frame = pThis->IsGreenHP() ? selectboxFrame.X : pThis->IsYellowHP() ? selectboxFrame.Y : selectboxFrame.Z;
+	ConvertClass* pPalette = (FileSystem::PALETTE_PAL);
+	if (auto pPal = pSelectBox->Palette)
+		pPalette = pPal->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPalette);
 
-	Point2D basePoint = *pLocation;
+	const double healthPercentage = pThis->GetHealthPercentage();
+	const Point3D frames = pSelectBox->Frames.Get(whatAmI == AbstractType::Infantry ? Point3D { 1,1,1 } : Point3D { 0,0,0 });
+	const int frame = healthPercentage > RulesClass::Instance->ConditionYellow ? frames.X : healthPercentage > RulesClass::Instance->ConditionRed ? frames.Y : frames.Z;
+
+	Point2D drawPoint = *pLocation;
 
 	if (pSelectBox->Grounded && whatAmI != BuildingClass::AbsID)
 	{
 		CoordStruct coords = pThis->GetCenterCoords();
 		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
-		auto [pp, coo] = TacticalClass::Instance->GetCoordsToClientSituation(coords);
-		basePoint = pp;
 
-		if (!coo)
+		const auto& [outClient, visible] = TacticalClass::Instance->GetCoordsToClientSituation(coords);
+
+		if (!visible)
 			return;
+
+		drawPoint = outClient;
 	}
 
-	Point2D drawPoint = basePoint 
-	 + pSelectBox->Offset.Get();
+	drawPoint += pSelectBox->Offset;
 
-	drawPoint.Y += pTypeExt->AttachedToObject->PixelSelectionBracketDelta;
+	if (pSelectBox->DrawAboveTechno)
+		drawPoint.Y += pType->PixelSelectionBracketDelta;
+
 	if (whatAmI == AbstractType::Infantry)
-		drawPoint += Point2D{ 8, -3 };
+		drawPoint += { 8, -3 };
 	else
-		drawPoint += Point2D{ 1, -4 };
+		drawPoint += { 1, -4 };
 
 	const auto flags = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | pSelectBox->Translucency;
 
@@ -4046,7 +4038,7 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 		if (pHouse->Defeated ||
 			(pHouse->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive))
 			continue;
-		
+
 		//TODO : causing desync , disable it
 		//if (allowPlayerControl && !pHouse->ControlledByCurrentPlayer())
 		//	continue;
@@ -5613,6 +5605,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CurrentDelayedFireAnim)
 		.Process(this->CustomFiringOffset)
 		.Process(this->LastWeaponType)
+		.Process(this->AirstrikeTargetingMe)
 		;
 }
 
@@ -5826,7 +5819,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
 	_AEProp->Unkillable = unkillable;
-		
+
 	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;
 

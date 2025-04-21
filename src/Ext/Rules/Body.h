@@ -505,6 +505,8 @@ public:
 	} InfantrySpeedData {};
 
 	Valueable<bool> ColorAddUse8BitRGB { false };
+	Valueable<double> IronCurtain_ExtraTintIntensity {};
+	Valueable<double> ForceShield_ExtraTintIntensity {};
 	Valueable<double> DamagedSpeed { 0.75 };
 
 	Valueable<SelectBoxTypeClass*> DefaultInfantrySelectBox {};

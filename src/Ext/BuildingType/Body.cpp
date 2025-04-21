@@ -1297,7 +1297,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (pThis->PowersUpBuilding[0] == NULL && !this->PowersUp_Buildings.empty())
 			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
 
-		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
+		//this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
 
 		this->Grinding_AllowAllies.Read(exINI, pSection, "Grinding.AllowAllies");
 		this->Grinding_AllowOwner.Read(exINI, pSection, "Grinding.AllowOwner");
@@ -1878,7 +1878,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SuperWeapons)
 		.Process(this->OccupierMuzzleFlashes)
 		.Process(this->Refinery_UseStorage)
-		.Process(this->AllowAirstrike)
+		//.Process(this->AllowAirstrike)
 
 		.Process(this->Grinding_AllowAllies)
 		.Process(this->Grinding_AllowOwner)
