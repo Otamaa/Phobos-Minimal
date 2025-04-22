@@ -1393,11 +1393,13 @@ ASMJIT_PATCH(0x70782D, TechnoClass_PointerGotInvalid_Airstrike, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pAbstract, EBP);
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	AnnounceInvalidPointer(pExt->AirstrikeTargetingMe, pAbstract);
+	if(const auto pExt = TechnoExtContainer::Instance.Find(pThis))
+		AnnounceInvalidPointer(pExt->AirstrikeTargetingMe, pAbstract);
 
-	return 0;
+	AnnounceInvalidPointer(pThis->Airstrike, pAbstract);
+
+	return 0x70783B;
 }
 
 #pragma region GetEffectTintIntensity
