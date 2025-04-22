@@ -660,6 +660,34 @@ ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 
 
+DEFINE_HOOK(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
+{
+	GET(UnitClass* const, pThis, EBP);
+	GET(AbstractClass* const, pFocus, EAX);
+
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	// Focus is set when the harvester is fully loaded and go home.
+	if (pFocus && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
+	{
+		auto cellBuffer = CellStruct::Empty;
+		auto long_scan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
+		auto pCellStru = pThis->ScanForTiberium(&cellBuffer, long_scan / 256, 0);
+
+		if (*pCellStru != CellStruct::Empty)
+		{
+			const auto pCell = MapClass::Instance->TryGetCellAt(pCellStru);
+			const auto distFromTiberium = pCell ? pThis->DistanceFrom(pCell) : -1;
+			const auto distFromFocus = pThis->DistanceFrom(pFocus);
+
+			// Check if pCell is better than focus.
+			if (distFromTiberium > 0 && distFromTiberium < distFromFocus)
+				R->EAX(pCell);
+		}
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);

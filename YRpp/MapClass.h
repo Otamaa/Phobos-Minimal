@@ -271,6 +271,11 @@ public:
 		return (idx >= 0 && idx < Cells.Capacity) ? Cells.Items[idx] : nullptr;
 	}
 
+	COMPILETIMEEVAL CellClass* TryGetCellAt(CellStruct* MapCoords) const
+	{
+		int idx = GetCellIndex(MapCoords);
+		return (idx >= 0 && idx < Cells.Capacity) ? Cells.Items[idx] : nullptr;
+	}
 	// ??
 	COMPILETIMEEVAL CellClass* TryGetCellAtB(const CellStruct& MapCoords) const
 	{
@@ -279,6 +284,13 @@ public:
 	}
 	// Get cellclasspointer with coords but it will return nullptr if invalid !
 	COMPILETIMEEVAL CellClass* TryGetCellAt(const CoordStruct& Crd) const
+	{
+		CellStruct cell = CellClass::Coord2Cell(Crd);
+		return TryGetCellAt(cell);
+	}
+
+	// Get cellclasspointer with coords but it will return nullptr if invalid !
+	COMPILETIMEEVAL CellClass* TryGetCellAt(CoordStruct* Crd) const
 	{
 		CellStruct cell = CellClass::Coord2Cell(Crd);
 		return TryGetCellAt(cell);
@@ -338,6 +350,11 @@ public:
 	static COMPILETIMEEVAL FORCEDINLINE int GetCellIndex(const CellStruct& MapCoords)
 	{
 		return MapCoords.X + (MapCoords.Y << 9);
+	}
+
+	static COMPILETIMEEVAL FORCEDINLINE int GetCellIndex(CellStruct* MapCoords)
+	{
+		return MapCoords->X + (MapCoords->Y << 9);
 	}
 
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords

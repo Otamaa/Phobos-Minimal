@@ -1472,3 +1472,68 @@ ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 
 	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;
 }
+
+static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
+{
+	const auto pTarget = pThis->Target;
+
+	if (!pTarget || pTarget == pThis->MegaTarget)
+		return false;
+
+	const auto pTargetTechno = flag_cast_to<TechnoClass*, false>(pTarget);
+
+	if (!pTargetTechno || pTargetTechno->IsArmed())
+		return false;
+
+	if (pThis->TargetingTimer.InProgress())
+		return false;
+
+	const auto pPrimaryWeapon = pThis->GetWeapon(0)->WeaponType;
+
+	if (!pPrimaryWeapon)
+		return false;
+
+	const auto pNewTarget = flag_cast_to<TechnoClass*>(pThis->GreatestThreat(ThreatType::Range, &pThis->Location, false));
+
+	if (!pNewTarget || pNewTarget->GetTechnoType() == pTargetTechno->GetTechnoType())
+		return false;
+
+	const auto pSecondaryWeapon = pThis->GetWeapon(1)->WeaponType;
+
+	if (!pSecondaryWeapon || !pSecondaryWeapon->NeverUse) // Melee unit's virtual scanner
+		return true;
+
+	return pSecondaryWeapon->Range <= pPrimaryWeapon->Range;
+}
+
+DEFINE_HOOK(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
+{
+	GET(FootClass* const, pThis, ECX);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->AttackMove_UpdateTarget.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) && CheckAttackMoveCanResetTarget(pThis))
+	{
+		pThis->Target = nullptr;
+		pThis->HaveAttackMoveTarget = false;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6F85AB, TechnoClass_CanAutoTargetObject_AggressiveAttackMove, 0x6)
+{
+	enum { ContinueCheck = 0x6F85BA, CanTarget = 0x6F8604 };
+
+	GET(TechnoClass* const, pThis, EDI);
+
+	if (!pThis->Owner->IsControlledByHuman())
+		return CanTarget;
+
+	if (!pThis->MegaMissionIsAttackMove())
+		return ContinueCheck;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	return pTypeExt->AttackMove_Aggressive.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) ? CanTarget : ContinueCheck;
+//}

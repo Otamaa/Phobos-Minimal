@@ -2243,6 +2243,13 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 #pragma region Unit
 
+
+
+namespace RemoveCellContentTemp
+{
+	bool CheckBeforeUnmark = false;
+}
+
 ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 {
 	GET(UnitClass*, pThis, ECX);
@@ -2443,7 +2450,9 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 			pThis->IsAlive = 1;
 		}
 
+		RemoveCellContentTemp::CheckBeforeUnmark = true;
 		pThis->UpdatePlacement(PlacementType::Remove);
+		RemoveCellContentTemp::CheckBeforeUnmark = false;
 
 		if (pThis->Passengers.NumPassengers > 0 && pThis->Passengers.GetFirstPassenger())
 		{
@@ -2495,7 +2504,20 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 	return 0x738679;
 }
 
+ASMJIT_PATCH(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
+{
+	enum { ContinueCheck = 0x47EAFE, DontUnmark = 0x47EB8F };
 
+	GET(CellClass*, pCell, EDI);
+	GET_STACK(bool, onBridge, STACK_OFFSET(0x14, 0x8));
+
+	if (RemoveCellContentTemp::CheckBeforeUnmark && onBridge ? pCell->AltObject : pCell->FirstObject)
+		return DontUnmark;
+
+	GET(ObjectClass*, pContent, ESI);
+	R->EAX(pContent->WhatAmI());
+	return ContinueCheck;
+}
 #pragma endregion
 
 #pragma region Veinhole

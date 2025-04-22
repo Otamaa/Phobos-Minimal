@@ -485,6 +485,9 @@ public:
 		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
 	}
 
+	static COMPILETIMEEVAL FORCEDINLINE CellStruct Coord2Cell(CoordStruct *crd) {
+		return { static_cast<short>(crd->X / 256)  , static_cast<short>(crd->Y / 256) };
+	}
     COMPILETIMEEVAL CoordStruct FixHeight(CoordStruct crd) const
 	{
 		if(this->ContainsBridge()) {

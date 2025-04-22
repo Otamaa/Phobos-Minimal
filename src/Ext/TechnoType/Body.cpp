@@ -1370,6 +1370,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
 			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
+			this->AttackMove_Aggressive.Read(exINI, pSection, "AttackMove.Aggressive");
+			this->AttackMove_UpdateTarget.Read(exINI, pSection, "AttackMove.UpdateTarget");
+			this->HarvesterScanAfterUnload.Read(exINI, pSection, "HarvesterScanAfterUnload");
 			this->DropPodProp.Read(exINI, pSection);
 		}
 
@@ -1603,7 +1606,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			alternateFLH.Read(exArtINI, pArtSection, (std::string("AlternateFLH") + std::to_string(i)).c_str());
 
 			if (!alternateFLH.isset()) {
-				if( i < 5){ 
+				if( i < 5){
 					this->AlternateFLHs.emplace_back();
 					continue;
 				}
@@ -2539,6 +2542,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Convert_ComputerToHuman)
 		.Process(this->TalkbubbleVoices)
 		.Process(this->HarvesterDumpAmount)
+		.Process(this->HarvesterScanAfterUnload)
+		.Process(this->AttackMove_Aggressive)
+		.Process(this->AttackMove_UpdateTarget)
 		.Process(this->NoExtraSelfHealOrRepair)
 
 #pragma region BuildLimitGroup
@@ -2626,7 +2632,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->NoQueueUpToEnter)
 		.Process(this->NoQueueUpToUnload)
- 
+
 		.Process(this->NoRearm_UnderEMP)
 		.Process(this->NoRearm_Temporal)
 		.Process(this->NoReload_UnderEMP)
@@ -2663,7 +2669,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->LaserTargetColor)
 		.Process(this->AirstrikeLineColor)
-			
+
 		.Process(this->InitialSpawnsNumber)
 		.Process(this->Spawns_Queue)
 
@@ -2673,7 +2679,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SpawnerRange)
 		.Process(this->EliteSpawnerRange)
-		
+
 		.Process(this->AmphibiousEnter)
 		.Process(this->AmphibiousUnload)
 

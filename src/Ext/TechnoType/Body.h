@@ -932,6 +932,9 @@ public:
 
 	Nullable<float> HarvesterDumpAmount { };
 	Valueable<bool> NoExtraSelfHealOrRepair { false };
+	Nullable<bool> HarvesterScanAfterUnload { };
+	Nullable<bool> AttackMove_Aggressive { };
+	Nullable<bool> AttackMove_UpdateTarget { };
 
 //add this just in case the implementation chages
 #pragma region BuildLimitGroup

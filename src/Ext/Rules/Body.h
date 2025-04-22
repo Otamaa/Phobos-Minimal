@@ -513,6 +513,10 @@ public:
 	Valueable<SelectBoxTypeClass*> DefaultUnitSelectBox {};
 	Valueable<float> HarvesterDumpAmount { 0.0f };
 
+	Valueable<bool> HarvesterScanAfterUnload {};
+	Valueable<bool> AttackMove_Aggressive { false };
+	Valueable<bool> AttackMove_UpdateTarget { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
