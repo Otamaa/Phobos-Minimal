@@ -14,7 +14,7 @@
 
 AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
 {
-	if (RulesExtData::Instance()->ExpandAircraftMission)
+	if (RulesExtData::Instance()->ExpandAircraftMission && !this->Team && this->Ammo && !this->Airstrike && !this->Spawned)
 	{
 		if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
 			threatType |= pPrimaryWeapon->AllowedThreats();
@@ -28,8 +28,6 @@ AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordSt
 
 void FakeAircraftClass::_FootClass_Update_Wrapper()
 {
-
-
 	auto pExt = TechnoExtContainer::Instance.Find(this);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);

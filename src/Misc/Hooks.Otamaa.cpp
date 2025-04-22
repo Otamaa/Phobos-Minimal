@@ -5520,7 +5520,7 @@ public:
 				this->HierarchicalQueue->Heap[i] = 0;
 			}
 			this->HierarchicalQueue->Count = 0;
-		
+
 			auto zone_from = MapClass::Instance->MapClass_zone_56D3F0(from);
 			auto passabilityDataFrom = MapClass::GlobalPassabilityDatas() + zone_from;
 			auto pPassabilityFrom = passabilityDataFrom->data[idx_star];
@@ -5554,7 +5554,7 @@ public:
 				return 1;
 			}
 
-			//reset 
+			//reset
 			this->BufferForHierarchicalQueue->BufferDelta = -1;
 			this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
 			this->BufferForHierarchicalQueue->Score = 0.0f;
@@ -5607,7 +5607,7 @@ public:
 				{
 					break;
 				}
-			
+
 				auto sub_zone = SubzoneTrackingStruct::Array[0].Items + (24 * idx_star);
 				auto conn_begin = sub_zone[_first_idx].SubzoneConnections.Items;
 				auto conn_count = sub_zone[_first_idx].SubzoneConnections.Count;
@@ -5627,7 +5627,7 @@ public:
 						double score = conn_begin->unknown_byte_4 ? 0.001 : 0.0;
 						int _vala = conn_begin->unknown_dword_0;
 						double adj__ = _pathfind_adjusment[__conn__next] + first->Score + zone_ + score;
-						if ((cur_const_ptr_b[conn_begin->unknown_dword_0] != this->initedcount 
+						if ((cur_const_ptr_b[conn_begin->unknown_dword_0] != this->initedcount
 							|| cur_cost_hirarcial_ptr[conn_begin->unknown_dword_0] > adj__)
 							 && (isFirst || next_cost_ptr[__conn__first] == this->initedcount || __conn__next == 1)
 							 && MapClass::MovementAdjustArray[(int)mzone][__conn__next] == 1)
@@ -6426,32 +6426,40 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 	return 0x65B8DC;
 }
 
+template<bool reduce = false>
+void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance){
+	const auto max = pRad->SpreadInLeptons;
+
+	if (distance <= max) {
+		if(auto pCell = MapClass::Instance->TryGetCellAt(cell))
+		{
+			const auto pCellExt = CellExtContainer::Instance.Find(pCell);
+			auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
+
+			if constexpr(!reduce) {
+				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
+
+				if (it != pCellExt->RadLevels.end())
+					it->Level += amount;
+				else
+					pCellExt->RadLevels.emplace_back(pRad, amount);
+			} else {
+				if (it != pCellExt->RadLevels.end()){
+					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps);
+				}
+			}
+		}
+	}
+}
+
 ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 {
 	enum { SkipGameCode = 0x65BB11 };
 
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
-	const int max = pThis->SpreadInLeptons;
-
-	if (distance > max)
-		return SkipGameCode;
-
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x4C));
-	const auto pCell = MapClass::Instance->TryGetCellAt(*cell);
-
-	if (!pCell)
-		return SkipGameCode;
-
-	auto pCellExt = CellExtContainer::Instance.Find(pCell);
-	auto it = pCellExt->RadLevels.find_if([pThis](auto& pair) { return pair.Rad == pThis; });
-	const int amount = int(static_cast<double>(max - distance) / max * pThis->RadLevel);
-
-	if (it != pCellExt->RadLevels.end())
-		it->Level += amount;
-	else
-		pCellExt->RadLevels.emplace_back(pThis, amount);
-
+	PopulateCellRadVector<false>(pThis, cell, distance);
 	return SkipGameCode;
 }
 
@@ -6461,26 +6469,8 @@ ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
-	const int max = pThis->SpreadInLeptons;
-
-	if (distance > max)
-		return SkipGameCode;
-
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x70, -0x5C));
-	const auto pCell = MapClass::Instance->TryGetCellAt(*cell);
-
-	if (!pCell)
-		return SkipGameCode;
-
-	const auto pCellExt = CellExtContainer::Instance.Find(pCell);
-	auto it = pCellExt->RadLevels.find_if([pThis](auto& pair) { return pair.Rad == pThis; });
-
-	if (it != pCellExt->RadLevels.end())
-	{
-		const int amount = int(static_cast<double>(max - distance) / max * pThis->RadLevel / pThis->LevelSteps);
-		it->Level -= amount;
-	}
-
+	PopulateCellRadVector<true>(pThis, cell, distance);
 	return SkipGameCode;
 }
 
@@ -6490,26 +6480,8 @@ ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
-	const int max = pThis->SpreadInLeptons;
-
-	if (distance > max)
-		return SkipGameCode;
-
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x50));
-	const auto pCell = MapClass::Instance->TryGetCellAt(*cell);
-
-	if (!pCell)
-		return SkipGameCode;
-
-	const auto pCellExt = CellExtContainer::Instance.Find(pCell);
-	auto it = pCellExt->RadLevels.find_if([pThis](auto& pair) { return pair.Rad == pThis; });
-
-	if (it != pCellExt->RadLevels.end())
-	{
-		const int amount = int(static_cast<double>(max - distance) / max * pThis->RadLevel / pThis->LevelSteps);
-		it->Level -= amount;
-	}
-
+	PopulateCellRadVector<true>(pThis, cell, distance);
 	return SkipGameCode;
 }
 
@@ -6643,7 +6615,7 @@ ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 //{
 //	GET(SHPStruct*, ptr, ESI);
 //	Debug::Log("Caller SHPStruct_deleteptr_check deleting [%d][0x%x][%s]\n", count_++,ptr , _tempName.c_str());
-//	
+//
 //	if (count_ == 251)
 //	{
 //		auto as_ = ptr->AsReference();
@@ -6823,7 +6795,7 @@ static void ProcessColorAdd(CCINIClass* pINI) {
 			}
 		};
 
-		//this was for debugging purposes 
+		//this was for debugging purposes
 		//the code below can be simplified
 		std::vector<temp_rgb> v_buffer(count);
 
@@ -6888,7 +6860,7 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //static DWORD calladdr;
 //
 //CellStruct* __fastcall TubeFacing_429780(CellStruct* pRet, CellStruct* pLoc , int idx, int* path) {
-//	
+//
 //	if (size_t(idx) < 24)
 //	{
 //		for (int count = idx; count > 0; --count)
@@ -6915,7 +6887,7 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //	else {
 //		Debug::Log("%x FindPath with idx %d : in %d\n", calladdr , idx , idx_pathfind);
 //	}
-//	
+//
 //	*pRet = *pLoc;
 //	return pRet;
 //}

@@ -133,7 +133,7 @@ bool FireBurst(AircraftClass* pAir, AbstractClass* pTarget)
 				if (isStrafe)
 				{
 					TechnoExtContainer::Instance.Find(pAir)->StrafeFireCunt++;
-					
+
 					if (pWeaponExt->Strafing_UseAmmoPerShot)
 					{
 						pAir->Ammo--;
