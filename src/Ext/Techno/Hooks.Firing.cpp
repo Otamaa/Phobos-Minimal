@@ -279,7 +279,7 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		if (!TechnoExtData::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 
-		if (pWeapon->Warhead)
+		if (pWeapon->Warhead->Airstrike)
 		{
 			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets))
