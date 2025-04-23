@@ -9,11 +9,12 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
-	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);	
+	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 
 	if (this->Invoker)
 		TechnoExtContainer::Instance.Find(this->Invoker)->AttachedEffectInvokerCount--;
@@ -32,19 +33,26 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->Type = pType;
 	this->Techno = pTechno;
 
+	if (auto pWH = pType->Duration_ApplyVersus_Warhead)
+	{
+		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pType->Duration_ApplyVersus_Warhead);
+		const auto verses = WarheadTypeExtContainer::Instance.Find(pWH)->GetVerses(armor);
+		this->Duration = MaxImpl(static_cast<int>(this->Duration * verses.Verses), 0);
+	}
+
 	if (pInvoker) {
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
 
 		pInvokerExt->AttachedEffectInvokerCount++;
 
-		if(this->Type->Duration_ApplyFirepowerMult)
+		if(pType->Duration_ApplyFirepowerMult)
 			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
 	}
 
-	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
+	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
 		const auto _value = this->Duration / pTechno->ArmorMultiplier / TechnoExtContainer::Instance.Find(pTechno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
-		this->Duration = std::max(static_cast<int>(_value), 0);
+		this->Duration = MaxImpl(static_cast<int>(_value), 0);
 	}
 
 	this->InvokerHouse = pInvokerHouse;
@@ -98,7 +106,7 @@ void PhobosAttachEffectClass::AI()
 		if (this->Type->ROFMultiplier != 1.0 && this->Type->ROFMultiplier > 0.0 && this->Type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
 			double ROFModifier = this->Type->ROFMultiplier;
-	
+
 			pTechno->DiskLaserTimer.Start(static_cast<int>(pTechno->DiskLaserTimer.GetTimeLeft() * ROFModifier));
 
 			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
@@ -385,6 +393,13 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 		this->Duration = this->DurationOverride ? this->DurationOverride : this->Type->Duration;
 
 
+	if (auto pWH = this->Type->Duration_ApplyVersus_Warhead)
+	{
+		const auto armor = TechnoExtData::GetTechnoArmor(this->Techno, this->Type->Duration_ApplyVersus_Warhead);
+		const auto verses = WarheadTypeExtContainer::Instance.Find(pWH)->GetVerses(armor);
+		this->Duration = MaxImpl(static_cast<int>(this->Duration * verses.Verses), 0);
+	}
+
 	if (this->Invoker)
 	{
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
@@ -573,6 +588,12 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachParams)
 {
 	if (!pType || !pTarget)
+		return nullptr;
+
+	if (pType->AffectAbovePercent.isset() && pTarget->GetHealthPercentage() < pType->AffectAbovePercent)
+		return nullptr;
+
+	if (pType->AffectBelowPercent.isset() && pTarget->GetHealthPercentage() > pType->AffectBelowPercent)
 		return nullptr;
 
 	if (pTarget->IsIronCurtained()) {

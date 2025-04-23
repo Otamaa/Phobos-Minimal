@@ -54,4 +54,8 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	this->DisableSpySat.Read(exINI, pSection, (initial + "DisableSpySat").c_str());
 
 	this->Unkillable.Read(exINI, pSection, (initial + "Unkillable").c_str());
+	this->ExtraWarheads.Read(exINI, pSection, "ExtraWarheads");
+	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, (initial + "ExtraWarheads.DamageOverrides").c_str());
+	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, (initial + "ExtraWarheads.DetonationChances").c_str());
+	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, (initial + "ExtraWarheads.FullDetonation").c_str());
 }

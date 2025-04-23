@@ -497,6 +497,7 @@ struct AEProperties
 	bool HasRangeModifier { false };
 	bool HasTint { false };
 	bool HasOnFireDiscardables { false };
+	bool HasExtraWarheads { false };
 
 	bool ReflectDamage { false };
 	std::vector<WeaponTypeClass*> ExpireWeaponOnDead { };

@@ -48,6 +48,11 @@ public:
 
 	Valueable<bool> Unkillable { false };
 
+	ValueableVector<WarheadTypeClass*> ExtraWarheads {};
+	ValueableVector<int> ExtraWarheads_DamageOverrides {};
+	ValueableVector<double> ExtraWarheads_DetonationChances {};
+	ValueableVector<bool> ExtraWarheads_FullDetonation {};
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 
 	bool Save(PhobosStreamWriter& Stm) const;
@@ -95,6 +100,10 @@ private:
 			.Process(this->DisableRadar)
 			.Process(this->DisableSpySat)
 			.Process(this->Unkillable)
+			.Process(this->ExtraWarheads)
+			.Process(this->ExtraWarheads_DamageOverrides)
+			.Process(this->ExtraWarheads_DetonationChances)
+			.Process(this->ExtraWarheads_FullDetonation)
 			.Success()
 			&& Stm.RegisterChange(this); // announce this type
 	}

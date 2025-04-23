@@ -5659,6 +5659,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
+	bool hasExtraWH = false;
 
 	_AEProp->ExpireWeaponOnDead.clear();
 	extraRangeData->Clear();
@@ -5695,6 +5696,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		disableRadar |= aeData.Type->DisableRadar;
 		disableSpySat |= aeData.Type->DisableSpySat;
 		unkillable |= aeData.Type->Unkillable;
+		hasExtraWH |= aeData.Type->ExtraWarheads.size() > 0;
 
 		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)) {
 
@@ -5730,6 +5732,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		unkillable |= type->Unkillable;
 		disableRadar |= type->DisableRadar;
 		disableSpySat |= type->DisableSpySat;
+		hasExtraWH |= type->ExtraWarheads.size() > 0;
 
 		if (type->ExpireWeapon && (type->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
 			if (!type->Cumulative || !type->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(type)) {
@@ -5819,6 +5822,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->ReflectDamage = reflectsDamage;
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
 	_AEProp->Unkillable = unkillable;
+	_AEProp->HasExtraWarheads = hasExtraWH;
 
 	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;

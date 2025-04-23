@@ -40,67 +40,98 @@
 //	return 0;
 //}
 
-void ApplyLogics(BulletClass* pThis , CoordStruct* coords) {
+void ApplyExtraWarheads(
+	BulletClass* pBullet,
+	std::vector<WarheadTypeClass*> exWH,
+	std::vector<int> exWHDamageOverrides,
+	std::vector<double> exWHChances,
+	 std::vector<bool> exWHFull,
+	CoordStruct* coords, HouseClass* pOwner) {
 
-	if (pThis->WeaponType)
+	const size_t damageoverride_size = exWHDamageOverrides.size();
+	const size_t fulldetonation_size = exWHFull.size();
+	const size_t chance_size = exWHChances.size();
+	int damage = pBullet->WeaponType ? pBullet->WeaponType->Damage : 0;
+
+	for (size_t i = 0; i < exWH.size(); i++)
 	{
-		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		const size_t damageoverride_size = pWeaponExt->ExtraWarheads_DamageOverrides.size();
-		const size_t fulldetonation_size = pWeaponExt->ExtraWarheads_FullDetonation.size();
-		const size_t chance_size = pWeaponExt->ExtraWarheads_DetonationChances.size();
+		auto const pWH = exWH[i];
 
-		for (size_t i = 0; i < pWeaponExt->ExtraWarheads.size(); i++)
-		{
-			auto const pWH = pWeaponExt->ExtraWarheads[i];
-			auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
-			int damage = pThis->WeaponType->Damage;
+		if (damageoverride_size > 0 && damageoverride_size > i)
+			damage = exWHDamageOverrides[i];
+		else if (damageoverride_size > 0)
+			damage = exWHDamageOverrides[damageoverride_size - 1];
 
-			if (damageoverride_size > 0 && damageoverride_size > i)
-				damage = pWeaponExt->ExtraWarheads_DamageOverrides[i];
-			else if (damageoverride_size > 0)
-				damage = pWeaponExt->ExtraWarheads_DamageOverrides[damageoverride_size - 1];
+		bool detonate = true;
 
-			bool detonate = true;
+		if (chance_size > 0 && chance_size > i)
+			detonate = exWHChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
+		else if (chance_size > 0)
+			detonate = exWHChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
 
-			if (chance_size > 0 && chance_size > i)
-				detonate = pWeaponExt->ExtraWarheads_DetonationChances[i] >= ScenarioClass::Instance->Random.RandomDouble();
-			else if (chance_size > 0)
-				detonate = pWeaponExt->ExtraWarheads_DetonationChances[chance_size - 1] >= ScenarioClass::Instance->Random.RandomDouble();
+		bool isFull = true;
 
-			bool isFull = true;
+		if (fulldetonation_size > 0 && fulldetonation_size > i)
+			isFull = exWHFull[i];
+		else if (fulldetonation_size > 0)
+			isFull = exWHFull[fulldetonation_size - 1];
 
-			if (fulldetonation_size > 0 && fulldetonation_size > i)
-				isFull = pWeaponExt->ExtraWarheads_FullDetonation[i];
-			else if (fulldetonation_size > 0)
-				isFull = pWeaponExt->ExtraWarheads_FullDetonation[fulldetonation_size - 1];
+		if (detonate) {
 
-			if (detonate) {
-
-				if(isFull)
-					WarheadTypeExtData::DetonateAt(pWH, pThis->Target ? pThis->Target : MapClass::Instance->GetCellAt(coords), *coords, pThis->Owner, damage , pOwner);
-				else
-					WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pThis->Owner, pWH, true, pOwner, 
-					flag_cast_to<TechnoClass*>(pThis->Target));
-
-			}
+			if(isFull)
+				WarheadTypeExtData::DetonateAt(pWH, pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(coords), *coords, pBullet->Owner, damage , pOwner);
+			else
+				WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pBullet->Owner, pWH, true, pOwner,
+				flag_cast_to<TechnoClass*>(pBullet->Target));
 		}
+	}
+}
+
+void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * pThis , CoordStruct* coords) {
+	auto const pBulletExt = BulletExtContainer::Instance.Find(pThis);
+	auto const pOwner = pThis->Owner ? pThis->Owner->Owner : pBulletExt->Owner;
+
+	if(pThis->WeaponType){
+		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
+		ApplyExtraWarheads(pThis , pWeaponExt->ExtraWarheads, pWeaponExt->ExtraWarheads_DamageOverrides, pWeaponExt->ExtraWarheads_DetonationChances, pWeaponExt->ExtraWarheads_FullDetonation, coords, pOwner);
 	}
 
 		// Return to sender
 	if (pThis->Type && pThis->Owner)
 	{
 		auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+		if (pThis->Owner) {
+			auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
+
+			if (pExt->AE.HasExtraWarheads) {
+				for (auto const& aE : pExt->AeData.Data) {
+					if (aE.Type->ExtraWarheads.size() > 0)
+						ApplyExtraWarheads(pThis , aE.Type->ExtraWarheads, aE.Type->ExtraWarheads_DamageOverrides, aE.Type->ExtraWarheads_DetonationChances, aE.Type->ExtraWarheads_FullDetonation, coords, pOwner);
+				}
+
+				for (auto const& pAE : pExt->PhobosAE) {
+
+					if(!pAE || !pAE->IsActive())
+						continue;
+
+					auto const pType = pAE->GetType();
+
+					if (pType->ExtraWarheads.size() > 0)
+						ApplyExtraWarheads(pThis , pType->ExtraWarheads, pType->ExtraWarheads_DamageOverrides, pType->ExtraWarheads_DetonationChances, pType->ExtraWarheads_FullDetonation, coords, pOwner);
+				}
+			}
+		}
 
 		if (pTypeExt->ReturnWeapon)
 		{
-			auto const pWeapon = pTypeExt->ReturnWeapon.Get();
+			auto const RpWeapon = pTypeExt->ReturnWeapon.Get();
 
-			if (BulletClass* pBullet = pWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
-				pWeapon->Damage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright))
+			if (BulletClass* pBullet = RpWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
+				RpWeapon->Damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))
 			{
-				pBullet->WeaponType = pWeapon;
-				auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-				pBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
+				pBullet->WeaponType = RpWeapon;
+				auto const pRBulletExt = BulletExtContainer::Instance.Find(pBullet);
+				pRBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
 
 				pBullet->MoveTo(pThis->Location, {});
 			}
@@ -127,7 +158,7 @@ ASMJIT_PATCH(0x469AA4, BulletClass_Logics_Extras, 0x5)
 {
 	GET(BulletClass* , pThis ,ESI);
 	GET_BASE(CoordStruct*, coords, 0x8);
-	ApplyLogics(pThis , coords);
+	ApplyLogics(pThis->WH , pThis->WeaponType, pThis,  coords);
 
 	return 0;
 }

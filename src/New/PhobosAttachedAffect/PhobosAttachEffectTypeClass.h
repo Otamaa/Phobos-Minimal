@@ -12,6 +12,8 @@ public:
 	Valueable<int> Duration;
 	Valueable<bool> Duration_ApplyFirepowerMult;
 	Valueable<bool> Duration_ApplyArmorMultOnTarget;
+	Valueable<WarheadTypeClass*> Duration_ApplyVersus_Warhead;
+
 	Valueable<bool> Cumulative;
 	Valueable<int> Cumulative_MaxCount;
 	Valueable<bool> Powered;
@@ -82,10 +84,16 @@ public:
 
 	Valueable<bool> Unkillable;
 
+	ValueableVector<WarheadTypeClass*> ExtraWarheads;
+	ValueableVector<int> ExtraWarheads_DamageOverrides;
+	ValueableVector<double> ExtraWarheads_DetonationChances;
+	ValueableVector<bool> ExtraWarheads_FullDetonation;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
 		, Duration_ApplyArmorMultOnTarget { false }
+		, Duration_ApplyVersus_Warhead { }
 		, Cumulative { false }
 		, Cumulative_MaxCount { -1 }
 		, Powered { false }
@@ -151,6 +159,11 @@ public:
 		, DisableSpySat {}
 
 		, Unkillable {}
+
+		, ExtraWarheads {}
+		, ExtraWarheads_DamageOverrides {}
+		, ExtraWarheads_DetonationChances {}
+		, ExtraWarheads_FullDetonation {}
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {

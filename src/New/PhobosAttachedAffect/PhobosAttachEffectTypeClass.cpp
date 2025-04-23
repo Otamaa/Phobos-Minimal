@@ -38,6 +38,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Duration.Read(exINI, pSection, "Duration");
 	this->Duration_ApplyFirepowerMult.Read(exINI, pSection, "Duration.ApplyFirepowerMult");
 	this->Duration_ApplyArmorMultOnTarget.Read(exINI, pSection, "Duration.ApplyArmorMultOnTarget");
+	this->Duration_ApplyVersus_Warhead.Read(exINI, pSection, "Duration.ApplyVersusWarhead");
 	this->Cumulative.Read(exINI, pSection, "Cumulative");
 	this->Cumulative_MaxCount.Read(exINI, pSection, "Cumulative.MaxCount");
 	this->Powered.Read(exINI, pSection, "Powered");
@@ -122,6 +123,11 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DisableSpySat.Read(exINI, pSection, "DisableSpySat");
 
 	this->Unkillable.Read(exINI, pSection, "Unkillable");
+
+	this->ExtraWarheads.Read(exINI, pSection, "ExtraWarheads");
+	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
+	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, "ExtraWarheads.DetonationChances");
+	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, "ExtraWarheads.FullDetonation");
 }
 
 template <typename T>
@@ -131,6 +137,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->Duration)
 		.Process(this->Duration_ApplyFirepowerMult)
 		.Process(this->Duration_ApplyArmorMultOnTarget)
+		.Process(this->Duration_ApplyVersus_Warhead)
 		.Process(this->Cumulative)
 		.Process(this->Cumulative_MaxCount)
 		.Process(this->Powered)
@@ -195,6 +202,11 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DisableRadar)
 		.Process(this->DisableSpySat)
 		.Process(this->Unkillable)
+
+		.Process(this->ExtraWarheads)
+		.Process(this->ExtraWarheads_DamageOverrides)
+		.Process(this->ExtraWarheads_DetonationChances)
+		.Process(this->ExtraWarheads_FullDetonation)
 		;
 }
 
