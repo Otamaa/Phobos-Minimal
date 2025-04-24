@@ -1099,6 +1099,7 @@ public:
 	Valueable<double> Skilled_FaceTargetRange { 16.0 };
 	Valueable<bool> Skilled_ConfrontEnemies { true };
 	Valueable<int> Skilled_RetreatDuration { 150 };
+	Valueable<bool> Harvester_CanGuardArea {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

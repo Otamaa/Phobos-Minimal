@@ -1489,6 +1489,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Skilled_FaceTargetRange.Read(exINI, pSection, "Skilled.FaceTargetRange");
 		this->Skilled_ConfrontEnemies.Read(exINI, pSection, "Skilled.ConfrontEnemies");
 		this->Skilled_RetreatDuration.Read(exINI, pSection, "Skilled.RetreatDuration");
+
+		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 	}
 
 	// Art tags
@@ -1844,6 +1846,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Skilled_ConfrontEnemies)
 		.Process(this->Skilled_RetreatDuration)
 
+		.Process(this->Harvester_CanGuardArea)
 		.Process(this->Spawner_DelayFrames)
 		.Process(this->Harvester_Counted)
 		.Process(this->Promote_IncludeSpawns)
