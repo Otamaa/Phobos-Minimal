@@ -194,6 +194,15 @@ struct Game
 		JMP_STD(0x755C50);
 	}
 
+#ifdef deprecated
+
+	// the game's own rounding function
+	// infamous for true'ing (F2I(-5.00) == -4.00)
+	static int F2I(double val)
+	{
+		return int(F2I64(val));
+	}
+
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
 	static uint64_t F2I64(double val)
@@ -203,15 +212,10 @@ struct Game
 		ASM_CALL(0x7C5F00);
 	}
 
+#endif // deprecated
+
 	static COMPILETIMEEVAL int FORCEDINLINE AdjustHeight(int height)  {
 		return int((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
-	}
-
-	// the game's own rounding function
-	// infamous for true'ing (F2I(-5.00) == -4.00)
-	static int F2I(double val)
-	{
-		return int(F2I64(val));
 	}
 
 	[[noreturn]] static void __stdcall RaiseError(HRESULT err)

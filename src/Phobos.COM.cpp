@@ -3,7 +3,7 @@
 #include <Helpers/Macro.h>
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
-#include <New/Interfaces/SkilledLocomotionClass.h>
+#include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 
 template<typename T>
@@ -111,7 +111,7 @@ ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 
 	// Add new classes to be COM-registered below
 	RegisterFactoryForClass<LevitateLocomotionClass>();
-	RegisterFactoryForClass<SkilledLocomotionClass>();
+	RegisterFactoryForClass<AdvancedDriveLocomotionClass>();
 	RegisterFactoryForClass<CustomRocketLocomotionClass>();
 
 	Debug::Log("COM registration done!\n");

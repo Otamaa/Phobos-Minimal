@@ -5,7 +5,7 @@
 
 #include <CellClass.h>
 
-DEFINE_PIGGYLOCO(Skilled ,4A582751-9839-11d1-B709-00A024DDAFD1)
+DEFINE_PIGGYLOCO(AdvancedDrive ,4A582751-9839-11d1-B709-00A024DDAFD1)
 {
 public:
 	// IUnknown
@@ -54,7 +54,7 @@ public:
 		if (this)
 		{
 			this->Piggybacker.Detach();
-			new (this) SkilledLocomotionClass(noinit_t());
+			new (this) AdvancedDriveLocomotionClass(noinit_t());
 		}
 
 		bool piggybackerPresent = false;
@@ -251,7 +251,7 @@ public:
 		return this->Piggybacker != nullptr;
 	}
 
-	SkilledLocomotionClass() : LocomotionClass { }
+	AdvancedDriveLocomotionClass() : LocomotionClass { }
 		, CurrentRamp { 0 }
 		, PreviousRamp { 0 }
 		, SlopeTimer {}
@@ -270,16 +270,18 @@ public:
 		, IsForward { true }
 		, IsShifting { false }
 		, Piggybacker { nullptr }
-		, Standby { 0 }
+		, ForwardTo { CoordStruct::Empty }
+		, TargetFrame { 0 }
+		, TargetDistance { 0 }
 	{ }
 
 	// Destructor
-	virtual ~SkilledLocomotionClass() override = default;
+	virtual ~AdvancedDriveLocomotionClass() override = default;
 
 public:
-	SkilledLocomotionClass(const SkilledLocomotionClass&) = delete;
-	SkilledLocomotionClass(noinit_t) : LocomotionClass { noinit_t() } { }
-	SkilledLocomotionClass& operator=(const SkilledLocomotionClass&) = delete;
+	AdvancedDriveLocomotionClass(const AdvancedDriveLocomotionClass&) = delete;
+	AdvancedDriveLocomotionClass(noinit_t) : LocomotionClass { noinit_t() } { }
+	AdvancedDriveLocomotionClass& operator=(const AdvancedDriveLocomotionClass&) = delete;
 public:
 
 	// Properties
@@ -301,7 +303,9 @@ public:
 	bool IsForward;
 	bool IsShifting;
 	ILocomotionPtr Piggybacker;
-	int Standby; // No use yet
+	CoordStruct ForwardTo;
+	int TargetFrame;
+	int TargetDistance;
 
 private:
 	// Vanilla auxiliary function

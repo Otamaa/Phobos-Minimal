@@ -296,7 +296,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pBld->Owner->RecheckTechTree = true;
 			pBld->Owner->RecheckPower = true;
 			pBld->DisableTemporal();
-			pBld->UpdatePlacement(PlacementType::Redraw);
+			pBld->Mark(MarkType::Redraw);
 
 			BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift = true;
 
@@ -350,7 +350,7 @@ void ChronoWarpStateMachine::Update()
 		{
 			if (item.building)
 			{
-				item.building->UpdatePlacement(PlacementType::Redraw);
+				item.building->Mark(MarkType::Redraw);
 			}
 		}
 	}
@@ -411,7 +411,7 @@ void ChronoWarpStateMachine::Update()
 			pBld->Owner->RecheckPower = true;
 			pBld->Owner->RecheckTechTree = true;
 			pBld->EnableTemporal();
-			pBld->UpdatePlacement(PlacementType::Redraw);
+			pBld->Mark(MarkType::Redraw);
 
 			BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift = false;
 

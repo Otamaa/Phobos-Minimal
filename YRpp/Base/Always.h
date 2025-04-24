@@ -186,18 +186,21 @@ SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 #define CAT(A, ...) CAT_LIT(A, __VA_ARGS__)
 #define UIP(...) CAT( DONE_, UNPAREN __VA_ARGS__  )
 
+// fuck these , dont use it , it causing code to avoid compiler optimization most of the time 
+// also defining those address on the dll massively polluting the segment
+// nor worth the shit
  /*
   *	Use these macros to define a reference to an address in the game's memory.
   */
-#define DEFINE_NONSTATIC_REFERENCE(type, name, address) UIP(type) (&name) = *reinterpret_cast<UIP(type)*>(address);
-#define DEFINE_REFERENCE(type, name, address) static inline DEFINE_NONSTATIC_REFERENCE(type, name, address);
-#define DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address) UIP(type) (&name)dimensions = *reinterpret_cast<UIP(type) (*)dimensions>(address);
-#define DEFINE_ARRAY_REFERENCE(type, dimensions, name, address) static inline DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address);
+//#define DEFINE_NONSTATIC_REFERENCE(type, name, address) UIP(type) (&name) = *reinterpret_cast<UIP(type)*>(address);
+//#define DEFINE_REFERENCE(type, name, address) static inline DEFINE_NONSTATIC_REFERENCE(type, name, address);
+//#define DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address) UIP(type) (&name)dimensions = *reinterpret_cast<UIP(type) (*)dimensions>(address);
+//#define DEFINE_ARRAY_REFERENCE(type, dimensions, name, address) static inline DEFINE_NONSTATIC_ARRAY_REFERENCE(type, dimensions, name, address);
 
   /*
    *	Use these macros to define a pointer to an address in the game's memory.
    *	Pretty much only useful for strings that exist in the executable,
    *	for everything else, prefer references.
    */
-#define DEFINE_NONSTATIC_POINTER(type, name, address) UIP(type)* const (name) = reinterpret_cast<UIP(type)*>(address);
-#define DEFINE_POINTER(type, name, address) static inline DEFINE_NONSTATIC_POINTER(type, name, address);
+//#define DEFINE_NONSTATIC_POINTER(type, name, address) UIP(type)* const (name) = reinterpret_cast<UIP(type)*>(address);
+//#define DEFINE_POINTER(type, name, address) static inline DEFINE_NONSTATIC_POINTER(type, name, address);

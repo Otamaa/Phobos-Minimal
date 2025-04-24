@@ -30,9 +30,13 @@ enum ProdFailType : byte
 enum class MarkType : int
 {
 	Up = 0,
+	Remove = 0,
 	Down = 1,
+	Put = 1,
 	Change = 2,
+	Redraw = 2,
 	ChangeRedraw = 3,
+	AddContent = 3,
 	OverlapDown = 4,
 	OverlapUp = 5
 };
@@ -1190,15 +1194,6 @@ enum class Layer : int {
 	Ground = 2,
 	Air = 3,
 	Top = 4
-};
-
-enum class PlacementType : int {
-	Remove = 0,
-	Put = 1,
-	Redraw = 2,
-	AddContent = 3,
-	OverlapDown = 4,
-	OverlapUp = 5
 };
 
 enum class MouseHotSpotX : int {

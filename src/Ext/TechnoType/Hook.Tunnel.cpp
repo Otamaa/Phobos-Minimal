@@ -11,7 +11,7 @@ ASMJIT_PATCH(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	const auto _height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
 
 	if(nCoord.Z <= _height) {
-		pLinkedTo->UpdatePlacement(PlacementType::Remove);
+		pLinkedTo->Mark(MarkType::Remove);
 		pLoco->State = TunnelLocomotionClass::State::DIGGING;
 	} else {
 		const auto _addSpeed = TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed);

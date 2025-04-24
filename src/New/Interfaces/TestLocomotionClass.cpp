@@ -104,7 +104,7 @@ bool TestLocomotionClass::Process()
 		//coord.Z // No need to adjust the height of the object.
 
 		// Pickup the object the game world before we set the new coord.
-		LinkedTo->UpdatePlacement(PlacementType::Remove);
+		LinkedTo->Mark(MarkType::Remove);
 
 		if (Can_Enter_Cell(CellClass::Coord2Cell(coord)) == Move::OK)
 		{
@@ -117,7 +117,7 @@ bool TestLocomotionClass::Process()
 				Angle -= 360.0;
 		}
 
-		LinkedTo->UpdatePlacement(PlacementType::Put);
+		LinkedTo->Mark(MarkType::Put);
 	}
 
 	return Is_Moving();

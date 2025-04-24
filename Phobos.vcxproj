@@ -22,7 +22,7 @@
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
-    <ClCompile Include="src\New\Interfaces\SkilledLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
@@ -571,7 +571,7 @@
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
-    <ClInclude Include="src\New\Interfaces\SkilledLocomotionClass.h" />
+    <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
     <ClInclude Include="src\New\Type\HealthBarTypeClass.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />

@@ -12,7 +12,7 @@
 #include <atlstr.h>
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
-#include <New/Interfaces/SkilledLocomotionClass.h>
+#include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 
@@ -54,7 +54,7 @@ namespace detail
 			}
 
 			PARSE(Levitate)
-			PARSE(Skilled)
+			PARSE(AdvancedDrive)
 			PARSE(CustomRocket)
 
 			//AddMore loco here

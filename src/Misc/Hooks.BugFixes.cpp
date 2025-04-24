@@ -2609,7 +2609,7 @@ ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
 	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
 	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
 	if (pLinkedTo->GetCurrentMission() != Mission::Enter)
-		pLinkedTo->UpdatePlacement(PlacementType::Put);
+		pLinkedTo->Mark(MarkType::Put);
 
 	return 0x7196C5;
 }

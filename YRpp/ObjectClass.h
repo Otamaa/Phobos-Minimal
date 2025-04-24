@@ -160,7 +160,7 @@ public:
 	virtual void DrawAgain(const Point2D& location, const RectangleStruct& bounds) const RX; // just forwards the call to Draw
 	virtual void Undiscover() RX; //hidden
 	virtual void See(DWORD dwUnk, DWORD dwUnk2) RX;
-	virtual bool UpdatePlacement(PlacementType value) R0;
+	virtual bool Mark(MarkType value) R0;
 	virtual RectangleStruct* GetDimensions(RectangleStruct* pRect) const R0;
 	virtual RectangleStruct* GetRenderDimensions(RectangleStruct* pRect) R0;
 	virtual void DrawRadialIndicator(DWORD dwUnk) RX;

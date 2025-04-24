@@ -242,7 +242,7 @@ ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 				// Needs to be added to the logic layer for the anim to work.
 				LogicClass::Instance->AddObject(pThis, false);
 				VocClass::PlayIndexAtPos(pTerrainExt->CrumblingSound, pThis->GetCoords());
-				pThis->UpdatePlacement(PlacementType::Redraw);
+				pThis->Mark(MarkType::Redraw);
 				pThis->Disappear(true);
 				return 0x71BB79;
 			}
@@ -524,7 +524,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 						if (pThis->IsAlive && pThis->IsSelected)
 						{
-							pThis->UpdatePlacement(PlacementType::Redraw);
+							pThis->Mark(MarkType::Redraw);
 						}
 					}
 
@@ -2451,7 +2451,7 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 		}
 
 		RemoveCellContentTemp::CheckBeforeUnmark = true;
-		pThis->UpdatePlacement(PlacementType::Remove);
+		pThis->Mark(MarkType::Remove);
 		RemoveCellContentTemp::CheckBeforeUnmark = false;
 
 		if (pThis->Passengers.NumPassengers > 0 && pThis->Passengers.GetFirstPassenger())

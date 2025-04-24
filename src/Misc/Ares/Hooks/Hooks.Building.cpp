@@ -1100,7 +1100,7 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	}
 
 	if (pTExt->AirstrikeTargetingMe)
-		pThis->UpdatePlacement(PlacementType::Redraw);
+		pThis->Mark(MarkType::Redraw);
 
 	return 0x43FDF1;
 }

@@ -43,7 +43,7 @@ void Stand::CreateAndPutStand(ObjectClass* pObject, HouseClass* pHouse)
 			}
 
 			// 初始化替身
-			pStand->UpdatePlacement(PlacementType::Remove);
+			pStand->Mark(MarkType::Remove);
 			pStand->IsOnMap = false;
 			pStand->NeedsRedraw = true;
 			bool canGuard = pHouse->IsControlledByHuman();
@@ -94,7 +94,7 @@ void Stand::UpdateState(TechnoClass* pMaster)
 		return;
 	}
 
-	pStand->UpdatePlacement(PlacementType::Remove);
+	pStand->Mark(MarkType::Remove);
 	pStand->IsOnMap = false;
 	pStand->NeedsRedraw = true;
 	if (pStand->WhatAmI() != AbstractType::Building)

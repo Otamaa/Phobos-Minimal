@@ -207,7 +207,7 @@ struct DroppodProperties_
 					);
 				}
 
-				pLinked->UpdatePlacement(PlacementType::Put);
+				pLinked->Mark(MarkType::Put);
 				pLinked->SetHeight(0);
 				pLinked->EnterIdleMode(false, true);
 				pLinked->NextMission();

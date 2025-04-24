@@ -431,7 +431,7 @@ bool DisperseTrajectory::BulletRetargetTechno()
 	else
 	{
 		const auto airTracker = &AircraftTrackerClass::Instance;
-		airTracker->FillCurrentVector(MapClass::Instance->GetCellAt(retargetCoords), Game::F2I(pType->RetargetRadius));
+		airTracker->FillCurrentVector(MapClass::Instance->GetCellAt(retargetCoords), int(pType->RetargetRadius));
 
 		for (auto pTechno = airTracker->Get(); pTechno; pTechno = airTracker->Get())
 		{

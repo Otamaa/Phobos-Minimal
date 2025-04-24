@@ -188,7 +188,7 @@ ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 
 	if (auto const pTarget = pThis->Target)
 	{
-		pTarget->UpdatePlacement(PlacementType::Redraw);
+		pTarget->Mark(MarkType::Redraw);
 
 		auto nTotal = pThis->GetWarpPerStep();
 		if (nTotal)

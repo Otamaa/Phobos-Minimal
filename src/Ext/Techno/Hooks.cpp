@@ -1253,7 +1253,7 @@ ASMJIT_PATCH(0x6F348F, TechnoClass_WhatWeaponShouldIUse_Airstrike, 0x7)
 
 // 	if(auto pBld = cast_to<BuildingClass* , false>(pTarget)){
 // 		pBld->IsAirstrikeTargetingMe = true;
-// 		pBld->UpdatePlacement(PlacementType::Redraw);
+// 		pBld->Mark(MarkType::Redraw);
 // 	}
 
 // 	return Skip;
@@ -1327,7 +1327,7 @@ ASMJIT_PATCH(0x41DBD4, AirstrikeClass_Stop_ResetForTarget, 0x7)
 		pTargetExt->AirstrikeTargetingMe = pLastTargetingMe;
 
 		if (!pLastTargetingMe && Game::IsActive)
-			pTarget->UpdatePlacement(PlacementType::Redraw);
+			pTarget->Mark(MarkType::Redraw);
 	}
 
 	return SkipGameCode;
@@ -1422,7 +1422,7 @@ ASMJIT_PATCH(0x70E92F, TechnoClass_UpdateAirstrikeTint, 0x5)
 // 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 // 	if (pExt->AirstrikeTargetingMe)
-// 		pThis->UpdatePlacement(PlacementType::Redraw);
+// 		pThis->Mark(MarkType::Redraw);
 
 // 	return SkipGameCode;
 // }

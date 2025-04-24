@@ -62,7 +62,7 @@ class FoggedObjectClass;
 class TagClass;
 class TiberiumClass;
 
-struct TrackNumStruct
+struct TurnTrackType
 {
 	char NormalTrackStructIndex;
 	char ShortTrackStructIndex;
@@ -70,18 +70,18 @@ struct TrackNumStruct
 	int Flag;
 };
 
-struct TrackPtStruct
+struct TrackType
 {
 	Point2D Point;
 	int Face;
 };
 
-struct TrackIdxStruct
+struct RawTrackType
 {
-	TrackPtStruct* TrackPoint;
-	int TrackIndex1;
-	int TrackIndex2;
-	int TrackIndex3;
+	TrackType* TrackPoint;
+	int JumpIndex;
+	int EntryIndex;
+	int CellIndex;
 };
 
 class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
@@ -92,9 +92,9 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E4EEC;
 
 	// Reference, no write permission
-	DEFINE_ARRAY_REFERENCE(Point2D, [8], CoordDirections, 0x89F6D8)
-	DEFINE_ARRAY_REFERENCE(TrackNumStruct, [72], TrackData, 0x7E7B28)
-	DEFINE_ARRAY_REFERENCE(TrackIdxStruct, [16], TrackStruct, 0x7E7A28)
+	static COMPILETIMEEVAL reference<Point2D, 0x89F6D8, 8u> const CoordDirections {};
+	static COMPILETIMEEVAL reference<TurnTrackType, 0x7E7B28, 72u> const TurnTrack {};
+	static COMPILETIMEEVAL reference<RawTrackType, 0x7E7A28, 16u> const RawTrack {};
 
 	// the height of a bridge in leptons
 	static COMPILETIMEEVAL constant_ptr<CellClass,0xABDC50u> const Instance{};
@@ -105,6 +105,11 @@ public:
 	static COMPILETIMEEVAL reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
 	static COMPILETIMEEVAL reference<int, 0xAA0E28> const BridgeSetIdx {};
 	static COMPILETIMEEVAL reference<int, 0xABAD30> const BridgeMiddle1Idx {};
+
+	// the height of a bridge in leptons
+	// see ABC5DC, AC13BC
+	static COMPILETIMEEVAL int BridgeLevels = 4;
+	static COMPILETIMEEVAL int BridgeHeight =  BridgeLevels * Unsorted::LevelHeight;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x485200);

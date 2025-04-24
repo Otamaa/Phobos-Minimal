@@ -370,9 +370,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			if (pTechnoToKick->Unlimbo(docked_, DirType::East))
 			{
-				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->Mark(MarkType::Remove);
 				pTechnoToKick->SetLocation(docked_);
-				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pTechnoToKick->Mark(MarkType::Put);
 				pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
 				pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
 				pThis->QueueMission(Mission::Unload, false);
@@ -428,9 +428,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 					pTechnoToKick->QueueMission(Mission::Move, 0);
 				}
 
-				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->Mark(MarkType::Remove);
 				pTechnoToKick->SetLocation(_near_coord);
-				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pTechnoToKick->Mark(MarkType::Put);
 				return 2;
 			}
 		}
@@ -678,9 +678,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 
 			if (pTechnoToKick->Unlimbo(docked_, DirType::East))
 			{
-				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->Mark(MarkType::Remove);
 				pTechnoToKick->SetLocation(docked_);
-				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pTechnoToKick->Mark(MarkType::Put);
 				pThis->SendCommand(RadioCommand::RequestLink, pTechnoToKick);
 				pThis->SendCommand(RadioCommand::RequestTether, pTechnoToKick);
 				pThis->QueueMission(Mission::Unload, false);
@@ -736,9 +736,9 @@ int ExitObject(BuildingClass* pThis, TechnoClass* pTechnoToKick, CellStruct over
 					pTechnoToKick->QueueMission(Mission::Move, 0);
 				}
 
-				pTechnoToKick->UpdatePlacement(PlacementType::Remove);
+				pTechnoToKick->Mark(MarkType::Remove);
 				pTechnoToKick->SetLocation(_near_coord);
-				pTechnoToKick->UpdatePlacement(PlacementType::Put);
+				pTechnoToKick->Mark(MarkType::Put);
 				return 2;
 			}
 		}

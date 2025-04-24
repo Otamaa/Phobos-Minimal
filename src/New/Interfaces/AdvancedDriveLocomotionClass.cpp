@@ -1,4 +1,4 @@
-#include "SkilledLocomotionClass.h"
+#include "AdvancedDriveLocomotionClass.h"
 
 #include <InfantryClass.h>
 #include <UnitClass.h>
@@ -13,7 +13,7 @@
 
 // Virtual
 
-bool __stdcall SkilledLocomotionClass::Process()
+bool __stdcall AdvancedDriveLocomotionClass::Process()
 {
 	const auto pLinked = this->LinkedTo;
 	const auto slopeIndex = pLinked->GetCell()->SlopeIndex;
@@ -23,7 +23,41 @@ bool __stdcall SkilledLocomotionClass::Process()
 		this->PreviousRamp = this->CurrentRamp;
 		this->CurrentRamp = slopeIndex;
 		// Dynamic slope change
-		this->SlopeTimer.Start((90 / pLinked->GetTechnoType()->Speed));
+		const auto speed = pLinked->GetTechnoType()->Speed;
+		this->SlopeTimer.Start((speed > 0) ? (90 / speed) : 0);
+	}
+
+	// Record target cell for reversing
+	if (const auto pTarget = pLinked->Target)
+	{
+		this->ForwardTo = pTarget->GetCoords();
+		this->TargetFrame = Unsorted::CurrentFrame;
+		this->TargetDistance = 0;
+	}
+	else if (pLinked->MegaMissionIsAttackMove())
+	{
+		if (const auto pMegaTarget = pLinked->MegaTarget)
+			this->ForwardTo = pMegaTarget->GetCoords();
+		else if (const auto pMegaDestination = pLinked->MegaDestination)
+			this->ForwardTo = pMegaDestination->GetCoords();
+
+		this->TargetFrame = Unsorted::CurrentFrame;
+		this->TargetDistance = 0;
+	}
+	else if (this->ForwardTo != CoordStruct::Empty)
+	{
+		const auto currentDistance = static_cast<int>(pLinked->Location.DistanceFrom(this->ForwardTo));
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+
+		if (currentDistance > pTypeExt->AdvancedDrive_FaceTargetRange.Get()
+			|| (Unsorted::CurrentFrame - this->TargetFrame) > pTypeExt->AdvancedDrive_RetreatDuration
+			|| currentDistance < this->TargetDistance)
+		{
+			this->ForwardTo = CoordStruct::Empty;
+			this->TargetFrame = 0;
+		}
+
+		this->TargetDistance = currentDistance;
 	}
 
 	if (!this->InMotion())
@@ -49,7 +83,7 @@ bool __stdcall SkilledLocomotionClass::Process()
 	return this->Is_Moving();
 }
 
-void __stdcall SkilledLocomotionClass::Move_To(CoordStruct to)
+void __stdcall AdvancedDriveLocomotionClass::Move_To(CoordStruct to)
 {
 	const auto pLinked = this->LinkedTo;
 
@@ -63,15 +97,17 @@ void __stdcall SkilledLocomotionClass::Move_To(CoordStruct to)
 	}
 }
 
-void __stdcall SkilledLocomotionClass::Stop_Moving()
+void __stdcall AdvancedDriveLocomotionClass::Stop_Moving()
 {
-	if (this->HeadToCoord != CoordStruct::Empty && this->LinkedTo->GetTechnoType()->IsTrain)
-	{
-		const auto pLinked = static_cast<UnitClass*>(this->LinkedTo);
+	const auto pLinked = this->LinkedTo;
 
-		if (!pLinked->HasFollowerCar)
+	if (this->HeadToCoord != CoordStruct::Empty && pLinked->GetTechnoType()->IsTrain)
+	{
+		const auto pUnit = static_cast<UnitClass*>(pLinked);
+
+		if (!pUnit->HasFollowerCar)
 		{
-			if (auto pFollowerCar = pLinked->FollowerCar)
+			if (auto pFollowerCar = pUnit->FollowerCar)
 			{
 				do
 				{
@@ -83,18 +119,22 @@ void __stdcall SkilledLocomotionClass::Stop_Moving()
 		}
 	}
 
-	if (this->MovementSpeed >= 0.3)
-		this->MovementSpeed = 0.3;
-
-	this->TargetCoord = CoordStruct::Empty;
+	// I think no body want to see slowly~ slowly~ moving, so I change this one
+	if (pLinked->GetTechnoType()->Accelerates)
+	{
+		if (this->MovementSpeed >= 0.5 && pLinked->Location.DistanceFromSquared(this->HeadToCoord) < 16384)
+			this->MovementSpeed = 0.5;
+	}
+	// Slow down according to normal conditions
+	this->TargetCoord = this->HeadToCoord;
 }
 
-void __stdcall SkilledLocomotionClass::Do_Turn(DirStruct dir)
+void __stdcall AdvancedDriveLocomotionClass::Do_Turn(DirStruct dir)
 {
 	this->LinkedTo->PrimaryFacing.Set_Desired(dir);
 }
 
-void __stdcall SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
+void __stdcall AdvancedDriveLocomotionClass::Force_Track(int track, CoordStruct coord)
 {
 	this->TrackNumber = track;
 	this->TrackIndex = 0;
@@ -105,10 +145,9 @@ void __stdcall SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
 		this->IsDriving = true;
 
 		const auto pLinked = this->LinkedTo;
-		auto pCell = MapClass::Instance->GetCellAt(coord);
-		
-		if (!pCell->CollectCrate(pLinked) // CollectCrate
-			|| pLinked->InLimbo)
+		const auto pCell = MapClass::Instance->GetCellAt(coord);
+
+		if (!pCell->CollectCrate(pLinked) || pLinked->InLimbo)
 		{
 			if (pLinked->IsAlive)
 				this->StopDriving();
@@ -122,13 +161,13 @@ void __stdcall SkilledLocomotionClass::Force_Track(int track, CoordStruct coord)
 	}
 }
 
-void __stdcall SkilledLocomotionClass::Mark_All_Occupation_Bits(int mark)
+void __stdcall AdvancedDriveLocomotionClass::Mark_All_Occupation_Bits(int mark)
 {
 	if (this->HeadToCoord != CoordStruct::Empty)
 		this->MarkOccupation(this->HeadToCoord, (MarkType)mark);
 }
 
-bool __stdcall SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
+bool __stdcall AdvancedDriveLocomotionClass::Is_Moving_Here(CoordStruct to)
 {
 	const auto headToCoord = this->Head_To_Coord();
 
@@ -141,13 +180,13 @@ bool __stdcall SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
 
 		if (trackNum != -1)
 		{
-			if (const auto trackStructIndex = CellClass::TrackData[TrackNumber].NormalTrackStructIndex)
+			if (const auto trackStructIndex = CellClass::TurnTrack[TrackNumber].NormalTrackStructIndex)
 			{
-				const auto trackIdx = CellClass::TrackStruct[trackStructIndex].TrackIndex3;
+				const auto trackIdx = CellClass::RawTrack[trackStructIndex].CellIndex;
 
 				if (trackIdx > -1 && this->TrackIndex < trackIdx)
 				{
-					const auto trackPt = CellClass::TrackStruct[trackStructIndex].TrackPoint;
+					const auto trackPt = CellClass::RawTrack[trackStructIndex].TrackPoint;
 					const auto& trackPtr = trackPt[trackIdx];
 					auto face = trackPtr.Face; // copy
 					const auto location = this->GetTrackOffset(trackPtr.Point, face, this->LinkedTo->Location.Z);
@@ -166,32 +205,32 @@ bool __stdcall SkilledLocomotionClass::Is_Moving_Here(CoordStruct to)
 		&& Math::abs(headToCoord.Z - to.Z) <= Unsorted::CellHeight);
 }
 
-bool __stdcall SkilledLocomotionClass::Will_Jump_Tracks()
+bool __stdcall AdvancedDriveLocomotionClass::Will_Jump_Tracks()
 {
-	const size_t pathDir = this->LinkedTo->PathDirections[0];
+	const auto pathDir = this->LinkedTo->PathDirections[0];
 
-	if (pathDir >= 8)
+	if (pathDir < 0 || pathDir >= 8)
 		return false;
 
-	const auto& data = CellClass::TrackData[this->TrackNumber];
+	const auto& data = CellClass::TurnTrack[this->TrackNumber];
 	const auto dir = DirStruct(data.Face << 8).GetValue<3>();
 
-	if (dir == pathDir || !this->TrackIndex)
+	if (static_cast<int>(dir) == pathDir || !this->TrackIndex)
 		return false;
 
 	const auto trackStructIndex = this->IsOnShortTrack ? data.ShortTrackStructIndex : data.NormalTrackStructIndex;
 
-	if (CellClass::TrackStruct[trackStructIndex].TrackIndex1 != this->TrackIndex)
+	if (CellClass::RawTrack[trackStructIndex].JumpIndex != this->TrackIndex)
 		return false;
 
-	const auto dirIndex = CellClass::TrackData[8u * dir + pathDir].NormalTrackStructIndex;
+	const auto dirIndex = CellClass::TurnTrack[8 * dir + pathDir].NormalTrackStructIndex;
 
-	return dirIndex && CellClass::TrackStruct[dirIndex].TrackIndex2;
+	return dirIndex && CellClass::RawTrack[dirIndex].EntryIndex;
 }
 
 // Non-virtual
 
-bool SkilledLocomotionClass::MovingProcess(bool fix)
+bool AdvancedDriveLocomotionClass::MovingProcess(bool fix)
 {
 	const auto pLinked = this->LinkedTo;
 	const auto pType = pLinked->GetTechnoType();
@@ -216,7 +255,7 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 			coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
 
 			if (MapClass::Instance->GetCellAt(coords)->ContainsBridge())
-				coords.Z += Unsorted::BridgeHeight;
+				coords.Z += CellClass::BridgeHeight;
 
 			const auto defaultSpeed = pLinked->GetDefaultSpeed();
 			auto speed = pLinked->SpeedPercentage;
@@ -242,12 +281,12 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 					speed = 0.3;
 			}
 
-			if (pLinked->iscrusher_6B5)
+			if (pLinked->IsCrushingSomething)
 			{
+				adjustedSpeed = true;
 				// Customized crush slow down speed
 				speed = MinImpl(TechnoTypeExtContainer::Instance.Find(pType)->CrushSlowdownMultiplier, this->MovementSpeed);
-				pLinked->SetSpeedPercentage(speed);
-				break;
+				this->MovementSpeed = speed;
 			}
 
 			if (!adjustedSpeed)
@@ -291,28 +330,28 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 
 	if (pLinked->PathDirections[0] == 8 && this->TrackNumber == -1)
 	{
-		pLinked->UpdatePlacement((PlacementType)MarkType::Up);
+		pLinked->Mark(MarkType::Up);
 		this->StopDriving<true>();
 
 		const int tubeIndex = pLinked->GetCell()->TubeIndex;
 
-		if (tubeIndex >= 0 && tubeIndex < TubeClass::Array.Count)
+		if (tubeIndex >= 0 && tubeIndex < TubeClass::Array->Count)
 		{
-			const auto pTube = TubeClass::Array.Items[tubeIndex];
+			const auto pTube = TubeClass::Array->Items[tubeIndex];
 			this->HeadToCoord = CellClass::Cell2Coord(pTube->ExitCell);
 
 			memmove(&pLinked->PathDirections[0], &pLinked->PathDirections[1], 0x5Cu);
 			pLinked->PathDirections[23] = -1;
 			pLinked->TubeIndex = static_cast<char>(tubeIndex);
-			pLinked->TubeFaceIndex = false;
+			pLinked->TubeFaceIndex = 0;
 
-			const auto nextCell = pTube->EnterCell + CellSpread::GetNeighbourOffset(pTube->unknown_int_30[0] & 7);
+			const auto nextCell = pTube->EnterCell + CellSpread::GetNeighbourOffset(pTube->Faces[0] & 7);
 			const auto pNextCell = MapClass::Instance->GetCellAt(nextCell);
-			 pNextCell->GetCellCoords(&pLinked->CurrentTunnelCoords);
+			pNextCell->GetCellCoords(&pLinked->CurrentTunnelCoords);
 
 			const auto currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
 			const auto exitHeight = MapClass::Instance->GetCellFloorHeight(this->HeadToCoord);
-			pLinked->CurrentTunnelCoords.Z = currentHeight + (exitHeight - currentHeight) / pTube->unknown_int_1C0;
+			pLinked->CurrentTunnelCoords.Z = currentHeight + (exitHeight - currentHeight) / pTube->FaceCount;
 
 			this->IsDriving = true;
 			this->TrackNumber = -1;
@@ -341,9 +380,9 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 	if (this->TrackNumber <= -1)
 		return false;
 
-	const auto pTrackData = &CellClass::TrackData[this->TrackNumber];
+	const auto pTrackData = &CellClass::TurnTrack[this->TrackNumber];
 	const int trackStructIndex = this->IsOnShortTrack ? pTrackData->ShortTrackStructIndex : pTrackData->NormalTrackStructIndex;
-	const auto pTrackPoint = &CellClass::TrackStruct[trackStructIndex].TrackPoint[this->TrackIndex];
+	const auto pTrackPoint = &CellClass::RawTrack[trackStructIndex].TrackPoint[this->TrackIndex];
 
 	if (pTrackPoint->Point == Point2D::Empty && this->TrackIndex)
 		return false;
@@ -371,7 +410,7 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 	}
 
 	const auto ratio = static_cast<float>(this->SpeedAccum * 0.1428571428571428);
-	auto newPos = pLinked->Location + SkilledLocomotionClass::CoordLerp(CoordStruct::Empty, location, ratio);
+	auto newPos = pLinked->Location + AdvancedDriveLocomotionClass::CoordLerp(CoordStruct::Empty, location, ratio);
 
 	const auto pOldCell = MapClass::Instance->GetCellAt(pLinked->Location);
 	auto pNewCell = MapClass::Instance->GetCellAt(newPos);
@@ -394,16 +433,16 @@ bool SkilledLocomotionClass::MovingProcess(bool fix)
 	}
 	else
 	{
-		pLinked->UpdatePlacement((PlacementType)MarkType::Up);
+		pLinked->Mark(MarkType::Up);
 		pLinked->SetLocation(newPos);
 		this->UpdateOnBridge(pNewCell, pOldCell);
-		pLinked->UpdatePlacement((PlacementType)MarkType::Down);
+		pLinked->Mark(MarkType::Down);
 	}
 
 	return false;
 }
 
-bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
+bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 {
 	const auto pLinked = this->LinkedTo;
 	int pathDir = pLinked->PathDirections[0];
@@ -464,7 +503,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 
 		timer.Start(int(RulesClass::Instance->PathDelay * 900.0));
 
-		if (!pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), 0, 0))
+		if (!pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), false, 0))
 		{
 			if (!this->LinkedTo)
 			{
@@ -536,7 +575,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 					}
 				}
 
-				const auto pathWaitTimes = pLinked->TryTryAgain;
+				const auto pathWaitTimes = pLinked->PathWaitTimes;
 
 				if (pathWaitTimes <= 0)
 				{
@@ -555,7 +594,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 				}
 				else
 				{
-					pLinked->TryTryAgain = pathWaitTimes - 1;
+					pLinked->PathWaitTimes = pathWaitTimes - 1;
 				}
 			}
 
@@ -563,12 +602,12 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 			{
 				if (const auto pTarget = pLinked->Target)
 				{
-					if (pLinked->IsCloseEnoughToAttack(pTarget))
+					if (!pLinked->IsCloseEnoughToAttack(pTarget))
 					{
 						pLinked->IsScanLimited = true;
 
 						if (const auto pTeam = pLinked->Team)
-							pTeam->ScanLimit(); // AbandonTarget
+							pTeam->ScanLimit();
 
 						pLinked->SetTarget(nullptr);
 					}
@@ -623,7 +662,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 			}
 		}
 
-		pLinked->TryTryAgain = 10;
+		pLinked->PathWaitTimes = 10;
 		pathDir = pLinked->PathDirections[0];
 	}
 	while (false);
@@ -632,16 +671,16 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		return false;
 
 	auto nextPos = pLinked->Location;
-	nextPos.X += CellClass::CoordDirections[pathDir & 7].X;
-	nextPos.Y += CellClass::CoordDirections[pathDir & 7].Y;
+	nextPos.X += CellSpread::AdjacentPoint[pathDir & 7].X;
+	nextPos.Y += CellSpread::AdjacentPoint[pathDir & 7].Y;
 
 	const int cellLevel = MapClass::Instance->GetCellAt(pLinked->Location)->Level + (pLinked->OnBridge ? 4 : 0);
 	auto pNextCell = MapClass::Instance->GetCellAt(nextPos);
 
 	if (pLinked->OnBridge != pNextCell->ContainsBridge())
-		pLinked->IsPlanningToLook = true;
+		pLinked->IsPlanningToLook = true; // Seems like useless
 
-	if (!pLinked->vt_entry_29C())
+	if (!pLinked->vt_entry_29C()) // Unknown unload state check
 		return true;
 
 	auto nextCell = CellClass::Coord2Cell(nextPos);
@@ -654,33 +693,80 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	// Reverse movement
 	const int desiredRaw = pathDir << 13;
 
-	if (pLinked->Target && (pLinked->DistanceFrom(pLinked->Target)
-		<= int(pTypeExt->Skilled_FaceTargetRange * Unsorted::LeptonsPerCell)))
+	do
 	{
-		const auto tgtDir = pTypeExt->Skilled_ConfrontEnemies
-			? pLinked->GetDirectionOverObject(pLinked->Target) : pLinked->PrimaryFacing.Current();
-		const auto deltaTgtDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw)
-			- static_cast<short>(tgtDir.Raw)));
-		const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768)
-			- static_cast<short>(tgtDir.Raw)));
-		this->IsForward = deltaTgtDir <= deltaOppDir;
-	}
-	else if ((Unsorted::CurrentFrame - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame)
-		<= pTypeExt->Skilled_RetreatDuration)
-	{
-		const auto curDir = pLinked->PrimaryFacing.Current();
-		const auto deltaCurDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw)
-			- static_cast<short>(curDir.Raw)));
-		const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768)
-			- static_cast<short>(curDir.Raw)));
-		this->IsForward = deltaCurDir <= deltaOppDir;
-	}
-	else
-	{
-		this->IsForward = true;
-	}
+		if (pLinked->WhatAmI() != AbstractType::Unit)
+			break;
 
-	const DirStruct desDir = DirStruct(this->IsForward ? desiredRaw : (desiredRaw + 32768));
+		if (static_cast<UnitTypeClass*>(pType)->Harvester || static_cast<UnitTypeClass*>(pType)->Weeder)
+		{
+			auto IsReturnToRefinery = [pLinked]()
+				{
+					if (pLinked->CurrentMission != Mission::Enter || pLinked->MissionStatus)
+						return false;
+
+					if (pLinked->DistanceFrom(pLinked->Destination) > 363 || pLinked->GetCell()->GetBuilding())
+						return false;
+
+					const auto pLink = pLinked->GetNthLink();
+
+					if (!pLink || pLink->WhatAmI() != AbstractType::Building)
+						return false;
+
+					return static_cast<BuildingClass*>(pLink)->Type->Refinery;
+				};
+
+			if (IsReturnToRefinery())
+			{
+				this->IsForward = false;
+				break;
+			}
+			else if (pLinked->CurrentMission == Mission::Harvest)
+			{
+				this->IsForward = true;
+				break;
+			}
+		}
+
+		if (this->ForwardTo != CoordStruct::Empty)
+		{
+			const auto tgtDir = pTypeExt->AdvancedDrive_ConfrontEnemies
+				? DirStruct(Math::atan2(float(pLinked->Location.Y - this->ForwardTo.Y), float(this->ForwardTo.X - pLinked->Location.X)))
+				: pLinked->PrimaryFacing.Current();
+			const auto deltaTgtDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw)
+				- static_cast<short>(tgtDir.Raw)));
+			const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768)
+				- static_cast<short>(tgtDir.Raw)));
+			this->IsForward = deltaTgtDir <= deltaOppDir;
+		}
+		else if ((Unsorted::CurrentFrame - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame)
+			<= pTypeExt->AdvancedDrive_RetreatDuration)
+		{
+			const auto curDir = pLinked->PrimaryFacing.Current();
+			const auto deltaCurDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw)
+				- static_cast<short>(curDir.Raw)));
+			const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768)
+				- static_cast<short>(curDir.Raw)));
+			this->IsForward = deltaCurDir <= deltaOppDir;
+		}
+		else if (pLinked->ArchiveTarget && pLinked->CurrentMission == Mission::Area_Guard
+			&& pLinked->Owner->IsControlledByHuman() && !pType->DefaultToGuardArea)
+		{
+			const auto defDir = pLinked->GetDirectionOverObject(pLinked->ArchiveTarget);
+			const auto deltaDefDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw)
+				- static_cast<short>(defDir.Raw)));
+			const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768)
+				- static_cast<short>(defDir.Raw)));
+			this->IsForward = deltaDefDir > deltaOppDir;
+		}
+		else
+		{
+			this->IsForward = true;
+		}
+	}
+	while (false);
+
+	const auto desDir = DirStruct(this->IsForward ? desiredRaw : (desiredRaw + 32768));
 
 	if (pLinked->PrimaryFacing.Current() != desDir)
 	{
@@ -688,9 +774,9 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		return true;
 	}
 
-	pLinked->UpdatePlacement((PlacementType)MarkType::Up);
+	pLinked->Mark(MarkType::Up);
 	auto moveResult = pLinked->IsCellOccupied(pNextCell, static_cast<FacingType>(pathDir), cellLevel, nullptr, true);
-	pLinked->UpdatePlacement((PlacementType)MarkType::Down);
+	pLinked->Mark(MarkType::Down);
 
 	if (moveResult < Move::No && pType->IsTrain
 		|| (moveResult == Move::Destroyable || moveResult == Move::FriendlyDestroyable)
@@ -754,7 +840,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		}
 		else if (moveResult == Move::Cloak)
 		{
-			pNextCell->Shimmer(); // RevealObject
+			pNextCell->Shimmer();
 
 			if (force)
 			{
@@ -772,17 +858,17 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		{
 			if (moveResult == Move::MovingBlock)
 			{
-				if (!pLinked->IsPathBlocked)
+				if (!pLinked->IsWaitingBlockagePath)
 				{
-					pLinked->IsPathBlocked = true;
+					pLinked->IsWaitingBlockagePath = true;
 					pLinked->BlockagePathTimer.Start(RulesClass::Instance->BlockagePathDelay);
 				}
 
 				if (!pLinked->PathDelayTimer.GetTimeLeft())
 				{
-					const int findMode = static_cast<int>(pLinked->IsPathBlocked
+					const int findMode = static_cast<int>(pLinked->IsWaitingBlockagePath
 						&& !pLinked->BlockagePathTimer.HasTimeLeft()) + 1;
-					const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), 0, findMode);
+					const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), false, findMode);
 
 					if (!this->LinkedTo)
 					{
@@ -861,24 +947,21 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	if (speedFactor > 1.0)
 		speedFactor = 1.0;
 
-	int currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
-	CoordStruct next {};
-	pNextCell->GetCellCoords(&next);
-	int nextHeight = MapClass::Instance->GetCellFloorHeight(next);
-
-	if (nextHeight > currentHeight)
+	if (pLinked->WhatAmI() == AbstractType::Unit)
 	{
-		if (pLinked->WhatAmI() == AbstractType::Unit)
+		int currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
+		CoordStruct cellCoords {};
+		pNextCell->GetCellCoords(&cellCoords);
+		int nextHeight = MapClass::Instance->GetCellFloorHeight(cellCoords);
+
+		if (nextHeight > currentHeight)
 		{
 			if (pType->SpeedType == SpeedType::Track)
 				speedFactor *= RulesClass::Instance->TrackedUphill;
 			else
 				speedFactor *= RulesClass::Instance->WheeledUphill;
 		}
-	}
-	else if (nextHeight < currentHeight)
-	{
-		if (pLinked->WhatAmI() == AbstractType::Unit)
+		else if (nextHeight < currentHeight)
 		{
 			if (pType->SpeedType == SpeedType::Track)
 				speedFactor *= RulesClass::Instance->TrackedDownhill;
@@ -892,7 +975,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 
 	// Customized backward speed
 	if (!this->IsForward)
-		speedFactor *= pTypeExt->Skilled_ReverseSpeed;
+		speedFactor *= pTypeExt->AdvancedDrive_ReverseSpeed;
 
 	// Customized damaged speed
 	const auto ratio = pLinked->GetHealthPercentage();
@@ -905,7 +988,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	else
 		this->MovementSpeed = speedFactor;
 
-	pLinked->TryCrushCell(nextCell, true); // TryCrushCell
+	pLinked->TryCrushCell(nextCell, true);
 	auto nextDir = pLinked->PathDirections[1];
 
 	do
@@ -919,8 +1002,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 			}
 			else
 			{
-				const int loopCount = pType->IsTrain ? 1 : 0;
-				const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), loopCount, 0);
+				const bool pathFound = pLinked->UpdatePathfinding(CellClass::Coord2Cell(this->TargetCoord), pType->IsTrain, 0);
 
 				if (!pathFound)
 				{
@@ -978,22 +1060,21 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	this->IsOnShortTrack = false;
 	this->TrackNumber = nextDir + 8 * pathDir;
 
-	if (!CellClass::TrackData[this->TrackNumber].NormalTrackStructIndex)
+	if (!CellClass::TurnTrack[this->TrackNumber].NormalTrackStructIndex)
 		this->TrackNumber = 9 * pathDir;
 
-	if (CellClass::TrackData[this->TrackNumber].Flag & 8)
+	if (CellClass::TurnTrack[this->TrackNumber].Flag & 8)
 	{
 		this->IsShifting = true;
 		auto nextMoveResult = Move::No;
 
-		if (pNextCell->CollectCrate(pLinked) // CollectCrate
-			|| pLinked->InLimbo)
+		if (pNextCell->CollectCrate(pLinked) || pLinked->InLimbo)
 		{
 			if (!pLinked->IsAlive)
 				return false;
 
-			nextPos.X += CellClass::CoordDirections[nextDir & 7].X;
-			nextPos.Y += CellClass::CoordDirections[nextDir & 7].Y;
+			nextPos.X += CellSpread::AdjacentPoint[nextDir & 7].X;
+			nextPos.Y += CellSpread::AdjacentPoint[nextDir & 7].Y;
 			nextCell = CellClass::Coord2Cell(nextPos);
 			pNextCell = MapClass::Instance->GetCellAt(nextCell);
 			nextMoveResult = pLinked->IsCellOccupied(pNextCell, static_cast<FacingType>(nextDir), landLevel, nullptr, true);
@@ -1050,7 +1131,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 			}
 			else if (nextMoveResult == Move::Cloak)
 			{
-				pNextCell->Shimmer(); // RevealObject
+				pNextCell->Shimmer();
 
 				if (force)
 				{
@@ -1085,7 +1166,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		{
 			memmove(&pLinked->PathDirections[0], &pLinked->PathDirections[2], 0x58u);
 			pLinked->PathDirections[22] = -1;
-			pLinked->IsPlanningToLook = true;
+			pLinked->IsPlanningToLook = true; // Seems like useless
 		}
 	}
 	else
@@ -1104,8 +1185,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 		this->IsDriving = true;
 		this->HeadToCoord = nextPos;
 
-		if (pNextCell->CollectCrate(pLinked) // CollectCrate
-			&& !pLinked->InLimbo)
+		if (pNextCell->CollectCrate(pLinked) && !pLinked->InLimbo)
 		{
 			this->MarkOccupation(nextPos, MarkType::Down);
 			return false;
@@ -1122,7 +1202,7 @@ bool SkilledLocomotionClass::PassableCheck(bool* pStop, bool force, bool check)
 	return false;
 }
 
-void SkilledLocomotionClass::MarkOccupation(const CoordStruct& to, MarkType mark)
+void AdvancedDriveLocomotionClass::MarkOccupation(const CoordStruct& to, MarkType mark)
 {
 	if (to == CoordStruct::Empty)
 		return;
@@ -1133,10 +1213,10 @@ void SkilledLocomotionClass::MarkOccupation(const CoordStruct& to, MarkType mark
 
 		if (trackNum != -1)
 		{
-			if (const auto trackStructIndex = CellClass::TrackData[TrackNumber].NormalTrackStructIndex)
+			if (const auto trackStructIndex = CellClass::TurnTrack[TrackNumber].NormalTrackStructIndex)
 			{
-				const auto& track = CellClass::TrackStruct[trackStructIndex];
-				const auto trackIdx = track.TrackIndex3;
+				const auto& track = CellClass::RawTrack[trackStructIndex];
+				const auto trackIdx = track.CellIndex;
 
 				if (trackIdx > -1 && this->TrackIndex < trackIdx)
 				{
@@ -1165,9 +1245,9 @@ void SkilledLocomotionClass::MarkOccupation(const CoordStruct& to, MarkType mark
 		this->LinkedTo->MarkAllOccupationBits(to);
 }
 
-CoordStruct SkilledLocomotionClass::GetTrackOffset(const Point2D& base, int& face, int z)
+CoordStruct AdvancedDriveLocomotionClass::GetTrackOffset(const Point2D& base, int& face, int z)
 {
-	const auto dataFlag = CellClass::TrackData[this->TrackNumber].Flag;
+	const auto dataFlag = CellClass::TurnTrack[this->TrackNumber].Flag;
 	auto pt = base;
 
 	if (dataFlag & 1)
@@ -1192,7 +1272,7 @@ CoordStruct SkilledLocomotionClass::GetTrackOffset(const Point2D& base, int& fac
 	return CoordStruct { this->HeadToCoord.X + pt.X, this->HeadToCoord.Y + pt.Y, z };
 }
 
-CoordStruct SkilledLocomotionClass::CoordLerp(const CoordStruct& crd1, const CoordStruct& crd2, float alpha)
+CoordStruct AdvancedDriveLocomotionClass::CoordLerp(const CoordStruct& crd1, const CoordStruct& crd2, float alpha)
 {
 	const float i_alpha = 1.0f - alpha;
 	return CoordStruct
@@ -1205,7 +1285,7 @@ CoordStruct SkilledLocomotionClass::CoordLerp(const CoordStruct& crd1, const Coo
 
 // Auxiliary
 
-inline bool SkilledLocomotionClass::InMotion()
+inline bool AdvancedDriveLocomotionClass::InMotion()
 {
 	const auto pLinked = this->LinkedTo;
 
@@ -1300,15 +1380,15 @@ inline bool SkilledLocomotionClass::InMotion()
 	return false;
 }
 
-inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
+inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 {
 	if (speedAccum <= 7)
 		return 0;
 
 	const auto pLinked = this->LinkedTo;
-	auto pTrackData = &CellClass::TrackData[this->TrackNumber];
+	auto pTrackData = &CellClass::TurnTrack[this->TrackNumber];
 	int trackStructIndex = this->IsOnShortTrack ? pTrackData->ShortTrackStructIndex : pTrackData->NormalTrackStructIndex;
-	auto pTrackPoints = CellClass::TrackStruct[trackStructIndex].TrackPoint;
+	auto pTrackPoints = CellClass::RawTrack[trackStructIndex].TrackPoint;
 	const auto pathDir = pLinked->PathDirections[0];
 
 	if (pathDir < -1 || pathDir > 8)
@@ -1333,7 +1413,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 		{
 			pLinked->UnmarkAllOccupationBits(pLinked->Location);
 			pLinked->FrozenStill = false;
-			pLinked->IsPathBlocked = false;
+			pLinked->IsWaitingBlockagePath = false;
 		}
 
 		CellStruct previousCell;
@@ -1361,7 +1441,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 		}
 		else
 		{
-			pLinked->UpdatePlacement((PlacementType)MarkType::Up);
+			pLinked->Mark(MarkType::Up);
 			pLinked->SetLocation(newPos);
 
 			const auto pNewCell = MapClass::Instance->GetCellAt(newPos);
@@ -1369,7 +1449,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 
 			if (pLinked->GetTechnoType()->IsTrain && !static_cast<UnitClass*>(pLinked)->HasFollowerCar)
 			{
-				auto pObject = (pLinked->OnBridge || (pLinked->Location.Z >= (Unsorted::BridgeHeight
+				auto pObject = (pLinked->OnBridge || (pLinked->Location.Z >= (CellClass::BridgeHeight
 					+ MapClass::Instance->GetCellFloorHeight(pLinked->Location))))
 					? pNewCell->AltObject : pNewCell->FirstObject;
 
@@ -1392,7 +1472,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 			if (!pLinked->IsAlive)
 				return 1;
 
-			pLinked->UpdatePlacement((PlacementType)MarkType::Down);
+			pLinked->Mark(MarkType::Down);
 
 			if (this->IsRocking)
 			{
@@ -1401,17 +1481,22 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 				if (pNewCell->OverlayTypeIndex != -1)
 				{
 					if ((pType->Crusher || pLinked->HasAbility(AbilityType::Crusher))
-						&& OverlayTypeClass::Array->Items[pNewCell->OverlayTypeIndex]->Wall && pType->TiltsWhenCrushes)
+						&& OverlayTypeClass::Array->Items[pNewCell->OverlayTypeIndex]->Wall)
 					{
-						// Customized crush tilt speed
-						const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-						pLinked->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
+						pLinked->IsCrushingSomething = true;
+
+						if (pType->TiltsWhenCrushes)
+						{
+							// Customized crush tilt speed
+							const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+							pLinked->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
+						}
 					}
 				}
 
 				if (pType->MovementZone == MovementZone::CrusherAll && pNewCell->GetUnit(false))
 				{
-					pLinked->iscrusher_6B5 = true;
+					pLinked->IsCrushingSomething = true;
 
 					if (pType->TiltsWhenCrushes)
 					{
@@ -1420,6 +1505,10 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 						pLinked->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
 					}
 				}
+			}
+			else
+			{
+				pLinked->IsCrushingSomething = false;
 			}
 		}
 
@@ -1433,22 +1522,22 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 		pLinked->PrimaryFacing.Set_Current(DirStruct((face << 8) + (this->IsForward ? 0 : 32768)));
 		trackIndex = this->TrackIndex;
 
-		if (trackIndex && CellClass::TrackStruct[trackStructIndex].TrackIndex3 == trackIndex)
+		if (trackIndex && CellClass::RawTrack[trackStructIndex].CellIndex == trackIndex)
 			pLinked->UnmarkAllOccupationBits(pLinked->Location);
 
 		if (pathDir != 8 && pathDir != -1 && dirChanged
-			&& CellClass::TrackStruct[trackStructIndex].TrackIndex1 == trackIndex
+			&& CellClass::RawTrack[trackStructIndex].JumpIndex == trackIndex
 			&& trackIndex)
 		{
 			const int newTrack = pathDir + 8 * DirStruct(pTrackData->Face << 8).GetValue<3>();
-			const auto pNewTrackData = &CellClass::TrackData[newTrack];
+			const auto pNewTrackData = &CellClass::TurnTrack[newTrack];
 			const auto normalIndex = pNewTrackData->NormalTrackStructIndex;
 
-			if (normalIndex && CellClass::TrackStruct[normalIndex].TrackIndex2)
+			if (normalIndex && CellClass::RawTrack[normalIndex].EntryIndex)
 			{
 				auto coords = this->HeadToCoord;
-				coords.X += CellClass::CoordDirections[pathDir].X;
-				coords.Y += CellClass::CoordDirections[pathDir].Y;
+				coords.X += CellSpread::AdjacentPoint[pathDir].X;
+				coords.Y += CellSpread::AdjacentPoint[pathDir].Y;
 				const auto pCell = MapClass::Instance->GetCellAt(coords);
 
 				switch (pLinked->IsCellOccupied(pCell, static_cast<FacingType>(pathDir),
@@ -1466,8 +1555,8 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 					pTrackData = pNewTrackData;
 					dirChanged = false;
 					trackStructIndex = pNewTrackData->NormalTrackStructIndex;
-					this->TrackIndex = CellClass::TrackStruct[trackStructIndex].TrackIndex2 - 1;
-					pTrackPoints = CellClass::TrackStruct[trackStructIndex].TrackPoint;
+					this->TrackIndex = CellClass::RawTrack[trackStructIndex].EntryIndex - 1;
+					pTrackPoints = CellClass::RawTrack[trackStructIndex].TrackPoint;
 
 					this->StopDriving<true>();
 					this->IsDriving = true;
@@ -1484,8 +1573,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 						this->IsDriving = true;
 						this->HeadToCoord = coords;
 
-						if (!pCell->CollectCrate(pLinked) // CollectCrate
-							|| pLinked->InLimbo)
+						if (!pCell->CollectCrate(pLinked) || pLinked->InLimbo)
 						{
 							if (pLinked->IsAlive)
 								this->StopDriving();
@@ -1543,7 +1631,7 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 	speedAccum += int((1.0 - distance / 11.0) * 7.0);
 
 	pLinked->FrozenStill = true;
-	pLinked->IsPathBlocked = false;
+	pLinked->IsWaitingBlockagePath = false;
 
 	if (CellClass::Coord2Cell(this->HeadToCoord) == CellClass::Coord2Cell(pLinked->Location))
 	{
@@ -1555,10 +1643,10 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 	}
 	else
 	{
-		pLinked->UpdatePlacement((PlacementType)MarkType::Up);
+		pLinked->Mark(MarkType::Up);
 		pLinked->SetLocation(this->HeadToCoord);
 		pLinked->SetHeight(0);
-		pLinked->UpdatePlacement((PlacementType)MarkType::Down);
+		pLinked->Mark(MarkType::Down);
 	}
 
 	this->StopDriving<true>();
@@ -1596,4 +1684,23 @@ inline int SkilledLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 		return 2;
 
 	return pLinked->IsAlive ? 0 : 1;
+}
+
+DEFINE_HOOK(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
+{
+	enum { SkipGameCode = 0x4DAA01 };
+
+	GET(FootClass* const, pThis, ESI);
+
+	CLSID locoCLSID {};
+
+	if (SUCCEEDED(static_cast<LocomotionClass*>(pThis->Locomotor.GetInterfacePtr())->GetClassID(&locoCLSID))
+		 && locoCLSID == __uuidof(AdvancedDriveLocomotionClass)) {
+		if (!static_cast<AdvancedDriveLocomotionClass*>(pThis->Locomotor.GetInterfacePtr())->IsForward) {
+			--pThis->WalkedFramesSoFar;
+			return SkipGameCode;
+		}
+	}
+
+	return 0; // ++pThis->WalkedFramesSoFar;
 }

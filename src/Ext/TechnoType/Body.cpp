@@ -1485,10 +1485,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		if (this->Spawn_LimitedExtraRange)
 			this->CalculateSpawnerRange();
 
-		this->Skilled_ReverseSpeed.Read(exINI, pSection, "Skilled.ReverseSpeed");
-		this->Skilled_FaceTargetRange.Read(exINI, pSection, "Skilled.FaceTargetRange");
-		this->Skilled_ConfrontEnemies.Read(exINI, pSection, "Skilled.ConfrontEnemies");
-		this->Skilled_RetreatDuration.Read(exINI, pSection, "Skilled.RetreatDuration");
+		this->AdvancedDrive_ReverseSpeed.Read(exINI, pSection, "AdvancedDrive.ReverseSpeed");
+		this->AdvancedDrive_FaceTargetRange.Read(exINI, pSection, "AdvancedDrive.FaceTargetRange");
+		this->AdvancedDrive_ConfrontEnemies.Read(exINI, pSection, "AdvancedDrive.ConfrontEnemies");
+		this->AdvancedDrive_RetreatDuration.Read(exINI, pSection, "AdvancedDrive.RetreatDuration");
 
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 	}
@@ -1841,10 +1841,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
 
-		.Process(this->Skilled_ReverseSpeed)
-		.Process(this->Skilled_FaceTargetRange)
-		.Process(this->Skilled_ConfrontEnemies)
-		.Process(this->Skilled_RetreatDuration)
+		.Process(this->AdvancedDrive_ReverseSpeed)
+		.Process(this->AdvancedDrive_FaceTargetRange)
+		.Process(this->AdvancedDrive_ConfrontEnemies)
+		.Process(this->AdvancedDrive_RetreatDuration)
 
 		.Process(this->Harvester_CanGuardArea)
 		.Process(this->Spawner_DelayFrames)

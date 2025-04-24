@@ -123,8 +123,8 @@ void LevitateLocomotionClass::DoPhase1()
 
 			if (this->State) {
 
-				if (LinkedTo->IsPathBlocked)
-					LinkedTo->IsPathBlocked = false;
+				if (LinkedTo->IsWaitingBlockagePath)
+					LinkedTo->IsWaitingBlockagePath = false;
 
 				LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
 			}
@@ -150,8 +150,8 @@ void LevitateLocomotionClass::DoPhase1()
 			}
 
 			if (this->State) {
-				if (LinkedTo->IsPathBlocked)
-					LinkedTo->IsPathBlocked = false;
+				if (LinkedTo->IsWaitingBlockagePath)
+					LinkedTo->IsWaitingBlockagePath = false;
 
 				LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
 			}
@@ -179,8 +179,8 @@ void LevitateLocomotionClass::DoPhase1()
 		if (this->State)
 		{
 
-			if (LinkedTo->IsPathBlocked)
-				LinkedTo->IsPathBlocked = false;
+			if (LinkedTo->IsWaitingBlockagePath)
+				LinkedTo->IsWaitingBlockagePath = false;
 
 			LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
 		}
@@ -197,8 +197,8 @@ void LevitateLocomotionClass::DoPhase1()
 
 	if (this->State)
 	{
-		if (LinkedTo->IsPathBlocked)
-			LinkedTo->IsPathBlocked = false;
+		if (LinkedTo->IsWaitingBlockagePath)
+			LinkedTo->IsWaitingBlockagePath = false;
 
 		LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
 	}
@@ -367,8 +367,8 @@ void LevitateLocomotionClass::DoPhase3()
 		Delta.Y = 0.0;
 		State = 0;
 
-		if (!LinkedTo->IsPathBlocked){
-			LinkedTo->IsPathBlocked = true;
+		if (!LinkedTo->IsWaitingBlockagePath){
+			LinkedTo->IsWaitingBlockagePath = true;
 
 			LinkedTo->UnmarkAllOccupationBits(LinkedTo->GetCoords());
 		}
@@ -762,7 +762,7 @@ void LevitateLocomotionClass::ProcessSomething()
 	{
 		const bool isSelected = LinkedTo->IsSelected;
 		if (isSelected)
-			LinkedTo->UpdatePlacement(PlacementType::Remove);
+			LinkedTo->Mark(MarkType::Remove);
 
 		LinkedTo->IsSelected = false;
 		LinkedTo->SetLocation(nDeltaMod);
@@ -784,7 +784,7 @@ void LevitateLocomotionClass::ProcessSomething()
 		}
 
 		if (isSelected)
-			LinkedTo->UpdatePlacement(PlacementType::Put);
+			LinkedTo->Mark(MarkType::Put);
 
 		if (this->State == 7)
 		{

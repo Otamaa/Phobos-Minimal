@@ -1095,10 +1095,10 @@ public:
 
 	Nullable<AffectedHouse> RadarInvisibleToHouse {};
 
-	Valueable<double> Skilled_ReverseSpeed { 0.85 };
-	Valueable<double> Skilled_FaceTargetRange { 16.0 };
-	Valueable<bool> Skilled_ConfrontEnemies { true };
-	Valueable<int> Skilled_RetreatDuration { 150 };
+	Valueable<double> AdvancedDrive_ReverseSpeed { 0.85 };
+	Valueable<Leptons> AdvancedDrive_FaceTargetRange { Leptons(4096) };
+	Valueable<bool> AdvancedDrive_ConfrontEnemies { true };
+	Valueable<int> AdvancedDrive_RetreatDuration { 150 };
 	Valueable<bool> Harvester_CanGuardArea {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

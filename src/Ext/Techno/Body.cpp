@@ -230,15 +230,15 @@ bool TechnoExtData::CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDe
 	if (pDeployType->GetFoundationWidth() > 2 || pDeployType->GetFoundationHeight(false) > 2)
 		mapCoords += CellStruct { -1, -1 };
 
-	pThis->UpdatePlacement(PlacementType::Remove);
+	pThis->Mark(MarkType::Remove);
 
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Remove);
+	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)MarkType::Remove);
 
 	if (!pDeployType->CanCreateHere(mapCoords, pThis->Owner))
 		canDeploy = false;
 
-	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)PlacementType::Put);
-	pThis->UpdatePlacement(PlacementType::Put);
+	pThis->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits((int)MarkType::Put);
+	pThis->Mark(MarkType::Put);
 
 	return canDeploy;
 }
@@ -2245,9 +2245,9 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 	//Only remove passengers from the Transporter if it succeeded
 	if (Placed)
 	{
-		pPassenger->UpdatePlacement(PlacementType::Remove);
+		pPassenger->Mark(MarkType::Remove);
 		pPassenger->OnBridge = MapClass::Instance->GetCellAt(nCoord)->ContainsBridgeEx();
-		pPassenger->UpdatePlacement(PlacementType::Put);
+		pPassenger->Mark(MarkType::Put);
 		pPassenger->StopMoving();
 		pPassenger->SetDestination(nullptr, true);
 		pPassenger->SetTarget(nullptr);
@@ -4242,7 +4242,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 				//}
 				//else
 				{
-					pBuilding->UpdatePlacement(PlacementType::Redraw);
+					pBuilding->Mark(MarkType::Redraw);
 					pBuilding->ToggleDamagedAnims(false);
 				}
 
@@ -4702,7 +4702,7 @@ void TechnoExtData::UpdateBuildingLightning()
 	auto pBldExt = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis));
 	if (pBldExt->LighningNeedUpdate)
 	{
-		pThis->UpdatePlacement(PlacementType::Redraw);
+		pThis->Mark(MarkType::Redraw);
 		pBldExt->LighningNeedUpdate = false;
 
 	}

@@ -226,7 +226,7 @@ public:
 	DWORD           unknown_5DC;
 	int      PathDirections[24]; // list of directions to move in next, like tube directions
 	DECLARE_PROPERTY(CDTimerClass, PathDelayTimer); //CDTimerClass
-	int             TryTryAgain; //64C
+	int             PathWaitTimes; //64C
 	DECLARE_PROPERTY(CDTimerClass, unknown_timer_650); //BaseAttackTimer  CDTimerClass
 	DECLARE_PROPERTY(CDTimerClass, SightTimer);
 	DECLARE_PROPERTY(CDTimerClass, BlockagePathTimer);
@@ -259,9 +259,9 @@ public:
 	bool              IsScattering;//6B2
 	bool              isidle_6B3;
 	bool              height_subtract_6B4;
-	bool              iscrusher_6B5;
+	bool              IsCrushingSomething;
 	bool              FrozenStill; // frozen in first frame of the proper facing - when magnetron'd or warping
-	bool              IsPathBlocked; //6B7
+	bool              IsWaitingBlockagePath; //6B7
 	bool              removed;//6B8
 	BYTE			  padding_6B9[7];	//???
 };

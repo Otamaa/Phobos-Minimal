@@ -6752,7 +6752,7 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 // 	GET(BuildingClass*, pTarget, ESI);
 
 // 	pTarget->IsAirstrikeTargetingMe = true;
-// 	pTarget->UpdatePlacement(PlacementType::Redraw);
+// 	pTarget->Mark(MarkType::Redraw);
 
 // 	return 0x41DA0B;
 // }

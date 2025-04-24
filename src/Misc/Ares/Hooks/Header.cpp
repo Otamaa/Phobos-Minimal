@@ -2955,7 +2955,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	if (effectApplied)
 	{
-		EnteredBuilding->UpdatePlacement(PlacementType::Redraw);
+		EnteredBuilding->Mark(MarkType::Redraw);
 	}
 
 	pBldExt->AccumulatedIncome += Owner->Available_Money() - moneyBefore;
@@ -4446,7 +4446,7 @@ void FirewallFunctions::UpdateFirewall(BuildingClass* pThis, bool const changedS
 		{
 			pThis->FirestormWallFrame = idxFrame;
 			pThis->GetCell()->RecalcAttributes(0xFFFFFFFF);
-			pThis->UpdatePlacement(PlacementType::Redraw);
+			pThis->Mark(MarkType::Redraw);
 		}
 
 		auto& Anim = pThis->GetAnim(BuildingAnimSlot::Special);
@@ -6041,7 +6041,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	//Target->AnnounceExpiredPointer(false);
 	Target->OnBridge = false; // ????
 	Target->NextObject = 0; // ??
-	//Target->UpdatePlacement(PlacementType::Remove);
+	//Target->Mark(MarkType::Remove);
 
 	// handling for Locomotor weapons: since we took this unit from the Magnetron
 	// in an unfriendly way, set these fields here to unblock the unit

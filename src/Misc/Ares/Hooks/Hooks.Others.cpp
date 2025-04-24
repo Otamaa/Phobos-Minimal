@@ -1059,7 +1059,7 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 
 		if(auto pBld = cast_to<BuildingClass* , false>(pTarget)){
 			pBld->IsAirstrikeTargetingMe = true;
-			pBld->UpdatePlacement(PlacementType::Redraw);
+			pBld->Mark(MarkType::Redraw);
 		}
 	}
 

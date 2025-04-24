@@ -304,10 +304,10 @@ struct _RocketLocomotionClass
 
 				if (pRocket->NeedToSubmit)
 				{
-					pAir->UpdatePlacement(PlacementType::Remove);
+					pAir->Mark(MarkType::Remove);
 					pRocket->NeedToSubmit = false;
 					DisplayClass::Instance->SubmitObject(pAir);
-					pAir->UpdatePlacement(PlacementType::Put);
+					pAir->Mark(MarkType::Put);
 				}
 			}
 
@@ -357,10 +357,10 @@ struct _RocketLocomotionClass
 		{
 			if (!pRocket->NeedToSubmit)
 			{
-				pAir->UpdatePlacement(PlacementType::Remove);
+				pAir->Mark(MarkType::Remove);
 				pRocket->NeedToSubmit = true;
 				DisplayClass::Instance->SubmitObject(pAir);
-				pAir->UpdatePlacement(PlacementType::Put);
+				pAir->Mark(MarkType::Put);
 			}
 
 			pRocket->CurrentSpeed += rocket->Acceleration;
