@@ -133,6 +133,33 @@ COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerCondition
 	}
 }
 
+bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
+	if (auto pItemUnit = cast_to<UnitTypeClass*, false>(pItem)) {
+		if (auto pListBld = cast_to<BuildingClass*, false>(list))
+		{
+			if (pItemUnit->DeploysInto == pListBld->Type)
+				return true;
+
+			if (pListBld->Type->UndeploysInto == pItemUnit)
+				return true;
+		}
+	}
+
+	if (auto pItemUnit = cast_to<BuildingTypeClass*, false>(pItem))
+	{
+		if (auto pListBld = cast_to<UnitClass*, false>(list))
+		{
+			if (pItemUnit->UndeploysInto == pListBld->Type)
+				return true;
+
+			if (pListBld->Type->DeploysInto == pItemUnit)
+				return true;
+		}
+	}
+
+	return TechnoExtContainer::Instance.Find(list)->Type == pItem || list->GetTechnoType() == pItem;
+}
+
 NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
 {
 	bool result = false;
@@ -147,7 +174,7 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 
 			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 				&& !pObject->Owner->Type->MultiplayPassive
-				&& pObject->GetTechnoType() == pItem)
+				&& OwnStuffs(pItem,pObject))
 			{
 				counter++;
 			}
@@ -171,7 +198,7 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 
 		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 			&& !pObject->Owner->Type->MultiplayPassive
-			&& pObject->GetTechnoType() == pItem)
+			&& OwnStuffs(pItem, pObject))
 		{
 			counter++;
 		}
@@ -198,7 +225,7 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 		if (pObject->Owner != pHouse
 			&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
 			&& !pObject->Owner->Type->MultiplayPassive
-			&& pObject->GetTechnoType() == pItem)
+			&& OwnStuffs(pItem, pObject))
 		{
 			counter++;
 		}
@@ -226,7 +253,7 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 			if (pObject->Owner != pHouse
 				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
-				&& pObject->GetTechnoType() == pItem)
+				&& OwnStuffs(pItem, pObject))
 			{
 				counter++;
 			}
@@ -250,7 +277,7 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass
 		{
 			if (!IsValidTechno(pObject)) continue;
 
-			if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
+			if (pObject->Owner == pCiv && OwnStuffs(pItem, pObject))
 				counter++;
 		}
 	}
@@ -585,7 +612,20 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 				auto const pFoot = static_cast<FootClass*>(pTechno);
 
-				if (!pFoot
+				bool  allow = true;
+				if (auto pContact = pFoot->GetRadioContact()) {
+					if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) {
+						if (pBldC->Type->Bunker)
+							allow = false;
+					}
+				} else if (auto pBld = pFoot->GetCell()->GetBuilding()) {
+					if (pBld->Type->Bunker)
+						allow = false;
+				}
+
+				if (!allow
+					|| pTechno->IsSinking
+					|| pTechno->IsCrashing
 					|| !pTechno->IsAlive
 					|| pTechno->Health <= 0
 					|| !pTechno->IsOnMap // Note: underground movement is considered "IsOnMap == false"

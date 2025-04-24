@@ -754,7 +754,8 @@ public:
 	void ClearElectricBolts()
 	{
 		for (auto const pBolt : this->ElectricBolts) {
-			pBolt->Owner = nullptr;
+			if(pBolt)
+				pBolt->Owner = nullptr;
 		}
 
 		this->ElectricBolts.clear();

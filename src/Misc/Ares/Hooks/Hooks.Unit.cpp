@@ -660,7 +660,7 @@ ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 
 
-DEFINE_HOOK(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
+ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
 {
 	GET(UnitClass* const, pThis, EBP);
 	GET(AbstractClass* const, pFocus, EAX);
