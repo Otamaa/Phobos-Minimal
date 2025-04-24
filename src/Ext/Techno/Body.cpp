@@ -3307,7 +3307,7 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	auto pFoot = flag_cast_to<FootClass*>(pThis);
 
 	// Steps 2-3: turret offset and rotation
-	if (isOnTurret && pThis->HasTurret())
+	if (isOnTurret && ( pThis->HasTurret() || !pFoot))
 	{
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, 1.0);
 		double turretRad = pThis->TurretFacing().GetRadian<32>();
