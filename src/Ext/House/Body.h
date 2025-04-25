@@ -412,6 +412,7 @@ public:
 	int _Expert_AI();
 	void _GiveTiberium(float amout , int type);
 	bool _IsIonCannonEligibleTarget(TechnoClass* pTechno) const;
+	void _UpdateAngerNodes(int score_add, HouseClass* pHouse);
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

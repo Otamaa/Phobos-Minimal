@@ -332,8 +332,8 @@ ASMJIT_PATCH(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 				TechnoExt_ExtData::ConvertToType(pMe, pConvertTo,true , false);
 		}
 
-		if (RulesExtData::Instance()->ExtendedBuildingPlacing 
-			&& pThis->WhatAmI() == AbstractType::Unit 
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing
+			&& pThis->WhatAmI() == AbstractType::Unit
 			&& pThis->GetTechnoType()->DeploysInto)
 		{
 			HouseExtContainer::Instance.Find(OldOwner)->OwnedDeployingUnits.remove((UnitClass*)pThis);
@@ -399,13 +399,13 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 #pragma endregion
 
 ASMJIT_PATCH(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
-	GET(HouseClass*, pThis, ECX);
+	GET(FakeHouseClass*, pThis, ECX);
 	GET_STACK(UrgencyType, urg , 0x4);
 
 	bool ret = false;
 	if(urg == UrgencyType::Critical){
 		auto const pRules = RulesExtData::Instance();
-		auto const pExt = HouseExtContainer::Instance.Find(pThis);
+		auto const pExt = pThis->_GetExtData();
 
 		if (pRules->AISellAllOnLastLegs)
 		{
@@ -468,4 +468,13 @@ ASMJIT_PATCH(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)
 		return SkipRegroup;
 	else
 		return DoNotSkipRegroup;
+}
+
+ASMJIT_PATCH(0x4F9BFC, HouseClass_ClearForceEnemy, 0xA)	// HouseClass_MakeAlly
+{
+	GET(FakeHouseClass*, pThis, ESI);
+
+	pThis->_GetExtData()->SetForceEnemy(-1);
+	pThis->UpdateAngerNodes(0u,nullptr);
+	return R->Origin() + 0xA;
 }

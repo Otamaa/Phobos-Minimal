@@ -142,11 +142,6 @@ ASMJIT_PATCH(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
 	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
 
-ASMJIT_PATCH(0x5047F5, HouseClass_UpdateAngetNodes, 0x6)
-{
-	return R->EAX<HouseClass*>()->IsAlliedWith(R->EDX<HouseClass*>()) ? 0x504826 : 0x504820;
-}
-
 ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 {
 	GET_STACK(TechnoClass*, pTarget, 0x4);
@@ -321,7 +316,7 @@ BuildingClass* __fastcall Find_Own_Building(
 		int v10 = -1;
 
 		if (pBld->Type == type){
-			if (!pBld->InLimbo && BuildingExtContainer::Instance.Find(pBld)->LimboID <= -1) { 
+			if (!pBld->InLimbo && BuildingExtContainer::Instance.Find(pBld)->LimboID <= -1) {
 				switch (find_type)
 				{
 				case 0:
@@ -367,7 +362,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6EE376, Find_Enemy_Building)
 DEFINE_FUNCTION_JUMP(CALL, 0x6EE45D, Find_Enemy_Building)
 DEFINE_FUNCTION_JUMP(CALL, 0x6EFFAF, Find_Enemy_Building)
 DEFINE_FUNCTION_JUMP(CALL, 0x6EE693, Find_Own_Building)
-#else 
+#else
 
 ASMJIT_PATCH(0x6EEC6D, FindTargetBuilding_LimboDelivered, 0x6)
 {

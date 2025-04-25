@@ -392,7 +392,6 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 		}
 	}
 
-
 	if (!isAvaible)
 	{ //cant found avaible plan
 
@@ -2169,39 +2168,32 @@ int FakeHouseClass::_Expert_AI()
 	 *  enemy that is closest is picked. However, don't pick an enemy if the
 	 *  base has not been established yet.
 	 */
-	if (this->ExpertAITimer.Expired())
-	{
-		if (RulesExtData::Instance()->AIBiasSpawnCell && !SessionClass::IsCampaign())
-		{
-			if (const auto count = this->ConYards.Count)
-			{
+	if (this->ExpertAITimer.Expired()) {
+		if (RulesExtData::Instance()->AIBiasSpawnCell && !SessionClass::IsCampaign()) {
+			if (const auto count = this->ConYards.Count) {
 				const auto wayPoint = this->GetSpawnPosition();
 
-				if (wayPoint != -1)
-				{
+				if (wayPoint != -1) {
 					const auto center = ScenarioClass::Instance->GetWaypointCoords(wayPoint);
 					auto newCenter = center;
 					double distanceSquared = 131072.0;
 
-					for (int i = 0; i < count; ++i)
-					{
-						if (const auto pBuilding = this->ConYards.GetItem(i))
-						{
-							if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo)
-							{
-								const auto newDistanceSquared = pBuilding->GetMapCoords().DistanceFromSquared(center);
+					for (int i = 0; i < count; ++i) {
+						if (const auto pBuilding = this->ConYards.GetItem(i)) {
+							if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo) {
+								if(BuildingExtContainer::Instance.Find(pBuilding)->LimboID < 0){
+									const auto newDistanceSquared = pBuilding->GetMapCoords().DistanceFromSquared(center);
 
-								if (newDistanceSquared < distanceSquared)
-								{
-									distanceSquared = newDistanceSquared;
-									newCenter = pBuilding->GetMapCoords();
+									if (newDistanceSquared < distanceSquared) {
+										distanceSquared = newDistanceSquared;
+										newCenter = pBuilding->GetMapCoords();
+									}
 								}
 							}
 						}
 					}
 
-					if (newCenter != center)
-					{
+					if (newCenter != center) {
 						this->BaseSpawnCell = newCenter;
 						this->Base.Center = newCenter;
 					}
@@ -2211,19 +2203,15 @@ int FakeHouseClass::_Expert_AI()
 
 		if (this->EnemyHouseIndex == -1
 			&& SessionClass::Instance->GameMode != GameMode::Campaign
-			&& !this->Type->MultiplayPassive)
-		{
+			&& !this->Type->MultiplayPassive) {
 			auto center = this->BaseCenter.IsValid() ? &this->BaseCenter : &this->BaseSpawnCell;
 
-			if (center->IsValid())
-			{
+			if (center->IsValid()) {
 				int close = INT_MAX;
 				HouseClass* enemy = nullptr;
-				for (int i = 0; i < HouseClass::Array->Count; i++)
-				{
+				for (int i = 0; i < HouseClass::Array->Count; i++) {
 					HouseClass* house = HouseClass::Array->Items[i];
-					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsObserver())
-					{
+					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsObserver()) {
 						if(!RulesExtData::Instance()->AIAngerOnAlly && this->IsAlliedWith(house))
 							continue;
 
@@ -2240,8 +2228,7 @@ int FakeHouseClass::_Expert_AI()
 						 *  greater than the previously recorded maximum, record this house as
 						 *  the prime candidate for enemy.
 						 */
-						if (value < close)
-						{
+						if (value < close) {
 							close = value;
 							enemy = house;
 						}
@@ -2250,8 +2237,7 @@ int FakeHouseClass::_Expert_AI()
 				/**
 				 *  Record this closest enemy base as the first enemy to attack.
 				 */
-				if (enemy)
-				{
+				if (enemy) {
 					this->UpdateAngerNodes(1, enemy);
 				}
 			}
@@ -2263,14 +2249,13 @@ int FakeHouseClass::_Expert_AI()
 	 *  that house a threat anymore. Clear out the enemy record and then try
 	 *  to find a new enemy.
 	 */
-	if (this->EnemyHouseIndex != -1)
-	{
+	if (this->EnemyHouseIndex != -1) {
 		HouseClass* h = HouseClass::Array->Items[this->EnemyHouseIndex];
 
-		if (h->Defeated || this->IsAlliedWith(h) || this->IsObserver())
-		{
+		if (h->Defeated || this->IsAlliedWith(h) || this->IsObserver()) {
 			this->RemoveFromAngerNodes(h);
-			this->EnemyHouseIndex = -1;
+			this->_GetExtData()->SetForceEnemy(-1);
+			this->UpdateAngerNodes(0u, nullptr);
 		}
 	}
 
@@ -2289,39 +2274,32 @@ int FakeHouseClass::_Expert_AI()
 	 *  Typically, this is limited to transitions between normal buildup mode and
 	 *  broke mode.
 	 */
-	if (this->AIMode == AIMode::SellAll)
-	{
+	if (this->AIMode == AIMode::SellAll) {
 		Fire_Sale();
 		All_To_Hunt();
-	}
-	else
-	{
-		if (this->AIMode == AIMode::General)
-		{
-			if (this->Available_Money() < 25)
-			{
+	} else {
+		if (this->AIMode == AIMode::General) {
+			if (this->Available_Money() < 25) {
 				this->AIMode = AIMode::LowOnCash;
 			}
 		}
-		if (this->AIMode == AIMode::LowOnCash)
-		{
-			if (this->Available_Money() >= 25)
-			{
+
+		if (this->AIMode == AIMode::LowOnCash) {
+			if (this->Available_Money() >= 25) {
 				this->AIMode = AIMode::General;
 			}
 		}
-		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame)
-		{
+
+		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame) {
 			this->AIMode = AIMode::General;
 		}
-		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame)
-		{
+
+		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame) {
 			this->AIMode = AIMode::BuildBase;
 		}
 	}
 
-	if (SessionClass::Instance->GameMode != GameMode::Campaign && !SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes)
-	{
+	if (SessionClass::Instance->GameMode != GameMode::Campaign && !SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes) {
 		const std::array<UrgencyType,2u> urgency = {
 			this->AIMode == AIMode::BuildBase ? UrgencyType::None  : this->Check_Fire_Sale()
 			,
@@ -2350,6 +2328,44 @@ int FakeHouseClass::_Expert_AI()
 
 DEFINE_FUNCTION_JUMP(CALL ,0x4F9017, FakeHouseClass::_Expert_AI)
 DEFINE_FUNCTION_JUMP(LJMP ,0x4FD500, FakeHouseClass::_Expert_AI)
+
+void FakeHouseClass::_UpdateAngerNodes(int score_add, HouseClass* pHouse)
+{
+	if (score_add != 0
+		&& pHouse
+		&& SessionClass::Instance->GameMode != GameMode::Campaign
+		&& !pHouse->Type->MultiplayPassive) {
+
+		for (int i = 0; i < this->AngerNodes.Count; ++i) {
+			AngerStruct* pAnger = &this->AngerNodes.Items[i];
+			if (pAnger->House == pHouse) {
+				pAnger->AngerLevel += score_add;
+			}
+		}
+	}
+
+	const int forceIndex = this->_GetExtData()->GetForceEnemyIndex();
+
+	if (forceIndex >= 0 || forceIndex == -2) {
+		this->EnemyHouseIndex = forceIndex == -2 ? -1 : forceIndex;
+		return;
+	}
+
+	int _scores = 0;
+	HouseClass* pSelected = nullptr;
+
+	for (int i = 0; i < this->AngerNodes.Count; ++i) {
+		AngerStruct* pAnger = &this->AngerNodes.Items[i];
+		if (pAnger->AngerLevel > _scores && !pAnger->House->Defeated && !this->IsAlliedWith(pAnger->House)) {
+			_scores = pAnger->AngerLevel;
+			pSelected = pAnger->House;
+		}
+	}
+
+	this->EnemyHouseIndex = pSelected ? pSelected->ArrayIndex : -1;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x504790, FakeHouseClass::_UpdateAngerNodes)
 
 #include <Ext/Infantry/Body.h>
 
