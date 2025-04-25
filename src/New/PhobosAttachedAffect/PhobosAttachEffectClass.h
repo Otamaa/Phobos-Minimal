@@ -47,7 +47,7 @@ public:
 		return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
 	}
 
-	bool ShouldBeDiscardedNow() const;
+	bool ShouldBeDiscardedNow();
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const {
 		if (this->IsSelfOwned())
@@ -108,6 +108,8 @@ public:
 	AnimTypeClass* SelectedAnim { nullptr };
 	bool HasCumulativeAnim { false };
 	bool ShouldBeDiscarded { false };
+	int LastDiscardCheckFrame { -1 };
+	bool LastDiscardCheckValue {};
 };
 
 template <>

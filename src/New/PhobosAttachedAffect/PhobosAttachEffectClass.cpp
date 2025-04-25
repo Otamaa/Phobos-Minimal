@@ -119,17 +119,19 @@ void PhobosAttachEffectClass::AI()
 
 	if (this->CurrentDelay > 0)
 	{
-		this->CurrentDelay--;
+		if (!this->ShouldBeDiscardedNow()) {
+			this->CurrentDelay--;
 
-		if (this->CurrentDelay == 0)
-			this->NeedsDurationRefresh = true;
+			if (this->CurrentDelay == 0)
+				this->NeedsDurationRefresh = true;
+		}
 
 		return;
 	}
 
 	if (this->NeedsDurationRefresh)
 	{
-		if (!ShouldBeDiscardedNow())
+		if (!this->ShouldBeDiscardedNow())
 		{
 			this->RefreshDuration();
 			this->NeedsDurationRefresh = false;
@@ -150,7 +152,7 @@ void PhobosAttachEffectClass::AI()
 
 		if (this->Delay > 0)
 			this->KillAnim();
-		else if (ShouldBeDiscardedNow())
+		else if (this->ShouldBeDiscardedNow())
 			this->RefreshDuration();
 		else
 			this->NeedsDurationRefresh = true;
@@ -434,17 +436,26 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	return true;
 }
 
-bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
+bool _retTrue(bool& check) {
+	check = true;
+	return true;
+}
+bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
+	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame)
+		return this->LastDiscardCheckValue;
+
+	this->LastDiscardCheckFrame = Unsorted::CurrentFrame;
+
 	if (this->ShouldBeDiscarded)
-		return true;
+		return _retTrue(this->LastDiscardCheckValue);
 
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthPercentage() >= this->Type->DiscardOn_AbovePercent.Get())
-		return true;
+		return _retTrue(this->LastDiscardCheckValue);
 
 	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthPercentage() <= this->Type->DiscardOn_BelowPercent.Get())
-		return true;
+		return _retTrue(this->LastDiscardCheckValue);
 
 	if(this->Type->DiscardOn != DiscardCondition::None){
 
@@ -453,14 +464,14 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
 			bool isMoving = pFoot->Locomotor->Is_Really_Moving_Now();
 
 			if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
-				return true;
+				return _retTrue(this->LastDiscardCheckValue);
 
 			if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
-				return true;
+				return _retTrue(this->LastDiscardCheckValue);
 		}
 
 		if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
-			return true;
+			return _retTrue(this->LastDiscardCheckValue);
 
 		if (this->Techno->Target)
 		{
@@ -481,18 +492,19 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow() const
 					auto const pWeapon = this->Techno->GetWeapon(weaponIndex)->WeaponType;
 
 					if (pWeapon)
-						distance = pWeapon->Range;
+						distance = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, this->Techno);
 				}
 
 				const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
 
 				if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
-					return true;
+					return _retTrue(this->LastDiscardCheckValue);
 			}
 		}
 
 	}
 
+	this->LastDiscardCheckValue = false;
 	return false;
 }
 

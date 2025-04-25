@@ -222,7 +222,7 @@ static int GetDelay(AircraftClass* pThis, bool isLastShot)
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	int delay = pWeapon->ROF;
 
-	if (isLastShot || pExt->ShootCount == pWeaponExt->Strafing_Shots || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
+	if (isLastShot || pExt->StrafeFireCunt == pWeaponExt->Strafing_Shots.Get(5) || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
 	{
 		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
 		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
