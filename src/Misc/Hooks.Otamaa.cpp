@@ -6948,3 +6948,14 @@ ASMJIT_PATCH(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 	DispatchMessageA(pMsg);
 	return 0x5D4E4D;
 }
+
+ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
+{
+	GET(TechnoClass*, pTechno, EDI);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (!pTechno || pTechno->Target != pThis)
+		return 0x6FBBC3; // to next check
+
+	return 0x6FBB3D;
+}
