@@ -5660,6 +5660,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
 	bool hasExtraWH = false;
+	bool hasFeedbackWeapon = false;
 
 	_AEProp->ExpireWeaponOnDead.clear();
 	extraRangeData->Clear();
@@ -5674,7 +5675,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	for (const auto& aeData : _AresAE->Data)
 	{
-
 		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
 			if (!cur_timerAE.has_value())
@@ -5733,6 +5733,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		disableRadar |= type->DisableRadar;
 		disableSpySat |= type->DisableSpySat;
 		hasExtraWH |= type->ExtraWarheads.size() > 0;
+		hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
 
 		if (type->ExpireWeapon && (type->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
 			if (!type->Cumulative || !type->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(type)) {
@@ -5823,6 +5824,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
 	_AEProp->Unkillable = unkillable;
 	_AEProp->HasExtraWarheads = hasExtraWH;
+	_AEProp->HasFeedbackWeapon = hasFeedbackWeapon;
 
 	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;

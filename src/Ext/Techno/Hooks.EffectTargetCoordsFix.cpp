@@ -292,13 +292,14 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	GET_BASE(int, weaponIdx, 0xC);
 
 	auto coords = pOriginalTarget->GetCenterCoords();
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (const auto pBuilding = cast_to<BuildingClass*, false>(pOriginalTarget))
 		coords = pBuilding->GetTargetCoords();
 
 	// This is set to a temp variable as well, as accessing it everywhere needed from TechnoExt would be more complicated.
 	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(crdSrc, coords, pWeapon->Projectile, pThis->Owner);
-	TechnoExtContainer::Instance.Find(pThis)->FiringObstacleCell = FireAtTemp::pObstacleCell;
+	pExt->FiringObstacleCell = FireAtTemp::pObstacleCell;
 
 	R->Stack(0x10, &crdSrc);
 
@@ -472,8 +473,30 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 			//if the function not bail out , it will crash the game because the vtable is already invalid
 			if (!pThis->IsAlive) {
 				return 0x6FF92F;
-			  }
+			}
 		}
+	}
+
+	if (pExt->AE.HasFeedbackWeapon) {
+		for (auto const& pAE : pExt->PhobosAE) {
+
+			if(!pAE|| !pAE->IsActive())
+				continue;
+
+			if (auto const pWeaponFeedback = pAE->GetType()->FeedbackWeapon)
+			{
+				if (pThis->InOpenToppedTransport && !pWeaponFeedback->FireInTransport)
+					return 0;
+
+				WeaponTypeExtData::DetonateAt(pWeaponFeedback, pThis, pThis, true, nullptr);
+			}
+		}
+
+			//pThis techno was die after after getting affect of FeedbackWeapon
+			//if the function not bail out , it will crash the game because the vtable is already invalid
+			if (!pThis->IsAlive) {
+				return 0x6FF92F;
+			}
 	}
 
 	if(pWeapon->IsSonic){

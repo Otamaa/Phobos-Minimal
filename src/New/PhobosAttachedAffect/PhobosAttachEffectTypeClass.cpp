@@ -128,6 +128,8 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
 	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, "ExtraWarheads.DetonationChances");
 	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, "ExtraWarheads.FullDetonation");
+
+	this->FeedbackWeapon.Read(exINI, pSection, "FeedbackWeapon", true);
 }
 
 template <typename T>
@@ -207,6 +209,8 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ExtraWarheads_DamageOverrides)
 		.Process(this->ExtraWarheads_DetonationChances)
 		.Process(this->ExtraWarheads_FullDetonation)
+
+		.Process(this->FeedbackWeapon)
 		;
 }
 

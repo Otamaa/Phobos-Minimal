@@ -89,6 +89,8 @@ public:
 	ValueableVector<double> ExtraWarheads_DetonationChances;
 	ValueableVector<bool> ExtraWarheads_FullDetonation;
 
+	Valueable<WeaponTypeClass*> FeedbackWeapon;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
@@ -164,6 +166,8 @@ public:
 		, ExtraWarheads_DamageOverrides {}
 		, ExtraWarheads_DetonationChances {}
 		, ExtraWarheads_FullDetonation {}
+
+		, FeedbackWeapon {}
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {
