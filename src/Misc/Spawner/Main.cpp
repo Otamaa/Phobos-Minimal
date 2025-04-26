@@ -23,6 +23,7 @@
 
 #include <GameOptionsClass.h>
 #include <MessageBox.h>
+#include <BeaconManagerClass.h>
 
 #pragma region defines
 std::list<MixFileClass*> SpawnerMain::LoadedMixFiles;
@@ -697,6 +698,13 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 
 		Print_Saving_Game_Message2();
 
+		// Force a redraw so that our message gets printed.
+		if (Game::SpecialDialog == 0)
+		{
+			MapClass::Instance->MarkNeedsRedraw(2);
+			MapClass::Instance->Render();
+		}
+
 		if (SessionClass::Instance->GameMode == GameMode::Campaign)
 		{
 			const std::string saveFileName = std::format("AUTOSAVE{}.SAV" , SpawnerMain::Configs::NextAutoSaveNumber + 1);
@@ -921,6 +929,9 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 //#pragma optimize("", on )
 
 bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
+
+	// for some reason beacons are only inited on scenario init, which doesn't happen on load
+	//BeaconManagerClass::Instance->LoadArt();
 
 	if (!saveGameName[0] || !StaticLoadOptionsClass::LoadMission(saveGameName))
 	{
@@ -1149,7 +1160,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x60D407, MainLoop_replaceA);
 DEFINE_FUNCTION_JUMP(CALL, 0x608206, MainLoop_replaceA);
 DEFINE_FUNCTION_JUMP(CALL, 0x48CE8A, MainLoop_replaceB);
 
-ASMJIT_PATCH(0x52DAED, Game_Start_ResetGlobal, 0x7)
+ASMJIT_PATCH(0x52DAEF, Game_Start_ResetGlobal, 0x5)
 {
 	SpawnerMain::Configs::DoSave = false;
 	SpawnerMain::Configs::NextAutoSaveFrame = -1;
