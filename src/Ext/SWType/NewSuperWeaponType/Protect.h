@@ -8,7 +8,7 @@ public:
 	virtual std::vector<const char*> GetTypeString() const override;
 	virtual bool HandleThisType(SuperWeaponType type) const override;
 
-	virtual bool CanFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const override;
+	virtual bool CanTargetingFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
 

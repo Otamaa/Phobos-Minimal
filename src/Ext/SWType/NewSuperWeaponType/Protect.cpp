@@ -16,9 +16,9 @@ bool SW_Protect::HandleThisType(SuperWeaponType type) const
 			(type == SuperWeaponType::ForceShield);
 }
 
-bool SW_Protect::CanFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
+bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
 {
-	auto ret = NewSWType::CanFireAt(pTargeting, cell, manual);
+	auto ret = NewSWType::CanTargetingFireAt(pTargeting, cell, manual);
 
 	// if this is a force shield requiring buildings and a building is selected, check the modifier
 	if (ret && manual && pTargeting->TypeExt->Protect_IsForceShield && pTargeting->TypeExt->SW_RequiresTarget & SuperWeaponTarget::Building)

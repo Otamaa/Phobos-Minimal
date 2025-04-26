@@ -380,8 +380,8 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]", pThis->Type->ID, (int)pThis->Type->Type);
 			}
 
-			pNewType->GetTargetingData(NewSWType::TargetingDataInstance , pExt, pThis->Owner);
-			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , &NewSWType::TargetingDataInstance, pThis);
+			auto pTargeting = pNewType->GetTargetingData(pExt, pThis->Owner);
+			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargeting.get() , pThis);
 
 			if (Flag == SWTargetFlags::AllowEmpty) {
 				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
@@ -578,7 +578,7 @@ struct TargetingFuncs
 
 					// do not do heavy lifting on objects that
 					// would not be chosen anyhow
-					if (value >= curMax && pNewType->CanFireAt(pTargeting, cell , false)) { return value; }
+					if (value >= curMax && pNewType->CanTargetingFireAt(pTargeting, cell , false)) { return value; }
 				}
 
 				return -1;
@@ -627,7 +627,7 @@ struct TargetingFuncs
 			}
 
 			// new check
-			 return (value <= curMax || !pNewType->CanFireAt(pTargeting, cell , false)) ? -1 : value;
+			 return (value <= curMax || !pNewType->CanTargetingFireAt(pTargeting, cell , false)) ? -1 : value;
 		});
 
 		return pTarget ?
@@ -659,7 +659,7 @@ struct TargetingFuncs
 			target = pTargeting->Owner->PickTargetByType(pTargeting->Owner->PreferredTargetType);
 		}
 
-		return  (!target.IsValid() || !pNewType->CanFireAt(pTargeting , target , false))  ?
+		return  (!target.IsValid() || !pNewType->CanTargetingFireAt(pTargeting , target , false))  ?
 		TargetResult{ CellStruct::Empty, SWTargetFlags::DisallowEmpty } :
 		TargetResult{ target , SWTargetFlags::AllowEmpty };
 	}
@@ -706,7 +706,7 @@ struct TargetingFuncs
 					 }
 				 }
 
-				 if (value <= curMax || !pNewType->CanFireAt(pTargeting , cell , false)) {
+				 if (value <= curMax || !pNewType->CanTargetingFireAt(pTargeting , cell , false)) {
 					 return -1;
 				 }
 			}
@@ -723,7 +723,7 @@ struct TargetingFuncs
 	{
 		if (pTargeting->Owner->PreferredDefensiveCell.IsValid()
 			&& (RulesClass::Instance->AISuperDefenseFrames + pTargeting->Owner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
-			&& pNewType->CanFireAt(pTargeting , pTargeting->Owner->PreferredDefensiveCell , false))
+			&& pNewType->CanTargetingFireAt(pTargeting , pTargeting->Owner->PreferredDefensiveCell , false))
 		{
 			return { pTargeting->Owner->PreferredDefensiveCell , SWTargetFlags::AllowEmpty };
 		}
@@ -763,7 +763,7 @@ struct TargetingFuncs
 			SpeedType::Foot, ZoneType::None, MovementZone::Normal, false, 1, 1, false,
 			false, false, true, CellStruct::Empty, false, false);
 
-		return (nNearby.IsValid() && pNewType->CanFireAt(pTargeting, nNearby, false)) ?
+		return (nNearby.IsValid() && pNewType->CanTargetingFireAt(pTargeting, nNearby, false)) ?
 		TargetResult{ nNearby, SWTargetFlags::AllowEmpty }:
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
@@ -785,7 +785,7 @@ struct TargetingFuncs
 				while (!MapClass::Instance->CoordinatesLegal(nBuffer));
 			}
 
-			if (pNewType->CanFireAt(pTargeting, nBuffer , false)) {
+			if (pNewType->CanTargetingFireAt(pTargeting, nBuffer , false)) {
 				return { nBuffer , SWTargetFlags::AllowEmpty };
 			}
 		}
@@ -810,7 +810,7 @@ struct TargetingFuncs
 				{
 					auto cell = CellClass::Coord2Cell(pBld->GetCoords());
 
-					if (pNewType->CanFireAt(pTargeting, cell , false))
+					if (pNewType->CanTargetingFireAt(pTargeting, cell , false))
 					{
 						return true;
 					}
@@ -829,7 +829,7 @@ struct TargetingFuncs
 		// fire at the SW's owner's base cell
 		CellStruct cell = pTargeting->Owner->GetBaseCenter();
 
-		return cell.IsValid() && pNewType->CanFireAt(pTargeting, cell , false) ?
+		return cell.IsValid() && pNewType->CanTargetingFireAt(pTargeting, cell , false) ?
 			TargetResult{ cell, SWTargetFlags::AllowEmpty }:
 			TargetResult{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 	}
@@ -851,7 +851,7 @@ struct TargetingFuncs
 				? ScenarioClass::Instance->Random.RandomFromMax(100)
 				: MapClass::Instance->GetThreatPosed(cell, pTargeting->Owner);
 
-			if (value <= curMax || !pNewType->CanFireAt(pTargeting, cell , false)) { return -1; }
+			if (value <= curMax || !pNewType->CanTargetingFireAt(pTargeting, cell , false)) { return -1; }
 
 			return value;
 		});
@@ -867,7 +867,7 @@ struct TargetingFuncs
 		{
 			CellStruct cell = pEnemy->GetBaseCenter();
 
-			if (pNewType->CanFireAt(pTargeting, cell , false))
+			if (pNewType->CanTargetingFireAt(pTargeting, cell , false))
 			{
 				return { cell , SWTargetFlags::AllowEmpty };
 			}
@@ -911,7 +911,7 @@ struct TargetingFuncs
 						continue;
 
 					if (pTargeting->TypeExt->Aux_Techno.Contains(pTech->GetTechnoType())) {
-						if (pNewType->CanFireAt(pTargeting ,nLocCell , false)) {
+						if (pNewType->CanTargetingFireAt(pTargeting ,nLocCell , false)) {
 							return { nLocCell , SWTargetFlags::AllowEmpty };
 						}
 					}

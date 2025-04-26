@@ -126,7 +126,7 @@ public:
 	virtual bool HandleThisType(SuperWeaponType type) const { return false; }
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const { return SuperWeaponFlags::None; }
 
-	virtual bool CanFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const;
+	virtual bool CanTargetingFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) = 0;
 	virtual void Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer) { }
@@ -141,6 +141,11 @@ public:
 	bool IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 	bool IsAttractor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 	bool IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
+
+	bool IsDesignatorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner , TechnoTypeClass* pTechnoType) const;
+	bool IsInhibitorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType , bool bIsPoweredOffline) const;
+	bool IsAttractorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType) const;
+	bool IsSuppressorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType, bool bIsPoweredOffline) const;
 
 	virtual SWRange GetRange(const SWTypeExtData* pData) const;
 	virtual WarheadTypeClass* GetWarhead(const SWTypeExtData* pData) const;
@@ -167,7 +172,7 @@ public:
 	bool IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
 	bool HasLaunchSite(SWTypeExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
 
-	void GetTargetingData(TargetingData& result , SWTypeExtData* pData, HouseClass* pOwner) const;
+	std::unique_ptr<TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
 	bool CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
 	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
@@ -184,9 +189,5 @@ public:
 	static NewSWType* GetNewSWType(const SWTypeExtData* pData);
 	static NewSWType* GetNewSWType(const SuperClass* pSuper);
 	static SuperWeaponType FindFromTypeID(const char* pType);
-
-
-public:
-	static TargetingData TargetingDataInstance;
 
 };
