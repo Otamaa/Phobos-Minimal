@@ -1489,7 +1489,7 @@ ASMJIT_PATCH(0x456FD3, BuildingClass_GetEffectTintIntensity_Airstrike, 0x6)
 
 #pragma endregion
 
-DEFINE_HOOK(0x4D6D34, FootClass_MissionAreaGuard_Miner, 0x5)
+ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Miner, 0x5)
 {
 	enum { GoGuardArea = 0x4D6D69 };
 

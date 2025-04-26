@@ -1686,7 +1686,7 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 	return pLinked->IsAlive ? 0 : 1;
 }
 
-DEFINE_HOOK(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
+ASMJIT_PATCH(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
 {
 	enum { SkipGameCode = 0x4DAA01 };
 
