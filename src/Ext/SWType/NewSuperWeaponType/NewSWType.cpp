@@ -27,8 +27,7 @@
 #include "LaserStrike.h"
 
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
-
-TargetingData::~TargetingData() = default;
+TargetingData NewSWType::TargetingDataInstance;
 
 bool NewSWType::CanFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const
 {
@@ -360,16 +359,18 @@ std::pair<double, double> NewSWType::GetLaunchSiteRange(const SWTypeExtData* pDa
 
 static bool NewSWTypeInited = false;
 
-MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const
+void NewSWType::GetTargetingData(TargetingData& result, SWTypeExtData* pData, HouseClass* pOwner) const
 {
-	auto data = new(TargetingData::TargetingData_GLUE_NOT_IMPLEMENTED) TargetingData(pData, pOwner);
+	result.TypeExt = pData;
+	result.Owner = pOwner;
+	result.reset();
 
 	// get launchsite data
 	auto const& [minRange, MaxRange] = this->GetLaunchSiteRange(pData);
 
 	if (minRange >= 0.0 || MaxRange >= 0.0)
 	{
-		data->NeedsLaunchSite = true;
+		result.NeedsLaunchSite = true;
 
 		pOwner->Buildings.for_each([&](BuildingClass* pBld) {
 			if (this->IsLaunchSite(pData, pBld)) {
@@ -377,14 +378,14 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 				auto const range = this->GetLaunchSiteRange(pData, pBld);
 				auto const center = CellClass::Coord2Cell(BuildingExtData::GetCenterCoords(pBld));
 
-				data->LaunchSites.emplace_back(pBld, center, range.first, range.second);
+				result.LaunchSites.emplace_back(pBld, center, range.first, range.second);
 			}
 		});
 	}
 
 	if ((!pData->SW_Designators.empty() || pData->SW_AnyDesignator))
 	{
-		data->NeedsDesignator = true;
+		result.NeedsDesignator = true;
 
 		for (auto const& pTechno : *TechnoClass::Array) {
 			if (this->IsDesignator(pData, pOwner, pTechno))
@@ -402,7 +403,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 				if (range > 0)
 				{
-					data->Designators.emplace_back(range * range, CellClass::Coord2Cell(center));
+					result.Designators.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -410,7 +411,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 	if ((!pData->SW_Attractors.empty() || pData->SW_AnyAttractor))
 	{
-		data->NeedsAttractors = true;
+		result.NeedsAttractors = true;
 
 		for (auto const& pTechno : *TechnoClass::Array)
 		{
@@ -429,7 +430,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 				if (range > 0)
 				{
-					data->Attractors.emplace_back(range * range, CellClass::Coord2Cell(center));
+					result.Attractors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -437,7 +438,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 	if (!pData->SW_Inhibitors.empty() || pData->SW_AnyInhibitor)
 	{
-		data->NeedsInhibitors = true;
+		result.NeedsInhibitors = true;
 
 		for (auto const& pTechno : *TechnoClass::Array)
 		{
@@ -456,7 +457,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 				if (range > 0)
 				{
-					data->Inhibitors.emplace_back(range * range, CellClass::Coord2Cell(center));
+					result.Inhibitors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
@@ -464,7 +465,7 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 	if (!pData->SW_Suppressors.empty() || pData->SW_AnySuppressor)
 	{
-		data->NeedsSupressors = true;
+		result.NeedsSupressors = true;
 
 		for (auto const& pTechno : *TechnoClass::Array)
 		{
@@ -483,19 +484,18 @@ MemoryPoolUniquePointer<TargetingData> NewSWType::GetTargetingData(SWTypeExtData
 
 				if (range > 0)
 				{
-					data->Suppressors.emplace_back(range * range, CellClass::Coord2Cell(center));
+					result.Suppressors.emplace_back(range * range, CellClass::Coord2Cell(center));
 				}
 			}
 		}
 	}
 
-	return MemoryPoolUniquePointer<TargetingData>(data);
 }
 
 bool NewSWType::CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const
 {
-	const auto& data = this->GetTargetingData(pData, pOwner);
-	return this->CanFireAt(data.get(), cell, manual);
+	this->GetTargetingData(NewSWType::TargetingDataInstance , pData, pOwner);
+	return this->CanFireAt(&NewSWType::TargetingDataInstance, cell, manual);
 }
 
 #include <Ext/Super/Body.h>

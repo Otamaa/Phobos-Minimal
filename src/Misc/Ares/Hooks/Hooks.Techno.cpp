@@ -529,9 +529,9 @@ ASMJIT_PATCH(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// if the removed object is a radar jammer, unjam all jammed radars
-	TechnoExtContainer::Instance.Find(pThis)->RadarJammer.reset(nullptr);
+	TechnoExtContainer::Instance.Find(pThis)->RadarJammer.reset();
 	// #617 powered units
-	TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.reset(nullptr);
+	TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.reset();
 
 
 	//#1573, #1623, #255 attached effects
@@ -988,7 +988,7 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 
 	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
 	{
-		pJammer->UnjamAll();
+		pJammer.UnjamAll();
 	}
 
 	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis)) {

@@ -380,8 +380,8 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]", pThis->Type->ID, (int)pThis->Type->Type);
 			}
 
-			MemoryPoolUniquePointer<TargetingData> pTargetingData = pNewType->GetTargetingData(pExt, pThis->Owner);
-			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargetingData.get(), pThis);
+			pNewType->GetTargetingData(NewSWType::TargetingDataInstance , pExt, pThis->Owner);
+			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , &NewSWType::TargetingDataInstance, pThis);
 
 			if (Flag == SWTargetFlags::AllowEmpty) {
 				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {

@@ -587,8 +587,8 @@ public:
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
-	std::unique_ptr<AresPoweredUnit> PoweredUnit {};
-	std::unique_ptr<AresJammer> RadarJammer {};
+	AresPoweredUnit PoweredUnit {};
+	AresJammer RadarJammer {};
 
 	BuildingLightClass* BuildingLight { 0 };
 

@@ -1001,7 +1001,7 @@ ASMJIT_PATCH(0x71A84E, TemporalClass_UpdateA, 5)
 	// it's not guaranteed that there is a target
 	if (auto const pTarget = pThis->Target)
 	{
-		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset(nullptr);
+		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset();
 		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
 	}
 

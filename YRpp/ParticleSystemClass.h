@@ -95,7 +95,7 @@ public:
 	CoordStruct  SpawnDistanceToOwner;
 	DynamicVectorClass<ParticleClass*> Particles;
 	CoordStruct TargetCoords;
-	ObjectClass* Owner;
+	AbstractClass* Owner;
 	AbstractClass* Target; // CellClass or TechnoClass
 	float          SpawnFrames; //from ParSysTypeClass
 	int          Lifetime; //from ParSysTypeClass

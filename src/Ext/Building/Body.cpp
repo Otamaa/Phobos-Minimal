@@ -26,7 +26,8 @@ void BuildingExtData::InitializeConstant()
 
 	if (pTypeExt)
 	{
-		if (pTypeExt->IsPrism) {
+		if (pTypeExt->IsPrism)
+		{
 			this->MyPrismForwarding = std::make_unique<PrismForwarding>();
 			this->MyPrismForwarding->Owner = this->AttachedToObject;
 		}

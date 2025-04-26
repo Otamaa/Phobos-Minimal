@@ -254,7 +254,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				if (const auto pBullet = BulletTypeExtContainer::Instance
 					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pBulletHouseOwner,  pWeapon, pExt->AirburstWeapon_ApplyFirepowerMult, true))
 				{
-		
+
 #ifdef _OLD_AIRBURSt
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
@@ -320,7 +320,7 @@ void BulletExtData::CreateAttachedSystem()
 				pAttach,
 				pThis->Location,
 				pThis->Owner,
-				nullptr,
+				pThis,
 				CoordStruct::Empty,
 				pOwner
 			));

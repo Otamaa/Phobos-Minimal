@@ -8,6 +8,8 @@ class AresPoweredUnit
 	TechnoClass* Techno {};
 	int LastScan {};
 	bool Powered {};
+	bool IsActive {};
+
 public:
 
 	static COMPILETIMEEVAL int ScanInterval = 15;
@@ -17,14 +19,26 @@ public:
 	bool PowerDown();
 	bool Update();
 
+	void reset() {
+		this->IsActive = false;
+	}
+
+	void Activate(TechnoClass* pTechno){
+		this->Techno = pTechno;
+		this->Powered = true;
+		this->IsActive = true;
+	}
+
 	COMPILETIMEEVAL OPTIONALINLINE bool IsPowered() const {
 		return this->Powered;
 	}
 
-	COMPILETIMEEVAL AresPoweredUnit(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
-	{ }
-
+	COMPILETIMEEVAL AresPoweredUnit() = default;
 	COMPILETIMEEVAL ~AresPoweredUnit() = default;
+
+	explicit operator bool() const {
+        return IsActive && this->Techno;
+    }
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -44,14 +58,8 @@ private:
 			.Process(this->Techno, true)
 			.Process(this->LastScan)
 			.Process(this->Powered)
+			.Process(this->IsActive)
 			.Success()
 			;
-	}
-};
-
-template <>
-struct Savegame::ObjectFactory<AresPoweredUnit> {
-	std::unique_ptr<AresPoweredUnit> operator() (PhobosStreamReader& Stm) const {
-		return std::make_unique<AresPoweredUnit>(nullptr);
 	}
 };

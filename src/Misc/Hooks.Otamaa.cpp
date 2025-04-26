@@ -6954,8 +6954,11 @@ ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 	GET(TechnoClass*, pTechno, EDI);
 	GET(TechnoClass*, pThis, ESI);
 
-	if (!pTechno || pTechno->Target != pThis)
+	if (!pTechno || pTechno->Target != pThis || !pTechno->Owner)
 		return 0x6FBBC3; // to next check
+
+	if(!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+		return 0x6FBBC3;
 
 	return 0x6FBB3D;
 }

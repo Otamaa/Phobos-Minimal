@@ -14,9 +14,8 @@ enum class AresNewActionType :int
 	SuperWeaponAllowed = 127,
 };
 
-struct TargetingData final : public MemoryPoolObject
+struct TargetingData final
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TargetingData, "TargetingData")
 public:
 
 	TargetingData() : TypeExt { nullptr }
@@ -47,6 +46,18 @@ public:
 		, Suppressors {}
 	{ }
 
+	void reset() {
+		NeedsLaunchSite = false;
+		NeedsDesignator = false;
+		NeedsAttractors = false;
+		NeedsSupressors = false;
+		NeedsInhibitors = false;
+		LaunchSites.clear();
+		Designators.clear();
+		Inhibitors.clear();
+		Attractors.clear();
+		Suppressors.clear();
+	}
 
 	struct LaunchSite
 	{
@@ -156,7 +167,7 @@ public:
 	bool IsLaunchSiteEligible(SWTypeExtData* pSWType, const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
 	bool HasLaunchSite(SWTypeExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords) const;
 
-	MemoryPoolUniquePointer<TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
+	void GetTargetingData(TargetingData& result , SWTypeExtData* pData, HouseClass* pOwner) const;
 	bool CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
 	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
@@ -174,5 +185,8 @@ public:
 	static NewSWType* GetNewSWType(const SuperClass* pSuper);
 	static SuperWeaponType FindFromTypeID(const char* pType);
 
+
+public:
+	static TargetingData TargetingDataInstance;
 
 };

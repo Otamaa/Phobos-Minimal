@@ -9,6 +9,7 @@ class AresJammer
 	int LastScan {};							//!< Frame number when the last scan was performed.
 	TechnoClass* AttachedToObject {};			//!< Pointer to game object this jammer is on
 	bool Registered {};
+	bool IsActive {};
 
 public:
 
@@ -20,18 +21,25 @@ public:
 	void Jam(BuildingClass*);				//!< Attempts to jam the given building. (Actually just registers the Jammer with it, the jamming happens in a hook.)
 	void Unjam(BuildingClass*) const;			//!< Attempts to unjam the given building. (Actually just unregisters the Jammer with it, the unjamming happens in a hook.)
 
+	void reset() {
+		this->IsActive = false;
+		this->UnjamAll();
+	}
+
+	void Activate(TechnoClass* pTechno){
+		this->AttachedToObject = pTechno;
+		this->IsActive = true;
+	}
+
+	explicit operator bool() const {
+        return IsActive && this->AttachedToObject;
+    }
+
 public:
 
 	~AresJammer()
 	{
 		this->UnjamAll();
-	}
-
-	AresJammer(TechnoClass* GameObject) :
-		LastScan(0),
-		AttachedToObject(GameObject),
-		Registered(false)
-	{
 	}
 
 	AresJammer() = default;
@@ -57,15 +65,8 @@ private:
 			.Process(this->LastScan)
 			.Process(this->AttachedToObject, true)
 			.Process(this->Registered)
+			.Process(this->IsActive)
 			.Success()
 			;
-	}
-};
-
-template <>
-struct Savegame::ObjectFactory<AresJammer>
-{
-	std::unique_ptr<AresJammer> operator() (PhobosStreamReader& Stm) const {
-		return std::make_unique<AresJammer>();
 	}
 };

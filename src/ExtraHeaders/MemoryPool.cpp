@@ -113,8 +113,6 @@ static PoolSizeRec sizes[] =
 	{ "IonCannonStateMachine"				, 100	, 50	},
 	{ "LaserStrikeStateMachine"				, 100	, 50	},
 
-	{ "TargetingData"						, 1000	, 50	},
-
 };
 
 static void userMemoryAdjustPoolSize(const char* poolName, Int& initialAllocationCount, Int& overflowAllocationCount)
