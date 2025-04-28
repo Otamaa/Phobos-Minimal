@@ -756,6 +756,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
 	this->AttackMove_Aggressive.Read(exINI, GameStrings::General, "AttackMove.Aggressive");
 	this->AttackMove_UpdateTarget.Read(exINI, GameStrings::General, "AttackMove.UpdateTarget");
@@ -1552,6 +1553,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->HarvesterScanAfterUnload)
 		.Process(this->AttackMove_Aggressive)
 		.Process(this->AttackMove_UpdateTarget)
+		.Process(this->Infantry_IgnoreBuildingSizeLimit)
 		;
 
 	MyPutData.Serialize(Stm);

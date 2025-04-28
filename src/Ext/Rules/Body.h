@@ -516,6 +516,7 @@ public:
 	Valueable<bool> HarvesterScanAfterUnload {};
 	Valueable<bool> AttackMove_Aggressive { false };
 	Valueable<bool> AttackMove_UpdateTarget { false };
+	Valueable<bool> Infantry_IgnoreBuildingSizeLimit { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

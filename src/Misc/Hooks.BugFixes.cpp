@@ -2501,6 +2501,19 @@ ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
 	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
 }
 
+ASMJIT_PATCH(0x51A2AD, InfantryClass_UpdatePosition_EnterBuilding_CheckSize, 0x9)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pDestination, EDI);
+
+	if (RulesExtData::Instance()->Infantry_IgnoreBuildingSizeLimit)
+		return 0x0;
+
+	return pDestination->Passengers.NumPassengers + 1 <= pDestination->Type->Passengers
+		&& static_cast<int>(pThis->GetTechnoType()->Size) <= pDestination->Type->SizeLimit
+		? 0 : 0x51A4BF;
+}
+
 #ifdef PassengerRelatedFix
 
 #include <Locomotor/LocomotionClass.h>
