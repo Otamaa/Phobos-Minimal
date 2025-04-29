@@ -329,8 +329,8 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	int ROF = pThis->GetROF(weaponIdx);
 
 	if (pThis->Berzerk) {
-		const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-		const double multiplier = pExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const double multiplier = pTypeExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
 		ROF = static_cast<int>(ROF * multiplier);
 	}
 

@@ -364,6 +364,12 @@ ASMJIT_PATCH(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
+	if (!RulesExtData::Instance()->Infantry_IgnoreBuildingSizeLimit) {
+		return pBld->Passengers.NumPassengers + 1 <= pBld->Type->Passengers
+			&& static_cast<int>(pThis->GetTechnoType()->Size) <= pBld->Type->SizeLimit
+			? 0 : 0x51A4BF;
+	}
+
 	if (const auto nTunnelVec = HouseExtData::GetTunnelVector(pBld->Type, pBld->Owner))
 	{
 		return TunnelFuncs::CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;

@@ -6,7 +6,7 @@ struct InsigniaData
 {
 	Promotable<SHPStruct*> Shapes { nullptr };
 	Promotable<int> Frame { -1 };
-	Valueable<Point3D> Frames { { -1, -1, -1 } };
+	Valueable<Vector3D<int>> Frames { { -1, -1, -1 } };
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{

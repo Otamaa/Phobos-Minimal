@@ -258,12 +258,14 @@ public:
 	Valueable<CSFText> EnemyUIName {};
 	Valueable<bool> UseDisguiseMovementSpeed { false };
 
-	Valueable<bool> DrawInsignia { true };
-	Promotable<SHPStruct*> Insignia { nullptr };
-	Promotable<int> InsigniaFrame { -1 };
-	Nullable<bool> Insignia_ShowEnemy {};
-	Valueable<Point3D> InsigniaFrames { { -1, -1, -1 } };
-	Valueable<CoordStruct> InsigniaDrawOffset { {0, 0, 0} };
+	Promotable<SHPStruct*> Insignia;
+	Valueable<Vector3D<int>> InsigniaFrames;
+	Promotable<int> InsigniaFrame;
+	Nullable<bool> Insignia_ShowEnemy;
+	std::vector<InsigniaData> Insignia_Weapon;
+	std::vector<Promotable<SHPStruct*>> Insignia_Passengers;
+	std::vector<Promotable<int>> InsigniaFrame_Passengers;
+	std::vector<Valueable<Vector3D<int>>> InsigniaFrames_Passengers;
 
 	Nullable<PartialVector2D<double>> InitialStrength_Cloning {};
 
@@ -675,8 +677,6 @@ public:
 	Valueable<int> EmptySpawnsPip { 0 };
 	Nullable<Point2D> SpawnsPipSize { };
 	Valueable<Point2D> SpawnsPipOffset { { 0,0 } };
-
-	std::vector<InsigniaData> Insignia_Weapon {};
 
 	Valueable<int> VHPscan_Value { 2 };
 	Valueable<bool> CloakAllowed { true };

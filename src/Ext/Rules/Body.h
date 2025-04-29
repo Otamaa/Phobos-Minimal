@@ -83,7 +83,15 @@ public:
 
 	Nullable<int> InfantryGainSelfHealCap {};
 	Nullable<int> UnitsGainSelfHealCap {};
+
 	Valueable<bool> EnemyInsignia { true };
+	Valueable<bool> DrawInsigniaOnlyOnSelected {};
+	Valueable<Point2D> DrawInsignia_AdjustPos_Infantry { { 5, 2 } };
+	Valueable<Point2D> DrawInsignia_AdjustPos_Buildings { { 10, 6 } };
+	Nullable<BuildingSelectBracketPosition> DrawInsignia_AdjustPos_BuildingsAnchor {};
+	Valueable<Point2D> DrawInsignia_AdjustPos_Units { { 10, 6 } };
+	Valueable<bool> DrawInsignia_UsePixelSelectionBracketDelta {};
+
 	Valueable<AffectedHouse> DisguiseBlinkingVisibility { AffectedHouse::Owner | AffectedHouse::Allies };
 
 	Valueable<SHPStruct*> SHP_SelectBrdSHP_INF { nullptr };
@@ -300,11 +308,6 @@ public:
 	Nullable<int> StartInMultiplayerUnitCost { };
 
 	bool FPSCounter { false };
-	Valueable<bool> DrawInsigniaOnlyOnSelected {};
-	Valueable<Point2D> DrawInsignia_AdjustPos_Infantry { { 5, 2 } };
-	Valueable<Point2D> DrawInsignia_AdjustPos_Buildings { { 10, 6 } };
-	Nullable<BuildingSelectBracketPosition> DrawInsignia_AdjustPos_BuildingsAnchor {};
-	Valueable<Point2D> DrawInsignia_AdjustPos_Units { { 10, 6 } };
 
 	Valueable<int> SelectFlashTimer { 0 };
 

@@ -2743,6 +2743,8 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 	return pTypeOut;
 }
 
+/*
+
 std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
@@ -2801,7 +2803,7 @@ std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, Te
 
 	return { drawOffs, pShapeFile  , frameIndexRet };
 }
-
+*/
 static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
 
 	Point2D a__ { a_.X , a_.Y};
@@ -2852,9 +2854,6 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 	TechnoTypeExtData* pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-	if (!pTypeExt->DrawInsignia)
-		return;
-
 	const bool IsAlly = pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
 
 	const bool isVisibleToPlayer = IsAlly
@@ -2864,19 +2863,90 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (!isVisibleToPlayer)
 		return;
 
-	auto const& [drawOffs, pShapeFile, frameIndex] =
-		GetInsigniaDatas(pThis, pTypeExt);
+	bool isCustomInsignia = false;
+	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
+	int defaultFrameIndex = -1;
+
+	if (SHPStruct* pCustomShapeFile = pTypeExt->Insignia.Get(pThis))
+	{
+		pShapeFile = pCustomShapeFile;
+		defaultFrameIndex = 0;
+		isCustomInsignia = true;
+	}
+
+	VeterancyStruct* pVeterancy = &pThis->Veterancy;
+	auto insigniaFrames = pTypeExt->InsigniaFrames.Get();
+	int insigniaFrame = insigniaFrames.X;
+	int frameIndex = pTypeExt->InsigniaFrame.Get(pThis);
+
+	if (pTechnoType->Passengers > 0)
+	{
+		int passengersIndex = pThis->Passengers.GetTotalSize();
+
+		if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].Get(pThis))
+		{
+			pShapeFile = pCustomShapeFile;
+			defaultFrameIndex = 0;
+			isCustomInsignia = true;
+		}
+
+		int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].Get(pThis);
+
+		if (frame != -1)
+			frameIndex = frame;
+
+		auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
+
+		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
+			insigniaFrames = frames.Get();
+	}
+
+	if (pTechnoType->Gunner)
+	{
+		int weaponIndex = pThis->CurrentWeaponNumber;
+		auto weaponInsignia = pTypeExt->Insignia_Weapon.data();
+
+		if (auto const pCustomShapeFile = weaponInsignia[weaponIndex].Shapes.Get(pThis))
+		{
+			pShapeFile = pCustomShapeFile;
+			defaultFrameIndex = 0;
+			isCustomInsignia = true;
+		}
+
+		int frame = weaponInsignia[weaponIndex].Frame.Get(pThis);
+
+		if (frame != -1)
+			frameIndex = frame;
+
+		auto const& frames = weaponInsignia[weaponIndex].Frames;
+
+		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
+			insigniaFrames = frames.Get();
+	}
+
+	if (pVeterancy->IsVeteran())
+	{
+		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
+		insigniaFrame = insigniaFrames.Y;
+	}
+	else if (pVeterancy->IsElite())
+	{
+		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
+		insigniaFrame = insigniaFrames.Z;
+	}
+
+	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
+
+	if (frameIndex == -1)
+		frameIndex = defaultFrameIndex;
 
 	if (frameIndex != -1 && pShapeFile)
 	{
-		GetAdjustedInsigniaOffset(pThis, offset , drawOffs);
-
+		GetAdjustedInsigniaOffset(pThis , offset , CoordStruct::Empty);
+		offset.Y += RulesExtData::Instance()->DrawInsignia_UsePixelSelectionBracketDelta ? pThis->GetTechnoType()->PixelSelectionBracketDelta : 0;
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00),
-			0, -2 + drawOffs.Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
-
-	return;
 }
 
 bool TechnoExtData::CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget)

@@ -875,6 +875,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DrawInsignia_AdjustPos_Buildings.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Buildings");
 	this->DrawInsignia_AdjustPos_BuildingsAnchor.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.BuildingsAnchor");
 	this->DrawInsignia_AdjustPos_Units.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Units");
+	this->DrawInsignia_UsePixelSelectionBracketDelta.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.UsePixelSelectionBracketDelta");
 
 #pragma region Otamaa
 	this->DisplayCreditsDelay.Read(exINI, GameStrings::AudioVisual(), "DisplayCreditsDelay");
@@ -1210,6 +1211,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitsGainSelfHealCap)
 		.Process(this->EnemyInsignia)
 		.Process(this->DisguiseBlinkingVisibility)
+		.Process(this->DrawInsignia_UsePixelSelectionBracketDelta)
 
 		.Process(this->SHP_SelectBrdSHP_INF)
 		.Process(this->SHP_SelectBrdPAL_INF)

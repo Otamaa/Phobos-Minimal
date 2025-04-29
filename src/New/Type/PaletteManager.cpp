@@ -10,6 +10,7 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 , Convert_Temperate {}
 , Convert {}
 , Palette {}
+, NoTemperate { false }
 {
 	this->CachedName = GeneralUtils::ApplyTheaterSuffixToString(pTitle).c_str();
 	this->LoadFromCachedName();
@@ -18,7 +19,7 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 void PaletteManager::Clear_Internal()
 {
 	this->Palette.release();
-	if(this->Convert_Temperate){
+	if(this->Convert_Temperate && !this->NoTemperate){
 		GameDelete(this->Convert_Temperate);
 		this->Convert_Temperate = nullptr;
 	}
@@ -29,14 +30,6 @@ void PaletteManager::Clear_Internal()
 	}
 
 	this->ColorschemeDataVector = nullptr;
-
-	//if (this->ColorschemeDataVector)
-	//{
-	//	if (!Phobos::Otamaa::ExeTerminated)
-	//		GameDelete<false, false>(ColorschemeDataVector);
-	//	else
-	//		GameDelete<false, true>(ColorschemeDataVector);
-	//}
 }
 
 void PaletteManager::CreateConvert()
@@ -46,8 +39,13 @@ void PaletteManager::CreateConvert()
 		return;
 	}
 
-	this->Convert_Temperate = (GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
-	this->Convert = (GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
+	if(!NoTemperate) {
+		this->Convert_Temperate = (GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
+		this->Convert = (GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
+	}
+	else {
+		this->Convert_Temperate = this->Convert = (GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
+	}
 
 	std::string realname = _strlwr(this->Name.data());
 
@@ -83,6 +81,60 @@ void PaletteManager::LoadFromName(const char* PaletteName)
 		Debug::LogInfo("[{}] Palette FailedToLoad ! ", this->Name.data());
 		return;
 	}
+}
+
+void FindOrAllocateDefaultConvers(const char* name  , bool noTemperate) {
+	auto pUnitSno = PaletteManager::FindOrAllocate(name);
+	pUnitSno->NoTemperate = noTemperate;
+
+	if (pUnitSno->Convert_Temperate && !noTemperate)
+	{
+		GameDelete(pUnitSno->Convert_Temperate);
+		pUnitSno->Convert_Temperate = nullptr;
+	}
+
+	if (pUnitSno->Convert)
+	{
+		GameDelete(pUnitSno->Convert);
+		pUnitSno->Convert = nullptr;
+	}
+
+	pUnitSno->ColorschemeDataVector = nullptr;
+
+	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(pUnitSno->CachedName.data(), false)) {
+
+		for (auto& color : pPal->Entries) {
+			color.R <<= 2;
+			color.G <<= 2;
+			color.B <<= 2;
+		}
+
+		pUnitSno->Palette.reset(pPal);
+		pUnitSno->CreateConvert();
+	}
+
+	Debug::Log("Allocating Pal [%s]\n", name);
+}
+
+struct DefaultPaletteData {
+	const char* const PaletteName;
+	bool NoTemperate;
+};
+
+constexpr DefaultPaletteData const DefaultPalettes[]
+{
+	{   "TEMPERAT.PAL"	, false },
+	{	"UNITSNO.PAL"	, false },
+	{	"WAYPOINT.PAL"	, true	},
+	{	"ANIM.PAL"		, false },
+	{	"MOUSEPAL.PAL"	, false },
+	{	"CAMEO.PAL"		, false },
+	{	"GRFXTXT.PAL"	, true	},
+	{	"PALETTE.PAL"	, false },
+};
+
+void PaletteManager::InitDefaultConverts()
+{
 }
 
 bool PaletteManager::LoadFromCachedName()
@@ -143,4 +195,13 @@ void PaletteManager::SaveToStream(PhobosStreamWriter& Stm)
 	if (this->Palette) {
 		Stm.Save(*this->Palette);
 	}
+}
+
+ASMJIT_PATCH(0x534DBE, GameInitDefault, 0x5)
+{
+	for (auto& [name, tem] : DefaultPalettes) {
+		FindOrAllocateDefaultConvers(name, tem);
+	}
+	Debug::Log("PaletteManager total [%d]\n", PaletteManager::Array.size());
+	return 0x0;
 }

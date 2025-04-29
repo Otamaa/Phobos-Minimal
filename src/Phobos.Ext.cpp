@@ -399,7 +399,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	CursorTypeClass::Clear();
 	//ElectricBoltManager::Clear();
 	FlyingStrings::Clear();
-	PaletteManager::Clear();
+	//PaletteManager::Clear();
 	RadTypeClass::Clear();
 	RulesExtData::Clear();
 	ScenarioExtData::Clear();

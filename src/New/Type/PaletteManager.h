@@ -18,6 +18,7 @@ public:
 	ConvertClass* Convert;
 	UniqueGamePtr<BytePalette> Palette;
 	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
+	bool NoTemperate;
 
 	PaletteManager(const char* const pTitle);
 
@@ -40,10 +41,13 @@ public:
 	}
 
 	bool LoadFromCachedName();
-private:
 
 	void Clear_Internal();
 	void CreateConvert();
-	void LoadFromName(const char* PaletteName);
 
+	static void InitDefaultConverts();
+
+private:
+
+	void LoadFromName(const char* PaletteName);
 };
