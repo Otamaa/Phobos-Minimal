@@ -258,14 +258,14 @@ public:
 	Valueable<CSFText> EnemyUIName {};
 	Valueable<bool> UseDisguiseMovementSpeed { false };
 
-	Promotable<SHPStruct*> Insignia;
-	Valueable<Vector3D<int>> InsigniaFrames;
-	Promotable<int> InsigniaFrame;
-	Nullable<bool> Insignia_ShowEnemy;
-	std::vector<InsigniaData> Insignia_Weapon;
-	std::vector<Promotable<SHPStruct*>> Insignia_Passengers;
-	std::vector<Promotable<int>> InsigniaFrame_Passengers;
-	std::vector<Valueable<Vector3D<int>>> InsigniaFrames_Passengers;
+	Promotable<SHPStruct*> Insignia {};
+	Valueable<Vector3D<int>> InsigniaFrames { { -1, -1, -1 } };
+	Promotable<int> InsigniaFrame { -1 };
+	Nullable<bool> Insignia_ShowEnemy {};
+	std::vector<InsigniaData> Insignia_Weapon {};
+	std::vector<Promotable<SHPStruct*>> Insignia_Passengers {};
+	std::vector<Promotable<int>> InsigniaFrame_Passengers {};
+	std::vector<Valueable<Vector3D<int>>> InsigniaFrames_Passengers {};
 
 	Nullable<PartialVector2D<double>> InitialStrength_Cloning {};
 

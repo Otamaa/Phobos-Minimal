@@ -2743,67 +2743,91 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 	return pTypeOut;
 }
 
-/*
-
-std::tuple<CoordStruct, SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
+static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
+	int defaultFrameIndex = -1;
 	const auto nCurRank = pThis->CurrentRanking;
-	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
-	Point3D insigniaFrames = pTypeExt->InsigniaFrames.Get();
-	CoordStruct drawOffs = pTypeExt->InsigniaDrawOffset.Get();
-	int DefaultFrameIdx = -1;
 
-	if (SHPStruct* pShapeFileHere = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
+	if (SHPStruct* pCustomShapeFile = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
 	{
-		pShapeFile = pShapeFileHere;
+		pShapeFile = pCustomShapeFile;
+		defaultFrameIndex = 0;
 		isCustomInsignia = true;
-		DefaultFrameIdx = 0;
 	}
 
-	if (pTypeExt->AttachedToObject->Gunner && !pTypeExt->Insignia_Weapon.empty())
-	{
-		const int weaponIndex = pThis->CurrentWeaponNumber;
-		auto const& data = pTypeExt->Insignia_Weapon[weaponIndex];
+	auto insigniaFrames = pTypeExt->InsigniaFrames.Get();
+	int insigniaFrame = insigniaFrames.X;
+	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
 
-		if (auto const pCustomShapeFile = data.Shapes.GetFromSpecificRank(nCurRank))
+	if (pTypeExt->AttachedToObject->Passengers > 0)
+	{
+		int passengersIndex = pThis->Passengers.GetTotalSize();
+
+		if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank))
 		{
 			pShapeFile = pCustomShapeFile;
+			defaultFrameIndex = 0;
 			isCustomInsignia = true;
-			DefaultFrameIdx = 0;
 		}
 
-		const int frame = data.Frame.GetFromSpecificRank(nCurRank);
+		int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].GetFromSpecificRank(nCurRank);
 
 		if (frame != -1)
 			frameIndex = frame;
 
-		if (data.Frames->X != -1 && data.Frames->Y != -1 && data.Frames->Z != -1)
-			insigniaFrames = data.Frames;
+		auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
+
+		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
+			insigniaFrames = frames.Get();
 	}
 
-	int nRankPerFrames = insigniaFrames.X;
+	if (pTypeExt->AttachedToObject->Gunner)
+	{
+		int weaponIndex = pThis->CurrentWeaponNumber;
+		auto weaponInsignia = pTypeExt->Insignia_Weapon.data();
+
+		if (auto const pCustomShapeFile = weaponInsignia[weaponIndex].Shapes.GetFromSpecificRank(nCurRank))
+		{
+			pShapeFile = pCustomShapeFile;
+			defaultFrameIndex = 0;
+			isCustomInsignia = true;
+		}
+
+		int frame = weaponInsignia[weaponIndex].Frame.GetFromSpecificRank(nCurRank);
+
+		if (frame != -1)
+			frameIndex = frame;
+
+		auto const& frames = weaponInsignia[weaponIndex].Frames;
+
+		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
+			insigniaFrames = frames.Get();
+	}
+
 	switch (nCurRank)
 	{
 	case Rank::Elite:
-		DefaultFrameIdx = !isCustomInsignia ? 15 : DefaultFrameIdx;
-		nRankPerFrames = insigniaFrames.Z;
+		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
+		insigniaFrame = insigniaFrames.Z;
 		break;
 	case Rank::Veteran:
-		DefaultFrameIdx = !isCustomInsignia ? 14 : DefaultFrameIdx;
-		nRankPerFrames = insigniaFrames.Y;
+		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
+		insigniaFrame = insigniaFrames.Y;
 		break;
 	default:
 		break;
 	}
 
-	const int FrameCalc = (frameIndex == -1 ? nRankPerFrames : frameIndex);
-	const int frameIndexRet = FrameCalc == -1 ? DefaultFrameIdx : FrameCalc;
+	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
 
-	return { drawOffs, pShapeFile  , frameIndexRet };
+	if (frameIndex == -1)
+		frameIndex = defaultFrameIndex;
+
+	return { pShapeFile  , frameIndex };
 }
-*/
+
 static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
 
 	Point2D a__ { a_.X , a_.Y};
@@ -2827,34 +2851,38 @@ static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D&
 	}
 }
 
+static FORCEDINLINE TechnoTypeExtData* GetTypeExtData(TechnoClass* pThis , bool isObserver)
+{
+	TechnoTypeClass* pTechnoType = nullptr;
+	auto[pTechnoTyper, pOwner] = TechnoExtData::GetDisguiseType(pThis, true, true, false);
+	const bool isDisguised = pTechnoTyper != pThis->GetTechnoType();
+
+	if (isDisguised && isObserver) {
+		pTechnoType = pThis->GetTechnoType();
+	} else {
+		pTechnoType = pTechnoTyper;
+	}
+
+	if (pTechnoType)
+		return nullptr;
+
+	return TechnoTypeExtContainer::Instance.Find(pTechnoType);
+}
+
 void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->CurrentRanking == Rank::Invalid
 		|| RulesExtData::Instance()->DrawInsigniaOnlyOnSelected.Get() && !pThis->IsSelected && !pThis->IsMouseHovering)
 		return;
 
-	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const bool IsObserverPlayer = HouseExtData::IsObserverPlayer();
-	Point2D offset = *pLocation;
-	TechnoTypeClass* pTechnoType = nullptr;
-	auto const& [pTechnoTyper, pOwner] = TechnoExtData::GetDisguiseType(pThis, true, true, false);
-	const bool isDisguised = pTechnoTyper != pThis->GetTechnoType();
+	auto pTypeExt = GetTypeExtData(pThis , IsObserverPlayer);
 
-	if (isDisguised && IsObserverPlayer)
-	{
-		pTechnoType = pThis->GetTechnoType();
-	}
-	else
-	{
-		pTechnoType = pTechnoTyper;
-	}
-
-	if (!pTechnoType)
+	if (!pTypeExt)
 		return;
 
-	TechnoTypeExtData* pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-
-	const bool IsAlly = pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+	Point2D offset = *pLocation;
+	const bool IsAlly = pThis->Owner && pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
 
 	const bool isVisibleToPlayer = IsAlly
 		|| IsObserverPlayer
@@ -2863,82 +2891,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (!isVisibleToPlayer)
 		return;
 
-	bool isCustomInsignia = false;
-	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
-	int defaultFrameIndex = -1;
-
-	if (SHPStruct* pCustomShapeFile = pTypeExt->Insignia.Get(pThis))
-	{
-		pShapeFile = pCustomShapeFile;
-		defaultFrameIndex = 0;
-		isCustomInsignia = true;
-	}
-
-	VeterancyStruct* pVeterancy = &pThis->Veterancy;
-	auto insigniaFrames = pTypeExt->InsigniaFrames.Get();
-	int insigniaFrame = insigniaFrames.X;
-	int frameIndex = pTypeExt->InsigniaFrame.Get(pThis);
-
-	if (pTechnoType->Passengers > 0)
-	{
-		int passengersIndex = pThis->Passengers.GetTotalSize();
-
-		if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].Get(pThis))
-		{
-			pShapeFile = pCustomShapeFile;
-			defaultFrameIndex = 0;
-			isCustomInsignia = true;
-		}
-
-		int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].Get(pThis);
-
-		if (frame != -1)
-			frameIndex = frame;
-
-		auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
-
-		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
-			insigniaFrames = frames.Get();
-	}
-
-	if (pTechnoType->Gunner)
-	{
-		int weaponIndex = pThis->CurrentWeaponNumber;
-		auto weaponInsignia = pTypeExt->Insignia_Weapon.data();
-
-		if (auto const pCustomShapeFile = weaponInsignia[weaponIndex].Shapes.Get(pThis))
-		{
-			pShapeFile = pCustomShapeFile;
-			defaultFrameIndex = 0;
-			isCustomInsignia = true;
-		}
-
-		int frame = weaponInsignia[weaponIndex].Frame.Get(pThis);
-
-		if (frame != -1)
-			frameIndex = frame;
-
-		auto const& frames = weaponInsignia[weaponIndex].Frames;
-
-		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
-			insigniaFrames = frames.Get();
-	}
-
-	if (pVeterancy->IsVeteran())
-	{
-		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
-		insigniaFrame = insigniaFrames.Y;
-	}
-	else if (pVeterancy->IsElite())
-	{
-		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
-		insigniaFrame = insigniaFrames.Z;
-	}
-
-	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
-
-	if (frameIndex == -1)
-		frameIndex = defaultFrameIndex;
+	const auto& [pShapeFile, frameIndex] = GetInsigniaDatas(pThis, pTypeExt);
 
 	if (frameIndex != -1 && pShapeFile)
 	{
@@ -2971,7 +2924,7 @@ void TechnoExtData::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 	if (!pFoot)
 		return;
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = pFoot->Type;
 	const auto pLoco = locomotion_cast<JumpjetLocomotionClass*, true>(pFoot->Locomotor);
 
 	if (pLoco && pThis->IsInAir()

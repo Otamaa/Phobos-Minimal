@@ -58,21 +58,21 @@ void ApplyVeinsDamage(AnimClass* pThis ,int VeinDamage , WarheadTypeClass* VeinW
 	}
 }
 
-ASMJIT_PATCH(0x424cfb, AnimClass_Init_Additionals, 6)
-{
-	GET(FakeAnimClass*, pThis, ESI);
-
-	auto const pTypeExt = pThis->_GetTypeExtData();
-
-	if (pTypeExt->AltReport.isset()) {
-		VocClass::PlayIndexAtPos(pTypeExt->AltReport, pThis->GetCoords(), nullptr);
-	}
-
-	if (pTypeExt->AdditionalHeight > 0)
-		pThis->Location.Z += pTypeExt->AdditionalHeight;
-
-	return 0;
-}
+// ASMJIT_PATCH(0x424cfb, AnimClass_Init_Additionals, 6)
+// {
+// 	GET(FakeAnimClass*, pThis, ESI);
+//
+// 	auto const pTypeExt = pThis->_GetTypeExtData();
+//
+// /	if (pTypeExt->AltReport.isset()) {
+// 		VocClass::PlayIndexAtPos(pTypeExt->AltReport, pThis->GetCoords(), nullptr);
+// 	}
+//
+// 	if (pTypeExt->AdditionalHeight > 0)
+// 		pThis->Location.Z += pTypeExt->AdditionalHeight;
+//
+// 	return 0;
+// }
 
  ASMJIT_PATCH(0x4243BC, AnimClass_AI_Veins, 0x6)
  {
@@ -152,11 +152,82 @@ void FakeAnimClass::_Middle()
 
 	AnimExtData::OnMiddle(this);
 	AnimExtData::OnMiddle_SpawnSmudge(this, centercell, { width ,height });
+	this->_GetExtData()->OnMiddle();
+}
+
+void FakeAnimClass::_Start() {
+	this->Mark(MarkType::Change);
+
+	auto pTypeExt = this->_GetTypeExtData();
+
+	if (pTypeExt->AdditionalHeight > 0)
+		this->Location.Z += pTypeExt->AdditionalHeight;
+
+	if (pTypeExt->AltReport.isset()) {
+		VocClass::PlayIndexAtPos(pTypeExt->AltReport, this->GetCoords(), nullptr);
+	}
+
+	if (!this->IsPlaying && this->Type->Report != -1) {
+		VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
+	} else {
+		this->Audio3.AudioEventHandleStop();
+	}
+
+	this->Audio4.AudioEventHandleStop();
+
+	if (!this->Type->MiddleFrameIndex) {
+		this->_Middle();
+	}
+
+	if (!this->IsPlaying && this->Type->TiberiumChainReaction) {
+		CellClass* cptr = this->GetCell();
+		int tib = cptr->GetContainedTiberiumIndex();
+
+		if (tib != -1)	{
+			TiberiumClass* tiberium = TiberiumClass::Array->Items[tib];
+			auto pExt = TiberiumExtContainer::Instance.Find(tiberium);
+
+			cptr->ReduceTiberium(cptr->OverlayData + 1);
+
+			if (tiberium->Debris.size() > 0) {
+				int chance = pExt->GetDebrisChance();
+				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
+					auto SpawnLoc = this->GetCoords();
+					SpawnLoc.Z += 10;
+
+					auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
+					pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
+					pSpawn->TintColor = cptr->Intensity_Normal;
+				}
+			}
+
+
+			int damage = pExt->GetExplosionDamage();
+			auto pWarhead = pExt->GetExplosionWarhead();
+
+			DamageArea::Apply(&this->Location, damage, nullptr, pWarhead, false, nullptr);
+
+			cptr->RecalcAttributes(-1);
+			MapClass::Instance->ResetZones(cptr->MapCoords);
+			MapClass::Instance->RecalculateSubZones(cptr->MapCoords);
+		}
+	}
+
+	this->_GetExtData()->OnStart();
+}
+
+void FakeAnimClass::_AI() {
+
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x424D5A, FakeAnimClass::_Middle);
 DEFINE_FUNCTION_JUMP(CALL, 0x424687, FakeAnimClass::_Middle);
 DEFINE_FUNCTION_JUMP(LJMP, 0x424F00, FakeAnimClass::_Middle);
+
+DEFINE_FUNCTION_JUMP(CALL, 0x422702, FakeAnimClass::_Start);
+DEFINE_FUNCTION_JUMP(CALL, 0x4243A1, FakeAnimClass::_Start);
+DEFINE_FUNCTION_JUMP(CALL, 0x424925, FakeAnimClass::_Start);
+DEFINE_FUNCTION_JUMP(LJMP, 0x424CE0, FakeAnimClass::_Start);
 
 ASMJIT_PATCH(0x42264D, AnimClass_Init, 0x5)
 {

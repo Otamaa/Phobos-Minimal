@@ -710,24 +710,24 @@ ASMJIT_PATCH(0x489270, CellChainReact, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
-{
-	GET(TiberiumClass*, pTib, EDI);
+// ASMJIT_PATCH(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
+// {
+// 	GET(TiberiumClass*, pTib, EDI);
+//
+// 	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExtContainer::Instance.Find(pTib)->
+// 		? 0x424DF9 : 0x424E9B;
+// }
 
-	return ScenarioClass::Instance->Random.RandomFromMax(99) < TiberiumExtContainer::Instance.Find(pTib)->GetDebrisChance()
-		? 0x424DF9 : 0x424E9B;
-}
-
-ASMJIT_PATCH(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
-{
-	GET(TiberiumClass*, pTib, EDI);
-	auto pExt = TiberiumExtContainer::Instance.Find(pTib);
-
-	R->Stack(0x0, pExt->GetExplosionWarhead());
-	R->EDX(pExt->GetExplosionDamage());
-
-	return 0x424ECB;
-}
+// ASMJIT_PATCH(0x424EC5, AnimClass_ReInit_TiberiumChainReaction_Damage, 6)
+// {
+// 	GET(TiberiumClass*, pTib, EDI);
+// 	auto pExt = TiberiumExtContainer::Instance.Find(pTib);
+//
+// 	R->Stack(0x0, pExt->GetExplosionWarhead());
+// 	R->EDX(pExt->GetExplosionDamage());
+//
+// 	return 0x424ECB;
+// }
 
 ASMJIT_PATCH(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {

@@ -371,6 +371,7 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
 {
 	TheMemoryPoolFactory->reportAllocation();
+	Debug::Log("PaletteManager %d\n", PaletteManager::Array.size());
 	return 0x0;
 }
 

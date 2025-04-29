@@ -71,6 +71,10 @@ public:
 
 	static void SpawnFireAnims(AnimClass* pThis);
 
+public:
+	void OnStart() { };
+	void OnMiddle() { };
+	void OnEnd() { };
 
 private:
 	template <typename T>
@@ -154,6 +158,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 	void _Middle();
+	void _Start();
+	void _AI();
 
 	FORCEDINLINE AnimClass* _AsAnim() const {
 		return (AnimClass*)this;
