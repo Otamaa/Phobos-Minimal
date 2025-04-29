@@ -161,6 +161,10 @@ public:
 	void _Start();
 	void _AI();
 
+
+	void _ApplyVeinsDamage();
+	void _ApplyDeformTerrrain();
+
 	FORCEDINLINE AnimClass* _AsAnim() const {
 		return (AnimClass*)this;
 	}

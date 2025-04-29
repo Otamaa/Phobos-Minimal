@@ -17,26 +17,6 @@
 	return 0;
 }
 
-ASMJIT_PATCH(0x424CF1, AnimClass_Start_DetachedReport, 0x6)
-{
-	GET(FakeAnimClass*, pThis, ESI);
-
-	auto const pTypeExt = pThis->_GetTypeExtData();
-
-	if (pTypeExt->DetachedReport.isset())
-		VocClass::PlayAt(pTypeExt->DetachedReport.Get(), pThis->GetCoords());
-
-	return 0;
-}
-
-// Deferred creation of attached particle systems for debris anims.
-ASMJIT_PATCH(0x423939, AnimClass_BounceAI_AttachedSystem, 0x6)
-{
-	GET(FakeAnimClass*, pThis, EBP);
-	pThis->_GetExtData()->CreateAttachedSystem();
-	return 0;
-}
-
 ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
 	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };
@@ -68,25 +48,6 @@ ASMJIT_PATCH(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 
 	return 0;
 }
-
-ASMJIT_PATCH(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
-{
-	GET(AnimClass* const, pThis, ESI);
-	GET(FakeAnimTypeClass* const, pType, EDX);
-
-	if (pType && pType->HideIfNoOre)
-	{
-		auto const pCell = pThis->GetCell();
-
-		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue()
-			<= Math::abs(pType->_GetExtData()->HideIfNoOre_Threshold.Get());
-
-		return 0x423BBF;
-	}
-
-	return 0x0;
-
-} //was 8
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
 
@@ -192,47 +153,6 @@ ASMJIT_PATCH(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x424807, AnimClass_AI_Next, 0x6) //was 8
-{
-	GET(FakeAnimClass*, pThis, ESI);
-
-	if (pThis->Type)
-	{
-		const auto pExt = pThis->_GetExtData();
-		const auto pTypeExt = pThis->_GetTypeExtData();
-
-		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-			pExt->AttachedSystem = nullptr;
-
-		if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
-			pExt->CreateAttachedSystem();
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x424AEC, AnimClass_AI_SetMission, 0x6)
-{
-	GET(FakeAnimClass*, pThis, ESI);
-	GET(InfantryClass*, pInf, EDI);
-
-	const auto pTypeExt = pThis->_GetTypeExtData();
-	const auto Is_AI = !pInf->Owner->IsControlledByHuman();
-
-	if (!pTypeExt->ScatterAnimToInfantry(Is_AI))
-		pInf->QueueMission(pTypeExt->GetAnimToInfantryMission(Is_AI), false);
-	else
-		pInf->Scatter(CoordStruct::Empty, true, false);
-
-	return 0x0;
-}
-
-//the stack is change , so i need to replace everything if i want just use normal hook
-//this make it unnessesary
-//replace the vtable call
-
-DEFINE_FUNCTION_JUMP(CALL6, 0x424B04, FakeInfantryClass::_Dummy);
-
 ASMJIT_PATCH(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {
 	enum { DrawShadow = 0x42336D, SkipDrawShadow = 0x4233EE };
@@ -248,16 +168,16 @@ ASMJIT_PATCH(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 		DrawShadow : SkipDrawShadow;
 }
 
-ASMJIT_PATCH(0x425060, AnimClass_Expire_ScorchFlamer, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-
-	auto const pType = pThis->Type;
-
-	if (!pType->Flamer && !pType->Scorch)
-		return 0;
-
-	AnimExtData::SpawnFireAnims(pThis);
-
-	return 0;
-}
+//ASMJIT_PATCH(0x425060, AnimClass_Expire_ScorchFlamer, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//
+//	auto const pType = pThis->Type;
+//
+//	if (!pType->Flamer && !pType->Scorch)
+//		return 0;
+//
+//	AnimExtData::SpawnFireAnims(pThis);
+//
+//	return 0;
+//}

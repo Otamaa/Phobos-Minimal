@@ -27,18 +27,6 @@
 
 #include "Header.h"
 
-ASMJIT_PATCH(0x424538, AnimClass_AI_DamageDelay, 0x6)
-{
-	enum { SkipDamageDelay = 0x42465D, CheckIsAlive = 0x42464C };
-
-	GET(AnimClass*, pThis, ESI);
-
-	if (pThis->InLimbo)
-		return CheckIsAlive;
-
-	return AnimExtData::DealDamageDelay(pThis);
-}
-
 ASMJIT_PATCH(0x4232CE, AnimClass_Draw_SetPalette, 6)
 {
 	GET(AnimClass*, pThis, ESI);
@@ -56,73 +44,6 @@ ASMJIT_PATCH(0x4232CE, AnimClass_Draw_SetPalette, 6)
 	}
 
 	return 0;
-}
-
-
-// MakeInfantry that fails to place will just end the source animation and cleanup instead of memleaking to game end
-ASMJIT_PATCH(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	GET(InfantryClass*, pInf, EDI);
-
-	pInf->UnInit();
-	pThis->TimeToDie = 1;
-	pThis->UnInit();
-
-	return 0x424B29;
-}
-
-ASMJIT_PATCH(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
-{
-	enum
-	{
-		DoNotDealDamage = 0x423A92,
-		DealDamage = 0x4239F8,
-		GoToNext = 0x423A83,
-	};
-
-	GET(ObjectClass*, pObj, EDI);
-	GET(AnimClass*, pThis, EBP);
-
-	const auto pType = pThis->Type;
-	const auto nRadius = pType->DamageRadius;
-
-	if (!pObj || nRadius < 0 || CLOSE_ENOUGH(pType->Damage, 0.0) || !pType->Warhead)
-		return DoNotDealDamage;
-
-	const auto nCoord = pThis->Bounce.GetCoords();
-	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pType);
-	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
-	const auto nLoc = pObj->Location;
-	const auto nDist = Math::abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
-
-	if (nDist < nRadius) {
-		auto nDamage = (int)pType->Damage;
-		pObj->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), pType->Warhead,
-					  pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
-	}
-
-	//return !pObj || !pType->Warhead ||
-	//	pType->DamageRadius < 0 || pType->Damage == 0.0 ?
-	//	DoNotDealDamage : DealDamage;
-	return GoToNext;
-}
-
-ASMJIT_PATCH(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
-{
-	enum
-	{
-		PlayTrail = 0x4242D5,
-		StopTrail = 0x424322,
-	};
-
-	GET(AnimTypeClass*, AT, EAX);
-	int trailSep = AT->TrailerSeperation;
-
-	R->ECX(trailSep);
-
-	return trailSep >= 1
-		? PlayTrail : StopTrail;
 }
 
 /*
