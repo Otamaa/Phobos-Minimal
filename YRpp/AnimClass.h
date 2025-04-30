@@ -63,7 +63,7 @@ public:
 
 	//ObjectClass
 	//AnimClass
-	virtual int AnimExtras() R0; // tumbling for IsMeteor and Bouncer anims
+	virtual BounceClass::Status AnimExtras() RT(BounceClass::Status); // tumbling for IsMeteor and Bouncer anims
 	virtual int GetEnd() const R0; //End tag from the AnimType
 
 	void SetOwnerObject(ObjectClass *pOwner) { JMP_THIS(0x424B50); }

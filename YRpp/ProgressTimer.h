@@ -43,6 +43,20 @@ public:
 		return this->HasChanged;
 	}
 
+	bool AboutToChange() const { return Timer.Expired() && Value != 0; }
+
+	bool GraphicLogic() {
+
+		if (AboutToChange()) {
+			Value += Step;
+			Timer = Value;
+			return true;
+		}
+
+		return false;
+	};
+
+public:
 	int Value{ 0 }; // the current value , stage
 	bool HasChanged{ false }; // if the timer expired this frame and the value changed
 	RepeatableTimerStruct Timer{};

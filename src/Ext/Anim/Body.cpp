@@ -171,12 +171,10 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 #include <Misc/PhobosGlobal.h>
 
-DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
+void AnimExtData::DealDamageDelay(AnimClass* pThis)
 {
-	enum { SkipDamage = 0x42465D, CheckIsActive = 0x42464C };
-
 	if (!pThis->Type)
-		return CheckIsActive;
+		return;
 
 	const auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
@@ -191,7 +189,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 		if (pThis->Animation.Value == MaxImpl(delay - 1, 1))
 			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage) * damageMultiplier);
 		else
-			return SkipDamage;
+			return;
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
@@ -204,7 +202,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 
 		} else {
 			pThis->Accum = damage;
-			return SkipDamage;
+			return;
 		}
 	}
 	else
@@ -213,7 +211,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 		pThis->Accum += 1.0;
 
 		if (pThis->Accum < delay)
-			return SkipDamage;
+			return;
 
 		// Use Type->Damage as the actually dealt damage.
 		appliedDamage = static_cast<int>((pThis->Type->Damage) * damageMultiplier);
@@ -221,7 +219,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return  SkipDamage;
+		return;
 
 	CoordStruct nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
@@ -255,7 +253,7 @@ DWORD AnimExtData::DealDamageDelay(AnimClass* pThis)
 		}
 	}
 
-	return CheckIsActive;
+	return;
 }
 
 bool AnimExtData::OnMiddle(AnimClass* pThis)

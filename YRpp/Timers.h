@@ -65,6 +65,12 @@ public:
 
 	COMPILETIMEEVAL TimerClass& operator = (TimerClass&&) =  default;
 
+	COMPILETIMEEVAL TimerClass& operator=(long set) {
+		StartTime = CurrentTime();
+		TimeLeft = set;
+		return *this;
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE void Start(int duration)
 	{
 		this->StartTime = this->CurrentTime;
@@ -177,8 +183,24 @@ public:
 	int Duration { 0 };
 
 	COMPILETIMEEVAL RepeatableTimerStruct() = default;
-	COMPILETIMEEVAL RepeatableTimerStruct(const RepeatableTimerStruct&) = default;
-	COMPILETIMEEVAL RepeatableTimerStruct& operator = (const RepeatableTimerStruct&) = default;
+
+	COMPILETIMEEVAL RepeatableTimerStruct(const RepeatableTimerStruct& that) {
+		CDTimerClass::operator=(that);
+		Duration = that.Duration;
+	}
+
+	COMPILETIMEEVAL RepeatableTimerStruct& operator = (const RepeatableTimerStruct& that) {
+		CDTimerClass::operator=(that);
+		Duration = that.Duration;
+		return *this;
+	}
+
+	COMPILETIMEEVAL RepeatableTimerStruct& operator=(long set) {
+		CDTimerClass::operator=(set);
+		Duration = set;
+		return *this;
+	}
+
 	COMPILETIMEEVAL RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
 	COMPILETIMEEVAL RepeatableTimerStruct(int duration) { this->Start(duration); }
 

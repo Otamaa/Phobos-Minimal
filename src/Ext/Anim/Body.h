@@ -61,7 +61,7 @@ public:
 	static TechnoClass* GetTechnoInvoker(AnimClass* pThis);
 	static AbstractClass* GetTarget(AnimClass* const);
 	static void ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool resetLoops, bool restart);
-	static DWORD DealDamageDelay(AnimClass* pThis);
+	static void DealDamageDelay(AnimClass* pThis);
 	static bool OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight);
 	static bool OnMiddle(AnimClass* pThis);
 	static bool OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
@@ -75,6 +75,7 @@ public:
 	void OnStart() { };
 	void OnMiddle() { };
 	void OnEnd() { };
+	void OnTypeChange();
 
 private:
 	template <typename T>
@@ -164,6 +165,17 @@ public:
 
 	void _ApplyVeinsDamage();
 	void _ApplyDeformTerrrain();
+	void _ApplyHideIfNoOre();
+	void _ApplySpawns(CoordStruct& coord);
+
+	void _CreateFootApplyOccupyBits();
+	void _CreateFoot();
+
+	void _SpreadTiberium(CoordStruct& coords , bool isOnbridge);
+	void _PlayExtraAnims(bool onWater , bool onBridge);
+	void _DrawTrailerAnim();
+
+	int _BounceAI();
 
 	FORCEDINLINE AnimClass* _AsAnim() const {
 		return (AnimClass*)this;

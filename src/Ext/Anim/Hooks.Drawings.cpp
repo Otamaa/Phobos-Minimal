@@ -311,8 +311,6 @@ ASMJIT_PATCH(0x4AED70, Game_DrawSHP, 0x0)
 }
 #endif
 
-#include <Ext/AnimType/Body.h>
-
 ASMJIT_PATCH(0x423061, AnimClass_Draw_Visibility, 0x6)
 {
 	enum { SkipDrawing = 0x4238A3 };
