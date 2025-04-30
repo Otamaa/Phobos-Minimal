@@ -715,17 +715,17 @@ int FakeAnimClass::_BounceAI()
 		pBounce->Velocity.Z += pBounce->Gravity;
 	}
 
-	auto _coord = this->GetCoords();
+	auto _coord = pBounce->GetCoords();
 
 	if(status == BounceClass::Status::Bounce) {
-		if (auto pBounceAnim = this->Type->BounceAnim) {
+		TechnoClass* pTechnoInvoker = AnimExtData::GetTechnoInvoker(this);
 
-			TechnoClass* pObject = AnimExtData::GetTechnoInvoker(this);
-			HouseClass* pHouse = this->Owner ? this->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
+		if (auto pBounceAnim = this->Type->BounceAnim) {
+			HouseClass* pHouse = this->Owner ? this->Owner : (pTechnoInvoker ? pTechnoInvoker->GetOwningHouse() : nullptr);
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 				pHouse,
 				nullptr,
-				pObject,
+				pTechnoInvoker,
 				false
 			);
 		}
@@ -733,18 +733,16 @@ int FakeAnimClass::_BounceAI()
 		if (this->Type->DamageRadius < 0 || CLOSE_ENOUGH(this->Type->Damage, 0.0) || !this->Type->Warhead)
 			return (int)status;
 
-		auto _bounceCoords = pBounce->GetCoords();
-		auto pCell = MapClass::Instance->GetCellAt(_bounceCoords);
-		TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(this);
+		const auto pCell = MapClass::Instance->GetCellAt(_coord);
 
 		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
 			auto _objCoord = pObject->GetCoords();
-			int nDist = Math::abs(_coord.Y - _objCoord.Y) + Math::abs(_coord.X - _objCoord.X);
+			const int nDist = Math::abs(_coord.Y - _objCoord.Y) + Math::abs(_coord.X - _objCoord.X);
 
 			if (nDist <= this->Type->DamageRadius) {
 				auto nDamage = (int)this->Type->Damage;
 				pObject->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), this->Type->Warhead,
-							  pInvoker, false, false, pInvoker ? pInvoker->Owner : this->Owner);
+							  pTechnoInvoker, false, false, pTechnoInvoker ? pTechnoInvoker->Owner : this->Owner);
 			}
 		}
 	}
