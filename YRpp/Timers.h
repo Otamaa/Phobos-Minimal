@@ -177,42 +177,42 @@ using CDTimerClass = TimerClass<FrameTimer>;
 static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
 static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
 
-class RepeatableTimerStruct : public CDTimerClass
+class RepeatableTimer : public CDTimerClass
 {
 public:
-	int Duration { 0 };
+	int Rate { 0 };
 
-	COMPILETIMEEVAL RepeatableTimerStruct() = default;
+	COMPILETIMEEVAL RepeatableTimer() = default;
 
-	COMPILETIMEEVAL RepeatableTimerStruct(const RepeatableTimerStruct& that) {
+	COMPILETIMEEVAL RepeatableTimer(const RepeatableTimer& that) {
 		CDTimerClass::operator=(that);
-		Duration = that.Duration;
+		Rate = that.Rate;
 	}
 
-	COMPILETIMEEVAL RepeatableTimerStruct& operator = (const RepeatableTimerStruct& that) {
+	COMPILETIMEEVAL RepeatableTimer& operator = (const RepeatableTimer& that) {
 		CDTimerClass::operator=(that);
-		Duration = that.Duration;
+		Rate = that.Rate;
 		return *this;
 	}
 
-	COMPILETIMEEVAL RepeatableTimerStruct& operator=(long set) {
+	COMPILETIMEEVAL RepeatableTimer& operator=(long set) {
 		CDTimerClass::operator=(set);
-		Duration = set;
+		Rate = set;
 		return *this;
 	}
 
-	COMPILETIMEEVAL RepeatableTimerStruct& operator = (RepeatableTimerStruct&&) = default;
-	COMPILETIMEEVAL RepeatableTimerStruct(int duration) { this->Start(duration); }
+	COMPILETIMEEVAL RepeatableTimer& operator = (RepeatableTimer&&) = default;
+	COMPILETIMEEVAL RepeatableTimer(int duration) { this->Start(duration); }
 
 	COMPILETIMEEVAL FORCEDINLINE void Start(int duration)
 	{
-		this->Duration = duration;
+		this->Rate = duration;
 		this->Restart();
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE void Restart()
 	{
-		this->CDTimerClass::Start(this->Duration);
+		this->CDTimerClass::Start(this->Rate);
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool Expired() const { return Percent_Expired() == 1.0f; }
@@ -237,7 +237,7 @@ public:
 
 	COMPILETIMEEVAL OPTIONALINLINE float Percent_Expired() const
 	{
-		unsigned long rate = Duration;
+		unsigned long rate = Rate;
 		if (!rate) {
 			return 1.0;
 		}
@@ -246,4 +246,4 @@ public:
 	}
 };
 
-typedef RepeatableTimerStruct RateTimer;
+typedef RepeatableTimer RateTimer;

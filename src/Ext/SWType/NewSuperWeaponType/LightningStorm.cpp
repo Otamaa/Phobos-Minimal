@@ -224,7 +224,7 @@ void CloneableLighningStormStateMachine::Update()
 {
 	// remove all bolts from the list that are halfway done
 	this->BoltsPresent.remove_all_if([](AnimClass* pAnim) {
-		return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2;
+		return !pAnim || pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2;
 	});
 
 	// find the clouds that should strike right now
@@ -232,7 +232,7 @@ void CloneableLighningStormStateMachine::Update()
 		if (!pAnim)
 			return true;
 
-		if (pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames / 2) {
+		if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2) {
 			auto const crdStrike = pAnim->GetCoords();
 			this->Strike2(crdStrike);
 		}
@@ -257,7 +257,7 @@ void CloneableLighningStormStateMachine::Update()
 	else
 	{
 		this->CloudsPresent.remove_all_if([&](AnimClass* pAnim) {
-			return !pAnim || pAnim->Animation.Value >= pAnim->Type->GetImage()->Frames - 1;
+			return !pAnim || pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames - 1;
 		});
 
 	}

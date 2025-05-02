@@ -2400,7 +2400,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 		for (const auto* pFactory : *FactoryClass::Array)
 		{
 			if (pFactory->Object == pTechno
-				&& pFactory->Production.Timer.Duration
+				&& pFactory->Production.Timer.Rate
 				&& !pFactory->IsSuspended)
 			{
 				return true;

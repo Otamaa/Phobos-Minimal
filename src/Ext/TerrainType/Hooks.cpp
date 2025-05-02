@@ -100,7 +100,7 @@ ASMJIT_PATCH(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 	}
 
 	int animationLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
-	int currentStage = pThis->Animation.Value + (pThis->Type->IsAnimated ? animationLength * (pTypeExt->HasDamagedFrames + 1) : 0 + pTypeExt->HasDamagedFrames);
+	int currentStage = pThis->Animation.Stage + (pThis->Type->IsAnimated ? animationLength * (pTypeExt->HasDamagedFrames + 1) : 0 + pTypeExt->HasDamagedFrames);
 
 	if (currentStage + 1 == pThis->Type->GetImage()->Frames / 2)
 	{
@@ -127,14 +127,14 @@ ASMJIT_PATCH(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
 		int animLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
 
 		if (pTypeExt->HasCrumblingFrames && pThis->TimeToDie)
-			frame = (animLength * (pTypeExt->HasDamagedFrames + 1)) + 1 + pThis->Animation.Value;
+			frame = (animLength * (pTypeExt->HasDamagedFrames + 1)) + 1 + pThis->Animation.Stage;
 		else
-			frame = pThis->Animation.Value + ((size_t)isDamaged * animLength);
+			frame = pThis->Animation.Stage + ((size_t)isDamaged * animLength);
 	}
 	else
 	{
 		if (pTypeExt->HasCrumblingFrames && pThis->TimeToDie)
-			frame = 1 + pThis->Animation.Value;
+			frame = 1 + pThis->Animation.Stage;
 		else if (isDamaged)
 			frame = 1;
 	}

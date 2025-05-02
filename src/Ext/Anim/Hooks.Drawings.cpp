@@ -429,7 +429,7 @@ ASMJIT_PATCH(0x42308D, AnimClass_DrawIt_Transparency, 0x6)
 		if (translucencyLevel >= 15)
 			return ReturnFromFunction;
 
-		int currentFrame = pThis->Animation.Value;
+		int currentFrame = pThis->Animation.Stage;
 		int frames = pType->End;
 		if (pTypeExt->Translucent_Keyframes.KeyframeData.size() > 0) {
 			flags |= pTypeExt->Translucent_Keyframes.Get(static_cast<double>(currentFrame) / frames);

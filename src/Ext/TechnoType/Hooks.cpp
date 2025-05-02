@@ -510,7 +510,7 @@ ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 
 		if (const auto pAnimType = GetDeployAnim(pThis))
 		{
-			if(!pThis->DeployAnim) { 
+			if(!pThis->DeployAnim) {
 				auto const pAnim = GameCreate<AnimClass>(pAnimType,
 				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 
@@ -522,7 +522,7 @@ ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 				}
 			}
 
-			pThis->Animation.Value = pAnimType->Start;
+			pThis->Animation.Stage = pAnimType->Start;
 			pThis->Animation.Timer.Start(pAnimType->Rate);
 		}
 

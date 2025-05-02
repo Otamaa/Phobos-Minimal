@@ -893,13 +893,13 @@ ASMJIT_PATCH(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 
 	if (Item.Status == 1)
 	{
-		if (Item.Progress.Value > Progress)
+		if (Item.Progress.Stage > Progress)
 		{
-			Progress = (Item.Progress.Value + Progress) / 2;
+			Progress = (Item.Progress.Stage + Progress) / 2;
 		}
 	}
 
-	Item.Progress.Value = Progress;
+	Item.Progress.Stage = Progress;
 	R->EAX<int>(SavedFactory->GetBuildTimeFrames());
 	R->ECX<void*>(nullptr);
 

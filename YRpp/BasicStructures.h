@@ -47,12 +47,6 @@ public:
 	int Red, Green, Blue;
 };
 
-//Random number range
-struct RandomStruct
-{
-	int Min, Max;
-};
-
 //obvious
 struct LTRBStruct
 {

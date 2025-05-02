@@ -76,7 +76,7 @@ public:
 	void Pause() {
 		this->Paused = true;
 		this->Unpaused = false;
-		this->PausedAnimFrame = this->Animation.Value;
+		this->PausedAnimFrame = this->Animation.Stage;
 	}
 
 	AnimTypeClass* GetAnimType() const

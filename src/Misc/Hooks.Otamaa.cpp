@@ -1365,20 +1365,20 @@ ASMJIT_PATCH(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionCompl
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x4242F4, AnimClass_Trail_Override, 0x6)
-{
-	GET(AnimClass*, pAnim, EDI);
-	GET(AnimClass*, pThis, ESI);
-
-	auto nCoord = pThis->GetCoords();
-	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis);
-	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
-
-	return 0x424322;
-}
+// ASMJIT_PATCH(0x4242F4, AnimClass_Trail_Override, 0x6)
+// {
+// 	GET(AnimClass*, pAnim, EDI);
+// 	GET(AnimClass*, pThis, ESI);
+//
+// 	auto nCoord = pThis->GetCoords();
+// 	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+// 	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+// 	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis);
+// 	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
+// 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
+//
+// 	return 0x424322;
+// }
 
 ASMJIT_PATCH(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 {
@@ -1719,9 +1719,9 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 			if (auto pImage = pThis->Type->GetImage())
 			{
-				if (pThis->Animation.Value == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1))))
+				if (pThis->Animation.Stage == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1))))
 				{
-					pThis->Animation.Value = 0;
+					pThis->Animation.Stage = 0;
 					pThis->Animation.Start(0);
 
 					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
@@ -4266,7 +4266,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 		if (pBld->Type->Weeder)
 		{
 			pBld->Owner->GiveWeed((int)dumpAmount, idxTiberium);
-			pThis->Animation.Value = 0;
+			pThis->Animation.Stage = 0;
 		}
 		else
 		{
@@ -4275,7 +4275,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 			(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * dumpAmount),
 			idxTiberium
 			);
-			pThis->Animation.Value = 0;
+			pThis->Animation.Stage = 0;
 
 			BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
 				pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;

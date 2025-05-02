@@ -56,11 +56,11 @@ void ShowAnimNameCommandClass::AI()
 			if (!pTech->Type)
 				continue;
 
-			if (auto pCell = pTech->GetCell())
-			{
-				if (pCell->IsFogged() || pCell->IsShrouded())
-					continue;
-			}
+			//if (auto pCell = pTech->GetCell())
+			//{
+			//	if (pCell->IsFogged() || pCell->IsShrouded())
+			//		continue;
+			//}
 
 			//if (!IS_SAME_STR_("ROTEEMP4", pTech->Type->ID) /*&& !IS_SAME_STR_("INVISO", pTech->Type->ID)*/)
 			//	continue;

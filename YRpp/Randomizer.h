@@ -3,6 +3,7 @@
 #include <Helpers/CompileTime.h>
 
 #include <Point2D.h>
+#include <RandomStruct.h>
 
 #include <bit>
 #include <array>
@@ -55,7 +56,7 @@ public:
 	//			const int v7 = static_cast<int>(i) ^ FirstTable[a];
 
 	//			v8 = seed ^ ((static_cast<std::uint16_t>(v7) * (v7 >> 16))
-	//			+ (SecondTable[a] ^ ((((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7) 
+	//			+ (SecondTable[a] ^ ((((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7)
 	//			+ ~(v7 >> 16) * (v7 >> 16)) << 16) |
 	//			((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7)
 	//			+ ~(v7 >> 16) * (v7 >> 16)) >> 16)))));
@@ -116,6 +117,12 @@ public:
 	{ return RandomRanged(nMinMax.X, nMinMax.Y); }
 
 	[[nodiscard]] FORCEDINLINE int operator()(const Point2D& nMinMax)
+	{ return RandomRanged(nMinMax); }
+
+	[[nodiscard]] FORCEDINLINE int RandomRanged(const RandomStruct& nMinMax)
+	{ return RandomRanged(nMinMax.Min, nMinMax.Max); }
+
+	[[nodiscard]] FORCEDINLINE int operator()(const RandomStruct& nMinMax)
 	{ return RandomRanged(nMinMax); }
 
 	[[nodiscard]] FORCEDINLINE int operator()()

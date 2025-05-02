@@ -979,7 +979,7 @@ void FakeBuildingClass::_OnFireAI()
 				const auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
 				pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
 				if (pAnim->Type->End > 0)
-					pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
+					pAnim->Animation.Stage = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
 				pAnim->Owner = this->Owner;
 				pExt->DamageFireAnims[i] = pAnim;

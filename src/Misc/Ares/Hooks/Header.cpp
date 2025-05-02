@@ -928,7 +928,7 @@ bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 
 	if (pThis->WhatAmI() != BuildingClass::AbsID)
 	{
-		if (pThis->CloakProgress.Value)
+		if (pThis->CloakProgress.Stage)
 			return false;
 
 		if (pThis->LocomotorSource && ((FootClass*)pThis)->IsAttackedByLocomotor)

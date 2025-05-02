@@ -139,7 +139,14 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 			{
 				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
+					CoordStruct _SplashCoord = pThis->Location;
+					if (pAnimTypeExt->SplashList.HasValue()) {
+						if (pAnimTypeExt->SplashList.size() > 0) {
+							_SplashCoord.Z += 3;
+						}
+					}
+
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, _SplashCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
 						pOwner,
 						nullptr,
 						pTechOwner,
@@ -149,12 +156,12 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 			}
 			else
 			{
-				auto const& [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				auto const& [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Location, pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 				if (bPlayWHAnim)
 				{
-					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCoords()))
+					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->Location))
 					{
-						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
 							pOwner,
 							nullptr,
 							pTechOwner,
@@ -186,7 +193,7 @@ void AnimExtData::DealDamageDelay(AnimClass* pThis)
 
 	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
 	{
-		if (pThis->Animation.Value == MaxImpl(delay - 1, 1))
+		if (pThis->Animation.Stage == MaxImpl(delay - 1, 1))
 			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage) * damageMultiplier);
 		else
 			return;
@@ -647,7 +654,7 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 // Changes type of anim in similar fashion to Next.
 void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool resetLoops, bool restart)
 {
-	double percentThrough = pAnim->Animation.Value / static_cast<double>(pAnim->Type->End);
+	double percentThrough = pAnim->Animation.Stage / static_cast<double>(pAnim->Type->End);
 
 	if (pNewType->End == -1)
 	{
@@ -680,12 +687,12 @@ void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool
 
 	if (restart)
 	{
-		pAnim->Animation.Value = pNewType->Reverse ? pNewType->End : pNewType->Start;
+		pAnim->Animation.Stage = pNewType->Reverse ? pNewType->End : pNewType->Start;
 		pAnim->Start();
 	}
 	else
 	{
-		pAnim->Animation.Value = static_cast<int>(pNewType->End * percentThrough);
+		pAnim->Animation.Stage = static_cast<int>(pNewType->End * percentThrough);
 	}
 
 	const auto pExt = ((FakeAnimClass*)pAnim)->_GetExtData();

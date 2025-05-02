@@ -143,7 +143,7 @@ protected:
 	/**
 	 *  This is the timer used by various mission states of the rocket.
 	 */
-	RepeatableTimerStruct MissionTimer;
+	RepeatableTimer MissionTimer;
 
 	/**
 	 *  This is the timer used for timing the trail animation.

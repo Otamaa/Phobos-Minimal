@@ -70,7 +70,7 @@ protected:
 public:
 
 	CoordStruct MovingDestination;
-	RepeatableTimerStruct MissionTimer;
+	RepeatableTimer MissionTimer;
 	CDTimerClass TrailerTimer; //timer34
 	RocketMissionState MissionState;
 	double CurrentSpeed;

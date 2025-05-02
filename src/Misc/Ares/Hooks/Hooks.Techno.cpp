@@ -222,7 +222,7 @@ ASMJIT_PATCH(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 	int stages = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
-	R->EAX(int(pThis->CloakProgress.Value * 256.0 / stages));
+	R->EAX(int(pThis->CloakProgress.Stage * 256.0 / stages));
 	return 0x703A94;
 }
 

@@ -109,7 +109,7 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 		case TunnelLocomotionClass::State::DIGGING:
 			if (key)key->Invalidate();
 			theta = Math::HalfPi;
-			if (auto total = tLoco->Timer.Duration)
+			if (auto total = tLoco->Timer.Rate)
 				theta *= 1.0 - double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;
 		case TunnelLocomotionClass::State::DUG_IN:
@@ -121,13 +121,13 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 		case TunnelLocomotionClass::State::DIGGING_OUT:
 			if (key)key->Invalidate();
 			theta = -Math::HalfPi;
-			if (auto total = tLoco->Timer.Duration)
+			if (auto total = tLoco->Timer.Rate)
 				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;
 		case TunnelLocomotionClass::State::DUG_OUT:
 			if (key)key->Invalidate();
 			theta = Math::HalfPi;
-			if (auto total = tLoco->Timer.Duration)
+			if (auto total = tLoco->Timer.Rate)
 				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;
 		default:break;
@@ -460,7 +460,7 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 		{
 			if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
 			{
-				if (pThis->Animation.Value == firingFrame + cumulativeDelay)
+				if (pThis->Animation.Stage == firingFrame + cumulativeDelay)
 					pExt->FiringSequencePaused = true;
 
 				if (!timer.HasStarted())
@@ -489,7 +489,7 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 			pExt->FiringSequencePaused = false;
 		}
 
-		if(pThis->Animation.Value == firingFrame + cumulativeDelay) {
+		if(pThis->Animation.Stage == firingFrame + cumulativeDelay) {
 			if (pWeaponExt->Burst_FireWithinSequence)
 			{
 				int frameCount = pThis->Type->Sequence->GetSequence(pThis->SequenceAnim).CountFrames;

@@ -4,6 +4,7 @@
 
 #pragma once
 #include <ObjectTypeClass.h>
+#include <RandomStruct.h>
 
 //forward declarations
 class OverlayTypeClass;

@@ -104,7 +104,7 @@ ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 
 	GET(FakeBuildingClass*, pThis, ESI);
 
-	return pThis->_GetTypeExtData()->SellBuildupLength == pThis->Animation.Value
+	return pThis->_GetTypeExtData()->SellBuildupLength == pThis->Animation.Stage
 		? Continue : Skip;
 }
 
