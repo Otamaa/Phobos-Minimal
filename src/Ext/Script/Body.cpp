@@ -997,7 +997,9 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 
 		if (pType->Passengers > 0
 			&& pUnit->Passengers.NumPassengers < pType->Passengers
-			&& pUnit->Passengers.GetTotalSize() < pType->Passengers)
+			&&  (TechnoTypeExtContainer::Instance.Find(pType)->Passengers_BySize
+			 ? pUnit->Passengers.GetTotalSize() : pUnit->Passengers.NumPassengers)
+			 < pType->Passengers)
 		{
 			transports->push_back(pUnit);
 		}

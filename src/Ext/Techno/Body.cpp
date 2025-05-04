@@ -1985,8 +1985,8 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 			// so here we handle the InitialPayload Creation !
 			// this way we can make opentopped airstrike happen !
 			TechnoExtContainer::Instance.Find(pPlane)->CreateInitialPayload();
-
-			if (pPlane->Passengers.GetTotalSize() > 0)
+			if ((TechnoTypeExtContainer::Instance.Find(pPlane->Type)->Passengers_BySize
+			? pPlane->Passengers.GetTotalSize() : pPlane->Passengers.NumPassengers) > 0)
 				pPlane->HasPassengers = true;
 
 			pPlane->NextMission();
@@ -2763,7 +2763,9 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 
 	if (pTypeExt->AttachedToObject->Passengers > 0)
 	{
-		int passengersIndex = pThis->Passengers.GetTotalSize();
+		int passengersIndex = pTypeExt->Passengers_BySize ?
+			 pThis->Passengers.GetTotalSize() : pThis->Passengers.NumPassengers;
+		passengersIndex = MinImpl(passengersIndex, pTypeExt->AttachedToObject->Passengers);
 
 		if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank))
 		{
@@ -3001,11 +3003,6 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	}
 
 	pExt->DamageNumberOffset = pExt->DamageNumberOffset + width;
-}
-
-int TechnoExtData::GetSizeLeft(FootClass* const pFoot)
-{
-	return pFoot->GetTechnoType()->Passengers - pFoot->Passengers.GetTotalSize();
 }
 
 void TechnoExtData::Stop(TechnoClass* pThis, Mission const& eMission)
