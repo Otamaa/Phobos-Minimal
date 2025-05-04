@@ -5489,7 +5489,7 @@ ASMJIT_PATCH(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 
 static COMPILETIMEEVAL constant_ptr<float, 0x7E3794> _pathfind_adjusment {};
 
-class FakeAStarPathFinderClass : public AStarPathFinderClass
+class NOVTABLE FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
 

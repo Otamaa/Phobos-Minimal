@@ -98,7 +98,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(TerrainTypeExtContainer, TerrainTypeExtData, "TerrainTypeClass");
 };
 
-class FakeTerrainTypeClass : public TerrainTypeClass
+class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass
 {
 public:
 

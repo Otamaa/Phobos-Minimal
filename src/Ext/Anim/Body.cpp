@@ -22,7 +22,7 @@
 #include <Misc/DamageArea.h>
 
 #pragma region defines
-HelperedVector<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
+std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
 #pragma endregion
 
 AnimExtData::~AnimExtData()
@@ -178,56 +178,8 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 #include <Misc/PhobosGlobal.h>
 
-void AnimExtData::DealDamageDelay(AnimClass* pThis)
+void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeExt , TechnoClass* pInvoker, int appliedDamage)
 {
-	if (!pThis->Type)
-		return;
-
-	const auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	const int delay = pTypeExt->Damage_Delay.Get();
-	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
-	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
-
-	int appliedDamage = 0;
-
-	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
-	{
-		if (pThis->Animation.Stage == MaxImpl(delay - 1, 1))
-			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage) * damageMultiplier);
-		else
-			return;
-	}
-	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
-	{
-		double damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
-
-		// Deal damage if it is at least 1, otherwise accumulate it for later.
-		if (damage >= 1.0) {
-			appliedDamage = static_cast<int>(std::round(damage));
-			pThis->Accum = damage - appliedDamage;
-
-		} else {
-			pThis->Accum = damage;
-			return;
-		}
-	}
-	else
-	{
-		// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
-		pThis->Accum += 1.0;
-
-		if (pThis->Accum < delay)
-			return;
-
-		// Use Type->Damage as the actually dealt damage.
-		appliedDamage = static_cast<int>((pThis->Type->Damage) * damageMultiplier);
-		pThis->Accum = 0.0;
-	}
-
-	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return;
-
 	CoordStruct nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
@@ -241,7 +193,7 @@ void AnimExtData::DealDamageDelay(AnimClass* pThis)
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, appliedDamage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+		const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, appliedDamage, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
@@ -259,8 +211,79 @@ void AnimExtData::DealDamageDelay(AnimClass* pThis)
 			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 		}
 	}
+}
 
-	return;
+void AnimExtData::DealDamageDelay(AnimClass* pThis)
+{
+	if (!pThis->Type || !pThis->IsAlive)
+		return;
+
+	const auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
+	const int delay = pTypeExt->Damage_Delay.Get();
+	TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
+	const double damageMultiplier = (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == TerrainClass::AbsID) ? 5.0 : 1.0;
+
+	if(!pTypeExt->Damaging_UseSeparateState){
+		auto state = &pThis->Animation;
+
+		int appliedDamage = 0;
+
+		if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
+		{
+			if (state->Stage == MaxImpl(delay - 1, 1))
+				appliedDamage = static_cast<int>(std::round(pThis->Type->Damage) * damageMultiplier);
+			else
+				return;
+		}
+		else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
+		{
+			double damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
+
+			// Deal damage if it is at least 1, otherwise accumulate it for later.
+			if (damage >= 1.0) {
+				appliedDamage = static_cast<int>(std::round(damage));
+				pThis->Accum = damage - appliedDamage;
+
+			} else {
+				pThis->Accum = damage;
+				return;
+			}
+		}
+		else
+		{
+			// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
+			pThis->Accum += 1.0;
+
+			if (pThis->Accum < delay)
+				return;
+
+			// Use Type->Damage as the actually dealt damage.
+			appliedDamage = static_cast<int>((pThis->Type->Damage) * damageMultiplier);
+			pThis->Accum = 0.0;
+		}
+
+		if (appliedDamage <= 0 || pThis->IsPlaying)
+			return;
+
+		ApplyDamage(pThis, pExt, pTypeExt, pInvoker, appliedDamage);
+	}
+	else
+	{
+		if (!pThis->PowerOff && pExt->DamagingState.Update())
+		{
+			if (pThis->Type->Damage > 0 && !pThis->HasExtras)
+			{
+				pThis->Accum += (pThis->Type->Damage * damageMultiplier);
+
+				if (pThis->Accum >= 1 && !pThis->IsPlaying) {
+					int damage = pThis->Accum;
+					pThis->Accum -= damage;
+					ApplyDamage(pThis, pExt, pTypeExt, pInvoker, damage);
+				}
+			}
+		}
+	}
 }
 
 bool AnimExtData::OnMiddle(AnimClass* pThis)
@@ -434,7 +457,7 @@ void AnimExtData::CreateAttachedSystem()
 		pThis->GetOwningHouse()
 	));
 
-	FakeAnimClass::AnimsWithAttachedParticles.emplace_back((FakeAnimClass*)pThis);
+	FakeAnimClass::AnimsWithAttachedParticles.push_back((FakeAnimClass*)pThis);
 }
 
 //Modified from Ares
@@ -727,6 +750,7 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->DelayedFireRemoveOnNoDelay)
 		.Process(this->IsAttachedEffectAnim)
 		.Process(this->IsShieldIdleAnim)
+		.Process(this->DamagingState)
 		;
 }
 
@@ -849,8 +873,17 @@ ASMJIT_PATCH(0x422131, AnimClass_CTOR, 0x6)
 		FakeAnimClass::SetExtAttribute(pItem, val);
 
 		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
-		if (!pItem->HasExtras)
+		if (!pItem->HasExtras) {
+
+			auto pFake = (FakeAnimClass*)(pItem);
+			if (pFake->_GetTypeExtData()->Damaging_UseSeparateState) {
+				int damagedelay = pFake->_GetTypeExtData()->Damaging_Rate == -1 ? pFake->Animation.Step : pFake->_GetTypeExtData()->Damaging_Rate;
+				pFake->_GetExtData()->DamagingState.Start(damagedelay);
+			}
+
 			val->CreateAttachedSystem();
+		}
+
 	}
 
 	PhobosGlobal::Instance()->LastAnimName.clear();
@@ -861,9 +894,7 @@ ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 
-	FakeAnimClass::AnimsWithAttachedParticles.remove_all_if([pItem](FakeAnimClass* pAnim) {
-		return (FakeAnimClass*)pItem == pAnim;
-	});
+	FakeAnimClass::AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 
 	FakeAnimClass::Remove(pItem);
 	return 0;
@@ -951,7 +982,7 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 		pExt->InvalidatePointer(target, all);
 
 	if (pThis->Type == target) {
-		Debug::LogInfo("Anim[0x{}] detaching Type[{}] Pointer ! ", (void*)pThis, pThis->Type->ID);
+		//Debug::LogInfo("Anim[0x{}] detaching Type[{}] Pointer ! ", (void*)pThis, pThis->Type->ID);
 		pThis->Type = nullptr;
 	}
 

@@ -19,7 +19,7 @@ public:
 };
 
 class AbstractClass;
-class FakeAircraftClass : public AircraftClass
+class NOVTABLE FakeAircraftClass : public AircraftClass
 {
 public:
 

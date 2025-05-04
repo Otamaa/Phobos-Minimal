@@ -56,7 +56,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
 };
 
-class FakeVoxelAnimTypeClass : public VoxelAnimTypeClass
+class NOVTABLE FakeVoxelAnimTypeClass : public VoxelAnimTypeClass
 {
 public:
 

@@ -41,6 +41,8 @@ public:
 	bool IsAttachedEffectAnim { false };
 	bool IsShieldIdleAnim { false };
 
+	StageClass	DamagingState { };
+
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -83,10 +85,10 @@ private:
 };
 
 class AnimTypeExtData;
-class FakeAnimClass : public AnimClass
+class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
-	static HelperedVector<FakeAnimClass*> AnimsWithAttachedParticles;
+	static std::list<FakeAnimClass*> AnimsWithAttachedParticles;
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{

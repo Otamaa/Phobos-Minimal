@@ -39,7 +39,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(SmudgeTypeExtContainer, SmudgeTypeExtData, "SmudgeTypeClass");
 };
 
-class FakeSmudgeTypeClass : public SmudgeTypeClass
+class NOVTABLE FakeSmudgeTypeClass : public SmudgeTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

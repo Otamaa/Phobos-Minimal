@@ -117,7 +117,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };
 
-class FakeTiberiumClass : public TiberiumClass
+class NOVTABLE FakeTiberiumClass : public TiberiumClass
 {
 public:
 #pragma region Spread

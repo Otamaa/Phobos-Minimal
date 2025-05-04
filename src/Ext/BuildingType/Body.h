@@ -478,7 +478,7 @@ public:
 
 };
 
-class FakeBuildingTypeClass : public BuildingTypeClass
+class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass
 {
 public:
 

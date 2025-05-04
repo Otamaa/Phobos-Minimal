@@ -47,7 +47,7 @@ public:
 };
 
 class InfantryTypeExtData;
-class FakeInfantryClass : public InfantryClass
+class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

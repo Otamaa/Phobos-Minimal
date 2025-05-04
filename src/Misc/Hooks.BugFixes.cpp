@@ -2252,7 +2252,7 @@ ASMJIT_PATCH(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
 }
 
 // Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
-class FakeXSurface final : public XSurface {
+class NOVTABLE FakeXSurface final : public XSurface {
 public:
 
 	int _GetPixel(Point2D const& point) const {

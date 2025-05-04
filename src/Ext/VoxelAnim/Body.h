@@ -58,7 +58,7 @@ public:
 };
 
 class VoxelAnimTypeExtData;
-class FakeVoxelAnimClass : public VoxelAnimClass
+class NOVTABLE FakeVoxelAnimClass : public VoxelAnimClass
 {
 public:
 

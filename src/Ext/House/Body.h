@@ -404,7 +404,7 @@ public:
 };
 
 class HouseTypeExtData;
-class FakeHouseClass : public HouseClass
+class NOVTABLE FakeHouseClass : public HouseClass
 {
 public:
 	bool _IsAlliedWith(HouseClass* pOther);

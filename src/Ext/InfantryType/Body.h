@@ -71,7 +71,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(InfantryTypeExtContainer, InfantryTypeExtData, "InfantryTypeClass");
 };
 
-class FakeInfantryTypeClass : public InfantryTypeClass
+class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
 

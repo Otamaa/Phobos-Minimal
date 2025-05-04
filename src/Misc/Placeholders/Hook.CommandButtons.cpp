@@ -68,7 +68,7 @@ static COMPILETIMEEVAL reference<int, 0xB0CC24> dword_B0CC24 {};
 static COMPILETIMEEVAL reference<RectangleStruct*, 0xB0FC64> tabclassrect_B0FC64 {};
 static COMPILETIMEEVAL reference<RectangleStruct*, 0xB0FC68> rect_B0FC68 {};
 
-class FakeTabClass final : TabClass
+class NOVTABLE FakeTabClass final : TabClass
 {
 public:
 

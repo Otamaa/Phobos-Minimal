@@ -62,7 +62,7 @@ public:
 };
 
 
-class FakeParticleTypeClass : public ParticleTypeClass
+class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 {
 public:
 

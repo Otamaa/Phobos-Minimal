@@ -125,7 +125,7 @@ public:
 
 };
 
-class FakeHouseTypeClass : public HouseTypeClass
+class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

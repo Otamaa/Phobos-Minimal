@@ -40,7 +40,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
 };
 
-class FakeBombClass : public BombClass
+class NOVTABLE FakeBombClass : public BombClass
 {
 public:
 

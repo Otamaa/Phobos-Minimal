@@ -210,7 +210,7 @@ double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
 	return BulletTypeExtContainer::Instance.Find(pType)->GetAdjustedGravity();
 }
 
-class FakeBulletTypeClass : public BulletTypeClass
+class NOVTABLE FakeBulletTypeClass : public BulletTypeClass
 {
 public:
 

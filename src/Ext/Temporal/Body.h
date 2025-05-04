@@ -42,7 +42,7 @@ public:
 	static TemporalExtContainer Instance;
 };
 
-class FakeTemporalClass : public TemporalClass
+class NOVTABLE FakeTemporalClass : public TemporalClass
 {
 public:
 

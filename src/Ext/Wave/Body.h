@@ -290,7 +290,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(WaveExtContainer, WaveExtData, "WaveClass");
 };
 
-class FakeWaveClass : public WaveClass
+class NOVTABLE FakeWaveClass : public WaveClass
 {
 public:
 

@@ -129,6 +129,9 @@ public:
 	ValueableVector<double> LargeFireChances {};
 	ValueableVector<double> LargeFireDistances {};
 
+	Valueable<bool> Damaging_UseSeparateState {};
+	Valueable<int> Damaging_Rate { -1 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 
@@ -207,7 +210,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
 };
 
-class FakeAnimTypeClass : public AnimTypeClass
+class NOVTABLE FakeAnimTypeClass : public AnimTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

@@ -1059,6 +1059,6 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
 };
 
-class FakeTechnoClass final: TechnoClass{
+class NOVTABLE FakeTechnoClass final: TechnoClass{
 public:
 };

@@ -116,7 +116,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
 };
 
-class FakeTEventClass : public TEventClass
+class NOVTABLE FakeTEventClass : public TEventClass
 {
 public:
 

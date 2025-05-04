@@ -48,7 +48,7 @@ public:
 };
 
 class ParticleTypeExtData;
-class FakeParticleClass : public ParticleClass
+class NOVTABLE FakeParticleClass : public ParticleClass
 {
 public:
 	void _Detach(AbstractClass* target, bool all);

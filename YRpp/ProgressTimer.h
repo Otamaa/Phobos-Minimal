@@ -43,19 +43,6 @@ public:
 		return this->HasChanged;
 	}
 
-	bool AboutToChange() const { return Timer.Expired() && Stage != 0; }
-
-	bool GraphicLogic() {
-
-		if (AboutToChange()) {
-			Stage += Step;
-			Timer = Stage;
-			return true;
-		}
-
-		return false;
-	};
-
 public:
 	int Stage{ 0 }; // the current value , stage
 	bool HasChanged{ false }; // if the timer expired this frame and the value changed

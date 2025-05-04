@@ -1154,7 +1154,7 @@ static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 };
 
-class FakeTechnoTypeClass : public TechnoTypeClass
+class NOVTABLE FakeTechnoTypeClass : public TechnoTypeClass
 {
 public:
 	//TODO : replace bigger hook with LJMP patch

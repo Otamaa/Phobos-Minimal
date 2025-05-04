@@ -119,7 +119,7 @@ public:
 
 };
 
-class FakeScenarioClass : public ScenarioClass
+class NOVTABLE FakeScenarioClass : public ScenarioClass
 {
 public:
 	CellStruct _Get_Waypoint_Location(int idx);

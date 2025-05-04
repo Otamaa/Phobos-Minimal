@@ -67,7 +67,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
 };
 
-class FakeRadSiteClass : public RadSiteClass
+class NOVTABLE FakeRadSiteClass : public RadSiteClass
 {
 public:
 	void _Detach(AbstractClass* target, bool all);

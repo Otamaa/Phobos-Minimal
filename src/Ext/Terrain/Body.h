@@ -62,7 +62,7 @@ public:
 };
 
 class TerrainTypeExtData;
-class FakeTerrainClass : public TerrainClass
+class NOVTABLE FakeTerrainClass : public TerrainClass
 {
 public:
 

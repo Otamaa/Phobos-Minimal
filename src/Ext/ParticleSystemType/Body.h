@@ -43,7 +43,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemTypeExtContainer, ParticleSystemTypeExtData, "ParticleSystemTypeClass");
 };
 
-class FakeParticleSystemTypeClass : public ParticleSystemTypeClass
+class NOVTABLE FakeParticleSystemTypeClass : public ParticleSystemTypeClass
 {
 public:
 

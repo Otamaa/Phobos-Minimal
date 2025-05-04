@@ -159,7 +159,7 @@ public:
 };
 
 class ParticleSystemTypeExtData;
-class FakeParticleSystemClass : public ParticleSystemClass
+class NOVTABLE FakeParticleSystemClass : public ParticleSystemClass
 {
 public:
 

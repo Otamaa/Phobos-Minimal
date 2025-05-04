@@ -230,6 +230,9 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->LargeFireAnims.Read(exINI, pID, "LargeFireAnims");
 	this->LargeFireChances.Read(exINI, pID, "LargeFireChances");
 	this->LargeFireDistances.Read(exINI, pID, "LargeFireDistances");
+
+	this->Damaging_UseSeparateState.Read(exINI, pID, "Damaging.UseSeparateState");
+	this->Damaging_Rate.Read(exINI, pID, "Damaging.Rate");
 }
 
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
@@ -365,7 +368,7 @@ static TechnoClass* CreateFoot(
 							else
 								pFlyLoco->Move_To(pCell->GetCoordsWithBridge());
 
-						
+
 						} else if (inAir) {
 							AircraftTrackerClass::Instance->Add(pTechno);
 						}
@@ -380,7 +383,7 @@ static TechnoClass* CreateFoot(
 								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
 								pJJLoco->HeadToCoord = location;
-								pJJLoco->Height = pType->JumpjetData.Height; 
+								pJJLoco->Height = pType->JumpjetData.Height;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);
@@ -670,6 +673,8 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->LargeFireAnims)
 		.Process(this->LargeFireChances)
 		.Process(this->LargeFireDistances)
+		.Process(this->Damaging_UseSeparateState)
+		.Process(this->Damaging_Rate)
 		;
 }
 

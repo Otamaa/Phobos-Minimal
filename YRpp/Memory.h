@@ -81,10 +81,11 @@ namespace YRMemory {
     }
 
     OPTIONALINLINE void* AllocateChecked(size_t sz) {
-        if (auto const ptr = YRMemory::Allocate(sz)) {
-            return ptr;
-        }
-        std::exit(static_cast<int>(0x30000000u | sz));
+       // if (auto const ptr = YRMemory::Allocate(sz)) {
+       //     return ptr;
+       // }
+       // std::exit(static_cast<int>(0x30000000u | sz));
+		return YRMemory::Allocate(sz);
     }
 }
 

@@ -568,7 +568,7 @@ public:
 	static void Clear();
 };
 
-class FakeWarheadTypeClass : public WarheadTypeClass
+class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
 {
 public:
 

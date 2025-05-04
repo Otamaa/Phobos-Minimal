@@ -95,7 +95,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
 };
 
-class FakeTeamClass : public TeamClass
+class NOVTABLE FakeTeamClass : public TeamClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

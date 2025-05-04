@@ -572,7 +572,7 @@ public:
 
 };
 
-class FakeRulesClass : public RulesClass
+class NOVTABLE FakeRulesClass : public RulesClass
 {
 public:
 	void _ReadColors(CCINIClass* pINI);

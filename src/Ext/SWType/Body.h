@@ -585,7 +585,7 @@ public:
 	static void Clear();
 };
 
-class FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
+class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);

@@ -30,7 +30,7 @@ bool Multithreading::DrawingThreadDemandsDrawingMutex = false;
 bool Multithreading::MainThreadDemandsPauseMutex = false;
 bool Multithreading::IsInMultithreadMode = false;
 
-class FakeGScreenClass final : GScreenClass
+class NOVTABLE FakeGScreenClass final : GScreenClass
 {
 public:
 	static COMPILETIMEEVAL constant_ptr<FakeGScreenClass, 0x87F7E8u> const Instance {};

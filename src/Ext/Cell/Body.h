@@ -121,7 +121,7 @@ public:
 	}
 };
 
-class FakeCellClass : public CellClass
+class NOVTABLE FakeCellClass : public CellClass
 {
 public:
 	bool _SpreadTiberium(bool force);

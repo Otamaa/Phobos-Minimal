@@ -109,7 +109,7 @@ class WarheadTypeExtData;
 class BulletTypeExtData;
 class WeaponTypeExtData;
 class FakeWeaponType;
-class FakeBulletClass : public BulletClass
+class NOVTABLE FakeBulletClass : public BulletClass
 {
 public:
 

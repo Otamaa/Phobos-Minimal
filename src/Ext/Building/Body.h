@@ -126,7 +126,7 @@ public:
 	//CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
 };
 
-class FakeBuildingClass : public BuildingClass
+class NOVTABLE FakeBuildingClass : public BuildingClass
 {
 public:
 	void _Detach(AbstractClass* target, bool all);

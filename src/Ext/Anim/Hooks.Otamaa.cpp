@@ -51,7 +51,7 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 /// replae this entirely since the function using lea for getting int and seems broke everyone else stacks
 void FakeAnimClass::_Middle()
 {
-	auto center = this->GetCoords();
+	auto center = this->Location;
 	auto centercell = MapClass::Instance->GetCellAt(center);
 	int width = 30;
 	int height = 30;
@@ -89,7 +89,7 @@ void FakeAnimClass::_Start()
 	if (pTypeExt->AdditionalHeight > 0)
 		this->Location.Z += pTypeExt->AdditionalHeight;
 
-	auto _gCoords = this->GetCoords();
+	auto _gCoords = this->Location;
 
 	if (pTypeExt->DetachedReport.isset())
 	{
@@ -134,7 +134,7 @@ void FakeAnimClass::_Start()
 				int chance = pExt->GetDebrisChance();
 				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
 				{
-					auto SpawnLoc = this->GetCoords();
+					auto SpawnLoc = this->Location;
 					SpawnLoc.Z += 10;
 
 					auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
@@ -206,7 +206,7 @@ void FakeAnimClass::_ApplyVeinsDamage()
 {
 	if (this->Type->IsVeins && RulesExtData::Instance()->Veinhole_Warhead && RulesExtData::Instance()->VeinsAttack_interval)
 	{
-		auto coord = this->GetCoords();
+		auto coord = this->Location;
 		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
 		auto pFirst = pCoorCell->FirstObject;
 
@@ -349,7 +349,7 @@ void FakeAnimClass::_DrawTrailerAnim() {
 		int _separation = this->Type->TrailerSeperation;
 
 		if (_separation <= 1 || !(Unsorted::CurrentFrame() % _separation)) {
-			CoordStruct _coord = this->GetCoords();
+			CoordStruct _coord = this->Location;
 			TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(this);
 			HouseClass* const pOwner = !this->Owner && pTech ? this->Owner : this->Owner;
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
@@ -357,14 +357,17 @@ void FakeAnimClass::_DrawTrailerAnim() {
 	}
 }
 
-void FakeAnimClass::_ApplyHideIfNoOre()
+void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 {
+	if (!this->Type->HideIfNoOre)
+		return;
+
 	auto pCell = this->GetCell();
-	this->Invisible = pCell->GetContainedTiberiumIndex() == -1 || pCell->GetContainedTiberiumValue()
+	this->Invisible = !pCell || pCell->GetContainedTiberiumValue()
 		<= Math::abs(this->_GetTypeExtData()->HideIfNoOre_Threshold.Get());
 }
 
-void FakeAnimClass::_CreateFootApplyOccupyBits()
+void NOINLINE FakeAnimClass::_CreateFootApplyOccupyBits()
 {
 	if (this->Type->MakeInfantry != -1) {
 		this->MarkAllOccupationBits(this->Location);
@@ -399,6 +402,7 @@ void FakeAnimClass::_CreateFoot()
 
 				if (!pInf->Unlimbo(_coord, DirType::SouthEast))
 				{
+					--this->Animation.Stage;
 					pInf->UnInit();
 					return;
 				}
@@ -474,21 +478,22 @@ bool ReverseAndShadow(FakeAnimClass* pThis) {
 	return false;
 }
 
+void NOINLINE SwapType(FakeAnimClass* pThis, AnimTypeClass* pNewType) {
+	pThis->Type = pNewType;
+}
+
 void FakeAnimClass::_AI()
 {
-
 	if (!this->IsPlaying && this->Type->Report != -1)
 	{
-		VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
+		VocClass::PlayIndexAtPos(this->Type->Report, this->Location, &this->Audio3);
 	}
 
 	if (this->Type->IsFlamingGuy)
 	{
 		this->FlamingGuy_AI();
 		this->ObjectClass::Update();
-	}
-	else
-	{
+	} else {
 		TechnoExt_ExtData::UpdateAlphaShape(this);
 	}
 
@@ -497,14 +502,11 @@ void FakeAnimClass::_AI()
 		this->Invisible = !Is_Visible_To_Psychic(this->Owner, this->GetCell());
 	}
 
-	if (this->Type == RulesClass::Instance->Behind)
-	{
+	if (this->Type == RulesClass::Instance->Behind) {
 		this->Invisible = !GameOptionsClass::Instance->ShowHidden;
 	}
 
-	if (this->Type->HideIfNoOre)
-		this->_ApplyHideIfNoOre();
-
+	this->_ApplyHideIfNoOre();
 	this->_CreateFootApplyOccupyBits();
 
 	if (this->Unpaused && this->PausedAnimFrame == this->Animation.Stage)
@@ -525,9 +527,7 @@ void FakeAnimClass::_AI()
 
 			if (!water || isBridge)
 			{
-
 				auto _bounceCoords = this->Bounce.GetCoords();
-
 				this->_ApplySpawns(_bounceCoords);
 				this->_ApplyDeformTerrrain();
 				this->_SpreadTiberium(_bounceCoords, isBridge);
@@ -576,7 +576,7 @@ void FakeAnimClass::_AI()
 
 		if (this->Type->IsAnimatedTiberium)
 		{
-			auto _animated_coords = this->GetCoords() - CoordStruct(384, 384, 0);
+			auto _animated_coords = this->Location - CoordStruct(384, 384, 0);
 			auto pCell = MapClass::Instance->GetCellAt(_animated_coords);
 
 			if (pCell->OverlayTypeIndex == -1 || OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->CellAnim != this->Type)
@@ -601,29 +601,18 @@ void FakeAnimClass::_AI()
 
 		if (!this->PowerOff && !this->Paused)
 		{
-			if (this->Animation.Timer.GetTimeLeft() || this->Animation.Timer.Rate == 0)
-			{
-				// timer is still running or hasn't been set yet.
-				this->Animation.HasChanged = false;
+			if (!this->Animation.Update())
 				return;
-			}
 
-			// timer expired. move one step forward.
-			this->Animation.Stage += this->Animation.Step;
-			this->Animation.HasChanged = true;
-			this->Animation.Timer.Start(this->Animation.Step);
-
-			const int stage = this->Animation.Stage;
-
-			if (this->Type->Damage > 0.0 && !this->HasExtras && !this->InLimbo)
-			{
+			if (this->Type->Damage > 0.0 && !this->HasExtras && !this->InLimbo) {
 				AnimExtData::DealDamageDelay(this);
 				if (!this->IsAlive)
 					return;
 			}
 
-			int _midPoint = this->Type->MiddleFrameIndex;
-			if (_midPoint && stage + this->Type->Start == _midPoint && !this->HasExtras) {
+			if (this->Type->MiddleFrameIndex
+				&& this->Animation.Stage + this->Type->Start == this->Type->MiddleFrameIndex
+				&& !this->HasExtras) {
 				this->_Middle();
 			}
 
@@ -659,9 +648,9 @@ void FakeAnimClass::_AI()
 
 			this->_GetExtData()->OnEnd();
 
-			if (auto pNext = this->Type->Next)
+			if (const auto pNext = this->Type->Next)
 			{
-				this->Type = pNext;
+				SwapType(this, pNext);
 
 				this->_GetExtData()->OnTypeChange();
 
@@ -693,6 +682,10 @@ void FakeAnimClass::_AI()
 
 				this->Animation.Start(delay);
 				this->Animation.Stage = this->Type->Start;
+				if(this->_GetTypeExtData()->Damaging_UseSeparateState){
+					int damagedelay = this->_GetTypeExtData()->Damaging_Rate == -1 ? this->Animation.Step : this->_GetTypeExtData()->Damaging_Rate;
+					this->_GetExtData()->DamagingState.Start(damagedelay);
+				}
 				this->_Start();
 				return;
 			}
