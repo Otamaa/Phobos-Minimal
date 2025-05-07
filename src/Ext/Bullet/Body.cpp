@@ -1077,17 +1077,33 @@ void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHo
 {
 	// Velocity
 	auto velocity = VelocityClass::Empty;
+	if (pBullet->Type->FirersPalette)
+			pBullet->InheritedColor = pHouse->ColorSchemeIndex;
 
-	if (randomVelocity)
+	const auto gravity = BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
+	const auto targetCoords = pBullet->Target->GetCenterCoords();
+	const auto distanceCoords = targetCoords - sourceCoords;
+	const auto horizontalDistance = Point2D{distanceCoords.X, distanceCoords.Y}.Length();
+	const bool lobber = pWeapon->Lobber || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
+	// The lower the horizontal velocity, the higher the trajectory
+	// WW calculates the launch angle (and limits it) before calculating the velocity
+	// Here, some magic numbers are used to directly simulate its calculation
+	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
+	const auto speed = static_cast<int>(speedMult * sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
+
+	// Simulate firing Arcing bullet
+	if (horizontalDistance < 1e-10 || !speed)
 	{
-		DirStruct dir;
-		dir.SetValue<5>(ScenarioClass::Instance->Random.RandomRanged(0, 31));
+		// No solution
+		velocity.Z = speed;
+	}
+	else
+	{
+		const auto mult = speed / horizontalDistance;
 
-		const auto cos_factor = -2.44921270764e-16; // cos(1.5 * Math::Pi * 1.00001)
-		const auto flatSpeed = cos_factor * pBullet->Speed;
-
-		const auto radians = dir.GetRadian<32>();
-		velocity = VelocityClass { Math::cos(radians) * flatSpeed, Math::sin(radians) * flatSpeed, static_cast<double>(-pBullet->Speed) };
+		velocity.X = static_cast<double>(distanceCoords.X) * mult;
+		velocity.Y = static_cast<double>(distanceCoords.Y) * mult;
+		velocity.Z = static_cast<double>(distanceCoords.Z) * mult + (gravity * horizontalDistance) / (2 * speed);
 	}
 
 	// Unlimbo

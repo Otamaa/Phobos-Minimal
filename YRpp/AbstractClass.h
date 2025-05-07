@@ -221,20 +221,20 @@ public:
 		AnnounceExpiredPointer(this, removed);
 	}
 
-	CoordStruct GetCoords() const {
-		CoordStruct ret;
+	CoordStruct FORCEDINLINE GetCoords() const {
+		CoordStruct ret {};
 		this->GetCoords(&ret);
 		return ret;
 	}
 
-	CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const {
-		CoordStruct ret;
+	CoordStruct FORCEDINLINE GetDestination(TechnoClass* pDocker = nullptr) const {
+		CoordStruct ret {};
 		this->GetDestination(&ret, pDocker);
 		return ret;
 	}
 
-	CoordStruct GetCenterCoords() const {
-		CoordStruct ret;
+	CoordStruct FORCEDINLINE GetCenterCoords() const {
+		CoordStruct ret {};
 		this->GetCenterCoords(&ret);
 		return ret;
 	}

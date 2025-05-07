@@ -612,14 +612,3 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 
 	return 0;
 }
-
-ASMJIT_PATCH(0x4CF408, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x6) // Make aircraft not have to fly directly above the airport before starting to descend
-{
-	enum { SkipGameCode = 0x4CF40E };
-
-	GET(FlyLocomotionClass* const, pThis, EBP);
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	R->ECX(RulesExtData::Instance()->ExpandAircraftMission && pThis->LinkedTo->CurrentMission == Mission::Enter || pType->IsDropship);
-	return SkipGameCode;
-}

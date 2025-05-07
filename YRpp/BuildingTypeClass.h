@@ -162,8 +162,9 @@ public:
 
 	CoordStruct GetFixUpCoords() const
 	{
-		CoordStruct Buffer;
-		auto Coo = this->GetCoords();
+		CoordStruct Buffer {};
+		CoordStruct Coo {};
+		this->GetCoords(&Coo);
 		this->vt_entry_6C(&Buffer, &Coo);
 		return Buffer;
 	}

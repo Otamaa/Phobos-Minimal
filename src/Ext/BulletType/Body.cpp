@@ -198,6 +198,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
 		this->ReturnWeapon.Read(exINI, pSection, "ReturnWeapon" , true);
+		this->ReturnWeapon_ApplyFirepowerMult.Read(exINI, pSection, "ReturnWeapon.ApplyFirepowerMult");
 		this->SubjectToGround.Read(exINI, pSection, "SubjectToGround");
 
 		this->Airburst_TargetAsSource.Read(exINI, pSection, "Airburst.TargetAsSource");
@@ -291,6 +292,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Arcing_AllowElevationInaccuracy)
 		.Process(this->AttachedSystem)
 		.Process(this->ReturnWeapon)
+		.Process(this->ReturnWeapon_ApplyFirepowerMult)
 		.Process(this->SubjectToGround)
 
 		.Process(this->Airburst_TargetAsSource)

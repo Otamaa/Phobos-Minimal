@@ -6962,3 +6962,20 @@ ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 
 	return 0x6FBB3D;
 }
+
+class NOVTABLE FakeLayerClass : LayerClass
+{
+public:
+
+	char _Submit(ObjectClass* object, bool sort)
+	{
+		if (!object)
+			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
+
+		return this->LayerClass::AddObject(object, sort);
+	}
+};
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
+DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);

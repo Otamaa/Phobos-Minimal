@@ -1064,6 +1064,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		gJitRuntime.reset();
 		Mem::shutdownMemoryManager();
 		break;
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		return FALSE;
 	}
 
 	return TRUE;

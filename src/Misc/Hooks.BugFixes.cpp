@@ -2316,7 +2316,9 @@ ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
 	if (!pCall->InLimbo // Has not already entered
 		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
 		&& pCall->CurrentMission == Mission::Enter // Is entering
-		&& static_cast<FootClass*>(pCall)->Destination == pThis) // Is entering techno B
+		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
+		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
+		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
 	{
 		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
 		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
@@ -2594,7 +2596,8 @@ ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetUnloadingHarvester, 0x7)
 {
 	GET(FootClass*, pTarget, ESI);
-
+	
+	pTarget->OnBridge = false;
 	if (const auto pUnit = cast_to<UnitClass* , false>(pTarget))
 		pUnit->Unloading = false;
 
@@ -2608,7 +2611,17 @@ ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
 	// An impassable invisible barrier will be generated on the bridge (the object linked list of the cell will leave it)
 	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
 	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
-	if (pLinkedTo->GetCurrentMission() != Mission::Enter)
+	auto shouldMarkDown = [pLinkedTo]()
+	{
+		if (pLinkedTo->GetCurrentMission() != Mission::Enter)
+			return true;
+
+		const auto pEnter = pLinkedTo->GetNthLink();
+
+		return (!pEnter || pEnter->GetTechnoType()->Passengers <= 0);
+	};
+
+	if (shouldMarkDown())
 		pLinkedTo->Mark(MarkType::Put);
 
 	return 0x7196C5;

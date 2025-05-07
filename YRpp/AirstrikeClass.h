@@ -14,6 +14,7 @@ class DECLSPEC_UUID("70DE3921-1E26-11D5-8F95-00A024834B9C")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Airstrike;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AirstrikeClass*>, 0x889FB8u> const Array {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

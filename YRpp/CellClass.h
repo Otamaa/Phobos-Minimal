@@ -510,7 +510,8 @@ public:
 	// helper - gets coords and fixes height for bridge
 	CoordStruct GetCoordsWithBridge() const
 	{
-		CoordStruct buffer =  this->GetCoords();
+		CoordStruct buffer {};
+		this->GetCoords(&buffer);
 		return FixHeight(buffer);
 	}
 

@@ -125,7 +125,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
+				AnimExtData::SetAnimOwnerHouseKind(new AnimClass(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
 					pOwner,
 					nullptr,
 					pTechOwner,
@@ -146,7 +146,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 						}
 					}
 
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, _SplashCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
+					AnimExtData::SetAnimOwnerHouseKind(new AnimClass(pSplashAnim, _SplashCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
 						pOwner,
 						nullptr,
 						pTechOwner,
@@ -161,7 +161,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->Location))
 					{
-						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
+						AnimExtData::SetAnimOwnerHouseKind(new AnimClass(pSplashAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
 							pOwner,
 							nullptr,
 							pTechOwner,

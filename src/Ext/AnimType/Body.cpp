@@ -237,9 +237,6 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 {
-	if (!pThis->Type)
-		return;
-
 	auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
 
 	if (pExt->AllowCreateUnit)
@@ -426,9 +423,6 @@ static TechnoClass* CreateFoot(
 
 void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 {
-	if (!pThis->Type)
-		return;
-
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 	const auto pAnimExt = ((FakeAnimClass*)pThis)->_GetExtData();
 

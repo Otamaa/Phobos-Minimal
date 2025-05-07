@@ -108,7 +108,7 @@ public:
 
 	Valueable<ParticleSystemTypeClass*> AttachedSystem { nullptr };
 	Valueable<WeaponTypeClass*> ReturnWeapon { nullptr };
-
+	Valueable<bool> ReturnWeapon_ApplyFirepowerMult {};
 	TrailsReader Trails { };
 
 	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };

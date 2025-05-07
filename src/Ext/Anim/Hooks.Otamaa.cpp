@@ -39,7 +39,7 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 		{
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim())
 			{
-				GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1);
+				new AnimClass(pAnimtype, location->GetCoords(), 1);
 			}
 		}
 	}
@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 
 /// replae this entirely since the function using lea for getting int and seems broke everyone else stacks
-void FakeAnimClass::_Middle()
+void NOINLINE FakeAnimClass::_Middle()
 {
 	auto center = this->Location;
 	auto centercell = MapClass::Instance->GetCellAt(center);
@@ -80,7 +80,7 @@ void FakeAnimClass::_Middle()
 	this->_GetExtData()->OnMiddle();
 }
 
-void FakeAnimClass::_Start()
+void NOINLINE FakeAnimClass::_Start()
 {
 	this->Mark(MarkType::Change);
 
@@ -137,7 +137,7 @@ void FakeAnimClass::_Start()
 					auto SpawnLoc = this->Location;
 					SpawnLoc.Z += 10;
 
-					auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
+					auto pSpawn = new AnimClass(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
 					pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
 					pSpawn->TintColor = cptr->Intensity_Normal;
 				}
@@ -162,7 +162,7 @@ bool __fastcall Is_Visible_To_Psychic(HouseClass* house, CellClass* cell)
 	JMP_STD(0x43B4C0);
 }
 
-void AnimExtData::OnTypeChange()
+void NOINLINE AnimExtData::OnTypeChange()
 {
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 
@@ -178,13 +178,16 @@ void AnimExtData::OnTypeChange()
 #include <OverlayTypeClass.h>
 #include <TacticalClass.h>
 
-void FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
+void NOINLINE FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 {
 	if (!this->Type->Spawns || this->Type->SpawnCount <= 0)
 		return;
 
-	const auto nMax = this->Type->SpawnCount == 1 ?
-		1 : ScenarioClass::Instance->Random.RandomFromMax((this->Type->SpawnCount * 2));
+	const auto nMax = ScenarioClass::Instance->Random.RandomFromMax((this->Type->SpawnCount)) +
+		ScenarioClass::Instance->Random.RandomFromMax((this->Type->SpawnCount));
+
+	if (nMax <= 0)
+		return;
 
 	const auto pAnimTypeExt = this->_GetTypeExtData();
 	TechnoClass* pTech = AnimExtData::GetTechnoInvoker(this);
@@ -193,7 +196,7 @@ void FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 
 	for (int i = nMax; i > 0; --i)
 	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(new AnimClass(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
 		pOwner,
 		nullptr,
 		pTech,
@@ -202,7 +205,7 @@ void FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 	}
 }
 
-void FakeAnimClass::_ApplyVeinsDamage()
+void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 {
 	if (this->Type->IsVeins && RulesExtData::Instance()->Veinhole_Warhead && RulesExtData::Instance()->VeinsAttack_interval)
 	{
@@ -258,7 +261,7 @@ void FakeAnimClass::_ApplyDeformTerrrain()
 
 }
 
-void FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridge)
+void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridge)
 {
 	RectangleStruct updaterect(0, 0, 0, 0);
 	if (this->Type->IsTiberium && !isOnbridge)
@@ -276,7 +279,7 @@ void FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridge)
 					if (cellptr->CanTiberiumGerminate(nullptr) && this->Type->TiberiumSpawnType != nullptr)
 					{
 						//TODO : fix these hardcoded 3 , change it to proper tiberium configuration
-						GameCreate<OverlayClass>(
+						new OverlayClass(
 							OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(3)],
 							this->GetCell()->MapCoords,
 							-1);
@@ -293,13 +296,13 @@ void FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridge)
 	}
 }
 
-void FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
+void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 {
 	if (!onWater || onBridge)
 	{
 		if (this->Type->ExpireAnim)
 		{
-			GameCreate<AnimClass>(this->Type->ExpireAnim,
+			new AnimClass(this->Type->ExpireAnim,
 				this->Location,
 				0,
 				1,
@@ -314,7 +317,7 @@ void FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	}
 	else if (this->Type->IsMeteor)
 	{
-		GameCreate<AnimClass>(RulesClass::Instance->SplashList[0],
+		new AnimClass(RulesClass::Instance->SplashList[0],
 			this->Location,
 			0,
 			1,
@@ -324,7 +327,7 @@ void FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	}
 	else
 	{
-		GameCreate<AnimClass>(RulesClass::Instance->Wake,
+		new AnimClass(RulesClass::Instance->Wake,
 			this->Location,
 			0,
 			1,
@@ -334,7 +337,7 @@ void FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 
 		CoordStruct _splashCoord = this->Location;
 		_splashCoord.Z += 3;
-		GameCreate<AnimClass>(RulesClass::Instance->SplashList[0],
+		new AnimClass(RulesClass::Instance->SplashList[0],
 			_splashCoord,
 			0,
 			1,
@@ -344,15 +347,16 @@ void FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	}
 }
 
-void FakeAnimClass::_DrawTrailerAnim() {
-	if (this->Type->TrailerAnim) {
-		int _separation = this->Type->TrailerSeperation;
+void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
+	if (this->Type->TrailerAnim && this->Type->TrailerSeperation >= 1) {
 
-		if (_separation <= 1 || !(Unsorted::CurrentFrame() % _separation)) {
-			CoordStruct _coord = this->Location;
-			TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(this);
-			HouseClass* const pOwner = !this->Owner && pTech ? this->Owner : this->Owner;
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
+		CoordStruct _coord = this->Location;
+		TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(this);
+		HouseClass* const pOwner = !this->Owner && pTech ? this->Owner : this->Owner;
+
+		if(this->Type->TrailerSeperation == 1 || !(Unsorted::CurrentFrame() % this->Type->TrailerSeperation)) {
+
+			AnimExtData::SetAnimOwnerHouseKind(new AnimClass(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
 		}
 	}
 }
@@ -379,7 +383,7 @@ void NOINLINE FakeAnimClass::_CreateFootApplyOccupyBits()
 	}
 }
 
-void FakeAnimClass::_CreateFoot()
+void NOINLINE FakeAnimClass::_CreateFoot()
 {
 	if (this->Type->MakeInfantry != -1)
 	{
@@ -388,17 +392,16 @@ void FakeAnimClass::_CreateFoot()
 		if (this->Location != this->_GetExtData()->CreateUnitLocation)
 			return;
 
-		if ((size_t)this->Type->MakeInfantry < RulesClass::Instance->AnimToInfantry.size())
-		{
+		const auto& toInf = RulesClass::Instance->AnimToInfantry;
+
+		if ((size_t)this->Type->MakeInfantry < toInf.size()) {
 
 			auto _coord = this->Location;
-			HouseClass* pInfOwner = !this->Owner || this->Owner->Defeated ?
-				HouseExtData::FindFirstCivilianHouse() : this->Owner;
 
-			if (pInfOwner)
-			{
+			if (HouseClass* pInfOwner = !this->Owner || this->Owner->Defeated ?
+				HouseExtData::FindFirstCivilianHouse() : this->Owner) {
 
-				auto pInf = (InfantryClass*)InfantryTypeClass::Array->Items[this->Type->MakeInfantry]->CreateObject(pInfOwner);
+				auto pInf = (InfantryClass*)toInf.Items[this->Type->MakeInfantry]->CreateObject(pInfOwner);
 
 				if (!pInf->Unlimbo(_coord, DirType::SouthEast))
 				{
@@ -407,17 +410,13 @@ void FakeAnimClass::_CreateFoot()
 					return;
 				}
 
-				if (auto pCell = MapClass::Instance->GetCellAt(_coord))
-				{
-					if (pCell->ContainsBridge())
-					{
-						if (this->Location.Z > pCell->GetCoords().Z)
-						{
-							pInf->Mark(MarkType::Remove);
-							pInf->OnBridge = true;
-							pInf->Mark(MarkType::Put);
-						}
-					}
+				auto pCell = this->GetCell();
+				auto coords_bridge = pCell->GetCoordsWithBridge();
+
+				if (this->Location.Z > coords_bridge.Z) {
+					pInf->Mark(MarkType::Remove);
+					pInf->OnBridge = true;
+					pInf->Mark(MarkType::Put);
 				}
 
 				if (!pInfOwner->Type->MultiplayPassive)
@@ -438,7 +437,7 @@ void FakeAnimClass::_CreateFoot()
 	}
 }
 
-bool PingPong(FakeAnimClass* pThis) {
+bool NOINLINE PingPong(FakeAnimClass* pThis) {
 	if (pThis->Type->PingPong)
 	{
 		if ((pThis->RemainingIterations <= 1 && (pThis->Animation.Stage >= pThis->Type->End || pThis->Animation.Stage == 0))
@@ -453,7 +452,7 @@ bool PingPong(FakeAnimClass* pThis) {
 	return false;
 }
 
-bool StageLoops(FakeAnimClass* pThis)
+bool NOINLINE StageLoops(FakeAnimClass* pThis)
 {
 	const auto remaining = pThis->RemainingIterations;
 	if ((remaining > 1u && pThis->Animation.Stage >= pThis->Type->LoopEnd - pThis->Type->Start)
@@ -465,7 +464,7 @@ bool StageLoops(FakeAnimClass* pThis)
 	return true;
 }
 
-bool ReverseAndShadow(FakeAnimClass* pThis) {
+bool NOINLINE ReverseAndShadow(FakeAnimClass* pThis) {
 
 	if ((!pThis->Type->Shadow && (!pThis->Type->Reverse && !pThis->Reverse || pThis->Animation.Stage > 0))
 		|| (pThis->Type->Reverse && pThis->Animation.Stage > 0)
@@ -480,6 +479,19 @@ bool ReverseAndShadow(FakeAnimClass* pThis) {
 
 void NOINLINE SwapType(FakeAnimClass* pThis, AnimTypeClass* pNewType) {
 	pThis->Type = pNewType;
+}
+
+bool NOINLINE UpdateLoopDelay(FakeAnimClass* pThis) {
+	if (pThis->LoopDelay > 0) {
+		const int delay = pThis->LoopDelay - 1;
+		pThis->LoopDelay = delay;
+		if (delay == 0)
+			pThis->_Start();
+
+		return true;
+	}
+
+	return false;
 }
 
 void FakeAnimClass::_AI()
@@ -538,8 +550,7 @@ void FakeAnimClass::_AI()
 		}
 	}
 
-	if (this->IsAlive && !this->__ToDelete_197)
-	{
+	if (this->IsAlive && !this->__ToDelete_197) {
 		this->_DrawTrailerAnim();
 	}
 
@@ -560,11 +571,7 @@ void FakeAnimClass::_AI()
 		return;
 	}
 
-	if (this->LoopDelay)
-	{
-		if (!this->LoopDelay--)
-			this->_Start();
-
+	if (UpdateLoopDelay(this)) {
 		return;
 	}
 
@@ -587,7 +594,9 @@ void FakeAnimClass::_AI()
 
 		if (this->Type->End == -1)
 		{
-			this->Type->End = this->Type->GetImage()->Frames;
+			if(auto pImage = this->Type->GetImage())
+				this->Type->End = pImage->Frames;
+
 			if (this->Type->Shadow)
 				this->Type->End /= 2;
 		}
@@ -656,7 +665,9 @@ void FakeAnimClass::_AI()
 
 				if (this->Type->End == -1)
 				{
-					this->Type->End = this->Type->GetImage()->Frames;
+					if (auto pImage = this->Type->GetImage())
+						this->Type->End = pImage->Frames;
+
 					if (this->Type->Shadow)
 						this->Type->End /= 2;
 				}
@@ -693,7 +704,7 @@ void FakeAnimClass::_AI()
 			this->_CreateFoot();
 
 			this->TimeToDie = true;
-			this->UnInit(); //dont do this twices ,..
+			this->UnInit();
 		}
 	}
 }
@@ -718,7 +729,7 @@ int FakeAnimClass::_BounceAI()
 		if (auto pBounceAnim = this->Type->BounceAnim)
 		{
 			HouseClass* pHouse = this->Owner ? this->Owner : (pTechnoInvoker ? pTechnoInvoker->GetOwningHouse() : nullptr);
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(new AnimClass(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 				pHouse,
 				nullptr,
 				pTechnoInvoker,

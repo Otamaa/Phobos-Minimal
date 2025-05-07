@@ -1309,12 +1309,11 @@ ASMJIT_PATCH(0x41DBD4, AirstrikeClass_Stop_ResetForTarget, 0x7)
 
 	if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget))
 	{
-		const auto& array = Make_Global<DynamicVectorClass<AirstrikeClass*>>(0x889FB8);
 		AirstrikeClass* pLastTargetingMe = nullptr;
 
-		for (int idx = array.Count - 1; idx >= 0; --idx)
+		for (int idx = AirstrikeClass::Array->Count - 1; idx >= 0; --idx)
 		{
-			const auto pAirstrike = array.Items[idx];
+			const auto pAirstrike = AirstrikeClass::Array->Items[idx];
 
 			if (pAirstrike != pThis && pAirstrike->Target == pTarget)
 			{

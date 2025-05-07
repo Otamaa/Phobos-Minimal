@@ -84,7 +84,7 @@ static inline void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 	pPassenger->Limbo(); // Don't swap order casually
 	pPassenger->OnBridge = false; // Don't swap order casually, important
 	pPassenger->NextObject = nullptr; // Don't swap order casually, very important
-
+	pPassenger->SetDestination(nullptr, true); // Added, to prevent passengers from return to board position when survive
 	const auto pPassengerType = pPassenger->GetTechnoType();
 
 	if (auto const pCapturer = pPassenger->MindControlledBy) {

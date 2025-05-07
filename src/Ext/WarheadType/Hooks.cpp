@@ -125,15 +125,20 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		if (pTypeExt->ReturnWeapon)
 		{
 			auto const RpWeapon = pTypeExt->ReturnWeapon.Get();
+			int damage = RpWeapon->Damage;
+
+			if (pTypeExt->ReturnWeapon_ApplyFirepowerMult)
+			 	damage = static_cast<int>(damage * pThis->Owner->FirepowerMultiplier * TechnoExtContainer::Instance.Find(pThis->Owner)->AE.FirepowerMultiplier);
 
 			if (BulletClass* pBullet = RpWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
-				RpWeapon->Damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))
+				damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))
 			{
 				pBullet->WeaponType = RpWeapon;
 				auto const pRBulletExt = BulletExtContainer::Instance.Find(pBullet);
 				pRBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
 
-				pBullet->MoveTo(pThis->Location, {});
+				BulletExtData::SimulatedFiringUnlimbo(pBullet, pThis->Owner->Owner, pWeapon, pThis->Location, true);
+				BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner->Owner, nullptr, false, true);
 			}
 		}
 	}
