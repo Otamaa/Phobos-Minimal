@@ -141,7 +141,7 @@ ASMJIT_PATCH(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 			pObject->GetRenderCoords(pCoords);
 
 			//save original coords because centering it broke damage
-			pThis->_GetExtData()->BackupCoords = pObject->Location;
+			pThis->_GetExtData()->BackupCoords = pObject->GetCoords();
 
 			pCoords->X += 128;
 			pCoords->Y += 128;

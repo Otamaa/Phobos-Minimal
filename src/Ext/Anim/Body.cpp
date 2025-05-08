@@ -298,7 +298,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		auto pAnimTypeExt = pTypeExt;
 		const auto pObject = AnimExtData::GetTechnoInvoker(pThis);
 		const auto pHouse = !pThis->Owner && pObject ? pObject->Owner : pThis->Owner;
-		const auto nCoord = pThis->Location;
+		auto nCoord = pThis->GetCoords();
 
 		Helper::Otamaa::SpawnMultiple(
 			pAnimTypeExt->SpawnsMultiple,
@@ -357,7 +357,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 						}
 						else {
 							for (int i = 0; i < numParticle; ++i) {
-								ParticleSystemClass::Instance->SpawnParticle(pParticleType, &pThis->Location);
+								ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nCoord);
 							}
 						}
 					}
@@ -365,10 +365,8 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 			}
 		}
 
-		for (const auto& nLauch : pTypeExt->Launchs)
-		{
-			if (nLauch.LaunchWhat)
-			{
+		for (const auto& nLauch : pTypeExt->Launchs) {
+			if (nLauch.LaunchWhat) {
 				Helpers::Otamaa::LauchSW(nLauch, pHouse, nCoord, pObject);
 			}
 		}
@@ -393,13 +391,13 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 
 	if (!pTypeExt->Damage_TargetFlag.isset())
 	{
-		return pThis->GetCell();
+		return MapClass::Instance->GetCellAt(pThis->GetCoords());
 	}
 
 	switch (pTypeExt->Damage_TargetFlag.Get())
 	{
 	case DamageDelayTargetFlag::Cell:
-		return  pThis->GetCell();
+		return MapClass::Instance->GetCellAt(pThis->GetCoords());
 	case DamageDelayTargetFlag::AttachedObject:
 	{
 		if (pThis->AttachedBullet)
@@ -443,7 +441,7 @@ void AnimExtData::CreateAttachedSystem()
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
 		return;
 
-	auto nLoc = pThis->Location;
+	auto nLoc = pThis->GetCoords();
 
 	if (pData->AttachedSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 		nLoc.Z += 100;
@@ -451,7 +449,7 @@ void AnimExtData::CreateAttachedSystem()
 	this->AttachedSystem = (GameCreate<ParticleSystemClass>(
 		pData->AttachedSystem.Get(),
 		nLoc,
-		pThis->GetCell(),
+		MapClass::Instance->GetCellAt(nLoc),
 		this->AttachedToObject,
 		CoordStruct::Empty,
 		pThis->GetOwningHouse()
@@ -648,7 +646,7 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 
 	auto const disallowedLandTypes = pTypeExt->FireAnimDisallowedLandTypes.Get(pType->Scorch ? LandTypeFlags::Default : LandTypeFlags::None);
 
-	if (IsLandTypeInFlags(disallowedLandTypes, pThis->GetCell()->LandType))
+	if (IsLandTypeInFlags(disallowedLandTypes, MapClass::Instance->GetCellAt(coords)->LandType))
 		return;
 
 	std::vector<AnimTypeClass*>* anims = &pTypeExt->SmallFireAnims;

@@ -200,8 +200,8 @@ public:
 	virtual void SetLocation(const CoordStruct& crd) RX;
 
 // these two work through the object's Location
-	virtual CellStruct* GetMapCoords(CellStruct* pUCell) const R0;
-	virtual CellClass* GetCell() const R0;
+	virtual CellStruct* GetMapCoords(CellStruct* pUCell) const R0;  // be aware that some objects have a different coordinate system , like AnimClass where it can use AttachedObject coordinates
+	virtual CellClass* GetCell() const R0; // be aware that some objects have a different coordinate system , like AnimClass where it can use AttachedObject coordinates
 
 // these two call ::GetCoords_() instead
 	virtual CellStruct* GetMapCoordsAgain(CellStruct* pUCell) const R0;
@@ -337,7 +337,7 @@ public:
 	}
 
 	bool IsCrushable(TechnoClass* pCrusher) {
-		JMP_THIS(0x5F6CD0); 
+		JMP_THIS(0x5F6CD0);
 	}
 
 	DamageState TakeDamage(int damage, WarheadTypeClass* pWH, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr) {
@@ -401,7 +401,7 @@ public:
 	bool               IsInLogic; // has this object been added to the logic collection?
 	bool               IsVisible; // was this object in viewport when drawn?
 	PROTECTED_PROPERTY(BYTE, align_99[0x2]);
-	CoordStruct        Location; //Absolute current 3D location (in leptons)
+	CoordStruct        Location; //Absolute current 3D location (in leptons) , be aware that some objects have a different coordinate system , like AnimClass where it can use AttachedObject coordinates , use GetCoords() to get the correct coordinates
 	LineTrail*         LineTrailer;
  };
 

@@ -139,7 +139,7 @@ ASMJIT_PATCH(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
 
 ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 {
-	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts) 
+	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts)
 		|| (SessionClass::Instance->GameMode == GameMode::Internet && !Game::WOLTaunts)){
 		return 0x50C910;
 	}
@@ -151,6 +151,44 @@ ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 #include <DisplayClass.h>
 #include <TacticalClass.h>
 
+constexpr bool _Clamp_To_Tactical_Rect(Point2D& pixel)
+{
+	auto& TacticalRect = MapClass::Instance->VisibleRect;
+	auto& MapLocalSize = DSurface::ViewBounds();
+
+	int xmin = TacticalRect.Width / 2 - (Unsorted::CellWidthInPixels >> 1) * (MapClass::Instance->MapRect.Width - 2 * MapLocalSize.X);
+	int xmax = MaxImpl(xmin + Unsorted::CellWidthInPixels * MapLocalSize.Width - TacticalRect.Width, xmin);
+
+	int ymin = TacticalRect.Height / 2 + (Unsorted::CellHeightInPixels >> 1) * (MapClass::Instance->MapRect.Width + 2 * MapLocalSize.Y - 5);
+	int ymax = MaxImpl(ymin + Unsorted::CellHeightInPixels * (2 * MapLocalSize.Height + 9) / 2 - TacticalRect.Height, ymin);
+
+	bool clamped = false;
+
+	if (pixel.Y < ymin)
+	{
+		pixel.Y = ymin;
+		clamped = true;
+	}
+	else if (pixel.Y > ymax)
+	{
+		pixel.Y = ymax;
+		clamped = true;
+	}
+
+	if (pixel.X < xmin)
+	{
+		pixel.X = xmin;
+		clamped = true;
+	}
+	else if (pixel.X > xmax)
+	{
+		pixel.X = xmax;
+		clamped = true;
+	}
+
+	return(clamped);
+
+}
 
 // Fixes glitches if the map size is smaller than the screen resolution
 // Author: Belonit

@@ -51,7 +51,7 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 /// replae this entirely since the function using lea for getting int and seems broke everyone else stacks
 void NOINLINE FakeAnimClass::_Middle()
 {
-	auto center = this->Location;
+	auto center = this->GetCoords();
 	auto centercell = MapClass::Instance->GetCellAt(center);
 	int width = 30;
 	int height = 30;
@@ -85,11 +85,10 @@ void NOINLINE FakeAnimClass::_Start()
 	this->Mark(MarkType::Change);
 
 	auto pTypeExt = this->_GetTypeExtData();
+	auto _gCoords = this->GetCoords();
 
 	if (pTypeExt->AdditionalHeight > 0)
-		this->Location.Z += pTypeExt->AdditionalHeight;
-
-	auto _gCoords = this->Location;
+		_gCoords.Z += pTypeExt->AdditionalHeight;
 
 	if (pTypeExt->DetachedReport.isset())
 	{
@@ -119,7 +118,8 @@ void NOINLINE FakeAnimClass::_Start()
 
 	if (!this->IsPlaying && this->Type->TiberiumChainReaction)
 	{
-		CellClass* cptr = this->GetCell();
+		auto gCoords = this->GetCoords();
+		CellClass* cptr = MapClass::Instance->GetCellAt(gCoords);
 		int tib = cptr->GetContainedTiberiumIndex();
 
 		if (tib != -1)
@@ -129,12 +129,13 @@ void NOINLINE FakeAnimClass::_Start()
 
 			cptr->ReduceTiberium(cptr->OverlayData + 1);
 
+
 			if (tiberium->Debris.size() > 0)
 			{
 				int chance = pExt->GetDebrisChance();
 				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
 				{
-					auto SpawnLoc = this->Location;
+					auto SpawnLoc = gCoords;
 					SpawnLoc.Z += 10;
 
 					auto pSpawn = new AnimClass(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
@@ -146,7 +147,7 @@ void NOINLINE FakeAnimClass::_Start()
 			int damage = pExt->GetExplosionDamage();
 			auto pWarhead = pExt->GetExplosionWarhead();
 
-			DamageArea::Apply(&this->Location, damage, nullptr, pWarhead, false, nullptr);
+			DamageArea::Apply(&gCoords, damage, nullptr, pWarhead, false, nullptr);
 
 			cptr->RecalcAttributes(-1);
 			MapClass::Instance->ResetZones(cptr->MapCoords);
@@ -209,7 +210,7 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 {
 	if (this->Type->IsVeins && RulesExtData::Instance()->Veinhole_Warhead && RulesExtData::Instance()->VeinsAttack_interval)
 	{
-		auto coord = this->Location;
+		auto coord = this->GetCoords();
 		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
 		auto pFirst = pCoorCell->FirstObject;
 
@@ -278,11 +279,13 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 
 					if (cellptr->CanTiberiumGerminate(nullptr) && this->Type->TiberiumSpawnType != nullptr)
 					{
-						//TODO : fix these hardcoded 3 , change it to proper tiberium configuration
+						const auto pTib = TiberiumExtContainer::LinkedType[OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex]];
+
 						new OverlayClass(
-							OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(3)],
-							this->GetCell()->MapCoords,
+							OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1)],
+							cellptr->MapCoords,
 							-1);
+
 						cellptr->OverlayData = ScenarioClass::Instance->Random.RandomFromMax(2);
 						RectangleStruct overlayrect = cellptr->GetOverlayShapeRect();
 						overlayrect.Y -= TacticalClass::view_bound->Y;
@@ -298,12 +301,14 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 
 void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 {
+	auto coords = this->GetCoords();
+
 	if (!onWater || onBridge)
 	{
 		if (this->Type->ExpireAnim)
 		{
 			new AnimClass(this->Type->ExpireAnim,
-				this->Location,
+				coords,
 				0,
 				1,
 				AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000,
@@ -318,7 +323,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	else if (this->Type->IsMeteor)
 	{
 		new AnimClass(RulesClass::Instance->SplashList[0],
-			this->Location,
+			coords,
 			0,
 			1,
 			AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,
@@ -328,14 +333,14 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	else
 	{
 		new AnimClass(RulesClass::Instance->Wake,
-			this->Location,
+			coords,
 			0,
 			1,
 			AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,
 			0
 		);
 
-		CoordStruct _splashCoord = this->Location;
+		CoordStruct _splashCoord = coords;
 		_splashCoord.Z += 3;
 		new AnimClass(RulesClass::Instance->SplashList[0],
 			_splashCoord,
@@ -350,7 +355,10 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 	if (this->Type->TrailerAnim && this->Type->TrailerSeperation >= 1) {
 
-		CoordStruct _coord = this->Location;
+		CoordStruct _coord = this->GetCoords();
+		if (!_coord.IsValid()) //yeah , fuck , lagging the game
+			return;
+
 		TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(this);
 		HouseClass* const pOwner = !this->Owner && pTech ? this->Owner : this->Owner;
 
@@ -366,14 +374,18 @@ void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 	if (!this->Type->HideIfNoOre)
 		return;
 
-	auto pCell = this->GetCell();
+	auto pCell = MapClass::Instance->GetCellAt(this->GetCoords());
 	this->Invisible = !pCell || pCell->GetContainedTiberiumValue()
 		<= Math::abs(this->_GetTypeExtData()->HideIfNoOre_Threshold.Get());
 }
 
 void NOINLINE FakeAnimClass::_CreateFootApplyOccupyBits()
 {
+
 	if (this->Type->MakeInfantry != -1) {
+		if (!this->Location.IsValid())
+			return;
+
 		this->MarkAllOccupationBits(this->Location);
 		this->_GetExtData()->CreateUnitLocation = this->Location;
 	}
@@ -387,6 +399,9 @@ void NOINLINE FakeAnimClass::_CreateFoot()
 {
 	if (this->Type->MakeInfantry != -1)
 	{
+		if (!this->Location.IsValid())
+			return;
+
 		this->UnmarkAllOccupationBits(this->_GetExtData()->CreateUnitLocation);
 
 		if (this->Location != this->_GetExtData()->CreateUnitLocation)
@@ -396,27 +411,28 @@ void NOINLINE FakeAnimClass::_CreateFoot()
 
 		if ((size_t)this->Type->MakeInfantry < toInf.size()) {
 
-			auto _coord = this->Location;
 
 			if (HouseClass* pInfOwner = !this->Owner || this->Owner->Defeated ?
 				HouseExtData::FindFirstCivilianHouse() : this->Owner) {
 
 				auto pInf = (InfantryClass*)toInf.Items[this->Type->MakeInfantry]->CreateObject(pInfOwner);
 
-				if (!pInf->Unlimbo(_coord, DirType::SouthEast))
+				if (!pInf->Unlimbo(this->Location, DirType::SouthEast))
 				{
 					--this->Animation.Stage;
 					pInf->UnInit();
 					return;
 				}
 
-				auto pCell = this->GetCell();
-				auto coords_bridge = pCell->GetCoordsWithBridge();
+				auto pAnimCoords = this->GetCoords();
+				auto pCell = MapClass::Instance->GetCellAt(pAnimCoords);
 
-				if (this->Location.Z > coords_bridge.Z) {
-					pInf->Mark(MarkType::Remove);
-					pInf->OnBridge = true;
-					pInf->Mark(MarkType::Put);
+				if(pCell->ContainsBridge()) {
+					if (this->Location.Z > pAnimCoords.Z + Unsorted::BridgeHeight) {
+						pInf->Mark(MarkType::Remove);
+						pInf->OnBridge = true;
+						pInf->Mark(MarkType::Put);
+					}
 				}
 
 				if (!pInfOwner->Type->MultiplayPassive)
@@ -496,9 +512,18 @@ bool NOINLINE UpdateLoopDelay(FakeAnimClass* pThis) {
 
 void FakeAnimClass::_AI()
 {
+	if (this->IsAlive) {
+		if (!this->GetCoords().IsValid()) {
+			this->__ToDelete_197 = true;
+			this->TimeToDie = true;
+			this->UnInit();
+			return;
+		}
+	}
+
 	if (!this->IsPlaying && this->Type->Report != -1)
 	{
-		VocClass::PlayIndexAtPos(this->Type->Report, this->Location, &this->Audio3);
+		VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
 	}
 
 	if (this->Type->IsFlamingGuy)
@@ -511,7 +536,7 @@ void FakeAnimClass::_AI()
 
 	if (this->Type->PsiWarning)
 	{
-		this->Invisible = !Is_Visible_To_Psychic(this->Owner, this->GetCell());
+		this->Invisible = !Is_Visible_To_Psychic(this->Owner, MapClass::Instance->GetCellAt(this->GetCoords()));
 	}
 
 	if (this->Type == RulesClass::Instance->Behind) {
@@ -532,8 +557,10 @@ void FakeAnimClass::_AI()
 
 		if (bounceStatus == BounceClass::Status::Impact || bounceStatus == BounceClass::Status::Bounce)
 		{
-			const bool water = this->GetCell()->LandType == LandType::Water;
-			const bool isBridge = this->Location.Z >= CellClass::BridgeHeight + MapClass::Instance->GetCellFloorHeight(this->Location);
+			auto pAnimCoords = this->GetCoords();
+			auto pAnimCell = MapClass::Instance->GetCellAt(pAnimCoords);
+			const bool water = pAnimCell->LandType == LandType::Water;
+			const bool isBridge = pAnimCoords.Z >= CellClass::BridgeHeight + MapClass::Instance->GetCellFloorHeight(this->Location);
 
 			AnimExtData::OnExpired(this, water, isBridge);
 
@@ -554,9 +581,8 @@ void FakeAnimClass::_AI()
 		this->_DrawTrailerAnim();
 	}
 
-	if (this->Type == RulesClass::Instance->DropZoneAnim)
-	{
-		this->__ToDelete_197 = this->GetCell()->GetBuilding() != nullptr;
+	if (this->Type == RulesClass::Instance->DropZoneAnim) {
+		this->__ToDelete_197 = MapClass::Instance->GetCellAt(this->GetCoords())->GetBuilding() != nullptr;
 	}
 
 	if (this->__ToDelete_197)
@@ -583,7 +609,7 @@ void FakeAnimClass::_AI()
 
 		if (this->Type->IsAnimatedTiberium)
 		{
-			auto _animated_coords = this->Location - CoordStruct(384, 384, 0);
+			auto _animated_coords = this->GetCoords() - CoordStruct(384, 384, 0);
 			auto pCell = MapClass::Instance->GetCellAt(_animated_coords);
 
 			if (pCell->OverlayTypeIndex == -1 || OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->CellAnim != this->Type)

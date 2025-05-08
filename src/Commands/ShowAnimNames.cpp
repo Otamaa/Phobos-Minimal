@@ -76,8 +76,14 @@ void ShowAnimNameCommandClass::AI()
 			int width = 0, height = 0;
 			BitFont::Instance->GetTextDimension(pText.c_str(), &width, &height, 120);
 			pixelOffset.X -= (width / 2);
+			auto coord = pTech->GetCoords();
 
-			auto pos = TacticalClass::Instance->CoordsToView(pTech->Location);
+			if (!coord.IsValid()) {
+				Debug::Log("Anim %s has invalid coords!\n", pTech->Type->ID);
+				continue;
+			}
+
+			auto pos = TacticalClass::Instance->CoordsToView(coord);
 			pos += pixelOffset;
 			auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
