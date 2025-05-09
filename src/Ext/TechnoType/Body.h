@@ -22,6 +22,7 @@
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
+#include <New/AnonymousType/TiberiumEaterTypeClass.h>
 
 #include <FileSystem.h>
 
@@ -296,16 +297,6 @@ public:
 	ValueableIdx<VoxClass> EVA_Sold { -1 };
 	ValueableIdx<VocClass> SellSound { -1 };
 
-	Valueable<bool> MobileRefinery { false };
-	Valueable<int> MobileRefinery_TransRate { 30 };
-	Valueable<float> MobileRefinery_CashMultiplier { 1.0 };
-	Valueable<int> MobileRefinery_AmountPerCell { 0 };
-	ValueableVector<int> MobileRefinery_FrontOffset {};
-	ValueableVector<int> MobileRefinery_LeftOffset {};
-	Valueable<bool> MobileRefinery_Display { true };
-	Valueable<AffectedHouse> MobileRefinery_Display_House { AffectedHouse::All };
-	ValueableVector<AnimTypeClass*> MobileRefinery_Anims {};
-	Valueable<bool> MobileRefinery_AnimMove { false };
 	Valueable<bool> Explodes_KillPassengers { true };
 
 	Nullable<int> DeployFireWeapon {};
@@ -1100,6 +1091,8 @@ public:
 	Valueable<bool> AdvancedDrive_ConfrontEnemies { true };
 	Valueable<int> AdvancedDrive_RetreatDuration { 150 };
 	Valueable<bool> Harvester_CanGuardArea {};
+
+	std::unique_ptr<TiberiumEaterTypeClass> TiberiumEaterType {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

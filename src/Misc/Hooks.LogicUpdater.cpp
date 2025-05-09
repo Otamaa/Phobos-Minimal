@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
-	pExt->UpdateMobileRefinery();
+	pExt->UpdateTiberiumEater();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();

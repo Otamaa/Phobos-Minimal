@@ -536,17 +536,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->SelectBox.Read(exINI, pSection, "SelectBox");
 		this->HideSelectBox.Read(exINI, pSection, "HideSelectBox");
 
-		this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
-		this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransDelay");
-		this->MobileRefinery_CashMultiplier.Read(exINI, pSection, "MobileRefinery.CashMultiplier");
-		this->MobileRefinery_AmountPerCell.Read(exINI, pSection, "MobileRefinery.AmountPerCell");
-		this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
-		this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
-		this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
-		this->MobileRefinery_Display_House.Read(exINI, pSection, "MobileRefinery.Display.House");
-		this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
-		this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
-
 		this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
 
 		this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
@@ -1507,6 +1496,22 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 
+		Nullable<int> transDelay {};
+		transDelay.Read(exINI, pSection, "TiberiumEater.TransDelay");
+
+		if (transDelay.Get(-1) >= 0 && !this->TiberiumEaterType)
+			this->TiberiumEaterType = std::make_unique<TiberiumEaterTypeClass>();
+
+
+		if (this->TiberiumEaterType)
+		{
+
+			if (transDelay.isset() && transDelay.Get() < 0)
+				this->TiberiumEaterType.reset();
+			else
+				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
+		}
+
 		if (this->AttachedToObject->Passengers > 0)
 		{
 			size_t passengers = this->AttachedToObject->Passengers + 1;
@@ -1901,6 +1906,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AdvancedDrive_RetreatDuration)
 
 		.Process(this->Harvester_CanGuardArea)
+		.Process(this->TiberiumEaterType)
 		.Process(this->Spawner_DelayFrames)
 		.Process(this->Harvester_Counted)
 		.Process(this->Promote_IncludeSpawns)
@@ -2017,16 +2023,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->SelectBox)
 		.Process(this->HideSelectBox)
 
-		.Process(this->MobileRefinery)
-		.Process(this->MobileRefinery_TransRate)
-		.Process(this->MobileRefinery_CashMultiplier)
-		.Process(this->MobileRefinery_AmountPerCell)
-		.Process(this->MobileRefinery_FrontOffset)
-		.Process(this->MobileRefinery_LeftOffset)
-		.Process(this->MobileRefinery_Display)
-		.Process(this->MobileRefinery_Display_House)
-		.Process(this->MobileRefinery_Anims)
-		.Process(this->MobileRefinery_AnimMove)
 		.Process(this->Explodes_KillPassengers)
 
 		.Process(this->DeployFireWeapon)

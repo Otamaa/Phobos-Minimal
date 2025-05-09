@@ -21,6 +21,7 @@
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
+    <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
@@ -568,6 +569,7 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
     <ClInclude Include="src\New\Type\HealthBarTypeClass.h" />

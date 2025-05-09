@@ -709,7 +709,7 @@ public:
 	CDTimerClass UnitAutoDeployTimer {};
 	CellClass* SubterraneanHarvRallyPoint { nullptr };
 
-	CDTimerClass MobileRefineryTimer {};
+	CDTimerClass TiberiumEaterTimer {};
 	WarheadTypeClass* LastDamageWH {};
 
 	bool UnitIdleAction {};
@@ -785,7 +785,7 @@ public:
 	void UpdateType(TechnoTypeClass* currentType);
 	void UpdateBuildingLightning();
 	void UpdateInterceptor();
-	void UpdateMobileRefinery();
+	void UpdateTiberiumEater();
 	void UpdateMCRangeLimit();
 	void UpdateSpawnLimitRange();
 	void UpdateRevengeWeapons();
@@ -865,7 +865,6 @@ public:
 	static bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
 	static bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
 
-	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
 	static bool IsHarvesting(TechnoClass* pThis);
 	static bool HasAvailableDock(TechnoClass* pThis);

@@ -3217,6 +3217,98 @@ void TechnoExtData::UpdateInterceptor()
 	}
 }
 
+void TechnoExtData::UpdateTiberiumEater()
+{
+	const auto pThis = this->AttachedToObject;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pEaterType = pTypeExt->TiberiumEaterType.get();
+
+	if (!pEaterType)
+		return;
+
+	const int transDelay = pEaterType->TransDelay;
+
+	if (transDelay && this->TiberiumEaterTimer.InProgress())
+		return;
+
+	const auto pOwner = pThis->Owner;
+	bool active = false;
+	const bool displayCash = pEaterType->Display && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
+	int facing = pThis->PrimaryFacing.Current().GetFacing<8>();
+
+	if (facing >= 7)
+		facing = 0;
+	else
+		facing++;
+
+	const int cellCount = static_cast<int>(pEaterType->Cells.size());
+
+	for (int idx = 0; idx < cellCount; idx++)
+	{
+		const auto& cellOffset = pEaterType->Cells[idx];
+		const auto pos = TechnoExtData::GetFLHAbsoluteCoords(pThis, CoordStruct { cellOffset.X, cellOffset.Y, 0 }, false);
+		const auto pCell = MapClass::Instance->TryGetCellAt(pos);
+
+		if (!pCell)
+			continue;
+
+		if (const int contained = pCell->GetContainedTiberiumValue())
+		{
+			const int tiberiumIdx = pCell->GetContainedTiberiumIndex();
+			const int tiberiumValue = TiberiumClass::Array->Items[tiberiumIdx]->Value;
+			const int tiberiumAmount = static_cast<int>(static_cast<double>(contained) / tiberiumValue);
+			const int amount = pEaterType->AmountPerCell > 0 ? MinImpl(pEaterType->AmountPerCell.Get(), tiberiumAmount) : tiberiumAmount;
+			pCell->ReduceTiberium(amount);
+			const float multiplier = pEaterType->CashMultiplier * (1.0f + pOwner->NumOrePurifiers * RulesClass::Instance->PurifierBonus);
+			const int value = static_cast<int>(std::round(amount * tiberiumValue * multiplier));
+			pOwner->TransactMoney(value);
+			active = true;
+
+			if (displayCash)
+			{
+				auto cellCoords = pCell->GetCoords();
+				cellCoords.Z = std::max(pThis->Location.Z, cellCoords.Z);
+				FlyingStrings::AddMoneyString(true , value, pOwner, pEaterType->DisplayToHouse, cellCoords, pEaterType->DisplayOffset);
+			}
+
+			const auto& anims = pEaterType->Anims_Tiberiums[tiberiumIdx].GetElements(pEaterType->Anims);
+			const int animCount = static_cast<int>(anims.size());
+
+			if (animCount == 0)
+				continue;
+
+			AnimTypeClass* pAnimType = nullptr;
+
+			switch (animCount)
+			{
+			case 1:
+				pAnimType = anims[0];
+				break;
+
+			case 8:
+				pAnimType = anims[facing];
+				break;
+
+			default:
+				pAnimType = anims[ScenarioClass::Instance->Random.RandomRanged(0, animCount - 1)];
+				break;
+			}
+
+			if (pAnimType)
+			{
+				const auto pAnim = new AnimClass(pAnimType, pos);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false, true);
+
+				if (pEaterType->AnimMove)
+					pAnim->SetOwnerObject(pThis);
+			}
+		}
+	}
+
+	if (active && transDelay)
+		this->TiberiumEaterTimer.Start(pEaterType->TransDelay);
+}
+
 void TechnoExtData::UpdateSpawnLimitRange()
 {
 	auto const pThis = this->AttachedToObject;
@@ -4754,94 +4846,6 @@ void TechnoExtData::UpdateShield()
 
 #include <Ext/Cell/Body.h>
 
-// https://github.com/Phobos-developers/Phobos/pull/1111
-// TODO : Upate to this , seems new
-void TechnoExtData::UpdateMobileRefinery()
-{
-	auto const pThis = this->AttachedToObject;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (!(pThis->AbstractFlags & AbstractFlags::Foot)
-	|| !pTypeExt->MobileRefinery
-	|| pTypeExt->MobileRefinery_TransRate < 0
-	||  this->MobileRefineryTimer.InProgress()){
-		return;
-	}
-
-	const int cellCount =
-		std::clamp(static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()), 1,
-				static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()));
-
-	CoordStruct flh = { 0,0,0 };
-	bool active = false;
-
-	for (int idx = 0; idx < cellCount; idx++)
-	{
-		flh.X = (size_t)idx < pTypeExt->MobileRefinery_FrontOffset.size() ? pTypeExt->MobileRefinery_FrontOffset[idx] * Unsorted::LeptonsPerCell : 0;
-		flh.Y = (size_t)idx < pTypeExt->MobileRefinery_LeftOffset.size() ? pTypeExt->MobileRefinery_LeftOffset[idx] * Unsorted::LeptonsPerCell : 0;
-		auto nPos = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, false);
-		auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(nPos);
-
-		if (!pCell)
-			continue;
-
-		nPos.Z += pThis->Location.Z;
-		const int tValue = pCell->GetContainedTiberiumValue();
-
-		if (tValue != -1) {
-			active = true;
-			const int tibValue = TiberiumClass::Array->Items[tValue]->Value;
-			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
-			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? MinImpl(tAmount, pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
-			pCell->ReduceTiberium(amount);
-			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
-
-			if (pThis->Owner->CanTransactMoney(value))
-			{
-				pThis->Owner->TransactMoney(value);
-				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display, value, pThis, pTypeExt->RevengeWeapon_AffectsHouses, nPos, Point2D::Empty);
-			}
-
-			if (!pTypeExt->MobileRefinery_Anims.empty())
-			{
-				AnimTypeClass* pAnimType = nullptr;
-				int facing = pThis->PrimaryFacing.Current().GetFacing<8>();
-
-				if (facing >= 7)
-					facing = 0;
-				else
-					facing++;
-
-				switch (pTypeExt->MobileRefinery_Anims.size())
-				{
-				case 1:
-					pAnimType = pTypeExt->MobileRefinery_Anims[0];
-					break;
-				case 8:
-					pAnimType = pTypeExt->MobileRefinery_Anims[facing];
-					break;
-				default:
-					pAnimType = pTypeExt->MobileRefinery_Anims[
-						ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->MobileRefinery_Anims.size() - 1)];
-					break;
-				}
-
-				if (pAnimType)
-				{
-					auto pAnim = GameCreate<AnimClass>(pAnimType, nPos);
-					AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
-
-					if (pTypeExt->MobileRefinery_AnimMove)
-						pAnim->SetOwnerObject(pThis);
-				}
-			}
-		}
-	}
-
-	if (active)
-		this->MobileRefineryTimer.Start(pTypeExt->MobileRefinery_TransRate);
-}
-
 void TechnoExtData::UpdateRevengeWeapons()
 {
 	this->RevengeWeapons.remove_all_if([](TimedWarheadValue<WeaponTypeClass*>& item) {
@@ -5178,7 +5182,7 @@ CoordStruct TechnoExtData::GetPutLocation(CoordStruct current, int distance)
 bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select, std::optional<bool> InAir)
 {
 	const CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
-	auto pType = Survivor->GetTechnoType();
+	//auto pType = Survivor->GetTechnoType();
 
 	if (const auto pBld = pCell->GetBuilding())
 	{
@@ -5603,7 +5607,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->UnitAutoDeployTimer)
 		.Process(this->SubterraneanHarvRallyPoint, true)
 		.Process(this->IsBeingChronoSphered)
-		.Process(this->MobileRefineryTimer)
+		.Process(this->TiberiumEaterTimer)
 		.Process(this->LastDamageWH)
 		.Process(this->UnitIdleAction)
 		.Process(this->UnitIdleActionSelected)
