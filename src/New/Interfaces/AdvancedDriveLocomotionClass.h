@@ -19,12 +19,12 @@ public:
 		if (iid == __uuidof(IPiggyback))
 		{
 			*ppvObject = static_cast<IPiggyback*>(this);
-			this->AddRef();
+
+			if (*ppvObject)
+				this->AddRef();
 
 			return S_OK;
 		}
-
-		*ppvObject = nullptr;
 
 		return E_NOINTERFACE;
 	}
@@ -193,6 +193,7 @@ public:
 			return E_FAIL;
 
 		this->Piggybacker = pointer;
+		pointer->AddRef();
 
 		return S_OK;
 	}
@@ -215,37 +216,35 @@ public:
 
 		return S_OK;
 	}
+
 	virtual bool __stdcall Is_Ok_To_End() override
 	{
-		return this->Piggybacker && !this->LinkedTo->IsAttackedByLocomotor;
+		return !this->Is_Moving() && this->Piggybacker && this->UnLocked && !this->LinkedTo->IsAttackedByLocomotor;
 	}
+
 	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override
 	{
-		HRESULT hr;
-
 		if (classid == nullptr)
 			return E_POINTER;
 
 		if (this->Piggybacker)
 		{
 			IPersistStreamPtr piggyAsPersist(this->Piggybacker);
-			hr = piggyAsPersist->GetClassID(classid);
-		}
-		else
-		{
-			if (reinterpret_cast<IPiggyback*>(this) == nullptr)
-				return E_FAIL;
-
-			IPersistStreamPtr thisAsPersist(this);
-
-			if (thisAsPersist == nullptr)
-				return E_FAIL;
-
-			hr = thisAsPersist->GetClassID(classid);
+			return piggyAsPersist->GetClassID(classid);
 		}
 
-		return hr;
+		if (reinterpret_cast<IPiggyback*>(this) == nullptr)
+			return E_FAIL;
+
+		IPersistStreamPtr thisAsPersist(this);
+
+		if (thisAsPersist == nullptr)
+			return E_FAIL;
+
+		return thisAsPersist->GetClassID(classid);
+
 	}
+
 	virtual bool __stdcall Is_Piggybacking() override
 	{
 		return this->Piggybacker != nullptr;
@@ -306,6 +305,10 @@ public:
 	CoordStruct ForwardTo;
 	int TargetFrame;
 	int TargetDistance;
+
+public:
+
+	static bool IsReversing(FootClass* pFoot);
 
 private:
 	// Vanilla auxiliary function
@@ -377,5 +380,7 @@ private:
 				pLinked->OnBridge = false;
 		}
 	}
+
 	inline int UpdateSpeedAccum(int& speedAccum); // Avoid using goto
+
 };

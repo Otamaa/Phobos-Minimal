@@ -11,6 +11,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Locomotor/Cast.h>
+
 // Virtual
 
 bool __stdcall AdvancedDriveLocomotionClass::Process()
@@ -1489,8 +1491,9 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 						{
 							// Customized crush tilt speed
 							const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-							pLinked->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
-						}
+							pLinked->RockingForwardsPerFrame = this->IsForward
+							? static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05))
+							: static_cast<float>(-pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));						}
 					}
 				}
 
@@ -1502,8 +1505,9 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 					{
 						// Customized crush tilt speed
 						const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-						pLinked->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
-					}
+						pLinked->RockingForwardsPerFrame = this->IsForward
+						? static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05))
+						: static_cast<float>(-pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));					}
 				}
 			}
 			else
@@ -1686,6 +1690,13 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 	return pLinked->IsAlive ? 0 : 1;
 }
 
+bool AdvancedDriveLocomotionClass::IsReversing(FootClass* pFoot)
+{
+	const auto pLoco = locomotion_cast<AdvancedDriveLocomotionClass*>(pFoot->Locomotor.GetInterfacePtr());
+
+	return pLoco && !pLoco->IsForward;
+}
+
 ASMJIT_PATCH(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
 {
 	enum { SkipGameCode = 0x4DAA01 };
@@ -1694,12 +1705,9 @@ ASMJIT_PATCH(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
 
 	CLSID locoCLSID {};
 
-	if (SUCCEEDED(static_cast<LocomotionClass*>(pThis->Locomotor.GetInterfacePtr())->GetClassID(&locoCLSID))
-		 && locoCLSID == __uuidof(AdvancedDriveLocomotionClass)) {
-		if (!static_cast<AdvancedDriveLocomotionClass*>(pThis->Locomotor.GetInterfacePtr())->IsForward) {
-			--pThis->WalkedFramesSoFar;
-			return SkipGameCode;
-		}
+	if (AdvancedDriveLocomotionClass::IsReversing(pThis)) {
+		--pThis->WalkedFramesSoFar;
+		return SkipGameCode;
 	}
 
 	return 0; // ++pThis->WalkedFramesSoFar;
