@@ -5178,6 +5178,7 @@ CoordStruct TechnoExtData::GetPutLocation(CoordStruct current, int distance)
 bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select, std::optional<bool> InAir)
 {
 	const CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
+	auto pType = Survivor->GetTechnoType();
 
 	if (const auto pBld = pCell->GetBuilding())
 	{
@@ -5214,6 +5215,9 @@ bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Sel
 	else
 	{
 		loc.Z = floorZ;
+		//if (!MapClass::Instance->GetCellAt(loc)->IsClearToMove(pType->SpeedType, pType->MovementZone))
+		//	return false;
+
 		if (!Survivor->Unlimbo(loc, ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::NorthWest)))
 		{
 			return false;

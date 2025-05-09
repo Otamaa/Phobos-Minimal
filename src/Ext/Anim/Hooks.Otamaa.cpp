@@ -845,3 +845,13 @@ ASMJIT_PATCH(0x422CC6, AnimClass_DrawIT_SpecialDraw, 0xA)
 }
 
 #endif
+//
+//bool FakeInfantryClass::_Unlimbo(const CoordStruct& coords, DirType dir) {
+//
+//	if (!MapClass::Instance->GetCellAt(coords)->IsClearToMove(this->Type->SpeedType, this->Type->MovementZone))
+//		return false;
+//
+//	return this->InfantryClass::Unlimbo(coords, dir);
+//}
+//
+//DEFINE_FUNCTION _JUMP(CALL6, 0x4431C5, FakeInfantryClass::_Unlimbo);

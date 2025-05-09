@@ -55,6 +55,7 @@ public:
 
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;
+	bool _Unlimbo(const CoordStruct& Crd, DirType dFaceDir);
 
 	DamageState _IronCurtain(int nDur, HouseClass* pSource, bool bIsFC)
 	{

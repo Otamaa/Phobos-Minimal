@@ -34,6 +34,7 @@ public:
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override { JMP_THIS(0x51E3B0); }
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH, ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override { JMP_THIS(0x517FA0); }
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) JMP_THIS(0x51DFF0);
 
 	//TechnoClass
 	virtual int SelectWeapon(AbstractClass* pTarget) const override { JMP_THIS(0x5218E0); }

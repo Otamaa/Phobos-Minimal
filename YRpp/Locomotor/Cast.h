@@ -22,26 +22,34 @@ template<typename T>
 concept LocoHasClassGUID = std::is_base_of_v<LocomotionClass, std::remove_cvref_t<T>>&&
 std::is_same_v<std::remove_reference_t<decltype(T::ClassGUID.get())>, CLSID>;
 
+template<typename Base>
+concept LocoIsDerived = std::derived_from<Base, LocomotionClass> && !std::is_same_v<LocomotionClass, Base>;
+
 template <typename T, bool check = false>
 __forceinline T locomotion_cast(ILocomotion* iLoco)
 {
 	static_assert(std::is_pointer<T>::value, "locomotion_cast: Pointer is required.");
+
 	using Base = std::remove_cvref_t<std::remove_const_t<std::remove_pointer_t<T>>>;
-	static_assert(std::is_base_of_v<LocomotionClass, Base> && !std::is_same_v<LocomotionClass, Base>,
+
+	static_assert(LocoIsDerived<Base>,
 		"T needs to point to a class derived from LocomotionClass");
 
 	if COMPILETIMEEVAL (check){
-		if (!iLoco)
-			return (T)nullptr;
+		if (!iLoco) {
+			return static_cast<T>(nullptr);
+		}
 	}
 
 	if COMPILETIMEEVAL (LocoHasILocoVtbl<Base>) {
 		return (VTable::Get(iLoco) == Base::ILoco_vtable) ? static_cast<T>(iLoco) : nullptr;
-	}
-	else if COMPILETIMEEVAL (LocoHasClassGUID<Base>)
-	{
+	} else if COMPILETIMEEVAL (LocoHasClassGUID<Base>) {
 		CLSID locoCLSID;
 		return (SUCCEEDED(static_cast<LocomotionClass*>(iLoco)->GetClassID(&locoCLSID)) && locoCLSID == Base::ClassGUID()) ?
+			static_cast<T>(iLoco) : nullptr;
+	} else {
+		CLSID locoCLSID;
+		return (SUCCEEDED(static_cast<LocomotionClass*>(iLoco)->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(Base)) ?
 			static_cast<T>(iLoco) : nullptr;
 	}
 }
