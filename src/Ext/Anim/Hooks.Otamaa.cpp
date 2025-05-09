@@ -265,31 +265,34 @@ void FakeAnimClass::_ApplyDeformTerrrain()
 void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridge)
 {
 	RectangleStruct updaterect(0, 0, 0, 0);
-	if (this->Type->IsTiberium && !isOnbridge)
-	{
+
+	if (this->Type->IsTiberium && !isOnbridge && this->Type->TiberiumSpawnType) {
 		const int _radius = this->Type->TiberiumSpreadRadius;
 
-		for (int x = -_radius; x <= _radius; ++x)
-		{
-			for (int y = -_radius; y <= _radius; y++)
-			{
-				if ((int)Math::sqrt((double)x * (double)x + (double)y * (double)y) <= _radius)
-				{
+		for (int x = -_radius; x <= _radius; ++x) {
+			for (int y = -_radius; y <= _radius; y++) {
+				if ((int)Math::sqrt((double)x * (double)x + (double)y * (double)y) <= _radius) {
 					CellClass* cellptr = MapClass::Instance->GetCellAt(CellClass::Coord2Cell(coords) + CellSpread::AdjacentCell[(int)x & 7]);
 
-					if (cellptr->CanTiberiumGerminate(nullptr) && this->Type->TiberiumSpawnType != nullptr)
-					{
-						const auto pTib = TiberiumExtContainer::LinkedType[OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex]];
+					if (cellptr->CanTiberiumGerminate(nullptr)) {
+						if (auto pType = OverlayTypeClass::Array->GetItemOrDefault(this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(3))) {
 
-						new OverlayClass(
-							OverlayTypeClass::Array->Items[this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1)],
-							cellptr->MapCoords,
-							-1);
+							if (!pType->Tiberium)
+								return; // not valid
 
-						cellptr->OverlayData = ScenarioClass::Instance->Random.RandomFromMax(2);
-						RectangleStruct overlayrect = cellptr->GetOverlayShapeRect();
-						overlayrect.Y -= TacticalClass::view_bound->Y;
-						updaterect = RectangleStruct::Union(updaterect, overlayrect);
+							new OverlayClass(
+								pType,
+								cellptr->MapCoords,
+								-1);
+
+							cellptr->OverlayData = ScenarioClass::Instance->Random.RandomFromMax(2);
+							RectangleStruct overlayrect = cellptr->GetOverlayShapeRect();
+							overlayrect.Y -= TacticalClass::view_bound->Y;
+							updaterect = RectangleStruct::Union(updaterect, overlayrect);
+						}
+						else {
+							return; // not valid
+						}
 					}
 				}
 			}
@@ -513,224 +516,218 @@ bool NOINLINE UpdateLoopDelay(FakeAnimClass* pThis) {
 void FakeAnimClass::_AI()
 {
 	if (this->IsAlive) {
+
 		if (!this->GetCoords().IsValid()) {
 			this->__ToDelete_197 = true;
 			this->TimeToDie = true;
 			this->UnInit();
 			return;
 		}
-	}
 
-	if (!this->IsPlaying && this->Type->Report != -1)
-	{
-		VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
-	}
+		if (!this->IsPlaying && this->Type->Report != -1) {
+			VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
+		}
 
-	if (this->Type->IsFlamingGuy)
-	{
-		this->FlamingGuy_AI();
-		this->ObjectClass::Update();
-	} else {
-		TechnoExt_ExtData::UpdateAlphaShape(this);
-	}
+		if (this->Type->IsFlamingGuy) {
+			this->FlamingGuy_AI();
+			this->ObjectClass::Update();
+		} else {
+			TechnoExt_ExtData::UpdateAlphaShape(this);
+		}
 
-	if (this->Type->PsiWarning)
-	{
-		this->Invisible = !Is_Visible_To_Psychic(this->Owner, MapClass::Instance->GetCellAt(this->GetCoords()));
-	}
+		if (this->Type->PsiWarning) {
+			this->Invisible = !Is_Visible_To_Psychic(this->Owner, MapClass::Instance->GetCellAt(this->GetCoords()));
+		}
 
-	if (this->Type == RulesClass::Instance->Behind) {
-		this->Invisible = !GameOptionsClass::Instance->ShowHidden;
-	}
+		if (this->Type == RulesClass::Instance->Behind) {
+			this->Invisible = !GameOptionsClass::Instance->ShowHidden;
+		}
 
-	this->_ApplyHideIfNoOre();
-	this->_CreateFootApplyOccupyBits();
+		this->_ApplyHideIfNoOre();
+		this->_CreateFootApplyOccupyBits();
 
-	if (this->Unpaused && this->PausedAnimFrame == this->Animation.Stage)
-	{
-		this->Unpaused = false;
-	}
+		if (this->Unpaused && this->PausedAnimFrame == this->Animation.Stage) {
+			this->Unpaused = false;
+		}
 
-	if (this->HasExtras)
-	{
-		const auto bounceStatus = this->AnimExtras();
+		if (this->HasExtras) {
+			const auto bounceStatus = this->AnimExtras();
 
-		if (bounceStatus == BounceClass::Status::Impact || bounceStatus == BounceClass::Status::Bounce)
-		{
-			auto pAnimCoords = this->GetCoords();
-			auto pAnimCell = MapClass::Instance->GetCellAt(pAnimCoords);
-			const bool water = pAnimCell->LandType == LandType::Water;
-			const bool isBridge = pAnimCoords.Z >= CellClass::BridgeHeight + MapClass::Instance->GetCellFloorHeight(this->Location);
-
-			AnimExtData::OnExpired(this, water, isBridge);
-
-			if (!water || isBridge)
+			if (bounceStatus == BounceClass::Status::Impact || bounceStatus == BounceClass::Status::Bounce)
 			{
-				auto _bounceCoords = this->Bounce.GetCoords();
-				this->_ApplySpawns(_bounceCoords);
-				this->_ApplyDeformTerrrain();
-				this->_SpreadTiberium(_bounceCoords, isBridge);
-			}
+				auto pAnimCoords = this->GetCoords();
+				auto pAnimCell = MapClass::Instance->GetCellAt(pAnimCoords);
+				const bool water = pAnimCell->LandType == LandType::Water;
+				const bool isBridge = pAnimCoords.Z >= CellClass::BridgeHeight + MapClass::Instance->GetCellFloorHeight(this->Location);
 
+				AnimExtData::OnExpired(this, water, isBridge);
+
+				if (!water || isBridge)
+				{
+					auto _bounceCoords = this->Bounce.GetCoords();
+					this->_ApplySpawns(_bounceCoords);
+					this->_ApplyDeformTerrrain();
+					this->_SpreadTiberium(_bounceCoords, isBridge);
+				}
+
+				this->TimeToDie = true;
+				this->UnInit();
+				return;
+			}
+		}
+
+		if (this->IsAlive && !this->__ToDelete_197) {
+			this->_DrawTrailerAnim();
+		}
+
+		if (this->Type == RulesClass::Instance->DropZoneAnim) {
+			this->__ToDelete_197 = MapClass::Instance->GetCellAt(this->GetCoords())->GetBuilding() != nullptr;
+		}
+
+		if (this->__ToDelete_197) {
+			this->TimeToDie = true;
 			this->UnInit();
 			return;
 		}
-	}
 
-	if (this->IsAlive && !this->__ToDelete_197) {
-		this->_DrawTrailerAnim();
-	}
-
-	if (this->Type == RulesClass::Instance->DropZoneAnim) {
-		this->__ToDelete_197 = MapClass::Instance->GetCellAt(this->GetCoords())->GetBuilding() != nullptr;
-	}
-
-	if (this->__ToDelete_197)
-	{
-		this->UnInit();
-		return;
-	}
-
-	if (this->SkipProcessOnce)
-	{
-		this->SkipProcessOnce = false;
-		return;
-	}
-
-	if (UpdateLoopDelay(this)) {
-		return;
-	}
-
-	if (this->IsAlive)
-	{
-		if (this->Type->IsVeins) {
-			this->_ApplyVeinsDamage();
+		if (this->SkipProcessOnce) {
+			this->SkipProcessOnce = false;
+			return;
 		}
 
-		if (this->Type->IsAnimatedTiberium)
-		{
-			auto _animated_coords = this->GetCoords() - CoordStruct(384, 384, 0);
-			auto pCell = MapClass::Instance->GetCellAt(_animated_coords);
+		if (UpdateLoopDelay(this)) {
+			return;
+		}
 
-			if (pCell->OverlayTypeIndex == -1 || OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->CellAnim != this->Type)
+		if (this->IsAlive)
+		{
+			if (this->Type->IsVeins) {
+				this->_ApplyVeinsDamage();
+			}
+
+			if (this->Type->IsAnimatedTiberium) {
+				auto _animated_coords = this->GetCoords() - CoordStruct(384, 384, 0);
+				auto pCell = MapClass::Instance->GetCellAt(_animated_coords);
+
+				if (pCell->OverlayTypeIndex == -1 || OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->CellAnim != this->Type) {
+					this->__ToDelete_197 = true;
+				}
+			}
+
+			if (this->Type->End == -1)
 			{
-				this->__ToDelete_197 = true;
+				if(auto pImage = this->Type->GetImage())
+					this->Type->End = pImage->Frames;
+
+				if (this->Type->Shadow)
+					this->Type->End /= 2;
 			}
-		}
 
-		if (this->Type->End == -1)
-		{
-			if(auto pImage = this->Type->GetImage())
-				this->Type->End = pImage->Frames;
+			if (this->Type->LoopEnd == -1)
+			{
+				this->Type->LoopEnd = this->Type->End;
+			}
 
-			if (this->Type->Shadow)
-				this->Type->End /= 2;
-		}
+			this->Mark(MarkType::Change);
 
-		if (this->Type->LoopEnd == -1)
-		{
-			this->Type->LoopEnd = this->Type->End;
-		}
-
-		this->Mark(MarkType::Change);
-
-		if (!this->PowerOff && !this->Paused)
-		{
-			if (!this->Animation.Update())
-				return;
-
-			if (this->Type->Damage > 0.0 && !this->HasExtras && !this->InLimbo) {
-				AnimExtData::DealDamageDelay(this);
-				if (!this->IsAlive)
+			if (!this->PowerOff && !this->Paused)
+			{
+				if (!this->Animation.Update())
 					return;
-			}
 
-			if (this->Type->MiddleFrameIndex
-				&& this->Animation.Stage + this->Type->Start == this->Type->MiddleFrameIndex
-				&& !this->HasExtras) {
-				this->_Middle();
-			}
+				if (this->Type->Damage > 0.0 && !this->HasExtras && !this->InLimbo) {
+					AnimExtData::DealDamageDelay(this);
+					if (!this->IsAlive)
+						return;
+				}
 
-			if (PingPong(this)) {
-				return;
-			}
+				if (this->Type->MiddleFrameIndex
+					&& this->Animation.Stage + this->Type->Start == this->Type->MiddleFrameIndex
+					&& !this->HasExtras) {
+					this->_Middle();
+				}
 
-			if (StageLoops(this)){
-				if (ReverseAndShadow(this)) {
+				if (PingPong(this)) {
 					return;
 				}
+
+				if (StageLoops(this)){
+					if (ReverseAndShadow(this)) {
+						return;
+					}
+				}
+
+				if (this->RemainingIterations && this->RemainingIterations != UCHAR_MAX) this->RemainingIterations--;
+				if (this->RemainingIterations)
+				{
+					if (this->Type->Reverse || this->Reverse)
+					{
+						this->Animation.Stage = this->Type->LoopEnd;
+					}
+					else
+					{
+						this->Animation.Stage = this->Type->LoopStart - this->Type->Start;
+					}
+
+					if (this->Type->RandomLoopDelay.IsValid())
+					{
+						this->LoopDelay = ScenarioClass::Instance->Random.RandomRanged(this->Type->RandomLoopDelay);
+					}
+
+					return;
+				}
+
+				this->_GetExtData()->OnEnd();
+
+				if (const auto pNext = this->Type->Next)
+				{
+					SwapType(this, pNext);
+
+					this->_GetExtData()->OnTypeChange();
+
+					if (this->Type->End == -1)
+					{
+						if (auto pImage = this->Type->GetImage())
+							this->Type->End = pImage->Frames;
+
+						if (this->Type->Shadow)
+							this->Type->End /= 2;
+					}
+
+					if (this->Type->LoopEnd == -1)
+					{
+						this->Type->LoopEnd = this->Type->End;
+					}
+
+					this->__ToDelete_197 = false;
+					this->RemainingIterations = this->Type->LoopCount;
+					this->Accum = 0.0;
+					int delay = this->Type->Rate;
+					if (this->Type->RandomRate.IsValid())
+					{
+						delay = ScenarioClass::Instance->Random.RandomRanged(this->Type->RandomRate);
+					}
+
+					if (this->Type->Normalized)
+					{
+						delay = GameOptionsClass::Instance->GetAnimSpeed(delay);
+					}
+
+					this->Animation.Start(delay);
+					this->Animation.Stage = this->Type->Start;
+					if(this->_GetTypeExtData()->Damaging_UseSeparateState){
+						int damagedelay = this->_GetTypeExtData()->Damaging_Rate == -1 ? this->Animation.Step : this->_GetTypeExtData()->Damaging_Rate;
+						this->_GetExtData()->DamagingState.Start(damagedelay);
+					}
+					this->_Start();
+					return;
+				}
+
+				this->_CreateFoot();
+
+				this->TimeToDie = true;
+				this->UnInit();
 			}
-
-			if (this->RemainingIterations && this->RemainingIterations != UCHAR_MAX) this->RemainingIterations--;
-			if (this->RemainingIterations)
-			{
-				if (this->Type->Reverse || this->Reverse)
-				{
-					this->Animation.Stage = this->Type->LoopEnd;
-				}
-				else
-				{
-					this->Animation.Stage = this->Type->LoopStart - this->Type->Start;
-				}
-
-				if (this->Type->RandomLoopDelay.IsValid())
-				{
-					this->LoopDelay = ScenarioClass::Instance->Random.RandomRanged(this->Type->RandomLoopDelay);
-				}
-
-				return;
-			}
-
-			this->_GetExtData()->OnEnd();
-
-			if (const auto pNext = this->Type->Next)
-			{
-				SwapType(this, pNext);
-
-				this->_GetExtData()->OnTypeChange();
-
-				if (this->Type->End == -1)
-				{
-					if (auto pImage = this->Type->GetImage())
-						this->Type->End = pImage->Frames;
-
-					if (this->Type->Shadow)
-						this->Type->End /= 2;
-				}
-
-				if (this->Type->LoopEnd == -1)
-				{
-					this->Type->LoopEnd = this->Type->End;
-				}
-
-				this->__ToDelete_197 = false;
-				this->RemainingIterations = this->Type->LoopCount;
-				this->Accum = 0.0;
-				int delay = this->Type->Rate;
-				if (this->Type->RandomRate.IsValid())
-				{
-					delay = ScenarioClass::Instance->Random.RandomRanged(this->Type->RandomRate);
-				}
-
-				if (this->Type->Normalized)
-				{
-					delay = GameOptionsClass::Instance->GetAnimSpeed(delay);
-				}
-
-				this->Animation.Start(delay);
-				this->Animation.Stage = this->Type->Start;
-				if(this->_GetTypeExtData()->Damaging_UseSeparateState){
-					int damagedelay = this->_GetTypeExtData()->Damaging_Rate == -1 ? this->Animation.Step : this->_GetTypeExtData()->Damaging_Rate;
-					this->_GetExtData()->DamagingState.Start(damagedelay);
-				}
-				this->_Start();
-				return;
-			}
-
-			this->_CreateFoot();
-
-			this->TimeToDie = true;
-			this->UnInit();
 		}
 	}
 }

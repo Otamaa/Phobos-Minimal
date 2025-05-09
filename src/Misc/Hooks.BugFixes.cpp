@@ -2503,6 +2503,41 @@ ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
 	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
 }
 
+DEFINE_HOOK(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
+{
+	enum { SkipTargetCrdRecal = 0x64D598 };
+	GET(TechnoClass*, pTechno, EBP);
+	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+}
+
+DEFINE_HOOK(0x64D575, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal2, 0x6)
+{
+	enum { SkipTargetCrdRecal = 0x64D598 };
+	GET(TechnoClass*, pTechno, EBP);
+	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+}
+
+DEFINE_HOOK(0x64D5C5, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal3, 0x6)
+{
+	enum { SkipTargetCrdRecal = 0x64D659 };
+	GET(TechnoClass*, pTechno, EBP);
+	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+}
+
+DEFINE_HOOK(0x51BFA2, InfantryClass_IsCellOccupied_Start, 0x6)
+{
+	enum { MoveOK = 0x51C02D };
+	GET(InfantryClass*, pThis, EBP);
+	return pThis->IsInAir() && pThis->Type->BalloonHover ? MoveOK : 0;
+}
+
+DEFINE_HOOK(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
+{
+	enum { MoveOK = 0x73F23F };
+	GET(UnitClass*, pThis, ECX);
+	return pThis->IsInAir() && pThis->Type->BalloonHover ? MoveOK : 0;
+}
+
 #ifdef PassengerRelatedFix
 
 #include <Locomotor/LocomotionClass.h>
@@ -2596,7 +2631,7 @@ ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetUnloadingHarvester, 0x7)
 {
 	GET(FootClass*, pTarget, ESI);
-	
+
 	pTarget->OnBridge = false;
 	if (const auto pUnit = cast_to<UnitClass* , false>(pTarget))
 		pUnit->Unloading = false;

@@ -494,18 +494,17 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 			continue;
 
 		// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
-		int weaponIndex = pTechno->SelectWeapon(object);
-		auto weaponType = pTechno->GetWeapon(weaponIndex)->WeaponType;
+		const auto weaponType = pTechno->GetWeapon(pTechno->SelectWeapon(object))->WeaponType;
 
-		if (weaponType && weaponType->Projectile->AA)
-			unitWeaponsHaveAA = true;
+		if (weaponType && weaponType->Projectile)
+			unitWeaponsHaveAA = weaponType->Projectile->AA;
 
-		if ((weaponType && weaponType->Projectile->AG) || agentMode)
-			unitWeaponsHaveAG = true;
+		if ((weaponType && weaponType->Projectile) || agentMode)
+			unitWeaponsHaveAG = weaponType->Projectile->AG;
 
 		if (!agentMode)
 		{
-			if (weaponType){
+			if (weaponType && weaponType->Warhead){
 				if(GeneralUtils::GetWarheadVersusArmor(
 					weaponType->Warhead,
 					TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
@@ -914,13 +913,13 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			auto const& [WeaponType1, WeaponType2] = ScriptExtData::GetWeapon(pTechno);
 
 			bool CanMC = false;
-			if (WeaponType1)
+			if (WeaponType1 && WeaponType1->Warhead)
 			{
 				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType1->Warhead);
 				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType1->Warhead->MindControl;
 			}
 
-			if (!CanMC && WeaponType2)
+			if (!CanMC && WeaponType2 && WeaponType2->Warhead)
 			{
 				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType2->Warhead);
 				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType2->Warhead->MindControl;
@@ -1434,13 +1433,29 @@ void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& h
 
 	const auto&[pWeaponPrimary, pWeaponSecondary] = ScriptExtData::GetWeapon(pTechno);
 
-	if ((pWeaponPrimary && pWeaponPrimary->Projectile->AA) || (pWeaponSecondary && pWeaponSecondary->Projectile->AA))
-		hasAntiAir = true;
+	if (pWeaponPrimary && pWeaponPrimary->Projectile){
+		hasAntiAir = pWeaponPrimary->Projectile->AA;
+	}
+	else if (pWeaponSecondary && pWeaponSecondary->Projectile) {
+		hasAntiAir = pWeaponSecondary->Projectile->AA;
+	}
 
-	if ((agentMode 
-	|| (pWeaponPrimary && pWeaponPrimary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly) 
-	|| (pWeaponSecondary && pWeaponSecondary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly)))
+	if(agentMode){
 		hasAntiGround = true;
+		return;
+	}
+
+	if (pWeaponPrimary && pWeaponPrimary->Projectile) {
+		hasAntiGround = pWeaponPrimary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly;
+	} else if (pWeaponSecondary && pWeaponSecondary->Projectile) {
+		hasAntiGround = pWeaponSecondary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponSecondary->Projectile)->AAOnly;
+	}
+
+	//if (pWeaponPrimary && !pWeaponPrimary->Projectile)
+	//	Debug::FatalError("Weapon[%s] has no projectile !\n", pWeaponPrimary->ID);
+
+	//if(pWeaponSecondary && !pWeaponSecondary->Projectile)
+	//	Debug::FatalError("Weapon[%s] has no projectile !\n", pWeaponSecondary->ID);
 }
 
 bool ScriptExtData::IsUnitArmed(TechnoClass* pTechno)
