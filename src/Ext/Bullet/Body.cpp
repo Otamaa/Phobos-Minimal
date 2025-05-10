@@ -45,6 +45,46 @@ static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, Weap
 	return true;
 }
 
+void BulletExtData::ApplyArcingFix()
+{
+	auto pThis = this->AttachedToObject;
+	auto const pType = pThis->Type;
+	bool inaccutate = pType->Inaccurate;
+	const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pType);
+	bool elevationFix = !pTypeExt->Arcing_AllowElevationInaccuracy;
+
+	if (!inaccutate && !elevationFix)
+		return;
+
+	auto theSourceCoords = pThis->GetCoords();
+	auto theTargetCoords = pThis->TargetCoords;
+
+	if (inaccutate)
+	{
+		const auto offsetMult = 0.0004 * theSourceCoords.DistanceFrom(theTargetCoords);
+		const auto offsetMin = static_cast<int>(offsetMult * pTypeExt->BallisticScatterMin.Get(Leptons(0)));
+		const auto offsetMax = static_cast<int>(offsetMult * pTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter)));
+		const auto offsetDistance = ScenarioClass::Instance->Random.RandomRanged(offsetMin, offsetMax);
+		theTargetCoords = MapClass::GetRandomCoordsNear(theTargetCoords, offsetDistance, false);
+	}
+
+	const auto distanceCoords = theTargetCoords - theSourceCoords;
+	const auto horizontalDistance = Point2D { distanceCoords.X, distanceCoords.Y }.Length();
+	const bool lobber = pThis->WeaponType->Lobber || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
+	// The lower the horizontal velocity, the higher the trajectory
+	// WW calculates the launch angle (and limits it) before calculating the velocity
+	// Here, some magic numbers are used to directly simulate its calculation
+	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
+	const double gravity = pTypeExt->GetAdjustedGravity();
+	pThis->Speed = static_cast<int>(speedMult * sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
+
+	const auto mult = pThis->Speed / horizontalDistance;
+	const auto zDelta = elevationFix ? distanceCoords.Z : 0;
+	pThis->Velocity.X = distanceCoords.X * mult;
+	pThis->Velocity.Y = distanceCoords.Y * mult;
+	pThis->Velocity.Z = zDelta * mult + (gravity * horizontalDistance) / (2 * pThis->Speed);
+}
+
 BulletExtData::~BulletExtData()
 {
 	// mimicking how this thing does , since the detach seems not properly handle these

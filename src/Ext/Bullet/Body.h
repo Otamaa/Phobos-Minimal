@@ -55,6 +55,7 @@ public:
 	void InitializeLaserTrails();
 
 	void CreateAttachedSystem();
+	void ApplyArcingFix();
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of(){
 		return sizeof(BulletExtData) -
@@ -83,7 +84,7 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 
-public: 
+public:
 
 	static void SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool randomVelocity);
 	static void SimulatedFiringEffects(BulletClass* pBullet, HouseClass* pHouse, ObjectClass* pAttach, bool firingEffect, bool visualEffect);

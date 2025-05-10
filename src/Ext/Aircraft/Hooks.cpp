@@ -96,10 +96,14 @@ ASMJIT_PATCH(0x417FF1, AircraftClass_Mission_Attack_StrafeShots, 0x6)
 	return 0;
 }
 
+#include <Ext/BulletType/Body.h>
+
 COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
 	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
-		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
+		.Get(pWeapon->Projectile->ROT <= 1
+			&& !pWeapon->Projectile->Inviso)
+			&& !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->TrajectoryType;
 }
 
 bool FireBurst(AircraftClass* pAir, AbstractClass* pTarget)
