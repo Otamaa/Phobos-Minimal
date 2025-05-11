@@ -3,7 +3,7 @@
 #include <Utilities/SavegameDef.h>
 
 class TechnoClass;
-class AresPoweredUnit
+class PoweredUnitClass
 {
 	TechnoClass* Techno {};
 	int LastScan {};
@@ -33,22 +33,14 @@ public:
 		return this->Powered;
 	}
 
-	COMPILETIMEEVAL AresPoweredUnit() = default;
-	COMPILETIMEEVAL ~AresPoweredUnit() = default;
+	COMPILETIMEEVAL PoweredUnitClass() = default;
+	COMPILETIMEEVAL ~PoweredUnitClass() = default;
 
 	explicit operator bool() const {
         return IsActive && this->Techno;
     }
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return this->Serialize(Stm);
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return const_cast<AresPoweredUnit*>(this)->Serialize(Stm);
-	}
+	DefaultSaveLoadFunc(PoweredUnitClass)
 
 private:
 	template <typename T>

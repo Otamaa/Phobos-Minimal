@@ -618,7 +618,6 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->MyPrismForwarding.reset();
 		pBuildingExt->TechnoExt->Shield.release();
 		pBuildingExt->TechnoExt->Trails.clear();
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
@@ -1368,8 +1367,6 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Cameo_ShouldCount.Read(exINI, pSection, "Cameo.ShouldCount");
 
 #pragma region Otamaa
-		this->IsPrism.Read(exINI, pSection, "IsPrismTower");
-
 		//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
 		auto GetGarrisonAnim = [&exINI, pSection](
@@ -2095,8 +2092,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NextBuilding_Prev)
 		.Process(this->NextBuilding_Next)
 		.Process(this->NextBuilding_CurrentHeapId)
-
-		.Process(this->IsPrism)
 
 		.Process(this->AutoBuilding)
 		.Process(this->AutoBuilding_Gap)

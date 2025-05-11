@@ -2865,7 +2865,7 @@ static FORCEDINLINE TechnoTypeExtData* GetTypeExtData(TechnoClass* pThis , bool 
 		pTechnoType = pTechnoTyper;
 	}
 
-	if (pTechnoType)
+	if (!pTechnoType)
 		return nullptr;
 
 	return TechnoTypeExtContainer::Instance.Find(pTechnoType);

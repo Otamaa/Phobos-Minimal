@@ -17,7 +17,7 @@
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
-#include <Misc/Ares/Hooks/Classes/PrismForwardingData.h>
+#include <New/AnonymousType/PrismForwardingData.h>
 
 #include <Misc/Defines.h>
 
@@ -323,8 +323,6 @@ public:
 	int NextBuilding_CurrentHeapId { -1 };
 
 	Nullable<Point2D> BarracksExitCell {};
-
-	Valueable<bool> IsPrism { false };
 
 	Nullable<bool> AutoBuilding { };
 	Valueable<int> AutoBuilding_Gap { 1 };

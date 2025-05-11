@@ -711,7 +711,7 @@ namespace Savegame
 					Debug::FatalError("Cannot save SHPStruct, because it isn't a reference.");
 			}
 
-			//write it as bool to make sure 
+			//write it as bool to make sure
 			if (Savegame::WritePhobosStream(Stm, filename != nullptr))
 			{
 				if (filename) {
@@ -1435,3 +1435,7 @@ namespace Savegame
 	};
 
 }
+
+#define DefaultSaveLoadFunc(cls) \
+bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return this->Serialize(Stm); } \
+bool Save(PhobosStreamWriter& Stm) const { return const_cast<cls*>(this)->Serialize(Stm); }

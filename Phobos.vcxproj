@@ -22,6 +22,8 @@
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
+    <ClCompile Include="src\New\Entity\PoweredUnitClass.cpp" />
+    <ClCompile Include="src\New\Entity\RadarJammerClass.cpp" />
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
@@ -319,8 +321,8 @@
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.cpp" />
+    <ClCompile Include="src\New\Entity\PrismForwarding.cpp" />
+    <ClCompile Include="src\New\AnonymousType\PrismForwardingData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\AIBasePlan.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\AIControl.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Commands\DumpMemory.cpp" />
@@ -815,11 +817,11 @@
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresChecksummer.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresJammer.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\Classes\AresPoweredUnit.h" />
+    <ClInclude Include="src\New\Entity\RadarJammerClass.h" />
+    <ClInclude Include="src\New\Entity\PoweredUnitClass.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwarding.h" />
-    <ClInclude Include="src\Misc\Ares\Hooks\Classes\PrismForwardingData.h" />
+    <ClInclude Include="src\New\Entity\PrismForwarding.h" />
+    <ClInclude Include="src\New\AnonymousType\PrismForwardingData.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Commands\AIBasePlan.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Commands\AIControl.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Commands\DumpMemory.h" />

@@ -11,7 +11,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
 
-#include <Misc/Ares/Hooks/Classes/PrismForwarding.h>
+#include <New/Entity/PrismForwarding.h>
 
 class BuildingExtData final : public MemoryPoolObject
 {
@@ -30,7 +30,7 @@ public:
 	BuildingTypeExtData* Type { nullptr };
 	TechnoExtData* TechnoExt { nullptr };
 
-	std::unique_ptr<PrismForwarding> MyPrismForwarding { nullptr };
+	PrismForwarding MyPrismForwarding { };
 
 	bool DeployedTechno { false };
 	int LimboID { -1 };

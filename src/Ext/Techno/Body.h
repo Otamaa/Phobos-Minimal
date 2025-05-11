@@ -27,8 +27,8 @@
 #include <Utilities/BuildingBrackedPositionData.h>
 #include <Utilities/MemoryPoolUniquePointer.h>
 
-#include <Misc/Ares/Hooks/Classes/AresPoweredUnit.h>
-#include <Misc/Ares/Hooks/Classes/AresJammer.h>
+#include <New/Entity/PoweredUnitClass.h>
+#include <New/Entity/RadarJammerClass.h>
 
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
@@ -590,8 +590,8 @@ public:
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
-	AresPoweredUnit PoweredUnit {};
-	AresJammer RadarJammer {};
+	PoweredUnitClass PoweredUnit {};
+	RadarJammerClass RadarJammer {};
 
 	BuildingLightClass* BuildingLight { 0 };
 

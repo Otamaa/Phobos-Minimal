@@ -4,7 +4,7 @@
 
 class TechnoClass;
 class BuildingClass;
-class AresJammer
+class RadarJammerClass
 {
 	int LastScan {};							//!< Frame number when the last scan was performed.
 	TechnoClass* AttachedToObject {};			//!< Pointer to game object this jammer is on
@@ -37,25 +37,17 @@ public:
 
 public:
 
-	~AresJammer()
+	~RadarJammerClass()
 	{
 		this->UnjamAll();
 	}
 
-	AresJammer() = default;
+	RadarJammerClass() = default;
 
 	void UnjamAll();						//!< Unregisters this Jammer on all structures.
 	void Update();							//!< Updates this Jammer's status on all eligible structures.
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return this->Serialize(Stm);
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return const_cast<AresJammer*>(this)->Serialize(Stm);
-	}
+	DefaultSaveLoadFunc(RadarJammerClass)
 
 private:
 	template <typename T>

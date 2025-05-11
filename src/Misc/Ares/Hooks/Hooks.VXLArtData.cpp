@@ -579,6 +579,10 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 	uTypeExt->ApplyTurretOffset(&mtx, Game::Pixel_Per_Lepton());
 	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+	const bool inRecoil = pType->TurretRecoil && pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive;
+
+	if (inRecoil)
+		mtx.TranslateX(-pThis->TurretRecoil.TravelSoFar);
 
 	auto tur = TechnoTypeExtData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber);
 
@@ -607,18 +611,24 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		pThis->DrawVoxelShadow(
 			tur,
 			0,
-			vxl_index_key,
-			cache,
+			(inRecoil ? std::bit_cast<VoxelIndexKey>(-1) : vxl_index_key),
+			(inRecoil ? nullptr : cache),
 			bounding,
 			&why,
 			&mtx,
-			cache != nullptr,
+			(!inRecoil && cache != nullptr),
 			surface,
 			shadow_point
 		);
 
 		// and you are utterly fucked
-		if (haveBar)
+		if (haveBar){
+
+			if (pType->TurretRecoil && pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive)
+				mtx.TranslateX(-pThis->BarrelRecoil.TravelSoFar);
+
+			mtx.ScaleX(static_cast<float>(Math::cos(-pThis->BarrelFacing.Current().GetRadian<32>())));
+
 			pThis->DrawVoxelShadow(
 				bar,
 				0,
@@ -631,6 +641,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 				surface,
 				shadow_point
 			);
+		}
 	}
 
 	return SkipDrawing;

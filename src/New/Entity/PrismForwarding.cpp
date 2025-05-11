@@ -191,12 +191,12 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 	{
 		auto const pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
 
-		if (auto& pSlve = pSlaveData->MyPrismForwarding) {
-			if (this->ValidateSupportTower(TargetTower, pSlve.get())) {
-				SlaveTower->GetRenderCoords(&curPosition);
-				int Distance = static_cast<int>(MyPosition.DistanceFrom(curPosition));
-				EligibleTowers->emplace_back(pSlve.get(), Distance );
-			}
+		auto pSlve = &pSlaveData->MyPrismForwarding;
+
+		if (this->ValidateSupportTower(TargetTower, pSlve)) {
+			SlaveTower->GetRenderCoords(&curPosition);
+			int Distance = static_cast<int>(MyPosition.DistanceFrom(curPosition));
+			EligibleTowers->emplace_back(pSlve , Distance );
 		}
 	}
 

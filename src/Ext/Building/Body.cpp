@@ -26,11 +26,7 @@ void BuildingExtData::InitializeConstant()
 
 	if (pTypeExt)
 	{
-		if (pTypeExt->IsPrism)
-		{
-			this->MyPrismForwarding = std::make_unique<PrismForwarding>();
-			this->MyPrismForwarding->Owner = this->AttachedToObject;
-		}
+		this->MyPrismForwarding.Owner = this->AttachedToObject;
 
 		if(!pTypeExt->DamageFire_Offs.empty())
 			this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
@@ -504,8 +500,7 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
-	if(this->MyPrismForwarding)
-		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
+	this->MyPrismForwarding.InvalidatePointer(ptr, bRemoved);
 }
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
@@ -831,7 +826,6 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->MyPrismForwarding.reset();
 		pBuildingExt->TechnoExt->Shield.release();
 		pBuildingExt->TechnoExt->Trails.clear();
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
