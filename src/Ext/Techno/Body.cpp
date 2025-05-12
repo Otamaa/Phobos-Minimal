@@ -3646,7 +3646,7 @@ void TechnoExtData::UpdateEatPassengers()
 						{
 							pPassenger->Absorbed = false;
 
-							if (pBld->Type->ExtraPowerBonus > 0)
+							if (pBld->Type->ExtraPowerBonus || pBld->Type->ExtraPowerDrain)
 							{
 								pBld->Owner->RecheckPower = true;
 							}
@@ -3743,6 +3743,10 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 		GameDelete<true, false>(pThis);
 	else
 		pThis->UnInit();
+
+	// Handle extra power
+	if (pThis->Absorbed && pThis->Transporter)
+		pThis->Transporter->Owner->RecheckPower = true;
 }
 
 void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)

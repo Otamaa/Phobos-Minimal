@@ -804,10 +804,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		//pOwner->AddTracking(pBuilding);
 		pOwner->RegisterGain(pBuilding, false);
-		pOwner->UpdatePower();
 		pOwner->RecheckTechTree = true;
 		pOwner->RecheckPower = true;
-		pOwner->RecheckRadar = true;
 		pOwner->Buildings.AddItem(pBuilding);
 
 		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);

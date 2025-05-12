@@ -517,7 +517,7 @@ void FakeAnimClass::_AI()
 {
 	if (this->IsAlive) {
 
-		if (!this->GetCoords().IsValid()) {
+		if (!this->GetCoords().IsValid() || !MapClass::Instance->IsValid(this->GetCoords())) {
 			this->__ToDelete_197 = true;
 			this->TimeToDie = true;
 			this->UnInit();
