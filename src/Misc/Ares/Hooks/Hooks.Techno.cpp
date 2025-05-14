@@ -986,9 +986,8 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	//Debug::LogInfo("ChangeOwnershipFor [%s]" , pThis->get_ID());
 
-	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
-	{
-		pJammer.UnjamAll();
+	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
+		pJammer->UnjamAll();
 	}
 
 	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis)) {

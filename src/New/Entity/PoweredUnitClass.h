@@ -1,14 +1,18 @@
 #pragma once
 
 #include <Utilities/SavegameDef.h>
+#include <Utilities/MemoryPoolUniquePointer.h>
 
 class TechnoClass;
-class PoweredUnitClass
+class PoweredUnitClass final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(PoweredUnitClass, "PoweredUnitClass")
+
+public:
+
 	TechnoClass* Techno {};
 	int LastScan {};
 	bool Powered {};
-	bool IsActive {};
 
 public:
 
@@ -19,26 +23,13 @@ public:
 	bool PowerDown();
 	bool Update();
 
-	void reset() {
-		this->IsActive = false;
-	}
-
-	void Activate(TechnoClass* pTechno){
-		this->Techno = pTechno;
-		this->Powered = true;
-		this->IsActive = true;
-	}
-
 	COMPILETIMEEVAL OPTIONALINLINE bool IsPowered() const {
 		return this->Powered;
 	}
 
-	COMPILETIMEEVAL PoweredUnitClass() = default;
-	COMPILETIMEEVAL ~PoweredUnitClass() = default;
-
-	explicit operator bool() const {
-        return IsActive && this->Techno;
-    }
+	PoweredUnitClass() = default;
+	PoweredUnitClass(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
+	{ }
 
 	DefaultSaveLoadFunc(PoweredUnitClass)
 
@@ -50,8 +41,15 @@ private:
 			.Process(this->Techno, true)
 			.Process(this->LastScan)
 			.Process(this->Powered)
-			.Process(this->IsActive)
 			.Success()
 			;
+	}
+};
+
+
+template <>
+struct Savegame::ObjectFactory<PoweredUnitClass> {
+	MemoryPoolUniquePointer<PoweredUnitClass> operator() (PhobosStreamReader& Stm) const {
+		return PoweredUnitClass::createInstance();
 	}
 };

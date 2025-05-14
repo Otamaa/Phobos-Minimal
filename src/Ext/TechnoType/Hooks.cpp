@@ -87,23 +87,23 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
-// ASMJIT_PATCH(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
-// {
-// 	GET(TechnoTypeClass*, pType, EBX);
-// 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
-//
-// 	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-//
-// 	float x = static_cast<float>(nOffs->X * Game::Pixel_Per_Lepton());
-// 	float y = static_cast<float>(nOffs->Y * Game::Pixel_Per_Lepton());
-// 	float z = static_cast<float>(nOffs->Z * Game::Pixel_Per_Lepton());
-//
-// 	mtx->Translate(x, y, z);
-//
-// 	return 0x73BA68;
-// }
-
 #ifndef _old
+
+ ASMJIT_PATCH(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
+ {
+ 	GET(TechnoTypeClass*, pType, EBX);
+ 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
+
+ 	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
+
+ 	float x = static_cast<float>(nOffs->X * Game::Pixel_Per_Lepton());
+ 	float y = static_cast<float>(nOffs->Y * Game::Pixel_Per_Lepton());
+ 	float z = static_cast<float>(nOffs->Z * Game::Pixel_Per_Lepton());
+
+ 	mtx->Translate(x, y, z);
+
+ 	return 0x73BA68;
+ }
 
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteCalculateTurretMatrix, 0x6)
 {

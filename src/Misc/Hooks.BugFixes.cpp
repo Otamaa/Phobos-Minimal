@@ -2102,6 +2102,8 @@ size_t __fastcall Gamestrtohex(char* str) {
 	JMP_STD(0x412610);
 }
 
+#include <TaskForceClass.h>
+
 // Suppress Ares' swizzle warning
 static size_t __fastcall HexStr2Int_replacement(const char* str) {
 	// Fake a pointer to trick Ares
@@ -2109,24 +2111,22 @@ static size_t __fastcall HexStr2Int_replacement(const char* str) {
 }
 
 ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
-	GET(const char*, HexID, EDI);
+	GET(char*, HexID, EDI);
 	GET(TagTypeClass*, pType, ESI);
 
-	size_t ID = HexStr2Int_replacement(HexID);
+	size_t ID = Gamestrtohex(HexID);
 	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID);
 	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
 
 	return 0x6E5FB6;
 }
 
-#include <TaskForceClass.h>
-
 ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 {
-	LEA_STACK(const char*, HexID, 0x18);
+	LEA_STACK(char*, HexID, 0x18);
 	GET(TaskForceClass*, pType, ESI);
 
-	size_t ID = HexStr2Int_replacement(HexID);
+	size_t ID = Gamestrtohex(HexID);
 	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID);
 	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
 

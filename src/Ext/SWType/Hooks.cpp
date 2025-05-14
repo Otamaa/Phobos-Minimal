@@ -1706,17 +1706,17 @@ ASMJIT_PATCH(0x44D46E, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 	GET(FakeBulletClass*, pBullet, EDI);
 	pBullet->SetWeaponType(pWeapon);
 
-	if (pBullet->Type->Arcing && !pBullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
-		REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xE8, -0xD0));
-		REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xE8, -0x8C));
-		GET_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xE8, -0x4C));
+	//if (pBullet->Type->Arcing && !pBullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
+	//	REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xE8, -0xD0));
+	//	REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xE8, -0x8C));
+	//	GET_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xE8, -0x4C));
+	//
+	//	pBullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
+	//}
 
-		pBullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
-	}
-
-	if (pWeapon) {
+	//if (pWeapon) {
 		BulletExtData::SimulatedFiringEffects(pBullet,pThis->Owner, pThis, true , true);
-	}
+	//}
 
 	return 0;
 }

@@ -719,7 +719,7 @@ bool TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 	else if (auto& pPower = TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
 	{
 		// #617
-		return pPower.IsPowered();
+		return pPower->IsPowered();
 	}
 
 	// object doesn't need a particular powering structure, therefore, for the purposes of the game, it IS powered
@@ -3817,14 +3817,14 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
 	if (!pTypeData->PoweredBy.empty())
 	{
-		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
-		{
-			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.Activate(pThis);
+		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit) {
+			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit =
+				new(PoweredUnitClass::PoweredUnitClass_GLUE_NOT_IMPLEMENTED) PoweredUnitClass(pThis)
+				;
 		}
 
-		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.Update())
-		{
-			TechnoExt_ExtData::Destroy(pThis, nullptr, nullptr, nullptr);
+		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit->Update()) {
+				TechnoExt_ExtData::Destroy(pThis, nullptr, nullptr, nullptr);
 		}
 	}
 }
@@ -3906,9 +3906,9 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 		}
 
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
-		if (auto& pJam = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
-		{ // RadarJam should only be non-null if the object is an active radar jammer
-			pJam.UnjamAll();
+		;
+		if (auto& pJam = TechnoExtContainer::Instance.Find(pThis)->RadarJammer) { // RadarJam should only be non-null if the object is an active radar jammer
+			pJam->UnjamAll();
 		}
 	}
 	else
@@ -3917,15 +3917,14 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 		if (pTypeData->RadarJamRadius)
 		{
 			if (!TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
-				TechnoExtContainer::Instance.Find(pThis)->RadarJammer.Activate(pThis);
+				TechnoExtContainer::Instance.Find(pThis)->RadarJammer =
+					new(RadarJammerClass::RadarJammerClass_GLUE_NOT_IMPLEMENTED) RadarJammerClass(pThis);
 			}
 
-			TechnoExtContainer::Instance.Find(pThis)->RadarJammer.Update();
+			TechnoExtContainer::Instance.Find(pThis)->RadarJammer->Update();
 		}
 	}
 }
-
-#include "Classes/AttachedAffects.h"
 
 void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 {

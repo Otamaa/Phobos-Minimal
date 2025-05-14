@@ -110,10 +110,13 @@ ASMJIT_PATCH(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
 			pMasterData->MyPrismForwarding.DamageReserve = 0;
 			pMasterData->MyPrismForwarding.SetSupportTarget(nullptr);
 		}
-
+		return IsCustomPrism; //always custom, the new code is a complete rewrite of the old code
 	}
 
-	return IsCustomPrism; //always custom, the new code is a complete rewrite of the old code
+	//return IsNotPrism;
+	return (!pMasterTypeData->IsAnimDelayedBurst
+			 && pThis->CurrentBurstIndex != 0) ?
+			 JustFire : IsNotPrism;
 }
 
 ASMJIT_PATCH(0x447FAE, BuildingClass_GetFireError_PrismForward, 6)

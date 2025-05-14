@@ -6,6 +6,11 @@
 #include <Ext/TechnoType/Body.h>
 #include <Misc/Ares/Hooks/Header.h>
 
+
+RadarJammerClass::~RadarJammerClass() {
+	this->UnjamAll();
+}
+
 //! \param TargetBuilding The building whose eligibility to check.
 bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 {

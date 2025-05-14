@@ -497,16 +497,16 @@ ASMJIT_PATCH(0x6FF008, TechnoClass_Fire_FSW, 8)
 
 	if(origin != 0x6FF860){
 
-		GET_STACK(CoordStruct, crdOffset, STACK_OFFSET(0xB0, -0x1C));
-		GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
-
-		const auto crdTgt = crdOffset + fireCoords;
-		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
-			REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
-			REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
-
-			Bullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
-		}
+		//GET_STACK(CoordStruct, crdOffset, STACK_OFFSET(0xB0, -0x1C));
+		//GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
+		//
+		//const auto crdTgt = crdOffset + fireCoords;
+		//if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
+		//	REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
+		//	REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
+		//
+		//	Bullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
+		//}
 	}
 
 	if (!HouseExtData::IsAnyFirestormActive || !Bullet->Type->IgnoresFirestorm) {

@@ -590,8 +590,8 @@ public:
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
-	PoweredUnitClass PoweredUnit {};
-	RadarJammerClass RadarJammer {};
+	MemoryPoolUniquePointer<PoweredUnitClass> PoweredUnit {};
+	MemoryPoolUniquePointer<RadarJammerClass> RadarJammer {};
 
 	BuildingLightClass* BuildingLight { 0 };
 

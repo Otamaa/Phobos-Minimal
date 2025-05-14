@@ -113,6 +113,8 @@ static PoolSizeRec sizes[] =
 	{ "IonCannonStateMachine"				, 100	, 50	},
 	{ "LaserStrikeStateMachine"				, 100	, 50	},
 
+	{ "RadarJammerClass"					, 100	, 50	},
+	{ "PoweredUnitClass"					, 100	, 50	},
 };
 
 static void userMemoryAdjustPoolSize(const char* poolName, Int& initialAllocationCount, Int& overflowAllocationCount)
@@ -556,8 +558,8 @@ Int MemoryPool::freeBlob(MemoryPoolBlob* blob)
 	// de-link it from our list
 	blob->removeBlobFromList(&m_firstBlob, &m_lastBlob);
 
-	// ensure that the 'first free' blob is still a valid blob. 
-	// (doesn't need to actually have free blocks, just be a valid blob) 
+	// ensure that the 'first free' blob is still a valid blob.
+	// (doesn't need to actually have free blocks, just be a valid blob)
 	if (m_firstBlobWithFreeBlocks == blob)
 		m_firstBlobWithFreeBlocks = m_firstBlob;
 
@@ -670,7 +672,7 @@ void* MemoryPool::allocateBlockDoNotZeroImplementation()
 				break;
 		}
 
-		// note that if we walk thru the list without finding anything, this will 
+		// note that if we walk thru the list without finding anything, this will
 		// reset m_firstBlobWithFreeBlocks to null and fall thru.
 		m_firstBlobWithFreeBlocks = blob;
 	}
@@ -716,11 +718,11 @@ void MemoryPool::freeBlock(void* pMem)
 	// if we want to free the blobs as they become empty, do that here.
 	// normally we don't bother, but just in case this is ever desired, here's how you'd do it...
 	//
-	// if (blob->m_usedBlocksInBlob == 0) 
+	// if (blob->m_usedBlocksInBlob == 0)
 	// {
 	//	freeBlob(blob);
 	//	return;
-	//} 
+	//}
 
 	if (!m_firstBlobWithFreeBlocks)
 		m_firstBlobWithFreeBlocks = blob;

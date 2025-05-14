@@ -6,6 +6,8 @@
 
 #include <InfantryClass.h>
 
+PoweredUnitClass::~PoweredUnitClass() {}
+
 bool PoweredUnitClass::IsPoweredBy(HouseClass* const pOwner) const
 {
 	auto const pType = this->Techno->GetTechnoType();
