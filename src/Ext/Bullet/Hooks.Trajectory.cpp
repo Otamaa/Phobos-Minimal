@@ -162,12 +162,11 @@ ASMJIT_PATCH(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
 
 ASMJIT_PATCH(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 {
-	GET(BulletClass*, pThis, EBX);
+	GET(FakeBulletClass*, pThis, EBX);
 	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
-	GET_STACK(VelocityClass*, pVelocity, STACK_OFFS(0x54, -0x8));
+	GET_STACK(VelocityClass*, pOriginalVelocity, STACK_OFFS(0x54, -0x8));
 
-	PhobosTrajectory::CreateInstance(pThis, pCoord, pVelocity);
-
+	PhobosTrajectory::CreateInstance(pThis, pCoord, pOriginalVelocity);
 	//if (WarheadTypeExtContainer::Instance.Find(pThis->WH)->DirectionalArmor) {
 	//	BulletExtContainer::Instance.Find(pThis)->InitialBulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
 	//}

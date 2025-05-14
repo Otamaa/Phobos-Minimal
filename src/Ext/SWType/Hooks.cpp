@@ -1699,30 +1699,23 @@ namespace EMPulseCannonTemp
 	int weaponIndex = 0;
 }
 
-ASMJIT_PATCH(0x44D455, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
+ASMJIT_PATCH(0x44D46E, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBP);
-	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
-	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
+	GET(FakeBulletClass*, pBullet, EDI);
+	pBullet->SetWeaponType(pWeapon);
 
-	if (pWeapon && pBullet)
-	{
-		pBullet->SetWeaponType(pWeapon);
+	if (pBullet->Type->Arcing && !pBullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
+		REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xE8, -0xD0));
+		REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xE8, -0x8C));
+		GET_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xE8, -0x4C));
 
-		CoordStruct src;
-		pThis->GetFLH(&src , EMPulseCannonTemp::weaponIndex, pThis->GetRenderCoords());
-		CoordStruct dest = *pCoord;
-		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
+		pBullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
+	}
 
-		// Draw bullet effect
-		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
-		// Draw particle system
-		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
-		// Play report sound
-		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
-		// Draw weapon anim
-		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
+	if (pWeapon) {
+		BulletExtData::SimulatedFiringEffects(pBullet,pThis->Owner, pThis, true , true);
 	}
 
 	return 0;

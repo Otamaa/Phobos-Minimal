@@ -375,6 +375,97 @@ ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
 	return 0x0;
 }
 
+#include <New/Interfaces/AdvancedDriveLocomotionClass.h>
+#include <New/Interfaces/LevitateLocomotionClass.h>
+#include <New/Interfaces/CustomRocketLocomotionClass.h>
+
+unsigned Phobos::GetVersionNumber() {
+	unsigned version = AresGlobalData::InternalVersion;
+
+	version += sizeof(AnimExtData);
+	version += sizeof(AnimTypeExtData);
+
+	version += sizeof(BuildingExtData);
+	version += sizeof(BuildingTypeExtData);
+
+	version += sizeof(BulletExtData);
+	version += sizeof(BulletTypeExtData);
+
+	version += sizeof(CellExtData);
+
+	version += sizeof(HouseExtData);
+	version += sizeof(HouseTypeExtData);
+
+	version += sizeof(InfantryExtData);
+	version += sizeof(InfantryTypeExtData);
+
+	version += sizeof(ParticleExtData);
+	version += sizeof(ParticleTypeExtData);
+
+	version += sizeof(ParticleSystemExtData);
+	version += sizeof(ParticleSystemTypeExtData);
+
+	version += sizeof(RadSiteExtData);
+	version += sizeof(RulesExtData);
+	version += sizeof(ScenarioExtData);
+	version += sizeof(SidebarExtData);
+
+	version += sizeof(TeamExtData);
+	version += sizeof(SmudgeTypeExtData);
+
+	version += sizeof(SuperExtData);
+	version += sizeof(SWTypeExtData);
+
+	version += sizeof(TechnoExtData);
+	version += sizeof(TechnoTypeExtData);
+
+	version += sizeof(VoxelAnimExtData);
+	version += sizeof(VoxelAnimTypeExtData);
+
+	version += sizeof(WeaponTypeExtData);
+	version += sizeof(WarheadTypeExtData);
+	version += sizeof(WaveExtData);
+
+	version += sizeof(LaserTrailClass);
+	version += sizeof(LauchSWData);
+
+	version += sizeof(ShieldClass);
+	version += sizeof(SWFirerClass);
+
+	version += sizeof(AdvancedDriveLocomotionClass);
+	version += sizeof(CustomRocketLocomotionClass);
+	version += sizeof(LevitateLocomotionClass);
+	version += sizeof(GenericPrerequisite);
+	version += sizeof(Prereqs);
+	version += sizeof(PaletteManager);
+	version += sizeof(HugeBar);
+	version += sizeof(StaticVars);
+
+#define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
+		AddTypeOf(Armor)
+		AddTypeOf(Banner)
+		AddTypeOf(Bar)
+		AddTypeOf(Color)
+		AddTypeOf(Crate)
+		AddTypeOf(Cursor)
+		AddTypeOf(DigitalDisplay)
+		AddTypeOf(HealthBar)
+		AddTypeOf(Hover)
+		AddTypeOf(Immunity)
+		AddTypeOf(Insignia)
+		AddTypeOf(LaserTrail)
+		AddTypeOf(Rad)
+		AddTypeOf(Rocket)
+		AddTypeOf(SelectBox)
+		AddTypeOf(Shield)
+		AddTypeOf(TechTree)
+		AddTypeOf(Theater)
+		AddTypeOf(Theme)
+		AddTypeOf(Tunnel)
+#undef AddTypeOf
+	return version;
+}
+
 // Clear static data from respective classes
 // this function is executed after all game classes already cleared
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)

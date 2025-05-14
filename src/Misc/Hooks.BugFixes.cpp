@@ -2098,14 +2098,43 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 	return SkipGameCode;
 }
 
+size_t __fastcall Gamestrtohex(char* str) {
+	JMP_STD(0x412610);
+}
+
 // Suppress Ares' swizzle warning
-static size_t __fastcall HexStr2Int_replacement(const char* str)
-{
+static size_t __fastcall HexStr2Int_replacement(const char* str) {
 	// Fake a pointer to trick Ares
 	return std::hash<std::string_view>{}(str) & 0xFFFFFF;
 }
-DEFINE_FUNCTION_JUMP(CALL, 0x6E8305, HexStr2Int_replacement); // TaskForce
-DEFINE_FUNCTION_JUMP(CALL, 0x6E5FA6, HexStr2Int_replacement); // TagType
+
+ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
+	GET(const char*, HexID, EDI);
+	GET(TagTypeClass*, pType, ESI);
+
+	size_t ID = HexStr2Int_replacement(HexID);
+	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID);
+	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
+
+	return 0x6E5FB6;
+}
+
+#include <TaskForceClass.h>
+
+ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
+{
+	LEA_STACK(const char*, HexID, 0x18);
+	GET(TaskForceClass*, pType, ESI);
+
+	size_t ID = HexStr2Int_replacement(HexID);
+	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID);
+	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
+
+	return 0x6E8315;
+}
+
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E8305, HexStr2Int_replacement); // TaskForce
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E5FA6, HexStr2Int_replacement); // TagType
 
 // Save GameModeOptions in campaign modes
 DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
@@ -2503,39 +2532,39 @@ ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
 	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
 }
 
-DEFINE_HOOK(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
+ASMJIT_PATCH(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
 	GET(TechnoClass*, pTechno, EBP);
 	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
-DEFINE_HOOK(0x64D575, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal2, 0x6)
+ASMJIT_PATCH(0x64D575, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal2, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
 	GET(TechnoClass*, pTechno, EBP);
 	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
-DEFINE_HOOK(0x64D5C5, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal3, 0x6)
+ASMJIT_PATCH(0x64D5C5, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal3, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D659 };
 	GET(TechnoClass*, pTechno, EBP);
 	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
-DEFINE_HOOK(0x51BFA2, InfantryClass_IsCellOccupied_Start, 0x6)
+ASMJIT_PATCH(0x51BFA2, InfantryClass_IsCellOccupied_Start, 0x6)
 {
 	enum { MoveOK = 0x51C02D };
 	GET(InfantryClass*, pThis, EBP);
-	return pThis->IsInAir() && pThis->Type->BalloonHover ? MoveOK : 0;
+	return pThis->Type->BalloonHover && pThis->IsInAir() ? MoveOK : 0;
 }
 
-DEFINE_HOOK(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
+ASMJIT_PATCH(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
 {
 	enum { MoveOK = 0x73F23F };
 	GET(UnitClass*, pThis, ECX);
-	return pThis->IsInAir() && pThis->Type->BalloonHover ? MoveOK : 0;
+	return pThis->Type->BalloonHover && pThis->IsInAir() ? MoveOK : 0;
 }
 
 #ifdef PassengerRelatedFix

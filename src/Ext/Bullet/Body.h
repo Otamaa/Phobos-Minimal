@@ -55,7 +55,7 @@ public:
 	void InitializeLaserTrails();
 
 	void CreateAttachedSystem();
-	void ApplyArcingFix();
+	void ApplyArcingFix(const CoordStruct& sourceCoords, const CoordStruct& targetCoords, VelocityClass& velocity);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of(){
 		return sizeof(BulletExtData) -

@@ -5917,7 +5917,11 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 	{
 		auto const& multiplier = pBldTypeExt->UCDamageMultiplier;
 		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
-		if(pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse()) == DamageState::NowDead)
+		int distance = 0;
+		//if(auto pOwnerTech = pThis->Owner)
+			//distance = pOwnerTech->DistanceFrom(pPoorBastard);
+
+		if(pPoorBastard->ReceiveDamage(&adjustedDamage, distance, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse()) == DamageState::NowDead)
 			pBuilding->NeedsRedraw = true;
 	}
 

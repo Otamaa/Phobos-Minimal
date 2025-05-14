@@ -97,7 +97,7 @@ public:
 	double GetTrajectorySpeed() const;
 	void SetInaccurate() const;
 
-	static void CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
+	static bool CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
 	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 

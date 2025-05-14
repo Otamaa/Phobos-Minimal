@@ -48,8 +48,7 @@ bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct c
 
 	if (pTargeting->NeedsDesignator && pTargeting->Designators.none_of
 		([cell](TargetingData::RangedItem const& site) {
-			auto const distance = cell.DistanceFromSquared(site.Center);
-			return distance <= site.RangeSqr;
+			return cell.DistanceFromSquared(site.Center) <= site.RangeSqr;
 		}))
 	{
 		return false;
@@ -58,8 +57,7 @@ bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct c
 	//Enemy Designator
 	if (pTargeting->NeedsAttractors && pTargeting->Attractors.none_of
 		([cell](TargetingData::RangedItem const& site) {
-			auto const distance = cell.DistanceFromSquared(site.Center);
-			return distance <= site.RangeSqr;
+			return cell.DistanceFromSquared(site.Center) <= site.RangeSqr;
 		}))
 	{
 		return false;
@@ -67,8 +65,7 @@ bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct c
 
 	if (pTargeting->NeedsInhibitors && pTargeting->Inhibitors.any_of
 		([cell](TargetingData::RangedItem const& site) {
-			auto const distance = cell.DistanceFromSquared(site.Center);
-			return distance <= site.RangeSqr;
+			return cell.DistanceFromSquared(site.Center) <= site.RangeSqr;
 		}))
 	{
 		return false;
@@ -77,8 +74,7 @@ bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct c
 	//Enemy Inhibitors
 	if (pTargeting->NeedsSupressors && pTargeting->Suppressors.any_of
 		([cell](TargetingData::RangedItem const& site) {
-			auto const distance = cell.DistanceFromSquared(site.Center);
-			return distance <= site.RangeSqr;
+			return cell.DistanceFromSquared(site.Center) <= site.RangeSqr;
 		}))
 	{
 		return false;

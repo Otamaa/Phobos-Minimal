@@ -508,7 +508,7 @@ public:
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
 	bool Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	void PrintMessage(const CSFText& message, HouseClass* pFirer);
-	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget = nullptr) const;
+	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget , std::vector<TechnoClass*>& outVec) const;
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);

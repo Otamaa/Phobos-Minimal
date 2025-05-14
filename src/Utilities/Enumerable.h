@@ -218,7 +218,7 @@ public:
 				return false;
 
 			auto newPtr = FindOrAllocate(name);
-			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
+			PhobosSwizzle::Instance.Here_I_Am(oldPtr, newPtr);
 			newPtr->LoadFromStream(Stm);
 		}
 

@@ -21,6 +21,8 @@ enum class ExceptionHandlerMode {
 
 struct Phobos final
 {
+	static unsigned GetVersionNumber();
+
 	class Random
 	{
 	public:

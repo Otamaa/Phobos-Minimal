@@ -518,7 +518,8 @@ struct TargetingFuncs
 #pragma region MainTargeting
 	static TargetResult GetIonCannonTarget(NewSWType* pNewType, const TargetingData* pTargeting, HouseClass* pEnemy, CloakHandling cloak)
 	{
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(pEnemy);
+		std::vector<TechnoClass*> targets {};
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(pEnemy , targets);
 		const auto pResult = GetTargetAnyMax(it.begin(), it.end(),
 			[=](TechnoClass* pTechno, int curMax) {
 
@@ -598,7 +599,8 @@ struct TargetingFuncs
 
 	static TargetResult GetDominatorTarget(NewSWType* pNewType, const TargetingData* pTargeting)
 	{
-		auto it = pTargeting->TypeExt->GetPotentialAITargets();
+		std::vector<TechnoClass*> targets {};
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
 		const auto pTarget = GetTargetFirstMax(it.begin(), it.end(), [pTargeting, pNewType](TechnoClass* pTechno, int curMax) {
 
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
@@ -667,7 +669,8 @@ struct TargetingFuncs
 	static TargetResult GetMutatorTarget(NewSWType* pNewType, const TargetingData* pTargeting)
 	{
 		//specific implementation for GeneticMutatorTargetSelector for
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets();
+		std::vector<TechnoClass*> targets {};
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
 		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pTargeting , pNewType](TechnoClass* pTechno, int curMax) {
 
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
@@ -836,8 +839,8 @@ struct TargetingFuncs
 
 	static TargetResult GetMultiMissileTarget(NewSWType* pNewType, const TargetingData* pTargeting)
 	{
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex));
-
+		std::vector<TechnoClass*> targets {};
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex), targets);
 		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pTargeting, pNewType](TechnoClass* pTechno, int curMax)
 		{
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
@@ -900,8 +903,9 @@ struct TargetingFuncs
 			//
 			//if (!TargetHouse || TargetHouse->Defeated || TargetHouse->IsObserver())
 			//	return { CellStruct::Empty ,SWTargetFlags::DisallowEmpty };
+			std::vector<TechnoClass*> targets {};
 
-			for (auto pTech : pTargeting->TypeExt->GetPotentialAITargets(nullptr)) {
+			for (auto pTech : pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets)) {
 				if (TechnoExtData::IsAlive(pTech, false, false, false) && !TargetingFuncs::IgnoreThis(pTech)) {
 
 					auto nLoc = pTech->GetCoords();
@@ -1114,10 +1118,8 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 
 static inline std::vector <TechnoClass*> targetings;
 
-Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget) const
+Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget, std::vector<TechnoClass*>& outVec) const
 {
-	targetings.clear();
-
 	const auto require = this->GetAIRequiredTarget();
 
 	if (require == SuperWeaponTarget::None
@@ -1151,25 +1153,26 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget)
 	}
 
 	// part below is more expensive targeting
-	targetings.reserve(TechnoClass::Array->Count);
+	outVec.clear();
+	outVec.reserve(TechnoClass::Array->Count);
 
 	if (require & SuperWeaponTarget::Building) {
 		if (pTarget) {
-			std::copy(pTarget->Buildings.begin(), pTarget->Buildings.end(), std::back_inserter(targetings));
+			std::copy(pTarget->Buildings.begin(), pTarget->Buildings.end(), std::back_inserter(outVec));
 		}else {
-			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(targetings));
+			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(outVec));
 		}
 	}
 
 	if(require & SuperWeaponTarget::Infantry)
-		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(targetings));
+		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(outVec));
 
 	if (require & SuperWeaponTarget::Unit){
-		std::copy(UnitClass::Array->begin(), UnitClass::Array->end(), std::back_inserter(targetings));
-		std::copy(AircraftClass::Array->begin(), AircraftClass::Array->end(), std::back_inserter(targetings));
+		std::copy(UnitClass::Array->begin(), UnitClass::Array->end(), std::back_inserter(outVec));
+		std::copy(AircraftClass::Array->begin(), AircraftClass::Array->end(), std::back_inserter(outVec));
 	}
 
-	return targetings;
+	return make_iterator(outVec);
 }
 
 bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)

@@ -755,7 +755,7 @@ static std::string GetOsVersionQuick()
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
-	Game::Savegame_Magic = AresGlobalData::InternalVersion;
+	Game::Savegame_Magic = Phobos::GetVersionNumber();
 	Game::bVideoBackBuffer = false;
 	Game::bAllowVRAMSidebar = false;
 

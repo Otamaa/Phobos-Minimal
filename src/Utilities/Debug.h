@@ -40,7 +40,7 @@ public:
 	static void FreeMouse();
 
 	template <typename... TArgs>
-	static void LogInfo(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
+	static void NOINLINE LogInfo(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()){
 			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
 			fmted += "\n";
@@ -50,7 +50,7 @@ public:
 	}
 
 	template <typename... TArgs>
-	static void LogError(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
+	static void NOINLINE LogError(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()) {
 			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
 			fmted += "\n";
@@ -119,7 +119,7 @@ public:
 
 	static void LogDeferredFinalize()
 	{
-		if (Debug::LogFileActive()) { 
+		if (Debug::LogFileActive()) {
 			for (auto& __log : Debug::DefferedVector) {
 				fprintf_s(Debug::LogFile, "%s", __log.c_str());
 			}
@@ -214,7 +214,7 @@ public:
 
 		return filename;
 	}
-	
+
 	template<bool ImmedietelyExit= false>
 	[[noreturn]] static NOINLINE void ExitGame(unsigned int code = 1u)
 	{

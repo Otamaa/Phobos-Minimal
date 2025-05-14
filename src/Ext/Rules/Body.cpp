@@ -642,15 +642,15 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	for (auto pBullet : *BulletTypeClass::Array) {
-
-		auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
-
-		if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
-			Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
-			Debug::RegisterParserError();
-		}
-	}
+	// for (auto pBullet : *BulletTypeClass::Array) {
+	//
+	// 	auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
+	//
+	// 	if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
+	// 		Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
+	// 		Debug::RegisterParserError();
+	// 	}
+	// }
 
 	for (auto pHouse : *HouseTypeClass::Array)
 	{

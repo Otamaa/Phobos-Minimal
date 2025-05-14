@@ -482,21 +482,34 @@ ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 	return 0x468A3F;
 }
 
+#include <Ext/BulletType/Body.h>
+
 ASMJIT_PATCH(0x6FF008, TechnoClass_Fire_FSW, 8)
 {
 	REF_STACK(CoordStruct const, src, 0x44);
 	REF_STACK(CoordStruct const, tgt, 0x88);
 
-	if (!HouseExtData::IsAnyFirestormActive) {
-		return 0;
+	const DWORD origin = R->Origin();
+	auto const Bullet = origin == 0x6FF860
+	? R->EDI<FakeBulletClass*>()
+	: R->EBX<FakeBulletClass*>()
+	;
+
+	if(origin != 0x6FF860){
+
+		GET_STACK(CoordStruct, crdOffset, STACK_OFFSET(0xB0, -0x1C));
+		GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
+
+		const auto crdTgt = crdOffset + fireCoords;
+		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
+			REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
+			REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
+
+			Bullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
+		}
 	}
 
-	auto const Bullet = R->Origin() == 0x6FF860
-		? R->EDI<BulletClass*>()
-		: R->EBX<BulletClass*>()
-		;
-
-	if (!Bullet->Type->IgnoresFirestorm) {
+	if (!HouseExtData::IsAnyFirestormActive || !Bullet->Type->IgnoresFirestorm) {
 		return 0;
 	}
 
