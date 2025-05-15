@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Utilities/SavegameDef.h>
+#include <Utilities/MemoryPoolUniquePointer.h>
 
 class BuildingClass;
 class PrismForwardingData;
-class PrismForwarding
+class PrismForwarding  final : public MemoryPoolObject
 {
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(PrismForwarding, "PrismForwarding")
+
 public:
 
 	static HelperedVector<PrismForwarding*> Array;
@@ -26,20 +29,6 @@ public:
 		DamageReserve(0)
 	{
 		Array.push_back(this);
-	}
-
-	~PrismForwarding() {
-		this->RemoveFromNetwork(true);
-		this->Owner = nullptr;
-		this->Senders.clear();
-
-		for (auto& pr : Array) {
-			if (pr != this && pr->SupportTarget == this) {
-				pr->SetSupportTarget(nullptr);
-			}
-		}
-
-		Array.remove(this);
 	}
 
 	void RemoveFromNetwork(bool bCease);
@@ -68,7 +57,7 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success() && Stm.RegisterChange(this)
+			.Success()
 			;
 	}
 
@@ -82,7 +71,15 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success() && Stm.RegisterChange(this)
+			.Success()
 			;
+	}
+};
+
+template <>
+struct Savegame::ObjectFactory<PrismForwarding>
+{
+	MemoryPoolUniquePointer<PrismForwarding> operator() (PhobosStreamReader& Stm) const {
+		return PrismForwarding::createInstance();
 	}
 };

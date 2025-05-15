@@ -7,6 +7,23 @@
 
 HelperedVector<PrismForwarding*> PrismForwarding::Array;
 
+PrismForwarding::~PrismForwarding()
+{
+	this->RemoveFromNetwork(true);
+	this->Owner = nullptr;
+	this->Senders.clear();
+
+	for (auto& pr : Array)
+	{
+		if (pr != this && pr->SupportTarget == this)
+		{
+			pr->SetSupportTarget(nullptr);
+		}
+	}
+
+	Array.remove(this);
+}
+
 PrismForwardingData* PrismForwarding::GetOwnerData() const
 {
 	return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();
@@ -191,12 +208,12 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 	{
 		auto const pSlaveData = BuildingExtContainer::Instance.Find(SlaveTower);
 
-		auto pSlve = &pSlaveData->MyPrismForwarding;
+		auto& pSlve = pSlaveData->MyPrismForwarding;
 
-		if (this->ValidateSupportTower(TargetTower, pSlve)) {
+		if (this->ValidateSupportTower(TargetTower, pSlve.get())) {
 			SlaveTower->GetRenderCoords(&curPosition);
 			int Distance = static_cast<int>(MyPosition.DistanceFrom(curPosition));
-			EligibleTowers->emplace_back(pSlve , Distance );
+			EligibleTowers->emplace_back(pSlve.get(), Distance);
 		}
 	}
 

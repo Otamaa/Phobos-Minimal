@@ -1524,7 +1524,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				pThis->UnloadBunker();
 			}
 
-			pBldExt->MyPrismForwarding.RemoveFromNetwork(true);
+			pBldExt->MyPrismForwarding->RemoveFromNetwork(true);
 
 			if (auto pManager = pThis->CaptureManager)
 			{

@@ -360,7 +360,7 @@ ASMJIT_PATCH(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
 		: 0x6F01D3;//advance
 }
 
-ASMJIT_PATCH(0x41F180, AITriggerClass_Chrono, 0x5)
+ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 {
 	//GET(AITriggerTypeClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pOwner, 0x4);
@@ -385,10 +385,9 @@ ASMJIT_PATCH(0x41F180, AITriggerClass_Chrono, 0x5)
 	auto v8 = pSuper->RechargeTimer.StartTime;
 	auto v9 = pSuper->RechargeTimer.TimeLeft;
 	const auto rechargePercent = (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent);
-	const auto rechargeTime = (double)pSuper->GetRechargeTime();
 
 	if (v8 == -1) {
-		const auto result1 = rechargePercent >= (v9 - (Unsorted::CurrentFrame - v8) / rechargeTime);
+		const auto result1 = rechargePercent >= (v9 / (double)pSuper->GetRechargeTime());
 		R->EAX(result1);
 		return 0x41F1BA;
 	}
@@ -396,12 +395,12 @@ ASMJIT_PATCH(0x41F180, AITriggerClass_Chrono, 0x5)
 	const auto chargeTime = Unsorted::CurrentFrame - v8;
 	if (chargeTime < v9) {
 		v9 = (v9 - chargeTime);
-		const auto result2 = rechargePercent >= (v9 / rechargeTime);
+		const auto result2 = rechargePercent >= (v9 / (double)pSuper->GetRechargeTime());
 		R->EAX(result2);
 		return 0x41F1BA;
 	}
 
-	const auto result3 = rechargePercent >= (0 / rechargeTime);
+	const auto result3 = rechargePercent >= (0 / (double)pSuper->GetRechargeTime());
 	R->EAX(result3);
 	return 0x41F1BA;
 }
@@ -1706,13 +1705,13 @@ ASMJIT_PATCH(0x44D46E, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
 	GET(FakeBulletClass*, pBullet, EDI);
 	pBullet->SetWeaponType(pWeapon);
 
-	//if (pBullet->Type->Arcing && !pBullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
-	//	REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xE8, -0xD0));
-	//	REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xE8, -0x8C));
-	//	GET_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xE8, -0x4C));
-	//
-	//	pBullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
-	//}
+	if (pBullet->Type->Arcing && !pBullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
+		REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xE8, -0xD0));
+		REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xE8, -0x8C));
+		GET_STACK(CoordStruct, crdTgt, STACK_OFFSET(0xE8, -0x4C));
+
+		pBullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
+	}
 
 	//if (pWeapon) {
 		BulletExtData::SimulatedFiringEffects(pBullet,pThis->Owner, pThis, true , true);

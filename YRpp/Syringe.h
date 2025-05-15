@@ -410,7 +410,7 @@ hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 //	namespace patch##funcname													 \
 //	{																		 \
 //		const BYTE data[] = {__VA_ARGS__};									 \
-//	   __declspec(allocate(".syhks02"))										 \ 
+//	   __declspec(allocate(".syhks02"))										 \
 //		patchdecl patch = { ##hook, (BYTE*)##data , sizeof(##data), #funcname};	 \
 //	}
 //
@@ -440,21 +440,12 @@ namespace Patchs { \
     hookdeclb _hk__ ## hook ## funcname { hook, size, &funcname }; \
 }; };
 
-//
-//#define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
-//decl_patch_data(hook, funcname, size)
-//
-//#define ASMJIT_PATCH(hook, funcname, size) \
-//EXPORT_FUNC(funcname); \
-//decl_patch_data(hook, funcname, size) \
-//EXPORT_FUNC(funcname)\
-
 #define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
-declhook(hook, funcname, size)
+decl_patch_data(hook, funcname, size)
 
 #define ASMJIT_PATCH(hook, funcname, size) \
 EXPORT_FUNC(funcname); \
-declhook(hook, funcname, size) \
+decl_patch_data(hook, funcname, size) \
 EXPORT_FUNC(funcname)\
 
 #else

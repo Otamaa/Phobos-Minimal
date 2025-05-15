@@ -26,7 +26,9 @@ void BuildingExtData::InitializeConstant()
 
 	if (pTypeExt)
 	{
-		this->MyPrismForwarding.Owner = this->AttachedToObject;
+		this->MyPrismForwarding =
+		new(PrismForwarding::PrismForwarding_GLUE_NOT_IMPLEMENTED) PrismForwarding();
+		this->MyPrismForwarding->Owner = this->AttachedToObject;
 
 		if(!pTypeExt->DamageFire_Offs.empty())
 			this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
@@ -500,7 +502,7 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
-	this->MyPrismForwarding.InvalidatePointer(ptr, bRemoved);
+	this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
 }
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)

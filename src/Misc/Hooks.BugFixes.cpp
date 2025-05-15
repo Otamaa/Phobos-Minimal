@@ -2115,7 +2115,7 @@ ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
 	GET(TagTypeClass*, pType, ESI);
 
 	size_t ID = Gamestrtohex(HexID);
-	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID);
+	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID, ID);
 	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
 
 	return 0x6E5FB6;
@@ -2127,7 +2127,7 @@ ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 	GET(TaskForceClass*, pType, ESI);
 
 	size_t ID = Gamestrtohex(HexID);
-	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID);
+	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID , ID);
 	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
 
 	return 0x6E8315;

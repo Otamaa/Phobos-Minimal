@@ -5163,7 +5163,7 @@ ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 	// #754 - evict Hospital/Armory contents
 	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
 
-	BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding.RemoveFromNetwork(true);
+	BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding->RemoveFromNetwork(true);
 
 	if (pThis->HasBuildup)
 	{

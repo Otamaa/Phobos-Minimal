@@ -42,10 +42,10 @@
 
 void ApplyExtraWarheads(
 	BulletClass* pBullet,
-	std::vector<WarheadTypeClass*> exWH,
-	std::vector<int> exWHDamageOverrides,
-	std::vector<double> exWHChances,
-	 std::vector<bool> exWHFull,
+	std::vector<WarheadTypeClass*>& exWH,
+	std::vector<int>& exWHDamageOverrides,
+	std::vector<double>& exWHChances,
+	std::vector<bool>& exWHFull,
 	CoordStruct* coords, HouseClass* pOwner) {
 
 	const size_t damageoverride_size = exWHDamageOverrides.size();
