@@ -528,9 +528,8 @@ ASMJIT_PATCH(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
 	}
 
 	// prism forward
-	if (pThis->WhatAmI() == BuildingClass::AbsID)
-	{
-		BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->MyPrismForwarding->RemoveFromNetwork(true);
+	if (auto const pBld = cast_to<BuildingClass*, false>(pThis)) {
+		BuildingExtContainer::Instance.Find(pBld)->MyPrismForwarding->RemoveFromNetwork(true);
 	}
 
 	return 0;
@@ -541,13 +540,12 @@ ASMJIT_PATCH(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pDrainee, EDI);
 
-	if (pDrainee->DrainingMe != pThis)
-	{ // else we're already being drained, nothing to do
-		if (auto const pBld = cast_to<BuildingClass*, false>(pDrainee))
-		{
-			BuildingExtContainer::Instance.Find((BuildingClass*)pThis)->MyPrismForwarding->RemoveFromNetwork(true);
+	if (pDrainee->DrainingMe != pThis) { // else we're already being drained, nothing to do
+		if (auto const pBld = cast_to<BuildingClass*, false>(pDrainee)) {
+			BuildingExtContainer::Instance.Find(pBld)->MyPrismForwarding->RemoveFromNetwork(true);
 		}
 	}
+
 	return 0;
 }
 

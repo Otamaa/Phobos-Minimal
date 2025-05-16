@@ -516,7 +516,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		Nullable<InsigniaTypeClass*> InsigniaType;
 		InsigniaType.Read(exINI, pSection, "InsigniaType");
 
-		if (InsigniaType.isset())
+		if (InsigniaType.isset() && InsigniaType)
 		{
 			this->Insignia = InsigniaType.Get()->Insignia;
 			this->InsigniaFrame = InsigniaType.Get()->InsigniaFrame;
@@ -1499,18 +1499,18 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		Nullable<int> transDelay {};
 		transDelay.Read(exINI, pSection, "TiberiumEater.TransDelay");
 
-		if (transDelay.Get(-1) >= 0 && !this->TiberiumEaterType)
+		if (transDelay.isset() && transDelay >= 0 && !this->TiberiumEaterType)
 			this->TiberiumEaterType = std::make_unique<TiberiumEaterTypeClass>();
 
 
-		if (this->TiberiumEaterType)
-		{
+		if (this->TiberiumEaterType) {
 
 			if (transDelay.isset() && transDelay.Get() < 0)
 				this->TiberiumEaterType.reset();
 			else
 				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
 		}
+
 
 		if (this->AttachedToObject->Passengers > 0)
 		{

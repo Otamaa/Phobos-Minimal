@@ -35,47 +35,20 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 	this->Palette.Read(exINI, pID, "CustomPalette");
-	this->CreateUnit.Read(exINI, pID, "CreateUnit", true);
-	this->CreateUnit_Facing.Read(exINI, pID, "CreateUnit.Facing");
-	this->CreateUnit_InheritDeathFacings.Read(exINI, pID, "CreateUnit.InheritFacings");
-	this->CreateUnit_InheritTurretFacings.Read(exINI, pID, "CreateUnit.InheritTurretFacings");
-	this->CreateUnit_RemapAnim.Read(exINI, pID, "CreateUnit.RemapAnim");
 
-	if (exINI.ReadString(pID, "CreateUnit.Mission"))
+	Valueable<TechnoTypeClass*> createUnit { nullptr };
+	createUnit.Read(exINI, pID, "CreateUnit");
+
+	if(createUnit && !this->CreateUnitType)
+		this->CreateUnitType = std::make_unique<CreateUnitTypeClass>();
+
+	if (this->CreateUnitType)
 	{
-		auto result = MissionClass::GetMissionById(exINI.value());
-		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter"))
-		{
-			this->CreateUnit_Scatter = true;
-		}
-		else if (result != Mission::None)
-		{
-			this->CreateUnit_Scatter = false;
-			this->CreateUnit_Mission = result;
-		}
-	}
+		if (!createUnit)
+			this->CreateUnitType.reset();
 
-	if (exINI.ReadString(pID, "CreateUnit.Mission.AI"))
-	{
-		auto result = MissionClass::GetMissionById(exINI.value());
-		if (result == Mission::None && IS_SAME_STR_(exINI.c_str(), "scatter"))
-		{
-			this->CreateUnit_AI_Scatter = true;
-		}
-		else if (result != Mission::None)
-		{
-			this->CreateUnit_AI_Scatter = false;
-			this->CreateUnit_AI_Mission = result;
-		}
+		this->CreateUnitType->LoadFromINI(pINI, pID);
 	}
-
-	this->CreateUnit_Owner.Read(exINI, pID, "CreateUnit.Owner");
-	this->CreateUnit_RandomFacing.Read(exINI, pID, "CreateUnit.RandomFacing");
-	this->CreateUnit_ConsiderPathfinding.Read(exINI, pID, "CreateUnit.ConsiderPathfinding");
-	this->CreateUnit_SpawnAnim.Read(exINI, pID, "CreateUnit.SpawnAnim");
-	this->CreateUnit_AlwaysSpawnOnGround.Read(exINI, pID, "CreateUnit.AlwaysSpawnOnGround");
-	this->CreateUnit_KeepOwnerIfDefeated.Read(exINI, pID, "CreateUnit.KeepOwnerIfDefeated");
-	this->CreateUnit_SpawnParachutedInAir.Read(exINI, pID, "CreateUnit.SpawnParachutedInAir");
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
@@ -216,7 +189,6 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", this->AttachedToObject->End);
 	}
 
-	this->CreateUnit_SpawnHeight.Read(exINI, pID, "CreateUnit.SpawnHeight");
 #pragma endregion
 
 	this->ConstrainFireAnimsToCellSpots.Read(exINI, pID, "ConstrainFireAnimsToCellSpots");
@@ -238,13 +210,14 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 {
 	auto pExt = ((FakeAnimClass*)pThis)->_GetExtData();
-
-	if (pExt->AllowCreateUnit)
-		return;
-
 	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (const auto pUnit = pTypeExt->CreateUnit.Get())
+	if (pExt->AllowCreateUnit || !pTypeExt->CreateUnitType)
+		return;
+
+	auto& c_type = pTypeExt->CreateUnitType;
+	const auto pUnit = c_type->Type;
+
 	{
 		auto Location = pThis->GetCoords();
 
@@ -256,7 +229,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
-		if (pTypeExt->CreateUnit_ConsiderPathfinding
+		if (c_type->ConsiderPathfinding
 			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge)))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
@@ -273,12 +246,12 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		isBridge = allowBridges && pCell->ContainsBridge();
 		int bridgeZ = isBridge ? Unsorted::BridgeHeight : 0;
 
-		const int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
+		const int z = c_type->AlwaysSpawnOnGround ? INT32_MIN : Location.Z;
 		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(Location);
 		Location.Z = MaxImpl(nCellHeight + bridgeZ, z);
 
 		const int baseHeight = pTypeExt->CreateUnit_SpawnHeight != -1 ? pTypeExt->CreateUnit_SpawnHeight : Location.Z;
-		const int zCoord = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : baseHeight;
+		const int zCoord = c_type->AlwaysSpawnOnGround ? INT32_MIN : baseHeight;
 		Location.Z = MaxImpl(MapClass::Instance->GetCellFloorHeight(Location) + bridgeZ, zCoord);
 
 		//const auto pCellAfter = MapClass::Instance->GetCellAt(Location);
@@ -295,8 +268,15 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 static HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
-	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
+	auto& c_type = pTypeExt->CreateUnitType;
+
+	if (!pThis->Owner || pThis->Owner->Defeated)
+	{
+		if (c_type->RequireOwner)
+			return nullptr;
+
 		return HouseExtData::FindFirstCivilianHouse();
+	}
 
 	return pThis->Owner;
 }
@@ -433,14 +413,15 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 	pThis->UnmarkAllOccupationBits(pAnimExt->CreateUnitLocation);
 
 	HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
+	auto& c_type = pTypeExt->CreateUnitType;
+	const auto pTechnoType = c_type->Type;
 
-	if (const auto pTechnoType = pTypeExt->CreateUnit)
 	{
 		const auto Is_AI = !decidedOwner->IsControlledByHuman();
-		DirType primaryFacing = pTypeExt->CreateUnit_Facing;
-		if(pTypeExt->CreateUnit_InheritDeathFacings && pAnimExt->DeathUnitFacing.has_value())
+		DirType primaryFacing = c_type->Facing;
+		if(c_type->InheritDeathFacings && pAnimExt->DeathUnitFacing.has_value())
 			primaryFacing = pAnimExt->DeathUnitFacing;
-		else if(pTypeExt->CreateUnit_RandomFacing)
+		else if(c_type->RandomFacing)
 			primaryFacing = ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::Min, DirType::Max);
 
 		std::optional<DirType> secondaryFacing {};
@@ -450,7 +431,7 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 		if (pTechnoType->WhatAmI() == AbstractType::UnitType &&
 			pTechnoType->Turret &&
 			pAnimExt->DeathUnitTurretFacing.has_value() &&
-			pTypeExt->CreateUnit_InheritTurretFacings)
+			c_type->InheritTurretFacings)
 		{
 			secondaryFacing = pAnimExt->DeathUnitTurretFacing.get().GetDir();
 		}
@@ -466,12 +447,12 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 			secondaryFacing,
 			Scatter,
 			decidedOwner,
-			pTypeExt->CreateUnit_ConsiderPathfinding,
-			pTypeExt->CreateUnit_SpawnParachutedInAir,
-			pTypeExt->CreateUnit_AlwaysSpawnOnGround,
+			c_type->ConsiderPathfinding,
+			c_type->SpawnParachutedInAir,
+			c_type->AlwaysSpawnOnGround,
 			missionAI
 		)) {
-			if (auto pSpawnAnim = pTypeExt->CreateUnit_SpawnAnim) {
+			if (auto pSpawnAnim = c_type->SpawnAnim) {
 				auto pCreateUnitAnim = GameCreate<AnimClass>(pSpawnAnim, pAnimExt->CreateUnitLocation);
 				pCreateUnitAnim->Owner = decidedOwner;
 				((FakeAnimClass*)pCreateUnitAnim)->_GetExtData()->Invoker = AnimExtData::GetTechnoInvoker(pThis);
@@ -483,10 +464,10 @@ void AnimTypeExtData::CreateUnit_Spawn(AnimClass* pThis)
 void AnimTypeExtData::ValidateData()
 {
 
-	if (this->CreateUnit && this->CreateUnit->Strength == 0)
+	if (this->CreateUnitType && this->CreateUnitType->Type->Strength == 0)
 	{
-		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", this->AttachedToObject->ID, this->CreateUnit->ID);
-		this->CreateUnit = nullptr;
+		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", this->AttachedToObject->ID, this->CreateUnitType->Type->ID);
+		this->CreateUnitType.reset();
 		Debug::RegisterParserError();
 	}
 }
@@ -540,14 +521,16 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
 
-	if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-		pAnimExt->DeathUnitFacing = facing;
+	if(auto& c_type = pAnimTypeExt->CreateUnitType){
+		if (c_type->InheritDeathFacings.Get())
+			pAnimExt->DeathUnitFacing = facing;
 
-	if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
-	{
-		if (pThis->HasTurret())
+		if (c_type->InheritTurretFacings.Get())
 		{
-			pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
+			if (pThis->HasTurret())
+			{
+				pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
+			}
 		}
 	}
 
@@ -574,20 +557,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 
 		.Process(this->Palette)
-		.Process(this->CreateUnit)
-		.Process(this->CreateUnit_Facing)
-		.Process(this->CreateUnit_InheritDeathFacings)
-		.Process(this->CreateUnit_InheritTurretFacings)
-		.Process(this->CreateUnit_RemapAnim)
-		.Process(this->CreateUnit_RandomFacing)
-		.Process(this->CreateUnit_Mission)
-		.Process(this->CreateUnit_AI_Mission)
-		.Process(this->CreateUnit_Owner)
-		.Process(this->CreateUnit_ConsiderPathfinding)
-		.Process(this->CreateUnit_SpawnAnim)
-		.Process(this->CreateUnit_AlwaysSpawnOnGround)
-		.Process(this->CreateUnit_KeepOwnerIfDefeated)
-		.Process(this->CreateUnit_SpawnParachutedInAir)
+		.Process(this->CreateUnitType)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)
@@ -642,8 +612,6 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->AltReport)
 		//.Process(this->SpawnsData)
 
-		.Process(this->CreateUnit_Scatter)
-		.Process(this->CreateUnit_AI_Scatter)
 		.Process(this->MakeInfantry_Scatter)
 		.Process(this->MakeInfantry_AI_Scatter)
 

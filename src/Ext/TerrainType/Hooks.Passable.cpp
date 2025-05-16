@@ -1205,11 +1205,34 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	auto buildCurrent = [&pHouse, &pHouseExt](BuildingTypeClass* pType, CellStruct cell)
-	{
+	{		
 		if (!pType)
-			return;
+		 return;
 
-		if (pHouse->ShouldDisableCameo(pType)) // ShouldDisableCameo
+		auto currentCanBuild = [&pHouse, &pType]() -> const bool
+		{
+			auto const bitsOwners = pType->GetOwners();
+
+			for(auto const& pConYard : pHouse->ConYards)
+			{
+				if (pConYard->InLimbo || !pConYard->HasPower)
+					continue;
+
+				if (pConYard->CurrentMission == Mission::Selling || pConYard->QueuedMission == Mission::Selling)
+					continue;
+
+				auto const pType = pConYard->Type;
+
+				if (pType->Factory != AbstractType::Building || !pType->InOwners(bitsOwners))
+					continue;
+
+				return true;
+			}
+
+			return false;
+		};
+
+		if (currentCanBuild()) // ShouldDisableCameo
 		{
 			ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
 

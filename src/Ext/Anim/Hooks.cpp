@@ -26,7 +26,7 @@ ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 	const auto pTypeExt = pThis->_GetTypeExtData();
 	int schemeIndex = RulesExtData::Instance()->AnimRemapDefaultColorScheme;
 
-	if (((pTypeExt->CreateUnit && pTypeExt->CreateUnit_RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
+	if (((pTypeExt->CreateUnitType && pTypeExt->CreateUnitType->RemapAnim.Get(pTypeExt->RemapAnim)) || pTypeExt->RemapAnim) && pThis->Owner) {
 		schemeIndex = pThis->Owner->ColorSchemeIndex - 1;
 	}
 

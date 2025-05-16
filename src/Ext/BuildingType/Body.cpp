@@ -338,31 +338,8 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 	while (reCheckedTechnos->size());
 
 	// Step 5: Confirm command execution.
-	for (const auto& pThisOrder : finalOrder.container())
-	{
-		const auto pCheckedTechno = pThisOrder.techno;
-		const auto pDestinationCell = pThisOrder.destination;
-		const auto absType = pCheckedTechno->WhatAmI();
-		pCheckedTechno->ForceMission(Mission::Guard);
-
-		if (absType == AbstractType::Infantry)
-		{
-			const auto pInfantry = static_cast<InfantryClass*>(pCheckedTechno);
-
-			if (pInfantry->IsDeployed())
-				pInfantry->PlayAnim(DoType::Undeploy, true);
-
-			pInfantry->SetDestination(pDestinationCell, true);
-		}
-		else if (absType == AbstractType::Unit)
-		{
-			const auto pUnit = static_cast<UnitClass*>(pCheckedTechno);
-
-			if (pUnit->Deployed)
-				pUnit->Undeploy();
-
-			pUnit->SetDestination(pDestinationCell, true);
-		}
+	for (const auto& pThisOrder : finalOrder.container()) {
+		pThisOrder.techno->ClickedMission(Mission::Move, nullptr, pThisOrder.destination, pThisOrder.destination);
 	}
 
 	return false;
@@ -1665,7 +1642,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->NextBuilding_Next.Read(exINI, pSection, "NextBuilding.Next");
 			this->NextBuilding_Prev.Read(exINI, pSection, "NextBuilding.Prev");
 		}
-		
+
 		this->AllowAlliesRepair.Read(exINI, pSection, "AllowAlliesRepair");
 		this->AllowRepairFlyMZone.Read(exINI, pSection, "AllowRepairFlyMZone");
 

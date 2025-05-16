@@ -6,6 +6,9 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
+
+#include <New/AnonymousType/CreateUnitTypeClass.h>
+
 //#include <New/AnonymousType/Spawns.h>
 //#include "AnimSpawnerDatas.h"
 
@@ -20,27 +23,12 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
-	bool CreateUnit_Scatter { false };
-	bool CreateUnit_AI_Scatter { false };
+
 	bool MakeInfantry_Scatter { false };
 	bool MakeInfantry_AI_Scatter { false };
 
 #pragma region CreateUnit
-	Valueable<TechnoTypeClass*> CreateUnit {};
-	Valueable<DirType> CreateUnit_Facing { DirType::North };
-	Valueable<bool> CreateUnit_InheritDeathFacings { false };
-	Valueable<bool> CreateUnit_InheritTurretFacings { false };
-	Nullable<bool> CreateUnit_RemapAnim { };
-	Valueable<bool> CreateUnit_RandomFacing { true };
-	Valueable<Mission> CreateUnit_Mission { Mission::Guard };
-	Nullable<Mission> CreateUnit_AI_Mission { };
-
-	Nullable<OwnerHouseKind> CreateUnit_Owner {};
-	Valueable<bool> CreateUnit_ConsiderPathfinding { false };
-	Valueable<AnimTypeClass*> CreateUnit_SpawnAnim { nullptr };
-	Valueable<bool> CreateUnit_AlwaysSpawnOnGround { true };
-	Valueable<bool> CreateUnit_KeepOwnerIfDefeated { true };
-	Valueable<bool> CreateUnit_SpawnParachutedInAir { false };
+    std::unique_ptr<CreateUnitTypeClass> CreateUnitType{};
 #pragma endregion
 
 	Valueable<int> XDrawOffset { 0 };
@@ -142,17 +130,13 @@ public:
 
 	COMPILETIMEEVAL OwnerHouseKind GetAnimOwnerHouseKind()
 	{
-		if (this->CreateUnit && !this->CreateUnit_Owner.isset())
-			return OwnerHouseKind::Victim;
+		if(this->CreateUnitType){
+			return this->CreateUnitType->Owner.Get(OwnerHouseKind::Victim);
+		}
 
-		if (this->AttachedToObject->MakeInfantry > -1 && !this->MakeInfantryOwner.isset())
-			return OwnerHouseKind::Invoker;
-
-		if (this->CreateUnit_Owner.isset())
-			return this->CreateUnit_Owner;
-
-		if (this->MakeInfantryOwner.isset())
-			return this->MakeInfantryOwner;
+		if (this->AttachedToObject->MakeInfantry > -1) {
+			return this->MakeInfantryOwner.Get(OwnerHouseKind::Invoker);
+		}
 
 		return OwnerHouseKind::Invoker;
 	}
@@ -169,7 +153,7 @@ public:
 	static void CreateUnit_Spawn(AnimClass* pThis);
 
 	COMPILETIMEEVAL bool ScatterCreateUnit(bool IsAi) {
-		return IsAi ? this->CreateUnit_AI_Scatter : this->CreateUnit_Scatter;
+		return IsAi ? this->CreateUnitType->AI_Scatter : this->CreateUnitType->Scatter;
 	}
 
 	COMPILETIMEEVAL bool ScatterAnimToInfantry(bool IsAi) {
@@ -177,10 +161,9 @@ public:
 	}
 
 	COMPILETIMEEVAL  Mission GetCreateUnitMission(bool IsAi) {
-		auto result = this->CreateUnit_Mission;
-
-		if (IsAi && this->CreateUnit_AI_Mission.isset())
-			result = this->CreateUnit_AI_Mission;
+		auto result = this->CreateUnitType->UnitMission;
+		if (IsAi && this->CreateUnitType->AIUnitMission.isset())
+			result = this->CreateUnitType->AIUnitMission;
 
 		return result;
 	}

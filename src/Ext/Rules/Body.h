@@ -389,7 +389,7 @@ public:
 	Valueable<bool> DistributeTargetingFrame_AIOnly { true };
 
 	Valueable<bool> CheckUnitBaseNormal { false };
-	Valueable<bool> ExtendedBuildingPlacing { true };
+	Valueable<bool> ExtendedBuildingPlacing { false };
 	Valueable<bool> CheckExpandPlaceGrid { false };
 	Valueable<CoordStruct> ExpandLandGridFrames { { 1, 0, 0 } };
 	Valueable<CoordStruct> ExpandWaterGridFrames { { 1, 0, 0 } };

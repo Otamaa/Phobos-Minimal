@@ -1713,7 +1713,7 @@ static bool IsHashable(ObjectClass* pObj)
 		auto const pType = pAnim->Type;
 
 		if (pType->Damage != 0.0 || pType->Bouncer || pType->IsMeteor || pType->IsTiberium || pType->TiberiumChainReaction
-			|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnit)
+			|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnitType)
 		{
 			return true;
 		}
@@ -2337,48 +2337,48 @@ ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 }
 
 // Change enter to move when unlink
-ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(TechnoClass* const, pCall, STACK_OFFSET(0x18, 0x4));
-	// If the link connection is cancelled and foot A is entering techno B, it may cause A and B to overlap
-	if (!pCall->InLimbo // Has not already entered
-		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
-		&& pCall->CurrentMission == Mission::Enter // Is entering
-		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
-		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
-		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
-	{
-		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
-		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
-		pCall->NextMission(); // Immediately respond to the Mission::Move
-	}
-
-	return 0;
-}
+//ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET_STACK(TechnoClass* const, pCall, STACK_OFFSET(0x18, 0x4));
+//	// If the link connection is cancelled and foot A is entering techno B, it may cause A and B to overlap
+//	if (!pCall->InLimbo // Has not already entered
+//		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
+//		&& pCall->CurrentMission == Mission::Enter // Is entering
+//		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
+//		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
+//		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
+//	{
+//		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
+//		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
+//		pCall->NextMission(); // Immediately respond to the Mission::Move
+//	}
+//
+//	return 0;
+//}
 
 // Radio: do not untether techno who have other tether link
-ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
-{
-	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
-	GET(TechnoClass* const, pThis, ESI);
-	// The radio link capacity of some technos can be greater than 1 (like airport)
-	// Here is a specific example, there may be other situations as well:
-	// - Untether without check may result in `AirportBound=no` aircraft being unable to release from `IsTether` status.
-	// - Specifically, all four aircraft are connected to the airport and have `RadioLink` settings, but when the first aircraft
-	//   is `Unlink` from the airport, all subsequent aircraft will be stuck in `IsTether` status.
-	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
-	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
-	//   which may lead to some unexpected situations.
-	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
-		if (const auto pLink = pThis->RadioLinks.Items[i]) {
-			if (pLink->IsTethered) // If there's another tether link, reset flag to true
-				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
-		}
-	}
-
-	return 0;
-}
+//ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
+//{
+//	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
+//	GET(TechnoClass* const, pThis, ESI);
+//	// The radio link capacity of some technos can be greater than 1 (like airport)
+//	// Here is a specific example, there may be other situations as well:
+//	// - Untether without check may result in `AirportBound=no` aircraft being unable to release from `IsTether` status.
+//	// - Specifically, all four aircraft are connected to the airport and have `RadioLink` settings, but when the first aircraft
+//	//   is `Unlink` from the airport, all subsequent aircraft will be stuck in `IsTether` status.
+//	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
+//	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
+//	//   which may lead to some unexpected situations.
+//	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
+//		if (const auto pLink = pThis->RadioLinks.Items[i]) {
+//			if (pLink->IsTethered) // If there's another tether link, reset flag to true
+//				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
+//		}
+//	}
+//
+//	return 0;
+//}
 
 ASMJIT_PATCH(0x6FC617, TechnoClass_GetFireError_AirCarrierSkipCheckNearBridge, 0x8)
 {
@@ -2494,43 +2494,43 @@ DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
 
 // I think no one wants to see wild pointers caused by WW's negligence
-ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
-{
+//ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
+//{
+//
+//	GET_STACK(bool, removed, STACK_OFFSET(0x1C, 0x8));
+//
+//	if (removed)
+//		return 0x4D9ABD;
+//
+//
+//	R->BL(true);
+//
+//	return 0x4D9A25;
+//}
 
-	GET_STACK(bool, removed, STACK_OFFSET(0x1C, 0x8));
 
-	if (removed)
-		return 0x4D9ABD;
-
-
-	R->BL(true);
-
-	return 0x4D9A25;
-}
-
-
-namespace RemoveSpawneeHelper
-{
-	bool removed = false;
-}
-
-ASMJIT_PATCH(0x707B23, TechnoClass_PointerExpired_RemoveSpawnee, 0x6)
-{
-	GET(SpawnManagerClass*, pSpawnManager, ECX);
-	GET(AbstractClass*, pRemove, EBP);
-	GET_STACK(bool, removed, STACK_OFFSET(0x20, 0x8));
-
-	RemoveSpawneeHelper::removed = removed;
-	pSpawnManager->UnlinkPointer(pRemove);
-	RemoveSpawneeHelper::removed = false;
-
-	return 0x707B29;
-}
-
-ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
-{
-	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
-}
+//namespace RemoveSpawneeHelper
+//{
+//	bool removed = false;
+//}
+//
+//ASMJIT_PATCH(0x707B23, TechnoClass_PointerExpired_RemoveSpawnee, 0x6)
+//{
+//	GET(SpawnManagerClass*, pSpawnManager, ECX);
+//	GET(AbstractClass*, pRemove, EBP);
+//	GET_STACK(bool, removed, STACK_OFFSET(0x20, 0x8));
+//
+//	RemoveSpawneeHelper::removed = removed;
+//	pSpawnManager->UnlinkPointer(pRemove);
+//	RemoveSpawneeHelper::removed = false;
+//
+//	return 0x707B29;
+//}
+//
+//ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
+//{
+//	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
+//}
 
 ASMJIT_PATCH(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
 {

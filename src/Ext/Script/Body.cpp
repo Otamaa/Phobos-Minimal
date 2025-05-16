@@ -1610,19 +1610,19 @@ void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 
 	if (percentage <= successPercentage)
 	{
-		const auto& [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-		const auto& [nextAct, nextArg] = ScriptExtData::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
+		// const auto& [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
+		// const auto& [nextAct, nextArg] = ScriptExtData::GetSpecificAction(pTeam->CurrentScript, pTeam->CurrentScript->CurrentMission + 2);
 
-		Debug::LogInfo("AI Scripts - SkipNextAction: [{}] [{}] (line: {} = {},{}) Next script line skipped successfuly. Next line will be: {} = {},{}",
-			pTeam->Type->ID,
-			pTeam->CurrentScript->Type->ID,
-			pTeam->CurrentScript->CurrentMission,
-			(int)curAct,
-			curArg,
-			pTeam->CurrentScript->CurrentMission + 2,
-			(int)nextAct,
-			nextArg
-		);
+		// Debug::LogInfo("AI Scripts - SkipNextAction: [{}] [{}] (line: {} = {},{}) Next script line skipped successfuly. Next line will be: {} = {},{}",
+		// 	pTeam->Type->ID,
+		// 	pTeam->CurrentScript->Type->ID,
+		// 	pTeam->CurrentScript->CurrentMission,
+		// 	(int)curAct,
+		// 	curArg,
+		// 	pTeam->CurrentScript->CurrentMission + 2,
+		// 	(int)nextAct,
+		// 	nextArg
+		// );
 
 		pTeam->CurrentScript->CurrentMission++;
 	}
@@ -2286,7 +2286,7 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 				}
 				else
 				{
-					// Pick the closest target				
+					// Pick the closest target
 					if (value < bestVal || bestVal < 0)
 					{
 						bestVal = value;

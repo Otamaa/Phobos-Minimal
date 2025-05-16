@@ -214,7 +214,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
 		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
-		if (onlyTargetHouseEnemy && pTeamData->TeamLeader->Owner->EnemyHouseIndex >= 0)
+		if (onlyTargetHouseEnemy && (size_t)pTeamData->TeamLeader->Owner->EnemyHouseIndex < HouseClass::Array->Count)
 			enemyHouse = HouseClass::Array->Items[pTeamData->TeamLeader->Owner->EnemyHouseIndex];
 
 		int targetMask = scriptArgument;
@@ -569,9 +569,9 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 			if (ScriptExtData::EvaluateObjectWithMask(object, method, attackAITargetType, idxAITargetTypeItem, pTechno))
 			{
-				CellStruct newCell;
-				newCell.X = (short)object->Location.X;
-				newCell.Y = (short)object->Location.Y;
+				//CellStruct newCell;
+				//newCell.X = (short)object->Location.X;
+				//newCell.Y = (short)object->Location.Y;
 
 				bool isGoodTarget = false;
 
@@ -1436,7 +1436,8 @@ void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& h
 	if (pWeaponPrimary && pWeaponPrimary->Projectile){
 		hasAntiAir = pWeaponPrimary->Projectile->AA;
 	}
-	else if (pWeaponSecondary && pWeaponSecondary->Projectile) {
+
+	if (!hasAntiAir && pWeaponSecondary && pWeaponSecondary->Projectile) {
 		hasAntiAir = pWeaponSecondary->Projectile->AA;
 	}
 
@@ -1447,7 +1448,9 @@ void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& h
 
 	if (pWeaponPrimary && pWeaponPrimary->Projectile) {
 		hasAntiGround = pWeaponPrimary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly;
-	} else if (pWeaponSecondary && pWeaponSecondary->Projectile) {
+	}
+	
+	if (!hasAntiGround && pWeaponSecondary && pWeaponSecondary->Projectile) {
 		hasAntiGround = pWeaponSecondary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponSecondary->Projectile)->AAOnly;
 	}
 

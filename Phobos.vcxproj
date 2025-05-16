@@ -20,7 +20,9 @@
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
+    <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
+    <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\PoweredUnitClass.cpp" />
     <ClCompile Include="src\New\Entity\RadarJammerClass.cpp" />
@@ -212,7 +214,6 @@
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
     <ClCompile Include="src\Ext\Temporal\Hooks.BuildingTarget.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.cpp" />
-    <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
     <ClCompile Include="src\Ext\Terrain\Body.cpp" />
     <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
     <ClCompile Include="src\Ext\TEvent\Body.cpp" />
@@ -571,6 +572,7 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />

@@ -31,7 +31,7 @@ void UniversalTrail::DrawAnimTrail(CoordStruct& sourcePos, HouseClass* pHouse, T
 				if (!pAnim->Owner || pAnim->Owner != newOwner)
 				{
 					pAnim->SetHouse(newOwner);
-					if (pAnim->Type->MakeInfantry > -1 || pTypeExt->CreateUnit) {
+					if (pTypeExt->RemapAnim || pAnim->Type->MakeInfantry > -1 || (pTypeExt->CreateUnitType && pTypeExt->CreateUnitType->RemapAnim.Get(pTypeExt->RemapAnim))) {
 						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 					}
 
