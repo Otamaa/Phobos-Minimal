@@ -102,7 +102,7 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		OverlayTypeClass* first = nullptr;
 
 		for (int i = 0; i < MaxCount; ++i) {
-			const std::string Find = (this->LinkedOverlayType.Get() + std::format("{:02}", i + 1));
+			const std::string Find = (this->LinkedOverlayType.Get() + fmt::format("{:02}", i + 1));
 			OverlayTypeClass* pOverlay = OverlayTypeClass::Find(Find.c_str());
 
 			if (!pOverlay)

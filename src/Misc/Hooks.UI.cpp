@@ -114,12 +114,12 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	{
 		ColorStruct clrToolTip { };
 
-		std::wstring ShowPower;
+		fmt::basic_memory_buffer<wchar_t> ShowPower;
 
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
 			clrToolTip = pSideExt->Sidebar_PowerDelta_Grey.Get();
-			ShowPower = Phobos::UI::PowerBlackoutLabel;;
+			ShowPower.append(Phobos::UI::PowerBlackoutLabel,  Phobos::UI::PowerBlackoutLabel + std::wcslen(Phobos::UI::PowerBlackoutLabel));
 		}
 		else
 		{
@@ -132,9 +132,10 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 				? pSideExt->Sidebar_PowerDelta_Green.Get() : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 				? pSideExt->Sidebar_PowerDelta_Yellow.Get() : pSideExt->Sidebar_PowerDelta_Red;
 
-			ShowPower = fmt::format(L"{}{}", Phobos::UI::PowerLabel, delta);
+			fmt::format_to(std::back_inserter(ShowPower),L"{}{}", Phobos::UI::PowerLabel, delta);
 
 		}
+		ShowPower.push_back(L'\0');
 
 		const auto TextFlags = static_cast<TextPrintType>(static_cast<int>(TextPrintType::UseGradPal | TextPrintType::Metal12)
 				| static_cast<int>(pSideExt->Sidebar_PowerDelta_Align.Get()));
@@ -145,23 +146,24 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 		};
 
 		DSurface::Sidebar->DSurfaceDrawText(
-		ShowPower.c_str()
+		ShowPower.data()
 		, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
 	}
 
 	if (Phobos::UI::WeedsCounter_Show && Phobos::Config::ShowWeedsCounter)
 	{
-		wchar_t counter[0x20];
+		fmt::basic_memory_buffer<wchar_t> counter;
 		ColorStruct clrToolTip = pSideExt->Sidebar_WeedsCounter_Color.Get(Drawing::TooltipColor());
 
-		swprintf_s(counter, L"%d", static_cast<int>(pPlayer->OwnedWeed.GetTotalAmount()));
+		fmt::format_to(std::back_inserter(counter), L"{}", static_cast<int>(pPlayer->OwnedWeed.GetTotalAmount()));
+		counter.push_back(L'\0');
 
 		Point2D vPos = {
 			DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_WeedsCounter_Offset.Get().X,
 			2 + pSideExt->Sidebar_WeedsCounter_Offset.Get().Y
 		};
 
-		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0,
+		DSurface::Sidebar->DSurfaceDrawText(counter.data(), &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0,
 			TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	}
 	return 0;

@@ -658,9 +658,10 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 			pHouse->Production = true;
 			pHouse->StaticData.IQLevel = RulesClass::Instance->MaxIQLevels;
 
-			static wchar_t buffer[21];
-			std::swprintf(buffer, sizeof(buffer), L"%s (AI)", pHouse->UIName);
-			std::wcscpy(pHouse->UIName, buffer);
+			fmt::basic_memory_buffer<wchar_t> buffer;
+			fmt::format_to(std::back_inserter(buffer), L"{} (AI)", pHouse->UIName);
+			buffer.push_back(L'\0');
+			std::wcscpy(pHouse->UIName, buffer.data());
 			SessionClass::Instance->MPlayerCount--;
 		}
 	}
@@ -707,8 +708,8 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 
 		if (SessionClass::Instance->GameMode == GameMode::Campaign)
 		{
-			const std::string saveFileName = std::format("AUTOSAVE{}.SAV" , SpawnerMain::Configs::NextAutoSaveNumber + 1);
-			const std::wstring saveDescription = std::format(L"Mission Auto-Save (Slot {})", SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			const std::string saveFileName = fmt::format("AUTOSAVE{}.SAV" , SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			const std::wstring saveDescription = fmt::format(L"Mission Auto-Save (Slot {})", SpawnerMain::Configs::NextAutoSaveNumber + 1);
 
 			ScenarioClass::PauseGame();
 			Game::CallBack();

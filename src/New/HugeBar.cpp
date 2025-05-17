@@ -74,9 +74,12 @@ void HugeBar::LoadFromINI(CCINIClass* pINI)
 		return;
 	}
 
-	char section[0x20];
-	sprintf_s(section, "HugeBar_%s", typeName);
+
+	fmt::memory_buffer buffer;
+	fmt::format_to(std::back_inserter(buffer), "HugeBar_{}", typeName);
+	buffer.push_back('\0');
 	INI_EX exINI(pINI);
+	const char* section = buffer.data();
 
 	this->HugeBar_RectWidthPercentage.Read(exINI, section, "HugeBar.RectWidthPercentage");
 	this->HugeBar_RectWH.Read(exINI, section, "HugeBar.RectWH");
@@ -525,19 +528,18 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 		else
 			posDraw.Y += iTextHeight * static_cast<int>(this->InfoType);
 
-		wchar_t text[0x16] = L"";
+		fmt::basic_memory_buffer<wchar_t> text;
 
 		if (this->Value_Percentage)
 		{
-			swprintf_s(text, L"%d", static_cast<int>(ratio * 100));
-			wcscat_s(text, L"%%");
+			fmt::format_to(std::back_inserter(text) ,L"{}%" ,static_cast<int>(ratio * 100));
 		}
 		else
 		{
-			swprintf_s(text, L"%d/%d", iCurrent, iMax);
+			fmt::format_to(std::back_inserter(text) ,L"{}/{}" , iCurrent, iMax);
 		}
-
+		text.push_back(L'\0');
 		COLORREF color = Drawing::RGB_To_Int(this->Value_Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
-		DSurface::Composite->DrawText_Old(text, &rBound, &posDraw, (DWORD)color, COLOR_BLACK, (DWORD)TextPrintType::Center);
+		DSurface::Composite->DrawText_Old(text.data(), &rBound, &posDraw, (DWORD)color, COLOR_BLACK, (DWORD)TextPrintType::Center);
 	}
 }

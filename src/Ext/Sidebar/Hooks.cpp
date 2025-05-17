@@ -12,10 +12,16 @@
 
 ASMJIT_PATCH(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
+	fmt::memory_buffer buffer {};
 	for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {
 		if(!SidebarExtData::TabProducingProgress[i]) {
-			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(std::format("tab{:02}pp.SHP", i).c_str());
+			fmt::format_to(std::back_inserter(buffer), "tab{:02}pp.SHP", i);
+			buffer.push_back('\0');
+			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(
+				buffer.data());
 		}
+
+		buffer.clear();
 	}
 
 	return 0;

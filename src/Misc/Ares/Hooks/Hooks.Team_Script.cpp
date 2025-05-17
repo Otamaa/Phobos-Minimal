@@ -119,7 +119,7 @@ ASMJIT_PATCH(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);
 	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
-	//Debug::LogInfo(std::format(__FUNCTION__ " Function With Type {} ! ",pTeam->Type->ID));
+	//Debug::LogInfo(fmt::format(__FUNCTION__ " Function With Type {} ! ",pTeam->Type->ID));
 	//R->EDX(pTeamExt->AI_SafeDIstance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
 	R->EDX(pRules->AISafeDistance + pTeamM->Argument);
 

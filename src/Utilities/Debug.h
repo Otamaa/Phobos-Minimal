@@ -40,9 +40,9 @@ public:
 	static void FreeMouse();
 
 	template <typename... TArgs>
-	static void NOINLINE LogInfo(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
+	static void NOINLINE LogInfo(const fmt::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()){
-			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
+			std::string fmted = fmt::vformat(_Fmt.get(), fmt::make_format_args(_Args...));
 			fmted += "\n";
 			fprintf_s(Debug::LogFile, "%s" ,fmted.c_str());
 			Debug::Flush();
@@ -50,9 +50,9 @@ public:
 	}
 
 	template <typename... TArgs>
-	static void NOINLINE LogError(const std::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
+	static void NOINLINE LogError(const fmt::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()) {
-			std::string fmted = std::vformat(_Fmt.get(), std::make_format_args(_Args...));
+			std::string fmted = fmt::vformat(_Fmt.get(), fmt::make_format_args(_Args...));
 			fmted += "\n";
 			fprintf_s(Debug::LogFile, "%s", fmted.c_str());
 			Debug::Flush();
@@ -164,7 +164,7 @@ public:
 		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 		const std::tm* localTime = std::localtime(&currentTime);
 
-		return std::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}",
+		return fmt::format(L"{:04}{:02}{:02}-{:02}{:02}{:02}",
 			localTime->tm_year + 1900,
 			localTime->tm_mon + 1 ,
 			localTime->tm_mday,
@@ -179,7 +179,7 @@ public:
 		const std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
 		const std::tm* localTime = std::localtime(&currentTime);
 
-		return std::format("{:04}{:02}{:02}-{:02}{:02}{:02}",
+		return fmt::format("{:04}{:02}{:02}-{:02}{:02}{:02}",
 			localTime->tm_year + 1900,
 			localTime->tm_mon + 1,
 			localTime->tm_mday,

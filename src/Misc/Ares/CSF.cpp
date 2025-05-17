@@ -18,7 +18,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 {
 	//The main stringtable must have been loaded (memory allocation)
 	//To do that, use StringTable::LoadFile.
-	if (StringTable::IsLoaded && pFileName && *pFileName)
+	if (StringTable::IsLoaded && std::strlen(pFileName) > 0 && *pFileName)
 	{
 		CCFileClass file { pFileName };
 
@@ -47,6 +47,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 		}
 	}
 }
+
 
 const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault, bool isNostr)
 {
@@ -186,10 +187,14 @@ ASMJIT_PATCH(0x6BD886, CSF_LoadExtraFiles, 5)
 	_ares += res;
 	_ares += ".csf";
 
-	CSFLoader::LoadAdditionalCSF(_ares.c_str());
+	CSFLoader::LoadAdditionalCSF(_ares.data());
+	fmt::memory_buffer buffer {};
 
 	for (int idx = 0; idx < 100; ++idx) {
-		CSFLoader::LoadAdditionalCSF(std::format("stringtable{:02}.csf", idx).c_str());
+		fmt::format_to(std::back_inserter(buffer), "stringtable{:02}.csf", idx);
+		buffer.push_back('\0');
+		CSFLoader::LoadAdditionalCSF(buffer.data());
+		buffer.clear();
 	}
 
 	R->AL(1);

@@ -80,8 +80,10 @@ void IsometricTileTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
 
 	INI_EX exINI(pINI);
-
-	this->Palette.Read(exINI, std::format("Tileset{:04}" ,IsometricTileTypeExtContainer::CurrentTileset).c_str(), "CustomPalette");
+	fmt::memory_buffer buffer {};
+	fmt::format_to(std::back_inserter(buffer) ,"Tileset{:04}" ,IsometricTileTypeExtContainer::CurrentTileset);
+	buffer.push_back('\0');
+	this->Palette.Read(exINI, buffer.data() , "CustomPalette");
 }
 
 template <typename T>

@@ -426,9 +426,12 @@ ASMJIT_PATCH(0x4011C0, Audio_Load, 6)
 	instance.Append("ares");
 
 	// audio01.bag to audio99.bag
-	//char buffer[0x100];
+	fmt::memory_buffer buffer {};
 	for(auto i = 1; i < 100; ++i) {
-		instance.Append(std::format("audio{:02}", i).c_str());
+		fmt::format_to(std::back_inserter(buffer), "audio{:02}", i);
+		buffer.push_back('\0');
+		instance.Append(buffer.data());
+		buffer.clear();
 	}
 
 	// cram all luggage datas onto single AudioIdxData pointer

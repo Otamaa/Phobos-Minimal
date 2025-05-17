@@ -34,8 +34,8 @@ ASMJIT_PATCH(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 	{
 		auto const pINI = &CCINIClass::INI_Art();
 		auto const animData = &pThis->BuildingAnim[i];
-
-		const std::string baseKey = std::format("PowerUp{:01}", i + 1);
+		
+		const std::string baseKey = fmt::format("PowerUp{:01}", i + 1);
 
 		pINI->ReadString(pThis->ImageFile, (baseKey + "Anim").c_str(), Phobos::readDefval, animData->Anim);
 		pINI->ReadString(pThis->ImageFile, (baseKey + "DamagedAnim").c_str(), Phobos::readDefval, animData->Damaged);

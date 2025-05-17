@@ -2971,17 +2971,18 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
 		damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 
-	std::wstring damageStr;
+	fmt::basic_memory_buffer<wchar_t> damageStr;
 
 	if (Phobos::Otamaa::IsAdmin)
-		damageStr = Str2Wstr(fmt::format("[{}] {} ({})", pThis->get_ID(), pWH->ID, damage));
+		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
 	else
-		damageStr = fmt::format(L"{}", damage);
+		fmt::format_to(std::back_inserter(damageStr) ,L"{}", damage);
 
+	damageStr.push_back(L'\0');
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;
 	int width = 0, height = 0;
-	BitFont::Instance->GetTextDimension(damageStr.c_str(), &width, &height, 120);
+	BitFont::Instance->GetTextDimension(damageStr.data(), &width, &height, 120);
 
 	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset == INT32_MIN)
 		pExt->DamageNumberOffset = -maxOffset;
@@ -2997,7 +2998,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 		{
 			if (pThis->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden)
 			{
-				FlyingStrings::Add(damageStr.c_str(), coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
+				FlyingStrings::Add(damageStr.data(), coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
 			}
 		}
 	}

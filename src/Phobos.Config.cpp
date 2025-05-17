@@ -147,7 +147,7 @@ void Phobos::Config::Read()
 		 Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"Radar Jammed");
 
 		 pINI->ReadString(GameStrings::ToolTips(), "SWShotsFormat", GameStrings::NoneStr(), Phobos::readBuffer);
-		 Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"%d/%d shots"); // ⌚
+		 Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"{}/{} shots"); // ⌚
 	 }
 
 	 // Sidebar

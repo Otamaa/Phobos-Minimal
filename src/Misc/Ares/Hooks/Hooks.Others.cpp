@@ -1301,10 +1301,10 @@ ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 
 	if (RulesExtData::Instance()->FPSCounter)
 	{
-		wchar_t buffer[0x100];
-		swprintf_s(buffer, L"FPS: %-4u Avg: %.2f", FPSCounter::CurrentFrameRate(), FPSCounter::GetAverageFrameRate());
-
-		DrawText_Helper(buffer, offset, COLOR_WHITE);
+		fmt::basic_memory_buffer<wchar_t> buffer;
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {} Avg: {}" , FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 	}
 
 	return 0;

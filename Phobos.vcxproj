@@ -21,7 +21,6 @@
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
-    <ClCompile Include="src\Lib\fmt\format.cc" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />

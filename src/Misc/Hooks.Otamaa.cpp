@@ -4686,7 +4686,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	std::wstring buffer;
+	fmt::basic_memory_buffer<wchar_t> buffer;
 
 	if(hour){
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
@@ -4694,8 +4694,11 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
 
-	std::wstring labe_buffer;
+	buffer.push_back(L'\0');
+
+	fmt::basic_memory_buffer<wchar_t> labe_buffer;
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
+	labe_buffer.push_back(L'\0');
 
 	int width = 0;
 	RectangleStruct rect_bound = DSurface::ViewBounds();
@@ -4732,7 +4735,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 
 	Simple_Text_Print_Wide(
 		&_temp,
-		labe_buffer.c_str(),
+		labe_buffer.data(),
 		pComposite,
 		&rect,
 		&point,
@@ -4749,7 +4752,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 
 	Simple_Text_Print_Wide(
 	&_temp,
-	buffer.c_str(),
+	buffer.data(),
 	pComposite,
 	&rect,
 	&point,

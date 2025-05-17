@@ -1473,7 +1473,7 @@ bool TActionExt::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClass* p
 				continue;
 
 			textToShow = true;
-			_message += std::format(L"{}: {}", (*technosList)[i]->UIName, technosRemaining[i]);
+			_message += fmt::format(L"{}: {}", (*technosList)[i]->UIName, technosRemaining[i]);
 		}
 	}
 

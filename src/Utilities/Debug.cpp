@@ -160,7 +160,7 @@ std::wstring Debug::PrepareSnapshotDirectory()
 {
 	const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + Debug::GetCurTime();
 	if (!std::filesystem::create_directories(buffer)) {
-		std::wstring msg = std::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
+		std::wstring msg = fmt::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
 		MessageBoxW(Game::hWnd.get(), Debug::LogFileFullPath.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
 		Phobos::ExeTerminate();
 		exit(errno);

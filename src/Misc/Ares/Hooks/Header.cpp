@@ -3967,13 +3967,14 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
 		pExt->TechnoValueAmount = 0;
 		bool isPositive = value > 0;
-		wchar_t moneyStr[0x20];
+		fmt::basic_memory_buffer<wchar_t> moneyStr;
 
 		const ColorStruct& color = isPositive
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		swprintf_s(moneyStr, L"%ls%ls%d", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
+		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
+		moneyStr.push_back(L'\0');
 
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
@@ -3988,7 +3989,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 				loc.Z += 256;
 			}
 
-			FlyingStrings::Add(moneyStr, loc, color, {});
+			FlyingStrings::Add(moneyStr.data(), loc, color, {});
 		}
 	}
 }

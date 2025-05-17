@@ -808,10 +808,10 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 					const COLORREF color = Drawing::RGB_To_Int(Drawing::TooltipColor);
 					const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
 					auto textPosition = Point2D { destX , destY + 1 };
-
-					wchar_t text[0x20];
-					swprintf_s(text, L"%d", count);
-					DSurface::Sidebar->DrawText_Old(text, &surfaceRect, &textPosition, color, 0, (DWORD)printType);
+					fmt::basic_memory_buffer<wchar_t> text;
+					fmt::format_to(std::back_inserter(text) , L"{}", count);
+					text.push_back(L'\0');
+					DSurface::Sidebar->DrawText_Old(text.data(), &surfaceRect, &textPosition, color, 0, (DWORD)printType);
 				}
 			}
 		}

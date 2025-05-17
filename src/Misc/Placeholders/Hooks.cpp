@@ -320,7 +320,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //	// top left of tactical display.
 //	Point2D screen = rect.Top_Left();
 //
-//	const auto buffer = std::format(L"RulesClass ptr {}", (uintptr_t)RulesClass::Instance());
+//	const auto buffer = fmt::format(L"RulesClass ptr {}", (uintptr_t)RulesClass::Instance());
 //	DSurface::Temp()->DrawColorSchemeText(
 //		buffer.c_str(),
 //		rect,
@@ -374,8 +374,8 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //
 //	screen.Y -= font->GetHeight() / 2;
 //
-//	const auto buffer1 = std::format(L"{}" , (int)pTechno->PrimaryFacing.Current().GetDir());
-//	const auto buffer2 = std::format(L"{}", (int)pTechno->PrimaryFacing.Current().Raw);
+//	const auto buffer1 = fmt::format(L"{}" , (int)pTechno->PrimaryFacing.Current().GetDir());
+//	const auto buffer2 = fmt::format(L"{}", (int)pTechno->PrimaryFacing.Current().Raw);
 //
 //	DSurface::Temp()->DrawColorSchemeText(
 //		buffer1.c_str(),
