@@ -230,7 +230,7 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 		//create the new type
 		if(PhobosTrajectoryType::UpdateType(pType, nFlag)) {
 			// register the change if succeeded
-			PhobosSwizzle::Instance.Here_I_Am(pOld, pType.get());
+			SwizzleManagerClass::Instance->Here_I_Am((long)pOld ,pType.get());
 			pType->Load(Stm, false);
 		}
 	}

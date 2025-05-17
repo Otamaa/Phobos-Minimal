@@ -27,6 +27,8 @@
 #include "TranslucencyLevel.h"
 #include "Swizzle.h"
 #include "Debug.h"
+#include "MemoryPoolUniquePointer.h"
+#include "GameUniquePointers.h"
 
 namespace Savegame
 {
@@ -109,27 +111,6 @@ namespace Savegame
 	bool WritePhobosStream(PhobosStreamWriter& Stm, const T& Value)
 	{
 		return detail::Selector::WriteToStream(Stm, Value);
-	}
-
-	template <typename T>
-	T* RestoreObject(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		T* ptrOld = nullptr;
-		if (!Stm.Load(ptrOld))
-			return nullptr;
-
-		if (ptrOld)
-		{
-			std::unique_ptr<T> ptrNew = ObjectFactory<T>()(Stm);
-
-			if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange))
-			{
-				PhobosSwizzle::Instance.Here_I_Am(ptrOld, ptrNew.get());
-				return ptrNew.release();
-			}
-		}
-
-		return nullptr;
 	}
 
 	template <typename T>
@@ -626,11 +607,114 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::unique_ptr<T>& Value, bool RegisterForChange) const
 		{
-			Value.reset(RestoreObject<T>(Stm, RegisterForChange));
+			T* ptrOld = nullptr;
+			if (!Stm.Load(ptrOld))
+				return false;
+
+			if (ptrOld) {
+
+				std::unique_ptr<T> ptrNew = ObjectFactory<T>()(Stm);
+
+				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
+					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					ptrOld = ptrNew.release();
+				}
+			}
+
+			Value.reset(ptrOld);
 			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unique_ptr<T>& Value) const
+		{
+			return PersistObject(Stm, Value.get());
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<MemoryPoolUniquePointer<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, MemoryPoolUniquePointer<T>& Value, bool RegisterForChange) const
+		{
+			T* ptrOld = nullptr;
+			if (!Stm.Load(ptrOld))
+				return false;
+
+			if (ptrOld) {
+
+				MemoryPoolUniquePointer<T> ptrNew = ObjectFactory<T>()(Stm);
+
+				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
+					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					ptrOld = ptrNew.release();
+				}
+			}
+
+			Value.reset(ptrOld);
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const MemoryPoolUniquePointer<T>& Value) const
+		{
+			return PersistObject(Stm, Value.get());
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<UniqueGamePtr<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, UniqueGamePtr<T>& Value, bool RegisterForChange) const
+		{
+			T* ptrOld = nullptr;
+			if (!Stm.Load(ptrOld))
+				return false;
+
+			if (ptrOld) {
+
+				UniqueGamePtr<T> ptrNew = ObjectFactory<T>()(Stm);
+
+				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
+					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					ptrOld = ptrNew.release();
+				}
+			}
+
+			Value.reset(ptrOld);
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const UniqueGamePtr<T>& Value) const
+		{
+			return PersistObject(Stm, Value.get());
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<UniqueGamePtrC<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, UniqueGamePtrC<T>& Value, bool RegisterForChange) const
+		{
+			T* ptrOld = nullptr;
+			if (!Stm.Load(ptrOld))
+				return false;
+
+			if (ptrOld)
+			{
+
+				UniqueGamePtrC<T> ptrNew = ObjectFactory<T>()(Stm);
+
+				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange))
+				{
+					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					ptrOld = ptrNew.release();
+				}
+			}
+
+			Value.reset(ptrOld);
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const UniqueGamePtrC<T>& Value) const
 		{
 			return PersistObject(Stm, Value.get());
 		}

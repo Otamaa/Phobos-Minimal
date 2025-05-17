@@ -158,6 +158,17 @@ public:
 	bool Save(PhobosStreamWriter& Stm) const;
 
 	static HelperedVector<ShieldClass*> Array;
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return Stm
+			.Process(Array);
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return Stm
+			.Process(Array);
+	}
 
 private:
 	template <typename T>

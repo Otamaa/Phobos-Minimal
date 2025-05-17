@@ -31,9 +31,6 @@ namespace Savegame {
 	bool WritePhobosStream(PhobosStreamWriter& Stm, const T& Value);
 
 	template <typename T>
-	T* RestoreObject(PhobosStreamReader& Stm, bool RegisterForChange = true);
-
-	template <typename T>
 	bool PersistObject(PhobosStreamWriter& Stm, const T* pValue);
 
 	template <typename T>

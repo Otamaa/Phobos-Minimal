@@ -3370,7 +3370,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		return false;
 
 	const auto pOldType = prevType;
-	Debug::LogInfo("Attempt to convert TechnoType[{}] to [{}]", pOldType->ID, pToType->ID);
+	//Debug::LogInfo("Attempt to convert TechnoType[{}] to [{}]", pOldType->ID, pToType->ID);
 
 	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
 	{
