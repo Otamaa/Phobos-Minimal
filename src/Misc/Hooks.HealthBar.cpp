@@ -195,9 +195,9 @@ namespace DrawHeathData
 
 		//char nBuffer[0x100];
 		std::string _buffer = !pTypeExt->HealthNumber_Percent.Get() ?
-			std::format("{}/{}", pThis->Health, pThis->GetTechnoType()->Strength)
+			fmt::format("{}/{}", pThis->Health, pThis->GetTechnoType()->Strength)
 			:
-			std::format("{}%", (int)(pThis->GetHealthPercentage() * 100.0));
+			fmt::format("{}%", (int)(pThis->GetHealthPercentage() * 100.0));
 
 		auto const bIsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 

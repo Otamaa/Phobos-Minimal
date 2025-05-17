@@ -10,6 +10,9 @@
 #include <random>
 #include <ColorStruct.h>
 
+#include <Lib/fmt/core.h>
+#include <Lib/fmt/xchar.h>
+
 class CCINIClass;
 class AbstractClass;
 

@@ -46,7 +46,7 @@ private:
 	{
 		return Stm
 			.Process(this->LastScan)
-			.Process(this->AttachedToObject, true)
+			.Process(this->AttachedToObject)
 			.Process(this->Registered)
 			.Success()
 			;

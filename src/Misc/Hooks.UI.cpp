@@ -96,7 +96,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-		std::wstring Harv = std::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		std::wstring Harv = fmt::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
 
 	 	Point2D vPos {
 	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -132,7 +132,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 				? pSideExt->Sidebar_PowerDelta_Green.Get() : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 				? pSideExt->Sidebar_PowerDelta_Yellow.Get() : pSideExt->Sidebar_PowerDelta_Red;
 
-			ShowPower = std::format(L"{}{}", Phobos::UI::PowerLabel, delta);
+			ShowPower = fmt::format(L"{}{}", Phobos::UI::PowerLabel, delta);
 
 		}
 

@@ -9,7 +9,6 @@
 #include <Misc/Hooks.Otamaa.h>
 #include <Ext/House/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Ext/WeaponType/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Utilities/AnimHelpers.h>
@@ -22,7 +21,6 @@
 
 #include <Memory.h>
 
-#include <Ext/Cell/Body.h>
 
 ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {

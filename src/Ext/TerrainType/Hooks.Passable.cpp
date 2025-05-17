@@ -1205,7 +1205,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	auto buildCurrent = [&pHouse, &pHouseExt](BuildingTypeClass* pType, CellStruct cell)
-	{		
+	{
 		if (!pType)
 		 return;
 
@@ -1221,9 +1221,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 				if (pConYard->CurrentMission == Mission::Selling || pConYard->QueuedMission == Mission::Selling)
 					continue;
 
-				auto const pType = pConYard->Type;
-
-				if (pType->Factory != AbstractType::Building || !pType->InOwners(bitsOwners))
+				if (pConYard->Type->Factory != AbstractType::Building || !pConYard->Type->InOwners(bitsOwners))
 					continue;
 
 				return true;

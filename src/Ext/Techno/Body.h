@@ -590,8 +590,8 @@ public:
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
-	MemoryPoolUniquePointer<PoweredUnitClass> PoweredUnit {};
-	MemoryPoolUniquePointer<RadarJammerClass> RadarJammer {};
+	MemoryPoolUniquePointer<PoweredUnitClass> PoweredUnit { nullptr };
+	MemoryPoolUniquePointer<RadarJammerClass> RadarJammer { nullptr };
 
 	BuildingLightClass* BuildingLight { 0 };
 
@@ -607,7 +607,7 @@ public:
 	BYTE TakeVehicleMode { 0 };
 	int TechnoValueAmount { 0 };
 	int Pos { };
-	MemoryPoolUniquePointer<ShieldClass> Shield {};
+	MemoryPoolUniquePointer<ShieldClass> Shield { nullptr };
 	HelperedVector<LaserTrailClass> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };

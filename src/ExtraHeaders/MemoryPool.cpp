@@ -115,7 +115,7 @@ static PoolSizeRec sizes[] =
 
 	{ "RadarJammerClass"					, 100	, 50	},
 	{ "PoweredUnitClass"					, 100	, 50	},
-	{ "PrismForwarding"					, 100	, 50	},
+	{ "PrismForwarding"						, 9000	, 1024	},
 };
 
 static void userMemoryAdjustPoolSize(const char* poolName, Int& initialAllocationCount, Int& overflowAllocationCount)

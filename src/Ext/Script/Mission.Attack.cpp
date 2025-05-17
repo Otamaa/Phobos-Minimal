@@ -214,7 +214,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
 		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
-		if (onlyTargetHouseEnemy && (size_t)pTeamData->TeamLeader->Owner->EnemyHouseIndex < HouseClass::Array->Count)
+		if (onlyTargetHouseEnemy && (size_t)pTeamData->TeamLeader->Owner->EnemyHouseIndex < (size_t)HouseClass::Array->Count)
 			enemyHouse = HouseClass::Array->Items[pTeamData->TeamLeader->Owner->EnemyHouseIndex];
 
 		int targetMask = scriptArgument;
@@ -1449,7 +1449,7 @@ void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& h
 	if (pWeaponPrimary && pWeaponPrimary->Projectile) {
 		hasAntiGround = pWeaponPrimary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly;
 	}
-	
+
 	if (!hasAntiGround && pWeaponSecondary && pWeaponSecondary->Projectile) {
 		hasAntiGround = pWeaponSecondary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponSecondary->Projectile)->AAOnly;
 	}

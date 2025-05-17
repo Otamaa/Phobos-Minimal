@@ -4686,19 +4686,20 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
+	std::wstring buffer;
 
-	const std::wstring timer_ = hour ?
-		std::format(L"{:02}:{:02}:{:02}", hour, minute, second) :
-		std::format(L"{:02}:{:02}", minute, second);
+	if(hour){
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
+	} else {
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
+	}
 
-	const std::wstring buffer =
-		std::format(L"{}  ", label)
-		//std::format(L"{}  {}  ", label, timer_)
-		;
+	std::wstring labe_buffer;
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
 
 	int width = 0;
 	RectangleStruct rect_bound = DSurface::ViewBounds();
-	pFont->GetTextDimension(timer_.data(), &width, nullptr, rect_bound.Width);
+	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
 	ColorScheme* fore = color;
 
 	if (!interval && _arg && _arg1)
@@ -4731,7 +4732,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 
 	Simple_Text_Print_Wide(
 		&_temp,
-		buffer.c_str(),
+		labe_buffer.c_str(),
 		pComposite,
 		&rect,
 		&point,
@@ -4748,7 +4749,7 @@ static void DrawSWTimers(int value, ColorScheme* color, int interval, const wcha
 
 	Simple_Text_Print_Wide(
 	&_temp,
-	timer_.c_str(),
+	buffer.c_str(),
 	pComposite,
 	&rect,
 	&point,
@@ -6378,14 +6379,15 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 
 				for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation) {
 					const auto nLoc = nCurCoord + (*pFoundation);
+					auto& count = pRadExt->damageCounts[pBld];
 
-					if (maxDamageCount <= 0 || pRadExt->damageCounts[pBld] < maxDamageCount) {
+					if (maxDamageCount <= 0 || count < maxDamageCount) {
 
 						if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
 							continue;
 
 						if (maxDamageCount > 0)
-							pRadExt->damageCounts[pBld]++;
+							count++;
 
 						const double orDistance = pRad->BaseCell.DistanceFrom(nLoc);
 

@@ -2974,9 +2974,9 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	std::wstring damageStr;
 
 	if (Phobos::Otamaa::IsAdmin)
-		damageStr = Str2Wstr(std::format("[{}] {} ({})", pThis->get_ID(), pWH->ID, damage));
+		damageStr = Str2Wstr(fmt::format("[{}] {} ({})", pThis->get_ID(), pWH->ID, damage));
 	else
-		damageStr = std::format(L"{}", damage);
+		damageStr = fmt::format(L"{}", damage);
 
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;

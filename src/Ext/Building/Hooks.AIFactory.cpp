@@ -155,7 +155,7 @@ void HouseExtData::UpdateVehicleProduction()
 			continue;
 		}
 
-		DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
+		DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
 		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
 
 		for (auto currentMember : taskForceMembers)
@@ -617,7 +617,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse) {
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
 		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen) {
-			DynamicVectorClass<TechnoTypeClass*> arr;
+			DynamicVectorClass<TechnoTypeClass*> arr {};
 			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
 
 			for (auto pMember : arr) {

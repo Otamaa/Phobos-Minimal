@@ -50,14 +50,16 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		// support pointer to this type
+
 		return Stm
-			.Process(this->Owner, true)
-			.Process(this->Senders, RegisterForChange)
-			.Process(this->SupportTarget, RegisterForChange)
+			.Process(this->Owner)
+			.Process(this->Senders)
+			.Process(this->SupportTarget)
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success()
+			.Success() && Stm
+			.RegisterChange(this)
 			;
 	}
 
@@ -71,8 +73,21 @@ public:
 			.Process(this->PrismChargeDelay)
 			.Process(this->ModifierReserve)
 			.Process(this->DamageReserve)
-			.Success()
+			.Success() && Stm
+			.RegisterChange(this)
 			;
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return Stm
+			.Process(Array);
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return Stm
+			.Process(Array);
 	}
 };
 

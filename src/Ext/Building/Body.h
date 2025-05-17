@@ -30,7 +30,7 @@ public:
 	BuildingTypeExtData* Type { nullptr };
 	TechnoExtData* TechnoExt { nullptr };
 
-	MemoryPoolUniquePointer<PrismForwarding> MyPrismForwarding { };
+	MemoryPoolUniquePointer<PrismForwarding> MyPrismForwarding { nullptr };
 
 	bool DeployedTechno { false };
 	int LimboID { -1 };
