@@ -2701,29 +2701,10 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	const auto pType = pThis->GetTechnoType();
-	const auto pOwner = pThis->Owner;
-	const auto houseSpeed = pOwner->GetSpeedMult(pType);
 	const auto maxSpeed = pThis->GetDefaultSpeed();
-	auto thisMult = pThis->SpeedMultiplier;
+	int speedResult = int( maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)) ;
 
-	//prevent unit in warfactory stuck
-	// if (thisMult < 0.0001 && TechnoExtData::IsInWarfactory(pThis, false)) {
-	// 	Debug::LogInfo("Foot[%s] with negative or zero speed mult inside warfactory ,restoring speedmult", pType->ID);
-	// 	thisMult = 1.0;
-	// }
-
-	double result = maxSpeed * houseSpeed * thisMult;
-
-	if (pThis->HasAbility(AbilityType::Faster))
-	{
-		result *= RulesClass::Instance->VeteranSpeed;
-	}
-
-	int speedResult = (int)(result * pThis->SpeedPercentage);
-
-	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
-	{
+	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1) {
 		speedResult /= 2;
 	}
 
@@ -6649,16 +6630,16 @@ ASMJIT_PATCH(0x581D4E, MapClass_CollapseCliffs_DefaultAnimB, 0x5)
 	return 0x581D97;
 }
 
-ASMJIT_PATCH(0x7B4940, WString_OperatorSet_empty, 0x5)
-{
-	GET_STACK(Wstring*, pString, 0x4);
-	GET_STACK(DWORD, caller , 0x0);
-
-	if (!pString)
-		Debug::FatalError("Empty String set for wstring caller  %x\n", caller);
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x7B4940, WString_OperatorSet_empty, 0x5)
+//{
+//	GET_STACK(Wstring*, pString, 0x4);
+//	GET_STACK(DWORD, caller , 0x0);
+//
+//	if (!pString)
+//		Debug::FatalError("Empty String set for wstring caller  %x\n", caller);
+//
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 {

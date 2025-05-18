@@ -4593,24 +4593,13 @@ void TechnoExtData::UpdateSharedAmmo(TechnoClass* pThis)
 
 double TechnoExtData::GetCurrentSpeedMultiplier(FootClass* pThis)
 {
-	double houseMultiplier = 1.0;
+	const double houseMultiplier = pThis->Owner->GetSpeedMult(pThis->GetTechnoType());
+	double speed = pThis->SpeedMultiplier * houseMultiplier;
 
-	switch (pThis->WhatAmI())
-	{
-	case AircraftClass::AbsID:
-		houseMultiplier = pThis->Owner->Type->SpeedAircraftMult;
-		break;
-	case InfantryClass::AbsID:
-		houseMultiplier = pThis->Owner->Type->SpeedInfantryMult;
-		break;
-	case UnitClass::AbsID:
-		houseMultiplier = pThis->Owner->Type->SpeedUnitsMult;
-		break;
-	default:break;
-	}
+	if(pThis->HasAbility(AbilityType::Faster))
+		speed *=  RulesClass::Instance->VeteranSpeed;
 
-	return pThis->SpeedMultiplier * houseMultiplier *
-		(pThis->HasAbility(AbilityType::Faster) ? RulesClass::Instance->VeteranSpeed : 1.0);
+	return speed;
 }
 
 void TechnoExtData::UpdateMindControlAnim()

@@ -44,39 +44,37 @@ ASMJIT_PATCH(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	return 0x736FB1;
 }
 
-// For compatibility with previous builds
-ASMJIT_PATCH(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
-{
+ASMJIT_PATCH(0x736E6E, UnitClass_UpdateFiring_OmniFireTurnToTarget, 0x9) {
+
+	GET(FireError, err, EBP);
 	GET(UnitClass* const, pThis, ESI);
 	GET(int const, wpIdx, EDI);
+
+	if (pThis->IsWarpingIn() || err != FireError::OK && err != FireError::REARM)
+		return 0;
+
 	auto pType = pThis->Type;
 
 	if ((pType->Turret && !pType->HasTurret) || pType->TurretSpins)
 		return 0;
 
-	if ((pType->DeployFire || TechnoExtData::GetDeployFireWeapon(pThis) == wpIdx) && pThis->CurrentMission == Mission::Unload)
+	if ((pType->DeployFire || pType->DeployFireWeapon == wpIdx) && pThis->CurrentMission == Mission::Unload)
 		return 0;
 
-	auto const pWpnStruct = pThis->GetWeapon(wpIdx);
-	if (!pWpnStruct)
-		return 0;
-
-	auto const pWpn = pWpnStruct->WeaponType;
+	auto const pWpn = pThis->GetWeapon(wpIdx)->WeaponType;
 	if (pWpn->OmniFire)
 	{
 		const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWpn);
-		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now())
+		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor->Is_Moving_Now())
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();
-			const DirStruct tgtDir { double(source.Y - target.Y), double(target.X - source.X) };
+			DirStruct tgtDir { Math::atan2(double(source.Y - target.Y), double(target.X - source.X)) };
 
 			if (pThis->GetRealFacing() != tgtDir)
 			{
-				if (auto jjLoco = locomotion_cast<JumpjetLocomotionClass*, true>(pThis->Locomotor))
-				{
-					jjLoco->Facing.Set_Desired(tgtDir);
-				}
+				if (auto const pLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+					pLoco->Facing.Set_Desired(tgtDir);
 				else
 					pThis->PrimaryFacing.Set_Desired(tgtDir);
 			}

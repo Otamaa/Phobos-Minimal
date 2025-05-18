@@ -173,7 +173,6 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 	const auto pCell = MapClass::Instance->GetCellAt(to);
 	auto const pBullet = GameCreate<BulletClass>();
 
-
 	pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
 	pBullet->SetWeaponType(pPayload);
 	int Damage = pPayload->Damage;

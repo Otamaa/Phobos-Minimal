@@ -55,8 +55,7 @@ void PhobosSwizzle::ConvertNodes() const
 
 			if (change == this->Changes.end())
 			{
-				//throw fatal when the pointer is faild to change
-				Debug::FatalError("PhobosSwizze :: Pointer [%x] could not be remapped from [%x] !", (void*)(it->second), (void*)(it->first));
+				Debug::Log("PhobosSwizze :: Pointer [%x] could not be remapped from [%x] !", (void*)(it->second), (void*)(it->first));
 			}
 			else
 			{

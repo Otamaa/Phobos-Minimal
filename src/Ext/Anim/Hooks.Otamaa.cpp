@@ -37,7 +37,7 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 		{
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim())
 			{
-				new AnimClass(pAnimtype, location->GetCoords(), 1);
+				GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1);
 			}
 		}
 	}
@@ -136,7 +136,7 @@ void NOINLINE FakeAnimClass::_Start()
 					auto SpawnLoc = gCoords;
 					SpawnLoc.Z += 10;
 
-					auto pSpawn = new AnimClass(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
+					auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
 					pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
 					pSpawn->TintColor = cptr->Intensity_Normal;
 				}
@@ -195,7 +195,7 @@ void NOINLINE FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 
 	for (int i = nMax; i > 0; --i)
 	{
-		AnimExtData::SetAnimOwnerHouseKind(new AnimClass(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
 		pOwner,
 		nullptr,
 		pTech,
@@ -278,7 +278,7 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 							if (!pType->Tiberium)
 								return; // not valid
 
-							new OverlayClass(
+							GameCreate<OverlayClass>(
 								pType,
 								cellptr->MapCoords,
 								-1);
@@ -308,7 +308,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	{
 		if (this->Type->ExpireAnim)
 		{
-			new AnimClass(this->Type->ExpireAnim,
+			GameCreate<AnimClass>(this->Type->ExpireAnim,
 				coords,
 				0,
 				1,
@@ -323,7 +323,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	}
 	else if (this->Type->IsMeteor)
 	{
-		new AnimClass(RulesClass::Instance->SplashList[0],
+		GameCreate<AnimClass>(RulesClass::Instance->SplashList[0],
 			coords,
 			0,
 			1,
@@ -333,7 +333,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 	}
 	else
 	{
-		new AnimClass(RulesClass::Instance->Wake,
+		GameCreate<AnimClass>(RulesClass::Instance->Wake,
 			coords,
 			0,
 			1,
@@ -343,7 +343,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 
 		CoordStruct _splashCoord = coords;
 		_splashCoord.Z += 3;
-		new AnimClass(RulesClass::Instance->SplashList[0],
+		GameCreate<AnimClass>(RulesClass::Instance->SplashList[0],
 			_splashCoord,
 			0,
 			1,
@@ -365,7 +365,7 @@ void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 
 		if(this->Type->TrailerSeperation == 1 || !(Unsorted::CurrentFrame() % this->Type->TrailerSeperation)) {
 
-			AnimExtData::SetAnimOwnerHouseKind(new AnimClass(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
 		}
 	}
 }
@@ -750,7 +750,7 @@ int FakeAnimClass::_BounceAI()
 		if (auto pBounceAnim = this->Type->BounceAnim)
 		{
 			HouseClass* pHouse = this->Owner ? this->Owner : (pTechnoInvoker ? pTechnoInvoker->GetOwningHouse() : nullptr);
-			AnimExtData::SetAnimOwnerHouseKind(new AnimClass(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
 				pHouse,
 				nullptr,
 				pTechnoInvoker,
