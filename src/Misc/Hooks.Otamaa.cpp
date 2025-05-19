@@ -2708,30 +2708,6 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 		speedResult /= 2;
 	}
 
-	// Drop crate if is dead
-	if (!pThis->Health)
-	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-		int nSelectedPowerup = -1;
-
-		if (pExt->DropCrate >= 0 && pExt->DropCrate == 1)
-		{
-			nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
-		}
-		else if (pTypeExt->DropCrate.isset())
-		{
-			nSelectedPowerup = pTypeExt->DropCrate.Get();
-		}
-
-		if (nSelectedPowerup >= 0)
-		{
-			TechnoExtData::TryToCreateCrate(pThis->Location, static_cast<PowerupEffects>(nSelectedPowerup));
-		}
-
-	}
-
 	R->EAX((int)speedResult);
 	return 0x4DB245;
 }

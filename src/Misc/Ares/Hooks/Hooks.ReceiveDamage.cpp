@@ -778,7 +778,25 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	if (Phobos::Debug_DisplayDamageNumbers && Show)
 		FlyingStrings::DisplayDamageNumberString(*args.Damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset);
 
-	GiftBoxFunctional::TakeDamage(TechnoExtContainer::Instance.Find(pThis), TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), args.WH, _res);
+	if (!pThis->Health)
+	{
+		int nSelectedPowerup = -1;
+
+		if (pExt->DropCrate >= 0 && pExt->DropCrate == 1)
+		{
+			nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
+		}
+		else if (pTypeExt->DropCrate.isset())
+		{
+			nSelectedPowerup = pTypeExt->DropCrate.Get();
+		}
+
+		if (nSelectedPowerup >= 0) {
+			TechnoExtData::TryToCreateCrate(pThis->Location, static_cast<PowerupEffects>(nSelectedPowerup));
+		}
+	}
+
+	GiftBoxFunctional::TakeDamage(pExt, pTypeExt, args.WH, _res);
 
 	if (args.Attacker && !pWHExt->Nonprovocative)
 	{
