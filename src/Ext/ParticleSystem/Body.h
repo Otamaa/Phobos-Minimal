@@ -7,10 +7,8 @@
 
 class ParticleClass;
 class ParticleTypeClass;
-class ParticleSystemExtData final : public MemoryPoolObject
+class ParticleSystemExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ParticleSystemExtData, "ParticleSystemExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAAA2BBBB;
 	using base_type = ParticleSystemClass;

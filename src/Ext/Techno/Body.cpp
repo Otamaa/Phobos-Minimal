@@ -45,21 +45,6 @@
 UnitClass* TechnoExtData::Deployer { nullptr };
 #pragma endregion
 
-TechnoExtData::~TechnoExtData()
-{
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
-		{
-			GameDelete<true, false>(pTemp);
-		}
-	}
-
-	this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	this->ClearElectricBolts();
-}
-
 void TechnoExtData::UpdateRecountBurst() {
 	const auto pThis = this->AttachedToObject;
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
@@ -4830,7 +4815,7 @@ void TechnoExtData::UpdateShield()
 	// Create shield class instance if it does not exist.
 	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
 	{
-		this->Shield = new(ShieldClass::ShieldClass_GLUE_NOT_IMPLEMENTED) ShieldClass(pThis);
+		this->Shield = std::make_unique<ShieldClass>(pThis);
 		//this->Shield->OnInit();
 	}
 

@@ -4,8 +4,6 @@
 
 #include <AITriggerTypeClass.h>
 
-TeamExtData::~TeamExtData() { };
-
 void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TeamLeader, ptr , bRemoved);

@@ -900,7 +900,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 				pExt->Shield->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay)))
 			{
 				pExt->CurrentShieldType = shieldType;
-				pExt->Shield = new(ShieldClass::ShieldClass_GLUE_NOT_IMPLEMENTED) ShieldClass(pTarget, true);
+				pExt->Shield = std::make_unique<ShieldClass>(pTarget, true);
 
 				if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
 				{

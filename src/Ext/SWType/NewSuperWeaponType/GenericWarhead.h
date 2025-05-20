@@ -19,6 +19,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer) {
-		SWStateMachine::Array.push_back(std::move(new(GenericWarheadStateMachine::GenericWarheadStateMachine_GLUE_NOT_IMPLEMENTED) GenericWarheadStateMachine(Deferment, XY, pSuper , pfirer, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<GenericWarheadStateMachine>(Deferment, XY, pSuper , pfirer, this)));
 	}
 };

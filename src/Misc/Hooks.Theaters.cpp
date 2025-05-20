@@ -8,7 +8,7 @@
 
 #define CURRENT_THEATER (*ScenarioClass::Instance).Theater
 
-#ifndef DISABLE_THEATER_HOOKS
+#ifdef DISABLE_THEATER_HOOKS
 ASMJIT_PATCH(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);

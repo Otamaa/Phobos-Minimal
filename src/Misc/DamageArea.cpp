@@ -191,11 +191,11 @@ static void NOINLINE Spawn_Flames_And_Smudges(const CellStruct& cell, double sco
 	}
 }
 
-static void NOINLINE Damage_Overlay(CellClass* pCurCell, 
+static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 	CellStruct center,
 	WarheadTypeClass* pWarhead,
-	int distance, 
-	int damage, 
+	int distance,
+	int damage,
 	TechnoClass* pSource,
 	HouseClass* pHouse,
 	bool do_chain_reaction
@@ -413,7 +413,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 					auto cur_cellCoord = pCurCell->GetCoords();
 					auto spawn_distance = cellhere.DistanceFrom(cell);
 					Damage_Overlay(pCurCell, cell, pWarhead, spawn_distance, damage, pSource, pHouse, affectTiberium);
-			
+
 					auto scorch_chance = std::clamp(Math::PercentAtMax(pWHExt->ScorchChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->ScorchPercentAtMax.Get()), 0.0, 1.0);
 					auto crater_chance = std::clamp(Math::PercentAtMax(pWHExt->CraterChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CraterPercentAtMax.Get()), 0.0, 1.0);
 					auto cellanim_chance = std::clamp(Math::PercentAtMax(pWHExt->CellAnimChance.Get(), (int)spreadLept, (int)spawn_distance, pWHExt->CellAnimPercentAtMax.Get()), 0.0, 1.0);
@@ -441,14 +441,14 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 						groupvec.push_back(cur_Group);
 
 						if (what == BuildingClass::AbsID) {
-					
+
 							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight)) {
 									cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
 							} else {
 								cur_Group->Distance = (int)pCoord->operator-(cur_cellCoord).Length();
 							}
 						}
-						else {		
+						else {
 							cur_Group->Distance = (int)pCoord->operator-(pCur->GetTargetCoords()).Length();
 						}
 
@@ -698,41 +698,41 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 #endif
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x424647, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x425237, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x469A83, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x481E33, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x481E89, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x48266D, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x482836, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x48A371, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
-DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x424647, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x425237, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x469A83, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x481E33, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x481E89, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x48266D, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x482836, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x48A371, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
+//DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
 
-#ifndef _ENABLE
+#ifdef _ENABLE
 
 ASMJIT_PATCH(0x489286, MapClass_DamageArea, 0x6)
 {

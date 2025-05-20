@@ -223,10 +223,8 @@
 
 class WeaponTypeClass;
 
-class WaveExtData final : public MemoryPoolObject
+class WaveExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(WaveExtData, "WaveExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAABAAAAC;
 	using base_type = WaveClass;
@@ -261,6 +259,8 @@ public:
 
 	void InitWeaponData();
 	void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
+
+	~WaveExtData();
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

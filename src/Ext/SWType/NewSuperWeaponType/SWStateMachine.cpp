@@ -11,66 +11,13 @@
 
 #pragma region defines
 
-HelperedVector<MemoryPoolUniquePointer<SWStateMachine>> SWStateMachine::Array;
+HelperedVector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 
 #pragma endregion
 
-ChronoWarpStateMachine::~ChronoWarpStateMachine() { }
-CloneableLighningStormStateMachine::~CloneableLighningStormStateMachine()
-{
-	for (auto& CP : CloudsPresent)
-	{
-		if (CP && CP->IsAlive && CP->Type)
-		{
-			CP->UnInit();
-		}
-
-		CP = nullptr;
-	}
-
-	for (auto& CM : CloudsManifest)
-	{
-		if (CM && CM->IsAlive && CM->Type)
-		{
-			CM->UnInit();
-		}
-		CM = nullptr;
-	}
-
-	for (auto& BP : BoltsPresent)
-	{
-		if (BP && BP->IsAlive && BP->Type)
-		{
-			BP->UnInit();
-		}
-
-		BP = nullptr;
-	}
-
-}
-DroppodStateMachine::~DroppodStateMachine() { }
-GeneticMutatorStateMachine::~GeneticMutatorStateMachine() { }
-GenericWarheadStateMachine::~GenericWarheadStateMachine() { }
-ParaDropStateMachine::~ParaDropStateMachine() { }
-PsychicDominatorStateMachine::~PsychicDominatorStateMachine() { }
-RevealStateMachine::~RevealStateMachine() { }
-SonarPulseStateMachine::~SonarPulseStateMachine() { }
-SpyPlaneStateMachine::~SpyPlaneStateMachine() { }
-UnitDeliveryStateMachine::~UnitDeliveryStateMachine() { }
-IonCannonStateMachine::~IonCannonStateMachine()
-{
-	if (this->Anim)
-	{
-		this->Anim->TimeToDie = true;
-		this->Anim->UnInit();
-		this->Anim = nullptr;
-	}
-}
-LaserStrikeStateMachine::~LaserStrikeStateMachine() { }
-
 void SWStateMachine::UpdateAll()
 {
-	SWStateMachine::Array.remove_all_if([](MemoryPoolUniquePointer<SWStateMachine>& pMachine) {
+	SWStateMachine::Array.remove_all_if([](std::unique_ptr<SWStateMachine>& pMachine) {
 		 if (!pMachine)
 			 return true;
 

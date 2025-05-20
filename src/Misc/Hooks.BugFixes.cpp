@@ -1831,6 +1831,7 @@ ASMJIT_PATCH(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 	return SkipGameCode;
 }
 
+/*
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
@@ -1894,7 +1895,6 @@ ASMJIT_PATCH(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 	return 0;
 }
 
-DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 // Map <Player @ X> as object owner name to correct HouseClass index.
 ASMJIT_PATCH(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
@@ -2097,6 +2097,7 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 
 	return SkipGameCode;
 }
+*/
 
 size_t __fastcall Gamestrtohex(char* str) {
 	JMP_STD(0x412610);
@@ -2139,7 +2140,9 @@ ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 // Save GameModeOptions in campaign modes
 DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
 DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
+DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
+/*
 #pragma region TeamCloseRangeFix
 
 static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
@@ -2151,6 +2154,7 @@ static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, 
 DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
 
 #pragma endregion
+
 
 static void KickOutStuckUnits(BuildingClass* pThis)
 {
@@ -2720,3 +2724,4 @@ ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
 }
 
 #endif
+*/

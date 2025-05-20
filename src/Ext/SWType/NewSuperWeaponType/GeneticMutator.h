@@ -21,6 +21,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer) {
-		SWStateMachine::Array.push_back(std::move(new(GeneticMutatorStateMachine::GeneticMutatorStateMachine_GLUE_NOT_IMPLEMENTED) GeneticMutatorStateMachine(Deferment, XY, pSuper , pfirer, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<GeneticMutatorStateMachine>(Deferment, XY, pSuper , pfirer, this)));
 	}
 };

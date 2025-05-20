@@ -9,9 +9,8 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
-class ParticleExtData final : public MemoryPoolObject
+class ParticleExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ParticleExtData, "ParticleExtData")
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAAAABBBB;
 	using base_type = ParticleClass;

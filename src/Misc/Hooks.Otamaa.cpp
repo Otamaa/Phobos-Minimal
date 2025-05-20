@@ -1258,7 +1258,9 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 
 }
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x744210, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
 
 ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
@@ -5425,6 +5427,7 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // END 42CB3F 5 , 42CCCB
 #include <Misc/PhobosGlobal.h>
 
+#ifdef _aaa
 ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
 	GET_STACK(TechnoClass*, pTech, 0x24);
@@ -5758,6 +5761,7 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
+#endif
 
 ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 {
@@ -6135,16 +6139,16 @@ ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 }
 
 //DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);
-ASMJIT_PATCH(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
-{
-	GET(HouseClass*, pHouyse, ECX);
-	GET_STACK(DWORD, caller, 0x0);
-
-	if (!pHouyse)
-		Debug::FatalError("Fucking no House %x", caller);
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x50B6F0, HouseClass_Player_Has_Control_WhoTheFuckCalling, 0x5)
+//{
+//	GET(HouseClass*, pHouyse, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (!pHouyse)
+//		Debug::FatalError("Fucking no House %x", caller);
+//
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x6D471A, TechnoClass_Render_Dead, 0x6)
 {
@@ -6235,29 +6239,29 @@ ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
 	return 0x0;//contunye
 }
 
-ASMJIT_PATCH(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
-{
-	GET(ObjectClass*, pCellObj, EDI);
+//ASMJIT_PATCH(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
+//{
+//	GET(ObjectClass*, pCellObj, EDI);
+//
+//	if (pCellObj && !pCellObj->IsAlive)
+//		pCellObj = nullptr;
+//
+//	R->EDI(pCellObj);
+//
+//	return 0x0;
+//}
 
-	if (pCellObj && !pCellObj->IsAlive)
-		pCellObj = nullptr;
-
-	R->EDI(pCellObj);
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
-{
-	GET(ObjectClass*, pCellObj, ESI);
-
-	if (!pCellObj->IsAlive)
-	{
-		return 0x51C78F;
-	}
-
-	return R->ESI() == R->EBP() ? 0x51C70F : 0x51C259;
-}
+// ASMJIT_PATCH(0x51C251, InfantryClass_CanEnterCell_InvalidObject, 0x8)
+// {
+// 	GET(ObjectClass*, pCellObj, ESI);
+//
+// 	if (!pCellObj->IsAlive)
+// 	{
+// 		return 0x51C78F;
+// 	}
+//
+// 	return R->ESI() == R->EBP() ? 0x51C70F : 0x51C259;
+// }
 
 ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 {
@@ -6895,20 +6899,20 @@ ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 //}
 //#pragma optimize("", on )
 
-ASMJIT_PATCH(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
-{
-	LEA_STACK(LPMSG, pMsg, 0x10);
-
-	if (pMsg->message == 16 || pMsg->message == 2 || pMsg->message == 0x112 && pMsg->wParam == 0xF060)
-		ExitProcess(1u);
-
-	//const bool altDown = (pMsg->lParam & 0x20000000) != 0;
-	//if ((pMsg->message == 0x104 || pMsg->message == 0x100) && pMsg->wParam == 0xD && altDown) {}
-
-	TranslateMessage(pMsg);
-	DispatchMessageA(pMsg);
-	return 0x5D4E4D;
-}
+//ASMJIT_PATCH(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
+//{
+//	LEA_STACK(LPMSG, pMsg, 0x10);
+//
+//	if (pMsg->message == 16 || pMsg->message == 2 || pMsg->message == 0x112 && pMsg->wParam == 0xF060)
+//		ExitProcess(1u);
+//
+//	//const bool altDown = (pMsg->lParam & 0x20000000) != 0;
+//	//if ((pMsg->message == 0x104 || pMsg->message == 0x100) && pMsg->wParam == 0xD && altDown) {}
+//
+//	TranslateMessage(pMsg);
+//	DispatchMessageA(pMsg);
+//	return 0x5D4E4D;
+//}
 
 ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 {
@@ -6937,6 +6941,6 @@ public:
 	}
 };
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
-DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);

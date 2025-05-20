@@ -17,6 +17,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper ,CellClass* pTarget) {
-		SWStateMachine::Array.push_back(std::move(new(SpyPlaneStateMachine::SpyPlaneStateMachine_GLUE_NOT_IMPLEMENTED) SpyPlaneStateMachine(Deferment, XY, pSuper, this, pTarget)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<SpyPlaneStateMachine>(Deferment, XY, pSuper, this, pTarget)));
 	}
 };

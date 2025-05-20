@@ -9,10 +9,8 @@
 #include <ParticleSystemClass.h>
 
 class HouseClass;
-class AnimExtData final : public MemoryPoolObject
+class AnimExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AnimExtData, "AnimExtData")
-
 public:
 	using base_type = AnimClass;
 	static COMPILETIMEEVAL size_t Canary = 0xAADAAAA;
@@ -49,6 +47,17 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	void CreateAttachedSystem();
+
+	~AnimExtData()
+	{
+		// mimicking how this thing does , since the detach seems not properly handle these
+		if (auto pAttach = AttachedSystem)
+		{
+			pAttach->Owner = nullptr;
+			pAttach->UnInit();
+			pAttach->TimeToDie = true;
+		}
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
@@ -115,7 +124,7 @@ public:
 
 	static AnimExtData* AllocateUnchecked(AnimClass* key)
 	{
-		if (AnimExtData* val = AnimExtData::createInstance())
+		if (AnimExtData* val = new AnimExtData())
 		{
 			val->AttachedToObject = key;
 			return val;
@@ -144,7 +153,7 @@ public:
 	{
 		if (AnimExtData* Item = FakeAnimClass::TryFind(key))
 		{
-			Item->deleteInstance();
+			delete Item;
 			FakeAnimClass::ClearExtAttribute(key);
 		}
 	}

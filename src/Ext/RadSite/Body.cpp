@@ -8,13 +8,11 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-RadSiteExtData::~RadSiteExtData() { }
-
 void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
 	AnnounceInvalidPointer(HouseOwner, ptr);
-	
+
 	damageCounts.erase((BuildingClass*)ptr);
 }
 

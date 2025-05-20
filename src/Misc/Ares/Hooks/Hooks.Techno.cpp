@@ -1437,40 +1437,40 @@ ASMJIT_PATCH(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 
 // this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
-ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pHouse, EDI);
-
-	enum { ForceAttack = 0x6FA472, ContinueCheck = 0x6FA39D };
-
-	const bool BLRes = R->BL();
-	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
-
-	bool IsAlly = false;
-
-	if (const auto pTechTarget = flag_cast_to<ObjectClass*>(pThis->Target)) {
-		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-			if (pOwner->IsAlliedWith(pTargetHouse)) {
-				IsAlly = true;
-			}
-		}
-	}
-
-	auto pType = pThis->GetTechnoType();
-
-	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
-		return ForceAttack;
-	}
-
-	//if(pThis->Berzerk && IsAlly) {
-	//	return ForceAttack; // dont clear target
-	//}
-
-	const bool IsNegDamage = (pThis->CombatDamage() < 0);
-
-	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;
-}
+//ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(HouseClass* const, pHouse, EDI);
+//
+//	enum { ForceAttack = 0x6FA472, ContinueCheck = 0x6FA39D };
+//
+//	const bool BLRes = R->BL();
+//	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
+//
+//	bool IsAlly = false;
+//
+//	if (const auto pTechTarget = flag_cast_to<ObjectClass*>(pThis->Target)) {
+//		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+//			if (pOwner->IsAlliedWith(pTargetHouse)) {
+//				IsAlly = true;
+//			}
+//		}
+//	}
+//
+//	auto pType = pThis->GetTechnoType();
+//
+//	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
+//		return ForceAttack;
+//	}
+//
+//	//if(pThis->Berzerk && IsAlly) {
+//	//	return ForceAttack; // dont clear target
+//	//}
+//
+//	const bool IsNegDamage = (pThis->CombatDamage() < 0);
+//
+//	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;
+//}
 
 static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
 {
@@ -1505,34 +1505,34 @@ static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
 	return pSecondaryWeapon->Range <= pPrimaryWeapon->Range;
 }
 
-ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
-{
-	GET(FootClass* const, pThis, ECX);
+//ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
+//{
+//	GET(FootClass* const, pThis, ECX);
+//
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//	if (pTypeExt->AttackMove_UpdateTarget.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) && CheckAttackMoveCanResetTarget(pThis))
+//	{
+//		pThis->Target = nullptr;
+//		pThis->HaveAttackMoveTarget = false;
+//	}
+//
+//	return 0;
+//}
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (pTypeExt->AttackMove_UpdateTarget.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) && CheckAttackMoveCanResetTarget(pThis))
-	{
-		pThis->Target = nullptr;
-		pThis->HaveAttackMoveTarget = false;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F85AB, TechnoClass_CanAutoTargetObject_AggressiveAttackMove, 0x6)
-{
-	enum { ContinueCheck = 0x6F85BA, CanTarget = 0x6F8604 };
-
-	GET(TechnoClass* const, pThis, EDI);
-
-	if (!pThis->Owner->IsControlledByHuman())
-		return CanTarget;
-
-	if (!pThis->MegaMissionIsAttackMove())
-		return ContinueCheck;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	return pTypeExt->AttackMove_Aggressive.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) ? CanTarget : ContinueCheck;
-}
+//ASMJIT_PATCH(0x6F85AB, TechnoClass_CanAutoTargetObject_AggressiveAttackMove, 0x6)
+//{
+//	enum { ContinueCheck = 0x6F85BA, CanTarget = 0x6F8604 };
+//
+//	GET(TechnoClass* const, pThis, EDI);
+//
+//	if (!pThis->Owner->IsControlledByHuman())
+//		return CanTarget;
+//
+//	if (!pThis->MegaMissionIsAttackMove())
+//		return ContinueCheck;
+//
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//	return pTypeExt->AttackMove_Aggressive.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) ? CanTarget : ContinueCheck;
+//}

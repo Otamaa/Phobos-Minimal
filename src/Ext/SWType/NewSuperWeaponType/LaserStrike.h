@@ -16,6 +16,6 @@ public:
 
 protected:
 	void newStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount, int deferment , int duration) {
-		SWStateMachine::Array.push_back(std::move(new(LaserStrikeStateMachine::LaserStrikeStateMachine_GLUE_NOT_IMPLEMENTED) LaserStrikeStateMachine(XY, pSuper, pFirer, maxcount, deferment, this, duration)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<LaserStrikeStateMachine>(XY, pSuper, pFirer, maxcount, deferment, this, duration)));
 	}
 };

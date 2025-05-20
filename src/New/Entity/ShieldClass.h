@@ -25,14 +25,19 @@ class WarheadTypeClass;
 class WeaponTypeClass;
 class TechnoTypeClass;
 class TemporalClass;
-class ShieldClass final : public MemoryPoolObject
+class ShieldClass
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ShieldClass, "ShieldClass")
-
 public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
+
+	~ShieldClass()
+	{
+		this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		Array.remove(this);
+	}
+
 
 	//void OnInit() { }
 	//void OnUnInit() { }
@@ -282,8 +287,8 @@ private:
 template <>
 struct Savegame::ObjectFactory<ShieldClass>
 {
-	MemoryPoolUniquePointer<ShieldClass> operator() (PhobosStreamReader& Stm) const
+	std::unique_ptr<ShieldClass> operator() (PhobosStreamReader& Stm) const
 	{
-		return ShieldClass::createInstance();
+		return std::make_unique<ShieldClass>();
 	}
 };

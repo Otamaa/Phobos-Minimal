@@ -19,6 +19,6 @@ public:
 
 protected:
 	void newStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer) {
-		SWStateMachine::Array.push_back(std::move(new(IonCannonStateMachine::IonCannonStateMachine_GLUE_NOT_IMPLEMENTED) IonCannonStateMachine(XY, pSuper, pFirer, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<IonCannonStateMachine>(XY, pSuper, pFirer, this)));
 	}
 };

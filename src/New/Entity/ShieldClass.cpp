@@ -21,12 +21,6 @@
 
 HelperedVector<ShieldClass*> ShieldClass::Array;
 
-ShieldClass::~ShieldClass()
-{
-	this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	Array.remove(this);
-}
-
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
 , Timers { }

@@ -23,6 +23,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Array.push_back(std::move(new(RevealStateMachine::RevealStateMachine_GLUE_NOT_IMPLEMENTED) RevealStateMachine(Deferment, XY, pSuper, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique <RevealStateMachine>(Deferment, XY, pSuper, this)));
 	}
 };

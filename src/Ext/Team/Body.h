@@ -10,10 +10,8 @@ class HouseClass;
 class FootClass;
 class SuperClass;
 class AITriggerTypeClass;
-class TeamExtData final : public MemoryPoolObject
+class TeamExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TeamExtData, "TeamExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;

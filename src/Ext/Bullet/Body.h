@@ -12,10 +12,8 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 class TechnoClass;
-class BulletExtData final : public MemoryPoolObject
+class BulletExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(BulletExtData, "BulletExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x2A2A2A2A;
 	using base_type = BulletClass;
@@ -56,6 +54,22 @@ public:
 
 	void CreateAttachedSystem();
 	void ApplyArcingFix(const CoordStruct& sourceCoords, const CoordStruct& targetCoords, VelocityClass& velocity);
+
+
+	~BulletExtData()
+	{
+		// mimicking how this thing does , since the detach seems not properly handle these
+
+		if (!Phobos::Otamaa::DoingLoadGame)
+		{
+			if (auto pAttach = AttachedSystem)
+			{
+				pAttach->Owner = nullptr;
+				pAttach->UnInit();
+				pAttach->TimeToDie = true;
+			}
+		}
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of(){
 		return sizeof(BulletExtData) -

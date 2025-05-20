@@ -20,8 +20,9 @@
   <ItemGroup>
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
-    <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
-    <ClCompile Include="src\Misc\Spawner\AC.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\PoweredUnitClass.cpp" />
@@ -186,31 +187,6 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Facing.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.GattlingRate.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Jumpjet.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.MCRetaliate.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
     <ClCompile Include="src\Ext\Temporal\Hooks.BuildingTarget.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.cpp" />
@@ -221,11 +197,6 @@
     <ClCompile Include="src\Ext\Tiberium\Hook.RadarColor.cpp" />
     <ClCompile Include="src\Ext\TriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\Trigger\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
-    <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Ext\VoxelAnimType\Body.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Detonate.cpp" />
@@ -354,13 +325,10 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Firewall.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.INIFiles.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Movies.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
@@ -369,7 +337,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Prism.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.RadBeam.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SaveGame.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Selection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Sides.cpp" />
@@ -378,7 +345,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SwizzleManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Team_Script.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Trajectory.cpp" />
@@ -408,7 +374,6 @@
     <ClCompile Include="src\Misc\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Theaters.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
@@ -1078,13 +1043,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
@@ -1106,13 +1071,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <Link>

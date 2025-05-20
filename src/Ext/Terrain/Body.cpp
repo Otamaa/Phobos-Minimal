@@ -181,7 +181,7 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 	}
 
 	if(auto pExt = TerrainExtContainer::Instance.TryFind(pItem)) {
-		pExt->deleteInstance();
+		delete pExt;
 		TerrainExtContainer::Instance.ClearExtAttribute(pItem);
 		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
 	}

@@ -25,17 +25,6 @@
 std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
 #pragma endregion
 
-AnimExtData::~AnimExtData()
-{
-	// mimicking how this thing does , since the detach seems not properly handle these
-	if (auto pAttach = AttachedSystem)
-	{
-		pAttach->Owner = nullptr;
-		pAttach->UnInit();
-		pAttach->TimeToDie = true;
-	}
-}
-
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {

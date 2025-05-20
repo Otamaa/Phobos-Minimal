@@ -5,10 +5,8 @@
 
 class TechnoClass;
 class BuildingClass;
-class RadarJammerClass final : public MemoryPoolObject
+class RadarJammerClass
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(RadarJammerClass, "RadarJammerClass")
-
 public:
 
 	int LastScan {};							//!< Frame number when the last scan was performed.
@@ -35,6 +33,11 @@ public:
 		Registered(false)
 	{ }
 
+	~RadarJammerClass()
+	{
+		this->UnjamAll();
+	}
+
 	void UnjamAll();						//!< Unregisters this Jammer on all structures.
 	void Update();							//!< Updates this Jammer's status on all eligible structures.
 
@@ -55,7 +58,7 @@ private:
 
 template <>
 struct Savegame::ObjectFactory<RadarJammerClass> {
-	MemoryPoolUniquePointer<RadarJammerClass> operator() (PhobosStreamReader& Stm) const {
-		return RadarJammerClass::createInstance();
+	std::unique_ptr<RadarJammerClass> operator() (PhobosStreamReader& Stm) const {
+		return std::make_unique<RadarJammerClass>();
 	}
 };

@@ -13,11 +13,11 @@ class TechnoClass;
 class HouseClass;
 struct AEAttachParams;
 class AEAttachInfoTypeClass;
-class PhobosAttachEffectClass final : public MemoryPoolObject
+class PhobosAttachEffectClass
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(PhobosAttachEffectClass, "PhobosAttachEffectClass")
-
 public:
+
+	~PhobosAttachEffectClass();
 
 	void Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
@@ -78,7 +78,7 @@ public:
 	void CloakCheck();
 	void AnimCheck();
 
-	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<MemoryPoolUniquePointer<PhobosAttachEffectClass>>& targetAEs, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo);
+	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo);
 	static int DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types);
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
 
@@ -115,8 +115,8 @@ public:
 template <>
 struct Savegame::ObjectFactory<PhobosAttachEffectClass>
 {
-	MemoryPoolUniquePointer<PhobosAttachEffectClass> operator() (PhobosStreamReader& Stm) const
+	std::unique_ptr<PhobosAttachEffectClass> operator() (PhobosStreamReader& Stm) const
 	{
-		return PhobosAttachEffectClass::createInstance();
+		return std::make_unique<PhobosAttachEffectClass>();
 	}
 };

@@ -6,10 +6,8 @@
 #include <Utilities/Container.h>
 
 class WeaponTypeClass;
-class TemporalExtData : public MemoryPoolObject
+class TemporalExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TemporalExtData, "TemporalExtData")
-
 public:	
 	static COMPILETIMEEVAL size_t Canary = 0x82229781;
 	 using base_type = TemporalClass;

@@ -10,10 +10,8 @@
 #include <CellClass.h>
 #include <AnimClass.h>
 
-class TerrainExtData final : public MemoryPoolObject
+class TerrainExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TerrainExtData, "TerrainExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
@@ -36,6 +34,8 @@ public:
 
 	void InitializeLightSource();
 	void InitializeAnim();
+
+	~TerrainExtData();
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
