@@ -809,18 +809,18 @@ void UpdateKeepTargetOnMove(TechnoClass* pThis)
 // Reset the target if beyond weapon range.
 // This was originally in UnitClass::Mission_Move() but because that
 // is only checked every ~15 frames, it can cause responsiveness issues.
-// ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
-// {
-// 	GET(UnitClass*, pThis, ESI);
-//
-// 	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-// 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-//
-// 	UpdateKeepTargetOnMove(pThis);
-// 	pExt->UpdateGattlingRateDownReset();
-//
-// 	return 0;
-// }
+ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	//auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	UpdateKeepTargetOnMove(pThis);
+	//pExt->UpdateGattlingRateDownReset();
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 {

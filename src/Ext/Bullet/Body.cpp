@@ -788,6 +788,8 @@ void BulletExtData::InitializeLaserTrails()
 	const auto pOwner = pThis->Owner ?
 		pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExtData::FindFirstCivilianHouse());
 
+	this->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+
 	for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
 		this->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
 	}

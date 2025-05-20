@@ -352,6 +352,9 @@ ASMJIT_PATCH(0x474230, CCINIClass_Load_Inheritance, 0x5)
 			CCFileClass nFile { node.Data->Value };
 			if (nFile.Exists())
 				INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
+			else
+				Debug::FatalErrorAndExit("Included INI file %s does not exist", node.Data->Value);
+
 		}
 	}
 

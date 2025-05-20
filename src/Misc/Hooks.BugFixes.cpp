@@ -2580,9 +2580,14 @@ ASMJIT_PATCH(0x4D92BF, FootClass_Mission_Enter_CheckLink, 0x5)
 
 	GET(UnitClass* const, pThis, ESI);
 	GET(const RadioCommand, answer, EAX);
+
 	// Restore vanilla check
-	if (pThis->IsTethered || answer == RadioCommand::AnswerPositive)
+	if (pThis->IsTethered)
 		return NextAction;
+
+	if (answer == RadioCommand::AnswerPositive)
+		return NextAction;
+
 	// The link should not be disconnected while the transporter is in motion (passengers waiting to enter),
 	// as this will result in the first passenger not getting on board
 	return answer == RadioCommand::RequestLoading ? DoNothing : NotifyUnlink;

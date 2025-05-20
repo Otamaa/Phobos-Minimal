@@ -3371,8 +3371,8 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 	if (pExt->LaserTrails.empty())
 	{
-		for (auto const& entry : pTypeExt->LaserTrailData)
-		{
+		pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
+		for (auto const& entry : pTypeExt->LaserTrailData) {
 			pExt->LaserTrails.emplace_back(
 					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
 		}
