@@ -2521,20 +2521,20 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 	return 0x738679;
 }
 
-ASMJIT_PATCH(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
-{
-	enum { ContinueCheck = 0x47EAFE, DontUnmark = 0x47EB8F };
+// ASMJIT_PATCH(0x47EAF7, CellClass_RemoveContent_BeforeUnmarkOccupationBits, 0x7)
+// {
+// 	enum { ContinueCheck = 0x47EAFE, DontUnmark = 0x47EB8F };
 
-	GET(CellClass*, pCell, EDI);
-	GET_STACK(bool, onBridge, STACK_OFFSET(0x14, 0x8));
+// 	GET(CellClass*, pCell, EDI);
+// 	GET_STACK(bool, onBridge, STACK_OFFSET(0x14, 0x8));
 
-	if (RemoveCellContentTemp::CheckBeforeUnmark && onBridge ? pCell->AltObject : pCell->FirstObject)
-		return DontUnmark;
+// 	if (RemoveCellContentTemp::CheckBeforeUnmark && onBridge ? pCell->AltObject : pCell->FirstObject)
+// 		return DontUnmark;
 
-	GET(ObjectClass*, pContent, ESI);
-	R->EAX(pContent->WhatAmI());
-	return ContinueCheck;
-}
+// 	GET(ObjectClass*, pContent, ESI);
+// 	R->EAX(pContent->WhatAmI());
+// 	return ContinueCheck;
+// }
 #pragma endregion
 
 #pragma region Veinhole

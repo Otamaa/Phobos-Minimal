@@ -6325,7 +6325,8 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 
 			const double orDistance = pRad->BaseCell.DistanceFrom(pCell->MapCoords);
 
-			pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(orDistance));
+			if (pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(orDistance)) == RadSiteExtData::DamagingState::Dead)
+				return;
 
 		}
 
