@@ -246,11 +246,14 @@ void HugeBar::ProcessHugeBar()
 			continue;
 
 		int iCurrent = -1;
-		int iMax = -1;
-		TechnoExtData::GetValuesForDisplay(pTechno, configs[i]->InfoType, iCurrent, iMax);
+		int iMax = 0;
+		TechnoExtData::GetValuesForDisplay(pTechno, configs[i]->InfoType, iCurrent, iMax , 0);
 
-		if (iCurrent != -1)
-			configs[i]->DrawHugeBar(iCurrent, iMax);
+		if (iCurrent <= -1 || iMax <= 0)
+			continue;
+
+
+		configs[i]->DrawHugeBar(iCurrent, iMax);
 	}
 }
 
