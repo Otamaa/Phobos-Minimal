@@ -20,6 +20,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Array.push_back(std::move(new(SonarPulseStateMachine::SonarPulseStateMachine_GLUE_NOT_IMPLEMENTED) SonarPulseStateMachine(Deferment, XY, pSuper, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<SonarPulseStateMachine>(Deferment, XY, pSuper, this)));
 	}
 };

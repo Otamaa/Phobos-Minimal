@@ -13,10 +13,8 @@
 
 #include <New/Entity/PrismForwarding.h>
 
-class BuildingExtData final : public MemoryPoolObject
+class BuildingExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(BuildingExtData, "BuildingExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
@@ -30,7 +28,7 @@ public:
 	BuildingTypeExtData* Type { nullptr };
 	TechnoExtData* TechnoExt { nullptr };
 
-	MemoryPoolUniquePointer<PrismForwarding> MyPrismForwarding { nullptr };
+	std::unique_ptr<PrismForwarding> MyPrismForwarding { nullptr };
 
 	bool DeployedTechno { false };
 	int LimboID { -1 };
@@ -84,6 +82,11 @@ public:
 	void UpdatePoweredKillSpawns() const;
 	void UpdateAutoSellTimer();
 	void UpdateSpyEffecAnimDisplay();
+
+	~BuildingExtData()
+	{
+		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

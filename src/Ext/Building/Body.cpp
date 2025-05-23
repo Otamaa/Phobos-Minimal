@@ -11,12 +11,6 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
-
-BuildingExtData::~BuildingExtData()
-{
-	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-}
-
 void BuildingExtData::InitializeConstant()
 {
 
@@ -26,8 +20,7 @@ void BuildingExtData::InitializeConstant()
 
 	if (pTypeExt)
 	{
-		this->MyPrismForwarding =
-		new(PrismForwarding::PrismForwarding_GLUE_NOT_IMPLEMENTED) PrismForwarding();
+		this->MyPrismForwarding = std::make_unique<PrismForwarding>();
 		this->MyPrismForwarding->Owner = this->AttachedToObject;
 
 		if(!pTypeExt->DamageFire_Offs.empty())
@@ -182,9 +175,12 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 
 	auto VictimType = Victim->GetTechnoType();
 	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
+	if (!pVictimData->CanBeReversed)
+		return false;
+
 	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
 
-	if (!pVictimData->CanBeReversed || !VictimAs)
+	if (!VictimAs)
 		return false;
 
 	const auto pBldOwner = pBuilding->Owner;
@@ -195,9 +191,9 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 		const bool WasBuildable =
 			HouseExtData::PrereqValidate(pBldOwner, VictimType, false, true) == CanBuildResult::Buildable;
 
-		pBldOwnerExt->Reversed.push_back(VictimAs);
-
 		if (!WasBuildable) {
+
+			pBldOwnerExt->Reversed.push_back(VictimAs);
 
 			if (HouseExtData::RequirementsMet(pBldOwner, VictimType) != RequirementStatus::Forbidden)
 			{
@@ -227,7 +223,7 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
 			continue;
 
-		LimboedID->push_back(pBuilding); // we cant do it immedietely since the array will me modified 
+		LimboedID->push_back(pBuilding); // we cant do it immedietely since the array will me modified
 		// we need to fetch the eligible building first before really killing it
 	}
 

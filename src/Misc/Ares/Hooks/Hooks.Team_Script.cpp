@@ -196,14 +196,14 @@ ASMJIT_PATCH(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 		{
 			if (pAttacker->WhatAmI() != AircraftClass::AbsID)
 			{
-				auto pAttackerTechno = flag_cast_to<TechnoClass*>(pAttacker);
+				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(pAttacker);
 
 				auto Owner = pThis->Owner;
 				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse())) {
 					return 0x6EB47A;
 				}
 
-				if (auto pAttackerFoot = flag_cast_to<FootClass*>(pAttacker)) {
+				if (auto pAttackerFoot = flag_cast_to<FootClass*, false>(pAttacker)) {
 					if(pAttackerFoot->InLimbo
 					|| pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
 						return 0x6EB47A;

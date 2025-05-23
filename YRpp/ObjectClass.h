@@ -351,6 +351,10 @@ public:
 
 	Point2D GetScreenLocation() const;
 
+	__declspec(property(get = GetHeight, put = SetHeight)) int HeightAGL;
+	__declspec(property(get = GetZ, put = MarkDownSetZ)) int Height;
+	__declspec(property(get = GetCoords, put = SetLocation)) CoordStruct PositionCoord;
+
 //Constructor NEVER CALL IT DIRECTLY
 	ObjectClass()  noexcept
 		: ObjectClass(noinit_t())

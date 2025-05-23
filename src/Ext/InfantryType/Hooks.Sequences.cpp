@@ -6,7 +6,6 @@
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
-#ifndef AdditionalSequence
 static COMPILETIMEEVAL const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -188,6 +187,27 @@ ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 	return 0x523970;
 }
 
+#pragma region S/L
+ASMJIT_PATCH(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
+{
+	GET(InfantryTypeClass*, pThis, EDI);
+	GET(IStream*, pStream, ESI);
+
+	pThis->Sequence = (DoControls*)GameCreate<NewDoType>();
+	pStream->Read(pThis->Sequence, sizeof(NewDoType), nullptr);
+	return 0x524B31;
+}
+
+ASMJIT_PATCH(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
+{
+	GET(InfantryTypeClass*, pThis, EDI);
+	GET(IStream*, pStream, ESI);
+
+	pStream->Write((void*)pThis->Sequence, sizeof(NewDoType), nullptr);
+	return 0x524C50;
+}
+#pragma endregion
+
 ASMJIT_PATCH(0x520820, InfantryClass_FiringAI_SecondaryFireFly, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
@@ -299,27 +319,6 @@ ASMJIT_PATCH(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 
 #pragma endregion
 
-#pragma region S/L
-ASMJIT_PATCH(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
-{
-	GET(InfantryTypeClass*, pThis, EDI);
-	GET(IStream*, pStream, ESI);
-
-	pThis->Sequence = (DoControls*)GameCreate<NewDoType>();
-	pStream->Read(pThis->Sequence, sizeof(NewDoType), nullptr);
-	return 0x524B31;
-}
-
-ASMJIT_PATCH(0x524C3C, InfantryTypeClass_Save_DoControls, 0x6)
-{
-	GET(InfantryTypeClass*, pThis, EDI);
-	GET(IStream*, pStream, ESI);
-
-	pStream->Write((void*)pThis->Sequence, sizeof(NewDoType), nullptr);
-	return 0x524C50;
-}
-#pragma endregion
-
 #pragma region ReadSequence
 static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINIClass* pINI)
 {
@@ -397,15 +396,6 @@ ASMJIT_PATCH(0x523D00, InfantryTypeClass_ReadSequence, 0x6)
 	return 0x524096;
 }
 #pragma endregion
-
-#else
-ASMJIT_PATCH(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
-{
-	GET(InfantryTypeClass*, pItem, ESI)
-		pItem->Sequence->Initialize();
-	return 0x523970;
-}
-#endif
 
 ASMJIT_PATCH(0x520BE5, InfantryClass_UpdateSequence_DeadBodies, 0x6)
 {

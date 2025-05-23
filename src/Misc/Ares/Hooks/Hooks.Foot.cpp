@@ -262,12 +262,12 @@ ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 }
 
 // move to the next hva frame, even if this unit isn't moving
-ASMJIT_PATCH(0x4DA886, FootClass_Update_AnimRate, 6)
+ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 {
 	GET(FootClass*, pThis, ESI);
 	auto pType = pThis->GetTechnoType();
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto pUnit = cast_to<UnitClass* , false>(pThis);
+	//auto pUnit = cast_to<UnitClass* , false>(pThis);
 
 	enum { Undecided = 0u,
 			NoChange = 0x4DAA01u,
@@ -275,7 +275,7 @@ ASMJIT_PATCH(0x4DA886, FootClass_Update_AnimRate, 6)
 			Checks = 0x4DA8B2u
 		};
 
-	if (!pThis->InLimbo && pThis->IsAlive) {
+	if (!pThis->InLimbo) {
 		if (pThis->InWhichLayer() != pThis->LastLayer) {
 			DisplayClass::Instance->SubmitObject(pThis);
 		}
@@ -292,9 +292,7 @@ ASMJIT_PATCH(0x4DA886, FootClass_Update_AnimRate, 6)
 		return (Unsorted::CurrentFrame % pExt->AirRate) ? NoChange : Advance;
 	}
 
-	R->EDI(pUnit);
-	R->EAX(pThis->Locomotor.GetInterfacePtr());
-	return Checks;
+	return Undecided;
 }
 
  //rotation when crashing made optional

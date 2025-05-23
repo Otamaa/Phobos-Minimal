@@ -1309,6 +1309,11 @@ ASMJIT_PATCH(0x41DBD4, AirstrikeClass_Stop_ResetForTarget, 0x7)
 
 	if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget))
 	{
+		auto vtable = VTable::Get(pTargetTechno);
+
+		if(!pTargetTechno->IsAlive || (vtable != UnitClass::vtable && vtable != InfantryClass::vtable && vtable != AircraftClass::vtable && vtable != BuildingClass::vtable))
+			return SkipGameCode;
+
 		AirstrikeClass* pLastTargetingMe = nullptr;
 
 		for (int idx = AirstrikeClass::Array->Count - 1; idx >= 0; --idx)

@@ -316,6 +316,14 @@ struct Game
 	static void __fastcall WriteMapFiles(const char* pFilename, int bArgs = false)
 	{ JMP_STD(0x687CE0); }
 
+	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance) {
+		JMP_STD(0x50E3A0);
+	}
+
+	static int __fastcall Spot_Index(CoordStruct* coord) {
+		JMP_STD(0x4810A0);
+	}
+
 	static bool __fastcall func_007BBE20(RectangleStruct* torect, const RectangleStruct* toarea, RectangleStruct* fromrect, const RectangleStruct* fromarea)
 	{ JMP_STD(0x7BBE20); }
 

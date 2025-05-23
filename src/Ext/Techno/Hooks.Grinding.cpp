@@ -204,7 +204,7 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 				const bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
 				const bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
 				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter :
-					
+
 					((pBuilding->_GetTypeExtData()->AllowRepairFlyMZone && isFlying) || !isFlying) ? Action::Enter : Action::NoEnter;
 
 
@@ -245,15 +245,35 @@ ASMJIT_PATCH(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
 
+	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceInf;
+
 	if (auto const MyParasite = pThis->ParasiteEatingMe){
 		pBuilding->Owner->GiveMoney(MyParasite->GetRefund());
 		MyParasite->ParasiteImUsing->SuppressionTimer.Start(50);
 		MyParasite->ParasiteImUsing->ExitUnit();
 	}
 
-	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
-	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceInf;
+	if (BuildingExtData::ReverseEngineer(pBuilding, pThis))
+	{
+		if (pThis->Owner->ControlledByCurrentPlayer())
+		{
+			VoxClass::Play("EVA_ReverseEngineeredInfantry");
+			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+		}
+	}
 
+	//Ares 3.0 Added
+	if (const auto FirstTag = pBuilding->AttachedTag)
+	{
+		//80
+		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, pBuilding, CellStruct::Empty, false, pThis);
+
+		//79
+		if (const auto pSecondTag = pBuilding->AttachedTag)
+			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, pBuilding, CellStruct::Empty, false, nullptr);
+	}
+
+	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;
 }
 
@@ -264,6 +284,8 @@ ASMJIT_PATCH(0x73A0A5, UnitClass_PerCellProcess_GrindingSetBalance, 0x5)
 	return 0;
 }
 
+#include <Misc/Ares/Hooks/Header.h>
+
 ASMJIT_PATCH(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 {
 	enum { Continue = 0x0 , PlayAnim = 0x73A1DE };
@@ -273,6 +295,34 @@ ASMJIT_PATCH(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
 	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceUnit;
+
+	if (BuildingExtData::ReverseEngineer(pBuilding, pThis))
+	{
+		if (pThis->Owner->ControlledByCurrentPlayer())
+		{
+			VoxClass::Play("EVA_ReverseEngineeredVehicle");
+			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+		}
+	}
+
+	if (const auto FirstTag = pBuilding->AttachedTag)
+	{
+		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, pBuilding, CellStruct::Empty, false, pThis);
+
+		if (auto pSecondTag = pBuilding->AttachedTag)
+		{
+			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, pBuilding, CellStruct::Empty, false, nullptr);
+		}
+	}
+
+	// https://bugs.launchpad.net/ares/+bug/1925359
+	TechnoExt_ExtData::AddPassengers(pBuilding, pThis);
+
+	// #368: refund hijackers
+	if (pThis->HijackerInfantryType != -1)
+	{
+		pBuilding->Owner->TransactMoney(InfantryTypeClass::Array->Items[pThis->HijackerInfantryType]->GetRefund(pThis->Owner, 0));
+	}
 
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
 }

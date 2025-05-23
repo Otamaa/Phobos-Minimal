@@ -4,10 +4,8 @@
 #include <Utilities/MemoryPoolUniquePointer.h>
 
 class TechnoClass;
-class PoweredUnitClass final : public MemoryPoolObject
+class PoweredUnitClass
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(PoweredUnitClass, "PoweredUnitClass")
-
 public:
 
 	TechnoClass* Techno {};
@@ -49,7 +47,7 @@ private:
 
 template <>
 struct Savegame::ObjectFactory<PoweredUnitClass> {
-	MemoryPoolUniquePointer<PoweredUnitClass> operator() (PhobosStreamReader& Stm) const {
-		return PoweredUnitClass::createInstance();
+	std::unique_ptr<PoweredUnitClass> operator() (PhobosStreamReader& Stm) const {
+		return std::make_unique<PoweredUnitClass>();
 	}
 };

@@ -3819,7 +3819,7 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 	{
 		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit) {
 			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit =
-				new(PoweredUnitClass::PoweredUnitClass_GLUE_NOT_IMPLEMENTED) PoweredUnitClass(pThis)
+				std::make_unique < PoweredUnitClass>(pThis)
 				;
 		}
 
@@ -3918,7 +3918,7 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 		{
 			if (!TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
 				TechnoExtContainer::Instance.Find(pThis)->RadarJammer =
-					new(RadarJammerClass::RadarJammerClass_GLUE_NOT_IMPLEMENTED) RadarJammerClass(pThis);
+					std::make_unique<RadarJammerClass>(pThis);
 			}
 
 			TechnoExtContainer::Instance.Find(pThis)->RadarJammer->Update();

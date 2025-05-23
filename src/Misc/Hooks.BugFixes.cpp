@@ -1831,6 +1831,7 @@ ASMJIT_PATCH(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 	return SkipGameCode;
 }
 
+
 // In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
 // which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
 // even at high speeds - NetsuNegi
@@ -1894,7 +1895,6 @@ ASMJIT_PATCH(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 	return 0;
 }
 
-DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 // Map <Player @ X> as object owner name to correct HouseClass index.
 ASMJIT_PATCH(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
@@ -1995,20 +1995,20 @@ NOINLINE LocomotionClass* getILoco(REGISTERS* R) {
 	return static_cast<LocomotionClass*>(pIloco);
 }
 
-ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
-{
-	if(const auto pLoco = getILoco(R)) {
-		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
-			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
-				pLoco->Power_On();
-			else
-				pLoco->Power_Off();
-		}
-	}
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
-ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
-ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
+//ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
+//{
+//	if(const auto pLoco = getILoco(R)) {
+//		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
+//			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
+//				pLoco->Power_On();
+//			else
+//				pLoco->Power_Off();
+//		}
+//	}
+//	return 0;
+//}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
+//ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
+//ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
 
 
 #pragma endregion
@@ -2139,6 +2139,7 @@ ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 // Save GameModeOptions in campaign modes
 DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
 DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
+DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 #pragma region TeamCloseRangeFix
 
@@ -2151,6 +2152,7 @@ static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, 
 DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
 
 #pragma endregion
+
 
 static void KickOutStuckUnits(BuildingClass* pThis)
 {

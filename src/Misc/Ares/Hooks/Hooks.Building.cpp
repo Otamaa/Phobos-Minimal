@@ -1675,73 +1675,26 @@ ASMJIT_PATCH(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDisabled, 
 //}
 
 
-ASMJIT_PATCH(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
-{
-	GET(UnitClass* const, Vehicle, EBP);
-	GET(BuildingClass* const, Grinder, EBX);
+// ASMJIT_PATCH(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
+// {
+// 	GET(UnitClass* const, Vehicle, EBP);
+// 	GET(BuildingClass* const, Grinder, EBX);
+//
+// 	//ReverseEngineer(Grinder, Vehicle);
+//
+//
+// 	return 0;
+// }
 
-	//ReverseEngineer(Grinder, Vehicle);
-
-	if (BuildingExtData::ReverseEngineer(Grinder, Vehicle))
-	{
-		if (Vehicle->Owner && Vehicle->Owner->ControlledByCurrentPlayer())
-		{
-			VoxClass::Play("EVA_ReverseEngineeredVehicle");
-			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
-		}
-	}
-
-	if (const auto FirstTag = Grinder->AttachedTag)
-	{
-		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
-
-		if (auto pSecondTag = Grinder->AttachedTag)
-		{
-			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
-		}
-	}
-
-	// https://bugs.launchpad.net/ares/+bug/1925359
-	TechnoExt_ExtData::AddPassengers(Grinder, Vehicle);
-
-	// #368: refund hijackers
-	if (Vehicle->HijackerInfantryType != -1)
-	{
-		Grinder->Owner->TransactMoney(InfantryTypeClass::Array->Items[Vehicle->HijackerInfantryType]->GetRefund(Vehicle->Owner, 0));
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
-{
-	GET(InfantryClass* const, Infantry, ESI);
-	GET(BuildingClass* const, Grinder, EBX);
-
-	//ReverseEngineer(Grinder, Infantry);
-
-	if (BuildingExtData::ReverseEngineer(Grinder, Infantry))
-	{
-		if (Infantry->Owner->ControlledByCurrentPlayer())
-		{
-			VoxClass::Play("EVA_ReverseEngineeredInfantry");
-			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
-		}
-	}
-
-	//Ares 3.0 Added
-	if (const auto FirstTag = Grinder->AttachedTag)
-	{
-		//80
-		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
-
-		//79
-		if (const auto pSecondTag = Grinder->AttachedTag)
-			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
-	}
-
-	return 0;
-}
+// ASMJIT_PATCH(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
+// {
+// 	GET(InfantryClass* const, Infantry, ESI);
+// 	GET(BuildingClass* const, Grinder, EBX);
+//
+// 	//ReverseEngineer(Grinder, Infantry);
+//
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 {

@@ -45,6 +45,19 @@ struct DifficultyStruct
 };
 
 #pragma pack(push, 8)
+
+struct JumpjetControls {
+	int				 TurnRate;
+	int				 Speed;
+	double			 Climb;
+	int				 CruiseHeight;
+	double			 Acceleration;
+	double			 WobblesPerSecond;
+	int				 WobbleDeviation;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 8)
 class RulesClass
 {
 public:

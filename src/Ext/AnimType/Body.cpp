@@ -57,6 +57,18 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Weapon.Read(exINI, pID, "Weapon", true);
 	this->WeaponToCarry.Read(exINI, pID, "WeaponToCarry", true);
+
+	if (auto& pWeapon = this->Weapon) {
+		if (!pWeapon->Projectile || !pWeapon->Warhead)
+			pWeapon = nullptr;
+	}
+
+	if (auto& pWeaponC = this->WeaponToCarry)
+	{
+		if (!pWeaponC->Projectile || !pWeaponC->Warhead)
+			pWeaponC = nullptr;
+	}
+
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");

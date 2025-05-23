@@ -562,10 +562,8 @@ protected:
 	}
 };
 
-class TechnoExtData final : public MemoryPoolObject
+class TechnoExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TechnoExtData, "TechnoExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x22365555;
 	using base_type = TechnoClass;
@@ -590,8 +588,8 @@ public:
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
 	Mission EMPLastMission { 0 }; //
 
-	MemoryPoolUniquePointer<PoweredUnitClass> PoweredUnit { nullptr };
-	MemoryPoolUniquePointer<RadarJammerClass> RadarJammer { nullptr };
+	std::unique_ptr<PoweredUnitClass> PoweredUnit { nullptr };
+	std::unique_ptr<RadarJammerClass> RadarJammer { nullptr };
 
 	BuildingLightClass* BuildingLight { 0 };
 
@@ -607,7 +605,7 @@ public:
 	BYTE TakeVehicleMode { 0 };
 	int TechnoValueAmount { 0 };
 	int Pos { };
-	MemoryPoolUniquePointer<ShieldClass> Shield { nullptr };
+	std::unique_ptr<ShieldClass> Shield { nullptr };
 	HelperedVector<LaserTrailClass> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };
@@ -693,7 +691,7 @@ public:
 
 	NewTiberiumStorageClass TiberiumStorage {};
 
-	HelperedVector<MemoryPoolUniquePointer<PhobosAttachEffectClass>> PhobosAE {};
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
 
 	int ShootCount { 0 };
 	int CurrentAircraftWeaponIndex { 0 };
@@ -747,6 +745,21 @@ public:
 	int AttachedEffectInvokerCount {};
 
 	AirstrikeClass* AirstrikeTargetingMe {};
+
+	~TechnoExtData()
+	{
+		if (!Phobos::Otamaa::ExeTerminated)
+		{
+			if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
+			{
+				GameDelete<true, false>(pTemp);
+			}
+		}
+
+		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		this->ClearElectricBolts();
+	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

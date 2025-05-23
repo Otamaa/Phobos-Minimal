@@ -6,10 +6,8 @@
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/CompileTimeDirStruct.h>
 
-class InfantryExtData final : public MemoryPoolObject
+class InfantryExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(InfantryExtData, "InfantryExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xACCAAAAA;
 	using base_type = InfantryClass;

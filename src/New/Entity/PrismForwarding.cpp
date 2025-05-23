@@ -7,23 +7,6 @@
 
 HelperedVector<PrismForwarding*> PrismForwarding::Array;
 
-PrismForwarding::~PrismForwarding()
-{
-	this->RemoveFromNetwork(true);
-	this->Owner = nullptr;
-	this->Senders.clear();
-
-	for (auto& pr : Array)
-	{
-		if (pr != this && pr->SupportTarget == this)
-		{
-			pr->SetSupportTarget(nullptr);
-		}
-	}
-
-	Array.remove(this);
-}
-
 PrismForwardingData* PrismForwarding::GetOwnerData() const
 {
 	return BuildingTypeExtContainer::Instance.Find(this->Owner->Type)->PrismForwarding.AsPointer();

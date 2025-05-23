@@ -10,10 +10,8 @@
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
 class VoxelAnimTypeExtData;
-class VoxelAnimExtData final : public MemoryPoolObject
+class VoxelAnimExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(VoxelAnimExtData, "VoxelAnimExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
@@ -32,6 +30,8 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
+
+	~VoxelAnimExtData();
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

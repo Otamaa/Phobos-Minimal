@@ -12,8 +12,6 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
-ParticleSystemExtData::~ParticleSystemExtData() { }
-
 void ParticleSystemExtData::UpdateLocations()
 {
 	const auto gravity = (float)RulesClass::Instance->Gravity;

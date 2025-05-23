@@ -30,10 +30,10 @@ enum class SWStateMachineIdentifier : int
 
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
-class SWStateMachine : public MemoryPoolObject
+class SWStateMachine
 {
 public:
-	static HelperedVector<MemoryPoolUniquePointer<SWStateMachine>> Array;
+	static HelperedVector<std::unique_ptr<SWStateMachine>> Array;
 
 	SWStateMachine() = default;
 	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
@@ -91,8 +91,6 @@ private:
 
 class UnitDeliveryStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(UnitDeliveryStateMachine, "UnitDeliveryStateMachine")
-
 public:
 	UnitDeliveryStateMachine()
 		: SWStateMachine()
@@ -121,8 +119,6 @@ public:
 
 class DroppodStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(DroppodStateMachine, "DroppodStateMachine")
-
 public:
 	DroppodStateMachine()
 		: SWStateMachine()
@@ -153,7 +149,6 @@ public:
 
 class SonarPulseStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(SonarPulseStateMachine, "SonarPulseStateMachine")
 public:
 	SonarPulseStateMachine()
 		: SWStateMachine()
@@ -184,8 +179,6 @@ public:
 
 class SpyPlaneStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(SpyPlaneStateMachine, "SpyPlaneStateMachine")
-
 public:
 	SpyPlaneStateMachine()
 		: SWStateMachine(), target { nullptr }
@@ -229,8 +222,6 @@ protected :
 
 class ChronoWarpStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ChronoWarpStateMachine, "ChronoWarpStateMachine")
-
 public:
 	struct ChronoWarpContainer
 	{
@@ -292,8 +283,6 @@ protected:
 
 class PsychicDominatorStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(PsychicDominatorStateMachine, "PsychicDominatorStateMachine")
-
 public:
 	PsychicDominatorStateMachine()
 		: SWStateMachine(), Deferment(0)
@@ -343,7 +332,6 @@ protected:
 
 class IonCannonStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(IonCannonStateMachine, "IonCannonStateMachine")
 public:
 	enum class IonCannonStatus : unsigned int
 	{
@@ -380,6 +368,16 @@ public:
 		this->Deferment = pData->SW_Deferment.Get(0);
 	};
 
+	~IonCannonStateMachine()
+	{
+		if (this->Anim)
+		{
+			this->Anim->TimeToDie = true;
+			this->Anim->UnInit();
+			this->Anim = nullptr;
+		}
+	}
+
 	virtual void Update();
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
@@ -408,7 +406,6 @@ protected:
 
 class CloneableLighningStormStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(CloneableLighningStormStateMachine, "CloneableLighningStormStateMachine")
 public:
 	static COMPILETIMEEVAL double CloudHeightFactor { 6.968466256176567 };
 
@@ -421,6 +418,39 @@ public:
 		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(pFirer)
 	{
 		Start(XY, Duration, Deferment);
+	}
+
+	~CloneableLighningStormStateMachine()
+	{
+		for (auto& CP : CloudsPresent)
+		{
+			if (CP && CP->IsAlive && CP->Type)
+			{
+				CP->UnInit();
+			}
+
+			CP = nullptr;
+		}
+
+		for (auto& CM : CloudsManifest)
+		{
+			if (CM && CM->IsAlive && CM->Type)
+			{
+				CM->UnInit();
+			}
+			CM = nullptr;
+		}
+
+		for (auto& BP : BoltsPresent)
+		{
+			if (BP && BP->IsAlive && BP->Type)
+			{
+				BP->UnInit();
+			}
+
+			BP = nullptr;
+		}
+
 	}
 
 	virtual void Update() override;
@@ -466,7 +496,6 @@ public:
 
 class LaserStrikeStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(LaserStrikeStateMachine, "LaserStrikeStateMachine")
 public:
 
 	LaserStrikeStateMachine()
@@ -547,7 +576,6 @@ protected:
 
 class GenericWarheadStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(GenericWarheadStateMachine, "GenericWarheadStateMachine")
 public:
 	GenericWarheadStateMachine()
 		: SWStateMachine() , Firer { nullptr }
@@ -583,7 +611,6 @@ protected:
 
 class GeneticMutatorStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(GeneticMutatorStateMachine, "GeneticMutatorStateMachine")
 public:
 	GeneticMutatorStateMachine()
 		: SWStateMachine(), Firer { nullptr }, CoordsWithBridge {}
@@ -640,7 +667,6 @@ protected:
 
 class RevealStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(RevealStateMachine, "RevealStateMachine")
 public:
 	RevealStateMachine()
 		: SWStateMachine()
@@ -668,7 +694,6 @@ public:
 
 class ParaDropStateMachine : public SWStateMachine
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ParaDropStateMachine, "ParaDropStateMachine")
 public:
 	ParaDropStateMachine()
 		: SWStateMachine(), Target { nullptr }, PlaneType { }, Types {}, Nums {}
@@ -725,12 +750,12 @@ protected:
 
 #define MakeStatemachine(a) \
 case SWStateMachineIdentifier::## a ##:\
-return a##StateMachine::createInstance();\
+return std::make_unique<a##StateMachine>();\
 
 template <>
 struct Savegame::ObjectFactory<SWStateMachine>
 {
-	MemoryPoolUniquePointer<SWStateMachine> operator() (PhobosStreamReader& Stm) const
+	std::unique_ptr<SWStateMachine> operator() (PhobosStreamReader& Stm) const
 	{
 		SWStateMachineIdentifier type = SWStateMachineIdentifier::Invalid;
 		if (Stm.Load(type))

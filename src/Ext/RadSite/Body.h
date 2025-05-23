@@ -9,10 +9,8 @@
 #include <Ext/WeaponType/Body.h>
 
 class RadTypeClass;
-class RadSiteExtData final : public MemoryPoolObject
+class RadSiteExtData
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(RadSiteExtData, "RadSiteExtData")
-
 public:
 	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;

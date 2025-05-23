@@ -15,6 +15,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Array.push_back(std::move(new(DroppodStateMachine::DroppodStateMachine_GLUE_NOT_IMPLEMENTED) DroppodStateMachine(Deferment, XY, pSuper, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<DroppodStateMachine>(Deferment, XY, pSuper, this)));
 	}
 };

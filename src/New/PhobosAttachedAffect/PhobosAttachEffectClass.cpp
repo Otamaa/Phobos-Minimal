@@ -596,7 +596,7 @@ int PhobosAttachEffectClass::DetachByGroups(TechnoClass* pTarget, AEAttachInfoTy
 	return DetachTypes(pTarget, attachEffectInfo, types);
 }
 
-PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<MemoryPoolUniquePointer<PhobosAttachEffectClass>>& targetAEs,
+PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs,
 	HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachParams)
 {
 	if (!pType || !pTarget)
@@ -680,7 +680,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	}
 	else
 	{
-		targetAEs.emplace_back(std::move(PhobosAttachEffectClass::createInstance()));
+		targetAEs.emplace_back(std::move(std::make_unique<PhobosAttachEffectClass>()));
 		auto const pAE = targetAEs.back().get();
 		pAE->Initialize(pType, pTarget, pInvokerHouse, pInvoker, pSource, attachParams.DurationOverride, attachParams.Delay, attachParams.InitialDelay, attachParams.RecreationDelay);
 		if (!currentTypeCount && pType->Cumulative && pType->CumulativeAnimations.size() > 0)

@@ -213,7 +213,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
 	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
 	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector<AITriggerTypeClass*>(iniEX, pData->AITriggersLists, "AITriggersList");
+	detail::ParseVector<AITriggerTypeClass*, true>(iniEX, pData->AITriggersLists, "AITriggersList");
 
 	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
 	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");

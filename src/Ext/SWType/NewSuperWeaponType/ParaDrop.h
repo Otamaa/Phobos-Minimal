@@ -23,6 +23,6 @@ public:
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, CellClass* pTarget) {
-		SWStateMachine::Array.push_back(std::move(new(ParaDropStateMachine::ParaDropStateMachine_GLUE_NOT_IMPLEMENTED) ParaDropStateMachine(Deferment, XY, pSuper, this, pTarget)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<ParaDropStateMachine>(Deferment, XY, pSuper, this, pTarget)));
 	}
 };

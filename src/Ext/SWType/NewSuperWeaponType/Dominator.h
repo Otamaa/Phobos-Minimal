@@ -25,6 +25,6 @@ public:
 
 protected:
 	void newStateMachine(CellStruct XY, SuperClass* pSuper) {
-		SWStateMachine::Array.push_back(std::move(new(PsychicDominatorStateMachine::PsychicDominatorStateMachine_GLUE_NOT_IMPLEMENTED) PsychicDominatorStateMachine(XY, pSuper, this)));
+		SWStateMachine::Array.push_back(std::move(std::make_unique<PsychicDominatorStateMachine>(XY, pSuper, this)));
 	}
 };

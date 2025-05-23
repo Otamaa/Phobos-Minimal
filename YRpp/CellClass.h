@@ -624,6 +624,10 @@ public:
 	bool CellClass_Tube_484D60() const { JMP_THIS(0x484D60); }
 	bool CellClass_484F10(InfantryClass* pInf) const { JMP_THIS(0x484F10); }
 
+	bool IsSpotFree(int bit, char check_alt) {
+		JMP_THIS(0x481130);
+	}
+
 	void RemoveWeed() const {
 		JMP_THIS(0x486E30);
 	}

@@ -107,6 +107,10 @@ public:
 		JMP_THIS(0x4ADCD0);
 	}
 
+	bool Is_Spot_Free(int coord, int check_alt) {
+		JMP_THIS(0x4ACA90);
+	}
+
 	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
 		{ JMP_STD(0x5353D0); }
 

@@ -15,6 +15,7 @@
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
+#include <New/Interfaces/TSJumpJetLocomotionClass.h>
 
 #define PARSE(who)\
 if (IS_SAME_STR_(parser.value(), who ##_data.s_name)) { \
@@ -40,6 +41,10 @@ namespace detail
 
 		// Semantic locomotor aliases
 		if (parser.value()[0] != '{') {
+
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("Reading locomotor [%s] of [%s]\n" , parser.value() , pSection);
+
 			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i) {
 				if (IS_SAME_STR_(parser.value(), EnumFunctions::LocomotorPairs_ToStrings[i].first)) {
 					CLSID dummy;
@@ -56,6 +61,7 @@ namespace detail
 			PARSE(Levitate)
 			PARSE(AdvancedDrive)
 			PARSE(CustomRocket)
+			PARSE(TSJumpJet)
 
 			//AddMore loco here
 			return false;
