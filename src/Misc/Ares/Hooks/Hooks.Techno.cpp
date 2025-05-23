@@ -1129,6 +1129,16 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 
 	TechnoExtData::InitializeItems(pThis, pType);
 	TechnoExtData::InitializeAttachEffects(pThis, pType);
+
+	const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
+
+	if (pPrimary && pThis->GetTechnoType()->LandTargeting != LandTargetingType::Land_not_okay)
+		pThis->DiskLaserTimer.TimeLeft = pPrimary->ROF;
+	else if (const auto pSecondary = pThis->GetWeapon(1)->WeaponType)
+		pThis->DiskLaserTimer.TimeLeft = pSecondary->ROF;
+
+	pThis->DiskLaserTimer.StartTime = MinImpl(-2, -pThis->DiskLaserTimer.TimeLeft);
+
 	TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
 	R->EAX(pType);

@@ -607,6 +607,9 @@ enum class DisplayInfoType : BYTE
 	PassengerKill = 19,
 	AutoDeath = 20,
 	SuperWeapon = 21,
+	TemporalLife = 22,
+	FactoryProcess= 23,
+	SelfHealCombatDelay = 24,
 	count
 };
 

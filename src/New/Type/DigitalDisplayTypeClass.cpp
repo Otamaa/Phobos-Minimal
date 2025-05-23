@@ -32,13 +32,17 @@ void DigitalDisplayTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->AnchorType_Building.Read(exINI, section, "Anchor.Building");
 	this->Shape.Read(exINI, section, "Shape");
 	this->Palette.Read(exINI, section, "Palette");
+	this->Shape_PercentageFrame.Read(exINI, section, "Shape.PercentageFrame");
 	this->Shape_Spacing.Read(exINI, section, "Shape.Spacing");
 	this->Percentage.Read(exINI, section, "Percentage");
 	this->HideMaxValue.Read(exINI, section, "HideMaxValue");
 	this->VisibleToHouses_Observer.Read(exINI, section, "VisibleToHouses.Observer");
+	this->VisibleInSpecialState.Read(exINI, section, "VisibleInSpecialState");
 	this->VisibleToHouses.Read(exINI, section, "VisibleToHouses");
 	this->InfoType.Read(exINI, section, "InfoType");
+	this->InfoIndex.Read(exINI, section, "InfoIndex");
 	this->ValueScaleDivisor.Read(exINI, section, "ValueScaleDivisor");
+	this->ValueAsTimer.Read(exINI, section, "ValueAsTimer");
 }
 
 void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
@@ -75,19 +79,30 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 
 void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	std::wstring valueString(std::move(Percentage ?
-		std::to_wstring(static_cast<int>(static_cast<double>(value) / maxValue * 100)) :
-		std::to_wstring(value)
-	));
+	fmt::basic_memory_buffer<wchar_t> wbuf;
 
-	if (Percentage)
-		valueString.push_back('%%');
-	else if (!HideMaxValue.Get(isInfantry))
+
+	if (!ValueAsTimer) {
+		const int minute = value / 60;
+
+		if (const int hour = minute / 60)
+			fmt::format_to(std::back_inserter(wbuf), L"{:02}:{:02}:{:02}", hour, minute % 60, value % 60);
+		else
+			fmt::format_to(std::back_inserter(wbuf), L"{:02}:{:02}", minute % 60, value % 60);
+	}
+	else
 	{
-		valueString += '/';
-		valueString += std::to_wstring(maxValue);
+		if (Percentage){
+			fmt::format_to(std::back_inserter(wbuf), L"{}%", static_cast<int>(static_cast<double>(value) / maxValue * 100));
+		} else if (!HideMaxValue.Get(isInfantry)) {
+			fmt::format_to(std::back_inserter(wbuf), L"{}/{}", value, maxValue);
+		} else {
+			fmt::format_to(std::back_inserter(wbuf), L"{}", value);
+		}
+
 	}
 
+	wbuf.push_back(L'\0');
 	double ratio = static_cast<double>(value) / maxValue;
 	COLORREF color = Drawing::RGB_To_Int(this->Text_Color.Get(ratio , RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
 	RectangleStruct rect = DSurface::Composite->Get_Rect_WithoutBottomBar();
@@ -101,7 +116,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 		| TextPrintType::FullShadow
 		| (this->Text_Background ? TextPrintType::Background : TextPrintType::LASTPOINT);
 
-	DSurface::Composite->DSurfaceDrawText(valueString.c_str(), &rect, &position, color, 0, printType);
+	DSurface::Composite->DSurfaceDrawText(wbuf.data(), &rect, &position, color, 0, printType);
 }
 
 COMPILETIMEEVAL Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
@@ -122,21 +137,47 @@ struct FrameData
 
 void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	std::string valueString(std::move(Percentage ?
-		std::to_string(static_cast<int>(static_cast<double>(value) / maxValue * 100)) :
-		std::to_string(value)
-	));
+	double ratio = static_cast<double>(value) / maxValue;
+	std::string valueString("");
+
+	if (!Shape_PercentageFrame)
+	{
+		if (!ValueAsTimer)
+		{
+			if (Percentage)
+
+				valueString += std::move(GeneralUtils::IntToDigits(static_cast<int>(ratio * 100))) + '%';
+			else if (HideMaxValue.Get(isInfantry))
+				valueString += std::move(GeneralUtils::IntToDigits(value));
+			else
+				valueString += std::move(GeneralUtils::IntToDigits(value)) + '/' + std::move(GeneralUtils::IntToDigits(maxValue));
+		}
+		else
+		{
+			const int minute = value / 60;
+			const int hour = minute / 60;
+
+			if (hour)
+				valueString += std::move(GeneralUtils::IntToDigits(hour)) + '%';
+
+			const int min = minute % 60;
+
+			if (!(min / 10) && hour)
+				valueString += '0';
+
+			valueString += std::move(GeneralUtils::IntToDigits(min)) + '%';
+
+			const int sec = value % 60;
+
+			if (!(sec / 10))
+				valueString += '0';
+
+			valueString += std::move(GeneralUtils::IntToDigits(sec));
+		}
+	}
 
 	Point2D spacing = GetSpacing(this->Shape_Spacing,isBuilding);
 	const int pipsHeight = hasShield ? 4 : 0;
-
-	if (Percentage)
-		valueString.push_back('%');
-	else if (!HideMaxValue.Get(isInfantry))
-	{
-		valueString += '/';
-		valueString += std::to_string(maxValue);
-	}
 
 	if (AnchorType.Vertical == VerticalPosition::Top)
 		position.Y -= Shape->Height + pipsHeight; // upper of healthbar and shieldbar
@@ -145,15 +186,32 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	{
 	case TextAlign::Center:
 	{
+#ifdef _old
 		position.X -= (int)valueString.length() * spacing.X / 2;
 		position.Y += (int)valueString.length() * spacing.Y / 2;
+#else
+		if (Shape_PercentageFrame) {
+			position.X -= static_cast<int>(Shape->Width) / 2;
+		} else {
+			position.X -= static_cast<int>(valueString.length()) * spacing.X / 2;
+			position.Y += static_cast<int>(valueString.length()) * spacing.Y / 2;
+		}
+#endif
 		break;
 	}
 	case TextAlign::Right:
 	{
+
+#ifdef _old
 		std::reverse(valueString.begin(), valueString.end());
 		position.X -= spacing.X;
 		spacing.X = -spacing.X;
+#else
+		if (Shape_PercentageFrame)
+			position.X -= static_cast<int>(Shape->Width);
+		else
+			position.X -= spacing.X;
+#endif
 		break;
 	}
 	default:
@@ -173,7 +231,20 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	);
 
 	RectangleStruct rect = DSurface::Composite->Get_Rect_WithoutBottomBar();
-	ShapeTextPrinter::PrintShape(valueString.c_str(), shapeTextPrintData, &position, &rect, DSurface::Composite);
+	if (Shape_PercentageFrame)
+	{
+		DSurface::Composite->DrawSHP
+		(
+			pPal,
+			Shape.Get(),
+			static_cast<int>(std::clamp((int)ratio, 0, 1) * (Shape->Frames - 1) + 0.5),
+			&position, &rect, BlitterFlags::None, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0
+		);
+	}
+	else
+	{
+		ShapeTextPrinter::PrintShape(valueString.c_str(), shapeTextPrintData, &position, &rect, DSurface::Composite);
+	}
 }
 
 template <typename T>
@@ -190,12 +261,16 @@ void DigitalDisplayTypeClass::Serialize(T& Stm)
 		.Process(this->Shape)
 		.Process(this->Palette)
 		.Process(this->Shape_Spacing)
+		.Process(this->Shape_PercentageFrame)
 		.Process(this->Percentage)
 		.Process(this->HideMaxValue)
 		.Process(this->VisibleToHouses_Observer)
 		.Process(this->VisibleToHouses)
+		.Process(this->VisibleInSpecialState)
 		.Process(this->InfoType)
+		.Process(this->InfoIndex)
 		.Process(this->ValueScaleDivisor)
+		.Process(this->ValueAsTimer)
 		;
 }
 

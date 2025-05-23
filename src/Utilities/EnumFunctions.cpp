@@ -520,6 +520,9 @@ std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayIn
 	{ "passengerkill" },
 	{ "autodeath" },
 	{ "superweapon" },
+	{ "temporallife" },
+	{ "factoryprocess" },
+	{ "selfhealcombatdelay" }
 }
 };
 

@@ -505,17 +505,22 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 			if (!IsCurPlayerObserver && !EnumFunctions::CanTargetHouse(pDisplayType->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
 				continue;
 
-			int value = -1;
-			int maxValue = -1;
-
-			TechnoExtData::GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue);
-
-			if (value == -1 || maxValue == -1)
+			if (!pDisplayType->VisibleInSpecialState && (pThis->TemporalTargetingMe || pThis->IsIronCurtained()))
 				continue;
 
-			if (pDisplayType->ValueScaleDivisor > 1) {
-				value /= pDisplayType->ValueScaleDivisor;
-				maxValue /= pDisplayType->ValueScaleDivisor;
+			int value = -1;
+			int maxValue = 0;
+
+			TechnoExtData::GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue, pDisplayType->InfoIndex);
+
+			if (value <= -1 || maxValue <= 0)
+				continue;
+
+			const auto divisor = pDisplayType->ValueScaleDivisor.Get(pDisplayType->ValueAsTimer ? 15 : 1);
+
+			if (divisor > 1) {
+				value = MaxImpl(value / divisor, value ? 1 : 0);
+				maxValue = MaxImpl(maxValue / divisor, 1);
 			}
 
 			const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
@@ -534,7 +539,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 
 // https://github.com/Phobos-developers/Phobos/pull/1287
 // TODO : update
-void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue)
+void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex)
 {
 	const auto pType = pThis->GetTechnoType();
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -576,10 +581,18 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::Spawns:
 	{
-		if (!pThis->SpawnManager || !pType->Spawns || pType->SpawnsNumber <= 0)
+		const auto pSpawnManager = pThis->SpawnManager;
+
+		if (!pSpawnManager || !pType->Spawns || pType->SpawnsNumber <= 0)
 			return;
 
-		value = pThis->SpawnManager->CountAliveSpawns();
+		if (infoIndex == 1)
+			value = pSpawnManager->CountDockedSpawns();
+		else if (infoIndex == 2)
+			value = pSpawnManager->CountLaunchingSpawns();
+		else
+			value = pSpawnManager->CountAliveSpawns();
+
 		maxValue = pType->SpawnsNumber;
 		break;
 	}
@@ -597,7 +610,13 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pType->Storage <= 0)
 			return;
 
-		value = static_cast<int>(TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts());
+		auto& tib = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+
+		if (infoIndex && infoIndex <= TiberiumClass::Array->Count)
+			value = static_cast<int>(tib.GetAmount(infoIndex - 1));
+		else
+			value = static_cast<int>(tib.GetAmounts());
+
 		maxValue = pType->Storage;
 		break;
 	}
@@ -630,22 +649,43 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (!pType->IsGattling)
 			return;
 
-		value = pThis->CurrentGattlingStage;
+		value = pThis->GattlingValue ? pThis->CurrentGattlingStage + 1 : 0;
 		maxValue = pType->WeaponStages;
 		break;
 	}
 	case DisplayInfoType::IronCurtain:
 	{
-		if (pThis->IronCurtainTimer.TimeLeft == 0 && pThis->IronCurtainTimer.StartTime == -1)
+		if (!pThis->IsIronCurtained())
 			return;
 
 		value = pThis->IronCurtainTimer.GetTimeLeft();
 		maxValue = pThis->IronCurtainTimer.TimeLeft;
 		break;
 	}
+	case DisplayInfoType::TemporalLife:
+	{
+		const auto pTemporal = pThis->TemporalTargetingMe;
+
+		if (!pTemporal)
+			return;
+
+		value = pTemporal->WarpRemaining;
+		maxValue = pType->Strength * 10;
+		break;
+	}
 	case DisplayInfoType::DisableWeapon:
 	{
 		auto& nTimer = pExt->DisableWeaponTimer;
+		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
+			return;
+
+		value = nTimer.GetTimeLeft();
+		maxValue = nTimer.TimeLeft;
+		break;
+	}
+	case DisplayInfoType::SelfHealCombatDelay:
+	{
+		auto& nTimer = pExt->SelfHealing_CombatDelay;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
 			return;
 
@@ -671,9 +711,10 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		value = pThis->GattlingValue;
 		maxValue = (pThis->Veterancy.IsElite() ? pType->EliteStage : pType->WeaponStage)[pThis->CurrentGattlingStage];
 		break;
-	}case DisplayInfoType::ROF:
+	}
+	case DisplayInfoType::ROF:
 	{
-		if (!pThis->GetWeapon(0) || !pThis->GetWeapon(0)->WeaponType)
+		if (!pThis->IsArmed())
 			return;
 
 		value = pThis->DiskLaserTimer.GetTimeLeft();
@@ -685,29 +726,87 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pType->Ammo <= 0)
 			return;
 
-		value = pThis->ReloadTimer.GetTimeLeft();
-		maxValue = pThis->ReloadTimer.TimeLeft;
+		value = (pThis->Ammo >= pType->Ammo) ? 0 : pThis->ReloadTimer.GetTimeLeft();
+		maxValue = pThis->ReloadTimer.TimeLeft ? pThis->ReloadTimer.TimeLeft : ((pThis->Ammo || pType->EmptyReload <= 0) ? pType->Reload : pType->EmptyReload);
+		break;
+	}
+	case DisplayInfoType::FactoryProcess:
+	{
+		if (pThis->WhatAmI() != AbstractType::Building)
+			return;
+
+		auto getFactory = [pThis, pType, infoIndex]() -> FactoryClass*
+			{
+				const auto pHouse = pThis->Owner;
+				const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
+
+				if (infoIndex == 1)
+				{
+					if (!pHouse->IsControlledByHuman())
+						return static_cast<BuildingClass*>(pThis)->Factory;
+					else if (pThis->IsPrimaryFactory)
+						return pHouse->GetPrimaryFactory(pBuildingType->Factory, pBuildingType->Naval, BuildCat::DontCare);
+				}
+				else if (infoIndex == 2)
+				{
+					if (pHouse->IsControlledByHuman() && pThis->IsPrimaryFactory && pBuildingType->Factory == AbstractType::BuildingType)
+						return pHouse->Primary_ForDefenses;
+				}
+				else if (!pHouse->IsControlledByHuman())
+				{
+					return static_cast<BuildingClass*>(pThis)->Factory;
+				}
+				else if (pThis->IsPrimaryFactory)
+				{
+					const auto pFactory = pHouse->GetPrimaryFactory(pBuildingType->Factory, pBuildingType->Naval, BuildCat::DontCare);
+
+					if (pFactory && pFactory->Object)
+						return pFactory;
+					else if (pBuildingType->Factory == AbstractType::BuildingType)
+						return pHouse->Primary_ForDefenses;
+				}
+
+				return nullptr;
+			};
+		if (const auto pFactory = getFactory())
+		{
+			if (pFactory->Object)
+			{
+				value = pFactory->GetProgress();
+				maxValue = 54;
+			}
+		}
+
 		break;
 	}
 	case DisplayInfoType::SpawnTimer:
 	{
-		if (pThis->SpawnManager == nullptr || pType->Spawns == nullptr || pType->SpawnsNumber <= 0)
+		const auto pSpawnManager = pThis->SpawnManager;
+
+		if (!pSpawnManager || !pType->Spawns || pType->SpawnsNumber <= 0)
 			return;
 
-		value = 0;
-		maxValue = pThis->SpawnManager->RegenRate;
-
-		for (int i = 0; i < pType->SpawnsNumber; i++)
+		if (infoIndex && infoIndex <= pSpawnManager->SpawnedNodes.Count)
 		{
-			if (pThis->SpawnManager->SpawnedNodes[i]->Status == SpawnNodeStatus::Dead)
+			value = pSpawnManager->SpawnedNodes[infoIndex - 1]->NodeSpawnTimer.GetTimeLeft();
+		}
+		else
+		{
+			for (int i = 0; i < pSpawnManager->SpawnedNodes.Count; ++i)
 			{
-				int thisValue = pThis->SpawnManager->SpawnedNodes[i]->NodeSpawnTimer.GetTimeLeft();
+				const auto pSpawnNode = pSpawnManager->SpawnedNodes[i];
 
-				if (thisValue < value)
-					value = thisValue;
+				if (pSpawnNode->Status == SpawnNodeStatus::Dead)
+				{
+					const int time = pSpawnNode->NodeSpawnTimer.GetTimeLeft();
+
+					if (!value || time < value)
+						value = time;
+				}
 			}
 		}
 
+		maxValue = pSpawnManager->RegenRate;
 		break;
 	}
 	case DisplayInfoType::GattlingTimer:
@@ -715,33 +814,16 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (!pType->IsGattling)
 			return;
 
-		const int thisStage = pThis->CurrentGattlingStage;
+		const auto thisStage = pThis->CurrentGattlingStage;
+		const auto& stage = pThis->Veterancy.IsElite() ? pType->EliteStage : pType->WeaponStage;
 
-		if (pThis->Veterancy.IsElite())
+		value = pThis->GattlingValue;
+		maxValue = stage[thisStage];
+
+		if (thisStage > 0)
 		{
-			if (thisStage > 0)
-			{
-				value = pThis->GattlingValue - pType->EliteStage[thisStage - 1];
-				maxValue = pType->EliteStage[thisStage] - pType->EliteStage[thisStage - 1];
-			}
-			else
-			{
-				value = pThis->GattlingValue;
-				maxValue = pType->EliteStage[thisStage];
-			}
-		}
-		else
-		{
-			if (thisStage > 0)
-			{
-				value = pThis->GattlingValue - pType->WeaponStage[thisStage - 1];
-				maxValue = pType->WeaponStage[thisStage] - pType->WeaponStage[thisStage - 1];
-			}
-			else
-			{
-				value = pThis->GattlingValue;
-				maxValue = pType->WeaponStage[thisStage];
-			}
+			value -= stage[thisStage - 1];
+			maxValue -= stage[thisStage - 1];
 		}
 
 		break;
@@ -765,7 +847,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (!pTypeExt || !pTypeExt->PassengerDeletionType.Enabled)
+		if (!pTypeExt->PassengerDeletionType.Enabled)
 			return;
 
 		value = pExt->PassengerDeletionTimer.GetTimeLeft();
@@ -776,7 +858,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		if (!pTypeExt || pTypeExt->Death_Method == KillMethod::None)
+		if (pTypeExt->Death_Method == KillMethod::None)
 			return;
 
 		if (pTypeExt->Death_Countdown > 0)
@@ -797,23 +879,47 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (pThis->WhatAmI() != AbstractType::Building || !pThis->Owner)
 			return;
 
-		const auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
-		const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuildingType);
-		SuperClass* pSuper = nullptr;
+		auto getSuperTimer = [pThis, pType, infoIndex]() -> CDTimerClass*
+			{
+				const auto pHouse = pThis->Owner;
+				const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
+				const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuildingType);
 
-		if (pBuildingType->SuperWeapon != -1)
-			pSuper = pThis->Owner->Supers.GetItem(pBuildingType->SuperWeapon);
-		else if (pBuildingType->SuperWeapon2 != -1)
-			pSuper = pThis->Owner->Supers.GetItem(pBuildingType->SuperWeapon2);
-		else if (pBuildingTypeExt->SuperWeapons.size() > 0)
-			pSuper = pThis->Owner->Supers.GetItem(pBuildingTypeExt->SuperWeapons[0]);
+				if (infoIndex && infoIndex <= pBuildingTypeExt->GetSuperWeaponCount())
+				{
+					if (infoIndex == 1)
+					{
+						if (pBuildingType->SuperWeapon != -1)
+							return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon)->RechargeTimer;
+					}
+					else if (infoIndex == 2)
+					{
+						if (pBuildingType->SuperWeapon2 != -1)
+							return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon2)->RechargeTimer;
+					}
+					else
+					{
+						const auto& superWeapons = pBuildingTypeExt->SuperWeapons;
+						return &pHouse->Supers.GetItem(superWeapons[infoIndex - 3])->RechargeTimer;
+					}
 
-		if (pSuper)
-		{
-			value = pSuper->RechargeTimer.GetTimeLeft();
-			maxValue = pSuper->RechargeTimer.TimeLeft;
-		}
+					return nullptr;
+				}
 
+				if (pBuildingType->SuperWeapon != -1)
+					return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon)->RechargeTimer;
+				else if (pBuildingType->SuperWeapon2 != -1)
+					return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon2)->RechargeTimer;
+
+				const auto& superWeapons = pBuildingTypeExt->SuperWeapons;
+				return superWeapons.size() > 0 ? &pHouse->Supers.GetItem(superWeapons[0])->RechargeTimer : nullptr;
+			};
+
+			if (const auto pTimer = getSuperTimer())
+			{
+				value = pTimer->GetTimeLeft();
+				maxValue = pTimer->TimeLeft;
+			}
 		break;
 	}
 	default:
