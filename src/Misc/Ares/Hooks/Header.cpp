@@ -538,7 +538,7 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* V
 			}
 
 			if(Grinder->Type->Grinding) {
-				if (BuildingExtData::ReverseEngineer(Grinder, Vic)) {
+				if (BuildingExtData::ReverseEngineer(Grinder, nPass)) {
 
 					if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
 					{
