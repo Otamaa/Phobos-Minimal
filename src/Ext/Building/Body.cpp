@@ -169,14 +169,14 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim)
 {
 	const auto pReverseData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-	if (!pReverseData->ReverseEngineersVictims || !pBuilding->Owner) {
+	if (!pReverseData->ReverseEngineersVictims) {
 		return false;
 	}
 
 	auto VictimType = Victim->GetTechnoType();
 	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
-	if (!pVictimData->CanBeReversed)
-		return false;
+	//if (!pVictimData->CanBeReversed)
+	//	return false;
 
 	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
 
