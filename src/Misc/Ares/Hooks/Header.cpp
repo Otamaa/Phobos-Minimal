@@ -527,35 +527,45 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 
 #pragma region TechnoExt_ExtData
 
-//https://bugs.launchpad.net/ares/+bug/1925359
-void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, TechnoClass* Vic)
+void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* Vic)
 {
-	for (auto nPass = Vic->Passengers.GetFirstPassenger();
-		nPass;
-		nPass = (FootClass*)nPass->NextObject)
+	while (Vic->Passengers.FirstPassenger)
 	{
-		//const auto pType = nPass->GetTechnoType();
-
-		if (BuildingExtData::ReverseEngineer(Grinder, Vic))
+		if (auto nPass = Vic->RemoveFirstPassenger())
 		{
-			if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
-			{
-				VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
-				VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+			if (auto pTeam = nPass->Team) {
+				pTeam->RemoveMember(nPass);
 			}
-		}
 
-		if (const auto FirstTag = Grinder->AttachedTag)
-		{
-			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, nPass);
+			if(Grinder->Type->Grinding) {
+				if (BuildingExtData::ReverseEngineer(Grinder, Vic)) {
 
-			if (auto pSecondTag = Grinder->AttachedTag)
-			{
-				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+					if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
+					{
+						VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
+						VoxClass::Play(GameStrings::EVA_NewTechAcquired());
+					}
+
+					if (const auto FirstTag = Grinder->AttachedTag) {
+						FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, nPass);
+
+						if (auto pSecondTag = Grinder->AttachedTag) {
+							pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+						}
+					}
+				}
+
 			}
-		}
 
-		AddPassengers(Grinder, nPass);
+			// #368: refund hijackers
+			if (nPass->HijackerInfantryType != -1) {
+				Grinder->Owner->TransactMoney(InfantryTypeClass::Array->Items[nPass->HijackerInfantryType]->GetRefund(nPass->Owner, 0));
+			}
+
+			AddPassengers(Grinder, nPass);
+			Grinder->Owner->TransactMoney(nPass->GetRefund());
+			nPass->UnInit();
+		}
 	}
 }
 
@@ -6810,11 +6820,17 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				result = false;
 			else
 			{
-				result = HouseExtContainer::Instance.Find(Args.Owner)->Reversed.any_of
-				([&](TechnoTypeClass* pTech)
- {
-	 return pTech == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
-				});
+				if(!HouseExtContainer::Instance.Find(Args.Owner)->Reversed.empty()){
+					auto TEvetType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+
+					for(auto pTechR :  HouseExtContainer::Instance.Find(Args.Owner)->Reversed){
+						if(pTechR == TEvetType) {
+							result = true;
+							break;
+						}
+					}
+
+				}
 			}
 
 			return true;

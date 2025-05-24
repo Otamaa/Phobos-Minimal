@@ -143,8 +143,11 @@ RequirementStatus HouseExtData::RequirementsMet(
 	if(Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
 		return RequirementStatus::Forbidden;
 
-	if (pHouseExt->Reversed.contains(pItem))
-		return RequirementStatus::Overridden;
+	for(auto pRever : pHouseExt->Reversed){
+		if(pRever == pItem) {
+			return RequirementStatus::Overridden;
+		}
+	}
 
 	if (pData->RequiredStolenTech.any()) {
 		if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {

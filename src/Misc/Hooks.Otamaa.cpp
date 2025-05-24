@@ -6393,7 +6393,7 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 }
 
 template<bool reduce = false>
-void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance){
+void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance, int timeParam){
 	const auto max = pRad->SpreadInLeptons;
 
 	if (distance <= max) {
@@ -6405,13 +6405,14 @@ void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance)
 			if constexpr(!reduce) {
 				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
 
+
 				if (it != pCellExt->RadLevels.end())
-					it->Level += amount;
+					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
 				else
 					pCellExt->RadLevels.emplace_back(pRad, amount);
 			} else {
 				if (it != pCellExt->RadLevels.end()){
-					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps);
+					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
 				}
 			}
 		}
@@ -6425,7 +6426,7 @@ ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x4C));
-	PopulateCellRadVector<false>(pThis, cell, distance);
+	PopulateCellRadVector<false>(pThis, cell, distance , 0);
 	return SkipGameCode;
 }
 
@@ -6436,7 +6437,8 @@ ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x70, -0x5C));
-	PopulateCellRadVector<true>(pThis, cell, distance);
+	GET_STACK(int, timeParam, STACK_OFFSET(0x70, -0x30));
+	PopulateCellRadVector<true>(pThis, cell, distance , timeParam);
 	return SkipGameCode;
 }
 
@@ -6447,7 +6449,7 @@ ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x50));
-	PopulateCellRadVector<true>(pThis, cell, distance);
+	PopulateCellRadVector<true>(pThis, cell, distance, 0);
 	return SkipGameCode;
 }
 

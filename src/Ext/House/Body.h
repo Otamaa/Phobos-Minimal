@@ -145,7 +145,7 @@ public:
 	IndexBitfield<HouseClass*> RadarPersist {};
 	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 	std::set<BuildingClass*> Academies {};
-	HelperedVector<TechnoTypeClass*> Reversed {};
+	std::set<TechnoTypeClass*> Reversed {};
 
 	bool Is_NavalYardSpied { false };
 	bool Is_AirfieldSpied { false };

@@ -2112,7 +2112,7 @@ static size_t __fastcall HexStr2Int_replacement(const char* str) {
 
 ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
 	GET(char*, HexID, EDI);
-	GET(TagTypeClass*, pType, ESI);
+	//GET(TagTypeClass*, pType, ESI);
 
 	size_t ID = Gamestrtohex(HexID);
 	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID, ID);
@@ -2124,7 +2124,7 @@ ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
 ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 {
 	LEA_STACK(char*, HexID, 0x18);
-	GET(TaskForceClass*, pType, ESI);
+	//GET(TaskForceClass*, pType, ESI);
 
 	size_t ID = Gamestrtohex(HexID);
 	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID , ID);

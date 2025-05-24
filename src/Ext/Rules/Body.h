@@ -482,7 +482,7 @@ public:
 	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
 
 	struct ProneSpeedData {
-		Valueable<double> Crawls { 0.67 };
+		Valueable<double> Crawls { 0.33333334 };
 		Valueable<double> NoCrawls { 1.5 };
 
 		COMPILETIMEEVAL OPTIONALINLINE double getSpeed(bool crawls) const {
