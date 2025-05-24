@@ -466,6 +466,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	if (!pTechno)
 		return nullptr;
 
+	const bool leaderArmed = pTechno->IsArmed();
 	auto pTechnoType = pTechno->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
@@ -494,29 +495,35 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 			continue;
 
 		// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
-		const auto weaponType = pTechno->GetWeapon(pTechno->SelectWeapon(object))->WeaponType;
+		if(leaderArmed){
+			const auto weaponType = pTechno->GetWeapon(pTechno->SelectWeapon(object))->WeaponType;
 
-		if (weaponType && weaponType->Projectile)
-			unitWeaponsHaveAA = weaponType->Projectile->AA;
+			if (weaponType && weaponType->Projectile)
+				unitWeaponsHaveAA = weaponType->Projectile->AA;
 
-		if ((weaponType && weaponType->Projectile) || agentMode)
-			unitWeaponsHaveAG = weaponType->Projectile->AG;
+			if ((weaponType && weaponType->Projectile) || agentMode)
+				unitWeaponsHaveAG = weaponType->Projectile->AG;
 
-		if (!agentMode)
-		{
-			if (weaponType && weaponType->Warhead){
-				if(GeneralUtils::GetWarheadVersusArmor(
-					weaponType->Warhead,
-					TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
-					== 0.0
-				)
+			if (!agentMode)
+			{
+				if (weaponType && weaponType->Warhead){
+					if(GeneralUtils::GetWarheadVersusArmor(
+						weaponType->Warhead,
+						TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
+						== 0.0
+					)
+						continue;
+					}
+
+				if (object->IsInAir() && !unitWeaponsHaveAA)
 					continue;
-				}
 
-			if (object->IsInAir() && !unitWeaponsHaveAA)
-				continue;
+				if (!object->IsInAir() && !unitWeaponsHaveAG)
+					continue;
+			}
 
-			if (!object->IsInAir() && !unitWeaponsHaveAG)
+			// Check map zone
+			if (!TechnoExtData::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
 				continue;
 		}
 
@@ -553,10 +560,6 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 		// OnlyTargetHouseEnemy forces targets of a specific (hated) house
 		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
-			continue;
-
-		// Check map zone
-		if (!TechnoExtData::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
 			continue;
 
 		if (!objectType->Immune
