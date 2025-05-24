@@ -175,8 +175,8 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 
 	auto VictimType = Victim->GetTechnoType();
 	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
-	if (!pVictimData->CanBeReversed)
-		return false;
+	//if (!pVictimData->CanBeReversed)
+	//	return false;
 
 	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
 
