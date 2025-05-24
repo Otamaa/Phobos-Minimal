@@ -24,6 +24,7 @@
 #include "ManualReloadAmmo.h"
 #include "AutoBuilding.h"
 #include "DistributionMode.h"
+#include "Harmless.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -96,6 +97,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 		Make<AIBasePlanCommandClass>();
 
 		Make<AIControlCommandClass>();
+		Make<HarmlessCommandClass>();
 	}
 #pragma endregion Adminexclusive
 
