@@ -13,20 +13,14 @@
 
 void BuildingExtData::InitializeConstant()
 {
-
+	this->MyPrismForwarding = std::make_unique<PrismForwarding>();
+	this->MyPrismForwarding->Owner = this->AttachedToObject;
 	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);
 	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 	this->Type = pTypeExt;
 
-	if (pTypeExt)
-	{
-		this->MyPrismForwarding = std::make_unique<PrismForwarding>();
-		this->MyPrismForwarding->Owner = this->AttachedToObject;
-
-		if(!pTypeExt->DamageFire_Offs.empty())
-			this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-	}
-
+	if(!pTypeExt->DamageFire_Offs.empty())
+		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 }
 
 const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)

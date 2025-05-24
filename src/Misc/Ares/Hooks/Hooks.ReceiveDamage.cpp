@@ -2260,8 +2260,6 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 #pragma region Unit
 
-
-
 namespace RemoveCellContentTemp
 {
 	bool CheckBeforeUnmark = false;
@@ -2402,7 +2400,7 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 							return 0x738679;
 						}
 
-						if (!pThis->ContainsLink(pDock)&& pThis->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive)
+						if (!pThis->ContainsLink(pDock) && pThis->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive)
 						{
 							pThis->QueueMission(Mission::Enter, false);
 						}

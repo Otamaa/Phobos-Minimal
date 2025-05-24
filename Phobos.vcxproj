@@ -18,6 +18,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\Harmless.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
@@ -45,7 +46,11 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
-    <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
@@ -210,7 +215,6 @@
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Hook.NewTeamSelector.cpp" />
-    <ClCompile Include="src\Ext\Team\Hooks.ConvertedTeam.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.Tunnel.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
@@ -558,6 +562,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\Harmless.h" />
     <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
     <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
     <ClInclude Include="src\ExtraHeaders\MemoryPool.h" />

@@ -8,6 +8,7 @@
 #include <TeamClass.h>
 #include <HouseClass.h>
 
+#ifdef _Teamstuffs
 ASMJIT_PATCH(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
@@ -51,6 +52,7 @@ ASMJIT_PATCH(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 
 		0x6EBEEF : 0x6EBEFF;
 }
+#endif
 
 //?TODO : replace these with patches
 #pragma region HouseCheckReplace
