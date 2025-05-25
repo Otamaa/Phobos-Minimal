@@ -1409,7 +1409,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			RefinerySmokeParticleSystemFour = this->AttachedToObject->RefinerySmokeParticleSystem;
 		}
 
-		char tempBuffer[32];
+		char tempBuffer[256];
 
 		this->Convert_ToHouseOrCountry.clear();
 		Nullable<TechnoTypeClass*> technoType;

@@ -66,6 +66,7 @@
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Type\ActionTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
     <ClCompile Include="src\Commands\AutoBuilding.cpp" />
@@ -579,6 +580,7 @@
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\TSJumpJetLocomotionClass.h" />
+    <ClInclude Include="src\New\Type\ActionTypeClass.h" />
     <ClInclude Include="src\New\Type\HealthBarTypeClass.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
     <ClInclude Include="src\Commands\AutoBuilding.h" />
