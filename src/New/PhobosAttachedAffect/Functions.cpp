@@ -204,6 +204,13 @@ bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, std::vector<Pho
 	return false;
 }
 
+bool PhobosAEFunctions::HasAttachedEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* attachEffectType, bool requireAll, bool ignoreSameSource, TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts)
+{
+	std::vector<PhobosAttachEffectTypeClass*> _dummy {};
+	_dummy.push_back(attachEffectType);
+	return PhobosAEFunctions::HasAttachedEffects(pTechno, _dummy, requireAll, ignoreSameSource, pInvoker, pSource, minCounts, maxCounts);
+}
+
 void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, TechnoTypeClass* pNewType)
 {
 	auto const pThis = pTechno;

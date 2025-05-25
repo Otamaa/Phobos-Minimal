@@ -10,7 +10,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
-
+#include <Ext/TEvent/Body.h>
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
@@ -170,6 +170,9 @@ void PhobosAttachEffectClass::AI()
 		this->CreateAnim();
 
 	this->AnimCheck();
+
+	if (auto pTag = this->Techno->AttachedTag)
+		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
 }
 
 void PhobosAttachEffectClass::AI_Temporal()
