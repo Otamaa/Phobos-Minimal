@@ -274,15 +274,15 @@ ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 
 	if (pTypeExt->BarracksExitCell.isset()) {
 
-		const auto exitCell = pThis->GetMapCoords() + CellStruct { 
-			(short)pTypeExt->BarracksExitCell->X, (short)pTypeExt->BarracksExitCell->Y 
+		const auto exitCell = pThis->GetMapCoords() + CellStruct {
+			(short)pTypeExt->BarracksExitCell->X, (short)pTypeExt->BarracksExitCell->Y
 		};
 
 		if (MapClass::Instance->CoordinatesLegal(exitCell))
 		{
-			if (pTechno->IsCellOccupied(MapClass::Instance->GetCellAt(exitCell), 
+			if (pTechno->IsCellOccupied(MapClass::Instance->GetCellAt(exitCell),
 				FacingType::None,
-				-1, 
+				-1,
 				nullptr,
 				true)
 				== Move::OK) {
@@ -451,3 +451,9 @@ ASMJIT_PATCH(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
 	return Ret;
 }
 
+ASMJIT_PATCH(0x44A541, BuildingClass_LeaveBioReactor, 0x7)
+{
+	GET(FootClass*, pFoot, ESI);
+	pFoot->Transporter = nullptr;
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x442F9B, BuildingClass_LeaveBioReactor, 0x6)

@@ -958,6 +958,19 @@ ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
+{
+	GET_STACK(const int, unitsToDeploy, STACK_OFFSET(0x18, -0x4));
+
+	if (unitsToDeploy != 1)
+		return 0;
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	pThis->VoiceDeploy();
+	return 0x0;
+}
+
 // Fix DeployToFire not working properly for WaterBound DeploysInto buildings and not recalculating position on land if can't deploy.
 ASMJIT_PATCH(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 {

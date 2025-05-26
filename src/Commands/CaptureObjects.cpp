@@ -40,7 +40,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 
 			auto const pToOwner = HouseClass::CurrentPlayer();
 
-			if (techno->GetOwningHouse() == pToOwner)
+			if (techno->Owner == pToOwner)
 			{
 				return;
 				//if ((techno->AbstractFlags & AbstractFlags::Foot) && !Is_DriverKilled(techno)){
