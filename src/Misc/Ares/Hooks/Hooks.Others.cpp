@@ -1272,44 +1272,6 @@ ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
-{
-	const int AdvCommBarHeight = 32;
-
-	int offset = AdvCommBarHeight;
-
-	auto DrawText_Helper = [](const wchar_t* string, int& offset, int color)
-	{
-		auto wanted = Drawing::GetTextDimensions(string);
-
-		auto h = DSurface::Composite->Get_Height();
-		RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
-
-		DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-		DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
-
-			offset += wanted.Height;
-	};
-
-	if (!AresGlobalData::ModNote.Label) {
-		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
-	}
-
-	if (!AresGlobalData::ModNote.empty()) {
-		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
-	}
-
-	if (RulesExtData::Instance()->FPSCounter)
-	{
-		fmt::basic_memory_buffer<wchar_t> buffer;
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {} Avg: {}" , FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x7C89D4, DDRAW_Create, 6)
 {
 	R->Stack<DWORD>(0x4, AresGlobalData::GFX_DX_Force);

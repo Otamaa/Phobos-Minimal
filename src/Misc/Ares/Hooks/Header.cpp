@@ -6061,13 +6061,13 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 
 bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
-	if (pAction->Value >= (int)EVAVoices::Types.size())
+	if (pAction->Value < (int)EVAVoices::Types.size())
 	{
-		return false;
+		VoxClass::EVAIndex = MaxImpl(pAction->Value, -1);
+		return true;
 	}
 
-	VoxClass::EVAIndex = MaxImpl(pAction->Value, -1);
-	return true;
+	return false;
 }
 
 bool AresTActionExt::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)

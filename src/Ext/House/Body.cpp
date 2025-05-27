@@ -2334,11 +2334,9 @@ DEFINE_FUNCTION_JUMP(LJMP ,0x4FD500, FakeHouseClass::_Expert_AI)
 
 void FakeHouseClass::_UpdateAngerNodes(int score_add, HouseClass* pHouse)
 {
-	if (score_add != 0
-		&& pHouse
-		&& SessionClass::Instance->GameMode != GameMode::Campaign
-		&& !pHouse->Type->MultiplayPassive) {
-
+	if (score_add != 0 &&
+		pHouse && (SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Type->MultiplayPassive)
+		) {
 		for (int i = 0; i < this->AngerNodes.Count; ++i) {
 			AngerStruct* pAnger = &this->AngerNodes.Items[i];
 			if (pAnger->House == pHouse) {
@@ -2357,8 +2355,8 @@ void FakeHouseClass::_UpdateAngerNodes(int score_add, HouseClass* pHouse)
 	int _scores = 0;
 	HouseClass* pSelected = nullptr;
 
-	for (int i = 0; i < this->AngerNodes.Count; ++i) {
-		AngerStruct* pAnger = &this->AngerNodes.Items[i];
+	for (int a = 0; a < this->AngerNodes.Count; ++a) {
+		AngerStruct* pAnger = this->AngerNodes.Items + a;
 		if (pAnger->AngerLevel > _scores && !pAnger->House->Defeated && !this->IsAlliedWith(pAnger->House)) {
 			_scores = pAnger->AngerLevel;
 			pSelected = pAnger->House;

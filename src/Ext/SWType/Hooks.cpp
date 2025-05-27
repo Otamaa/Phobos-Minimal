@@ -25,11 +25,18 @@
 
 #include <Misc/DamageArea.h>
 #include <Commands/Harmless.h>
+
+#include <FPSCounter.h>
+
 #pragma endregion
 
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
+std::chrono::high_resolution_clock::time_point lastFrameTime;
+
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
+	lastFrameTime = std::chrono::high_resolution_clock::now();
+
 	HarmlessCommandClass::AI();
 	SWFirerClass::Update();
 	SWStateMachine::UpdateAll();
@@ -72,7 +79,50 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	//}
 
 	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x55B719, LogicClass_Update, 0x5)
+}//ASMJIT_PATCH_AGAIN(0x55B719, LogicClass_Update, 0x5)
+
+ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+{
+	const int AdvCommBarHeight = 32;
+
+	int offset = AdvCommBarHeight;
+
+	auto DrawText_Helper = [](const wchar_t* string, int& offset, int color)
+		{
+			auto wanted = Drawing::GetTextDimensions(string);
+
+			auto h = DSurface::Composite->Get_Height();
+			RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+			DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
+
+			offset += wanted.Height;
+		};
+
+	if (!AresGlobalData::ModNote.Label)
+	{
+		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
+	}
+
+	if (!AresGlobalData::ModNote.empty())
+	{
+		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
+	}
+
+	if (RulesExtData::Instance()->FPSCounter)
+	{
+		auto currentFrameTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+		lastFrameTime = currentFrameTime;
+		fmt::basic_memory_buffer<wchar_t> buffer;
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms , Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)
 {
@@ -892,7 +942,7 @@ ASMJIT_PATCH(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSW->Type);
 
 	bool darken = false;
-	if (pSW->IsCharged && !pSW->Owner->CanTransactMoney(pExt->Money_Amount)
+	if (pSW->CanFire() && !pSW->Owner->CanTransactMoney(pExt->Money_Amount)
 		|| (pExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSW, true)))
 	{
 		darken = true;
