@@ -4343,7 +4343,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 		if (!amount)
 			return false;
 
-		break;
+		return true;
 	}
 	case SelfHealGainType::Units:
 	{
@@ -4355,7 +4355,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 		if (!amount)
 			return false;
 
-		break;
+		return true;
 	}
 
 	default:
