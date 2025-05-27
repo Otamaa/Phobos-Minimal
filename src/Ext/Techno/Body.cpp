@@ -4285,7 +4285,51 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 */
 }
 
-constexpr bool CanDoSelfHeal(SelfHealGainType type , int& amount , HouseClass* pOwner , bool allowPlayerControl, bool allowAllies)
+constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
+{
+	auto const pOwner = pThis->Owner;
+	const bool hasCap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.isset() : RulesExtData::Instance()->UnitsGainSelfHealCap.isset();
+	const int cap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.Get() : RulesExtData::Instance()->UnitsGainSelfHealCap.Get();
+	int count = MaxImpl(infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal, 1);
+
+	if (hasCap && count >= cap)
+	{
+		count = cap;
+		return count;
+	}
+
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
+	const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
+
+	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault)
+	{
+		for (auto pHouse : *HouseClass::Array)
+		{
+			if (pHouse == pOwner)
+				continue;
+
+			const bool isHuman = pHouse->IsControlledByHuman();
+
+			if ((allowPlayerControl && isHuman)
+				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
+				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
+			{
+				count += infantryHeal ? pHouse->InfantrySelfHeal : pHouse->UnitsSelfHeal;
+
+				if (hasCap && count >= cap)
+				{
+					count = cap;
+					return count;
+				}
+			}
+		}
+	}
+
+	return count;
+}
+
+constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& amount)
 {
 	switch (type)
 	{
@@ -4294,36 +4338,31 @@ constexpr bool CanDoSelfHeal(SelfHealGainType type , int& amount , HouseClass* p
 		if (Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames)
 			return false;
 
-		int count = 0;
-		CountSelfHeal(pOwner, count, RulesExtData::Instance()->InfantryGainSelfHealCap, allowPlayerControl, allowAllies, type);
-		if (!count)
-			return false;
+		amount = RulesClass::Instance->SelfHealInfantryAmount * countSelfHealing(pThis , true);
 
-		amount = RulesClass::Instance->SelfHealInfantryAmount * count;
+		if (!amount)
+			return false;
 
 		break;
 	}
-
 	case SelfHealGainType::Units:
 	{
 		if (Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames)
 			return false;
 
-		int count = 0;
-		CountSelfHeal(pOwner, count, RulesExtData::Instance()->UnitsGainSelfHealCap, allowPlayerControl, allowAllies, type);
-		if (!count)
-			return false;
+		amount = RulesClass::Instance->SelfHealUnitAmount * countSelfHealing(pThis, false);
 
-		amount = RulesClass::Instance->SelfHealUnitAmount * count;
+		if (!amount)
+			return false;
 
 		break;
 	}
 
 	default:
-		return false;
+		break;
 	}
 
-	return amount > 0;
+	return false;
 }
 
 constexpr SelfHealGainType GetSelfHealGainType(AbstractType what, bool organic , Nullable<SelfHealGainType>& type)
@@ -4337,44 +4376,6 @@ constexpr SelfHealGainType GetSelfHealGainType(AbstractType what, bool organic ,
 	return type.Get();
 }
 
-int countSelfHealing(TechnoClass* pThis , const bool infantryHeal) {
-	auto const pOwner = pThis->Owner;
-	const bool hasCap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.isset() : RulesExtData::Instance()->UnitsGainSelfHealCap.isset();
-	const int cap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.Get() : RulesExtData::Instance()->UnitsGainSelfHealCap.Get();
-	int count = MaxImpl(infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal, 1);
-
-	if (hasCap && count >= cap) {
-		count = cap;
-		return count;
-	}
-
-	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
-	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
-	const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
-
-	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault)
-	{
-		for (auto pHouse : *HouseClass::Array) {
-			if (pHouse == pOwner)
-				continue;
-
-			const bool isHuman = pHouse->IsControlledByHuman();
-
-			if ((allowPlayerControl && isHuman)
-				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
-				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner))) {
-					count += infantryHeal ? pHouse->InfantrySelfHeal : pHouse->UnitsSelfHeal;
-
-				if (hasCap && count >= cap) {
-						count = cap;
-						return count;
-					}
-				}
-			}
-		}
-
-	return count;
-}
 
 void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 {
@@ -4389,13 +4390,10 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 		if(healthDeficit > 0) {
 
 			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-			auto selfHealType = GetSelfHealGainType(pWhat, pType->Organic, pTypeExt->SelfHealGainType);
-			int amount = selfHealType == SelfHealGainType::Infantry  ?
-					RulesClass::Instance->SelfHealInfantryAmount * countSelfHealing(pThis , true) :
-					RulesClass::Instance->SelfHealUnitAmount * countSelfHealing(pThis, false)
-				;
+			const SelfHealGainType selfHealType = GetSelfHealGainType(pWhat, pType->Organic, pTypeExt->SelfHealGainType);
+				int amount = 0;
 
-			if (amount) {
+			if (CanDoSelfHeal(pThis , selfHealType, amount)) {
 
 				if (amount >= healthDeficit)
 					amount = healthDeficit;
