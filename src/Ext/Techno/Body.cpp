@@ -4337,6 +4337,45 @@ constexpr SelfHealGainType GetSelfHealGainType(AbstractType what, bool organic ,
 	return type.Get();
 }
 
+int countSelfHealing(TechnoClass* pThis , const bool infantryHeal) {
+	auto const pOwner = pThis->Owner;
+	const bool hasCap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.isset() : RulesExtData::Instance()->UnitsGainSelfHealCap.isset();
+	const int cap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.Get() : RulesExtData::Instance()->UnitsGainSelfHealCap.Get();
+	int count = MaxImpl(infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal, 1);
+
+	if (hasCap && count >= cap) {
+		count = cap;
+		return count;
+	}
+
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
+	const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
+
+	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault)
+	{
+		for (auto pHouse : *HouseClass::Array) {
+			if (pHouse == pOwner)
+				continue;
+
+			const bool isHuman = pHouse->IsControlledByHuman();
+
+			if ((allowPlayerControl && isHuman)
+				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
+				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner))) {
+					count += infantryHeal ? pHouse->InfantrySelfHeal : pHouse->UnitsSelfHeal;
+
+				if (hasCap && count >= cap) {
+						count = cap;
+						return count;
+					}
+				}
+			}
+		}
+
+	return count;
+}
+
 void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 {
 	TechnoTypeClass* pType = pThis->GetTechnoType();
@@ -4351,11 +4390,12 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 
 			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			auto selfHealType = GetSelfHealGainType(pWhat, pType->Organic, pTypeExt->SelfHealGainType);
-			const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
-			const bool allowAllies = RulesExtData::Instance()->GainSelfHealFromAllies;
-			int amount = 0;
+			int amount = selfHealType == SelfHealGainType::Infantry  ?
+					RulesClass::Instance->SelfHealInfantryAmount * countSelfHealing(pThis , true) :
+					RulesClass::Instance->SelfHealUnitAmount * countSelfHealing(pThis, false)
+				;
 
-			if (CanDoSelfHeal(selfHealType,amount , pThis->Owner , allowPlayerControl , allowAllies)) {
+			if (amount) {
 
 				if (amount >= healthDeficit)
 					amount = healthDeficit;
@@ -4517,6 +4557,39 @@ constexpr int GetFrames(SelfHealGainType type , HouseClass* Owner){
 	return -1;
 }
 
+bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
+{
+	auto const pOwner = pThis->Owner;
+
+	if (infantryHeal ? pOwner->InfantrySelfHeal > 0 : pOwner->UnitsSelfHeal > 0)
+		return true;
+
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
+		const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
+
+	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault)
+	{
+		for (auto pHouse : *HouseClass::Array)
+		{
+			if (pHouse == pOwner)
+				continue;
+
+			const bool isHuman = pHouse->IsControlledByHuman();
+
+			if ((allowPlayerControl && isHuman)
+				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
+				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
+			{
+				if (infantryHeal ? pHouse->InfantrySelfHeal > 0 : pHouse->UnitsSelfHeal > 0)
+					return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->Owner->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive)
@@ -4527,8 +4600,10 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 	auto const pWhat = pThis->WhatAmI();
 	const bool isOrganic = pWhat == InfantryClass::AbsID
 		|| (pType->Organic && (pWhat == UnitClass::AbsID));
+
 	auto const selfHealType = GetSelfHealGainType(pWhat , isOrganic, pExt->SelfHealGainType) ;
-	if (selfHealType == SelfHealGainType::None)
+
+	if (selfHealType == SelfHealGainType::None || !hasSelfHeal(pThis, isOrganic))
 		return;
 
 	int selfHealFrames = GetFrames(selfHealType, pThis->Owner);
