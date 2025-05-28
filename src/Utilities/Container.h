@@ -139,33 +139,23 @@ public:
 	//// Allocate extensionptr without any checking
 	extension_type_ptr AllocateUnchecked(base_type_ptr key)
 	{
-		if constexpr (!IsMemoryPoolObject<T>){
-			// avoiding stupid memset ,......
-			if (extension_type_ptr val = DLLCreate<extension_type>()) {
+		extension_type_ptr val = nullptr;
 
-				val->AttachedToObject = key;
-				if COMPILETIMEEVAL (CTORInitable<T>) {
-					if(!Phobos::Otamaa::DoingLoadGame)
-						val->InitializeConstant();
-				}
-
-				return val;
-			}
+		if constexpr (!IsMemoryPoolObject<T>) {
+			val = DLLCreate<extension_type>();
+		} else {
+			val = T::createInstance();
 		}
-		else
-		{
-			if (extension_type_ptr val = T::createInstance())
-			{
-				val->AttachedToObject = key;				
-				if COMPILETIMEEVAL(CTORInitable<T>){
-					if (!Phobos::Otamaa::DoingLoadGame)
-						val->InitializeConstant();
-				}
-				return val;
+
+		if(val) {
+			val->AttachedToObject = key;
+			if COMPILETIMEEVAL(CTORInitable<T>) {
+				if (!Phobos::Otamaa::DoingLoadGame)
+					val->InitializeConstant();
 			}
 		}
 
-		return nullptr;
+		return val;
 	}
 
 	extension_type_ptr Allocate(base_type_ptr key)
@@ -174,14 +164,9 @@ public:
 			return nullptr;
 
 		this->ClearExtAttribute(key);
-
-		if (extension_type_ptr val = AllocateUnchecked(key))
-		{
-			this->SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
+		extension_type_ptr val = AllocateUnchecked(key);
+		this->SetExtAttribute(key, val);
+		return val;
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)

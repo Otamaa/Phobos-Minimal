@@ -675,34 +675,23 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 
 bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
 {
-	if (!pCell)
+	if(!EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges))
 		return false;
 
-	auto object = pCell->FirstObject;
-	bool eligible = EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges);
-
-	while (true)
+	for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
 	{
-		if (!object || !eligible)
-			break;
-
-		if (auto pTechno = flag_cast_to<TechnoClass*, false>(object))
+		if (auto pTechno = flag_cast_to<TechnoClass*, false>(pObject))
 		{
-			if (owner)
-			{
-				eligible = EnumFunctions::CanTargetHouse(allowedHouses, owner, pTechno->Owner);
-
-				if (!eligible)
-					break;
+			if (owner && !EnumFunctions::CanTargetHouse(allowedHouses, owner, pTechno->Owner)) {
+				return false;
 			}
 
-			eligible = EnumFunctions::IsTechnoEligible(pTechno, allowed, considerAircraftSeparately);
+			if(!EnumFunctions::IsTechnoEligible(pTechno, allowed, considerAircraftSeparately))
+				return false;
 		}
-
-		object = object->NextObject;
 	}
 
-	return eligible;
+	return true;
 }
 
 BlitterFlags EnumFunctions::GetTranslucentLevel(int const& nInt)

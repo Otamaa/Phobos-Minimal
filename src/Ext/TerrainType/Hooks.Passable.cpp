@@ -134,7 +134,7 @@ ASMJIT_PATCH(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 
 	if (auto const pTerrain = cast_to<TerrainClass*, false>(pTarget))
 	{
-		if (TerrainExtData::CanMoveHere(pThis, pTerrain) && !isForceFire)
+		if (!isForceFire && TerrainExtData::CanMoveHere(pThis, pTerrain))
 		{
 			R->EBP(Action::Move);
 			return ReturnAction;

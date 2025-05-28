@@ -144,6 +144,7 @@ void HouseExtData::UpdateVehicleProduction()
 	//	std::vector<TeamClass*> Teams;
 	// Collect all teams that need units
 	std::vector<TeamClass*> incompleteTeams;
+	incompleteTeams.reserve(TeamClass::Array->Count);
 
 	for (auto currentTeam : *TeamClass::Array)
 	{
@@ -292,7 +293,7 @@ void HouseExtData::UpdateVehicleProduction()
 		// Increase probability for high-value units
 		if (bestValue > 2)
 		{
-			probability = std::min(probability + 20, 100);
+			probability = MinImpl(probability + 20, 100);
 		}
 
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= probability)
@@ -314,7 +315,7 @@ void HouseExtData::UpdateVehicleProduction()
 		// Increase probability for high-value units
 		if (bestValueNaval > 2)
 		{
-			probability = std::min(probability + 20, 100);
+			probability = MinImpl(probability + 20, 100);
 		}
 
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= probability)
@@ -661,6 +662,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	// Collect and sort incomplete teams
 	std::vector<TeamClass*> incompleteTeams;
+	incompleteTeams.reserve(TeamClass::Array->Count);
 
 	for (auto CurrentTeam : *TeamClass::Array)
 	{
@@ -781,7 +783,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	// Increase probability for high-value units
 	if (BestValue > 2)
 	{
-		probability = std::min(probability + 20, 100);
+		probability = MinImpl(probability + 20, 100);
 	}
 
 	// Use probability-based selection but with higher chance for needed units

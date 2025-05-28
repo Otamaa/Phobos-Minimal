@@ -192,12 +192,11 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	// Special case: a Leader with OpenTopped tag
 	if (pLeaderUnitType->OpenTopped && pTeamData->TeamLeader->Passengers.NumPassengers > 0)
 	{
-		for (NextObject obj(pTeamData->TeamLeader->Passengers.FirstPassenger->NextObject); obj; ++obj)
+		for (auto pPassenger = pTeamData->TeamLeader->Passengers.GetFirstPassenger(); pPassenger; pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
 		{
-			auto const passenger = flag_cast_to<FootClass*, false>(*obj);
 			bool passengerWeaponsHaveAG = false;
 			bool passengerWeaponsHaveAA = false;
-			ScriptExtData::CheckUnitTargetingCapabilities(passenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
+			ScriptExtData::CheckUnitTargetingCapabilities(pPassenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
 
 			leaderWeaponsHaveAG |= passengerWeaponsHaveAG;
 			leaderWeaponsHaveAA |= passengerWeaponsHaveAA;
