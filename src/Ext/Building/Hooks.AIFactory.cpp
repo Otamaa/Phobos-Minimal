@@ -142,20 +142,17 @@ void HouseExtData::UpdateVehicleProduction()
 	values.assign(count, 0);
 
 	//	std::vector<TeamClass*> Teams;
-	// Collect all teams that need units
-	std::vector<TeamClass*> incompleteTeams;
-	incompleteTeams.reserve(TeamClass::Array->Count);
 
 	for (auto currentTeam : *TeamClass::Array)
 	{
 		if (!currentTeam || currentTeam->Owner != pThis)
 			continue;
 
-		//if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
-		//Debug::LogInfo("HereIam");
+		//		if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
+		//			Debug::LogInfo("HereIam");
 
-		//Teams.push_back(currentTeam);
-		//int teamCreationFrame = currentTeam->CreationFrame;
+		//		Teams.push_back(currentTeam);
+		int teamCreationFrame = currentTeam->CreationFrame;
 
 		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
 			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
@@ -163,24 +160,7 @@ void HouseExtData::UpdateVehicleProduction()
 			continue;
 		}
 
-		//DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
-		incompleteTeams.push_back(currentTeam);
-	}
-
-	// Sort teams by creation time if needed
-	std::sort(incompleteTeams.begin(), incompleteTeams.end(),
-		[](TeamClass* a, TeamClass* b) { return a->CreationFrame < b->CreationFrame; });
-
-	bestChoices.clear();
-	bestChoicesNaval.clear();
-
-	// Process all incomplete teams, but give higher weight to earlier teams
-	for (size_t teamIndex = 0; teamIndex < incompleteTeams.size(); teamIndex++)
-	{
-		auto currentTeam = incompleteTeams[teamIndex];
-		float priority = 1.0f + (incompleteTeams.size() - teamIndex) * 0.5f; // Earlier teams get higher priority
-
-		DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
+		DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
 		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
 
 		for (auto currentMember : taskForceMembers)
@@ -193,16 +173,14 @@ void HouseExtData::UpdateVehicleProduction()
 				continue;
 
 			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
-			values[index] += static_cast<int>(priority); // Add weighted value
+			++values[index];
 
-			//++values[index];
+			//			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
+			//				Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
+			//			}
 
-			//if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
-			//Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
-			//}
-
-			if (currentTeam->CreationFrame < creationFrames[index])
-				creationFrames[index] = currentTeam->CreationFrame;
+			if (teamCreationFrame < creationFrames[index])
+				creationFrames[index] = teamCreationFrame;
 		}
 	}
 
@@ -210,33 +188,34 @@ void HouseExtData::UpdateVehicleProduction()
 	//		Debug::LogInfo("House [%s] Have [%d] Teams %s.", pThis->get_ID(), i, Teams[i]->get_ID());
 	//	}
 
-	//std::vector<int> Toremove {};
-
-	// Account for existing units
+		//std::vector<int> Toremove {};
 	for (int i = 0; i < UnitClass::Array->Count; ++i)
 	{
 		const auto pUnit = UnitClass::Array->Items[i];
-		//if (VTable::Get(pUnit) != UnitClass::vtable){
-//	const char* Caller = "unk";
-//	//const char* Type = "unk";
-//	if (MappedCaller.contains(pUnit)) {
-//		Caller = MappedCaller[pUnit].c_str();
-//	}
 
-//	Debug::LogInfo("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
-//	Toremove.push_back(i);
-//	continue;
-//}
+		//if (VTable::Get(pUnit) != UnitClass::vtable){
+
+		//	const char* Caller = "unk";
+		//	//const char* Type = "unk";
+		//	if (MappedCaller.contains(pUnit)) {
+		//		Caller = MappedCaller[pUnit].c_str();
+		//	}
+
+		//	Debug::LogInfo("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
+		//	Toremove.push_back(i);
+		//	continue;
+		//}
+
 		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
 			--values[pUnit->Type->ArrayIndex];
 	}
 
 	//for (auto ToRemoveIdx : Toremove) {
-//	UnitClass::Array->RemoveAt(ToRemoveIdx);
-//}
+	//	UnitClass::Array->RemoveAt(ToRemoveIdx);
+	//}
 
-	//bestChoices.clear();
-	//bestChoicesNaval.clear();
+	bestChoices.clear();
+	bestChoicesNaval.clear();
 
 	int bestValue = -1;
 	int bestValueNaval = -1;
@@ -245,7 +224,6 @@ void HouseExtData::UpdateVehicleProduction()
 	int earliestFrame = 0x7FFFFFFF;
 	int earliestFrameNaval = 0x7FFFFFFF;
 
-	// Find best options
 	for (auto i = 0u; i < count; ++i)
 	{
 		auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
@@ -284,48 +262,31 @@ void HouseExtData::UpdateVehicleProduction()
 		}
 	}
 
-	// Select units to produce with improved probability handling
 	if (!skipGround)
 	{
 		int result_ground = earliestTypenameIndex;
-		int probability = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-
-		// Increase probability for high-value units
-		if (bestValue > 2)
-		{
-			probability = MinImpl(probability + 20, 100);
-		}
-
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= probability)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
 		{
 			if (!bestChoices.empty())
-				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(
-					int(bestChoices.size() - 1))];
+				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
 			else
 				result_ground = -1;
 		}
+
 		pThis->ProducingUnitTypeIndex = result_ground;
 	}
 
 	if (!skipNaval)
 	{
 		int result_naval = earliestTypenameIndexNaval;
-		int probability = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-
-		// Increase probability for high-value units
-		if (bestValueNaval > 2)
-		{
-			probability = MinImpl(probability + 20, 100);
-		}
-
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= probability)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
 		{
 			if (!bestChoicesNaval.empty())
-				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(
-					int(bestChoicesNaval.size() - 1))];
+				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
 			else
 				result_naval = -1;
 		}
+
 		this->ProducingNavalUnitTypeIndex = result_naval;
 	}
 }
@@ -647,9 +608,10 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 #include <Ext/Team/Body.h>
 //#pragma optimize("", off )
-template <class T, class Ttype>
+template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 {
+
 	auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
 	auto& Values = HouseExtData::AIProduction_Values;
 	auto& BestChoices = HouseExtData::AIProduction_BestChoices;
@@ -660,10 +622,6 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	BestChoices.clear();
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	// Collect and sort incomplete teams
-	std::vector<TeamClass*> incompleteTeams;
-	incompleteTeams.reserve(TeamClass::Array->Count);
-
 	for (auto CurrentTeam : *TeamClass::Array)
 	{
 		if (!CurrentTeam || CurrentTeam->Owner != pHouse)
@@ -671,45 +629,32 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 			continue;
 		}
 
-		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength ||
-			!CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
+		int TeamCreationFrame = CurrentTeam->CreationFrame;
+
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
 		{
-			incompleteTeams.push_back(CurrentTeam);
-		}
-	}
+			DynamicVectorClass<TechnoTypeClass*> arr {};
+			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
 
-	// Sort teams by creation time
-	std::sort(incompleteTeams.begin(), incompleteTeams.end(),
-		[](TeamClass* a, TeamClass* b) { return a->CreationFrame < b->CreationFrame; });
-
-	// Process all teams with priority weighting
-	for (size_t teamIdx = 0; teamIdx < incompleteTeams.size(); teamIdx++)
-	{
-		auto CurrentTeam = incompleteTeams[teamIdx];
-		// Earlier teams get higher priority weight
-		float priority = 1.0f + (incompleteTeams.size() - teamIdx) * 0.5f;
-
-		DynamicVectorClass<TechnoTypeClass*> missingTypes;
-		CurrentTeam->GetTaskForceMissingMemberTypes(missingTypes);
-
-		for (auto pMember : missingTypes)
-		{
-			if (pMember->WhatAmI() != Ttype::AbsID)
+			for (auto pMember : arr)
 			{
-				continue;
-			}
 
-			auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
-			Values[Idx] += static_cast<int>(priority); // Add weighted value
+				if (pMember->WhatAmI() != Ttype::AbsID)
+				{
+					continue;
+				}
 
-			if (CurrentTeam->CreationFrame < CreationFrames[Idx])
-			{
-				CreationFrames[Idx] = CurrentTeam->CreationFrame;
+				auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
+
+				++Values[Idx];
+				if (TeamCreationFrame < CreationFrames[Idx])
+				{
+					CreationFrames[Idx] = TeamCreationFrame;
+				}
 			}
 		}
 	}
 
-	// Account for existing units
 	for (auto classPos = T::Array->begin(); classPos != T::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
@@ -719,7 +664,6 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 		}
 	}
 
-	// Find best options
 	int BestValue = -1;
 	int EarliestTypenameIndex = -1;
 	int EarliestFrame = 0x7FFFFFFF;
@@ -727,6 +671,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	for (auto i = 0u; i < count; ++i)
 	{
 		auto const TT = Ttype::Array->Items[static_cast<int>(i)];
+
 		int CurrentValue = Values[i];
 
 		if (CurrentValue <= 0)
@@ -734,26 +679,29 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 		const auto buildableResult = pHouse->CanBuild(TT, false, false);
 
-		// Special handling for Aircraft
+		// Aircraft has it own handling
 		if COMPILETIMEEVAL(Ttype::AbsID == AbstractType::AircraftType)
 		{
 			//Debug::LogInfo("Aircraft [%s][%s] return result [%d] for can build");
-			if (buildableResult != CanBuildResult::Buildable ||
-				TT->GetActualCost(pHouse) > pHouse->Available_Money())
+
+			if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(pHouse) > pHouse->Available_Money())
 			{
 				continue;
 			}
 
+			//yes , we checked this fucking twice just to make sure
 			const auto factoryresult = HouseExtData::HasFactory(pHouse, TT, false, true, false, true).first;
+
 			if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory)
 			{
 				continue;
 			}
+
 		}
 		else
 		{
-			if (buildableResult == CanBuildResult::Unbuildable ||
-				TT->GetActualCost(pHouse) > pHouse->Available_Money())
+			if (buildableResult == CanBuildResult::Unbuildable
+				|| TT->GetActualCost(pHouse) > pHouse->Available_Money())
 			{
 				continue;
 			}
@@ -764,12 +712,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 			BestValue = CurrentValue;
 			BestChoices.clear();
 		}
-
-		if (BestValue == CurrentValue)
-		{
-			BestChoices.push_back(static_cast<int>(i));
-		}
-
+		BestChoices.push_back(static_cast<int>(i));
 		if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex < 0)
 		{
 			EarliestTypenameIndex = static_cast<int>(i);
@@ -778,29 +721,12 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	}
 
 	const auto AIDiff = static_cast<int>(pHouse->GetAIDifficultyIndex());
-	int probability = RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
 
-	// Increase probability for high-value units
-	if (BestValue > 2)
-	{
-		probability = MinImpl(probability + 20, 100);
-	}
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
+		return EarliestTypenameIndex;
 
-	// Use probability-based selection but with higher chance for needed units
 	if (!BestChoices.empty())
-	{
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < probability)
-		{
-			// Use earliest needed unit
-			return EarliestTypenameIndex;
-		}
-		else
-		{
-			// Pick from best choices with weighting toward earlier teams
-			return BestChoices[ScenarioClass::Instance->Random.RandomFromMax(
-				int(BestChoices.size() - 1))];
-		}
-	}
+		return BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
 
 	return -1;
 }
@@ -848,6 +774,7 @@ ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 
 	if (pThis->ProducingInfantryTypeIndex < 0)
 	{
+
 		const int result = GetTypeToProduceNew<InfantryClass, InfantryTypeClass>(pThis);
 		if (result >= 0)
 			pThis->ProducingInfantryTypeIndex = result;
@@ -863,6 +790,7 @@ ASMJIT_PATCH(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 
 	if (pThis->ProducingAircraftTypeIndex < 0)
 	{
+
 		const int result = GetTypeToProduceNew<AircraftClass, AircraftTypeClass>(pThis);
 		if (result >= 0)
 			pThis->ProducingAircraftTypeIndex = result;

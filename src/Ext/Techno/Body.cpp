@@ -4288,9 +4288,11 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
 {
 	auto const pOwner = pThis->Owner;
+
+	int count = infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal;
+
 	const bool hasCap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.isset() : RulesExtData::Instance()->UnitsGainSelfHealCap.isset();
 	const int cap = infantryHeal ? RulesExtData::Instance()->InfantryGainSelfHealCap.Get() : RulesExtData::Instance()->UnitsGainSelfHealCap.Get();
-	int count = MaxImpl(infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal, 1);
 
 	if (hasCap && count >= cap)
 	{
@@ -4306,21 +4308,21 @@ constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
 	{
 		for (auto pHouse : *HouseClass::Array)
 		{
-			if (pHouse == pOwner)
-				continue;
-
-			const bool isHuman = pHouse->IsControlledByHuman();
-
-			if ((allowPlayerControl && isHuman)
-				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
-				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
+			if (pHouse != pOwner && !pHouse->Type->MultiplayPassive)
 			{
-				count += infantryHeal ? pHouse->InfantrySelfHeal : pHouse->UnitsSelfHeal;
+				const bool isHuman = pHouse->IsControlledByHuman();
 
-				if (hasCap && count >= cap)
+				if ((allowPlayerControl && isHuman)
+					|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
+					|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
 				{
-					count = cap;
-					return count;
+					count += infantryHeal ? pHouse->InfantrySelfHeal : pHouse->UnitsSelfHeal;
+
+					if (hasCap && count >= cap)
+					{
+						count = cap;
+						return count;
+					}
 				}
 			}
 		}
@@ -4340,7 +4342,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 
 		amount = RulesClass::Instance->SelfHealInfantryAmount * countSelfHealing(pThis , true);
 
-		if (!amount)
+		if (amount <= 0)
 			return false;
 
 		return true;
@@ -4352,7 +4354,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 
 		amount = RulesClass::Instance->SelfHealUnitAmount * countSelfHealing(pThis, false);
 
-		if (!amount)
+		if (amount <= 0)
 			return false;
 
 		return true;
@@ -4566,21 +4568,18 @@ bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
 	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
 		const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
 
-	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault)
-	{
-		for (auto pHouse : *HouseClass::Array)
-		{
-			if (pHouse == pOwner)
-				continue;
+	if (allowPlayerControl || allowAlliesInCampaign || allowAlliesDefault) {
+		for (auto pHouse : *HouseClass::Array) {
+			if (pHouse != pOwner && !pHouse->Type->MultiplayPassive) {
+				const bool isHuman = pHouse->IsControlledByHuman();
 
-			const bool isHuman = pHouse->IsControlledByHuman();
-
-			if ((allowPlayerControl && isHuman)
-				|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
-				|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
-			{
-				if (infantryHeal ? pHouse->InfantrySelfHeal > 0 : pHouse->UnitsSelfHeal > 0)
-					return true;
+				if ((allowPlayerControl && isHuman)
+					|| (allowAlliesInCampaign && !isHuman && pHouse->IsAlliedWith(pOwner))
+					|| (allowAlliesDefault && pHouse->IsAlliedWith(pOwner)))
+				{
+					if (infantryHeal ? pHouse->InfantrySelfHeal > 0 : pHouse->UnitsSelfHeal > 0)
+						return true;
+				}
 			}
 		}
 	}

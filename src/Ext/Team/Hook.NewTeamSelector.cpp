@@ -649,7 +649,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		// Gather all the trigger candidates into one place for posterior fast calculations
 		for (auto const pTrigger : *AITriggerTypeClass::Array)
 		{
-			if (!pTrigger)
+			if (!pTrigger || ScenarioClass::Instance->IgnoreGlobalAITriggers == pTrigger->IsGlobal || !pTrigger->Team1)
 				continue;
 
 			// Ignore offensive teams if the next trigger must be defensive
@@ -663,7 +663,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			if (pTrigger->IsEnabled)
 			{
 					//pTrigger->OwnerHouseType;
-				if (pTrigger->TechLevel > pHouse->StaticData.TechLevel)
+				if (pTrigger->Team1->TechLevel > pHouse->StaticData.TechLevel)
 					continue;
 
 				// ignore it if isn't set for the house AI difficulty
@@ -1305,6 +1305,8 @@ ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 		{
 			if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
 			{
+				if(ScenarioClass::Instance->IgnoreGlobalAITriggers == pTrigger->IsGlobal || !pTrigger->Team1)
+					continue;
 
 				const int triggerHouse = pTrigger->HouseIndex;
 				const int triggerSide = pTrigger->SideIndex;
