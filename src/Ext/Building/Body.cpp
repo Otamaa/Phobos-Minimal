@@ -6,6 +6,7 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/Side/Body.h>
 
 #include <New/Entity/FlyingStrings.h>
 
@@ -21,6 +22,56 @@ void BuildingExtData::InitializeConstant()
 
 	if(!pTypeExt->DamageFire_Offs.empty())
 		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+}
+
+void BuildingExtData::UpdateMainEvaVoice()
+{
+	auto const pTypeExt = this->Type;
+
+	if (!pTypeExt->NewEvaVoice || !pTypeExt->NewEvaVoice_Index.isset())
+		return;
+
+	auto const pThis = this->AttachedToObject;
+
+	auto const pHouse = pThis->Owner;
+	int newPriority = -1;
+	int newEvaIndex = -1;
+
+	for (const auto pBuilding : pHouse->Buildings)
+	{
+		if (pBuilding->CurrentMission == Mission::Selling)
+			continue;
+
+		auto const pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+		if (!pBuildingTypeExt->NewEvaVoice_Index.isset())
+			continue;
+
+		// The first highest priority takes precedence over lower ones
+		if (pBuildingTypeExt->NewEvaVoice && pBuildingTypeExt->NewEvaVoice_Priority > newPriority)
+		{
+			newPriority = pBuildingTypeExt->NewEvaVoice_Priority;
+			newEvaIndex = pBuildingTypeExt->NewEvaVoice_Index;
+		}
+	}
+
+	if (pThis->CurrentMission != Mission::Selling && pTypeExt->NewEvaVoice_Priority > newPriority)
+	{
+		newPriority = pTypeExt->NewEvaVoice_Priority;
+		newEvaIndex = pTypeExt->NewEvaVoice_Index;
+	}
+
+	if (newPriority > 0 && VoxClass::EVAIndex != newEvaIndex) {
+		// Note: if the index points to a nonexistant voice index then the player will hear no EVA voices
+		VoxClass::EVAIndex = newEvaIndex;
+
+		// Greeting of the new EVA voice
+		VoxClass::PlayIndex(pTypeExt->NewEvaVoice_InitialMessage);
+
+	} else if (newPriority < 0) {
+		// Restore the original EVA voice of the owner's side
+		VoxClass::EVAIndex = SideExtContainer::Instance.Find(
+			SideClass::Array->Items[pHouse->SideIndex])->EVAIndex;
+	}
 }
 
 const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)

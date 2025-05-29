@@ -6940,10 +6940,64 @@ public:
 		if (!object)
 			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
 
-		return this->LayerClass::AddObject(object, sort);
+		if (sort)
+		{
+			auto VectorMax = this->Capacity;
+			if (this->Count >= VectorMax)
+			{
+				if (!this->IsAllocated && VectorMax)
+				{
+					return 0;
+				}
+
+				auto GrowthStep = this->CapacityIncrement;
+				if (GrowthStep <= 0 || !this->SetCapacity(VectorMax + GrowthStep, 0))
+				{
+					return 0;
+				}
+			}
+
+			int index = 0;
+
+			for (; index < this->Count; ++index) {
+				if (this->Items[index]->GetYSort() > object->GetYSort()) {
+					break;
+				}
+			}
+
+			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1]) {
+				--i;
+			}
+
+			this->Items[index] = object;
+			++this->Count;
+			return 1;
+		}
+
+		return this->AddItem(object);
 	}
 };
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
 //DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
 //DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
+
+class NOVTABLE FakeDriveLocomotionClass final : DriveLocomotionClass
+{
+public:
+
+	bool __stdcall _Is_Moving_Now()
+	{
+		if (!this->Owner || !this->Owner->IsAlive)
+			return false;
+
+		if (this->Owner->PrimaryFacing.Is_Rotating())
+			return true;
+
+		return this->Is_Moving()
+			&& this->HeadToCoord.IsValid()
+			&& this->Owner->GetCurrentSpeed() > 0;
+	}
+};
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E7F30, FakeDriveLocomotionClass::_Is_Moving_Now);

@@ -3265,9 +3265,20 @@ void TechnoExtData::UpdateInterceptor()
 
 	for (auto pBullet : *BulletClass::Array)
 	{
+		if(pBullet->InLimbo || !pBullet->IsAlive)
+			continue;
+
+		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
+		const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+
+		if (!pBulletTypeExt->Interceptable ||
+			pBulletExt->CurrentStrength <= 0 ||
+			pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
+			continue;
+
 		const auto distance = pBullet->Location.DistanceFrom(pThis->Location);
 
-		if (distance > guardRange || distance < minguardRange || pBullet->InLimbo || !pBullet->IsAlive)
+		if (distance > guardRange || distance < minguardRange)
 			continue;
 
 		const int weaponIndex = pThis->SelectWeapon(pBullet);
@@ -3275,14 +3286,6 @@ void TechnoExtData::UpdateInterceptor()
 
 		if (pTypeExt->Interceptor_ConsiderWeaponRange.Get() &&
 			(distance > pWeapon->Range || distance < pWeapon->MinimumRange))
-			continue;
-
-		const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-
-		if (!pBulletTypeExt->Interceptable ||
-			pBulletExt->CurrentStrength <= 0 ||
-			pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
 			continue;
 
 		if (pBulletTypeExt->Armor.isset())

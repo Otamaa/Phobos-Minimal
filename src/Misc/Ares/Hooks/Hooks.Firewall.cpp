@@ -143,15 +143,26 @@ ASMJIT_PATCH(0x440d01, BuildingClass_Put_FirestormWall, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
+// bit more early
+ASMJIT_PATCH(0x445D87, BuildingClass_Limbo_DestroyableObstacle, 0x6)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	FirewallFunctions::UpdateFirewallLinks(pThis);
-	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	GET(FakeBuildingClass* const, pThis, ESI);
+
+	auto pTypeExt = pThis->_GetTypeExtData();
 
 	if (pTypeExt->IsDestroyableObstacle)
 		RecalculateCells<true>(pThis);
 
+	if (pTypeExt->NewEvaVoice && pTypeExt->NewEvaVoice_RecheckOnDeath)
+		pThis->_GetExtData()->UpdateMainEvaVoice();
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x445DF4, BuildingClass_Remove_FirestormWall, 6)
+{
+	GET(FakeBuildingClass* const, pThis, ESI);
+	FirewallFunctions::UpdateFirewallLinks(pThis);
 	return 0;
 }
 

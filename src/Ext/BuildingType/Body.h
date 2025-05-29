@@ -342,6 +342,12 @@ public:
 	Valueable<int> Overpower_KeepOnline { 2 };
 	Valueable<int> Overpower_ChargeWeapon { 1 };
 
+	Valueable<bool> NewEvaVoice {};
+	Nullable<int> NewEvaVoice_Index {};
+	Valueable<int> NewEvaVoice_Priority { 0 };
+	Valueable<bool> NewEvaVoice_RecheckOnDeath {};
+	ValueableIdx<VoxClass> NewEvaVoice_InitialMessage {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

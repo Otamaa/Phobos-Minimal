@@ -958,7 +958,7 @@ ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
+ASMJIT_PATCH(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
 {
 	GET_STACK(const int, unitsToDeploy, STACK_OFFSET(0x18, -0x4));
 

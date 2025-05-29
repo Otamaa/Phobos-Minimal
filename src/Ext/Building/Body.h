@@ -82,6 +82,7 @@ public:
 	void UpdatePoweredKillSpawns() const;
 	void UpdateAutoSellTimer();
 	void UpdateSpyEffecAnimDisplay();
+	void UpdateMainEvaVoice();
 
 	~BuildingExtData()
 	{

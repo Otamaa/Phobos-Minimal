@@ -174,6 +174,9 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
+	if (!pThis->IsAlive){
+		return retDead;
+	}
 	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
@@ -181,6 +184,9 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
+	if (!pThis->IsAlive){
+		return retDead;
+	}
 	pExt->UpdateGattlingOverloadDamage();
 	if(!pThis->IsAlive) {
 		return retDead;

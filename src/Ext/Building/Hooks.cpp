@@ -180,6 +180,9 @@ ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
     enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
 	GET(FakeBuildingClass* const, pThis, ESI);
 
+	if (pThis->_GetTypeExtData()->NewEvaVoice)
+		pThis->_GetExtData()->UpdateMainEvaVoice();
+
 	if(SessionClass::IsCampaign())
 	{
 		if(!pThis->BeingProduced)
