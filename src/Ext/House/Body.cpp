@@ -1849,7 +1849,7 @@ void HouseExtData::UpdateTransportReloaders()
 		if (pTech && pTech->IsAlive // the null check is only for Save game load , for some reason it contains nullptr ,...
 			&& pTech->WhatAmI() != AircraftClass::AbsID
 			&& pTech->WhatAmI() != BuildingClass::AbsID
-			&& pTech->Transporter && pTech->Transporter->IsInLogic)
+			&& pTech->Transporter  && pTech->Transporter->IsAlive && pTech->Transporter->IsInLogic)
 		{
 			//const auto pType = pTech->GetTechnoType();
 			if (TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
@@ -2377,7 +2377,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 	bool allowed = true;
 	if (pTechno->InLimbo) {
-		if (pTechno->Transporter || pTechno->BunkerLinkedItem || TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
+		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive) || TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
 			allowed = true;
 		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo )
 			allowed = true;

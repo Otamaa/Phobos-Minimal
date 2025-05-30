@@ -403,7 +403,7 @@ static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoType
 	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// lazy, don't want to hook inside Shadow_Matrix
-	if (std::fabs(ars) >= 0.005 || std::fabs(arf) >= 0.005)
+	if (Math::abs(ars) >= 0.005 ||Math::abs(arf) >= 0.005)
 	{
 		// index key is already invalid
 		const auto c_arf = Math::cos(arf);
@@ -418,7 +418,7 @@ static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoType
 		const auto forwardSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_ForwardSpeedFactor;
 		const auto forwardAccelFactor = jjloco->Acceleration * uTypeExt->JumpjetTilt_ForwardAccelFactor;
 
-		arf += std::min(JumpjetTiltReference::MaxTilt, static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
+		arf += MinImpl(JumpjetTiltReference::MaxTilt, static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
 			* JumpjetTiltReference::ForwardBaseTilt));
 
 		const auto& locoFace = jjloco->Facing;

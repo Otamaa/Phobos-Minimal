@@ -203,7 +203,7 @@ void PlayDieSounds(TechnoClass* pTechno) {
 	}
 }
 
-ASMJIT_PATCH(0x739FBC, UnitClass_PerCellProcess_Grinding, 0x5)
+ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 {
 	enum { Continue = 0x73A1BC , PlayAnim = 0x73A1DE , RemoveUnit = 0x73A222 };
 

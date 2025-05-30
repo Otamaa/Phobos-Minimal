@@ -116,7 +116,7 @@ ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
 		lastFrameTime = currentFrameTime;
 		fmt::basic_memory_buffer<wchar_t> buffer;
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms , Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
 		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 	}

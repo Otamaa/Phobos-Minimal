@@ -173,9 +173,11 @@ ASMJIT_PATCH(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 
 	if (auto const pTransport = pThis->Owner->Transporter)
 	{
-		R->EDX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
-			->OpenTopped_WarpDistance.Get(RulesClass::Instance->OpenToppedWarpDistance));
-		return 0x71A838;
+		if(pTransport->IsAlive) {
+			R->EDX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
+				->OpenTopped_WarpDistance.Get(RulesClass::Instance->OpenToppedWarpDistance));
+			return 0x71A838;
+		}
 	}
 
 	return 0;

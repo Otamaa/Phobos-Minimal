@@ -68,34 +68,51 @@ ASMJIT_PATCH(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 		;
 }
 
+#include <Ext/TEvent/Body.h>
+
 ASMJIT_PATCH(0x6E3EE0, TActionClass_GetFlags, 5)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
-	auto const& [SomeFlag, Handled] = AresTActionExt::GetFlag(nAction);
+	std::pair<TriggerAttachType, bool> _result = AresTActionExt::GetFlag(nAction);
 
-	if (!Handled)
-		return 0;
+	if (_result.second) {
+		R->EAX(_result.first);
+		return 0x6E3EFE;
+	}
 
-	R->EAX(SomeFlag);
-	return 0x6E3EFE;
+	_result = TEventExtData::GetFlag((PhobosTriggerEvent)nAction);
+
+	if (_result.second) {
+		R->EAX(_result.first);
+		return 0x6E3EFE;
+	}
+
+	 return 0;
 }
 
 ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
-	auto const& [SomeFlag, Handled] = AresTActionExt::GetMode(nAction);
-	if (Handled)
+	std::pair<LogicNeedType, bool> _result = AresTActionExt::GetMode(nAction);
+
+	if (_result.second)
 	{
-		R->EAX(SomeFlag);
+		R->EAX(_result.first);
 		return 0x6E3C4B;
 	}
-	else
-	{
-		R->EAX(((int)nAction) - 1);
-		return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
+
+	_result = TEventExtData::GetMode((PhobosTriggerEvent)nAction);
+
+	if(_result.second) {
+		R->EAX(_result.first);
+		return 0x6E3C4B;
 	}
+
+	R->EAX(((int)nAction) - 1);
+	return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
+
 }
 
 ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)

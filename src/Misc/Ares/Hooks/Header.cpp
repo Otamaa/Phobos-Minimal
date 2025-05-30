@@ -564,6 +564,14 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* V
 
 			AddPassengers(Grinder, nPass);
 			Grinder->Owner->TransactMoney(nPass->GetRefund());
+
+			if(nPass->InOpenToppedTransport)
+				Vic->MarkPassengersAsExited();
+
+			if(Vic->GetTechnoType()->Gunner)
+				Vic->RemoveGunner(nPass);
+
+			nPass->Transporter = nullptr;
 			nPass->UnInit();
 		}
 	}
@@ -1710,7 +1718,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 		const auto what = pThis->WhatAmI();
 
 		// eject or kill all passengers
-		while (pThis->Passengers.GetFirstPassenger())
+		while (pThis->Passengers.FirstPassenger)
 		{
 			auto const pPassenger = pThis->RemoveFirstPassenger();
 

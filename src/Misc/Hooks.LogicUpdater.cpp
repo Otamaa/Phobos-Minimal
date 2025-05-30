@@ -104,17 +104,21 @@ void UpdateWebbed(FootClass* pThis)
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
+#ifndef _Uhh
 ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 {
-	enum { retDead = 0x6FAFFD, Continue = 0x6F9E6C };
+	enum { retDead = 0x6FAFFD, Continue = 0x6F9EBB };
 
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
-
 	if (pThis->IsMouseHovering)
 		pThis->IsMouseHovering = false;
+
+	if (!pThis->IsAlive)
+		return retDead;
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
 
@@ -191,6 +195,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	if(!pThis->IsAlive) {
 		return retDead;
 	}
+
 	//TODO : improve this to better handle delay anims !
 	//pExt->UpdateDelayFireAnim();
 
@@ -203,8 +208,60 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 
 #endif
 
+	if(pType->IsGattling) {
+		VocClass::PlayIfInRange(pThis->Location, &pThis->Audio4);
+	}
+
+	pThis->UpdateIronCurtainTimer();
+	pThis->UpdateAirstrikeTimer();
+
+	PassengersFunctional::AI(pThis);
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
+	SpawnSupportFunctional::AI(pThis);
+
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
+	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	GiftBoxFunctional::AI(pExt, pTypeExt);
+
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
+	pExt->PaintBallStates.erase_all_if([pThis , IsBuilding](auto& pb) {
+		if (pb.second.timer.GetTimeLeft()) {
+			if (IsBuilding) {
+				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+			}
+			return false;
+		}
+
+		return true;
+	});
+
+	if (auto& pDSState = pExt->DamageSelfState) {
+		pDSState->TechnoClass_Update_DamageSelf(pThis);
+	}
+
+	if (!pThis->IsAlive) {
+		return retDead;
+	}
+
 	return Continue;
 }
+#endif
 
 ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak
 {
@@ -243,47 +300,46 @@ ASMJIT_PATCH(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x7363B5, TechnoClass_AI_Tunnel, 0x6) // Unit
 
+// ASMJIT_PATCH(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
 
-ASMJIT_PATCH(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
-{
-	GET(TechnoClass*, pThis, ESI);
+// 	pThis->UpdateIronCurtainTimer();
+// 	pThis->UpdateAirstrikeTimer();
 
-	pThis->UpdateIronCurtainTimer();
-	pThis->UpdateAirstrikeTimer();
+// 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+// 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+// #ifdef ENABLE_THESE
+// 	PassengersFunctional::AI(pThis);
+// 	SpawnSupportFunctional::AI(pThis);
 
-#ifdef ENABLE_THESE
-	PassengersFunctional::AI(pThis);
-	SpawnSupportFunctional::AI(pThis);
+// 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 
-	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+// 	if(pThis->IsAlive)
+// 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	if(pThis->IsAlive)
-		GiftBoxFunctional::AI(pExt, pTypeExt);
+// 	if(pThis->IsAlive){
+// 		pExt->PaintBallStates.erase_all_if([pThis](auto& pb){
+// 				if(pb.second.timer.GetTimeLeft()) {
+// 					if (pThis->WhatAmI() == BuildingClass::AbsID) {
+// 						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+// 					}
+// 					return false;
+// 				}
 
-	if(pThis->IsAlive){
-		pExt->PaintBallStates.erase_all_if([pThis](auto& pb){
-				if(pb.second.timer.GetTimeLeft()) {
-					if (pThis->WhatAmI() == BuildingClass::AbsID) {
-						BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-					}
-					return false;
-				}
+// 			return true;
+// 		});
 
-			return true;
-		});
-
-		if (auto& pDSState = pExt->DamageSelfState) {
-			pDSState->TechnoClass_Update_DamageSelf(pThis);
-		}
-	}
-#endif
-	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
-	//return 0x6F9EBB;
-}
+// 		if (auto& pDSState = pExt->DamageSelfState) {
+// 			pDSState->TechnoClass_Update_DamageSelf(pThis);
+// 		}
+// 	}
+// #endif
+// 	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
+// 	//return 0x6F9EBB;
+// }
 
 bool Spawned_Check_Destruction(AircraftClass* aircraft)
 {

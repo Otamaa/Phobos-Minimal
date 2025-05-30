@@ -170,7 +170,7 @@ void PhobosAttachEffectClass::AI()
 		this->CreateAnim();
 
 	this->AnimCheck();
-
+	
 	if (auto pTag = this->Techno->AttachedTag)
 		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
 }
@@ -618,6 +618,9 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 		if (!penetrates)
 			return nullptr;
 	}
+
+	if (auto pTag = pTarget->AttachedTag)
+		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
 
 	int currentTypeCount = 0;
 	PhobosAttachEffectClass* match = nullptr;

@@ -92,6 +92,136 @@ private:
 
 public:
 
+	static std::pair<TriggerAttachType, bool> GetFlag(PhobosTriggerEvent nAction)
+	{
+		switch (nAction)
+		{
+		case PhobosTriggerEvent::LocalVariableGreaterThan:
+		case PhobosTriggerEvent::LocalVariableLessThan:
+		case PhobosTriggerEvent::LocalVariableEqualsTo:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
+		case PhobosTriggerEvent::LocalVariableAndIsTrue:
+		case PhobosTriggerEvent::GlobalVariableGreaterThan:
+		case PhobosTriggerEvent::GlobalVariableLessThan:
+		case PhobosTriggerEvent::GlobalVariableEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrue:
+		case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
+		case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
+		case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
+			return { TriggerAttachType::Logic , true };
+		case PhobosTriggerEvent::HouseOwnsTechnoType:
+		case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
+		case PhobosTriggerEvent::HousesDestroyed:
+			return { TriggerAttachType::House , true };
+		case PhobosTriggerEvent::CellHasTechnoType:
+		case PhobosTriggerEvent::CellHasAnyTechnoTypeFromList:
+			return { TriggerAttachType::Object , true };
+		case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
+			return { TriggerAttachType::Object , true };
+		case PhobosTriggerEvent::ShieldBroken:
+			return { TriggerAttachType::None , true };
+		default:
+			return { TriggerAttachType::None , false };
+		}
+	}
+
+	static std::pair<LogicNeedType, bool> GetMode(PhobosTriggerEvent nAction)
+	{
+		switch (nAction)
+		{
+		case PhobosTriggerEvent::LocalVariableGreaterThan:
+		case PhobosTriggerEvent::LocalVariableLessThan:
+		case PhobosTriggerEvent::LocalVariableEqualsTo:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
+		case PhobosTriggerEvent::LocalVariableAndIsTrue:
+			return { LogicNeedType::Local , true };
+
+		case PhobosTriggerEvent::GlobalVariableGreaterThan:
+		case PhobosTriggerEvent::GlobalVariableLessThan:
+		case PhobosTriggerEvent::GlobalVariableEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrue:
+			return { LogicNeedType::Global , true };
+
+		case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
+		case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
+			return { LogicNeedType::Local , true };
+
+		case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
+			return { LogicNeedType::Global , true };
+
+		case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
+			return { LogicNeedType::Local , true };
+
+		case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
+		case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
+			return { LogicNeedType::Global , true };
+
+		case PhobosTriggerEvent::HouseOwnsTechnoType:
+		case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
+		case PhobosTriggerEvent::HousesDestroyed:
+			return { LogicNeedType::House , true };
+
+		case PhobosTriggerEvent::CellHasTechnoType:
+		case PhobosTriggerEvent::CellHasAnyTechnoTypeFromList:
+			return { LogicNeedType::Cell , true };
+
+		case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
+			return { LogicNeedType::None , true };
+
+		case PhobosTriggerEvent::ShieldBroken:
+			return { LogicNeedType::None , true };
+
+		default:
+			return { LogicNeedType::None , false };
+		}
+	}
+
+
 	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
 	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
 	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);

@@ -99,6 +99,8 @@ public:
 	//static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioEventHandleTag* pCtrl = nullptr)
 	//	{ JMP_STD(0x7509E0); }
 
+	static int __fastcall PlayIfInRange(const CoordStruct &coords, AudioController* pCtrl) { JMP_STD(0x750D40); }
+
 	static DWORD __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioController* pCtrl = nullptr)
 		{ JMP_STD(0x750920); }
 

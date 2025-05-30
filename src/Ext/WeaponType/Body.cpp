@@ -282,7 +282,7 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 	auto pTechno = pFirer;
 
-	if (pTechno->Transporter && pTechno->Transporter->GetTechnoType()->OpenTopped) {
+	if (pTechno->Transporter && pTechno->Transporter->IsAlive && pTechno->Transporter->GetTechnoType()->OpenTopped) {
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->Transporter->GetTechnoType());
 
 		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)

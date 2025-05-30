@@ -883,8 +883,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
 		}
 
-		if (!pWHExt->Malicious && !pWHExt->Nonprovocative) {
-			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman() && args.Attacker) {
+		if (!pWHExt->Malicious && args.Attacker && args.Attacker->IsAlive && !pWHExt->Nonprovocative) {
+			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman()) {
 				pThis->BaseIsAttacked(args.Attacker);
 			}
 		}
@@ -1187,7 +1187,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
 			}
 
-			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman() && args.Attacker)
+			if (args.Attacker && args.Attacker->IsAlive && (pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman())
 			{
 				pThis->BaseIsAttacked(args.Attacker);
 			}
@@ -1397,7 +1397,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	auto pShape = pThis->GetShapeNumber();
 	auto foundation = pThis->GetFoundationData();
 
-	if (pThis->Owner && !pWHExt->Nonprovocative && Attacker && !pThis->IsStrange())
+	if (pThis->Owner && !pWHExt->Nonprovocative && Attacker && Attacker->IsAlive && !pThis->IsStrange())
 	{
 		pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
 		pThis->Owner->LATime = Unsorted::CurrentFrame;
@@ -1743,7 +1743,7 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 		{
 			if (pTeam->Type->Whiner && !pThis->Owner->IsControlledByHuman())
 			{
-				if (!args.Attacker)
+				if (!args.Attacker || !args.Attacker->IsAlive)
 				{
 					R->EAX(_res);
 					return 0x4D74D6;

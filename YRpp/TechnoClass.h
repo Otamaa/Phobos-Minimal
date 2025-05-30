@@ -336,7 +336,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual AbstractClass* GreatestThreat(ThreatType threat, CoordStruct* pCoord, bool onlyTargetHouseEnemy) JMP_THIS(0x6F8DF0);
 	virtual void SetTarget(AbstractClass *pTarget) JMP_THIS(0x6FCDB0);
 	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
-	virtual void Guard() RX; // clears target and destination and puts in guard mission
+	virtual void Guard() RX; // clears target and destination and puts in guard mission //70F850
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true)JMP_THIS(0x7014A0);
 	virtual void RockByValue(CoordStruct* sourceCoords, float bFactor = 1.5f, bool bHalf = false) RX;
 	virtual bool Crash(ObjectClass *Killer) R0;
